@@ -747,8 +747,8 @@ public class DefaultRankCalculator implements Comparable {
 			return false;
 		}
 
-		if (dl.getState() == Download.ST_ERROR
-				|| dl.getState() == Download.ST_STOPPED) {
+		int state = dl.getState();
+		if (state == Download.ST_ERROR || state == Download.ST_STOPPED) {
 			if (rules.bDebugLog)
 				sExplainFP += "Not FP: Download is ERROR or STOPPED\n";
 			return false;
