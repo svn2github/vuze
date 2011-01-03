@@ -339,6 +339,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	protected int headerHeight;
 
+	private Shell shell;
+
 
 	/**
 	 * Main Initializer
@@ -436,6 +438,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	// AbstractIView::initialize
 	public void initialize(Composite composite) {
 		composite.setRedraw(false);
+		shell = composite.getShell();
 		mainComposite = createSashForm(composite);
 		table = createTable(tableComposite);
 		menu = createMenu(table);
@@ -1891,7 +1894,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return null;
 		}
 		
-		final Menu menu = new Menu(tableComposite.getShell(), SWT.POP_UP);
+		final Menu menu = new Menu(shell, SWT.POP_UP);
 		table.addListener(SWT.MenuDetect, new Listener() {
 			public void handleEvent(Event event) {
 				Point pt = event.display.map(null, table.getComposite(), new Point(event.x, event.y));
@@ -4861,7 +4864,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	/** Note: Callers need to be on SWT Thread */
 	public boolean isVisible() {
 		boolean wasVisible = isVisible;
-		isVisible = table != null && !table.isDisposed() && table.isVisible() && !table.getShell().getMinimized();
+		isVisible = table != null && !table.isDisposed() && table.isVisible() && !shell.getMinimized();
 		if (isVisible != wasVisible) {
 			visibleRowsChanged();
 			if (isVisible) {
