@@ -79,7 +79,7 @@ public class ColumnFileCount
 	}
 
 	public void cellMouseTrigger(final TableCellMouseEvent event) {
-		if (Utils.getUserMode() < 2) {
+		if (Utils.getUserMode() < 2 || true) { // remove prototype for now
 			return;
 		}
 		final DownloadManager dm = (DownloadManager) event.cell.getDataSource();
