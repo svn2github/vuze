@@ -4432,14 +4432,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (row.isInPaintItem()) {
 			return true;
 		}
-		if (Utils.isThisThreadSWT() && !isVisible()) {
-			return false;
-		}
 		if (visibleRows == null) {
 			return false;
 		}
 		for (TableRowCore visibleRow : visibleRows) {
 			if (row == visibleRow) {
+				if (Utils.isThisThreadSWT() && !isVisible()) {
+					return false;
+				}
 				return true;
 			}
 		}
