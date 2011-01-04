@@ -771,13 +771,6 @@ DeviceManagerUI
 		
 	}
 	
-	protected String
-	getRSSLink(
-		int		port )
-	{
-		return( "http://127.0.0.1:" + port + "/" );
-	}
-	
 	protected void
 	setupMenuListeners()
 	{
@@ -2540,11 +2533,13 @@ DeviceManagerUI
 					
 					need_sep = true;
 					
-					MenuItem rss_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.rsspub");
+					final MenuItem rss_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.rsspub");
 					rss_menu_item.setStyle(MenuItem.STYLE_CHECK);
 
 					rss_menu_item.addFillListener(new MenuItemFillListener() {
 						public void menuWillBeShown(MenuItem menu, Object data) {
+							rss_menu_item.setEnabled( device_manager.isRSSPublishEnabled());
+							
 							menu.setData(new Boolean(device_manager.isRSSPublishEnabled() && renderer.isRSSPublishEnabled()));
 						}
 					});

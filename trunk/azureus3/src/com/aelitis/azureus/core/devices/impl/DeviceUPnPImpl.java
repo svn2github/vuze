@@ -414,9 +414,26 @@ DeviceUPnPImpl
 	getStreamURL(
 		TranscodeFileImpl		file )
 	{
+		return( getStreamURL( file, null ));
+	}
+	
+	protected URL
+	getStreamURL(
+		TranscodeFileImpl		file,
+		String					host )
+	{
 		browseReceived();
 		
-		return( super.getStreamURL( file, null ));
+		return( super.getStreamURL( file, host ));
+	}
+	
+	protected String
+	getMimeType(
+		TranscodeFileImpl		file )
+	{
+		browseReceived();
+		
+		return( super.getMimeType(file));
 	}
 	
 	protected void
