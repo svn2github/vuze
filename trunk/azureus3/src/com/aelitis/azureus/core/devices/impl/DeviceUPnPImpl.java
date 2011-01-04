@@ -1386,6 +1386,15 @@ DeviceUPnPImpl
 						state == TranscodeJobImpl.ST_REMOVED ||
 						state == TranscodeJobImpl.ST_STOPPED ){
 					
+						// might have completed and then been removed
+					
+					TranscodeFile tf = job.getTranscodeFile();
+					
+					if ( tf != null && tf.isComplete()){
+						
+						return( false );
+					}
+					
 					return( true );
 				}
 			}
