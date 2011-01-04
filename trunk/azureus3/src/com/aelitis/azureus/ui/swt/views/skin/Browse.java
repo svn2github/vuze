@@ -23,34 +23,26 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.*;
-import org.eclipse.swt.widgets.Shell;
-
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
-import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
-import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.ui.*;
-import org.gudy.azureus2.plugins.ui.menus.*;
 
 /**
  * @author TuxPaper
@@ -61,15 +53,11 @@ public class Browse
 	extends SkinView
 	implements MdiCloseListener
 {
-	protected static final String CFG_SHOWCLOSE = "contentnetwork.close.reminder";
-
 	private SWTSkinObjectBrowser browserSkinObject;
 
 	public SWTSkinObjectBrowser getBrowserSkinObject() {
 		return browserSkinObject;
 	}
-
-	private SWTSkin skin;
 
 	private SWTSkinObject soMain;
 
@@ -98,7 +86,6 @@ public class Browse
 	 */
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		this.soMain = skinObject;
-		skin = skinObject.getSkin();
 		Object creationParams = skinObject.getData("CreationParams");
 
 		if (creationParams instanceof ContentNetwork) {
@@ -268,91 +255,5 @@ public class Browse
 		
 		contentNetwork.setPersistentProperty(ContentNetwork.PP_ACTIVE,
 				Boolean.FALSE);
-		
-		// send sidebar close event to webapp
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				Shell shell = null;
-				
-				String url = ContentNetworkUtils.getUrl(contentNetwork,
-						ContentNetwork.SERVICE_SIDEBAR_CLOSE);
-				if (url == null) {
-					return;
-				}
-				
-				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-				if (uiFunctions != null) {
-					shell = uiFunctions.getMainShell();
-				}
-				
-				if (shell == null) {
-					return;
-				}
-				final Browser browser = Utils.createSafeBrowser(shell, SWT.NONE);
-				if (browser == null) {
-					return;
-				}
-				browser.setVisible(false);
-
-				browser.addProgressListener(new ProgressListener() {
-					public void completed(ProgressEvent event) {
-						Utils.execSWTThreadLater(1000, new AERunnable() {
-							public void runSupport() {
-								if (browser.isDisposed() || browser.getShell().isDisposed()) {
-									return;
-								}
-								browser.setUrl("about:blank");
-								browser.dispose();
-							}
-						});
-					}
-
-					public void changed(ProgressEvent event) {
-					}
-				});
-				
-				browser.setUrl(url);
-			}
-		});
-
-		if (!wasActive) {
-			return;
-		}
-
-		if (userClosed) {
-			int decision = RememberedDecisionsManager.getRememberedDecision(CFG_SHOWCLOSE);
-			if (decision != 1) {
-				final SkinnedDialog closeDialog = new SkinnedDialog(
-						"skin3_close_notification", "close-notification.body");
-
-				closeDialog.setTitle(MessageText.getString("v3.dialog.cnclose.title",
-						new String[] {
-							contentNetwork.getName()
-						}));
-				SWTSkin skin = closeDialog.getSkin();
-				SWTSkinObjectButton soButton = (SWTSkinObjectButton) skin.getSkinObject("close");
-
-				if (soButton != null) {
-					soButton.addSelectionListener(new ButtonListenerAdapter() {
-						public void pressed(SWTSkinButtonUtility buttonUtility,
-								SWTSkinObject skinObject, int stateMask) {
-							closeDialog.close();
-						}
-					});
-				}
-
-				closeDialog.addCloseListener(new SkinnedDialogClosedListener() {
-					public void skinDialogClosed(SkinnedDialog dialog) {
-						SWTSkin skin = closeDialog.getSkin();
-						SWTSkinObjectCheckbox soCheck = (SWTSkinObjectCheckbox) skin.getSkinObject("noshowagain");
-						if (soCheck != null && soCheck.isChecked()) {
-							RememberedDecisionsManager.setRemembered(CFG_SHOWCLOSE, 1);
-						}
-					}
-				});
-
-				closeDialog.open();
-			}
-		}
 	}
 }
