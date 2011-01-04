@@ -75,8 +75,6 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_THUMBNAIL_URL = "Thumbnail.url";
 
-	private static final String TOR_AZ_PROP_QUALITY = "Quality";
-
 	private static final String TOR_AZ_PROP_PROGRESSIVE = "Progressive";
 
 	private static final String TOR_AZ_PROP_SPEED = "Speed Bps";
@@ -294,10 +292,6 @@ public class PlatformTorrentUtils
 		return getContentMapString(torrent, TOR_AZ_PROP_URL);
 	}
 
-	public static String getContentQuality(TOTorrent torrent) {
-		return getContentMapString(torrent, TOR_AZ_PROP_QUALITY);
-	}
-
 	public static boolean isContentDRM(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_DRM, -1) >= 0;
 	}
@@ -339,13 +333,6 @@ public class PlatformTorrentUtils
 		} else {
 			map.put(key, obj);
 		}
-	}
-
-	public static void setContentQuality(TOTorrent torrent, String sQualityID) {
-		Map mapContent = getContentMap(torrent);
-		putOrRemove(mapContent, TOR_AZ_PROP_QUALITY, sQualityID);
-
-		writeTorrentIfExists(torrent);
 	}
 
 	private static void writeTorrentIfExists(TOTorrent torrent) {
