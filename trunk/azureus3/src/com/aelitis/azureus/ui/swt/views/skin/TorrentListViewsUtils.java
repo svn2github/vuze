@@ -445,17 +445,17 @@ public class TorrentListViewsUtils
 	 * @param dm
 	 * @return 0=good, 1 = fail, 2 = abandon
 	 */
+
 	private static int 
 	installEMP(
-		final DownloadManager 	dm,
-		final int 				file_index,
-		final boolean			complete_only ) 
+		String				name,
+		final Runnable		target )
 	{
 		synchronized( TorrentListViewsUtils.class ){
 			
 			if ( emp_installing ){
 				
-				Debug.out( "EMP is already being installed, secondary launch for " + dm.getDisplayName() + " ignored" );
+				Debug.out( "EMP is already being installed, secondary launch for " + name + " ignored" );
 				
 				return( 2 );
 			}
@@ -477,11 +477,11 @@ public class TorrentListViewsUtils
 				run() 
 				{
 					try{
-						if(installer.install()) {
+						if (installer.install()){
 							Utils.execSWTThread(new AERunnable() {
 								
 								public void runSupport() {
-									openInEMP(dm,file_index,complete_only);
+									target.run();
 									
 								}
 							});
@@ -520,7 +520,6 @@ public class TorrentListViewsUtils
 		}
 		
 	}
-
 	/**
 	 * New version accepts map with ASX parameters. If the params are null then is uses the
 	 * old version to start the player. If the
@@ -532,7 +531,7 @@ public class TorrentListViewsUtils
 	 */
 	private static int 
 	openInEMP(
-		final DownloadManager dm, int _file_index, boolean complete_only ) 
+		final DownloadManager dm, final int _file_index, final boolean complete_only ) 
 	{
 		try {
 			final int file_index;
@@ -721,7 +720,7 @@ public class TorrentListViewsUtils
 
 				if (pi == null) {
 
-					return (installEMP(dm, file_index,complete_only ));
+					return (installEMP(dm.getDisplayName(), new Runnable(){ public void run(){ openInEMP( dm, file_index,complete_only ); }}));
 					
 				}else if ( !pi.getPluginState().isOperational()){
 					
@@ -776,6 +775,51 @@ public class TorrentListViewsUtils
 		return 1;
 	}//openInEMP
 
+	public static int
+	openInEMP(
+		final String	name,
+		final URL		url )
+	{
+		Class epwClass = null;
+		
+		try {
+
+			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
+					"azemp", false );
+
+			if ( pi == null ){
+
+				return( installEMP( name, new Runnable(){ public void run(){ openInEMP( name, url );}} ));
+				
+			}else if ( !pi.getPluginState().isOperational()){
+				
+				return( 1 );
+			}
+
+			epwClass = pi.getPlugin().getClass().getClassLoader().loadClass(
+					"com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT");
+
+		} catch (ClassNotFoundException e1) {
+			return 1;
+		}
+
+									
+		try{
+			Method method = epwClass.getMethod("openWindow", new Class[] {
+					URL.class, String.class
+				});
+			
+			method.invoke(null, new Object[] {url, name	});
+				
+			return( 0 );
+				
+		}catch( Throwable e ){
+			debug( "URL/name open method missing" );
+			
+			return( 1 );
+		}
+	}
+	
 	/**
 	* @param dm
 	*

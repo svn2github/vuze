@@ -69,6 +69,7 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.views.skin.InfoBarUtil;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
+import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 
 /**
  * @author TuxPaper
@@ -1168,6 +1169,16 @@ public class SBC_DevicesView
 		list.put("start", can_queue);
 		list.put("up", can_move_up);
 		list.put("down", can_move_down);
+		
+		if ( selectedDS.length == 1 ){
+			
+			TranscodeFile f = (TranscodeFile)selectedDS[0];
+			
+			if ( f.isComplete() && f.getStreamURL() != null ){
+				
+				list.put( "play", true );
+			}
+		}
 	}
 
 	public boolean toolBarItemActivated(final String itemKey) {
@@ -1186,6 +1197,19 @@ public class SBC_DevicesView
 			return true;
 		}
 
+		if ( itemKey.equals( "play" )){
+			
+			if ( selectedDS.length == 1 ){
+				
+				TranscodeFile f = (TranscodeFile)selectedDS[0];
+			
+				if ( TorrentListViewsUtils.openInEMP( f.getName(), f.getStreamURL()) == 0 ){
+				
+					return( true );
+				}
+			}
+		}
+		
 		java.util.List<TranscodeJob> jobs = new ArrayList<TranscodeJob>(
 				selectedDS.length);
 
@@ -1196,6 +1220,7 @@ public class SBC_DevicesView
 				jobs.add(job);
 			}
 		}
+		
 		if (jobs.size() == 0) {
 			return false;
 		}
@@ -1243,6 +1268,7 @@ public class SBC_DevicesView
 						&& sortColumn.getName().equals(ColumnTJ_Rank.COLUMN_ID);
 			}
 		}
+		
 		tvFiles.refreshTable(forceSort);
 
 		return didSomething;

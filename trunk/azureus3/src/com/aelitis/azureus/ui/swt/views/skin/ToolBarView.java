@@ -145,7 +145,7 @@ public class ToolBarView
 						return;
 					}
 					ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-					if (sc != null) {
+					if (sc != null && sc.length > 0 ) {
 						
 						if ( PlayUtils.canStreamDS(sc[0], sc[0].getFileIndex())){
 							TorrentListViewsUtils.playOrStreamDataSource(sc[0],
@@ -784,6 +784,15 @@ public class ToolBarView
 					can_play 	= PlayUtils.canPlayDS(currentContent[0], currentContent[0].getFileIndex());
 					can_stream	= PlayUtils.canStreamDS(currentContent[0], currentContent[0].getFileIndex());
 				}
+			}
+			
+				// allow a tool-bar enabler to manually handle play/stream events
+			
+			if ( mapStates.containsKey( "play" )){
+				can_play |= (Boolean)mapStates.get( "play" );
+			}
+			if ( mapStates.containsKey( "stream" )){
+				can_stream |= (Boolean)mapStates.get( "stream" );
 			}
 			
 			mapStates.put( "play", can_play | can_stream );
