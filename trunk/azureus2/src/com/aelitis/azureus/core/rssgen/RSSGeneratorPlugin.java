@@ -80,8 +80,7 @@ RSSGeneratorPlugin
 		Integer	rss_port;
 		String	rss_access;
 		
-		if ( 	COConfigurationManager.getBooleanParameter( "rss.internal.migrated", false ) ||
-				!COConfigurationManager.getBooleanParameter( "Plugin.default.device.rss.enable", false )){
+		if ( COConfigurationManager.getBooleanParameter( "rss.internal.migrated", false )){
 			
 			rss_port 	= COConfigurationManager.getIntParameter( "rss.internal.config.port", DEFAULT_PORT );
 			rss_access 	= COConfigurationManager.getStringParameter( "rss.internal.config.access", DEFAULT_ACCESS );
