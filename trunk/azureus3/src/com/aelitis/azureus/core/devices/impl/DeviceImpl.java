@@ -45,6 +45,7 @@ import com.aelitis.azureus.core.devices.TranscodeProvider;
 import com.aelitis.azureus.core.devices.TranscodeTarget;
 import com.aelitis.azureus.core.devices.TranscodeTargetListener;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.util.ImportExportUtils;
 
 public abstract class 
@@ -437,6 +438,20 @@ DeviceImpl
 		}
 		
 		return( true );
+	}
+	
+	public boolean
+	isExportable()
+	{
+		return( false );
+	}
+	
+	public VuzeFile 
+	getVuzeFile() 
+	
+		throws IOException
+	{
+		return( manager.exportVuzeFile( this ));
 	}
 	
 	protected void

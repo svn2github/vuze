@@ -591,6 +591,12 @@ DeviceMediaRendererManual
 		return( false );
 	}
 	
+	public boolean
+	isExportable()
+	{
+		return( true );
+	}
+	
 	protected void
 	getDisplayProperties(
 		List<String[]>	dp )

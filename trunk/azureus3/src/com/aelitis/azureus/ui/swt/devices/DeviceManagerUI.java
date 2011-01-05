@@ -52,6 +52,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
@@ -67,6 +68,7 @@ import com.aelitis.azureus.core.devices.DeviceManager.DeviceManufacturer;
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
@@ -77,6 +79,7 @@ import com.aelitis.azureus.ui.swt.devices.add.*;
 import com.aelitis.azureus.ui.swt.devices.add.DeviceTemplateChooser.DeviceTemplateClosedListener;
 import com.aelitis.azureus.ui.swt.devices.add.ManufacturerChooser.ClosedListener;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
+import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionMDIEntry.SubsMenuItemListener;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -133,6 +136,7 @@ DeviceManagerUI
 	private MenuItemListener properties_listener;
 	private MenuItemListener hide_listener;
 	private MenuItemListener rename_listener;
+	private MenuItemListener export_listener;
 	
 	private MenuItemFillListener	will_remove_listener;
 	private MenuItemListener 		remove_listener;
@@ -854,6 +858,25 @@ DeviceManagerUI
 					}
 				};
 
+		export_listener = 
+			new MenuItemListener() 
+			{
+				public void 
+				selected(
+					MenuItem menu, 
+					Object target) 
+				{
+					if ( target instanceof MdiEntry){
+						
+						MdiEntry info = (MdiEntry) target;
+						
+						Device device = (Device)info.getDatasource();
+						
+						export( device );
+					}
+				}
+			};
+			
 		will_remove_listener = 
 				new MenuItemFillListener() 
 				{
@@ -1062,7 +1085,59 @@ DeviceManagerUI
 			
 				};
 	}
+	
+	private void 
+	export(
+		final Device	device ) 
+	{
+		Utils.execSWTThread(
+			new AERunnable() 
+			{
+				public void 
+				runSupport()
+				{
+					FileDialog dialog = 
+						new FileDialog( Utils.findAnyShell(), SWT.SYSTEM_MODAL | SWT.SAVE );
+					
+					dialog.setFilterPath( TorrentOpener.getFilterPathData() );
+											
+					dialog.setText(MessageText.getString("subscript.export.select.template.file"));
+					
+					dialog.setFilterExtensions(new String[] {
+							"*.vuze",
+							"*.vuz",
+							Constants.FILE_WILDCARD
+						});
+					dialog.setFilterNames(new String[] {
+							"*.vuze",
+							"*.vuz",
+							Constants.FILE_WILDCARD
+						});
+					
+					String path = TorrentOpener.setFilterPathData( dialog.open());
 
+					if ( path != null ){
+						
+						String lc = path.toLowerCase();
+						
+						if ( !lc.endsWith( ".vuze" ) && !lc.endsWith( ".vuz" )){
+							
+							path += ".vuze";
+						}
+						
+						try{
+							VuzeFile vf = device.getVuzeFile();
+							
+							vf.write( new File( path ));
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			});
+	}
 	
 	protected void
 	setupListeners()
@@ -2620,13 +2695,28 @@ DeviceManagerUI
 				menu_manager.addMenuItem("sidebar." + key, "s2" ).setStyle( MenuItem.STYLE_SEPARATOR );
 			}
 			
+				// rename
+			
 			MenuItem rename_menu_item = menu_manager.addMenuItem("sidebar." + key, "MyTorrentsView.menu.rename" );
 			
 			rename_menu_item.addListener( rename_listener );									
 			
+				// export
+			
+			if ( device.isExportable()){
+				
+				MenuItem export_item = menu_manager.addMenuItem("sidebar." + key,"Subscription.menu.export");
+				
+				export_item.addListener( export_listener );
+			}
+			
+				// hide
+			
 			MenuItem hide_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.hide");
 			
 			hide_menu_item.addListener( hide_listener );
+			
+				// remove
 			
 			MenuItem remove_menu_item = menu_manager.addMenuItem("sidebar." + key, "MySharesView.menu.remove");
 			

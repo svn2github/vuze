@@ -22,11 +22,13 @@
 package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
@@ -49,6 +51,9 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -57,7 +62,12 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
+import com.aelitis.azureus.core.subs.SubscriptionException;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+import com.aelitis.azureus.core.vuzefile.VuzeFileProcessor;
 import com.aelitis.net.upnp.UPnPDevice;
 
 public class 
@@ -81,11 +91,62 @@ DeviceManagerImpl
 	
 	protected static final int	DEVICE_UPDATE_PERIOD	= 5*1000;
 	
+	private static boolean pre_initialised;
+	
 	private static DeviceManagerImpl		singleton;
 	
 	public static void
 	preInitialise()
 	{
+		synchronized( DeviceManagerImpl.class ){
+			
+			if ( pre_initialised ){
+				
+				return;
+			}
+			
+			pre_initialised = true;
+		}
+		
+		VuzeFileHandler.getSingleton().addProcessor(
+			new VuzeFileProcessor()
+			{
+				public void
+				process(
+					VuzeFile[]		files,
+					int				expected_types )
+				{
+					for (int i=0;i<files.length;i++){
+						
+						VuzeFile	vf = files[i];
+						
+						VuzeFileComponent[] comps = vf.getComponents();
+						
+						for (int j=0;j<comps.length;j++){
+							
+							VuzeFileComponent comp = comps[j];
+							
+							int	type = comp.getType();
+							
+							if ( type == VuzeFileComponent.COMP_TYPE_DEVICE ){
+								
+								try{
+									((DeviceManagerImpl)getSingleton()).importVuzeFile(
+											comp.getContent(),
+											( expected_types & 
+												( VuzeFileComponent.COMP_TYPE_DEVICE )) == 0 );
+									
+									comp.setProcessed();
+									
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+								}
+							}
+						}
+					}
+				}
+			});		
 	}
 	
 	public static DeviceManager
@@ -1484,6 +1545,93 @@ DeviceManagerImpl
 		}
 		
 		return( false );
+	}
+	
+	protected VuzeFile
+	exportVuzeFile(
+		DeviceImpl		device )
+	
+		throws IOException
+	{
+		VuzeFile	vf = VuzeFileHandler.getSingleton().create();
+		
+		Map	map = new HashMap();
+		
+		Map device_map = new HashMap();
+		
+		map.put( "device", device_map );
+		
+		device.exportToBEncodedMap( device_map );
+		
+		vf.addComponent( VuzeFileComponent.COMP_TYPE_DEVICE, map );
+		
+		return( vf );
+	}
+	
+	private void
+	importVuzeFile(
+		Map			map,
+		boolean		warn_user )
+	{
+		Map	m = (Map)map.get( "device" );
+		
+		if ( device_map != null ){
+			
+			try{
+				DeviceImpl device = DeviceImpl.importFromBEncodedMapStatic( this, m );
+				
+				DeviceImpl existing;
+				
+				synchronized( this ){
+					
+					existing = device_map.get( device.getID());
+				}
+				
+				if ( existing == null ){
+					
+					if ( warn_user ){
+						
+						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+			
+						String details = MessageText.getString(
+								"device.import.desc",
+								new String[]{ device.getName()});
+						
+						long res = ui_manager.showMessageBox(
+								"device.import.title",
+								"!" + details + "!",
+								UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+						
+						if ( res != UIManagerEvent.MT_YES ){	
+						
+							return;
+						}
+					}
+					
+					addDevice( device, false );
+					
+				}else{
+					
+					if ( warn_user ){
+						
+						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+						
+						String details = MessageText.getString(
+								"device.import.dup.desc",
+								new String[]{ existing.getName()});
+						
+						ui_manager.showMessageBox(
+								"device.import.dup.title",
+								"!" + details + "!",
+								UIManagerEvent.MT_OK );
+					}
+					
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
 	}
 	
 	public void

@@ -21,8 +21,11 @@
 
 package com.aelitis.azureus.core.devices;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.URL;
+
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
 
 public interface 
 Device 
@@ -163,4 +166,12 @@ Device
 
 	public boolean
 	isNameAutomatic();
+	
+	public boolean
+	isExportable();
+	
+	public VuzeFile
+	getVuzeFile()
+	
+		throws IOException;
 }

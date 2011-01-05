@@ -36,6 +36,7 @@ VuzeFileComponent
 	public static final int COMP_TYPE_CUSTOMIZATION				= 0x00000040;
 	public static final int COMP_TYPE_CONTENT_NETWORK			= 0x00000080;
 	public static final int COMP_TYPE_METASEARCH_OPERATION		= 0x00000100;
+	public static final int COMP_TYPE_DEVICE					= 0x00000200;
 
 	public int
 	getType();
