@@ -70,6 +70,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapte
 import com.aelitis.azureus.ui.swt.views.skin.InfoBarUtil;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
+import com.aelitis.azureus.util.PlayUtils;
 
 /**
  * @author TuxPaper
@@ -1176,7 +1177,15 @@ public class SBC_DevicesView
 			
 			if ( f.isComplete() && f.getStreamURL() != null ){
 				
-				list.put( "play", true );
+				try{
+					if( PlayUtils.canUseEMP( f.getTargetFile())){
+				
+						list.put( "play", true );
+					}
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
 			}
 		}
 	}

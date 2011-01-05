@@ -116,6 +116,10 @@ public class PlayUtils
 		return true;
 	}
 
+	public static boolean canUseEMP(DiskManagerFileInfo file ){
+		return( isExternallyPlayable( file ));
+	}
+	
 	public static boolean canUseEMP(TOTorrent torrent, int file_index) {
 		
 		return( canUseEMP( torrent, file_index, COMPLETE_PLAY_ONLY ));
@@ -543,7 +547,14 @@ public class PlayUtils
 			return false;
 		}
 		
-		String name = d.getTorrent().getFiles()[primary_file_index].getName();
+		return( isExternallyPlayable( d.getDiskManagerFileInfo()[primary_file_index] ));
+	}
+	
+	private static boolean
+	isExternallyPlayable(
+		DiskManagerFileInfo	file )
+	{		
+		String	name = file.getFile( true ).getName();
 		
 		int extIndex = name.lastIndexOf(".");
 		
