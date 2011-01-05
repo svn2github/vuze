@@ -71,55 +71,6 @@ public class SideBarVitalityImageSWT
 	private int alignment = SWT.RIGHT;
 
 	public SideBarVitalityImageSWT(final MdiEntry mdiEntry, String imageID) {
-		performer = new TimerEventPerformer() {
-			private boolean exec_pending = false;
-
-			private Object lock = this;
-
-			public void perform(TimerEvent event) {
-				synchronized (lock) {
-
-					if (exec_pending) {
-
-						return;
-					}
-
-					exec_pending = true;
-				}
-
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						synchronized (lock) {
-
-							exec_pending = false;
-						}
-
-						if (images == null || images.length == 0 || !visible
-								|| hitArea == null) {
-							return;
-						}
-						currentAnimationIndex++;
-						if (currentAnimationIndex >= images.length) {
-							currentAnimationIndex = 0;
-						}
-						if (mdiEntry instanceof SideBarEntrySWT) {
-							SideBarEntrySWT sbEntry = (SideBarEntrySWT) mdiEntry;
-
-							TreeItem treeItem = sbEntry.getTreeItem();
-							if (treeItem == null || treeItem.isDisposed()
-									|| !sbEntry.swt_isVisible()) {
-								return;
-							}
-							Tree parent = treeItem.getParent();
-							parent.redraw(hitArea.x, hitArea.y + treeItem.getBounds().y,
-									hitArea.width, hitArea.height, true);
-							parent.update();
-						}
-					}
-				});
-			}
-		};
-
 		this.mdiEntry = mdiEntry;
 
 		mdiEntry.addListener(new MdiCloseListener() {
@@ -207,6 +158,8 @@ public class SideBarVitalityImageSWT
 			timerEvent.cancel();
 		}
 
+		//System.out.println("Gonna redraw because of " + mdiEntry.getId() + " set to " + this.visible + " via " + Debug.getCompressedStackTrace() );
+		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (mdiEntry != null) {
@@ -230,6 +183,56 @@ public class SideBarVitalityImageSWT
 			int delay = delayTime == -1 ? imageLoader.getAnimationDelay(imageID)
 					: delayTime;
 
+			if (performer == null) {
+				performer = new TimerEventPerformer() {
+					private boolean exec_pending = false;
+
+					private Object lock = this;
+
+					public void perform(TimerEvent event) {
+						synchronized (lock) {
+
+							if (exec_pending) {
+
+								return;
+							}
+
+							exec_pending = true;
+						}
+
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								synchronized (lock) {
+
+									exec_pending = false;
+								}
+
+								if (images == null || images.length == 0 || !visible
+										|| hitArea == null) {
+									return;
+								}
+								currentAnimationIndex++;
+								if (currentAnimationIndex >= images.length) {
+									currentAnimationIndex = 0;
+								}
+								if (mdiEntry instanceof SideBarEntrySWT) {
+									SideBarEntrySWT sbEntry = (SideBarEntrySWT) mdiEntry;
+
+									TreeItem treeItem = sbEntry.getTreeItem();
+									if (treeItem == null || treeItem.isDisposed()
+											|| !sbEntry.swt_isVisible()) {
+										return;
+									}
+									Tree parent = treeItem.getParent();
+									parent.redraw(hitArea.x, hitArea.y + treeItem.getBounds().y,
+											hitArea.width, hitArea.height, true);
+									parent.update();
+								}
+							}
+						});
+					}
+				};
+			}
 			timerEvent = SimpleTimer.addPeriodicEvent("Animate " + mdiEntry.getId()
 					+ "::" + imageID + suffix, delay, performer);
 		}
@@ -279,7 +282,9 @@ public class SideBarVitalityImageSWT
 				}
 				fullImageID = newFullImageID;
 				currentAnimationIndex = 0;
-				createTimerEvent();
+				if (isVisible()) {
+					createTimerEvent();
+				}
 			}
 		});
 	}
@@ -305,7 +310,9 @@ public class SideBarVitalityImageSWT
 			return;
 		}
 		this.delayTime = delayTime;
-		createTimerEvent();
+		if (isVisible()) {
+			createTimerEvent();
+		}
 	}
 
 	/**
