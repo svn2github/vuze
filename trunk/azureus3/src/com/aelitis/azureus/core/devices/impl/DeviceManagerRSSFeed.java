@@ -41,6 +41,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.xml.util.XMLEscapeWriter;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -111,7 +112,9 @@ DeviceManagerRSSFeed
 		
 		OutputStream os = response.getOutputStream();
 
-		PrintWriter pw = new PrintWriter(new OutputStreamWriter( os, "UTF-8" ));
+		XMLEscapeWriter pw = new XMLEscapeWriter( new PrintWriter(new OutputStreamWriter( os, "UTF-8" )));
+
+		pw.setEnabled( false );
 
 		if ( path.length() <= 1 ){
 			
@@ -127,8 +130,10 @@ DeviceManagerRSSFeed
 				}
 
 				String	name = d.getName();
-								
-				pw.println( "<LI><A href=\"" + PROVIDER + "/" + URLEncoder.encode( name, "UTF-8" ) + "\">" + name + "</A></LI>" );
+							
+				String	device_url = PROVIDER + "/" + URLEncoder.encode( name, "UTF-8" );
+				
+				pw.println( "<LI><A href=\"" + device_url + "\">" + name + "</A>&nbsp;&nbsp;-&nbsp;&nbsp;<font size=\"-1\"><a href=\"" + device_url + "?format=html\">html</a></font></LI>" );
 			}
 			
 			pw.println( "</BODY></HTML>" );
@@ -156,6 +161,28 @@ DeviceManagerRSSFeed
 				return( true );
 			}
 			
+			TranscodeFileImpl[] _files = device.getFiles();
+			
+			List<TranscodeFileImpl>	files = new ArrayList<TranscodeFileImpl>( _files.length );
+			
+			files.addAll( Arrays.asList( _files ));
+			
+			Collections.sort(
+				files,
+				new Comparator<TranscodeFileImpl>()
+				{
+					public int  
+					compare(
+						TranscodeFileImpl f1, 
+						TranscodeFileImpl f2) 
+					{
+						long	added1 = f1.getCreationDateMillis()/1000;
+						long	added2 = f2.getCreationDateMillis()/1000;
+
+						return((int)(added2 - added1 ));
+					}
+				});
+			
 			URL	feed_url = url;
 
 				// absolute url is borked as it doesn't set the host properly. hack 
@@ -179,220 +206,271 @@ DeviceManagerRSSFeed
 				((DeviceMediaRendererImpl)device).browseReceived();
 			}
 			
-			response.setContentType( "application/xml" );
-			
-			pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
-			
-			pw.println( 
-					"<rss version=\"2.0\" " + 
-					"xmlns:vuze=\"http://www.vuze.com\" " +
-					"xmlns:media=\"http://search.yahoo.com/mrss/\" " +
-					"xmlns:atom=\"http://www.w3.org/2005/Atom\" " +
-					"xmlns:itunes=\"http://www.itunes.com/dtds/podcast-1.0.dtd\">" );
-			
-			pw.println( "<channel>" );
-			
 			String channel_title = "Vuze Device: " + escape( device.getName());
-					
-			pw.println( "<title>" + channel_title + "</title>" );
-			pw.println( "<link>http://vuze.com</link>" );
-			pw.println( "<atom:link href=\"" + feed_url.toExternalForm() + "\" rel=\"self\" type=\"application/rss+xml\" />" );
-			
-			pw.println( "<description>Vuze RSS Feed for device " + escape( device.getName()) + "</description>" );
-			
-			pw.println("<itunes:image href=\"http://www.vuze.com/img/vuze_icon_128.png\"/>");
-			pw.println("<image><url>http://www.vuze.com/img/vuze_icon_128.png</url><title>" + channel_title + "</title><link>http://vuze.com</link></image>");
-			
-					
-			TranscodeFileImpl[] _files = device.getFiles();
-			
-			List<TranscodeFileImpl>	files = new ArrayList<TranscodeFileImpl>( _files.length );
-			
-			files.addAll( Arrays.asList( _files ));
-			
-			Collections.sort(
-				files,
-				new Comparator<TranscodeFileImpl>()
-				{
-					public int  
-					compare(
-						TranscodeFileImpl f1, 
-						TranscodeFileImpl f2) 
-					{
-						long	added1 = f1.getCreationDateMillis()/1000;
-						long	added2 = f2.getCreationDateMillis()/1000;
 
-						return((int)(added2 - added1 ));
-					}
-				});
-										
-			String	feed_date_key = "devices.feed_date." + device.getID();
-			
-			long feed_date = COConfigurationManager.getLongParameter( feed_date_key );
+			boolean	html = request.getURL().contains( "format=html" );
 
-			boolean new_date = false;
-			
-			for ( TranscodeFileImpl file: files ){
+			if ( html ){
 				
-				long	file_date = file.getCreationDateMillis();
+				response.setContentType( "text/html; charset=UTF-8" );
 				
-				if ( file_date > feed_date ){
-					
-					new_date = true;
-					
-					feed_date = file_date;
-				}
-			}
-			
-			if ( new_date ){
-				
-				COConfigurationManager.setParameter( feed_date_key, feed_date );
-			}
-			
-			pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( feed_date ) + "</pubDate>" );
+				pw.println( "<HTML><HEAD><TITLE>" + channel_title + "</TITLE></HEAD><BODY>" );
 
-			for ( TranscodeFileImpl file: files ){
-										
-	  			if ( !file.isComplete()){
-	  					
-	  				if ( !file.isTemplate()){
-	  						
-	  					continue;
-	  				}
-	  			}
-	  		
-				try{
-	  				pw.println( "<item>" );
-	  				
-	  				pw.println( "<title>" + escape( file.getName()) + "</title>" );
-	  								
-	  				pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( file.getCreationDateMillis()) + "</pubDate>" );
-	  				
-	  				pw.println( "<guid isPermaLink=\"false\">" + escape( file.getKey()) + "</guid>" );
-	  				
-	  				String[] categories = file.getCategories();
-	  				
-	  				for ( String category: categories ){
-	  					
-	  					pw.println( "<category>" + category + "</category>" );
-	  				}
-	  				
-	  				String mediaContent = "";
+				
+				for ( TranscodeFileImpl file: files ){
+					
+		  			if ( !file.isComplete()){
+		  					
+		  				if ( !file.isTemplate()){
+		  						
+		  					continue;
+		  				}
+		  			}
 	  				
 	  				URL stream_url = file.getStreamURL( feed_url.getHost() );
 	  				
 	  				if ( stream_url != null ){
 	  					
 	  					String url_ext = stream_url.toExternalForm();
-	  					
-	  					long fileSize = file.getTargetFile().getLength();
-	  					
-	  					pw.println( "<link>" + url_ext + "</link>" );
-	  					
-	  					mediaContent = "<media:content medium=\"video\" fileSize=\"" +
-											fileSize + "\" url=\"" + url_ext + "\""; 
-	  					
-	  					String	mime_type = file.getMimeType();
-	  					
-	  					if ( mime_type != null ){
 	  						
-	  						mediaContent += " type=\"" + mime_type + "\"";
-	  					}
-	  				
-						pw.println("<enclosure url=\"" + url_ext
-								+ "\" length=\"" + fileSize
-								+ (mime_type == null ? "" : "\" type=\"" + mime_type)
-								+ "\"></enclosure>");		
-	  				}
-	  				
-	   				String	thumb_url		= null;
-	  				String	author			= null;
-	  				String	description		= null;
-	  				
-	  				try{
-	  					Torrent torrent = file.getSourceFile().getDownload().getTorrent();
-	  				
-	  					TOTorrent toTorrent = PluginCoreUtils.unwrap(torrent);
-					
-	  					long duration_secs = PlatformTorrentUtils.getContentVideoRunningTime(toTorrent);
+	  					pw.println( "<p>" );
 	  					
-	  					if ( mediaContent.length() > 0 && duration_secs > 0 ){
+	  					pw.println( "<a href=\"" + url_ext + "\">" + escape( file.getName()) + "</a>" );
 	  						
-	  						mediaContent += " duration=\"" + duration_secs + "\"";
-	  					}
-	  					  					
-	  					thumb_url = PlatformTorrentUtils.getContentThumbnailUrl(toTorrent);
+	  					url_ext += url_ext.indexOf('?') == -1?"?":"&";
 	  					
-	  					author = PlatformTorrentUtils.getContentAuthor(toTorrent);
-	  								
-	  					description= PlatformTorrentUtils.getContentDescription(toTorrent);
+	  					url_ext += "action=download";
 	  					
-	  					if ( description != null ){
-	  						
-	  						description = escapeMultiline( description );
+	  					pw.println( "&nbsp;&nbsp;-&nbsp;&nbsp;<font size=\"-1\"><a href=\"" + url_ext + "\">save</a></font>" );
 
-	  						/*
-	  						if ( thumb_url != null ){
-	  							
-	  		
-	  							pw.println( "<description type=\"text/html\">" + 
-	  								escape( "<div style=\"text-align: justify;padding: 5px;\"><img style=\"float: left;margin-right: 15px;margin-bottom: 15px;\" src=\"" + thumb_url + "\"/>" ) +
-	  								description + 
-	  								escape( "</div>" ) +
-	  								"</description>" );
-	  						}else{
-	  						*/	
-	  							pw.println( "<description>" + description + "</description>");
-	  						//}
-	   					}					
-	  				}catch( Throwable e ){
 	  				}
-	
-	  					// media elements
-	  				
-	  				if ( mediaContent.length() > 0 ){
-	  					  						
-	  					pw.println( mediaContent += "></media:content>" );
-	  				}
-	
-	  				pw.println( "<media:title>" + escape( file.getName()) + "</media:title>" );
-	
-					if ( description != null ){
+				}
+
+				pw.println( "</BODY></HTML>" );
+				
+			}else{
+				boolean	debug = request.getURL().contains( "format=debug" );
+				
+				if ( debug ){
+					
+					response.setContentType( "text/html; charset=UTF-8" );
+					
+					pw.println( "<HTML><HEAD><TITLE>" + channel_title + "</TITLE></HEAD><BODY>" );
+					
+					pw.println( "<pre>" );
+					
+					pw.setEnabled( true );
+					
+				}else{
+					
+					response.setContentType( "application/xml" );
+				}
+				
+				try{
+					
+					pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
+					
+					pw.println( 
+							"<rss version=\"2.0\" " + 
+							"xmlns:vuze=\"http://www.vuze.com\" " +
+							"xmlns:media=\"http://search.yahoo.com/mrss/\" " +
+							"xmlns:atom=\"http://www.w3.org/2005/Atom\" " +
+							"xmlns:itunes=\"http://www.itunes.com/dtds/podcast-1.0.dtd\">" );
+					
+					pw.println( "<channel>" );
+											
+					pw.println( "<title>" + channel_title + "</title>" );
+					pw.println( "<link>http://vuze.com</link>" );
+					pw.println( "<atom:link href=\"" + feed_url.toExternalForm() + "\" rel=\"self\" type=\"application/rss+xml\" />" );
+					
+					pw.println( "<description>Vuze RSS Feed for device " + escape( device.getName()) + "</description>" );
+					
+					pw.println("<itunes:image href=\"http://www.vuze.com/img/vuze_icon_128.png\"/>");
+					pw.println("<image><url>http://www.vuze.com/img/vuze_icon_128.png</url><title>" + channel_title + "</title><link>http://vuze.com</link></image>");
+					
 							
-						pw.println( "<media:description>" + description + "</media:description>" );
+
+												
+					String	feed_date_key = "devices.feed_date." + device.getID();
+					
+					long feed_date = COConfigurationManager.getLongParameter( feed_date_key );
+		
+					boolean new_date = false;
+					
+					for ( TranscodeFileImpl file: files ){
+						
+						long	file_date = file.getCreationDateMillis();
+						
+						if ( file_date > feed_date ){
+							
+							new_date = true;
+							
+							feed_date = file_date;
+						}
 					}
 					
-					if ( thumb_url != null ) {
-							
-						pw.println("<media:thumbnail url=\"" + thumb_url + "\"/>" );
+					if ( new_date ){
+						
+						COConfigurationManager.setParameter( feed_date_key, feed_date );
 					}
-	 
-	 					// iTunes elements
-	 					
-					if ( thumb_url != null ) {
-							
-						pw.println("<itunes:image href=\"" + thumb_url + "\"/>");
-					}
-	
-	 				if ( author != null ){
-	  					
-	  					pw.println("<itunes:author>" + escape(author) + "</itunees:author>");
-	  				}
-	  				
-	  				pw.println( "<itunes:summary>" + escape( file.getName()) + "</itunes:summary>" );
-	  				pw.println( "<itunes:duration>" + TimeFormatter.formatColon( file.getDurationMillis()/1000 ) + "</itunes:duration>" );
-	  				
-	  				pw.println( "</item>" );
-	  				
-				}catch( Throwable e ){
 					
-					Debug.out(e);
+					pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( feed_date ) + "</pubDate>" );
+		
+					for ( TranscodeFileImpl file: files ){
+												
+			  			if ( !file.isComplete()){
+			  					
+			  				if ( !file.isTemplate()){
+			  						
+			  					continue;
+			  				}
+			  			}
+			  		
+						try{
+			  				pw.println( "<item>" );
+			  				
+			  				pw.println( "<title>" + escape( file.getName()) + "</title>" );
+			  								
+			  				pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( file.getCreationDateMillis()) + "</pubDate>" );
+			  				
+			  				pw.println( "<guid isPermaLink=\"false\">" + escape( file.getKey()) + "</guid>" );
+			  				
+			  				String[] categories = file.getCategories();
+			  				
+			  				for ( String category: categories ){
+			  					
+			  					pw.println( "<category>" + category + "</category>" );
+			  				}
+			  				
+			  				String mediaContent = "";
+			  				
+			  				URL stream_url = file.getStreamURL( feed_url.getHost() );
+			  				
+			  				if ( stream_url != null ){
+			  					
+			  					String url_ext = stream_url.toExternalForm();
+			  					
+			  					long fileSize = file.getTargetFile().getLength();
+			  					
+			  					pw.println( "<link>" + url_ext + "</link>" );
+			  					
+			  					mediaContent = "<media:content medium=\"video\" fileSize=\"" +
+													fileSize + "\" url=\"" + url_ext + "\""; 
+			  					
+			  					String	mime_type = file.getMimeType();
+			  					
+			  					if ( mime_type != null ){
+			  						
+			  						mediaContent += " type=\"" + mime_type + "\"";
+			  					}
+			  				
+								pw.println("<enclosure url=\"" + url_ext
+										+ "\" length=\"" + fileSize
+										+ (mime_type == null ? "" : "\" type=\"" + mime_type)
+										+ "\"></enclosure>");		
+			  				}
+			  				
+			   				String	thumb_url		= null;
+			  				String	author			= null;
+			  				String	description		= null;
+			  				
+			  				try{
+			  					Torrent torrent = file.getSourceFile().getDownload().getTorrent();
+			  				
+			  					TOTorrent toTorrent = PluginCoreUtils.unwrap(torrent);
+							
+			  					long duration_secs = PlatformTorrentUtils.getContentVideoRunningTime(toTorrent);
+			  					
+			  					if ( mediaContent.length() > 0 && duration_secs > 0 ){
+			  						
+			  						mediaContent += " duration=\"" + duration_secs + "\"";
+			  					}
+			  					  					
+			  					thumb_url = PlatformTorrentUtils.getContentThumbnailUrl(toTorrent);
+			  					
+			  					author = PlatformTorrentUtils.getContentAuthor(toTorrent);
+			  								
+			  					description= PlatformTorrentUtils.getContentDescription(toTorrent);
+			  					
+			  					if ( description != null ){
+			  						
+			  						description = escapeMultiline( description );
+		
+			  						/*
+			  						if ( thumb_url != null ){
+			  							
+			  		
+			  							pw.println( "<description type=\"text/html\">" + 
+			  								escape( "<div style=\"text-align: justify;padding: 5px;\"><img style=\"float: left;margin-right: 15px;margin-bottom: 15px;\" src=\"" + thumb_url + "\"/>" ) +
+			  								description + 
+			  								escape( "</div>" ) +
+			  								"</description>" );
+			  						}else{
+			  						*/	
+			  							pw.println( "<description>" + description + "</description>");
+			  						//}
+			   					}					
+			  				}catch( Throwable e ){
+			  				}
+			
+			  					// media elements
+			  				
+			  				if ( mediaContent.length() > 0 ){
+			  					  						
+			  					pw.println( mediaContent += "></media:content>" );
+			  				}
+			
+			  				pw.println( "<media:title>" + escape( file.getName()) + "</media:title>" );
+			
+							if ( description != null ){
+									
+								pw.println( "<media:description>" + description + "</media:description>" );
+							}
+							
+							if ( thumb_url != null ) {
+									
+								pw.println("<media:thumbnail url=\"" + thumb_url + "\"/>" );
+							}
+			 
+			 					// iTunes elements
+			 					
+							if ( thumb_url != null ) {
+									
+								pw.println("<itunes:image href=\"" + thumb_url + "\"/>");
+							}
+			
+			 				if ( author != null ){
+			  					
+			  					pw.println("<itunes:author>" + escape(author) + "</itunees:author>");
+			  				}
+			  				
+			  				pw.println( "<itunes:summary>" + escape( file.getName()) + "</itunes:summary>" );
+			  				pw.println( "<itunes:duration>" + TimeFormatter.formatColon( file.getDurationMillis()/1000 ) + "</itunes:duration>" );
+			  				
+			  				pw.println( "</item>" );
+			  				
+						}catch( Throwable e ){
+							
+							Debug.out(e);
+						}
+					}
+				
+					pw.println( "</channel>" );
+					
+					pw.println( "</rss>" );
+					
+				}finally{
+					
+					if ( debug ){
+						
+						pw.setEnabled( false );
+						
+						pw.println( "</pre>" );
+						
+						pw.println( "</BODY></HTML>" );
+					}
 				}
 			}
-		
-			pw.println( "</channel>" );
-			
-			pw.println( "</rss>" );
 		}
 		
 		pw.flush();
