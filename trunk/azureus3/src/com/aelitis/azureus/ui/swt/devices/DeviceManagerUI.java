@@ -97,7 +97,7 @@ DeviceManagerUI
 	private static final Object	DEVICE_IVIEW_KEY = new Object();
 	
 	private static final String CONFIG_VIEW_TYPE				= "device.sidebar.ui.viewtype";
-	static final String CONFIG_VIEW_HIDE_REND_GENERIC	= "device.sidebar.ui.rend.hidegeneric";
+	public static final String CONFIG_VIEW_HIDE_REND_GENERIC	= "device.sidebar.ui.rend.hidegeneric";
 	
 	private static final String SPINNER_IMAGE_ID 	= "image.sidebar.vitality.dl";
 	private static final String INFO_IMAGE_ID		= "image.sidebar.vitality.info";

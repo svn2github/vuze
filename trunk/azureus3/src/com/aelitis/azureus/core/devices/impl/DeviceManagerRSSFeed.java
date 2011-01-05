@@ -51,6 +51,8 @@ import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
+
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 public class 
@@ -116,6 +118,8 @@ DeviceManagerRSSFeed
 
 		pw.setEnabled( false );
 
+		boolean hide_generic = COConfigurationManager.getBooleanParameter( DeviceManagerUI.CONFIG_VIEW_HIDE_REND_GENERIC, true );
+		
 		if ( path.length() <= 1 ){
 			
 			response.setContentType( "text/html; charset=UTF-8" );
@@ -124,7 +128,7 @@ DeviceManagerRSSFeed
 			
 			for ( DeviceImpl d: devices ){
 			
-				if ( d.getType() != Device.DT_MEDIA_RENDERER || d.isHidden() || !d.isRSSPublishEnabled()){
+				if ( d.getType() != Device.DT_MEDIA_RENDERER || d.isHidden() || !d.isRSSPublishEnabled() || ( hide_generic && d.isNonSimple())){
 					
 					continue;
 				}
