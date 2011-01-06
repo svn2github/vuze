@@ -205,9 +205,11 @@ TranscodeProviderVuze
 				
 					source_url = new URL( url_str );
 			
-					pipe = new TranscodePipeStreamSource( source_url.getPort());
+					pipe = new TranscodePipeStreamSource( source_url.getHost(), source_url.getPort());
 				
-					source_url = UrlUtils.setPort( source_url, pipe.getPort());
+					source_url = UrlUtils.setHost( source_url, "127.0.0.1" );
+
+					source_url = UrlUtils.setPort( source_url, pipe.getPort());					
 				}
 			}
 			
@@ -539,9 +541,11 @@ TranscodeProviderVuze
 				}else{
 					source_url = new URL( url_str );
 				
-					pipe = new TranscodePipeStreamSource( source_url.getPort());
+					pipe = new TranscodePipeStreamSource( source_url.getHost(), source_url.getPort());
 					
-					source_url = UrlUtils.setPort( source_url, pipe.getPort());
+					source_url = UrlUtils.setHost( source_url, "127.0.0.1" );
+
+					source_url = UrlUtils.setPort( source_url, pipe.getPort());		
 				}
 			}
 			

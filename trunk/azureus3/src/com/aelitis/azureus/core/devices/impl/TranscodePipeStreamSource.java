@@ -29,16 +29,19 @@ public class
 TranscodePipeStreamSource 
 	extends TranscodePipe
 {
+	private String			source_host;
 	private int				source_port;
 		
 	protected
 	TranscodePipeStreamSource(
+		String	_source_host,
 		int		_source_port )
 	
 		throws IOException
 	{
 		super( null );
 		
+		source_host	= _source_host;
 		source_port	= _source_port;
 	}		
 
@@ -64,7 +67,7 @@ TranscodePipeStreamSource
 		}
 
 		try{
-			Socket socket2 = new Socket( "127.0.0.1", source_port );
+			Socket socket2 = new Socket( source_host, source_port );
 	
 			synchronized( this ){
 
