@@ -94,6 +94,24 @@ public class FeatureManagerUI
 
 	private static void addFreeBurnUI() {
 		final MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						String title = MessageText.getString(FeatureManagerUI.hasFullLicence()
+								? "mdi.entry.plus.full" : "mdi.entry.plus.free");
+						String placeBelow = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME) == null
+								? "" : MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME;
+						
+						MdiEntry entry = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
+								MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
+								"main.area.plus", title, null, null, true, placeBelow);
+						entry.setImageLeftID("image.sidebar.plus");
+						return entry;
+					}
+				});
+
 		MdiEntry existingEntry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_HEADER_DVD);
 		if (existingEntry != null) {
 			// abandon all hope, something already added DVD stuff
@@ -146,22 +164,6 @@ public class FeatureManagerUI
 			}
 		});
 
-		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
-				new MdiEntryCreationListener() {
-					public MdiEntry createMDiEntry(String id) {
-						String title = MessageText.getString(FeatureManagerUI.hasFullLicence()
-								? "mdi.entry.plus.full" : "mdi.entry.plus.free");
-						String placeBelow = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME) == null
-								? "" : MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME;
-						
-						MdiEntry entry = mdi.createEntryFromSkinRef(
-								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
-								MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
-								"main.area.plus", title, null, null, true, placeBelow);
-						entry.setImageLeftID("image.sidebar.plus");
-						return entry;
-					}
-				});
 		if (ConfigurationChecker.isNewVersion()
 				&& !ConfigurationChecker.isNewInstall() && !hasFullLicence()) {
 			SBC_PlusFTUX.setSourceRef("startup");
