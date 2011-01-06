@@ -2773,6 +2773,10 @@ DeviceManagerUI
 
 				id = "wdtv";
 				
+			}else if ( classification.startsWith( "boxee.")){
+
+				id = "boxee";
+
 			}else if ( classification.startsWith( "sony.bravia")){
 
 				id = "bravia";
