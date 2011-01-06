@@ -167,6 +167,10 @@ Device
 	public boolean
 	isNameAutomatic();
 	
+	public void
+	setExportable(
+		boolean		b );
+	
 	public boolean
 	isExportable();
 	

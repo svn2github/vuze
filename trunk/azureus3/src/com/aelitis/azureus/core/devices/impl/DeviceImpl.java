@@ -206,6 +206,7 @@ DeviceImpl
 	
 	protected static final String	PP_COPY_TO_FOLDER	= "copy_to_folder";
 	protected static final String	PP_AUTO_COPY		= "auto_copy";
+	protected static final String	PP_EXPORTABLE		= "exportable";
 	
 	protected static final String	PP_LIVENESS_DETECTABLE	= "live_det";
 
@@ -440,10 +441,17 @@ DeviceImpl
 		return( true );
 	}
 	
+	public void
+	setExportable(
+		boolean		b )
+	{
+		setPersistentBooleanProperty( PP_EXPORTABLE, b );
+	}
+	
 	public boolean
 	isExportable()
 	{
-		return( false );
+		return( getPersistentBooleanProperty( PP_EXPORTABLE, false ));
 	}
 	
 	public VuzeFile 
