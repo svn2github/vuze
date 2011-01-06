@@ -27,6 +27,7 @@ import java.net.URL;
 
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -342,7 +343,7 @@ StreamManager
 						final Map<String,Object> b_map = new HashMap<String,Object>();
 						
 						b_map.put( "state", new Integer( 1 ));
-						b_map.put( "msg", "Analysing Media" );
+						b_map.put( "msg", MessageText.getString( "stream.analysing.media" ));
 						
 						buffering_method.invoke(player, new Object[] { b_map });
 
