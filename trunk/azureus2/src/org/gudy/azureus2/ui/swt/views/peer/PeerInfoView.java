@@ -389,6 +389,14 @@ public class PeerInfoView
 		}
 	}
 
+	/**
+	 * Constructs and image representing the download state of _all_
+	 * the pieces in the torrent.  Particularily slow when there's lots of pieces,
+	 * and also wasteful since only a fraction of them ever get painted at
+	 * any given time.
+	 * 
+	 * TODO: Construct image for visible area only or something
+	 */
 	private void refreshInfoCanvas() {
 		refreshInfoCanvasQueued = false;
 
