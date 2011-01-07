@@ -605,6 +605,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 				form.layout();
 
+				IView view = getActiveSubView();
+				if (view instanceof IViewExtension) {
+					((IViewExtension) view).viewDeactivated();
+				}
+
+				
 				configMan.setParameter(sPropertiesPrefix + ".subViews.minimized", true);
 			}
 
@@ -616,6 +622,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 				form.notifyListeners(SWT.Resize, null);
 
+				IView view = getActiveSubView();
+				if (view instanceof IViewExtension) {
+					((IViewExtension) view).viewActivated();
+				}
 				refreshSelectedSubView();
 
 				configMan.setParameter(sPropertiesPrefix + ".subViews.minimized", false);
