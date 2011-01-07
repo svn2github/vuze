@@ -179,7 +179,7 @@ public class PeerInfoView
 		else
 			peer = (PEPeer) newDataSource;
 
-		Utils.execSWTThread(new AERunnable() {
+		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				swt_fillPeerInfoSection();
 			}
@@ -392,6 +392,10 @@ public class PeerInfoView
 	private void refreshInfoCanvas() {
 		refreshInfoCanvasQueued = false;
 
+		if (peerInfoComposite == null || !peerInfoComposite.isVisible()) {
+			return;
+		}
+
 		peerInfoCanvas.layout(true);
 		Rectangle bounds = peerInfoCanvas.getClientArea();
 		if (bounds.width <= 0 || bounds.height <= 0)
@@ -438,7 +442,7 @@ public class PeerInfoView
 		
 		img = new Image(peerInfoCanvas.getDisplay(), bounds.width, iNeededHeight);
 		GC gcImg = new GC(img);
-
+		
 		try {
 			// use advanced capabilities for faster drawText
 			gcImg.setAdvanced(true);
@@ -560,18 +564,15 @@ public class PeerInfoView
 							iXPos + (BLOCK_FILLSIZE / 2), iYPos + 2 });
 				}
 
-				if (availability != null) {
+				if (availability != null && availability[i] < 10) {
 					gcImg.setFont(font);
-
 					String sNumber = String.valueOf(availability[i]);
 					Point size = gcImg.stringExtent(sNumber);
 
-					if (availability[i] < 100) {
-						int x = iXPos + (BLOCK_FILLSIZE / 2) - (size.x / 2);
-						int y = iYPos + (BLOCK_FILLSIZE / 2) - (size.y / 2);
-						gcImg.setForeground(blockColors[BLOCKCOLOR_AVAILCOUNT]);
-						gcImg.drawText(sNumber, x, y, true);
-					}
+					int x = iXPos + (BLOCK_FILLSIZE / 2) - (size.x / 2);
+					int y = iYPos + (BLOCK_FILLSIZE / 2) - (size.y / 2);
+					gcImg.setForeground(blockColors[BLOCKCOLOR_AVAILCOUNT]);
+					gcImg.drawText(sNumber, x, y, true);
 				}
 
 				iCol++;
@@ -585,7 +586,7 @@ public class PeerInfoView
 		} finally {
 			gcImg.dispose();
 		}
-
+		
 		peerInfoCanvas.redraw();
 	}
 
