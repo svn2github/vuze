@@ -1101,7 +1101,7 @@ DeviceManagerUI
 					
 					dialog.setFilterPath( TorrentOpener.getFilterPathData() );
 											
-					dialog.setText(MessageText.getString("subscript.export.select.template.file"));
+					dialog.setText(MessageText.getString("device.export.select.template.file"));
 					
 					dialog.setFilterExtensions(new String[] {
 							"*.vuze",
