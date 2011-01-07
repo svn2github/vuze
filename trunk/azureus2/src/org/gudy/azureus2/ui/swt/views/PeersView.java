@@ -185,7 +185,6 @@ public class PeersView
 	public void fillMenu(String sColumnName, Menu menu) {fillMenu(menu, tv, shell, true);}
 
 	public static void fillMenu(final Menu menu, final TableView tv, final Shell shell, boolean download_specific) {
-		
 		Object[] peers = tv.getSelectedDataSources().toArray();
 		
 		boolean hasSelection = (peers.length > 0);
@@ -259,12 +258,14 @@ public class PeersView
 				block_item.setEnabled(true);
 				block_item.setSelection(peer.isSnubbed());
 			}
+			
+			final boolean newSnubbedValue = !peer.isSnubbed();
 	
 			Messages.setLanguageText(block_item, "PeersView.menu.blockupload");
 			block_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
 				public void run(TableRowCore row) {
-					((PEPeer) row.getDataSource(true))
-							.setSnubbed(block_item.getSelection());
+					PEPeer peer = ((PEPeer) row.getDataSource(true));
+					peer.setSnubbed(newSnubbedValue);
 				}
 			});
 		}
