@@ -18,14 +18,15 @@
  
 package com.aelitis.azureus.core.versioncheck;
 
-import java.util.Map;
-
 /**
  * @author TuxPaper
  * @created May 18, 2010
  *
  */
-public interface VersionCheckClientListener
+public interface 
+VersionCheckClientListener
 {
-	public void versionCheckStarted(String reason);
+	public void 
+	versionCheckStarted(
+		String reason );
 }

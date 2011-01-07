@@ -23,13 +23,10 @@
 
 package com.aelitis.azureus.core.versioncheck;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.net.udp.uc.PRUDPPacketRequest;
 
@@ -37,7 +34,7 @@ public class
 VersionCheckClientUDPRequest 
 	extends PRUDPPacketRequest
 {
-	private Map	payload;
+	private Map<String,Object>	payload;
 	
 	public
 	VersionCheckClientUDPRequest(
@@ -67,7 +64,7 @@ VersionCheckClientUDPRequest
 		
 		is.read( bytes );
 		
-		payload = BDecoder.decode( bytes );
+		payload = (Map<String,Object>)BDecoder.decode( bytes );
 	}
 	
 	public void
@@ -85,7 +82,7 @@ VersionCheckClientUDPRequest
 		os.write( bytes );
 	}
 	
-	public Map
+	public Map<String,Object>
 	getPayload()
 	{
 		return( payload );
@@ -93,7 +90,7 @@ VersionCheckClientUDPRequest
 	
 	public void
 	setPayload(
-		Map		_payload )
+		Map<String,Object>		_payload )
 	{
 		payload	= _payload;
 	}
