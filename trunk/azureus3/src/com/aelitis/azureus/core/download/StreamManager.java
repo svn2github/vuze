@@ -87,6 +87,38 @@ StreamManager
 		mi_ta = default_pi.getTorrentManager().getPluginAttribute( "sm_metainfo" );
 	}
 	
+	public boolean
+	isStreamingInstalled()
+	{
+		try{
+			PluginManager plug_man = AzureusCoreFactory.getSingleton().getPluginManager();
+			
+			PluginInterface pi = plug_man.getPluginInterfaceByID( "vuzexcode", true );
+	
+			if ( pi == null ){
+				
+				return( false );
+			}
+			
+			pi = plug_man.getPluginInterfaceByID( "azemp", true );
+	
+			if ( pi == null ){
+				
+				return( false );
+			}
+			
+			Class<?> epwClass = pi.getPlugin().getClass().getClassLoader().loadClass( "com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT" );
+			
+			Method method = epwClass.getMethod( "prepareWindow", new Class[] { String.class });
+			
+			return( method != null );
+			
+		}catch( Throwable e ){
+			
+			return( false );
+		}
+	}
+	
 	public StreamManagerDownload
 	stream(
 		DownloadManager					dm,

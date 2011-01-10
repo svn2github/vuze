@@ -41,6 +41,7 @@ import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
+import com.aelitis.azureus.core.download.StreamManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 
@@ -240,8 +241,13 @@ public class PlayUtils
 			return( false );
 		}
 		
-		TOTorrent torrent = dm.getTorrent();
+		if ( !StreamManager.getSingleton().isStreamingInstalled()){
+			
+			return( false );
+		}
 		
+		TOTorrent torrent = dm.getTorrent();
+				
 		return( canUseEMP( torrent, file_index, false ));
 	}
 		
