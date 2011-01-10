@@ -197,7 +197,7 @@ public class BrowserContext
 				/*
 				 * The browser might have been disposed already by the time this method is called 
 				 */
-				if (browser.isDisposed() || browser.getShell().isDisposed()) {
+				if (browser == null || browser.isDisposed() || browser.getShell().isDisposed()) {
 					return;
 				}
 				
@@ -221,7 +221,7 @@ public class BrowserContext
 				/*
 				 * The browser might have been disposed already by the time this method is called 
 				 */
-				if (browser.isDisposed() || browser.getShell().isDisposed()) {
+				if (browser == null || browser.isDisposed() || browser.getShell().isDisposed()) {
 					return;
 				}
 				
@@ -263,7 +263,7 @@ public class BrowserContext
 		
 		browser.addOpenWindowListener(new OpenWindowListener() {
 			public void open(WindowEvent event) {
-				if (browser.isDisposed() || browser.getShell().isDisposed()) {
+				if (browser == null || browser.isDisposed() || browser.getShell().isDisposed()) {
 					return;
 				}
 				event.required = true;
