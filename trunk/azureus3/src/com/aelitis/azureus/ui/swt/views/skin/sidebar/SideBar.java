@@ -1236,9 +1236,6 @@ public class SideBar
 					}
 				}
 			}
-			if (index >= order.length) {
-				index = -1;
-			}
 		}
 
 		if (GAP_BETWEEN_LEVEL_1 && parentTreeItem == null
