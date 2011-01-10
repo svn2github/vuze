@@ -15,7 +15,7 @@
 
 #include "IONotification.h"
 
-#define VERSION "1.09"
+#define VERSION "1.10"
 
 #define assertNot0(a) if (a == 0) { fprintf(stderr, "%s is 0\n", #a); return; }
 void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethodID methPut);
@@ -322,6 +322,7 @@ void notify(const char *mount, io_service_t service, struct statfs *fs, bool add
 }
 
 void putCFNumberIntoHashMap(const char *key, const char *hexkey, CFNumberRef cft, JNIEnv *env, jobject hashMap, jmethodID methPut) {
+	@try {
 	if (cft == nil || !cft) {
 		return;
 	}
@@ -360,6 +361,12 @@ void putCFNumberIntoHashMap(const char *key, const char *hexkey, CFNumberRef cft
 		default:
 			fprintf(stderr, " = UNKNOWN TYPE %d", (int) cfnt);
 			break;
+	}
+	}
+	@catch (NSException * e) {
+		fprintf(stderr, "NSException %s (%s)", [[e name] cString], [[e reason] cString]);
+	}
+	@finally {
 	}
 }
 
