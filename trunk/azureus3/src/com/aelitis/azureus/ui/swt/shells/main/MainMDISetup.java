@@ -128,9 +128,9 @@ public class MainMDISetup
 		String[] preferredOrder = new String[] {
 			MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
 			MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
-			MultipleDocumentInterface.SIDEBAR_HEADER_DVD,
 			MultipleDocumentInterface.SIDEBAR_HEADER_DEVICES,
 			MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS,
+			MultipleDocumentInterface.SIDEBAR_HEADER_DVD,
 			MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
 		};
 		mdi.setPreferredOrder(preferredOrder);
