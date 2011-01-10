@@ -322,7 +322,7 @@ void notify(const char *mount, io_service_t service, struct statfs *fs, bool add
 }
 
 void putCFNumberIntoHashMap(const char *key, const char *hexkey, CFNumberRef cft, JNIEnv *env, jobject hashMap, jmethodID methPut) {
-	if (!cft) {
+	if (cft == nil || !cft) {
 		return;
 	}
 	long long n;
