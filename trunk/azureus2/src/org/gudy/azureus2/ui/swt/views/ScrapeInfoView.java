@@ -252,14 +252,21 @@ public class ScrapeInfoView
 		updateButton.setLayoutData(new GridData());
 		updateButton.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent event) {
-				if ( manager.getTrackerClient() != null ){
-				
-					manager.requestTrackerAnnounce( false );
-					
-				}else{
-					
-					manager.requestTrackerScrape( true );
-				}
+				new AEThread2( "SIV:async" )
+				{
+					public void
+					run()
+					{
+						if ( manager.getTrackerClient() != null ){
+						
+							manager.requestTrackerAnnounce( false );
+							
+						}else{
+							
+							manager.requestTrackerScrape( true );
+						}
+					}
+				}.start();
 			}
 		});
 
