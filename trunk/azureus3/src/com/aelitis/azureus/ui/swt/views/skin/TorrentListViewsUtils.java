@@ -63,6 +63,7 @@ import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.player.PlayerInstallWindow;
 import com.aelitis.azureus.ui.swt.player.PlayerInstaller;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
@@ -699,7 +700,8 @@ public class TorrentListViewsUtils
 		
 				}else{
 					
-					System.out.println( "Stream: plus stuff!!!!" );
+					FeatureManagerUI.openStreamPlusWindow();
+					
 				}
 				
 				return( 0 );
