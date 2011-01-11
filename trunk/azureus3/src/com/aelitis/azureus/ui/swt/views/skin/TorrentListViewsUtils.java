@@ -564,138 +564,144 @@ public class TorrentListViewsUtils
 			}
 				
 			if ( url != null ){
-						
-				final boolean show_debug_window = false;
-				
-				new AEThread2( "stream:async" )
-				{
-					public void
-					run()
+					
+				if ( PlayUtils.isStreamPermitted()){
+					
+					final boolean show_debug_window = false;
+					
+					new AEThread2( "stream:async" )
 					{
-						StreamManager	sm = StreamManager.getSingleton();
-
-						synchronized( TorrentListViewsUtils.class ){
-							
-							if ( current_stream != null && !current_stream.isCancelled()){
+						public void
+						run()
+						{
+							StreamManager	sm = StreamManager.getSingleton();
+	
+							synchronized( TorrentListViewsUtils.class ){
 								
-								if ( current_stream.getURL().equals( url )){
+								if ( current_stream != null && !current_stream.isCancelled()){
 									
-									current_stream.setPreviewMode( !current_stream.getPreviewMode());
+									if ( current_stream.getURL().equals( url )){
+										
+										current_stream.setPreviewMode( !current_stream.getPreviewMode());
+										
+										return;
+									}
 									
-									return;
+									current_stream.cancel();
+									
+									current_stream = null;
 								}
-								
-								current_stream.cancel();
-								
-								current_stream = null;
-							}
-			
-							if ( show_debug_window && ( stream_viewer == null || stream_viewer.isDisposed())){
-								
-								Utils.execSWTThread(
-									new Runnable()
-									{
-										public void
-										run()
+				
+								if ( show_debug_window && ( stream_viewer == null || stream_viewer.isDisposed())){
+									
+									Utils.execSWTThread(
+										new Runnable()
 										{
-											if ( stream_viewer != null ){
+											public void
+											run()
+											{
+												if ( stream_viewer != null ){
+													
+													stream_viewer.close();
+												}
 												
-												stream_viewer.close();
-											}
-											
-											stream_viewer = new 
-												TextViewerWindow( "Stream Status", "Debug information for stream process", "", false );
-											
-											stream_viewer.addListener(
-												new TextViewerWindow.TextViewerWindowListener()
-												{
-													public void 
-													closed() 
+												stream_viewer = new 
+													TextViewerWindow( "Stream Status", "Debug information for stream process", "", false );
+												
+												stream_viewer.addListener(
+													new TextViewerWindow.TextViewerWindowListener()
 													{
-														synchronized( TorrentListViewsUtils.class ){
-															
-															if ( current_stream != null ){
+														public void 
+														closed() 
+														{
+															synchronized( TorrentListViewsUtils.class ){
 																
-																current_stream.cancel();
-																
-																current_stream = null;
+																if ( current_stream != null ){
+																	
+																	current_stream.cancel();
+																	
+																	current_stream = null;
+																}
 															}
 														}
-													}
-												});
-										}
-									});
-							}
-							
-							current_stream = 
-								sm.stream( 
-									dm, file_index, url, false,
-									new StreamManagerDownloadListener()
-									{
-										private long	last_log = 0;
-										
-										public void
-										updateActivity(
-											String		str )
-										{
-											append( "Activity: " + str );
-										}
-										
-										public void
-										updateStats(
-											int			secs_until_playable,
-											int			buffer_secs,
-											long		buffer_bytes,
-											int			target_secs )
-										{
-											long	now = SystemTime.getMonotonousTime();
-											
-											if ( now - last_log >= 1000 ){
-											
-												last_log = now;
-												
-												append( "stats: play in " + secs_until_playable + " sec, buffer=" + DisplayFormatters.formatByteCountToKiBEtc( buffer_bytes ) + "/" + buffer_secs + " sec - target=" + target_secs + " sec" );
+													});
 											}
-										}
-										
-										public void
-										ready()
+										});
+								}
+								
+								current_stream = 
+									sm.stream( 
+										dm, file_index, url, false,
+										new StreamManagerDownloadListener()
 										{
-											append( "ready" );
-										}
-										
-										public void
-										failed(
-											Throwable 	error )
-										{
-											append( "failed: " + Debug.getNestedExceptionMessage(error));
+											private long	last_log = 0;
 											
-											Debug.out( error );
-										}
-										
-										private void
-										append(
-											final String	str )
-										{
-											Utils.execSWTThread(
-												new Runnable()
-												{
-													public void
-													run()
+											public void
+											updateActivity(
+												String		str )
+											{
+												append( "Activity: " + str );
+											}
+											
+											public void
+											updateStats(
+												int			secs_until_playable,
+												int			buffer_secs,
+												long		buffer_bytes,
+												int			target_secs )
+											{
+												long	now = SystemTime.getMonotonousTime();
+												
+												if ( now - last_log >= 1000 ){
+												
+													last_log = now;
+													
+													append( "stats: play in " + secs_until_playable + " sec, buffer=" + DisplayFormatters.formatByteCountToKiBEtc( buffer_bytes ) + "/" + buffer_secs + " sec - target=" + target_secs + " sec" );
+												}
+											}
+											
+											public void
+											ready()
+											{
+												append( "ready" );
+											}
+											
+											public void
+											failed(
+												Throwable 	error )
+											{
+												append( "failed: " + Debug.getNestedExceptionMessage(error));
+												
+												Debug.out( error );
+											}
+											
+											private void
+											append(
+												final String	str )
+											{
+												Utils.execSWTThread(
+													new Runnable()
 													{
-														if ( stream_viewer != null && !stream_viewer.isDisposed()){
-															
-															stream_viewer.append( str + "\r\n" );
+														public void
+														run()
+														{
+															if ( stream_viewer != null && !stream_viewer.isDisposed()){
+																
+																stream_viewer.append( str + "\r\n" );
+															}
 														}
-													}
-												});
-										}
-									});
+													});
+											}
+										});
+								}
 							}
-						}
-					}.start();
-	
+						}.start();
+		
+				}else{
 					
+					System.out.println( "Stream: plus stuff!!!!" );
+				}
+				
 				return( 0 );
 						
 			}

@@ -1381,6 +1381,13 @@ UtilitiesImpl
 		return( getFeatureDetailsSupport( feature_id ));
  	}
 	
+	public boolean
+	isFeatureInstalled(
+		String					feature_id )
+	{
+		return( getFeaturesInstalled().contains( feature_id ));
+	}
+	
 	private static FeatureDetails[]
 	getFeatureDetailsSupport(
 		String 					feature_id )

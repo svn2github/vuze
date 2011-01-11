@@ -31,10 +31,11 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
+import org.gudy.azureus2.plugins.utils.FeatureManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -777,12 +778,19 @@ public class ToolBarView
 			boolean can_play	= false;
 			boolean can_stream	= false;
 			
+			boolean stream_permitted = false;
+			
 			if ( has1Selection ){
 				
 				if ( !(currentContent[0] instanceof ISelectedVuzeFileContent)){
 					
 					can_play 	= PlayUtils.canPlayDS(currentContent[0], currentContent[0].getFileIndex());
 					can_stream	= PlayUtils.canStreamDS(currentContent[0], currentContent[0].getFileIndex());
+					
+					if ( can_stream ){
+						
+						stream_permitted = PlayUtils.isStreamPermitted();
+					}
 				}
 			}
 			
@@ -801,8 +809,16 @@ public class ToolBarView
 			
 			if ( pitem != null ){
 			
-				pitem.setImageID( can_stream?"image.button.stream":"image.button.play" );
-				pitem.setTextID( can_stream?"iconBar.stream":"iconBar.play" );
+				if ( can_stream ){
+					
+					pitem.setImageID( stream_permitted?"image.button.stream":"image.button.pstream" );
+					pitem.setTextID( stream_permitted?"iconBar.stream":"iconBar.pstream" );
+
+				}else{
+					
+					pitem.setImageID( "image.button.play" );
+					pitem.setTextID( "iconBar.play" );
+				}
 			}
 			
 			for (int i = 0; i < allToolBarItems.length; i++) {

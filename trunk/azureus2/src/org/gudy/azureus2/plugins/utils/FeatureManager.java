@@ -46,6 +46,12 @@ FeatureManager
 	getFeatureDetails(
 		String					feature_id );
 	
+		// feature present and not expired
+	
+	public boolean
+	isFeatureInstalled(
+		String					feature_id );
+	
 	public void
 	refreshLicences();
 	

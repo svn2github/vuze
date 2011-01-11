@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
@@ -50,6 +51,7 @@ import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.utils.FeatureManager;
 
 /**
  * @author TuxPaper
@@ -207,6 +209,14 @@ public class PlayUtils
 	}
 	
 		// stream stuff
+	
+	public static boolean
+	isStreamPermitted()
+	{
+		FeatureManager fm = PluginInitializer.getDefaultInterface().getUtilities().getFeatureManager();
+
+		return( fm.isFeatureInstalled( "core" ));
+	}
 	
 	private static boolean 
 	canStream(
