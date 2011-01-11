@@ -4448,11 +4448,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (visibleRows == null) {
 			return false;
 		}
+		if (Utils.isThisThreadSWT() && !isVisible()) {
+			return false;
+		}
 		for (TableRowCore visibleRow : visibleRows) {
 			if (row == visibleRow) {
-				if (Utils.isThisThreadSWT() && !isVisible()) {
-					return false;
-				}
 				return true;
 			}
 		}
