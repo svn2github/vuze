@@ -42,6 +42,8 @@ import com.aelitis.azureus.util.ConstantsVuze;
 
 public class FeatureManagerUI
 {
+	private static final Integer BUTTON_UPGRADE = 0x1000;
+
 	public static boolean enabled = !Constants.isUnix
 			//&& FeatureAvailability.ENABLE_PLUS()
 			|| System.getProperty("fm.ui", "0").equals("1");
@@ -602,6 +604,47 @@ public class FeatureManagerUI
 			validatingBox = null;
 		}
 	}
+
+	public static void openStreamPlusWindow() {
+		final VuzeMessageBox box = new VuzeMessageBox(
+				MessageText.getString("dlg.stream.plus.title"),
+				MessageText.getString("dlg.stream.plus.text"), new String[] {
+					MessageText.getString("Button.upgrade"),
+					MessageText.getString("Button.no"),
+				}, 0);
+		box.setButtonVals(new Integer[] {
+			BUTTON_UPGRADE,
+			SWT.CANCEL
+		});
+
+		box.setSubTitle(MessageText.getString("dlg.stream.plus.subtitle"));
+		box.addResourceBundle(FeatureManagerUI.class,
+				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_streamplus");
+		box.setIconResource("image.vp");
+
+		/*
+		box.setListener(new VuzeMessageBoxListener() {
+			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
+				SWTSkin skin = soExtra.getSkin();
+				skin.createSkinObject("dlg.register.success", "dlg.register.success",
+						soExtra);
+			}
+		});
+		*/
+
+		box.open(new UserPrompterResultListener() {
+			public void prompterClosed(int result) {
+				if (result == BUTTON_UPGRADE) {
+					SBC_PlusFTUX.setSourceRef("dlg-stream");
+
+					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+					mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
+				}
+			}
+		});
+	}
+	
+
 	
 	public static String getMode() {
 		boolean isFull = hasFullLicence();
