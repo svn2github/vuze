@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2010.xx.xx | Vuze 4.5.1.1
+2011.01.11 | Vuze 4.6.0.0
 
 FEATURE: Core | UDP NAT Test tool [Parg]
 FEATURE: Core | Added device export/import feature [Parg]
@@ -10,9 +10,9 @@ FEATURE: Plug | Streaming playback [Parg]
 FEATURE: Plug | Added simple HTML view and explicit download option to device RSS feed [Parg]
 FEATURE: UI   | Add menu link from sidebar entries to plugin options where applicable [Parg]
 FEATURE: UI   | Option for what happens when pressing delete key or tb delete in My Torrents/Library [TuxPaper]
-FEATURE: UI   | Allow dropping torrent URLs onto sidebar (to add torrent)
+FEATURE: UI   | Allow dropping torrent URLs onto sidebar (to add torrent) [TuxPaper]
 
-CHANGE: Core  | Prevent UDP scrape probes from and DHT fallback scrape values from overriding more relevant values [Parg]
+CHANGE: Core  | Prevent UDP scrape probes and DHT fallback scrape values from overriding more relevant values [Parg]
 CHANGE: Core  | Added some more client type peer-id decodes [Parg]
 CHANGE: Core  | Ensure piece picker file priorities take precedence over first/last piece [Parg]
 CHANGE: Core  | Don't auto-xcode low noise torrents [Parg]
@@ -25,7 +25,7 @@ CHANGE: UI    | Make tracker update button scrape torrents that are stopped [Par
 CHANGE: UI    | Wire up play button to xcoded content [Parg]
 CHANGE: UI    | Sidebar redesign [TuxPaper]
 CHANGE: UI    | Categories can now be shown in sidebar [TuxPaper]
-CHANGE: UI    | Filter text in Config view now gets hilighted [TuxPaper]
+CHANGE: UI    | Filter text in Config view now gets highlighted [TuxPaper]
 
 BUGFIX: Core  | Fix poor perf with large peer connection count [Parg]
 BUGFIX: Core  | Pickup changes in transcode file categories [Parg]
@@ -34,6 +34,7 @@ BUGFIX: Core  | Fix reading some rare .torrent files with only UTF-8 keys [TuxPa
 BUGFIX: Core  | Fix bug when loading multiple .torrent files at once when they have the same URL filename [TuxPaper]
 BUGFIX: Plug  | Fixup names displayed during plugin load/init [Parg]
 BUGFIX: UI    | Prevent sources from being added multiple times [Parg]
+
 
 
 2010.10.05 | Vuze 4.5.1.0
