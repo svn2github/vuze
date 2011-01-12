@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2011.01.11 | Vuze 4.6.0.0
+2011.01.13 | Vuze 4.6.0.0
 
 FEATURE: Core | UDP NAT Test tool [Parg]
 FEATURE: Core | Added device export/import feature [Parg]
