@@ -610,7 +610,7 @@ public class FeatureManagerUI
 				MessageText.getString("dlg.stream.plus.title"),
 				MessageText.getString("dlg.stream.plus.text"), new String[] {
 					MessageText.getString("Button.upgrade"),
-					MessageText.getString("Button.no"),
+					MessageText.getString("Button.cancel"),
 				}, 0);
 		box.setButtonVals(new Integer[] {
 			BUTTON_UPGRADE,
@@ -620,17 +620,15 @@ public class FeatureManagerUI
 		box.setSubTitle(MessageText.getString("dlg.stream.plus.subtitle"));
 		box.addResourceBundle(FeatureManagerUI.class,
 				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_streamplus");
-		box.setIconResource("image.vp");
+		box.setIconResource("image.header.streamplus");
 
-		/*
 		box.setListener(new VuzeMessageBoxListener() {
 			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
 				SWTSkin skin = soExtra.getSkin();
-				skin.createSkinObject("dlg.register.success", "dlg.register.success",
+				skin.createSkinObject("dlg.stream.plus", "dlg.stream.plus",
 						soExtra);
 			}
 		});
-		*/
 
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
