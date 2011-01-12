@@ -251,7 +251,7 @@ public class PlayUtils
 			return( false );
 		}
 		
-		if ( !StreamManager.getSingleton().isStreamingInstalled()){
+		if ( !StreamManager.getSingleton().isStreamingUsable()){
 			
 			return( false );
 		}

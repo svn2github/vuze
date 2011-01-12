@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -88,26 +89,48 @@ StreamManager
 	}
 	
 	public boolean
-	isStreamingInstalled()
+	isStreamingUsable()
 	{
+			// need win or osx 10.5+
+		
+		if ( !( Constants.isWindows || Constants.isOSX_10_5_OrHigher )){
+			
+			return( false );
+		}
+		
 		try{
 			PluginManager plug_man = AzureusCoreFactory.getSingleton().getPluginManager();
 			
-			PluginInterface pi = plug_man.getPluginInterfaceByID( "vuzexcode", true );
+			PluginInterface xcode_pi = plug_man.getPluginInterfaceByID( "vuzexcode", false );
 	
-			if ( pi == null ){
+			if ( xcode_pi != null && !xcode_pi.getPluginState().isOperational()){
+				
+					// can't use if xcode borked
 				
 				return( false );
 			}
 			
-			pi = plug_man.getPluginInterfaceByID( "azemp", true );
+				// otherwise xcode will be installed on demand
+			
+			PluginInterface emp_pi = plug_man.getPluginInterfaceByID( "azemp", false );
 	
-			if ( pi == null ){
+			if ( emp_pi == null ){
+				
+					// will be installed on demand
+				
+				return( true );
+			}
+			
+			if ( !emp_pi.getPluginState().isOperational()){
+				
+					// can't use if emp borked
 				
 				return( false );
 			}
 			
-			Class<?> epwClass = pi.getPlugin().getClass().getClassLoader().loadClass( "com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT" );
+				// emp installed but need version with prepareWindow, wait for update
+			
+			Class<?> epwClass = emp_pi.getPlugin().getClass().getClassLoader().loadClass( "com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT" );
 			
 			Method method = epwClass.getMethod( "prepareWindow", new Class[] { String.class });
 			
@@ -442,6 +465,8 @@ StreamManager
 									public void
 									run()
 									{
+										boolean	last_preview_mode = preview_mode;
+										
 										while( !sem.isReleasedForever() && !cancelled ){
 											
 											if ( !sem.reserve( 250 )){
@@ -463,6 +488,13 @@ StreamManager
 												}catch( Throwable e ){	
 												}
 												
+												if ( last_preview_mode != preview_mode ){
+													
+													last_preview_mode = preview_mode;
+													
+													b_map.put( "msg", MessageText.getString( last_preview_mode?"stream.analysing.media.preview":"stream.analysing.media" ));
+
+												}
 												DownloadStats stats = download.getStats();
 												
 												b_map.put( "dl_rate", stats.getDownloadAverage());
@@ -661,12 +693,15 @@ StreamManager
 
 								boolean playable;
 								
+								int	buffer_to_use = playback_started?BUFFER_MIN_SECS:BUFFER_SECS;
+								
 								if ( complete ){
 									
 									playable = true;
 									
 								}else{
-									playable = buffer_secs > ( playback_started?BUFFER_MIN_SECS:BUFFER_SECS );
+									
+									playable = buffer_secs > buffer_to_use;
 								
 									playable = playable && ( eta <= 0  || (playback_started && !playback_paused ) || preview_mode );
 								}
@@ -734,17 +769,45 @@ StreamManager
 									}
 								}else{
 									
+									DownloadStats stats = download.getStats();
+
 									Map<String,Object> map = new HashMap<String,Object>();
 									
 									map.put( "state", new Integer( 2 ));
-									map.put( "eta", new Integer( eta ));
+
+									if ( preview_mode && !complete ){
+										
+										long rate = stats.getDownloadAverage();
+										
+										int	preview_eta;
+										
+										if ( rate <= 0 ){
+											
+											preview_eta = Integer.MAX_VALUE;
+											
+										}else{
+											
+											double secs_per_sec = ((double)bytes_per_sec)/rate;
+										
+											preview_eta = (int)(( buffer_to_use - buffer_secs ) * secs_per_sec);
+										}
+										
+										map.put( "eta", new Integer( preview_eta ));
+										
+										map.put( "preview", 1 );
+										
+									}else{
+										
+										map.put( "eta", new Integer( eta ));
+										
+										map.put( "preview", 0 );
+									}
+									
 									map.put( "buffer_min", new Long( BUFFER_SECS ));
 									map.put( "buffer_secs", new Integer( buffer_secs ));
 									map.put( "buffer_bytes", new Long( buffer ));
 									
 									map.put( "stream_rate", bytes_per_sec );
-									
-									DownloadStats stats = download.getStats();
 									
 									map.put( "dl_rate", stats.getDownloadAverage());
 									map.put( "dl_size", stats.getDownloaded());
