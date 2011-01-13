@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.installer.PluginInstaller;
@@ -1499,7 +1500,10 @@ DeviceManagerUI
 				if (entryHeader == null || entryHeader.isDisposed()) {
 					return;
 				}
-				if (device_manager.getTranscodeManager().getProviders().length == 0) {
+	  		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+	  		PluginInterface pi;
+	  		pi = pm.getPluginInterfaceByID("vuzexcode");
+				if (device_manager.getTranscodeManager().getProviders().length == 0 || pi == null) {
 					// provider plugin not installed yet
 
 					final MdiEntryVitalityImage turnon = entryHeader.addVitalityImage("image.sidebar.turnon");
@@ -1513,6 +1517,7 @@ DeviceManagerUI
 						device_manager.getTranscodeManager().addListener(
 								new TranscodeManagerListener() {
 									public void providerAdded(TranscodeProvider provider) {
+										// only triggers when vuzexcode is avail
 										turnon.setVisible(false);
 									}
 
