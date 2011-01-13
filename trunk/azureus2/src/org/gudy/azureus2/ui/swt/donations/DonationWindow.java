@@ -261,7 +261,9 @@ public class DonationWindow
 				} else if (text.contains("close")) {
 					Utils.execSWTThreadLater(0, new AERunnable() {	
 						public void runSupport() {
-							shell.dispose();
+							if (shell != null && !shell.isDisposed()) {
+								shell.dispose();
+							}
 						}
 					});
 				} else if (text.startsWith("open-url")) {
