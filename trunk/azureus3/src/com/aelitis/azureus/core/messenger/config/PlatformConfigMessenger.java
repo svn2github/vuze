@@ -184,7 +184,7 @@ public class PlatformConfigMessenger
 
 	public static void logPlugin(String event, String pluginID) {
 		boolean send_info = COConfigurationManager.getBooleanParameter( "Send Version Info" );
-		if (!send_info) {
+		if (!send_info || true) {
 			return;
 		}
 		try {
