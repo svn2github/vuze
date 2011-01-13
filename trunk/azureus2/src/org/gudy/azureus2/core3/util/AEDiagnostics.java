@@ -406,6 +406,7 @@ AEDiagnostics
 	   		{	"iFW_Xfilter",		"y", },
 	   		{	"gapsp",			"y", },
 	   		{	"WSOCKHK",			"n", },
+	   		{	"InjHook12",		"n", },
 	};
 
 	public static void
