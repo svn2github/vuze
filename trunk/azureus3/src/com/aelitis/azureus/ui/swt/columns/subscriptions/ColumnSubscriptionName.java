@@ -92,11 +92,17 @@ public class ColumnSubscriptionName
 		bounds.width -= (imageWidth + 5);
 		
 		GCStringPrinter.printString(gc, cell.getSortValue().toString(), bounds,true,false,SWT.LEFT);
-		gc.drawImage(viewImage, bounds.x + bounds.width, bounds.y + bounds.height / 2 - imageHeight / 2);
+		
+		Subscription sub = (Subscription) cell.getDataSource();
+		
+		if ( sub != null && !sub.isSearchTemplate()){
 
+			gc.drawImage(viewImage, bounds.x + bounds.width, bounds.y + bounds.height / 2 - imageHeight / 2);
+		}
+		
 		imageLoader.releaseImage("ic_view");
 		
-		//gc.drawText(cell.getText(), bounds.x,bounds.y);
+			//gc.drawText(cell.getText(), bounds.x,bounds.y);
 	}
 	
 	public void cellMouseTrigger(TableCellMouseEvent event) {
@@ -107,7 +113,7 @@ public class ColumnSubscriptionName
 			int cellWidth = cell.getWidth();
 			if(event.x > cellWidth - imageWidth - 5 && event.x < cellWidth - 5) {
 				Subscription sub = (Subscription) cell.getDataSource();
-				if(sub != null) {
+				if(sub != null && !sub.isSearchTemplate()){
 					String key = "Subscription_" + ByteFormatter.encodeString(sub.getPublicKey());
 					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 					if (mdi != null) {

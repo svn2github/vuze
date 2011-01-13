@@ -577,6 +577,13 @@ SubscriptionImpl
 			return( false );
 		}
 	}
+	
+	public boolean
+	isSearchTemplate()
+	{
+		return( getName().startsWith( "Search Template:" ));
+	}
+	
 	protected Map
 	getSingletonDetails()
 	{

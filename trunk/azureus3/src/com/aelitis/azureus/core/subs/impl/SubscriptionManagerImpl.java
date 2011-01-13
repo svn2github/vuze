@@ -836,13 +836,13 @@ SubscriptionManagerImpl
 						
 						for ( Subscription sub: getSubscriptions( false )){
 							
-							String	sub_name = sub.getName();
-							
-							if ( !sub_name.startsWith( "Search Template:" )){
+							if ( !sub.isSearchTemplate()){
 								
 								continue;
 							}
 							
+							String	sub_name = sub.getName();
+														
 							Engine sub_engine = sub.getEngine();
 							
 							if ( sub_engine.isActive() || !(sub_engine instanceof RSSEngine )){

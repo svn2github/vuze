@@ -83,6 +83,9 @@ Subscription
 	public boolean
 	isShareable();
 	
+	public boolean
+	isSearchTemplate();
+	
 	public String
 	getJSON()
 	
