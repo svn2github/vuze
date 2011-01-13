@@ -82,7 +82,9 @@ public abstract class BaseMdiEntry
 
 	private Boolean isExpanded = null;
 
-	private boolean disposed = true;
+	private boolean disposed = false;
+	
+	private boolean added = false;
 
 	private String imageLeftID;
 
@@ -823,11 +825,12 @@ public abstract class BaseMdiEntry
 	}
 
 	public boolean isAdded() {
-		return !isDisposed();
+		return added;
 	}
 
 	public void setDisposed(boolean b) {
 		disposed = b;
+		added = !b;
 	}
 
 	public void setImageLeftID(String id) {
