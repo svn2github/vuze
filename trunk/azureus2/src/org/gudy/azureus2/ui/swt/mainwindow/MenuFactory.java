@@ -1082,6 +1082,9 @@ public class MenuFactory
 					public void parameterChanged(String parameterName) {
 						Utils.execSWTThread(new AERunnable() {
 							public void runSupport() {
+								if ( menuItem.isDisposed()){
+									return;
+								}
 								boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
 								Messages.setLanguageText(
 										menuItem,
