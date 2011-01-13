@@ -266,13 +266,6 @@ public class VuzeActivitiesManager
 				return; //continue;
 			}
 			
-			Object oIsActive = cn.getPersistentProperty(ContentNetwork.PP_ACTIVE);
-			boolean isActive = (oIsActive instanceof Boolean)
-					? ((Boolean) oIsActive).booleanValue() : false;
-			if (!isActive) {
-				return; //continue;
-			}
-			
 			String id = "" + cn.getID();
 			Long oLastPullTime = lastNewsAt.get(id);
 			long lastPullTime = oLastPullTime != null ? oLastPullTime.longValue() : 0;
