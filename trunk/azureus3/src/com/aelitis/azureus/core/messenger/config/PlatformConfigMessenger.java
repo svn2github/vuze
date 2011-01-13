@@ -228,7 +228,7 @@ public class PlatformConfigMessenger
 	
 	public static void sendVersionServerMap(Map mapVerServer) {
 		boolean send_info = COConfigurationManager.getBooleanParameter("Send Version Info");
-		if (!send_info) {
+		if (!send_info || true) {
 			return;
 		}
 
