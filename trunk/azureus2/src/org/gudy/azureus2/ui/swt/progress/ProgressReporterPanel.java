@@ -424,7 +424,7 @@ public class ProgressReporterPanel
 				getDisplay().asyncExec(new Runnable() {
 					public void run() {
 						if (null != nameLabel && false == nameLabel.isDisposed()) {
-							nameLabel.setText(pReport.getName());
+							nameLabel.setText(formatForDisplay(pReport.getName()));
 						}
 						if (true == pReport.isIndeterminate()) {
 							updateStatusLabel(Constants.INFINITY_STRING, false);
