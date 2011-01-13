@@ -1182,7 +1182,7 @@ SubscriptionManagerImpl
 	public boolean
 	hideSearchTemplates()
 	{
-		return( COConfigurationManager.getBooleanParameter( CONFIG_HIDE_SEARCH_TEMPLATES, false ));
+		return( COConfigurationManager.getBooleanParameter( CONFIG_HIDE_SEARCH_TEMPLATES, true ));
 	}
 	
 	public boolean
