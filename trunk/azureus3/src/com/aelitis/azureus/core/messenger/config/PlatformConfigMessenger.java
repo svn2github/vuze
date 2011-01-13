@@ -228,7 +228,7 @@ public class PlatformConfigMessenger
 	
 	public static void sendVersionServerMap(Map mapVerServer) {
 		boolean send_info = COConfigurationManager.getBooleanParameter("Send Version Info");
-		if (!send_info || true) {
+		if (!send_info || true) {    //TODO if we ever re-enable this rpc, need to fix it being called 2x back-to-back bug....
 			return;
 		}
 
