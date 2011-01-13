@@ -35,15 +35,15 @@ SubscriptionUtils
 	public static SubscriptionDownloadDetails[]
 	getAllCachedDownloadDetails(AzureusCore core)
 	{
-		List 	dms 	= core.getGlobalManager().getDownloadManagers();
+		List<DownloadManager> 	dms 	= core.getGlobalManager().getDownloadManagers();
 		
-		List	result 	= new ArrayList();
+		List<SubscriptionDownloadDetails>	result 	= new ArrayList<SubscriptionDownloadDetails>();
 		
 		SubscriptionManager sub_man = SubscriptionManagerFactory.getSingleton();
 		
 		for (int i=0;i<dms.size();i++){
 			
-			DownloadManager	dm = (DownloadManager)dms.get(i);
+			DownloadManager	dm = dms.get(i);
 			
 			TOTorrent torrent = dm.getTorrent();
 			
@@ -54,14 +54,33 @@ SubscriptionUtils
 					
 					if ( subs != null && subs.length > 0 ){
 						
-						result.add( new SubscriptionDownloadDetails( dm, subs ));
+						if ( sub_man.hideSearchTemplates()){
+							
+							List<Subscription>	filtered = new ArrayList<Subscription>();
+							
+							for ( Subscription s: subs ){
+								
+								if ( !s.isSearchTemplate()){
+									
+									filtered.add( s );
+								}
+							}
+							
+							if ( filtered.size() > 0 ){
+							
+								result.add( new SubscriptionDownloadDetails( dm, filtered.toArray( new Subscription[filtered.size()] )));
+							}
+						}else{
+							
+							result.add( new SubscriptionDownloadDetails( dm, subs ));
+						}
 					}
 				}catch( Throwable e ){
 				}
 			}
 		}
 		
-		return((SubscriptionDownloadDetails[])result.toArray( new SubscriptionDownloadDetails[result.size()]));
+		return(result.toArray( new SubscriptionDownloadDetails[result.size()]));
 	}
 	
 

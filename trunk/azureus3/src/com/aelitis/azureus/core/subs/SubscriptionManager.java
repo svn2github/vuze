@@ -157,6 +157,9 @@ SubscriptionManager
 	setSubsDownloadEnabled(
 		boolean		enabled );
 	
+	public boolean
+	hideSearchTemplates();
+	
 	public String
 	getRSSLink();
 	

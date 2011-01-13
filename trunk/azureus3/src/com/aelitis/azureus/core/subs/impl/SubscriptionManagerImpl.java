@@ -99,8 +99,10 @@ SubscriptionManagerImpl
 	
 	private static final String	CONFIG_RSS_ENABLE			= "subscriptions.config.rss_enable";
 
-	private static final String	CONFIG_ENABLE_SEARCH		= "subscriptions.config.search_enable";
-
+	private static final String	CONFIG_ENABLE_SEARCH			= "subscriptions.config.search_enable";
+	
+	private static final String	CONFIG_HIDE_SEARCH_TEMPLATES	= "subscriptions.config.hide_search_templates";
+	
 	private static final String	CONFIG_DL_SUBS_ENABLE		= "subscriptions.config.dl_subs_enable";
 
 	private static final int DELETE_UNUSED_AFTER_MILLIS = 2*7*24*60*60*1000;
@@ -1175,6 +1177,12 @@ SubscriptionManagerImpl
 		boolean		enabled )
 	{
 		COConfigurationManager.setParameter( CONFIG_ENABLE_SEARCH, enabled );
+	}
+	
+	public boolean
+	hideSearchTemplates()
+	{
+		return( COConfigurationManager.getBooleanParameter( CONFIG_HIDE_SEARCH_TEMPLATES, false ));
 	}
 	
 	public boolean
