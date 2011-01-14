@@ -961,6 +961,7 @@ public class MyTorrentsView
 						TextTransfer.getInstance() });
 
 				dropTarget.addDropListener(new DropTargetAdapter() {
+					Point enterPoint = null;
 					public void dropAccept(DropTargetEvent event) {
 						event.currentDataType = URLTransfer.pickBestType(event.dataTypes,
 								event.currentDataType);
@@ -979,7 +980,8 @@ public class MyTorrentsView
 						} else if (TextTransfer.getInstance().isSupportedType(
 								event.currentDataType)) {
 							event.detail = event.item == null ? DND.DROP_NONE : DND.DROP_MOVE;
-							event.feedback = DND.FEEDBACK_SCROLL | DND.FEEDBACK_INSERT_BEFORE;
+							event.feedback = DND.FEEDBACK_SCROLL;
+							enterPoint = new Point(event.x, event.y);
 						}
 					}
 
@@ -991,7 +993,9 @@ public class MyTorrentsView
 								return;
 							}
 							event.detail = event.item == null ? DND.DROP_NONE : DND.DROP_MOVE;
-							event.feedback = DND.FEEDBACK_SCROLL | DND.FEEDBACK_INSERT_BEFORE;
+							event.feedback = DND.FEEDBACK_SCROLL
+									| ((enterPoint != null && enterPoint.y > event.y)
+											? DND.FEEDBACK_INSERT_BEFORE : DND.FEEDBACK_INSERT_AFTER);
 						}
 					}
 
