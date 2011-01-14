@@ -48,6 +48,7 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_4310					= 26;	// somewhere min has gone to 22
 	public static final byte PROTOCOL_VERSION_4407					= 50;	// cvs
 	public static final byte PROTOCOL_VERSION_4511					= 50;	// main
+	public static final byte PROTOCOL_VERSION_4600					= 50;	// min -> 50
 
 	public static final byte PROTOCOL_VERSION_DIV_AND_CONT			= 6;
 	public static final byte PROTOCOL_VERSION_ANTI_SPOOF			= 7;
