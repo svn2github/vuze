@@ -407,6 +407,7 @@ AEDiagnostics
 	   		{	"gapsp",			"y", },
 	   		{	"WSOCKHK",			"n", },
 	   		{	"InjHook12",		"n", },
+	   		{	"FPServiceProvider","n", },
 	};
 
 	public static void
