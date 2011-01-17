@@ -447,26 +447,30 @@ public class FilesView
 	}
 
 	public boolean toolBarItemActivated(String itemKey) {
-    if(itemKey.equals("run")){
-      TorrentUtil.runDataSources(tv.getSelectedDataSources().toArray());
-      return true;
-    }
-    if(itemKey.equals("start")){
-      TorrentUtil.queueDataSources(tv.getSelectedDataSources().toArray(), false);
-      UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
-      return true;
-    }
-    if(itemKey.equals("stop")){
-      TorrentUtil.stopDataSources(tv.getSelectedDataSources().toArray());
-      UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
-      return true;
-    }
-    if(itemKey.equals("remove")){
-      TorrentUtil.removeDataSources(tv.getSelectedDataSources().toArray());
-      UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
-      return true;
-    }
-
+		Object[] selected = tv.getSelectedDataSources().toArray();
+		
+		if ( selected.length > 0 ){
+	    if(itemKey.equals("run")){
+	      TorrentUtil.runDataSources(selected);
+	      return true;
+	    }
+	    if(itemKey.equals("start")){
+	      TorrentUtil.queueDataSources(selected, false);
+	      UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
+	      return true;
+	    }
+	    if(itemKey.equals("stop")){
+	      TorrentUtil.stopDataSources(selected);
+	      UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
+	      return true;
+	    }
+	    if(itemKey.equals("remove")){
+	      TorrentUtil.removeDataSources(selected);
+	      UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
+	      return true;
+	    }
+		}
+		
     return super.toolBarItemActivated(itemKey);
 	}
 }

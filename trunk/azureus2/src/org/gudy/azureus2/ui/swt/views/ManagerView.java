@@ -412,7 +412,10 @@ public class ManagerView
 	public boolean toolBarItemActivated(String itemKey) {
 		IView active_view = getActiveView();
 		if (active_view instanceof ToolBarEnabler) {
-			return ((ToolBarEnabler) active_view).toolBarItemActivated(itemKey);
+			if (((ToolBarEnabler) active_view).toolBarItemActivated(itemKey)){
+				
+				return( true );
+			}
 		}
 
 		if (itemKey.equals("run")) {
@@ -422,11 +425,13 @@ public class ManagerView
 		
 		if (itemKey.equals("start")) {
 			ManagerUtils.queue(manager, folder.getShell());
+			UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
 			return true;
 		}
 		
 		if (itemKey.equals("stop")) {
 			ManagerUtils.stop(manager, folder.getShell());
+			UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
 			return true;
 		}
 		
