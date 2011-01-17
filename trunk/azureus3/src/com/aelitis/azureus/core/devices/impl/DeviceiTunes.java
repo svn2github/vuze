@@ -435,6 +435,12 @@ DeviceiTunes
 		return( false );
 	}
 	
+	public boolean
+	canRestrictAccess()
+	{
+		return( false );
+	}
+	
 	public void
 	associate(
 		UnassociatedDevice	assoc )

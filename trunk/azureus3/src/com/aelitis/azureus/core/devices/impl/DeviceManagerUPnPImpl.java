@@ -77,6 +77,8 @@ DeviceManagerUPnPImpl
 	
 	private Map<InetAddress,String>		unassociated_devices = new HashMap<InetAddress, String>();
 	
+	private Set<String>					access_logs	= new HashSet<String>();
+	
 	protected
 	DeviceManagerUPnPImpl(
 		DeviceManagerImpl		_manager )
@@ -465,6 +467,8 @@ DeviceManagerUPnPImpl
 							
 							final List<DeviceMediaRendererImpl>	browse_devices = new ArrayList<DeviceMediaRendererImpl>();
 							
+							boolean	restrict_access = false;
+							
 							for ( DeviceImpl device: devices ){
 							
 								if ( device instanceof DeviceMediaRendererImpl ){
@@ -482,6 +486,65 @@ DeviceManagerUPnPImpl
 					
 												if ( renderer.canFilterFilesView()){
 												
+													boolean	skip = false;
+													
+													if ( renderer.canRestrictAccess()){
+														
+														String restriction = renderer.getAccessRestriction().trim();
+														
+														if ( restriction.length() > 0 ){
+															
+															String x = client_address.getAddress().getHostAddress();
+															
+															skip = true;
+															
+															String[] ips = restriction.split( "," );
+															
+															for ( String ip: ips ){
+																
+																if ( ip.startsWith( "-" )){
+																	
+																	ip = ip.substring(1);
+																	
+																	if ( ip.equals( x )){
+																		
+																		break;
+																	}
+																}else{
+																	
+																	if ( ip.startsWith( "+" )){
+																		
+																		ip = ip.substring(1);
+																	}
+																	
+																	if ( ip.equals( x )){
+																	
+																		skip = false;
+																		
+																		break;
+																	}
+																}
+															}
+														}
+													}
+													
+													if ( skip ){
+													
+														restrict_access = true;
+														
+														String	host = client_address.getAddress().getHostAddress();
+														
+														synchronized( access_logs){
+															
+															if ( !access_logs.contains( host )){
+																
+																access_logs.add( host );
+															
+																manager.log( "Ignoring browse from " + host + " due to access restriction for '" + renderer.getName() + "'" );
+															}
+														}
+													}
+														
 													browse_devices.add( renderer );
 													
 													renderer.browseReceived();
@@ -504,6 +567,8 @@ DeviceManagerUPnPImpl
 									unassociated_devices.remove( client_address.getAddress() );
 								}
 								
+								final boolean f_restrict_access = restrict_access;
+								
 								result.put(
 									"filter",
 									new AzureusContentFilter()
@@ -513,6 +578,11 @@ DeviceManagerUPnPImpl
 											AzureusContentDownload	download,
 											Map<String,Object>		browse_args )
 										{
+											if ( f_restrict_access ){
+												
+												return( false );
+											}
+											
 											boolean	visible = false;
 											
 											for ( DeviceUPnPImpl device: browse_devices ){
@@ -531,6 +601,11 @@ DeviceManagerUPnPImpl
 											AzureusContentFile		file,
 											Map<String,Object>		browse_args )
 										{
+											if ( f_restrict_access ){
+												
+												return( false );
+											}
+											
 											boolean	visible = false;
 											
 											for ( DeviceUPnPImpl device: browse_devices ){

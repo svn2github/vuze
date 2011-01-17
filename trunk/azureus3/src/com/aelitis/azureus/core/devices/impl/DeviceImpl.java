@@ -199,7 +199,8 @@ DeviceImpl
 	protected static final String	PP_IP_ADDRESS 		= "rend_ip";	
 	protected static final String	TP_IP_ADDRESS 		= "DeviceUPnPImpl:ip";	// transient
 	protected static final String	PP_FILTER_FILES 	= "rend_filter";
-	
+	protected static final String	PP_RESTRICT_ACCESS	= "restrict_access";	
+
 	protected static final String	PP_COPY_OUTSTANDING = "copy_outstanding";
 	protected static final String	PP_AUTO_START		= "auto_start";
 	

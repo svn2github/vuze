@@ -2506,6 +2506,55 @@ DeviceManagerUI
 
 				}
 				
+				if ( renderer.canRestrictAccess()){
+					
+					need_sep = true;
+					
+					final MenuItem menu_ra = menu_manager.addMenuItem(
+							"sidebar." + key, "devices.restrict_access");
+					
+					menu_ra.addListener(
+						new MenuItemListener() 
+						{
+							public void 
+							selected(
+								MenuItem menu, 
+								Object target) 
+							{
+								if (target instanceof MdiEntry){
+																		
+									UISWTInputReceiver entry = (UISWTInputReceiver)swt_ui.getInputReceiver();
+									
+									entry.setMessage( "devices.restrict_access.msg" );
+									
+									entry.setPreenteredText( renderer.getAccessRestriction(), false );
+									
+									entry.maintainWhitespace( false );
+									
+									entry.allowEmptyInput( true );
+									
+									entry.setLocalisedTitle(
+										MessageText.getString("devices.restrict_access.prompt",
+											new String[]{
+										device.getName()
+									}));
+			
+									entry.prompt(new UIInputReceiverListener(){
+										public void UIInputReceiverClosed( UIInputReceiver entry ){
+											if (!entry.hasSubmittedInput()) {
+												return;
+											}
+											String input = entry.getSubmittedInput().trim();
+																							
+											renderer.setAccessRestriction( input );
+											
+										}
+									});		
+								}
+							}
+						});
+				}
+				
 				final TranscodeProfile[] transcodeProfiles = renderer.getTranscodeProfiles();
 				
 				if (transcodeProfiles.length > 0) {

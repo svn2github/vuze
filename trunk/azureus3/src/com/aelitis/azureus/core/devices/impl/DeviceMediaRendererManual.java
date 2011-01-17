@@ -135,6 +135,12 @@ DeviceMediaRendererManual
 	}
 	
 	public boolean
+	canRestrictAccess()
+	{
+		return( false );
+	}
+	
+	public boolean
 	canFilterFilesView() 
 	{
 		return( false );

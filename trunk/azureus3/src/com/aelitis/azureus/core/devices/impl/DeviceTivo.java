@@ -179,6 +179,14 @@ DeviceTivo
 	}
 	
 	public boolean
+	canRestrictAccess()
+	{
+			// guess we could implement this one day
+		
+		return( false );
+	}
+	
+	public boolean
 	canShowCategories()
 	{
 		return( true );

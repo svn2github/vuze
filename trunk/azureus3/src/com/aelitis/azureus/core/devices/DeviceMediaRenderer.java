@@ -133,4 +133,14 @@ DeviceMediaRenderer
 	
 	public InetAddress
 	getAddress();
+	
+	public boolean
+	canRestrictAccess();
+	
+	public String
+	getAccessRestriction();
+	
+	public void
+	setAccessRestriction(
+		String		str );
 }

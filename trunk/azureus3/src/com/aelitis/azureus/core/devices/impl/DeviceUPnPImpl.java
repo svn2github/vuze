@@ -410,6 +410,25 @@ DeviceUPnPImpl
 		setPersistentStringProperty( PP_IP_ADDRESS, address.getHostAddress());
 	}
 	
+	public boolean
+	canRestrictAccess()
+	{
+		return( true );
+	}
+	
+	public String
+	getAccessRestriction()
+	{
+		return( getPersistentStringProperty( PP_RESTRICT_ACCESS, "" ));
+	}
+	
+	public void
+	setAccessRestriction(
+		String		str )
+	{
+		setPersistentStringProperty( PP_RESTRICT_ACCESS, str );
+	}
+	
 	protected URL
 	getStreamURL(
 		TranscodeFileImpl		file )
