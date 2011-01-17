@@ -229,6 +229,7 @@ public class Debug {
 				sbStackTrace.append(st[i].getLineNumber());
 				sbStackTrace.append(')');
 			} else {
+				sbStackTrace.append(cnShort);
 				sbStackTrace.append("::");
 				sbStackTrace.append(st[i].getMethodName());
 				sbStackTrace.append("::");
