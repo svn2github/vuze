@@ -955,7 +955,8 @@ public class SB_Transfers
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL) {
 			return TableManager.TABLE_MYTORRENTS_ALL_BIG;
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
-			return TableManager.TABLE_MYTORRENTS_UNOPENED_BIG;
+			return big ? TableManager.TABLE_MYTORRENTS_UNOPENED_BIG
+					: TableManager.TABLE_MYTORRENTS_UNOPENED;
 		}
 		return null;
 	}

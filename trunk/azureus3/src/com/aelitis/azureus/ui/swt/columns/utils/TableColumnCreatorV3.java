@@ -215,16 +215,16 @@ public class TableColumnCreatorV3
 			SizeItem.COLUMN_ID,
 			ColumnProgressETA.COLUMN_ID,
 			StatusItem.COLUMN_ID,
-			//DateCompletedItem.COLUMN_ID,
+			DateCompletedItem.COLUMN_ID,
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
-		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeIncomplete.class,
+		Map mapTCs = tcManager.getTableColumnsAsMap(DownloadTypeComplete.class,
 				tableID);
 
 		tcManager.setDefaultColumnNames(tableID, defaultVisibleOrder);
 
-		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
+		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class,
 				tableID)
 				|| areNoneVisible(mapTCs)) {
 			setVisibility(mapTCs, defaultVisibleOrder);
