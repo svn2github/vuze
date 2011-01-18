@@ -104,7 +104,9 @@ public class UpSpeedItem
       boolean bChangeColor = (++loop % 10) == 0;
 
       if (cell.setSortValue(value) || !cell.isValid() || (iState != iLastState)) {
-      	cell.setText(StringInterner.intern(DisplayFormatters.formatByteCountToKiBEtcPerSec(value)));
+				cell.setText(value == 0
+						? ""
+						: StringInterner.intern(DisplayFormatters.formatByteCountToKiBEtcPerSec(value)));
       	bChangeColor = true;
       }
       

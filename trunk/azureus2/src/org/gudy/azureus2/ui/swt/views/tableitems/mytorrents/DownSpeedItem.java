@@ -93,7 +93,7 @@ public class DownSpeedItem
       boolean bChangeColor = (++loop % 10) == 0;
 
       if (cell.setSortValue(value) || !cell.isValid() || (iState != iLastState)) {
-      	cell.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
+      	cell.setText(value == 0 ? "" : DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
       	bChangeColor = true;
       }
       
