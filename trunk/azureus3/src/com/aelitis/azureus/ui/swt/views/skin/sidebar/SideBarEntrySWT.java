@@ -786,11 +786,6 @@ public class SideBarEntrySWT
 		Rectangle clipping = new Rectangle(x0IndicatorOfs, itemBounds.y,
 				treeArea.width - x1IndicatorOfs - SIDEBAR_SPACING - x0IndicatorOfs,
 				itemBounds.height);
-		if (text.startsWith(" ")) {
-			text = text.substring(1);
-			clipping.x += 30;
-			clipping.width -= 30;
-		}
 
 		if (drawBounds.intersects(clipping)) {
 			int style= SWT.NONE;
