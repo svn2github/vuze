@@ -116,7 +116,8 @@ public class TableColumnManager {
 		mapResetTable_Version.put(TableManager.TABLE_MYTORRENTS_COMPLETE_BIG, "4.4.0.7");
 		mapResetTable_Version.put(TableManager.TABLE_MYTORRENTS_ALL_BIG, "4.4.0.7");
 		mapResetTable_Version.put(TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG, "4.4.0.7");
-		mapResetTable_Version.put(TableManager.TABLE_MYTORRENTS_UNOPENED_BIG, "4.4.0.7");
+		mapResetTable_Version.put(TableManager.TABLE_MYTORRENTS_UNOPENED_BIG, "4.6.0.1");
+		mapResetTable_Version.put(TableManager.TABLE_MYTORRENTS_UNOPENED, "4.6.0.1");
 	}
 
   
