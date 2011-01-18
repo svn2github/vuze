@@ -40,7 +40,6 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -549,11 +548,11 @@ public class ManagerView
 					return null;
 				}
 		    int completed = manager.getStats().getCompleted();
-				swtView.setTitle(DisplayFormatters.formatPercentFromThousands(completed)
-						+ " : " + manager.getDisplayName());
-			} else {
-				return manager == null ? "" : manager.getDisplayName();
+				return DisplayFormatters.formatPercentFromThousands(completed)
+						+ " : " + manager.getDisplayName();
 			}
+
+			return manager == null ? "" : manager.getDisplayName();
 		}
 
 		if (manager == null) {
