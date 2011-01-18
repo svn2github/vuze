@@ -34,6 +34,8 @@ import java.util.GregorianCalendar;
 import java.util.LinkedList;
 import java.util.TimeZone;
 
+import org.gudy.azureus2.core3.logging.Logger;
+
 /**
  * @author parg
  *
@@ -173,12 +175,18 @@ AEDiagnosticsLogger
 		if ( stderr ){
 			
 			System.err.println( str );
+
+			// Logger dumps the stderr, but if it's not setup, do it outselves
+			if (Logger.getOldStdErr() == null) {
+				log( str );
+			}
+
 		}else{
 			
 			System.out.println( str );
+			log( str );
 		}
 		
-		log( str );
 	}
 	
 	public void
