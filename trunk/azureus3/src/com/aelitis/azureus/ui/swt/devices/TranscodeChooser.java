@@ -289,7 +289,13 @@ public abstract class TranscodeChooser
 				TranscodeProfile defaultProfile = selectedTranscodeTarget.getDefaultTranscodeProfile();
 				if (defaultProfile != null) {
 					// user chose not to ask
-					selectedProfile = defaultProfile;
+					
+					if ( selectedTranscodeTarget.getTranscodeRequirement() == TranscodeTarget.TRANSCODE_NEVER ){
+							// take note of never-xcode override
+						selectedProfile = selectedTranscodeTarget.getBlankProfile();
+					}else{
+						selectedProfile = defaultProfile;
+					}
 					shell.dispose();
 					return;
 				}
@@ -406,7 +412,11 @@ public abstract class TranscodeChooser
 					} else {
 						if (btnNoPrompt != null) {
 							if (btnNoPrompt.getSelection()) {
-								selectedTranscodeTarget.setDefaultTranscodeProfile(selectedProfile);
+								if ( transcodeRequirement == TranscodeTarget.TRANSCODE_NEVER ){
+									selectedTranscodeTarget.setTranscodeRequirement( TranscodeTarget.TRANSCODE_NEVER );
+								}else{
+									selectedTranscodeTarget.setDefaultTranscodeProfile(selectedProfile);
+								}
 							}
 						}
 					}
