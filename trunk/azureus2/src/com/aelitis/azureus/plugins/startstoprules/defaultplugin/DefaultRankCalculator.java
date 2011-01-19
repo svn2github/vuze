@@ -299,7 +299,6 @@ public class DefaultRankCalculator implements Comparable {
 
 		DefaultRankCalculator dlData = (DefaultRankCalculator) obj;
 
-		
 		// Test FP.  FP goes to top
 		if (dlData.bIsFirstPriority && !bIsFirstPriority)
 			return 1;
@@ -491,9 +490,13 @@ public class DefaultRankCalculator implements Comparable {
 			if (!dl.isComplete()) {
 				newSR = SR_COMPLETE_STARTS_AT + (10000 - dl.getPosition());
 				dl.setSeedingRank(newSR);
+				// make sure we capture FP being turned off when torrent does from
+				// complete to incomplete
+				isFirstPriority();
 				if ( rules.bDebugLog ){
 					sExplainSR += "  not complete. SetSR " + newSR + "\n";
 				}
+				System.out.println(dl.getName() + " " + newSR);
 				return newSR;
 			}
 
