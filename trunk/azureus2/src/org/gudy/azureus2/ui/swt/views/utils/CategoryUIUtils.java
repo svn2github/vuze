@@ -324,8 +324,13 @@ public class CategoryUIUtils
 
 							p_item.setText(tp.getName());
 
-							p_item.setSelection(existing != null
-									&& existing.equals(tp.getUID()));
+							boolean	selected = existing != null	&& existing.equals(tp.getUID());
+							
+							if ( selected ){
+								
+								Utils.setMenuItemImage(tt_item, "blackdot");
+							}
+							p_item.setSelection(selected );
 
 							p_item.addListener(SWT.Selection, new Listener() {
 								public void handleEvent(Event event) {
