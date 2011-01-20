@@ -1156,6 +1156,48 @@ public class Utils
 		return true;
 	}
 
+	public static Control
+	findChild(
+		Composite	comp,
+		int			x,
+		int			y )
+	{
+		Rectangle comp_bounds = comp.getBounds();
+		
+		if ( comp.isVisible() && comp_bounds.contains( x, y )){
+								
+			x -= comp_bounds.x;
+			y -= comp_bounds.y;
+			
+			Control[] children = comp.getChildren();
+			
+			for ( int i = 0; i < children.length; i++){
+				
+				Control child = children[i];
+				
+				if ( child.isVisible()){
+					
+					if (child instanceof Composite) {
+						
+						Control res = findChild((Composite) child, x, y );
+						
+						if ( res != null ){
+							
+							return( res );
+						}
+					}else{
+						
+						return( child );
+					}
+				}
+			}
+			
+			return( comp );
+		}
+		
+		return( null );
+	}
+	
 	/**
 	 * @param area
 	 * @param event id

@@ -29,7 +29,10 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
@@ -169,6 +172,31 @@ public class TorrentOpener {
 
 		final boolean bOverrideToStopped = event.detail == DND.DROP_COPY;
 
+		boolean	share_op = false;
+		
+		try{
+			Control c = ((DropTarget)event.widget).getControl();
+			
+			Control hit = Utils.findChild((Composite )c, event.x, event.y );
+			
+			while( hit != null ){
+				
+				String data = (String)hit.getData( "TableView.TableID" );
+				
+				if ( data != null && data.equals( "MyShares" )){
+					
+					share_op = true;
+					
+					break;
+				}
+				
+				hit = hit.getParent();
+			}
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+		
 		if (event.data instanceof String[] || event.data instanceof String) {
 			final String[] sourceNames = (event.data instanceof String[])
 					? (String[]) event.data : new String[] { (String) event.data };
@@ -177,6 +205,8 @@ public class TorrentOpener {
 			if (event.detail == DND.DROP_NONE)
 				return;
 
+			final boolean f_share_op = share_op;
+			
 			for (int i = 0; (i < sourceNames.length); i++) {
 				final File source = new File(sourceNames[i]);
 				String sURL = UrlUtils.parseTextForURL(sourceNames[i], true);
@@ -204,9 +234,18 @@ public class TorrentOpener {
 							
 							
 							try {
-								openTorrentWindow(null, new String[] { filename }, bOverrideToStopped);
-				
-							} catch (Exception e) {
+								if ( f_share_op && !TorrentUtils.isTorrentFile(filename)) {
+									
+									Logger.log(new LogEvent(LogIDs.GUI,
+													"openDroppedTorrents: file not a torrent file, sharing"));
+									ShareUtils.shareFile(filename);
+									
+								}else{
+									
+									openTorrentWindow(null, new String[] { filename }, bOverrideToStopped);
+								}
+							}catch ( Throwable e ){
+								
 								Logger.log(new LogAlert(LogAlert.REPEATABLE,
 										"Torrent open fails for '" + filename + "'", e));
 							}
@@ -217,7 +256,14 @@ public class TorrentOpener {
 					
 					String dir_name = source.getAbsolutePath();
 
-					openTorrentWindow(dir_name, null, bOverrideToStopped);
+					if ( share_op ){
+						
+						ShareUtils.shareDir( dir_name );
+						
+					}else{
+						
+						openTorrentWindow(dir_name, null, bOverrideToStopped);
+					}
 				}
 			}
 		} else if (event.data instanceof URLTransfer.URLType) {
