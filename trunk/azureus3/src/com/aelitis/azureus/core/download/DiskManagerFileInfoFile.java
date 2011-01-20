@@ -22,7 +22,6 @@
 package com.aelitis.azureus.core.download;
 
 import java.io.File;
-import java.io.RandomAccessFile;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
@@ -37,6 +36,7 @@ import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.QTFastStartRAF;
 
 public class 
 DiskManagerFileInfoFile
@@ -305,10 +305,10 @@ DiskManagerFileInfoFile
 			public void
 			run()
 			{
-				RandomAccessFile	raf = null;
+				QTFastStartRAF	raf = null;
 				
 				try{
-					raf = new RandomAccessFile( file, "r" );
+					raf = new QTFastStartRAF( file, true );
 					
 					raf.seek( offset );
 			
