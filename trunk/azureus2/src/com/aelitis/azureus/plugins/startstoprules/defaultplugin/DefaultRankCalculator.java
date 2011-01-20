@@ -496,7 +496,6 @@ public class DefaultRankCalculator implements Comparable {
 				if ( rules.bDebugLog ){
 					sExplainSR += "  not complete. SetSR " + newSR + "\n";
 				}
-				System.out.println(dl.getName() + " " + newSR);
 				return newSR;
 			}
 
