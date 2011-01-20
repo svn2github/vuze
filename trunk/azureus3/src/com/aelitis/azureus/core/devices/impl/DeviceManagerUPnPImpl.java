@@ -26,6 +26,8 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -424,6 +426,21 @@ DeviceManagerUPnPImpl
 									handleWii( client_address );
 																		
 									handled = true;
+
+								}else if ( lc_agent.contains( "motorola")) {
+									// Linux/2.6.29 UPnP/1.0 Motorola-DLNA-Stack-DLNADOC/1.50
+									handleGeneric( client_address, "motorola", "Motorola DLNA" );
+
+									handled = true;
+
+								}else if ( lc_agent.contains( "sec_hhp")) {
+									Matcher match = Pattern.compile("SEC_HHP_(.*)/").matcher(user_agent);
+									if (match.find()) {
+										String name = match.group(1);
+										handleGeneric(client_address, "SEC_HPP", name);
+										handled = true;
+									}
+
 								}
 							}
 							
@@ -455,6 +472,11 @@ DeviceManagerUPnPImpl
 									handled = true;
 								}
 							}
+							
+//							if (!handled && user_agent != null) {
+//								handleGeneric(client_address, user_agent == null ? "null": user_agent, user_agent);
+
+							//}
 							
 							/*
 							System.out.println( 
