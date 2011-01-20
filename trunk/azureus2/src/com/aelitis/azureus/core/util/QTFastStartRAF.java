@@ -22,8 +22,9 @@
 package com.aelitis.azureus.core.util;
 
 import java.io.*;
-import java.lang.reflect.Array;
-import java.util.Arrays;
+import java.util.*;
+
+import org.gudy.azureus2.core3.util.Debug;
 
 /*
  * The original code by Mike Melanson (melanson@pcisys.net) was placed in the
@@ -34,6 +35,22 @@ import java.util.Arrays;
 public class 
 QTFastStartRAF 
 {	
+	private static final Set<String>	supported_extensions = new HashSet<String>();
+	
+	static{
+		supported_extensions.add( "mov" );
+		supported_extensions.add( "qt" );
+		supported_extensions.add( "mp4" );
+	}
+	
+	private static Set<String>	tested = new HashSet<String>();
+	
+	public static boolean
+	isSupportedExtension(
+		String		extension )
+	{
+		return( supported_extensions.contains( extension.toLowerCase()));
+	}
 	
 	private static final String ATOM_FREE = "free";
 	private static final String ATOM_JUNK = "junk";
@@ -54,7 +71,7 @@ QTFastStartRAF
 		ATOM_PNOT, ATOM_SKIP, ATOM_WIDE, ATOM_PICT,
 		ATOM_FTYP };
 
-	private RandomAccessFile	input;
+	private FileAccessor	input;
 	
 	private boolean		transparent;
 	
@@ -71,9 +88,35 @@ QTFastStartRAF
 	
 		throws IOException
 	{
-		input = new RandomAccessFile( file, "r" );
+		this( new RAFAccessor( file ), enable );
+	}
+	
+	public
+	QTFastStartRAF(
+		FileAccessor	accessor,
+		boolean			enable )
+	
+		throws IOException
+	{
+		input = accessor;
 		
 		if ( enable ){
+			
+			String	name = accessor.getName();
+			
+			boolean	log;
+			String	fail	= null;
+			
+			synchronized( tested ){
+				
+				log = !tested.contains( name );
+				
+				if ( log ){
+					
+					tested.add( name );
+				}
+			}
+						
 			try{
 				Atom ah = null;
 				Atom ftypAtom = null;
@@ -86,10 +129,10 @@ QTFastStartRAF
 					
 					ah = new Atom(input);
 					
-					System.out.println( "got " + ah.type +", size=" + ah.size );
+					// System.out.println( "got " + ah.type +", size=" + ah.size );
 					
 					if (!isValidTopLevelAtom(ah)) {
-						throw new IOException("Non top level QT atom found. File invalid?");
+						throw new IOException("Non top level QT atom found (" + ah.type + "). File invalid?");
 					}
 					
 					if (gotFtyp && !gotMdat && ah.type.equalsIgnoreCase(ATOM_MOOV)) {
@@ -143,20 +186,38 @@ QTFastStartRAF
 				System.arraycopy( ftypAtom.buffer, 0, header, 0, ftypAtom.buffer.length );
 				System.arraycopy( moovAtom.buffer, 0, header, ftypAtom.buffer.length, moovAtom.buffer.length );
 				
-				if ( file.length() != header.length + ( body_end - body_start )){
+				if ( accessor.length() != header.length + ( body_end - body_start )){
 					
 					throw( new IOException( "Inconsistent: file size has changed" ));
 				}
 					
 			}catch( Throwable e ){
 				
-				e.printStackTrace();
+				//e.printStackTrace();
+				
+				fail = Debug.getNestedExceptionMessage( e );
 				
 				transparent	= true;
 				
 			}finally{
 				
 				input.seek( 0 );
+				
+				if ( log ){
+					
+					String	message;
+					
+					if ( fail == null ){
+						
+						message = transparent?"Not required":"Required";
+						
+					}else{
+						
+						message = "Failed - " + fail;
+					}
+					
+					Debug.outNoStack( "MOOV relocation for " + accessor.getName() + ": " + message );
+				}
 			}
 		}else{
 			
@@ -367,7 +428,7 @@ QTFastStartRAF
 		public String type;
 		public byte[] buffer = null;
 		
-		public Atom(RandomAccessFile input) throws IOException {
+		public Atom(FileAccessor input) throws IOException {
 			offset = input.getFilePointer();
 			// get atom size
 			size = input.readInt();
@@ -383,10 +444,170 @@ QTFastStartRAF
 			input.seek(offset);
 		}
 		
-		public void fillBuffer(RandomAccessFile input) throws IOException {
+		public void fillBuffer(FileAccessor input) throws IOException {
 			buffer = new byte[(int)size];
 			input.readFully(buffer);
 		}
+	}
+	
+	private static class
+	RAFAccessor
+		implements FileAccessor
+	{
+		private File					file;
+		private RandomAccessFile		raf;
+		
+		private
+		RAFAccessor(
+			File			_file )
+		
+			throws IOException
+		{
+			file	= _file;
+			raf 	= new RandomAccessFile( file, "r" );
+		}
+		
+		public String
+		getName()
+		{
+			return( file.getAbsolutePath());
+		}
+		
+		public long
+		getFilePointer()
+		
+			throws IOException
+		{
+			return( raf.getFilePointer());
+		}
+		
+		public void
+		seek(
+			long		pos )
+		
+			throws IOException
+		{
+			raf.seek( pos );
+		}
+
+		public void
+		skipBytes(
+			int		num )
+		
+			throws IOException
+		{
+			raf.skipBytes( num );
+		}
+		
+		public long
+		length()
+		
+			throws IOException
+		{
+			return( raf.length());
+		}
+		
+		public int
+		read(
+			byte[]	buffer,
+			int		pos,
+			int		len )
+		
+			throws IOException
+		{
+			return( raf.read(buffer,pos,len));
+		}
+		
+		public int
+		readInt()
+		
+			throws IOException
+		{
+			return( raf.readInt());
+		}
+		
+		public long
+		readLong()
+			
+			throws IOException
+		{
+			return( raf.readLong());
+		}
+		
+		public void
+		readFully(
+			byte[]	buffer )
+		
+			throws IOException
+		{
+			raf.readFully( buffer );
+		}
+				
+		public void
+		close()
+		
+			throws IOException
+		{
+			raf.close();
+		}
+	}
+	
+	public interface
+	FileAccessor
+	{
+		public String
+		getName();
+		
+		public long
+		getFilePointer()
+		
+			throws IOException;
+		
+		public void
+		seek(
+			long		pos )
+		
+			throws IOException;
+
+		public void
+		skipBytes(
+			int		num )
+		
+			throws IOException;
+		
+		public long
+		length()
+		
+			throws IOException;
+		
+		public int
+		read(
+			byte[]	buffer,
+			int		pos,
+			int		len )
+		
+			throws IOException;
+		
+		public int
+		readInt()
+		
+			throws IOException;
+		
+		public long
+		readLong()
+		
+			throws IOException;
+		
+		public void
+		readFully(
+			byte[]	buffer )
+		
+			throws IOException;
+				
+		public void
+		close()
+		
+			throws IOException;
 	}
 	
 	public static void
@@ -394,7 +615,7 @@ QTFastStartRAF
 		String[]		args )
 	{
 		try{	
-			QTFastStartRAF	raf = new QTFastStartRAF( new File( "C:\\temp\\qtfs.mp4" ), true );
+			QTFastStartRAF	raf = new QTFastStartRAF( new File( "C:\\temp\\spork.mp4" ), true );
 			
 			long	len = raf.length();
 			

@@ -252,6 +252,8 @@ DiskManagerFileInfoFile
 
 			private volatile boolean	cancelled;
 			
+			private String		user_agent;
+			
 			private CopyOnWriteList<DiskManagerListener>		listeners = new CopyOnWriteList<DiskManagerListener>();
 			
 			public void
@@ -290,6 +292,14 @@ DiskManagerFileInfoFile
 				max_read_chunk = size;
 			}
 			
+			public void
+			setUserAgent(
+				String		agent )
+			{	
+				user_agent	= agent;
+			}
+
+			
 			public long
 			getAvailableBytes()
 			{
@@ -307,8 +317,14 @@ DiskManagerFileInfoFile
 			{
 				QTFastStartRAF	raf = null;
 				
+				String name = file.getName();
+				
+				int	dot_pos = name.lastIndexOf('.');
+				
+				String ext = dot_pos<0?"":name.substring(dot_pos+1);
+				
 				try{
-					raf = new QTFastStartRAF( file, true );
+					raf = new QTFastStartRAF( file, user_agent != null && QTFastStartRAF.isSupportedExtension( ext ));
 					
 					raf.seek( offset );
 			
@@ -361,13 +377,7 @@ DiskManagerFileInfoFile
 			{
 				cancelled = true;
 			}
-			
-			public void
-			setUserAgent(
-				String		agent )
-			{	
-			}
-			
+						
 			protected void
 			sendEvent(
 				event		ev )

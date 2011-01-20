@@ -62,6 +62,11 @@ DiskManagerRequest
 	public void
 	cancel();
 	
+		/**
+		 * Beware that invoking this method signifies that the media is being streamed and therefore may undergo transformations such as MOOV atom relocation in mp4s
+		 * @param agent
+		 */
+	
 	public void
 	setUserAgent(
 		String		agent );

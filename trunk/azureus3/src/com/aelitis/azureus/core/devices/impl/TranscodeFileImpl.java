@@ -42,6 +42,7 @@ import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
 import com.aelitis.azureus.core.devices.TranscodeProviderAnalysis;
 import com.aelitis.azureus.core.devices.TranscodeTargetListener;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoDelegate;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.util.ImportExportUtils;
 
@@ -307,7 +308,24 @@ TranscodeFileImpl
 		
 		if ( getBoolean( KEY_NO_XCODE )){
 			
-			return( getSourceFile());
+			DiskManagerFileInfo res = getSourceFile();
+			
+			if ( res instanceof DiskManagerFileInfoFile ){
+				
+				return( res );
+				
+			}else{
+				
+				try{
+					return( new DiskManagerFileInfoDelegate( res ));
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+					
+					return( res );
+				}
+			}
 		}
 		
 			// Debug.out( "Target file for " + cache_file + " doesn't exist" );
