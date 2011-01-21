@@ -657,9 +657,7 @@ DeviceManagerUPnPImpl
 					});
 			
 			if ( upnpav_ipc.canInvoke( "addBrowseListener", new Object[]{ my_ipc })){
-				
-				upnpav_ipc.invoke( "addBrowseListener", new Object[]{ my_ipc });
-				
+								
 				DeviceImpl[] devices = manager.getDevices();
 				
 				for ( DeviceImpl device: devices ){
@@ -671,6 +669,9 @@ DeviceManagerUPnPImpl
 						u_d.resetUPNPAV();
 					}
 				}
+				
+				upnpav_ipc.invoke( "addBrowseListener", new Object[]{ my_ipc });
+
 			}else{
 				
 				manager.log( "UPnPAV plugin needs upgrading" );
