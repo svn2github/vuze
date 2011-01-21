@@ -7,6 +7,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundException;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -815,13 +817,23 @@ public abstract class BaseMdiEntry
 
 	public boolean isExpanded() {
 		return isExpanded == null
-				? COConfigurationManager.getBooleanParameter("SideBar.Expanded." + id, true)
+				? COConfigurationManager.getBooleanParameter("SideBar.Expanded." + id)
 				: isExpanded;
 	}
 
 	public void setExpanded(boolean expanded) {
 		isExpanded = expanded;
-		COConfigurationManager.setParameter("SideBar.Expanded." + id, isExpanded);
+		boolean defExpanded = true;
+		try {
+			defExpanded = ConfigurationDefaults.getInstance().getBooleanParameter(
+					"SideBar.Expanded." + id);
+		} catch (ConfigurationParameterNotFoundException e) {
+		}
+		if (isExpanded == defExpanded) {
+			COConfigurationManager.removeParameter("SideBar.Expanded." + id);
+		} else {
+			COConfigurationManager.setParameter("SideBar.Expanded." + id, isExpanded);
+		}
 	}
 
 	public boolean isAdded() {
