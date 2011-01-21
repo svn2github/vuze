@@ -26,6 +26,7 @@ import java.lang.reflect.Method;
 import java.net.URL;
 
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -38,6 +39,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
@@ -80,12 +82,56 @@ StreamManager
 	
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
+	private List<SMDImpl>		streamers = new ArrayList<SMDImpl>();
+	
 	private
 	StreamManager()
 	{
 		PluginInterface default_pi = PluginInitializer.getDefaultInterface();
 
 		mi_ta = default_pi.getTorrentManager().getPluginAttribute( "sm_metainfo" );
+		
+		default_pi.addListener(
+			new PluginListener()
+			{
+				public void
+				initializationComplete()
+				{
+					
+				}
+				
+				public void
+				closedownInitiated()
+				{
+					dispatcher.dispatch(
+						new AERunnable()
+						{
+							public void 
+							runSupport()
+							{
+								List<SMDImpl>	to_cancel;
+								
+								synchronized( StreamManager.this ){
+									
+									to_cancel = new ArrayList<SMDImpl>( streamers );
+									
+									streamers.clear();
+								}
+								
+								for ( SMDImpl s: to_cancel ){
+									
+									s.cancel();
+								}
+							}
+						});
+				}
+				
+				public void
+				closedownComplete()
+				{
+					
+				}
+			});
 	}
 	
 	public boolean
@@ -151,7 +197,12 @@ StreamManager
 		StreamManagerDownloadListener	listener )
 	{
 		SMDImpl	result = new SMDImpl( dm, file_index, url, preview_mode, listener );
-				
+			
+		synchronized( StreamManager.this ){
+			
+			streamers.add( result );
+		}
+		
 		return( result );
 	}
 
@@ -166,6 +217,8 @@ StreamManager
 		private URL									url;
 		private StreamManagerDownloadListener		listener;
 			
+		private int						existing_dl_limit;
+		
 		private boolean					preview_mode;
 		private long					preview_mode_last_change = 0;
 		
@@ -605,8 +658,20 @@ StreamManager
 				smd_method.invoke( player, new Object[] { md_map });
 
 				final long	bytes_per_sec = file.getLength() / (duration/1000);
+			
+				long	dl_lim_max 		= COConfigurationManager.getIntParameter( "Plugin.azemp.azemp.config.dl_lim_max" ) * 1024L;
+				long	dl_lim_extra 	= COConfigurationManager.getIntParameter( "Plugin.azemp.azemp.config.dl_lim_extra" ) * 1024L;
 
-				listener.updateActivity( "Average rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( bytes_per_sec ));
+				existing_dl_limit = download.getDownloadRateLimitBytesPerSecond();
+				
+				long	required_limit = Math.max( dl_lim_max, bytes_per_sec + dl_lim_extra );
+
+				if ( required_limit > 0 ){
+				
+					download.setDownloadRateLimitBytesPerSecond((int)required_limit );
+				}
+				
+				listener.updateActivity( "Average rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( bytes_per_sec ) + ", applied dl limit=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( required_limit ));
 
 				synchronized( StreamManager.this ){
 					
@@ -903,6 +968,8 @@ StreamManager
 				
 				edm 			= active_edm;
 				edm_activated	= active_edm_activated;
+				
+				streamers.remove( this );
 			}
 			
 			if ( job != null ){
@@ -921,6 +988,10 @@ StreamManager
 					edm.prepareForProgressiveMode( false );
 				}
 			}
+			
+			final Download download = PluginCoreUtils.wrap( dm );
+
+			download.setDownloadRateLimitBytesPerSecond( existing_dl_limit );
 		}
 		
 		public boolean

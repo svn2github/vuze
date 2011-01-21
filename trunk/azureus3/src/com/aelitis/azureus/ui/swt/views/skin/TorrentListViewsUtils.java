@@ -680,18 +680,21 @@ public class TorrentListViewsUtils
 											append(
 												final String	str )
 											{
-												Utils.execSWTThread(
-													new Runnable()
-													{
-														public void
-														run()
+												if ( stream_viewer != null ){
+													
+													Utils.execSWTThread(
+														new Runnable()
 														{
-															if ( stream_viewer != null && !stream_viewer.isDisposed()){
-																
-																stream_viewer.append( str + "\r\n" );
+															public void
+															run()
+															{
+																if ( stream_viewer != null && !stream_viewer.isDisposed()){
+																	
+																	stream_viewer.append( str + "\r\n" );
+																}
 															}
-														}
-													});
+														});
+												}
 											}
 										});
 								}
