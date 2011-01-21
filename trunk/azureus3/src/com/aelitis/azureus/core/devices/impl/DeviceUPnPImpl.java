@@ -25,11 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
@@ -525,6 +521,8 @@ DeviceUPnPImpl
 	protected void
 	resetUPNPAV()
 	{		
+		Set<String>	to_remove = new HashSet<String>();
+		
 		synchronized( this ){
 			
 			if ( upnpav_ipc == null ){
@@ -544,11 +542,21 @@ DeviceUPnPImpl
 			
 			removeListener( this );
 			
-			TranscodeFile[]	transcode_files = getFiles();
+			TranscodeFileImpl[]	transcode_files = getFiles();
 			
-			for ( TranscodeFile file: transcode_files ){
+			for ( TranscodeFileImpl file: transcode_files ){
 
 				file.setTransientProperty( UPNPAV_FILE_KEY, null );
+				
+				to_remove.add( file.getKey());
+			}
+		}
+		
+		synchronized( acf_map ){
+			
+			for (String key: to_remove ){
+			
+				acf_map.remove( key );
 			}
 		}
 	}
