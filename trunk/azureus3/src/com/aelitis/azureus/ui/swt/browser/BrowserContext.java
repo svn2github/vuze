@@ -44,6 +44,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContextImpl;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
@@ -411,10 +412,10 @@ public class BrowserContext
 					boolean wasGoogleSearch = curURL.startsWith(
 							"http://www.google.com/#q")
 							|| curURL.startsWith("http://www.google.com/search")
-							|| curURL.contains("vuzesearch=1");
+							|| PlatformConfigMessenger.areLinksExternal(curURL);
 					boolean isGoogleSearch = event_location.startsWith("http://www.google.com/#q")
 							|| (event_location.startsWith("http://www.google.com/search"))
-							|| event_location.contains("vuzesearch=1");
+							|| PlatformConfigMessenger.areLinksExternal(event_location);
 					if (wasGoogleSearch 
 							&& !isGoogleSearch 
 							&& !curURL.equalsIgnoreCase(event_location)
@@ -441,7 +442,7 @@ public class BrowserContext
   					return;
   				}
 
-					boolean wasVuzeSearch = curURL.contains("vuzesearch=1")
+					boolean wasVuzeSearch = PlatformConfigMessenger.areLinksExternal(curURL)
 							&& !curURL.equalsIgnoreCase(event_location)
 							&& !event_location.equals("about:blank");
 					if (wasVuzeSearch && !isPageLoadingOrRecent) {
