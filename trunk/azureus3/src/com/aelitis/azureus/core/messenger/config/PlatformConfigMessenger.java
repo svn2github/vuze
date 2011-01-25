@@ -21,6 +21,7 @@
 package com.aelitis.azureus.core.messenger.config;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -35,6 +36,7 @@ import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.util.*;
 
 /**
@@ -61,6 +63,8 @@ public class PlatformConfigMessenger
 	private static boolean platformLoginComplete = false;
 
 	protected static List platformLoginCompleteListeners = Collections.EMPTY_LIST;
+
+	private static CopyOnWriteList<String> externalLinks = new CopyOnWriteList<String>();
 	
 	public static void login(long contentNetworkID, long maxDelayMS) {
 		PlatformManager pm = PlatformManagerFactory.getPlatformManager();
@@ -137,6 +141,13 @@ public class PlatformConfigMessenger
 							PlatformMessenger.debug("v3.login: got tracker domain of " + s);
 						}
 					}
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+				
+				try {
+					List list = MapUtils.getMapList(reply, "external-links", Collections.EMPTY_LIST);
+					externalLinks.addAll(list);
 				} catch (Exception e) {
 					Debug.out(e);
 				}
@@ -300,5 +311,17 @@ public class PlatformConfigMessenger
 
 	public static boolean allowSendDeviceList() {
 		return allowSendDeviceList;
+	}
+	
+	public static boolean areLinksExternal(String url) {
+		for (String regex : externalLinks) {
+			try {
+  			if (Pattern.compile(regex).matcher(url).find()) {
+  				return true;
+  			}
+			} catch (Exception e) {
+			}
+		}
+		return false;
 	}
 }
