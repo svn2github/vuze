@@ -274,7 +274,7 @@ RSSEngine
 						boolean vuze_feed = false;
 						
 						for ( int k=0; k<children.length; k++ ){
-							
+														
 							SimpleXMLParserDocumentNode child = children[k];
 							
 							String	lc_full_child_name 	= child.getFullName().toLowerCase();
@@ -519,6 +519,120 @@ RSSEngine
 						}
 					}
 					
+						// override existing values with explicit <torrent> entry if present
+					
+					try{
+						SimpleXMLParserDocumentNode torrent_node = node.getChild( "torrent" );
+						
+						if ( torrent_node != null ){
+						
+							if ( result.getSize() <= 0 ){
+								
+								SimpleXMLParserDocumentNode n = torrent_node.getChild( "contentLength" );
+								
+								if ( n != null ){
+									
+									try{
+										long l = Long.parseLong( n.getValue().trim());
+										
+										result.setSizeFromHTML( l + " B" );
+										
+									}catch( Throwable e ){
+										
+									}
+								}
+							}
+							
+							String dlink = result.getDownloadLink();
+							
+							if ( dlink == null || dlink.length() == 0 ){
+								
+								SimpleXMLParserDocumentNode n = torrent_node.getChild( "magnetURI" );
+								
+								if ( n != null ){
+									
+									dlink = n.getValue().trim();
+									
+									result.setTorrentLink( dlink );
+								}
+							}
+							
+							String hash = result.getHash();
+							
+							if ( hash == null || hash.length() == 0 ){
+								
+								SimpleXMLParserDocumentNode n = torrent_node.getChild( "infoHash" );
+								
+								if ( n != null ){
+									
+									String h = n.getValue().trim();
+									
+									result.setHash( h );
+									
+									if ( dlink == null || dlink.length() == 0 ){
+										
+										String uri = UrlUtils.normaliseMagnetURI( h );
+										
+										if ( uri != null ){
+											
+											result.setTorrentLink( uri );
+										}
+									}
+								}
+							}
+							
+							SimpleXMLParserDocumentNode trackers_node = torrent_node.getChild( "trackers" );
+
+							if ( trackers_node != null && !got_seeds_peers ){
+								
+								SimpleXMLParserDocumentNode[] groups = trackers_node.getChildren();
+								
+								int	max_total = -1;
+								
+								int	best_seeds		= 0;
+								int	best_leechers	= 0;
+								
+								for ( SimpleXMLParserDocumentNode group: groups ){
+									
+									SimpleXMLParserDocumentNode[] g_kids = group.getChildren();
+									
+									for ( SimpleXMLParserDocumentNode t: g_kids ){
+										
+										if ( t.getName().equalsIgnoreCase( "tracker" )){
+											
+											SimpleXMLParserDocumentAttribute a_seeds 	= t.getAttribute( "seeds" );
+											SimpleXMLParserDocumentAttribute a_leechers = t.getAttribute( "peers" );
+											
+											int	seeds 		= a_seeds==null?-1:Integer.parseInt( a_seeds.getValue().trim());
+											int	leechers 	= a_leechers==null?-1:Integer.parseInt( a_leechers.getValue().trim());
+											
+											int	total = seeds + leechers;
+											
+											if ( total > max_total ){
+											
+												max_total = total;
+												
+												best_seeds 		= seeds;
+												best_leechers	= leechers;
+											}
+										}									
+									}
+								}
+								
+								if ( max_total >= 0 ){
+									
+									result.setNbSeedsFromHTML( String.valueOf( Math.max( 0, best_seeds )));
+									result.setNbPeersFromHTML( String.valueOf( Math.max( 0, best_leechers )));
+								}
+							}
+						}
+					}catch( Throwable e ){
+						
+						e.printStackTrace();
+					}
+					
+						// if we still have no download link see if the magnet is in the title
+					
 					String dlink = result.getDownloadLink();
 					
 					if ( dlink == null || dlink.length() == 0 ){
@@ -535,7 +649,7 @@ RSSEngine
 							}
 						}
 					}
-					
+
 					results.add(result);
 					
 					if ( absolute_max_matches >= 0 && results.size() == absolute_max_matches ){
