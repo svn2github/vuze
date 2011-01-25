@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -63,7 +64,15 @@ public class PlayUtils
 	public static final boolean COMPLETE_PLAY_ONLY = true;
 	
 	public static final int fileSizeThreshold = 90;
-	public static final String playableFileExtensions = ".avi .flv .flc .mp4 .divx .h264 .mkv .mov .mp2 .m4v .mp3 .aac";
+	
+		/**
+		 * Access to this static is deprecated - use get/setPlayableFileExtensions. For legacy EMP we need
+		 * to keep it public for the moment...
+		 */
+	
+	public static final String playableFileExtensions 	= ".avi .flv .flc .mp4 .divx .h264 .mkv .mov .mp2 .m4v .mp3 .aac";
+	
+	private static volatile String actualPlayableFileExtensions = playableFileExtensions;
 	
 	
 	private static boolean triedLoadingEmpPluginClass = false;
@@ -566,6 +575,24 @@ public class PlayUtils
 		return( isExternallyPlayable( d.getDiskManagerFileInfo()[primary_file_index] ));
 	}
 	
+	public static String
+	getPlayableFileExtensions()
+	{
+		return( actualPlayableFileExtensions );
+	}
+	
+		/**
+		 * This method available for player plugins to extend playable set if needed
+		 * @param str
+		 */
+	
+	public static void
+	setPlayableFileExtensions(
+		String	str )
+	{
+		actualPlayableFileExtensions = str;
+	}
+	
 	private static boolean
 	isExternallyPlayable(
 		DiskManagerFileInfo	file )
@@ -585,7 +612,7 @@ public class PlayUtils
 			
 			ext = ext.toLowerCase();
 			
-			if ( playableFileExtensions.indexOf(ext) > -1 ){
+			if ( getPlayableFileExtensions().indexOf(ext) > -1 ){
 				
 				return true;
 			}
