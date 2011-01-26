@@ -104,7 +104,11 @@ public class TableColumnManager {
 					if (iPositionB < 0)
 						iPositionB = 0xFFFF + iPositionB;
 
-					return iPositionA - iPositionB;
+					int i = iPositionA - iPositionB;
+					if (i != 0) {
+						return i;
+					}
+					return ((TableColumn) arg0).getName().compareTo(((TableColumn) arg1).getName());
 				}
 				return 0;
 			}
