@@ -851,7 +851,12 @@ public class Utils
 
 		TableItemOrTreeItem curItem = table.getTopItem();
 		if (curItem == null) {
-			return Collections.emptyList();
+			if (table.getItemCount() > 0) {
+				// BUG in GTK: topitem of tree will be null after setItemCount
+				curItem = table.getItem(0);
+			} else {
+				return Collections.emptyList();
+			}
 		}
 		List<TableItemOrTreeItem> items = new ArrayList<TableItemOrTreeItem>();
 		int i = table.indexOf(curItem);
