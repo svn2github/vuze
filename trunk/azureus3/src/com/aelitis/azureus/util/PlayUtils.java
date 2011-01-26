@@ -284,7 +284,12 @@ public class PlayUtils
 			
 			return( false );
 		}
-	
+
+		if (ds instanceof org.gudy.azureus2.core3.disk.DiskManagerFileInfo) {
+			org.gudy.azureus2.core3.disk.DiskManagerFileInfo fi = (org.gudy.azureus2.core3.disk.DiskManagerFileInfo) ds;
+			return canStreamDS(fi.getDownloadManager(), fi.getIndex());
+		}
+
 		DownloadManager dm = DataSourceUtils.getDM(ds);
 		
 		if ( dm != null ){
