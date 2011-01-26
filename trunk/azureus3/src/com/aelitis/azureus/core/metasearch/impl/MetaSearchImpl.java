@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
@@ -119,13 +120,33 @@ MetaSearchImpl
 	
 	public EngineImpl
 	importFromPlugin(
-		String				pid,
+		String				_pid,
 		SearchProvider		provider )
 	
 		throws IOException
 	{
 		synchronized( this ){
 
+				// unfortunately pid can be internationalised and thus musn't be used as a key to
+				// a bencoded-map as it can lead of nastyness. Delete any existing entries that have
+				// got out of control
+			
+			Iterator<String>	it = plugin_map.keySet().iterator();
+			
+			while( it.hasNext()){
+				
+				if ( it.next().length() > 1024 ){
+					
+					Debug.out( "plugin_map corrupted, resetting" );
+							
+					plugin_map.clear();
+					
+					break;
+				}
+			}
+			
+			String pid = Base32.encode( _pid.getBytes( "UTF-8" ));
+			
 			Long	l_id = plugin_map.get( pid );
 			
 			long	id;
