@@ -371,8 +371,8 @@ public class SB_Transfers
 										return;
 									}
 
-									MdiEntry entry = mdi.getEntry("Category."
-											+ category.getName());
+									MdiEntry entry = mdi.getEntry("Cat."
+											+ Base32.encode(category.getName().getBytes()));
 									if (entry == null) {
 										return;
 									}
@@ -679,9 +679,9 @@ public class SB_Transfers
 		};
 
 		MdiEntry entry = mdi.createEntryFromSkinRef(
-				MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, "Category."
-						+ category.getName(), "library", name, viewTitleInfo, category,
-				false, null);
+				MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, "Cat."
+						+ Base32.encode(name.getBytes()), "library", name, viewTitleInfo,
+				category, false, null);
 		if (entry != null) {
 			entry.setImageLeftID("image.sidebar.library");
 		}
@@ -738,7 +738,8 @@ public class SB_Transfers
 			return;
 		}
 
-		MdiEntry entry = mdi.getEntry("Category." + category.getName());
+		MdiEntry entry = mdi.getEntry("Cat."
+				+ Base32.encode(category.getName().getBytes()));
 
 		if (entry != null) {
 			entry.close(true);
