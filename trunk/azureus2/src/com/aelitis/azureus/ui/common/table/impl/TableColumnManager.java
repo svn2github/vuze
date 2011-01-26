@@ -163,11 +163,14 @@ public class TableColumnManager {
 				if (!mTypes.containsKey(name)) {
 					mTypes.put(name, item);
 					Map mapColumnConfig = getTableConfigMap(sTableID);
-					((TableColumnCore) item).loadSettings(mapColumnConfig);
+					item.loadSettings(mapColumnConfig);
 				}
+			}
+			for (int i = 0; i < itemsToAdd.length; i++) {
+				TableColumnCore item = itemsToAdd[i];
 				
-				if (!item.getColumnAdded()) {
-					item.setColumnAdded(true);
+				if (!item.isRemoved() && !item.getColumnAdded()) {
+					item.setColumnAdded();
 				}
 			}
 		} catch (Exception e) {
@@ -340,33 +343,35 @@ public class TableColumnManager {
 		try {
 			items_mon.enter();
 
-			mTypes = (Map) items.get(tableID);
+			mTypes = items.get(tableID);
 			if (mTypes == null) {
 				mTypes = new LinkedHashMap();
 				items.put(tableID, mTypes);
 			}
 
 			if (forDataSourceType != null) {
-				List listDST = (List) mapDataSourceTypeToColumnIDs.get(forDataSourceType);
+				Map<Class<?>, List> mapDST = new HashMap<Class<?>, List>();
+				List listDST = mapDataSourceTypeToColumnIDs.get(forDataSourceType);
 				if (listDST != null) {
-					doAddCreate(mTypes, forDataSourceType, tableID, listDST);
+					mapDST.put(forDataSourceType, listDST);
 				}
 				if (forDataSourceType.equals(DownloadTypeComplete.class)
 						|| forDataSourceType.equals(DownloadTypeIncomplete.class)) {
-					listDST = (List) mapDataSourceTypeToColumnIDs.get(Download.class);
+					listDST = mapDataSourceTypeToColumnIDs.get(Download.class);
 					if (listDST != null && listDST.size() > 0) {
-						doAddCreate(mTypes, Download.class, tableID, listDST);
+						mapDST.put(Download.class, listDST);
 					}
 				} else if (Download.class.equals(forDataSourceType)) {
-					listDST = (List) mapDataSourceTypeToColumnIDs.get(DownloadTypeComplete.class);
+					listDST = mapDataSourceTypeToColumnIDs.get(DownloadTypeComplete.class);
 					if (listDST != null && listDST.size() > 0) {
-						doAddCreate(mTypes, DownloadTypeComplete.class, tableID, listDST);
+						mapDST.put(DownloadTypeComplete.class, listDST);
 					}
-					listDST = (List) mapDataSourceTypeToColumnIDs.get(DownloadTypeIncomplete.class);
+					listDST = mapDataSourceTypeToColumnIDs.get(DownloadTypeIncomplete.class);
 					if (listDST != null && listDST.size() > 0) {
-						doAddCreate(mTypes, DownloadTypeIncomplete.class, tableID, listDST);
+						mapDST.put(DownloadTypeIncomplete.class, listDST);
 					}
 				}
+				doAddCreate(mTypes, tableID, mapDST);
 			}
 		} finally {
 			items_mon.exit();
@@ -382,35 +387,39 @@ public class TableColumnManager {
 	 *
 	 * @since 4.0.0.5
 	 */
-	private void doAddCreate(Map mTypes, Class forDataSourceType, String tableID, List listDST) {
-		for (Iterator iter = listDST.iterator(); iter.hasNext();) {
-			String columnID = (String) iter.next();
-			if (!mTypes.containsKey(columnID)) {
-				try {
-					TableColumnCreationListener l = mapColumnIDsToListener.get(forDataSourceType
-							+ "." + columnID);
-					TableColumnCore tc = null;
-					if (l instanceof TableColumnCoreCreationListener) {
-						tc = ((TableColumnCoreCreationListener) l).createTableColumnCore(
-								forDataSourceType, tableID, columnID);
-					}
-					if (tc == null) {
-						tc = new TableColumnImpl(forDataSourceType, tableID, columnID);
-					}
+	private void doAddCreate(Map mTypes, String tableID, Map<Class<?>, List> mapDST) {
+		ArrayList<TableColumnCore> listAdded = new ArrayList<TableColumnCore>();
+		for (Class forDataSourceType : mapDST.keySet()) {
+			List listDST = mapDST.get(forDataSourceType);
 
-					if (l != null) {
-						l.tableColumnCreated(tc);
+			for (Iterator iter = listDST.iterator(); iter.hasNext();) {
+				String columnID = (String) iter.next();
+				if (!mTypes.containsKey(columnID)) {
+					try {
+						TableColumnCreationListener l = mapColumnIDsToListener.get(forDataSourceType
+								+ "." + columnID);
+						TableColumnCore tc = null;
+						if (l instanceof TableColumnCoreCreationListener) {
+							tc = ((TableColumnCoreCreationListener) l).createTableColumnCore(
+									forDataSourceType, tableID, columnID);
+						}
+						if (tc == null) {
+							tc = new TableColumnImpl(tableID, columnID);
+							tc.addDataSourceType(forDataSourceType);
+						}
+
+						if (l != null) {
+							l.tableColumnCreated(tc);
+						}
+
+						listAdded.add(tc);
+					} catch (Exception e) {
+						Debug.out(e);
 					}
-
-					addColumns(new TableColumnCore[] {
-						tc
-					});
-
-				} catch (Exception e) {
-					Debug.out(e);
 				}
 			}
 		}
+		addColumns(listAdded.toArray(new TableColumnCore[0]));
 	}
 
 		public String[]
@@ -531,9 +540,11 @@ public class TableColumnManager {
 					}
 				}
 			}
-  		if (!hasColumnInfo) {
-  			return false;
-  		}
+  		// Intentially commented out. Pass empty mapTableConfig to loadSettings
+  		// in case column wants to do some special init stuff
+  		//if (!hasColumnInfo) {
+  		//	return false;
+  		//}
       TableColumnCore[] tcs = getAllTableColumnCoreAsArray(forDataSourceType,
 					sTableID);
       for (int i = 0; i < tcs.length; i++) {
@@ -719,7 +730,7 @@ public class TableColumnManager {
 
 		TableColumnCore column = getTableColumnCore(forTableID, columnID);
 		
-		return( getColumnInfo( column ));
+		return column == null ? null : getColumnInfo(column);
 	}
 	
 	public TableColumnInfo getColumnInfo( TableColumnCore column ){

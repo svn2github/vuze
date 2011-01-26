@@ -312,6 +312,11 @@ public class TableSubCellImpl
 	}
 
 	public void invokeToolTipListeners(int type) {
+  	if (tableColumn == null) {
+  		return;
+  	}
+
+    tableColumn.invokeCellToolTipListeners(this, type);
 	}
 
 	public void invokeMouseListeners(TableCellMouseEvent event) {

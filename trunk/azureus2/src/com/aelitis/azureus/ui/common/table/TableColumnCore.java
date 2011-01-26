@@ -42,12 +42,9 @@ public interface TableColumnCore
 	 * TableColumnManager.  Some functions can not be run after a column has been
 	 * added.
 	 *
-	 * @param bAdded true - Column has been added<br>
-	 *               false - Column has not been added
-	 *               
 	 * @since 2.1.0.0
 	 */
-	public void setColumnAdded(boolean bAdded);
+	public void setColumnAdded();
 
 	/** 
 	 * Retrieve whether the column has been added to the TableColumnManager
@@ -361,4 +358,11 @@ public interface TableColumnCore
 	String getClipboardText(TableCell cell);
 
 	boolean handlesDataSourceType(Class<?> cla);
+
+	/**
+	 * @param forDataSourceType
+	 *
+	 * @since 4.6.0.1
+	 */
+	public void addDataSourceType(Class<?> forDataSourceType);
 }

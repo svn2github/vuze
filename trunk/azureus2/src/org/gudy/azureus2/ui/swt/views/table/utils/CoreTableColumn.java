@@ -60,7 +60,8 @@ public abstract class CoreTableColumn
 
   public CoreTableColumn(Class forDataSourceType, String sName, int iAlignment,
 			int iWidth, String sTableID) {
-		super(forDataSourceType, sTableID, sName);
+		super(sTableID, sName);
+		addDataSourceType(forDataSourceType);
 		super.initialize(iAlignment, POSITION_INVISIBLE, iWidth);
 		setUseCoreDataSource(true);
 		addListeners(this);
