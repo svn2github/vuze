@@ -562,7 +562,11 @@ public class SideBarEntrySWT
 		Rectangle drawBounds = Utils.isCocoa || Constants.isWindows
 				? event.gc.getClipping() : event.getBounds();
 		if (drawBounds.isEmpty()) {
-			return;
+			if (!Utils.isCocoa && !Constants.isWindows && !event.getBounds().isEmpty()) {
+				drawBounds = event.getBounds();
+			} else {
+				return;
+			}
 		}
 
 		String text = getTitle();
