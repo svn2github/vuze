@@ -540,11 +540,9 @@ public class TableColumnManager {
 					}
 				}
 			}
-  		// Intentially commented out. Pass empty mapTableConfig to loadSettings
-  		// in case column wants to do some special init stuff
-  		//if (!hasColumnInfo) {
-  		//	return false;
-  		//}
+  		if (!hasColumnInfo) {
+  			return false;
+  		}
       TableColumnCore[] tcs = getAllTableColumnCoreAsArray(forDataSourceType,
 					sTableID);
       for (int i = 0; i < tcs.length; i++) {
