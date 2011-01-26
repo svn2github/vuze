@@ -2133,13 +2133,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   		TableColumnCore[] allTableColumns = tcm.getAllTableColumnCoreAsArray(
   				classPluginDataSourceType, sTableID);
   		
-  		Arrays.sort(allTableColumns, new Comparator<TableColumnCore>() {
-  			public int compare(TableColumnCore o1, TableColumnCore o2) {
-  				int p1 = o1.getPosition() < 0 ? Integer.MAX_VALUE : o1.getPosition();
-  				int p2 = o2.getPosition() < 0 ? Integer.MAX_VALUE : o2.getPosition();
-  				return p1 - p2;
-  			}
-  		});
+		Arrays.sort(allTableColumns,
+				TableColumnManager.getTableColumnOrderComparator());
+
   		for (final TableColumnCore tc : allTableColumns) {
   			boolean visible = tc.isVisible();
   			if (!visible) {
