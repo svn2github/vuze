@@ -91,6 +91,7 @@ public class TableColumnCreatorV3
 	public static TableColumnCore[] createIncompleteDM(String tableID, boolean big) {
 		final String[] defaultVisibleOrder = {
 			ColumnThumbAndName.COLUMN_ID,
+			ColumnStream.COLUMN_ID,
 			SizeItem.COLUMN_ID,
 			ColumnFileCount.COLUMN_ID,
 			ColumnProgressETA.COLUMN_ID,
@@ -351,7 +352,8 @@ public class TableColumnCreatorV3
 		final Map<String, cInfo> c = new LightHashMap<String, cInfo>(7);
 
 		c.put(ColumnUnopened.COLUMN_ID, new cInfo(ColumnUnopened.class, ColumnUnopened.DATASOURCE_TYPE));
-		c.put(ColumnThumbAndName.COLUMN_ID, new cInfo(ColumnThumbAndName.class, ColumnThumbAndName.DATASOURCE_TYPE));
+		c.put(ColumnThumbAndName.COLUMN_ID, new cInfo(ColumnThumbAndName.class, ColumnThumbAndName.DATASOURCE_TYPES));
+		c.put(ColumnStream.COLUMN_ID, new cInfo(ColumnStream.class, ColumnStream.DATASOURCE_TYPES));
 		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class, DateAddedItem.DATASOURCE_TYPE));
 		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class, DateCompletedItem.DATASOURCE_TYPE));
 		c.put(ColumnProgressETA.COLUMN_ID, new cInfo(ColumnProgressETA.class, ColumnProgressETA.DATASOURCE_TYPE));

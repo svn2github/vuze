@@ -64,7 +64,10 @@ public class ColumnThumbAndName
 	TableCellDisposeListener, TableCellSWTPaintListener,
 	TableCellClipboardListener, TableCellMouseMoveListener
 {
-	public static final Class DATASOURCE_TYPE = Download.class;
+	public static final Class[] DATASOURCE_TYPES = {
+		Download.class,
+		org.gudy.azureus2.plugins.disk.DiskManagerFileInfo.class
+	};
 
 	public static final String COLUMN_ID = "name";
 
@@ -94,8 +97,9 @@ public class ColumnThumbAndName
 	 * @param sTableID
 	 */
 	public ColumnThumbAndName(String sTableID) {
-		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 250, sTableID);
-		addDataSourceType(org.gudy.azureus2.plugins.disk.DiskManagerFileInfo.class);
+		super(COLUMN_ID, 250, sTableID);
+		setAlignment(ALIGN_LEAD);
+		addDataSourceTypes(DATASOURCE_TYPES);
 		setObfustication(true);
 		setRefreshInterval(INTERVAL_LIVE);
 		initializeAsGraphic(250);
