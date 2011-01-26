@@ -42,6 +42,8 @@ BEncoder
 	
 	private static final byte[] MINUS_1_BYTES = "-1".getBytes();
 	
+	private static volatile int non_ascii_logs;
+
     public static byte[] 
     encode(
     	Map object ) 
@@ -198,6 +200,28 @@ BEncoder
 							}
 						} else
 						{
+								// if we put non-ascii chars in as keys we can get horrible expanding
+								// config issues as we cycle through decode/encode cycles with certain
+								// characters
+							
+							if ( Constants.IS_CVS_VERSION ){
+								char[]	chars = key.toCharArray();
+								
+								for ( char c: chars ){
+
+									if (c >= '\u0080'){
+
+										if ( non_ascii_logs < 50 ){
+											
+											non_ascii_logs++;
+											
+											Debug.out( "Non-ASCII key: " + key );
+										}
+										
+										break;
+									}
+								}
+							}
 							encodeObject(key); // Key goes in as UTF-8
 							if (!encodeObject(value))
 								encodeObject("");
