@@ -206,6 +206,22 @@ ConfigurationManager
   
   public void load() {
     load("azureus.config");
+    
+    try {
+      String[] keys = propertiesMap.keySet().toArray(new String[0]);
+      for (String key : keys) {
+      	if (key == null) {
+      		continue;
+      	}
+  			if (key.startsWith("SideBar.Expanded.Category.")) {
+  				removeParameter(key);
+  			}
+  		}
+    } catch (Exception e) {
+    	// not sure if I can do Debug.out here.. could be in that evil
+    	// preinitialization loop of dooom
+    	e.printStackTrace();
+    }
   }
   
   public void save(String filename) 
