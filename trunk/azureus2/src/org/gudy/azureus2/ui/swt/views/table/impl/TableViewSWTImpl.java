@@ -2162,6 +2162,32 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			new MenuItem(menu, SWT.SEPARATOR);
 		}
 
+		final MenuItem itemResetColumns = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemResetColumns, "table.columns.reset");
+		itemResetColumns.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				TableColumnManager tcm = TableColumnManager.getInstance();
+				String[] defaultColumnNames = tcm.getDefaultColumnNames(sTableID);
+				if (defaultColumnNames != null) {
+					for (TableColumnCore column : tableColumns) {
+						column.setVisible(false);
+					}
+					int i = 0;
+					for (String name : defaultColumnNames) {
+						TableColumnCore column = tcm.getTableColumnCore(sTableID, name);
+						if (column != null) {
+							column.reset();
+							column.setVisible(true);
+							column.setPositionNoShift(i++);
+						}
+					}
+					tcm.saveTableColumns(classPluginDataSourceType, sTableID);
+					TableStructureEventDispatcher.getInstance(sTableID).tableStructureChanged(true, classPluginDataSourceType);
+				}
+			}
+		});
+
+
 		final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemChangeTable,
 				"MyTorrentsView.menu.editTableColumns");
