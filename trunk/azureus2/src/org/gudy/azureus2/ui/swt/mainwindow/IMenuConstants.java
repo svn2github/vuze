@@ -160,8 +160,6 @@ public interface IMenuConstants
 
 	public static final String MENU_ID_WHATS_NEW = "MainWindow.menu.help.whatsnew";
 
-	public static final String MENU_ID_FAQ = "MainWindow.menu.help.faq";
-
 	public static final String MENU_ID_RELEASE_NOTES = "MainWindow.menu.help.releasenotes";
 
 	public static final String MENU_ID_PLUGINS_HELP = "MainWindow.menu.help.plugins";
