@@ -22,22 +22,21 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.ui.common.table.TableCellCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.PlayUtils;
-
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
-import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author TuxPaper
@@ -103,15 +102,32 @@ public class ColumnStream
 		}
 	}
 
+	private boolean noIconForYou(Object ds, TableCell cell) {
+		if (!(ds instanceof DownloadManager)) {
+			return false;
+		}
+		if (!(cell instanceof TableCellCore)) {
+			return false;
+		}
+		DownloadManager dm = (DownloadManager) ds;
+		TableRowCore rowCore = ((TableCellCore) cell).getTableRowCore();
+		if (rowCore == null) {
+			return false;
+		}
+
+		if (dm.getAssumedComplete()
+				|| (dm.getNumFileInfos() > 1 && rowCore.isExpanded())) {
+			return true;
+		}
+		return false;
+	}
+
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellPaint(GC gc, TableCellSWT cell) {
 
 		Object ds = cell.getDataSource();
-		if (ds instanceof DownloadManager) {
-			if (((DownloadManager) ds).getAssumedComplete()
-					|| ((DownloadManager) ds).getNumFileInfos() > 1) {
-				return;
-			}
+		if (noIconForYou(ds, cell)) {
+			return;
 		}
 		boolean canStream = PlayUtils.canStreamDS(ds, -1);
 		Image img = canStream ? imgEnabled : imgDisabled;
@@ -140,8 +156,7 @@ public class ColumnStream
 	public void refresh(TableCell cell) {
 		int sortVal;
 		Object ds = cell.getDataSource();
-		if ((ds instanceof DownloadManager)
-				&& (((DownloadManager) ds).getAssumedComplete() || ((DownloadManager) ds).getNumFileInfos() > 1)) {
+		if (noIconForYou(ds, cell)) {
 			sortVal = 0;
 		} else {
 			boolean canStream = PlayUtils.canStreamDS(ds, -1);
@@ -169,12 +184,9 @@ public class ColumnStream
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHover(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void cellHover(TableCell cell) {
 		Object ds = cell.getDataSource();
-		if (ds instanceof DownloadManager) {
-			if (((DownloadManager) ds).getAssumedComplete()
-					|| ((DownloadManager) ds).getNumFileInfos() > 1) {
-				cell.setToolTip(null);
-				return;
-			}
+		if (noIconForYou(ds, cell)) {
+			cell.setToolTip(null);
+			return;
 		}
 		if (PlayUtils.canStreamDS(ds, -1) || PlayUtils.canPlayDS(ds, -1)) {
 			cell.setToolTip(null);
