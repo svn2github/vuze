@@ -41,6 +41,7 @@ public class TableColumnCreatorV3
 		final String[] defaultVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
 			ColumnThumbAndName.COLUMN_ID,
+			ColumnStream.COLUMN_ID,
 			SizeItem.COLUMN_ID,
 			ColumnProgressETA.COLUMN_ID,
 			//DateCompletedItem.COLUMN_ID,
