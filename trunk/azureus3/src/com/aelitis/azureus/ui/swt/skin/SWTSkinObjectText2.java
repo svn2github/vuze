@@ -676,11 +676,15 @@ public class SWTSkinObjectText2
 	}
 
 	public void setTextID(String key) {
+		setTextID(key, false);
+	}
+
+	private void setTextID(String key, boolean forceRefresh) {
 		if (key == null) {
 			setText("");
 		}
 
-		else if (key.equals(sKey)) {
+		else if (!forceRefresh && key.equals(sKey)) {
 			return;
 		}
 
@@ -740,7 +744,7 @@ public class SWTSkinObjectText2
 	public void triggerListeners(int eventType, Object params) {
 		if (eventType == SWTSkinObjectListener.EVENT_LANGUAGE_CHANGE) {
 			if (sKey != null) {
-				setTextID(sKey);
+				setTextID(sKey, true);
 			}
 		}
 		super.triggerListeners(eventType, params);
