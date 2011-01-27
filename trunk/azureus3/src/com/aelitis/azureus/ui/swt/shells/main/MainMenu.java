@@ -545,13 +545,6 @@ public class MainMenu
 								ContentNetwork.SERVICE_BLOG));
 					}
 				});
-
-		MenuFactory.addMenuItem(communityMenu, MENU_ID_FAQ, new Listener() {
-			public void handleEvent(Event e) {
-				Utils.launch(ContentNetworkUtils.getUrl(
-						ConstantsVuze.getDefaultContentNetwork(), ContentNetwork.SERVICE_FAQ));
-			}
-		});
 	}
 
 	//====================================
