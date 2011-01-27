@@ -437,7 +437,7 @@ DeviceManagerUPnPImpl
 									Matcher match = Pattern.compile("SEC_HHP_(.*)/").matcher(user_agent);
 									if (match.find()) {
 										String name = match.group(1);
-										handleGeneric(client_address, "SEC_HPP", name);
+										handleGeneric(client_address, "SEC_HPP_" + name, name);
 										handled = true;
 									}
 
@@ -473,9 +473,8 @@ DeviceManagerUPnPImpl
 								}
 							}
 							
-//							if (!handled && user_agent != null) {
-//								handleGeneric(client_address, user_agent == null ? "null": user_agent, user_agent);
-
+							//if (!handled && user_agent != null && !user_agent.contains("Azureus")) {
+							//	handleGeneric(client_address, user_agent == null ? "null": user_agent, user_agent);
 							//}
 							
 							/*
