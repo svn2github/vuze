@@ -3,6 +3,14 @@ VUZE CHANGELOG
 
 2011.0x.xx | Vuze 4.6.0.1
 
+FEATURE: UI   | Add 'Play Now' column for streaming [TuxPaper]
+
+BUGFIX: Core  | Fix rare case where torrent at top of queue doesn't start & one later in the queue continues to download [TuxPaper]
+BUGFIX: UI    | Fix missing columns in "New" view [TuxPaper]
+BUGFIX: UI    | Fix drag indicator when prioritizing torrents in Library [TuxPaper]
+BUGFIX: UI    | Fix case where certain non-ASCII categories were causing azureus.config to bloat [TuxPaper]
+BUGFIX: UI    | Fix cases where Web Search wasn't opening results in external browser [TuxPaper]
+
 
 
 2011.01.13 | Vuze 4.6.0.0
