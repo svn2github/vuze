@@ -409,15 +409,16 @@ public class BrowserContext
 							|| (pageLoadingEnd > 0 && pageLoadingEnd + 500 > SystemTime.getCurrentTime())
 							|| event_location.contains(".admonkey.");
 
-					boolean wasGoogleSearch = curURL.startsWith(
+					boolean wasSearch = curURL.startsWith(
 							"http://www.google.com/#q")
 							|| curURL.startsWith("http://www.google.com/search")
 							|| PlatformConfigMessenger.areLinksExternal(curURL);
-					boolean isGoogleSearch = event_location.startsWith("http://www.google.com/#q")
+					boolean isSearch = event_location.startsWith("http://www.google.com/#q")
 							|| (event_location.startsWith("http://www.google.com/search"))
 							|| PlatformConfigMessenger.areLinksExternal(event_location);
-					if (wasGoogleSearch 
-							&& !isGoogleSearch 
+
+					if (wasSearch 
+							&& !isSearch 
 							&& !curURL.equalsIgnoreCase(event_location)
 							&& !event_location.equals("about:blank") 
 							&& !isPageLoadingOrRecent) {
@@ -442,14 +443,6 @@ public class BrowserContext
   					return;
   				}
 
-					boolean wasVuzeSearch = PlatformConfigMessenger.areLinksExternal(curURL)
-							&& !curURL.equalsIgnoreCase(event_location)
-							&& !event_location.equals("about:blank");
-					if (wasVuzeSearch && !isPageLoadingOrRecent) {
-						event.doit = false;
-						Utils.launch(event.location);
-						return;
-					}
 				}
 
 				if (blocked) {
@@ -693,7 +686,7 @@ public class BrowserContext
 	 * @since 3.1.1.1
 	 */
 	protected void setPageLoading(boolean b, String url) {
-		//System.out.println("SPL: " + b + ";" + url);
+		//System.out.println("SPL: " + b + ";" + url + ";" + Debug.getCompressedStackTrace());
 		// we may get multiple "load done"s (from each frame) which we don't
 		// want to skip
 		if (b && pageLoading) {
