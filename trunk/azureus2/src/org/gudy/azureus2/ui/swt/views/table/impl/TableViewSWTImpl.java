@@ -1337,7 +1337,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 		if (oldClientArea != null
 				&& (oldClientArea.height < table.getHeaderHeight())) {
-			//System.out.println("HAHAHAHA");
 			clientAreaCausedVisibilityChanged = true;
 		}
 		if (clientAreaCausedVisibilityChanged) {
