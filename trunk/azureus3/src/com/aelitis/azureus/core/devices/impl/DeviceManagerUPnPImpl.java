@@ -441,6 +441,13 @@ DeviceManagerUPnPImpl
 										handled = true;
 									}
 
+								}else if (lc_agent.contains("LGE_DLNA_SDK")) {
+									// Linux/2.6.28.9 UPnP/1.0 DLNADOC/1.50 INTEL_NMPR/2.0 LGE_DLNA_SDK/1.5.0
+
+									handleGeneric( client_address, "lge_dnla_sdk", "LG DLNA" );
+
+									handled = true;
+
 								}
 							}
 							
