@@ -175,8 +175,7 @@ public class ColumnStream
 				&& event.button == 1) {
 			Object ds = event.cell.getDataSource();
 			if (PlayUtils.canStreamDS(ds, -1)) {
-				TorrentListViewsUtils.playOrStreamDataSource(ds,
-						DLReferals.DL_REFERAL_UNKNOWN, true, false);
+				TorrentListViewsUtils.playOrStreamDataSource(ds, "column", true, false);
 			}
 		}
 	}

@@ -605,7 +605,7 @@ public class FeatureManagerUI
 		}
 	}
 
-	public static void openStreamPlusWindow() {
+	public static void openStreamPlusWindow(final String referal) {
 		final VuzeMessageBox box = new VuzeMessageBox(
 				MessageText.getString("dlg.stream.plus.title"),
 				MessageText.getString("dlg.stream.plus.text"), new String[] {
@@ -633,7 +633,7 @@ public class FeatureManagerUI
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				if (result == BUTTON_UPGRADE) {
-					SBC_PlusFTUX.setSourceRef("dlg-stream");
+					SBC_PlusFTUX.setSourceRef("dlg-stream" + (referal == null ? "" : "-" + referal));
 
 					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 					mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);

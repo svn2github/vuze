@@ -102,14 +102,14 @@ public class TorrentListViewsUtils
 		DiskManagerFileInfo fileInfo = DataSourceUtils.getFileInfo(ds);
 		if (fileInfo != null) {
 			playOrStream(fileInfo.getDownloadManager(), fileInfo.getIndex(),
-					complete_only, launch_already_checked);
+					complete_only, launch_already_checked, referal);
 		}else{
 		
 			DownloadManager dm = DataSourceUtils.getDM(ds);
 			if (dm == null) {
 				downloadDataSource(ds, true, referal);
 			} else {
-				playOrStream(dm, -1, complete_only, launch_already_checked);
+				playOrStream(dm, -1, complete_only, launch_already_checked, referal);
 			}
 		}
 	}
@@ -163,9 +163,17 @@ public class TorrentListViewsUtils
 		}
 	}
 
+	// No one in core ui calls this, but better safe than sorry..
 	public static void playOrStream(final DownloadManager dm,
 			final int file_index, final boolean complete_only,
 			boolean launch_already_checked) {
+		playOrStream(dm, file_index, complete_only, launch_already_checked, null);
+	}
+
+	
+	private static void playOrStream(final DownloadManager dm,
+			final int file_index, final boolean complete_only,
+			boolean launch_already_checked, final String referal) {
 			
 		if (dm == null) {
 			return;
@@ -173,7 +181,7 @@ public class TorrentListViewsUtils
 		
 		if ( launch_already_checked ){
 		
-			_playOrStream(dm, file_index, complete_only);
+			_playOrStream(dm, file_index, complete_only, referal);
 			
 		}else{
 			
@@ -194,7 +202,7 @@ public class TorrentListViewsUtils
 								public void
 								run()
 								{
-									_playOrStream(dm, file_index, complete_only);
+									_playOrStream(dm, file_index, complete_only, referal);
 								}
 							});
 					}
@@ -210,7 +218,7 @@ public class TorrentListViewsUtils
 	}
 
 	private static void _playOrStream(final DownloadManager dm,
-			final int file_index, boolean complete_only) {
+			final int file_index, boolean complete_only, String referal) {
 
 		if (dm == null) {
 			return;
@@ -227,7 +235,7 @@ public class TorrentListViewsUtils
 		if (PlayUtils.canUseEMP(torrent, file_index,complete_only)) {
 			debug("Can use EMP");
 
-			int open_result = openInEMP(dm,file_index,complete_only);
+			int open_result = openInEMP(dm,file_index,complete_only,referal);
 			
 			if ( open_result == 0 ){
 				PlatformTorrentUtils.setHasBeenOpened(dm, true);
@@ -532,7 +540,8 @@ public class TorrentListViewsUtils
 	 */
 	private static int 
 	openInEMP(
-		final DownloadManager dm, final int _file_index, final boolean complete_only ) 
+		final DownloadManager dm, final int _file_index, 
+		final boolean complete_only, final String referal ) 
 	{
 		try {
 			final int file_index;
@@ -703,7 +712,7 @@ public class TorrentListViewsUtils
 		
 				}else{
 					
-					FeatureManagerUI.openStreamPlusWindow();
+					FeatureManagerUI.openStreamPlusWindow(referal);
 					
 				}
 				
@@ -731,7 +740,7 @@ public class TorrentListViewsUtils
 
 				if (pi == null) {
 
-					return (installEMP(dm.getDisplayName(), new Runnable(){ public void run(){ openInEMP( dm, file_index,complete_only ); }}));
+					return (installEMP(dm.getDisplayName(), new Runnable(){ public void run(){ openInEMP( dm, file_index,complete_only,referal ); }}));
 					
 				}else if ( !pi.getPluginState().isOperational()){
 					
@@ -920,6 +929,6 @@ public class TorrentListViewsUtils
 	}
 
 	public static void playOrStream(final DownloadManager dm, int file_index ) {
-		playOrStream(dm, file_index, PlayUtils.COMPLETE_PLAY_ONLY, false );
+		playOrStream(dm, file_index, PlayUtils.COMPLETE_PLAY_ONLY, false, null );
 	}
 }
