@@ -250,6 +250,8 @@ public class PlayUtils
 			
 			file = edm.getPrimaryFile();
 			
+			file_index = file.getIndex();
+			
 		}else{
 			
 			file = dm.getDiskManagerFileInfoSet().getFiles()[ file_index ];
