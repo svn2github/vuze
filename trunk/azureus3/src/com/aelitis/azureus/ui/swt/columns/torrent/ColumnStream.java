@@ -191,7 +191,12 @@ public class ColumnStream
 			cell.setToolTip(null);
 			return;
 		}
-		cell.setToolTip(MessageText.getString("TableColumn.TorrentStream.tooltip.disabled"));
+		String id = "TableColumn.TorrentStream.tooltip.disabled";
+		if ((ds instanceof DownloadManager) && ((DownloadManager)ds).getNumFileInfos() > 1) {
+			id = "TableColumn.TorrentStream.tooltip.expand";
+		}
+
+		cell.setToolTip(MessageText.getString(id));
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener#cellHoverComplete(org.gudy.azureus2.plugins.ui.tables.TableCell)
