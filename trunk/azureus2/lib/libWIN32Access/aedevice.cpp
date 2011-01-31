@@ -142,6 +142,9 @@ void addToMap(JNIEnv *env, jobject hashMap, jmethodID methPut, jclass clsLong, j
 }
 
 void addToMap(JNIEnv *env, jobject hashMap, jmethodID methPut, char *key, char *val) {
+	if (!val) {
+		val = 0;
+	}
 	env->CallObjectMethod(hashMap, methPut, env->NewStringUTF(key), env->NewStringUTF(val));
 }
 
@@ -299,16 +302,16 @@ JNIEXPORT jobject JNICALL Java_org_gudy_azureus2_platform_win32_access_impl_AEWi
 		addToMap(env, hashMap, methPut, clsLong, longInit, "DeviceType", (jlong) pDevDesc->DeviceType);
 		addToMap(env, hashMap, methPut, clsLong, longInit, "Removable", (jlong) pDevDesc->RemovableMedia);
 
-		if (pDevDesc->VendorIdOffset != 0) {
+		if (pDevDesc->VendorIdOffset > 0 && pDevDesc->VendorIdOffset < pDevDesc->Size) {
 			addToMap(env, hashMap, methPut, "VendorID", &OutBuf[pDevDesc->VendorIdOffset]);
 		}
-		if (pDevDesc->ProductIdOffset != 0) {
+		if (pDevDesc->ProductIdOffset > 0 && pDevDesc->ProductIdOffset < pDevDesc->Size) {
 			addToMap(env, hashMap, methPut, "ProductID", &OutBuf[pDevDesc->ProductIdOffset]);
 		}
-		if (pDevDesc->ProductRevisionOffset != 0) {
+		if (pDevDesc->ProductRevisionOffset > 0 && pDevDesc->ProductRevisionOffset < pDevDesc->Size) {
 			addToMap(env, hashMap, methPut, "ProductRevision", &OutBuf[pDevDesc->ProductRevisionOffset]);
 		}
-		if (pDevDesc->SerialNumberOffset != 0) {
+		if (pDevDesc->SerialNumberOffset > 0 && pDevDesc->SerialNumberOffset < pDevDesc->Size) {
 			addToMap(env, hashMap, methPut, "SerialNumber", &OutBuf[pDevDesc->SerialNumberOffset]);
 		}
 	}
