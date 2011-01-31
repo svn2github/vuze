@@ -35,7 +35,7 @@ ProtocolDecoder
 	private static final int	TIMEOUT_CHECK		= 5000;
 	private static final int	LOG_TICKS			= 60000 / TIMEOUT_CHECK;
 		
-	private static List			decoders	= new ArrayList();
+	private static List<ProtocolDecoder>			decoders	= new ArrayList<ProtocolDecoder>();
 	
 	private static AEMonitor	class_mon 	= new AEMonitor( "TCPProtocolDecoder:class" );
 	
@@ -54,8 +54,8 @@ ProtocolDecoder
 
 						loop++;
 
-						long	now = SystemTime.getCurrentTime();
-
+						List<ProtocolDecoder>	copy;
+						
 						try{
 							class_mon.enter();
 
@@ -70,34 +70,41 @@ ProtocolDecoder
 								}
 							}
 
-								// isComplete can synchronously modify 'decoders' so we
-								// can't continue looping after a removal, rather we have
-								// to restart
+							copy = new ArrayList<ProtocolDecoder>( decoders );
 							
-							boolean	retry = true;
-							
-							while( retry ){
-								
-								retry = false;
-								
-								for (int i=0;i<decoders.size();i++){
-									
-									ProtocolDecoder	decoder = (ProtocolDecoder)decoders.get(i);
-	
-									if ( decoder.isComplete( now )){
-	
-										decoders.remove( decoder );
-										
-										retry = true;
-										
-										break;
-									}
-								}
-							}
-
 						}finally{
 
 							class_mon.exit();
+						}		
+						
+						if ( copy.size() > 0 ){
+							
+							List<ProtocolDecoder> to_remove = new ArrayList<ProtocolDecoder>();
+							
+							long	now = SystemTime.getCurrentTime();
+
+							for ( ProtocolDecoder decoder: copy ){
+								
+								if ( decoder.isComplete( now )){
+	
+									to_remove.add( decoder );
+								}
+							}
+							
+							if ( to_remove.size() > 0 ){
+								
+								try{
+									class_mon.enter();
+
+									for ( ProtocolDecoder decoder: to_remove ){
+										
+										decoders.remove( decoder );
+									}
+								}finally{
+	
+									class_mon.exit();
+								}
+							}
 						}
 					}
 				}
