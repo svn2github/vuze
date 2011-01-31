@@ -142,9 +142,6 @@ void addToMap(JNIEnv *env, jobject hashMap, jmethodID methPut, jclass clsLong, j
 }
 
 void addToMap(JNIEnv *env, jobject hashMap, jmethodID methPut, char *key, char *val) {
-	if (!val) {
-		val = 0;
-	}
 	env->CallObjectMethod(hashMap, methPut, env->NewStringUTF(key), env->NewStringUTF(val));
 }
 
