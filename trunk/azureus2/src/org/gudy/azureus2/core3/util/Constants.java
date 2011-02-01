@@ -39,8 +39,8 @@ Constants
   public static final String EMPTY_STRING = "";
   public static final String SF_WEB_SITE			= "http://plugins.vuze.com/";
  
-  public static final String AELITIS_TORRENTS		= "http://torrent.vuze.com/torrents/";
-  public static final String AELITIS_FILES			= "http://torrent.vuze.com/files/";
+  public static final String AELITIS_TORRENTS		= "http://cf1.vuze.com/torrent/torrents/";
+  public static final String AELITIS_FILES			= "http://cf1.vuze.com/torrent/files/";
   public static final String AZUREUS_WIKI 			= "http://wiki.vuze.com/w/";
   
   public static final String  VERSION_SERVER_V4 	= "version.vuze.com";
