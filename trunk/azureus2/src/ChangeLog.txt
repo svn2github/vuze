@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+2011.0x.0x | Vuze 4.6.0.3
+
+
+
 2011.02.01 | Vuze 4.6.0.2
 
 FEATURE: Core | Relocate MOOV atoms to front of mp4 files for streaming [Parg]
