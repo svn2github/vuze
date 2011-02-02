@@ -559,14 +559,9 @@ public class SideBarEntrySWT
 			return;
 		}
 		Rectangle itemBounds = treeItem.getBounds();
-		Rectangle drawBounds = Utils.isCocoa || Constants.isWindows
-				? event.gc.getClipping() : event.getBounds();
+		Rectangle drawBounds = event.gc.getClipping();
 		if (drawBounds.isEmpty()) {
-			if (!Utils.isCocoa && !Constants.isWindows && !event.getBounds().isEmpty()) {
-				drawBounds = event.getBounds();
-			} else {
-				return;
-			}
+			drawBounds = event.getBounds();
 		}
 
 		String text = getTitle();
@@ -596,7 +591,7 @@ public class SideBarEntrySWT
 		if (DO_OUR_OWN_TREE_INDENT) {
 			TreeItem tempItem = treeItem.getParentItem();
 			int indent;
-			if (!isCollapseDisabled() && tempItem == null) {
+			if (!isCollapseDisabled() && tempItem == null && !Utils.isGTK) {
 				indent = 22;
 			} else {
 				indent = 10;
@@ -604,6 +599,9 @@ public class SideBarEntrySWT
 			while (tempItem != null) {
 				indent += 10;
 				tempItem = tempItem.getParentItem();
+			}
+			if (SideBar.USE_NATIVE_EXPANDER && Utils.isGTK) {
+				indent += 5;
 			}
 			itemBounds.x = indent;
 		}
@@ -855,7 +853,7 @@ public class SideBarEntrySWT
 		// OSX overrides the twisty, and we can't use the default twisty
 		// on Windows because it doesn't have transparency and looks ugly
 		if (treeItem.getItemCount() > 0 && !isCollapseDisabled()
-				&& (!Utils.isCocoa || !SideBar.HIDE_NATIVE_EXPANDER)) {
+				&& !SideBar.USE_NATIVE_EXPANDER) {
 			gc.setAntialias(SWT.ON);
 			Color oldBG = gc.getBackground();
 			gc.setBackground(event.display.getSystemColor(SWT.COLOR_LIST_FOREGROUND));
@@ -916,7 +914,7 @@ public class SideBarEntrySWT
 			}
 
 			gc.setBackground(color1);
-			gc.fillRectangle(drawBounds.x, drawBounds.y, drawBounds.width, 3);
+			gc.fillRectangle(drawBounds.x, drawBounds.y, drawBounds.width, 4);
 
 			gc.setForeground(color1);
 			gc.setBackground(color2);

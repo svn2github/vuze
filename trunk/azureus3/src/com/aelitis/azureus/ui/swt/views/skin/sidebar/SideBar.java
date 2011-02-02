@@ -77,14 +77,13 @@ public class SideBar
 	private static final boolean END_INDENT = Constants.isLinux
 			|| Constants.isWindows2000 || Constants.isWindows9598ME;
 
-	private static final boolean USE_PAINTITEM = Utils.isCocoa
-			|| Constants.isWindows;
+	private static final boolean USE_PAINTITEM = !Utils.isCarbon;
 
 	// Need to use paint even on Cocoa, because there's cases where an area
 	// will become invalidated and we don't get a paintitem :(
-	private static final boolean USE_PAINT = !Constants.isWindows;
+	private static final boolean USE_PAINT = !Constants.isWindows && !Utils.isGTK;
 
-	protected static final boolean HIDE_NATIVE_EXPANDER = false;
+	protected static final boolean USE_NATIVE_EXPANDER = Utils.isGTK || Utils.isCocoa;
 
 	private static final boolean GAP_BETWEEN_LEVEL_1 = true;
 
@@ -392,40 +391,6 @@ public class SideBar
 						}
 
 						case SWT.Paint: {
-							if (HIDE_NATIVE_EXPANDER) {
-								boolean selected = (event.detail & SWT.SELECTED) > 0;
-								Rectangle bounds = event.getBounds();
-								int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
-								int y = event.y + 1;
-								treeItem = tree.getItem(new Point(indent, y));
-
-								while (treeItem != null) {
-									SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
-									Rectangle itemBounds = entry.swt_getBounds();
-
-									if (itemBounds != null && entry.isCollapseDisabled()) {
-										Rectangle paintArea = treeItem.getBounds();
-										paintArea.x = 0;
-										paintArea.width = 17;
-										selected = tree.getSelectionCount() == 1
-												&& tree.getSelection()[0].equals(treeItem);
-										int detail = 0;
-										if (selected) {
-											detail |= SWT.SELECTED;
-										}
-										entry.swt_paintEntryBG(detail, event.gc, paintArea);
-										y = itemBounds.y + itemBounds.height + 1;
-									} else {
-										y += tree.getItemHeight();
-									}
-
-									if (y > bounds.y + bounds.height) {
-										break;
-									}
-									treeItem = tree.getItem(new Point(indent, y));
-								}
-							}
-
 							//System.out.println("Paint: " + event.getBounds() + ";" + event.detail + ";" + event.index + ";" + event.gc.getClipping() + "  " + Debug.getCompressedStackTrace());
 							if (!USE_PAINT) {
 								return;
