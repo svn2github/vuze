@@ -83,7 +83,7 @@ public class SideBar
 	// will become invalidated and we don't get a paintitem :(
 	private static final boolean USE_PAINT = !Constants.isWindows && !Utils.isGTK;
 
-	protected static final boolean USE_NATIVE_EXPANDER = Utils.isGTK || Utils.isCocoa;
+	protected static final boolean USE_NATIVE_EXPANDER = Utils.isGTK;
 
 	private static final boolean GAP_BETWEEN_LEVEL_1 = true;
 
