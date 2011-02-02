@@ -183,6 +183,7 @@ public abstract class TranscodeChooser
 				}
 			}
 		});
+		Utils.verifyShellRect(shell, true);
 		shell.open();
 	}
 
