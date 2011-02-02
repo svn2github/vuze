@@ -113,6 +113,7 @@ public class SkinnedDialog
 		}
 		skin.layout();
 
+		Utils.verifyShellRect(shell, true);
 		Utils.centerWindowRelativeTo(shell, mainShell);
 
 		shell.open();
