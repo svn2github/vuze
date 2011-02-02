@@ -286,10 +286,10 @@ ResourceDownloaderURLImpl
 				
 							int response = con.getResponseCode();
 							
+							setProperty( "URL_HTTP_Response", new Long( response ));
+
 							if ((response != HttpURLConnection.HTTP_ACCEPTED) && (response != HttpURLConnection.HTTP_OK)) {
 								
-								setProperty( "URL_HTTP_Response", new Long( response ));
-
 								throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + con.getResponseMessage()));    
 							}
 															
@@ -556,8 +556,15 @@ redirect_label:
 								
 								con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
 					  
-						 		con.setRequestProperty( "Connection", "close" );
-	
+								String connection = getStringProperty( "URL_Connection" );
+								
+								if ( connection == null || !connection.equals( "skip" )){
+									
+										// default is close
+									
+									con.setRequestProperty( "Connection", "close" );
+								}
+								
 						 		if ( use_compression ){
 								
 						 			con.addRequestProperty( "Accept-Encoding", "gzip" );
@@ -569,13 +576,23 @@ redirect_label:
 									
 									con.setDoOutput(true);
 									
-									((HttpURLConnection)con).setRequestMethod("POST");
+									String verb = (String)getStringProperty( "URL_HTTP_VERB" );
 									
-									OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
+									if ( verb == null ){
+										
+										verb = "POST";
+									}
 									
-									wr.write(post_data);
+									((HttpURLConnection)con).setRequestMethod( verb );
 									
-									wr.flush();
+									if ( post_data.length() > 0 ){
+										
+										OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
+										
+										wr.write(post_data);
+										
+										wr.flush();
+									}
 								}
 	
 								con.connect();
@@ -653,13 +670,15 @@ redirect_label:
 									}
 								}
 								
-								if ( 	response != HttpURLConnection.HTTP_ACCEPTED && 
+								setProperty( "URL_HTTP_Response", new Long( response ));
+
+								if ( 	response != HttpURLConnection.HTTP_CREATED && 
+										response != HttpURLConnection.HTTP_ACCEPTED && 
+										response != HttpURLConnection.HTTP_NO_CONTENT && 
 										response != HttpURLConnection.HTTP_OK ) {
 									
 									HttpURLConnection	http_con = (HttpURLConnection)con;
 									
-									setProperty( "URL_HTTP_Response", new Long( response ));
-
 									InputStream error_stream = http_con.getErrorStream();
 									
 									String error_str = null;
@@ -986,6 +1005,16 @@ redirect_label:
 			
 			if ( key.startsWith( "url_" ) && value instanceof String ){
 			
+				if ( value.equals( "skip" )){
+					
+					continue;
+				}
+				
+				if ( key.equalsIgnoreCase( "URL_HTTP_VERB" )){
+					
+					continue;
+				}
+				
 				key = key.substring(4);
 				
 				if ( key.equals( "accept-encoding" ) && !use_compression ){

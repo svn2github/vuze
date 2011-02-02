@@ -74,6 +74,39 @@ ResourceDownloaderBaseImpl
 	setSize(
 		long	size );
 	
+	public String
+	getStringProperty(
+		String		key )
+	
+		throws ResourceDownloaderException
+	{
+		Object obj = getProperty( key );
+		
+		if ( obj == null || obj instanceof String ){
+			
+			return((String)obj);
+		}
+			
+		if ( obj instanceof List ){
+			
+			List l = (List)obj;
+			
+			if ( l.size() == 0 ){
+				
+				return( null );
+			}
+			
+			obj = l.get( 0 );
+			
+			if ( obj instanceof String ){
+				
+				return((String)obj);
+			}
+		}
+		
+		return( null );
+	}
+	
 	public Object
 	getProperty(
 		String		name )
@@ -82,7 +115,10 @@ ResourceDownloaderBaseImpl
 	{
 		Object res = getPropertySupport( name );
 		
-		if ( res != null || getPropertySupport( PR_PROPERTIES_SET ) != null ){
+		if ( 	res != null || 
+				getPropertySupport( PR_PROPERTIES_SET ) != null ||
+				name.equalsIgnoreCase( "URL_Connection" ) ||
+				name.equalsIgnoreCase( "URL_HTTP_VERB" )){
 			
 			return( res );
 		}
