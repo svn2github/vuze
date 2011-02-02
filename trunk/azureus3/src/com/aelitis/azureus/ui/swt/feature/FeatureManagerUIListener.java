@@ -277,9 +277,8 @@ public class FeatureManagerUIListener
 					if (mdi != null) {
 						MdiEntrySWT entry = mdi.getEntrySWT(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
 						if (entry != null) {
-							String title = MessageText.getString(hasFullLicence
-									? "mdi.entry.plus.full" : "mdi.entry.plus.free");
-							entry.setTitle(title);
+						entry.setTitleID(hasFullLicence ? "mdi.entry.plus.full"
+								: "mdi.entry.plus.free");
 							SBC_PlusFTUX view = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
 							if (view != null) {
 								view.updateLicenceInfo();

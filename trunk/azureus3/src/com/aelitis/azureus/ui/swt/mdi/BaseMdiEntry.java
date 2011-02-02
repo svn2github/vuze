@@ -10,6 +10,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.config.impl.ConfigurationParameterNotFoundException;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
@@ -73,6 +74,8 @@ public abstract class BaseMdiEntry
 	private SWTSkinObject skinObject;
 
 	private String title;
+
+	private String titleID;
 
 	private UISWTViewEventListener eventListener;
 
@@ -572,11 +575,33 @@ public abstract class BaseMdiEntry
 		if (title == null) {
 			return;
 		}
-		if (title != null && title.equals(this.title)) {
+		if (title.startsWith("{") && title.endsWith("}") && title.length() > 2) {
+			setTitleID(title.substring(1, title.length() - 1));
+			return;
+		}
+		if (title.equals(this.title)) {
 			return;
 		}
 		this.title = title;
+		this.titleID = null;
 		redraw();
+	}
+	
+	public void setTitleID(String titleID) {
+		String title = MessageText.getString(titleID);
+		setTitle(title.startsWith("{") ? title.substring(1) : title);
+		this.titleID = titleID;
+	}
+	
+	public void updateLanguage() {
+		if (titleID != null) {
+			setTitleID(titleID);
+		} else {
+			if (viewTitleInfo != null) {
+				viewTitleInfoRefresh(viewTitleInfo);
+			}
+			updateUI();
+		}
 	}
 
 	public void show() {

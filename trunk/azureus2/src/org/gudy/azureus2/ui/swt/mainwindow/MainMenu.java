@@ -219,8 +219,8 @@ public class MainMenu
 								MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
           			MdiEntry entry = mdi.createEntryFromSkinRef(null,
           					"BetaProgramme", "main.area.beta",
-          					MessageText.getString("Sidebar.beta.title"), null, null,
-          					true, 0);
+          					"{Sidebar.beta.title}", null, null,
+          					true, "");
           			mdi.showEntry(entry);
 							}
 				}));

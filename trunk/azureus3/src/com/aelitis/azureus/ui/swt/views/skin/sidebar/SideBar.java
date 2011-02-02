@@ -1116,7 +1116,7 @@ public class SideBar
 		return -1;
 	}
 
-	public MdiEntry createHeader(String id, String title, String preferredAfterID) {
+	public MdiEntry createHeader(String id, String titleID, String preferredAfterID) {
 		MdiEntry oldEntry = getEntry(id);
 		if (oldEntry != null) {
 			return oldEntry;
@@ -1125,7 +1125,7 @@ public class SideBar
 		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id);
 		entry.setSelectable(false);
 		entry.setPreferredAfterID(preferredAfterID);
-		entry.setTitle(title);
+		entry.setTitleID(titleID);
 
 		setupNewEntry(entry, id, true, false);
 
@@ -1600,6 +1600,20 @@ public class SideBar
 			}
 		}
 		return null;
+	}
+
+	// @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#updateLanguage(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object updateLanguage(SWTSkinObject skinObject, Object params) {
+		MdiEntry[] entries = getEntries();
+		
+		for (MdiEntry entry : entries) {
+			if (entry instanceof BaseMdiEntry) {
+				BaseMdiEntry baseEntry = (BaseMdiEntry) entry;
+				baseEntry.updateLanguage();
+			}
+		}
+		
+		return super.updateLanguage(skinObject, params);
 	}
 
 }

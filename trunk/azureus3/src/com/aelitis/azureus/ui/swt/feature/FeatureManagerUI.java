@@ -100,8 +100,8 @@ public class FeatureManagerUI
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
-						String title = MessageText.getString(FeatureManagerUI.hasFullLicence()
-								? "mdi.entry.plus.full" : "mdi.entry.plus.free");
+						String title = FeatureManagerUI.hasFullLicence()
+								? "{mdi.entry.plus.full}" : "{mdi.entry.plus.free}";
 						String placeBelow = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME) == null
 								? "" : MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME;
 						
@@ -126,7 +126,7 @@ public class FeatureManagerUI
 						MdiEntry entryAbout = mdi.createEntryFromSkinRef(
 								MultipleDocumentInterface.SIDEBAR_HEADER_DVD,
 								MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO, "main.burn.ftux",
-								MessageText.getString("mdi.entry.about.dvdburn"), null, null,
+								"{mdi.entry.about.dvdburn}", null, null,
 								false, null);
 						entryAbout.setImageLeftID("image.sidebar.dvdburn");
 						entryAbout.setExpanded(true);

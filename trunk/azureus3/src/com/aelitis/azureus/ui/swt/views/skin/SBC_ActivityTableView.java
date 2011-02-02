@@ -420,13 +420,10 @@ public class SBC_ActivityTableView
 			}
 		});
 
-		mdi.createEntryFromSkinRef(
-				MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
-				MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES,
-				"activity",
-				MessageText.getString("sidebar."
-						+ MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES),
-				titleInfoActivityView, null, false, null);
+		mdi.createEntryFromSkinRef(MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
+				MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES, "activity",
+				"{sidebar." + MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES
+						+ "}", titleInfoActivityView, null, false, null);
 
 		PluginInterface pi = PluginInitializer.getDefaultInterface();
 		UIManager uim = pi.getUIManager();

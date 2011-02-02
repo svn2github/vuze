@@ -88,7 +88,7 @@ public class MainMDISetup
 						MdiEntry entry = mdi.createEntryFromSkinRef(
 								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
 								MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
-								"main.area.beta", MessageText.getString("Sidebar.beta.title"),
+								"main.area.beta", "{Sidebar.beta.title}",
 								null, null, true, MultipleDocumentInterface.SIDEBAR_POS_FIRST);
 						return entry;
 					}
@@ -106,9 +106,9 @@ public class MainMDISetup
 					public MdiEntry createMDiEntry(String id) {
 						boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals(
 								"az2");
-						String title = MessageText.getString(uiClassic
-								? "MyTorrentsView.mytorrents" : "sidebar."
-										+ MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY);
+						String title = uiClassic ? "{MyTorrentsView.mytorrents}"
+								: ("{sidebar."
+										+ MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY + "}");
 						MdiEntry entry = mdi.createEntryFromSkinRef(null,
 								MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY, "library",
 								title, null, null, false,
@@ -148,8 +148,7 @@ public class MainMDISetup
 			final boolean disableCollapse = disableCollapses[i];
 			mdi.registerEntry(id, new MdiEntryCreationListener() {
 				public MdiEntry createMDiEntry(String id) {
-					MdiEntry entry = mdi.createHeader(id,
-							MessageText.getString("sidebar." + id), null);
+					MdiEntry entry = mdi.createHeader(id, "sidebar." + id, null);
 					if (disableCollapse) {
 						entry.setCollapseDisabled(true);
 					} else {
@@ -182,7 +181,7 @@ public class MainMDISetup
 		entry = mdi.createEntryFromSkinRef(
 				MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
 				ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork()),
-				"main.area.browsetab", MessageText.getString("sidebar.VuzeHDNetwork"),
+				"main.area.browsetab", "{sidebar.VuzeHDNetwork}",
 				null, null, false, null);
 		entry.setImageLeftID("image.sidebar.vuze");
 
@@ -217,7 +216,7 @@ public class MainMDISetup
 									MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
 									MultipleDocumentInterface.SIDEBAR_SECTION_GAMES,
 									"main.generic.browse",
-									MessageText.getString("mdi.entry.games"), null, null, true,
+									"{mdi.entry.games}", null, null, true,
 									null);
 							((BaseMdiEntry) entry).setPreferredAfterID(ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork()));
 							String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
@@ -238,7 +237,7 @@ public class MainMDISetup
 								MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
 								MultipleDocumentInterface.SIDEBAR_SECTION_ABOUTPLUGINS,
 								"main.generic.browse",
-								MessageText.getString("mdi.entry.about.plugins"), null, null,
+								"{mdi.entry.about.plugins}", null, null,
 								true, MultipleDocumentInterface.SIDEBAR_POS_FIRST);
 						String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
 								"plugins", true);

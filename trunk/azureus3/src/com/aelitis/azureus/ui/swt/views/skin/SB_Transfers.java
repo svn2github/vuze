@@ -120,10 +120,9 @@ public class SB_Transfers
 					public MdiEntry createMDiEntry(String id) {
 						MdiEntry entry = mdi.createEntryFromSkinRef(
 								SideBar.SIDEBAR_HEADER_TRANSFERS,
-								SideBar.SIDEBAR_SECTION_LIBRARY,
-								"library",
-								MessageText.getString("sidebar."
-										+ SideBar.SIDEBAR_SECTION_LIBRARY), null, null, false, 0);
+								SideBar.SIDEBAR_SECTION_LIBRARY, "library", "{sidebar."
+										+ SideBar.SIDEBAR_SECTION_LIBRARY + "}", null, null, false,
+								0);
 						entry.setImageLeftID("image.sidebar.library");
 						return entry;
 					}
@@ -217,7 +216,7 @@ public class SB_Transfers
 		MdiEntry infoLibraryUn = mdi.createEntryFromSkinRef(
 				SideBar.SIDEBAR_HEADER_TRANSFERS,
 				SideBar.SIDEBAR_SECTION_LIBRARY_UNOPENED, "library",
-				MessageText.getString("sidebar.LibraryUnopened"), null, null, false,
+				"{sidebar.LibraryUnopened}", null, null, false,
 				SideBar.SIDEBAR_SECTION_LIBRARY);
 		infoLibraryUn.setImageLeftID("image.sidebar.unopened");
 
@@ -286,7 +285,7 @@ public class SB_Transfers
 
 		MdiEntry entry = mdi.createEntryFromSkinRef(
 				SideBar.SIDEBAR_HEADER_TRANSFERS, SideBar.SIDEBAR_SECTION_LIBRARY_DL,
-				"library", MessageText.getString("sidebar.LibraryDL"),
+				"library", "{sidebar.LibraryDL}",
 				titleInfoSeeding, null, false, null);
 		entry.setImageLeftID("image.sidebar.downloading");
 
@@ -317,7 +316,7 @@ public class SB_Transfers
 		};
 		MdiEntry entry = mdi.createEntryFromSkinRef(
 				SideBar.SIDEBAR_HEADER_TRANSFERS, SideBar.SIDEBAR_SECTION_LIBRARY_DL,
-				"library", MessageText.getString("sidebar.LibraryDL"),
+				"library", "{sidebar.LibraryDL}",
 				titleInfoDownloading, null, false, null);
 		entry.setImageLeftID("image.sidebar.downloading");
 

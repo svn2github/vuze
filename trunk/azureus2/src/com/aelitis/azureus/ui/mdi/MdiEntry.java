@@ -118,6 +118,8 @@ public interface MdiEntry
 	
 	public void setTitle(String title);
 
+	public void setTitleID(String titleID);
+
 	public String getImageLeftID();
 
 	public boolean isExpanded();
