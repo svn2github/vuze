@@ -585,14 +585,15 @@ public class SearchResultsTabArea
 				gd.top = new FormAttachment(controlTop, 0);
 				gd.height = SWT.DEFAULT;
 				controlBottom.setLayoutData(gd);
-				soSearchResults.setVisible(true);
-				controlBottom.setVisible(true);
-				search.setVisible(true);
 
 				gd = (FormData) controlTop.getLayoutData();
 				gd.bottom = null;
 				gd.height = MapUtils.getMapInt(params, "top-height", 120);
 				controlTop.setLayoutData(gd);
+
+				soSearchResults.setVisible(true);
+				controlBottom.setVisible(true);
+				search.setVisible(true);
 
 				controlTop.getParent().layout(true);
 			}
