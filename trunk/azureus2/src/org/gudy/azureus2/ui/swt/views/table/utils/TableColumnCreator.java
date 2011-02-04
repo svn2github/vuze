@@ -52,6 +52,7 @@ public class TableColumnCreator
 			HealthItem.COLUMN_ID,
 			RankItem.COLUMN_ID,
 			NameItem.COLUMN_ID,
+			"TorrentStream",
 			"azsubs.ui.column.subs",
 			"Info",
 			CommentIconItem.COLUMN_ID,
