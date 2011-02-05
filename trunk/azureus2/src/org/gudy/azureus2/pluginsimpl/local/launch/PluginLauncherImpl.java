@@ -491,50 +491,62 @@ PluginLauncherImpl
   		return( res_array );
   	}
   	
-    public static ClassLoader 
-    addFileToClassPath(
+  	public static ClassLoader 
+  	addFileToClassPath(
+  			ClassLoader		root,
+  			ClassLoader		classLoader,
+  			File 			f) 
+  	{
+  		if ( 	f.exists() &&
+  				(!f.isDirectory())&&
+  				f.getName().endsWith(".jar")){
+
+  			try {
+
+  				classLoader = extendClassLoader( root, classLoader, f.toURL());
+
+  			}catch( Exception e){
+
+  				// don't use Debug/lglogger here as we can be called before AZ has been initialised
+
+  				e.printStackTrace();
+  			}
+  		}
+
+  		return( classLoader );
+  	}
+    
+    public static ClassLoader
+    extendClassLoader(
     	ClassLoader		root,
     	ClassLoader		classLoader,
-    	File 			f) 
+    	URL				url )
     {
-      if ( 	f.exists() &&
-      		(!f.isDirectory())&&
-      		f.getName().endsWith(".jar")){
-      
-      	try {
-      			
-      			// URL classloader doesn't seem to delegate to parent classloader properly
-      			// so if you get a chain of them then it fails to find things. Here we
-      			// make sure that all of our added URLs end up within a single URLClassloader
-      			// with its parent being the one that loaded this class itself
-      		
-      		if ( classLoader instanceof URLClassLoader ){
-      			
-      			URL[]	old = ((URLClassLoader)classLoader).getURLs();
-    
-      			URL[]	new_urls = new URL[old.length+1];
-      			
-      			System.arraycopy( old, 0, new_urls, 1, old.length );
-      			
-      			new_urls[0]= f.toURL();
-      			
-      			classLoader = new URLClassLoader(
-      								new_urls,
-  									classLoader==root?
-  											classLoader:
-  											classLoader.getParent());
-      		}else{
-      			  		
-      			classLoader = new URLClassLoader(new URL[]{f.toURL()},classLoader);
-      		}
-      	}catch( Exception e){
-      		
-      			// don't use Debug/lglogger here as we can be called before AZ has been initialised
-      		
-      		e.printStackTrace();
-      	}
-     	}
-      
-      return( classLoader );
+			// URL classloader doesn't seem to delegate to parent classloader properly
+			// so if you get a chain of them then it fails to find things. Here we
+			// make sure that all of our added URLs end up within a single URLClassloader
+			// with its parent being the one that loaded this class itself
+		
+		if ( classLoader instanceof URLClassLoader ){
+			
+			URL[]	old = ((URLClassLoader)classLoader).getURLs();
+
+			URL[]	new_urls = new URL[old.length+1];
+			
+			System.arraycopy( old, 0, new_urls, 1, old.length );
+			
+			new_urls[0]= url;
+			
+			classLoader = new URLClassLoader(
+								new_urls,
+								classLoader==root?
+										classLoader:
+										classLoader.getParent());
+		}else{
+			  		
+			classLoader = new URLClassLoader(new URL[]{ url },classLoader);
+		}
+		
+		return( classLoader );
     }
 }
