@@ -10,6 +10,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.util.MapUtils;
 
 public class CT_ID
@@ -27,16 +28,17 @@ public class CT_ID
 	}
 
 	public void cellAdded(TableCell cell) {
+		String indent = ((TableRowCore)cell.getTableRow()).getParentRowCore() == null ? "" : "  ";
 		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
 		Object mapObject = MapUtils.getMapObject(ds.map, "ID", null, Number.class);
 		if (mapObject instanceof Number) {
 			double overideID = ((Double) mapObject).doubleValue();
 			cell.setSortValue(overideID);
-			cell.setText("" + overideID);
+			cell.setText(indent + overideID);
 		} else {
   		id++;
   		cell.setSortValue(id);
-  		cell.setText(Double.toString(id));
+  		cell.setText(indent + Double.toString(id));
 		}
 	}
 	

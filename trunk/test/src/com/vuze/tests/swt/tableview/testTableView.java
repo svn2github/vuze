@@ -249,7 +249,7 @@ public class testTableView
 		});
 
 		Button btnAddSubs = new Button(cBottom, SWT.PUSH);
-		btnAddSubs.setText("Add Subs");
+		btnAddSubs.setText("Add Subs to Selected");
 		btnAddSubs.setSelection(pause);
 		btnAddSubs.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -310,8 +310,22 @@ public class testTableView
 		shell.open();
 
 		while (!shell.isDisposed()) {
-			if (!display.readAndDispatch()) {
+			try {
+				long last = System.currentTimeMillis();
+
+				while (display.readAndDispatch());
+
+				long now = System.currentTimeMillis();
+				long diff = now - last;
+				last = now;
+
+				if (diff > 0) {
+					System.out.println(diff);
+				}
+
 				display.sleep();
+			} catch (Throwable t) {
+				t.printStackTrace();
 			}
 		}
 	}
@@ -324,7 +338,15 @@ public class testTableView
 	protected static void addSubs() {
 		TableRowCore[] selectedRows = tv.getSelectedRows();
 		for (TableRowCore row : selectedRows) {
-			row.setSubItemCount((int) (Math.random() * 50));
+			int num = (int) (Math.random() * 5);
+			//row.setSubItemCount(num);
+			TableViewTestDS[] subitems = new TableViewTestDS[num];
+			for (int i = 0; i < num; i++) {
+	  		TableViewTestDS ds = new TableViewTestDS();
+	  		ds.map.put("ID", new Double(i));
+	  		subitems[i] = ds;
+			}
+			row.setSubItems(subitems);
 		}
 	}
 
