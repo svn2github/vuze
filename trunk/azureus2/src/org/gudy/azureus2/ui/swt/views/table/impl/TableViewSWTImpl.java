@@ -369,7 +369,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		basicItems = _basicItems;
 		sPropertiesPrefix = _sPropertiesPrefix;
 		sDefaultSortOn = _sDefaultSortOn;
-		iTableStyle = _iTableStyle | SWT.V_SCROLL;
+		iTableStyle = _iTableStyle | SWT.V_SCROLL | SWT.DOUBLE_BUFFERED;
 
 		mapDataSourceToRow = new LightHashMap<DATASOURCETYPE, TableRowCore>();
 		sortedRows = new ArrayList<TableRowSWT>();
@@ -2920,6 +2920,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 			}
 			columnPaddingAdjusted = true;
+		} 
+		if (bWas0Rows) {
+			swt_updateColumnVisibilities();
 		}
 
 		setSelectedRows(selectedRows);
