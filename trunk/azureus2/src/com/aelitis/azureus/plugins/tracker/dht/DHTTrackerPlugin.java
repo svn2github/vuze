@@ -124,6 +124,8 @@ DHTTrackerPlugin
 	private static final boolean	TRACK_NORMAL_DEFAULT	= true;
 	private static final boolean	TRACK_LIMITED_DEFAULT	= true;
 	
+	private static final boolean	TEST_ALWAYS_TRACK		= false;
+	
 	public static final int	NUM_WANT			= 30;	// Limit to ensure replies fit in 1 packet
 
 	private static final long	start_time = SystemTime.getCurrentTime();
@@ -851,7 +853,7 @@ DHTTrackerPlugin
 					}
 				}
 				
-				if ( public_net && !torrent.isPrivate()){
+				if ( ( public_net && !torrent.isPrivate()) || TEST_ALWAYS_TRACK ){
 					
 					if ( torrent.isDecentralised()){
 						
@@ -863,7 +865,7 @@ DHTTrackerPlugin
 							
 					}else{
 						
-						if ( torrent.isDecentralisedBackupEnabled()){
+						if ( torrent.isDecentralisedBackupEnabled() || TEST_ALWAYS_TRACK ){
 								
 							String[]	sources = download.getListAttribute( ta_peer_sources );
 	
@@ -879,7 +881,7 @@ DHTTrackerPlugin
 								}
 							}
 	
-							if ( !ok ){
+							if ( !( ok || TEST_ALWAYS_TRACK )){
 											
 								register_reason = "decentralised peer source disabled";
 								
@@ -896,11 +898,11 @@ DHTTrackerPlugin
 									register_type = REG_TYPE_DERIVED;
 								}
 								
-								if( torrent.isDecentralisedBackupRequested()){
+								if( torrent.isDecentralisedBackupRequested() || TEST_ALWAYS_TRACK ){
 									
 									register_type	= REG_TYPE_FULL;
 									
-									register_reason = "torrent requests decentralised tracking";
+									register_reason = TEST_ALWAYS_TRACK?"testing always track":"torrent requests decentralised tracking";
 									
 								}else if ( track_normal_when_offline.getValue()){
 									
