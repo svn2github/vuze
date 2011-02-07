@@ -106,15 +106,14 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 							//if (!row.isVisible()) {
 							//	return;
 							//}
-							Rectangle bounds = getBounds();
+							Rectangle bounds = getBoundsRaw();
 							if (bounds != null) {
 								TableOrTreeSWT table = row.getTable();
 								Rectangle dirty = table.getClientArea().intersection(bounds);
 								//System.out.println("old = " + this.text + ";new=" + text + ";dirty=" + bounds);
 
 								if (!dirty.isEmpty()) {
-									table.redraw(dirty.x, dirty.y, dirty.width, dirty.height,
-											false);
+									quickRedrawCell(table, dirty, bounds);
 								}
 							}
 						}
@@ -127,6 +126,11 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 			isDirty = true;
 		}
 		Utils.execSWTThread(runnableDirtyCell);
+	}
+
+	protected void quickRedrawCell(TableOrTreeSWT table, Rectangle dirty,
+			Rectangle cellBounds) {
+		table.redraw(dirty.x, dirty.y, dirty.width, dirty.height, false);
 	}
 
 	public void setIcon(Image img) {
@@ -207,14 +211,17 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 			return null;
 		}
 		if (isInPaintItem()) {
-			Object data = row.getTable().getData("curCellBounds");
-			if (data instanceof Rectangle) {
-				Rectangle r = (Rectangle) data;
-				return new Rectangle(r.x, r.y, r.width, r.height);
-			}
+			InPaintInfo data = (InPaintInfo) row.getTable().getData("inPaintInfo");
+			return new Rectangle(data.curCellBounds.x, data.curCellBounds.y,
+					data.curCellBounds.width, data.curCellBounds.height);
 		}
 		return row.getBounds(position);
 	}
+	
+  public Rectangle getBoundsRaw() {
+    return getBounds();
+  }
+
 
 	public TableOrTreeSWT getTable() {
 		return row.getTable();
@@ -312,11 +319,8 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
   
 	public boolean isInPaintItem() {
 		if (row.inPaintItem()) {
-			Object data = row.getTable().getData("curCellIndex");
-			if (data instanceof Number) {
-				Number n = (Number) data;
-				return n.intValue() == position;
-			}
+			InPaintInfo data = (InPaintInfo) row.getTable().getData("inPaintInfo");
+			return data.curCellIndex == position;
 		}
 		return false;
 	}

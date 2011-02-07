@@ -33,6 +33,7 @@ import java.util.Locale;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.widgets.Item;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -57,6 +58,8 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
+import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
+import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
@@ -65,6 +68,7 @@ import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableView;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 
 /** TableCellImpl represents one cell in the table.  
@@ -212,6 +216,15 @@ public class TableCellImpl
 	        	clearFlag(FLAG_VALID);
 	        	redraw();
 	        }
+	        protected void quickRedrawCell(TableOrTreeSWT table, Rectangle dirty, Rectangle cellBounds) {
+	        	TableItemOrTreeItem item = row.getItem();
+	        	boolean ourQuickRedraw = tableRow != null && !tableRow.isMouseOver() && !tableRow.isSelected(); 
+	      		if (ourQuickRedraw) {
+	      			TableCellImpl.this.quickRedrawCell2(table, item, dirty, cellBounds);
+	      		} else {
+	      			super.quickRedrawCell(table, dirty, cellBounds);
+	      		}
+	        }
 	      };
 	    }
     	setOrientationViaColumn();
@@ -223,11 +236,94 @@ public class TableCellImpl
         public void invalidate() {
         	clearFlag(FLAG_VALID);
         }
+        protected void quickRedrawCell(TableOrTreeSWT table, Rectangle dirty, Rectangle cellBounds) {
+      	TableItemOrTreeItem item = row.getItem();
+      	boolean ourQuickRedraw = tableRow != null && !tableRow.isMouseOver() && !tableRow.isSelected(); 
+    		if (ourQuickRedraw) {
+    			TableCellImpl.this.quickRedrawCell2(table, item, dirty, cellBounds);
+    		} else {
+    			super.quickRedrawCell(table, dirty, cellBounds);
+    		}
+        }
       };
     }
   }
 
-  private void pluginError(Throwable e) {
+	protected void quickRedrawCell2(TableOrTreeSWT table,
+			TableItemOrTreeItem tableItemOrTreeItem, Rectangle dirty,
+			Rectangle cellBounds) {
+		if (bufferedTableItem.isInPaintItem()) {
+			return;
+		}
+		Rectangle bounds = new Rectangle(0, 0, cellBounds.width, cellBounds.height);
+		Point pt = new Point(cellBounds.x, cellBounds.y);
+		Image img = new Image(table.getDisplay(), bounds);
+
+		int colPos = bufferedTableItem.getPosition();
+
+		Item item = tableItemOrTreeItem.getItem();
+		table.setData("inPaintInfo", new InPaintInfo(item, colPos, bounds));
+		table.setData("fullPaint", Boolean.TRUE);
+
+		GC gc = new GC(img);
+		try {
+			TableViewSWTImpl tv = (TableViewSWTImpl) tableRow.getView();
+			TableViewSWT_EraseItem.eraseItem(null, gc, tableItemOrTreeItem, colPos,
+					false, bounds, tv, true);
+			//gc.setBackground(ColorCache.getRandomColor());
+			//gc.fillRectangle(bounds);
+
+			Color fg = getForegroundSWT();
+			if (fg != null) {
+				gc.setForeground(fg);
+			}
+			gc.setBackground(getBackgroundSWT());
+
+			TableViewSWT_PaintItem.paintItem(gc, tableItemOrTreeItem, colPos,
+					tableRow.getIndex(), bounds, tv);
+		} finally {
+			gc.dispose();
+		}
+
+		gc = new GC(table.getComposite());
+		try {
+			//System.out.println("draw " + bounds);
+			gc.drawImage(img, pt.x, pt.y);
+		} finally {
+			img.dispose();
+			gc.dispose();
+		}
+
+		table.setData("inPaintInfo", null);
+		table.setData("fullPaint", Boolean.FALSE);
+	}
+
+	protected void quickRedrawCell(TableOrTreeSWT table,
+			TableItemOrTreeItem tableItemOrTreeItem, Rectangle dirty,
+			Rectangle cellBounds) {
+		if (bufferedTableItem.isInPaintItem()) {
+			return;
+		}
+		GC gc = new GC(table.getComposite());
+		try {
+			TableViewSWTImpl tv = (TableViewSWTImpl) tableRow.getView();
+			TableViewSWT_EraseItem.eraseItem(null, gc, tableItemOrTreeItem,
+					bufferedTableItem.getPosition(), true, cellBounds, tv, true);
+
+			Color fg = getForegroundSWT();
+			if (fg != null) {
+				gc.setForeground(fg);
+			}
+			gc.setBackground(getBackgroundSWT());
+
+			TableViewSWT_PaintItem.paintItem(gc, tableItemOrTreeItem,
+					bufferedTableItem.getPosition(), tableRow.getIndex(), cellBounds, tv);
+		} finally {
+			gc.dispose();
+		}
+	}
+
+	private void pluginError(Throwable e) {
     String sTitleLanguageKey = tableColumn.getTitleLanguageKey();
 
     String sPosition = (bufferedTableItem == null) 
@@ -1062,6 +1158,9 @@ public class TableCellImpl
 	}
 	
   public void invalidate(final boolean bMustRefresh) {
+  	//if (bInRefresh && Utils.isThisThreadSWT()) {
+  	//	System.out.println("Invalidating when in refresh via " + Debug.getCompressedStackTrace());
+  	//}
   	if ((flags & FLAG_VALID) == 0) { //!hasFlag(FLAG_VALID)
   		if (bMustRefresh) {
   			if ((flags & FLAG_MUSTREFRESH) != 0) {

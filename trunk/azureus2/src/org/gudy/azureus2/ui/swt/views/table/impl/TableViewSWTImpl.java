@@ -1645,7 +1645,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
-	private void swt_updateColumnVisibilities() {
+	private void swt_updateColumnVisibilities(boolean doInvalidate) {
 		TableColumnOrTreeColumn[] columns = table.getColumns();
 		if (table.getItemCount() < 1 || columns.length == 0 || !table.isVisible()) {
 			return;
@@ -1673,7 +1673,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			//System.out.println("  visible; was=" + columnsVisible[position] + "; now=" + nowVisible);
 			if (columnsVisible[position] != nowVisible) {
 				columnsVisible[position] = nowVisible;
-				if (nowVisible) {
+				if (nowVisible && doInvalidate) {
 					swt_runForVisibleRows(new TableGroupRowRunner() {
 						public void run(TableRowCore row) {
 							TableCellCore cell = row.getTableCellCore(tc.getName());
@@ -2312,7 +2312,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 
 			if (columnVisibilitiesChanged == true) {
-				swt_updateColumnVisibilities();
+				swt_updateColumnVisibilities(true);
 			}
 
 			final boolean bDoGraphics = (loopFactor % graphicsUpdate) == 0;
@@ -2922,7 +2922,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			columnPaddingAdjusted = true;
 		} 
 		if (bWas0Rows) {
-			swt_updateColumnVisibilities();
+			swt_updateColumnVisibilities(false);
 		}
 
 		setSelectedRows(selectedRows);
@@ -3304,7 +3304,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			public void runSupport() {
 				try {
 					table.setColumnOrder(positions);
-					swt_updateColumnVisibilities();
+					swt_updateColumnVisibilities(true);
 				} catch (NoSuchMethodError e) {
 					// Pre SWT 3.1
 					// This shouldn't really happen, since this function only gets triggered

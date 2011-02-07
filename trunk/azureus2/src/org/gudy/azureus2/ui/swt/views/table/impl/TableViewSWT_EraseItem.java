@@ -4,6 +4,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Widget;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -33,7 +34,7 @@ public class TableViewSWT_EraseItem
 	
 	private boolean first = true;
 
-	private Color colorLine;
+	private static Color colorLine;
 	
 	public TableViewSWT_EraseItem(TableViewSWTImpl<?> _tv, TableOrTreeSWT table) {
 		this.table = table;
@@ -54,19 +55,21 @@ public class TableViewSWT_EraseItem
 					}
 				});
 
-		colorLine = tv.getComposite().getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
-		HSLColor hslColor = new HSLColor();
-		hslColor.initHSLbyRGB(colorLine.getRed(), colorLine.getGreen(),
-				colorLine.getBlue());
-
-		int lum = hslColor.getLuminence();
-		if (lum > 127)
-			lum -= 25;
-		else
-			lum += 40;
-		hslColor.setLuminence(lum);
-		
-		colorLine = new Color(tv.getComposite().getDisplay(), hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue());
+		if (colorLine != null) {
+  		colorLine = tv.getComposite().getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+  		HSLColor hslColor = new HSLColor();
+  		hslColor.initHSLbyRGB(colorLine.getRed(), colorLine.getGreen(),
+  				colorLine.getBlue());
+  
+  		int lum = hslColor.getLuminence();
+  		if (lum > 127)
+  			lum -= 25;
+  		else
+  			lum += 40;
+  		hslColor.setLuminence(lum);
+  		
+  		colorLine = new Color(tv.getComposite().getDisplay(), hslColor.getRed(), hslColor.getGreen(), hslColor.getBlue());
+		}
 
 		/* Background image badly slows down tree drawing
 		int itemHeight = table.getItemHeight() + 1;
@@ -88,7 +91,8 @@ public class TableViewSWT_EraseItem
 	
 	public void handleEvent(Event event) {
 		if (event.type == SWT.EraseItem) {
-			eraseItem(event);
+			TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
+			eraseItem(event, event.gc, item, event.index, drawExtended, item.getBounds(event.index), tv, false);
 		} else if (drawExtended) {
 			paint(event);
 		}
@@ -163,11 +167,12 @@ public class TableViewSWT_EraseItem
 		}
 	}
 
-	private void eraseItem(Event event) {
-		TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
-		Rectangle bounds = event.getBounds();
+	public static void eraseItem(Event event, GC gc, TableItemOrTreeItem item,
+			int columnNo, boolean drawExtended, Rectangle bounds, TableViewSWTImpl<?> tv, boolean alwaysDrawBG) {
 
-		if ((event.detail & (SWT.HOT | SWT.SELECTED | SWT.FOCUSED)) == 0) {
+		TableOrTreeSWT table = tv.getTableOrTreeSWT();
+
+		if (event == null || (event.detail & (SWT.HOT | SWT.SELECTED | SWT.FOCUSED)) == 0) {
 
 			int pos;
 			TableItemOrTreeItem parentItem = item.getParentItem();
@@ -178,45 +183,49 @@ public class TableViewSWT_EraseItem
 			}
 			Color color = alternatingColors[pos % 2];
 			if (color != null) {
-				event.gc.setBackground(color);
+				gc.setBackground(color);
 				if (parentItem != null) {
-					event.gc.setAlpha(128);
+					gc.setAlpha(128);
 				}
 			}
 			Rectangle drawBounds = bounds;
 			if (TableViewSWTImpl.DRAW_FULL_ROW && drawExtended
-					&& event.index == table.getColumnCount() - 1) {
+					&& columnNo == table.getColumnCount() - 1) {
 				tv.swt_calculateClientArea();
 				drawBounds = new Rectangle(bounds.x, bounds.y, tv.clientArea.x
 						+ tv.clientArea.width - bounds.x, bounds.height);
-				event.gc.setClipping(drawBounds);
+				gc.setClipping(drawBounds);
 				//System.out.println(bounds.width);
 			}
-			if (color != null) {
-				event.gc.fillRectangle(drawBounds);
-				event.detail &= ~SWT.BACKGROUND;
+			if (alwaysDrawBG || color != null) {
+				gc.fillRectangle(drawBounds);
+				if (event != null) {
+					event.detail &= ~SWT.BACKGROUND;
+				}
 			}
 		}
 		
-		if ((event.detail & SWT.SELECTED) > 0 && !table.isFocusControl()) {
-			event.gc.setBackground(Colors.blues[3]);
-			event.gc.fillRectangle(bounds);
-			event.detail &= ~SWT.BACKGROUND;
+		if (event != null && (event.detail & SWT.SELECTED) > 0 && !table.isFocusControl()) {
+			gc.setBackground(Colors.blues[3]);
+			gc.fillRectangle(bounds);
+			if (event != null) {
+				event.detail &= ~SWT.BACKGROUND;
+			}
 		}
 
 		// Vertical lines between columns
-		if (TableViewSWTImpl.DRAW_VERTICAL_LINES && drawExtended) {
+		if (TableViewSWTImpl.DRAW_VERTICAL_LINES && drawExtended && colorLine != null) {
 			if (item != null
-					&& (bounds.width == item.getParent().getColumn(event.index).getWidth())) {
+					&& (bounds.width == item.getParent().getColumn(columnNo).getWidth())) {
 				//System.out.println(bounds.width + ";" + item.getParent().getColumn(event.index).getWidth());
-				Color fg = event.gc.getForeground();
-				event.gc.setForeground(colorLine);
+				Color fg = gc.getForeground();
+				gc.setForeground(colorLine);
 				// needed because windows shifts the area over, dragging our old line
 				// around.  Clear clipping so we can erase it
-				event.gc.setClipping((Rectangle) null);
-				event.gc.drawLine(bounds.x + bounds.width - 1, bounds.y - 1, bounds.x
+				gc.setClipping((Rectangle) null);
+				gc.drawLine(bounds.x + bounds.width - 1, bounds.y - 1, bounds.x
 						+ bounds.width - 1, bounds.y + bounds.height);
-				event.gc.setForeground(fg);
+				gc.setForeground(fg);
 			}
 		}
 	}

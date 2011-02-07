@@ -274,6 +274,10 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
   public Rectangle getBounds() {
   	return getBoundsForCanvas();
   }
+  
+  public Rectangle getBoundsRaw() {
+    return super.getBounds();
+  }
 
   public Point getSize() {
     Rectangle bounds = super.getBounds();

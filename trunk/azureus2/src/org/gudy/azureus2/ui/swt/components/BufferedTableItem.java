@@ -50,6 +50,8 @@ public interface BufferedTableItem
 
 	public abstract Rectangle getBounds();
 
+	public abstract Rectangle getBoundsRaw();
+
 	public abstract void refresh();
 
 	public abstract void dispose();
@@ -115,4 +117,11 @@ public interface BufferedTableItem
 	 * @since 3.0.5.3
 	 */
 	public abstract boolean isMouseOver();
+
+	/**
+	 * @return
+	 *
+	 * @since 4.5.1.1
+	 */
+	boolean isInPaintItem();
 }

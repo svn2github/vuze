@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.components.InPaintInfo;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnOrTreeColumn;
 import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
@@ -681,7 +682,8 @@ public class TreeDelegate implements TableOrTreeSWT
 			return -1;
 		}
 
-		if (tree.getData("inPaintItem") == ti) {
+		InPaintInfo info = (InPaintInfo) tree.getData("inPaintInfo");
+		if (info != null && ti.equals(info.item)) {
 			Object data = tree.getData("lastIndex");
 			if (data instanceof Number) {
 				int idx = ((Number)data).intValue();

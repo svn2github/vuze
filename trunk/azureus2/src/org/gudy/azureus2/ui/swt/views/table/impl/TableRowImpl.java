@@ -120,7 +120,7 @@ public class TableRowImpl<COREDATASOURCE>
 			}
 
 			//System.out.println(dataSource + ": " + tableColumns[i].getName() + ": " + tableColumns[i].getPosition());
-			TableSubCellImpl cell = new TableSubCellImpl(TableRowImpl.this,
+			TableCellImpl cell = new TableCellImpl(TableRowImpl.this,
 					columnsSorted[i], bSkipFirstColumn ? i + 1 : i);
 			mTableCells.put(columnsSorted[i].getName(), cell);
 			//if (i == 10) cell.bDebug = true;
@@ -737,7 +737,7 @@ public class TableRowImpl<COREDATASOURCE>
 	public void setSubItemCount(final int count) {
 		super.setSubItemCount(count);
 		if (count == getSubItemCount()) {
-			if (count == 0 || subRows[0] == null) {
+			if (count == 0 || (subRows != null && subRows[0] == null)) {
 				return;
 			}
 		}

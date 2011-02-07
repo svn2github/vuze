@@ -194,8 +194,8 @@ BufferedTableRow
 	 * @return True: Ok; False: Not ok
 	 */
 	public boolean checkWidget(int checkFlags) {
-		boolean bWidgetOk = !table.isDisposed() && item != null
-				&& !item.isDisposed() && item.getData("TableRow") == this;
+		boolean bWidgetOk = item != null && !item.isDisposed()
+				&& item.getData("TableRow") == this;
 
 		final boolean bCheckVisibility = (checkFlags & REQUIRE_VISIBILITY) > 0;
 		final boolean bCheckInitialized = (checkFlags & REQUIRE_TABLEITEM_INITIALIZED) > 0;
@@ -274,33 +274,25 @@ BufferedTableRow
 	public Color
 	getForeground()
 	{
-		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
-  	  return null;
-		
+		if (foreground != null) {
+			return foreground;
+		}
+
 		if (ourForeground == null && isSelected()) {
 			return table.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
 		}
 
+		if (!checkWidget(REQUIRE_TABLEITEM)) {
+  	  return null;
+		}
+
 		return( item.getForeground());
-	}
-	
-	private static final boolean DEBUG_SET_FOREGROUND = System.getProperty("debug.setforeground") != null;
-	private static void setForegroundDebug(String method_sig, Color c) {
-		if (DEBUG_SET_FOREGROUND && c != null) {
-			Debug.out("BufferedTableRow " + method_sig + " -> " + c);
-		}
-	}
-	private static void setForegroundDebug(String method_sig, int r, int g, int b) {
-		if (DEBUG_SET_FOREGROUND && (!(r == 0 && g == 0 && b == 0))) {
-			Debug.out("BufferedTableRow " + method_sig + " -> " + r + "," + g + "," + b);
-		}
 	}
 	
 	public void
 	setForeground(
 		Color	c )
 	{
-		setForegroundDebug("setForeground(Color)", c);
 		if (foreground == null && c == null) {return;}
 		
 		if (foreground != null && foreground.equals(c))
@@ -321,7 +313,6 @@ BufferedTableRow
 	}
 	
 	public void setForeground(int red, int green, int blue) {
-		setForegroundDebug("setForeground(r,g,b)", red, green, blue);
 		if (red == -1 && green == -1 && blue == -1) {
 			this.setForeground(null);
 			return;
@@ -350,7 +341,6 @@ BufferedTableRow
 	  int index,
 		Color	new_color )
 	{
-		setForegroundDebug("setForeground(int,Color)", new_color);
 				
 		if ( index >= foreground_colors.length ){
 			
@@ -394,18 +384,18 @@ BufferedTableRow
 
 	public Color getForeground(int index)
 	{
-		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
-  	  return null;
-
 		if (index >= foreground_colors.length) {
 		  return getForeground();
 		}
-		
-		if (foreground_colors[index] == null && isSelected()) {
-			Color systemColor = table.getDisplay().getSystemColor(
-					table.isFocusControl() ? SWT.COLOR_LIST_SELECTION_TEXT
-							: SWT.COLOR_WIDGET_FOREGROUND);
-			return systemColor;
+
+		if (foreground_colors[index] == null) {
+			if (isSelected()) {
+  			Color systemColor = table.getDisplay().getSystemColor(
+  					table.isFocusControl() ? SWT.COLOR_LIST_SELECTION_TEXT
+  							: SWT.COLOR_WIDGET_FOREGROUND);
+  			return systemColor;
+			}
+			return getForeground();
 		}
 
 		return foreground_colors[index];
@@ -768,13 +758,20 @@ BufferedTableRow
 	 * @since 4.4.0.5
 	 */
 	public boolean inPaintItem() {
-		if (item != null && !item.isDisposed() && item.equals(table.getData("inPaintItem"))) {
-			return true;
+		if (item != null && !item.isDisposed()) {
+			InPaintInfo info = (InPaintInfo) table.getData("inPaintInfo");
+			if (info != null && item.equals(info.item)) {
+				return true;
+			}
 		}
 		return false;
 	}
 
 	public boolean isVisibleNoSWT() {
 		return true;  // assume the worst
+	}
+	
+	public TableItemOrTreeItem getItem() {
+		return item;
 	}
 }
