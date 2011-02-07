@@ -349,9 +349,9 @@ public class TableCellImpl
 				+ (bufferedTableItem == null ? "null" : "c"
 						+ bufferedTableItem.getPosition() + " ("
 						+ MessageText.getString(sTitleLanguageKey) + ")");
-//		Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-//				"Table Cell Plugin for Column #" + sPosition + ":" + s + "\n  "
-//						+ Debug.getStackTrace(true, true)));
+		Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+				"Table Cell Plugin for Column #" + sPosition + ":" + s + "\n  "
+						+ Debug.getStackTrace(true, true)));
   }
   
   private void checkCellForSetting() {
