@@ -853,7 +853,7 @@ DHTTrackerPlugin
 					}
 				}
 				
-				if ( ( public_net && !torrent.isPrivate()) || TEST_ALWAYS_TRACK ){
+				if ( public_net && !torrent.isPrivate()){
 					
 					if ( torrent.isDecentralised()){
 						
