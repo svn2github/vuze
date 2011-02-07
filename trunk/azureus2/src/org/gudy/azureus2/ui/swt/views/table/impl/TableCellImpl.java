@@ -85,6 +85,8 @@ public class TableCellImpl
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
+	private static final boolean canUseQuickDraw = Constants.isWindows;
+	
 	private static final byte FLAG_VALID = 1;
 	private static final byte FLAG_SORTVALUEISTEXT = 2;
 	private static final byte FLAG_TOOLTIPISAUTO = 4;
@@ -218,8 +220,9 @@ public class TableCellImpl
 	        }
 	        protected void quickRedrawCell(TableOrTreeSWT table, Rectangle dirty, Rectangle cellBounds) {
 	        	TableItemOrTreeItem item = row.getItem();
-	        	boolean ourQuickRedraw = tableRow != null && !tableRow.isMouseOver() && !tableRow.isSelected(); 
-	      		if (ourQuickRedraw) {
+						boolean ourQuickRedraw = canUseQuickDraw && tableRow != null
+								&& !tableRow.isMouseOver() && !tableRow.isSelected();
+						if (ourQuickRedraw) {
 	      			TableCellImpl.this.quickRedrawCell2(table, item, dirty, cellBounds);
 	      		} else {
 	      			super.quickRedrawCell(table, dirty, cellBounds);
@@ -229,23 +232,27 @@ public class TableCellImpl
 	    }
     	setOrientationViaColumn();
     } else {
-      bufferedTableItem = new BufferedTableItemImpl(bufRow, position) {
-        public void refresh() {
-          TableCellImpl.this.refresh();
-        }
-        public void invalidate() {
-        	clearFlag(FLAG_VALID);
-        }
-        protected void quickRedrawCell(TableOrTreeSWT table, Rectangle dirty, Rectangle cellBounds) {
-      	TableItemOrTreeItem item = row.getItem();
-      	boolean ourQuickRedraw = tableRow != null && !tableRow.isMouseOver() && !tableRow.isSelected(); 
-    		if (ourQuickRedraw) {
-    			TableCellImpl.this.quickRedrawCell2(table, item, dirty, cellBounds);
-    		} else {
-    			super.quickRedrawCell(table, dirty, cellBounds);
-    		}
-        }
-      };
+			bufferedTableItem = new BufferedTableItemImpl(bufRow, position) {
+				public void refresh() {
+					TableCellImpl.this.refresh();
+				}
+
+				public void invalidate() {
+					clearFlag(FLAG_VALID);
+				}
+
+				protected void quickRedrawCell(TableOrTreeSWT table, Rectangle dirty,
+						Rectangle cellBounds) {
+					TableItemOrTreeItem item = row.getItem();
+					boolean ourQuickRedraw = canUseQuickDraw && tableRow != null
+							&& !tableRow.isMouseOver() && !tableRow.isSelected();
+					if (ourQuickRedraw) {
+						TableCellImpl.this.quickRedrawCell2(table, item, dirty, cellBounds);
+					} else {
+						super.quickRedrawCell(table, dirty, cellBounds);
+					}
+				}
+			};
     }
   }
 
@@ -342,9 +349,9 @@ public class TableCellImpl
 				+ (bufferedTableItem == null ? "null" : "c"
 						+ bufferedTableItem.getPosition() + " ("
 						+ MessageText.getString(sTitleLanguageKey) + ")");
-		Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-				"Table Cell Plugin for Column #" + sPosition + ":" + s + "\n  "
-						+ Debug.getStackTrace(true, true)));
+//		Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+//				"Table Cell Plugin for Column #" + sPosition + ":" + s + "\n  "
+//						+ Debug.getStackTrace(true, true)));
   }
   
   private void checkCellForSetting() {
