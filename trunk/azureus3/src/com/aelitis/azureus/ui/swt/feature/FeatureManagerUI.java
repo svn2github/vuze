@@ -1,6 +1,6 @@
 package com.aelitis.azureus.ui.swt.feature;
 
-import java.util.Set;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
@@ -657,7 +657,6 @@ public class FeatureManagerUI
 			return featuresInstalled.contains("dvdburn");
 		}
 
-		boolean full = false;
 		FeatureDetails[] featureDetails = featman.getFeatureDetails("dvdburn");
 		// if any of the feature details are still valid, we have a full
 		for (FeatureDetails fd : featureDetails) {
@@ -667,18 +666,23 @@ public class FeatureManagerUI
 			}
 			long now = SystemTime.getCurrentTime();
 			Long lValidUntil = (Long) fd.getProperty(FeatureDetails.PR_VALID_UNTIL);
-			if (lValidUntil != null && lValidUntil.longValue() >= now) {
-				full = true;
-				break;
-			}
 			Long lValidOfflineUntil = (Long) fd.getProperty(FeatureDetails.PR_OFFLINE_VALID_UNTIL);
-			if (lValidOfflineUntil != null && lValidOfflineUntil.longValue() >= now) {
-				full = true;
-				break;
+			
+			if (lValidUntil == null && lValidOfflineUntil == null) {
+				continue;
 			}
+
+			if (lValidUntil != null && lValidUntil.longValue() < now) {
+				continue;
+			}
+			if (lValidOfflineUntil != null && lValidOfflineUntil.longValue() < now) {
+				continue;
+			}
+
+			return true;
 		}
 
-		return full;
+		return false;
 	}
 
 	public static class licenceDetails {
@@ -698,51 +702,72 @@ public class FeatureManagerUI
 			return null;
 		}
 
+		TreeMap<Long, Licence> mapOrder = new TreeMap<Long, Licence>(
+				Collections.reverseOrder());
 		FeatureDetails[] featureDetails = featman.getFeatureDetails("dvdburn");
 		// if any of the feature details are still valid, we have a full
 		for (FeatureDetails fd : featureDetails) {
-			long now = SystemTime.getCurrentTime();
-			Long lValidUntil = (Long) fd.getProperty(FeatureDetails.PR_VALID_UNTIL);
-			if (lValidUntil != null && lValidUntil.longValue() >= now) {
-				return new licenceDetails(lValidUntil.longValue(),
-						fd.getLicence().getKey(), fd.getLicence().getState());
-			}
-			Long lValidOfflineUntil = (Long) fd.getProperty(FeatureDetails.PR_OFFLINE_VALID_UNTIL);
-			if (lValidOfflineUntil != null && lValidOfflineUntil.longValue() >= now) {
-				return new licenceDetails(lValidOfflineUntil.longValue(),
-						fd.getLicence().getKey(), fd.getLicence().getState());
-			}
-		}
-
-		Licence bestLicence = null;
-		Licence[] licences = featman.getLicences();
-		for (Licence licence : licences) {
-			FeatureDetails[] details = licence.getFeatures();
-			boolean isTrial = false;
-			for (FeatureDetails fd : details) {
-				Object property = fd.getProperty(FeatureDetails.PR_IS_TRIAL);
-				if ((property instanceof Number) && ((Number)property).intValue() == 1) {
-					isTrial = true;
-					break;
-				}
-			}
-			if (isTrial) {
+			Licence licence = fd.getLicence();
+			int state = licence.getState();
+			if (state == Licence.LS_ACTIVATION_DENIED) {
+				mapOrder.put(1L, licence);
+				continue;
+			} else if (state == Licence.LS_CANCELLED) {
+				mapOrder.put(2L, licence);
+				continue;
+			} else if (state == Licence.LS_INVALID_KEY) {
+				mapOrder.put(3L, licence);
+				continue;
+			} else if (state == Licence.LS_REVOKED) {
+				mapOrder.put(4L, licence);
+				continue;
+			} else if (state == Licence.LS_PENDING_AUTHENTICATION) {
+				mapOrder.put(5L, licence);
 				continue;
 			}
-			int state = licence.getState();
-			if (state == Licence.LS_AUTHENTICATED) {
-				bestLicence = licence;
-				break;
-			} else {
-				bestLicence = licence;
+
+			long now = SystemTime.getCurrentTime();
+			Long lValidUntil = (Long) fd.getProperty(FeatureDetails.PR_VALID_UNTIL);
+			Long lValidOfflineUntil = (Long) fd.getProperty(FeatureDetails.PR_OFFLINE_VALID_UNTIL);
+
+			if (lValidUntil == null && lValidOfflineUntil == null) {
+				continue;
 			}
+
+			long minValidUntil = -1;
+			long maxValidUntil = -1;
+			if (lValidUntil != null) {
+				minValidUntil = maxValidUntil = lValidUntil.longValue();
+				if (minValidUntil < now) {
+					mapOrder.put(minValidUntil, licence);
+					continue;
+				}
+			}
+			if (lValidOfflineUntil != null) {
+				long validOfflineUntil = lValidOfflineUntil.longValue();
+				if (validOfflineUntil < now) {
+					mapOrder.put(minValidUntil, licence);
+					continue;
+				}
+				if (minValidUntil == -1 || validOfflineUntil < minValidUntil) {
+					minValidUntil = validOfflineUntil;
+				}
+				if (maxValidUntil == -1 || validOfflineUntil > maxValidUntil) {
+					maxValidUntil = validOfflineUntil;
+				}
+			}
+
+			mapOrder.put(maxValidUntil, licence);
 		}
 
-		if (bestLicence != null) {
-			return new licenceDetails(0, bestLicence.getKey(), bestLicence.getState());
+		if (mapOrder.size() == 0) {
+			return null;
 		}
 
-		return null;
+		Long firstKey = mapOrder.firstKey();
+		Licence licence = mapOrder.get(firstKey);
+		return new licenceDetails(firstKey.longValue(), licence.getKey(),
+				licence.getState());
 	}
 	
 	public static boolean isTrialLicence(Licence licence) {
