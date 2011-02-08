@@ -182,6 +182,7 @@ FeatureManager
 		public String	PR_TRIAL_USES_REMAINING		= "TrialUsesRemaining";		// Long
 		public String	PR_REQUIRED_PLUGINS			= "Plugins";				// String: comma separated plugin ids
 		public String	PR_FINGERPRINT				= "Fingerprint";			// String
+		public String	PR_RENEWAL_KEY				= "RenewalKey";				// String
 		
 		public Licence
 		getLicence();
