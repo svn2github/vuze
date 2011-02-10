@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
@@ -55,6 +56,7 @@ import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
+import com.aelitis.azureus.ui.swt.feature.FeatureManagerUIListener;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
@@ -441,5 +443,16 @@ public class SBC_ActivityTableView
 				}
 			}
 		});
+
+		if (Constants.isCVSVersion()) {
+			menuItem = menuManager.addMenuItem("sidebar."
+					+ MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES,
+					"!test update expiry!");
+			menuItem.addListener(new MenuItemListener() {
+				public void selected(MenuItem menu, Object target) {
+					FeatureManagerUIListener.buildNotifications();
+				}
+			});
+		}
 	}
 }

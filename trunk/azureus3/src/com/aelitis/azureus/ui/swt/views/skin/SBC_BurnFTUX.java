@@ -20,9 +20,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
@@ -110,13 +108,11 @@ public class SBC_BurnFTUX
 	}
 
 	private void buildURL(boolean forceSet) {
-		long remainingUses = FeatureManagerUI.getRemaining();
-
-		String suffix = "?view=" + entryID + "&mode=" + FeatureManagerUI.getMode()
-				+ "&sourceRef=" + UrlUtils.encode(sRef + "-/plus/ftux/dvd")
-				+ "&remaining=" + remainingUses;
+		String suffix = ("?view=" + entryID)
+				+ ("&sourceRef=" + UrlUtils.encode(sRef + "-/plus/ftux/dvd"));
 		String newUrl = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
 				"burn_ftux.start" + suffix, false);
+		newUrl = FeatureManagerUI.appendFeatureManagerURLParams(newUrl);
 		if (!forceSet && newUrl.equals(url)) {
 			return;
 		}

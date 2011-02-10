@@ -20,9 +20,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
@@ -105,12 +103,10 @@ public class SBC_PlusFTUX
 	}
 
 	private void buildURL(boolean forceSet) {
-		long remainingUses = FeatureManagerUI.getRemaining();
-
-		String suffix = "?mode=" + FeatureManagerUI.getMode() + "&sourceRef="
-				+ UrlUtils.encode(sRef + "-/plus/ftux") + "&remaining=" + remainingUses;
+		String suffix = "?sourceRef=" + UrlUtils.encode(sRef + "-/plus/ftux");
 		String newUrl = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
 				"plus-ftux.start" + suffix, false);
+		newUrl = FeatureManagerUI.appendFeatureManagerURLParams(newUrl);
 		if (!forceSet && newUrl.equals(url)) {
 			return;
 		}

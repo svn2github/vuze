@@ -313,8 +313,8 @@ public class FeatureManagerUI
   						key[0].setText(prefillWith);
   					} else if (!trytwo) {
     					licenceDetails details = getFullFeatureDetails();
-    					if (details != null && details.state != Licence.LS_INVALID_KEY) {
-    						key[0].setText(details.key);
+    					if (details != null && details.licence.getState() != Licence.LS_INVALID_KEY) {
+    						key[0].setText(details.licence.getKey());
     						if (key[0].getControl() instanceof Text) {
     							((Text)key[0].getControl()).selectAll();
     						}
@@ -325,16 +325,18 @@ public class FeatureManagerUI
     									soExpirey.setText("");
     								}
     							});
-    							if (details.state == Licence.LS_CANCELLED) {
+
+    							int state = details.licence.getState();
+    							if (state == Licence.LS_CANCELLED) {
     								soExpirey.setText(MessageText.getString("dlg.auth.enter.cancelled"));
-    							} else if (details.state == Licence.LS_REVOKED) {
+    							} else if (state == Licence.LS_REVOKED) {
     								soExpirey.setText(MessageText.getString("dlg.auth.enter.revoked"));
-    							} else if (details.state == Licence.LS_ACTIVATION_DENIED) {
+    							} else if (state == Licence.LS_ACTIVATION_DENIED) {
     								soExpirey.setText(MessageText.getString("dlg.auth.enter.denied"));
     							} else {
       							soExpirey.setText(MessageText.getString("dlg.auth.enter.expiry",
       									new String[] {
-      										DisplayFormatters.formatCustomDateOnly(details.expirey)
+      										DisplayFormatters.formatCustomDateOnly(details.expiry)
       									}));
     							} 
     						}
@@ -606,10 +608,23 @@ public class FeatureManagerUI
 	}
 
 	public static void openStreamPlusWindow(final String referal) {
+		String msgidPrefix;
+		String buttonID;
+		if (getPlusExpiryTimeStamp() >= SystemTime.getCurrentTime()) {
+			msgidPrefix = "dlg.stream.plus.";
+			buttonID = "Button.upgrade";
+		} else {
+			buttonID = "Button.renew";
+			msgidPrefix = "dlg.stream.plus.renew.";
+			if (!MessageText.keyExistsForDefaultLocale(msgidPrefix + "text")) {
+				msgidPrefix = "dlg.stream.plus.";
+			}
+		}
+		final String f_msgidPrefix = msgidPrefix;
 		final VuzeMessageBox box = new VuzeMessageBox(
-				MessageText.getString("dlg.stream.plus.title"),
-				MessageText.getString("dlg.stream.plus.text"), new String[] {
-					MessageText.getString("Button.upgrade"),
+				MessageText.getString(msgidPrefix + "title"),
+				MessageText.getString(msgidPrefix + "text"), new String[] {
+					MessageText.getString(buttonID),
 					MessageText.getString("Button.cancel"),
 				}, 0);
 		box.setButtonVals(new Integer[] {
@@ -617,7 +632,7 @@ public class FeatureManagerUI
 			SWT.CANCEL
 		});
 
-		box.setSubTitle(MessageText.getString("dlg.stream.plus.subtitle"));
+		box.setSubTitle(MessageText.getString(msgidPrefix + "subtitle"));
 		box.addResourceBundle(FeatureManagerUI.class,
 				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_streamplus");
 		box.setIconResource("image.header.streamplus");
@@ -625,8 +640,11 @@ public class FeatureManagerUI
 		box.setListener(new VuzeMessageBoxListener() {
 			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
 				SWTSkin skin = soExtra.getSkin();
-				skin.createSkinObject("dlg.stream.plus", "dlg.stream.plus",
-						soExtra);
+				skin.createSkinObject("dlg.stream.plus", "dlg.stream.plus", soExtra);
+				SWTSkinObject soSubText = skin.getSkinObject("trial-info", soExtra);
+				if (soSubText instanceof SWTSkinObjectText) {
+					((SWTSkinObjectText) soSubText).setTextID(f_msgidPrefix + "subtext");
+				}
 			}
 		});
 
@@ -642,12 +660,45 @@ public class FeatureManagerUI
 		});
 	}
 	
+	public static String appendFeatureManagerURLParams(String url) {
+		long remainingUses = FeatureManagerUI.getRemaining();
+		long plusRemainingInMS = FeatureManagerUI.getPlusExpiryTimeStamp() - SystemTime.getCurrentTime();
+		String plusRenewalCode = FeatureManagerUI.getPlusRenewalCode();
 
+		String newURL = url + (url.contains("?") ? "&" : "?");
+		newURL += "mode=" + FeatureManagerUI.getMode();
+		if (plusRemainingInMS != 0) {
+			newURL +=  "&remaining_plus=" + plusRemainingInMS;
+		}
+		newURL += "&remaining=" + remainingUses;
+		if (plusRenewalCode != null) {
+			newURL += "&renewal_code=" + plusRenewalCode;
+		}
+
+		return newURL;
+	}
 	
 	public static String getMode() {
 		boolean isFull = hasFullLicence();
 		boolean isTrial = hasFullBurn() && !isFull;
 		return isFull ? "plus" : isTrial ? "trial" : "free";
+	}
+	
+	public static long getPlusExpiryTimeStamp() {
+		licenceDetails fullFeatureDetails = getFullFeatureDetails();
+		if (fullFeatureDetails == null || fullFeatureDetails.expiry == 0) {
+			return 0;
+		}
+		return fullFeatureDetails.expiry;
+	}
+
+	public static String getPlusRenewalCode() {
+		licenceDetails fullFeatureDetails = getFullFeatureDetails();
+		if (fullFeatureDetails == null || fullFeatureDetails.expiry == 0) {
+			return null;
+		}
+
+		return fullFeatureDetails.getRenewalKey();
 	}
 
 	public static boolean hasFullLicence() {
@@ -686,14 +737,27 @@ public class FeatureManagerUI
 	}
 
 	public static class licenceDetails {
-		public licenceDetails(long expirey, String key, int state) {
-			this.expirey = expirey;
-			this.key = key;
-			this.state = state;
+		private final Licence licence;
+		long expiry;
+
+		public licenceDetails(long expirey, Licence licence) {
+			this.expiry = expirey;
+			this.licence = licence;
 		}
-		long expirey;
-		String key;
-		int state;
+		
+		public String getRenewalKey() {
+			FeatureDetails[] features = licence.getFeatures();
+			if (features == null) {
+				return null;
+			}
+			for (FeatureDetails fd : features) {
+				Object property = fd.getProperty(FeatureDetails.PR_RENEWAL_KEY);
+				if (property instanceof String) {
+					return (String) property;
+				}
+			}
+			return null;
+		}
 	}
 
 	public static licenceDetails getFullFeatureDetails() {
@@ -766,8 +830,7 @@ public class FeatureManagerUI
 
 		Long firstKey = mapOrder.firstKey();
 		Licence licence = mapOrder.get(firstKey);
-		return new licenceDetails(firstKey.longValue(), licence.getKey(),
-				licence.getState());
+		return new licenceDetails(firstKey.longValue(), licence);
 	}
 	
 	public static boolean isTrialLicence(Licence licence) {

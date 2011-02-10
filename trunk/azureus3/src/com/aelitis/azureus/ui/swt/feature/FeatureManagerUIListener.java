@@ -1,13 +1,12 @@
 package com.aelitis.azureus.ui.swt.feature;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.utils.FeatureManager;
 import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureManagerListener;
@@ -16,6 +15,10 @@ import org.gudy.azureus2.plugins.utils.FeatureManager.Licence.LicenceInstallatio
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
+import com.aelitis.azureus.activities.VuzeActivitiesConstants;
+import com.aelitis.azureus.activities.VuzeActivitiesEntry;
+import com.aelitis.azureus.activities.VuzeActivitiesManager;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -26,11 +29,15 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.util.ConstantsVuze;
 
 public class FeatureManagerUIListener
 	implements FeatureManagerListener
 {
 	private final static boolean DEBUG = Constants.IS_CVS_VERSION;
+
+	private static final String ID_ACTIVITY_EXPIRING = "ExpiringEntry";
+	private static final String ID_ACTIVITY_EXPIRED = "ExpiredEntry";
 
 	private final FeatureManager featman;
 
@@ -247,52 +254,108 @@ public class FeatureManagerUIListener
 	/**
 	 * 
 	 */
-	private void updateUI(){
-		
-		UIFunctionsManagerSWT.runWithUIFSWT(
-			new UIFunctionsManagerSWT.UIFSWTRunnable()
-			{
-				public void 
-				run(
-					final UIFunctionsSWT uif ) 
-				{
-					boolean hasFullLicence = FeatureManagerUI.hasFullLicence();
+	private void updateUI() {
+		UIFunctionsManagerSWT.runWithUIFSWT(new UIFunctionsManagerSWT.UIFSWTRunnable() {
+			public void run(final UIFunctionsSWT uif) {
+				final boolean hasFullLicence = FeatureManagerUI.hasFullLicence();
 
-					if (hasFullLicence) {
-						final SWTSkin skin = SWTSkinFactory.getInstance();
-						if (skin != null) {
-							SWTSkinObject soHeader = skin.getSkinObject("plus-header");
-							if (soHeader != null) {
-								soHeader.setVisible(true);
-							}
-							Utils.execSWTThread(new AERunnable() {
-								public void runSupport() {
-									uif.getMainShell().setText("Vuze Plus");
-								}
-							});
-						}
+				try {
+					buildNotifications();
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+				
+				final SWTSkin skin = SWTSkinFactory.getInstance();
+				if (skin != null) {
+					SWTSkinObject soHeader = skin.getSkinObject("plus-header");
+					if (soHeader != null) {
+						soHeader.setVisible(hasFullLicence);
 					}
-					
-					MultipleDocumentInterfaceSWT mdi = uif.getMDISWT();
-					if (mdi != null) {
-						MdiEntrySWT entry = mdi.getEntrySWT(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
-						if (entry != null) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							uif.getMainShell().setText(hasFullLicence ? "Vuze Plus" : "Vuze");
+						}
+					});
+				}
+
+				MultipleDocumentInterfaceSWT mdi = uif.getMDISWT();
+				if (mdi != null) {
+					MdiEntrySWT entry = mdi.getEntrySWT(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
+					if (entry != null) {
 						entry.setTitleID(hasFullLicence ? "mdi.entry.plus.full"
 								: "mdi.entry.plus.free");
-							SBC_PlusFTUX view = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
-							if (view != null) {
-								view.updateLicenceInfo();
-							}
-							SkinView[] views = SkinViewManager.getMultiByClass(SBC_BurnFTUX.class);
-							if (views != null) {
-								for (SkinView bview : views) {
-									((SBC_BurnFTUX) bview).updateLicenceInfo();
-								}
+						SBC_PlusFTUX view = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
+						if (view != null) {
+							view.updateLicenceInfo();
+						}
+						SkinView[] views = SkinViewManager.getMultiByClass(SBC_BurnFTUX.class);
+						if (views != null) {
+							for (SkinView bview : views) {
+								((SBC_BurnFTUX) bview).updateLicenceInfo();
 							}
 						}
 					}
 				}
+			}
+		});
+	}
+
+	public static void buildNotifications() {
+		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryTimeStamp();
+		long msLeft = FeatureManagerUI.getPlusExpiryTimeStamp()
+				- SystemTime.getCurrentTime();
+		long daysLeft = msLeft / 1000l / 60l / 60l / 24l;
+
+		if (daysLeft > 30) {
+			return;
+		}
+
+		String s;
+		String id;
+		String ref = "plus_note_" + (daysLeft > 0 ? "expiring_" : "expired_")
+				+ Math.abs(daysLeft);
+		String strA = "TARGET=\"" + MultipleDocumentInterface.SIDEBAR_SECTION_PLUS
+				+ "\" HREF=\"#" + ref + "\"";
+
+		if (daysLeft > 0) {
+			String msgID = "plus.notificaiton." + ID_ACTIVITY_EXPIRING
+					+ (daysLeft == 1 ? ".s" : ".p");
+			s = MessageText.getString(msgID, new String[] {
+				"" + daysLeft,
+				strA
 			});
+			id = ID_ACTIVITY_EXPIRING + ":" + plusExpiryTimeStamp;
+		} else {
+			String msgID = "plus.notificaiton." + ID_ACTIVITY_EXPIRED
+					+ (daysLeft == -1 ? ".s" : ".p");
+			s = MessageText.getString(msgID, new String[] {
+				"" + -daysLeft,
+				strA
+			});
+			id = ID_ACTIVITY_EXPIRED + ":" + plusExpiryTimeStamp;
+		}
+		VuzeActivitiesEntry entry = VuzeActivitiesManager.getEntryByID(id);
+		if (entry == null) {
+			boolean existed = VuzeActivitiesManager.isEntryIdRemoved(id);
+			if (existed) {
+				return;
+			}
+
+			entry = new VuzeActivitiesEntry(SystemTime.getCurrentTime(), s,
+					VuzeActivitiesConstants.TYPEID_CONTENT_PROMO);
+			entry.setID(id);
+
+			if (daysLeft <= 0) {
+				UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
+						MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
+			}
+		} else {
+			entry.setText(s);
+			entry.setTimestamp(SystemTime.getCurrentTime());
+		}
+		VuzeActivitiesManager.addEntries(new VuzeActivitiesEntry[] {
+			entry
+		});
 	}
 
 	public void licenceRemoved(Licence licence) {

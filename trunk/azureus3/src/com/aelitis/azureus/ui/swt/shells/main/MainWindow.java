@@ -2272,6 +2272,12 @@ public class MainWindow
 
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 
+		if (MultipleDocumentInterface.SIDEBAR_SECTION_PLUS.equals(target)) {
+			SBC_PlusFTUX.setSourceRef(url.substring(1));
+			mdi.showEntryByID(target);
+			return;
+		}
+		
 		// Note; We don't setSourceRef on ContentNetwork here like we do
 		// everywhere else because the source ref should already be set
 		// by the caller

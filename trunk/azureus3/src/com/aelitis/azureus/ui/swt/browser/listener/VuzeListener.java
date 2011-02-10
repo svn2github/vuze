@@ -3,6 +3,7 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
@@ -22,6 +23,8 @@ public class VuzeListener
 	public static final String OP_INSTALL_TRIAL = "install-trial";
 
 	public static final String OP_GET_MODE = "get-mode";
+	
+	public static final String OP_GET_REMAINING = "get-plus-remaining";
 
 	public 
 	VuzeListener() 
@@ -73,6 +76,20 @@ public class VuzeListener
 			if (callback != null) {
 				
 				context.executeInBrowser(callback + "('" + FeatureManagerUI.getMode() + "')");
+				
+			} else {
+				
+				message.debug("bad or no callback param");
+			}
+		}else if (OP_GET_REMAINING.equals(opid)) {
+			Map decodedMap = message.getDecodedMap();
+
+			String callback = MapUtils.getMapString(decodedMap, "callback", null);
+			
+			if (callback != null) {
+				
+				long plusRemainingInMS = FeatureManagerUI.getPlusExpiryTimeStamp() - SystemTime.getCurrentTime();
+				context.executeInBrowser(callback + "(" + plusRemainingInMS + ")");
 				
 			} else {
 				
