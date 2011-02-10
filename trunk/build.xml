@@ -195,13 +195,14 @@ extract messagebundles
 		
 	        <!-- Save some build properties -->
 			  <propertyfile file="${vzbuild.props}" >
+			  	  <entry key="major.ver" value="${major.ver}" />
+			  	  <entry key="minor.ver" value="${minor.ver}" />
 				  <entry key="timestamp" value="${timestamp}" />
 			  	  <entry key="build.name" value="${build.name}" />
 				  <entry key="jar.name" value="${jar.name}" />
 			     <entry key="changelog.text" value="${changelog.text}" />
 			  </propertyfile>
-			  	
-		
+
 	    	  <!-- Run deployment script -->
 		     <echo message="Running external deploy script: ${deploy.exec}" />
 		     <exec executable="${deploy.exec}" dir="." >
