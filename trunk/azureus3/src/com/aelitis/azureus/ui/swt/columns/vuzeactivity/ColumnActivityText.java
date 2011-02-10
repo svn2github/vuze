@@ -164,8 +164,10 @@ public class ColumnActivityText
 			URLInfo hitUrl = sp.getHitUrl(event.x + bounds.x, event.y + bounds.y);
 			int newCursor;
 			if (hitUrl != null) {
+				boolean ourUrl = UrlFilter.getInstance().urlCanRPC(hitUrl.url)
+						|| hitUrl.url.startsWith("/") || hitUrl.url.startsWith("#");
 				if (event.eventType == TableCellMouseEvent.EVENT_MOUSEDOWN) {
-					if (!UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {
+					if (!ourUrl) {
 						Utils.launch(hitUrl.url);
 					} else {
 						UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -181,7 +183,7 @@ public class ColumnActivityText
 				}
 
 				newCursor = SWT.CURSOR_HAND;
-				if (UrlFilter.getInstance().urlCanRPC(hitUrl.url)) {
+				if (ourUrl) {
 					try {
 						tooltip = hitUrl.title == null ? null : URLDecoder.decode(
 								hitUrl.title, "utf-8");
