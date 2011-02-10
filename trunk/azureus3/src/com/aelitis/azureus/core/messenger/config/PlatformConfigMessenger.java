@@ -324,4 +324,11 @@ public class PlatformConfigMessenger
 		}
 		return false;
 	}
+
+	public static void addLinkExternal(String link) {
+		if (externalLinks.contains(link)) {
+			return;
+		}
+		externalLinks.add(link);
+	}
 }
