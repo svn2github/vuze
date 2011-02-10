@@ -2161,7 +2161,7 @@ DeviceManagerUI
 								parent,
 								key, "devicerendererview",
 								device.getName(),
-								view, null, false, -1);
+								view, null, false, null);
 				
 				String id = getDeviceImageID( device );
 				
@@ -2178,7 +2178,7 @@ DeviceManagerUI
 								parent,
 								key, "devicesodview",
 								device.getName(),
-								view, null, false, -1);
+								view, null, false, null);
 				entry.setExpanded(true);
 
 				
