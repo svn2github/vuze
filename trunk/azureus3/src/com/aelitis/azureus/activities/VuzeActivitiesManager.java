@@ -566,6 +566,15 @@ public class VuzeActivitiesManager
 
 		return null;
 	}
+	
+	public static boolean isEntryIdRemoved(String id) {
+		for (VuzeActivitiesEntry entry : removedEntries) {
+			if (entry.getID().equals(id)) {
+				return true;
+			}
+		}
+		return false;
+	}
 
 	public static VuzeActivitiesEntry[] getAllEntries() {
 		return allEntries.toArray(new VuzeActivitiesEntry[allEntries.size()]);
