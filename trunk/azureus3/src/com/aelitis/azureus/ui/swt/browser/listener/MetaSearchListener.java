@@ -48,6 +48,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
+import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.core.metasearch.*;
 import com.aelitis.azureus.core.metasearch.impl.ExternalLoginListener;
 import com.aelitis.azureus.core.metasearch.impl.ExternalLoginWindow;
@@ -64,9 +65,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
-import com.aelitis.azureus.util.ConstantsVuze;
-import com.aelitis.azureus.util.JSONUtils;
-import com.aelitis.azureus.util.UrlFilter;
+import com.aelitis.azureus.util.*;
 
 public class MetaSearchListener extends AbstractBrowserMessageListener {
 	
@@ -111,6 +110,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 	public static final String OP_SUBSCRIPTION_SET_AUTODL   	= "subscription-set-auto-download";
 
 	public static final String OP_IS_CUSTOMISED   				= "is-customized";
+
+	public static final String OP_ADD_EXTERNAL_LINKS   				= "add-external-links";
 
 	private static final Set	active_subs_auth = new HashSet();
 	
@@ -1638,6 +1639,16 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			params.put( "is_custom", new Boolean( custom ));
 
 			sendBrowserMessage( "metasearch", "isCustomizedResult", params );
+		}else if( OP_ADD_EXTERNAL_LINKS.equals(opid)) {
+			Map decodedMap = message.getDecodedMap();
+
+			List list = MapUtils.getMapList(decodedMap, "external-links", Collections.EMPTY_LIST);
+			for (Object o : list) {
+				if (o instanceof String) {
+					String link = (String) o;
+					PlatformConfigMessenger.addLinkExternal(link);
+				}
+			}
 		}
 	}
 	
