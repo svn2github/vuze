@@ -33,6 +33,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -201,9 +202,15 @@ public class GCStringPrinter
 		try {
 			boolean wasAdvanced = gc.getAdvanced();
 			Rectangle clipping = null;
-			// With Advanced ontext antialias in SWT.DEFAULT is not the system's default
+			// With Advanced on text antialias in SWT.DEFAULT is not the system's 
+			// default (Try flipping the "Turn on ClearType" checkbox on
+			// the ClearType Text Tuner", and you'll see the text redraw correctly
+			// when advanced is off, but not when it's on)
+			// Other problems with text and GDIP, see http://social.msdn.microsoft.com/Forums/en-US/winforms/thread/362ab21b-1dc4-4140-a39a-a366beea9e40
+			
 			// Turn off Advanced while drawing text so it antialiases based on 
 			// system prefs.
+			// NOTE: This messes up any Transforms :(
 			if (gc.getAdvanced() && gc.getTextAntialias() == SWT.DEFAULT
 					&& gc.getAlpha() == 255) {
 				clipping = gc.getClipping();
@@ -1130,7 +1137,7 @@ public class GCStringPrinter
 		};
 
 		//final String text = "Opil Wrir, Na Poys Iysk, Yann Only. test of the string printer averlongwordthisisyesindeed";
-		final String text = "Apple <A HREF=\"aa\">Banana</a>, Cow <A HREF=\"ss\">Dug Ergo</a>, Flip Only. test of the string printer averlongwordthisisyesindeed";
+		final String text = "Apple <A HREF=\"aa\">Banana</a>, Cow <A HREF=\"ss\">Dug Ergo</a>, Flip Only. test of the string printer averlongwordthisisyesindeed " + Constants.INFINITY_STRING;
 		//final String text = "Apple, Cow sfjkhsd %1 f, Flip Only. test of %0 the string printer averlongwordthisisyesindeed";
 
 		shell.setSize(500, 500);
@@ -1199,6 +1206,11 @@ public class GCStringPrinter
 		btnWrap.setSelection(true);
 		btnWrap.addListener(SWT.Selection, l);
 		
+		final Button btnGCAdvanced = new Button(cButtons, SWT.CHECK);
+		btnGCAdvanced.setText("gc.Advanced");
+		btnGCAdvanced.setSelection(true);
+		btnGCAdvanced.addListener(SWT.Selection, l);
+		
 		final Label lblInfo = new Label(shell, SWT.WRAP);
 		lblInfo.setText("Welcome");
 		
@@ -1214,6 +1226,7 @@ public class GCStringPrinter
 					gc = new GC(cPaint);
 				}
 				try {
+					gc.setAdvanced(btnGCAdvanced.getSelection());
 					GCStringPrinter sp = buildSP(gc);
 					Color colorURL = gc.getDevice().getSystemColor(SWT.COLOR_RED);
 					Color colorURL2 = gc.getDevice().getSystemColor(
