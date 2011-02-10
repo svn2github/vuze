@@ -312,7 +312,7 @@ public class FeatureManagerUIListener
 
 		String s;
 		String id;
-		String ref = "plus_note_" + (daysLeft > 0 ? "expiring_" : "expired_")
+		String ref = "plus_note_" + (daysLeft >= 0 ? "expiring_" : "expired_")
 				+ Math.abs(daysLeft);
 		String strA = "TARGET=\"" + MultipleDocumentInterface.SIDEBAR_SECTION_PLUS
 				+ "\" HREF=\"#" + ref + "\"";
