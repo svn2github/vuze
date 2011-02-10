@@ -535,7 +535,8 @@ public class UIFunctionsImpl
 			public void runSupport() {
 				String realURL = url;
 				ContentNetwork cn = ContentNetworkUtils.getContentNetworkFromTarget(target);
-				if ( !realURL.startsWith( "http" )){
+				if ( !realURL.startsWith( "http" )
+					&& !realURL.startsWith("#")) {
 					if ("_blank".equals(target)) {
 						realURL = cn.getExternalSiteRelativeURL(realURL, false );
 					} else {
