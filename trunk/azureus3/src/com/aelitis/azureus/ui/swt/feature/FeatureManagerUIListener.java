@@ -317,14 +317,14 @@ public class FeatureManagerUIListener
 		String strA = "TARGET=\"" + MultipleDocumentInterface.SIDEBAR_SECTION_PLUS
 				+ "\" HREF=\"#" + ref + "\"";
 
-		if (daysLeft > 0) {
+		if (daysLeft >= 0) {
 			String msgID = "plus.notificaiton." + ID_ACTIVITY_EXPIRING
 					+ (daysLeft == 1 ? ".s" : ".p");
 			s = MessageText.getString(msgID, new String[] {
 				"" + daysLeft,
 				strA
 			});
-			id = ID_ACTIVITY_EXPIRING + ":" + plusExpiryTimeStamp;
+			id = ID_ACTIVITY_EXPIRING;
 		} else {
 			String msgID = "plus.notificaiton." + ID_ACTIVITY_EXPIRED
 					+ (daysLeft == -1 ? ".s" : ".p");
@@ -332,7 +332,7 @@ public class FeatureManagerUIListener
 				"" + -daysLeft,
 				strA
 			});
-			id = ID_ACTIVITY_EXPIRED + ":" + plusExpiryTimeStamp;
+			id = ID_ACTIVITY_EXPIRED;
 		}
 		VuzeActivitiesEntry entry = VuzeActivitiesManager.getEntryByID(id);
 		if (entry == null) {
@@ -345,7 +345,7 @@ public class FeatureManagerUIListener
 					VuzeActivitiesConstants.TYPEID_CONTENT_PROMO);
 			entry.setID(id);
 
-			if (daysLeft <= 0) {
+			if (daysLeft < 0) {
 				UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
 						MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
 			}
