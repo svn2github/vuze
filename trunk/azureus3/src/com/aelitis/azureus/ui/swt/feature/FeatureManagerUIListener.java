@@ -307,8 +307,7 @@ public class FeatureManagerUIListener
 			return;
 		}
 		
-		long msLeft = FeatureManagerUI.getPlusExpiryTimeStamp()
-				- SystemTime.getCurrentTime();
+		long msLeft = plusExpiryTimeStamp - SystemTime.getCurrentTime();
 		long daysLeft = msLeft / 1000l / 60l / 60l / 24l;
 
 		if (daysLeft > 30) {
