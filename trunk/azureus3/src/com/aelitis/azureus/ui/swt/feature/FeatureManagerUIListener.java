@@ -364,8 +364,9 @@ public class FeatureManagerUIListener
 			}
 
 			entry = new VuzeActivitiesEntry(SystemTime.getCurrentTime(), s,
-					VuzeActivitiesConstants.TYPEID_CONTENT_PROMO);
+					VuzeActivitiesConstants.TYPEID_VUZENEWS);
 			entry.setID(id);
+			entry.setIconID("image.sidebar.plus");
 
 			if (daysLeft < 0) {
 				UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
