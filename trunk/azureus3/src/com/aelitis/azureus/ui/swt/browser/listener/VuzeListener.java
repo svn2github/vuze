@@ -88,8 +88,13 @@ public class VuzeListener
 			
 			if (callback != null) {
 				
-				long plusRemainingInMS = FeatureManagerUI.getPlusExpiryTimeStamp() - SystemTime.getCurrentTime();
-				context.executeInBrowser(callback + "(" + plusRemainingInMS + ")");
+				long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryTimeStamp();
+				if (plusExpiryTimeStamp <= 0) {
+					context.executeInBrowser(callback + "()");
+				} else {
+					long plusRemainingInMS = plusExpiryTimeStamp - SystemTime.getCurrentTime();
+					context.executeInBrowser(callback + "(" + plusRemainingInMS + ")");
+				}
 				
 			} else {
 				
