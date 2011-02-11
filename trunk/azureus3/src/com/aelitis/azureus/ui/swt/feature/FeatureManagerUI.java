@@ -662,13 +662,14 @@ public class FeatureManagerUI
 	
 	public static String appendFeatureManagerURLParams(String url) {
 		long remainingUses = FeatureManagerUI.getRemaining();
-		long plusRemainingInMS = FeatureManagerUI.getPlusExpiryTimeStamp() - SystemTime.getCurrentTime();
+		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryTimeStamp();
 		String plusRenewalCode = FeatureManagerUI.getPlusRenewalCode();
 
 		String newURL = url + (url.contains("?") ? "&" : "?");
 		newURL += "mode=" + FeatureManagerUI.getMode();
-		if (plusRemainingInMS != 0) {
-			newURL +=  "&remaining_plus=" + plusRemainingInMS;
+		if (plusExpiryTimeStamp != 0) {
+			newURL += "&remaining_plus="
+					+ (plusExpiryTimeStamp - SystemTime.getCurrentTime());
 		}
 		newURL += "&remaining=" + remainingUses;
 		if (plusRenewalCode != null) {
@@ -685,6 +686,9 @@ public class FeatureManagerUI
 	}
 	
 	public static long getPlusExpiryTimeStamp() {
+		if (true) {
+			return SystemTime.getCurrentTime() - 86400000;
+		}
 		licenceDetails fullFeatureDetails = getFullFeatureDetails();
 		if (fullFeatureDetails == null || fullFeatureDetails.expiry == 0) {
 			return 0;
