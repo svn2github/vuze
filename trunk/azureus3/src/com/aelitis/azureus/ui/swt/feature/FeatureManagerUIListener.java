@@ -303,7 +303,7 @@ public class FeatureManagerUIListener
 	public static void buildNotifications() {
 		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryTimeStamp();
 		
-		if (plusExpiryTimeStamp == 0) {
+		if (plusExpiryTimeStamp <= 0) {
 			return;
 		}
 		
