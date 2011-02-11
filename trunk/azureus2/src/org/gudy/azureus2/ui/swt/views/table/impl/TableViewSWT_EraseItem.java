@@ -198,6 +198,9 @@ public class TableViewSWT_EraseItem
 				//System.out.println(bounds.width);
 			}
 			if (alwaysDrawBG || color != null) {
+				if (color == null) {
+					gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+				}
 				gc.fillRectangle(drawBounds);
 				if (event != null) {
 					event.detail &= ~SWT.BACKGROUND;
