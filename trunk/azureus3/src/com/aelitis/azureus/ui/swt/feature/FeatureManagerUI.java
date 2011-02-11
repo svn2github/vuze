@@ -610,7 +610,9 @@ public class FeatureManagerUI
 	public static void openStreamPlusWindow(final String referal) {
 		String msgidPrefix;
 		String buttonID;
-		if (getPlusExpiryTimeStamp() >= SystemTime.getCurrentTime()) {
+		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryTimeStamp();
+		if (plusExpiryTimeStamp < 0
+				|| plusExpiryTimeStamp >= SystemTime.getCurrentTime()) {
 			msgidPrefix = "dlg.stream.plus.";
 			buttonID = "Button.upgrade";
 		} else {
@@ -686,9 +688,6 @@ public class FeatureManagerUI
 	}
 	
 	public static long getPlusExpiryTimeStamp() {
-		if (true) {
-			return SystemTime.getCurrentTime() - 86400000;
-		}
 		licenceDetails fullFeatureDetails = getFullFeatureDetails();
 		if (fullFeatureDetails == null || fullFeatureDetails.expiry == 0) {
 			return 0;
