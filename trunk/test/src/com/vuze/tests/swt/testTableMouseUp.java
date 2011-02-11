@@ -31,6 +31,20 @@ public class testTableMouseUp
 			public void mouseDoubleClick(MouseEvent e) {
 			}
 		});
+		
+		new TableColumn(table, 0).setWidth(1000);
+		new TableColumn(table, 0).setWidth(1000);
+		
+		table.setSortColumn(table.getColumn(0));
+		table.setSortDirection(SWT.UP);
+		
+		table.addListener(SWT.PaintItem, new Listener() {
+			
+			public void handleEvent(Event event) {
+				// TODO Auto-generated method stub
+				event.gc.drawText("Hi", event.x + 100, event.y, true);
+			}
+		});
 
 		System.out.println(SWT.getPlatform() + ";" + SWT.getVersion());
 		TableItem tableItem = new TableItem(table, SWT.NONE);
