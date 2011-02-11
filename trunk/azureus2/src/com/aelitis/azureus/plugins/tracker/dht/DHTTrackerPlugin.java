@@ -501,21 +501,27 @@ DHTTrackerPlugin
 	addDownload(
 		final Download	download )
 	{
+		Torrent	torrent = download.getTorrent();
+
+		boolean	is_decentralised = false;
 		
-		// bail on our low noise ones, these don't require decentralised tracking
+		if ( torrent != null ){
+			
+			is_decentralised = TorrentUtils.isDecentralised( torrent.getAnnounceURL());
+		}
+		
+			// bail on our low noise ones, these don't require decentralised tracking unless that's what they are
 	
-		if ( download.getFlag( Download.FLAG_LOW_NOISE )){
+		if ( download.getFlag( Download.FLAG_LOW_NOISE ) && !is_decentralised ){
 		
 			return;
 		}
 		
 		if ( track_only_decentralsed ){
 		
-			Torrent	torrent = download.getTorrent();
-
 			if ( torrent != null ){
 				
-				if ( !TorrentUtils.isDecentralised( torrent.getAnnounceURL())){
+				if ( !is_decentralised ){
 					
 					return;
 				}
@@ -525,9 +531,7 @@ DHTTrackerPlugin
 		if ( is_running ){
 			
 			String[]	networks = download.getListAttribute( ta_networks );
-			
-			Torrent	torrent = download.getTorrent();
-			
+						
 			if ( torrent != null && networks != null ){
 				
 				boolean	public_net = false;
@@ -603,9 +607,7 @@ DHTTrackerPlugin
 			checkDownloadForRegistration( download, true );
 			
 		}else{
-			
-			Torrent	torrent = download.getTorrent();
-			
+						
 			if ( torrent != null && torrent.isDecentralised()){
 				
 				download.addListener(
