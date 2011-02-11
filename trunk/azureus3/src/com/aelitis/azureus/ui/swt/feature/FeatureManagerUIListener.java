@@ -1,35 +1,40 @@
 package com.aelitis.azureus.ui.swt.feature;
 
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginException;
-import org.gudy.azureus2.plugins.utils.FeatureManager;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerListener;
+import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureManagerListener;
 import org.gudy.azureus2.plugins.utils.FeatureManager.Licence;
 import org.gudy.azureus2.plugins.utils.FeatureManager.Licence.LicenceInstallationListener;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.activities.VuzeActivitiesConstants;
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.activities.VuzeActivitiesManager;
+import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
-import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.*;
-import com.aelitis.azureus.util.ConstantsVuze;
 
 public class FeatureManagerUIListener
 	implements FeatureManagerListener
@@ -251,53 +256,66 @@ public class FeatureManagerUIListener
 		return( existing_licence );
 	}
 	
-	/**
-	 * 
-	 */
 	private void updateUI() {
-		UIFunctionsManagerSWT.runWithUIFSWT(new UIFunctionsManagerSWT.UIFSWTRunnable() {
-			public void run(final UIFunctionsSWT uif) {
-				final boolean hasFullLicence = FeatureManagerUI.hasFullLicence();
+		PluginInterface plugin_interface = PluginInitializer.getDefaultInterface();
 
-				try {
-					buildNotifications();
-				} catch (Exception e) {
-					Debug.out(e);
-				}
-				
-				final SWTSkin skin = SWTSkinFactory.getInstance();
-				if (skin != null) {
-					SWTSkinObject soHeader = skin.getSkinObject("plus-header");
-					if (soHeader != null) {
-						soHeader.setVisible(hasFullLicence);
-					}
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							uif.getMainShell().setText(hasFullLicence ? "Vuze Plus" : "Vuze");
-						}
-					});
-				}
+		UIManager ui_manager = plugin_interface.getUIManager();
 
-				MultipleDocumentInterfaceSWT mdi = uif.getMDISWT();
-				if (mdi != null) {
-					MdiEntrySWT entry = mdi.getEntrySWT(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
-					if (entry != null) {
-						entry.setTitleID(hasFullLicence ? "mdi.entry.plus.full"
-								: "mdi.entry.plus.free");
-						SBC_PlusFTUX view = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
-						if (view != null) {
-							view.updateLicenceInfo();
-						}
-						SkinView[] views = SkinViewManager.getMultiByClass(SBC_BurnFTUX.class);
-						if (views != null) {
-							for (SkinView bview : views) {
-								((SBC_BurnFTUX) bview).updateLicenceInfo();
-							}
-						}
-					}
+		ui_manager.addUIListener(new UIManagerListener() {
+
+			public void UIDetached(UIInstance instance) {
+			}
+
+			public void UIAttached(UIInstance instance) {
+				if (instance instanceof UISWTInstance) {
+					_updateUI();
 				}
 			}
 		});
+	}
+
+	private void _updateUI() {
+		final boolean hasFullLicence = FeatureManagerUI.hasFullLicence();
+
+		try {
+			buildNotifications();
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+		
+		final SWTSkin skin = SWTSkinFactory.getInstance();
+		if (skin != null) {
+			SWTSkinObject soHeader = skin.getSkinObject("plus-header");
+			if (soHeader != null) {
+				soHeader.setVisible(hasFullLicence);
+			}
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+					uif.getMainShell().setText(hasFullLicence ? "Vuze Plus" : "Vuze");
+				}
+			});
+		}
+
+		UIFunctions uif = UIFunctionsManager.getUIFunctions();
+		MultipleDocumentInterface mdi = uif.getMDI();
+		if (mdi != null) {
+			MdiEntry entry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
+			if (entry != null) {
+				entry.setTitleID(hasFullLicence ? "mdi.entry.plus.full"
+						: "mdi.entry.plus.free");
+				SBC_PlusFTUX view = (SBC_PlusFTUX) SkinViewManager.getByClass(SBC_PlusFTUX.class);
+				if (view != null) {
+					view.updateLicenceInfo();
+				}
+				SkinView[] views = SkinViewManager.getMultiByClass(SBC_BurnFTUX.class);
+				if (views != null) {
+					for (SkinView bview : views) {
+						((SBC_BurnFTUX) bview).updateLicenceInfo();
+					}
+				}
+			}
+		}
 	}
 
 	public static void buildNotifications() {
