@@ -302,6 +302,11 @@ public class FeatureManagerUIListener
 
 	public static void buildNotifications() {
 		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryTimeStamp();
+		
+		if (plusExpiryTimeStamp == 0) {
+			return;
+		}
+		
 		long msLeft = FeatureManagerUI.getPlusExpiryTimeStamp()
 				- SystemTime.getCurrentTime();
 		long daysLeft = msLeft / 1000l / 60l / 60l / 24l;
