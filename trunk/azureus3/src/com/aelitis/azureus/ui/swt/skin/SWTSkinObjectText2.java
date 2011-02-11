@@ -87,12 +87,14 @@ public class SWTSkinObjectText2
 	private GCStringPrinter lastStringPrinter;
 
 	private Color colorUrl;
-
+	
 	private int alpha = 255;
 	
 	private java.util.List<SWTSkinObjectText_UrlClickedListener> listUrlClickedListeners = new ArrayList<SWTSkinObjectText_UrlClickedListener>();
 
 	private Color colorUrl2;
+
+	private Color explicitColor;
 
 	protected boolean mouseDown;
 
@@ -376,15 +378,16 @@ public class SWTSkinObjectText2
 			colorUrl2 = newColorURL2;
 		}
 
-
-		Color color = properties.getColor(sPrefix + ".color" + suffix);
-		if (debug) {
-		System.out.println(this + "; " + sPrefix + ";" + suffix + "; " + color + "; " + getText());
-		}
-		if (color != null) {
-			canvas.setData("color", color);
-		} else {
-			canvas.setData("color", properties.getColor(sPrefix + ".color"));
+		if ( explicitColor == null ){
+			Color color = properties.getColor(sPrefix + ".color" + suffix);
+			if (debug) {
+			System.out.println(this + "; " + sPrefix + ";" + suffix + "; " + color + "; " + getText());
+			}
+			if (color != null) {
+				canvas.setData("color", color);
+			} else {
+				canvas.setData("color", properties.getColor(sPrefix + ".color"));
+			}
 		}
 		
 		alpha  = properties.getIntValue(sConfigID + ".alpha", 255);
@@ -773,6 +776,7 @@ public class SWTSkinObjectText2
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText#setTextColor(org.eclipse.swt.graphics.Color)
 	public void setTextColor(final Color color) {
+		explicitColor = color;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (canvas == null || canvas.isDisposed()) {
