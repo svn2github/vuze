@@ -29,8 +29,4 @@ public class VuzeActivitiesConstants
 	public static final String TYPEID_HEADER = "Header";
 
 	public static final String TYPEID_VUZENEWS = "VUZE_NEWS_ITEM";
-
-	public static final String TYPEID_CHANNEL_ANNOUNCE = "CHANNEL_ANNOUNCE";
-
-	public static final String TYPEID_CONTENT_PROMO = "CONTENT_PROMO";
 }

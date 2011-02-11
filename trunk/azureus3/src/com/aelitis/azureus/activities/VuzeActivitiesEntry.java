@@ -316,10 +316,6 @@ public class VuzeActivitiesEntry
 		if (getIconID() == null && typeID != null) {
 			setIconID("image.vuze-entry." + typeID.toLowerCase());
 		}
-		if (VuzeActivitiesConstants.TYPEID_CONTENT_PROMO.equals(typeID)) {
-			setIsPlatformContent(true);
-			setPlayable(true);
-		}
 	}
 
 	/**
