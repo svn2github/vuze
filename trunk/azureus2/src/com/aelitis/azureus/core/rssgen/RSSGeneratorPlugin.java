@@ -36,6 +36,8 @@ import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageGenerator;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.HyperlinkParameter;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.ui.webplugin.WebPlugin;
 
 
@@ -131,6 +133,8 @@ RSSGeneratorPlugin
 	
 	private Map<String,Provider>	providers = new TreeMap<String, Provider>();
 	
+	private HyperlinkParameter		test_param;
+	
 	public
 	RSSGeneratorPlugin()
 	{
@@ -141,6 +145,20 @@ RSSGeneratorPlugin
 	getURL()
 	{
 		return( getProtocol() + "://127.0.0.1:" + getPort() + "/" );
+	}
+	
+	@Override
+	protected void
+	setupServer()
+	{
+		super.setupServer();
+		
+		if ( test_param != null ){
+		
+			test_param.setEnabled( isPluginEnabled());
+		
+			test_param.setHyperlink( getURL());
+		}
 	}
 	
 	public void
@@ -165,6 +183,21 @@ RSSGeneratorPlugin
 		pi.getPluginProperties().setProperty( "plugin.name", PLUGIN_NAME );
 		
 		super.initialize( pi );
+	}
+	
+	@Override
+	protected void
+	initStage(
+		int	num )
+	{
+		if ( num == 1 ){
+			
+			BasicPluginConfigModel  config = getConfigModel();
+			
+			test_param = config.addHyperlinkParameter2( "rss.internal.test.url", "" );
+			
+			test_param.setEnabled( isPluginEnabled());
+		}
 	}
 	
 	public boolean

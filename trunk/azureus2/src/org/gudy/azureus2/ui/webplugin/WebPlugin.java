@@ -455,6 +455,8 @@ WebPlugin
 			plugin_enabled 	= true;
 		}
 		
+		initStage(1);
+		
 			// connection group
 		
 		param_port = config_model.addIntParameter2(		CONFIG_PORT, "webui.port", CONFIG_PORT_DEFAULT );
@@ -895,6 +897,12 @@ WebPlugin
 		setupServer();
 	}
 	
+	protected void
+	initStage(
+		int	num )
+	{	
+	}
+	
 	private String
 	getConnectionTestURL(
 		String		sid )
@@ -914,6 +922,12 @@ WebPlugin
 		}
 		
 		return( res );
+	}
+	
+	protected boolean
+	isPluginEnabled()
+	{
+		return( plugin_enabled );
 	}
 	
 	protected void
