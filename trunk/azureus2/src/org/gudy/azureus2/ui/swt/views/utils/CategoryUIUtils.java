@@ -345,6 +345,20 @@ public class CategoryUIUtils
 			}
 		}
 
+		// rss feed
+		
+		final MenuItem rssOption = new MenuItem(menu, SWT.CHECK );
+
+		rssOption.setSelection( category.getBooleanAttribute( Category.AT_RSS_GEN ));
+		
+		Messages.setLanguageText(rssOption, "cat.rss.gen");
+		rssOption.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				boolean set = rssOption.getSelection();
+				category.setBooleanAttribute( Category.AT_RSS_GEN, set );
+			}
+		});
+		
 		// options
 
 		MenuItem itemOptions = new MenuItem(menu, SWT.PUSH);

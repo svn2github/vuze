@@ -31,13 +31,24 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 
 import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
+import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 
-public class CategoryManagerImpl  {
-  private static final String UNCAT_NAME = "__uncategorised__";
+import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
+
+public class 
+CategoryManagerImpl 
+	implements RSSGeneratorPlugin.Provider 
+{
+  private static final String PROVIDER = "categories";
+
+  private static final String UNCAT_NAME 	= "__uncategorised__";
+  private static final String ALL_NAME 		= "__all__";
   
   private static CategoryManagerImpl catMan;
   private static CategoryImpl catAll = null;
@@ -137,6 +148,11 @@ public class CategoryManagerImpl  {
         	  catUncategorized.setUploadSpeed(l_maxup==null?0:l_maxup.intValue());
         	  catUncategorized.setDownloadSpeed(l_maxdown==null?0:l_maxdown.intValue());
         	  catUncategorized.setAttributes( attributes );
+        	  
+          }else if ( catName.equals( ALL_NAME )){
+            	  
+              catAll.setAttributes( attributes );
+
           }else{
 	          categories.put( 
 	        	catName,
@@ -169,6 +185,8 @@ public class CategoryManagerImpl  {
           fin.close();
       }
       catch (Exception e) {}
+      
+      checkConfig();
     }
   }
 
@@ -204,6 +222,11 @@ public class CategoryManagerImpl  {
       uncat.put( "maxdown", new Long(catUncategorized.getDownloadSpeed()));
       uncat.put( "attr", catUncategorized.getAttributes());
       list.add( uncat );
+      
+      Map allcat = new HashMap();
+      allcat.put( "name", ALL_NAME );
+      allcat.put( "attr", catAll.getAttributes());
+      list.add( allcat );
       
       map.put("categories", list);
 
@@ -245,6 +268,9 @@ public class CategoryManagerImpl  {
         catch (Exception e) {}
       }
     }finally{
+    	
+    	checkConfig();
+    	 
     	categories_mon.exit();
     }
   }
@@ -300,4 +326,47 @@ public class CategoryManagerImpl  {
       categories.put("Categories.uncategorized", catUncategorized);
     }
   }
+  
+  
+  
+  private void
+  checkConfig()
+  {
+	  boolean	gen_enabled = false;
+	  
+	  for ( CategoryImpl cat: categories.values()){
+		  
+		  if ( cat.getBooleanAttribute( Category.AT_RSS_GEN )){
+			  
+			  gen_enabled = true;
+			  
+			  break;
+		  }
+	  }
+	  
+	  if ( gen_enabled ){
+		  
+		  RSSGeneratorPlugin.registerProvider( PROVIDER, this  );
+		  
+	  }else{
+		  
+		  RSSGeneratorPlugin.unregisterProvider( PROVIDER );
+	  }
+  }
+  
+	public boolean
+	isEnabled()
+	{
+		return( true );
+	}
+
+	public boolean
+	generate(
+		TrackerWebPageRequest		request,
+		TrackerWebPageResponse		response )
+	
+		throws IOException
+	{
+		return( true );
+	}
 }

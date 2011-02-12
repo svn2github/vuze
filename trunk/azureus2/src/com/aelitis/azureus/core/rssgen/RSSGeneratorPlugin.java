@@ -131,7 +131,7 @@ RSSGeneratorPlugin
 	}
 	
 	
-	private Map<String,Provider>	providers = new TreeMap<String, Provider>();
+	private static Map<String,Provider>	providers = new TreeMap<String, Provider>();
 	
 	private HyperlinkParameter		test_param;
 	
@@ -161,7 +161,7 @@ RSSGeneratorPlugin
 		}
 	}
 	
-	public void
+	public static void
 	registerProvider(
 		String				name,
 		Provider			provider )
@@ -169,6 +169,16 @@ RSSGeneratorPlugin
 		synchronized( providers ){
 		
 			providers.put( name, provider );
+		}
+	}
+	
+	public static void
+	unregisterProvider(
+		String				name )
+	{
+		synchronized( providers ){
+		
+			providers.remove( name );
 		}
 	}
 	

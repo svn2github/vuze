@@ -98,7 +98,8 @@ public interface Category {
   public int
   getUploadSpeed();
   
-  public static final String AT_AUTO_TRANSCODE_TARGET = "at_att";
+  public static final String AT_AUTO_TRANSCODE_TARGET 	= "at_att";
+  public static final String AT_RSS_GEN					= "at_rss_gen";
   
   public String
   getStringAttribute(
@@ -108,4 +109,14 @@ public interface Category {
   setStringAttribute(
 	String		name,
 	String		value );
+  
+  public boolean
+  getBooleanAttribute(
+	String		name );
+  
+  public void
+  setBooleanAttribute(
+	String		name,
+	boolean		value );
+  
 }

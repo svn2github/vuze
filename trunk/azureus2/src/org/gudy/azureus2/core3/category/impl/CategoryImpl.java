@@ -260,6 +260,29 @@ public class CategoryImpl implements Category, Comparable {
 
   }
   
+  public boolean
+  getBooleanAttribute(
+	String		name )
+  {
+	 String str = getStringAttribute( name );
+	 
+	 return( str != null && str.equals( "true" ));
+  }
+  
+  public void
+  setBooleanAttribute(
+	String		name,
+	boolean		value )
+  {
+	  String old = attributes.put( name, value?"true":"false" );
+	  
+	  if ( old == null || !old.equals( value )){
+	  
+		  CategoryManagerImpl.getInstance().saveCategories(this);
+	  }
+
+  }
+  
   public int compareTo(Object b)
   {
     boolean aTypeIsUser = type == Category.TYPE_USER;
