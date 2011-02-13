@@ -21,24 +21,46 @@
 
 package org.gudy.azureus2.core3.category.impl;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.HashMap;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeMap;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Array;
+import java.net.URL;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 
 import org.gudy.azureus2.core3.category.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.xml.util.XMLEscapeWriter;
+import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
 
 public class 
@@ -367,6 +389,244 @@ CategoryManagerImpl
 	
 		throws IOException
 	{
+		URL	url	= request.getAbsoluteURL();
+		
+		String path = url.getPath();
+		
+		int	pos = path.indexOf( '?' );
+		
+		if ( pos != -1 ){
+			
+			path = path.substring(0,pos);
+		}
+		
+		path = path.substring( PROVIDER.length()+1);
+
+		XMLEscapeWriter pw = new XMLEscapeWriter( new PrintWriter(new OutputStreamWriter( response.getOutputStream(), "UTF-8" )));
+
+		pw.setEnabled( false );
+		
+		if ( path.length() <= 1 ){
+			
+			response.setContentType( "text/html; charset=UTF-8" );
+			
+			pw.println( "<HTML><HEAD><TITLE>Vuze Category Feeds</TITLE></HEAD><BODY>" );
+			
+			Map<String,String>	lines = new TreeMap<String, String>();
+			
+			List<CategoryImpl>	cats;
+			
+			try{
+				categories_mon.enter();
+
+				cats = new ArrayList<CategoryImpl>( categories.values());
+
+			}finally{
+			
+				categories_mon.exit();
+			}
+			
+			for ( CategoryImpl c: cats ){
+			
+				if ( c.getBooleanAttribute( Category.AT_RSS_GEN )){
+							
+					String	name = getDisplayName( c );
+					
+					String	cat_url = PROVIDER + "/" + URLEncoder.encode( c.getName(), "UTF-8" );
+				
+					lines.put( name, "<LI><A href=\"" + cat_url + "\">" + name + "</A></LI>" );
+				}
+			}
+			
+			for ( String line: lines.values() ){
+				
+				pw.println( line );
+			}
+			
+			pw.println( "</BODY></HTML>" );
+			
+		}else{
+			
+			String	cat_name = URLDecoder.decode( path.substring( 1 ), "UTF-8" );
+			
+			CategoryImpl	cat;
+			
+			try{
+				categories_mon.enter();
+
+				cat = categories.get( cat_name );
+
+			}finally{
+			
+				categories_mon.exit();
+			}
+			
+			if ( cat == null ){
+				
+				response.setReplyStatus( 404 );
+				
+				return( true );
+			}
+			
+			List<DownloadManager> dms = cat.getDownloadManagers( AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers());
+			
+			List<Download> downloads = new ArrayList<Download>( dms.size());
+			
+			long	dl_marker = 0;
+			
+			for ( DownloadManager dm: dms ){
+				
+				TOTorrent torrent = dm.getTorrent();
+				
+				if ( torrent == null ){
+					
+					continue;
+				}
+				
+				if ( !TorrentUtils.isReallyPrivate( torrent )){
+				
+					dl_marker += dm.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
+				
+					downloads.add( PluginCoreUtils.wrap(dm));
+				}
+			}
+			
+			String	config_key = "cat.rss.config." + Base32.encode( cat.getName().getBytes( "UTF-8" ));
+			
+			long	old_marker = COConfigurationManager.getLongParameter( config_key + ".marker", 0 );
+			
+			long	last_modified = COConfigurationManager.getLongParameter( config_key + ".last_mod", 0 );
+			
+			long now = SystemTime.getCurrentTime();
+			
+			if ( old_marker == dl_marker ){
+				
+				if ( last_modified == 0 ){
+					
+					last_modified = now;
+				}
+			}else{
+				
+				COConfigurationManager.setParameter( config_key + ".marker", dl_marker );
+				
+				last_modified = now; 
+			}
+			
+			if ( last_modified == now ){
+				
+				COConfigurationManager.setParameter( config_key + ".last_mod", last_modified );
+			}
+			
+			pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
+			
+			pw.println( "<rss version=\"2.0\" xmlns:vuze=\"http://www.vuze.com\">" );
+			
+			pw.println( "<channel>" );
+			
+			pw.println( "<title>" + escape( getDisplayName( cat )) + "</title>" );
+			
+			Collections.sort(
+					downloads,
+				new Comparator<Download>()
+				{
+					public int 
+					compare(
+						Download d1, 
+						Download d2) 
+					{
+						long	added1 = getAddedTime( d1 )/1000;
+						long	added2 = getAddedTime( d2 )/1000;
+		
+						return((int)(added2 - added1 ));
+					}
+				});
+								
+							
+			pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( last_modified ) + "</pubDate>" );
+		
+			for (int i=0;i<downloads.size();i++){
+				
+				Download download = downloads.get( i );
+				
+				DownloadManager	core_download = PluginCoreUtils.unwrap( download );
+				
+				Torrent torrent = download.getTorrent();
+				
+				byte[] hash = torrent.getHash();
+				
+				String	hash_str = Base32.encode( hash );
+				
+				pw.println( "<item>" );
+				
+				pw.println( "<title>" + escape( download.getName()) + "</title>" );
+				
+				pw.println( "<guid>" + hash_str + "</guid>" );
+				
+				String magnet_url = UrlUtils.getMagnetURI( hash );
+
+				pw.println( "<link>" + magnet_url + "</link>" );
+				
+				long added = core_download.getDownloadState().getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
+				
+				pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( added ) + "</pubDate>" );
+				
+				pw.println(	"<vuze:size>" + torrent.getSize()+ "</vuze:size>" );
+				pw.println(	"<vuze:assethash>" + hash_str + "</vuze:assethash>" );
+												
+				pw.println( "<vuze:downloadurl>" + magnet_url + "</vuze:downloadurl>" );
+		
+				DownloadScrapeResult scrape = download.getLastScrapeResult();
+				
+				if ( scrape != null && scrape.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+					
+					pw.println(	"<vuze:seeds>" + scrape.getSeedCount() + "</vuze:seeds>" );
+					pw.println(	"<vuze:peers>" + scrape.getNonSeedCount() + "</vuze:peers>" );
+				}
+				
+				pw.println( "</item>" );
+			}
+			
+			pw.println( "</channel>" );
+			
+			pw.println( "</rss>" );
+		}
+		 
+		pw.flush();
+		
 		return( true );
+	}
+		
+	private String
+	getDisplayName(
+		CategoryImpl	c )
+	{
+		if ( c == catAll ){
+			
+			return( MessageText.getString( "Categories.all" ));
+			
+		}else if ( c == catUncategorized ){
+			
+			return( MessageText.getString( "Categories.uncategorized" ));
+			
+		}else{
+			
+			return( c.getName());
+		}
+	}
+	
+	protected long
+	getAddedTime(
+		Download	download )
+	{
+		DownloadManager	core_download = PluginCoreUtils.unwrap( download );
+		
+		return( core_download.getDownloadState().getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME));
+	}
+	
+	protected String
+	escape(
+		String	str )
+	{
+		return( XUXmlWriter.escapeXML(str));
 	}
 }
