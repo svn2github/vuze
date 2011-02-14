@@ -326,7 +326,7 @@ public class FeatureManagerUIListener
 		}
 		
 		long msLeft = plusExpiryTimeStamp - SystemTime.getCurrentTime();
-		long daysLeft = msLeft / 1000l / 60l / 60l / 24l;
+		long daysLeft = (long) Math.ceil(msLeft / 86400000.0);
 
 		if (daysLeft > 30) {
 			return;
