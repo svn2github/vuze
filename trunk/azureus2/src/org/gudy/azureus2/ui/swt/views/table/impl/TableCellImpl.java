@@ -26,26 +26,17 @@
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.text.Collator;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.Iterator;
-import java.util.Locale;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Item;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
@@ -56,19 +47,10 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
-import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
-import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableView;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.common.table.*;
 
 
 /** TableCellImpl represents one cell in the table.  
@@ -286,6 +268,13 @@ public class TableCellImpl
 		if (bufferedTableItem.isInPaintItem()) {
 			return;
 		}
+		
+		int colPos = bufferedTableItem.getPosition();
+
+		Item item = tableItemOrTreeItem.getItem();
+		table.setData("inPaintInfo", new InPaintInfo(item, colPos, cellBounds));
+		table.setData("fullPaint", Boolean.TRUE);
+
 		GC gc = new GC(table.getComposite());
 		try {
 			TableViewSWTImpl tv = (TableViewSWTImpl) tableRow.getView();
@@ -297,12 +286,15 @@ public class TableCellImpl
 				gc.setForeground(fg);
 			}
 			gc.setBackground(getBackgroundSWT());
-
+			
 			TableViewSWT_PaintItem.paintItem(gc, tableItemOrTreeItem,
 					bufferedTableItem.getPosition(), tableRow.getIndex(), cellBounds, tv, true);
 		} finally {
 			gc.dispose();
 		}
+
+		table.setData("inPaintInfo", null);
+		table.setData("fullPaint", Boolean.FALSE);
 	}
 
 	private void pluginError(Throwable e) {
