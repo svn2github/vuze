@@ -55,7 +55,7 @@ public class TableViewSWT_EraseItem
 					}
 				});
 
-		if (colorLine != null) {
+		if (colorLine == null) {
   		colorLine = tv.getComposite().getDisplay().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
   		HSLColor hslColor = new HSLColor();
   		hslColor.initHSLbyRGB(colorLine.getRed(), colorLine.getGreen(),
