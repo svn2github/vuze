@@ -10,6 +10,8 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
+import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
 import org.gudy.azureus2.ui.swt.components.InPaintInfo;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.*;
@@ -155,7 +157,7 @@ public class TableViewSWT_PaintItem
 						TableViewSWT_EraseItem.eraseItem(event, event.gc, item, event.index, true, bounds, tv, true);
 					}
 					//TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
-					paintItem(event.gc, item, event.index, lastRowIndex, bounds, tv);
+					paintItem(event.gc, item, event.index, lastRowIndex, bounds, tv, false);
 					event.gc.setFont(f);
 					event.gc.setClipping(r);
 					
@@ -181,7 +183,7 @@ public class TableViewSWT_PaintItem
 			}
 
 			//visibleRowsChanged();
-			paintItem(event.gc, item, event.index, lastRowIndex, bounds, tv);
+			paintItem(event.gc, item, event.index, lastRowIndex, bounds, tv, false);
 
 			lastItem = event.item;
 		}
@@ -195,7 +197,7 @@ public class TableViewSWT_PaintItem
 	 * @param rowIndex 
 	 */
 	public static void paintItem(GC gc, TableItemOrTreeItem item, int columnIndex,
-			int rowIndex, Rectangle _cellBounds, TableViewSWTImpl<?> tv) {
+			int rowIndex, Rectangle _cellBounds, TableViewSWTImpl<?> tv, boolean skipClipCalc) {
 		//if (columnIndex == 1 && rowIndex == 0) {
 		//	System.out.println("paintItem " + gc.getClipping() +":" + rowIndex + ":" + event.detail + ": " + Debug.getCompressedStackTrace());
 		//}
@@ -299,32 +301,34 @@ public class TableViewSWT_PaintItem
 
 			String text = cell.getText();
 
-			Rectangle clipping = new Rectangle(cellBounds.x, cellBounds.y,
-					cellBounds.width, cellBounds.height);
-			// Cocoa calls paintitem while row is below tablearea, and painting there
-			// is valid!
-			if (!Utils.isCocoa) {
-				int iMinY = tv.headerHeight + tv.clientArea.y;
-
-				if (clipping.y < iMinY) {
-					clipping.height -= iMinY - clipping.y;
-					clipping.y = iMinY;
-				}
-				int iMaxY = tv.clientArea.height + tv.clientArea.y;
-				if (clipping.y + clipping.height > iMaxY) {
-					clipping.height = iMaxY - clipping.y + 1;
-				}
-			}
-
-			if (clipping.width <= 0 || clipping.height <= 0) {
-				//System.out.println(row.getIndex() + " clipping="+clipping + ";" );
-				return;
-			}
-
-			if (!origClipping.contains(clipping.x, clipping.y)
-					|| !origClipping.contains(clipping.x + clipping.width - 1, clipping.y
-							+ clipping.height - 1)) {
-				gc.setClipping(clipping);
+			if (!skipClipCalc) {
+				Rectangle clipping = new Rectangle(cellBounds.x, cellBounds.y,
+  					cellBounds.width, cellBounds.height);
+  			// Cocoa calls paintitem while row is below tablearea, and painting there
+  			// is valid!
+  			if (!Utils.isCocoa) {
+  				int iMinY = tv.headerHeight + tv.clientArea.y;
+  
+  				if (clipping.y < iMinY) {
+  					clipping.height -= iMinY - clipping.y;
+  					clipping.y = iMinY;
+  				}
+  				int iMaxY = tv.clientArea.height + tv.clientArea.y;
+  				if (clipping.y + clipping.height > iMaxY) {
+  					clipping.height = iMaxY - clipping.y + 1;
+  				}
+  			}
+  
+  			if (clipping.width <= 0 || clipping.height <= 0) {
+  				//System.out.println(row.getIndex() + " clipping="+clipping + ";" );
+  				return;
+  			}
+  
+  			if (!origClipping.contains(clipping.x, clipping.y)
+  					|| !origClipping.contains(clipping.x + clipping.width - 1, clipping.y
+  							+ clipping.height - 1)) {
+  				gc.setClipping(clipping);
+  			}
 			}
 
 			if (rowAlpha < 255) {
@@ -332,6 +336,49 @@ public class TableViewSWT_PaintItem
 			}
 
 			if (cell.needsPainting()) {
+				Image graphicSWT = cell.getGraphicSWT();
+				if (graphicSWT != null && !graphicSWT.isDisposed()) {
+					int marginWidth = cell.getMarginWidth();
+					int marginHeight = cell.getMarginHeight();
+					Rectangle graphicBounds = new Rectangle(cellBounds.x + marginWidth,
+							cellBounds.y + marginHeight,
+							cellBounds.width - (marginWidth * 2), cellBounds.height
+									- (marginHeight * 2));
+					Rectangle imageBounds = graphicSWT.getBounds();
+					BufferedTableItem bufferedTableItem = cell.getBufferedTableItem();
+					if (bufferedTableItem instanceof BufferedGraphicTableItem) {
+						BufferedGraphicTableItem ti = (BufferedGraphicTableItem) bufferedTableItem;
+						int orientation = ti.getOrientation();
+						
+						if (orientation == SWT.FILL) {
+							if (!graphicBounds.isEmpty()) {
+								gc.setAdvanced(true);
+								//System.out.println(imageBounds + ";" + graphicBounds);
+  							gc.drawImage(graphicSWT, 0, 0, imageBounds.width,
+  									imageBounds.height, graphicBounds.x, graphicBounds.y,
+  									graphicBounds.width, graphicBounds.height);
+							}
+						} else {
+						
+  			  		if (imageBounds.width < graphicBounds.width) {
+    			    	if (orientation == SWT.CENTER) {
+    			    		graphicBounds.x += (graphicBounds.width - imageBounds.width) / 2;
+    			    	} else if (orientation == SWT.RIGHT) {
+    			    		graphicBounds.x = (graphicBounds.x + graphicBounds.width) - imageBounds.width;
+    			    	}
+  			  		}
+  			  		
+  			  		if (imageBounds.height < graphicBounds.height) {
+  			  			graphicBounds.y += (graphicBounds.height - imageBounds.height) / 2;
+  			  		}
+
+  			  		gc.drawImage(graphicSWT, graphicBounds.x, graphicBounds.y);
+						}
+
+					} else {
+			  		gc.drawImage(graphicSWT, graphicBounds.x, graphicBounds.y);
+					}
+				}
 				cell.doPaint(gc);
 			}
 			if (text.length() > 0) {

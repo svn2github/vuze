@@ -30,11 +30,6 @@ import org.eclipse.swt.graphics.*;
  */
 public interface TableRowSWT extends TableRowCore
 {
-	/** re-paint an area of the row
-	 *
-	 * @param gc Area needing repainting, and GC object one can use to repaint it
-	 */
-	public void doPaint(GC gc);
 
 	public boolean setIconSize(Point pt);
 
@@ -51,12 +46,6 @@ public interface TableRowSWT extends TableRowCore
 	public void setForeground(Color c);
 
 	public Color getBackground();
-
-	/**
-	 * @param gc
-	 * @param b
-	 */
-	public void doPaint(GC gc, boolean bVisible);
 
 	/**
 	 * @param cellName

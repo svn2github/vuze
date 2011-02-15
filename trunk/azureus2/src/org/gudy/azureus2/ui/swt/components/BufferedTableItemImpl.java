@@ -252,9 +252,6 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		return false;
 	}
 
-	public void doPaint(GC gc) {
-	}
-
 	public void locationChanged() {
 	}
 

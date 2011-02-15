@@ -287,7 +287,7 @@ public class TableCellImpl
 			gc.setBackground(getBackgroundSWT());
 
 			TableViewSWT_PaintItem.paintItem(gc, tableItemOrTreeItem, colPos,
-					tableRow.getIndex(), bounds, tv);
+					tableRow.getIndex(), bounds, tv, true);
 		} finally {
 			gc.dispose();
 		}
@@ -324,7 +324,7 @@ public class TableCellImpl
 			gc.setBackground(getBackgroundSWT());
 
 			TableViewSWT_PaintItem.paintItem(gc, tableItemOrTreeItem,
-					bufferedTableItem.getPosition(), tableRow.getIndex(), cellBounds, tv);
+					bufferedTableItem.getPosition(), tableRow.getIndex(), cellBounds, tv, true);
 		} finally {
 			gc.dispose();
 		}
@@ -1458,8 +1458,6 @@ public class TableCellImpl
 		
 		invokeSWTPaintListeners(gc);
 		
-    bufferedTableItem.doPaint(gc);
-    
     if (childCells != null) {
     	Object[] childCellsArray = childCells.toArray();
     	for (int i = 0; i < childCellsArray.length; i++) {

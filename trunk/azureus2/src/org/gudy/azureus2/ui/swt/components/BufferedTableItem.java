@@ -65,10 +65,6 @@ public interface BufferedTableItem
 
 	public abstract boolean needsPainting();
 
-	/** Paint the image only (no update needed)
-	 */
-	public abstract void doPaint(GC gc);
-
 	/** Column location (not position) changed.  Usually due to a resize of
 	 * a column in a position prior to this one.
 	 */

@@ -30,8 +30,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Canvas;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
 import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
@@ -152,46 +150,6 @@ public abstract class BufferedGraphicTableItem2 extends BufferedTableItemImpl
     cBlockView.setLocation(bounds.x, bounds.y);
   }
 
-  /** Inherited doPaint(GC) call.  This is called when the Table needs 
-   * repainting.  Since we capture the Canvas' paint, most of the Table
-   * repainting can be ignored.  Cases where the cell bounds or background
-   * color changed, however, require action.
-   */
-  public void doPaint(GC gc) {
-    if (cBlockView == null || cBlockView.isDisposed())
-      return;
-
-    //Compute bounds ...
-    Rectangle bounds = getBoundsForCanvas();
-    //In case item isn't displayed bounds is null
-    if (bounds == null || image == null || image.isDisposed()) {
-      return;
-    }
-    Rectangle canvasBounds = cBlockView.getBounds();
-    if (canvasBounds.x != bounds.x || canvasBounds.y != bounds.y) {
-      //cBlockView.moveAbove(null);
-      cBlockView.setLocation(bounds.x, bounds.y);
-      canvasBounds = cBlockView.getBounds();
-      //debugOut("doPaint(GC): move cBlockView to " + bounds.x + "x" + bounds.y, false);
-    }
-
-    TableOrTreeSWT table = getTable();
-    Rectangle tableBounds = table.getClientArea();
-    if (tableBounds.y < table.getHeaderHeight()) {
-      tableBounds.y = table.getHeaderHeight();
-    }
-    Rectangle rNewCanvas = bounds.intersection(tableBounds);
-    //debugOut("doPaint(gc) rNewCanvas="+rNewCanvas+";canvasBounds="+canvasBounds+";tableBounds="+tableBounds, false);
-    if (rNewCanvas.width <= 0 || rNewCanvas.height <= 0) {
-      return;
-    }
-    if (!rNewCanvas.equals(canvasBounds) ||
-        (orientation != SWT.FILL && !getRowBackground(table).equals(lastBackColor))) {
-      rNewCanvas.x -= canvasBounds.x;
-      rNewCanvas.y -= canvasBounds.y;
-      doPaint(rNewCanvas);
-    }
-  }
 
   /** Paint the bar without updating it's data.  Unless the size changed.
    */

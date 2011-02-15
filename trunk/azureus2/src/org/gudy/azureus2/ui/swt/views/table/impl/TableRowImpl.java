@@ -352,27 +352,6 @@ public class TableRowImpl<COREDATASOURCE>
 		}
 	}
 
-	public void doPaint(GC gc) {
-		doPaint(gc, isVisible());
-	}
-
-	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#doPaint(org.eclipse.swt.graphics.GC, boolean, boolean)
-	public void doPaint(GC gc, boolean bVisible) {
-		if (bDisposed || !bVisible) {
-			return;
-		}
-
-		for (TableCellCore cell : mTableCells.values()) {
-			//if (bOnlyIfChanged && !cell.getVisuallyChangedSinceRefresh()) {
-			//	continue;
-			//}
-			if (cell != null && cell.needsPainting()
-					&& (cell instanceof TableCellSWT)) {
-				((TableCellSWT) cell).doPaint(gc);
-			}
-		}
-	}
-
 	public TableCellCore getTableCellCore(String name) {
 		if (bDisposed || mTableCells == null) {
 			return null;
