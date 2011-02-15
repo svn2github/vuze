@@ -143,13 +143,6 @@ public class ConfigSectionInterfaceTables
   				SWT.LEFT, true, false, 2, 1));
 		}
 
-		if (userMode > 1) {
-			new BooleanParameter(cSection, "GUI_SWT_bAlternateTablePainting", MSG_PREFIX
-					+ "alternateTablePainting").setLayoutData(new GridData(SWT.FILL,
-							SWT.LEFT, true, false, 2, 1));
-		}
-
-		
 		{
 			Group cLibrary = new Group(cSection, SWT.NULL);
 			Messages.setLanguageText(cLibrary, MSG_PREFIX + "library");

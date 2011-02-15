@@ -135,11 +135,8 @@ public class TableCellImpl
   
   private static AEMonitor 	this_mon 	= new AEMonitor( "TableCell" );
 
-  private static final String CFG_PAINT = "GUI_SWT_bAlternateTablePainting";
-
   // Getting the cell's bounds can be slow.  QUICK_WIDTH uses TableColumn's width
 	private static final boolean QUICK_WIDTH = true;
-  private static boolean bAlternateTablePainting;
 
 	private static int MAX_REFRESHES = 10;
 	private static int MAX_REFRESHES_WITHIN_MS = 100;
@@ -155,16 +152,6 @@ public class TableCellImpl
 
 	private Image icon;
 	
-	static {
-  	COConfigurationManager.addAndFireParameterListener(CFG_PAINT,
-				new ParameterListener() {
-					public void parameterChanged(String parameterName) {
-						bAlternateTablePainting = COConfigurationManager
-								.getBooleanParameter(CFG_PAINT);
-					}
-				});
-  }
-
   public TableCellImpl(TableRowCore _tableRow, TableColumnCore _tableColumn,
       int position, BufferedTableItem item) {
     this.tableColumn = _tableColumn;
@@ -199,37 +186,25 @@ public class TableCellImpl
   private void createBufferedTableItem(int position) {
     BufferedTableRow bufRow = (BufferedTableRow)tableRow;
     if (tableColumn.getType() == TableColumnCore.TYPE_GRAPHIC) {
-    	if (bAlternateTablePainting) {
-	      bufferedTableItem = new BufferedGraphicTableItem2(bufRow, position) {
-	        public void refresh() {
-	          TableCellImpl.this.refresh();
-	        }
-	        public void invalidate() {
-	        	clearFlag(FLAG_VALID);
-	        	redraw();
-	        }
-	      };
-	    } else {
-	      bufferedTableItem = new BufferedGraphicTableItem1(bufRow, position) {
-	        public void refresh() {
-	          TableCellImpl.this.refresh();
-	        }
-	        public void invalidate() {
-	        	clearFlag(FLAG_VALID);
-	        	redraw();
-	        }
-	        protected void quickRedrawCell(TableOrTreeSWT table, Rectangle dirty, Rectangle cellBounds) {
-	        	TableItemOrTreeItem item = row.getItem();
-						boolean ourQuickRedraw = canUseQuickDraw && tableRow != null
-								&& !tableRow.isMouseOver() && !tableRow.isSelected();
-						if (ourQuickRedraw) {
-	      			TableCellImpl.this.quickRedrawCell2(table, item, dirty, cellBounds);
-	      		} else {
-	      			super.quickRedrawCell(table, dirty, cellBounds);
-	      		}
-	        }
-	      };
-	    }
+      bufferedTableItem = new BufferedGraphicTableItem1(bufRow, position) {
+        public void refresh() {
+          TableCellImpl.this.refresh();
+        }
+        public void invalidate() {
+        	clearFlag(FLAG_VALID);
+        	redraw();
+        }
+        protected void quickRedrawCell(TableOrTreeSWT table, Rectangle dirty, Rectangle cellBounds) {
+        	TableItemOrTreeItem item = row.getItem();
+					boolean ourQuickRedraw = canUseQuickDraw && tableRow != null
+							&& !tableRow.isMouseOver() && !tableRow.isSelected();
+					if (ourQuickRedraw) {
+      			TableCellImpl.this.quickRedrawCell2(table, item, dirty, cellBounds);
+      		} else {
+      			super.quickRedrawCell(table, dirty, cellBounds);
+      		}
+        }
+      };
     	setOrientationViaColumn();
     } else {
 			bufferedTableItem = new BufferedTableItemImpl(bufRow, position) {

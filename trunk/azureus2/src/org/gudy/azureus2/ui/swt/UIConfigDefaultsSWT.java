@@ -55,7 +55,6 @@ public class UIConfigDefaultsSWT
 		def.addParameter("DefaultDir.AutoUpdate", true);
 		def.addParameter("DefaultDir.AutoSave.AutoRename", true);
 		def.addParameter("GUI_SWT_bFancyTab", true);
-		def.addParameter("GUI_SWT_bAlternateTablePainting", false);
 		def.addParameter("Colors.progressBar.override", false);
 		def.addParameter("GUI_SWT_DisableAlertSliding", false);
 		def.addParameter("NameColumn.showProgramIcon", !Constants.isWindowsVista);
