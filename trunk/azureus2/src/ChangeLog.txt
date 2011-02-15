@@ -3,6 +3,11 @@ VUZE CHANGELOG
 
 2011.0x.0x | Vuze 4.6.0.3
 
+CHANGE: UIv3  | Better messaging for Plus users on license expiry
+CHANGE: UI    | 50% faster table redraw on Windows when cell value changes [TuxPaper]
+
+BUGFIX: UI    | Fixed some dialogs that could open larger than the screen size [TuxPaper]
+
 
 
 2011.02.01 | Vuze 4.6.0.2
