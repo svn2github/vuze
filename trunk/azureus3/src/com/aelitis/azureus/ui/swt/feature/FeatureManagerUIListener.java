@@ -21,9 +21,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
-import com.aelitis.azureus.activities.VuzeActivitiesConstants;
-import com.aelitis.azureus.activities.VuzeActivitiesEntry;
-import com.aelitis.azureus.activities.VuzeActivitiesManager;
+import com.aelitis.azureus.activities.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
@@ -319,6 +317,14 @@ public class FeatureManagerUIListener
 	}
 
 	public static void buildNotifications() {
+		VuzeActivitiesManager.addListener(new VuzeActivitiesLoadedListener() {
+			public void vuzeActivitiesLoaded() {
+				_buildNotifications();
+			}
+		});
+	}
+
+	private static void _buildNotifications() {
 		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryTimeStamp();
 		
 		if (plusExpiryTimeStamp <= 0) {
