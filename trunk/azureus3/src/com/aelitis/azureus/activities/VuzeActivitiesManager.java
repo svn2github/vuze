@@ -49,6 +49,8 @@ public class VuzeActivitiesManager
 
 	private static ArrayList<VuzeActivitiesListener> listeners = new ArrayList<VuzeActivitiesListener>();
 
+	private static ArrayList<VuzeActivitiesLoadedListener> listenersLoaded = new ArrayList<VuzeActivitiesLoadedListener>();
+
 	private static ArrayList<VuzeActivitiesEntry> allEntries = new ArrayList<VuzeActivitiesEntry>();
 
 	private static AEMonitor allEntries_mon = new AEMonitor("VuzeActivityMan");
@@ -395,6 +397,20 @@ public class VuzeActivitiesManager
 			}
 		} finally {
 			skipAutoSave = false;
+			
+			synchronized (SAVE_FILENAME) {
+				if (listenersLoaded != null) {
+					for (VuzeActivitiesLoadedListener l : listenersLoaded) {
+						try {
+							l.vuzeActivitiesLoaded();
+						} catch (Exception e) {
+							Debug.out(e);
+						}
+					}
+					listenersLoaded = null;
+				}
+			}
+
 		}
 	}
 
@@ -452,6 +468,28 @@ public class VuzeActivitiesManager
 
 	public static void removeListener(VuzeActivitiesListener l) {
 		listeners.remove(l);
+	}
+
+	public static void addListener(VuzeActivitiesLoadedListener l) {
+		synchronized (SAVE_FILENAME) {
+			if (listenersLoaded != null) {
+				listenersLoaded.add(l);
+			} else {
+				try {
+					l.vuzeActivitiesLoaded();
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+			}
+		}
+	}
+
+	public static void removeListener(VuzeActivitiesLoadedListener l) {
+		synchronized (SAVE_FILENAME) {
+			if (listenersLoaded != null) {
+				listenersLoaded.remove(l);
+			}
+		}
 	}
 
 	/**
