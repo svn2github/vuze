@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
@@ -66,6 +67,12 @@ public abstract class ColumnDateSizer
 
 		TableContextMenuItem menuShowTime = addContextMenuItem(
 				"TableColumn.menu.date_added.time", MENU_STYLE_HEADER);
+		menuShowTime.setStyle(TableContextMenuItem.STYLE_CHECK);
+		menuShowTime.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.setData(showTime);
+			}
+		});
 		menuShowTime.addListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				showTime = !showTime;
