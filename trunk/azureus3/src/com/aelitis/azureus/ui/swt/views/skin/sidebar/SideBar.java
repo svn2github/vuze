@@ -74,7 +74,6 @@ import com.aelitis.azureus.util.ContentNetworkUtils;
  */
 public class SideBar
 	extends BaseMDI
-	implements ObfusticateImage
 {
 	protected static final boolean END_INDENT = Constants.isLinux
 			|| Constants.isWindows2000 || Constants.isWindows9598ME;
@@ -1581,21 +1580,5 @@ public class SideBar
 		}
 		
 		return super.updateLanguage(skinObject, params);
-	}
-
-	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateImage#obfusticatedImage(org.eclipse.swt.graphics.Image)
-	public Image obfusticatedImage(Image image) {
-
-		Rectangle treeBounds = tree.getBounds();
-		SideBarEntrySWT[] sideBarEntries = (SideBarEntrySWT[]) mapIdToEntry.values().toArray(
-				new SideBarEntrySWT[0]);
-		for (SideBarEntrySWT entry : sideBarEntries) {
-			Rectangle entryBounds = entry.swt_getBounds();
-			if (treeBounds.intersects(entryBounds)) {
-				
-			}
-			System.out.println(entry.getId() + ":" + entryBounds + ";" + treeBounds.intersects(entryBounds));
-		}
-		return image;
 	}
 }
