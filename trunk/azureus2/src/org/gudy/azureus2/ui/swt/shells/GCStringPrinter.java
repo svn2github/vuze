@@ -21,7 +21,6 @@
 package org.gudy.azureus2.ui.swt.shells;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -35,7 +34,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
@@ -92,7 +90,7 @@ public class GCStringPrinter
 
 	private Color urlColor;
 
-	private List listUrlInfo;
+	private List<URLInfo> listUrlInfo;
 
 	private Image[] images;
 	
@@ -115,7 +113,7 @@ public class GCStringPrinter
 		int relStartPos;
 
 		// We could use a region, but that uses a resource that requires disposal
-		public List hitAreas = null;
+		public List<Rectangle> hitAreas = null;
 
 		int titleLength;
 
@@ -198,6 +196,13 @@ public class GCStringPrinter
 	}
 
 	private boolean _printString() {
+		if (Constants.isWindows) {
+			return swt_printString_NoAdvanced();
+		}
+		return swt_printString();
+	}
+	
+	private boolean swt_printString_NoAdvanced() {
 		boolean b = false;
 		try {
 			boolean wasAdvanced = gc.getAdvanced();
@@ -222,6 +227,21 @@ public class GCStringPrinter
 				gc.setAdvanced(true);
 				gc.setClipping(clipping);
 			}
+		} catch (Throwable t) {
+			Debug.out(t);
+		}
+
+		if (DEBUG) {
+			System.out.println("");
+		}
+
+		return b;
+	}
+
+	private boolean swt_printString() {
+		boolean b = false;
+		try {
+			b = __printString();
 		} catch (Throwable t) {
 			Debug.out(t);
 		}
@@ -276,7 +296,7 @@ public class GCStringPrinter
   			Matcher htmlMatcher = patHREF.matcher(string);
   			boolean hasURL = htmlMatcher.find();
   			if (hasURL) {
-  				listUrlInfo = new ArrayList(1);
+  				listUrlInfo = new ArrayList<URLInfo>(1);
   
   				while (hasURL) {
   					URLInfo urlInfo = new URLInfo();
@@ -691,7 +711,7 @@ public class GCStringPrinter
 				}
 				
 				
-				int targetWidth = lineInfo.width + newWidth;
+				//int targetWidth = lineInfo.width + newWidth;
 				
 				lineInfo.width = newWidth;
 				lineInfo.height = Math.max(bounds.height, lineInfo.height);
@@ -790,7 +810,7 @@ public class GCStringPrinter
 				outputLine.append(space);
 			}
 
-			int w = ptLineAndWordSize.x - lineInfo.width;
+			//int w = ptLineAndWordSize.x - lineInfo.width;
 			if (wrap && !nothingFit && !bWordLargerThanWidth) {
 				// whole word is excess
 				return 0;
@@ -978,7 +998,7 @@ public class GCStringPrinter
 					}
 				}
 				if (urlInfo.hitAreas == null) {
-					urlInfo.hitAreas = new ArrayList(1);
+					urlInfo.hitAreas = new ArrayList<Rectangle>(1);
 				}
 				pt = drawText(gc, s, x0, y0, lineInfo.height, urlInfo.hitAreas, noDraw,
 						true);
@@ -990,7 +1010,7 @@ public class GCStringPrinter
 				}
 
 				if (urlInfo.hitAreas == null) {
-					urlInfo.hitAreas = new ArrayList(1);
+					urlInfo.hitAreas = new ArrayList<Rectangle>(1);
 				}
 				//gc.drawRectangle(new Rectangle(x0, y0, pt.x, lineInfo.height));
 
@@ -1009,7 +1029,7 @@ public class GCStringPrinter
 	}
 	
 	private Point drawText(GC gc, String s, int x, int y, int height,
-			List hitAreas, boolean nodraw, boolean calcExtent) {
+			List<Rectangle> hitAreas, boolean nodraw, boolean calcExtent) {
 		Point textExtent;
 
 		if (images != null) {
@@ -1407,11 +1427,9 @@ public class GCStringPrinter
 		if (listUrlInfo == null || listUrlInfo.size() == 0) {
 			return null;
 		}
-		for (Iterator iter = listUrlInfo.iterator(); iter.hasNext();) {
-			URLInfo urlInfo = (URLInfo) iter.next();
+		for (URLInfo urlInfo : listUrlInfo) {
 			if (urlInfo.hitAreas != null) {
-				for (Iterator iter2 = urlInfo.hitAreas.iterator(); iter2.hasNext();) {
-					Rectangle r = (Rectangle) iter2.next();
+				for (Rectangle r : urlInfo.hitAreas) {
 					if (r.contains(x, y)) {
 						return urlInfo;
 					}
