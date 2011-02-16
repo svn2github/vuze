@@ -108,7 +108,7 @@ public class SideBarToolTips
 		if (tree.getItemCount() == 0) {
 			return;
 		}
-		int indent = tree.getItem(0).getBounds().x;
+		int indent = SideBar.END_INDENT ? tree.getClientArea().width - 1 : 0;
 		TreeItem treeItem = tree.getItem(new Point(indent, mousePos.y));
 		if (treeItem == null) {
 			return;
