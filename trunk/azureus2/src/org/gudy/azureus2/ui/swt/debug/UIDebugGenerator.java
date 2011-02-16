@@ -595,7 +595,7 @@ public class UIDebugGenerator
 	 */
 	// XXX After we swith to 3.2, display param can be removed, and 
 	// image.getDevice() can be used
-	public static void obfusticateArea(Display display, Image image,
+	public static void obfusticateArea(Device display, Image image,
 			Rectangle bounds) {
 		GC gc = new GC(image);
 		try {
@@ -617,7 +617,7 @@ public class UIDebugGenerator
 	 * @param bounds
 	 * @param text
 	 */
-	public static void obfusticateArea(Display display, Image image,
+	public static void obfusticateArea(Device display, Image image,
 			Rectangle bounds, String text) {
 
 		if (bounds.isEmpty())
