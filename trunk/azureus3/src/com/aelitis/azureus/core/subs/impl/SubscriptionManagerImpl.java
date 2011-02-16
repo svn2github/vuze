@@ -2329,6 +2329,8 @@ SubscriptionManagerImpl
 						
 						List	result = new ArrayList( s.size());
 						
+						boolean hide_search = hideSearchTemplates();
+						
 						for (int i=0;i<s.size();i++){
 							
 							byte[]	sid = (byte[])s.get(i);
@@ -2339,7 +2341,12 @@ SubscriptionManagerImpl
 								
 								if ( isVisible( subs )){
 								
-									result.add( subs );
+									if ( hide_search && subs.isSearchTemplate()){
+									
+									}else{
+										
+										result.add( subs );
+									}
 								}
 							}
 						}
