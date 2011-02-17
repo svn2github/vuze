@@ -219,8 +219,8 @@ public class TableViewSWT_EraseItem
 		// Vertical lines between columns
 		if (TableViewSWTImpl.DRAW_VERTICAL_LINES && drawExtended && colorLine != null) {
 			if (item != null
-					&& (bounds.width == item.getParent().getColumn(columnNo).getWidth())) {
-				//System.out.println(bounds.width + ";" + item.getParent().getColumn(event.index).getWidth());
+					&& (bounds.width == item.getParent().getColumn(columnNo).getWidth())
+					&& bounds.width > 0) {
 				Color fg = gc.getForeground();
 				gc.setForeground(colorLine);
 				// needed because windows shifts the area over, dragging our old line
