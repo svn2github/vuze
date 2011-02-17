@@ -394,7 +394,12 @@ HTMLUtils
 				
 				if ( href.startsWith("\"")){
 					
-					href = href.substring(1,href.length()-1);
+					int endQuotePos = href.indexOf('\"', 1);
+					if (endQuotePos == -1) {
+						href = href.substring(1,href.length()-1);
+					} else {
+						href = href.substring(1,endQuotePos);
+					}
 				}
 				
 				current_url = href;
