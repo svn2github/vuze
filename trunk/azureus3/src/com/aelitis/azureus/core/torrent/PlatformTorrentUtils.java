@@ -81,10 +81,6 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_MIN_SPEED = "Min Speed Bps";
 
-	private static final String TOR_AZ_PROP_DRM = "DRM";
-
-	private static final String TOR_AZ_PROP_PURCHASED = "Purchased";
-
 	private static final String TOR_AZ_PROP_QOS_CLASS = "QOS Class";
 
 	private static final String TOR_AZ_PROP_CONTENT_NETWORK = "Content Network";
@@ -95,10 +91,6 @@ public class PlatformTorrentUtils
 
 	private static final ArrayList<HasBeenOpenedListener> hasBeenOpenedListeners = new ArrayList<HasBeenOpenedListener>(1);
 
-	private static final String TOR_AZ_PROP_USE_EMP = "useEMP";
-	
-	private static final String TOR_AZ_PROP_FILE_METADATA = "File MetaData";
-	
 	private static final String TOR_AZ_PROP_VIDEO_WIDTH = "Video Width";
 
 	private static final String TOR_AZ_PROP_VIDEO_HEIGHT = "Video Height";
@@ -291,15 +283,6 @@ public class PlatformTorrentUtils
 	public static String getContentURL(TOTorrent torrent) {
 		return getContentMapString(torrent, TOR_AZ_PROP_URL);
 	}
-
-	public static boolean isContentDRM(TOTorrent torrent) {
-		return getContentMapLong(torrent, TOR_AZ_PROP_DRM, -1) >= 0;
-	}
-
-	public static boolean isContentPurchased(TOTorrent torrent) {
-		return getContentMapLong(torrent, TOR_AZ_PROP_PURCHASED, 0) == 1;
-	}
-
 
 	public static long getQOSClass(TOTorrent torrent) {
 		return getContentMapLong(torrent, TOR_AZ_PROP_QOS_CLASS, 0);
@@ -584,22 +567,6 @@ public class PlatformTorrentUtils
 		return getContentMapLong(torrent, TOR_AZ_PROP_MIN_SPEED, MIN_SPEED_DEFAULT);
 	}
 
-	public static boolean useEMP(TOTorrent torrent) {
-		return getContentMapLong(torrent, TOR_AZ_PROP_USE_EMP, 0) == 1;
-	}
-	
-	public static void setUseEMP(TOTorrent torrent, boolean useEMP) {
-		setContentMapLong(torrent, TOR_AZ_PROP_USE_EMP, useEMP ? 1 : 0);
-	}
-	
-	public static void setFileMetaData(TOTorrent torrent, Map map) {
-		setContentMapMap(torrent, TOR_AZ_PROP_FILE_METADATA, map );
-	}
-	
-	public static Map getFileMetaData(TOTorrent torrent ){
-		return getContentMapMap( torrent, TOR_AZ_PROP_FILE_METADATA );
-	}
-	
 	public static long getExpiresOn(TOTorrent torrent) {
 		Map mapContent = getContentMap(torrent);
 		Long l = (Long) mapContent.get(TOR_AZ_PROP_EXPIRESON);

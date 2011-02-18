@@ -174,7 +174,7 @@ public class ColumnActivityText
 						if (uif != null) {
 							String target = hitUrl.target;
 							if (target == null) {
-								target = ContentNetworkUtils.getTarget(entry.getContentNetwork());
+								target = SkinConstants.VIEWID_BROWSER_BROWSE;
 							}
 							uif.viewURL(hitUrl.url, target, "column.activity.text");
 							return;

@@ -30,6 +30,7 @@ package org.gudy.azureus2.pluginsimpl.update.sf.impl2;
 import java.util.*;
 import java.net.URL;
 import java.net.URLEncoder;
+import java.io.IOException;
 import java.io.InputStream;
 
 import org.gudy.azureus2.platform.PlatformManager;
@@ -43,7 +44,6 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.html.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
@@ -314,12 +314,14 @@ SFPluginDetailsLoaderImpl
 		throws SFPluginDetailsException
 	{
 		try{			
-			String page_url_to_use = site_prefix + "plugin_details.php?plugin=" + details.getId() + "&" + base_url_params;
+			String page_url_to_use = site_prefix + "update/pluginlist3.php?plugin="
+					+ UrlUtils.encode(details.getId()) + "&" + base_url_params;
 			
 			page_url_to_use = addEPIDS( page_url_to_use );
 			
 			try{
-				PluginInterface pi = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaceByID( details.getId(), false );
+				PluginInterface defPI = PluginInitializer.getDefaultInterface();
+				PluginInterface pi = defPI == null ? null : defPI.getPluginManager().getPluginInterfaceByID( details.getId(), false );
 	
 				if ( pi != null ){
 					
@@ -340,12 +342,16 @@ SFPluginDetailsLoaderImpl
 			p_dl = rd_factory.getRetryDownloader( p_dl, 5 );
 		
 			p_dl.addListener( this );
-
-			HTMLPage	plugin_page = HTMLPageFactory.loadPage( p_dl.download(), "UTF-8" );
 			
-			if ( !processPluginPage( details, plugin_page )){
-							
-				throw( new SFPluginDetailsException( "Plugin details load fails for '" + details.getId() + "': data not found" ));
+			InputStream is = p_dl.download();
+
+			try {
+  			if ( !processPluginStream( details, is )){
+  							
+  				throw( new SFPluginDetailsException( "Plugin details load fails for '" + details.getId() + "': data not found" ));
+  			}
+			} finally {
+				is.close();
 			}
 					
 		}catch( Throwable e ){
@@ -355,144 +361,39 @@ SFPluginDetailsLoaderImpl
 			throw( new SFPluginDetailsException( "Plugin details load fails", e ));
 		}
 	}
-	
+
 	protected boolean
-	processPluginPage(
-		SFPluginDetailsImpl		details,
-		HTMLPage				page )
-	
-		throws SFPluginDetailsException
-	{
-		HTMLTable[]	tables = page.getTables();
-		
-		// dumpTables("", tables );
-		
-		return( processPluginPage( details, tables ));
-	}
-	
-	protected boolean
-	processPluginPage(
-		SFPluginDetailsImpl		details,
-		HTMLTable[]				tables )
-	
-		throws SFPluginDetailsException
-	{
-		for (int i=0;i<tables.length;i++){
+	processPluginStream(SFPluginDetailsImpl details, InputStream is) {
+    Properties properties = new Properties();
+    try {
+			properties.load(is);
 			
-			HTMLTable	table = tables[i];
+			String pid = details.getId();
 			
-			HTMLTableRow[]	rows = table.getRows();
-		
-			if ( rows.length == 10 ){
-				
-				HTMLTableCell[]	cells = rows[0].getCells();
-				
-				if ( cells.length == 6 &&
-						cells[0].getContent().trim().equals("Name") &&
-						cells[5].getContent().trim().equals("Contact")){
-				
-					
-					// got the plugin details table
-				
-					HTMLTableCell[]	detail_cells = rows[2].getCells();
-					
-					//String	plugin_name			= detail_cells[0].getContent();
-					//String	plugin_version		= detail_cells[1].getContent();
-					String	plugin_auth			= detail_cells[4].getContent();
-					
-					String[]	dl_links = detail_cells[2].getLinks();
-					
-					String	plugin_download;
-					
-					if ( dl_links.length == 0 ){
-						
-						plugin_download	= "<unknown>";
-						
-					}else{
-						
-						plugin_download = site_prefix + dl_links[0];
-					}
-					
-					HTMLTableCell[]	cvs_detail_cells = rows[3].getCells();
+			String download_url = properties.getProperty(pid + ".dl_link", "");
+			download_url = download_url.length() == 0 ? "<unknown>" : site_prefix + download_url;
 
-					// String	plugin_cvs_version		= cvs_detail_cells[1].getContent();
+			String author = properties.getProperty(pid + ".author", "");
+			String desc = properties.getProperty(pid + ".description", "");
+			String cvs_download_url = properties.getProperty(pid + ".dl_link_cvs", null);
+			cvs_download_url = cvs_download_url.length() == 0 ? "<unknown>" : site_prefix + cvs_download_url;
 
-					String[]	cvs_dl_links 		= cvs_detail_cells[2].getLinks();
-					
-					String	plugin_cvs_download;
-					
-					if ( cvs_dl_links.length == 0 ){
-						
-						plugin_cvs_download	= "<unknown>";
-						
-					}else{
-						
-						plugin_cvs_download = site_prefix + cvs_dl_links[0];
-					}
-					
-					String info_url = null;
-					if (rows[9].getCells().length > 1) {
-						info_url = rows[9].getCells()[1].getContent();
-					}
+			String comment = properties.getProperty(pid + ".comment", "");
+			// I don't think this one is ever set (not even in the old html scraping code)
+			String info_url = properties.getProperty(pid + ".info_url", null);
 
-
-					// System.out.println( "got plugin:" + plugin_name + "/" + plugin_version + "/" + plugin_download + "/" + plugin_auth );
-					
-					details.setDetails(
-									plugin_download,
-									plugin_auth,
-									plugin_cvs_download,
-									rows[6].getCells()[0].getContent(),
-									rows[9].getCells()[0].getContent(),
-									info_url);
-					
-					return( true );
-				}
-			}
-			
-			HTMLTable[]	sub_tables = table.getTables();
-			
-			boolean	res = processPluginPage( details, sub_tables );
-			
-			if( res ){
-				
-				return( res );
-			}
+			details.setDetails(
+					download_url,
+					author,
+					cvs_download_url,
+					desc,
+					comment,
+					info_url);
+			return true;
+		} catch (IOException e) {
+			Debug.out(e);
 		}
-		
-		return( false );
-	}
-	
-	protected void
-	dumpTables(
-		String			indent,
-		HTMLTable[]		tables )
-	{
-		for (int i=0;i<tables.length;i++){
-			
-			HTMLTable	tab = tables[i];
-			
-			System.out.println( indent + "tab:" + tab.getContent());
-			
-			HTMLTableRow[] rows = tab.getRows();
-			
-			for (int j=0;j<rows.length;j++){
-				
-				HTMLTableRow	row = rows[j];
-				
-				System.out.println( indent + "  row[" + j + "]: " + rows[j].getContent());
-				
-				HTMLTableCell[]	cells = row.getCells();
-				
-				for (int k=0;k<cells.length;k++){
-					
-					System.out.println( indent + "    cell[" + k + "]: " + cells[k].getContent());
-					
-				}
-			}
-			
-			dumpTables( indent + "  ", tab.getTables());
-		}
+		return false;
 	}
 	
 	public String[]

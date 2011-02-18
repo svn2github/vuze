@@ -45,6 +45,10 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.util.ConstantsVuze;
 
+/**
+ * Used in UPnP for something
+ * 
+ */
 public class 
 AzureusPlatformContentDirectory
 	implements AzureusContentDirectory

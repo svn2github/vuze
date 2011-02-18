@@ -26,6 +26,7 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
@@ -160,7 +161,7 @@ public abstract class BaseMDI
 	}
 
 	public MdiEntry getEntry(String id) {
-		if ("Browse".equalsIgnoreCase(id)) {
+		if (SkinConstants.VIEWID_BROWSER_BROWSE.equalsIgnoreCase(id)) {
 			id = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
 		}
 		MdiEntry entry = mapIdToEntry.get(id);
@@ -168,7 +169,7 @@ public abstract class BaseMDI
 	}
 
 	public MdiEntrySWT getEntrySWT(String id) {
-		if ("Browse".equalsIgnoreCase(id)) {
+		if (SkinConstants.VIEWID_BROWSER_BROWSE.equalsIgnoreCase(id)) {
 			id = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
 		}
 		MdiEntrySWT entry = mapIdToEntry.get(id);
@@ -251,7 +252,7 @@ public abstract class BaseMDI
 	}
 
 	public boolean entryExists(String id) {
-		if ("Browse".equalsIgnoreCase(id)) {
+		if (SkinConstants.VIEWID_BROWSER_BROWSE.equalsIgnoreCase(id)) {
 			id = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
 		}
 		MdiEntry entry = mapIdToEntry.get(id);

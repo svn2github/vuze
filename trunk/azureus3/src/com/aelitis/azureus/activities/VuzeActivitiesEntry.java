@@ -29,15 +29,15 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnSortObject;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 import com.aelitis.azureus.ui.utils.ImageBytesDownloader;
 import com.aelitis.azureus.ui.utils.ImageBytesDownloader.ImageDownloaderListener;
-import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.util.DataSourceUtils;
+import com.aelitis.azureus.util.MapUtils;
+import com.aelitis.azureus.util.PlayUtils;
 
 /**
  * 
@@ -79,18 +79,12 @@ public class VuzeActivitiesEntry
 
 	private TOTorrent torrent;
 
-	private boolean isDRM;
-
-	private boolean isPlatformContent;
-	
 	private boolean playable;
 	
 	private long readOn;
 
 	private GlobalManager gm = null;
 	
-	private long contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE;
-
 	public VuzeActivitiesEntry(long timestamp, String text, String typeID) {
 		this.setText(text);
 		this.timestamp = timestamp;
@@ -117,7 +111,7 @@ public class VuzeActivitiesEntry
 	/**
 	 * @param platformEntry
 	 */
-	public void loadFromExternalMap(Map platformEntry) {
+	public void loadFromExternalMap(Map<?, ?> platformEntry) {
 		timestamp = SystemTime.getCurrentTime()
 				- MapUtils.getMapLong(platformEntry, "age-ms", 0);
 		setIconID(MapUtils.getMapString(platformEntry, "icon-url",
@@ -127,14 +121,13 @@ public class VuzeActivitiesEntry
 				null));
 		setAssetImageURL(MapUtils.getMapString(platformEntry, "related-image-url",
 				null));
-		setDRM(MapUtils.getMapBoolean(platformEntry, "no-play", false));
 		setTorrentName(MapUtils.getMapString(platformEntry, "related-asset-name",
 				null));
 		setReadOn(MapUtils.getMapLong(platformEntry, "readOn", 0));
 		loadCommonFromMap(platformEntry);
 	}
 
-	public void loadFromInternalMap(Map map) {
+	public void loadFromInternalMap(Map<?, ?> map) {
 		timestamp = MapUtils.getMapLong(map, "timestamp", 0);
 		if (timestamp == 0) {
 			timestamp = SystemTime.getCurrentTime();
@@ -145,22 +138,17 @@ public class VuzeActivitiesEntry
 		setShowThumb(MapUtils.getMapLong(map, "showThumb", 1) == 1);
 		setAssetImageURL(MapUtils.getMapString(map, "assetImageURL", null));
 		setImageBytes(MapUtils.getMapByteArray(map, "imageBytes", null));
-		setDRM(MapUtils.getMapBoolean(map, "isDRM", false));
 		setReadOn(MapUtils.getMapLong(map, "readOn", SystemTime.getCurrentTime()));
 		loadCommonFromMap(map);
 	}
 
-	public void loadCommonFromMap(Map map) {
-		if (!isPlatformContent) {
-			setIsPlatformContent(MapUtils.getMapBoolean(map, "is-platform",
-					isPlatformContent));
-		}
+	public void loadCommonFromMap(Map<?, ?> map) {
 		if (!playable) {
 			setPlayable(MapUtils.getMapBoolean(map, "playable", false));
 		}
 		setID(MapUtils.getMapString(map, "id", null));
 		setText(MapUtils.getMapString(map, "text", null));
-		Map torrentMap = MapUtils.getMapMap(map, "torrent", null);
+		Map<?, ?> torrentMap = MapUtils.getMapMap(map, "torrent", null);
 		if (torrentMap != null) {
 			TOTorrent torrent = null;
 			try {
@@ -172,8 +160,6 @@ public class VuzeActivitiesEntry
 		if (dm == null && torrentName == null) {
 			setTorrentName(MapUtils.getMapString(map, "torrent-name", null));
 		}
-		setContentNetworkID(MapUtils.getMapLong(map, "contentNetworkID",
-				contentNetworkID));
 	}
 
 	// @see java.lang.Object#equals(java.lang.Object)
@@ -222,15 +208,19 @@ public class VuzeActivitiesEntry
 		return assetImageURL;
 	}
 
-	public Map toDeletedMap() {
-		Map map = new HashMap();
+	public Map<String, Object> toDeletedMap() {
+		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("timestamp", new Long(timestamp));
 		map.put("id", id);
 		return map;
 	}
 
-	public Map toMap() {
-		Map map = new HashMap();
+	@SuppressWarnings({
+		"unchecked",
+		"rawtypes"
+	})
+	public Map<String, Object> toMap() {
+		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("timestamp", new Long(timestamp));
 		if (assetHash != null) {
 			map.put("assetHash", assetHash);
@@ -258,7 +248,7 @@ public class VuzeActivitiesEntry
 				
 				TOTorrent torrent_to_send = TOTorrentFactory.deserialiseFromMap( torrent_map );
 
-				Map	vuze_map = (Map)torrent_map.get( "vuze" );
+				Map<?, ?>	vuze_map = (Map<?, ?>)torrent_map.get( "vuze" );
 				
 				// remove any non-standard stuff (e.g. resume data)
 
@@ -276,12 +266,9 @@ public class VuzeActivitiesEntry
 				Debug.outNoStack("VuzeActivityEntry.toMap: " + e.toString());
 			}
 		}
-		map.put("isDRM", new Long(isDRM() ? 1 : 0));
 		if (torrentName != null) {
 			map.put("torrent-name", torrentName);
 		}
-		
-		map.put("is-platform", new Long(isPlatformContent ? 1 : 0));
 		
 		if (playable) {
 			map.put("playable", new Long(playable ? 1 : 0));
@@ -289,8 +276,6 @@ public class VuzeActivitiesEntry
 		
 		map.put("readOn", new Long(readOn));
 		
-		map.put("contentNetworkID", new Long(contentNetworkID));
-
 		return map;
 	}
 
@@ -486,20 +471,6 @@ public class VuzeActivitiesEntry
 			assetHash = torrent.getHashWrapper().toBase32String();
 		} catch (Exception e) {
 		}
-		
-		setContentNetworkID(PlatformTorrentUtils.getContentNetworkID(torrent));
-
-		setDRM(torrent == null ? false : PlatformTorrentUtils.isContentDRM(torrent));
-		setIsPlatformContent(torrent == null ? false
-				: PlatformTorrentUtils.isContent(torrent, true));
-	}
-
-	public boolean isDRM() {
-		return isDRM;
-	}
-
-	public void setDRM(boolean isDRM) {
-		this.isDRM = isDRM;
 	}
 
 	public String getTorrentName() {
@@ -564,14 +535,6 @@ public class VuzeActivitiesEntry
 
 	}
 
-	public boolean isPlatformContent() {
-		return isPlatformContent;
-	}
-
-	public void setIsPlatformContent(boolean isPlatformContent) {
-		this.isPlatformContent = isPlatformContent;
-	}
-
 	public boolean isPlayable() {
 		// our variable is an override
 		if (playable)  {
@@ -617,21 +580,5 @@ public class VuzeActivitiesEntry
 		} else {
 			return ofs > (-1 * readOn);
 		}
-	}
-
-	public long getContentNetworkID() {
-		return contentNetworkID;
-	}
-	
-	public ContentNetwork getContentNetwork() {
-		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(contentNetworkID);
-		if (cn == null) {
-			cn = ConstantsVuze.getDefaultContentNetwork();
-		}
-		return cn;
-	}
-
-	public void setContentNetworkID(long contentNetworkID) {
-		this.contentNetworkID = contentNetworkID;
 	}
 }

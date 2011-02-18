@@ -31,10 +31,4 @@ HTMLChunk
 {
 	public String
 	getContent();
-	
-	public HTMLTable[]
-	getTables();
-	
-	public String[]
-	getLinks();
 }

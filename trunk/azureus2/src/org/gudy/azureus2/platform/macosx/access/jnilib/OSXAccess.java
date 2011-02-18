@@ -24,6 +24,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.drivedetector.DriveDetectedInfo;
 import com.aelitis.azureus.core.drivedetector.DriveDetectorFactory;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -127,5 +128,18 @@ public class OSXAccess
 
 	public static boolean isLoaded() {
 		return bLoaded;
+	}
+	
+	public static void main(String[] args) {
+		DriveDetectedInfo[] infos = DriveDetectorFactory.getDeviceDetector().getDetectedDriveInfo();
+		for (DriveDetectedInfo info : infos) {
+			System.out.println(info.getLocation());
+			
+			Map<String, Object> infoMap = info.getInfoMap();
+			for (String key : infoMap.keySet()) {
+				Object val = infoMap.get(key);
+				System.out.println("\t" + key + ": " + val);
+			}
+		}
 	}
 }

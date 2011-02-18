@@ -35,6 +35,8 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 
 /**
+ * Creates a dialog (shell) and fills it with a skinned layout
+ * 
  * @author TuxPaper
  * @created Dec 23, 2008
  *

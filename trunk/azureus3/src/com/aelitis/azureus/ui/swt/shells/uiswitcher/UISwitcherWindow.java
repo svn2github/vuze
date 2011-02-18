@@ -20,7 +20,6 @@
 
 package com.aelitis.azureus.ui.swt.shells.uiswitcher;
 
-import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,13 +46,6 @@ public class UISwitcherWindow
 {
 	private static String CFG_PREFIX = "window.uiswitcher.";
 
-	private static String RESOURCE_LOC = "com/aelitis/azureus/ui/swt/shells/uiswitcher/images/";
-
-	private static String[] IMAGES = {
-		"NewUI_130.jpg",
-		"ClassicUI_130.jpg"
-	};
-
 	private static String[] IDS = {
 		"NewUI",
 		"ClassicUI"
@@ -65,28 +57,27 @@ public class UISwitcherWindow
 
 	private int ui = -1;
 
-	private List disposeList = new ArrayList();
+	private List<Object> disposeList = new ArrayList<Object>();
 
 	public UISwitcherWindow() {
-		// XXX forcing to allowCancel is temporary
-		this(null, true);
+		this(false, true);
 	}
 
 	/**
 	 * 
 	 */
-	public UISwitcherWindow(Shell parentShell, final boolean allowCancel) {
+	public UISwitcherWindow(boolean standalone, final boolean allowCancel) {
 		final String originalUIMode = UISwitcherUtil.calcUIMode();
 		try {
-			final Image[] images = new Image[IMAGES.length];
-			final Button[] buttons = new Button[IMAGES.length];
+			final Button[] buttons = new Button[IDS.length];
 			GridData gd;
 
 			int style = SWT.BORDER | SWT.TITLE | SWT.RESIZE;
 			if (allowCancel) {
 				style |= SWT.CLOSE;
 			}
-			shell = ShellFactory.createShell(parentShell, style);
+			shell = standalone ? new Shell(Display.getDefault(), style)
+					: ShellFactory.createShell((Shell) null, style);
 			shell.setText(MessageText.getString(CFG_PREFIX + "title"));
 			Utils.setShellIcon(shell);
 
@@ -106,10 +97,6 @@ public class UISwitcherWindow
 					}
 				}
 			});
-
-			Display display = shell.getDisplay();
-
-			ClassLoader cl = UISwitcherWindow.class.getClassLoader();
 
 			GridLayout layout = new GridLayout();
 			layout.horizontalSpacing = 0;
@@ -139,7 +126,7 @@ public class UISwitcherWindow
 					for (int i = 0; i < buttons.length; i++) {
 						boolean selected = idx == i;
 						Composite c = buttons[i].getParent();
-						c.getParent().setBackground(
+						c.setBackground(
 								selected ? c.getDisplay().getSystemColor(
 										SWT.COLOR_LIST_SELECTION) : null);
 						Color fg = selected ? c.getDisplay().getSystemColor(
@@ -161,15 +148,18 @@ public class UISwitcherWindow
 			final Font headerFont = new Font(shell.getDisplay(), fontData);
 			disposeList.add(headerFont);
 
-			for (int i = 0; i < IMAGES.length; i++) {
-				String id = IMAGES[i];
+			Composite cCenter = new Composite(shell, SWT.NONE);
+			cCenter.setLayout(new GridLayout());
+			cCenter.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
+			
+			for (int i = 0; i < IDS.length; i++) {
 
-				final Composite c = new Composite(shell, SWT.NONE);
+				final Composite c = new Composite(cCenter, SWT.NONE);
 				c.setBackgroundMode(SWT.INHERIT_DEFAULT);
-				gd = new GridData(GridData.FILL_BOTH);
+				gd = new GridData(GridData.FILL_HORIZONTAL);
 				gd.verticalIndent = 0;
 				c.setLayoutData(gd);
-				GridLayout gridLayout = new GridLayout(2, false);
+				GridLayout gridLayout = new GridLayout(1, false);
 				gridLayout.horizontalSpacing = 0;
 				gridLayout.marginWidth = 5;
 				gridLayout.marginHeight = 3;
@@ -179,27 +169,7 @@ public class UISwitcherWindow
 
 				c.addListener(SWT.MouseDown, radioListener);
 
-				Label label = new Label(c, SWT.CENTER);
-				label.addListener(SWT.MouseDown, radioListener);
-
-				try {
-					InputStream is = cl.getResourceAsStream(RESOURCE_LOC + id);
-					if (is != null) {
-						images[i] = new Image(display, is);
-						label.setImage(images[i]);
-						disposeList.add(images[i]);
-					}
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-
-				Composite c2 = new Composite(c, SWT.NONE);
-				c2.setBackgroundMode(SWT.INHERIT_FORCE);
-				c2.setData("INDEX", new Long(i));
-				c2.setLayout(new GridLayout());
-				c2.setLayoutData(new GridData(GridData.FILL_BOTH));
-
-				buttons[i] = new Button(c2, SWT.RADIO);
+				buttons[i] = new Button(c, SWT.RADIO);
 				buttons[i].setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_FILL));
 				Messages.setLanguageText(buttons[i], CFG_PREFIX + IDS[i] + ".title");
 				buttons[i].setData("INDEX", new Long(i));
@@ -247,9 +217,10 @@ public class UISwitcherWindow
 					}
 				});
 
-				Label info = new Label(c2, SWT.WRAP);
+				Label info = new Label(c, SWT.WRAP);
 				gd = new GridData(GridData.FILL_BOTH);
 				gd.horizontalIndent = 20;
+				gd.verticalAlignment = SWT.TOP;
 				info.setLayoutData(gd);
 
 				Messages.setLanguageText(info, CFG_PREFIX + IDS[i] + ".text");
@@ -265,7 +236,7 @@ public class UISwitcherWindow
 			layout.marginHeight = 0;
 			layout.marginWidth = 0;
 			cBottom.setLayout(layout);
-			cBottom.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			cBottom.setLayoutData(new GridData(GridData.HORIZONTAL_ALIGN_CENTER));
 			
 			btnOk = new Button(cBottom, SWT.PUSH);
 			Messages.setLanguageText(btnOk, "Button.ok");
@@ -282,10 +253,20 @@ public class UISwitcherWindow
 				}
 			});
 			gd = new GridData(GridData.HORIZONTAL_ALIGN_END);
-			gd.widthHint = 80;
 			btnOk.setLayoutData(gd);
+			
+			shell.addTraverseListener(new TraverseListener() {
+				public void keyTraversed(TraverseEvent e) {
+					if (e.detail == SWT.TRAVERSE_ESCAPE) {
+						shell.dispose();
+						e.doit = false;
+						return;
+					}
+					e.doit = true;
+				}
+			});
 
-			Point point = shell.computeSize(630, SWT.DEFAULT);
+			Point point = shell.computeSize(400, SWT.DEFAULT);
 			shell.setSize(point);
 			
 			Utils.centreWindow(shell);
@@ -300,7 +281,8 @@ public class UISwitcherWindow
 
 	public static void main(String[] args) {
 		Display display = Display.getDefault();
-		UISwitcherWindow window = new UISwitcherWindow(null, false);
+		UISwitcherWindow window = new UISwitcherWindow(true, true);
+		window.open();
 		Shell shell = window.shell;
 		while (!shell.isDisposed()) {
 			if (!shell.getDisplay().readAndDispatch()) {

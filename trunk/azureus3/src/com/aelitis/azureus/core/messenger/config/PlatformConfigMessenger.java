@@ -30,8 +30,6 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.PlatformMessengerListener;
@@ -66,18 +64,9 @@ public class PlatformConfigMessenger
 
 	private static CopyOnWriteList<String> externalLinks = new CopyOnWriteList<String>();
 	
-	public static void login(long contentNetworkID, long maxDelayMS) {
+	public static void login(long maxDelayMS) {
 		PlatformManager pm = PlatformManagerFactory.getPlatformManager();
 		
-		String sourceRef = null;
-		if (contentNetworkID != ConstantsVuze.DEFAULT_CONTENT_NETWORK_ID) {
-  		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(contentNetworkID);
-  		sourceRef = (String) cn.getPersistentProperty(ContentNetwork.PP_SOURCE_REF);
-		}
-		if (sourceRef == null) {
-			sourceRef = "unknown";
-		}
-
 		Object[] params = new Object[] {
 			"version",
 			org.gudy.azureus2.core3.util.Constants.AZUREUS_VERSION,
@@ -85,12 +74,9 @@ public class PlatformConfigMessenger
 			MessageText.getCurrentLocale().toString(),
 			"vid",
 			COConfigurationManager.getStringParameter("ID"),
-			"source-ref",
-			sourceRef
 		};
 		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
 				"login", params, maxDelayMS);
-		message.setContentNetworkID(contentNetworkID);
 
 		PlatformMessengerListener listener = new PlatformMessengerListener() {
 
@@ -150,10 +136,6 @@ public class PlatformConfigMessenger
 					externalLinks.addAll(list);
 				} catch (Exception e) {
 					Debug.out(e);
-				}
-				
-				if (message.getContentNetworkID() != ConstantsVuze.getDefaultContentNetwork().getID()) {
-					return;
 				}
 				
 				try {

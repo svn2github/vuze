@@ -47,8 +47,6 @@ public interface MultipleDocumentInterface
 
 	public static final String SIDEBAR_SECTION_DEVICES = "Devices";
 
-	public static final String SIDEBAR_SECTION_RELATED_CONTENT = "RelatedContent";
-	
 	public static final String SIDEBAR_SECTION_BURN_INFO = "BurnInfo";
 
 	public static final String SIDEBAR_SECTION_ACTIVITIES = "Activity";

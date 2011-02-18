@@ -272,40 +272,6 @@ public class SBC_LibraryTableView
 			});
 		}
 		
-		if (tv != null) {
-			tv.addKeyListener(new KeyListener() {
-
-				public void keyReleased(KeyEvent e) {
-				}
-
-				public void keyPressed(KeyEvent e) {
-					if (e.character == 15 && e.stateMask == (SWT.SHIFT | SWT.CONTROL)) {
-						Object[] selectedDataSources = tv.getSelectedDataSources().toArray();
-						for (int i = 0; i < selectedDataSources.length; i++) {
-							DownloadManager dm = (DownloadManager) selectedDataSources[i];
-							if (dm != null) {
-								TOTorrent torrent = dm.getTorrent();
-								String contentHash = PlatformTorrentUtils.getContentHash(torrent);
-								if (contentHash != null && contentHash.length() > 0) {
-									ContentNetwork cn = DataSourceUtils.getContentNetwork(torrent);
-									if (cn == null) {
-										new MessageBoxShell(SWT.OK, "coq",
-												"Not in Content Network List").open(null);
-										return;
-									}
-									String url = cn.getTorrentDownloadService(contentHash, "coq");
-									DownloadUrlInfo dlInfo = new DownloadUrlInfoContentNetwork(
-											url, cn);
-									TorrentUIUtilsV3.loadTorrent(dlInfo, false, false, true);
-								}
-
-							}
-						}
-					}
-				}
-			});
-		}
-
 		if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
 			SWTSkinObject so = skin.getSkinObject("library-list-button-right",
 					soParent.getParent());

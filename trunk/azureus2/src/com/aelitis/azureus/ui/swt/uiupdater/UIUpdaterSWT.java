@@ -64,9 +64,9 @@ public class UIUpdaterSWT
 
 	private boolean refreshed = true;
 
-	private ArrayList updateables = new ArrayList();
+	private ArrayList<UIUpdatable> updateables = new ArrayList<UIUpdatable>();
 
-	private ArrayList alwaysUpdateables = new ArrayList();
+	private ArrayList<UIUpdatable> alwaysUpdateables = new ArrayList<UIUpdatable>();
 
 	private AEMonitor updateables_mon = new AEMonitor("updateables");
 
@@ -198,7 +198,7 @@ public class UIUpdaterSWT
 		COConfigurationManager.removeParameterListener(CFG_REFRESH_INTERVAL, this);
 	}
 
-	private void update(List updateables) {
+	private void update(List<UIUpdatable> updateables) {
 		long start = 0;
 		Map mapTimeMap = DEBUG_TIMER ? new HashMap() : null;
 

@@ -128,17 +128,11 @@ public class PlatformMessenger
 			long fireBefore;
 			String queueID = null;
 			if (message != null) {
-				long networkID = message.getContentNetworkID();
-				if (networkID <= 0) {
-					debug("Content Network invalid for " + message);
-					return;
-				}
 				if (!message.sendAZID()) {
 					queueID = QUEUE_NOAZID;
 				} else {
 					queueID = QUEUE_NORMAL;
 				}
-				queueID += networkID;
 				
 				Map<PlatformMessage, PlatformMessengerListener> mapQueue = (Map) mapQueues.get(queueID);
 				if (mapQueue == null) {
@@ -283,7 +277,6 @@ public class PlatformMessenger
 
 				if (first) {
 					sendAZID = message.sendAZID();
-					contentNetworkID = message.getContentNetworkID();
 					first = false;
 				}
 

@@ -25,6 +25,8 @@ package org.gudy.azureus2.ui.swt;
  *
  * @deprecated
  */
+
+//XXX This class is used by plugins via IView
 public interface IconBarEnabler {
   public boolean isEnabled(String itemKey);
   public boolean isSelected(String itemKey);

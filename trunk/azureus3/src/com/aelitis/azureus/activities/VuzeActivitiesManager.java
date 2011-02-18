@@ -18,11 +18,8 @@
 
 package com.aelitis.azureus.activities;
 
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -202,47 +199,6 @@ public class VuzeActivitiesManager
 		*/
 	}
 	
-	private static void
-	identify(
-		ContentNetwork		cn,
-		String				str )
-	{
-		try{
-			URL	url = new URL( str );
-			
-			HttpURLConnection con = (HttpURLConnection)url.openConnection();
-			
-			UrlUtils.setBrowserHeaders( con, null );
-			
-			String	key = "cn." + cn.getID() + ".identify.cookie";
-			
-			String cookie = COConfigurationManager.getStringParameter( key, null );
-			
-			if ( cookie != null ){
-				
-				con.setRequestProperty( "Cookie", cookie + ";" );
-			}
-			
-			con.setRequestProperty( "Connection", "close" );
-			
-			con.getResponseCode();
-			
-			cookie = con.getHeaderField( "Set-Cookie" );
-			
-			if ( cookie != null ){
-				
-				String[] bits = cookie.split( ";" );
-				
-				if ( bits.length > 0 && bits[0].length() > 0 ){
-					
-					COConfigurationManager.setParameter( key, bits[0] );
-				}
-			}
-		}catch( Throwable e ){
-			
-		}
-	}
-
 	/**
 	 * Pull entries from webapp
 	 * 
@@ -279,7 +235,7 @@ public class VuzeActivitiesManager
 			if (diff > MAX_LIFE_MS) {
 				diff = MAX_LIFE_MS;
 			}
-			PlatformVuzeActivitiesMessenger.getEntries(cn.getID(), diff, delay,
+			PlatformVuzeActivitiesMessenger.getEntries(diff, delay,
 					reason, replyListener);
 			// broken..
 			//lastNewsAt.put(id, new Long(now));
@@ -316,6 +272,10 @@ public class VuzeActivitiesManager
 	 *
 	 * @since 3.0.4.3
 	 */
+	@SuppressWarnings({
+		"rawtypes",
+		"unchecked"
+	})
 	private static void loadEvents() {
 		skipAutoSave = true;
 
@@ -375,7 +335,7 @@ public class VuzeActivitiesManager
 			}
 
 			List entries = (List) value;
-			List entriesToAdd = new ArrayList(entries.size());
+			List<VuzeActivitiesEntry> entriesToAdd = new ArrayList<VuzeActivitiesEntry>(entries.size());
 			for (Iterator iter = entries.iterator(); iter.hasNext();) {
 				value = iter.next();
 				if (!(value instanceof Map)) {
@@ -422,11 +382,11 @@ public class VuzeActivitiesManager
 		try {
 			config_mon.enter();
 
-			Map mapSave = new HashMap();
+			Map<String, Object> mapSave = new HashMap<String, Object>();
 			mapSave.put("LastChecks", lastNewsAt);
 			mapSave.put("version", new Long(2));
 
-			List entriesList = new ArrayList();
+			List<Object> entriesList = new ArrayList<Object>();
 
 			VuzeActivitiesEntry[] allEntriesArray = getAllEntries();
 			for (int i = 0; i < allEntriesArray.length; i++) {
@@ -442,7 +402,7 @@ public class VuzeActivitiesManager
 			}
 			mapSave.put("entries", entriesList);
 
-			List removedEntriesList = new ArrayList();
+			List<Object> removedEntriesList = new ArrayList<Object>();
 			for (Iterator<VuzeActivitiesEntry> iter = removedEntries.iterator(); iter.hasNext();) {
 				VuzeActivitiesEntry entry = iter.next();
 				removedEntriesList.add(entry.toDeletedMap());
@@ -502,8 +462,8 @@ public class VuzeActivitiesManager
 	public static VuzeActivitiesEntry[] addEntries(VuzeActivitiesEntry[] entries) {
 		long cutoffTime = getCutoffTime();
 
-		ArrayList newEntries = new ArrayList(entries.length);
-		ArrayList existingEntries = new ArrayList(0);
+		ArrayList<VuzeActivitiesEntry> newEntries = new ArrayList<VuzeActivitiesEntry>(entries.length);
+		ArrayList<VuzeActivitiesEntry> existingEntries = new ArrayList<VuzeActivitiesEntry>(0);
 
 		try {
 			allEntries_mon.enter();
@@ -642,25 +602,16 @@ public class VuzeActivitiesManager
 		saveEvents();
 	}
 
-	public static VuzeActivitiesEntry createEntryFromMap(Map map,
-			boolean internalMap) {
-		return createEntryFromMap(ContentNetwork.CONTENT_NETWORK_VUZE, map,
-				internalMap);
-	}
-
 	/**
 	 * @param map
 	 * @return
 	 *
 	 * @since 3.0.5.3
 	 */
-	public static VuzeActivitiesEntry createEntryFromMap(
-			long defaultContentNetworkID, Map map, boolean internalMap) {
+	public static VuzeActivitiesEntry createEntryFromMap(Map<?, ?> map,
+			boolean internalMap) {
 		VuzeActivitiesEntry entry;
-		String typeID = MapUtils.getMapString(map, "typeID", MapUtils.getMapString(
-				map, "type-id", null));
 		entry = new VuzeActivitiesEntry();
-		entry.setContentNetworkID(defaultContentNetworkID);
 		if (internalMap) {
 			entry.loadFromInternalMap(map);
 		} else {

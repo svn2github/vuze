@@ -39,13 +39,6 @@ ContentNetwork
 	
 	public static final long	CONTENT_NETWORK_VHDNL		= 3;
 
-		// test networks
-	
-	public static final long	CONTENT_NETWORK_JR			= 10000;
-	public static final long	CONTENT_NETWORK_CHUN		= 10001;
-	public static final long	CONTENT_NETWORK_SOUK		= 10002;
-	public static final long	CONTENT_NETWORK_DEV02		= 10003;
-
 
 	public static final int		SERVICE_SEARCH				= 1;	// String - query text
 	public static final int		SERVICE_XSEARCH				= 2;	// String - query text; Boolean - toSubscribe

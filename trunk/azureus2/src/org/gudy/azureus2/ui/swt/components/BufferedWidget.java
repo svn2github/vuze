@@ -32,7 +32,6 @@ public class
 BufferedWidget 
 {
 	protected Widget	widget;
-	protected Object	data;
 	
 	protected
 	BufferedWidget(
@@ -45,18 +44,5 @@ BufferedWidget
 	getWidget()
 	{
 		return( widget );
-	}
-	
-	public void
-	setData(
-		Object	d )
-	{
-		data	= d;
-	}
-	
-	public Object
-	getData()
-	{
-		return( data );
 	}
 }

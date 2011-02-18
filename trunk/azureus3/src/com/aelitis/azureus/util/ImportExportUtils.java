@@ -9,6 +9,12 @@ import java.util.Map;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.json.simple.JSONArray;
 
+/**
+ * Note: There's a similarly defined map processing utility class called
+ * {@link MapUtils}.  Since there are differences in implementation, both
+ * have been kept until someone goes through each callee and check if it
+ * can be switched to use just one of them.
+ */
 public final class ImportExportUtils {
 	
 	public final static void

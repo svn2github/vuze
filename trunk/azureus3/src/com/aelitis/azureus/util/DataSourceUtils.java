@@ -233,8 +233,7 @@ public class DataSourceUtils
 		if (torrent != null) {
 			return PlatformTorrentUtils.isContent(torrent, true);
 		}
-		if ((ds instanceof VuzeActivitiesEntry)
-				&& ((VuzeActivitiesEntry) ds).isPlatformContent()) {
+		if (ds instanceof VuzeActivitiesEntry) {
 			return true;
 		}
 
@@ -263,62 +262,6 @@ public class DataSourceUtils
 		return null;
 	}
 
-	public static ContentNetwork getContentNetwork(Object ds) {
-		long id = -1;
-		try {
-			if (ds instanceof DownloadManager) {
-				id = PlatformTorrentUtils.getContentNetworkID(((DownloadManager) ds).getTorrent());
-			} else if (ds instanceof TOTorrent) {
-				id = PlatformTorrentUtils.getContentNetworkID((TOTorrent) ds);
-			} else if (ds instanceof DeviceOfflineDownload) {
-				return( getContentNetwork(PluginCoreUtils.unwrap(((DeviceOfflineDownload)ds).getDownload())));
-			} else if (ds instanceof VuzeActivitiesEntry) {
-				VuzeActivitiesEntry entry = (VuzeActivitiesEntry) ds;
-				return entry.getContentNetwork();
-			} else if (ds instanceof ISelectedContent) {
-				return getContentNetwork(((ISelectedContent)ds).getDownloadManager());
-			} else if ((ds instanceof String) && ((String)ds).length() == 32) {
-				// assume 32 byte string is a hash and that it belongs to the def. network
-				id = ConstantsVuze.getDefaultContentNetwork().getID();
-			} else 	if (ds instanceof TranscodeJob) {
-				TranscodeJob tj = (TranscodeJob) ds;
-				try {
-					DiskManagerFileInfo file = tj.getFile();
-					if (file != null) {
-						Download download = tj.getFile().getDownload();
-						if (download != null) {
-							DownloadManager dm = PluginCoreUtils.unwrap(download);
-							return getContentNetwork(dm);
-						}
-					}
-				} catch (DownloadException e) {
-				}
-			} else if (ds instanceof TranscodeFile) {
-				TranscodeFile tf = (TranscodeFile) ds;
-				try {
-					DiskManagerFileInfo file = tf.getSourceFile();
-					if (file != null) {
-						Download download = file.getDownload();
-						if (download != null) {
-							DownloadManager dm = PluginCoreUtils.unwrap(download);
-							return getContentNetwork(dm);
-						}
-					}
-				} catch (Throwable e) {
-				}
-			} else if (ds instanceof RelatedContent) {
-				id = ((RelatedContent)ds).getContentNetwork();
-			} else {
-				Debug.out("Tux: UH OH NO CN for " + ds + "\n" + Debug.getCompressedStackTrace());
-			}
-		} catch (Exception e) {
-			Debug.printStackTrace(e);
-		}
-		ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
-				id);
-		return cn;
-	}
-	
 	/**
 	 * @param ds
 	 *

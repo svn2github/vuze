@@ -14,6 +14,9 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.twistie.ITwistieListener;
+import org.gudy.azureus2.ui.swt.twistie.TwistieLabel;
+import org.gudy.azureus2.ui.swt.twistie.TwistieSection;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 

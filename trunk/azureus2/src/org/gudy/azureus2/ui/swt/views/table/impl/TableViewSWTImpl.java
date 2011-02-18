@@ -4601,8 +4601,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 							columnBounds.x += location.x;
 							columnBounds.y += location.y;
 
-							UIDebugGenerator.obfusticateArea(table.getDisplay(), image,
-									columnBounds, text);
+							UIDebugGenerator.obfusticateArea(image, columnBounds, text);
 						}
 					}
 				}

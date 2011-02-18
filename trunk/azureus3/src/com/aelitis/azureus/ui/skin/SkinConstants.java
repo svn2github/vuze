@@ -27,8 +27,6 @@ package com.aelitis.azureus.ui.skin;
  */
 public class SkinConstants
 {
-	public static final String TABSET_DASHBOARD_LEFT = "hometab-left";
-
 	public static final String VIEWID_BROWSER_BROWSE = "browse";
 
 	public static final String VIEWID_BROWSER_SEARCHRESULTS = "searchresults";
@@ -37,28 +35,17 @@ public class SkinConstants
 
 	public static final String VIEWID_TAB_BAR = "tabbar";
 
-	public static final String VIEWID_LIBRARY = "library-area";
-
 	public static final String VIEWID_TOOLBAR = "global-toolbar";
-
-	public static final String VIEWID_SIDEBAR_LIBRARY = "sidebar-library-area";
 
 	public static final String VIEWID_SIDEBAR_LIBRARY_BIG = "library-big-area";
 
 	public static final String VIEWID_SIDEBAR_LIBRARY_SMALL = "library-small-area";
-
-	public static final String VIEWID_SIDEBAR_LIBRARY_OLD = "library-oldtable-area";
-
-	public static final String VIEWID_SIDEBAR_ACTIVITY_PARENT = "sidebar-activity-area";
 
 	public static final String VIEWID_SIDEBAR_ACTIVITY_BIG = "activity-big-area";
 
 	public static final String VIEWID_SIDEBAR_ACTIVITY_SMALL = "activity-small-area";
 
 	public static final String VIEWID_MDI = "mdi";
-
-	public static final String VIEWID_LIBRARY_TOOLBAR = "library-list-button-smalltable";
-	public static final String VIEWID_LIBRARY_TOOLBAR_BIG = "library-list-button-bigtable";
 
 	public static final String VIEWID_BROWSER_WELCOME = "welcome";
 }

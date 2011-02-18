@@ -42,7 +42,6 @@ import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -103,7 +102,6 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
-import com.aelitis.azureus.ui.swt.utils.PlayNowList;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
@@ -232,36 +230,6 @@ public class MainWindow
 
 		}, false);
 
-		gm.addDownloadWillBeRemovedListener(new GlobalManagerDownloadWillBeRemovedListener() {
-			public void downloadWillBeRemoved(DownloadManager dm,
-					boolean remove_torrent, boolean remove_data)
-
-					throws GlobalManagerDownloadRemovalVetoException {
-				TOTorrent torrent = dm.getTorrent();
-				if (PlatformTorrentUtils.isContentDRM(torrent) && remove_data) {
-
-					String prefix = "v3.mb.deletePurchased.";
-					String title = MessageText.getString(prefix + "title");
-					String text = MessageText.getString(prefix + "text", new String[] {
-						dm.getDisplayName()
-					});
-
-					MessageBoxShell mb = new MessageBoxShell(title, text,
-							new String[] {
-								MessageText.getString(prefix + "button.delete"),
-								MessageText.getString(prefix + "button.cancel")
-							}, 1);
-					mb.setRelatedObject(dm);
-
-					mb.open(null);
-					int result = mb.waitUntilClosed();
-					if (result != 0) {
-						throw new GlobalManagerDownloadRemovalVetoException("", true);
-					}
-				}
-			}
-		});
-
 		Alerts.addListener(new Alerts.AlertListener() {
 
 			public boolean allowPopup(Object[] relatedObjects, int configID) {
@@ -275,14 +243,6 @@ public class MainWindow
 					return false;
 				}
 
-				HashWrapper hw;
-				try {
-					hw = dm.getTorrent().getHashWrapper();
-					if (PlayNowList.contains(hw)) {
-						return false;
-					}
-				} catch (TOTorrentException e) {
-				}
 				return true;
 			}
 
@@ -384,36 +344,6 @@ public class MainWindow
 
 		}, false);
 
-		gm.addDownloadWillBeRemovedListener(new GlobalManagerDownloadWillBeRemovedListener() {
-			public void downloadWillBeRemoved(DownloadManager dm,
-					boolean remove_torrent, boolean remove_data)
-
-					throws GlobalManagerDownloadRemovalVetoException {
-				TOTorrent torrent = dm.getTorrent();
-				if (PlatformTorrentUtils.isContentDRM(torrent) && remove_data) {
-
-					String prefix = "v3.mb.deletePurchased.";
-					String title = MessageText.getString(prefix + "title");
-					String text = MessageText.getString(prefix + "text", new String[] {
-						dm.getDisplayName()
-					});
-
-					MessageBoxShell mb = new MessageBoxShell(title, text,
-							new String[] {
-								MessageText.getString(prefix + "button.delete"),
-								MessageText.getString(prefix + "button.cancel")
-							}, 1);
-					mb.setRelatedObject(dm);
-
-					mb.open(null);
-					int result = mb.waitUntilClosed();
-					if (result != 0) {
-						throw new GlobalManagerDownloadRemovalVetoException("", true);
-					}
-				}
-			}
-		});
-
 		Alerts.addListener(new Alerts.AlertListener() {
 
 			public boolean allowPopup(Object[] relatedObjects, int configID) {
@@ -427,14 +357,6 @@ public class MainWindow
 					return false;
 				}
 
-				HashWrapper hw;
-				try {
-					hw = dm.getTorrent().getHashWrapper();
-					if (PlayNowList.contains(hw)) {
-						return false;
-					}
-				} catch (TOTorrentException e) {
-				}
 				return true;
 			}
 
@@ -991,7 +913,6 @@ public class MainWindow
 								if (mdi == null) {
 									return;
 								}
-								ContentNetworkUtils.setSourceRef(args[0], "menu", false);
 								mdi.showEntryByID(args[0]);
 
 								if (uif != null) {
@@ -1716,34 +1637,8 @@ public class MainWindow
 
 					public void skinAfterComponents(Composite composite,
 							Object skinnableObject, Object[] relatedObjects) {
-						if (true) {
-							return; // temp disable
-						}
-						Color bg = skin.getSkinProperties().getColor("color.mainshell");
-						if (bg != null) {
-							composite.setBackground(bg);
-						}
-						Color fg = skin.getSkinProperties().getColor("color.section.header");
-						if (fg != null) {
-							setChildrenFG(composite, fg);
-						}
-						composite.setBackgroundMode(SWT.INHERIT_DEFAULT);
 					}
 				});
-	}
-
-	private void setChildrenFG(Control parent, Color color) {
-		parent.setForeground(color);
-		if (parent instanceof Composite) {
-			Control[] children = ((Composite) parent).getChildren();
-			for (int i = 0; i < children.length; i++) {
-				Control control = children[i];
-				if (!(control instanceof Button)
-						|| (((Button) control).getStyle() & SWT.CHECK) > 0) {
-					setChildrenFG(control, color);
-				}
-			}
-		}
 	}
 
 	private void initMDI() {
@@ -1916,7 +1811,7 @@ public class MainWindow
 			public Image obfusticatedImage(Image image) {
 				Point location = Utils.getLocationRelativeToShell(text);
 				Point size = text.getSize();
-				UIDebugGenerator.obfusticateArea(display, image, new Rectangle(
+				UIDebugGenerator.obfusticateArea(image, new Rectangle(
 						location.x, location.y, size.x, size.y));
 				return image;
 			}

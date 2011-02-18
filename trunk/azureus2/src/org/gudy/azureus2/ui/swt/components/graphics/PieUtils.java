@@ -24,8 +24,7 @@ package org.gudy.azureus2.ui.swt.components.graphics;
 
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.Display;
+
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 /**
@@ -34,18 +33,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
  */
 public class PieUtils {
 
-  private static Image computePie(Display display,int width,int height,int percent) {
-    Image image = new Image(display,width,height);
-    GC gcImage = new GC(image);
-    gcImage.setForeground(Colors.blue);
-    int angle = (percent * 360) / 100;
-    gcImage.setBackground(Colors.blues[Colors.BLUES_MIDDARK]);
-    gcImage.fillArc(0,0,width,height,90-angle,angle);
-    gcImage.drawOval(0 , 0 , width-1, height-1);
-    gcImage.dispose();
-    return image;
-  }
-  
   public static void drawPie(GC gc,int x, int y,int width,int height,int percent) {
     Color background = gc.getBackground();
     gc.setForeground(Colors.blue);

@@ -22,8 +22,6 @@ package com.aelitis.azureus.ui.swt.browser.msg;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.eclipse.swt.browser.*;
 
@@ -82,7 +80,7 @@ public class MessageDispatcherSWT
   					context.debug("sendMessageToAZ: Param 2 not String");
   					return null;
   				}
-  				Map params = Collections.EMPTY_MAP;
+  				Map<?, ?> params = Collections.EMPTY_MAP;
   				if (args.length == 3) {
     				if (!(args[2] instanceof String)) {
     					context.debug("sendMessageToAZ: Param 3 not String");

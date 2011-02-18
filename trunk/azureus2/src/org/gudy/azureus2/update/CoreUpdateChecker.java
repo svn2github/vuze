@@ -36,7 +36,6 @@ import java.io.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.config.*;
-import org.gudy.azureus2.core3.html.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 
 import org.gudy.azureus2.platform.win32.access.AEWin32Access;
@@ -726,7 +725,7 @@ CoreUpdateChecker
 				
 				rd.addListener( rd_logger );
 				
-				String	page = HTMLPageFactory.loadPage( rd.download()).getContent();
+				String page = FileUtil.readInputStreamAsString(rd.download(), 65535);
 				
 				String pattern = "/azureus/" + latest_file_name + "?use_mirror=";
 	     

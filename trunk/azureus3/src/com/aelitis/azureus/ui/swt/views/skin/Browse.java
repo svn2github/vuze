@@ -20,9 +20,6 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
@@ -35,7 +32,6 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
@@ -65,9 +61,6 @@ public class Browse
 
 	private ContentNetwork contentNetwork;
 	
-	// Only accessed in SWT thread
-	private static List<Long> listAlreadyCalledLoginRPC = new ArrayList<Long>();
-
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectCreated(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
@@ -94,16 +87,6 @@ public class Browse
 			contentNetwork = ConstantsVuze.getDefaultContentNetwork();
 		}
 		
-		// Vuze network login happens in Initializer.  The rest can be initialized
-		// when browser area is created (here)
-		long cnID = contentNetwork.getID();
-		if (cnID != ContentNetwork.CONTENT_NETWORK_VUZE) {
-			if (!listAlreadyCalledLoginRPC.contains(new Long(cnID))) { 
-				PlatformConfigMessenger.login(contentNetwork.getID(), 0);
-				listAlreadyCalledLoginRPC.add(new Long(cnID));
-			}
-		}
-
 		browserSkinObject = SWTSkinUtils.findBrowserSO(soMain);
 
 		final MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
@@ -207,52 +190,12 @@ public class Browse
 					});
 				}
 			});
-
-			if (contentNetwork != ConstantsVuze.getDefaultContentNetwork()) {
-				menuItem = menuManager.addMenuItem(parent, "Remove HD Network");
-				menuItem.addListener(new MenuItemListener() {
-					public void selected(MenuItem menu, Object target) {
-						if (mdi != null) {
-							MdiEntry entry = mdi.getEntryBySkinView(Browse.this);
-							if (entry != null) {
-								entry.removeListener(Browse.this);
-							}
-							mdi.closeEntry(ContentNetworkUtils.getTarget(contentNetwork));
-						}
-						contentNetwork.remove();
-					}
-				});
-
-				menuItem = menuManager.addMenuItem(parent, "Reset IP Flag && Close");
-				menuItem.addListener(new MenuItemListener() {
-					public void selected(MenuItem menu, Object target) {
-						contentNetwork.setPersistentProperty(
-								ContentNetwork.PP_AUTH_PAGE_SHOWN, Boolean.FALSE);
-						if (mdi != null) {
-							MdiEntry entry = mdi.getEntryBySkinView(Browse.this);
-							if (entry != null) {
-								entry.removeListener(Browse.this);
-							}
-							mdi.closeEntry(ContentNetworkUtils.getTarget(contentNetwork));
-						}
-					}
-				});
-			}
-			menuItem = menuManager.addMenuItem(parent, "Source Ref: "
-					+ contentNetwork.getPersistentProperty(ContentNetwork.PP_SOURCE_REF));
-			menuItem.setEnabled(false);
 		}
 
 		return null;
 	}
 
 	public void mdiEntryClosed(MdiEntry entry, boolean userClosed) {
-		boolean wasActive = false;
-		Object prop = contentNetwork.getPersistentProperty(ContentNetwork.PP_ACTIVE);
-		if (prop instanceof Boolean) {
-			wasActive = ((Boolean) prop).booleanValue();
-		}
-		
 		contentNetwork.setPersistentProperty(ContentNetwork.PP_ACTIVE,
 				Boolean.FALSE);
 	}

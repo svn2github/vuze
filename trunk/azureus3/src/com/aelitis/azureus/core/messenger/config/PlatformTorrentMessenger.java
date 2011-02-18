@@ -20,15 +20,9 @@
 
 package com.aelitis.azureus.core.messenger.config;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
-
-import com.aelitis.azureus.core.messenger.PlatformMessage;
-import com.aelitis.azureus.core.messenger.PlatformMessenger;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
 /**
  * @author TuxPaper
@@ -43,50 +37,8 @@ public class PlatformTorrentMessenger
 
 	public static void streamComplete(TOTorrent torrent, long waitTime,
 			int maxSeekAheadSecs, int numRebuffers, int numHardRebuffers) {
-		String hash = null;
-		try {
-			hash = torrent.getHashWrapper().toBase32String();
-		} catch (TOTorrentException e) {
-		}
-
-		if (hash == null) {
-			return;
-		}
-
-		Map mapParameters = new HashMap();
-
-		mapParameters.put("torrent-hash", hash);
-		mapParameters.put("wait-time", new Long(waitTime));
-		mapParameters.put("max-seek", new Long(maxSeekAheadSecs));
-		mapParameters.put("num-rebuffers", new Long(numRebuffers));
-		mapParameters.put("num-hard-rebuffers", new Long(numHardRebuffers));
-
-		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-				OP_STREAMCOMPLETE, mapParameters, 3000);
-		message.setContentNetworkID(PlatformTorrentUtils.getContentNetworkID(torrent));
-
-		PlatformMessenger.queueMessage(message, null);
 	}
 
 	public static void streamComplete(TOTorrent torrent, Map info) {
-		String hash = null;
-		try {
-			hash = torrent.getHashWrapper().toBase32String();
-		} catch (TOTorrentException e) {
-		}
-
-		if (hash == null) {
-			return;
-		}
-
-		Map mapParameters = new HashMap(info);
-
-		mapParameters.put("torrent-hash", hash);
-
-		PlatformMessage message = new PlatformMessage("AZMSG", LISTENER_ID,
-				OP_STREAMCOMPLETE, mapParameters, 3000);
-		message.setContentNetworkID(PlatformTorrentUtils.getContentNetworkID(torrent));
-
-		PlatformMessenger.queueMessage(message, null);
 	}
 }

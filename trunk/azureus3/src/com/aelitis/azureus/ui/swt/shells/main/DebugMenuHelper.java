@@ -13,14 +13,12 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBox;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBoxListener;
-import com.aelitis.azureus.util.ConstantsVuze;
 
 /**
  * A convenience class for creating the Debug menu

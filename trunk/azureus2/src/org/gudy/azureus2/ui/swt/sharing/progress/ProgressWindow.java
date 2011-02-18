@@ -27,7 +27,6 @@ package org.gudy.azureus2.ui.swt.sharing.progress;
  */
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyledText;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -38,9 +37,6 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.animations.Animator;
-import org.gudy.azureus2.ui.swt.animations.shell.AnimableShell;
-import org.gudy.azureus2.ui.swt.animations.shell.LinearAnimator;
 import org.gudy.azureus2.ui.swt.shells.PopupShell;
 
 import org.gudy.azureus2.plugins.sharing.ShareException;
@@ -52,8 +48,6 @@ public class
 ProgressWindow
 	implements ShareManagerListener
 {
-	private boolean	DO_ANIMATION	= false;	// broken so I'm turning off
-	
 	private ShareManager	share_manager;
 	private progressDialog	dialog = null;
 	
@@ -88,7 +82,6 @@ ProgressWindow
 	private class
 	progressDialog 
 		extends 	PopupShell 
-		implements 	AnimableShell
 	{		
 		protected
 		progressDialog(
@@ -182,29 +175,17 @@ ProgressWindow
 			
 	      Rectangle bounds = shell.getMonitor().getClientArea();    
 	      x0 = bounds.x + bounds.width - 255;
-	      x1 = bounds.x + bounds.width;
 	
-	      y0 = bounds.y + bounds.height;
 	      y1 = bounds.y + bounds.height - 155;
 				
-	      if ( DO_ANIMATION ){
-	    	  shell.setLocation(x0,y0);
-	      }else{
-	    	  shell.setLocation(x0,y1);
-	      }
+    	  shell.setLocation(x0,y1);
 		}
 		
 		protected void
 		hidePanel()
 		{		
 			manually_hidden	= true;
-			if ( DO_ANIMATION ){
-				currentAnimator = new LinearAnimator(this,new Point(x0,y1),new Point(x1,y1),15,30);
-				currentAnimator.start();
-				hideAfter = true;
-			}else{
-				shell.setVisible( false );
-			}
+			shell.setVisible( false );
 		}
 		
 		protected void
@@ -212,14 +193,11 @@ ProgressWindow
 		{
 			manually_hidden	= false;
 			
-			boolean animate = false ;
 			if ( !shell_opened ){
 			
 				shell_opened = true;
 				
 				shell.open();	
-				
-				animate = DO_ANIMATION ;
 			}
       
       
@@ -227,15 +205,10 @@ ProgressWindow
 			
 			if ( !shell.isVisible()){				
 				shell.setVisible(true);
-				animate = DO_ANIMATION ;
 			}
 			
 			shell.moveAbove(null);
 
-			if(animate && currentAnimator == null) {
-		        currentAnimator = new LinearAnimator(this,new Point(x0,y0),new Point(x0,y1),15,30);
-		        currentAnimator.start();
-			}
 		}
 		
 	protected boolean
@@ -247,38 +220,8 @@ ProgressWindow
     
     
     //Animation properties
-    Animator currentAnimator;
-    int x0,y0,x1,y1;
+    int x0,y1;
     
-    boolean isAnimated;
-    boolean hideAfter;
-    
-    public void animationEnded(Animator source) {
-      if(source != currentAnimator) 
-        return;
-      isAnimated = false;
-      currentAnimator = null;
-      if(hideAfter) {
-        hideAfter = false;
-        if(display == null || display.isDisposed())
-          return;
-        display.asyncExec(new AERunnable() {          
-          public void runSupport() {
-            shell.setVisible(false);
-          }
-        });
-      }
-    }
-
-    public void animationStarted(Animator source) {
-    }
-
-    public Shell getShell() {
-      return shell;
-    }
-
-    public void reportPercent(int percent) {
-    }
 	}
 	
 	public void

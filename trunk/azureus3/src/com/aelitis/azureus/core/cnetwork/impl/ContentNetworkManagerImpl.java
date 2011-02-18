@@ -47,11 +47,6 @@ import com.aelitis.azureus.core.custom.Customization;
 import com.aelitis.azureus.core.custom.CustomizationManager;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 
-import com.aelitis.azureus.core.messenger.PlatformMessengerException;
-import com.aelitis.azureus.core.messenger.config.PlatformContentNetworkMessenger;
-import com.aelitis.azureus.core.messenger.config.PlatformContentNetworkMessenger.contentNetworkDetails;
-import com.aelitis.azureus.core.messenger.config.PlatformContentNetworkMessenger.listNetworksListener;
-
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
@@ -230,54 +225,6 @@ ContentNetworkManagerImpl
 	protected void
 	checkForUpdates()
 	{
-		synchronized( this ){
-			
-				// vuze network always present, no need to check this for updates as we don't auto
-				// update it
-			
-			if ( networks.size() < 2 && !LOAD_ALL_NETWORKS ){
-			
-				return;
-			}
-		}
-		
-		PlatformContentNetworkMessenger.listNetworksAync(new listNetworksListener() {
-			public void networkListReturned(List<contentNetworkDetails> cnets) {
-
-				try{
-					String	str = "";
-					
-					for ( contentNetworkDetails details: cnets ){
-					
-						str += (str.length()==0?"":", ") + details.getString();
-						
-						ContentNetwork existing = getContentNetwork( details.getID());
-						
-						if ( existing != null ){
-							
-							ContentNetworkImpl new_net = createNetwork( details );
-							
-							addNetwork( new_net );
-							
-						}else{
-							
-							if ( LOAD_ALL_NETWORKS ){
-								
-								ContentNetworkImpl new_net = createNetwork( details );
-								
-								addNetwork( new_net );
-							}
-						}
-					}
-					
-					log( "Latest networks: " + str );
-					
-				}catch( Throwable e ){
-
-					log( "Failed to load network list", e );
-				}
-			}
-		}, 11110);
 	}
 	
 	protected ContentNetworkImpl
@@ -298,67 +245,6 @@ ContentNetworkManagerImpl
 	
 		throws ContentNetworkException
 	{
-		try{
-			PlatformContentNetworkMessenger.listNetworksAync(new listNetworksListener() {
-				public void networkListReturned(List<contentNetworkDetails> cnets) {
-					if (cnets == null) {
-
-						Exception e = new PlatformMessengerException( "No networks returned" );
-
-						for ( ContentNetworkListener l : listeners ) {
-
-							l.networkAddFailed(id, e);
-						}
-
-						return;
-					}
-					
-					for ( contentNetworkDetails details: cnets ){
-						
-						if ( details.getID() == id ){
-							
-							ContentNetworkImpl new_net;
-							try {
-
-								new_net = createNetwork( details );
-
-								addNetwork( new_net );
-							} catch (ContentNetworkException e) {
-
-								for ( ContentNetworkListener l : listeners ) {
-
-									l.networkAddFailed(id, e);
-								}
-
-							}
-
-							return;
-						}
-					}
-
-					Exception e = new ContentNetworkException(
-									"Content Network with id " + id + " not found");
-
-					for ( ContentNetworkListener l : listeners ) {
-
-						l.networkAddFailed(id, e);
-					}
-					
-				}
-			}, 500);
-										
-
-		}catch( Throwable e ){
-			
-			ContentNetworkException e2 = new ContentNetworkException( "Failed to list permitted networks", e );
-
-			for ( ContentNetworkListener l : listeners ) {
-
-				l.networkAddFailed(id, e2);
-			}
-			
-			throw e2;
-		}
 	}
 	
 	public ContentNetwork
@@ -399,64 +285,6 @@ ContentNetworkManagerImpl
 		}
 		
 		return( getContentNetwork( ContentNetwork.CONTENT_NETWORK_VUZE ));
-	}
-	
-	protected ContentNetworkImpl
-	createNetwork(
-		contentNetworkDetails		details )
-	
-		throws ContentNetworkException
-	{	
-		String main_url = details.getMainURL();
-		String icon_url	= details.getIconURL();
-		
-		String site_dns;
-		
-		try{
-			site_dns = new URL( main_url ).getHost();
-			
-		}catch( Throwable e ){
-			
-			log( "Failed to get main-url host", e );
-			
-			throw( new ContentNetworkException( "main url invald", e ));
-		}
-		
-			// propagate persistent property defaults and exclusions as currently not returned by webapp
-		
-		ContentNetworkImpl existing = getContentNetwork( details.getID());
-		
-		Map<String,Object> 	pprop_defaults		= null;
-		Set<Integer>		service_exclusions	= null;
-		
-		if ( existing != null ){
-			
-			pprop_defaults = existing.getPersistentPropertyDefaults();
-			
-			if ( existing instanceof ContentNetworkVuzeGeneric ){
-				
-				service_exclusions	= ((ContentNetworkVuzeGeneric)existing).getServiceExclusions();
-			}
-		}
-		
-		return( 
-			new ContentNetworkVuzeGeneric( 
-					this,
-					details.getID(),
-					details.getVersion(),
-					details.getName(),
-					pprop_defaults,
-					service_exclusions,
-					site_dns,
-					main_url,
-					icon_url,
-					null,
-					null,
-					null,
-					null,
-					null,
-					null ));
-
 	}
 	
 	public ContentNetwork[] 

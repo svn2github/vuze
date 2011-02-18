@@ -146,12 +146,7 @@ public class PlayUtils
 			return true;
 		}
 		
-		if (!PlatformTorrentUtils.useEMP(torrent)
-				|| !PlatformTorrentUtils.embeddedPlayerAvail()) {
-			return false;
-		}
-	
-		return canProgressiveOrIsComplete(torrent);
+		return false;
 	}
 
 	private static boolean canPlay(DownloadManager dm, int file_index) {

@@ -57,12 +57,10 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.*;
-import com.aelitis.azureus.ui.swt.shells.AuthorizeWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI;
-import com.aelitis.azureus.ui.swt.utils.ContentNetworkUI.ContentNetworkImageLoadedListener;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
@@ -1492,18 +1490,6 @@ public class SideBar
 				return;
 			}
 
-			boolean doneAuth = false;
-			Object oDoneAuth = cn.getPersistentProperty(ContentNetwork.PP_AUTH_PAGE_SHOWN);
-			if (oDoneAuth instanceof Boolean) {
-				doneAuth = ((Boolean) oDoneAuth).booleanValue();
-			}
-
-			if (!doneAuth && cn.isServiceSupported(ContentNetwork.SERVICE_AUTHORIZE)) {
-				if (!AuthorizeWindow.openAuthorizeWindow(cn)) {
-					return;
-				}
-			}
-
 			createContentNetworkSideBarEntry(cn);
 			showEntryByID(tabID);
 			return;
@@ -1532,13 +1518,9 @@ public class SideBar
 				SIDEBAR_HEADER_VUZE, entryID, "main.area.browsetab", name, null, cn,
 				closeable, position);
 
-		ContentNetworkUI.loadImage(cn.getID(),
-				new ContentNetworkImageLoadedListener() {
-					public void contentNetworkImageLoaded(Long contentNetworkID,
-							Image image, boolean wasReturned) {
-						entry.setImageLeft(image);
-					}
-				});
+		Image image = ImageLoader.getInstance().getImage("image.sidebar.vuze");
+		entry.setImageLeft(image);
+
 		cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
 		cn.setPersistentProperty(ContentNetwork.PP_SHOW_IN_MENU, Boolean.TRUE);
 	}

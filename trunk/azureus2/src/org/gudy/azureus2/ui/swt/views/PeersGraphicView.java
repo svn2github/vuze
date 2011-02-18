@@ -76,8 +76,6 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
   private static final int PACKET_SIZE = 10;
   private static final int OWN_SIZE = 75;
   
-  private boolean antiAliasingAvailable = true;
-  
   //Comparator Class
   //Note: this comparator imposes orderings that are inconsistent with equals.
   class PeerComparator implements Comparator {
@@ -210,13 +208,10 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
     gcBuffer.setForeground(Colors.blue);
     gcBuffer.fillRectangle(0,0,panelSize.x,panelSize.y);
 
-    if(SWT.getVersion() >= 3138 && antiAliasingAvailable) {
-      try {
-        //gcBuffer.setTextAntialias(SWT.ON);
-        //gcBuffer.setAntialias(SWT.ON);
-      } catch(Exception e) {
-        antiAliasingAvailable = false;
-      }
+    try {
+      gcBuffer.setTextAntialias(SWT.ON);
+      gcBuffer.setAntialias(SWT.ON);
+    } catch(Exception e) {
     }
     
     gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDLIGHT]);      

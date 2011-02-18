@@ -34,6 +34,8 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
@@ -238,7 +240,7 @@ public class ColumnActivityActions
 						if (uif != null) {
 							String target = hitUrl.target;
 							if (target == null) {
-								target = ContentNetworkUtils.getTarget(entry.getContentNetwork());
+								target = SkinConstants.VIEWID_BROWSER_BROWSE;
 							}
 							uif.viewURL(hitUrl.url, target, "column.activity.action");
 							return;

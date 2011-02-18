@@ -54,7 +54,6 @@ import org.gudy.azureus2.ui.swt.updater2.PreUpdateChecker;
 import org.gudy.azureus2.ui.swt.updater2.SWTUpdateChecker;
 
 import com.aelitis.azureus.core.*;
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
 import com.aelitis.azureus.core.messenger.config.PlatformConfigMessenger;
@@ -240,7 +239,7 @@ public class Initializer
 		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 
 		if (!uiClassic) {
-			PlatformConfigMessenger.login(ContentNetwork.CONTENT_NETWORK_VUZE, 0);
+			PlatformConfigMessenger.login(0);
 		}
 		
 		VersionCheckClient.getSingleton().addVersionCheckClientListener(true,

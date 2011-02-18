@@ -21,8 +21,6 @@ package com.aelitis.azureus.ui.swt.columns.utils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
-import org.gudy.azureus2.core3.util.Debug;
-
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;

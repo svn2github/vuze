@@ -107,7 +107,9 @@ public class DisplayListener
 						MapUtils.getMapBoolean(decodedMap, "append-suffix", false));
 			} else {
 				String ref = message.getReferer();
-				if (target != null && target.equals("browse") && ref != null) {
+				if (target != null
+						&& target.equals(SkinConstants.VIEWID_BROWSER_BROWSE)
+						&& ref != null) {
 					ContentNetwork cn = ContentNetworkManagerFactory.getSingleton().getContentNetworkForURL(
 							ref);
 					if (cn != null) {
@@ -320,8 +322,6 @@ public class DisplayListener
 			return;
 		}
 		if (sourceRef != null) {
-			ContentNetworkUtils.setSourceRef(tabID, sourceRef, false);
-
 			if (MultipleDocumentInterface.SIDEBAR_SECTION_PLUS.equals(tabID) ||
 					MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO.equals(tabID)) {
 				Pattern pattern = Pattern.compile("http.*//[^/]+/([^.]+)");

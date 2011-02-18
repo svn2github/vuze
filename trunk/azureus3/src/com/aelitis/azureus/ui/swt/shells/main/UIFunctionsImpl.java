@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
@@ -83,7 +82,6 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
-import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ContentNetworkUtils;
@@ -504,14 +502,6 @@ public class UIFunctionsImpl
 						null, data, true);
 				break;
 				
-			case VIEW_RCM: {
-				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-				if (mdi != null) {
-					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_RELATED_CONTENT);
-				}
-				break;
-			}
-
 			default:
 				break;
 		}
@@ -524,7 +514,6 @@ public class UIFunctionsImpl
 	
 	// @see com.aelitis.azureus.ui.UIFunctions#viewURL(java.lang.String, java.lang.String, java.lang.String)
 	public void viewURL(String url, String target, String sourceRef) {
-		ContentNetworkUtils.setSourceRef(target, sourceRef, false);
 		viewURL(url, target, 0, 0, true, false);
 	}
 

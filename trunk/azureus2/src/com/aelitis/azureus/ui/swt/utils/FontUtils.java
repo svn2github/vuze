@@ -19,7 +19,6 @@
  */
 package com.aelitis.azureus.ui.swt.utils;
 
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 
 import org.eclipse.swt.SWT;

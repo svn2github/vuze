@@ -26,10 +26,7 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Table;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedTableRow;
-import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
 /** Draws an image at a column in a row of a table using direct paints to the 
  *  table.
@@ -56,11 +53,6 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
 
 	//The Buffered image
   private Image image;
-  /** Track if we have ever drawn the cell.  Don't draw the cell using our
-   * own GC if we've never drawn before.  ie.  If we setGraphic before the
-   * cell is visible, don't paint.
-   */
-  private boolean neverDrawn = true;
   
   
   public BufferedGraphicTableItem1(BufferedTableRow row,int position) {
@@ -181,8 +173,6 @@ public abstract class BufferedGraphicTableItem1 extends BufferedTableItemImpl
   		return imageCellBG;
   	}
   	
-		TableOrTreeSWT table = row.getTable();
-		
 		Rectangle bounds = super.getBounds();
 		
 		if (bounds.isEmpty()) {

@@ -25,7 +25,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.util.JSONUtils;
 
 /**
@@ -41,7 +40,7 @@ public class PlatformMessage
 
 	private final String operationID;
 
-	private final Map parameters;
+	private final Map<?, ?> parameters;
 
 	private final long fireBeforeDate;
 
@@ -49,13 +48,7 @@ public class PlatformMessage
 
 	private long lSequenceNo = -1;
 
-	private boolean requiresAuthorization = false;
-
-	private boolean loginAndRetry = false;
-
 	private boolean sendAZID = true;
-
-	private long contentNetworkID;
 
 	/**
 	 * @param messageID
@@ -65,13 +58,12 @@ public class PlatformMessage
 	 * @param maxDelay
 	 */
 	public PlatformMessage(String messageID, String listenerID,
-			String operationID, Map parameters, long maxDelayMS) {
+			String operationID, Map<?, ?> parameters, long maxDelayMS) {
 
 		this.messageID = messageID;
 		this.listenerID = listenerID;
 		this.operationID = operationID;
 		this.parameters = JSONUtils.encodeToJSONObject(parameters);
-		this.contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE;
 
 		messageCreatedOn = SystemTime.getCurrentTime();
 		fireBeforeDate = messageCreatedOn + maxDelayMS;
@@ -85,19 +77,18 @@ public class PlatformMessage
 		this.operationID = operationID;
 
 		this.parameters = JSONUtils.encodeToJSONObject(parseParams(parameters));
-		this.contentNetworkID = ContentNetwork.CONTENT_NETWORK_VUZE;
 
 		messageCreatedOn = SystemTime.getCurrentTime();
 		fireBeforeDate = messageCreatedOn + maxDelayMS;
 	}
 
-	public static Map parseParams(Object[] parameters) {
-		Map result = new HashMap();
+	public static Map<String, Object> parseParams(Object[] parameters) {
+		Map<String, Object> result = new HashMap<String, Object>();
 		for (int i = 0; i < parameters.length - 1; i += 2) {
 			try {
 				if (parameters[i] instanceof String) {
 					if (parameters[i + 1] instanceof String[]) {
-						List list = Arrays.asList((String[]) parameters[i + 1]);
+						List<String> list = Arrays.asList((String[]) parameters[i + 1]);
 						result.put((String) parameters[i], list);
 					} else if (parameters[i + 1] instanceof Object[]) {
 						result.put((String) parameters[i],
@@ -124,7 +115,7 @@ public class PlatformMessage
 		return messageCreatedOn;
 	}
 
-	public Map getParameters() {
+	public Map<?, ?> getParameters() {
 		return parameters;
 	}
 
@@ -151,9 +142,6 @@ public class PlatformMessage
 	public String toString() {
 		String paramString = parameters.toString();
 		return "PlaformMessage {"
-				+ "cn"
-				+ contentNetworkID
-				+ ", "
 				+ lSequenceNo
 				+ ", "
 				+ messageID
@@ -167,7 +155,7 @@ public class PlatformMessage
 	}
 
 	public String toShortString() {
-		return (requiresAuthorization ? "AUTH: " : "") + getMessageID() + "."
+		return getMessageID() + "."
 				+ getListenerID() + "." + getOperationID();
 	}
 
@@ -182,16 +170,5 @@ public class PlatformMessage
 
 	public void setSendAZID(boolean send) {
 		sendAZID = send;
-		if (send && requiresAuthorization) {
-			System.err.println("requiresAuthorization overrides sendAZID disabling");
-		}
-	}
-
-	public long getContentNetworkID() {
-		return contentNetworkID;
-	}
-
-	public void setContentNetworkID(long contentNetworkID) {
-		this.contentNetworkID = contentNetworkID;
 	}
 }

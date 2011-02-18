@@ -58,7 +58,6 @@ import com.aelitis.azureus.ui.selectedcontent.DownloadUrlInfoContentNetwork;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.listener.DownloadUrlInfoSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListener;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 import com.aelitis.azureus.util.*;
 
@@ -231,10 +230,6 @@ public class TorrentUIUtilsV3
 
 										};
 										gm.addListener(l, false);
-
-										if (playNow || playPrepare) {
-											PlayNowList.add(hw);
-										}
 
 										TorrentOpener.openTorrent(file.getAbsolutePath());
 									}
