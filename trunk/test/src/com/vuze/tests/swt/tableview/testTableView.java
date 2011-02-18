@@ -22,6 +22,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionListener;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 
@@ -319,7 +320,7 @@ public class testTableView
 				long diff = now - last;
 				last = now;
 
-				if (diff > 0) {
+				if (diff > 1) {
 					System.out.println(diff);
 				}
 
