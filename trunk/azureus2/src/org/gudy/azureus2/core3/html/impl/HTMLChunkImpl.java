@@ -57,109 +57,13 @@ HTMLChunkImpl
 		content	= str;
 	}
 	
-	public String[]
-	getLinks()
-	{
-		int	pos	= 0;
-
-		List	res = new ArrayList();
-		
-		while(true){
-			
-			int	p1 = content.indexOf( "<", pos );
-			
-			if ( p1 == -1 ){
-				
-				break;
-			}
-			
-			p1++;
-			
-			int	p2 = content.indexOf( ">", p1 );
-			
-			if ( p2 == -1 ){
-				
-				break;
-			}
-			
-			pos	= p2;
-			
-			String	tag 	= content.substring( p1, p2 ).trim();
-			
-			String	lc_tag 	= tag.toLowerCase( MessageText.LOCALE_ENGLISH );
-						
-			if ( lc_tag.startsWith("a " )){
-				
-				int	hr_start = lc_tag.indexOf( "href");
-				
-				if ( hr_start == -1 ){
-					
-					continue;
-				}
-				
-				hr_start = lc_tag.indexOf("=", hr_start);
-				
-				if ( hr_start == -1 ){
-					
-					continue;
-				}
-				
-				hr_start += 1;
-				
-				while( 	hr_start < lc_tag.length() &&
-						Character.isWhitespace(lc_tag.charAt(hr_start))){
-					
-					hr_start++;
-				}
-				
-				int hr_end = hr_start;
-				
-				while(	hr_end < lc_tag.length() &&
-						!Character.isWhitespace(lc_tag.charAt(hr_end))){
-										
-					hr_end++;
-				}
-				
-				String	href = tag.substring(hr_start, hr_end ).trim();
-				
-				if ( href.startsWith("\"")){
-					
-					href = href.substring(1,href.length()-1);
-				}
-				
-				res.add( href );
-			}
-		}
-		
-		String[]	res_array = new String[res.size()];
-		
-		res.toArray( res_array );
-		
-		return( res_array );
-	}
-	
-	public HTMLTable[]
-	getTables()
-	{
-		String[]	tables = getTagPairContent( "table" );
-		
-		HTMLTable[]	res = new HTMLTable[tables.length];
-		
-		for (int i=0;i<tables.length;i++){
-			
-			res[i] = new HTMLTableImpl( tables[i] );
-		}
-		
-		return( res );
-	}
-	
 		/**
 		 * this just returns the tags themselves.
 		 * @param tag
 		 * @return
 		 */
 	
-	public String[]
+	protected String[]
 	getTags(
 		String	tag_name )
 	{
@@ -197,82 +101,6 @@ HTMLChunkImpl
 		res.toArray( x );
 		
 		return( x );
-	}
-	
-	public String[]
-	getTagPairContent(
-		String	tag_name )
-	{
-		tag_name = tag_name.toLowerCase( MessageText.LOCALE_ENGLISH );
-		
-		String	lc_content = content.toLowerCase( MessageText.LOCALE_ENGLISH );
-		
-		int	pos	= 0;
-
-		List	res = new ArrayList();
-		
-		int	level 		= 0;
-		int	start_pos	= -1;
-		
-		while(true){
-			
-			int	start_tag_start = lc_content.indexOf( "<" + tag_name,  pos );
-			int end_tag_start	= lc_content.indexOf( "</" + tag_name, pos );
-			
-			if ( level == 0 ){
-				
-				if ( start_tag_start == -1 ){
-					
-					break;
-				}
-				
-				start_pos = start_tag_start;
-				
-				level	= 1;
-				
-				pos		= start_pos+1;
-				
-			}else{
-				
-				if ( end_tag_start == -1 ){
-					
-					break;
-				}
-				
-				if ( start_tag_start == -1 || end_tag_start < start_tag_start ){
-					
-					if ( level == 1 ){
-						
-						String	tag_contents = content.substring( start_pos + tag_name.length() + 1, end_tag_start );
-						
-						res.add( tag_contents );
-						
-						// System.out.println( "got tag:" + tag_contents );						
-					}
-					
-					level--;
-					
-					pos	= end_tag_start + 1;
-					
-				}else{
-					
-					if ( start_tag_start == -1 ){
-						
-						break;
-					}
-					
-					level++;
-					
-					pos = start_tag_start+1;
-				}
-			}
-		}
-		
-		String[]	res_array = new String[res.size()];
-		
-		res.toArray( res_array );
-		
-		return( res_array );
 	}
 	
 	public String
