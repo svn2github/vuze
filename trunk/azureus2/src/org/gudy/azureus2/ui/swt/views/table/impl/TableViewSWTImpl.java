@@ -416,25 +416,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		tcManager.ensureIntegrety(sTableID);
 	}
 
-	// @see com.aelitis.azureus.ui.common.table.TableView#setColumnList(com.aelitis.azureus.ui.common.table.TableColumnCore[], java.lang.String)
-	// XXX This isn't right
-	public void setColumnList(TableColumnCore[] columns,
-			String defaultSortColumnID, boolean defaultSortOrder,
-			boolean titleIsMinWidth) {
-		// XXX Adding Columns only has to be done once per TableID.  
-		// Doing it more than once won't harm anything, but it's a waste.
-		TableColumnManager tcManager = TableColumnManager.getInstance();
-		if (tcManager.getTableColumnCount(sTableID) != columns.length) {
-			tcManager.addColumns(basicItems);
-		}
-
-		tableColumns = tcManager.getAllTableColumnCoreAsArray(classPluginDataSourceType,
-				sTableID);
-
-		// fixup order
-		tcManager.ensureIntegrety(sTableID);
-	}
-
 	// AbstractIView::initialize
 	public void initialize(Composite composite) {
 		composite.setRedraw(false);
@@ -1298,10 +1279,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 	
 	
+	// @see com.aelitis.azureus.ui.common.table.TableView#getHeaderVisible()
 	public boolean getHeaderVisible() {
 		return headerVisible;
 	}
 
+	// @see com.aelitis.azureus.ui.common.table.TableView#setHeaderVisible(boolean)
 	public void setHeaderVisible(boolean visible) {
 		headerVisible = visible;
 

@@ -285,15 +285,6 @@ public interface TableView<DATASOURCETYPE>
 	TableColumnCore[] getVisibleColumns();
 
 	/**
-	 * @param columns
-	 * @param defaultSortColumnID
-	 * @param titleIsMinWidth TODO
-	 */
-	public void setColumnList(TableColumnCore[] columns,
-			String defaultSortColumnID, boolean defaultSortAscending,
-			boolean titleIsMinWidth);
-
-	/**
 	 * @param dataSources
 	 */
 	void removeDataSources(DATASOURCETYPE[] dataSources);
@@ -382,4 +373,18 @@ public interface TableView<DATASOURCETYPE>
 	boolean isSelected(TableRow row);
 
 	boolean isUnfilteredDataSourceAdded(Object ds);
+
+	/**
+	 * @param visible
+	 *
+	 * @since 4.6.0.5
+	 */
+	void setHeaderVisible(boolean visible);
+
+	/**
+	 * @return
+	 *
+	 * @since 4.6.0.5
+	 */
+	boolean getHeaderVisible();
 }

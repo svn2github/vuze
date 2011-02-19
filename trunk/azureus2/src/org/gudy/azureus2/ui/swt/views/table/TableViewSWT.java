@@ -202,4 +202,18 @@ public interface TableViewSWT<DATASOURCETYPE>
 	 * @since 4.5.0.5
 	 */
 	void refilter();
+
+	/**
+	 * @param menuEnabled
+	 *
+	 * @since 4.6.0.5
+	 */
+	void setMenuEnabled(boolean menuEnabled);
+
+	/**
+	 * @return
+	 *
+	 * @since 4.6.0.5
+	 */
+	boolean isMenuEnabled();
 }
