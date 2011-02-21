@@ -8,24 +8,36 @@ import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.TableColumn;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.components.CustomTableTooltipHandler;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetails;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
+import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class SubscriptionWizard {
@@ -36,6 +48,7 @@ public class SubscriptionWizard {
 	private static final int MODE_CREATE_RSS = 4;
 	
 	private static final int RANK_COLUMN_WIDTH = 85;
+	private static final String TABLE_SUB_WIZ = "SubscriptionWizard";
 	
 	private final String TITLE_OPT_IN = MessageText.getString("Wizard.Subscription.optin.title");
 	private final String TITLE_SUBSCRIBE = MessageText.getString("Wizard.Subscription.subscribe.title");
@@ -86,6 +99,8 @@ public class SubscriptionWizard {
 	
 	DownloadManager download;
 	private ImageLoader imageLoader;
+	private TableViewSWT<Subscription> tvSubscriptions;
+	private static boolean columnsAdded = false;
 	
 	public SubscriptionWizard() {
 		this(null);
@@ -118,12 +133,10 @@ public class SubscriptionWizard {
 		}
 		availableSubscriptions = (SubscriptionDownloadDetails[]) notYetSubscribed.toArray(new SubscriptionDownloadDetails[notYetSubscribed.size()]);*/
 		availableSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails(core);
-		Arrays.sort(availableSubscriptions,new Comparator() {
-			public int compare(Object o1, Object o2) {
-				if(! (o1 instanceof SubscriptionDownloadDetails && o2 instanceof SubscriptionDownloadDetails)) return 0;
-				SubscriptionDownloadDetails sub1 = (SubscriptionDownloadDetails) o1;
-				SubscriptionDownloadDetails sub2 = (SubscriptionDownloadDetails) o2;
-				return sub1.getDownload().getDisplayName().compareTo(sub2.getDownload().getDisplayName());
+		Arrays.sort(availableSubscriptions,new Comparator<SubscriptionDownloadDetails>() {
+			public int compare(SubscriptionDownloadDetails o1, SubscriptionDownloadDetails o2) {
+				if (o1 == null || o2 == null) return 0;
+				return o1.getDownload().getDisplayName().compareTo(o2.getDownload().getDisplayName());
 			}
 		});
 		
@@ -628,18 +641,90 @@ public class SubscriptionWizard {
 			}
 		});
 		
-		final Table subscriptionTable = new Table(composite, SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.V_SCROLL | SWT.SINGLE);
+		initColumns();
 		
-		final TableColumn nameColumn = new TableColumn(subscriptionTable, SWT.NONE);
-		final TableColumn rankColumn = new TableColumn(subscriptionTable, SWT.NONE);
+		final Composite cTV = new Composite(composite, SWT.NONE);
+		cTV.setLayoutData(Utils.getFilledFormData());
+		GridLayout layout = new GridLayout();
+		layout.marginHeight = layout.marginWidth = layout.verticalSpacing = layout.horizontalSpacing = 0;
+		cTV.setLayout(layout);
+
+		tvSubscriptions = new TableViewSWTImpl<Subscription>(Subscription.class,
+				TABLE_SUB_WIZ, TABLE_SUB_WIZ, new TableColumnCore[0], "SubWizRank",
+				SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.V_SCROLL | SWT.SINGLE);
+		tvSubscriptions.setMenuEnabled(false);
+		tvSubscriptions.setHeaderVisible(false);
+		tvSubscriptions.setRowDefaultHeight(20);
 		
+		tvSubscriptions.initialize(cTV);
+
+		tvSubscriptions.getTableOrTreeSWT().addListener(SWT.Resize, new Listener() {
+			public void handleEvent(Event event) {
+				org.gudy.azureus2.plugins.ui.tables.TableColumn tcName = tvSubscriptions.getTableColumn("SubWizName");
+				org.gudy.azureus2.plugins.ui.tables.TableColumn tcRank = tvSubscriptions.getTableColumn("SubWizRank");
+				Rectangle clientArea = ((Composite) event.widget).getClientArea();
+				tcName.setWidth(clientArea.width - tcRank.getWidth() - 1);
+			}
+		});
+		tvSubscriptions.addSelectionListener(new TableSelectionListener() {
+			
+			public void selected(TableRowCore[] row) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (tvSubscriptions.getSelectedRowsSize() == 0) {
+							addButton.setEnabled(false);
+						} else {
+							addButton.setEnabled(true);
+							TableRowCore[] rows = tvSubscriptions.getSelectedRows();
+							Subscription subscription = (Subscription) rows[0].getDataSource();
+							if (subscription.isSubscribed()) {
+								addButton.setEnabled(false);
+							} else {
+								addButton.setEnabled(true);
+							}
+							addButton.setData("subscription", subscription);
+						}
+					}
+				});
+			}
+			
+			public void mouseExit(TableRowCore row) {
+			}
+			
+			public void mouseEnter(TableRowCore row) {
+			}
+			
+			public void focusChanged(TableRowCore focus) {
+			}
+			
+			public void deselected(TableRowCore[] rows) {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if (tvSubscriptions.getSelectedRowsSize() == 0) {
+							addButton.setEnabled(false);
+						}
+					}
+				});
+			}
+			
+			public void defaultSelected(TableRowCore[] rows, int stateMask) {
+			}
+		}, false);
 		
 
+		UIUpdaterSWT.getInstance().addUpdater(new UIUpdatable() {
+			
+			public void updateUI() {
+				if (tvSubscriptions != null) {
+					tvSubscriptions.refreshTable(false);
+				}
+			}
+			
+			public String getUpdateUIName() {
+				return "SubWiz";
+			}
+		});
 		
-		//nameColumn.setText("name");
-		//rankColumn.setText("rank");
-		
-//		subscriptionTable.setHeaderVisible(true);
 		Listener resizeListener = new Listener() {
 			
 			int last_width;
@@ -658,68 +743,34 @@ public class SubscriptionWizard {
 				
 				if(nbColumns == 1) {
 					table.getColumns()[0].setWidth(width);
-				} else {
-					
-					if(width > 100 + RANK_COLUMN_WIDTH) {
-						table.getColumns()[1].setWidth(RANK_COLUMN_WIDTH);
-						table.getColumns()[0].setWidth(width-RANK_COLUMN_WIDTH);
-					} else {
-						table.getColumns()[0].setWidth(100);
-						table.getColumns()[1].setWidth(width-RANK_COLUMN_WIDTH);
-					}
 				}
 				
 				((Table)event.widget).update();
 			}
 		};
 			
-		subscriptionTable.addListener(SWT.Resize , resizeListener);
+		//subscriptionTable.addListener(SWT.Resize , resizeListener);
 		libraryTable.addListener(SWT.Resize , resizeListener);
-		
-		final Listener subscriptionSelectionListener = new Listener() {
-			public void handleEvent(Event event) {
-				if(subscriptionTable.getSelectionCount() == 1) {
-					addButton.setEnabled(true);
-//					TableItem item = subscriptionTable.getSelection()[0];
-					Subscription subscription = subscriptions[subscriptionTable.getSelectionIndex()];
-					if(subscription.isSubscribed()) {
-						addButton.setEnabled(false);
-					} else {
-						addButton.setEnabled(true);
-					}
-					addButton.setData("subscription",subscription);
-				} else {
-					addButton.setEnabled(false);
-				}
-			}
-		};
 		
 		final Listener selectionListener = new Listener() {
 			public void handleEvent(Event event) {
 				TableItem item = (TableItem) event.item;
 				subscriptions = (Subscription[]) item.getData("subscriptions");
 				
+				tvSubscriptions.removeDataSources(tvSubscriptions.getDataSources().toArray(new Subscription[0]));
 				if(subscriptions != null) {
-					Arrays.sort(subscriptions,new Comparator() {
-						public int compare(Object o1, Object o2) {
-							if(! (o1 instanceof Subscription && o2 instanceof Subscription)) return 0;
-							Subscription sub1 = (Subscription) o1;
-							Subscription sub2 = (Subscription) o2;
-							return (int) (sub2.getCachedPopularity() - sub1.getCachedPopularity());
-						}
-					});
-					subscriptionTable.setItemCount(subscriptions.length);
+					tvSubscriptions.addDataSources(subscriptions);
 				}
+				tvSubscriptions.processDataSourceQueueSync();
 				
 				addButton.setEnabled(false);
 				addButton.setData("subscription",null);
-				subscriptionTable.clearAll();			
-				subscriptionTable.deselectAll();
-				if(subscriptionTable.getItemCount() > 0) {
-					subscriptionTable.setSelection(0);
-					subscriptionSelectionListener.handleEvent(null);
+				if (subscriptions.length > 0) {
+					TableRowCore row = tvSubscriptions.getRow(subscriptions[0]);
+					if (row != null) {
+						row.setSelected(true);
+					}
 				}
-				//subscriptionTable.setFocus();
 			}
 		};
 		
@@ -781,117 +832,16 @@ public class SubscriptionWizard {
 		addButton.setData("subscription",null);
 		
 		
-		
-		subscriptionTable.addListener(SWT.Selection,subscriptionSelectionListener );
-		
-
 		final Image rssIcon = imageLoader.getImage("icon_rss");
-		if(availableSubscriptions != null) {
-			subscriptionTable.addListener(SWT.SetData, new Listener() {
-				public void handleEvent(Event event) {
-					  final TableItem item = (TableItem) event.item;
-			          int index = subscriptionTable.indexOf (item);
-			          Subscription subscription = subscriptions[index];
-			          item.setImage(rssIcon);
-			          item.setText(0, subscription.getName());
-			          item.setData("tooltip", subscription.getNameEx());
-			          item.setData("popularity", new Long(subscription.getCachedPopularity()));
-			          if(subscription.isSubscribed()) {
-			        	  item.setForeground(display.getSystemColor(SWT.COLOR_GRAY));
-			        	  subscriptionTable.setSelection(item);
-			          }
-				}
-			});
-			
-		} else {
-			//Test code
-			subscriptionTable.addListener(SWT.SetData, new Listener() {
-				public void handleEvent(Event event) {
-					  TableItem item = (TableItem) event.item;
-			          int index = subscriptionTable.indexOf (item);
-			          item.setImage( rssIcon);
-			          item.setText (0,"sub test " + index);
-			          item.setData("popularity", new Long((int)(700*Math.random() - 100 )));
-			          //item.setText (1,"" + index);
-			          //item.setImage(1, rssIcon);
-				}
-			});
-		}		
-		
-		Listener paintListener = new Listener() {
-			public void handleEvent(Event event) {
-				GC gc = event.gc;
-				TableItem item = (TableItem) event.item;
 
-				switch (event.type) {
-				case SWT.MeasureItem:
-					event.height = 20;
-					break;
-				case SWT.EraseItem:
-					Rectangle bounds = item.getBounds(1);
-					gc.setBackground(item.getBackground(1));
-					gc.setForeground(item.getBackground(1));
-					gc.fillRectangle(bounds);
-					break;
-				case SWT.PaintItem :
-					bounds = item.getBounds(1);
-					bounds.width -= 3;
-					bounds.height -= 7;
-					bounds.x += 1;
-					bounds.y += 3;
-					gc.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
-					gc.fillRectangle(bounds);
-					gc.setForeground(rankingBorderColor);
-					gc.drawRectangle(bounds);
-					bounds.width -= 2;
-					bounds.height -= 2;
-					bounds.x += 1;
-					bounds.y += 1;
-					
-					
-					Long pop = (Long) item.getData("popularity");
-					if(pop != null) {
-						long popularity = pop.longValue();
-						//Rank in pixels between 0 and 80
-						//0 -> no subscriber
-						//80 -> 1000 subscribers
-						
-						int rank = 80 * (int) popularity / 1000;
-						if(rank > 80) rank = 80;
-						if(rank < 5) rank = 5;
-						
-						Rectangle clipping = gc.getClipping();
-						
-						bounds.width = rank;
-						bounds.height -= 1;
-						bounds.x += 1;
-						bounds.y += 1;
-						gc.setClipping(bounds);
-						gc.drawImage(rankingBars, bounds.x, bounds.y);
-						
-						
-						gc.setClipping(clipping);
-						
-					}
-					
-					break;
-				default:
-					break;
-				}
+		libraryTable.addListener(SWT.MeasureItem, new Listener() {
+			public void handleEvent(Event event) {
+				event.height = 20;
 			}
-		};
+		});
 		
-			// use this as native one end up with progress image overwriting tooltip
-		
-		new CustomTableTooltipHandler( subscriptionTable );
-		
-		subscriptionTable.addListener(SWT.EraseItem, paintListener);
-		subscriptionTable.addListener(SWT.PaintItem, paintListener);
-		subscriptionTable.addListener(SWT.MeasureItem, paintListener);
-		libraryTable.addListener(SWT.MeasureItem, paintListener);
-		
-		FormLayout layout = new FormLayout();
-		composite.setLayout(layout);
+		FormLayout formLayout = new FormLayout();
+		composite.setLayout(formLayout);
 		
 		FormData data;
 		
@@ -948,11 +898,118 @@ public class SubscriptionWizard {
 		data.left = new FormAttachment(vsep, 0);
 		data.right = new FormAttachment(100, 0);
 		data.bottom = new FormAttachment(100, 0);
-		subscriptionTable.setLayoutData(data);
+		cTV.setLayoutData(data);
+
 		
 		return composite;
 	}
 	
+	private static void initColumns() {
+		if (columnsAdded) {
+			return;
+		}
+		columnsAdded = true;
+		UIManager uiManager = PluginInitializer.getDefaultInterface().getUIManager();
+		TableManager tableManager = uiManager.getTableManager();
+		tableManager.registerColumn(Subscription.class, "SubWizName",
+				new TableColumnCreationListener() {
+					private Image rssIcon;
+
+					public void tableColumnCreated(
+							org.gudy.azureus2.plugins.ui.tables.TableColumn column) {
+						column.setVisible(true);
+						ImageLoader imageLoader = ImageLoader.getInstance();
+						rssIcon = imageLoader.getImage("icon_rss");
+
+						column.addCellAddedListener(new TableCellAddedListener() {
+							public void cellAdded(TableCell cell) {
+								Subscription sub = (Subscription) cell.getDataSource();
+								if (sub.isSubscribed()) {
+									cell.setForeground(0xa0, 0xa0, 0xa0);
+								}
+								cell.setText(sub.getName());
+								((TableCellSWT) cell).setIcon(rssIcon);
+								cell.setToolTip(sub.getNameEx());
+							}
+						});
+					}
+				});
+		tableManager.registerColumn(Subscription.class, "SubWizRank",
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(
+							org.gudy.azureus2.plugins.ui.tables.TableColumn column) {
+						column.setWidthLimits(RANK_COLUMN_WIDTH, RANK_COLUMN_WIDTH);
+						column.setVisible(true);
+						column.addCellRefreshListener(new TableCellRefreshListener() {
+							public void refresh(TableCell cell) {
+								Subscription sub = (Subscription) cell.getDataSource();
+								cell.setSortValue(sub.getCachedPopularity());
+							}
+						});
+						if (column instanceof TableColumnCore) {
+							TableColumnCore columnCore = (TableColumnCore) column;
+							columnCore.setSortAscending(false);
+							columnCore.addCellOtherListener("SWTPaint",
+									new TableCellSWTPaintListener() {
+										public void cellPaint(GC gc, TableCellSWT cell) {
+											Subscription sub = (Subscription) cell.getDataSource();
+
+											Rectangle bounds = cell.getBounds();
+											bounds.width -= 5;
+											bounds.height -= 7;
+											bounds.x += 2;
+											bounds.y += 3;
+											gc.setBackground(ColorCache.getColor(gc.getDevice(), 255,
+													255, 255));
+											gc.fillRectangle(bounds);
+											gc.setForeground(ColorCache.getColor(gc.getDevice(), 200,
+													200, 200));
+											gc.drawRectangle(bounds);
+											bounds.width -= 2;
+											bounds.height -= 2;
+											bounds.x += 1;
+											bounds.y += 1;
+
+											long popularity = sub.getCachedPopularity();
+											//Rank in pixels between 0 and 80
+											//0 -> no subscriber
+											//80 -> 1000 subscribers
+
+											int rank = 80 * (int) popularity / 1000;
+											if (rank > 80)
+												rank = 80;
+											if (rank < 5)
+												rank = 5;
+
+											Rectangle clipping = gc.getClipping();
+
+											bounds.width = rank;
+											bounds.height -= 1;
+											bounds.x += 1;
+											bounds.y += 1;
+											gc.setClipping(bounds);
+
+											ImageLoader imageLoader = ImageLoader.getInstance();
+											Image rankingBars = imageLoader.getImage("ranking_bars");
+											gc.drawImage(rankingBars, bounds.x, bounds.y);
+											imageLoader.releaseImage("ranking_bars");
+
+											gc.setClipping(clipping);
+										}
+
+									});
+						}
+					}
+				});
+
+		TableColumnManager tcm = TableColumnManager.getInstance();
+		tcm.setDefaultColumnNames(TABLE_SUB_WIZ, new String[] {
+			"SubWizName",
+			"SubWizRank",
+		});
+
+	}
+
 	private void createFonts() {
 		
 		FontData[] fDatas = shell.getFont().getFontData();
