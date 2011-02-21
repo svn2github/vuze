@@ -387,4 +387,11 @@ public interface TableView<DATASOURCETYPE>
 	 * @since 4.6.0.5
 	 */
 	boolean getHeaderVisible();
+
+	/**
+	 * 
+	 *
+	 * @since 4.6.0.5
+	 */
+	void processDataSourceQueueSync();
 }

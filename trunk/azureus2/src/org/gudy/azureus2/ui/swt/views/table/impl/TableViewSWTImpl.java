@@ -2352,6 +2352,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		});
 	}
+
+	public void processDataSourceQueueSync() { 
+		_processDataSourceQueue();
+	}
+
 	
 	private void _processDataSourceQueue() { 
 		Object[] dataSourcesAdd = null;
