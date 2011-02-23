@@ -42,6 +42,8 @@ public class
 Plot3D
 	implements Graphic, ParameterListener
 {
+	private int			Z_MAX		= Integer.MAX_VALUE;
+	
 	private Canvas		canvas;
 	
 	private String			title	= "";
@@ -199,6 +201,7 @@ Plot3D
 				}
 			}
 			
+			max_z = Math.min( max_z, Z_MAX );
 			
 			int usable_width 	= bounds.width - PAD_LEFT - PAD_RIGHT;
 			int usable_height	= bounds.height - PAD_TOP - PAD_BOTTOM;
@@ -280,13 +283,15 @@ Plot3D
 				
 				int[]	entry = (int[])values[i];
 				
+				int	z = Math.min( entry[2], Z_MAX );
+				
 				int	draw_x = (int)( x_ratio * entry[0] );
 				int	draw_y = (int)( y_ratio * entry[1] );
-				int	draw_z = (int)( z_ratio * entry[2] );
+				int	draw_z = (int)( z_ratio * z );
 				
 				draw_x += draw_y / ANGLE_TAN;
 				
-				image.setForeground( colours[(int)(((float)entry[2]/max_z)*(colours.length-1))]);
+				image.setForeground( colours[(int)(((float)z/max_z)*(colours.length-1))]);
 			
 				image.drawLine( 
 						PAD_LEFT + draw_x, 
@@ -351,6 +356,13 @@ Plot3D
 		}
 	}
 	 
+	public void
+	setMaxZ(
+		int		m )
+	{
+		Z_MAX = m;
+	}
+	
 	public void 
 	parameterChanged(
 		String parameter) 

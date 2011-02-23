@@ -79,6 +79,8 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
  */
 public class TransferStatsView extends AbstractIView {
 
+	private static final int MAX_DISPLAYED_PING_MILLIS	= 1200;
+	
 	private GlobalManager		global_manager;
 	private GlobalManagerStats 	stats;
 	private SpeedManager 		speedManager;
@@ -374,7 +376,7 @@ public class TransferStatsView extends AbstractIView {
     autoSpeedPanel = new Group(mainPanel,SWT.NONE);
     GridData generalPanelData = new GridData(GridData.FILL_BOTH);
     autoSpeedPanel.setLayoutData(generalPanelData);
-    Messages.setLanguageText(autoSpeedPanel,"SpeedView.stats.autospeed");
+    Messages.setLanguageText(autoSpeedPanel,"SpeedView.stats.autospeed", new String[]{ String.valueOf( MAX_DISPLAYED_PING_MILLIS )});
     
     
     autoSpeedPanelLayout = new StackLayout();
@@ -714,7 +716,11 @@ public class TransferStatsView extends AbstractIView {
       if(sources.length > 0) {
         int[] pings = new int[sources.length];
         for(int i = 0 ; i < sources.length ; i++) {
-          pings[i] = sources[i].getPingTime();
+        	int	ping = sources[i].getPingTime();
+        	
+        	ping = Math.min( ping, MAX_DISPLAYED_PING_MILLIS );
+        	
+        	pings[i] = ping;
         }
         pingGraph.addIntsValue(pings);
         
@@ -771,6 +777,8 @@ public class TransferStatsView extends AbstractIView {
 		  
 		  plotGraph = new Plot3D( _labels, _formatters );
 
+		  plotGraph.setMaxZ( MAX_DISPLAYED_PING_MILLIS );
+		  
 		  plotGraph.initialize(_canvas);
 	  }
 	  
