@@ -74,6 +74,38 @@ ResourceDownloaderBaseImpl
 	setSize(
 		long	size );
 	
+	public boolean
+	getBooleanProperty(
+		String		key )
+	
+		throws ResourceDownloaderException
+	{
+		Object obj = getProperty( key );
+	
+		if ( obj instanceof Boolean ){
+			
+			return(((Boolean)obj).booleanValue());
+		}
+		
+		return( false );
+	}
+	
+	public long
+	getLongProperty(
+		String		key )
+	
+		throws ResourceDownloaderException
+	{
+		Object obj = getProperty( key );
+	
+		if ( obj == null || !( obj instanceof Number )){
+			
+			return( -1 );
+		}
+		
+		return(((Number)obj).longValue());
+	}
+	
 	public String
 	getStringProperty(
 		String		key )
@@ -118,6 +150,9 @@ ResourceDownloaderBaseImpl
 		if ( 	res != null || 
 				getPropertySupport( PR_PROPERTIES_SET ) != null ||
 				name.equalsIgnoreCase( "URL_Connection" ) ||
+				name.equalsIgnoreCase( "URL_Connect_Timeout" ) ||
+				name.equalsIgnoreCase( "URL_Read_Timeout" ) ||
+				name.equalsIgnoreCase( "URL_Trust_Content_Length" ) ||
 				name.equalsIgnoreCase( "URL_HTTP_VERB" )){
 			
 			return( res );

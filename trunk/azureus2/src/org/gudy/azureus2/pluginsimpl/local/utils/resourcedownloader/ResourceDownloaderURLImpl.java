@@ -595,6 +595,22 @@ redirect_label:
 									}
 								}
 	
+								long	connect_timeout = getLongProperty( "URL_Connect_Timeout" );
+								
+								if ( connect_timeout >= 0 ){
+								
+									con.setConnectTimeout((int)connect_timeout );
+								}
+								
+								long	read_timeout = getLongProperty( "URL_Read_Timeout" );
+								
+								if ( read_timeout >= 0 ){
+								
+									con.setReadTimeout((int)read_timeout );
+								}
+								
+								boolean	trust_content_length = getBooleanProperty( "URL_Trust_Content_Length" );
+								
 								con.connect();
 					
 								int response = con instanceof HttpURLConnection?((HttpURLConnection)con).getResponseCode():HttpURLConnection.HTTP_OK;
@@ -760,6 +776,11 @@ redirect_label:
 									baos = size>0?new ByteArrayOutputStream(size>MAX_IN_MEM_READ_SIZE?MAX_IN_MEM_READ_SIZE:(int)size):new ByteArrayOutputStream();
 									
 									while( !cancel_download ){
+										
+										if ( size >= 0 && total_read >= size && trust_content_length ){
+											
+											break;
+										}
 										
 										int read = input_stream.read(buf);
 											
