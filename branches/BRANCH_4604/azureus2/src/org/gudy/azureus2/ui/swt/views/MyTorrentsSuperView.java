@@ -125,6 +125,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
   	gridData = new GridData(GridData.FILL_BOTH);
   	form.setLayoutData(gridData);
   	
+
   	GridLayout layout;
   	
   	
@@ -173,11 +174,28 @@ public class MyTorrentsSuperView extends AbstractIView implements
 
     FormData formData;
 
+    // More precision, times by 100
+    int weight = (int) (COConfigurationManager.getFloatParameter("MyTorrents.SplitAt"));
+		if (weight > 10000) {
+			weight = 10000;
+		} else if (weight < 100) {
+			weight *= 100;
+		}
+		// Min/max of 5%/95%
+		if (weight < 500) {
+			weight = 500;
+		} else if (weight > 9000) {
+			weight = 9000;
+		}
+		double pct = (float)weight / 10000;		
+		sash.setData("PCT", new Double(pct));
+
 		// FormData for table child1
 		formData = new FormData();
 		formData.left = new FormAttachment(0, 0);
 		formData.right = new FormAttachment(100, 0);
 		formData.top = new FormAttachment(0, 0);
+		formData.bottom = new FormAttachment((int) (pct * 100), 0);
 		child1.setLayoutData(formData);
 		final FormData child1Data = formData;
     
@@ -195,22 +213,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
 		formData.right = new FormAttachment(100, 0);
 		formData.bottom = new FormAttachment(100, 0);
 		formData.top = new FormAttachment(sash);
-    // More precision, times by 100
-    int weight = (int) (COConfigurationManager.getFloatParameter("MyTorrents.SplitAt"));
-		if (weight > 10000) {
-			weight = 10000;
-		} else if (weight < 100) {
-			weight *= 100;
-		}
-		// Min/max of 5%/95%
-		if (weight < 500) {
-			weight = 500;
-		} else if (weight > 9000) {
-			weight = 9000;
-		}
-		
-		// height will be set on first resize call
-		sash.setData("PCT", new Double((float)weight / 10000));
+
 		child2.setLayoutData(formData);
 
 		
@@ -238,22 +241,17 @@ public class MyTorrentsSuperView extends AbstractIView implements
 		form.addListener(SWT.Resize, new DelayedListenerMultiCombiner() {
 			public void handleDelayedEvent(Event e) {
 				Double l = (Double) sash.getData("PCT");
-				if (l != null) {
-					child1Data.height = (int) (form.getBounds().height * l
-							.doubleValue());
+				if (l == null) {
+					return;
+				}
+				int newHeight = (int) (form.getBounds().height * l.doubleValue());
+				if (child1Data.height != newHeight || child1Data.bottom != null) {
+					child1Data.bottom = null;
+					child1Data.height = newHeight;
 					form.layout();
 				}
 			}
 		});
-		try {
-  		Double l = (Double) sash.getData("PCT");
-  		if (l != null) {
-  			child1Data.height = (int) (form.getBounds().height * l
-  					.doubleValue());
-  		}
-		} catch (Exception e) {
-			
-		}
 
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(final AzureusCore core) {
