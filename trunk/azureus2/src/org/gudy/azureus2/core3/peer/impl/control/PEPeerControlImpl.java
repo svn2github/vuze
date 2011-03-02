@@ -203,7 +203,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private PEPeerManagerStats        _stats;
 	//private final TRTrackerAnnouncer _tracker;
 	//  private int _maxUploads;
-	private int		_seeds, _peers,_remotesTCPNoLan, _remotesUDPNoLan;
+	private int		_seeds, _peers,_remotesTCPNoLan, _remotesUDPNoLan, _remotesUTPNoLan;
 	private int 	_tcpPendingConnections, _tcpConnectingConnections;
 	private long last_remote_time;
 	private long	_timeStarted;
@@ -1885,6 +1885,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		int new_peers = 0;
 		int new_tcp_incoming 	= 0;
 		int new_udp_incoming  	= 0;
+		int new_utp_incoming  	= 0;
 		
 		int	bytes_queued 	= 0;
 		int	con_queued		= 0;
@@ -1936,7 +1937,16 @@ DiskManagerCheckRequestListener, IPFilterListener
 						
 					}else{
 						
-						new_udp_incoming++;
+						String protocol = pc.getProtocol();
+						
+						if ( protocol.equals( "UDP" )){
+						
+							new_udp_incoming++;
+							
+						}else{
+							
+							new_utp_incoming++;
+						}
 					}
 				}
 			}else{				
@@ -1960,6 +1970,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		_peers = new_peers;
 		_remotesTCPNoLan = new_tcp_incoming;
 		_remotesUDPNoLan = new_udp_incoming;
+		_remotesUTPNoLan = new_utp_incoming;
 		_tcpPendingConnections = new_pending_tcp_connections;
 		_tcpConnectingConnections = new_connecting_tcp_connections;
 		
@@ -2386,6 +2397,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 	public int getNbRemoteUDPConnections() 
 	{
 		return _remotesUDPNoLan;
+	}
+	public int getNbRemoteUTPConnections() 
+	{
+		return _remotesUTPNoLan;
 	}
 	
 	public long getLastRemoteConnectionTime()

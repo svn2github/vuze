@@ -767,6 +767,7 @@ DownloadManagerImpl
 	
 				 if ( new_torrent ){
 				 	
+					 System.out.println("");
 					download_manager_state.setLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME, SystemTime.getCurrentTime());
 					 
 				 		// propagate initial properties from torrent to download
@@ -2876,7 +2877,7 @@ DownloadManagerImpl
 		  
 			int nbSeeds = getNbSeeds();
 			int nbPeers = getNbPeers();
-			int nbRemotes = peerManager.getNbRemoteTCPConnections();
+			int nbRemotes = peerManager.getNbRemoteTCPConnections() + peerManager.getNbRemoteUTPConnections();
 			
 			TRTrackerAnnouncerResponse	announce_response = tc.getLastResponse();
 			
@@ -2948,7 +2949,7 @@ DownloadManagerImpl
 	  
 		if ( tc != null && peerManager != null && (state == STATE_DOWNLOADING || state == STATE_SEEDING)) {
 		  			
-			if ( peerManager.getNbRemoteTCPConnections() > 0 ){
+			if ( peerManager.getNbRemoteTCPConnections() > 0 || peerManager.getNbRemoteUTPConnections() > 0 ){
 				
 				return( ConnectionManager.NAT_OK );
 			}
@@ -4140,6 +4141,7 @@ DownloadManagerImpl
 							private PEPeerManager		_pm;
 							private int					tcp;
 							private int					udp;
+							private int					utp;
 							private int					total;
 							private boolean				enabled;
 							
@@ -4156,6 +4158,7 @@ DownloadManagerImpl
 										
 										tcp 	= pm.getNbRemoteTCPConnections();
 										udp		= pm.getNbRemoteUDPConnections();
+										utp		= pm.getNbRemoteUTPConnections();
 										total	= pm.getStats().getTotalIncomingConnections();
 									}
 									
@@ -4206,7 +4209,7 @@ DownloadManagerImpl
 									return( 
 										MessageText.getString( 
 											"tps.incoming.details",
-											new String[]{ String.valueOf( tcp ), String.valueOf( udp ), String.valueOf( total )} ));
+											new String[]{ String.valueOf( tcp ), String.valueOf( udp + utp ), String.valueOf( total )} ));
 								}	
 							}
 							

@@ -2167,6 +2167,8 @@ DownloadManagerController
 			if ( pm != null ){
 				
 				info.put( "c_rem", pm.getNbRemoteTCPConnections());
+				info.put( "c_rem_utp", pm.getNbRemoteUTPConnections());
+				info.put( "c_rem_udp", pm.getNbRemoteUDPConnections());
 				
 				List<PEPeer> peers = pm.getPeers();
 				

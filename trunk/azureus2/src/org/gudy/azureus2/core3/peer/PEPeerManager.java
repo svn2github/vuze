@@ -151,6 +151,7 @@ PEPeerManager
   
   public int getNbRemoteTCPConnections();
   public int getNbRemoteUDPConnections();
+  public int getNbRemoteUTPConnections();
   
   public long getLastRemoteConnectionTime();
   
