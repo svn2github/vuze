@@ -871,10 +871,6 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	if ( con instanceof MagnetConnection2 ){
 	  	((MagnetConnection2)con).disconnect();
 	}
-	
-	if (con instanceof HttpURLConnection) {
-		((HttpURLConnection)con).disconnect();
-	}
   }
   
   public void setDownloadPath(String path, String file) {
