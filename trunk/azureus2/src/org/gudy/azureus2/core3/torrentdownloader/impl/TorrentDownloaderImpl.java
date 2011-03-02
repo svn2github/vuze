@@ -866,13 +866,11 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   {
 	if ( con instanceof MagnetConnection ){
 	  	((MagnetConnection)con).disconnect();
-	}
-	
-	if ( con instanceof MagnetConnection2 ){
+
+	} else if ( con instanceof MagnetConnection2 ){
 	  	((MagnetConnection2)con).disconnect();
-	}
-	
-	if (con instanceof HttpURLConnection) {
+
+	} else if (con instanceof HttpURLConnection) {
 		((HttpURLConnection)con).disconnect();
 	}
   }
