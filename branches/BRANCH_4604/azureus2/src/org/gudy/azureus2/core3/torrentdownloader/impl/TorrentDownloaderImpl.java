@@ -230,6 +230,14 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     			}
 
     			this.con.connect();
+    			
+    			String magnetURI = con.getHeaderField("Magnet-Uri");
+    			if (magnetURI != null) {
+    				closeConnection();
+    				url_str = magnetURI;
+    				runSupport();
+    				return;
+    			}
 
     			break;
 
@@ -862,6 +870,10 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	
 	if ( con instanceof MagnetConnection2 ){
 	  	((MagnetConnection2)con).disconnect();
+	}
+	
+	if (con instanceof HttpURLConnection) {
+		((HttpURLConnection)con).disconnect();
 	}
   }
   
