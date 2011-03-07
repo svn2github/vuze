@@ -336,7 +336,7 @@ public class FeatureManagerUI
     							} else {
       							soExpirey.setText(MessageText.getString("dlg.auth.enter.expiry",
       									new String[] {
-      										DisplayFormatters.formatCustomDateOnly(details.expiry)
+      										DisplayFormatters.formatCustomDateOnly(details.displayedExpiry)
       									}));
     							} 
     						}
@@ -664,7 +664,7 @@ public class FeatureManagerUI
 	
 	public static String appendFeatureManagerURLParams(String url) {
 		long remainingUses = FeatureManagerUI.getRemaining();
-		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryTimeStamp();
+		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryDisplayTimeStamp();
 		String plusRenewalCode = FeatureManagerUI.getPlusRenewalCode();
 
 		String newURL = url + (url.contains("?") ? "&" : "?");
@@ -693,6 +693,14 @@ public class FeatureManagerUI
 			return 0;
 		}
 		return fullFeatureDetails.expiry;
+	}
+
+	public static long getPlusExpiryDisplayTimeStamp() {
+		licenceDetails fullFeatureDetails = getFullFeatureDetails();
+		if (fullFeatureDetails == null || fullFeatureDetails.expiry == 0) {
+			return 0;
+		}
+		return fullFeatureDetails.displayedExpiry;
 	}
 
 	public static String getPlusRenewalCode() {
@@ -740,11 +748,13 @@ public class FeatureManagerUI
 	}
 
 	public static class licenceDetails {
-		private final Licence licence;
-		long expiry;
+		public final Licence licence;
+		public long expiry;
+		public long displayedExpiry;
 
-		public licenceDetails(long expirey, Licence licence) {
-			this.expiry = expirey;
+		public licenceDetails(long expiry, long displayedExpiry, Licence licence) {
+			this.expiry = expiry;
+			this.displayedExpiry = displayedExpiry;
 			this.licence = licence;
 		}
 		
@@ -769,7 +779,7 @@ public class FeatureManagerUI
 			return null;
 		}
 
-		TreeMap<Long, Licence> mapOrder = new TreeMap<Long, Licence>(
+		TreeMap<Long, Object[]> mapOrder = new TreeMap<Long, Object[]>(
 				Collections.reverseOrder());
 		FeatureDetails[] featureDetails = featman.getFeatureDetails("dvdburn");
 		// if any of the feature details are still valid, we have a full
@@ -777,19 +787,19 @@ public class FeatureManagerUI
 			Licence licence = fd.getLicence();
 			int state = licence.getState();
 			if (state == Licence.LS_ACTIVATION_DENIED) {
-				mapOrder.put(1L, licence);
+				mapOrder.put(1L, new Object[] { licence, Long.valueOf(0) });
 				continue;
 			} else if (state == Licence.LS_CANCELLED) {
-				mapOrder.put(2L, licence);
+				mapOrder.put(2L, new Object[] { licence, Long.valueOf(0) });
 				continue;
 			} else if (state == Licence.LS_INVALID_KEY) {
-				mapOrder.put(3L, licence);
+				mapOrder.put(3L, new Object[] { licence, Long.valueOf(0) });
 				continue;
 			} else if (state == Licence.LS_REVOKED) {
-				mapOrder.put(4L, licence);
+				mapOrder.put(4L, new Object[] { licence, Long.valueOf(0) });
 				continue;
 			} else if (state == Licence.LS_PENDING_AUTHENTICATION) {
-				mapOrder.put(5L, licence);
+				mapOrder.put(6L, new Object[] { licence, Long.valueOf(0) });
 				continue;
 			}
 
@@ -806,14 +816,14 @@ public class FeatureManagerUI
 			if (lValidUntil != null) {
 				minValidUntil = maxValidUntil = lValidUntil.longValue();
 				if (minValidUntil < now) {
-					mapOrder.put(minValidUntil, licence);
+					mapOrder.put(minValidUntil, new Object[] { licence, Long.valueOf(minValidUntil) });
 					continue;
 				}
 			}
 			if (lValidOfflineUntil != null) {
 				long validOfflineUntil = lValidOfflineUntil.longValue();
 				if (validOfflineUntil < now) {
-					mapOrder.put(minValidUntil, licence);
+					mapOrder.put(minValidUntil, new Object[] { licence, Long.valueOf(minValidUntil) });
 					continue;
 				}
 				if (minValidUntil == -1 || validOfflineUntil < minValidUntil) {
@@ -824,7 +834,7 @@ public class FeatureManagerUI
 				}
 			}
 
-			mapOrder.put(maxValidUntil, licence);
+			mapOrder.put(maxValidUntil, new Object[] { licence, minValidUntil });
 		}
 
 		if (mapOrder.size() == 0) {
@@ -832,8 +842,9 @@ public class FeatureManagerUI
 		}
 
 		Long firstKey = mapOrder.firstKey();
-		Licence licence = mapOrder.get(firstKey);
-		return new licenceDetails(firstKey.longValue(), licence);
+		Object[] objects = mapOrder.get(firstKey);
+		Licence licence = (Licence) objects[0];
+		return new licenceDetails(firstKey.longValue(), ((Long) objects[1]).longValue(), licence);
 	}
 	
 	public static boolean isTrialLicence(Licence licence) {

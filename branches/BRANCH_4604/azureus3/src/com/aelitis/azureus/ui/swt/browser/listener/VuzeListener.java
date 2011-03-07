@@ -10,6 +10,7 @@ import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessa
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
+import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI.licenceDetails;
 import com.aelitis.azureus.util.MapUtils;
 
 
@@ -87,13 +88,14 @@ public class VuzeListener
 			String callback = MapUtils.getMapString(decodedMap, "callback", null);
 			
 			if (callback != null) {
-				
-				long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryTimeStamp();
-				if (plusExpiryTimeStamp <= 0) {
+
+				licenceDetails fd = FeatureManagerUI.getFullFeatureDetails();
+				if (fd.expiry == 0) {
 					context.executeInBrowser(callback + "()");
 				} else {
-					long plusRemainingInMS = plusExpiryTimeStamp - SystemTime.getCurrentTime();
-					context.executeInBrowser(callback + "(" + plusRemainingInMS + ")");
+					long ms1 = fd.expiry - SystemTime.getCurrentTime();
+					long ms2 = fd.displayedExpiry - SystemTime.getCurrentTime();
+					context.executeInBrowser(callback + "(" + ms1 + "," + ms2 + ")");
 				}
 				
 			} else {
