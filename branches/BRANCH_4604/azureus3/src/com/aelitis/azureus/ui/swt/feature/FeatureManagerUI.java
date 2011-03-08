@@ -726,7 +726,7 @@ public class FeatureManagerUI
 		licenceDetails fullFeatureDetails = getFullFeatureDetails();
 		long now = SystemTime.getCurrentTime();
 		return fullFeatureDetails != null && fullFeatureDetails.expiry > now
-				&& fullFeatureDetails.displayedExpiry > 0;
+				&& fullFeatureDetails.displayedExpiry > now;
 	}
 
 	public static class licenceDetails {
