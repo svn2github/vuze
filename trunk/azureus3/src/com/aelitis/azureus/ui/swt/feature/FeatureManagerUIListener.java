@@ -40,6 +40,7 @@ public class FeatureManagerUIListener
 	private final static boolean DEBUG = Constants.IS_CVS_VERSION;
 
 	private static final String ID_ACTIVITY_EXPIRING = "ExpiringEntry";
+	private static final String ID_ACTIVITY_OFFLINE = "OfflineExpiredEntry";
 	private static final String ID_ACTIVITY_EXPIRED = "ExpiredEntry";
 
 	private final FeatureManager featman;
@@ -325,42 +326,84 @@ public class FeatureManagerUIListener
 	}
 
 	private static void _buildNotifications() {
-		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryDisplayTimeStamp();
+		long plusDisplayExpiryTimeStamp = FeatureManagerUI.getPlusExpiryDisplayTimeStamp();
+		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryTimeStamp();
 		
 		if (plusExpiryTimeStamp <= 0) {
 			return;
 		}
 		
+		long msDisplayLeft = plusDisplayExpiryTimeStamp - SystemTime.getCurrentTime();
+		long daysDisplayLeft = (long) Math.ceil(msDisplayLeft / 86400000.0);
 		long msLeft = plusExpiryTimeStamp - SystemTime.getCurrentTime();
 		long daysLeft = (long) Math.ceil(msLeft / 86400000.0);
 
-		if (daysLeft > 30) {
+		if (daysLeft > 30 || daysDisplayLeft > 30) {
+			VuzeActivitiesEntry entry1 = VuzeActivitiesManager.getEntryByID(ID_ACTIVITY_EXPIRED);
+			VuzeActivitiesEntry entry2 = VuzeActivitiesManager.getEntryByID(ID_ACTIVITY_EXPIRING);
+			VuzeActivitiesEntry entry3 = VuzeActivitiesManager.getEntryByID(ID_ACTIVITY_OFFLINE);
+			if (entry1 != null || entry2 != null || entry3 != null) {
+				VuzeActivitiesManager.removeEntries(new VuzeActivitiesEntry[] {
+					entry1,
+					entry2,
+					entry3,
+				}, true);
+			}
+
 			return;
 		}
-
+		
+		
 		String s;
 		String id;
-		String ref = "plus_note_" + (daysLeft >= 0 ? "expiring_" : "expired_")
-				+ Math.abs(daysLeft);
+		String ref = "plus_note_" + (daysDisplayLeft >= 0 ? "expiring_" : "expired_")
+				+ Math.abs(daysDisplayLeft);
 		String strA = "TARGET=\"" + MultipleDocumentInterface.SIDEBAR_SECTION_PLUS
 				+ "\" HREF=\"#" + ref + "\"";
 
-		if (daysLeft >= 0) {
-			String msgID = "plus.notificaiton." + ID_ACTIVITY_EXPIRING
-					+ (daysLeft == 1 ? ".s" : ".p");
+		if (daysLeft < 0 && daysDisplayLeft > 0) {
+			// if no days left but our display days > 0, that means we ran out
+			// of offline time and daysDisplayLeft is when the real license expires
+			VuzeActivitiesEntry entry1 = VuzeActivitiesManager.getEntryByID(ID_ACTIVITY_EXPIRED);
+			VuzeActivitiesEntry entry2 = VuzeActivitiesManager.getEntryByID(ID_ACTIVITY_EXPIRING);
+			if (entry1 != null || entry2 != null) {
+				VuzeActivitiesManager.removeEntries(new VuzeActivitiesEntry[] {
+					entry1,
+					entry2
+				}, true);
+			}
+
+			String msgID = "plus.notificaiton." + ID_ACTIVITY_OFFLINE;
 			s = MessageText.getString(msgID, new String[] {
-				"" + daysLeft,
-				strA
+				"" + daysDisplayLeft,
 			});
-			id = ID_ACTIVITY_EXPIRING;
+			id = ID_ACTIVITY_OFFLINE;
+
 		} else {
-			String msgID = "plus.notificaiton." + ID_ACTIVITY_EXPIRED
-					+ (daysLeft == -1 ? ".s" : ".p");
-			s = MessageText.getString(msgID, new String[] {
-				"" + -daysLeft,
-				strA
-			});
-			id = ID_ACTIVITY_EXPIRED;
+			VuzeActivitiesEntry entry3 = VuzeActivitiesManager.getEntryByID(ID_ACTIVITY_OFFLINE);
+			if (entry3 != null) {
+				VuzeActivitiesManager.removeEntries(new VuzeActivitiesEntry[] {
+					entry3,
+				}, true);
+			}
+
+			if (daysDisplayLeft > 0) {
+  			String msgID = "plus.notificaiton." + ID_ACTIVITY_EXPIRING
+  					+ (daysDisplayLeft == 1 ? ".s" : ".p");
+  			s = MessageText.getString(msgID, new String[] {
+  				"" + daysDisplayLeft,
+  				strA
+  			});
+  			id = ID_ACTIVITY_EXPIRING;
+  		} else {
+  			String msgID = "plus.notificaiton." + ID_ACTIVITY_EXPIRED
+  					+ (daysDisplayLeft == -1 ? ".s" : ".p");
+  			s = MessageText.getString(msgID, new String[] {
+  				"" + -daysDisplayLeft,
+  				strA
+  			});
+  			id = ID_ACTIVITY_EXPIRED;
+  		}
 		}
 		VuzeActivitiesEntry entry = VuzeActivitiesManager.getEntryByID(id);
 		if (entry == null) {
@@ -374,7 +417,7 @@ public class FeatureManagerUIListener
 			entry.setID(id);
 			entry.setIconID("image.sidebar.plus");
 
-			if (daysLeft < 0) {
+			if (daysLeft < 0 && daysDisplayLeft < 0) {
 				UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
 						MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
 			}

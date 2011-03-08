@@ -334,10 +334,15 @@ public class FeatureManagerUI
     							} else if (state == Licence.LS_ACTIVATION_DENIED) {
     								soExpirey.setText(MessageText.getString("dlg.auth.enter.denied"));
     							} else {
-      							soExpirey.setText(MessageText.getString("dlg.auth.enter.expiry",
-      									new String[] {
-      										DisplayFormatters.formatCustomDateOnly(details.displayedExpiry)
-      									}));
+    								long now = SystemTime.getCurrentTime();
+    								if (details.expiry < now && details.displayedExpiry > now) {
+    									soExpirey.setText(MessageText.getString("plus.notificaiton.OfflineExpiredEntry"));
+    								} else {
+        							soExpirey.setText(MessageText.getString("dlg.auth.enter.expiry",
+        									new String[] {
+        										DisplayFormatters.formatCustomDateOnly(details.displayedExpiry)
+        									}));
+    								}
     							} 
     						}
     					}
@@ -718,33 +723,10 @@ public class FeatureManagerUI
 			Set<String> featuresInstalled = UtilitiesImpl.getFeaturesInstalled();
 			return featuresInstalled.contains("dvdburn");
 		}
-
-		FeatureDetails[] featureDetails = featman.getFeatureDetails("dvdburn");
-		// if any of the feature details are still valid, we have a full
-		for (FeatureDetails fd : featureDetails) {
-			int state = fd.getLicence().getState();
-			if (state == Licence.LS_CANCELLED || state == Licence.LS_REVOKED) {
-				continue;
-			}
-			long now = SystemTime.getCurrentTime();
-			Long lValidUntil = (Long) fd.getProperty(FeatureDetails.PR_VALID_UNTIL);
-			Long lValidOfflineUntil = (Long) fd.getProperty(FeatureDetails.PR_OFFLINE_VALID_UNTIL);
-			
-			if (lValidUntil == null && lValidOfflineUntil == null) {
-				continue;
-			}
-
-			if (lValidUntil != null && lValidUntil.longValue() < now) {
-				continue;
-			}
-			if (lValidOfflineUntil != null && lValidOfflineUntil.longValue() < now) {
-				continue;
-			}
-
-			return true;
-		}
-
-		return false;
+		licenceDetails fullFeatureDetails = getFullFeatureDetails();
+		long now = SystemTime.getCurrentTime();
+		return fullFeatureDetails != null && fullFeatureDetails.expiry > now
+				&& fullFeatureDetails.displayedExpiry > now;
 	}
 
 	public static class licenceDetails {
@@ -787,19 +769,19 @@ public class FeatureManagerUI
 			Licence licence = fd.getLicence();
 			int state = licence.getState();
 			if (state == Licence.LS_ACTIVATION_DENIED) {
-				mapOrder.put(1L, new Object[] { licence, Long.valueOf(0) });
+				mapOrder.put(-1L, new Object[] { licence, Long.valueOf(0) });
 				continue;
 			} else if (state == Licence.LS_CANCELLED) {
-				mapOrder.put(2L, new Object[] { licence, Long.valueOf(0) });
+				mapOrder.put(-2L, new Object[] { licence, Long.valueOf(0) });
 				continue;
 			} else if (state == Licence.LS_INVALID_KEY) {
-				mapOrder.put(3L, new Object[] { licence, Long.valueOf(0) });
+				mapOrder.put(-3L, new Object[] { licence, Long.valueOf(0) });
 				continue;
 			} else if (state == Licence.LS_REVOKED) {
-				mapOrder.put(4L, new Object[] { licence, Long.valueOf(0) });
+				mapOrder.put(-4L, new Object[] { licence, Long.valueOf(0) });
 				continue;
 			} else if (state == Licence.LS_PENDING_AUTHENTICATION) {
-				mapOrder.put(6L, new Object[] { licence, Long.valueOf(0) });
+				mapOrder.put(-6L, new Object[] { licence, Long.valueOf(0) });
 				continue;
 			}
 
@@ -823,11 +805,8 @@ public class FeatureManagerUI
 			if (lValidOfflineUntil != null) {
 				long validOfflineUntil = lValidOfflineUntil.longValue();
 				if (validOfflineUntil < now) {
-					mapOrder.put(minValidUntil, new Object[] { licence, Long.valueOf(minValidUntil) });
+					mapOrder.put(validOfflineUntil, new Object[] { licence, Long.valueOf(maxValidUntil) });
 					continue;
-				}
-				if (minValidUntil == -1 || validOfflineUntil < minValidUntil) {
-					minValidUntil = validOfflineUntil;
 				}
 				if (maxValidUntil == -1 || validOfflineUntil > maxValidUntil) {
 					maxValidUntil = validOfflineUntil;
