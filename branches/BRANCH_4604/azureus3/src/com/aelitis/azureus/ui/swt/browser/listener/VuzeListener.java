@@ -90,7 +90,7 @@ public class VuzeListener
 			if (callback != null) {
 
 				licenceDetails fd = FeatureManagerUI.getFullFeatureDetails();
-				if (fd.expiry == 0) {
+				if (fd == null || fd.expiry == 0) {
 					context.executeInBrowser(callback + "()");
 				} else {
 					long ms1 = fd.expiry - SystemTime.getCurrentTime();
