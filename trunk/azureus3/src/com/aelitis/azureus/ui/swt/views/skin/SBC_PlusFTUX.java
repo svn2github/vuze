@@ -103,7 +103,14 @@ public class SBC_PlusFTUX
 	}
 
 	private void buildURL(boolean forceSet) {
-		String suffix = "?sourceRef=" + UrlUtils.encode(sRef + "-/plus/ftux");
+		String sRef2;
+		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryDisplayTimeStamp();
+		if (plusExpiryTimeStamp > 0 && plusExpiryTimeStamp < SystemTime.getCurrentTime()) {
+			sRef2 = "-/plus/renew";
+		} else {
+			sRef2 = "-/plus/ftux";
+		}
+		String suffix = "?sourceRef=" + UrlUtils.encode(sRef + sRef2);
 		String newUrl = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
 				"plus-ftux.start" + suffix, false);
 		newUrl = FeatureManagerUI.appendFeatureManagerURLParams(newUrl);
