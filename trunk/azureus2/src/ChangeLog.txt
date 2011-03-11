@@ -1,7 +1,11 @@
 VUZE CHANGELOG
 -----------------
 
-2011.0x.0x | Vuze 4.6.0.3
+2011.0x.0x | Vuze 4.6.0.5
+
+
+
+2011.03.10 | Vuze 4.6.0.4
 
 CHANGE: UIv3  | Better messaging for Plus users on license expiry
 CHANGE: UI    | 50% faster table redraw on Windows when cell value changes [TuxPaper]
