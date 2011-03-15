@@ -1,7 +1,6 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.net.URL;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -28,10 +27,12 @@ import org.gudy.azureus2.ui.swt.components.BufferedTruncatedLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 public class ScrapeInfoView
-	extends AbstractIView
-	implements IViewExtension
+	implements UISWTViewCoreEventListener
 {
 	private DownloadManager manager;
 
@@ -52,15 +53,13 @@ public class ScrapeInfoView
 
 	private long lastRefreshSecs;
 
-	public ScrapeInfoView(DownloadManager dm) {
-		this.manager = dm;
+	private UISWTView swtView;
+
+	private String getFullTitle() {
+		return MessageText.getString("ScrapeInfoView.title");
 	}
 
-	public String getData() {
-		return "ScrapeInfoView.title";
-	}
-
-	public void initialize(Composite parent) {
+	private void initialize(Composite parent) {
 		cParent = parent;
 		Label label;
 		GridData gridData;
@@ -125,10 +124,10 @@ public class ScrapeInfoView
 					return;
 				}
 
-				List group = TorrentUtils.announceGroupsToList(torrent);
+				List<List<String>> group = TorrentUtils.announceGroupsToList(torrent);
 
 				new MultiTrackerEditor(null, group, new TrackerEditorListener() {
-					public void trackersChanged(String str, String str2, List _group) {
+					public void trackersChanged(String str, String str2, List<List<String>> _group) {
 						TorrentUtils.listToAnnounceGroups(_group, torrent);
 
 						try {
@@ -187,19 +186,17 @@ public class ScrapeInfoView
 						|| cScrapeInfoView.isDisposed()) {
 					return;
 				}
-				List groups = TorrentUtils.announceGroupsToList(manager.getTorrent());
+				List<List<String>> groups = TorrentUtils.announceGroupsToList(manager.getTorrent());
 				menuSelect = new Menu(cScrapeInfoView.getShell(), SWT.DROP_DOWN);
 				itemSelect.setMenu(menuSelect);
-				Iterator iterGroups = groups.iterator();
-				while (iterGroups.hasNext()) {
-					List trackers = (List) iterGroups.next();
+				
+				for (List<String> trackers : groups) {
 					MenuItem menuItem = new MenuItem(menuSelect, SWT.CASCADE);
 					Messages.setLanguageText(menuItem, "wizard.multitracker.group");
 					Menu menu = new Menu(cScrapeInfoView.getShell(), SWT.DROP_DOWN);
 					menuItem.setMenu(menu);
-					Iterator iterTrackers = trackers.iterator();
-					while (iterTrackers.hasNext()) {
-						String url = (String) iterTrackers.next();
+					
+					for (String url : trackers) {
 						MenuItem menuItemTracker = new MenuItem(menu, SWT.CASCADE);
 						menuItemTracker.setText(url);
 						menuItemTracker.addListener(SWT.Selection, menuListener);
@@ -274,8 +271,10 @@ public class ScrapeInfoView
 
 	}
 
-	public void refresh() {
-		super.refresh();
+	private void refresh() {
+		if (manager == null) {
+			return;
+		}
 
 		long thisRefreshSecs = SystemTime.getCurrentTime() / 1000;
 		if (lastRefreshSecs != thisRefreshSecs) {
@@ -284,18 +283,8 @@ public class ScrapeInfoView
 		}
 	}
 
-	public Composite getComposite() {
+	private Composite getComposite() {
 		return cScrapeInfoView;
-	}
-
-	public Menu getPrivateMenu() {
-		return null;
-	}
-
-	public void viewActivated() {
-	}
-
-	public void viewDeactivated() {
 	}
 
 	private void setTracker() {
@@ -397,7 +386,7 @@ public class ScrapeInfoView
 		cScrapeInfoView.layout();
 	}
 
-	public void setDownlaodManager(DownloadManager dm) {
+	private void setDownlaodManager(DownloadManager dm) {
 		manager = dm;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -412,4 +401,42 @@ public class ScrapeInfoView
 		});
 	}
 
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        //delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	Object ds = event.getData();
+      	if (ds instanceof DownloadManager) {
+					DownloadManager dm = (DownloadManager) ds;
+					setDownlaodManager(dm);
+				}
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
 }

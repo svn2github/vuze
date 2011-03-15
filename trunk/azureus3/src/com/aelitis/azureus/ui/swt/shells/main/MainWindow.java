@@ -38,12 +38,12 @@ import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
 import org.gudy.azureus2.plugins.sharing.ShareException;
@@ -60,14 +60,15 @@ import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestSelector;
-import org.gudy.azureus2.ui.swt.views.IView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
@@ -378,6 +379,7 @@ public class MainWindow
 		}
 
 		if (!Constants.isSafeMode) {
+			
 			if (core.getTrackerHost().getTorrents().length > 0) {
 				Utils.execSWTThreadLater(0, new Runnable() {
 					public void run() {
@@ -897,7 +899,7 @@ public class MainWindow
 				postPluginSetup(core);
 			}
 
-			System.out.println("vuzeactivities init took "
+			System.out.println("postPluginSetup init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
 			startTime = SystemTime.getCurrentTime();
 
@@ -943,7 +945,8 @@ public class MainWindow
 		}
 		// XXX Disabled because plugin update window will pop up and take control
 		// 		 of the dispatch loop..
-		if (false && Utils.isThisThreadSWT()) {
+		/*
+		if (Utils.isThisThreadSWT()) {
 			// clean the dispatch loop so the splash screen gets updated
 			int i = 1000;
 			while (display.readAndDispatch() && i > 0) {
@@ -953,6 +956,7 @@ public class MainWindow
 			//	System.out.println("dispatched " + (1000 - i));
 			//}
 		}
+		*/
 	}
 
 	@SuppressWarnings("deprecation")
@@ -1488,7 +1492,8 @@ public class MainWindow
 							Shell[] shells = shell.getDisplay().getShells();
 							for (int i = 0; i < shells.length; i++) {
 								if (shells[i] != shell) {
-									if (wasVisibleList.contains(shells[i])) {
+									if (wasVisibleList != null
+											&& wasVisibleList.contains(shells[i])) {
 										shells[i].setVisible(visible);
 									}
 									shells[i].setFocus();
@@ -2130,7 +2135,7 @@ public class MainWindow
 		if (mapTrackUsage != null) {
 			mapTrackUsage_mon.enter();
 			try {
-				Long currentLength = (Long) mapTrackUsage.get(id);
+				Long currentLength = mapTrackUsage.get(id);
 				long newLength;
 				if (currentLength == null) {
 					newLength = value;
@@ -2344,7 +2349,8 @@ public class MainWindow
 	 *
 	 * @since 3.1.1.1
 	 */
-	public void openView(final String parentID, final Class<?> cla, String id,
+	public void openView(final String parentID,
+			final Class<? extends UISWTViewEventListener> cla, String id,
 			final Object data, final boolean closeable) {
 		final MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		if (mdi == null) {
@@ -2359,8 +2365,9 @@ public class MainWindow
 			}
 		}
 
-		IView viewFromID = mdi.getIViewFromID(id);
+		UISWTViewCore viewFromID = mdi.getCoreViewFromID(id);
 		if (viewFromID != null) {
+			viewFromID.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, data);
 			mdi.showEntryByID(id);
 		}
 
@@ -2371,29 +2378,25 @@ public class MainWindow
 				if (mdi.showEntryByID(_id)) {
 					return;
 				}
-				if (UISWTViewEventListener.class.isAssignableFrom(cla)) {
-					UISWTViewEventListener l = null;
-					try {
-						Constructor<?> constructor = cla.getConstructor(new Class[] {
-							data.getClass()
-						});
-						l = (UISWTViewEventListener) constructor.newInstance(new Object[] {
-							data
-						});
-					} catch (Exception e) {
+				UISWTViewEventListener l = null;
+				try {
+					Constructor<?> constructor = cla.getConstructor(new Class[] {
+						data.getClass()
+					});
+					l = (UISWTViewEventListener) constructor.newInstance(new Object[] {
+						data
+					});
+				} catch (Exception e) {
+				}
+
+				try {
+					if (l == null) {
+						l = cla.newInstance();
 					}
-					try {
-						if (l == null) {
-							l = (UISWTViewEventListener) cla.newInstance();
-						}
-						mdi.createEntryFromEventListener(parentID, l, _id, closeable,
-								data);
-					} catch (Exception e) {
-						Debug.out(e);
-					}
-				} else {
-					mdi.createEntryFromIViewClass(parentID, _id, null, cla,
-							null, null, data, null, true);
+					mdi.createEntryFromEventListener(parentID, l, _id, closeable,
+							data);
+				} catch (Exception e) {
+					Debug.out(e);
 				}
 				mdi.showEntryByID(_id);
 			}
@@ -2412,7 +2415,7 @@ public class MainWindow
 				newEntry.getId());
 
 		if (mapTrackUsage != null && oldEntry != null) {
-			oldEntry.removeListener((MdiEntryLogIdListener) this);
+			oldEntry.removeListener(this);
 
 			String id2 = null;
 			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
@@ -2427,7 +2430,7 @@ public class MainWindow
 		}
 
 		if (mapTrackUsage != null) {
-			newEntry.addListener((MdiEntryLogIdListener) this);
+			newEntry.addListener(this);
 		}
 	}
 

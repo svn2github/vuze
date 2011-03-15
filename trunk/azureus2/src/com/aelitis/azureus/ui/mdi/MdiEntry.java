@@ -18,6 +18,8 @@
  
 package com.aelitis.azureus.ui.mdi;
 
+import org.gudy.azureus2.plugins.ui.UIPluginView;
+
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 
@@ -36,11 +38,9 @@ public interface MdiEntry
 
 	public boolean isCloseable();
 
-	public Class<?> getIViewClass();
+	public Class<? extends UIPluginView> getViewClass();
 
-	public Class<?>[] getIViewClassArgs();
-
-	public Object[] getIViewClassVals();
+	public UIPluginView getView();
 
 	public String getId();
 

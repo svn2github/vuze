@@ -31,8 +31,12 @@ import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.views.utils.CoordinateTransform;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
@@ -42,8 +46,7 @@ import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
  * @create 02.10.2007
  */
 public abstract class PieceDistributionView
-	extends AbstractIView
-	implements IViewExtension
+	implements UISWTViewCoreEventListener
 {
 	private Composite		comp;
 	private Canvas			pieceDistCanvas;
@@ -55,6 +58,7 @@ public abstract class PieceDistributionView
 	protected boolean		isMe		= false;
 	private boolean			initialized	= false;
 	private Image imgToPaint = null;
+	private UISWTView swtView;
 	
 	/**
 	 * implementors of this method must provide an appropriate peer manager and
@@ -62,17 +66,11 @@ public abstract class PieceDistributionView
 	 */
 	abstract public void dataSourceChanged(Object newDataSource);
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#getData()
-	 */
-	public String getData() {
-		return "PiecesView.DistributionView.title";
+	private String getFullTitle() {
+		return MessageText.getString("PiecesView.DistributionView.title");
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#initialize(org.eclipse.swt.widgets.Composite)
-	 */
-	public void initialize(Composite parent) {
+	private void initialize(Composite parent) {
 		comp = new Composite(parent,SWT.NONE);
 		createPieceDistPanel();
 		initialized = true;
@@ -109,7 +107,7 @@ public abstract class PieceDistributionView
 		final int upperBound = 1 + (1 << (int) Math.ceil(Math.log(connected + 0.0) / Math.log(2.0)));
 		// System.out.println("conn:"+connected+" bound:"+upperBound);
 		final int minAvail = (int) picker.getMinAvailability();
-		final int maxAvail = picker.getMaxAvailability();
+		//final int maxAvail = picker.getMaxAvailability();
 		final int nbPieces = picker.getNumberOfPieces();
 		final int[] availabilties = picker.getAvailability();
 		final DiskManagerPiece[] dmPieces = pem.getDiskManager().getPieces();
@@ -121,7 +119,7 @@ public abstract class PieceDistributionView
 		final boolean[] downloading = new boolean[upperBound];
 		
 		int avlPeak = 0;
-		int avlPeakIdx = -1;
+		//int avlPeakIdx = -1;
 		
 		for (int i = 0; i < nbPieces; i++)
 		{
@@ -131,7 +129,7 @@ public abstract class PieceDistributionView
 			if (avlPeak < (newPeak = ++globalPiecesPerAvailability[availabilties[i]]))
 			{
 				avlPeak = newPeak;
-				avlPeakIdx = availabilties[i];
+				//avlPeakIdx = availabilties[i];
 			}
 			if ((isMe && dmPieces[i].isDone()) || (!isMe && hasPieces != null && hasPieces[i]))
 				++datasourcePiecesPerAvailability[availabilties[i]];
@@ -275,38 +273,64 @@ public abstract class PieceDistributionView
 		if (!initialized || pem == null)
 			return;
 		updateDistribution();
-		super.refresh();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#getComposite()
-	 */
-	public Composite getComposite() {
+	private Composite getComposite() {
 		return comp;
 	}
 
-	/*
-	 * (non-Javadoc)
-	 * 
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#delete()
-	 */
-	public void delete() {
+	private void delete() {
 		if (!initialized)
 			return;
 		initialized = false;
 		Utils.disposeSWTObjects(new Object[] { pieceDistCanvas, comp, imgToPaint });
-		super.delete();
 	}
 	
-	public Menu getPrivateMenu() {
-		return null;
-	}
-	
-	public void viewActivated() {
+	private void viewActivated() {
 		updateDistribution();
 	}
 	
-	public void viewDeactivated() {
+	private void viewDeactivated() {
 		Utils.disposeSWTObjects(new Object[] { imgToPaint });
 	}
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	dataSourceChanged(event.getData());
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	viewActivated();
+      	break;
+        
+      case UISWTViewEvent.TYPE_FOCUSLOST:
+      	viewDeactivated();
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
 }

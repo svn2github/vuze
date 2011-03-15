@@ -63,7 +63,9 @@ import org.gudy.azureus2.ui.swt.components.graphics.Plot3D;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
 import org.gudy.azureus2.ui.swt.components.graphics.ValueFormater;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
@@ -77,7 +79,10 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
 /**
  * 
  */
-public class TransferStatsView extends AbstractIView {
+public class TransferStatsView
+	implements PeriodicViewUpdate, UISWTViewCoreEventListener
+{
+	public static final String MSGID_PREFIX = "SpeedView";
 
 	private static final int MAX_DISPLAYED_PING_MILLIS	= 1200;
 	
@@ -115,6 +120,8 @@ public class TransferStatsView extends AbstractIView {
 	private final DecimalFormat formatter = new DecimalFormat( "##.#" );
   
 	private boolean	initialised;
+
+	private UISWTView swtView;
   
   
   public TransferStatsView() {
@@ -126,10 +133,11 @@ public class TransferStatsView extends AbstractIView {
 				totalStats = StatsFactory.getStats();
 			}
 		});
+    pingGraph = PingGraphic.getInstance();
     
   }
   
-  public void initialize(Composite composite) {
+  private void initialize(Composite composite) {
     
     mainPanel = new Composite(composite,SWT.NULL);
     GridLayout mainLayout = new GridLayout();
@@ -394,7 +402,6 @@ public class TransferStatsView extends AbstractIView {
     gridData.horizontalSpan = 4;
     pingCanvas.setLayoutData(gridData);
     
-    pingGraph = PingGraphic.getInstance();
     pingGraph.initialize(pingCanvas);
     
     TabFolder folder = new TabFolder(autoSpeedInfoPanel, SWT.LEFT);
@@ -485,7 +492,7 @@ public class TransferStatsView extends AbstractIView {
     		gridData );
   }
   
-  public void delete() {
+  private void delete() {
 		Utils.disposeComposite(generalPanel);
 		Utils.disposeComposite(blahPanel);
 		
@@ -516,17 +523,13 @@ public class TransferStatsView extends AbstractIView {
 		}
 	}
 
-  public String getFullTitle() {
-    return MessageText.getString("SpeedView.title.full"); //$NON-NLS-1$
-  }
-  
-  public Composite getComposite() {
+  private Composite getComposite() {
     return mainPanel;
   }
   
   
   
-  public void refresh() {
+  private void refresh() {
 
 	  if ( !initialised ){
 		  return;
@@ -707,6 +710,9 @@ public class TransferStatsView extends AbstractIView {
     }  
   }
   
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.ui.swt.views.stats.PeriodicViewUpdate#periodicUpdate()
+   */
   public void periodicUpdate() {
   	if (speedManager == null) {
   		return;
@@ -724,22 +730,23 @@ public class TransferStatsView extends AbstractIView {
         }
         pingGraph.addIntsValue(pings);
         
-        for (int i=0;i<plot_views.length;i++){
-        	
-        	plot_views[i].update();
+        if (plot_views != null) {
+          for (int i=0;i<plot_views.length;i++){
+          	
+          	plot_views[i].update();
+          }
         }
         
-        for (int i=0;i<zone_views.length;i++){
-        	
-        	zone_views[i].update();
+        if (zone_views != null) {
+          for (int i=0;i<zone_views.length;i++){
+          	
+          	zone_views[i].update();
+          }
         }
       }
     }
   }
   
-  public String getData() {
-    return "TransferStatsView.title.full";
-  }
 
   protected String
   getMapperTitle(
@@ -959,7 +966,7 @@ public class TransferStatsView extends AbstractIView {
 				  double x_ratio = (double)usable_width/max_x;
 				  double y_ratio = (double)usable_height/max_y;
 				  
-				  List	texts = new ArrayList();
+				  List<Object[]>	texts = new ArrayList<Object[]>();
 				  
 				  for (int i=0;i<zones.length;i++){
 		
@@ -1008,11 +1015,11 @@ public class TransferStatsView extends AbstractIView {
 									
 							  	// check for overlap with existing and delete older
 							  
-							  Iterator it = texts.iterator();
+							  Iterator<Object[]> it = texts.iterator();
 							  
 							  while( it.hasNext()){
 								  
-								  Object[]	old = (Object[])it.next();
+								  Object[]	old = it.next();
 								  
 								  Rectangle old_coords = (Rectangle)old[1];
 								  
@@ -1033,7 +1040,7 @@ public class TransferStatsView extends AbstractIView {
 				  
 				  for (int i=(text_num>100?(text_num-100):0);i<text_num;i++){
 					  
-					  Object[]	entry = (Object[])texts.get(i);
+					  Object[]	entry = texts.get(i);
 					  
 					  String	str = String.valueOf(entry[0]);
 					  
@@ -1417,6 +1424,39 @@ public class TransferStatsView extends AbstractIView {
 	  {
 		  return( msg_unlimited );
 	  }
+  }
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(MessageText.getString(MSGID_PREFIX + ".title.full"));
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
   }
 }
 

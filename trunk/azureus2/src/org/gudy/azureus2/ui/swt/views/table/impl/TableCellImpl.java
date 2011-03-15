@@ -39,7 +39,6 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
-import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.*;
@@ -729,14 +728,7 @@ public class TableCellImpl
       }
     }
 
-    if (img instanceof GraphicSWT){
-    	Image imgSWT = ((GraphicSWT)img).getImage();
-    	boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
-      if (b) {
-      	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
-  			bufferedTableItem.redraw();
-      }
-    } else if (img instanceof UISWTGraphic){
+    if (img instanceof UISWTGraphic){
     	Image imgSWT = ((UISWTGraphic)img).getImage();
     	boolean b = ((BufferedGraphicTableItem)bufferedTableItem).setGraphic(imgSWT);
       if (b) {

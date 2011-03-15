@@ -24,6 +24,8 @@ import com.aelitis.azureus.ui.common.table.TableRowCore;
 import org.eclipse.swt.graphics.*;
 
 /**
+ * SWT specifics interfaces for TableRow
+ * 
  * @author TuxPaper
  * @created Jan 22, 2007
  *

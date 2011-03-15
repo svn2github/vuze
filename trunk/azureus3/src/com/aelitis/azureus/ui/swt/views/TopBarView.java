@@ -36,10 +36,9 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
-import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -61,15 +60,17 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 public class TopBarView
 	extends SkinView
 {
-	private List topbarViews = new ArrayList();
+	private List<UISWTViewCore> topbarViews = new ArrayList<UISWTViewCore>();
 
-	private IView activeTopBar;
+	private UISWTViewCore activeTopBar;
 
 	private SWTSkin skin;
 
 	private org.eclipse.swt.widgets.List listPlugins;
 
 	private Composite cPluginArea;
+
+	private static boolean registeredCoreSubViews = false;
 
 	
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
@@ -112,11 +113,6 @@ public class TopBarView
 		}
 
 		try {
-			IView[] coreTopBarViews = {
-				new ViewDownSpeedGraph(),
-				new ViewUpSpeedGraph(),
-				new VivaldiView(false)
-			};
 
 			cPluginArea = (Composite) skinObject.getControl();
 
@@ -125,9 +121,9 @@ public class TopBarView
 					Object[] views = topbarViews.toArray();
 					for (int i = 0; i < views.length; i++) {
 						try {
-							IView view = (IView) views[i];
+							UISWTViewCore view = (UISWTViewCore) views[i];
 							if (view.getComposite().isVisible()) {
-								view.refresh();
+								view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
 							}
 						} catch (Exception e) {
 							Debug.out(e);
@@ -156,8 +152,10 @@ public class TopBarView
 					Object[] views = topbarViews.toArray();
 					topbarViews.clear();
 					for (int i = 0; i < views.length; i++) {
-						IView view = (IView) views[i];
-						view.delete();
+						UISWTViewCore view = (UISWTViewCore) views[i];
+						if (view != null) {
+							view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
+						}
 					}
 				}
 			});
@@ -177,7 +175,7 @@ public class TopBarView
 						if (i < 0) {
 							i = topbarViews.size() - 1;
 						}
-						activateTopBar((IView) topbarViews.get(i));
+						activateTopBar((UISWTViewCore) topbarViews.get(i));
 					}
 				});
 			}
@@ -196,7 +194,7 @@ public class TopBarView
 						if (i >= topbarViews.size()) {
 							i = 0;
 						}
-						activateTopBar((IView) topbarViews.get(i));
+						activateTopBar((UISWTViewCore) topbarViews.get(i));
 					}
 				});
 			}
@@ -221,7 +219,7 @@ public class TopBarView
 								transform.rotate(270);
 								e.gc.setTransform(transform);
 
-								String s = activeTopBar.getShortTitle();
+								String s = activeTopBar.getFullTitle();
 								Point size = e.gc.textExtent(s);
 								e.gc.drawText(s, -size.x, 0, true);
 								//e.gc.drawText(s, 0,0, true);
@@ -247,7 +245,7 @@ public class TopBarView
 					public void widgetSelected(SelectionEvent e) {
 						int i = listPlugins.getSelectionIndex();
 						if (i >= 0 && i < topbarViews.size()) {
-							activateTopBar((IView) topbarViews.get(i));
+							activateTopBar((UISWTViewCore) topbarViews.get(i));
 							COConfigurationManager.setParameter("topbar.viewindex", i);
 						}
 					}
@@ -321,28 +319,29 @@ public class TopBarView
 			int toActiveView = COConfigurationManager.getIntParameter(
 					"topbar.viewindex", 0);
 			int viewIndex = toActiveView;
-			for (int i = 0; i < coreTopBarViews.length; i++) {
-				IView view = coreTopBarViews[i];
-				addTopBarView(view, cPluginArea);
-				if (toActiveView-- == 0) {
-					activateTopBar(view);
-					if (listPlugins != null) {
-						listPlugins.setSelection(viewIndex);
-					}
-				}
-			}
 
 			UISWTInstanceImpl uiSWTinstance = (UISWTInstanceImpl) UIFunctionsManagerSWT.getUIFunctionsSWT().getUISWTInstance();
-			Map pluginViews = null;
-			pluginViews = uiSWTinstance.getViewListeners(UISWTInstance.VIEW_TOPBAR);
+			
+			if (uiSWTinstance != null && !registeredCoreSubViews ) {
+				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "ViewDownSpeedGraph",
+						new ViewDownSpeedGraph());
+				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "ViewUpSpeedGraph",
+						new ViewUpSpeedGraph());
+				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "ViewDownSpeedGraph",
+						new VivaldiView(false));
+
+				registeredCoreSubViews = true;
+			}
+
+			Map<String,UISWTViewEventListenerHolder> pluginViews = uiSWTinstance.getViewListeners(UISWTInstance.VIEW_TOPBAR);
 			if (pluginViews != null) {
-				String[] sNames = (String[]) pluginViews.keySet().toArray(new String[0]);
+				String[] sNames = pluginViews.keySet().toArray(new String[0]);
 				for (int i = 0; i < sNames.length; i++) {
-					UISWTViewEventListener l = (UISWTViewEventListener) pluginViews.get(sNames[i]);
+					UISWTViewEventListener l = pluginViews.get(sNames[i]);
 					if (l != null) {
 						try {
 							UISWTViewImpl view = new UISWTViewImpl(UISWTInstance.VIEW_TOPBAR,
-									sNames[i], l);
+									sNames[i], l, null);
 							addTopBarView(view, cPluginArea);
 							if (toActiveView-- == 0) {
 								activateTopBar(view);
@@ -359,7 +358,7 @@ public class TopBarView
 			}
 
 			if (toActiveView >= 0 && topbarViews.size() > 0) {
-				activeTopBar = (IView) topbarViews.get(0);
+				activeTopBar = (UISWTViewCore) topbarViews.get(0);
 				activeTopBar.getComposite().setVisible(true);
 			}
 
@@ -374,7 +373,7 @@ public class TopBarView
 	 *
 	 * @since 3.0.1.1
 	 */
-	protected void activateTopBar(IView view) {
+	protected void activateTopBar(UISWTViewCore view) {
 		if (activeTopBar != null) {
 			Composite c = activeTopBar.getComposite();
 			while (c.getParent() != cPluginArea) {
@@ -401,7 +400,7 @@ public class TopBarView
 	 *
 	 * @since 3.0.1.1
 	 */
-	private void addTopBarView(IView view, Composite composite) {
+	private void addTopBarView(UISWTViewCore view, Composite composite) {
 		Composite parent = new Composite(composite, SWT.None);
 		parent.setLayoutData(Utils.getFilledFormData());
 		parent.setLayout(new FormLayout());

@@ -29,15 +29,16 @@ import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
-import org.gudy.azureus2.core3.stats.transfer.OverallStats;
-import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
@@ -51,7 +52,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
  *
  */
 public class ViewDownSpeedGraph
-	extends AbstractIView
+	implements UISWTViewCoreEventListener
 {
 
 	GlobalManager manager = null;
@@ -65,6 +66,8 @@ public class ViewDownSpeedGraph
 	TimerEventPeriodic	timerEvent;
 	
 	private boolean everRefreshed = false;
+
+	private UISWTView swtView;
 	
 	public ViewDownSpeedGraph() {
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
@@ -75,7 +78,7 @@ public class ViewDownSpeedGraph
 		});
 	}
 
-	public void periodicUpdate() {
+	private void periodicUpdate() {
 		if (manager == null || stats == null) {
 			return;
 		}
@@ -90,7 +93,7 @@ public class ViewDownSpeedGraph
 		});
 	}
 
-	public void initialize(Composite composite) {
+	private void initialize(Composite composite) {
 		GridData gridData;
 
 		downSpeedCanvas = new Canvas(composite, SWT.DOUBLE_BUFFERED);
@@ -112,22 +115,22 @@ public class ViewDownSpeedGraph
 				skinProperties.getColor("color.topbar.speed.trimmed"));
 	}
 
-	public void delete() {
+	private void delete() {
 		Utils.disposeComposite(downSpeedCanvas);
 		downSpeedGraphic.dispose();
 	}
 
-	public String getFullTitle() {
+	private String getFullTitle() {
 		return "DL Speed";
 	}
 	
 	
 
-	public Composite getComposite() {
+	private Composite getComposite() {
 		return downSpeedCanvas;
 	}
 
-	public void refresh() {
+	private void refresh() {
 		if (!everRefreshed) {
 			everRefreshed = true;
 			timerEvent = SimpleTimer.addPeriodicEvent("TopBarSpeedGraphicView", 1000, new TimerEventPerformer() {
@@ -143,7 +146,31 @@ public class ViewDownSpeedGraph
 		downSpeedGraphic.refresh();
 	}
 
-	public String getData() {
-		return "SpeedView.title.full";
-	}
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
 }

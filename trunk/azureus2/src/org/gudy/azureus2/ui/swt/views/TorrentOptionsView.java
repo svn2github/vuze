@@ -23,7 +23,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.util.*;
-import java.util.List;
+import java.util.Map.Entry;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Font;
@@ -37,24 +37,25 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
-import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.global.GlobalManagerFactory;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.config.generic.GenericBooleanParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
 TorrentOptionsView
-	extends AbstractIView
-	implements DownloadManagerStateAttributeListener
+	implements DownloadManagerStateAttributeListener, UISWTViewCoreEventListener
 {
 	private static final String	TEXT_PREFIX	= "TorrentOptionsView.param.";
 	
@@ -62,6 +63,8 @@ TorrentOptionsView
 	
 	private static final String	MAX_UPLOAD		= "max.upload";
 	private static final String	MAX_DOWNLOAD	= "max.download";
+
+	public static final String MSGID_PREFIX = "TorrentOptionsView";
 	
 	private boolean						multi_view;
 	private DownloadManager[]			managers;
@@ -69,13 +72,15 @@ TorrentOptionsView
 	private GenericParameterAdapter	ds_param_adapter	= new downloadStateParameterAdapter();
 	private GenericParameterAdapter	adhoc_param_adapter	= new adhocParameterAdapter();
 	
-	private Map adhoc_parameters	= new HashMap();
-	private Map	ds_parameters 		= new HashMap();
+	private Map<String, Object> adhoc_parameters	= new HashMap<String, Object>();
+	private Map<String, Object>	ds_parameters 		= new HashMap<String, Object>();
 	
 	private Composite 			panel;
 	private Font 				headerFont;
 
 	private Composite parent;
+
+	private UISWTView swtView;
 	
 	public
 	TorrentOptionsView()
@@ -89,7 +94,7 @@ TorrentOptionsView
 		dataSourceChanged(managers2);
 	}
 
-	public void 
+	private void 
 	initialize(
 		Composite composite) 
 	{
@@ -380,7 +385,7 @@ TorrentOptionsView
 	protected void
 	setDefaults()
 	{
-		Iterator	it = ds_parameters.keySet().iterator();
+		Iterator<?>	it = ds_parameters.keySet().iterator();
 		
 		while( it.hasNext()){
 						
@@ -410,14 +415,17 @@ TorrentOptionsView
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener#attributeEventOccurred(org.gudy.azureus2.core3.download.DownloadManager, java.lang.String, int)
+	 */
 	public void attributeEventOccurred(DownloadManager dm, String attribute_name, int event_type) {
 		final DownloadManagerState state = dm.getDownloadState();
 		Utils.execSWTThread(new Runnable() {
 			public void	run() {
-				Iterator it = ds_parameters.entrySet().iterator();
+				Iterator<Entry<String, Object>> it = ds_parameters.entrySet().iterator();
 				while (it.hasNext()) {
-					Map.Entry	entry = (Map.Entry)it.next();
-					String	key 	= (String)entry.getKey();
+					Map.Entry<String, Object>	entry = it.next();
+					String	key 	= entry.getKey();
 					Object	param 	= entry.getValue();
 								
 					if (param instanceof GenericIntParameter) {
@@ -436,29 +444,21 @@ TorrentOptionsView
 		}, true);
 	}
 	
-	public Composite 
+	private Composite 
 	getComposite() 
 	{
 		return panel;
 	}
 	
-	public String 
+	private String 
 	getFullTitle() 
 	{
 		return MessageText.getString( multi_view?"TorrentOptionsView.multi.title.full":"TorrentOptionsView.title.full");
 	}
 
-	public String 
-	getData() 
-	{
-		return multi_view?"TorrentOptionsView.multi.title.short":"TorrentOptionsView.title.short";
-	}
-	
-	public void 
+	private void 
 	delete()
 	{
-		super.delete();
-		
 		if ( headerFont != null ){
 			
 			headerFont.dispose();
@@ -648,8 +648,7 @@ TorrentOptionsView
 		}
 	}
 	
-	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#dataSourceChanged(java.lang.Object)
-	public void dataSourceChanged(Object newDataSource) {
+	private void dataSourceChanged(Object newDataSource) {
 		if (newDataSource instanceof DownloadManager) {
 			multi_view = false;
 			managers = new DownloadManager[] { (DownloadManager) newDataSource };
@@ -665,4 +664,38 @@ TorrentOptionsView
 			});
 		}
 	}
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	dataSourceChanged(event.getData());
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        break;
+    }
+
+    return true;
+  }
 }

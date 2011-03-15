@@ -50,15 +50,11 @@ import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.ui.swt.PropertiesWindow;
-import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -80,7 +76,6 @@ import com.aelitis.azureus.ui.swt.devices.add.*;
 import com.aelitis.azureus.ui.swt.devices.add.DeviceTemplateChooser.DeviceTemplateClosedListener;
 import com.aelitis.azureus.ui.swt.devices.add.ManufacturerChooser.ClosedListener;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
-import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionMDIEntry.SubsMenuItemListener;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
@@ -2205,14 +2200,8 @@ DeviceManagerUI
 
 			}else{
 				
-				entry = mdi.createEntryFromIView(
-						parent, 
-						view,
-						key, 
-						device, 
-						false, 
-						false,
-						true );
+				entry = mdi.createEntryFromEventListener(parent, view, key, false,
+						device);
 				entry.setExpanded(true);
 			}
 			
@@ -3245,34 +3234,28 @@ DeviceManagerUI
 	{
 		String key = "Device_" + category_title + ":" + nextSidebarID();
 		
-		categoryView view;
+		categoryView eventListener;
 		
 		if ( device_type == Device.DT_INTERNET ){
 			
-			view = new DeviceInternetView( this, category_title );
+			eventListener = new DeviceInternetView( this, category_title );
 					
 		}else{
 			
-			view = new categoryViewGeneric( this, device_type, category_title );
+			eventListener = new categoryViewGeneric( this, device_type, category_title );
 		}
 		
-		MdiEntry	entry = 
-			mdi.createEntryFromIView(
-				SideBar.SIDEBAR_HEADER_DEVICES, 
-				view,
-				key, 
-				new Integer( device_type ), 
-				false, 
-				false,
-				true );
+		MdiEntry entry = mdi.createEntryFromEventListener(
+				SideBar.SIDEBAR_HEADER_DEVICES, eventListener, key, false, new Integer(
+						device_type));
 
 		addDefaultDropListener( entry );
 		
 		entry.setImageLeftID( category_image_id );
 				
-		view.setDetails( entry, key );
+		eventListener.setDetails( entry, key );
 		
-		return( view );
+		return( eventListener );
 	}
 	
 	protected void
@@ -3312,8 +3295,7 @@ DeviceManagerUI
 	
 	protected abstract static class
 	categoryView
-		extends 	AbstractIView
-		implements 	ViewTitleInfo
+		implements 	ViewTitleInfo, UISWTViewEventListener
 	{
 		private DeviceManagerUI	ui;
 		private int				device_type;
@@ -3327,6 +3309,7 @@ DeviceManagerUI
 		
 		private int				last_indicator;
 		private MdiEntry mdiEntry;
+		private UISWTView swtView;
 		
 		protected
 		categoryView(
@@ -3494,8 +3477,6 @@ DeviceManagerUI
 				
 				mdiEntry.close(false);
 				
-				delete();
-				
 			}else{
 				
 				Utils.execSWTThread(
@@ -3506,11 +3487,21 @@ DeviceManagerUI
 							{
 								mdiEntry.close(false);
 																
-								delete();
 							}
 						});
 			}
 		}
+
+		public boolean eventOccurred(UISWTViewEvent event) {
+	    switch (event.getType()) {
+	      case UISWTViewEvent.TYPE_CREATE:
+	      	swtView = (UISWTView)event.getData();
+	      	swtView.setTitle(title);
+	        break;
+	    }
+
+	    return true;
+	  }
 	}
 	
 	protected static class
@@ -3563,17 +3554,40 @@ DeviceManagerUI
 			return( composite );
 		}
 		
-		public void
-		delete()
-		{
-			super.delete();
-		}
+		public boolean eventOccurred(UISWTViewEvent event) {
+	    switch (event.getType()) {
+	      case UISWTViewEvent.TYPE_CREATE:
+	      	//swtView = (UISWTView)event.getData();
+	        break;
+
+	      case UISWTViewEvent.TYPE_DESTROY:
+	        break;
+
+	      case UISWTViewEvent.TYPE_INITIALIZE:
+	        initialize((Composite)event.getData());
+	        break;
+
+	      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+	      	Messages.updateLanguageForControl(getComposite());
+	        break;
+
+	      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+	        break;
+	        
+	      case UISWTViewEvent.TYPE_FOCUSGAINED:
+	      	break;
+	        
+	      case UISWTViewEvent.TYPE_REFRESH:
+	        break;
+	    }
+
+	    return true;
+	  }
 	}
 	
 	protected static class
 	deviceView
-		extends 	AbstractIView
-		implements 	ViewTitleInfo, TranscodeTargetListener
+		implements 	ViewTitleInfo, TranscodeTargetListener, UISWTViewEventListener
 	{
 		private String			parent_key;
 		private Device			device;
@@ -3582,6 +3596,7 @@ DeviceManagerUI
 		private Composite		composite;
 		
 		private int last_indicator;
+		private UISWTView swtView;
 
 		protected
 		deviceView(
@@ -3756,11 +3771,9 @@ DeviceManagerUI
 		{	
 		}
 		
-		public void
+		private void
 		delete()
 		{
-			super.delete();
-			
 			if ( device instanceof DeviceMediaRenderer ){
 				
 				DeviceMediaRenderer	renderer = (DeviceMediaRenderer)device;
@@ -3768,6 +3781,40 @@ DeviceManagerUI
 				renderer.removeListener( this );
 			}
 		}
+
+		public boolean eventOccurred(UISWTViewEvent event) {
+	    switch (event.getType()) {
+	      case UISWTViewEvent.TYPE_CREATE:
+	      	swtView = (UISWTView)event.getData();
+	      	swtView.setTitle(getTitle());
+	        break;
+
+	      case UISWTViewEvent.TYPE_DESTROY:
+	        delete();
+	        break;
+
+	      case UISWTViewEvent.TYPE_INITIALIZE:
+	        initialize((Composite)event.getData());
+	        break;
+
+	      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+	      	Messages.updateLanguageForControl(getComposite());
+	      	swtView.setTitle(getTitle());
+	        break;
+
+	      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+	        break;
+	        
+	      case UISWTViewEvent.TYPE_FOCUSGAINED:
+	      	break;
+	        
+	      case UISWTViewEvent.TYPE_REFRESH:
+	        break;
+	    }
+
+	    return true;
+	  }
+
 	}
 	
 	public class

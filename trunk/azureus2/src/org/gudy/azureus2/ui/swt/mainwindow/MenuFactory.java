@@ -35,6 +35,7 @@ import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 import org.gudy.azureus2.ui.swt.update.UpdateMonitor;
+import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -135,7 +136,7 @@ public class MenuFactory
 
 		if (AzureusCoreFactory.isCoreRunning()) {
 			boolean is_detailed_view = ((Boolean) menu.getData("is_detailed_view")).booleanValue();
-			TableViewSWT tv = (TableViewSWT) menu.getData("TableView");
+			TableViewSWT<?> tv = (TableViewSWT<?>) menu.getData("TableView");
 			AzureusCore core = AzureusCoreFactory.getSingleton();
 
 			TorrentUtil.fillTorrentMenu(menu, current_dls, core,
@@ -721,7 +722,8 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
 				if (uiFunctions != null) {
-					uiFunctions.openView(UIFunctions.VIEW_STATS, null);
+					MultipleDocumentInterface mdi = uiFunctions.getMDI();
+					mdi.showEntryByID(StatsView.VIEW_ID);
 				}
 			}
 		});
@@ -808,9 +810,9 @@ public class MenuFactory
 		final MenuItem item = addMenuItem(menu, MENU_ID_WINDOW_ALL_TO_FRONT,
 				new Listener() {
 					public void handleEvent(Event event) {
-						Iterator iter = ShellManager.sharedManager().getWindows();
+						Iterator<Shell> iter = ShellManager.sharedManager().getWindows();
 						while (iter.hasNext()) {
-							Shell shell = (Shell) iter.next();
+							Shell shell = iter.next();
 							if (!shell.isDisposed() && !shell.getMinimized())
 								shell.open();
 						}
@@ -822,10 +824,10 @@ public class MenuFactory
 				if (item.isDisposed()) {
 					return;
 				}
-				Iterator iter = ShellManager.sharedManager().getWindows();
+				Iterator<Shell> iter = ShellManager.sharedManager().getWindows();
 				boolean hasNonMaximizedShell = false;
 				while (iter.hasNext()) {
-					Shell shell = (Shell) iter.next();
+					Shell shell = iter.next();
 					if (false == shell.isDisposed() && false == shell.getMinimized()) {
 						hasNonMaximizedShell = true;
 						break;
@@ -876,9 +878,9 @@ public class MenuFactory
 					for (int i = numTopItems; i < menuParent.getItemCount();)
 						menuParent.getItem(i).dispose();
 
-					Iterator iter = ShellManager.sharedManager().getWindows();
+					Iterator<Shell> iter = ShellManager.sharedManager().getWindows();
 					for (int i = 0; i < size; i++) {
-						final Shell sh = (Shell) iter.next();
+						final Shell sh = iter.next();
 
 						if (sh.isDisposed() || sh.getText().length() == 0)
 							continue;

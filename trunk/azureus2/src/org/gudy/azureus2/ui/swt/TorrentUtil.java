@@ -1822,8 +1822,8 @@ public class TorrentUtil {
 					if (entry != null) {
 						if (entry.getDatasource() instanceof DownloadManager) {
 							hasRealDM = true;
-						} else if ((entry.getIView() instanceof UIPluginView)
-								&& (((UIPluginView) entry.getIView()).getDataSource() instanceof DownloadManager)) {
+						} else if ((entry.getView() instanceof UIPluginView)
+								&& (((UIPluginView) entry.getView()).getDataSource() instanceof DownloadManager)) {
 							hasRealDM = true;
 						}
 					}

@@ -51,6 +51,7 @@ import org.gudy.azureus2.ui.swt.progress.*;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.update.UpdateWindow;
+import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -438,7 +439,7 @@ public class MainStatusBar
 
 		Listener lStats = new Listener() {
 			public void handleEvent(Event e) {
-				uiFunctions.openView(UIFunctions.VIEW_STATS, null);
+				uiFunctions.getMDI().loadEntryByID(StatsView.VIEW_ID, true, false, "transfers");
 			}
 		};
 
@@ -453,7 +454,7 @@ public class MainStatusBar
 
 		Listener lDHT = new Listener() {
 			public void handleEvent(Event e) {
-				uiFunctions.openView(UIFunctions.VIEW_STATS, "dht");
+				uiFunctions.getMDI().loadEntryByID(StatsView.VIEW_ID, true, false, "dht");
 			}
 		};
 
@@ -462,7 +463,7 @@ public class MainStatusBar
 		Listener lSR = new Listener() {
 			public void handleEvent(Event e) {
 
-				uiFunctions.openView(UIFunctions.VIEW_STATS, "transfers");
+				uiFunctions.getMDI().loadEntryByID(StatsView.VIEW_ID, true, false, "activity");
 
 				OverallStats stats = StatsFactory.getStats();
 				
@@ -474,7 +475,7 @@ public class MainStatusBar
 
 				if (ratio < 900) {
 
-					Utils.launch(Constants.AZUREUS_WIKI + "Share_Ratio");
+					//Utils.launch(Constants.AZUREUS_WIKI + "Share_Ratio");
 				}
 			}
 		};
@@ -1752,7 +1753,7 @@ public class MainStatusBar
 	 *
 	 */
 	private class ProgressListener
-		implements IProgressReportingListener, IProgressReportConstants
+		implements IProgressReportingListener
 	{
 
 		public int reporting(int eventType, IProgressReporter reporter) {

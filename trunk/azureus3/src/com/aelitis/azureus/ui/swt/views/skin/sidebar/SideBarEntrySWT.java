@@ -18,8 +18,8 @@
 
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
-import java.lang.reflect.Constructor;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -30,14 +30,15 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
-import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
@@ -78,6 +79,7 @@ public class SideBarEntrySWT
 
 	private TreeItem swtItem;
 
+	@SuppressWarnings("unchecked")
 	private List<SideBarVitalityImageSWT> listVitalityImages = Collections.EMPTY_LIST;
 
 	private final SideBar sidebar;
@@ -359,11 +361,11 @@ public class SideBarEntrySWT
 					} finally {
   					swtItem = null;
 					}
-				} else if (iview != null) {
+				} else if (view != null) {
 					try {
-						iview.delete();
+	      		view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
 					} finally {
-						iview = null;
+						view = null;
 					}
 				}
 			}
@@ -418,7 +420,7 @@ public class SideBarEntrySWT
 				} finally {
 					shell.setCursor(cursor);
 				}
-			} else if (iview != null) {
+			} else if (view != null) {
 				try {
 					SWTSkinObjectContainer soContents = (SWTSkinObjectContainer) skin.createSkinObject(
 							"MdiIView." + uniqueNumber++, "mdi.content.item",
@@ -429,11 +431,8 @@ public class SideBarEntrySWT
 
 					Composite viewComposite = soContents.getComposite();
 					boolean doGridLayout = true;
-					if (iview instanceof UISWTView) {
-						UISWTView swtView = (UISWTView) iview;
-						if (swtView.getControlType() == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
-							doGridLayout = false;
-						}
+					if (view.getControlType() == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
+						doGridLayout = false;
 					}
 					//					viewComposite.setBackground(parent.getDisplay().getSystemColor(
 					//							SWT.COLOR_WIDGET_BACKGROUND));
@@ -446,14 +445,11 @@ public class SideBarEntrySWT
 						viewComposite.setLayoutData(Utils.getFilledFormData());
 					}
 
-					if (iview instanceof UISWTViewCore) {
-						UISWTViewCore uiViewCore = (UISWTViewCore) iview;
-						uiViewCore.setSkinObject(soContents, soContents.getComposite());
-					}
-					iview.initialize(viewComposite);
-					swtItem.setText(iview.getFullTitle());
+					view.setSkinObject(soContents, soContents.getComposite());
+					view.initialize(viewComposite);
+					swtItem.setText(view.getFullTitle());
 
-					Composite iviewComposite = iview.getComposite();
+					Composite iviewComposite = view.getComposite();
 					control = iviewComposite;
 					// force layout data of IView's composite to GridData, since we set
 					// the parent to GridLayout (most plugins use grid, so we stick with
@@ -474,25 +470,16 @@ public class SideBarEntrySWT
 					setSkinObject(soContents, soContents);
 				} catch (Exception e) {
 					Debug.out("Error creating sidebar content area for " + id, e);
-					if (iview != null) {
-						iview.delete();
-					}
-					setIView(null);
+					setCoreView(null);
 					close(true);
 				}
 
-			} else if (iviewClass != null) {
+			} else if (viewClass != null) {
 				try {
-					IView view = null;
-					if (iviewClassArgs == null) {
-						view = (IView) iviewClass.newInstance();
-					} else {
-						Constructor<?> constructor = iviewClass.getConstructor(iviewClassArgs);
-						view = (IView) constructor.newInstance(iviewClassVals);
-					}
+					UISWTViewCore view = (UISWTViewCore) viewClass.newInstance();
 
 					if (view != null) {
-						setIView(view);
+						setCoreView(view);
 						// now that we have an IView, go through show one more time
 						return swt_build();
 					}
@@ -635,9 +622,9 @@ public class SideBarEntrySWT
 
 				//gc.fillRectangle(startX, startY, width, height);
 
-				Pattern pattern;
-				Color color1;
-				Color color2;
+				//Pattern pattern;
+				//Color color1;
+				//Color color2;
 
 				String[] colors = (String[]) viewTitleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_COLOR);
 
@@ -995,10 +982,9 @@ public class SideBarEntrySWT
 
 		triggerCloseListeners(!SWTThread.getInstance().isTerminated());
 
-		IView iview = getIView();
+		UISWTViewCore iview = getCoreView();
 		if (iview != null) {
-			iview.delete();
-			setIView(null);
+			setCoreView(null);
 		}
 		SWTSkinObject so = getSkinObject();
 		if (so != null) {
@@ -1039,7 +1025,7 @@ public class SideBarEntrySWT
 					Debug.out(e2);
 				}
 
-				mdi.setEntryAutoOpen(id, false);
+				mdi.setEntryAutoOpen(id, null, false);
 			}
 		});
 	}

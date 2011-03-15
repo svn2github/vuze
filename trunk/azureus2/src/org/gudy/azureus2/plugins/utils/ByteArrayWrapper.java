@@ -32,4 +32,7 @@ ByteArrayWrapper
 {
 	public byte[]
 	getBytes();
+
+	public String
+	toBase32String();
 }

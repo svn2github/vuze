@@ -44,7 +44,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -53,7 +53,7 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 @SuppressWarnings("deprecation")
-public class ConfigView extends AbstractIView {
+public class ConfigView implements UISWTViewEventListener {
 	private static final LogIDs LOGID = LogIDs.GUI;
   public static final String sSectionPrefix = "ConfigView.section.";
   
@@ -78,14 +78,12 @@ public class ConfigView extends AbstractIView {
 	private Image imgSmallX;
 	private Image imgSmallXGray;
 	private String startSection;
+	private UISWTView swtView;
 
 	public ConfigView() {
   }
   
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
-   */
-  public void initialize(final Composite composite) {
+  private void initialize(final Composite composite) {
   	// need to initalize composite now, since getComposite can
   	// be called at any time
     cConfig = new Composite(composite, SWT.NONE);
@@ -118,7 +116,7 @@ public class ConfigView extends AbstractIView {
 		});
   }
   	
-  public void _initialize(Composite composite) {
+  private void _initialize(Composite composite) {
   	
     GridData gridData;
     /*
@@ -492,7 +490,7 @@ public class ConfigView extends AbstractIView {
     showSection(items[0]);
   }
 
-	public void setupSC(ScrolledComposite sc) {
+	private void setupSC(ScrolledComposite sc) {
 		Composite c = (Composite) sc.getContent();
 		if (c != null) {
 			Point size1 = c.computeSize(sc.getClientArea().width, SWT.DEFAULT);
@@ -844,7 +842,7 @@ public class ConfigView extends AbstractIView {
 	  }
   };
   
-  public static int findInsertPointFor(String name, Object structure) {
+  private static int findInsertPointFor(String name, Object structure) {
 	  TreeItem[] children = null;
 	  if (structure instanceof Tree) {
 	      children = ((Tree)structure).getItems();
@@ -958,20 +956,19 @@ public class ConfigView extends AbstractIView {
 		});
   }
   
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getComposite()
-   */
-  public Composite getComposite() {
+  private Composite getComposite() {
     return cConfig;
   }
 
-  public void updateLanguage() {
-    super.updateLanguage();
+  private void updateLanguage() {
     updateHeader(tree.getSelection()[0]);
+    if (swtView != null) {
+    	swtView.setTitle(getFullTitle());
+    }
 //    cConfig.setSize(cConfig.computeSize(SWT.DEFAULT, SWT.DEFAULT));
   }
 
-  public void delete() {
+  private void delete() {
   	for (ConfigSection section : sectionsCreated) {
     	try {
     		section.configSectionDelete();
@@ -1002,7 +999,7 @@ public class ConfigView extends AbstractIView {
 		filterFoundFont = null;
   }
 
-  public String getFullTitle() {
+  private String getFullTitle() {
   	/*
   	 * Using resolveLocalizationKey because there are different version for Classic vs. Vuze
   	 */
@@ -1052,8 +1049,7 @@ public class ConfigView extends AbstractIView {
 		}
 	}
   
-  public void dataSourceChanged(Object newDataSource) {
-  	super.dataSourceChanged(newDataSource);
+  private void dataSourceChanged(Object newDataSource) {
   	
   	if (newDataSource instanceof String) {
 			String id = (String) newDataSource;
@@ -1065,4 +1061,39 @@ public class ConfigView extends AbstractIView {
 			});
 		}
   }
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	updateLanguage();
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	dataSourceChanged(event.getData());
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        break;
+    }
+
+    return true;
+  }
+
 }

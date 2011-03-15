@@ -228,12 +228,6 @@ RPPluginInterface
   		return Constants.APP_NAME;
   	}
 	
-	public void 
-	addView(PluginView view)
-	{
-		notSupported();
-	}
-	
 	public void addConfigUIParameters(Parameter[] parameters, String displayName)
 	{
 		notSupported();

@@ -20,8 +20,6 @@
 package com.aelitis.azureus.ui;
 
 
-import org.gudy.azureus2.core3.download.DownloadManager;
-
 import com.aelitis.azureus.core.AzureusCoreComponent;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
@@ -42,7 +40,6 @@ public interface UIFunctions
 
 	
 	public static final int VIEW_CONSOLE = 0;
-	public static final int VIEW_STATS = 1;
 	public static final int VIEW_CONFIG = 4;
 	public static final int VIEW_DM_DETAILS = 5;
 	public static final int VIEW_DM_MULTI_OPTIONS = 6;
@@ -81,11 +78,6 @@ public interface UIFunctions
 	void refreshIconBar();
 
 	
-	/**
-	 * @param manager
-	 */
-	void removeManagerView(DownloadManager dm);
-
 	/**
 	 * @param string
 	 */

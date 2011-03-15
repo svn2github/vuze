@@ -25,18 +25,17 @@ package org.gudy.azureus2.ui.swt.views.stats;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.ProgressBar;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerStats;
@@ -44,9 +43,13 @@ import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerStats;
 /**
  * 
  */
-public class CacheView extends AbstractIView {
+public class CacheView
+	implements PeriodicViewUpdate, UISWTViewCoreEventListener
+{
   
-  CacheFileManagerStats stats;
+  public static final String MSGID_PREFIX = "CacheView";
+
+	CacheFileManagerStats stats;
   
   Composite panel;
   
@@ -67,16 +70,22 @@ public class CacheView extends AbstractIView {
   Canvas  readsFromFile,readsFromCache,writesToCache,writesToFile;
   
   SpeedGraphic rffGraph,rfcGraph,wtcGraph,wtfGraph;
+
+	private UISWTView swtView;
   
   public CacheView() {
     try {
       this.stats = CacheFileManagerFactory.getSingleton().getStats();
+      rfcGraph = SpeedGraphic.getInstance();
+      wtcGraph = SpeedGraphic.getInstance();
+      rffGraph = SpeedGraphic.getInstance();
+      wtfGraph = SpeedGraphic.getInstance();
     } catch(Exception e) {
     	Debug.printStackTrace( e );
     }
   }
   
-  public void initialize(Composite composite) {
+  private void initialize(Composite composite) {
     panel = new Composite(composite,SWT.NULL);
     panel.setLayout(new GridLayout());
     
@@ -250,14 +259,12 @@ public class CacheView extends AbstractIView {
     readsFromCache = new Canvas(gCacheSpeeds,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
     readsFromCache.setLayoutData(gridData);
-    rfcGraph = SpeedGraphic.getInstance();
     rfcGraph.initialize(readsFromCache);
     
     
     writesToCache = new Canvas(gCacheSpeeds,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
     writesToCache.setLayoutData(gridData);
-    wtcGraph = SpeedGraphic.getInstance();
     wtcGraph.initialize(writesToCache);
     
     lbl = new Label(gCacheSpeeds,SWT.NULL);
@@ -266,16 +273,17 @@ public class CacheView extends AbstractIView {
     readsFromFile = new Canvas(gCacheSpeeds,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
     readsFromFile.setLayoutData(gridData);
-    rffGraph = SpeedGraphic.getInstance();
     rffGraph.initialize(readsFromFile);
     
     writesToFile = new Canvas(gCacheSpeeds,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
     writesToFile.setLayoutData(gridData);
-    wtfGraph = SpeedGraphic.getInstance();
     wtfGraph.initialize(writesToFile);
   }
   
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.ui.swt.views.stats.PeriodicViewUpdate#periodicUpdate()
+   */
   public void periodicUpdate() {
     rfcGraph.addIntValue((int)stats.getAverageBytesReadFromCache());
     rffGraph.addIntValue((int)stats.getAverageBytesReadFromFile());
@@ -366,7 +374,7 @@ public class CacheView extends AbstractIView {
     lblAvgSizeToFile.setLayoutData(gridData);
   }
 
-  public void delete() {
+  private void delete() {
     Utils.disposeComposite(panel);
     rfcGraph.dispose();
     rffGraph.dispose();
@@ -374,15 +382,11 @@ public class CacheView extends AbstractIView {
     wtfGraph.dispose();
   }
 
-  public String getFullTitle() {
-    return MessageText.getString("CacheView.title.full"); //$NON-NLS-1$
-  }
-  
-  public Composite getComposite() {
+  private Composite getComposite() {
     return panel;
   }
   
-  public void refresh() {
+  private void refresh() {
     //General Part    
     lblSize.setText(DisplayFormatters.formatByteCountToKiBEtc(stats.getSize()));
     lblInUse.setText(DisplayFormatters.formatByteCountToKiBEtc(stats.getUsedSize()));
@@ -475,10 +479,38 @@ public class CacheView extends AbstractIView {
     }
   }
 
-  public String getData() {
-    return "CacheView.title.full";
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(MessageText.getString(MSGID_PREFIX + ".title.full"));
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
   }
-    
 }
 
 

@@ -82,6 +82,10 @@ public class Utils
 
 	/** GTK already handles alternating background for tables */
 	public static final boolean TABLE_GRIDLINE_IS_ALTERNATING_COLOR = isGTK || isCocoa;
+	
+	public static int BUTTON_MARGIN;
+
+	public static int BUTTON_MINWIDTH = Constants.isOSX ? 90 : 70;
 
 	/**
 	 * Debug/Diagnose SWT exec calls.  Provides usefull information like how
@@ -144,6 +148,9 @@ public class Utils
 				isAZ2 = "az2".equals(COConfigurationManager.getStringParameter("ui"));
 			}
 		});
+		// no need to listen, changing param requires restart
+    boolean smallOSXControl = COConfigurationManager.getBooleanParameter("enable_small_osx_fonts");
+    BUTTON_MARGIN = Constants.isOSX ? (smallOSXControl ? 10 : 12) : 6;
 	}
 
 	public static boolean isAZ2UI() {

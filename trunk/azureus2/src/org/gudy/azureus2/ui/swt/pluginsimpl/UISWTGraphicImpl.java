@@ -28,18 +28,13 @@ import org.eclipse.swt.graphics.Image;
 
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 
-import org.gudy.azureus2.plugins.ui.SWT.GraphicSWT;
-import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
-
 /** An SWT image to be used in Azureus
  *
  * @see SWTManager.createGraphic
  */
 public class 
 UISWTGraphicImpl 
-	implements UISWTGraphic, GraphicSWT 	// we *have* to implement GraphicsSWT as there are plugins
-											// out there (e.g. ProgressBar) that assume that
-											// Graphics returned to them are instances of GraphicsSWT
+	implements UISWTGraphic
 {
 	Image img;
   

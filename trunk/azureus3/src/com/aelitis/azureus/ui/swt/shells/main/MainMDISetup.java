@@ -3,10 +3,10 @@ package com.aelitis.azureus.ui.swt.shells.main;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -93,6 +93,15 @@ public class MainMDISetup
 						return entry;
 					}
 				});
+		
+		mdi.registerEntry(StatsView.VIEW_ID, new MdiEntryCreationListener() {
+			public MdiEntry createMDiEntry(String id) {
+				MdiEntry entry = mdi.createEntryFromEventListener(
+						MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
+						new StatsView(), id, true, null);
+				return entry;
+			}
+		});
 
 		//		System.out.println("Activate sidebar " + startTab + " took "
 		//				+ (SystemTime.getCurrentTime() - startTime) + "ms");
@@ -227,7 +236,7 @@ public class MainMDISetup
 						}
 					});
 			mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_GAMES, false,
-					true);
+					true, null);
 		}
 
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_ABOUTPLUGINS,

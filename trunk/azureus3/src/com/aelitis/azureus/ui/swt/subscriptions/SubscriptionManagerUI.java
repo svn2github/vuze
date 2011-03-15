@@ -29,21 +29,6 @@ import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.views.IView;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-
-import com.aelitis.azureus.core.subs.*;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
-import com.aelitis.azureus.ui.mdi.*;
-import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
-
 import org.gudy.azureus2.plugins.PluginConfigListener;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
@@ -55,6 +40,21 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.Utilities;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
+
+import com.aelitis.azureus.core.subs.*;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 
 public class 
 SubscriptionManagerUI 
@@ -828,10 +828,10 @@ SubscriptionManagerUI
 			return;
 		}
 		
-		mdiEntryOverview = mdi.createEntryFromIViewClass(MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS,
-					MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
-					MessageText.getString("subscriptions.overview"),
-					SubscriptionsView.class, null, null, null, null, false);
+		mdiEntryOverview = mdi.createEntryFromEventListener(
+				MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS, 
+				new UISWTViewEventListenerHolder(SubscriptionsView.class, null, null),
+				MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS, false, null);
 
 		if (mdiEntryOverview == null) {
 			return;
@@ -925,17 +925,17 @@ SubscriptionManagerUI
 					MdiEntry new_entry,
 					MdiEntry old_entry ) 
 				{
-					if ( new_entry == old_entry && (new_entry instanceof MdiEntrySWT) ){
+					if ( new_entry == old_entry && (new_entry instanceof BaseMdiEntry) ){
 						
-						IView view = ((MdiEntrySWT)new_entry).getIView();
+						UISWTViewEventListener eventListener = ((BaseMdiEntry)new_entry).getEventListener();
 						
-						if ( view instanceof SubscriptionView ){
+						if ( eventListener instanceof SubscriptionView ){
 							
 							try{
 								
 								if ( SystemTime.getMonotonousTime() - last_select > 1000 ){
 									
-									((SubscriptionView)view).updateBrowser( false );
+									((SubscriptionView)eventListener).updateBrowser( false );
 								}
 							}finally{
 								
@@ -1234,13 +1234,11 @@ SubscriptionManagerUI
 
 		final String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
 		
-		MdiEntry entry = mdi.createEntryFromIViewClass(
-				MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS, key, null,
-				SubscriptionView.class, new Class[] {
-					Subscription.class
-				}, new Object[] {
-					subs
-				}, subs, viewTitleInfo, false);
+		MdiEntry entry = mdi.createEntryFromEventListener(
+				MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS,
+				new UISWTViewEventListenerHolder(SubscriptionView.class, subs, null),
+				key, false, subs);
+
 		// This sets up the entry (menu, etc)
 		SubscriptionMDIEntry entryInfo = new SubscriptionMDIEntry(subs, entry);
 		subs.setUserData(SUB_ENTRYINFO_KEY, entryInfo);

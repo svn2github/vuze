@@ -1,9 +1,10 @@
 package com.aelitis.azureus.ui.mdi;
 
-
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 
@@ -51,23 +52,14 @@ public interface MultipleDocumentInterface
 
 	public static final String SIDEBAR_SECTION_ACTIVITIES = "Activity";
 
-	/**
-	 * @deprecated
-	 */
-	public MdiEntry createEntryFromSkinRef(String parentID, String id,
-			String configID, String title, ViewTitleInfo titleInfo, Object params,
-			boolean closeable, int index);
+	public boolean showEntryByID(String id);
 
 	public MdiEntry createEntryFromSkinRef(String parentID, String id,
 			String configID, String title, ViewTitleInfo titleInfo, Object params,
 			boolean closeable, String preferedAfterID);
 
-	public boolean showEntryByID(String id);
-
-	public MdiEntry createEntryFromIViewClass(String parent, String id,
-			String title, Class<?> iviewClass, Class<?>[] iviewClassArgs,
-			Object[] iviewClassVals, Object datasource, ViewTitleInfo titleInfo,
-			boolean closeable);
+	public MdiEntry createEntryFromEventListener(String parentID,
+			UISWTViewEventListener l, String id, boolean closeable, Object datasource);
 
 	public MdiEntry getCurrentEntry();
 
@@ -93,7 +85,7 @@ public interface MultipleDocumentInterface
 
 	public void removeItem(MdiEntry entry);
 
-	public void setEntryAutoOpen(String id, boolean autoOpen);
+	public void setEntryAutoOpen(String id, Object datasource, boolean autoOpen);
 
 	public void showEntry(MdiEntry newEntry);
 
@@ -109,5 +101,7 @@ public interface MultipleDocumentInterface
 
 	public List<MdiEntry> getChildrenOf(String id);
 
-	public boolean loadEntryByID(String id, boolean activate, boolean onlyLoadOnce);
+	public boolean loadEntryByID(String id, boolean activate,
+			boolean onlyLoadOnce, Object datasource);
+
 }

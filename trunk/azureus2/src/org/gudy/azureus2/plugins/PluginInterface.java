@@ -82,17 +82,6 @@ public interface PluginInterface {
 	getAzureusVersion();
 	
   /**
-   * A Plugin might call this method to add a View to Azureus's views
-   * The View will be accessible from View > Plugins > View name
-   * @param view The PluginView to be added
-   *
-   * @since 2.0.4.0
-   *
-   * @deprecated use {@link org.gudy.azureus2.ui.swt.plugins.UISWTInstance#addView}
-   */
-  public void addView(PluginView view);
-
-  /**
    * adds a tab under the 'plugins' tab in the config view.<br>
    * Use {@link #getPluginConfigUIFactory()} to get the 
    * {@link PluginConfigUIFactory} class, from which you can create different

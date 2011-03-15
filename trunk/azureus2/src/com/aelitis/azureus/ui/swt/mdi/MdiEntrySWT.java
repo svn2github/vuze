@@ -3,7 +3,9 @@
  */
 package com.aelitis.azureus.ui.swt.mdi;
 
-import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 
@@ -17,8 +19,11 @@ public interface MdiEntrySWT
 {
 	//public SWTSkinObject getSkinObject();
 
-	public IView getIView();
+	public UIPluginView getView();
 
+	public UISWTViewCore getCoreView();
+
+	public UISWTViewEventListener getEventListener();
 
 	public void addListener(MdiSWTMenuHackListener l);
 

@@ -23,17 +23,44 @@ package org.gudy.azureus2.ui.swt.pluginsimpl;
 
 import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
+import java.util.HashMap;
+import java.util.Map;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
+/**
+ * Holds information to create a real {@link UISWTViewEventListener} from
+ * its {@link Class}
+ * <p>
+ * Holds {@link PluginInterface} reference
+ */
 public class 
 UISWTViewEventListenerHolder
 	implements UISWTViewEventListener
 {
 	private UISWTViewEventListener		listener;
 	private Reference<PluginInterface>	pi;
+	private Object datasource;
+
+	// when there is no #listener, we create a new #cla for each TYPE_CREATE event
+	Map<UISWTView, UISWTViewEventListener> mapSWTViewToEventListener;
+	private Class<? extends UISWTViewEventListener> cla;
+
+	public
+	UISWTViewEventListenerHolder(
+		Class<? extends UISWTViewEventListener> _cla,
+		Object datasource,
+		PluginInterface					_pi )
+	{
+		this((UISWTViewEventListener) null, _pi);
+		cla = _cla;
+		this.datasource = datasource;
+	}
+			
 	
 	protected
 	UISWTViewEventListenerHolder(
@@ -72,6 +99,54 @@ UISWTViewEventListenerHolder
 	eventOccurred(
 		UISWTViewEvent event )
 	{
+		if (listener == null) {
+			UISWTViewEventListener eventListener = null;
+
+			synchronized (UISWTViewEventListenerHolder.this) {
+				int type = event.getType();
+				if (type == UISWTViewEvent.TYPE_CREATE) {
+					try {
+						eventListener = cla.newInstance();
+						UISWTView view = event.getView();
+						if (eventListener instanceof UISWTViewCoreEventListener) {
+							if (view instanceof UISWTViewCore) {
+								UISWTViewCore coreView = (UISWTViewCore) view;
+								coreView.setUseCoreDataSource(true);
+							}
+						}
+						if (mapSWTViewToEventListener == null) {
+							mapSWTViewToEventListener = new HashMap<UISWTView, UISWTViewEventListener>();
+						}
+						mapSWTViewToEventListener.put(view, eventListener);
+
+						if (datasource != null) {
+							view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, datasource);
+						}
+					} catch (Exception e) {
+						Debug.out(e);
+						return false;
+					}
+				} else if (mapSWTViewToEventListener != null) {
+					if (type == UISWTViewEvent.TYPE_DESTROY) {
+						eventListener = mapSWTViewToEventListener.remove(event.getView());
+					} else {
+						eventListener = mapSWTViewToEventListener.get(event.getView());
+					}
+				}
+			}
+
+			if (eventListener == null) {
+				return false;
+			}
+			
+			return eventListener.eventOccurred(event);
+		} else if (event.getType() == UISWTViewEvent.TYPE_CREATE && (listener instanceof UISWTViewCoreEventListener)){
+			if (event.getView() instanceof UISWTViewCore) {
+				UISWTViewCore coreView = (UISWTViewCore) event.getView();
+				coreView.setUseCoreDataSource(true);
+			}
+		}
+
 		return( listener.eventOccurred( event ));
 	}
 }

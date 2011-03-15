@@ -134,7 +134,7 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 * Retrieve a list of {@link DownloadManager}s that GlobalManager is handling
 	 * @return a list of {@link DownloadManager}s
 	 */
-	public List getDownloadManagers();
+	public List<DownloadManager> getDownloadManagers();
 
 	/**
 	 * Retrieve the DownloadManager associated with a TOTorrent object

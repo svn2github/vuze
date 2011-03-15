@@ -36,7 +36,7 @@ import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 public class CategoryImpl implements Category, Comparable {
   private String sName;
   private int type;
-  private List managers = new ArrayList();
+  private List<DownloadManager> managers = new ArrayList<DownloadManager>();
 
   private int upload_speed;
   private int download_speed;
@@ -123,15 +123,15 @@ public class CategoryImpl implements Category, Comparable {
     return type;
   }
   
-  public List getDownloadManagers(List all_dms) {
+  public List<DownloadManager> getDownloadManagers(List<DownloadManager> all_dms) {
 	  if ( type == Category.TYPE_USER ){
 		  return managers;
 	  }else if ( type == Category.TYPE_ALL ){
 		  return all_dms;
 	  }else{
-		  List result = new ArrayList();
+		  List<DownloadManager> result = new ArrayList<DownloadManager>();
 		  for (int i=0;i<all_dms.size();i++){
-			  DownloadManager dm = (DownloadManager)all_dms.get(i);
+			  DownloadManager dm = all_dms.get(i);
 			  Category cat = dm.getDownloadState().getCategory();
 			  if ( cat == null || cat.getType() == Category.TYPE_UNCATEGORIZED){
 				  result.add( dm );

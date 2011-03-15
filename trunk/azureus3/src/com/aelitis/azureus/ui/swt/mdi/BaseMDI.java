@@ -16,9 +16,9 @@ import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.PluginAddedViewList
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -124,21 +124,9 @@ public abstract class BaseMDI
 	public abstract MdiEntry createEntryFromEventListener(String parentID,
 			UISWTViewEventListener l, String id, boolean closeable, Object datasource);
 
-	public abstract MdiEntry createEntryFromIView(String parentID, IView iview,
+	public abstract MdiEntry createEntryFromView(String parentID, UISWTViewCore iview,
 			String id, Object datasource, boolean closeable, boolean show,
 			boolean expand);
-
-	public abstract MdiEntry createEntryFromIViewClass(String parent, String id,
-			String title, Class<?> iviewClass, Class<?>[] iviewClassArgs,
-			Object[] iviewClassVals, Object datasource, ViewTitleInfo titleInfo,
-			boolean closeable);
-
-	/**
-	 * @deprecated
-	 */
-	public abstract MdiEntry createEntryFromSkinRef(String parentID, String id,
-			String configID, String title, ViewTitleInfo titleInfo, Object params,
-			boolean closeable, int index);
 
 	public abstract MdiEntry createEntryFromSkinRef(String parentID, String id,
 			String configID, String title, ViewTitleInfo titleInfo, Object params,
@@ -198,7 +186,7 @@ public abstract class BaseMDI
 		return null;
 	}
 
-	public IView getIViewFromID(String id) {
+	public UISWTViewCore getCoreViewFromID(String id) {
 		if (id == null) {
 			return null;
 		}
@@ -206,19 +194,14 @@ public abstract class BaseMDI
 		if (entry == null) {
 			return null;
 		}
-		return entry.getIView();
+		return entry.getCoreView();
 	}
 
 	public String getUpdateUIName() {
-		if (currentEntry == null || currentEntry.getIView() == null) {
+		if (currentEntry == null || currentEntry.getView() == null) {
 			return "MDI";
 		}
-		if (currentEntry.getIView() instanceof UIPluginView) {
-			UIPluginView uiPluginView = (UIPluginView) currentEntry.getIView();
-			return uiPluginView.getViewID();
-		}
-
-		return currentEntry.getIView().getFullTitle();
+		return currentEntry.getView().getViewID();
 	}
 
 	public void registerEntry(String id, MdiEntryCreationListener l) {
@@ -268,7 +251,7 @@ public abstract class BaseMDI
 				SIDEBAR_SECTION_WELCOME,
 				"main.area.welcome",
 				MessageText.getString("v3.MainWindow.menu.getting_started").replaceAll(
-						"&", ""), null, null, true, 0);
+						"&", ""), null, null, true, "");
 		entry.setImageLeftID("image.sidebar.welcome");
 		addDropTest(entry);
 		return entry;
@@ -301,47 +284,17 @@ public abstract class BaseMDI
 		});
 	}
 
-	public void setEntryAutoOpen(String id, boolean autoOpen) {
+	public void setEntryAutoOpen(String id, Object datasource, boolean autoOpen) {
 		if (!autoOpen) {
 			mapAutoOpen.remove(id);
 		} else {
-			mapAutoOpen.put(id, new LightHashMap(0));
+			LightHashMap<String, Object> map = new LightHashMap<String, Object>(1);
+			map.put("datasource", datasource);
+			mapAutoOpen.put(id, map);
 		}
 	}
 
 	protected void setupPluginViews() {
-		UISWTInstanceImpl uiSWTInstance = (UISWTInstanceImpl) UIFunctionsManagerSWT.getUIFunctionsSWT().getUISWTInstance();
-		if (uiSWTInstance != null) {
-			Map<String, Map<String, UISWTViewEventListenerHolder>> allViews = uiSWTInstance.getAllViews();
-			Object[] parentIDs = allViews.keySet().toArray();
-			for (int i = 0; i < parentIDs.length; i++) {
-				String parentID = (String) parentIDs[i];
-				String sidebarParentID = null;
-				if (UISWTInstance.VIEW_MYTORRENTS.equals(parentID)) {
-					sidebarParentID = SideBar.SIDEBAR_HEADER_TRANSFERS;
-				} else if (UISWTInstance.VIEW_MAIN.equals(parentID)) {
-					sidebarParentID = MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS;
-				}
-				Map<String, UISWTViewEventListenerHolder> mapSubViews = allViews.get(parentID);
-				if (mapSubViews != null) {
-					Object[] viewIDs = mapSubViews.keySet().toArray();
-					for (int j = 0; j < viewIDs.length; j++) {
-						String viewID = (String) viewIDs[j];
-						UISWTViewEventListener l = (UISWTViewEventListener) mapSubViews.get(viewID);
-						if (l != null) {
-							// TODO: Datasource
-							// TODO: Multiple open
-
-							boolean open = COConfigurationManager.getBooleanParameter(
-									"SideBar.AutoOpen." + viewID, false);
-							if (open) {
-								createEntryFromEventListener(sidebarParentID, l, viewID, true, null);
-							}
-						}
-					}
-				}
-			}
-		}
 
 		// When a new Plugin View is added, check out auto-open list to see if
 		// the user had it open
@@ -380,7 +333,10 @@ public abstract class BaseMDI
 		}
 	}
 
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({
+		"unchecked",
+		"rawtypes"
+	})
 	public void saveCloseables() {
 		// update title
 		for (Iterator<?> iter = mapAutoOpen.keySet().iterator(); iter.hasNext();) {
@@ -431,65 +387,56 @@ public abstract class BaseMDI
 
 			if (viewInfo != null) {
 				if (viewInfo.view != null) {
-					entry = createEntryFromIView(parentID, viewInfo.view, id, datasource,
+					entry = createEntryFromView(parentID, viewInfo.view, id, datasource,
 							true, false, true);
-					return true;
 				} else if (viewInfo.event_listener != null) {
 					entry = createEntryFromEventListener(parentID,
 							viewInfo.event_listener, id, true, datasource);
-					return true;
+  				entry.setTitle(title);
 				}
 			}
 
-			Class<?> cla = Class.forName(MapUtils.getMapString(autoOpenInfo,
-					"iviewClass", ""));
-			if (cla != null) {
-				entry = createEntryFromIViewClass(parentID, id, title, cla, null, null,
-						datasource, null, true);
-
-				if (datasource == null) {
-					final MdiEntry fEntry = entry;
-					final String dmHash = MapUtils.getMapString(autoOpenInfo, "dm", null);
-					if (dmHash != null) {
+			if (entry != null && datasource == null) {
+				final MdiEntry fEntry = entry;
+				final String dmHash = MapUtils.getMapString(autoOpenInfo, "dm", null);
+				if (dmHash != null) {
+					AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+						public void azureusCoreRunning(AzureusCore core) {
+							GlobalManager gm = core.getGlobalManager();
+							HashWrapper hw = new HashWrapper(Base32.decode(dmHash));
+							DownloadManager dm = gm.getDownloadManager(hw);
+							if (dm != null) {
+								fEntry.setDatasource(dm);
+							}
+						}
+					});
+				} else {
+					final List<?> listHashes = MapUtils.getMapList(autoOpenInfo, "dms",
+							null);
+					if (listHashes != null) {
 						AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 							public void azureusCoreRunning(AzureusCore core) {
+								List<DownloadManager> listDMS = new ArrayList<DownloadManager>(
+										1);
 								GlobalManager gm = core.getGlobalManager();
-								HashWrapper hw = new HashWrapper(Base32.decode(dmHash));
-								DownloadManager dm = gm.getDownloadManager(hw);
-								if (dm != null) {
-									fEntry.setDatasource(dm);
+								for (Object oDM : listHashes) {
+									if (oDM instanceof String) {
+										String hash = (String) oDM;
+										DownloadManager dm = gm.getDownloadManager(new HashWrapper(
+												Base32.decode(hash)));
+										if (dm != null) {
+											listDMS.add(dm);
+										}
+									}
+									fEntry.setDatasource(listDMS.toArray(new DownloadManager[0]));
 								}
 							}
 						});
-					} else {
-						final List listHashes = MapUtils.getMapList(autoOpenInfo, "dms",
-								null);
-						if (listHashes != null) {
-							AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-								public void azureusCoreRunning(AzureusCore core) {
-									List<DownloadManager> listDMS = new ArrayList<DownloadManager>(
-											1);
-									GlobalManager gm = core.getGlobalManager();
-									for (Object oDM : listHashes) {
-										if (oDM instanceof String) {
-											String hash = (String) oDM;
-											DownloadManager dm = gm.getDownloadManager(new HashWrapper(
-													Base32.decode(hash)));
-											if (dm != null) {
-												listDMS.add(dm);
-											}
-										}
-										fEntry.setDatasource(listDMS.toArray(new DownloadManager[0]));
-									}
-								}
-							});
-						}
 					}
 				}
-				return true;
 			}
-		} catch (ClassNotFoundException ce) {
-			// ignore
+
+			return entry != null;
 		} catch (Throwable e) {
 			Debug.out(e);
 		}
@@ -537,23 +484,15 @@ public abstract class BaseMDI
 	}
 
 	public Object updateLanguage(SWTSkinObject skinObject, Object params) {
-  	MdiEntrySWT[] entries = getEntriesSWT();
-  	for (MdiEntrySWT entry : entries) {
-			if (entry == null) {
-				continue;
-			}
-			IView view = entry.getIView();
-			if (view != null) {
-			  try {
-          view.updateLanguage();
-          view.refresh();
-        }
-        catch (Exception e) {
-        	Debug.printStackTrace(e);
-        }
+		MdiEntry[] entries = getEntries();
+		
+		for (MdiEntry entry : entries) {
+			if (entry instanceof BaseMdiEntry) {
+				BaseMdiEntry baseEntry = (BaseMdiEntry) entry;
+				baseEntry.updateLanguage();
 			}
 		}
-    
+
 		return null;
 	}
 

@@ -6,21 +6,24 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.IndentWriter;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
-import org.gudy.azureus2.ui.swt.views.IViewExtension;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
 
 public abstract class TableViewTab<DATASOURCETYPE>
-	extends AbstractIView
-	implements IViewExtension, ToolBarEnabler
+	implements UISWTViewCoreEventListener, ToolBarEnabler, AEDiagnosticsEvidenceGenerator
 {
 	private TableViewSWT<DATASOURCETYPE> tv;
 	private Object parentDataSource;
 	private final String propertiesPrefix;
 	private Composite composite;
+	private UISWTView swtView;
 
 	
 	public TableViewTab(String propertiesPrefix) {
@@ -31,7 +34,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		return tv;
 	}
 
-	public final void initialize(Composite composite) {
+	private final void initialize(Composite composite) {
 		tv = initYourTableView();
 		if (parentDataSource != null) {
 			tv.setParentDataSource(parentDataSource);
@@ -56,58 +59,58 @@ public abstract class TableViewTab<DATASOURCETYPE>
 
 	public abstract TableViewSWT<DATASOURCETYPE> initYourTableView();
 
-	public final void dataSourceChanged(Object newDataSource) {
+	private final void dataSourceChanged(Object newDataSource) {
 		this.parentDataSource = newDataSource;
 		if (tv != null) {
 			tv.setParentDataSource(newDataSource);
 		}
 	}
 
-	public final void refresh() {
+	private final void refresh() {
 		if (tv != null) {
 			tv.refreshTable(false);
 		}
 	}
 
-	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#delete()
-	public final void delete() {
+	private final void delete() {
 		if (tv != null) {
 			tv.delete();
 		}
-		super.delete();
 	}
 
-	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#getData()
-	public final String getData() {
-		return getPropertiesPrefix() + ".title.short";
-	}
-
-	public final String getFullTitle() {
+	private final String getFullTitle() {
 		return MessageText.getString(getPropertiesPrefix() + ".title.full");
 	}
 
-	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#generateDiagnostics(org.gudy.azureus2.core3.util.IndentWriter)
-	public final void generateDiagnostics(IndentWriter writer) {
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
+	 */
+	public void generate(IndentWriter writer) {
 		if (tv != null) {
 			tv.generate(writer);
 		}
 	}
 	
-	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#getComposite()
 	public Composite getComposite() {
 		return composite;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler#toolBarItemActivated(java.lang.String)
+	 */
 	public boolean toolBarItemActivated(String itemKey) {
 		if (itemKey.equals("editcolumns")) {
 			if (tv instanceof TableViewSWTImpl) {
-				((TableViewSWTImpl)tv).showColumnEditor();
+				((TableViewSWTImpl<?>)tv).showColumnEditor();
 				return true;
 			}
 		}
 		return false;
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler#refreshToolBar(java.util.Map)
+	 */
 	public void refreshToolBar(Map<String, Boolean> list) {
 		list.put("editcolumns", true);
 	}
@@ -120,17 +123,65 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		return null;
 	}
 	
-	public void viewActivated() {
+	private void viewActivated() {
 		// cheap hack.. calling isVisible freshens table's visible status (and
 		// updates subviews)
 		if (tv instanceof TableViewSWTImpl) {
-			((TableViewSWTImpl)tv).isVisible();
+			((TableViewSWTImpl<?>)tv).isVisible();
 		}
 	}
 	
-	public void viewDeactivated() {
+	private void viewDeactivated() {
 		if (tv instanceof TableViewSWTImpl) {
-			((TableViewSWTImpl)tv).isVisible();
+			((TableViewSWTImpl<?>)tv).isVisible();
 		}
+	}
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+		switch (event.getType()) {
+			case UISWTViewEvent.TYPE_CREATE:
+				swtView = (UISWTView) event.getData();
+				swtView.setTitle(getFullTitle());
+				break;
+
+			case UISWTViewEvent.TYPE_DESTROY:
+				delete();
+				break;
+
+			case UISWTViewEvent.TYPE_INITIALIZE:
+				initialize((Composite) event.getData());
+				break;
+
+			case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+				swtView.setTitle(getFullTitle());
+				updateLanguage();
+				Messages.updateLanguageForControl(composite);
+				break;
+
+			case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+				dataSourceChanged(event.getData());
+				break;
+
+			case UISWTViewEvent.TYPE_FOCUSGAINED:
+				viewActivated();
+				break;
+
+			case UISWTViewEvent.TYPE_FOCUSLOST:
+				viewDeactivated();
+				break;
+
+			case UISWTViewEvent.TYPE_REFRESH:
+				refresh();
+				break;
+		}
+
+		return true;
+	}
+
+	public void updateLanguage() {
+	}
+
+	public UISWTView getSWTView() {
+		return swtView;
 	}
 }

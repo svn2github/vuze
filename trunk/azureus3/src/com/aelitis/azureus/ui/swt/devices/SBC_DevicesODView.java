@@ -30,7 +30,6 @@ import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.ui.swt.IconBarEnabler;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;

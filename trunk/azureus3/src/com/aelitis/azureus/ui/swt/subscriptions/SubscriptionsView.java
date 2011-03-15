@@ -14,12 +14,13 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
@@ -31,7 +32,6 @@ import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
-import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -40,8 +40,8 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class SubscriptionsView
-	extends AbstractIView
-	implements UIUpdatable, SubscriptionManagerListener, ToolBarEnabler
+	implements SubscriptionManagerListener, ToolBarEnabler,
+	UISWTViewCoreEventListener
 {
 	private static final String TABLE_ID = "subscriptions";
 
@@ -52,33 +52,50 @@ public class SubscriptionsView
 	private Font textFont1;
 	
 	private Font textFont2;
+
+	private UISWTView swtView;
 	
 	public SubscriptionsView() {
 	}
 	
 	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.core.subs.SubscriptionManagerListener#associationsChanged(byte[])
+	 */
 	public void associationsChanged(byte[] association_hash) {
 		// TODO Auto-generated method stub
 		
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.core.subs.SubscriptionManagerListener#subscriptionSelected(com.aelitis.azureus.core.subs.Subscription)
+	 */
 	public void 
 	subscriptionSelected(
 		Subscription subscription )
 	{		
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.core.subs.SubscriptionManagerListener#subscriptionAdded(com.aelitis.azureus.core.subs.Subscription)
+	 */
 	public void subscriptionAdded(Subscription subscription) {
 		if ( subscription.isSubscribed()){
 			view.addDataSource(subscription);
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.core.subs.SubscriptionManagerListener#subscriptionRemoved(com.aelitis.azureus.core.subs.Subscription)
+	 */
 	public void subscriptionRemoved(Subscription subscription) {
 		view.removeDataSource(subscription);
 		
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.core.subs.SubscriptionManagerListener#subscriptionChanged(com.aelitis.azureus.core.subs.Subscription)
+	 */
 	public void subscriptionChanged(Subscription subscription) {
 		if ( !subscription.isSubscribed()){
 			subscriptionRemoved(subscription);
@@ -89,17 +106,19 @@ public class SubscriptionsView
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler#refreshToolBar(java.util.Map)
+	 */
 	public void refreshToolBar(Map<String, Boolean> list) {
 		list.put("remove", view.getSelectedRowsSize() > 0);
 		TableRowCore[] rows = view.getSelectedRows();
 		list.put("share", rows.length == 1);
 	}
 	
-	public String getUpdateUIName() {
-		// TODO Auto-generated method stub
-		return null;
-	}
 
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler#toolBarItemActivated(java.lang.String)
+	 */
 	public boolean toolBarItemActivated(String itemKey) {
 		if("remove".equals(itemKey) ) {
 			removeSelected();
@@ -172,18 +191,8 @@ public class SubscriptionsView
 		});
 	}
 	
-	public void updateUI() {
-		// TODO Auto-generated method stub
-		
-	}
 	
-	public void dataSourceChanged(Object newDataSource) {
-		// TODO Auto-generated method stub
-		
-	}
-	
-	public void delete() {
-		view.delete();
+	private void delete() {
 		if (viewComposite != null && !viewComposite.isDisposed()) {
 			viewComposite.dispose();
 		}
@@ -195,19 +204,15 @@ public class SubscriptionsView
 		}
 	}
 	
-	public void generateDiagnostics(IndentWriter writer) {
-		view.generate(writer);
-	}
-	
-	public Composite getComposite() {
+	private Composite getComposite() {
 		return viewComposite;
 	}
 	
-	public String getData() {
-		return "subscriptions.overview";
+	private String getFullTitle() {
+		return MessageText.getString("subscriptions.overview");
 	}
 	
-	public void initialize(Composite parent) {
+	private void initialize(Composite parent) {
 		
 		viewComposite = new Composite(parent,SWT.NONE);
 		viewComposite.setLayout(new FormLayout());
@@ -402,8 +407,43 @@ public class SubscriptionsView
 
 	}
 	
-	public void refresh() {
+	private void refresh() {
 		view.refreshTable(false);
 	}
-	
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	//dataSourceChanged(event.getData());
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
+
 }

@@ -25,29 +25,21 @@ package org.gudy.azureus2.ui.swt.views.stats;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableColumn;
-import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.ByteFormatter;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.TimeFormatter;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
@@ -64,11 +56,14 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
 /**
  * 
  */
-public class DHTView extends AbstractIView {
+public class DHTView
+	implements PeriodicViewUpdate, UISWTViewEventListener
+{
   
   public static final int DHT_TYPE_MAIN 	= DHT.NW_MAIN;
   public static final int DHT_TYPE_CVS  	= DHT.NW_CVS;
   public static final int DHT_TYPE_MAIN_V6 	= DHT.NW_MAIN_V6;
+	public static final String MSGID_PREFIX = "DHTView";
 
   DHT dht;
   
@@ -103,19 +98,13 @@ public class DHTView extends AbstractIView {
   Table activityTable;
   DHTControlActivity[] activities;
   
-  private final int dht_type;
+  private int dht_type;
 	protected AzureusCore core;
   
 
-  public DHTView( int dht_type ) {
-    this.dht_type = dht_type;
-  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-
-			public void azureusCoreRunning(AzureusCore core) {
-				DHTView.this.core = core;
-				init(core);
-			}
-		});
+  public DHTView( ) {
+    inGraph = SpeedGraphic.getInstance();
+    outGraph = SpeedGraphic.getInstance();
   }
   
   private void init(AzureusCore core) {
@@ -153,8 +142,16 @@ public class DHTView extends AbstractIView {
     }
   }
   
-  public void initialize(Composite composite) {
-    panel = new Composite(composite,SWT.NULL);
+  private void initialize(Composite composite) {
+  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+
+			public void azureusCoreRunning(AzureusCore core) {
+				DHTView.this.core = core;
+				init(core);
+			}
+		});
+
+  	panel = new Composite(composite,SWT.NULL);
     GridLayout layout = new GridLayout();
     layout.numColumns = 2;
     panel.setLayout(layout);
@@ -383,7 +380,6 @@ public class DHTView extends AbstractIView {
     data = new GridData(GridData.FILL_BOTH);
     data.horizontalSpan = 3;
     in.setLayoutData(data);
-    inGraph = SpeedGraphic.getInstance();
     inGraph.initialize(in);
     
     label = new Label(gTransport,SWT.NONE);
@@ -396,7 +392,6 @@ public class DHTView extends AbstractIView {
     data = new GridData(GridData.FILL_BOTH);
     data.horizontalSpan = 3;
     out.setLayoutData(data);
-    outGraph = SpeedGraphic.getInstance();
     outGraph.initialize(out);
   }
   
@@ -546,7 +541,7 @@ public class DHTView extends AbstractIView {
   }
   
 
-  public void delete() {
+  private void delete() {
     Utils.disposeComposite(panel);
     if (dht != null) {
       dht.getControl().removeListener(controlListener);
@@ -555,7 +550,7 @@ public class DHTView extends AbstractIView {
     inGraph.dispose();
   }
 
-  public String getFullTitle() {
+  private String getTitleID() {
 	  if ( dht_type == DHT_TYPE_MAIN ){
 
 		  return( "DHTView.title.full" );
@@ -569,11 +564,11 @@ public class DHTView extends AbstractIView {
 	  }
   }
   
-  public Composite getComposite() {
+  private Composite getComposite() {
     return panel;
   }
   
-  public void refresh() {    
+  private void refresh() {    
   	if (dht == null) {
   		if (core != null) {
   			// keep trying until dht is avail
@@ -628,6 +623,7 @@ public class DHTView extends AbstractIView {
   }
   
   private int refreshIter = 0;
+	private UISWTView swtView;
   
   private void refreshDB() {    
     if(refreshIter == 0) {
@@ -718,8 +714,46 @@ public class DHTView extends AbstractIView {
     outGraph.addIntValue((int)fullStats.getAverageBytesSent());
   }
   
-  public String getData() {
-	  return( getFullTitle());
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(MessageText.getString(getTitleID()));
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+    		if (swtView != null) {
+        	swtView.setTitle(MessageText.getString(getTitleID()));
+    		}
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	if (event.getData() instanceof Number) {
+      		dht_type = ((Number) event.getData()).intValue();
+      		if (swtView != null) {
+          	swtView.setTitle(MessageText.getString(getTitleID()));
+      		}
+      	}
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
   }
 }
 

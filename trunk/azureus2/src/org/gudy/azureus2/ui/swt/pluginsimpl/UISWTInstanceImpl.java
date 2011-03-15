@@ -22,23 +22,18 @@
 
 package org.gudy.azureus2.ui.swt.pluginsimpl;
 
-import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.lang.ref.WeakReference;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.WeakHashMap;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.awt.SWT_AWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.widgets.*;
-import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -59,6 +54,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -73,7 +69,6 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableStructureEventDispatcher;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
@@ -87,11 +82,11 @@ UISWTInstanceImpl
 {
 	private AzureusCore		core;
 	
-	private Map<UISWTAWTPluginView,UISWTPluginView> 			awt_view_map 	= new WeakHashMap<UISWTAWTPluginView,UISWTPluginView>();
 	private Map<BasicPluginConfigModel,BasicPluginConfigImpl> 	config_view_map = new WeakHashMap<BasicPluginConfigModel,BasicPluginConfigImpl>();
 	
+	// Map<Parent ID, Map<ViewID, Event Listener>>
 	private Map<String,Map<String,UISWTViewEventListenerHolder>> views = new HashMap<String,Map<String,UISWTViewEventListenerHolder>>();
-	
+
 	private Map<PluginInterface,UIInstance>	plugin_map = new WeakHashMap<PluginInterface,UIInstance>();
 	
 	private boolean bUIAttaching;
@@ -122,7 +117,7 @@ UISWTInstanceImpl
 	getInstance(
 		PluginInterface		plugin_interface )
 	{
-		UIInstance	instance = (UIInstance)plugin_map.get( plugin_interface );
+		UIInstance	instance = plugin_map.get( plugin_interface );
 		
 		if ( instance == null ){
 			
@@ -264,7 +259,7 @@ UISWTInstanceImpl
 						URL 		target 				= (URL) params[0];
 						URL 		referrer 			= (URL) params[1];
 						boolean 	auto_download 		= ((Boolean) params[2]).booleanValue();
-						Map			request_properties	= (Map)params[3];
+						Map<?, ?>			request_properties	= (Map<?, ?>)params[3];
 						
 						// programmatic request to add a torrent, make sure az is visible
 
@@ -326,7 +321,7 @@ UISWTInstanceImpl
 					   
 					config_view_map.put( model, view );
 					
-					model.getPluginInterface().addConfigSection( view );
+			  	ConfigSectionRepository.getInstance().addConfigSection(view, model.getPluginInterface());
 				}
 				
 				break;
@@ -337,11 +332,12 @@ UISWTInstanceImpl
 					
 					BasicPluginConfigModel	model = (BasicPluginConfigModel)data;
 					
-					BasicPluginConfigImpl view = (BasicPluginConfigImpl)config_view_map.get( model );
+					BasicPluginConfigImpl view = config_view_map.get( model );
 					   
 					if ( view != null ){
 						
-						model.getPluginInterface().removeConfigSection( view );
+				  	ConfigSectionRepository.getInstance().removeConfigSection(view);
+
 					}
 				}
 				
@@ -362,7 +358,7 @@ UISWTInstanceImpl
 			case UIManagerEvent.ET_CREATE_TABLE_COLUMN:{
 				
 				if (data instanceof TableColumn) {
-					event.setResult((TableColumn) data);
+					event.setResult(data);
 				} else {
 					String[] args = (String[]) data;
 
@@ -396,7 +392,7 @@ UISWTInstanceImpl
 				
 				TableColumnManager tcManager = TableColumnManager.getInstance();
 				
-				Class 	dataSource 	= (Class)params[0];
+				Class<?> 	dataSource 	= (Class<?>)params[0];
 				String	columnName	= (String)params[1];
 				
 				tcManager.registerColumn(dataSource, columnName, (TableColumnCreationListener)params[2]);
@@ -422,7 +418,7 @@ UISWTInstanceImpl
 				
 				TableColumnManager tcManager = TableColumnManager.getInstance();
 				
-				Class 	dataSource 	= (Class)params[0];
+				Class<?> 	dataSource 	= (Class<?>)params[0];
 				String	columnName	= (String)params[1];
 
 				tcManager.unregisterColumn(dataSource, columnName, (TableColumnCreationListener)params[2]);
@@ -546,133 +542,6 @@ UISWTInstanceImpl
 	}
   
 
-	/** @deprecated */
-	public void addView(final UISWTPluginView view, boolean bAutoOpen) {
-		// Currently used by firefrog.
-		try {
-			uiFunctions.addPluginView(view);
-			if (bAutoOpen) {
-				uiFunctions.openPluginView(view);
-			}
-		} catch (Throwable e) {
-			// SWT not available prolly
-		}
-	} 
-  
-
-	public void removeView(UISWTPluginView view) {
-		try {
-			uiFunctions.removePluginView(view);
-		} catch (Throwable e) {
-			// SWT not available prolly
-		}
-	}
-
-	/** @deprecated */
-	public void
-	addView(
-		UISWTAWTPluginView			view,
-		boolean						auto_open )
-	{
-		final WeakReference<UISWTAWTPluginView> view_ref = new WeakReference<UISWTAWTPluginView>( view );
-		
-		UISWTPluginView	v = 
-			new UISWTPluginView()
-			{
-				Composite		composite;
-				Component		component;
-				
-				boolean	first_paint = true;
-				
-				public String
-				getPluginViewName()
-				{
-					return( view_ref.get().getPluginViewName());
-				}
-				
-				public String 
-				getFullTitle() 
-				{
-					return( view_ref.get().getPluginViewName());
-				}
-				 
-				public void 
-				initialize(
-					Composite _composite )
-				{
-					first_paint	= true;
-					
-					composite	= _composite;
-					
-					Composite frame_composite = new Composite(composite, SWT.EMBEDDED);
-	
-					GridData data = new GridData(GridData.FILL_BOTH);
-					
-					frame_composite.setLayoutData(data);
-	
-					Frame	f = SWT_AWT.new_Frame(frame_composite);
-	
-					BorderLayout	layout = 
-						new BorderLayout()
-						{
-							public void 
-							layoutContainer(Container parent)
-							{
-								try{
-									super.layoutContainer( parent );
-								
-								}finally{
-									if ( first_paint ){
-										
-										first_paint	= false;
-											
-										view_ref.get().open( component );
-									}
-								}
-							}
-						};
-					
-					Panel	pan = new Panel( layout );
-	
-					f.add( pan );
-							
-					component	= view_ref.get().create();
-					
-					pan.add( component, BorderLayout.CENTER );
-				}
-				
-				public Composite 
-				getComposite()
-				{
-					return( composite );
-				}
-				
-				public void 
-				delete() 
-				{
-					super.delete();
-					
-					view_ref.get().delete( component );
-				}
-			};
-			
-		awt_view_map.put( view, v );
-		
-		addView( v, auto_open );
-	}
-	
-	public void
-	removeView(
-		UISWTAWTPluginView		view )
-	{
-		UISWTPluginView	v = (UISWTPluginView)awt_view_map.remove(view );
-		
-		if ( v != null ){
-			
-			removeView( v );
-		}
-	}
-	
 	public void
 	detach()
 	
@@ -683,34 +552,49 @@ UISWTInstanceImpl
 
 
 	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTInstance#addView(java.lang.String, java.lang.String, java.lang.Class, java.lang.Object)
+	 */
+	public void addView(String sParentID, String sViewID,
+			Class<? extends UISWTViewEventListener> cla, Object datasource) {
+		addView(null, sParentID, sViewID, cla, datasource);
+	}
+
+	public void addView(PluginInterface pi, String sParentID, String sViewID,
+			Class<? extends UISWTViewEventListener> cla, Object datasource) {
+
+		UISWTViewEventListenerHolder _l = new UISWTViewEventListenerHolder(cla,
+				datasource, pi);
+		addView( sParentID, sViewID, _l );
+	}
+
+	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTInstance#addView(java.lang.String, java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener)
 	 */
-	
 	public void addView(String sParentID, String sViewID,
 			final UISWTViewEventListener l) {
-		addView( null, sParentID, sViewID, l );
+		UISWTViewEventListenerHolder _l = new UISWTViewEventListenerHolder( l, null );
+		addView( sParentID, sViewID, _l );
 	}
 	
-	public void addView( PluginInterface pi, String sParentID, final String sViewID,
-			UISWTViewEventListener _l) 
+	public void addView( String sParentID, 
+			final String sViewID, final UISWTViewEventListenerHolder holder)
 	{
-		final UISWTViewEventListenerHolder l = new UISWTViewEventListenerHolder( _l, pi );
 		if (sParentID == null) {
 			sParentID = UISWTInstance.VIEW_MAIN;
 		}
 		Map<String,UISWTViewEventListenerHolder> subViews = views.get(sParentID);
 		if (subViews == null) {
-			subViews = new HashMap<String,UISWTViewEventListenerHolder>();
+			subViews = new LinkedHashMap<String,UISWTViewEventListenerHolder>();
 			views.put(sParentID, subViews);
 		}
 
-		subViews.put(sViewID, l );
+		subViews.put(sViewID, holder );
 
 		if (sParentID.equals(UISWTInstance.VIEW_MAIN)) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					try {
-						uiFunctions.addPluginView(sViewID, l );
+						uiFunctions.addPluginView(sViewID, holder );
 					} catch (Throwable e) {
 						// SWT not available prolly
 					}
@@ -963,7 +847,15 @@ UISWTInstanceImpl
 		{
 			PluginInterface pi = pi_ref.get();
 			
-			delegate.addView( pi, sParentID, sViewID, l );
+			delegate.addView( sParentID, sViewID, new UISWTViewEventListenerHolder(l, pi) );
+		}
+		
+		public void addView(String sParentID, String sViewID,
+				Class<? extends UISWTViewEventListener> cla, Object datasource) {
+			PluginInterface pi = pi_ref.get();
+			
+			delegate.addView(sParentID, sViewID, new UISWTViewEventListenerHolder(
+					cla, datasource, pi));
 		}
 
 		public void 
@@ -996,33 +888,6 @@ UISWTInstanceImpl
 			return( delegate.getOpenViews(sParentID));
 		}
 
-
-		public void 
-		addView(UISWTPluginView view, boolean autoOpen)
-		{
-			delegate.addView( view, autoOpen );
-		}
-
-
-		public void 
-		removeView(UISWTPluginView view)
-		{
-			delegate.removeView( view );
-		}
-
-		public void 
-		addView(UISWTAWTPluginView view, boolean auto_open)
-		{
-			delegate.addView( view, auto_open );
-		}
-
-
-		public void 
-		removeView(UISWTAWTPluginView view)
-		{
-			delegate.removeView( view );
-		}
-		
 		public int promptUser(String title, String text, String[] options,
 				int defaultOption) {
 			return delegate.promptUser(title, text, options, defaultOption);

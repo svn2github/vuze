@@ -48,14 +48,18 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 /**
  * @author TuxPaper
  *
  * @since 2.3.0.5
  */
-public class LoggerView extends AbstractIView implements ILogEventListener,
-		ParameterListener {
+public class LoggerView
+	implements ILogEventListener, ParameterListener, UISWTViewCoreEventListener
+{
 	//private final static LogIDs LOGID = LogIDs.GUI;
 
 	private static final int COLOR_INFO = 0;
@@ -74,6 +78,8 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 
 	private static final FieldPosition formatPos;
 
+	public static final String MSGID_PREFIX = "ConsoleView";
+
 	private Display display;
 
 	private Composite panel;
@@ -85,7 +91,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 	private Object[] filter = null;
 
 	// LinkedList is better for removing entries when full
-	private LinkedList buffer = new LinkedList();
+	private LinkedList<LogEvent> buffer = new LinkedList<LogEvent>();
 
 	private boolean bPaused = false;
 
@@ -104,6 +110,8 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 
 	private boolean stopOnNull = false;
 
+	private UISWTView swtView;
+
 	static {
 		dateFormatter = new SimpleDateFormat("[HH:mm:ss.SSS] ");
 		formatPos = new FieldPosition(0);
@@ -121,17 +129,14 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 		this.stopOnNull = stopOnNull;
 	}
 
-	public LoggerView(java.util.List initialList) {
+	public LoggerView(java.util.List<? extends LogEvent> initialList) {
 		this();
 		if (initialList != null)
 			buffer.addAll(initialList);
 		setEnabled(true);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
-	 */
-	public void initialize(Composite composite) {
+	private void initialize(Composite composite) {
 		display = composite.getDisplay();
 
 		Colors.getInstance().addColorsChangedListener(this);
@@ -454,17 +459,11 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.IView#getComposite()
-	 */
-	public Composite getComposite() {
+	private Composite getComposite() {
 		return panel;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.IView#refresh()
-	 */
-	public void refresh() {
+	private void refresh() {
 		if (bPaused)
 			return;
 		
@@ -474,7 +473,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 
 			for (int i = 0; i < buffer.size(); i++) {
 				try {
-					LogEvent event = (LogEvent) buffer.get(i);
+					LogEvent event = buffer.get(i);
 
 					int nbLinesBefore = consoleText.getLineCount();
 					if (nbLinesBefore > MAX_LINES)
@@ -542,25 +541,15 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.IView#delete()
-	 */
-	public void delete() {
+	private void delete() {
 		Logger.removeListener(this);
 		if (panel != null && !panel.isDisposed())
 			panel.dispose();
 		Colors.getInstance().removeColorsChangedListener(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
-	 */
-	public String getFullTitle() {
+	private String getFullTitle() {
 		return MessageText.getString("ConsoleView.title.full");
-	}
-
-	public String getData() {
-		return "ConsoleView.title.short";
 	}
 
 	// @see org.gudy.azureus2.core3.logging.ILogEventListener#log(org.gudy.azureus2.core3.logging.LogEvent)
@@ -650,7 +639,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 	}
 
 	// TODO: Support multiple selection
-	public void dataSourceChanged(Object newDataSource) {
+	private void dataSourceChanged(Object newDataSource) {
 		if (newDataSource == null) {
 			if (stopOnNull) {
 				setEnabled(false);
@@ -678,6 +667,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 		return 0;
 	}
 
+	/*
 	private int indexToLogType(int index) {
 		switch (index) {
 			case 0:
@@ -689,6 +679,7 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 		}
 		return LogEvent.LT_INFORMATION;
 	}
+	*/
 
 	public void parameterChanged(String parameterName) {
 		if (parameterName.startsWith("Color")) {
@@ -720,4 +711,39 @@ public class LoggerView extends AbstractIView implements ILogEventListener,
 			});
 		}
 	}
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	dataSourceChanged(event.getData());
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
 }

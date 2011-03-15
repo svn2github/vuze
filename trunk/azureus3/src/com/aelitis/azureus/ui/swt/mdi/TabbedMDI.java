@@ -1,7 +1,8 @@
 package com.aelitis.azureus.ui.swt.mdi;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.*;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
@@ -10,10 +11,11 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -48,17 +50,17 @@ public class TabbedMDI
 			public void azureusCoreRunning(AzureusCore core) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
+						try {
+							loadCloseables();
+						} catch (Throwable t) {
+							Debug.out(t);
+						}
+
 						setupPluginViews();
 					}
 				});
 			}
 		});
-
-		try {
-			loadCloseables();
-		} catch (Throwable t) {
-			Debug.out(t);
-		}
 
 		try {
 			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
@@ -201,18 +203,23 @@ public class TabbedMDI
 	
 	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#loadEntryByID(java.lang.String, boolean)
 	public boolean loadEntryByID(String id, boolean activate) {
-		return loadEntryByID(id, activate, false);
+		return loadEntryByID(id, activate, false, null);
 	}
 
-	public boolean loadEntryByID(String id, boolean activate, boolean onlyLoadOnce) {
+	public boolean loadEntryByID(String id, boolean activate,
+			boolean onlyLoadOnce, Object datasource) {
 		MdiEntry entry = mapIdToEntry.get(id);
 		if (entry != null) {
+			if (datasource != null) {
+				entry.setDatasource(datasource);
+			}
 			if (activate) {
 				showEntry(entry);
 			}
 			return true;
 		}
 
+		@SuppressWarnings("deprecation")
 		boolean loadedOnce = COConfigurationManager.getBooleanParameter("tab.once." + id, false);
 		if (loadedOnce && onlyLoadOnce) {
 			return false;
@@ -222,6 +229,9 @@ public class TabbedMDI
 		if (mdiEntryCreationListener != null) {
 			entry = mdiEntryCreationListener.createMDiEntry(id);
 			if (entry != null) {
+				if (datasource != null) {
+					entry.setDatasource(datasource);
+				}
 				if (onlyLoadOnce) {
 					COConfigurationManager.setParameter("tab.once." + id, true);
 				}
@@ -250,9 +260,7 @@ public class TabbedMDI
 
 		currentEntry = (MdiEntrySWT) newEntry; // assumed MdiEntrySWT
 
-		if (newEntry != null) {
-			((BaseMdiEntry) newEntry).show();
-		}
+		((BaseMdiEntry) newEntry).show();
 
 		triggerSelectionListener(newEntry, oldEntry);
 	}
@@ -264,7 +272,7 @@ public class TabbedMDI
 		}
 	}
 	
-	public MdiEntry createEntryFromSkinRef(String parentID, String id,
+	private MdiEntry createEntryFromSkinRef(String parentID, String id,
 			String configID, String title, ViewTitleInfo titleInfo, Object params,
 			boolean closeable, int index) {
 		MdiEntry oldEntry = getEntry(id);
@@ -304,36 +312,11 @@ public class TabbedMDI
 		return entry;
 	}
 
-	public MdiEntry createEntryFromIViewClass(String parent, String id,
-			String title, Class<?> iviewClass, Class<?>[] iviewClassArgs,
-			Object[] iviewClassVals, Object datasource, ViewTitleInfo titleInfo,
-			boolean closeable) {
-		MdiEntry oldEntry = getEntry(id);
-		if (oldEntry != null) {
-			return oldEntry;
-		}
-
-		TabbedEntry entry = new TabbedEntry(this, skin, id);
-		entry.setTitle(title);
-
-		entry.setIViewClass(iviewClass, iviewClassArgs, iviewClassVals);
-		entry.setDatasource(datasource);
-		entry.setViewTitleInfo(titleInfo);
-		entry.setCloseable(closeable);
-
-		setupNewEntry(entry, id, -1);
-
-		if (IViewAlwaysInitialize.class.isAssignableFrom(iviewClass)) {
-			entry.build();
-		}
-
-		return entry;
-	}
-
-	public MdiEntry createEntryFromIView(String parentID, IView iview, String id,
-			Object datasource, boolean closeable, boolean show, boolean expand) {
+	public MdiEntry createEntryFromView(String parentID, UISWTViewCore view,
+			String id, Object datasource, boolean closeable, boolean show,
+			boolean expand) {
 		if (id == null) {
-			id = iview.getClass().getName();
+			id = view.getClass().getName();
 			int i = id.lastIndexOf('.');
 			if (i > 0) {
 				id = id.substring(i + 1);
@@ -350,12 +333,12 @@ public class TabbedMDI
 
 		TabbedEntry entry = new TabbedEntry(this, skin, id);
 
-		entry.setIView(iview);
+		entry.setCoreView(view);
 		entry.setDatasource(datasource);
 
 		setupNewEntry(entry, id, -1);
 
-		if (iview instanceof IViewAlwaysInitialize) {
+		if (view instanceof IViewAlwaysInitialize) {
 			entry.build();
 		}
 		
@@ -410,15 +393,15 @@ public class TabbedMDI
 				continue;
 			}
 
-			IView view = entry.getIView();
-
-			if (view != null) {
-				writer.println(view.getFullTitle());
-
+			
+			UISWTViewCore view = entry.getCoreView();
+			if (!(view instanceof AEDiagnosticsEvidenceGenerator)) {
+				writer.println("TabbedMdi View (No Generator): " + entry.getId());
 				try {
 					writer.indent();
 
-					view.generateDiagnostics(writer);
+					writer.println("Parent: " + entry.getParentID());
+					writer.println("Title: " + entry.getTitle());
 				} catch (Exception e) {
 
 				} finally {

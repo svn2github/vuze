@@ -29,15 +29,16 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
-import org.gudy.azureus2.core3.stats.transfer.OverallStats;
-import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
@@ -49,7 +50,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
  *
  */
 public class ViewUpSpeedGraph
-	extends AbstractIView
+	implements UISWTViewCoreEventListener
 {
 
 	GlobalManager manager = null;
@@ -63,7 +64,9 @@ public class ViewUpSpeedGraph
 	TimerEventPeriodic	timerEvent;
 	
 	private boolean everRefreshed = false;
-	
+
+	private UISWTView swtView;
+
 	public ViewUpSpeedGraph() {
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
@@ -73,7 +76,7 @@ public class ViewUpSpeedGraph
 		});
 	}
 
-	public void initialize(Composite composite) {
+	private void initialize(Composite composite) {
 		GridData gridData;
 
 		upSpeedCanvas = new Canvas(composite, SWT.DOUBLE_BUFFERED);
@@ -84,7 +87,7 @@ public class ViewUpSpeedGraph
 		//upSpeedGraphic.setAutoAlpha(true);
 	}
 	
-	public void periodicUpdate() {
+	private void periodicUpdate() {
 		if (stats == null || manager == null) {
 			return;
 		}
@@ -99,20 +102,20 @@ public class ViewUpSpeedGraph
 		});
 	}
 
-	public void delete() {
+	private void delete() {
 		Utils.disposeComposite(upSpeedCanvas);
 		upSpeedGraphic.dispose();
 	}
 
-	public String getFullTitle() {
+	private String getFullTitle() {
 		return "UL Speed";
 	}
 
-	public Composite getComposite() {
+	private Composite getComposite() {
 		return upSpeedCanvas;
 	}
 
-	public void refresh() {
+	private void refresh() {
 		if (!everRefreshed) {
 			everRefreshed = true;
 			timerEvent = SimpleTimer.addPeriodicEvent("TopBarSpeedGraphicView", 1000, new TimerEventPerformer() {
@@ -128,7 +131,31 @@ public class ViewUpSpeedGraph
 		upSpeedGraphic.refresh();
 	}
 
-	public String getData() {
-		return "SpeedView.title.full";
-	}
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
 }

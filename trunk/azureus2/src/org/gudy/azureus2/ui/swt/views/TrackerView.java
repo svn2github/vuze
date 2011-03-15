@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
@@ -48,6 +49,8 @@ import com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener;
 import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectedRowsListener;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
@@ -58,6 +61,8 @@ public class TrackerView
 	implements 	TableLifeCycleListener, TableDataSourceChangedListener, 
 				DownloadManagerTPSListener, TableViewSWTMenuFillListener
 {
+	private static boolean registeredCoreSubViews = false;
+
 	private final static TableColumnCore[] basicItems = {
 		new TypeItem(),
 		new NameItem(),
@@ -69,18 +74,18 @@ public class TrackerView
 		new IntervalItem(),
 	};
 
+	public static final String MSGID_PREFIX = "TrackerView";
+
 	DownloadManager manager;
   
 	private TableViewSWTImpl<TrackerPeerSource> tv;
 
-	private ScrapeInfoView scrapeInfoView;
- 
 	/**
 	 * Initialize
 	 *
 	 */
 	public TrackerView() {
-		super("TrackerView");
+		super(MSGID_PREFIX);
 	}
 
 	public TableViewSWT<TrackerPeerSource>
@@ -98,10 +103,20 @@ public class TrackerView
 		tv.addMenuFillListener(this);
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.setEnableTabViews(true);
-		scrapeInfoView = new ScrapeInfoView(manager);
-		tv.setCoreTabViews(new IView[] {
-			scrapeInfoView
-		});
+		
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (uiFunctions != null) {
+			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
+			
+			if (pluginUI != null && !registeredCoreSubViews) {
+
+				pluginUI.addView(TableManager.TABLE_TORRENT_TRACKERS, "ScrapeInfoView",
+						ScrapeInfoView.class, manager);
+
+				registeredCoreSubViews = true;
+			}
+		}
+
 		return tv;
 	}
 
@@ -225,9 +240,6 @@ public class TrackerView
 	  		
 	    	addExistingDatasources();
 	    }
-	  if (scrapeInfoView != null) {
-	  	scrapeInfoView.setDownlaodManager(manager);
-	  }
 	}
 	
 	public void 

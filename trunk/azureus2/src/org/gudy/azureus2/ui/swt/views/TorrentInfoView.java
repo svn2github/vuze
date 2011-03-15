@@ -44,24 +44,25 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.FakeTableCell;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 
-import org.gudy.azureus2.plugins.download.*;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-
-public class 
-TorrentInfoView
-	extends AbstractIView
+public class TorrentInfoView
+	implements UISWTViewCoreEventListener
 {
-	private static final String	TEXT_PREFIX	= "TorrentInfoView.";
+	public static final String MSGID_PREFIX = "TorrentInfoView";
 		
 	private DownloadManager			download_manager;
 		
@@ -73,13 +74,10 @@ TorrentInfoView
 	private ScrolledComposite sc;
 
 	private Composite parent;
+
+	private UISWTView swtView;
 	
-	protected
-	TorrentInfoView( )
-	{
-	}
-	
-	public void 
+	private void 
 	initialize(
 		Composite composite) 
 	{
@@ -159,7 +157,7 @@ TorrentInfoView
 		Label label = new Label(gTorrentInfo, SWT.NULL);
 		gridData = new GridData();
 		label.setLayoutData( gridData );
-		label.setText( MessageText.getString( TEXT_PREFIX + "torrent.encoding" ) + ": " );
+		label.setText( MessageText.getString( MSGID_PREFIX + ".torrent.encoding" ) + ": " );
 
 		TOTorrent	torrent = download_manager.getTorrent();
 		BufferedLabel blabel = new BufferedLabel(gTorrentInfo, SWT.NULL);
@@ -183,7 +181,7 @@ TorrentInfoView
 			
 			TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
 			
-			List	tracker_list = new ArrayList();
+			List<String>	tracker_list = new ArrayList<String>();
 			
 			URL	url = torrent.getAnnounceURL();
 			
@@ -257,7 +255,7 @@ TorrentInfoView
 			// columns
 				 
 		Group gColumns = new Group(panel, SWT.NULL);
-		Messages.setLanguageText(gColumns, TEXT_PREFIX + "columns" );
+		Messages.setLanguageText(gColumns, MSGID_PREFIX + ".columns" );
 		gridData = new GridData(GridData.FILL_BOTH);
 		gColumns.setLayoutData(gridData);
 		layout = new GridLayout();
@@ -371,7 +369,7 @@ TorrentInfoView
 		sc.setMinSize( panel.computeSize( SWT.DEFAULT, SWT.DEFAULT ));
 	}
 	
-	public void
+	private void
 	refresh()
 	{
 		if ( cells != null ){
@@ -386,29 +384,21 @@ TorrentInfoView
 	}
 
 	
-	public Composite 
+	private Composite 
 	getComposite() 
 	{
 		return outer_panel;
 	}
 	
-	public String 
+	private String 
 	getFullTitle() 
 	{
-		return MessageText.getString("GeneralView.section.info");
+		return MessageText.getString("TorrentInfoView.title.full");
 	}
 
-	public String 
-	getData() 
-	{
-		return( "GeneralView.section.info" );
-	}
-	
-	public void 
+	private void 
 	delete()
 	{
-		super.delete();
-		
 		if ( headerFont != null ){
 			
 			headerFont.dispose();
@@ -425,8 +415,7 @@ TorrentInfoView
 		}
 	}
 	
-	// @see org.gudy.azureus2.ui.swt.views.AbstractIView#dataSourceChanged(java.lang.Object)
-	public void dataSourceChanged(Object newDataSource) {
+	private void dataSourceChanged(Object newDataSource) {
 		if (newDataSource instanceof DownloadManager) {
 			download_manager = (DownloadManager) newDataSource;
 		}
@@ -439,4 +428,39 @@ TorrentInfoView
 			}
 		});
 	}
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	dataSourceChanged(event.getData());
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
 }

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -13,10 +14,7 @@ import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-import org.gudy.azureus2.ui.swt.pluginsimpl.BasicPluginViewImpl;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -27,9 +25,9 @@ public class PluginsMenuHelper
 
 	private AEMonitor plugin_helper_mon = new AEMonitor("plugin_helper_mon");
 
-	private Map plugin_view_info_map = new TreeMap();
+	private Map<String, IViewInfo> plugin_view_info_map = new TreeMap<String, IViewInfo>();
 
-	private Map plugin_logs_view_info_map = new TreeMap();
+	private Map<String, IViewInfo> plugin_logs_view_info_map = new TreeMap<String, IViewInfo>();
 	
 	private List<PluginAddedViewListener> pluginAddedViewListener = new ArrayList<PluginAddedViewListener>();
 
@@ -49,7 +47,7 @@ public class PluginsMenuHelper
 
 			plugin_helper_mon.enter();
 
-			createIViewInfoMenuItems(parentMenu, plugin_logs_view_info_map);
+			createViewInfoMenuItems(parentMenu, plugin_logs_view_info_map);
 
 		} finally {
 			plugin_helper_mon.exit();
@@ -62,10 +60,10 @@ public class PluginsMenuHelper
 		try {
 
 			plugin_helper_mon.enter();
-			createIViewInfoMenuItems(pluginMenu, plugin_view_info_map);
+			createViewInfoMenuItems(pluginMenu, plugin_view_info_map);
 
 			MenuItem menu_plugin_logViews = MenuFactory.addLogsViewMenuItem(pluginMenu);
-			createIViewInfoMenuItems(menu_plugin_logViews.getMenu(),
+			createViewInfoMenuItems(menu_plugin_logViews.getMenu(),
 					plugin_logs_view_info_map);
 
 		} finally {
@@ -116,7 +114,7 @@ public class PluginsMenuHelper
 
 		view_info.name = name;
 
-		Map map_to_use;
+		Map<String, IViewInfo> map_to_use;
 		
 		if ( 	( l instanceof BasicPluginViewImpl ) ||
 				(	( l instanceof UISWTViewEventListenerHolder )) && ((UISWTViewEventListenerHolder)l).isLogView()){
@@ -168,7 +166,7 @@ public class PluginsMenuHelper
 		});
 	}
 
-	public void addPluginView(final AbstractIView view, final String name) {
+	public void addPluginView(final UISWTViewCore view, final String name) {
 		IViewInfo view_info = new IViewInfo();
 		view_info.name = name;
 		view_info.view = view;
@@ -181,11 +179,11 @@ public class PluginsMenuHelper
 		triggerPluginAddedViewListeners(view_info);
 	}
 
-	public void removePluginView(final AbstractIView view, final String name) {
+	public void removePluginView(final UISWTViewCore view, final String name) {
 		IViewInfo view_info = null;
 		try {
 			plugin_helper_mon.enter();
-			view_info = (IViewInfo) this.plugin_view_info_map.remove(name);
+			view_info = plugin_view_info_map.remove(name);
 		} finally {
 			plugin_helper_mon.exit();
 		}
@@ -208,7 +206,7 @@ public class PluginsMenuHelper
 	 * @param parent
 	 */
 
-	private void createIViewInfoMenuItem(Menu parent, final IViewInfo info) {
+	private void createViewInfoMenuItem(Menu parent, final IViewInfo info) {
 		MenuItem item = new MenuItem(parent, SWT.NULL);
 		item.setText(info.name);
 		if (info.viewID != null) {
@@ -224,24 +222,24 @@ public class PluginsMenuHelper
 		});
 	}
 
-	private void createIViewInfoMenuItems(Menu parent, Map menu_data) {
+	private void createViewInfoMenuItems(Menu parent, Map menu_data) {
 		Iterator itr = menu_data.values().iterator();
 		while (itr.hasNext()) {
-			createIViewInfoMenuItem(parent, (IViewInfo) itr.next());
+			createViewInfoMenuItem(parent, (IViewInfo) itr.next());
 		}
 	}
 	
 	public IViewInfo[] getPluginViewsInfo() {
-		return (IViewInfo[])plugin_view_info_map.values().toArray(new IViewInfo[0]);
+		return plugin_view_info_map.values().toArray(new IViewInfo[0]);
 	}
 
 	public IViewInfo[] getPluginLogViewsInfo() {
-		return (IViewInfo[])plugin_logs_view_info_map.values().toArray(new IViewInfo[0]);
+		return plugin_logs_view_info_map.values().toArray(new IViewInfo[0]);
 	}
 
 	public static class IViewInfo
 	{
-		public AbstractIView view;
+		public UISWTViewCore view;
 
 		public String name;
 

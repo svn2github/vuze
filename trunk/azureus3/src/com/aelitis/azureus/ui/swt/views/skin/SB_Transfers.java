@@ -122,7 +122,7 @@ public class SB_Transfers
 								SideBar.SIDEBAR_HEADER_TRANSFERS,
 								SideBar.SIDEBAR_SECTION_LIBRARY, "library", "{sidebar."
 										+ SideBar.SIDEBAR_SECTION_LIBRARY + "}", null, null, false,
-								0);
+								"");
 						entry.setImageLeftID("image.sidebar.library");
 						return entry;
 					}

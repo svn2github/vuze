@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.pluginsimpl;
 
 import java.awt.Frame;
 import java.awt.Panel;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
@@ -36,18 +37,17 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.plugins.*;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
-import org.gudy.azureus2.ui.swt.views.IViewExtension;
-
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
-
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.*;
+
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
  * This class creates an IView that triggers UISWTViewEventListener 
@@ -56,75 +56,88 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
  * @author TuxPaper
  *
  */
-public class UISWTViewImpl extends AbstractIView implements UISWTViewCore, IViewExtension {
+public class UISWTViewImpl
+	implements UISWTViewCore, ToolBarEnabler, AEDiagnosticsEvidenceGenerator
+{
 	public static final String CFG_PREFIX = "Views.plugins.";
 
 	private PluginUISWTSkinObject skinObject;
 
 	private Object dataSource = null;
-	
+
 	private boolean useCoreDataSource = false;
 
 	private final UISWTViewEventListener eventListener;
-
-	public UISWTViewEventListener getEventListener() {
-		return eventListener;
-	}
 
 	private Composite composite;
 
 	private final String sViewID;
 
 	private int iControlType = UISWTView.CONTROLTYPE_SWT;
-	
+
 	private boolean bFirstGetCompositeCall = true;
 
-	private final String sParentID;
-	
+	//private final String sParentID;
+
 	private String sTitle = null;
-	
+
+	private String lastFullTitleKey = null;
+
+	private String lastFullTitle = "";
+
 	private Boolean hasFocus = null;
 
 	public UISWTViewImpl(String sParentID, String sViewID,
-			UISWTViewEventListener eventListener) throws Exception {
-		this(sParentID, sViewID, eventListener, null);
-	}
-	
-	/**
-	 * 
-	 * @param sViewID
-	 * @param eventListener
-	 */
-	public UISWTViewImpl(String sParentID, String sViewID,
 			UISWTViewEventListener eventListener, Object datasource)
 			throws Exception {
-		this.sParentID = sParentID;
+		//this.sParentID = sParentID;
 		this.sViewID = sViewID;
 		this.eventListener = eventListener;
-		this.dataSource = datasource;
 		if (eventListener instanceof UISWTViewCoreEventListener) {
 			useCoreDataSource = true;
 		}
 
+		AEDiagnostics.addEvidenceGenerator(this);
+
 		if (!eventListener.eventOccurred(new UISWTViewEventImpl(this,
 				UISWTViewEvent.TYPE_CREATE, this)))
 			throw new UISWTViewEventCancelledException();
+
+		if (datasource != null) {
+			triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, dataSource);
+		}
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore#getEventListener()
+	 */
+	public UISWTViewEventListener getEventListener() {
+		return eventListener;
 	}
 
 	// UISWTPluginView implementation
 	// ==============================
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTView#getDataSource()
+	 */
 	public Object getDataSource() {
 		return dataSource;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.UIPluginView#getViewID()
+	 */
 	public String getViewID() {
 		return sViewID;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.UIPluginView#closeView()
+	 */
 	public void closeView() {
 		try {
-			
+
 			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 			if (uiFunctions != null) {
 				uiFunctions.closePluginView(this);
@@ -134,65 +147,95 @@ public class UISWTViewImpl extends AbstractIView implements UISWTViewCore, IView
 		}
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTView#setControlType(int)
+	 */
 	public void setControlType(int iControlType) {
-		if (iControlType == CONTROLTYPE_AWT
-				|| iControlType == CONTROLTYPE_SWT
+		if (iControlType == CONTROLTYPE_AWT || iControlType == CONTROLTYPE_SWT
 				|| iControlType == CONTROLTYPE_SKINOBJECT)
 			this.iControlType = iControlType;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTView#getControlType()
+	 */
 	public int getControlType() {
 		return iControlType;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTView#triggerEvent(int, java.lang.Object)
+	 */
 	public void triggerEvent(int eventType, Object data) {
 		// prevent double fire of focus gained/lost
-		if (eventType == UISWTViewEvent.TYPE_FOCUSGAINED && hasFocus != null && hasFocus) {
+		if (eventType == UISWTViewEvent.TYPE_FOCUSGAINED && hasFocus != null
+				&& hasFocus) {
 			return;
 		}
-		if (eventType == UISWTViewEvent.TYPE_FOCUSLOST && hasFocus != null && !hasFocus) {
+		if (eventType == UISWTViewEvent.TYPE_FOCUSLOST && hasFocus != null
+				&& !hasFocus) {
 			return;
 		}
+		if (eventType == UISWTViewEvent.TYPE_DATASOURCE_CHANGED) {
+			Object newDataSource = PluginCoreUtils.convert(data, useCoreDataSource);
+			if (dataSource == newDataSource) {
+				return;
+			}
+			data = dataSource = newDataSource;
+		} else if (eventType == UISWTViewEvent.TYPE_LANGUAGEUPDATE) {
+			lastFullTitle = "";
+			Messages.updateLanguageForControl(getComposite());
+		}
+
 		try {
 			eventListener.eventOccurred(new UISWTViewEventImpl(this, eventType, data));
 		} catch (Throwable t) {
-			throw (new UIRuntimeException("UISWTView.triggerEvent:: ViewID="
-					+ sViewID + "; EventID=" + eventType + "; data=" + data, t));
+			Debug.out("ViewID=" + sViewID + "; EventID=" + eventType + "; data="
+					+ data, t);
+			//throw (new UIRuntimeException("UISWTView.triggerEvent:: ViewID="
+			//		+ sViewID + "; EventID=" + eventType + "; data=" + data, t));
 		}
+		
+		if (eventType == UISWTViewEvent.TYPE_DESTROY) {
+			Utils.disposeComposite(getComposite());
+		}	
 	}
 
-	private boolean triggerEvent2(int eventType, Object data) {
+	private boolean triggerEventRaw(int eventType, Object data) {
 		try {
-			return eventListener.eventOccurred(new UISWTViewEventImpl(this, eventType, data));
+			return eventListener.eventOccurred(new UISWTViewEventImpl(this,
+					eventType, data));
 		} catch (Throwable t) {
 			throw (new UIRuntimeException("UISWTView.triggerEvent:: ViewID="
 					+ sViewID + "; EventID=" + eventType + "; data=" + data, t));
 		}
 	}
-	
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTView#setTitle(java.lang.String)
+	 */
 	public void setTitle(String title) {
 		sTitle = title;
-		
 	}
 
-	// AbstractIView Implementation
-	// ============================
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTView#getPluginInterface()
+	 */
+	public PluginInterface getPluginInterface() {
+		if (eventListener instanceof UISWTViewEventListenerHolder) {
+			return (((UISWTViewEventListenerHolder) eventListener).getPluginInterface());
+		}
 
-	public void dataSourceChanged(Object newDataSource) {
-		dataSource = PluginCoreUtils.convert(newDataSource, useCoreDataSource);
-
-		triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, dataSource);
+		return null;
 	}
+
 	
-	public void setDataSource(Object ds) {
-		dataSourceChanged(ds);
-	}
+	// Core Functions
 
-	public void delete() {
-		triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
-		super.delete();
-	}
-
+	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore#getComposite()
+	 */
 	public Composite getComposite() {
 		if (bFirstGetCompositeCall) {
 			bFirstGetCompositeCall = false;
@@ -200,33 +243,57 @@ public class UISWTViewImpl extends AbstractIView implements UISWTViewCore, IView
 		return composite;
 	}
 
-	public PluginInterface getPluginInterface()
-	{
-		if ( eventListener instanceof UISWTViewEventListenerHolder ){
-			
-			return(((UISWTViewEventListenerHolder)eventListener).getPluginInterface());
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore#getTitleID()
+	 */
+	public String getTitleID() {
+		if (sTitle == null) {
+			// still need this crappy check because some plugins still expect their
+			// view id to be their name
+			if (MessageText.keyExists(sViewID)) {
+				return sViewID;
+			}
+			String id = CFG_PREFIX + sViewID + ".title";
+			if (MessageText.keyExists(id)) {
+				return id;
+			}
+			return "!" + sViewID + "!";
 		}
-		
-		return( null );
-	}
-	
-	public String getData() {
-		final String key = CFG_PREFIX + sViewID + ".title";
-		if (MessageText.keyExists(key))
-			return key;
-		// For now, to get plugin developers to update their plugins
-		// return key;
-		// For release, change it to this, to make it at least shorter:
-		return sViewID;
+		return "!" + sTitle + "!";
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore#getFullTitle()
+	 */
 	public String getFullTitle() {
-		if (sTitle != null)
+		if (sTitle != null) {
 			return sTitle;
+		}
 
-		return super.getFullTitle();
+		String key = getTitleID();
+		if (key == null) {
+			return "";
+		}
+
+		if (lastFullTitle.length() > 0 && key.equals(lastFullTitleKey)) {
+			return lastFullTitle;
+		}
+
+		lastFullTitleKey = key;
+
+		if (MessageText.keyExists(key)) {
+			lastFullTitle = MessageText.getString(key);
+		} else {
+			lastFullTitle = key.replace('.', ' '); // support old plugins
+		}
+
+		return lastFullTitle;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore#initialize(org.eclipse.swt.widgets.Composite)
+	 */
 	public void initialize(Composite parent) {
 		if (iControlType == UISWTView.CONTROLTYPE_SWT) {
 			GridData gridData;
@@ -234,17 +301,17 @@ public class UISWTViewImpl extends AbstractIView implements UISWTViewCore, IView
 			if (parentLayout instanceof FormLayout) {
 				composite = parent;
 			} else {
-  			composite = new Composite(parent, SWT.NULL);
-  			GridLayout layout = new GridLayout(1, false);
-  			layout.marginHeight = 0;
-  			layout.marginWidth = 0;
-  			composite.setLayout(layout);
+				composite = new Composite(parent, SWT.NULL);
+				GridLayout layout = new GridLayout(1, false);
+				layout.marginHeight = 0;
+				layout.marginWidth = 0;
+				composite.setLayout(layout);
 				gridData = new GridData(GridData.FILL_BOTH);
 				composite.setLayoutData(gridData);
 			}
 
 			triggerEvent(UISWTViewEvent.TYPE_INITIALIZE, composite);
-			
+
 			if (composite.getLayout() instanceof GridLayout) {
 				// Force children to have GridData layoutdata.
 				Control[] children = composite.getChildren();
@@ -256,12 +323,12 @@ public class UISWTViewImpl extends AbstractIView implements UISWTViewCore, IView
 							Logger.log(new LogEvent(LogIDs.PLUGIN, LogEvent.LT_WARNING,
 									"Plugin View '" + sViewID + "' tried to setLayoutData of "
 											+ control + " to a " + layoutData.getClass().getName()));
-	
+
 						if (children.length == 1)
 							gridData = new GridData(SWT.FILL, SWT.FILL, true, true);
 						else
 							gridData = new GridData();
-						
+
 						control.setLayoutData(gridData);
 					}
 				}
@@ -287,56 +354,80 @@ public class UISWTViewImpl extends AbstractIView implements UISWTViewCore, IView
 		}
 	}
 
-	public void refresh() {
-		triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
-	}
-
-	public void updateLanguage() {
-		super.updateLanguage();
-
-		triggerEvent(UISWTViewEvent.TYPE_LANGUAGEUPDATE, null);
-	}
-	
-	// Core Functions
-	public String getParentID() {
-		return sParentID;
-	}
-	
+	/**
+	 * @return
+	 */
 	public boolean requestClose() {
-		return triggerEvent2(UISWTViewEvent.TYPE_CLOSE, null);
+		return triggerEventRaw(UISWTViewEvent.TYPE_CLOSE, null);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore#useCoreDataSource()
+	 */
 	public boolean useCoreDataSource() {
 		return useCoreDataSource;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore#setUseCoreDataSource(boolean)
+	 */
 	public void setUseCoreDataSource(boolean useCoreDataSource) {
 		if (this.useCoreDataSource == useCoreDataSource) {
 			return;
 		}
 
 		this.useCoreDataSource = useCoreDataSource;
-		dataSourceChanged(dataSource);
+		triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, dataSource);
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore#getSkinObject()
+	 */
 	public PluginUISWTSkinObject getSkinObject() {
 		return skinObject;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore#setSkinObject(org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject, org.eclipse.swt.widgets.Composite)
+	 */
 	public void setSkinObject(PluginUISWTSkinObject skinObject, Composite c) {
 		this.skinObject = skinObject;
 		this.composite = c;
 	}
 
-	public Menu getPrivateMenu() {
-		return null;
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
+	 */
+	public void generate(IndentWriter writer) {
+		if (eventListener instanceof AEDiagnosticsEvidenceGenerator) {
+			writer.println("View: " + sViewID + ": " + sTitle);
+
+			try {
+				writer.indent();
+
+				((AEDiagnosticsEvidenceGenerator) eventListener).generate(writer);
+			} catch (Exception e) {
+
+			} finally {
+
+				writer.exdent();
+			}
+		} else {
+			writer.println("View (no generator): " + sViewID + ": " + sTitle);
+		}
 	}
 
-	public void viewActivated() {
-		triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+	public boolean toolBarItemActivated(String itemKey) {
+		if (eventListener instanceof ToolBarEnabler) {
+			return ((ToolBarEnabler) eventListener).toolBarItemActivated(itemKey);
+		}
+		return false;
 	}
 
-	public void viewDeactivated() {
-		triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
+	public void refreshToolBar(Map<String, Boolean> list) {
+		if (eventListener instanceof ToolBarEnabler) {
+			((ToolBarEnabler) eventListener).refreshToolBar(list);
+		}
 	}
+
 }

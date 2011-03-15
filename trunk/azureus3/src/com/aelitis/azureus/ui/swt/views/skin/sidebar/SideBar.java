@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionHolder;
@@ -40,12 +41,12 @@ import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
+import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -72,6 +73,7 @@ import com.aelitis.azureus.util.ContentNetworkUtils;
  */
 public class SideBar
 	extends BaseMDI
+	implements AEDiagnosticsEvidenceGenerator
 {
 	protected static final boolean END_INDENT = Constants.isLinux
 			|| Constants.isWindows2000 || Constants.isWindows9598ME;
@@ -119,6 +121,7 @@ public class SideBar
 		if (instance == null) {
 			instance = this;
 		}
+		AEDiagnostics.addEvidenceGenerator(this);
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectCreated(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
@@ -278,22 +281,23 @@ public class SideBar
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+
 		// building plugin views needs UISWTInstance, which needs core.
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
+						try {
+							loadCloseables();
+						} catch (Throwable t) {
+							Debug.out(t);
+						}
+
 						setupPluginViews();
 					}
 				});
 			}
 		});
-
-		try {
-			loadCloseables();
-		} catch (Throwable t) {
-			Debug.out(t);
-		}
 
 		updateSidebarVisibility();
 		return null;
@@ -350,6 +354,7 @@ public class SideBar
 
 			public void handleEvent(final Event event) {
 				TreeItem treeItem = (TreeItem) event.item;
+				Tree tree = getTree();
 
 				try {
 					switch (event.type) {
@@ -406,7 +411,7 @@ public class SideBar
 
 								// null itemBounds is weird, the entry must be disposed. it 
 								// happened once, so let's check..
-								if (itemBounds != null) {
+								if (itemBounds != null && entry != null) {
 									event.item = treeItem;
 
 									boolean selected = currentEntry == entry
@@ -437,7 +442,7 @@ public class SideBar
 
 							if (tree.getTopItem() != lastTopItem) {
 								lastTopItem = tree.getTopItem();
-								SideBarEntrySWT[] sideBarEntries = (SideBarEntrySWT[]) mapIdToEntry.values().toArray(
+								SideBarEntrySWT[] sideBarEntries = mapIdToEntry.values().toArray(
 										new SideBarEntrySWT[0]);
 								swt_updateSideBarHitAreasY(sideBarEntries);
 							}
@@ -600,7 +605,7 @@ public class SideBar
 								Display.getDefault().asyncExec(new Runnable() {
 									public void run() {
 										((TreeItem) event.item).setExpanded(true);
-										tree.setRedraw(true);
+										getTree().setRedraw(true);
 									}
 								});
 							} else {
@@ -914,51 +919,48 @@ public class SideBar
 
 			if (menu_items.length == 0) {
 
-				if (entry instanceof SideBarEntrySWT) {
+				UIPluginView view = entry.getView();
 
-					IView view = ((SideBarEntrySWT) entry).getIView();
+				if (view instanceof UISWTView) {
 
-					if (view instanceof UISWTView) {
+					PluginInterface pi = ((UISWTView) view).getPluginInterface();
 
-						PluginInterface pi = ((UISWTView) view).getPluginInterface();
+					if (pi != null) {
 
-						if (pi != null) {
+						final List<String> relevant_sections = new ArrayList<String>();
 
-							final List<String> relevant_sections = new ArrayList<String>();
+						List<ConfigSectionHolder> sections = ConfigSectionRepository.getInstance().getHolderList();
 
-							List<ConfigSectionHolder> sections = ConfigSectionRepository.getInstance().getHolderList();
+						for (ConfigSectionHolder cs : sections) {
 
-							for (ConfigSectionHolder cs : sections) {
+							if (pi == cs.getPluginInterface()) {
 
-								if (pi == cs.getPluginInterface()) {
-
-									relevant_sections.add(cs.configSectionGetName());
-								}
+								relevant_sections.add(cs.configSectionGetName());
 							}
+						}
 
-							if (relevant_sections.size() > 0) {
+						if (relevant_sections.size() > 0) {
 
-								MenuItem mi = pi.getUIManager().getMenuManager().addMenuItem(
-										"sidebar." + entry.getId(),
-										"MainWindow.menu.view.configuration");
+							MenuItem mi = pi.getUIManager().getMenuManager().addMenuItem(
+									"sidebar." + entry.getId(),
+									"MainWindow.menu.view.configuration");
 
-								mi.addListener(new MenuItemListener() {
-									public void selected(MenuItem menu, Object target) {
-										UIFunctions uif = UIFunctionsManager.getUIFunctions();
+							mi.addListener(new MenuItemListener() {
+								public void selected(MenuItem menu, Object target) {
+									UIFunctions uif = UIFunctionsManager.getUIFunctions();
 
-										if (uif != null) {
+									if (uif != null) {
 
-											for (String s : relevant_sections) {
+										for (String s : relevant_sections) {
 
-												uif.openView(UIFunctions.VIEW_CONFIG, s);
-											}
+											uif.openView(UIFunctions.VIEW_CONFIG, s);
 										}
 									}
-								});
+								}
+							});
 
-								menu_items = MenuItemManager.getInstance().getAllAsArray(
-										"sidebar." + entry.getId());
-							}
+							menu_items = MenuItemManager.getInstance().getAllAsArray(
+									"sidebar." + entry.getId());
 						}
 					}
 				}
@@ -1096,7 +1098,7 @@ public class SideBar
 		return entry;
 	}
 
-	public MdiEntry createEntryFromIView(String parentID, IView iview, String id,
+	public MdiEntry createEntryFromView(String parentID, UISWTViewCore iview, String id,
 			Object datasource, boolean closeable, boolean show, boolean expand) {
 		if (id == null) {
 			id = iview.getClass().getName();
@@ -1116,7 +1118,7 @@ public class SideBar
 
 		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id);
 
-		entry.setIView(iview);
+		entry.setCoreView(iview);
 		entry.setDatasource(datasource);
 		entry.setParentID(parentID);
 
@@ -1222,36 +1224,6 @@ public class SideBar
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#createEntryFromIViewClass(java.lang.String, java.lang.String, java.lang.String, java.lang.Class, java.lang.Class<?>[], java.lang.Object[], java.lang.Object, com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo, boolean)
-	 */
-	public MdiEntry createEntryFromIViewClass(String parent, String id,
-			String title, Class<?> iviewClass, Class<?>[] iviewClassArgs,
-			Object[] iviewClassVals, Object datasource, ViewTitleInfo titleInfo,
-			boolean closeable) {
-
-		MdiEntry oldEntry = getEntry(id);
-		if (oldEntry != null) {
-			return oldEntry;
-		}
-
-		SideBarEntrySWT entry = new SideBarEntrySWT(this, skin, id);
-		entry.setTitle(title);
-
-		entry.setIViewClass(iviewClass, iviewClassArgs, iviewClassVals);
-		entry.setDatasource(datasource);
-		entry.setViewTitleInfo(titleInfo);
-		entry.setParentID(parent);
-
-		setupNewEntry(entry, id, false, closeable);
-
-		if (IViewAlwaysInitialize.class.isAssignableFrom(iviewClass)) {
-			entry.build();
-		}
-
-		return entry;
-	}
-
 	private TreeItem createTreeItem(Object parentSwtItem, int index) {
 		TreeItem treeItem;
 
@@ -1294,7 +1266,7 @@ public class SideBar
 
 		final SideBarEntrySWT oldEntry = (SideBarEntrySWT) currentEntry;
 
-		//System.out.println("showEntry " + newEntry.getId() + "; was " + (oldEntry == null ? "null" : oldEntry.getId()));
+		//System.out.println("showEntry " + newEntry.getId() + "; was " + (oldEntry == null ? "null" : oldEntry.getId()) + " via " + Debug.getCompressedStackTrace());
 		if (currentEntry == newEntry) {
 			triggerSelectionListener(newEntry, newEntry);
 			return;
@@ -1348,23 +1320,16 @@ public class SideBar
 			setupNewEntry(entry, id, false, closeable);
 
 			entry.setEventListener(l);
+
+			if (l instanceof IViewAlwaysInitialize) {
+				entry.build();
+			}
 		} catch (Exception e) {
 			Debug.out(e);
 			entry.close(true);
 		}
 
 		return entry;
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#createEntryFromSkinRef(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo, java.lang.Object, boolean, int)
-	 */
-	public MdiEntry createEntryFromSkinRef(String parentID, final String id,
-			final String configID, String title, ViewTitleInfo titleInfo,
-			final Object params, boolean closeable, int index) {
-
-		return createEntryFromSkinRef(parentID, id, configID, title, titleInfo,
-				params, closeable, index == 0 ? "" : null);
 	}
 
 	// @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#createEntryFromSkinRef(java.lang.String, java.lang.String, java.lang.String, java.lang.String, com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo, java.lang.Object, boolean, java.lang.String)
@@ -1392,7 +1357,7 @@ public class SideBar
 
 	// @see com.aelitis.azureus.ui.swt.utils.UIUpdatable#updateUI()
 	public void updateUI() {
-		if (currentEntry == null || currentEntry.getIView() == null
+		if (currentEntry == null || currentEntry.getView() == null
 				|| tree.getSelectionCount() == 0) {
 			return;
 		}
@@ -1404,21 +1369,29 @@ public class SideBar
 	}
 
 	public boolean loadEntryByID(String id, boolean activate) {
-		return loadEntryByID(id, activate, false);
+		return loadEntryByID(id, activate, false, null);
 	}
 
-	public boolean loadEntryByID(String id, boolean activate, boolean onlyLoadOnce) {
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#loadEntryByID(java.lang.String, boolean, boolean)
+	 */
+	public boolean loadEntryByID(String id, boolean activate,
+			boolean onlyLoadOnce, Object datasource) {
 		if (id == null) {
 			return false;
 		}
 		MdiEntry entry = getEntry(id);
 		if (entry != null) {
+			if (datasource != null) {
+				entry.setDatasource(datasource);
+			}
 			if (activate) {
 				showEntry(entry);
 			}
 			return true;
 		}
 
+		@SuppressWarnings("deprecation")
 		boolean loadedOnce = COConfigurationManager.getBooleanParameter("sb.once."
 				+ id, false);
 		if (loadedOnce && onlyLoadOnce) {
@@ -1448,6 +1421,9 @@ public class SideBar
 		MdiEntryCreationListener mdiEntryCreationListener = mapIdToCreationListener.get(id);
 		if (mdiEntryCreationListener != null) {
 			MdiEntry mdiEntry = mdiEntryCreationListener.createMDiEntry(id);
+			if (datasource != null) {
+				mdiEntry.setDatasource(datasource);
+			}
 			if (mdiEntry instanceof SideBarEntrySWT) {
 				if (onlyLoadOnce) {
 					COConfigurationManager.setParameter("sb.once." + id, true);
@@ -1458,7 +1434,7 @@ public class SideBar
 				return true;
 			}
 		} else {
-			setEntryAutoOpen(id, true);
+			setEntryAutoOpen(id, datasource, true);
 		}
 
 		return false;
@@ -1507,16 +1483,13 @@ public class SideBar
 		}
 
 		String name = cn.getName();
-		SideBarEntrySWT entryBrowse = (SideBarEntrySWT) getEntry(ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork()));
-		int position = entryBrowse == null || entryBrowse.getTreeItem() == null ? 3
-				: tree.indexOf(entryBrowse.getTreeItem()) + 1;
 
 		Object prop = cn.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
 		boolean closeable = (prop instanceof Boolean)
 				? ((Boolean) prop).booleanValue() : false;
 		final SideBarEntrySWT entry = (SideBarEntrySWT) createEntryFromSkinRef(
 				SIDEBAR_HEADER_VUZE, entryID, "main.area.browsetab", name, null, cn,
-				closeable, position);
+				closeable, SIDEBAR_SECTION_WELCOME);
 
 		Image image = ImageLoader.getInstance().getImage("image.sidebar.vuze");
 		entry.setImageLeft(image);
@@ -1550,17 +1523,30 @@ public class SideBar
 		return null;
 	}
 
-	// @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#updateLanguage(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object updateLanguage(SWTSkinObject skinObject, Object params) {
-		MdiEntry[] entries = getEntries();
-		
-		for (MdiEntry entry : entries) {
-			if (entry instanceof BaseMdiEntry) {
-				BaseMdiEntry baseEntry = (BaseMdiEntry) entry;
-				baseEntry.updateLanguage();
+	public void generate(IndentWriter writer) {
+		MdiEntrySWT[] entries = getEntriesSWT();
+		for (MdiEntrySWT entry : entries) {
+			if (entry == null) {
+				continue;
 			}
+
+			UISWTViewCore view = entry.getCoreView();
+
+			if (!(view instanceof AEDiagnosticsEvidenceGenerator)) {
+				writer.println("Sidebar View (No Generator): " + entry.getId());
+				try {
+					writer.indent();
+
+					writer.println("Parent: " + entry.getParentID());
+					writer.println("Title: " + entry.getTitle());
+				} catch (Exception e) {
+
+				} finally {
+
+					writer.exdent();
+				}
+			}
+			
 		}
-		
-		return super.updateLanguage(skinObject, params);
 	}
 }

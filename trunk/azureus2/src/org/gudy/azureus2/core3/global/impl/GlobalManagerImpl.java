@@ -817,7 +817,7 @@ public class GlobalManagerImpl
       	
         if (existing_index != -1) {
         	
-        	DownloadManager existing = (DownloadManager)managers_cow.get(existing_index);
+        	DownloadManager existing = managers_cow.get(existing_index);
                 	
         	download_manager.destroy( true );
         	
@@ -1005,7 +1005,7 @@ public class GlobalManagerImpl
         if (download_manager.getPosition() == -1) {
 	        int endPosition = 0;
 	        for (int i = 0; i < managers_cow.size(); i++) {
-	          DownloadManager dm = (DownloadManager) managers_cow.get(i);
+	          DownloadManager dm = managers_cow.get(i);
 	          boolean dmIsCompleted = dm.isDownloadComplete(false);
 	          if (dmIsCompleted == isCompleted)
 	            endPosition++;
@@ -1020,7 +1020,7 @@ public class GlobalManagerImpl
 	      // downloads config file, we should set to onlySeeding
 	      download_manager.requestAssumedCompleteMode();
 
-	      List	new_download_managers = new ArrayList( managers_cow );
+	      List<DownloadManager>	new_download_managers = new ArrayList<DownloadManager>( managers_cow );
 	      
 	      new_download_managers.add(download_manager);
         
@@ -1090,7 +1090,7 @@ public class GlobalManagerImpl
     }
   }
 
-  public List getDownloadManagers() {
+  public List<DownloadManager> getDownloadManagers() {
     return managers_cow;
   }
     
@@ -1960,7 +1960,7 @@ public class GlobalManagerImpl
 	    Map map = new HashMap();
 	    List list = new ArrayList(managers_cow.size());
 	    for (int i = 0; i < managers_cow.size(); i++) {
-	      DownloadManager dm = (DownloadManager) managers_cow.get(i);
+	      DownloadManager dm = managers_cow.get(i);
 	      
 	      	DownloadManagerStats dm_stats = dm.getStats();
 		      Map dmMap = new HashMap();

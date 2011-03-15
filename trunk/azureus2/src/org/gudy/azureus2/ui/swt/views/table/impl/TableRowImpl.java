@@ -25,7 +25,6 @@ package org.gudy.azureus2.ui.swt.views.table.impl;
 import java.util.*;
 
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 
 import org.gudy.azureus2.core3.util.*;

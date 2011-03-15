@@ -25,11 +25,9 @@ package org.gudy.azureus2.plugins.ui;
 import java.io.File;
 import java.net.URL;
 
-import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.ui.model.*;
-import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
@@ -41,30 +39,6 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 public interface 
 UIManager 
 {
-		/**
-		 * Gets a basic plugin view model that supports simple plugin requirements
-		 * After getting the model create the view using createPluginView
-		 * @param name name
-		 * @return BasicPluginViewModel
-		 * @deprecated Use createBasicPluginViewModel 
-		 */
-	
-	public BasicPluginViewModel
-	getBasicPluginViewModel(
-		String			name );
-
-		/**
-		 * Creates a view from the model. It is then necessary to add it to the plugin
-		 * as any other PluginView
-		 * @param model
-		 * @return PluginView
-		 * @deprecated Use createBasicPluginViewModel
-		 */
-	
-	public PluginView
-	createPluginView(
-		PluginViewModel	model );
-	
 	/**
 	 * 
 	 * @param section_name
@@ -192,17 +166,6 @@ UIManager
 	public void
 	openTorrent(
 		Torrent		torrent );
-	
-	/** Retrieve a class of SWT specific functions 
-	 * 
-	 * @deprecated 
-	 * @return SWTManager
-	 * 
-	 * @since 2.1.0.0
-	 */
-	
-	public SWTManager getSWTManager();
-  
 	
 	/**
 	 * Open Config View to the section specified

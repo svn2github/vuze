@@ -14,18 +14,12 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
-import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper.IViewInfo;
-import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-import org.gudy.azureus2.ui.swt.pluginsimpl.BasicPluginViewImpl;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
-import org.gudy.azureus2.ui.swt.views.IView;
-import org.gudy.azureus2.ui.swt.views.IViewExtension;
+import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.viewtitleinfo.*;
@@ -49,13 +43,9 @@ public abstract class BaseMdiEntry
 
 	protected Object datasource;
 
-	protected Class<?> iviewClass;
+	protected Class<? extends UIPluginView> viewClass;
 
-	protected Class<?>[] iviewClassArgs;
-
-	protected Object[] iviewClassVals;
-
-	protected IView iview;
+	protected UISWTViewCore view;
 
 	private String skinRef;
 
@@ -81,14 +71,14 @@ public abstract class BaseMdiEntry
 
 	private String parentID;
 
-	private boolean pullTitleFromIView;
+	private boolean pullTitleFromView;
 
 	private boolean closeable;
 
 	private Boolean isExpanded = null;
 
 	private boolean disposed = false;
-	
+
 	private boolean added = false;
 
 	private String imageLeftID;
@@ -98,9 +88,10 @@ public abstract class BaseMdiEntry
 	private boolean collapseDisabled = false;
 
 	private SWTSkinObject soMaster;
-	
-	private Set<ToolBarEnabler> setToolBarEnablers = new HashSet<ToolBarEnabler>(1);
-	
+
+	private Set<ToolBarEnabler> setToolBarEnablers = new HashSet<ToolBarEnabler>(
+			1);
+
 	private String preferredAfterID;
 
 	@SuppressWarnings("unused")
@@ -113,7 +104,7 @@ public abstract class BaseMdiEntry
 	public BaseMdiEntry(MultipleDocumentInterface mdi, String id) {
 		this.mdi = mdi;
 		this.id = id;
-		this.pullTitleFromIView = true;
+		this.pullTitleFromView = true;
 
 		if (id == null) {
 			logID = "null";
@@ -140,8 +131,8 @@ public abstract class BaseMdiEntry
 	 * @see com.aelitis.azureus.ui.mdi.MdiEntry#close()
 	 */
 	public boolean close(boolean forceClose) {
-		if (!forceClose && iview instanceof UISWTViewImpl) {
-			if (!((UISWTViewImpl) iview).requestClose()) {
+		if (!forceClose && view instanceof UISWTViewImpl) {
+			if (!((UISWTViewImpl) view).requestClose()) {
 				return false;
 			}
 		}
@@ -163,10 +154,11 @@ public abstract class BaseMdiEntry
 	public void setDatasource(Object datasource) {
 		this.datasource = datasource;
 
+		if (view != null) {
+			view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, datasource);
+		}
+
 		if (isAdded()) {
-			if (iview != null) {
-				iview.dataSourceChanged(datasource);
-			}
 			if (skinObject != null) {
 				skinObject.triggerListeners(
 						SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED, datasource);
@@ -174,27 +166,20 @@ public abstract class BaseMdiEntry
 		}
 	}
 
-	public IView getIView() {
-		return iview;
+	public UIPluginView getView() {
+		return view;
 	}
 
-	public Class<?> getIViewClass() {
-		return iviewClass;
+	public UISWTViewCore getCoreView() {
+		return view;
 	}
 
-	public void setIViewClass(Class<?> iviewClass, Class<?>[] iviewClassArgs,
-			Object[] iviewClassVals) {
-		this.iviewClass = iviewClass;
-		this.iviewClassArgs = iviewClassArgs;
-		this.iviewClassVals = iviewClassVals;
+	public Class<? extends UIPluginView> getViewClass() {
+		return viewClass;
 	}
 
-	public Class<?>[] getIViewClassArgs() {
-		return iviewClassArgs;
-	}
-
-	public Object[] getIViewClassVals() {
-		return iviewClassVals;
+	public void setViewClass(Class<? extends UIPluginView> viewClass) {
+		this.viewClass = viewClass;
 	}
 
 	public String getLogID() {
@@ -318,7 +303,6 @@ public abstract class BaseMdiEntry
 		}
 	}
 
-
 	public void addListener(MdiEntryLogIdListener l) {
 		synchronized (this) {
 			if (listLogIDListeners == null) {
@@ -360,7 +344,7 @@ public abstract class BaseMdiEntry
 			listOpenListeners.add(l);
 		}
 
-		if (iview != null) {
+		if (view != null) {
 			l.mdiEntryOpen(this);
 		}
 	}
@@ -414,7 +398,7 @@ public abstract class BaseMdiEntry
 			return listDropListeners != null && listDropListeners.size() > 0;
 		}
 	}
-	
+
 	/**
 	 * 
 	 * @param o
@@ -477,7 +461,7 @@ public abstract class BaseMdiEntry
 
 			String newTitle = (String) viewTitleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_TEXT);
 			if (newTitle != null) {
-				setPullTitleFromIView(false);
+				setPullTitleFromView(false);
 				setTitle(newTitle);
 			}
 
@@ -493,41 +477,39 @@ public abstract class BaseMdiEntry
 	public void addToolbarEnabler(ToolBarEnabler enabler) {
 		setToolBarEnablers.add(enabler);
 	}
-	
+
 	public void removeToolbarEnabler(ToolBarEnabler enabler) {
 		setToolBarEnablers.remove(enabler);
 	}
-	
+
 	public ToolBarEnabler[] getToolbarEnablers() {
 		return setToolBarEnablers.toArray(new ToolBarEnabler[0]);
 	}
-	
-	public void setIView(IView iview) {
-		this.iview = iview;
-		if (iview instanceof ViewTitleInfo) {
-			setViewTitleInfo((ViewTitleInfo) iview);
-		} else if (iview instanceof UISWTViewImpl) {
-			UISWTViewEventListener eventListener = ((UISWTViewImpl) iview).getEventListener();
-			if (eventListener instanceof ViewTitleInfo) {
-				setViewTitleInfo((ViewTitleInfo) eventListener);
-			}
+
+	public void setCoreView(UISWTViewCore view) {
+		if (this.view != null && view == null) {
+  		this.view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
 		}
-		
-		if (iview instanceof ToolBarEnabler) {
-			addToolbarEnabler((ToolBarEnabler) iview);
+		this.view = view;
+		if (view == null) {
+			return;
 		}
 
-		if (iview != null) {
-			if (title == null) {
-				setTitle(iview.getFullTitle());
-			}
-			if (datasource != null) {
-				try {
-					iview.dataSourceChanged(datasource);
-				} catch (Exception e) {
-					Debug.out(e);
-				}
-			}
+		UISWTViewEventListener eventListener = view.getEventListener();
+		if (view instanceof ViewTitleInfo) {
+			setViewTitleInfo((ViewTitleInfo) view);
+		} else if (eventListener instanceof ViewTitleInfo) {
+			setViewTitleInfo((ViewTitleInfo) eventListener);
+		}
+
+		if (view instanceof ToolBarEnabler) {
+			addToolbarEnabler((ToolBarEnabler) view);
+		} else if (eventListener instanceof ViewTitleInfo) {
+			addToolbarEnabler((ToolBarEnabler) eventListener);
+		}
+
+		if (datasource != null) {
+			view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, datasource);
 		}
 	}
 
@@ -543,8 +525,8 @@ public abstract class BaseMdiEntry
 				skinObject.triggerListeners(
 						SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED, datasource);
 			}
-			if (iview != null) {
-				iview.dataSourceChanged(datasource);
+			if (view != null) {
+				view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, datasource);
 			}
 		}
 	}
@@ -568,6 +550,12 @@ public abstract class BaseMdiEntry
 	}
 
 	public String getTitle() {
+		if (title != null && !isPullTitleFromView()) {
+			return title;
+		}
+		if (view != null) {
+			return view.getFullTitle();
+		}
 		return title;
 	}
 
@@ -586,14 +574,17 @@ public abstract class BaseMdiEntry
 		this.titleID = null;
 		redraw();
 	}
-	
+
 	public void setTitleID(String titleID) {
 		String title = MessageText.getString(titleID);
 		setTitle(title.startsWith("{") ? title.substring(1) : title);
 		this.titleID = titleID;
 	}
-	
+
 	public void updateLanguage() {
+		if (view != null) {
+			view.triggerEvent(UISWTViewEvent.TYPE_LANGUAGEUPDATE, null);
+		}
 		if (titleID != null) {
 			setTitleID(titleID);
 		} else {
@@ -632,23 +623,19 @@ public abstract class BaseMdiEntry
 			// This causes double show because createSkinObject already calls show
 			//container.triggerListeners(SWTSkinObjectListener.EVENT_SHOW);
 		}
-		if (iview != null) {
-			Composite c = iview.getComposite();
+		if (view != null) {
+			Composite c = view.getComposite();
 			if (c != null && !c.isDisposed()) {
 				c.setData("BaseMDIEntry", this);
 				c.setVisible(true);
 				c.getParent().layout();
 			}
-		}
 
-		try {
-			if (iview instanceof IViewExtension) {
-				((IViewExtension) iview).viewActivated();
-			} else if (iview instanceof UISWTView) {
-				((UISWTView) iview).triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+			try {
+				view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+			} catch (Exception e) {
+				Debug.out(e);
 			}
-		} catch (Exception e) {
-			Debug.out(e);
 		}
 	}
 
@@ -660,36 +647,30 @@ public abstract class BaseMdiEntry
 		});
 	}
 
-	private void swt_hide() {
+	protected void swt_hide() {
 		SWTSkinObject skinObjectMaster = getSkinObjectMaster();
 		if (skinObjectMaster instanceof SWTSkinObjectContainer) {
 			SWTSkinObjectContainer container = (SWTSkinObjectContainer) skinObjectMaster;
-			if (container != null) {
-				Control oldComposite = container.getControl();
+			Control oldComposite = container.getControl();
 
-				container.setVisible(false);
-				if (!oldComposite.isDisposed()) {
-					oldComposite.getShell().update();
-				}
+			container.setVisible(false);
+			if (!oldComposite.isDisposed()) {
+				oldComposite.getShell().update();
 			}
 		}
-		if (iview != null) {
-			Composite oldComposite = iview.getComposite();
+		if (view != null) {
+			Composite oldComposite = view.getComposite();
 			if (oldComposite != null && !oldComposite.isDisposed()) {
 
 				oldComposite.setVisible(false);
 				oldComposite.getShell().update();
 			}
-		}
 
-		try {
-			if (iview instanceof IViewExtension) {
-				((IViewExtension) iview).viewDeactivated();
-			} else if (iview instanceof UISWTView) {
-				((UISWTView) iview).triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
+			try {
+				view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
+			} catch (Exception e) {
+				Debug.out(e);
 			}
-		} catch (Exception e) {
-			Debug.out(e);
 		}
 	}
 
@@ -699,7 +680,7 @@ public abstract class BaseMdiEntry
 
 	public void setEventListener(UISWTViewEventListener _eventListener) {
 		this.eventListener = _eventListener;
-		
+
 		if (eventListener instanceof ToolBarEnabler) {
 			addToolbarEnabler((ToolBarEnabler) eventListener);
 		}
@@ -730,31 +711,19 @@ public abstract class BaseMdiEntry
 			}
 		};
 		*/
-		if (iview != null) {
+		if (view != null) {
 			return;
 		}
 		try {
-			IView iview = new UISWTViewImpl(parentID, id, eventListenerDelegate,
-					datasource);
-			setIView(iview);
-
-			IViewInfo foundViewInfo = PluginsMenuHelper.getInstance().findIViewInfo(
-					eventListener);
-
-			String title;
-			if (foundViewInfo != null) {
-				title = foundViewInfo.name;
-			} else {
-				title = iview.getFullTitle();
-			}
-			((UISWTViewImpl) iview).setTitle(title);
-			setTitle(title);
+			setCoreView(new UISWTViewImpl(parentID, id, eventListenerDelegate,
+					datasource));
 		} catch (Exception e) {
 			Debug.out(e);
 		}
-		
-		if ( 	( _eventListener instanceof BasicPluginViewImpl ) ||
-				(	( _eventListener instanceof UISWTViewEventListenerHolder )) && ((UISWTViewEventListenerHolder)_eventListener).isLogView()){
+
+		if ((_eventListener instanceof BasicPluginViewImpl)
+				|| ((_eventListener instanceof UISWTViewEventListenerHolder))
+				&& ((UISWTViewEventListenerHolder) _eventListener).isLogView()) {
 
 			if ("image.sidebar.plugin".equals(getImageLeftID())) {
 				setImageLeftID("image.sidebar.logview");
@@ -762,25 +731,25 @@ public abstract class BaseMdiEntry
 		}
 	}
 
-	public boolean isPullTitleFromIView() {
-		return pullTitleFromIView;
+	public boolean isPullTitleFromView() {
+		return pullTitleFromView;
 	}
 
-	public void setPullTitleFromIView(boolean pullTitleFromIView) {
-		this.pullTitleFromIView = pullTitleFromIView;
+	public void setPullTitleFromView(boolean pullTitleFromView) {
+		this.pullTitleFromView = pullTitleFromView;
 	}
 
 	public void updateUI() {
-		if (iview == null) {
+		if (view == null) {
 			return;
 		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				if (iview != null && !isDisposed()) {
-					iview.refresh();
+				if (view != null && !isDisposed()) {
+					view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
 				}
-				if (isPullTitleFromIView() && isAdded()) {
-					setTitle(iview.getFullTitle());
+				if (isPullTitleFromView() && isAdded()) {
+					setTitle(view.getFullTitle());
 				}
 			}
 		});
@@ -797,14 +766,13 @@ public abstract class BaseMdiEntry
 			if (getParentID() != null) {
 				autoOpenInfo.put("parentID", getParentID());
 			}
-			if (getIViewClass() != null) {
-				autoOpenInfo.put("iviewClass", getIViewClass().getName());
+			UISWTViewEventListener eventListener = getEventListener();
+			if (eventListener != null) {
+				autoOpenInfo.put("eventListenerClass",
+						eventListener.getClass().getName());
 			}
-			if (getEventListener() != null) {
-				autoOpenInfo.put("eventlistenerid", id);
-			}
-			if (getIView() != null) {
-				autoOpenInfo.put("title", getIView().getFullTitle());
+			if (getCoreView() != null) {
+				autoOpenInfo.put("title", getCoreView().getFullTitle());
 			}
 			Object datasource = getDatasourceCore();
 			if (datasource instanceof DownloadManager) {
@@ -837,7 +805,8 @@ public abstract class BaseMdiEntry
 
 	// @see com.aelitis.azureus.ui.mdi.MdiEntry#setDefaultExpanded(boolean)
 	public void setDefaultExpanded(boolean defaultExpanded) {
-		COConfigurationManager.setBooleanDefault("SideBar.Expanded." + id, defaultExpanded);
+		COConfigurationManager.setBooleanDefault("SideBar.Expanded." + id,
+				defaultExpanded);
 	}
 
 	public boolean isExpanded() {
@@ -910,7 +879,8 @@ public abstract class BaseMdiEntry
 
 	public void releaseImageLeft(String suffix) {
 		if (imageLeft != null) {
-			ImageLoader.getInstance().releaseImage(imageLeftID + (suffix == null ? "" : suffix));
+			ImageLoader.getInstance().releaseImage(
+					imageLeftID + (suffix == null ? "" : suffix));
 		}
 	}
 
@@ -924,7 +894,7 @@ public abstract class BaseMdiEntry
 
 		String newText = (String) viewTitleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_TEXT);
 		if (newText != null) {
-			setPullTitleFromIView(false);
+			setPullTitleFromView(false);
 			setTitle(newText);
 		}
 

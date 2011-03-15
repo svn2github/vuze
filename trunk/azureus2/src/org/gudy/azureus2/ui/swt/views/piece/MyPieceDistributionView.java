@@ -22,6 +22,8 @@ package org.gudy.azureus2.ui.swt.views.piece;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.PieceDistributionView;
 
 
@@ -40,18 +42,22 @@ public class MyPieceDistributionView
 	
 	public void dataSourceChanged(Object newDataSource) {
 		if (newDataSource instanceof DownloadManager) {
-			pem = ((DownloadManager)newDataSource).getPeerManager();
-			refresh();
-		} else if(newDataSource instanceof Object[])
-		{
-			newDataSource = ((Object[])newDataSource)[0];
-			if(newDataSource instanceof PEPiece)
-			{
-				PEPiece piece = (PEPiece)newDataSource;
+			pem = ((DownloadManager) newDataSource).getPeerManager();
+		} else if (newDataSource instanceof Object[]) {
+			newDataSource = ((Object[]) newDataSource)[0];
+			if (newDataSource instanceof PEPiece) {
+				PEPiece piece = (PEPiece) newDataSource;
 				pem = piece.getManager();
 			}
-				
-		} else
+
+		} else {
 			pem = null;
+		}
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				refresh();
+			}
+		});
 	}
 }

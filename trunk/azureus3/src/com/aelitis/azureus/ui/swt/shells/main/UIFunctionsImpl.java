@@ -38,7 +38,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
@@ -47,8 +46,11 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
-import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -56,7 +58,6 @@ import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.update.FullUpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.clientstats.ClientStatsView;
-import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -73,15 +74,13 @@ import com.aelitis.azureus.ui.swt.Initializer;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
-import com.aelitis.azureus.ui.swt.plugininstall.*;
+import com.aelitis.azureus.ui.swt.plugininstall.SimplePluginInstaller;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
-import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
-import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
+import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ContentNetworkUtils;
@@ -121,13 +120,6 @@ public class UIFunctionsImpl
 				});
 	}
 
-	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(org.gudy.azureus2.plugins.PluginView)
-	@SuppressWarnings("deprecation")
-	public void addPluginView(PluginView view) {
-		PluginsMenuHelper.getInstance().addPluginView(view,
-				view.getPluginViewName());
-	}
-
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener)
 	public void addPluginView(final String viewID, final UISWTViewEventListener l) {
 		try {
@@ -142,13 +134,6 @@ public class UIFunctionsImpl
 			Logger.log(new LogEvent(LOGID, "addPluginView", e));
 		}
 
-	}
-
-	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#addPluginView(org.gudy.azureus2.ui.swt.plugins.UISWTPluginView)
-	@SuppressWarnings("deprecation")
-	public void addPluginView(UISWTPluginView view) {
-		PluginsMenuHelper.getInstance().addPluginView(view,
-				view.getPluginViewName());
 	}
 
 	// @see com.aelitis.azureus.ui.UIFunctions#bringToFront()
@@ -187,8 +172,10 @@ public class UIFunctionsImpl
 
 	}
 
-	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#closePluginView(org.gudy.azureus2.ui.swt.views.IView)
-	public void closePluginView(IView view) {
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#closePluginView(org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore)
+	 */
+	public void closePluginView(UISWTViewCore view) {
 		try {
 			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 			if (mdi == null) {
@@ -264,14 +251,16 @@ public class UIFunctionsImpl
 		return null;
 	}
 
-	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(org.gudy.azureus2.ui.swt.views.AbstractIView, java.lang.String)
-	public void openPluginView(AbstractIView view, String name) {
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore, java.lang.String)
+	 */
+	public void openPluginView(UISWTViewCore view, String name) {
 		try {
 			MultipleDocumentInterfaceSWT mdi = getMDISWT();
 			if (mdi == null) {
 				return;
 			}
-			if (mdi.createEntryFromIView(
+			if (mdi.createEntryFromView(
 					MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS, view, name, null,
 					true, true, true) != null) {
 				return;
@@ -280,12 +269,6 @@ public class UIFunctionsImpl
 			Logger.log(new LogEvent(LOGID, "openPluginView", e));
 		}
 
-	}
-
-	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(org.gudy.azureus2.plugins.PluginView)
-	@SuppressWarnings("deprecation")
-	public void openPluginView(PluginView view) {
-		openPluginView(view, view.getPluginViewName());
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(java.lang.String, java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener, java.lang.Object, boolean)
@@ -323,12 +306,6 @@ public class UIFunctionsImpl
 
 	}
 
-	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openPluginView(org.gudy.azureus2.ui.swt.plugins.UISWTPluginView)
-	@SuppressWarnings("deprecation")
-	public void openPluginView(UISWTPluginView view) {
-		openPluginView(view, view.getPluginViewName());
-	}
-
 	// @see com.aelitis.azureus.ui.UIFunctions#refreshIconBar()
 	public void refreshIconBar() {
 		try {
@@ -354,30 +331,11 @@ public class UIFunctionsImpl
 
 	}
 
-	// @see com.aelitis.azureus.ui.UIFunctions#removeManagerView(org.gudy.azureus2.core3.download.DownloadManager)
-	public void removeManagerView(DownloadManager dm) {
-		// TODO: Remove me
-		// old main window used to keep a list of manager views.  New one doesn't
-	}
-
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#removePluginView(java.lang.String)
 	public void removePluginView(String viewID) {
 		try {
 
 			PluginsMenuHelper.getInstance().removePluginViews(viewID);
-
-		} catch (Exception e) {
-			Logger.log(new LogEvent(LOGID, "removePluginView", e));
-		}
-
-	}
-
-	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#removePluginView(org.gudy.azureus2.ui.swt.plugins.UISWTPluginView)
-	@SuppressWarnings("deprecation")
-	public void removePluginView(UISWTPluginView view) {
-		try {
-
-			PluginsMenuHelper.getInstance().removePluginView(view, view.getPluginViewName());
 
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "removePluginView", e));
@@ -497,11 +455,6 @@ public class UIFunctionsImpl
 						null, data, true);
 				break;
 
-			case VIEW_STATS:
-				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS, StatsView.class,
-						null, data, true);
-				break;
-				
 			default:
 				break;
 		}

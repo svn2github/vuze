@@ -26,10 +26,7 @@ package org.gudy.azureus2.ui.swt.views.file;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
-import org.eclipse.swt.events.MouseEvent;
-import org.eclipse.swt.events.MouseTrackAdapter;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -40,23 +37,26 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
-
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
-import org.gudy.azureus2.ui.swt.views.IViewExtension;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 
 
 public class FileInfoView
-	extends AbstractIView
-	implements IViewExtension
+	implements UISWTViewCoreEventListener
 {
 	private final static int BLOCK_FILLSIZE = 14;
 
@@ -95,6 +95,8 @@ public class FileInfoView
 	// accessed only in SWT Thread
 	private boolean refreshInfoCanvasQueued;
 
+	private UISWTView swtView;
+
 	/**
 	 * Initialize
 	 *
@@ -110,12 +112,12 @@ public class FileInfoView
 
 	}
 
-	public void dataSourceChanged(Object newDataSource) {
+	private void dataSourceChanged(Object newDataSource) {
 		if (newDataSource == null)
 			file = null;
 		else if (newDataSource instanceof Object[])
 			file = (DiskManagerFileInfo) ((Object[]) newDataSource)[0];
-		else
+		else if (newDataSource instanceof DiskManagerFileInfo)
 			file = (DiskManagerFileInfo) newDataSource;
 
 		Utils.execSWTThread(new AERunnable() {
@@ -125,17 +127,11 @@ public class FileInfoView
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#getData()
-	 */
-	public String getData() {
-		return "FileView.BlockView.title";
-	}
-
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#initialize(org.eclipse.swt.widgets.Composite)
-	 */
-	public void initialize(Composite composite) {
+  private String getFullTitle() {
+    return MessageText.getString("FileView.BlockView.title");
+  }
+	
+  private void initialize(Composite composite) {
 		if (fileInfoComposite != null && !fileInfoComposite.isDisposed()) {
 			Logger.log(new LogEvent(LogIDs.GUI, LogEvent.LT_ERROR,
 					"FileInfoView already initialized! Stack: "
@@ -276,15 +272,16 @@ public class FileInfoView
 		return fileInfoComposite;
 	}
 
-	public void fillFileInfoSection() {
+	private void fillFileInfoSection() {
+		if (topLabel == null) {
+			return;
+		}
 		topLabel.setText( "" );
 		
 		refreshInfoCanvas();
 	}
 
-	public void refresh() {
-		super.refresh();
-
+	private void refresh() {
 		if (loopFactor++ % graphicsUpdate == 0) {
 			refreshInfoCanvas();
 		}
@@ -459,17 +456,11 @@ public class FileInfoView
 		fileInfoCanvas.redraw();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#getComposite()
-	 */
-	public Composite getComposite() {
+	private Composite getComposite() {
 		return fileInfoComposite;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#delete()
-	 */
-	public void delete() {
+	private void delete() {
 		if (img != null && !img.isDisposed()) {
 			img.dispose();
 			img = null;
@@ -479,18 +470,42 @@ public class FileInfoView
 			font.dispose();
 			font = null;
 		}
-		
-		super.delete();
 	}
 
-	public Menu getPrivateMenu() {
-		return null;
-	}
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
 
-	public void viewActivated() {
-		refreshInfoCanvas();
-	}
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
 
-	public void viewDeactivated() {
-	}
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	dataSourceChanged(event.getData());
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	refreshInfoCanvas();
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+        
+    }
+
+    return true;
+  }
 }

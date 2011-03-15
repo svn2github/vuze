@@ -28,50 +28,45 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.widgets.Composite;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.control.DHTControlContact;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 public class VivaldiView 
-  extends AbstractIView
+	implements UISWTViewEventListener
 {
   public static final int DHT_TYPE_MAIN   = DHT.NW_MAIN;
   public static final int DHT_TYPE_CVS    = DHT.NW_CVS;
   public static final int DHT_TYPE_MAIN_V6  = DHT.NW_MAIN_V6;
+	public static final String MSGID_PREFIX = "VivaldiView";
 
   DHT dht;
   Composite panel;
   VivaldiPanel drawPanel;
 	private final boolean autoAlpha;
-  private final int dht_type;
+  private int dht_type;
   private AzureusCore core;
+	private UISWTView swtView;
   
 
-  public VivaldiView(int dht_type, boolean autoAlpha) {
-    this.dht_type = dht_type;
+  public VivaldiView(boolean autoAlpha) {
   	this.autoAlpha = autoAlpha;
 
-  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-
-			public void azureusCoreRunning(AzureusCore core) {
-				VivaldiView.this.core = core;
-				init(core);
-			}
-		});
   }
 
-  public VivaldiView(int dht_type) {
-  	this(dht_type, false);
-  }
-  
-  public VivaldiView(boolean autoAlpha) {
-  	this(DHT_TYPE_MAIN, autoAlpha);
+  public VivaldiView() {
+  	this(false);
   }
   
   private void init(AzureusCore core) {
@@ -101,18 +96,26 @@ public class VivaldiView
     }
   }
   
-  public void initialize(Composite composite) {
-    panel = new Composite(composite,SWT.NULL);
+  private void initialize(Composite composite) {
+  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+
+			public void azureusCoreRunning(AzureusCore core) {
+				VivaldiView.this.core = core;
+				init(core);
+			}
+		});
+
+  	panel = new Composite(composite,SWT.NULL);
     panel.setLayout(new FillLayout());    
     drawPanel = new VivaldiPanel(panel);    
   	drawPanel.setAutoAlpha(autoAlpha);
   }
   
-  public Composite getComposite() {
+  private Composite getComposite() {
    return panel;
   }
   
-  public void refresh() {
+  private void refresh() {
   	if (dht == null) {
   		if (core != null) {
   			// keep trying until dht is avail
@@ -123,16 +126,12 @@ public class VivaldiView
   	}
   	
     if(dht != null) {
-      List l = dht.getControl().getContacts();
+      List<DHTControlContact> l = dht.getControl().getContacts();
       drawPanel.refreshContacts(l,dht.getControl().getTransport().getLocalContact());
     }
   }
   
-  public String getData() {
-    return( getFullTitle());
-  }
-
-  public String getFullTitle() {
+  private String getTitleID() {
     if ( dht_type == DHT_TYPE_MAIN ){
 
       return( "VivaldiView.title.full" );
@@ -146,8 +145,51 @@ public class VivaldiView
     }
   }
   
-	public void delete() {
-		drawPanel.delete();
-		super.delete();
+  private void delete() {
+		if (drawPanel != null) {
+			drawPanel.delete();
+		}
 	}
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(MessageText.getString(getTitleID()));
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+    		if (swtView != null) {
+    			swtView.setTitle(MessageText.getString(getTitleID()));
+    		}
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	if (event.getData() instanceof Number) {
+      		dht_type = ((Number) event.getData()).intValue();
+      		if (swtView != null) {
+          	swtView.setTitle(MessageText.getString(getTitleID()));
+      		}
+      	}
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
 }

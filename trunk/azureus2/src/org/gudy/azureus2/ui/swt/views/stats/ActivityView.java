@@ -37,25 +37,29 @@ import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.stats.transfer.OverallStats;
-import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 
 /**
  * @author Olivier
  *
  */
-public class ActivityView extends AbstractIView implements ParameterListener {
+public class ActivityView 
+	implements ParameterListener, PeriodicViewUpdate, UISWTViewCoreEventListener
+{
 
-  GlobalManager manager = null;
+  public static final String MSGID_PREFIX = "SpeedView";
+  
+	GlobalManager manager = null;
   GlobalManagerStats stats = null;
   
   Composite panel;
@@ -64,9 +68,13 @@ public class ActivityView extends AbstractIView implements ParameterListener {
   SpeedGraphic downSpeedGraphic;
   
   Canvas upSpeedCanvas;
-  SpeedGraphic upSpeedGraphic;  
+  SpeedGraphic upSpeedGraphic;
+
+	private UISWTView swtView;  
   
   public ActivityView() {
+    downSpeedGraphic = SpeedGraphic.getInstance();
+    upSpeedGraphic = SpeedGraphic.getInstance();
   	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
 				manager = core.getGlobalManager();
@@ -75,6 +83,9 @@ public class ActivityView extends AbstractIView implements ParameterListener {
 		});
   }
   
+  /* (non-Javadoc)
+   * @see org.gudy.azureus2.ui.swt.views.stats.PeriodicViewUpdate#periodicUpdate()
+   */
   public void periodicUpdate() {
   	if (manager == null || stats == null) {
   		return;
@@ -95,7 +106,7 @@ public class ActivityView extends AbstractIView implements ParameterListener {
     				swarms_peer_speed });
   }
   
-  public void initialize(Composite composite) {
+  private void initialize(Composite composite) {
     panel = new Composite(composite,SWT.NULL);
     panel.setLayout(new GridLayout());
     GridData gridData;
@@ -109,7 +120,6 @@ public class ActivityView extends AbstractIView implements ParameterListener {
     downSpeedCanvas = new Canvas(gDownSpeed,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
     downSpeedCanvas.setLayoutData(gridData);
-    downSpeedGraphic = SpeedGraphic.getInstance();
     downSpeedGraphic.initialize(downSpeedCanvas);
     Color[] colors = downSpeedGraphic.colors;
     
@@ -122,7 +132,6 @@ public class ActivityView extends AbstractIView implements ParameterListener {
     upSpeedCanvas = new Canvas(gUpSpeed,SWT.NO_BACKGROUND);
     gridData = new GridData(GridData.FILL_BOTH);
     upSpeedCanvas.setLayoutData(gridData);
-    upSpeedGraphic = SpeedGraphic.getInstance();
     upSpeedGraphic.initialize(upSpeedCanvas);
     
     COConfigurationManager.addAndFireParameterListener("Stats Graph Dividers", this);
@@ -141,35 +150,59 @@ public class ActivityView extends AbstractIView implements ParameterListener {
 	Legend.createLegendComposite(panel, colors, colorConfigs);
   }
   
-  public void delete() {    
+  private void delete() {    
     Utils.disposeComposite(panel);
     downSpeedGraphic.dispose();
     upSpeedGraphic.dispose();
     COConfigurationManager.removeParameterListener("Stats Graph Dividers", this);
   }
 
-  public String getFullTitle() {
-    return MessageText.getString("SpeedView.title.full"); //$NON-NLS-1$
-  }
-  
-  public Composite getComposite() {
+  private Composite getComposite() {
     return panel;
   }
   
-  public void refresh() {
+  private void refresh() {
     downSpeedGraphic.refresh();
     upSpeedGraphic.refresh();
   }  
   
-  public String getData() {
-    return "SpeedView.title.full";
-  }
-
   public void parameterChanged(String param_name) {
 	  boolean update_dividers = COConfigurationManager.getBooleanParameter("Stats Graph Dividers");
 	  int update_divider_width = update_dividers ? 60 : 0;
       downSpeedGraphic.setUpdateDividerWidth(update_divider_width);
       upSpeedGraphic.setUpdateDividerWidth(update_divider_width);
   }
-  
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(MessageText.getString(MSGID_PREFIX + ".title.full"));
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
 }

@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.components.Legend;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.piece.MyPieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -45,6 +46,8 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener;
 import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
@@ -64,6 +67,8 @@ public class PiecesView
 	TableDataSourceChangedListener,
 	TableLifeCycleListener
 {
+	private static boolean registeredCoreSubViews = false;
+
 	private final static TableColumnCore[] basicItems = {
 		new PieceNumberItem(),
 		new SizeItem(),
@@ -79,34 +84,46 @@ public class PiecesView
 		new RequestedItem()
 	};
 
+	public static final String MSGID_PREFIX = "PiecesView";
+
 	DownloadManager manager;
   
 	private TableViewSWTImpl<PEPiece> tv;
 
 	private Composite legendComposite;
 
-	private PieceInfoView pieceInfoView;
-	private MyPieceDistributionView pieceDistView;
   
 	/**
 	 * Initialize
 	 *
 	 */
 	public PiecesView() {
-		super("PiecesView");
+		super(MSGID_PREFIX);
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initYourTableView()
-	public TableViewSWT initYourTableView() {
+	public TableViewSWT<PEPiece> initYourTableView() {
 		tv = new TableViewSWTImpl<PEPiece>(PEPiece.class,
 				TableManager.TABLE_TORRENT_PIECES, getPropertiesPrefix(), basicItems,
 				basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		tv.setEnableTabViews(true);
-		pieceInfoView = new PieceInfoView();
-		pieceDistView = new MyPieceDistributionView();
-		tv.setCoreTabViews(new IView[] {
-			pieceInfoView,pieceDistView
-		});
+
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (uiFunctions != null) {
+			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
+			
+			if (pluginUI != null && !registeredCoreSubViews) {
+				
+				pluginUI.addView(TableManager.TABLE_TORRENT_PIECES,
+						"PieceInfoView", PieceInfoView.class, manager);
+
+				pluginUI.addView(TableManager.TABLE_TORRENT_PIECES,
+						"MyPieceDistributionView", MyPieceDistributionView.class, manager);
+
+				registeredCoreSubViews = true;
+			}
+		}
+
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.addLifeCycleListener(this);
 
@@ -132,18 +149,12 @@ public class PiecesView
 			manager.addPieceListener(this, false);
 			addExistingDatasources();
     }
-  	if (pieceInfoView != null) {
-  		pieceInfoView.dataSourceChanged(manager);
-		}
-  	if (pieceDistView != null) {
-  		pieceDistView.dataSourceChanged(manager);
-		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
 	public void tableViewInitialized() {
-		if (legendComposite != null && (tv instanceof TableViewSWT)) {
-			Composite composite = ((TableViewSWT) tv).getTableComposite();
+		if (legendComposite != null && tv != null) {
+			Composite composite = ((TableViewSWT<PEPiece>) tv).getTableComposite();
 
 			legendComposite = Legend.createLegendComposite(composite,
 					BlocksItem.colors, new String[] {

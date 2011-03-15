@@ -25,7 +25,6 @@ package org.gudy.azureus2.ui.swt.views;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.Iterator;
 import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
@@ -36,25 +35,33 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.graphics.PieUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 /**
  * @author Olivier Chalouhi
  *
  */
-public class PeersGraphicView extends AbstractIView implements DownloadManagerPeerListener {
-
+public class PeersGraphicView
+	implements DownloadManagerPeerListener, UISWTViewCoreEventListener
+{
   
-  private DownloadManager manager = null;
+  public static String MSGID_PREFIX = "PeersGraphicView";
+
+	private DownloadManager manager = null;
   
   private static final int NB_ANGLES = 1000;  
   private double[] angles;
-  private double[] deltaPerimeters;
+  //private double[] deltaPerimeters;
   private double perimeter;
   private double[] rs;
   private double[] deltaXXs;
@@ -64,7 +71,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
   
   private Point oldSize;
   
-  private List peers;
+  private List<PEPeer> peers;
   private AEMonitor peers_mon = new AEMonitor( "PeersGraphicView:peers" );;
   private PeerComparator peerComparator;
   
@@ -72,16 +79,16 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
   //UI Stuff
   private Display display;
   private Composite panel;
+
+	private UISWTView swtView;
   private static final int PEER_SIZE = 15;
-  private static final int PACKET_SIZE = 10;
+  //private static final int PACKET_SIZE = 10;
   private static final int OWN_SIZE = 75;
   
   //Comparator Class
   //Note: this comparator imposes orderings that are inconsistent with equals.
-  class PeerComparator implements Comparator {
-    public int compare(Object arg0, Object arg1) {
-      PEPeer peer0 = (PEPeer) arg0;
-      PEPeer peer1 = (PEPeer) arg1;
+  class PeerComparator implements Comparator<PEPeer> {
+  	public int compare(PEPeer peer0, PEPeer peer1) {
 
       //Then we sort on %, but depending on interested ...
       int percent0 = peer0.getPercentDoneInThousandNotation();
@@ -94,7 +101,7 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
   
   public PeersGraphicView() {
     angles = new double[NB_ANGLES];
-    deltaPerimeters = new double[NB_ANGLES];
+    //deltaPerimeters = new double[NB_ANGLES];
     rs = new double[NB_ANGLES];
     deltaXXs = new double[NB_ANGLES];
     deltaXYs = new double[NB_ANGLES];
@@ -109,11 +116,11 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
       deltaYYs[i] = Math.sin(angles[i]+Math.PI / 2);
     }
     
-    this.peers = new ArrayList();
+    this.peers = new ArrayList<PEPeer>();
     this.peerComparator = new PeerComparator();
   } 
   
-  public void dataSourceChanged(Object newDataSource) {
+  private void dataSourceChanged(Object newDataSource) {
 	  if (manager != null)
 		  manager.removePeerListener(this);
 
@@ -135,26 +142,25 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
 		  manager.addPeerListener(this);
   }
 
-  public void delete() {
+  private void delete() {
   	if (manager != null)
   		manager.removePeerListener(this);
-    super.delete();
   }
 
-  public Composite getComposite() {    
+  private Composite getComposite() {    
     return panel;
   }
   
-  public String getData() {
-    return "PeersGraphicView.title";
+  private String getData() {
+    return "PeersGraphicView.title.full";
   }
 
-  public void initialize(Composite composite) {
+  private void initialize(Composite composite) {
     display = composite.getDisplay();
     panel = new Canvas(composite,SWT.NULL);
   }
 
-  public void refresh() {
+  private void refresh() {
     doRefresh();
   }
   
@@ -165,15 +171,13 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
     PEPeer[] sortedPeers;
     try {      
       peers_mon.enter();      
-      List connectedPeers = new ArrayList();
-      Iterator iter = peers.iterator();
-      while(iter.hasNext()) {
-        PEPeerTransport peer = (PEPeerTransport) iter.next();
+      List<PEPeerTransport> connectedPeers = new ArrayList<PEPeerTransport>();
+      for (PEPeerTransport peer : connectedPeers) {
         if(peer.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED)
           connectedPeers.add(peer);
       }
       
-      sortedPeers = (PEPeer[]) connectedPeers.toArray(new PEPeer[connectedPeers.size()]);      
+      sortedPeers = connectedPeers.toArray(new PEPeer[connectedPeers.size()]);      
     } finally {
       peers_mon.exit();
     }
@@ -220,18 +224,19 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
     
     int iAngle = 0;
     double currentPerimeter = 0;    
-    double angle,r;   
+    //double angle;
+    double r;   
 
     for(int i = 0 ; i < nbPeers ; i++) {
       PEPeer peer = sortedPeers[i];
       do {
-        angle = angles[iAngle];
+        //angle = angles[iAngle];
         r     = rs[iAngle];
         currentPerimeter += r;
         if(iAngle + 1 < NB_ANGLES) iAngle++;
       } while( currentPerimeter < i * perimeter / nbPeers);
             
-      angle = (4 * i - nbPeers) * Math.PI  / (2 * nbPeers) - Math.PI / 2;
+      //angle = (4 * i - nbPeers) * Math.PI  / (2 * nbPeers) - Math.PI / 2;
       
       int[] triangle = new int[6];
       
@@ -366,5 +371,40 @@ public class PeersGraphicView extends AbstractIView implements DownloadManagerPe
     } finally {
       peers_mon.exit();
     }
+  }
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(MessageText.getString(getData()));
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(MessageText.getString(getData()));
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	dataSourceChanged(event.getData());
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
   }
 }

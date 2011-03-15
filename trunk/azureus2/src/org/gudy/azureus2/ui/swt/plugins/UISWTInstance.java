@@ -77,6 +77,9 @@ public interface UISWTInstance extends UIInstance {
 	 */
 	public static final String VIEW_TOPBAR = "TopBar";
 
+	public static final String VIEW_STATISTICS = "StatsView";
+
+	
 	/** Retrieve the SWT Display object that Azureus uses (when in SWT mode).
 	 * If you have a thread that does some periodic/asynchronous stuff, Azureus 
 	 * will crashes with and 'InvalidThreadAccess' exception unless you
@@ -118,6 +121,27 @@ public interface UISWTInstance extends UIInstance {
 	 * @since 2.3.0.6
 	 */
 	public void addView(String sParentID, String sViewID, UISWTViewEventListener l);
+
+	/**
+	 * Add a view to an Azureus parent view.  For views added to the {@link #VIEW_MAIN}
+	 * window, this adds a menu option.<P>
+	 * In comparison to {@link #addView(String, String, UISWTViewEventListener)},
+	 * this method saves memory by not creating the {@link UISWTViewEventListener}
+	 * until it is needed.  It also ensures that only one 
+	 * {@link UISWTViewEvent#TYPE_CREATE} event is triggered per instance.
+	 * 
+	 * @param sParentID VIEW_* constant
+	 * @param sViewID of your view.  Used as part of the resource id.<br>
+	 *          "Views.plugins." + ID + ".title" = title of your view
+	 * @param l Class of the Listener to be created and triggered
+	 *           
+	 * @note If you want the window to auto-open, use openMainView when you gain
+	 *        access to the UISWTInstance
+	 *
+	 * @since 4.6.0.5
+	 */
+	public void addView(String sParentID, String sViewID,
+			Class<? extends UISWTViewEventListener> cla, Object initalDatasource);
 
 	/**
 	 * Open a previously added view
@@ -204,46 +228,6 @@ public interface UISWTInstance extends UIInstance {
 	 */
 	public UISWTView[] getOpenViews(String sParentID);
 
-	/**
-	 * A Plugin might call this method to add a View to Azureus's views
-	 * The View will be accessible from View > Plugins > View name
-	 * @param view The PluginView to be added
-	 * @param autoOpen Whether the plugin should auto-open at startup
-	 *
-	 * @since 2.3.0.5
-	 * @deprecated Use {@link #addView(String, String, UISWTViewEventListener)}
-	 */
-
-	public void addView(UISWTPluginView view, boolean autoOpen);
-
-	/**
-	 * Remove a view
-	 * @param view
-	 * 
-	 * @since 2.3.0.5
-	 * @deprecated Use {@link #removeViews(String, String)}
-	 */
-	public void removeView(UISWTPluginView view);
-
-	/**
-	 * Add an AWT panel as the plugin view
-	 * @param view
-	 * @param auto_open
-	 * 
-	 * @since 2.3.0.5
-	 * @deprecated Use {@link #addView(String, String, UISWTViewEventListener)}
-	 */
-	public void addView(UISWTAWTPluginView view, boolean auto_open);
-
-	/**
-	 * Remove a view
-	 * @param view
-	 * 
-	 * @since 2.3.0.5
-	 * @deprecated Use {@link #removeViews(String, String)}
-	 */
-	public void removeView(UISWTAWTPluginView view);
-	
 	/**
 	 * Shows or hides a download bar for a given download.
 	 * 

@@ -45,9 +45,7 @@ import org.gudy.azureus2.pluginsimpl.local.sharing.ShareManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.tracker.*;
 import org.gudy.azureus2.pluginsimpl.local.ui.*;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.ParameterRepository;
-import org.gudy.azureus2.pluginsimpl.local.ui.config.PluginConfigUIFactoryImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.config.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.*;
 import org.gudy.azureus2.pluginsimpl.local.update.*;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
@@ -102,7 +100,6 @@ PluginInterfaceImpl
   private Logger				logger;
   private IPCInterfaceImpl		ipc_interface;
   protected List				children		= new ArrayList();
-  private List 					configSections 	= new ArrayList();
   private PluginStateImpl       state;
   
   /**
@@ -251,30 +248,28 @@ PluginInterfaceImpl
 		return( Constants.AZUREUS_VERSION );
 	}
 	
-
-	/**
-	 * @deprecated
-	 */
-  public void addView(PluginView view)
-  {
-    getUIManager().getSWTManager().addView(view);
-  } 
-  
   public void addConfigSection(ConfigSection section)
   {
 	// Method is used by autocat.
   	ConfigSectionRepository.getInstance().addConfigSection(section, this);
-  	configSections.add(section);
   }
 
   public void removeConfigSection(ConfigSection section)
   {
   	ConfigSectionRepository.getInstance().removeConfigSection(section);
-  	configSections.remove(section);
   }
   
   public ConfigSection[] getConfigSections() {
-  	return (ConfigSection[]) configSections.toArray(new ConfigSection[0]);
+  	ArrayList<ConfigSection> list = ConfigSectionRepository.getInstance().getList();
+  	for (Iterator<ConfigSection> iter = list.iterator(); iter.hasNext();) {
+			ConfigSection configSection = iter.next();
+			if (configSection instanceof ConfigSectionHolder) {
+				if (((ConfigSectionHolder)configSection).getPluginInterface() != this) {
+					iter.remove();
+				}
+			}
+		}
+  	return list.toArray(new ConfigSection[0]);
   }
   
   /**

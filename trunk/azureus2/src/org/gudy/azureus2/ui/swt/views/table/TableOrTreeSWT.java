@@ -25,9 +25,11 @@ import org.eclipse.swt.widgets.*;
 
 
 /**
+ * Provides caller with access to a tree or table without needing to know
+ * which it's operating on
+ * 
  * @author TuxPaper
  * @created May 3, 2010
- *
  */
 public interface TableOrTreeSWT
 {

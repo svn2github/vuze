@@ -46,7 +46,7 @@ public class ShellManager
 {
     private static ShellManager instance;
 
-    private final Collection shells = new ArrayList();
+    private final Collection<Shell> shells = new ArrayList<Shell>();
     private final List addHandlers = new LinkedList();
     private final List removeHandlers = new LinkedList();
 
@@ -113,7 +113,7 @@ public class ShellManager
      * <p><b>Note</b>: This method must be invoked by the SWT display thread</p>
      * @return The iterator
      */
-    public final Iterator getWindows()
+    public final Iterator<Shell> getWindows()
     {
         return shells.iterator();
     }

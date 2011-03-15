@@ -14,10 +14,12 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -36,6 +38,8 @@ public class ConfigShell
 	private Shell shell;
 
 	private ConfigView configView;
+
+	private UISWTViewImpl swtView;
 
 	public static ConfigShell getInstance() {
 		if (null == instance) {
@@ -67,7 +71,12 @@ public class ConfigShell
 			shell.setText(MessageText.getString(MessageText.resolveLocalizationKey("ConfigView.title.full")));
 			Utils.setShellIcon(shell);
 			configView = new ConfigView();
-			configView.initialize(shell);
+			try {
+				swtView = new UISWTViewImpl(null, "ConfigView", configView, section);
+			} catch (Exception e1) {
+				Debug.out(e1);
+			}
+			swtView.initialize(shell);
 			configView.selectSection(section);
 
 			/*
@@ -131,7 +140,10 @@ public class ConfigShell
 		// }
 			// clear these down as view now dead
 		
-		configView.delete();
+		if (swtView != null) {
+  		swtView.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
+  		swtView = null;
+		}
 		
 		shell		= null;
 		configView	= null;

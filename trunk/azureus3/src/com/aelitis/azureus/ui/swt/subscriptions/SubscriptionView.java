@@ -6,33 +6,46 @@ package com.aelitis.azureus.ui.swt.subscriptions;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.browser.*;
+import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.browser.ProgressEvent;
+import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Menu;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
-import com.aelitis.azureus.core.subs.*;
+import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.core.subs.SubscriptionListener;
+import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.browser.*;
+import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.CookiesListener;
+import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
-import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.util.ConstantsVuze;
+import com.aelitis.azureus.util.MapUtils;
+import com.aelitis.azureus.util.UrlFilter;
 
 public class
 SubscriptionView
-	extends 	AbstractIView
-	implements IViewExtension, OpenCloseSearchDetailsListener, ToolBarEnabler
+	implements OpenCloseSearchDetailsListener, ToolBarEnabler,
+	UISWTViewCoreEventListener
 {
 	private Subscription	subs;
 	
@@ -46,37 +59,36 @@ SubscriptionView
 	
 	private Browser			mainBrowser;
 	private Browser			detailsBrowser;
-	private final SubscriptionMDIEntry mdiInfo;
+	private SubscriptionMDIEntry mdiInfo;
+
+	private UISWTView swtView;
 
 	public
-	SubscriptionView(
-		Subscription		_subs)
+	SubscriptionView()
 	{
-		subs = _subs;
-		this.mdiInfo = (SubscriptionMDIEntry) subs.getUserData(SubscriptionManagerUI.SUB_ENTRYINFO_KEY);
 	}
 	
 
 	protected void refreshView() {
+		if (subs == null) {
+			return;
+		}
 		String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		if (mdi != null) {
 			MdiEntrySWT entry = mdi.getEntrySWT(key);
 			if (entry != null) {
-				IView view = entry.getIView();
-				if (view instanceof SubscriptionView) {
-					SubscriptionView subsView = (SubscriptionView) view;
+				UISWTViewEventListener eventListener = entry.getEventListener();
+				if (eventListener instanceof SubscriptionView) {
+					SubscriptionView subsView = (SubscriptionView) eventListener;
 					subsView.updateBrowser( false );
 				}
 			}
 		}
 	}
 
-	public void delete() {
-		super.delete();
-	}
 
-	public void 
+	private void 
 	initialize(
 		Composite _parent_composite )
 	{  
@@ -170,7 +182,6 @@ SubscriptionView
 				public void widgetDisposed(DisposeEvent e) {
 					((Browser)e.widget).setUrl("about:blank");
 					((Browser)e.widget).setVisible(false);
-					while (!e.display.isDisposed() && e.display.readAndDispatch());
 				}
 			});
 			BrowserContext context = 
@@ -225,7 +236,6 @@ SubscriptionView
 				public void widgetDisposed(DisposeEvent e) {
 					((Browser)e.widget).setUrl("about:blank");
 					((Browser)e.widget).setVisible(false);
-					while (!e.display.isDisposed() && e.display.readAndDispatch());
 				}
 			});
 			BrowserContext detailsContext = 
@@ -288,7 +298,9 @@ SubscriptionView
 			
 			final ExternalLoginCookieListener cookieListener = new ExternalLoginCookieListener(new CookiesListener() {
 				public void cookiesFound(String cookies) {
-					detailsBrowser.setData("current-cookies", cookies);
+					if (detailsBrowser != null) {
+						detailsBrowser.setData("current-cookies", cookies);
+					}
 				}
 			},detailsBrowser);
 			
@@ -313,11 +325,17 @@ SubscriptionView
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler#refreshToolBar(java.util.Map)
+	 */
 	public void refreshToolBar(Map<String, Boolean> list) {
 		list.put("share", true);
 		list.put("remove", true);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler#toolBarItemActivated(java.lang.String)
+	 */
 	public boolean toolBarItemActivated(String itemKey) {
 		if (itemKey.equals("remove")) {
 	  	mdiInfo.removeWithConfirm();
@@ -503,15 +521,18 @@ SubscriptionView
 		*/
 	}
 	
-	public Composite 
+	private Composite 
 	getComposite()
 	{ 
 		return( composite );
 	}
 	
-	public String 
+	private String 
 	getFullTitle() 
 	{
+		if (subs == null) {
+			return "";
+		}
 		return( subs.getName());
 	}
 	
@@ -553,21 +574,68 @@ SubscriptionView
 		
 	}
 
-	public Menu getPrivateMenu() {
-		return null;
-	}
 
-	public void viewActivated() {
+	private void viewActivated() {
+		if (subs != null && mdiInfo == null) {
+			mdiInfo = (SubscriptionMDIEntry) subs.getUserData(SubscriptionManagerUI.SUB_ENTRYINFO_KEY);
+		}
 		createBrowsers();
 	}
 
-	public void viewDeactivated() {
+	private void viewDeactivated() {
 		if (mdiInfo.spinnerImage != null) {
 			mdiInfo.spinnerImage.setVisible(false);
 		}
 		destroyBrowsers();
 	}
 
-	
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	dataSourceChanged(event.getData());
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	viewActivated();
+      	break;
+        
+      case UISWTViewEvent.TYPE_FOCUSLOST:
+      	viewDeactivated();
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        break;
+    }
+
+    return true;
+  }
+
+
+	private void dataSourceChanged(Object data) {
+		if (data instanceof Subscription) {
+			subs = (Subscription) data;
+			mdiInfo = (SubscriptionMDIEntry) subs.getUserData(SubscriptionManagerUI.SUB_ENTRYINFO_KEY);
+		}
+		if (subs != null && swtView != null) {
+    	swtView.setTitle(getFullTitle());
+		}
+	}
 
 }

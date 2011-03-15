@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.peer.RemotePieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -48,6 +49,8 @@ import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
  * @author Olivier
@@ -115,10 +118,14 @@ public class PeersView
 	}
 	
   private static final TableColumnCore[] basicItems = getBasicColumnItems(TableManager.TABLE_TORRENT_PEERS);
+
+	public static final String MSGID_PREFIX = "PeersView";
   
   private DownloadManager manager;
-	private TableViewSWT tv;
+	private TableViewSWT<PEPeer> tv;
 	private Shell shell;
+
+	private static boolean registeredCoreSubViews = false;
 
 
   /**
@@ -126,21 +133,34 @@ public class PeersView
    *
    */
   public PeersView() {
-  	super("PeersView");
+  	super(MSGID_PREFIX);
   }
   
   // @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initYourTableView()
-  public TableViewSWT initYourTableView() {
-		tv = new TableViewSWTImpl(Peer.class, TableManager.TABLE_TORRENT_PEERS,
+  public TableViewSWT<PEPeer> initYourTableView() {
+		tv = new TableViewSWTImpl<PEPeer>(Peer.class, TableManager.TABLE_TORRENT_PEERS,
 				getPropertiesPrefix(), basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL);
 		tv.setRowDefaultHeight(16);
 		tv.setEnableTabViews(true);
-		tv.setCoreTabViews(new IView[] {
-			new PeerInfoView(),
-			new RemotePieceDistributionView(),
-			new LoggerView(true)
-		});
+
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (uiFunctions != null) {
+			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
+			
+			if (pluginUI != null && !registeredCoreSubViews) {
+
+				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "PeerInfoView",
+						PeerInfoView.class, manager);
+				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "RemotePieceDistributionView",
+						RemotePieceDistributionView.class, manager);
+				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "LoggerView",
+						new LoggerView(true));
+
+				registeredCoreSubViews = true;
+			}
+		}
+
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.addLifeCycleListener(this);
 		tv.addMenuFillListener(this);
@@ -184,7 +204,7 @@ public class PeersView
 	
 	public void fillMenu(String sColumnName, Menu menu) {fillMenu(menu, tv, shell, true);}
 
-	public static void fillMenu(final Menu menu, final TableView tv, final Shell shell, boolean download_specific) {
+	public static void fillMenu(final Menu menu, final TableView<?> tv, final Shell shell, boolean download_specific) {
 		Object[] peers = tv.getSelectedDataSources().toArray();
 		
 		boolean hasSelection = (peers.length > 0);
@@ -258,16 +278,18 @@ public class PeersView
 				block_item.setEnabled(true);
 				block_item.setSelection(peer.isSnubbed());
 			}
-			
-			final boolean newSnubbedValue = !peer.isSnubbed();
-	
-			Messages.setLanguageText(block_item, "PeersView.menu.blockupload");
-			block_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
-				public void run(TableRowCore row) {
-					PEPeer peer = ((PEPeer) row.getDataSource(true));
-					peer.setSnubbed(newSnubbedValue);
-				}
-			});
+
+			if (peer != null) {
+  			final boolean newSnubbedValue = !peer.isSnubbed();
+  	
+  			Messages.setLanguageText(block_item, "PeersView.menu.blockupload");
+  			block_item.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
+  				public void run(TableRowCore row) {
+  					PEPeer peer = ((PEPeer) row.getDataSource(true));
+  					peer.setSnubbed(newSnubbedValue);
+  				}
+  			});
+			}
 		}
 
 		final MenuItem ban_item = new MenuItem(menu, SWT.PUSH);
@@ -332,7 +354,7 @@ public class PeersView
 	public void addThisColumnSubMenu(String columnName, Menu menuThisColumn) {
 	}
 
-	private static void setSelectedPeersUpSpeed(int speed, TableView tv) {      
+	private static void setSelectedPeersUpSpeed(int speed, TableView<?> tv) {      
 		Object[] peers = tv.getSelectedDataSources().toArray();
 		if(peers.length > 0) {            
 			for (int i = 0; i < peers.length; i++) {
@@ -346,7 +368,7 @@ public class PeersView
 		}
 	}
 
-	private static void setSelectedPeersDownSpeed(int speed, TableView tv) {      
+	private static void setSelectedPeersDownSpeed(int speed, TableView<?> tv) {      
 		Object[] peers = tv.getSelectedDataSources().toArray();
 		if(peers.length > 0) {            
 			for (int i = 0; i < peers.length; i++) {
@@ -384,7 +406,7 @@ public class PeersView
 			return;
 		}
 
-		Object[] dataSources = manager.getCurrentPeers();
+		PEPeer[] dataSources = manager.getCurrentPeers();
 		if (dataSources == null || dataSources.length == 0) {
 			return;
 		}

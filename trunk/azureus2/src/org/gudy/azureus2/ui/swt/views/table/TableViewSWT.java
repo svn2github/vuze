@@ -29,14 +29,12 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
-import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener;
+import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableView;
-
-import org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener;
-import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 
 /**
  * @author TuxPaper
@@ -58,11 +56,6 @@ public interface TableViewSWT<DATASOURCETYPE>
 	DropTarget createDropTarget(int style);
 
 	public Composite getComposite();
-
-	/**
-	 * @return
-	 */
-	IView[] getCoreTabViews();
 
 	TableRowCore getRow(DropTargetEvent event);
 
@@ -100,11 +93,6 @@ public interface TableViewSWT<DATASOURCETYPE>
 	 */
 	void setRowDefaultIconSize(Point size);
 	
-
-	/**
-	 * @param coreTabViews
-	 */
-	void setCoreTabViews(IView[] coreTabViews);
 
 	/**
 	 * @param x

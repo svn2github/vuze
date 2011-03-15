@@ -31,8 +31,6 @@ import java.util.List;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.pluginsimpl.local.deprecate.PluginDeprecation;
-import org.gudy.azureus2.pluginsimpl.local.ui.SWT.SWTManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginConfigModelImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginViewModelImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuManagerImpl;
@@ -40,17 +38,14 @@ import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableManagerImpl;
 
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
-import org.gudy.azureus2.plugins.ui.SWT.SWTManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.model.PluginConfigModel;
-import org.gudy.azureus2.plugins.ui.model.PluginViewModel;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -106,29 +101,6 @@ UIManagerImpl
 	getPluginInterface()
 	{
 		return( pi );
-	}
-	
-	public BasicPluginViewModel
-	getBasicPluginViewModel(
-		String			name )
-	{
-		// grrr, RSSImport plugin directly uses this method
-		
-		return( createBasicPluginViewModel( name ));
-		// throw( new RuntimeException( "Deprecated method - use createBasicPluginViewModel"));
-	}
-	
-	public PluginView
-	createPluginView(
-		PluginViewModel	model )
-	{
-		try{
-			return( SWTManagerImpl.getSingleton().createPluginView( model ));
-	
-		}catch( Throwable e ){
-			e.printStackTrace();
-			return( null );
-		}
 	}
 	
 	public BasicPluginViewModel
@@ -246,11 +218,6 @@ UIManagerImpl
 	  return menu_manager;
   }
 
-  public SWTManager getSWTManager() {
-	  PluginDeprecation.call("getSWTManager", pi.getPluginID());
-    return SWTManagerImpl.getSingleton();
-  }
-  
   	public static void
   	initialisationComplete()
   	{

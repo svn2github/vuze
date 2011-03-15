@@ -22,7 +22,6 @@
  */
 package org.gudy.azureus2.ui.swt.views.stats;
 
-import java.util.Iterator;
 import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -57,7 +56,7 @@ public class VivaldiPanel {
   private int yDown;
   
   private boolean antiAliasingAvailable = true;
-	private List lastContacts;
+	private List<DHTControlContact> lastContacts;
 	private DHTTransportContact lastSelf;
 	
 	private Image img;
@@ -179,13 +178,13 @@ public class VivaldiPanel {
 
     canvas.addMouseMoveListener(new MouseMoveListener() {
       public void mouseMove(MouseEvent event) {
-        if(mouseLeftDown) {
+        if(mouseLeftDown && (event.stateMask & SWT.MOD4) == 0) {
           int deltaX = event.x - xDown;
           int deltaY = event.y - yDown;
-          int width = scale.width;
-          int height = scale.height;
-          float ratioX = (float) (scale.saveMaxX - scale.saveMinX) / (float) width;
-          float ratioY = (float) (scale.saveMaxY - scale.saveMinY) / (float) height;
+          float width = scale.width;
+          float height = scale.height;
+          float ratioX = (scale.saveMaxX - scale.saveMinX) / width;
+          float ratioY = (scale.saveMaxY - scale.saveMinY) / height;
           float realDeltaX = deltaX * ratioX;
           float realDeltaY  = deltaY * ratioY;
           scale.minX = scale.saveMinX - realDeltaX;
@@ -194,7 +193,7 @@ public class VivaldiPanel {
           scale.maxY = scale.saveMaxY - realDeltaY;
           refreshContacts(lastContacts, lastSelf);
         }
-        if(mouseRightDown) {
+        if(mouseRightDown || (mouseLeftDown && (event.stateMask & SWT.MOD4) > 0)) {
           int deltaX = event.x - xDown;
           scale.rotation = scale.saveRotation - (float) deltaX / 100;
 
@@ -241,7 +240,8 @@ public class VivaldiPanel {
     canvas.setLayoutData(data);
   }
   
-  public void refreshContacts(List contacts,DHTTransportContact self) {
+	public void refreshContacts(List<DHTControlContact> contacts,
+			DHTTransportContact self) {
   	if (contacts == null || self == null) {
   		return;
   	}
@@ -304,9 +304,7 @@ public class VivaldiPanel {
     gc.setBackground(black); // Color of the squares
 
     // Draw all known positions of other contacts
-    Iterator iter = contacts.iterator();
-    while(iter.hasNext()) {
-      DHTControlContact contact = (DHTControlContact) iter.next();
+    for (DHTControlContact contact : contacts) {
       DHTNetworkPosition _position = contact.getTransportContact().getNetworkPosition(DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1);
       if ( _position == null ){
     	  continue;
@@ -330,7 +328,7 @@ public class VivaldiPanel {
     canvas.redraw();
   }
   
-  public void refresh(List vivaldiPositions) {
+  public void refresh(List<VivaldiPosition> vivaldiPositions) {
     if(canvas.isDisposed()) return;
     Rectangle size = canvas.getBounds();
     
@@ -355,9 +353,7 @@ public class VivaldiPanel {
     
     
     
-    Iterator iter = vivaldiPositions.iterator();
-    while(iter.hasNext()) {
-      VivaldiPosition position  = (VivaldiPosition)iter.next();
+    for (VivaldiPosition position : vivaldiPositions) {
       HeightCoordinatesImpl coord = (HeightCoordinatesImpl) position.getCoordinates();
       
       float error = position.getErrorEstimate() - VivaldiPosition.ERROR_MIN;

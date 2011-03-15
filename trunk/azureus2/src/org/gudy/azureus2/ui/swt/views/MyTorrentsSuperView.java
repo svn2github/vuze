@@ -23,39 +23,41 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.DelayedListenerMultiCombiner;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
-
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 /**
- * @author MjrTom
- *			2005/Dec/08: Avg Avail Item
+ * Wraps a "Incomplete" torrent list and a "Complete" torrent list into
+ * one view
  */
-
-public class MyTorrentsSuperView extends AbstractIView implements
-		ObfusticateImage, IViewExtension, ToolBarEnabler
+public class MyTorrentsSuperView
+	implements ObfusticateImage, ToolBarEnabler, UISWTViewCoreEventListener, AEDiagnosticsEvidenceGenerator
 {
 	private static int SASH_WIDTH = 5;
 
@@ -82,6 +84,9 @@ public class MyTorrentsSuperView extends AbstractIView implements
 
 	private Object ds;
 
+
+	private UISWTView swtView;
+
   public MyTorrentsSuperView(Text txtFilter, Composite cCats) {
   	this.txtFilter = txtFilter;
 		this.cCats = cCats;
@@ -103,14 +108,6 @@ public class MyTorrentsSuperView extends AbstractIView implements
     return form;
   }
   
-  public void delete() {
-    if (torrentview != null)
-      torrentview.delete();
-    if (seedingview != null)
-      seedingview.delete();
-    super.delete();
-  }
-
   public void initialize(final Composite parent) {
     if (form != null) {
       return;
@@ -282,18 +279,6 @@ public class MyTorrentsSuperView extends AbstractIView implements
 	}
 
 
-	public void refresh() {
-    if (getComposite() == null || getComposite().isDisposed())
-      return;
-
-    if (seedingview != null) {
-    	seedingview.refresh();
-    }
-    if (torrentview != null) {
-    	torrentview.refresh();
-    }
-  }
-
   public void updateLanguage() {
   	// no super call, the views will do their own
   	
@@ -325,17 +310,23 @@ public class MyTorrentsSuperView extends AbstractIView implements
     return lastSelectedView;
   }
 
+  /* (non-Javadoc)
+   * @see com.aelitis.azureus.ui.common.ToolBarEnabler#refreshToolBar(java.util.Map)
+   */
   public void refreshToolBar(Map<String, Boolean> list) {
-    IView currentView = getCurrentView();
-    if (currentView instanceof ToolBarEnabler) {
-      ((ToolBarEnabler) currentView).refreshToolBar(list);
+    MyTorrentsView currentView = getCurrentView();
+    if (currentView != null) {
+      currentView.refreshToolBar(list);
     }
   }
 
+  /* (non-Javadoc)
+   * @see com.aelitis.azureus.ui.common.ToolBarEnabler#toolBarItemActivated(java.lang.String)
+   */
   public boolean toolBarItemActivated(String itemKey) {
-    IView currentView = getCurrentView();
-    if (currentView instanceof ToolBarEnabler) {
-      if (((ToolBarEnabler) currentView).toolBarItemActivated(itemKey)) {
+    MyTorrentsView currentView = getCurrentView();
+    if (currentView != null) {
+      if (currentView.toolBarItemActivated(itemKey)) {
       	return true;
       }
     }
@@ -349,10 +340,9 @@ public class MyTorrentsSuperView extends AbstractIView implements
   }
   
   public void
-  generateDiagnostics(
+  generate(
 	IndentWriter	writer )
   {
-	  super.generateDiagnostics( writer );
 
 	  try{
 		  writer.indent();
@@ -361,7 +351,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
 		  
 		  writer.indent();
 
-		  torrentview.generateDiagnostics( writer );
+		  torrentview.generate( writer );
 	  
 	  }finally{
 		  
@@ -377,7 +367,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
 		  
 		  writer.indent();
 
-		  seedingview.generateDiagnostics( writer );
+		  seedingview.generate( writer );
 	  
 	  }finally{
 		  
@@ -404,22 +394,16 @@ public class MyTorrentsSuperView extends AbstractIView implements
 	public void viewActivated() {
 		SelectedContentManager.clearCurrentlySelectedContent();
 
-		IView currentView = getCurrentView();
-    if (currentView instanceof IViewExtension) {
-    	((IViewExtension)currentView).viewActivated();
-    }
-    if (currentView instanceof MyTorrentsView) {
-    	((MyTorrentsView)currentView).updateSelectedContent();
-    }
+		MyTorrentsView currentView = getCurrentView();
+		if (currentView != null) {
+			currentView.updateSelectedContent();
+		}
 	}
 
 	public void viewDeactivated() {
-    IView currentView = getCurrentView();
-    if (currentView == null) {return;}
-    if (currentView instanceof IViewExtension) {
-    	((IViewExtension)currentView).viewDeactivated();
-    }
     /*
+    MyTorrentsView currentView = getCurrentView();
+    if (currentView == null) {return;}
     String ID = currentView.getShortTitle();
     if (currentView instanceof MyTorrentsView) {
     	ID = ((MyTorrentsView)currentView).getTableView().getTableID();
@@ -466,8 +450,15 @@ public class MyTorrentsSuperView extends AbstractIView implements
 			String tableID, boolean isSeedingView, TableColumnCore[] columns, Composite c) {
 		MyTorrentsView view = new MyTorrentsView(_azureus_core, tableID,
 				isSeedingView, columns, txtFilter, cCats);
-		view.dataSourceChanged(ds);
-    view.initialize(c);
+		
+		try {
+			UISWTViewImpl swtView = new UISWTViewImpl(UISWTInstance.VIEW_MAIN, tableID, view, ds);
+			swtView.initialize(c);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+
+		/*
 		c.addListener(SWT.Activate, new Listener() {
 			public void handleEvent(Event event) {
 				viewActivated();
@@ -478,6 +469,7 @@ public class MyTorrentsSuperView extends AbstractIView implements
 				viewDeactivated();
 			}
 		});
+		*/
 		c.layout();
 		return view;
 	}
@@ -494,6 +486,63 @@ public class MyTorrentsSuperView extends AbstractIView implements
 	
 	public void dataSourceChanged(Object newDataSource) {
 		ds = newDataSource;
-		super.dataSourceChanged(newDataSource);
+	}
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+		switch (event.getType()) {
+			case UISWTViewEvent.TYPE_CREATE:
+				swtView = (UISWTView) event.getData();
+				swtView.setTitle(getFullTitle());
+				break;
+
+			case UISWTViewEvent.TYPE_DESTROY:
+				break;
+
+			case UISWTViewEvent.TYPE_INITIALIZE:
+				initialize((Composite) event.getData());
+				return true;
+
+			case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+				swtView.setTitle(getFullTitle());
+				Messages.updateLanguageForControl(getComposite());
+				break;
+
+			case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+				dataSourceChanged(event.getData());
+				break;
+
+			case UISWTViewEvent.TYPE_FOCUSGAINED:
+				viewActivated();
+				break;
+
+			case UISWTViewEvent.TYPE_FOCUSLOST:
+				viewDeactivated();
+				break;
+
+			case UISWTViewEvent.TYPE_REFRESH:
+				break;
+		}
+		
+		if (seedingview != null) {
+    	try {
+    		seedingview.getSWTView().triggerEvent(event.getType(), event.getData());
+    	} catch (Exception e) {
+    		Debug.out(e);
+    	}
+		}
+
+		if (torrentview != null) {
+    	try {
+    		torrentview.getSWTView().triggerEvent(event.getType(), event.getData());
+    	} catch (Exception e) {
+    		Debug.out(e);
+    	}
+		}
+
+		return true;
+	}
+	
+	public UISWTView getSWTView() {
+		return swtView;
 	}
 }

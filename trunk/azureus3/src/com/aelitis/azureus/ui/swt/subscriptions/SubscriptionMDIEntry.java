@@ -22,8 +22,8 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
@@ -33,7 +33,7 @@ import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
-import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
+import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 
 public class SubscriptionMDIEntry implements SubscriptionListener
 {
@@ -344,12 +344,12 @@ public class SubscriptionMDIEntry implements SubscriptionListener
 	}
 
 	protected void refreshView() {
-		if (!(mdiEntry instanceof MdiEntrySWT)) {
+		if (!(mdiEntry instanceof BaseMdiEntry)) {
 			return;
 		}
-		IView iView = ((MdiEntrySWT)mdiEntry).getIView();
-		if (iView instanceof SubscriptionView) {
-			SubscriptionView subsView = (SubscriptionView) iView;
+		UISWTViewEventListener eventListener = ((BaseMdiEntry)mdiEntry).getEventListener();
+		if (eventListener instanceof SubscriptionView) {
+			SubscriptionView subsView = (SubscriptionView) eventListener;
 			subsView.refreshView();
 		}
 	}

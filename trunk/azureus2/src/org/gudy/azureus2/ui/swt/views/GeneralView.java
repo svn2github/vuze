@@ -27,7 +27,9 @@ import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -50,6 +52,9 @@ import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 /**
  * View of General information on the torrent
@@ -57,9 +62,12 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
  * @author Olivier
  * 
  */
-public class GeneralView extends AbstractIView implements ParameterListener,
-		ObfusticateImage
+public class GeneralView
+	implements ParameterListener, ObfusticateImage, UISWTViewCoreEventListener
 {
+	public static final String MSGID_PREFIX = "GeneralView";
+
+	protected AEMonitor this_mon 	= new AEMonitor( MSGID_PREFIX );
 
   private Display display;
   private DownloadManager manager = null;
@@ -109,6 +117,7 @@ public class GeneralView extends AbstractIView implements ParameterListener,
   private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
 
   private Composite parent;
+	private UISWTView swtView;
 
   /**
    * Initialize GeneralView
@@ -131,9 +140,6 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 		});
 	}
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#initialize(org.eclipse.swt.widgets.Composite)
-   */
   public void initialize(Composite composite) {
   	parent = composite;
 
@@ -478,16 +484,10 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     //Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getComposite()
-   */
   public Composite getComposite() {
     return genComposite;
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#refresh()
-   */
   public void refresh() {
     if(gFile == null || gFile.isDisposed() || manager == null)
       return;
@@ -637,9 +637,6 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     }
   }
 
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#delete()
-   */
   public void delete() {
 	if (aImage != null)
 		aImage.dispose();
@@ -651,15 +648,8 @@ public class GeneralView extends AbstractIView implements ParameterListener,
     COConfigurationManager.removeParameterListener("Graphics Update", this);
   }
 
-  public String getData() {
-    return "GeneralView.title.short"; //$NON-NLS-1$
-  }
-
-  /* (non-Javadoc)
-   * @see org.gudy.azureus2.ui.swt.IView#getFullTitle()
-   */
-  public String getFullTitle() {
-    return MessageText.getString("GeneralView.title.full"); //$NON-NLS-1$
+  private String getFullTitle() {
+    return MessageText.getString(MSGID_PREFIX + ".title.full");
   }
 
   private void updateAvailability() {
@@ -1059,4 +1049,39 @@ public class GeneralView extends AbstractIView implements ParameterListener,
 				Debug.secretFileName(saveIn.getText()));
 		return image;
 }
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	dataSourceChanged(event.getData());
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
 }

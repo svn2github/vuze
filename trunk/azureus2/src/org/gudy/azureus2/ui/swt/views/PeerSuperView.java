@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.peer.RemotePieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -50,6 +51,8 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
  * @author Olivier
@@ -69,6 +72,7 @@ public class PeerSuperView
 	private TableViewSWT<PEPeer> tv;
 	private Shell shell;
 	private boolean active_listener = true;
+	private static boolean registeredCoreSubViews = false;
 
 
   /**
@@ -88,11 +92,24 @@ public class PeerSuperView
 						| SWT.FULL_SELECTION | SWT.VIRTUAL);
 		tv.setRowDefaultHeight(16);
 		tv.setEnableTabViews(true);
-		tv.setCoreTabViews(new IView[] {
-			new PeerInfoView(),
-			new RemotePieceDistributionView(),
-			new LoggerView(true)
-		});
+
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (uiFunctions != null) {
+			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
+			
+			if (pluginUI != null && !registeredCoreSubViews) {
+
+				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "PeerInfoView",
+						new PeerInfoView());
+				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "RemotePieceDistributionView",
+						new RemotePieceDistributionView());
+				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "LoggerView",
+						new LoggerView(true));
+
+				registeredCoreSubViews = true;
+			}
+		}
+
 		tv.addLifeCycleListener(this);
 		tv.addMenuFillListener(this);
 		
@@ -142,7 +159,7 @@ public class PeerSuperView
 		}
 
 		ArrayList<PEPeer> sources = new ArrayList<PEPeer>();
-		Iterator itr = core.getGlobalManager().getDownloadManagers().iterator();
+		Iterator<?> itr = core.getGlobalManager().getDownloadManagers().iterator();
 		while (itr.hasNext()) {
 			PEPeer[] peers = ((DownloadManager)itr.next()).getCurrentPeers();
 			if (peers != null) {
@@ -171,7 +188,7 @@ public class PeerSuperView
 		try {
 			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 			gm.removeListener(this);
-			Iterator itr = gm.getDownloadManagers().iterator();
+			Iterator<?> itr = gm.getDownloadManagers().iterator();
 			while(itr.hasNext()) {
 				DownloadManager dm = (DownloadManager)itr.next();
 				downloadManagerRemoved(dm);

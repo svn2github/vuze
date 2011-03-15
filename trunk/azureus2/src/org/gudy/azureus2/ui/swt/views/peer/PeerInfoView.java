@@ -40,6 +40,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -49,13 +50,15 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
-import org.gudy.azureus2.ui.swt.views.IViewExtension;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -72,8 +75,7 @@ import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
  * @todo on paint, paint cached image instead of recalc
  */
 public class PeerInfoView
-	extends AbstractIView
-	implements ObfusticateImage, IViewExtension
+	implements ObfusticateImage, UISWTViewCoreEventListener
 {
 	private final static int BLOCK_FILLSIZE = 14;
 
@@ -125,6 +127,8 @@ public class PeerInfoView
 
 	protected boolean refreshInfoCanvasQueued;
 
+	private UISWTView swtView;
+
 	/**
 	 * Initialize
 	 *
@@ -171,13 +175,14 @@ public class PeerInfoView
 		}
 	}
 
-	public void dataSourceChanged(Object newDataSource) {
-		if (newDataSource == null)
-			peer = null;
-		else if (newDataSource instanceof Object[])
+	private void dataSourceChanged(Object newDataSource) {
+		if (newDataSource instanceof Object[]) {
 			peer = (PEPeer) ((Object[]) newDataSource)[0];
-		else
+		} else if (newDataSource instanceof PEPeer) {
 			peer = (PEPeer) newDataSource;
+		} else {
+			peer = null;
+		}
 
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
@@ -186,17 +191,11 @@ public class PeerInfoView
 		});
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#getData()
-	 */
-	public String getData() {
-		return "PeersView.BlockView.title";
+	private String getFullTitle() {
+		return MessageText.getString("PeersView.BlockView.title");
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#initialize(org.eclipse.swt.widgets.Composite)
-	 */
-	public void initialize(Composite composite) {
+	private void initialize(Composite composite) {
 		if (peerInfoComposite != null && !peerInfoComposite.isDisposed()) {
 			Logger.log(new LogEvent(LogIDs.GUI, LogEvent.LT_ERROR,
 					"PeerInfoView already initialized! Stack: "
@@ -329,7 +328,7 @@ public class PeerInfoView
 		return peerInfoComposite;
 	}
 
-	public void swt_fillPeerInfoSection() {
+	private void swt_fillPeerInfoSection() {
 		if (imageLabel.getImage() != null) {
 			Image image = imageLabel.getImage();
 			imageLabel.setImage(null);
@@ -381,9 +380,7 @@ public class PeerInfoView
 		refreshInfoCanvas();
 	}
 
-	public void refresh() {
-		super.refresh();
-
+	private void refresh() {
 		if (loopFactor++ % graphicsUpdate == 0) {
 			refreshInfoCanvas();
 		}
@@ -522,6 +519,7 @@ public class PeerInfoView
 
 						gcImg.setBackground(blockColors[colorIndex]);
 
+						@SuppressWarnings("null") // partiallyDone false when dm_pieces null
 						int iNewWidth = (int) (((float) dm_pieces[i].getNbWritten() / dm_pieces[i]
 								.getNbBlocks()) * width);
 						if (iNewWidth >= width)
@@ -598,17 +596,11 @@ public class PeerInfoView
 		peerInfoCanvas.redraw();
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#getComposite()
-	 */
-	public Composite getComposite() {
+	private Composite getComposite() {
 		return peerInfoComposite;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#delete()
-	 */
-	public void delete() {
+	private void delete() {
 		if (!imageLabel.isDisposed() && imageLabel.getImage() != null) {
 			Image image = imageLabel.getImage();
 			imageLabel.setImage(null);
@@ -624,8 +616,6 @@ public class PeerInfoView
 			font.dispose();
 			font = null;
 		}
-
-		super.delete();
 	}
 
 	public Image obfusticatedImage(Image image) {
@@ -633,14 +623,39 @@ public class PeerInfoView
 		return image;
 	}
 
-	public Menu getPrivateMenu() {
-		return null;
-	}
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
 
-	public void viewActivated() {
-		refreshInfoCanvas();
-	}
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
 
-	public void viewDeactivated() {
-	}
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	dataSourceChanged(event.getData());
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+    		refreshInfoCanvas();
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
 }

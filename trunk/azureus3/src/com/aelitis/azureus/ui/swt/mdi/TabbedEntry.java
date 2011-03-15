@@ -1,7 +1,5 @@
 package com.aelitis.azureus.ui.swt.mdi;
 
-import java.lang.reflect.Constructor;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.DisposeEvent;
@@ -18,7 +16,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
-import org.gudy.azureus2.ui.swt.views.IView;
 
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
@@ -101,7 +98,7 @@ public class TabbedEntry
 				} finally {
 					shell.setCursor(cursor);
 				}
-			} else if (iview != null) {
+			} else if (view != null) {
 				try {
 					SWTSkinObjectContainer soContents = (SWTSkinObjectContainer) skin.createSkinObject(
 							"MdiIView." + uniqueNumber++, "mdi.content.item",
@@ -115,11 +112,9 @@ public class TabbedEntry
 					//viewComposite.setForeground(parent.getDisplay().getSystemColor(SWT.COLOR_WIDGET_FOREGROUND));
 
 					boolean doGridLayout = true;
-					if (iview instanceof UISWTView) {
-						UISWTView swtView = (UISWTView) iview;
-						if (swtView.getControlType() == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
-							doGridLayout = false;
-						}
+					UISWTView swtView = view;
+					if (swtView.getControlType() == UISWTViewCore.CONTROLTYPE_SKINOBJECT) {
+						doGridLayout = false;
 					}
 					if (doGridLayout) {
   					GridLayout gridLayout = new GridLayout();
@@ -128,15 +123,13 @@ public class TabbedEntry
   					viewComposite.setLayoutData(Utils.getFilledFormData());
 					}
 
-					if (iview instanceof UISWTViewCore) {
-						UISWTViewCore uiViewCore = (UISWTViewCore) iview;
-						uiViewCore.setSkinObject(soContents, soContents.getComposite());
-					}
+					UISWTViewCore uiViewCore = view;
+					uiViewCore.setSkinObject(soContents, soContents.getComposite());
 
-					iview.initialize(viewComposite);
-					setTitle(iview.getFullTitle());
+					view.initialize(viewComposite);
+					setTitle(view.getFullTitle());
 
-					Composite iviewComposite = iview.getComposite();
+					Composite iviewComposite = view.getComposite();
 					control = iviewComposite;
 					if (doGridLayout) {
 						Object existingLayoutData = iviewComposite.getLayoutData();
@@ -167,19 +160,13 @@ public class TabbedEntry
 					close(true);
 				}
 
-			} else if (iviewClass != null) {
+			} else if (viewClass != null) {
 				try {
-					IView view = null;
-					if (iviewClassArgs == null) {
-						view = (IView) iviewClass.newInstance();
-					} else {
-						Constructor<?> constructor = iviewClass.getConstructor(iviewClassArgs);
-						view = (IView) constructor.newInstance(iviewClassVals);
-					}
+					UISWTViewCore view = (UISWTViewCore) viewClass.newInstance();
 
 					if (view != null) {
-						setIView(view);
-						// now that we have an IView, go through show one more time
+						setCoreView(view);
+						// now that we have an view, go through show one more time
 						return swt_build();
 					}
 					close(true);
@@ -266,8 +253,8 @@ public class TabbedEntry
 		String title = getTitle();
 		if (title != null) {
 			swtItem.setText(escapeAccelerators(title));
-		} else if (iviewClass != null) {
-			swtItem.setText(iviewClass.getSimpleName());
+		} else if (viewClass != null) {
+			swtItem.setText(viewClass.getSimpleName());
 		}
 		if (buildonSWTItemSet) {
 			build();
@@ -313,9 +300,8 @@ public class TabbedEntry
 				if (swtItem != null && !swtItem.isDisposed()) {
 					swtItem.dispose();
 					swtItem = null;
-				} else if (iview != null) {
-					iview.delete();
-					iview = null;
+				} else if (view != null) {
+					setCoreView(null);
 
 					triggerCloseListeners(!SWTThread.getInstance().isTerminated());
 				}
@@ -332,10 +318,9 @@ public class TabbedEntry
 
 		triggerCloseListeners(!SWTThread.getInstance().isTerminated());
 
-		IView iview = getIView();
-		if (iview != null) {
-			setIView(null);
-			iview.delete();
+		UISWTViewCore view = getCoreView();
+		if (view != null) {
+			setCoreView(null);
 		}
 		SWTSkinObject so = getSkinObject();
 		if (so != null) {
@@ -364,7 +349,7 @@ public class TabbedEntry
 				}
 
 				mdi.removeItem(TabbedEntry.this);
-				mdi.setEntryAutoOpen(id, false);
+				mdi.setEntryAutoOpen(id, null, false);
 			}
 		});
 	}
@@ -397,7 +382,7 @@ public class TabbedEntry
 			Debug.out(e);
 		}
 		if (textIndicator != null) {
-			setPullTitleFromIView(false);
+			setPullTitleFromView(false);
 		}
 		
 		String newText = (String) viewTitleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_TEXT);
@@ -405,10 +390,10 @@ public class TabbedEntry
 			if (textIndicator != null) {
 				newText += " (" + textIndicator + ")";
 			}
-			setPullTitleFromIView(false);
+			setPullTitleFromView(false);
 			setTitle(newText);
-		} else if (iview != null) {
-			newText = iview.getShortTitle();
+		} else if (view != null) {
+			newText = view.getFullTitle();
 			if (textIndicator != null) {
 				newText += " (" + textIndicator + ")";
 			}

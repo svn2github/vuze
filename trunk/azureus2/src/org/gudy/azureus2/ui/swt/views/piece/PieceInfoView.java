@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
+import org.gudy.azureus2.core3.disk.impl.DiskManagerImpl;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPieceListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -45,12 +46,15 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 /**
  * @author TuxPaper
@@ -58,8 +62,8 @@ import org.gudy.azureus2.ui.swt.views.AbstractIView;
  *
  */
 public class PieceInfoView
-	extends AbstractIView
-	implements ObfusticateImage, DownloadManagerPieceListener
+	implements ObfusticateImage, DownloadManagerPieceListener,
+	UISWTViewCoreEventListener
 {
 
 	private final static int BLOCK_FILLSIZE = 14;
@@ -117,7 +121,7 @@ public class PieceInfoView
 		};
 	}
 
-	public void dataSourceChanged(Object newDataSource) {
+	private void dataSourceChanged(Object newDataSource) {
 		if (newDataSource instanceof DownloadManager) {
 			oldBlockInfo = null;
 			if (dlm != null) {
@@ -127,19 +131,30 @@ public class PieceInfoView
 			dlm.addPieceListener(this, false);
 			fillPieceInfoSection();
 		}
+		
+		if (newDataSource instanceof Object[]) {
+			Object[] objects = (Object[]) newDataSource;
+			if (objects.length > 0 && (objects[0] instanceof PEPiece)) {
+  			PEPiece piece = (PEPiece) objects[0];
+  			DiskManager diskManager = piece.getDMPiece().getManager();
+  			if (diskManager instanceof DiskManagerImpl) {
+  				DiskManagerImpl dmi = (DiskManagerImpl) diskManager;
+  				if (dlm != null) {
+  					dlm.removePieceListener(this);
+  				}
+  				dlm = dmi.getDownloadManager();
+  				dlm.addPieceListener(this, false);
+  				fillPieceInfoSection();
+  			}
+			}
+		}
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#getData()
-	 */
-	public String getData() {
-		return "PeersView.BlockView.title";
+	private String getFullTitle() {
+		return MessageText.getString("PeersView.BlockView.title");
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#initialize(org.eclipse.swt.widgets.Composite)
-	 */
-	public void initialize(Composite composite) {
+	private void initialize(Composite composite) {
 		if (pieceInfoComposite != null && !pieceInfoComposite.isDisposed()) {
 			Logger.log(new LogEvent(LogIDs.GUI, LogEvent.LT_ERROR,
 					"PeerInfoView already initialized! Stack: "
@@ -277,7 +292,9 @@ public class PieceInfoView
 
 	private boolean alreadyFilling = false;
 
-	public void fillPieceInfoSection() {
+	private UISWTView swtView;
+
+	private void fillPieceInfoSection() {
 		synchronized (this) {
 			if (alreadyFilling) {
 				return;
@@ -311,9 +328,7 @@ public class PieceInfoView
 		});
 	}
 
-	public void refresh() {
-		super.refresh();
-
+	private void refresh() {
 		if (loopFactor++ % graphicsUpdate == 0) {
 			refreshInfoCanvas();
 		}
@@ -608,17 +623,11 @@ public class PieceInfoView
 
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#getComposite()
-	 */
-	public Composite getComposite() {
+	private Composite getComposite() {
 		return pieceInfoComposite;
 	}
 
-	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.AbstractIView#delete()
-	 */
-	public void delete() {
+	private void delete() {
 		if (imageLabel != null && !imageLabel.isDisposed()
 				&& imageLabel.getImage() != null) {
 			Image image = imageLabel.getImage();
@@ -638,8 +647,6 @@ public class PieceInfoView
 		
 		if(dlm != null)
 			dlm.removePieceListener(this);
-
-		super.delete();
 	}
 
 	public Image obfusticatedImage(Image image) {
@@ -681,4 +688,40 @@ public class PieceInfoView
 					&& downloadingIndicator == otherBlockInfo.downloadingIndicator;
 		}
 	}
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+    switch (event.getType()) {
+      case UISWTViewEvent.TYPE_CREATE:
+      	swtView = (UISWTView)event.getData();
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DESTROY:
+        delete();
+        break;
+
+      case UISWTViewEvent.TYPE_INITIALIZE:
+        initialize((Composite)event.getData());
+        break;
+
+      case UISWTViewEvent.TYPE_LANGUAGEUPDATE:
+      	Messages.updateLanguageForControl(getComposite());
+      	swtView.setTitle(getFullTitle());
+        break;
+
+      case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
+      	dataSourceChanged(event.getData());
+        break;
+        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	break;
+        
+      case UISWTViewEvent.TYPE_REFRESH:
+        refresh();
+        break;
+    }
+
+    return true;
+  }
+
 }

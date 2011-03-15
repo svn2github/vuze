@@ -24,7 +24,6 @@ package org.gudy.azureus2.ui.swt.views.table.impl;
 import java.lang.reflect.Method;
 import java.util.*;
 import java.util.List;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
@@ -45,18 +44,16 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
-import org.gudy.azureus2.ui.swt.views.IView;
-import org.gudy.azureus2.ui.swt.views.IViewExtension;
+import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 import org.gudy.azureus2.ui.swt.views.columnsetup.TableColumnSetupWindow;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
@@ -68,7 +65,6 @@ import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /** 
  * An IView with a sortable table.  Handles composite/menu/table creation
@@ -242,11 +238,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	private CTabFolder tabFolder;
 
 	/** TabViews */
-	private ArrayList<IView> tabViews = new ArrayList<IView>(1);
+	private ArrayList<UISWTViewCore> tabViews = new ArrayList<UISWTViewCore>(1);
 
 	TableRowSWT[] visibleRows;
-
-	protected IView[] coreTabViews = null;
 
 	private long lCancelSelectionTriggeredOn = -1;
 
@@ -448,7 +442,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return tableComposite;
 		}
 
-		int iNumViews = coreTabViews == null ? 0 : coreTabViews.length;
+		int iNumViews = 0;
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		Map<String, UISWTViewEventListenerHolder> pluginViews = null;
@@ -587,9 +581,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 				form.layout();
 
-				IView view = getActiveSubView();
-				if (view instanceof IViewExtension) {
-					((IViewExtension) view).viewDeactivated();
+				UISWTViewCore view = getActiveSubView();
+				if (view != null) {
+					view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
 				}
 
 				
@@ -604,9 +598,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 				form.notifyListeners(SWT.Resize, null);
 
-				IView view = getActiveSubView();
-				if (view instanceof IViewExtension) {
-					((IViewExtension) view).viewActivated();
+				UISWTViewCore view = getActiveSubView();
+				if (view != null) {
+					view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 				}
 				refreshSelectedSubView();
 
@@ -624,9 +618,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					((CTabItem) e.item).getControl().moveAbove(null);
 
 					// TODO: Need to viewDeactivated old one
-					IView view = getActiveSubView();
-					if (view instanceof IViewExtension) {
-						((IViewExtension)view).viewActivated();
+					UISWTViewCore view = getActiveSubView();
+					if (view != null) {
+						view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 					}
 					
 				} catch (Exception t) {
@@ -668,12 +662,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		});
 
-		if (coreTabViews != null) {
-			for (int i = 0; i < coreTabViews.length; i++) {
-				addTabView(coreTabViews[i]);
-			}
-		}
-
 		// Call plugin listeners
 		if (pluginViews != null) {
 			String[] sNames = pluginViews.keySet().toArray(new String[0]);
@@ -681,7 +669,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				UISWTViewEventListener l = pluginViews.get(sNames[i]);
 				if (l != null) {
 					try {
-						UISWTViewImpl view = new UISWTViewImpl(sTableID, sNames[i], l);
+						UISWTViewImpl view = new UISWTViewImpl(sTableID, sNames[i], l, null);
 						addTabView(view);
 					} catch (Exception e) {
 						// skip, plugin probably specifically asked to not be added
@@ -1132,9 +1120,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			public void runSupport() {
 				if (tabViews != null && tabViews.size() > 0) {
 					for (int i = 0; i < tabViews.size(); i++) {
-						IView view = tabViews.get(i);
+						UISWTViewCore view = tabViews.get(i);
 						if (view != null) {
-							view.updateLanguage();
+							view.triggerEvent(UISWTViewEvent.TYPE_LANGUAGEUPDATE, null);
 						}
 					}
 				}
@@ -1334,36 +1322,67 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
-	/**
-	 * 
-	 *
-	 * @since 3.1.1.1
-	 */
-	protected void triggerTabViewsDataSourceChanged() {
+	protected void triggerTabViewDataSourceChanged(UISWTViewCore view) {
+		if (view != null) {
+			view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, getParentDataSource());
+
+			if (view.useCoreDataSource()) {
+				Object[] dataSourcesCore = getSelectedDataSources(true);
+				if (dataSourcesCore.length > 0) {
+					view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
+							dataSourcesCore.length == 0 ? getParentDataSource()
+									: dataSourcesCore);
+				}
+			} else {
+				Object[] dataSourcesPlugin = getSelectedDataSources(false);
+				if (dataSourcesPlugin.length > 0) {
+					view.triggerEvent(
+							UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
+							dataSourcesPlugin.length == 0 ? PluginCoreUtils.convert(
+									getParentDataSource(), false) : dataSourcesPlugin);
+				}
+			}
+		}
+		
+	}
+
+	protected void triggerTabViewsDataSourceChanged(boolean sendParent) {
 		if (tabViews == null || tabViews.size() == 0) {
 			return;
 		}
+		
+		if (sendParent) {
+			for (int i = 0; i < tabViews.size(); i++) {
+				UISWTViewCore view = tabViews.get(i);
+				if (view != null) {
+					view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
+							getParentDataSource());
+				}
+			}
+			return;
+		}
 
-		// Set Data Object for all tabs.  Tabs of PluginView are sent the plugin
-		// Peer object, while Tabs of IView are sent the core PEPeer object.
+		// Set Data Object for all tabs.  
 
-		// TODO: Send all datasources
 		Object[] dataSourcesCore = getSelectedDataSources(true);
 		Object[] dataSourcesPlugin = null;
 
 		for (int i = 0; i < tabViews.size(); i++) {
-			IView view = tabViews.get(i);
+			UISWTViewCore view = tabViews.get(i);
 			if (view != null) {
-				if (view instanceof UISWTViewImpl) {
+				if (view.useCoreDataSource()) {
+					view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
+							dataSourcesCore.length == 0 ? getParentDataSource()
+									: dataSourcesCore);
+				} else {
 					if (dataSourcesPlugin == null) {
 						dataSourcesPlugin = getSelectedDataSources(false);
 					}
 
-					((UISWTViewImpl) view).dataSourceChanged(dataSourcesPlugin.length == 0
-							? null : dataSourcesPlugin);
-				} else {
-					view.dataSourceChanged(dataSourcesCore.length == 0 ? null
-							: dataSourcesCore);
+					view.triggerEvent(
+							UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
+							dataSourcesPlugin.length == 0 ? PluginCoreUtils.convert(
+									getParentDataSource(), false) : dataSourcesPlugin);
 				}
 			}
 		}
@@ -2240,7 +2259,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return table;
 	}
 
-	public IView getActiveSubView() {
+	public UISWTViewCore getActiveSubView() {
 		if (!bEnableTabViews || tabFolder == null || tabFolder.isDisposed()
 				|| tabFolder.getMinimized()) {
 			return null;
@@ -2248,16 +2267,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		CTabItem item = tabFolder.getSelection();
 		if (item != null) {
-			return (IView) item.getData("IView");
+			return (UISWTViewCore) item.getData("IView");
 		}
 
 		return null;
 	}
 
 	public void refreshSelectedSubView() {
-		IView view = getActiveSubView();
+		UISWTViewCore view = getActiveSubView();
 		if (view != null && view.getComposite().isVisible()) {
-			view.refresh();
+			view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
 		}
 	}
 
@@ -2457,9 +2476,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		if (tabViews != null && tabViews.size() > 0) {
 			for (int i = 0; i < tabViews.size(); i++) {
-				IView view = tabViews.get(i);
+				UISWTViewCore view = tabViews.get(i);
 				if (view != null) {
-					view.delete();
+      		view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
 				}
 			}
 		}
@@ -2661,7 +2680,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		try {
 			dataSourceToRow_mon.enter();
 
-			long lStartTime = SystemTime.getCurrentTime();
+			//long lStartTime = SystemTime.getCurrentTime();
 
 			for (int i = 0; i < dataSources.length; i++) {
 				if (dataSources[i] == null) {
@@ -4066,9 +4085,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			writer.println("# of SubViews: " + tabViews.size());
 			writer.indent();
 			try {
-				for (Iterator<IView> iter = tabViews.iterator(); iter.hasNext();) {
-					IView view = iter.next();
-					view.generateDiagnostics(writer);
+				for (Iterator<UISWTViewCore> iter = tabViews.iterator(); iter.hasNext();) {
+					UISWTViewCore view = iter.next();
+					writer.println(view.getTitleID() + ": " + view.getFullTitle());
 				}
 			} finally {
 				writer.exdent();
@@ -4128,14 +4147,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	// TabViews Functions
-	public void addTabView(IView view) {
+	public void addTabView(UISWTViewCore view) {
 		if (view == null || tabFolder == null) {
 			return;
 		}
+		
+		triggerTabViewDataSourceChanged(view);
 
 		CTabItem item = new CTabItem(tabFolder, SWT.NULL);
 		item.setData("IView", view);
-		Messages.setLanguageText(item, view.getData());
+		Messages.setLanguageText(item, view.getTitleID());
 		view.initialize(tabFolder);
 		item.setControl(view.getComposite());
 		tabViews.add(view);
@@ -4261,7 +4282,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		
 		if (trigger) {
 			triggerSelectionListeners(new TableRowCore[] { row });
-			triggerTabViewsDataSourceChanged();
+			triggerTabViewsDataSourceChanged(false);
 		}
 		
 		((TableRowSWT) row).setWidgetSelected(true);
@@ -4396,7 +4417,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						triggerDeselectionListeners(oldSelectionList.toArray(new TableRowCore[0]));
 					}
 
-					triggerTabViewsDataSourceChanged();
+					triggerTabViewsDataSourceChanged(false);
 				}
 
 			}
@@ -4598,7 +4619,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		}
 
-		IView view = getActiveSubView();
+		UISWTViewCore view = getActiveSubView();
 		if (view instanceof ObfusticateImage) {
 			try {
 				((ObfusticateImage) view).obfusticatedImage(image);
@@ -4624,16 +4645,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	// from common.TableView
 	public void setEnableTabViews(boolean enableTabViews) {
 		bEnableTabViews = enableTabViews;
-	}
-
-	// from common.TableView
-	public IView[] getCoreTabViews() {
-		return coreTabViews;
-	}
-
-	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#setCoreTabViews(org.gudy.azureus2.ui.swt.views.IView[])
-	public void setCoreTabViews(IView[] coreTabViews) {
-		this.coreTabViews = coreTabViews;
 	}
 
 	public void addMenuFillListener(TableViewSWTMenuFillListener l) {
@@ -4897,14 +4908,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			if (isVisible) {
 				loopFactor = 0;
 
-				IView view = getActiveSubView();
-				if (view instanceof IViewExtension) {
-					((IViewExtension)view).viewActivated();
+				UISWTViewCore view = getActiveSubView();
+				if (view != null) {
+					view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 				}
 			} else {
-				IView view = getActiveSubView();
-				if (view instanceof IViewExtension) {
-					((IViewExtension)view).viewDeactivated();
+				UISWTViewCore view = getActiveSubView();
+				if (view != null) {
+					view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
 				}
 			}
 		}
@@ -4985,44 +4996,44 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				filter.widget.setFocus();
 			}
 			setFilterText(newText);
-		} else {
-			TableCellCore[] cells = getColumnCells("name");
-
-			//System.out.println(sLastSearch);
-
-			Arrays.sort(cells, TableCellImpl.TEXT_COMPARATOR);
-			int index = Arrays.binarySearch(cells, filter.text,
-					TableCellImpl.TEXT_COMPARATOR);
-			if (index < 0) {
-
-				int iEarliest = -1;
-				String s = filter.regex ? filter.text : "\\Q" + filter.text + "\\E";
-				Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
-				for (int i = 0; i < cells.length; i++) {
-					Matcher m = pattern.matcher(cells[i].getText());
-					if (m.find() && (m.start() < iEarliest || iEarliest == -1)) {
-						iEarliest = m.start();
-						index = i;
-					}
-				}
-
-				if (index < 0)
-					// Insertion Point (best guess)
-					index = -1 * index - 1;
-			}
-
-			if (index >= 0) {
-				if (index >= cells.length)
-					index = cells.length - 1;
-				TableRowCore row = cells[index].getTableRowCore();
-				int iTableIndex = row.getIndex();
-				if (iTableIndex >= 0) {
-					setSelectedRows(new TableRowCore[] {
-						row
-					});
-				}
-			}
-			filter.lastFilterTime = System.currentTimeMillis();
+//		} else {
+//			TableCellCore[] cells = getColumnCells("name");
+//
+//			//System.out.println(sLastSearch);
+//
+//			Arrays.sort(cells, TableCellImpl.TEXT_COMPARATOR);
+//			int index = Arrays.binarySearch(cells, filter.text,
+//					TableCellImpl.TEXT_COMPARATOR);
+//			if (index < 0) {
+//
+//				int iEarliest = -1;
+//				String s = filter.regex ? filter.text : "\\Q" + filter.text + "\\E";
+//				Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
+//				for (int i = 0; i < cells.length; i++) {
+//					Matcher m = pattern.matcher(cells[i].getText());
+//					if (m.find() && (m.start() < iEarliest || iEarliest == -1)) {
+//						iEarliest = m.start();
+//						index = i;
+//					}
+//				}
+//
+//				if (index < 0)
+//					// Insertion Point (best guess)
+//					index = -1 * index - 1;
+//			}
+//
+//			if (index >= 0) {
+//				if (index >= cells.length)
+//					index = cells.length - 1;
+//				TableRowCore row = cells[index].getTableRowCore();
+//				int iTableIndex = row.getIndex();
+//				if (iTableIndex >= 0) {
+//					setSelectedRows(new TableRowCore[] {
+//						row
+//					});
+//				}
+//			}
+//			filter.lastFilterTime = System.currentTimeMillis();
 		}
 		e.doit = false;
 	}
@@ -5391,5 +5402,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	// @see com.aelitis.azureus.ui.common.table.TableView#setSelectedRows(com.aelitis.azureus.ui.common.table.TableRowCore[])
 	public void setSelectedRows(TableRowCore[] rows) {
 		updateSelectedRows(rows, true);
+	}
+	
+	public void setParentDataSource(Object newDataSource) {
+		super.setParentDataSource(newDataSource);
+
+		triggerTabViewsDataSourceChanged(true);
 	}
 }

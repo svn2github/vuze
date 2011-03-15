@@ -46,6 +46,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -54,12 +55,12 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 
 import com.aelitis.azureus.core.util.AZ3Functions;
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 
 /**
@@ -73,6 +74,7 @@ public class FilesView
 	TableViewSWTMenuFillListener, TableRefreshListener, DownloadManagerStateAttributeListener,
 	TableLifeCycleListener
 {
+	private static boolean registeredCoreSubViews = false;
 	boolean refreshing = false;
   private DragSource dragSource = null;
 
@@ -91,6 +93,7 @@ public class FilesView
     new StorageTypeItem(),
     new FileExtensionItem(), 
   };
+	public static final String MSGID_PREFIX = "FilesView";
   
   private DownloadManager manager = null;
   
@@ -120,7 +123,7 @@ public class FilesView
    * Initialize 
    */
 	public FilesView() {
-		super("FilesView");
+		super(MSGID_PREFIX);
 		allowTabViews = true;
 	}
 
@@ -137,8 +140,19 @@ public class FilesView
 		tv.setRowDefaultIconSize(new Point(16, 16));
 		if (allowTabViews) {
   		tv.setEnableTabViews(true);
-  		tv.setCoreTabViews(new IView[] { new FileInfoView()
-  		});
+  		
+  		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+  		if (uiFunctions != null) {
+  			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
+  			
+  			if (pluginUI != null && !registeredCoreSubViews) {
+
+  				pluginUI.addView(TableManager.TABLE_TORRENT_FILES, "FileInfoView",
+							FileInfoView.class, manager);
+
+  				registeredCoreSubViews = true;
+  			}
+  		}
 		}
 
 		tv.addTableDataSourceChangedListener(this, true);
@@ -269,7 +283,7 @@ public class FilesView
 		    	}
 		    	tv.removeDataSources(toRemove.toArray(new DiskManagerFileInfo[toRemove.size()]));
 		    	tv.addDataSources(toAdd.toArray(new DiskManagerFileInfo[toAdd.size()]));
-		    	((TableViewSWTImpl)tv).tableInvalidate();
+		    	((TableViewSWTImpl<?>)tv).tableInvalidate();
 	    	} else
 	    	{
 		    	tv.removeAllTableRows();
@@ -340,7 +354,7 @@ public class FilesView
   {
   	if (manager == null)
   		return null;
-	  return( manager.getDiskManagerFileInfo());
+	  return( manager.getDiskManagerFileInfoSet().getFiles());
   }
   
   // Used to notify us of when we need to refresh - normally for external changes to the

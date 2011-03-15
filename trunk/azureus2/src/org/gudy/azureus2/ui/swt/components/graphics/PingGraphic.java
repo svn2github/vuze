@@ -121,8 +121,10 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
   }
   
   public void refresh() {  
-    if(drawCanvas == null || drawCanvas.isDisposed())
+		if (drawCanvas == null || bufferImage == null || bufferImage.isDisposed()
+				|| drawCanvas.isDisposed()) {
       return;
+		}
     
     Rectangle bounds = drawCanvas.getClientArea();
     if(bounds.height < 30 || bounds.width  < 100 || bounds.width > 2000 || bounds.height > 2000)
@@ -146,6 +148,9 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
   }
   
   protected void drawChart(boolean sizeChanged) {
+  	if (bufferScale == null || bufferScale.isDisposed()) {
+  		return;
+  	}
    try{
    	  this_mon.enter();
    		

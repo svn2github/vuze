@@ -49,19 +49,17 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.components.CompositeMinSize;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
-import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
@@ -69,14 +67,11 @@ import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.util.AZ3Functions;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.table.*;
-import com.aelitis.azureus.ui.selectedcontent.*;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /** Displays a list of torrents in a table view.
@@ -102,7 +97,6 @@ public class MyTorrentsView
                   TableViewSWTMenuFillListener,
                   TableRefreshListener,
                   TableViewFilterCheck<DownloadManager>,
-                  ToolBarEnabler,
                   TableRowRefreshListener
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
@@ -135,6 +129,8 @@ public class MyTorrentsView
 	private Composite filterParent;
 
 	private boolean neverShowCatButtons;
+	
+	private boolean rebuildListOnFocusGain = false;
 
 	public MyTorrentsView() {
 		super("MyTorrentsView");
@@ -279,7 +275,7 @@ public class MyTorrentsView
 		    }
 		    CategoryManager.addCategoryManagerListener(MyTorrentsView.this);
 		    globalManager.addListener(MyTorrentsView.this, false);
-		    DownloadManager[] dms = (DownloadManager[]) globalManager.getDownloadManagers().toArray(new DownloadManager[0]);
+		    DownloadManager[] dms = globalManager.getDownloadManagers().toArray(new DownloadManager[0]);
 		    for (int i = 0; i < dms.length; i++) {
 					DownloadManager dm = dms[i];
 					dm.addListener(MyTorrentsView.this);
@@ -518,15 +514,14 @@ public class MyTorrentsView
 				public void handleEvent(Event event) {
 					Button curButton = (Button) event.widget;
 					Category curCategory = (Category) curButton.getData("Category");
-					List dms = curCategory.getDownloadManagers(globalManager.getDownloadManagers());
+					List<DownloadManager> dms = curCategory.getDownloadManagers(globalManager.getDownloadManagers());
 
 					long ttlActive = 0;
 					long ttlSize = 0;
 					long ttlRSpeed = 0;
 					long ttlSSpeed = 0;
 					int count = 0;
-					for (Iterator iter = dms.iterator(); iter.hasNext();) {
-						DownloadManager dm = (DownloadManager) iter.next();
+					for (DownloadManager dm : dms) {
 
 						if (!isInCategory(dm, currentCategory))
 							continue;
@@ -618,7 +613,7 @@ public class MyTorrentsView
 
 			catButton.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
-					if (tabDropTarget != null && !tabDropTarget.isDisposed()) {
+					if (!tabDropTarget.isDisposed()) {
 						tabDropTarget.dispose();
 					}
 				}
@@ -1069,7 +1064,7 @@ public class MyTorrentsView
       }
     }
 
-    boolean bForceSort = sortColumn.getName().equals("#");
+    boolean bForceSort = sortColumn == null ? false : sortColumn.getName().equals("#");
     tv.columnInvalidate("#");
     tv.refreshTable(bForceSort);
   }
@@ -1657,4 +1652,28 @@ public class MyTorrentsView
 		}
 	}
 
+	public boolean eventOccurred(UISWTViewEvent event) {
+		boolean b = super.eventOccurred(event);
+		if (event.getType() == UISWTViewEvent.TYPE_FOCUSGAINED) {
+			if (rebuildListOnFocusGain) {
+  			List<?> dms = globalManager.getDownloadManagers();
+  			for (Iterator<?> iter = dms.iterator(); iter.hasNext();) {
+  				DownloadManager dm = (DownloadManager) iter.next();
+  
+  				if (!isOurDownloadManager(dm)) {
+  					tv.removeDataSource(dm);
+  				} else {
+  					tv.addDataSource(dm);
+  				}
+  			}
+			}
+	    updateSelectedContent();
+		} else if (event.getType() == UISWTViewEvent.TYPE_FOCUSLOST) {
+		}
+		return b;
+	}
+
+	public void setRebuildListOnFocusGain(boolean rebuildListOnFocusGain) {
+		this.rebuildListOnFocusGain = rebuildListOnFocusGain;
+	}
 }

@@ -30,7 +30,6 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIInputValidator;
-import org.gudy.azureus2.ui.swt.components.ControlUtils;
 import org.gudy.azureus2.ui.swt.pluginsimpl.AbstractUISWTInputReceiver;
 
 /**
@@ -214,7 +213,7 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    } catch (NoSuchFieldError e) {
 	    	// SWT 2.x
 	    }
-	    rLayout.spacing = ControlUtils.getButtonMargin();
+	    rLayout.spacing = Utils.BUTTON_MARGIN;
 	    panel.setLayout(rLayout);
 	    gridData = new GridData();
 	    gridData.horizontalAlignment = (Constants.isOSX) ? SWT.END : SWT.CENTER;
@@ -330,7 +329,7 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
       button.setText(MessageText.getString(localizationKey));
       final RowData rData = new RowData();
       rData.width = Math.max(
-              ControlUtils.getDialogButtonMinWidth(),
+              Utils.BUTTON_MINWIDTH,
               button.computeSize(SWT.DEFAULT,  SWT.DEFAULT).x
         );
       button.setLayoutData(rData);

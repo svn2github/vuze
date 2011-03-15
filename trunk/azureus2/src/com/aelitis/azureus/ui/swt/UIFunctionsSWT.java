@@ -21,14 +21,14 @@ package com.aelitis.azureus.ui.swt;
 
 import org.eclipse.swt.widgets.Shell;
 
-import org.gudy.azureus2.plugins.PluginView;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
-import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
-import org.gudy.azureus2.ui.swt.views.AbstractIView;
-import org.gudy.azureus2.ui.swt.views.IView;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
@@ -42,31 +42,6 @@ public interface UIFunctionsSWT
 	extends UIFunctions
 {
 	public Shell getMainShell();
-
-	/**
-	 * @param view
-	 */
-	void addPluginView(PluginView view);
-
-	/**
-	 * @param view
-	 */
-	void openPluginView(PluginView view);
-
-	/**
-	 * @param view
-	 */
-	public void openPluginView(UISWTPluginView view);
-
-	/**
-	 * @param view
-	 */
-	void addPluginView(UISWTPluginView view);
-
-	/**
-	 * @param view
-	 */
-	public void removePluginView(UISWTPluginView view);
 
 	/**
 	 * @param viewID
@@ -106,7 +81,7 @@ public interface UIFunctionsSWT
 	public void openPluginView(String sParentID, String sViewID,
 			UISWTViewEventListener l, Object dataSource, boolean bSetFocus);
 
-	public void openPluginView(final AbstractIView view, final String name);
+	public void openPluginView(final UISWTViewCore view, final String name);
 
 	/**
 	 * @param viewID
@@ -116,7 +91,7 @@ public interface UIFunctionsSWT
 	/**
 	 * @param impl
 	 */
-	public void closePluginView(IView view);
+	public void closePluginView(UISWTViewCore view);
 
 	public void closePluginViews(String sViewID);
 

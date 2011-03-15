@@ -5,7 +5,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
@@ -14,14 +17,6 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.util.DLReferals;
-import com.aelitis.azureus.util.DataSourceUtils;
-import com.aelitis.azureus.util.PlayUtils;
-
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
-import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 public class MyTorrentsView_Big
 	extends MyTorrentsView
@@ -33,7 +28,7 @@ public class MyTorrentsView_Big
 		this.torrentFilterMode = torrentFilterMode;
 		this.txtFilter = txtFilter;
 		this.cCategories = cCats;
-		Class forDataSourceType;
+		Class<?> forDataSourceType;
 		switch (torrentFilterMode) {
 			case SBC_LibraryView.TORRENTS_COMPLETE:
 				forDataSourceType = DownloadTypeComplete.class;
@@ -80,9 +75,9 @@ public class MyTorrentsView_Big
 		return super.isOurDownloadManager(dm);
 	}
 
-	protected TableViewSWT createTableView(TableColumnCore[] basicItems) {
+	protected TableViewSWT<?> createTableView(TableColumnCore[] basicItems) {
 		String tableID;
-		Class forDataSourceType;
+		Class<?> forDataSourceType;
 		switch (torrentFilterMode) {
 			case SBC_LibraryView.TORRENTS_COMPLETE:
 				tableID = TableManager.TABLE_MYTORRENTS_COMPLETE_BIG;
@@ -109,9 +104,9 @@ public class MyTorrentsView_Big
 				forDataSourceType = null;
 				break;
 		}
-		TableViewSWTImpl tv = new TableViewSWTImpl(forDataSourceType, tableID,
-				"MyTorrentsView_Big", basicItems, "#", SWT.MULTI | SWT.FULL_SELECTION
-						| SWT.VIRTUAL | SWT.BORDER);
+		TableViewSWTImpl<?> tv = new TableViewSWTImpl<Object>(forDataSourceType,
+				tableID, "MyTorrentsView_Big", basicItems, "#", SWT.MULTI
+						| SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.BORDER);
 		return tv;
 	}
 	
@@ -123,5 +118,5 @@ public class MyTorrentsView_Big
 	protected int getRowDefaultHeight() {
 		return 30;
 	}
-
+	
 }

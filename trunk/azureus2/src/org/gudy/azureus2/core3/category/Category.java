@@ -21,6 +21,8 @@
 package org.gudy.azureus2.core3.category;
 
 import java.util.List;
+
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 
 /** A Category for grouping torrents (DownloadManagers)
@@ -62,7 +64,7 @@ public interface Category {
   /** Retrieve a list of DownloadManagers for this category
    * @return DownloadManager List
    */  
-  public List getDownloadManagers(List all_download_managers);
+  public List<DownloadManager> getDownloadManagers(List<DownloadManager> all_download_managers);
   
   /** Add a DownloadManager to this category.
    *

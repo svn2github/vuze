@@ -27,15 +27,15 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
-import org.gudy.azureus2.plugins.utils.FeatureManager;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -123,7 +123,7 @@ public class ToolBarView
 				// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
 				public void triggerToolBarItem() {
 					String viewID = SelectedContentManager.getCurrentySelectedViewID();
-					if (viewID == null && triggerIViewToolBar(getId())) {
+					if (viewID == null && triggerViewToolBar(getId())) {
 						return;
 					}
 					// This is for our CDP pages
@@ -142,7 +142,7 @@ public class ToolBarView
 				// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
 				public void triggerToolBarItem() {
 					String viewID = SelectedContentManager.getCurrentySelectedViewID();
-					if (viewID == null && triggerIViewToolBar(getId())) {
+					if (viewID == null && triggerViewToolBar(getId())) {
 						return;
 					}
 					ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
@@ -204,7 +204,7 @@ public class ToolBarView
 				// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
 				public void triggerToolBarItem() {
 					String viewID = SelectedContentManager.getCurrentySelectedViewID();
-					if (viewID == null && triggerIViewToolBar(getId())) {
+					if (viewID == null && triggerViewToolBar(getId())) {
 						return;
 					}
 					ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
@@ -474,7 +474,7 @@ public class ToolBarView
 	}
 
 	protected boolean triggerBasicToolBarItem(String itemKey) {
-		if (triggerIViewToolBar(itemKey)) {
+		if (triggerViewToolBar(itemKey)) {
 			return true;
 		}
 
@@ -513,7 +513,8 @@ public class ToolBarView
 						if (dm == null) {
 							continue;
 						}
-						DiskManagerFileInfo[] files = dm.getDiskManagerFileInfo();
+						DiskManagerFileInfoSet fileSet = dm.getDiskManagerFileInfoSet();
+						DiskManagerFileInfo[] files = fileSet.getFiles();
 						for (DiskManagerFileInfo file : files) {
 							try {
 								deviceManager.getTranscodeManager().getQueue().add(
@@ -604,8 +605,11 @@ public class ToolBarView
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		if (mdi != null) {
 			MdiEntrySWT entry = mdi.getCurrentEntrySWT();
-			if (entry.getIView() != null) {
-				entry.getIView().itemActivated(toolBarItem.getId());
+			if (entry != null) {
+  			UIPluginView view = entry.getView();
+  			if (view instanceof ToolBarEnabler) {
+  				((ToolBarEnabler) view).toolBarItemActivated(toolBarItem.getId());
+  			}
 			}
 		}
 	}
@@ -837,7 +841,7 @@ public class ToolBarView
 		}
 	}
 
-	private boolean triggerIViewToolBar(String id) {
+	private boolean triggerViewToolBar(String id) {
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		if (mdi != null) {
 			MdiEntrySWT entry = mdi.getCurrentEntrySWT();

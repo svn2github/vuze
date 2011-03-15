@@ -18,6 +18,7 @@
  
 package org.gudy.azureus2.ui.swt;
 
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 

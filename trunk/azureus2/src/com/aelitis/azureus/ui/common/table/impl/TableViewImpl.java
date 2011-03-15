@@ -66,6 +66,10 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			l.tableDataSourceChanged(newDataSource);
 		}
 	}
+	
+	public Object getParentDataSource() {
+		return parentDataSource;
+	}
 
 	/**
 	 * @param selectedRows
