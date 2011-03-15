@@ -1415,7 +1415,6 @@ PRUDPPacketHandlerImpl
 		}catch( Throwable e ){
 			
 			if ( e instanceof NoRouteToHostException ){
-			}else	if (( e instanceof IOException ) && e.getMessage().contains("No route to host")){
 				
 			}else{
 			

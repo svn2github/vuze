@@ -23,7 +23,6 @@ package org.gudy.azureus2.core3.util;
 
 import java.io.*;
 import java.net.UnknownHostException;
-import java.rmi.ConnectException;
 import java.util.*;
 
 /**
@@ -85,14 +84,6 @@ public class Debug {
    * line number, appending the stacktrace of the given exception.
    */
   public static void out(final String _debug_msg, final Throwable _exception) {
-  	if ((_exception instanceof ConnectException) && _exception.getMessage().startsWith("No route to host")) {
-  		diagLoggerLog(_exception.toString());
-  		return;
-  	}
-  	if ((_exception instanceof UnknownHostException)) {
-  		diagLoggerLog(_exception.toString());
-  		return;
-  	}
     String header = "DEBUG::";
     header = header + new Date(SystemTime.getCurrentTime()).toString() + "::";
     String className;
@@ -495,14 +486,6 @@ public class Debug {
 		Throwable e,
 		Object context)
 	{
-  	if ((e instanceof ConnectException) && e.getMessage().startsWith("No route to host")) {
-  		diagLoggerLog(e.toString());
-  		return;
-  	}
-  	if ((e instanceof UnknownHostException)) {
-  		diagLoggerLog(e.toString());
-  		return;
-  	}
 		String header = "DEBUG::";
 		header = header + new Date(SystemTime.getCurrentTime()).toString() + "::";
 		String className	= "?::";
