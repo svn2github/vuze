@@ -23,6 +23,7 @@
 
 package com.aelitis.azureus.core.util;
 
+import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -48,7 +49,7 @@ DeleteFileOnCloseInputStream
 		throws IOException
 	{
 		file		= _file;
-		in			= new FileInputStream( file );
+		in			= new BufferedInputStream( new FileInputStream( file ), 128*1024 );
 	}
 	
 	public void 
