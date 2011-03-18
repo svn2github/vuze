@@ -365,7 +365,7 @@ PluginCoreUtils
 					return datasource;
 				}
 				if (datasource instanceof org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl) {
-					((org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl) datasource).getCore();
+					return ((org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl) datasource).getCore();
 				}
 
 				if (datasource instanceof TRHostTorrent) {
