@@ -84,7 +84,8 @@ public class TransferStatsView
 {
 	public static final String MSGID_PREFIX = "SpeedView";
 
-	private static final int MAX_DISPLAYED_PING_MILLIS	= 1200;
+	private static final int MAX_DISPLAYED_PING_MILLIS		= 1199;	// prevents us hitting 1200 and resulting in graph expanding to 1400
+	private static final int MAX_DISPLAYED_PING_MILLIS_DISP	= 1200;	// tidy display
 	
 	private GlobalManager		global_manager;
 	private GlobalManagerStats 	stats;
@@ -384,7 +385,7 @@ public class TransferStatsView
     autoSpeedPanel = new Group(mainPanel,SWT.NONE);
     GridData generalPanelData = new GridData(GridData.FILL_BOTH);
     autoSpeedPanel.setLayoutData(generalPanelData);
-    Messages.setLanguageText(autoSpeedPanel,"SpeedView.stats.autospeed", new String[]{ String.valueOf( MAX_DISPLAYED_PING_MILLIS )});
+    Messages.setLanguageText(autoSpeedPanel,"SpeedView.stats.autospeed", new String[]{ String.valueOf( MAX_DISPLAYED_PING_MILLIS_DISP )});
     
     
     autoSpeedPanelLayout = new StackLayout();
