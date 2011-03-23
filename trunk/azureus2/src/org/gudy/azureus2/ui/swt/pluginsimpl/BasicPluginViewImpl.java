@@ -42,6 +42,7 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
@@ -88,15 +89,25 @@ BasicPluginViewImpl
   
 	public boolean eventOccurred(UISWTViewEvent event) {
 		switch (event.getType()) {
-			case UISWTViewEvent.TYPE_CREATE:
+			case UISWTViewEvent.TYPE_CREATE: {
 				if (isCreated)
 					return false;
 				isCreated = true;
+				UISWTView swtView = event.getView();
+				if (swtView != null) {
+					swtView.setTitle(model.getName());
+				}
 				break;
+			}
 				
-			case UISWTViewEvent.TYPE_INITIALIZE:
+			case UISWTViewEvent.TYPE_INITIALIZE: {
 				initialize((Composite)event.getData());
+				UISWTView swtView = event.getView();
+				if (swtView != null) {
+					swtView.setTitle(model.getName());
+				}
 				break;
+			}
 			
 			case UISWTViewEvent.TYPE_REFRESH:
 				refresh();
