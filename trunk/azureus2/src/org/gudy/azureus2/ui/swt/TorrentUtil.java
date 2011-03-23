@@ -1455,11 +1455,12 @@ public class TorrentUtil {
 	 */
 	public static void runDataSources(Object[] datasources) {
 		for (int i = datasources.length - 1; i >= 0; i--) {
-			if (datasources[i] instanceof DownloadManager) {
-				DownloadManager dm = (DownloadManager) datasources[i];
+			Object ds = PluginCoreUtils.convert(datasources[i], true);
+			if (ds instanceof DownloadManager) {
+				DownloadManager dm = (DownloadManager) ds;
 				ManagerUtils.run(dm);
-			} else if (datasources[i] instanceof DiskManagerFileInfo) {
-				DiskManagerFileInfo info = (DiskManagerFileInfo) datasources[i];
+			} else if (ds instanceof DiskManagerFileInfo) {
+				DiskManagerFileInfo info = (DiskManagerFileInfo) ds;
 				Utils.launch(info);
 			}
 		}
