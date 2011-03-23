@@ -121,8 +121,7 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
   }
   
   public void refresh() {  
-		if (drawCanvas == null || bufferImage == null || bufferImage.isDisposed()
-				|| drawCanvas.isDisposed()) {
+    if(drawCanvas == null || drawCanvas.isDisposed()){
       return;
 		}
     
@@ -142,20 +141,24 @@ public class PingGraphic extends ScaledGraphic implements ParameterListener {
 	    drawChart(sizeChanged);
     }
     
-    GC gc = new GC(drawCanvas);
-    gc.drawImage(bufferImage,bounds.x,bounds.y);
-    gc.dispose();    
+    if (bufferImage != null && !bufferImage.isDisposed()) {
+      GC gc = new GC(drawCanvas);
+      gc.drawImage(bufferImage,bounds.x,bounds.y);
+      gc.dispose();
+    }
   }
   
   protected void drawChart(boolean sizeChanged) {
-  	if (bufferScale == null || bufferScale.isDisposed()) {
-  		return;
-  	}
    try{
    	  this_mon.enter();
-   		
+
+   	  // should create bufferscale
       drawScale(sizeChanged);
-      
+
+    	if (bufferScale == null || bufferScale.isDisposed()) {
+    		return;
+    	}
+
       Rectangle bounds = drawCanvas.getClientArea();    
         
       //If bufferedImage is not null, dispose it
