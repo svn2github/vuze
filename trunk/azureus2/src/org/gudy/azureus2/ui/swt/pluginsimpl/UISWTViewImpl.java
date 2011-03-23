@@ -282,7 +282,7 @@ public class UISWTViewImpl
 
 		lastFullTitleKey = key;
 
-		if (MessageText.keyExists(key)) {
+		if (MessageText.keyExists(key) || key.startsWith("!") && key.endsWith("!")) {
 			lastFullTitle = MessageText.getString(key);
 		} else {
 			lastFullTitle = key.replace('.', ' '); // support old plugins
