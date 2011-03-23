@@ -82,7 +82,7 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
 public class TransferStatsView
 	implements PeriodicViewUpdate, UISWTViewCoreEventListener
 {
-	public static final String MSGID_PREFIX = "SpeedView";
+	public static final String MSGID_PREFIX = "TransferStatsView";
 
 	private static final int MAX_DISPLAYED_PING_MILLIS		= 1199;	// prevents us hitting 1200 and resulting in graph expanding to 1400
 	private static final int MAX_DISPLAYED_PING_MILLIS_DISP	= 1200;	// tidy display
