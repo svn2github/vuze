@@ -93,14 +93,20 @@ public class PluginsMenuHelper
 		view_info.viewID = sViewID;
 		view_info.event_listener = l;
 
+		String name = null;
+
 		String sResourceID = UISWTViewImpl.CFG_PREFIX + sViewID + ".title";
 		boolean bResourceExists = MessageText.keyExists(sResourceID);
-
-		String name;
+		if (!bResourceExists) {
+			if (l instanceof UISWTViewEventListenerHolder) {
+				name = ((UISWTViewEventListenerHolder) l).getPluginInterface().getPluginconfig().getPluginStringParameter(
+						sResourceID, null);
+			}
+		}
 
 		if (bResourceExists) {
 			name = MessageText.getString(sResourceID);
-		} else {
+		} else if (name == null) {
 			// try plain resource
 			sResourceID = sViewID;
 			bResourceExists = MessageText.keyExists(sResourceID);
