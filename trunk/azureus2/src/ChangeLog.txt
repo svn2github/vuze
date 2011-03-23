@@ -3,6 +3,9 @@ VUZE CHANGELOG
 
 2011.0x.0x | Vuze 4.6.0.5
 
+CHANGE: Plug  | Removed IView, AbstractIView, SWTManager and other deprecated plugin APIs [TuxPaper]
+CHANGE: UI    | Switched all views using IView to UISWTVIew [TuxPaper]
+CHANGE: Misc  | Removed various left over and unused code (saved a measly 200k) [TuxPaper]
 
 
 2011.03.10 | Vuze 4.6.0.4
