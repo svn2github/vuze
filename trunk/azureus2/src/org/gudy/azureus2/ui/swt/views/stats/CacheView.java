@@ -44,7 +44,7 @@ import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerStats;
  * 
  */
 public class CacheView
-	implements PeriodicViewUpdate, UISWTViewCoreEventListener
+	implements UISWTViewCoreEventListener
 {
   
   public static final String MSGID_PREFIX = "CacheView";
@@ -507,6 +507,10 @@ public class CacheView
       case UISWTViewEvent.TYPE_REFRESH:
         refresh();
         break;
+
+      case StatsView.EVENT_PERIODIC_UPDATE:
+      	periodicUpdate();
+      	break;
     }
 
     return true;

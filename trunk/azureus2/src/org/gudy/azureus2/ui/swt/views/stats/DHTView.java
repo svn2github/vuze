@@ -57,7 +57,7 @@ import com.aelitis.azureus.plugins.dht.DHTPlugin;
  * 
  */
 public class DHTView
-	implements PeriodicViewUpdate, UISWTViewEventListener
+	implements UISWTViewEventListener
 {
   
   public static final int DHT_TYPE_MAIN 	= DHT.NW_MAIN;
@@ -751,6 +751,10 @@ public class DHTView
       case UISWTViewEvent.TYPE_REFRESH:
         refresh();
         break;
+
+      case StatsView.EVENT_PERIODIC_UPDATE:
+      	periodicUpdate();
+      	break;
     }
 
     return true;

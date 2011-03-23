@@ -54,7 +54,7 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
  *
  */
 public class ActivityView 
-	implements ParameterListener, PeriodicViewUpdate, UISWTViewCoreEventListener
+	implements ParameterListener, UISWTViewCoreEventListener
 {
 
   public static final String MSGID_PREFIX = "SpeedView";
@@ -201,6 +201,10 @@ public class ActivityView
       case UISWTViewEvent.TYPE_REFRESH:
         refresh();
         break;
+
+      case StatsView.EVENT_PERIODIC_UPDATE:
+      	periodicUpdate();
+      	break;
     }
 
     return true;

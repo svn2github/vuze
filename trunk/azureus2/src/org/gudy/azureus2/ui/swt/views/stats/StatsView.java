@@ -54,6 +54,8 @@ public class StatsView
 	implements IViewAlwaysInitialize, UISWTViewCoreEventListener
 {
 	public static String VIEW_ID = UISWTInstance.VIEW_STATISTICS;
+	
+	public static final int EVENT_PERIODIC_UPDATE = 0x100;
 
 	private CTabFolder folder;
 
@@ -92,13 +94,10 @@ public class StatsView
 			while (bContinue) {
 
 				for (UISWTViewCore iview : tabViews) {
-					if (iview instanceof PeriodicViewUpdate) {
-						try {
-							PeriodicViewUpdate pvu = (PeriodicViewUpdate) iview;
-							pvu.periodicUpdate();
-						} catch (Exception e) {
-							Debug.printStackTrace(e);
-						}
+					try {
+						iview.triggerEvent(EVENT_PERIODIC_UPDATE, null);
+					} catch (Exception e) {
+						Debug.printStackTrace(e);
 					}
 				}
 

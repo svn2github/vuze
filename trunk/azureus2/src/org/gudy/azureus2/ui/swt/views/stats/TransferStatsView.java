@@ -80,7 +80,7 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
  * 
  */
 public class TransferStatsView
-	implements PeriodicViewUpdate, UISWTViewCoreEventListener
+	implements UISWTViewCoreEventListener
 {
 	public static final String MSGID_PREFIX = "TransferStatsView";
 
@@ -1455,6 +1455,10 @@ public class TransferStatsView
       case UISWTViewEvent.TYPE_REFRESH:
         refresh();
         break;
+        
+      case StatsView.EVENT_PERIODIC_UPDATE:
+      	periodicUpdate();
+      	break;
     }
 
     return true;
