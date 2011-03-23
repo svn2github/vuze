@@ -77,15 +77,6 @@ public class PopupShell {
   }
   
   protected void layout() {
-    Label label = new Label(shell,SWT.NULL);
-		ImageLoader.getInstance().setLabelImage(label, "popup");
-    
-    FormData formData = new FormData();
-    formData.left = new FormAttachment(0,0);
-    formData.top = new FormAttachment(0,0);
-    
-    label.setLayoutData(formData); 
-    
     shell.layout();
   }
 }
