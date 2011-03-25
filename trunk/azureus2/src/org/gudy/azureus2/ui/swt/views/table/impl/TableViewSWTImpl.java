@@ -380,15 +380,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * @param _sPropertiesPrefix Prefix for retrieving text from the properties
 	 *                            file (MessageText).  
 	 *                            Typically <i>TableID</i> + "View"
-	 * @param _basicItems Column Definitions
 	 * @param _sDefaultSortOn Column name to sort on if user hasn't chosen one
 	 *                         yet
 	 */
-	public TableViewSWTImpl(Class<?> pluginDataSourceType,
-			String _sTableID, String _sPropertiesPrefix,
-			TableColumnCore[] _basicItems, String _sDefaultSortOn) {
-		this(pluginDataSourceType, _sTableID, _sPropertiesPrefix, _basicItems,
-				_sDefaultSortOn, SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
+	public TableViewSWTImpl(Class<?> pluginDataSourceType, String _sTableID,
+			String _sPropertiesPrefix, String _sDefaultSortOn) {
+
+		this(pluginDataSourceType, _sTableID, _sPropertiesPrefix,
+				new TableColumnCore[0], _sDefaultSortOn, SWT.SINGLE
+						| SWT.FULL_SELECTION | SWT.VIRTUAL);
 	}
 
 	private void initializeColumnDefs() {
@@ -5408,5 +5408,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		super.setParentDataSource(newDataSource);
 
 		triggerTabViewsDataSourceChanged(true);
+	}
+	
+	public void packColumns() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (table != null && !table.isDisposed()) {
+					table.pack(true);
+				}
+			}
+		});
 	}
 }

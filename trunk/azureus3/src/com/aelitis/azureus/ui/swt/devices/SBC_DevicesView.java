@@ -1029,7 +1029,7 @@ public class SBC_DevicesView
 	 */
 	private void initDeviceListTable(Composite control) {
 		tvDevices = new TableViewSWTImpl(TranscodeProvider.class, TABLE_DEVICES,
-				TABLE_DEVICES, new TableColumnCore[0], ColumnTJ_Rank.COLUMN_ID);
+				TABLE_DEVICES, ColumnTJ_Rank.COLUMN_ID);
 		tvDevices.setRowDefaultHeight(25);
 		tvDevices.setHeaderVisible(true);
 
