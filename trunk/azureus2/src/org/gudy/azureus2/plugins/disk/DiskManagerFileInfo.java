@@ -86,6 +86,9 @@ DiskManagerFileInfo
 	public long 
 	getDownloaded();
 	
+	/**
+	 * Size when file is complete
+	 */
 	public long
 	getLength();
 	
