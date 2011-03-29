@@ -410,10 +410,12 @@ public class TableViewSWT_PaintItem
 				ofsx += 6;
 				cellBounds.x += 3;
 				cellBounds.width -= 6;
+				cellBounds.y += 2;
+				cellBounds.height -= 4;
 				if (!cellBounds.isEmpty()) {
 					GCStringPrinter sp = new GCStringPrinter(gc, text, cellBounds, true,
 							cellBounds.height > 20, style);
-
+					
 					boolean fit = sp.printString();
 					if (fit) {
 
