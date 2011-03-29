@@ -80,7 +80,7 @@ public class TableColumnManager {
    */
 	private Map mapTablesConfig;
 	private long lastTableConfigAccess;
-	private static Comparator orderComparator;
+	private static Comparator<TableColumn> orderComparator;
 	
 	private Map<String, TableColumnCreationListener> mapColumnIDsToListener = new LightHashMap<String, TableColumnCreationListener>();
 	private Map<Class, List> mapDataSourceTypeToColumnIDs = new LightHashMap<Class, List>();
@@ -94,23 +94,39 @@ public class TableColumnManager {
 	private static final boolean RERESET = false;
 	
 	static {
-		orderComparator = new Comparator() {
-			public int compare(Object arg0, Object arg1) {				
-				if ((arg1 instanceof TableColumn) && (arg0 instanceof TableColumn)) {
-					int iPositionA = ((TableColumn) arg0).getPosition();
-					if (iPositionA < 0)
-						iPositionA = 0xFFFF + iPositionA;
-					int iPositionB = ((TableColumn) arg1).getPosition();
-					if (iPositionB < 0)
-						iPositionB = 0xFFFF + iPositionB;
-
-					int i = iPositionA - iPositionB;
-					if (i != 0) {
-						return i;
-					}
-					return ((TableColumn) arg0).getName().compareTo(((TableColumn) arg1).getName());
+		orderComparator = new Comparator<TableColumn>() {
+			public int compare(TableColumn col0, TableColumn col1) {
+				if (col0 == null || col1 == null) {
+					return 0;
 				}
-				return 0;
+
+				int iPositionA = col0.getPosition();
+				if (iPositionA < 0)
+					iPositionA = 0xFFFF + iPositionA;
+				int iPositionB = col1.getPosition();
+				if (iPositionB < 0)
+					iPositionB = 0xFFFF + iPositionB;
+
+				int i = iPositionA - iPositionB;
+				if (i != 0) {
+					return i;
+				}
+				
+				String name0 = col0.getName();
+				String name1 = col1.getName();
+
+				String[] names = getInstance().getDefaultColumnNames(col0.getTableID());
+				if (names != null) {
+					for (String name : names) {
+						if (name.equals(name0)) {
+							return -1;
+						}
+						if (name.equals(name1)) {
+							return 1;
+						}
+					}
+				}
+				return name0.compareTo(name1);
 			}
 		};
 		
@@ -679,7 +695,7 @@ public class TableColumnManager {
     }
 	}
 	
-	public static Comparator getTableColumnOrderComparator()
+	public static Comparator<TableColumn> getTableColumnOrderComparator()
 	{
 		return orderComparator;
 	}
