@@ -290,6 +290,12 @@ public class GCStringPrinter
 		boolean skipClip = (printFlags & FLAG_SKIPCLIP) > 0;
 		boolean noDraw = (printFlags & FLAG_NODRAW) > 0;
 		wrap = (swtFlags & SWT.WRAP) > 0;
+		
+		if ((swtFlags & (SWT.TOP & SWT.BOTTOM)) == 0) {
+			// center vertically -- must be fullLinesOnly
+			fullLinesOnly = true;
+			printFlags |= FLAG_FULLLINESONLY;
+		}
 
 		if (string.indexOf('<') >= 0) {
   		if ((printFlags & FLAG_KEEP_URL_INFO) == 0) {
@@ -407,6 +413,7 @@ public class GCStringPrinter
 							//fullLinesOnly = true; // <-- don't know why we needed this
 							lines.add(lineInfo);
 						} else if (isOverY && fullLinesOnly && lines.size() > 0) {
+							/*
 							String excess = lineInfo.excessPos >= 0
 									? sLine.substring(lineInfo.excessPos) : null;
 							if (excess != null) {
@@ -441,7 +448,7 @@ public class GCStringPrinter
 										" " + excess, printArea, lineInfo, outputLine,
 										new StringBuffer());
 								if (DEBUG) {
-									System.out.println("  with word [" + excess + "] len is "
+									System.out.println("  (overY+full+lineSize>0) with word [" + excess + "] len is "
 											+ lineInfo.width + "(" + printArea.width + ") w/excess "
 											+ newExcessPos);
 								}
@@ -457,7 +464,11 @@ public class GCStringPrinter
 									System.out.println("No Excess");
 								}
 							}
+							*/
 							cutoff = true;
+							if (DEBUG) {
+								System.out.println("set cutoff");
+							}
 							return false;
 						} else {
 							lines.add(lineInfo);
@@ -468,6 +479,7 @@ public class GCStringPrinter
 						if (DEBUG) {
 							System.out.println("Line process resulted in no text: " + sLine);
 						}
+						iCurrentHeight += lineInfo.height;
 						lines.add(lineInfo);
 						currentCharPos++;
 						break;
@@ -658,6 +670,9 @@ public class GCStringPrinter
 			outputLine.setLength(len);
 			outputLine.append("\u2026");
 			cutoff = true;
+			if (DEBUG) {
+				System.out.println("set cutoff");
+			}
 		}
 		//drawLine(gc, outputLine, swtFlags, rectDraw);
 		//		if (!wrap) {
@@ -832,6 +847,9 @@ public class GCStringPrinter
 					outputLine.setLength(len);
 					outputLine.append("\u2026");
 					cutoff = true;
+					if (DEBUG) {
+						System.out.println("set cutoff");
+					}
 				}
 			}
 			//drawLine(gc, outputLine, swtFlags, rectDraw);
@@ -863,6 +881,9 @@ public class GCStringPrinter
 					outputLine.setLength(len);
 					outputLine.append("\u2026");
 					cutoff = true;
+					if (DEBUG) {
+						System.out.println("set cutoff");
+					}
 				}
 				//System.out.println("w5 = " + lineInfo.width + ";h=" + lineInfo.height);
 				return -1;
@@ -1165,12 +1186,13 @@ public class GCStringPrinter
 		GridLayout gridLayout = new GridLayout(2, false);
 		shell.setLayout(gridLayout);
 
+		int initHeight = 67;
 		Composite cButtons = new Composite(shell, SWT.NONE);
 		GridData gridData = new GridData(SWT.NONE, SWT.FILL, false, true);
 		cButtons.setLayoutData(gridData);
 		final Canvas cPaint = new Canvas(shell, SWT.DOUBLE_BUFFERED);
 		gridData = new GridData(SWT.FILL, SWT.NONE, true, false);
-		gridData.heightHint = 40;
+		gridData.heightHint = initHeight;
 		cPaint.setLayoutData(gridData);
 
 		cButtons.setLayout(new RowLayout(SWT.VERTICAL));
@@ -1230,6 +1252,17 @@ public class GCStringPrinter
 		btnGCAdvanced.setText("gc.Advanced");
 		btnGCAdvanced.setSelection(true);
 		btnGCAdvanced.addListener(SWT.Selection, l);
+		
+		final Spinner spinnerHeight = new Spinner(cButtons, SWT.BORDER);
+		spinnerHeight.setSelection(initHeight);
+		spinnerHeight.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				GridData gridData = (GridData) cPaint.getLayoutData();
+				gridData.heightHint = spinnerHeight.getSelection();
+				cPaint.setLayoutData(gridData);
+				shell.layout();
+			}
+		});
 		
 		final Label lblInfo = new Label(shell, SWT.WRAP);
 		lblInfo.setText("Welcome");
@@ -1293,6 +1326,11 @@ public class GCStringPrinter
 
 					gc.setForeground(colorBox);
 					gc.drawRectangle(bounds);
+					
+					bounds.height -= 20;
+					bounds.y += 10;
+					gc.setLineStyle(SWT.LINE_DOT);
+					gc.drawRectangle(bounds);
 
 					//System.out.println("-         " + System.currentTimeMillis());
 
@@ -1310,6 +1348,9 @@ public class GCStringPrinter
 				//gc.setFont(Utils.getFontWithHeight(shell.getFont(), gc, 15));
 				//gc.setTextAntialias(SWT.ON);
 				Rectangle bounds = cPaint.getClientArea();
+				bounds.y += 10;
+				bounds.height -= 20;
+				
 
 				int style = btnWrap.getSelection() ? SWT.WRAP : 0;
 				if (cboVAlign.getSelectionIndex() == 0) {
