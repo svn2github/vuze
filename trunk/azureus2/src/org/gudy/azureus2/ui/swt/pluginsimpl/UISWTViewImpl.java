@@ -88,7 +88,7 @@ public class UISWTViewImpl
 	private Boolean hasFocus = null;
 
 	public UISWTViewImpl(String sParentID, String sViewID,
-			UISWTViewEventListener eventListener, Object datasource)
+			UISWTViewEventListener eventListener, Object initialDatasource)
 			throws Exception {
 		//this.sParentID = sParentID;
 		this.sViewID = sViewID;
@@ -99,13 +99,14 @@ public class UISWTViewImpl
 
 		AEDiagnostics.addEvidenceGenerator(this);
 
+		if (initialDatasource != null) {
+			triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, initialDatasource);
+		}
+
 		if (!eventListener.eventOccurred(new UISWTViewEventImpl(this,
 				UISWTViewEvent.TYPE_CREATE, this)))
 			throw new UISWTViewEventCancelledException();
 
-		if (datasource != null) {
-			triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, dataSource);
-		}
 	}
 
 	/* (non-Javadoc)
