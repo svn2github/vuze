@@ -11,7 +11,6 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
@@ -240,7 +239,11 @@ public class TabbedMDI
 				}
 				return true;
 			}
+		} else {
+			setEntryAutoOpen(id, datasource, true);
 		}
+
+		
 		return false;
 	}
 
@@ -353,6 +356,8 @@ public class TabbedMDI
 		synchronized (mapIdToEntry) {
 			mapIdToEntry.put(id, entry);
 		}
+
+		entry.setCloseable(true);
 
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
