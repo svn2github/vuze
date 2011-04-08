@@ -577,22 +577,6 @@ TranscodeJobImpl
 		}
 		
 		queue.jobChanged( this, false, true );
-
-		// I'd rather do qos from a listener trigger, but for now this ensures
-		// I get the event even if listeners haven't had a chance to be added.
-		// This also ensures only one failed qos gets sent
-		try {
-			int logState = state;
-			if (state != ST_STOPPED && !isStream() && getAutoRetryCount() == 0
-					&& canUseDirectInput() && !useDirectInput()) {
-				// we are going to retry..
-				logState |= 0x100;
-			}
-			
-			PlatformDevicesMessenger.qosTranscode(this, logState);
-		} catch (Throwable t) {
-			Debug.out(t);
-		}
 	}
 	
 	protected void
@@ -617,15 +601,6 @@ TranscodeJobImpl
 		transcode_file.setComplete( true );
 		
 		queue.jobChanged( this, false, false );
-
-		// I'd rather do qos from a listener trigger, but for now this ensures
-		// I get the event even if listeners haven't had a chance to be added
-		// This also ensures only one completed qos event gets sent
-		try {
-			PlatformDevicesMessenger.qosTranscode(this, TranscodeJob.ST_COMPLETE);
-		} catch (Throwable t) {
-			Debug.out(t);
-		}
 	}
 	
 	protected void

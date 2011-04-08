@@ -901,16 +901,6 @@ TranscodeQueueImpl
 				configDirty();
 			}
 			
-			// I'd rather do qos from a listener trigger, but for now this ensures
-			// I get the event even if listeners haven't had a chance to be added
-			try {
-				// force state log to queued just in case it got started (or errored)
-				// between job creation and here
-				PlatformDevicesMessenger.qosTranscode(job, TranscodeJob.ST_QUEUED);
-			} catch (Throwable t) {
-				Debug.out(t);
-			}
-			
 			for ( TranscodeQueueListener listener: listeners ){
 				
 				try{
