@@ -22,17 +22,13 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.messenger.PlatformMessage;
 import com.aelitis.azureus.core.messenger.PlatformMessenger;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.plugins.torrent.Torrent;
 
 /**
  * @author TuxPaper
@@ -48,8 +44,6 @@ public class PlatformDevicesMessenger
 	private static final String OP_QOS_TURN_ON = "qos-turn-on";
 
 	private static final String OP_QOS_FOUND_DEVICE = "qos-found-device";
-
-	private static final String OP_QOS_TRANSCODE = "qos-transcode";
 
 	private static final String OP_REPORT_DEVICES = "report-devices";
 	
