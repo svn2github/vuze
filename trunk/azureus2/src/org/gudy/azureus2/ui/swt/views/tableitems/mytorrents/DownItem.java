@@ -24,14 +24,14 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 
 /** bytes downloaded column
@@ -58,13 +58,21 @@ public class DownItem
 	/** Default Constructor */
   public DownItem(String sTableID) {
     super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 70, sTableID);
+		addDataSourceType(DiskManagerFileInfo.class);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
   }
 
   public void refresh(TableCell cell) {
-    DownloadManager dm = (DownloadManager)cell.getDataSource();
-    long value = (dm == null) ? 0 : dm.getStats().getTotalGoodDataBytesReceived();
+  	Object ds = cell.getDataSource();
+  	long value = 0;
+  	if (ds instanceof DownloadManager) {
+      DownloadManager dm = (DownloadManager)cell.getDataSource();
+      value = dm.getStats().getTotalGoodDataBytesReceived();
+  	} else if (ds instanceof DiskManagerFileInfo) {
+  		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
+  		value = fileInfo.getDownloaded();
+  	}
     if (!cell.setSortValue(value) && cell.isValid())
       return;
     cell.setText(DisplayFormatters.formatByteCountToKiBEtc(value));

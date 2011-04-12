@@ -24,6 +24,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -50,6 +51,7 @@ public class RemainingItem
 	/** Default Constructor */
   public RemainingItem(String sTableID) {
     super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 70, sTableID);
+		addDataSourceType(DiskManagerFileInfo.class);
     setRefreshInterval(INTERVAL_LIVE);
     setMinWidthAuto(true);
   }
@@ -78,10 +80,16 @@ public class RemainingItem
   }
 
   private long getRemaining(TableCell cell) {
-    DownloadManager manager = (DownloadManager)cell.getDataSource();
-    if (manager == null)
-      return 0;
-
-   return( manager.getStats().getRemaining());
+  	Object ds = cell.getDataSource();
+  	if (ds instanceof DownloadManager) {
+      DownloadManager manager = (DownloadManager)cell.getDataSource();
+      if (manager != null) {
+      	return( manager.getStats().getRemaining());
+      }
+  	} else if (ds instanceof DiskManagerFileInfo) {
+  		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
+  		return fileInfo.getLength() - fileInfo.getDownloaded();
+  	}
+  	return 0;
   }
 }
