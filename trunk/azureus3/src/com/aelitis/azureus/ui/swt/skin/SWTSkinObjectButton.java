@@ -45,7 +45,7 @@ public class SWTSkinObjectButton
 	extends SWTSkinObjectBasic
 {
 	private Button button;
-	private ArrayList buttonListeners = new ArrayList(1);
+	private ArrayList<ButtonListenerAdapter> buttonListeners = new ArrayList<ButtonListenerAdapter>(1);
 	private boolean textOverride;
 
 	public SWTSkinObjectButton(SWTSkin skin, final SWTSkinProperties properties,
@@ -84,7 +84,6 @@ public class SWTSkinObjectButton
 				Object[] listeners = buttonListeners.toArray();
 				for (int i = 0; i < listeners.length; i++) {
 					ButtonListenerAdapter l = (ButtonListenerAdapter) listeners[i];
-					l.pressed(null);
 					l.pressed(null, SWTSkinObjectButton.this, e.stateMask);
 				}
 			}

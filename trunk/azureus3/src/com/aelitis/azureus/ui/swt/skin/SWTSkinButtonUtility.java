@@ -31,15 +31,6 @@ public class SWTSkinButtonUtility
 				SWTSkinObject skinObject, int stateMask) {
 		}
 
-		/**
-		 * 
-		 * @param buttonUtility
-		 *
-		 * @deprecated
-		 */
-		public void pressed(SWTSkinButtonUtility buttonUtility) {
-		}
-		
 		public boolean held(SWTSkinButtonUtility buttonUtility) {
 			return false;
 		}
@@ -107,7 +98,6 @@ public class SWTSkinButtonUtility
 
 				for (Iterator iter = listeners.iterator(); iter.hasNext();) {
 					ButtonListenerAdapter l = (ButtonListenerAdapter) iter.next();
-					l.pressed(SWTSkinButtonUtility.this);
 					l.pressed(SWTSkinButtonUtility.this,
 							SWTSkinButtonUtility.this.skinObject, event.stateMask);
 				}
