@@ -654,7 +654,7 @@ public abstract class BaseMdiEntry
 			Control oldComposite = container.getControl();
 
 			container.setVisible(false);
-			if (!oldComposite.isDisposed()) {
+			if (oldComposite != null && !oldComposite.isDisposed()) {
 				oldComposite.getShell().update();
 			}
 		}
