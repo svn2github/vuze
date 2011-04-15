@@ -213,7 +213,7 @@ TRTrackerServerTCP
 							
 							DOSEntry	this_entry = (DOSEntry)dos_list.get(i);
 							
-							String ts = new SimpleDateFormat("hh:mm:ss - ").format( new Date(this_entry.last_time ));
+							String ts = new SimpleDateFormat("HH:mm:ss - ").format( new Date(this_entry.last_time ));
 						
 							pw.println( ts + this_entry.ip );
 						}
