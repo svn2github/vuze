@@ -202,7 +202,7 @@ public class UISWTViewImpl
 		}	
 	}
 
-	private boolean triggerEventRaw(int eventType, Object data) {
+	protected boolean triggerEventRaw(int eventType, Object data) {
 		try {
 			return eventListener.eventOccurred(new UISWTViewEventImpl(this,
 					eventType, data));
@@ -268,6 +268,7 @@ public class UISWTViewImpl
 	 * @see org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore#getFullTitle()
 	 */
 	public String getFullTitle() {
+		//System.out.println("getFullTitle " + sTitle + ";" + getTitleID() + ";" + lastFullTitle + ";" + lastFullTitleKey);
 		if (sTitle != null) {
 			return sTitle;
 		}

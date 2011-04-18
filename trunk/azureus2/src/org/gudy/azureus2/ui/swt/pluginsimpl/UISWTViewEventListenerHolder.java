@@ -28,6 +28,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
@@ -120,7 +121,16 @@ UISWTViewEventListenerHolder
 						mapSWTViewToEventListener.put(view, eventListener);
 
 						if (datasource != null) {
-							view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, datasource);
+							if (view instanceof UISWTViewImpl) {
+								UISWTViewImpl swtView = (UISWTViewImpl) view;
+								swtView.triggerEventRaw(
+										UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
+										PluginCoreUtils.convert(datasource,
+												((UISWTViewImpl) view).useCoreDataSource()));
+							} else {
+								view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
+										datasource);
+							}
 						}
 					} catch (Exception e) {
 						Debug.out(e);
