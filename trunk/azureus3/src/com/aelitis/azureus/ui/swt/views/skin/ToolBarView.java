@@ -1027,7 +1027,6 @@ public class ToolBarView
 		}
 		SWTSkinObject so = skin.createSkinObject(id, templateID, soMain);
 		if (so != null) {
-			System.out.println("CREATE " + so.getSkinObjectID());
 			so.setTooltipID(item.getTooltipID());
 
 			if (lastControl != null) {
