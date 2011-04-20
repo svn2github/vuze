@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 /**
  * Management tools for the user interface.
@@ -223,8 +224,10 @@ UIManager
 		throws UIException;
 
 	/**
-	 * 
-	 * @param listener
+	 * Listen for {@link UIManagerListener#UIAttached(UIInstance)} and
+	 * {@link UIManagerListener#UIDetached(UIInstance)} events.  Typically,
+	 * you hook this listener so you can access {@link UISWTInstance} when it
+	 * gets created.
 	 * 
 	 * @since 2.3.0.5
 	 */
@@ -233,8 +236,9 @@ UIManager
   		UIManagerListener listener );
 
 	/**
+	 * Remove an existing {@link UIManagerListener}
 	 * 
-	 * @param listener
+	 * @param listener Listener to remove
 	 * 
 	 * @since 2.3.0.5
 	 */

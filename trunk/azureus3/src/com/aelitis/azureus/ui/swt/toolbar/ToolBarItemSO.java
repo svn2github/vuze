@@ -18,21 +18,22 @@
 
 package com.aelitis.azureus.ui.swt.toolbar;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
+import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
 
 /**
  * @author TuxPaper
  * @created Jul 22, 2008
  *
  */
-public class ToolBarItem
+public class ToolBarItemSO implements ToolBarItem
 {
-	String imageID;
+	String imageID = "image.toolbar.run";
 
 	String id;
 
@@ -45,43 +46,59 @@ public class ToolBarItem
 	
 	private String tooltipID;
 	
-	private List listeners = Collections.EMPTY_LIST;
-	
 	private boolean alwaysAvailable = false;
 
+	private final ToolBarView tbView;
+	
+	private UIToolBarActivationListener defaultActivation;
+
+	private final boolean isPluginItem;
+
+	private String groupID = UIToolBarManager.GROUP_MAIN;
+	
 	/**
 	 * @param id
 	 * @param image
 	 */
-	public ToolBarItem(String id, String imageid) {
+	public ToolBarItemSO(ToolBarView tbView, String id, String imageid) {
 		super();
+		this.tbView = tbView;
 		this.id = id;
 		imageID = imageid;
+		isPluginItem = false;
 	}
 
-	public ToolBarItem(String id, String imageid, String textID) {
+	public ToolBarItemSO(ToolBarView tbView, String id, String imageid, String textID) {
 		super();
+		this.tbView = tbView;
 		this.id = id;
 		imageID = imageid;
 		this.textID = textID;
 		this.tooltipID = textID + ".tooltip";
+		isPluginItem = false;
 	}
 
-	public void triggerToolBarItem() {
-		Object[] array = listeners.toArray();
-		for (int i = 0; i < array.length; i++) {
-			ToolBarItemListener l = (ToolBarItemListener) array[i];
-			l.pressed(this);
-		}
+	public ToolBarItemSO(ToolBarView tbView, String id, boolean isPluginItem) {
+		this.tbView = tbView;
+		this.id = id;
+		this.isPluginItem = isPluginItem;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.ToolBarItem#triggerToolBarItem(long, java.lang.Object)
+	 */
+	public boolean triggerToolBarItem(long activationType, Object datasource) {
+		return tbView.triggerToolBarItem(this, activationType, datasource);
 	}
 
 
-	public String getId() {
+	public String getID() {
 		return id;
 	}
 
 	public void setSkinButton(SWTSkinButtonUtility btn) {
 		this.skinButton = btn;
+		skinButton.setDisabled(!enabled);
 	}
 
 	public SWTSkinButtonUtility getSkinButton() {
@@ -134,22 +151,6 @@ public class ToolBarItem
 		return textID;
 	}
 
-	/**
-	 * @return
-	 *
-	 * @since 3.1.1.1
-	 */
-	public boolean triggerToolBarItemHold() {
-		Object[] array = listeners.toArray();
-		for (int i = 0; i < array.length; i++) {
-			ToolBarItemListener l = (ToolBarItemListener) array[i];
-			if (l.held(this)) {
-				return true;
-			}
-		}
-		return false;
-	}
-
 	public String getTooltipID() {
 		return tooltipID;
 	}
@@ -158,26 +159,36 @@ public class ToolBarItem
 		this.tooltipID = tooltipID;
 	}
 	
-	public void addListener(ToolBarItemListener l) {
-		synchronized (ToolBarItem.class) {
-  		if (listeners == Collections.EMPTY_LIST) {
-  			listeners = new ArrayList(1);
-  		}
-  		listeners.add(l);
-		}
-	}
-	
-	public void removeListener(ToolBarItemListener l) {
-		synchronized (ToolBarItem.class) {
-  		listeners.remove(l);
-		}
-	}
-
 	public void setAlwaysAvailable(boolean alwaysAvailable) {
 		this.alwaysAvailable = alwaysAvailable;
+		if (alwaysAvailable) {
+			enabled = true;
+		}
 	}
 
 	public boolean isAlwaysAvailable() {
 		return alwaysAvailable;
+	}
+
+	public void setDefaultActivationListener(UIToolBarActivationListener defaultActivation) {
+		this.defaultActivation = defaultActivation;
+	}
+
+	public UIToolBarActivationListener getDefaultActivationListener() {
+		return defaultActivation;
+	}
+	
+	public void dispose() {
+		// ToolBarView will dispose of skinobjects
+		skinButton = null;
+		skinTitle = null;
+	}
+
+	public String getGroupID() {
+		return groupID;
+	}
+
+	public void setGroupID(String groupID) {
+		this.groupID = groupID;
 	}
 }

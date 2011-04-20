@@ -33,6 +33,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -53,7 +54,7 @@ import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemSO;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView.ToolBarViewListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
@@ -254,7 +255,7 @@ public class SBC_LibraryView
 		} catch (Exception e) {
 		}
 
-		AzureusCore core = AzureusCoreFactory.getSingleton();
+		//AzureusCore core = AzureusCoreFactory.getSingleton();
 		if (!AzureusCoreFactory.isCoreRunning()) {
 			if (soWait != null) {
 				soWait.setVisible(true);
@@ -417,14 +418,14 @@ public class SBC_LibraryView
 		
 		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 		if (tb != null) {
-			ToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
-			if (itemModeSmall != null) {
-				itemModeSmall.getSkinButton().getSkinObject().switchSuffix(
+			UIToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
+			if (itemModeSmall instanceof ToolBarItemSO) {
+				((ToolBarItemSO) itemModeSmall).getSkinButton().getSkinObject().switchSuffix(
 						viewMode == MODE_BIGTABLE ? "" : "-down");
 			}
-			ToolBarItem itemModeBig = tb.getToolBarItem("modeBig");
-			if (itemModeBig != null) {
-				itemModeBig.getSkinButton().getSkinObject().switchSuffix(
+			UIToolBarItem itemModeBig = tb.getToolBarItem("modeBig");
+			if (itemModeBig instanceof ToolBarItemSO) {
+				((ToolBarItemSO) itemModeBig).getSkinButton().getSkinObject().switchSuffix(
 						viewMode == MODE_BIGTABLE ? "-down" : "");
 			}
 		}

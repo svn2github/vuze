@@ -18,6 +18,7 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
@@ -34,18 +35,21 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
-import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UIToolBarManagerCore;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.devices.DeviceManagerFactory;
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.*;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
@@ -54,7 +58,7 @@ import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemSO;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.PlayUtils;
@@ -65,11 +69,14 @@ import com.aelitis.azureus.util.PlayUtils;
  */
 public class ToolBarView
 	extends SkinView
+	implements UIToolBarManagerCore
 {
 	private static boolean DEBUG = false;
 
 	private static toolbarButtonListener buttonListener;
 
+	private Map<String, List<String>> mapGroupToItemIDs = new HashMap<String, List<String>>();
+	
 	private Map<String, ToolBarItem> items = new LinkedHashMap<String, ToolBarItem>();
 
 	//private GlobalManager gm;
@@ -114,17 +121,18 @@ public class ToolBarView
 			}
 		}
 
-		ToolBarItem item;
+		ToolBarItemSO item;
 
 		if (!uiClassic) {
 			// ==download
-			item = new ToolBarItem("download", "image.button.download",
-					"v3.MainWindow.button.download") {
-				// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-				public void triggerToolBarItem() {
-					String viewID = SelectedContentManager.getCurrentySelectedViewID();
-					if (viewID == null && triggerViewToolBar(getId())) {
-						return;
+			item = new ToolBarItemSO(this, "download", "image.button.download",
+					"v3.MainWindow.button.download");
+			item.setGroupID(GROUP_BIG);
+			item.setDefaultActivationListener(new UIToolBarActivationListener() {
+				public boolean toolBarItemActivated(ToolBarItem item,
+						long activationType, Object datasource) {
+					if (activationType != ACTIVATIONTYPE_NORMAL) {
+						return false;
 					}
 					// This is for our CDP pages
 					ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
@@ -132,36 +140,40 @@ public class ToolBarView
 							&& (sc[0].getHash() != null || sc[0].getDownloadInfo() != null)) {
 						TorrentListViewsUtils.downloadDataSource(sc[0], false,
 								DLReferals.DL_REFERAL_TOOLBAR);
+						return true;
 					}
+					return false;
 				}
-			};
-			addToolBarItem(item);
+			});
+			addToolBarItem(item, "toolbar.area.item", soMain);
 
 			// ==play
-			item = new ToolBarItem("play", "image.button.play", "iconBar.play") {
-				// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-				public void triggerToolBarItem() {
-					String viewID = SelectedContentManager.getCurrentySelectedViewID();
-					if (viewID == null && triggerViewToolBar(getId())) {
-						return;
+			item = new ToolBarItemSO(this, "play", "image.button.play",
+					"iconBar.play");
+			item.setGroupID(GROUP_BIG);
+			item.setDefaultActivationListener(new UIToolBarActivationListener() {
+				public boolean toolBarItemActivated(ToolBarItem item,
+						long activationType, Object datasource) {
+					if (activationType != ACTIVATIONTYPE_NORMAL) {
+						return false;
 					}
 					ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-					if (sc != null && sc.length > 0 ) {
-						
-						if ( PlayUtils.canStreamDS(sc[0], sc[0].getFileIndex())){
+					if (sc != null && sc.length > 0) {
+
+						if (PlayUtils.canStreamDS(sc[0], sc[0].getFileIndex())) {
 							TorrentListViewsUtils.playOrStreamDataSource(sc[0],
 									DLReferals.DL_REFERAL_TOOLBAR, true, false);
-						}else{
+						} else {
 							TorrentListViewsUtils.playOrStreamDataSource(sc[0],
-								DLReferals.DL_REFERAL_TOOLBAR, false, true);
+									DLReferals.DL_REFERAL_TOOLBAR, false, true);
 						}
 					}
+					return false;
 				}
-			};
-			addToolBarItem(item);
-			
-			addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep",
-					soMain);
+			});
+			addToolBarItem(item, "toolbar.area.item", soMain);
+
+			addSeperator("toolbar.area.item.sep", soMain);
 
 			lastControl = null;
 
@@ -170,101 +182,109 @@ public class ToolBarView
 			lastControl = null;
 
 			// ==OPEN
-			item = new ToolBarItem("open", "image.toolbar.open", "Button.add") {
-				public void triggerToolBarItem() {
+			item = new ToolBarItemSO(this, "open", "image.toolbar.open", "Button.add");
+			item.setDefaultActivationListener(new UIToolBarActivationListener() {
+				public boolean toolBarItemActivated(ToolBarItem item,
+						long activationType, Object datasource) {
+					if (activationType != ACTIVATIONTYPE_NORMAL) {
+						return false;
+					}
 					TorrentOpener.openTorrentWindow();
+					return true;
 				}
-			};
+			});
 			item.setAlwaysAvailable(true);
-			addToolBarItem(item, "toolbar.area.sitem.left", so2nd);
-
-			addSeperator(so2nd);
+			item.setGroupID("classic");
+			addToolBarItemNoCreate(item);
 
 			// ==SEARCH
-			item = new ToolBarItem("search", "search", "Button.search") {
-				public void triggerToolBarItem() {
+			item = new ToolBarItemSO(this, "search", "search", "Button.search");
+			item.setDefaultActivationListener(new UIToolBarActivationListener() {
+				public boolean toolBarItemActivated(ToolBarItem item,
+						long activationType, Object datasource) {
+					if (activationType != ACTIVATIONTYPE_NORMAL) {
+						return false;
+					}
 					UIFunctionsManagerSWT.getUIFunctionsSWT().promptForSearch();
+					return true;
 				}
-			};
+			});
 			item.setAlwaysAvailable(true);
-			addToolBarItem(item, "toolbar.area.sitem.right", so2nd);
-
-			addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep3",
-					so2nd);
-
-			addNonToolBar("toolbar.area.sitem.left2", so2nd);
+			item.setGroupID("classic");
+			addToolBarItemNoCreate(item);
 		}
-
-		boolean first = true;
 
 		// ==transcode
 		if (!DeviceManagerUI.DISABLED) {
-			item = new ToolBarItem("transcode", "image.button.transcode",
-					"iconBar.transcode") {
-				// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItem()
-				public void triggerToolBarItem() {
-					String viewID = SelectedContentManager.getCurrentySelectedViewID();
-					if (viewID == null && triggerViewToolBar(getId())) {
-						return;
+			item = new ToolBarItemSO(this, "transcode", "image.button.transcode",
+					"iconBar.transcode");
+			item.setDefaultActivationListener(new UIToolBarActivationListener() {
+				public boolean toolBarItemActivated(ToolBarItem item,
+						long activationType, Object datasource) {
+					if (activationType != ACTIVATIONTYPE_NORMAL) {
+						return false;
 					}
 					ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
 					if (contents.length == 0) {
-						return;
+						return false;
 					}
 
 					deviceSelected(contents, true);
+					return true;
 				}
-			};
-			addToolBarItem(item, first ? "toolbar.area.sitem.left"
-					: "toolbar.area.sitem", so2nd);
-			first = false;
-			addSeperator(so2nd);
+			});
+			addToolBarItemNoCreate(item);
 		}
 
 		// ==run
-		item = new ToolBarItem("run", "image.toolbar.run", "iconBar.run") {
-			public void triggerToolBarItem() {
-				if (!triggerBasicToolBarItem(getId())) {
-					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-					if (dms != null) {
-						TorrentUtil.runDataSources(dms);
-
-						for (int i = 0; i < dms.length; i++) {
-							DownloadManager dm = dms[i];
-							PlatformTorrentUtils.setHasBeenOpened(dm, true);
-						}
-					}
+		item = new ToolBarItemSO(this, "run", "image.toolbar.run", "iconBar.run");
+		item.setDefaultActivationListener(new UIToolBarActivationListener() {
+			public boolean toolBarItemActivated(ToolBarItem item,
+					long activationType, Object datasource) {
+				if (activationType != ACTIVATIONTYPE_NORMAL) {
+					return false;
 				}
+				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+				if (dms != null) {
+					TorrentUtil.runDataSources(dms);
+
+					for (int i = 0; i < dms.length; i++) {
+						DownloadManager dm = dms[i];
+						PlatformTorrentUtils.setHasBeenOpened(dm, true);
+					}
+					return true;
+				}
+				return false;
 			}
-		};
-		addToolBarItem(item, first ? "toolbar.area.sitem.left"
-				: "toolbar.area.sitem", so2nd);
-		first = false;
+		});
+		addToolBarItemNoCreate(item);
 		//addToolBarItem(item, "toolbar.area.sitem", so2nd);
-		addSeperator(so2nd);
 
 		if (uiClassic) {
 			// ==TOP
-			item = new ToolBarItem("top", "image.toolbar.top", "iconBar.top") {
-				public void triggerToolBarItem() {
-					moveTop();
-				}
+			item = new ToolBarItemSO(this, "top", "image.toolbar.top", "iconBar.top");
+			item.setDefaultActivationListener(new UIToolBarActivationListener() {
+				public boolean toolBarItemActivated(ToolBarItem item,
+						long activationType, Object datasource) {
+					if (activationType == ACTIVATIONTYPE_NORMAL) {
+						return moveTop();
+					}
 
-				public boolean triggerToolBarItemHold() {
 					return false;
 				}
-			};
-			addToolBarItem(item, "toolbar.area.sitem", so2nd);
-			addSeperator(so2nd);
+			});
+			addToolBarItemNoCreate(item);
 		}
 
 		// ==UP
-		item = new ToolBarItem("up", "image.toolbar.up", "v3.iconBar.up") {
-			public void triggerToolBarItem() {
-				if (!AzureusCoreFactory.isCoreRunning()) {
-					return;
-				}
-				if (!triggerBasicToolBarItem(getId())) {
+		item = new ToolBarItemSO(this, "up", "image.toolbar.up", "v3.iconBar.up");
+		item.setDefaultActivationListener(new UIToolBarActivationListener() {
+			public boolean toolBarItemActivated(ToolBarItem item,
+					long activationType, Object datasource) {
+				if (activationType == ACTIVATIONTYPE_NORMAL) {
+					if (!AzureusCoreFactory.isCoreRunning()) {
+						return false;
+					}
 					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 					if (dms != null) {
 						Arrays.sort(dms, new Comparator<DownloadManager>() {
@@ -280,25 +300,25 @@ public class ToolBarView
 							}
 						}
 					}
+				} else if (activationType == ACTIVATIONTYPE_HELD) {
+					return moveTop();
 				}
+				return false;
 			}
-
-			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItemHold()
-			public boolean triggerToolBarItemHold() {
-				return moveTop();
-			}
-		};
-		addToolBarItem(item, "toolbar.area.sitem", so2nd);
-		addSeperator(so2nd);
+		});
+		addToolBarItemNoCreate(item);
 
 		// ==down
-		item = new ToolBarItem("down", "image.toolbar.down", "v3.iconBar.down") {
-			public void triggerToolBarItem() {
-				if (!AzureusCoreFactory.isCoreRunning()) {
-					return;
-				}
+		item = new ToolBarItemSO(this, "down", "image.toolbar.down",
+				"v3.iconBar.down");
+		item.setDefaultActivationListener(new UIToolBarActivationListener() {
+			public boolean toolBarItemActivated(ToolBarItem item,
+					long activationType, Object datasource) {
+				if (activationType == ACTIVATIONTYPE_NORMAL) {
+					if (!AzureusCoreFactory.isCoreRunning()) {
+						return false;
+					}
 
-				if (!triggerBasicToolBarItem(getId())) {
 					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 					if (dms != null) {
@@ -313,131 +333,166 @@ public class ToolBarView
 								gm.moveDown(dm);
 							}
 						}
+						return true;
 					}
+				} else if (activationType == ACTIVATIONTYPE_HELD) {
+					return moveBottom();
 				}
+				return false;
 			}
-
-			// @see com.aelitis.azureus.ui.swt.toolbar.ToolBarItem#triggerToolBarItemHold()
-			public boolean triggerToolBarItemHold() {
-				return moveBottom();
-			}
-		};
-		addToolBarItem(item, "toolbar.area.sitem", so2nd);
-		addSeperator(so2nd);
+		});
+		addToolBarItemNoCreate(item);
 
 		if (uiClassic) {
 			// ==BOTTOM
-			item = new ToolBarItem("bottom", "image.toolbar.bottom", "iconBar.bottom") {
-				public void triggerToolBarItem() {
-					moveBottom();
+			item = new ToolBarItemSO(this, "bottom", "image.toolbar.bottom",
+					"iconBar.bottom");
+			item.setDefaultActivationListener(new UIToolBarActivationListener() {
+				public boolean toolBarItemActivated(ToolBarItem item,
+						long activationType, Object datasource) {
+					if (activationType != ACTIVATIONTYPE_NORMAL) {
+						return false;
+					}
+					return moveBottom();
 				}
+			});
+			addToolBarItemNoCreate(item);
+		}
+		/*
+				// ==start
+				item = new ToolBarItemSO(this, "start", "image.toolbar.start", "iconBar.start");
+				item.setDefaultActivation(new UIToolBarActivationListener() {
+					public boolean toolBarItemActivated(ToolBarItem item, long activationType) {
+						if (activationType != ACTIVATIONTYPE_NORMAL) {
+							return false;
+						}
+						DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+						if (dms != null) {
+							TorrentUtil.queueDataSources(dms, true);
+							return true;
+						}
+						return false;
+					}
+				});
+				addToolBarItem(item, "toolbar.area.sitem", so2nd);
+				//SWTSkinObjectContainer so = (SWTSkinObjectContainer) item.getSkinButton().getSkinObject();
+				//so.setDebugAndChildren(true);
+				addSeperator(so2nd);
 
-				public boolean triggerToolBarItemHold() {
+				// ==stop
+				item = new ToolBarItemSO(this, "stop", "image.toolbar.stop", "iconBar.stop");
+				item.setDefaultActivation(new UIToolBarActivationListener() {
+					public boolean toolBarItemActivated(ToolBarItem item, long activationType) {
+						if (activationType != ACTIVATIONTYPE_NORMAL) {
+							return false;
+						}
+		 				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
+						TorrentUtil.stopDataSources(currentContent);
+						return true;
+					}
+				});
+				addToolBarItem(item, "toolbar.area.sitem", so2nd);
+				addSeperator(so2nd);
+		*/
+		// ==startstop
+		item = new ToolBarItemSO(this, "startstop",
+				"image.toolbar.startstop.start", "iconBar.startstop");
+		item.setDefaultActivationListener(new UIToolBarActivationListener() {
+			public boolean toolBarItemActivated(ToolBarItem item,
+					long activationType, Object datasource) {
+				if (activationType != ACTIVATIONTYPE_NORMAL) {
 					return false;
 				}
-			};
-			addToolBarItem(item, "toolbar.area.sitem", so2nd);
-			addSeperator(so2nd);
-		}
-
-		// ==start
-		item = new ToolBarItem("start", "image.toolbar.start", "iconBar.start") {
-			public void triggerToolBarItem() {
-				if (!triggerBasicToolBarItem(getId())) {
-					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-					if (dms != null) {
-						TorrentUtil.queueDataSources(dms, true);
-					}
-				}
+				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
+				TorrentUtil.stopOrStartDataSources(currentContent);
+				return true;
 			}
-		};
-		addToolBarItem(item, "toolbar.area.sitem", so2nd);
-		//SWTSkinObjectContainer so = (SWTSkinObjectContainer) item.getSkinButton().getSkinObject();
-		//so.setDebugAndChildren(true);
-		addSeperator(so2nd);
-
-		// ==stop
-		item = new ToolBarItem("stop", "image.toolbar.stop", "iconBar.stop") {
-			public void triggerToolBarItem() {
-				if (!triggerBasicToolBarItem(getId())) {
-  				ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
-					TorrentUtil.stopDataSources(currentContent);
-				}
-			}
-		};
-		addToolBarItem(item, "toolbar.area.sitem", so2nd);
-		addSeperator(so2nd);
+		});
+		addToolBarItemNoCreate(item);
 
 		// ==remove
-		item = new ToolBarItem("remove", "image.toolbar.remove", "iconBar.remove") {
-			public void triggerToolBarItem() {
-				if (!triggerBasicToolBarItem(getId())) {
-					DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-					TorrentUtil.removeDownloads(dms, null);
+		item = new ToolBarItemSO(this, "remove", "image.toolbar.remove",
+				"iconBar.remove");
+		item.setDefaultActivationListener(new UIToolBarActivationListener() {
+			public boolean toolBarItemActivated(ToolBarItem item,
+					long activationType, Object datasource) {
+				if (activationType != ACTIVATIONTYPE_NORMAL) {
+					return false;
 				}
+				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
+				if (dms != null) {
+					TorrentUtil.removeDownloads(dms, null);
+					return true;
+				}
+				return false;
 			}
-		};
-		addToolBarItem(item, "toolbar.area.sitem.right", so2nd);
+		});
+		addToolBarItemNoCreate(item);
 
 		///////////////////////
 
-		addSeperator((uiClassic ? "classic." : "") + "toolbar.area.item.sep3",
-				so2nd);
-
-		addNonToolBar("toolbar.area.sitem.left2", so2nd);
-
 		// == mode big
-		item = new ToolBarItem("modeBig", "image.toolbar.table_large",
+		item = new ToolBarItemSO(this, "modeBig", "image.toolbar.table_large",
 				"v3.iconBar.view.big") {
-			public void triggerToolBarItem() {
-				triggerBasicToolBarItem(getId());
+			public void setSkinButton(SWTSkinButtonUtility btn) {
+				super.setSkinButton(btn);
+				SWTSkinObject soTitle = skin.getSkinObject("toolbar-item-title",
+						btn.getSkinObject());
+				if (soTitle instanceof SWTSkinObjectText) {
+					((SWTSkinObjectText) soTitle).setStyle(SWT.RIGHT);
+				}
 			}
+
 			public void setEnabled(boolean enabled) {
 				if (!enabled) {
-  				SWTSkinObject so = getSkinButton().getSkinObject();
-  				if (so != null && so.getSuffix().contains("-down")) {
-  					so.switchSuffix("");
-  				}
+					SWTSkinObject so = getSkinButton().getSkinObject();
+					if (so != null && so.getSuffix().contains("-down")) {
+						so.switchSuffix("");
+					}
 				}
 				super.setEnabled(enabled);
 			}
 		};
-		addToolBarItem(item, "toolbar.area.vitem.left", so2nd);
-
-		SWTSkinObject soTitle = skin.getSkinObject("toolbar-item-title",
-				item.getSkinButton().getSkinObject());
-		if (soTitle instanceof SWTSkinObjectText) {
-			((SWTSkinObjectText) soTitle).setStyle(SWT.RIGHT);
-		}
-
-		addSeperator(so2nd);
+		item.setGroupID("views");
+		addToolBarItemNoCreate(item);
 
 		// == mode small
-		item = new ToolBarItem("modeSmall", "image.toolbar.table_normal",
+		item = new ToolBarItemSO(this, "modeSmall", "image.toolbar.table_normal",
 				"v3.iconBar.view.small") {
-			public void triggerToolBarItem() {
-				triggerBasicToolBarItem(getId());
+			
+			public void setSkinButton(SWTSkinButtonUtility btn) {
+				super.setSkinButton(btn);
+				SWTSkinObject soTitle = skin.getSkinObject("toolbar-item-title",
+						btn.getSkinObject());
+				if (soTitle instanceof SWTSkinObjectText) {
+					((SWTSkinObjectText) soTitle).setStyle(SWT.LEFT);
+				}
 			}
 
 			public void setEnabled(boolean enabled) {
 				if (!enabled) {
-  				SWTSkinObject so = getSkinButton().getSkinObject();
-  				if (so != null && so.getSuffix().contains("-down")) {
-  					so.switchSuffix("");
-  				}
+					SWTSkinObject so = getSkinButton().getSkinObject();
+					if (so != null && so.getSuffix().contains("-down")) {
+						so.switchSuffix("");
+					}
 				}
 				super.setEnabled(enabled);
 			}
 		};
-		addToolBarItem(item, "toolbar.area.vitem.right", so2nd);
+		item.setGroupID("views");
+		addToolBarItemNoCreate(item);
 
-		soTitle = skin.getSkinObject("toolbar-item-title",
-				item.getSkinButton().getSkinObject());
-		if (soTitle instanceof SWTSkinObjectText) {
-			((SWTSkinObjectText) soTitle).setStyle(SWT.LEFT);
-		}
-
+		
 		//addSeperator(so2nd);
+
+		if (uiClassic) {
+			bulkSetupItems("classic", "toolbar.area.sitem", so2nd);
+			addNonToolBar("toolbar.area.sitem.left2", so2nd);
+		}
+		bulkSetupItems(GROUP_MAIN, "toolbar.area.sitem", so2nd);
+		addNonToolBar("toolbar.area.sitem.left2", so2nd);
+		bulkSetupItems("views", "toolbar.area.vitem", so2nd);
+		addNonToolBar("toolbar.area.sitem.left2", so2nd);
 
 		resizeGap();
 
@@ -473,15 +528,22 @@ public class ToolBarView
 		return null;
 	}
 
-	protected boolean triggerBasicToolBarItem(String itemKey) {
-		if (triggerViewToolBar(itemKey)) {
+	public boolean triggerToolBarItem(ToolBarItem item, long activationType,
+			Object datasource) {
+		if (triggerViewToolBar(item, activationType, datasource)) {
 			return true;
+		}
+
+		UIToolBarActivationListener defaultActivation = item.getDefaultActivationListener();
+		if (defaultActivation != null) {
+			return defaultActivation.toolBarItemActivated(item, activationType,
+					datasource);
 		}
 
 		if (DEBUG) {
 			String viewID = SelectedContentManager.getCurrentySelectedViewID();
-  		System.out.println("Warning: Fallback of toolbar button " + itemKey
-  				+ " via " + viewID + " view");
+			System.out.println("Warning: Fallback of toolbar button " + item.getID()
+					+ " via " + viewID + " view");
 		}
 
 		return false;
@@ -581,294 +643,396 @@ public class ToolBarView
 		soGap.getControl().getParent().layout();
 	}
 
-
-	protected void updateCoreItems(ISelectedContent[] currentContent,
-			String viewID) {
-		Map<String, Boolean> mapNewToolbarStates = TorrentUtil.calculateToolbarStates(
-				currentContent, viewID);
-		
-		for (String key : mapNewToolbarStates.keySet()) {
-			Boolean enable = mapNewToolbarStates.get(key);
-			ToolBarItem item = getToolBarItem(key);
-			if (item != null) {
-				item.setEnabled(enable);
-			}
-		}
-	}
-
-	/**
-	 * @param toolBarItem
-	 *
-	 * @since 3.1.1.1
-	 */
-	protected void activateViaSideBar(ToolBarItem toolBarItem) {
-		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
-		if (mdi != null) {
-			MdiEntrySWT entry = mdi.getCurrentEntrySWT();
-			if (entry != null) {
-  			UIPluginView view = entry.getView();
-  			if (view instanceof ToolBarEnabler) {
-  				((ToolBarEnabler) view).toolBarItemActivated(toolBarItem.getId());
-  			}
-			}
-		}
-	}
-
-	/**
-	 * @param itemID
-	 * @return
-	 *
-	 * @since 3.1.1.1
-	 */
-	public ToolBarItem getToolBarItem(String itemID) {
+	public UIToolBarItem getToolBarItem(String itemID) {
 		return items.get(itemID);
 	}
 
-	public ToolBarItem[] getAllToolBarItems() {
+	public ToolBarItemSO getToolBarItemSO(String itemID) {
+		return (ToolBarItemSO) items.get(itemID);
+	}
+
+	public UIToolBarItem[] getAllToolBarItems() {
 		return items.values().toArray(new ToolBarItem[0]);
 	}
 
-	private FrequencyLimitedDispatcher refresh_limiter = 
-		new FrequencyLimitedDispatcher(
-			new AERunnable()
-			{
-				private AERunnable	lock = this;
-				private boolean 	refresh_pending;
-				
-				public void
-				runSupport()
-				{
-					synchronized( lock ){
-						
-						if ( refresh_pending ){
-							
+	public ToolBarItem[] getAllSWTToolBarItems() {
+		return items.values().toArray(new ToolBarItem[0]);
+	}
+
+	private FrequencyLimitedDispatcher refresh_limiter = new FrequencyLimitedDispatcher(
+			new AERunnable() {
+				private AERunnable lock = this;
+
+				private boolean refresh_pending;
+
+				public void runSupport() {
+					synchronized (lock) {
+
+						if (refresh_pending) {
+
 							return;
 						}
 						refresh_pending = true;
 					}
-					
-					if ( DEBUG ){
-						System.out.println("refreshCoreItems via " + Debug.getCompressedStackTrace());
+
+					if (DEBUG) {
+						System.out.println("refreshCoreItems via "
+								+ Debug.getCompressedStackTrace());
 					}
-					
-					Utils.execSWTThread(
-						new AERunnable() 
-						{
-							public void 
-							runSupport() {
-						
-								synchronized( lock ){
-								
-									refresh_pending = false;
-								}
-							
-								_refreshCoreToolBarItems();
+
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+
+							synchronized (lock) {
+
+								refresh_pending = false;
 							}
-						});
+
+							_refreshCoreToolBarItems();
+						}
+					});
 				}
-			},
-			250 );
-	
-	private Map<DownloadManager,DownloadManagerListener> dm_listener_map = new HashMap<DownloadManager, DownloadManagerListener>();
-	
+			}, 250);
+
+	private Map<DownloadManager, DownloadManagerListener> dm_listener_map = new HashMap<DownloadManager, DownloadManagerListener>();
+
 	public void refreshCoreToolBarItems() {
 		refresh_limiter.dispatch();
 	}
 
 	public void _refreshCoreToolBarItems() {
-		
+
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 
 		if (mdi != null) {
-			ToolBarItem[] allToolBarItems = getAllToolBarItems();
+			UIToolBarItem[] allToolBarItems = getAllToolBarItems();
 			MdiEntrySWT entry = mdi.getCurrentEntrySWT();
-			Map<String, Boolean> mapStates = new HashMap<String, Boolean>();
+			Map<String, Long> mapStates = new HashMap<String, Long>();
 			if (entry != null) {
-  			ToolBarEnabler[] enablers = entry.getToolbarEnablers();
-  			for (ToolBarEnabler enabler : enablers) {
-  				enabler.refreshToolBar(mapStates);
-  			}
+				ToolBarEnablerBase[] enablers = entry.getToolbarEnablers();
+				for (ToolBarEnablerBase enabler : enablers) {
+					if (enabler instanceof ToolBarEnabler2) {
+						((ToolBarEnabler2) enabler).refreshToolBarItems(mapStates);
+					} else if (enabler instanceof ToolBarEnabler) {
+						Map<String, Boolean> oldMapStates = new HashMap<String, Boolean>();
+						((ToolBarEnabler) enabler).refreshToolBar(oldMapStates);
+
+						for (String key : oldMapStates.keySet()) {
+							Boolean enable = oldMapStates.get(key);
+							Long curState = mapStates.get(key);
+							if (curState == null) {
+								curState = 0L;
+							}
+							if (enable) {
+								mapStates.put(key, curState | ToolBarEnabler2.STATE_ENABLED);
+							} else {
+								mapStates.put(key, curState & (~ToolBarEnabler2.STATE_ENABLED));
+							}
+						}
+					}
+				}
 			}
-			
+
 			ISelectedContent[] currentContent = SelectedContentManager.getCurrentlySelectedContent();
-							
-			synchronized( dm_listener_map ){
-		
-				Map<DownloadManager,DownloadManagerListener> copy = new HashMap<DownloadManager, DownloadManagerListener>( dm_listener_map );
-				
-				for ( ISelectedContent content : currentContent ){
-					
+
+			synchronized (dm_listener_map) {
+
+				Map<DownloadManager, DownloadManagerListener> copy = new HashMap<DownloadManager, DownloadManagerListener>(
+						dm_listener_map);
+
+				for (ISelectedContent content : currentContent) {
+
 					DownloadManager dm = content.getDownloadManager();
-					
-					if ( dm != null ){
-						
-						if ( copy.remove( dm ) == null ){
-							
-							DownloadManagerListener l = 
-								new DownloadManagerListener()
-								{
-									public void
-									stateChanged(
-										DownloadManager manager,
-										int		state )
-									{
-										refreshCoreToolBarItems();
-									}
-										
-									public void
-									downloadComplete(
-										DownloadManager manager)
-									{
-										refreshCoreToolBarItems();
-									}
-		
-									public void
-									completionChanged(
-										DownloadManager manager, 
-										boolean bCompleted )
-									{
-										refreshCoreToolBarItems();
-									}
-		
-									public void
-									positionChanged(
-										DownloadManager download, 
-										int oldPosition, 
-										int newPosition)
-									{
-										refreshCoreToolBarItems();
-									}
-								  
-									public void
-									filePriorityChanged( 
-										DownloadManager download, DiskManagerFileInfo file )
-									{
-										refreshCoreToolBarItems();
-									}
-								};
-																
-							dm.addListener( l, false );
-							
-							dm_listener_map.put( dm, l );
-							
+
+					if (dm != null) {
+
+						if (copy.remove(dm) == null) {
+
+							DownloadManagerListener l = new DownloadManagerListener() {
+								public void stateChanged(DownloadManager manager, int state) {
+									refreshCoreToolBarItems();
+								}
+
+								public void downloadComplete(DownloadManager manager) {
+									refreshCoreToolBarItems();
+								}
+
+								public void completionChanged(DownloadManager manager,
+										boolean bCompleted) {
+									refreshCoreToolBarItems();
+								}
+
+								public void positionChanged(DownloadManager download,
+										int oldPosition, int newPosition) {
+									refreshCoreToolBarItems();
+								}
+
+								public void filePriorityChanged(DownloadManager download,
+										DiskManagerFileInfo file) {
+									refreshCoreToolBarItems();
+								}
+							};
+
+							dm.addListener(l, false);
+
+							dm_listener_map.put(dm, l);
+
 							// System.out.println( "Added " + dm.getDisplayName() + " - size=" + dm_listener_map.size());
 						}
 					}
 				}
-				
-				for ( Map.Entry<DownloadManager,DownloadManagerListener> e: copy.entrySet()){
-				
+
+				for (Map.Entry<DownloadManager, DownloadManagerListener> e : copy.entrySet()) {
+
 					DownloadManager dm = e.getKey();
-										
-					dm.removeListener( e.getValue());
-					
-					dm_listener_map.remove( dm );
-					
+
+					dm.removeListener(e.getValue());
+
+					dm_listener_map.remove(dm);
+
 					// System.out.println( "Removed " + dm.getDisplayName() + " - size=" + dm_listener_map.size());
 				}
 			}
-			
+
 			if (!mapStates.containsKey("download")) {
 				for (ISelectedContent content : currentContent) {
 					if (content.getDownloadManager() == null
 							&& content.getDownloadInfo() != null) {
-						mapStates.put("download", true);
+						mapStates.put("download", ToolBarEnabler2.STATE_ENABLED);
 						break;
 					}
 				}
 			}
 			boolean has1Selection = currentContent.length == 1;
-			
-			boolean can_play	= false;
-			boolean can_stream	= false;
-			
+
+			boolean can_play = false;
+			boolean can_stream = false;
+
 			boolean stream_permitted = false;
-			
-			if ( has1Selection ){
-				
-				if ( !(currentContent[0] instanceof ISelectedVuzeFileContent)){
-					
-					can_play 	= PlayUtils.canPlayDS(currentContent[0], currentContent[0].getFileIndex());
-					can_stream	= PlayUtils.canStreamDS(currentContent[0], currentContent[0].getFileIndex());
-					
-					if ( can_stream ){
-						
+
+			if (has1Selection) {
+
+				if (!(currentContent[0] instanceof ISelectedVuzeFileContent)) {
+
+					can_play = PlayUtils.canPlayDS(currentContent[0],
+							currentContent[0].getFileIndex());
+					can_stream = PlayUtils.canStreamDS(currentContent[0],
+							currentContent[0].getFileIndex());
+
+					if (can_stream) {
+
 						stream_permitted = PlayUtils.isStreamPermitted();
 					}
 				}
 			}
-			
-				// allow a tool-bar enabler to manually handle play/stream events
-			
-			if ( mapStates.containsKey( "play" )){
-				can_play |= (Boolean)mapStates.get( "play" );
-			}
-			if ( mapStates.containsKey( "stream" )){
-				can_stream |= (Boolean)mapStates.get( "stream" );
-			}
-			
-			mapStates.put( "play", can_play | can_stream );
 
-			ToolBarItem pitem = getToolBarItem( "play" );
-			
-			if ( pitem != null ){
-			
-				if ( can_stream ){
-					
-					pitem.setImageID( stream_permitted?"image.button.stream":"image.button.pstream" );
-					pitem.setTextID( stream_permitted?"iconBar.stream":"iconBar.pstream" );
+			// allow a tool-bar enabler to manually handle play/stream events
 
-				}else{
-					
-					pitem.setImageID( "image.button.play" );
-					pitem.setTextID( "iconBar.play" );
+			if (mapStates.containsKey("play")) {
+				can_play |= (mapStates.get("play") & ToolBarEnabler2.STATE_ENABLED) > 0;
+			}
+			if (mapStates.containsKey("stream")) {
+				can_stream |= (mapStates.get("stream") & ToolBarEnabler2.STATE_ENABLED) > 0;
+			}
+
+			mapStates.put("play", can_play | can_stream
+					? ToolBarEnabler2.STATE_ENABLED : 0);
+
+			UIToolBarItem pitem = getToolBarItem("play");
+
+			if (pitem != null) {
+
+				if (can_stream) {
+
+					pitem.setImageID(stream_permitted ? "image.button.stream"
+							: "image.button.pstream");
+					pitem.setTextID(stream_permitted ? "iconBar.stream"
+							: "iconBar.pstream");
+
+				} else {
+
+					pitem.setImageID("image.button.play");
+					pitem.setTextID("iconBar.play");
 				}
 			}
-			
+
+			UIToolBarItem ssItem = getToolBarItem("startstop");
+			if (ssItem != null) {
+				boolean shouldStopGroup = TorrentUtil.shouldStopGroup(currentContent);
+				ssItem.setTextID(shouldStopGroup ? "iconBar.stop" : "iconBar.start");
+				ssItem.setImageID("image.toolbar.startstop."
+						+ (shouldStopGroup ? "stop" : "start"));
+			}
+
 			for (int i = 0; i < allToolBarItems.length; i++) {
-				ToolBarItem toolBarItem = allToolBarItems[i];
+				UIToolBarItem toolBarItem = allToolBarItems[i];
 				if (toolBarItem.isAlwaysAvailable()) {
 					toolBarItem.setEnabled(true);
 				} else {
-					Boolean b = mapStates.get(toolBarItem.getId());
-					if (b == null) {
-						b = false;
+					Long state = mapStates.get(toolBarItem.getID());
+					if (state != null) {
+						toolBarItem.setEnabled((state & ToolBarEnabler2.STATE_ENABLED) > 0);
 					}
-					toolBarItem.setEnabled(b);
 				}
 			}
 			return;
 		}
 	}
 
-	private boolean triggerViewToolBar(String id) {
+	private boolean triggerViewToolBar(ToolBarItem item, long activationType,
+			Object datasource) {
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		if (mdi != null) {
 			MdiEntrySWT entry = mdi.getCurrentEntrySWT();
-			ToolBarEnabler[] enablers = entry.getToolbarEnablers();
-			for (ToolBarEnabler enabler : enablers) {
-				if (enabler.toolBarItemActivated(id)) {
-					return true;
+			ToolBarEnablerBase[] enablers = entry.getToolbarEnablers();
+			for (ToolBarEnablerBase enabler : enablers) {
+				if (enabler instanceof ToolBarEnabler2) {
+					if (((ToolBarEnabler2) enabler).toolBarItemActivated(item,
+							activationType, datasource)) {
+						return true;
+					}
+				} else if (enabler instanceof ToolBarEnabler) {
+					if (activationType == UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL
+							&& ((ToolBarEnabler) enabler).toolBarItemActivated(item.getID())) {
+						return true;
+					}
 				}
 			}
 		}
+
 		return false;
 	}
 
-	public void addToolBarItem(final ToolBarItem item) {
-		addToolBarItem(item, "toolbar.area.item", soMain);
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager#createToolBarItem(java.lang.String)
+	 */
+	public UIToolBarItem createToolBarItem(String id) {
+		return new ToolBarItemSO(this, id, true);
 	}
 
-	public void addToolBarItem(final ToolBarItem item, String templateID,
+	public UIToolBarItem createToolBarItem(PluginInterface pi, String id) {
+		return new ToolBarItemSO(this, id, true);
+	}
+
+	public void addToolBarItem(UIToolBarItem item) {
+		if (item instanceof ToolBarItemSO) {
+			ToolBarItemSO itemSO = (ToolBarItemSO) item;
+			itemSO.setGroupID("plugin");
+			//addNonToolBar("toolbar.area.sitem.left2", so2nd);
+			addToolBarItem(itemSO, "toolbar.area.sitem", so2nd);
+		}
+	}
+
+	public void addToolBarItemNoCreate(final ToolBarItemSO item) {
+		addToolBarItem(item, null, null);
+	}
+
+	public void addToolBarItem(final ToolBarItemSO item, String templatePrefix,
 			SWTSkinObject soMain) {
-		SWTSkinObject so = skin.createSkinObject("toolbar:" + item.getId(),
-				templateID, soMain);
+		String groupID = item.getGroupID();
+		
+		int position = SWT.RIGHT;
+
+		synchronized (mapGroupToItemIDs) {
+			List<String> list = mapGroupToItemIDs.get(groupID);
+			if (list == null) {
+				list = new ArrayList<String>();
+				mapGroupToItemIDs.put(groupID, list);
+				position = SWT.LEFT;
+			} else if (soMain != null && !groupID.equals(GROUP_BIG)) {
+				// take the last item and change it to RIGHT
+				int size = list.size();
+				String lastID = list.get(size - 1);
+				ToolBarItemSO lastItem = getToolBarItemSO(lastID);
+				if (lastItem != null) {
+					SWTSkinObject so = skin.getSkinObjectByID("toolbar:" + lastItem.getID());
+					if (so != null) {
+						String configID = so.getConfigID();
+						if ((size == 1 && !configID.endsWith(".left")) || !configID.equals(templatePrefix)) {
+    					setupToolBarItem(lastItem, templatePrefix, soMain, size == 1 ? SWT.LEFT
+    							: SWT.CENTER);
+						}
+					}
+				}
+
+				addSeperator(soMain);
+			}
+			list.add(item.getID());
+		}
+		
+		if (soMain != null) {
+			setupToolBarItem(item, templatePrefix, soMain, groupID.equals(GROUP_BIG)
+					? 0 : position);
+		} else {
+			items.put(item.getID(), item);
+		}
+	}
+	
+	private void bulkSetupItems(String groupID, String templatePrefix, SWTSkinObject soMain) {
+		synchronized (mapGroupToItemIDs) {
+			List<String> list = mapGroupToItemIDs.get(groupID);
+			if (list == null) {
+				return;
+			}
+			for (int i = 0; i < list.size(); i++) {
+				String itemID = list.get(i);
+				SWTSkinObject so = skin.getSkinObjectByID("toolbar:" + itemID);
+				if (so != null) {
+					so.dispose();
+				}
+				ToolBarItemSO item = getToolBarItemSO(itemID);
+				if (item != null) {
+					int position = 0;
+					int size = list.size();
+					if (size == 1) {
+						position = SWT.SINGLE;
+					} else if (i == 0) {
+						position = SWT.LEFT;
+					} else if (i == size - 1) {
+						addSeperator(soMain);
+						position = SWT.RIGHT;
+					} else {
+						addSeperator(soMain);
+					}
+					setupToolBarItem(item, templatePrefix, soMain, position);
+				}
+				
+			}
+		}
+	}
+
+	private void setupToolBarItem(final ToolBarItemSO item, String templatePrefix,
+			SWTSkinObject soMain, int position) {
+		String templateID = templatePrefix;
+		if (position == SWT.RIGHT) {
+			templateID += ".right";
+		} else if (position == SWT.LEFT) {
+			templateID += ".left";
+		} else if (position == SWT.SINGLE) {
+			templateID += ".lr";
+		}
+
+		Control attachToControl = this.lastControl;
+		String id = "toolbar:" + item.getID();
+		SWTSkinObject oldSO = skin.getSkinObjectByID(id);
+		if (oldSO != null) {
+			Object layoutData = oldSO.getControl().getLayoutData();
+			if (layoutData instanceof FormData) {
+				FormData fd = (FormData) layoutData;
+				if (fd.left != null) {
+					attachToControl = fd.left.control;
+				}
+			}
+			oldSO.dispose();
+		}
+		SWTSkinObject so = skin.createSkinObject(id, templateID, soMain);
 		if (so != null) {
+			System.out.println("CREATE " + so.getSkinObjectID());
 			so.setTooltipID(item.getTooltipID());
 
 			if (lastControl != null) {
 				FormData fd = (FormData) so.getControl().getLayoutData();
-				fd.left = new FormAttachment(lastControl);
+				fd.left = new FormAttachment(attachToControl);
 			}
 
 			so.setData("toolbaritem", item);
@@ -881,7 +1045,7 @@ public class ToolBarView
 			SWTSkinObject soTitle = skin.getSkinObject("toolbar-item-title", so);
 			if (soTitle instanceof SWTSkinObjectText) {
 				((SWTSkinObjectText) soTitle).setTextID(item.getTextID());
-				item.setSkinTitle((SWTSkinObjectText)soTitle);
+				item.setSkinTitle((SWTSkinObjectText) soTitle);
 			}
 
 			if (initComplete) {
@@ -889,8 +1053,8 @@ public class ToolBarView
 			}
 
 			lastControl = item.getSkinButton().getSkinObject().getControl();
-			items.put(item.getId(), item);
 		}
+		items.put(item.getID(), item);
 	}
 
 	private void addSeperator(SWTSkinObject soMain) {
@@ -930,10 +1094,10 @@ public class ToolBarView
 	 */
 	public void setShowText(boolean showText) {
 		this.showText = showText;
-		ToolBarItem[] allToolBarItems = getAllToolBarItems();
+		UIToolBarItem[] allToolBarItems = getAllToolBarItems();
 		for (int i = 0; i < allToolBarItems.length; i++) {
-			ToolBarItem tbi = allToolBarItems[i];
-			SWTSkinObject so = tbi.getSkinButton().getSkinObject();
+			UIToolBarItem tbi = allToolBarItems[i];
+			SWTSkinObject so = ((ToolBarItemSO) tbi).getSkinButton().getSkinObject();
 			SWTSkinObject soTitle = skin.getSkinObject("toolbar-item-title", so);
 			soTitle.setVisible(showText);
 		}
@@ -953,7 +1117,10 @@ public class ToolBarView
 				SWTSkinObject skinObject, int stateMask) {
 			ToolBarItem item = (ToolBarItem) buttonUtility.getSkinObject().getData(
 					"toolbaritem");
-			item.triggerToolBarItem();
+			boolean rightClick = (stateMask & (SWT.BUTTON3 | SWT.MOD4)) > 0;
+			item.triggerToolBarItem(rightClick
+					? UIToolBarActivationListener.ACTIVATIONTYPE_RIGHTCLICK
+					: UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL, null);
 		}
 
 		public boolean held(SWTSkinButtonUtility buttonUtility) {
@@ -961,7 +1128,8 @@ public class ToolBarView
 					"toolbaritem");
 			buttonUtility.getSkinObject().switchSuffix("", 0, false, true);
 
-			boolean triggerToolBarItemHold = item.triggerToolBarItemHold();
+			boolean triggerToolBarItemHold = item.triggerToolBarItem(
+					UIToolBarActivationListener.ACTIVATIONTYPE_HELD, null);
 			return triggerToolBarItemHold;
 		}
 
@@ -1049,4 +1217,15 @@ public class ToolBarView
 		public void toolbarViewInitialized(ToolBarView tbv);
 	}
 
+	public void removeToolBarItem(String id) {
+		UIToolBarItem toolBarItem = items.remove(id);
+		if (toolBarItem instanceof ToolBarItemSO) {
+			ToolBarItemSO item = (ToolBarItemSO) toolBarItem;
+			item.dispose();
+			SWTSkinObject so = skin.getSkinObjectByID("toolbar:" + item.getID());
+			if (so != null) {
+				so.dispose();
+			}
+		}
+	}
 }

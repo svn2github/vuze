@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt;
 
 import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
@@ -132,4 +133,6 @@ public interface UIFunctionsSWT
 	public MultipleDocumentInterfaceSWT getMDISWT();
 
 	public void promptForSearch();
+
+	public UIToolBarManager getToolBarManager();
 }

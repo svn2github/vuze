@@ -18,19 +18,13 @@ import java.net.URL;
 import org.apache.log4j.Logger;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
-import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.ui.UIException;
-import org.gudy.azureus2.plugins.ui.UIInputReceiver;
-import org.gudy.azureus2.plugins.ui.UIInstance;
-import org.gudy.azureus2.plugins.ui.UIInstanceFactory;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIManagerEvent;
-import org.gudy.azureus2.plugins.ui.UIManagerEventListener;
-import org.gudy.azureus2.plugins.ui.UIMessage;
+import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UIConst;
+import org.gudy.azureus2.ui.common.UIInstanceBase;
 import org.gudy.azureus2.ui.console.multiuser.UserManager;
 import org.gudy.azureus2.ui.console.multiuser.commands.UserCommand;
 
@@ -41,7 +35,7 @@ import org.gudy.azureus2.ui.console.multiuser.commands.UserCommand;
 public class 
 UI 
 	extends org.gudy.azureus2.ui.common.UITemplateHeadless 
-	implements IUserInterface, UIInstanceFactory, UIInstance, UIManagerEventListener
+	implements IUserInterface, UIInstanceFactory, UIInstanceBase, UIManagerEventListener
 {
   
   private ConsoleInput console = null;
@@ -286,5 +280,12 @@ UI
 	public UIMessage createMessage() {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	public UIToolBarManager getToolBarManager() {
+		return null;
+	}
+
+	public void unload(PluginInterface pi) {
 	}
 }

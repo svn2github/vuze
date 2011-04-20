@@ -41,6 +41,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginEvent;
+import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -51,6 +53,8 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
@@ -88,11 +92,12 @@ UISWTInstanceImpl
 	private Map<String,Map<String,UISWTViewEventListenerHolder>> views = new HashMap<String,Map<String,UISWTViewEventListenerHolder>>();
 
 	private Map<PluginInterface,UIInstance>	plugin_map = new WeakHashMap<PluginInterface,UIInstance>();
+	private Map<PluginInterface,toolbarWrapper>	toolbar_map = new WeakHashMap<PluginInterface,toolbarWrapper>();
 	
 	private boolean bUIAttaching;
 
 	private final UIFunctionsSWT uiFunctions;
-	
+
 	
 	public UISWTInstanceImpl(AzureusCore _core) {
 		core		= _core;
@@ -791,6 +796,82 @@ UISWTInstanceImpl
 		});
 	}
 	
+	public UIToolBarManager getToolBarManager() {
+		throw( new RuntimeException( "plugin specific instance required" ));
+	}
+
+	public UIToolBarManager getToolBarManager(PluginInterface pi) {
+		toolbarWrapper	instance = toolbar_map.get(pi);
+		
+		if ( instance == null ){
+			UIToolBarManager toolBarManager = uiFunctions.getToolBarManager();
+			if (toolBarManager instanceof UIToolBarManagerCore) {
+				instance = new toolbarWrapper(pi, (UIToolBarManagerCore) toolBarManager);
+				
+				toolbar_map.put(pi, instance );
+			}
+		}
+		
+		return( instance );
+	}
+	
+	protected static class
+	toolbarWrapper
+		implements UIToolBarManager
+	{
+
+		private final UIToolBarManagerCore toolBarManager;
+		private final PluginInterface pi;
+		private List<UIToolBarItem> listItems;
+
+		public toolbarWrapper(PluginInterface pi, UIToolBarManagerCore toolBarManager) {
+			this.pi = pi;
+			this.toolBarManager = toolBarManager;
+			pi.addEventListener(new PluginEventListener() {
+				public void handleEvent(PluginEvent ev) {
+				}
+			});
+		}
+
+		public UIToolBarItem getToolBarItem(String id) {
+			return toolBarManager.getToolBarItem(id);
+		}
+
+		public UIToolBarItem[] getAllToolBarItems() {
+			return toolBarManager.getAllToolBarItems();
+		}
+
+		public UIToolBarItem createToolBarItem(String id) {
+			UIToolBarItem addToolBarItem = toolBarManager.createToolBarItem(pi, id);
+			synchronized (this) {
+				if (listItems == null) {
+					listItems = new ArrayList<UIToolBarItem>();
+				}
+				listItems.add(addToolBarItem);
+			}
+			return addToolBarItem;
+		}
+
+		public void addToolBarItem(UIToolBarItem item) {
+			toolBarManager.addToolBarItem(item);
+		}
+
+		public void piDestroyed() {
+			synchronized (this) {
+				for (UIToolBarItem item : listItems) {
+					toolBarManager.removeToolBarItem(item.getID());
+				}
+				listItems = null;
+			}
+		}
+
+		public void removeToolBarItem(String id) {
+			toolBarManager.removeToolBarItem(id);
+		}
+
+	}
+
+	
 	protected static class
 	instanceWrapper
 		implements UISWTInstance
@@ -932,6 +1013,22 @@ UISWTInstanceImpl
 		public Shell createShell(int style) {
 			return delegate.createShell(style);
 		}
+
+		public UIToolBarManager getToolBarManager() {
+			PluginInterface pi = pi_ref.get();
+			return delegate.getToolBarManager(pi);
+		}
+
+		public void unload(PluginInterface pi) {
+			delegate.unload(pi);
+		}
 		
+	}
+
+	public void unload(PluginInterface pi) {
+		toolbarWrapper toolBarManager = toolbar_map.remove(pi);
+		if (toolBarManager != null) {
+			toolBarManager.piDestroyed();
+		}
 	}
 }

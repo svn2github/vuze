@@ -21,7 +21,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.ToolBarEnablerBase;
 import com.aelitis.azureus.ui.common.viewtitleinfo.*;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -89,7 +89,7 @@ public abstract class BaseMdiEntry
 
 	private SWTSkinObject soMaster;
 
-	private Set<ToolBarEnabler> setToolBarEnablers = new HashSet<ToolBarEnabler>(
+	private Set<ToolBarEnablerBase> setToolBarEnablers = new HashSet<ToolBarEnablerBase>(
 			1);
 
 	private String preferredAfterID;
@@ -474,16 +474,16 @@ public abstract class BaseMdiEntry
 		}
 	}
 
-	public void addToolbarEnabler(ToolBarEnabler enabler) {
+	public void addToolbarEnabler(ToolBarEnablerBase enabler) {
 		setToolBarEnablers.add(enabler);
 	}
 
-	public void removeToolbarEnabler(ToolBarEnabler enabler) {
+	public void removeToolbarEnabler(ToolBarEnablerBase enabler) {
 		setToolBarEnablers.remove(enabler);
 	}
 
-	public ToolBarEnabler[] getToolbarEnablers() {
-		return setToolBarEnablers.toArray(new ToolBarEnabler[0]);
+	public ToolBarEnablerBase[] getToolbarEnablers() {
+		return setToolBarEnablers.toArray(new ToolBarEnablerBase[0]);
 	}
 
 	public void setCoreView(UISWTViewCore view) {
@@ -502,10 +502,10 @@ public abstract class BaseMdiEntry
 			setViewTitleInfo((ViewTitleInfo) eventListener);
 		}
 
-		if (view instanceof ToolBarEnabler) {
-			addToolbarEnabler((ToolBarEnabler) view);
-		} else if (eventListener instanceof ViewTitleInfo) {
-			addToolbarEnabler((ToolBarEnabler) eventListener);
+		if (view instanceof ToolBarEnablerBase) {
+			addToolbarEnabler((ToolBarEnablerBase) view);
+		} else if (eventListener instanceof ToolBarEnablerBase) {
+			addToolbarEnabler((ToolBarEnablerBase) eventListener);
 		}
 
 		if (datasource != null) {
@@ -681,8 +681,8 @@ public abstract class BaseMdiEntry
 	public void setEventListener(UISWTViewEventListener _eventListener) {
 		this.eventListener = _eventListener;
 
-		if (eventListener instanceof ToolBarEnabler) {
-			addToolbarEnabler((ToolBarEnabler) eventListener);
+		if (eventListener instanceof ToolBarEnablerBase) {
+			addToolbarEnabler((ToolBarEnablerBase) eventListener);
 		}
 		if ((eventListener instanceof ViewTitleInfo) && viewTitleInfo == null) {
 			setViewTitleInfo((ViewTitleInfo) eventListener);

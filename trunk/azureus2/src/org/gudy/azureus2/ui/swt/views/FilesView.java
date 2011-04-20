@@ -55,6 +55,8 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 
 import com.aelitis.azureus.core.util.AZ3Functions;
+import com.aelitis.azureus.ui.common.ToolBarEnabler2;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
@@ -72,7 +74,7 @@ public class FilesView
 	extends TableViewTab<DiskManagerFileInfo>
 	implements TableDataSourceChangedListener, TableSelectionListener,
 	TableViewSWTMenuFillListener, TableRefreshListener, DownloadManagerStateAttributeListener,
-	TableLifeCycleListener
+	TableLifeCycleListener, ToolBarEnabler2
 {
 	private static boolean registeredCoreSubViews = false;
 	boolean refreshing = false;
@@ -451,16 +453,17 @@ public class FilesView
 		}
 	}
 	
-	public void refreshToolBar(Map<String, Boolean> list) {
+	public void refreshToolBarItems(Map<String, Long> list) {
 		ISelectedContent[] content = SelectedContentManager.getCurrentlySelectedContent();
-		Map<String, Boolean> states = TorrentUtil.calculateToolbarStates(content, tv.getTableID());
+		Map<String, Long> states = TorrentUtil.calculateToolbarStates(content, tv.getTableID());
 		list.putAll(states);
-		list.put("up", false);
-		list.put("down", false);
-		super.refreshToolBar(list);
+		list.put("up", 0L);
+		list.put("down", 0L);
 	}
 
-	public boolean toolBarItemActivated(String itemKey) {
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
+		String itemKey = item.getID();
+
 		Object[] selected = tv.getSelectedDataSources().toArray();
 		
 		if ( selected.length > 0 ){

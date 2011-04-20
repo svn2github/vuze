@@ -73,6 +73,7 @@ import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.ui.common.ToolBarEnabler2;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.*;
@@ -1504,6 +1505,35 @@ public class TorrentUtil {
 		}
 	}
 
+	public static boolean shouldStopGroup(Object[] datasources) {
+		DownloadManager[] dms = toDMS(datasources);
+		if (dms.length == 0) {
+			return true;
+		}
+		for (DownloadManager dm : dms) {
+			int state = dm.getState();
+			boolean stopped = state == DownloadManager.STATE_STOPPED
+					|| state == DownloadManager.STATE_STOPPING;
+			if (!stopped) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public static void stopOrStartDataSources(Object[] datasources) {
+		DownloadManager[] dms = toDMS(datasources);
+		if (dms.length == 0) {
+			return;
+		}
+		boolean doStop = shouldStopGroup(dms);
+		if (doStop) {
+			stopDataSources(datasources);
+		} else {
+			queueDataSources(datasources, true);
+		}
+	}
+
 	public static void stopDataSources(Object[] datasources) {
 		DownloadManager[] dms = toDMS(datasources);
 		for (DownloadManager dm : dms) {
@@ -1768,7 +1798,7 @@ public class TorrentUtil {
 		return true;
 	}
 
-	public static Map<String, Boolean> calculateToolbarStates(
+	public static Map<String, Long> calculateToolbarStates(
 				ISelectedContent[] currentContent, String viewID) {
 			//System.out.println("updateCoreItems(" + currentContent.length + ", " + viewID + " via " + Debug.getCompressedStackTrace());
 			String[] TBKEYS = new String[] {
@@ -1785,7 +1815,7 @@ public class TorrentUtil {
 				"remove"
 			};
 			
-			Map<String, Boolean> mapNewToolbarStates = new HashMap<String, Boolean>();
+			Map<String, Long> mapNewToolbarStates = new HashMap<String, Long>();
 			
 			String[] itemsNeedingSelection = {};
 	
@@ -1794,6 +1824,7 @@ public class TorrentUtil {
 				"top",
 				"bottom",
 				"transcode",
+				"startstop",
 			};
 	
 			String[] itemsRequiring1DMwithHash = {
@@ -1811,7 +1842,8 @@ public class TorrentUtil {
 	
 			for (int i = 0; i < itemsNeedingSelection.length; i++) {
 				String itemID = itemsNeedingSelection[i];
-				mapNewToolbarStates.put(itemID, hasSelection);
+			mapNewToolbarStates.put(itemID, hasSelection
+					? ToolBarEnabler2.STATE_ENABLED : 0);
 			}
 	
 			TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
@@ -1880,7 +1912,8 @@ public class TorrentUtil {
 					}
 				}
 				boolean canRemove = hasDM || canRemoveFileInfo;
-				mapNewToolbarStates.put("remove", canRemove);
+			mapNewToolbarStates.put("remove", canRemove
+					? ToolBarEnabler2.STATE_ENABLED : 0);
 			}
 	
 	    boolean canRun = has1Selection && ((hasDM && !canRunFileInfo) || (!hasDM && canRunFileInfo));
@@ -1913,47 +1946,50 @@ public class TorrentUtil {
 					}
 				}
 			}
-			mapNewToolbarStates.put("run", canRun);
+			mapNewToolbarStates.put("run", canRun ? ToolBarEnabler2.STATE_ENABLED : 0);
 	
-			mapNewToolbarStates.put("start", canStart);
-			mapNewToolbarStates.put("stop", canStop);
+			mapNewToolbarStates.put("start", canStart ? ToolBarEnabler2.STATE_ENABLED : 0);
+			mapNewToolbarStates.put("stop", canStop ? ToolBarEnabler2.STATE_ENABLED : 0);
 	
 			for (int i = 0; i < itemsNeedingRealDMSelection.length; i++) {
 				String itemID = itemsNeedingRealDMSelection[i];
 				if (!mapNewToolbarStates.containsKey(itemID)) {
 	  			mapNewToolbarStates.put(itemID, hasSelection && hasDM
-	  					&& hasRealDM);
+	  					&& hasRealDM ? ToolBarEnabler2.STATE_ENABLED : 0);
 				}
 			}
 			for (int i = 0; i < itemsRequiring1DMSelection.length; i++) {
 				String itemID = itemsRequiring1DMSelection[i];
 				if (!mapNewToolbarStates.containsKey(itemID)) {
-					mapNewToolbarStates.put(itemID, has1Selection && hasDM);
+					mapNewToolbarStates.put(itemID, has1Selection && hasDM ? ToolBarEnabler2.STATE_ENABLED : 0);
 				}
 			}
 	
 			for (int i = 0; i < itemsRequiring1DMwithHash.length; i++) {
 				String itemID = itemsRequiring1DMwithHash[i];
 				if (!mapNewToolbarStates.containsKey(itemID)) {
-					mapNewToolbarStates.put(itemID, hasDM);
+					mapNewToolbarStates.put(itemID, hasDM ? ToolBarEnabler2.STATE_ENABLED : 0);
 				}
 			}
 	
-			mapNewToolbarStates.put("download", has1Selection
+		mapNewToolbarStates.put(
+				"download",
+				has1Selection
 						&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
 						&& currentContent[0].getDownloadManager() == null
-						&& (currentContent[0].getHash() != null || currentContent[0].getDownloadInfo() != null));
-	
-			if (tv != null) {
-				TableColumn tc = tv.getTableColumn(RankItem.COLUMN_ID);
-				if (tc != null && !tc.isVisible()) {
-					mapNewToolbarStates.put("up", false);
-					mapNewToolbarStates.put("down", false);
-				}
+						&& (currentContent[0].getHash() != null || currentContent[0].getDownloadInfo() != null)
+						? ToolBarEnabler2.STATE_ENABLED : 0);
+
+		if (tv != null) {
+			TableColumn tc = tv.getTableColumn(RankItem.COLUMN_ID);
+			if (tc != null && !tc.isVisible()) {
+				mapNewToolbarStates.put("up", 0L);
+				mapNewToolbarStates.put("down", 0L);
 			}
-			
-			return mapNewToolbarStates;
 		}
+			
+		return mapNewToolbarStates;
+	}
 
 	public static void removeDownloads(DownloadManager[] dms, AERunnable deleteFailed) {
 		removeDownloads(dms, deleteFailed, false);

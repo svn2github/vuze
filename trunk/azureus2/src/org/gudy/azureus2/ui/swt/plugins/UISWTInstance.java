@@ -31,6 +31,7 @@ import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.ui.common.UIInstanceBase;
 
 /**
  * Tools to manage a SWT Instance
@@ -38,7 +39,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
  * @see org.gudy.azureus2.plugins.ui.UIManagerListener
  * @see org.gudy.azureus2.plugins.ui.UIManager#addUIListener(UIManagerListener)
  */
-public interface UISWTInstance extends UIInstance {
+public interface UISWTInstance extends UIInstanceBase {
 	/** ID of main view */
 	public static final String VIEW_MAIN = "Main";
 

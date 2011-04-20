@@ -204,4 +204,6 @@ public interface TableViewSWT<DATASOURCETYPE>
 	 * @since 4.6.0.5
 	 */
 	boolean isMenuEnabled();
+
+	void packColumns();
 }

@@ -47,6 +47,7 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.model.PluginConfigModel;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.ui.common.UIInstanceBase;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.IUIIntializer;
@@ -706,9 +707,17 @@ UIManagerImpl
 					ev_it.remove();
 				}				
 			}
-  		}finally{
+			
+			for (UIInstanceFactory uif : ui_factories) {
+				UIInstance instance = uif.getInstance(pi);
+				if (instance instanceof UIInstanceBase) {
+					UIInstanceBase instanceBase = (UIInstanceBase) instance;
+					instanceBase.unload(pi);
+				}
+			}
+  	}finally{
   			
-  			class_mon.exit();
-  		}	
+  		class_mon.exit();
+  	}	
 	}
 }

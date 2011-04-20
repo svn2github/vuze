@@ -52,7 +52,8 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.ToolBarEnabler2;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
@@ -81,7 +82,7 @@ import com.aelitis.azureus.util.PlayUtils;
  */
 public class SBC_LibraryTableView
 	extends SkinView
-	implements UIUpdatable, ToolBarEnabler, ObfusticateImage
+	implements UIUpdatable, ToolBarEnabler2, ObfusticateImage
 {
 	private final static String ID = "SBC_LibraryTableView";
 
@@ -374,8 +375,8 @@ public class SBC_LibraryTableView
 		return super.skinObjectHidden(skinObject, params);
 	}
 
-	public void refreshToolBar(Map<String, Boolean> list) {
-		view.refreshToolBar(list);
+	public void refreshToolBarItems(Map<String, Long> list) {
+		view.refreshToolBarItems(list);
 		if (tv == null) {
 			return;
 		}
@@ -386,21 +387,20 @@ public class SBC_LibraryTableView
 				has1Selection
 						&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
 						&& PlayUtils.canPlayDS(currentContent[0],
-								currentContent[0].getFileIndex()));
+								currentContent[0].getFileIndex())
+						? ToolBarEnabler2.STATE_ENABLED : 0);
 		list.put(
 				"stream",
 				has1Selection
 						&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
 						&& PlayUtils.canStreamDS(currentContent[0],
-								currentContent[0].getFileIndex()));
+								currentContent[0].getFileIndex())
+						? ToolBarEnabler2.STATE_ENABLED : 0);
 	}
 
-	public boolean toolBarItemActivated(String itemKey) {
-		if (view.toolBarItemActivated(itemKey)) {
-			return true;
-		}
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
 		// currently stream and play are handled by ToolbarView..
-		return false;
+		return view.toolBarItemActivated(item, activationType, null);
 	}
 
 	/**

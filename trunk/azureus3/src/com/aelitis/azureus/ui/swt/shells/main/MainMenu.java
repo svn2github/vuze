@@ -10,6 +10,8 @@ import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
@@ -23,7 +25,7 @@ import com.aelitis.azureus.ui.swt.shells.RemotePairingWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarItem;
+import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemSO;
 import com.aelitis.azureus.ui.swt.views.skin.SBC_PlusFTUX;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
@@ -306,9 +308,9 @@ public class MainMenu
 				public void handleEvent(Event event) {
 					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 					if (tb != null) {
-						ToolBarItem item = tb.getToolBarItem("modeBig");
+						UIToolBarItem item = tb.getToolBarItem("modeBig");
 						if (item != null) {
-							item.triggerToolBarItem();
+							item.triggerToolBarItem(UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL, null);
 						}
 					}
 				}
@@ -318,9 +320,9 @@ public class MainMenu
 				public void handleEvent(Event event) {
 					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 					if (tb != null) {
-						ToolBarItem item = tb.getToolBarItem("modeSmall");
+						UIToolBarItem item = tb.getToolBarItem("modeSmall");
 						if (item != null) {
-							item.triggerToolBarItem();
+							item.triggerToolBarItem(UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL, null);
 						}
 					}
 				}
@@ -353,11 +355,13 @@ public class MainMenu
 					if (itemShowAsSimple != null) {
 						ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 						if (tb != null) {
-							ToolBarItem item = tb.getToolBarItem("modeBig");
+							UIToolBarItem item = tb.getToolBarItem("modeBig");
 							if (item != null && item.isEnabled()) {
 								itemShowAsSimple.setEnabled(true);
-								itemShowAsSimple.setSelection(item.getSkinButton().getSkinObject().getSuffix().contains(
-										"-down"));
+								if (item instanceof ToolBarItemSO) {
+									itemShowAsSimple.setSelection(((ToolBarItemSO) item).getSkinButton().getSkinObject().getSuffix().contains(
+											"-down"));
+								}
 							} else {
 								itemShowAsSimple.setEnabled(false);
 								itemShowAsSimple.setSelection(false);
@@ -369,11 +373,13 @@ public class MainMenu
 					if (itemShowAsAdv != null) {
 						ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 						if (tb != null) {
-							ToolBarItem item = tb.getToolBarItem("modeSmall");
+							UIToolBarItem item = tb.getToolBarItem("modeSmall");
 							if (item != null && item.isEnabled()) {
 								itemShowAsAdv.setEnabled(true);
-								itemShowAsAdv.setSelection(item.getSkinButton().getSkinObject().getSuffix().contains(
-										"-down"));
+								if (item instanceof ToolBarItemSO) {
+									itemShowAsAdv.setSelection(((ToolBarItemSO) item).getSkinButton().getSkinObject().getSuffix().contains(
+											"-down"));
+								}
 							} else {
 								itemShowAsAdv.setSelection(false);
 								itemShowAsAdv.setEnabled(false);

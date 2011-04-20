@@ -53,6 +53,7 @@ import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.components.CompositeMinSize;
@@ -69,6 +70,8 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.ToolBarEnabler2;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -97,7 +100,8 @@ public class MyTorrentsView
                   TableViewSWTMenuFillListener,
                   TableRefreshListener,
                   TableViewFilterCheck<DownloadManager>,
-                  TableRowRefreshListener
+                  TableRowRefreshListener,
+                  ToolBarEnabler2
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
@@ -592,10 +596,12 @@ public class MyTorrentsView
 			tabDropTarget.setTransfer(types);
 			tabDropTarget.addDropListener(new DropTargetAdapter() {
 				public void dragOver(DropTargetEvent e) {
-					if (drag_drop_line_start >= 0)
+					//System.out.println("dragging over: " + drag_drop_line_start);
+					if (drag_drop_line_start >= 0) {
 						e.detail = DND.DROP_MOVE;
-					else
+					} else {
 						e.detail = DND.DROP_NONE;
+					}
 				}
 
 				public void drop(DropTargetEvent e) {
@@ -1321,14 +1327,29 @@ public class MyTorrentsView
 	}
 
 
-  public void refreshToolBar(Map<String, Boolean> list) {
-		Map<String, Boolean> states = TorrentUtil.calculateToolbarStates(
+  public void refreshToolBarItems(Map<String, Long> list) {
+		Map<String, Long> states = TorrentUtil.calculateToolbarStates(
 				SelectedContentManager.getCurrentlySelectedContent(), tv.getTableID());
 		list.putAll(states);
-  }
-  
+  }  
 
-  public boolean toolBarItemActivated(String itemKey) {
+  public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
+  	String itemKey = item.getID();
+  	if (activationType == UIToolBarActivationListener.ACTIVATIONTYPE_HELD) {
+      if(itemKey.equals("up")) {
+        moveSelectedTorrentsTop();
+        return true;
+      }
+      if(itemKey.equals("down")){
+        moveSelectedTorrentsEnd();
+        return true;
+      }
+      return false;
+  	}
+
+  	if (activationType != UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL) {
+  		return false;
+  	}
     if(itemKey.equals("top")) {
       moveSelectedTorrentsTop();
       return true;
@@ -1356,6 +1377,10 @@ public class MyTorrentsView
     if(itemKey.equals("stop")){
       TorrentUtil.stopDataSources(tv.getSelectedDataSources().toArray());
       return true;
+    }
+    if (itemKey.equals("startstop")) {
+    	TorrentUtil.stopOrStartDataSources(tv.getSelectedDataSources().toArray());
+    	return true;
     }
     if(itemKey.equals("remove")){
       TorrentUtil.removeDataSources(tv.getSelectedDataSources().toArray());

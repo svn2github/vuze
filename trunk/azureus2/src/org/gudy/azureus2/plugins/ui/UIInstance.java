@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.plugins.ui;
 
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
+
 /**
  * This interface represents a UI running on the core (e.g. the SWT UI). 
  * The actual implementation of this will support UI-specific operations - 
@@ -65,4 +67,5 @@ UIInstance
 	 */
 	public UIMessage createMessage();
 
+	public UIToolBarManager getToolBarManager();
 }

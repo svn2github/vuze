@@ -47,7 +47,8 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.ToolBarEnabler2;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -57,7 +58,8 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
  * one view
  */
 public class MyTorrentsSuperView
-	implements ObfusticateImage, ToolBarEnabler, UISWTViewCoreEventListener, AEDiagnosticsEvidenceGenerator
+	implements ObfusticateImage, ToolBarEnabler2, UISWTViewCoreEventListener,
+	AEDiagnosticsEvidenceGenerator
 {
 	private static int SASH_WIDTH = 5;
 
@@ -311,22 +313,22 @@ public class MyTorrentsSuperView
   }
 
   /* (non-Javadoc)
-   * @see com.aelitis.azureus.ui.common.ToolBarEnabler#refreshToolBar(java.util.Map)
+   * @see com.aelitis.azureus.ui.common.ToolBarEnabler2#refreshToolBarItems(java.util.Map)
    */
-  public void refreshToolBar(Map<String, Boolean> list) {
+  public void refreshToolBarItems(Map<String, Long> list) {
     MyTorrentsView currentView = getCurrentView();
     if (currentView != null) {
-      currentView.refreshToolBar(list);
+      currentView.refreshToolBarItems(list);
     }
   }
 
   /* (non-Javadoc)
-   * @see com.aelitis.azureus.ui.common.ToolBarEnabler#toolBarItemActivated(java.lang.String)
+   * @see com.aelitis.azureus.ui.common.ToolBarActivation#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long)
    */
-  public boolean toolBarItemActivated(String itemKey) {
+  public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
     MyTorrentsView currentView = getCurrentView();
     if (currentView != null) {
-      if (currentView.toolBarItemActivated(itemKey)) {
+      if (currentView.toolBarItemActivated(item, activationType, null)) {
       	return true;
       }
     }
