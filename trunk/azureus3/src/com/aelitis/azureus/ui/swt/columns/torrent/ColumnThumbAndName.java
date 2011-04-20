@@ -64,7 +64,7 @@ public class ColumnThumbAndName
 	TableCellDisposeListener, TableCellSWTPaintListener,
 	TableCellClipboardListener, TableCellMouseMoveListener
 {
-	public static final Class[] DATASOURCE_TYPES = {
+	public static final Class<?>[] DATASOURCE_TYPES = {
 		Download.class,
 		org.gudy.azureus2.plugins.disk.DiskManagerFileInfo.class
 	};
@@ -81,8 +81,6 @@ public class ColumnThumbAndName
 	private boolean showIcon;
 
 	private boolean wrapText;
-
-	private String tooltip;
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] {
@@ -376,7 +374,7 @@ public class ColumnThumbAndName
 				}
 				int y = cellBounds.y + ((cellBounds.height - dstHeight + 1) / 2);
 				if (dstWidth > 0 && dstHeight > 0 && !imgBounds.isEmpty()) {
-					Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
+					//Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
 					Rectangle lastClipping = gc.getClipping();
 					try {
 						gc.setClipping(cellBounds);
@@ -426,7 +424,11 @@ public class ColumnThumbAndName
 		int padding = 10 + 20 + (showIcon ? cellArea.height : 0);
 		cellArea.x += padding;
 		cellArea.width -= padding;
-		String s = fileInfo.getFile(true).getName();
+		String prefix = fileInfo.getDownloadManager().getSaveLocation().toString();
+		String s = fileInfo.getFile(true).toString();
+		if (s.startsWith(prefix)) {
+			s = s.substring(prefix.length() + 1);
+		}
 		boolean over = GCStringPrinter.printString(gc, s, cellArea, true, false,
 				SWT.LEFT);
 		cell.setToolTip(over ? null : s);
