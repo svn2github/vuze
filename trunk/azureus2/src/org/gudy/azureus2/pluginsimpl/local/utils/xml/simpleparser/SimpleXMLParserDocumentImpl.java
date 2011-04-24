@@ -31,6 +31,9 @@ import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentN
 import org.w3c.dom.*;
 
 import java.io.*;
+import java.net.InetAddress;
+import java.net.URL;
+import java.net.UnknownHostException;
 import java.util.*;
 
 public class 
@@ -142,6 +145,35 @@ SimpleXMLParserDocumentImpl
 
 			db.setErrorHandler( error_handler );
 
+			db.setEntityResolver(
+				new EntityResolver()
+				{
+					public InputSource 
+					resolveEntity(
+						String publicId, String systemId )
+					{
+						// System.out.println( publicId + ", " + systemId );
+						
+						// handle bad DTD external refs
+						
+						try{
+							String host = new URL( systemId ).getHost();
+							
+							InetAddress.getByName( host );
+							
+							return( null );
+							
+						}catch( UnknownHostException e ){
+							
+							return new InputSource(	new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes()));
+							
+						}catch( Throwable e ){
+							
+							return( null );
+						}
+					}
+				});
+	
 			// Step 3: parse the input file
 					
 			document = db.parse( input_stream );
@@ -171,7 +203,7 @@ SimpleXMLParserDocumentImpl
 						
 		}catch( Throwable e ){
 			
-			// e.printStackTrace();
+			e.printStackTrace();
 			
 			throw( new SimpleXMLParserDocumentException( e ));
 		}
