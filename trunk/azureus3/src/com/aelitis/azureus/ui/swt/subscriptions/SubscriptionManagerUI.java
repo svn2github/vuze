@@ -1238,6 +1238,7 @@ SubscriptionManagerUI
 				MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS,
 				new UISWTViewEventListenerHolder(SubscriptionView.class, subs, null),
 				key, false, subs);
+		entry.setViewTitleInfo(viewTitleInfo);
 
 		// This sets up the entry (menu, etc)
 		SubscriptionMDIEntry entryInfo = new SubscriptionMDIEntry(subs, entry);
