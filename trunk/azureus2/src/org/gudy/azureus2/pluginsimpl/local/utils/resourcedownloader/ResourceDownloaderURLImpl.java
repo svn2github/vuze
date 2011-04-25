@@ -718,6 +718,10 @@ redirect_label:
 										error_str = FileUtil.readInputStreamAsString( error_stream, 256 );
 									}
 									
+										// grab properties anyway as they may be useful
+									
+									getRequestProperties( con );
+									
 									throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + http_con.getResponseMessage() + (error_str==null?"":( ": error=" + error_str ))));    
 								}
 									
