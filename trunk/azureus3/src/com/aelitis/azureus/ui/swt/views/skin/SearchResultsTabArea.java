@@ -630,7 +630,9 @@ public class SearchResultsTabArea
 				controlTop.setLayoutData(gd);
 
 				controlBottom.getParent().layout(true);
-				search.setUrl("about:blank");
+				if (search != null) {
+					search.setUrl("about:blank");
+				}
 				
 				BrowserContext context = browserSkinObject.getContext();
 				if (context != null) {
