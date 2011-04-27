@@ -69,6 +69,8 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.ToolBarEnabler2;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 
 
@@ -80,7 +82,7 @@ import com.aelitis.azureus.ui.common.table.*;
  */
 
 public class MyTrackerView
-	extends TableViewTab
+	extends TableViewTab<TRHostTorrent>
 	implements TRHostListener, CategoryManagerListener, TableLifeCycleListener,
 	TableSelectionListener, TableViewSWTMenuFillListener, TableRefreshListener
 {
@@ -128,7 +130,7 @@ public class MyTrackerView
 		tv.addRefreshListener(this, false);
 	}
 
-  public TableViewSWT initYourTableView() {
+  public TableViewSWT<TRHostTorrent> initYourTableView() {
   	return tv;
   }
 
@@ -346,9 +348,10 @@ public class MyTrackerView
 		}
 	}	 
 
-	@Override
-	public void refreshToolBar(Map list) {
-    boolean start = false, stop = false, remove = false;
+	public void refreshToolBarItems(Map<String, Long> list) {
+		super.refreshToolBarItems(list);
+
+		boolean start = false, stop = false, remove = false;
     Object[] hostTorrents = tv.getSelectedDataSources().toArray();
     if (hostTorrents.length > 0) {
       remove = true;
@@ -377,15 +380,16 @@ public class MyTrackerView
       }
     }
 
-    list.put("start", start);
-    list.put("stop", stop);
-    list.put("remove", remove);
-
-		super.refreshToolBar(list);
+    list.put("start", start ? ToolBarEnabler2.STATE_ENABLED : 0);
+    list.put("stop", stop ? ToolBarEnabler2.STATE_ENABLED : 0);
+    list.put("remove", remove ? ToolBarEnabler2.STATE_ENABLED : 0);
   }
   
 
-	public boolean toolBarItemActivated(String itemKey) {
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		String itemKey = item.getID();
+
     if(itemKey.equals("start")) {
       startSelectedTorrents();
       return true;
@@ -399,7 +403,7 @@ public class MyTrackerView
       return true;
     }
 
-		return super.toolBarItemActivated(itemKey);
+		return super.toolBarItemActivated(item, activationType, datasource);
 	}
   
   private void stopSelectedTorrents() {

@@ -60,6 +60,8 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.ToolBarEnabler2;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo2;
@@ -81,7 +83,7 @@ import com.aelitis.azureus.ui.swt.mdi.MdiSWTMenuHackListener;
  */
 public class ManagerView
 	implements DownloadManagerListener, ObfusticateTab, ObfusticateImage,
-	ViewTitleInfo2, UISWTViewCoreEventListener, ToolBarEnabler, UIUpdatable
+	ViewTitleInfo2, UISWTViewCoreEventListener, ToolBarEnabler2, UIUpdatable
 {
 
 	private static boolean registeredCoreSubViews = false;
@@ -406,27 +408,30 @@ public class ManagerView
 	  return( str.replaceAll( "&", "&&" ));
   }
   
-	public void refreshToolBar(Map<String, Boolean> list) {
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler2#refreshToolBarItems(java.util.Map)
+	 */
+	public void refreshToolBarItems(Map<String, Long> list) {
 		UISWTViewCore active_view = getActiveView();
 		if (active_view instanceof ToolBarEnabler) {
-			((ToolBarEnabler) active_view).refreshToolBar(list);
+			((ToolBarEnabler2) active_view).refreshToolBarItems(list);
 			return;
 		}
 
-		list.put("run", true);
-		list.put("start", ManagerUtils.isStartable(manager));
-		list.put("stop", ManagerUtils.isStopable(manager));
-		list.put("remove", true);
+		list.put("run", ToolBarEnabler2.STATE_ENABLED);
+		list.put("start", ManagerUtils.isStartable(manager) ? ToolBarEnabler2.STATE_ENABLED : 0);
+		list.put("stop", ManagerUtils.isStopable(manager) ? ToolBarEnabler2.STATE_ENABLED : 0);
+		list.put("remove", ToolBarEnabler2.STATE_ENABLED);
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler#toolBarItemActivated(java.lang.String)
-	 */
-	public boolean toolBarItemActivated(String itemKey) {
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		String itemKey = item.getID();
+
 		UISWTViewCore active_view = getActiveView();
-		if (active_view instanceof ToolBarEnabler) {
-			if (((ToolBarEnabler) active_view).toolBarItemActivated(itemKey)){
-				
+		if (active_view instanceof ToolBarEnabler2) {
+			if (((ToolBarEnabler2) active_view).toolBarItemActivated(item,
+					activationType, datasource)) {
 				return( true );
 			}
 		}

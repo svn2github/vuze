@@ -20,6 +20,8 @@ package com.aelitis.azureus.ui.selectedcontent;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.common.table.TableView;
@@ -169,4 +171,35 @@ public class SelectedContentManager
 	public static TableView getCurrentlySelectedTableView() {
 		return tv;
 	}
+
+	public static Object convertSelectedContentToObject(ISelectedContent[] contents) {
+		if (contents == null) {
+			contents = getCurrentlySelectedContent();
+		}
+		if (contents.length == 0) {
+			return null;
+		}
+		if (contents.length == 1) {
+			return selectedContentToObject(contents[0]);
+		}
+		Object[] objects = new Object[contents.length];
+		for (int i = 0; i < contents.length; i++) {
+			ISelectedContent content = contents[i];
+			objects[i] = selectedContentToObject(content);
+		}
+		return objects;
+	}
+	
+	private static Object selectedContentToObject(ISelectedContent content) {
+		Download dl = PluginCoreUtils.wrap(content.getDownloadManager());
+		if (dl == null) {
+			return null;
+		}
+		int i = content.getFileIndex();
+		if (i < 0) {
+			return dl;
+		}
+		return dl.getDiskManagerFileInfo(i);
+	}
+	
 }

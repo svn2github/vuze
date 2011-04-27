@@ -454,11 +454,14 @@ public class FilesView
 	}
 	
 	public void refreshToolBarItems(Map<String, Long> list) {
+		super.refreshToolBarItems(list);
 		ISelectedContent[] content = SelectedContentManager.getCurrentlySelectedContent();
-		Map<String, Long> states = TorrentUtil.calculateToolbarStates(content, tv.getTableID());
-		list.putAll(states);
-		list.put("up", 0L);
-		list.put("down", 0L);
+		long hasEnabledSelect = content.length > 0 ? ToolBarEnabler2.STATE_ENABLED : 0;
+		list.put("run", hasEnabledSelect);
+		list.put("start", hasEnabledSelect);
+		list.put("stop", hasEnabledSelect);
+		list.put("remove", hasEnabledSelect);
+		list.put("startstop", hasEnabledSelect);
 	}
 
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
@@ -488,6 +491,6 @@ public class FilesView
 	    }
 		}
 		
-    return super.toolBarItemActivated(itemKey);
+    return super.toolBarItemActivated(item, activationType, datasource);
 	}
 }

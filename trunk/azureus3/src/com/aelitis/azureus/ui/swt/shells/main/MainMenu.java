@@ -20,6 +20,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.shells.RemotePairingWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
@@ -310,7 +311,9 @@ public class MainMenu
 					if (tb != null) {
 						UIToolBarItem item = tb.getToolBarItem("modeBig");
 						if (item != null) {
-							item.triggerToolBarItem(UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL, null);
+							item.triggerToolBarItem(
+									UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL,
+									SelectedContentManager.convertSelectedContentToObject(null));
 						}
 					}
 				}
@@ -322,7 +325,9 @@ public class MainMenu
 					if (tb != null) {
 						UIToolBarItem item = tb.getToolBarItem("modeSmall");
 						if (item != null) {
-							item.triggerToolBarItem(UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL, null);
+							item.triggerToolBarItem(
+									UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL,
+									SelectedContentManager.convertSelectedContentToObject(null));
 						}
 					}
 				}

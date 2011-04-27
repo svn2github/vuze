@@ -14,10 +14,11 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.ToolBarEnabler2;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 
 public abstract class TableViewTab<DATASOURCETYPE>
-	implements UISWTViewCoreEventListener, ToolBarEnabler, AEDiagnosticsEvidenceGenerator
+	implements UISWTViewCoreEventListener, ToolBarEnabler2, AEDiagnosticsEvidenceGenerator
 {
 	private TableViewSWT<DATASOURCETYPE> tv;
 	private Object parentDataSource;
@@ -94,12 +95,13 @@ public abstract class TableViewTab<DATASOURCETYPE>
 	public Composite getComposite() {
 		return composite;
 	}
-	
+
 	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler#toolBarItemActivated(java.lang.String)
+	 * @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
 	 */
-	public boolean toolBarItemActivated(String itemKey) {
-		if (itemKey.equals("editcolumns")) {
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		if (item.getID().equals("editcolumns")) {
 			if (tv instanceof TableViewSWTImpl) {
 				((TableViewSWTImpl<?>)tv).showColumnEditor();
 				return true;
@@ -109,12 +111,12 @@ public abstract class TableViewTab<DATASOURCETYPE>
 	}
 	
 	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler#refreshToolBar(java.util.Map)
+	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler2#refreshToolBarItems(java.util.Map)
 	 */
-	public void refreshToolBar(Map<String, Boolean> list) {
-		list.put("editcolumns", true);
+	public void refreshToolBarItems(Map<String, Long> list) {
+		list.put("editcolumns", ToolBarEnabler2.STATE_ENABLED);
 	}
-
+	
 	public String getPropertiesPrefix() {
 		return propertiesPrefix;
 	}

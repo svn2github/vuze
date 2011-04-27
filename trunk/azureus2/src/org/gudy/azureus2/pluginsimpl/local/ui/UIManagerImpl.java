@@ -31,26 +31,28 @@ import java.util.List;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginConfigModelImpl;
-import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginViewModelImpl;
-import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuManagerImpl;
-import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableManagerImpl;
-
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.*;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.model.PluginConfigModel;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginConfigModelImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.model.BasicPluginViewModelImpl;
+import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableManagerImpl;
 import org.gudy.azureus2.ui.common.UIInstanceBase;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.IUIIntializer;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 
 
 
@@ -83,6 +85,8 @@ UIManagerImpl
 	
 	protected TableManager			table_manager;
 	protected MenuManager           menu_manager;
+
+	private static ArrayList<UIDataSourceListener> listDSListeners;
 	
 	public
 	UIManagerImpl(
@@ -222,6 +226,13 @@ UIManagerImpl
   	public static void
   	initialisationComplete()
   	{
+  		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
+  			public void currentlySelectedContentChanged(
+  					ISelectedContent[] currentContent, String viewID) {
+  				triggerDataSourceListeners(SelectedContentManager.convertSelectedContentToObject(currentContent));
+  			}
+  		});
+
   		List<Object[]> to_fire = new ArrayList<Object[]>();
   		
   		try{
@@ -719,5 +730,57 @@ UIManagerImpl
   			
   		class_mon.exit();
   	}	
+	}
+	
+	public void addDataSourceListener(UIDataSourceListener l, boolean triggerNow) {
+		class_mon.enter();
+		try {
+			if (listDSListeners == null) {
+				listDSListeners = new ArrayList<UIDataSourceListener>();
+			}
+			listDSListeners.add(l);
+		} finally {
+			class_mon.exit();
+		}
+		if (triggerNow) {
+			try {
+				ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
+				l.dataSourceChanged(SelectedContentManager.convertSelectedContentToObject(contents));
+			} catch (Throwable t) {
+				Debug.out(t);
+			}
+		}
+	}
+	
+	public void removeDataSourceListener(UIDataSourceListener l) {
+		class_mon.enter();
+		try {
+			if (listDSListeners == null) {
+				return;
+			}
+			listDSListeners.remove(l);
+		} finally {
+			class_mon.exit();
+		}
+	}
+	
+	private static void triggerDataSourceListeners(Object ds) {
+		UIDataSourceListener[] listeners;
+		class_mon.enter();
+		try {
+			if (listDSListeners == null) {
+				return;
+			}
+			listeners = listDSListeners.toArray(new UIDataSourceListener[0]);
+		} finally {
+			class_mon.exit();
+		}
+		for (UIDataSourceListener l : listeners) {
+			try {
+				l.dataSourceChanged(ds);
+			} catch (Throwable t) {
+				Debug.out(t);
+			}
+		}
 	}
 }

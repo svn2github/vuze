@@ -61,6 +61,8 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.ToolBarEnabler2;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 
 /**
@@ -70,7 +72,7 @@ import com.aelitis.azureus.ui.common.table.*;
  *         2004/Apr/21: extends TableView instead of IAbstractView
  */
 public class MySharesView 
-extends TableViewTab
+extends TableViewTab<ShareResource>
 implements ShareManagerListener,
 		TableLifeCycleListener, TableViewSWTMenuFillListener,
 		TableRefreshListener, TableSelectionListener
@@ -344,9 +346,11 @@ implements ShareManagerListener,
 	      }
 	    });
 	  }
-	  
-  public void refreshToolBar(Map list) {
-    boolean start = false, stop = false, remove = false;
+
+	public void refreshToolBarItems(Map<String, Long> list) {
+	  	super.refreshToolBarItems(list);
+
+	  	boolean start = false, stop = false, remove = false;
     
     if (!AzureusCoreFactory.isCoreRunning()) {
     	return;
@@ -395,15 +399,16 @@ implements ShareManagerListener,
       }
     }
   
-  	list.put("start", start);
-  	list.put("stop", stop);
-  	list.put("remove", remove);
-
-    super.refreshToolBar(list);
+  	list.put("start", start ? ToolBarEnabler2.STATE_ENABLED : 0);
+  	list.put("stop", stop ? ToolBarEnabler2.STATE_ENABLED : 0);
+  	list.put("remove", remove ? ToolBarEnabler2.STATE_ENABLED : 0);
   }
   
 
-  public boolean toolBarItemActivated(String itemKey) {
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		String itemKey = item.getID();
+
     if(itemKey.equals("remove")){
       removeSelectedShares();
       return true;
@@ -414,7 +419,7 @@ implements ShareManagerListener,
     	startSelectedShares();
     	return true;
     }
-  	return super.toolBarItemActivated(itemKey);
+		return super.toolBarItemActivated(item, activationType, datasource);
   }
   
   private List

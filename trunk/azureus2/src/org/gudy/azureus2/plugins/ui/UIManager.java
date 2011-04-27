@@ -332,5 +332,7 @@ UIManager
  	 * @since 3.0.5.3
  	 */
  	public void showFile(File file);
- 	
+
+ 	public void addDataSourceListener(UIDataSourceListener l, boolean triggerNow);
+ 	public void removeDataSourceListener(UIDataSourceListener l);
 }
