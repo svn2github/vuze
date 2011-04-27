@@ -62,6 +62,7 @@ import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemSO;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.PlayUtils;
+import com.aelitis.azureus.util.StringCompareUtils;
 
 /**
  * @author TuxPaper
@@ -497,8 +498,21 @@ public class ToolBarView
 		resizeGap();
 
 		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
+			String lastViewID = null;
 			public void currentlySelectedContentChanged(
 					ISelectedContent[] currentContent, String viewID) {
+				if (!StringCompareUtils.equals(lastViewID, viewID)) {
+					lastViewID = viewID;
+					ToolBarItem[] allToolBarItems = getAllSWTToolBarItems();
+					for (int i = 0; i < allToolBarItems.length; i++) {
+						UIToolBarItem toolBarItem = allToolBarItems[i];
+						if (toolBarItem.isAlwaysAvailable()) {
+							toolBarItem.setEnabled(true);
+						} else {
+							toolBarItem.setEnabled(false);
+						}
+					}
+				}
 				refreshCoreToolBarItems();
 				//updateCoreItems(currentContent, viewID);
 				UIFunctionsManagerSWT.getUIFunctionsSWT().refreshTorrentMenu();
@@ -1119,7 +1133,8 @@ public class ToolBarView
 			boolean rightClick = (stateMask & (SWT.BUTTON3 | SWT.MOD4)) > 0;
 			item.triggerToolBarItem(rightClick
 					? UIToolBarActivationListener.ACTIVATIONTYPE_RIGHTCLICK
-					: UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL, null);
+					: UIToolBarActivationListener.ACTIVATIONTYPE_NORMAL,
+					SelectedContentManager.convertSelectedContentToObject(null));
 		}
 
 		public boolean held(SWTSkinButtonUtility buttonUtility) {
@@ -1128,7 +1143,8 @@ public class ToolBarView
 			buttonUtility.getSkinObject().switchSuffix("", 0, false, true);
 
 			boolean triggerToolBarItemHold = item.triggerToolBarItem(
-					UIToolBarActivationListener.ACTIVATIONTYPE_HELD, null);
+					UIToolBarActivationListener.ACTIVATIONTYPE_HELD,
+					SelectedContentManager.convertSelectedContentToObject(null));
 			return triggerToolBarItemHold;
 		}
 
