@@ -30,9 +30,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.ui.UIInstance;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIManagerListener;
+import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -43,20 +41,16 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.Initializer;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemSO;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-import com.aelitis.azureus.ui.swt.views.skin.ToolBarView.ToolBarViewListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 
 /**
@@ -65,7 +59,7 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
  *
  */
 public class SBC_LibraryView
-	extends SkinView implements ToolBarEnabler
+	extends SkinView implements UIPluginViewToolBarListener
 {
 	private final static String ID = "library-list";
 
@@ -170,8 +164,6 @@ public class SBC_LibraryView
 		}
 
 		SB_Transfers.triggerCountRefreshListeners();
-
-		setupModeButtons();
 	}
 
 
@@ -361,74 +353,45 @@ public class SBC_LibraryView
 			});
 		}
 
-		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
-		if (mdi != null) {
-			MdiEntry entry = mdi.getEntryFromSkinObject(skinObject);
-			if (entry != null) {
-				entry.addToolbarEnabler(SBC_LibraryView.this);
-			}
-		}
-
-		SkinViewManager.addListener(ToolBarView.class,
-				new SkinViewManager.SkinViewManagerListener() {
-					public void skinViewAdded(SkinView skinview) {
-						if (skinview instanceof ToolBarView) {
-							ToolBarView tbv = (ToolBarView) skinview;
-							tbv.addListener(new ToolBarViewListener() {
-								public void toolbarViewInitialized(ToolBarView tbv) {
-									setupModeButtons();
-								}
-							});
-						}
-					}
-				});
-
 		SB_Transfers.setupViewTitleWithCore(core);
 	}
 
 
-	public void refreshToolBar(Map<String, Boolean> list) {
-		list.put("modeSmall", true);
-		list.put("modeBig", true);
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
+	 */
+	public void refreshToolBarItems(Map<String, Long> list) {
+		long stateSmall = UIToolBarItem.STATE_ENABLED;
+		long stateBig = UIToolBarItem.STATE_ENABLED;
+		if (viewMode == MODE_BIGTABLE) {
+			stateBig |= UIToolBarItem.STATE_DOWN;
+		} else {
+			stateSmall |= UIToolBarItem.STATE_DOWN;
+		}
+		list.put("modeSmall", stateSmall);
+		list.put("modeBig", stateBig);
 	}
 	
-	public boolean toolBarItemActivated(String itemKey) {
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
+	 */
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		String itemKey = item.getID();
+
 		if (itemKey.equals("modeSmall")) {
 			if (isVisible()) {
 				setViewMode(MODE_SMALLTABLE, true);
+				return true;
 			}
 		}
 		if (itemKey.equals("modeBig")) {
 			if (isVisible()) {
 				setViewMode(MODE_BIGTABLE, true);
+				return true;
 			}
 		}
 		return false;
-	}
-
-	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
-		super.skinObjectShown(skinObject, params);
-
-		setupModeButtons();
-		return null;
-	}
-
-	private void setupModeButtons() {
-		
-		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-		if (tb != null) {
-			UIToolBarItem itemModeSmall = tb.getToolBarItem("modeSmall");
-			if (itemModeSmall instanceof ToolBarItemSO) {
-				((ToolBarItemSO) itemModeSmall).getSkinButton().getSkinObject().switchSuffix(
-						viewMode == MODE_BIGTABLE ? "" : "-down");
-			}
-			UIToolBarItem itemModeBig = tb.getToolBarItem("modeBig");
-			if (itemModeBig instanceof ToolBarItemSO) {
-				((ToolBarItemSO) itemModeBig).getSkinButton().getSkinObject().switchSuffix(
-						viewMode == MODE_BIGTABLE ? "-down" : "");
-			}
-		}
 	}
 
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)

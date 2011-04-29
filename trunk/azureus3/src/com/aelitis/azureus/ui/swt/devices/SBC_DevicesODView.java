@@ -29,17 +29,25 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
-import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
@@ -52,16 +60,13 @@ import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.tables.*;
-
 
 public class 
 SBC_DevicesODView
 	extends SkinView
-	implements UIUpdatable, ToolBarEnabler
+	implements UIUpdatable, UIPluginViewToolBarListener
 {
-	public static final String TABLE_RCM = "DevicesOD";
+	public static final String TABLE_ID = "DevicesOD";
 
 	private static boolean columnsAdded = false;
 	
@@ -164,7 +169,7 @@ SBC_DevicesODView
 
 		TableColumnManager tcm = TableColumnManager.getInstance();
 		TableColumnCore[] allTCs = tcm.getAllTableColumnCoreAsArray(
-				DeviceOfflineDownload.class, TABLE_RCM);
+				DeviceOfflineDownload.class, TABLE_ID);
 		// for now, all columns are default
 		ArrayList<String> names = new ArrayList<String>();
 		for (int i = 0; i < allTCs.length; i++) {
@@ -173,7 +178,7 @@ SBC_DevicesODView
 				names.add(tc.getName());
 			}
 		}
-		tcm.setDefaultColumnNames(TABLE_RCM, names.toArray(new String[0]));
+		tcm.setDefaultColumnNames(TABLE_ID, names.toArray(new String[0]));
 }
 
 	public Object 
@@ -259,8 +264,8 @@ SBC_DevicesODView
 		tv_downloads = 
 			new TableViewSWTImpl<DeviceOfflineDownload>(
 					DeviceOfflineDownload.class, 
-					TABLE_RCM,
-					TABLE_RCM, 
+					TABLE_ID,
+					TABLE_ID, 
 					new TableColumnCore[0], 
 					ColumnOD_Name.COLUMN_ID, 
 					SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL );
@@ -585,12 +590,20 @@ SBC_DevicesODView
 		control.layout(true);
 	}	
 
-	public void refreshToolBar(Map<String, Boolean> list) {
-		list.put("remove", true);
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
+	 */
+	public void refreshToolBarItems(Map<String, Long> list) {
+		long stateRemove = 0;
+		if (tv_downloads != null && tv_downloads.getSelectedRowsSize() > 0) {
+			stateRemove = UIToolBarItem.STATE_ENABLED;
+		}
+		list.put("remove", stateRemove);
 	}
 	
-	public boolean toolBarItemActivated(String itemKey) {
-		if (itemKey.equals("remove")) {
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		if (item.getID().equals("remove")) {
 			MessageBoxShell mb = 
 				new MessageBoxShell(
 					MessageText.getString("message.confirm.delete.title"),

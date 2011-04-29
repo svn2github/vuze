@@ -14,7 +14,10 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -29,7 +32,7 @@ import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
@@ -40,7 +43,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class SubscriptionsView
-	implements SubscriptionManagerListener, ToolBarEnabler,
+	implements SubscriptionManagerListener, UIPluginViewToolBarListener,
 	UISWTViewCoreEventListener
 {
 	private static final String TABLE_ID = "subscriptions";
@@ -105,22 +108,22 @@ public class SubscriptionsView
 			view.refreshTable(true);
 		}
 	}
-	
-	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler#refreshToolBar(java.util.Map)
-	 */
-	public void refreshToolBar(Map<String, Boolean> list) {
-		list.put("remove", view.getSelectedRowsSize() > 0);
-		TableRowCore[] rows = view.getSelectedRows();
-		list.put("share", rows.length == 1);
-	}
-	
 
 	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler#toolBarItemActivated(java.lang.String)
+	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
 	 */
-	public boolean toolBarItemActivated(String itemKey) {
-		if("remove".equals(itemKey) ) {
+	public void refreshToolBarItems(Map<String, Long> list) {
+		int numRows = view.getSelectedRowsSize();
+		list.put("remove", numRows > 0 ? UIToolBarItem.STATE_ENABLED : 0);
+		list.put("share", numRows == 1 ? UIToolBarItem.STATE_ENABLED : 0);
+	}
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
+	 */
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		if("remove".equals(item.getID()) ) {
 			removeSelected();
 			return true;
 		}

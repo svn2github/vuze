@@ -26,7 +26,6 @@ import com.aelitis.azureus.ui.swt.shells.RemotePairingWindow;
 import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinUtils;
-import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemSO;
 import com.aelitis.azureus.ui.swt.views.skin.SBC_PlusFTUX;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
@@ -361,16 +360,9 @@ public class MainMenu
 						ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 						if (tb != null) {
 							UIToolBarItem item = tb.getToolBarItem("modeBig");
-							if (item != null && item.isEnabled()) {
-								itemShowAsSimple.setEnabled(true);
-								if (item instanceof ToolBarItemSO) {
-									itemShowAsSimple.setSelection(((ToolBarItemSO) item).getSkinButton().getSkinObject().getSuffix().contains(
-											"-down"));
-								}
-							} else {
-								itemShowAsSimple.setEnabled(false);
-								itemShowAsSimple.setSelection(false);
-							}
+							long state = item == null ? 0 : item.getState();
+							itemShowAsSimple.setEnabled((state & UIToolBarItem.STATE_ENABLED) > 0);
+							itemShowAsSimple.setSelection((state & UIToolBarItem.STATE_DOWN) > 0);
 						}
 					}
 					MenuItem itemShowAsAdv = MenuFactory.findMenuItem(viewMenu, PREFIX_V3
@@ -379,16 +371,9 @@ public class MainMenu
 						ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
 						if (tb != null) {
 							UIToolBarItem item = tb.getToolBarItem("modeSmall");
-							if (item != null && item.isEnabled()) {
-								itemShowAsAdv.setEnabled(true);
-								if (item instanceof ToolBarItemSO) {
-									itemShowAsAdv.setSelection(((ToolBarItemSO) item).getSkinButton().getSkinObject().getSuffix().contains(
-											"-down"));
-								}
-							} else {
-								itemShowAsAdv.setSelection(false);
-								itemShowAsAdv.setEnabled(false);
-							}
+							long state = item == null ? 0 : item.getState();
+							itemShowAsAdv.setEnabled((state & UIToolBarItem.STATE_ENABLED) > 0);
+							itemShowAsAdv.setSelection((state & UIToolBarItem.STATE_DOWN) > 0);
 						}
 					}
 				}

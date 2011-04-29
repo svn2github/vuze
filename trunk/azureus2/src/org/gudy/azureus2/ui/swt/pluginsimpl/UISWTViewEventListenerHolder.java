@@ -159,4 +159,14 @@ UISWTViewEventListenerHolder
 
 		return( listener.eventOccurred( event ));
 	}
+	
+	public UISWTViewEventListener getDelegatedEventListener(UISWTView view) {
+		if (listener != null) {
+			return listener;
+		}
+		if (mapSWTViewToEventListener == null) {
+			return null;
+		}
+		return mapSWTViewToEventListener.get(view);
+	}
 }

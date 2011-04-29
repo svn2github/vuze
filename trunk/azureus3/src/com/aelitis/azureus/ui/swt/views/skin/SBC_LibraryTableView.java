@@ -30,9 +30,11 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -52,20 +54,16 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.ToolBarEnabler2;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedVuzeFileContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
-import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
@@ -82,7 +80,7 @@ import com.aelitis.azureus.util.PlayUtils;
  */
 public class SBC_LibraryTableView
 	extends SkinView
-	implements UIUpdatable, ToolBarEnabler2, ObfusticateImage
+	implements UIUpdatable, ObfusticateImage, UIPluginViewToolBarListener
 {
 	private final static String ID = "SBC_LibraryTableView";
 
@@ -340,14 +338,6 @@ public class SBC_LibraryTableView
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
 
-		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
-		if (mdi != null) {
-			MdiEntry entry = mdi.getEntryFromSkinObject(skinObject);
-			if (entry != null) {
-				entry.addToolbarEnabler(this);
-			}
-		}
-		
 		view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 		
 		Utils.execSWTThreadLater(0, new AERunnable() {
@@ -362,14 +352,6 @@ public class SBC_LibraryTableView
 	
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
-		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
-		if (mdi != null) {
-			MdiEntry entry = mdi.getEntryFromSkinObject(skinObject);
-			if (entry != null) {
-				entry.removeToolbarEnabler( this );
-			}
-		}
-
 		view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
 
 		return super.skinObjectHidden(skinObject, params);
@@ -388,19 +370,19 @@ public class SBC_LibraryTableView
 						&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
 						&& PlayUtils.canPlayDS(currentContent[0],
 								currentContent[0].getFileIndex())
-						? ToolBarEnabler2.STATE_ENABLED : 0);
+						? UIToolBarItem.STATE_ENABLED : 0);
 		list.put(
 				"stream",
 				has1Selection
 						&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
 						&& PlayUtils.canStreamDS(currentContent[0],
 								currentContent[0].getFileIndex())
-						? ToolBarEnabler2.STATE_ENABLED : 0);
+						? UIToolBarItem.STATE_ENABLED : 0);
 	}
 
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
 		// currently stream and play are handled by ToolbarView..
-		return view.toolBarItemActivated(item, activationType, null);
+		return false;
 	}
 
 	/**

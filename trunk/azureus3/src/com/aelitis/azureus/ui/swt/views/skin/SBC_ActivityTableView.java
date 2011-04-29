@@ -33,10 +33,12 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -47,6 +49,7 @@ import com.aelitis.azureus.activities.*;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
@@ -70,7 +73,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
  */
 public class SBC_ActivityTableView
 	extends SkinView
-	implements UIUpdatable, ToolBarEnabler, VuzeActivitiesListener
+	implements UIUpdatable, UIPluginViewToolBarListener, VuzeActivitiesListener
 {
 	private static final String TABLE_ID_PREFIX = "activity-";
 
@@ -211,15 +214,6 @@ public class SBC_ActivityTableView
 		return null;
 	}
 
-	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
-		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
-		if (mdi != null) {
-			MdiEntrySWT entry = mdi.getCurrentEntrySWT();
-			entry.addToolbarEnabler(this);
-		}
-		return super.skinObjectShown(skinObject, params);
-	}
-
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectDestroyed(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
 		if (view != null) {
@@ -240,13 +234,15 @@ public class SBC_ActivityTableView
 		}
 	}
 
-	public void refreshToolBar(Map<String, Boolean> list) {
+	public void refreshToolBarItems(Map<String, Long> list) {
 		list.put("remove",
-				isVisible() && view != null && view.getSelectedRowsSize() > 0);
+				isVisible() && view != null && view.getSelectedRowsSize() > 0
+						? UIToolBarItem.STATE_ENABLED : 0);
 	}
 
-	public boolean toolBarItemActivated(String itemKey) {
-		if (itemKey.equals("remove")) {
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		if (item.getID().equals("remove")) {
 			removeSelected();
 			return true;
 		}

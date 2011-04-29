@@ -15,13 +15,14 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarEnablerBase;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 
-import com.aelitis.azureus.ui.common.ToolBarEnablerBase;
 import com.aelitis.azureus.ui.common.viewtitleinfo.*;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -89,7 +90,7 @@ public abstract class BaseMdiEntry
 
 	private SWTSkinObject soMaster;
 
-	private Set<ToolBarEnablerBase> setToolBarEnablers = new HashSet<ToolBarEnablerBase>(
+	private Set<UIToolBarEnablerBase> setToolBarEnablers = new HashSet<UIToolBarEnablerBase>(
 			1);
 
 	private String preferredAfterID;
@@ -474,16 +475,22 @@ public abstract class BaseMdiEntry
 		}
 	}
 
-	public void addToolbarEnabler(ToolBarEnablerBase enabler) {
+	public void addToolbarEnabler(UIToolBarEnablerBase enabler) {
 		setToolBarEnablers.add(enabler);
 	}
 
-	public void removeToolbarEnabler(ToolBarEnablerBase enabler) {
+	public void removeToolbarEnabler(UIToolBarEnablerBase enabler) {
 		setToolBarEnablers.remove(enabler);
 	}
 
-	public ToolBarEnablerBase[] getToolbarEnablers() {
-		return setToolBarEnablers.toArray(new ToolBarEnablerBase[0]);
+	public UIToolBarEnablerBase[] getToolbarEnablers() {
+		if (view != null) {
+			UIPluginViewToolBarListener listener = view.getToolBarListener();
+			if (listener != null) {
+				return new UIToolBarEnablerBase[] { listener };
+			}
+		}
+		return setToolBarEnablers.toArray(new UIToolBarEnablerBase[0]);
 	}
 
 	public void setCoreView(UISWTViewCore view) {
@@ -502,10 +509,10 @@ public abstract class BaseMdiEntry
 			setViewTitleInfo((ViewTitleInfo) eventListener);
 		}
 
-		if (view instanceof ToolBarEnablerBase) {
-			addToolbarEnabler((ToolBarEnablerBase) view);
-		} else if (eventListener instanceof ToolBarEnablerBase) {
-			addToolbarEnabler((ToolBarEnablerBase) eventListener);
+		if (view instanceof UIToolBarEnablerBase) {
+			addToolbarEnabler((UIToolBarEnablerBase) view);
+		} else if (eventListener instanceof UIToolBarEnablerBase) {
+			addToolbarEnabler((UIToolBarEnablerBase) eventListener);
 		}
 
 		if (datasource != null) {
@@ -681,50 +688,33 @@ public abstract class BaseMdiEntry
 	public void setEventListener(UISWTViewEventListener _eventListener) {
 		this.eventListener = _eventListener;
 
-		if (eventListener instanceof ToolBarEnablerBase) {
-			addToolbarEnabler((ToolBarEnablerBase) eventListener);
-		}
-		if ((eventListener instanceof ViewTitleInfo) && viewTitleInfo == null) {
-			setViewTitleInfo((ViewTitleInfo) eventListener);
-		}
-
-		UISWTViewEventListener eventListenerDelegate = _eventListener;
-		/*
-		UISWTViewEventListener eventListenerDelegate = new UISWTViewEventListener() {
-			public boolean eventOccurred(UISWTViewEvent event) {
-				switch (event.getType()) {
-					case UISWTViewEvent.TYPE_CREATE:
-						break;
-
-					case UISWTViewEvent.TYPE_DATASOURCE_CHANGED:
-						if (skinObject != null) {
-							skinObject.triggerListeners(
-									SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED,
-									event.getData());
-						}
-						break;
-
-					default:
-						break;
-				}
-				return eventListener.eventOccurred(event);
-			}
-		};
-		*/
 		if (view != null) {
 			return;
 		}
 		try {
-			setCoreView(new UISWTViewImpl(parentID, id, eventListenerDelegate,
+			setCoreView(new UISWTViewImpl(parentID, id, _eventListener,
 					datasource));
 		} catch (Exception e) {
 			Debug.out(e);
 		}
 
-		if ((_eventListener instanceof BasicPluginViewImpl)
-				|| ((_eventListener instanceof UISWTViewEventListenerHolder))
-				&& ((UISWTViewEventListenerHolder) _eventListener).isLogView()) {
+		if (_eventListener instanceof UISWTViewEventListenerHolder) {
+			UISWTViewEventListenerHolder h = (UISWTViewEventListenerHolder) _eventListener;
+			UISWTViewEventListener delegatedEventListener = h.getDelegatedEventListener(view);
+			if (delegatedEventListener != null) {
+				this.eventListener = delegatedEventListener;
+			}
+		}
 
+		if (eventListener instanceof UIToolBarEnablerBase) {
+			addToolbarEnabler((UIToolBarEnablerBase) eventListener);
+		}
+		if ((eventListener instanceof ViewTitleInfo) && viewTitleInfo == null) {
+			setViewTitleInfo((ViewTitleInfo) eventListener);
+		}
+
+
+		if (eventListener instanceof BasicPluginViewImpl) {
 			if ("image.sidebar.plugin".equals(getImageLeftID())) {
 				setImageLeftID("image.sidebar.logview");
 			}

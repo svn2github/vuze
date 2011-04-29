@@ -50,6 +50,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -69,7 +70,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.ToolBarEnabler2;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 
@@ -380,9 +380,9 @@ public class MyTrackerView
       }
     }
 
-    list.put("start", start ? ToolBarEnabler2.STATE_ENABLED : 0);
-    list.put("stop", stop ? ToolBarEnabler2.STATE_ENABLED : 0);
-    list.put("remove", remove ? ToolBarEnabler2.STATE_ENABLED : 0);
+    list.put("start", start ? UIToolBarItem.STATE_ENABLED : 0);
+    list.put("stop", stop ? UIToolBarItem.STATE_ENABLED : 0);
+    list.put("remove", remove ? UIToolBarItem.STATE_ENABLED : 0);
   }
   
 

@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -60,7 +61,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
-import com.aelitis.azureus.ui.common.ToolBarEnabler2;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
@@ -68,7 +68,6 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo2;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
-import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -83,7 +82,7 @@ import com.aelitis.azureus.ui.swt.mdi.MdiSWTMenuHackListener;
  */
 public class ManagerView
 	implements DownloadManagerListener, ObfusticateTab, ObfusticateImage,
-	ViewTitleInfo2, UISWTViewCoreEventListener, ToolBarEnabler2, UIUpdatable
+	ViewTitleInfo2, UISWTViewCoreEventListener, UIUpdatable, UIPluginViewToolBarListener
 {
 
 	private static boolean registeredCoreSubViews = false;
@@ -299,6 +298,10 @@ public class ManagerView
 			// Send one last refresh to previous tab, just in case it
 			// wants to do something when view goes invisible
 			refresh();
+			
+			if (activeView != null) {
+				activeView.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
+			}
 
     	UISWTViewCore view = (UISWTViewCore)item.getData("IView");
     	if (view == null) {
@@ -316,6 +319,10 @@ public class ManagerView
     	}
     	
     	item.getControl().setFocus();
+			SelectedContentManager.clearCurrentlySelectedContent();
+    	
+			view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+
 
 	    UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 			if (uiFunctions != null) {
@@ -409,63 +416,42 @@ public class ManagerView
   }
   
 	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler2#refreshToolBarItems(java.util.Map)
+	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
 	 */
 	public void refreshToolBarItems(Map<String, Long> list) {
 		UISWTViewCore active_view = getActiveView();
-		if (active_view instanceof ToolBarEnabler) {
-			((ToolBarEnabler2) active_view).refreshToolBarItems(list);
-			return;
+		if (active_view != null) {
+			UIPluginViewToolBarListener l = active_view.getToolBarListener();
+			if (l != null) {
+				l.refreshToolBarItems(list);
+				return;
+			}
 		}
-
-		list.put("run", ToolBarEnabler2.STATE_ENABLED);
-		list.put("start", ManagerUtils.isStartable(manager) ? ToolBarEnabler2.STATE_ENABLED : 0);
-		list.put("stop", ManagerUtils.isStopable(manager) ? ToolBarEnabler2.STATE_ENABLED : 0);
-		list.put("remove", ToolBarEnabler2.STATE_ENABLED);
+		
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
+	 */
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
 			Object datasource) {
-		String itemKey = item.getID();
-
 		UISWTViewCore active_view = getActiveView();
-		if (active_view instanceof ToolBarEnabler2) {
-			if (((ToolBarEnabler2) active_view).toolBarItemActivated(item,
-					activationType, datasource)) {
-				return( true );
+		if (active_view != null) {
+			UIPluginViewToolBarListener l = active_view.getToolBarListener();
+			if (l != null && l.toolBarItemActivated(item, activationType, datasource)) {
+				return true;
 			}
 		}
 
-		if (itemKey.equals("run")) {
-			ManagerUtils.run(manager);
-			return true;
-		}
 		
-		if (itemKey.equals("start")) {
-			ManagerUtils.queue(manager, folder.getShell());
-			UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
-			return true;
-		}
-		
-		if (itemKey.equals("stop")) {
-			ManagerUtils.stop(manager, folder.getShell());
-			UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
-			return true;
-		}
-		
-		if (itemKey.equals("remove")) {
-			TorrentUtil.removeDownloads(new DownloadManager[] {
-				manager
-			}, null);
-			return true;
-		}
-		
+		String itemKey = item.getID();
+
 		if (itemKey.equals("editcolumns")) {
 			if (active_view instanceof ToolBarEnabler) {
 				return ((ToolBarEnabler)active_view).toolBarItemActivated(itemKey);
 			}
 		}
-		
+
 		return false;
 	}
   
@@ -615,6 +601,7 @@ public class ManagerView
     switch (event.getType()) {
       case UISWTViewEvent.TYPE_CREATE:
       	swtView = (UISWTView)event.getData();
+      	swtView.setToolBarListener(this);
         break;
 
       case UISWTViewEvent.TYPE_DESTROY:
@@ -633,20 +620,21 @@ public class ManagerView
       	dataSourceChanged(event.getData());
         break;
         
-      case UISWTViewEvent.TYPE_FOCUSGAINED:
-      	String id = getUpdateUIName();
-      	if (manager != null) {
-      		if (manager.getTorrent() != null) {
-						id += "." + manager.getInternalName();
-      		} else {
-      			id += ":" + manager.getSize();
-      		}
-      	}
-      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
-      		new SelectedContent(manager)
-      	});
+      case UISWTViewEvent.TYPE_FOCUSLOST: {
+      	UISWTViewCore view = getActiveView();
+  			if (view != null) {
+  				view.triggerEvent(event.getType(), null);
+  			}
+  			break;
+      }
 
-        
+      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	UISWTViewCore view = getActiveView();
+  			if (view != null) {
+  				view.triggerEvent(event.getType(), null);
+  			}
+      	// Fallthrough
+
       case UISWTViewEvent.TYPE_REFRESH:
         refresh();
         break;

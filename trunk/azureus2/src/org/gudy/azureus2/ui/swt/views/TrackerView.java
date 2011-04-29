@@ -22,7 +22,6 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Menu;
@@ -31,9 +30,8 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerTPSListener;
 import org.gudy.azureus2.core3.util.AERunnable;
-
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -41,20 +39,11 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.tracker.*;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
-import com.aelitis.azureus.ui.common.ToolBarEnabler2;
-import com.aelitis.azureus.ui.common.ToolBarItem;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener;
-import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableSelectedRowsListener;
+import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
-
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
 
 
 
@@ -277,45 +266,5 @@ public class TrackerView
 		tv.addDataSources( tps.toArray( (new TrackerPeerSource[tps.size()])));
 		
 		tv.processDataSourceQueue();
-	}
-	
-	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
-			Object datasource) {
-		if (super.toolBarItemActivated(item, activationType, datasource)){
-			return( true );
-		}
-		
-		String itemKey = item.getID();
-		
-		if (itemKey.equals("run")) {
-			ManagerUtils.run(manager);
-			return true;
-		}
-		
-		if (itemKey.equals("start")) {
-			ManagerUtils.queue(manager, getComposite().getShell());
-			return true;
-		}
-		
-		if (itemKey.equals("stop")) {
-			ManagerUtils.stop(manager, getComposite().getShell());
-			return true;
-		}
-		
-		if (itemKey.equals("remove")) {
-			TorrentUtil.removeDownloads(new DownloadManager[] {
-				manager
-			}, null);
-			return true;
-		}
-		return false;
-	}
-	
-	public void refreshToolBarItems(Map<String, Long> list) {
-		super.refreshToolBarItems(list);
-		list.put("run", ToolBarEnabler2.STATE_ENABLED);
-		list.put("start", ManagerUtils.isStartable(manager) ? ToolBarEnabler2.STATE_ENABLED : 0);
-		list.put("stop", ManagerUtils.isStopable(manager) ? ToolBarEnabler2.STATE_ENABLED : 0);
-		list.put("remove", ToolBarEnabler2.STATE_ENABLED);
 	}
 }

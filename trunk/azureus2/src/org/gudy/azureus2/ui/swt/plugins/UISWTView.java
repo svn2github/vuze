@@ -117,10 +117,9 @@ public interface UISWTView extends UIPluginView {
 	
 	/**
 	 * Gets the plugin interface associated with this view, null if none defined
+	 * 
 	 * @since 4.5.1.1
-	 * @return
 	 */
-	
 	public PluginInterface getPluginInterface();
 	
 }

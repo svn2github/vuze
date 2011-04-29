@@ -616,7 +616,9 @@ public class LoggerView
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				consoleText.setText("");
+				if (consoleText != null && !consoleText.isDisposed()) {
+					consoleText.setText("");
+				}
 			}
 		});
 	}

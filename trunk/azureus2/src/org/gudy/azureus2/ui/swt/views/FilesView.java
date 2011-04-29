@@ -43,9 +43,11 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -55,7 +57,6 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 
 import com.aelitis.azureus.core.util.AZ3Functions;
-import com.aelitis.azureus.ui.common.ToolBarEnabler2;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
@@ -74,7 +75,7 @@ public class FilesView
 	extends TableViewTab<DiskManagerFileInfo>
 	implements TableDataSourceChangedListener, TableSelectionListener,
 	TableViewSWTMenuFillListener, TableRefreshListener, DownloadManagerStateAttributeListener,
-	TableLifeCycleListener, ToolBarEnabler2
+	TableLifeCycleListener
 {
 	private static boolean registeredCoreSubViews = false;
 	boolean refreshing = false;
@@ -212,8 +213,9 @@ public class FilesView
 						fileInfo.getIndex()));
 			}
 		}
+		SelectedContent[] sc = listSelected.toArray(new SelectedContent[0]);
 		SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(),
-				listSelected.toArray(new SelectedContent[0]), tv);
+				sc, tv);
 	}
 
 	
@@ -373,6 +375,11 @@ public class FilesView
     createDragDrop();
   }
   
+  public void tableViewTabInitComplete() {
+  	updateSelectedContent();
+  	super.tableViewTabInitComplete();
+  }
+  
   public void tableViewDestroyed() {
   	Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -456,7 +463,8 @@ public class FilesView
 	public void refreshToolBarItems(Map<String, Long> list) {
 		super.refreshToolBarItems(list);
 		ISelectedContent[] content = SelectedContentManager.getCurrentlySelectedContent();
-		long hasEnabledSelect = content.length > 0 ? ToolBarEnabler2.STATE_ENABLED : 0;
+		long hasEnabledSelect = content.length > 0
+				? UIToolBarItem.STATE_ENABLED : 0;
 		list.put("run", hasEnabledSelect);
 		list.put("start", hasEnabledSelect);
 		list.put("stop", hasEnabledSelect);
@@ -492,5 +500,14 @@ public class FilesView
 		}
 		
     return super.toolBarItemActivated(item, activationType, datasource);
+	}
+
+	public boolean eventOccurred(UISWTViewEvent event) {
+		boolean b = super.eventOccurred(event);
+		if (event.getType() == UISWTViewEvent.TYPE_FOCUSGAINED) {
+	    updateSelectedContent();
+		} else if (event.getType() == UISWTViewEvent.TYPE_FOCUSLOST) {
+		}
+		return b;
 	}
 }

@@ -353,7 +353,7 @@ public class ManagerUtils {
   public static void 
   queue(
   		DownloadManager dm,
-		Composite panel) 
+		Composite panelNotUsed) 
   {
     if (dm != null) {
     	if (dm.getState() == DownloadManager.STATE_STOPPED){

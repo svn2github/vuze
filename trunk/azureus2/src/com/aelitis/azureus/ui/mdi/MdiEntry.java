@@ -19,9 +19,9 @@
 package com.aelitis.azureus.ui.mdi;
 
 import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarEnablerBase;
 
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
-import com.aelitis.azureus.ui.common.ToolBarEnablerBase;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 
 
@@ -133,11 +133,11 @@ public interface MdiEntry
 
 	public void setParentID(String id);
 
-	public ToolBarEnablerBase[] getToolbarEnablers();
+	public UIToolBarEnablerBase[] getToolbarEnablers();
 
-	public void addToolbarEnabler(ToolBarEnablerBase enabler);
+	public void addToolbarEnabler(UIToolBarEnablerBase enabler);
 
-	public void removeToolbarEnabler(ToolBarEnablerBase enabler);
+	public void removeToolbarEnabler(UIToolBarEnablerBase enabler);
 
 	public boolean isSelectable();
 

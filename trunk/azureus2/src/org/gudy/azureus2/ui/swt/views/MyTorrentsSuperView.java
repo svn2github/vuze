@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.DelayedListenerMultiCombiner;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -47,7 +48,6 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.ui.common.ToolBarEnabler2;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
@@ -58,8 +58,8 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
  * one view
  */
 public class MyTorrentsSuperView
-	implements ObfusticateImage, ToolBarEnabler2, UISWTViewCoreEventListener,
-	AEDiagnosticsEvidenceGenerator
+	implements ObfusticateImage, UISWTViewCoreEventListener,
+	AEDiagnosticsEvidenceGenerator, UIPluginViewToolBarListener
 {
 	private static int SASH_WIDTH = 5;
 
@@ -494,6 +494,7 @@ public class MyTorrentsSuperView
 		switch (event.getType()) {
 			case UISWTViewEvent.TYPE_CREATE:
 				swtView = (UISWTView) event.getData();
+      	swtView.setToolBarListener(this);
 				swtView.setTitle(getFullTitle());
 				break;
 

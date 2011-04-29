@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.toolbar;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 
@@ -31,31 +32,37 @@ import com.aelitis.azureus.ui.swt.views.skin.ToolBarView;
  * @created Jul 22, 2008
  *
  */
-public class ToolBarItemSO implements ToolBarItem
+public class ToolBarItemSO
+	implements ToolBarItem
 {
 	String imageID = "image.toolbar.run";
 
 	String id;
 
-	private SWTSkinButtonUtility 	skinButton;
-	private SWTSkinObjectText		skinTitle;
-	
-	boolean enabled = true;
-	
+	private SWTSkinButtonUtility skinButton;
+
+	private SWTSkinObjectText skinTitle;
+
+	boolean enabled = false;
+
 	private String textID;
-	
+
 	private String tooltipID;
-	
+
 	private boolean alwaysAvailable = false;
 
 	private final ToolBarView tbView;
-	
+
 	private UIToolBarActivationListener defaultActivation;
 
 	private final boolean isPluginItem;
 
 	private String groupID = UIToolBarManager.GROUP_MAIN;
-	
+
+	private long defaultState;
+
+	private boolean isDown;
+
 	/**
 	 * @param id
 	 * @param image
@@ -68,7 +75,8 @@ public class ToolBarItemSO implements ToolBarItem
 		isPluginItem = false;
 	}
 
-	public ToolBarItemSO(ToolBarView tbView, String id, String imageid, String textID) {
+	public ToolBarItemSO(ToolBarView tbView, String id, String imageid,
+			String textID) {
 		super();
 		this.tbView = tbView;
 		this.id = id;
@@ -91,7 +99,6 @@ public class ToolBarItemSO implements ToolBarItem
 		return tbView.triggerToolBarItem(this, activationType, datasource);
 	}
 
-
 	public String getID() {
 		return id;
 	}
@@ -105,18 +112,35 @@ public class ToolBarItemSO implements ToolBarItem
 		return skinButton;
 	}
 
-	public void setSkinTitle( SWTSkinObjectText s ){
-		skinTitle	= s;
+	public void setSkinTitle(SWTSkinObjectText s) {
+		skinTitle = s;
 	}
-	
-	public boolean isEnabled() {
+
+	public long getState() {
+		long state = (isEnabled() ? STATE_ENABLED : 0) | (isDown ? STATE_DOWN : 0);
+
+		return state;
+	}
+
+	public void setState(long state) {
+		setEnabled((state & STATE_ENABLED) > 0);
+		isDown = (state & STATE_DOWN) > 0;
+		if (skinButton != null) {
+			skinButton.getSkinObject().switchSuffix(isDown ? "-down" : "", 2, false);
+		}
+	}
+
+	private boolean isEnabled() {
 		if (skinButton != null) {
 			return !skinButton.isDisabled();
 		}
 		return enabled;
 	}
 
-	public void setEnabled(boolean enabled) {
+	private void setEnabled(boolean enabled) {
+		if (alwaysAvailable && !enabled) {
+			return;
+		}
 		this.enabled = enabled;
 		if (skinButton != null) {
 			skinButton.setDisabled(!enabled);
@@ -158,11 +182,11 @@ public class ToolBarItemSO implements ToolBarItem
 	public void setTooltipID(String tooltipID) {
 		this.tooltipID = tooltipID;
 	}
-	
+
 	public void setAlwaysAvailable(boolean alwaysAvailable) {
 		this.alwaysAvailable = alwaysAvailable;
 		if (alwaysAvailable) {
-			enabled = true;
+			setEnabled(true);
 		}
 	}
 
@@ -170,14 +194,15 @@ public class ToolBarItemSO implements ToolBarItem
 		return alwaysAvailable;
 	}
 
-	public void setDefaultActivationListener(UIToolBarActivationListener defaultActivation) {
+	public void setDefaultActivationListener(
+			UIToolBarActivationListener defaultActivation) {
 		this.defaultActivation = defaultActivation;
 	}
 
 	public UIToolBarActivationListener getDefaultActivationListener() {
 		return defaultActivation;
 	}
-	
+
 	public void dispose() {
 		// ToolBarView will dispose of skinobjects
 		skinButton = null;
@@ -190,5 +215,13 @@ public class ToolBarItemSO implements ToolBarItem
 
 	public void setGroupID(String groupID) {
 		this.groupID = groupID;
+	}
+
+	public void setDefaultState(long state) {
+		this.defaultState = state;
+	}
+
+	public long getDefaultState() {
+		return defaultState;
 	}
 }

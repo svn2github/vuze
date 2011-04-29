@@ -36,9 +36,11 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
@@ -55,7 +57,7 @@ import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
@@ -79,8 +81,8 @@ import com.aelitis.azureus.util.PlayUtils;
  */
 public class SBC_DevicesView
 	extends SkinView
-	implements TranscodeQueueListener, ToolBarEnabler, UIUpdatable,
-	TranscodeTargetListener, DeviceListener
+	implements TranscodeQueueListener, UIUpdatable,
+	TranscodeTargetListener, DeviceListener, UIPluginViewToolBarListener
 {
 	public static final String TABLE_DEVICES = "Devices";
 
@@ -131,7 +133,6 @@ public class SBC_DevicesView
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		if (mdi != null) {
 			mdiEntry = mdi.getCurrentEntrySWT();
-			mdiEntry.addToolbarEnabler(this);
 			device = (Device) mdiEntry.getDatasource();
 		}
 
@@ -1103,7 +1104,10 @@ public class SBC_DevicesView
 		}
 	}
 
-	public void refreshToolBar(Map<String, Boolean> list) {
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
+	 */
+	public void refreshToolBarItems(Map<String, Long> list) {
 		Object[] selectedDS;
 		int size;
 		synchronized (this) {
@@ -1117,7 +1121,7 @@ public class SBC_DevicesView
 			return;
 		}
 
-		list.put("remove", true);
+		list.put("remove", UIToolBarItem.STATE_ENABLED);
 
 		boolean can_stop = true;
 		boolean can_queue = true;
@@ -1166,10 +1170,10 @@ public class SBC_DevicesView
 			can_stop = can_queue = can_move_down = can_move_up = false;
 		}
 
-		list.put("stop", can_stop);
-		list.put("start", can_queue);
-		list.put("up", can_move_up);
-		list.put("down", can_move_down);
+		list.put("stop", can_stop ? UIToolBarItem.STATE_ENABLED : 0);
+		list.put("start", can_queue ? UIToolBarItem.STATE_ENABLED : 0);
+		list.put("up", can_move_up ? UIToolBarItem.STATE_ENABLED : 0);
+		list.put("down", can_move_down ? UIToolBarItem.STATE_ENABLED : 0);
 		
 		if ( selectedDS.length == 1 ){
 			
@@ -1180,7 +1184,7 @@ public class SBC_DevicesView
 				try{
 					if( PlayUtils.canUseEMP( f.getTargetFile())){
 				
-						list.put( "play", true );
+						list.put( "play", UIToolBarItem.STATE_ENABLED );
 					}
 				}catch( Throwable e ){
 					
@@ -1190,7 +1194,11 @@ public class SBC_DevicesView
 		}
 	}
 
-	public boolean toolBarItemActivated(final String itemKey) {
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
+	 */
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
 		// assumed to be on SWT thread, so it's safe to use tvFiles without a sync
 		if (tvFiles == null) {
 			return false;
@@ -1200,6 +1208,8 @@ public class SBC_DevicesView
 		if (selectedDS.length == 0) {
 			return false;
 		}
+		
+		final String itemKey = item.getID();
 
 		if (itemKey.equals("remove")) {
 			deleteFiles(selectedDS, 0);
@@ -1210,7 +1220,7 @@ public class SBC_DevicesView
 			
 			if ( selectedDS.length == 1 ){
 				
-				TranscodeFile f = (TranscodeFile)selectedDS[0];
+				TranscodeFile f = selectedDS[0];
 			
 				if ( TorrentListViewsUtils.openInEMP( f.getName(), f.getStreamURL()) == 0 ){
 				
@@ -1223,7 +1233,7 @@ public class SBC_DevicesView
 				selectedDS.length);
 
 		for (int i = 0; i < selectedDS.length; i++) {
-			TranscodeFile file = (TranscodeFile) selectedDS[i];
+			TranscodeFile file = selectedDS[i];
 			TranscodeJob job = file.getJob();
 			if (job != null) {
 				jobs.add(job);

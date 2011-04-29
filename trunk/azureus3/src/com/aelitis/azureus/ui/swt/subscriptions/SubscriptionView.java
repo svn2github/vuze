@@ -17,6 +17,8 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -30,7 +32,7 @@ import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
@@ -44,7 +46,7 @@ import com.aelitis.azureus.util.UrlFilter;
 
 public class
 SubscriptionView
-	implements OpenCloseSearchDetailsListener, ToolBarEnabler,
+	implements OpenCloseSearchDetailsListener, UIPluginViewToolBarListener,
 	UISWTViewCoreEventListener
 {
 	private Subscription	subs;
@@ -324,20 +326,21 @@ SubscriptionView
 			Debug.printStackTrace(e);
 		}
 	}
-	
+
 	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler#refreshToolBar(java.util.Map)
+	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
 	 */
-	public void refreshToolBar(Map<String, Boolean> list) {
-		list.put("share", true);
-		list.put("remove", true);
+	public void refreshToolBarItems(Map<String, Long> list) {
+		list.put("share", UIToolBarItem.STATE_ENABLED);
+		list.put("remove", UIToolBarItem.STATE_ENABLED);
 	}
 
 	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler#toolBarItemActivated(java.lang.String)
+	 * @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
 	 */
-	public boolean toolBarItemActivated(String itemKey) {
-		if (itemKey.equals("remove")) {
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		if (item.getID().equals("remove")) {
 	  	mdiInfo.removeWithConfirm();
 		}
 		return false;

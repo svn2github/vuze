@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.text.DecimalFormat;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -45,6 +46,8 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -55,6 +58,13 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.ToolBarItem;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
 /**
  * View of General information on the torrent
@@ -63,7 +73,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
  * 
  */
 public class GeneralView
-	implements ParameterListener, ObfusticateImage, UISWTViewCoreEventListener
+	implements ParameterListener, ObfusticateImage, UISWTViewCoreEventListener, UIPluginViewToolBarListener
 {
 	public static final String MSGID_PREFIX = "GeneralView";
 
@@ -1055,6 +1065,7 @@ public class GeneralView
       case UISWTViewEvent.TYPE_CREATE:
       	swtView = (UISWTView)event.getData();
       	swtView.setTitle(getFullTitle());
+      	swtView.setToolBarListener(this);
         break;
 
       case UISWTViewEvent.TYPE_DESTROY:
@@ -1075,6 +1086,18 @@ public class GeneralView
         break;
         
       case UISWTViewEvent.TYPE_FOCUSGAINED:
+      	String id = "DMDetails_General";
+      	if (manager != null) {
+      		if (manager.getTorrent() != null) {
+  					id += "." + manager.getInternalName();
+      		} else {
+      			id += ":" + manager.getSize();
+      		}
+      	}
+  
+      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
+      		new SelectedContent(manager)
+      	});
       	break;
         
       case UISWTViewEvent.TYPE_REFRESH:
@@ -1084,4 +1107,44 @@ public class GeneralView
 
     return true;
   }
+
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		String itemKey = item.getID();
+
+		if (itemKey.equals("run")) {
+			ManagerUtils.run(manager);
+			return true;
+		}
+		
+		if (itemKey.equals("start")) {
+			ManagerUtils.queue(manager, null);
+			UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
+			return true;
+		}
+		
+		if (itemKey.equals("stop")) {
+			ManagerUtils.stop(manager, null);
+			UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
+			return true;
+		}
+		
+		if (itemKey.equals("remove")) {
+			TorrentUtil.removeDownloads(new DownloadManager[] {
+				manager
+			}, null);
+			return true;
+		}
+		
+		return false;
+	}
+
+	public void refreshToolBarItems(Map<String, Long> list) {
+		list.put("run", UIToolBarItem.STATE_ENABLED);
+		list.put("start", ManagerUtils.isStartable(manager) ? UIToolBarItem.STATE_ENABLED : 0);
+		list.put("startstop", UIToolBarItem.STATE_ENABLED);
+		list.put("stop", ManagerUtils.isStopable(manager) ? UIToolBarItem.STATE_ENABLED : 0);
+		list.put("remove", UIToolBarItem.STATE_ENABLED);
+	}
+
 }

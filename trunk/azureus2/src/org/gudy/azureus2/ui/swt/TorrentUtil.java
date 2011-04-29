@@ -50,10 +50,9 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.ui.UIInputReceiver;
-import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
-import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
@@ -73,7 +72,6 @@ import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
-import com.aelitis.azureus.ui.common.ToolBarEnabler2;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.selectedcontent.*;
@@ -1843,7 +1841,7 @@ public class TorrentUtil {
 			for (int i = 0; i < itemsNeedingSelection.length; i++) {
 				String itemID = itemsNeedingSelection[i];
 			mapNewToolbarStates.put(itemID, hasSelection
-					? ToolBarEnabler2.STATE_ENABLED : 0);
+					? UIToolBarItem.STATE_ENABLED : 0);
 			}
 	
 			TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
@@ -1913,7 +1911,7 @@ public class TorrentUtil {
 				}
 				boolean canRemove = hasDM || canRemoveFileInfo;
 			mapNewToolbarStates.put("remove", canRemove
-					? ToolBarEnabler2.STATE_ENABLED : 0);
+					? UIToolBarItem.STATE_ENABLED : 0);
 			}
 	
 	    boolean canRun = has1Selection && ((hasDM && !canRunFileInfo) || (!hasDM && canRunFileInfo));
@@ -1946,29 +1944,29 @@ public class TorrentUtil {
 					}
 				}
 			}
-			mapNewToolbarStates.put("run", canRun ? ToolBarEnabler2.STATE_ENABLED : 0);
+			mapNewToolbarStates.put("run", canRun ? UIToolBarItem.STATE_ENABLED : 0);
 	
-			mapNewToolbarStates.put("start", canStart ? ToolBarEnabler2.STATE_ENABLED : 0);
-			mapNewToolbarStates.put("stop", canStop ? ToolBarEnabler2.STATE_ENABLED : 0);
+			mapNewToolbarStates.put("start", canStart ? UIToolBarItem.STATE_ENABLED : 0);
+			mapNewToolbarStates.put("stop", canStop ? UIToolBarItem.STATE_ENABLED : 0);
 	
 			for (int i = 0; i < itemsNeedingRealDMSelection.length; i++) {
 				String itemID = itemsNeedingRealDMSelection[i];
 				if (!mapNewToolbarStates.containsKey(itemID)) {
 	  			mapNewToolbarStates.put(itemID, hasSelection && hasDM
-	  					&& hasRealDM ? ToolBarEnabler2.STATE_ENABLED : 0);
+	  					&& hasRealDM ? UIToolBarItem.STATE_ENABLED : 0);
 				}
 			}
 			for (int i = 0; i < itemsRequiring1DMSelection.length; i++) {
 				String itemID = itemsRequiring1DMSelection[i];
 				if (!mapNewToolbarStates.containsKey(itemID)) {
-					mapNewToolbarStates.put(itemID, has1Selection && hasDM ? ToolBarEnabler2.STATE_ENABLED : 0);
+					mapNewToolbarStates.put(itemID, has1Selection && hasDM ? UIToolBarItem.STATE_ENABLED : 0);
 				}
 			}
 	
 			for (int i = 0; i < itemsRequiring1DMwithHash.length; i++) {
 				String itemID = itemsRequiring1DMwithHash[i];
 				if (!mapNewToolbarStates.containsKey(itemID)) {
-					mapNewToolbarStates.put(itemID, hasDM ? ToolBarEnabler2.STATE_ENABLED : 0);
+					mapNewToolbarStates.put(itemID, hasDM ? UIToolBarItem.STATE_ENABLED : 0);
 				}
 			}
 	
@@ -1978,7 +1976,7 @@ public class TorrentUtil {
 						&& (!(currentContent[0] instanceof ISelectedVuzeFileContent))
 						&& currentContent[0].getDownloadManager() == null
 						&& (currentContent[0].getHash() != null || currentContent[0].getDownloadInfo() != null)
-						? ToolBarEnabler2.STATE_ENABLED : 0);
+						? UIToolBarItem.STATE_ENABLED : 0);
 
 		if (tv != null) {
 			TableColumn tc = tv.getTableColumn(RankItem.COLUMN_ID);

@@ -36,7 +36,9 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarEnablerBase;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
@@ -443,16 +445,6 @@ public class ToolBarView
 					((SWTSkinObjectText) soTitle).setStyle(SWT.RIGHT);
 				}
 			}
-
-			public void setEnabled(boolean enabled) {
-				if (!enabled) {
-					SWTSkinObject so = getSkinButton().getSkinObject();
-					if (so != null && so.getSuffix().contains("-down")) {
-						so.switchSuffix("");
-					}
-				}
-				super.setEnabled(enabled);
-			}
 		};
 		item.setGroupID("views");
 		addToolBarItemNoCreate(item);
@@ -468,16 +460,6 @@ public class ToolBarView
 				if (soTitle instanceof SWTSkinObjectText) {
 					((SWTSkinObjectText) soTitle).setStyle(SWT.LEFT);
 				}
-			}
-
-			public void setEnabled(boolean enabled) {
-				if (!enabled) {
-					SWTSkinObject so = getSkinButton().getSkinObject();
-					if (so != null && so.getSuffix().contains("-down")) {
-						so.switchSuffix("");
-					}
-				}
-				super.setEnabled(enabled);
 			}
 		};
 		item.setGroupID("views");
@@ -506,10 +488,10 @@ public class ToolBarView
 					ToolBarItem[] allToolBarItems = getAllSWTToolBarItems();
 					for (int i = 0; i < allToolBarItems.length; i++) {
 						UIToolBarItem toolBarItem = allToolBarItems[i];
-						if (toolBarItem.isAlwaysAvailable()) {
-							toolBarItem.setEnabled(true);
+						if (toolBarItem instanceof ToolBarItemSO) {
+							toolBarItem.setState(((ToolBarItemSO) toolBarItem).getDefaultState());
 						} else {
-							toolBarItem.setEnabled(false);
+							toolBarItem.setState(0);
 						}
 					}
 				}
@@ -723,10 +705,10 @@ public class ToolBarView
 			MdiEntrySWT entry = mdi.getCurrentEntrySWT();
 			Map<String, Long> mapStates = new HashMap<String, Long>();
 			if (entry != null) {
-				ToolBarEnablerBase[] enablers = entry.getToolbarEnablers();
-				for (ToolBarEnablerBase enabler : enablers) {
-					if (enabler instanceof ToolBarEnabler2) {
-						((ToolBarEnabler2) enabler).refreshToolBarItems(mapStates);
+				UIToolBarEnablerBase[] enablers = entry.getToolbarEnablers();
+				for (UIToolBarEnablerBase enabler : enablers) {
+					if (enabler instanceof UIPluginViewToolBarListener) {
+						((UIPluginViewToolBarListener) enabler).refreshToolBarItems(mapStates);
 					} else if (enabler instanceof ToolBarEnabler) {
 						Map<String, Boolean> oldMapStates = new HashMap<String, Boolean>();
 						((ToolBarEnabler) enabler).refreshToolBar(oldMapStates);
@@ -738,9 +720,9 @@ public class ToolBarView
 								curState = 0L;
 							}
 							if (enable) {
-								mapStates.put(key, curState | ToolBarEnabler2.STATE_ENABLED);
+								mapStates.put(key, curState | UIToolBarItem.STATE_ENABLED);
 							} else {
-								mapStates.put(key, curState & (~ToolBarEnabler2.STATE_ENABLED));
+								mapStates.put(key, curState & (~UIToolBarItem.STATE_ENABLED));
 							}
 						}
 					}
@@ -812,7 +794,7 @@ public class ToolBarView
 				for (ISelectedContent content : currentContent) {
 					if (content.getDownloadManager() == null
 							&& content.getDownloadInfo() != null) {
-						mapStates.put("download", ToolBarEnabler2.STATE_ENABLED);
+						mapStates.put("download", UIToolBarItem.STATE_ENABLED);
 						break;
 					}
 				}
@@ -843,14 +825,14 @@ public class ToolBarView
 			// allow a tool-bar enabler to manually handle play/stream events
 
 			if (mapStates.containsKey("play")) {
-				can_play |= (mapStates.get("play") & ToolBarEnabler2.STATE_ENABLED) > 0;
+				can_play |= (mapStates.get("play") & UIToolBarItem.STATE_ENABLED) > 0;
 			}
 			if (mapStates.containsKey("stream")) {
-				can_stream |= (mapStates.get("stream") & ToolBarEnabler2.STATE_ENABLED) > 0;
+				can_stream |= (mapStates.get("stream") & UIToolBarItem.STATE_ENABLED) > 0;
 			}
 
 			mapStates.put("play", can_play | can_stream
-					? ToolBarEnabler2.STATE_ENABLED : 0);
+					? UIToolBarItem.STATE_ENABLED : 0);
 
 			UIToolBarItem pitem = getToolBarItem("play");
 
@@ -880,13 +862,9 @@ public class ToolBarView
 
 			for (int i = 0; i < allToolBarItems.length; i++) {
 				UIToolBarItem toolBarItem = allToolBarItems[i];
-				if (toolBarItem.isAlwaysAvailable()) {
-					toolBarItem.setEnabled(true);
-				} else {
-					Long state = mapStates.get(toolBarItem.getID());
-					if (state != null) {
-						toolBarItem.setEnabled((state & ToolBarEnabler2.STATE_ENABLED) > 0);
-					}
+				Long state = mapStates.get(toolBarItem.getID());
+				if (state != null) {
+					toolBarItem.setState(state);
 				}
 			}
 			return;
@@ -898,11 +876,11 @@ public class ToolBarView
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		if (mdi != null) {
 			MdiEntrySWT entry = mdi.getCurrentEntrySWT();
-			ToolBarEnablerBase[] enablers = entry.getToolbarEnablers();
-			for (ToolBarEnablerBase enabler : enablers) {
-				if (enabler instanceof ToolBarEnabler2) {
-					if (((ToolBarEnabler2) enabler).toolBarItemActivated(item,
-							activationType, datasource)) {
+			UIToolBarEnablerBase[] enablers = entry.getToolbarEnablers();
+			for (UIToolBarEnablerBase enabler : enablers) {
+				if (enabler instanceof UIPluginViewToolBarListener) {
+					if (((UIPluginViewToolBarListener) enabler).toolBarItemActivated(
+							item, activationType, datasource)) {
 						return true;
 					}
 				} else if (enabler instanceof ToolBarEnabler) {
@@ -943,6 +921,7 @@ public class ToolBarView
 
 	public void addToolBarItem(final ToolBarItemSO item, String templatePrefix,
 			SWTSkinObject soMain) {
+		item.setDefaultState(item.getState());
 		String groupID = item.getGroupID();
 		
 		int position = SWT.RIGHT;
@@ -1146,13 +1125,6 @@ public class ToolBarView
 					UIToolBarActivationListener.ACTIVATIONTYPE_HELD,
 					SelectedContentManager.convertSelectedContentToObject(null));
 			return triggerToolBarItemHold;
-		}
-
-		public void disabledStateChanged(SWTSkinButtonUtility buttonUtility,
-				boolean disabled) {
-			ToolBarItem item = (ToolBarItem) buttonUtility.getSkinObject().getData(
-					"toolbaritem");
-			item.setEnabled(!disabled);
 		}
 	}
 

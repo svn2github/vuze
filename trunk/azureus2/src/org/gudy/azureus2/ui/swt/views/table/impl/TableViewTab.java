@@ -8,17 +8,19 @@ import org.eclipse.swt.widgets.Menu;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
-import com.aelitis.azureus.ui.common.ToolBarEnabler2;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 
 public abstract class TableViewTab<DATASOURCETYPE>
-	implements UISWTViewCoreEventListener, ToolBarEnabler2, AEDiagnosticsEvidenceGenerator
+	implements UISWTViewCoreEventListener, UIPluginViewToolBarListener,
+	AEDiagnosticsEvidenceGenerator
 {
 	private TableViewSWT<DATASOURCETYPE> tv;
 	private Object parentDataSource;
@@ -114,7 +116,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 	 * @see com.aelitis.azureus.ui.common.ToolBarEnabler2#refreshToolBarItems(java.util.Map)
 	 */
 	public void refreshToolBarItems(Map<String, Long> list) {
-		list.put("editcolumns", ToolBarEnabler2.STATE_ENABLED);
+		list.put("editcolumns", UIToolBarItem.STATE_ENABLED);
 	}
 	
 	public String getPropertiesPrefix() {
@@ -143,6 +145,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		switch (event.getType()) {
 			case UISWTViewEvent.TYPE_CREATE:
 				swtView = (UISWTView) event.getData();
+				swtView.setToolBarListener(this);
 				swtView.setTitle(getFullTitle());
 				break;
 

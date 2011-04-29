@@ -63,10 +63,20 @@ public interface UIPluginView {
 	public void closeView();
 	
 	/**
+	 * Gets the plugin interface associated with this view, null if none defined
+	 * 
 	 * @since 4.5.1.1
-	 * @return
 	 */
-	
-	public PluginInterface
-	getPluginInterface();
+	public PluginInterface getPluginInterface();
+
+	/**
+	 * 
+	 * @since 4.6.0.5
+	 */
+	public void setToolBarListener(UIPluginViewToolBarListener l);
+
+	/**
+	 * @since 4.6.0.5
+	 */
+	public UIPluginViewToolBarListener getToolBarListener();
 }

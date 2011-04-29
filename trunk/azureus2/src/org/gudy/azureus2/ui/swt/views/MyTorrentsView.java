@@ -70,7 +70,6 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.ToolBarEnabler2;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
@@ -100,8 +99,7 @@ public class MyTorrentsView
                   TableViewSWTMenuFillListener,
                   TableRefreshListener,
                   TableViewFilterCheck<DownloadManager>,
-                  TableRowRefreshListener,
-                  ToolBarEnabler2
+                  TableRowRefreshListener
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	

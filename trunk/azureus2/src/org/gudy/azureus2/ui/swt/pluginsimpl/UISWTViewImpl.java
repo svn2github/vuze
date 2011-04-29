@@ -40,14 +40,15 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.*;
 
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
-import com.aelitis.azureus.ui.common.ToolBarEnabler2;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -60,7 +61,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  *
  */
 public class UISWTViewImpl
-	implements UISWTViewCore, ToolBarEnabler2, AEDiagnosticsEvidenceGenerator
+	implements UISWTViewCore, AEDiagnosticsEvidenceGenerator
 {
 	public static final String CFG_PREFIX = "Views.plugins.";
 
@@ -89,6 +90,8 @@ public class UISWTViewImpl
 	private String lastFullTitle = "";
 
 	private Boolean hasFocus = null;
+
+	private UIPluginViewToolBarListener toolbarListener;
 
 	public UISWTViewImpl(String sParentID, String sViewID,
 			UISWTViewEventListener eventListener, Object initialDatasource)
@@ -423,8 +426,11 @@ public class UISWTViewImpl
 	}
 
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
-		if (eventListener instanceof ToolBarEnabler2) {
-			return ((ToolBarEnabler2) eventListener).toolBarItemActivated(item, activationType, null);
+		if (toolbarListener != null) {
+			return toolbarListener.toolBarItemActivated(item, activationType, datasource);
+		}
+		if (eventListener instanceof UIPluginViewToolBarListener) {
+			return ((UIPluginViewToolBarListener) eventListener).toolBarItemActivated(item, activationType, datasource);
 		} else if (eventListener instanceof ToolBarEnabler) {
 			return ((ToolBarEnabler) eventListener).toolBarItemActivated(item.getID());
 		} 
@@ -432,21 +438,28 @@ public class UISWTViewImpl
 	}
 
 	public void refreshToolBarItems(Map<String, Long> list) {
-		if (eventListener instanceof ToolBarEnabler2) {
-			((ToolBarEnabler2) eventListener).refreshToolBarItems(list);
+		if (eventListener instanceof UIPluginViewToolBarListener) {
+			((UIPluginViewToolBarListener) eventListener).refreshToolBarItems(list);
 		} else if (eventListener instanceof ToolBarEnabler) {
 			Map<String, Boolean> states = new HashMap<String, Boolean>();
 			for (String id: list.keySet()) {
-				states.put(id, (list.get(id) & ToolBarEnabler2.STATE_ENABLED) > 0);
+				states.put(id, (list.get(id) & UIToolBarItem.STATE_ENABLED) > 0);
 			}
 			
 			((ToolBarEnabler) eventListener).refreshToolBar(states);
 
 			for (String id : states.keySet()) {
 				Boolean visible = states.get(id);
-				list.put(id, visible ? ToolBarEnabler2.STATE_ENABLED : 0);
+				list.put(id, visible ? UIToolBarItem.STATE_ENABLED : 0);
 			}
 		}
 	}
 
+	public void setToolBarListener(UIPluginViewToolBarListener l) {
+		toolbarListener = l;
+	}
+	
+	public UIPluginViewToolBarListener getToolBarListener() {
+		return toolbarListener;
+	}
 }
