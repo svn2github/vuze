@@ -312,6 +312,11 @@ public class TabbedMDI
 		entry.setEventListener(l);
 
 		setupNewEntry(entry, id, -1);
+
+		if (l instanceof IViewAlwaysInitialize) {
+			entry.build();
+		}
+
 		return entry;
 	}
 
