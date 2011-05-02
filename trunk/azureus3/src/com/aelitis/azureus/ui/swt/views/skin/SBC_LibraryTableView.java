@@ -338,7 +338,9 @@ public class SBC_LibraryTableView
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
 
-		view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+		if (view != null) {
+			view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+		}
 		
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			
@@ -352,13 +354,17 @@ public class SBC_LibraryTableView
 	
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
-		view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
+		if (view != null) {
+			view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
+		}
 
 		return super.skinObjectHidden(skinObject, params);
 	}
 
 	public void refreshToolBarItems(Map<String, Long> list) {
-		view.refreshToolBarItems(list);
+		if (view != null) {
+			view.refreshToolBarItems(list);
+		}
 		if (tv == null) {
 			return;
 		}
