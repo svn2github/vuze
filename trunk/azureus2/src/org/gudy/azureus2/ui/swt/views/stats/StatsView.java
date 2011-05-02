@@ -209,7 +209,9 @@ public class StatsView
 
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
-        selectView(folder.getItem(0));
+				if (folder == null || folder.isDisposed() || folder.getItemCount() > 0) {
+					selectView(folder.getItem(0));
+				}
 			}
 		});
 
