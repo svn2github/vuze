@@ -875,7 +875,7 @@ public class SWTSkinObjectBasic
 					}
 					Class<SkinView> cla = (Class<SkinView>) Class.forName(initClassItems[0], true, claLoader);
 
-					skinView = cla.newInstance();
+					setSkinView(cla.newInstance());
 					skinView.setMainSkinObject(this);
 					
 					// this will fire created and show for us
@@ -1114,6 +1114,14 @@ public class SWTSkinObjectBasic
   		max--;
 		}
 		return null;
+	}
+
+	public SkinView getSkinView() {
+		return skinView;
+	}
+
+	public void setSkinView(SkinView skinView) {
+		this.skinView = skinView;
 	}
 
 }
