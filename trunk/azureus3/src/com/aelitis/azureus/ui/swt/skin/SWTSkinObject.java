@@ -5,7 +5,10 @@ package com.aelitis.azureus.ui.swt.skin;
 
 import org.eclipse.swt.widgets.Control;
 
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
+
+import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 
 /**
  * @author TuxPaper
@@ -175,4 +178,10 @@ public interface SWTSkinObject
 	public void relayout();
 
 	public void layoutComplete();
+
+	public void setObfusticatedImageGenerator(ObfusticateImage obfusticatedImageGenerator);
+
+	public SkinView getSkinView();
+
+	public void setSkinView(SkinView sv);
 }
