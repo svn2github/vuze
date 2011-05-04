@@ -308,6 +308,10 @@ public class SWTSkinObjectContainer
 		}
 		Point ourOfs = Utils.getLocationRelativeToShell(control);
 
+		if (getSkinView() instanceof ObfusticateImage) {
+			return ((ObfusticateImage) getSkinView()).obfusticatedImage(image);
+		}
+
 		Control[] swtChildren = ((Composite) control).getChildren();
 		for (int i = 0; i < swtChildren.length; i++) {
 			Control childControl = swtChildren[i];

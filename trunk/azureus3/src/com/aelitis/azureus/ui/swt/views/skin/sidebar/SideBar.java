@@ -41,6 +41,7 @@ import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -73,7 +74,7 @@ import com.aelitis.azureus.util.ContentNetworkUtils;
  */
 public class SideBar
 	extends BaseMDI
-	implements AEDiagnosticsEvidenceGenerator
+	implements ObfusticateImage, AEDiagnosticsEvidenceGenerator
 {
 	protected static final boolean END_INDENT = Constants.isLinux
 			|| Constants.isWindows2000 || Constants.isWindows9598ME;
@@ -1548,5 +1549,20 @@ public class SideBar
 			}
 			
 		}
+	}
+
+	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateImage#obfusticatedImage(org.eclipse.swt.graphics.Image)
+	public Image obfusticatedImage(Image image) {
+
+		Rectangle treeBounds = tree.getBounds();
+		SideBarEntrySWT[] sideBarEntries = mapIdToEntry.values().toArray(
+				new SideBarEntrySWT[0]);
+		for (SideBarEntrySWT entry : sideBarEntries) {
+			Rectangle entryBounds = entry.swt_getBounds();
+			if (treeBounds.intersects(entryBounds)) {
+				entry.obfusticatedImage(image);
+			}
+		}
+		return image;
 	}
 }

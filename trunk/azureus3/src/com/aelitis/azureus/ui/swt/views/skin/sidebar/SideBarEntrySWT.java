@@ -34,6 +34,8 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
@@ -56,7 +58,7 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
  */
 public class SideBarEntrySWT
 	extends BaseMdiEntry
-	implements DisposeListener
+	implements DisposeListener, ObfusticateImage
 {
 	private static final boolean DO_OUR_OWN_TREE_INDENT = true;
 
@@ -286,7 +288,7 @@ public class SideBarEntrySWT
 		try {
 			Tree tree = swtItem.getParent();
 			Rectangle bounds = swtItem.getBounds();
-			Rectangle treeBounds = tree.getBounds();
+			Rectangle treeBounds = tree.getClientArea();
 			return new Rectangle(0, bounds.y, treeBounds.width, bounds.height);
 		} catch (NullPointerException e) {
 			// On OSX, we get erroneous NPE here:
@@ -1085,5 +1087,19 @@ public class SideBarEntrySWT
 			}
 			return listMenuHackListners.toArray(new MdiSWTMenuHackListener[0]);
 		}
+	}
+
+	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateImage#obfusticatedImage(org.eclipse.swt.graphics.Image)
+	public Image obfusticatedImage(Image image) {
+		Rectangle bounds = swt_getBounds();
+		TreeItem treeItem = getTreeItem();
+		Point location = Utils.getLocationRelativeToShell(treeItem.getParent());
+
+		bounds.x += location.x;
+		bounds.y += location.y;
+		
+		UIDebugGenerator.obfusticateArea(image, bounds);
+
+		return image;
 	}
 }
