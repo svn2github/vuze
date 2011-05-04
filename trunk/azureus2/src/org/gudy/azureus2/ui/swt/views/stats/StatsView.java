@@ -333,7 +333,9 @@ public class StatsView
 	}
 
 	private void delete() {
-		updateThread.stopIt();
+		if (updateThread != null) {
+			updateThread.stopIt();
+		}
 
 		if (folder != null && !folder.isDisposed()) {
 
