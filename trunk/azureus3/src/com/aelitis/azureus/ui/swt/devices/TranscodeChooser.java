@@ -38,7 +38,6 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.devices.Device;
-import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListener;
@@ -157,12 +156,12 @@ public abstract class TranscodeChooser
 		soList = (SWTSkinObjectContainer) skin.getSkinObject("list");
 		if (soList != null) {
 			if (transcodeProfiles != null) {
-				createProfileList(soList, "drop");
+				createProfileList(soList);
 			} else if (selectedTranscodeTarget == null) {
 				createDeviceList(soList);
 			} else {
 				transcodeProfiles = selectedTranscodeTarget.getTranscodeProfiles(); 
-				createProfileList(soList, "drop");
+				createProfileList(soList);
 			}
 		}
 
@@ -277,8 +276,7 @@ public abstract class TranscodeChooser
 	 *
 	 * @since 4.1.0.5
 	 */
-	private void createProfileList(SWTSkinObjectContainer soList,
-			String source) {
+	private void createProfileList(SWTSkinObjectContainer soList) {
 		if (selectedTranscodeTarget == null && selectedDeviceTemplate == null) {
 			new MessageBoxShell(SWT.OK, "No Device", "No Device Selected!?").open(null);
 			shell.dispose();
@@ -712,7 +710,7 @@ public abstract class TranscodeChooser
 					public void pressed(SWTSkinButtonUtility buttonUtility,
 							SWTSkinObject skinObject, int stateMask) {
 						transcodeProfiles = selectedTranscodeTarget.getTranscodeProfiles();
-						createProfileList(soList, "chooser");
+						createProfileList(soList);
 					}
 				});
 			}
