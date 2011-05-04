@@ -23,6 +23,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.viewtitleinfo.*;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -473,6 +474,14 @@ public abstract class BaseMdiEntry
 
 			ViewTitleInfoManager.addListener(this);
 		}
+	}
+
+	/**
+	 * @deprecated For azburn
+	 */
+	// @see com.aelitis.azureus.ui.mdi.MdiEntry#addToolbarEnabler(com.aelitis.azureus.ui.common.ToolBarEnabler)
+	public void addToolbarEnabler(ToolBarEnabler enabler) {
+		addToolbarEnabler((UIToolBarEnablerBase) enabler);
 	}
 
 	public void addToolbarEnabler(UIToolBarEnablerBase enabler) {

@@ -135,6 +135,11 @@ public interface MdiEntry
 
 	public UIToolBarEnablerBase[] getToolbarEnablers();
 
+	/**
+	 * @deprecated For azburn
+	 */
+	public void addToolbarEnabler(ToolBarEnabler enabler);
+
 	public void addToolbarEnabler(UIToolBarEnablerBase enabler);
 
 	public void removeToolbarEnabler(UIToolBarEnablerBase enabler);
