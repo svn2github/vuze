@@ -145,6 +145,7 @@ public abstract class SkinView
 		soMain = main;
 		if (soMain != null) {
 			skin = soMain.getSkin();
+			soMain.setSkinView(this);
 		}
 	}
 
