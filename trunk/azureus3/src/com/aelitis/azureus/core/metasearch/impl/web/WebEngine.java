@@ -779,6 +779,16 @@ WebEngine
 								content_type = content_type.substring(0,pos).trim();
 							}
 							
+							if ( content_type.startsWith("\"" )){
+								
+								content_type = content_type.substring(1).trim();
+							}
+							
+							if ( content_type.endsWith("\"" )){
+								
+								content_type = content_type.substring(0,content_type.length()-1).trim();
+							}
+							
 							try{
 								if ( Charset.isSupported( content_type )){
 									
