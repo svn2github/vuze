@@ -52,7 +52,6 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 import org.gudy.azureus2.ui.swt.views.columnsetup.TableColumnSetupWindow;
 import org.gudy.azureus2.ui.swt.views.table.*;
@@ -445,15 +444,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		int iNumViews = 0;
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		Map<String, UISWTViewEventListenerHolder> pluginViews = null;
+		UISWTViewEventListenerHolder[] pluginViews = null;
 		if (uiFunctions != null) {
 			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
 
 			if (pluginUI != null) {
 				pluginViews = pluginUI.getViewListeners(sTableID);
-				if (pluginViews != null) {
-					iNumViews += pluginViews.size();
-				}
+				iNumViews += pluginViews.length;
 			}
 		}
 
@@ -664,12 +661,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		// Call plugin listeners
 		if (pluginViews != null) {
-			String[] sNames = pluginViews.keySet().toArray(new String[0]);
-			for (int i = 0; i < sNames.length; i++) {
-				UISWTViewEventListener l = pluginViews.get(sNames[i]);
+			for (UISWTViewEventListenerHolder l : pluginViews) {
 				if (l != null) {
 					try {
-						UISWTViewImpl view = new UISWTViewImpl(sTableID, sNames[i], l, null);
+						UISWTViewImpl view = new UISWTViewImpl(sTableID, l.getViewID(), l, null);
 						addTabView(view);
 					} catch (Exception e) {
 						// skip, plugin probably specifically asked to not be added

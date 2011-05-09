@@ -20,7 +20,6 @@ package com.aelitis.azureus.ui.swt.views;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -37,7 +36,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 
@@ -333,32 +331,28 @@ public class TopBarView
 				registeredCoreSubViews = true;
 			}
 
-			Map<String,UISWTViewEventListenerHolder> pluginViews = uiSWTinstance.getViewListeners(UISWTInstance.VIEW_TOPBAR);
-			if (pluginViews != null) {
-				String[] sNames = pluginViews.keySet().toArray(new String[0]);
-				for (int i = 0; i < sNames.length; i++) {
-					UISWTViewEventListener l = pluginViews.get(sNames[i]);
-					if (l != null) {
-						try {
-							UISWTViewImpl view = new UISWTViewImpl(UISWTInstance.VIEW_TOPBAR,
-									sNames[i], l, null);
-							addTopBarView(view, cPluginArea);
-							if (toActiveView-- == 0) {
-								activateTopBar(view);
-								if (listPlugins != null) {
-									listPlugins.setSelection(viewIndex);
-								}
+			UISWTViewEventListenerHolder[] pluginViews = uiSWTinstance.getViewListeners(UISWTInstance.VIEW_TOPBAR);
+			for (UISWTViewEventListenerHolder l : pluginViews) {
+				if (l != null) {
+					try {
+						UISWTViewImpl view = new UISWTViewImpl(UISWTInstance.VIEW_TOPBAR,
+								l.getViewID(), l, null);
+						addTopBarView(view, cPluginArea);
+						if (toActiveView-- == 0) {
+							activateTopBar(view);
+							if (listPlugins != null) {
+								listPlugins.setSelection(viewIndex);
 							}
-						} catch (Exception e) {
-							e.printStackTrace();
-							// skip, plugin probably specifically asked to not be added
 						}
+					} catch (Exception e) {
+						e.printStackTrace();
+						// skip, plugin probably specifically asked to not be added
 					}
 				}
 			}
 
 			if (toActiveView >= 0 && topbarViews.size() > 0) {
-				activeTopBar = (UISWTViewCore) topbarViews.get(0);
+				activeTopBar = topbarViews.get(0);
 				activeTopBar.getComposite().setVisible(true);
 			}
 

@@ -567,8 +567,8 @@ UISWTInstanceImpl
 	public void addView(PluginInterface pi, String sParentID, String sViewID,
 			Class<? extends UISWTViewEventListener> cla, Object datasource) {
 
-		UISWTViewEventListenerHolder _l = new UISWTViewEventListenerHolder(cla,
-				datasource, pi);
+		UISWTViewEventListenerHolder _l = new UISWTViewEventListenerHolder(sViewID,
+				cla, datasource, pi);
 		addView( sParentID, sViewID, _l );
 	}
 
@@ -577,7 +577,7 @@ UISWTInstanceImpl
 	 */
 	public void addView(String sParentID, String sViewID,
 			final UISWTViewEventListener l) {
-		UISWTViewEventListenerHolder _l = new UISWTViewEventListenerHolder( l, null );
+		UISWTViewEventListenerHolder _l = new UISWTViewEventListenerHolder(sViewID, l, null );
 		addView( sParentID, sViewID, _l );
 	}
 	
@@ -681,7 +681,7 @@ UISWTInstanceImpl
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (uiFunctions != null) {
-					UISWTViewEventListenerHolder l = new UISWTViewEventListenerHolder( _l, pi );
+					UISWTViewEventListenerHolder l = new UISWTViewEventListenerHolder(sViewID, _l, pi );
 					
 					uiFunctions.openPluginView(UISWTInstance.VIEW_MAIN, sViewID, l, dataSource, setfocus && !bUIAttaching);
 				}
@@ -745,17 +745,25 @@ UISWTInstanceImpl
 	// Core Functions
 	// ==============
 	
-	public Map<String,UISWTViewEventListenerHolder> getViewListeners(String sParentID) {
-		return views.get(sParentID);
-	}
-	
-	/**
-	 * @return  Map(key=parentid, value=Map(key=id, value=UISWTViewEventListener))
-	 *
-	 * @since 3.1.1.1
-	 */
-	public Map<String,Map<String,UISWTViewEventListenerHolder>> getAllViews() {
-		return views;
+	public UISWTViewEventListenerHolder[] getViewListeners(String sParentID) {
+		Map<String, UISWTViewEventListenerHolder> map = views.get(sParentID);
+		if (map == null) {
+			return new UISWTViewEventListenerHolder[0];
+		}
+		UISWTViewEventListenerHolder[] array = map.values().toArray(new UISWTViewEventListenerHolder[0]);
+		Arrays.sort(array, new Comparator<UISWTViewEventListenerHolder>() {
+			public int compare(UISWTViewEventListenerHolder o1,
+					UISWTViewEventListenerHolder o2) {
+				if ((o1.getPluginInterface() == null) && (o2.getPluginInterface() == null)) {
+					return 0;
+				}
+				if ((o1.getPluginInterface() != null) && (o2.getPluginInterface() != null)) {
+					return 0;
+				}
+				return o1.getPluginInterface() == null ? -1 : 1;
+			}
+		});
+		return array;
 	}
 	
 	public UIInputReceiver getInputReceiver() {
@@ -928,14 +936,14 @@ UISWTInstanceImpl
 		{
 			PluginInterface pi = pi_ref.get();
 			
-			delegate.addView( sParentID, sViewID, new UISWTViewEventListenerHolder(l, pi) );
+			delegate.addView( sParentID, sViewID, new UISWTViewEventListenerHolder(sViewID, l, pi) );
 		}
 		
 		public void addView(String sParentID, String sViewID,
 				Class<? extends UISWTViewEventListener> cla, Object datasource) {
 			PluginInterface pi = pi_ref.get();
 			
-			delegate.addView(sParentID, sViewID, new UISWTViewEventListenerHolder(
+			delegate.addView(sParentID, sViewID, new UISWTViewEventListenerHolder(sViewID,
 					cla, datasource, pi));
 		}
 

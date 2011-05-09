@@ -172,28 +172,25 @@ public class StatsView
 				registeredCoreSubViews = true;
 			}
 
-			Map<String, UISWTViewEventListenerHolder> pluginViews = pluginUI == null
+			UISWTViewEventListenerHolder[] pluginViews = pluginUI == null
 					? null : pluginUI.getViewListeners(UISWTInstance.VIEW_STATISTICS);
-			if (pluginViews != null) {
-				String[] sNames = pluginViews.keySet().toArray(new String[0]);
-				for (int i = 0; i < sNames.length; i++) {
-					String name = sNames[i];
-					if (name.equals(ActivityView.MSGID_PREFIX)) {
-						idxActivityTab = i;
-					} else if (name.equals(TransferStatsView.MSGID_PREFIX)) {
-						idxTransfersView = i;
-					} else if (idxDHTView == -1 && name.equals(DHTView.MSGID_PREFIX)) {
-						idxTransfersView = i;
-					}
-					UISWTViewEventListener l = pluginViews.get(sNames[i]);
-					if (l != null) {
-						try {
-							UISWTViewImpl view = new UISWTViewImpl(
-									UISWTInstance.VIEW_STATISTICS, sNames[i], l, null);
-							addSection(view, null);
-						} catch (Exception e) {
-							// skip
-						}
+			for (int i = 0; i < pluginViews.length; i++) {
+				UISWTViewEventListenerHolder l = pluginViews[i];
+				String name = l.getViewID();
+				if (name.equals(ActivityView.MSGID_PREFIX)) {
+					idxActivityTab = i;
+				} else if (name.equals(TransferStatsView.MSGID_PREFIX)) {
+					idxTransfersView = i;
+				} else if (idxDHTView == -1 && name.equals(DHTView.MSGID_PREFIX)) {
+					idxTransfersView = i;
+				}
+				if (l != null) {
+					try {
+						UISWTViewImpl view = new UISWTViewImpl(
+								UISWTInstance.VIEW_STATISTICS, name, l, null);
+						addSection(view, null);
+					} catch (Exception e) {
+						// skip
 					}
 				}
 			}

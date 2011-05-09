@@ -20,8 +20,7 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.ArrayList;
-import java.util.Map;
+import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -48,14 +47,12 @@ import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Messages;
-import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -250,20 +247,16 @@ public class ManagerView
 				registeredCoreSubViews = true;
 			}
 			
-			Map<String, UISWTViewEventListenerHolder> pluginViews = pluginUI == null ? null
+			UISWTViewEventListenerHolder[] pluginViews = pluginUI == null ? null
 					: pluginUI.getViewListeners(UISWTInstance.VIEW_MYTORRENTS);
-			if (pluginViews != null) {
-				String[] sNames = pluginViews.keySet().toArray(new String[0]);
-				for (int i = 0; i < sNames.length; i++) {
-					UISWTViewEventListener l = pluginViews.get(sNames[i]);
-					if (l != null) {
-						try {
-							UISWTViewImpl view = new UISWTViewImpl(
-									UISWTInstance.VIEW_MYTORRENTS, sNames[i], l, null);
-							addSection(view);
-						} catch (Exception e) {
-							// skip
-						}
+			for (UISWTViewEventListenerHolder l : pluginViews) {
+				if (l != null) {
+					try {
+						UISWTViewImpl view = new UISWTViewImpl(
+								UISWTInstance.VIEW_MYTORRENTS, l.getViewID(), l, null);
+						addSection(view);
+					} catch (Exception e) {
+						// skip
 					}
 				}
 			}

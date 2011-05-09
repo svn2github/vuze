@@ -830,7 +830,9 @@ SubscriptionManagerUI
 		
 		mdiEntryOverview = mdi.createEntryFromEventListener(
 				MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS, 
-				new UISWTViewEventListenerHolder(SubscriptionsView.class, null, null),
+				new UISWTViewEventListenerHolder(
+						MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
+						SubscriptionsView.class, null, null),
 				MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS, false, null);
 
 		if (mdiEntryOverview == null) {
@@ -1236,7 +1238,7 @@ SubscriptionManagerUI
 		
 		MdiEntry entry = mdi.createEntryFromEventListener(
 				MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS,
-				new UISWTViewEventListenerHolder(SubscriptionView.class, subs, null),
+				new UISWTViewEventListenerHolder(key, SubscriptionView.class, subs, null),
 				key, false, subs);
 		entry.setViewTitleInfo(viewTitleInfo);
 

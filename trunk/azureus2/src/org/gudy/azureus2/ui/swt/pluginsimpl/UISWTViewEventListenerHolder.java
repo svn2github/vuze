@@ -46,6 +46,7 @@ UISWTViewEventListenerHolder
 	private UISWTViewEventListener		listener;
 	private Reference<PluginInterface>	pi;
 	private Object datasource;
+	private String viewID;
 
 	// when there is no #listener, we create a new #cla for each TYPE_CREATE event
 	Map<UISWTView, UISWTViewEventListener> mapSWTViewToEventListener;
@@ -53,11 +54,12 @@ UISWTViewEventListenerHolder
 
 	public
 	UISWTViewEventListenerHolder(
+		String viewID,
 		Class<? extends UISWTViewEventListener> _cla,
 		Object datasource,
 		PluginInterface					_pi )
 	{
-		this((UISWTViewEventListener) null, _pi);
+		this(viewID, (UISWTViewEventListener) null, _pi);
 		cla = _cla;
 		this.datasource = datasource;
 	}
@@ -65,9 +67,11 @@ UISWTViewEventListenerHolder
 	
 	protected
 	UISWTViewEventListenerHolder(
+		String viewID,
 		UISWTViewEventListener			_listener,
 		PluginInterface					_pi )
 	{
+		this.viewID = viewID;
 		listener	= _listener;
 		
 		if ( _pi == null ){
@@ -168,5 +172,10 @@ UISWTViewEventListenerHolder
 			return null;
 		}
 		return mapSWTViewToEventListener.get(view);
+	}
+
+
+	public String getViewID() {
+		return viewID;
 	}
 }
