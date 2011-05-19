@@ -715,7 +715,7 @@ redirect_label:
 						 					}
 						 				}
 						 				
-										error_str = FileUtil.readInputStreamAsString( error_stream, 256 );
+										error_str = FileUtil.readInputStreamAsString( error_stream, 512 );
 									}
 									
 										// grab properties anyway as they may be useful
