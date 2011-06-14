@@ -59,6 +59,10 @@ CacheFileWithCache
 		   		Object _o1, 
 				Object _o2)
 			{
+				if ( _o1 == _o2 ){
+					
+					return( 0 );
+				}
 					// entries in the cache should never overlap
 				
 				CacheEntry	o1 = (CacheEntry)_o1;

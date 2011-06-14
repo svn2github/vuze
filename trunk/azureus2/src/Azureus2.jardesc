@@ -199,7 +199,6 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.jce.provider"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.dht.control"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.eclipse.swt.widgets"/>
-        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.ui.SWT"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.update"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.piece"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.custom.impl"/>
@@ -469,6 +468,7 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.ui.skin"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.speedmanager"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.columns.utils"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.ui.toolbar"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.ui.common.table.impl"/>
         <javaElement handleIdentifier="=azuis_svn/&lt;org.gudy.azureus2.ui.console.util"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.tableitems"/>

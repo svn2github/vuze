@@ -115,6 +115,11 @@ public class TCPConnectionManager {
 					ConnectionRequest r1, 
 					ConnectionRequest r2 )
 				{
+					if ( r1 == r2 ){
+						
+						return( 0 );
+					}
+					
 					int	res = r1.getPriority() - r2.getPriority();
 					
 					if ( res == 0 ){

@@ -597,6 +597,9 @@ implements PiecePicker
 		Collections.shuffle(bestUploaders);
 		Collections.sort(bestUploaders, new Comparator() {
 			public int compare(Object o1, Object o2) {
+				if ( o1 == o2 ){
+					return( 0 );
+				}
 				PEPeerTransport pt2 = (PEPeerTransport)o2;
 				PEPeerTransport pt1 = (PEPeerTransport)o1;
 				PEPeerStats stats2 = pt2.getStats();
@@ -681,6 +684,11 @@ implements PiecePicker
 								Object arg1, 
 								Object arg2) 
 							{
+								if ( arg1 == arg2 ){
+									
+									return( 0 );
+								}
+								
 								PEPeerTransport pt1	= (PEPeerTransport)arg1;
 								PEPeerTransport pt2	= (PEPeerTransport)arg2;
 
