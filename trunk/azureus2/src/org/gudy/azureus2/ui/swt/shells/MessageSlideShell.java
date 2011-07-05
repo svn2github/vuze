@@ -119,15 +119,13 @@ public class MessageSlideShell
 	private boolean bDelayPaused = false;
 
 	/** List of SWT objects needing disposal */
-	private ArrayList disposeList = new ArrayList();
+	private ArrayList<Object> disposeList = new ArrayList<Object>();
 
 	/** Text to put into details popup */
 	private String sDetails;
 
 	/** Position this popup is in the history list */
 	private int idxHistory;
-
-	private Image imgPopup;
 
 	protected Color colorURL;
 
@@ -356,15 +354,7 @@ public class MessageSlideShell
 			shell.setText(popupParams.title);
 		}
 
-		Rectangle imgPopupBounds;
-		if (imgPopup != null) {
-			shellWidth = imgPopup.getBounds().width;
-			
-			imgPopupBounds = imgPopup.getBounds();
-		} else {
-			shellWidth = SHELL_DEF_WIDTH;
-			imgPopupBounds = null;
-		}
+		shellWidth = SHELL_DEF_WIDTH;
 
 		UISkinnableSWTListener[] listeners = UISkinnableManagerSWT.getInstance().getSkinnableListeners(
 				MessageSlideShell.class.toString());
@@ -511,7 +501,7 @@ public class MessageSlideShell
 					disposeShell(shell);
 					int idx = historyList.indexOf(popupParams) - 1;
 					if (idx >= 0) {
-						PopupParams item = (PopupParams) historyList.get(idx);
+						PopupParams item = historyList.get(idx);
 						showPopup(display, item, false);
 						disposeShell(shell);
 					}
@@ -548,101 +538,6 @@ public class MessageSlideShell
 				sDetails = popupParams.text;
 			} else {
 				sDetails = popupParams.text + "\n===============\n" + sDetails;
-			}
-		}
-
-		if (imgPopup != null) {
-			// no text on the frog in the bottom left
-			int bottomHeight = cButtons.computeSize(SWT.DEFAULT, SWT.DEFAULT).y
-					+ lblCloseIn.computeSize(SWT.DEFAULT, SWT.DEFAULT).y;
-			if (bottomHeight < 50)
-				bestSize.y += 50 - bottomHeight;
-
-			final Image imgBackground = new Image(display, bestSize.x, bestSize.y);
-
-			disposeList.add(imgBackground);
-			GC gc = new GC(imgBackground);
-			int dstY = imgPopupBounds.height - bestSize.y;
-			if (dstY < 0)
-				dstY = 0;
-			gc.drawImage(imgPopup, 0, dstY, imgPopupBounds.width,
-					imgPopupBounds.height - dstY, 0, 0, bestSize.x, bestSize.y);
-			gc.dispose();
-
-			boolean bAlternateDrawing = true;
-			try {
-				shell.setBackgroundImage(imgBackground);
-				bAlternateDrawing = false;
-			} catch (NoSuchMethodError e) {
-			}
-
-			if (bAlternateDrawing) {
-				// Drawing of BG Image for pre SWT 3.2
-
-				cShell.addPaintListener(new PaintListener() {
-					public void paintControl(PaintEvent e) {
-						e.gc.drawImage(imgBackground, e.x, e.y, e.width, e.height, e.x,
-								e.y, e.width, e.height);
-					}
-				});
-
-				Color colorBG = display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
-				final RGB bgRGB = colorBG.getRGB();
-
-				PaintListener paintListener = new PaintListener() {
-					// OSX: copyArea() causes a paint event, resulting in recursion
-					boolean alreadyPainting = false;
-
-					public void paintControl(PaintEvent e) {
-						if (alreadyPainting || e.width <= 0 || e.height <= 0) {
-							return;
-						}
-
-						alreadyPainting = true;
-
-						try {
-							Rectangle bounds = ((Control) e.widget).getBounds();
-
-							Image img = new Image(display, e.width, e.height);
-							e.gc.copyArea(img, e.x, e.y);
-
-							e.gc.drawImage(imgBackground, -bounds.x, -bounds.y);
-
-							// Set the background color to invisible.  img.setBackground
-							// doesn't work, so change transparentPixel directly and roll
-							// a new image
-							ImageData data = img.getImageData();
-							data.transparentPixel = data.palette.getPixel(bgRGB);
-							Image imgTransparent = new Image(display, data);
-
-							// This is an alternative way of setting the transparency.
-							// Probably much slower
-
-							//int bgIndex = data.palette.getPixel(bgRGB);
-							//ImageData transparencyMask = data.getTransparencyMask();
-							//for (int y = 0; y < data.height; y++) {
-							//	for (int x = 0; x < data.width; x++) {
-							//		if (bgIndex == data.getPixel(x, y))
-							//			transparencyMask.setPixel(x, y, 0);
-							//	}
-							//}
-							//
-							//Image imgTransparent = new Image(display, data, transparencyMask);
-
-							e.gc.drawImage(imgTransparent, 0, 0, e.width, e.height, e.x, e.y,
-									e.width, e.height);
-
-							img.dispose();
-							imgTransparent.dispose();
-						} finally {
-							alreadyPainting = false;
-						}
-					}
-				};
-
-				shell.setBackground(colorBG);
-				cShell.setBackground(colorBG);
-				addPaintListener(cShell, paintListener, colorBG, true);
 			}
 		}
 
@@ -879,28 +774,6 @@ public class MessageSlideShell
 				addMouseTrackListener((Composite) control, listener);
 			else
 				control.addMouseTrackListener(listener);
-		}
-	}
-
-	private void addPaintListener(Composite parent, PaintListener listener,
-			Color colorBG, boolean childrenOnly) {
-		if (parent == null || listener == null || parent.isDisposed())
-			return;
-
-		if (!childrenOnly) {
-			parent.addPaintListener(listener);
-			parent.setBackground(colorBG);
-		}
-
-		Control[] children = parent.getChildren();
-		for (int i = 0; i < children.length; i++) {
-			Control control = children[i];
-
-			control.addPaintListener(listener);
-			control.setBackground(colorBG);
-
-			if (control instanceof Composite)
-				addPaintListener((Composite) control, listener, colorBG, true);
 		}
 	}
 
@@ -1189,20 +1062,6 @@ public class MessageSlideShell
 				(String) null, -1);
 
 		MessageSlideShell.waitUntilClosed();
-	}
-
-	/**
-	 * @return the imgPopup
-	 */
-	public Image getImgPopup() {
-		return imgPopup;
-	}
-
-	/**
-	 * @param imgPopup the imgPopup to set
-	 */
-	public void setImgPopup(Image imgPopup) {
-		this.imgPopup = imgPopup;
 	}
 
 	public Color getUrlColor() {

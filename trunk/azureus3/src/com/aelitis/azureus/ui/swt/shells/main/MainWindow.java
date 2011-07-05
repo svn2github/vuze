@@ -67,7 +67,6 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestSelector;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
@@ -1050,10 +1049,9 @@ public class MainWindow
 				MdiEntry curEntry = mdi.getCurrentEntry();
 				if (curEntry == null) {
 					return "none";
-				} else {
-					String id = curEntry.getLogID();
-					return id == null ? "null" : id;
 				}
+				String id = curEntry.getLogID();
+				return id == null ? "null" : id;
 			}
 		} catch (Exception e) {
 			String name = e.getClass().getName();
@@ -1565,78 +1563,6 @@ public class MainWindow
 
 								}
 							}
-						}
-					}
-
-					public void skinAfterComponents(Composite composite,
-							Object skinnableObject, Object[] relatedObjects) {
-					}
-				});
-
-		skinnableManagerSWT.addSkinnableListener(
-				MessageSlideShell.class.toString(), new UISkinnableSWTListener() {
-
-					public void skinBeforeComponents(Composite composite,
-							Object skinnableObject, Object[] relatedObjects) {
-						if (skinnableObject instanceof MessageSlideShell) {
-							final Image image = new Image(composite.getDisplay(), 250, 300);
-
-							TOTorrent torrent = null;
-							DownloadManager dm = (DownloadManager) LogRelationUtils.queryForClass(
-									relatedObjects, DownloadManager.class);
-							if (dm != null) {
-								torrent = dm.getTorrent();
-							} else {
-								torrent = (TOTorrent) LogRelationUtils.queryForClass(
-										relatedObjects, TOTorrent.class);
-							}
-
-							MessageSlideShell shell = (MessageSlideShell) skinnableObject;
-
-							byte[] contentThumbnail = PlatformTorrentUtils.getContentThumbnail(torrent);
-							GC gc = new GC(image);
-							try {
-								gc.setBackground(gc.getDevice().getSystemColor(
-										SWT.COLOR_WIDGET_BACKGROUND));
-								gc.fillRectangle(image.getBounds());
-
-								if (contentThumbnail != null) {
-
-									try {
-										ByteArrayInputStream bis = new ByteArrayInputStream(
-												contentThumbnail);
-										final Image img = new Image(Display.getDefault(), bis);
-										Rectangle imgBounds = img.getBounds();
-										double pct = 35.0 / imgBounds.height;
-										int w = (int) (imgBounds.width * pct);
-
-										try {
-											gc.setAdvanced(true);
-											gc.setInterpolation(SWT.HIGH);
-										} catch (Exception e) {
-											// not important if we can't set advanced
-										}
-
-										gc.drawImage(img, 0, 0, imgBounds.width, imgBounds.height,
-												0, 265, w, 35);
-										img.dispose();
-									} catch (Exception e) {
-
-									}
-
-								}
-							} finally {
-								gc.dispose();
-							}
-							shell.setImgPopup(image);
-
-							composite.addListener(SWT.Dispose, new Listener() {
-								public void handleEvent(Event event) {
-									if (!image.isDisposed()) {
-										image.dispose();
-									}
-								}
-							});
 						}
 					}
 
