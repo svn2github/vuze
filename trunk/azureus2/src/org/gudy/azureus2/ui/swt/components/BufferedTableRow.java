@@ -711,25 +711,8 @@ BufferedTableRow
 
 	public void setSubItemCount(int i) {
 		numSubItems = i;
-		if (item != null) {
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					if (item.isDisposed()) {
-						return;
-					}
-			    if (item.getItemCount() != numSubItems) {
-			    	item.setItemCount(numSubItems);
-						Rectangle r = item.getBounds(0);
-						if (r != null) {
-							table.redraw(0, r.y, table.getClientArea().width, r.height, true);
-						}
-			    }
-			    TableItemOrTreeItem[] items = item.getItems();
-			    for (TableItemOrTreeItem subItem : items) {
-						subItem.setData("TableRow", null);
-					}
-				}
-			});
+		if (item != null && !item.isDisposed()) {
+			item.setItemCount(numSubItems == 0 ? 0 : 1);
 		}
 	}
 	
@@ -743,8 +726,19 @@ BufferedTableRow
 
 	public void setExpanded(boolean b) {
 		expanded = b;
-		if (item != null) {
-			item.setExpanded(b);
+		if (item != null && !item.isDisposed()) {
+	    if (item.getItemCount() != numSubItems) {
+	    	item.setItemCount(numSubItems);
+				Rectangle r = item.getBounds(0);
+				if (r != null) {
+					table.redraw(0, r.y, table.getClientArea().width, r.height, true);
+				}
+	    }
+	    TableItemOrTreeItem[] items = item.getItems();
+	    for (TableItemOrTreeItem subItem : items) {
+				subItem.setData("TableRow", null);
+			}
+	    item.setExpanded(b);
 		}
 	}
 	
