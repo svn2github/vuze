@@ -27,11 +27,13 @@ import java.util.LinkedList;
 public class 
 AsyncDispatcher 
 {
-	private String		name;
-	private AEThread2	thread;
-	private int			priority	= Thread.NORM_PRIORITY;
-	private LinkedList	queue 		= new LinkedList();
-	private AESemaphore	queue_sem 	= new AESemaphore( "AsyncDispatcher" );
+	private String					name;
+	private AEThread2				thread;
+	private int						priority	= Thread.NORM_PRIORITY;
+	private LinkedList<AERunnable>	queue 		= new LinkedList<AERunnable>();
+	private AESemaphore				queue_sem 	= new AESemaphore( "AsyncDispatcher" );
+	
+	private int						num_priority;
 	
 	private int quiesce_after_millis;
 	
@@ -68,9 +70,26 @@ AsyncDispatcher
 	dispatch(
 		AERunnable	target )
 	{
+		dispatch( target, false );
+	}
+	
+	public void
+	dispatch(
+		AERunnable	target,
+		boolean		is_priority )
+	{
 		synchronized( this ){
 			
-			queue.add( target );
+			if ( is_priority ){
+			
+				queue.add( num_priority, target );
+				
+				num_priority++;
+				
+			}else{
+			
+				queue.add( target );
+			}
 			
 			if ( thread == null ){
 				
@@ -85,7 +104,7 @@ AsyncDispatcher
 								queue_sem.reserve( quiesce_after_millis );
 								
 								AERunnable	to_run = null;
-								
+																
 								synchronized( AsyncDispatcher.this ){
 									
 									if ( queue.isEmpty()){
@@ -95,7 +114,12 @@ AsyncDispatcher
 										break;
 									}
 									
-									to_run = (AERunnable)queue.removeFirst();
+									to_run = queue.removeFirst();
+									
+									if ( num_priority > 0 ){
+										
+										num_priority--;
+									}
 								}
 								
 								try{
