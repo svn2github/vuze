@@ -94,9 +94,15 @@ HTMLPageImpl
 			}
 		}
 	}
-	
 	public URL
 	getMetaRefreshURL()
+	{
+		return( getMetaRefreshURL( null ));
+	}
+	
+	public URL
+	getMetaRefreshURL(
+		URL		base_url )
 	{
 	       // "<META HTTP-EQUIV=\"refresh\" content=\"5; URL=xxxxxxx>";
 	       
@@ -124,7 +130,33 @@ HTMLPageImpl
 					e2 = e1;
 				
 					try{
-						return( new URL(tag.substring(url_start, e2).trim()));
+						String mr_url = tag.substring(url_start, e2).trim();
+						
+						String lc = mr_url.toLowerCase();
+						
+						if ( ! ( lc.startsWith( "http:" ) || lc.startsWith( "https:" ))){
+							
+							if ( base_url != null ){
+								
+								String s = base_url.toExternalForm();
+								
+								int p = s.indexOf( '?' );
+								
+								if ( p != -1 ){
+									
+									s = s.substring( 0, p );
+								}
+								
+								if ( s.endsWith( "/" ) && mr_url.startsWith( "/" )){
+									
+									mr_url = mr_url.substring( 1 );
+								}
+								
+								mr_url = s + mr_url;
+							}
+						}
+						
+						return( new URL( mr_url ));
 						
 					}catch( MalformedURLException e ){
 						

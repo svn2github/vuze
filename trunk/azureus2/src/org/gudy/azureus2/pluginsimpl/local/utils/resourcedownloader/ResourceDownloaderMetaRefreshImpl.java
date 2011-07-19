@@ -132,7 +132,9 @@ ResourceDownloaderMetaRefreshImpl
 			
 			HTMLPage	page = HTMLPageFactory.loadPage( x.download());
 			
-			URL	redirect = page.getMetaRefreshURL();
+			URL base_url = (URL)x.getProperty( "URL_URL" );
+
+			URL	redirect = page.getMetaRefreshURL( base_url );
 	
 			if ( redirect == null ){
 				
@@ -275,7 +277,9 @@ ResourceDownloaderMetaRefreshImpl
 				
 				HTMLPage	page = HTMLPageFactory.loadPage( data, !marked );
 				
-				URL	redirect = page.getMetaRefreshURL();
+				URL base_url = (URL)downloader.getProperty( "URL_URL" );
+				
+				URL	redirect = page.getMetaRefreshURL( base_url );
 				
 				if ( redirect == null ){
 					

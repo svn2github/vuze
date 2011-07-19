@@ -35,4 +35,8 @@ HTMLPage
 {
 	public URL
 	getMetaRefreshURL();
+	
+	public URL
+	getMetaRefreshURL(
+		URL		base_url );
 }
