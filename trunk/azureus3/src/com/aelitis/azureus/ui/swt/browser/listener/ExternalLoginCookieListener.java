@@ -31,7 +31,6 @@ implements StatusTextListener,LocationListener,ProgressListener
 		"//alert(window.status);\n" +
 		"window.status = '';" +
 		"} catch(e) {" +
-		"alert(e);" +
 		"}" ;
 		//"}";
 	
