@@ -26,7 +26,9 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.TimeFormatter;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
@@ -106,7 +108,7 @@ public abstract class ColumnDateSizer
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
-	public void refresh(TableCell cell, long timestamp) {
+	public void refresh(final TableCell cell, final long timestamp) {
 		if (!cell.setSortValue(timestamp) && cell.isValid()) {
 			return;
 		}
@@ -115,32 +117,37 @@ public abstract class ColumnDateSizer
 			return;
 		}
 
-		Date date = new Date(timestamp);
+		Utils.execSWTThread(new AERunnable() {
+			
+			public void runSupport() {
+				Date date = new Date(timestamp);
 
-		if (curFormat >= 0) {
-			if (multiline && cell.getHeight() < 20) {
-				multiline = false;
-			}
-			String suffix = showTime && !multiline ? " hh:mm a" : "";
+				if (curFormat >= 0) {
+					if (multiline && cell.getHeight() < 20) {
+						multiline = false;
+					}
+					String suffix = showTime && !multiline ? " hh:mm a" : "";
 
-			int newWidth = calcWidth(date, TimeFormatter.DATEFORMATS_DESC[curFormat]
-					+ suffix);
+					int newWidth = calcWidth(date, TimeFormatter.DATEFORMATS_DESC[curFormat]
+							+ suffix);
 
-			//SimpleDateFormat temp2 = new SimpleDateFormat(TimeFormatter.DATEFORMATS_DESC[curFormat] + suffix + (showTime && multiline ? "\nh:mm a" : ""));
-			//System.out.println(curFormat + ":newWidth=" +  newWidth + ":max=" + maxWidthUsed[curFormat] + ":cell=" + cell.getWidth() + "::" + temp2.format(date));
-			if (newWidth > cell.getWidth() - PADDING) {
-				if (newWidth > maxWidthUsed[curFormat]) {
-					maxWidthUsed[curFormat] = newWidth;
-					maxWidthDate[curFormat] = date;
+					//SimpleDateFormat temp2 = new SimpleDateFormat(TimeFormatter.DATEFORMATS_DESC[curFormat] + suffix + (showTime && multiline ? "\nh:mm a" : ""));
+					//System.out.println(curFormat + ":newWidth=" +  newWidth + ":max=" + maxWidthUsed[curFormat] + ":cell=" + cell.getWidth() + "::" + temp2.format(date));
+					if (newWidth > cell.getWidth() - PADDING) {
+						if (newWidth > maxWidthUsed[curFormat]) {
+							maxWidthUsed[curFormat] = newWidth;
+							maxWidthDate[curFormat] = date;
+						}
+						recalcWidth(date);
+					}
+
+					String s = TimeFormatter.DATEFORMATS_DESC[curFormat] + suffix;
+					SimpleDateFormat temp = new SimpleDateFormat(s
+							+ (showTime && multiline ? "\nh:mm a" : ""));
+					cell.setText(temp.format(date));
 				}
-				recalcWidth(date);
 			}
-
-			String s = TimeFormatter.DATEFORMATS_DESC[curFormat] + suffix;
-			SimpleDateFormat temp = new SimpleDateFormat(s
-					+ (showTime && multiline ? "\nh:mm a" : ""));
-			cell.setText(temp.format(date));
-		}
+		});
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#setWidth(int)
