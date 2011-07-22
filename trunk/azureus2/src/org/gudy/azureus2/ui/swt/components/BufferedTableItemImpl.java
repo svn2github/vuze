@@ -172,10 +172,30 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 		return row.getForeground(position);
 	}
 
-	public boolean setForeground(int red, int green, int blue) {
-		if (position == -1)
+	public boolean setForeground(final int red, final int green, final int blue) {
+		if (position == -1) {
 			return false;
-		
+		}
+
+		Color oldColor = row.getForeground(position);
+		if (oldColor != null) {
+
+  		RGB newRGB = new RGB(red, green, blue);
+  
+  		if (oldColor.getRGB().equals(newRGB)) {
+  			return false;
+  		}
+		}
+
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_setForeground(red, green, blue);
+			}
+		});
+		return true;
+	}
+
+	private boolean swt_setForeground(final int red, final int green, final int blue) {
 		if (red == -1 && green == -1 && blue == -1) {
 			return setForeground(null);
 		}
@@ -320,5 +340,10 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 			return data.curCellIndex == position;
 		}
 		return false;
+	}
+	
+	// @see org.gudy.azureus2.ui.swt.components.BufferedTableItem#getHeight()
+	public int getHeight() {
+		return row.getHeight();
 	}
 }

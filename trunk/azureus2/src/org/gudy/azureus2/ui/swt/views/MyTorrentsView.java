@@ -1406,7 +1406,7 @@ public class MyTorrentsView
   public void stateChanged(DownloadManager manager, int state) {
     final TableRowCore row = tv.getRow(manager);
     if (row != null) {
-    	Utils.execSWTThreadLater(0, new AERunnable() {
+    	Utils.getOffOfSWTThread(new AERunnable() {
 				public void runSupport() {
 		    	row.refresh(true);
 		    	if (row.isSelected()) {

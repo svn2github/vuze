@@ -414,6 +414,7 @@ DeviceMediaRendererManual
 		}
 		
 		setInfo( COPY_PENDING_KEY, null );
+
 		
 		File	copy_to = getCopyToFolder();
 		
@@ -461,6 +462,7 @@ DeviceMediaRendererManual
 				borked = true;
 				
 			}else{
+				setInfo( COPY_PENDING_KEY, null );
 				
 				boolean	sub_borked = false;
 				
@@ -512,6 +514,9 @@ DeviceMediaRendererManual
 			
 				borked = borked | sub_borked;
 			}
+		} else {
+
+			setInfo( COPY_PENDING_KEY, null );
 		}
 		
 		synchronized( this ){

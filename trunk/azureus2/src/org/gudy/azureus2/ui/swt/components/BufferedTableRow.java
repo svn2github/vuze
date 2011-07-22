@@ -74,6 +74,8 @@ BufferedTableRow
 	private int numSubItems;
 
 	private boolean expanded;
+
+	private boolean isVirtual;
 	
 	
 	/**
@@ -201,7 +203,7 @@ BufferedTableRow
 		final boolean bCheckInitialized = (checkFlags & REQUIRE_TABLEITEM_INITIALIZED) > 0;
 
 		if (bWidgetOk && bCheckInitialized) {
-			bWidgetOk = (table.getStyle() & SWT.VIRTUAL) == 0
+			bWidgetOk = !isVirtual
 					|| item.getData("SD") != null;
 		}
 
@@ -209,7 +211,7 @@ BufferedTableRow
 			if (_isVisible()) {
 				// Caller assumes that a visible item can be modified, so 
 				// make sure we initialize it.
-				if (!bCheckInitialized && (table.getStyle() & SWT.VIRTUAL) != 0
+				if (!bCheckInitialized && isVirtual
 						&& item.getData("SD") == null) {
 					// This is catch is temporary for SWT 3212, because there are cases where
 					// it says it isn't disposed, when it really almost is
@@ -277,6 +279,10 @@ BufferedTableRow
 		if (foreground != null) {
 			return foreground;
 		}
+		
+		if (!Utils.isSWTThread()) {
+			return null;
+		}
 
 		if (ourForeground == null && isSelected()) {
 			return table.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
@@ -311,8 +317,17 @@ BufferedTableRow
 
 		item.setForeground(foreground);
 	}
+
+	public void setForeground(final int red, final int green, final int blue) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_setForeground(red, green, blue);
+			}
+		});
+	}
+
 	
-	public void setForeground(int red, int green, int blue) {
+	public void swt_setForeground(int red, int green, int blue) {
 		if (red == -1 && green == -1 && blue == -1) {
 			this.setForeground(null);
 			return;
@@ -338,8 +353,8 @@ BufferedTableRow
 	
 	public boolean
 	setForeground(
-	  int index,
-		Color	new_color )
+	  final int index,
+		final Color	new_color )
 	{
 				
 		if ( index >= foreground_colors.length ){
@@ -373,11 +388,11 @@ BufferedTableRow
 			return true;
 		}
 
-    try {
-      item.setForeground(index, new_color);
-    } catch (NoSuchMethodError e) {
-      /* Ignore for Pre 3.0 SWT.. */
-    }
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+		    item.setForeground(index, new_color);
+			}
+		});
     
     return true;
 	}
@@ -390,6 +405,10 @@ BufferedTableRow
 
 		if (foreground_colors[index] == null) {
 			if (isSelected()) {
+				if (!Utils.isSWTThread()) {
+					return null;
+				}
+
   			Color systemColor = table.getDisplay().getSystemColor(
   					table.isFocusControl() ? SWT.COLOR_LIST_SELECTION_TEXT
   							: SWT.COLOR_WIDGET_FOREGROUND);
@@ -509,6 +528,21 @@ BufferedTableRow
   	TableItemOrTreeItem newRow;
 
   	try {
+  		// table.getItem(newIndex) is time consuming
+  		// skip it when the item hasn't been shown yet and we are linking
+  		// the tableitem while not yet visible
+  		Object oMaxItemShown = table.getData("maxItemShown");
+  		if (oMaxItemShown instanceof Number) {
+  			int maxItemShown = ((Number) oMaxItemShown).intValue();
+  			if (newIndex > maxItemShown) {
+  				if (!isVisible) {
+  					return false;
+  				}
+    			table.setData("maxItemShown", newIndex);
+  			}
+  		} else if (isVisible) {
+  			table.setData("maxItemShown", newIndex);
+  		}
   		newRow = table.getItem(newIndex);
   	} catch (IllegalArgumentException er) {
   		if (item == null || item.isDisposed()) {
@@ -526,6 +560,9 @@ BufferedTableRow
   }
 
   public boolean setTableItem(TableItemOrTreeItem newRow, boolean isVisible) {
+  	if (item == null) {
+  		isVirtual = (table.getStyle() & SWT.VIRTUAL) > 0;
+  	}
   	if (newRow.isDisposed()) {
   		Debug.out("newRow disposed from " + Debug.getCompressedStackTrace());
   		return false;
@@ -646,6 +683,10 @@ BufferedTableRow
   	return setIconSize(new Point(1, iHeight));
   }
   
+  public int getHeight() {
+  	return ptIconSize == null ? 0 : ptIconSize.y;
+  }
+  
   public boolean setIconSize(Point pt) {
     ptIconSize = pt;
 
@@ -711,9 +752,13 @@ BufferedTableRow
 
 	public void setSubItemCount(int i) {
 		numSubItems = i;
-		if (item != null && !item.isDisposed()) {
-			item.setItemCount(numSubItems == 0 ? 0 : 1);
-		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (item != null && !item.isDisposed()) {
+					item.setItemCount(numSubItems == 0 ? 0 : 1);
+				}
+			}
+		});
 	}
 	
 	public int getSubItemCount() {

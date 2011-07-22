@@ -751,7 +751,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		table.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent event) {
-				changeColumnIndicator();
+				swt_changeColumnIndicator();
 				// This fixes the scrollbar not being long enough on Win2k
 				// There may be other methods to get it to refresh right, but
 				// layout(true, true) didn't work.
@@ -1105,7 +1105,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 		});
 
-		initializeTableColumns(table);
+		swt_initializeTableColumns(table);
 
 		MessageText.addListener(this);
 	}
@@ -1699,7 +1699,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return listUnfilteredDataSources.contains(ds); 
 	}
 
-	protected void initializeTableColumns(final TableOrTreeSWT table) {
+	protected void swt_initializeTableColumns(final TableOrTreeSWT table) {
 		TableColumnOrTreeColumn[] oldColumns = table.getColumns();
 
 		for (int i = 0; i < oldColumns.length; i++) {
@@ -1862,7 +1862,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 		sortColumn = tc;
 		fixAlignment(tc, true);
-		changeColumnIndicator();
+		swt_changeColumnIndicator();
 
 		// Add move listener at the very end, so we don't get a bazillion useless 
 		// move triggers
@@ -2322,17 +2322,23 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					lLastSortedOn = 0;
 					sortColumn.setLastSortValueChange(SystemTime.getCurrentTime());
 				}
-				_sortColumn(true, false, false);
+				//_sortColumn(true, false, false);
+				_sortColumn(false, false, false);
 			}
 
 			long lTimeStart = SystemTime.getMonotonousTime();
 
-			//Refresh all visible items in table...
-			runForAllRows(new TableGroupRowVisibilityRunner() {
-				public void run(TableRowCore row, boolean bVisible) {
-					row.refresh(bDoGraphics, bVisible);
+			Utils.getOffOfSWTThread(new AERunnable() {
+				public void runSupport() {
+					//Refresh all visible items in table...
+					runForAllRows(new TableGroupRowVisibilityRunner() {
+						public void run(TableRowCore row, boolean bVisible) {
+							row.refresh(bDoGraphics, bVisible);
+						}
+					});
 				}
 			});
+			
 
 			if (DEBUGADDREMOVE) {
 				long lTimeDiff = (SystemTime.getMonotonousTime() - lTimeStart);
@@ -2714,6 +2720,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						+ (async ? " async " : " NOW"));
 			}
 
+			
 			if (async) {
 				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
@@ -2726,6 +2733,26 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						_addDataSourcesToSWT(dataSources);
 					}
 				}, false);
+			}
+
+			for (int i = 0; i < dataSources.length; i++) {
+				Object dataSource = dataSources[i];
+				if (dataSource == null) {
+					continue;
+				}
+  			TableRowImpl row = (TableRowImpl) mapDataSourceToRow.get(dataSource);
+  			if (row != null && sortColumn != null) {
+  				TableCellCore cell = row.getTableCellCore(sortColumn.getName());
+  				if (cell != null) {
+  					try {
+  						cell.invalidate();
+  						cell.refresh(true);
+  					} catch (Exception e) {
+  						Logger.log(new LogEvent(LOGID,
+  								"Minor error adding a row to table " + sTableID, e));
+  					}
+  				}
+  			}
 			}
 
 		} catch (Exception e) {
@@ -2785,18 +2812,18 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				//if (row == null || row.isRowDisposed()) {
 					continue;
 				}
-				if (sortColumn != null) {
-					TableCellCore cell = row.getTableCellCore(sortColumn.getName());
-					if (cell != null) {
-						try {
-							cell.invalidate();
-							cell.refresh(true);
-						} catch (Exception e) {
-							Logger.log(new LogEvent(LOGID,
-									"Minor error adding a row to table " + sTableID, e));
-						}
-					}
-				}
+//				if (sortColumn != null) {
+//					TableCellCore cell = row.getTableCellCore(sortColumn.getName());
+//					if (cell != null) {
+//						try {
+//							cell.invalidate();
+//							cell.refresh(true);
+//						} catch (Exception e) {
+//							Logger.log(new LogEvent(LOGID,
+//									"Minor error adding a row to table " + sTableID, e));
+//						}
+//					}
+//				}
 
 				try {
 					int index = 0;
@@ -3294,7 +3321,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					classPluginDataSourceType, sTableID);
 		}
 
-		initializeTableColumns(table);
+		swt_initializeTableColumns(table);
 		refreshTable(false);
 
 		triggerLifeCycleListener(TableLifeCycleListener.EVENT_INITIALIZED);
@@ -4419,7 +4446,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		});
 	}
 
-	public void sortColumnReverse(TableColumnCore sorter) {
+	public void sortColumnReverse(final TableColumnCore sorter) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_sortColumnReverse(sorter);
+			}
+		});
+	}
+	
+	public void swt_sortColumnReverse(TableColumnCore sorter) {
 		if (sortColumn == null) {
 			return;
 		}
@@ -4443,11 +4478,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			sortColumn.setSortAscending(!sortColumn.isSortAscending());
 		}
 
-		changeColumnIndicator();
+		swt_changeColumnIndicator();
 		sortColumn(!bSameColumn);
 	}
 
-	private void changeColumnIndicator() {
+	private void swt_changeColumnIndicator() {
 		if (table == null || table.isDisposed()) {
 			return;
 		}
@@ -4497,8 +4532,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		//debug("VRC " + Debug.getCompressedStackTrace());
 
 
-		List<TableRowSWT> newlyVisibleRows = new ArrayList<TableRowSWT>();
-		List<TableRowSWT> nowInVisibleRows;
+		final List<TableRowSWT> newlyVisibleRows = new ArrayList<TableRowSWT>();
+		final List<TableRowSWT> nowInVisibleRows;
 		synchronized (this) {
   		List<TableItemOrTreeItem> visibleTableItems;
   		if (isVisible()) {
@@ -4533,32 +4568,43 @@ public class TableViewSWTImpl<DATASOURCETYPE>
   		}
 		}
 		
-		boolean bTableUpdate = false;
-
 		if (DEBUG_ROWCHANGE) {
 			System.out.println("visRowsChanged; shown=" + visibleRows.length + "; +"
 					+ newlyVisibleRows.size() + "/-" + nowInVisibleRows.size() + " via "
 					+ Debug.getCompressedStackTrace(8));
 		}
-		for (TableRowSWT row : newlyVisibleRows) {
-			row.refresh(true, true);
-			if (row instanceof TableRowImpl) {
-				((TableRowImpl) row).setShown(true, false);
-			}
-			if (Constants.isOSX) {
-				bTableUpdate = true;
-			}
-		}
+		Utils.getOffOfSWTThread(new AERunnable() {
+			
+			public void runSupport() {
+				boolean bTableUpdate = false;
 
-		for (TableRowSWT row : nowInVisibleRows) {
-			if (row instanceof TableRowImpl) {
-				((TableRowImpl) row).setShown(false, false);
-			}
-		}
+				for (TableRowSWT row : newlyVisibleRows) {
+					row.refresh(true, true);
+					if (row instanceof TableRowImpl) {
+						((TableRowImpl) row).setShown(true, false);
+					}
+					if (Constants.isOSX) {
+						bTableUpdate = true;
+					}
+				}
 
-		if (bTableUpdate) {
-			table.update();
-		}
+				for (TableRowSWT row : nowInVisibleRows) {
+					if (row instanceof TableRowImpl) {
+						((TableRowImpl) row).setShown(false, false);
+					}
+				}
+
+				if (bTableUpdate) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							table.update();
+						}
+					});
+				}
+
+			}
+		});
+
 	}
 
 	public Image obfusticatedImage(final Image image) {

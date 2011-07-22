@@ -673,19 +673,7 @@ public class TableCellImpl
   }
 
   public int getHeight() {
-  	Point pt = null;
-  	
-    if (bufferedTableItem instanceof BufferedGraphicTableItem) {
-    	pt = ((BufferedGraphicTableItem)bufferedTableItem).getSize();
-    } else {
-    	Rectangle bounds = bufferedTableItem.getBounds();
-    	if (bounds != null) {
-    		pt = new Point(bounds.width, bounds.height);
-    	}
-    }
-    if (pt == null)
-      return -1;
-    return pt.y;
+  	return bufferedTableItem.getHeight();
   }
 
   // @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#setGraphic(org.eclipse.swt.graphics.Image)
@@ -1204,6 +1192,9 @@ public class TableCellImpl
   // @see com.aelitis.azureus.ui.common.table.TableCellCore#refresh(boolean, boolean, boolean)
   public boolean refresh(boolean bDoGraphics, boolean bRowVisible,  boolean bCellVisible)
   {
+//  	if (Utils.isThisThreadSWT()) {
+//  		System.out.println("ONSWT: " + Debug.getCompressedStackTrace());
+//  	}
   	if (tableColumn == null) {
   		return false;
   	}

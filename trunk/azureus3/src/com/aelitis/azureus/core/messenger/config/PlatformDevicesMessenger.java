@@ -47,12 +47,6 @@ public class PlatformDevicesMessenger
 
 	private static final String OP_REPORT_DEVICES = "report-devices";
 	
-	private static String[] ignoreExtensions = { ".jpg", ".mp3", ".rar", };
-
-	static {
-		Arrays.sort(ignoreExtensions);
-	}
-
 	public static void qosTurnOn(boolean withITunes, boolean bugFix) {
 		if (!COConfigurationManager.getBooleanParameter(CFG_SEND_QOS, false)) {
 			return;

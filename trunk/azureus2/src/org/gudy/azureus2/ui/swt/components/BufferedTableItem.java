@@ -120,4 +120,11 @@ public interface BufferedTableItem
 	 * @since 4.5.1.1
 	 */
 	boolean isInPaintItem();
+
+	/**
+	 * @return
+	 *
+	 * @since 4.6.0.5
+	 */
+	public int getHeight();
 }

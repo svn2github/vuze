@@ -24,6 +24,9 @@ import org.eclipse.swt.graphics.Rectangle;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
@@ -60,6 +63,10 @@ public class ColumnStream
 	private static Image imgEnabled;
 
 	private static Image imgDisabled;
+	
+	private static boolean first = true;
+	
+	private static boolean skipPaint = true;
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] {
@@ -129,10 +136,17 @@ public class ColumnStream
 		if (noIconForYou(ds, cell)) {
 			return;
 		}
-		boolean canStream = PlayUtils.canStreamDS(ds, -1);
+		
+		Comparable sortValue = cell.getSortValue();
+		if (!(sortValue instanceof Number)) {
+			return;
+		}
+		int sortVal = ((Number) sortValue).intValue();
+		boolean canStream = (sortVal & 2) > 0;
+		boolean canPlay = (sortVal & 1) > 0;
 		Image img = canStream ? imgEnabled : imgDisabled;
 
-		if (!canStream && PlayUtils.canPlayDS(ds, -1)) {
+		if (!canStream && canPlay) {
 			return;
 		}
 
@@ -147,9 +161,23 @@ public class ColumnStream
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener#cellAdded(org.gudy.azureus2.plugins.ui.tables.TableCell)
-	public void cellAdded(TableCell cell) {
+	public void cellAdded(final TableCell cell) {
 		cell.setMarginWidth(0);
 		cell.setMarginHeight(0);
+		
+		synchronized (COLUMN_ID) {
+			if (first) {
+				first = false; 
+				new AEThread2("WaitForMS", true) {
+					public void run() {
+						Object ds = cell.getDataSource();
+						// first call may take forever
+						PlayUtils.canStreamDS(ds, -1);
+						skipPaint = false;
+					}
+				};
+			}
+		}
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)

@@ -2092,7 +2092,7 @@ public class Utils
 	
 	private static Map truncatedTextCache = new HashMap();
 
-	private static ThreadPool tp = new ThreadPool("GetOffSWT", 3);
+	private static ThreadPool tp = new ThreadPool("GetOffSWT", 3, true);
 	
 	private static class TruncatedTextResult {
 		String text;
