@@ -40,9 +40,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.download.StreamManager;
-import com.aelitis.azureus.core.download.StreamManagerDownload;
-import com.aelitis.azureus.core.download.StreamManagerDownloadListener;
+import com.aelitis.azureus.core.download.*;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -347,11 +345,15 @@ public class TorrentListViewsUtils
 		final boolean complete_only, final String referal ) 
 	{
 		try {
-			final int file_index;
+			int file_index = -1;
 			
 			if ( _file_index == -1 ){
+
+				EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( dm );
 				
-				file_index = PlayUtils.getPrimaryFileIndex( dm );
+				if (edm != null) {
+					file_index = edm.getPrimaryFileIndex();
+				}
 				
 			}else{
 				
@@ -362,6 +364,8 @@ public class TorrentListViewsUtils
 				
 				return( 1 );
 			}
+			
+			final int f_file_index = file_index;
 						
 			org.gudy.azureus2.plugins.disk.DiskManagerFileInfo file = PluginCoreUtils.wrap( dm ).getDiskManagerFileInfo()[ file_index ];
 			
@@ -444,7 +448,7 @@ public class TorrentListViewsUtils
 								
 								current_stream = 
 									sm.stream( 
-										dm, file_index, url, false,
+										dm, f_file_index, url, false,
 										new StreamManagerDownloadListener()
 										{
 											private long	last_log = 0;
@@ -543,7 +547,7 @@ public class TorrentListViewsUtils
 
 				if (pi == null) {
 
-					return (installEMP(dm.getDisplayName(), new Runnable(){ public void run(){ openInEMP( dm, file_index,complete_only,referal ); }}));
+					return (installEMP(dm.getDisplayName(), new Runnable(){ public void run(){ openInEMP( dm, f_file_index,complete_only,referal ); }}));
 					
 				}else if ( !pi.getPluginState().isOperational()){
 					

@@ -28,6 +28,7 @@ import org.eclipse.swt.graphics.Image;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.plugins.download.Download;
@@ -135,12 +136,13 @@ public class NameItem extends CoreTableColumn implements
 		if ((cell.setText(name) || !cell.isValid())) {
 			if (dm != null && isShowIcon() && !sortOnlyRefresh
 					&& (cell instanceof TableCellSWT)) {
-				String path = dm.getDownloadState().getPrimaryFile();
-				if (path != null) {
+				DiskManagerFileInfo fileInfo = dm.getDownloadState().getPrimaryFile();
+				if (fileInfo != null) {
 					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
 					TOTorrent torrent = dm.getTorrent();
-					Image icon = ImageRepository.getPathIcon(path, false, torrent != null
-							&& !torrent.isSimpleTorrent());
+					Image icon = ImageRepository.getPathIcon(
+							fileInfo.getFile(false).getName(), false, torrent != null
+									&& !torrent.isSimpleTorrent());
 					((TableCellSWT) cell).setIcon(icon);
 				}
 			}

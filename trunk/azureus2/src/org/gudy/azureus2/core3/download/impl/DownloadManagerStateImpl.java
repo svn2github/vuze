@@ -133,8 +133,6 @@ DownloadManagerStateImpl
 	
 	private AEMonitor	this_mon	= new AEMonitor( "DownloadManagerState" );
 	
-	private boolean firstPrimaryFileRead = true;
-	
 	private int supressWrites = 0;
 
 	private static ThreadLocal		tls_wbr	= 
@@ -146,7 +144,7 @@ DownloadManagerStateImpl
 				return( new ArrayList(1));
 			}
 		};
-
+		
 	private static DownloadManagerState
 	getDownloadState(
 		DownloadManagerImpl				download_manager,
@@ -1228,16 +1226,15 @@ DownloadManagerStateImpl
     	return this.getStringAttribute(AT_RELATIVE_SAVE_PATH);
     }
 	
-	public String getPrimaryFile() {
-		String sPrimary = this.getStringAttribute(AT_PRIMARY_FILE);
-		// Only recheck when file doesn't exists if this is the first check
-		// of the session, because the file may never exist and we don't want
-		// to continuously go through the fileinfos
-		if (sPrimary == null
-				|| sPrimary.length() == 0
-				|| (firstPrimaryFileRead && !new File(sPrimary).exists() 
-						&& download_manager.getStats().getDownloadCompleted(true) != 0)) {
-			DiskManagerFileInfo[] fileInfo = download_manager.getDiskManagerFileInfo();
+	public DiskManagerFileInfo getPrimaryFile() {
+		int primaryIndex = -1;
+		DiskManagerFileInfo[] fileInfo = download_manager.getDiskManagerFileInfoSet().getFiles();
+		if (hasAttribute(AT_PRIMARY_FILE_IDX)) {
+			primaryIndex = getIntAttribute(AT_PRIMARY_FILE_IDX);
+		}
+		
+		if (primaryIndex < 0 || primaryIndex >= fileInfo.length) {
+			primaryIndex = -1;
 			if (fileInfo.length > 0) {
 				int idxBiggest = -1;
 				long lBiggest = -1;
@@ -1252,28 +1249,25 @@ DownloadManagerStateImpl
 					}
 				}
 				if (idxBiggest >= 0) {
-					sPrimary = fileInfo[idxBiggest].getFile(true).getPath();
+					primaryIndex = idxBiggest;
 				}
 			}
-			// System.out.println("calc getPrimaryFile " + sPrimary + ": " + download_manager.getDisplayName());
+			if (primaryIndex >= 0) {
+				setPrimaryFile(fileInfo[primaryIndex]);
+			}
 		}
 
-		if (sPrimary == null) {
-			sPrimary = "";
+		if (primaryIndex >= 0) {
+			return fileInfo[primaryIndex];
 		}
-		
-		if (firstPrimaryFileRead) {
-			firstPrimaryFileRead = false;
-		}
-		setPrimaryFile(sPrimary);
-		return sPrimary;
+		return null;
 	}
     
 	/**
 	 * @param primary
 	 */
-	public void setPrimaryFile(String fileFullPath) {
-		this.setStringAttribute(AT_PRIMARY_FILE, fileFullPath);
+	public void setPrimaryFile(DiskManagerFileInfo dmfi) {
+		setIntAttribute(AT_PRIMARY_FILE_IDX, dmfi.getIndex());
 	}
 
 	public String[]
@@ -2305,7 +2299,10 @@ DownloadManagerStateImpl
 			
 			writer.println( "parameters=" + parameters );
 			
-			writer.println("primary file=" + Debug.secretFileName(getPrimaryFile()));
+			DiskManagerFileInfo primaryFile = getPrimaryFile();
+			if (primaryFile != null) {
+				writer.println("primary file=" + Debug.secretFileName(primaryFile.getFile(true).getAbsolutePath()));
+			}
 			
 		}finally{
 			
@@ -2672,15 +2669,13 @@ DownloadManagerStateImpl
 		}
 
 		// @see org.gudy.azureus2.core3.download.DownloadManagerState#getPrimaryFile()
-		
-		public String getPrimaryFile() {
+		public DiskManagerFileInfo getPrimaryFile() {
 			// TODO Auto-generated method stub
 			return null;
 		}
-
-		// @see org.gudy.azureus2.core3.download.DownloadManagerState#setPrimaryFile(java.lang.String)
 		
-		public void setPrimaryFile(String relativeFile) {
+		// @see org.gudy.azureus2.core3.download.DownloadManagerState#setPrimaryFile(org.gudy.azureus2.core3.disk.DiskManagerFileInfo)
+		public void setPrimaryFile(DiskManagerFileInfo dmfi) {
 			// TODO Auto-generated method stub
 			
 		}

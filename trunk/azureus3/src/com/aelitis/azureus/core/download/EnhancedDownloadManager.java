@@ -23,8 +23,7 @@
 
 package com.aelitis.azureus.core.download;
 
-import java.net.InetAddress;
-import java.util.*;
+import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -37,7 +36,8 @@ import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManager;
-import org.gudy.azureus2.core3.peer.*;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
 
@@ -47,7 +47,6 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.average.Average;
 import com.aelitis.azureus.core.util.average.AverageFactory;
 import com.aelitis.azureus.util.ConstantsVuze;
-import com.aelitis.azureus.util.PlayUtils;
 
 
 public class 
@@ -113,7 +112,6 @@ EnhancedDownloadManager
 	private DownloadManagerListener dmListener;
 				
 	private EnhancedDownloadManagerFile[]	enhanced_files;
-	private EnhancedDownloadManagerFile 	primary_file;
 
 
 
@@ -145,9 +143,9 @@ EnhancedDownloadManager
 		}
 		
 		
-		int primary_index = PlayUtils.getPrimaryFileIndex( download_manager );
+		int primary_index = getPrimaryFileIndex();
 		
-		primary_file = enhanced_files[primary_index==-1?0:primary_index];
+		EnhancedDownloadManagerFile primary_file = enhanced_files[primary_index==-1?0:primary_index];
 				
 		progressive_stats	= createProgressiveStats( download_manager, primary_file );
 		
@@ -206,6 +204,15 @@ EnhancedDownloadManager
 			});
 	}
 
+	public int getPrimaryFileIndex() {
+		DiskManagerFileInfo info = download_manager.getDownloadState().getPrimaryFile();
+		
+		if ( info == null ){
+			return( -1 );
+		}
+		return( info.getIndex());
+	}
+
 	public void
 	setExplicitProgressive(
 		int		min_initial_buffer_secs,
@@ -220,7 +227,7 @@ EnhancedDownloadManager
 			
 			content_min_delivery_bps = min_bps;
 											
-			primary_file = enhanced_files[file_index];
+			EnhancedDownloadManagerFile primary_file = enhanced_files[file_index];
 				
 			progressive_stats	= createProgressiveStats( download_manager, primary_file );		
 		}
@@ -328,10 +335,13 @@ EnhancedDownloadManager
 	{
 		TOTorrent	torrent = download_manager.getTorrent();
 		
-		if ( torrent == null || primary_file == null ){
+		if ( torrent == null || download_manager.getDownloadState().getPrimaryFile() == null ){
 
 			return( false );
 		}
+		
+		DiskManagerFileInfo primaryFile = download_manager.getDownloadState().getPrimaryFile();
+		EnhancedDownloadManagerFile enhanced_file = enhanced_files[primaryFile.getIndex()];
 		
 		synchronized( this ){
 
@@ -420,11 +430,11 @@ EnhancedDownloadManager
 					
 					buffer_provider.deactivate( current_piece_pickler );
 										
-					progressive_stats = createProgressiveStats( download_manager, primary_file );
+					progressive_stats = createProgressiveStats( download_manager, enhanced_file );
 				}
 			}else{
 				
-				progressive_stats = createProgressiveStats( download_manager, primary_file );
+				progressive_stats = createProgressiveStats( download_manager, enhanced_file );
 			}
 			
 			if ( !switching_progressive_downloads ){
@@ -553,13 +563,6 @@ EnhancedDownloadManager
 		}
 	}
 
-	public DiskManagerFileInfo
-	getPrimaryFile()
-	{
-		return( primary_file.getFile());
-	}
-
-	
 	public long
 	getContiguousAvailableBytes(
 		int						file_index,

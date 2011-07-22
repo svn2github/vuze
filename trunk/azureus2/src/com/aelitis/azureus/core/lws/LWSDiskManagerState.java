@@ -27,6 +27,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
@@ -270,16 +271,16 @@ LWSDiskManagerState
 	{
 	}
 	
-	public String 
+	public void 
+	setPrimaryFile(
+		DiskManagerFileInfo dmfi)
+	{
+	}
+
+	public DiskManagerFileInfo 
 	getPrimaryFile() 
 	{
 		return null;
-	}
-	
-	public void 
-	setPrimaryFile(
-		String fileFullPath) 
-	{
 	}
 	
 	public String[]		

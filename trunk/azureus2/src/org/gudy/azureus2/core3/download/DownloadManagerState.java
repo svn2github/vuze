@@ -26,6 +26,7 @@ import java.io.File;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.download.Download;
@@ -57,6 +58,7 @@ DownloadManagerState
 	public static final String AT_SECRETS				 	= "secrets";
 	public static final String AT_RESUME_STATE		 		= "resumecomplete";
 	public static final String AT_PRIMARY_FILE		 		= "primaryfile";
+	public static final String AT_PRIMARY_FILE_IDX		 		= "primaryfileidx";
 	public static final String AT_TIME_SINCE_DOWNLOAD		= "timesincedl";
 	public static final String AT_TIME_SINCE_UPLOAD			= "timesinceul";
 	public static final String AT_AVAIL_BAD_TIME			= "badavail";
@@ -212,8 +214,8 @@ DownloadManagerState
 	
 	public String getRelativeSavePath();
 
-	public void setPrimaryFile(String fileFullPath);
-	public String getPrimaryFile();
+	public void setPrimaryFile(DiskManagerFileInfo dmfi);
+	public DiskManagerFileInfo getPrimaryFile();
 
 	public String
 	getTrackerClientExtensions();

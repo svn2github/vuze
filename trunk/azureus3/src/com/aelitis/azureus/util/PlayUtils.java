@@ -34,10 +34,15 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.utils.FeatureManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
-import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -46,13 +51,6 @@ import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.download.StreamManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
-
-import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
-import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadException;
-import org.gudy.azureus2.plugins.utils.FeatureManager;
 
 /**
  * @author TuxPaper
@@ -236,14 +234,10 @@ public class PlayUtils
 		
 		if ( file_index == -1 ){
 			
-			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( dm );
-			
-			if ( edm == null ) {
-				
-				return( false );
+			file = dm.getDownloadState().getPrimaryFile();
+			if (file == null) {
+				file = dm.getDiskManagerFileInfoSet().getFiles()[0];
 			}
-			
-			file = edm.getPrimaryFile();
 			
 			file_index = file.getIndex();
 			
@@ -307,14 +301,11 @@ public class PlayUtils
 		String contentPath;
 		if (dmContent.isDownloadComplete(false)) {
 			//use the file path if download is complete.
-			EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload(
-					dmContent);
-			File file;
-			if (edm != null) {
-				file = edm.getPrimaryFile().getFile(true);
-			} else {
-				file = new File(dmContent.getDownloadState().getPrimaryFile());
+			org.gudy.azureus2.core3.disk.DiskManagerFileInfo primaryFile = dmContent.getDownloadState().getPrimaryFile();
+			if (primaryFile == null) {
+				return null;
 			}
+			File file = primaryFile.getFile(true);
 			try {
 				contentPath = file.toURL().toString();
 			} catch (MalformedURLException e) {
@@ -491,7 +482,7 @@ public class PlayUtils
 		}
 		return true;
 	}
-	
+/*	
 	public static File getPrimaryFile(Download d) {
 		DiskManagerFileInfo info = getPrimaryFileInfo(d);
 
@@ -530,14 +521,27 @@ public class PlayUtils
 		}
 		return null;
 	}
-	
+*/	
 	public static boolean isExternallyPlayable(Download d, int file_index, boolean complete_only ) {
 		
 		int primary_file_index = -1;
 
 		if ( file_index == -1 ){
 			
-			DiskManagerFileInfo file = getPrimaryFileInfo( d );
+
+			DownloadManager dm = PluginCoreUtils.unwrap(d);
+			
+			if ( dm == null ) {
+				
+				return( false );
+			}
+			
+			DiskManagerFileInfo file = null;
+			try {
+				file = PluginCoreUtils.wrap(dm.getDownloadState().getPrimaryFile());
+			} catch (DownloadException e) {
+				return false;
+			}
 			
 			if ( file == null ){
 				
@@ -552,7 +556,7 @@ public class PlayUtils
 				}
 			}
 			
-			primary_file_index = getPrimaryFileIndex(d);
+			primary_file_index = file.getIndex();
 
 		}else{
 			
@@ -677,5 +681,19 @@ public class PlayUtils
 		}
 
 		return false;
+	}
+
+	/**
+	 * @deprecated
+	 */
+	public static int getPrimaryFileIndex(Download dl) {
+		EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( PluginCoreUtils.unwrap(dl) );
+		
+		if ( edm == null ) {
+			
+			return -1;
+		}
+
+		return edm.getPrimaryFileIndex();
 	}
 }

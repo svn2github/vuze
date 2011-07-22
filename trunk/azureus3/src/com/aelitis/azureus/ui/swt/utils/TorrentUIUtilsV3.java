@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
@@ -390,19 +391,18 @@ public class TorrentUIUtilsV3
 
 			String path = null;
 			if (dm == null) {
-				if (torrent != null) {
-					TOTorrentFile[] files = torrent.getFiles();
-					if (files.length > 0) {
-						path = files[0].getRelativePath();
-					}
+				TOTorrentFile[] files = torrent.getFiles();
+				if (files.length > 0) {
+					path = files[0].getRelativePath();
 				}
 			} else {
-				path = dm.getDownloadState().getPrimaryFile();
+				DiskManagerFileInfo primaryFile = dm.getDownloadState().getPrimaryFile();
+				path = primaryFile == null ? null : primaryFile.getFile(true).getName();
 			}
 			if (path != null) {
 				image = ImageRepository.getPathIcon(path, big, false);
 				
-				if (image != null && torrent != null && !torrent.isSimpleTorrent()) {
+				if (image != null && !torrent.isSimpleTorrent()) {
 					Image[] images = new Image[] {
 						image,
 						ImageRepository.getPathIcon(new File(path).getParent(), false, false)
