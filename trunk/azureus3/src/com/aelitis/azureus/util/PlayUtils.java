@@ -236,7 +236,11 @@ public class PlayUtils
 			
 			file = dm.getDownloadState().getPrimaryFile();
 			if (file == null) {
-				file = dm.getDiskManagerFileInfoSet().getFiles()[0];
+				org.gudy.azureus2.core3.disk.DiskManagerFileInfo[] files = dm.getDiskManagerFileInfoSet().getFiles();
+				if (files.length == 0) {
+					return false;
+				}
+				file = files[0];
 			}
 			
 			file_index = file.getIndex();
