@@ -28,7 +28,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -40,22 +39,17 @@ import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarEnablerBase;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UIToolBarManagerCore;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.devices.DeviceManager;
-import com.aelitis.azureus.core.devices.DeviceManagerFactory;
-import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.common.*;
+import com.aelitis.azureus.ui.common.ToolBarEnabler;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
-import com.aelitis.azureus.ui.swt.devices.TranscodeChooser;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
@@ -214,28 +208,6 @@ public class ToolBarView
 			});
 			item.setAlwaysAvailable(true);
 			item.setGroupID("classic");
-			addToolBarItemNoCreate(item);
-		}
-
-		// ==transcode
-		if (!DeviceManagerUI.DISABLED) {
-			item = new ToolBarItemSO(this, "transcode", "image.button.transcode",
-					"iconBar.transcode");
-			item.setDefaultActivationListener(new UIToolBarActivationListener() {
-				public boolean toolBarItemActivated(ToolBarItem item,
-						long activationType, Object datasource) {
-					if (activationType != ACTIVATIONTYPE_NORMAL) {
-						return false;
-					}
-					ISelectedContent[] contents = SelectedContentManager.getCurrentlySelectedContent();
-					if (contents.length == 0) {
-						return false;
-					}
-
-					deviceSelected(contents, true);
-					return true;
-				}
-			});
 			addToolBarItemNoCreate(item);
 		}
 
@@ -558,46 +530,6 @@ public class ToolBarView
 		return true;
 	}
 
-	protected void deviceSelected(final ISelectedContent[] contents,
-			final boolean allow_retry) {
-		TranscodeChooser deviceChooser = new TranscodeChooser() {
-			public void closed() {
-				DeviceManager deviceManager = DeviceManagerFactory.getSingleton();
-				if (selectedTranscodeTarget != null && selectedProfile != null) {
-					for (int i = 0; i < contents.length; i++) {
-						ISelectedContent selectedContent = contents[i];
-
-						DownloadManager dm = selectedContent.getDownloadManager();
-						if (dm == null) {
-							continue;
-						}
-						DiskManagerFileInfoSet fileSet = dm.getDiskManagerFileInfoSet();
-						DiskManagerFileInfo[] files = fileSet.getFiles();
-						for (DiskManagerFileInfo file : files) {
-							try {
-								deviceManager.getTranscodeManager().getQueue().add(
-										selectedTranscodeTarget,
-										selectedProfile,
-										(org.gudy.azureus2.plugins.disk.DiskManagerFileInfo) PluginCoreUtils.convert(
-												file, false), false);
-							} catch (TranscodeException e) {
-								Debug.out(e);
-							}
-						}
-					}
-				}
-			}
-		};
-
-		deviceChooser.show(new Runnable() {
-			public void run() {
-				if (allow_retry) {
-
-					deviceSelected(contents, false);
-				}
-			}
-		});
-	}
 
 	protected boolean moveTop() {
 		if (!AzureusCoreFactory.isCoreRunning()) {
