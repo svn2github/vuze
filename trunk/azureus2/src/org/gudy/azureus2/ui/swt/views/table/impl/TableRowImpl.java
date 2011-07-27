@@ -456,6 +456,7 @@ public class TableRowImpl<COREDATASOURCE>
 		//boolean rowVisible = tableView.isRowVisible(this);
 		setShown(isVisible, changedSWTRow);
 		if (changedSWTRow && isVisible) {
+			redraw();
 			//invalidate();
 			//refresh(true, true);
 			setUpToDate(false);
@@ -645,8 +646,9 @@ public class TableRowImpl<COREDATASOURCE>
 		if (bounds == null) {
 			return new Rectangle(0, 0, 0, 0);
 		}
-		bounds.x = 0;
-		bounds.width = table.getSize().x;
+		Rectangle tableBounds = table.getClientArea();
+		bounds.x = tableBounds.x;
+		bounds.width = tableBounds.width;
 		return bounds;
 	}
 
