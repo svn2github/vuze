@@ -394,4 +394,18 @@ public interface TableView<DATASOURCETYPE>
 	 * @since 4.6.0.5
 	 */
 	void processDataSourceQueueSync();
+
+	/**
+	 * 
+	 *
+	 * @since 4.6.0.5
+	 */
+	int getMaxItemShown();
+
+	/**
+	 * @param newIndex
+	 *
+	 * @since 4.6.0.5
+	 */
+	void setMaxItemShown(int newIndex);
 }

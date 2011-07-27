@@ -1396,6 +1396,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private boolean isDragging;
 
+	private int maxItemShown = -1;
+
 	private void editCell(final int column, final int row) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -5459,5 +5461,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 			}
 		});
+	}
+	
+	public int getMaxItemShown() {
+		return maxItemShown;
+	}
+	
+	public void setMaxItemShown(int i) {
+		maxItemShown  = i;
 	}
 }

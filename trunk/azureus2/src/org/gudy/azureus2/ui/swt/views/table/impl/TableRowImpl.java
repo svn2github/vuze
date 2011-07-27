@@ -433,10 +433,21 @@ public class TableRowImpl<COREDATASOURCE>
 			return false;
 		}
 
+		int maxItemShown = tableView.getMaxItemShown();
+		if (newIndex > maxItemShown) {
+			if (!isVisible) {
+				return false;
+			}
+			tableView.setMaxItemShown(newIndex);
+		}
+
 		//if (getRealIndex() != newIndex) {
 		//	((TableViewSWTImpl)tableView).debug("sTI " + newIndex + "; via " + Debug.getCompressedStackTrace(4));
 		//}
 		boolean changedSWTRow = super.setTableItem(newIndex, isVisible);
+		//if (changedSWTRow) {
+		//	System.out.println((item == null ? null : "" + table.indexOf(item)) + ":" + newIndex + ":" + isVisible + ":" + tableView.getMaxItemShown());
+		//}
 		boolean changedIndex = lastIndex != newIndex;
 		if (changedIndex) {
 			//System.out.println("row " + newIndex + " from " + lastIndex + ";" + tableView.isRowVisible(this) + ";" + changedSWTRow);

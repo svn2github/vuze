@@ -528,21 +528,11 @@ BufferedTableRow
   	TableItemOrTreeItem newRow;
 
   	try {
-  		// table.getItem(newIndex) is time consuming
-  		// skip it when the item hasn't been shown yet and we are linking
-  		// the tableitem while not yet visible
-  		Object oMaxItemShown = table.getData("maxItemShown");
-  		if (oMaxItemShown instanceof Number) {
-  			int maxItemShown = ((Number) oMaxItemShown).intValue();
-  			if (newIndex > maxItemShown) {
-  				if (!isVisible) {
-  					return false;
-  				}
-    			table.setData("maxItemShown", newIndex);
-  			}
-  		} else if (isVisible) {
-  			table.setData("maxItemShown", newIndex);
+  		if (item != null && !item.isDisposed() && table.indexOf(item) == newIndex) {
+  			return false;
   		}
+  		
+  		//System.out.println((item == null ? null : "" + table.indexOf(item)) + ":" + newIndex + ":" + isVisible + ":" + table.getData("maxItemShown"));
   		newRow = table.getItem(newIndex);
   	} catch (IllegalArgumentException er) {
   		if (item == null || item.isDisposed()) {
