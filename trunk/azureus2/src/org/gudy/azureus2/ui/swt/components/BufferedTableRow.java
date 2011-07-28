@@ -528,9 +528,9 @@ BufferedTableRow
   	TableItemOrTreeItem newRow;
 
   	try {
-  		if (item != null && !item.isDisposed() && table.indexOf(item) == newIndex) {
-  			return false;
-  		}
+//  		if (item != null && !item.isDisposed() && table.indexOf(item) == newIndex) {
+//  			return false;
+//  		}
   		
   		//System.out.println((item == null ? null : "" + table.indexOf(item)) + ":" + newIndex + ":" + isVisible + ":" + table.getData("maxItemShown"));
   		newRow = table.getItem(newIndex);
