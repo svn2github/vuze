@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.tracker.client.impl.bt;
 
 import java.net.URL;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
@@ -112,7 +113,7 @@ TRTrackerBTScraperImpl
 						result.getResponseType()==DownloadScrapeResult.RT_SUCCESS?
 								TRTrackerScraperResponse.ST_ONLINE:
 								TRTrackerScraperResponse.ST_ERROR,
-						result.getStatus() + " (" + result.getURL() + ")");
+						result.getStatus() + " (" + MessageText.getString( "dht.backup.only") + ")");
 
 				// call this last before dispatching listeners as it does another dispatch by itself ~~
 				resp.setSeedsPeers( result.getSeedCount(), result.getNonSeedCount());
