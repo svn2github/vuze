@@ -105,6 +105,7 @@ implements PiecePicker
 	private static final int SLOPE_REQUESTS	= 4*1024;
 
 	private static final long RTA_END_GAME_MODE_SIZE_TRIGGER	= 16 * DiskManager.BLOCK_SIZE;
+	private static final long END_GAME_MODE_RESERVED_TRIGGER	= 5 * 1024*1024;
 	private static final long END_GAME_MODE_SIZE_TRIGGER		= 20 * 1024*1024;
 	private static final long END_GAME_MODE_TIMEOUT				= 60 * END_GAME_MODE_SIZE_TRIGGER / DiskManager.BLOCK_SIZE;
 
@@ -2026,13 +2027,13 @@ implements PiecePicker
 			return;
 		}
 		
-		final long now =SystemTime.getCurrentTime();
+		final long mono_now =SystemTime.getMonotonousTime();
 		
-		if (endGameMode ||endGameModeAbandoned){
+		if ( endGameMode ||endGameModeAbandoned ){
 			
-			if (!endGameModeAbandoned){
+			if ( !endGameModeAbandoned ){
 				
-				if (now -timeEndGameModeEntered >END_GAME_MODE_TIMEOUT){
+				if ( mono_now - timeEndGameModeEntered  > END_GAME_MODE_TIMEOUT){
 					
 					abandonEndGameMode();
 				}
@@ -2041,29 +2042,60 @@ implements PiecePicker
 			return;
 		}
 
-		int active_pieces =0;
-
+		int active_pieces 	= 0;
+		int reserved_pieces	= 0;
+		
 		for (int i =0; i <nbPieces; i++){
 		
 			final DiskManagerPiece dmPiece =dmPieces[i];
-			// If the piece isn't even Needed, or doesn't need more downloading, simply continue
-			if (!dmPiece.isDownloadable())
+			
+				// If the piece isn't even Needed, or doesn't need more downloading, simply continue
+			
+			if (!dmPiece.isDownloadable()){
+				
 				continue;
-
+			}
+			
 			final PEPiece pePiece = pePieces[i];
 
-			if ( pePiece != null && pePiece.isDownloaded()){
-				continue;
+			if ( pePiece != null ){
+				
+				if ( pePiece.isDownloaded()){
+					
+					continue;
+				}
+	
+				if ( dmPiece.isNeeded()){
+						
+						// If the piece is being downloaded (fully requested), count it and continue
+					
+					if ( pePiece.isRequested() ){
+					
+						active_pieces++ ;
+						
+						continue;
+					}
+					
+						// https://jira.vuze.com/browse/SUP-154
+						// If we have a piece reserved to a slow peer then this can prevent end-game
+						// mode from being entered and result poopy end-of-dl speeds
+					
+					if ( pePiece.getReservedBy() != null ){
+						
+						reserved_pieces++;
+						
+						if ( reserved_pieces * diskManager.getPieceLength() > END_GAME_MODE_RESERVED_TRIGGER ){
+							
+							return;
+						}
+						
+						continue;
+					}
+				}
 			}
-
-			// If the piece is being downloaded (fully requested), count it and continue
-			if ( pePiece != null && pePiece.isRequested() && dmPiece.isNeeded())
-			{
-				active_pieces++ ;
-				continue;
-			}
-
-			// Else, some piece is Needed, not downloaded/fully requested; this isn't end game mode
+			
+				// Else, some piece is Needed, not downloaded/fully requested; this isn't end game mode
+			
 			return;
 		}
 
@@ -2083,11 +2115,11 @@ implements PiecePicker
 			try{
 				endGameModeChunks_mon.enter();
 
-				endGameModeChunks =new ArrayList();
+				endGameModeChunks = new ArrayList();
 	
-				timeEndGameModeEntered =now;
+				timeEndGameModeEntered = mono_now;
 				
-				endGameMode =true;
+				endGameMode = true;
 				
 				computeEndGameModeChunks();
 				
