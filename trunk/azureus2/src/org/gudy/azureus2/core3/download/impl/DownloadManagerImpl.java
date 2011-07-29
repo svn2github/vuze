@@ -2999,6 +2999,22 @@ DownloadManagerImpl
 						
 					return ConnectionManager.NAT_UNKNOWN;
 				}
+				
+					// can't expect incoming if we're seeding and there are no peers
+				
+				if ( state == STATE_SEEDING  && scrape_response.getPeers() == 0 ){
+					
+					return ConnectionManager.NAT_UNKNOWN;
+				}
+			}else{
+				
+					// no scrape and we're seeding - don't use this as sign of badness as
+					// we can't determine
+				
+				if ( state == STATE_SEEDING ){
+					
+					return ConnectionManager.NAT_UNKNOWN;
+				}
 			}
 				
 			return ConnectionManager.NAT_BAD;

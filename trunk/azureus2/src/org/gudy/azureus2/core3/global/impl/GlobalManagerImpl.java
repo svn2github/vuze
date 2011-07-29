@@ -196,6 +196,7 @@ public class GlobalManagerImpl
 	
 	private boolean	force_start_non_seed_exists;
 	private int 	nat_status				= ConnectionManager.NAT_UNKNOWN;
+	private long	nat_status_last_good	= -1;
 	private boolean	nat_status_probably_ok;
 		
    private CopyOnWriteList	dm_adapters = new CopyOnWriteList();
@@ -2628,7 +2629,15 @@ public class GlobalManagerImpl
         	}
         }
         
+        long now = SystemTime.getMonotonousTime();
+        
         if ( num_ok > 0 ){
+        	
+        	nat_status = ConnectionManager.NAT_OK;
+        	
+        	nat_status_last_good = now;
+        	
+        }else if ( nat_status_last_good != -1 && now - nat_status_last_good < 30*60*1000 ){
         	
         	nat_status = ConnectionManager.NAT_OK;
         	
