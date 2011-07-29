@@ -93,7 +93,9 @@ TRTrackerBTScraperImpl
 			
 			TRTrackerScraperResponseImpl resp =	tracker_checker.getHashData( torrent, url );
 			
-			boolean	update_is_dht	= TorrentUtils.isDecentralised( result.getURL());
+			URL result_url = result.getURL();
+			
+			boolean	update_is_dht	= TorrentUtils.isDecentralised( result_url );
 			
 				// only override details if underlying scrape is failing or this is an update
 				// to an existing dht-backup result
@@ -113,7 +115,7 @@ TRTrackerBTScraperImpl
 						result.getResponseType()==DownloadScrapeResult.RT_SUCCESS?
 								TRTrackerScraperResponse.ST_ONLINE:
 								TRTrackerScraperResponse.ST_ERROR,
-						result.getStatus() + " (" + MessageText.getString( "dht.backup.only") + ")");
+						result.getStatus() + " (" + (update_is_dht?MessageText.getString( "dht.backup.only" ):(result_url==null?"<null>":result_url.getHost())) + ")");
 
 				// call this last before dispatching listeners as it does another dispatch by itself ~~
 				resp.setSeedsPeers( result.getSeedCount(), result.getNonSeedCount());

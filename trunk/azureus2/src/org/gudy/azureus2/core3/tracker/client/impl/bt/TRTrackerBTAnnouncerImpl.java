@@ -3469,7 +3469,11 @@ TRTrackerBTAnnouncerImpl
 		if ( 	last_response == null ||
 				last_response.getStatus() != TRTrackerAnnouncerResponse.ST_ONLINE ){
 			
-			tracker_status_str	= status + " (" + result.getURL() + ")";
+			URL result_url = result.getURL();
+			
+			boolean	update_is_dht	= TorrentUtils.isDecentralised( result_url );
+
+			tracker_status_str	= status + " (" + (update_is_dht?MessageText.getString( "dht.backup.only" ):(result_url==null?"<null>":result_url.getHost())) + ")";
 		}
 		
 		helper.informResponse( this, response );
