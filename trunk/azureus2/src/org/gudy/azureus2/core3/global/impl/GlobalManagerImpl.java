@@ -56,6 +56,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.helpers.TorrentFolderWatcher;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
@@ -2638,6 +2639,10 @@ public class GlobalManagerImpl
         	nat_status_last_good = now;
         	
         }else if ( nat_status_last_good != -1 && now - nat_status_last_good < 30*60*1000 ){
+        	
+        	nat_status = ConnectionManager.NAT_OK;
+        	
+        }else if ( nat_status_last_good != -1 && SystemTime.getCurrentTime() - TCPNetworkManager.getSingleton().getLastIncomingNonLocalConnectionTime() < 30*60*1000 ){
         	
         	nat_status = ConnectionManager.NAT_OK;
         	
