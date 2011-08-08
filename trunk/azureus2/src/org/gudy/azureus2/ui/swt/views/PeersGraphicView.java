@@ -172,9 +172,12 @@ public class PeersGraphicView
     try {      
       peers_mon.enter();      
       List<PEPeerTransport> connectedPeers = new ArrayList<PEPeerTransport>();
-      for (PEPeerTransport peer : connectedPeers) {
-        if(peer.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED)
-          connectedPeers.add(peer);
+      for (PEPeer peer : peers) {
+      	if (peer instanceof PEPeerTransport) {
+      		PEPeerTransport peerTransport = (PEPeerTransport) peer;
+      		if(peerTransport.getConnectionState() == PEPeerTransport.CONNECTION_FULLY_ESTABLISHED)
+      			connectedPeers.add(peerTransport);
+      	}
       }
       
       sortedPeers = connectedPeers.toArray(new PEPeer[connectedPeers.size()]);      
