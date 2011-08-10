@@ -11,8 +11,13 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerListener;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
@@ -44,23 +49,6 @@ public class TabbedMDI
 
 		creatMDI();
 
-		// building plugin views needs UISWTInstance, which needs core.
-		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-			public void azureusCoreRunning(AzureusCore core) {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						try {
-							loadCloseables();
-						} catch (Throwable t) {
-							Debug.out(t);
-						}
-
-						setupPluginViews();
-					}
-				});
-			}
-		});
-
 		try {
 			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
 		} catch (Exception e) {
@@ -68,6 +56,34 @@ public class TabbedMDI
 		}
 
 		return null;
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+
+		UIManager ui_manager = PluginInitializer.getDefaultInterface().getUIManager();
+		ui_manager.addUIListener(new UIManagerListener() {
+			public void UIDetached(UIInstance instance) {
+			}
+			
+			public void UIAttached(UIInstance instance) {
+				if (instance instanceof UISWTInstance) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							try {
+								loadCloseables();
+							} catch (Throwable t) {
+								Debug.out(t);
+							}
+
+							setupPluginViews();
+						}
+					});
+				}
+			}
+		});
+
+		return super.skinObjectInitialShow(skinObject, params);
 	}
 
 	private void creatMDI() {

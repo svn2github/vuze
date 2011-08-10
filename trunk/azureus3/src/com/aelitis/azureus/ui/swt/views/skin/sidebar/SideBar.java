@@ -32,9 +32,10 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionHolder;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
@@ -43,9 +44,7 @@ import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
-import org.gudy.azureus2.ui.swt.plugins.UISWTView;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
@@ -283,20 +282,25 @@ public class SideBar
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
-		// building plugin views needs UISWTInstance, which needs core.
-		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-			public void azureusCoreRunning(AzureusCore core) {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						try {
-							loadCloseables();
-						} catch (Throwable t) {
-							Debug.out(t);
-						}
+		UIManager ui_manager = PluginInitializer.getDefaultInterface().getUIManager();
+		ui_manager.addUIListener(new UIManagerListener() {
+			public void UIDetached(UIInstance instance) {
+			}
+			
+			public void UIAttached(UIInstance instance) {
+				if (instance instanceof UISWTInstance) {
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							try {
+								loadCloseables();
+							} catch (Throwable t) {
+								Debug.out(t);
+							}
 
-						setupPluginViews();
-					}
-				});
+							setupPluginViews();
+						}
+					});
+				}
 			}
 		});
 
