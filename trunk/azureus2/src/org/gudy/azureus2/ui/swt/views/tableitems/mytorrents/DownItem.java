@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
@@ -43,7 +44,7 @@ public class DownItem
        extends CoreTableColumn 
        implements TableCellRefreshListener
 {
-	public static final Class DATASOURCE_TYPE = DownloadTypeIncomplete.class;
+	public static final Class DATASOURCE_TYPE = Download.class;
 
   public static final String COLUMN_ID = "down";
 
