@@ -38,6 +38,8 @@ import com.aelitis.azureus.core.util.HashCodeUtils;
 public class 
 StringInterner
 {
+	public static boolean DISABLE_INTERNING = false;
+	
 	private static final int SCHEDULED_CLEANUP_INTERVAL = 60*1000;
 	
 	private static final boolean TRACE_CLEANUP = false;
@@ -137,6 +139,10 @@ StringInterner
 	 */
 	public static Object internObject(Object toIntern)
 	{
+		if ( DISABLE_INTERNING ){
+			return( toIntern );
+		}
+		
 		if(toIntern == null)
 			return null;
 		
@@ -166,6 +172,10 @@ StringInterner
 	}
 
 	public static String intern(String toIntern) {
+		
+		if ( DISABLE_INTERNING ){
+			return( toIntern );
+		}
 		
 		if(toIntern == null)
 			return null;
@@ -221,6 +231,10 @@ StringInterner
 	}
 	
 	public static byte[] internBytes(byte[] toIntern) {
+		
+		if ( DISABLE_INTERNING ){
+			return( toIntern );
+		}
 		
 		if(toIntern == null)
 			return null;
@@ -282,6 +296,10 @@ StringInterner
 	 */
 	public static File internFile(File toIntern) {
 		
+		if ( DISABLE_INTERNING ){
+			return( toIntern );
+		}
+		
 		if(toIntern == null)
 			return null;
 		
@@ -338,6 +356,10 @@ StringInterner
 	}
 	
 	public static URL internURL(URL toIntern) {
+		
+		if ( DISABLE_INTERNING ){
+			return( toIntern );
+		}
 		
 		if(toIntern == null)
 			return null;

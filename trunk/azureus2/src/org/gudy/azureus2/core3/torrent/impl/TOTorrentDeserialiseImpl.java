@@ -307,6 +307,17 @@ TOTorrentDeserialiseImpl
 							
 							Object temp = announce_list.get(i);
 							
+								// sometimes we just get a byte[]! turn into a list
+							
+							if ( temp instanceof byte[] ){
+							
+								List l = new ArrayList();
+								
+								l.add( temp );
+								
+								temp = l;
+							}
+							
 							if ( temp instanceof List ){
 								
 								List	set = (List)temp;
@@ -358,14 +369,14 @@ TOTorrentDeserialiseImpl
 									urls.copyInto( url_array );
 									
 									addTorrentAnnounceURLSet( url_array );
-								}
+								}								
 							}else{
 								
-								Debug.out( "Torrent has invalid url-list entry (" + temp + ") - ignoring" );
+								Debug.out( "Torrent has invalid url-list entry (" + temp + ") - ignoring: meta=" + meta_data );
 							}
 						}
             
-			            	//if the original announce url isn't found, add it to the list
+			            	// if the original announce url isn't found, add it to the list
 							// watch out for those invalid torrents with announce url missing
 						
 			            if ( !announce_url_found && announce_url != null && announce_url.length() > 0) {
@@ -376,7 +387,9 @@ TOTorrentDeserialiseImpl
 			              	urls.copyInto( url_array );
 			              	addTorrentAnnounceURLSet( url_array );
 			              }
-			              catch (Exception e) { Debug.printStackTrace( e ); }
+			              catch( Exception e ){ 
+			            	  Debug.out( "Invalid URL '" + announce_url + "' - meta=" + meta_data, e ); 
+			              }
 			            }
 					}
 				}else if ( key.equalsIgnoreCase( TK_COMMENT )){
