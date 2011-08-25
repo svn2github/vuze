@@ -435,10 +435,11 @@ public class TableRowImpl<COREDATASOURCE>
 
 		int maxItemShown = tableView.getMaxItemShown();
 		if (newIndex > maxItemShown) {
+				//System.out.println((item == null ? null : "" + table.indexOf(item)) + ":" + newIndex + ":" + isVisible + ":" + tableView.getMaxItemShown());
+				tableView.setMaxItemShown(newIndex);
 			if (!isVisible) {
 				return false;
 			}
-			tableView.setMaxItemShown(newIndex);
 		}
 
 		//if (getRealIndex() != newIndex) {
