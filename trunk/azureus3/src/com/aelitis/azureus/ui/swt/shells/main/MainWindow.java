@@ -688,8 +688,9 @@ public class MainWindow
 						}
 
 					} catch (Throwable e) {
-
-						Debug.printStackTrace(e);
+						if (Constants.isOSX_10_7_OrHigher) {
+							Debug.printStackTrace(e);
+						}
 					}
 
 				}
