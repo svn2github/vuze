@@ -58,7 +58,7 @@ public class CompositeMinSize
 			}
 			return new Point(1, 1);
 		}
-		if (size.x == 0 && size.y == 0) {
+		if (size.x == 0 || size.y == 0) {
 			return size;
 		}
 		if (minWidth > 0 && size.x < minWidth) {
@@ -82,7 +82,7 @@ public class CompositeMinSize
 			}
 			return new Point(1, 1);
 		}
-		if (size.x == 0 && size.y == 0) {
+		if (size.x == 0 || size.y == 0) {
 			return size;
 		}
 		if (minWidth > 0 && size.x < minWidth) {
