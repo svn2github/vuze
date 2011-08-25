@@ -1128,7 +1128,7 @@ TRTrackerBTAnnouncerImpl
 					}else if (	protocol.equalsIgnoreCase("http") && 
 								!az_tracker	&& 
 								announceCount % autoUDPprobeEvery == 0 && 
-								udpAnnounceEnabled ){
+								udpProbeEnabled && udpAnnounceEnabled ){
 						
 							// if we don't know this tracker supports UDP then don't probe on
 							// first announce as we don't want a large delay on torrent startup
