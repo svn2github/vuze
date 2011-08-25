@@ -1034,7 +1034,7 @@ public class TableCellImpl
 	}
 
 	public String getClipboardText() {
-		if (!isDisposed()) {
+		if (isDisposed()) {
 			return "";
 		}
 		String text = tableColumn.getClipboardText(this);
@@ -1388,7 +1388,7 @@ public class TableCellImpl
   }
 
   public boolean needsPainting() {
-		if (!isDisposed()) {
+		if (isDisposed()) {
 			return false;
 		}
 
