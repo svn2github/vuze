@@ -201,6 +201,7 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     			Parameter	p,
     			boolean		caused_internally )
 			{
+    			
     			setPercentageBlocked();
 			}
 		});
@@ -495,7 +496,9 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     });
 
     percentage_blocked  = new Label(cArea, SWT.WRAP | SWT.RIGHT);
-    percentage_blocked.setLayoutData(Utils.getWrappableLabelGridData(1, 0));
+    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.FILL_HORIZONTAL);
+    percentage_blocked.setLayoutData(gridData);
+    percentage_blocked.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.HORIZONTAL_ALIGN_FILL));
     setPercentageBlocked();
     
 
