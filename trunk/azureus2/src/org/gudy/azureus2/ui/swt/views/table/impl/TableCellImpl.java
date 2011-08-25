@@ -654,6 +654,9 @@ public class TableCellImpl
   }
 
   public int getWidth() {
+  	if (isDisposed()) {
+  		return -1;
+  	}
   	if (QUICK_WIDTH) {
   		return tableColumn.getWidth() - 2 - (getMarginWidth() * 2);
   	}
@@ -1031,6 +1034,9 @@ public class TableCellImpl
 	}
 
 	public String getClipboardText() {
+		if (!isDisposed()) {
+			return "";
+		}
 		String text = tableColumn.getClipboardText(this);
 		if (text != null) {
 			return text;
@@ -1382,6 +1388,10 @@ public class TableCellImpl
   }
 
   public boolean needsPainting() {
+		if (!isDisposed()) {
+			return false;
+		}
+
   	if (cellSWTPaintListeners != null || tableColumn.hasCellOtherListeners("SWTPaint")) {
   		return true;
   	}
@@ -1440,7 +1450,7 @@ public class TableCellImpl
 	 */
 	public String toString() {
 		return "TableCell {"
-				+ tableColumn.getName()
+				+ (tableColumn == null ? "disposed" : tableColumn.getName())
 				+ ","
 				+ (tableRow == null ? "" : "r" + tableRow.getIndex())
 				+ (bufferedTableItem == null ? "c?" : "c"
@@ -1536,7 +1546,7 @@ public class TableCellImpl
 
 	public void invokeVisibilityListeners(int visibility,
 			boolean invokeColumnListeners) {
-		if (invokeColumnListeners) {
+		if (invokeColumnListeners && tableColumn != null) {
 			tableColumn.invokeCellVisibilityListeners(this, visibility);
 		}
 
@@ -1608,6 +1618,9 @@ public class TableCellImpl
 	}
 
 	public String getObfusticatedText() {
+		if (isDisposed()) {
+			return null;
+		}
 		if (tableColumn.isObfusticated()) {
 			if (tableColumn instanceof ObfusticateCellText) {
 				return ((ObfusticateCellText)tableColumn).getObfusticatedText(this);
