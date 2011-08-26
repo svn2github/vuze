@@ -57,6 +57,8 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.clientid.ClientIDException;
+import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
@@ -72,8 +74,8 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
-import org.json.simple.parser.JSONParser;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -1355,6 +1357,20 @@ PairingManagerImpl
 			}
 			
 			URL target = new URL( SERVICE_URL + "/client/" + command + "?request=" + request_str + other_params );
+			
+			Properties	http_properties = new Properties();
+			
+			http_properties.put( ClientIDGenerator.PR_URL, target );
+				
+			try{
+				ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
+				
+			}catch( ClientIDException e ){
+				
+				throw( new IOException( e.getMessage()));
+			}
+			
+			target = (URL)http_properties.get( ClientIDGenerator.PR_URL );
 			
 			HttpURLConnection connection = (HttpURLConnection)target.openConnection();
 			
