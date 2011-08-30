@@ -79,6 +79,8 @@ public class PlayUtils
 	private static Method methodIsExternallyPlayable2;
 
 	private static PluginInterface piEmp;
+
+	private static Boolean hasQuickTime;
 	
 	//private static Method methodIsExternalPlayerInstalled;
 
@@ -393,12 +395,14 @@ public class PlayUtils
 		}
 	
 		try {
-			Program program = Program.findProgram(".qtl");
-			boolean hasQuickTime = program == null ? false
-					: (program.getName().toLowerCase().indexOf("quicktime") != -1);
+			if (hasQuickTime == null) {
+				Program program = Program.findProgram(".qtl");
+				hasQuickTime = program == null ? false
+						: (program.getName().toLowerCase().indexOf("quicktime") != -1);
+			}
 	
 			pi.getIPC().invoke("setQuickTimeAvailable", new Object[] {
-				new Boolean(hasQuickTime)
+				hasQuickTime
 			});
 	
 			Object url = pi.getIPC().invoke("getContentURL", new Object[] {
