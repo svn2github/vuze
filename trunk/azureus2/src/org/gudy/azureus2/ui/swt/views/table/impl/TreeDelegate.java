@@ -53,6 +53,7 @@ public class TreeDelegate implements TableOrTreeSWT
 	Tree tree;
 
 	Map<String, Object> data = new HashMap<String, Object>(5);
+	private int style;
 	
 	static {
 		try {
@@ -74,10 +75,12 @@ public class TreeDelegate implements TableOrTreeSWT
 			throws Exception {
 		this(constTree == null ? new Tree(parent,
 				style) : (Tree) constTree.newInstance(new Object[] { parent, style }));
+		this.style = style;
 	}
 
 	protected TreeDelegate(Tree t) {
 		tree = t;
+		this.style = t.getStyle();
 	}
 
 	public Composite getComposite() {
@@ -231,7 +234,7 @@ public class TreeDelegate implements TableOrTreeSWT
 	}
 
 	public int getStyle() {
-		return tree.getStyle();
+		return style;
 	}
 
 	public boolean dragDetect(Event event) {
