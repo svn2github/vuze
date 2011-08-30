@@ -181,7 +181,7 @@ AzureusPlatformContentDirectory
 			
 			final TOTorrent torrent = ((TorrentImpl)t_torrent).getTorrent();
 			
-			final DiskManagerFileInfo	file = download.getDiskManagerFileInfo()[index];
+			final DiskManagerFileInfo	file = download.getDiskManagerFileInfo(index);
 
 			if ( PlatformTorrentUtils.isContent( torrent, false )){
 			
