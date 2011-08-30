@@ -442,14 +442,15 @@ public class TableRowImpl<COREDATASOURCE>
 			}
 		}
 
+		boolean changedIndex = lastIndex != newIndex;
+
 		//if (getRealIndex() != newIndex) {
 		//	((TableViewSWTImpl)tableView).debug("sTI " + newIndex + "; via " + Debug.getCompressedStackTrace(4));
 		//}
-		boolean changedSWTRow = super.setTableItem(newIndex, isVisible);
+		boolean changedSWTRow = !changedIndex ? false : super.setTableItem(newIndex, isVisible);
 		//if (changedSWTRow) {
 		//	System.out.println((item == null ? null : "" + table.indexOf(item)) + ":" + newIndex + ":" + isVisible + ":" + tableView.getMaxItemShown());
 		//}
-		boolean changedIndex = lastIndex != newIndex;
 		if (changedIndex) {
 			//System.out.println("row " + newIndex + " from " + lastIndex + ";" + tableView.isRowVisible(this) + ";" + changedSWTRow);
 			lastIndex = newIndex;

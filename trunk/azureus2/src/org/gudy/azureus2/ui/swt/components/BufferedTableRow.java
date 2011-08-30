@@ -570,16 +570,17 @@ BufferedTableRow
   	//if (!newRow.getParent().equalsTableOrTree(table))
   	//	return false;
 
-  	if (!isVisible) {
-  		// Q&D, clear out.. we'll fill it correctly when it's visible
-  		if (newRow.getData("TableRow") != null) {
-    		newRow.setData("TableRow", null);
-    		table.deselect(newRow);
-    		return true;
-  		}
-  		//System.out.println("quickclear " + table.indexOf(newRow));
-  		return false;
-  	}
+// The following is commented out after moving visible logic to TableRowImpl
+//  	if (!isVisible) {
+//  		// Q&D, clear out.. we'll fill it correctly when it's visible
+//  		if (newRow.getData("TableRow") != null) {
+//    		newRow.setData("TableRow", null);
+//    		table.deselect(newRow);
+//    		return true;
+//  		}
+//  		//System.out.println("quickclear " + table.indexOf(newRow));
+//  		return false;
+//  	}
 		//System.out.println("slowset " + table.indexOf(newRow));
 
   	boolean lastItemExisted = item != null && !item.isDisposed();
