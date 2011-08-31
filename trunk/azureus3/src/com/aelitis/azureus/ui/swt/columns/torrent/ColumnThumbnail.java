@@ -154,7 +154,7 @@ public class ColumnThumbnail
 					}
 				});
 
-		if (imgThumbnail == null) {
+		if (imgThumbnail == null || imgThumbnail[0] == null) {
 			// don't need to release a null image
 			return;
 		}
@@ -194,6 +194,9 @@ public class ColumnThumbnail
 
 				for (int i = 0; i < imgThumbnail.length; i++) {
 					Image image = imgThumbnail[i];
+					if (image == null) {
+						continue;
+					}
 					Rectangle srcBounds = image.getBounds();
 					if (i == 0) {
 						int w = dstWidth;
