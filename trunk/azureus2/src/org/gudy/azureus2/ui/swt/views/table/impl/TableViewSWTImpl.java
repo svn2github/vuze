@@ -1225,6 +1225,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 						return;
 					}
 					break;
+				case 'g':
+					System.out.println("force sort");
+					lLastSortedOn = 0;
+					sortColumn(true);
+					break;
 			}
 
 		}
@@ -1669,7 +1674,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			//System.out.println(sTableID + ": column " + i + ":" + tc.getName() + ": size="  + size + "; ca=" + clientArea + "; pos=" + position);
 			size.intersect(clientArea);
 			boolean nowVisible = !size.isEmpty();
-			//System.out.println("  visible; was=" + columnsVisible[position] + "; now=" + nowVisible);
+			//System.out.println("  visible; was=" + columnsVisible[position] + "; now=" + nowVisible + ";doValidae=" + doInvalidate);
 			if (columnsVisible[position] != nowVisible) {
 				columnsVisible[position] = nowVisible;
 				if (nowVisible && doInvalidate) {
@@ -2324,8 +2329,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					lLastSortedOn = 0;
 					sortColumn.setLastSortValueChange(SystemTime.getCurrentTime());
 				}
-				//_sortColumn(true, false, false);
-				_sortColumn(false, false, false);
+				_sortColumn(true, false, false);
 			}
 
 			long lTimeStart = SystemTime.getMonotonousTime();
@@ -4234,7 +4238,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 				if (!bFillGapsOnly) {
 					if (sortColumn != null
-							&& sortColumn.getLastSortValueChange() > lLastSortedOn) {
+							&& sortColumn.getLastSortValueChange() >= lLastSortedOn) {
 						lLastSortedOn = SystemTime.getCurrentTime();
 						Collections.sort(sortedRows, sortColumn);
 						if (DEBUG_SORTER) {
