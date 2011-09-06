@@ -89,6 +89,9 @@ public class MyTorrentsSuperView
 
 	private UISWTView swtView;
 
+
+	private MyTorrentsView viewWhenDeactivated;
+
   public MyTorrentsSuperView(Text txtFilter, Composite cCats) {
   	this.txtFilter = txtFilter;
 		this.cCats = cCats;
@@ -303,10 +306,11 @@ public class MyTorrentsSuperView
   private MyTorrentsView getCurrentView() {
     // wrap in a try, since the controls may be disposed
     try {
-      if (torrentview != null && torrentview.isTableFocus())
+      if (torrentview != null && torrentview.isTableFocus()) {
         lastSelectedView = torrentview;
-      else if (seedingview != null && seedingview.isTableFocus())
+      } else if (seedingview != null && seedingview.isTableFocus()) {
       	lastSelectedView = seedingview;
+      }
     } catch (Exception ignore) {/*ignore*/}
 
     return lastSelectedView;
@@ -396,13 +400,19 @@ public class MyTorrentsSuperView
 	public void viewActivated() {
 		SelectedContentManager.clearCurrentlySelectedContent();
 
-		MyTorrentsView currentView = getCurrentView();
-		if (currentView != null) {
-			currentView.updateSelectedContent();
+		if (viewWhenDeactivated != null) {
+			viewWhenDeactivated.getComposite().setFocus();
+			viewWhenDeactivated.updateSelectedContent();
+		} else {
+			MyTorrentsView currentView = getCurrentView();
+			if (currentView != null ) {
+				currentView.updateSelectedContent();
+			}
 		}
 	}
 
 	public void viewDeactivated() {
+		viewWhenDeactivated = getCurrentView();
     /*
     MyTorrentsView currentView = getCurrentView();
     if (currentView == null) {return;}
