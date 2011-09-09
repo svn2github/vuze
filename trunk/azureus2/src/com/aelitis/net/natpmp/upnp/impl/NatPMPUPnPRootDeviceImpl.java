@@ -31,14 +31,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.ThreadPool;
 
 import com.aelitis.net.natpmp.NatPMPDevice;
-import com.aelitis.net.upnp.UPnP;
-import com.aelitis.net.upnp.UPnPAction;
-import com.aelitis.net.upnp.UPnPDevice;
-import com.aelitis.net.upnp.UPnPException;
-import com.aelitis.net.upnp.UPnPRootDevice;
-import com.aelitis.net.upnp.UPnPRootDeviceListener;
-import com.aelitis.net.upnp.UPnPService;
-import com.aelitis.net.upnp.UPnPStateVariable;
+import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.services.UPnPSpecificService;
 import com.aelitis.net.upnp.services.UPnPWANConnection;
 import com.aelitis.net.upnp.services.UPnPWANConnectionListener;
@@ -218,6 +211,10 @@ NatPMPUPnPRootDeviceImpl
 		getRootDevice()
 		{
 			return( NatPMPUPnPRootDeviceImpl.this );
+		}
+
+		public UPnPDeviceImage[] getImages() {
+			return new UPnPDeviceImage[0];
 		}
 	}
 	

@@ -22,6 +22,7 @@
 
 package com.aelitis.net.upnp.impl.device;
 
+import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentAttribute;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
 
 /**
@@ -57,6 +58,7 @@ UPnPDeviceImpl
 	
 	private List		devices		= new ArrayList();
 	private List		services	= new ArrayList();
+	private List<UPnPDeviceImage>		images	= new ArrayList<UPnPDeviceImage>();
 	
 	protected
 	UPnPDeviceImpl(
@@ -108,6 +110,35 @@ UPnPDeviceImpl
 			for (int i=0;i<device_nodes.length;i++){
 				
 				devices.add( new UPnPDeviceImpl( root_device, indent + "  ", device_nodes[i]));
+			}
+		}
+		
+		SimpleXMLParserDocumentNode	icon_list = device_node.getChild( "iconList" );
+		if (icon_list != null) {
+			SimpleXMLParserDocumentNode[] children = icon_list.getChildren();
+			
+			for (SimpleXMLParserDocumentNode child : children) {
+				if (!"icon".equalsIgnoreCase(child.getName())) {
+					continue;
+				}
+				
+				String oUrl = getOptionalField(child, "url");
+				if (oUrl == null) {
+					continue;
+				}
+				
+				int width = -1;
+				int height = -1;
+				String oWidth = getOptionalField(child, "width");
+				String oHeight = getOptionalField(child, "height");
+				try {
+					width = Integer.parseInt(oWidth);
+					height = Integer.parseInt(oHeight);
+				} catch (Throwable t) {
+				}
+				
+				images.add(new UPnPDeviceImageImpl(width, height, oUrl,
+						getOptionalField(child, "mime")));
 			}
 		}
 	}
@@ -220,6 +251,12 @@ UPnPDeviceImpl
 		services.toArray( res );
 		
 		return( res );
+	}
+	
+	public UPnPDeviceImage[]
+	getImages()
+	{
+		return images.toArray(new UPnPDeviceImage[0]);
 	}
 	
 	protected String

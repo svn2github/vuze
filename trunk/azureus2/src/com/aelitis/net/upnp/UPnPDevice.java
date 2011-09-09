@@ -65,4 +65,7 @@ UPnPDevice
 	
 	public UPnPRootDevice
 	getRootDevice();
+
+	public UPnPDeviceImage[]
+	getImages();
 }
