@@ -21,18 +21,18 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
+import java.sql.ClientInfoStatus;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -69,7 +69,8 @@ public class
 DeviceManagerUPnPImpl 
 {
 	private final static Object KEY_ROOT_DEVICE = new Object();
-	
+	private final static boolean ADD_DLNA_UPNP_DEVICES = false;
+		
 	private DeviceManagerImpl		manager;
 	private PluginInterface			plugin_interface;
 	private UPnP 					upnp;
@@ -441,6 +442,52 @@ DeviceManagerUPnPImpl
 										handled = true;
 									}
 
+								} else if (ADD_DLNA_UPNP_DEVICES && request.getURL().contains("RootDevice.xml")) {
+									// filter only on RootDevice.xml requests, because some
+									// devices send two different user agents -- one when discovering
+									// our device, and one when doing SOAP actions
+
+									/**
+									System.out.println(request.getClientAddress2().getPort());
+									for (Object key : headers.keySet()) {
+										Object val = headers.get(key);
+										System.out.println(key + "=" + val);
+									}
+									try {
+										System.out.println(
+										FileUtil.readInputStreamAsString(request.getInputStream(), 50000)
+										);
+									} catch (IOException e1) {
+										// TODO Auto-generated catch block
+										e1.printStackTrace();
+									}
+									
+									/**/
+
+									//Wybox/0.95 UPnP/1.0 DLNADOC/1.50 Portable SDK for UPnP devices/1.4.6
+									if (lc_agent.matches("Wybox/[0-9.]+ UPnP/1.0 DLNADOC/1.50 Portable SDK for UPnP devices/[0-9.]+".toLowerCase())) {
+										handled = true;
+										handleGeneric(client_address, lc_agent, "Iomega ScreenPlay");
+									} else {
+										Matcher match;
+										match = Pattern.compile("^([^ ]+) .*DLNADOC/[0-9.]+").matcher(user_agent);
+										if (match.find()) {
+											String name = match.group(1);
+											DeviceMediaRenderer device = handleGeneric(client_address, user_agent, name);
+											// this will trigger VuzeExcode to lookup NetBios name
+											device.setImageID("dlna");
+											handled = true;
+										} else {
+  										match = Pattern.compile("^(.*) UPnP/[0-9.]+").matcher(user_agent);
+  										if (match.find()) {
+  											String name = match.group(1);
+  											DeviceMediaRenderer device = handleGeneric(client_address, user_agent, name);
+  											// this will trigger VuzeExcode to lookup NetBios name
+  											device.setImageID("upnp");
+  											handled = true;
+  										}
+										}
+									}
 								}
 							}
 							
@@ -473,16 +520,15 @@ DeviceManagerUPnPImpl
 								}
 							}
 							
-							//if (!handled && user_agent != null && !user_agent.contains("Azureus")) {
-							//	handleGeneric(client_address, user_agent == null ? "null": user_agent, user_agent);
-							//}
-							
-							/*
+							/**
 							System.out.println( 
-								"Received browse: " + request.getClientAddress() +
-								", agent=" + user_agent +
-								", info=" + client_info );
-							*/
+									"Received browse: " + request.getClientAddress() +
+									", agent=" + user_agent +
+									", info=" + client_info +
+									", handled=" + handled + ", " + request.getURL());
+									System.out.println("\n\n");
+								/**/
+
 							
 							DeviceImpl[] devices = manager.getDevices();
 							
@@ -849,7 +895,7 @@ DeviceManagerUPnPImpl
 		handleGeneric( address, "browser", "Browser" );
 	}
 	
-	protected void
+	protected DeviceMediaRenderer
 	handleGeneric(
 		InetSocketAddress	address,
 		String				unique_name,
@@ -871,13 +917,14 @@ DeviceManagerUPnPImpl
 			}
 		}
 		
-		DeviceMediaRendererImpl device = new DeviceMediaRendererImpl( manager, uid, display_name, false );
-					
-		device = (DeviceMediaRendererImpl)manager.addDevice( device );
+		DeviceMediaRendererImpl newDevice = new DeviceMediaRendererImpl( manager, uid, unique_name, false, display_name );
+		DeviceMediaRendererImpl device = (DeviceMediaRendererImpl)manager.addDevice( newDevice );
 		
 		device.setAddress( address.getAddress());
 		
 		device.alive();
+
+		return device;
 	}
 	
 	protected void
