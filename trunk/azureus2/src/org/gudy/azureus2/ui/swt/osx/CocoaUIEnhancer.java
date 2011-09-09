@@ -3,17 +3,17 @@ package org.gudy.azureus2.ui.swt.osx;
 import java.lang.reflect.*;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.internal.C;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
@@ -61,9 +61,6 @@ public class CocoaUIEnhancer
 
 	private static CocoaUIEnhancer instance;
 
-	private static final int kAboutMenuItem = 0;
-
-	private static final int kPreferencesMenuItem = 2;
 
 	private static final int kServicesMenuItem = 4;
 
@@ -81,26 +78,14 @@ public class CocoaUIEnhancer
 
 	//private static int NSWindowZoomButton = 2;
 
-	private static long sel_aboutMenuItemSelected_;
-
 	private static long sel_application_openFile_;
 
 	private static long sel_application_openFiles_;
 
-	private static long sel_preferencesMenuItemSelected_;
-	
 	private static long sel_applicationShouldHandleReopen_;
 
 	private static long sel_toolbarButtonClicked_;
 
-	private static long sel_restartMenuSelected_;
-
-	private static long sel_wizardMenuSelected_;
-
-	private static long sel_natMenuSelected_;
-
-	private static long sel_speedMenuSelected_;
-	
 	private static boolean alreadyHaveOpenDoc;
 
 	static final byte[] SWT_OBJECT = {
@@ -131,7 +116,6 @@ public class CocoaUIEnhancer
 	private static Class<?> nsapplicationCls = classForName("org.eclipse.swt.internal.cocoa.NSApplication");
 	private static Class<?> nsarrayCls = classForName("org.eclipse.swt.internal.cocoa.NSArray");
 	private static Class<?> nsstringCls = classForName("org.eclipse.swt.internal.cocoa.NSString");
-	private static Class<?> swtmenuitemCls = classForName("org.eclipse.swt.internal.cocoa.SWTMenuItem");
 	private static Class<?> nsidCls = classForName("org.eclipse.swt.internal.cocoa.id");
 	private static Class<?> nsautoreleasepoolCls = classForName("org.eclipse.swt.internal.cocoa.NSAutoreleasePool");
 	private static Class<?> nsworkspaceCls = classForName("org.eclipse.swt.internal.cocoa.NSWorkspace");
@@ -185,25 +169,18 @@ public class CocoaUIEnhancer
 		}
 	}
 
-	static int actionProc(int id, int sel, int arg0) {
+	static int /*long*/actionProc(int /*long*/id, int /*long*/sel,
+			int /*long*/arg0) {
+		return actionProc(id, sel, arg0);
+	}
+
+	static long actionProc(long id, long sel,
+			long arg0) {
 		if (DEBUG) {
 			System.err.println("id=" + id + ";sel=" + sel);
 		}
 
-		if (sel == sel_aboutMenuItemSelected_) {
-			AboutWindow.show();
-		} else if (sel == sel_restartMenuSelected_) {
-			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-			if (uiFunctions != null) {
-				uiFunctions.dispose(true, false);
-			}
-		} else if (sel == sel_wizardMenuSelected_) {
-			new ConfigureWizard(false,ConfigureWizard.WIZARD_MODE_FULL);
-		} else if (sel == sel_natMenuSelected_) {
-			new NatTestWindow();
-		} else if (sel == sel_speedMenuSelected_) {
-			new SpeedTestWizard();
-		} else if (sel == sel_toolbarButtonClicked_) {
+		if (sel == sel_toolbarButtonClicked_) {
 			try {
 				Field fldsel_window = osCls.getField("sel_window");
 				Object windowId = invoke(osCls, "objc_msgSend", new Object[] {
@@ -239,17 +216,19 @@ public class CocoaUIEnhancer
 				Debug.out(t);
 			}
 
-		} else if (sel == sel_preferencesMenuItemSelected_) {
-			UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-			if (uiFunctions != null) {
-				uiFunctions.openView(UIFunctions.VIEW_CONFIG, null);
-			}
 		}
 		return 0;
 	}
 
 	static int /*long*/actionProc(int /*long*/id, int /*long*/sel,
 			int /*long*/arg0, int /*long*/arg1)
+			throws Throwable {
+		return actionProc(id, sel, arg0, arg1);
+	}
+
+	
+	static long actionProc(long id, long sel,
+			long arg0, long arg1)
 			throws Throwable {
 		if (DEBUG) {
 			System.err.println("actionProc 4 " + id + "/" + sel);
@@ -462,14 +441,6 @@ public class CocoaUIEnhancer
 	 * Hook the given Listener to the Mac OS X application Quit menu and the IActions to the About
 	 * and Preferences menus.
 	 * 
-	 * @param display
-	 *            The Display to use.
-	 * @param quitListener
-	 *            The listener to invoke when the Quit menu is invoked.
-	 * @param aboutAction
-	 *            The action to run when the About menu is invoked.
-	 * @param preferencesAction
-	 *            The action to run when the Preferences menu is invoked.
 	 */
 	public void hookApplicationMenu() {
 		Display display = Display.getCurrent();
@@ -532,59 +503,94 @@ public class CocoaUIEnhancer
 		});
 	}
 
+	static MenuItem getItem(Menu menu, int id) {
+		MenuItem[] items = menu.getItems();
+		for (int i = 0; i < items.length; i++) {
+			if (items[i].getID() == id) return items[i];
+		}
+		return null;
+	}
+
 	private void initialize()
 			throws Exception {
 
+		Menu systemMenu = Display.getCurrent().getSystemMenu();
+		if (systemMenu != null) {
+
+			MenuItem sysItem = getItem(systemMenu, SWT.ID_ABOUT);
+			if (sysItem != null) {
+				sysItem.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						AboutWindow.show();
+					};
+				});
+			}
+
+			sysItem = getItem(systemMenu, SWT.ID_PREFERENCES);
+			if (sysItem != null) {
+				sysItem.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+						if (uiFunctions != null) {
+							uiFunctions.openView(UIFunctions.VIEW_CONFIG, null);
+						}
+					};
+				});
+			}
+
+			int quitIndex = systemMenu.indexOf(getItem(systemMenu, SWT.ID_QUIT));
+			MenuItem restartItem = new MenuItem(systemMenu, SWT.CASCADE, quitIndex);
+			Messages.setLanguageText(restartItem, "MainWindow.menu.file.restart");
+			restartItem.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+					if (uiFunctions != null) {
+						uiFunctions.dispose(true, false);
+					}
+				}
+			});
+
+			// Add other menus
+			boolean isAZ3 = "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"));
+
+			if (!isAZ3) {
+				// add Wizard, NAT Test, Speed Test
+
+				int prefIndex = systemMenu.indexOf(getItem(systemMenu,
+						SWT.ID_PREFERENCES)) + 1;
+				MenuItem wizItem = new MenuItem(systemMenu, SWT.CASCADE, prefIndex);
+				Messages.setLanguageText(wizItem, "MainWindow.menu.file.configure");
+				wizItem.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						new ConfigureWizard(false, ConfigureWizard.WIZARD_MODE_FULL);
+					}
+				});
+
+				MenuItem natMenu = new MenuItem(systemMenu, SWT.CASCADE, prefIndex);
+				Messages.setLanguageText(natMenu, "MainWindow.menu.tools.nattest");
+				natMenu.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						new NatTestWindow();
+					}
+				});
+
+				MenuItem speedMenu = new MenuItem(systemMenu, SWT.CASCADE, prefIndex);
+				Messages.setLanguageText(speedMenu, "MainWindow.menu.tools.speedtest");
+				speedMenu.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						new SpeedTestWizard();
+					}
+				});
+
+			}
+		}
 
 		// Register names in objective-c.
-		if (sel_preferencesMenuItemSelected_ == 0) {
-			sel_preferencesMenuItemSelected_ = registerName(osCls,
-					"preferencesMenuItemSelected:");
-			sel_aboutMenuItemSelected_ = registerName(osCls, "aboutMenuItemSelected:");
-			sel_restartMenuSelected_ = registerName(osCls, "restartMenuItemSelected:");
-			sel_natMenuSelected_ = registerName(osCls, "natMenuItemSelected:");
-			sel_speedMenuSelected_ = registerName(osCls, "speedMenuItemSelected:");
-			sel_wizardMenuSelected_ = registerName(osCls, "wizardMenuItemSelected:");
+		if (sel_applicationShouldHandleReopen_ == 0) {
 			sel_applicationShouldHandleReopen_ = registerName(osCls, "applicationShouldHandleReopen:hasVisibleWindows:");
 		}
 
-		// Add the action callbacks for Preferences and About menu items.
-		invoke(osCls, "class_addMethod", new Object[] {
-			wrapPointer(delegateIdSWTApplication),
-			wrapPointer(sel_preferencesMenuItemSelected_),
-			wrapPointer(callBack3Addr),
-			"@:@"
-		});
-		invoke(osCls, "class_addMethod", new Object[] {
-			wrapPointer(delegateIdSWTApplication),
-			wrapPointer(sel_aboutMenuItemSelected_),
-			wrapPointer(callBack3Addr),
-			"@:@"
-		});
-		invoke(osCls, "class_addMethod", new Object[] {
-			wrapPointer(delegateIdSWTApplication),
-			wrapPointer(sel_restartMenuSelected_),
-			wrapPointer(callBack3Addr),
-			"@:@"
-		});
-		invoke(osCls, "class_addMethod", new Object[] {
-			wrapPointer(delegateIdSWTApplication),
-			wrapPointer(sel_wizardMenuSelected_),
-			wrapPointer(callBack3Addr),
-			"@:@"
-		});
-		invoke(osCls, "class_addMethod", new Object[] {
-			wrapPointer(delegateIdSWTApplication),
-			wrapPointer(sel_speedMenuSelected_),
-			wrapPointer(callBack3Addr),
-			"@:@"
-		});
-		invoke(osCls, "class_addMethod", new Object[] {
-			wrapPointer(delegateIdSWTApplication),
-			wrapPointer(sel_natMenuSelected_),
-			wrapPointer(callBack3Addr),
-			"@:@"
-		});
+		// Add the action callbacks for menu items.
 		invoke(osCls, "class_addMethod", new Object[] {
 			wrapPointer(delegateIdSWTApplication),
 			wrapPointer(sel_applicationShouldHandleReopen_),
@@ -601,21 +607,8 @@ public class CocoaUIEnhancer
 				});
 		Object appMenu = invoke(mainMenuItem, "submenu");
 
-		// Create the About <application-name> menu command
-		Object aboutMenuItem = invoke(nsmenuCls, appMenu, "itemAtIndex",
-				new Object[] {
-					wrapPointer(kAboutMenuItem)
-				});
 
-		// Enable the Preferences menuItem.
-		Object prefMenuItem = invoke(nsmenuCls, appMenu, "itemAtIndex",
-				new Object[] {
-					wrapPointer(kPreferencesMenuItem)
-				});
-		invoke(nsmenuitemCls, prefMenuItem, "setEnabled", new Object[] {
-			true
-		});
-
+		// disable services menu
 		Object servicesMenuItem = invoke(nsmenuCls, appMenu, "itemAtIndex",
 				new Object[] {
 					wrapPointer(kServicesMenuItem)
@@ -624,102 +617,11 @@ public class CocoaUIEnhancer
 			false
 		});
 
-		// Set the action to execute when the About or Preferences menuItem is invoked.
-		//
-		// We don't need to set the target here as the current target is the SWTApplicationDelegate
-		// and we have registerd the new selectors on it. So just set the new action to invoke the
-		// selector.
-		invoke(nsmenuitemCls, prefMenuItem, "setAction", new Object[] {
-			wrapPointer(sel_preferencesMenuItemSelected_)
-		});
-		invoke(nsmenuitemCls, aboutMenuItem, "setAction", new Object[] {
-			wrapPointer(sel_aboutMenuItemSelected_)
-		});
 
-		// Add other menus
-		Object menuId = appMenu.getClass().getField("id").get(appMenu);
-		boolean isAZ3 = "az3".equalsIgnoreCase(COConfigurationManager.getStringParameter("ui"));
 
-		if (!isAZ3) {
-			// add Wizard, NAT Test, Speed Test
-
-			addMenuItem(menuId, 5, (int) sel_wizardMenuSelected_,
-					MessageText.getString("MainWindow.menu.file.configure").replaceAll(
-							"&", ""));
-
-			addMenuItem(menuId, 6, (int) sel_natMenuSelected_, MessageText.getString(
-					"MainWindow.menu.tools.nattest").replaceAll("&", ""));
-
-			addMenuItem(menuId, 7, (int) sel_speedMenuSelected_,
-					MessageText.getString("MainWindow.menu.tools.speedtest").replaceAll(
-							"&", ""));
-
-		}
-
-		int numOfItems = ((Number) invoke(appMenu, "numberOfItems")).intValue();
-
-		Object sep = invoke(osCls, "objc_msgSend", new Object[] {
-			osCls.getField("class_NSMenuItem").get(null),
-			osCls.getField("sel_separatorItem").get(null)
-		});
-		invoke(osCls, "objc_msgSend", new Object[] {
-			sep,
-			osCls.getField("sel_retain").get(null)
-		});
-		//OS.objc_msgSend(menuId, OS.sel_insertItem_atIndex_, sep, numOfItems - 1);
-		invoke(osCls, "objc_msgSend", new Object[] {
-			menuId,
-			osCls.getField("sel_insertItem_atIndex_").get(null),
-			sep,
-			numOfItems - 1
-		});
-
-		numOfItems++;
-
-		addMenuItem(menuId, numOfItems - 1, (int) sel_restartMenuSelected_,
-				MessageText.getString("MainWindow.menu.file.restart").replaceAll("&",
-						""));
-		
 		initialized = true;
 	}
 
-	private void addMenuItem(Object menuId, int index, int selector, String title) {
-		try {
-			//NSMenuItem nsItem = (NSMenuItem) new SWTMenuItem().alloc();
-			Object oSWTMenuItem = swtmenuitemCls.newInstance();
-			Object nsItem = invoke(oSWTMenuItem, "alloc");
-
-			Object nsStrTitle = invoke(nsstringCls, "stringWith", new Object[] {
-				title
-			});
-			Object nsStrEmpty = invoke(nsstringCls, "stringWith", new Object[] {
-				""
-			});
-			invoke(nsmenuitemCls, nsItem, "initWithTitle", new Object[] {
-				nsStrTitle,
-				0,
-				nsStrEmpty
-			});
-			invoke(nsItem, "setTarget", new Class<?>[] {
-				nsidCls
-			}, new Object[] {
-				delegate
-			});
-			invoke(nsmenuitemCls, nsItem, "setAction", new Object[] {
-				wrapPointer(selector)
-			});
-
-			//OS.objc_msgSend(menuId, OS.sel_insertItem_atIndex_, nsItem.id, index);
-			invoke(osCls, "objc_msgSend", new Object[] {
-				menuId,
-				osCls.getField("sel_insertItem_atIndex_").get(null),
-				nsmenuitemCls.getField("id").get(nsItem),
-				index
-			});
-		} catch (Throwable e) {
-			Debug.out(e);
-		}
-	}
 
 	private Object invoke(Class<?> cls, String methodName) {
 		return invoke(cls, methodName, (Class<?>[]) null, (Object[]) null);
