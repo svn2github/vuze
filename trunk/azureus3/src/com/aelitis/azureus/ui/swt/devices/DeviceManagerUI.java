@@ -27,6 +27,7 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -75,6 +76,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.devices.add.*;
 import com.aelitis.azureus.ui.swt.devices.add.DeviceTemplateChooser.DeviceTemplateClosedListener;
 import com.aelitis.azureus.ui.swt.devices.add.ManufacturerChooser.ClosedListener;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader.ImageDownloaderListener;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
@@ -2158,14 +2161,6 @@ DeviceManagerUI
 								device.getName(),
 								view, null, false, null);
 				
-				String id = getDeviceImageID( device );
-				
-				if ( id != null ){
-					
-					id = "image.sidebar.device." + id + ".small";
-					
-					entry.setImageLeftID(id);
-				}									
 			}else if ( device_type == Device.DT_OFFLINE_DOWNLOADER ){
 				
 				entry = 
@@ -2203,6 +2198,7 @@ DeviceManagerUI
 				entry = mdi.createEntryFromEventListener(parent, view, key, false,
 						device);
 				entry.setExpanded(true);
+
 			}
 			
 			entry.setDatasource( device );
@@ -2787,6 +2783,10 @@ DeviceManagerUI
 		if (imageID != null) {
 			return imageID;
 		}
+		
+		if (!(device instanceof DeviceMediaRenderer)) {
+			return "" + DeviceMediaRenderer.RS_OTHER;
+		}
 
 		int	species = ((DeviceMediaRenderer)device).getRendererSpecies();
 		
@@ -2833,6 +2833,10 @@ DeviceManagerUI
 			}else if ( classification.toLowerCase().contains( "android")){
 
 				id = "android";
+
+			}else if ( classification.toLowerCase().contains( "neotv")){
+
+				id = "neotv";
 
 			}else{
 				
@@ -3659,6 +3663,33 @@ DeviceManagerUI
 			if ( propertyID == TITLE_TEXT ){
 				
 				return( getTitle());
+				
+			} else if (propertyID == TITLE_IMAGEID) {
+				String imageID = null;
+				final String id = getDeviceImageID( device );
+				
+				if ( id != null ){
+					
+					imageID = "image.sidebar.device." + id + ".small";
+
+					if (id.startsWith("http")) {
+						if (ImageLoader.getInstance().imageAdded_NoSWT(id)) {
+							imageID = id;
+						} else {
+  						Utils.execSWTThreadLater(0, new AERunnable() {
+  							public void runSupport() {
+  								ImageLoader.getInstance().getUrlImage(id, new ImageDownloaderListener() {
+  									public void imageDownloaded(Image image, boolean returnedImmediately) {
+  										ViewTitleInfoManager.refreshTitleInfo( deviceView.this );
+  									}
+  								});
+  							}
+  						});
+						}
+					}
+				}
+				
+				return imageID;
 				
 			}else if ( propertyID == TITLE_INDICATOR_TEXT ){
 				
