@@ -58,6 +58,7 @@ import com.aelitis.azureus.core.download.DiskManagerFileInfoStream;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.UUIDGenerator;
 import com.aelitis.net.upnp.UPnPDevice;
+import com.aelitis.net.upnp.UPnPDeviceImage;
 import com.aelitis.net.upnp.UPnPRootDevice;
 
 public abstract class 
@@ -919,7 +920,28 @@ DeviceUPnPImpl
 	isVisible(
 		AzureusContentDownload		file )
 	{
-		return( !getFilterFilesView());
+		if (getFilterFilesView() || file == null) {
+			return false;
+		}
+		Download download = file.getDownload();
+		if (download == null) {
+			return false;
+		}
+		if (download.isComplete()) {
+			return true;
+		}
+		int numFiles = download.getDiskManagerFileCount();
+		for (int i = 0; i < numFiles; i++) {
+			DiskManagerFileInfo fileInfo = download.getDiskManagerFileInfo(i);
+			if (fileInfo == null || fileInfo.isDeleted() || fileInfo.isSkipped()) {
+				continue;
+			}
+			if (fileInfo.getLength() == fileInfo.getDownloaded()) {
+				// one file available!
+				return true;
+			}
+		}
+		return false;
 	}
 	
 	protected boolean
@@ -944,7 +966,17 @@ DeviceUPnPImpl
 			}
 		}else{
 			
-			result = true;
+			if (file == null) {
+				return false;
+			}
+			DiskManagerFileInfo fileInfo = file.getFile();
+			if (fileInfo == null || fileInfo.isDeleted() || fileInfo.isSkipped()) {
+				return false;
+			}
+			if (fileInfo.getLength() == fileInfo.getDownloaded()) {
+				return true;
+			}
+			return false;
 		}
 		
 		return( result );
@@ -1426,5 +1458,33 @@ DeviceUPnPImpl
 				}
 			}
 		}
+	}
+
+	@Override
+	public String getImageID() {
+		String imageID = super.getImageID();
+		if (imageID == null && device_may_be_null != null) {
+			UPnPDeviceImage[] images = device_may_be_null.getImages();
+			if (images.length > 0) {
+				URL location = getLocation();
+				if (location != null) {
+					String url = "http://" + location.getHost() + ":" + location.getPort();
+					String imageUrl = images[0].getLocation(); 
+					for (UPnPDeviceImage imageInfo : images) {
+						String mime = imageInfo.getLocation();
+						if (mime != null && mime.contains("png")) {
+							imageUrl = imageInfo.getLocation();
+							break;
+						}
+					}
+					if (!imageUrl.startsWith("/")) {
+						url += "/";
+					}
+					url += imageUrl;
+					return url;
+				}
+			}
+		}
+		return imageID;
 	}
 }
