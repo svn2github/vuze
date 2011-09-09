@@ -515,10 +515,6 @@ public class ImageLoader
 	}
 
 	public Image[] getImages(String sKey) {
-		if (!Utils.isThisThreadSWT()) {
-			Debug.out("getImages called on non-SWT thread");
-			return new Image[0];
-		}
 		//System.out.println("getImages " + sKey);
 		if (sKey == null) {
 			return new Image[0];
@@ -533,6 +529,11 @@ public class ImageLoader
 						+ Debug.getCompressedStackTrace());
 			}
 			return imageInfo.getImages();
+		}
+
+		if (!Utils.isThisThreadSWT()) {
+			Debug.out("getImages called on non-SWT thread");
+			return new Image[0];
 		}
 
 		Image[] images;
@@ -742,6 +743,10 @@ public class ImageLoader
 			releaseImage(name);
 		}
 		return exists;
+	}
+
+	public boolean imageAdded_NoSWT(String name) {
+		return mapImages.containsKey(name);
 	}
 
 	public boolean imageAdded(String name) {
