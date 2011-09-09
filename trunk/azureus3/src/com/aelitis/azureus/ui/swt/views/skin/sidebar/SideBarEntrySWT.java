@@ -725,8 +725,15 @@ public class SideBarEntrySWT
 		}
 		if (imageLeft != null) {
 			Rectangle bounds = imageLeft.getBounds();
-			int x = x0IndicatorOfs + ((IMAGELEFT_SIZE - bounds.width) / 2);
-			int y = itemBounds.y + ((itemBounds.height - bounds.height) / 2);
+			int w = bounds.width;
+			int h = bounds.height;
+			if (w > IMAGELEFT_SIZE) {
+				float pct = IMAGELEFT_SIZE / (float) w;
+				w = IMAGELEFT_SIZE;
+				h *= pct;
+			}
+			int x = x0IndicatorOfs + ((IMAGELEFT_SIZE - w) / 2);
+			int y = itemBounds.y + ((itemBounds.height - h) / 2);
 			Rectangle clipping = gc.getClipping();
 			gc.setClipping(x0IndicatorOfs, itemBounds.y, IMAGELEFT_SIZE,
 					itemBounds.height);
@@ -749,7 +756,7 @@ public class SideBarEntrySWT
 			}
 
 			if (!drawn) {
-				gc.drawImage(imageLeft, x, y);
+				gc.drawImage(imageLeft, 0, 0, bounds.width, bounds.height, x, y, w, h );
 			}
 			releaseImageLeft(suffix);
 			gc.setClipping(clipping);
