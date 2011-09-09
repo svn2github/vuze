@@ -47,6 +47,7 @@ import com.aelitis.azureus.core.devices.TranscodeTargetListener;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.util.ImportExportUtils;
+import com.aelitis.azureus.util.StringCompareUtils;
 
 public abstract class 
 DeviceImpl
@@ -504,7 +505,11 @@ DeviceImpl
 	}
 	
 	public void setImageID(String id) {
-		image_id = id;
+		if (!StringCompareUtils.equals(id, image_id)) {
+			image_id = id;
+			
+			setDirty();
+		}
 	}
 	
 	public Device
