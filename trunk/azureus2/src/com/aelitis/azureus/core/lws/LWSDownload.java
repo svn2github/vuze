@@ -678,6 +678,12 @@ LWSDownload
 		return( null );
 	}
 
+	public int getDiskManagerFileCount()
+	{
+		return 0;
+	}
+
+
   	public void
 	requestTrackerAnnounce()
   	{

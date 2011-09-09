@@ -1818,6 +1818,9 @@ DownloadImpl
 		return( null );
 	}
 	
+	public int getDiskManagerFileCount() {
+		return download_manager.getNumFileInfos();
+	}
 	
 	public DiskManagerFileInfo getDiskManagerFileInfo(int index) {
 		org.gudy.azureus2.core3.disk.DiskManagerFileInfo[] info = download_manager.getDiskManagerFileInfo();

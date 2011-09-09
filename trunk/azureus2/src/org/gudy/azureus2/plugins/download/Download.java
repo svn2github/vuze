@@ -861,6 +861,13 @@ Download extends DownloadEventNotifier
   public DiskManagerFileInfo
   getDiskManagerFileInfo(int index);
 
+  /**
+   * Return the number of DiskManagerFile objects
+   * @return
+   * @since 4.6.0.5
+   */
+	public int getDiskManagerFileCount();
+
   		/**
   		 * request a tracker announce 
   		 * @since 2.1.0.5
@@ -1049,5 +1056,6 @@ Download extends DownloadEventNotifier
    * @since 3.0.5.3
    */
   public void stopDownload();
+
   
 }

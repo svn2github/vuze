@@ -874,6 +874,12 @@ RPDownload
 		
 		return( null );
 	}
+	
+	public int 
+	getDiskManagerFileCount() {
+		notSupported();
+		return 0;
+	}
 
 	public long
 	getCreationTime()
