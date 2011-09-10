@@ -21,12 +21,10 @@
 
 package com.aelitis.azureus.core.devices.impl;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
-import java.sql.ClientInfoStatus;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
