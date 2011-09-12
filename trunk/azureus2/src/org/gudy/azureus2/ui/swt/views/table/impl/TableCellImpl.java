@@ -38,7 +38,6 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.Graphic;
-import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.*;
@@ -320,12 +319,6 @@ public class TableCellImpl
 						+ Debug.getStackTrace(true, true)));
   }
   
-  private void checkCellForSetting() {
-  	if ((flags & FLAG_DISPOSED) != 0) {
-  		throw new UIRuntimeException("Table Cell is disposed.");
-  	}
-  }
-  
   /* Public API */
   ////////////////
   
@@ -361,13 +354,17 @@ public class TableCellImpl
   }
   
   public Color getForegroundSWT() {
-  	checkCellForSetting();
+		if (isDisposed()) {
+			return null;
+		}
 
     return bufferedTableItem.getForeground();
   }
   
   public Color getBackgroundSWT() {
-		checkCellForSetting();
+		if (isDisposed()) {
+			return null;
+		}
 
 		return bufferedTableItem.getBackground();
 	}
@@ -405,7 +402,9 @@ public class TableCellImpl
 	}
   
   public boolean setForeground(Color color) {
-  	checkCellForSetting();
+		if (isDisposed()) {
+			return false;
+		}
 
   	// Don't need to set when not visible
   	if (isInvisibleAndCanRefresh())
@@ -419,7 +418,9 @@ public class TableCellImpl
   }
 
 	public boolean setForeground(int red, int green, int blue) {
-		checkCellForSetting();
+		if (isDisposed()) {
+			return false;
+		}
 
 		// Don't need to set when not visible
 		if (isInvisibleAndCanRefresh())
@@ -450,8 +451,11 @@ public class TableCellImpl
   }
 
   public boolean setText(String text) {
-  	checkCellForSetting();
-  	if (text == null)
+		if (isDisposed()) {
+			return false;
+		}
+
+		if (text == null)
   		text = "";
   	boolean bChanged = false;
 
@@ -537,7 +541,9 @@ public class TableCellImpl
 	}
 
   private boolean _setSortValue(Comparable valueToSort) {
-  	checkCellForSetting();
+		if (isDisposed()) {
+			return false;
+		}
 
     if (sortValue == valueToSort)
       return false;
@@ -578,7 +584,9 @@ public class TableCellImpl
   }
   
   public boolean setSortValue(long valueToSort) {
-  	checkCellForSetting();
+		if (isDisposed()) {
+			return false;
+		}
 
 		if ((sortValue instanceof Long)
 				&& ((Long) sortValue).longValue() == valueToSort)
@@ -588,7 +596,9 @@ public class TableCellImpl
   }
   
   public boolean setSortValue( float valueToSort ) {
-  	checkCellForSetting();
+		if (isDisposed()) {
+			return false;
+		}
 
 		if (sortValue instanceof Float
 				&& ((Float) sortValue).floatValue() == valueToSort)
@@ -681,7 +691,9 @@ public class TableCellImpl
 
   // @see org.gudy.azureus2.ui.swt.views.table.TableCellSWT#setGraphic(org.eclipse.swt.graphics.Image)
   public boolean setGraphic(Image img) {
-  	checkCellForSetting();
+		if (isDisposed()) {
+			return false;
+		}
 
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return false;
@@ -698,7 +710,9 @@ public class TableCellImpl
   // @see org.gudy.azureus2.plugins.ui.tables.TableCell#setGraphic(org.gudy.azureus2.plugins.ui.Graphic)
   public boolean setGraphic(Graphic img) {
   	if (img != null){
-  		checkCellForSetting();
+  		if (isDisposed()) {
+  			return false;
+  		}
   	}
 
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
@@ -749,7 +763,9 @@ public class TableCellImpl
   }
 
   public void setFillCell(boolean bFillCell) {
-  	checkCellForSetting();
+		if (isDisposed()) {
+			return;
+		}
 
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
@@ -762,7 +778,9 @@ public class TableCellImpl
   }
 
 	public void setMarginHeight(int height) {
-  	checkCellForSetting();
+		if (isDisposed()) {
+			return;
+		}
 
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
@@ -771,7 +789,9 @@ public class TableCellImpl
   }
 
   public void setMarginWidth(int width) {
-  	checkCellForSetting();
+		if (isDisposed()) {
+			return;
+		}
 
     if (!(bufferedTableItem instanceof BufferedGraphicTableItem))
       return;
@@ -1100,7 +1120,9 @@ public class TableCellImpl
 	 * too.
 	 */
 	public void invalidate() {
-  	checkCellForSetting();
+		if (isDisposed()) {
+			return;
+		}
 
   	invalidate(true);
 	}
