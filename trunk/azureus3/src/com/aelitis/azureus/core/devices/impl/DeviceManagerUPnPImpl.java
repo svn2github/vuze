@@ -26,8 +26,6 @@ import java.net.InetSocketAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
@@ -67,7 +65,6 @@ public class
 DeviceManagerUPnPImpl 
 {
 	private final static Object KEY_ROOT_DEVICE = new Object();
-	private final static boolean ADD_DLNA_UPNP_DEVICES = false;
 		
 	private DeviceManagerImpl		manager;
 	private PluginInterface			plugin_interface;
@@ -425,68 +422,8 @@ DeviceManagerUPnPImpl
 									handleWii( client_address );
 																		
 									handled = true;
-
-								}else if ( lc_agent.contains( "motorola")) {
-									// Linux/2.6.29 UPnP/1.0 Motorola-DLNA-Stack-DLNADOC/1.50
-									handleGeneric( client_address, "motorola", "Motorola DLNA" );
-
-									handled = true;
-
-								}else if ( lc_agent.contains( "sec_hhp")) {
-									Matcher match = Pattern.compile("SEC_HHP_(.*)/").matcher(user_agent);
-									if (match.find()) {
-										String name = match.group(1);
-										handleGeneric(client_address, "SEC_HPP_" + name, name);
-										handled = true;
-									}
-
-								} else if (ADD_DLNA_UPNP_DEVICES && request.getURL().contains("RootDevice.xml")) {
-									// filter only on RootDevice.xml requests, because some
-									// devices send two different user agents -- one when discovering
-									// our device, and one when doing SOAP actions
-
-									/**
-									System.out.println(request.getClientAddress2().getPort());
-									for (Object key : headers.keySet()) {
-										Object val = headers.get(key);
-										System.out.println(key + "=" + val);
-									}
-									try {
-										System.out.println(
-										FileUtil.readInputStreamAsString(request.getInputStream(), 50000)
-										);
-									} catch (IOException e1) {
-										// TODO Auto-generated catch block
-										e1.printStackTrace();
-									}
-									
-									/**/
-
-									//Wybox/0.95 UPnP/1.0 DLNADOC/1.50 Portable SDK for UPnP devices/1.4.6
-									if (lc_agent.matches("Wybox/[0-9.]+ UPnP/1.0 DLNADOC/1.50 Portable SDK for UPnP devices/[0-9.]+".toLowerCase())) {
-										handled = true;
-										handleGeneric(client_address, lc_agent, "Iomega ScreenPlay");
-									} else {
-										Matcher match;
-										match = Pattern.compile("^([^ ]+) .*DLNADOC/[0-9.]+").matcher(user_agent);
-										if (match.find()) {
-											String name = match.group(1);
-											DeviceMediaRenderer device = handleGeneric(client_address, user_agent, name);
-											// this will trigger VuzeExcode to lookup NetBios name
-											device.setImageID("dlna");
-											handled = true;
-										} else {
-  										match = Pattern.compile("^(.*) UPnP/[0-9.]+").matcher(user_agent);
-  										if (match.find()) {
-  											String name = match.group(1);
-  											DeviceMediaRenderer device = handleGeneric(client_address, user_agent, name);
-  											// this will trigger VuzeExcode to lookup NetBios name
-  											device.setImageID("upnp");
-  											handled = true;
-  										}
-										}
-									}
 								}
+
 							}
 							
 							if ( client_info != null ){
