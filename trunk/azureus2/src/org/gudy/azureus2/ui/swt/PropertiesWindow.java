@@ -47,7 +47,7 @@ PropertiesWindow
 		String[]	keys,
 		String[]	values )
 	{	
-		shell = ShellFactory.createMainShell(SWT.APPLICATION_MODAL | SWT.TITLE | SWT.CLOSE |SWT.RESIZE );
+		shell = ShellFactory.createMainShell(SWT.TITLE | SWT.CLOSE |SWT.RESIZE );
 
 		shell.setText( MessageText.getString( "props.window.title", new String[]{ object_name }));
 		
