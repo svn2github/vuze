@@ -158,6 +158,13 @@ public class ImageLoader
 			if (sKey.endsWith(sSuffix)) {
 				//System.out.println("YAY " + sSuffix + " for " + sKey);
 				String sParentName = sKey.substring(0, sKey.length() - sSuffix.length());
+				/*
+				Image[] images = getImages(sParentName);
+				if (images != null && images.length > 0 && isRealImage(images[0])) {
+					return images;
+				}
+				*/
+				/**/
 				String[] sParentFiles = null;
 				ClassLoader cl = null;
 				for (SkinProperties sp : skinProperties) {
@@ -195,6 +202,7 @@ public class ImageLoader
 						return images;
 					}
 				}
+				/**/
 			}
 		}
 
@@ -518,6 +526,12 @@ public class ImageLoader
 		//System.out.println("getImages " + sKey);
 		if (sKey == null) {
 			return new Image[0];
+		}
+		
+		// ugly hack to show sidebar items that are disabled
+		// note this messes up refcount (increments but doesn't decrement)
+		if (sKey.startsWith("http://") && sKey.endsWith("-gray")) {
+			sKey = sKey.substring(0, sKey.length() - 5);
 		}
 
 		ImageLoaderRefInfo imageInfo = mapImages.get(sKey);
