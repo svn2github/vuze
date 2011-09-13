@@ -753,6 +753,8 @@ public class SideBarEntrySWT
 			int x = x0IndicatorOfs + ((IMAGELEFT_SIZE - w) / 2);
 			int y = itemBounds.y + ((itemBounds.height - h) / 2);
 			
+			gc.setAdvanced(true);
+			gc.setInterpolation(SWT.HIGH);
 			gc.drawImage(imageLeft, 0, 0, bounds.width, bounds.height, x, y, w, h );
 
 			if (greyScale) {
