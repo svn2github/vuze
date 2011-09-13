@@ -724,6 +724,24 @@ public class SideBarEntrySWT
 			imageLeft = getImageLeft(null);
 		}
 		if (imageLeft != null) {
+			Rectangle clipping = gc.getClipping();
+			gc.setClipping(x0IndicatorOfs, itemBounds.y, IMAGELEFT_SIZE,
+					itemBounds.height);
+
+			if (greyScale) {
+				greyScale = false;
+				String imageLeftID = getImageLeftID();
+				if (imageLeftID != null) {
+					Image grey = ImageLoader.getInstance().getImage(imageLeftID + "-gray");
+
+					if (grey != null) {
+						imageLeft = grey;
+						gc.setAlpha(160);
+						greyScale = true;
+					}
+				}
+			}
+
 			Rectangle bounds = imageLeft.getBounds();
 			int w = bounds.width;
 			int h = bounds.height;
@@ -734,30 +752,15 @@ public class SideBarEntrySWT
 			}
 			int x = x0IndicatorOfs + ((IMAGELEFT_SIZE - w) / 2);
 			int y = itemBounds.y + ((itemBounds.height - h) / 2);
-			Rectangle clipping = gc.getClipping();
-			gc.setClipping(x0IndicatorOfs, itemBounds.y, IMAGELEFT_SIZE,
-					itemBounds.height);
+			
+			gc.drawImage(imageLeft, 0, 0, bounds.width, bounds.height, x, y, w, h );
 
-			boolean drawn = false;
 			if (greyScale) {
 				String imageLeftID = getImageLeftID();
-				if (imageLeftID != null) {
-					Image grey = ImageLoader.getInstance().getImage(imageLeftID + "-gray");
-
-					if (grey != null) {
-						gc.setAlpha(160);
-						gc.drawImage(grey, x, y);
-						gc.setAlpha(255);
-						ImageLoader.getInstance().releaseImage(imageLeftID + "-gray");
-
-						drawn = true;
-					}
-				}
+  			gc.setAlpha(255);
+  			ImageLoader.getInstance().releaseImage(imageLeftID + "-gray");
 			}
 
-			if (!drawn) {
-				gc.drawImage(imageLeft, 0, 0, bounds.width, bounds.height, x, y, w, h );
-			}
 			releaseImageLeft(suffix);
 			gc.setClipping(clipping);
 			//			0, 0, bounds.width, bounds.height,
