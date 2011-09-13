@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 
@@ -31,6 +32,7 @@ import org.gudy.azureus2.core3.util.IndentWriter;
 
 import com.aelitis.azureus.core.devices.*;
 import com.aelitis.net.upnp.UPnPDevice;
+import com.aelitis.net.upnp.impl.device.UPnPDeviceImpl;
 
 public class 
 DeviceMediaRendererImpl
@@ -82,6 +84,26 @@ DeviceMediaRendererImpl
 		throws IOException
 	{
 		super(_manager, _map );
+	}
+	
+	public void setAddress(InetAddress address) {
+		super.setAddress(address);
+		
+		if (address != null && getUPnPDevice() == null) {
+			DeviceImpl[] devices = getManager().getDevices();
+			for (DeviceImpl device : devices) {
+				if (device instanceof DeviceUPnPImpl) {
+					if (address.equals(device.getAddress())) {
+						log("Linked " + getName() + " to UPnP Device " + device.getName());
+  					DeviceUPnPImpl deviceUPnP = ((DeviceUPnPImpl) device);
+  					UPnPDevice upnpDevice = deviceUPnP.getUPnPDevice();
+  					setUPnPDevice(upnpDevice);
+  					setDirty();
+  					break;
+					}
+				}
+			}
+		}
 	}
 	
 	@Override
