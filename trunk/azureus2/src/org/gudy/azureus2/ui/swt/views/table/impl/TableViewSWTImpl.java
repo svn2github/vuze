@@ -3338,6 +3338,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				try {
+					if (table.isDisposed()) {
+						return;
+					}
 					table.setColumnOrder(positions);
 					swt_updateColumnVisibilities(true);
 				} catch (NoSuchMethodError e) {
