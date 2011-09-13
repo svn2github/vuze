@@ -25,6 +25,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -247,6 +248,13 @@ DeviceUPnPImpl
 	getUPnPDevice()
 	{
 		return( device_may_be_null );
+	}
+	
+	protected void
+	setUPnPDevice(
+			UPnPDevice device)
+	{
+		device_may_be_null = device;
 	}
 	
 	public boolean
@@ -1348,6 +1356,7 @@ DeviceUPnPImpl
 			addDP( dp, "device.model.name", model_details );
 			addDP( dp, "device.model.num", device.getModelNumber());
 			addDP( dp, "device.manu.desc", manu_details );
+			
 		}else{
 			
 			InetAddress ia = getAddress();
@@ -1356,6 +1365,13 @@ DeviceUPnPImpl
 				
 				addDP( dp, "dht.reseed.ip", ia.getHostAddress()); 
 			}
+		}
+		addDP( dp, "!Is Liveness Detectable!", isLivenessDetectable());
+		if ( isManual() ){
+			
+			addDP( dp, "azbuddy.ui.table.online",  isAlive() );
+		
+			addDP( dp, "device.lastseen", getLastSeen()==0?"":new SimpleDateFormat().format(new Date( getLastSeen() )));
 		}
 	}
 	
@@ -1463,7 +1479,8 @@ DeviceUPnPImpl
 	@Override
 	public String getImageID() {
 		String imageID = super.getImageID();
-		if (imageID == null && device_may_be_null != null) {
+		// commented out existing imageid check so upnp device image overrides
+		if (/*imageID == null && */ device_may_be_null != null && isAlive()) {
 			UPnPDeviceImage[] images = device_may_be_null.getImages();
 			if (images.length > 0) {
 				URL location = getLocation();

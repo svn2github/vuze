@@ -47,6 +47,15 @@ DeviceManager
 	
 		throws DeviceManagerException;
 	
+	Device addInetDevice(
+		int					type, 
+		String					uid, 
+		String					classification,
+		String					name,
+		InetAddress					address )
+
+		throws DeviceManagerException;
+
 	public void
 	search(
 		int						max_millis,

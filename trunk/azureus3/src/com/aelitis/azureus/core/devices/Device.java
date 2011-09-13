@@ -178,4 +178,7 @@ Device
 	getVuzeFile()
 	
 		throws IOException;
+
+	public TranscodeProfile[] 
+	getDirectTranscodeProfiles();
 }

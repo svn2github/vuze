@@ -706,6 +706,11 @@ DeviceImpl
 			setDirty();
 		}
 	}
+	
+	public long
+	getLastSeen() {
+		return last_seen;
+	}
 
 	public void
 	alive()
@@ -1126,6 +1131,12 @@ DeviceImpl
 	getTranscodeProfiles()
 	{
 		return getTranscodeProfiles(true);
+	}
+
+	public TranscodeProfile[]
+	getDirectTranscodeProfiles()
+	{
+		return getTranscodeProfiles(false);
 	}
 
 	

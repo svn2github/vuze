@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URL;
 import java.util.*;
 
@@ -210,7 +211,7 @@ DeviceManagerImpl
 							case LT_DEVICE_CHANGED:{
 								
 								if ( deviceAdded( device )){
-								
+									
 									device.fireChanged();
 									
 									listener.deviceChanged( device );
@@ -661,6 +662,21 @@ DeviceManagerImpl
 		throws DeviceManagerException
 	{
 		return( createDevice( type, uid, classification, name, true ));
+	}
+	
+	public Device 
+	addInetDevice(
+		int 		type, 
+		String		uid,
+		String		classification,
+		String		name,
+		InetAddress address)
+	
+		throws DeviceManagerException
+	{
+		Device device = createDevice( type, uid, classification, name, false );
+		device.setAddress(address);
+		return device;
 	}
 	
 	protected Device
@@ -1347,6 +1363,8 @@ DeviceManagerImpl
 			
 		if ( !disable_events.contains( device )){
 		
+			//System.out.println(System.currentTimeMillis() + "] CHANGE -> " + device.getID() + "/" + device.getName() + " via " + Debug.getCompressedStackTrace());
+			
 			listeners.dispatch( LT_DEVICE_CHANGED, device );
 		}
 	}
