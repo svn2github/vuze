@@ -98,6 +98,7 @@ DeviceMediaRendererImpl
 				if (device == this || !((device instanceof DeviceUPnPImpl))) {
 					continue;
 				}
+				DeviceUPnPImpl deviceUPnP = ((DeviceUPnPImpl) device);
 				if (!address.equals(device.getAddress())) {
 					continue;
 				}
@@ -105,7 +106,7 @@ DeviceMediaRendererImpl
 				if (hasUPnPDevice) {
 					if (device.getType() == DT_MEDIA_RENDERER) {
 						// prefer UPnP Device over Manual one added by a Browse event
-						if (!device.isHidden()) {
+						if (deviceUPnP.getUPnPDevice() != null && !device.isHidden()) {
 							log("Hiding " + device.getName() + "/"
 									+ device.getClassification() + " due to "
 									+ getName() + "/" + getClassification());
@@ -125,7 +126,6 @@ DeviceMediaRendererImpl
 						// Device has UPnP stuff, but did not register itself as
 						// renderer.
 						log("Linked " + getName() + " to UPnP Device " + device.getName());
-  					DeviceUPnPImpl deviceUPnP = ((DeviceUPnPImpl) device);
   					UPnPDevice upnpDevice = deviceUPnP.getUPnPDevice();
   					setUPnPDevice(upnpDevice);
   					setDirty();
