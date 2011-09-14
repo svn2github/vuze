@@ -661,7 +661,7 @@ DeviceImpl
 	{
 			// apparently wmp isn't ready for the right chasm
 		
-		return( getDeviceClassification() == GENERIC || getClassification().startsWith( "ms_wmp." ) || isGenericUSB());
+		return( getClassification().startsWith( "ms_wmp." ) || isGenericUSB());
 	}
 		
 	public boolean
