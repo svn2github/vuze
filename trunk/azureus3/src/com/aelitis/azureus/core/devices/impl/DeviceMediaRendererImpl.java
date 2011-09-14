@@ -89,35 +89,49 @@ DeviceMediaRendererImpl
 	public void setAddress(InetAddress address) {
 		super.setAddress(address);
 		
-		if (address != null && getUPnPDevice() == null
-				&& getType() == DT_MEDIA_RENDERER) {
+		if (address != null && getType() == DT_MEDIA_RENDERER) {
+			//System.out.println("Set Address " + address.getHostAddress() + "; " + getName() + "/" + getClassification());
+
+			boolean hasUPnPDevice = getUPnPDevice() != null;
 			DeviceImpl[] devices = getManager().getDevices();
 			for (DeviceImpl device : devices) {
-				if (device == this) {
+				if (device == this || !((device instanceof DeviceUPnPImpl))) {
 					continue;
 				}
-				if (device instanceof DeviceUPnPImpl) {
-					if (address.equals(device.getAddress())) {
-						if (device.getType() == DT_MEDIA_RENDERER) {
-							// prefer UPnP Device over Manual one added by a Browse event
-							if (!isHidden()) {
-								log("Hiding " + getName() + "/"
-										+ getClassification() + " due to "
-										+ device.getName() + "/" + device.getClassification());
-								setHidden(true);
-							}
-						} else {
-							// Device has UPnP stuff, but did not register itself as
-							// renderer.
-  						log("Linked " + getName() + " to UPnP Device " + device.getName());
-    					DeviceUPnPImpl deviceUPnP = ((DeviceUPnPImpl) device);
-    					UPnPDevice upnpDevice = deviceUPnP.getUPnPDevice();
-    					setUPnPDevice(upnpDevice);
-    					setDirty();
+				if (!address.equals(device.getAddress())) {
+					continue;
+				}
+
+				if (hasUPnPDevice) {
+					if (device.getType() == DT_MEDIA_RENDERER) {
+						// prefer UPnP Device over Manual one added by a Browse event
+						if (!device.isHidden()) {
+							log("Hiding " + device.getName() + "/"
+									+ device.getClassification() + " due to "
+									+ getName() + "/" + getClassification());
+							device.setHidden(true);
 						}
-  					break;
+					}
+				} else {
+					if (device.getType() == DT_MEDIA_RENDERER) {
+						// prefer UPnP Device over Manual one added by a Browse event
+						if (!isHidden()) {
+							log("Hiding " + getName() + "/"
+									+ getClassification() + " due to "
+									+ device.getName() + "/" + device.getClassification());
+							setHidden(true);
+						}
+					} else {
+						// Device has UPnP stuff, but did not register itself as
+						// renderer.
+						log("Linked " + getName() + " to UPnP Device " + device.getName());
+  					DeviceUPnPImpl deviceUPnP = ((DeviceUPnPImpl) device);
+  					UPnPDevice upnpDevice = deviceUPnP.getUPnPDevice();
+  					setUPnPDevice(upnpDevice);
+  					setDirty();
 					}
 				}
+				break;
 			}
 		}
 	}

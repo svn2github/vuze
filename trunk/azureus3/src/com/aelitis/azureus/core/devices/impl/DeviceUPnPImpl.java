@@ -122,7 +122,7 @@ DeviceUPnPImpl
 		super( _manager, _type, _type + "/" + _device.getRootDevice().getUSN(), getDisplayName( _device ), false );
 		
 		upnp_manager		= _manager.getUPnPManager();
-		device_may_be_null 	= _device;
+		setUPnPDevice(_device);
 		
 		MY_ACF_KEY = getACFKey();
 	}	
@@ -214,7 +214,7 @@ DeviceUPnPImpl
 		
 		DeviceUPnPImpl other = (DeviceUPnPImpl)_other;
 		
-		device_may_be_null	= other.device_may_be_null;
+		setUPnPDevice(other.device_may_be_null);
 		
 		return( true );
 	}
@@ -255,6 +255,10 @@ DeviceUPnPImpl
 			UPnPDevice device)
 	{
 		device_may_be_null = device;
+		if (device != null) {
+			// triggers any address change logic
+			setAddress(getAddress());
+		}
 	}
 	
 	public boolean
