@@ -1074,6 +1074,17 @@ DeviceUPnPImpl
 							
 								return( new String[0] );
 								
+							} else if (name.equals(PT_TITLE)) {
+								
+								
+								TranscodeFileImpl	tf = getTranscodeFile( tf_key );
+
+								if ( tf != null ){
+									
+									return( tf.getName());
+								}
+							
+								
 							}else{
 								
 								TranscodeFileImpl	tf = getTranscodeFile( tf_key );
