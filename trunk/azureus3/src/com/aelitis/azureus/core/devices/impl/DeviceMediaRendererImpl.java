@@ -127,8 +127,11 @@ DeviceMediaRendererImpl
 						// renderer.
 						log("Linked " + getName() + " to UPnP Device " + device.getName());
   					UPnPDevice upnpDevice = deviceUPnP.getUPnPDevice();
-  					setUPnPDevice(upnpDevice);
-  					setDirty();
+  					String manufacturer = upnpDevice.getManufacturer();
+  					if (manufacturer == null || !manufacturer.startsWith("Vuze")) {
+    					setUPnPDevice(upnpDevice);
+    					setDirty();
+  					}
 					}
 				}
 				break;
