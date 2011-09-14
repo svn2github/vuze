@@ -125,12 +125,14 @@ DeviceMediaRendererImpl
 					} else {
 						// Device has UPnP stuff, but did not register itself as
 						// renderer.
-						log("Linked " + getName() + " to UPnP Device " + device.getName());
   					UPnPDevice upnpDevice = deviceUPnP.getUPnPDevice();
-  					String manufacturer = upnpDevice.getManufacturer();
-  					if (manufacturer == null || !manufacturer.startsWith("Vuze")) {
-    					setUPnPDevice(upnpDevice);
-    					setDirty();
+  					if (upnpDevice != null) {
+    					String manufacturer = upnpDevice.getManufacturer();
+    					if (manufacturer == null || !manufacturer.startsWith("Vuze")) {
+    						log("Linked " + getName() + " to UPnP Device " + device.getName());
+      					setUPnPDevice(upnpDevice);
+      					setDirty();
+    					}
   					}
 					}
 				}
