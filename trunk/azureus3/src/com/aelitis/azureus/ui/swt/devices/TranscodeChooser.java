@@ -368,6 +368,12 @@ public abstract class TranscodeChooser
 				}
 				if (event.type == SWT.MouseEnter) {
 					String description = profile.getDescription();
+					if (selectedTranscodeTarget != null) {
+						if (profile == selectedTranscodeTarget.getBlankProfile()) {
+							description = null;
+						}
+					}
+
 					if (description == null || description.length() == 0) {
 						resetProfileInfoBox(true);
 					} else {
@@ -406,6 +412,9 @@ public abstract class TranscodeChooser
 					Widget widget = (event.widget instanceof Label)
 							? ((Label) event.widget).getParent() : event.widget;
 					selectedProfile = (TranscodeProfile) widget.getData("obj");
+					if (selectedTranscodeTarget != null && selectedProfile == selectedTranscodeTarget.getBlankProfile()) {
+						transcodeRequirement = TranscodeTarget.TRANSCODE_NEVER;
+					}
 					if (selectedProfile == null) {
 						Debug.out("profile is null!");
 					} else {
@@ -429,6 +438,10 @@ public abstract class TranscodeChooser
 		for (TranscodeProfile profile : transcodeProfiles) {
 			addImageBox(parent, clickListener, listenerMouseInout, profile,
 					profile.getIconURL(), profile.getName());
+		}
+		if (selectedTranscodeTarget != null) {
+			addImageBox(parent, clickListener, listenerMouseInout, 
+					selectedTranscodeTarget.getBlankProfile(), "", "Do not transcode");
 		}
 		SWTSkinObjectText soTitle = (SWTSkinObjectText) skin.getSkinObject("title");
 		if (soTitle != null) {
@@ -487,62 +500,64 @@ public abstract class TranscodeChooser
 		lblImage.setData("obj", obj);
 		lblImage.addListener(SWT.Paint, new Listener() {
 			public void handleEvent(Event event) {
+				Rectangle area = lblImage.getBounds();
+				Rectangle carea = c.getBounds();
+
+				Point ptInDisplay = c.toDisplay(0, 0);
+
+				event.gc.setAdvanced(true);
+				event.gc.setAntialias(SWT.ON);
+				event.gc.setLineWidth(2);
+
+				if (new Rectangle(ptInDisplay.x, ptInDisplay.y, carea.width,
+						carea.height).contains(event.display.getCursorLocation())) {
+					//if (event.display.getCursorControl() == lblImage) {
+
+					Color color1 = ColorCache.getColor(event.gc.getDevice(), 252, 253,
+							255);
+					Color color2 = ColorCache.getColor(event.gc.getDevice(), 169, 195,
+							252);
+					Pattern pattern = new Pattern(event.gc.getDevice(), 0, 0, 0,
+							area.height, color1, 0, color2, 200);
+					event.gc.setBackgroundPattern(pattern);
+
+					event.gc.fillRoundRectangle(0, 0, area.width - 1, area.height - 1,
+							20, 20);
+
+					event.gc.setBackgroundPattern(null);
+					pattern.dispose();
+
+					pattern = new Pattern(event.gc.getDevice(), 0, 0, 0, area.height,
+							color2, 50, color2, 255);
+					event.gc.setForegroundPattern(pattern);
+
+					event.gc.drawRoundRectangle(0, 0, area.width - 1, area.height - 1,
+							20, 20);
+
+					event.gc.setForegroundPattern(null);
+					pattern.dispose();
+				}
+
 				Image image = (Image) lblImage.getData("Image");
 				if (image != null) {
 					Rectangle bounds = image.getBounds();
-					Rectangle area = lblImage.getBounds();
-					Rectangle carea = c.getBounds();
-
-					Point ptInDisplay = c.toDisplay(0, 0);
-
-					event.gc.setAdvanced(true);
-					event.gc.setAntialias(SWT.ON);
-					event.gc.setLineWidth(2);
-
-					if (new Rectangle(ptInDisplay.x, ptInDisplay.y, carea.width,
-							carea.height).contains(event.display.getCursorLocation())) {
-						//if (event.display.getCursorControl() == lblImage) {
-
-						Color color1 = ColorCache.getColor(event.gc.getDevice(), 252, 253,
-								255);
-						Color color2 = ColorCache.getColor(event.gc.getDevice(), 169, 195,
-								252);
-						Pattern pattern = new Pattern(event.gc.getDevice(), 0, 0, 0,
-								area.height, color1, 0, color2, 200);
-						event.gc.setBackgroundPattern(pattern);
-
-						event.gc.fillRoundRectangle(0, 0, area.width - 1, area.height - 1,
-								20, 20);
-
-						event.gc.setBackgroundPattern(null);
-						pattern.dispose();
-
-						pattern = new Pattern(event.gc.getDevice(), 0, 0, 0, area.height,
-								color2, 50, color2, 255);
-						event.gc.setForegroundPattern(pattern);
-
-						event.gc.drawRoundRectangle(0, 0, area.width - 1, area.height - 1,
-								20, 20);
-
-						event.gc.setForegroundPattern(null);
-						pattern.dispose();
-					}
-
 					event.gc.drawImage(image, bounds.x, bounds.y, bounds.width,
 							bounds.height, 8, 5, bounds.width, bounds.height);
-
 				} else {
 					Rectangle ca = lblImage.getClientArea();
 					event.gc.setAdvanced(true);
 					event.gc.setAntialias(SWT.ON);
-					event.gc.drawRoundRectangle(ca.x, ca.y, ca.width - 1, ca.height - 1, 20, 20);
+					event.gc.setAlpha(50);
+					event.gc.setBackground(event.gc.getForeground());
+					event.gc.fillRoundRectangle(ca.x + 10, ca.y + 5, ca.width - 21,
+							ca.height - 11, 20, 20);
 				}
 			}
 		});
 		gridData = new GridData(GridData.FILL_VERTICAL);
 		gridData.heightHint = 50;
 		gridData.widthHint = 100;
-		if (iconURL != null) {
+		if (iconURL != null && iconURL.length() > 0) {
 			ImageLoader imageLoader = ImageLoader.getInstance();
 			Image image = imageLoader.getUrlImage(iconURL,
 					new ImageDownloaderListener() {
