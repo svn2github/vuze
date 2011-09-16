@@ -102,13 +102,13 @@ TranscodeProviderVuze
 		}
 		
 		try{
-			Map<String, Map<String,String>> profiles_map = (Map<String,Map<String,String>>)plugin_interface.getIPC().invoke( "getProfiles", new Object[]{} );
+			Map<String, Map<String,Object>> profiles_map = (Map<String,Map<String,Object>>)plugin_interface.getIPC().invoke( "getProfiles", new Object[]{} );
 			
 			TranscodeProfile[] res = new TranscodeProfile[profiles_map.size()];
 			
 			int	index = 0;
 			
-			for ( Map.Entry<String, Map<String,String>> entry : profiles_map.entrySet()){
+			for ( Map.Entry<String, Map<String,Object>> entry : profiles_map.entrySet()){
 				
 				res[ index++] = new TranscodeProfileImpl( this, PROFILE_PREFIX + entry.getKey(), entry.getKey(), entry.getValue());
 			}
