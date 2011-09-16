@@ -34,14 +34,14 @@ TranscodeProfileImpl
 	private TranscodeProvider		provider;
 	private String					uid;
 	private String 					name;
-	private Map<String,String>		properties;
+	private Map<String,Object>		properties;
 	
 	protected 
 	TranscodeProfileImpl(
 		TranscodeProvider		_provider,			
 		String					_uid,
 		String					_name,
-		Map<String,String>		_properties )
+		Map<String,Object>		_properties )
 	{
 		provider	= _provider;
 		uid			= _uid;
@@ -58,7 +58,7 @@ TranscodeProfileImpl
 	public String
 	getName()
 	{
-		String displayName = properties.get("display-name");
+		String displayName = (String) properties.get("display-name");
 		return( displayName == null ? name : displayName );
 	}
 	
