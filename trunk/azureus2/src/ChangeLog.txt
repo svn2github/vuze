@@ -3,8 +3,12 @@ VUZE CHANGELOG
 
 2011.0x.0x | Vuze 4.6.0.5
 
+CHANGE: Core  | Moved some device detection code out of core [TuxPaper]
 CHANGE: Plug  | Removed IView, AbstractIView, SWTManager and other deprecated plugin APIs [TuxPaper]
+CHANGE: Device| Button for "Do Not Transcode" [TuxPaper]
+CHANGE: Device| Sidebar icon for devices that supply one [TuxPaper]
 CHANGE: UI    | Switched all views using IView to UISWTVIew [TuxPaper]
+CHANGE: UI    | Moved all non UI table refreshing code out of SWT thread (should result in faster UI) [TuxPaper]
 CHANGE: Misc  | Removed various left over and unused code (saved a measly 200k) [TuxPaper]
 
 BUGFIX: Core  | Fix OSX Lion problems
