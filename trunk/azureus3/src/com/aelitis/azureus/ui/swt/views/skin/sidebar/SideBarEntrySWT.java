@@ -1103,14 +1103,14 @@ public class SideBarEntrySWT
 
 	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateImage#obfusticatedImage(org.eclipse.swt.graphics.Image)
 	public Image obfusticatedImage(Image image) {
-		Rectangle bounds = swt_getBounds();
-		TreeItem treeItem = getTreeItem();
-		Point location = Utils.getLocationRelativeToShell(treeItem.getParent());
-
-		bounds.x += location.x;
-		bounds.y += location.y;
-		
-		UIDebugGenerator.obfusticateArea(image, bounds);
+//		Rectangle bounds = swt_getBounds();
+//		TreeItem treeItem = getTreeItem();
+//		Point location = Utils.getLocationRelativeToShell(treeItem.getParent());
+//
+//		bounds.x += location.x;
+//		bounds.y += location.y;
+//		
+//		UIDebugGenerator.obfusticateArea(image, bounds);
 
 		return image;
 	}
