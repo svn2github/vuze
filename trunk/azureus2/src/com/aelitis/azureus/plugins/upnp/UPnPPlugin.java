@@ -123,6 +123,8 @@ UPnPPlugin
 		plugin_interface	= _plugin_interface;
 		
 		log = plugin_interface.getLogger().getTimeStampedChannel("UPnP");
+		log.setDiagnostic();
+		log.setForce(true);
 
 		UIManager	ui_manager = plugin_interface.getUIManager();
 		
