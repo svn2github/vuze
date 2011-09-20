@@ -95,11 +95,12 @@ DeviceMediaRendererImpl
 			boolean hasUPnPDevice = getUPnPDevice() != null;
 			DeviceImpl[] devices = getManager().getDevices();
 			for (DeviceImpl device : devices) {
-				if (device == this || !((device instanceof DeviceUPnPImpl))) {
+				if (device == this || device.getID().equals(getID())
+						|| !((device instanceof DeviceUPnPImpl))) {
 					continue;
 				}
 				DeviceUPnPImpl deviceUPnP = ((DeviceUPnPImpl) device);
-				if (!address.equals(device.getAddress())) {
+				if (!address.equals(device.getAddress()) || !device.isAlive()) {
 					continue;
 				}
 
