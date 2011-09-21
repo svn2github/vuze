@@ -773,6 +773,29 @@ DeviceImpl
 		manager.requestAttention( this );
 	}
 	
+	public int
+	getFileCount()
+	{
+		try{
+			synchronized( this ){
+				
+				if ( device_files == null ){
+					
+					loadDeviceFile();
+					
+				}
+				
+				return device_files.size();
+			}
+			
+		}catch( Throwable e ){
+			
+			Debug.out( "Failed to load device file", e );
+		}
+		
+		return 0;
+	}
+	
 	public TranscodeFileImpl[]
 	getFiles()
 	{
