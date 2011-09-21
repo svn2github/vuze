@@ -27,6 +27,7 @@ import java.net.InetAddress;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 
@@ -107,21 +108,32 @@ DeviceMediaRendererImpl
 				if (hasUPnPDevice) {
 					if (device.getType() == DT_MEDIA_RENDERER) {
 						// prefer UPnP Device over Manual one added by a Browse event
-						if (deviceUPnP.getUPnPDevice() != null && !device.isHidden()) {
-							log("Hiding " + device.getName() + "/"
-									+ device.getClassification() + " due to "
-									+ getName() + "/" + getClassification());
-							device.setHidden(true);
+						if (deviceUPnP.getUPnPDevice() != null) {
+							int fileCount = deviceUPnP.getFileCount();
+							if (fileCount == 0 && !device.isHidden()) {
+								log("Hiding " + device.getName() + "/"
+										+ device.getClassification() + "/" + device.getID()
+										+ " due to " + getName() + "/" + getClassification() + "/"
+										+ getID());
+  							device.setHidden(true);
+							} else if (fileCount > 0 && Constants.IS_CVS_VERSION && device.isHidden()) {
+								// Fix beta bug where we hid devices that had files.  Remove after 4605
+								device.setHidden(false);
+							}
 						}
 					}
 				} else {
 					if (device.getType() == DT_MEDIA_RENDERER) {
+						int fileCount = getFileCount();
 						// prefer UPnP Device over Manual one added by a Browse event
-						if (!isHidden()) {
-							log("Hiding " + getName() + "/"
-									+ getClassification() + " due to "
-									+ device.getName() + "/" + device.getClassification());
+						if (fileCount == 0 && !isHidden()) {
+							log("hiding " + getName() + "/" + getClassification() + "/"
+									+ getID() + " due to " + device.getName() + "/"
+									+ device.getClassification() + "/" + device.getID());
 							setHidden(true);
+						} else if (fileCount > 0 && Constants.IS_CVS_VERSION && isHidden()) {
+							// Fix beta bug where we hid devices that had files.  Remove after 4605
+							device.setHidden(false);
 						}
 					} else {
 						// Device has UPnP stuff, but did not register itself as
