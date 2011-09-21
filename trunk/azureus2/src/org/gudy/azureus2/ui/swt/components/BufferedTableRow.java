@@ -357,32 +357,35 @@ BufferedTableRow
 		final Color	new_color )
 	{
 				
-		if ( index >= foreground_colors.length ){
+		synchronized (this) {
 			
-			int	new_size = Math.max( index+1, foreground_colors.length+VALUE_SIZE_INC );
-			
-			Color[]	new_colors = new Color[new_size];
-			
-			System.arraycopy( foreground_colors, 0, new_colors, 0, foreground_colors.length );
-			
-			foreground_colors = new_colors;
+  		if ( index >= foreground_colors.length ){
+  			
+  			int	new_size = Math.max( index+1, foreground_colors.length+VALUE_SIZE_INC );
+  			
+  			Color[]	new_colors = new Color[new_size];
+  			
+  			System.arraycopy( foreground_colors, 0, new_colors, 0, foreground_colors.length );
+  			
+  			foreground_colors = new_colors;
+  		}
+  
+  		Color value = foreground_colors[index];
+  		
+  		if ( new_color == value ){
+  			
+  			return false;
+  		}
+  		
+  		if (	new_color != null && 
+  				value != null &&
+  				new_color.equals( value )){
+  					
+  			return false;
+  		}
+  		
+  		foreground_colors[index] = new_color;
 		}
-
-		Color value = foreground_colors[index];
-		
-		if ( new_color == value ){
-			
-			return false;
-		}
-		
-		if (	new_color != null && 
-				value != null &&
-				new_color.equals( value )){
-					
-			return false;
-		}
-		
-		foreground_colors[index] = new_color;
 
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED)) {
 			return true;
@@ -399,25 +402,27 @@ BufferedTableRow
 
 	public Color getForeground(int index)
 	{
-		if (index >= foreground_colors.length) {
-		  return getForeground();
+		synchronized (this) {
+  		if (index >= foreground_colors.length) {
+  		  return getForeground();
+  		}
+  
+  		if (foreground_colors[index] == null) {
+  			if (isSelected()) {
+  				if (!Utils.isSWTThread()) {
+  					return null;
+  				}
+  
+    			Color systemColor = table.getDisplay().getSystemColor(
+    					table.isFocusControl() ? SWT.COLOR_LIST_SELECTION_TEXT
+    							: SWT.COLOR_WIDGET_FOREGROUND);
+    			return systemColor;
+  			}
+  			return getForeground();
+  		}
+  
+  		return foreground_colors[index];
 		}
-
-		if (foreground_colors[index] == null) {
-			if (isSelected()) {
-				if (!Utils.isSWTThread()) {
-					return null;
-				}
-
-  			Color systemColor = table.getDisplay().getSystemColor(
-  					table.isFocusControl() ? SWT.COLOR_LIST_SELECTION_TEXT
-  							: SWT.COLOR_WIDGET_FOREGROUND);
-  			return systemColor;
-			}
-			return getForeground();
-		}
-
-		return foreground_colors[index];
 	}
 	
 	protected String
