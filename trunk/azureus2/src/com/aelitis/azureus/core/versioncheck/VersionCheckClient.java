@@ -760,6 +760,8 @@ public class VersionCheckClient {
 				reply = executeAZMessage( data_to_send, v6 );
 
 				reply.put( "protocol_used", "AZMSG" );
+				
+				error = null;
 			}
 			catch (IOException e) {
 				error = e;
