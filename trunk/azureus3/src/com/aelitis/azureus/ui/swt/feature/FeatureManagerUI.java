@@ -616,7 +616,7 @@ public class FeatureManagerUI
 		String msgidPrefix;
 		String buttonID;
 		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryTimeStamp();
-		if (plusExpiryTimeStamp < 0
+		if (plusExpiryTimeStamp <= 0
 				|| plusExpiryTimeStamp >= SystemTime.getCurrentTime()) {
 			msgidPrefix = "dlg.stream.plus.";
 			buttonID = "Button.upgrade";
