@@ -177,6 +177,23 @@ public interface PeerStats
 	getDownloadRateLimit();
 	
 	/**
+	 * @since 4.7.0.1
+	 * @param bytes_per_sec
+	 */
+	
+	public void
+	setUploadRateLimit(
+		int	bytes_per_sec );
+	
+	/**
+	 * @since 4.7.0.1
+	 * @param bytes_per_sec
+	 */
+	
+	public int
+	getUploadRateLimit();
+	
+	/**
 	 * @since 4.4.0.1
 	 * @return
 	 */

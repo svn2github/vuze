@@ -173,6 +173,19 @@ PeerStatsImpl
 		delegate.setDownloadRateLimitBytesPerSecond( bytes );
 	}
 	
+	public int 
+	getUploadRateLimit() 
+	{
+		return( delegate.getUploadRateLimitBytesPerSecond());
+	}
+	
+	public void 
+	setUploadRateLimit( 
+		int bytes ) 
+	{
+		delegate.setUploadRateLimitBytesPerSecond( bytes );
+	}
+	
 	public long
 	getOverallBytesRemaining()
 	{
