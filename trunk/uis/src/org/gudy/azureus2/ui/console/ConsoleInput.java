@@ -168,23 +168,25 @@ public class ConsoleInput extends Thread {
 		registerCommands();
 		registerPluginCommands();
 		
-		azureus_core.addLifecycleListener(
-			new AzureusCoreLifecycleAdapter()
-			{
-				public void
-				started(
-					AzureusCore		core )
+		if ( azureus_core != null ){
+			azureus_core.addLifecycleListener(
+				new AzureusCoreLifecycleAdapter()
 				{
-					registerUpdateChecker();
-				}
-			});
-		
+					public void
+					started(
+						AzureusCore		core )
+					{
+						registerUpdateChecker();
+					}
+				});
 	
-		try {
-			loadAliases();
-		} catch (IOException e) {
-			out.println("Error while loading aliases: " + e.getMessage());
+			try {
+				loadAliases();
+			} catch (IOException e) {
+				out.println("Error while loading aliases: " + e.getMessage());
+			}
 		}
+		
 		// populate the old command so that '.' does something sensible first time around
 		oldcommand.add("sh");
 		oldcommand.add("t");
