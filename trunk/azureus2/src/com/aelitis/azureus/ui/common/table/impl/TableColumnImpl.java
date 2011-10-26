@@ -68,6 +68,8 @@ public class TableColumnImpl
 
 	private int iAlignment;
 
+	private int	iDefaultAlignment = -1;
+	
 	private int iType;
 
 	private int iPosition;
@@ -188,7 +190,7 @@ public class TableColumnImpl
 					+ " already added"));
 		}
 
-		this.iAlignment = iAlignment;
+		this.iAlignment = this.iDefaultAlignment =  iAlignment;
 		setPosition(iPosition);
 		this.iWidth = this.iDefaultWidth = iWidth;
 		this.iMinWidth = 16;
@@ -201,7 +203,7 @@ public class TableColumnImpl
 					+ " already added"));
 		}
 
-		this.iAlignment = iAlignment;
+		this.iAlignment = this.iDefaultAlignment = iAlignment;
 		setPosition(iPosition);
 		this.iWidth = this.iDefaultWidth = iWidth;
 		this.iMinWidth = 16;
@@ -294,12 +296,22 @@ public class TableColumnImpl
 	}
 
 	public void setAlignment(int alignment) {
+		/*
 		if (bColumnAdded) {
 			throw (new UIRuntimeException("Can't set properties. Column '" + sName
 					+ " already added"));
 		}
-
+		*/
+		
 		iAlignment = alignment;
+		
+		if ( iDefaultAlignment == -1 ){
+			iDefaultAlignment = alignment;
+		}
+		
+		if (bColumnAdded && bVisible) {
+			triggerColumnSizeChange();
+		}
 	}
 
 	public int getAlignment() {
@@ -1034,7 +1046,11 @@ public class TableColumnImpl
 			if(userData.size() < 1)
 				userData = null;
 		}
-		
+		pos++;
+		if (list.length >= (pos + 1) && (list[pos] instanceof Number)) {
+			int align = ((Number) list[pos]).intValue();
+			setAlignment( align );
+		}
 		firstLoad = list.length == 0;
 		postConfigLoad();
 	}
@@ -1068,7 +1084,8 @@ public class TableColumnImpl
 			new Integer(iWidth),
 			new Integer(auto_tooltip ? 1 : 0),
 			new Integer(lLastSortValueChange == 0 ? -1 : (bSortAscending ? 1 : 0)),
-			userData != null ? userData : Collections.EMPTY_MAP
+			userData != null ? userData : Collections.EMPTY_MAP,
+			new Integer(iAlignment)
 		}));
 		// cleanup old config
 		sItemPrefix = "Table." + sTableID + "." + sName; 
@@ -1542,6 +1559,9 @@ public class TableColumnImpl
 	public void reset() {
 		if (iDefaultWidth != 0) {
 			setWidth(iDefaultWidth);
+		}
+		if ( iDefaultAlignment != -1 ){
+			setAlignment( iDefaultAlignment );
 		}
 	}
 

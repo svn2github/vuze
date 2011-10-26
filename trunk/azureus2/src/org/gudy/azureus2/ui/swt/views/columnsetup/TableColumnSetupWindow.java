@@ -417,6 +417,39 @@ public class TableColumnSetupWindow
 
 		ImageLoader imageLoader = ImageLoader.getInstance();
 
+		Button btnLeft = new Button(cResultButtonArea, SWT.PUSH);
+		imageLoader.setButtonImage(btnLeft, "alignleft");
+		btnLeft.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				alignChosen( TableColumnCore.ALIGN_LEAD);
+			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		
+		Button btnCentre = new Button(cResultButtonArea, SWT.PUSH);
+		imageLoader.setButtonImage(btnCentre, "aligncentre");
+		btnCentre.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				alignChosen( TableColumnCore.ALIGN_CENTER );
+			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		
+		Button btnRight = new Button(cResultButtonArea, SWT.PUSH);
+		imageLoader.setButtonImage(btnRight, "alignright");
+		btnRight.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				alignChosen( TableColumnCore.ALIGN_TRAIL );
+			}
+
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
+		
 		Button btnUp = new Button(cResultButtonArea, SWT.PUSH);
 		imageLoader.setButtonImage(btnUp, "up");
 		btnUp.addSelectionListener(new SelectionListener() {
@@ -449,7 +482,8 @@ public class TableColumnSetupWindow
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
-
+		
+		
 		tvChosen = createTVChosen();
 
 		cTableChosen = new Composite(cResultArea, SWT.NONE);
@@ -539,7 +573,7 @@ public class TableColumnSetupWindow
 		fd.top = new FormAttachment(topInfo, 5);
 		fd.right = new FormAttachment(100, -3);
 		fd.bottom = new FormAttachment(btnOk, -5);
-		fd.width = 200;
+		fd.width = 210;
 		cResultArea.setLayoutData(fd);
 		
 		fd = new FormData();
@@ -547,22 +581,45 @@ public class TableColumnSetupWindow
 		fd.left = new FormAttachment(cTableChosen, 0, SWT.CENTER);
 		//fd.right = new FormAttachment(100, 0);
 		cResultButtonArea.setLayoutData(fd);
+	
+			// align
+		
+		fd = new FormData();
+		fd.left = new FormAttachment(0, 5);
+		fd.right = new FormAttachment(btnCentre, -5);
+		fd.bottom = new FormAttachment(btnApply, -3);
+		btnLeft.setLayoutData(fd);
 
 		fd = new FormData();
+		fd.right = new FormAttachment(btnRight, -5);
+		fd.top = new FormAttachment(btnLeft, 0, SWT.TOP);
+		fd.bottom = new FormAttachment(btnLeft, 0, SWT.BOTTOM);
+		btnCentre.setLayoutData(fd);
+
+		fd = new FormData();
+		fd.right = new FormAttachment(btnUp, -10);
+		fd.top = new FormAttachment(btnLeft, 0, SWT.TOP);
+		fd.bottom = new FormAttachment(btnLeft, 0, SWT.BOTTOM);
+		btnRight.setLayoutData(fd);
+
+			// move
+		
+		fd = new FormData();
 		fd.right = new FormAttachment(btnDown, -5);
-		fd.bottom = new FormAttachment(btnApply, -3);
+		fd.top = new FormAttachment(btnLeft, 0, SWT.TOP);
+		fd.bottom = new FormAttachment(btnLeft, 0, SWT.BOTTOM);
 		btnUp.setLayoutData(fd);
 
 		fd = new FormData();
 		fd.right = new FormAttachment(btnDel, -5);
-		fd.top = new FormAttachment(btnUp, 0, SWT.TOP);
-		fd.bottom = new FormAttachment(btnUp, 0, SWT.BOTTOM);
+		fd.top = new FormAttachment(btnLeft, 0, SWT.TOP);
+		fd.bottom = new FormAttachment(btnLeft, 0, SWT.BOTTOM);
 		btnDown.setLayoutData(fd);
 
 		fd = new FormData();
 		fd.right = new FormAttachment(100, -5);
-		fd.top = new FormAttachment(btnUp, 0, SWT.TOP);
-		fd.bottom = new FormAttachment(btnUp, 0, SWT.BOTTOM);
+		fd.top = new FormAttachment(btnLeft, 0, SWT.TOP);
+		fd.bottom = new FormAttachment(btnLeft, 0, SWT.BOTTOM);
 		btnDel.setLayoutData(fd);
 
 		fd = new FormData();
@@ -826,6 +883,8 @@ public class TableColumnSetupWindow
 					rows[oldRowPos - 1] = rows[oldRowPos];
 					rows[oldRowPos] = displacedRow;
 					column.setPositionNoShift(oldColumnPos - 1);
+					
+					column.setAlignment( TableColumnCore.ALIGN_CENTER );
 				}
 			}
 		}
@@ -833,6 +892,20 @@ public class TableColumnSetupWindow
 		tvChosen.refreshTable(true);
 	}
 
+	protected void alignChosen( int align ) {
+		TableRowCore[] selectedRows = tvChosen.getSelectedRows();
+		for (int i = 0; i < selectedRows.length; i++) {
+			TableRowCore row = selectedRows[i];
+			TableColumnCore column = (TableColumnCore) row.getDataSource();
+			if (column != null) {
+				column.setAlignment( align );
+			}
+		}
+		tvChosen.tableInvalidate();
+		tvChosen.refreshTable(true);
+	}
+	
+	
 	/**
 	 * 
 	 *
