@@ -166,7 +166,7 @@ DHTUDPPacketHandler
 								
 							}else{
 								
-								Debug.out( "Non-matching network reply received" );
+								Debug.out( "Non-matching network reply received: expected=" + network + ", actual=" + reply.getNetwork());
 								
 								receiver.error( new DHTUDPPacketHandlerException( new Exception( "Non-matching network reply received" )));
 							}
