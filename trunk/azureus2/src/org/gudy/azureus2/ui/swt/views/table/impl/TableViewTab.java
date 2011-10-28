@@ -37,7 +37,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		return tv;
 	}
 
-	private final void initialize(Composite composite) {
+	public final void initialize(Composite composite) {
 		tv = initYourTableView();
 		if (parentDataSource != null) {
 			tv.setParentDataSource(parentDataSource);
@@ -62,14 +62,14 @@ public abstract class TableViewTab<DATASOURCETYPE>
 
 	public abstract TableViewSWT<DATASOURCETYPE> initYourTableView();
 
-	private final void dataSourceChanged(Object newDataSource) {
+	public final void dataSourceChanged(Object newDataSource) {
 		this.parentDataSource = newDataSource;
 		if (tv != null) {
 			tv.setParentDataSource(newDataSource);
 		}
 	}
 
-	private final void refresh() {
+	public final void refresh() {
 		if (tv != null) {
 			tv.refreshTable(false);
 		}
@@ -81,7 +81,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		}
 	}
 
-	private final String getFullTitle() {
+	public final String getFullTitle() {
 		return MessageText.getString(getPropertiesPrefix() + ".title.full");
 	}
 
@@ -127,7 +127,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		return null;
 	}
 	
-	private void viewActivated() {
+	public void viewActivated() {
 		// cheap hack.. calling isVisible freshens table's visible status (and
 		// updates subviews)
 		if (tv instanceof TableViewSWTImpl) {

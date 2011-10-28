@@ -79,7 +79,7 @@ public class ColumnFileCount
 	}
 
 	public void cellMouseTrigger(final TableCellMouseEvent event) {
-/*
+
 		if (Utils.getUserMode() < 2) { // remove prototype for now
 			return;
 		}
@@ -98,7 +98,6 @@ public class ColumnFileCount
 				}
 			});
 		}
-*/
 	}
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
@@ -116,7 +115,6 @@ public class ColumnFileCount
 				SWT.RIGHT);
 	}
 
-	/*
 	private void openFilesMiniView(DownloadManager dm, TableCell cell) {
 		Shell shell = ShellFactory.createShell(Utils.findAnyShell(), SWT.SHELL_TRIM);
 
@@ -176,5 +174,4 @@ public class ColumnFileCount
 
 		shell.open();
 	}
-*/
 }

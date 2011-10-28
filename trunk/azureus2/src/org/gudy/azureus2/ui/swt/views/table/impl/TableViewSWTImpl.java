@@ -5193,7 +5193,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		DATASOURCETYPE	ds )
 	{
 		if ( filter == null ){
-			return( false );
+			return( true );
 		}
 		
 		return( filter.checker.filterCheck( ds, filter.text, filter.regex ));
