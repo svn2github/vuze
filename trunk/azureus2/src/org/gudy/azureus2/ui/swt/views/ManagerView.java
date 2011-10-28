@@ -25,14 +25,26 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.FormAttachment;
+import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -40,6 +52,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -53,6 +66,9 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
+import org.gudy.azureus2.ui.swt.views.table.TableViewFilterCheck;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -70,6 +86,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
 import com.aelitis.azureus.ui.swt.mdi.MdiSWTMenuHackListener;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 /**
  * Torrent download view, consisting of several information tabs
@@ -93,6 +110,12 @@ public class ManagerView
 	private Composite parent;
 	protected UISWTViewCore activeView;
   
+	private final int 	TOP_BAR_HEIGHT = 30;
+	private Text		txtFilter;
+	private Control		txtControl;
+	private Composite	filterParent; 
+	private boolean 	forceHeaderVisible = false;
+	
   /**
 	 * 
 	 */
@@ -193,20 +216,102 @@ public class ManagerView
   }
 
   private void initialize(Composite composite) {
+	  
+	  forceHeaderVisible = COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader");
+	  
+	  Composite main_area = new Composite( composite, SWT.NULL );
+	  main_area.setLayout( new FormLayout());
+	  
+	  final Composite top_bar = new Composite( main_area, SWT.NULL );
+	  top_bar.setBackground( ColorCache.getColor( composite.getDisplay(), "#c0cbd4" ));
+	  
+	  FormData formData = new FormData();
+	  formData.left = new FormAttachment(0, 0);
+	  formData.right = new FormAttachment(100, 0);
+	  formData.top = new FormAttachment(0, 0);
+	  formData.height = forceHeaderVisible?TOP_BAR_HEIGHT:0;
+	  
+	  top_bar.setLayoutData(formData);
+	  
+	  top_bar.setLayout( new FormLayout());
+	  
+	 
+	  
+	  searchBox sb = new searchBox( top_bar );
+	  
+	  txtControl = sb.getControl();
+	  
+	  Label padding = new Label( top_bar, SWT.NULL );
+	  padding.setVisible( false );
+	  formData = new FormData();
+	  formData.top = new FormAttachment(0, 0);
+	  formData.bottom = new FormAttachment(100, 0);
+	  padding.setLayoutData(formData);
+	  
+	  
+	  txtFilter = sb.getTextControl();
+	  formData = new FormData();
+	  formData.top = new FormAttachment(padding, 0,SWT.CENTER);
+	  formData.right = new FormAttachment(100, -10);
+	  formData.width=150;
+	  txtControl.setLayoutData(formData);
+	  
 
+	  
+	  filterParent = top_bar;
+
+	  Menu menuFilterHeader = new Menu(filterParent);
+	  final MenuItem menuItemAlwaysShow = new MenuItem(menuFilterHeader,
+			  SWT.CHECK);
+	  Messages.setLanguageText(menuItemAlwaysShow,
+	  "ConfigView.label.alwaysShowLibraryHeader");
+	  menuFilterHeader.addMenuListener(new MenuListener() {
+		  public void menuShown(MenuEvent e) {
+			  menuItemAlwaysShow.setSelection(forceHeaderVisible);
+		  }
+
+		  public void menuHidden(MenuEvent e) {
+		  }
+	  });
+	  menuItemAlwaysShow.addSelectionListener(new SelectionListener() {
+		  public void widgetSelected(SelectionEvent e) {
+			  COConfigurationManager.setParameter(
+					  "MyTorrentsView.alwaysShowHeader", !forceHeaderVisible);
+		  }
+
+		  public void widgetDefaultSelected(SelectionEvent e) {
+		  }
+	  });
+	  filterParent.setMenu(menuFilterHeader);
+	  Control[] children = filterParent.getChildren();
+	  for (Control control : children) {
+		  if (control != txtFilter) {
+			  control.setMenu(menuFilterHeader);
+		  }
+	  }
+		
   	this.parent = composite;
-		if (folder == null) {
-			folder = new CTabFolder(composite, SWT.LEFT);
-			folder.setBorderVisible(true);
-		} else {
-			System.out.println("ManagerView::initialize : folder isn't null !!!");
-		}
-  	if (composite.getLayout() instanceof FormLayout) {
-  		folder.setLayoutData(Utils.getFilledFormData());
-  	} else if (composite.getLayout() instanceof GridLayout) {
-  		folder.setLayoutData(new GridData(GridData.FILL_BOTH));
+  	if (folder == null) {
+  		folder = new CTabFolder(main_area, SWT.LEFT);
+  		folder.setBorderVisible(true);
+  	} else {
+  		System.out.println("ManagerView::initialize : folder isn't null !!!");
   	}
-  	
+
+  	formData = new FormData();
+  	formData.left = new FormAttachment(0, 0);
+  	formData.right = new FormAttachment(100, 0);
+ 	formData.top = new FormAttachment(top_bar, 0);
+ 	formData.bottom =  new FormAttachment(100, 0);
+ 	
+ 	folder.setLayoutData(formData);
+
+  	if (composite.getLayout() instanceof FormLayout) {
+  		main_area.setLayoutData(Utils.getFilledFormData());
+  	} else if (composite.getLayout() instanceof GridLayout) {
+  		main_area.setLayoutData(new GridData(GridData.FILL_BOTH));
+  	}
+  	  	
   	Label lblClose = new Label(folder, SWT.WRAP);
   	lblClose.setText("x");
   	lblClose.addListener(SWT.MouseUp, new Listener() {
@@ -262,7 +367,35 @@ public class ManagerView
 			}
 		}
 		
+	 COConfigurationManager.addAndFireParameterListeners(new String[] {
+		"MyTorrentsView.alwaysShowHeader" },
+		new ParameterListener()
+		 {
+			 public void 
+			 parameterChanged(
+				String parameterName) 
+			 {
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						if ( txtFilter != null && !txtFilter.isDisposed()) {
+							forceHeaderVisible = COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader");
 
+							boolean	is_visible = forceHeaderVisible || txtFilter.getText().length() > 0;
+							
+							FormData fd = (FormData)filterParent.getLayoutData();
+							boolean wasVisible = fd.height != 0;
+						
+							if (is_visible != wasVisible) {
+		  						fd.height = is_visible ? TOP_BAR_HEIGHT : 0;
+		  						filterParent.setLayoutData(fd);
+		  						filterParent.getParent().layout();
+							}
+						}
+					}
+				});
+			 }
+		 });
+	 
     // Initialize view when user selects it
     folder.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent e) {
@@ -294,6 +427,22 @@ public class ManagerView
 			
 			if (activeView != null) {
 				activeView.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
+				
+			   	UISWTViewEventListener listener = activeView.getEventListener();
+		    	
+		    	if ( listener instanceof UISWTViewEventListenerHolder ){
+		    		
+		    		listener = ((UISWTViewEventListenerHolder)listener).getDelegatedEventListener( activeView );
+		    	}
+		    	
+		    		// unhook filtering
+		    	
+		    	if ( listener instanceof TableViewTab<?> && listener instanceof TableViewFilterCheck<?>){
+		    		
+		    		TableViewTab<?> tvt = (TableViewTab<?>)listener;
+		    		
+		    		tvt.getTableView().disableFilterCheck();
+		    	}
 			}
 
     	UISWTViewCore view = (UISWTViewCore)item.getData("IView");
@@ -303,12 +452,57 @@ public class ManagerView
     		view = new UISWTViewImpl(UISWTInstance.VIEW_MAIN, cla.getSimpleName(), l, manager);
     		item.setData("IView", view);
     	}
-      activeView = view;
+      
+    	activeView = view;
     	 
     	if (item.getControl() == null) {
     		view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, manager);
       	view.initialize(folder);
       	item.setControl(view.getComposite());
+    	}
+    	
+    	UISWTViewEventListener listener = view.getEventListener();
+    	
+    	if ( listener instanceof UISWTViewEventListenerHolder ){
+    		
+    		listener = ((UISWTViewEventListenerHolder)listener).getDelegatedEventListener( view );
+    	}
+    	
+    		// hook in filtering
+    	
+    	if ( listener instanceof TableViewTab<?> && listener instanceof TableViewFilterCheck<?>){
+    		
+    		final TableViewTab<Object> tvt = (TableViewTab<Object>)listener;
+    		
+    		final TableViewFilterCheck	delegate = (TableViewFilterCheck)tvt;
+    		
+    		txtControl.setVisible( true );
+    		
+    		tvt.getTableView().enableFilterCheck(
+    			txtFilter, 
+    			new TableViewFilterCheck<Object>()
+    			{
+    				public boolean 
+    				filterCheck(
+    					Object ds, 
+    					String filter, 
+    					boolean regex) 
+    				{
+    					return( delegate.filterCheck( ds, filter, regex ));
+    				};
+    				
+    				public void 
+    				filterSet(
+    					String filter ) 
+    				{
+    					ManagerView.this.filterSet( tvt.getTableView(), filter );
+    					
+    					delegate.filterSet( filter );
+     				}
+    				
+    			});
+    	}else{
+    		txtControl.setVisible( false );
     	}
     	
     	item.getControl().setFocus();
@@ -331,6 +525,35 @@ public class ManagerView
 		}
 	}
 
+	public void 
+	filterSet(
+		final TableViewSWT<?>	tv,
+		final String 			filter) 
+	{
+		if (forceHeaderVisible) {
+			return;
+		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (txtFilter != null) {
+					boolean visible = filter.length() > 0;
+					Object layoutData = filterParent.getLayoutData();
+					if (layoutData instanceof FormData) {
+						FormData fd = (FormData) layoutData;
+						boolean wasVisible = fd.height != 0;
+						if (visible != wasVisible) {
+  						fd.height = visible ? TOP_BAR_HEIGHT : 0;
+  						filterParent.setLayoutData(layoutData);
+  						filterParent.getParent().layout();
+						}
+					}
+					if (!visible) {
+						tv.setFocus();
+					}
+				}
+			}
+		});
+	}
 
   
   private UISWTViewCore getActiveView() {
@@ -649,5 +872,153 @@ public class ManagerView
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
 	public void updateUI() {
 		refreshTitle();
+	}
+	
+	
+	private class 
+	searchBox
+	{
+			// shameless hack from SWTSkinObjectTextbox
+		
+		private Control	control;
+		private Text textWidget;
+		
+		private Composite cBubble;
+		
+		private String text = "";
+	
+		public 
+		searchBox(
+			Composite createOn )
+		{		
+			int style = SWT.BORDER;		
+	
+			style |= SWT.SEARCH | SWT.ICON_SEARCH | SWT.ICON_CANCEL;
+			
+			if (Constants.isWindows) {
+				cBubble = new Composite(createOn, SWT.NONE);
+				cBubble.setLayout(new FormLayout());
+			}
+				
+			if ( cBubble == null ){
+				
+				textWidget = new Text(createOn, style);
+				
+			} else {
+				
+				textWidget = new Text(cBubble, SWT.NULL );
+				
+				FormData fd = new FormData();
+				fd.top = new FormAttachment(0, 2);
+				fd.bottom = new FormAttachment(100, -2);
+				fd.left = new FormAttachment(0, 17);
+				fd.right = new FormAttachment(100, -14);
+				textWidget.setLayoutData(fd);
+	
+				cBubble.addPaintListener(new PaintListener() {
+					public void paintControl(PaintEvent e) {
+						Rectangle clientArea = cBubble.getClientArea();
+						e.gc.setBackground(textWidget.getBackground());
+						e.gc.setAdvanced(true);
+						e.gc.setAntialias(SWT.ON);
+						e.gc.fillRoundRectangle(clientArea.x, clientArea.y,
+								clientArea.width - 1, clientArea.height - 1, clientArea.height,
+								clientArea.height);
+						e.gc.setAlpha(127);
+						e.gc.drawRoundRectangle(clientArea.x, clientArea.y,
+								clientArea.width - 1, clientArea.height - 1, clientArea.height,
+								clientArea.height);
+	
+						e.gc.setLineCap(SWT.CAP_ROUND);
+	
+						int iconHeight = clientArea.height - 9;
+						if (iconHeight > 13) {
+							iconHeight = 13;
+						}
+						int iconY = clientArea.y + ((clientArea.height - iconHeight + 1) / 2);
+						
+						e.gc.setAlpha(120);
+						e.gc.setLineWidth(2);
+						e.gc.drawOval(clientArea.x + 6, iconY, 7, 6); 
+						e.gc.drawPolyline(new int[] {
+							clientArea.x + 12,
+							iconY + 6,
+							clientArea.x + 15,
+							iconY + iconHeight,
+						});
+						
+						boolean textIsBlank = text.length() == 0;
+						if (!textIsBlank) {
+							//e.gc.setLineWidth(1);
+							e.gc.setAlpha(80);
+							Rectangle rXArea = new Rectangle(clientArea.x + clientArea.width
+									- 16, clientArea.y + 1, 11, clientArea.height - 2);
+							cBubble.setData("XArea", rXArea);
+	
+							e.gc.drawPolyline(new int[] {
+								clientArea.x + clientArea.width - 7,
+								clientArea.y + 7,
+								clientArea.x + clientArea.width - (7 + 5),
+								clientArea.y + clientArea.height - 7,
+							});
+							e.gc.drawPolyline(new int[] {
+								clientArea.x + clientArea.width - 7,
+								clientArea.y + clientArea.height - 7,
+								clientArea.x + clientArea.width - (7 + 5),
+								clientArea.y + 7,
+							});
+						}
+					}
+				});
+				
+				cBubble.addListener(SWT.MouseDown, new Listener() {
+					public void handleEvent(Event event) {
+						Rectangle r = (Rectangle) event.widget.getData("XArea");
+						if (r != null && r.contains(event.x, event.y)) {
+							textWidget.setText("");
+						}
+					}
+				});
+			}
+			
+			textWidget.addModifyListener(new ModifyListener() {
+				public void modifyText(ModifyEvent e) {
+					boolean textWasBlank = text.length() == 0;
+					text = textWidget.getText();
+					boolean textIsBlank = text.length() == 0;
+					if (textWasBlank != textIsBlank && cBubble != null) {
+						cBubble.redraw();
+					}
+				}
+			});
+			
+			control = cBubble == null ? textWidget : cBubble;
+		}
+	
+	
+		public void setText(final String val) {
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (textWidget != null && !textWidget.isDisposed()) {
+						textWidget.setText(val == null ? "" : val);
+						text = val;
+					}
+				}
+			});
+	
+		}
+		public Control
+		getControl()
+		{
+			return( control );
+		}
+		
+		public String getText() {
+			return text;
+		}
+	
+		public Text getTextControl() {
+			return textWidget;
+		}
 	}
 }

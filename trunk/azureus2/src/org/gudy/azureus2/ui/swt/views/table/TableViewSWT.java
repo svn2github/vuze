@@ -139,6 +139,13 @@ public interface TableViewSWT<DATASOURCETYPE>
 	void enableFilterCheck(Text txtFilter, TableViewFilterCheck<DATASOURCETYPE> filterCheck);
 
 	/**
+	 * @since 4.7.0.1
+	 */
+	void disableFilterCheck();
+	
+	boolean isFiltered( DATASOURCETYPE ds );
+	
+	/**
 	 * @param s
 	 *
 	 * @since 4.1.0.8

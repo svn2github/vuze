@@ -113,25 +113,57 @@ public class NameItem extends CoreTableColumn implements
 	
 	public void refresh(TableCell cell, boolean sortOnlyRefresh)
 	{
-		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) cell.getDataSource();
+		final DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) cell.getDataSource();
 		String name = (fileInfo == null) ? "" : fileInfo.getFile(true).getName();
 		if (name == null)
 			name = "";
 		//setText returns true only if the text is updated
 		if (cell.setText(name) || !cell.isValid()) {
 			if (bShowIcon && !sortOnlyRefresh) {
-				Image icon;
+				Image icon = null;
+				
+				final TableCellSWT _cell = (TableCellSWT)cell;
+				
+				boolean	async = false;
 				if (fileInfo == null) {
 					icon = null;
 				} else {
+					
 					// Don't ever dispose of PathIcon, it's cached and may be used elsewhere
-					icon = ImageRepository.getPathIcon(fileInfo.getFile(true).getPath(),
-							false, false);
+					
+					if ( Utils.isSWTThread()){
+					
+						icon = ImageRepository.getPathIcon(fileInfo.getFile(true).getPath(),
+								false, false);
+					}else{	
+							// happens rarely (seen of filtering of file-view rows
+							// when a new row is added )
+						
+						async = true;
+						
+						Utils.execSWTThread(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									Image icon = ImageRepository.getPathIcon(fileInfo.getFile(true).getPath(),
+											false, false);
+									
+									_cell.setIcon(icon);
+									
+									_cell.redraw();
+								}
+							});
+					}
 				}
 
 				// cheat for core, since we really know it's a TabeCellImpl and want to use
 				// those special functions not available to Plugins
-				((TableCellSWT) cell).setIcon(icon);
+				
+				if ( !async ){
+					_cell.setIcon(icon);
+				}
 			}
 		}
 	}

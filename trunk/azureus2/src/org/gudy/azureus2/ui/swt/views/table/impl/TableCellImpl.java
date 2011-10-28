@@ -296,7 +296,7 @@ public class TableCellImpl
 	}
 
 	private void pluginError(Throwable e) {
-    String sTitleLanguageKey = tableColumn.getTitleLanguageKey();
+    String sTitleLanguageKey = (tableColumn==null?"?":tableColumn.getTitleLanguageKey());
 
     String sPosition = (bufferedTableItem == null) 
       ? "null" 
@@ -1223,7 +1223,9 @@ public class TableCellImpl
 //  	if (Utils.isThisThreadSWT()) {
 //  		System.out.println("ONSWT: " + Debug.getCompressedStackTrace());
 //  	}
-  	if (tableColumn == null) {
+	TableColumnCore	tc = tableColumn;
+	
+  	if (tc == null) {
   		return false;
   	}
 	  boolean ret = getVisuallyChangedSinceRefresh();
@@ -1234,7 +1236,7 @@ public class TableCellImpl
 		  return ret;
 	  }
 
-	  iErrCount = tableColumn.getConsecutiveErrCount();
+	  iErrCount = tc.getConsecutiveErrCount();
 	  if (iErrCount > 10) {
 		  refreshErrLoopCount = 3;
 		  return ret;
@@ -1283,10 +1285,10 @@ public class TableCellImpl
 		  if (bDebug) {
 			  debug("Cell Valid?" + hasFlag(FLAG_VALID) + "; Visible?" + tableRow.isVisible() + "/" + bufferedTableItem.isShown());
 		  }
-		  int iInterval = tableColumn.getRefreshInterval();
+		  int iInterval = tc.getRefreshInterval();
 		  if (iInterval == TableColumnCore.INTERVAL_INVALID_ONLY 
 		  	&& !hasFlag(FLAG_MUSTREFRESH | FLAG_VALID) && hasFlag(FLAG_SORTVALUEISTEXT) && sortValue != null
-			  && tableColumn.getType() == TableColumnCore.TYPE_TEXT_ONLY) {
+			  && tc.getType() == TableColumnCore.TYPE_TEXT_ONLY) {
 			  if (bCellVisible) {
 				  if (bDebug)
 					  debug("fast refresh: setText");
@@ -1308,7 +1310,7 @@ public class TableCellImpl
 				  debug("invoke refresh; wasValid? " + bWasValid);
 
 			  long lTimeStart = Constants.isCVSVersion()?SystemTime.getMonotonousTime():0;
-			  tableColumn.invokeCellRefreshListeners(this, !bCellVisible);
+			  tc.invokeCellRefreshListeners(this, !bCellVisible);
 			  if (refreshListeners != null) {
 				  for (int i = 0; i < refreshListeners.size(); i++) {
 					  TableCellRefreshListener l = (TableCellRefreshListener)refreshListeners.get(i);
@@ -1320,7 +1322,7 @@ public class TableCellImpl
 			  }
 			  if ( Constants.isCVSVersion()){
 				  long lTimeEnd = SystemTime.getMonotonousTime();
-				  tableColumn.addRefreshTime(lTimeEnd - lTimeStart);
+				  tc.addRefreshTime(lTimeEnd - lTimeStart);
 			  }
 			  
 			  // Change to valid only if we weren't valid before the listener calls
@@ -1332,15 +1334,15 @@ public class TableCellImpl
 		  loopFactor++;
 		  refreshErrLoopCount = 0;
 		  if (iErrCount > 0)
-			  tableColumn.setConsecutiveErrCount(0);
+			  tc.setConsecutiveErrCount(0);
 
 		  ret = getVisuallyChangedSinceRefresh();
 		  if (bDebug)
 			  debug("refresh done; visual change? " + ret + ";" + Debug.getCompressedStackTrace());
 	  } catch (Throwable e) {
 		  refreshErrLoopCount++;
-		  if (tableColumn != null) {
-			  tableColumn.setConsecutiveErrCount(++iErrCount);
+		  if (tc != null) {
+			  tc.setConsecutiveErrCount(++iErrCount);
 		  }
 		  pluginError(e);
 		  if (refreshErrLoopCount > 2)

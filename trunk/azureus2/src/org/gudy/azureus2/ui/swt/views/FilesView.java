@@ -24,10 +24,14 @@ package org.gudy.azureus2.ui.swt.views;
 
 import java.util.*;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.layout.FormLayout;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -50,6 +54,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
+import org.gudy.azureus2.ui.swt.views.table.TableViewFilterCheck;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
@@ -75,7 +80,7 @@ public class FilesView
 	extends TableViewTab<DiskManagerFileInfo>
 	implements TableDataSourceChangedListener, TableSelectionListener,
 	TableViewSWTMenuFillListener, TableRefreshListener, DownloadManagerStateAttributeListener,
-	TableLifeCycleListener
+	TableLifeCycleListener, TableViewFilterCheck<DiskManagerFileInfo>
 {
 	private static boolean registeredCoreSubViews = false;
 	boolean refreshing = false;
@@ -134,6 +139,7 @@ public class FilesView
 		super("FilesView");
 		this.allowTabViews = allowTabViews;
 	}
+
 
 	public TableViewSWT<DiskManagerFileInfo> initYourTableView() {
 		tv = new TableViewSWTImpl<DiskManagerFileInfo>(
@@ -202,6 +208,31 @@ public class FilesView
 		updateSelectedContent();
 	}
 
+	public boolean 
+	filterCheck(
+		DiskManagerFileInfo ds, String filter, boolean regex )
+	{
+		if ( filter == null || filter.length() == 0 ){
+			
+			return( true );
+		}
+
+		try {
+			String name = ds.getFile(true).getName();
+			String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
+			Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
+  
+			return pattern.matcher(name).find();
+		} catch (Exception e) {
+			return true;
+		}	
+	}
+	
+	public void filterSet(String filter)
+	{
+		// System.out.println( filter );
+	}
+	
 	public void updateSelectedContent() {
 		Object[] dataSources = tv.getSelectedDataSources(true);
 		List<SelectedContent> listSelected = new ArrayList<SelectedContent>(
@@ -315,15 +346,18 @@ public class FilesView
 		for (int i = 0; i < files.length; i++) {
 			DiskManagerFileInfo fileinfo = files[i];
 
-			// We can't just use tv.dataSourceExists(), since it does a .equals()
-			// comparison, and we want a reference comparison
-			TableRowCore row = tv.getRow(fileinfo);
-			if (row == null) {
-				return false;
-			}
-			// reference comparison
-			if (row.getDataSource(true) != fileinfo) {
-				return false;
+			if ( tv.isFiltered( fileinfo )){
+				// We can't just use tv.dataSourceExists(), since it does a .equals()
+				// comparison, and we want a reference comparison
+								
+				TableRowCore row = tv.getRow(fileinfo);
+				if (row == null) {
+					return false;
+				}
+				// reference comparison
+				if (row.getDataSource(true) != fileinfo) {
+					return false;
+				}
 			}
 		}
 		return true;

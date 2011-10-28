@@ -5188,6 +5188,17 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 	}
 
+	public boolean
+	isFiltered(
+		DATASOURCETYPE	ds )
+	{
+		if ( filter == null ){
+			return( false );
+		}
+		
+		return( filter.checker.filterCheck( ds, filter.text, filter.regex ));
+	}
+	
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#enableFilterCheck(org.eclipse.swt.widgets.Text, org.gudy.azureus2.ui.swt.views.table.TableViewFilterCheck)
 	public void enableFilterCheck(Text txtFilter,
 			TableViewFilterCheck<DATASOURCETYPE> filterCheck) {
@@ -5225,7 +5236,20 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		filter.checker.filterSet(filter.text);
 		refilter();
 	}
-
+	
+	public void disableFilterCheck()
+	{
+		if ( filter == null ){
+			return;
+		}
+		
+		if (filter.widget != null && !filter.widget.isDisposed()) {
+			filter.widget.removeKeyListener(TableViewSWTImpl.this);
+			filter.widget.removeModifyListener(filter.widgetModifyListener);
+		}
+		filter = null;
+	}
+	
 	public boolean enableSizeSlider(Composite composite, final int min, final int max) {
 		try {
 			if (sliderArea != null && !sliderArea.isDisposed()) {
