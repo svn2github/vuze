@@ -22,6 +22,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
 
+import java.io.File;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -218,7 +219,10 @@ public class FilesView
 		}
 
 		try {
-			String name = ds.getFile(true).getName();
+			File file = ds.getFile(true);
+
+			String name = filter.contains( File.separator )?file.getAbsolutePath():file.getName();
+			
 			String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
 			Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
   
