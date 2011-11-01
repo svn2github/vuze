@@ -530,13 +530,10 @@ public class ManagerView
 		final TableViewSWT<?>	tv,
 		final String 			filter) 
 	{
-		if (forceHeaderVisible) {
-			return;
-		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (txtFilter != null) {
-					boolean visible = filter.length() > 0;
+					boolean visible = forceHeaderVisible || filter.length() > 0;
 					Object layoutData = filterParent.getLayoutData();
 					if (layoutData instanceof FormData) {
 						FormData fd = (FormData) layoutData;

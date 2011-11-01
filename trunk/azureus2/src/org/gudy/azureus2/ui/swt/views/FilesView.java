@@ -63,6 +63,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 
 import com.aelitis.azureus.core.util.AZ3Functions;
+import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
@@ -224,7 +225,7 @@ public class FilesView
 			String name = filter.contains( File.separator )?file.getAbsolutePath():file.getName();
 			
 			String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
-			Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
+			Pattern pattern = RegExUtil.getCachedPattern( "fv:search", s, Pattern.CASE_INSENSITIVE);
   
 			return pattern.matcher(name).find();
 		} catch (Exception e) {

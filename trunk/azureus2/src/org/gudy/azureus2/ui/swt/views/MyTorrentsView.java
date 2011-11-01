@@ -68,6 +68,7 @@ import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
@@ -682,7 +683,7 @@ public class MyTorrentsView
 
 				String s = bRegexSearch ? tmpSearch : "\\Q"
 						+ tmpSearch.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
-				Pattern pattern = Pattern.compile(s, Pattern.CASE_INSENSITIVE);
+				Pattern pattern = RegExUtil.getCachedPattern( "tv:search", s, Pattern.CASE_INSENSITIVE);
 
 				if (!pattern.matcher(name).find())
 					bOurs = false;
@@ -695,13 +696,10 @@ public class MyTorrentsView
 	
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewFilterCheck#filterSet(java.lang.String)
 	public void filterSet(final String filter) {
-		if (forceHeaderVisible) {
-			return;
-		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (txtFilter != null) {
-					boolean visible = filter.length() > 0;
+					boolean visible = forceHeaderVisible || filter.length() > 0;
 					Object layoutData = filterParent.getLayoutData();
 					if (layoutData instanceof FormData) {
 						FormData fd = (FormData) layoutData;

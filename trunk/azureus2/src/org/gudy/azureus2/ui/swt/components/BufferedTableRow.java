@@ -393,7 +393,9 @@ BufferedTableRow
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-		    item.setForeground(index, new_color);
+				if ( !item.isDisposed()){
+					item.setForeground(index, new_color);
+				}
 			}
 		});
     
