@@ -90,7 +90,7 @@ ColorCache2
 		{
 			ref_count++;
 			
-			System.out.println( "cc ++: color=" + color + ", refs=" + ref_count );
+			//System.out.println( "cc ++: color=" + color + ", refs=" + ref_count );
 		}
 		
 		private void
@@ -98,14 +98,11 @@ ColorCache2
 		{
 			ref_count--;
 			
-			System.out.println( "cc --: color=" + color + ", refs=" + ref_count );
+			//System.out.println( "cc --: color=" + color + ", refs=" + ref_count );
 			
 			if ( ref_count == 0 ){
-							
-				synchronized( color_map ){
-					
-					color_map.remove( color.getRGB());
-				}
+												
+				color_map.remove( color.getRGB());
 				
 				color.dispose();
 
@@ -139,18 +136,21 @@ ColorCache2
 		public boolean
 		isDisposed()
 		{
-			return( disposed );
+			synchronized( color_map ){
+				
+				return( disposed );
+			}
 		}
 		
 		public void
 		dispose()
 		{
-			synchronized( delegate ){
+			synchronized( color_map ){
 				
 				if ( !disposed ){
-					
+				
 					disposed = true;
-					
+			
 					delegate.dispose();
 				}
 			}
