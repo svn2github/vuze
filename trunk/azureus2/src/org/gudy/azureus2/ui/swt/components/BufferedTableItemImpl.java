@@ -29,6 +29,9 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
+import com.aelitis.azureus.ui.swt.utils.ColorCache2;
+import com.aelitis.azureus.ui.swt.utils.ColorCache2.*;
+
 /**
  * @author Olivier
  *
@@ -39,7 +42,7 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 
 	private int position;
 
-	private Color ourFGColor = null;
+	private CachedColor ourFGColor_cache = null;
 	
 	private String text = "";
 	
@@ -158,9 +161,9 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 			return false;
 
 		boolean ok = row.setForeground(position, color);
-		if (ok && ourFGColor != null) {
-			if (!ourFGColor.isDisposed()) {ourFGColor.dispose();}
-			ourFGColor = null;
+		if (ok && ourFGColor_cache != null) {
+			if (!ourFGColor_cache.isDisposed()) {ourFGColor_cache.dispose();}
+			ourFGColor_cache = null;
 		}
 		return ok;
 	}
@@ -208,12 +211,12 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 			return false;
 		}
 
-		Color newColor = new Color(row.getTable().getDisplay(), newRGB);
-		boolean ok = row.setForeground(position, newColor);
+		CachedColor newColor = ColorCache2.getColor( row.getTable().getDisplay(), newRGB );
+		boolean ok = row.setForeground(position, newColor.getColor());
 		if (ok) {
-			if (ourFGColor != null && !ourFGColor.isDisposed())
-				ourFGColor.dispose();
-			ourFGColor = newColor;
+			if (ourFGColor_cache != null && !ourFGColor_cache.isDisposed())
+				ourFGColor_cache.dispose();
+			ourFGColor_cache = newColor;
 		} else {
 			if (!newColor.isDisposed())
 				newColor.dispose();
@@ -248,8 +251,8 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 	}
 
 	public void dispose() {
-		if (ourFGColor != null && !ourFGColor.isDisposed())
-			ourFGColor.dispose();
+		if (ourFGColor_cache != null && !ourFGColor_cache.isDisposed())
+			ourFGColor_cache.dispose();
 	}
 
 	public boolean isShown() {

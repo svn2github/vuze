@@ -30,6 +30,9 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableItemOrTreeItem;
 import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 
+import com.aelitis.azureus.ui.swt.utils.ColorCache2;
+import com.aelitis.azureus.ui.swt.utils.ColorCache2.*;
+
 /**
  * A buffered Table Row.
  *<p> 
@@ -64,8 +67,8 @@ BufferedTableRow
 	protected Image[]	image_values	= new Image[0];
 	protected Color[]	foreground_colors	= new Color[0];
 	
-	protected Color		foreground;
-	protected Color     ourForeground;
+	protected CachedColor		foreground_cache;
+	protected CachedColor     	ourForeground_cache;
 	
 	private Point ptIconSize = null;
 
@@ -120,14 +123,14 @@ BufferedTableRow
 
 			boolean itemNeedsDisposal = item != null && !item.isDisposed(); 
 			
-			if (this.ourForeground != null && !this.ourForeground.isDisposed()) {
+			if (ourForeground_cache != null && !ourForeground_cache.isDisposed()) {
 				// Even though we are going to dispose soon, set foreground to null
 				// in case for some reason the OS gets a paint event in between
 				// the color disposal and the item disposal
 				if (itemNeedsDisposal) {
 					item.setForeground(null);
 				}
-				this.ourForeground.dispose();
+				this.ourForeground_cache.dispose();
 			}
 
 			if (itemNeedsDisposal) {
@@ -276,20 +279,20 @@ BufferedTableRow
 	public Color
 	getForeground()
 	{
-		if (foreground != null) {
-			return foreground;
+		if (foreground_cache != null) {
+			return foreground_cache.getColor();
 		}
 		
 		if (!Utils.isSWTThread()) {
 			return null;
 		}
 
-		if (ourForeground == null && isSelected()) {
+		if (foreground_cache == null && isSelected()) {
 			return table.getDisplay().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
 		}
 
 		if (!checkWidget(REQUIRE_TABLEITEM)) {
-  	  return null;
+			return null;
 		}
 
 		return( item.getForeground());
@@ -299,23 +302,30 @@ BufferedTableRow
 	setForeground(
 		Color	c )
 	{
-		if (foreground == null && c == null) {return;}
+		if (foreground_cache == null && c == null) {return;}
 		
-		if (foreground != null && foreground.equals(c))
-		  return;
+		if (foreground_cache != null ){
+			
+			Color existing = foreground_cache.getColor();
+			
+			if ( existing != null && existing.equals(c)){
 		
-		foreground = c;
-		if (this.ourForeground != null) {
-			if (!this.ourForeground.isDisposed()) {
-				this.ourForeground.dispose();
+				return;
 			}
-			this.ourForeground = null;
+		}
+		
+		foreground_cache = ColorCache2.getColor( c );
+		if (this.ourForeground_cache != null) {
+			if (!this.ourForeground_cache.isDisposed()) {
+				this.ourForeground_cache.dispose();
+			}
+			this.ourForeground_cache = null;
 		}
 		
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
 			return;
 
-		item.setForeground(foreground);
+		item.setForeground(c);
 	}
 
 	public void setForeground(final int red, final int green, final int blue) {
@@ -334,21 +344,21 @@ BufferedTableRow
 		}
 		
 		RGB newRGB = new RGB(red, green, blue);
-		if (this.foreground != null && this.foreground.getRGB().equals(newRGB)) {
+		if (this.foreground_cache != null && this.foreground_cache.getColor().getRGB().equals(newRGB)) {
 			return;
 		}
 		
 		// Hopefully it is OK to just assume it is safe to dispose of the colour,
 		// since we're expecting it to match this.foreground.
-		Color newColor = new Color(getTable().getDisplay(), newRGB);
+		CachedColor newColor = ColorCache2.getColor(getTable().getDisplay(), newRGB);
 		if (checkWidget(REQUIRE_TABLEITEM_INITIALIZED)) {
-			item.setForeground(newColor);
+			item.setForeground(newColor.getColor());
 		}
-		if (ourForeground != null && !ourForeground.isDisposed()) {
-			ourForeground.dispose();
+		if (ourForeground_cache != null && !ourForeground_cache.isDisposed()) {
+			ourForeground_cache.dispose();
 		}
-		this.foreground = newColor;
-		this.ourForeground = newColor;
+		this.foreground_cache = newColor;
+		this.ourForeground_cache = newColor;
 	}
 	
 	public boolean
@@ -600,7 +610,7 @@ BufferedTableRow
   		setIconSize(ptIconSize);
   	}
 
-		newRow.setForeground(foreground);
+		newRow.setForeground(foreground_cache==null?null:foreground_cache.getColor());
 
 		int numColumns = table.getColumnCount();
 		for (int i = 0; i < numColumns; i++) {

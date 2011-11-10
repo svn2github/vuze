@@ -258,90 +258,142 @@ public class ImageLoader
 			}
 		} else {
 			Image image = null;
-			String fullImageKey = null;
+			
+			String image_key = null;	// if image in repository then this will be non-null
 
 			String origFile = values[locationStart];
 			int index = origFile.lastIndexOf('.');
+						
 			if (index > 0) {
 				if (useIndex == -1) {
 					String sTryFile = origFile.substring(0, index) + suffix
 							+ origFile.substring(index);
 					image = loadImage(display, cl, sTryFile, sKey);
 
+						// not in repo
+					
 					if (image == null) {
 						sTryFile = origFile.substring(0, index) + suffix.replace('-', '_')
 								+ origFile.substring(index);
 						image = loadImage(display, cl, sTryFile, sKey);
+						
+							// not in repo
 					}
 				} else {
 					String sTryFile = origFile.substring(0, index) + suffix
 							+ origFile.substring(index);
 
-					// check the cache to see if full image is in there
-					image = getImageFromMap(sTryFile);
-					if (image == null) {
-  					image = loadImage(display, cl, sTryFile, sTryFile);
-  					boolean haveRealImage = isRealImage(image);
-  					if (haveRealImage) {
-  						fullImageKey = sTryFile;
-							addImage(fullImageKey, image);
-  					} else if (sTryFile.matches(".*[-_]disabled.*")) {
-  						String sTryFileNonDisabled = sTryFile.replaceAll("[-_]disabled", "");
-  						image = getImageFromMap(sTryFileNonDisabled);
-  						if (image == null) {
-    						image = loadImage(display, cl, sTryFileNonDisabled,
-    								sTryFileNonDisabled);
-  						}
-  						if (isRealImage(image)) {
-  							releaseImage(sTryFileNonDisabled);
-  							image = fadeImage(image);
-  							fullImageKey = sTryFile;
-  							addImage(fullImageKey, image);
-  						}
-  					}
-					} else {
-						fullImageKey = sTryFile;
+						// check the cache to see if full image is in there
+						
+					image = getImageFromMap( sTryFile );
+					
+					if ( image == null ){
+						
+						image = loadImage(display, cl, sTryFile, sTryFile);
+						
+						if ( isRealImage(image)){
+							
+							image_key = sTryFile;
+							
+							addImage(image_key, image);
+							
+						} else if (sTryFile.matches(".*[-_]disabled.*")) {
+							
+							String sTryFileNonDisabled = sTryFile.replaceAll("[-_]disabled", "");
+							
+							image = getImageFromMap(sTryFileNonDisabled);
+							
+							if (!isRealImage(image)) {
+																
+								image = loadImage(display, cl, sTryFileNonDisabled,
+										sTryFileNonDisabled);
+								
+								if ( isRealImage(image)) {
+									
+									addImage(sTryFileNonDisabled, image);
+						
+								}
+							}
+							
+							if ( isRealImage(image)){
+																
+								image = fadeImage(image);
+								
+								image_key = sTryFile;
+								
+								addImage(image_key, image);
+								
+								releaseImage(sTryFileNonDisabled);
+							}
+						}
+					}else{
+						
+						image_key = sTryFile;
 					}
 				}
 			}
-			if (image == null) {
-				image = loadImage(display, cl, values[locationStart], sKey);
+			
+			if ( !isRealImage(image)) {
+				
+				String	temp_key = sKey + "-[multi-load-temp]";
+				
+				image = getImageFromMap( temp_key );
+				
+				if ( isRealImage(image)){
+					
+					image_key = temp_key;
+					
+				}else{
+					
+					image = loadImage(display, cl, values[locationStart], sKey);
+					
+					if ( isRealImage(image)) {
+						
+						image_key = temp_key;
+						
+						addImage( image_key, image );
+					}
+				}
 			}
-
 
 			if (isRealImage(image)) {
 				Rectangle bounds = image.getBounds();
 				if (useIndex == -1) {
-  				images = new Image[(bounds.width + splitX - 1) / splitX];
-  				for (int i = 0; i < images.length; i++) {
-  					Image imgBG = Utils.createAlphaImage(display, splitX, bounds.height,
-  							(byte) 0);
-  					int pos = i * splitX;
-  					try {
-  					images[i] = Utils.blitImage(display, image, new Rectangle(pos, 0,
-  							Math.min(splitX, bounds.width - pos), bounds.height), imgBG,
-  							new Point(0, 0));
-  					} catch (Exception e) {
-  						Debug.out(e);
-  					}
-  					imgBG.dispose();
-  				}
+					images = new Image[(bounds.width + splitX - 1) / splitX];
+					for (int i = 0; i < images.length; i++) {
+						Image imgBG = Utils.createAlphaImage(display, splitX, bounds.height,
+								(byte) 0);
+						int pos = i * splitX;
+						try {
+							images[i] = Utils.blitImage(display, image, new Rectangle(pos, 0,
+									Math.min(splitX, bounds.width - pos), bounds.height), imgBG,
+									new Point(0, 0));
+						} catch (Exception e) {
+							Debug.out(e);
+						}
+						imgBG.dispose();
+					}
 				} else {
 					images = new Image[1];
 					Image imgBG = Utils.createAlphaImage(display, splitX, bounds.height, (byte) 0);
 					try {
 						int pos = useIndex * splitX;
-  					images[0] = Utils.blitImage(display, image, new Rectangle(pos, 0,
-  							Math.min(splitX, bounds.width - pos), bounds.height), imgBG,
-  							new Point(0, 0));
-  					} catch (Exception e) {
-  						Debug.out(e);
-  					}
-  					imgBG.dispose();
+						images[0] = Utils.blitImage(display, image, new Rectangle(pos, 0,
+								Math.min(splitX, bounds.width - pos), bounds.height), imgBG,
+								new Point(0, 0));
+					} catch (Exception e) {
+						Debug.out(e);
+					}
+					imgBG.dispose();
 				}
 
-				if (fullImageKey != null) {
-					releaseImage(fullImageKey);
+				if ( image_key != null ){
+					
+					releaseImage(image_key);
+					
+				}else if ( image != null ){
+					
+					image.dispose();
 				}
 			}
 		}
