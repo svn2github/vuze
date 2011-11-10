@@ -76,7 +76,7 @@ public class ImageLoader
 
 	public static Image noImage;
 
-	private final ConcurrentHashMap<String, ImageLoaderRefInfo> mapImages;
+	private final ConcurrentHashMap<String, ImageLoaderRefInfo> _mapImages;
 
 	private final ArrayList<String> notFound;
 
@@ -118,7 +118,7 @@ public class ImageLoader
 			}
 		}
 		
-		mapImages = new ConcurrentHashMap<String, ImageLoaderRefInfo>();
+		_mapImages = new ConcurrentHashMap<String, ImageLoaderRefInfo>();
 		notFound = new ArrayList<String>();
 		this.display = display;
 		this.skinProperties = new CopyOnWriteArrayList<SkinProperties>();
@@ -337,6 +337,7 @@ public class ImageLoader
   					} catch (Exception e) {
   						Debug.out(e);
   					}
+  					imgBG.dispose();
 				}
 
 				if (fullImageKey != null) {
@@ -468,8 +469,8 @@ public class ImageLoader
 
 	public void unLoadImages() {
 		if (DEBUG_UNLOAD) {
-			for (String key : mapImages.keySet()) {
-				Image[] images = mapImages.get(key).getImages();
+			for (String key : _mapImages.keySet()) {
+				Image[] images = _mapImages.get(key).getImages();
 				if (images != null) {
 					for (int i = 0; i < images.length; i++) {
 						Image image = images[i];
@@ -481,7 +482,7 @@ public class ImageLoader
 				}
 			}
 		} else {
-			for (ImageLoaderRefInfo imageInfo : mapImages.values()) {
+			for (ImageLoaderRefInfo imageInfo : _mapImages.values()) {
 				Image[] images = imageInfo.getImages();
 				if (images != null) {
 					for (int i = 0; i < images.length; i++) {
@@ -495,6 +496,47 @@ public class ImageLoader
 		}
 	}
 
+	private ImageLoaderRefInfo
+	getRefInfoFromImageMap(
+		String		key )
+	{
+		return( _mapImages.get(key));
+	}
+	
+	private void
+	putRefInfoToImageMap(
+		String				key,
+		ImageLoaderRefInfo	info )
+	{
+		ImageLoaderRefInfo existing = _mapImages.put( key, info );
+		
+		if ( existing != null ){
+			
+			if ( existing.getImages().length > 0 ){
+				
+				Debug.out( "P: existing found! " + key + " -> " + existing.getString());
+			}
+		}
+	}
+	
+	private ImageLoaderRefInfo
+	putIfAbsentRefInfoToImageMap(
+		String				key,
+		ImageLoaderRefInfo	info )
+	{
+		ImageLoaderRefInfo x = _mapImages.putIfAbsent( key, info );
+		
+		if ( x != null ){
+			
+			if ( x.getImages().length > 0 ){
+				
+				Debug.out( "PIA: existing found! " + key + " -> " + x.getString());
+			}
+		}
+		
+		return( x );
+	}
+	
 	protected Image getImageFromMap(String sKey) {
 		Image[] imagesFromMap = getImagesFromMap(sKey);
 		if (imagesFromMap.length == 0) {
@@ -508,13 +550,11 @@ public class ImageLoader
 			return new Image[0];
 		}
 
-		ImageLoaderRefInfo imageInfo = mapImages.get(sKey);
+		ImageLoaderRefInfo imageInfo = getRefInfoFromImageMap( sKey );
 		if (imageInfo != null && imageInfo.getImages() != null) {
 			imageInfo.addref();
 			if (DEBUG_REFCOUNT) {
-				System.out.println("ImageLoader: ++ refcount to "
-						+ imageInfo.getRefCount() + " for " + sKey + " via "
-						+ Debug.getCompressedStackTrace());
+				logRefCount( sKey, imageInfo, true );
 			}
 			return imageInfo.getImages();
 		}
@@ -528,26 +568,24 @@ public class ImageLoader
 			return new Image[0];
 		}
 		
+		if (!Utils.isThisThreadSWT()) {
+			Debug.out("getImages called on non-SWT thread");
+			return new Image[0];
+		}
+
 		// ugly hack to show sidebar items that are disabled
 		// note this messes up refcount (increments but doesn't decrement)
 		if (sKey.startsWith("http://") && sKey.endsWith("-gray")) {
 			sKey = sKey.substring(0, sKey.length() - 5);
 		}
 
-		ImageLoaderRefInfo imageInfo = mapImages.get(sKey);
+		ImageLoaderRefInfo imageInfo = getRefInfoFromImageMap(sKey);
 		if (imageInfo != null && imageInfo.getImages() != null) {
 			imageInfo.addref();
 			if (DEBUG_REFCOUNT) {
-				System.out.println("ImageLoader: ++ refcount to "
-						+ imageInfo.getRefCount() + " for " + sKey + " via "
-						+ Debug.getCompressedStackTrace());
+				logRefCount( sKey, imageInfo, true );
 			}
 			return imageInfo.getImages();
-		}
-
-		if (!Utils.isThisThreadSWT()) {
-			Debug.out("getImages called on non-SWT thread");
-			return new Image[0];
 		}
 
 		Image[] images;
@@ -613,11 +651,10 @@ public class ImageLoader
 			images = parseValuesString(cl, sKey, locations, "");
 		}
 
-		mapImages.put(sKey, new ImageLoaderRefInfo(images));
+		ImageLoaderRefInfo info = new ImageLoaderRefInfo(images);
+		putRefInfoToImageMap(sKey, info );
 		if (DEBUG_REFCOUNT) {
-			System.out.println("ImageLoader: ++ refcount to "
-					+ "1 for " + sKey + " via "
-					+ Debug.getCompressedStackTrace());
+			logRefCount( sKey, info, true );
 		}
 
 		return images;
@@ -635,7 +672,7 @@ public class ImageLoader
 		if (sKey == null) {
 			return 0;
 		}
-		ImageLoaderRefInfo imageInfo = mapImages.get(sKey);
+		ImageLoaderRefInfo imageInfo = getRefInfoFromImageMap(sKey);
 		if (imageInfo != null) {
 			imageInfo.unref();
 			if (false && imageInfo.getRefCount() < 0) {
@@ -650,9 +687,7 @@ public class ImageLoader
 										+ (images[0] == noImage)))));
 			}
 			if (DEBUG_REFCOUNT) {
-				System.out.println("ImageLoader: -- refcount to "
-						+ imageInfo.getRefCount() + " for " + sKey + " via "
-						+ Debug.getCompressedStackTrace());
+				logRefCount( sKey, imageInfo, false );
 			}
 			return imageInfo.getRefCount();
 			// TODO: cleanup?
@@ -674,7 +709,7 @@ public class ImageLoader
 			Debug.out("addImage called on non-SWT thread");
 			return;
 		}
-		ImageLoaderRefInfo existing = mapImages.putIfAbsent(key,
+		ImageLoaderRefInfo existing = putIfAbsentRefInfoToImageMap(key,
 				new ImageLoaderRefInfo(image));
 		if (existing != null) {
 			// should probably fail if refcount > 0
@@ -683,9 +718,7 @@ public class ImageLoader
 			});
 			existing.addref();
 			if (DEBUG_REFCOUNT) {
-				System.out.println("ImageLoader: ++ refcount to "
-						+ existing.getRefCount() + " for " + key + " via "
-						+ Debug.getCompressedStackTrace());
+				logRefCount( key, existing, true );
 			}
 		}
 	}
@@ -695,31 +728,51 @@ public class ImageLoader
 			Debug.out("addImage called on non-SWT thread");
 			return;
 		}
-		ImageLoaderRefInfo existing = mapImages.putIfAbsent(key,
+		ImageLoaderRefInfo existing = putIfAbsentRefInfoToImageMap(key,
 				new ImageLoaderRefInfo(images));
 		if (existing != null) {
 			// should probably fail if refcount > 0
 			existing.setImages(images);
 			existing.addref();
 			if (DEBUG_REFCOUNT) {
-				System.out.println("ImageLoader: ++ refcount to "
-						+ existing.getRefCount() + " for " + key + " via "
-						+ Debug.getCompressedStackTrace());
+				logRefCount( key, existing, true );
 			}
 		}
 	}
 	
+	private void
+	logRefCount(
+		String				key,
+		ImageLoaderRefInfo	info,
+		boolean				inc )
+	{
+		if ( true ){
+			return;
+		}
+		if ( inc ){
+			System.out.println("ImageLoader: ++ refcount to "
+					+ info.getRefCount() + " for " + key + " via "
+					+ Debug.getCompressedStackTraceSkipFrames(1));
+		}else{
+			System.out.println("ImageLoader: -- refcount to "
+					+ info.getRefCount() + " for " + key + " via "
+					+ Debug.getCompressedStackTraceSkipFrames(1));
+		}
+	}
+	
+	/*
 	public void removeImage(String key) {
 		// EEP!
 		mapImages.remove(key);
 	}
-
+	*/
+	
 	public void addImageNoDipose(String key, Image image) {
 		if (!Utils.isThisThreadSWT()) {
 			Debug.out("addImageNoDispose called on non-SWT thread");
 			return;
 		}
-		ImageLoaderRefInfo existing = mapImages.putIfAbsent(key,
+		ImageLoaderRefInfo existing = putIfAbsentRefInfoToImageMap(key,
 				new ImageLoaderRefInfo(image));
 		if (existing != null) {
 			existing.setNonDisposable();
@@ -729,9 +782,7 @@ public class ImageLoader
 			});
 			existing.addref();
 			if (DEBUG_REFCOUNT) {
-				System.out.println("ImageLoader: ++ refcount to "
-						+ existing.getRefCount() + " for " + key + " via "
-						+ Debug.getCompressedStackTrace());
+				logRefCount( key, existing, true );
 			}
 		}
 	}
@@ -753,16 +804,17 @@ public class ImageLoader
 
 	public boolean imageExists(String name) {
 		boolean exists = isRealImage(getImage(name));
-		if (exists) {
+		//if (exists) {	// getImage prety much always adds a ref for the 'name' so make sure
+						// we do the corresponding unref here
 			releaseImage(name);
-		}
+		//}
 		return exists;
 	}
 
 	public boolean imageAdded_NoSWT(String name) {
-		return mapImages.containsKey(name);
+		return _mapImages.containsKey(name);
 	}
-
+	
 	public boolean imageAdded(String name) {
 		Image[] images = getImages(name);
 		boolean added = images != null && images.length > 0;
@@ -817,7 +869,7 @@ public class ImageLoader
 							is.close();
 						} catch (IOException e) {
 						}
-						mapImages.put(url, new ImageLoaderRefInfo(image));
+						putRefInfoToImageMap(url, new ImageLoaderRefInfo(image));
 						l.imageDownloaded(image, true);
 						return image;
 					} finally {
@@ -845,7 +897,7 @@ public class ImageLoader
 									is.close();
 								} catch (IOException e) {
 								}
-								mapImages.put(url, new ImageLoaderRefInfo(image));
+								putRefInfoToImageMap(url, new ImageLoaderRefInfo(image));
 								l.imageDownloaded(image, false);
 							}
 						});
@@ -875,8 +927,8 @@ public class ImageLoader
 			try {
 				writer.println("Non-Disposable:");
 				writer.indent();
-				for (String key : mapImages.keySet()) {
-					ImageLoaderRefInfo info = mapImages.get(key);
+				for (String key : _mapImages.keySet()) {
+					ImageLoaderRefInfo info = _mapImages.get(key);
 					if (!info.isNonDisposable()) {
 						continue;
 					}
@@ -886,8 +938,8 @@ public class ImageLoader
 				writer.exdent();
 				writer.println("Disposable:");
 				writer.indent();
-				for (String key : mapImages.keySet()) {
-					ImageLoaderRefInfo info = mapImages.get(key);
+				for (String key : _mapImages.keySet()) {
+					ImageLoaderRefInfo info = _mapImages.get(key);
 					if (info.isNonDisposable()) {
 						continue;
 					}
@@ -960,9 +1012,9 @@ public class ImageLoader
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				int numRemoved = 0;
-				for (Iterator<String> iter = mapImages.keySet().iterator(); iter.hasNext();) {
+				for (Iterator<String> iter = _mapImages.keySet().iterator(); iter.hasNext();) {
 					String key = iter.next();
-					ImageLoaderRefInfo info = mapImages.get(key);
+					ImageLoaderRefInfo info = _mapImages.get(key);
 
 					// no one can addref in between canDispose and dispose because
 					// all our addrefs are in SWT threads.

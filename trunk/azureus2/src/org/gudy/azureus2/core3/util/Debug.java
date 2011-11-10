@@ -435,6 +435,13 @@ public class Debug {
 	}
 	
 	public static String
+	getCompressedStackTraceSkipFrames(
+		int	frames_to_skip )
+	{
+		return( getCompressedStackTrace( new Throwable(), frames_to_skip+1, 200, false ));
+	}
+	
+	public static String
 	getCompressedStackTrace()
 	{
 		return( getCompressedStackTrace( new Throwable(), 1, 200, false ));

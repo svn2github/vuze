@@ -357,24 +357,28 @@ public class SWTSkinObjectBasic
 		String s = properties.getStringValue(sConfigID + sSuffix, (String) null);
 		if (s != null && s.length() > 0) {
 			Image[] images = imageLoader.getImages(sConfigID + sSuffix);
-			if (images.length == 1 && ImageLoader.isRealImage(images[0])) {
-				id = sConfigID + sSuffix;
-				idLeft = id + "-left";
-				idRight = id + "-right";
-			} else if (images.length == 3 && ImageLoader.isRealImage(images[2])) {
-				id = sConfigID + sSuffix;
-				idLeft = id;
-				idRight = id;
-			} else if (images.length == 2 && ImageLoader.isRealImage(images[1])) {
-				id = sConfigID + sSuffix;
-				idLeft = id;
-				idRight = id + "-right";
-			} else {
-				id = sConfigID + sSuffix;
-				//if (sSuffix.length() > 0) {
-				//	setBackground(sConfigID, "");
-				//}
-				return;
+			try{
+				if (images.length == 1 && ImageLoader.isRealImage(images[0])) {
+					id = sConfigID + sSuffix;
+					idLeft = id + "-left";
+					idRight = id + "-right";
+				} else if (images.length == 3 && ImageLoader.isRealImage(images[2])) {
+					id = sConfigID + sSuffix;
+					idLeft = id;
+					idRight = id;
+				} else if (images.length == 2 && ImageLoader.isRealImage(images[1])) {
+					id = sConfigID + sSuffix;
+					idLeft = id;
+					idRight = id + "-right";
+				} else {
+					id = sConfigID + sSuffix;
+					//if (sSuffix.length() > 0) {
+					//	setBackground(sConfigID, "");
+					//}
+					return;
+				}
+			}finally{
+				imageLoader.releaseImage(sConfigID + sSuffix);
 			}
 		} else {
 			if (s != null && painter != null) {

@@ -84,4 +84,28 @@ public class ImageLoaderRefInfo
 	protected void setImages(Image[] images) {
 		this.images = images;
 	}
+	
+	protected String
+	getString()
+	{
+		String img_str = "";
+		
+		for ( Image i: images ){
+		
+			String s;
+			
+			if ( i == null ){
+				
+				s = "null";
+				
+			}else{
+				
+				s = i.toString() + ", disp=" + i.isDisposed();
+			}
+			
+			img_str += (img_str.length()==0?"":",") + s;
+		}
+		
+		return( "rc=" + refcount + ", images=[" + img_str + "]" );
+	}
 }
