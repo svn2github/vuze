@@ -344,8 +344,14 @@ BufferedTableRow
 		}
 		
 		RGB newRGB = new RGB(red, green, blue);
-		if (this.foreground_cache != null && this.foreground_cache.getColor().getRGB().equals(newRGB)) {
-			return;
+		if (this.foreground_cache != null ){
+			
+			Color c = this.foreground_cache.getColor();
+			
+			if ( c != null && c.getRGB().equals(newRGB)){
+		
+				return;
+			}
 		}
 		
 		// Hopefully it is OK to just assume it is safe to dispose of the colour,
