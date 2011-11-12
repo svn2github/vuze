@@ -60,6 +60,16 @@ TimerEvent
 		performer	= _performer;
 		
 		created 	= _created;
+		
+		if ( Constants.IS_CVS_VERSION ){
+			
+			// sanity check
+			
+			if ( when <= 7*24*60*60*1000 ){
+				
+				Debug.out( "You sure you want to schedule an even in the past? Time should be absolute!" );
+			}
+		}
 	}
 		
 	public void
