@@ -3,6 +3,8 @@ VUZE CHANGELOG
 
 2011.xx.xx | Vuze 4.7.0.1
 
+FEATURE: UI     | Toggle Fullscreen mode using Command-Shift-F (Mac) or Control-Shift-F (Non-Mac) 
+
 
 
 2011.09.21 | Vuze 4.7.0.0
