@@ -92,16 +92,16 @@ COConfigurationManager
 						
 						if ( !portable_root.canWrite()){
 							
-							throw( new Exception( "Portable setup - can't write to " + portable_root ));
+							throw( new Exception( "can't write to " + portable_root ));
 						}
 						
 						File	root_file = new File( portable_root, "portable.dat" );
 						
 						String	str = portable_root.getAbsolutePath();
 
-						if ( str.charAt(1) != ':' ){
+						if ( str.length() < 2 || str.charAt(1) != ':' ){
 							
-							throw( new Exception( "Portable setup - drive letter missing in '" + str + "'" ));
+							throw( new Exception( "drive letter missing in '" + str + "'" ));
 						}														
 						
 						String	root_relative = str.substring( 2 );
@@ -125,7 +125,7 @@ COConfigurationManager
 										
 									}else{
 										
-										throw( new Exception( "Portable setup - root changed - old='" + line + "', new='" + root_relative ));
+										throw( new Exception( "root changed - old='" + line + "', new='" + root_relative ));
 									}
 								}
 							}finally{

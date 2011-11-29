@@ -350,7 +350,7 @@ public class BDecoder
 			try{
 					//create the key
 				
-				String context2 = context+"[]";
+				String context2 = PORTABLE_ROOT==null?context:(context+"[]");
 				
 				Object tempElement = null;
 				while ((tempElement = decodeInputStream(dbis, context2, nesting+1, internKeys)) != null) {
@@ -748,23 +748,47 @@ public class BDecoder
 		
 		if ( PORTABLE_ROOT != null && length >= PORTABLE_ROOT.length && tempArray[1] == ':' && tempArray[2] == '\\' && context != null ){
 			
-			context = context.toLowerCase( Locale.US );
+			boolean	mismatch = false;
 			
-			if ( context.contains( "file" ) || context.contains( "link" ) || context.contains( "dir" ) || context.contains( "folder" ) || context.contains( "path" ) || context.contains( "torrent" )){
+			for ( int i=2;i<PORTABLE_ROOT.length;i++){
 				
-				tempArray[0] = PORTABLE_ROOT[0];
-
-				/*
-				String	test = new String( tempArray, 0, tempArray.length > 80?80:tempArray.length );
-
-				System.out.println( "mapped " + context + "->" + tempArray.length + ": " + test );
-				*/
+				if ( tempArray[i] != PORTABLE_ROOT[i] ){
+					
+					mismatch = true;
+					
+					break;
+				}
+			}
+			
+			if ( !mismatch ){
+								
+				context = context.toLowerCase( Locale.US );
 				
-			}else{
+					// always a chance a hash will match the root so we just pick on relevant looking
+					// entries...
 				
-				String	test = new String( tempArray, 0, tempArray.length > 80?80:tempArray.length );
-				
-				System.out.println( "Portable: not mapping " + context + "->" + tempArray.length + ": " + test );
+				if ( 	context.contains( "file" ) || 
+						context.contains( "link" ) || 
+						context.contains( "dir" ) || 
+						context.contains( "folder" ) || 
+						context.contains( "path" ) || 
+						context.contains( "save" ) || 
+						context.contains( "torrent" )){
+					
+					tempArray[0] = PORTABLE_ROOT[0];
+	
+					/*
+					String	test = new String( tempArray, 0, tempArray.length > 80?80:tempArray.length );
+	
+					System.out.println( "mapped " + context + "->" + tempArray.length + ": " + test );
+					*/
+					
+				}else{
+												
+					String	test = new String( tempArray, 0, tempArray.length > 80?80:tempArray.length );
+							
+					System.out.println( "Portable: not mapping " + context + "->" + tempArray.length + ": " + test );
+				}
 			}
 		}
 		
