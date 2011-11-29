@@ -24,7 +24,15 @@ package org.gudy.azureus2.core3.config;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.config.impl.*;
@@ -64,6 +72,96 @@ COConfigurationManager
 			pre_initialised	= true;
 		
 			try{
+				if ( System.getProperty( "azureus.portable.enable", "false" ).equalsIgnoreCase( "true" )){
+				
+					try{
+						if ( File.separatorChar != '\\' ){
+								
+							throw( new Exception( "Portable only supported on Windows" ));
+						}
+						
+						File portable_root;
+							
+						try{
+							portable_root = new File( "." ).getCanonicalFile();
+	
+						}catch( Throwable e ){
+	
+							portable_root = new File( "." ).getAbsoluteFile();
+						}	
+						
+						if ( !portable_root.canWrite()){
+							
+							throw( new Exception( "Portable setup - can't write to " + portable_root ));
+						}
+						
+						File	root_file = new File( portable_root, "portable.dat" );
+						
+						String	str = portable_root.getAbsolutePath();
+
+						if ( str.charAt(1) != ':' ){
+							
+							throw( new Exception( "Portable setup - drive letter missing in '" + str + "'" ));
+						}														
+						
+						String	root_relative = str.substring( 2 );
+							
+						boolean	write_file = true;
+						
+						if ( root_file.exists()){
+							
+							LineNumberReader lnr = new LineNumberReader( new InputStreamReader( new FileInputStream( root_file ), "UTF-8" ));
+							
+							try{
+								String	 line = lnr.readLine();
+								
+								if ( line != null ){
+									
+									line = line.trim();
+									
+									if ( line.equalsIgnoreCase( root_relative )){
+										
+										write_file = false;
+										
+									}else{
+										
+										throw( new Exception( "Portable setup - root changed - old='" + line + "', new='" + root_relative ));
+									}
+								}
+							}finally{
+								
+								lnr.close();
+							}
+						}
+						
+						if ( write_file ){
+							
+							PrintWriter pw = new PrintWriter( new OutputStreamWriter( new FileOutputStream( root_file ), "UTF-8" ));
+							
+							try{
+								pw.println( root_relative );
+								
+							}finally{
+								
+								pw.close();
+							}
+						}
+						
+						System.setProperty( "azureus.install.path", str );
+						System.setProperty( "azureus.config.path", str );
+						
+						System.setProperty( "azureus.portable.root", str );
+						
+						System.out.println( "Portable setup OK - root=" + root_relative + " (current=" + str + ")" );
+						
+					}catch( Throwable e ){
+						
+						System.err.println( "Portable setup failed: " + e.getMessage());
+						
+						System.setProperty( "azureus.portable.enable", "false" );
+					}
+				}	
+				
 				/*
 			  	String	handlers = System.getProperty( "java.protocol.handler.pkgs" );
 			  	

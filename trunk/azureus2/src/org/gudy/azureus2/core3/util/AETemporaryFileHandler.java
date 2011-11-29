@@ -34,6 +34,8 @@ import java.io.IOException;
 public class 
 AETemporaryFileHandler 
 {
+    private static final boolean PORTABLE = System.getProperty( "azureus.portable.root", "" ).length() > 0;
+
 	private static final String	PREFIX = "AZU";
 	private static final String	SUFFIX = ".tmp";
 	
@@ -156,6 +158,34 @@ AETemporaryFileHandler
 		startup();
 		
 		return( File.createTempFile( PREFIX, SUFFIX, tmp_dir ));
+	}
+	
+	public static File
+	createSemiTempFile()
+	
+		throws IOException
+	{
+		if ( PORTABLE ){
+			
+			try{
+				File stmp_dir = FileUtil.getUserFile( "tmp2" );
+	
+				if ( !stmp_dir.exists()){
+					
+					stmp_dir.mkdirs();
+				}
+				
+				if ( stmp_dir.canWrite()){
+					
+					return( File.createTempFile( PREFIX, null, stmp_dir ));
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
+		return( File.createTempFile( PREFIX, null ));
 	}
 	
 	public static File 

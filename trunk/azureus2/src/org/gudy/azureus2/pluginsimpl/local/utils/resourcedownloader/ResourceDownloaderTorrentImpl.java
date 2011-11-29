@@ -289,9 +289,9 @@ ResourceDownloaderTorrentImpl
 			
 				// we *don't* want this temporary file to be deleted automatically as we're
 				// going to use it across Azureus restarts to hold the download data and
-				// to seed it afterwards. Therefore we don't use AETemporaryFileHandler!!!!
+				// to seed it afterwards. Therefore we don't use AETemporaryFileHandler.createTempFile!!!!
 			
-			final File	torrent_file 	= File.createTempFile("AZU", null );
+			final File	torrent_file 	= AETemporaryFileHandler.createSemiTempFile();
 			
 			if ( download_dir != null && !download_dir.exists()){
 				

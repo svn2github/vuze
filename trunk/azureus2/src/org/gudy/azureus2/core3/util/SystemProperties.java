@@ -55,6 +55,9 @@ public class SystemProperties {
   private static final 	String WIN_DEFAULT = "Application Data";
   private static final 	String OSX_DEFAULT = "Library" + SEP + "Application Support";
   
+  
+  private static final boolean PORTABLE = System.getProperty( "azureus.portable.root", "" ).length() > 0;
+	
   	private static String user_path;
   	private static String app_path;
   	
@@ -215,7 +218,7 @@ public class SystemProperties {
 
 		try {
 			if (temp_user_path != null) {
-
+				
 				if (!temp_user_path.endsWith(SEP)) {
 
 					temp_user_path += SEP;
@@ -331,7 +334,7 @@ public class SystemProperties {
 	  }
 	  
 	  String temp_app_path = System.getProperty("azureus.install.path", System.getProperty("user.dir"));
-    
+		
 	  if ( !temp_app_path.endsWith(SEP)){
 		  
 		  temp_app_path += SEP;
@@ -428,6 +431,11 @@ public class SystemProperties {
   }
   
   public static String getDocPath() {
+	  if ( PORTABLE ){
+		 
+		  return( getUserPath());
+	  }
+	  
 		File fDocPath = null;
 		try {
 			PlatformManager platformManager = PlatformManagerFactory.getPlatformManager();

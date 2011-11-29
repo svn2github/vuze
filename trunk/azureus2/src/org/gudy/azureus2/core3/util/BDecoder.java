@@ -29,6 +29,7 @@ import java.nio.charset.CharsetDecoder;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -47,6 +48,27 @@ public class BDecoder
 	
 	private boolean recovery_mode;
 
+	
+	private final static byte[]	PORTABLE_ROOT;
+	
+	static{
+		byte[]	portable = null;
+		
+		try{
+			String root = System.getProperty( "azureus.portable.root", "" );
+			
+			if ( root.length() > 0 ){
+				
+				portable = root.getBytes( "UTF-8" );
+			}
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+		
+		PORTABLE_ROOT = portable;
+	}
+	
 	public static Map
 	decode(
 		byte[]	data )
@@ -138,7 +160,7 @@ public class BDecoder
 
 		throws IOException 
 	{
-		Object	res = decodeInputStream(data, 0, internKeys);
+		Object	res = decodeInputStream(data, "", 0, internKeys);
 
 		if ( res == null ){
 
@@ -158,7 +180,7 @@ public class BDecoder
 
 		throws IOException 
 	{
-		Object res = decodeInputStream(data, 0, internKeys);
+		Object res = decodeInputStream(data, "", 0, internKeys);
 
 		if ( res == null ){
 
@@ -180,6 +202,7 @@ public class BDecoder
 	private Object 
 	decodeInputStream(
 		InputStream dbis,
+		String		context,
 		int			nesting,
 		boolean internKeys) 
 
@@ -256,7 +279,7 @@ public class BDecoder
 
 					//decode value
 
-					Object value = decodeInputStream(dbis,nesting+1,internKeys);
+					Object value = decodeInputStream(dbis,key,nesting+1,internKeys);
 					
 					// value interning is too CPU-intensive, let's skip that for now
 					/*if(value instanceof byte[] && ((byte[])value).length < 17)
@@ -327,8 +350,10 @@ public class BDecoder
 			try{
 					//create the key
 				
+				String context2 = context+"[]";
+				
 				Object tempElement = null;
-				while ((tempElement = decodeInputStream(dbis, nesting+1, internKeys)) != null) {
+				while ((tempElement = decodeInputStream(dbis, context2, nesting+1, internKeys)) != null) {
 						//add the element
 					tempList.add(tempElement);
 				}
@@ -376,7 +401,7 @@ public class BDecoder
 				//move back one
 			dbis.reset();
 				//get the string
-			return getByteArrayFromStream(dbis);
+			return getByteArrayFromStream(dbis, context );
 
 		default :{
 
@@ -698,7 +723,8 @@ public class BDecoder
 
 	private byte[] 
 	getByteArrayFromStream(
-		InputStream dbis )
+		InputStream dbis,
+		String		context )
 		
 		throws IOException 
 	{
@@ -719,6 +745,28 @@ public class BDecoder
 		byte[] tempArray = new byte[length];
 		
 		getByteArrayFromStream(dbis, length, tempArray);		
+		
+		if ( PORTABLE_ROOT != null && length >= PORTABLE_ROOT.length && tempArray[1] == ':' && tempArray[2] == '\\' && context != null ){
+			
+			context = context.toLowerCase( Locale.US );
+			
+			if ( context.contains( "file" ) || context.contains( "link" ) || context.contains( "dir" ) || context.contains( "folder" ) || context.contains( "path" ) || context.contains( "torrent" )){
+				
+				tempArray[0] = PORTABLE_ROOT[0];
+
+				/*
+				String	test = new String( tempArray, 0, tempArray.length > 80?80:tempArray.length );
+
+				System.out.println( "mapped " + context + "->" + tempArray.length + ": " + test );
+				*/
+				
+			}else{
+				
+				String	test = new String( tempArray, 0, tempArray.length > 80?80:tempArray.length );
+				
+				System.out.println( "Portable: not mapping " + context + "->" + tempArray.length + ": " + test );
+			}
+		}
 		
 		return tempArray; 
 	}
