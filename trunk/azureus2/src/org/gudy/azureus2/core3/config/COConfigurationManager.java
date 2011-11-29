@@ -27,7 +27,6 @@ import java.util.Set;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
@@ -159,8 +158,13 @@ COConfigurationManager
 						System.err.println( "Portable setup failed: " + e.getMessage());
 						
 						System.setProperty( "azureus.portable.enable", "false" );
+					
+						System.setProperty( "azureus.portable.root", "" );
 					}
-				}	
+				}else{
+					
+					System.setProperty( "azureus.portable.root", "" );	
+				}
 				
 				/*
 			  	String	handlers = System.getProperty( "java.protocol.handler.pkgs" );
