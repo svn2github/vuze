@@ -941,6 +941,13 @@ public class ImageLoader
 					public void imageDownloaded(final byte[] imageBytes) {
 						Utils.execSWTThread(new AERunnable() {
 							public void runSupport() {
+									// no synchronization here - might have already been
+									// downloaded
+								if (imageExists(url)) {
+									Image image = getImage(url);
+									l.imageDownloaded(image, false);
+									return;
+								}
 								FileUtil.writeBytesAsFile(cache_file.getAbsolutePath(), imageBytes);
 								cached_resources.add( cache_key );
 								InputStream is = new ByteArrayInputStream(imageBytes);
