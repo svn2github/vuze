@@ -24,6 +24,7 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -144,7 +145,7 @@ public class MainWindow
 
 	private SystemTraySWT systemTraySWT;
 
-	private static Map<String, Long> mapTrackUsage = null;
+	private static Map<String, List> mapTrackUsage = null;
 
 	private final static AEMonitor mapTrackUsage_mon = new AEMonitor(
 			"mapTrackUsage");
@@ -1078,7 +1079,7 @@ public class MainWindow
 			if (COConfigurationManager.getBooleanParameter("Send Version Info")
 					&& PlatformConfigMessenger.allowSendStats()) {
 
-				mapTrackUsage = new HashMap<String, Long>();
+				mapTrackUsage = new HashMap<String, List>();
 
 				if (f.exists()) {
 					Map<?, ?> oldMapTrackUsage = FileUtil.readResilientFile(f);
@@ -2020,30 +2021,14 @@ public class MainWindow
 		if (mapTrackUsage != null) {
 			mapTrackUsage_mon.enter();
 			try {
-				if (lCurrentTrackTime > 0) {
-					Long currentLength = mapTrackUsage.get(sTabID);
-					long newLength;
-					if (currentLength == null) {
-						newLength = lCurrentTrackTime;
-					} else {
-						newLength = currentLength.longValue() + lCurrentTrackTime;
-					}
-					if (newLength > 1000) {
-						mapTrackUsage.put(sTabID, new Long(newLength / 1000));
-						//System.out.println("UPDATE: " + sTabID + ";" + newLength);
-					}
+				if (lCurrentTrackTime > 1000) {
+					addUsageStat(sTabID, lCurrentTrackTime);
+					//System.out.println("UPDATE: " + sTabID + ";" + newLength);
 				}
 
-				if (lCurrentTrackTimeIdle > 0) {
+				if (lCurrentTrackTimeIdle > 1000) {
 					String id = "idle-" + sTabID;
-					Long currentLengthIdle = mapTrackUsage.get(id);
-					long newLengthIdle = currentLengthIdle == null
-							? lCurrentTrackTimeIdle : currentLengthIdle.longValue()
-									+ lCurrentTrackTimeIdle;
-					if (newLengthIdle > 1000) {
-						mapTrackUsage.put(id, new Long(newLengthIdle / 1000));
-						//System.out.println("UPDATE: " + id + ";" + newLengthIdle);
-					}
+					addUsageStat(id, lCurrentTrackTimeIdle);
 				}
 			} finally {
 				mapTrackUsage_mon.exit();
@@ -2064,16 +2049,18 @@ public class MainWindow
 		if (mapTrackUsage != null) {
 			mapTrackUsage_mon.enter();
 			try {
-				Long currentLength = mapTrackUsage.get(id);
-				long newLength;
+				List currentLength = mapTrackUsage.get(id);
 				if (currentLength == null) {
-					newLength = value;
+					currentLength = new ArrayList();
+					currentLength.add(1);
+					currentLength.add(value / 100);
 				} else {
-					newLength = currentLength.longValue() + value;
+					List oldList = currentLength;
+					currentLength = new ArrayList();
+					currentLength.add(((Number) oldList.get(0)).longValue() + 1);
+					currentLength.add(((Number) oldList.get(1)).longValue() + (value / 1000));
 				}
-				if (newLength > 1000) {
-					mapTrackUsage.put(id, new Long(newLength / 1000));
-				}
+				mapTrackUsage.put(id, currentLength);
 			} finally {
 				mapTrackUsage_mon.exit();
 			}
