@@ -3,9 +3,13 @@ VUZE CHANGELOG
 
 2011.xx.xx | Vuze 4.7.0.1
 
+BUGFIX: UI		| Fixed image management resource leak [Parg]
+BUGFIX: CORE    | Fixed version server check protocol fallback bug [Parg]
+
 FEATURE: UI     | Toggle Fullscreen mode using Command-Shift-F (Mac) or Control-Shift-F (Non-Mac) 
-
-
+FEATURE: UI     | Added filter mode to files view [Parg]
+FEATURE: UI     | Added text-alignment option to column setup [Parg]
+FEATURE: Core   | Initial support for portable Windows Vuze installs (see http://wiki.vuze.com/w/Portable_Vuze) [Parg]
 
 2011.09.21 | Vuze 4.7.0.0
 
