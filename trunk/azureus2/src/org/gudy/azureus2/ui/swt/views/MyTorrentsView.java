@@ -668,6 +668,10 @@ public class MyTorrentsView
 					{
 						"st:",
 						"" + dm.getState()
+					},
+					{
+						"c:",
+						"" + dm.getDownloadState().getUserComment()
 					}
 				};
 
