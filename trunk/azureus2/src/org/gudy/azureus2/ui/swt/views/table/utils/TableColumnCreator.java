@@ -219,7 +219,8 @@ public class TableColumnCreator
 
 		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class, DateCompletedItem.DATASOURCE_TYPE));
 		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class, DateAddedItem.DATASOURCE_TYPE));
-		
+		c.put(IPFilterItem.COLUMN_ID, new cInfo(IPFilterItem.class, IPFilterItem.DATASOURCE_TYPE));
+
 		c.put(ColumnTC_NameInfo.COLUMN_ID, new cInfo(ColumnTC_NameInfo.class, tc));
 		c.put(ColumnTC_Sample.COLUMN_ID, new cInfo(ColumnTC_Sample.class, tc));
 		c.put(ColumnTC_ChosenColumn.COLUMN_ID, new cInfo(ColumnTC_ChosenColumn.class, tc));

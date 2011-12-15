@@ -163,7 +163,15 @@ Download extends DownloadEventNotifier
      */
     
     public static final long FLAG_FORCE_DIRECT_DELETE = 0x00000080;
+    
+    /**
+     * Used to disable IP filter rules for a download when ip-filtering is enabled
+     * @since 4.7.0.3
+     */
+    
+    public static final long FLAG_DISABLE_IP_FILTER = 0x00000100;
 
+    
 	/** get state from above ST_ set
    * @return ST_ constant
    *

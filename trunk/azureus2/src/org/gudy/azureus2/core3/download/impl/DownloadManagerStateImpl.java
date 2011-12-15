@@ -35,6 +35,8 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFactory;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
+import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.LogRelation;
@@ -524,6 +526,19 @@ DownloadManagerStateImpl
         	}
         }
         
+        long flags = getFlags();
+        
+        if (( flags & FLAG_DISABLE_IP_FILTER ) != 0 ){
+        	
+        	try{
+        		IpFilterManagerFactory.getSingleton().getIPFilter().addExcludedHash( torrent.getHash());
+        		
+        	}catch( Throwable e ){
+        		
+        		Debug.out( e );
+        	}
+        }
+        
         if ( version < VER_CURRENT ){
         	
         	setIntAttribute( AT_VERSION, VER_CURRENT );
@@ -867,6 +882,24 @@ DownloadManagerStateImpl
 		if ( old_value != new_value ){
 			
 			setLongAttribute( AT_FLAGS, new_value );
+			
+			if (( old_value & FLAG_DISABLE_IP_FILTER ) != ( new_value & FLAG_DISABLE_IP_FILTER )){
+		      
+	        	try{
+	        		if (( new_value & FLAG_DISABLE_IP_FILTER ) != 0 ){
+	        		
+	        			IpFilterManagerFactory.getSingleton().getIPFilter().addExcludedHash( torrent.getHash());
+	        			
+	        		}else{
+	        			
+	        			IpFilterManagerFactory.getSingleton().getIPFilter().removeExcludedHash( torrent.getHash());
+
+	        		}
+	        	}catch( Throwable e ){
+	        		
+	        		Debug.out( e );
+	        	}
+	        }
 		}
 	}
 	

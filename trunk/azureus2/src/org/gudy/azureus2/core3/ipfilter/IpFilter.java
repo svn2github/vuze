@@ -129,6 +129,14 @@ IpFilter
 	public void
 	clearBannedIps();
 	
+	public void
+	addExcludedHash(
+		byte[]		hash );
+	
+	public void
+	removeExcludedHash(
+		byte[]		hash );
+	
 	public boolean
 	isEnabled();
 

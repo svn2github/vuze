@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -1007,6 +1008,53 @@ public class TorrentUtil {
 			}
 		}
 
+		// IP Filter Enable
+		if (userMode > 0) {
+			
+			final MenuItem ipf_enable = new MenuItem(menuAdvanced, SWT.CHECK);
+			Messages.setLanguageText(ipf_enable, "MyTorrentsView.menu.ipf_enable");
+			
+
+			ipf_enable.addListener(SWT.Selection, new DMTask(dms) {
+				public void run(DownloadManager dm) {
+					dm.getDownloadState().setFlag( DownloadManagerState.FLAG_DISABLE_IP_FILTER, !ipf_enable.getSelection());
+				}
+			});
+
+			boolean bEnabled = IpFilterManagerFactory.getSingleton().getIPFilter().isEnabled();
+			
+			if ( bEnabled ){
+				boolean allChecked 		= true;
+				boolean allUnchecked	= true;
+		
+				for (int j = 0; j < dms.length; j++) {
+					DownloadManager dm = (DownloadManager) dms[j];
+	
+					boolean b = dm.getDownloadState().getFlag( DownloadManagerState.FLAG_DISABLE_IP_FILTER );
+						
+					if ( b ){
+						allUnchecked 	= false;
+					}else{
+						allChecked 		= false;
+					}
+				}
+	
+				boolean	bChecked;
+				
+				if ( allUnchecked ){
+					bChecked = true;
+				}else if ( allChecked ){
+					bChecked = false;
+				}else{
+					bChecked = false;
+				}
+				
+				ipf_enable.setSelection(bChecked);
+			}
+			
+			ipf_enable.setEnabled(bEnabled);	
+		}
+		
 		// === advanced > networks ===
 		// ===========================
 

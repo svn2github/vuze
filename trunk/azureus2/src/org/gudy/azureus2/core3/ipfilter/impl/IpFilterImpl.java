@@ -80,6 +80,8 @@ IpFilterImpl
 	private boolean	ip_filter_enabled;
 	private boolean	ip_filter_allow;
 	
+	private ByteArrayHashMap<String>	excluded_hashes = new ByteArrayHashMap<String>();
+	
 	{
 	
 	  COConfigurationManager.addAndFireParameterListeners(
@@ -483,6 +485,14 @@ IpFilterImpl
 	  	return false;
 	  }
 	  	  
+	  if ( torrent_hash != null ){
+		
+		  if ( excluded_hashes.containsKey( torrent_hash )){
+			  
+			  return( false );
+		  }
+	  }
+	  
 	  boolean allow = ip_filter_allow;
 	  
 	  IpRange	match = (IpRange)range_manager.isInRange( ipAddress );
@@ -601,6 +611,15 @@ IpFilterImpl
 	  	return false;
 	  }
 	  	  
+	  
+	  if ( torrent_hash != null ){
+		  
+		  if ( excluded_hashes.containsKey( torrent_hash )){
+			  
+			  return( false );
+		  }
+	  }
+
 	  boolean allow = ip_filter_allow;
 	  
 	  IpRange	match = (IpRange)range_manager.isInRange( ipAddress );
@@ -1229,6 +1248,49 @@ IpFilterImpl
 			
 			class_mon.exit();
 		}
+	}
+	
+	public void
+	addExcludedHash(
+		byte[]		hash )
+	{
+		synchronized( this ){
+			
+			ByteArrayHashMap<String>	copy = new ByteArrayHashMap<String>();
+			
+			for ( byte[] k : excluded_hashes.keys()){
+				
+				copy.put( k, "" );
+			}
+			
+			copy.put( hash, "" );
+			
+			excluded_hashes = copy;
+		}
+		
+		Logger.log( new LogEvent(LOGID, "Added " + ByteFormatter.encodeString( hash ) + " to excluded set" ));
+
+	}
+	
+	public void
+	removeExcludedHash(
+		byte[]		hash )
+	{
+		synchronized( this ){
+			
+			ByteArrayHashMap<String>	copy = new ByteArrayHashMap<String>();
+			
+			for ( byte[] k : excluded_hashes.keys()){
+				
+				copy.put( k, "" );
+			}
+			
+			copy.remove( hash );
+			
+			excluded_hashes = copy;
+		}
+		
+		Logger.log( new LogEvent(LOGID, "Removed " + ByteFormatter.encodeString( hash ) + " from excluded set" ));
 	}
 	
 	public boolean
