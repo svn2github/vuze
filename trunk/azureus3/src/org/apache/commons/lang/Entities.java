@@ -649,12 +649,17 @@ public class Entities {
                 String entityName = str.substring(i + 1, semi);
                 int entityValue;
                 if (entityName.charAt(0) == '#') {
-                    char charAt1 = entityName.charAt(1);
-                    if (charAt1 == 'x' || charAt1=='X') {
-                        entityValue = Integer.valueOf(entityName.substring(2), 16).intValue();
-                    } else {
-                        entityValue = Integer.parseInt(entityName.substring(1));
-                    }
+                	try{
+	                    char charAt1 = entityName.charAt(1);
+	                    if (charAt1 == 'x' || charAt1=='X') {
+	                        entityValue = Integer.valueOf(entityName.substring(2), 16).intValue();
+	                    } else {
+	                        entityValue = Integer.parseInt(entityName.substring(1));
+	                    }
+                	}catch( Throwable e ){
+                			// malformed, ignore
+                		entityValue = -1;
+                	}
                 } else {
                     entityValue = this.entityValue(entityName);
                 }
