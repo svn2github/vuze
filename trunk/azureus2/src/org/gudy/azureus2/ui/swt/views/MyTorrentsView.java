@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
+import java.net.URL;
 import java.util.*;
 import java.util.List;
 import java.util.regex.Pattern;
@@ -47,6 +48,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
@@ -663,7 +665,7 @@ public class MyTorrentsView
 					},
 					{
 						"t:",
-						dm.getTorrent().getAnnounceURL().getHost()
+						"", // defer this as costly dm.getTorrent().getAnnounceURL().getHost()
 					},
 					{
 						"st:",
@@ -678,10 +680,34 @@ public class MyTorrentsView
 				String name = names[0][1];
 				String tmpSearch = sLastSearch;
 
-				for (int i = 0; i < names.length; i++) {
+				for (int i = 1; i < names.length; i++) {
 					if (tmpSearch.startsWith(names[i][0])) {
 						tmpSearch = tmpSearch.substring(names[i][0].length());
-						name = names[i][1];
+						
+						if ( i == 1 ){
+							TOTorrent t = dm.getTorrent();
+							
+							StringBuffer name_b = new StringBuffer( 512);
+							
+							name_b.append( t.getAnnounceURL().getHost());
+							
+							TOTorrentAnnounceURLSet[] sets = t.getAnnounceURLGroup().getAnnounceURLSets();
+							
+							for ( TOTorrentAnnounceURLSet set: sets ){
+								
+								URL[] urls = set.getAnnounceURLs();
+								
+								for ( URL u: urls ){
+									
+									name_b.append( ";" );
+									name_b.append( u.getHost());
+								}
+							}
+							
+							name = name_b.toString();
+						}else{
+							name = names[i][1];
+						}
 					}
 				}
 
