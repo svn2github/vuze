@@ -50,6 +50,7 @@ import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -66,6 +67,7 @@ import com.aelitis.azureus.core.devices.DeviceManager.DeviceManufacturer;
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
+import com.aelitis.azureus.core.metasearch.MetaSearchException;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -1319,6 +1321,48 @@ DeviceManagerUI
 		re_menu_item.addListener(show_listener);
 		re_menu_item.addFillListener(show_fill_listener);
 
+		re_menu_item = menu_manager.addMenuItem( "sidebar." + renderers_category.getKey(), "sep_re");
+
+		re_menu_item.setStyle( MenuItem.STYLE_SEPARATOR );
+		
+		re_menu_item = menu_manager.addMenuItem(
+				"sidebar." + renderers_category.getKey(),
+				"device.renderer.remove_all");
+
+		re_menu_item.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				
+				new AEThread2( "doit" )
+				{
+					public void
+					run()
+					{
+						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+										
+						long res = ui_manager.showMessageBox(
+								"device.mediaserver.remove_all.title",
+								"device.renderer.remove_all.desc",
+								UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+						
+						if ( res == UIManagerEvent.MT_YES ){
+							
+							Device[] devices = device_manager.getDevices();
+							
+							for ( Device d: devices ){
+								
+								if ( d.getType() == Device.DT_MEDIA_RENDERER ){
+									
+									if ( d.canRemove()){
+										
+										d.remove();
+									}
+								}
+							}
+						}
+					}
+				}.start();
+			}
+		});
 		// media servers
 
 		categoryView media_servers_category = addDeviceCategory(
@@ -1345,6 +1389,49 @@ DeviceManagerUI
 
 					uif.openView(UIFunctions.VIEW_CONFIG, "upnpmediaserver.name");
 				}
+			}
+		});
+		
+		ms_menu_item = menu_manager.addMenuItem( "sidebar." + media_servers_category.getKey(), "sep_ms");
+
+		ms_menu_item.setStyle( MenuItem.STYLE_SEPARATOR );
+		
+		ms_menu_item = menu_manager.addMenuItem(
+				"sidebar." + media_servers_category.getKey(),
+				"device.mediaserver.remove_all");
+
+		ms_menu_item.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				
+				new AEThread2( "doit" )
+				{
+					public void
+					run()
+					{
+						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+										
+						long res = ui_manager.showMessageBox(
+								"device.mediaserver.remove_all.title",
+								"device.mediaserver.remove_all.desc",
+								UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+						
+						if ( res == UIManagerEvent.MT_YES ){
+							
+							Device[] devices = device_manager.getDevices();
+							
+							for ( Device d: devices ){
+								
+								if ( d.getType() == Device.DT_CONTENT_DIRECTORY ){
+									
+									if ( d.canRemove()){
+										
+										d.remove();
+									}
+								}
+							}
+						}
+					}
+				}.start();
 			}
 		});
 

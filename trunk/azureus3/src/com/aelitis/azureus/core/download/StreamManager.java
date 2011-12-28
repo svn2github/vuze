@@ -414,7 +414,8 @@ StreamManager
 								"Media Analyser" );
 	
 						dmr.setHidden(true);
-	
+						dmr.setCanRemove(false);
+						
 						TranscodeQueue queue = tm.getQueue();
 						
 						TranscodeJob[] jobs = queue.getJobs();
