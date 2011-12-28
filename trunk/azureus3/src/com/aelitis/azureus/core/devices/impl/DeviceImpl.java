@@ -238,7 +238,7 @@ DeviceImpl
 	private boolean				manual;
 	
 	private boolean			hidden;
-	private boolean isGenericUSB;
+	private boolean 		isGenericUSB;
 	private long			last_seen;
 	private boolean			can_remove = true;
 	
@@ -325,10 +325,11 @@ DeviceImpl
 		
 		secondary_uid		= ImportExportUtils.importString( map, "_suid" );
 
-		last_seen	= ImportExportUtils.importLong( map, "_ls" );
-		hidden		= ImportExportUtils.importBoolean( map, "_hide" );	
-		isGenericUSB = ImportExportUtils.importBoolean( map, "_genericUSB" );	
-		manual		= ImportExportUtils.importBoolean( map, "_man" );
+		last_seen		= ImportExportUtils.importLong( map, "_ls" );
+		hidden			= ImportExportUtils.importBoolean( map, "_hide" );	
+		can_remove		= ImportExportUtils.importBoolean( map, "_rm", true );	
+		isGenericUSB 	= ImportExportUtils.importBoolean( map, "_genericUSB" );	
+		manual			= ImportExportUtils.importBoolean( map, "_man" );
 
 		if ( map.containsKey( "_pprops" )){
 			
@@ -369,6 +370,7 @@ DeviceImpl
 			ImportExportUtils.exportBoolean( map, "_hide", hidden );
 		}
 		
+		ImportExportUtils.exportBoolean( map, "_rm", can_remove );
 		ImportExportUtils.exportBoolean( map, "_genericUSB", isGenericUSB );	
 		ImportExportUtils.exportBoolean( map, "_man", manual );
 		
@@ -1504,7 +1506,12 @@ DeviceImpl
 	setCanRemove(
 		boolean	can )
 	{
-		can_remove = can;
+		if ( can_remove != can ){
+		
+			can_remove = can;
+			
+			setDirty();
+		}
 	}
 	
 	public boolean
