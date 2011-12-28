@@ -1311,7 +1311,7 @@ DeviceManagerImpl
 					try{
 						Map d = new HashMap();
 						
-						device.exportToBEncodedMap( d );
+						device.exportToBEncodedMap( d, false );
 						
 						l_devices.add( d );
 						
@@ -1579,7 +1579,7 @@ DeviceManagerImpl
 		
 		map.put( "device", device_map );
 		
-		device.exportToBEncodedMap( device_map );
+		device.exportToBEncodedMap( device_map, true );
 		
 		vf.addComponent( VuzeFileComponent.COMP_TYPE_DEVICE, map );
 		

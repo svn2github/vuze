@@ -338,7 +338,8 @@ DeviceImpl
 	
 	protected void
 	exportToBEncodedMap(
-		Map					map )
+		Map					map,
+		boolean				for_export )
 	
 		throws IOException
 	{
@@ -363,12 +364,29 @@ DeviceImpl
 			ImportExportUtils.exportString( map, "_suid", secondary_uid );
 		}
 		
-		ImportExportUtils.exportLong( map, "_ls", new Long( last_seen ));
-		ImportExportUtils.exportBoolean( map, "_hide", hidden );
+		if ( !for_export ){
+			ImportExportUtils.exportLong( map, "_ls", new Long( last_seen ));
+			ImportExportUtils.exportBoolean( map, "_hide", hidden );
+		}
+		
 		ImportExportUtils.exportBoolean( map, "_genericUSB", isGenericUSB );	
 		ImportExportUtils.exportBoolean( map, "_man", manual );
 		
-		map.put( "_pprops", persistent_properties );
+		if ( for_export ){
+			
+			Map<String,Object>	copy = new HashMap<String, Object>( persistent_properties );
+			
+			copy.remove( PP_IP_ADDRESS );
+			copy.remove( PP_COPY_OUTSTANDING );
+			copy.remove( PP_COPY_TO_FOLDER );
+			copy.remove( PP_REND_WORK_DIR );
+			
+			map.put( "_pprops", copy );
+			
+		}else{
+		
+			map.put( "_pprops", persistent_properties );
+		}
 	}
 	
 	protected boolean
