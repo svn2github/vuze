@@ -1236,8 +1236,53 @@ DeviceManagerUI
 		if (mdiEntryOverview == null) {
 			mdiEntryOverview = mdi.createEntryFromSkinRef(
 					SideBar.SIDEBAR_HEADER_DEVICES, SideBar.SIDEBAR_SECTION_DEVICES,
-					"devicesview", MessageText.getString("mdi.entry.about.devices"), null,
+					"devicesview", MessageText.getString("mdi.entry.about.devices"), 
+					new ViewTitleInfo()
+					{
+						public Object 
+						getTitleInfoProperty(
+							int propertyID )
+						{
+							if ( propertyID == TITLE_INDICATOR_TEXT_TOOLTIP ){
+							
+								if ( side_bar_hide_rend_gen ){
+									
+									Device[] devices = device_manager.getDevices();
+									
+									int generic = 0;
+									
+									for ( Device device: devices ){
+										
+										if ( device.isHidden()){
+											
+											continue;
+										}
+										
+										if ( device.getType() != Device.DT_MEDIA_RENDERER ){
+											
+											continue;
+										}
+										
+										DeviceMediaRenderer rend = (DeviceMediaRenderer)device;
+										
+										if ( rend.isNonSimple()){
+											
+											generic++;
+										}
+									}
+									
+									if ( generic > 0 ){
+									
+										return( MessageText.getString( "devices.sidebar.mainheader.tooltip", new String[]{ String.valueOf( generic )} ));
+									}
+								}
+							}
+							
+							return( null );
+						}
+					},
 					null, false, "");
+			
 			mdiEntryOverview.setImageLeftID("image.sidebar.aboutdevices");
 		}
 
@@ -1481,6 +1526,39 @@ DeviceManagerUI
 						}
 					}
 					*/
+				} else if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP ) {
+					
+					if ( side_bar_hide_rend_gen ){
+						
+						Device[] devices = device_manager.getDevices();
+						
+						int generic = 0;
+						
+						for ( Device device: devices ){
+							
+							if ( device.isHidden()){
+								
+								continue;
+							}
+							
+							if ( device.getType() != Device.DT_MEDIA_RENDERER ){
+								
+								continue;
+							}
+							
+							DeviceMediaRenderer rend = (DeviceMediaRenderer)device;
+							
+							if ( rend.isNonSimple()){
+								
+								generic++;
+							}
+						}
+						
+						if ( generic > 0 ){
+						
+							return( MessageText.getString( "devices.sidebar.mainheader.tooltip", new String[]{ String.valueOf( generic )} ));
+						}
+					}
 				}
 
 				return null;
