@@ -113,11 +113,20 @@ public class InitialisationFunctions
 						SubscriptionManagerFactory.getSingleton().createSingletonRSS(
 						name, url, interval );
 					
+					if ( !subs.getName().equals( name )){
+					
+						subs.setName( name );
+					}
+					
 					if ( subs.isPublic() != is_public ){
 						
 						subs.setPublic( is_public );
 					}
 					
+					if ( !subs.isSubscribed()){
+						
+						subs.setSubscribed( true );
+					}
 					if ( creator_ref != null ){
 						
 						subs.setCreatorRef( creator_ref );
