@@ -509,19 +509,50 @@ ShareManagerImpl
 		}
 	}
 	
+	private boolean
+	getBooleanProperty(
+		Map<String,String>	properties,
+		String				name )
+	{
+		if ( properties == null ){
+			
+			return( false );
+		}
+		
+		String	value = properties.get( name );
+		
+		if ( value == null ){
+			
+			return( false );
+		}
+		
+		return( value.equalsIgnoreCase( "true" ));
+	}
+	
 	public ShareResourceFile
 	addFile(
 		File	file )
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
-		return( addFile( null, file ));
+		return( addFile( file, null ));
+	}
+	
+	public ShareResourceFile
+	addFile(
+		File				file,
+		Map<String,String>	properties )
+	
+		throws ShareException, ShareResourceDeletionVetoException
+	{
+		return( addFile( null, file, getBooleanProperty( properties, PR_PERSONAL )));
 	}
 	
 	protected ShareResourceFile
 	addFile(
 		ShareResourceDirContentsImpl	parent,
-		File							file )
+		File							file,
+		boolean							personal )
 
 		throws ShareException, ShareResourceDeletionVetoException
 	{
@@ -530,7 +561,7 @@ ShareManagerImpl
 					+ file.toString() + "'"));
 
 		try{
-			return( (ShareResourceFile)addFileOrDir( parent, file, ShareResource.ST_FILE ));
+			return( (ShareResourceFile)addFileOrDir( parent, file, ShareResource.ST_FILE, personal ));
 			
 		}catch( ShareException e ){
 			
@@ -551,17 +582,28 @@ ShareManagerImpl
 	
 	public ShareResourceDir
 	addDir(
-		File	dir )
+		File				dir )
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
-		return( addDir( null, dir ));
+		return( addDir( dir, null ));
+	}
+	
+	public ShareResourceDir
+	addDir(
+		File				dir,
+		Map<String,String>	properties )
+	
+		throws ShareException, ShareResourceDeletionVetoException
+	{
+		return( addDir( null, dir, getBooleanProperty( properties, PR_PERSONAL )));
 	}
 	
 	public ShareResourceDir
 	addDir(
 		ShareResourceDirContentsImpl	parent,
-		File							dir )
+		File							dir,
+		boolean							personal )
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
@@ -572,7 +614,7 @@ ShareManagerImpl
 		try{
 			this_mon.enter();
 			
-			return( (ShareResourceDir)addFileOrDir( parent, dir, ShareResource.ST_DIR ));
+			return( (ShareResourceDir)addFileOrDir( parent, dir, ShareResource.ST_DIR, personal ));
 			
 		}catch( ShareException e ){
 			
@@ -599,7 +641,8 @@ ShareManagerImpl
 	addFileOrDir(
 		ShareResourceDirContentsImpl	parent,
 		File							file,
-		int								type )
+		int								type,
+		boolean							personal )
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
@@ -623,13 +666,13 @@ ShareManagerImpl
 		
 				reportCurrentTask( "Adding file '" + name + "'");
 				
-				new_resource = new ShareResourceFileImpl( this, parent, file );
+				new_resource = new ShareResourceFileImpl( this, parent, file, personal );
 				
 			}else{
 				
 				reportCurrentTask( "Adding dir '" + name + "'");
 				
-				new_resource = new ShareResourceDirImpl( this, parent, file );
+				new_resource = new ShareResourceDirImpl( this, parent, file, personal );
 			}
 			
 			shares.put(name, new_resource );
@@ -666,12 +709,21 @@ ShareManagerImpl
 		}
 	}
 	
-
+	public ShareResourceDirContents
+	addDirContents(
+		File				dir,
+		boolean				recursive )
+	
+		throws ShareException, ShareResourceDeletionVetoException
+	{
+		return( addDirContents( dir, recursive, null ));
+	}
 	
 	public ShareResourceDirContents
 	addDirContents(
-		File		dir,
-		boolean		recursive )
+		File				dir,
+		boolean				recursive,
+		Map<String,String>	properties )
 	
 		throws ShareException, ShareResourceDeletionVetoException
 	{
@@ -693,7 +745,7 @@ ShareManagerImpl
 				old_resource.delete( true );
 			}
 
-			ShareResourceDirContentsImpl new_resource = new ShareResourceDirContentsImpl( this, dir, recursive, true );
+			ShareResourceDirContentsImpl new_resource = new ShareResourceDirContentsImpl( this, dir, recursive, getBooleanProperty( properties, PR_PERSONAL ), true );
 						
 			shares.put( name, new_resource );
 			

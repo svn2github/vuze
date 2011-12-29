@@ -57,11 +57,12 @@ ShareResourceFileImpl
 	ShareResourceFileImpl(
 		ShareManagerImpl				_manager,
 		ShareResourceDirContentsImpl	_parent,
-		File							_file )
+		File							_file,
+		boolean							_personal )
 	
 		throws ShareException
 	{
-		super( _manager, _parent, ST_FILE, _file );
+		super( _manager, _parent, ST_FILE, _file, _personal );
 	}
 	
 	protected

@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt.sharing;
  */
 
 import java.io.File;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
@@ -158,13 +159,21 @@ ShareUtils
 	shareFile(
 		final String		file_name )
 	{
+		shareFile( file_name, null );
+	}
+	
+	public static void
+	shareFile(
+		final String				file_name,
+		final Map<String,String>	properties )
+	{
 		new AEThread("shareFile")
 		{
 			public void
 			runSupport()
 			{
 				try{
-					PluginInitializer.getDefaultInterface().getShareManager().addFile(new File(file_name));
+					PluginInitializer.getDefaultInterface().getShareManager().addFile( new File(file_name), properties );
 					
 				}catch( Throwable e ){
 					
@@ -173,10 +182,18 @@ ShareUtils
 			}
 		}.start();
 	}
-
+	
 	public static void
 	shareDir(
 		final String		file_name )
+	{
+		shareDir( file_name, null );
+	}
+
+	public static void
+	shareDir(
+		final String				file_name,
+		final Map<String,String>	properties )
 	{
 		new AEThread("shareDir")
 		{
@@ -184,7 +201,7 @@ ShareUtils
 			runSupport()
 			{
 				try{
-					PluginInitializer.getDefaultInterface().getShareManager().addDir(new File(file_name));
+					PluginInitializer.getDefaultInterface().getShareManager().addDir(new File(file_name), properties );
 					
 				}catch( Throwable e ){
 					

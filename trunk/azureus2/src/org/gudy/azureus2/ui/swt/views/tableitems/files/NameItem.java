@@ -124,7 +124,6 @@ public class NameItem extends CoreTableColumn implements
 				
 				final TableCellSWT _cell = (TableCellSWT)cell;
 				
-				boolean	async = false;
 				if (fileInfo == null) {
 					icon = null;
 				} else {
@@ -138,9 +137,7 @@ public class NameItem extends CoreTableColumn implements
 					}else{	
 							// happens rarely (seen of filtering of file-view rows
 							// when a new row is added )
-						
-						async = true;
-						
+												
 						Utils.execSWTThread(
 							new Runnable()
 							{
@@ -161,7 +158,7 @@ public class NameItem extends CoreTableColumn implements
 				// cheat for core, since we really know it's a TabeCellImpl and want to use
 				// those special functions not available to Plugins
 				
-				if ( !async ){
+				if ( icon != null ){
 					_cell.setIcon(icon);
 				}
 			}

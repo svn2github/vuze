@@ -45,9 +45,10 @@ public abstract class
 ShareResourceFileOrDirImpl
 	extends		ShareResourceImpl
 {
-	protected File		file;
+	private final File				file;
+	private	final byte[]			personal_key;
 	
-	protected ShareItemImpl		item;
+	private ShareItemImpl		item;
 	
 	protected static ShareResourceImpl
 	getResourceSupport(
@@ -70,46 +71,46 @@ ShareResourceFileOrDirImpl
 		ShareManagerImpl				_manager,
 		ShareResourceDirContentsImpl	_parent,
 		int								_type,
-		File							_file )
+		File							_file,
+		boolean							_personal )
 	
 		throws ShareException
 	{
 		super( _manager, _type );
 		
-		file		= _file;
-		
 		if ( getType() == ST_FILE ){
 			
-			if ( !file.exists()){
+			if ( !_file.exists()){
 			
-				throw( new ShareException( "File '".concat(file.getName()).concat("' not found")));
+				throw( new ShareException( "File '" + _file.getName() + "' not found"));
 			}
 		
-			if ( !file.isFile()){
+			if ( !_file.isFile()){
 			
 				throw( new ShareException( "Not a file"));
 			}
 		}else{
 			
-			if ( !file.exists()){
+			if ( !_file.exists()){
 				
-				throw( new ShareException( "Dir '".concat(file.getName()).concat("' not found")));
+				throw( new ShareException( "Dir '"+ _file.getName() + "' not found"));
 			}
 			
-			if ( file.isFile()){
+			if ( _file.isFile()){
 				
 				throw( new ShareException( "Not a directory"));
 			}		
 		}
 		
 		try{
-			file = file.getCanonicalFile();
+			file = _file.getCanonicalFile();
 						
 		}catch( IOException e ){
 	
 			throw( new ShareException("ShareResourceFile: failed to get canonical name", e));
 		}
 		
+		personal_key = _personal?RandomUtils.nextSecureHash():null;
 		
 		if ( _parent != null ){
 			
@@ -134,6 +135,8 @@ ShareResourceFileOrDirImpl
 		
 		file		= _file;
 		
+		personal_key = (byte[])_map.get( "per_key" );
+
 		item = ShareItemImpl.deserialiseItem( this, _map );
 	}
 	
@@ -182,6 +185,17 @@ ShareResourceFileOrDirImpl
 			}finally{
 					
 				manager.setTorrentCreator( null );
+			}
+			
+			if ( personal_key != null ){
+				
+				Map	map = to_torrent.serialiseToMap();
+				
+				Map	info = (Map)map.get( "info" );
+				
+				info.put( "az_salt", personal_key );
+			
+				to_torrent =  TOTorrentFactory.deserialiseFromMap( map );
 			}
 			
 			LocaleTorrentUtil.setDefaultTorrentEncoding( to_torrent );
@@ -310,7 +324,7 @@ ShareResourceFileOrDirImpl
 				}
 			}else{
 				
-				manager.addFileOrDir( null, file, getType());
+				manager.addFileOrDir( null, file, getType(), personal_key != null );
 			}
 		}catch( Throwable e ){
 							
@@ -342,6 +356,7 @@ ShareResourceFileOrDirImpl
 			throw( new ShareException( "internal error", e ));
 		}
 	}
+	
 	protected void
 	serialiseResource(
 		Map		map )
@@ -356,6 +371,11 @@ ShareResourceFileOrDirImpl
 		}catch( UnsupportedEncodingException e ){
 			
 			Debug.printStackTrace( e );
+		}
+		
+		if ( personal_key != null ){
+			
+			map.put( "per_key", personal_key );
 		}
 		
 		item.serialiseItem( map );

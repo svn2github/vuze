@@ -30,11 +30,13 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -102,6 +104,13 @@ public class FilesViewMenuUtil
 		itemRetarget.setData("rename", Boolean.valueOf(false));
 		itemRetarget.setData("retarget", Boolean.valueOf(true));
 
+			// personal share
+		
+		final MenuItem itemPersonalShare = new MenuItem(menu, SWT.PUSH);
+		Messages.setLanguageText(itemPersonalShare, "MyTorrentsView.menu.create_personal_share");
+		
+			// priority
+		
 		final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
 		Messages.setLanguageText(itemPriority, "FilesView.menu.setpriority");
 
@@ -136,6 +145,8 @@ public class FilesViewMenuUtil
 			itemRenameOrRetarget.setEnabled(false);
 			itemRename.setEnabled(false);
 			itemRetarget.setEnabled(false);
+			itemPersonalShare.setEnabled(false);
+			
 			return;
 		}
 
@@ -144,8 +155,9 @@ public class FilesViewMenuUtil
 		boolean all_skipped = true;
 		boolean all_priority = true;
 		boolean all_not_priority = true;
-
-		DiskManagerFileInfo[] dmi_array = new DiskManagerFileInfo[data_sources.length];
+		boolean	all_complete	 = true;
+		
+		final DiskManagerFileInfo[] dmi_array = new DiskManagerFileInfo[data_sources.length];
 
 		System.arraycopy(data_sources, 0, dmi_array, 0, data_sources.length);
 
@@ -181,6 +193,12 @@ public class FilesViewMenuUtil
 					}
 				}
 			}
+			
+			if ( 	file_info.getDownloaded() != file_info.getLength() ||
+					file_info.getFile( true ).length() != file_info.getLength()){
+				
+				all_complete = false;
+			}
 		}
 
 		// we can only open files if they are read-only
@@ -193,7 +211,13 @@ public class FilesViewMenuUtil
 		itemRenameOrRetarget.setEnabled(manager.isPersistent());
 		itemRename.setEnabled(manager.isPersistent());
 		itemRetarget.setEnabled(manager.isPersistent());
-
+		
+			// only enable for single files - people prolly don't expect a multi-selection to result
+			// in multiple shares, rather they would expect one share with the files they selected
+			// which we don't support
+		
+		itemPersonalShare.setEnabled( all_complete && dmi_array.length == 1 );
+		
 		itemSkipped.setEnabled(!all_skipped);
 
 		itemHigh.setEnabled(!all_priority);
@@ -225,6 +249,31 @@ public class FilesViewMenuUtil
 		itemRename.addListener(SWT.Selection, rename_listener);
 		itemRetarget.addListener(SWT.Selection, rename_listener);
 
+		itemPersonalShare.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				Map<String,String>	properties = new HashMap<String, String>();
+				
+				properties.put( ShareManager.PR_PERSONAL, "true" );
+				
+				for (int i = 0; i < dmi_array.length; i++) {
+
+					DiskManagerFileInfo file_info = dmi_array[i];
+				
+					File file = file_info.getFile( true );
+					
+					if ( file.isFile()){
+					
+						ShareUtils.shareFile( file.getAbsolutePath(), properties );
+						
+					}else if ( file.isDirectory()){
+						
+						ShareUtils.shareDir( file.getAbsolutePath(), properties );
+					}
+				}
+			}
+		});
+		
+		
 		Listener priorityListener = new Listener() {
 			public void handleEvent(Event event) {
 				final int priority = ((Integer) event.widget.getData("Priority")).intValue();

@@ -27,10 +27,13 @@ package org.gudy.azureus2.plugins.sharing;
  */
 
 import java.io.File;
+import java.util.Map;
 
 public interface 
 ShareManager 
 {
+	public static final String	PR_PERSONAL		= "personal";		// "true"/"false"
+	
 	public void
 	initialise()
 	
@@ -58,9 +61,23 @@ ShareManager
 	
 		throws ShareException, ShareResourceDeletionVetoException;
 	
+	public ShareResourceFile
+	addFile(
+		File				file,
+		Map<String,String>	properties )
+	
+		throws ShareException, ShareResourceDeletionVetoException;
+
 	public ShareResourceDir
 	addDir(
 		File	dir )
+	
+		throws ShareException, ShareResourceDeletionVetoException;
+	
+	public ShareResourceDir
+	addDir(
+		File				dir,
+		Map<String,String>	properties )
 	
 		throws ShareException, ShareResourceDeletionVetoException;
 	
@@ -68,6 +85,14 @@ ShareManager
 	addDirContents(
 		File	dir,
 		boolean	recursive )
+	
+		throws ShareException, ShareResourceDeletionVetoException;
+	
+	public ShareResourceDirContents
+	addDirContents(
+		File				dir,
+		boolean				recursive,
+		Map<String,String>	properties )
 	
 		throws ShareException, ShareResourceDeletionVetoException;
 	

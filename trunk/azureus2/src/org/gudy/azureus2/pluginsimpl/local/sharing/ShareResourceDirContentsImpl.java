@@ -39,8 +39,9 @@ ShareResourceDirContentsImpl
 	extends		ShareResourceImpl
 	implements 	ShareResourceDirContents
 {
-	protected File		root;
-	protected boolean	recursive;
+	private final File			root;
+	private final boolean		recursive;
+	private final byte[]		personal_key;
 	
 	protected ShareResource[]		children	= new ShareResource[0];
 	
@@ -49,6 +50,7 @@ ShareResourceDirContentsImpl
 		ShareManagerImpl	_manager,
 		File				_dir,
 		boolean				_recursive,
+		boolean				_personal,
 		boolean				_async_check )
 
 		throws ShareException
@@ -60,13 +62,15 @@ ShareResourceDirContentsImpl
 		
 		if ( !root.exists()){
 			
-			throw( new ShareException( "Dir '".concat(root.getName()).concat("' not found")));
+			throw( new ShareException( "Dir '" + root.getName() + "' not found"));
 		}
 		
 		if ( root.isFile()){
 			
 			throw( new ShareException( "Not a directory"));
 		}
+		
+		personal_key = _personal?RandomUtils.nextSecureHash():null;
 		
 			// new resource, trigger processing
 		
@@ -122,6 +126,8 @@ ShareResourceDirContentsImpl
 				throw( new ShareException( "Not a directory"));
 			}
 		}
+		
+		personal_key = (byte[])_map.get( "per_key" );
 		
 			// deserialised resource, checkConsistency will be called later to trigger sub-share adding
 	}
@@ -214,7 +220,7 @@ ShareResourceDirContentsImpl
 								
 								if ( res == null ){
 								
-									res = manager.addDir( this, file );
+									res = manager.addDir( this, file, personal_key != null );
 								}
 								
 								kids.add( res );
@@ -231,7 +237,7 @@ ShareResourceDirContentsImpl
 							
 							if ( res == null ){
 								
-								res = manager.addFile( this, file );
+								res = manager.addFile( this, file, personal_key != null );
 							}
 							
 							kids.add( res );
@@ -298,6 +304,11 @@ ShareResourceDirContentsImpl
 		}catch( UnsupportedEncodingException e ){
 			
 			Debug.printStackTrace( e );
+		}
+		
+		if ( personal_key != null ){
+			
+			map.put( "per_key", personal_key );
 		}
 	}
 	

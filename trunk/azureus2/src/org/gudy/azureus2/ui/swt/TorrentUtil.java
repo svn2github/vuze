@@ -51,6 +51,7 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
@@ -60,6 +61,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.*;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
+import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.shells.AdvRenameWindow;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.FilesViewMenuUtil;
@@ -1265,6 +1267,41 @@ public class TorrentUtil {
 		itemCategory.setEnabled(hasSelection);
 
 		addCategorySubMenu(dms, menuCategory, composite);
+		
+		if ( isSeedingView ){
+			final MenuItem itemPersonalShare = new MenuItem(menu, SWT.PUSH);
+			Messages.setLanguageText(itemPersonalShare, "MyTorrentsView.menu.create_personal_share");
+			itemPersonalShare.addListener(SWT.Selection, new DMTask(dms, false) {
+				public void run(DownloadManager dm) {
+					File file = dm.getSaveLocation();
+					
+					Map<String,String>	properties = new HashMap<String, String>();
+					
+					properties.put( ShareManager.PR_PERSONAL, "true" );
+					
+					if ( file.isFile()){
+					
+						ShareUtils.shareFile( file.getAbsolutePath(), properties );
+						
+					}else if ( file.isDirectory()){
+						
+						ShareUtils.shareDir( file.getAbsolutePath(), properties );
+					}
+				}
+			});
+			
+			boolean	can_share_pers = dms.length > 0;
+			
+			for ( DownloadManager dm: dms ){
+				
+				if ( !( dm.isDownloadComplete( true ) && dm.filesExist( true ))){
+				
+					can_share_pers = false;
+				}
+			}
+			
+			itemPersonalShare.setEnabled( can_share_pers );
+		}
 		
 		// ---
 		new MenuItem(menu, SWT.SEPARATOR);
