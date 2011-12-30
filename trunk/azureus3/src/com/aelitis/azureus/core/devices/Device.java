@@ -79,6 +79,13 @@ Device
 	public boolean
 	isHidden();
 	
+	public void
+	setTagged(
+		boolean	is_tagged );
+	
+	public boolean 
+	isTagged();
+	
 	public boolean
 	isBrowsable();
 	

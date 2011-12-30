@@ -665,6 +665,9 @@ public abstract class TranscodeChooser
 		boolean hide_generic = COConfigurationManager.getBooleanParameter(
 				DeviceManagerUI.CONFIG_VIEW_HIDE_REND_GENERIC, true);
 
+		boolean show_only_tagged = COConfigurationManager.getBooleanParameter(
+				DeviceManagerUI.CONFIG_VIEW_SHOW_ONLY_TAGGED, false);
+
 		int numDevices = 0;
 		Button lastButton = null;
 		for (Device device : devices) {
@@ -679,6 +682,10 @@ public abstract class TranscodeChooser
 				continue;
 			}
 
+			if ( show_only_tagged && !renderer.isTagged()){
+				continue;
+			}
+			
 			TranscodeTarget transcodeTarget = (TranscodeTarget) device;
 
 			if (transcodeTarget.getTranscodeProfiles().length == 0) {

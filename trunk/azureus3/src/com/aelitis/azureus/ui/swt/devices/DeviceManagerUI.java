@@ -98,7 +98,9 @@ DeviceManagerUI
 	private static final Object	DEVICE_IVIEW_KEY = new Object();
 	
 	private static final String CONFIG_VIEW_TYPE				= "device.sidebar.ui.viewtype";
+	
 	public static final String CONFIG_VIEW_HIDE_REND_GENERIC	= "device.sidebar.ui.rend.hidegeneric";
+	public static final String CONFIG_VIEW_SHOW_ONLY_TAGGED		= "device.sidebar.ui.rend.showonlytagged";
 	
 	private static final String SPINNER_IMAGE_ID 	= "image.sidebar.vitality.dl";
 	private static final String INFO_IMAGE_ID		= "image.sidebar.vitality.info";
@@ -128,6 +130,7 @@ DeviceManagerUI
 	
 	private int			side_bar_view_type		= COConfigurationManager.getIntParameter( CONFIG_VIEW_TYPE, SBV_SIMPLE );
 	private boolean		side_bar_hide_rend_gen	= COConfigurationManager.getBooleanParameter( CONFIG_VIEW_HIDE_REND_GENERIC, true );
+	private boolean		side_bar_show_tagged	= COConfigurationManager.getBooleanParameter( CONFIG_VIEW_SHOW_ONLY_TAGGED, false );
 	
 	private int			next_sidebar_id;
 		
@@ -145,7 +148,9 @@ DeviceManagerUI
 	private MenuItemFillListener	show_fill_listener;
 	private MenuItemListener 		show_listener;
 
-	
+	private MenuItemFillListener	will_tag_listener;
+	private MenuItemListener 		tag_listener;
+
 	private MenuItemFillListener will_browse_listener;
 	
 	private boolean	offline_menus_setup;
@@ -577,6 +582,10 @@ DeviceManagerUI
 				"!" + CONFIG_VIEW_HIDE_REND_GENERIC + "!", "devices.sidebar.hide.rend.generic",
 				side_bar_hide_rend_gen );
 		
+		configModel.addBooleanParameter2( 
+				"!" + CONFIG_VIEW_SHOW_ONLY_TAGGED + "!", "devices.sidebar.show.only.tagged",
+				side_bar_show_tagged );
+
 		// transcoding
 		
 			// default dir
@@ -814,7 +823,60 @@ DeviceManagerUI
 					}
 				}
 			};
-			
+		
+		will_tag_listener = 
+				new MenuItemFillListener() 
+				{
+					public void 
+					menuWillBeShown(
+						MenuItem 	menu, 
+						Object 		targets) 
+					{
+						Object[]	rows;
+						
+						if ( targets instanceof Object[] ){
+							
+							rows = (Object[])targets;
+							
+						}else{
+							
+							rows = new Object[]{ targets };
+						}
+						
+						if ( rows.length > 0 && rows[0] instanceof MdiEntry ){
+													
+							MdiEntry info = (MdiEntry)rows[0];
+						
+							Device device = (Device)info.getDatasource();
+							
+							menu.setData( device.isTagged());
+							
+						}else{
+							
+							menu.setEnabled( false );
+						}
+					}
+				};
+				
+		tag_listener = 
+			new MenuItemListener() 
+			{
+				public void 
+				selected(
+					MenuItem menu, 
+					Object target) 
+				{
+					if (target instanceof MdiEntry){
+						
+						MdiEntry info = (MdiEntry) target;
+						
+						Device device = (Device)info.getDatasource();
+					
+						device.setTagged( !device.isTagged());
+					}
+				}
+			};
+				
 		rename_listener = 
 				new MenuItemListener() 
 				{
@@ -1147,6 +1209,7 @@ DeviceManagerUI
 			new String[]{
 				CONFIG_VIEW_TYPE,
 				CONFIG_VIEW_HIDE_REND_GENERIC,
+				CONFIG_VIEW_SHOW_ONLY_TAGGED,
 			},
 			new org.gudy.azureus2.core3.config.ParameterListener()
 			{
@@ -1157,6 +1220,8 @@ DeviceManagerUI
 					side_bar_view_type = COConfigurationManager.getIntParameter( CONFIG_VIEW_TYPE, SBV_SIMPLE );
 					
 					side_bar_hide_rend_gen = COConfigurationManager.getBooleanParameter( CONFIG_VIEW_HIDE_REND_GENERIC, true );
+					
+					side_bar_show_tagged = COConfigurationManager.getBooleanParameter( CONFIG_VIEW_SHOW_ONLY_TAGGED, false );
 
 					rebuildSideBarIfExists();
 				}
@@ -1219,6 +1284,55 @@ DeviceManagerUI
 		addAllDevices();
 	}
 	
+	private String
+	getHeaderToolTip()
+	{
+		if ( side_bar_hide_rend_gen || side_bar_show_tagged ){
+			
+			Device[] devices = device_manager.getDevices();
+			
+			int generic 	= 0;
+			int	untagged	= 0;
+			
+			for ( Device device: devices ){
+				
+				if ( device.isHidden()){
+					
+					continue;
+				}
+				
+				if ( device.getType() != Device.DT_MEDIA_RENDERER ){
+					
+					continue;
+				}
+				
+				DeviceMediaRenderer rend = (DeviceMediaRenderer)device;
+				
+				if ( rend.isNonSimple()){
+					
+					generic++;
+				}
+				
+				if ( !rend.isTagged()){
+					
+					untagged++;
+				}
+			}
+			
+			if ( !side_bar_show_tagged ){
+				
+				untagged = 0;
+			}
+			
+			if ( generic > 0 || untagged > 0 ){
+			
+				return( MessageText.getString( "devices.sidebar.mainheader.tooltip", new String[]{ String.valueOf( generic + untagged )} ));
+			}
+		}
+		
+		return( null );
+	}
+	
 	protected MdiEntry buildSideBar(boolean rebuild) {
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 
@@ -1247,37 +1361,7 @@ DeviceManagerUI
 						{
 							if ( propertyID == TITLE_INDICATOR_TEXT_TOOLTIP ){
 							
-								if ( side_bar_hide_rend_gen ){
-									
-									Device[] devices = device_manager.getDevices();
-									
-									int generic = 0;
-									
-									for ( Device device: devices ){
-										
-										if ( device.isHidden()){
-											
-											continue;
-										}
-										
-										if ( device.getType() != Device.DT_MEDIA_RENDERER ){
-											
-											continue;
-										}
-										
-										DeviceMediaRenderer rend = (DeviceMediaRenderer)device;
-										
-										if ( rend.isNonSimple()){
-											
-											generic++;
-										}
-									}
-									
-									if ( generic > 0 ){
-									
-										return( MessageText.getString( "devices.sidebar.mainheader.tooltip", new String[]{ String.valueOf( generic )} ));
-									}
-								}
+								return( getHeaderToolTip());
 							}
 							
 							return( null );
@@ -1615,37 +1699,7 @@ DeviceManagerUI
 					*/
 				} else if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP ) {
 					
-					if ( side_bar_hide_rend_gen ){
-						
-						Device[] devices = device_manager.getDevices();
-						
-						int generic = 0;
-						
-						for ( Device device: devices ){
-							
-							if ( device.isHidden()){
-								
-								continue;
-							}
-							
-							if ( device.getType() != Device.DT_MEDIA_RENDERER ){
-								
-								continue;
-							}
-							
-							DeviceMediaRenderer rend = (DeviceMediaRenderer)device;
-							
-							if ( rend.isNonSimple()){
-								
-								generic++;
-							}
-						}
-						
-						if ( generic > 0 ){
-						
-							return( MessageText.getString( "devices.sidebar.mainheader.tooltip", new String[]{ String.valueOf( generic )} ));
-						}
-					}
+					return( getHeaderToolTip());
 				}
 
 				return null;
@@ -1732,7 +1786,7 @@ DeviceManagerUI
 			}
 		});
 
-		// show hidden
+			// show generic
 
 		de_menu_item = menu_manager.addMenuItem(parentID, "device.showGeneric");
 		de_menu_item.setStyle(MenuItem.STYLE_CHECK);
@@ -1750,12 +1804,49 @@ DeviceManagerUI
 			}
 		});
 
+			// show tagged
+
+		de_menu_item = menu_manager.addMenuItem(parentID, "device.onlyShowTagged");
+		de_menu_item.setStyle(MenuItem.STYLE_CHECK);
+		de_menu_item.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.setData(COConfigurationManager.getBooleanParameter(
+						CONFIG_VIEW_SHOW_ONLY_TAGGED, false));
+				
+				Device[] devices = device_manager.getDevices();
+				
+				boolean has_tagged = false;
+				
+				for ( Device d: devices ){
+					
+					if ( d.isTagged()){
+						
+						has_tagged = true;
+						
+						break;
+					}
+				}
+				
+				menu.setEnabled( has_tagged );
+			}
+		});
+		
+		de_menu_item.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				COConfigurationManager.setParameter(CONFIG_VIEW_SHOW_ONLY_TAGGED,
+						!COConfigurationManager.getBooleanParameter(
+								CONFIG_VIEW_SHOW_ONLY_TAGGED, false));
+			}
+		});
+		
+			// show hidden
+		
 		de_menu_item = menu_manager.addMenuItem(parentID, "device.show");
 
 		de_menu_item.addListener(show_listener);
 		de_menu_item.addFillListener(show_fill_listener);
 
-		// simple
+			// simple
 
 		de_menu_item = menu_manager.addMenuItem(parentID, "devices.sidebar.simple");
 
@@ -2242,6 +2333,11 @@ DeviceManagerUI
 				
 				hide_device = true;
 			}
+		}
+		
+		if ( side_bar_show_tagged && !device.isTagged()){
+				
+			hide_device = true;
 		}
 		
 		if ( hide_device ){
@@ -2920,6 +3016,16 @@ DeviceManagerUI
 			
 			hide_menu_item.addListener( hide_listener );
 			
+				// tag
+			
+			MenuItem tag_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.tag");
+			
+			tag_menu_item.setStyle( MenuItem.STYLE_CHECK );
+			
+			tag_menu_item.addFillListener( will_tag_listener );
+
+			tag_menu_item.addListener(tag_listener );
+
 				// remove
 			
 			MenuItem remove_menu_item = menu_manager.addMenuItem("sidebar." + key, "MySharesView.menu.remove");

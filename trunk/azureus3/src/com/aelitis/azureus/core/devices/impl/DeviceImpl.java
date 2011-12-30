@@ -241,6 +241,7 @@ DeviceImpl
 	private boolean 		isGenericUSB;
 	private long			last_seen;
 	private boolean			can_remove = true;
+	private boolean			tagged;
 	
 	private int				busy_count;
 	private boolean			online;
@@ -306,11 +307,11 @@ DeviceImpl
 	{
 		manager	= _manager;
 		
-		type			= (int)ImportExportUtils.importLong( map, "_type" );
-		uid				= ImportExportUtils.importString( map, "_uid" );
-		classification	= ImportExportUtils.importString( map, "_name" );
-		name			= ImportExportUtils.importString( map, "_lname" );
-		isNameAutomatic = ImportExportUtils.importBoolean( map, "_autoname", true );
+		type				= (int)ImportExportUtils.importLong( map, "_type" );
+		uid					= ImportExportUtils.importString( map, "_uid" );
+		classification		= ImportExportUtils.importString( map, "_name" );
+		name				= ImportExportUtils.importString( map, "_lname" );
+		isNameAutomatic 	= ImportExportUtils.importBoolean( map, "_autoname", true );
 		image_id			= ImportExportUtils.importString( map, "_image_id" );
 		
 		if ( name == null ){
@@ -330,6 +331,7 @@ DeviceImpl
 		can_remove		= ImportExportUtils.importBoolean( map, "_rm", true );	
 		isGenericUSB 	= ImportExportUtils.importBoolean( map, "_genericUSB" );	
 		manual			= ImportExportUtils.importBoolean( map, "_man" );
+		tagged			= ImportExportUtils.importBoolean( map, "_tag", false );	
 
 		if ( map.containsKey( "_pprops" )){
 			
@@ -373,6 +375,10 @@ DeviceImpl
 		ImportExportUtils.exportBoolean( map, "_rm", can_remove );
 		ImportExportUtils.exportBoolean( map, "_genericUSB", isGenericUSB );	
 		ImportExportUtils.exportBoolean( map, "_man", manual );
+		
+		if ( tagged ){
+			ImportExportUtils.exportBoolean( map, "_tag", tagged );
+		}
 		
 		if ( for_export ){
 			
@@ -708,6 +714,23 @@ DeviceImpl
 		}
 	}
 
+	public boolean
+	isTagged()
+	{
+		return( tagged );
+	}
+	
+	public void
+	setTagged(
+		boolean		t )
+	{
+		if ( t != tagged ){
+			
+			tagged	= t;
+			
+			setDirty();
+		}
+	}
 	
 	public boolean
 	isGenericUSB()
