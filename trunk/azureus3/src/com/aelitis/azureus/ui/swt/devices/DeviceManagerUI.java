@@ -1609,7 +1609,7 @@ DeviceManagerUI
 
 				if (propertyID == TITLE_INDICATOR_TEXT) {
 
-					spinner.setVisible(!expanded && device_manager.isBusy());
+					spinner.setVisible(!expanded && device_manager.isBusy( Device.DT_UNKNOWN ));
 
 					if (!expanded) {
 
@@ -3654,7 +3654,7 @@ DeviceManagerUI
 				
 					if ( spinner != null ){
 					
-						spinner.setVisible( !expanded && ui.getDeviceManager().isBusy());
+						spinner.setVisible( !expanded && ui.getDeviceManager().isBusy( device_type ));
 					}
 					
 					if ( !expanded ){
@@ -3667,6 +3667,19 @@ DeviceManagerUI
 						String all_infos	= "";
 						
 						for ( Device device: devices ){
+							
+							if ( device_type == Device.DT_OFFLINE_DOWNLOADER ){
+								
+								if ( device.getType() != Device.DT_OFFLINE_DOWNLOADER  ){
+									
+									continue;
+								}
+							}else{
+								if ( device.getType() == Device.DT_OFFLINE_DOWNLOADER  ){
+									
+									continue;
+								}
+							}
 							
 							String error = device.getError();
 							

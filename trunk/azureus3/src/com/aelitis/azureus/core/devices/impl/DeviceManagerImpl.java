@@ -1027,11 +1027,17 @@ DeviceManagerImpl
 	}
 
 	public boolean
-	isBusy()
+	isBusy(
+		int	device_type )
 	{
-		if ( getTranscodeManager().getQueue().isTranscoding()){
+			// transcoding is rolled into renderers
+		
+		if ( device_type == Device.DT_UNKNOWN || device_type == Device.DT_MEDIA_RENDERER ){
 			
-			return( true );
+			if ( getTranscodeManager().getQueue().isTranscoding()){
+				
+				return( true );
+			}
 		}
 		
 		DeviceImpl[] devices = getDevices();
@@ -1040,7 +1046,10 @@ DeviceManagerImpl
 			
 			if ( device.isBusy()){
 				
-				return( true );
+				if ( device_type == Device.DT_UNKNOWN || device_type == device.getType()){
+				
+					return( true );
+				}
 			}
 		}
 		

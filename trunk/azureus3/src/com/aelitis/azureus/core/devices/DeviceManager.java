@@ -92,7 +92,8 @@ DeviceManager
 		File		dir );
 	
 	public boolean
-	isBusy();
+	isBusy(
+		int	device_type );
 	
 	public DeviceOfflineDownloaderManager
 	getOfflineDownlaoderManager();
