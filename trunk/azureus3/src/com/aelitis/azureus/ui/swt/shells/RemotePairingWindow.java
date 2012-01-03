@@ -384,7 +384,7 @@ public class RemotePairingWindow
 				}
 
 				public void testComplete(PairingTest test) {
-					if (skinnedDialog.isDisposed()) {
+					if ( skinnedDialog == null || skinnedDialog.isDisposed()) {
 						return;
 					}
 
