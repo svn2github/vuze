@@ -3668,17 +3668,9 @@ DeviceManagerUI
 						
 						for ( Device device: devices ){
 							
-							if ( device_type == Device.DT_OFFLINE_DOWNLOADER ){
-								
-								if ( device.getType() != Device.DT_OFFLINE_DOWNLOADER  ){
+							if ( device_type != device.getType()){
 									
-									continue;
-								}
-							}else{
-								if ( device.getType() == Device.DT_OFFLINE_DOWNLOADER  ){
-									
-									continue;
-								}
+								continue;
 							}
 							
 							String error = device.getError();
