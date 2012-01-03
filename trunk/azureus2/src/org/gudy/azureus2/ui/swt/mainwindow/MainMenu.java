@@ -220,6 +220,8 @@ public class MainMenu
           					"BetaProgramme", "main.area.beta",
           					"{Sidebar.beta.title}", null, null,
           					true, "");
+          			
+          			entry.setImageLeftID( "image.sidebar.beta" );
           			mdi.showEntry(entry);
 							}
 				}));
