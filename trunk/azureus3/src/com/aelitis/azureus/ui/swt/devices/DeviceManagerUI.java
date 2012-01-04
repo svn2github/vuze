@@ -1792,8 +1792,40 @@ DeviceManagerUI
 		de_menu_item.setStyle(MenuItem.STYLE_CHECK);
 		de_menu_item.addFillListener(new MenuItemFillListener() {
 			public void menuWillBeShown(MenuItem menu, Object data) {
-				menu.setData(!COConfigurationManager.getBooleanParameter(
-						CONFIG_VIEW_HIDE_REND_GENERIC, true));
+				
+				boolean is_hidden = COConfigurationManager.getBooleanParameter(CONFIG_VIEW_HIDE_REND_GENERIC, true);
+				
+				menu.setData( !is_hidden );
+				
+				boolean	enabled = false;
+				
+				if ( is_hidden ){
+					
+					Device[] devices = device_manager.getDevices();
+										
+					for ( Device d: devices ){
+		
+						if ( d.isHidden()){
+							
+							continue;
+						}
+						
+						if ( d instanceof  DeviceMediaRenderer ){
+							
+							DeviceMediaRenderer rend = (DeviceMediaRenderer)d;
+						
+							if ( rend.isNonSimple()){
+								
+								enabled = true;
+							}
+						}
+					}
+				}else{
+					
+					enabled = true;
+				}
+				
+				menu.setEnabled( enabled );
 			}
 		});
 		de_menu_item.addListener(new MenuItemListener() {
