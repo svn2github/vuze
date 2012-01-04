@@ -204,7 +204,7 @@ public class AboutWindow {
           "http://www.vuze.com",
           "http://azureus.sourceforge.net",
           "http://sourceforge.net/project/showfiles.php?group_id=84122",
-          "http://forum.vuze.com/category.jspa?categoryID=3",
+          "http://forum.vuze.com/forum.jspa?forumID=124",
           "http://forum.vuze.com",
           Constants.AZUREUS_WIKI }
     };

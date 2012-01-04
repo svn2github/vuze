@@ -178,7 +178,7 @@ public class ColorCache
 														"Someone disposed of color "
 																+ Long.toHexString(key.longValue())
 																+ ". Please report this on the "
-																+ "<A HREF=\"http://forum.vuze.com/forum.jspa?forumID=4\">forum</A>"));
+																+ "<A HREF=\"http://forum.vuze.com/forum.jspa?forumID=124\">forum</A>"));
 												iter.remove();
 											}
 										}

@@ -47,8 +47,8 @@ public class PluginDeprecation {
 	//
 
 	private final static String CONFIG_KEY = "PluginDeprecationWarnings";
-	private final static String FORUM_STABLE_LINK = "http://forum.vuze.com/forum.jspa?forumID=3";
-	private final static String FORUM_BETA_LINK = "http://forum.vuze.com/forum.jspa?forumID=4";
+	private final static String FORUM_STABLE_LINK = "http://forum.vuze.com/forum.jspa?forumID=124";
+	private final static String FORUM_BETA_LINK = "http://forum.vuze.com/forum.jspa?forumID=124";		// 01/01/2012 - only one forum now :(
 	
 	private final static int IGNORE = 0;
 	private final static int NOTIFY_ONCE = 1;

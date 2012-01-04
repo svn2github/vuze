@@ -1019,7 +1019,7 @@ implements PEPeerTransport
 				if (supports_ltep && !supports_azmp) {
 					Logger.log(new LogAlert(this, LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
 						"AZMP support has failed in Azureus, please report this in the " + 
-						"<a href=\"http://forum.vuze.com/forum.jspa?forumID=4\">CVS bug report forum</a>.\n" +
+						"<a href=\"http://forum.vuze.com/forum.jspa?forumID=124\">bug report forum</a>.\n" +
 						"Debug data: " + ByteFormatter.nicePrint(reserved)
 					));
 				}
