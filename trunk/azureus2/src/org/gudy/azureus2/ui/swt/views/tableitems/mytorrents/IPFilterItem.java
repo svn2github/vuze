@@ -28,12 +28,16 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.ipfilter.IpFilter;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
+import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /** Display Category torrent belongs to.
  *
@@ -47,12 +51,23 @@ public class IPFilterItem
 	
 	public static final Class DATASOURCE_TYPE = Download.class;
 
+	private static final UISWTGraphic tick_icon;
+
+	private static final UISWTGraphic cross_icon;
+	
+	static {
+		tick_icon = new UISWTGraphicImpl(ImageLoader.getInstance().getImage("tick_mark"));
+		cross_icon = new UISWTGraphicImpl(ImageLoader.getInstance().getImage("cross_mark"));
+	}
+	
   public static final String COLUMN_ID = "ipfilter";
 
 	/** Default Constructor */
   public IPFilterItem(String sTableID) {
     super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, 100, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
+	initializeAsGraphic(POSITION_LAST, 100);
+	setMinWidth(20);
   }
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
@@ -63,7 +78,10 @@ public class IPFilterItem
 	}
 
   public void refresh(TableCell cell) {
-    String state = "";
+    //String state = "";
+    
+    UISWTGraphic	icon = null;
+    
     if( ipfilter.isEnabled()){
 	    DownloadManager dm = (DownloadManager)cell.getDataSource();
 	    if (dm != null) {
@@ -71,14 +89,20 @@ public class IPFilterItem
 	  
 	       if ( excluded ){
 	    	   
-	    	   state = "\u2718";
+	    	   icon = cross_icon;
+	    	   
+	    	   //state = "\u2718";
 	    	   
 	       }else{
 	    	   
-	    	   state = "\u2714";
+	    	   icon = tick_icon;
+	    	  // state = "\u2714";
 	       }
 	    }
     }
-    cell.setText( state );
+    if ( cell.getGraphic() != icon ){
+    	
+    	cell.setGraphic( icon );
+    }
   }
 }
