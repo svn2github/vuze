@@ -232,8 +232,13 @@ public class ManagerView
 	  
 	  final Composite top_bar = new Composite( main_area, SWT.NULL );
 	  
+	  boolean az2 = Utils.isAZ2UI();
+	  
 	  Color bg_color = ColorCache.getColor( composite.getDisplay(), "#c0cbd4" );
-	  top_bar.setBackground( bg_color );
+	  
+	  if ( !az2 ){
+		  top_bar.setBackground( bg_color );
+	  }
 	  
 	  FormData formData = new FormData();
 	  formData.left = new FormAttachment(0, 0);
@@ -269,10 +274,11 @@ public class ManagerView
 	  fontdata[0].setStyle(SWT.BOLD);
 	  header_font = new Font(composite.getDisplay(), fontdata);
 	  
-	  header_label.setBackground( bg_color );
-	  header_label.setFont( header_font );
-	  header_label.setText( manager.getNumFileInfos() + " items" );
-	  
+	  if ( !az2 ){
+		  header_label.setBackground( bg_color );
+		  header_label.setFont( header_font );
+	  }
+	  	  
 	  txtFilter = sb.getTextControl();
 	  formData = new FormData();
 	  formData.top = new FormAttachment(padding, 0,SWT.CENTER);
