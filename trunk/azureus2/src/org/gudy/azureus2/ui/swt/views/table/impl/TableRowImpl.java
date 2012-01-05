@@ -315,7 +315,7 @@ public class TableRowImpl<COREDATASOURCE>
 		((TableViewSWTImpl<COREDATASOURCE>) tableView).invokeRefreshListeners(this);
 
 		for (TableCellCore cell : mTableCells.values()) {
-			if (cell == null) {
+			if (cell == null || cell.isDisposed()) {
 				continue;
 			}
 			TableColumn column = cell.getTableColumn();
