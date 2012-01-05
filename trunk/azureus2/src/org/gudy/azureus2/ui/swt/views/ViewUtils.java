@@ -357,4 +357,21 @@ ViewUtils
 		setDownSpeed(
 			int		val );
 	}
+	
+	public interface
+	ViewTitleExtraInfo
+	{
+		public void
+		update(
+			Composite	composite,
+			boolean		seeding_view,
+			int			count );
+			
+		public void
+		setEnabled(
+			Composite	composite,
+			boolean		seeding_view,
+			boolean		enabled );
+			
+	}
 }

@@ -34,6 +34,9 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
@@ -111,6 +114,8 @@ public class ManagerView
 	protected UISWTViewCore activeView;
   
 	private final int 	TOP_BAR_HEIGHT = 30;
+	private Label		header_label;
+	private Font		header_font;
 	private Text		txtFilter;
 	private Control		txtControl;
 	private Composite	filterParent; 
@@ -212,6 +217,9 @@ public class ManagerView
     }
     tabViews.clear();
 
+    if ( header_font != null ){
+    	header_font.dispose();
+    }
     Utils.disposeSWTObjects(new Object[] { folder, parent });
   }
 
@@ -223,7 +231,9 @@ public class ManagerView
 	  main_area.setLayout( new FormLayout());
 	  
 	  final Composite top_bar = new Composite( main_area, SWT.NULL );
-	  top_bar.setBackground( ColorCache.getColor( composite.getDisplay(), "#c0cbd4" ));
+	  
+	  Color bg_color = ColorCache.getColor( composite.getDisplay(), "#c0cbd4" );
+	  top_bar.setBackground( bg_color );
 	  
 	  FormData formData = new FormData();
 	  formData.left = new FormAttachment(0, 0);
@@ -234,9 +244,7 @@ public class ManagerView
 	  top_bar.setLayoutData(formData);
 	  
 	  top_bar.setLayout( new FormLayout());
-	  
-	 
-	  
+	  	  
 	  searchBox sb = new searchBox( top_bar );
 	  
 	  txtControl = sb.getControl();
@@ -248,6 +256,22 @@ public class ManagerView
 	  formData.bottom = new FormAttachment(100, 0);
 	  padding.setLayoutData(formData);
 	  
+	  header_label = new Label( top_bar, SWT.CENTER );
+	  header_label.setVisible( false );
+	  formData = new FormData();
+	  formData.top = new FormAttachment(padding, 0,SWT.CENTER);;
+	  formData.left = new FormAttachment(padding, 0,SWT.CENTER);
+	  formData.right = new FormAttachment(txtControl, 0 );
+	  header_label.setLayoutData(formData);
+	
+	  FontData[] fontdata = header_label.getFont().getFontData();
+	  //fontdata[0].setHeight(fontdata[0].getHeight() + 1);
+	  fontdata[0].setStyle(SWT.BOLD);
+	  header_font = new Font(composite.getDisplay(), fontdata);
+	  
+	  header_label.setBackground( bg_color );
+	  header_label.setFont( header_font );
+	  header_label.setText( manager.getNumFileInfos() + " items" );
 	  
 	  txtFilter = sb.getTextControl();
 	  formData = new FormData();
@@ -289,6 +313,9 @@ public class ManagerView
 			  control.setMenu(menuFilterHeader);
 		  }
 	  }
+	  
+		Object x = filterParent.getData( "SBC_LibraryView" );
+
 		
   	this.parent = composite;
   	if (folder == null) {
@@ -441,7 +468,9 @@ public class ManagerView
 		    		
 		    		TableViewTab<?> tvt = (TableViewTab<?>)listener;
 		    		
-		    		tvt.getTableView().disableFilterCheck();
+		    		TableViewSWT tv = tvt.getTableView();
+		    		
+		    		tv.disableFilterCheck();
 		    	}
 			}
 
@@ -478,10 +507,19 @@ public class ManagerView
     		
     		txtControl.setVisible( true );
     		
+     		header_label.setVisible( true );
+    		
     		tvt.getTableView().enableFilterCheck(
     			txtFilter, 
-    			new TableViewFilterCheck<Object>()
+    			new TableViewFilterCheck.TableViewFilterCheckEx<Object>()
     			{
+    				boolean		enabled;
+    				int			value;
+    				
+    				{
+    					updateHeader();
+    				}
+    				
     				public boolean 
     				filterCheck(
     					Object ds, 
@@ -495,14 +533,60 @@ public class ManagerView
     				filterSet(
     					String filter ) 
     				{
+    					boolean	was_enabled = enabled;
+    					
+    					enabled = filter != null && filter.length() > 0;
+    					
     					ManagerView.this.filterSet( tvt.getTableView(), filter );
     					
     					delegate.filterSet( filter );
+    					
+    					if ( enabled != was_enabled ){
+    						
+    						Utils.execSWTThread(new AERunnable() {
+    							public void runSupport() {
+    								updateHeader();
+    							}});
+    					}
      				}
     				
+    				public void 
+    				viewChanged( 
+    					TableView<Object>	view )
+    				{
+    					value = view.size( false );
+    					
+    					if ( enabled ){
+    						
+    						updateHeader();
+    					}
+    				}
+    				
+    				private void
+    				updateHeader()
+    				{
+    					int	total = manager.getNumFileInfos();
+    					
+    					String s = MessageText.getString( 
+    								"library.unopened.header" + (total>1?".p":"" ),
+    								new String[]{ String.valueOf( total )});
+    					
+    					if ( enabled ){
+    						
+    						String extra = 
+								MessageText.getString(
+										"filter.header.matches",
+										new String[]{ String.valueOf( value ) });
+							
+							s += " " + extra;
+    					}
+    					
+    					header_label.setText( s );
+    				}
     			});
     	}else{
     		txtControl.setVisible( false );
+    		header_label.setVisible( false );
     	}
     	
     	item.getControl().setFocus();

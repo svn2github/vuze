@@ -18,6 +18,8 @@
  
 package org.gudy.azureus2.ui.swt.views.table;
 
+import com.aelitis.azureus.ui.common.table.TableView;
+
 
 /**
  * @author TuxPaper
@@ -29,4 +31,12 @@ public interface TableViewFilterCheck<DATASOURCETYPE>
 	public boolean filterCheck(DATASOURCETYPE ds, String filter, boolean regex);
 	
 	public void filterSet(String filter);
+	
+	public interface
+	TableViewFilterCheckEx<DATASOURCETYPE>
+		extends TableViewFilterCheck<DATASOURCETYPE>
+	{
+		public void
+		viewChanged( TableView<DATASOURCETYPE> view );
+	}
 }

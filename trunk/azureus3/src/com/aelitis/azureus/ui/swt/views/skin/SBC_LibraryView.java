@@ -18,23 +18,27 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
+import org.gudy.azureus2.ui.swt.views.ViewUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -133,6 +137,7 @@ public class SBC_LibraryView
 		if (soViewArea == null) {
 			soViewArea = skin.createSkinObject(modeIDs[viewMode] + torrentFilterMode,
 					modeIDs[viewMode], soListArea);
+			soViewArea.getControl().setData( "SBC_LibraryView:ViewMode", viewMode );
 			skin.layout();
 			soViewArea.setVisible(true);
 			soViewArea.getControl().setLayoutData(Utils.getFilledFormData());
@@ -189,60 +194,215 @@ public class SBC_LibraryView
 			}
 
 			soLibraryInfo = (SWTSkinObjectText) getSkinObject("library-info");
+			
 			if (soLibraryInfo != null) {
-				SB_Transfers.addCountRefreshListener(new SB_Transfers.countRefreshListener() {
-					// @see com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView.countRefreshListener#countRefreshed(com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView.stats, com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView.stats)
-					public void countRefreshed(SB_Transfers.stats statsWithLowNoise,
-							SB_Transfers.stats statsNoLowNoise) {
-						SB_Transfers.stats stats = viewMode == MODE_SMALLTABLE
-						? statsWithLowNoise : statsNoLowNoise;
-						if (torrentFilterMode == TORRENTS_INCOMPLETE) {
-							String id = "library.incomplete.header";
-							if (stats.numDownloading != 1) {
-								id += ".p";
-							}
-							String s = MessageText.getString(id,
-									new String[] {
-								String.valueOf(stats.numDownloading),
-								String.valueOf(stats.numIncomplete - stats.numDownloading),
-							});
-							soLibraryInfo.setText(s);
-						} else if (torrentFilterMode == TORRENTS_ALL) {
-							if (datasource instanceof Category) {
-								Category cat = (Category) datasource;
-								
-								String id = "library.category.header";
-								String s = MessageText.getString(id,
-										new String[] {
-									cat.getName()
-								});
-								soLibraryInfo.setText(s);
 
-							} else {
-  							String id = "library.all.header";
-  							if (stats.numComplete + stats.numIncomplete != 1) {
-  								id += ".p";
-  							}
-  							String s = MessageText.getString(id,
-  									new String[] {
-  								String.valueOf(stats.numComplete + stats.numIncomplete),
-  								String.valueOf(stats.numSeeding + stats.numDownloading),
-  							});
-  							soLibraryInfo.setText(s);
+				SB_Transfers.addCountRefreshListener(
+					new SB_Transfers.countRefreshListener() 
+					{						
+						final Map<Composite,ExtraInfoProvider>	extra_info_map = new HashMap<Composite,ExtraInfoProvider>();
+						
+						{
+							soLibraryInfo.getControl().getParent().setData( "ViewUtils:ViewTitleExtraInfo", 
+									new ViewUtils.ViewTitleExtraInfo()
+									{
+										public void
+										update(
+											Composite	reporter,
+											boolean		seeding_view,
+											int			count )
+										{
+											ExtraInfoProvider	provider = getProvider( reporter );
+											
+											if ( provider == null ){
+												
+												return;
+											}
+																						
+											int	index = seeding_view?0:1;
+											
+											if ( provider.value != count ){
+											
+												provider.value = count;
+												
+												if ( viewMode == provider.view_mode && provider.enabled ){
+												
+													SB_Transfers.triggerCountRefreshListeners();
+												}
+											}
+										}
+											
+										public void
+										setEnabled(
+											Composite	reporter,
+											boolean		seeding_view,
+											boolean		enabled )
+										{
+											ExtraInfoProvider	provider = getProvider( reporter );
+											
+											if ( provider == null ){
+												
+												return;
+											}
+											int	index = seeding_view?0:1;
+											
+											if ( provider.enabled != enabled ){
+
+												provider.enabled = enabled;
+												
+												if ( viewMode == provider.view_mode ){
+												
+													SB_Transfers.triggerCountRefreshListeners();
+												}
+											}
+										}
+										
+										private ExtraInfoProvider
+										getProvider(
+											Composite	reporter )
+										{
+											synchronized( extra_info_map ){
+												
+												ExtraInfoProvider provider = extra_info_map.get( reporter );
+												
+												if ( provider != null ){
+													
+													return( provider );
+												}
+													
+												Composite temp = reporter;
+												
+												while( temp != null ){
+												
+													Integer vm = (Integer)temp.getData( "SBC_LibraryView:ViewMode" );
+													
+													if ( vm != null ){
+														
+														provider = new ExtraInfoProvider( vm );
+														
+														extra_info_map.put( reporter, provider );
+														
+														return( provider );
+													}
+													
+													temp = temp.getParent();
+												}
+												
+												Debug.out( "No view mode found for " + reporter );
+												
+												return( null );
+											}
+										}
+									});
+						}
+						
+						// @see com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView.countRefreshListener#countRefreshed(com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView.stats, com.aelitis.azureus.ui.swt.views.skin.SBC_LibraryView.stats)
+						public void 
+						countRefreshed(
+								SB_Transfers.stats statsWithLowNoise,
+								SB_Transfers.stats statsNoLowNoise) 
+						{
+							SB_Transfers.stats stats = viewMode == MODE_SMALLTABLE? statsWithLowNoise : statsNoLowNoise;
+							
+							String s;
+							
+							if (torrentFilterMode == TORRENTS_INCOMPLETE) {
+								String id = "library.incomplete.header";
+								if (stats.numDownloading != 1) {
+									id += ".p";
+								}
+								s = MessageText.getString(id,
+										new String[] {
+										String.valueOf(stats.numDownloading),
+										String.valueOf(stats.numIncomplete - stats.numDownloading),
+								});
+								
+							} else if (torrentFilterMode == TORRENTS_ALL) {
+								if (datasource instanceof Category) {
+									Category cat = (Category) datasource;
+
+									String id = "library.category.header";
+									
+									s = MessageText.getString(id,
+											new String[] {
+											cat.getName()
+									});
+									
+
+								} else {
+									String id = "library.all.header";
+									if (stats.numComplete + stats.numIncomplete != 1) {
+										id += ".p";
+									}
+									s = MessageText.getString(id,
+											new String[] {
+											String.valueOf(stats.numComplete + stats.numIncomplete),
+											String.valueOf(stats.numSeeding + stats.numDownloading),
+									});
+									
+								}
+							} else if (torrentFilterMode == TORRENTS_UNOPENED) {
+								String id = "library.unopened.header";
+								if (stats.numUnOpened != 1) {
+									id += ".p";
+								}
+								s = MessageText.getString(id,
+										new String[] {
+										String.valueOf(stats.numUnOpened),
+								});
+							}else{
+								
+								s = "";
 							}
-						} else if (torrentFilterMode == TORRENTS_UNOPENED) {
-							String id = "library.unopened.header";
-							if (stats.numUnOpened != 1) {
-								id += ".p";
+							
+							synchronized( extra_info_map ){
+								
+								int		filter_total 	= 0;
+								boolean	filter_enabled 	= false;
+
+								for ( ExtraInfoProvider provider: extra_info_map.values()){
+									
+									if ( viewMode == provider.view_mode ){
+							
+										if ( provider.enabled ){
+												
+											filter_enabled = true;
+											filter_total	+= provider.value;
+										
+										}
+									}
+								}
+								
+								if ( filter_enabled ){
+									
+									String extra = 
+										MessageText.getString(
+												"filter.header.matches",
+												new String[]{ String.valueOf( filter_total ) });
+									
+									s += " " + extra;
+								}
 							}
-							String s = MessageText.getString(id,
-									new String[] {
-								String.valueOf(stats.numUnOpened),
-							});
+							
 							soLibraryInfo.setText(s);
 						}
-					}
-				});
+						
+						class
+						ExtraInfoProvider
+						{	
+							int			view_mode;
+							boolean		enabled;
+							int			value;
+							
+							private
+							ExtraInfoProvider(
+								int	vm )
+							{
+								view_mode	= vm;
+							}
+						}
+					});
+				
 			}
 		} catch (Exception e) {
 		}
@@ -351,8 +511,8 @@ public class SBC_LibraryView
 					setViewMode(MODE_BIGTABLE, true);
 				}
 			});
-		}
-
+		} 
+		
 		SB_Transfers.setupViewTitleWithCore(core);
 	}
 
@@ -413,4 +573,29 @@ public class SBC_LibraryView
 		return viewMode;
 	}
 
+	protected void
+	addHeaderInfoExtender(
+		HeaderInfoExtender	extender )
+	{
+		
+	}
+	
+	protected void
+	removeHeaderInfoExtender(
+		HeaderInfoExtender	extender )
+	{
+		
+	}
+	
+	protected void
+	refreshHeaderInfo()
+	{
+		SB_Transfers.triggerCountRefreshListeners();
+	}
+	
+	protected interface
+	HeaderInfoExtender
+	{
+		
+	}
 }

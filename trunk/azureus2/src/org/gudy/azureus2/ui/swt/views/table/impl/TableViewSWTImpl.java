@@ -2778,6 +2778,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		TableRowCore[] selectedRows = getSelectedRows();
 			
+		int	rows_added = 0;
+		
 		boolean bReplacedVisible = false;
 		boolean bWas0Rows = table.getItemCount() == 0;
 		try {
@@ -2871,6 +2873,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					// NOTE: if the listener tries to do something like setSelected,
 					// it will fail because we aren't done adding.
 					// we should trigger after fillRowGaps()
+					
+					rows_added++;
+					
 					triggerListenerRowAdded(row);
 
 					if (!bReplacedVisible
@@ -2966,6 +2971,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 
 		mainComposite.getParent().setCursor(null);
+		
+		if ( rows_added > 0 ){
+			
+			tableMutated();
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object)
@@ -3089,6 +3099,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		mainComposite.getParent().setCursor(
 				table.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 
+		int rows_removed = 0;
+		
 		try {
 			StringBuffer sbWillRemove = null;
 			if (DEBUGADDREMOVE) {
@@ -3158,6 +3170,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					itemsToRemove.add(item);
 					sortedRows.remove(item);
 					triggerListenerRowRemoved(item);
+					
+					rows_removed++;
 				}
 			}
 
@@ -3228,8 +3242,13 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		} finally {
 			mainComposite.getParent().setCursor(null);
 		}
+		
+		if ( rows_removed > 0 ){
+			
+			tableMutated();
+		}
 	}
-
+	
 	// from common.TableView
 	public void removeAllTableRows() {
 		long lTimeStart = System.currentTimeMillis();
@@ -5144,6 +5163,21 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return filter == null ? "" : filter.text;
 	}
 
+	private void
+	tableMutated()
+	{
+		filter f = filter;
+		
+		if ( f != null ){
+			TableViewFilterCheck<DATASOURCETYPE> checker = f.checker;
+			
+			if ( checker instanceof TableViewFilterCheck.TableViewFilterCheckEx ){
+				
+				((TableViewFilterCheck.TableViewFilterCheckEx)checker).viewChanged( this );
+			}
+		}
+	}
+	
 	@SuppressWarnings("unchecked")
 	public void refilter() {
 		if (filter == null) {

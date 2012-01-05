@@ -101,7 +101,7 @@ public class MyTorrentsView
                   TableSelectionListener,
                   TableViewSWTMenuFillListener,
                   TableRefreshListener,
-                  TableViewFilterCheck<DownloadManager>,
+                  TableViewFilterCheck.TableViewFilterCheckEx<DownloadManager>,
                   TableRowRefreshListener
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
@@ -743,9 +743,30 @@ public class MyTorrentsView
 					if (!visible) {
 						tv.setFocus();
 					}
+					
+					Object x = filterParent.getData( "ViewUtils:ViewTitleExtraInfo" );
+					
+					if ( x instanceof ViewUtils.ViewTitleExtraInfo ){
+						
+						((ViewUtils.ViewTitleExtraInfo)x).setEnabled( tv.getComposite(), isSeedingView, filter.length() > 0 );
+					}
 				}
 			}
 		});
+	}
+	
+	public void 
+	viewChanged(
+		TableView<DownloadManager> view ) 
+	{
+		if ( filterParent != null ){
+			Object x = filterParent.getData( "ViewUtils:ViewTitleExtraInfo" );
+		
+			if ( x instanceof ViewUtils.ViewTitleExtraInfo ){
+				
+				((ViewUtils.ViewTitleExtraInfo)x).update( tv.getComposite(), isSeedingView, view.size( false ));
+			}
+		}
 	}
 
   // @see com.aelitis.azureus.ui.common.table.TableSelectionListener#selected(com.aelitis.azureus.ui.common.table.TableRowCore[])

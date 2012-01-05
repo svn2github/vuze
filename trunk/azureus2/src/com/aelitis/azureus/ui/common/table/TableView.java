@@ -39,6 +39,8 @@ public interface TableView<DATASOURCETYPE>
 	 */
 	void addCountChangeListener(TableCountChangeListener listener);
 
+	void removeCountChangeListener(TableCountChangeListener listener);
+
 	/** Adds a dataSource to the table as a new row.  If the data source is
 	 * already added, a new row will not be added.  This function runs 
 	 * asynchronously, so the rows creation is not guaranteed directly after
