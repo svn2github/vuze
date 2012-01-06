@@ -802,7 +802,9 @@ public class MainWindow
 							OpenTorrentWindow.invokeURLPopup(shell, gm);
 							event.doit = false;
 						}
-					} else if (key == 'f' && (event.stateMask & (SWT.MOD1 + SWT.SHIFT)) != 0) {
+					} else if (key == 'f'
+							&& (event.stateMask & (SWT.MOD1 + SWT.SHIFT)) == SWT.MOD1
+									+ SWT.SHIFT) {
 						shell.setFullScreen(!shell.getFullScreen());
 					}
 				}
