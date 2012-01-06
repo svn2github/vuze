@@ -1221,6 +1221,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					if (filter != null && event.widget == filter.widget) {
 						filter.regex = !filter.regex;
 						filter.widget.setBackground(filter.regex?COLOR_FILTER_REGEX:null);
+						validateFilterRegex();
 						refilter();
 						return;
 					}
@@ -5107,6 +5108,26 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		e.doit = false;
 	}
 
+	private void
+	validateFilterRegex()
+	{
+		if (filter.regex) {
+			try {
+				Pattern.compile(filter.nextText, Pattern.CASE_INSENSITIVE);
+				filter.widget.setBackground(COLOR_FILTER_REGEX);
+				Messages.setLanguageTooltip(filter.widget,
+						"MyTorrentsView.filter.tooltip");
+			} catch (Exception e) {
+				filter.widget.setBackground(Colors.colorErrorBG);
+				filter.widget.setToolTipText(e.getMessage());
+			}
+		} else {
+			filter.widget.setBackground(null);
+			Messages.setLanguageTooltip(filter.widget,
+					"MyTorrentsView.filter.tooltip");
+		}
+	}
+	
 	public void setFilterText(String s) {
 		if (filter == null) {
 			return;
@@ -5118,21 +5139,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				filter.widget.setSelection(filter.nextText.length());
 			}
 
-			if (filter.regex) {
-				try {
-					Pattern.compile(filter.nextText, Pattern.CASE_INSENSITIVE);
-					filter.widget.setBackground(COLOR_FILTER_REGEX);
-					Messages.setLanguageTooltip(filter.widget,
-							"MyTorrentsView.filter.tooltip");
-				} catch (Exception e) {
-					filter.widget.setBackground(Colors.colorErrorBG);
-					filter.widget.setToolTipText(e.getMessage());
-				}
-			} else {
-				filter.widget.setBackground(null);
-				Messages.setLanguageTooltip(filter.widget,
-						"MyTorrentsView.filter.tooltip");
-			}
+			validateFilterRegex();
 		}
 
 		if (filter.eventUpdate != null) {

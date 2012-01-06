@@ -1079,6 +1079,28 @@ public class ManagerView
 				}
 			});
 			
+			// pick up changes in the text control's bg color and propagate to the bubble
+			
+			textWidget.addPaintListener(
+				new PaintListener()
+				{
+					private Color existing_bg;
+					
+					public void 
+					paintControl(
+						PaintEvent arg0 )
+					{
+						Color current_bg = textWidget.getBackground();
+						
+						if ( current_bg != existing_bg ){
+							
+							existing_bg = current_bg;
+							
+							cBubble.redraw();
+						}
+					}
+				});
+			
 			control = cBubble == null ? textWidget : cBubble;
 		}
 	

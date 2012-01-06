@@ -24,6 +24,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
@@ -49,8 +50,8 @@ public class SWTSkinObjectTextbox
 	
 	private Composite cBubble;
 	
-	private String text = "";
-
+	private String 	text = "";
+	
 	public SWTSkinObjectTextbox(SWTSkin skin, SWTSkinProperties properties,
 			String id, String configID, SWTSkinObject parentSkinObject) {
 		super(skin, properties, id, configID, "textbox", parentSkinObject);
@@ -181,6 +182,28 @@ public class SWTSkinObjectTextbox
 				}
 			}
 		});
+		
+			// pick up changes in the text control's bg color and propagate to the bubble
+		
+		textWidget.addPaintListener(
+			new PaintListener()
+			{
+				private Color existing_bg;
+				
+				public void 
+				paintControl(
+					PaintEvent arg0 )
+				{
+					Color current_bg = textWidget.getBackground();
+					
+					if ( current_bg != existing_bg ){
+						
+						existing_bg = current_bg;
+						
+						cBubble.redraw();
+					}
+				}
+			});
 		
 		String message = properties.getStringValue(configID + ".message", (String) null);
 		if (message != null && message.length() > 0) {
