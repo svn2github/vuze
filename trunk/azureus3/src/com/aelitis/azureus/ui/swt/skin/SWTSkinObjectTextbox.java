@@ -19,8 +19,6 @@
 package com.aelitis.azureus.ui.swt.skin;
 
 import java.util.Arrays;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -33,7 +31,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 /**
@@ -170,6 +167,28 @@ public class SWTSkinObjectTextbox
 					}
 				}
 			});
+			
+				// pick up changes in the text control's bg color and propagate to the bubble
+			
+			textWidget.addPaintListener(
+				new PaintListener()
+				{
+					private Color existing_bg;
+					
+					public void 
+					paintControl(
+						PaintEvent arg0 )
+					{
+						Color current_bg = textWidget.getBackground();
+						
+						if ( current_bg != existing_bg ){
+							
+							existing_bg = current_bg;
+							
+							cBubble.redraw();
+						}
+					}
+				});
 		}
 		
 		textWidget.addModifyListener(new ModifyListener() {
@@ -182,28 +201,6 @@ public class SWTSkinObjectTextbox
 				}
 			}
 		});
-		
-			// pick up changes in the text control's bg color and propagate to the bubble
-		
-		textWidget.addPaintListener(
-			new PaintListener()
-			{
-				private Color existing_bg;
-				
-				public void 
-				paintControl(
-					PaintEvent arg0 )
-				{
-					Color current_bg = textWidget.getBackground();
-					
-					if ( current_bg != existing_bg ){
-						
-						existing_bg = current_bg;
-						
-						cBubble.redraw();
-					}
-				}
-			});
 		
 		String message = properties.getStringValue(configID + ".message", (String) null);
 		if (message != null && message.length() > 0) {
