@@ -27,6 +27,7 @@ import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.DoubleBufferedLabel;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MenuEvent;
@@ -67,11 +68,11 @@ public class DownloadBar extends MiniBar {
 	}
 	
 	private DownloadManager download;
-	private Label download_name;
+	private DoubleBufferedLabel download_name;
 	private ProgressBar progress_bar;
-	private Label down_speed;
-	private Label up_speed;
-	private Label eta;
+	private DoubleBufferedLabel down_speed;
+	private DoubleBufferedLabel up_speed;
+	private DoubleBufferedLabel eta;
 	
 	private DownloadBar(DownloadManager download, Shell main) {
 		super(manager);

@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.DoubleBufferedLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.SelectableSpeedMenu;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -77,9 +78,9 @@ public class AllTransfersBar extends MiniBar {
 	}
 	
 	private GlobalManager g_manager;
-	private Label down_speed;
-	private Label up_speed;
-	private Label next_eta;
+	private DoubleBufferedLabel down_speed;
+	private DoubleBufferedLabel up_speed;
+	private DoubleBufferedLabel next_eta;
 	
 	private AllTransfersBar(GlobalManager gmanager, Shell main) {
 		super(manager);

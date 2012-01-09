@@ -25,15 +25,20 @@ import java.util.Iterator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
+import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.DoubleBufferedLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
@@ -139,9 +144,9 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	    return( result );
 	}
 	
-	protected final Label createDataLabel(int width, boolean centered) {
+	protected final DoubleBufferedLabel createDataLabel(int width, boolean centered) {
 		assertConstructing();
-	    Label result = new Label(splash, (centered ? SWT.CENTER : SWT.NULL));
+		DoubleBufferedLabel result = new DoubleBufferedLabel(splash, (centered ? SWT.CENTER : SWT.NULL) | SWT.DOUBLE_BUFFERED );
 	    result.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
 	    result.setText("");
 	    result.addMouseListener(this.mListener);
@@ -156,15 +161,15 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	    return result;
 	}
 
-	protected final Label createDataLabel(int width) {
+	protected final DoubleBufferedLabel createDataLabel(int width) {
 		return createDataLabel(width, false);
 	}
 
-	protected final Label createSpeedLabel() {
+	protected final DoubleBufferedLabel createSpeedLabel() {
 		return createDataLabel(separateDataProt ? 110 : 65, separateDataProt); 
 	}
 	
-	protected void updateSpeedLabel(Label label, long data_rate, long protocol_rate) {
+	protected void updateSpeedLabel(DoubleBufferedLabel label, long data_rate, long protocol_rate) {
 		if (separateDataProt) {
 			label.setText(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(data_rate, protocol_rate));
 		}
@@ -553,5 +558,4 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	protected void storeLastLocation(Point point) {
 		// Do nothing.
 	}
-
 }
