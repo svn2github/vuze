@@ -319,7 +319,11 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    shell.pack();
 	    if (text_entry_text != null)
 	    	Utils.createURLDropTarget(shell, text_entry_text);
-	    Utils.centreWindow(shell);
+	    
+	    	// don't shrink this control otherwise the manual speed entry for up/down speed on
+	    	// the transfers bar doesn't work as parent shell small...
+	    
+	    Utils.centreWindow(shell,false);
 	    shell.open();
 	  }
 

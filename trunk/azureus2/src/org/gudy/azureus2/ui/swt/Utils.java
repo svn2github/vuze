@@ -256,6 +256,10 @@ public class Utils
 	}
 
 	public static void centreWindow(Shell shell) {
+		centreWindow( shell, true );
+	}
+	
+	public static void centreWindow(Shell shell, boolean shrink_if_needed) {
 		Rectangle displayArea; // area to center in
 		if (shell.getParent() != null) {
 			displayArea = shell.getParent().getBounds();
@@ -269,13 +273,15 @@ public class Utils
 
 		Rectangle shellRect = shell.getBounds();
 
-		if (shellRect.height > displayArea.height) {
-			shellRect.height = displayArea.height;
+		if ( shrink_if_needed ){
+			if (shellRect.height > displayArea.height) {
+				shellRect.height = displayArea.height;
+			}
+			if (shellRect.width > displayArea.width - 50) {
+				shellRect.width = displayArea.width;
+			}
 		}
-		if (shellRect.width > displayArea.width - 50) {
-			shellRect.width = displayArea.width;
-		}
-
+		
 		shellRect.x = displayArea.x + (displayArea.width - shellRect.width) / 2;
 		shellRect.y = displayArea.y + (displayArea.height - shellRect.height) / 2;
 

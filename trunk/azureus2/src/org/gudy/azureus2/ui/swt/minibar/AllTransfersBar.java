@@ -20,6 +20,8 @@
  */
 package org.gudy.azureus2.ui.swt.minibar;
 
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
@@ -30,11 +32,17 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.SelectableSpeedMenu;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 /**
  * @author Allan Crooks
@@ -71,6 +79,7 @@ public class AllTransfersBar extends MiniBar {
 	private GlobalManager g_manager;
 	private Label down_speed;
 	private Label up_speed;
+	private Label next_eta;
 	
 	private AllTransfersBar(GlobalManager gmanager, Shell main) {
 		super(manager);
@@ -84,17 +93,54 @@ public class AllTransfersBar extends MiniBar {
 		this.createFixedTextLabel("MinimizedWindow.all_transfers", false, true);
 		this.createGap(40);
 
-		// Download speed.
-		this.createFixedTextLabel("ConfigView.download.abbreviated", false, false);
+			// Download speed.
+		
+		Label dlab = this.createFixedTextLabel("ConfigView.download.abbreviated", false, false);
 		this.down_speed = this.createSpeedLabel();
 		
-		// Upload speed.
-		this.createFixedTextLabel("ConfigView.upload.abbreviated", false, false);
+		final Menu downloadSpeedMenu = new Menu(getShell(),	SWT.POP_UP);
+
+		downloadSpeedMenu.addListener(SWT.Show, new Listener() {
+			public void handleEvent(Event event) {
+				if ( AzureusCoreFactory.isCoreRunning()){
+					SelectableSpeedMenu.generateMenuItems(
+						downloadSpeedMenu, AzureusCoreFactory.getSingleton(),
+						g_manager, false);
+				}
+			}
+		});
+
+		dlab.setMenu(downloadSpeedMenu);
+		down_speed.setMenu(downloadSpeedMenu);
+		
+			// Upload speed.
+		
+		Label ulab = this.createFixedTextLabel("ConfigView.upload.abbreviated", false, false);
 		this.up_speed = this.createSpeedLabel();
+		
+		final Menu uploadSpeedMenu = new Menu(getShell(),	SWT.POP_UP);
+
+		uploadSpeedMenu.addListener(SWT.Show, new Listener() {
+			public void handleEvent(Event event) {
+				if ( AzureusCoreFactory.isCoreRunning()){
+					SelectableSpeedMenu.generateMenuItems(
+						uploadSpeedMenu, AzureusCoreFactory.getSingleton(),
+						g_manager, true);
+				}
+			}
+		});
+
+		ulab.setMenu(uploadSpeedMenu);
+		up_speed.setMenu(uploadSpeedMenu);
+		
+			// next eta
+		
+		this.createFixedTextLabel("TableColumn.header.eta_next", true, false);
+		this.next_eta = this.createDataLabel(65);
 	}
 	
 	public void buildMenu(Menu menu, MenuEvent menuEvent) {
-
+		
 		// Start All
 		MenuItem start_all = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(start_all, "MainWindow.menu.transfers.startalltransfers");
@@ -147,6 +193,30 @@ public class AllTransfersBar extends MiniBar {
 		GlobalManagerStats stats = g_manager.getStats();
 		this.updateSpeedLabel(down_speed, stats.getDataReceiveRate(),stats.getProtocolReceiveRate());
 		this.updateSpeedLabel(up_speed, stats.getDataSendRate(),stats.getProtocolSendRate());
+		
+		long	min_eta = Long.MAX_VALUE;
+		int		num_downloading = 0;
+		
+		List<DownloadManager> dms = g_manager.getDownloadManagers();
+		for ( DownloadManager dm: dms ){
+			if ( dm.getState() == DownloadManager.STATE_DOWNLOADING ){
+				
+				num_downloading++;
+				
+				long eta = dm.getStats().getETA();
+				
+				if ( eta < min_eta ){
+					
+					min_eta = eta;
+				}
+			}
+		}
+		
+		if ( min_eta == Long.MAX_VALUE ){
+			
+			min_eta = Constants.CRAPPY_INFINITE_AS_LONG;
+		}
+		next_eta.setText(num_downloading==0?"":DisplayFormatters.formatETA(min_eta));
 	}
 	
 	public String getPluginMenuIdentifier(Object context) {

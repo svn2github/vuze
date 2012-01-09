@@ -112,7 +112,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	    this.xSize += width;
 	}
 	
-	protected final void createFixedTextLabel(String msg_key, boolean add_colon, boolean bold) {
+	protected final Label createFixedTextLabel(String msg_key, boolean add_colon, boolean bold) {
 		assertConstructing();
 	    Label result = new Label(splash, SWT.NONE);
 	    result.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
@@ -135,6 +135,8 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	        this.hSize = hSizeText > hSizeImage ? hSizeText : hSizeImage;
 	    }
 	    this.xSize += result.getSize().x + 3;
+	    
+	    return( result );
 	}
 	
 	protected final Label createDataLabel(int width, boolean centered) {
