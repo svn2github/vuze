@@ -414,6 +414,9 @@ public class MainStatusBar
 						statusBar.layout();
 					}
 				});
+		
+			// ip filters
+		
 		ipBlocked = new CLabelPadding(statusBar, borderFlag);
 		ipBlocked.setText("{} IPs:"); //$NON-NLS-1$
 		Messages.setLanguageText(ipBlocked, "MainWindow.IPs.tooltip");
@@ -423,6 +426,71 @@ public class MainStatusBar
 			}
 		});
 
+		final Menu menuIPFilter = new Menu(statusBar.getShell(), SWT.POP_UP);
+		ipBlocked.setMenu( menuIPFilter );
+		
+		menuIPFilter.addListener(
+			SWT.Show, 
+			new Listener()
+			{
+				public void
+				handleEvent(Event e) 
+				{
+					MenuItem[] oldItems = menuIPFilter.getItems();
+					
+					for(int i = 0; i < oldItems.length; i++){
+						
+						oldItems[i].dispose();
+					}
+
+					if ( !AzureusCoreFactory.isCoreRunning()){
+						
+						return;
+					}
+					
+					AzureusCore azureusCore = AzureusCoreFactory.getSingleton();
+
+					final IpFilter ip_filter = azureusCore.getIpFilterManager().getIPFilter();
+					
+					final MenuItem ipfEnable = new MenuItem(menuIPFilter, SWT.CHECK);
+					
+					ipfEnable.setSelection( ip_filter.isEnabled());
+					
+					Messages.setLanguageText(ipfEnable, "MyTorrentsView.menu.ipf_enable");
+					
+					ipfEnable.addSelectionListener(
+						new SelectionAdapter() 
+						{
+							public void 
+							widgetSelected(
+								SelectionEvent e) 
+							{
+								ip_filter.setEnabled( ipfEnable.getSelection());
+							}
+						});
+
+					final MenuItem ipfOptions = new MenuItem(menuIPFilter, SWT.PUSH);
+										
+					Messages.setLanguageText(ipfOptions, "ipfilter.options");
+					
+					ipfOptions.addSelectionListener(
+						new SelectionAdapter() 
+						{
+							public void 
+							widgetSelected(
+								SelectionEvent e) 
+							{
+								UIFunctions uif = UIFunctionsManager.getUIFunctions();
+
+								if (uif != null) {
+
+									uif.openView(UIFunctions.VIEW_CONFIG, "ipfilter");
+								}
+							}
+						});
+				}
+			});
+				
 		COConfigurationManager.addAndFireParameterListener("Status Area Show IPF",
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
@@ -431,6 +499,9 @@ public class MainStatusBar
 					}
 				});
 
+			// down speed
+		
+		
 		statusDown = new CLabelPadding(statusBar, borderFlag);
 		statusDown.setImage(imageLoader.getImage("down"));
 		//statusDown.setText(/*MessageText.getString("ConfigView.download.abbreviated") +*/"n/a");
@@ -1321,6 +1392,8 @@ public class MainStatusBar
 		// IP Filter Status Section
 		IpFilter ip_filter = azureusCore.getIpFilterManager().getIPFilter();
 
+		ipBlocked.setForeground( ip_filter.isEnabled()?Colors.black:Colors.grey);
+		
 		ipBlocked.setText("IPs: "
 				+ numberFormat.format(ip_filter.getNbRanges())
 				+ " - "
@@ -1329,9 +1402,11 @@ public class MainStatusBar
 				+ numberFormat.format(ip_filter.getNbBannedIps())
 				+ "/"
 				+ numberFormat.format(azureusCore.getIpFilterManager().getBadIps().getNbBadIps()));
+		
 		ipBlocked.setToolTipText(MessageText.getString("MainWindow.IPs.tooltip",
 				new String[] {
-					DisplayFormatters.formatDateShort(ip_filter.getLastUpdateTime())
+					ip_filter.isEnabled()?
+					DisplayFormatters.formatDateShort(ip_filter.getLastUpdateTime()):MessageText.getString( "ipfilter.disabled" )
 				}));
 	}
 
