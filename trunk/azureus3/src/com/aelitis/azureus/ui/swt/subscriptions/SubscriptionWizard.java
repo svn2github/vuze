@@ -917,7 +917,10 @@ public class SubscriptionWizard {
 
 					public void tableColumnCreated(
 							org.gudy.azureus2.plugins.ui.tables.TableColumn column) {
-						column.setVisible(true);
+						
+							// this'll get triggered for the Subscriptions Overview table too - easiest fix is to default to hidden there
+						
+						column.setVisible( column.getTableID().equals( "SubscriptionWizard" ));
 						ImageLoader imageLoader = ImageLoader.getInstance();
 						rssIcon = imageLoader.getImage("icon_rss");
 
@@ -939,7 +942,7 @@ public class SubscriptionWizard {
 					public void tableColumnCreated(
 							org.gudy.azureus2.plugins.ui.tables.TableColumn column) {
 						column.setWidthLimits(RANK_COLUMN_WIDTH, RANK_COLUMN_WIDTH);
-						column.setVisible(true);
+						column.setVisible(column.getTableID().equals( "SubscriptionWizard" ));	// as above
 						column.addCellRefreshListener(new TableCellRefreshListener() {
 							public void refresh(TableCell cell) {
 								Subscription sub = (Subscription) cell.getDataSource();
