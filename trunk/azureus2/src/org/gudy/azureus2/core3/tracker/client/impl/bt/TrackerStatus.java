@@ -30,6 +30,7 @@ import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLException;
 import javax.net.ssl.SSLSession;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -1004,168 +1005,196 @@ public class TrackerStatus {
 
 
 	protected URL 
-  scrapeHTTP(
-  	URL 					reqUrl, 
-	ByteArrayOutputStream 	message )
-  
-  	throws IOException
-  {
-	URL	redirect_url = null;
-	
-  	TRTrackerUtils.checkForBlacklistedURLs( reqUrl );
-  	
-    reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
+	scrapeHTTP(
+		URL 					reqUrl, 
+		ByteArrayOutputStream 	message )
 
-    reqUrl = AddressUtils.adjustURL( reqUrl );
-    
-  	// System.out.println( "scraping " + reqUrl.toString());
-  	
-	Properties	http_properties = new Properties();
-		
-	http_properties.put( ClientIDGenerator.PR_URL, reqUrl );
-		
-	try{
-		ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
-		
-	}catch( ClientIDException e ){
-		
-		throw( new IOException( e.getMessage()));
-	}
-	
-	reqUrl = (URL)http_properties.get( ClientIDGenerator.PR_URL );
+		throws IOException
+	{
+			// loop to possibly retry update on SSL certificate install
 
-  	InputStream is = null;
-  	
-  	try{
-	  	HttpURLConnection con = null;
+		for ( int i=0;i<2;i++ ){	
 
-	  	if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
-	  		
-	  			// see ConfigurationChecker for SSL client defaults
-	  		
-	  		HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
-	  		
-	  			// allow for certs that contain IP addresses rather than dns names
-	  		
-	  		ssl_con.setHostnameVerifier(
-	  				new HostnameVerifier() {
-	  					public boolean verify(String host, SSLSession session) {
-	  						return( true );
-	  					}
-	  				});
-	  		
-	  		con = ssl_con;
-	  		
-	  	} else {
-	  		con = (HttpURLConnection) reqUrl.openConnection();
-	  	}
+			URL	redirect_url = null;
 
-		String	user_agent = (String)http_properties.get( ClientIDGenerator.PR_USER_AGENT );
- 		
- 		if ( user_agent != null ){
- 			
- 			con.setRequestProperty("User-Agent", user_agent );
- 		}
- 		
- 			// some trackers support gzip encoding of replies
- 		
-	    con.addRequestProperty("Accept-Encoding","gzip");
-	    
-	    con.setRequestProperty("Connection", "close" );
-	    
-	  	con.connect();
+			TRTrackerUtils.checkForBlacklistedURLs( reqUrl );
 
-	  	is = con.getInputStream();
-	
-		String	resulting_url_str = con.getURL().toString();
-			
-		if ( !reqUrl.toString().equals( resulting_url_str )){
-			
-				// some kind of redirect has occurred. Unfortunately we can't get at the underlying
-				// redirection reason (temp, perm etc) so we support the use of an explicit indicator
-				// in the resulting url
-			
-			String	marker = "permredirect=1";
-			
-			int	pos = resulting_url_str.indexOf( marker );
-		
-			if ( pos != -1 ){
+			reqUrl = TRTrackerUtils.adjustURLForHosting( reqUrl );
+
+			reqUrl = AddressUtils.adjustURL( reqUrl );
+
+			// System.out.println( "scraping " + reqUrl.toString());
+
+			Properties	http_properties = new Properties();
+
+			http_properties.put( ClientIDGenerator.PR_URL, reqUrl );
+
+			try{
+				ClientIDManagerImpl.getSingleton().generateHTTPProperties( http_properties );
+
+			}catch( ClientIDException e ){
+
+				throw( new IOException( e.getMessage()));
+			}
+
+			reqUrl = (URL)http_properties.get( ClientIDGenerator.PR_URL );
+
+			InputStream is = null;
+
+			try{
+				HttpURLConnection con = null;
+
+				if ( reqUrl.getProtocol().equalsIgnoreCase("https")){
+
+					// see ConfigurationChecker for SSL client defaults
+
+					HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
+
+					// allow for certs that contain IP addresses rather than dns names
+
+					ssl_con.setHostnameVerifier(
+							new HostnameVerifier() {
+								public boolean verify(String host, SSLSession session) {
+									return( true );
+								}
+							});
+
+					con = ssl_con;
+
+				} else {
+					con = (HttpURLConnection) reqUrl.openConnection();
+				}
+
+				String	user_agent = (String)http_properties.get( ClientIDGenerator.PR_USER_AGENT );
+
+				if ( user_agent != null ){
+
+					con.setRequestProperty("User-Agent", user_agent );
+				}
+
+				// some trackers support gzip encoding of replies
+
+				con.addRequestProperty("Accept-Encoding","gzip");
+
+				con.setRequestProperty("Connection", "close" );
+
+				con.connect();
+
+				is = con.getInputStream();
+
+				String	resulting_url_str = con.getURL().toString();
+
+				if ( !reqUrl.toString().equals( resulting_url_str )){
+
+					// some kind of redirect has occurred. Unfortunately we can't get at the underlying
+					// redirection reason (temp, perm etc) so we support the use of an explicit indicator
+					// in the resulting url
+
+					String	marker = "permredirect=1";
+
+					int	pos = resulting_url_str.indexOf( marker );
+
+					if ( pos != -1 ){
+
+						pos = pos-1;	// include the '&' or '?'
+
+						try{
+							redirect_url = 
+								new URL( resulting_url_str.substring(0,pos));
+
+						}catch( Throwable e ){
+							Debug.printStackTrace(e);
+						}
+					}
+				}
+
+				String encoding = con.getHeaderField( "content-encoding");
+
+				boolean	gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
+
+				// System.out.println( "encoding = " + encoding );
+
+				if ( gzip ){
+
+					is = new GZIPInputStream( is );
+				}
+
+				byte[]	data = new byte[1024];
+
+				int num_read = 0;
+
+				while( true ){
+
+					try {
+						int	len = is.read(data);
+
+						if ( len > 0 ){
+
+							message.write(data, 0, len);
+
+							num_read += len;
+
+							if ( num_read > 128*1024 ){
+
+								// someone's sending us junk, bail out
+
+								message.reset();
+
+								throw( new Exception( "Tracker response invalid (too large)" ));
+
+							}
+						}else if ( len == 0 ){
+
+							Thread.sleep(20);
+
+						}else{
+
+							break;
+						}
+					} catch (Exception e) {
+
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+									"Error from scrape interface " + scrapeURL + " : "
+									+ Debug.getNestedExceptionMessage(e)));
+
+						return( null );
+					}
+				}
+			}catch( SSLException e ){
+
+				// e.printStackTrace();
+
+				// try and install certificate regardless of error (as this changed in JDK1.5
+				// and broke this...)
+
+				if ( i == 0 ){//&& e.getMessage().indexOf("No trusted certificate found") != -1 ){
+
+					if ( SESecurityManager.installServerCertificates( reqUrl ) != null ){
+
+						// certificate has been installed
+
+						continue;	// retry with new certificate
+
+					}
+				}
+
+				throw( e );
 				
-				pos = pos-1;	// include the '&' or '?'
+			}finally{
 				
-				try{
-					redirect_url = 
-						new URL( resulting_url_str.substring(0,pos));
-								
-				}catch( Throwable e ){
-					Debug.printStackTrace(e);
+				if (is != null) {
+					try {
+						is.close();
+					} catch (IOException e1) { }
 				}
 			}
+
+			return( redirect_url );
 		}
 		
-	  	String encoding = con.getHeaderField( "content-encoding");
-	  	
-	  	boolean	gzip = encoding != null && encoding.equalsIgnoreCase("gzip");
-	  	
-	  	// System.out.println( "encoding = " + encoding );
-	  	
-	  	if ( gzip ){
-	  		
-	  		is = new GZIPInputStream( is );
-	  	}
-	  	
-	  	byte[]	data = new byte[1024];
-	  	
-	  	int num_read = 0;
-	  	
-	  	while( true ){
-	  		
-	  		try {
-				int	len = is.read(data);
-					
-				if ( len > 0 ){
-					
-					message.write(data, 0, len);
-					
-					num_read += len;
-					
-					if ( num_read > 128*1024 ){
-						
-							// someone's sending us junk, bail out
-					   
-						message.reset();
-						
-						throw( new Exception( "Tracker response invalid (too large)" ));
-						
-					}
-				}else if ( len == 0 ){
-					
-					Thread.sleep(20);
-					
-				}else{
-					
-					break;
-				}
-	  		} catch (Exception e) {
-	  			
-	  			if (Logger.isEnabled())
-						Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-								"Error from scrape interface " + scrapeURL + " : "
-										+ Debug.getNestedExceptionMessage(e)));
-
-	  			return( null );
-	  		}
-	  	}
-	  } finally {
-	  	if (is != null) {
-        try {
-	  		  is.close();
-  	  	} catch (IOException e1) { }
-  	  }
-	  }
-	  
-	  return( redirect_url );
-  }
+		throw( new IOException( "Shouldn't get here" ));
+	}
   
   protected boolean scrapeUDP(URL reqUrl, ByteArrayOutputStream message, List hashes, boolean do_auth_test) throws Exception {
 		Map rootMap = new HashMap();
