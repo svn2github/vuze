@@ -36,8 +36,10 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.security.SECertificateListener;
 import org.gudy.azureus2.core3.security.SESecurityManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
@@ -56,7 +58,7 @@ CertificateTrustWindow
 	
 	public boolean
 	trustCertificate(
-		final String			resource,
+		final String			_resource,
 		final X509Certificate	cert )
 	{
 		final Display	display = SWTThread.getInstance().getDisplay();
@@ -64,6 +66,19 @@ CertificateTrustWindow
 		if ( display.isDisposed()){
 			
 			return( false );
+		}
+		
+		TOTorrent		torrent = TorrentUtils.getTLSTorrent();
+		
+		final String resource;
+			
+		if ( torrent != null ){
+			
+			
+			resource	= TorrentUtils.getLocalisedName( torrent ) + "\n" + _resource;
+		}else{
+			
+			resource	= _resource;
 		}
 		
 		final trustDialog[]	dialog = new trustDialog[1];
@@ -132,7 +147,7 @@ CertificateTrustWindow
 			gridData.horizontalSpan = 1;
 			resource_label.setLayoutData(gridData);
 			
-			Label resource_value = new Label(shell,SWT.NULL);
+			Label resource_value = new Label(shell,SWT.WRAP);
 			resource_value.setText(resource.replaceAll("&", "&&"));
 			gridData = new GridData(GridData.FILL_BOTH);
 			gridData.horizontalSpan = 2;
