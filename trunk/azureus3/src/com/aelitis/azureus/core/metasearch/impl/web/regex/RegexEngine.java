@@ -72,8 +72,8 @@ RegexEngine
 		return( new RegexEngine( meta_search, id, last_updated, rank_bias, name, map ));
 	}
 
-	private String	pattern_str;
-	private Pattern pattern;
+	private String		pattern_str;
+	private Pattern[] 	patterns = {};
 
 	
 		// explicit test constructor
@@ -196,7 +196,11 @@ RegexEngine
 		String			resultPattern )
 	{
 		pattern_str 	= resultPattern.trim();
-		pattern			= Pattern.compile(pattern_str);
+		patterns = new Pattern[]{
+				
+			Pattern.compile( pattern_str),
+			Pattern.compile( pattern_str, Pattern.DOTALL | Pattern.MULTILINE )
+		};
 	}
 	
 	protected Result[] 
@@ -294,118 +298,131 @@ RegexEngine
 						try{						
 							List results = new ArrayList();
 								
-							Matcher m = pattern.matcher( page );
+							for ( int pat_num=0;pat_num<patterns.length;pat_num++){
 								
-							while( m.find()){
+									// only try subsequent patterns if all previous have failed to 
+									// find results
 								
-								if ( max_matches >= 0 ){
-									if ( --max_matches < 0 ){
-										break;
-									}
+								if ( results.size() > 0 ){
+									
+									break;
 								}
 								
-								if ( listener != null ){
-									
-									String[]	groups = new String[m.groupCount()];
-									
-									for (int i=0;i<groups.length;i++){
-										
-										groups[i] = m.group(i+1);
-									}
-									
-									listener.matchFound( RegexEngine.this, groups );
-								}
+								Pattern pattern = patterns[pat_num];
 								
-								debugLog( "Found match:" );
-								
-								WebResult result = new WebResult(RegexEngine.this,getRootPage(),getBasePage(),getDateParser(),searchQuery);
-								
-								int	fields_matched = 0;
-								
-								for(int i = 0 ; i < mappings.length ; i++) {
-									int group = -1;
-									try {
-										group = Integer.parseInt(mappings[i].getName());
-									} catch(Exception e) {
-										//In "Debug/Test" mode, we should fire an exception / notification
-									}
+								Matcher m = pattern.matcher( page );
 									
-									if (group > 0 && group <= m.groupCount()) {
-										
-										int field = mappings[i].getField();
-										String groupContent = m.group(group);
-										
-										debugLog( "    " + field + "=" + groupContent );
-										
-										fields_matched++;
-										
-										switch(field) {
-											case FIELD_NAME :
-												result.setNameFromHTML(groupContent);
-												break;
-											case FIELD_SIZE :
-												result.setSizeFromHTML(groupContent);
-												break;
-											case FIELD_PEERS :
-												result.setNbPeersFromHTML(groupContent);
-												break;
-											case FIELD_SEEDS :
-												result.setNbSeedsFromHTML(groupContent);
-												break;
-											case FIELD_CATEGORY :
-												result.setCategoryFromHTML(groupContent);
-												break;
-											case FIELD_DATE :
-												result.setPublishedDateFromHTML(groupContent);
-												break;
-											case FIELD_CDPLINK :
-												result.setCDPLink(groupContent);
-												break;
-											case FIELD_TORRENTLINK :
-												result.setTorrentLink(groupContent);
-												break;
-											case FIELD_PLAYLINK :
-												result.setPlayLink(groupContent);
-												break;
-											case FIELD_DOWNLOADBTNLINK :
-												result.setDownloadButtonLink(groupContent);
-												break;
-											case FIELD_COMMENTS :
-												result.setCommentsFromHTML(groupContent);
-												break;
-											case FIELD_VOTES :
-												result.setVotesFromHTML(groupContent);
-												break;
-											case FIELD_SUPERSEEDS :
-												result.setNbSuperSeedsFromHTML(groupContent);
-												break;
-											case FIELD_PRIVATE :
-												result.setPrivateFromHTML(groupContent);
-												break;
-											case FIELD_DRMKEY :
-												result.setDrmKey(groupContent);
-												break;
-											case FIELD_VOTES_DOWN :
-												result.setVotesDownFromHTML(groupContent);
-												break;
-											case FIELD_HASH :
-												result.setHash(groupContent);
-												break;
-											default:
-												fields_matched--;
-												break;
+								while( m.find()){
+									
+									if ( max_matches >= 0 ){
+										if ( --max_matches < 0 ){
+											break;
 										}
 									}
-								}
-								
-									// ignore "matches" that don't actually populate any fields 
-								
-								if ( fields_matched > 0 ){
-								
-									results.add(result);
+									
+									if ( listener != null ){
+										
+										String[]	groups = new String[m.groupCount()];
+										
+										for (int i=0;i<groups.length;i++){
+											
+											groups[i] = m.group(i+1);
+										}
+										
+										listener.matchFound( RegexEngine.this, groups );
+									}
+									
+									debugLog( "Found match:" );
+									
+									WebResult result = new WebResult(RegexEngine.this,getRootPage(),getBasePage(),getDateParser(),searchQuery);
+									
+									int	fields_matched = 0;
+									
+									for(int i = 0 ; i < mappings.length ; i++) {
+										int group = -1;
+										try {
+											group = Integer.parseInt(mappings[i].getName());
+										} catch(Exception e) {
+											//In "Debug/Test" mode, we should fire an exception / notification
+										}
+										
+										if (group > 0 && group <= m.groupCount()) {
+											
+											int field = mappings[i].getField();
+											String groupContent = m.group(group);
+											
+											debugLog( "    " + field + "=" + groupContent );
+											
+											fields_matched++;
+											
+											switch(field) {
+												case FIELD_NAME :
+													result.setNameFromHTML(groupContent);
+													break;
+												case FIELD_SIZE :
+													result.setSizeFromHTML(groupContent);
+													break;
+												case FIELD_PEERS :
+													result.setNbPeersFromHTML(groupContent);
+													break;
+												case FIELD_SEEDS :
+													result.setNbSeedsFromHTML(groupContent);
+													break;
+												case FIELD_CATEGORY :
+													result.setCategoryFromHTML(groupContent);
+													break;
+												case FIELD_DATE :
+													result.setPublishedDateFromHTML(groupContent);
+													break;
+												case FIELD_CDPLINK :
+													result.setCDPLink(groupContent);
+													break;
+												case FIELD_TORRENTLINK :
+													result.setTorrentLink(groupContent);
+													break;
+												case FIELD_PLAYLINK :
+													result.setPlayLink(groupContent);
+													break;
+												case FIELD_DOWNLOADBTNLINK :
+													result.setDownloadButtonLink(groupContent);
+													break;
+												case FIELD_COMMENTS :
+													result.setCommentsFromHTML(groupContent);
+													break;
+												case FIELD_VOTES :
+													result.setVotesFromHTML(groupContent);
+													break;
+												case FIELD_SUPERSEEDS :
+													result.setNbSuperSeedsFromHTML(groupContent);
+													break;
+												case FIELD_PRIVATE :
+													result.setPrivateFromHTML(groupContent);
+													break;
+												case FIELD_DRMKEY :
+													result.setDrmKey(groupContent);
+													break;
+												case FIELD_VOTES_DOWN :
+													result.setVotesDownFromHTML(groupContent);
+													break;
+												case FIELD_HASH :
+													result.setHash(groupContent);
+													break;
+												default:
+													fields_matched--;
+													break;
+											}
+										}
+									}
+									
+										// ignore "matches" that don't actually populate any fields 
+									
+									if ( fields_matched > 0 ){
+									
+										results.add(result);
+									}
 								}
 							}
-								
+							
 								// hack - if no results and redirected to https and auth required then
 								// assume we need to log in...
 							
