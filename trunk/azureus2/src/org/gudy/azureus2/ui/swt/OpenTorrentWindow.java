@@ -47,10 +47,12 @@ import org.gudy.azureus2.core3.config.StringList;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -1231,6 +1233,69 @@ public class OpenTorrentWindow
 
 		item = new MenuItem(menu, SWT.SEPARATOR);
 
+			// ip filter mode
+		
+		final MenuItem ipf_enable = new MenuItem(menu, SWT.CHECK );
+		// steal text
+		Messages.setLanguageText(ipf_enable, "MyTorrentsView.menu.ipf_enable");
+		ipf_enable.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				int[] indexes = torrentTable.getSelectionIndices();
+				for (int i = 0; i < indexes.length; i++){
+					
+					TorrentInfo info = (TorrentInfo) torrentList.get(indexes[i]);
+					
+					info.disableIPFilter = !ipf_enable.getSelection();
+				}
+			}
+		});
+		
+		menu.addListener(
+			SWT.Show, 
+			new Listener()
+			{
+				public void
+				handleEvent(Event e) 
+				{
+					int[] indexes = torrentTable.getSelectionIndices();
+
+					boolean bEnabled = 	indexes.length > 0 &&
+										IpFilterManagerFactory.getSingleton().getIPFilter().isEnabled();
+					
+					if ( bEnabled ){
+						boolean allChecked 		= true;
+						boolean allUnchecked	= true;
+				
+						for (int i = 0; i < indexes.length; i++){
+							
+							TorrentInfo info = (TorrentInfo) torrentList.get(indexes[i]);
+							
+							boolean b = info.disableIPFilter;
+								
+							if ( b ){
+								allUnchecked 	= false;
+							}else{
+								allChecked 		= false;
+							}
+						}
+			
+						boolean	bChecked;
+						
+						if ( allUnchecked ){
+							bChecked = true;
+						}else if ( allChecked ){
+							bChecked = false;
+						}else{
+							bChecked = false;
+						}
+						
+						ipf_enable.setSelection(bChecked);
+					}
+					
+					ipf_enable.setEnabled(bEnabled);	
+				}
+			});
+		
 		item = new MenuItem(menu, SWT.PUSH);
 		// steal text
 		Messages.setLanguageText(item, "MyTorrentsView.menu.remove");
@@ -2354,6 +2419,11 @@ public class OpenTorrentWindow
 							
 							dm.getDiskManagerFileInfoSet().setSkipped(toSkip, true);
 							
+							if ( info.disableIPFilter ){
+								
+								dm.getDownloadState().setFlag( DownloadManagerState.FLAG_DISABLE_IP_FILTER, true );
+							}
+							
 						}finally{
 						
 							dm.getDownloadState().suppressStateSave(false);
@@ -2551,6 +2621,8 @@ public class OpenTorrentWindow
 
 		private TorrentFileInfo[] files = null;
 
+		boolean disableIPFilter = false;
+		
 		/**
 		 * Init
 		 * 
