@@ -67,7 +67,8 @@ public class DoneItem
   	int value;
   	Object ds = cell.getDataSource();
   	if (ds instanceof DownloadManager) {
-  		value = ((DownloadManager) ds).getStats().getCompleted();
+  			// show amount completed of non-dnd files as makes more sense 
+  		value = ((DownloadManager) ds).getStats().getDownloadCompleted(false);
   	} else if (ds instanceof DiskManagerFileInfo) {
   		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
 			long length = fileInfo.getLength();
