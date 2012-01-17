@@ -199,11 +199,11 @@ public class TransferStatsView
     lbl = new Label(generalPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.now");
     
-    nowDown = new BufferedLabel(generalPanel,SWT.NULL);
+    nowDown = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     nowDown.setLayoutData(gridData);
     
-    nowUp = new BufferedLabel(generalPanel,SWT.NULL);
+    nowUp = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     nowUp.setLayoutData(gridData);
     
@@ -214,19 +214,19 @@ public class TransferStatsView
     //////// SESSION ////////
     lbl = new Label(generalPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.session");
-    sessionDown = new BufferedLabel(generalPanel,SWT.NULL);
+    sessionDown = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     sessionDown.setLayoutData(gridData);
     
-    sessionUp = new BufferedLabel(generalPanel,SWT.NULL);
+    sessionUp = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     sessionUp.setLayoutData(gridData);
     
-    session_ratio = new BufferedLabel(generalPanel,SWT.NULL);
+    session_ratio = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     session_ratio.setLayoutData(gridData);    
     
-    sessionTime = new BufferedLabel(generalPanel,SWT.NULL);
+    sessionTime = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED );
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     sessionTime.setLayoutData(gridData);
     
@@ -235,19 +235,19 @@ public class TransferStatsView
     lbl = new Label(generalPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.total");
     
-    totalDown = new BufferedLabel(generalPanel,SWT.NULL);
+    totalDown = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalDown.setLayoutData(gridData);
     
-    totalUp = new BufferedLabel(generalPanel,SWT.NULL);
+    totalUp = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalUp.setLayoutData(gridData);
     
-    total_ratio = new BufferedLabel(generalPanel,SWT.NULL);
+    total_ratio = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     total_ratio.setLayoutData(gridData);
     
-    totalTime = new BufferedLabel(generalPanel,SWT.NULL);
+    totalTime = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalTime.setLayoutData(gridData);
   }

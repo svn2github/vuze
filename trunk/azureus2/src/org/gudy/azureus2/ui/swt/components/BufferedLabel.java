@@ -46,7 +46,7 @@ public class
 BufferedLabel
 	extends BufferedWidget 
 {
-	private Label	label;
+	private Control	label;
 	
 	private String	value = "";
 	
@@ -55,9 +55,9 @@ BufferedLabel
 		Composite	composite,
 		int			attrs )
 	{
-		super( new Label( composite, attrs ));
+		super((attrs&SWT.DOUBLE_BUFFERED)==0?new Label( composite, attrs ):new DoubleBufferedLabel( composite, attrs ));
 		
-		label = (Label)getWidget();
+		label = (Control)getWidget();
 		
 		ClipboardCopy.addCopyToClipMenu(
 			label,
@@ -66,7 +66,7 @@ BufferedLabel
 				public String 
 				getText() 
 				{
-					return( label.getText());
+					return( BufferedLabel.this.getText());
 				}
 			});
 	}
@@ -130,7 +130,15 @@ BufferedLabel
 			// cause the nect character to be underlined on Windows. This is generally NOT
 			// the desired behaviour of a label in Azureus so by default we escape them
 		
-		label.setText( value==null?"":value.replaceAll("&", "&&" ));	
+		String fixed_value = value==null?"":value.replaceAll("&", "&&" );
+		
+		if ( label instanceof Label ){
+			
+			((Label)label).setText( fixed_value );
+		}else{
+			
+			((DoubleBufferedLabel)label).setText( fixed_value );
+		}
 	}	
 	
 	public void

@@ -28,6 +28,7 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.gudy.azureus2.core3.util.Debug;
@@ -40,18 +41,36 @@ DoubleBufferedLabel
 	private String text = "";
 
 	public DoubleBufferedLabel(
-		Composite parent, 
-		int style ) 
+		Composite 	parent, 
+		int 		style ) 
 	{
-		super(parent, style | SWT.DOUBLE_BUFFERED);
+		super( parent, style | SWT.DOUBLE_BUFFERED );
 
+			// only support GridLayout I'm afraid...
+				
 		GridData gridData = new GridData(GridData.HORIZONTAL_ALIGN_CENTER | GridData.VERTICAL_ALIGN_FILL);
 		
 		setLayoutData(gridData);
 	
 		addPaintListener(this);
 	}
-
+	
+	public void
+	setLayoutData(
+		Object	ld )
+	{
+		if ( ld instanceof GridData ){
+			
+			GridData gd = (GridData)ld;
+			
+				// need to ensure we have the right vertical align
+			
+			gd.verticalAlignment	= 4;
+		}
+		
+		super.setLayoutData( ld );
+	}
+	
 	public void 
 	paintControl(
 		PaintEvent e) 
