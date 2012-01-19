@@ -160,6 +160,19 @@ public class TwistieSection
 		}
 	}
 
+	public boolean
+	isCollapsed()
+	{
+		return( label.isCollapsed());
+	}
+	
+	public void
+	setCollapsed(
+		boolean	c )
+	{
+		label.setCollapsed( c );
+	}
+	
 	/**
 	 * A simple extension of <code>Composite</code> that disallow modifying its layout data
 	 * @author knguyen

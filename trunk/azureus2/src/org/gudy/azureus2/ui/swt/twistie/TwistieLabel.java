@@ -313,6 +313,17 @@ public class TwistieLabel
 		return isCollapsed;
 	}
 
+	public void
+	setCollapsed(
+		boolean	c )
+	{
+		if ( c != isCollapsed ){
+			isCollapsed = c;
+			redraw();
+			notifyTwistieListeners();
+		}
+	}
+	
 	/**
 	 * Add a listener to be notified whenever this control is collapsed or expanded; listeners
 	 * can check the collapsed/expanded state on the control and perform layout changes if need be.

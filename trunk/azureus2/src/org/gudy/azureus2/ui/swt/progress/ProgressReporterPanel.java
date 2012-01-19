@@ -711,6 +711,10 @@ public class ProgressReporterPanel
 			detailListWidget.setStyleRange(style2);
 		}
 		detailSection.setEnabled(true);
+		if ( isError ){
+			detailSection.setCollapsed( false );
+			detailListWidget.setSelection( detailListWidget.getCharCount(), detailListWidget.getCharCount());
+		}
 	}
 	
 	/**
