@@ -41,6 +41,7 @@ import java.util.zip.InflaterInputStream;
 import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
@@ -440,7 +441,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
       this.state = STATE_INIT;
       this.notifyListener();
     } catch (java.net.MalformedURLException e) {
-      this.error(0, "Exception while parsing URL '" + url + "':" + e.getMessage());
+      this.error(0, "Exception while parsing URL '" + url_str + "':" + e.getMessage());
     } catch (java.net.UnknownHostException e) {
       this.error(0, "Exception while initializing download of '" + url + "': Unknown Host '" + e.getMessage() + "'");
     } catch (java.io.IOException ioe) {
@@ -776,14 +777,20 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	        }
 	        this.notifyListener();
 	      }
-      } catch (Exception e) {
+      } catch( Throwable e){
     	  
+      	String url_log_string = this.url_str.toString().replaceAll( "\\Q&pause_on_error=true\\E", "" );
+
+        String log_msg = MessageText.getString(
+              	"torrentdownload.error.dl_fail",
+              	new String[]{ url_log_string , file==null?filename:file.getAbsolutePath(), e.getMessage() });
+
     	if ( !cancel ){
     		
-    		Debug.out("'" + this.directoryname + "' '" +  filename + "'", e);
+    		Debug.out( log_msg );
     	}
-      	
-        this.error(0, "Exception while downloading '" + this.url.toString() + "':" + e.getMessage());
+      		
+        this.error(	0, log_msg );
       }
   }
 
