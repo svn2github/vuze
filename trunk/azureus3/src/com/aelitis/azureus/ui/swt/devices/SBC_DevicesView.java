@@ -1170,6 +1170,10 @@ public class SBC_DevicesView
 			can_stop = can_queue = can_move_down = can_move_up = false;
 		}
 
+		if ( can_queue && can_stop ){
+			can_stop = false;
+		}
+		
 		list.put("stop", can_stop ? UIToolBarItem.STATE_ENABLED : 0);
 		list.put("start", can_queue ? UIToolBarItem.STATE_ENABLED : 0);
 		list.put("up", can_move_up ? UIToolBarItem.STATE_ENABLED : 0);
@@ -1209,7 +1213,7 @@ public class SBC_DevicesView
 			return false;
 		}
 		
-		final String itemKey = item.getID();
+		String itemKey = item.getID();
 
 		if (itemKey.equals("remove")) {
 			deleteFiles(selectedDS, 0);
@@ -1232,11 +1236,28 @@ public class SBC_DevicesView
 		java.util.List<TranscodeJob> jobs = new ArrayList<TranscodeJob>(
 				selectedDS.length);
 
+		boolean can_stop = true;
+		boolean can_queue = true;
+
 		for (int i = 0; i < selectedDS.length; i++) {
 			TranscodeFile file = selectedDS[i];
 			TranscodeJob job = file.getJob();
 			if (job != null) {
 				jobs.add(job);
+				
+				int state = job.getState();
+
+				if (state != TranscodeJob.ST_PAUSED && state != TranscodeJob.ST_RUNNING
+						&& state != TranscodeJob.ST_FAILED && state != TranscodeJob.ST_QUEUED) {
+
+					can_stop = false;
+				}
+
+				if (state != TranscodeJob.ST_PAUSED && state != TranscodeJob.ST_STOPPED
+						&& state != TranscodeJob.ST_FAILED) {
+
+					can_queue = false;
+				}
 			}
 		}
 		
@@ -1244,16 +1265,31 @@ public class SBC_DevicesView
 			return false;
 		}
 
+		if ( can_queue && can_stop ){
+			can_stop = false;
+		}
+		
 		if (itemKey.equals("up") || itemKey.equals("down")) {
 
+			final String f_itemKey = itemKey;
+			
 			Collections.sort(jobs, new Comparator<TranscodeJob>() {
 				public int compare(TranscodeJob j1, TranscodeJob j2) {
 
-					return ((itemKey.equals("up") ? 1 : -1) * (j1.getIndex() - j2.getIndex()));
+					return ((f_itemKey.equals("up") ? 1 : -1) * (j1.getIndex() - j2.getIndex()));
 				}
 			});
 		}
 
+		if ( itemKey.equals( "startstop" )){
+			
+			if ( can_queue ){
+				itemKey = "start";
+			}else if ( can_stop ){
+				itemKey = "stop";
+			}
+			
+		}
 		boolean didSomething = false;
 		boolean forceSort = false;
 		for (TranscodeJob job : jobs) {

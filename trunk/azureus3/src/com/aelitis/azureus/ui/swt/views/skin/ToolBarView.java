@@ -799,6 +799,31 @@ public class ToolBarView
 					toolBarItem.setState(state);
 				}
 			}
+			
+			if ( ssItem != null ){
+				
+					// fallback to handle start/stop settings when no explicit selected content (e.g. for devices transcode view)
+				
+				if ( currentContent.length == 0 && !mapStates.containsKey( "startstop" )){
+					
+					boolean	can_stop 	= mapStates.containsKey("stop") && (mapStates.get("stop") & UIToolBarItem.STATE_ENABLED) > 0;
+					boolean	can_start 	= mapStates.containsKey("start") && (mapStates.get("start") & UIToolBarItem.STATE_ENABLED) > 0;
+					
+					if ( can_start && can_stop ){
+						
+						can_stop = false;
+					}
+					
+					if ( can_start | can_stop ){
+						ssItem.setTextID(can_stop ? "iconBar.stop" : "iconBar.start");
+						ssItem.setImageID("image.toolbar.startstop."
+								+ (can_stop ? "stop" : "start"));
+						
+						ssItem.setState( 1 );
+					}
+				}
+			}
+			
 			return;
 		}
 	}
