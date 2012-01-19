@@ -820,6 +820,10 @@ public class ToolBarView
 								+ (can_stop ? "stop" : "start"));
 						
 						ssItem.setState( 1 );
+						
+					}else{
+						
+						ssItem.setState( 0 );
 					}
 				}
 			}
