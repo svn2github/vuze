@@ -32,12 +32,16 @@ import javax.crypto.SecretKeyFactory;
 import javax.crypto.spec.PBEKeySpec;
 import javax.crypto.spec.PBEParameterSpec;
 
+import org.bouncycastle.crypto.CipherParameters;
+import org.bouncycastle.crypto.engines.RC4Engine;
+import org.bouncycastle.crypto.params.KeyParameter;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SHA1;
+import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -158,6 +162,55 @@ CryptoManagerImpl
 		}
 		
 		return( secure_id );
+	}
+	
+	private byte[]
+	getOBSID()
+	{
+		String key = CryptoManager.CRYPTO_CONFIG_PREFIX + "obs.id";
+					
+		byte[] obs_id = COConfigurationManager.getByteParameter( key, null );
+		
+		if ( obs_id == null ){
+			
+			obs_id = new byte[20];
+		
+			RandomUtils.SECURE_RANDOM.nextBytes( obs_id );
+			
+			COConfigurationManager.setParameter( key, obs_id );
+			
+			COConfigurationManager.save();
+		}
+		
+		return( obs_id );
+	}
+	
+	public byte[]
+	obfuscate(
+		byte[]		data )
+	{
+		RC4Engine	engine = new RC4Engine();
+        
+		CipherParameters	params = new KeyParameter( new SHA1Simple().calculateHash( getOBSID()));
+		
+		engine.init( true, params ); 
+
+		byte[]	temp = new byte[1024];
+		
+		engine.processBytes( temp, 0, 1024, temp, 0 );
+		
+		final byte[] obs_value = new byte[ data.length ];
+		
+		engine.processBytes( data, 0, data.length, obs_value, 0 );
+		
+		return( obs_value );
+	}
+	
+	public byte[]
+	deobfuscate(
+		byte[]		data )
+	{
+		return( obfuscate( data ));
 	}
 	
 	public CryptoHandler

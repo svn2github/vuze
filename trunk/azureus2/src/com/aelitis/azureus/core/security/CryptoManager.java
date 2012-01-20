@@ -39,6 +39,14 @@ CryptoManager
 	public CryptoHandler
 	getECCHandler();
 	
+	public byte[]
+	obfuscate(
+		byte[]		data );
+	
+	public byte[]
+	deobfuscate(
+		byte[]		data );
+	
 	public void
 	clearPasswords();
 	
