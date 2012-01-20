@@ -1229,6 +1229,17 @@ DHTPlugin
 		return( cvs_dht.getLocalValue( key ));
 	}
 	
+	public List<DHTPluginValue>
+	getValues()
+	{
+		if ( main_dht != null ){
+			
+			return( main_dht.getValues());
+		}
+		
+		return( cvs_dht.getValues());
+	}
+	
 	public void
 	get(
 		final byte[]								original_key,

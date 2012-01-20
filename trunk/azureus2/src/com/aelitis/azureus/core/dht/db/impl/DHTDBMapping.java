@@ -468,6 +468,38 @@ DHTDBMapping
 	}
 	
 	protected DHTDBValueImpl
+	getAnyValue(
+		DHTTransportContact 	originator )
+	{
+		DHTDBValueImpl	res = null;
+		
+		try{
+			Map<HashWrapper,DHTDBValueImpl> map = direct_originator_map_may_be_null;
+			
+			if ( map != null ){
+						
+				HashWrapper originator_id = new HashWrapper( originator.getID());
+			
+				res = (DHTDBValueImpl)map.get( originator_id );
+			}
+			
+			if ( res == null ){
+				
+				Iterator<DHTDBValueImpl> it = indirect_originator_value_map.values().iterator();
+				
+				if ( it.hasNext()){
+					
+					res = it.next();
+				}
+			}
+		}catch( Throwable e ){
+			// slight chance of conc exception here, don't care
+		}
+		
+		return( res );
+	}
+	
+	protected DHTDBValueImpl
 	remove(
 		DHTTransportContact 	originator )
 	{

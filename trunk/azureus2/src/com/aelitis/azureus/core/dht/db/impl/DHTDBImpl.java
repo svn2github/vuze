@@ -535,7 +535,7 @@ DHTDBImpl
 	get(
 		HashWrapper				key )
 	{
-			// local remove
+			// local get
 		
 		try{
 			this_mon.enter();
@@ -545,6 +545,28 @@ DHTDBImpl
 			if ( mapping != null ){
 				
 				return( mapping.get( local_contact ));
+			}
+			
+			return( null );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
+	
+	public DHTDBValue
+	getAnyValue(
+		HashWrapper				key )
+	{		
+		try{
+			this_mon.enter();
+		
+			DHTDBMapping mapping = (DHTDBMapping)stored_values.get( key );
+			
+			if ( mapping != null ){
+				
+				return( mapping.getAnyValue( local_contact ));
 			}
 			
 			return( null );

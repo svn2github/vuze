@@ -92,6 +92,16 @@ DHTDB
 	get(
 		HashWrapper		key );
 	
+		/**
+		 * Returns a value for the given key (local or remote) if found
+		 * @param key
+		 * @return
+		 */
+	
+	public DHTDBValue
+	getAnyValue(
+		HashWrapper		key );
+	
 	public boolean
 	hasKey(
 		HashWrapper		key );

@@ -28,12 +28,16 @@ import java.io.DataInputStream;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Properties;
 
 
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.Download;
@@ -52,7 +56,9 @@ import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.DHTStorageKeyStats;
 
 import com.aelitis.azureus.core.dht.control.DHTControlStats;
+import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.db.DHTDBStats;
+import com.aelitis.azureus.core.dht.db.DHTDBValue;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncherAdapter;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -773,6 +779,28 @@ outer:
 		}
 		
 		return( mapValue( val ));
+	}
+	
+	public List<DHTPluginValue>
+	getValues()
+	{
+		DHTDB	db = dht.getDataBase();
+		
+		Iterator<HashWrapper>	keys = db.getKeys();
+		
+		List<DHTPluginValue>	vals = new ArrayList<DHTPluginValue>();
+		
+		while( keys.hasNext()){
+			
+			DHTDBValue val = db.getAnyValue( keys.next());
+			
+			if ( val != null ){
+				
+				vals.add( mapValue( val ));
+			}
+		}
+		
+		return( vals );
 	}
 	
 	public void
