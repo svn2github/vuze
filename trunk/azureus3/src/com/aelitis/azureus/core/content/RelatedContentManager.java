@@ -21,11 +21,16 @@
 
 package com.aelitis.azureus.core.content;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -73,12 +78,17 @@ import org.gudy.azureus2.plugins.utils.search.SearchObserver;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.plugins.utils.search.SearchResult;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseContactImpl;
+import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
+import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseKeyImpl;
+import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseValueImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.FeatureAvailability;
@@ -87,6 +97,7 @@ import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
+import com.aelitis.azureus.plugins.dht.DHTPluginTransferHandler;
 import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 import com.aelitis.azureus.util.ImportExportUtils;
 
@@ -211,7 +222,7 @@ RelatedContentManager
 				parameterChanged(
 					String parameterName )
 				{
-					persist = COConfigurationManager.getBooleanParameter( "rcm.persist" );
+					persist = COConfigurationManager.getBooleanParameter( "rcm.persist" ) | Constants.IS_CVS_VERSION;
 				}
 			});
 	}
@@ -400,6 +411,10 @@ RelatedContentManager
 												}
 											}
 										}
+										
+										checkKeyBloom();
+										
+										testKeyBloom();
 									}
 								});
 						}										
@@ -867,71 +882,14 @@ RelatedContentManager
 						DHTPluginValue		value )
 					{
 						try{
-							Map<String,Object> map = (Map<String,Object>)BDecoder.decode( value.getValue());
-							
-							String	title = new String((byte[])map.get( "d" ), "UTF-8" );
-							
-							String	tracker	= null;
-							
-							byte[]	hash 	= (byte[])map.get( "h" );
-							
-							if ( hash == null ){
+							Map<String,Object> map = (Map<String,Object>)BDecoder.decode( value.getValue());							
 								
-								tracker = new String((byte[])map.get( "t" ), "UTF-8" );
+							DownloadInfo info = decodeInfo( map, from_info.getHash(), 1, false, entries );
+							
+							if ( info != null ){
+							
+								analyseResponse( info, null );
 							}
-							
-							int	rand = ((Long)map.get( "r" )).intValue();
-							
-							String	key = title + " % " + rand;
-							
-							synchronized( entries ){
-							
-								if ( entries.contains( key )){
-									
-									return;
-								}
-								
-								entries.add( key );
-							}
-							
-							Long	l_size = (Long)map.get( "s" );
-							
-							long	size = l_size==null?0:l_size.longValue();
-							
-							Long	cnet	 	= (Long)map.get( "c" );
-							Long	published 	= (Long)map.get( "p" );
-							Long	leechers 	= (Long)map.get( "l" );
-							Long	seeds	 	= (Long)map.get( "z" );
-							
-							// System.out.println( "p=" + published + ", l=" + leechers + ", s=" + seeds );
-							
-							int	seeds_leechers;
-							
-							if ( leechers == null && seeds == null ){
-								
-								seeds_leechers = -1;
-								
-							}else if ( leechers == null ){
-								
-								seeds_leechers = seeds.intValue()<<16;
-								
-							}else if ( seeds == null ){
-								
-								seeds_leechers = leechers.intValue()&0xffff;
-								
-							}else{
-								
-								seeds_leechers = (seeds.intValue()<<16)|(leechers.intValue()&0xffff);
-							}
-								
-							analyseResponse( 
-								new DownloadInfo( 
-										from_info.getHash(), hash, title, rand, tracker, 1, false, size, 
-										published==null?0:published.intValue(),
-										seeds_leechers,
-										(byte)(cnet==null?ContentNetwork.CONTENT_NETWORK_UNKNOWN:cnet.byteValue())), 
-								null );
-							
 						}catch( Throwable e ){							
 						}
 						
@@ -1024,7 +982,84 @@ RelatedContentManager
 					}
 				});
 	}
+		
+	private DownloadInfo
+	decodeInfo(
+		Map				map,
+		byte[]			from_hash,
+		int				level,
+		boolean			explicit,
+		Set<String>		unique_keys )
+	{
+		try{
+			String	title = new String((byte[])map.get( "d" ), "UTF-8" );
 			
+			String	tracker	= null;
+			
+			byte[]	hash 	= (byte[])map.get( "h" );
+			
+			if ( hash == null ){
+				
+				tracker = new String((byte[])map.get( "t" ), "UTF-8" );
+			}
+			
+			int	rand = ((Long)map.get( "r" )).intValue();
+			
+			String	key = title + " % " + rand;
+			
+			synchronized( unique_keys ){
+			
+				if ( unique_keys.contains( key )){
+					
+					return( null );
+				}
+				
+				unique_keys.add( key );
+			}
+			
+			Long	l_size = (Long)map.get( "s" );
+			
+			long	size = l_size==null?0:l_size.longValue();
+			
+			Long	cnet	 	= (Long)map.get( "c" );
+			Long	published 	= (Long)map.get( "p" );
+			Long	leechers 	= (Long)map.get( "l" );
+			Long	seeds	 	= (Long)map.get( "z" );
+			
+			// System.out.println( "p=" + published + ", l=" + leechers + ", s=" + seeds );
+			
+			int	seeds_leechers;
+			
+			if ( leechers == null && seeds == null ){
+				
+				seeds_leechers = -1;
+				
+			}else if ( leechers == null ){
+				
+				seeds_leechers = seeds.intValue()<<16;
+				
+			}else if ( seeds == null ){
+				
+				seeds_leechers = leechers.intValue()&0xffff;
+				
+			}else{
+				
+				seeds_leechers = (seeds.intValue()<<16)|(leechers.intValue()&0xffff);
+			}
+				
+			return(
+				new DownloadInfo( 
+						from_hash, hash, title, rand, tracker, level, explicit, size, 
+						published==null?0:published.intValue(),
+						seeds_leechers,
+						(byte)(cnet==null?ContentNetwork.CONTENT_NETWORK_UNKNOWN:cnet.byteValue()))); 
+			
+		}catch( Throwable e ){
+			
+			return( null );
+		}
+	}
+	
 	public void
 	lookupContent(
 		final byte[]						hash,
@@ -1183,66 +1218,12 @@ RelatedContentManager
 							try{
 								Map<String,Object> map = (Map<String,Object>)BDecoder.decode( value.getValue());
 								
-								String	title = new String((byte[])map.get( "d" ), "UTF-8" );
+								DownloadInfo info = decodeInfo( map, from_hash, level+1, explicit, entries );
 								
-								String	tracker	= null;
-								
-								byte[]	hash 	= (byte[])map.get( "h" );
-								
-								if ( hash == null ){
+								if ( info != null ){
 									
-									tracker = new String((byte[])map.get( "t" ), "UTF-8" );
+									analyseResponse( info, listener==null?null:manager_listener );
 								}
-								
-								int	rand = ((Long)map.get( "r" )).intValue();
-								
-								String	key = title + " % " + rand;
-								
-								synchronized( entries ){
-								
-									if ( entries.contains( key )){
-										
-										return;
-									}
-									
-									entries.add( key );
-								}
-								
-								Long	l_size = (Long)map.get( "s" );
-								
-								long	size = l_size==null?0:l_size.longValue();
-
-								Long	cnet	 	= (Long)map.get( "c" );
-								Long	published 	= (Long)map.get( "p" );
-								Long	leechers 	= (Long)map.get( "l" );
-								Long	seeds	 	= (Long)map.get( "z" );
-
-								int	seeds_leechers;
-								
-								if ( leechers == null && seeds == null ){
-									
-									seeds_leechers = -1;
-									
-								}else if ( leechers == null ){
-									
-									seeds_leechers = seeds.intValue()<<16;
-									
-								}else if ( seeds == null ){
-									
-									seeds_leechers = leechers.intValue()&0xffff;
-									
-								}else{
-									
-									seeds_leechers = (seeds.intValue()<<16)|(leechers.intValue()&0xffff);
-								}
-								analyseResponse( 
-									new DownloadInfo( 
-										from_hash, hash, title, rand, tracker, level+1, explicit, size,
-										published==null?0:published.intValue(),
-										seeds_leechers,
-										(byte)(cnet==null?ContentNetwork.CONTENT_NETWORK_UNKNOWN:cnet.byteValue())),
-									listener==null?null:manager_listener );
-								
 							}catch( Throwable e ){	
 							}
 						}
@@ -2543,62 +2524,79 @@ RelatedContentManager
 	}
 	
 	protected Map<String,Object>
-	receiveRemoteSearch(
+	receiveRemoteRequest(
 		Map<String,Object>		request )
 	{
 		Map<String,Object>	response = new HashMap<String,Object>();
 		
-		try{
-			String	term = ImportExportUtils.importString( request, "t" );
-		
-			if ( term != null ){
+		try{			
+			String	req_type = ImportExportUtils.importString( request, "x" );
+			
+			if ( req_type != null ){
 				
-				List<RelatedContent>	matches = matchContent( term );
-
-				if ( matches.size() > MAX_REMOTE_SEARCH_RESULTS ){
+				if ( req_type.equals( "f" )){
 					
-					Collections.sort(
-						matches,
-						new Comparator<RelatedContent>()
-						{
-							public int 
-							compare(
-								RelatedContent o1,
-								RelatedContent o2) 
-							{
-								return( o2.getRank() - o1.getRank());
-							}
-						});
-				}
-				
-				List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
-				
-				for (int i=0;i<Math.min( matches.size(),MAX_REMOTE_SEARCH_RESULTS);i++){
+					BloomFilter filter = getKeyBloom();
 					
-					RelatedContent	c = matches.get(i);
-					
-					Map<String,Object>	map = new HashMap<String, Object>();
-					
-					list.add( map );
-					
-					ImportExportUtils.exportString( map, "n", c.getTitle());
-					ImportExportUtils.exportLong( map, "s", c.getSize());
-					ImportExportUtils.exportLong( map, "r", c.getRank());
-					ImportExportUtils.exportLong( map, "d", c.getLastSeenSecs());
-					ImportExportUtils.exportLong( map, "p", c.getPublishDate()/(60*60*1000));
-					ImportExportUtils.exportLong( map, "l", c.getLeechers());
-					ImportExportUtils.exportLong( map, "z", c.getSeeds());
-					ImportExportUtils.exportLong( map, "c", c.getContentNetwork());
-					
-					byte[] hash = c.getHash();
-					
-					if ( hash != null ){
+					if ( filter != null ){
 						
-						map.put( "h", hash );
+						response.put( "f", filter.serialiseToMap());
 					}
 				}
-				
-				response.put( "l", list );
+			}else{
+					// fallback to default handling
+
+				String	term = ImportExportUtils.importString( request, "t" );
+			
+				if ( term != null ){
+					
+					List<RelatedContent>	matches = matchContent( term );
+	
+					if ( matches.size() > MAX_REMOTE_SEARCH_RESULTS ){
+						
+						Collections.sort(
+							matches,
+							new Comparator<RelatedContent>()
+							{
+								public int 
+								compare(
+									RelatedContent o1,
+									RelatedContent o2) 
+								{
+									return( o2.getRank() - o1.getRank());
+								}
+							});
+					}
+					
+					List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+					
+					for (int i=0;i<Math.min( matches.size(),MAX_REMOTE_SEARCH_RESULTS);i++){
+						
+						RelatedContent	c = matches.get(i);
+						
+						Map<String,Object>	map = new HashMap<String, Object>();
+						
+						list.add( map );
+						
+						ImportExportUtils.exportString( map, "n", c.getTitle());
+						ImportExportUtils.exportLong( map, "s", c.getSize());
+						ImportExportUtils.exportLong( map, "r", c.getRank());
+						ImportExportUtils.exportLong( map, "d", c.getLastSeenSecs());
+						ImportExportUtils.exportLong( map, "p", c.getPublishDate()/(60*60*1000));
+						ImportExportUtils.exportLong( map, "l", c.getLeechers());
+						ImportExportUtils.exportLong( map, "z", c.getSeeds());
+						ImportExportUtils.exportLong( map, "c", c.getContentNetwork());
+						
+						byte[] hash = c.getHash();
+						
+						if ( hash != null ){
+							
+							map.put( "h", hash );
+						}
+					}
+					
+					response.put( "l", list );
+				}
 			}
 		}catch( Throwable e ){
 		}
@@ -2623,7 +2621,7 @@ RelatedContentManager
 			
 			Map<String,Object>	request = BDecoder.decode( key );
 			
-			Map<String,Object>	result = receiveRemoteSearch( request );
+			Map<String,Object>	result = receiveRemoteRequest( request );
 			
 			return( ddb.createValue( BEncoder.encode( result )));
 			
@@ -2689,9 +2687,17 @@ RelatedContentManager
 							Map<String,DownloadInfo>						related_content			= cc.related_content;
 							ByteArrayHashMapEx<ArrayList<DownloadInfo>>		related_content_map		= cc.related_content_map;
 		
+							Map<String,String>	rcm_map;
 							
-							Map<String,String>	rcm_map = (Map<String,String>)map.get( "rcm" );
+							byte[]	data = (byte[])map.get( "d" );
 							
+							if ( data != null ){
+																
+								map = BDecoder.decode(new BufferedInputStream( new GZIPInputStream( new ByteArrayInputStream( CryptoManagerFactory.getSingleton().deobfuscate( data )))));
+							}
+							
+							rcm_map = (Map<String,String>)map.get( "rcm" );
+						
 							Object	rc_map_stuff 	= map.get( "rc" );
 							
 							if ( rc_map_stuff != null && rcm_map != null ){
@@ -2853,7 +2859,7 @@ RelatedContentManager
 				}
 				
 				content_cache_ref = cc;
-								
+					
 				return( cc );
 			}
 		}finally{
@@ -2912,8 +2918,9 @@ RelatedContentManager
 				// Debug.out( "RCM: cache inconsistent" );
 				
 			}else{
-
+				
 				if ( persist ){
+					
 					if ( TRACE ){
 						System.out.println( "rcm: save" );
 					}
@@ -2952,16 +2959,16 @@ RelatedContentManager
 								di_map.put( "_i", new Long( id ));
 								di_map.put( "_k", entry.getKey());
 								
-								if ( rc_map_list.add( di_map ));
+								rc_map_list.add( di_map );
 		
 								id++;	
 							}
 						}
 						
 						Map<String,Object> rcm_map = new HashMap<String, Object>();
-	
+						
 						map.put( "rcm", rcm_map );
-											
+
 						for ( byte[] hash: related_content_map.keys()){
 							
 							List<DownloadInfo> dis = related_content_map.get( hash );
@@ -2992,12 +2999,35 @@ RelatedContentManager
 							}
 						}
 						
+						if ( true ){
+						
+							ByteArrayOutputStream baos = new ByteArrayOutputStream( 100*1024 );
+							
+							try{
+								GZIPOutputStream gos = new GZIPOutputStream( baos );
+								
+								gos.write( BEncoder.encode( map ));
+								
+								gos.close();
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+							
+							map.clear();
+							
+							map.put( "d", CryptoManagerFactory.getSingleton().obfuscate( baos.toByteArray()));
+						}
+						
 						FileUtil.writeResilientConfigFile( CONFIG_FILE, map );
 					}
 				}else{
 					
 					deleteRelatedContent();
 				}
+			
+				updateKeyBloom( cc );
 			}
 		}
 	}
@@ -3088,6 +3118,187 @@ RelatedContentManager
 		}catch( Throwable e ){
 			
 			return( null );
+		}
+	}
+	
+	private static final int KEY_BLOOM_LOAD_FACTOR			= 8;
+	private static final int KEY_BLOOM_MIN_BITS				= 1000;	
+	private static final int KEY_BLOOM_MAX_BITS				= 50000;	// 6k ish
+	private static final int KEY_BLOOM_MAX_ENTRIES			= KEY_BLOOM_MAX_BITS/KEY_BLOOM_LOAD_FACTOR;
+
+	private volatile BloomFilter	key_bloom;
+	private volatile long			last_key_bloom_update = -1;
+	
+	private Set<String>	ignore_words = new HashSet<String>();
+	
+	{
+		String ignore = "a, in, of, at, the, and, or, if, to, an, for, with";
+		
+		String[]	lame_entries = ignore.toLowerCase( Locale.US ).split(",");
+		
+		for ( String entry: lame_entries ){
+		
+			entry = entry.trim();
+			
+			if ( entry.length() > 0 ){
+				
+				ignore_words.add( entry );
+			}
+		}
+	}
+	
+	private void
+	testKeyBloom()
+	{
+		/*
+		BloomFilter bloom = getBloom();
+		
+		if ( bloom != null ){
+			
+			String[] words = { "pork", "fridge" };
+				
+			for ( String word: words ){
+				try{
+					System.out.println( "Search: " + word + " -> " + bloom.contains( word.getBytes( "UTF8") ));
+					
+				}catch( Throwable e ){
+					
+				}
+			}
+		}
+		*/
+	}
+	
+	private void
+	checkKeyBloom()
+	{
+		if ( last_key_bloom_update == -1 || SystemTime.getMonotonousTime() - last_key_bloom_update > 10*60*1000 ){
+			
+			updateKeyBloom( loadRelatedContent());
+		}
+	}
+	
+	private BloomFilter
+	getKeyBloom()
+	{
+		if ( key_bloom == null ){
+			
+			updateKeyBloom( loadRelatedContent());
+		}
+		
+		return( key_bloom );
+	}
+	
+	private void
+	updateKeyBloom(
+		ContentCache		cc )
+	{
+		synchronized( this ){
+												
+			Set<String>	all_words = new HashSet<String>();
+			
+			List<DHTPluginValue> vals = dht_plugin.getValues();
+													
+			int	rcm_vals = 0;
+			
+			Set<String>	unique_keys = new HashSet<String>();
+			
+			List<DownloadInfo>	dht_infos = new ArrayList<DownloadInfo>();
+			
+			for ( DHTPluginValue val: vals ){
+				
+				if ( !val.isLocal()){
+					
+					byte[]	bytes = val.getValue();
+					
+					String test = new String( bytes );
+					
+					if ( test.startsWith( "d1:d" ) && test.endsWith( "ee" ) && test.contains( "1:h20:")){
+								
+						try{
+							Map map = BDecoder.decode( bytes );
+						
+							DownloadInfo info =	decodeInfo( map, null, 1, false, unique_keys );
+							
+							if ( info != null ){
+								
+								dht_infos.add( info );
+							}
+						}catch( Throwable e ){
+							
+						}
+					}
+				}
+			}
+			
+			Iterator<DownloadInfo>	it1 = dht_infos.iterator();
+						
+			Iterator<DownloadInfo>	it2 = cc.related_content.values().iterator();			
+
+			for ( Iterator _it: new Iterator[]{ it1, it2 }){
+				
+				Iterator<DownloadInfo> it = (Iterator<DownloadInfo>)_it;
+				
+				while( it.hasNext()){
+				
+					DownloadInfo di = it.next();
+					
+					if ( di.getHash() == null ){
+						
+						continue;
+					}
+					
+					String title = di.getTitle().toLowerCase( Locale.US );
+					
+					// System.out.println( title );
+					
+					char[]	chars = title.toCharArray();
+					
+					for ( int i=0;i<chars.length;i++){
+						
+						if ( !Character.isLetterOrDigit( chars[i])){
+							
+							chars[i] = ' ';
+						}
+					}
+					
+					String[] words = new String( chars ).split( " " );
+					
+					for ( String word: words ){
+						
+						if ( word.length() > 0 && !ignore_words.contains( word )){
+							
+							all_words.add( word );
+						}
+					}
+				}
+			}
+			
+			int	desired_bits = all_words.size() * KEY_BLOOM_LOAD_FACTOR;
+			
+			desired_bits = Math.max( desired_bits, KEY_BLOOM_MIN_BITS );
+			desired_bits = Math.min( desired_bits, KEY_BLOOM_MAX_BITS );
+			
+			BloomFilter b = BloomFilterFactory.createAddOnly( desired_bits );
+
+			for ( String word: all_words ){
+				
+				try{
+					b.add( word.getBytes( "UTF8" ));
+					
+					if ( b.getEntryCount() > KEY_BLOOM_MAX_ENTRIES ){
+						
+						break;
+					}
+				}catch( Throwable e ){
+				}
+			}
+				
+			// System.out.println( "bloom=" + b.getSize() + "/" + b.getEntryCount() + ": rcm=" + cc.related_content.size() + ", dht=" + dht_infos.size());
+			
+			key_bloom = b;
+			
+			last_key_bloom_update = SystemTime.getMonotonousTime();
 		}
 	}
 	
