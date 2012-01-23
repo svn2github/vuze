@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.util;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 public class 
 RegExUtil 
 {
@@ -67,5 +69,66 @@ RegExUtil
 			
 			return((Pattern)entry[1]);
 		}
+	}
+	
+	public static boolean
+	mightBeEvil(
+		String	str )
+	{
+			// http://en.wikipedia.org/wiki/ReDoS
+			
+		if ( !str.contains( ")" )){
+			
+			return( false );
+		}
+		
+		char[]	chars = str.toCharArray();
+		
+		Stack<Integer>	stack = new Stack<Integer>();
+		
+		for (int i=0;i<chars.length;i++){
+			
+			char c = chars[i];
+			
+			if ( c == '(' ){
+				
+				stack.push( i+1 );
+				
+			}else if ( c == ')' ){
+				
+				if ( stack.isEmpty()){
+					
+					Debug.out( "bracket un-matched in " + str + " - treating as evil" );
+					
+					return( true );
+					
+				}else{
+					
+					int	start = stack.pop();
+
+					if ( i < chars.length-1){
+						
+						char next = chars[i+1];
+						
+						if ( next == '*' || next == '+' || next == '{' ){
+										
+							for ( int j=start;j<i;j++){
+								
+								c = chars[j];
+								
+								if ( "+*{|".indexOf( c ) != -1 ){
+									
+									Debug.out( "regular expression " + str + " might be evil due to '" + str.substring( start-1, i+2) + "'" );
+
+									return( true );
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return( false );
 	}
 }
