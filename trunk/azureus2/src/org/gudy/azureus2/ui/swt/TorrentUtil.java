@@ -633,6 +633,17 @@ public class TorrentUtil {
 		});
 		itemManualScrape.setEnabled(manualScrape);
 
+			// explore torrent file
+		
+		final MenuItem itemTorrentExplore = new MenuItem(menuTracker, SWT.PUSH);
+		Messages.setLanguageText(itemTorrentExplore, "MyTorrentsView.menu." + (use_open_containing_folder ? "open_parent_folder" : "explore"));
+		itemTorrentExplore.addListener(SWT.Selection, new DMTask(dms, false) {
+			public void run(DownloadManager dm) {
+				ManagerUtils.open(new File(dm.getTorrentFileName()), use_open_containing_folder);
+			}
+		});
+		itemExplore.setEnabled(hasSelection);
+		
 		// advanced > files
 
 		final MenuItem itemFiles = new MenuItem(menuAdvanced, SWT.CASCADE);

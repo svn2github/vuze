@@ -78,10 +78,6 @@ import org.gudy.azureus2.plugins.utils.search.SearchObserver;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.plugins.utils.search.SearchResult;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseContactImpl;
-import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
-import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseKeyImpl;
-import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseValueImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
@@ -92,12 +88,12 @@ import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.FeatureAvailability;
+import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
-import com.aelitis.azureus.plugins.dht.DHTPluginTransferHandler;
 import com.aelitis.azureus.plugins.dht.DHTPluginValue;
 import com.aelitis.azureus.util.ImportExportUtils;
 
@@ -106,7 +102,7 @@ RelatedContentManager
 	implements DistributedDatabaseTransferHandler
 {
 	private static final boolean 	TRACE = false;
-	public static final boolean	DISABLE_ALL_UI	= !Constants.isCVSVersion() && COConfigurationManager.getStringParameter("ui", "az3").equals("az3");
+	public static final boolean	DISABLE_ALL_UI	= false; // !Constants.isCVSVersion() && COConfigurationManager.getStringParameter("ui", "az3").equals("az3");
 
 	private static final int	MAX_HISTORY					= 16;
 	private static final int	MAX_TITLE_LENGTH			= 80;
@@ -173,15 +169,17 @@ RelatedContentManager
 	
 	private AESemaphore initialisation_complete_sem = new AESemaphore( "RCM:init" );
 
-	private static final int TIMER_PERIOD			= 30*1000;
-	private static final int CONFIG_SAVE_PERIOD		= 60*1000;
-	private static final int CONFIG_SAVE_TICKS		= CONFIG_SAVE_PERIOD/TIMER_PERIOD;
-	private static final int PUBLISH_CHECK_PERIOD	= 30*1000;
-	private static final int PUBLISH_CHECK_TICKS	= PUBLISH_CHECK_PERIOD/TIMER_PERIOD;
-	private static final int SECONDARY_LOOKUP_PERIOD	= 15*60*1000;
-	private static final int SECONDARY_LOOKUP_TICKS		= SECONDARY_LOOKUP_PERIOD/TIMER_PERIOD;
-	private static final int REPUBLISH_PERIOD			= 8*60*60*1000;
-	private static final int REPUBLISH_TICKS			= REPUBLISH_PERIOD/TIMER_PERIOD;
+	private static final int TIMER_PERIOD					= 30*1000;
+	private static final int CONFIG_SAVE_CHECK_PERIOD		= 60*1000;
+	private static final int CONFIG_SAVE_PERIOD				= 5*60*1000;
+	private static final int CONFIG_SAVE_CHECK_TICKS		= CONFIG_SAVE_CHECK_PERIOD/TIMER_PERIOD;
+	private static final int CONFIG_SAVE_TICKS				= CONFIG_SAVE_PERIOD/TIMER_PERIOD;
+	private static final int PUBLISH_CHECK_PERIOD			= 30*1000;
+	private static final int PUBLISH_CHECK_TICKS			= PUBLISH_CHECK_PERIOD/TIMER_PERIOD;
+	private static final int SECONDARY_LOOKUP_PERIOD		= 15*60*1000;
+	private static final int SECONDARY_LOOKUP_TICKS			= SECONDARY_LOOKUP_PERIOD/TIMER_PERIOD;
+	private static final int REPUBLISH_PERIOD				= 8*60*60*1000;
+	private static final int REPUBLISH_TICKS				= REPUBLISH_PERIOD/TIMER_PERIOD;
 
 	private static final int INITIAL_PUBLISH_DELAY	= 3*60*1000;
 	private static final int INITIAL_PUBLISH_TICKS	= INITIAL_PUBLISH_DELAY/TIMER_PERIOD;
@@ -210,6 +208,19 @@ RelatedContentManager
 	
 	private DistributedDatabase		ddb;
 	private RCMSearchXFer			transfer_type = new RCMSearchXFer();
+	
+	private static final int MAX_TRANSIENT_CACHE	= 256;
+	
+	private static Map<String,DownloadInfo> transient_info_cache =
+		new LinkedHashMap<String,DownloadInfo>(MAX_TRANSIENT_CACHE,0.75f,true)
+		{
+			protected boolean 
+			removeEldestEntry(
+		   		Map.Entry<String,DownloadInfo> eldest) 
+			{
+				return size() > MAX_TRANSIENT_CACHE;
+			}
+		};
 	
 	private boolean	persist;
 	
@@ -405,9 +416,9 @@ RelatedContentManager
 													republish();
 												}
 												
-												if ( tick_count % CONFIG_SAVE_TICKS == 0 ){
+												if ( tick_count % CONFIG_SAVE_CHECK_TICKS == 0 ){
 													
-													saveRelatedContent();
+													saveRelatedContent( tick_count );
 												}
 											}
 										}
@@ -427,7 +438,7 @@ RelatedContentManager
 				public void
 				closedownInitiated()
 				{
-					saveRelatedContent();
+					saveRelatedContent( 0 );
 				}
 				
 				public void
@@ -1759,8 +1770,11 @@ RelatedContentManager
 						}
 						
 						new_content = true;
+						
+					}else{
+						
+						transient_info_cache.put( key, to_info );
 					}
-					
 				}else{
 					
 						// we already know about this, see if new info
@@ -1847,13 +1861,14 @@ RelatedContentManager
 		
 		Iterator<Map.Entry<String,DownloadInfo>>	it = related_content.entrySet().iterator();
 				
-		int	level 		= fi.getLevel();
+		int	max_level 		= fi.getLevel();
 		
 			// delete oldest at highest level >= level with minimum rank
 	
 		Map<Integer,DownloadInfo>	oldest_per_rank = new HashMap<Integer, DownloadInfo>();
 		
-		int	min_rank = Integer.MAX_VALUE;
+		int	min_rank 	= Integer.MAX_VALUE;
+		int	max_rank	= -1;
 		
 		while( it.hasNext()){
 			
@@ -1868,13 +1883,14 @@ RelatedContentManager
 			
 			int	info_level = info.getLevel();
 			
-			if ( info_level >= level ){
+			if ( info_level >= max_level ){
 				
-				if ( info_level > level ){
+				if ( info_level > max_level ){
 					
-					level = info_level;
+					max_level = info_level;
 					
-					min_rank = Integer.MAX_VALUE;
+					min_rank 	= Integer.MAX_VALUE;
+					max_rank	= -1;
 					
 					oldest_per_rank.clear();
 				}
@@ -1884,6 +1900,10 @@ RelatedContentManager
 				if ( rank < min_rank ){
 					
 					min_rank = rank;
+					
+				}else if ( rank > max_rank ){
+					
+					max_rank = rank;
 				}
 				
 				DownloadInfo oldest = oldest_per_rank.get( rank );
@@ -1911,6 +1931,27 @@ RelatedContentManager
 			return( true );
 		}
 		
+			// we don't want high-ranked entries to get stuck there and prevent newer stuff from getting in and rising up
+		
+		if ( max_level == 1 ){
+			
+			to_remove = oldest_per_rank.get( max_rank );
+			
+			if ( to_remove != null ){
+				
+				int	now_secs = (int)( SystemTime.getCurrentTime()/1000 );
+				
+					// give it a day at the top
+				
+				if ( now_secs - to_remove.getLastSeenSecs() >= 24*60*60 ){
+					
+					delete( new RelatedContent[]{ to_remove }, content_cache, false );
+					
+					return( true );
+				}
+			}
+		}
+		
 		return( false );
 	}
 	
@@ -1924,6 +1965,17 @@ RelatedContentManager
 			return( content_cache.related_content.values().toArray( new DownloadInfo[ content_cache.related_content.size()]));
 		}
 	}
+	
+	private List<DownloadInfo>
+  	getRelatedContentAsList()
+  	{
+  		synchronized( this ){
+
+  			ContentCache	content_cache = loadRelatedContent();
+  			
+  			return( new ArrayList<DownloadInfo>( content_cache.related_content.values()));
+  		}
+  	}
 	
 	public void
 	reset()
@@ -1991,11 +2043,7 @@ RelatedContentManager
 			// each bit can be prefixed by + or -, a leading - means 'bit doesn't match'. + doesn't mean anything
 			// each bit (with prefix removed) can be "(" regexp ")"
 			// if bit isn't regexp but has "|" in it it is turned into a regexp so a|b means 'a or b'
-		
-		List<RelatedContent>	result = new ArrayList<RelatedContent>();
-		
-		RelatedContent[] content = getRelatedContent();
-		
+				
 		String[]	 bits = Constants.PAT_SPLIT_SPACE.split(term.toLowerCase());
 
 		int[]		bit_types 		= new int[bits.length];
@@ -2027,84 +2075,120 @@ RelatedContentManager
 					bit = bit.substring( 1, bit.length()-1 );
 					
 					try{
-						bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
+						if ( !RegExUtil.mightBeEvil( bit )){
 						
+							bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
+						}
 					}catch( Throwable e ){
 					}
 				}else if ( bit.contains( "|" )){
 					
 					try{
-						bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
+						if ( !RegExUtil.mightBeEvil( bit )){
 						
+							bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
+						}
 					}catch( Throwable e ){
 					}
 				}
 			}
 		}
-			
 		
-		for ( final RelatedContent c: content ){
-			
-			String title = c.getTitle().toLowerCase();
-			
-			boolean	match 			= true;
-			boolean	at_least_one 	= false;
-			
-			for (int i=0;i<bits.length;i++){
-				
-				String bit = bits[i];
-				
-				if ( bit.length() > 0 ){
-					
-					boolean	hit;
-					
-					if ( bit_patterns[i] == null ){
-					
-						hit = title.contains( bit );
-						
-					}else{
-					
-						hit = bit_patterns[i].matcher( title ).find();
-					}
-					
-					int	type = bit_types[i];
-					
-					if ( hit ){
-												
-						if ( type == 2 ){
-							
-							match = false;
-							
-							break;
-							
-						}else{
-							
-							at_least_one = true;
+		Map<String,RelatedContent>	result = new HashMap<String,RelatedContent>();
+		
+		Iterator<DownloadInfo>	it1 = getDHTInfos().iterator();
+		
+		Iterator<DownloadInfo>	it2;
+		
+		synchronized( this ){
+		
+			it2 = new ArrayList<DownloadInfo>( transient_info_cache.values()).iterator();
+		}
 
-						}
-					}else{
+		Iterator<DownloadInfo>	it3 = getRelatedContentAsList().iterator();
+
+		for ( Iterator _it: new Iterator[]{ it1, it2, it3 }){
+			
+			Iterator<DownloadInfo> it = (Iterator<DownloadInfo>)_it;	
+			
+			while( it.hasNext()){
+				
+				DownloadInfo c = it.next();
+				
+				String title = c.getTitle().toLowerCase();
+				
+				boolean	match 			= true;
+				boolean	at_least_one 	= false;
+				
+				for (int i=0;i<bits.length;i++){
+					
+					String bit = bits[i];
+					
+					if ( bit.length() > 0 ){
 						
-						if ( type == 2 ){
+						boolean	hit;
 						
-							at_least_one = true;
+						if ( bit_patterns[i] == null ){
+						
+							hit = title.contains( bit );
 							
 						}else{
-							
-							match = false;
 						
-							break;
+							hit = bit_patterns[i].matcher( title ).find();
+						}
+						
+						int	type = bit_types[i];
+						
+						if ( hit ){
+													
+							if ( type == 2 ){
+								
+								match = false;
+								
+								break;
+								
+							}else{
+								
+								at_least_one = true;
+	
+							}
+						}else{
+							
+							if ( type == 2 ){
+							
+								at_least_one = true;
+								
+							}else{
+								
+								match = false;
+							
+								break;
+							}
 						}
 					}
 				}
-			}
-			
-			if ( match && at_least_one ){
 				
-				result.add( c );
+				if ( match && at_least_one ){
+					
+					byte[]	hash = c.getHash();
+					
+					String key;
+					
+					if ( hash != null ){
+						
+						key = Base32.encode( hash );
+						
+					}else{
+			
+						key = getPrivateInfoKey( c );
+					}
+					
+					result.put( key, c );
+				}
 			}
 		}
 		
-		return( result );
+		return( new ArrayList<RelatedContent>( result.values()));
 	}
 	
 	public SearchInstance
@@ -2239,7 +2323,7 @@ RelatedContentManager
 								
 								for ( DHTTransportContact c: contacts ){
 									
-									if ( c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+									if ( c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID3 ){
 										
 										addresses.add( c.getAddress());
 									}
@@ -2254,7 +2338,7 @@ RelatedContentManager
 	
 									for ( DHTTransportContact c: contacts ){
 										
-										if ( c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ){
+										if ( c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID3 ){
 											
 											addresses.add( c.getAddress());
 											
@@ -2281,7 +2365,7 @@ RelatedContentManager
 							for (int i=0;i<Math.min( list.size(), MAX_REMOTE_SEARCH_CONTACTS );i++){
 								
 								try{				
-									ddb_contacts.add( ddb.importContact( list.get(i), DHTTransportUDP.PROTOCOL_VERSION_REPLICATION_CONTROL ));
+									ddb_contacts.add( ddb.importContact( list.get(i), DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID3 ));
 									
 								}catch( Throwable e ){
 								}
@@ -2414,7 +2498,7 @@ RelatedContentManager
 					key,
 					10000 );
 			
-			// System.out.println( "search result=" + value );
+				// System.out.println( "search result=" + value );
 			
 			if ( value == null ){
 				
@@ -2521,6 +2605,62 @@ RelatedContentManager
 			}
 		}catch( Throwable e ){
 		}
+	}
+	
+	protected BloomFilter
+	sendRemoteFetch(
+		DistributedDatabaseContact		contact )
+	{
+		try{
+			Map<String,Object>	request = new HashMap<String,Object>();
+			
+			request.put( "x", "f" );
+		
+			DistributedDatabaseKey key = ddb.createKey( BEncoder.encode( request ));
+			
+			DistributedDatabaseValue value = 
+				contact.read( 
+					new DistributedDatabaseProgressListener()
+					{
+						public void
+						reportSize(
+							long	size )
+						{	
+						}
+						
+						public void
+						reportActivity(
+							String	str )
+						{	
+						}
+						
+						public void
+						reportCompleteness(
+							int		percent )
+						{
+						}
+					},
+					transfer_type,
+					key,
+					5000 );
+			
+				// System.out.println( "search result=" + value );
+			
+			if ( value != null ){
+			
+				Map<String,Object> reply = (Map<String,Object>)BDecoder.decode((byte[])value.getValue( byte[].class ));
+			
+				Map<String,Object>	m = (Map<String,Object>)reply.get( "f" );
+				
+				if ( m != null ){
+					
+					return( BloomFilterFactory.deserialiseFromMap( m ));
+				}
+			}
+		}catch( Throwable e ){
+		}
+		
+		return( null );
 	}
 	
 	protected Map<String,Object>
@@ -2872,7 +3012,8 @@ RelatedContentManager
 	}
 	
 	protected void
-	saveRelatedContent()
+	saveRelatedContent(
+		int	tick_count )
 	{
 		synchronized( this ){
 				
@@ -2905,6 +3046,11 @@ RelatedContentManager
 						System.out.println( "rcm: discarded" );
 					}
 				}
+				
+				return;
+			}
+			
+			if ( tick_count % CONFIG_SAVE_TICKS != 0 ){
 				
 				return;
 			}
@@ -3147,6 +3293,46 @@ RelatedContentManager
 		}
 	}
 	
+	private List<DownloadInfo>
+	getDHTInfos()
+	{
+		List<DHTPluginValue> vals = dht_plugin.getValues();
+		
+		int	rcm_vals = 0;
+		
+		Set<String>	unique_keys = new HashSet<String>();
+		
+		List<DownloadInfo>	dht_infos = new ArrayList<DownloadInfo>();
+		
+		for ( DHTPluginValue val: vals ){
+			
+			if ( !val.isLocal()){
+				
+				byte[]	bytes = val.getValue();
+				
+				String test = new String( bytes );
+				
+				if ( test.startsWith( "d1:d" ) && test.endsWith( "ee" ) && test.contains( "1:h20:")){
+							
+					try{
+						Map map = BDecoder.decode( bytes );
+					
+						DownloadInfo info =	decodeInfo( map, null, 1, false, unique_keys );
+						
+						if ( info != null ){
+							
+							dht_infos.add( info );
+						}
+					}catch( Throwable e ){
+						
+					}
+				}
+			}
+		}
+		
+		return( dht_infos );
+	}
+	
 	private void
 	testKeyBloom()
 	{
@@ -3197,57 +3383,20 @@ RelatedContentManager
 												
 			Set<String>	all_words = new HashSet<String>();
 			
-			List<DHTPluginValue> vals = dht_plugin.getValues();
-													
-			int	rcm_vals = 0;
-			
-			Set<String>	unique_keys = new HashSet<String>();
-			
-			List<DownloadInfo>	dht_infos = new ArrayList<DownloadInfo>();
-			
-			for ( DHTPluginValue val: vals ){
-				
-				if ( !val.isLocal()){
-					
-					byte[]	bytes = val.getValue();
-					
-					String test = new String( bytes );
-					
-					if ( test.startsWith( "d1:d" ) && test.endsWith( "ee" ) && test.contains( "1:h20:")){
-								
-						try{
-							Map map = BDecoder.decode( bytes );
+			Iterator<DownloadInfo>	it1 = getDHTInfos().iterator();
 						
-							DownloadInfo info =	decodeInfo( map, null, 1, false, unique_keys );
-							
-							if ( info != null ){
-								
-								dht_infos.add( info );
-							}
-						}catch( Throwable e ){
-							
-						}
-					}
-				}
-			}
+			Iterator<DownloadInfo>	it2 = transient_info_cache.values().iterator();
 			
-			Iterator<DownloadInfo>	it1 = dht_infos.iterator();
-						
-			Iterator<DownloadInfo>	it2 = cc.related_content.values().iterator();			
+			Iterator<DownloadInfo>	it3 = cc.related_content.values().iterator();			
 
-			for ( Iterator _it: new Iterator[]{ it1, it2 }){
+			for ( Iterator _it: new Iterator[]{ it1, it2, it3 }){
 				
 				Iterator<DownloadInfo> it = (Iterator<DownloadInfo>)_it;
 				
 				while( it.hasNext()){
 				
 					DownloadInfo di = it.next();
-					
-					if ( di.getHash() == null ){
-						
-						continue;
-					}
-					
+										
 					String title = di.getTitle().toLowerCase( Locale.US );
 					
 					// System.out.println( title );
@@ -3665,7 +3814,7 @@ RelatedContentManager
 		private int				level;
 		private boolean			explicit;
 		
-			// we *need* this reference here to maange garbage collection correctly
+			// we *need* this reference here to manage garbage collection correctly
 		
 		private ContentCache	cc;
 		
