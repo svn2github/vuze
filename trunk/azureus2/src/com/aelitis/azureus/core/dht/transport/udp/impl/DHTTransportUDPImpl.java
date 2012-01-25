@@ -573,6 +573,12 @@ DHTTransportUDPImpl
 		return( network );
 	}
 	
+	public boolean 
+	isIPV6() 
+	{
+		return( v6 );
+	}
+	
 	public void
 	testInstanceIDChange()
 	

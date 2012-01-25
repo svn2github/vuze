@@ -307,6 +307,30 @@ DDBaseImpl
 		return( new DDBaseContactImpl( this, contact));
 	}
 	
+	public DistributedDatabaseContact
+	importContact(
+		InetSocketAddress				address,
+		byte							version,
+		int								preferred_dht )
+	
+		throws DistributedDatabaseException
+	{
+		throwIfNotAvailable();
+	
+		if ( preferred_dht != DistributedDatabase.DHT_MAIN ){
+			Debug.outNoStack( "DDB: Importing CVS contact" );
+		}
+		
+		DHTPluginContact	contact = getDHT().importContact( address, version, preferred_dht==DistributedDatabase.DHT_CVS );
+		
+		if ( contact == null ){
+			
+			throw( new DistributedDatabaseException( "import of '" + address + "' failed" ));
+		}
+		
+		return( new DDBaseContactImpl( this, contact ));
+	}
+	
 	public void
 	write(
 		DistributedDatabaseListener		listener,

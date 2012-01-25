@@ -58,6 +58,12 @@ DHTTransportLoopbackImpl
 		return( DHT.NW_MAIN );
 	}
 	
+	public boolean 
+	isIPV6() 
+	{
+		return( false );
+	}
+	
 	public static void
 	setLatency(
 		int	_latency )

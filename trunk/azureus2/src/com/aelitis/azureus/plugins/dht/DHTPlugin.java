@@ -1743,6 +1743,42 @@ DHTPlugin
 	}
 	
 	public DHTPluginContact
+	importContact(
+		InetSocketAddress				address,
+		byte							version,
+		boolean							is_cvs )
+	{
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+
+		InetAddress contact_address = address.getAddress();
+		
+		int	target_network = is_cvs?DHT.NW_CVS:DHT.NW_MAIN;
+		
+		for ( DHTPluginImpl dht: dhts ){
+			
+			if ( dht.getDHT().getTransport().getNetwork() != target_network ){
+				
+				continue;
+			}
+			
+			InetAddress dht_address = dht.getLocalAddress().getAddress().getAddress();
+			
+			if ( 	( contact_address instanceof Inet4Address && dht_address instanceof Inet4Address ) ||
+					( contact_address instanceof Inet6Address && dht_address instanceof Inet6Address )){
+				
+				return( dht.importContact( address, version ));
+			}
+		}
+		
+			// fallback
+		
+		return( importContact( address, version ));
+	}
+	
+	public DHTPluginContact
 	getLocalAddress()
 	{
 		if ( !isEnabled()){

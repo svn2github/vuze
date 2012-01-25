@@ -38,6 +38,9 @@ DHTTransport
 	public int
 	getNetwork();
 
+	public boolean
+	isIPV6();
+	
 		/**
 		 * Gives access to the node ID for this transport 
 		 * @return
