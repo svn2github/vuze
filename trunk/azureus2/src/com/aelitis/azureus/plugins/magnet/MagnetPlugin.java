@@ -57,6 +57,8 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.sharing.ShareException;
+import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
@@ -130,16 +132,26 @@ MagnetPlugin
 					MenuItem		_menu,
 					Object			_target )
 				{
-					Download download = (Download)((TableRow)_target).getDataSource();
-				  
-					if ( download == null || download.getTorrent() == null ){
-						
+					Torrent torrent;
+					String name;
+					Object ds = ((TableRow)_target).getDataSource();
+					if (ds instanceof ShareResourceFile) {
+						try {
+							torrent = ((ShareResourceFile) ds).getItem().getTorrent();
+						} catch (ShareException e) {
+							return;
+						}
+						name = ((ShareResourceFile) ds).getName();
+					} else if (ds instanceof Download) {
+						Download download = (Download)((TableRow)_target).getDataSource();
+						torrent = download.getTorrent();
+						name = download.getName();
+					} else {
 						return;
 					}
+				  
 					
-					Torrent torrent = download.getTorrent();
-					
-					String	cb_data = "magnet:?xt=urn:btih:" + Base32.encode( torrent.getHash());
+					String	cb_data = "magnet:?xt=urn:btih:" + Base32.encode( torrent.getHash()) + "&dn=" + UrlUtils.encode(name);
 
 					// removed this as well - nothing wrong with allowing magnet copy
 					// for private torrents - they still can't be tracked if you don't
@@ -199,9 +211,11 @@ MagnetPlugin
 		
 		final TableContextMenuItem menu1 = plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "MagnetPlugin.contextmenu.exporturi" );
 		final TableContextMenuItem menu2 = plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_COMPLETE, 	"MagnetPlugin.contextmenu.exporturi" );
+		final TableContextMenuItem menu3 = plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYSHARES, 	"MagnetPlugin.contextmenu.exporturi" );
 			
 		menu1.addListener( listener );
 		menu2.addListener( listener );
+		menu3.addListener( listener );
 
 		MagnetURIHandler.getSingleton().addListener(
 			new MagnetURIHandlerListener()
@@ -420,6 +434,7 @@ MagnetPlugin
 
 							menu1.setGraphic( swt.createGraphic( image ));
 							menu2.setGraphic( swt.createGraphic( image ));							
+							menu3.setGraphic( swt.createGraphic( image ));							
 						}
 					}
 					
