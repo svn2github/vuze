@@ -24,6 +24,7 @@ package org.gudy.azureus2.pluginsimpl.local.ddb;
 
 import java.net.InetSocketAddress;
 
+import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseContact;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseEvent;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseException;
@@ -34,6 +35,7 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseProgressListener;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginOperationListener;
 import com.aelitis.azureus.plugins.dht.DHTPluginValue;
@@ -60,6 +62,12 @@ DDBaseContactImpl
 		contact		= _contact;
 	}
 	
+	public byte[] 
+	getID() 
+	{
+		return( contact.getID());
+	}
+	
 	public String
 	getName()
 	{
@@ -70,6 +78,12 @@ DDBaseContactImpl
 	getAddress()
 	{
 		return( contact.getAddress());
+	}
+	
+	public int 
+	getDHT() 
+	{
+		return( contact.getNetwork() == DHTPlugin.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN );
 	}
 	
 	public boolean

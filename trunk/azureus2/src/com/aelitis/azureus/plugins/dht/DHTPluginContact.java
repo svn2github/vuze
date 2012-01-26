@@ -34,6 +34,9 @@ import java.util.Map;
 public interface 
 DHTPluginContact 
 {
+	public byte[]
+	getID();
+	
 	public String
 	getName();
 	
@@ -42,6 +45,9 @@ DHTPluginContact
 	
 	public byte
 	getProtocolVersion();
+	
+	public int
+	getNetwork();
 	
 	public boolean
 	isAlive(

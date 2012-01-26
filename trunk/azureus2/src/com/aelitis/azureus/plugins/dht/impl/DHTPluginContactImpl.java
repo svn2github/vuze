@@ -60,10 +60,22 @@ DHTPluginContactImpl
 		return( contact );
 	}
 	
+	public byte[]
+	getID()
+	{
+		return( contact.getID());
+	}
+	
 	public String
 	getName()
 	{
 		return( contact.getName());
+	}
+	
+	public int
+	getNetwork()
+	{
+		return( plugin.getDHT().getTransport().getNetwork());
 	}
 	
 	public byte

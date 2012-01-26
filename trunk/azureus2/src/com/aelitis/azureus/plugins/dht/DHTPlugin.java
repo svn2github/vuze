@@ -95,6 +95,9 @@ DHTPlugin
 	public static final byte		DT_FREQUENCY		= DHT.DT_FREQUENCY;
 	public static final byte		DT_SIZE				= DHT.DT_SIZE;
 	
+	public static final int			NW_MAIN				= DHT.NW_MAIN;
+	public static final int			NW_CVS				= DHT.NW_CVS;
+
 	public static final int			MAX_VALUE_SIZE		= DHT.MAX_VALUE_SIZE;
 
 	private static final String	PLUGIN_VERSION			= "1.0";

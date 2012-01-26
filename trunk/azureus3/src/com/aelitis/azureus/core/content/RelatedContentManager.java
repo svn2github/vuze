@@ -24,7 +24,9 @@ package com.aelitis.azureus.core.content;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -82,6 +84,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.transport.DHTTransport;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
@@ -101,7 +104,9 @@ public class
 RelatedContentManager
 	implements DistributedDatabaseTransferHandler
 {
-	private static final boolean 	TRACE = false;
+	private static final boolean 	TRACE 			= false;
+	private static final boolean	TRACE_SEARCH	= false;
+	
 	public static final boolean	DISABLE_ALL_UI	= false; // !Constants.isCVSVersion() && COConfigurationManager.getStringParameter("ui", "az3").equals("az3");
 
 	private static final int	MAX_HISTORY					= 16;
@@ -197,7 +202,8 @@ RelatedContentManager
 	
 	private AtomicInteger	total_unread = new AtomicInteger( COConfigurationManager.getIntParameter( CONFIG_TOTAL_UNREAD, 0 ));
 	
-	private AsyncDispatcher	content_change_dispatcher = new AsyncDispatcher();
+	private AsyncDispatcher	content_change_dispatcher 	= new AsyncDispatcher();
+	private AsyncDispatcher	harvest_dispatcher			= new AsyncDispatcher();
 	
 	private static final int SECONDARY_LOOKUP_CACHE_MAX = 10;
 	
@@ -222,6 +228,13 @@ RelatedContentManager
 			}
 		};
 	
+	private static final int					HARVEST_MAX_BLOOMS			= 25;
+	private static final int					HARVEST_MAX_FAILS_HISTORY	= 128;
+	private static final int					HARVEST_BLOOM_UPDATE_MILLIS	= 10*60*1000;
+	
+	private ByteArrayHashMap<ForeignBloom>		harvested_blooms 	= new ByteArrayHashMap<ForeignBloom>();
+	private ByteArrayHashMap<String>			harvested_fails 	= new ByteArrayHashMap<String>();
+	
 	private boolean	persist;
 	
 	{
@@ -237,6 +250,7 @@ RelatedContentManager
 				}
 			});
 	}
+	
 	protected
 	RelatedContentManager()
 	
@@ -420,6 +434,8 @@ RelatedContentManager
 													
 													saveRelatedContent( tick_count );
 												}
+												
+												harvestBlooms();
 											}
 										}
 										
@@ -2194,12 +2210,14 @@ RelatedContentManager
 	public SearchInstance
 	searchRCM(
 		Map<String,Object>		search_parameters,
-		final SearchObserver	observer )
+		SearchObserver			_observer )
 	
 		throws SearchException
 	{
 		initialisation_complete_sem.reserve();
 
+		final MySearchObserver observer = new MySearchObserver( _observer );
+		
 		final String	term = (String)search_parameters.get( SearchProvider.SP_SEARCH_TERM );
 		
 		final SearchInstance si = 
@@ -2312,64 +2330,93 @@ RelatedContentManager
 						}
 					}finally{
 						
-						try{
-							DHT[]	dhts = dht_plugin.getDHTs();
-	
-							Set<InetSocketAddress>	addresses = new HashSet<InetSocketAddress>();
+						try{	
+							List<DistributedDatabaseContact> 	hinted_contacts = searchForeignBlooms( term );
+
+							// test injection of local 
+							// hinted_contacts.add( 0, ddb.getLocalContact());
 							
+							final List<DistributedDatabaseContact>	contacts_to_search = new ArrayList<DistributedDatabaseContact>();
+
+							final Map<InetSocketAddress,DistributedDatabaseContact> contact_map = new HashMap<InetSocketAddress, DistributedDatabaseContact>();
+							
+							contacts_to_search.addAll( hinted_contacts );
+							
+							for ( DistributedDatabaseContact c: hinted_contacts ){
+								
+								contact_map.put( c.getAddress(), c );
+							}
+							
+							DHT[]	dhts = dht_plugin.getDHTs();
+								
 							for ( DHT dht: dhts ){
 							
+								int	network = dht.getTransport().getNetwork();
+								
 								DHTTransportContact[] contacts = dht.getTransport().getReachableContacts();
 								
-								for ( DHTTransportContact c: contacts ){
+								Collections.shuffle( Arrays.asList( contacts ));
+																
+								for ( DHTTransportContact dc: contacts ){
+											
+									InetSocketAddress address = dc.getAddress();
 									
-									if ( c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID3 ){
+									if ( !contact_map.containsKey( address )){
 										
-										addresses.add( c.getAddress());
+										try{
+											DistributedDatabaseContact c = ddb.importContact( address, DHTTransportUDP.PROTOCOL_VERSION_MIN, network==DHT.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN );
+											
+											contact_map.put( address, c );
+											
+											contacts_to_search.add( c );
+											
+										}catch( Throwable e ){
+											
+										}
 									}
 								}
 							}
 							
-							if ( addresses.size() < MAX_REMOTE_SEARCH_CONTACTS ){
+							if ( contact_map.size() < MAX_REMOTE_SEARCH_CONTACTS ){
+								
+									// back fill with less reliable contacts if required
 								
 								for ( DHT dht: dhts ){
 									
+									int	network = dht.getTransport().getNetwork();
+									
 									DHTTransportContact[] contacts = dht.getTransport().getRecentContacts();
 	
-									for ( DHTTransportContact c: contacts ){
+									for ( DHTTransportContact dc: contacts ){
 										
-										if ( c.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID3 ){
+										InetSocketAddress address = dc.getAddress();
+										
+										if ( !contact_map.containsKey( address )){
 											
-											addresses.add( c.getAddress());
-											
-											if ( addresses.size() >= MAX_REMOTE_SEARCH_CONTACTS ){
+											try{
+												DistributedDatabaseContact c = ddb.importContact( address, DHTTransportUDP.PROTOCOL_VERSION_MIN, network==DHT.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN );
 												
-												break;
+												contact_map.put( address, c );
+												
+												contacts_to_search.add( c );
+																				
+												if ( contact_map.size() >= MAX_REMOTE_SEARCH_CONTACTS ){
+													
+													break;
+												}
+											}catch( Throwable e ){
+												
 											}
 										}
 									}
 									
-									if ( addresses.size() >= MAX_REMOTE_SEARCH_CONTACTS ){
+									if ( contact_map.size() >= MAX_REMOTE_SEARCH_CONTACTS ){
 										
 										break;
 									}
 								}
 							}
 							
-							List<InetSocketAddress>	list = new ArrayList<InetSocketAddress>( addresses );
-							
-							Collections.shuffle( list );
-							
-							List<DistributedDatabaseContact>	ddb_contacts = new ArrayList<DistributedDatabaseContact>();
-							
-							for (int i=0;i<Math.min( list.size(), MAX_REMOTE_SEARCH_CONTACTS );i++){
-								
-								try{				
-									ddb_contacts.add( ddb.importContact( list.get(i), DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID3 ));
-									
-								}catch( Throwable e ){
-								}
-							}
 							
 							long	start		= SystemTime.getMonotonousTime();
 							long	max			= MAX_REMOTE_SEARCH_MILLIS;
@@ -2380,9 +2427,38 @@ RelatedContentManager
 							
 							final int[]			done = {0};
 							
-							for (int i=0;i<ddb_contacts.size();i++){
+							while( true ){
+										
+									// hard limit of total results found and overall elapsed
 								
-								final DistributedDatabaseContact c = ddb_contacts.get( i );
+								if ( 	observer.getResultCount() >= 100 || 
+										SystemTime.getMonotonousTime() - start >= max ){
+									
+									logSearch( "Hard limit exceeded" );
+									
+									return;
+								}
+
+								if ( sent >= MAX_REMOTE_SEARCH_CONTACTS ){
+									
+									logSearch( "Max contacts searched" );
+									
+									break;
+								}
+
+								final DistributedDatabaseContact contact_to_search;
+								
+								synchronized( contacts_to_search ){
+									
+									if ( contacts_to_search.isEmpty()){
+										
+										break;
+										
+									}else{
+										
+										contact_to_search = contacts_to_search.remove(0);
+									}
+								}
 																
 								new AEThread2( "RCM:rems", true )
 								{
@@ -2390,8 +2466,35 @@ RelatedContentManager
 									run()
 									{
 										try{
-											sendRemoteSearch( si, hashes, c, term, observer );
-																						
+											logSearch( "Searching " + contact_to_search.getAddress());
+											
+											List<DistributedDatabaseContact> extra_contacts = sendRemoteSearch( si, hashes, contact_to_search, term, observer );
+													
+											if ( extra_contacts == null ){
+												
+												logSearch( "    " + contact_to_search.getAddress() + " failed" );
+												
+												foreignBloomFailed( contact_to_search );
+												
+											}else{
+												
+												logSearch( "    " + contact_to_search.getAddress() + " OK" );
+												
+												synchronized( contacts_to_search ){
+													
+													for ( DistributedDatabaseContact c: extra_contacts ){
+														
+														InetSocketAddress address = c.getAddress();
+														
+														if ( !contact_map.containsKey( address )){
+															
+															contact_map.put( address, c );
+															
+															contacts_to_search.add( 0, c );
+														}
+													}
+												}
+											}
 										}finally{
 											
 											synchronized( done ){
@@ -2408,7 +2511,11 @@ RelatedContentManager
 								
 								synchronized( done ){
 									
-									if ( done[0] >= ddb_contacts.size() / 2 ){
+									if ( done[0] >= MAX_REMOTE_SEARCH_CONTACTS / 2 ){
+										
+										logSearch( "Switching to 5 second limit" );
+										
+											// give another 5 secs for results to come in
 										
 										start		= SystemTime.getMonotonousTime();
 										max			= 5*1000;
@@ -2417,7 +2524,9 @@ RelatedContentManager
 									}
 								}
 								
-								if ( i > 10 ){
+								if ( sent > 10 ){
+									
+										// rate limit a bit after the first 10
 									
 									try{
 										Thread.sleep( 250 );
@@ -2427,18 +2536,29 @@ RelatedContentManager
 								}
 							}
 							
-							for (int i=0;i<sent;i++){
+							for ( int i=0;i<sent;i++ ){
 								
 								if ( done[0] > sent*4/5 ){
 									
 									break;
 								}
 								
-								long	elapsed = SystemTime.getMonotonousTime() - start;
+								long	remaining = SystemTime.getMonotonousTime() - ( start + max );
 								
-								if ( elapsed < max ){
+								if ( 	remaining > 5000 &&
+										done[0] >= MAX_REMOTE_SEARCH_CONTACTS / 2 ){
 									
-									sem.reserve( max - elapsed );
+									logSearch( "Switching to 5 second limit" );
+									
+										// give another 5 secs for results to come in
+									
+									start		= SystemTime.getMonotonousTime();
+									max			= 5*1000;
+								}
+								
+								if ( remaining > 0 ){
+									
+									sem.reserve( 250 );
 									
 								}else{
 									
@@ -2457,7 +2577,7 @@ RelatedContentManager
 		return( si );
 	}
 	
-	protected void
+	protected List<DistributedDatabaseContact>
 	sendRemoteSearch(
 		SearchInstance					si,
 		Set<String>						hashes,
@@ -2502,7 +2622,7 @@ RelatedContentManager
 			
 			if ( value == null ){
 				
-				return;
+				return( null );
 			}
 			
 			Map<String,Object> reply = (Map<String,Object>)BDecoder.decode((byte[])value.getValue( byte[].class ));
@@ -2603,7 +2723,35 @@ RelatedContentManager
 					
 				observer.resultReceived( si, result );
 			}
+			
+			list = (List<Map<String,Object>>)reply.get( "c" );
+
+			List<DistributedDatabaseContact>	contacts = new ArrayList<DistributedDatabaseContact>();
+			
+			if ( list != null ){
+			
+				for ( Map<String,Object> m: list ){
+					
+					try{
+						String	host 	= ImportExportUtils.importString( m, "a" );
+						int		port	= ImportExportUtils.importInt( m, "p" );
+						
+						DistributedDatabaseContact ddb_contact = 
+							ddb.importContact( new InetSocketAddress( InetAddress.getByName(host), port ), DHTTransportUDP.PROTOCOL_VERSION_MIN, contact.getDHT());
+
+						contacts.add( ddb_contact );
+						
+					}catch( Throwable e ){
+					}
+					
+				}
+			}
+			
+			return( contacts );
+			
 		}catch( Throwable e ){
+			
+			return( null );
 		}
 	}
 	
@@ -2663,24 +2811,138 @@ RelatedContentManager
 		return( null );
 	}
 	
+	protected BloomFilter
+	sendRemoteUpdate(
+		ForeignBloom	f_bloom )
+	{
+		try{
+			Map<String,Object>	request = new HashMap<String,Object>();
+			
+			request.put( "x", "u" );
+			request.put( "s", new Long( f_bloom.getFilter().getEntryCount()));
+		
+			DistributedDatabaseKey key = ddb.createKey( BEncoder.encode( request ));
+			
+			DistributedDatabaseValue value = 
+				f_bloom.getContact().read( 
+					new DistributedDatabaseProgressListener()
+					{
+						public void
+						reportSize(
+							long	size )
+						{	
+						}
+						
+						public void
+						reportActivity(
+							String	str )
+						{	
+						}
+						
+						public void
+						reportCompleteness(
+							int		percent )
+						{
+						}
+					},
+					transfer_type,
+					key,
+					5000 );
+			
+				// System.out.println( "search result=" + value );
+			
+			if ( value != null ){
+			
+				Map<String,Object> reply = (Map<String,Object>)BDecoder.decode((byte[])value.getValue( byte[].class ));
+			
+				Map<String,Object>	m = (Map<String,Object>)reply.get( "f" );
+				
+				if ( m != null ){
+					
+					return( BloomFilterFactory.deserialiseFromMap( m ));
+					
+				}else{
+					
+					if ( reply.containsKey( "s" )){
+						
+						logSearch( "Bloom for " + f_bloom.getContact().getAddress() + " same size" );
+						
+					}else{
+						
+						logSearch( "Bloom for " + f_bloom.getContact().getAddress() + " update not supported yet" );
+					}
+					
+					return( f_bloom.getFilter());
+				}
+			}
+		}catch( Throwable e ){
+		}
+		
+		return( null );
+	}
+	
 	protected Map<String,Object>
 	receiveRemoteRequest(
-		Map<String,Object>		request )
+		DistributedDatabaseContact		originator,
+		Map<String,Object>				request )
 	{
 		Map<String,Object>	response = new HashMap<String,Object>();
 		
-		try{			
+		try{	
+			boolean	originator_is_neighbour = false;
+			
+			DHT[] dhts = dht_plugin.getDHTs();
+			
+			byte[] originator_id = originator.getID();
+			
+			for ( DHT d: dhts ){
+				
+				List<DHTTransportContact> contacts = d.getControl().getClosestKContactsList( d.getRouter().getID(), true );
+				
+				for ( DHTTransportContact c: contacts ){
+					
+					if ( Arrays.equals( c.getID(), originator_id)){
+						
+						originator_is_neighbour = true;
+						
+						break;
+					}
+				}
+				
+				if ( originator_is_neighbour ){
+					
+					break;
+				}
+			}
+			
 			String	req_type = ImportExportUtils.importString( request, "x" );
 			
 			if ( req_type != null ){
 				
 				if ( req_type.equals( "f" )){
 					
-					BloomFilter filter = getKeyBloom();
+					BloomFilter filter = getKeyBloom( !originator_is_neighbour );
 					
 					if ( filter != null ){
 						
 						response.put( "f", filter.serialiseToMap());
+					}
+				}else if ( req_type.equals( "u" )){
+					
+					BloomFilter filter = getKeyBloom( !originator_is_neighbour );
+					
+					if ( filter != null ){
+
+						int	existing_size = ImportExportUtils.importInt( request, "s", 0 );
+					
+						if ( existing_size != filter.getEntryCount()){
+							
+							response.put( "f", filter.serialiseToMap());
+							
+						}else{
+							
+							response.put( "s", new Long( existing_size ));
+						}
 					}
 				}
 			}else{
@@ -2737,6 +2999,27 @@ RelatedContentManager
 					
 					response.put( "l", list );
 				}
+				
+				List<DistributedDatabaseContact> bloom_hits = searchForeignBlooms( term );
+				
+				if ( bloom_hits.size() > 0 ){
+					
+					List<Map>	list = new ArrayList<Map>();
+					
+					for ( DistributedDatabaseContact c: bloom_hits ){
+						
+						Map	m = new HashMap();
+						
+						list.add( m );
+						
+						InetSocketAddress address = c.getAddress();
+						
+						m.put( "a", address.getAddress().getHostAddress());
+						m.put( "p", new Long( address.getPort()));
+					}
+					
+					response.put( "c", list );
+				}
 			}
 		}catch( Throwable e ){
 		}
@@ -2761,7 +3044,7 @@ RelatedContentManager
 			
 			Map<String,Object>	request = BDecoder.decode( key );
 			
-			Map<String,Object>	result = receiveRemoteRequest( request );
+			Map<String,Object>	result = receiveRemoteRequest( contact, request );
 			
 			return( ddb.createValue( BEncoder.encode( result )));
 			
@@ -3272,7 +3555,8 @@ RelatedContentManager
 	private static final int KEY_BLOOM_MAX_BITS				= 50000;	// 6k ish
 	private static final int KEY_BLOOM_MAX_ENTRIES			= KEY_BLOOM_MAX_BITS/KEY_BLOOM_LOAD_FACTOR;
 
-	private volatile BloomFilter	key_bloom;
+	private volatile BloomFilter	key_bloom_with_local;
+	private volatile BloomFilter	key_bloom_without_local;
 	private volatile long			last_key_bloom_update = -1;
 	
 	private Set<String>	ignore_words = new HashSet<String>();
@@ -3293,13 +3577,20 @@ RelatedContentManager
 		}
 	}
 	
+	private static void
+	logSearch(
+		String		str )
+	{
+		if ( TRACE_SEARCH ){
+			System.out.println( str );
+		}
+	}
+	
 	private List<DownloadInfo>
 	getDHTInfos()
 	{
 		List<DHTPluginValue> vals = dht_plugin.getValues();
-		
-		int	rcm_vals = 0;
-		
+				
 		Set<String>	unique_keys = new HashSet<String>();
 		
 		List<DownloadInfo>	dht_infos = new ArrayList<DownloadInfo>();
@@ -3365,14 +3656,54 @@ RelatedContentManager
 	}
 	
 	private BloomFilter
-	getKeyBloom()
+	getKeyBloom(
+		boolean		include_dht_local )
 	{
-		if ( key_bloom == null ){
-			
+		if ( key_bloom_with_local == null ){
+				
 			updateKeyBloom( loadRelatedContent());
 		}
+			
+		if ( include_dht_local ){
+			
+			return( key_bloom_with_local );
+			
+		}else{
+			
+			return( key_bloom_without_local );
+		}
+	}
+	
+	private List<String>
+	getDHTWords(
+		String		title )
+	{
+		title = title.toLowerCase( Locale.US );
 		
-		return( key_bloom );
+		
+		char[]	chars = title.toCharArray();
+		
+		for ( int i=0;i<chars.length;i++){
+			
+			if ( !Character.isLetterOrDigit( chars[i])){
+				
+				chars[i] = ' ';
+			}
+		}
+		
+		String[] words = new String( chars ).split( " " );
+		
+		List<String>	result = new ArrayList<String>( words.length );
+		
+		for ( String word: words ){
+			
+			if ( word.length() > 0 && !ignore_words.contains( word )){
+				
+				result.add( word );
+			}
+		}
+		
+		return( result );
 	}
 	
 	private void
@@ -3381,61 +3712,69 @@ RelatedContentManager
 	{
 		synchronized( this ){
 												
-			Set<String>	all_words = new HashSet<String>();
+			Set<String>	dht_only_words 		= new HashSet<String>();
+			Set<String>	non_dht_words 		= new HashSet<String>();
 			
-			Iterator<DownloadInfo>	it1 = getDHTInfos().iterator();
+			List<DownloadInfo>		dht_infos		= getDHTInfos();
+			
+			Iterator<DownloadInfo>	it_dht 			= dht_infos.iterator();
 						
-			Iterator<DownloadInfo>	it2 = transient_info_cache.values().iterator();
+			Iterator<DownloadInfo>	it_transient 	= transient_info_cache.values().iterator();
 			
-			Iterator<DownloadInfo>	it3 = cc.related_content.values().iterator();			
+			Iterator<DownloadInfo>	it_rc 			= cc.related_content.values().iterator();			
 
-			for ( Iterator _it: new Iterator[]{ it1, it2, it3 }){
+			for ( Iterator _it: new Iterator[]{ it_transient, it_rc, it_dht }){
 				
 				Iterator<DownloadInfo> it = (Iterator<DownloadInfo>)_it;
 				
 				while( it.hasNext()){
 				
 					DownloadInfo di = it.next();
-										
-					String title = di.getTitle().toLowerCase( Locale.US );
-					
-					// System.out.println( title );
-					
-					char[]	chars = title.toCharArray();
-					
-					for ( int i=0;i<chars.length;i++){
-						
-						if ( !Character.isLetterOrDigit( chars[i])){
 							
-							chars[i] = ' ';
-						}
-					}
-					
-					String[] words = new String( chars ).split( " " );
+					List<String>	words = getDHTWords( di.getTitle());
 					
 					for ( String word: words ){
+															
+							// note that it_dht is processed last
 						
-						if ( word.length() > 0 && !ignore_words.contains( word )){
+						if ( it == it_dht ){
 							
-							all_words.add( word );
+							if ( !non_dht_words.contains( word )){
+							
+								dht_only_words.add( word );
+							}
+						}else{
+															
+							non_dht_words.add( word );
 						}
 					}
 				}
 			}
 			
-			int	desired_bits = all_words.size() * KEY_BLOOM_LOAD_FACTOR;
+			int	all_desired_bits = (dht_only_words.size() + non_dht_words.size()) * KEY_BLOOM_LOAD_FACTOR;
 			
-			desired_bits = Math.max( desired_bits, KEY_BLOOM_MIN_BITS );
-			desired_bits = Math.min( desired_bits, KEY_BLOOM_MAX_BITS );
+			all_desired_bits = Math.max( all_desired_bits, KEY_BLOOM_MIN_BITS );
+			all_desired_bits = Math.min( all_desired_bits, KEY_BLOOM_MAX_BITS );
 			
-			BloomFilter b = BloomFilterFactory.createAddOnly( desired_bits );
+			BloomFilter all_bloom = BloomFilterFactory.createAddOnly( all_desired_bits );
 
-			for ( String word: all_words ){
+			int	non_dht_desired_bits = non_dht_words.size() * KEY_BLOOM_LOAD_FACTOR;
+			
+			non_dht_desired_bits = Math.max( non_dht_desired_bits, KEY_BLOOM_MIN_BITS );
+			non_dht_desired_bits = Math.min( non_dht_desired_bits, KEY_BLOOM_MAX_BITS );
+			
+			BloomFilter non_dht_bloom = BloomFilterFactory.createAddOnly( non_dht_desired_bits );
+
+			
+			for ( String word: non_dht_words ){
 				
 				try{
-					b.add( word.getBytes( "UTF8" ));
+					byte[]	bytes = word.getBytes( "UTF8" );
 					
-					if ( b.getEntryCount() > KEY_BLOOM_MAX_ENTRIES ){
+					all_bloom.add( bytes );
+					non_dht_bloom.add( bytes );
+					
+					if ( all_bloom.getEntryCount() >= KEY_BLOOM_MAX_ENTRIES ){
 						
 						break;
 					}
@@ -3443,12 +3782,368 @@ RelatedContentManager
 				}
 			}
 				
-			// System.out.println( "bloom=" + b.getSize() + "/" + b.getEntryCount() + ": rcm=" + cc.related_content.size() + ", dht=" + dht_infos.size());
 			
-			key_bloom = b;
+			for ( String word: dht_only_words ){
+				
+				try{
+					byte[]	bytes = word.getBytes( "UTF8" );
+					
+					all_bloom.add( bytes );
+					
+					if ( all_bloom.getEntryCount() >= KEY_BLOOM_MAX_ENTRIES ){
+						
+						break;
+					}
+				}catch( Throwable e ){
+				}
+			}
+			
+			logSearch( 
+				"blooms=" + 
+				all_bloom.getSize() + "/" + all_bloom.getEntryCount() +", " +
+				non_dht_bloom.getSize() + "/" + non_dht_bloom.getEntryCount()  +
+				": rcm=" + cc.related_content.size() + ", trans=" + transient_info_cache.size() + ", dht=" + dht_infos.size());
+			
+			key_bloom_with_local 	= all_bloom;
+			key_bloom_without_local = non_dht_bloom;
 			
 			last_key_bloom_update = SystemTime.getMonotonousTime();
 		}
+	}
+	
+	private void
+	harvestBlooms()
+	{
+		harvest_dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					if ( harvest_dispatcher.getQueueSize() > 0 ){
+						
+						return;
+					}
+					
+					ForeignBloom oldest = null;
+					
+					synchronized( harvested_blooms ){
+						
+						for ( ForeignBloom bloom: harvested_blooms.values()){
+							
+							if ( 	oldest == null ||
+									bloom.getLastUpdateTime() < oldest.getLastUpdateTime()){
+								
+								oldest	= bloom;
+							}
+						}
+					}
+					
+					long now = SystemTime.getMonotonousTime();
+					
+					if ( oldest != null ){
+						
+						if ( now - oldest.getLastUpdateTime() > HARVEST_BLOOM_UPDATE_MILLIS ){
+							
+							DistributedDatabaseContact ddb_contact = oldest.getContact();
+
+							BloomFilter updated_filter = sendRemoteUpdate( oldest );
+							
+							if ( updated_filter == null ){
+													
+								logSearch( "harvest: " + ddb_contact.getAddress() + " failed to update" );
+								
+								synchronized( harvested_blooms ){
+								
+									harvested_blooms.remove( ddb_contact.getID());
+								
+									harvested_fails.put( ddb_contact.getID(), "" );
+								}
+							}else{
+								
+								logSearch( "harvest: " + ddb_contact.getAddress() + " updated" );
+								
+								oldest.updateFilter( updated_filter );
+							}
+						}
+					}
+					
+					if ( harvested_blooms.size() < HARVEST_MAX_BLOOMS ){
+					
+						try{
+							int	fail_count	= 0;
+							
+							DHT[] dhts = dht_plugin.getDHTs();
+							
+outer:
+							for ( DHT dht: dhts ){
+								
+								DHTTransport transport = dht.getTransport();
+								
+								if ( transport.isIPV6()){
+									
+									continue;
+								}
+								
+								int	network = dht.getTransport().getNetwork();
+								
+								if ( network != DHT.NW_CVS ){
+									
+									logSearch( "Harvest: ignoring main DHT" );
+									
+									continue;
+								}
+													
+								DHTTransportContact[] contacts = dht.getTransport().getReachableContacts();
+								
+								for ( DHTTransportContact contact: contacts ){
+				
+									byte[]	contact_id = contact.getID();
+									
+									if ( dht.getRouter().isID( contact_id )){
+										
+										logSearch( "not skipping local!!!!" );
+										
+										// continue;
+									}
+									
+									DistributedDatabaseContact ddb_contact = 
+										ddb.importContact( contact.getAddress(), DHTTransportUDP.PROTOCOL_VERSION_MIN, network==DHT.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN );
+									
+									synchronized( harvested_blooms ){
+																				
+										if ( harvested_fails.containsKey( contact_id )){
+											
+											continue;
+										}
+
+										if ( harvested_blooms.containsKey( contact_id )){
+											
+											continue;
+										}
+									}
+									
+									BloomFilter filter = sendRemoteFetch( ddb_contact );
+									
+									logSearch( "harvest: " + contact.getString() + " -> " +(filter==null?"null":filter.getString()));
+
+									if ( filter != null ){
+										
+										synchronized( harvested_blooms ){
+										
+											harvested_blooms.put( contact_id, new ForeignBloom( ddb_contact, filter ));
+										}
+										
+										break outer;
+										
+									}else{
+										
+										synchronized( harvested_blooms ){
+										
+											harvested_fails.put( contact_id, "" );
+										}
+										
+										fail_count++;
+										
+										if ( fail_count > 5 ){
+											
+											break outer;
+										}
+									}
+								}
+							}
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
+					}
+					
+					synchronized( harvested_blooms ){
+					
+						if ( harvested_fails.size() > HARVEST_MAX_FAILS_HISTORY ){
+						
+							harvested_fails.clear();
+						}
+					}
+				}
+			});
+	}
+	
+	private void
+	foreignBloomFailed(
+		DistributedDatabaseContact		contact )
+	{
+		byte[]	contact_id = contact.getID();
+		
+		synchronized( harvested_blooms ){
+			
+			harvested_blooms.remove( contact_id );
+			
+			harvested_fails.put( contact_id, "" );
+		}
+	}
+	
+	private List<DistributedDatabaseContact>
+	searchForeignBlooms(
+		String		term )
+	{
+		List<DistributedDatabaseContact>	result = new ArrayList<DistributedDatabaseContact>();
+		
+		try{
+			String[]	 bits = Constants.PAT_SPLIT_SPACE.split(term.toLowerCase());
+	
+			int[]			bit_types 		= new int[bits.length];
+			byte[][]		bit_bytes	 	= new byte[bit_types.length][];
+			byte[][][]		extras			= new byte[bit_types.length][][];
+			
+			for (int i=0;i<bits.length;i++){
+				
+				String bit = bits[i].trim();
+				
+				if ( bit.length() > 0 ){
+					
+					char	c = bit.charAt(0);
+					
+					if ( c == '+' ){
+						
+						bit_types[i] = 1;
+						
+						bit = bit.substring(1);
+						
+					}else if ( c == '-' ){
+						
+						bit_types[i] = 2;
+						
+						bit = bit.substring(1);
+					}
+					
+					if ( bit.startsWith( "(" ) && bit.endsWith((")"))){
+						
+						bit_types[i] = 3;	// ignore
+						
+					}else if ( bit.contains( "|" )){
+											
+						String[]	parts = bit.split( "\\|" );
+						
+						List<String>	p = new ArrayList<String>();
+						
+						for ( String part: parts ){
+							
+							part = part.trim();
+							
+							if ( part.length() > 0 ){
+								
+								p.add( part );
+							}
+						}
+						
+						if ( p.size() == 0 ){
+							
+							bit_types[i] = 3;
+							
+						}else{
+							
+							bit_types[i] = 4;
+	
+							extras[i] = new byte[p.size()][];
+							
+							for ( int j=0;j<p.size();j++){
+								
+								extras[i][j] = p.get(j).getBytes( "UTF8" );
+							}
+						}
+					}
+					
+					bit_bytes[i] = bit.getBytes( "UTF8" );
+				}
+			}
+			
+			synchronized( harvested_blooms ){
+				
+				for ( ForeignBloom fb: harvested_blooms.values()){
+					
+					BloomFilter filter = fb.getFilter();
+					
+					boolean	failed 	= false;
+					int		matches	= 0;
+					
+					for (int i=0;i<bit_bytes.length;i++){
+						
+						byte[]	bit = bit_bytes[i];
+						
+						if ( bit == null || bit.length == 0 ){
+							
+							continue;
+						}
+						
+						int	type = bit_types[i];
+						
+						if ( type == 3 ){
+							
+							continue;
+						}
+						
+						if ( type == 0 || type == 1 ){
+							
+							if ( filter.contains( bit )){
+								
+								matches++;
+								
+							}else{
+								
+								failed	= true;
+								
+								break;
+							}
+						}else if ( type == 2 ){
+						
+							if ( !filter.contains( bit )){
+								
+								matches++;
+								
+							}else{
+								
+								failed	= true;
+								
+								break;
+							}
+						}else if ( type == 4 ){
+							
+							byte[][]	parts = extras[i];
+							
+							int	old_matches = matches;
+							
+							for ( byte[] p: parts ){
+								
+								if ( filter.contains( p )){
+								
+									matches++;
+									
+									break;
+								}
+							}
+							
+							if ( matches == old_matches ){
+								
+								failed = true;
+								
+								break;
+							}
+						}
+					}
+					
+					if ( matches > 0 && !failed ){
+						
+						result.add( fb.getContact());
+					}
+				}
+			}
+		}catch( UnsupportedEncodingException e ){
+			
+			Debug.out( e );
+		}
+		
+		return( result );
 	}
 	
 	private static final int PD_BLOOM_INITIAL_SIZE		= 1000;
@@ -4143,5 +4838,110 @@ RelatedContentManager
 	RCMSearchXFer
 		implements DistributedDatabaseTransferType
 	{	
+	}
+	
+	private static class
+	MySearchObserver
+		implements SearchObserver
+	{
+		private SearchObserver		observer;
+		private AtomicInteger		num_results = new AtomicInteger();
+		
+		private
+		MySearchObserver(
+			SearchObserver		_observer )
+		{
+			observer = _observer;
+		}
+		
+		public void
+		resultReceived(
+			SearchInstance		search,
+			SearchResult		result )
+		{
+			observer.resultReceived( search, result );
+			
+			logSearch( "results=" + num_results.incrementAndGet());
+		}
+		
+		private int
+		getResultCount()
+		{
+			return( num_results.get());
+		}
+		
+		public void
+		complete()
+		{
+			observer.complete();
+		}
+		
+		public void
+		cancelled()
+		{
+			observer.cancelled();
+		}
+		
+		public Object
+		getProperty(
+			int		property )
+		{
+			return( observer.getProperty(property));
+		}
+	}
+	
+	private static class
+	ForeignBloom
+	{
+		private DistributedDatabaseContact	contact;
+		private BloomFilter					filter;
+		
+		private long						created;
+		private long						last_update;
+		
+		private
+		ForeignBloom(
+			DistributedDatabaseContact		_contact,
+			BloomFilter						_filter )
+		{
+			contact	= _contact;
+			filter	= _filter;
+			
+			created	 = SystemTime.getMonotonousTime();
+			
+			last_update	= created;
+		}
+		
+		public DistributedDatabaseContact
+		getContact()
+		{
+			return( contact );
+		}
+		
+		public BloomFilter
+		getFilter()
+		{
+			return( filter );
+		}
+		
+		public long
+		getCreateTime()
+		{
+			return( created );
+		}
+		
+		public long
+		getLastUpdateTime()
+		{
+			return( last_update );
+		}
+		
+		public void
+		updateFilter(
+			BloomFilter		f )
+		{
+			filter		= f;
+			last_update	= SystemTime.getMonotonousTime();
+		}
 	}
 }

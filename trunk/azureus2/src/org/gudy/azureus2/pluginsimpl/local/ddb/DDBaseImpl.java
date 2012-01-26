@@ -317,9 +317,11 @@ DDBaseImpl
 	{
 		throwIfNotAvailable();
 	
+		/*
 		if ( preferred_dht != DistributedDatabase.DHT_MAIN ){
 			Debug.outNoStack( "DDB: Importing CVS contact" );
 		}
+		*/
 		
 		DHTPluginContact	contact = getDHT().importContact( address, version, preferred_dht==DistributedDatabase.DHT_CVS );
 		

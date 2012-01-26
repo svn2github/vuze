@@ -32,11 +32,17 @@ import java.net.InetSocketAddress;
 public interface 
 DistributedDatabaseContact 
 {
+	public byte[]
+	getID();
+	
 	public String
 	getName();
 	
 	public InetSocketAddress
 	getAddress();
+	
+	public int
+	getDHT();
 	
 	public boolean
 	isAlive(
