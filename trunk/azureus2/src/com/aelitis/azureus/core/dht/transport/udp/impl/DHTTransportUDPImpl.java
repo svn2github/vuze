@@ -2599,9 +2599,11 @@ outer:
 		
 		if ( handler == null ){
 			
-			logger.log( "No transfer handler registered for key '" + ByteFormatter.encodeString(transfer_key) + "'" );
+			// can get a lot of these on startup so we'll downgrade to just ignoring
+			//logger.log( "No transfer handler registered for key '" + ByteFormatter.encodeString(transfer_key) + "'" );
+			//throw( new DHTTransportException( "No transfer handler registered for " + ByteFormatter.encodeString(transfer_key) ));
 			
-			throw( new DHTTransportException( "No transfer handler registered for " + ByteFormatter.encodeString(transfer_key) ));
+			return( -1 );
 		}
 
 		if ( data == null ){
