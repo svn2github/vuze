@@ -52,6 +52,7 @@ import com.aelitis.azureus.core.dht.DHTStorageKey;
 import com.aelitis.azureus.core.dht.DHTStorageKeyStats;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
@@ -75,8 +76,8 @@ DHTPluginStorageManager
 	private static final long		DIV_EXPIRY_RAND			= 1*24*60*60*1000L;
 	private static final long		KEY_BLOCK_TIMEOUT_SECS	= 7*24*60*60;
 	
-	public static final int			LOCAL_DIVERSIFICATION_SIZE_LIMIT			= 16*1024;
-	public static final int			LOCAL_DIVERSIFICATION_ENTRIES_LIMIT			= LOCAL_DIVERSIFICATION_SIZE_LIMIT/8;
+	public static final int			LOCAL_DIVERSIFICATION_SIZE_LIMIT			= 32*1024;
+	public static final int			LOCAL_DIVERSIFICATION_ENTRIES_LIMIT			= LOCAL_DIVERSIFICATION_SIZE_LIMIT/16;
 	public static final int			LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES	= 3;
 	public static final int			LOCAL_DIVERSIFICATION_READS_PER_MIN			= 30;
 	
@@ -817,9 +818,9 @@ DHTPluginStorageManager
 	
 	public byte[][]
 	createNewDiversification(
-		String				description,
-		DHTTransportContact	cause,
-		byte[]				key,
+		final String				description,
+		final DHTTransportContact	cause,
+		byte[]						key,
 		boolean				put_operation,
 		byte				diversification_type,
 		boolean				exhaustive,
@@ -867,7 +868,31 @@ DHTPluginStorageManager
 						", cause=" + (cause==null?"<unknown>":cause.getString()) +
 						", desc=" + description );
 			
-
+			/*
+			if ( cause == null ){
+				
+				Debug.out( description + ": DIV cause is null!" );
+				
+			}else{
+				
+				new AEThread2("")
+				{
+					public void
+					run()
+					{
+						DHTTransportFullStats stats = cause.getStats();
+						
+						if ( stats == null ){
+							
+							Debug.out( description + ": DIV stats is null!" );
+						}else{
+							Debug.out( description + ": DIV stats: " + stats.getString());
+						}
+					}
+				}.start();
+			}
+			*/
+			
 			return( res );
 			
 		}finally{
