@@ -340,6 +340,7 @@ DHTDBImpl
 		byte			life_hours,
 		byte			replication_control )
 	{
+		
 			// local store
 		
 		if ( (flags & DHT.FLAG_PUT_AND_FORGET ) == 0 ){
@@ -609,8 +610,17 @@ DHTDBImpl
 				DHTDBValueImpl	res = mapping.remove( originator );
 				
 				if ( res != null ){
-					
+									
 					total_local_keys--;
+					
+					if ( !mapping.getValues().hasNext()){
+						
+						stored_values.remove( key );
+					
+						removeFromPrefixMap( mapping );
+						
+						mapping.destroy();
+					}
 					
 					return( res.getValueForDeletion( getNextValueVersion()));
 				}
