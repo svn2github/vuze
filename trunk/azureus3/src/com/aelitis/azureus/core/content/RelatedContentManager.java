@@ -105,7 +105,9 @@ RelatedContentManager
 	implements DistributedDatabaseTransferHandler
 {
 	private static final boolean 	TRACE 			= false;
-	private static final boolean	TRACE_SEARCH	= false;
+	
+	private static final boolean	SEARCH_CVS_ONLY		= true;
+	private static final boolean	TRACE_SEARCH		= false;
 	
 	public static final boolean	DISABLE_ALL_UI	= false; // !Constants.isCVSVersion() && COConfigurationManager.getStringParameter("ui", "az3").equals("az3");
 
@@ -228,9 +230,10 @@ RelatedContentManager
 			}
 		};
 	
-	private static final int					HARVEST_MAX_BLOOMS			= 25;
-	private static final int					HARVEST_MAX_FAILS_HISTORY	= 128;
-	private static final int					HARVEST_BLOOM_UPDATE_MILLIS	= 10*60*1000;
+	private static final int					HARVEST_MAX_BLOOMS				= 25;
+	private static final int					HARVEST_MAX_FAILS_HISTORY		= 128;
+	private static final int					HARVEST_BLOOM_UPDATE_MILLIS		= 10*60*1000;
+	private static final int					HARVEST_BLOOM_DISCARD_MILLIS	= 60*60*1000;
 	
 	private ByteArrayHashMap<ForeignBloom>		harvested_blooms 	= new ByteArrayHashMap<ForeignBloom>();
 	private ByteArrayHashMap<String>			harvested_fails 	= new ByteArrayHashMap<String>();
@@ -246,7 +249,7 @@ RelatedContentManager
 				parameterChanged(
 					String parameterName )
 				{
-					persist = COConfigurationManager.getBooleanParameter( "rcm.persist" ) | Constants.IS_CVS_VERSION;
+					persist = COConfigurationManager.getBooleanParameter( "rcm.persist" ) || true;
 				}
 			});
 	}
@@ -2331,18 +2334,21 @@ RelatedContentManager
 					}finally{
 						
 						try{	
-							List<DistributedDatabaseContact> 	hinted_contacts = searchForeignBlooms( term );
-
+							final List<DistributedDatabaseContact> 	initial_hinted_contacts = searchForeignBlooms( term );
+							final Set<DistributedDatabaseContact>	extra_hinted_contacts	= new HashSet<DistributedDatabaseContact>();
+							
+							Collections.shuffle( initial_hinted_contacts );
+							
 							// test injection of local 
 							// hinted_contacts.add( 0, ddb.getLocalContact());
 							
-							final List<DistributedDatabaseContact>	contacts_to_search = new ArrayList<DistributedDatabaseContact>();
+							final LinkedList<DistributedDatabaseContact>	contacts_to_search = new LinkedList<DistributedDatabaseContact>();
 
 							final Map<InetSocketAddress,DistributedDatabaseContact> contact_map = new HashMap<InetSocketAddress, DistributedDatabaseContact>();
-							
-							contacts_to_search.addAll( hinted_contacts );
-							
-							for ( DistributedDatabaseContact c: hinted_contacts ){
+														
+							for ( DistributedDatabaseContact c: initial_hinted_contacts ){
+								
+									// stick in map so non-hinted get removed below, but interleave later
 								
 								contact_map.put( c.getAddress(), c );
 							}
@@ -2352,6 +2358,13 @@ RelatedContentManager
 							for ( DHT dht: dhts ){
 							
 								int	network = dht.getTransport().getNetwork();
+								
+								if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
+									
+									logSearch( "Search: ignoring main DHT" );
+
+									continue;
+								}
 								
 								DHTTransportContact[] contacts = dht.getTransport().getReachableContacts();
 								
@@ -2385,6 +2398,13 @@ RelatedContentManager
 									
 									int	network = dht.getTransport().getNetwork();
 									
+									if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
+										
+										logSearch( "Search: ignoring main DHT" );
+
+										continue;
+									}
+									
 									DHTTransportContact[] contacts = dht.getTransport().getRecentContacts();
 	
 									for ( DHTTransportContact dc: contacts ){
@@ -2417,6 +2437,24 @@ RelatedContentManager
 								}
 							}
 							
+								// interleave hinted ones so we get some variety
+							
+							int	desired_pos = 0;
+							
+							for ( DistributedDatabaseContact dc: initial_hinted_contacts ){
+								
+								if ( desired_pos < contacts_to_search.size()){
+									
+									contacts_to_search.add( desired_pos, dc );
+								
+									desired_pos += 2;
+									
+								}else{
+									
+									contacts_to_search.addLast( dc );
+								}
+							}
+
 							
 							long	start		= SystemTime.getMonotonousTime();
 							long	max			= MAX_REMOTE_SEARCH_MILLIS;
@@ -2426,6 +2464,8 @@ RelatedContentManager
 							int	sent = 0;
 							
 							final int[]			done = {0};
+							
+							logSearch( "Search starts: contacts=" + contacts_to_search.size() + ", hinted=" + initial_hinted_contacts.size());
 							
 							while( true ){
 										
@@ -2452,11 +2492,13 @@ RelatedContentManager
 									
 									if ( contacts_to_search.isEmpty()){
 										
+										logSearch( "Contacts exhausted" );
+										
 										break;
 										
 									}else{
 										
-										contact_to_search = contacts_to_search.remove(0);
+										contact_to_search = contacts_to_search.removeFirst();
 									}
 								}
 																
@@ -2478,19 +2520,47 @@ RelatedContentManager
 												
 											}else{
 												
-												logSearch( "    " + contact_to_search.getAddress() + " OK" );
+												String	type;
+												
+												if ( initial_hinted_contacts.contains( contact_to_search )){
+													type = "i";
+												}else if ( extra_hinted_contacts.contains( contact_to_search )){
+													type = "e";
+												}else{
+													type = "n";
+												}
+												logSearch( "    " + contact_to_search.getAddress() + " OK " + type + " - additional=" + extra_contacts.size());
+												
+													// insert results from more predictable nodes after the less predictable ones
 												
 												synchronized( contacts_to_search ){
+													
+													int	insert_point = 0;
+													
+													if ( type.equals( "i" )){
+														
+														for (int i=0;i<contacts_to_search.size();i++){
+															
+															if ( extra_hinted_contacts.contains(contacts_to_search.get(i))){
+																
+																insert_point = i+1;
+															}
+														}
+													}
 													
 													for ( DistributedDatabaseContact c: extra_contacts ){
 														
 														InetSocketAddress address = c.getAddress();
-														
+						
 														if ( !contact_map.containsKey( address )){
+															
+															logSearch( "        additional target: " + address );
+															
+															extra_hinted_contacts.add( c );
 															
 															contact_map.put( address, c );
 															
-															contacts_to_search.add( 0, c );
+															contacts_to_search.add( insert_point, c );
 														}
 													}
 												}
@@ -2513,7 +2583,7 @@ RelatedContentManager
 									
 									if ( done[0] >= MAX_REMOTE_SEARCH_CONTACTS / 2 ){
 										
-										logSearch( "Switching to 5 second limit" );
+										logSearch( "Switching to 5 second limit (1)" );
 										
 											// give another 5 secs for results to come in
 										
@@ -2536,19 +2606,23 @@ RelatedContentManager
 								}
 							}
 							
+							logSearch( "Request dispatch complete: sent=" + sent + ", done=" + done[0] );
+							
 							for ( int i=0;i<sent;i++ ){
 								
 								if ( done[0] > sent*4/5 ){
 									
+									logSearch( "4/5ths replied (" + done[0] + "/" + sent + "), done" );
+									
 									break;
 								}
 								
-								long	remaining = SystemTime.getMonotonousTime() - ( start + max );
+								long	remaining = ( start + max ) - SystemTime.getMonotonousTime();
 								
 								if ( 	remaining > 5000 &&
 										done[0] >= MAX_REMOTE_SEARCH_CONTACTS / 2 ){
 									
-									logSearch( "Switching to 5 second limit" );
+									logSearch( "Switching to 5 second limit (2)" );
 									
 										// give another 5 secs for results to come in
 									
@@ -2562,11 +2636,15 @@ RelatedContentManager
 									
 								}else{
 									
+									logSearch( "Time exhausted" );
+									
 									break;
 								}
 							}
 						}finally{
-															
+								
+							logSearch( "Search complete" );
+							
 							observer.complete();
 						}
 					}
@@ -2859,6 +2937,8 @@ RelatedContentManager
 				
 				if ( m != null ){
 					
+					logSearch( "Bloom for " + f_bloom.getContact().getAddress() + " updated" );
+
 					return( BloomFilterFactory.deserialiseFromMap( m ));
 					
 				}else{
@@ -2878,6 +2958,8 @@ RelatedContentManager
 		}catch( Throwable e ){
 		}
 		
+		logSearch( "Bloom for " + f_bloom.getContact().getAddress() + " update failed" );
+
 		return( null );
 	}
 	
@@ -2918,6 +3000,8 @@ RelatedContentManager
 			String	req_type = ImportExportUtils.importString( request, "x" );
 			
 			if ( req_type != null ){
+				
+				logSearch( "Received remote request: " + request );
 				
 				if ( req_type.equals( "f" )){
 					
@@ -2995,6 +3079,8 @@ RelatedContentManager
 							
 							map.put( "h", hash );
 						}
+						
+							// don't bother with tracker as no use to caller really
 					}
 					
 					response.put( "l", list );
@@ -3847,23 +3933,34 @@ RelatedContentManager
 							
 							DistributedDatabaseContact ddb_contact = oldest.getContact();
 
-							BloomFilter updated_filter = sendRemoteUpdate( oldest );
+							if ( now - oldest.getCreateTime() > HARVEST_BLOOM_DISCARD_MILLIS ){
 							
-							if ( updated_filter == null ){
-													
-								logSearch( "harvest: " + ddb_contact.getAddress() + " failed to update" );
+									// don't want to stick with a stable one for too long otherwise the stabler
+									// nodes will end up in lots of other nodes' harvest set and receive
+									// undue attention
+								
+								logSearch( "Harvest: discarding " + ddb_contact.getAddress());
 								
 								synchronized( harvested_blooms ){
-								
+									
 									harvested_blooms.remove( ddb_contact.getID());
-								
-									harvested_fails.put( ddb_contact.getID(), "" );
 								}
 							}else{
+
+								BloomFilter updated_filter = sendRemoteUpdate( oldest );
 								
-								logSearch( "harvest: " + ddb_contact.getAddress() + " updated" );
-								
-								oldest.updateFilter( updated_filter );
+								if ( updated_filter == null ){
+																						
+									synchronized( harvested_blooms ){
+									
+										harvested_blooms.remove( ddb_contact.getID());
+									
+										harvested_fails.put( ddb_contact.getID(), "" );
+									}
+								}else{
+																	
+									oldest.updateFilter( updated_filter );
+								}
 							}
 						}
 					}
@@ -3887,7 +3984,7 @@ outer:
 								
 								int	network = dht.getTransport().getNetwork();
 								
-								if ( network != DHT.NW_CVS ){
+								if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
 									
 									logSearch( "Harvest: ignoring main DHT" );
 									
@@ -3902,9 +3999,9 @@ outer:
 									
 									if ( dht.getRouter().isID( contact_id )){
 										
-										logSearch( "not skipping local!!!!" );
+										// logSearch( "not skipping local!!!!" );
 										
-										// continue;
+										continue;
 									}
 									
 									DistributedDatabaseContact ddb_contact = 
@@ -3977,9 +4074,10 @@ outer:
 		
 		synchronized( harvested_blooms ){
 			
-			harvested_blooms.remove( contact_id );
+			if ( harvested_blooms.remove( contact_id ) != null ){
 			
-			harvested_fails.put( contact_id, "" );
+				harvested_fails.put( contact_id, "" );
+			}
 		}
 	}
 	
