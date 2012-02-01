@@ -429,6 +429,17 @@ public class ManagerView
 			 }
 		 });
 	 
+
+	 Menu menu = new Menu(folder);
+
+	 menu.setData( "downloads", new DownloadManager[]{ manager });
+	 menu.setData( "is_detailed_view", true );
+
+	 MenuFactory.buildTorrentMenu( menu );
+
+	 folder.setMenu( menu );
+		
+	
     // Initialize view when user selects it
     folder.addSelectionListener(new SelectionAdapter() {
       public void widgetSelected(SelectionEvent e) {
