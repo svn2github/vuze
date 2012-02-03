@@ -158,7 +158,10 @@ DirectByteBuffer
 			"write(fc)",	"read(sc)",		"write(sc)",	"getBuffer",		"getShort",
 			"putShort",
 		};
-			
+		
+	public static final byte	FL_NONE						= 0x00;
+	public static final byte	FL_CONTAINS_TRANSIENT_DATA	= 0x01;
+	
 	protected static final boolean	TRACE				= AEDiagnostics.TRACE_DIRECT_BYTE_BUFFERS;
 	protected static final int		TRACE_BUFFER_SIZE	= 64;		// must be even
 	
@@ -166,6 +169,7 @@ DirectByteBuffer
 	private ByteBuffer 				buffer;
 	private DirectByteBufferPool	pool;
 	private byte					allocator;
+	private byte					flags;
 	private boolean                 was_returned_to_pool = false;
   
 	
@@ -221,6 +225,20 @@ DirectByteBuffer
 		ReferenceCountedDirectByteBuffer res = new ReferenceCountedDirectByteBuffer( this );
 				
 		return( res );
+	}
+	
+	public void
+	setFlag(
+		byte		flag )
+	{
+		flags |= flag;
+	}
+	
+	public boolean
+	getFlag(
+		byte		flag )
+	{
+		return((flags&flag)!=0);
 	}
 	
 	protected void

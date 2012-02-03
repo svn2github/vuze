@@ -729,118 +729,143 @@ DMCheckerImpl
 					   		this_mon.exit();
 					   	}
 						
-						try{
-					    	final	DirectByteBuffer	f_buffer	= buffer;
-					    	
-						   	ConcurrentHasher.getSingleton().addRequest(
-					    			buffer.getBuffer(DirectByteBuffer.SS_DW),
-									new ConcurrentHasherRequestListener()
-									{
-					    				public void
-										complete(
-											ConcurrentHasherRequest	hash_request )
-					    				{
-					    					int	async_result	= 3; // cancelled
-					    						    		    					
-					    					try{
-					    						
-												byte[] actual_hash = hash_request.getResult();
-														    								
-												if ( actual_hash != null ){
-														
-													request.setHash( actual_hash );
-													
-				    								async_result = 1; // success
-				    								
-				    								for (int i = 0; i < actual_hash.length; i++){
-				    									
-				    									if ( actual_hash[i] != required_hash[i]){
-				    										
-				    										async_result = 2; // failed;
-				    										
-				    										break;
-				    									}
-				    								}
-												}
-					    					}finally{
-					    						
-					    						try{
-					    							if ( async_result == 1 ){
-					    							
-					    								try{
-					    									for (int i = 0; i < pieceList.size(); i++) {
-					    										
-					    										DMPieceMapEntry piece_entry = pieceList.get(i);
-					    											
-					    										DiskManagerFileInfoImpl	file_info = piece_entry.getFile();
-					    										
-					    											// edge case here for skipped zero length files that have been deleted
-					    										
-					    										if ( file_info.getLength() > 0 || !file_info.isSkipped()){
-
-					    											CacheFile	cache_file = file_info.getCacheFile();										
-					    										
-					    											cache_file.setPieceComplete( pieceNumber, f_buffer );
-					    										}
-					    									}
-					    								}catch( Throwable e ){
-					    									
-					    									f_buffer.returnToPool();
-					    									
-					    									Debug.out( e );
-					    									
-					    									listener.checkFailed( request, e );
-					    									
-					    									return;
-					    								}
-					    							}
-					    							
-						    						f_buffer.returnToPool();
-	
-						    						if ( async_result == 1 ){
-						    							
-						    							listener.checkCompleted( request, true );
-						    							
-						    						}else if ( async_result == 2 ){
-						    							
-						    							listener.checkCompleted( request, false );
-						    							
-						    						}else{
-						    							
-						    							listener.checkCancelled( request );
-						    						}
+					   	if ( buffer.getFlag( DirectByteBuffer.FL_CONTAINS_TRANSIENT_DATA )){
+					   		
+					   		try{
+					   			buffer.returnToPool();
+					   			
+					   			listener.checkCompleted( request, false );
+					   			
+					   		}finally{
+					   			
+					   			try{
+    								this_mon.enter();
+    							
+    								async_checks--;
+    								
+    								if ( stopped ){
+    									  
+    									async_check_sem.release();
+    								}
+    							}finally{
+    								
+    								this_mon.exit();
+    							}
+					   		}
+					   	}else{
+							try{
+						    	final	DirectByteBuffer	f_buffer	= buffer;
+						    	
+							   	ConcurrentHasher.getSingleton().addRequest(
+						    			buffer.getBuffer(DirectByteBuffer.SS_DW),
+										new ConcurrentHasherRequestListener()
+										{
+						    				public void
+											complete(
+												ConcurrentHasherRequest	hash_request )
+						    				{
+						    					int	async_result	= 3; // cancelled
+						    						    		    					
+						    					try{
 						    						
-					    						}finally{
-					    							
-					    							try{
-					    								this_mon.enter();
-					    							
-					    								async_checks--;
+													byte[] actual_hash = hash_request.getResult();
+															    								
+													if ( actual_hash != null ){
+															
+														request.setHash( actual_hash );
+														
+					    								async_result = 1; // success
 					    								
-					    								if ( stopped ){
-					    									  
-					    									async_check_sem.release();
+					    								for (int i = 0; i < actual_hash.length; i++){
+					    									
+					    									if ( actual_hash[i] != required_hash[i]){
+					    										
+					    										async_result = 2; // failed;
+					    										
+					    										break;
+					    									}
 					    								}
-					    							}finally{
-					    								
-					    								this_mon.exit();
-					    							}
-					    						}
-					    					}
-					    				}
-					    				
-									},
-									request.isLowPriority());
-						
-					    	
-						}catch( Throwable e ){
+													}
+						    					}finally{
+						    						
+						    						try{
+						    							if ( async_result == 1 ){
+						    							
+						    								try{
+						    									for (int i = 0; i < pieceList.size(); i++) {
+						    										
+						    										DMPieceMapEntry piece_entry = pieceList.get(i);
+						    											
+						    										DiskManagerFileInfoImpl	file_info = piece_entry.getFile();
+						    										
+						    											// edge case here for skipped zero length files that have been deleted
+						    										
+						    										if ( file_info.getLength() > 0 || !file_info.isSkipped()){
+	
+						    											CacheFile	cache_file = file_info.getCacheFile();										
+						    										
+						    											cache_file.setPieceComplete( pieceNumber, f_buffer );
+						    										}
+						    									}
+						    								}catch( Throwable e ){
+						    									
+						    									f_buffer.returnToPool();
+						    									
+						    									Debug.out( e );
+						    									
+						    									listener.checkFailed( request, e );
+						    									
+						    									return;
+						    								}
+						    							}
+						    							
+							    						f_buffer.returnToPool();
+		
+							    						if ( async_result == 1 ){
+							    							
+							    							listener.checkCompleted( request, true );
+							    							
+							    						}else if ( async_result == 2 ){
+							    							
+							    							listener.checkCompleted( request, false );
+							    							
+							    						}else{
+							    							
+							    							listener.checkCancelled( request );
+							    						}
+							    						
+						    						}finally{
+						    							
+						    							try{
+						    								this_mon.enter();
+						    							
+						    								async_checks--;
+						    								
+						    								if ( stopped ){
+						    									  
+						    									async_check_sem.release();
+						    								}
+						    							}finally{
+						    								
+						    								this_mon.exit();
+						    							}
+						    						}
+						    					}
+						    				}
+						    				
+										},
+										request.isLowPriority());
 							
-							Debug.printStackTrace(e);
-							
-    						buffer.returnToPool();
-    						
-    						listener.checkFailed( request, e );
-						}
+						    	
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+								
+	    						buffer.returnToPool();
+	    						
+	    						listener.checkFailed( request, e );
+							}
+					   	}
 					}
 					  
 					public void 

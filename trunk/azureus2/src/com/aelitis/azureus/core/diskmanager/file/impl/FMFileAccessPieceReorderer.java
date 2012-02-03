@@ -456,7 +456,22 @@ FMFileAccessPieceReorderer
 						
 						int	rem = bb.remaining();
 						
-						bb.put( new byte[rem] );
+						if ( rem > 0 ){
+						
+							bb.put( new byte[rem] );
+
+								// not great this... to obey the normal file access semantics reads are
+								// never partial (normally we'd extend the file to accomodate the read but
+								// in the case of re-order access we don't want to do this when hash checking
+								// a file. The issue is in the unlikely case where our padding happens to
+								// match the real file contents and results in a piece hash check succeeding
+								// even though the data doesn't actually exist on disk... So I've added this 
+								// flag to cause hash checking to always fail if the resulting data isn't 'real'
+								// this of course relies on this buffer being passed back to the checking process
+								// intact, which is the case currently during rechecks...
+							
+							buffer.setFlag( DirectByteBuffer.FL_CONTAINS_TRANSIENT_DATA );
+						}
 					}
 				}else{
 				
