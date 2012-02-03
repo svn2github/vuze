@@ -397,6 +397,7 @@ public class MainMenu
 		MenuFactory.addMySharesMenuItem(toolsMenu);
 		MenuFactory.addConsoleMenuItem(toolsMenu);
 		MenuFactory.addStatisticsMenuItem(toolsMenu);
+		MenuFactory.addSpeedLimitsToMenu(toolsMenu);
 
 		MenuFactory.addTransferBarToMenu(toolsMenu);
 		MenuFactory.addAllPeersMenuItem(toolsMenu);

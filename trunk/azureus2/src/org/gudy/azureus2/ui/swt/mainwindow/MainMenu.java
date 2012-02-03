@@ -279,6 +279,7 @@ public class MainMenu
 		MenuFactory.addBlockedIPsMenuItem(toolsMenu);
 		MenuFactory.addConsoleMenuItem(toolsMenu);
 		MenuFactory.addStatisticsMenuItem(toolsMenu);
+		MenuFactory.addSpeedLimitsToMenu(toolsMenu);
 		MenuFactory.addNatTestMenuItem(toolsMenu);
 		MenuFactory.addSpeedTestMenuItem(toolsMenu);
 

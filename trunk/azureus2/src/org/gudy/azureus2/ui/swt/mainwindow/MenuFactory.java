@@ -28,6 +28,7 @@ import org.gudy.azureus2.ui.swt.maketorrent.NewTorrentWizard;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
 import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.pluginsuninstaller.UnInstallPluginWizard;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
@@ -42,6 +43,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.speedmanager.SpeedLimitHandler;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -51,6 +53,8 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.plugins.update.Update;
@@ -696,7 +700,204 @@ public class MenuFactory
 		});
 		return item;
 	}
+	
+	public static MenuItem addSpeedLimitsToMenu(final Menu menuParent) {
+		MenuItem speedLimitsMenuItem = createTopLevelMenuItem(menuParent,
+				MENU_ID_SPEED_LIMITS);
+		MenuBuildUtils.addMaintenanceListenerForMenu(speedLimitsMenuItem.getMenu(),
+				new MenuBuildUtils.MenuBuilder() {
+					public void 
+					buildMenu(
+						Menu menu, MenuEvent menuEvent) 
+					{
+						if ( AzureusCoreFactory.isCoreRunning()){
+					
+							AzureusCore core = AzureusCoreFactory.getSingleton();
+							
+							final SpeedLimitHandler slh = SpeedLimitHandler.getSingleton( core );
+							
+							MenuItem viewCurrentItem = new MenuItem(menu, SWT.PUSH);
+							Messages.setLanguageText(viewCurrentItem, "MainWindow.menu.speed_limits.view_current" );
+																	
+							viewCurrentItem.addListener(
+								SWT.Selection,
+								new Listener()
+								{
+									public void 
+									handleEvent(
+										Event arg0 )
+									{
+										showText(
+											"MainWindow.menu.speed_limits.info.title",
+											"MainWindow.menu.speed_limits.info.curr",
+											slh.getCurrent());
+									}
+								});
+							
+							java.util.List<String>	profiles = slh.getProfileNames();
+							
+							Menu profiles_menu = new Menu(menuParent.getShell(), SWT.DROP_DOWN);
+							MenuItem profiles_item = new MenuItem( menu, SWT.CASCADE);
+							profiles_item.setMenu(profiles_menu);
 
+														
+							Messages.setLanguageText(profiles_item, "MainWindow.menu.speed_limits.profiles" );
+
+							if ( profiles.size() == 0 ){
+								
+								profiles_item.setEnabled( false );
+								
+							}else{
+								
+								for ( final String p: profiles ){
+									
+									Menu profile_menu = new Menu(menuParent.getShell(), SWT.DROP_DOWN);
+									MenuItem profile_item = new MenuItem( profiles_menu, SWT.CASCADE);
+									profile_item.setMenu(profile_menu);
+									profile_item.setText( p );
+
+									MenuItem loadItem = new MenuItem(profile_menu, SWT.PUSH);
+									Messages.setLanguageText(loadItem, "MainWindow.menu.speed_limits.load" );
+																			
+									loadItem.addListener(
+										SWT.Selection,
+										new Listener()
+										{
+											public void 
+											handleEvent(
+												Event arg0 )
+											{
+												showText(
+													"MainWindow.menu.speed_limits.info.title",
+													MessageText.getString( "MainWindow.menu.speed_limits.info.prof", new String[]{ p }),
+													slh.loadProfile( p ) );
+											}
+										});
+									
+									MenuItem viewItem = new MenuItem(profile_menu, SWT.PUSH);
+									Messages.setLanguageText(viewItem, "MainWindow.menu.speed_limits.view" );
+																			
+									viewItem.addListener(
+										SWT.Selection,
+										new Listener()
+										{
+											public void 
+											handleEvent(
+												Event arg0 )
+											{
+												showText(
+													"MainWindow.menu.speed_limits.info.title", 
+													MessageText.getString( "MainWindow.menu.speed_limits.info.prof", new String[]{ p }),					
+													slh.getProfile( p ) );
+											}
+										});
+									
+									addSeparatorMenuItem( profile_menu );
+									
+									MenuItem deleteItem = new MenuItem(profile_menu, SWT.PUSH);
+									Messages.setLanguageText(deleteItem, "MainWindow.menu.speed_limits.delete" );
+																			
+									deleteItem.addListener(
+										SWT.Selection,
+										new Listener()
+										{
+											public void 
+											handleEvent(
+												Event arg0 )
+											{
+												slh.deleteProfile( p );
+											}
+										});
+								}
+							}
+							
+							MenuItem saveItem = new MenuItem(menu, SWT.PUSH);
+							Messages.setLanguageText(saveItem, "MainWindow.menu.speed_limits.save_current" );
+							
+							saveItem.addListener(
+								SWT.Selection,
+								new Listener()
+								{
+									public void 
+									handleEvent(
+										Event arg0 )
+									{
+										UISWTInputReceiver entry = new SimpleTextEntryWindow();
+										
+										entry.allowEmptyInput( false );
+										entry.setLocalisedTitle(MessageText.getString("MainWindow.menu.speed_limits.profile" ));
+										entry.prompt(new UIInputReceiverListener() {
+											public void UIInputReceiverClosed(UIInputReceiver entry) {
+												if (!entry.hasSubmittedInput()){
+													
+													return;
+												}
+												
+												String input = entry.getSubmittedInput().trim();
+												
+												if ( input.length() > 0 ){
+																										
+													showText(
+														"MainWindow.menu.speed_limits.info.title", 
+														MessageText.getString( "MainWindow.menu.speed_limits.info.prof", new String[]{ input }),					
+														slh.saveProfile( input ) );
+												}
+											}
+										});
+									}
+								});
+							
+							addSeparatorMenuItem( menu );
+							
+							MenuItem resetItem = new MenuItem(menu, SWT.PUSH);
+							Messages.setLanguageText(resetItem, "MainWindow.menu.speed_limits.reset" );
+																	
+							resetItem.addListener(
+								SWT.Selection,
+								new Listener()
+								{
+									public void 
+									handleEvent(
+										Event arg0 )
+									{
+										showText(
+											"MainWindow.menu.speed_limits.info.title", 
+											"MainWindow.menu.speed_limits.info.curr",
+											slh.reset());
+									}
+								});
+						}
+					}
+				});
+		
+		return( speedLimitsMenuItem );
+	}
+
+	private static void
+	showText(
+		final String					title,
+		final String					message,
+		final java.util.List<String>	lines )
+	{
+		Utils.execSWTThreadLater(
+			1,
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					String	text = "";
+					
+					for ( String s: lines ){
+						
+						text += (text.length()==0?"":"\n") + s;
+					}
+					
+					new TextViewerWindow(title, message, text, false );
+				}
+			});
+	}
+	
 	public static MenuItem addBlockedIPsMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_IP_FILTER, new ListenerNeedingCoreRunning() {
 			public void handleEvent(AzureusCore core, Event e) {
