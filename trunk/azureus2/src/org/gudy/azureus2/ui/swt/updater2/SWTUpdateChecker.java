@@ -210,8 +210,15 @@ public class SWTUpdateChecker implements UpdatableComponent
 	      	Debug.printStackTrace( e );
 	      }
 	      
+	      String	extra = "";
+	      
+	      if ( Constants.isWindows && Constants.is64Bit ){
+	    	
+	    	  extra = " (64-bit)";
+	      }
+	      
 	      final Update update = 
-	    	  checker.addUpdate("SWT Library for " + versionGetter.getPlatform(),
+	    	  checker.addUpdate("SWT Library for " + versionGetter.getPlatform() + extra,
 		          new String[] {"SWT is the graphical library used by " + Constants.APP_NAME},
 		          "" + versionGetter.getLatestVersion(),
 		          swtDownloader,

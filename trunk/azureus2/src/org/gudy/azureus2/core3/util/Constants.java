@@ -132,8 +132,21 @@ Constants
 	public static Pattern PAT_SPLIT_SLASH_N = Pattern.compile("\n");
 	
   
+  public static final boolean is64Bit;
+  
   static{
-
+	  boolean _is64Bit;
+	  
+	  try{
+		  _is64Bit = System.getProperty( "os.arch" ).contains( "64" );
+		  
+	  }catch( Throwable e ){
+		  
+		  _is64Bit = false;
+	  }
+	  
+	  is64Bit = _is64Bit;
+	  
 	  if ( isWindows ){
 
 		  Float ver = null;
