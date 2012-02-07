@@ -365,7 +365,8 @@ ViewUtils
 		update(
 			Composite	composite,
 			boolean		seeding_view,
-			int			count );
+			int			count,
+			int			active );
 			
 		public void
 		setEnabled(

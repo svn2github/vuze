@@ -117,6 +117,8 @@ public class MyTorrentsView
   private DragSource dragSource = null;
   private DropTarget dropTarget = null;
   protected Text txtFilter = null;
+  private TimerEventPeriodic	txtFilterUpdateEvent;
+
   
   private Category currentCategory;
 
@@ -727,6 +729,7 @@ public class MyTorrentsView
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewFilterCheck#filterSet(java.lang.String)
 	public void filterSet(final String filter) {
 		Utils.execSWTThread(new AERunnable() {
+						
 			public void runSupport() {
 				if (txtFilter != null) {
 					boolean visible = forceHeaderVisible || filter.length() > 0;
@@ -748,7 +751,57 @@ public class MyTorrentsView
 					
 					if ( x instanceof ViewUtils.ViewTitleExtraInfo ){
 						
-						((ViewUtils.ViewTitleExtraInfo)x).setEnabled( tv.getComposite(), isSeedingView, filter.length() > 0 );
+						boolean	enabled = filter.length() > 0;
+						
+						if ( enabled ){
+							
+							if ( txtFilterUpdateEvent == null ){
+								
+								txtFilterUpdateEvent = 
+									SimpleTimer.addPeriodicEvent(
+										"MTV:updater",
+										1000,
+										new TimerEventPerformer()
+										{
+											public void 
+											perform(
+												TimerEvent event )
+											{
+												Utils.execSWTThread(
+													new AERunnable() 
+													{
+														public void
+														runSupport()
+														{
+															if ( txtFilterUpdateEvent != null ){
+																
+																if ( tv.isDisposed()){
+																	
+																	txtFilterUpdateEvent.cancel();
+																	
+																	txtFilterUpdateEvent = null;
+																	
+																}else{
+																	
+																	viewChanged( tv );
+																}
+															}
+														}
+													});
+											}
+										});
+							}
+						}else{
+							
+							if ( txtFilterUpdateEvent != null ){
+								
+								txtFilterUpdateEvent.cancel();
+								
+								txtFilterUpdateEvent = null;
+							}
+						}
+						
+						((ViewUtils.ViewTitleExtraInfo)x).setEnabled( tv.getComposite(), isSeedingView, enabled );
 					}
 				}
 			}
@@ -764,7 +817,23 @@ public class MyTorrentsView
 		
 			if ( x instanceof ViewUtils.ViewTitleExtraInfo ){
 				
-				((ViewUtils.ViewTitleExtraInfo)x).update( tv.getComposite(), isSeedingView, view.size( false ));
+				TableRowCore[] rows = view.getRows();
+				
+				int	active = 0;
+				
+				for ( TableRowCore row: rows ){
+					
+					DownloadManager dm = (DownloadManager)row.getDataSource( true );
+					
+					int	state = dm.getState();
+					
+					if ( state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_SEEDING ){
+						
+						active++;
+					}
+				}
+				
+				((ViewUtils.ViewTitleExtraInfo)x).update( tv.getComposite(), isSeedingView, rows.length, active );
 			}
 		}
 	}

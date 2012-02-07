@@ -120,7 +120,16 @@ SpeedLimitHandler
 		
 		details.loadCurrent();
 		
-		return( details.getString());
+		List<String> lines = details.getString();
+		
+		ScheduleRule rule = active_rule;
+		
+		lines.add( "" );
+		lines.add( "Scheduler" );
+		lines.add( "    Rules defined: " + current_rules.size());
+		lines.add( "    Active rule: " + (rule==null?"None":rule.getString()));
+		
+		return( lines );
 	}
 	
 	public List<String>
@@ -594,17 +603,22 @@ SpeedLimitHandler
 		
 		ScheduleRule latest_match = null;
 		
-		for ( ScheduleRule rule: current_rules ){
+		for ( ScheduleRule main_rule: current_rules ){
 			
-			if (( rule.frequency | day ) == 0 ){
-				
-				continue;
-			}
+			List<ScheduleRule>	sub_rules = main_rule.splitByDay();
 			
-			if (	rule.from_mins <= min_of_day &&
-					rule.to_mins >= min_of_day ){
+			for ( ScheduleRule rule: sub_rules ){
+			
+				if (( rule.frequency | day ) == 0 ){
+					
+					continue;
+				}
 				
-				latest_match = rule;
+				if (	rule.from_mins <= min_of_day &&
+						rule.to_mins >= min_of_day ){
+					
+					latest_match = main_rule;
+				}
 			}
 		}
 		
@@ -618,7 +632,7 @@ SpeedLimitHandler
 			
 			String	profile_name = latest_match.profile_name;
 							
-			if ( active_rule == null || !active_rule.profile_name.equals( profile_name )){
+			if ( active_rule == null || !active_rule.sameAs( latest_match )){
 				
 				if ( profileExists( profile_name )){
 
@@ -686,15 +700,20 @@ SpeedLimitHandler
 		
 		result.add( "# ---- Do not edit this line or any text above! ----" );
 		
-		List schedule_lines = BDecoder.decodeStrings( COConfigurationManager.getListParameter( "speed.limit.handler.schedule.lines", new ArrayList()));
+		List<String> schedule_lines = BDecoder.decodeStrings( COConfigurationManager.getListParameter( "speed.limit.handler.schedule.lines", new ArrayList()));
 		
 		if ( schedule_lines.size() == 0 ){
 			
 			schedule_lines.add( "" );
 			schedule_lines.add( "" );
-		}
+			
+		}else{
 		
-		result.addAll( schedule_lines );
+			for ( String l: schedule_lines ){
+			
+				result.add( l.trim());
+			}
+		}
 		
 		return( result );
 	}
@@ -1244,6 +1263,7 @@ SpeedLimitHandler
 		private static final byte	FR_FRI		= 0x10;
 		private static final byte	FR_SAT		= 0x20;
 		private static final byte	FR_SUN		= 0x40;
+		private static final byte	FR_OVERFLOW	= (byte)0x80;
 		private static final byte	FR_WEEKDAY	= ( FR_MON | FR_TUE | FR_WED | FR_THU | FR_FRI );
 		private static final byte	FR_WEEKEND	= ( FR_SAT | FR_SUN );
 		private static final byte	FR_DAILY	= ( FR_WEEKDAY | FR_WEEKEND );
@@ -1264,6 +1284,125 @@ SpeedLimitHandler
 			profile_name	= _profile;
 			from_mins		= _from;
 			to_mins			= _to;
+		}
+		
+		private List<ScheduleRule>
+		splitByDay()
+		{
+			List<ScheduleRule>	result = new ArrayList<ScheduleRule>();
+			
+			if ( to_mins > from_mins ){
+			
+				result.add( this );
+				
+			}else{
+				
+					// handle rules that wrap across days. e.g. 23:00 to 00:00
+				
+				byte next_frequency = (byte)(frequency << 1 );
+				
+				if ((next_frequency & FR_OVERFLOW ) != 0 ){
+					
+					next_frequency &= ~FR_OVERFLOW;
+					
+					next_frequency |= FR_MON;
+				}
+				
+				ScheduleRule	rule1 = new ScheduleRule( frequency, profile_name, from_mins, 23*60+59 );
+				ScheduleRule	rule2 = new ScheduleRule( next_frequency, profile_name, 0, to_mins );
+
+				result.add( rule1 );
+				result.add( rule2 );
+			}
+			
+			return( result );
+		}
+		
+		private boolean
+		sameAs(
+			ScheduleRule	other )
+		{
+			if ( other == null ){
+				
+				return( false );
+			}
+			
+			return( frequency == other.frequency &&
+					profile_name.equals( other.profile_name ) &&
+					from_mins == other.from_mins &&
+					to_mins == other.to_mins );
+		}
+		
+		public String
+		getString()
+		{
+			String	freq_str = "";
+			
+			if ( frequency == FR_DAILY ){
+				
+				freq_str = "daily";
+				
+			}else if ( frequency == FR_WEEKDAY ){
+				
+				freq_str = "weekdays";
+				
+			}else if ( frequency == FR_WEEKEND ){
+				
+				freq_str = "weekends";
+				
+			}else if ( frequency == FR_MON ){
+				
+				freq_str = "mon";
+				
+			}else if ( frequency == FR_TUE ){
+				
+				freq_str = "tue";
+				
+			}else if ( frequency == FR_WED ){
+				
+				freq_str = "wed";
+				
+			}else if ( frequency == FR_THU ){
+				
+				freq_str = "thu";
+				
+			}else if ( frequency == FR_FRI ){
+				
+				freq_str = "fri";
+				
+			}else if ( frequency == FR_SAT ){
+				
+				freq_str = "sat";
+				
+			}else if ( frequency == FR_SUN ){
+				
+				freq_str = "sun";
+			}
+			
+			return( "profile=" + profile_name + ", frequency=" + freq_str + ", from=" + getTime( from_mins ) + ", to=" + getTime( to_mins ));
+		}
+		
+		private String
+		getTime(
+			int	mins )
+		{
+			String str = getTimeBit( mins/60 ) + ":" + getTimeBit( mins % 60 );
+		
+			return( str );
+		}
+		
+		private String
+		getTimeBit(
+			int	num )
+		{
+			String str = String.valueOf( num );
+			
+			if ( str.length() < 2 ){
+				
+				str = "0" + str;
+			}
+			
+			return( str );
 		}
 	}
 }

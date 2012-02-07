@@ -210,7 +210,8 @@ public class SBC_LibraryView
 										update(
 											Composite	reporter,
 											boolean		seeding_view,
-											int			count )
+											int			count,
+											int			active )
 										{
 											ExtraInfoProvider	provider = getProvider( reporter );
 											
@@ -218,12 +219,11 @@ public class SBC_LibraryView
 												
 												return;
 											}
-																						
-											int	index = seeding_view?0:1;
+																																	
+											if ( provider.value != count || provider.active != active ){
 											
-											if ( provider.value != count ){
-											
-												provider.value = count;
+												provider.value 	= count;
+												provider.active	= active;
 												
 												if ( viewMode == provider.view_mode && provider.enabled ){
 												
@@ -243,8 +243,7 @@ public class SBC_LibraryView
 											if ( provider == null ){
 												
 												return;
-											}
-											int	index = seeding_view?0:1;
+											}	
 											
 											if ( provider.enabled != enabled ){
 
@@ -358,6 +357,8 @@ public class SBC_LibraryView
 							synchronized( extra_info_map ){
 								
 								int		filter_total 	= 0;
+								int		filter_active	= 0;
+								
 								boolean	filter_enabled 	= false;
 
 								for ( ExtraInfoProvider provider: extra_info_map.values()){
@@ -368,7 +369,7 @@ public class SBC_LibraryView
 												
 											filter_enabled = true;
 											filter_total	+= provider.value;
-										
+											filter_active	+= provider.active;
 										}
 									}
 								}
@@ -377,8 +378,8 @@ public class SBC_LibraryView
 									
 									String extra = 
 										MessageText.getString(
-												"filter.header.matches",
-												new String[]{ String.valueOf( filter_total ) });
+												"filter.header.matches2",
+												new String[]{ String.valueOf( filter_total ), String.valueOf( filter_active )});
 									
 									s += " " + extra;
 								}
@@ -393,6 +394,7 @@ public class SBC_LibraryView
 							int			view_mode;
 							boolean		enabled;
 							int			value;
+							int			active;
 							
 							private
 							ExtraInfoProvider(

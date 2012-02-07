@@ -592,7 +592,7 @@ public class ManagerView
     						
     						String extra = 
 								MessageText.getString(
-										"filter.header.matches",
+										"filter.header.matches1",
 										new String[]{ String.valueOf( value ) });
 							
 							s += " " + extra;
