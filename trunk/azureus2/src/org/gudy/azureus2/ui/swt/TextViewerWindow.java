@@ -152,6 +152,18 @@ public class TextViewerWindow {
 	  txtInfo.setSelection( txtInfo.getTextLimit());
   }
   
+  public String
+  getText()
+  {
+	  return( txtInfo.getText());
+  }
+  
+  public void
+  setEditable(
+	boolean	editable )
+  {
+	  txtInfo.setEditable( editable );
+  }
   public void
   addListener(
 	 TextViewerWindowListener		l )

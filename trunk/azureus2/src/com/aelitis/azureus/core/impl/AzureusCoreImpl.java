@@ -76,6 +76,7 @@ import com.aelitis.azureus.core.peermanager.nat.PeerNATTraverser;
 import com.aelitis.azureus.plugins.clientid.ClientIDPlugin;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
+import com.aelitis.azureus.core.speedmanager.SpeedLimitHandler;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerAdapter;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerFactory;
@@ -930,6 +931,8 @@ AzureusCoreImpl
 
 	   NetworkManager.getSingleton().initialize(this); 
          
+	   SpeedLimitHandler.getSingleton( this );
+	   
 	   Runtime.getRuntime().addShutdownHook( new AEThread("Shutdown Hook") {
 	     public void runSupport() {
 			Logger.log(new LogEvent(LOGID, "Shutdown hook triggered" ));

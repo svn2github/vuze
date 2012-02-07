@@ -1,5 +1,7 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
@@ -866,6 +868,71 @@ public class MenuFactory
 											slh.reset());
 									}
 								});
+							
+						addSeparatorMenuItem( menu );
+							
+						MenuItem scheduleItem = new MenuItem(menu, SWT.PUSH);
+						Messages.setLanguageText(scheduleItem, "MainWindow.menu.speed_limits.schedule" );
+																
+						scheduleItem.addListener(
+							SWT.Selection,
+							new Listener()
+							{
+								public void 
+								handleEvent(
+									Event arg0 )
+								{
+									Utils.execSWTThreadLater(
+											1,
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													java.util.List<String> lines = slh.getSchedule();
+													
+													String	text = "";
+													
+													for ( String s: lines ){
+														
+														text += (text.length()==0?"":"\n") + s;
+													}
+													
+													final TextViewerWindow viewer =
+														new TextViewerWindow(
+															"MainWindow.menu.speed_limits.schedule.title", 
+															"MainWindow.menu.speed_limits.schedule.msg", 
+															text, false );
+													
+													viewer.setEditable( true );
+													
+													viewer.addListener(
+														new TextViewerWindow.TextViewerWindowListener()
+														{
+															public void 
+															closed() 
+															{
+																String text = viewer.getText();
+																
+																String[] lines = text.split( "\n" );
+																
+																java.util.List<String> updated_lines = new ArrayList<String>( Arrays.asList( lines ));
+																
+																java.util.List<String> result = slh.setSchedule( updated_lines );
+																
+																if ( result != null && result.size() > 0 ){
+																	
+																	showText(
+																			"MainWindow.menu.speed_limits.schedule.title", 
+																			"MainWindow.menu.speed_limits.schedule.err", 
+																			result );
+																}
+															}	
+														});
+												}
+											});
+								}
+							});
 						}
 					}
 				});
@@ -893,7 +960,9 @@ public class MenuFactory
 						text += (text.length()==0?"":"\n") + s;
 					}
 					
-					new TextViewerWindow(title, message, text, false );
+					TextViewerWindow viewer = new TextViewerWindow(title, message, text, false );
+					
+					viewer.setEditable( false );
 				}
 			});
 	}
