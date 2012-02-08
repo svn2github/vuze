@@ -3487,13 +3487,16 @@ DHTTrackerPlugin
 
 						boolean	ok = false;
 						
-						for (int i=0;i<sources.length;i++){
+						if ( sources != null ){
 							
-							if ( sources[i].equalsIgnoreCase( "DHT")){
+							for (int i=0;i<sources.length;i++){
 								
-								ok	= true;
-								
-								break;
+								if ( sources[i].equalsIgnoreCase( "DHT")){
+									
+									ok	= true;
+									
+									break;
+								}
 							}
 						}
 						
