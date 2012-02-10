@@ -25,10 +25,12 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
+import java.io.File;
 import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.category.Category;
@@ -37,6 +39,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.sharing.*;
@@ -49,6 +52,9 @@ import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.URLTransfer;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
@@ -58,12 +64,16 @@ import org.gudy.azureus2.ui.swt.views.tableitems.myshares.NameItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.myshares.TypeItem;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo2;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MdiEntryDropListener;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
 /**
  * @author parg
@@ -75,7 +85,7 @@ public class MySharesView
 extends TableViewTab<ShareResource>
 implements ShareManagerListener,
 		TableLifeCycleListener, TableViewSWTMenuFillListener,
-		TableRefreshListener, TableSelectionListener
+		TableRefreshListener, TableSelectionListener, ViewTitleInfo2
 {
   private static final TableColumnCore[] basicItems = {
     new NameItem(),
@@ -89,6 +99,8 @@ implements ShareManagerListener,
 	private Menu			menuCategory;
 
 	private TableViewSWTImpl<ShareResource> tv;
+
+	private DropTarget dropTarget;
 
 	public 
 	MySharesView()
@@ -162,8 +174,53 @@ implements ShareManagerListener,
 				createRows(core);
 			}
 		});
+
+		dropTarget = tv.createDropTarget(DND.DROP_DEFAULT | DND.DROP_MOVE
+				| DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
+		if (dropTarget != null) {
+			dropTarget.setTransfer(new Transfer[] { HTMLTransfer.getInstance(),
+					URLTransfer.getInstance(), FileTransfer.getInstance(),
+					TextTransfer.getInstance() });
+
+			dropTarget.addDropListener(new DropTargetAdapter() {
+				public void drop(DropTargetEvent event) {
+					if (!share(event)) {
+						TorrentOpener.openDroppedTorrents(event, true);
+					}
+				}
+			});
+		};
+
 	}
 	
+	protected boolean share(Object eventData) {
+		boolean shared = false;
+		if (eventData instanceof String[] || eventData instanceof String) {
+			final String[] sourceNames = (eventData instanceof String[])
+					? (String[]) eventData : new String[] {
+						(String) eventData
+					};
+			if (sourceNames == null) {
+				return false;
+			}
+			for (int i = 0; (i < sourceNames.length); i++) {
+				final File source = new File(sourceNames[i]);
+				String filename = source.getAbsolutePath();
+				try {
+					if (source.isFile() && !TorrentUtils.isTorrentFile(filename)) {
+						ShareUtils.shareFile(filename);
+						shared = true;
+					} else if (source.isDirectory()) {
+						ShareUtils.shareDir(filename);
+						shared = true;
+					}
+				} catch (Exception e) {
+				}
+			}
+		}
+		return shared;
+	}
+
 	public void tableViewDestroyed() {
 		try {
 			PluginInitializer.getDefaultInterface().getShareManager().removeListener(
@@ -646,5 +703,18 @@ implements ShareManagerListener,
   	if (uiFunctions != null) {
   		uiFunctions.refreshIconBar();
   	}
+	}
+	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getTitleInfoProperty(int)
+	public Object getTitleInfoProperty(int propertyID) {
+		return null;
+	}
+
+	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo2#titleInfoLinked(com.aelitis.azureus.ui.mdi.MultipleDocumentInterface, com.aelitis.azureus.ui.mdi.MdiEntry)
+	public void titleInfoLinked(MultipleDocumentInterface mdi, MdiEntry mdiEntry) {
+		mdiEntry.addListener(new MdiEntryDropListener() {
+			public boolean mdiEntryDrop(MdiEntry entry, Object droppedObject) {
+				return share(droppedObject);
+			}
+		});
 	}
 }

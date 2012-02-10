@@ -414,7 +414,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		composite.setRedraw(false);
 		shell = composite.getShell();
 		mainComposite = createSashForm(composite);
-		mainComposite.setData( "TableView.TableID", sTableID );
 		table = createTable(tableComposite);
 		menu = createMenu(table);
 		clientArea = table.getClientArea();
