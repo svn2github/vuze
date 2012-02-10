@@ -829,10 +829,16 @@ public class GlobalManagerImpl
         DownloadManagerStats dm_stats = download_manager.getStats();
 
         HashWrapper hashwrapper = null;
-				try {
-					hashwrapper = download_manager.getTorrent().getHashWrapper();
-				} catch (Exception e1) { }
-				
+        
+        try{
+        	TOTorrent torrent = download_manager.getTorrent();
+        	
+        	if ( torrent != null ){
+        	
+        		hashwrapper = torrent.getHashWrapper();
+        	}
+        } catch (Exception e1) { }
+
         Map	save_download_state	= (Map)saved_download_manager_state.get(hashwrapper);
         
       	long saved_data_bytes_downloaded	= 0;

@@ -25,6 +25,7 @@ import java.io.LineNumberReader;
 import java.nio.charset.Charset;
 import java.util.Locale;
 import java.util.StringTokenizer;
+import java.util.TimeZone;
 import java.util.regex.Pattern;
 
 /**
@@ -61,21 +62,41 @@ Constants
   
   public static final String DEFAULT_ENCODING 	= "UTF8";
   public static final String BYTE_ENCODING 		= "ISO-8859-1";
-  public static Charset	BYTE_CHARSET;
-  public static Charset	DEFAULT_CHARSET;
+  public static final Charset	BYTE_CHARSET;
+  public static final Charset	DEFAULT_CHARSET;
 
   static{
+	  Charset	bc 	= null;
+	  Charset	dc	= null;
+	  
 	  try{
-	  	BYTE_CHARSET 	= Charset.forName( Constants.BYTE_ENCODING );
-	 	DEFAULT_CHARSET = Charset.forName( Constants.DEFAULT_ENCODING );
+	  	bc 	= Charset.forName( Constants.BYTE_ENCODING );
+	 	dc	= Charset.forName( Constants.DEFAULT_ENCODING );
 
 	}catch( Throwable e ){
 		
 		e.printStackTrace();
 	}
+	
+  	BYTE_CHARSET 	= bc;
+  	DEFAULT_CHARSET	= dc;
   }
   
   public static final Locale LOCALE_ENGLISH = new Locale("en", "");
+  
+  static{
+	  try{
+		  String	timezone = System.getProperty( "azureus.timezone", null );
+		  
+		  if ( timezone != null ){
+			
+			  TimeZone.setDefault( TimeZone.getTimeZone( timezone ));
+		  }  
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+  }
   
   public static final String INFINITY_STRING	= "\u221E"; // "oo";pa  
   public static final int    CRAPPY_INFINITY_AS_INT  = 365*24*3600; // seconds (365days)
@@ -125,11 +146,11 @@ Constants
   
   
   // Common Patterns
-	public static Pattern PAT_SPLIT_COMMAWORDS = Pattern.compile("\\s*,\\s*");
-	public static Pattern PAT_SPLIT_COMMA = Pattern.compile(",");
-	public static Pattern PAT_SPLIT_DOT = Pattern.compile("\\.");
-	public static Pattern PAT_SPLIT_SPACE = Pattern.compile(" ");
-	public static Pattern PAT_SPLIT_SLASH_N = Pattern.compile("\n");
+	public static final Pattern PAT_SPLIT_COMMAWORDS = Pattern.compile("\\s*,\\s*");
+	public static final Pattern PAT_SPLIT_COMMA = Pattern.compile(",");
+	public static final Pattern PAT_SPLIT_DOT = Pattern.compile("\\.");
+	public static final Pattern PAT_SPLIT_SPACE = Pattern.compile(" ");
+	public static final Pattern PAT_SPLIT_SLASH_N = Pattern.compile("\n");
 	
   
   public static final boolean is64Bit;

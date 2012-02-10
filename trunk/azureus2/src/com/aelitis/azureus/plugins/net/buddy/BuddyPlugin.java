@@ -2558,8 +2558,11 @@ BuddyPlugin
 							}else{
 								
 								try{
-									int	tcp_port = ((Long)status.get( "t" )).intValue();
-									int udp_port = ((Long)status.get( "u" )).intValue();
+									Long	l_tcp_port = (Long)status.get( "t" );
+									Long	l_udp_port = (Long)status.get( "u" );
+									
+									int	tcp_port = l_tcp_port==null?0:l_tcp_port.intValue();
+									int udp_port = l_udp_port==null?0:l_udp_port.intValue();
 									
 									InetAddress ip = InetAddress.getByAddress((byte[])status.get("i"));
 									
