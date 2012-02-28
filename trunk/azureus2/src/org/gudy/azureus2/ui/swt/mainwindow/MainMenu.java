@@ -239,12 +239,13 @@ public class MainMenu
 			//indent(MenuFactory.addSubscriptionMenuItem(viewMenu));
 
 			/*
-			 * These 2 menus resides on the Tools menu on non-OSX platforms;
+			 * These 3 menus resides on the Tools menu on non-OSX platforms;
 			 * since the Tools menu is not present in the OSX version these menus are added here to the View menu 
 			 */
 			if (Constants.isOSX) {
 				indent(MenuFactory.addConsoleMenuItem(viewMenu));
 				indent(MenuFactory.addStatisticsMenuItem(viewMenu));
+				indent(MenuFactory.addSpeedLimitsToMenu(viewMenu));
 			}
 
 		} catch (Exception e) {
