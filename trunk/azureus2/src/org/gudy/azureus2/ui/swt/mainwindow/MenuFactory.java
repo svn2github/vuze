@@ -59,6 +59,7 @@ import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.sun.corba.se.impl.javax.rmi.CORBA.Util;
 
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
@@ -966,108 +967,158 @@ public class MenuFactory
 								handleEvent(
 									Event arg )
 								{
-									try{
-										FileDialog dialog = new FileDialog( menu.getShell(), SWT.SYSTEM_MODAL | SWT.OPEN );
-										
-										dialog.setFilterExtensions(new String[] { "*.torrent", "*.tor", Constants.FILE_WILDCARD });
-										
-										dialog.setFilterNames(new String[] { "*.torrent", "*.tor", Constants.FILE_WILDCARD });
-										
-										dialog.setFilterPath( TorrentOpener.getFilterPathTorrent());
-																
-										dialog.setText(MessageText.getString( "torrent.fix.corrupt.browse" ));
-										
-										String str = dialog.open();
-																				
-										if ( str != null ){
-										
-											TorrentOpener.setFilterPathTorrent( str );
-
-											File file = new File( str );
-											
-											byte[] bytes = FileUtil.readFileAsByteArray( file );
-
-											Map existing_map = BDecoder.decode( bytes );
-											
-											Map existing_info = (Map)existing_map.get( "info" );
-											
-											byte[]	existing_info_encoded = BEncoder.encode( existing_info );
-											
-											TOTorrent t = TOTorrentFactory.deserialiseFromMap( existing_map );
-											
-											byte[] old_hash = t.getHash();
-											byte[] new_hash	= null;
-											
-											for ( int i=0;i<bytes.length-5;i++){
-												
-												if ( 	bytes[i] == ':' && 
-														bytes[i+1] == 'i' && 
-														bytes[i+2] == 'n' && 
-														bytes[i+3] == 'f' && 
-														bytes[i+4] == 'o' ){
-														
-													new_hash = new SHA1Simple().calculateHash( bytes, i+5, existing_info_encoded.length );
-													
-													break;
+									Utils.execSWTThreadLater(
+											1,
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													handleTorrentFixup();
 												}
-											}
-											
-											if ( new_hash != null ){
-												
-												String	title = MessageText.getString( "torrent.fix.corrupt.result.title" );
-												
-												if ( Arrays.equals( old_hash, new_hash )){
-													
-													MessageBoxShell mb = 
-														new MessageBoxShell( SWT.OK, title, MessageText.getString( "torrent.fix.corrupt.result.nothing" ) ); 
-									 						
-									 				mb.setParent(menu.getShell());
-									 				
-									 				mb.open( null );
-									 				
-												}else{
-													
-													MessageBoxShell mb = 
-														new MessageBoxShell( SWT.OK, title, MessageText.getString( "torrent.fix.corrupt.result.fixed", new String[]{ ByteFormatter.encodeString( new_hash ) })); 
-									 						
-									 				mb.setParent(menu.getShell());
-									 				
-									 				mb.open( null );
-									 				
-									 				mb.waitUntilClosed();
-									 				
-									 				t.setHashOverride( new_hash );
-									 				
-									 				FileDialog dialog2 = new FileDialog( menu.getShell(), SWT.SYSTEM_MODAL | SWT.SAVE );
-																										
-													dialog2.setFilterPath( TorrentOpener.getFilterPathTorrent());
-																			
-													dialog2.setFilterExtensions(new String[]{ "*.torrent" });
-													
-													String str2 = dialog2.open();
-																							
-													if ( str2 != null ){
-														
-														if ( !( str2.toLowerCase( Locale.US ).endsWith( ".tor" ) || str2.toLowerCase( Locale.US ).endsWith( ".torrent" ))){
-															
-															str2 += ".torrent";
-														}
-														
-														t.serialiseToBEncodedFile( new File( str2 ));
-													}
-												}
-											}
-										}
-									}catch( Throwable e ){
-										
-										Debug.out( e );
-									}
+											});
 								}
 							});
 					}
 		});
 		
 		return( advancedHelpMenuItem );
+	}
+	
+	private static void
+	handleTorrentFixup()
+	{
+			// had some OSX SWT crash issues in this code so moved everything async
+		
+		final Shell shell = Utils.findAnyShell();
+		
+		try{
+			FileDialog dialog = new FileDialog( shell.getShell(), SWT.SYSTEM_MODAL | SWT.OPEN );
+			
+			dialog.setFilterExtensions(new String[] { "*.torrent", "*.tor", Constants.FILE_WILDCARD });
+			
+			dialog.setFilterNames(new String[] { "*.torrent", "*.tor", Constants.FILE_WILDCARD });
+			
+			dialog.setFilterPath( TorrentOpener.getFilterPathTorrent());
+									
+			dialog.setText(MessageText.getString( "torrent.fix.corrupt.browse" ));
+			
+			String str = dialog.open();
+													
+			if ( str != null ){
+			
+				TorrentOpener.setFilterPathTorrent( str );
+
+				File file = new File( str );
+				
+				byte[] bytes = FileUtil.readFileAsByteArray( file );
+
+				Map existing_map = BDecoder.decode( bytes );
+				
+				Map existing_info = (Map)existing_map.get( "info" );
+				
+				byte[]	existing_info_encoded = BEncoder.encode( existing_info );
+				
+				final TOTorrent t = TOTorrentFactory.deserialiseFromMap( existing_map );
+				
+				final byte[] old_hash = t.getHash();
+				byte[] new_hash	= null;
+				
+				for ( int i=0;i<bytes.length-5;i++){
+					
+					if ( 	bytes[i] == ':' && 
+							bytes[i+1] == 'i' && 
+							bytes[i+2] == 'n' && 
+							bytes[i+3] == 'f' && 
+							bytes[i+4] == 'o' ){
+							
+						new_hash = new SHA1Simple().calculateHash( bytes, i+5, existing_info_encoded.length );
+						
+						break;
+					}
+				}
+				
+				if ( new_hash != null ){
+					
+					final byte[] f_new_hash = new_hash;
+					
+					Utils.execSWTThreadLater(
+							1,
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									String	title = MessageText.getString( "torrent.fix.corrupt.result.title" );
+									
+									if ( Arrays.equals( old_hash, f_new_hash )){
+										
+										MessageBoxShell mb = 
+											new MessageBoxShell( SWT.OK, title, MessageText.getString( "torrent.fix.corrupt.result.nothing" ) ); 
+						 						
+						 				mb.setParent( shell );
+						 				
+						 				mb.open( null );
+						 				
+									}else{
+										
+										MessageBoxShell mb = 
+											new MessageBoxShell( SWT.OK, title, MessageText.getString( "torrent.fix.corrupt.result.fixed", new String[]{ ByteFormatter.encodeString( f_new_hash ) })); 
+						 						
+						 				mb.setParent( shell );
+						 				
+						 				mb.open( null );
+						 				
+						 				mb.waitUntilClosed();
+						 				
+						 				try{
+						 					t.setHashOverride( f_new_hash );
+						 				
+							 				Utils.execSWTThreadLater(
+													1,
+													new Runnable()
+													{
+														public void
+														run()
+														{
+											 				FileDialog dialog2 = new FileDialog( shell, SWT.SYSTEM_MODAL | SWT.SAVE );
+																												
+															dialog2.setFilterPath( TorrentOpener.getFilterPathTorrent());
+																					
+															dialog2.setFilterExtensions(new String[]{ "*.torrent" });
+															
+															String str2 = dialog2.open();
+																									
+															if ( str2 != null ){
+																
+																if ( !( str2.toLowerCase( Locale.US ).endsWith( ".tor" ) || str2.toLowerCase( Locale.US ).endsWith( ".torrent" ))){
+																	
+																	str2 += ".torrent";
+																}
+																
+																try{
+																	t.serialiseToBEncodedFile( new File( str2 ));
+																	
+																}catch( Throwable e ){
+																	
+																	Debug.out( e );
+																}
+															}
+														}
+													});
+						 				}catch( Throwable e ){
+						 					
+						 					Debug.out( e );
+						 				}
+									}
+								}
+							});
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
 	}
 	
 	private static void
