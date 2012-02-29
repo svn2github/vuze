@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt;
 
 import java.util.*;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -32,6 +33,7 @@ import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 
 import com.aelitis.azureus.util.MapUtils;
 
@@ -71,7 +73,7 @@ public class Alerts
 	 *
 	 * @since 3.0.0.9
 	 */
-	protected static void showAlert(LogAlert alert) {
+	protected static void showAlert(final LogAlert alert) {
 		final Display display = SWTThread.getInstance().getDisplay();
 
 		if (alert.err != null) {
@@ -157,6 +159,46 @@ public class Alerts
 		AlertHistoryListener[] array = listMessageHistoryListeners.toArray(new AlertHistoryListener[0]);
 		for (AlertHistoryListener l : array) {
 			l.alertHistoryAdded(alert);
+		}
+		
+		if ( alert.forceNotify ){
+			
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					int swtIconID = SWT.ICON_INFORMATION;
+					switch (alert.getType()) {
+						case LogAlert.LT_WARNING:
+							swtIconID = SWT.ICON_WARNING;
+							break;
+							
+						case LogAlert.LT_ERROR:
+							swtIconID = SWT.ICON_ERROR;
+							break;
+					}
+					
+					String	text = alert.getText();
+					
+					int	pos = text.indexOf( ":" );
+					
+					String	title;
+					
+					if ( pos == -1 ){
+						
+						title = "";
+						
+					}else{
+						
+						title = text.substring( 0, pos ).trim();
+						
+						text = text.substring( pos+1 ).trim();
+					}
+					
+					new MessageSlideShell(
+							SWTThread.getInstance().getDisplay(), swtIconID,
+							title, text, alert.details, alert.getContext(), alert.getTimeoutSecs());
+					
+				}
+			});
 		}
 	}
 

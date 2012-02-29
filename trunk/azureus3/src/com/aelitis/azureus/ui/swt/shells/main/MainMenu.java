@@ -475,6 +475,7 @@ public class MainMenu
 		MenuFactory.addConfigWizardMenuItem(helpMenu);
 		MenuFactory.addNatTestMenuItem(helpMenu);
 		MenuFactory.addSpeedTestMenuItem(helpMenu);
+		MenuFactory.addAdvancedHelpMenuItem(helpMenu);
 
 		MenuFactory.addSeparatorMenuItem(helpMenu);
 		MenuFactory.addDebugHelpMenuItem(helpMenu);

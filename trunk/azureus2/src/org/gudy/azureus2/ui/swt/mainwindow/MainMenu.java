@@ -331,6 +331,7 @@ public class MainMenu
 		MenuFactory.addDonationMenuItem(helpMenu);
 
 		MenuFactory.addSeparatorMenuItem(helpMenu);
+		MenuFactory.addAdvancedHelpMenuItem(helpMenu);
 		MenuFactory.addDebugHelpMenuItem(helpMenu);
 
 	}

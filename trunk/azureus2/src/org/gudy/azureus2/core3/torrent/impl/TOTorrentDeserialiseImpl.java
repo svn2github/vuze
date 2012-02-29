@@ -27,6 +27,9 @@ import java.net.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.html.HTMLUtils;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
 
@@ -207,7 +210,11 @@ TOTorrentDeserialiseImpl
 		throws TOTorrentException
 	{
 		try{
-			Map meta_data = BDecoder.decode(bytes);
+			BDecoder decoder = new BDecoder();
+			
+			decoder.setVerifyMapOrder( true );
+			
+			Map meta_data = decoder.decodeByteArray( bytes );
 	
 			// print( "", "", meta_data );
 			
@@ -479,7 +486,7 @@ TOTorrentDeserialiseImpl
 				throw( new TOTorrentException( "Decode fails, 'info' element not found'",
 												TOTorrentException.RT_DECODE_FAILS ));
 			}
-		
+			
 			boolean hasUTF8Keys = info.containsKey(TK_NAME_UTF8);
 			
 			setName((byte[])info.get( TK_NAME ));
@@ -655,6 +662,31 @@ TOTorrentDeserialiseImpl
 				if ( ho != null ){
 					
 					setHashOverride( ho );
+					
+				}else{
+					
+					if ( info instanceof LightHashMapEx ){
+													
+						LightHashMapEx	info_ex = (LightHashMapEx)info;
+							
+						if ( info_ex.getFlag( LightHashMapEx.FL_MAP_ORDER_INCORRECT )){
+						
+							String name = getUTF8Name();
+							
+							if ( name == null ){
+								
+								name = new String(getName());
+							}
+							
+							String	message = MessageText.getString( "torrent.decode.info.order.bad", new String[]{ name });
+							
+							LogAlert alert = new LogAlert( this, LogAlert.UNREPEATABLE, LogAlert.AT_WARNING, message);
+							
+							alert.forceNotify = true;
+							
+							Logger.log( alert );
+						}
+					}
 				}
 			}catch( Throwable e ){
 				

@@ -47,7 +47,7 @@ public class BDecoder
 	private static final boolean TRACE	= false;
 	
 	private boolean recovery_mode;
-
+	private boolean	verify_map_order;
 	
 	private final static byte[]	PORTABLE_ROOT;
 	
@@ -227,9 +227,11 @@ public class BDecoder
 		case 'd' :
 				//create a new dictionary object
 			
-			Map tempMap = new LightHashMap();
+			LightHashMap tempMap = new LightHashMap();
 
 			try{
+				byte[]	prev_key = null;
+				
 					//get the key   
 				
 				while (true) {
@@ -264,7 +266,57 @@ public class BDecoder
 					}
 					
 					getByteArrayFromStream(dbis, keyLength, keyBytesBuffer.array());						
-
+					
+					if ( verify_map_order ){
+						
+						byte[] current_key = new byte[keyLength];
+						
+						System.arraycopy( keyBytesBuffer.array(), 0, current_key, 0, keyLength );
+						
+						if ( prev_key != null ){
+							
+							int	len = Math.min( prev_key.length, keyLength );
+							
+							int	state = 0;
+							
+							for ( int i=0;i<len;i++){
+								
+								int	cb = current_key[i]&0x00ff;
+								int	pb = prev_key[i]&0x00ff;
+								
+								if ( cb > pb ){
+									state = 1;
+									break;
+								}else if ( cb < pb ){
+									state = 2;
+									break;
+								}
+							}
+							
+							if ( state == 0){
+								if ( prev_key.length > keyLength ){
+									
+									state = 2;
+								}
+							}
+							
+							if ( state == 2 ){
+								
+								// Debug.out( "Dictionary order incorrect: prev=" + new String( prev_key ) + ", current=" + new String( current_key ));
+								
+								if (!( tempMap instanceof LightHashMapEx )){
+									
+									LightHashMapEx x = new LightHashMapEx( tempMap );
+									
+									x.setFlag( LightHashMapEx.FL_MAP_ORDER_INCORRECT, true );
+									
+									tempMap = x;
+								}
+							}
+						}
+						
+						prev_key = current_key;
+					}
 					
 					keyDecoder.reset();
 					keyDecoder.decode(keyBytesBuffer,keyCharsBuffer,true);
@@ -334,9 +386,7 @@ public class BDecoder
 				}
 			}
 
-			if (tempMap instanceof LightHashMap)
-				((LightHashMap) tempMap).compactify(-0.9f);
-
+			tempMap.compactify(-0.9f);
 
 				//return the map
 			
@@ -807,6 +857,13 @@ public class BDecoder
 			throw (new IOException("BDecoder::getByteArrayFromStream: truncated"));
 	}	
 
+	public void
+	setVerifyMapOrder(
+		boolean	b )
+	{
+		verify_map_order = b;
+	}
+	
 	public void
 	setRecoveryMode(
 		boolean	r )
