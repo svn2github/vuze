@@ -4994,6 +4994,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	public void showRow(final TableRowCore row) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if ( table==null||table.isDisposed()){
+					return;
+				}
 				int index = row.getIndex();
 				if (index >= 0 && index < table.getItemCount()) {
 					table.showItem(table.getItem(index));
