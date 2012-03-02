@@ -411,7 +411,9 @@ public class SubscriptionsView
 	}
 	
 	private void refresh() {
-		view.refreshTable(false);
+		if ( view != null ){
+			view.refreshTable(false);
+		}
 	}
 
 	public boolean eventOccurred(UISWTViewEvent event) {
