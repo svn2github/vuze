@@ -325,9 +325,27 @@ public class SearchResultsTabArea
 								MenuItem mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.sep" );
 
 								mi.setStyle( MenuItem.STYLE_SEPARATOR );
-							}
+							}		
+															
+							MenuItem mi = menuManager.addMenuItem( engine_menu, "Button.remove" );
+	
+							mi.addListener(
+								new MenuItemListener()
+								{
+									public void 
+									selected(
+										MenuItem menu, 
+										Object target) 
+									{
+										engine.setSelectionState( Engine.SEL_STATE_DESELECTED );
+									}
+								});
 							
-							MenuItem mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.properties" );
+							mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.sep2" );
+	
+							mi.setStyle( MenuItem.STYLE_SEPARATOR );
+							
+							mi = menuManager.addMenuItem( engine_menu, "Subscription.menu.properties" );
 
 							mi.addListener(
 								new MenuItemListener()
