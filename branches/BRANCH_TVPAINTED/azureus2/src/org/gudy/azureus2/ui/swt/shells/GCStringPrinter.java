@@ -75,6 +75,8 @@ public class GCStringPrinter
 	private static final int MAX_WORD_LEN = 4000;
 
 	private boolean cutoff;
+	
+	private boolean isWordCut;
 
 	private GC gc;
 
@@ -135,8 +137,6 @@ public class GCStringPrinter
 
 	private class LineInfo
 	{
-		public int width;
-
 		String originalLine;
 
 		String lineOutputed;
@@ -145,9 +145,9 @@ public class GCStringPrinter
 
 		public int relStartPos;
 		
-		public int height;
-		
 		public int imageIndexes[];
+
+		public Point outputLineExtent = new Point(0, 0);
 
 		public LineInfo(String originalLine, int relStartPos) {
 			this.originalLine = originalLine;
@@ -265,6 +265,7 @@ public class GCStringPrinter
 	 */
 	private boolean __printString() {
 		size = new Point(0, 0);
+		isWordCut = false;
 
 		if (string == null) {
 			return false;
@@ -386,20 +387,13 @@ public class GCStringPrinter
 					LineInfo lineInfo = new LineInfo(sLine, currentCharPos);
 					lineInfo = processLine(gc, lineInfo, printArea,  fullLinesOnly,
 							false);
-					String sProcessedLine = (String) lineInfo.lineOutputed;
+					String sProcessedLine = lineInfo.lineOutputed;
 
 					if (sProcessedLine != null && sProcessedLine.length() > 0) {
-						if (lineInfo.width == 0 || lineInfo.height == 0) {
-							Point gcExtent = gc.stringExtent(sProcessedLine);
-							if (lineInfo.width == 0) {
-								lineInfo.width = gcExtent.x;
-							}
-							if (lineInfo.height == 0) {
-								lineInfo.height = gcExtent.y;
-							}
+						if (lineInfo.outputLineExtent.x == 0 || lineInfo.outputLineExtent.y == 0) {
+							lineInfo.outputLineExtent = gc.stringExtent(sProcessedLine);
 						}
-						Point extent = new Point(lineInfo.width, lineInfo.height);
-						iCurrentHeight += extent.y;
+						iCurrentHeight += lineInfo.outputLineExtent.y;
 						boolean isOverY = iCurrentHeight > printArea.height;
 
 						if (DEBUG) {
@@ -442,14 +436,14 @@ public class GCStringPrinter
 								}
 
 								StringBuffer outputLine = new StringBuffer(sProcessedLine);
-								lineInfo.width = extent.x;
+								lineInfo.outputLineExtent.x = extent.x;
 								wrap = false;
 								int newExcessPos = processWord(gc, sProcessedLine,
 										" " + excess, printArea, lineInfo, outputLine,
 										new StringBuffer());
 								if (DEBUG) {
 									System.out.println("  (overY+full+lineSize>0) with word [" + excess + "] len is "
-											+ lineInfo.width + "(" + printArea.width + ") w/excess "
+											+ lineInfo.outputLineExtent.x + "(" + printArea.width + ") w/excess "
 											+ newExcessPos);
 								}
 
@@ -479,7 +473,7 @@ public class GCStringPrinter
 						if (DEBUG) {
 							System.out.println("Line process resulted in no text: " + sLine);
 						}
-						iCurrentHeight += lineInfo.height;
+						iCurrentHeight += lineInfo.outputLineExtent.y;
 						lines.add(lineInfo);
 						currentCharPos++;
 						break;
@@ -530,8 +524,8 @@ public class GCStringPrinter
 				 */
 
 				for (LineInfo lineInfo : lines) {
-					size.x = Math.max(lineInfo.width, size.x);
-					size.y += lineInfo.height;
+					size.x = Math.max(lineInfo.outputLineExtent.x, size.x);
+					size.y += lineInfo.outputLineExtent.y;
 				}
 				
 				if ((swtFlags & (SWT.BOTTOM)) != 0) {
@@ -574,15 +568,23 @@ public class GCStringPrinter
 
 		if (lineInfo.originalLine.length() == 0) {
 			lineInfo.lineOutputed = "";
-			lineInfo.height = gc.stringExtent(GOOD_STRING).y;
+			lineInfo.outputLineExtent = new Point(0, gc.stringExtent(GOOD_STRING).y);
 			return lineInfo;
 		}
 		
 		StringBuffer outputLine = null;
 		int excessPos = -1;
 
-		if (images != null || lineInfo.originalLine.length() > MAX_LINE_LEN
-				|| gc.stringExtent(lineInfo.originalLine).x > printArea.width) {
+		boolean b = images != null || lineInfo.originalLine.length() > MAX_LINE_LEN;
+		if (!b) {
+			Point outputLineExtent = gc.stringExtent(lineInfo.originalLine);
+			b = outputLineExtent.x > printArea.width;
+			if (!b) {
+				lineInfo.outputLineExtent = outputLineExtent;
+			}
+		}
+
+		if (b) {
 			outputLine = new StringBuffer();
 			if (DEBUG) {
 				System.out.println("Line to process: " + lineInfo.originalLine);
@@ -634,7 +636,7 @@ public class GCStringPrinter
 								printArea, lineInfo, outputLine, space);
 						if (DEBUG) {
 							System.out.println("  with word [" + subWord + "] len is "
-									+ lineInfo.width + "(" + printArea.width + ") w/excess "
+									+ lineInfo.outputLineExtent.x + "(" + printArea.width + ") w/excess "
 									+ excessPos);
 						}
 						if (excessPos >= 0) {
@@ -709,14 +711,14 @@ public class GCStringPrinter
 				}
 				
 				Point spaceExtent = gc.stringExtent(space.toString());
-				int newWidth = lineInfo.width + bounds.width + spaceExtent.x;
+				int newWidth = lineInfo.outputLineExtent.x + bounds.width + spaceExtent.x;
 
 
 				if (newWidth > printArea.width) {
-					if (bounds.width + spaceExtent.x < printArea.width || lineInfo.width > 0) {
+					if (bounds.width + spaceExtent.x < printArea.width || lineInfo.outputLineExtent.x > 0) {
 						//outputLine.append(space);
 						//outputLine.append(word, 0, 2);
-						//System.out.println("w1 = " + lineInfo.width + ";h=" + lineInfo.height);
+						//System.out.println("w1 = " + lineInfo.outputLineExtent.x + ";h=" + lineInfo.outputLineExtent.y);
 						return 0;
 					}
 				}
@@ -726,16 +728,15 @@ public class GCStringPrinter
 				}
 				
 				
-				//int targetWidth = lineInfo.width + newWidth;
+				//int targetWidth = lineInfo.outputLineExtent.x + newWidth;
 				
-				lineInfo.width = newWidth;
-				lineInfo.height = Math.max(bounds.height, lineInfo.height);
+				lineInfo.outputLineExtent = new Point(newWidth, Math.max(bounds.height, lineInfo.outputLineExtent.y));
 
 				Point ptWordSize = gc.stringExtent(word.substring(2) + " ");
-				if (lineInfo.width + ptWordSize.x > printArea.width) {
+				if (lineInfo.outputLineExtent.x + ptWordSize.x > printArea.width) {
 					outputLine.append(space);
 					outputLine.append(word.substring(0,2));
-					//System.out.println("w8 = " + lineInfo.width + ";h=" + lineInfo.height);
+					//System.out.println("w8 = " + lineInfo.outputLineExtent.x + ";h=" + lineInfo.outputLineExtent.y);
 					return 2;
 				}
 				
@@ -749,22 +750,23 @@ public class GCStringPrinter
 				//}
 				//space.append(' ');
 				
-				//System.out.println("w2 = " + lineInfo.width + ";h=" + lineInfo.height);
+				//System.out.println("w2 = " + lineInfo.outputLineExtent.x + ";h=" + lineInfo.outputLineExtent.y);
 				//return -1;
 			}
 		}
 
 		Point ptLineAndWordSize = gc.stringExtent(outputLine + word + " ");
-		//System.out.println(ptLineAndWordSize + ";" + outputLine  + "::WordComp " + (ptLineAndWordSize.x - lineInfo.width));
+		//System.out.println(ptLineAndWordSize + ";" + outputLine  + "::WordComp " + (ptLineAndWordSize.x - lineInfo.outputLineExtent.x));
 		if (ptLineAndWordSize.x > printArea.width) {
 			// word is longer than space avail, split
+			isWordCut = true;
 
 			Point ptWordSize2 = gc.stringExtent(word + " ");
 			boolean bWordLargerThanWidth = ptWordSize2.x > printArea.width;
 			// This will split put a word that is longer than a full line onto a new
 			// line (when the existing line has text).
-			if (bWordLargerThanWidth && lineInfo.width > 0) {
-				//System.out.println("w3 = " + lineInfo.width + ";h=" + lineInfo.height);
+			if (bWordLargerThanWidth && lineInfo.outputLineExtent.x > 0) {
+				//System.out.println("w3 = " + lineInfo.outputLineExtent.x + ";h=" + lineInfo.outputLineExtent.y);
 				return 0;
 			}
 
@@ -825,7 +827,7 @@ public class GCStringPrinter
 				outputLine.append(space);
 			}
 
-			//int w = ptLineAndWordSize.x - lineInfo.width;
+			//int w = ptLineAndWordSize.x - lineInfo.outputLineExtent.x;
 			if (wrap && !nothingFit && !bWordLargerThanWidth) {
 				// whole word is excess
 				return 0;
@@ -856,12 +858,12 @@ public class GCStringPrinter
 			if (DEBUG) {
 				System.out.println("excess " + word.substring(endIndex));
 			}
-			//System.out.println("w9 = " + lineInfo.width + ";h=" + lineInfo.height);
+			//System.out.println("w9 = " + lineInfo.outputLineExtent.x + ";h=" + lineInfo.outputLineExtent.y);
 			return endIndex;
 		}
 
-		lineInfo.width = ptLineAndWordSize.x;
-		if (lineInfo.width > printArea.width) {
+		lineInfo.outputLineExtent.x = ptLineAndWordSize.x;
+		if (lineInfo.outputLineExtent.x > printArea.width) {
 			if (space.length() > 0) {
 				space.delete(0, space.length());
 			}
@@ -885,10 +887,10 @@ public class GCStringPrinter
 						System.out.println("set cutoff");
 					}
 				}
-				//System.out.println("w5 = " + lineInfo.width + ";h=" + lineInfo.height);
+				//System.out.println("w5 = " + lineInfo.outputLineExtent.x + ";h=" + lineInfo.outputLineExtent.y);
 				return -1;
 			} else {
-				//System.out.println("w6 = " + lineInfo.width + ";h=" + lineInfo.height);
+				//System.out.println("w6 = " + lineInfo.outputLineExtent.x + ";h=" + lineInfo.outputLineExtent.y);
 				return 0;
 			}
 			//drawLine(gc, outputLine, swtFlags, rectDraw);
@@ -903,7 +905,7 @@ public class GCStringPrinter
 		}
 		space.append(' ');
 
-		//System.out.println("w4 = " + lineInfo.width + ";h=" + lineInfo.height);
+		//System.out.println("w4 = " + lineInfo.outputLineExtent.x + ";h=" + lineInfo.outputLineExtent.y);
 		return -1;
 	}
 
@@ -920,22 +922,15 @@ public class GCStringPrinter
 			Rectangle printArea, boolean noDraw) {
 		String text = lineInfo.lineOutputed;
 		// TODO: ensure width and height have values
-		if (lineInfo.width == 0 || lineInfo.height == 0) {
-			Point gcExtent = gc.stringExtent(text);;
-			if (lineInfo.width == 0) {
-				lineInfo.width = gcExtent.x;
-			}
-			if (lineInfo.height == 0) {
-				lineInfo.height = gcExtent.y;
-			}
+		if (lineInfo.outputLineExtent.x == 0 || lineInfo.outputLineExtent.y == 0) {
+			lineInfo.outputLineExtent = gc.stringExtent(text);
 		}
-		Point drawSize = new Point(lineInfo.width, lineInfo.height);
 		
 		int x0;
 		if ((swtFlags & SWT.RIGHT) > 0) {
-			x0 = printArea.x + printArea.width - drawSize.x;
+			x0 = printArea.x + printArea.width - lineInfo.outputLineExtent.x;
 		} else if ((swtFlags & SWT.CENTER) > 0) {
-			x0 = printArea.x + (printArea.width - drawSize.x) / 2;
+			x0 = printArea.x + (printArea.width - lineInfo.outputLineExtent.x) / 2;
 		} else {
 			x0 = printArea.x;
 		}
@@ -981,7 +976,7 @@ public class GCStringPrinter
 				if (i > 0 && i > lineStartPos && i <= text.length()) {
 					String s = text.substring(lineStartPos, i);
 					//gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_RED));
-					x0 += drawText(gc, s, x0, y0, lineInfo.height, null, noDraw, true).x;
+					x0 += drawText(gc, s, x0, y0, lineInfo.outputLineExtent.y, null, noDraw, true).x;
 
 					relStartPos += (i - lineStartPos);
 					lineStartPos += (i - lineStartPos);
@@ -1008,7 +1003,7 @@ public class GCStringPrinter
 
 					if (urlInfo.dropShadowColor != null) {
 						gc.setForeground(urlInfo.dropShadowColor);
-						drawText(gc, s, x0 + 1, y0 + 1, lineInfo.height, null, noDraw,
+						drawText(gc, s, x0 + 1, y0 + 1, lineInfo.outputLineExtent.y, null, noDraw,
 								false);
 					}
 
@@ -1021,7 +1016,7 @@ public class GCStringPrinter
 				if (urlInfo.hitAreas == null) {
 					urlInfo.hitAreas = new ArrayList<Rectangle>(1);
 				}
-				pt = drawText(gc, s, x0, y0, lineInfo.height, urlInfo.hitAreas, noDraw,
+				pt = drawText(gc, s, x0, y0, lineInfo.outputLineExtent.y, urlInfo.hitAreas, noDraw,
 						true);
 				if (!noDraw) {
 					if (urlInfo.urlUnderline) {
@@ -1033,7 +1028,7 @@ public class GCStringPrinter
 				if (urlInfo.hitAreas == null) {
 					urlInfo.hitAreas = new ArrayList<Rectangle>(1);
 				}
-				//gc.drawRectangle(new Rectangle(x0, y0, pt.x, lineInfo.height));
+				//gc.drawRectangle(new Rectangle(x0, y0, pt.x, lineInfo.outputLineExtent.y));
 
 				x0 += pt.x;
 			}
@@ -1043,10 +1038,10 @@ public class GCStringPrinter
 		if (lineStartPos < text.length()) {
 			String s = text.substring(lineStartPos);
 			if (!noDraw) {
-				drawText(gc, s, x0, y0, lineInfo.height, null, noDraw, false);
+				drawText(gc, s, x0, y0, lineInfo.outputLineExtent.y, null, noDraw, false);
 			}
 		}
-		printArea.y += drawSize.y;
+		printArea.y += lineInfo.outputLineExtent.y;
 	}
 	
 	private Point drawText(GC gc, String s, int x, int y, int height,
@@ -1514,6 +1509,10 @@ public class GCStringPrinter
 	 */
 	public String getText() {
 		return string;
+	}
+
+	public boolean isWordCut() {
+		return isWordCut;
 	}
 
 	/*

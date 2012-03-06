@@ -98,6 +98,8 @@ public interface TableCellCore extends TableCell, Comparable
 	 * @return the row that this cell belongs to
 	 */
 	public TableRowCore getTableRowCore();
+	
+	public TableColumnCore getTableColumnCore();
 
 	/**
 	 * Trigger all the tooltip listeners that have been added to this cell
@@ -154,8 +156,9 @@ public interface TableCellCore extends TableCell, Comparable
 	 * Set the cursor ID that should be used for the cell
 	 * 
 	 * @param cursor_hand
+	 * @return changed
 	 */
-	public void setCursorID(int cursorID);
+	public boolean setCursorID(int cursorID);
 	
 	/**
 	 * 

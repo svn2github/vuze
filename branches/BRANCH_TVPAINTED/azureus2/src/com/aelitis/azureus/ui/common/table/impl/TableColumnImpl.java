@@ -252,19 +252,20 @@ public class TableColumnImpl
 		//			iPreferredWidth = iWidth;
 		//		}
 
+		int diff = width - iWidth;
 		iWidth = width;
 		if (iDefaultWidth == 0) {
 			iDefaultWidth = width;
 		}
 
 		if (bColumnAdded && bVisible) {
-			triggerColumnSizeChange();
+			triggerColumnSizeChange(diff);
 		}
 	}
 
-	public void triggerColumnSizeChange() {
+	public void triggerColumnSizeChange(int diff) {
 		TableStructureEventDispatcher tsed = TableStructureEventDispatcher.getInstance(sTableID);
-		tsed.columnSizeChanged(this);
+		tsed.columnSizeChanged(this, diff);
 		if (iType == TYPE_GRAPHIC) {
 			invalidateCells();
 		}
@@ -1084,8 +1085,8 @@ public class TableColumnImpl
 			this_mon.enter();
 
 			if (sTitleLanguageKey == null) {
-				sTitleLanguageKey = sTableID + ".column." + sName;
-				if (MessageText.keyExists(sTitleLanguageKey)) {
+				if (MessageText.keyExists(sTableID + ".column." + sName)) {
+					sTitleLanguageKey = sTableID + ".column." + sName;
 					return sTitleLanguageKey;
 				}
 
@@ -1131,6 +1132,8 @@ public class TableColumnImpl
 					sTitleLanguageKey = sKeyPrefix;
 					return sTitleLanguageKey;
 				}
+				
+				sTitleLanguageKey = "!" + sName + "!";
 			}
 			return sTitleLanguageKey;
 		} finally {

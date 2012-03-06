@@ -42,6 +42,7 @@ import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.peer.RemotePieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.DownloadNameItem;
@@ -87,7 +88,7 @@ public class PeerSuperView
   	System.arraycopy(items, 0, basicItems, 0, items.length);
   	basicItems[items.length] = new DownloadNameItem(TableManager.TABLE_ALL_PEERS);
 
-  	tv = new TableViewSWTImpl<PEPeer>(Peer.class, TableManager.TABLE_ALL_PEERS,
+  	tv = TableViewFactory.createTableViewSWT(Peer.class, TableManager.TABLE_ALL_PEERS,
 				getPropertiesPrefix(), basicItems, "connected_time", SWT.MULTI
 						| SWT.FULL_SELECTION | SWT.VIRTUAL);
 		tv.setRowDefaultHeight(16);

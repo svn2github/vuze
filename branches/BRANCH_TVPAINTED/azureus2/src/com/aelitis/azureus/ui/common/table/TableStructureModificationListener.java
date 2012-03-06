@@ -34,7 +34,7 @@ public interface TableStructureModificationListener<T>
 
 	void columnOrderChanged(int[] iPositions);
 
-	void columnSizeChanged(TableColumnCore tableColumn);
+	void columnSizeChanged(TableColumnCore tableColumn, int diff);
 
 	void columnInvalidate(TableColumnCore tableColumn);
 	

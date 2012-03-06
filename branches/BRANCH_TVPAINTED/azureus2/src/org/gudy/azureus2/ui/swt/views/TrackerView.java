@@ -36,6 +36,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.tracker.*;
@@ -69,7 +70,7 @@ public class TrackerView
 
 	DownloadManager manager;
   
-	private TableViewSWTImpl<TrackerPeerSource> tv;
+	private TableViewSWT<TrackerPeerSource> tv;
 
 	/**
 	 * Initialize
@@ -82,7 +83,7 @@ public class TrackerView
 	public TableViewSWT<TrackerPeerSource>
 	initYourTableView() 
 	{
-		tv = new TableViewSWTImpl<TrackerPeerSource>(
+		tv = TableViewFactory.createTableViewSWT(
 				TrackerPeerSource.class,
 				TableManager.TABLE_TORRENT_TRACKERS, 
 				getPropertiesPrefix(), 

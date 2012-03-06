@@ -29,6 +29,7 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.columnsetup.TableColumnSetupWindow.TableViewColumnSetup;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
@@ -127,8 +128,8 @@ public class ColumnTC_NameInfo
 		}
 
 		Rectangle hitArea;
-		TableViewColumnSetup tv = (TableViewColumnSetup) ((TableCellCore) cell).getTableRowCore().getView();
-		if (tv.isColumnAdded(column)) {
+		TableViewSWT tv = (TableViewSWT) ((TableCellCore) cell).getTableRowCore().getView();
+		if (tv.getRow(column) != null) {
 			hitArea = Utils.EMPTY_RECT;
 		} else {
 			int x = bounds.x + titleSize.x + 15;

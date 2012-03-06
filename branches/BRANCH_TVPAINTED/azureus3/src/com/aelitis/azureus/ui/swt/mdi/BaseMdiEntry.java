@@ -871,6 +871,7 @@ public abstract class BaseMdiEntry
 			img = ImageLoader.getInstance().getImage(imageLeftID + suffix);
 		}
 		if (ImageLoader.isRealImage(img)) {
+//			System.out.println("real" + getTitle() + "/" + img.getBounds() + Debug.getCompressedStackTrace());
 			return img;
 		}
 		return null;

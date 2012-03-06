@@ -112,11 +112,11 @@ public class TableStructureEventDispatcher implements
 			}
 	}
 
-	public void columnSizeChanged(TableColumnCore tableColumn) {
+	public void columnSizeChanged(TableColumnCore tableColumn, int diff) {
 			Iterator iter = listeners.iterator();
 			while (iter.hasNext()) {
 				TableStructureModificationListener listener = (TableStructureModificationListener) iter.next();
-				listener.columnSizeChanged(tableColumn);
+				listener.columnSizeChanged(tableColumn, diff);
 			}
 	}
 

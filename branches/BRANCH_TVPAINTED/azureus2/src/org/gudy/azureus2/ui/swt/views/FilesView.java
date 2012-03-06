@@ -52,7 +52,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 
@@ -136,7 +136,7 @@ public class FilesView
 	}
 
 	public TableViewSWT<DiskManagerFileInfo> initYourTableView() {
-		tv = new TableViewSWTImpl<DiskManagerFileInfo>(
+		tv = TableViewFactory.createTableViewSWT(
 				org.gudy.azureus2.plugins.disk.DiskManagerFileInfo.class,
 				TableManager.TABLE_TORRENT_FILES, getPropertiesPrefix(), basicItems,
 				"firstpiece", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
@@ -287,7 +287,7 @@ public class FilesView
 		    	}
 		    	tv.removeDataSources(toRemove.toArray(new DiskManagerFileInfo[toRemove.size()]));
 		    	tv.addDataSources(toAdd.toArray(new DiskManagerFileInfo[toAdd.size()]));
-		    	((TableViewSWTImpl<?>)tv).tableInvalidate();
+		    	tv.tableInvalidate();
 	    	} else
 	    	{
 		    	tv.removeAllTableRows();

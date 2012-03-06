@@ -179,8 +179,6 @@ public interface TableView<DATASOURCETYPE>
 	 */
 	boolean isDisposed();
 
-	boolean isTableFocus();
-
 	/**
 	 * Process the queue of datasources to be added and removed
 	 *
@@ -242,6 +240,9 @@ public interface TableView<DATASOURCETYPE>
 	 * @param newDataSource
 	 */
 	void setParentDataSource(Object newDataSource);
+
+
+	Object getParentDataSource();
 
 	/**
 	 * @param iHeight
@@ -408,4 +409,12 @@ public interface TableView<DATASOURCETYPE>
 	 * @since 4.6.0.5
 	 */
 	void setMaxItemShown(int newIndex);
+
+	int getRowCount();
+
+	void resetLastSortedOn();
+
+	TableColumnCore[] getAllColumns();
+
+	void removeCountChangeListener(TableCountChangeListener l);
 }
