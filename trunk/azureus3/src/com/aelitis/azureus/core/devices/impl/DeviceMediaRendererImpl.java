@@ -116,9 +116,6 @@ DeviceMediaRendererImpl
 										+ " due to " + getName() + "/" + getClassification() + "/"
 										+ getID());
   							device.setHidden(true);
-							} else if (fileCount > 0 && Constants.IS_CVS_VERSION && device.isHidden()) {
-								// Fix beta bug where we hid devices that had files.  Remove after 4605
-								device.setHidden(false);
 							}
 						}
 					}
