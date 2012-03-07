@@ -723,11 +723,17 @@ public class TransferStatsView
       if(sources.length > 0) {
         int[] pings = new int[sources.length];
         for(int i = 0 ; i < sources.length ; i++) {
-        	int	ping = sources[i].getPingTime();
         	
-        	ping = Math.min( ping, MAX_DISPLAYED_PING_MILLIS );
+        	SpeedManagerPingSource source = sources[i];
         	
-        	pings[i] = ping;
+        	if ( source != null ){
+        		
+	        	int	ping = source.getPingTime();
+	        	
+	        	ping = Math.min( ping, MAX_DISPLAYED_PING_MILLIS );
+	        	
+	        	pings[i] = ping;
+        	}
         }
         pingGraph.addIntsValue(pings);
         
