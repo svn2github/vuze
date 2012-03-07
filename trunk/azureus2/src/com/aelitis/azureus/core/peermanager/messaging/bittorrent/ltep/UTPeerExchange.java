@@ -41,10 +41,7 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
  * Largely copied from AZPeerExchange.
  */
 public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
-	
-	// Debug flag for testing purposes - currently disabled by default.
-    public static final boolean ENABLED = true; 
-	
+		
 	  private static final LogIDs LOGID = LogIDs.NET;
 
 	  private static final int IPv4_SIZE_WITH_PORT = 6;

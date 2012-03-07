@@ -3,6 +3,7 @@ package com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.*;
@@ -150,6 +151,20 @@ public class LTHandshake implements LTMessage {
 		return (result == null) ? Collections.EMPTY_MAP : result;
 	}
 
+	public void
+	addDefaultExtensionMappings()
+	{
+		Map ext = (Map)data_dict.get("m");
+		
+		if ( ext == null ){
+			ext = new HashMap();
+			data_dict.put( "m", ext );
+		}
+
+		ext.put( ID_UT_PEX, new Long( SUBID_UT_PEX ));
+		ext.put( ID_UT_METADATA, new Long( SUBID_UT_METADATA ));
+	}
+	
 	public String getFeatureID() {return LTMessage.LT_FEATURE_ID;}
 	public int getFeatureSubID() {return LTMessage.SUBID_LT_HANDSHAKE;}
 	public String getID() {return LTHandshake.ID_LT_HANDSHAKE;}

@@ -1029,10 +1029,6 @@ implements PEPeerTransport
 		}
 	}
 
-	// We could do this in a more automated way in future, but hardcoded is simple and quick,
-	// so we'll do that instead. :)
-	static Map lt_ext_map = UTPeerExchange.ENABLED ? Collections.singletonMap("ut_pex", new Integer(1) ) : Collections.EMPTY_MAP; 
-
 	private void sendLTHandshake() {
 		String client_name = Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION;
 		int localTcpPort = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
@@ -1044,17 +1040,22 @@ implements PEPeerTransport
 		boolean require_crypto = NetworkManager.getCryptoRequired( manager.getAdapter().getCryptoLevel());
 		
 		Map data_dict = new HashMap();
-		data_dict.put("m", lt_ext_map);
+
 		data_dict.put("v", client_name);
 		data_dict.put("p", new Integer(localTcpPort));
 		data_dict.put("e", new Long(require_crypto ? 1L : 0L));
 		data_dict.put("upload_only", new Long(manager.isSeeding() && !( ENABLE_LAZY_BITFIELD || manual_lazy_bitfield_control )? 1L : 0L));
+		
 		InetAddress defaultV6 = NetworkAdmin.getSingleton().hasIPV6Potential(true) ? NetworkAdmin.getSingleton().getDefaultPublicAddressV6() : null;
-		if(defaultV6 != null)
+		
+		if(defaultV6 != null){
 			data_dict.put("ipv6",defaultV6.getAddress());
-		LTHandshake lt_handshake = new LTHandshake(
-				data_dict, other_peer_bt_lt_ext_version
-		);
+		}
+		
+		LTHandshake lt_handshake = new LTHandshake(data_dict, other_peer_bt_lt_ext_version );
+		
+		lt_handshake.addDefaultExtensionMappings();
+		
 		connection.getOutgoingMessageQueue().addMessage(lt_handshake, false);
 	}
 
@@ -2472,7 +2473,7 @@ implements PEPeerTransport
 	  
 	  LTMessageEncoder encoder = (LTMessageEncoder)connection.getOutgoingMessageQueue().getEncoder();
 	  encoder.updateSupportedExtensions(handshake.getExtensionMapping());
-	  this.ut_pex_enabled = UTPeerExchange.ENABLED && encoder.supportsUTPEX();
+	  this.ut_pex_enabled = encoder.supportsUTPEX();
 	  
 	  /**
 	   * Grr... this is one thing which I'm sure I had figured out much better than it is here...
