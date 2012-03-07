@@ -58,6 +58,11 @@ PEPeerManagerAdapter
 	public boolean
 	isPeerExchangeEnabled();
 	
+	public int
+	getTorrentInfoDictSize();
+	
+	public byte[]
+	getTorrentInfoDict();
 		/**
 		 * See NetworkManager.CRYPTO_OVERRIDE constants
 		 * @return

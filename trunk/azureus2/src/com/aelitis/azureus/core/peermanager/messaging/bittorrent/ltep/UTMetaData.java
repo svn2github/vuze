@@ -21,12 +21,14 @@
 
 package com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep;
 
+import java.nio.ByteBuffer;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
@@ -55,6 +57,22 @@ UTMetaData
 		msg_type	= MSG_TYPE_REQUEST;
 		piece		= _piece;
 		version		= _version;
+	}
+	
+	public
+	UTMetaData(
+		int				_piece,
+		ByteBuffer		_data,
+		byte			_version )
+	{
+		msg_type	= _data==null?MSG_TYPE_REJECT:MSG_TYPE_DATA;
+		piece		= _piece;
+		version		= _version;
+		
+		if ( _data != null ){
+			
+			metadata = new DirectByteBuffer( _data );
+		}
 	}
 	
 	public 
@@ -146,7 +164,13 @@ UTMetaData
 			buffer = MessagingUtil.convertPayloadToBencodedByteStream(payload_map, DirectByteBuffer.AL_MSG_UT_PEX);
 		}
 
-		return new DirectByteBuffer[]{ buffer };  
+		if ( msg_type == MSG_TYPE_DATA ){
+			
+			return new DirectByteBuffer[]{ buffer, metadata };
+		}else{
+		
+			return new DirectByteBuffer[]{ buffer };
+		}
 	}
 
 

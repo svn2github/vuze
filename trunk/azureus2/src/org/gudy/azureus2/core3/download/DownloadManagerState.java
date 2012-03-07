@@ -66,6 +66,7 @@ DownloadManagerState
 	public static final String AT_INCOMP_FILE_SUFFIX		= "incompfilesuffix";
 	public static final String AT_SCRAPE_CACHE				= "scrapecache";	// long value, seeds in upper word, leechers in lower
 	public static final String AT_REORDER_MIN_MB			= "reordermb";
+	public static final String AT_MD_INFO_DICT_SIZE			= "mdinfodictsize";
 
 	public static Object[][] ATTRIBUTE_DEFAULTS = {
 		{ AT_VERSION,								new Integer( -1 )},

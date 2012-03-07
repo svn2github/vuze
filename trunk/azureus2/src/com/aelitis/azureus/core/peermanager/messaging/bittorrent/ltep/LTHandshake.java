@@ -152,17 +152,28 @@ public class LTHandshake implements LTMessage {
 	}
 
 	public void
-	addDefaultExtensionMappings()
+	addDefaultExtensionMappings(
+		boolean		enable_pex,
+		boolean		enable_md )
 	{
-		Map ext = (Map)data_dict.get("m");
-		
-		if ( ext == null ){
-			ext = new HashMap();
-			data_dict.put( "m", ext );
+		if ( enable_pex | enable_md ){
+			Map ext = (Map)data_dict.get("m");
+			
+			if ( ext == null ){
+				ext = new HashMap();
+				data_dict.put( "m", ext );
+			}
+	
+			if ( enable_pex ){
+				
+				ext.put( ID_UT_PEX, new Long( SUBID_UT_PEX ));
+			}
+			
+			if ( enable_md ){
+				
+				ext.put( ID_UT_METADATA, new Long( SUBID_UT_METADATA ));
+			}
 		}
-
-		ext.put( ID_UT_PEX, new Long( SUBID_UT_PEX ));
-		ext.put( ID_UT_METADATA, new Long( SUBID_UT_METADATA ));
 	}
 	
 	public String getFeatureID() {return LTMessage.LT_FEATURE_ID;}

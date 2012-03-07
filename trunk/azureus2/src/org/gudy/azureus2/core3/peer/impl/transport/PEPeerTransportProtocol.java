@@ -1046,6 +1046,13 @@ implements PEPeerTransport
 		data_dict.put("e", new Long(require_crypto ? 1L : 0L));
 		data_dict.put("upload_only", new Long(manager.isSeeding() && !( ENABLE_LAZY_BITFIELD || manual_lazy_bitfield_control )? 1L : 0L));
 		
+		int metainfo_size = manager.getAdapter().getTorrentInfoDictSize();
+		
+		if ( metainfo_size > 0 ){
+			
+			data_dict.put("metadata_size", new Integer(metainfo_size));
+		}
+		
 		InetAddress defaultV6 = NetworkAdmin.getSingleton().hasIPV6Potential(true) ? NetworkAdmin.getSingleton().getDefaultPublicAddressV6() : null;
 		
 		if(defaultV6 != null){
@@ -1054,7 +1061,7 @@ implements PEPeerTransport
 		
 		LTHandshake lt_handshake = new LTHandshake(data_dict, other_peer_bt_lt_ext_version );
 		
-		lt_handshake.addDefaultExtensionMappings();
+		lt_handshake.addDefaultExtensionMappings( true, metainfo_size > 0 );
 		
 		connection.getOutgoingMessageQueue().addMessage(lt_handshake, false);
 	}
@@ -3774,6 +3781,13 @@ implements PEPeerTransport
 						decodeAZStatsReply((AZStatReply)message );
 						return true;
 					}
+					
+
+					if (message_id.equals(LTMessage.ID_UT_METADATA)) {
+						decodeMetaData((UTMetaData)message);
+						return true;
+					}
+
 					return false;
 				}
 
@@ -4170,6 +4184,50 @@ implements PEPeerTransport
 		}
 	}
 
+	protected void 
+	decodeMetaData( 
+		UTMetaData metadata ) 
+	{
+		try{
+			int	type = metadata.getType();
+		
+			if ( type == UTMetaData.MSG_TYPE_REQUEST ){
+				
+				int	piece = metadata.getPiece();
+				
+				byte[] data = manager.getAdapter().getTorrentInfoDict();
+				
+				UTMetaData	reply ;
+				
+				int	offset = piece*16*1024;
+				
+				if ( data == null || offset >= data.length ){
+					
+					reply = new UTMetaData( piece, null, other_peer_bt_lt_ext_version );
+
+				}else{
+					
+					int	to_send = Math.min( data.length - offset, 16*1024 );
+					
+					reply = new UTMetaData( piece, ByteBuffer.wrap( data, offset, to_send ), other_peer_bt_lt_ext_version );
+				}
+				
+				connection.getOutgoingMessageQueue().addMessage( reply, false );
+
+			}else if ( type == UTMetaData.MSG_TYPE_DATA ){
+				
+				// responding to requests only at the moment
+				
+			}else{
+				
+				// reject
+			}
+		}finally{
+			
+			metadata.destroy();
+		}
+	}
+	
 	public boolean
 	sendRequestHint(
 			int		piece_number,

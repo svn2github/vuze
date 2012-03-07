@@ -197,6 +197,8 @@ DownloadManagerController
 	private static final int				HTTP_SEEDS_MAX	= 64;
 	private LinkedList<ExternalSeedPeer>	http_seeds = new LinkedList<ExternalSeedPeer>();
 	
+	private int	md_info_dict_size;
+	
 	protected
 	DownloadManagerController(
 		DownloadManagerImpl	_download_manager )
@@ -225,7 +227,8 @@ DownloadManagerController
 			setState( initial_state, true );
 		}
 		
-	
+		DownloadManagerState state = download_manager.getDownloadState();
+
 		TOTorrent torrent = download_manager.getTorrent();
 
 		if (torrent != null) {
@@ -233,13 +236,27 @@ DownloadManagerController
 			try{
 				peer_manager_registration = PeerManager.getSingleton().registerLegacyManager( torrent.getHashWrapper(), this );
 				
+				md_info_dict_size = state.getIntAttribute( DownloadManagerState.AT_MD_INFO_DICT_SIZE );
+					
+				if ( md_info_dict_size == 0 ){
+					
+					try{
+						md_info_dict_size = BEncoder.encode((Map)torrent.serialiseToMap().get( "info" )).length;
+					
+					}catch( Throwable e ){
+						
+						md_info_dict_size = -1;
+					}
+					
+					state.setIntAttribute( DownloadManagerState.AT_MD_INFO_DICT_SIZE, md_info_dict_size );
+				}
+				
 			}catch( TOTorrentException e ){
 				
 				Debug.printStackTrace(e);
 			}
 		}
 			
-		DownloadManagerState state = download_manager.getDownloadState();
 		if (state.parameterExists(DownloadManagerState.PARAM_DND_FLAGS)) {
 			long flags = state.getLongParameter(DownloadManagerState.PARAM_DND_FLAGS);
 			cached_complete_excluding_dnd = (flags & STATE_FLAG_COMPLETE_NO_DND) != 0;
@@ -2046,6 +2063,27 @@ DownloadManagerController
 	isNATHealthy()
 	{
 		return( download_manager.getNATStatus() == ConnectionManager.NAT_OK );
+	}
+	
+	@Override
+	public int 
+	getTorrentInfoDictSize() 
+	{
+		return( md_info_dict_size );
+	}
+	
+	public byte[]
+	getTorrentInfoDict()
+	{
+		try{
+			TOTorrent torrent = download_manager.getTorrent();
+		
+			return( BEncoder.encode((Map)torrent.serialiseToMap().get( "info" )));
+			
+		}catch( Throwable e ){
+			
+			return( null );
+		}
 	}
 	
 	public void

@@ -192,6 +192,19 @@ LWSPeerManagerAdapter
 		
 	}
 	
+	@Override
+	public int 
+	getTorrentInfoDictSize() 
+	{
+		return( 0 );
+	}
+	
+	public byte[]
+	getTorrentInfoDict()
+	{
+		return( null );
+	}
+	
 	public boolean
 	isNATHealthy()
 	{
