@@ -1291,12 +1291,13 @@ public class TableViewPainted
 							| SWT.CENTER);
 			sp.calculateMetrics();
 			if (sp.isWordCut()) {
+				Font font = e.gc.getFont();
 				if (font70pct == null) {
-					font70pct = FontUtils.getFontPercentOf(e.gc.getFont(), 0.7f);
+					font70pct = FontUtils.getFontPercentOf(font, 0.7f);
 				}
 				e.gc.setFont(font70pct);
 				sp.printString();
-				e.gc.setFont(font70pct);
+				e.gc.setFont(font);
 			} else {
 				sp.printString();
 			}

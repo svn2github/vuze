@@ -187,6 +187,8 @@ public class TableRowPainted
 
 			x += w;
 		}
+		
+		rgn.dispose();
 
 //		if (paintedRow) {
 //			//debug("Paint " + e.x + "x" + e.y + " " + e.width + "x" + e.height + ".." + e.count + ";clip=" + e.gc.getClipping() +";drawOffset=" + drawOffset + " via " + Debug.getCompressedStackTrace());
