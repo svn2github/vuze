@@ -4195,7 +4195,9 @@ implements PEPeerTransport
 				
 				int	piece = metadata.getPiece();
 				
-				byte[] data = manager.getAdapter().getTorrentInfoDict();
+				int total_size = manager.getAdapter().getTorrentInfoDictSize();
+				
+				byte[] data = total_size<=0?null:manager.getAdapter().getTorrentInfoDict();
 				
 				UTMetaData	reply ;
 				
@@ -4203,13 +4205,13 @@ implements PEPeerTransport
 				
 				if ( data == null || offset >= data.length ){
 					
-					reply = new UTMetaData( piece, null, other_peer_bt_lt_ext_version );
+					reply = new UTMetaData( piece, null, 0, other_peer_bt_lt_ext_version );
 
 				}else{
 					
 					int	to_send = Math.min( data.length - offset, 16*1024 );
 					
-					reply = new UTMetaData( piece, ByteBuffer.wrap( data, offset, to_send ), other_peer_bt_lt_ext_version );
+					reply = new UTMetaData( piece, ByteBuffer.wrap( data, offset, to_send ), total_size, other_peer_bt_lt_ext_version );
 				}
 				
 				connection.getOutgoingMessageQueue().addMessage( reply, false );

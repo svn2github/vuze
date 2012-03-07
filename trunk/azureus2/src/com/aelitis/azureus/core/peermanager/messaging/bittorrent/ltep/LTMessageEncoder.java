@@ -128,11 +128,15 @@ public class LTMessageEncoder implements MessageStreamEncoder {
 	
 	public boolean supportsUTPEX() {
 		if (this.extension_map == null) {return false;}
-		return this.extension_map.containsKey("ut_pex");
+		Number num = (Number)this.extension_map.get("ut_pex");
+		
+		return( num != null && num.intValue() != 0 );
 	}
 
 	public boolean supportsUTMetaData() {
 		if (this.extension_map == null) {return false;}
-		return this.extension_map.containsKey("ut_metadata");
+		Number num = (Number)this.extension_map.get("ut_metadata");
+		
+		return( num != null && num.intValue() != 0 );
 	}
 }

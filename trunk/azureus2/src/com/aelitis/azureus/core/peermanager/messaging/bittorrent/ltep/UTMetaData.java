@@ -28,7 +28,6 @@ import java.util.Map;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
-import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
@@ -48,6 +47,7 @@ UTMetaData
 	private int					msg_type;
 	private int					piece;
 	private DirectByteBuffer	metadata;
+	private int					total_size;
 	
 	public
 	UTMetaData(
@@ -63,10 +63,12 @@ UTMetaData
 	UTMetaData(
 		int				_piece,
 		ByteBuffer		_data,
+		int				_total_size,
 		byte			_version )
 	{
 		msg_type	= _data==null?MSG_TYPE_REJECT:MSG_TYPE_DATA;
 		piece		= _piece;
+		total_size	= _total_size;
 		version		= _version;
 		
 		if ( _data != null ){
@@ -160,6 +162,11 @@ UTMetaData
 
 			payload_map.put( "msg_type", new Long( msg_type ));
 			payload_map.put( "piece", new Long(piece));
+			
+			if ( total_size > 0 ){
+				
+				payload_map.put( "total_size", total_size );
+			}
 			
 			buffer = MessagingUtil.convertPayloadToBencodedByteStream(payload_map, DirectByteBuffer.AL_MSG_UT_PEX);
 		}

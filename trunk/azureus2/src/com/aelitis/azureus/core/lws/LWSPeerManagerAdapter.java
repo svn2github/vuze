@@ -192,7 +192,6 @@ LWSPeerManagerAdapter
 		
 	}
 	
-	@Override
 	public int 
 	getTorrentInfoDictSize() 
 	{

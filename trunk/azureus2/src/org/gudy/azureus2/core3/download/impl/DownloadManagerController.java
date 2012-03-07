@@ -2065,7 +2065,6 @@ DownloadManagerController
 		return( download_manager.getNATStatus() == ConnectionManager.NAT_OK );
 	}
 	
-	@Override
 	public int 
 	getTorrentInfoDictSize() 
 	{
