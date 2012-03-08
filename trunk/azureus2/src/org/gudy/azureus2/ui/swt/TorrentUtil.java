@@ -28,6 +28,7 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.*;
@@ -45,6 +46,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
@@ -58,6 +60,8 @@ import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.exporttorrent.wizard.ExportTorrentWizard;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
+import org.gudy.azureus2.ui.swt.mainwindow.IMenuConstants;
+import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.*;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
@@ -71,6 +75,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.speedmanager.SpeedLimitHandler;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -390,6 +395,155 @@ public class TorrentUtil {
 					}
 				});
 
+		// advanced > Speed Limits
+		
+		final Menu speedLimitsMenu = new Menu(menuAdvanced.getShell(), SWT.DROP_DOWN);
+		final MenuItem speedLimitsMenuItem = new MenuItem(menuAdvanced, SWT.CASCADE);
+		Messages.setLanguageText(speedLimitsMenuItem,IMenuConstants.MENU_ID_SPEED_LIMITS);
+		speedLimitsMenuItem.setMenu(speedLimitsMenu);
+		
+		MenuBuildUtils.addMaintenanceListenerForMenu(speedLimitsMenu,
+			new MenuBuildUtils.MenuBuilder() {
+				public void 
+				buildMenu(
+					Menu 		menu, 
+					MenuEvent 	menuEvent) 
+				{
+					final SpeedLimitHandler slh = SpeedLimitHandler.getSingleton( azureus_core );
+
+					boolean	all_have_limit = true;
+					
+					Set<String>	common_profiles = new HashSet<String>();
+					
+					final List<byte[]>	dm_hashes = new ArrayList<byte[]>();
+					
+					for (int i = 0; i < dms.length; i++) {
+						DownloadManager dm = (DownloadManager) dms[i];
+
+						int maxul = dm.getStats().getUploadRateLimitBytesPerSecond();
+						int maxdl = dm.getStats().getDownloadRateLimitBytesPerSecond();
+						
+						if ( maxul == 0 && maxdl == 0 ){
+							
+							all_have_limit = false;
+						}
+						
+						TOTorrent t = dm.getTorrent();
+						
+						if ( t == null ){
+							
+							common_profiles.clear();
+							
+						}else{
+							
+							try{
+								byte[] hash = t.getHash();
+							
+								dm_hashes.add( hash );
+								
+								List<String>	profs = slh.getProfilesForDownload( hash );
+								
+								if ( i == 0 ){
+									
+									common_profiles.addAll( profs );
+									
+								}else{
+									
+									common_profiles.retainAll( profs );
+								}
+							}catch( TOTorrentException e ){
+								
+								Debug.out( e );
+								
+								common_profiles.clear();
+							}
+						}
+					}
+						
+					java.util.List<String>	profiles = slh.getProfileNames();
+
+						// add to profile
+					
+					final Menu add_to_prof_menu = new Menu(speedLimitsMenu.getShell(), SWT.DROP_DOWN);
+					MenuItem add_to_prof_item = new MenuItem( menu, SWT.CASCADE);
+					add_to_prof_item.setMenu(add_to_prof_menu);
+			
+												
+					Messages.setLanguageText(add_to_prof_item, "MyTorrentsView.menu.sl_add_to_prof" );
+			
+					if ( !all_have_limit ){
+						
+						add_to_prof_item.setEnabled( false );
+						
+					}else{
+						
+						for ( final String p: profiles ){
+
+							MenuItem addItem = new MenuItem(add_to_prof_menu, SWT.PUSH);
+							addItem.setText( p );
+
+							addItem.addListener(
+								SWT.Selection,
+								new Listener()
+								{
+									public void 
+									handleEvent(
+										Event arg0 )
+									{
+										slh.addDownloadsToProfile( p, dm_hashes );
+										
+										MenuFactory.showText(
+												"MainWindow.menu.speed_limits.info.title",
+												MessageText.getString( "MainWindow.menu.speed_limits.info.prof", new String[]{ p }),
+												slh.getProfile( p ) );
+									}
+								});
+						}
+					}
+					
+						// remove from profile
+					
+					final Menu remove_from_prof_menu = new Menu(speedLimitsMenu.getShell(), SWT.DROP_DOWN);
+					MenuItem remove_from_prof_item = new MenuItem( menu, SWT.CASCADE);
+					remove_from_prof_item.setMenu(remove_from_prof_menu);
+			
+												
+					Messages.setLanguageText(remove_from_prof_item, "MyTorrentsView.menu.sl_remove_from_prof" );
+			
+					if ( common_profiles.isEmpty()){
+						
+						remove_from_prof_item.setEnabled( false );
+						
+					}else{
+						
+						for ( final String p: common_profiles ){
+
+							MenuItem addItem = new MenuItem(remove_from_prof_menu, SWT.PUSH);
+							addItem.setText( p );
+
+							addItem.addListener(
+								SWT.Selection,
+								new Listener()
+								{
+									public void 
+									handleEvent(
+										Event arg0 )
+									{
+										slh.removeDownloadsFromProfile( p, dm_hashes );
+										
+										MenuFactory.showText(
+												"MainWindow.menu.speed_limits.info.title",
+												MessageText.getString( "MainWindow.menu.speed_limits.info.prof", new String[]{ p }),
+												slh.getProfile( p ) );
+									}
+								});
+						}
+					}
+				}
+		});
+		
+		
+		
 		// advanced > Tracker Menu //
 		final Menu menuTracker = new Menu(menu.getShell(), SWT.DROP_DOWN);
 		final MenuItem itemTracker = new MenuItem(menuAdvanced, SWT.CASCADE);

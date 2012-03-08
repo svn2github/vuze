@@ -247,6 +247,98 @@ SpeedLimitHandler
 		return( result );
 	}
 	
+	public List<String>
+	getProfilesForDownload(
+		byte[]		hash )
+	{
+		List<String> result = new ArrayList<String>();
+
+		Map	map = loadConfig();
+		
+		List<Map> list = (List<Map>)map.get( "profiles" );
+
+		if ( list != null ){
+			
+			String	hash_str = Base32.encode( hash );
+			
+			for ( Map m: list ){
+				
+				String	p_name = importString( m, "n" );
+				
+				if ( p_name != null ){
+					
+					Map profile = (Map)m.get( "p" );
+					
+					LimitDetails ld = new LimitDetails( profile );
+										
+					if ( ld.getLimitsForDownload( hash_str ) != null ){
+						
+						result.add( p_name );
+					}
+				}
+			}
+		}
+	
+		return( result );
+	}
+	
+	private void
+	addRemoveDownloadsToProfile(
+		String			name,
+		List<byte[]>	hashes,
+		boolean			add )
+	{
+		Map	map = loadConfig();
+		
+		List<Map> list = (List<Map>)map.get( "profiles" );
+
+		List<String>	hash_strs = new ArrayList<String>();
+		
+		for ( byte[] hash: hashes ){
+			
+			hash_strs.add( Base32.encode( hash ));
+		}
+		
+		if ( list != null ){
+			
+			for ( Map m: list ){
+				
+				String	p_name = importString( m, "n" );
+				
+				if ( p_name != null && name.equals( p_name )){
+					
+					Map profile = (Map)m.get( "p" );
+					
+					LimitDetails ld = new LimitDetails( profile );
+					
+					ld.addRemoveDownloads( hash_strs, add );
+					
+					m.put( "p", ld.export());
+					
+					saveConfig( map );
+
+					return;
+				}
+			}
+		}
+	}
+	
+	public void
+	addDownloadsToProfile(
+		String			name,
+		List<byte[]>	hashes )
+	{
+		addRemoveDownloadsToProfile( name, hashes, true );
+	}
+	
+	public void
+	removeDownloadsFromProfile(
+		String			name,
+		List<byte[]>	hashes )
+	{
+		addRemoveDownloadsToProfile( name, hashes, false );
+	}
+	
 	public void
 	deleteProfile(
 		String		name )
@@ -1038,6 +1130,43 @@ SpeedLimitHandler
 		    		category_limits.put( category.getName(), new int[]{ cat_up_limit, cat_down_limit });
 		    	}
 		    }
+	    }
+	    
+	    private int[]
+	    getLimitsForDownload(
+	    	String	hash )
+	    {
+	    	return( download_limits.get( hash ));
+	    }
+	    
+	    private void
+	    addRemoveDownloads(
+	    	List<String>		hashes,
+	    	boolean				add )
+	    {
+			GlobalManager gm = core.getGlobalManager();
+
+	    	for ( String hash: hashes ){
+	    		
+	    		if ( add ){
+
+	   				DownloadManager download = gm.getDownloadManager( new HashWrapper( Base32.decode( hash )));
+	    			
+	    			if ( download != null ){
+	    						
+						int	download_up_limit 	= download.getStats().getUploadRateLimitBytesPerSecond();
+						int	download_down_limit = download.getStats().getDownloadRateLimitBytesPerSecond();
+						
+				    	if ( download_up_limit > 0 || download_down_limit > 0 ){
+				    		
+				    		download_limits.put(hash, new int[]{ download_up_limit, download_down_limit });
+				    	}
+	    			}
+	    		}else{
+	    			
+	    			download_limits.remove( hash );
+	    		}
+	    	}
 	    }
 	    
 	    private void

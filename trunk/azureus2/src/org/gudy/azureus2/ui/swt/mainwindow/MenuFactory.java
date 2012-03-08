@@ -1121,7 +1121,7 @@ public class MenuFactory
 		}
 	}
 	
-	private static void
+	public static void
 	showText(
 		final String					title,
 		final String					message,
