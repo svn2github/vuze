@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.download.impl;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.ref.WeakReference;
 import java.net.InetSocketAddress;
 import java.util.*;
 
@@ -198,6 +199,7 @@ DownloadManagerController
 	private LinkedList<ExternalSeedPeer>	http_seeds = new LinkedList<ExternalSeedPeer>();
 	
 	private int	md_info_dict_size;
+	private volatile WeakReference<byte[]>	md_info_dict_ref = new WeakReference<byte[]>( null );
 	
 	protected
 	DownloadManagerController(
@@ -2075,9 +2077,18 @@ DownloadManagerController
 	getTorrentInfoDict()
 	{
 		try{
-			TOTorrent torrent = download_manager.getTorrent();
+			byte[] data = md_info_dict_ref.get();
+			
+			if ( data == null ){
+			
+				TOTorrent torrent = download_manager.getTorrent();
 		
-			return( BEncoder.encode((Map)torrent.serialiseToMap().get( "info" )));
+				data = BEncoder.encode((Map)torrent.serialiseToMap().get( "info" ));
+			
+				md_info_dict_ref = new WeakReference<byte[]>( data );
+			}
+			
+			return( data );
 			
 		}catch( Throwable e ){
 			

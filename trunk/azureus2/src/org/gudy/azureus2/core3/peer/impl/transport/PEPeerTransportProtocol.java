@@ -4211,6 +4211,8 @@ implements PEPeerTransport
 					
 					int	to_send = Math.min( data.length - offset, 16*1024 );
 					
+					// System.out.println( "Sending ut_metadata: " + offset + "/" + to_send );
+					
 					reply = new UTMetaData( piece, ByteBuffer.wrap( data, offset, to_send ), total_size, other_peer_bt_lt_ext_version );
 				}
 				
