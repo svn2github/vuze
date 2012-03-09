@@ -199,7 +199,8 @@ LWSPeerManagerAdapter
 	}
 	
 	public byte[]
-	getTorrentInfoDict()
+	getTorrentInfoDict(
+		PEPeer	peer )
 	{
 		return( null );
 	}

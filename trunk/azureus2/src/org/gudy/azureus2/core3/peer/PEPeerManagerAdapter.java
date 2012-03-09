@@ -62,7 +62,8 @@ PEPeerManagerAdapter
 	getTorrentInfoDictSize();
 	
 	public byte[]
-	getTorrentInfoDict();
+	getTorrentInfoDict(
+		PEPeer		peer );
 		/**
 		 * See NetworkManager.CRYPTO_OVERRIDE constants
 		 * @return

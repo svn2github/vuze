@@ -201,6 +201,21 @@ DownloadManagerController
 	private int	md_info_dict_size;
 	private volatile WeakReference<byte[]>	md_info_dict_ref = new WeakReference<byte[]>( null );
 	
+	private static final int MD_INFO_PEER_HISTORY_MAX 		= 128;
+
+	private Map<String,int[]>	md_info_peer_history = 
+		new LinkedHashMap<String,int[]>(MD_INFO_PEER_HISTORY_MAX,0.75f,true)
+		{
+			protected boolean 
+			removeEldestEntry(
+		   		Map.Entry<String,int[]> eldest) 
+			{
+				return size() > MD_INFO_PEER_HISTORY_MAX;
+			}
+		};
+	
+	
+	
 	protected
 	DownloadManagerController(
 		DownloadManagerImpl	_download_manager )
@@ -2074,9 +2089,42 @@ DownloadManagerController
 	}
 	
 	public byte[]
-	getTorrentInfoDict()
+	getTorrentInfoDict(
+		PEPeer		peer )		
 	{
 		try{
+			String ip = peer.getIp();
+			
+			synchronized( md_info_peer_history ){
+			
+				int	now_secs = (int)( SystemTime.getMonotonousTime()/1000 );
+				
+				int[]	stats = md_info_peer_history.get( ip );
+				
+				if ( stats == null ){
+					
+					stats = new int[]{ now_secs, 0 };
+					
+					md_info_peer_history.put( ip, stats );
+				}
+				
+				if ( now_secs - stats[0] > 5*60 ){
+					
+					stats[1] = 16*1024;
+					
+				}else{
+					
+					int	bytes = stats[1];
+					
+					if ( bytes >= md_info_dict_size*3 ){
+						
+						return( null );
+					}
+					
+					stats[1] = bytes + 16*1024;
+				}
+			}
+			
 			byte[] data = md_info_dict_ref.get();
 			
 			if ( data == null ){

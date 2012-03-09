@@ -4197,7 +4197,7 @@ implements PEPeerTransport
 				
 				int total_size = manager.getAdapter().getTorrentInfoDictSize();
 				
-				byte[] data = total_size<=0?null:manager.getAdapter().getTorrentInfoDict();
+				byte[] data = total_size<=0?null:manager.getAdapter().getTorrentInfoDict( this );
 				
 				UTMetaData	reply ;
 				
