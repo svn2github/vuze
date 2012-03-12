@@ -2082,6 +2082,12 @@ DownloadManagerController
 		return( download_manager.getNATStatus() == ConnectionManager.NAT_OK );
 	}
 	
+	public boolean 
+	isMetadataDownload() 
+	{
+		return( download_manager.getDownloadState().getFlag( DownloadManagerState.FLAG_METADATA_DOWNLOAD ));
+	}
+	
 	public int 
 	getTorrentInfoDictSize() 
 	{

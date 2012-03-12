@@ -151,6 +151,19 @@ public class LTHandshake implements LTMessage {
 		return (result == null) ? Collections.EMPTY_MAP : result;
 	}
 
+	public int
+	getMetadataSize()
+	{
+		Long l = (Long)data_dict.get( "metadata_size" );
+		
+		if ( l != null ){
+			
+			return( l.intValue());
+		}
+		
+		return( 0 );
+	}
+	
 	public void
 	addDefaultExtensionMappings(
 		boolean		enable_pex,

@@ -192,6 +192,12 @@ LWSPeerManagerAdapter
 		
 	}
 	
+	public boolean 
+	isMetadataDownload() 
+	{
+		return( false );
+	}
+	
 	public int 
 	getTorrentInfoDictSize() 
 	{

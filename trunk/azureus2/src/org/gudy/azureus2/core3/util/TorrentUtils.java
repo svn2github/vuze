@@ -45,7 +45,8 @@ import org.gudy.azureus2.core3.download.*;
 public class 
 TorrentUtils 
 {
-	public static final int TORRENT_FLAG_LOW_NOISE	= 0x00000001;
+	public static final int TORRENT_FLAG_LOW_NOISE			= 0x00000001;
+	public static final int TORRENT_FLAG_METADATA_TORRENT	= 0x00000002;
 	
 	private static final String		TORRENT_AZ_PROP_DHT_BACKUP_ENABLE		= "dht_backup_enable";
 	private static final String		TORRENT_AZ_PROP_DHT_BACKUP_REQUESTED	= "dht_backup_requested";
@@ -984,6 +985,21 @@ TorrentUtils
 			Debug.printStackTrace(e);
 			
 			return( null );
+		}
+	}
+	
+	public static URL
+	getDecentralisedURL(
+		byte[]		hash )
+	{
+		try{
+			return( new URL( "dht://" + ByteFormatter.encodeString( hash ) + ".dht/announce" ));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( getDecentralisedEmptyURL());
 		}
 	}
 	

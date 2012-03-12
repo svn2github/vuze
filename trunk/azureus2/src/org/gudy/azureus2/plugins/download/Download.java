@@ -171,6 +171,12 @@ Download extends DownloadEventNotifier
     
     public static final long FLAG_DISABLE_IP_FILTER = 0x00000100;
 
+    /**
+     * @since 4.7.0.4 indicates that the download is just a metadata downloader and not a 'real' one (yet)
+     */
+    
+    public static final long FLAG_METADATA_DOWNLOAD = 0x00000200;
+
     
 	/** get state from above ST_ set
    * @return ST_ constant

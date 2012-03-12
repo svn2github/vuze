@@ -153,6 +153,13 @@ UTMetaData
 		return( metadata );
 	}
 	
+	public void
+	setMetadata(
+		DirectByteBuffer	b )
+	{
+		metadata = b;
+	}
+	
 	public DirectByteBuffer[] 
 	getData()
 	{
@@ -168,12 +175,13 @@ UTMetaData
 				payload_map.put( "total_size", total_size );
 			}
 			
-			buffer = MessagingUtil.convertPayloadToBencodedByteStream(payload_map, DirectByteBuffer.AL_MSG_UT_PEX);
+			buffer = MessagingUtil.convertPayloadToBencodedByteStream(payload_map, DirectByteBuffer.AL_MSG_UT_METADATA );
 		}
 
 		if ( msg_type == MSG_TYPE_DATA ){
 			
 			return new DirectByteBuffer[]{ buffer, metadata };
+			
 		}else{
 		
 			return new DirectByteBuffer[]{ buffer };
@@ -217,6 +225,11 @@ UTMetaData
 		if ( buffer != null ){
 			
 			buffer.returnToPool();
+		}
+		
+		if ( metadata != null ){
+			
+			metadata.returnToPool();
 		}
 	}
 }

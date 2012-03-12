@@ -221,6 +221,10 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 */
 	public void resumeDownload(DownloadManager dm);
 
+	public void 
+	clearNonPersistentDownloadState(
+		byte[] hash );
+	
 	/**
 	 * Retrieve whether a DownloadManager is in a paused state
 	 * 

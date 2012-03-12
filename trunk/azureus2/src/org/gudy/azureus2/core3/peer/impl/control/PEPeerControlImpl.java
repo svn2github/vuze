@@ -345,6 +345,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private final int	partition_id;
 	
+	private final boolean	is_metadata_download;
+	private int				metadata_infodict_size;
+	
 	public 
 	PEPeerControlImpl(
 		byte[]					_peer_id,
@@ -356,6 +359,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 		adapter 		= _adapter;
 		disk_mgr 		= _diskManager;
 		partition_id	= _partition_id;
+		
+		is_metadata_download	= adapter.isMetadataDownload();
+		
+		if ( !is_metadata_download ){
+			metadata_infodict_size	= adapter.getTorrentInfoDictSize();
+		}
 		
 		_nbPieces =disk_mgr.getNbPieces();
 		dm_pieces =disk_mgr.getPieces();
@@ -3115,7 +3124,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 			
 			final PEPieceImpl pePiece =pePieces[pieceNumber];
 
-			if ( outcome == 1 ){
+			if ( outcome == 1 || is_metadata_download ){
 			
 			//  the piece has been written correctly
 				 
@@ -3640,6 +3649,25 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return( seeding_mode );
 	}
 
+	public boolean
+	isMetadataDownload()
+	{
+		return( is_metadata_download );
+	}
+	
+	public int
+	getTorrentInfoDictSize()
+	{
+		return( metadata_infodict_size );
+	}
+	  
+	public void
+	setTorrentInfoDictSize(
+		int		size )
+	{
+		metadata_infodict_size	= size;
+	}
+	  
 	public boolean isInEndGameMode() {
 		return piecePicker.isInEndGameMode();
 	}

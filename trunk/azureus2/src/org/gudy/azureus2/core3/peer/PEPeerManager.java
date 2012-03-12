@@ -138,6 +138,16 @@ PEPeerManager
   isSeeding();
   
   public boolean
+  isMetadataDownload();
+	
+  public int
+  getTorrentInfoDictSize();
+  
+  public void
+  setTorrentInfoDictSize(
+	int	size );
+  
+  public boolean
   isSuperSeedMode();
   
   public boolean

@@ -439,6 +439,41 @@ DownloadManagerImpl
 		return( getDownload( dm ));
 	}
 	
+	public Download
+	addNonPersistentDownloadStopped(
+		Torrent		torrent,
+		File		torrent_file,
+		File		data_location )
+	
+		throws DownloadException
+	{
+
+		byte[] hash = null;
+		try {
+			hash = torrent.getHash();
+		} catch (Exception e) { }
+
+		DownloadManager dm = global_manager.addDownloadManager(
+				torrent_file.toString(), hash, data_location.toString(),
+				DownloadManager.STATE_STOPPED, false);
+		
+		if ( dm == null ){
+			
+			throw( new DownloadException( "DownloadManager::addDownload - failed"));
+		}
+		
+		addDownloadManager( dm );
+		
+		return( getDownload( dm ));
+	}
+	
+	public void 
+	clearNonPersistentDownloadState(
+		byte[] hash)
+	{
+		global_manager.clearNonPersistentDownloadState( hash );
+	}
+	
 	protected int
 	getInitialState()
 	{

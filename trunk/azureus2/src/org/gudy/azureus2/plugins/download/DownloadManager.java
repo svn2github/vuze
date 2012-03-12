@@ -190,6 +190,24 @@ DownloadManager
 	
 		throws DownloadException;
 	
+	public Download
+	addNonPersistentDownloadStopped(
+		Torrent		torrent,
+		File		torrent_location,
+		File		data_location )
+	
+		throws DownloadException;
+	
+	/**
+	 * Although non-persistent downloads themselves aren't rememebered across restarts, some internal stats
+	 * are (for continuity, like total up/down, file allocation state) - this method allows this to be removed
+	 * @param hash
+	 */
+	
+	public void
+	clearNonPersistentDownloadState(
+		byte[]		hash );
+		
 	/**
 	 * Gets the download for a particular torrent, returns null if not found
 	 * @param torrent

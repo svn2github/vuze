@@ -761,24 +761,30 @@ DownloadManagerImpl
 				 	}
 				 }	
 				 
+		 		// propagate properties from torrent to download
+			 
+				boolean	low_noise = TorrentUtils.getFlag( torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE );
+				
+				if ( low_noise ){
+					
+					download_manager_state.setFlag( DownloadManagerState.FLAG_LOW_NOISE, true );
+				}
+					
+				boolean	metadata_dl = TorrentUtils.getFlag( torrent, TorrentUtils.TORRENT_FLAG_METADATA_TORRENT );
+				
+				if ( metadata_dl ){
+					
+					download_manager_state.setFlag( DownloadManagerState.FLAG_METADATA_DOWNLOAD, true );
+				}
+
 				 	// if this is a newly introduced torrent trash the tracker cache. We do this to
 				 	// prevent, say, someone publishing a torrent with a load of invalid cache entries
 				 	// in it and a bad tracker URL. This could be used as a DOS attack
 	
 				 if ( new_torrent ){
 				 	
-					 System.out.println("");
 					download_manager_state.setLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME, SystemTime.getCurrentTime());
-					 
-				 		// propagate initial properties from torrent to download
-					 
-					boolean	low_noise = TorrentUtils.getFlag( torrent, TorrentUtils.TORRENT_FLAG_LOW_NOISE );
-					
-					if ( low_noise ){
-						
-						download_manager_state.setFlag( DownloadManagerState.FLAG_LOW_NOISE, true );
-					}
-							
+					 					
 					Map peer_cache = TorrentUtils.getPeerCache( torrent );
 					
 					if ( peer_cache != null ){

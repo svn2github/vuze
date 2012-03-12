@@ -58,6 +58,9 @@ PEPeerManagerAdapter
 	public boolean
 	isPeerExchangeEnabled();
 	
+	public boolean
+	isMetadataDownload();
+	
 	public int
 	getTorrentInfoDictSize();
 	

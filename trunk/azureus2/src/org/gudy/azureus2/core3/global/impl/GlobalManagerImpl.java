@@ -800,7 +800,12 @@ public class GlobalManagerImpl
 		return manager;
 	}
 
-
+	public void 
+	clearNonPersistentDownloadState(
+		byte[] hash )
+	{
+		saved_download_manager_state.remove( new HashWrapper( hash ));
+	}
 
    protected DownloadManager 
    addDownloadManager(

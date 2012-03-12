@@ -371,6 +371,8 @@ implements PEPeerTransport
 	private volatile boolean	manual_lazy_bitfield_control;
 	private volatile int[]		manual_lazy_haves;
 
+	private final boolean is_metadata_download;
+	
 	//INCOMING
 	public 
 	PEPeerTransportProtocol( 
@@ -386,6 +388,8 @@ implements PEPeerTransport
 		
 		incoming = true;
 
+		is_metadata_download = manager.isMetadataDownload();
+		
 		diskManager =manager.getDiskManager();
 		piecePicker =manager.getPiecePicker();
 		nbPieces =diskManager.getNbPieces();
@@ -492,8 +496,10 @@ implements PEPeerTransport
 			byte			_crypto_level,
 			Map				_initial_user_data )
 	{
-
 		manager = _manager;
+		
+		is_metadata_download = manager.isMetadataDownload();
+
 		diskManager =manager.getDiskManager();
 		piecePicker =manager.getPiecePicker();
 		nbPieces =diskManager.getNbPieces();
@@ -1046,7 +1052,7 @@ implements PEPeerTransport
 		data_dict.put("e", new Long(require_crypto ? 1L : 0L));
 		data_dict.put("upload_only", new Long(manager.isSeeding() && !( ENABLE_LAZY_BITFIELD || manual_lazy_bitfield_control )? 1L : 0L));
 		
-		int metainfo_size = manager.getAdapter().getTorrentInfoDictSize();
+		int metainfo_size = is_metadata_download?0:manager.getTorrentInfoDictSize();
 		
 		if ( metainfo_size > 0 ){
 			
@@ -1061,7 +1067,7 @@ implements PEPeerTransport
 		
 		LTHandshake lt_handshake = new LTHandshake(data_dict, other_peer_bt_lt_ext_version );
 		
-		lt_handshake.addDefaultExtensionMappings( true, metainfo_size > 0 );
+		lt_handshake.addDefaultExtensionMappings( true, is_metadata_download || metainfo_size > 0 );
 		
 		connection.getOutgoingMessageQueue().addMessage(lt_handshake, false);
 	}
@@ -1219,10 +1225,18 @@ implements PEPeerTransport
 	}
 
 
-	public DiskManagerReadRequest request(final int pieceNumber, final int pieceOffset, final int pieceLength) {
-		final DiskManagerReadRequest request =manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
-		if (current_peer_state != TRANSFERING) {
+	public DiskManagerReadRequest 
+	request(
+		final int pieceNumber, 
+		final int pieceOffset, 
+		final int pieceLength) 
+	{
+		final DiskManagerReadRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
+		
+		if ( current_peer_state != TRANSFERING ){
+			
 			manager.requestCanceled(request);
+			
 			return null;
 		}	
 		
@@ -1244,9 +1258,16 @@ implements PEPeerTransport
 
 		if ( added ){
 		
-            connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength, other_peer_request_version ), false );
+			if ( is_metadata_download ){
+				
+				connection.getOutgoingMessageQueue().addMessage( new UTMetaData( pieceNumber, other_peer_request_version ), false );
+
+			}else{
             
-			_lastPiece =pieceNumber;
+				connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength, other_peer_request_version ), false );
+			}
+			
+			_lastPiece = pieceNumber;
 
 			if ( DEBUG_FAST ){
 				if ( really_choked_by_other_peer ){
@@ -1443,13 +1464,19 @@ implements PEPeerTransport
 	 */
 	private void sendBitField()
 	{
-		if (closing)
+		if (closing){
 			return;
-
-		//In case we're in super seed mode, we don't send our bitfield
-		if (manager.isSuperSeedMode())
+		}
+		
+			//In case we're in super seed mode, we don't send our bitfield
+		if (manager.isSuperSeedMode()){
 			return;
-
+		}
+		
+		if ( is_metadata_download ){
+			return;
+		}
+		
 		//create bitfield
 		final DirectByteBuffer buffer =DirectByteBufferPool.getBuffer(DirectByteBuffer.AL_MSG, (nbPieces +7) /8);
 		final DiskManagerPiece[] pieces =diskManager.getPieces();
@@ -2476,11 +2503,40 @@ implements PEPeerTransport
 	  if(AddressUtils.isGlobalAddressV6(handshake.getIPv6()))
 		  alternativeAddress = handshake.getIPv6();
 		  
-	  
-	  
 	  LTMessageEncoder encoder = (LTMessageEncoder)connection.getOutgoingMessageQueue().getEncoder();
 	  encoder.updateSupportedExtensions(handshake.getExtensionMapping());
 	  this.ut_pex_enabled = encoder.supportsUTPEX();
+
+	  if ( is_metadata_download ){
+		  
+		  if ( encoder.supportsUTMetaData()){
+			  
+			  int	mds = handshake.getMetadataSize();
+			  
+			  if ( mds > 0 ){
+				  
+				  int	md_pieces = ( mds + 16*1024 - 1 )/(16*1024);
+				  
+				  manager.setTorrentInfoDictSize( mds );
+				  
+				  BitFlags tempHavePieces = new BitFlags(nbPieces);
+	
+				  for ( int i=0;i<md_pieces;i++){
+					  
+					  tempHavePieces.set(i);
+				  }
+	
+				  peerHavePieces = tempHavePieces;
+	
+				  addAvailability();
+				  
+				  really_choked_by_other_peer = false;
+				  
+				  calculatePiecePriorities();
+			  }
+		  }
+	  }
+	  
 	  
 	  /**
 	   * Grr... this is one thing which I'm sure I had figured out much better than it is here...
@@ -2646,6 +2702,11 @@ implements PEPeerTransport
 		
 		received_bitfield = true;
 
+		if ( is_metadata_download ){
+			
+			return;
+		}
+		
 		try{
 			closing_mon.enter();
 			
@@ -2693,6 +2754,11 @@ implements PEPeerTransport
 		
 		received_bitfield = true;
 
+		if ( is_metadata_download ){
+			
+			return;
+		}
+		
 		try{
 			closing_mon.enter();
 			
@@ -2735,6 +2801,13 @@ implements PEPeerTransport
 	{
 		received_bitfield = true;
 
+		if ( is_metadata_download ){
+			
+			bitfield.destroy();
+			
+			return;
+		}
+		
 		final DirectByteBuffer field =bitfield.getBitfield();
 
 		final byte[] dataf =new byte[(nbPieces +7) /8];
@@ -2828,6 +2901,11 @@ implements PEPeerTransport
 
 	protected void decodeChoke( BTChoke choke ) {    
 		choke.destroy();
+		
+		if ( is_metadata_download ){
+			return;
+		}
+		
 		if (!really_choked_by_other_peer)
 		{
 			really_choked_by_other_peer = true;
@@ -2839,6 +2917,11 @@ implements PEPeerTransport
 
 	protected void decodeUnchoke( BTUnchoke unchoke ) {
 		unchoke.destroy();
+		
+		if ( is_metadata_download ){
+			return;
+		}
+		
 		if (really_choked_by_other_peer)
 		{
 			really_choked_by_other_peer = false;
@@ -2886,6 +2969,11 @@ implements PEPeerTransport
 		final int pieceNumber =have.getPieceNumber();
 		have.destroy();
 
+		if ( is_metadata_download ){
+			
+			return;
+		}
+		
 		if ((pieceNumber >=nbPieces) ||(pieceNumber <0)) {
 			closeConnectionInternally("invalid pieceNumber: " +pieceNumber);
 			return;
@@ -3635,7 +3723,7 @@ implements PEPeerTransport
 					}
 
 					String	message_id = message.getID();
-
+					
 					if( message_id.equals( BTMessage.ID_BT_PIECE ) ) {
 						decodePiece( (BTPiece)message );
 						return true;
@@ -3780,8 +3868,7 @@ implements PEPeerTransport
 					if( message_id.equals( AZMessage.ID_AZ_STAT_REPLY ) ) {        	
 						decodeAZStatsReply((AZStatReply)message );
 						return true;
-					}
-					
+					}	
 
 					if (message_id.equals(LTMessage.ID_UT_METADATA)) {
 						decodeMetaData((UTMetaData)message);
@@ -4189,27 +4276,29 @@ implements PEPeerTransport
 		UTMetaData metadata ) 
 	{
 		try{
-			int	type = metadata.getType();
+			final int BLOCK_SIZE = 16*1024;
+			
+			int	type = metadata.getMessageType();
 		
 			if ( type == UTMetaData.MSG_TYPE_REQUEST ){
 				
 				int	piece = metadata.getPiece();
 				
-				int total_size = manager.getAdapter().getTorrentInfoDictSize();
+				int total_size = manager.getTorrentInfoDictSize();
 				
 				byte[] data = total_size<=0?null:manager.getAdapter().getTorrentInfoDict( this );
 				
 				UTMetaData	reply ;
 				
-				int	offset = piece*16*1024;
+				int	offset = piece*BLOCK_SIZE;
 				
-				if ( data == null || offset >= data.length ){
+				if ( is_metadata_download || data == null || offset >= data.length ){
 					
 					reply = new UTMetaData( piece, null, 0, other_peer_bt_lt_ext_version );
 
 				}else{
 					
-					int	to_send = Math.min( data.length - offset, 16*1024 );
+					int	to_send = Math.min( data.length - offset, BLOCK_SIZE );
 					
 					// System.out.println( "Sending ut_metadata: " + offset + "/" + to_send );
 					
@@ -4220,11 +4309,84 @@ implements PEPeerTransport
 
 			}else if ( type == UTMetaData.MSG_TYPE_DATA ){
 				
-				// responding to requests only at the moment
+				int	piece_number 		= metadata.getPiece();
+				DirectByteBuffer data 	= metadata.getMetadata();
+							
+				int	data_size 	= data.remaining( DirectByteBuffer.SS_PEER );
 				
+				int total_size	= manager.getTorrentInfoDictSize();
+
+				int	piece_count 	= (total_size+BLOCK_SIZE-1)/BLOCK_SIZE;
+				int	last_piece_size	= total_size%BLOCK_SIZE;
+				
+				if ( last_piece_size == 0 ){
+					
+					last_piece_size = BLOCK_SIZE;
+				}
+				
+				boolean	good = false;
+				
+				if ( piece_number < piece_count ){
+					
+					int	expected_size = piece_number==piece_count-1?last_piece_size:BLOCK_SIZE;
+					
+					if ( data_size == expected_size ){
+						
+						DiskManagerReadRequest request = manager.createDiskManagerRequest( piece_number, 0, BLOCK_SIZE );
+						
+						if ( hasBeenRequested( request )){
+							
+							good = true;
+							
+							metadata.setMetadata( null );
+							
+							removeRequest( request );
+							
+							long now = SystemTime.getCurrentTime();
+							
+							resetRequestsTime( now );
+							
+							manager.writeBlock( piece_number, 0, data, this, false);
+							
+							if ( last_good_data_time !=-1 && now -last_good_data_time <=60 *1000 ){
+								
+								setSnubbed( false );
+							}
+							
+							last_good_data_time = now;
+							
+							requests_completed++;
+						}
+					}
+				}
+				
+				if ( ! good ){
+					
+					peer_stats.bytesDiscarded( data_size );
+					
+					manager.discarded( this, data_size );
+					
+					requests_discarded++;
+					
+					printRequestStats();
+					
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR,
+								"metadata piece discarded as invalid."));
+					
+				}
 			}else{
 				
-				// reject
+				int	piece = metadata.getPiece();
+				
+				final DiskManagerReadRequest request = manager.createDiskManagerRequest( piece, 0, 16*1024 );
+
+				if ( hasBeenRequested( request )){
+					
+					removeRequest( request );
+					
+					manager.requestCanceled( request );
+				}
 			}
 		}finally{
 			
