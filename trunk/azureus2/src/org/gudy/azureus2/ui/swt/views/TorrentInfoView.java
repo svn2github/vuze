@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -55,12 +56,15 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.FakeTableCell;
 
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 
 public class TorrentInfoView
-	implements UISWTViewCoreEventListener
+	implements UISWTViewCoreEventListener, UIPluginViewToolBarListener
 {
 	public static final String MSGID_PREFIX = "TorrentInfoView";
 		
@@ -434,6 +438,7 @@ public class TorrentInfoView
       case UISWTViewEvent.TYPE_CREATE:
       	swtView = (UISWTView)event.getData();
       	swtView.setTitle(getFullTitle());
+      	swtView.setToolBarListener(this);
         break;
 
       case UISWTViewEvent.TYPE_DESTROY:
@@ -454,6 +459,18 @@ public class TorrentInfoView
         break;
         
       case UISWTViewEvent.TYPE_FOCUSGAINED:
+	      	String id = "DMDetails_Info";
+	      	if (download_manager != null) {
+	      		if (download_manager.getTorrent() != null) {
+	  					id += "." + download_manager.getInternalName();
+	      		} else {
+	      			id += ":" + download_manager.getSize();
+	      		}
+	      	}
+	  
+	      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
+	      		new SelectedContent(download_manager)
+	      	});
       	break;
         
       case UISWTViewEvent.TYPE_REFRESH:
@@ -463,4 +480,13 @@ public class TorrentInfoView
 
     return true;
   }
+	
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		return( ViewUtils.toolBarItemActivated(download_manager, item, activationType, datasource));
+	}
+
+	public void refreshToolBarItems(Map<String, Long> list) {
+		ViewUtils.refreshToolBarItems(download_manager, list);
+	}
 }

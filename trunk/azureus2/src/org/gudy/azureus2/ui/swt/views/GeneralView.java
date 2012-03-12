@@ -1110,41 +1110,10 @@ public class GeneralView
 
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
 			Object datasource) {
-		String itemKey = item.getID();
-
-		if (itemKey.equals("run")) {
-			ManagerUtils.run(manager);
-			return true;
-		}
-		
-		if (itemKey.equals("start")) {
-			ManagerUtils.queue(manager, null);
-			UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
-			return true;
-		}
-		
-		if (itemKey.equals("stop")) {
-			ManagerUtils.stop(manager, null);
-			UIFunctionsManagerSWT.getUIFunctionsSWT().refreshIconBar();
-			return true;
-		}
-		
-		if (itemKey.equals("remove")) {
-			TorrentUtil.removeDownloads(new DownloadManager[] {
-				manager
-			}, null);
-			return true;
-		}
-		
-		return false;
+		return( ViewUtils.toolBarItemActivated(manager, item, activationType, datasource));
 	}
 
 	public void refreshToolBarItems(Map<String, Long> list) {
-		list.put("run", UIToolBarItem.STATE_ENABLED);
-		list.put("start", ManagerUtils.isStartable(manager) ? UIToolBarItem.STATE_ENABLED : 0);
-		list.put("startstop", UIToolBarItem.STATE_ENABLED);
-		list.put("stop", ManagerUtils.isStopable(manager) ? UIToolBarItem.STATE_ENABLED : 0);
-		list.put("remove", UIToolBarItem.STATE_ENABLED);
+		ViewUtils.refreshToolBarItems(manager, list);
 	}
-
 }

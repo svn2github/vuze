@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -40,6 +42,7 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.graphics.PieUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -47,12 +50,16 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
+import com.aelitis.azureus.ui.common.ToolBarItem;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+
 /**
  * @author Olivier Chalouhi
  *
  */
 public class PeersGraphicView
-	implements DownloadManagerPeerListener, UISWTViewCoreEventListener
+	implements DownloadManagerPeerListener, UISWTViewCoreEventListener, UIPluginViewToolBarListener
 {
   
   public static String MSGID_PREFIX = "PeersGraphicView";
@@ -381,6 +388,7 @@ public class PeersGraphicView
       case UISWTViewEvent.TYPE_CREATE:
       	swtView = (UISWTView)event.getData();
       	swtView.setTitle(MessageText.getString(getData()));
+      	swtView.setToolBarListener(this);
         break;
 
       case UISWTViewEvent.TYPE_DESTROY:
@@ -401,6 +409,18 @@ public class PeersGraphicView
         break;
         
       case UISWTViewEvent.TYPE_FOCUSGAINED:
+        	String id = "DMDetails_Swarm";
+	      	if (manager != null) {
+	      		if (manager.getTorrent() != null) {
+	  					id += "." + manager.getInternalName();
+	      		} else {
+	      			id += ":" + manager.getSize();
+	      		}
+	      	}
+	  
+	      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
+	      		new SelectedContent(manager)
+	      	});
       	break;
         
       case UISWTViewEvent.TYPE_REFRESH:
@@ -410,4 +430,13 @@ public class PeersGraphicView
 
     return true;
   }
+	
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		return( ViewUtils.toolBarItemActivated(manager, item, activationType, datasource));
+	}
+
+	public void refreshToolBarItems(Map<String, Long> list) {
+		ViewUtils.refreshToolBarItems(manager, list);
+	}
 }

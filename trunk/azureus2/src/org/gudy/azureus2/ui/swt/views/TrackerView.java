@@ -22,6 +22,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Menu;
@@ -33,6 +34,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -41,7 +43,10 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.tracker.*;
 
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -266,5 +271,41 @@ public class TrackerView
 		tv.addDataSources( tps.toArray( (new TrackerPeerSource[tps.size()])));
 		
 		tv.processDataSourceQueue();
+	}
+	
+	public boolean eventOccurred(UISWTViewEvent event) {
+	    switch (event.getType()) {
+	     
+	        
+	      case UISWTViewEvent.TYPE_FOCUSGAINED:
+	      	String id = "DMDetails_Sources";
+	      	if (manager != null) {
+	      		if (manager.getTorrent() != null) {
+	  					id += "." + manager.getInternalName();
+	      		} else {
+	      			id += ":" + manager.getSize();
+	      		}
+	      	}
+	  
+	      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
+	      		new SelectedContent(manager)
+	      	});
+	      	break;
+	    }
+	    
+	    return( super.eventOccurred(event));
+	}
+	
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		if ( ViewUtils.toolBarItemActivated(manager, item, activationType, datasource)){
+			return( true );
+		}
+		return( super.toolBarItemActivated(item, activationType, datasource));
+	}
+
+	public void refreshToolBarItems(Map<String, Long> list) {
+		ViewUtils.refreshToolBarItems(manager, list);
+		super.refreshToolBarItems(list);
 	}
 }

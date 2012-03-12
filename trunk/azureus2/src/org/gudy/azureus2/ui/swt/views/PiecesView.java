@@ -21,6 +21,8 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
@@ -30,9 +32,14 @@ import org.gudy.azureus2.core3.download.DownloadManagerPieceListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.Legend;
+import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.views.piece.MyPieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -40,9 +47,12 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.pieces.*;
 
+import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener;
 import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -60,7 +70,8 @@ public class PiecesView
 	implements DownloadManagerPeerListener, 
 	DownloadManagerPieceListener,
 	TableDataSourceChangedListener,
-	TableLifeCycleListener
+	TableLifeCycleListener,
+	UISWTViewCoreEventListener
 {
 	private static boolean registeredCoreSubViews = false;
 
@@ -220,5 +231,41 @@ public class PiecesView
 	 */
 	public DownloadManager getManager() {
 		return manager;
+	}
+	
+	public boolean eventOccurred(UISWTViewEvent event) {
+	    switch (event.getType()) {
+	     
+	        
+	      case UISWTViewEvent.TYPE_FOCUSGAINED:
+	      	String id = "DMDetails_Pieces";
+	      	if (manager != null) {
+	      		if (manager.getTorrent() != null) {
+	  					id += "." + manager.getInternalName();
+	      		} else {
+	      			id += ":" + manager.getSize();
+	      		}
+	      	}
+	  
+	      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
+	      		new SelectedContent(manager)
+	      	});
+	      	break;
+	    }
+	    
+	    return( super.eventOccurred(event));
+	}
+	
+	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
+			Object datasource) {
+		if ( ViewUtils.toolBarItemActivated(manager, item, activationType, datasource)){
+			return( true );
+		}
+		return( super.toolBarItemActivated(item, activationType, datasource));
+	}
+
+	public void refreshToolBarItems(Map<String, Long> list) {
+		ViewUtils.refreshToolBarItems(manager, list);
+		super.refreshToolBarItems(list);
 	}
 }
