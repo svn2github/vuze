@@ -596,6 +596,8 @@ public class BTPeerIDByteDecoder {
 		//assertDecode("", "303030302D2D0000005433585859684B59584C72"); // Seen in the wild, appears to be a modified version of Azureus 2.5.0.0 (that's what was in the AZMP handshake)?
 		//assertDecode("", "B5546F7272656E742F3330323520202020202020");
 
+		assertDecode( "\u00B5Torrent Mac 1.5.11", "2D554D3135313130C964BE6F15CA71EF02AF2DD7" );
+		
 		System.out.println("Done.");
 	}
 }

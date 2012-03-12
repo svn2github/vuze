@@ -345,6 +345,12 @@ class BTPeerIDByteDecoderUtils {
 			else if (version_data.equals("A0B")) {return "1.0.5";}
 			throw new RuntimeException("Unknown BitsOnWheels version number - " + version_data);
 		}
+		else if ( version_scheme == BTPeerIDByteDecoderDefinitions.VER_BYTE_UM_STYLE ){
+			
+			char[] chars = version_data.toCharArray();
+			
+			return( chars[0] + "." + chars[1] + "." + chars[2] + chars[3] );
+		}
 		else {
 			throw new RuntimeException("unknown custom version number scheme - " + version_scheme);
 		}

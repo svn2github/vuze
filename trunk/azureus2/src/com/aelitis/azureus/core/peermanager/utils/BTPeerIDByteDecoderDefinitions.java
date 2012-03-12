@@ -64,6 +64,7 @@ public class BTPeerIDByteDecoderDefinitions {
 	static String VER_BITS_ON_WHEELS = "BOW-STYLE";
 	static String VER_TWO_BYTE_THREE_PART = "ab -> a . b/10 . b%10";
 	static String NO_VERSION = "NO_VERSION";
+	static String VER_BYTE_UM_STYLE = "abcd -> a.b.cd"; 
 	
 	// Used to register client information.
 	private static void addAzStyle(String id, String client) {
@@ -437,7 +438,8 @@ public class BTPeerIDByteDecoderDefinitions {
 		client = addSimpleClient("folx", "-FL");	// seems to have a sub-version encoded in following 3 bytes, not worked out how: "folx/1.0.456.591" : 2D 464C 3130 FF862D 486263574A43585F66314D5A
 		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 2);
 
-		
+		client = addSimpleClient("\u00B5Torrent Mac", "-UM");	
+		addVersionedClient(client, VER_BYTE_UM_STYLE, 4);
 	}
 	
 	static class ClientData {
