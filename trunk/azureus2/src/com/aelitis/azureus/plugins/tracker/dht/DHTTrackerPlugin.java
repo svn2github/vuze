@@ -1426,7 +1426,7 @@ DHTTrackerPlugin
 			
 			if ( unregister ){
 				
-				log.log( dl, "Unregistering download" );
+				log( dl, "Unregistering download" );
 								
 				rd_it.remove();
 				
@@ -1640,14 +1640,17 @@ DHTTrackerPlugin
 				
 				if ( target.getType() == REG_TYPE_FULL ){
 					
-					log( download, "Registration of '" + target.getDesc() + " skipped as disabled due to use of SOCKS proxy");
+					log( download, "Registration of '" + target.getDesc() + "' skipped as disabled due to use of SOCKS proxy");
 				}
-
+			}else if ( download.getFlag( Download.FLAG_METADATA_DOWNLOAD )){
+				
+				log( download, "Registration of '" + target.getDesc() + "' skipped as metadata download");
+				
 			}else{
 				
 				dht.put( 
 					target.getHash(),
-					"Tracker registration of '" + download.getName() + "'" + target.getDesc() + " -> " + encoded,
+					"Tracker registration of '" + download.getName() + "' " + target.getDesc() + " -> " + encoded,
 					encoded_bytes,
 					flags,
 					false,
@@ -1686,7 +1689,7 @@ DHTTrackerPlugin
 							if ( target.getType() == REG_TYPE_FULL ){
 								
 								log( 	download,
-										"Registration of '" + target.getDesc() + " completed (elapsed="	+ TimeFormatter.formatColonMillis((SystemTime.getCurrentTime() - start)) + ")");
+										"Registration of '" + target.getDesc() + "' completed (elapsed="	+ TimeFormatter.formatColonMillis((SystemTime.getCurrentTime() - start)) + ")");
 							}
 							
 								// decreaseActive( dl );
@@ -1728,7 +1731,7 @@ DHTTrackerPlugin
 			num_done++;
 			
 			dht.get(target.getHash(), 
-					"Tracker announce for '" + download.getName() + "'" + target.getDesc(),
+					"Tracker announce for '" + download.getName() + "' " + target.getDesc(),
 					isComplete( download )?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
 					NUM_WANT, 
 					target.getType()==REG_TYPE_FULL?ANNOUNCE_TIMEOUT:ANNOUNCE_DERIVED_TIMEOUT,
@@ -1878,7 +1881,7 @@ DHTTrackerPlugin
 										seed_count + leecher_count > 1 )){
 								
 								log( 	download,
-										"Get of '" + target.getDesc() + " completed (elapsed=" + TimeFormatter.formatColonMillis(SystemTime.getCurrentTime() - start)
+										"Get of '" + target.getDesc() + "' completed (elapsed=" + TimeFormatter.formatColonMillis(SystemTime.getCurrentTime() - start)
 												+ "), addresses=" + addresses.size() + ", seeds="
 												+ seed_count + ", leechers=" + leecher_count);
 							}
@@ -2328,6 +2331,16 @@ DHTTrackerPlugin
 		final Download			download,
 		RegistrationDetails		details )
 	{
+		if ( disable_put ){
+			
+			return;
+		}
+		
+		if ( download.getFlag( Download.FLAG_METADATA_DOWNLOAD )){
+			
+			return;
+		}
+		
 		final 	long	start = SystemTime.getCurrentTime();
 		
 		trackerTarget[] targets = details.getTargets( true );
@@ -2394,6 +2407,16 @@ DHTTrackerPlugin
 		final Download			download,
 		final trackerTarget 	target )
 	{
+		if ( disable_put ){
+			
+			return;
+		}
+		
+		if ( download.getFlag( Download.FLAG_METADATA_DOWNLOAD )){
+			
+			return;
+		}
+		
 		final 	long	start = SystemTime.getCurrentTime();
 		
 		if ( dht.hasLocalKey( target.getHash())){
@@ -2578,7 +2601,19 @@ DHTTrackerPlugin
 			
 			final Torrent torrent = ready_download.getTorrent();
 			
-			if ( dht.isDiversified( torrent.getHash())){
+			if ( ready_download.getFlag( Download.FLAG_METADATA_DOWNLOAD )){
+
+				try{
+					this_mon.enter();
+
+					interesting_downloads.remove( f_ready_download );
+					
+				}finally{
+					
+					this_mon.exit();
+				}
+				
+			}else if ( dht.isDiversified( torrent.getHash())){
 				
 				// System.out.println( "presence query for " + f_ready_download.getName() + "-> diversified pre start" );
 
@@ -3825,10 +3860,10 @@ DHTTrackerPlugin
 		{
 			if ( type != REG_TYPE_FULL ){
 			
-				return( " (" + desc + ")" );
+				return( "(" + desc + ")" );
 			}
 			
-			return( "" );
+			return( "(root)" );
 		}
 	}
 	
