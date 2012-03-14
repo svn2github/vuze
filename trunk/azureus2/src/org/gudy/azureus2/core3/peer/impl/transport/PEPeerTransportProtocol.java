@@ -194,7 +194,8 @@ implements PEPeerTransport
 	private byte	other_peer_az_bad_piece_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 	private byte	other_peer_az_stats_request_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
 	private byte	other_peer_az_stats_reply_version	= BTMessageFactory.MESSAGE_VERSION_INITIAL;
-  
+	private byte	other_peer_az_metadata_version		= BTMessageFactory.MESSAGE_VERSION_INITIAL;
+	
 	private static final boolean DEBUG_FAST = false;
 	
 	private boolean ut_pex_enabled 			= false;
@@ -364,7 +365,7 @@ implements PEPeerTransport
 	private boolean bad_piece_supported;
 	private boolean stats_request_supported;
 	private boolean stats_reply_supported;
-	
+	private boolean az_metadata_supported;
 
 	private boolean have_aggregation_disabled;
 
@@ -1114,6 +1115,7 @@ implements PEPeerTransport
 				local_udp_port,
 				local_udp2_port,
 				NetworkAdmin.getSingleton().hasIPV6Potential(true) ? NetworkAdmin.getSingleton().getDefaultPublicAddressV6() : null,
+				is_metadata_download?0:manager.getTorrentInfoDictSize(),
 				avail_ids,
 				avail_vers,
 				require_crypto ? AZHandshake.HANDSHAKE_TYPE_CRYPTO : AZHandshake.HANDSHAKE_TYPE_PLAIN,
@@ -1260,8 +1262,14 @@ implements PEPeerTransport
 		
 			if ( is_metadata_download ){
 				
-				connection.getOutgoingMessageQueue().addMessage( new UTMetaData( pieceNumber, other_peer_request_version ), false );
+				if ( az_metadata_supported ){
+					
+					connection.getOutgoingMessageQueue().addMessage( new AZMetaData( pieceNumber, other_peer_request_version ), false );
 
+				}else{
+					
+					connection.getOutgoingMessageQueue().addMessage( new UTMetaData( pieceNumber, other_peer_request_version ), false );
+				}
 			}else{
             
 				connection.getOutgoingMessageQueue().addMessage( new BTRequest( pieceNumber, pieceOffset, pieceLength, other_peer_request_version ), false );
@@ -2515,24 +2523,7 @@ implements PEPeerTransport
 			  
 			  if ( mds > 0 ){
 				  
-				  int	md_pieces = ( mds + 16*1024 - 1 )/(16*1024);
-				  
-				  manager.setTorrentInfoDictSize( mds );
-				  
-				  BitFlags tempHavePieces = new BitFlags(nbPieces);
-	
-				  for ( int i=0;i<md_pieces;i++){
-					  
-					  tempHavePieces.set(i);
-				  }
-	
-				  peerHavePieces = tempHavePieces;
-	
-				  addAvailability();
-				  
-				  really_choked_by_other_peer = false;
-				  
-				  calculatePiecePriorities();
+				  spoofMDAvailability( mds );
 			  }
 		  }
 	  }
@@ -2661,6 +2652,8 @@ implements PEPeerTransport
 					other_peer_az_stats_request_version = supported_version;
 				else if (id == AZMessage.ID_AZ_STAT_REPLY)
 					other_peer_az_stats_reply_version = supported_version;
+				else if (id == AZMessage.ID_AZ_METADATA)
+					other_peer_az_metadata_version = supported_version;
 				else if (id == BTMessage.ID_BT_DHT_PORT)
 					this.ml_dht_enabled = true;
 				else
@@ -2672,6 +2665,16 @@ implements PEPeerTransport
 			}
 		}
 
+		if ( is_metadata_download ){
+			
+			int	 mds = handshake.getMetadataSize();
+			
+			if ( mds > 0 ){
+				
+				  manager.setTorrentInfoDictSize( mds );
+			}
+		}
+		
 		supported_messages = (Message[]) messages.toArray(new Message[messages.size()]);
 		
 		if(outgoing_piece_message_handler != null){
@@ -2685,6 +2688,30 @@ implements PEPeerTransport
 		this.initPostConnection(handshake);
 	}
   
+  	private void
+  	spoofMDAvailability(
+  		int		mds )
+  	{
+		  int	md_pieces = ( mds + 16*1024 - 1 )/(16*1024);
+		  
+		  manager.setTorrentInfoDictSize( mds );
+		  
+		  BitFlags tempHavePieces = new BitFlags(nbPieces);
+
+		  for ( int i=0;i<md_pieces;i++){
+			  
+			  tempHavePieces.set(i);
+		  }
+
+		  peerHavePieces = tempHavePieces;
+
+		  addAvailability();
+		  
+		  really_choked_by_other_peer = false;
+		  
+		  calculatePiecePriorities();
+  	}
+  	
   	private void initPostConnection(Message handshake) {
 		changePeerState(PEPeer.TRANSFERING);
 		connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
@@ -3874,6 +3901,10 @@ implements PEPeerTransport
 						decodeMetaData((UTMetaData)message);
 						return true;
 					}
+					if( message_id.equals( AZMessage.ID_AZ_METADATA ) ) {        	
+						decodeMetaData((AZMetaData)message );
+						return true;
+					}
 
 					return false;
 				}
@@ -4152,6 +4183,20 @@ implements PEPeerTransport
 		bad_piece_supported 	= peerSupportsMessageType( AZMessage.ID_AZ_BAD_PIECE );
 		stats_request_supported = peerSupportsMessageType( AZMessage.ID_AZ_STAT_REQUEST );
 		stats_reply_supported 	= peerSupportsMessageType( AZMessage.ID_AZ_STAT_REPLY );
+		az_metadata_supported 	= peerSupportsMessageType( AZMessage.ID_AZ_METADATA );
+		
+		if ( is_metadata_download ){
+
+			if ( az_metadata_supported ){
+
+				int	mds = manager.getTorrentInfoDictSize();
+
+				if ( mds > 0 ){
+
+					spoofMDAvailability( mds );
+				}
+			}
+		}
 	}
 
 	private boolean
@@ -4273,7 +4318,7 @@ implements PEPeerTransport
 
 	protected void 
 	decodeMetaData( 
-		UTMetaData metadata ) 
+		AZUTMetaData metadata ) 
 	{
 		try{
 			final int BLOCK_SIZE = 16*1024;

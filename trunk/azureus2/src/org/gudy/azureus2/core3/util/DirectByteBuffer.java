@@ -75,6 +75,7 @@ DirectByteBuffer
     public static final byte        AL_MSG_BT_SUGGEST_PIECE   	= 32;
     public static final byte        AL_MSG_BT_ALLOWED_FAST    	= 33;
     public static final byte        AL_MSG_UT_METADATA 	        = 34;
+    public static final byte        AL_MSG_AZ_METADATA 	        = 35;
 
     
 	public static final String[] AL_DESCS =
@@ -102,7 +103,8 @@ DirectByteBuffer
     "BTRejectRequest",
     "BTSuggestPiece",
     "BTAllowedFast",
-    "UTMetaData"};
+    "UTMetaData",
+    "AZMetaData" };
 	 
     
     

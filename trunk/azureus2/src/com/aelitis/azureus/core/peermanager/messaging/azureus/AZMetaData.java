@@ -19,7 +19,7 @@
  */
 
 
-package com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep;
+package com.aelitis.azureus.core.peermanager.messaging.azureus;
 
 import java.nio.ByteBuffer;
 import java.util.HashMap;
@@ -32,11 +32,10 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 import com.aelitis.azureus.core.peermanager.messaging.MessagingUtil;
-import com.aelitis.azureus.core.peermanager.messaging.azureus.AZUTMetaData;
 
 public class 
-UTMetaData 
-	implements LTMessage, AZUTMetaData
+AZMetaData 
+	implements AZMessage, AZUTMetaData
 {
 	private final byte version;
 	private DirectByteBuffer buffer = null;
@@ -47,7 +46,7 @@ UTMetaData
 	private int					total_size;
 	
 	public
-	UTMetaData(
+	AZMetaData(
 		int		_piece,
 		byte	_version )
 	{
@@ -57,7 +56,7 @@ UTMetaData
 	}
 	
 	public
-	UTMetaData(
+	AZMetaData(
 		int				_piece,
 		ByteBuffer		_data,
 		int				_total_size,
@@ -75,7 +74,7 @@ UTMetaData
 	}
 	
 	public 
-	UTMetaData(
+	AZMetaData(
 		Map					map,
 		DirectByteBuffer	data,
 		byte				_version )
@@ -93,25 +92,25 @@ UTMetaData
 	public String 
 	getID()
 	{
-		return( ID_UT_METADATA );
+		return( ID_AZ_METADATA );
 	}
 
 	public byte[] 
 	getIDBytes()
 	{
-		return( ID_UT_METADATA_BYTES );
+		return( ID_AZ_METADATA_BYTES );
 	}
 
 	public String 
 	getFeatureID() 
 	{  
-		return LTMessage.LT_FEATURE_ID;  
+		return( AZ_FEATURE_ID );
 	}  
 	
 	public int 
 	getFeatureSubID() 
 	{ 
-		return SUBID_UT_METADATA;  
+		return SUBID_ID_AZ_METADATA;  
 	}
 	
 	public int 
@@ -123,13 +122,13 @@ UTMetaData
 	public byte 
 	getVersion() 
 	{ 
-		return version; 
+		return( version ); 
 	};
 
 	public String 
 	getDescription()
 	{
-		return( ID_UT_METADATA );
+		return( getID() + " piece #" + piece + ", mt=" + msg_type );
 	}
 
 	public int
@@ -172,7 +171,7 @@ UTMetaData
 				payload_map.put( "total_size", total_size );
 			}
 			
-			buffer = MessagingUtil.convertPayloadToBencodedByteStream(payload_map, DirectByteBuffer.AL_MSG_UT_METADATA );
+			buffer = MessagingUtil.convertPayloadToBencodedByteStream(payload_map, DirectByteBuffer.AL_MSG_AZ_METADATA );
 		}
 
 		if ( msg_type == MSG_TYPE_DATA ){
@@ -205,7 +204,7 @@ UTMetaData
 
 			data.position( DirectByteBuffer.SS_MSG, pos + BEncoder.encode( root ).length );			
 								
-			return( new UTMetaData( root, data, version ));
+			return( new AZMetaData( root, data, version ));
 			
 		}catch( Throwable e ){
 			

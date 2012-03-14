@@ -64,6 +64,7 @@ public class AZHandshake implements AZMessage {
   private final int handshake_type;
   private final boolean uploadOnly;
   private final InetAddress ipv6;
+  private final int	md_size;
   
   
   public AZHandshake( byte[] peer_identity,
@@ -75,6 +76,7 @@ public class AZHandshake implements AZMessage {
                       int udp_listen_port,
                       int udp_non_data_listen_port,
                       InetAddress ipv6addr,
+                      int md_size,
                       String[] avail_msg_ids,
                       byte[] avail_msg_versions,
                       int _handshake_type,
@@ -95,6 +97,7 @@ public class AZHandshake implements AZMessage {
     this.version = _version;
     this.uploadOnly = uploadOnly;
     this.ipv6 = ipv6addr;
+    this.md_size = md_size;
     
     //verify given port info is ok
     if( tcp_port < 0 || tcp_port > 65535 ) {
@@ -133,7 +136,7 @@ public class AZHandshake implements AZMessage {
   public int getUDPListenPort() {  return udp_port;  }
   public int getUDPNonDataListenPort() {  return udp_non_data_port;  }
   public InetAddress getIPv6() { return ipv6; }
-  
+  public int getMetadataSize(){ return md_size; }
   public int getHandshakeType() {  return handshake_type;  }
   
     
@@ -163,6 +166,7 @@ public class AZHandshake implements AZMessage {
       							", handshake " + (getHandshakeType() == HANDSHAKE_TYPE_PLAIN ? "plain" : "crypto") +
       							", upload_only = " + (isUploadOnly() ? "1" : "0") + 
       							(ipv6 != null ? ", ipv6 = "+ipv6.getHostAddress() : "") +
+      							", md_size=" + md_size +
       							(sessionID != null ? ", sessionID: "+sessionID.toBase32String() : "") +
       							(reconnectID != null ? ", reconnect request: "+reconnectID.toBase32String() : "") +
       							"] supports " +msgs_desc;
@@ -190,7 +194,9 @@ public class AZHandshake implements AZMessage {
 			payload_map.put("upload_only", new Long(uploadOnly ? 1L : 0L));
 			if(ipv6 != null)
 				payload_map.put("ipv6", ipv6.getAddress());
-
+			if ( md_size > 0 ){
+				payload_map.put("mds", new Long(md_size));
+			}
 			//available message list
 			List message_list = new ArrayList();
 			for (int i = 0; i < avail_ids.length; i++)
@@ -269,7 +275,11 @@ public class AZHandshake implements AZMessage {
 			
 		}
 	}
-
+    int md_size = 0;
+    Long mds = (Long)root.get( "mds" );
+    if ( mds != null ){
+    	md_size = mds.intValue();
+    }
     List raw_msgs = (List) root.get("messages");
     if (raw_msgs == null)  throw new MessageException("raw_msgs == null");
 
@@ -297,7 +307,7 @@ public class AZHandshake implements AZMessage {
     Long ulOnly = (Long)root.get("upload_only");
     boolean uploadOnly = ulOnly != null && ulOnly.longValue() > 0L ? true : false;
 
-    return new AZHandshake( id, session == null ? null : new HashWrapper(session),reconnect == null ? null : new HashWrapper(reconnect), name, client_version, tcp_lport.intValue(), udp_lport.intValue(), udp2_lport.intValue(), ipv6 ,ids, vers, h_type.intValue(), version , uploadOnly);
+    return new AZHandshake( id, session == null ? null : new HashWrapper(session),reconnect == null ? null : new HashWrapper(reconnect), name, client_version, tcp_lport.intValue(), udp_lport.intValue(), udp2_lport.intValue(), ipv6, md_size, ids, vers, h_type.intValue(), version , uploadOnly);
   }
   
   

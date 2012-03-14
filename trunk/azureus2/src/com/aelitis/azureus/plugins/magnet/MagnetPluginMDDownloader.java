@@ -25,7 +25,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.RandomAccessFile;
 import java.net.URL;
-import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -41,7 +40,6 @@ import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -52,6 +50,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManager;
+import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerEvent;
@@ -508,15 +507,51 @@ MagnetPluginMDDownloader
 					{
 					}
 				});
+		
+			final Download f_download = download;
 			
-			download.moveTo(1);		
-			
-			download.setForceStart( true );
-			
-			download.setFlag( Download.FLAG_DISABLE_AUTO_FILE_MOVE, true );
+			DownloadManagerListener dl_listener = 
+				new DownloadManagerListener()
+				{
+					public void
+					downloadAdded(
+						Download	download )
+					{
+					}
+					
+					public void
+					downloadRemoved(
+						Download	dl )
+					{
+						if ( dl == f_download ){
+							
+							if ( !( cancelled || completed )){
+								
+								error[0] = new Exception( "Download manually removed" );
+								
+								sem.releaseForever();
+							}
+						}
+					}
+				};
+				
+			download_manager.addListener( dl_listener, false );
 
-			sem.reserve();
+			try{
 			
+				download.moveTo(1);		
+				
+				download.setForceStart( true );
+				
+				download.setFlag( Download.FLAG_DISABLE_AUTO_FILE_MOVE, true );
+	
+				sem.reserve();
+				
+			}finally{
+				
+				download_manager.removeListener( dl_listener );
+			}
+				
 			if ( completed ){
 			
 				byte[]	bytes = result.toByteArray();
@@ -586,8 +621,6 @@ MagnetPluginMDDownloader
 						download.stop();
 						
 					}catch( Throwable e ){
-						
-						Debug.out( e );
 					}
 					
 					try{

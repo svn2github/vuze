@@ -82,13 +82,14 @@ public class AZMessageFactory {
    */
   public static void init() {
     try {
-      MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], null, null, "", "", 0, 0, 0, null, new String[0], new byte[0], 0, MESSAGE_VERSION_SUPPORTS_PADDING,false ) );
+      MessageManager.getSingleton().registerMessageType( new AZHandshake( new byte[20], null, null, "", "", 0, 0, 0, null, 0, new String[0], new byte[0], 0, MESSAGE_VERSION_SUPPORTS_PADDING,false ) );
       MessageManager.getSingleton().registerMessageType( new AZPeerExchange( new byte[20], null, null, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new AZRequestHint( -1, -1, -1, -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new AZHave( new int[0], MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new AZBadPiece( -1, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new AZStatRequest( null, MESSAGE_VERSION_SUPPORTS_PADDING ));
       MessageManager.getSingleton().registerMessageType( new AZStatReply( null, MESSAGE_VERSION_SUPPORTS_PADDING ));
+      MessageManager.getSingleton().registerMessageType( new AZMetaData( null, null, MESSAGE_VERSION_SUPPORTS_PADDING ));
 
       /*
       MessageManager.getSingleton().registerMessageType( new AZSessionSyn( new byte[20], -1, null) );
