@@ -4929,11 +4929,18 @@ SubscriptionManagerImpl
 					{
 						return( false );
 					}
+					
+					public boolean 
+					cancelled() 
+					{
+						return( false );
+					}
 				},
 				hash,
 				"",
 				new InetSocketAddress[0],
-				300*1000 );
+				300*1000,
+				MagnetPlugin.FL_DISABLE_MD_LOOKUP );
 			
 			if ( torrent_data == null ){
 				

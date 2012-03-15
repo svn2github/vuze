@@ -3732,11 +3732,18 @@ BuddyPlugin
 								{
 									return( false );
 								}
+								
+								public boolean 
+								cancelled() 
+								{
+									return( false );
+								}
 							},
 							hash,
 							"",
 							new InetSocketAddress[0],
-							timeout );
+							timeout,
+							MagnetPlugin.FL_NONE );
 						
 						if ( torrent_data == null ){
 							

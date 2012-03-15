@@ -49,5 +49,8 @@ MagnetPluginProgressListener
 		InetSocketAddress	address );
 	
 	public boolean
+	cancelled();
+	
+	public boolean
 	verbose();
 }

@@ -42,6 +42,9 @@ MagnetURIHandlerProgressListener
 	reportCompleteness(
 		int		percent );
 	
+	public boolean
+	cancelled();
+	
 	public boolean 
 	verbose();
 }

@@ -613,53 +613,93 @@ MagnetURIHandlerImpl
 				
 				final boolean verbose = verbose_str != null && verbose_str.equalsIgnoreCase( "true" );
 				
-				for (int i=0;i<listeners.size();i++){
+				final boolean[]	cancel = { false };
 				
-					data = ((MagnetURIHandlerListener)listeners.get(i)).download(
-							new MagnetURIHandlerProgressListener()
+				TimerEventPeriodic	keep_alive = 
+					SimpleTimer.addPeriodicEvent(
+						"MURI:keepalive",
+						5000,
+						new TimerEventPerformer()
+						{
+							public void 
+							perform(
+								TimerEvent event) 
 							{
-								public void
-								reportSize(
-									long	size )
-								{
-									pw.print( "X-Report: " + getMessageText( "torrent_size", String.valueOf( size )) + NL );
+								pw.print( "X-KeepAlive: YEAH!" + NL );
+								
+								boolean	failed = pw.checkError();
+								
+								if ( failed ){
 									
-									pw.flush();
-								}
-								
-								public void
-								reportActivity(
-									String	str )
-								{
-									pw.print( "X-Report: " + str + NL );
-																			
-									pw.flush();
-								}
-								
-								public void
-								reportCompleteness(
-									int		percent )
-								{
-									pw.print( "X-Report: " + getMessageText( "percent", String.valueOf(percent)) + NL );
+									synchronized( cancel ){
 									
-									pw.flush();
+										cancel[0]	= true;
+									}
 								}
-								
-								public boolean 
-								verbose()
-								{
-									return( verbose );
-								}
-							},
-							sha1, 
-							arg_str,
-							s,
-							DOWNLOAD_TIMEOUT );
+							}
+						});
+				
+				try{
+					for (int i=0;i<listeners.size();i++){
 					
-					if ( data != null ){
+						data = ((MagnetURIHandlerListener)listeners.get(i)).download(
+								new MagnetURIHandlerProgressListener()
+								{
+									public void
+									reportSize(
+										long	size )
+									{
+										pw.print( "X-Report: " + getMessageText( "torrent_size", String.valueOf( size )) + NL );
+										
+										pw.flush();
+									}
+									
+									public void
+									reportActivity(
+										String	str )
+									{
+										pw.print( "X-Report: " + str + NL );
+																				
+										pw.flush();
+									}
+									
+									public void
+									reportCompleteness(
+										int		percent )
+									{
+										pw.print( "X-Report: " + getMessageText( "percent", String.valueOf(percent)) + NL );
+										
+										pw.flush();
+									}
+									
+									public boolean 
+									verbose()
+									{
+										return( verbose );
+									}
+									
+									public boolean
+									cancelled()
+									{
+										synchronized( cancel ){
+											
+											return( cancel[0] );
+										}
+									}
+								},
+								sha1, 
+								arg_str,
+								s,
+								DOWNLOAD_TIMEOUT );
 						
-						break;
+						if ( data != null ){
+							
+							break;
+						}
 					}
+				}finally{
+					
+					keep_alive.cancel();
 				}
 				
 				if (Logger.isEnabled())

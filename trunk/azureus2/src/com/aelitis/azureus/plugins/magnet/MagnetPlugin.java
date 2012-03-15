@@ -94,6 +94,9 @@ public class
 MagnetPlugin
 	implements Plugin
 {	
+	public static final int	FL_NONE					= 0x00000000;
+	public static final int	FL_DISABLE_MD_LOOKUP	= 0x00000001;
+	
 	private static final String	SECONDARY_LOOKUP 			= "http://127.0.0.1:3080/"; // "http://magnet.vuze.com/";
 	private static final int	SECONDARY_LOOKUP_DELAY		= 1*1000; // 20*1000;
 	private static final int	SECONDARY_LOOKUP_MAX_TIME	= 2*60*1000;
@@ -336,6 +339,12 @@ MagnetPlugin
 								}
 								
 								public boolean 
+								cancelled() 
+								{
+									return( muh_listener.cancelled());
+								}
+								
+								public boolean 
 								verbose() 
 								{
 									return( muh_listener.verbose());
@@ -344,7 +353,8 @@ MagnetPlugin
 							hash,
 							args,
 							sources,
-							timeout ));
+							timeout,
+							0 ));
 				}
 				
 				public boolean
@@ -502,11 +512,12 @@ MagnetPlugin
 		byte[]								hash,
 		String								args,
 		InetSocketAddress[]					sources,
-		long								timeout )
+		long								timeout,
+		int									flags )
 	
 		throws MagnetURIHandlerException
 	{
-		byte[]	torrent_data = downloadSupport( listener, hash, args, sources, timeout );
+		byte[]	torrent_data = downloadSupport( listener, hash, args, sources, timeout, flags );
 		
 		if ( args != null ){
 			
@@ -601,11 +612,21 @@ MagnetPlugin
 		final byte[]							hash,
 		final String							args,
 		final InetSocketAddress[]				sources,
-		final long								timeout )
+		final long								timeout,
+		int										flags )
 	
 		throws MagnetURIHandlerException
 	{
-		boolean	md_enabled = md_lookup.getValue() && FeatureAvailability.isMagnetMDEnabled();
+		boolean	md_enabled;
+		
+		if ((flags & FL_DISABLE_MD_LOOKUP) != 0 ){
+			
+			md_enabled = false;
+			
+		}else{
+			
+			md_enabled = md_lookup.getValue() && FeatureAvailability.isMagnetMDEnabled();
+		}
 
 		TimerEvent							md_delay_event = null;
 		final byte[][]						md_result = { null };
@@ -912,6 +933,11 @@ MagnetPlugin
 					
 					while( remaining > 0 ){
 					
+						if ( listener.cancelled()){
+							
+							return( null );
+						}
+						
 						synchronized( md_result ){
 							
 							if ( md_result[0] != null ){
@@ -1101,6 +1127,11 @@ MagnetPlugin
 					
 					while( true ){
 						
+						if ( listener.cancelled()){
+							
+							return( null );
+						}
+						
 						boolean got_sem = contact_sem.reserve( 500 );
 													
 						synchronized( contact_data ){
@@ -1137,6 +1168,11 @@ MagnetPlugin
 					
 					while( SystemTime.getMonotonousTime() - secondary_lookup_time < SECONDARY_LOOKUP_MAX_TIME ){
 						
+						if ( listener.cancelled()){
+							
+							return( null );
+						}
+						
 						try{
 							byte[] torrent = getSecondaryLookupResult( secondary_result );
 							
@@ -1166,6 +1202,11 @@ MagnetPlugin
 				
 					while( remaining > 0 ){
 
+						if ( listener.cancelled()){
+							
+							return( null );
+						}
+						
 						Thread.sleep( 500 );
 						
 						remaining -= 500;

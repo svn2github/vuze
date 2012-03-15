@@ -27,6 +27,7 @@ import java.io.RandomAccessFile;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
@@ -129,12 +130,12 @@ MagnetPluginMDDownloader
 		cancelSupport( false );
 	}
 	
-	protected void
+	private void
 	cancelSupport(
 		boolean	internal )
 	{
-		boolean	wait_for_complete = !internal;
-		
+		boolean	wait_for_complete 	= !internal;
+
 		try{
 			List<DiskManagerRequest>	to_cancel;
 			
@@ -144,9 +145,7 @@ MagnetPluginMDDownloader
 					
 					Debug.out( "Not started!" );
 					
-					wait_for_complete = false;
-					
-					return;
+					wait_for_complete 	= false;
 				}
 				
 				if ( cancelled || completed ){
@@ -166,7 +165,7 @@ MagnetPluginMDDownloader
 				request.cancel();
 			}
 		}finally{
-		
+					
 			running_sem.releaseForever();
 			
 			if ( wait_for_complete ){
@@ -176,7 +175,7 @@ MagnetPluginMDDownloader
 		}
 	}
 	
-	protected void
+	private void
 	startSupport(
 		final DownloadListener		listener )
 	{		
@@ -313,7 +312,9 @@ MagnetPluginMDDownloader
 			
 			download = download_manager.addNonPersistentDownloadStopped( PluginCoreUtils.wrap( meta_torrent ), torrent_file, data_file);
 			
-			PluginCoreUtils.unwrap( download ).getDownloadState().setDisplayName( "Metadata download for " + name + ".torrent" );
+			String	display_name = MessageText.getString( "MagnetPlugin.use.md.download.name", new String[]{ name });
+			
+			PluginCoreUtils.unwrap( download ).getDownloadState().setDisplayName( display_name + ".torrent" );
 			
 			download.addPeerListener(
 				new DownloadPeerListener()
