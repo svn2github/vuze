@@ -463,7 +463,7 @@ public class TableViewSWT_Common
 			} else if (filter.nextText.length() > 0) {
 				newText = filter.nextText.substring(0, filter.nextText.length() - 1);
 			}
-		} else if ((e.stateMask & ~SWT.SHIFT) == 0 && e.character > 32) {
+		} else if ((e.stateMask & ~SWT.SHIFT) == 0 && e.character > 32 && e.character != SWT.DEL) {
 			newText = filter.nextText + String.valueOf(e.character);
 		}
 

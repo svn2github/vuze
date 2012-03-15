@@ -79,8 +79,6 @@ public class TableViewPainted
 	 */
 	protected Rectangle clientArea;
 
-	private int lastHorizontalPos;
-
 	private boolean columnVisibilitiesChanged = true;
 
 	private boolean isVisible;
@@ -95,8 +93,6 @@ public class TableViewPainted
 
 	private Image canvasImage;
 
-	//private ScrollBar verticalBar;
-
 	private final String sDefaultSortOn;
 
 	private TableViewSWT_Common tvSWTCommon;
@@ -108,8 +104,6 @@ public class TableViewPainted
 	private boolean isMultiSelect;
 
 	private int columnsWidth;
-
-	//private ScrollBar horizontalBar;
 
 	private Menu menu;
 
@@ -2310,10 +2304,7 @@ public class TableViewPainted
 					qdRowHeightChanged = false;
 				}
 				swt_fixupSize();
-
-				if (isRowVisible(row)) {
-					redrawTable();
-				}
+				visibleRowsChanged();
 			}
 		});
 	}
