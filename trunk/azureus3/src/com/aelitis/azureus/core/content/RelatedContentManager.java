@@ -3201,8 +3201,16 @@ RelatedContentManager
 							byte[]	data = (byte[])map.get( "d" );
 							
 							if ( data != null ){
-																
-								map = BDecoder.decode(new BufferedInputStream( new GZIPInputStream( new ByteArrayInputStream( CryptoManagerFactory.getSingleton().deobfuscate( data )))));
+										
+								try{
+									map = BDecoder.decode(new BufferedInputStream( new GZIPInputStream( new ByteArrayInputStream( CryptoManagerFactory.getSingleton().deobfuscate( data )))));
+									
+								}catch( Throwable e ){
+									
+										// can get here is config's been deleted
+									
+									map = new HashMap();
+								}
 							}
 							
 							rcm_map = (Map<String,String>)map.get( "rcm" );
