@@ -43,6 +43,6 @@ public class CT_Live
 		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
 		int num = MapUtils.getMapInt(ds.map, ID_CELLPAINTS, 0) + 1;
 		ds.map.put(ID_CELLPAINTS, num);
-		GCStringPrinter.printString(gc, Integer.toString(num), cell.getBounds(), true, true, SWT.RIGHT);
+		GCStringPrinter.printString(gc, "p=" + Integer.toString(num), cell.getBounds(), true, true, SWT.RIGHT);
 	}
 }

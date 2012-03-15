@@ -1,6 +1,5 @@
 package com.vuze.tests.swt.tableview;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -17,21 +16,29 @@ import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.UIConfigDefaultsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableSelectionListener;
-import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
+import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
+import com.yourkit.api.Controller;
+import com.yourkit.api.ProfilingModes;
 
 public class testTableView
 {
-	private static TableViewSWTImpl<TableViewTestDS> tv;
+	private static TableViewSWT tv;
 
 	private static boolean pause = true;
 
+	private static boolean printDiff;
+
+	@SuppressWarnings({
+		"unchecked",
+		"rawtypes"
+	})
 	public static void main(String[] args) {
 		Display display = new Display();
 		FormData fd;
@@ -41,12 +48,16 @@ public class testTableView
 		COConfigurationManager.setParameter("Table.extendedErase", true);
 		//COConfigurationManager.setParameter("GUI Refresh", 15000);
 		UIConfigDefaultsSWT.initialize();
-		
+
 		Colors.getInstance();
+
+		TableColumnCreatorV3.initCoreColumns();
 
 		Shell shell = new Shell(display, SWT.SHELL_TRIM);
 		FormLayout fl = new FormLayout();
 		shell.setLayout(fl);
+
+		Composite cTop = new Composite(shell, SWT.BORDER);
 
 		Composite cTV = new Composite(shell, SWT.BORDER);
 
@@ -54,6 +65,11 @@ public class testTableView
 		Composite cToggles = new Composite(shell, SWT.BORDER);
 
 		fd = Utils.getFilledFormData();
+		fd.bottom = null;
+		cTop.setLayoutData(fd);
+
+		fd = Utils.getFilledFormData();
+		fd.top = new FormAttachment(cTop, 5);
 		fd.bottom = new FormAttachment(cToggles, -5);
 		cTV.setLayout(new FillLayout());
 		cTV.setLayoutData(fd);
@@ -71,6 +87,7 @@ public class testTableView
 
 		TableColumnCore[] columns = {
 			new CT_ID(),
+			new CT_Text(),
 			new CT_InvalidOnly(),
 			new CT_Live(),
 			new CT_LiveExt(),
@@ -78,31 +95,34 @@ public class testTableView
 			new CT_InvOnlyReord(),
 		};
 
-		com.aelitis.azureus.ui.common.table.impl.TableColumnManager.getInstance().addColumns(columns);
+		com.aelitis.azureus.ui.common.table.impl.TableColumnManager.getInstance().addColumns(
+				columns);
 
-		tv = new TableViewSWTImpl<TableViewTestDS>(TableViewTestDS.class, "test",
-				"", columns, CT_ID.name, SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.CASCADE);
+		tv = TableViewFactory.createTableViewSWT(true, TableViewTestDS.class,
+				"test", "", columns, CT_ID.name, SWT.MULTI | SWT.FULL_SELECTION
+						| SWT.VIRTUAL | SWT.CASCADE);
 
 		tv.initialize(cTV);
-		
-		tv.setRowDefaultHeight(20);
-		
+
+		tv.setRowDefaultHeight(40);
+		//	tv.setRowDefaultHeight(16);
+
 		tv.addSelectionListener(new TableSelectionListener() {
 			public void selected(TableRowCore[] row) {
 			}
-			
+
 			public void mouseExit(TableRowCore row) {
 			}
-			
+
 			public void mouseEnter(TableRowCore row) {
 			}
-			
+
 			public void focusChanged(TableRowCore focus) {
 			}
-			
+
 			public void deselected(TableRowCore[] rows) {
 			}
-			
+
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
 				System.out.println("Selected " + rows.length);
 			}
@@ -116,21 +136,26 @@ public class testTableView
 			}
 
 			public void keyPressed(KeyEvent e) {
-				if (e.character == SWT.DEL) {
+				if (e.keyCode == SWT.DEL) {
+					System.out.println("SMURF");
 					List<Object> sources = tv.getSelectedDataSources();
 					int count = sources.size();
 					if (count == 0) {
 						return;
 					}
-					int i = tv.getRow((TableViewTestDS) sources.get(count - 1)).getIndex();
-					if (i >= tv.getRowCount() - 1) {
-						i -= count;
-					} else {
-						i++;
-					}
-					TableRowCore[] newSelRows = i < 0 || i >= tv.getRowCount() ? new TableRowCore[0] : new TableRowCore[] { tv.getRow(i) };
-					tv.removeDataSources(sources.toArray(new TableViewTestDS[0]));
-					tv.setSelectedRows(newSelRows);
+					tv.removeDataSources(sources.toArray());
+//					int i = tv.getRow((TableViewTestDS) sources.get(count - 1)).getIndex();
+//					if (i >= tv.getRowCount() - 1) {
+//						i -= count;
+//					} else {
+//						i++;
+//					}
+//					TableRowCore[] newSelRows = i < 0 || i >= tv.getRowCount()
+//							? new TableRowCore[0] : new TableRowCore[] {
+//								tv.getRow(i)
+//							};
+//					tv.removeDataSources(sources.toArray(new TableViewTestDS[0]));
+//					tv.setSelectedRows(newSelRows);
 				} else if (e.keyCode == SWT.INSERT) {
 					TableViewTestDS ds = new TableViewTestDS();
 					ds.map.put("ID", new Double(3.1));
@@ -138,7 +163,20 @@ public class testTableView
 				}
 			}
 		});
-
+		
+		tv.addMenuFillListener(new TableViewSWTMenuFillListener() {
+			
+			public void fillMenu(String sColumnName, Menu menu) {
+				MenuItem menuItem = new MenuItem(menu, SWT.PUSH);
+				menuItem.setText("MenuFrom fillMenu");
+			}
+			
+			public void addThisColumnSubMenu(String sColumnName, Menu menuThisColumn) {
+				MenuItem menuItem = new MenuItem(menuThisColumn, SWT.PUSH);
+				menuItem.setText("MenuFrom addThisColumnSubMenu");
+			}
+		});
+		
 		UIUpdaterSWT.getInstance().addUpdater(new UIUpdatable() {
 
 			public void updateUI() {
@@ -159,13 +197,48 @@ public class testTableView
 		btnPauseRefresh.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				pause = !pause;
+
+				SimpleTimer.addEvent("YourKitS", SystemTime.getOffsetTime(1000l * 9),
+						new TimerEventPerformer() {
+							public void perform(TimerEvent event) {
+								try {
+									Controller controller;
+									controller = new Controller();
+									System.out.println("STARTING");
+									controller.startCPUProfiling(ProfilingModes.CPU_TRACING,
+											Controller.DEFAULT_FILTERS,
+											Controller.DEFAULT_WALLTIME_SPEC);
+									System.out.println("STARTED");
+
+									SimpleTimer.addEvent("YourKitE",
+											SystemTime.getOffsetTime(1000l * 60),
+											new TimerEventPerformer() {
+												public void perform(TimerEvent event) {
+													try {
+														Controller controller;
+														controller = new Controller();
+														controller.stopCPUProfiling();
+														System.out.println("STOPPED");
+													} catch (Exception e) {
+														e.printStackTrace();
+													}
+												}
+											});
+								} catch (Exception e) {
+									e.printStackTrace();
+								}
+							}
+						});
 			}
 		});
 
 		Button btnRndChaos = new Button(cToggles, SWT.TOGGLE);
 		btnRndChaos.setText("RndChaos");
 		btnRndChaos.addListener(SWT.Selection, new Listener() {
-			boolean enabled[] = { false };
+			boolean enabled[] = {
+				false
+			};
+
 			public void handleEvent(Event event) {
 				enabled[0] = !enabled[0];
 				if (enabled[0]) {
@@ -178,7 +251,10 @@ public class testTableView
 		Button btnRndChaos1 = new Button(cToggles, SWT.TOGGLE);
 		btnRndChaos1.setText("RndChaos");
 		btnRndChaos1.addListener(SWT.Selection, new Listener() {
-			boolean enabled[] = { false };
+			boolean enabled[] = {
+				false
+			};
+
 			public void handleEvent(Event event) {
 				enabled[0] = !enabled[0];
 				if (enabled[0]) {
@@ -218,7 +294,8 @@ public class testTableView
 		btnAddX.setText("Add...");
 		btnAddX.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow("!Add!", "!How Many?");
+				SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow("!Add!",
+						"!How Many?!");
 				entryWindow.prompt(new UIInputReceiverListener() {
 					public void UIInputReceiverClosed(UIInputReceiver receiver) {
 						if (receiver.hasSubmittedInput()) {
@@ -234,7 +311,7 @@ public class testTableView
 		btnAddSame.setText("Add 5 Same + 1");
 		btnAddSame.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				ArrayList<TableViewTestDS> dataSources = tv.getDataSources();
+				List<TableViewTestDS> dataSources = tv.getDataSources();
 				int i = 0;
 				int count = 5;
 				TableViewTestDS[] add = new TableViewTestDS[count + 1];
@@ -254,9 +331,27 @@ public class testTableView
 		btnAddSubs.setSelection(pause);
 		btnAddSubs.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				addSubs();
+				addSubs(-1);
 			}
 		});
+
+		Button btnAddXSubs = new Button(cBottom, SWT.PUSH);
+		btnAddXSubs.setText("Add Subs...");
+		btnAddXSubs.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow("!Add Subs!",
+						"!How Many?!");
+				entryWindow.prompt(new UIInputReceiverListener() {
+					public void UIInputReceiverClosed(UIInputReceiver receiver) {
+						if (receiver.hasSubmittedInput()) {
+							int parseInt = Integer.parseInt(receiver.getSubmittedInput());
+							addSubs(parseInt);
+						}
+					}
+				});
+			}
+		});
+
 
 		Button btnClear = new Button(cBottom, SWT.PUSH);
 		btnClear.setText("Clear");
@@ -307,6 +402,47 @@ public class testTableView
 				rndDel(5);
 			}
 		});
+		
+		Button chkPrintDiff = new Button(cBottom, SWT.CHECK);
+		chkPrintDiff.setText("PrintDiff");
+		chkPrintDiff.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				printDiff = !printDiff;
+			}
+		});
+		
+		
+		
+		
+		//////////////////
+		
+		
+		
+		cTop.setLayout(new FillLayout());
+		Text txtFilter = new Text(cTop, SWT.BORDER);
+		tv.enableFilterCheck(txtFilter, new TableViewFilterCheck() {
+			public void filterSet(String filter) {
+				System.out.println("Filter set to " + filter.length() + "; " + filter);
+			}
+
+			public boolean filterCheck(Object ds, String filter, boolean regex) {
+				if (filter == null || filter.length() == 0) {
+					return true;
+				}
+				if (ds instanceof TableViewTestDS) {
+					TableViewTestDS tds = (TableViewTestDS) ds;
+					String s = (String) tds.map.get("text");
+					if (s == null || s.length() == 0) {
+						return true;
+					}
+					return s.contains(filter);
+				}
+				return true;
+			}
+		});
+		
+		
+		//////////////////
 
 		shell.open();
 
@@ -314,13 +450,17 @@ public class testTableView
 			try {
 				long last = System.currentTimeMillis();
 
-				while (display.readAndDispatch());
+				while (!display.isDisposed() && display.readAndDispatch())
+					;
+				if (display.isDisposed()) {
+					return;
+				}
 
 				long now = System.currentTimeMillis();
 				long diff = now - last;
 				last = now;
 
-				if (diff > 1) {
+				if (diff > 1 && printDiff) {
 					System.out.println(diff);
 				}
 
@@ -331,31 +471,24 @@ public class testTableView
 		}
 	}
 
-	/**
-	 * 
-	 *
-	 * @since 4.4.0.5
-	 */
-	protected static void addSubs() {
+	protected static void addSubs(int num) {
 		TableRowCore[] selectedRows = tv.getSelectedRows();
 		for (TableRowCore row : selectedRows) {
-			int num = (int) (Math.random() * 5);
+			if (num < 0) {
+				num = (int) (Math.random() * (-num));
+			}
 			//row.setSubItemCount(num);
 			TableViewTestDS[] subitems = new TableViewTestDS[num];
 			for (int i = 0; i < num; i++) {
-	  		TableViewTestDS ds = new TableViewTestDS();
-	  		ds.map.put("ID", new Double(i));
-	  		subitems[i] = ds;
+				TableViewTestDS ds = new TableViewTestDS();
+				ds.map.put("ID", new Double(i));
+				subitems[i] = ds;
 			}
 			row.setSubItems(subitems);
+			row.setExpanded(true);
 		}
 	}
 
-	/**
-	 * @param i
-	 *
-	 * @since 4.4.0.5
-	 */
 	private static void addRows(int num) {
 		for (int i = 0; i < num; i++) {
 			tv.addDataSource(new TableViewTestDS());
@@ -377,11 +510,11 @@ public class testTableView
 
 	protected static void rndInsert(int num) {
 		for (int i = 0; i < num; i++) {
-  		int size = tv.size(false);
-  		double pos = Math.random() * size;
-  		TableViewTestDS ds = new TableViewTestDS();
-  		ds.map.put("ID", new Double(pos));
-  		tv.addDataSource(ds);
+			int size = tv.size(false);
+			double pos = Math.random() * size;
+			TableViewTestDS ds = new TableViewTestDS();
+			ds.map.put("ID", new Double(pos));
+			tv.addDataSource(ds);
 		}
 	}
 

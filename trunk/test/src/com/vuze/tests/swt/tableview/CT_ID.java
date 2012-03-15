@@ -10,12 +10,13 @@ import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.util.MapUtils;
 
 public class CT_ID
 	extends CoreTableColumn
-	implements TableCellAddedListener, TableCellSWTPaintListener, TableCellRefreshListener
+	implements TableCellAddedListener, TableCellSWTPaintListener, TableCellRefreshListener, TableCellToolTipListener
 {
 	public static double id = 0;
 	public static String name = new Object() { }.getClass().getEnclosingClass().getSimpleName();
@@ -28,17 +29,22 @@ public class CT_ID
 	}
 
 	public void cellAdded(TableCell cell) {
-		String indent = ((TableRowCore)cell.getTableRow()).getParentRowCore() == null ? "" : "  ";
+		TableRowCore row = (cell.getTableRow() instanceof TableRowCore) ? (TableRowCore)cell.getTableRow() : null;
+		if (row != null) {
+			row.setHeight((int) (16 + (Math.random() * 100)));
+		}
+		String indent = row == null || row.getParentRowCore() == null ? "" : "  ";
 		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
 		Object mapObject = MapUtils.getMapObject(ds.map, "ID", null, Number.class);
 		if (mapObject instanceof Number) {
 			double overideID = ((Double) mapObject).doubleValue();
 			cell.setSortValue(overideID);
-			cell.setText(indent + overideID);
+			cell.setText(indent + overideID + (row == null ? "" :  ":" + row.getHeight()));
 		} else {
   		id++;
   		cell.setSortValue(id);
-  		cell.setText(indent + Double.toString(id));
+  		cell.setText(indent + Double.toString(id) + (row == null ? "" : ":" + row.getHeight()));
+  		ds.map.put("ID", id);
 		}
 	}
 	
@@ -56,5 +62,17 @@ public class CT_ID
 		int num = MapUtils.getMapInt(ds.map, name + ".numCP", 0) + 1;
 		ds.map.put(name + ".numCP", num);
 		GCStringPrinter.printString(gc, Integer.toString(num), cell.getBounds(), true, true, SWT.RIGHT);
+	}
+
+	public void cellHover(TableCell cell) {
+		TableRow row = cell.getTableRow();
+		if (row instanceof TableRowCore) {
+  		TableRowCore rowCore = (TableRowCore)cell.getTableRow();
+  		TableCellCore cellCore = (TableCellCore) cell;
+  		cell.setToolTip(rowCore.getIndex() + ". r.vis? " + rowCore.isVisible());
+		}
+	}
+
+	public void cellHoverComplete(TableCell cell) {
 	}
 }
