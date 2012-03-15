@@ -70,13 +70,14 @@ MagnetPluginMDDownloader
 	private byte[]				hash;
 	private String				args;
 	
-	private boolean					started;
+	private volatile boolean		started;
 	private volatile boolean		cancelled;
 	private volatile boolean		completed;
 	
 	private List<DiskManagerRequest>	requests = new ArrayList<DiskManagerRequest>();
 	
-	private AESemaphore sem = new AESemaphore( "MPMDD" );
+	private AESemaphore running_sem 	= new AESemaphore( "MPMDD:run" );
+	private AESemaphore complete_sem 	= new AESemaphore( "MPMDD:comp" );
 
 	protected 
 	MagnetPluginMDDownloader(
@@ -125,10 +126,28 @@ MagnetPluginMDDownloader
 	protected void
 	cancel()
 	{
+		cancelSupport( false );
+	}
+	
+	protected void
+	cancelSupport(
+		boolean	internal )
+	{
+		boolean	wait_for_complete = !internal;
+		
 		try{
 			List<DiskManagerRequest>	to_cancel;
 			
 			synchronized( this ){
+				
+				if ( !started ){
+					
+					Debug.out( "Not started!" );
+					
+					wait_for_complete = false;
+					
+					return;
+				}
 				
 				if ( cancelled || completed ){
 					
@@ -148,7 +167,12 @@ MagnetPluginMDDownloader
 			}
 		}finally{
 		
-			sem.releaseForever();
+			running_sem.releaseForever();
+			
+			if ( wait_for_complete ){
+				
+				complete_sem.reserve();
+			}
 		}
 	}
 	
@@ -409,7 +433,7 @@ MagnetPluginMDDownloader
 																			
 																			error[0]	= event.getFailure();
 																			
-																			sem.releaseForever();
+																			running_sem.releaseForever();
 																			
 																		}else if ( type == DiskManagerEvent.EVENT_TYPE_SUCCESS ){
 																			
@@ -432,7 +456,7 @@ MagnetPluginMDDownloader
 																						
 																						completed	= true;
 																						
-																						sem.releaseForever();
+																						running_sem.releaseForever();
 																					}
 																				}
 																				
@@ -447,7 +471,7 @@ MagnetPluginMDDownloader
 										
 																				request.cancel();
 																					
-																				sem.releaseForever();
+																				running_sem.releaseForever();
 																				
 																			}finally{
 																				
@@ -483,7 +507,7 @@ MagnetPluginMDDownloader
 														
 															error[0] = e;
 															
-															sem.releaseForever();
+															running_sem.releaseForever();
 															
 														}finally{
 															
@@ -529,7 +553,7 @@ MagnetPluginMDDownloader
 								
 								error[0] = new Exception( "Download manually removed" );
 								
-								sem.releaseForever();
+								running_sem.releaseForever();
 							}
 						}
 					}
@@ -545,7 +569,7 @@ MagnetPluginMDDownloader
 				
 				download.setFlag( Download.FLAG_DISABLE_AUTO_FILE_MOVE, true );
 	
-				sem.reserve();
+				running_sem.reserve();
 				
 			}finally{
 				
@@ -592,7 +616,7 @@ MagnetPluginMDDownloader
 				
 				}else{
 					
-					cancel();
+					cancelSupport( true );
 					
 					if ( error[0] != null ){
 						
@@ -606,12 +630,16 @@ MagnetPluginMDDownloader
 			}
 		}catch( Throwable e ){
 			
-			cancel();
+			boolean	was_cancelled = cancelled;
+	
+			cancelSupport( true );
+	
+			if ( !was_cancelled ){
 			
-			listener.failed( e );
+				listener.failed( e );
 			
-			Debug.out( e );
-			
+				Debug.out( e );
+			}
 		}finally{
 			
 			try{
@@ -663,11 +691,15 @@ MagnetPluginMDDownloader
 			}catch( Throwable e ){
 				
 				Debug.out( e );
-			}
+				
+			}finally{
 			
-			synchronized( active_set ){
-
-				active_set.remove( hash_str );
+				synchronized( active_set ){
+	
+					active_set.remove( hash_str );
+				}
+				
+				complete_sem.releaseForever();
 			}
 		}
 	}

@@ -40,7 +40,8 @@ FeatureAvailability
 	private static final long	FT_ENABLE_INTERNAL_FEATURES			= 0x0000000000000100;
 	
 	private static final long	FT_TRIGGER_SPEED_TEST_V1			= 0x0000000000000200;
-	private static final long	FT_DISABLE_GAMES			= 0x0000000000000400;
+	private static final long	FT_DISABLE_GAMES					= 0x0000000000000400;
+	private static final long	FT_DISABLE_MAGNET_MD				= 0x0000000000000800;
 	
 	private static VersionCheckClient vcc = VersionCheckClient.getSingleton();
 	
@@ -112,6 +113,14 @@ FeatureAvailability
 	isMagnetSLEnabled()
 	{
 		final boolean result = ( vcc.getFeatureFlags() & FT_DISABLE_MAGNET_SL ) == 0;
+				
+		return( result );
+	}
+	
+	public static boolean
+	isMagnetMDEnabled()
+	{
+		final boolean result = ( vcc.getFeatureFlags() & FT_DISABLE_MAGNET_MD ) == 0;
 				
 		return( result );
 	}
