@@ -2336,7 +2336,14 @@ implements PEPeerTransport
 		
 		this.ml_dht_enabled = (handshake_reserved_bytes[7] & 0x01 ) == 1; 
 		
-		fast_extension_enabled = BTHandshake.FAST_EXTENSION_ENABLED && (handshake_reserved_bytes[7] & 0x04) != 0;
+			// disable fast if we have per-torrent upload limit as it is non-trivial to enforce for choked fast-start
+			// transfers as peer is in the multi-peer upload group (as choked) and in this mode the limit isn't
+			// enforced (see http://forum.vuze.com/thread.jspa?threadID=105262)
+		
+		fast_extension_enabled = 
+			BTHandshake.FAST_EXTENSION_ENABLED &&
+			manager.getUploadRateLimitBytesPerSecond() == 0 &&
+			(handshake_reserved_bytes[7] & 0x04) != 0;
 				
 		messaging_mode = decideExtensionProtocol(handshake);
 
