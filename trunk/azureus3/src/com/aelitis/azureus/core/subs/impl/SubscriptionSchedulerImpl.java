@@ -454,7 +454,12 @@ SubscriptionSchedulerImpl
 						next_ready_time = now + 30*1000;
 					}
 				}
-						
+					
+				if ( next_ready_time < now ){
+					
+					next_ready_time = now;
+				}
+				
 				log( "Calculate : " + 
 						"old_time=" + new SimpleDateFormat().format(new Date(old_when)) +
 						", new_time=" + new SimpleDateFormat().format(new Date(next_ready_time)));

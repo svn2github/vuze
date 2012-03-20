@@ -377,8 +377,16 @@ SubscriptionHistoryImpl
 					return( Long.MAX_VALUE );
 				}
 				
-				return( last_scan + interval_min*60*1000 );
+				if ( last_scan == 0 ){
+					
+						// never scanned, scan immediately
+					
+					return( SystemTime.getCurrentTime());
+					
+				}else{
 				
+					return( last_scan + interval_min*60*1000 );
+				}
 			}catch( Throwable e ){
 				
 				log( "Failed to decode schedule " + schedule, e );
