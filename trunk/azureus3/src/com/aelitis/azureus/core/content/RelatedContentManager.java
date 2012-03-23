@@ -106,7 +106,7 @@ RelatedContentManager
 {
 	private static final boolean 	TRACE 			= false;
 	
-	private static final boolean	SEARCH_CVS_ONLY		= true;
+	private static final boolean	SEARCH_CVS_ONLY		= Constants.isCurrentVersionLT( "4.7.0.4" );
 	private static final boolean	TRACE_SEARCH		= false;
 	
 	public static final boolean	DISABLE_ALL_UI	= false; // !Constants.isCVSVersion() && COConfigurationManager.getStringParameter("ui", "az3").equals("az3");
@@ -230,9 +230,9 @@ RelatedContentManager
 			}
 		};
 	
-	private static final int					HARVEST_MAX_BLOOMS				= 25;
+	private static final int					HARVEST_MAX_BLOOMS				= 50;
 	private static final int					HARVEST_MAX_FAILS_HISTORY		= 128;
-	private static final int					HARVEST_BLOOM_UPDATE_MILLIS		= 10*60*1000;
+	private static final int					HARVEST_BLOOM_UPDATE_MILLIS		= 15*60*1000;
 	private static final int					HARVEST_BLOOM_DISCARD_MILLIS	= 60*60*1000;
 	
 	private ByteArrayHashMap<ForeignBloom>		harvested_blooms 	= new ByteArrayHashMap<ForeignBloom>();
@@ -2357,7 +2357,14 @@ RelatedContentManager
 								
 							for ( DHT dht: dhts ){
 							
-								int	network = dht.getTransport().getNetwork();
+								DHTTransport transport = dht.getTransport();
+								
+								if ( transport.isIPV6()){
+									
+									continue;
+								}
+								
+								int	network = transport.getNetwork();
 								
 								if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
 									
@@ -2396,7 +2403,14 @@ RelatedContentManager
 								
 								for ( DHT dht: dhts ){
 									
-									int	network = dht.getTransport().getNetwork();
+									DHTTransport transport = dht.getTransport();
+									
+									if ( transport.isIPV6()){
+										
+										continue;
+									}
+									
+									int	network = transport.getNetwork();
 									
 									if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
 										

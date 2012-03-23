@@ -374,6 +374,20 @@ Constants
   	}
   }
   
+	public static boolean
+  	isCurrentVersionLT(
+  		String	version )
+  	{
+  		return( compareVersions( AZUREUS_VERSION, version ) < 0 );
+  	}
+	
+  	public static boolean
+  	isCurrentVersionGE(
+  		String	version )
+  	{
+  		return( compareVersions( AZUREUS_VERSION, version ) >= 0 );
+  	}
+  	
 		/**
 		 * compare two version strings of form n.n.n.n (e.g. 1.2.3.4)
 		 * @param version_1	
@@ -387,6 +401,9 @@ Constants
 		String		version_2 )
 	{	
 		try{
+			version_1 = version_1.replaceAll( "_CVS", "_B100" );
+			version_2 = version_2.replaceAll( "_CVS", "_B100" );
+			
 			if ( version_1.startsWith("." )){
 				version_1 = "0" + version_1;
 			}

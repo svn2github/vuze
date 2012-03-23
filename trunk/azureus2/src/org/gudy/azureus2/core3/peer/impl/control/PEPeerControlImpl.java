@@ -207,7 +207,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private int 	_tcpPendingConnections, _tcpConnectingConnections;
 	private long last_remote_time;
 	private long	_timeStarted;
-	private long	_timeStartedSeeding = -1;
+	private long	_timeStarted_mono;
+	private long	_timeStartedSeeding 		= -1;
+	private long	_timeStartedSeeding_mono 	= -1;
 	private long	_timeFinished;
 	private Average	_averageReceptionSpeed;
 
@@ -450,7 +452,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 		UploadSlotManager.getSingleton().registerHelper( upload_helper );
 
 		lastNeededUndonePieceChange =Long.MIN_VALUE;
-		_timeStarted = SystemTime.getCurrentTime();
+		_timeStarted 		= SystemTime.getCurrentTime();
+		_timeStarted_mono 	= SystemTime.getMonotonousTime();
 
 		is_running = true;
 
@@ -1500,7 +1503,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 				disk_mgr.enqueueCompleteRecheckRequest(req, this);
 			}
 
-			_timeStartedSeeding = SystemTime.getCurrentTime();
+			_timeStartedSeeding 		= SystemTime.getCurrentTime();
+			_timeStartedSeeding_mono 	= SystemTime.getMonotonousTime();
 
 			try{
 				disk_mgr.saveResumeData(false);
@@ -1532,8 +1536,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 				seeding_mode = false;
 
-				_timeStartedSeeding = -1;
-				_timeFinished		= 0;
+				_timeStartedSeeding 		= -1;
+				_timeStartedSeeding_mono 	= -1;
+				_timeFinished				= 0;
 
 				Logger.log(
 						new LogEvent(	disk_mgr.getTorrent(), LOGID,
@@ -2953,12 +2958,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 	}
 
 //	Returns time started in ms
-	public long getTimeStarted() {
-		return _timeStarted;
+	public long getTimeStarted( boolean mono) {
+		return mono?_timeStarted_mono:_timeStarted;
 	}
 
-	public long getTimeStartedSeeding() {
-		return _timeStartedSeeding;
+	public long getTimeStartedSeeding( boolean mono) {
+		return mono?_timeStartedSeeding_mono:_timeStartedSeeding;
 	}
 
 	private byte[] computeMd5Hash(DirectByteBuffer buffer)

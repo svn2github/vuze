@@ -231,10 +231,18 @@ DownloadManagerStatsImpl
 	public long 
 	getTimeStarted() 
 	{
+		return( getTimeStarted( false ));
+	}
+	
+	private long 
+	getTimeStarted(
+		boolean mono ) 
+	{
 		PEPeerManager	pm = download_manager.getPeerManager();
 		
-		if (pm != null){
-			return pm.getTimeStarted();
+		if ( pm != null ){
+			
+			return pm.getTimeStarted( mono );
 		}
 		
 		return -1;
@@ -243,11 +251,18 @@ DownloadManagerStatsImpl
 	public long 
 	getTimeStartedSeeding() 
 	{
+		return( getTimeStartedSeeding( false ));
+	}
+	
+	private long 
+	getTimeStartedSeeding(
+		boolean mono ) 
+	{
 		PEPeerManager	pm = download_manager.getPeerManager();
 		
 		if (pm != null){
 		 
-			return pm.getTimeStartedSeeding();
+			return( pm.getTimeStartedSeeding( mono ));
 		}
 		
 		return -1;
@@ -455,11 +470,11 @@ DownloadManagerStatsImpl
 	public long 
 	getSecondsDownloading() 
 	{
-	  long lTimeStartedDL = getTimeStarted();
+	  long lTimeStartedDL = getTimeStarted( true );
 	  if (lTimeStartedDL >= 0) {
-  	  long lTimeEndedDL = getTimeStartedSeeding();
+  	  long lTimeEndedDL = getTimeStartedSeeding( true );
   	  if (lTimeEndedDL == -1) {
-  	    lTimeEndedDL = SystemTime.getCurrentTime();
+  	    lTimeEndedDL = SystemTime.getMonotonousTime();
   	  }
   	  if (lTimeEndedDL > lTimeStartedDL) {
     	  return saved_SecondsDownloading + ((lTimeEndedDL - lTimeStartedDL) / 1000);
@@ -471,10 +486,10 @@ DownloadManagerStatsImpl
 	public long 
 	getSecondsOnlySeeding() 
 	{
-	  long lTimeStarted = getTimeStartedSeeding();
+	  long lTimeStarted = getTimeStartedSeeding( true );
 	  if (lTimeStarted >= 0) {
 	    return saved_SecondsOnlySeeding + 
-	           ((SystemTime.getCurrentTime() - lTimeStarted) / 1000);
+	           ((SystemTime.getMonotonousTime() - lTimeStarted) / 1000);
 	  }
 	  return saved_SecondsOnlySeeding;
 	}
@@ -545,7 +560,7 @@ DownloadManagerStatsImpl
 					
 					long	now = SystemTime.getCurrentTime();
 					
-					long	elapsed = now - pm.getTimeStarted();
+					long	elapsed = now - pm.getTimeStarted( false );
 					
 					if ( elapsed < 0 ){
 						
@@ -586,7 +601,7 @@ DownloadManagerStatsImpl
 					
 					long	now = SystemTime.getCurrentTime();
 					
-					long	elapsed = now - pm.getTimeStarted();
+					long	elapsed = now - pm.getTimeStarted( false );
 					
 					if ( elapsed < 0 ){
 						

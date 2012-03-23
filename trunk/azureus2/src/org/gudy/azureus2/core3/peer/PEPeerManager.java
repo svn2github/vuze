@@ -118,9 +118,9 @@ PEPeerManager
 	public String getElapsedTime();
 	
 	// Time Started in ms
-	public long getTimeStarted();
+	public long getTimeStarted( boolean mono_time );
 
-	public long getTimeStartedSeeding();
+	public long getTimeStartedSeeding( boolean mono_time );
 	
 	public void
 	addListener(

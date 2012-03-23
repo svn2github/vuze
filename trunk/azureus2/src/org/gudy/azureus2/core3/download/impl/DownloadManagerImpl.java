@@ -2988,7 +2988,7 @@ DownloadManagerImpl
 			
 				// tracker's ok but no remotes - give it some time
 			
-			if ( SystemTime.getCurrentTime() - peerManager.getTimeStarted() < 3*60*1000 ){
+			if ( SystemTime.getCurrentTime() - peerManager.getTimeStarted( false ) < 3*60*1000 ){
 				
 				return ConnectionManager.NAT_UNKNOWN;
 			}

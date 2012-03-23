@@ -1010,7 +1010,7 @@ implements PiecePicker
 		//avoid rarest start until we have finished some pieces to share
 		if(nbPiecesDone < 4 ) {RarestAllowed = 0;}
 		// avoid rarest start during startup (high churn, inaccurate data)
-		if(SystemTime.getCurrentTime()-peerControl.getTimeStarted() < 180*1000) {RarestAllowed = 0;}
+		if(SystemTime.getCurrentTime()-peerControl.getTimeStarted( false ) < 180*1000) {RarestAllowed = 0;}
 		// more churn avoidance
 		if(rarestStartedPieces.size() > RarestAllowed+2) {RarestAllowed = 0;}
 
