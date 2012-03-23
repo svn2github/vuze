@@ -34,6 +34,8 @@ import java.util.Set;
 import java.net.InetSocketAddress;
 import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -64,6 +66,8 @@ import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAnnounceURLList;
+import org.gudy.azureus2.plugins.torrent.TorrentAnnounceURLListSet;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
@@ -79,6 +83,7 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -170,6 +175,74 @@ MagnetPlugin
 					
 					String	cb_data = "magnet:?xt=urn:btih:" + Base32.encode( torrent.getHash()) + "&dn=" + UrlUtils.encode(name);
 
+					List<String>	tracker_urls = new ArrayList<String>();
+					
+					URL announce_url = torrent.getAnnounceURL();
+					
+					if ( !TorrentUtils.isDecentralised( announce_url )){
+						
+						tracker_urls.add( announce_url.toExternalForm());
+					}
+					
+					TorrentAnnounceURLList list = torrent.getAnnounceURLList();
+					
+					TorrentAnnounceURLListSet[] sets = list.getSets();
+					
+					for ( TorrentAnnounceURLListSet set: sets ){
+						
+						URL[] set_urls = set.getURLs();
+						
+						if ( set_urls.length > 0 ){
+							
+							URL set_url = set_urls[0];
+							
+							if ( !TorrentUtils.isDecentralised( set_url )){
+								
+								String str = set_url.toExternalForm();
+								
+								if ( !tracker_urls.contains( str )){
+								
+									tracker_urls.add( str );
+								}
+							}
+						}
+					}
+					
+					for ( String str: tracker_urls ){
+						
+						cb_data += "&tr=" + UrlUtils.encode( str );
+					}
+					
+					List<String>	ws_urls = new ArrayList<String>();
+
+					Object obj = torrent.getAdditionalProperty( "url-list" );
+										
+					if ( obj instanceof byte[] ){
+		                
+						try{
+							ws_urls.add( new URL( new String((byte[])obj, "UTF-8" )).toExternalForm());
+							
+						}catch( Throwable e ){							
+						}
+					}else if ( obj instanceof List ){
+						
+						List<byte[]> l = (List<byte[]>)obj;
+						
+						for ( byte[] b: l ){
+							
+							try{
+								ws_urls.add( new URL( new String((byte[])b, "UTF-8" )).toExternalForm());
+								
+							}catch( Throwable e ){							
+							}
+						}
+					}
+					
+					for ( String str: ws_urls ){
+						
+						cb_data += "&ws=" + UrlUtils.encode( str );
+					}				
+					
 					// removed this as well - nothing wrong with allowing magnet copy
 					// for private torrents - they still can't be tracked if you don't
 					// have permission
@@ -523,7 +596,8 @@ MagnetPlugin
 			
 			String[] bits = args.split( "&" );
 			
-			List<String>	new_web_seeds = new ArrayList<String>();
+			List<String>	new_web_seeds 	= new ArrayList<String>();
+			List<String>	new_trackers 	= new ArrayList<String>();
 
 			for ( String bit: bits ){
 				
@@ -531,10 +605,19 @@ MagnetPlugin
 				
 				if ( x.length == 2 ){
 					
-					if ( x[0].equalsIgnoreCase( "ws" )){
+					String	lhs = x[0].toLowerCase();
+					
+					if ( lhs.equals( "ws" )){
 						
 						try{
 							new_web_seeds.add( new URL( UrlUtils.decode( x[1] )).toExternalForm());
+							
+						}catch( Throwable e ){							
+						}
+					}else if ( lhs.equals( "tr" )){
+						
+						try{
+							new_trackers.add( new URL( UrlUtils.decode( x[1] )).toExternalForm());
 							
 						}catch( Throwable e ){							
 						}
@@ -542,62 +625,113 @@ MagnetPlugin
 				}
 			}
 			
-			if ( new_web_seeds.size() > 0 ){
+			if ( new_web_seeds.size() > 0 || new_trackers.size() > 0 ){
 				
 				try{
 					TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedByteArray( torrent_data );
 	
-					Object obj = torrent.getAdditionalProperty( "url-list" );
+					boolean	update_torrent = false;
 					
-					List<String> existing = new ArrayList<String>();
-					
-					if ( obj instanceof byte[] ){
-		                
-						try{
-							new_web_seeds.remove( new URL( new String((byte[])obj, "UTF-8" )).toExternalForm());
-							
-						}catch( Throwable e ){							
-						}
-					}else if ( obj instanceof List ){
+					if ( new_web_seeds.size() > 0 ){
 						
-						List<byte[]> l = (List<byte[]>)obj;
+						Object obj = torrent.getAdditionalProperty( "url-list" );
 						
-						for ( byte[] b: l ){
-							
+						List<String> existing = new ArrayList<String>();
+						
+						if ( obj instanceof byte[] ){
+			                
 							try{
-								existing.add( new URL( new String((byte[])b, "UTF-8" )).toExternalForm());
+								new_web_seeds.remove( new URL( new String((byte[])obj, "UTF-8" )).toExternalForm());
 								
 							}catch( Throwable e ){							
 							}
+						}else if ( obj instanceof List ){
+							
+							List<byte[]> l = (List<byte[]>)obj;
+							
+							for ( byte[] b: l ){
+								
+								try{
+									existing.add( new URL( new String((byte[])b, "UTF-8" )).toExternalForm());
+									
+								}catch( Throwable e ){							
+								}
+							}
+						}
+						
+						boolean update_ws = false;
+						
+						for ( String e: new_web_seeds ){
+							
+							if ( !existing.contains( e )){
+								
+								existing.add( e );
+								
+								update_ws = true;
+							}
+						}
+						
+						if ( update_ws ){
+						
+							List<byte[]>	l = new ArrayList<byte[]>();
+							
+							for ( String s: existing ){
+								
+								l.add( s.getBytes( "UTF-8" ));
+							}
+							
+							torrent.setAdditionalProperty( "url-list", l );
+							
+							update_torrent = true;
 						}
 					}
 					
-					boolean update = false;
-					
-					for ( String e: new_web_seeds ){
+					if ( new_trackers.size() > 0 ){
+												
+						URL announce_url = torrent.getAnnounceURL();
+													
+						new_trackers.remove( announce_url.toExternalForm());
 						
-						if ( !existing.contains( e )){
+						TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
+						
+						TOTorrentAnnounceURLSet[] sets = group.getAnnounceURLSets();
+						
+						for ( TOTorrentAnnounceURLSet set: sets ){
 							
-							existing.add( e );
+							URL[] set_urls = set.getAnnounceURLs();
 							
-							update = true;
+							for( URL set_url: set_urls ){
+																																		
+								new_trackers.remove( set_url.toExternalForm());
+							}
+						}
+						
+						if ( new_trackers.size() > 0 ){
+							
+							TOTorrentAnnounceURLSet[]	new_sets = new TOTorrentAnnounceURLSet[ sets.length + new_trackers.size()];
+							
+							for ( int i=0;i<sets.length;i++){
+								
+								new_sets[i] = sets[i];
+							}
+							
+							for ( int i=0;i<new_trackers.size();i++){
+								
+								TOTorrentAnnounceURLSet new_set = group.createAnnounceURLSet( new URL[]{ new URL( new_trackers.get(i))});
+								
+								new_sets[i+sets.length] = new_set;
+							}
+							
+							group.setAnnounceURLSets( new_sets );
+							
+							update_torrent = true;
 						}
 					}
 					
-					if ( update ){
-					
-						List<byte[]>	l = new ArrayList<byte[]>();
-						
-						for ( String s: existing ){
-							
-							l.add( s.getBytes( "UTF-8" ));
-						}
-						
-						torrent.setAdditionalProperty( "url-list", l );
+					if ( update_torrent ){
 						
 						torrent_data = BEncoder.encode( torrent.serialiseToMap());
 					}
-					
 				}catch( Throwable e ){
 				}
 			}

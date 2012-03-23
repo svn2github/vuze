@@ -257,7 +257,7 @@ MagnetPluginMDDownloader
 					
 					String 	lhs = x[0].toLowerCase();
 					
-					if ( lhs.equalsIgnoreCase( "tr" )){
+					if ( lhs.equals( "tr" )){
 						
 						trackers.add( UrlUtils.decode( x[1] ));
 						
