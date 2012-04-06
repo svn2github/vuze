@@ -34,6 +34,7 @@ import java.util.*;
 
 // don't use any core stuff in here as we need this access stub to be able to run in isolation
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManagerPingCallback;
@@ -574,26 +575,46 @@ AEWin32AccessImpl
     
     public Map<File, Map> getAllDrives() {
     	
-    	Map<File, Map> mapDrives = new HashMap<File, Map>();
-    	try {
-				List availableDrives = AEWin32AccessInterface.getAvailableDrives();
-				if (availableDrives != null) {
-					for (Object object : availableDrives) {
-						File f = (File) object;
-						Map driveInfo = AEWin32AccessInterface.getDriveInfo(f.getPath().charAt(0));
-						boolean isWritableUSB = AEWin32Manager.getAccessor(false).isUSBDrive(driveInfo);
-						driveInfo.put("isWritableUSB", isWritableUSB);
-						mapDrives.put(f, driveInfo);
+    	// gah, see http://pluscs.vuze.com/tickets/23804?col=1101604&page=1 we sometimes get crashes here
+    	
+    	String	state_key = "awein32.getalldrives.state";
+    	
+    	int state = COConfigurationManager.getIntParameter( state_key, 0 );
+    	
+    	if ( state == 1 ){
+    		
+    		Debug.out( "Not enumerating system drives as it crashed last time we tried" );
+    		
+    		return( new HashMap<File,Map>());
+    	}
+    	
+    	try{
+    		COConfigurationManager.setParameter( state_key, 1 );
+    	
+	    	Map<File, Map> mapDrives = new HashMap<File, Map>();
+	    	try {
+					List availableDrives = AEWin32AccessInterface.getAvailableDrives();
+					if (availableDrives != null) {
+						for (Object object : availableDrives) {
+							File f = (File) object;
+							Map driveInfo = AEWin32AccessInterface.getDriveInfo(f.getPath().charAt(0));
+							boolean isWritableUSB = AEWin32Manager.getAccessor(false).isUSBDrive(driveInfo);
+							driveInfo.put("isWritableUSB", isWritableUSB);
+							mapDrives.put(f, driveInfo);
+						}
 					}
+					
+					return mapDrives;
+	    	} catch (UnsatisfiedLinkError ue) {
+	    		Debug.outNoStack("Old aereg.dll");
+				} catch (Throwable e) {
+					Debug.out(e);
 				}
-				
-				return mapDrives;
-    	} catch (UnsatisfiedLinkError ue) {
-    		Debug.outNoStack("Old aereg.dll");
-			} catch (Throwable e) {
-				Debug.out(e);
-			}
-			return Collections.emptyMap();
+				return Collections.emptyMap();
+    	}finally{
+    		
+    		COConfigurationManager.setParameter( state_key, 2 );
+    	}
     }
     
   public boolean isUSBDrive(Map driveInfo) {
