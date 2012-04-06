@@ -811,7 +811,7 @@ StreamManager
 									
 									if ( tick_count % PLAY_STATS_TICKS == 0 ){
 											
-										long contiguous_done = active_edm.getContiguousAvailableBytes( active_edm.getPrimaryFileIndex(), 0, 0 );
+										long contiguous_done = active_edm.getContiguousAvailableBytes( file_index>=0?file_index:active_edm.getPrimaryFileIndex(), 0, 0 );
 									
 										Map<String,Object> map = new HashMap<String,Object>();
 										
@@ -939,7 +939,7 @@ StreamManager
 			
 			long provider_pos = stats.getCurrentProviderPosition( false );
 			
-			long buffer = edm.getContiguousAvailableBytes( edm.getPrimaryFileIndex(), provider_pos, 0 );
+			long buffer = edm.getContiguousAvailableBytes( file_index>=0?file_index:edm.getPrimaryFileIndex(), provider_pos, 0 );
 			
 			long bps = stats.getStreamBytesPerSecondMin();
 						
