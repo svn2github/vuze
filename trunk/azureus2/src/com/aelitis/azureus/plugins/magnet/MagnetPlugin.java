@@ -64,6 +64,7 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.sharing.ShareException;
+import org.gudy.azureus2.plugins.sharing.ShareResourceDir;
 import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAnnounceURLList;
@@ -164,6 +165,13 @@ MagnetPlugin
 							return;
 						}
 						name = ((ShareResourceFile) ds).getName();
+					}else if (ds instanceof ShareResourceDir) {
+							try {
+								torrent = ((ShareResourceDir) ds).getItem().getTorrent();
+							} catch (ShareException e) {
+								return;
+							}
+							name = ((ShareResourceDir) ds).getName();
 					} else if (ds instanceof Download) {
 						Download download = (Download)((TableRow)_target).getDataSource();
 						torrent = download.getTorrent();
