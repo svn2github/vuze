@@ -184,7 +184,7 @@ implements ShareManagerListener,
 
 			dropTarget.addDropListener(new DropTargetAdapter() {
 				public void drop(DropTargetEvent event) {
-					if (!share(event)) {
+					if (!share(event.data)) {
 						TorrentOpener.openDroppedTorrents(event, true);
 					}
 				}
