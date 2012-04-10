@@ -591,6 +591,8 @@ AEWin32AccessImpl
     	try{
     		COConfigurationManager.setParameter( state_key, 1 );
     	
+    		COConfigurationManager.save();
+    		
 	    	Map<File, Map> mapDrives = new HashMap<File, Map>();
 	    	try {
 					List availableDrives = AEWin32AccessInterface.getAvailableDrives();
