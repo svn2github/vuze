@@ -105,7 +105,13 @@ RSSUtils
 				"yyyy-MM-dd'T'kk:mm:ss'Z'",
 				"yyyy-MM-dd'T'kk:mm:ssz", 
 				"yyyy-MM-dd'T'kk:mm:ssZ", 
-				"yyyy-MM-dd'T'kk:mm:ss" };
+				"yyyy-MM-dd'T'kk:mm:ss",
+				
+				"yyyy-MM-dd'T'kk:mm'Z'",
+				"yyyy-MM-dd'T'kk:mmz", 
+				"yyyy-MM-dd'T'kk:mmZ", 
+				"yyyy-MM-dd'T'kk:mm" };
+
 		
 		for (int i=0;i<formats.length;i++){
 
