@@ -156,9 +156,15 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     is_paused = true;
     destroyed = true;
     
+    	// there's a concurrency issue with the decoder whereby it can be destroyed while will being messed with. Don't
+    	// have the energy to look into it properly atm so just try to ensure that it doesn't bork too badly (parg: 29/04/2012)
+    	// only occasional but does have potential to generate direct buffer mem leak ;(
+    
     int lbuff_read = 0;
     int pbuff_read = 0;
     length_buffer.limit( SS, 4 );
+    
+    DirectByteBuffer plb = payload_buffer;
     
     if( reading_length_mode ) {
       lbuff_read = length_buffer.position( SS );
@@ -166,7 +172,7 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     else { //reading payload
       length_buffer.position( SS, 4 );
       lbuff_read = 4;
-      pbuff_read = payload_buffer == null ? 0 : payload_buffer.position( SS );
+      pbuff_read = plb == null ? 0 : plb.position( SS );
     }
     
     ByteBuffer unused = ByteBuffer.allocate( lbuff_read + pbuff_read );   //TODO convert to direct?
@@ -174,23 +180,32 @@ public class BTMessageDecoder implements MessageStreamDecoder {
     length_buffer.flip( SS );
     unused.put( length_buffer.getBuffer( SS ) );
     
-    if ( payload_buffer != null ) {
-      payload_buffer.flip( SS );
-      unused.put( payload_buffer.getBuffer( SS ) ); // Got a buffer overflow exception here in the past - related to PEX?
+    try{
+	    if ( plb != null ) {
+	    	plb.flip( SS );
+	    	unused.put( plb.getBuffer( SS ) ); // Got a buffer overflow exception here in the past - related to PEX?
+	    }
+    }catch( RuntimeException e ){
+    	Debug.out( "hit known threading issue" );
     }
     
     unused.flip();
 
     length_buffer.returnToPool();
     
-    if( payload_buffer != null ) {
-      payload_buffer.returnToPool();
-      payload_buffer = null;
+    if( plb != null ) {
+    	plb.returnToPool();
+    	payload_buffer = null;
     }
  
-    for( int i=0; i < messages_last_read.size(); i++ ) {
-      Message msg = (Message)messages_last_read.get( i );
-      msg.destroy();
+    try{
+	    for( int i=0; i < messages_last_read.size(); i++ ) {
+	      Message msg = (Message)messages_last_read.get( i );
+	      msg.destroy();
+	    }
+    }catch( RuntimeException e ){
+    	// happens if messages modified by alt thread...
+    	Debug.out( "hit known threading issue" );
     }
     messages_last_read.clear();
     
