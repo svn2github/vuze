@@ -106,8 +106,24 @@ public class LTHandshake implements LTMessage {
 	}
 	
 	public boolean isUploadOnly() {
-		Long ulOnly = (Long)data_dict.get("upload_only");
-		return ulOnly != null && ulOnly.longValue() > 0L;
+			// been seeing a bunch of 
+			// java.lang.ClassCastException: [B cannot be cast to java.lang.Long
+		    // at com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep.LTHandshake.isUploadOnly(LTHandshake.java:108)
+
+		Object ulOnly = data_dict.get("upload_only");
+
+		if ( ulOnly == null ){
+			return( false );
+		}else if ( ulOnly instanceof Number ){
+			Number n_ulOnly = (Number)ulOnly;
+			return n_ulOnly.longValue() > 0L;
+		}else{
+			String debug = ulOnly instanceof byte[]?new String((byte[])ulOnly):String.valueOf( ulOnly );
+			
+			Debug.out( "Invalid entry for 'upload_only' - " + debug + ", map=" + data_dict );
+			
+			return( false );
+		}
 	}
 	
 	public InetAddress getIPv6() {
