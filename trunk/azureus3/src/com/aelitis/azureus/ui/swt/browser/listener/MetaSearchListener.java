@@ -578,6 +578,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 			}catch( Throwable e ){
 				
+				Debug.out( e );
+				
 				Map params = new HashMap();
 				params.put("error",Debug.getNestedExceptionMessage(e));
 
@@ -644,6 +646,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 			}catch( Throwable e ){
 				
+				Debug.out( e );
+				
 				Map params = new HashMap();
 				params.put("error",Debug.getNestedExceptionMessage(e));
 
@@ -702,6 +706,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				
 			}catch( Throwable e ){
 				
+				Debug.out( e );
+				
 				Map params = new HashMap();
 				params.put( "id", new Long( id ));
 				params.put("error",Debug.getNestedExceptionMessage(e));
@@ -745,6 +751,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					sendBrowserMessage( "metasearch", "loadTemplateCompleted", params );
 					
 				}catch( Throwable e ){
+					
+					Debug.out( e );
 					
 					Map params = new HashMap();
 					params.put( "id", new Long( id ));
@@ -885,6 +893,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 									Engine 		engine,
 									Throwable 	e )
 								{
+									Debug.out( e );
+									
 									Map params = new HashMap();
 									params.put( "id", new Long( id ));
 									params.put( "error", Debug.getNestedExceptionMessage( e ));
@@ -971,6 +981,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 									sendBrowserMessage( "metasearch", "exportTemplateCompleted", params );
 
 								}catch( Throwable e ){
+									
+									Debug.out( e );
 									
 									Map params = new HashMap();
 									params.put( "id", new Long( id ));
@@ -1230,6 +1242,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 
 			} catch( Throwable e ){
 				
+				Debug.out( e );
+				
 				result.put( "error", "create failed: " + Debug.getNestedExceptionMessage(e));
 
 				sendBrowserMessage( "metasearch", "createSubscriptionFailed", result );
@@ -1298,6 +1312,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					sendBrowserMessage( "metasearch", "readSubscriptionCompleted", result );
 				}
 			} catch( Throwable e ){
+				
+				Debug.out( e );
 				
 				result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
 
@@ -1368,6 +1384,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 				}
 			} catch( Throwable e ){
 				
+				Debug.out( e );
+				
 				result.put( "error", "update failed: " + Debug.getNestedExceptionMessage(e));
 
 				sendBrowserMessage("metasearch", "updateSubscriptionFailed",result);
@@ -1403,6 +1421,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					sendBrowserMessage( "metasearch", "setSubscriptionAutoDownloadCompleted", result );
 				}
 			} catch( Throwable e ){
+				
+				Debug.out( e );
 				
 				result.put( "error", "update failed: " + Debug.getNestedExceptionMessage(e));
 
@@ -1463,6 +1483,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 											Subscription			subs,
 											SubscriptionException	error )
 										{
+											Debug.out( error );
+											
 											result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(error));
 	
 											sendBrowserMessage( "metasearch", "readSubscriptionResultsFailed", result );
@@ -1480,6 +1502,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					}
 				}
 			}catch( Throwable e ){
+				
+				Debug.out( e );
 				
 				result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
 
@@ -1517,6 +1541,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					sendBrowserMessage( "metasearch", "deleteSubscriptionResultsCompleted", result );
 				}
 			} catch( Throwable e ){
+				
+				Debug.out( e );
 				
 				Map params = new HashMap();
 
@@ -1563,6 +1589,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					sendBrowserMessage( "metasearch", "markSubscriptionResultsCompleted", result );
 				}
 			} catch( Throwable e ){
+				
+				Debug.out( e );
 				
 				result.put( "error", "mark failed: " + Debug.getNestedExceptionMessage(e));
 
@@ -1617,6 +1645,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 									Subscription			subs,
 									SubscriptionException	error )
 								{
+									Debug.out( error );
+									
 									result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(error));
 	
 									sendBrowserMessage( "metasearch", "downloadSubscriptionFailed", result );
@@ -1626,6 +1656,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 					}
 				}
 			} catch( Throwable e ){
+				
+				Debug.out( e );
 				
 				result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(e));
 
@@ -1789,12 +1821,16 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 																	Subscription			subs,
 																	SubscriptionException	error )
 																{
+																	Debug.out( error );
+																	
 																	result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(error));
 	
 																	sendBrowserMessage( "metasearch", "readSubscriptionResultsFailed", result );
 																}
 															});		
 													}catch( Throwable error ){
+														
+														Debug.out( error );
 														
 														result.put( "error", "read failed: " + Debug.getNestedExceptionMessage(error));
 	
@@ -1899,6 +1935,8 @@ public class MetaSearchListener extends AbstractBrowserMessageListener {
 			}
 			
 			public void engineFailed(Engine engine, Throwable e) {
+				
+				Debug.out( e );
 				
 				Map params = getParams( engine );
 				
