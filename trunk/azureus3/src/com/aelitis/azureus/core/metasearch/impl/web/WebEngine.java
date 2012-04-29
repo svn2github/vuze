@@ -275,6 +275,14 @@ WebEngine
 			
 			Map	m = (Map)maps.get(i);
 				
+				// wha? getting some nulls here :( 
+				// from JSON like "column_map\":[null,null,{\"group_nb\":\"3
+			
+			if ( m == null ){
+				
+				continue;
+			}
+			
 				// backwards compact from when there was a mapping entry
 			
 			Map test = (Map)m.get( "mapping" );
