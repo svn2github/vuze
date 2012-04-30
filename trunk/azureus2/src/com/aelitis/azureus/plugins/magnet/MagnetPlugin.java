@@ -84,7 +84,6 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
-import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -103,7 +102,7 @@ MagnetPlugin
 	public static final int	FL_NONE					= 0x00000000;
 	public static final int	FL_DISABLE_MD_LOOKUP	= 0x00000001;
 	
-	private static final String	SECONDARY_LOOKUP 			= "http://127.0.0.1:3080/"; // "http://magnet.vuze.com/";
+	private static final String	SECONDARY_LOOKUP 			= "http://magnet.vuze.com/";
 	private static final int	SECONDARY_LOOKUP_DELAY		= 1*1000; // 20*1000;
 	private static final int	SECONDARY_LOOKUP_MAX_TIME	= 2*60*1000;
 	
