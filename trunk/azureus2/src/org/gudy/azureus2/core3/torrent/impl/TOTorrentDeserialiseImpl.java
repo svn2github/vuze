@@ -273,6 +273,12 @@ TOTorrentDeserialiseImpl
 							if ( announce_url.indexOf( "://" ) == -1 ){
 								
 								announce_url = "http:/" + (announce_url.startsWith("/")?"":"/") + announce_url;
+								
+							}else if ( announce_url.startsWith( "utp:" )){
+								
+								// common typo for udp
+								
+								announce_url = "udp" + announce_url.substring( 3 );
 							}
 							
 							try{
@@ -281,6 +287,8 @@ TOTorrentDeserialiseImpl
 									
 							}catch( MalformedURLException f ){
 									
+								Debug.out( "Invalid announce url: " + announce_url );
+								
 								bad_announce	= true;
 							}
 						}
@@ -352,6 +360,12 @@ TOTorrentDeserialiseImpl
 						            	if ( url_str.indexOf( "://" ) == -1 ){
 												
 						            		url_str = "http:/" + (url_str.startsWith("/")?"":"/") + url_str;
+						            		
+										}else if ( url_str.startsWith( "utp:" )){
+										
+												// common typo
+											
+											url_str = "udp" + url_str.substring( 3 );
 										}
 								         
 										try{
@@ -364,7 +378,7 @@ TOTorrentDeserialiseImpl
 							       
 										}catch( MalformedURLException f ){
 					
-											Debug.printStackTrace( f );
+											Debug.out( "Invalid url: " + url_str, f );
 										} 
 									}
 								}
