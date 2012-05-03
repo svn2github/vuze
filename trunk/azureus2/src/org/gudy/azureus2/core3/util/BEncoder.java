@@ -93,9 +93,9 @@ BEncoder
             object = ((BEncodableObject)object).toBencodeObject();
         }
 
-        if ( object instanceof String || object instanceof Float){
+        if ( object instanceof String || object instanceof Float || object instanceof Double ){
         	
-            String tempString = (object instanceof String) ? (String)object : String.valueOf((Float)object);
+            String tempString = (object instanceof String) ? (String)object : String.valueOf(object);
 
             	// usually this is simpler to encode by hand as chars < 0x80 map directly in UTF-8
             
