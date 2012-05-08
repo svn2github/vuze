@@ -36,6 +36,13 @@ public class SystemTime {
 	// the HPC doesn't jump backward but can jump forward in time
 	private static final boolean		SOD_IT_LETS_USE_HPC = false;//	= Constants.isCVSVersion();
 	
+	private static volatile List		systemTimeConsumers		= new ArrayList();
+	private static volatile List		monotoneTimeConsumers	= new ArrayList();
+	private static volatile List		clock_change_list		= new ArrayList();
+	private static long					hpc_base_time;
+	private static long					hpc_last_time;
+	private static boolean				no_hcp_logged;
+
 	static
 	{
 		try
@@ -63,13 +70,6 @@ public class SystemTime {
 			instance = new RawProvider();
 		}
 	}
-
-	private static volatile List		systemTimeConsumers		= new ArrayList();
-	private static volatile List		monotoneTimeConsumers	= new ArrayList();
-	private static volatile List		clock_change_list		= new ArrayList();
-	private static long					hpc_base_time;
-	private static long					hpc_last_time;
-	private static boolean				no_hcp_logged;
 
 	protected interface SystemTimeProvider {
 		public long getTime();
