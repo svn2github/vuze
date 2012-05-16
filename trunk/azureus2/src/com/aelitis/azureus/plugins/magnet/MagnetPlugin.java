@@ -773,6 +773,8 @@ MagnetPlugin
 		final byte[][]						md_result = { null };
 		final MagnetPluginMDDownloader[]	md_downloader = { null };
 		
+		final byte[][]						fl_result = { null };
+
 		if ( md_enabled ){
 			
 			int	delay_millis = md_lookup_delay.getValue()*1000;
@@ -841,6 +843,65 @@ MagnetPlugin
 								});
 						}
 					});
+		}
+		
+		if ( args != null ){
+			
+			String[] bits = args.split( "&" );
+			
+			List<URL>	fl_args 	= new ArrayList<URL>();
+
+			for ( String bit: bits ){
+				
+				String[] x = bit.split( "=" );
+				
+				if ( x.length == 2 ){
+					
+					String	lhs = x[0].toLowerCase();
+					
+					if ( lhs.equals( "fl" )){
+						
+						try{
+							fl_args.add( new URL( UrlUtils.decode( x[1] )));
+							
+						}catch( Throwable e ){							
+						}
+					}
+				}
+			}
+			
+			if ( fl_args.size() > 0 ){
+				
+				for ( int i=0;i<fl_args.size() && i < 3; i++ ){
+					
+					final URL fl_url = fl_args.get( i );
+					
+					new AEThread2( "Magnet:fldl", true )
+					{
+						public void 
+						run() 
+						{
+							try{
+								TOTorrent torrent = TorrentUtils.download( fl_url );
+								
+								if ( torrent != null ){
+									
+									if ( Arrays.equals( torrent.getHash(), hash )){
+										
+										synchronized( fl_result ){
+											
+											fl_result[0] = BEncoder.encode( torrent.serialiseToMap());
+										}
+									}
+								}
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					}.start();
+				}
+			}
 		}
 		
 		try{
@@ -1086,6 +1147,14 @@ MagnetPlugin
 								return( md_result[0] );
 							}
 						}
+										
+						synchronized( fl_result ){
+							
+							if ( fl_result[0] != null ){
+								
+								return( fl_result[0] );
+							}
+						}
 						
 						long wait_start = SystemTime.getMonotonousTime();
 	
@@ -1291,6 +1360,14 @@ MagnetPlugin
 							}
 						}
 						
+						synchronized( fl_result ){
+							
+							if ( fl_result[0] != null ){
+								
+								return( fl_result[0] );
+							}
+						}
+						
 						if ( got_sem ){
 							
 							break;
@@ -1330,6 +1407,14 @@ MagnetPlugin
 								}
 							}
 							
+							synchronized( fl_result ){
+								
+								if ( fl_result[0] != null ){
+									
+									return( fl_result[0] );
+								}
+							}
+							
 							Thread.sleep( 500 );
 							
 						}catch( ResourceDownloaderException e ){
@@ -1357,6 +1442,14 @@ MagnetPlugin
 							if ( md_result[0] != null ){
 								
 								return( md_result[0] );
+							}
+						}
+						
+						synchronized( fl_result ){
+							
+							if ( fl_result[0] != null ){
+								
+								return( fl_result[0] );
 							}
 						}
 					}

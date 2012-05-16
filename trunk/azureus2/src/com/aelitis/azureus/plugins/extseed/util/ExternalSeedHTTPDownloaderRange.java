@@ -31,7 +31,14 @@ import java.net.InetSocketAddress;
 import java.net.PasswordAuthentication;
 import java.net.Socket;
 import java.net.URL;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.StringTokenizer;
+
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLException;
+import javax.net.ssl.SSLSession;
 
 import org.gudy.azureus2.core3.security.SEPasswordListener;
 import org.gudy.azureus2.core3.security.SESecurityManager;
@@ -121,64 +128,130 @@ ExternalSeedHTTPDownloaderRange
 			HttpURLConnection	connection;
 			int					response;
 			
+			Set<String>	redirect_urls = new HashSet<String>();
+			
+redirect_loop:
 			while( true ){
 				
 				URL	target = redirected_url==null?original_url:redirected_url;
 				
-				connection = (HttpURLConnection)target.openConnection();
-				
-				connection.setRequestProperty( "Connection", "Keep-Alive" );
-				connection.setRequestProperty( "User-Agent", user_agent );
-				
-				for (int i=0;i<prop_names.length;i++){
+				for ( int ssl_loop=0; ssl_loop<2; ssl_loop++ ){
 					
-					connection.setRequestProperty( prop_names[i], prop_values[i] );
-				}
-				
-				int	time_remaining	= listener.getPermittedTime();
-				
-				if ( time_remaining > 0 ){
-					
-					Java15Utils.setConnectTimeout( connection, time_remaining );
-				}
+					try{
+						connection = (HttpURLConnection)target.openConnection();
+						
+						if ( connection instanceof HttpsURLConnection ){
 							
-				connection.connect();
-			
-				time_remaining	= listener.getPermittedTime();
+							HttpsURLConnection ssl_con = (HttpsURLConnection)connection;
+							
+								// allow for certs that contain IP addresses rather than dns names
+		  	
+							ssl_con.setHostnameVerifier(
+								new HostnameVerifier()
+								{
+									public boolean
+									verify(
+										String		host,
+										SSLSession	session )
+									{
+										return( true );
+									}
+								});
+						}
+						
+						connection.setRequestProperty( "Connection", "Keep-Alive" );
+						connection.setRequestProperty( "User-Agent", user_agent );
+						
+						for (int i=0;i<prop_names.length;i++){
+							
+							connection.setRequestProperty( prop_names[i], prop_values[i] );
+						}
+						
+						int	time_remaining	= listener.getPermittedTime();
+						
+						if ( time_remaining > 0 ){
+							
+							Java15Utils.setConnectTimeout( connection, time_remaining );
+						}
 									
-				if ( time_remaining < 0 ){
+						connection.connect();
 					
-					throw( new IOException( "Timeout during connect" ));
-				}
-				
-				Java15Utils.setReadTimeout( connection, time_remaining );
+						time_remaining	= listener.getPermittedTime();
+											
+						if ( time_remaining < 0 ){
+							
+							throw( new IOException( "Timeout during connect" ));
+						}
 						
-				connected	= true;
-				
-				response = connection.getResponseCode();
-
-				if (	response == HttpURLConnection.HTTP_ACCEPTED || 
-						response == HttpURLConnection.HTTP_OK ||
-						response == HttpURLConnection.HTTP_PARTIAL ){
+						Java15Utils.setReadTimeout( connection, time_remaining );
+								
+						connected	= true;
+						
+						response = connection.getResponseCode();
+		
+						if (	response == HttpURLConnection.HTTP_ACCEPTED || 
+								response == HttpURLConnection.HTTP_OK ||
+								response == HttpURLConnection.HTTP_PARTIAL ){
+							
+							if ( redirected_url != null ){
+								
+								consec_redirect_fails = 0;
+							}
+							
+							break redirect_loop;
+							
+						}else if ( 	response == HttpURLConnection.HTTP_MOVED_TEMP ||
+									response == HttpURLConnection.HTTP_MOVED_PERM ){
+							
+								// auto redirect doesn't work from http to https or vice-versa
+							
+							String	move_to = connection.getHeaderField( "location" );
+							
+							if ( move_to != null ){
+								
+								if ( redirect_urls.contains( move_to ) || redirect_urls.size() > 32 ){
+									
+									throw( new ExternalSeedException( "redirect loop" )); 
+								}
+								
+								redirect_urls.add( move_to );
+								
+								redirected_url = new URL( move_to );
+								
+								continue redirect_loop;
+							}
+						}
+						
+						if ( redirected_url == null ){
+							
+							break redirect_loop;
+						}
+						
+							// try again with original URL
+						
+						consec_redirect_fails++;
+						
+						redirected_url = null;
 					
-					if ( redirected_url != null ){
+					}catch( SSLException e ){
 						
-						consec_redirect_fails = 0;
+						if ( ssl_loop == 0 ){
+							
+							if ( SESecurityManager.installServerCertificates( target ) != null ){
+								
+									// certificate has been installed
+								
+								continue;	// retry with new certificate
+							}
+						}
+	
+						throw( e );
 					}
 					
-					break;
-				}
-				
-				if ( redirected_url == null ){
+						// don't need another SSL loop
 					
 					break;
 				}
-				
-					// try again with original URL
-				
-				consec_redirect_fails++;
-				
-				redirected_url = null;
 			}
 			
 			URL final_url = connection.getURL();

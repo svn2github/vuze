@@ -35,9 +35,11 @@ import java.net.*;
 import javax.net.ssl.*;
 import java.net.PasswordAuthentication;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.InflaterInputStream;
 import java.util.zip.ZipException;
@@ -514,12 +516,14 @@ ResourceDownloaderURLImpl
 					
 					boolean	follow_redirect = true;
 					
+					Set<String>	redirect_urls = new HashSet<String>();
+					
 redirect_label:
-					for (int redirect_loop=0;redirect_loop<2&&follow_redirect; redirect_loop++ ){
+					while( follow_redirect ){
 						
 						follow_redirect = false;
 					
-						for (int connect_loop=0;connect_loop<2;connect_loop++){
+						for ( int connect_loop=0;connect_loop<2;connect_loop++ ){
 					
 							File					temp_file	= null;
 	
@@ -618,18 +622,28 @@ redirect_label:
 								if ( 	response == HttpURLConnection.HTTP_MOVED_TEMP ||
 										response == HttpURLConnection.HTTP_MOVED_PERM ){
 									
-										// auto redirect doesn't work from http to https
+										// auto redirect doesn't work from http to https or vice-versa
 									
 									String	move_to = con.getHeaderField( "location" );
 									
-									if ( move_to != null && url.getProtocol().equalsIgnoreCase( "http" )){
+									if ( move_to != null ){
+										
+										if ( redirect_urls.contains( move_to ) || redirect_urls.size() > 32 ){
+											
+											throw( new ResourceDownloaderException( this, "redirect loop" )); 
+										}
+										
+										redirect_urls.add( move_to );
 										
 										try{
 												// don't URL decode the move-to as its already in the right format!
 											
 											URL	move_to_url = new URL( move_to ); // URLDecoder.decode( move_to, "UTF-8" ));
 											
-											if ( move_to_url.getProtocol().equalsIgnoreCase( "https" )){
+											String	original_protocol 	= url.getProtocol().toLowerCase();
+											String	new_protocol		= move_to_url.getProtocol().toLowerCase();
+											
+											if ( !original_protocol.equals( new_protocol )){
 												
 												url = move_to_url;
 												

@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 
 public class 
@@ -2584,6 +2585,27 @@ TorrentUtils
 		}
 	}
 		
+	public static TOTorrent
+	download(
+		URL		url )
+	
+		throws IOException
+	{
+		try{
+			byte[] bytes = FileUtil.readInputStreamAsByteArray( new ResourceDownloaderFactoryImpl().create( url ).download(), BDecoder.MAX_BYTE_ARRAY_SIZE );
+			
+			return( TOTorrentFactory.deserialiseFromBEncodedByteArray( bytes ));
+			
+		}catch( IOException e ){
+			
+			throw((IOException)e);
+			
+		}catch( Throwable e ){
+			
+			throw( new IOException( Debug.getNestedExceptionMessage( e )));
+		}
+	}
+	
 	private static void
 	fireAttributeListener(
 		TOTorrent		torrent,	

@@ -1899,6 +1899,16 @@ public class FileUtil {
 	public static byte[]
 	readInputStreamAsByteArray(
 		InputStream		is )
+	   	
+	   	throws IOException
+	{
+		return( readInputStreamAsByteArray( is, Integer.MAX_VALUE ));
+	}
+	
+	public static byte[]
+	readInputStreamAsByteArray(
+		InputStream		is,
+		int				size_limit )
 	
 		throws IOException
 	{
@@ -1916,6 +1926,11 @@ public class FileUtil {
 			}
 			
 			baos.write( buffer, 0, len );
+			
+			if ( baos.size() > size_limit ){
+				
+				throw( new IOException( "size limit exceeded" ));
+			}
 		}
 		
 		return( baos.toByteArray());
