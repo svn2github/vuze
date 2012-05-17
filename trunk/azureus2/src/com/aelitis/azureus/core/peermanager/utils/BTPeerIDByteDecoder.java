@@ -598,6 +598,9 @@ public class BTPeerIDByteDecoder {
 
 		assertDecode( "\u00B5Torrent Mac 1.5.11", "2D554D3135313130C964BE6F15CA71EF02AF2DD7" );
 		
+		assertDecode( "MediaGet",     "2D4D47314372302D3234705F6436000055673362" );
+		assertDecode( "MediaGet 2.1", "2D4D47323111302D3234705F6436706E55673362" );
+
 		System.out.println("Done.");
 	}
 }
