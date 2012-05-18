@@ -269,11 +269,17 @@ public class BrowserContext
 				}
 				event.required = true;
 				
-				if (browser.getUrl().contains("js.debug=1")) {
-  				Shell shell = ShellFactory.createMainShell(SWT.SHELL_TRIM);
+				if (browser.getUrl().contains("js.debug=1") || browser.getUrl().contains("ftux/index.php")) {
+  				final Shell shell = ShellFactory.createMainShell(SWT.SHELL_TRIM);
   				shell.setLayout(new FillLayout());
+  				shell.setSize(920, 500);
 					Browser subBrowser = new Browser(shell,
 							Utils.getInitialBrowserStyle(SWT.NONE));
+					subBrowser.addCloseWindowListener(new CloseWindowListener() {
+						public void close(WindowEvent event) {
+							shell.dispose();
+						}
+					});
 					shell.open();
 					event.browser = subBrowser;
 				} else {

@@ -62,6 +62,9 @@ public class UrlFilter
 	public UrlFilter() {
 		listUrlWhitelist.add(DEFAULT_RPC_WHITELIST);
 		listUrlWhitelist.add("https?://[^/]*\\.vuze\\.com:?[0-9]*/.*");
+		// for +1 button
+		listUrlWhitelist.add("https?://plusone\\.google\\.com/.*");
+		listUrlWhitelist.add("https?://clients[0-9]\\.google\\.com/.*");
 
 		ContentNetworkManager cmn = ContentNetworkManagerFactory.getSingleton();
 		ContentNetwork[] contentNetworks = cmn.getContentNetworks();
