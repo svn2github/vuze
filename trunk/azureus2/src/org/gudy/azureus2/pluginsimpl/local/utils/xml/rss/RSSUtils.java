@@ -110,7 +110,10 @@ RSSUtils
 				"yyyy-MM-dd'T'kk:mm'Z'",
 				"yyyy-MM-dd'T'kk:mmz", 
 				"yyyy-MM-dd'T'kk:mmZ", 
-				"yyyy-MM-dd'T'kk:mm" };
+				"yyyy-MM-dd'T'kk:mm",
+				
+				"yyyy-MM-dd-hh:mm:ss a",				// 2012-03-13-10:33:55 PM
+		};
 
 		
 		for (int i=0;i<formats.length;i++){
@@ -128,5 +131,12 @@ RSSUtils
 		}
 		
 		return( null );
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		System.out.println( parseRSSDate( "2012-03-13-10:33:55 PM" ));
 	}
 }
