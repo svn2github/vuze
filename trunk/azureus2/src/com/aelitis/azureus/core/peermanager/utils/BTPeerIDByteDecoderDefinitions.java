@@ -357,7 +357,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addSimpleClient("TorrentTopia", "346-");
 		addSimpleClient("XanTorrent", "DansClient");
 		addSimpleClient("MediaGet",     "-MG1");
-		addSimpleClient("MediaGet 2.1", "-MG21");
+		addSimpleClient("MediaGet2 2.1", "-MG21");
 		
 		/**
 		 * This is interesting - it uses Mainline style, except uses two characters instead of one.
