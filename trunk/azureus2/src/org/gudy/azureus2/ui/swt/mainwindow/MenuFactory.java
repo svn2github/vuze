@@ -271,11 +271,18 @@ public class MenuFactory
 	public static MenuItem addOpenTorrentMenuItem(Menu menuParent) {
 		return addMenuItem(menuParent, MENU_ID_OPEN_TORRENT, new Listener() {
 			public void handleEvent(Event e) {
-				TorrentOpener.openTorrentWindow();
+				TorrentOpener.openTorrentWindow( false );
 			}
 		});
 	}
 
+	public static MenuItem addOpenURIMenuItem(Menu menuParent) {
+		return addMenuItem(menuParent, MENU_ID_OPEN_URI, new Listener() {
+			public void handleEvent(Event e) {
+				TorrentOpener.openTorrentWindow( true );
+			}
+		});
+	}
 	public static MenuItem addOpenTorrentForTrackingMenuItem(Menu menuParent) {
 		MenuItem file_new_torrent_for_tracking = addMenuItem(menuParent,
 				MENU_ID_OPEN_TORRENT_FOR_TRACKING, new Listener() {

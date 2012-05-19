@@ -142,6 +142,7 @@ public class MainMenu
 
 		Menu openSubMenu = openMenuItem.getMenu();
 		MenuFactory.addOpenTorrentMenuItem(openSubMenu);
+		MenuFactory.addOpenURIMenuItem(openSubMenu);
 		MenuFactory.addOpenTorrentForTrackingMenuItem(openSubMenu);
 		MenuFactory.addOpenVuzeFileMenuItem(openSubMenu);
 		

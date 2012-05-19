@@ -60,7 +60,7 @@ public class TrackerChangerWindow {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.widthHint = 300;
     url.setLayoutData(gridData);
-    Utils.setTextLinkFromClipboard(shell, url, false);
+    Utils.setTextLinkFromClipboard(shell, url, false, false);
 
     Composite panel = new Composite(shell, SWT.NULL);
     layout = new GridLayout();

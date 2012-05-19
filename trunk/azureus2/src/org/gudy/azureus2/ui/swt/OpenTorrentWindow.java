@@ -256,7 +256,7 @@ public class OpenTorrentWindow
 			}
 
 			if (bPopupOpenURL)
-				openTorrentWindow.browseURL();
+				openTorrentWindow.browseURL( false );
 
 			if (saveSilentlyDir != null) {
 				openTorrentWindow.sDestDir = saveSilentlyDir;
@@ -380,10 +380,18 @@ public class OpenTorrentWindow
 		Messages.setLanguageText(browseURL, "OpenTorrentWindow.addFiles.URL");
 		browseURL.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				browseURL();
+				browseURL( false );
 			}
 		});
 
+		Button browseMagnet = new Button(cButtons, SWT.PUSH);
+		Messages.setLanguageText(browseMagnet, "OpenTorrentWindow.addFiles.magnet");
+		browseMagnet.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				browseURL( true );
+			}
+		});
+		
 		Button browseFolder = new Button(cButtons, SWT.PUSH);
 		Messages.setLanguageText(browseFolder, "OpenTorrentWindow.addFiles.Folder");
 		browseFolder.addListener(SWT.Selection, new Listener() {
@@ -1023,8 +1031,8 @@ public class OpenTorrentWindow
 		}
 	}
 
-	private void browseURL() {
-		new OpenUrlWindow(shellForChildren, null, null,
+	private void browseURL( boolean default_magnet ) {
+		new OpenUrlWindow(shellForChildren, null, default_magnet, null,
 				OpenTorrentWindow.this);
 	}
 
@@ -2034,7 +2042,7 @@ public class OpenTorrentWindow
 					if (COConfigurationManager.getBooleanParameter("Add URL Silently")) {
 						new FileDownloadWindow(shellForChildren, sURL, null, null, this);
 					} else {
-						new OpenUrlWindow(shellForChildren, sURL, null, this);
+						new OpenUrlWindow(shellForChildren, sURL, false, null, this);
 					}
 					numAdded++;
 					continue;

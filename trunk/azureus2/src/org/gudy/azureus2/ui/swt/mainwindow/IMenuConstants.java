@@ -73,6 +73,8 @@ public interface IMenuConstants
 	public static final String MENU_ID_LOG_VIEWS = "MainWindow.menu.view.plugins.logViews";
 
 	public static final String MENU_ID_OPEN_TORRENT = "MainWindow.menu.file.open.torrent";
+	
+	public static final String MENU_ID_OPEN_URI = "MainWindow.menu.file.open.uri";
 
 	public static final String MENU_ID_OPEN_TORRENT_FOR_TRACKING = "MainWindow.menu.file.open.torrentfortracking";
 

@@ -121,6 +121,23 @@ public class ToolBarView
 		ToolBarItemSO item;
 
 		if (!uiClassic) {
+			
+			// ==OPEN
+			item = new ToolBarItemSO(this, "open", "image.toolbar.open", "Button.add");
+			item.setDefaultActivationListener(new UIToolBarActivationListener() {
+				public boolean toolBarItemActivated(ToolBarItem item,
+						long activationType, Object datasource) {
+					if (activationType != ACTIVATIONTYPE_NORMAL) {
+						return false;
+					}
+					TorrentOpener.openTorrentWindow( false );
+					return true;
+				}
+			});
+			item.setAlwaysAvailable(true);
+			item.setGroupID( GROUP_BIG );
+			addToolBarItem(item, "toolbar.area.item", soMain);		
+			
 			// ==download
 			item = new ToolBarItemSO(this, "download", "image.button.download",
 					"v3.MainWindow.button.download");
@@ -186,7 +203,7 @@ public class ToolBarView
 					if (activationType != ACTIVATIONTYPE_NORMAL) {
 						return false;
 					}
-					TorrentOpener.openTorrentWindow();
+					TorrentOpener.openTorrentWindow( false );
 					return true;
 				}
 			});

@@ -66,7 +66,7 @@ OpenUrlWindow
 	 */
 	public OpenUrlWindow(final Shell parent,
 			String linkURL, final String referrer) {
-		this(parent, linkURL, referrer, null);
+		this(parent, linkURL, false, referrer, null);
 	}
 
 	/**
@@ -79,7 +79,7 @@ OpenUrlWindow
 	 * @param listener
 	 */
 	public OpenUrlWindow(final Shell parent,
-			String linkURL, final String referrer,
+			String linkURL, boolean default_magnet, final String referrer, 
 			final TorrentDownloaderCallBackInterface listener) {
 
     final Shell shell = ShellFactory.createShell(parent, SWT.DIALOG_TRIM
@@ -106,7 +106,7 @@ OpenUrlWindow
     gridData.horizontalSpan	= 2;
     url.setLayoutData(gridData);
     if(linkURL == null)
-      Utils.setTextLinkFromClipboard(shell, url, true);
+      Utils.setTextLinkFromClipboard(shell, url, true, default_magnet );
     else
     	url.setText(linkURL);
     url.setSelection(url.getText().length());

@@ -227,8 +227,8 @@ public class Utils
 	 * @author Rene Leonhardt
 	 */
 	public static void setTextLinkFromClipboard(final Shell shell,
-			final Text url, boolean accept_magnets) {
-		String link = getLinkFromClipboard(shell.getDisplay(), accept_magnets);
+			final Text url, boolean accept_magnets, boolean default_magnet ) {
+		String link = getLinkFromClipboard(shell.getDisplay(), accept_magnets, default_magnet );
 		if (link != null)
 			url.setText(link);
 	}
@@ -238,10 +238,10 @@ public class Utils
 	 * <p>The supported protocols currently are http, https, and magnet.</p>
 	 * @param display
 	 * @param accept_magnets 
-	 * @return first valid link from clipboard, else "http://"
+	 * @return first valid link from clipboard, else "http://" or "magnet:"
 	 */
 	public static String getLinkFromClipboard(Display display,
-			boolean accept_magnets) {
+			boolean accept_magnets, boolean default_magnet ) {
 		final Clipboard cb = new Clipboard(display);
 		final TextTransfer transfer = TextTransfer.getInstance();
 
@@ -249,7 +249,7 @@ public class Utils
 
 		String text = UrlUtils.parseTextForURL(data, accept_magnets);
 		if (text == null) {
-			return "http://";
+			return default_magnet?"magnet:":"http://";
 		}
 
 		return text;

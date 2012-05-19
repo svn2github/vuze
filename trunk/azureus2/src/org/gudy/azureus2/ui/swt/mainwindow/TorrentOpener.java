@@ -63,19 +63,19 @@ public class TorrentOpener {
 	 * @param torrentFile Torrent to open (file, url, etc)
 	 */
 	public static void openTorrent(String torrentFile) {
-		openTorrentWindow(null, new String[] { torrentFile }, false);
+		openTorrentWindow(null, new String[] { torrentFile }, false, false );
 	}
 	
 	public static void openTorrents(String[] torrentFiles) {
-		openTorrentWindow(null, torrentFiles, false);
+		openTorrentWindow(null, torrentFiles, false, false );
 	}
   
 	/**
 	 * Open the torrent window
 	 *
 	 */
-  public static void openTorrentWindow() {
-  	openTorrentWindow(null, null, false);
+  public static void openTorrentWindow( boolean for_uri ) {
+  	openTorrentWindow(null, null, false, for_uri );
   }
 
   protected static void 
@@ -158,7 +158,7 @@ public class TorrentOpener {
 				if (path == null)
 					return;
 
-				openTorrentWindow(path, fDialog.getFileNames(), false);
+				openTorrentWindow(path, fDialog.getFileNames(), false, false );
 			}
 		});
 	}
@@ -182,7 +182,7 @@ public class TorrentOpener {
 				String sURL = UrlUtils.parseTextForURL(sourceNames[i], true);
 
 				if (sURL != null && !source.exists()) {
-					openTorrentWindow(null, new String[] { sURL }, bOverrideToStopped);
+					openTorrentWindow(null, new String[] { sURL }, bOverrideToStopped, false );
 				} else if (source.isFile()) {
 					
 						// go async as vuze file handling can require UI access which then blocks
@@ -204,7 +204,7 @@ public class TorrentOpener {
 							
 							
 							try {
-								openTorrentWindow(null, new String[] { filename }, bOverrideToStopped);
+								openTorrentWindow(null, new String[] { filename }, bOverrideToStopped, false );
 				
 							} catch (Exception e) {
 								Logger.log(new LogAlert(LogAlert.REPEATABLE,
@@ -217,13 +217,13 @@ public class TorrentOpener {
 					
 					String dir_name = source.getAbsolutePath();
 
-					openTorrentWindow(dir_name, null, bOverrideToStopped);
+					openTorrentWindow(dir_name, null, bOverrideToStopped, false );
 				}
 			}
 		} else if (event.data instanceof URLTransfer.URLType) {
 			openTorrentWindow(null,
 					new String[] { ((URLTransfer.URLType) event.data).linkURL },
-					bOverrideToStopped);
+					bOverrideToStopped, false );
 		}
 	}
   
@@ -281,20 +281,24 @@ public class TorrentOpener {
     return path;
   }
 
-  private static void openTorrentWindow(final String path,
-			final String[] torrents, final boolean bOverrideStartModeToStopped)
+  private static void 
+  openTorrentWindow(
+	final String path,
+	final String[] torrents, 
+	final boolean bOverrideStartModeToStopped,
+	final boolean for_uri )
 	{
   	// loadVuzeFile takes a long time if it's fetching a URL, so prevent it
   	// from blocking the calling thread (like the SWT Thread)
   	new AEThread2("openTorrentWindow", true) {
 			public void run() {
-				_openTorrentWindow(path, torrents, bOverrideStartModeToStopped);
+				_openTorrentWindow(path, torrents, bOverrideStartModeToStopped, for_uri );
 			}
 		}.start();
 	}
 
   private static void _openTorrentWindow(final String path,
-			String[] torrents, final boolean bOverrideStartModeToStopped)
+			String[] torrents, final boolean bOverrideStartModeToStopped, final boolean for_uri )
 	{
 	  		// this is a good place to trim out any .vuze files
 	  
@@ -366,12 +370,12 @@ public class TorrentOpener {
 											AzureusCoreComponent component) {
 										if (component instanceof UIFunctionsSWT) {
 											openTorrentWindow(path, f_torrents,
-													bOverrideStartModeToStopped);
+													bOverrideStartModeToStopped, for_uri );
 										}
 									}
 								});
 							} else {
-								openTorrentWindow(path, f_torrents, bOverrideStartModeToStopped);
+								openTorrentWindow(path, f_torrents, bOverrideStartModeToStopped, for_uri );
 							}
 						}
 					});
@@ -384,7 +388,7 @@ public class TorrentOpener {
 
 				OpenTorrentWindow.invoke(shell,
 						AzureusCoreFactory.getSingleton().getGlobalManager(), path,
-						f_torrents, bOverrideStartModeToStopped, false, false);
+						f_torrents, bOverrideStartModeToStopped, false, for_uri );
 			}
 		});
 	}
