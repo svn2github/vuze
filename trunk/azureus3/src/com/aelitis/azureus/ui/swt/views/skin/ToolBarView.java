@@ -123,7 +123,7 @@ public class ToolBarView
 		if (!uiClassic) {
 			
 			// ==OPEN
-			item = new ToolBarItemSO(this, "open", "image.toolbar.open", "Button.add");
+			item = new ToolBarItemSO(this, "open", "image.button.open", "Button.open");
 			item.setDefaultActivationListener(new UIToolBarActivationListener() {
 				public boolean toolBarItemActivated(ToolBarItem item,
 						long activationType, Object datasource) {
