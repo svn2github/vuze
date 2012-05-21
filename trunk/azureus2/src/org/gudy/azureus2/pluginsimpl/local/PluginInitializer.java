@@ -1271,6 +1271,7 @@ PluginInitializer
 								  plugin_version[0] );
 
 					  boolean bEnabled = (loading_for_startup) ? plugin_interface.getPluginState().isLoadedAtStartup() : initialise;
+					  
 					  plugin_interface.getPluginState().setDisabled(!bEnabled);
 
 					  try{
@@ -1289,20 +1290,36 @@ PluginInitializer
 					  loaded_pis.add( plugin_interface );
 
 					  if ( load_failure != null ){
+						  
 						  plugin_interface.setAsFailed();
 
-						  // don't complain about our internal one
+						  	// don't complain about our internal one
+						  
 						  if ( !pid.equals(UpdaterUpdateChecker.getPluginID())){
 
-							  String msg = "Error loading plugin '" + pluginName + "' / '" + plugin_class_string + "'";
+							  String msg = 
+								  MessageText.getString("plugin.init.load.failed", 
+									new String[]{
+										  plugin_name==null?pluginName:plugin_name,
+										  directory.getAbsolutePath()
+							  		});
+							  							  
 							  LogAlert la;
-							  if (load_failure instanceof UnsupportedClassVersionError) {
-								  la = new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg + ". " + MessageText.getString("plugin.install.class_version_error"));
-							  }
-							  else {
+							  
+							  if ( load_failure instanceof UnsupportedClassVersionError ){
+								  
+								  la = new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg + ".\n\n" + MessageText.getString("plugin.install.class_version_error"));
+								
+							  }else if ( load_failure instanceof ClassNotFoundException ){
+									  
+								  la = new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR, msg + ".\n\n" + MessageText.getString("plugin.init.load.failed.classmissing") + "\n\n", load_failure );
+
+							  }else{
+								  
 								  la = new LogAlert(LogAlert.UNREPEATABLE, msg, load_failure);
 							  }
-							  Logger.log(la);
+							  
+							  Logger.log( la );
 
 							  System.out.println( msg + ": " + load_failure);
 						  }

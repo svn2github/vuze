@@ -893,6 +893,7 @@ PluginInterfaceImpl
 			String	plugin_dir = getPluginDirectoryName();
 			
 			String	type;
+			boolean	built_in = false;
 			
 			if ( plugin_dir.startsWith( shared_dir )){
 				
@@ -904,6 +905,8 @@ PluginInterfaceImpl
 
 			}else{
 				
+				built_in = true;
+				
 				type = "built-in";
 			}
 			
@@ -911,6 +914,30 @@ PluginInterfaceImpl
 			
 			writer.println( "type:" + type + ",enabled:" + !ps.isDisabled() + ",load_at_start=" + ps.isLoadedAtStartup() + ",operational:" + ps.isOperational());
 			
+			if ( !ps.isOperational()){
+				
+				if ( !built_in ){
+					
+					File dir = new File( plugin_dir );
+					
+					if ( dir.exists()){
+						
+						String[] files = dir.list();
+						
+						if ( files != null ){
+							
+							String	files_str = "";
+							
+							for ( String f: files ){
+								
+								files_str += (files_str.length()==0?"":", ") + f;
+							}
+							
+							writer.println( "    files: " + files_str );
+						}
+					}
+				}
+			}
 		}finally{
 			
 			writer.exdent();
