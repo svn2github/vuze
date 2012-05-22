@@ -683,6 +683,8 @@ DiskManagerImpl
 
         String[]    storage_types = getStorageTypes();
 
+  		DownloadManagerState state = download_manager.getDownloadState();
+
         for (int i = 0; i < pm_files.length; i++) {
 
             DMPieceMapperFile pm_info = pm_files[i];
@@ -706,15 +708,10 @@ DiskManagerImpl
                 if ( file_info == null ){
 
                     int storage_type = DiskManagerUtil.convertDMStorageTypeFromString( storage_types[i]);
-
-                    file_info = new DiskManagerFileInfoImpl(
-                                        this,
-                                        new File( root_dir + relative_file.toString()),
-                                        i,
-                                        pm_info.getTorrentFile(),
-                                        storage_type );
-
-                    close_it    = true;
+            
+                	file_info = createFileInfo( state, pm_info, i, root_dir, relative_file, storage_type );
+                	
+                	close_it = true;
                 }
 
                 try{
@@ -799,6 +796,121 @@ DiskManagerImpl
         return true;
     }
 
+    private DiskManagerFileInfoImpl
+    createFileInfo(
+    	DownloadManagerState		state,
+    	DMPieceMapperFile			pm_info,
+    	int							file_index,
+    	String						root_dir,
+    	File						relative_file,
+    	int							storage_type )
+    
+    	throws Exception
+    {
+       	File target_file = new File( root_dir + relative_file.toString());
+    	
+        try{
+        
+            return( new DiskManagerFileInfoImpl(
+                                this,
+                                target_file,
+                                file_index,
+                                pm_info.getTorrentFile(),
+                                storage_type ));
+            
+        }catch( CacheFileManagerException e ){
+        	
+        		// unfortunately there are files out there with ascii < 32 chars in that are invalid on windows
+        		// but ok on other file systems
+        		// it would be possible to fix this in FileUtil.convertOSSPecificChars but my worry with this is that it
+        		// would potentially break existing downloads, so I whimped out and decided to take the approach of
+        		// detecting the issue and using file-links to work around it
+        	
+        	if ( Debug.getNestedExceptionMessage(e).contains( "volume label syntax is incorrect" )){
+        		
+        		File actual_file = state.getFileLink( target_file );
+        		
+        		if ( actual_file == null ){
+        			
+        			actual_file = target_file;
+        		}
+        		
+        		File temp = actual_file;
+        		
+        		Stack<String>	comps = new Stack<String>();
+        		
+        		boolean	fixed = false;
+        		
+        		while( temp != null ){
+        			
+        			if ( temp.exists()){
+        				
+        				break;
+        			}
+        			
+        			String old_name 	= temp.getName();
+        			String new_name		= "";
+        			
+        			char[] chars = old_name.toCharArray();
+        			
+        			for ( char c: chars ){
+        				
+        				int	i_c = (int)c;
+        				
+        				if ( i_c >= 0 && i_c < 32 ){
+        					
+        					new_name += "_";
+        					
+        				}else{
+        					
+        					new_name += c;
+        				}
+        			}
+        			
+        			comps.push( new_name );
+        			
+        			if ( !old_name.equals( new_name )){
+        				
+        				fixed = true;
+        			}
+        			
+        			temp = temp.getParentFile();
+        		}
+        		
+        		if ( fixed ){
+        			
+        			while( !comps.isEmpty()){
+        				
+        				String comp = comps.pop();
+        				
+        				if ( comps.isEmpty()){
+        				
+        					String prefix = Base32.encode( new SHA1Simple().calculateHash( relative_file.toString().getBytes( "UTF-8" ))).substring( 0, 4 );
+        					
+        					comp = prefix + "_" + comp;
+        				}
+        				
+        				temp = new File( temp, comp );
+        			}
+        			
+           			Debug.outNoStack( "Fixing unsupported file path: " + actual_file.getAbsolutePath() + " -> " + temp.getAbsolutePath());
+           			
+           			state.setFileLink( target_file, temp );
+           			
+                    return(
+                    	new DiskManagerFileInfoImpl(
+                            this,
+                            target_file,
+                            file_index,
+                            pm_info.getTorrentFile(),
+                            storage_type ));
+        		}        		
+        	}
+        	       		
+        	throw( e );
+        }
+    }
+
     private int
     allocateFiles()
     {
@@ -808,6 +920,8 @@ DiskManagerImpl
 
         DiskManagerFileInfoImpl[] allocated_files = new DiskManagerFileInfoImpl[pm_files.length];
 
+        DownloadManagerState	state = download_manager.getDownloadState();
+        
         try{
             allocation_scheduler.register( this );
 
@@ -828,7 +942,7 @@ DiskManagerImpl
 
             String[]    storage_types = getStorageTypes();
 
-			String incomplete_suffix = download_manager.getDownloadState().getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
+			String incomplete_suffix = state.getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
 
             for ( int i=0;i<pm_files.length;i++ ){
 
@@ -852,18 +966,13 @@ DiskManagerImpl
                 try{
                     int storage_type = DiskManagerUtil.convertDMStorageTypeFromString( storage_types[i]);
 
-                    fileInfo = new DiskManagerFileInfoImpl(
-                                    this,
-                                    new File( root_dir + relative_data_file.toString()),
-                                    i,
-                                    pm_info.getTorrentFile(),
-                                    storage_type );
+                    fileInfo = createFileInfo( state, pm_info, i, root_dir, relative_data_file, storage_type );
 
                     allocated_files[i] = fileInfo;
 
                     pm_info.setFileInfo( fileInfo );
 
-                }catch ( CacheFileManagerException e ){
+                }catch ( Exception e ){
 
                     this.errorMessage = Debug.getNestedExceptionMessage(e) + " (allocateFiles:" + relative_data_file.toString() + ")";
 
