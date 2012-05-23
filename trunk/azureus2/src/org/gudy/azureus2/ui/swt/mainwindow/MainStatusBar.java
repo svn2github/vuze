@@ -1591,6 +1591,8 @@ public class MainStatusBar
 
 		public void setImage(Image image) {
 			this.image = image;
+			
+			redraw();
 		}
 		
 		public Image getImage() {
@@ -1599,6 +1601,8 @@ public class MainStatusBar
 		
 		public void setBackgroundImage(Image image) {
 			bgImage = image;
+			
+			redraw();
 		}
 		
 		public Image getBackgroundImage() {
@@ -1802,7 +1806,7 @@ public class MainStatusBar
 		} else {
 			imageID = "progress_viewer";
 		}
-
+		
 		if (!imageID.equals(lastProgressImageID)) {
 			final String fImageID = imageID;
 			Utils.execSWTThread(new AERunnable() {

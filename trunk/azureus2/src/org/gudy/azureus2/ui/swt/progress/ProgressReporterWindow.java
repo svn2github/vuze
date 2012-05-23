@@ -345,8 +345,13 @@ public class ProgressReporterWindow
 			if (controls[i] instanceof ProgressReporterPanel) {
 				IProgressReporter pReporter = ((ProgressReporterPanel) controls[i]).getProgressReporter();
 				if (false == pReporter.getProgressReport().isActive()) {
-					ProgressReportingManager.getInstance().remove(pReporter);
-					controls[i].dispose();
+					
+					if ( !pReporter.getProgressReport().isInErrorState()){
+						
+						ProgressReportingManager.getInstance().remove(pReporter);
+						
+						controls[i].dispose();
+					}
 				}
 			}
 		}
@@ -590,7 +595,7 @@ public class ProgressReporterWindow
 
 		public int report(IProgressReport progressReport) {
 
-			if (true == isAutoRemove && false == progressReport.isActive()) {
+			if (true == isAutoRemove && false == progressReport.isActive() && !progressReport.isInErrorState()) {
 				if (null != panel && false == panel.isDisposed()) {
 					ProgressReportingManager.getInstance().remove(
 							panel.getProgressReporter());
