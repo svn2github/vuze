@@ -233,8 +233,6 @@ public class OpenTorrentWindow
 				bMustOpen = saveSilentlyDir == null;
 			}
 
-			bMustOpen = true;
-			saveSilentlyDir = null;
 			stOpenTorrentWindow = new OpenTorrentWindow(parent, gm, bMustOpen);
 		} else {
 			if (stOpenTorrentWindow.shell != null)
