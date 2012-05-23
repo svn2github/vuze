@@ -53,7 +53,8 @@ public class FileDownloadWindow
 	TorrentDownloader downloader;
 
 	TorrentDownloaderCallBackInterface listener;
-
+	boolean	force_dialog;
+	
 	IProgressReporter pReporter;
 
 	Shell parent;
@@ -98,11 +99,34 @@ public class FileDownloadWindow
 	public FileDownloadWindow(final Shell parent, final String url,
 			final String referrer, final Map request_properties,
 			final TorrentDownloaderCallBackInterface listener) {
-
+		
 		this.parent = parent;
 		this.original_url = url;
 		this.referrer = referrer;
 		this.listener = listener;
+		this.request_properties = request_properties;
+
+		try {
+			decoded_url = URLDecoder.decode(original_url, "UTF8");
+		} catch (Throwable e) {
+			decoded_url = original_url;
+
+		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				init();
+			}
+		});
+	}
+	
+	public FileDownloadWindow(final Shell parent, final String url,
+			final String referrer, final Map request_properties,
+			final boolean force_dialog) {
+
+		this.parent = parent;
+		this.original_url = url;
+		this.referrer = referrer;
+		this.force_dialog = force_dialog;
 		this.request_properties = request_properties;
 
 		try {
@@ -241,7 +265,8 @@ public class FileDownloadWindow
 				 * was just downloaded
 				 */
 				if (listener == null) {
-					TorrentOpener.openTorrent(downloader.getFile().getAbsolutePath());
+					
+					TorrentOpener.openTorrent(downloader.getFile().getAbsolutePath(), force_dialog );
 				}
 				return;
 			default:

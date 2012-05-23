@@ -220,18 +220,21 @@ public class OpenTorrentWindow
 	 */
 	public synchronized static final void invoke(Shell parent, GlobalManager gm,
 			String sPathOfFilesToOpen, String[] sFilesToOpen,
-			boolean bDefaultStopped, boolean bForSeeding, boolean bPopupOpenURL) {
+			boolean bDefaultStopped, boolean bForSeeding, 
+			boolean bPopupOpenURL, boolean forceOpen ){
 
 		String saveSilentlyDir = null;
 
 		if (stOpenTorrentWindow == null) {
 			boolean bMustOpen = (sPathOfFilesToOpen == null && sFilesToOpen == null)
-					|| bForSeeding;
+					|| bForSeeding || forceOpen;
 			if (!bMustOpen) {
 				saveSilentlyDir = getSaveSilentlyDir();
 				bMustOpen = saveSilentlyDir == null;
 			}
 
+			bMustOpen = true;
+			saveSilentlyDir = null;
 			stOpenTorrentWindow = new OpenTorrentWindow(parent, gm, bMustOpen);
 		} else {
 			if (stOpenTorrentWindow.shell != null)
@@ -278,12 +281,12 @@ public class OpenTorrentWindow
 	 */
 	public synchronized static final void invoke(final Shell parent,
 			GlobalManager gm) {
-		invoke(parent, gm, null, null, false, false, false);
+		invoke(parent, gm, null, null, false, false, false, false);
 	}
 
 	public synchronized static final void invokeURLPopup(final Shell parent,
 			GlobalManager gm) {
-		invoke(parent, gm, null, null, false, false, true);
+		invoke(parent, gm, null, null, false, false, true, false );
 	}
 
 	/**

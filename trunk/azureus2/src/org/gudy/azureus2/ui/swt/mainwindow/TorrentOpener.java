@@ -66,6 +66,9 @@ public class TorrentOpener {
 		openTorrentWindow(null, new String[] { torrentFile }, false, false );
 	}
 	
+	public static void openTorrent(String torrentFile, boolean force_open ) {
+		openTorrentWindow(null, new String[] { torrentFile }, false, false, force_open );
+	}
 	public static void openTorrents(String[] torrentFiles) {
 		openTorrentWindow(null, torrentFiles, false, false );
 	}
@@ -287,18 +290,29 @@ public class TorrentOpener {
 	final String[] torrents, 
 	final boolean bOverrideStartModeToStopped,
 	final boolean for_uri )
+  {
+	  openTorrentWindow( path, torrents, bOverrideStartModeToStopped, for_uri, false );
+  }
+  
+  private static void 
+  openTorrentWindow(
+	final String path,
+	final String[] torrents, 
+	final boolean bOverrideStartModeToStopped,
+	final boolean for_uri,
+	final boolean force_open )
 	{
   	// loadVuzeFile takes a long time if it's fetching a URL, so prevent it
   	// from blocking the calling thread (like the SWT Thread)
   	new AEThread2("openTorrentWindow", true) {
 			public void run() {
-				_openTorrentWindow(path, torrents, bOverrideStartModeToStopped, for_uri );
+				_openTorrentWindow(path, torrents, bOverrideStartModeToStopped, for_uri, force_open );
 			}
 		}.start();
 	}
 
   private static void _openTorrentWindow(final String path,
-			String[] torrents, final boolean bOverrideStartModeToStopped, final boolean for_uri )
+			String[] torrents, final boolean bOverrideStartModeToStopped, final boolean for_uri, final boolean force_open )
 	{
 	  		// this is a good place to trim out any .vuze files
 	  
@@ -388,7 +402,7 @@ public class TorrentOpener {
 
 				OpenTorrentWindow.invoke(shell,
 						AzureusCoreFactory.getSingleton().getGlobalManager(), path,
-						f_torrents, bOverrideStartModeToStopped, false, for_uri );
+						f_torrents, bOverrideStartModeToStopped, false, for_uri, force_open );
 			}
 		});
 	}

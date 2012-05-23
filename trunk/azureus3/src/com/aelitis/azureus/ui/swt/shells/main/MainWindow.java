@@ -1795,6 +1795,10 @@ public class MainWindow
 
 		final String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
 
+		String tooltip = MessageText.getString( "v3.MainWindow.search.tooltip" );
+		
+		text.setToolTipText( tooltip );
+		
 		SWTSkinProperties properties = skinObject.getProperties();
 		colorSearchTextBG = properties.getColor("color.search.text.bg");
 		colorSearchTextFG = properties.getColor("color.search.text.fg");
@@ -1913,6 +1917,7 @@ public class MainWindow
 		so = skin.getSkinObject("search-dropdown");
 		if (so != null) {
 			SWTSkinButtonUtility btnSearchDD = new SWTSkinButtonUtility(so);
+			btnSearchDD.setTooltipID( "v3.MainWindow.search.tooltip" );
 			btnSearchDD.addSelectionListener(new ButtonListenerAdapter() {
 				public void pressed(SWTSkinButtonUtility buttonUtility,
 						SWTSkinObject skinObject, int stateMask) {
@@ -1979,6 +1984,11 @@ public class MainWindow
 			return;
 		}
 
+		if ( checkForSpecialSearchTerm( sSearchText )){
+			
+			return;
+		}
+		
 		SearchResultsTabArea.SearchQuery sq = new SearchResultsTabArea.SearchQuery(
 				sSearchText, toSubscribe);
 
@@ -2013,6 +2023,26 @@ public class MainWindow
 			});
 		}
 		mdi.showEntryByID(id);
+	}
+	
+	private static boolean
+	checkForSpecialSearchTerm(
+		String		str )
+	{
+		str = str.trim();
+		
+		String hit = UrlUtils.parseTextForURL( str, true, true );
+		
+		if ( hit == null ){
+			
+			return( false );
+		}
+		
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		
+		new FileDownloadWindow( uiFunctions.getMainShell(), str, null, null, true );
+			
+		return( true );
 	}
 
 	/**
