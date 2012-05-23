@@ -178,11 +178,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	 * key = DataSource
 	 * value = TableRowSWT
 	 */
-	private Map<DATASOURCETYPE, TableRowCore> mapDataSourceToRow;
+	private IdentityHashMap<DATASOURCETYPE, TableRowCore> mapDataSourceToRow;
 
 	private AEMonitor listUnfilteredDatasources_mon = new AEMonitor("TableView:uds");
 
-	private Set<DATASOURCETYPE> listUnfilteredDataSources;
+	private IdentityHashMap<DATASOURCETYPE,String> listUnfilteredDataSources;
 
 	private AEMonitor dataSourceToRow_mon = new AEMonitor("TableView:OTSI");
 
@@ -222,11 +222,16 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	private ColumnMoveListener columnMoveListener = new ColumnMoveListener();
 
+	// **** NOTE THE USE OF IdentityHashMap - we have to do this to behave reliably in the face of
+	// some DATASOURCETYPEs (DownloadManagerImpl to mention no names) redefining equals/hashCode
+	// if you quickly remove+add a download with the same hash this can cause borkage here unless
+	// we use identity maps
+	
 	/** Queue added datasources and add them on refresh */
-	private LightHashSet dataSourcesToAdd = new LightHashSet(4);
+	private IdentityHashMap<DATASOURCETYPE, String> dataSourcesToAdd = new IdentityHashMap<DATASOURCETYPE, String>(4);
 
 	/** Queue removed datasources and add them on refresh */
-	private LightHashSet dataSourcesToRemove = new LightHashSet(4);
+	private IdentityHashMap<DATASOURCETYPE, String> dataSourcesToRemove = new IdentityHashMap<DATASOURCETYPE, String>(4);
 
 	private boolean bReallyAddingDataSources = false;
 
@@ -364,9 +369,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		sDefaultSortOn = _sDefaultSortOn;
 		iTableStyle = _iTableStyle | SWT.V_SCROLL | SWT.DOUBLE_BUFFERED;
 
-		mapDataSourceToRow = new LightHashMap<DATASOURCETYPE, TableRowCore>();
+		mapDataSourceToRow = new IdentityHashMap<DATASOURCETYPE, TableRowCore>();
 		sortedRows = new ArrayList<TableRowSWT>();
-		listUnfilteredDataSources = new HashSet<DATASOURCETYPE>();
+		listUnfilteredDataSources = new IdentityHashMap<DATASOURCETYPE,String>();
 	}
 
 	/**
@@ -1703,7 +1708,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 	
 	public boolean isUnfilteredDataSourceAdded(Object ds) {
-		return listUnfilteredDataSources.contains(ds); 
+		return listUnfilteredDataSources.containsKey(ds); 
 	}
 
 	protected void swt_initializeTableColumns(final TableOrTreeSWT table) {
@@ -2391,16 +2396,26 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		try {
 			dataSourceToRow_mon.enter();
 			if (dataSourcesToAdd.size() > 0) {
-				if (dataSourcesToAdd.removeAll(dataSourcesToRemove) && DEBUGADDREMOVE) {
+				boolean removed_something = false;
+				for ( DATASOURCETYPE ds: dataSourcesToRemove.keySet()){
+					
+					if ( dataSourcesToAdd.remove( ds ) != null ){
+						
+						removed_something = true;
+					}
+				}
+				
+				if ( removed_something&& DEBUGADDREMOVE){
 					debug("Saved time by not adding a row that was removed");
 				}
-				dataSourcesAdd = dataSourcesToAdd.toArray();
+				
+				dataSourcesAdd = dataSourcesToAdd.keySet().toArray();
 
 				dataSourcesToAdd.clear();
 			}
 
 			if (dataSourcesToRemove.size() > 0) {
-				dataSourcesRemove = dataSourcesToRemove.toArray();
+				dataSourcesRemove = dataSourcesToRemove.keySet().toArray();
 				if (DEBUGADDREMOVE && dataSourcesRemove.length > 1) {
 					debug("Streamlining removing " + dataSourcesRemove.length + " rows");
 				}
@@ -2526,9 +2541,12 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return;
 		}
 
+		if (DEBUGADDREMOVE) {
+			debug("AddDS: " + dataSource );
+		}
 		listUnfilteredDatasources_mon.enter();
 		try {
-			listUnfilteredDataSources.add(dataSource);
+			listUnfilteredDataSources.put(dataSource,"");
 		} finally {
 			listUnfilteredDatasources_mon.exit();
 		}
@@ -2552,20 +2570,20 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		try {
 			dataSourceToRow_mon.enter();
 
-				if ( dataSourcesToRemove.remove( dataSource )){
+				if ( dataSourcesToRemove.remove( dataSource ) != null ){
 					// we're adding, override any pending removal
 					if (DEBUGADDREMOVE) {
 						debug("AddDS: Removed from toRemove.  Total Removals Queued: " + dataSourcesToRemove.size());
 					}
 				}
 
-				if ( dataSourcesToAdd.contains(dataSource)){
+				if ( dataSourcesToAdd.containsKey(dataSource)){
 					// added twice.. ensure it's not in the remove list
 					if (DEBUGADDREMOVE) {
 						debug("AddDS: Already There.  Total Additions Queued: " + dataSourcesToAdd.size());
 					}
 				} else {
-					dataSourcesToAdd.add(dataSource);
+					dataSourcesToAdd.put(dataSource, "" );
 					if (DEBUGADDREMOVE) {
 						debug("Queued 1 dataSource to add.  Total Additions Queued: " + dataSourcesToAdd.size() + "; already=" + sortedRows.size());
 					}
@@ -2590,9 +2608,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return;
 		}
 
+		if (DEBUGADDREMOVE) {
+			debug("AddDS: " + dataSources.length );
+		}
+		
 		listUnfilteredDatasources_mon.enter();
 		try {
-			listUnfilteredDataSources.addAll(Arrays.asList(dataSources));
+			for ( DATASOURCETYPE ds: dataSources ){
+				listUnfilteredDataSources.put( ds, null );
+			}
 		} finally {
 			listUnfilteredDatasources_mon.exit();
 		}
@@ -2632,10 +2656,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				}
 				dataSourcesToRemove.remove(dataSource);	// may be pending removal, override
 
-				if (dataSourcesToAdd.contains(dataSource)){
+				if (dataSourcesToAdd.containsKey(dataSource)){
 				} else {
 					count++;
-					dataSourcesToAdd.add(dataSource);
+					dataSourcesToAdd.put(dataSource, "" );
 				}
 			}
 
@@ -2983,6 +3007,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		if (dataSource == null) {
 			return;
 		}
+		
+		if (DEBUGADDREMOVE) {
+			debug("RemDS: " + dataSource );
+		}
 
 		listUnfilteredDatasources_mon.enter();
 		try {
@@ -3000,7 +3028,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			dataSourceToRow_mon.enter();
 
 			dataSourcesToAdd.remove(dataSource);	// override any pending addition
-			dataSourcesToRemove.add(dataSource);
+			dataSourcesToRemove.put(dataSource,"");
 
 			if (DEBUGADDREMOVE) {
 				debug("Queued 1 dataSource to remove.  Total Queued: " + dataSourcesToRemove.size());
@@ -3022,9 +3050,15 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return;
 		}
 
+		if (DEBUGADDREMOVE) {
+			debug("RemDS: " + dataSources.length );
+		}
+		
 		listUnfilteredDatasources_mon.enter();
 		try {
-			listUnfilteredDataSources.removeAll(Arrays.asList(dataSources));
+			for ( DATASOURCETYPE ds: dataSources ){
+				listUnfilteredDataSources.remove(ds);
+			}
 		} finally {
 			listUnfilteredDatasources_mon.exit();
 		}
@@ -3040,7 +3074,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			for (int i = 0; i < dataSources.length; i++) {
 				DATASOURCETYPE dataSource = dataSources[i];
 				dataSourcesToAdd.remove(dataSource);	// override any pending addition
-				dataSourcesToRemove.add(dataSource);
+				dataSourcesToRemove.put(dataSource,"");
 			}
 
 			if (DEBUGADDREMOVE) {
@@ -4855,7 +4889,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	// @see com.aelitis.azureus.ui.common.table.TableView#dataSourceExists(java.lang.Object)
 	public boolean dataSourceExists(DATASOURCETYPE dataSource) {
 		return mapDataSourceToRow.containsKey(dataSource)
-				|| dataSourcesToAdd.contains(dataSource);
+				|| dataSourcesToAdd.containsKey(dataSource);
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getVisibleColumns()
@@ -5199,7 +5233,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		listUnfilteredDatasources_mon.enter();
 		try {
-			DATASOURCETYPE[] unfilteredArray = (DATASOURCETYPE[]) listUnfilteredDataSources.toArray();
+			DATASOURCETYPE[] unfilteredArray = (DATASOURCETYPE[]) listUnfilteredDataSources.keySet().toArray();
 
 			Set<DATASOURCETYPE> existing = new HashSet<DATASOURCETYPE>(
 					getDataSources());
@@ -5224,7 +5258,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			addDataSources((DATASOURCETYPE[]) listAdds.toArray(), true);
 
 			// add back the ones removeDataSources removed
-			listUnfilteredDataSources.addAll(listRemoves);
+			for ( DATASOURCETYPE ds: listRemoves ){
+				listUnfilteredDataSources.put(ds,"");
+			}
 		} finally {
 			listUnfilteredDatasources_mon.exit();
 			processDataSourceQueue();

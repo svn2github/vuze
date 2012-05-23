@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
@@ -747,8 +748,112 @@ MagnetPlugin
 		return( torrent_data );
 	}
 	
+	private static ByteArrayHashMap<DownloadActivity>	download_activities = new ByteArrayHashMap<DownloadActivity>();
+	
+	private static class
+	DownloadActivity
+	{
+		private volatile byte[]						result;
+		private volatile MagnetURIHandlerException	error;
+		
+		private AESemaphore		sem = new AESemaphore( "MP:DA" );
+		
+		public void
+		setResult(
+			byte[]	_result )
+		{
+			result	= _result;
+			
+			sem.releaseForever();
+		}
+		
+		public void
+		setResult(
+			Throwable _error  )
+		{
+			if ( _error instanceof MagnetURIHandlerException ){
+				
+				error = (MagnetURIHandlerException)_error;
+				
+			}else{
+				
+				error = new MagnetURIHandlerException( "Download failed", _error );
+			}
+			
+			sem.releaseForever();
+		}
+		
+		public byte[]
+		getResult()
+		
+			throws MagnetURIHandlerException
+		{
+			sem.reserve();
+			
+			if ( error != null ){
+				
+				throw( error );
+			}
+			
+			return( result );
+		}
+	}
+	
 	private byte[]
-	downloadSupport(
+ 	downloadSupport(
+ 		MagnetPluginProgressListener	listener,
+ 		byte[]							hash,
+ 		String							args,
+ 		InetSocketAddress[]				sources,
+ 		long							timeout,
+ 		int								flags )
+ 	
+ 		throws MagnetURIHandlerException
+ 	{
+		DownloadActivity	activity;
+		boolean				new_activity = false;
+		
+ 		synchronized( download_activities ){
+ 			
+ 				// single-thread per hash to avoid madness ensuing if we get multiple concurrent hits
+ 			
+ 			activity = download_activities.get( hash );
+ 			
+ 			if ( activity == null ){
+ 				
+ 				activity = new DownloadActivity();
+ 				
+ 				download_activities.put( hash, activity );
+ 				
+ 				new_activity = true;
+ 			}
+ 		}
+ 		 		
+ 		if ( new_activity ){
+ 		
+	 		try{
+	 			
+	 			activity.setResult( _downloadSupport( listener, hash, args, sources, timeout, flags ));
+	 			
+	 		}catch( Throwable e ){
+	 			
+	 			activity.setResult( e );
+	 			
+	 		}finally{
+	 			
+	 			synchronized( download_activities ){
+	 				
+	 				download_activities.remove( hash );
+	 			}
+	 		}
+ 		}
+ 			
+ 		return( activity.getResult());
+
+ 	}
+	
+	private byte[]
+	_downloadSupport(
 		final MagnetPluginProgressListener		listener,
 		final byte[]							hash,
 		final String							args,

@@ -345,7 +345,9 @@ public class TorrentUIUtilsV3
 			return null;
 		}
 
-		final String id = "Thumbnail." + hash;
+			// add torrent size here to differentiate meta-data downloads from actuals
+		
+		final String id = "Thumbnail." + hash + "." + torrent.getSize();
 
 		Image image = imageLoaderThumb.imageAdded(id) ? imageLoaderThumb.getImage(id) : null;
 		//System.out.println("image = " + image);
@@ -449,7 +451,8 @@ public class TorrentUIUtilsV3
 				return;
 			}
 
-			String id = "Thumbnail." + hash;
+			String id = "Thumbnail." + hash + "." + torrent.getSize();
+						
 			imageLoaderThumb.releaseImage(id);
 		}
 	}
