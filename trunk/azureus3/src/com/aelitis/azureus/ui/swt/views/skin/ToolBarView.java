@@ -84,6 +84,7 @@ public class ToolBarView
 
 	private SWTSkinObject skinObject;
 
+	private SWTSkinObject so0th;
 	private SWTSkinObject so2nd;
 
 	private SWTSkinObject soGap;
@@ -101,6 +102,7 @@ public class ToolBarView
 
 		this.skinObject = skinObject;
 		buttonListener = new toolbarButtonListener();
+		so0th = skinObject.getSkin().getSkinObject("global-toolbar-0th");
 		so2nd = skinObject.getSkin().getSkinObject("global-toolbar-2nd");
 
 		soGap = skinObject.getSkin().getSkinObject("toolbar-gap");
@@ -123,7 +125,7 @@ public class ToolBarView
 		if (!uiClassic) {
 			
 			// ==OPEN
-			item = new ToolBarItemSO(this, "open", "image.button.open", "Button.open");
+			item = new ToolBarItemSO(this, "open", "image.button.open", "Button.add");
 			item.setDefaultActivationListener(new UIToolBarActivationListener() {
 				public boolean toolBarItemActivated(ToolBarItem item,
 						long activationType, Object datasource) {
@@ -136,7 +138,7 @@ public class ToolBarView
 			});
 			item.setAlwaysAvailable(true);
 			item.setGroupID( GROUP_BIG );
-			addToolBarItem(item, "toolbar.area.item", soMain);		
+			addToolBarItem(item, "toolbar.area.item", so0th);		
 			
 			// ==download
 			item = new ToolBarItemSO(this, "download", "image.button.download",
