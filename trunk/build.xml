@@ -4,7 +4,6 @@
 extract messagebundles
 -->
 
-
 <project basedir="." default="package" name="VuzeClient">
 
 	<!-- Load vars from external properties file -->
