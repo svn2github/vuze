@@ -40,9 +40,12 @@ import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.network.Connection;
+import org.gudy.azureus2.plugins.network.ConnectionStub;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
+import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
@@ -95,6 +98,26 @@ PeerForeignDelegate
 				
 		network_connection.addRateLimiter( pm.getUploadLimitedRateGroup(), true );
 		network_connection.addRateLimiter( pm.getDownloadLimitedRateGroup(), false );
+		
+		_foreign.bindConnection(
+			new ConnectionStub()
+			{
+				  public void
+				  addRateLimiter(
+					  RateLimiter		limiter,
+					  boolean			is_upload )
+				  {
+					  network_connection.addRateLimiter( limiter, is_upload );
+				  }
+
+				  public void
+				  removeRateLimiter(
+					  RateLimiter		limiter,
+					  boolean			is_upload )
+				  {
+					  network_connection.removeRateLimiter( limiter, is_upload );
+				  }
+			});
 	}
 	
 	public void

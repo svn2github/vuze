@@ -33,6 +33,7 @@ import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.download.savelocation.*;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.*;
 
@@ -798,6 +799,22 @@ RPDownload
   		return(0);
   	}
   	
+	public void
+	addRateLimiter(
+		RateLimiter		limiter,
+		boolean			is_upload )
+	{
+		notSupported();
+	}
+		
+	public void
+	removeRateLimiter(
+		RateLimiter		limiter,
+		boolean			is_upload )
+	{
+		notSupported();
+	}
+	
  	public boolean
 	isComplete()
  	{

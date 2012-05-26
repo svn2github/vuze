@@ -63,4 +63,13 @@ ConnectionManager
    */
   public TransportFilter createTransportFilter(Connection connection, TransportCipher read_cipher, TransportCipher write_cipher) throws TransportException;
   
+  /**
+   * @since 4.7.0.3
+   */
+  
+  public RateLimiter
+  createRateLimiter(
+	 String		name,
+	 int		bytes_per_second );
+  
 }

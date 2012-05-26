@@ -29,6 +29,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
+import org.gudy.azureus2.plugins.network.ConnectionStub;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.*;
@@ -44,6 +46,7 @@ ExternalSeedPeer
 	
 	private Download				download;
 	private PeerManager				manager;
+	private ConnectionStub			connection_stub;
 	private PeerStats				stats;
 	private Map						user_data;
 	
@@ -145,6 +148,13 @@ ExternalSeedPeer
 	getDownload()
 	{
 		return( download );
+	}
+	
+	public void
+	bindConnection(
+		ConnectionStub		stub )
+	{
+		connection_stub	= stub;
 	}
 	
 	protected ExternalSeedReader
@@ -848,6 +858,36 @@ ExternalSeedPeer
 		throw( new RuntimeException( "Not supported" ));
 	}
 	
+	public void
+	addRateLimiter(
+		RateLimiter		limiter,
+		boolean			is_upload )
+	{
+		if ( connection_stub != null ){
+			
+			connection_stub.addRateLimiter( limiter, is_upload );
+			
+		}else{
+			
+			Debug.out( "connection not bound" );
+		}
+	}
+
+	public void
+	removeRateLimiter(
+		RateLimiter		limiter,
+		boolean			is_upload )
+	{
+		if ( connection_stub != null ){
+			
+			connection_stub.removeRateLimiter( limiter, is_upload );
+			
+		}else{
+			
+			Debug.out( "connection not bound" );
+		}	
+	}
+	  
 	public int
 	getPercentDoneOfCurrentIncomingRequest()
 	{

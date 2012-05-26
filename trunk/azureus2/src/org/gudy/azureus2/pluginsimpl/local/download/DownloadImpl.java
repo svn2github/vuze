@@ -54,6 +54,7 @@ import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
@@ -1889,6 +1890,22 @@ DownloadImpl
   		download_manager.getStats().setDownloadRateLimitBytesPerSecond( max_rate_bps );
   	}
 
+	public void
+	addRateLimiter(
+		RateLimiter		limiter,
+		boolean			is_upload )
+	{
+		download_manager.addRateLimiter( limiter, is_upload );
+	}
+		
+	public void
+	removeRateLimiter(
+		RateLimiter		limiter,
+		boolean			is_upload )
+	{
+		download_manager.removeRateLimiter( limiter, is_upload );
+	}
+  	
   public int getSeedingRank() {
     return download_manager.getSeedingRank();
   }

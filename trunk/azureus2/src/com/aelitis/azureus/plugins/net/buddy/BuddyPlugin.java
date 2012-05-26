@@ -45,6 +45,7 @@ import org.gudy.azureus2.plugins.messaging.MessageManager;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageConnection;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageHandler;
 import org.gudy.azureus2.plugins.messaging.generic.GenericMessageRegistration;
+import org.gudy.azureus2.plugins.network.ConnectionManager;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
@@ -201,42 +202,11 @@ BuddyPlugin
 	private SESecurityManager	sec_man;
 
 	private GenericMessageRegistration	msg_registration;
-		
-	private int	inbound_limit;
-	private int	outbound_limit;
-	
-	private RateLimiter	inbound_limiter = 
-		new RateLimiter()
-	{
-		public String 
-		getName() 
-		{
-			return( "buddy_up" );
-		}
-
-		public int 
-		getRateLimitBytesPerSecond() 
-		{
-			return( inbound_limit );
-		}
-	};
-		
-	private RateLimiter	outbound_limiter = 
-		new RateLimiter()
-	{
-		public String 
-		getName() 
-		{
-			return( "buddy_down" );
-		}
-
-		public int 
-		getRateLimitBytesPerSecond() 
-		{
-			return( outbound_limit );
-		}
-	};
 			
+	private RateLimiter	inbound_limiter; 
+		
+	private RateLimiter	outbound_limiter; 
+	
 	private boolean		config_dirty;
 	
 	private Random	random = RandomUtils.SECURE_RANDOM;
@@ -285,6 +255,7 @@ BuddyPlugin
 	{		
 		plugin_interface	= _plugin_interface;
 		
+			
 		ta_category		= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_CATEGORY );
 
 		az2_handler = new BuddyPluginAZ2( this );
@@ -365,8 +336,13 @@ BuddyPlugin
 		
 		protocol_speed.setMinimumRequiredUserMode( Parameter.MODE_ADVANCED );
 		
-		inbound_limit = protocol_speed.getValue()*1024;
+		ConnectionManager cman = plugin_interface.getConnectionManager();
 		
+		int inbound_limit = protocol_speed.getValue()*1024;
+
+		inbound_limiter 	= cman.createRateLimiter( "buddy_up", inbound_limit );	
+		outbound_limiter 	= cman.createRateLimiter( "buddy_down", 0 );
+
 		protocol_speed.addListener(
 				new ParameterListener()
 				{
@@ -374,7 +350,7 @@ BuddyPlugin
 					parameterChanged(
 						Parameter	param )
 					{
-						inbound_limit = protocol_speed.getValue()*1024;
+						inbound_limiter.setRateLimitBytesPerSecond( protocol_speed.getValue()*1024 );
 					}
 				});
 		
@@ -402,7 +378,7 @@ BuddyPlugin
 			});
 		
 			// config end
-		
+				
 		
 		final TableContextMenuItem menu_item_itorrents = 
 			plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azbuddy.contextmenu");

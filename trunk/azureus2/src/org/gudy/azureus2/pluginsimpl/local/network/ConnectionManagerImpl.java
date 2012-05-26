@@ -31,6 +31,7 @@ import org.gudy.azureus2.plugins.messaging.MessageStreamDecoder;
 import org.gudy.azureus2.plugins.messaging.MessageStreamEncoder;
 import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.network.ConnectionManager;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.network.Transport;
 import org.gudy.azureus2.plugins.network.TransportCipher;
 import org.gudy.azureus2.plugins.network.TransportException;
@@ -159,4 +160,35 @@ public class ConnectionManagerImpl implements ConnectionManager {
 	  return new TransportFilterImpl(core_filter);
   }
   
+  public RateLimiter 
+  createRateLimiter(
+	final String _name, 
+	final int 	_bytesPerSecond) 
+  {
+	  return(
+		new RateLimiter()
+		{
+			private String		name 	= _name;
+			private int			rate	= _bytesPerSecond;
+			
+			public String
+			getName()
+			{
+				return( name );
+			}
+			
+			public int 
+			getRateLimitBytesPerSecond()
+			{
+				return( rate );
+			}
+			
+			public void
+			setRateLimitBytesPerSecond(
+				int		bytes_per_second )
+			{
+				rate = bytes_per_second;
+			}
+		});
+  }
 }

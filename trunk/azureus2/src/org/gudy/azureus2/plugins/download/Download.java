@@ -31,6 +31,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 
 /**
@@ -726,6 +727,22 @@ Download extends DownloadEventNotifier
     public void setDownloadRateLimitBytesPerSecond( int max_rate_bps );
   
 
+    	/**
+    	 * @since 4.7.0.3
+    	 * @param limiter		create via ConnectionManager
+    	 * @param is_upload		false -> download limit
+    	 */
+    
+    public void
+    addRateLimiter(
+    	RateLimiter		limiter,
+    	boolean			is_upload );
+    	
+    public void
+    removeRateLimiter(
+    	RateLimiter		limiter,
+    	boolean			is_upload );
+    
 	/**
 	 * Indicates if the download has completed or not, exluding any files marked
 	 * as Do No Download

@@ -34,6 +34,8 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
+import org.gudy.azureus2.plugins.network.ConnectionStub;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 
@@ -66,6 +68,12 @@ PeerImpl
 		manager = PeerManagerImpl.getPeerManager( delegate.getManager());
 	}
 
+	public void
+	bindConnection(
+		ConnectionStub		stub )
+	{
+	}
+	
 	public PeerManager
 	getManager()
 	{
@@ -324,7 +332,22 @@ PeerImpl
 		throw( new RuntimeException( "not supported"));
 	}
 
+	public void
+	addRateLimiter(
+	  RateLimiter		limiter,
+	  boolean			is_upload )
+	{
+		delegate.addRateLimiter( limiter, is_upload );
+	}
 
+	public void
+	removeRateLimiter(
+	  RateLimiter		limiter,
+	  boolean			is_upload )
+	{
+		delegate.removeRateLimiter( limiter, is_upload );
+	}
+	
 	public void
 	close(
 		String 		reason,

@@ -31,6 +31,8 @@ import java.util.List;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
+import org.gudy.azureus2.plugins.network.ConnectionStub;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 
 
 public interface 
@@ -45,6 +47,10 @@ Peer
 
 	public final static Object PR_PRIORITY_CONNECTION 	= new Object();
 	public final static Object PR_PROTOCOL				= new Object();
+	
+	public void
+	bindConnection(
+		ConnectionStub		stub );
 	
 	public PeerManager
 	getManager();
@@ -262,4 +268,20 @@ Peer
   public void
   setPriorityConnection(
 		boolean		is_priority );
+  
+	  /**
+	   * @since 4.7.0.3
+	   * @param limiter		create via ConnectionManager
+	   * @param is_upload		false -> download limit
+	   */
+
+  public void
+  addRateLimiter(
+		  RateLimiter		limiter,
+		  boolean			is_upload );
+
+  public void
+  removeRateLimiter(
+		  RateLimiter		limiter,
+		  boolean			is_upload );
 }

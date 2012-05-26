@@ -34,4 +34,8 @@ RateLimiter
 	
 	public int 
 	getRateLimitBytesPerSecond();
+	
+	public void
+	setRateLimitBytesPerSecond(
+		int		bytes_per_second );
 }

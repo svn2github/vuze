@@ -45,6 +45,7 @@ import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.download.DownloadTrackerListener;
 import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
@@ -570,6 +571,22 @@ LWSDownload
   		return( 0 );
   	}
 
+	public void
+	addRateLimiter(
+		RateLimiter		limiter,
+		boolean			is_upload )
+	{
+		notSupported();
+	}
+		
+	public void
+	removeRateLimiter(
+		RateLimiter		limiter,
+		boolean			is_upload )
+	{
+		notSupported();
+	}
+	
     public int 
     getUploadRateLimitBytesPerSecond()
     {
