@@ -211,7 +211,12 @@ DisplayFormatters
     per_sec = getResourceString( "Formats.units.persec", "/s" );
 
     units_base10 = 
-    	new String[]{ getUnit( "B"), getUnit("KB"), getUnit( "MB" ), getUnit( "GB"), getUnit( "TB" ) };
+    	new String[]{ 
+    		getUnit( use_units_rate_bits?"bit":"B"), 
+    		getUnit( use_units_rate_bits?"kbit":"KB"), 
+    		getUnit( use_units_rate_bits?"MBit":"MB" ), 
+    		getUnit( use_units_rate_bits?"Gbit":"GB"), 
+    		getUnit( use_units_rate_bits?"Tbit":"TB" )};
     
     for (int i = 0; i <= unitsStopAt; i++) {
       units[i] 		= units[i];
@@ -487,6 +492,10 @@ DisplayFormatters
 	formatByteCountToBase10KBEtc(
 			long n) 
 	{
+		if ( use_units_rate_bits ){
+			n *= 8;
+		}
+		
 		if (n < 1000){
 			
 			return n + units_base10[UNIT_B];
