@@ -862,19 +862,7 @@ public class TableViewPainted
 			vBar.setValues(0, 0, 0, 50, 50, 50);
 			vBar.addSelectionListener(new SelectionListener() {
 				public void widgetSelected(SelectionEvent e) {
-					
-					Utils.execSWTThreadLater(0, new AERunnable() {
-						public void runSupport() {
-							synchronized (visibleRows) {
-								if (visibleRows != null) {
-									for (TableRowPainted row : visibleRows) {
-										row.clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
-									}
-								}
-							}
-							swt_calculateClientArea();
-						}
-					});
+					swt_calculateClientArea();
 				}
 				
 				public void widgetDefaultSelected(SelectionEvent e) {
@@ -1871,11 +1859,18 @@ public class TableViewPainted
 		int oldW = canvasImage == null || canvasImage.isDisposed() ? 0
 				: canvasImage.getBounds().width;
 
-		if (canvasImage == null) {
+		if (canvasImage == null || oldW != w || h > oldH) {
 			if (h <= 0 || clientArea.width <= 0) {
 				newImage = null;
 			} else {
 				newImage = new Image(shell.getDisplay(), clientArea.width, h);
+			}
+			synchronized (visibleRows) {
+				if (visibleRows != null) {
+					for (TableRowPainted row : visibleRows) {
+						row.clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
+					}
+				}
 			}
 		}
 		boolean canvasChanged = (canvasImage != newImage);
@@ -1890,7 +1885,7 @@ public class TableViewPainted
 		
 		
 
-		if (changedX || changedY || changedW || changedH) {
+		if (changedX || changedY || changedW || changedH || canvasChanged) {
 			//System.out.println("Redraw " + Debug.getCompressedStackTrace());
 			swt_updateCanvasImage();
 		}
