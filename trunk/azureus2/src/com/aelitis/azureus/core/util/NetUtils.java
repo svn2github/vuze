@@ -33,8 +33,10 @@ import java.util.Enumeration;
 import java.util.List;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl.runnableWithException;
 
 public class 
 NetUtils 
@@ -49,6 +51,7 @@ NetUtils
 	
 	private static volatile List<NetworkInterface>		current_interfaces = new ArrayList<NetworkInterface>();
 	
+	private static boolean						first_check	= true;
 	private static boolean						check_in_progress;
 	
 	private static AESemaphore					ni_sem = new AESemaphore( "NetUtils:ni" );
@@ -60,7 +63,8 @@ NetUtils
 	{
 		long	now = SystemTime.getMonotonousTime();
 		
-		boolean	do_check = false;
+		boolean	do_check 	= false;
+		boolean	is_first	= false;
 		
 		synchronized( NetUtils.class ){
 			
@@ -70,61 +74,120 @@ NetUtils
 									
 					do_check 			= true;
 					check_in_progress	= true;
+					
+					if ( first_check ){
+						
+						first_check = false;
+						is_first	= true;
+					}
 				}
 			}
 		}
 		
 		if ( do_check ){
-
-			List<NetworkInterface> result = new ArrayList<NetworkInterface>();
-
-			try{
-					// got some major CPU issues on some machines with crap loads of NIs
-				
-				long	start 	= SystemTime.getHighPrecisionCounter();
-				
-				Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
-				
-				long	elapsed_millis = ( SystemTime.getHighPrecisionCounter() - start ) / 1000000;
+			
+			final runnableWithException<SocketException> do_it = 
+				new runnableWithException<SocketException>()
+				{
+					public void
+					run()
 					
-				long	old_period = current_check_millis;
+						throws SocketException
+					{
+						List<NetworkInterface> result = new ArrayList<NetworkInterface>();
+			
+						try{
+								// got some major CPU issues on some machines with crap loads of NIs
+							
+							long	start 	= SystemTime.getHighPrecisionCounter();
+							
+							Enumeration<NetworkInterface> nis = NetworkInterface.getNetworkInterfaces();
+							
+							long	elapsed_millis = ( SystemTime.getHighPrecisionCounter() - start ) / 1000000;
+								
+							long	old_period = current_check_millis;
+							
+							if ( elapsed_millis > 1000 && current_check_millis <  INC2_NI_CHECK_MILLIS ){
+													
+								current_check_millis = INC2_NI_CHECK_MILLIS;
+								
+							}else if ( elapsed_millis > 250 && current_check_millis < INC1_NI_CHECK_MILLIS ){
+								
+								current_check_millis = INC1_NI_CHECK_MILLIS;
+							}
+							
+							if ( old_period != current_check_millis ){
+								
+								Debug.out( "Network interface enumeration took " + elapsed_millis + ": decreased refresh frequency to " + current_check_millis + "ms" );
+							}
+							
+							if ( nis != null ){
+								
+								while( nis.hasMoreElements()){
+									
+									result.add( nis.nextElement());
+								}
+							}
+							
+							// System.out.println( "getNI: elapsed=" + elapsed_millis + ", result=" + result.size());
+			
+						}finally{
+							
+							synchronized( NetUtils.class ){
+							
+								check_in_progress	= false;
+								current_interfaces 	= result;
+								
+								last_ni_check	= SystemTime.getMonotonousTime();
+							}
 				
-				if ( elapsed_millis > 1000 && current_check_millis <  INC2_NI_CHECK_MILLIS ){
+							ni_sem.releaseForever();
+						}	
+					}
+				};
+				
+			if ( is_first ){
+				
+				final AESemaphore do_it_sem = new AESemaphore( "getNIs" );
+
+				final SocketException[]	error = { null };
+				
+				new AEThread2( "getNIAsync" )
+				{
+					public void
+					run()
+					{
+						try{
+							do_it.run();
+							
+						}catch( SocketException e ){
+							
+							error[0] = e;
+							
+						}finally{
+							
+							do_it_sem.release();
+						}
+					}
+				}.start();
+				
+				if ( !do_it_sem.reserve( 15*1000 )){
+					
+					Debug.out( "Timeout obtaining network interfaces" );
+					
+					ni_sem.releaseForever();
 										
-					current_check_millis = INC2_NI_CHECK_MILLIS;
+				}else{
 					
-				}else if ( elapsed_millis > 250 && current_check_millis < INC1_NI_CHECK_MILLIS ){
-					
-					current_check_millis = INC1_NI_CHECK_MILLIS;
-				}
-				
-				if ( old_period != current_check_millis ){
-					
-					Debug.out( "Network interface enumeration took " + elapsed_millis + ": decreased refresh frequency to " + current_check_millis + "ms" );
-				}
-				
-				if ( nis != null ){
-					
-					while( nis.hasMoreElements()){
+					if ( error[0] != null ){
 						
-						result.add( nis.nextElement());
+						throw( error[0] );
 					}
 				}
+			}else{
 				
-				// System.out.println( "getNI: elapsed=" + elapsed_millis + ", result=" + result.size());
-
-			}finally{
-				
-				synchronized( NetUtils.class ){
-				
-					check_in_progress	= false;
-					current_interfaces 	= result;
-					
-					last_ni_check	= SystemTime.getMonotonousTime();
-				}
-	
-				ni_sem.releaseForever();
-			}			
+				do_it.run();
+			}
 		}
 		
 		ni_sem.reserve();
