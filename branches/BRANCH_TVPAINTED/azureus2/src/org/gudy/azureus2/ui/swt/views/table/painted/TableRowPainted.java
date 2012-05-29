@@ -91,9 +91,7 @@ public class TableRowPainted
 		return (TableViewPainted) getView();
 	}
 
-	public void paintControl(PaintEvent e, int rowStartX, int rowStartY, int pos) {
-		GC gc = e.gc;
-
+	public void paintControl(GC gc, Rectangle drawBounds, int rowStartX, int rowStartY, int pos) {
 		if (isSelected()) {
 			Color color;
 			if (isFocused()) {
@@ -138,7 +136,7 @@ public class TableRowPainted
 		Font font = gc.getFont();
 
 		Region rgn = new Region();
-		e.gc.getClipping(rgn);
+		gc.getClipping(rgn);
 
 		int x = rowStartX;
 		boolean paintedRow = false;
@@ -158,7 +156,7 @@ public class TableRowPainted
 				if (rgn.intersects(r)) {
 					paintedRow = true;
 					gc.fillRectangle(r);
-					if (paintCell(e.gc, cellSWT.getBounds(), cellSWT)) {
+					if (paintCell(gc, cellSWT.getBounds(), cellSWT)) {
 						gc.setBackground(bg);
 						gc.setForeground(fg);
 						gc.setAlpha(rowAlpha);
@@ -217,8 +215,8 @@ public class TableRowPainted
 		gc.setAlpha(255);
 		gc.setBackground(bg);
 		gc.setForeground(fg);
-		if (x < e.x + e.width) {
-			gc.fillRectangle(x, rowStartY, (e.x + e.width) - x, getHeight());
+		if (x < drawBounds.x + drawBounds.width) {
+			gc.fillRectangle(x, rowStartY, (drawBounds.x + drawBounds.width) - x, getHeight());
 		}
 	}
 
