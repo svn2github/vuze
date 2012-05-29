@@ -27,6 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.util.NetUtils;
 import com.aelitis.net.upnp.*;
 import com.aelitis.net.upnp.impl.*;
 
@@ -209,17 +210,15 @@ SSDPIGDImpl
 						
 						int	best_prefix	= 0;
 						
-						Enumeration network_interfaces = NetworkInterface.getNetworkInterfaces();
+						List<NetworkInterface>	x = NetUtils.getNetworkInterfaces();
 						
-						while (network_interfaces.hasMoreElements()){
-							
-							NetworkInterface this_ni = (NetworkInterface)network_interfaces.nextElement();
+						for ( final NetworkInterface this_ni: x ){
 													
-							Enumeration ni_addresses = this_ni.getInetAddresses();
+							Enumeration<InetAddress> ni_addresses = this_ni.getInetAddresses();
 							
 							while (ni_addresses.hasMoreElements()){
 								
-								InetAddress this_address = (InetAddress)ni_addresses.nextElement();
+								InetAddress this_address = ni_addresses.nextElement();
 								
 								byte[]	this_bytes = this_address.getAddress();
 								

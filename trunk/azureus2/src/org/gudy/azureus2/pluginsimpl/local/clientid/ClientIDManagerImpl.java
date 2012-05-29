@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.clientid.ClientIDManager;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.util.NetUtils;
 
 /**
  * @author parg
@@ -130,17 +131,15 @@ ClientIDManagerImpl
 	        		// incorrectly
 	        	
 	        	try{
-	        		Enumeration nis = NetworkInterface.getNetworkInterfaces();
-	        			        		
-	        		while( nis.hasMoreElements()){
+	    			List<NetworkInterface>	x = NetUtils.getNetworkInterfaces();
+	    			
+	    			for ( NetworkInterface network_interface: x ){
 	        			
-	        			NetworkInterface ni = (NetworkInterface)nis.nextElement();
-	        			
-	        			Enumeration addresses = ni.getInetAddresses();
+	        			Enumeration<InetAddress> addresses = network_interface.getInetAddresses();
 	        			
 	        			while( addresses.hasMoreElements()){
 	        				
-	        				InetAddress address = (InetAddress)addresses.nextElement();
+	        				InetAddress address = addresses.nextElement();
 	        				
 	        				if ( !address.isLoopbackAddress()){
 	        					

@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
+import com.aelitis.azureus.core.util.NetUtils;
 import com.aelitis.net.udp.mc.MCGroup;
 import com.aelitis.net.udp.mc.MCGroupAdapter;
 import com.aelitis.net.udp.mc.MCGroupException;
@@ -54,7 +55,8 @@ MCGroupImpl
 	private final static int		PACKET_SIZE		= 8192;
 			
 
-	private static Map			singletons	= new HashMap();
+	private static Map<String,MCGroupImpl>			singletons	= new HashMap<String, MCGroupImpl>();
+	
 	private static AEMonitor	class_mon 	= new AEMonitor( "MCGroup:class" );
 
 	public static MCGroupImpl
@@ -134,7 +136,7 @@ MCGroupImpl
 			
 	protected AEMonitor		this_mon	= new AEMonitor( "MCGroup" );
 
-	private Map	current_registrations = new HashMap();
+	private Map<NetworkInterface,Set<InetAddress>>		current_registrations = new HashMap<NetworkInterface, Set<InetAddress>>();
 	
 	private AsyncDispatcher		async_dispatcher = new AsyncDispatcher();
 	
@@ -192,19 +194,17 @@ MCGroupImpl
 	
 		throws SocketException
 	{
-		Map			new_registrations	= new HashMap();
+		Map<NetworkInterface,Set<InetAddress>>			new_registrations	= new HashMap<NetworkInterface,Set<InetAddress>>();
 		
-		List		changed_interfaces	= new ArrayList();
+		List<NetworkInterface>		changed_interfaces	= new ArrayList<NetworkInterface>();
 		
 		try{
 			this_mon.enter();
 			
-			Enumeration network_interfaces = NetworkInterface.getNetworkInterfaces();
+			List<NetworkInterface>	x = NetUtils.getNetworkInterfaces();
 			
-			while (network_interfaces.hasMoreElements()){
-				
-				final NetworkInterface network_interface = (NetworkInterface)network_interfaces.nextElement();
-	
+			for ( final NetworkInterface network_interface: x ){
+					
 				if ( !interfaceSelected( network_interface )){
 					
 					if ( start_of_day ){
@@ -215,22 +215,22 @@ MCGroupImpl
 					continue;
 				}
 				
-				Set old_address_set = (Set)current_registrations.get( network_interface );
+				Set<InetAddress> old_address_set = current_registrations.get( network_interface );
 					
 				if ( old_address_set == null ){
 				
-					old_address_set	= new HashSet();
+					old_address_set	= new HashSet<InetAddress>();
 				}
 				
-				Set	new_address_set = new HashSet();
+				Set<InetAddress>	new_address_set = new HashSet<InetAddress>();
 				
 				new_registrations.put( network_interface, new_address_set );
 				
-				Enumeration ni_addresses = network_interface.getInetAddresses();
+				Enumeration<InetAddress> ni_addresses = network_interface.getInetAddresses();
 				
-				while (ni_addresses.hasMoreElements()){
+				while( ni_addresses.hasMoreElements()){
 					
-					final InetAddress ni_address = (InetAddress)ni_addresses.nextElement();
+					final InetAddress ni_address = ni_addresses.nextElement();
 	
 					new_address_set.add( ni_address );
 
@@ -295,11 +295,11 @@ MCGroupImpl
 						
 						String	addresses_string = "";
 							
-						Enumeration it = network_interface.getInetAddresses();
+						Enumeration<InetAddress> it = network_interface.getInetAddresses();
 						
 						while (it.hasMoreElements()){
 							
-							InetAddress addr = (InetAddress)it.nextElement();
+							InetAddress addr = it.nextElement();
 							
 							addresses_string += (addresses_string.length()==0?"":",") + addr;
 						}
@@ -429,7 +429,7 @@ MCGroupImpl
 		try{
 			this_mon.enter();
 		
-			Set	set = (Set)current_registrations.get( network_interface );
+			Set<InetAddress>	set = (Set<InetAddress>)current_registrations.get( network_interface );
 			
 			if ( set == null ){
 				
@@ -467,24 +467,22 @@ MCGroupImpl
 		byte[]	data )
 	{	
 		try{
-			Enumeration	x = NetworkInterface.getNetworkInterfaces();
+			List<NetworkInterface>	x = NetUtils.getNetworkInterfaces();
 			
-			while( x != null && x.hasMoreElements()){
-				
-				NetworkInterface	network_interface = (NetworkInterface)x.nextElement();
-				
+			for ( final NetworkInterface network_interface: x ){
+								
 				if ( !interfaceSelected( network_interface )){
 					
 					continue;
 				}
 				
-				Enumeration ni_addresses = network_interface.getInetAddresses();
+				Enumeration<InetAddress> ni_addresses = network_interface.getInetAddresses();
 				
 				boolean	ok = false;
 				
 				while( ni_addresses.hasMoreElements()){
 					
-					InetAddress ni_address = (InetAddress)ni_addresses.nextElement();
+					InetAddress ni_address = ni_addresses.nextElement();
 				
 					if ( !( ni_address instanceof Inet6Address || ni_address.isLoopbackAddress())){
 						
@@ -566,24 +564,22 @@ MCGroupImpl
 		String	param_data )
 	{	
 		try{
-			Enumeration	x = NetworkInterface.getNetworkInterfaces();
+			List<NetworkInterface>	x = NetUtils.getNetworkInterfaces();
 			
-			while( x != null && x.hasMoreElements()){
-				
-				NetworkInterface	network_interface = (NetworkInterface)x.nextElement();
-				
+			for ( NetworkInterface network_interface: x ){
+								
 				if ( !interfaceSelected( network_interface )){
 					
 					continue;
 				}
 				
-				Enumeration ni_addresses = network_interface.getInetAddresses();
+				Enumeration<InetAddress> ni_addresses = network_interface.getInetAddresses();
 								
 				InetAddress	an_address = null;
 				
 				while( ni_addresses.hasMoreElements()){
 					
-					InetAddress ni_address = (InetAddress)ni_addresses.nextElement();
+					InetAddress ni_address = ni_addresses.nextElement();
 				
 					if ( !( ni_address instanceof Inet6Address || ni_address.isLoopbackAddress())){
 						

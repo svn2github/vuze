@@ -60,6 +60,7 @@ import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.proxy.socks.AESocksProxy;
 import com.aelitis.azureus.core.proxy.socks.AESocksProxyFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.NetUtils;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 import com.aelitis.azureus.plugins.upnp.UPnPPluginService;
 
@@ -240,13 +241,13 @@ NetworkAdminImpl
 		boolean		force )
 	{
 		try{
-			Enumeration 	nis = NetworkInterface.getNetworkInterfaces();
-		
+			List<NetworkInterface>	x = NetUtils.getNetworkInterfaces();
+			
 			boolean	changed	= false;
 
-			if ( nis == null && old_network_interfaces == null ){
+			if ( x.size() == 0 && old_network_interfaces == null ){
 				
-			}else if ( nis == null ){
+			}else if ( x.size() == 0 ){
 				
 				old_network_interfaces	= null;
 					
@@ -254,12 +255,9 @@ NetworkAdminImpl
 					
 			}else if ( old_network_interfaces == null ){
 				
-				Set	new_network_interfaces = new HashSet();
+				Set<NetworkInterface>	new_network_interfaces = new HashSet<NetworkInterface>();
 				
-				while( nis.hasMoreElements()){
-
-					new_network_interfaces.add( nis.nextElement());
-				}
+				new_network_interfaces.addAll( x );
 				
 				old_network_interfaces = new_network_interfaces;
 				
@@ -267,11 +265,9 @@ NetworkAdminImpl
 				
 			}else{
 				
-				Set	new_network_interfaces = new HashSet();
+				Set<NetworkInterface>	new_network_interfaces = new HashSet<NetworkInterface>();
 				
-				while( nis.hasMoreElements()){
-					
-					Object	 ni = nis.nextElement();
+				for ( NetworkInterface ni: x ){
 					
 						// NetworkInterface's "equals" method is based on ni name + addresses
 					
