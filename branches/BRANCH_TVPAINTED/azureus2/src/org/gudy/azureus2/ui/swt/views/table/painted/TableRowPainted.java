@@ -402,8 +402,7 @@ public class TableRowPainted
 							cell.clearFlag(TableCellSWTBase.FLAG_PAINTED);
 							Rectangle bounds = cell.getBoundsRaw();
 							if (bounds != null) {
-								composite.redraw(bounds.x, bounds.y, bounds.width,
-										bounds.height, false);
+								getViewPainted().swt_updateCanvasImage(bounds, false);
 							}
 						}
 					}
@@ -412,10 +411,15 @@ public class TableRowPainted
 		}
 		return invalidCells;
 	}
-
+	
+	@Override
 	public void redraw(boolean doChildren) {
+		redraw(doChildren, false);
+	}
+
+	public void redraw(boolean doChildren, boolean immediateRedraw) {
 		clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
-		getViewPainted().redrawRow(this);
+		getViewPainted().redrawRow(this, immediateRedraw);
 
 		if (!doChildren) {
 			return;
@@ -450,15 +454,15 @@ public class TableRowPainted
 	 */
 	@Override
 	public Rectangle getBounds() {
-		TableViewPainted view = (TableViewPainted) getView();
-		Rectangle clientArea = view.getClientArea();
-		//return new Rectangle(clientArea.x, (getIndex() * h)
-		//		- clientArea.y, clientArea.width, h);
-		return new Rectangle(0, clientArea.y + drawOffset.y, 9990, getHeight());
+		//TableViewPainted view = (TableViewPainted) getView();
+		//Rectangle clientArea = view.getClientArea();
+		return new Rectangle(0, drawOffset.y, 9990, getHeight());
 	}
 
 	public Rectangle getDrawBounds() {
-		Rectangle bounds = new Rectangle(0, drawOffset.y, 9990, getHeight());
+		TableViewPainted view = (TableViewPainted) getView();
+		Rectangle clientArea = view.getClientArea();
+		Rectangle bounds = new Rectangle(0, drawOffset.y - clientArea.y, 9990, getHeight());
 		return bounds;
 	}
 
@@ -515,7 +519,7 @@ public class TableRowPainted
 
 	@Override
 	public void setWidgetSelected(boolean selected) {
-		redraw(false);
+		redraw(false, true);
 	}
 	
 	@Override

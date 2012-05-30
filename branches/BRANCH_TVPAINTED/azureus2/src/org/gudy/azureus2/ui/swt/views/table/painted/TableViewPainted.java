@@ -53,7 +53,7 @@ public class TableViewPainted
 	MessageTextListener
 {
 
-	private static final boolean DEBUG_ROWCHANGE = true;
+	private static final boolean DEBUG_ROWCHANGE = false;
 
 	private Composite cTable;
 
@@ -832,6 +832,7 @@ public class TableViewPainted
 			private boolean callingCCA = false;
 			
 			public void controlResized(ControlEvent e) {
+				swt_fixupSize();
 				swt_calculateClientArea();
 			}
 			
@@ -846,7 +847,7 @@ public class TableViewPainted
 		
 		hBar = cTable.getHorizontalBar();
 		if (hBar != null) {
-			hBar.setValues(0, 0, 0, 10, 10, 10);
+			hBar.setValues(0, 0, 0, 10, 10, 100);
 			hBar.addSelectionListener(new SelectionListener() {
 				
 				public void widgetSelected(SelectionEvent e) {
@@ -1157,7 +1158,7 @@ public class TableViewPainted
 		e.gc = oldGC;
 		gc.dispose();
 /**/
-		e.gc.drawImage(canvasImage, 0, 0);
+		e.gc.drawImage(canvasImage, -clientArea.x, 0);
 		
 		// test line
 		//e.gc.drawLine(0, 0, cTable.getSize().x, canvasImage.getBounds().height);
@@ -1860,17 +1861,11 @@ public class TableViewPainted
 				: canvasImage.getBounds().width;
 
 		if (canvasImage == null || oldW != w || h > oldH) {
+			//System.out.println("oldW=" + oldW + ";" + w+ ";h=" + h + ";" + oldH);
 			if (h <= 0 || clientArea.width <= 0) {
 				newImage = null;
 			} else {
-				newImage = new Image(shell.getDisplay(), clientArea.width, h);
-			}
-			synchronized (visibleRows) {
-				if (visibleRows != null) {
-					for (TableRowPainted row : visibleRows) {
-						row.clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
-					}
-				}
+				newImage = new Image(shell.getDisplay(), w, h);
 			}
 		}
 		boolean canvasChanged = (canvasImage != newImage);
@@ -1886,14 +1881,18 @@ public class TableViewPainted
 		
 
 		if (changedX || changedY || changedW || changedH || canvasChanged) {
+			//System.out.println(changedX + ";" + changedY + ";" + changedW + ";" + changedH + ";" + canvasChanged);
 			//System.out.println("Redraw " + Debug.getCompressedStackTrace());
-			swt_updateCanvasImage();
+
+			clearVisiblePaintedFlag();
+			swt_updateCanvasImage(false);
 		}
 
 
 		if (sCanvasImage != null) {
 			sCanvasImage.setSize(canvasImage.getBounds().width, canvasImage.getBounds().height);
 			sCanvasImage.redraw();
+			sCanvasImage.update();
 		}
 
 		//		System.out.println("imgBounds = " + canvasImage.getBounds() + ";ca="
@@ -1912,17 +1911,20 @@ public class TableViewPainted
 		}
 	}
 
-	private void swt_updateCanvasImage() {
-		swt_updateCanvasImage(canvasImage.getBounds());
+	private void swt_updateCanvasImage(boolean immediateRedraw) {
+		swt_updateCanvasImage(canvasImage.getBounds(), immediateRedraw);
 	}
 
-	private void swt_updateCanvasImage(Rectangle bounds) {
-		System.out.println("UpdateCanvasImage " + bounds + "; via " + Debug.getCompressedStackTrace());
+	protected void swt_updateCanvasImage(Rectangle bounds, boolean immediateRedraw) {
+		//System.out.println("UpdateCanvasImage " + bounds + "; via " + Debug.getCompressedStackTrace());
 		GC gc = new GC(canvasImage);
 		_paintComposite(gc, bounds);
 		gc.dispose();
 		if (cTable != null && !cTable.isDisposed()) {
 			cTable.redraw(bounds.x, bounds.y, bounds.width, bounds.height, false);
+			if (immediateRedraw) {
+				cTable.update();
+			}
 		}
 	}
 
@@ -1963,16 +1965,37 @@ public class TableViewPainted
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				swt_fixupSize();
-				swt_updateCanvasImage();
+				swt_updateCanvasImage(false);
 			}
 		});
 	}
 
 	protected void swt_fixupSize() {
 		// TODO hide/show scrollbars
-		System.out.println("Set minSize to " + columnsWidth + "x" + totalHeight);
+		//System.out.println("Set minSize to " + columnsWidth + "x" + totalHeight + ";ca=" + clientArea);
 		if (vBar != null) {
-			vBar.setMaximum(totalHeight - clientArea.height);
+			int max = totalHeight - clientArea.height;
+			if (max < 0) {
+				vBar.setSelection(0);
+				vBar.setVisible(false);
+			} else {
+				if (!vBar.isVisible()) {
+					vBar.setVisible(true);
+				}
+				vBar.setMaximum(max);
+			}
+		}
+		if (hBar != null) {
+			int max = columnsWidth - cTable.getSize().x;
+			if (max < 0) {
+				hBar.setSelection(0);
+				hBar.setVisible(false);
+			} else {
+				if (!hBar.isVisible()) {
+					hBar.setVisible(true);
+				}
+				hBar.setMaximum(max);
+			}
 		}
 	}
 
@@ -2093,10 +2116,8 @@ public class TableViewPainted
 			tvTabsCommon.triggerTabViewsDataSourceChanged(sendParent);
 		}
 	}
-
-	@Override
-	public void uiSelectionChanged(TableRowCore[] newlySelectedRows,
-			TableRowCore[] deselectedRows) {
+	
+	private void clearVisiblePaintedFlag() {
 		synchronized (visibleRows) {
 			if (visibleRows != null) {
 				for (TableRowPainted row : visibleRows) {
@@ -2104,10 +2125,16 @@ public class TableViewPainted
 				}
 			}
 		}
-		System.out.println("Redraw " + Debug.getCompressedStackTrace());
+	}
+
+	@Override
+	public void uiSelectionChanged(TableRowCore[] newlySelectedRows,
+			TableRowCore[] deselectedRows) {
+		clearVisiblePaintedFlag();
+		//System.out.println("Redraw " + Debug.getCompressedStackTrace());
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				swt_updateCanvasImage();
+				swt_updateCanvasImage(false);
 			}
 		});
 	}
@@ -2229,14 +2256,14 @@ public class TableViewPainted
 					&& focusedRow.getDrawOffset().y + focusedRow.getHeight() <= clientArea.y + clientArea.height
 					&& focusedRow.getDrawOffset().y >= clientArea.y) {
 				// redraw for BG color change
-				focusedRow.redraw(false);
+				focusedRow.redraw(false, true);
 			} else {
 
 				showRow(focusedRow);
 			}
 		}
 		if (oldFocusedRow != null) {
-			oldFocusedRow.redraw(false);
+			((TableRowPainted) oldFocusedRow).redraw(false, true);
 		}
 	}
 
@@ -2284,7 +2311,6 @@ public class TableViewPainted
 						y -= (clientArea.height - rowToShow.getHeight());
 					}
 					// y now at top of focused row
-					System.out.println("setselection " + y);
 					vBar.setSelection(y);
 					swt_calculateClientArea();
 				}
@@ -2298,7 +2324,7 @@ public class TableViewPainted
 
 		synchronized (this) {
   		totalHeight += (newHeight - oldHeight);
-  		System.out.println("Height delta: " + (newHeight - oldHeight) + ";ttl=" + totalHeight);
+  		//System.out.println("Height delta: " + (newHeight - oldHeight) + ";ttl=" + totalHeight);
   		if (isRowVisible(row)) {
   			visibleRowsHeight += (newHeight - oldHeight);
   		}
@@ -2329,21 +2355,13 @@ public class TableViewPainted
 			redrawTableScheduled = true;
 		}
 
-		System.out.println("Redraw " + Debug.getCompressedStackTrace());
+		//System.out.println("Redraw " + Debug.getCompressedStackTrace());
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				synchronized (TableViewPainted.this) {
 					redrawTableScheduled = false;
 				}
 				visibleRowsChanged();
-				synchronized (visibleRows) {
-					if (visibleRows != null) {
-						for (TableRowSWT row : visibleRows) {
-							((TableRowPainted) row).clearCellFlag(
-									TableCellSWTBase.FLAG_PAINTED, true);
-						}
-					}
-				}
 
 				if (canvasImage != null && !canvasImage.isDisposed()) {
 					canvasImage.dispose();
@@ -2362,7 +2380,7 @@ public class TableViewPainted
 		return s;
 	}
 
-	public void redrawRow(final TableRowPainted row) {
+	public void redrawRow(final TableRowPainted row, final boolean immediateRedraw) {
 		if (row == null) {
 			return;
 		}
@@ -2373,8 +2391,7 @@ public class TableViewPainted
 		Utils.execSWTThread(new AERunnable() {
 
 			public void runSupport() {
-				if (!isVisible || !row.isVisible()
-						|| row.doesAnyCellHaveFlag(TableCellSWTBase.FLAG_PAINTED)) {
+				if (!isVisible || !row.isVisible()) {
 					return;
 				}
 				Rectangle bounds = row.getDrawBounds();
@@ -2387,7 +2404,7 @@ public class TableViewPainted
 					if (composite != null && !composite.isDisposed()) {
 						int h = isLastRow(row) ? composite.getSize().y - bounds.y
 								: bounds.height;
-						swt_updateCanvasImage(new Rectangle(bounds.x, bounds.y, bounds.width, h));
+						swt_updateCanvasImage(new Rectangle(bounds.x, bounds.y, bounds.width, h), immediateRedraw);
 						//composite.redraw(bounds.x, bounds.y, bounds.width, h, false);
 					}
 				}
