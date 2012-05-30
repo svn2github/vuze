@@ -847,12 +847,12 @@ public class ManagerView
 		if (mdiEntry instanceof MdiEntrySWT) {
 			((MdiEntrySWT) mdiEntry).addListener(new MdiSWTMenuHackListener() {
 				public void menuWillBeShown(MdiEntry entry, Menu menuTree) {
-					MenuFactory.buildTorrentMenu(menuTree);
-
 					TableView<?> tv = SelectedContentManager.getCurrentlySelectedTableView();
 					menuTree.setData("TableView", tv);
 					menuTree.setData("downloads", new DownloadManager[] { manager });
 					menuTree.setData("is_detailed_view", new Boolean(true));
+
+					MenuFactory.buildTorrentMenu(menuTree);
 				}
 			});
 		}
