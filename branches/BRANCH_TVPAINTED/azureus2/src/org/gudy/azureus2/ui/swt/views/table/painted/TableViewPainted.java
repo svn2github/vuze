@@ -1913,11 +1913,16 @@ public class TableViewPainted
 	}
 
 	private void swt_updateCanvasImage() {
+		swt_updateCanvasImage(canvasImage.getBounds());
+	}
+
+	private void swt_updateCanvasImage(Rectangle bounds) {
+		System.out.println("UpdateCanvasImage " + bounds + "; via " + Debug.getCompressedStackTrace());
 		GC gc = new GC(canvasImage);
-		_paintComposite(gc, canvasImage.getBounds());
+		_paintComposite(gc, bounds);
 		gc.dispose();
 		if (cTable != null && !cTable.isDisposed()) {
-			cTable.redraw();
+			cTable.redraw(bounds.x, bounds.y, bounds.width, bounds.height, false);
 		}
 	}
 
@@ -2214,9 +2219,7 @@ public class TableViewPainted
 	}
 
 	public void setFocusedRow(TableRowCore row) {
-		if (focusedRow != null) {
-			focusedRow.redraw(false);
-		}
+		TableRowCore oldFocusedRow = focusedRow;
 		if (!(row instanceof TableRowPainted)) {
 			row = null;
 		}
@@ -2231,6 +2234,9 @@ public class TableViewPainted
 
 				showRow(focusedRow);
 			}
+		}
+		if (oldFocusedRow != null) {
+			oldFocusedRow.redraw(false);
 		}
 	}
 
@@ -2381,7 +2387,8 @@ public class TableViewPainted
 					if (composite != null && !composite.isDisposed()) {
 						int h = isLastRow(row) ? composite.getSize().y - bounds.y
 								: bounds.height;
-						composite.redraw(bounds.x, bounds.y, bounds.width, h, false);
+						swt_updateCanvasImage(new Rectangle(bounds.x, bounds.y, bounds.width, h));
+						//composite.redraw(bounds.x, bounds.y, bounds.width, h, false);
 					}
 				}
 			}
