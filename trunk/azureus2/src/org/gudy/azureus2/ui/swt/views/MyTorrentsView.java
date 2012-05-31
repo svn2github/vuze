@@ -660,6 +660,11 @@ public class MyTorrentsView
 
 		if (sLastSearch.length() > 0) {
 			try {
+				String	comment = dm.getDownloadState().getUserComment();
+				if ( comment == null ){
+					comment = "";
+				}
+				
 				String[][] names = {
 					{
 						"",
@@ -675,11 +680,12 @@ public class MyTorrentsView
 					},
 					{
 						"c:",
-						"" + dm.getDownloadState().getUserComment()
+						comment
 					}
 				};
 
 				String name = names[0][1];
+				
 				String tmpSearch = sLastSearch;
 
 				for (int i = 1; i < names.length; i++) {
@@ -715,10 +721,20 @@ public class MyTorrentsView
 
 				String s = bRegexSearch ? tmpSearch : "\\Q"
 						+ tmpSearch.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
+				
+				boolean	match_result = true;
+				
+				if ( bRegexSearch && s.startsWith( "!" )){
+					s = s.substring(1);
+					
+					match_result = false;
+				}
+				
 				Pattern pattern = RegExUtil.getCachedPattern( "tv:search", s, Pattern.CASE_INSENSITIVE);
 
-				if (!pattern.matcher(name).find())
+				if (pattern.matcher(name).find() != match_result ){
 					bOurs = false;
+				}
 			} catch (Exception e) {
 				// Future: report PatternSyntaxException message to user.
 			}
