@@ -66,6 +66,12 @@ ResourceDownloaderBaseImpl
 		}
 	}
 	
+	public ResourceDownloader
+	getClone()
+	{
+		return( getClone( null ));
+	}
+	
 	public abstract ResourceDownloaderBaseImpl
 	getClone(
 		ResourceDownloaderBaseImpl	_parent );

@@ -109,6 +109,9 @@ ResourceDownloader
 	public boolean
 	isCancelled();
 	
+	public ResourceDownloader
+	getClone();
+	
 	public void
 	reportActivity(
 		String				activity );

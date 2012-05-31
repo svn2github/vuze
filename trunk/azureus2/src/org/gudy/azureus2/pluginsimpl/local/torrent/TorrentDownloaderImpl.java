@@ -44,7 +44,7 @@ TorrentDownloaderImpl
 	private static final LogIDs LOGID = LogIDs.PLUGIN;
 	protected TorrentManagerImpl		manager;
 	protected URL						url;
-	protected ResourceDownloader		downloader;
+	protected ResourceDownloader		_downloader;
 	
 	protected boolean					encoding_requested;
 	protected String					requested_encoding;
@@ -58,7 +58,7 @@ TorrentDownloaderImpl
 		manager		= _manager;
 		url			= _url;
 		
-		downloader = ResourceDownloaderFactoryImpl.getSingleton().create( url );
+		_downloader = ResourceDownloaderFactoryImpl.getSingleton().create( url );
 	}
 	
 	protected
@@ -79,9 +79,9 @@ TorrentDownloaderImpl
 		
 		set_encoding	= true;
 		
-		downloader = ResourceDownloaderFactoryImpl.getSingleton().create( url, _user_name, _password );
+		_downloader = ResourceDownloaderFactoryImpl.getSingleton().create( url, _user_name, _password );
 		
-		downloader.addListener(new ResourceDownloaderAdapter() {
+		_downloader.addListener(new ResourceDownloaderAdapter() {
 			public void reportActivity(ResourceDownloader downloader, String activity) {
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, "TorrentDownloader:" + activity));
@@ -92,6 +92,27 @@ TorrentDownloaderImpl
 	
 	public Torrent
 	download()
+	
+		throws TorrentException
+	{
+		try{
+			return( downloadSupport( _downloader ));
+			
+		}catch( TorrentException e ){
+			
+			ResourceDownloader rd = _downloader.getClone();
+			
+				// try with referer
+			
+			UrlUtils.setBrowserHeaders( rd, url.toExternalForm());
+			
+			return( downloadSupport( rd ));
+		}
+	}
+	
+	private Torrent
+	downloadSupport(
+		ResourceDownloader downloader )
 	
 		throws TorrentException
 	{
