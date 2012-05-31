@@ -119,6 +119,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	private static final int ASYOUTYPE_UPDATEDELAY = 300;
 
 	private static final Color COLOR_FILTER_REGEX	= Colors.fadedYellow;
+	private static Font FONT_NO_REGEX;
+	private static Font FONT_REGEX;
+	private static Font FONT_REGEX_ERROR;
 	
 	protected static final boolean DEBUG_CELL_CHANGES = false;
 
@@ -5148,19 +5151,37 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	validateFilterRegex()
 	{
 		if (filter.regex) {
+			if ( FONT_NO_REGEX == null ){
+				FONT_NO_REGEX = filter.widget.getFont();
+				FontData[] fd = FONT_NO_REGEX.getFontData();
+				for (int i = 0; i < fd.length; i++) {
+					fd[i].setStyle(SWT.BOLD);
+				}
+				FONT_REGEX = new Font( filter.widget.getDisplay(), fd );
+				for (int i = 0; i < fd.length; i++) {
+					fd[i].setStyle(SWT.ITALIC);
+				}
+				FONT_REGEX_ERROR = new Font( filter.widget.getDisplay(), fd );
+			}
 			try {
 				Pattern.compile(filter.nextText, Pattern.CASE_INSENSITIVE);
 				filter.widget.setBackground(COLOR_FILTER_REGEX);
+				filter.widget.setFont( FONT_REGEX );
+				
 				Messages.setLanguageTooltip(filter.widget,
 						"MyTorrentsView.filter.tooltip");
 			} catch (Exception e) {
 				filter.widget.setBackground(Colors.colorErrorBG);
 				filter.widget.setToolTipText(e.getMessage());
+				filter.widget.setFont( FONT_REGEX_ERROR );
 			}
 		} else {
 			filter.widget.setBackground(null);
 			Messages.setLanguageTooltip(filter.widget,
 					"MyTorrentsView.filter.tooltip");
+			if ( FONT_NO_REGEX != null ){
+				filter.widget.setFont( FONT_NO_REGEX );
+			}
 		}
 	}
 	
