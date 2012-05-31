@@ -225,10 +225,22 @@ public class FilesView
 			String name = filter.contains( File.separator )?file.getAbsolutePath():file.getName();
 			
 			String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
+			
+			boolean	match_result = true;
+			
+			if ( regex && s.startsWith( "!" )){
+				
+				s = s.substring(1);
+				
+				match_result = false;
+			}
+			
 			Pattern pattern = RegExUtil.getCachedPattern( "fv:search", s, Pattern.CASE_INSENSITIVE);
   
-			return pattern.matcher(name).find();
+			return( pattern.matcher(name).find() == match_result );
+			
 		} catch (Exception e) {
+			
 			return true;
 		}	
 	}
