@@ -118,6 +118,21 @@ public class LTHandshake implements LTMessage {
 			Number n_ulOnly = (Number)ulOnly;
 			return n_ulOnly.longValue() > 0L;
 		}else{
+				// seeing String value '0' here....
+			
+			if ( ulOnly instanceof byte[] ){
+				
+				String	str_val = String.valueOf( ulOnly );
+				
+				try{
+					int i = Integer.parseInt( str_val );
+					
+					return( i > 0 );
+					
+				}catch( Throwable e ){
+				}
+			}
+			
 			String debug = ulOnly instanceof byte[]?new String((byte[])ulOnly):String.valueOf( ulOnly );
 			
 			Debug.out( "Invalid entry for 'upload_only' - " + debug + ", map=" + data_dict );
