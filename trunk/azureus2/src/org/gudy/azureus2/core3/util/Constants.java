@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.util;
 import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.nio.charset.Charset;
+import java.security.AccessControlException;
 import java.util.Locale;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
@@ -93,8 +94,15 @@ Constants
 			  TimeZone.setDefault( TimeZone.getTimeZone( timezone ));
 		  }  
 		}catch( Throwable e ){
+						
+				// can happen in applet
+		
+			if ( e instanceof AccessControlException ){
+				
+			}else{
 			
-			e.printStackTrace();
+				e.printStackTrace();
+			}
 		}
   }
   

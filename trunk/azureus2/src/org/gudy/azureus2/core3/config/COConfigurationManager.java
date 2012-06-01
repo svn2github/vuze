@@ -21,6 +21,7 @@
  
 package org.gudy.azureus2.core3.config;
 
+import java.security.AccessControlException;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -219,7 +220,12 @@ COConfigurationManager
 				
 					// can happen in applet
 				
-				e.printStackTrace();
+				if ( e instanceof AccessControlException ){
+					
+				}else{
+				
+					e.printStackTrace();
+				}
 			}
 		}
 	}
