@@ -38,6 +38,7 @@ import org.gudy.azureus2.plugins.network.ConnectionStub;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
@@ -337,7 +338,7 @@ PeerImpl
 	  RateLimiter		limiter,
 	  boolean			is_upload )
 	{
-		delegate.addRateLimiter( limiter, is_upload );
+		delegate.addRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), is_upload );
 	}
 
 	public void
@@ -345,7 +346,7 @@ PeerImpl
 	  RateLimiter		limiter,
 	  boolean			is_upload )
 	{
-		delegate.removeRateLimiter( limiter, is_upload );
+		delegate.removeRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), is_upload );
 	}
 	
 	public void

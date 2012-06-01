@@ -21,12 +21,12 @@
 
 package org.gudy.azureus2.plugins.network;
 
-import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
-
 public interface 
 RateLimiter 
-	extends LimitedRateGroup
 {
+	public String
+	getName();
+	
 	/**
 	 * Get rate limit. 0 -> unlimited, -1 -> disabled
 	 * @return

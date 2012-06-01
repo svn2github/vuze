@@ -63,6 +63,7 @@ import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.PeerManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
@@ -1895,15 +1896,15 @@ DownloadImpl
 		RateLimiter		limiter,
 		boolean			is_upload )
 	{
-		download_manager.addRateLimiter( limiter, is_upload );
+		download_manager.addRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), is_upload );
 	}
 		
 	public void
-	removeRateLimiter(
+	removeRateLimiter( 
 		RateLimiter		limiter,
 		boolean			is_upload )
 	{
-		download_manager.removeRateLimiter( limiter, is_upload );
+		download_manager.removeRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), is_upload );
 	}
   	
   public int getSeedingRank() {

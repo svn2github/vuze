@@ -35,6 +35,7 @@ import org.gudy.azureus2.plugins.messaging.generic.GenericMessageEndpoint;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.networkmanager.ConnectionEndpoint;
 import com.aelitis.azureus.core.networkmanager.IncomingMessageQueue;
@@ -167,7 +168,7 @@ GenericMessageConnectionDirect
 			
 			if ( processing ){
 				
-				connection.addRateLimiter( limiter, false );
+				connection.addRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), false );
 
 			}else{
 				
@@ -189,7 +190,7 @@ GenericMessageConnectionDirect
 			
 			if ( processing ){
 				
-				connection.removeRateLimiter( limiter, false );
+				connection.removeRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), false );
 
 			}else{
 				
@@ -209,7 +210,7 @@ GenericMessageConnectionDirect
 			
 			if ( processing ){
 				
-				connection.addRateLimiter( limiter, true );
+				connection.addRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), true );
 
 			}else{
 				
@@ -231,7 +232,7 @@ GenericMessageConnectionDirect
 			
 			if ( processing ){
 				
-				connection.removeRateLimiter( limiter, true );
+				connection.removeRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), true );
 
 			}else{
 				

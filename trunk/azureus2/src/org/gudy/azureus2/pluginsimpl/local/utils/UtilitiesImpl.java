@@ -39,6 +39,7 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
@@ -88,6 +89,7 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
@@ -175,6 +177,43 @@ UtilitiesImpl
 				}				
 			}
 		};
+	
+			// need to use a consistent wrapped group as its object identity drives byte allocs...
+		
+	private static WeakHashMap<RateLimiter,LimitedRateGroup>	limiter_map = new WeakHashMap<RateLimiter,LimitedRateGroup>();
+	
+	public static LimitedRateGroup
+	wrapLimiter(
+		final RateLimiter	limiter )
+	{
+		synchronized( limiter_map ){
+		
+			LimitedRateGroup l = limiter_map.get( limiter );
+			
+			if ( l == null ){
+				
+				l = 
+					new LimitedRateGroup()
+					{
+						public String 
+						getName()
+						{
+							return( limiter.getName());
+						}
+						
+						public int 
+						getRateLimitBytesPerSecond()
+						{
+							return( limiter.getRateLimitBytesPerSecond());
+						}
+					};
+				
+					limiter_map.put( limiter, l );
+			}
+			
+			return( l );
+		}
+	}
 	
 	private static void
 	checkFeatureCache()
