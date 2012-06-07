@@ -188,6 +188,7 @@ public class MainStatusBar
 	private Image imgSent;
 
 	private Image	warningIcon;
+	private Image	warningGreyIcon;
 	private Image	infoIcon;
 	
 	private CLabelPadding statusWarnings;
@@ -645,8 +646,9 @@ public class MainStatusBar
 		}
 
 		statusWarnings = new CLabelPadding(statusBar, borderFlag);
-		warningIcon = imageLoader.getImage("image.sidebar.vitality.alert");
-		infoIcon 	= imageLoader.getImage("image.sidebar.vitality.info");
+		warningIcon 	= imageLoader.getImage("image.sidebar.vitality.alert");
+		warningGreyIcon = imageLoader.getImage("image.sidebar.vitality.alert-gray");
+		infoIcon 		= imageLoader.getImage("image.sidebar.vitality.info");
 		updateStatusWarnings();
 		Messages.setLanguageText(statusWarnings,
 				"MainWindow.status.warning.tooltip");
@@ -744,6 +746,11 @@ public class MainStatusBar
 		return statusBar;
 	}
 
+	private LogAlert				last_unviewed_alert;
+	private TimerEventPeriodic		alert_flasher_event;
+	private long					alert_flasher_event_start_time;
+	
+	
 	protected void updateStatusWarnings() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -774,6 +781,95 @@ public class MainStatusBar
 				statusWarnings.setVisible(count > 0);
 				statusWarnings.setText("" + count);
 				statusWarnings.layoutNow();
+				
+				if ( icon == warningIcon ){
+					
+					LogAlert last = alerts.get( alerts.size()-1 );
+					
+					if ( last_unviewed_alert != last ){
+						
+						last_unviewed_alert = last;
+						
+						alert_flasher_event_start_time = SystemTime.getMonotonousTime();
+
+						if ( alert_flasher_event == null ){
+																																	
+							alert_flasher_event = 
+								SimpleTimer.addPeriodicEvent(
+									"MSB:alertFlasher",
+									500,
+									new TimerEventPerformer()
+									{
+										private long	last_tick_time = -1;
+										
+										public void 
+										perform(
+											TimerEvent event )
+										{
+											Utils.execSWTThread(
+												new AERunnable() 
+												{
+													public void 
+													runSupport() 
+													{
+														long now = SystemTime.getMonotonousTime();
+														
+															// during init timing can go a bit askew, try
+															// and prevent too-quick transitions
+														
+														if ( 	last_tick_time != -1 &&
+																now - last_tick_time < 400 ){
+															
+															return;
+														}
+														
+														last_tick_time = now;
+														
+															// all logic is single threaded via SWT thread...
+														
+														if (	statusWarnings == null || 
+																statusWarnings.isDisposed() ||
+																alert_flasher_event == null ||
+																last_unviewed_alert == null ){
+																	
+															if ( alert_flasher_event != null ){
+																
+																alert_flasher_event.cancel();
+																
+																alert_flasher_event = null;
+															}
+															
+															return;
+														}
+														
+														Image current_icon = statusWarnings.getImage();
+														
+														if ( 	now > alert_flasher_event_start_time + 15*1000 &&
+																current_icon == warningIcon ){
+															
+															alert_flasher_event.cancel();
+															
+															alert_flasher_event = null;
+															
+															return;
+														}
+														
+														Image target_icon = current_icon == warningIcon?warningGreyIcon:warningIcon;
+														
+														statusWarnings.setImage( target_icon );
+													}
+												});
+										}									
+									});
+						}
+					}else{
+						
+						last_unviewed_alert = null;
+					}
+				}else{
+					
+					last_unviewed_alert = null;
+				}
 			}
 		});
 	}
