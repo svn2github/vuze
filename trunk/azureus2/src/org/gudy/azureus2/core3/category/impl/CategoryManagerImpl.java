@@ -562,7 +562,7 @@ CategoryManagerImpl
 				
 				pw.println( "<guid>" + hash_str + "</guid>" );
 				
-				String magnet_url = UrlUtils.getMagnetURI( hash );
+				String magnet_url = UrlUtils.getMagnetURI( download.getName(), torrent );
 
 				pw.println( "<link>" + magnet_url + "</link>" );
 				

@@ -23,14 +23,18 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentAnnounceURLList;
+import org.gudy.azureus2.plugins.torrent.TorrentAnnounceURLListSet;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploader;
 
@@ -75,6 +79,83 @@ public class UrlUtils
 		return( "magnet:?xt=urn:btih:" + Base32.encode( hash ));
 	}
 
+	public static String
+	getMagnetURI(
+		String		name,
+		Torrent		torrent )
+	{
+		String	magnet_str = getMagnetURI( torrent.getHash()) + "&dn=" + UrlUtils.encode(name);
+
+		List<String>	tracker_urls = new ArrayList<String>();
+		
+		URL announce_url = torrent.getAnnounceURL();
+		
+		if ( !TorrentUtils.isDecentralised( announce_url )){
+			
+			tracker_urls.add( announce_url.toExternalForm());
+		}
+		
+		TorrentAnnounceURLList list = torrent.getAnnounceURLList();
+		
+		TorrentAnnounceURLListSet[] sets = list.getSets();
+		
+		for ( TorrentAnnounceURLListSet set: sets ){
+			
+			URL[] set_urls = set.getURLs();
+			
+			if ( set_urls.length > 0 ){
+				
+				URL set_url = set_urls[0];
+				
+				if ( !TorrentUtils.isDecentralised( set_url )){
+					
+					String str = set_url.toExternalForm();
+					
+					if ( !tracker_urls.contains( str )){
+					
+						tracker_urls.add( str );
+					}
+				}
+			}
+		}
+		
+		for ( String str: tracker_urls ){
+			
+			magnet_str += "&tr=" + UrlUtils.encode( str );
+		}
+		
+		List<String>	ws_urls = new ArrayList<String>();
+
+		Object obj = torrent.getAdditionalProperty( "url-list" );
+							
+		if ( obj instanceof byte[] ){
+            
+			try{
+				ws_urls.add( new URL( new String((byte[])obj, "UTF-8" )).toExternalForm());
+				
+			}catch( Throwable e ){							
+			}
+		}else if ( obj instanceof List ){
+			
+			List<byte[]> l = (List<byte[]>)obj;
+			
+			for ( byte[] b: l ){
+				
+				try{
+					ws_urls.add( new URL( new String((byte[])b, "UTF-8" )).toExternalForm());
+					
+				}catch( Throwable e ){							
+				}
+			}
+		}
+		
+		for ( String str: ws_urls ){
+			
+			magnet_str += "&ws=" + UrlUtils.encode( str );
+		}	
+		
+		return( magnet_str );
+	}
 		/**
 		 * returns magnet uri if input is base 32 or base 16 encoded sha1 hash, null otherwise
 		 * @param base_hash

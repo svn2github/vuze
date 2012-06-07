@@ -181,75 +181,7 @@ MagnetPlugin
 					}
 				  
 					
-					String	cb_data = "magnet:?xt=urn:btih:" + Base32.encode( torrent.getHash()) + "&dn=" + UrlUtils.encode(name);
-
-					List<String>	tracker_urls = new ArrayList<String>();
-					
-					URL announce_url = torrent.getAnnounceURL();
-					
-					if ( !TorrentUtils.isDecentralised( announce_url )){
-						
-						tracker_urls.add( announce_url.toExternalForm());
-					}
-					
-					TorrentAnnounceURLList list = torrent.getAnnounceURLList();
-					
-					TorrentAnnounceURLListSet[] sets = list.getSets();
-					
-					for ( TorrentAnnounceURLListSet set: sets ){
-						
-						URL[] set_urls = set.getURLs();
-						
-						if ( set_urls.length > 0 ){
-							
-							URL set_url = set_urls[0];
-							
-							if ( !TorrentUtils.isDecentralised( set_url )){
-								
-								String str = set_url.toExternalForm();
-								
-								if ( !tracker_urls.contains( str )){
-								
-									tracker_urls.add( str );
-								}
-							}
-						}
-					}
-					
-					for ( String str: tracker_urls ){
-						
-						cb_data += "&tr=" + UrlUtils.encode( str );
-					}
-					
-					List<String>	ws_urls = new ArrayList<String>();
-
-					Object obj = torrent.getAdditionalProperty( "url-list" );
-										
-					if ( obj instanceof byte[] ){
-		                
-						try{
-							ws_urls.add( new URL( new String((byte[])obj, "UTF-8" )).toExternalForm());
-							
-						}catch( Throwable e ){							
-						}
-					}else if ( obj instanceof List ){
-						
-						List<byte[]> l = (List<byte[]>)obj;
-						
-						for ( byte[] b: l ){
-							
-							try{
-								ws_urls.add( new URL( new String((byte[])b, "UTF-8" )).toExternalForm());
-								
-							}catch( Throwable e ){							
-							}
-						}
-					}
-					
-					for ( String str: ws_urls ){
-						
-						cb_data += "&ws=" + UrlUtils.encode( str );
-					}				
+					String cb_data = UrlUtils.getMagnetURI( name, torrent );
 					
 					// removed this as well - nothing wrong with allowing magnet copy
 					// for private torrents - they still can't be tracked if you don't
