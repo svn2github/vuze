@@ -278,24 +278,25 @@ UserAlerts
 							}, -1);
   			}
 
-            if(Constants.isOSX) { // OS X cannot concurrently use SWT and AWT
-                new AEThread("DownloadSound") {
-                    public void runSupport()
-                    {
-                        try {
-                            if(COConfigurationManager.getBooleanParameter( speech_enabler ))
-                                Runtime.getRuntime().exec(new String[]{"say", COConfigurationManager.getStringParameter( speech_text )}); // Speech Synthesis services
+			if (Constants.isOSX
+					&& COConfigurationManager.getBooleanParameter(speech_enabler)) {
+				new AEThread("SaySound") {
+					public void runSupport() {
+						try {
+							if (COConfigurationManager.getBooleanParameter(speech_enabler))
+								Runtime.getRuntime().exec(new String[] {
+									"say",
+									COConfigurationManager.getStringParameter(speech_text)
+								}); // Speech Synthesis services
 
-                            if(COConfigurationManager.getBooleanParameter( sound_enabler ))
-                                Runtime.getRuntime().exec(new String[]{"osascript", "-e" ,"beep"}); // Beep alert type is in accordance with System Preferences
+							Thread.sleep(2500);
+						} catch (Throwable e) {
+						}
+					}
+				}.start();
+			}
 
-                            Thread.sleep(2500);
-                        }
-                        catch(Throwable e) {}
-                    }
-                }.start();
-            }
-	    	else if( COConfigurationManager.getBooleanParameter( sound_enabler, false)){
+        if( COConfigurationManager.getBooleanParameter( sound_enabler, false)){
 
 	    		String	file = COConfigurationManager.getStringParameter( sound_file );
 
