@@ -30,6 +30,9 @@ Subscription
 	public String
 	getName();
 	
+	public boolean
+	isSearchTemplate();
+	
 	public SubscriptionResult[]
 	getResults();
 }

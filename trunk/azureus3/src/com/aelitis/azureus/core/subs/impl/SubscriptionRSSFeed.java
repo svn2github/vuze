@@ -122,6 +122,11 @@ SubscriptionRSSFeed
 				
 				for ( Subscription s: subs ){
 	
+					if ( s.isSearchTemplate()){
+						
+						continue;
+					}
+					
 					String	name = s.getName();
 									
 					pw.println( "<LI><A href=\"" + PROVIDER + "/" + s.getID() + "\">" + name + "</A></LI>" );

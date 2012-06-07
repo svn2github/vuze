@@ -1605,6 +1605,12 @@ UtilitiesImpl
 										return( p_sub.getName());
 									}
 									
+									public boolean 
+									isSearchTemplate() 
+									{
+										return( p_sub.isSearchTemplate());
+									}
+									
 									public SubscriptionResult[] 
 									getResults() 
 									{
@@ -1674,6 +1680,9 @@ UtilitiesImpl
 		
 		public String
 		getName();
+		
+		public boolean 
+		isSearchTemplate();
 		
 		public PluginSubscriptionResult[]
 		getResults(
