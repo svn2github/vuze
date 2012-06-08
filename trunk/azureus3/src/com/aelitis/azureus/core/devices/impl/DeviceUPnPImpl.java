@@ -58,6 +58,7 @@ import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoStream;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.UUIDGenerator;
+import com.aelitis.azureus.util.PlayUtils;
 import com.aelitis.net.upnp.UPnPDevice;
 import com.aelitis.net.upnp.UPnPDeviceImage;
 import com.aelitis.net.upnp.UPnPRootDevice;
@@ -932,36 +933,51 @@ DeviceUPnPImpl
 	isVisible(
 		AzureusContentDownload		file )
 	{
-		if (getFilterFilesView() || file == null) {
+		if ( getFilterFilesView() || file == null ){
+			
 			return false;
 		}
+		
 		Download download = file.getDownload();
-		if (download == null) {
+		
+		if ( download == null){
+			
 			return false;
 		}
-		if (download.isComplete()) {
+		
+		if ( download.isComplete()){
+			
 			return true;
 		}
+		
 		int numFiles = download.getDiskManagerFileCount();
-		for (int i = 0; i < numFiles; i++) {
+		
+		for ( int i = 0; i < numFiles; i++){
+			
 			DiskManagerFileInfo fileInfo = download.getDiskManagerFileInfo(i);
-			if (fileInfo == null || fileInfo.isDeleted() || fileInfo.isSkipped()) {
+			
+			if ( fileInfo == null || fileInfo.isDeleted() || fileInfo.isSkipped()){
+				
 				continue;
 			}
-			if (fileInfo.getLength() == fileInfo.getDownloaded()) {
-				// one file available!
+			
+			if ( fileInfo.getLength() == fileInfo.getDownloaded()){
+				
 				return true;
+				
+			}else if ( PlayUtils.canUseEMP( fileInfo )){
+			
+				return( true );
 			}
 		}
+		
 		return false;
 	}
 	
 	protected boolean
 	isVisible(
 		AzureusContentFile		file )
-	{	
-		boolean	result;
-		
+	{			
 		if ( getFilterFilesView()){
 		
 			Object[] x = (Object[])file.getProperty( MY_ACF_KEY );
@@ -970,28 +986,37 @@ DeviceUPnPImpl
 					
 				String	tf_key = (String)x[1];
 					
-				result = getTranscodeFile( tf_key ) != null;
+				return( getTranscodeFile( tf_key ) != null );
 				
 			}else{
 				
-				result = false;
+				return( false );
 			}
 		}else{
 			
-			if (file == null) {
-				return false;
+			if ( file == null ){
+				
+				return( false );
 			}
+			
 			DiskManagerFileInfo fileInfo = file.getFile();
-			if (fileInfo == null || fileInfo.isDeleted() || fileInfo.isSkipped()) {
-				return false;
+			
+			if ( fileInfo == null || fileInfo.isDeleted() || fileInfo.isSkipped()){
+				
+				return( false );
 			}
-			if (fileInfo.getLength() == fileInfo.getDownloaded()) {
-				return true;
+			
+			if ( fileInfo.getLength() == fileInfo.getDownloaded()){
+				
+				return( true );
+				
+			}else if ( PlayUtils.canUseEMP( fileInfo )){
+			
+				return( true );
 			}
-			return false;
 		}
 		
-		return( result );
+		return( false );
 	}
 	
 	public void
