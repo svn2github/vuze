@@ -573,12 +573,16 @@ public abstract class TableCellSWTBase
 	}
 
 	protected void pluginError(Throwable e) {
-		String sTitleLanguageKey = tableColumn.getTitleLanguageKey();
-
-		String sPosition = tableColumn.getPosition() + " ("
-				+ MessageText.getString(sTitleLanguageKey) + ")";
-		Logger.log(new LogEvent(LOGID, "Table Cell Plugin for Column #" + sPosition
-				+ " generated an exception ", e));
+		if (tableColumn != null) {
+  		String sTitleLanguageKey = tableColumn.getTitleLanguageKey();
+  
+  		String sPosition = tableColumn.getPosition() + " ("
+  				+ MessageText.getString(sTitleLanguageKey) + ")";
+  		Logger.log(new LogEvent(LOGID, "Table Cell Plugin for Column #" + sPosition
+  				+ " generated an exception ", e));
+		} else {
+  		Logger.log(new LogEvent(LOGID, "Table Cell Plugin generated an exception ", e));
+		}
 	}
 
 	protected void pluginError(String s) {
@@ -1222,7 +1226,7 @@ public abstract class TableCellSWTBase
   }
 
 	public boolean isInvisibleAndCanRefresh() {
-  	return !isShown()
+  	return !isDisposed() && !isShown()
 				&& (refreshListeners != null || tableColumn.hasCellRefreshListener());
 	}
 

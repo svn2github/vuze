@@ -28,7 +28,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	private static final boolean DEBUG_SORTER = false;
 
 	/** Helpful output when trying to debug add/removal of rows */
-	public final static boolean DEBUGADDREMOVE = System.getProperty(
+	public final static boolean DEBUGADDREMOVE = true || System.getProperty(
 			"debug.swt.table.addremove", "0").equals("1");
 
 	public static final boolean DEBUG_SELECTION = false;
@@ -354,12 +354,17 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		listenersCountChange.remove(listener);
 	}
 
-	protected void triggerListenerRowAdded(final TableRowCore row) {
+	protected void triggerListenerRowAdded(final TableRowCore[] rows) {
+		if (listenersCountChange.size() == 0) {
+			return;
+		}
 		getOffUIThread(new AERunnable() {
 			public void runSupport() {
 				for (Iterator iter = listenersCountChange.iterator(); iter.hasNext();) {
 					TableCountChangeListener l = (TableCountChangeListener) iter.next();
-					l.rowAdded(row);
+					for (TableRowCore row : rows) {
+						l.rowAdded(row);
+					}
 				}
 			}
 		});
@@ -888,7 +893,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			if (DEBUGADDREMOVE) {
 				debug("Queued " + dataSources.length
 						+ " dataSources to remove.  Total Queued: "
-						+ dataSourcesToRemove.size());
+						+ dataSourcesToRemove.size() + " via " + Debug.getCompressedStackTrace(4));
 			}
 		} finally {
 			dataSourceToRow_mon.exit();
@@ -1133,7 +1138,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 					String sColumnID = sortColumn.getName();
 					for (Iterator<TableRowCore> iter = sortedRows.iterator(); iter.hasNext();) {
 						TableRowCore row = iter.next();
-						TableCellCore cell = row.getTableCellCore(sColumnID);
+						TableCellCore cell = row.getSortColumnCell(sColumnID);
 						if (cell != null) {
 							cell.refresh(true);
 						}
@@ -1245,6 +1250,8 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 			long lStartTime = SystemTime.getCurrentTime();
 			
+			final List<TableRowCore> rowsAdded = new ArrayList<TableRowCore>();
+			
 			// add to sortedRows list in best position.  
 			// We need to be in the SWT thread because the rowSorter may end up
 			// calling SWT objects.
@@ -1255,13 +1262,8 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 				}
 
 				TableRowCore row = mapDataSourceToRow.get(dataSource);
-				// We used to check if row already existed in sortedRows, but this
-				// was always false, assuming dataSources only contains newly created
-				// rows
-				// ABOVE IS WRONG! It's not always false.  There's a case where
-				// table is filled, cleared, filled again
-				if ((row == null) || row.isRowDisposed() || sortedRows.indexOf(row) >= 0) {
-				//if (row == null || row.isRowDisposed()) {
+				//if ((row == null) || row.isRowDisposed() || sortedRows.indexOf(row) >= 0) {
+				if (row == null || row.isRowDisposed()) {
 					continue;
 				}
 //				if (sortColumn != null) {
@@ -1314,10 +1316,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 						sortedRows.add(row);
 					}
 
-					// NOTE: if the listener tries to do something like setSelected,
-					// it will fail because we aren't done adding.
-					// we should trigger after fillRowGaps()
-					triggerListenerRowAdded(row);
+					rowsAdded.add(row);
 
 					// XXX Don't set table item here, it will mess up selected rows
 					//     handling (which is handled in fillRowGaps called later on)
@@ -1337,6 +1336,12 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 					}
 				}
 			} // for dataSources
+
+			// NOTE: if the listener tries to do something like setSelected,
+			// it will fail because we aren't done adding.
+			// we should trigger after fillRowGaps()
+			triggerListenerRowAdded(rowsAdded.toArray(new TableRowCore[0]));
+
 
 			if (DEBUGADDREMOVE) {
 				debug("Adding took " + (SystemTime.getCurrentTime() - lStartTime)
@@ -1443,7 +1448,11 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 		DATASOURCETYPE[] unfilteredDS = (DATASOURCETYPE[]) listUnfilteredDataSources.toArray();
 
+		if (DEBUGADDREMOVE) {
+			debug("TSC: #Unfiltered=" + unfilteredDS.length);
+		}
 		removeAllTableRows();
+		processDataSourceQueueSync();
 
 		if (columnAddedOrRemoved) {
 			tableColumns = TableColumnManager.getInstance().getAllTableColumnCoreAsArray(
@@ -1471,11 +1480,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		refreshTable(false);
 		triggerLifeCycleListener(TableLifeCycleListener.EVENT_INITIALIZED);
 		
-		if (filter == null) {
-			addDataSources(unfilteredDS);
-		} else {
-			refilter();
-		}
+		addDataSources(unfilteredDS);
 	}
 
 	/* (non-Javadoc)
@@ -1717,6 +1722,18 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			} else {
 				sortColumn = newSortColumn;
 			}
+ 			if (!isSameColumn) {
+				sortedRows_mon.enter();
+				try {
+					String name = sortColumn.getName();
+					for (Iterator<TableRowCore> iter = sortedRows.iterator(); iter.hasNext();) {
+						TableRowCore row = iter.next();
+						row.setSortColumn(name);
+					}
+				} finally {
+					sortedRows_mon.exit();
+				}
+ 			}
  			uiChangeColumnIndicator();
  			resetLastSortedOn();
  			sortColumn(!isSameColumn);

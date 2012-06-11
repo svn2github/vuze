@@ -4,15 +4,16 @@ import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellSWTBase;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableRowSWTBase;
@@ -40,6 +41,8 @@ public class TableRowPainted
 	private AEMonitor mon_SubRows = new AEMonitor("subRows");
 
 	private int subRowsHeight;
+	
+	TableCellCore cellSort;
 
 	final static public Color[] alternatingColors = new Color[] {
 		null,
@@ -55,28 +58,12 @@ public class TableRowPainted
 			Object dataSource, boolean triggerHeightChange) {
 		super(parentRow, tv, dataSource);
 
-		TableColumnCore[] visibleColumns = tv.getVisibleColumns();
-		mTableCells = new LinkedHashMap<String, TableCellCore>(
-				visibleColumns.length, 1);
-
-		// create all the cells for the column
-		for (int i = 0; i < visibleColumns.length; i++) {
-			if (visibleColumns[i] == null) {
-				continue;
-			}
-
-			if (parentRow != null
-					&& !visibleColumns[i].handlesDataSourceType(getDataSource(false).getClass())) {
-				mTableCells.put(visibleColumns[i].getName(), null);
-				continue;
-			}
-
-			//System.out.println(dataSource + ": " + tableColumns[i].getName() + ": " + tableColumns[i].getPosition());
-			TableCellCore cell = new TableCellPainted(TableRowPainted.this,
-					visibleColumns[i], i);
-			mTableCells.put(visibleColumns[i].getName(), cell);
-			//if (i == 10) cell.bDebug = true;
+		TableColumnCore sortColumn = tv.getSortColumn();
+		if (parentRow == null
+				|| sortColumn.handlesDataSourceType(getDataSource(false).getClass())) {
+			cellSort = new TableCellPainted(TableRowPainted.this, sortColumn, sortColumn.getPosition());
 		}
+		//buildCells();
 
 		if (height == 0) {
 			setHeight(tv.getRowDefaultHeight(), false);
@@ -87,11 +74,64 @@ public class TableRowPainted
 		}
 	}
 
+	private void buildCells() {
+		debug("buildCells " + Debug.getCompressedStackTrace());
+		TableColumnCore[] visibleColumns = getView().getVisibleColumns();
+		this_mon.enter();
+		try {
+  		mTableCells = new LinkedHashMap<String, TableCellCore>(
+  				visibleColumns.length, 1);
+  
+  		TableColumn currentSortColumn = null;
+  		if (cellSort != null) {
+  			currentSortColumn = cellSort.getTableColumn();
+  		}
+  		TableRowCore parentRow = getParentRowCore();
+  		// create all the cells for the column
+  		for (int i = 0; i < visibleColumns.length; i++) {
+  			if (visibleColumns[i] == null) {
+  				continue;
+  			}
+  
+  			if (parentRow != null
+  					&& !visibleColumns[i].handlesDataSourceType(getDataSource(false).getClass())) {
+  				mTableCells.put(visibleColumns[i].getName(), null);
+  				continue;
+  			}
+  			
+  			//System.out.println(dataSource + ": " + tableColumns[i].getName() + ": " + tableColumns[i].getPosition());
+  			TableCellCore cell = (currentSortColumn != null && visibleColumns[i].equals(currentSortColumn))
+  					? cellSort : new TableCellPainted(TableRowPainted.this,
+  							visibleColumns[i], i);
+  			mTableCells.put(visibleColumns[i].getName(), cell);
+  			//if (i == 10) cell.bDebug = true;
+  		}
+		} finally {
+			this_mon.exit();
+		}
+	}
+	
+	private void destroyCells() {
+		this_mon.enter();
+		try {
+			if (mTableCells != null) {
+				for (TableCellCore cell : mTableCells.values()) {
+					if (cell != null && cell != cellSort) {
+						cell.dispose();
+					}
+				}
+				mTableCells = null;
+			}
+		} finally {
+			this_mon.exit();
+		}
+	}
+
 	public TableViewPainted getViewPainted() {
 		return (TableViewPainted) getView();
 	}
 
-	public void paintControl(GC gc, Rectangle drawBounds, int rowStartX, int rowStartY, int pos) {
+	public void paintControl(GC gc, Region rgn, Rectangle drawBounds, int rowStartX, int rowStartY, int pos) {
 		if (isSelected()) {
 			Color color;
 			if (isFocused()) {
@@ -135,59 +175,61 @@ public class TableRowPainted
 
 		Font font = gc.getFont();
 
-		Region rgn = new Region();
-		gc.getClipping(rgn);
-
 		int x = rowStartX;
 		boolean paintedRow = false;
 		TableColumnCore[] visibleColumns = getView().getVisibleColumns();
-		for (TableColumn tc : visibleColumns) {
-			TableCellCore cell = mTableCells.get(tc.getName());
-			int w = tc.getWidth();
-			if (cell == null || cell.isDisposed()) {
-				gc.fillRectangle(x, rowStartY, w, getHeight());
-				x += w;
-				continue;
-			}
-			TableCellSWTBase cellSWT = (TableCellSWTBase) cell;
-			if (!cellSWT.hasFlag(TableCellSWTBase.FLAG_PAINTED)) {
-				Rectangle r = new Rectangle(x, rowStartY, w, getHeight());
-				((TableCellPainted) cell).setBoundsRaw(r);
-				if (rgn.intersects(r)) {
-					paintedRow = true;
-					gc.fillRectangle(r);
-					if (paintCell(gc, cellSWT.getBounds(), cellSWT)) {
-						gc.setBackground(bg);
-						gc.setForeground(fg);
-						gc.setAlpha(rowAlpha);
-						gc.setFont(font);
-					}
-					if (DEBUG_ROW_PAINT) {
-						((TableCellSWTBase) cell).debug("painted "
-								+ (cell.getVisuallyChangedSinceRefresh() ? "VC" : "!UpToDate")
-								+ " @ " + r);
-					}
-					cellSWT.setFlag(TableCellSWTBase.FLAG_PAINTED);
-				} else {
-					if (DEBUG_ROW_PAINT) {
-						((TableCellSWTBase) cell).debug("Skip paintItem; no intersects; r="
-								+ r + ";rgn=" + rgn.getBounds() + " from "
-								+ Debug.getCompressedStackTrace(4));
-					}
-				}
-			} else {
-				if (DEBUG_ROW_PAINT) {
-					((TableCellSWTBase) cell).debug("Skip paintItem; up2date? "
-							+ cell.isUpToDate() + "; from "
-							+ Debug.getCompressedStackTrace(4));
-				}
-			}
-
-			x += w;
+		this_mon.enter();
+		try {
+  		if (mTableCells != null) {
+    		for (TableColumn tc : visibleColumns) {
+    			TableCellCore cell = mTableCells.get(tc.getName());
+    			int w = tc.getWidth();
+    			if (cell == null || cell.isDisposed()) {
+    				gc.fillRectangle(x, rowStartY, w, getHeight());
+    				x += w;
+    				continue;
+    			}
+    			TableCellSWTBase cellSWT = (TableCellSWTBase) cell;
+    			if (!cellSWT.hasFlag(TableCellSWTBase.FLAG_PAINTED)) {
+    				Rectangle r = new Rectangle(x, rowStartY, w, getHeight());
+    				((TableCellPainted) cell).setBoundsRaw(r);
+    				if (rgn.intersects(r)) {
+    					paintedRow = true;
+    					gc.fillRectangle(r);
+    					if (paintCell(gc, cellSWT.getBounds(), cellSWT)) {
+    						gc.setBackground(bg);
+    						gc.setForeground(fg);
+    						gc.setAlpha(rowAlpha);
+    						gc.setFont(font);
+    					}
+    					if (DEBUG_ROW_PAINT) {
+    						((TableCellSWTBase) cell).debug("painted "
+    								+ (cell.getVisuallyChangedSinceRefresh() ? "VC" : "!UpToDate")
+    								+ " @ " + r);
+    					}
+    					cellSWT.setFlag(TableCellSWTBase.FLAG_PAINTED);
+    				} else {
+    					if (DEBUG_ROW_PAINT) {
+    						((TableCellSWTBase) cell).debug("Skip paintItem; no intersects; r="
+    								+ r + ";rgn=" + rgn.getBounds() + " from "
+    								+ Debug.getCompressedStackTrace(4));
+    					}
+    				}
+    			} else {
+    				if (DEBUG_ROW_PAINT) {
+    					((TableCellSWTBase) cell).debug("Skip paintItem; up2date? "
+    							+ cell.isUpToDate() + "; from "
+    							+ Debug.getCompressedStackTrace(4));
+    				}
+    			}
+    
+    			x += w;
+    		}
+  		}
+		} finally {
+			this_mon.exit();
 		}
 		
-		rgn.dispose();
-
 //		if (paintedRow) {
 //			//debug("Paint " + e.x + "x" + e.y + " " + e.width + "x" + e.height + ".." + e.count + ";clip=" + e.gc.getClipping() +";drawOffset=" + drawOffset + " via " + Debug.getCompressedStackTrace());
 //		}
@@ -412,7 +454,6 @@ public class TableRowPainted
 		return invalidCells;
 	}
 	
-	@Override
 	public void redraw(boolean doChildren) {
 		redraw(doChildren, false);
 	}
@@ -524,7 +565,19 @@ public class TableRowPainted
 	
 	@Override
 	public void setShown(boolean b, boolean force) {
+		this_mon.enter();
+		try {
+  		if (b && mTableCells == null) {
+  			buildCells();
+  		}
+		} finally {
+			this_mon.exit();
+		}
+		
 		super.setShown(b, force);
+		if (!b && mTableCells != null) {
+			destroyCells();
+		}
 //		mon_SubRows.enter();
 //		try {
 //			if (subRows != null) {
@@ -716,5 +769,68 @@ public class TableRowPainted
 		}
 
 		return true;
+	}
+	
+	@Override
+	public TableCellCore getTableCellCore(String name) {
+		if (isRowDisposed()) {
+			return null;
+		}
+		this_mon.enter();
+		try {
+			if (mTableCells == null) {
+  			if (cellSort != null && !cellSort.isDisposed()
+  					&& cellSort.getTableColumn().getName().equals(name)) {
+    			return cellSort;
+    		} else {
+    			return null;
+    		}
+			}
+  		return mTableCells.get(name);
+		} finally {
+			this_mon.exit();
+		}
+	}
+	
+	@Override
+	public TableCellSWT getTableCellSWT(String name) {
+		TableCellCore cell = getTableCellCore(name);
+		return (cell instanceof TableCellSWT) ? (TableCellSWT) cell : null;
+	}
+	
+	@Override
+	public TableCell getTableCell(String field) {
+		return getTableCellCore(field);
+	}
+	
+	public TableCellCore getSortColumnCell(String hint) {
+		return cellSort;
+	}
+	
+	public void setSortColumn(String columnID) {
+		this_mon.enter();
+		
+		try {
+  		if (mTableCells == null) {
+  			if (cellSort != null && !cellSort.isDisposed()) {
+    			if (cellSort.getTableColumn().getName().equals(columnID)) {
+    				return;
+    			}
+    			cellSort.dispose();
+    			cellSort = null;
+  			}
+  			TableColumnCore sortColumn = (TableColumnCore) getView().getTableColumn(columnID);
+  			if (getParentRowCore() == null
+  					|| sortColumn.handlesDataSourceType(getDataSource(false).getClass())) {
+  				cellSort = new TableCellPainted(TableRowPainted.this, sortColumn, sortColumn.getPosition());
+  			} else {
+  				cellSort = null;
+  			}
+  		} else {
+  			cellSort = mTableCells.get(columnID);
+  		}
+  	} finally {
+  		this_mon.exit();
+  	}
 	}
 }

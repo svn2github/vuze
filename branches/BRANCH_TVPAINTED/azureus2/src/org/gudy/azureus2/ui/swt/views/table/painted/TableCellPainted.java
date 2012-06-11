@@ -106,7 +106,7 @@ public class TableCellPainted
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableCell#isShown()
 	 */
 	public boolean isShown() {
-		return tableRow.getView().isColumnVisible(tableColumn);
+		return !isDisposed() && tableRow.getView().isColumnVisible(tableColumn);
 	}
 
 	/* (non-Javadoc)

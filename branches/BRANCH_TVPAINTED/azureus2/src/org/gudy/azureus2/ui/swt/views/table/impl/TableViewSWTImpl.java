@@ -1311,7 +1311,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				TableRowCore row = getRow((DATASOURCETYPE) dataSource);
 				TableColumnCore sortColumn = getSortColumn();
   			if (row != null && sortColumn != null) {
-  				TableCellCore cell = row.getTableCellCore(sortColumn.getName());
+  				TableCellCore cell = row.getSortColumnCell(sortColumn.getName());
   				if (cell != null) {
   					try {
   						cell.invalidate();

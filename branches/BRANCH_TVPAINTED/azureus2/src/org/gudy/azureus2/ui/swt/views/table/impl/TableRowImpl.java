@@ -885,4 +885,15 @@ public class TableRowImpl<COREDATASOURCE>
 		// TODO: should include subitems
 		return getBounds(1).height;
 	}
+
+	public void setSortColumn(String columnID) {
+		// ignored
+	}
+
+	public TableCellCore getSortColumnCell(String hint) {
+		if (bDisposed || mTableCells == null) {
+			return null;
+		}
+		return mTableCells.get(hint);
+	}
 }

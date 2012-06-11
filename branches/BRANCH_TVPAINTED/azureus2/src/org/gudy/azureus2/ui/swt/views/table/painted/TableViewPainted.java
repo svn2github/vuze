@@ -4,7 +4,6 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
@@ -117,6 +116,7 @@ public class TableViewPainted
 
 	private Composite mainComposite;
 
+	private Object heightChangeSync = new Object();
 	private int totalHeight = 0;
 
 	private boolean redrawTableScheduled;
@@ -222,29 +222,7 @@ public class TableViewPainted
 			@Override
 			public void keyPressed(KeyEvent event) {
 				if (event.keyCode == SWT.ARROW_UP) {
-					TableRowCore rowToSelect = null;
-					if (focusedRow != null) {
-						TableRowCore parentRow = focusedRow.getParentRowCore();
-						if (parentRow == null) {
-							TableRowCore row = getRow(indexOf(focusedRow) - 1);
-							if (row != null && row.isExpanded() && row.getSubItemCount() > 0) {
-								rowToSelect = row.getSubRow(row.getSubItemCount() - 1);
-							} else {
-								rowToSelect = row;
-							}
-						} else {
-							int index = focusedRow.getIndex();
-							if (index > 0) {
-								rowToSelect = parentRow.getSubRow(index - 1);
-							} else {
-								rowToSelect = parentRow;
-							}
-						}
-					}
-					if (rowToSelect == null) {
-						rowToSelect = getRow(0);
-					}
-
+					TableRowCore rowToSelect = getPreviousRow(focusedRow);
 					if ((event.stateMask & SWT.SHIFT) > 0) {
 						if (rowToSelect != null) {
 							TableRowCore[] selectedRows = getSelectedRows();
@@ -265,36 +243,21 @@ public class TableViewPainted
 							rowToSelect
 						});
 					}
-				} else if (event.keyCode == SWT.ARROW_DOWN) {
-					TableRowCore rowToSelect = null;
-					if (focusedRow == null) {
-						rowToSelect = getRow(0);
-					} else {
-						if (focusedRow.isExpanded() && focusedRow.getSubItemCount() > 0) {
-							TableRowCore[] subRowsWithNull = focusedRow.getSubRowsWithNull();
-							for (TableRowCore row : subRowsWithNull) {
-								if (row != null) {
-									rowToSelect = row;
-									break;
-								}
-							}
-							if (rowToSelect == null) {
-								rowToSelect = getRow(focusedRow.getIndex() + 1);
-							}
-						} else {
-							TableRowCore parentRow = focusedRow.getParentRowCore();
-							if (parentRow != null) {
-								rowToSelect = parentRow.getSubRow(focusedRow.getIndex() + 1);
-
-								if (rowToSelect == null) {
-									rowToSelect = getRow(parentRow.getIndex() + 1);
-								}
-							} else {
-								rowToSelect = getRow(focusedRow.getIndex() + 1);
-							}
-						}
+				} else if (event.keyCode == SWT.PAGE_UP) {
+					TableRowCore row = focusedRow;
+					int y = 0;
+					while (row != null && y < clientArea.height) {
+						y += row.getHeight();
+						row = getPreviousRow(row);
 					}
-
+					if (row == null) {
+						row = getRow(0);
+					}
+					setSelectedRows(new TableRowCore[] {
+						row
+					});
+				} else if (event.keyCode == SWT.ARROW_DOWN) {
+					TableRowCore rowToSelect = getNextRow(focusedRow);
 					if (rowToSelect != null) {
 						if ((event.stateMask & SWT.SHIFT) > 0) {
 							TableRowCore[] selectedRows = getSelectedRows();
@@ -313,6 +276,16 @@ public class TableViewPainted
 							});
 						}
 					}
+				} else if (event.keyCode == SWT.PAGE_DOWN) {
+					TableRowCore row = focusedRow;
+					int y = 0;
+					while (row != null && y < clientArea.height) {
+						y += row.getHeight();
+						row = getNextRow(row);
+					}
+					setSelectedRows(new TableRowCore[] {
+						row
+					});
 				} else if (event.keyCode == SWT.ARROW_RIGHT) {
 					if (focusedRow != null && !focusedRow.isExpanded() && canHaveSubItems()) {
 						focusedRow.setExpanded(true);
@@ -333,6 +306,64 @@ public class TableViewPainted
 				super.keyReleased(e);
 			}
 		};
+	}
+
+	protected TableRowCore getPreviousRow(TableRowCore relativeToRow) {
+		TableRowCore rowToSelect = null;
+		if (relativeToRow != null) {
+			TableRowCore parentRow = relativeToRow.getParentRowCore();
+			if (parentRow == null) {
+				TableRowCore row = getRow(indexOf(relativeToRow) - 1);
+				if (row != null && row.isExpanded() && row.getSubItemCount() > 0) {
+					rowToSelect = row.getSubRow(row.getSubItemCount() - 1);
+				} else {
+					rowToSelect = row;
+				}
+			} else {
+				int index = relativeToRow.getIndex();
+				if (index > 0) {
+					rowToSelect = parentRow.getSubRow(index - 1);
+				} else {
+					rowToSelect = parentRow;
+				}
+			}
+		}
+		if (rowToSelect == null) {
+			rowToSelect = getRow(0);
+		}
+		return rowToSelect;
+	}
+
+	protected TableRowCore getNextRow(TableRowCore relativeToRow) {
+		TableRowCore rowToSelect = null;
+		if (relativeToRow == null) {
+			rowToSelect = getRow(0);
+		} else {
+			if (relativeToRow.isExpanded() && relativeToRow.getSubItemCount() > 0) {
+				TableRowCore[] subRowsWithNull = relativeToRow.getSubRowsWithNull();
+				for (TableRowCore row : subRowsWithNull) {
+					if (row != null) {
+						rowToSelect = row;
+						break;
+					}
+				}
+				if (rowToSelect == null) {
+					rowToSelect = getRow(relativeToRow.getIndex() + 1);
+				}
+			} else {
+				TableRowCore parentRow = relativeToRow.getParentRowCore();
+				if (parentRow != null) {
+					rowToSelect = parentRow.getSubRow(relativeToRow.getIndex() + 1);
+
+					if (rowToSelect == null) {
+						rowToSelect = getRow(parentRow.getIndex() + 1);
+					}
+				} else {
+					rowToSelect = getRow(relativeToRow.getIndex() + 1);
+				}
+			}
+		}
+		return rowToSelect;
 	}
 
 	/* (non-Javadoc)
@@ -829,19 +860,13 @@ public class TableViewPainted
 		setupHeaderArea(cHeaderArea);
 
 		cTable.addControlListener(new ControlListener() {
-			private boolean callingCCA = false;
-			
+
 			public void controlResized(ControlEvent e) {
 				swt_fixupSize();
 				swt_calculateClientArea();
 			}
 			
 			public void controlMoved(ControlEvent e) {
-				// paint will get called right after move, so we need to update
-				// clientArea and visibleRow offsets NOW
-
-				//System.out.println("Moved! " + cTable.getLocation() + ";" + cTable.getClientArea());
-				//swt_calculateClientArea();
 			}
 		});
 		
@@ -991,9 +1016,17 @@ public class TableViewPainted
 								}
 							}
 							cHeaderArea.setCursor(e.display.getSystemCursor(cursorID));
+							TableColumnCore column = getTableColumnByOffset(e.x);
+
+							if (column == null) {
+								cHeaderArea.setToolTipText(null);
+							} else {
+								cHeaderArea.setToolTipText(MessageText.getString(
+										column.getTitleLanguageKey() + ".info", (String) null));
+							}
 						}
 					}
-
+					
 				}
 			}
 		};
@@ -1046,10 +1079,10 @@ public class TableViewPainted
 			}
 
 			public void drop(final DropTargetEvent event) {
-				System.out.println("drop " + event.data);
 				if (event.data instanceof String) {
 					TableColumn tcOrig = getTableColumn((String) event.data);
-					TableColumn tcDest = getTableColumnByOffset(event.x);
+					Point pt = cTable.toControl(event.x, event.y);
+					TableColumn tcDest = getTableColumnByOffset(pt.x);
 					if (tcDest == null) {
 						TableColumnCore[] visibleColumns = getVisibleColumns();
 						if (visibleColumns != null && visibleColumns.length > 0) {
@@ -1171,6 +1204,9 @@ public class TableViewPainted
 		TableRowCore oldRow = null;
 		int pos = -1;
 		synchronized (visibleRows) {
+			Region rgn = new Region();
+			gc.getClipping(rgn);
+
 			for (TableRowCore row : visibleRows) {
 				TableRowPainted paintedRow = (TableRowPainted) row;
 				if (pos == -1) {
@@ -1180,29 +1216,13 @@ public class TableViewPainted
 				}
 				Point drawOffset = paintedRow.getDrawOffset();
 				//debug("Paint " + drawBounds.x + "x" + drawBounds.y + " " + drawBounds.width + "x" + drawBounds.height + ".." + drawBounds.count + "; Row=" +row.getIndex() + ";clip=" + gc.getClipping() +";drawOffset=" + drawOffset);
-				paintedRow.paintControl(gc, drawBounds, 0, drawOffset.y - clientArea.y, pos);
+				paintedRow.paintControl(gc, rgn, drawBounds, 0, drawOffset.y - clientArea.y, pos);
 				oldRow = row;
 			}
-		}
-		/*
-		TableRowCore row = getRow(drawBounds.x, drawBounds.y);
-		if (row == null) {
-			debug("Paint: No 1st row @ " + drawBounds.y);
-		}
-		//debug("Paint " + drawBounds.x + "x" + drawBounds.y + " " + drawBounds.width + "x" + drawBounds.height); // + ".." + e.count);
-		TableRowCore oldRow = row;
-		int lastIndex = -1;
-		while ((row instanceof TableRowPainted) && isRowVisible(row)) {
-			TableRowPainted paintedRow = (TableRowPainted) row;
-			Point drawOffset = paintedRow.getDrawOffset();
-			//debug("Paint " + drawBounds.x + "x" + drawBounds.y + " " + drawBounds.width + "x" + drawBounds.height + "; Row=" +row.getIndex() + ";clip=" + gc.getClipping() +";drawOffset=" + drawOffset);
-			paintedRow.paintControl(e, 0, drawOffset.y);
 
-			oldRow = row;
-			lastIndex = row.getIndex();
-			row = getRow(lastIndex + 1);
+			rgn.dispose();
 		}
-		*/
+
 		int h;
 		int yDirty;
 		if (oldRow == null) {
@@ -1230,7 +1250,8 @@ public class TableViewPainted
 			}
 		}
 
-		gc.setAlpha(90);
+		//gc.setAlpha(90);
+		gc.setForeground(getColorLine());
 		gc.setBackground(cTable.getDisplay().getSystemColor(
 				SWT.COLOR_LIST_BACKGROUND));
 		TableColumnCore[] visibleColumns = getVisibleColumns();
@@ -1239,7 +1260,6 @@ public class TableViewPainted
 			x += column.getWidth();
 
 			// Vertical lines between columns
-			gc.setForeground(getColorLine());
 			gc.drawLine(x - 1, drawBounds.y, x - 1, drawBounds.y + drawBounds.height);
 		}
 	}
@@ -1280,8 +1300,17 @@ public class TableViewPainted
 		for (TableColumnCore column : visibleColumns) {
 			int w = column.getWidth();
 
+			//squeeze last column's text into available visible space
+			if (x + w > ca.width) {
+				w = ca.width - x;
+				if (w <= 16) {
+					break;
+				}
+			}
+
 			e.gc.setForeground(ColorCache.getColor(e.display, 0, 0, 0));
 			if (column.equals(sortColumn)) {
+				// draw sort indicator
 				int middle = w / 2;
 				int y1, y2;
 				int arrowHalfW = 7;
@@ -1572,10 +1601,6 @@ public class TableViewPainted
 		swt_visibleRowsChanged();
 	}
 
-	private boolean visibleRowsFillClientArea() {
-		return visibleRowsHeight >= clientArea.height;
-	}
-
 	private void swt_visibleRowsChanged() {
 		final List<TableRowSWT> newlyVisibleRows = new ArrayList<TableRowSWT>();
 		final List<TableRowSWT> nowInVisibleRows;
@@ -1748,8 +1773,6 @@ public class TableViewPainted
 
 	@Override
 	public void uiRemoveRows(TableRowCore[] rows, Integer[] rowIndexes) {
-		// TODO
-		
 		if (focusedRow != null) {
   		for (TableRowCore row : rows) {
   			if (row == focusedRow) {
@@ -1913,10 +1936,15 @@ public class TableViewPainted
 	}
 
 	private void swt_updateCanvasImage(boolean immediateRedraw) {
-		swt_updateCanvasImage(canvasImage.getBounds(), immediateRedraw);
+		if (canvasImage != null && !canvasImage.isDisposed()) {
+			swt_updateCanvasImage(canvasImage.getBounds(), immediateRedraw);
+		}
 	}
 
 	protected void swt_updateCanvasImage(Rectangle bounds, boolean immediateRedraw) {
+		if (canvasImage == null || canvasImage.isDisposed()) {
+			return;
+		}
 		//System.out.println("UpdateCanvasImage " + bounds + "; via " + Debug.getCompressedStackTrace());
 		GC gc = new GC(canvasImage);
 		_paintComposite(gc, bounds);
@@ -1965,6 +1993,9 @@ public class TableViewPainted
 		totalHeight = 0;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (cTable == null || cTable.isDisposed()) {
+					return;
+				}
 				swt_fixupSize();
 				swt_updateCanvasImage(false);
 			}
@@ -1972,7 +2003,6 @@ public class TableViewPainted
 	}
 
 	protected void swt_fixupSize() {
-		// TODO hide/show scrollbars
 		//System.out.println("Set minSize to " + columnsWidth + "x" + totalHeight + ";ca=" + clientArea);
 		if (vBar != null) {
 			int max = totalHeight - clientArea.height;
@@ -2323,7 +2353,7 @@ public class TableViewPainted
 	public void rowHeightChanged(final TableRowCore row, int oldHeight,
 			int newHeight) {
 
-		synchronized (this) {
+		synchronized (heightChangeSync) {
   		totalHeight += (newHeight - oldHeight);
   		//System.out.println("Height delta: " + (newHeight - oldHeight) + ";ttl=" + totalHeight);
   		if (isRowVisible(row)) {

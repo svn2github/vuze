@@ -181,4 +181,8 @@ public interface TableRowCore extends TableRow
 	public int getHeight();
 
 	public TableRowCore getSubRow(int i);
+
+	public void setSortColumn(String columnID);
+	
+	public TableCellCore getSortColumnCell(String hint);
 }

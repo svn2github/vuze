@@ -28,7 +28,7 @@ public abstract class TableRowSWTBase
 {
 	public static boolean DEBUG_ROW_PAINT = false;
 
-	private static AEMonitor this_mon = new AEMonitor("TableRowPainted");
+	protected static AEMonitor this_mon = new AEMonitor("TableRowPainted");
 
 	private final TableViewPainted tv;
 
@@ -44,7 +44,7 @@ public abstract class TableRowSWTBase
 
 	private Object pluginDataSource;
 
-	private boolean wasShown = false;
+	protected boolean wasShown = false;
 
 	private boolean bSetNotUpToDateLastRefresh;
 
@@ -70,59 +70,79 @@ public abstract class TableRowSWTBase
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#invalidate()
 	 */
 	public void invalidate() {
-		if (bDisposed) {
-			return;
-		}
-
-		for (TableCellCore cell : mTableCells.values()) {
-			if (cell != null) {
-				cell.invalidate(false);
-			}
+		this_mon.enter();
+		try {
+  		if (bDisposed || mTableCells == null) {
+  			return;
+  		}
+  
+  		for (TableCellCore cell : mTableCells.values()) {
+  			if (cell != null) {
+  				cell.invalidate(false);
+  			}
+  		}
+		} finally {
+			this_mon.exit();
 		}
 	}
 
 	public boolean doesAnyCellHaveFlag(int flag) {
-		if (bDisposed) {
-			return false;
+		this_mon.enter();
+		try {
+  		if (bDisposed || mTableCells == null) {
+  			return false;
+  		}
+  
+  		for (TableCellCore cell : mTableCells.values()) {
+  			if ((cell instanceof TableCellSWTBase)
+  					&& ((TableCellSWTBase) cell).hasFlag(flag)) {
+  				return true;
+  			}
+  		}
+  		return false;
+		} finally {
+			this_mon.exit();
 		}
-
-		for (TableCellCore cell : mTableCells.values()) {
-			if ((cell instanceof TableCellSWTBase)
-					&& ((TableCellSWTBase) cell).hasFlag(flag)) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 
 	public void setCellFlag(int flag) {
-		if (bDisposed) {
-			return;
-		}
-
-		for (TableCellCore cell : mTableCells.values()) {
-			if (cell != null) {
-				((TableCellSWTBase) cell).setFlag(flag);
-			}
+		this_mon.enter();
+		try {
+  		if (bDisposed || mTableCells == null) {
+  			return;
+  		}
+  
+  		for (TableCellCore cell : mTableCells.values()) {
+  			if (cell != null) {
+  				((TableCellSWTBase) cell).setFlag(flag);
+  			}
+  		}
+		} finally {
+			this_mon.exit();
 		}
 	}
 
 	public void clearCellFlag(int flag, boolean subRows) {
-		if (bDisposed) {
-			return;
-		}
-
-		for (TableCellCore cell : mTableCells.values()) {
-			if (cell != null) {
-				((TableCellSWTBase) cell).clearFlag(flag);
-			}
-		}
-		if (subRows) {
-			TableRowCore[] subRowsWithNull = getSubRowsWithNull();
-			for (TableRowCore row : subRowsWithNull) {
-				((TableRowSWTBase) row).clearCellFlag(flag, false);
-			}
+		this_mon.enter();
+		try {
+  		if (bDisposed || mTableCells == null) {
+  			return;
+  		}
+  
+  		for (TableCellCore cell : mTableCells.values()) {
+  			if (cell != null) {
+  				((TableCellSWTBase) cell).clearFlag(flag);
+  			}
+  		}
+  		if (subRows) {
+  			TableRowCore[] subRowsWithNull = getSubRowsWithNull();
+  			for (TableRowCore row : subRowsWithNull) {
+  				((TableRowSWTBase) row).clearCellFlag(flag, false);
+  			}
+  		}
+		} finally {
+			this_mon.exit();
 		}
 	}
 
@@ -131,20 +151,22 @@ public abstract class TableRowSWTBase
 	 */
 	public void delete() {
 		this_mon.enter();
-
 		try {
+
 			if (bDisposed) {
 				return;
 			}
 
-			for (TableCellCore cell : mTableCells.values()) {
-				try {
-					if (cell != null) {
-						cell.dispose();
-					}
-				} catch (Exception e) {
-					Debug.out(e);
-				}
+			if (mTableCells != null) {
+  			for (TableCellCore cell : mTableCells.values()) {
+  				try {
+  					if (cell != null) {
+  						cell.dispose();
+  					}
+  				} catch (Exception e) {
+  					Debug.out(e);
+  				}
+  			}
 			}
 
 			setHeight(0);
@@ -175,11 +197,19 @@ public abstract class TableRowSWTBase
 		if (bDisposed || !isVisible()) {
 			return;
 		}
-
-		for (TableCellCore cell : mTableCells.values()) {
-			if (cell != null && cell.getTableColumn().getPosition() > iStartColumn) {
-				cell.locationChanged();
+		this_mon.enter();
+		try {
+			if (mTableCells == null) {
+				return;
 			}
+
+  		for (TableCellCore cell : mTableCells.values()) {
+  			if (cell != null && cell.getTableColumn().getPosition() > iStartColumn) {
+  				cell.locationChanged();
+  			}
+  		}
+		} finally {
+			this_mon.exit();
 		}
 	}
 
@@ -231,11 +261,16 @@ public abstract class TableRowSWTBase
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#getTableCellCore(java.lang.String)
 	 */
 	public TableCellCore getTableCellCore(String name) {
-		if (bDisposed || mTableCells == null) {
-			return null;
+		this_mon.enter();
+		try {
+  		if (bDisposed || mTableCells == null) {
+  			return null;
+  		}
+  
+  		return mTableCells.get(name);
+		} finally {
+			this_mon.exit();
 		}
-
-		return mTableCells.get(name);
 	}
 
 	/* (non-Javadoc)
@@ -293,14 +328,19 @@ public abstract class TableRowSWTBase
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#setUpToDate(boolean)
 	 */
 	public void setUpToDate(boolean upToDate) {
-		if (bDisposed) {
-			return;
-		}
-
-		for (TableCellCore cell : mTableCells.values()) {
-			if (cell != null) {
-				cell.setUpToDate(upToDate);
-			}
+		this_mon.enter();
+		try {
+  		if (bDisposed || mTableCells == null) {
+  			return;
+  		}
+  
+  		for (TableCellCore cell : mTableCells.values()) {
+  			if (cell != null) {
+  				cell.setUpToDate(upToDate);
+  			}
+  		}
+		} finally {
+			this_mon.exit();
 		}
 	}
 
@@ -330,26 +370,39 @@ public abstract class TableRowSWTBase
 
 		tv.invokeRefreshListeners(this);
 
-		for (TableCellCore cell : mTableCells.values()) {
-			if (cell == null) {
-				continue;
+		// Make a copy of cells so we don't lock while refreshing
+		Collection<TableCellCore> lTableCells = null;
+		this_mon.enter();
+		try {
+			if (mTableCells != null) {
+				lTableCells = new ArrayList<TableCellCore>(mTableCells.values());
 			}
-			TableColumn column = cell.getTableColumn();
-			//System.out.println(column);
-			if (column != tv.getSortColumn()
-					&& !tv.isColumnVisible(column)) {
-				//System.out.println("skip " + column);
-				continue;
-			}
-			boolean changed = cell.refresh(bDoGraphics, bVisible,
-					bVisible && cell.isShown());
-			if (changed) {
-				if (list == Collections.EMPTY_LIST) {
-					list = new ArrayList<TableCellCore>(mTableCells.size());
-				}
-				list.add(cell);
-			}
+		} finally {
+			this_mon.exit();
+		}
 
+		if (lTableCells != null) {
+  		for (TableCellCore cell : lTableCells) {
+  			if (cell == null) {
+  				continue;
+  			}
+  			TableColumn column = cell.getTableColumn();
+  			//System.out.println(column);
+  			if (column != tv.getSortColumn()
+  					&& !tv.isColumnVisible(column)) {
+  				//System.out.println("skip " + column);
+  				continue;
+  			}
+  			boolean changed = cell.refresh(bDoGraphics, bVisible,
+  					bVisible && cell.isShown());
+  			if (changed) {
+  				if (list == Collections.EMPTY_LIST) {
+  					list = new ArrayList<TableCellCore>(lTableCells.size());
+  				}
+  				list.add(cell);
+  			}
+  
+  		}
 		}
 
 		//System.out.println();
@@ -527,29 +580,39 @@ public abstract class TableRowSWTBase
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableRow#isValid()
 	 */
 	public boolean isValid() {
-		if (bDisposed || mTableCells == null) {
-			return true;
+		this_mon.enter();
+		try {
+  		if (bDisposed || mTableCells == null) {
+  			return true;
+  		}
+  
+  		boolean valid = true;
+  		for (TableCell cell : mTableCells.values()) {
+  			if (cell != null && cell.isValid()) {
+  				return false;
+  			}
+  		}
+  
+ 		return valid;
+		} finally {
+			this_mon.exit();
 		}
-
-		boolean valid = true;
-		for (TableCell cell : mTableCells.values()) {
-			if (cell != null && cell.isValid()) {
-				return false;
-			}
-		}
-
-		return valid;
 	}
 
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableRow#getTableCell(java.lang.String)
 	 */
 	public TableCell getTableCell(String field) {
-		if (bDisposed || mTableCells == null) {
-			return null;
+		this_mon.enter();
+		try {
+  		if (bDisposed || mTableCells == null) {
+  			return null;
+  		}
+  
+  		return mTableCells.get(field);
+		} finally {
+			this_mon.exit();
 		}
-
-		return mTableCells.get(field);
 	}
 
 	/* (non-Javadoc)
@@ -616,15 +679,20 @@ public abstract class TableRowSWTBase
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getTableCellSWT(java.lang.String)
 	 */
 	public TableCellSWT getTableCellSWT(String name) {
-		if (bDisposed || mTableCells == null) {
-			return null;
+		this_mon.enter();
+		try {
+  		if (bDisposed || mTableCells == null) {
+  			return null;
+  		}
+  
+  		TableCellCore cell = mTableCells.get(name);
+  		if (cell instanceof TableCellSWT) {
+  			return (TableCellSWT) cell;
+  		}
+  		return null;
+		} finally {
+			this_mon.exit();
 		}
-
-		TableCellCore cell = mTableCells.get(name);
-		if (cell instanceof TableCellSWT) {
-			return (TableCellSWT) cell;
-		}
-		return null;
 	}
 
 	/* (non-Javadoc)
@@ -694,12 +762,24 @@ public abstract class TableRowSWTBase
 		}
 		wasShown = b;
 
-		for (TableCellCore cell : mTableCells.values()) {
-			if (cell != null) {
-				cell.invokeVisibilityListeners(b
-						? TableCellVisibilityListener.VISIBILITY_SHOWN
-						: TableCellVisibilityListener.VISIBILITY_HIDDEN, true);
+		Collection<TableCellCore> lTableCells = null;
+		this_mon.enter();
+		try {
+			if (mTableCells != null) {
+				lTableCells = new ArrayList<TableCellCore>(mTableCells.values());
 			}
+		} finally {
+			this_mon.exit();
+		}
+
+		if (lTableCells != null) {
+  		for (TableCellCore cell : lTableCells) {
+  			if (cell != null) {
+  				cell.invokeVisibilityListeners(b
+  						? TableCellVisibilityListener.VISIBILITY_SHOWN
+  						: TableCellVisibilityListener.VISIBILITY_HIDDEN, true);
+  			}
+  		}
 		}
 
 		/* Don't need to refresh; paintItem will trigger a refresh on

@@ -58,6 +58,9 @@ public class ColumnTC_Sample
 	public void cellAdded(final TableCell cell) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (cell.isDisposed()) {
+					return;
+				}
 				TableColumnCore column = (TableColumnCore) cell.getDataSource();
 				TableViewSWT tvs = (TableViewSWT) ((TableCellCore) cell).getTableRowCore().getView();
 				TableRowCore sampleRow = (TableRowCore) tvs.getParentDataSource();
