@@ -1644,10 +1644,14 @@ public class FileUtil {
     		
     		FileOutputStream out = new FileOutputStream( file );
 
-    		out.write( file_data );
+    		try{
+    			out.write( file_data );
 
-    		out.close();
-    		
+     		}finally{
+     			
+       			out.close();
+    		}
+     		
     		return( true );
     		
     	}catch( Throwable t ){
