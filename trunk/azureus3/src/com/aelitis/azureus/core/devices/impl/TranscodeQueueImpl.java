@@ -331,6 +331,11 @@ TranscodeQueueImpl
 								error[0] = e;
 							}
 							
+							if ( e.isRetryDisabled()){
+								
+								job.setEnableAutoRetry( false );
+							}
+							
 							xcode_sem.release();
 						}
 						

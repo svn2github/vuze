@@ -680,8 +680,17 @@ TranscodeProviderVuze
 											adapter.failed( new TranscodeException( "Transcode cancelled" ));
 											
 										}else{
+																						
+											Boolean	perm_fail = (Boolean)status.get( "error_is_perm" );
 											
-											adapter.failed( new TranscodeException( "Transcode failed", (Throwable)status.get( "error" )));
+											TranscodeException error = new TranscodeException( "Transcode failed", (Throwable)status.get( "error" ));
+											
+											if ( perm_fail != null && perm_fail ){
+												
+												error.setDisableRetry( true );
+											}
+											
+											adapter.failed( error );
 										}
 									}catch( Throwable e ){
 										

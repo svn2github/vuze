@@ -27,6 +27,8 @@ public class
 TranscodeException
 	extends Exception
 {
+	private boolean	disable_retry = false;
+	
 	public 
 	TranscodeException(
 		String		str )
@@ -40,5 +42,18 @@ TranscodeException
 		Throwable 	e )
 	{
 		super( str, e );
+	}
+	
+	public void
+	setDisableRetry(
+		boolean		b )
+	{
+		disable_retry = b;
+	}
+	
+	public boolean
+	isRetryDisabled()
+	{
+		return( disable_retry );
 	}
 }
