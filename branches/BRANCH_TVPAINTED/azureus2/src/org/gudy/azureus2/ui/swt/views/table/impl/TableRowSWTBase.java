@@ -654,26 +654,17 @@ public abstract class TableRowSWTBase
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#setIconSize(org.eclipse.swt.graphics.Point)
 	 */
-	public boolean setIconSize(Point pt) {
-		// TODO
-		return true;
-	}
-
+	public abstract boolean setIconSize(Point pt);
+	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getForeground()
 	 */
-	public Color getForeground() {
-		// TODO
-		return null;
-	}
+	public abstract Color getForeground();
 
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getBackground()
 	 */
-	public Color getBackground() {
-		// TODO
-		return null;
-	}
+	public abstract Color getBackground();
 
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getTableCellSWT(java.lang.String)
@@ -703,9 +694,7 @@ public abstract class TableRowSWTBase
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#setBackgroundImage(org.eclipse.swt.graphics.Image)
 	 */
-	public void setBackgroundImage(Image image) {
-		// TODO
-	}
+	public abstract void setBackgroundImage(Image image);
 
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getFontStyle()

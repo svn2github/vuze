@@ -508,7 +508,6 @@ public class TableRowPainted
 	}
 
 	public int getFullHeight() {
-		// TODO: Use row height + (height of subrows if expanded)
 		int h = getHeight();
 		if (numSubItems > 0 && isExpanded()) {
 			h += subRowsHeight;
@@ -633,8 +632,11 @@ public class TableRowPainted
 		return numSubItems;
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#linkSubItem(int)
+	 */
 	public TableRowCore linkSubItem(int indexOf) {
-		//TODO
+		// Not used by TableViewPainted
 		return null;
 	}
 
@@ -716,7 +718,6 @@ public class TableRowPainted
 		} finally {
 			mon_SubRows.exit();
 		}
-		System.out.println("SetExpanded " + b);
 		if (isVisible()) {
 			getViewPainted().visibleRowsChanged();
 			getViewPainted().redrawTable();
@@ -738,11 +739,40 @@ public class TableRowPainted
 		}
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.views.table.impl.TableRowSWTBase#setForeground(org.eclipse.swt.graphics.Color)
+	 */
 	@Override
 	public boolean setForeground(Color c) {
 		//TODO
 		return false;
 	}
+	
+
+	@Override
+	public boolean setIconSize(Point pt) {
+		//TODO
+		return false;
+	}
+
+	@Override
+	public Color getForeground() {
+		//TODO
+		return null;
+	}
+
+	@Override
+	public Color getBackground() {
+		//TODO
+		return null;
+	}
+
+	@Override
+	public void setBackgroundImage(Image image) {
+		//TODO
+	}
+
+	
 
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#getHeight()
