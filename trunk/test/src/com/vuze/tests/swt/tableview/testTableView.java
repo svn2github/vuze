@@ -24,8 +24,8 @@ import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
-import com.yourkit.api.Controller;
-import com.yourkit.api.ProfilingModes;
+//import com.yourkit.api.Controller;
+//import com.yourkit.api.ProfilingModes;
 
 public class testTableView
 {
@@ -202,28 +202,28 @@ public class testTableView
 						new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
 								try {
-									Controller controller;
-									controller = new Controller();
-									System.out.println("STARTING");
-									controller.startCPUProfiling(ProfilingModes.CPU_TRACING,
-											Controller.DEFAULT_FILTERS,
-											Controller.DEFAULT_WALLTIME_SPEC);
-									System.out.println("STARTED");
-
-									SimpleTimer.addEvent("YourKitE",
-											SystemTime.getOffsetTime(1000l * 60),
-											new TimerEventPerformer() {
-												public void perform(TimerEvent event) {
-													try {
-														Controller controller;
-														controller = new Controller();
-														controller.stopCPUProfiling();
-														System.out.println("STOPPED");
-													} catch (Exception e) {
-														e.printStackTrace();
-													}
-												}
-											});
+//									Controller controller;
+//									controller = new Controller();
+//									System.out.println("STARTING");
+//									controller.startCPUProfiling(ProfilingModes.CPU_TRACING,
+//											Controller.DEFAULT_FILTERS,
+//											Controller.DEFAULT_WALLTIME_SPEC);
+//									System.out.println("STARTED");
+//
+//									SimpleTimer.addEvent("YourKitE",
+//											SystemTime.getOffsetTime(1000l * 60),
+//											new TimerEventPerformer() {
+//												public void perform(TimerEvent event) {
+//													try {
+//														Controller controller;
+//														controller = new Controller();
+//														controller.stopCPUProfiling();
+//														System.out.println("STOPPED");
+//													} catch (Exception e) {
+//														e.printStackTrace();
+//													}
+//												}
+//											});
 								} catch (Exception e) {
 									e.printStackTrace();
 								}
@@ -299,8 +299,12 @@ public class testTableView
 				entryWindow.prompt(new UIInputReceiverListener() {
 					public void UIInputReceiverClosed(UIInputReceiver receiver) {
 						if (receiver.hasSubmittedInput()) {
-							int parseInt = Integer.parseInt(receiver.getSubmittedInput());
-							addRows(parseInt);
+							final int parseInt = Integer.parseInt(receiver.getSubmittedInput());
+							Utils.getOffOfSWTThread(new AERunnable() {
+								public void runSupport() {
+									addRows(parseInt);
+								}
+							});
 						}
 					}
 				});
