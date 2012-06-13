@@ -810,7 +810,7 @@ public class TableViewPainted
 			cTableComposite.setLayoutData(fd);
 		}
 
-		cHeaderArea = new Canvas(cTableComposite, SWT.NONE);
+		cHeaderArea = new Canvas(cTableComposite, SWT.DOUBLE_BUFFERED);
 
 		cTable = new Canvas(cTableComposite, SWT.NO_BACKGROUND | SWT.H_SCROLL | SWT.V_SCROLL);
 
@@ -849,7 +849,7 @@ public class TableViewPainted
 
 		cTable.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
-				paintComposite(e);
+				swt_paintComposite(e);
 			}
 		});
 
@@ -1168,34 +1168,14 @@ public class TableViewPainted
 		});
 	}
 
-	protected void paintComposite(PaintEvent e) {
+	protected void swt_paintComposite(PaintEvent e) {
 		swt_calculateClientArea();
 		if (canvasImage == null) {
 			return;
 		}
 		
 		//System.out.println("PAint " + e.gc.getClipping() + ";" + e.x + "," + e.y + "," + e.width + "," + e.height + " via " + Debug.getCompressedStackTrace());
-/**
-		GC gc = new GC(canvasImage);
-		Rectangle clipping = e.gc.getClipping();
-		// our image is sized to include full rows.  If we are painting to the bottom
-		// of the client area, adjust clipping so we paint to the bottom of full
-		// row
-//		if (clipping.x + clipping.width == cTable.getSize().x) {
-//			e.width = clipping.width = canvasImage.getBounds().width - clipping.x;
-//		}
-//		if (clipping.y + clipping.height == cTable.getSize().y) {
-//			e.height = clipping.height = canvasImage.getBounds().height - clipping.y;
-//		}
-//		
-//		gc.setClipping(clipping);
-//		gc.setBackground(e.gc.getBackground());
-		GC oldGC = e.gc;
-		e.gc = gc;
-		_paintComposite(e.gc, new Rectangle(e.x, e.y, e.width, e.height));
-		e.gc = oldGC;
-		gc.dispose();
-/**/
+
 		e.gc.drawImage(canvasImage, -clientArea.x, 0);
 		
 		// test line
@@ -1813,7 +1793,7 @@ public class TableViewPainted
 			w += column.getWidth();
 		}
 		columnsWidth = w;
-		newClientArea.width = Math.max(newClientArea.width, w);
+		w = newClientArea.width = Math.max(newClientArea.width, w);
 
 		boolean changedX;
 		boolean changedY;

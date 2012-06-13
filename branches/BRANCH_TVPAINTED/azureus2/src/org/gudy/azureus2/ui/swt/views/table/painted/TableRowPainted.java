@@ -226,32 +226,17 @@ public class TableRowPainted
     			x += w;
     		}
   		}
+  		int w = drawBounds.width - x;
+  		if (w > 0) {
+  			gc.fillRectangle(x, rowStartY, w, getHeight());
+  		}
+
 		} finally {
 			this_mon.exit();
 		}
 		
 //		if (paintedRow) {
 //			//debug("Paint " + e.x + "x" + e.y + " " + e.width + "x" + e.height + ".." + e.count + ";clip=" + e.gc.getClipping() +";drawOffset=" + drawOffset + " via " + Debug.getCompressedStackTrace());
-//		}
-//		mon_SubRows.enter();
-//		try {
-//			if (isExpanded() && subRows != null) {
-//				int y = rowStartY + getHeight();
-//				for (TableRowPainted subRow : subRows) {
-//					int h = subRow.getFullHeight();
-//					if (y + h > 0) {
-//  					Rectangle r = subRow.getDrawBounds();
-//  					if (!rgn.intersects(r)) {
-//  						break;
-//  					}
-//  
-//  					subRow.paintControl(e, rowStartX, y);
-//					}
-//					y += h;
-//				}
-//			}
-//		} finally {
-//			mon_SubRows.exit();
 //		}
 
 		gc.setAlpha(255);
