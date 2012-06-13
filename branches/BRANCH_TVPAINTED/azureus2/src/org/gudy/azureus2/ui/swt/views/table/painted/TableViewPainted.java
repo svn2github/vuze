@@ -52,7 +52,7 @@ public class TableViewPainted
 	MessageTextListener
 {
 
-	private static final boolean DEBUG_ROWCHANGE = true;
+	private static final boolean DEBUG_ROWCHANGE = false;
 
 	private Composite cTable;
 
@@ -1747,6 +1747,11 @@ public class TableViewPainted
 		if (DEBUG_ROWCHANGE && yStart == 0) {
 			System.out.println();
 		}
+	}
+	
+	@Override
+	public int uiGuessMaxVisibleRows() {
+		return (clientArea.height / defaultRowHeight) + 1;
 	}
 
 	/* (non-Javadoc)

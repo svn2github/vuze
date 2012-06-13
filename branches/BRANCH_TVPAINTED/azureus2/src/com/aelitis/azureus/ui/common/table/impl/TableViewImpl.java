@@ -546,7 +546,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		AEDiagnosticsLogger diag_logger = AEDiagnostics.getLogger("table");
 		diag_logger.log(SystemTime.getCurrentTime() + ":" + getTableID() + ": " + s);
 
-		System.out.println(SystemTime.getCurrentTime() + ": " + getTableID() + ": "
+		System.out.println(Thread.currentThread().getName() + "] " + SystemTime.getCurrentTime() + ": " + getTableID() + ": "
 				+ s);
 	}
 
@@ -610,7 +610,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			return;
 		}
 
-		if (DataSourceCallBackUtil.IMMEDIATE_ADDREMOVE_DELAY == 0) {
+		if (DataSourceCallBackUtil.IMMEDIATE_ADDREMOVE_DELAY == 0 || sortedRows.size() < uiGuessMaxVisibleRows()) {
 			reallyAddDataSources(new Object[] {
 				dataSource
 			});
@@ -1206,6 +1206,8 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	public abstract int uiGetBottomIndex(int iTopIndex);
 
 	public abstract void uiRemoveRows(TableRowCore[] rows, Integer[] rowIndexes);
+	
+	public abstract int uiGuessMaxVisibleRows();
 
 	public void resetLastSortedOn() {
 		lLastSortedOn = 0;

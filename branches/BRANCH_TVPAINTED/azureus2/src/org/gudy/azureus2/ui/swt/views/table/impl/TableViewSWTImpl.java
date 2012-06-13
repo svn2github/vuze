@@ -2839,6 +2839,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 	
 	@Override
+	public int uiGuessMaxVisibleRows() {
+		return 0;
+	}
+	
+	@Override
 	public int uiGetBottomIndex(final int iTopIndex) {
 		return ((Number) Utils.execSWTThreadWithObject("uiGetBottomIndex", new AERunnableObject() {
 			public Object runSupport() {
