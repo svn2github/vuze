@@ -15,12 +15,23 @@
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
- 
-package org.gudy.azureus2.ui.swt.views.table;
+
+package com.aelitis.azureus.ui.common.table;
 
 /**
- * @deprecated Use common one
+ * @author TuxPaper
+ * @created Oct 4, 2009
+ *
  */
-public interface TableViewFilterCheck<DATASOURCETYPE> extends com.aelitis.azureus.ui.common.table.TableViewFilterCheck<DATASOURCETYPE>
+public interface TableViewFilterCheck<DATASOURCETYPE>
 {
+	public boolean filterCheck(DATASOURCETYPE ds, String filter, boolean regex);
+
+	public void filterSet(String filter);
+
+	public interface TableViewFilterCheckEx<DATASOURCETYPE>
+		extends TableViewFilterCheck<DATASOURCETYPE>
+	{
+		public void viewChanged(TableView<DATASOURCETYPE> view);
+	}
 }

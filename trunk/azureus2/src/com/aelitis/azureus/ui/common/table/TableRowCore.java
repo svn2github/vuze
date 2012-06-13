@@ -108,12 +108,14 @@ public interface TableRowCore extends TableRow
 	 * @param bDoGraphics
 	 * @param bVisible
 	 */
-	public List refresh(boolean bDoGraphics, boolean bVisible);
+	public List<TableCellCore> refresh(boolean bDoGraphics, boolean bVisible);
 
 	/**
 	 * like refresh, except a different name to confuse us.
 	 */
 	public void redraw();
+
+	public void redraw(boolean doChildren);
 
 	/**
 	 * @return
@@ -134,14 +136,6 @@ public interface TableRowCore extends TableRow
 	 * @since 3.0.4.3
 	 */
 	public boolean isMouseOver();
-
-	/**
-	 * @param height
-	 * @return
-	 *
-	 * @since 3.0.4.3
-	 */
-	public boolean setDrawableHeight(int height);
 
 	/**
 	 * @param length
@@ -183,4 +177,12 @@ public interface TableRowCore extends TableRow
 	TableRowCore[] getSubRowsWithNull();
 
 	void removeSubRow(Object datasource);
+
+	public int getHeight();
+
+	public TableRowCore getSubRow(int i);
+
+	public void setSortColumn(String columnID);
+	
+	public TableCellCore getSortColumnCell(String hint);
 }

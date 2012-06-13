@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
+import org.gudy.azureus2.ui.swt.views.table.painted.TableCellPainted;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 
@@ -132,16 +133,20 @@ public class FakeTableCell
 	/**
 	 * @param columnRateUpDown
 	 */
-	public FakeTableCell(TableColumn column) {
+	public FakeTableCell(TableColumn column, Object ds) {
 		valid = false;
+		coreDataSource = ds;
 		this.tableColumn = (TableColumnCore) column;
 		setOrientationViaColumn();
+		tableColumn.invokeCellAddedListeners(this);
 	}
 
-	public FakeTableCell(TableColumnCore column) {
+	public FakeTableCell(TableColumnCore column, Object ds) {
 		valid = false;
+		coreDataSource = ds;
 		this.tableColumn = column;
 		setOrientationViaColumn();
+		tableColumn.invokeCellAddedListeners(this);
 	}
 
 	public void addRefreshListener(TableCellRefreshListener listener) {
@@ -845,14 +850,12 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#setSortValue(java.lang.Comparable)
 	public boolean setSortValue(Comparable valueToSort) {
-		// TODO Auto-generated method stub
-		return false;
+		return _setSortValue(valueToSort);
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#setSortValue(float)
 	public boolean setSortValue(float valueToSort) {
-		// TODO Auto-generated method stub
-		return false;
+		return _setSortValue(Float.valueOf(valueToSort));
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#setText(java.lang.String)
@@ -933,7 +936,7 @@ public class FakeTableCell
 		}
 		// TODO: Cleanup and stop calling me so often!
 		
-		//gc.setBackground(getBackground());
+		//gc.setBackground(getBackgroundSWT());
 		//if (DEBUG_COLORCELL) {
 		//	gc.setBackground(Display.getDefault().getSystemColor(
 		//			(int) (Math.random() * 16)));
@@ -942,6 +945,10 @@ public class FakeTableCell
 			return;
 		}
 		//gc.fillRectangle(bounds);
+		if (!bounds.intersects(gc.getClipping())) {
+			return;
+		}
+		
 
 		if (image != null && !image.isDisposed()) {
 			Point size = new Point(bounds.width, bounds.height);
@@ -1281,6 +1288,10 @@ public class FakeTableCell
 		Point ptCursor = composite.getDisplay().getCursorLocation();
 		return r.contains(ptCursor);
 	}
+	
+	public void setMouseOver(boolean b) {
+		// ignored, we calc mouseover on the fly
+	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableCellCore#isUpToDate()
 	public boolean isUpToDate() {
@@ -1315,9 +1326,9 @@ public class FakeTableCell
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableCellCore#setCursorID(int)
-	public void setCursorID(int cursorID) {
+	public boolean setCursorID(int cursorID) {
 		// TODO Auto-generated method stub
-
+		return false;
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableCellCore#setUpToDate(boolean)
@@ -1498,5 +1509,9 @@ public class FakeTableCell
 		bounds.x = pt.x;
 		bounds.y = pt.y;
 		return bounds;
+	}
+
+	public TableColumnCore getTableColumnCore() {
+		return tableColumn;
 	}
 }

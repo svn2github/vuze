@@ -44,6 +44,7 @@ import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.peer.RemotePieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
@@ -141,7 +142,7 @@ public class PeersView
   
   // @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initYourTableView()
   public TableViewSWT<PEPeer> initYourTableView() {
-		tv = new TableViewSWTImpl<PEPeer>(Peer.class, TableManager.TABLE_TORRENT_PEERS,
+  	tv = TableViewFactory.createTableViewSWT(Peer.class, TableManager.TABLE_TORRENT_PEERS,
 				getPropertiesPrefix(), basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL);
 		tv.setRowDefaultHeight(16);

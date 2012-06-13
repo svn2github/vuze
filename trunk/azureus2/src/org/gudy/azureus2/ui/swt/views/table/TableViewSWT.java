@@ -24,17 +24,15 @@ import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
-import org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener;
-import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.painted.TableRowPainted;
 
-import com.aelitis.azureus.ui.common.table.TableCellCore;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
-import com.aelitis.azureus.ui.common.table.TableView;
+import com.aelitis.azureus.ui.common.table.*;
 
 /**
  * @author TuxPaper
@@ -44,9 +42,6 @@ import com.aelitis.azureus.ui.common.table.TableView;
 public interface TableViewSWT<DATASOURCETYPE>
 	extends TableView<DATASOURCETYPE>
 {
-	/** Helpful output when trying to debug add/removal of rows */
-	public final static boolean DEBUGADDREMOVE = System.getProperty("debug.swt.table.addremove", "0").equals("1");
-
 	void addKeyListener(KeyListener listener);
 
 	public void addMenuFillListener(TableViewSWTMenuFillListener l);
@@ -136,7 +131,7 @@ public interface TableViewSWT<DATASOURCETYPE>
 	 *
 	 * @since 4.1.0.9
 	 */
-	void enableFilterCheck(Text txtFilter, TableViewFilterCheck<DATASOURCETYPE> filterCheck);
+	void enableFilterCheck(Text txtFilter, com.aelitis.azureus.ui.common.table.TableViewFilterCheck<DATASOURCETYPE> filterCheck);
 
 	/**
 	 * @since 4.7.0.1
@@ -213,4 +208,50 @@ public interface TableViewSWT<DATASOURCETYPE>
 	boolean isMenuEnabled();
 
 	void packColumns();
+
+	void visibleRowsChanged();
+
+	void invokePaintListeners(GC gc, TableRowCore row, TableColumnCore column,
+			Rectangle cellArea);
+
+	boolean isVisible();
+
+	TableColumnCore getTableColumnByOffset(int x);
+
+	TableRowSWT getTableRow(int x, int y, boolean anyX);
+
+	public void setRowSelected(final TableRowCore row, boolean selected, boolean trigger);
+
+	void editCell(int column, int row);
+
+	void invokeRowMouseListener(TableRowMouseEvent event);
+
+	int getColumnNo(int iMouseX);
+
+	boolean isDragging();
+
+	KeyListener[] getKeyListeners();
+
+	TableViewSWTFilter getSWTFilter();
+
+	void triggerDefaultSelectedListeners(TableRowCore[] selectedRows,
+			int stateMask);
+
+	void sortColumn(boolean bForceDataRefresh);
+
+	void openFilterDialog();
+
+	boolean isSingleSelection();
+
+	void expandColumns();
+
+	void showColumnEditor();
+
+	boolean isTabViewsEnabled();
+
+	Composite createMainPanel(Composite composite);
+
+	void tableInvalidate();
+
+	void showRow(TableRowCore rowToShow);
 }

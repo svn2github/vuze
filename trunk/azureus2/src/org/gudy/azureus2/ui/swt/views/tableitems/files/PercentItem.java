@@ -17,7 +17,7 @@
  * AELITIS, SAS au capital de 46,603.30 euros,
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
- 
+
 package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -32,15 +32,15 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  * @since 2.0.8.5
  */
 public class PercentItem
-       extends CoreTableColumn 
-       implements TableCellRefreshListener
+	extends CoreTableColumn
+	implements TableCellRefreshListener
 {
-  /** Default Constructor */
-  public PercentItem() {
-    super("%", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_TORRENT_FILES);
-    setRefreshInterval(INTERVAL_LIVE);
-    setMinWidthAuto(true);
-  }
+	/** Default Constructor */
+	public PercentItem() {
+		super("%", ALIGN_TRAIL, POSITION_LAST, 60, TableManager.TABLE_TORRENT_FILES);
+		setRefreshInterval(INTERVAL_LIVE);
+		setMinWidthAuto(true);
+	}
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] {
@@ -49,37 +49,43 @@ public class PercentItem
 		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
-  public void refresh(TableCell cell) {
-	  
-    DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
-	
-    long percent = 0;
-	
-    if (fileInfo != null ){
-    	long bytesDownloaded = fileInfo.getDownloaded();
-		
-		if ( bytesDownloaded < 0 ){
-			
-			percent = -1; // unknown skeleton value
-			
-		}else if ( fileInfo.getLength() != 0 ){
+	public void refresh(TableCell cell) {
 
-			percent = (1000 * bytesDownloaded) / fileInfo.getLength();
-		}else{
-			
-			percent = 1000;
+		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) cell.getDataSource();
+
+		long percent = 0;
+
+		if (fileInfo != null) {
+			long bytesDownloaded = fileInfo.getDownloaded();
+
+			if (bytesDownloaded < 0) {
+
+				percent = -1; // unknown skeleton value
+
+			} else {
+				long length = fileInfo.getLength();
+
+				if (length != 0) {
+
+					percent = (1000 * bytesDownloaded) / length;
+
+				} else {
+
+					percent = 1000;
+				}
+			}
+
+		} else {
+
+			percent = -1; // unknown skeleton value
 		}
-	  
-    }else{
-		
-		percent = -1;	// unknown skeleton value
-    }
-	
-    if( !cell.setSortValue( percent ) && cell.isValid() ) {
-		
-      return;
-    }
-    
-    cell.setText( percent < 0?"":DisplayFormatters.formatPercentFromThousands((int)percent));
-  }
+
+		if (!cell.setSortValue(percent) && cell.isValid()) {
+
+			return;
+		}
+
+		cell.setText(percent < 0 ? ""
+				: DisplayFormatters.formatPercentFromThousands((int) percent));
+	}
 }

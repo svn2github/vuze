@@ -81,7 +81,11 @@ public class ColumnActivityActions
 			return;
 		}
 
-		String text = cell.getText();
+		TableRow row = cell.getTableRow();
+		if (row == null) {
+			return;
+		}
+		String text = (String) row.getData("text");
 
 		if (text != null && text.length() > 0) {
 			if (font == null) {

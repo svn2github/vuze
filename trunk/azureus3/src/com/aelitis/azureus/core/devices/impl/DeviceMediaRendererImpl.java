@@ -130,7 +130,7 @@ DeviceMediaRendererImpl
 							setHidden(true);
 						} else if (fileCount > 0 && Constants.IS_CVS_VERSION && isHidden()) {
 							// Fix beta bug where we hid devices that had files.  Remove after 4605
-							device.setHidden(false);
+							setHidden(false);
 						}
 					} else {
 						// Device has UPnP stuff, but did not register itself as

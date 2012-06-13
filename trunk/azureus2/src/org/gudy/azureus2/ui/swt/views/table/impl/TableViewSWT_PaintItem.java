@@ -9,6 +9,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedGraphicTableItem;
 import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
@@ -31,6 +32,8 @@ public class TableViewSWT_PaintItem
 
 	private TableViewSWTImpl<?> tv;
 
+	private boolean bSkipFirstColumn;
+
 	private static Font fontBold;
 
 	public TableViewSWT_PaintItem(TableViewSWTImpl<?> tv, TableOrTreeSWT table) {
@@ -47,7 +50,7 @@ public class TableViewSWT_PaintItem
 		if (numColumns <= 0) {
 			return columnRange;
 		}
-		for (int i = tv.bSkipFirstColumn ? 1 : 0; i < numColumns; i++) {
+		for (int i = bSkipFirstColumn ? 1 : 0; i < numColumns; i++) {
 			Rectangle cellBounds = ti.getBounds(i);
 			if (iMouseX >= cellBounds.x && iMouseX < cellBounds.x + cellBounds.width
 					&& cellBounds.width > 0) {
@@ -157,7 +160,7 @@ public class TableViewSWT_PaintItem
 						TableViewSWT_EraseItem.eraseItem(event, event.gc, item, event.index, true, bounds, tv, true);
 					}
 					//TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
-					paintItem(event.gc, item, event.index, lastRowIndex, bounds, tv, false);
+					paintItem(event.gc, (TableRowSWT) tv.getRow(item), event.index, lastRowIndex, bounds, tv, false);
 					event.gc.setFont(f);
 					event.gc.setClipping(r);
 					
@@ -183,7 +186,7 @@ public class TableViewSWT_PaintItem
 			}
 
 			//visibleRowsChanged();
-			paintItem(event.gc, item, event.index, lastRowIndex, bounds, tv, false);
+			paintItem(event.gc, (TableRowSWT) tv.getRow(item), event.index, lastRowIndex, bounds, tv, false);
 
 			lastItem = event.item;
 		}
@@ -196,12 +199,11 @@ public class TableViewSWT_PaintItem
 	 * @param event
 	 * @param rowIndex 
 	 */
-	public static void paintItem(GC gc, TableItemOrTreeItem item, int columnIndex,
-			int rowIndex, Rectangle _cellBounds, TableViewSWTImpl<?> tv, boolean skipClipCalc) {
+	public static void paintItem(GC gc, TableRowSWT row, int columnIndex,
+			int rowIndex, Rectangle _cellBounds, TableViewSWT<?> tv, boolean skipClipCalc) {
 		//if (columnIndex == 1 && rowIndex == 0) {
-		//	System.out.println("paintItem " + gc.getClipping() +":" + rowIndex + ":" + event.detail + ": " + Debug.getCompressedStackTrace());
+		//	System.out.println("paintItem " + gc.getClipping() +":" + rowIndex + ":" + columnIndex + ": " + Debug.getCompressedStackTrace());
 		//}
-		TableOrTreeSWT table = tv.getTableOrTreeSWT();
 		try {
 			//System.out.println(gc.getForeground().getRGB().toString());
 			//System.out.println("paintItem " + gc.getClipping());
@@ -213,20 +215,20 @@ public class TableViewSWT_PaintItem
 				gc.fillRectangle(gc.getClipping());
 			}
 
-			if (item == null || item.isDisposed()) {
+			if (row == null || row.isRowDisposed()) {
 				return;
 			}
 			int iColumnNo = columnIndex;
 
-			//System.out.println(SystemTime.getCurrentTime() + "] paintItem " + table.indexOf(item) + ":" + iColumnNo);
-			if (tv.bSkipFirstColumn) {
+			//System.out.println(SystemTime.getCurrentTime() + "] paintItem " + rowIndex + ":" + iColumnNo);
+			if ((tv instanceof TableViewSWTImpl) && ((TableViewSWTImpl)tv).bSkipFirstColumn) {
 				if (iColumnNo == 0) {
 					return;
 				}
 				iColumnNo--;
 			}
 
-			TableColumnCore[] columnsOrdered = tv.getColumnsOrdered();
+			TableColumnCore[] columnsOrdered = tv.getVisibleColumns();
 
 			if (iColumnNo >= columnsOrdered.length) {
 				System.out.println("Col #" + iColumnNo + " >= " + columnsOrdered.length
@@ -235,7 +237,7 @@ public class TableViewSWT_PaintItem
 			}
 
 			if (!tv.isColumnVisible(columnsOrdered[iColumnNo])) {
-				//System.out.println("col not visible " + iColumnNo);
+				System.out.println("col not visible " + iColumnNo);
 				return;
 			}
 
@@ -250,18 +252,15 @@ public class TableViewSWT_PaintItem
 			//System.out.println("cb=" + cellBounds + ";b=" + event.getBounds() + ";clip=" + gc.getClipping());
 			Rectangle origClipping = gc.getClipping();
 
-			if (origClipping.isEmpty()
-					|| (origClipping.width >= cellBounds.width && origClipping.height >= cellBounds.height)) {
-				table.setData("fullPaint", Boolean.TRUE);
-			} else {
-				table.setData("fullPaint", Boolean.FALSE);
-				//System.out.println("not full paint: " + origClipping + ";cellbounds=" + cellBounds);
-			}
-
-			TableRowSWT row = (TableRowSWT) tv.getRow(item);
-			if (row == null) {
-				//System.out.println("no row");
-				return;
+			TableOrTreeSWT table = tv.getTableOrTreeSWT();
+			if (table != null) {
+  			if (origClipping.isEmpty()
+  					|| (origClipping.width >= cellBounds.width && origClipping.height >= cellBounds.height)) {
+  				table.setData("fullPaint", Boolean.TRUE);
+  			} else {
+  				table.setData("fullPaint", Boolean.FALSE);
+  				//System.out.println("not full paint: " + origClipping + ";cellbounds=" + cellBounds);
+  			}
 			}
 
 			if (!tv.isRowVisible(row)) {
@@ -294,7 +293,7 @@ public class TableViewSWT_PaintItem
 			}
 
 			if (!cell.isUpToDate()) {
-				//System.out.println("R " + table.indexOf(item) + ":" + iColumnNo);
+				//System.out.println("R " + rowIndex + ":" + iColumnNo);
 				cell.refresh(true, true);
 				//return;
 			}
@@ -306,14 +305,14 @@ public class TableViewSWT_PaintItem
   					cellBounds.width, cellBounds.height);
   			// Cocoa calls paintitem while row is below tablearea, and painting there
   			// is valid!
-  			if (!Utils.isCocoa) {
-  				int iMinY = tv.headerHeight + tv.clientArea.y;
+  			if (!Utils.isCocoa && (tv instanceof TableViewSWTImpl)) {
+  				int iMinY = ((TableViewSWTImpl) tv).headerHeight + ((TableViewSWTImpl) tv).clientArea.y;
   
   				if (clipping.y < iMinY) {
   					clipping.height -= iMinY - clipping.y;
   					clipping.y = iMinY;
   				}
-  				int iMaxY = tv.clientArea.height + tv.clientArea.y;
+  				int iMaxY = ((TableViewSWTImpl) tv).clientArea.height + ((TableViewSWTImpl) tv).clientArea.y;
   				if (clipping.y + clipping.height > iMaxY) {
   					clipping.height = iMaxY - clipping.y + 1;
   				}
@@ -345,7 +344,10 @@ public class TableViewSWT_PaintItem
 							cellBounds.width - (marginWidth * 2), cellBounds.height
 									- (marginHeight * 2));
 					Rectangle imageBounds = graphicSWT.getBounds();
-					BufferedTableItem bufferedTableItem = cell.getBufferedTableItem();
+					BufferedTableItem bufferedTableItem = null;
+					if (cell instanceof TableCellImpl) {
+						bufferedTableItem = ((TableCellImpl) cell).getBufferedTableItem();
+					}
 					if (bufferedTableItem instanceof BufferedGraphicTableItem) {
 						BufferedGraphicTableItem ti = (BufferedGraphicTableItem) bufferedTableItem;
 						int orientation = ti.getOrientation();
@@ -392,7 +394,7 @@ public class TableViewSWT_PaintItem
 					cellBounds.x += ofs;
 					cellBounds.width -= ofs;
 				}
-				//System.out.println("PS " + table.indexOf(item) + ";" + cellBounds + ";" + cell.getText());
+				//System.out.println("PS " + rowIndex + ";" + cellBounds + ";" + cell.getText());
 				int style = TableColumnSWTUtils.convertColumnAlignmentToSWT(columnsOrdered[iColumnNo].getAlignment());
 				if (cellBounds.height > 20) {
 					style |= SWT.WRAP;
@@ -428,8 +430,9 @@ public class TableViewSWT_PaintItem
 					Point size = sp.getCalculatedSize();
 					size.x += ofsx;
 
-					if (cell.getTableColumn().getPreferredWidth() < size.x) {
-						cell.getTableColumn().setPreferredWidth(size.x);
+					TableColumn tableColumn = cell.getTableColumn();
+					if (tableColumn != null && tableColumn.getPreferredWidth() < size.x) {
+						tableColumn.setPreferredWidth(size.x);
 					}
 
 					if (imageBounds != null) {
@@ -446,7 +449,9 @@ public class TableViewSWT_PaintItem
 					cell.setDefaultToolTip(null);
 				}
 			}
-
+			if (cell instanceof TableCellSWTBase) {
+				((TableCellSWTBase) cell).clearVisuallyChangedSinceRefresh();
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

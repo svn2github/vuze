@@ -45,7 +45,7 @@ public interface TableRowSWT extends TableRowCore
 	 *
 	 * @param c new color
 	 */
-	public void setForeground(Color c);
+	public boolean setForeground(Color c);
 
 	public Color getBackground();
 
@@ -94,4 +94,8 @@ public interface TableRowSWT extends TableRowCore
 	 * @since 4.4.0.5
 	 */
 	void setWidgetSelected(boolean selected);
+
+	void setShown(boolean shown, boolean force);
+
+	public int getFullHeight();
 }

@@ -105,7 +105,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 			Object datasource) {
 		if (item.getID().equals("editcolumns")) {
 			if (tv instanceof TableViewSWTImpl) {
-				((TableViewSWTImpl<?>)tv).showColumnEditor();
+				((TableViewSWT<?>)tv).showColumnEditor();
 				return true;
 			}
 		}

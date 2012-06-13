@@ -169,7 +169,7 @@ public class TableColumnManager {
 			items_mon.enter();
 			for (int i = 0; i < itemsToAdd.length; i++) {
 				TableColumnCore item = itemsToAdd[i];
-				if ( item.isRemoved()){
+				if (item == null || item.isRemoved()){
 					continue;
 				}
 				String name = item.getName();
@@ -189,7 +189,7 @@ public class TableColumnManager {
 			for (int i = 0; i < itemsToAdd.length; i++) {
 				TableColumnCore item = itemsToAdd[i];
 				
-				if (!item.isRemoved() && !item.getColumnAdded()) {
+				if (item != null && !item.isRemoved() && !item.getColumnAdded()) {
 					item.setColumnAdded();
 				}
 			}

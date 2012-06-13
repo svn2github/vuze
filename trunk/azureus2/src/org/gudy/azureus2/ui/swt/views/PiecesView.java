@@ -43,7 +43,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.views.piece.MyPieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.pieces.*;
 
@@ -94,7 +94,7 @@ public class PiecesView
 
 	DownloadManager manager;
   
-	private TableViewSWTImpl<PEPiece> tv;
+	private TableViewSWT<PEPiece> tv;
 
 	private Composite legendComposite;
 
@@ -109,7 +109,7 @@ public class PiecesView
 
 	// @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initYourTableView()
 	public TableViewSWT<PEPiece> initYourTableView() {
-		tv = new TableViewSWTImpl<PEPiece>(PEPiece.class,
+		tv = TableViewFactory.createTableViewSWT(PEPiece.class,
 				TableManager.TABLE_TORRENT_PIECES, getPropertiesPrefix(), basicItems,
 				basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		tv.setEnableTabViews(true);

@@ -294,10 +294,9 @@ public class TorrentInfoView
 				
 				FakeTableCell fakeTableCell = null;
 				try {
-  				fakeTableCell = new FakeTableCell(col);
+  				fakeTableCell = new FakeTableCell(col, download_manager);
   				fakeTableCell.setOrentation(SWT.LEFT);
   				fakeTableCell.setWrapText(false);
-  				fakeTableCell.setDataSource(download_manager);
 					col.invokeCellAddedListeners(fakeTableCell);
   				// One refresh to see if it throws up
   				fakeTableCell.refresh();

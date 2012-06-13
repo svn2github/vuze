@@ -10,13 +10,16 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.util.*;
-
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
@@ -25,7 +28,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -57,7 +60,7 @@ public class ClientStatsView
 
 	private AzureusCore core;
 
-	private TableViewSWTImpl<ClientStatsDataSource> tv;
+	private TableViewSWT<ClientStatsDataSource> tv;
 
 	private boolean columnsAdded;
 
@@ -313,7 +316,7 @@ public class ClientStatsView
 	}
 
 	public TableViewSWT<ClientStatsDataSource> initYourTableView() {
-		tv = new TableViewSWTImpl<ClientStatsDataSource>(
+		tv = TableViewFactory.createTableViewSWT(
 				ClientStatsDataSource.class, TABLEID, getPropertiesPrefix(),
 				new TableColumnCore[0], ColumnCS_Count.COLUMN_ID, SWT.MULTI
 						| SWT.FULL_SELECTION | SWT.VIRTUAL);

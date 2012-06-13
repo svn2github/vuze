@@ -55,4 +55,19 @@ UISWTGraphicImpl
     img = newImage;
     return true;
   }
+  
+  @Override
+  public boolean equals(Object obj) {
+  	if (super.equals(obj)) {
+  		return true;
+  	}
+  	if (obj instanceof UISWTGraphic) {
+  		Image img2 = ((UISWTGraphic) obj).getImage();
+  		if (img2 == null) {
+  			return img == null;
+  		}
+  		return img2.equals(img);
+  	}
+  	return false;
+  }
 }

@@ -20,22 +20,21 @@ package org.gudy.azureus2.ui.swt.views.columnsetup;
 
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.views.columnsetup.TableColumnSetupWindow.TableViewColumnSetup;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.FakeTableCell;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableCellImpl;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
-
-import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author TuxPaper
@@ -59,11 +58,14 @@ public class ColumnTC_Sample
 	public void cellAdded(final TableCell cell) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (cell.isDisposed()) {
+					return;
+				}
 				TableColumnCore column = (TableColumnCore) cell.getDataSource();
-				TableViewColumnSetup tv = (TableViewColumnSetup) ((TableCellCore) cell).getTableRowCore().getView();
-				TableRowCore sampleRow = (TableRowCore) tv.getSampleRow();
+				TableViewSWT tvs = (TableViewSWT) ((TableCellCore) cell).getTableRowCore().getView();
+				TableRowCore sampleRow = (TableRowCore) tvs.getParentDataSource();
 
-				cell.addListeners(new Cell(cell, column, tv, sampleRow));
+				cell.addListeners(new Cell(cell, column, tvs.getTableComposite(), sampleRow));
 			}
 		});
 	}
@@ -75,19 +77,17 @@ public class ColumnTC_Sample
 		private final TableColumnCore column;
 		private FakeTableCell sampleCell;
 
-		public Cell(TableCell parentCell, TableColumnCore column, TableViewColumnSetup tv, TableRowCore sampleRow) {
+		public Cell(TableCell parentCell, TableColumnCore column, Composite c, TableRowCore sampleRow) {
 			this.column = column;
 			if (sampleRow == null) {
 				return;
 			}
-			sampleCell = new FakeTableCell(column);
+			Object ds = sampleRow.getDataSource(true);
+			sampleCell = new FakeTableCell(column, ds);
 
-			sampleCell.setControl(tv.getTableComposite());
-			Rectangle bounds = ((TableCellImpl)parentCell).getBounds();
+			sampleCell.setControl(c);
+			Rectangle bounds = ((TableCellSWT)parentCell).getBounds();
 			sampleCell.setCellArea(bounds);
-			if (sampleRow != null) {
-				sampleCell.setDataSource(((TableRowCore)sampleRow).getDataSource(true));
-			}
 		}
 
 		// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
@@ -95,7 +95,7 @@ public class ColumnTC_Sample
 			if (sampleCell == null) {
 				return;
 			}
-			Rectangle bounds = ((TableCellImpl)cell).getBounds();
+			Rectangle bounds = cell.getBounds();
 			sampleCell.setCellArea(bounds);
 			try {
 				sampleCell.doPaint(gc);
@@ -110,7 +110,7 @@ public class ColumnTC_Sample
 				return;
 			}
 			try {
-				column.invokeCellVisibilityListeners((TableCellCore) sampleCell, visibility);
+				column.invokeCellVisibilityListeners(sampleCell, visibility);
 			} catch (Throwable e) {
 				Debug.out(e);
 			}
@@ -126,6 +126,9 @@ public class ColumnTC_Sample
 			}
 			sampleCell.refresh(true, true, true);
 			cell.setSortValue(sampleCell.getSortValue());
+			if (cell instanceof TableCellSWT) {
+				((TableCellSWT) cell).redraw();
+			}
 			//cell.setText(sampleCell.getText());
 		}
 

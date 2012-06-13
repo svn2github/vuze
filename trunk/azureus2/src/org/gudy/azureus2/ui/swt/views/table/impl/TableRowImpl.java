@@ -36,6 +36,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.*;
 
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 
 /** Represents an entire row in a table.  Stores each cell belonging to the
  * row and handles refreshing them.
@@ -258,7 +259,7 @@ public class TableRowImpl<COREDATASOURCE>
 				return;
 			}
 
-			if (TableViewSWT.DEBUGADDREMOVE) {
+			if (TableViewImpl.DEBUGADDREMOVE) {
 				System.out.println((table.isDisposed() ? "" : table.getData("Name"))
 						+ " row delete; index=" + getIndex());
 			}
@@ -467,6 +468,9 @@ public class TableRowImpl<COREDATASOURCE>
 	}
 
 	public boolean setTableItem(int newIndex) {
+		if (!Utils.isThisThreadSWT()) {
+			return false;
+		}
 		return setTableItem(newIndex, true);
 	}
 
@@ -499,11 +503,11 @@ public class TableRowImpl<COREDATASOURCE>
 	}
 
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setForeground(org.eclipse.swt.graphics.Color)
-	public void setForeground(final Color c) {
+	public boolean setForeground(final Color c) {
 		setForegroundDebug("setForeground(Color)", c);
 		// Don't need to set when not visible
 		if (!isVisible()) {
-			return;
+			return true;
 		}
 
 		Utils.execSWTThread(new AERunnable() {
@@ -511,6 +515,7 @@ public class TableRowImpl<COREDATASOURCE>
 				TableRowImpl.this.setForegroundInSWTThread(c);
 			}
 		});
+		return true;
 	}
 
 	private void setForegroundInSWTThread(Color c) {
@@ -564,8 +569,12 @@ public class TableRowImpl<COREDATASOURCE>
 		}
 	}
 
-	// @see com.aelitis.azureus.ui.common.table.TableRowCore#redraw()
 	public void redraw() {
+		redraw(false);
+	}
+
+	// @see com.aelitis.azureus.ui.common.table.TableRowCore#redraw()
+	public void redraw(boolean doChildren) {
 		// this will call paintItem which may call refresh
 		Rectangle bounds = getBounds();
 		table.redraw(bounds.x, bounds.y, bounds.width, bounds.height, false);
@@ -637,11 +646,6 @@ public class TableRowImpl<COREDATASOURCE>
 		}
 	}
 
-	// @see com.aelitis.azureus.ui.common.table.TableRowCore#setDrawableHeight(int)
-	public boolean setDrawableHeight(int height) {
-		return setHeight(height);
-	}
-
 	// @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getBounds()
 	public Rectangle getBounds() {
 		Rectangle bounds = getBounds(1);
@@ -704,8 +708,8 @@ public class TableRowImpl<COREDATASOURCE>
 
 	// @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#setSelected(boolean)
 	public void setSelected(boolean selected) {
-		if (tableView instanceof TableViewSWTImpl) {
-			((TableViewSWTImpl<COREDATASOURCE>) tableView).selectRow(this, true);
+		if (tableView instanceof TableViewSWT) {
+			((TableViewSWT<COREDATASOURCE>) tableView).setRowSelected(this, selected, true);
 		}
 	}
 
@@ -795,6 +799,24 @@ public class TableRowImpl<COREDATASOURCE>
 			mon_SubRows.exit();
 		}
 	}
+	
+	public TableRowCore getSubRow(int pos) {
+		mon_SubRows.enter();
+		try {
+			int i = -1;
+			for (TableRowCore row : subRows) {
+				if (row != null) {
+					i++;
+					if (i == pos) {
+						return row;
+					}
+				}
+			}
+			return null;
+		} finally {
+			mon_SubRows.exit();
+		}
+	}
 
 	public void removeSubRow(final Object datasource) {
 		Utils.execSWTThreadLater(0, new AERunnable() {
@@ -857,5 +879,21 @@ public class TableRowImpl<COREDATASOURCE>
 
 	public TableItemOrTreeItem getItem() {
 		return super.item;
+	}
+
+	public int getFullHeight() {
+		// TODO: should include subitems
+		return getBounds(1).height;
+	}
+
+	public void setSortColumn(String columnID) {
+		// ignored
+	}
+
+	public TableCellCore getSortColumnCell(String hint) {
+		if (bDisposed || mTableCells == null) {
+			return null;
+		}
+		return mTableCells.get(hint);
 	}
 }

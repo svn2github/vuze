@@ -597,7 +597,7 @@ public class SideBarEntrySWT
 		int x1IndicatorOfs = SIDEBAR_SPACING;
 		int x0IndicatorOfs = itemBounds.x;
 
-		//System.out.println(System.currentTimeMillis() + "] refresh " + sideBarEntry.getId() + "; " + itemBounds + ";clip=" + event.gc.getClipping() + ";eb=" + event.getBounds());
+		//System.out.println(System.currentTimeMillis() + "] refresh " + getId() + "; " + itemBounds + ";clip=" + event.gc.getClipping() + ";eb=" + event.getBounds());
 		if (viewTitleInfo != null) {
 			String textIndicator = null;
 			try {

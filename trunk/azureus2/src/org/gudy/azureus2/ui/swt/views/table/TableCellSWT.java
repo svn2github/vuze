@@ -37,10 +37,6 @@ import org.gudy.azureus2.ui.swt.components.BufferedTableItem;
  */
 public interface TableCellSWT extends com.aelitis.azureus.ui.common.table.TableCellCore
 {
-	/**
-	 * @return
-	 */
-	BufferedTableItem getBufferedTableItem();
 
 	/** 
 	 * Change the cell's foreground color.
@@ -117,4 +113,6 @@ public interface TableCellSWT extends com.aelitis.azureus.ui.common.table.TableC
 	 * @since 3.1.1.1
 	 */
 	void setTextAlpha(int textOpacity);
+
+	void setMouseOver(boolean b);
 }

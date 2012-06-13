@@ -658,7 +658,7 @@ public class SubscriptionWizard {
 		
 		tvSubscriptions.initialize(cTV);
 
-		tvSubscriptions.getTableOrTreeSWT().addListener(SWT.Resize, new Listener() {
+		tvSubscriptions.getComposite().addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event event) {
 				org.gudy.azureus2.plugins.ui.tables.TableColumn tcName = tvSubscriptions.getTableColumn("SubWizName");
 				org.gudy.azureus2.plugins.ui.tables.TableColumn tcRank = tvSubscriptions.getTableColumn("SubWizRank");

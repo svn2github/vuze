@@ -39,8 +39,6 @@ public interface TableView<DATASOURCETYPE>
 	 */
 	void addCountChangeListener(TableCountChangeListener listener);
 
-	void removeCountChangeListener(TableCountChangeListener listener);
-
 	/** Adds a dataSource to the table as a new row.  If the data source is
 	 * already added, a new row will not be added.  This function runs 
 	 * asynchronously, so the rows creation is not guaranteed directly after
@@ -181,8 +179,6 @@ public interface TableView<DATASOURCETYPE>
 	 */
 	boolean isDisposed();
 
-	boolean isTableFocus();
-
 	/**
 	 * Process the queue of datasources to be added and removed
 	 *
@@ -244,6 +240,9 @@ public interface TableView<DATASOURCETYPE>
 	 * @param newDataSource
 	 */
 	void setParentDataSource(Object newDataSource);
+
+
+	Object getParentDataSource();
 
 	/**
 	 * @param iHeight
@@ -410,4 +409,12 @@ public interface TableView<DATASOURCETYPE>
 	 * @since 4.6.0.5
 	 */
 	void setMaxItemShown(int newIndex);
+
+	int getRowCount();
+
+	void resetLastSortedOn();
+
+	TableColumnCore[] getAllColumns();
+
+	void removeCountChangeListener(TableCountChangeListener l);
 }

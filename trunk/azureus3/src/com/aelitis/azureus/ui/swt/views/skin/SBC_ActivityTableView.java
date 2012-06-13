@@ -43,6 +43,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
 import com.aelitis.azureus.activities.*;
@@ -117,7 +118,7 @@ public class SBC_ActivityTableView
 				? TableColumnCreatorV3.createActivityBig(tableID)
 				: TableColumnCreatorV3.createActivitySmall(tableID);
 
-		view = new TableViewSWTImpl<VuzeActivitiesEntry>(VuzeActivitiesEntry.class,
+		view = TableViewFactory.createTableViewSWT(VuzeActivitiesEntry.class,
 				tableID, tableID, columns, "name", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL);
 

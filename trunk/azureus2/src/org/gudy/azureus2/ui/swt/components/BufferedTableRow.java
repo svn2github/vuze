@@ -298,11 +298,11 @@ BufferedTableRow
 		return( item.getForeground());
 	}
 	
-	public void
+	public boolean
 	setForeground(
 		Color	c )
 	{
-		if (foreground_cache == null && c == null) {return;}
+		if (foreground_cache == null && c == null) {return false;}
 		
 		if (foreground_cache != null ){
 			
@@ -310,7 +310,7 @@ BufferedTableRow
 			
 			if ( existing != null && existing.equals(c)){
 		
-				return;
+				return false;
 			}
 		}
 		
@@ -323,9 +323,10 @@ BufferedTableRow
 		}
 		
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))
-			return;
+			return false;
 
 		item.setForeground(c);
+		return true;
 	}
 
 	public void setForeground(final int red, final int green, final int blue) {

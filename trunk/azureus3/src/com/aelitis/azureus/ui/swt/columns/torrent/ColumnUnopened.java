@@ -41,7 +41,7 @@ public class ColumnUnopened
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellMouseListener
 {
-	public static final Class DATASOURCE_TYPE = Download.class;
+	public static final Class<?> DATASOURCE_TYPE = Download.class;
 
 	public static final String COLUMN_ID = "unopened";
 

@@ -196,7 +196,6 @@ public class TorrentUtil {
 				if (barsOpened && !DownloadBar.getManager().isOpen(dm)) {
 					barsOpened = false;
 				}
-
 				stop = stop || ManagerUtils.isStopable(dm);
 
 				start = start || ManagerUtils.isStartable(dm);
@@ -224,7 +223,6 @@ public class TorrentUtil {
 				}
 				int state = dm.getState();
 				bChangeDir &= (state == DownloadManager.STATE_ERROR || state == DownloadManager.STATE_STOPPED || state == DownloadManager.STATE_QUEUED);;
-
 				/**
 				 * Only perform a test on disk if:
 				 *    1) We are currently set to allow the "Change Data Directory" option, and
@@ -232,7 +230,13 @@ public class TorrentUtil {
 				 *       amounts of files across multiple torrents before we generate a menu.
 				 */
 				if (bChangeDir && dms.length == 1) {
-					bChangeDir = dm.isDataAlreadyAllocated() && !dm.filesExist( true );
+					bChangeDir = dm.isDataAlreadyAllocated();
+					if (bChangeDir && state == DownloadManager.STATE_ERROR) {
+						// filesExist is way too slow!
+						bChangeDir = !dm.filesExist( true );
+					} else {
+						bChangeDir = false;
+					}
 				}
 
 				boolean scan = dm.getDownloadState().getFlag(DownloadManagerState.FLAG_SCAN_INCOMPLETE_PIECES);

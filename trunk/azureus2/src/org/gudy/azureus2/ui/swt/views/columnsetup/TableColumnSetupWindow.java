@@ -33,24 +33,23 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableOrTreeUtils;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
-
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
-import org.gudy.azureus2.plugins.ui.tables.TableRow;
 
 /**
  * @author TuxPaper
@@ -122,8 +121,12 @@ public class TableColumnSetupWindow
 			public void dragStart(DragSourceEvent event) {
 				event.doit = true;
 
-				TableOrTreeSWT table = TableOrTreeUtils.getTableOrTreeSWT(((DragSource) event.widget).getControl());
-				TableView tv = (TableView) table.getData("TableView");
+				if (!(event.widget instanceof DragSource)) {
+					event.doit = false;
+					return;
+				}
+				
+				TableView tv = (TableView) ((DragSource) event.widget).getData("tv");
 				// drag start happens a bit after the mouse moves, so the
 				// cursor location isn't accurate
 				//Point cursorLocation = event.display.getCursorLocation();
@@ -171,8 +174,11 @@ public class TableColumnSetupWindow
 			}
 
 			public void dragSetData(DragSourceEvent event) {
-				TableOrTreeSWT table = TableOrTreeUtils.getTableOrTreeSWT(((DragSource) event.widget).getControl());
-				TableView tv = (TableView) table.getData("TableView");
+				if (!(event.widget instanceof DragSource)) {
+					return;
+				}
+				
+				TableView tv = (TableView) ((DragSource) event.widget).getData("tv");
 				event.data = "" + (tv == tvChosen ? "c" : "a");
 			}
 
@@ -250,7 +256,7 @@ public class TableColumnSetupWindow
 		gridLayout.marginWidth = gridLayout.marginHeight = 0;
 		cTableAvail.setLayout(gridLayout);
 
-		tvAvail.initialize(cTableAvail);
+		tvAvail.tv.initialize(cTableAvail);
 
 		TableColumnCore[] datasources = tcm.getAllTableColumnCoreAsArray(
 				forDataSourceType, forTableID);
@@ -491,7 +497,7 @@ public class TableColumnSetupWindow
 		gridLayout.marginWidth = gridLayout.marginHeight = 0;
 		cTableChosen.setLayout(gridLayout);
 
-		tvChosen.initialize(cTableChosen);
+		tvChosen.tv.initialize(cTableChosen);
 
 		columnsChosen = tcm.getAllTableColumnCoreAsArray(forDataSourceType,
 				forTableID);
@@ -506,10 +512,10 @@ public class TableColumnSetupWindow
 			mapNewVisibility.put(columnsChosen[i], new Boolean(visible));
 			if (visible) {
 				columnsChosen[i].setPositionNoShift(pos++);
-				tvChosen.addDataSource(columnsChosen[i]);
+				tvChosen.tv.addDataSource(columnsChosen[i]);
 			}
 		}
-		tvChosen.processDataSourceQueue();
+		tvChosen.tv.processDataSourceQueue();
 
 		
 		Button btnReset = null;
@@ -532,12 +538,12 @@ public class TableColumnSetupWindow
   						for (TableColumnCore tc : mapNewVisibility.keySet()) {
 								mapNewVisibility.put(tc, Boolean.FALSE);
 							}
-  						tvChosen.removeAllTableRows();
+  						tvChosen.tv.removeAllTableRows();
   						columnsChosen = defaultColumns.toArray(new TableColumnCore[0]);
   						for (int i = 0; i < columnsChosen.length; i++) {
   							mapNewVisibility.put(columnsChosen[i], Boolean.TRUE);
 								columnsChosen[i].setPositionNoShift(i);
-								tvChosen.addDataSource(columnsChosen[i]);
+								tvChosen.tv.addDataSource(columnsChosen[i]);
   						}
   						doReset = true;
   					}
@@ -783,7 +789,7 @@ public class TableColumnSetupWindow
 		}
 		cPickArea.setText(s);
 
-		tvAvail.removeAllTableRows();
+		tvAvail.tv.removeAllTableRows();
 
 		final TableColumnManager tcm = TableColumnManager.getInstance();
 		TableColumnCore[] datasources = tcm.getAllTableColumnCoreAsArray(
@@ -799,20 +805,20 @@ public class TableColumnSetupWindow
 			String[] cats = info == null ? null : info.getCategories();
 			if (cats == null) {
 				if (selectedCat == null || selectedCat.equals("uncat")) {
-					tvAvail.addDataSource(column);
+					tvAvail.tv.addDataSource(column);
 				}
 			} else {
   			for (int j = 0; j < cats.length; j++) {
   				String cat = cats[j];
   				if ((selectedCat == null || selectedCat.equalsIgnoreCase(cat))
   						&& info.getProficiency() <= selectedProf) {
-  					tvAvail.addDataSource(column);
+  					tvAvail.tv.addDataSource(column);
   					break;
   				}
   			}
 			}
 		}
-		tvAvail.processDataSourceQueue();
+		tvAvail.tv.processDataSourceQueue();
 	}
 
 	/**
@@ -821,15 +827,15 @@ public class TableColumnSetupWindow
 	 * @since 4.0.0.5
 	 */
 	protected void removeSelectedChosen() {
-		Object[] datasources = tvChosen.getSelectedDataSources().toArray();
+		Object[] datasources = tvChosen.tv.getSelectedDataSources().toArray();
 		for (int i = 0; i < datasources.length; i++) {
 			TableColumnCore column = (TableColumnCore) datasources[i];
 			mapNewVisibility.put(column, Boolean.FALSE);
 		}
-		tvChosen.removeDataSources(datasources);
-		tvChosen.processDataSourceQueue();
+		tvChosen.tv.removeDataSources(datasources);
+		tvChosen.tv.processDataSourceQueue();
 		for (int i = 0; i < datasources.length; i++) {
-			TableRowSWT row = (TableRowSWT) tvAvail.getRow(datasources[i]);
+			TableRowSWT row = (TableRowSWT) tvAvail.tv.getRow(datasources[i]);
 			if (row != null) {
 				row.redraw();
 			}
@@ -842,8 +848,8 @@ public class TableColumnSetupWindow
 	 * @since 4.0.0.5
 	 */
 	protected void moveChosenDown() {
-		TableRowCore[] selectedRows = tvChosen.getSelectedRows();
-		TableRowCore[] rows = tvChosen.getRows();
+		TableRowCore[] selectedRows = tvChosen.tv.getSelectedRows();
+		TableRowCore[] rows = tvChosen.tv.getRows();
 		for (int i = selectedRows.length - 1; i >= 0; i--) {
 			TableRowCore row = selectedRows[i];
 			TableColumnCore column = (TableColumnCore) row.getDataSource();
@@ -859,8 +865,8 @@ public class TableColumnSetupWindow
 				}
 			}
 		}
-		tvChosen.tableInvalidate();
-		tvChosen.refreshTable(true);
+		tvChosen.tv.tableInvalidate();
+		tvChosen.tv.refreshTable(true);
 	}
 
 	/**
@@ -869,8 +875,8 @@ public class TableColumnSetupWindow
 	 * @since 4.0.0.5
 	 */
 	protected void moveChosenUp() {
-		TableRowCore[] selectedRows = tvChosen.getSelectedRows();
-		TableRowCore[] rows = tvChosen.getRows();
+		TableRowCore[] selectedRows = tvChosen.tv.getSelectedRows();
+		TableRowCore[] rows = tvChosen.tv.getRows();
 		for (int i = 0; i < selectedRows.length; i++) {
 			TableRowCore row = selectedRows[i];
 			TableColumnCore column = (TableColumnCore) row.getDataSource();
@@ -888,12 +894,12 @@ public class TableColumnSetupWindow
 				}
 			}
 		}
-		tvChosen.tableInvalidate();
-		tvChosen.refreshTable(true);
+		tvChosen.tv.tableInvalidate();
+		tvChosen.tv.refreshTable(true);
 	}
 
 	protected void alignChosen( int align ) {
-		TableRowCore[] selectedRows = tvChosen.getSelectedRows();
+		TableRowCore[] selectedRows = tvChosen.tv.getSelectedRows();
 		for (int i = 0; i < selectedRows.length; i++) {
 			TableRowCore row = selectedRows[i];
 			TableColumnCore column = (TableColumnCore) row.getDataSource();
@@ -901,8 +907,8 @@ public class TableColumnSetupWindow
 				column.setAlignment( align );
 			}
 		}
-		tvChosen.tableInvalidate();
-		tvChosen.refreshTable(true);
+		tvChosen.tv.tableInvalidate();
+		tvChosen.tv.refreshTable(true);
 	}
 	
 	
@@ -947,24 +953,25 @@ public class TableColumnSetupWindow
 		final TableViewColumnSetup tvChosen = new TableViewColumnSetup(
 				this, TableColumn.class, TABLEID_CHOSEN, columnTVChosen,
 				ColumnTC_ChosenColumn.COLUMN_ID, true);
-		tvChosen.setMenuEnabled(false);
+		tvChosen.tv.setMenuEnabled(false);
 		tvChosen.setSampleRow(sampleRow);
-		tvChosen.setHeaderVisible(false);
+		tvChosen.tv.setHeaderVisible(false);
 		//tvChosen.setRowDefaultHeight(16);
 
-		tvChosen.addLifeCycleListener(new TableLifeCycleListener() {
+		tvChosen.tv.addLifeCycleListener(new TableLifeCycleListener() {
 			private DragSource dragSource;
 			private DropTarget dropTarget;
 
 			public void tableViewInitialized() {
-				dragSource = tvChosen.createDragSource(DND.DROP_MOVE | DND.DROP_COPY
+				dragSource = tvChosen.tv.createDragSource(DND.DROP_MOVE | DND.DROP_COPY
 						| DND.DROP_LINK);
 				dragSource.setTransfer(new Transfer[] {
 					TextTransfer.getInstance()
 				});
+				dragSource.setData("tv", tvChosen.tv);
 				dragSource.addDragListener(dragSourceListener);
 
-				dropTarget = tvChosen.createDropTarget(DND.DROP_DEFAULT
+				dropTarget = tvChosen.tv.createDropTarget(DND.DROP_DEFAULT
 						| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK
 						| DND.DROP_TARGET_MOVE);
 				dropTarget.setTransfer(new Transfer[] {
@@ -979,16 +986,16 @@ public class TableColumnSetupWindow
 
 					public void drop(DropTargetEvent event) {
 						String id = (String) event.data;
-						TableRowCore destRow = tvChosen.getRow(event);
+						TableRowCore destRow = tvChosen.tv.getRow(event);
 
-						TableView tv = id.equals("c") ? tvChosen : tvAvail;
+						TableView tv = id.equals("c") ? tvChosen.tv : tvAvail.tv;
 
 						Object[] dataSources = tv.getSelectedDataSources().toArray();
 						for (int i = 0; i < dataSources.length; i++) {
 							TableColumnCore column = (TableColumnCore) dataSources[i];
 							if (column != null) {
 								chooseColumn(column, destRow, true);
-								TableRowCore row = tvAvail.getRow(column);
+								TableRowCore row = tvAvail.tv.getRow(column);
 								if (row != null) {
 									row.redraw();
 								}
@@ -1028,7 +1035,7 @@ public class TableColumnSetupWindow
 			}
 		});
 
-		tvChosen.addKeyListener(new KeyListener() {
+		tvChosen.tv.addKeyListener(new KeyListener() {
 			public void keyReleased(KeyEvent e) {
 			}
 
@@ -1086,24 +1093,25 @@ public class TableColumnSetupWindow
 		final TableViewColumnSetup tvAvail = new TableViewColumnSetup(this,
 				TableColumn.class, TABLEID_AVAIL, columns,
 				ColumnTC_NameInfo.COLUMN_ID, false);
-		tvAvail.setMenuEnabled(false);
+		tvAvail.tv.setMenuEnabled(false);
 		tvAvail.setSampleRow(sampleRow);
-		tvAvail.setRowDefaultHeight(65);
+		tvAvail.tv.setRowDefaultHeight(65);
 
-		tvAvail.addLifeCycleListener(new TableLifeCycleListener() {
+		tvAvail.tv.addLifeCycleListener(new TableLifeCycleListener() {
 			private DragSource dragSource;
 			private DropTarget dropTarget;
 
 			public void tableViewInitialized() {
-				dragSource = tvAvail.createDragSource(DND.DROP_MOVE | DND.DROP_COPY
+				dragSource = tvAvail.tv.createDragSource(DND.DROP_MOVE | DND.DROP_COPY
 						| DND.DROP_LINK);
 				dragSource.setTransfer(new Transfer[] {
 					TextTransfer.getInstance()
 				});
+				dragSource.setData("tv", tvAvail.tv);
 				dragSource.addDragListener(dragSourceListener);
 
 			
-				dropTarget = tvAvail.createDropTarget(DND.DROP_DEFAULT
+				dropTarget = tvAvail.tv.createDropTarget(DND.DROP_DEFAULT
 						| DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK
 						| DND.DROP_TARGET_MOVE);
 				dropTarget.setTransfer(new Transfer[] {
@@ -1133,7 +1141,7 @@ public class TableColumnSetupWindow
 			}
 		});
 
-		tvAvail.addSelectionListener(new TableSelectionAdapter() {
+		tvAvail.tv.addSelectionListener(new TableSelectionAdapter() {
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
 				for (int i = 0; i < rows.length; i++) {
 					TableRowCore row = rows[i];
@@ -1143,30 +1151,30 @@ public class TableColumnSetupWindow
 			}
 		}, false);
 
-		tvAvail.addKeyListener(new KeyListener() {
+		tvAvail.tv.addKeyListener(new KeyListener() {
 			public void keyReleased(KeyEvent e) {
 			}
 
 			public void keyPressed(KeyEvent e) {
 				if (e.stateMask == 0) {
 					if (e.keyCode == SWT.ARROW_RIGHT) {
-						TableRowCore[] selectedRows = tvAvail.getSelectedRows();
+						TableRowCore[] selectedRows = tvAvail.tv.getSelectedRows();
 						for (int i = 0; i < selectedRows.length; i++) {
 							TableRowCore row = selectedRows[i];
 							TableColumnCore column = (TableColumnCore) row.getDataSource();
 							chooseColumn(column, null, false);
-							tvChosen.processDataSourceQueue();
+							tvChosen.tv.processDataSourceQueue();
 							row.redraw();
 						}
 						e.doit = false;
 					} else if (e.keyCode == SWT.ARROW_LEFT) {
-						TableRowCore[] selectedRows = tvAvail.getSelectedRows();
+						TableRowCore[] selectedRows = tvAvail.tv.getSelectedRows();
 						for (int i = 0; i < selectedRows.length; i++) {
 							TableRowCore row = selectedRows[i];
 							TableColumnCore column = (TableColumnCore) row.getDataSource();
 							mapNewVisibility.put(column, Boolean.FALSE);
-							tvChosen.removeDataSource(column);
-							tvChosen.processDataSourceQueue();
+							tvChosen.tv.removeDataSource(column);
+							tvChosen.tv.processDataSourceQueue();
 							row.redraw();
 						}
 						e.doit = false;
@@ -1194,27 +1202,29 @@ public class TableColumnSetupWindow
 			UIUpdaterSWT.getInstance().removeUpdater(this);
 			return;
 		}
-		if (tvAvail != null && !tvAvail.isDisposed()) {
-			tvAvail.refreshTable(false);
+		if (tvAvail != null && !tvAvail.tv.isDisposed()) {
+			tvAvail.tv.refreshTable(false);
 		}
-		if (tvChosen != null && !tvChosen.isDisposed()) {
-			tvChosen.refreshTable(false);
+		if (tvChosen != null && !tvChosen.tv.isDisposed()) {
+			tvChosen.tv.refreshTable(false);
 		}
 	}
 
 	public class TableViewColumnSetup
-		extends TableViewSWTImpl
 	{
 		private TableRow sampleRow = null;
 
 		private final TableColumnSetupWindow setupWindow;
+		
+		private TableViewSWT tv;
 
 		public TableViewColumnSetup(TableColumnSetupWindow setupWindow,
 				Class forPluginDataSourceType,
 				String tableID, TableColumnCore[] items, String defaultSortOn,
 				boolean multi) {
-			super(forPluginDataSourceType, tableID, tableID, items, defaultSortOn,
-					SWT.FULL_SELECTION | SWT.VIRTUAL | (multi ? SWT.MULTI : SWT.SINGLE));
+			tv = TableViewFactory.createTableViewSWT(forPluginDataSourceType,
+					tableID, tableID, items, defaultSortOn, SWT.FULL_SELECTION
+							| SWT.VIRTUAL | (multi ? SWT.MULTI : SWT.SINGLE));
 			this.setupWindow = setupWindow;
 		}
 
@@ -1224,19 +1234,24 @@ public class TableColumnSetupWindow
 
 		public void setSampleRow(TableRow sampleRow) {
 			this.sampleRow = sampleRow;
+			tv.setParentDataSource(sampleRow);
 		}
 
 		public void chooseColumn(TableColumnCore column) {
 			setupWindow.chooseColumn(column, null, false);
-			TableRowCore row = tvAvail.getRow(column);
+			TableRowCore row = tvAvail.tv.getRow(column);
 			if (row != null) {
 				row.redraw();
 			}
 		}
 
 		public boolean isColumnAdded(TableColumnCore column) {
-			TableRowCore row = tvChosen.getRow(column);
+			TableRowCore row = tvChosen.tv.getRow(column);
 			return row != null;
+		}
+
+		public Composite getTableComposite() {
+			return tv.getTableComposite();
 		}
 	}
 
@@ -1247,14 +1262,14 @@ public class TableColumnSetupWindow
 	 */
 	public void chooseColumn(final TableColumnCore column,
 			TableRowCore placeAboveRow, boolean ignoreExisting) {
-		TableRowCore row = tvChosen.getRow(column);
+		TableRowCore row = tvChosen.tv.getRow(column);
 
 		if (row == null || ignoreExisting) {
 			int newPosition = 0;
 
-			row = placeAboveRow == null && !ignoreExisting ? tvChosen.getFocusedRow()
+			row = placeAboveRow == null && !ignoreExisting ? tvChosen.tv.getFocusedRow()
 					: placeAboveRow;
-			if (row == null) {
+			if (row == null || row.getDataSource() == null) {
 				if (columnsChosen.length > 0) {
 					newPosition = columnsChosen.length;
 				}
@@ -1299,11 +1314,11 @@ public class TableColumnSetupWindow
 				}
 			}
 
-			TableRowCore existingRow = tvChosen.getRow(column);
+			TableRowCore existingRow = tvChosen.tv.getRow(column);
 			if (existingRow == null) {
-				tvChosen.addDataSource(column);
-				tvChosen.processDataSourceQueue();
-				tvChosen.addCountChangeListener(new TableCountChangeListener() {
+				tvChosen.tv.addDataSource(column);
+				tvChosen.tv.processDataSourceQueue();
+				tvChosen.tv.addCountChangeListener(new TableCountChangeListener() {
 
 					public void rowRemoved(TableRowCore row) {
 					}
@@ -1311,17 +1326,17 @@ public class TableColumnSetupWindow
 					public void rowAdded(final TableRowCore row) {
 						Utils.execSWTThreadLater(500, new AERunnable() {
 							public void runSupport() {
-								tvChosen.setSelectedRows(new TableRowCore[] { row });
-								tvChosen.showRow(row);
+								tvChosen.tv.setSelectedRows(new TableRowCore[] { row });
+								tvChosen.tv.showRow(row);
 							}
 						});
-						tvChosen.removeCountChangeListener(this);
+						tvChosen.tv.removeCountChangeListener(this);
 					}
 				});
 			}
 
-			tvChosen.tableInvalidate();
-			tvChosen.refreshTable(true);
+			tvChosen.tv.tableInvalidate();
+			tvChosen.tv.refreshTable(true);
 
 			Arrays.sort(columnsChosen,
 					TableColumnManager.getTableColumnOrderComparator());

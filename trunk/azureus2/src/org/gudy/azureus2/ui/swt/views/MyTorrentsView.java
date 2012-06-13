@@ -64,6 +64,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.views.table.*;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
@@ -75,6 +76,7 @@ import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -1738,14 +1740,9 @@ public class MyTorrentsView
 	protected TableViewSWT<DownloadManager> createTableView(
 			Class<?> forDataSourceType, String tableID, TableColumnCore[] basicItems) {
 		int tableExtraStyle = COConfigurationManager.getIntParameter("MyTorrentsView.table.style");
-		return new TableViewSWTImpl<DownloadManager>(forDataSourceType, tableID,
+		return TableViewFactory.createTableViewSWT(forDataSourceType, tableID,
 				getPropertiesPrefix(), basicItems, "#", tableExtraStyle | SWT.MULTI
-						| SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.CASCADE) {
-			public void setSelectedRows(TableRowCore[] rows) {
-				super.setSelectedRows(rows);
-				updateSelectedContent();
-			}
-		};
+						| SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.CASCADE);
 	}
 
 	/**

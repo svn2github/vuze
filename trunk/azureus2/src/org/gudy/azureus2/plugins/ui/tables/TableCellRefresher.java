@@ -80,7 +80,7 @@ public class TableCellRefresher {
   						Utils.execSWTThread(runnable);
 						}
 
-						Thread.sleep(200);
+						Thread.sleep(100);
 
 						iterationNumber++;
 					}

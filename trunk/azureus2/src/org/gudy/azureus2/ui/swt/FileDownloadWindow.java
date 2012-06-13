@@ -309,7 +309,6 @@ public class FileDownloadWindow
 				"title",
 				"dn"
 			};
-			// magnet:?xt=urn:btih:WENBTYBB7676MQWJ7NLTD4NGYDKYSQPO&dn=[DmzJ][School_Days][Vol.01-06][DVDRip]
 			for (String toMatch : titles) {
 				Matcher matcher = Pattern.compile("[?&]" + toMatch + "=(.*)&?",
 						Pattern.CASE_INSENSITIVE).matcher(url);
