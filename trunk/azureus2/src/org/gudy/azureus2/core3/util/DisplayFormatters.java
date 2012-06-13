@@ -214,7 +214,7 @@ DisplayFormatters
     	new String[]{ 
     		getUnit( use_units_rate_bits?"bit":"B"), 
     		getUnit( use_units_rate_bits?"kbit":"KB"), 
-    		getUnit( use_units_rate_bits?"MBit":"MB" ), 
+    		getUnit( use_units_rate_bits?"Mbit":"MB" ), 
     		getUnit( use_units_rate_bits?"Gbit":"GB"), 
     		getUnit( use_units_rate_bits?"Tbit":"TB" )};
     
