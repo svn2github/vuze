@@ -221,6 +221,9 @@ public class TableCellPainted
 		Utils.execSWTThread(new AERunnable() {
 			
 			public void runSupport() {
+				if (isDisposed()) {
+					return;
+				}
 				redrawScheduled = false;
 				if (DEBUG_CELLPAINT) {
   				System.out.println(SystemTime.getCurrentTime() + "r" + tableRow.getIndex()

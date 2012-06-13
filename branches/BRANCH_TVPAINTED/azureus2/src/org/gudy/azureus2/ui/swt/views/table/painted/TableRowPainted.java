@@ -75,7 +75,7 @@ public class TableRowPainted
 	}
 
 	private void buildCells() {
-		debug("buildCells " + Debug.getCompressedStackTrace());
+		//debug("buildCells " + Debug.getCompressedStackTrace());
 		TableColumnCore[] visibleColumns = getView().getVisibleColumns();
 		this_mon.enter();
 		try {
@@ -690,6 +690,7 @@ public class TableRowPainted
 	
 	@Override
 	public void setExpanded(boolean b) {
+		int oldHeight = getFullHeight();
 		super.setExpanded(b);
 		mon_SubRows.enter();
 		try {
@@ -709,12 +710,11 @@ public class TableRowPainted
   				h += newSubRows[i].getHeight();
   			}
   			
-  			int oldHeight = getFullHeight();
   			subRowsHeight = h;
-  			getViewPainted().rowHeightChanged(this, oldHeight, getFullHeight());
   			
   			subRows = newSubRows;
   		}
+			getViewPainted().rowHeightChanged(this, oldHeight, getFullHeight());
 		} finally {
 			mon_SubRows.exit();
 		}

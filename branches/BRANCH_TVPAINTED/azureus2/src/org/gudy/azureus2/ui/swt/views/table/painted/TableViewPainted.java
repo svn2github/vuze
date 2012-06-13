@@ -52,7 +52,7 @@ public class TableViewPainted
 	MessageTextListener
 {
 
-	private static final boolean DEBUG_ROWCHANGE = false;
+	private static final boolean DEBUG_ROWCHANGE = true;
 
 	private Composite cTable;
 
@@ -129,7 +129,7 @@ public class TableViewPainted
 
 	private ScrollBar vBar;
 	
-	private Shell sCanvasImage;
+	private Canvas sCanvasImage;
 	
 	/*
 		class RefreshTableRunnable extends AERunnable {
@@ -876,7 +876,8 @@ public class TableViewPainted
 			hBar.addSelectionListener(new SelectionListener() {
 				
 				public void widgetSelected(SelectionEvent e) {
-					swt_calculateClientArea();
+					//swt_calculateClientArea();
+					cTable.redraw();
 				}
 				
 				public void widgetDefaultSelected(SelectionEvent e) {
@@ -889,7 +890,6 @@ public class TableViewPainted
 			vBar.addSelectionListener(new SelectionListener() {
 				public void widgetSelected(SelectionEvent e) {
 					swt_calculateClientArea();
-					cTable.update();
 				}
 				
 				public void widgetDefaultSelected(SelectionEvent e) {
@@ -897,21 +897,25 @@ public class TableViewPainted
 			});
 		}
 		
-		sCanvasImage = new Shell();
+		Shell shell = new Shell();
+		sCanvasImage = new Canvas(shell, SWT.DOUBLE_BUFFERED);
+		shell.setLayout(new FillLayout());
 		sCanvasImage.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				if (canvasImage == null) {
 					return;
 				}
 				e.gc.drawImage(canvasImage, 0, 0);
+				//System.out.println(System.currentTimeMillis() + "] Paint " + e.x + "x" + e.y + " " + e.width + "x" + e.height);
+
 			}
 		});
-		sCanvasImage.addDisposeListener(new DisposeListener() {
+		shell.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				sCanvasImage = null;
 			}
 		});
-		sCanvasImage.setVisible(true);
+		shell.setVisible(true);
 
 
 		cTable.addMouseListener(tvSWTCommon);
@@ -1215,7 +1219,7 @@ public class TableViewPainted
 					pos++;
 				}
 				Point drawOffset = paintedRow.getDrawOffset();
-				//debug("Paint " + drawBounds.x + "x" + drawBounds.y + " " + drawBounds.width + "x" + drawBounds.height + ".." + drawBounds.count + "; Row=" +row.getIndex() + ";clip=" + gc.getClipping() +";drawOffset=" + drawOffset);
+				//debug("Paint " + drawBounds.x + "x" + drawBounds.y + " " + drawBounds.width + "x" + drawBounds.height + "; Row=" +row.getIndex() + ";clip=" + gc.getClipping() +";drawOffset=" + drawOffset);
 				paintedRow.paintControl(gc, rgn, drawBounds, 0, drawOffset.y - clientArea.y, pos);
 				oldRow = row;
 			}
@@ -1798,8 +1802,6 @@ public class TableViewPainted
 		newClientArea.x = hBar.getSelection();
 		newClientArea.y = vBar.getSelection();
 
-		boolean clientAreaCausedVisibilityChanged = false;
-
 		int w = 0;
 		TableColumnCore[] visibleColumns = getVisibleColumns();
 		for (TableColumnCore column : visibleColumns) {
@@ -1825,9 +1827,6 @@ public class TableViewPainted
 		
 		//System.out.println("CA=" + clientArea + " via " + Debug.getCompressedStackTrace());
 
-		if (changedX || changedW) {
-			clientAreaCausedVisibilityChanged = true;
-		}
 		if (changedY || changedH) {
 			if (changedY && oldClientArea != null) {
 				if (visibleRows.length > 0) {
@@ -1904,35 +1903,20 @@ public class TableViewPainted
 		
 		
 
-		if (changedX || changedY || changedW || changedH || canvasChanged) {
+		// paint event will handle any changedX or changedW
+		if (changedY || changedH || canvasChanged) {
 			//System.out.println(changedX + ";" + changedY + ";" + changedW + ";" + changedH + ";" + canvasChanged);
 			//System.out.println("Redraw " + Debug.getCompressedStackTrace());
 
 			clearVisiblePaintedFlag();
+			refreshTable(false);
 			swt_updateCanvasImage(false);
 		}
-
-
-		if (sCanvasImage != null) {
-			sCanvasImage.setSize(canvasImage.getBounds().width, canvasImage.getBounds().height);
-			sCanvasImage.redraw();
-			sCanvasImage.update();
-		}
-
+		
 		//		System.out.println("imgBounds = " + canvasImage.getBounds() + ";ca="
 		//				+ clientArea + ";" + composite.getClientArea() + ";h=" + h + ";oh="
 		//				+ oldH + " via " + Debug.getCompressedStackTrace(3));
 
-		if (clientAreaCausedVisibilityChanged) {
-			columnVisibilitiesChanged = true;
-			Utils.execSWTThreadLater(50, new AERunnable() {
-				public void runSupport() {
-					if (columnVisibilitiesChanged) {
-						refreshTable(false);
-					}
-				}
-			});
-		}
 	}
 
 	private void swt_updateCanvasImage(boolean immediateRedraw) {
@@ -1954,6 +1938,11 @@ public class TableViewPainted
 			if (immediateRedraw) {
 				cTable.update();
 			}
+		}
+		if (sCanvasImage != null) {
+			sCanvasImage.getShell().setSize(canvasImage.getBounds().width, canvasImage.getBounds().height);
+			sCanvasImage.redraw(bounds.x, bounds.y, bounds.width, bounds.height, true);
+			sCanvasImage.update();
 		}
 	}
 
@@ -2159,13 +2148,19 @@ public class TableViewPainted
 	}
 
 	@Override
-	public void uiSelectionChanged(TableRowCore[] newlySelectedRows,
-			TableRowCore[] deselectedRows) {
-		clearVisiblePaintedFlag();
+	public void uiSelectionChanged(final TableRowCore[] newlySelectedRows,
+			final TableRowCore[] deselectedRows) {
+		//clearVisiblePaintedFlag();
 		//System.out.println("Redraw " + Debug.getCompressedStackTrace());
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				swt_updateCanvasImage(false);
+				for (TableRowCore row : deselectedRows) {
+					row.redraw();
+				}
+				for (TableRowCore row : newlySelectedRows) {
+					row.redraw();
+				}
+				//swt_updateCanvasImage(false);
 			}
 		});
 	}

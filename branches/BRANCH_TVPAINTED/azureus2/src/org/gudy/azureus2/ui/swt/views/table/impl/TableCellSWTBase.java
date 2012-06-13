@@ -530,7 +530,9 @@ public abstract class TableCellSWTBase
 	public void dispose() {
 		setFlag(FLAG_DISPOSED);
 
-		tableColumn.invokeCellDisposeListeners(this);
+		if (tableColumn != null) {
+			tableColumn.invokeCellDisposeListeners(this);
+		}
 
 		if (disposeListeners != null) {
 			try {
