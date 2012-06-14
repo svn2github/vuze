@@ -894,6 +894,7 @@ public class TableViewPainted
 			vBar.addSelectionListener(new SelectionListener() {
 				public void widgetSelected(SelectionEvent e) {
 					swt_calculateClientArea();
+					cTable.update();
 				}
 				
 				public void widgetDefaultSelected(SelectionEvent e) {
