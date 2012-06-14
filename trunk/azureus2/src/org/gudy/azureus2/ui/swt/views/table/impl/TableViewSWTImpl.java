@@ -1347,19 +1347,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			}
 
 			// purposefully not included in time check 
-			if (!Constants.isWindows) {
-				// Bug in Windows (7).  If you add 10 rows by setItemCount,
-				// Windows will do some crappy shifting down of the non-row area
-				table.setItemCount(size(false));
-			}
+			int size = size(false);
+			// Bug in Windows (7).  If you add 10 rows by setItemCount,
+			// Windows will do some crappy shifting down of the non-row area
+			table.setItemCount(size);
 
-			int size = size(false) + dataSources.length;
-			// Sanity Check: Make sure # of rows in table and in array match
-			if (table.getItemCount() != size) {
-				// This could happen if one of the datasources was null, or
-				// an error occured
-				table.setItemCount(size);
-			}
 			if (size == 1) {
 				columnVisibilitiesChanged = true;
 			}

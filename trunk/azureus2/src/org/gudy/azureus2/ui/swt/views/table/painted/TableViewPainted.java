@@ -931,8 +931,6 @@ public class TableViewPainted
 
 		new TableTooltips(this, cTable);
 
-		tvTabsCommon = new TableViewSWT_TabsCommon(this);
-
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 
 		String sSortColumn = tcManager.getDefaultSortColumnName(tableID);
@@ -1278,10 +1276,16 @@ public class TableViewPainted
 	private void paintHeader(PaintEvent e) {
 
 		Rectangle ca = cHeaderArea.getClientArea();
-		Pattern pattern = new Pattern(e.display, 0, 0, 0, ca.height, Colors.white,
-				Colors.grey);
-		e.gc.setBackgroundPattern(pattern);
-		e.gc.fillRectangle(ca);
+		Pattern patternUp = new Pattern(e.display, 0, 0, 0, ca.height * 2, Colors.white,
+				Colors.light_grey);
+		Pattern patternDown = new Pattern(e.display, 0, -ca.height , 0, ca.height, Colors.light_grey,
+				Colors.white);
+		//e.gc.setBackgroundPattern(patternUp);
+		//e.gc.fillRectangle(ca);
+
+		e.gc.setForeground(Colors.light_grey);
+		e.gc.drawLine(0, 0, clientArea.width, 0);
+		e.gc.drawLine(0, headerHeight - 1, clientArea.width, headerHeight - 1);
 
 		TableColumnCore[] visibleColumns = getVisibleColumns();
 		GCStringPrinter sp;
@@ -1298,8 +1302,16 @@ public class TableViewPainted
 				}
 			}
 
+			
+			boolean isSortColumn = column.equals(sortColumn);
+
+			e.gc.setBackgroundPattern(isSortColumn ? patternDown : patternUp);
+			e.gc.fillRectangle(x, 1, w, headerHeight - 2);
+			e.gc.setForeground(Colors.light_grey);
+			e.gc.drawLine(x + w - 1, 0, x + w - 1, headerHeight - 1);
+
 			e.gc.setForeground(ColorCache.getColor(e.display, 0, 0, 0));
-			if (column.equals(sortColumn)) {
+			if (isSortColumn) {
 				// draw sort indicator
 				int middle = w / 2;
 				int y1, y2;
@@ -1332,7 +1344,7 @@ public class TableViewPainted
 			if (sp.isWordCut()) {
 				Font font = e.gc.getFont();
 				if (font70pct == null) {
-					font70pct = FontUtils.getFontPercentOf(font, 0.7f);
+					font70pct = FontUtils.getFontPercentOf(font, 0.75f);
 				}
 				e.gc.setFont(font70pct);
 				sp.printString();
@@ -1342,14 +1354,15 @@ public class TableViewPainted
 			}
 
 			x += w;
-
-			e.gc.setForeground(getColorLine());
-			e.gc.drawLine(x - 1, e.y, x - 1, e.y + e.height);
 		}
+
+		e.gc.setBackgroundPattern(patternUp);
+		e.gc.fillRectangle(x, 1, clientArea.width - x, headerHeight - 2);
 
 		columnsWidth = x + clientArea.x;
 
-		pattern.dispose();
+		patternUp.dispose();
+		patternDown.dispose();
 		e.gc.setBackgroundPattern(null);
 	}
 
