@@ -70,9 +70,12 @@ public class TableViewPainted
 	/**
 	 * Rows visible to user.  We assume this list is always up to date
 	 */
-	TableRowPainted[] visibleRows = new TableRowPainted[0];
+	//TableRowPainted[] visibleRows = new TableRowPainted[0];
+	LinkedHashSet<TableRowPainted> visibleRows = new LinkedHashSet<TableRowPainted>();
 	
 	Object visibleRows_sync = new Object();
+
+	Object lock = new Object();
 
 	/**
 	 * Up to date table client area.  So far, the best places to refresh
@@ -164,7 +167,7 @@ public class TableViewPainted
 			String _sPropertiesPrefix, TableColumnCore[] _basicItems,
 			String _sDefaultSortOn, int _iTableStyle) {
 		super(pluginDataSourceType, _sTableID, _sPropertiesPrefix, _basicItems);
-		setRowsSync(visibleRows_sync);
+		setRowsSync(lock);
 		//		boolean wantTree = (_iTableStyle & SWT.CASCADE) != 0;
 		//		_iTableStyle &= ~SWT.CASCADE;
 		//		if (wantTree) {
@@ -494,12 +497,17 @@ public class TableViewPainted
 	 * @see com.aelitis.azureus.ui.common.table.TableView#getRow(int, int)
 	 */
 	public TableRowCore getRow(int x, int y) {
-		if (visibleRows.length == 0) {
+		Set<TableRowPainted> visibleRows = this.visibleRows;
+		if (visibleRows.size() == 0) {
 			return null;
 		}
-		int curY = visibleRows[0].getDrawOffset().y;
-		for (TableRowCore row : visibleRows) {
-			int h = ((TableRowPainted) row).getHeight();
+		boolean firstRow = true;
+		int curY = 0;
+		for (TableRowPainted row : visibleRows) {
+			if (firstRow) {
+				curY = row.getDrawOffset().y;
+			}
+			int h = row.getHeight();
 			if (y >= curY && y < curY + h) {
 				return row;
 			}
@@ -516,18 +524,7 @@ public class TableViewPainted
 			return false;
 		}
 		synchronized (visibleRows_sync) {
-			for (TableRowCore visibleRow : visibleRows) {
-				if (visibleRow == row) {
-					return true;
-				}
-			}
-			return false;
-			//			if (visibleRows.length == 0) {
-			//				return false;
-			//			}
-			//			int i = row.getIndex();
-			//			return i >= visibleRows[0].getIndex()
-			//					&& i <= visibleRows[visibleRows.length - 1].getIndex();
+			return visibleRows.contains(row);
 		}
 	}
 
@@ -816,6 +813,8 @@ public class TableViewPainted
 
 		cTable.setBackground(parent.getDisplay().getSystemColor(
 				SWT.COLOR_LIST_BACKGROUND));
+
+		headerHeight = (int) ((FontUtils.getFontHeightInPX(cHeaderArea.getFont()) * 0.7 * 2) + 16);
 
 		FormData fd = Utils.getFilledFormData();
 		fd.height = headerHeight;
@@ -1188,12 +1187,14 @@ public class TableViewPainted
 
 		TableRowCore oldRow = null;
 		int pos = -1;
-		synchronized (visibleRows_sync) {
-			Region rgn = new Region();
+		Set<TableRowPainted> visibleRows = this.visibleRows;
+		
+		Region rgn = new Region();
+		try {
 			gc.getClipping(rgn);
 
-			for (TableRowCore row : visibleRows) {
-				TableRowPainted paintedRow = (TableRowPainted) row;
+			for (TableRowPainted row : visibleRows) {
+				TableRowPainted paintedRow = row;
 				if (pos == -1) {
 					pos = row.getIndex();
 				} else {
@@ -1204,7 +1205,7 @@ public class TableViewPainted
 				paintedRow.paintControl(gc, rgn, drawBounds, 0, drawOffset.y - clientArea.y, pos);
 				oldRow = row;
 			}
-
+		} finally {
 			rgn.dispose();
 		}
 
@@ -1618,37 +1619,39 @@ public class TableViewPainted
 		final List<TableRowSWT> newlyVisibleRows = new ArrayList<TableRowSWT>();
 		final List<TableRowSWT> nowInVisibleRows;
 		final ArrayList<TableRowSWT> rowsStayedVisibleButMoved = new ArrayList<TableRowSWT>();
+		List<TableRowSWT> newVisibleRows;
+		if (isVisible()) {
+			// this makes a copy.. slower
+			TableRowCore[] rows = getRows();
+			newVisibleRows = new ArrayList<TableRowSWT>();
+			recalculateVisibleRows(rows, 0, newVisibleRows,
+					rowsStayedVisibleButMoved);
+
+		} else {
+			newVisibleRows = Collections.emptyList();
+		}
+		nowInVisibleRows = new ArrayList<TableRowSWT>(0);
 		synchronized (visibleRows_sync) {
-			List<TableRowSWT> newVisibleRows;
-			if (isVisible()) {
-				// this makes a copy.. slower
-				TableRowCore[] rows = getRows();
-				newVisibleRows = new ArrayList<TableRowSWT>();
-				recalculateVisibleRows(rows, 0, newVisibleRows,
-						rowsStayedVisibleButMoved);
-
-			} else {
-				newVisibleRows = Collections.emptyList();
-			}
-			nowInVisibleRows = new ArrayList<TableRowSWT>(0);
 			if (visibleRows != null) {
-				nowInVisibleRows.addAll(Arrays.asList(visibleRows));
+				nowInVisibleRows.addAll(visibleRows);
 			}
-			TableRowPainted[] rows = new TableRowPainted[newVisibleRows.size()];
-			int pos = 0;
-			for (TableRowSWT row : newVisibleRows) {
-				rows[pos++] = (TableRowPainted) row;
-				boolean removed = nowInVisibleRows.remove(row);
-				if (!removed) {
-					newlyVisibleRows.add(row);
-				}
-			}
+		}
 
+		LinkedHashSet<TableRowPainted> rows = new LinkedHashSet<TableRowPainted>(newVisibleRows.size());
+		for (TableRowSWT row : newVisibleRows) {
+			rows.add((TableRowPainted) row);
+			boolean removed = nowInVisibleRows.remove(row);
+			if (!removed) {
+				newlyVisibleRows.add(row);
+			}
+		}
+
+		synchronized (visibleRows_sync) {
 			visibleRows = rows;
 		}
 
 		if (DEBUG_ROWCHANGE) {
-			System.out.println("visRowsChanged; shown=" + visibleRows.length + "; +"
+			System.out.println("visRowsChanged; shown=" + visibleRows.size() + "; +"
 					+ newlyVisibleRows.size() + "/-" + nowInVisibleRows.size() + "/"
 					+ rowsStayedVisibleButMoved.size() + " via "
 					+ Debug.getCompressedStackTrace(8));
@@ -1775,18 +1778,29 @@ public class TableViewPainted
 		if (bottomIndex < 0) {
 			redrawTable();
 		} else {
-			synchronized (visibleRows_sync) {
-				if (visibleRows != null && visibleRows.length > 0) {
-					TableRowCore rowBottom = visibleRows[visibleRows.length - 1];
-					while (rowBottom.getParentRowCore() != null) {
-						rowBottom = rowBottom.getParentRowCore();
-					}
-					
-					if (indexOf(rowBottom) < 0) {
-						redrawTable();
-					}
+			TableRowCore rowBottom = getLastVisibleRow();
+			if (rowBottom != null) {
+				while (rowBottom.getParentRowCore() != null) {
+					rowBottom = rowBottom.getParentRowCore();
+				}
+				
+				if (indexOf(rowBottom) < 0) {
+					redrawTable();
 				}
 			}
+		}
+	}
+	
+	private TableRowPainted getLastVisibleRow() {
+		synchronized (visibleRows_sync) {
+			if (visibleRows == null || visibleRows.size() == 0) {
+				return null;
+			}
+			TableRowPainted rowBottom = null;
+			for (TableRowPainted row : visibleRows) {
+				rowBottom = row;
+			}
+			return rowBottom;
 		}
 	}
 
@@ -1833,16 +1847,20 @@ public class TableViewPainted
 
 		if (changedY || changedH) {
 			if (changedY && oldClientArea != null) {
-				if (visibleRows.length > 0) {
-					if (oldClientArea.y > newClientArea.y && visibleRows[0].getDrawOffset().y < oldClientArea.y) {
-  					visibleRows[0].invalidate();
-  					visibleRows[0].clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
+				Set<TableRowPainted> visibleRows = this.visibleRows;
+				if (visibleRows.size() > 0) {
+					TableRowPainted firstRow = visibleRows.iterator().next();
+					if (oldClientArea.y > newClientArea.y && firstRow.getDrawOffset().y < oldClientArea.y) {
+						firstRow.invalidate();
+						firstRow.clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
 					} else {
-						TableRowPainted row = visibleRows[visibleRows.length - 1];
-						int bottom = row.getDrawOffset().y + row.getHeight();
-						if (bottom > oldClientArea.y + oldClientArea.height) {
-    					row.invalidate();
-    					row.clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
+						TableRowPainted row = getLastVisibleRow();
+						if (row != null) {
+  						int bottom = row.getDrawOffset().y + row.getHeight();
+  						if (bottom > oldClientArea.y + oldClientArea.height) {
+      					row.invalidate();
+      					row.clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
+  						}
 						}
 					}
 				}
@@ -1859,8 +1877,8 @@ public class TableViewPainted
 		//List<TableRowSWT> visibleRows = getVisibleRows();
 		int h = 0;
 		synchronized (visibleRows_sync) {
-			if (visibleRows.length > 0) {
-				TableRowPainted lastRow = visibleRows[visibleRows.length - 1];
+			TableRowPainted lastRow = getLastVisibleRow();
+			if (lastRow != null) {
 				h = lastRow.getDrawOffset().y - clientArea.y + lastRow.getHeight();
 				if (h < clientArea.height && lastRow.isExpanded()) {
 					TableRowCore[] subRows = lastRow.getSubRowsWithNull();
@@ -1982,7 +2000,9 @@ public class TableViewPainted
 
 	public void removeAllTableRows() {
 		super.removeAllTableRows();
-		visibleRows = new TableRowPainted[0];
+		synchronized (visibleRows_sync) {
+			visibleRows = new LinkedHashSet<TableRowPainted>();
+		}
 		totalHeight = 0;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -2146,11 +2166,10 @@ public class TableViewPainted
 	}
 	
 	private void clearVisiblePaintedFlag() {
-		synchronized (visibleRows_sync) {
-			if (visibleRows != null) {
-				for (TableRowPainted row : visibleRows) {
-					row.clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
-				}
+		Set<TableRowPainted> visibleRows = this.visibleRows;
+		if (visibleRows != null) {
+			for (TableRowPainted row : visibleRows) {
+				row.clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
 			}
 		}
 	}
@@ -2367,13 +2386,13 @@ public class TableViewPainted
   		}
   		qdRowHeightChanged = true;
 		}
+		visibleRowsChanged();
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				synchronized (heightChangeSync) {
 					qdRowHeightChanged = false;
 				}
 				swt_fixupSize();
-				visibleRowsChanged();
 			}
 		});
 	}
@@ -2386,13 +2405,13 @@ public class TableViewPainted
 			redrawTableScheduled = true;
 		}
 
+		visibleRowsChanged();
 		//System.out.println("Redraw " + Debug.getCompressedStackTrace());
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				synchronized (TableViewPainted.this) {
 					redrawTableScheduled = false;
 				}
-				visibleRowsChanged();
 
 				if (canvasImage != null && !canvasImage.isDisposed()) {
 					canvasImage.dispose();
@@ -2444,6 +2463,6 @@ public class TableViewPainted
 	}
 
 	public Object getSyncObject() {
-		return visibleRows_sync;
+		return lock;
 	}
 }

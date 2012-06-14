@@ -206,6 +206,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			String _sPropertiesPrefix, TableColumnCore[] _basicItems,
 			String _sDefaultSortOn, int _iTableStyle) {
 		super(pluginDataSourceType, _sTableID, _sPropertiesPrefix, _basicItems);
+		setProvideIndexesOnRemove(true);
 		boolean wantTree = (_iTableStyle & SWT.CASCADE) != 0;
 		_iTableStyle &= ~SWT.CASCADE;
 		if (wantTree) {
