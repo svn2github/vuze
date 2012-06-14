@@ -166,8 +166,12 @@ public class TableRowPainted
 		}
 		Color fg = getForeground();
 		if (fg == null) {
-			fg = isSelected() ? gc.getDevice().getSystemColor(
-					SWT.COLOR_LIST_SELECTION) : gc.getForeground();
+			if (isSelected()) {
+				fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION);
+				gc.setForeground(fg);
+			} else {
+				fg = gc.getForeground();
+			}
 		} else {
 			gc.setForeground(fg);
 		}
