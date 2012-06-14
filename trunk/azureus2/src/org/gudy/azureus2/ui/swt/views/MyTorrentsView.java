@@ -837,31 +837,40 @@ public class MyTorrentsView
 		});
 	}
 	
-	private void swt_viewChanged(TableView<DownloadManager> view) {
+	private void swt_viewChanged(final TableView<DownloadManager> view) {
 
 		if ( filterParent != null ){
-			Object x = filterParent.getData( "ViewUtils:ViewTitleExtraInfo" );
-		
-			if ( x instanceof ViewUtils.ViewTitleExtraInfo ){
-				
-				TableRowCore[] rows = view.getRows();
-				
-				int	active = 0;
-				
-				for ( TableRowCore row: rows ){
+			
+			Utils.execSWTThread(new AERunnable() {
+				@Override
+				public void runSupport() {
 					
-					DownloadManager dm = (DownloadManager)row.getDataSource( true );
+					if ( filterParent != null && !filterParent.isDisposed()){
+						Object x = filterParent.getData( "ViewUtils:ViewTitleExtraInfo" );
 					
-					int	state = dm.getState();
-					
-					if ( state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_SEEDING ){
-						
-						active++;
+						if ( x instanceof ViewUtils.ViewTitleExtraInfo ){
+							
+							TableRowCore[] rows = view.getRows();
+							
+							int	active = 0;
+							
+							for ( TableRowCore row: rows ){
+								
+								DownloadManager dm = (DownloadManager)row.getDataSource( true );
+								
+								int	state = dm.getState();
+								
+								if ( state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_SEEDING ){
+									
+									active++;
+								}
+							}
+							
+							((ViewUtils.ViewTitleExtraInfo)x).update( tv.getComposite(), isSeedingView, rows.length, active );
+						}
 					}
 				}
-				
-				((ViewUtils.ViewTitleExtraInfo)x).update( tv.getComposite(), isSeedingView, rows.length, active );
-			}
+			});
 		}
 	}
 
