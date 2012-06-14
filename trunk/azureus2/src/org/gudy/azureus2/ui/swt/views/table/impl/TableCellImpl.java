@@ -244,7 +244,7 @@ public class TableCellImpl
   }
 
 	protected void pluginError(String s) {
-    String sTitleLanguageKey = tableColumn.getTitleLanguageKey();
+    String sTitleLanguageKey = (tableColumn==null?"?":tableColumn.getTitleLanguageKey());
 
 		String sPosition = "r"
 				+ tableRow.getIndex()
