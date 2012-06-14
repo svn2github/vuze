@@ -828,8 +828,17 @@ public class MyTorrentsView
 	
 	public void 
 	viewChanged(
-		TableView<DownloadManager> view ) 
+		final TableView<DownloadManager> view ) 
 	{
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				swt_viewChanged(view);
+			}
+		});
+	}
+	
+	private void swt_viewChanged(TableView<DownloadManager> view) {
+
 		if ( filterParent != null ){
 			Object x = filterParent.getData( "ViewUtils:ViewTitleExtraInfo" );
 		
@@ -1811,15 +1820,19 @@ public class MyTorrentsView
 		if (event.getType() == UISWTViewEvent.TYPE_FOCUSGAINED) {
 			if (rebuildListOnFocusGain) {
   			List<?> dms = globalManager.getDownloadManagers();
+  			List<DownloadManager> listAdds = new ArrayList();
+  			List<DownloadManager> listRemoves = new ArrayList();
   			for (Iterator<?> iter = dms.iterator(); iter.hasNext();) {
   				DownloadManager dm = (DownloadManager) iter.next();
   
   				if (!isOurDownloadManager(dm)) {
-  					tv.removeDataSource(dm);
+  					listAdds.add(dm);
   				} else {
-  					tv.addDataSource(dm);
+  					listRemoves.add(dm);
   				}
   			}
+  			tv.removeDataSources(listRemoves.toArray(new DownloadManager[0]));
+  			tv.addDataSources(listAdds.toArray(new DownloadManager[0]));
 			}
 	    updateSelectedContent();
 		} else if (event.getType() == UISWTViewEvent.TYPE_FOCUSLOST) {
