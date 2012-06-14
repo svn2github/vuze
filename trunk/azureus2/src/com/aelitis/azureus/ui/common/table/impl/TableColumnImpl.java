@@ -785,7 +785,7 @@ public class TableColumnImpl
 
 	public void invokeCellRefreshListeners(TableCell cell, boolean fastRefresh) throws Throwable {
 		//System.out.println(this + " :: invokeCellRefreshListeners" + cellRefreshListeners);
-		if (cellRefreshListeners == null || cell.isDisposed()) {
+		if (cellRefreshListeners == null || cell == null || cell.isDisposed()) {
 			return;
 		}
 		
@@ -794,7 +794,7 @@ public class TableColumnImpl
 		//System.out.println(this + " :: invokeCellRefreshListeners" + cellRefreshListeners.size());
 		for (int i = 0; i < cellRefreshListeners.size(); i++) {
 			
-			TableCellRefreshListener l = (TableCellRefreshListener)cellRefreshListeners.get(i); 
+			TableCellRefreshListener l = cellRefreshListeners.get(i); 
 
 			try {
 				if(l instanceof TableCellLightRefreshListener)
