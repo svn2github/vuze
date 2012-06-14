@@ -577,7 +577,7 @@ AEWin32AccessImpl
     	
     	// gah, see http://pluscs.vuze.com/tickets/23804?col=1101604&page=1 we sometimes get crashes here
     	
-    	String	state_key = "awein32.getalldrives.state";
+    	String	state_key = "awein32.getalldrives.state.2";
     	
     	int state = COConfigurationManager.getIntParameter( state_key, 0 );
     	
@@ -616,6 +616,8 @@ AEWin32AccessImpl
     	}finally{
     		
     		COConfigurationManager.setParameter( state_key, 2 );
+    		
+    		COConfigurationManager.setDirty();
     	}
     }
     
