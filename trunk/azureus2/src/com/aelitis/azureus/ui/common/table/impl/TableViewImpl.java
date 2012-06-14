@@ -28,7 +28,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	private static final boolean DEBUG_SORTER = false;
 
 	/** Helpful output when trying to debug add/removal of rows */
-	public final static boolean DEBUGADDREMOVE = System.getProperty(
+	public final static boolean DEBUGADDREMOVE = true || System.getProperty(
 			"debug.swt.table.addremove", "0").equals("1");
 
 	public static final boolean DEBUG_SELECTION = false;
@@ -565,7 +565,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		diag_logger.log(SystemTime.getCurrentTime() + ":" + getTableID() + ": " + s);
 
 		System.out.println(Thread.currentThread().getName() + "] " + SystemTime.getCurrentTime() + ": " + getTableID() + ": "
-				+ s);
+				+ s + " via " + Debug.getCompressedStackTraceSkipFrames(1));
 	}
 
 	private void _processDataSourceQueue() {
@@ -641,7 +641,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			return;
 		}
 
-		if (DataSourceCallBackUtil.IMMEDIATE_ADDREMOVE_DELAY == 0 || sortedRows.size() < uiGuessMaxVisibleRows()) {
+		if (DataSourceCallBackUtil.IMMEDIATE_ADDREMOVE_DELAY == 0) {
 			reallyAddDataSources(new Object[] {
 				dataSource
 			});

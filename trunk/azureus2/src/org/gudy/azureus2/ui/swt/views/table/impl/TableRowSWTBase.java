@@ -5,7 +5,6 @@ import java.util.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
-import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -15,7 +14,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
-import org.gudy.azureus2.ui.swt.views.table.painted.TableViewPainted;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
@@ -28,9 +26,9 @@ public abstract class TableRowSWTBase
 {
 	public static boolean DEBUG_ROW_PAINT = false;
 
-	protected static AEMonitor this_mon = new AEMonitor("TableRowPainted");
+	protected Object lock;
 
-	private final TableViewPainted tv;
+	private final TableViewSWT tv;
 
 	private final TableRowCore parentRow;
 
@@ -59,8 +57,9 @@ public abstract class TableRowSWTBase
 	private boolean expanded;
 
 
-	public TableRowSWTBase(TableRowCore parentRow, TableViewPainted tv,
+	public TableRowSWTBase(Object lock, TableRowCore parentRow, TableViewSWT tv,
 			Object dataSource) {
+		this.lock = lock;
 		this.parentRow = parentRow;
 		this.tv = tv;
 		this.coreDataSource = dataSource;
@@ -70,8 +69,7 @@ public abstract class TableRowSWTBase
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#invalidate()
 	 */
 	public void invalidate() {
-		this_mon.enter();
-		try {
+		synchronized (lock) {
   		if (bDisposed || mTableCells == null) {
   			return;
   		}
@@ -81,14 +79,11 @@ public abstract class TableRowSWTBase
   				cell.invalidate(false);
   			}
   		}
-		} finally {
-			this_mon.exit();
 		}
 	}
 
 	public boolean doesAnyCellHaveFlag(int flag) {
-		this_mon.enter();
-		try {
+		synchronized (lock) {
   		if (bDisposed || mTableCells == null) {
   			return false;
   		}
@@ -100,15 +95,12 @@ public abstract class TableRowSWTBase
   			}
   		}
   		return false;
-		} finally {
-			this_mon.exit();
 		}
 	}
 
 
 	public void setCellFlag(int flag) {
-		this_mon.enter();
-		try {
+		synchronized (lock) {
   		if (bDisposed || mTableCells == null) {
   			return;
   		}
@@ -118,14 +110,11 @@ public abstract class TableRowSWTBase
   				((TableCellSWTBase) cell).setFlag(flag);
   			}
   		}
-		} finally {
-			this_mon.exit();
 		}
 	}
 
 	public void clearCellFlag(int flag, boolean subRows) {
-		this_mon.enter();
-		try {
+		synchronized (lock) {
   		if (bDisposed || mTableCells == null) {
   			return;
   		}
@@ -141,8 +130,6 @@ public abstract class TableRowSWTBase
   				((TableRowSWTBase) row).clearCellFlag(flag, false);
   			}
   		}
-		} finally {
-			this_mon.exit();
 		}
 	}
 
@@ -150,8 +137,7 @@ public abstract class TableRowSWTBase
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#delete()
 	 */
 	public void delete() {
-		this_mon.enter();
-		try {
+		synchronized (lock) {
 
 			if (bDisposed) {
 				return;
@@ -172,8 +158,6 @@ public abstract class TableRowSWTBase
 			setHeight(0);
 			
 			bDisposed = true;
-		} finally {
-			this_mon.exit();
 		}
 	}
 
@@ -197,8 +181,7 @@ public abstract class TableRowSWTBase
 		if (bDisposed || !isVisible()) {
 			return;
 		}
-		this_mon.enter();
-		try {
+		synchronized (lock) {
 			if (mTableCells == null) {
 				return;
 			}
@@ -208,8 +191,6 @@ public abstract class TableRowSWTBase
   				cell.locationChanged();
   			}
   		}
-		} finally {
-			this_mon.exit();
 		}
 	}
 
@@ -261,15 +242,12 @@ public abstract class TableRowSWTBase
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#getTableCellCore(java.lang.String)
 	 */
 	public TableCellCore getTableCellCore(String name) {
-		this_mon.enter();
-		try {
+		synchronized (lock) {
   		if (bDisposed || mTableCells == null) {
   			return null;
   		}
   
   		return mTableCells.get(name);
-		} finally {
-			this_mon.exit();
 		}
 	}
 
@@ -328,8 +306,7 @@ public abstract class TableRowSWTBase
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#setUpToDate(boolean)
 	 */
 	public void setUpToDate(boolean upToDate) {
-		this_mon.enter();
-		try {
+		synchronized (lock) {
   		if (bDisposed || mTableCells == null) {
   			return;
   		}
@@ -339,8 +316,6 @@ public abstract class TableRowSWTBase
   				cell.setUpToDate(upToDate);
   			}
   		}
-		} finally {
-			this_mon.exit();
 		}
 	}
 
@@ -372,13 +347,10 @@ public abstract class TableRowSWTBase
 
 		// Make a copy of cells so we don't lock while refreshing
 		Collection<TableCellCore> lTableCells = null;
-		this_mon.enter();
-		try {
+		synchronized (lock) {
 			if (mTableCells != null) {
 				lTableCells = new ArrayList<TableCellCore>(mTableCells.values());
 			}
-		} finally {
-			this_mon.exit();
 		}
 
 		if (lTableCells != null) {
@@ -420,8 +392,7 @@ public abstract class TableRowSWTBase
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableRow#addMouseListener(org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener)
 	 */
 	public void addMouseListener(TableRowMouseListener listener) {
-		try {
-			this_mon.enter();
+		synchronized (lock) {
 
 			if (mouseListeners == null) {
 				mouseListeners = new ArrayList<TableRowMouseListener>(1);
@@ -429,8 +400,6 @@ public abstract class TableRowSWTBase
 
 			mouseListeners.add(listener);
 
-		} finally {
-			this_mon.exit();
 		}
 	}
 
@@ -438,8 +407,7 @@ public abstract class TableRowSWTBase
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableRow#removeMouseListener(org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener)
 	 */
 	public void removeMouseListener(TableRowMouseListener listener) {
-		try {
-			this_mon.enter();
+		synchronized (lock) {
 
 			if (mouseListeners == null) {
 				return;
@@ -447,8 +415,6 @@ public abstract class TableRowSWTBase
 
 			mouseListeners.remove(listener);
 
-		} finally {
-			this_mon.exit();
 		}
 	}
 
@@ -580,8 +546,7 @@ public abstract class TableRowSWTBase
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableRow#isValid()
 	 */
 	public boolean isValid() {
-		this_mon.enter();
-		try {
+		synchronized (lock) {
   		if (bDisposed || mTableCells == null) {
   			return true;
   		}
@@ -594,8 +559,6 @@ public abstract class TableRowSWTBase
   		}
   
  		return valid;
-		} finally {
-			this_mon.exit();
 		}
 	}
 
@@ -603,15 +566,12 @@ public abstract class TableRowSWTBase
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableRow#getTableCell(java.lang.String)
 	 */
 	public TableCell getTableCell(String field) {
-		this_mon.enter();
-		try {
+		synchronized (lock) {
   		if (bDisposed || mTableCells == null) {
   			return null;
   		}
   
   		return mTableCells.get(field);
-		} finally {
-			this_mon.exit();
 		}
 	}
 
@@ -670,8 +630,7 @@ public abstract class TableRowSWTBase
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#getTableCellSWT(java.lang.String)
 	 */
 	public TableCellSWT getTableCellSWT(String name) {
-		this_mon.enter();
-		try {
+		synchronized (lock) {
   		if (bDisposed || mTableCells == null) {
   			return null;
   		}
@@ -681,8 +640,6 @@ public abstract class TableRowSWTBase
   			return (TableCellSWT) cell;
   		}
   		return null;
-		} finally {
-			this_mon.exit();
 		}
 	}
 
@@ -752,13 +709,10 @@ public abstract class TableRowSWTBase
 		wasShown = b;
 
 		Collection<TableCellCore> lTableCells = null;
-		this_mon.enter();
-		try {
+		synchronized (lock) {
 			if (mTableCells != null) {
 				lTableCells = new ArrayList<TableCellCore>(mTableCells.values());
 			}
-		} finally {
-			this_mon.exit();
 		}
 
 		if (lTableCells != null) {

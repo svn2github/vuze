@@ -2441,4 +2441,8 @@ public class TableViewPainted
 			}
 		});
 	}
+
+	public Object getSyncObject() {
+		return visibleRows_sync;
+	}
 }

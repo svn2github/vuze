@@ -254,4 +254,8 @@ public interface TableViewSWT<DATASOURCETYPE>
 	void tableInvalidate();
 
 	void showRow(TableRowCore rowToShow);
+
+	TableRowCore getRowQuick(int index);
+
+	void invokeRefreshListeners(TableRowCore row);
 }

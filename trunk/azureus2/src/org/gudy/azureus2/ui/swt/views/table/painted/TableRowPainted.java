@@ -38,7 +38,7 @@ public class TableRowPainted
 
 	private TableRowPainted[] subRows;
 
-	private AEMonitor mon_SubRows = new AEMonitor("subRows");
+	private Object subRows_sync;
 
 	private int subRowsHeight;
 	
@@ -56,7 +56,12 @@ public class TableRowPainted
 
 	public TableRowPainted(TableRowCore parentRow, TableViewPainted tv,
 			Object dataSource, boolean triggerHeightChange) {
-		super(parentRow, tv, dataSource);
+		// in theory, TableRowPainted could have it's own sync
+		// but in practice, I end up calling code within the sync which inevitably
+		// calls the TableView and causes locks.  So, use the TableView's sync!
+
+		super(tv.getSyncObject(), parentRow, tv, dataSource);
+		subRows_sync = tv.getSyncObject();
 
 		TableColumnCore sortColumn = tv.getSortColumn();
 		if (parentRow == null
@@ -77,8 +82,7 @@ public class TableRowPainted
 	private void buildCells() {
 		//debug("buildCells " + Debug.getCompressedStackTrace());
 		TableColumnCore[] visibleColumns = getView().getVisibleColumns();
-		this_mon.enter();
-		try {
+		synchronized (lock) {
   		mTableCells = new LinkedHashMap<String, TableCellCore>(
   				visibleColumns.length, 1);
   
@@ -106,14 +110,11 @@ public class TableRowPainted
   			mTableCells.put(visibleColumns[i].getName(), cell);
   			//if (i == 10) cell.bDebug = true;
   		}
-		} finally {
-			this_mon.exit();
 		}
 	}
 	
 	private void destroyCells() {
-		this_mon.enter();
-		try {
+		synchronized (lock) {
 			if (mTableCells != null) {
 				for (TableCellCore cell : mTableCells.values()) {
 					if (cell != null && cell != cellSort) {
@@ -122,8 +123,6 @@ public class TableRowPainted
 				}
 				mTableCells = null;
 			}
-		} finally {
-			this_mon.exit();
 		}
 	}
 
@@ -181,8 +180,7 @@ public class TableRowPainted
 		int x = rowStartX;
 		boolean paintedRow = false;
 		TableColumnCore[] visibleColumns = getView().getVisibleColumns();
-		this_mon.enter();
-		try {
+		synchronized (lock) {
   		if (mTableCells != null) {
     		for (TableColumn tc : visibleColumns) {
     			TableCellCore cell = mTableCells.get(tc.getName());
@@ -234,8 +232,6 @@ public class TableRowPainted
   			gc.fillRectangle(x, rowStartY, w, getHeight());
   		}
 
-		} finally {
-			this_mon.exit();
 		}
 		
 //		if (paintedRow) {
@@ -453,15 +449,12 @@ public class TableRowPainted
 		if (!doChildren) {
 			return;
 		}
-		mon_SubRows.enter();
-		try {
+		synchronized (subRows_sync) {
 			if (subRows != null) {
 				for (TableRowPainted subrow : subRows) {
 					subrow.redraw();
 				}
 			}
-		} finally {
-			mon_SubRows.exit();
 		}
 	}
 
@@ -528,8 +521,7 @@ public class TableRowPainted
 		}
 		this.drawOffset = drawOffset;
 
-//		mon_SubRows.enter();
-//		try {
+//		synchronized (subRows_sync) {
 //			if (subRows != null) {
 //				int y = drawOffset.y + getHeight();
 //				for (TableRowPainted subrow : subRows) {
@@ -537,8 +529,6 @@ public class TableRowPainted
 //					y += subrow.getHeight();
 //				}
 //			}
-//		} finally {
-//			mon_SubRows.exit();
 //		}
 
 		return true;
@@ -552,42 +542,33 @@ public class TableRowPainted
 	
 	@Override
 	public void setShown(boolean b, boolean force) {
-		this_mon.enter();
-		try {
+		synchronized (lock) {
   		if (b && mTableCells == null) {
   			buildCells();
   		}
-		} finally {
-			this_mon.exit();
 		}
 		
 		super.setShown(b, force);
 		if (!b && mTableCells != null) {
 			destroyCells();
 		}
-//		mon_SubRows.enter();
-//		try {
+//		synchronized (subRows_sync) {
 //			if (subRows != null) {
 //				for (TableRowPainted subrow : subRows) {
 //					subrow.setShown(b, force);
 //				}
 //			}
-//		} finally {
-//			mon_SubRows.exit();
 //		}
 	}
 	
 	private void deleteExistingSubRows() {
-		mon_SubRows.enter();
-		try {
+		synchronized (subRows_sync) {
 			if (subRows != null) {
 				for (TableRowPainted subrow : subRows) {
 					subrow.delete();
 				}
 			}
 			subRows = null;
-		} finally {
-			mon_SubRows.exit();
 		}
 	}
 
@@ -636,17 +617,13 @@ public class TableRowPainted
 	}
 
 	public TableRowCore[] getSubRowsWithNull() {
-		mon_SubRows.enter();
-		try {
+		synchronized (subRows_sync) {
 			return subRows == null ? new TableRowCore[0] : subRows;
-		} finally {
-			mon_SubRows.exit();
 		}
 	}
 
 	public void removeSubRow(Object datasource) {
-		mon_SubRows.enter();
-		try {
+		synchronized (subRows_sync) {
 
 			for (int i = 0; i < subDataSources.length; i++) {
 				Object ds = subDataSources[i];
@@ -671,8 +648,6 @@ public class TableRowPainted
 					break;
 				}
 			}
-		} finally {
-			mon_SubRows.exit();
 		}
 	}
 	
@@ -680,8 +655,7 @@ public class TableRowPainted
 	public void setExpanded(boolean b) {
 		int oldHeight = getFullHeight();
 		super.setExpanded(b);
-		mon_SubRows.enter();
-		try {
+		synchronized (subRows_sync) {
   		if (b && (subRows == null || subRows.length != numSubItems)
   				&& subDataSources != null && subDataSources.length == numSubItems) {
   			if (DEBUG_SUBS) {
@@ -703,8 +677,6 @@ public class TableRowPainted
   			subRows = newSubRows;
   		}
 			getViewPainted().rowHeightChanged(this, oldHeight, getFullHeight());
-		} finally {
-			mon_SubRows.exit();
 		}
 		if (isVisible()) {
 			getViewPainted().visibleRowsChanged();
@@ -713,8 +685,7 @@ public class TableRowPainted
 	}
 
 	public TableRowCore getSubRow(int pos) {
-		mon_SubRows.enter();
-		try {
+		synchronized (subRows_sync) {
 			if (subRows == null) {
 				return null;
 			}
@@ -722,8 +693,6 @@ public class TableRowPainted
 				return subRows[pos];
 			}
 			return null;
-		} finally {
-			mon_SubRows.exit();
 		}
 	}
 	
@@ -794,8 +763,7 @@ public class TableRowPainted
 		if (isRowDisposed()) {
 			return null;
 		}
-		this_mon.enter();
-		try {
+		synchronized (lock) {
 			if (mTableCells == null) {
   			if (cellSort != null && !cellSort.isDisposed()
   					&& cellSort.getTableColumn().getName().equals(name)) {
@@ -805,8 +773,6 @@ public class TableRowPainted
     		}
 			}
   		return mTableCells.get(name);
-		} finally {
-			this_mon.exit();
 		}
 	}
 	
@@ -826,9 +792,8 @@ public class TableRowPainted
 	}
 	
 	public void setSortColumn(String columnID) {
-		this_mon.enter();
+		synchronized (lock) {
 		
-		try {
   		if (mTableCells == null) {
   			if (cellSort != null && !cellSort.isDisposed()) {
     			if (cellSort.getTableColumn().getName().equals(columnID)) {
@@ -847,8 +812,6 @@ public class TableRowPainted
   		} else {
   			cellSort = mTableCells.get(columnID);
   		}
-  	} finally {
-  		this_mon.exit();
   	}
 	}
 }
