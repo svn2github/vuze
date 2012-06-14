@@ -443,7 +443,7 @@ public class TableRowImpl<COREDATASOURCE>
 			}
 		}
 
-		boolean changedIndex = lastIndex != newIndex;
+		boolean changedIndex = lastIndex != newIndex || item == null;
 
 		//if (getRealIndex() != newIndex) {
 		//	((TableViewSWTImpl)tableView).debug("sTI " + newIndex + "; via " + Debug.getCompressedStackTrace(4));
