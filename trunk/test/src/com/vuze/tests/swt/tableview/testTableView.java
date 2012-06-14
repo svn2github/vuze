@@ -106,6 +106,15 @@ public class testTableView
 
 		tv.setRowDefaultHeight(40);
 		//	tv.setRowDefaultHeight(16);
+		
+		tv.addCountChangeListener(new TableCountChangeListener() {
+			public void rowRemoved(TableRowCore row) {
+			}
+			
+			public void rowAdded(TableRowCore row) {
+				row.setHeight((int) (16 + (Math.random() * 100)));
+			}
+		});
 
 		tv.addSelectionListener(new TableSelectionListener() {
 			public void selected(TableRowCore[] row) {

@@ -30,9 +30,9 @@ public class CT_ID
 
 	public void cellAdded(TableCell cell) {
 		TableRowCore row = (cell.getTableRow() instanceof TableRowCore) ? (TableRowCore)cell.getTableRow() : null;
-		if (row != null) {
-			row.setHeight((int) (16 + (Math.random() * 100)));
-		}
+//		if (row != null) {
+//			row.setHeight((int) (16 + (Math.random() * 100)));
+//		}
 		String indent = row == null || row.getParentRowCore() == null ? "" : "  ";
 		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
 		Object mapObject = MapUtils.getMapObject(ds.map, "ID", null, Number.class);
