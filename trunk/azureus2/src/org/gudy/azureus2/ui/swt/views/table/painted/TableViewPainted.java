@@ -2001,11 +2001,12 @@ public class TableViewPainted
 			int max = totalHeight - clientArea.height;
 			if (max < 0) {
 				vBar.setSelection(0);
-				vBar.setMaximum(0);
+				vBar.setEnabled(false);
 				vBar.setVisible(false);
 			} else {
 				if (!vBar.isVisible()) {
 					vBar.setVisible(true);
+					vBar.setEnabled(true);
 				}
 				vBar.setMaximum(max);
 			}
@@ -2014,11 +2015,12 @@ public class TableViewPainted
 			int max = columnsWidth - cTable.getSize().x;
 			if (max < 0) {
 				hBar.setSelection(0);
-				hBar.setMaximum(0);
+				hBar.setEnabled(false);
 				hBar.setVisible(false);
 			} else {
 				if (!hBar.isVisible()) {
 					hBar.setVisible(true);
+					hBar.setEnabled(true);
 				}
 				hBar.setMaximum(max);
 			}
