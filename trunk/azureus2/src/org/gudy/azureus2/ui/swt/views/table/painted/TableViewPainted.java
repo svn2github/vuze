@@ -866,8 +866,8 @@ public class TableViewPainted
 		cTable.addControlListener(new ControlListener() {
 
 			public void controlResized(ControlEvent e) {
-				swt_fixupSize();
 				swt_calculateClientArea();
+				swt_fixupSize();
 			}
 			
 			public void controlMoved(ControlEvent e) {
