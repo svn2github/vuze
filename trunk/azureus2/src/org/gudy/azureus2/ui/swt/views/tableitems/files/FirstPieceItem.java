@@ -69,6 +69,6 @@ public class FirstPieceItem
     
 		// < 0 -> unknown skeleton value 
 	
-    cell.setText( sort_value<0?"":(""+fileInfo.getFirstPieceNumber()));
+    cell.setText( sort_value<0 || fileInfo == null?"":(""+fileInfo.getFirstPieceNumber()));
   }
 }

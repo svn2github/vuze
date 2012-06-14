@@ -355,7 +355,7 @@ public abstract class TableRowSWTBase
 
 		if (lTableCells != null) {
   		for (TableCellCore cell : lTableCells) {
-  			if (cell == null) {
+  			if (cell == null || cell.isDisposed()) {
   				continue;
   			}
   			TableColumn column = cell.getTableColumn();

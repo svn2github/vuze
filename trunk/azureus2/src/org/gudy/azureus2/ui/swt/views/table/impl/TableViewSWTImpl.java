@@ -1655,9 +1655,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			
 			int iPos = table.indexOf(item);
 			//System.out.println(iPos + " has no table row.. associating. " + Debug.getCompressedStackTrace(4));
-			try {
-				lockRows();
-
+			Object sortedRows_sync = getRowsSync();
+			synchronized (sortedRows_sync) {
 				if (iPos >= 0 && iPos < getRowCount()) {
 					TableRowSWT row = (TableRowSWT) getRow(iPos);
 					//System.out.print(".. associating to " + row);
@@ -1668,8 +1667,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					}
 					return null;
 				}
-			} finally {
-				unlockRows();
 			}
 		} catch (Exception e) {
 			Debug.out(e);

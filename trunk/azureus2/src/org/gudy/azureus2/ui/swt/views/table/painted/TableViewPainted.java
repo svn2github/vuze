@@ -164,6 +164,7 @@ public class TableViewPainted
 			String _sPropertiesPrefix, TableColumnCore[] _basicItems,
 			String _sDefaultSortOn, int _iTableStyle) {
 		super(pluginDataSourceType, _sTableID, _sPropertiesPrefix, _basicItems);
+		setRowsSync(visibleRows_sync);
 		//		boolean wantTree = (_iTableStyle & SWT.CASCADE) != 0;
 		//		_iTableStyle &= ~SWT.CASCADE;
 		//		if (wantTree) {
@@ -1617,7 +1618,7 @@ public class TableViewPainted
 		final List<TableRowSWT> newlyVisibleRows = new ArrayList<TableRowSWT>();
 		final List<TableRowSWT> nowInVisibleRows;
 		final ArrayList<TableRowSWT> rowsStayedVisibleButMoved = new ArrayList<TableRowSWT>();
-		synchronized (this) {
+		synchronized (visibleRows_sync) {
 			List<TableRowSWT> newVisibleRows;
 			if (isVisible()) {
 				// this makes a copy.. slower
@@ -1629,23 +1630,21 @@ public class TableViewPainted
 			} else {
 				newVisibleRows = Collections.emptyList();
 			}
-			synchronized (visibleRows_sync) {
-				nowInVisibleRows = new ArrayList<TableRowSWT>(0);
-				if (visibleRows != null) {
-					nowInVisibleRows.addAll(Arrays.asList(visibleRows));
-				}
-				TableRowPainted[] rows = new TableRowPainted[newVisibleRows.size()];
-				int pos = 0;
-				for (TableRowSWT row : newVisibleRows) {
-					rows[pos++] = (TableRowPainted) row;
-					boolean removed = nowInVisibleRows.remove(row);
-					if (!removed) {
-						newlyVisibleRows.add(row);
-					}
-				}
-
-				visibleRows = rows;
+			nowInVisibleRows = new ArrayList<TableRowSWT>(0);
+			if (visibleRows != null) {
+				nowInVisibleRows.addAll(Arrays.asList(visibleRows));
 			}
+			TableRowPainted[] rows = new TableRowPainted[newVisibleRows.size()];
+			int pos = 0;
+			for (TableRowSWT row : newVisibleRows) {
+				rows[pos++] = (TableRowPainted) row;
+				boolean removed = nowInVisibleRows.remove(row);
+				if (!removed) {
+					newlyVisibleRows.add(row);
+				}
+			}
+
+			visibleRows = rows;
 		}
 
 		if (DEBUG_ROWCHANGE) {
@@ -2370,7 +2369,7 @@ public class TableViewPainted
 		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				synchronized (TableViewPainted.this) {
+				synchronized (heightChangeSync) {
 					qdRowHeightChanged = false;
 				}
 				swt_fixupSize();

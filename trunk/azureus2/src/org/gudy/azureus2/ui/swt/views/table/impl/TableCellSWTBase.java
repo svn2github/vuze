@@ -1035,7 +1035,7 @@ public abstract class TableCellSWTBase
 			setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
 		}
 
-		boolean do_auto = this.tableColumn.doesAutoTooltip();
+		boolean do_auto = tableColumn == null ? false : tableColumn.doesAutoTooltip();
 
 		// If we were using auto tooltips (and we aren't any more), then
 		// clear up previously set tooltips.

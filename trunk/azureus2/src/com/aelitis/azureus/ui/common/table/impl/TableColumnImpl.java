@@ -785,7 +785,7 @@ public class TableColumnImpl
 
 	public void invokeCellRefreshListeners(TableCell cell, boolean fastRefresh) throws Throwable {
 		//System.out.println(this + " :: invokeCellRefreshListeners" + cellRefreshListeners);
-		if (cellRefreshListeners == null) {
+		if (cellRefreshListeners == null || cell.isDisposed()) {
 			return;
 		}
 		

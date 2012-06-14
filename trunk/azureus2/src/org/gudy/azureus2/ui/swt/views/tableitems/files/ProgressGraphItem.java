@@ -122,7 +122,7 @@ public class ProgressGraphItem extends CoreTableColumn implements TableCellAdded
 			if (x1 < 10 || y1 < 3)
 				return;
 			
-			final DiskManager manager = fileInfo.getDiskManager();
+			final DiskManager manager = fileInfo == null ? null : fileInfo.getDiskManager();
 			// we want to run through the image part once one the transition from with a disk manager (running)
 			// to without a disk manager (stopped) in order to clear the pieces view
 			boolean running = manager != null;
@@ -156,7 +156,7 @@ public class ProgressGraphItem extends CoreTableColumn implements TableCellAdded
 			final GC gcImage = new GC(piecesImage);
 			
 			// dm may be null if this is a skeleton file view
-			DownloadManager download_manager = fileInfo.getDownloadManager();
+			DownloadManager download_manager = fileInfo == null ? null : fileInfo.getDownloadManager();
 			PEPeerManager peer_manager = download_manager == null ? null : download_manager.getPeerManager();
 			PEPiece[] pe_pieces = peer_manager == null ? null : peer_manager.getPieces();
 			final long now = SystemTime.getCurrentTime();
