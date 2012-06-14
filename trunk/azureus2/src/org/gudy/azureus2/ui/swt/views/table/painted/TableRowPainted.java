@@ -135,8 +135,7 @@ public class TableRowPainted
 			Color color;
 			if (isFocused()) {
 				// TODO: Do something special for selected and focused (like a border)
-				color = gc.getDevice().getSystemColor(
-						SWT.COLOR_LIST_SELECTION);
+				color = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION);
 			} else {
 				color = getViewPainted().getTableComposite().isFocusControl()
 						? Colors.blues[3] : Colors.blues[1];
@@ -167,7 +166,8 @@ public class TableRowPainted
 		}
 		Color fg = getForeground();
 		if (fg == null) {
-			fg = gc.getForeground();
+			fg = isSelected() ? gc.getDevice().getSystemColor(
+					SWT.COLOR_LIST_SELECTION) : gc.getForeground();
 		} else {
 			gc.setForeground(fg);
 		}
