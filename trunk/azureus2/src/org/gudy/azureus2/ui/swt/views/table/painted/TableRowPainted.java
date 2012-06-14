@@ -131,6 +131,8 @@ public class TableRowPainted
 	}
 
 	public void paintControl(GC gc, Region rgn, Rectangle drawBounds, int rowStartX, int rowStartY, int pos) {
+		Color origBG = gc.getBackground();
+		Color origFG = gc.getForeground();
 		if (isSelected()) {
 			Color color;
 			if (isFocused()) {
@@ -243,8 +245,8 @@ public class TableRowPainted
 //		}
 
 		gc.setAlpha(255);
-		gc.setBackground(bg);
-		gc.setForeground(fg);
+		gc.setBackground(origBG);
+		gc.setForeground(origFG);
 		if (x < drawBounds.x + drawBounds.width) {
 			gc.fillRectangle(x, rowStartY, (drawBounds.x + drawBounds.width) - x, getHeight());
 		}
