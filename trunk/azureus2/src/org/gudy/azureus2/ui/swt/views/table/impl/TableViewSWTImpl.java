@@ -2855,8 +2855,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return row;
 	}
 
-	@Override
-	public int uiGetTopIndex() {
+	private int uiGetTopIndex() {
 		return ((Number) Utils.execSWTThreadWithObject("uiGetTopIndex", new AERunnableObject() {
 			public Object runSupport() {
 				 return table.getTopIndex();
@@ -2869,8 +2868,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return 0;
 	}
 	
-	@Override
-	public int uiGetBottomIndex(final int iTopIndex) {
+	private int uiGetBottomIndex(final int iTopIndex) {
 		return ((Number) Utils.execSWTThreadWithObject("uiGetBottomIndex", new AERunnableObject() {
 			public Object runSupport() {
 				return Utils.getTableBottomIndex(table, iTopIndex);

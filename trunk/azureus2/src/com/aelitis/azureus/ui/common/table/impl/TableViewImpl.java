@@ -1279,10 +1279,6 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 	public abstract void visibleRowsChanged();
 
-	public abstract int uiGetTopIndex();
-
-	public abstract int uiGetBottomIndex(int iTopIndex);
-
 	public abstract void uiRemoveRows(TableRowCore[] rows, Integer[] rowIndexes);
 	
 	public abstract int uiGuessMaxVisibleRows();
