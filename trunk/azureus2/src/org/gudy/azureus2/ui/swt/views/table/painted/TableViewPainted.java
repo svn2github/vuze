@@ -1776,7 +1776,6 @@ public class TableViewPainted
 					
 					if (indexOf(rowBottom) < 0) {
 						redrawTable();
-						System.out.println("REDRWA");
 					}
 				}
 			}
