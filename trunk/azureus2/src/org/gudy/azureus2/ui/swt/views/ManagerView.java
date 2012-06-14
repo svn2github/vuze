@@ -575,7 +575,10 @@ public class ManagerView
     					
     					if ( enabled ){
     						
-    						updateHeader();
+    						Utils.execSWTThread(new AERunnable() {
+    							public void runSupport() {
+    								updateHeader();
+    							}});
     					}
     				}
     				
