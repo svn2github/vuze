@@ -247,9 +247,6 @@ public class TableRowPainted
 		gc.setAlpha(255);
 		gc.setBackground(origBG);
 		gc.setForeground(origFG);
-		if (x < drawBounds.x + drawBounds.width) {
-			gc.fillRectangle(x, rowStartY, (drawBounds.x + drawBounds.width) - x, getHeight());
-		}
 	}
 
 	private boolean paintCell(GC gc, Rectangle cellBounds, TableCellSWTBase cell) {
