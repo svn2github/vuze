@@ -72,6 +72,8 @@ public class TableViewPainted
 	 * Rows visible to user.  We assume this list is always up to date
 	 */
 	TableRowPainted[] visibleRows = new TableRowPainted[0];
+	
+	Object visibleRows_sync = new Object();
 
 	/**
 	 * Up to date table client area.  So far, the best places to refresh
@@ -517,7 +519,7 @@ public class TableViewPainted
 		if (row == null) {
 			return false;
 		}
-		synchronized (visibleRows) {
+		synchronized (visibleRows_sync) {
 			for (TableRowCore visibleRow : visibleRows) {
 				if (visibleRow == row) {
 					return true;
@@ -1191,7 +1193,7 @@ public class TableViewPainted
 
 		TableRowCore oldRow = null;
 		int pos = -1;
-		synchronized (visibleRows) {
+		synchronized (visibleRows_sync) {
 			Region rgn = new Region();
 			gc.getClipping(rgn);
 
@@ -1618,7 +1620,7 @@ public class TableViewPainted
 			} else {
 				newVisibleRows = Collections.emptyList();
 			}
-			synchronized (visibleRows) {
+			synchronized (visibleRows_sync) {
 				nowInVisibleRows = new ArrayList<TableRowSWT>(0);
 				if (visibleRows != null) {
 					nowInVisibleRows.addAll(Arrays.asList(visibleRows));
@@ -1756,7 +1758,7 @@ public class TableViewPainted
 	 */
 	@Override
 	public int uiGetTopIndex() {
-		synchronized (visibleRows) {
+		synchronized (visibleRows_sync) {
 			if (visibleRows == null || visibleRows.length == 0) {
 				return 0;
 			}
@@ -1769,7 +1771,7 @@ public class TableViewPainted
 	 */
 	@Override
 	public int uiGetBottomIndex(int iTopIndex) {
-		synchronized (visibleRows) {
+		synchronized (visibleRows_sync) {
 			if (visibleRows == null || visibleRows.length == 0) {
 				return getRowCount() - 1;
 			}
@@ -1856,7 +1858,7 @@ public class TableViewPainted
 
 		//List<TableRowSWT> visibleRows = getVisibleRows();
 		int h = 0;
-		synchronized (visibleRows) {
+		synchronized (visibleRows_sync) {
 			if (visibleRows.length > 0) {
 				TableRowPainted lastRow = visibleRows[visibleRows.length - 1];
 				h = lastRow.getDrawOffset().y - clientArea.y + lastRow.getHeight();
@@ -2140,7 +2142,7 @@ public class TableViewPainted
 	}
 	
 	private void clearVisiblePaintedFlag() {
-		synchronized (visibleRows) {
+		synchronized (visibleRows_sync) {
 			if (visibleRows != null) {
 				for (TableRowPainted row : visibleRows) {
 					row.clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
