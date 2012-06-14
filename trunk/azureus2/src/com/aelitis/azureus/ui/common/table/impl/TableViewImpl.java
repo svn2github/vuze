@@ -28,7 +28,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	private static final boolean DEBUG_SORTER = false;
 
 	/** Helpful output when trying to debug add/removal of rows */
-	public final static boolean DEBUGADDREMOVE = true || System.getProperty(
+	public final static boolean DEBUGADDREMOVE = System.getProperty(
 			"debug.swt.table.addremove", "0").equals("1");
 
 	public static final boolean DEBUG_SELECTION = false;
@@ -536,8 +536,12 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 					}
 				}
 			}
-			removeDataSources((DATASOURCETYPE[]) listRemoves.toArray());
-			addDataSources((DATASOURCETYPE[]) listAdds.toArray(), true);
+			if (listRemoves.size() > 0) {
+				removeDataSources((DATASOURCETYPE[]) listRemoves.toArray());
+			}
+			if (listAdds.size() > 0) {
+				addDataSources((DATASOURCETYPE[]) listAdds.toArray(), true);
+			}
 
 			// add back the ones removeDataSources removed
 			for ( DATASOURCETYPE ds: listRemoves ){
@@ -565,7 +569,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		diag_logger.log(SystemTime.getCurrentTime() + ":" + getTableID() + ": " + s);
 
 		System.out.println(Thread.currentThread().getName() + "] " + SystemTime.getCurrentTime() + ": " + getTableID() + ": "
-				+ s + " via " + Debug.getCompressedStackTraceSkipFrames(1));
+				+ s);
 	}
 
 	private void _processDataSourceQueue() {
@@ -995,8 +999,10 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 				}
 
 				if (mapDataSourceToRow.containsKey(ds)) {
-					debug("-- " + i + " already addded: " + ds.getClass());
-					ds = null;
+					if (DEBUGADDREMOVE) {
+						debug("-- " + i + " already added: " + ds.getClass());
+					}
+					dataSources[i] = null;
 				} else {
 					TableRowCore rowCore = createNewRow(ds);
 					mapDataSourceToRow.put((DATASOURCETYPE) ds, rowCore);
