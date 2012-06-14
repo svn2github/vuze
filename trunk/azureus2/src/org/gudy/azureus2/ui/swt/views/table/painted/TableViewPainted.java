@@ -43,7 +43,6 @@ import com.aelitis.azureus.ui.swt.utils.FontUtils;
  * TODO: 
  * Keyboard Selection
  * Cursor
- * Sub Rows
  * Column move and resize past bounds
  */
 public class TableViewPainted
@@ -81,8 +80,6 @@ public class TableViewPainted
 	 * Typically table.getClientArea() is time consuming 
 	 */
 	protected Rectangle clientArea;
-
-	private boolean columnVisibilitiesChanged = true;
 
 	private boolean isVisible;
 
@@ -124,8 +121,6 @@ public class TableViewPainted
 	private int totalHeight = 0;
 
 	private boolean redrawTableScheduled;
-
-	private int visibleRowsHeight;
 
 	private Font font70pct;
 
@@ -1641,14 +1636,12 @@ public class TableViewPainted
 				}
 				TableRowPainted[] rows = new TableRowPainted[newVisibleRows.size()];
 				int pos = 0;
-				visibleRowsHeight = 0;
 				for (TableRowSWT row : newVisibleRows) {
 					rows[pos++] = (TableRowPainted) row;
 					boolean removed = nowInVisibleRows.remove(row);
 					if (!removed) {
 						newlyVisibleRows.add(row);
 					}
-					visibleRowsHeight += row.getFullHeight();
 				}
 
 				visibleRows = rows;
@@ -1757,8 +1750,10 @@ public class TableViewPainted
 			}
 			y += rowFullHeight;
 		}
-		if (DEBUG_ROWCHANGE && yStart == 0) {
-			System.out.println();
+		if (DEBUG_ROWCHANGE) {
+			if (yStart == 0) {
+				System.out.println();
+			}
 		}
 	}
 	
@@ -1821,15 +1816,16 @@ public class TableViewPainted
 
 		boolean changedX;
 		boolean changedY;
-		boolean changedW;
+		//boolean changedW;
 		boolean changedH;
 		if (oldClientArea != null) {
 			changedX = oldClientArea.x != newClientArea.x;
 			changedY = oldClientArea.y != newClientArea.y;
-			changedW = oldClientArea.width != newClientArea.width;
+			//changedW = oldClientArea.width != newClientArea.width;
 			changedH = oldClientArea.height != newClientArea.height;
 		} else {
-			changedX = changedY = changedW = changedH = true;
+			changedX = changedY = changedH = true;
+			//changedX = changedY = changedW = changedH = true;
 		}
 		
 		clientArea = newClientArea;
@@ -2364,9 +2360,6 @@ public class TableViewPainted
 		synchronized (heightChangeSync) {
   		totalHeight += (newHeight - oldHeight);
   		//System.out.println("Height delta: " + (newHeight - oldHeight) + ";ttl=" + totalHeight);
-  		if (isRowVisible(row)) {
-  			visibleRowsHeight += (newHeight - oldHeight);
-  		}
   
   		// TODO: Shouldn't we do visibleRowsChanged();
   
