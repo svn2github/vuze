@@ -1753,32 +1753,6 @@ public class TableViewPainted
 		return (clientArea.height / defaultRowHeight) + 1;
 	}
 
-	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.common.table.impl.TableViewImpl#uiGetTopIndex()
-	 */
-	@Override
-	public int uiGetTopIndex() {
-		synchronized (visibleRows_sync) {
-			if (visibleRows == null || visibleRows.length == 0) {
-				return 0;
-			}
-			return indexOf(visibleRows[0]);
-		}
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.common.table.impl.TableViewImpl#uiGetBottomIndex(int)
-	 */
-	@Override
-	public int uiGetBottomIndex(int iTopIndex) {
-		synchronized (visibleRows_sync) {
-			if (visibleRows == null || visibleRows.length == 0) {
-				return getRowCount() - 1;
-			}
-			return indexOf(visibleRows[visibleRows.length - 1]);
-		}
-	}
-
 	@Override
 	public void uiRemoveRows(TableRowCore[] rows, Integer[] rowIndexes) {
 		if (focusedRow != null) {
@@ -1789,6 +1763,24 @@ public class TableViewPainted
   			}
   		}
   	}
+		int bottomIndex = getRowCount() - 1;
+		if (bottomIndex < 0) {
+			redrawTable();
+		} else {
+			synchronized (visibleRows_sync) {
+				if (visibleRows != null && visibleRows.length > 0) {
+					TableRowCore rowBottom = visibleRows[visibleRows.length - 1];
+					while (rowBottom.getParentRowCore() != null) {
+						rowBottom = rowBottom.getParentRowCore();
+					}
+					
+					if (indexOf(rowBottom) < 0) {
+						redrawTable();
+						System.out.println("REDRWA");
+					}
+				}
+			}
+		}
 	}
 
 
