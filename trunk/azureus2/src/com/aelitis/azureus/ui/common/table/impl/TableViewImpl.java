@@ -860,7 +860,12 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getDataSources()
 	public ArrayList<DATASOURCETYPE> getDataSources() {
-		return new ArrayList<DATASOURCETYPE>(mapDataSourceToRow.keySet());
+		dataSourceToRow_mon.enter();
+		try {
+			return new ArrayList<DATASOURCETYPE>(mapDataSourceToRow.keySet());
+		} finally {
+			dataSourceToRow_mon.exit();
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#removeDataSource(java.lang.Object)
