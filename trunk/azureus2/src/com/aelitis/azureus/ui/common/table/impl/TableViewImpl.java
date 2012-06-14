@@ -159,6 +159,8 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 	private boolean menuEnabled = true;
 
+	private boolean provideIndexesOnRemove = false;
+
 
 
 	public TableViewImpl(Class<?> pluginDataSourceType, String _sTableID,
@@ -1051,16 +1053,18 @@ public abstract class TableViewImpl<DATASOURCETYPE>
   
   			TableRowCore item = mapDataSourceToRow.get(dataSources[i]);
   			if (item != null) {
-  				// use sortedRows position instead of item.getIndex(), because
-  				// getIndex may have a wrong value (unless we fillRowGaps() which
-  				// is more time consuming and we do afterwards anyway)
-  				int index = sortedRows.indexOf(item);
-  				indexesToRemove.add(index);
-  				if (DEBUGADDREMOVE) {
-  					if (i != 0) {
-  						sbWillRemove.append(", ");
-  					}
-  					sbWillRemove.append(index);
+  				if (isProvideIndexesOnRemove()) {
+    				// use sortedRows position instead of item.getIndex(), because
+    				// getIndex may have a wrong value (unless we fillRowGaps() which
+    				// is more time consuming and we do afterwards anyway)
+    				int index = sortedRows.indexOf(item);
+    				indexesToRemove.add(index);
+    				if (DEBUGADDREMOVE) {
+    					if (i != 0) {
+    						sbWillRemove.append(", ");
+    					}
+    					sbWillRemove.append(index);
+    				}
   				}
   
   				if (item.isSelected()) {
@@ -1147,7 +1151,6 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 			synchronized (rows_sync) {
 				if (bForceDataRefresh && sortColumn != null) {
-					int i = 0;
 					String sColumnID = sortColumn.getName();
 					for (Iterator<TableRowCore> iter = sortedRows.iterator(); iter.hasNext();) {
 						TableRowCore row = iter.next();
@@ -1155,7 +1158,6 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 						if (cell != null) {
 							cell.refresh(true);
 						}
-						i++;
 					}
 				}
 
@@ -1881,4 +1883,12 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	public abstract void triggerTabViewsDataSourceChanged(boolean sendParent);
 
 	protected abstract void uiChangeColumnIndicator();
+
+	public boolean isProvideIndexesOnRemove() {
+		return provideIndexesOnRemove;
+	}
+
+	public void setProvideIndexesOnRemove(boolean provideIndexesOnRemove) {
+		this.provideIndexesOnRemove = provideIndexesOnRemove;
+	}
 }
