@@ -1826,9 +1826,9 @@ public class MyTorrentsView
   				DownloadManager dm = (DownloadManager) iter.next();
   
   				if (!isOurDownloadManager(dm)) {
-  					listAdds.add(dm);
-  				} else {
   					listRemoves.add(dm);
+  				} else {
+  					listAdds.add(dm);
   				}
   			}
   			tv.removeDataSources(listRemoves.toArray(new DownloadManager[0]));
