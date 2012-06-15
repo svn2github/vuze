@@ -68,6 +68,7 @@ public class HealthItem
 		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, COLUMN_WIDTH, sTableID);
 		initializeAsGraphic(POSITION_LAST, COLUMN_WIDTH);
 		setMinWidth(COLUMN_WIDTH);
+		setIconReference("st_stopped", true);
 	}
 
 	public void cellAdded(TableCell cell) {

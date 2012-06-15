@@ -34,6 +34,7 @@ import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.table.impl.TableRowCoreSorter;
 import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
@@ -1036,8 +1037,18 @@ public class TableViewPainted
 							if (column == null) {
 								cHeaderArea.setToolTipText(null);
 							} else {
-								cHeaderArea.setToolTipText(MessageText.getString(
-										column.getTitleLanguageKey() + ".info", (String) null));
+								String info = MessageText.getString(
+										column.getTitleLanguageKey() + ".info", (String) null);
+								if (column.showOnlyImage()) {
+									String tt = MessageText.getString(
+											column.getTitleLanguageKey());
+									if (info != null) {
+										tt += "\n" + info;
+									}
+									cHeaderArea.setToolTipText(tt);
+								} else {
+									cHeaderArea.setToolTipText(info);
+								}
 							}
 						}
 					}
@@ -1379,18 +1390,48 @@ public class TableViewPainted
 				});
 			}
 
-			sp = new GCStringPrinter(e.gc,
-					MessageText.getString(column.getTitleLanguageKey()), new Rectangle(
-							x + 2, yOfs - 1, wText - 4, headerHeight - yOfs + 2), true, false, SWT.WRAP
-							| SWT.CENTER);
-			sp.calculateMetrics();
-			if (sp.isWordCut() || sp.isCutoff()) {
-				Font font = e.gc.getFont();
-				e.gc.setFont(fontHeaderSmall);
-				sp.printString();
-				e.gc.setFont(font);
-			} else {
-				sp.printString();
+			int xOfs = x + 2;
+			
+			boolean onlyShowImage = column.showOnlyImage();
+			String text = "";
+			if (!onlyShowImage) {
+				text = MessageText.getString(column.getTitleLanguageKey());
+			}
+
+			int style = SWT.WRAP | SWT.CENTER;
+			Image image = null;
+			String imageID = column.getIconReference();
+			if (imageID != null) {
+				image = ImageLoader.getInstance().getImage(imageID);
+				if (ImageLoader.isRealImage(image)) {
+					if (onlyShowImage) {
+						text = null;
+						Rectangle imageBounds = image.getBounds();
+						e.gc.drawImage(image, x + (w / 2) - (imageBounds.width / 2),
+								(headerHeight / 2) - (imageBounds.height / 2));
+					} else {
+						text = "%0 " + text;
+					}
+				} else {
+					image = null;
+				}
+			}
+
+			if (text != null) {
+  			sp = new GCStringPrinter(e.gc, text, new Rectangle(xOfs, yOfs - 1,
+  					wText - 4, headerHeight - yOfs + 2), true, false,style);
+  			if (image != null) {
+  				sp.setImages(new Image[] { image } );
+  			}
+  			sp.calculateMetrics();
+  			if (sp.isWordCut() || sp.isCutoff()) {
+  				Font font = e.gc.getFont();
+  				e.gc.setFont(fontHeaderSmall);
+  				sp.printString();
+  				e.gc.setFont(font);
+  			} else {
+  				sp.printString();
+  			}
 			}
 
 			x += w;

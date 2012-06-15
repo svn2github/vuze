@@ -1161,7 +1161,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					});
 				}
 			});
-			
 
 			if (TableViewImpl.DEBUGADDREMOVE) {
 				long lTimeDiff = (SystemTime.getMonotonousTime() - lTimeStart);

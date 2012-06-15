@@ -70,6 +70,7 @@ public class CommentIconItem
 		setRefreshInterval(INTERVAL_LIVE);
 		initializeAsGraphic(POSITION_LAST, 20);
 		setMinWidth(20);
+		setIconReference("comment", true);
 	}
   
   public void cellAdded(TableCell cell) {

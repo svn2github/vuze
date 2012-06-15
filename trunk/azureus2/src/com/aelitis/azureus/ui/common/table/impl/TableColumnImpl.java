@@ -159,6 +159,8 @@ public class TableColumnImpl
 
 	private boolean firstLoad;
 
+	private boolean showOnlyImage;
+
 	public TableColumnImpl(String tableID, String columnID) {
 		init(tableID, columnID);
 	}
@@ -1605,6 +1607,7 @@ public class TableColumnImpl
 	
 	public void setIconReference(String iconID, boolean showOnlyIcon) {
 		this.iconID = iconID;
+		this.showOnlyImage = showOnlyIcon;
 	}
 	
 	public String getIconReference() {
@@ -1626,5 +1629,11 @@ public class TableColumnImpl
 			}
 			info.setProficiency( prof );
 		}
+	}
+
+
+	@Override
+	public boolean showOnlyImage() {
+		return showOnlyImage;
 	}
 }

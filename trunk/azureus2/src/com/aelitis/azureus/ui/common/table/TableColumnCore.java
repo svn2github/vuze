@@ -365,4 +365,6 @@ public interface TableColumnCore
 	 * @since 4.6.0.1
 	 */
 	public void addDataSourceType(Class<?> forDataSourceType);
+	
+	public boolean showOnlyImage();
 }
