@@ -89,7 +89,6 @@ public class ColumnTC_Sample
 			sampleCell.setControl(c, bounds, false);
 		}
 		
-		@Override
 		public void dispose(TableCell cell) {
 			sampleCell = null;
 		}
