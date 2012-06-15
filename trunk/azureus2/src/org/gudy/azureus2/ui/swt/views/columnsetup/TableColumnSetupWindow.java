@@ -180,7 +180,7 @@ public class TableColumnSetupWindow
 				}
 				
 				TableView tv = (TableView) ((DragSource) event.widget).getData("tv");
-				event.data = "" + (tv == tvChosen ? "c" : "a");
+				event.data = "" + (tv == tvChosen.tv ? "c" : "a");
 			}
 
 			public void dragFinished(DragSourceEvent event) {
@@ -1337,11 +1337,12 @@ public class TableColumnSetupWindow
 				});
 			}
 
+			Arrays.sort(columnsChosen,
+					TableColumnManager.getTableColumnOrderComparator());
+
 			tvChosen.tv.tableInvalidate();
 			tvChosen.tv.refreshTable(true);
 
-			Arrays.sort(columnsChosen,
-					TableColumnManager.getTableColumnOrderComparator());
 		} else {
 			row.setSelected(true);
 		}
