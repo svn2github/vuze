@@ -759,10 +759,14 @@ public class GCStringPrinter
 		//System.out.println(ptLineAndWordSize + ";" + outputLine  + "::WordComp " + (ptLineAndWordSize.x - lineInfo.outputLineExtent.x));
 		if (ptLineAndWordSize.x > printArea.width) {
 			// word is longer than space avail, split
-			isWordCut = true;
 
 			Point ptWordSize2 = gc.stringExtent(word + " ");
 			boolean bWordLargerThanWidth = ptWordSize2.x > printArea.width;
+
+			if (bWordLargerThanWidth) {
+				isWordCut = true;
+			}
+			
 			// This will split put a word that is longer than a full line onto a new
 			// line (when the existing line has text).
 			if (bWordLargerThanWidth && lineInfo.outputLineExtent.x > 0) {
