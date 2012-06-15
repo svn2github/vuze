@@ -82,7 +82,7 @@ public class TableTooltips
 				}
 				
 				// TODO: support composite, image, etc
-				if (oToolTip == null)
+				if (oToolTip == null || oToolTip.toString().length() == 0)
 					return;
 
 				Display d = composite.getDisplay();
