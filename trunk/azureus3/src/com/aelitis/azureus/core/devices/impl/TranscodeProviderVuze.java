@@ -574,6 +574,22 @@ TranscodeProviderVuze
 					
 					final File file = new File( output.toURI());
 						
+					File	parent_dir = file.getParentFile();
+					
+					if ( parent_dir.exists()){
+						
+						if ( !parent_dir.canWrite()){
+							
+							throw( new TranscodeException( "Folder '" + parent_dir.getAbsolutePath() + "' isn't writable" ));
+						}
+					}else{
+						
+						if ( !parent_dir.mkdirs()){
+						
+							throw( new TranscodeException( "Failed to create folder '" + parent_dir.getAbsolutePath() + "'" ));
+						}
+					}
+					
 					adapter = 
 						new TranscodeProviderAdapter()
 						{
