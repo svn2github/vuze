@@ -3483,6 +3483,13 @@ DownloadManagerImpl
 	  controller.addRateLimiter( group, upload );
   }
 
+  public LimitedRateGroup[] 
+  getRateLimiters(
+	boolean	upload )
+  {
+	  return( controller.getRateLimiters( upload ));
+  }
+  
   public void
   removeRateLimiter(
 	  LimitedRateGroup	group,

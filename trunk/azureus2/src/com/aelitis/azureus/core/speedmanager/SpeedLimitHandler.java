@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.speedmanager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -38,6 +39,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
@@ -48,8 +51,10 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 
 public class 
 SpeedLimitHandler 
@@ -836,6 +841,23 @@ SpeedLimitHandler
 		return( loadSchedule());
 	}
 	
+	private List<LimitedRateGroup>
+	trim(
+		LimitedRateGroup[]	groups )
+	{
+		List<LimitedRateGroup> result = new ArrayList<LimitedRateGroup>();
+		
+		for ( LimitedRateGroup group: groups ){
+			
+			if ( group instanceof UtilitiesImpl.PluginLimitedRateGroup ){
+				
+				result.add( group );
+			}
+		}
+		
+		return( result );
+	}
+	
 	private String
 	formatUp(
 		int	rate )
@@ -866,6 +888,34 @@ SpeedLimitHandler
 			
 			return( DisplayFormatters.formatByteCountToKiBEtcPerSec( rate ));
 		}
+	}
+	
+	private String
+	formatUp(
+		List<LimitedRateGroup>	groups )
+	{
+		return( "Up=" + format( groups ));
+	}
+	
+	private String
+	formatDown(
+		List<LimitedRateGroup>	groups )
+	{
+		return( "Down=" + format( groups ));
+	}
+	
+	private String
+	format(
+		List<LimitedRateGroup>	groups )
+	{
+		String str = "";
+		
+		for ( LimitedRateGroup group: groups ){
+			
+			str += (str.length()==0?"":", ") + group.getName() + ":" + format( group.getRateLimitBytesPerSecond());
+		}
+		
+		return( str );
 	}
 	
     private void
@@ -1326,7 +1376,7 @@ SpeedLimitHandler
 		    int	total_download_limits_down 	= 0;
 		    
 			GlobalManager gm = core.getGlobalManager();
-
+			
 			for ( Map.Entry<String,int[]> entry: download_limits.entrySet()){
 				
 				byte[] hash = Base32.decode( entry.getKey());
@@ -1414,6 +1464,110 @@ SpeedLimitHandler
 		    	
 		    	result.add( "    Total=" + total_cat_limits + " - Compounded limits: " + formatUp( total_cat_limits_up ) + ", " + formatDown( total_cat_limits_down ));
 
+		    }
+		    
+			Map<LimitedRateGroup,List<Object>> plugin_limiters = new HashMap<LimitedRateGroup, List<Object>>();
+
+			List<DownloadManager> dms = gm.getDownloadManagers();
+			
+			for ( DownloadManager dm: dms ){
+    		
+				for ( boolean upload: new Boolean[]{ true, false }){
+					
+					List<LimitedRateGroup> limiters = trim( dm.getRateLimiters( upload ));
+					
+					for ( LimitedRateGroup g: limiters ){
+						
+						List<Object> entries = plugin_limiters.get( g );
+						
+						if ( entries == null ){
+							
+							entries = new ArrayList<Object>();
+							
+							plugin_limiters.put( g, entries );
+							
+							entries.add( upload );
+							entries.add( new int[]{ 0 });
+						}
+						
+						entries.add( dm );
+					}
+				}
+				
+	    		PEPeerManager pm = dm.getPeerManager();
+	    		
+	    		if ( pm != null ){
+	    			
+	    			List<PEPeer> peers = pm.getPeers();
+	    			
+	    			for ( PEPeer peer: peers ){
+	    				
+	    				for ( boolean upload: new Boolean[]{ true, false }){
+	    					
+	    					List<LimitedRateGroup> limiters = trim( peer.getRateLimiters( upload ));
+	    					
+	    					for ( LimitedRateGroup g: limiters ){
+	    						
+	    						List<Object> entries = plugin_limiters.get( g );
+	    						
+	    						if ( entries == null ){
+	    							
+	    							entries = new ArrayList<Object>();
+	    							
+	    							plugin_limiters.put( g, entries );
+	    							
+	    							entries.add( upload );
+	    								
+	    							entries.add( new int[]{ 1 });
+	    							
+	    						}else{
+	    								
+	    							((int[])entries.get(1))[0]++;
+	    						}
+	    					}
+	    				}
+	    			}
+	    		}
+    		}
+
+		    result.add( "" );
+
+			result.add( "Plugin Limits" );
+
+		    if ( plugin_limiters.size() == 0 ){
+		    	
+		    	result.add( "    None" );
+		    	
+		    }else{
+		    	List<String>	plugin_lines = new ArrayList<String>();
+		    	
+		    	for ( Map.Entry<LimitedRateGroup,List<Object>> entry: plugin_limiters.entrySet()){
+		    		
+		    		LimitedRateGroup group = entry.getKey();
+		    		
+		    		List<Object> list = entry.getValue();
+		    		
+		    		boolean is_upload 	= (Boolean)list.get(0);
+		    		int		peers		= ((int[])list.get(1))[0];
+		    		
+		    		String line = "    " + group.getName() + ": " + (is_upload?formatUp( group.getRateLimitBytesPerSecond()):formatDown( group.getRateLimitBytesPerSecond()));
+		    	
+		    		if ( peers > 0 ){
+		    			
+		    			line += ", peers=" + peers;
+		    		}
+		    		
+		    		if ( list.size() > 2 ){
+		    			
+		    			line += ", downloads=" + (list.size()-2);
+		    		}
+		    		
+		    		plugin_lines.add( line );
+		    	}
+		    	
+		    	Collections.sort( plugin_lines );
+		    	
+		    	result.addAll( plugin_lines );
 		    }
 		    
 			return( result );

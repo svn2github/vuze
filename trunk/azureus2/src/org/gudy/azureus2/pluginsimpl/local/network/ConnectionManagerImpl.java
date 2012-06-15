@@ -162,33 +162,47 @@ public class ConnectionManagerImpl implements ConnectionManager {
   
   public RateLimiter 
   createRateLimiter(
-	final String _name, 
-	final int 	_bytesPerSecond) 
+	String 	name, 
+	int 	bps ) 
   {
-	  return(
-		new RateLimiter()
-		{
-			private String		name 	= _name;
-			private int			rate	= _bytesPerSecond;
-			
-			public String
-			getName()
-			{
-				return( name );
-			}
-			
-			public int 
-			getRateLimitBytesPerSecond()
-			{
-				return( rate );
-			}
-			
-			public void
-			setRateLimitBytesPerSecond(
-				int		bytes_per_second )
-			{
-				rate = bytes_per_second;
-			}
-		});
+	  return( new PluginRateLimiter( name, bps ));
+	
   }
+  
+  public class
+  PluginRateLimiter
+	implements RateLimiter
+  {
+		
+		private String		name;
+		private int			rate;
+			
+		private
+		PluginRateLimiter(
+			String		_name,
+			int			_bps )
+		{
+			name	= _name;
+			rate	= _bps;
+		}
+		
+		public String
+		getName()
+		{
+			return( name );
+		}
+		
+		public int 
+		getRateLimitBytesPerSecond()
+		{
+			return( rate );
+		}
+		
+		public void
+		setRateLimitBytesPerSecond(
+			int		bytes_per_second )
+		{
+			rate = bytes_per_second;
+		}
+	}
 }

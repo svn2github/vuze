@@ -3996,16 +3996,22 @@ implements PEPeerTransport
 
 	public void
 	addRateLimiter(
-			LimitedRateGroup	limiter,
-			boolean				upload )
+		LimitedRateGroup	limiter,
+		boolean				upload )
 	{
 		connection.addRateLimiter( limiter, upload );
 	}
 
+	public LimitedRateGroup[] 
+	getRateLimiters(boolean upload) 
+	{
+		return( connection.getRateLimiters( upload ));
+	}
+	
 	public void
 	removeRateLimiter(
-			LimitedRateGroup	limiter,
-			boolean				upload )
+		LimitedRateGroup	limiter,
+		boolean				upload )
 	{
 		connection.removeRateLimiter( limiter, upload );
 	}

@@ -192,23 +192,9 @@ UtilitiesImpl
 			
 			if ( l == null ){
 				
-				l = 
-					new LimitedRateGroup()
-					{
-						public String 
-						getName()
-						{
-							return( limiter.getName());
-						}
-						
-						public int 
-						getRateLimitBytesPerSecond()
-						{
-							return( limiter.getRateLimitBytesPerSecond());
-						}
-					};
+				l = new PluginLimitedRateGroup( limiter );
 				
-					limiter_map.put( limiter, l );
+				limiter_map.put( limiter, l );
 			}
 			
 			return( l );
@@ -1726,6 +1712,32 @@ UtilitiesImpl
 		run()
 		
 			throws S;
+	}
+	
+	public static class
+	PluginLimitedRateGroup
+		implements LimitedRateGroup
+	{
+		private RateLimiter	limiter;
+		
+		private
+		PluginLimitedRateGroup(
+			RateLimiter		_limiter )
+		{
+			limiter	= _limiter;
+		}
+		
+		public String 
+		getName()
+		{
+			return( limiter.getName());
+		}
+		  
+		public int 
+		getRateLimitBytesPerSecond()
+		{
+			 return( limiter.getRateLimitBytesPerSecond());
+		}
 	}
 	
 	static class

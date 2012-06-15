@@ -1027,6 +1027,13 @@ PeerForeignDelegate
 		network_connection.addRateLimiter( limiter, upload );
 	}
 	
+	public LimitedRateGroup[] 
+	getRateLimiters(
+		boolean	upload )
+	{
+		return( network_connection.getRateLimiters( upload ));
+	}
+	
 	public void
 	removeRateLimiter(
 		LimitedRateGroup	limiter,

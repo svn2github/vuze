@@ -209,12 +209,11 @@ public class UnchokerUtilTest {
 		public int getUploadRateLimitBytesPerSecond(){ return 0 ;}
 		public int getDownloadRateLimitBytesPerSecond(){ return 0; }
 		public void addRateLimiter(LimitedRateGroup limiter, boolean upload) {
-			// TODO Auto-generated method stub
-			
 		}
-		public void removeRateLimiter(LimitedRateGroup limiter, boolean upload) {
-			// TODO Auto-generated method stub
-			
+		public LimitedRateGroup[] getRateLimiters(boolean upload) {
+			return null;
+		}
+		public void removeRateLimiter(LimitedRateGroup limiter, boolean upload) {			
 		}
 		public void setHaveAggregationEnabled(boolean enabled) {
 			// TODO Auto-generated method stub

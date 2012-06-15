@@ -587,6 +587,10 @@ DownloadManager
 		LimitedRateGroup	group,
 		boolean				upload );
 	
+	public LimitedRateGroup[]
+	getRateLimiters(
+		boolean				upload );
+	
 	public void
 	removeRateLimiter(
 		LimitedRateGroup	group,

@@ -174,7 +174,7 @@ DownloadManagerController
 	private PeerManagerRegistration	peer_manager_registration;
 	private PEPeerManager 			peer_manager;
 	
-	private List	external_rate_limiters_cow;
+	private List<Object[]>	external_rate_limiters_cow;
 	
 	private String errorDetail;
 
@@ -581,7 +581,7 @@ DownloadManagerController
 	    		});
 	    
 		
-		List	limiters;
+		List<Object[]>	limiters;
 		
 		try{
 			control_mon.enter();
@@ -601,7 +601,7 @@ DownloadManagerController
 			
 			for (int i=0;i<limiters.size();i++){
 				
-				Object[]	entry = (Object[])limiters.get(i);
+				Object[]	entry = limiters.get(i);
 				
 				temp.addRateLimiter((LimitedRateGroup)entry[0],((Boolean)entry[1]).booleanValue());
 			}
@@ -650,6 +650,7 @@ DownloadManagerController
 		  					}
 		  					
 	  					}finally{
+	  						
 	  						control_mon.exit();
 	  					}
 	  					
@@ -1426,7 +1427,7 @@ DownloadManagerController
 		try{
 			control_mon.enter();
 			
-			ArrayList	new_limiters = new ArrayList( external_rate_limiters_cow==null?1:external_rate_limiters_cow.size()+1);
+			ArrayList<Object[]>	new_limiters = new ArrayList<Object[]>( external_rate_limiters_cow==null?1:external_rate_limiters_cow.size()+1);
 			
 			if ( external_rate_limiters_cow != null ){
 				
@@ -1450,6 +1451,37 @@ DownloadManagerController
 		}
 	}
 	
+	public LimitedRateGroup[] 
+	getRateLimiters(
+		boolean	upload )
+	{
+		try{
+			control_mon.enter();
+						
+			if ( external_rate_limiters_cow == null ){
+			
+				return( new LimitedRateGroup[0] );
+				
+			}else{
+			
+				List<LimitedRateGroup> 	result = new ArrayList<LimitedRateGroup>();
+				
+				for ( Object[] entry: external_rate_limiters_cow ){
+					
+					if ((Boolean)entry[1] == upload ){
+						
+						result.add((LimitedRateGroup)entry[0] );
+					}
+				}
+				
+				return( result.toArray( new LimitedRateGroup[ result.size() ]));
+			}
+		}finally{
+			
+			control_mon.exit();
+		}
+	}
+	 
 	public void
 	removeRateLimiter(
 		LimitedRateGroup	group,
@@ -1462,11 +1494,11 @@ DownloadManagerController
 			
 			if ( external_rate_limiters_cow != null ){
 				
-				ArrayList	new_limiters = new ArrayList( external_rate_limiters_cow.size()-1);
+				ArrayList<Object[]>	new_limiters = new ArrayList<Object[]>( external_rate_limiters_cow.size()-1);
 				
 				for (int i=0;i<external_rate_limiters_cow.size();i++){
 					
-					Object[]	entry = (Object[])external_rate_limiters_cow.get(i);
+					Object[]	entry = external_rate_limiters_cow.get(i);
 					
 					if ( entry[0] != group ){
 						
