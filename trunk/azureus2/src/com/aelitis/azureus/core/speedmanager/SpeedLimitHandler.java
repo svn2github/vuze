@@ -115,7 +115,7 @@ SpeedLimitHandler
 		
 		details.apply();
 		
-		return( details.getString());
+		return( details.getString( true ));
 	}
 	
 	public List<String>
@@ -125,7 +125,7 @@ SpeedLimitHandler
 		
 		details.loadCurrent();
 		
-		List<String> lines = details.getString();
+		List<String> lines = details.getString( true );
 		
 		ScheduleRule rule = active_rule;
 		
@@ -184,7 +184,7 @@ SpeedLimitHandler
 					
 					ld.apply();
 					
-					return( ld.getString());
+					return( ld.getString( false ));
 				}
 			}
 		}
@@ -240,7 +240,7 @@ SpeedLimitHandler
 					
 					LimitDetails ld = new LimitDetails( profile );
 										
-					return( ld.getString());
+					return( ld.getString( false ));
 				}
 			}
 		}
@@ -422,7 +422,7 @@ SpeedLimitHandler
 			details.apply();
 		}
 		
-		return( details.getString());
+		return( details.getString( false ));
 	}
 	
 	private synchronized List<String>
@@ -1331,7 +1331,8 @@ SpeedLimitHandler
 	    }
 	    
 	    private List<String>
-	    getString()
+	    getString(
+	    	boolean	is_current )
 	    {
 			List<String> result = new ArrayList<String>();
 			
@@ -1466,108 +1467,112 @@ SpeedLimitHandler
 
 		    }
 		    
-			Map<LimitedRateGroup,List<Object>> plugin_limiters = new HashMap<LimitedRateGroup, List<Object>>();
-
-			List<DownloadManager> dms = gm.getDownloadManagers();
-			
-			for ( DownloadManager dm: dms ){
-    		
-				for ( boolean upload: new Boolean[]{ true, false }){
-					
-					List<LimitedRateGroup> limiters = trim( dm.getRateLimiters( upload ));
-					
-					for ( LimitedRateGroup g: limiters ){
-						
-						List<Object> entries = plugin_limiters.get( g );
-						
-						if ( entries == null ){
-							
-							entries = new ArrayList<Object>();
-							
-							plugin_limiters.put( g, entries );
-							
-							entries.add( upload );
-							entries.add( new int[]{ 0 });
-						}
-						
-						entries.add( dm );
-					}
-				}
+		    if ( is_current ){
+		    	
+				Map<LimitedRateGroup,List<Object>> plugin_limiters = new HashMap<LimitedRateGroup, List<Object>>();
+	
+				List<DownloadManager> dms = gm.getDownloadManagers();
 				
-	    		PEPeerManager pm = dm.getPeerManager();
+				for ( DownloadManager dm: dms ){
 	    		
-	    		if ( pm != null ){
-	    			
-	    			List<PEPeer> peers = pm.getPeers();
-	    			
-	    			for ( PEPeer peer: peers ){
-	    				
-	    				for ( boolean upload: new Boolean[]{ true, false }){
-	    					
-	    					List<LimitedRateGroup> limiters = trim( peer.getRateLimiters( upload ));
-	    					
-	    					for ( LimitedRateGroup g: limiters ){
-	    						
-	    						List<Object> entries = plugin_limiters.get( g );
-	    						
-	    						if ( entries == null ){
-	    							
-	    							entries = new ArrayList<Object>();
-	    							
-	    							plugin_limiters.put( g, entries );
-	    							
-	    							entries.add( upload );
-	    								
-	    							entries.add( new int[]{ 1 });
-	    							
-	    						}else{
-	    								
-	    							((int[])entries.get(1))[0]++;
-	    						}
-	    					}
-	    				}
-	    			}
+					for ( boolean upload: new Boolean[]{ true, false }){
+						
+						List<LimitedRateGroup> limiters = trim( dm.getRateLimiters( upload ));
+						
+						for ( LimitedRateGroup g: limiters ){
+							
+							List<Object> entries = plugin_limiters.get( g );
+							
+							if ( entries == null ){
+								
+								entries = new ArrayList<Object>();
+								
+								plugin_limiters.put( g, entries );
+								
+								entries.add( upload );
+								entries.add( new int[]{ 0 });
+							}
+							
+							entries.add( dm );
+						}
+					}
+					
+		    		PEPeerManager pm = dm.getPeerManager();
+		    		
+		    		if ( pm != null ){
+		    			
+		    			List<PEPeer> peers = pm.getPeers();
+		    			
+		    			for ( PEPeer peer: peers ){
+		    				
+		    				for ( boolean upload: new Boolean[]{ true, false }){
+		    					
+		    					List<LimitedRateGroup> limiters = trim( peer.getRateLimiters( upload ));
+		    					
+		    					for ( LimitedRateGroup g: limiters ){
+		    						
+		    						List<Object> entries = plugin_limiters.get( g );
+		    						
+		    						if ( entries == null ){
+		    							
+		    							entries = new ArrayList<Object>();
+		    							
+		    							plugin_limiters.put( g, entries );
+		    							
+		    							entries.add( upload );
+		    								
+		    							entries.add( new int[]{ 1 });
+		    							
+		    						}else{
+		    								
+		    							((int[])entries.get(1))[0]++;
+		    						}
+		    					}
+		    				}
+		    			}
+		    		}
 	    		}
-    		}
-
-		    result.add( "" );
-
-			result.add( "Plugin Limits" );
-
-		    if ( plugin_limiters.size() == 0 ){
-		    	
-		    	result.add( "    None" );
-		    	
-		    }else{
-		    	List<String>	plugin_lines = new ArrayList<String>();
-		    	
-		    	for ( Map.Entry<LimitedRateGroup,List<Object>> entry: plugin_limiters.entrySet()){
-		    		
-		    		LimitedRateGroup group = entry.getKey();
-		    		
-		    		List<Object> list = entry.getValue();
-		    		
-		    		boolean is_upload 	= (Boolean)list.get(0);
-		    		int		peers		= ((int[])list.get(1))[0];
-		    		
-		    		String line = "    " + group.getName() + ": " + (is_upload?formatUp( group.getRateLimitBytesPerSecond()):formatDown( group.getRateLimitBytesPerSecond()));
-		    	
-		    		if ( peers > 0 ){
-		    			
-		    			line += ", peers=" + peers;
-		    		}
-		    		
-		    		if ( list.size() > 2 ){
-		    			
-		    			line += ", downloads=" + (list.size()-2);
-		    		}
-		    		
-		    		plugin_lines.add( line );
-		    	}
-		    	
-		    	Collections.sort( plugin_lines );
-		    	
-		    	result.addAll( plugin_lines );
+	
+			    result.add( "" );
+	
+				result.add( "Plugin Limits" );
+	
+			    if ( plugin_limiters.size() == 0 ){
+			    	
+			    	result.add( "    None" );
+			    	
+			    }else{
+			    	
+			    	List<String>	plugin_lines = new ArrayList<String>();
+			    	
+			    	for ( Map.Entry<LimitedRateGroup,List<Object>> entry: plugin_limiters.entrySet()){
+			    		
+			    		LimitedRateGroup group = entry.getKey();
+			    		
+			    		List<Object> list = entry.getValue();
+			    		
+			    		boolean is_upload 	= (Boolean)list.get(0);
+			    		int		peers		= ((int[])list.get(1))[0];
+			    		
+			    		String line = "    " + group.getName() + ": " + (is_upload?formatUp( group.getRateLimitBytesPerSecond()):formatDown( group.getRateLimitBytesPerSecond()));
+			    	
+			    		if ( peers > 0 ){
+			    			
+			    			line += ", peers=" + peers;
+			    		}
+			    		
+			    		if ( list.size() > 2 ){
+			    			
+			    			line += ", downloads=" + (list.size()-2);
+			    		}
+			    		
+			    		plugin_lines.add( line );
+			    	}
+			    	
+			    	Collections.sort( plugin_lines );
+			    	
+			    	result.addAll( plugin_lines );
+			    }
 		    }
 		    
 			return( result );
