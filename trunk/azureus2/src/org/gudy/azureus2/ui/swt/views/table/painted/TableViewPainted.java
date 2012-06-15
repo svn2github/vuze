@@ -970,6 +970,9 @@ public class TableViewPainted
 			public void handleEvent(Event e) {
 				switch (e.type) {
 					case SWT.MouseDown: {
+						if (e.button != 1) {
+							return;
+						}
 						mouseDown = true;
 
 						columnSizing = null;
@@ -990,6 +993,9 @@ public class TableViewPainted
 					}
 
 					case SWT.MouseUp: {
+						if (e.button != 1) {
+							return;
+						}
 						if (mouseDown && columnSizing == null) {
 							TableColumnCore column = getTableColumnByOffset(e.x);
 							if (column != null) {
@@ -1313,8 +1319,8 @@ public class TableViewPainted
 				// draw sort indicator
 				int middle = w / 2;
 				int y1, y2;
-				int arrowHalfW = 7;
-				int arrowHeight = 8;
+				int arrowHalfW = 5;
+				int arrowHeight = 6;
 				if (column.isSortAscending()) {
 					y2 = 3;
 					y1 = y2 + arrowHeight;
