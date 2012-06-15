@@ -807,10 +807,10 @@ public abstract class TableCellSWTBase
 
 		// Columns with SWT Paint Listeners usually rely on a repaint whenever the
 		// sort value changes
-//		if (cellSWTPaintListeners != null
-//				|| tableColumn.hasCellOtherListeners("SWTPaint")) {
-//			redraw();
-//		}
+		if (cellSWTPaintListeners != null
+				|| tableColumn.hasCellOtherListeners("SWTPaint")) {
+			redraw();
+		}
 
 		return true;
 	}
