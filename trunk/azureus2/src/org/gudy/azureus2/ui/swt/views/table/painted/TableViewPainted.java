@@ -1384,7 +1384,7 @@ public class TableViewPainted
 							x + 2, yOfs - 1, wText - 4, headerHeight - yOfs + 2), true, false, SWT.WRAP
 							| SWT.CENTER);
 			sp.calculateMetrics();
-			if (sp.isCutoff()) {
+			if (sp.isWordCut() || sp.isCutoff()) {
 				Font font = e.gc.getFont();
 				e.gc.setFont(fontHeaderSmall);
 				sp.printString();
