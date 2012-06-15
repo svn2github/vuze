@@ -1433,6 +1433,10 @@ public class TableViewPainted
   				sp.printString();
   			}
 			}
+			
+			if (imageID != null) {
+				ImageLoader.getInstance().releaseImage(imageID);
+			}
 
 			x += w;
 		}
