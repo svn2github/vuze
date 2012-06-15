@@ -1069,7 +1069,7 @@ public class TableColumnSetupWindow
 		final TableColumnManager tcm = TableColumnManager.getInstance();
 		Map mapColumns = tcm.getTableColumnsAsMap(TableColumn.class, TABLEID_AVAIL);
 		TableColumnCore[] columns;
-		int[] widths = { 405, 120 };
+		int[] widths = { 405, 110 };
 		if (sampleRow == null) {
 			columns = new TableColumnCore[] {
 				(TableColumnCore) mapColumns.get(ColumnTC_NameInfo.COLUMN_ID),

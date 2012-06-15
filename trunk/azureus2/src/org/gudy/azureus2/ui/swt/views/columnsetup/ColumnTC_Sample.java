@@ -72,7 +72,7 @@ public class ColumnTC_Sample
 
 	public class Cell
 		implements TableCellRefreshListener, TableCellSWTPaintListener,
-		TableCellVisibilityListener
+		TableCellVisibilityListener, TableCellDisposeListener
 	{
 		private final TableColumnCore column;
 		private FakeTableCell sampleCell;
@@ -85,9 +85,13 @@ public class ColumnTC_Sample
 			Object ds = sampleRow.getDataSource(true);
 			sampleCell = new FakeTableCell(column, ds);
 
-			sampleCell.setControl(c);
 			Rectangle bounds = ((TableCellSWT)parentCell).getBounds();
-			sampleCell.setCellArea(bounds);
+			sampleCell.setControl(c, bounds, false);
+		}
+		
+		@Override
+		public void dispose(TableCell cell) {
+			sampleCell = null;
 		}
 
 		// @see org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener#cellPaint(org.eclipse.swt.graphics.GC, org.gudy.azureus2.ui.swt.views.table.TableCellSWT)
@@ -126,6 +130,7 @@ public class ColumnTC_Sample
 			}
 			sampleCell.refresh(true, true, true);
 			cell.setSortValue(sampleCell.getSortValue());
+			cell.invalidate();
 			if (cell instanceof TableCellSWT) {
 				((TableCellSWT) cell).redraw();
 			}

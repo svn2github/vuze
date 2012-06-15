@@ -1018,10 +1018,10 @@ public class FakeTableCell
 	}
 
 	public void setControl(final Composite composite) {
-		setControl(composite, null);
+		setControl(composite, null, true);
 	}
 
-	public void setControl(final Composite composite, Rectangle cellArea) {
+	public void setControl(final Composite composite, Rectangle cellArea, boolean addListeners) {
 		if (composite == null) {
 			dispose();
 			this.composite = null;
@@ -1031,10 +1031,12 @@ public class FakeTableCell
 		this.composite = composite;
 		this.cellArea = cellArea;
 
-		composite.addPaintListener(this);
-		composite.addMouseListener(this);
-		composite.addMouseMoveListener(this);
-		composite.addMouseTrackListener(this);
+		if (addListeners) {
+  		composite.addPaintListener(this);
+  		composite.addMouseListener(this);
+  		composite.addMouseMoveListener(this);
+  		composite.addMouseTrackListener(this);
+		}
 
 		setForeground(-1, -1, -1);
 		setText(null);
