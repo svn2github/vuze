@@ -126,6 +126,7 @@ public class TableViewPainted
 	private boolean redrawTableScheduled;
 
 	private Font font70pct;
+	private Font fontHeader;
 
 	private ScrollBar hBar;
 
@@ -809,12 +810,16 @@ public class TableViewPainted
 
 		cHeaderArea = new Canvas(cTableComposite, SWT.DOUBLE_BUFFERED);
 
+		fontHeader = FontUtils.getFontWithHeight(cHeaderArea.getFont(), null, 11);
+		cHeaderArea.setFont(fontHeader);
+
 		cTable = new Canvas(cTableComposite, SWT.NO_BACKGROUND | SWT.H_SCROLL | SWT.V_SCROLL);
 
 		cTable.setBackground(parent.getDisplay().getSystemColor(
 				SWT.COLOR_LIST_BACKGROUND));
 
-		headerHeight = (int) ((FontUtils.getFontHeightInPX(cHeaderArea.getFont()) * 0.7 * 2) + 16);
+		float realFontHeight = FontUtils.getHeight(cHeaderArea.getFont().getFontData());
+		headerHeight = (int) ((realFontHeight + 0.5) * 2) + 1;
 
 		FormData fd = Utils.getFilledFormData();
 		fd.height = headerHeight;
@@ -1152,7 +1157,8 @@ public class TableViewPainted
 			public void widgetDisposed(DisposeEvent e) {
 				Utils.disposeSWTObjects(new Object[] {
 					ds,
-					dt
+					dt,
+					fontHeader
 				});
 			}
 		});
@@ -1288,7 +1294,7 @@ public class TableViewPainted
 		//e.gc.fillRectangle(ca);
 
 		e.gc.setForeground(Colors.light_grey);
-		e.gc.drawLine(0, 0, clientArea.width, 0);
+		//e.gc.drawLine(0, 0, clientArea.width, 0);
 		e.gc.drawLine(0, headerHeight - 1, clientArea.width, headerHeight - 1);
 
 		TableColumnCore[] visibleColumns = getVisibleColumns();
@@ -1315,17 +1321,49 @@ public class TableViewPainted
 			e.gc.drawLine(x + w - 1, 0, x + w - 1, headerHeight - 1);
 
 			e.gc.setForeground(ColorCache.getColor(e.display, 0, 0, 0));
+			int yOfs = 0;
+			int wText = w;
+/* Top Center
 			if (isSortColumn) {
+				int arrowY = 2;
+				int arrowHeight = 6;
+				yOfs = 8;
 				// draw sort indicator
 				int middle = w / 2;
 				int y1, y2;
-				int arrowHalfW = 5;
-				int arrowHeight = 6;
+				int arrowHalfW = 4;
 				if (column.isSortAscending()) {
-					y2 = 3;
+					y2 = arrowY;
 					y1 = y2 + arrowHeight;
 				} else {
-					y1 = 3;
+					y1 = arrowY;
+					y2 = y1 + arrowHeight;
+				}
+				e.gc.setAntialias(SWT.ON);
+				e.gc.setBackground(ColorCache.getColor(e.display, 0, 0, 0));
+				e.gc.fillPolygon(new int[] {
+					x + middle - arrowHalfW,
+					y1,
+					x + middle + arrowHalfW,
+					y1,
+					x + middle,
+					y2
+				});
+			}
+*/
+			if (isSortColumn) {
+				// draw sort indicator
+				int arrowHeight = 6;
+				int arrowY = (headerHeight / 2) - (arrowHeight / 2);
+				int arrowHalfW = 4;
+				int middle = w - arrowHalfW - 4;
+				wText = w - (arrowHalfW * 2) - 5;
+				int y1, y2;
+				if (column.isSortAscending()) {
+					y2 = arrowY;
+					y1 = y2 + arrowHeight;
+				} else {
+					y1 = arrowY;
 					y2 = y1 + arrowHeight;
 				}
 				e.gc.setAntialias(SWT.ON);
@@ -1342,10 +1380,10 @@ public class TableViewPainted
 
 			sp = new GCStringPrinter(e.gc,
 					MessageText.getString(column.getTitleLanguageKey()), new Rectangle(
-							x + 2, 10, w - 4, headerHeight - 12), true, false, SWT.WRAP
+							x + 2, yOfs - 2, wText - 4, headerHeight - yOfs + 1), true, false, SWT.WRAP
 							| SWT.CENTER);
 			sp.calculateMetrics();
-			if (sp.isWordCut()) {
+			if (sp.isCutoff()) {
 				Font font = e.gc.getFont();
 				if (font70pct == null) {
 					font70pct = FontUtils.getFontPercentOf(font, 0.75f);
@@ -2023,7 +2061,7 @@ public class TableViewPainted
 
 	protected void swt_fixupSize() {
 		//System.out.println("Set minSize to " + columnsWidth + "x" + totalHeight + ";ca=" + clientArea);
-		if (vBar != null) {
+		if (vBar != null && !vBar.isDisposed()) {
 			int max = totalHeight - clientArea.height;
 			if (max < 0) {
 				vBar.setSelection(0);
@@ -2037,7 +2075,7 @@ public class TableViewPainted
 				vBar.setMaximum(max);
 			}
 		}
-		if (hBar != null) {
+		if (hBar != null && !hBar.isDisposed()) {
 			int max = columnsWidth - cTable.getSize().x;
 			if (max < 0) {
 				hBar.setSelection(0);
