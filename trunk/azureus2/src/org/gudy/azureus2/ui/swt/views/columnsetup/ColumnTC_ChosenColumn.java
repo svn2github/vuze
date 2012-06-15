@@ -19,14 +19,11 @@
 package org.gudy.azureus2.ui.swt.views.columnsetup;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-
-import com.aelitis.azureus.ui.common.table.TableCellCore;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
 /**
  * @author TuxPaper
@@ -51,17 +48,15 @@ public class ColumnTC_ChosenColumn
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
 		TableColumnCore column = (TableColumnCore) cell.getDataSource();
-		String key = column.getTitleLanguageKey();
-		if (!cell.setSortValue(column.getPosition()) && cell.isValid()) {
+		int colPos = column.getPosition();
+		// colPos can have gaps in numbers
+		if (!cell.setSortValue(colPos) && cell.isValid()) {
 			return;
 		}
-		String s = "";
-		try {
-			s = (((TableCellCore) cell).getTableRowCore().getIndex() + 1) + ". ";
-		} catch (Throwable e) {
-		}
-		s += MessageText.getString(key, column.getName());
+		String key = column.getTitleLanguageKey();
+		String s = MessageText.getString(key, column.getName());
 		//s = column.getPosition() + "] " + s;
 		cell.setText(s);
+		cell.setToolTip("");
 	}
 }
