@@ -125,7 +125,7 @@ public class TableViewPainted
 
 	private boolean redrawTableScheduled;
 
-	private Font font70pct;
+	private Font fontHeaderSmall;
 	private Font fontHeader;
 
 	private ScrollBar hBar;
@@ -810,7 +810,8 @@ public class TableViewPainted
 
 		cHeaderArea = new Canvas(cTableComposite, SWT.DOUBLE_BUFFERED);
 
-		fontHeader = FontUtils.getFontWithHeight(cHeaderArea.getFont(), null, 11);
+		fontHeader = FontUtils.getFontWithHeight(cHeaderArea.getFont(), null, 12);
+		fontHeaderSmall = FontUtils.getFontPercentOf(fontHeader, 0.8f);
 		cHeaderArea.setFont(fontHeader);
 
 		cTable = new Canvas(cTableComposite, SWT.NO_BACKGROUND | SWT.H_SCROLL | SWT.V_SCROLL);
@@ -818,8 +819,7 @@ public class TableViewPainted
 		cTable.setBackground(parent.getDisplay().getSystemColor(
 				SWT.COLOR_LIST_BACKGROUND));
 
-		float realFontHeight = FontUtils.getHeight(cHeaderArea.getFont().getFontData());
-		headerHeight = (int) ((realFontHeight + 0.5) * 2) + 1;
+		headerHeight = 27;
 
 		FormData fd = Utils.getFilledFormData();
 		fd.height = headerHeight;
@@ -1158,7 +1158,8 @@ public class TableViewPainted
 				Utils.disposeSWTObjects(new Object[] {
 					ds,
 					dt,
-					fontHeader
+					fontHeader,
+					fontHeaderSmall
 				});
 			}
 		});
@@ -1380,15 +1381,12 @@ public class TableViewPainted
 
 			sp = new GCStringPrinter(e.gc,
 					MessageText.getString(column.getTitleLanguageKey()), new Rectangle(
-							x + 2, yOfs - 2, wText - 4, headerHeight - yOfs + 1), true, false, SWT.WRAP
+							x + 2, yOfs - 1, wText - 4, headerHeight - yOfs + 2), true, false, SWT.WRAP
 							| SWT.CENTER);
 			sp.calculateMetrics();
 			if (sp.isCutoff()) {
 				Font font = e.gc.getFont();
-				if (font70pct == null) {
-					font70pct = FontUtils.getFontPercentOf(font, 0.75f);
-				}
-				e.gc.setFont(font70pct);
+				e.gc.setFont(fontHeaderSmall);
 				sp.printString();
 				e.gc.setFont(font);
 			} else {
@@ -2251,11 +2249,9 @@ public class TableViewPainted
 		}
 
 		Utils.disposeSWTObjects(new Object[] {
-			cTable,
-			font70pct
+			cTable
 		});
 		cTable = null;
-		font70pct = null;
 
 		removeAllTableRows();
 		configMan.removeParameterListener("ReOrder Delay", this);
