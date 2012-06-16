@@ -1632,7 +1632,6 @@ public class TableColumnImpl
 	}
 
 
-	@Override
 	public boolean showOnlyImage() {
 		return showOnlyImage;
 	}
