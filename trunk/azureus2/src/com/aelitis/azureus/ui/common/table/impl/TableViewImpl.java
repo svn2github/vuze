@@ -356,7 +356,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		listenersCountChange.remove(listener);
 	}
 
-	protected void triggerListenerRowAdded(final TableRowCore[] rows) {
+	public void triggerListenerRowAdded(final TableRowCore[] rows) {
 		if (listenersCountChange.size() == 0) {
 			return;
 		}
