@@ -595,6 +595,7 @@ public class TableRowPainted
 			int oldHeight = getFullHeight();
 			subRowsHeight = h;
 			getViewPainted().rowHeightChanged(this, oldHeight, getFullHeight());
+			getViewPainted().triggerListenerRowAdded(newSubRows);
 			
 			subRows = newSubRows;
 		}
@@ -659,6 +660,7 @@ public class TableRowPainted
 		int oldHeight = getFullHeight();
 		super.setExpanded(b);
 		synchronized (subRows_sync) {
+			TableRowPainted[] newSubRows = null;
   		if (b && (subRows == null || subRows.length != numSubItems)
   				&& subDataSources != null && subDataSources.length == numSubItems) {
   			if (DEBUG_SUBS) {
@@ -666,7 +668,7 @@ public class TableRowPainted
   			}
   
   			deleteExistingSubRows();
-  			TableRowPainted[] newSubRows = new TableRowPainted[numSubItems];
+  			newSubRows = new TableRowPainted[numSubItems];
   			TableViewPainted tv = getViewPainted();
   			int h = 0;
   			for (int i = 0; i < newSubRows.length; i++) {
@@ -679,7 +681,13 @@ public class TableRowPainted
   			
   			subRows = newSubRows;
   		}
+
 			getViewPainted().rowHeightChanged(this, oldHeight, getFullHeight());
+			
+			if (newSubRows != null) {
+				getViewPainted().triggerListenerRowAdded(newSubRows);
+			}
+
 		}
 		if (isVisible()) {
 			getViewPainted().visibleRowsChanged();
