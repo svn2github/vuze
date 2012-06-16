@@ -104,7 +104,8 @@ public class MyTorrentsView
                   TableViewSWTMenuFillListener,
                   TableRefreshListener,
                   TableViewFilterCheck.TableViewFilterCheckEx<DownloadManager>,
-                  TableRowRefreshListener
+                  TableRowRefreshListener,
+                  TableCountChangeListener
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
@@ -202,6 +203,7 @@ public class MyTorrentsView
     tv.addRefreshListener(this, false);
     if (tv.canHaveSubItems()) {
     	tv.addRefreshListener(this);
+    	tv.addCountChangeListener(this);
     }
     
     tv.addTableDataSourceChangedListener(new TableDataSourceChangedListener() {
@@ -1851,5 +1853,14 @@ public class MyTorrentsView
 
 	public void setRebuildListOnFocusGain(boolean rebuildListOnFocusGain) {
 		this.rebuildListOnFocusGain = rebuildListOnFocusGain;
+	}
+
+	public void rowAdded(TableRowCore row) {
+		if (getRowDefaultHeight() > 0 && row.getParentRowCore() != null) {
+			row.setHeight(20);
+		}
+	}
+
+	public void rowRemoved(TableRowCore row) {
 	}
 }
