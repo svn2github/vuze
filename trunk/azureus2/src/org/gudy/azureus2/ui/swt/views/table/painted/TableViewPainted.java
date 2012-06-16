@@ -2464,19 +2464,19 @@ public class TableViewPainted
   		totalHeight += (newHeight - oldHeight);
   		//System.out.println("Height delta: " + (newHeight - oldHeight) + ";ttl=" + totalHeight);
   
-  		// TODO: Shouldn't we do visibleRowsChanged();
-  
   		if (qdRowHeightChanged) {
   			return;
   		}
   		qdRowHeightChanged = true;
 		}
-		visibleRowsChanged();
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				synchronized (heightChangeSync) {
 					qdRowHeightChanged = false;
 				}
+				// if moving visibleRowsChanged(), make sure subrows being resized on
+				// add trigger work properly
+				visibleRowsChanged();
 				swt_fixupSize();
 			}
 		});
