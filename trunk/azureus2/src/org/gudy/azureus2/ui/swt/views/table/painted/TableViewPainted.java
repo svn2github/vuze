@@ -650,7 +650,6 @@ public class TableViewPainted
 				redrawTable();
 			}
 		});
-		debug("columnsidth now " + columnsWidth);
 	}
 
 	/* (non-Javadoc)
@@ -1407,7 +1406,7 @@ public class TableViewPainted
 					if (onlyShowImage) {
 						text = null;
 						Rectangle imageBounds = image.getBounds();
-						e.gc.drawImage(image, x + (w / 2) - (imageBounds.width / 2),
+						e.gc.drawImage(image, (int) (x + (w / 2.0) - (imageBounds.width / 2.0) + 0.5),
 								(headerHeight / 2) - (imageBounds.height / 2));
 					} else {
 						text = "%0 " + text;
@@ -1443,8 +1442,6 @@ public class TableViewPainted
 
 		e.gc.setBackgroundPattern(patternUp);
 		e.gc.fillRectangle(x, 1, clientArea.width - x, headerHeight - 2);
-
-		columnsWidth = x + clientArea.x;
 
 		patternUp.dispose();
 		patternDown.dispose();
@@ -2105,8 +2102,9 @@ public class TableViewPainted
 	protected void swt_fixupSize() {
 		//System.out.println("Set minSize to " + columnsWidth + "x" + totalHeight + ";ca=" + clientArea);
 		if (vBar != null && !vBar.isDisposed()) {
-			int max = totalHeight - clientArea.height;
-			if (max < 0) {
+			int tableSize = clientArea.height;
+			int max = totalHeight;
+			if (max < tableSize) {
 				vBar.setSelection(0);
 				vBar.setEnabled(false);
 				vBar.setVisible(false);
@@ -2116,11 +2114,13 @@ public class TableViewPainted
 					vBar.setEnabled(true);
 				}
 				vBar.setMaximum(max);
+				vBar.setThumb(tableSize);
 			}
 		}
 		if (hBar != null && !hBar.isDisposed()) {
-			int max = columnsWidth - cTable.getSize().x;
-			if (max < 0) {
+			int tableSize = cTable.getSize().x;
+			int max = columnsWidth;
+			if (max < tableSize) {
 				hBar.setSelection(0);
 				hBar.setEnabled(false);
 				hBar.setVisible(false);
@@ -2129,7 +2129,7 @@ public class TableViewPainted
 					hBar.setVisible(true);
 					hBar.setEnabled(true);
 				}
-				hBar.setMaximum(max);
+				hBar.setValues(hBar.getSelection(), 0, max, tableSize, 50, 50);
 			}
 		}
 	}
