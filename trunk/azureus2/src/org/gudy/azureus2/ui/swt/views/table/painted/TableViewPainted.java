@@ -189,9 +189,9 @@ public class TableViewPainted
 			}
 
 			@Override
-			public void mouseDown(TableRowSWT row, TableCellCore cell, int button,
+			public void mouseDown(TableRowSWT clickedRow, TableCellCore cell, int button,
 					int stateMask) {
-				if (row == null) {
+				if (clickedRow == null || button != 1) {
 					return;
 				}
 				int keyboardModifier = (stateMask & SWT.MODIFIER_MASK);
@@ -200,26 +200,42 @@ public class TableViewPainted
 					// do nothing because caller will select it (!)
 				} else if ((keyboardModifier & SWT.SHIFT) > 0) {
 					// select from focus to row
-					// TODO: Fix to work with subrows
 					TableRowCore[] selectedRows = getSelectedRows();
 					TableRowCore firstRow = selectedRows.length > 0 ? selectedRows[0]
 							: getRow(0);
-					int startPos = indexOf(firstRow);
-					int endPos = indexOf(row);
-					if (startPos > endPos) {
-						int i = endPos;
-						endPos = startPos;
-						startPos = i;
+					TableRowCore parentFirstRow = firstRow;
+					while (parentFirstRow.getParentRowCore() != null) {
+						parentFirstRow = parentFirstRow.getParentRowCore();
 					}
-					int size = endPos - startPos;
-					TableRowCore[] rows = new TableRowCore[size];
-					for (int i = 0; i < size; i++) {
-						rows[i] = getRow(i + startPos);
+					TableRowCore parentClickedRow = clickedRow;
+					while (parentClickedRow.getParentRowCore() != null) {
+						parentClickedRow = parentClickedRow.getParentRowCore();
 					}
-					setSelectedRows(rows);
+					int startPos;
+					int endPos;
+					if (parentFirstRow == parentClickedRow) {
+						startPos = parentFirstRow == firstRow ? -1 : firstRow.getIndex();
+						endPos = parentClickedRow == clickedRow ? -1 : clickedRow.getIndex();
+					} else {
+  					startPos = indexOf(parentFirstRow);
+  					endPos = indexOf(parentClickedRow);
+  					if (endPos == -1 || startPos == -1) {
+  						return;
+  					}
+					}
+					ArrayList<TableRowCore> rowsToSelect = new ArrayList<TableRowCore>();
+					TableRowCore curRow = firstRow;
+					do {
+						rowsToSelect.add(curRow);
+						curRow = (startPos < endPos) ? getNextRow(curRow) : getPreviousRow(curRow);
+					} while (curRow != clickedRow && curRow != null);
+					if (curRow != null) {
+						rowsToSelect.add(curRow);
+					}
+					setSelectedRows(rowsToSelect.toArray(new TableRowCore[0]));
 				} else {
 					setSelectedRows(new TableRowCore[] {
-						row
+						clickedRow
 					});
 				}
 			}
