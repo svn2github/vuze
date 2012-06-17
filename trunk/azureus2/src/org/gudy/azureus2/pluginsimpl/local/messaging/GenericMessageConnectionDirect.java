@@ -79,8 +79,8 @@ GenericMessageConnectionDirect
 	private boolean				processing;
 	private volatile boolean	closed;
 	
-	private List				inbound_rls;
-	private List				outbound_rls;
+	private List<LimitedRateGroup>				inbound_rls;
+	private List<LimitedRateGroup>				outbound_rls;
 	
 		
 	protected 
@@ -162,19 +162,21 @@ GenericMessageConnectionDirect
 
 	public void
 	addInboundRateLimiter(
-		RateLimiter		limiter )
+		RateLimiter		_limiter )
 	{
+		LimitedRateGroup limiter = UtilitiesImpl.wrapLimiter( _limiter );
+
 		synchronized( this ){
 			
 			if ( processing ){
 				
-				connection.addRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), false );
+				connection.addRateLimiter( limiter, false );
 
 			}else{
 				
 				if ( inbound_rls == null ){
 					
-					inbound_rls = new ArrayList();
+					inbound_rls = new ArrayList<LimitedRateGroup>();
 				}
 				
 				inbound_rls.add( limiter );
@@ -184,13 +186,15 @@ GenericMessageConnectionDirect
 	
 	public void
 	removeInboundRateLimiter(
-		RateLimiter		limiter )
+		RateLimiter		_limiter )
 	{
+		LimitedRateGroup limiter = UtilitiesImpl.wrapLimiter( _limiter );
+
 		synchronized( this ){
 			
 			if ( processing ){
 				
-				connection.removeRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), false );
+				connection.removeRateLimiter( limiter, false );
 
 			}else{
 				
@@ -204,19 +208,21 @@ GenericMessageConnectionDirect
 	
 	public void
 	addOutboundRateLimiter(
-		RateLimiter		limiter )
+		RateLimiter		_limiter )
 	{
+		LimitedRateGroup limiter = UtilitiesImpl.wrapLimiter( _limiter );
+
 		synchronized( this ){
 			
 			if ( processing ){
 				
-				connection.addRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), true );
+				connection.addRateLimiter( limiter, true );
 
 			}else{
 				
 				if ( outbound_rls == null ){
 					
-					outbound_rls = new ArrayList();
+					outbound_rls = new ArrayList<LimitedRateGroup>();
 				}
 				
 				outbound_rls.add( limiter );
@@ -226,13 +232,15 @@ GenericMessageConnectionDirect
 	
 	public void
 	removeOutboundRateLimiter(
-		RateLimiter		limiter )
+		RateLimiter		_limiter )
 	{
+		LimitedRateGroup limiter = UtilitiesImpl.wrapLimiter( _limiter );
+		
 		synchronized( this ){
 			
 			if ( processing ){
 				
-				connection.removeRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), true );
+				connection.removeRateLimiter( limiter, true );
 
 			}else{
 				
@@ -537,7 +545,7 @@ GenericMessageConnectionDirect
 	    			connection.addRateLimiter((LimitedRateGroup)outbound_rls.get(i),true);
 	    		}
 	    		
-	    		inbound_rls = null;
+	    		outbound_rls = null;
 	    	}
 	    	
 	    	processing	= true;
