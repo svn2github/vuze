@@ -113,6 +113,17 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     referrer			= _referrer;
     request_properties	= _request_properties;
     file_str			= _file;
+    
+    if ( referrer == null || referrer.length() == 0 ){
+    	
+    	try{
+    			// maybe can't do any harm here setting referer - fixes some download issues...
+    		
+    		referrer = url_str;
+    		
+    	}catch( Throwable e ){
+    	}
+    }
   }
 
   public void notifyListener() {
