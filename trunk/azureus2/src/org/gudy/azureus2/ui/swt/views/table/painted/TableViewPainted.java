@@ -2219,7 +2219,10 @@ public class TableViewPainted
 					vBar.setVisible(true);
 					vBar.setEnabled(true);
 				}
-				vBar.setMaximum(max);
+				if (vBar.getMaximum() != max) {
+					vBar.setMaximum(max);
+					swt_vBarChanged();
+				}
 				vBar.setThumb(tableSize);
 			}
 		}
