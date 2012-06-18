@@ -241,7 +241,7 @@ public class TableViewPainted
   							}
 							}
 							vBar.setSelection(vBar.getSelection() + hChange);
-							vBarChanged();
+							swt_vBarChanged();
 						}
 					} else {
 						setSelectedRows(new TableRowCore[] {
@@ -285,7 +285,7 @@ public class TableViewPainted
 								hChange = firstRow.getHeight();
 							}
 							vBar.setSelection(vBar.getSelection() + hChange);
-							vBarChanged();
+							swt_vBarChanged();
 						}
 					} else {
 						TableRowCore rowToSelect = getNextRow(focusedRow);
@@ -984,7 +984,7 @@ public class TableViewPainted
 			vBar.setValues(0, 0, 0, 50, 50, 50);
 			vBar.addSelectionListener(new SelectionListener() {
 				public void widgetSelected(SelectionEvent e) {
-					vBarChanged();
+					swt_vBarChanged();
 				}
 				
 				public void widgetDefaultSelected(SelectionEvent e) {
@@ -1047,9 +1047,9 @@ public class TableViewPainted
 
 	}
 
-	protected void vBarChanged() {
+	protected void swt_vBarChanged() {
 		if (DEBUG_SELECTION) {
-			debug("vBar change");
+			debug("vBar changed " + vBar.getSelection() + " via " + Debug.getCompressedStackTrace());
 		}
 		swt_calculateClientArea();
 		cTable.update();
@@ -1833,7 +1833,7 @@ public class TableViewPainted
 		}
 
 		if (DEBUG_ROWCHANGE) {
-			System.out.println("visRowsChanged; shown=" + visibleRows.size() + "; +"
+			debug("visRowsChanged; shown=" + visibleRows.size() + "; +"
 					+ newlyVisibleRows.size() + "/-" + nowInVisibleRows.size() + "/"
 					+ rowsStayedVisibleButMoved.size() + " via "
 					+ Debug.getCompressedStackTrace(8));
@@ -1884,8 +1884,9 @@ public class TableViewPainted
 		Rectangle bounds = clientArea;
 
 		int y = yStart;
+		String sDebug;
 		if (DEBUG_ROWCHANGE) {
-			System.out.print("Visible Rows: ");
+			sDebug = "Visible Rows: ";
 		}
 		for (TableRowCore row : rows) {
 			if (row == null) {
@@ -1903,13 +1904,13 @@ public class TableViewPainted
 				// check if this row
 				if (y + rowHeight > bounds.y) {
 					if (DEBUG_ROWCHANGE) {
-						System.out.print((rowSWT.getParentRowCore() == null ? ""
+						sDebug += (rowSWT.getParentRowCore() == null ? ""
 								: rowSWT.getParentRowCore().getIndex() + ".")
 								+ rowSWT.getIndex()
 								+ "(ofs=" + (offsetChanged ? "*" : "")
 								+ y
 								+ ";rh="
-								+ rowHeight + "/" + rowFullHeight + ")" + ", ");
+								+ rowHeight + "/" + rowFullHeight + ")" + ", ";
 					}
 
 					if (offsetChanged) {
@@ -1928,7 +1929,7 @@ public class TableViewPainted
 				}
 			} else if (newVisibleRows.size() > 0) {
 				if (DEBUG_ROWCHANGE) {
-					System.out.print("break(ofs=" + y + ";bounds=" + bounds + ";rh=" + rowFullHeight + ")");
+					sDebug += "break(ofs=" + y + ";bounds=" + bounds + ";rh=" + rowFullHeight + ")";
 				}
 				break;
 			}
@@ -1936,7 +1937,7 @@ public class TableViewPainted
 		}
 		if (DEBUG_ROWCHANGE) {
 			if (yStart == 0) {
-				System.out.println();
+				debug(sDebug);
 			}
 		}
 	}
@@ -2181,10 +2182,14 @@ public class TableViewPainted
 	}
 
 	public void removeAllTableRows() {
+		if (DEBUG_ROWCHANGE) {
+			debug("RemoveAlLRows");
+		}
 		super.removeAllTableRows();
 		synchronized (visibleRows_sync) {
 			visibleRows = new LinkedHashSet<TableRowPainted>();
 		}
+		setFocusedRow(null);
 		totalHeight = 0;
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -2193,12 +2198,15 @@ public class TableViewPainted
 				}
 				swt_fixupSize();
 				swt_updateCanvasImage(false);
+				if (DEBUG_ROWCHANGE) {
+					debug("RemoveAllRows done");
+				}
 			}
 		});
 	}
 
 	protected void swt_fixupSize() {
-		//System.out.println("Set minSize to " + columnsWidth + "x" + totalHeight + ";ca=" + clientArea);
+		//debug("Set minSize to " + columnsWidth + "x" + totalHeight + ";ca=" + clientArea + ";" + Debug.getCompressedStackTrace());
 		if (vBar != null && !vBar.isDisposed()) {
 			int tableSize = clientArea.height;
 			int max = totalHeight;
@@ -2518,7 +2526,7 @@ public class TableViewPainted
 						y -= (clientArea.height - rowToShow.getHeight());
 					}
 					vBar.setSelection(y);
-					vBarChanged();
+					swt_vBarChanged();
 				} else {
 					TableRowCore parentFocusedRow = rowToShow;
 					while (parentFocusedRow.getParentRowCore() != null) {
@@ -2548,7 +2556,7 @@ public class TableViewPainted
 					}
 					// y now at top of focused row
 					vBar.setSelection(y);
-					vBarChanged();
+					swt_vBarChanged();
 				}
 			}
 		});
