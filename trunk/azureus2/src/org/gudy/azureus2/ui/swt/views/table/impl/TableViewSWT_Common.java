@@ -144,8 +144,6 @@ public class TableViewSWT_Common
 
 		if (row == null) {
 			tv.setSelectedRows(new TableRowCore[0]);
-		} else if (!row.isRowDisposed()) {
-			tv.setRowSelected(row, true, true);
 		}
 
 		tv.editCell(-1, -1); // clear out current cell editor

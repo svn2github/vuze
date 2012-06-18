@@ -217,6 +217,14 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		iTableStyle = _iTableStyle | SWT.V_SCROLL | SWT.DOUBLE_BUFFERED;
 
 		tvSWTCommon = new TableViewSWT_Common(this) {
+			@Override
+			public void mouseDown(TableRowSWT row, TableCellCore cell, int button,
+					int stateMask) {
+				if (row != null && !row.isRowDisposed()) {
+					tv.setRowSelected(row, true, true);
+				}
+			}
+			
 			public void widgetSelected(SelectionEvent event) {
 				updateSelectedRows(table.getSelection(), true);
 			}

@@ -194,13 +194,14 @@ public class TableViewPainted
 					return;
 				}
 				int keyboardModifier = (stateMask & SWT.MODIFIER_MASK);
-				if ((keyboardModifier & (SWT.MOD1 | SWT.MOD4)) > 0) {
-					// ALT (Win) .. add selection
+				if ((keyboardModifier & (SWT.MOD1)) > 0) {
+					// control (win), alt (mac)
 					// do nothing because caller will select it (!)
+					setRowSelected(clickedRow, !clickedRow.isSelected(), true);
 				} else if ((keyboardModifier & SWT.SHIFT) > 0) {
 					// select from focus to row
 					selectRowsTo(clickedRow);
-				} else {
+				} else if ((keyboardModifier & SWT.MOD4) == 0) {
 					setSelectedRows(new TableRowCore[] {
 						clickedRow
 					});
@@ -391,7 +392,7 @@ public class TableViewPainted
 				return;
 			}
 		}
-		ArrayList<TableRowCore> rowsToSelect = new ArrayList<TableRowCore>();
+		ArrayList<TableRowCore> rowsToSelect = new ArrayList<TableRowCore>(Arrays.asList(selectedRows));
 		TableRowCore curRow = firstRow;
 		do {
 			rowsToSelect.add(curRow);

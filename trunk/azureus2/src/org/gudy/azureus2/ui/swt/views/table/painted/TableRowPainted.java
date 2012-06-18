@@ -135,22 +135,11 @@ public class TableRowPainted
 		Color origFG = gc.getForeground();
 		if (isSelected()) {
 			Color color;
-			if (isFocused()) {
-				// TODO: Do something special for selected and focused (like a border)
-				color = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION);
-			} else {
-				color = getViewPainted().getTableComposite().isFocusControl()
-						? Colors.blues[3] : Colors.blues[1];
-			}
+			color = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION);
 			gc.setBackground(color);
 		} else {
 			Color color;
-			if (isFocused()) {
-				color = gc.getDevice().getSystemColor(
-						SWT.COLOR_LIST_SELECTION);
-			} else {
-				color = alternatingColors[pos >= 0 ? pos % 2 : 0];
-			}
+			color = alternatingColors[pos >= 0 ? pos % 2 : 0];
 
 			if (color != null) {
 				gc.setBackground(color);
@@ -244,6 +233,15 @@ public class TableRowPainted
 //			//debug("Paint " + e.x + "x" + e.y + " " + e.width + "x" + e.height + ".." + e.count + ";clip=" + e.gc.getClipping() +";drawOffset=" + drawOffset + " via " + Debug.getCompressedStackTrace());
 //		}
 
+		
+		if (isFocused()) {
+			gc.setAlpha(40);
+			gc.setForeground(origFG);
+			gc.setLineStyle(SWT.LINE_DOT);
+			gc.drawRectangle(0, rowStartY, getViewPainted().getClientArea().width - 1, getHeight() - 1);
+			gc.setLineStyle(SWT.LINE_SOLID);
+		}
+		
 		gc.setAlpha(255);
 		gc.setBackground(origBG);
 		gc.setForeground(origFG);
