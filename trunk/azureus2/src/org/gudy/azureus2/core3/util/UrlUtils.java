@@ -931,6 +931,42 @@ public class UrlUtils
 		}
 	}
 	
+	public static URL
+	getBaseURL(
+		URL		u )
+	{
+		StringBuffer result = new StringBuffer();
+		result.append(u.getProtocol());
+		result.append(":");
+		String authority=u.getAuthority();
+		if (authority != null && authority.length() > 0) {
+			result.append("//");
+			int pos = authority.indexOf( '@' );
+			if ( pos != -1 ){
+				result.append(authority.substring(0,pos+1));
+				authority = authority.substring(pos+1);
+			}
+			pos = authority.lastIndexOf(':');
+			int	port = u.getPort();
+			if ( port == -1 ){
+				port = u.getDefaultPort();
+			}
+			if ( pos == -1 ){
+				result.append(authority + ":" + port );
+			}else{
+				result.append(authority.substring(0,pos+1) + port );				
+			}
+		}
+
+		try{
+			return( new URL( result.toString()));
+		}catch( Throwable e ){
+			Debug.out(e);
+			return(u);
+		}
+	}
+	
+	
 		/**
 		 * Returns an explicit IPv4 url if the supplied one has both IPv6 and IPv4 addresses
 		 * @param url
