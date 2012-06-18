@@ -1020,6 +1020,8 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			
 			listUnfilteredDataSources.clear();
 
+			selectedRows.clear();
+			
 			if (DEBUGADDREMOVE) {
 				debug("removeAll");
 			}
@@ -1792,6 +1794,10 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		/**/
 
 		final List<TableRowCore> oldSelectionList = new ArrayList<TableRowCore>();
+		
+		if (oldSelectionList.size() == 0 && newSelectionArray.length == 0) {
+			return;
+		}
 
 		List<TableRowCore> listNewlySelected;
 		boolean somethingChanged;
