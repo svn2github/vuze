@@ -1845,7 +1845,7 @@ public class MyTorrentsView
   			tv.removeDataSources(listRemoves.toArray(new DownloadManager[0]));
   			tv.addDataSources(listAdds.toArray(new DownloadManager[0]));
 			}
-	    updateSelectedContent();
+	    updateSelectedContent(true);
 		} else if (event.getType() == UISWTViewEvent.TYPE_FOCUSLOST) {
 		}
 		return b;
