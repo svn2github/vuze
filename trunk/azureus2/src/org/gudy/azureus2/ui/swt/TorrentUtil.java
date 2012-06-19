@@ -1759,7 +1759,8 @@ public class TorrentUtil {
 
 	public static boolean shouldStopGroup(Object[] datasources) {
 		DownloadManager[] dms = toDMS(datasources);
-		if (dms.length == 0) {
+		DiskManagerFileInfo[] dmfi = toDMFI(datasources);
+		if (dms.length == 0 && dmfi.length == 0) {
 			return true;
 		}
 		for (DownloadManager dm : dms) {
@@ -1770,15 +1771,22 @@ public class TorrentUtil {
 				return true;
 			}
 		}
+		
+		for (DiskManagerFileInfo fileInfo : dmfi) {
+			if (!fileInfo.isSkipped()) {
+				return true;
+			}
+		}
 		return false;
 	}
 
 	public static void stopOrStartDataSources(Object[] datasources) {
 		DownloadManager[] dms = toDMS(datasources);
-		if (dms.length == 0) {
+		DiskManagerFileInfo[] dmfi = toDMFI(datasources);
+		if (dms.length == 0 && dmfi.length == 0) {
 			return;
 		}
-		boolean doStop = shouldStopGroup(dms);
+		boolean doStop = shouldStopGroup(datasources);
 		if (doStop) {
 			stopDataSources(datasources);
 		} else {
