@@ -66,6 +66,7 @@ import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.devices.DeviceManager.DeviceManufacturer;
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
+import com.aelitis.azureus.core.download.StreamManager;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -763,6 +764,50 @@ DeviceManagerUI
 				od_enable, od_auto_enable, od_pt_enable,
 			});
 		
+		
+			// play now
+		
+		final StreamManager sm = StreamManager.getSingleton();
+		
+		final IntParameter pn_buffer = 
+			configModel.addIntParameter2( 
+				"device.playnow.buffer", "device.playnow.buffer",
+				sm.getBufferSecs());
+		
+		pn_buffer.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param) 
+					{
+						sm.setBufferSecs( pn_buffer.getValue());
+					}
+				});
+		
+		final IntParameter pn_min_buffer = 
+			configModel.addIntParameter2( 
+				"device.playnow.min_buffer", "device.playnow.min_buffer",
+				sm.getMinBufferSecs());
+		
+		pn_min_buffer.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param) 
+					{
+						sm.setMinBufferSecs( pn_buffer.getValue());
+					}
+				});
+		
+		configModel.createGroup(
+				"device.playnow.group",
+				new Parameter[]
+				{
+						pn_buffer, pn_min_buffer,
+				});
+			
 		final BooleanParameter tivo_enable = 
 			configModel.addBooleanParameter2( 
 				"device.tivo.enable", "device.tivo.enable", false );

@@ -27,6 +27,7 @@ import java.net.URL;
 
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -66,9 +67,30 @@ import com.aelitis.azureus.ui.swt.plugininstall.SimplePluginInstaller;
 public class 
 StreamManager 
 {
-	private static final int BUFFER_SECS 		= 30;
-	private static final int BUFFER_MIN_SECS	= 3;
+	private static final int BUFFER_SECS_DEFAULT 		= 30;
+	private static final int BUFFER_MIN_SECS_DEFAULT	= 3;
 	
+	private static int config_buffer_secs;
+	private static int config_min_buffer_secs;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"streamman.buffer.secs",
+				"streamman.min.buffer.secs",
+			},
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameterName) 
+				{
+					config_buffer_secs 		= COConfigurationManager.getIntParameter( "streamman.buffer.secs", BUFFER_SECS_DEFAULT );
+					config_min_buffer_secs 	= COConfigurationManager.getIntParameter( "streamman.min.buffer.secs", BUFFER_MIN_SECS_DEFAULT );
+				}
+			});
+		
+	}
 
 	private static StreamManager		singleton = new StreamManager();
 	
@@ -132,6 +154,32 @@ StreamManager
 					
 				}
 			});
+	}
+	
+	public int
+	getBufferSecs()
+	{
+		return( config_buffer_secs );
+	}
+	
+	public void
+	setBufferSecs(
+		int		secs )
+	{
+		COConfigurationManager.setParameter( "streamman.buffer.secs", secs );
+	}
+	
+	public int
+	getMinBufferSecs()
+	{
+		return( config_min_buffer_secs );
+	}
+	
+	public void
+	setMinBufferSecs(
+		int		secs )
+	{
+		COConfigurationManager.setParameter( "streamman.min.buffer.secs", secs );
 	}
 	
 	public boolean
@@ -681,7 +729,7 @@ StreamManager
 						throw( new Exception( "Cancelled" ));
 					}
 																										
-					active_edm.setExplicitProgressive( BUFFER_SECS, bytes_per_sec, file_index );
+					active_edm.setExplicitProgressive( config_buffer_secs, bytes_per_sec, file_index );
 					
 					if ( !active_edm.setProgressiveMode( true )){
 						
@@ -755,11 +803,11 @@ StreamManager
 								int		buffer_secs	= (int)details[1];
 								long	buffer		= details[2];
 								
-								listener.updateStats( eta, buffer_secs, buffer, BUFFER_SECS );
+								listener.updateStats( eta, buffer_secs, buffer, config_buffer_secs );
 
 								boolean playable;
 								
-								int	buffer_to_use = playback_started?BUFFER_MIN_SECS:BUFFER_SECS;
+								int	buffer_to_use = playback_started?config_min_buffer_secs:config_buffer_secs;
 								
 								if ( complete ){
 									
@@ -815,7 +863,7 @@ StreamManager
 									
 										Map<String,Object> map = new HashMap<String,Object>();
 										
-										map.put( "buffer_min", new Long( BUFFER_SECS ));
+										map.put( "buffer_min", new Long( config_buffer_secs ));
 										map.put( "buffer_secs", new Integer( buffer_secs ));
 										map.put( "buffer_bytes", new Long( buffer ));
 										
@@ -869,7 +917,7 @@ StreamManager
 										map.put( "preview", 0 );
 									}
 									
-									map.put( "buffer_min", new Long( BUFFER_SECS ));
+									map.put( "buffer_min", new Long( config_buffer_secs ));
 									map.put( "buffer_secs", new Integer( buffer_secs ));
 									map.put( "buffer_bytes", new Long( buffer ));
 									
