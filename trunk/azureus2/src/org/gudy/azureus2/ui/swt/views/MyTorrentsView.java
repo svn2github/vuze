@@ -1902,9 +1902,9 @@ public class MyTorrentsView
 	}
 
 	public void rowAdded(TableRowCore row) {
-		if (getRowDefaultHeight() > 0 && row.getParentRowCore() != null) {
-			row.setHeight(20);
-		}
+		//if (getRowDefaultHeight() > 0 && row.getParentRowCore() != null) {
+		//	row.setHeight(20);
+		//}
 	}
 
 	public void rowRemoved(TableRowCore row) {
