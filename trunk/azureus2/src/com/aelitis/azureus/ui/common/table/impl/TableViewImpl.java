@@ -510,13 +510,14 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		}
 		filter.eventUpdate = null;
 
+		List<DATASOURCETYPE> listRemoves = new ArrayList<DATASOURCETYPE>();
+		List<DATASOURCETYPE> listAdds = new ArrayList<DATASOURCETYPE>();
+
 		synchronized (rows_sync) {
 			DATASOURCETYPE[] unfilteredArray = (DATASOURCETYPE[]) listUnfilteredDataSources.keySet().toArray();
 
 			Set<DATASOURCETYPE> existing = new HashSet<DATASOURCETYPE>(
 					getDataSources());
-			List<DATASOURCETYPE> listRemoves = new ArrayList<DATASOURCETYPE>();
-			List<DATASOURCETYPE> listAdds = new ArrayList<DATASOURCETYPE>();
 
 			for (int i = 0; i < unfilteredArray.length; i++) {
 				boolean bHave = existing.contains(unfilteredArray[i]);
@@ -543,8 +544,8 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			for ( DATASOURCETYPE ds: listRemoves ){
 				listUnfilteredDataSources.put(ds,"");
 			}
-		}
-		processDataSourceQueue();
+		} 
+		processDataSourceQueue( listAdds.size() > 0 );
 	}
 
 	public boolean
@@ -566,7 +567,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 				+ s);
 	}
 
-	private void _processDataSourceQueue() {
+	private void _processDataSourceQueue( boolean sort_table ) {
 		Object[] dataSourcesAdd = null;
 		Object[] dataSourcesRemove = null;
 
@@ -608,6 +609,11 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 		if (dataSourcesRemove != null && dataSourcesRemove.length > 0) {
 			reallyRemoveDataSources(dataSourcesRemove);
+		}
+		
+		if ( sort_table ){
+			
+			refreshTable( true );
 		}
 	}
 
@@ -751,7 +757,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	public void processDataSourceQueue() {
 		getOffUIThread(new AERunnable() {
 			public void runSupport() {
-				_processDataSourceQueue();
+				_processDataSourceQueue( false);
 			}
 		});
 	}
@@ -759,7 +765,15 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	public abstract void getOffUIThread(AERunnable runnable);
 
 	public void processDataSourceQueueSync() {
-		_processDataSourceQueue();
+		_processDataSourceQueue( false );
+	}
+
+	private void processDataSourceQueue( final boolean sort_table ) {
+		getOffUIThread(new AERunnable() {
+			public void runSupport() {
+				_processDataSourceQueue( sort_table);
+			}
+		});
 	}
 
 	/**
