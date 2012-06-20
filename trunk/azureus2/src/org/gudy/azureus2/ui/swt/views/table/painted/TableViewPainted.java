@@ -2027,6 +2027,9 @@ public class TableViewPainted
 		}
 		
 		clientArea = newClientArea;
+		if (tvSWTCommon != null) {
+			tvSWTCommon.xAdj = -clientArea.x;
+		}
 		
 		//System.out.println("CA=" + clientArea + " via " + Debug.getCompressedStackTrace());
 

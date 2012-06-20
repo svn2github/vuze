@@ -57,6 +57,9 @@ public class TableViewSWT_Common
 
 	private static AEMonitor mon_RowPaintListener = new AEMonitor("rpl");
 
+	public static int xAdj = 0;
+	public static int yAdj = 0;
+
 	private ArrayList<TableRowSWTPaintListener> rowPaintListeners;
 
 
@@ -201,11 +204,11 @@ public class TableViewSWT_Common
 			if (r == null) {
 				return event;
 			}
-			event.x = e.x - r.x;
+			event.x = e.x - r.x - xAdj;
 			if (!allowOOB && event.x < 0) {
 				return null;
 			}
-			event.y = e.y - r.y;
+			event.y = e.y - r.y - yAdj;
 			if (!allowOOB && event.y < 0) {
 				return null;
 			}
@@ -225,11 +228,11 @@ public class TableViewSWT_Common
 		event.skipCoreFunctionality = false;
 		if (row != null) {
 			Rectangle r = row.getBounds();
-			event.x = e.x - r.x;
+			event.x = e.x - r.x - xAdj;
 			if (!allowOOB && event.x < 0) {
 				return null;
 			}
-			event.y = e.y - r.y;
+			event.y = e.y - r.y - yAdj;
 			if (!allowOOB && event.y < 0) {
 				return null;
 			}
