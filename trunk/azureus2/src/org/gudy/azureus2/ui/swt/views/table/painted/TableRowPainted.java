@@ -130,7 +130,17 @@ public class TableRowPainted
 		return (TableViewPainted) getView();
 	}
 
-	public void paintControl(GC gc, Region rgn, Rectangle drawBounds, int rowStartX, int rowStartY, int pos) {
+	/**
+	 * @param gc GC to draw to
+	 * @param drawBounds Area that needs redrawing
+	 * @param rowStartX where in the GC this row's x-axis starts
+	 * @param rowStartY where in the GC this row's y-axis starts
+	 * @param pos
+	 */
+	public void swt_paintGC(GC gc, Rectangle drawBounds, int rowStartX, int rowStartY, int pos) {
+		if (!drawBounds.intersects(rowStartX, rowStartY, 9999, getHeight())) {
+			return;
+		}
 		Color origBG = gc.getBackground();
 		Color origFG = gc.getForeground();
 		if (isSelected()) {
@@ -189,7 +199,7 @@ public class TableRowPainted
     			if (!cellSWT.hasFlag(TableCellSWTBase.FLAG_PAINTED)) {
     				Rectangle r = new Rectangle(x, rowStartY, w, getHeight());
     				((TableCellPainted) cell).setBoundsRaw(r);
-    				if (rgn.intersects(r)) {
+    				if (drawBounds.intersects(r)) {
     					paintedRow = true;
     					gc.fillRectangle(r);
     					if (paintCell(gc, cellSWT.getBounds(), cellSWT)) {
@@ -207,7 +217,7 @@ public class TableRowPainted
     				} else {
     					if (DEBUG_ROW_PAINT) {
     						((TableCellSWTBase) cell).debug("Skip paintItem; no intersects; r="
-    								+ r + ";rgn=" + rgn.getBounds() + " from "
+    								+ r + ";dB=" + drawBounds + " from "
     								+ Debug.getCompressedStackTrace(4));
     					}
     				}
@@ -423,15 +433,21 @@ public class TableRowPainted
 					if (composite == null || composite.isDisposed()) {
 						return;
 					}
-					for (Object o : invalidCells) {
-						if (o instanceof TableCellPainted) {
-							TableCellPainted cell = (TableCellPainted) o;
-							cell.clearFlag(TableCellSWTBase.FLAG_PAINTED);
-							Rectangle bounds = cell.getBoundsRaw();
-							if (bounds != null) {
-								getViewPainted().swt_updateCanvasImage(bounds, false);
-							}
-						}
+					boolean allRows = (mTableCells != null) && invalidCells.size() == mTableCells.size();
+					if (allRows) {
+						clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
+						getViewPainted().swt_updateCanvasImage(getDrawBounds(), false);
+					} else {
+  					for (Object o : invalidCells) {
+  						if (o instanceof TableCellPainted) {
+  							TableCellPainted cell = (TableCellPainted) o;
+  							cell.clearFlag(TableCellSWTBase.FLAG_PAINTED);
+  							Rectangle bounds = cell.getBoundsRaw();
+  							if (bounds != null) {
+  								getViewPainted().swt_updateCanvasImage(bounds, false);
+  							}
+  						}
+  					}
 					}
 				}
 			});

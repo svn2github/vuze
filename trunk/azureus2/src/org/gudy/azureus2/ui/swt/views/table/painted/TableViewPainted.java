@@ -1295,7 +1295,7 @@ public class TableViewPainted
 			return;
 		}
 		
-		//System.out.println("PAint " + e.gc.getClipping() + ";" + e.x + "," + e.y + "," + e.width + "," + e.height + " via " + Debug.getCompressedStackTrace());
+		//System.out.println(e.count + " paint " + e.gc.getClipping() + ";" + e.x + "," + e.y + "," + e.width + "," + e.height + " via " + Debug.getCompressedStackTrace());
 
 		e.gc.drawImage(canvasImage, -clientArea.x, 0);
 		
@@ -1303,31 +1303,24 @@ public class TableViewPainted
 		//e.gc.drawLine(0, 0, cTable.getSize().x, canvasImage.getBounds().height);
 	}
 
-	protected void _paintComposite(GC gc, Rectangle drawBounds) {
+	protected void swt_paintCanvasImage(GC gc, Rectangle drawBounds) {
 		int end = drawBounds.y + drawBounds.height;
 
 		TableRowCore oldRow = null;
 		int pos = -1;
 		Set<TableRowPainted> visibleRows = this.visibleRows;
 		
-		Region rgn = new Region();
-		try {
-			gc.getClipping(rgn);
-
-			for (TableRowPainted row : visibleRows) {
-				TableRowPainted paintedRow = row;
-				if (pos == -1) {
-					pos = row.getIndex();
-				} else {
-					pos++;
-				}
-				Point drawOffset = paintedRow.getDrawOffset();
-				//debug("Paint " + drawBounds.x + "x" + drawBounds.y + " " + drawBounds.width + "x" + drawBounds.height + "; Row=" +row.getIndex() + ";clip=" + gc.getClipping() +";drawOffset=" + drawOffset);
-				paintedRow.paintControl(gc, rgn, drawBounds, 0, drawOffset.y - clientArea.y, pos);
-				oldRow = row;
+		for (TableRowPainted row : visibleRows) {
+			TableRowPainted paintedRow = row;
+			if (pos == -1) {
+				pos = row.getIndex();
+			} else {
+				pos++;
 			}
-		} finally {
-			rgn.dispose();
+			Point drawOffset = paintedRow.getDrawOffset();
+			//debug("Paint " + drawBounds.x + "x" + drawBounds.y + " " + drawBounds.width + "x" + drawBounds.height + "; Row=" +row.getIndex() + ";clip=" + gc.getClipping() +";drawOffset=" + drawOffset);
+			paintedRow.swt_paintGC(gc, drawBounds, 0, drawOffset.y - clientArea.y, pos);
+			oldRow = row;
 		}
 
 		int h;
@@ -2113,9 +2106,10 @@ public class TableViewPainted
 			//System.out.println(changedX + ";" + changedY + ";" + changedW + ";" + changedH + ";" + canvasChanged);
 			//System.out.println("Redraw " + Debug.getCompressedStackTrace());
 
+			// swt_updateCanvasImage must be called after clearVisiblePaintedFlag
 			clearVisiblePaintedFlag();
-			refreshTable(false);
 			swt_updateCanvasImage(false);
+			refreshTable(false);
 		}
 		
 		//		System.out.println("imgBounds = " + canvasImage.getBounds() + ";ca="
@@ -2136,7 +2130,8 @@ public class TableViewPainted
 		}
 		//System.out.println("UpdateCanvasImage " + bounds + "; via " + Debug.getCompressedStackTrace());
 		GC gc = new GC(canvasImage);
-		_paintComposite(gc, bounds);
+		gc.setClipping(bounds);
+		swt_paintCanvasImage(gc, bounds);
 		gc.dispose();
 		if (cTable != null && !cTable.isDisposed()) {
 			cTable.redraw(bounds.x, bounds.y, bounds.width, bounds.height, false);
