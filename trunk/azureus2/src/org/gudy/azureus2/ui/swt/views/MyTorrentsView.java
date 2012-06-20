@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.ui.swt.views;
 
+import java.io.File;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -660,8 +661,7 @@ public class MyTorrentsView
 	}
 
 	public boolean filterCheck(DownloadManager dm, String sLastSearch, boolean bRegexSearch) {
-		boolean bOurs = true;
-
+		boolean bOurs;
 		if (sLastSearch.length() > 0) {
 			try {
 				String	comment = dm.getDownloadState().getUserComment();
@@ -669,14 +669,14 @@ public class MyTorrentsView
 					comment = "";
 				}
 				
-				String[][] names = {
+				String[][] name_mapping = {
 					{
 						"",
 						dm.getDisplayName()
 					},
 					{
 						"t:",
-						"", // defer this as costly dm.getTorrent().getAnnounceURL().getHost()
+						"", 	// defer (index = 1)this as costly dm.getTorrent().getAnnounceURL().getHost()
 					},
 					{
 						"st:",
@@ -685,23 +685,32 @@ public class MyTorrentsView
 					{
 						"c:",
 						comment
+					},
+					{
+						"f:",
+						"",		//defer (index = 4)
 					}
 				};
 
-				String name = names[0][1];
+				Object o_name = name_mapping[0][1];
 				
 				String tmpSearch = sLastSearch;
 
-				for (int i = 1; i < names.length; i++) {
-					if (tmpSearch.startsWith(names[i][0])) {
-						tmpSearch = tmpSearch.substring(names[i][0].length());
+				for ( int i = 1; i < name_mapping.length; i++ ){
+					
+					if ( tmpSearch.startsWith(name_mapping[i][0])) {
+						
+						tmpSearch = tmpSearch.substring(name_mapping[i][0].length());
 						
 						if ( i == 1 ){
+							
+							List<String> names = new ArrayList<String>();
+							
+							o_name = names;
+							
 							TOTorrent t = dm.getTorrent();
-							
-							StringBuffer name_b = new StringBuffer( 512);
-							
-							name_b.append( t.getAnnounceURL().getHost());
+														
+							names.add( t.getAnnounceURL().getHost());
 							
 							TOTorrentAnnounceURLSet[] sets = t.getAnnounceURLGroup().getAnnounceURLSets();
 							
@@ -711,14 +720,30 @@ public class MyTorrentsView
 								
 								for ( URL u: urls ){
 									
-									name_b.append( ";" );
-									name_b.append( u.getHost());
+									names.add( u.getHost());
 								}
 							}
 							
-							name = name_b.toString();
+						}else if ( i == 4 ){
+							
+							List<String> names = new ArrayList<String>();
+							
+							o_name = names;
+							
+							DiskManagerFileInfoSet file_set = dm.getDiskManagerFileInfoSet();
+							
+							DiskManagerFileInfo[] files = file_set.getFiles();
+							
+							for ( DiskManagerFileInfo f: files ){
+								
+								File file = f.getFile(true);
+
+								String name = tmpSearch.contains( File.separator )?file.getAbsolutePath():file.getName();
+								
+								names.add( name );
+							}
 						}else{
-							name = names[i][1];
+							o_name = name_mapping[i][1];
 						}
 					}
 				}
@@ -736,13 +761,34 @@ public class MyTorrentsView
 				
 				Pattern pattern = RegExUtil.getCachedPattern( "tv:search", s, Pattern.CASE_INSENSITIVE);
 
-				if (pattern.matcher(name).find() != match_result ){
-					bOurs = false;
+				if ( o_name instanceof String ){
+					
+					bOurs = pattern.matcher((String)o_name).find() == match_result;
+					
+				}else{
+					List<String>	names = (List<String>)o_name;
+					
+						// match_result: true -> at least one match; false -> any fail
+					
+					bOurs = !match_result;
+					
+					for ( String name: names ){
+						if ( pattern.matcher( name ).find()){
+							bOurs = match_result;
+							break;
+						}
+					}
 				}
 			} catch (Exception e) {
 				// Future: report PatternSyntaxException message to user.
+				
+				bOurs = true;
 			}
+		}else{
+			
+			bOurs = true;
 		}
+		
 		return bOurs;
 	}
 	
