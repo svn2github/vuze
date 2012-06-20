@@ -639,6 +639,9 @@ public class FakeTableCell
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getHeight()
 	public int getHeight() {
 		if (composite != null && !composite.isDisposed()) {
+			if (cellArea != null) {
+				return cellArea.height;
+			}
 			return composite.getSize().y;
 		}
 		return 0;
@@ -740,6 +743,9 @@ public class FakeTableCell
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getWidth()
 	public int getWidth() {
 		if (!isDisposed()) {
+			if (cellArea != null) {
+				return cellArea.width - 2;
+			}
 			return composite.getSize().x;
 		}
 		return 0;
