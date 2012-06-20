@@ -190,18 +190,27 @@ public class TableViewPainted
 			@Override
 			public void mouseDown(TableRowSWT clickedRow, TableCellCore cell, int button,
 					int stateMask) {
-				if (clickedRow == null || button != 1) {
+				if (clickedRow == null) {
 					return;
 				}
-				int keyboardModifier = (stateMask & SWT.MODIFIER_MASK);
-				if ((keyboardModifier & (SWT.MOD1)) > 0) {
-					// control (win), alt (mac)
-					// do nothing because caller will select it (!)
-					setRowSelected(clickedRow, !clickedRow.isSelected(), true);
-				} else if ((keyboardModifier & SWT.SHIFT) > 0) {
-					// select from focus to row
-					selectRowsTo(clickedRow);
-				} else if ((keyboardModifier & SWT.MOD4) == 0) {
+				if (button == 1) {
+  				int keyboardModifier = (stateMask & SWT.MODIFIER_MASK);
+  				if ((keyboardModifier & (SWT.MOD1)) > 0) {
+  					// control (win), alt (mac)
+  					setRowSelected(clickedRow, !clickedRow.isSelected(), true);
+  					return;
+  				} else if ((keyboardModifier & SWT.SHIFT) > 0) {
+  					// select from focus to row
+  					selectRowsTo(clickedRow);
+  					return;
+  				} else if ((keyboardModifier & SWT.MOD4) == 0) {
+  					setSelectedRows(new TableRowCore[] {
+  						clickedRow
+  					});
+  					return;
+  				}
+				}
+				if (getSelectedRowsSize() == 0) {
 					setSelectedRows(new TableRowCore[] {
 						clickedRow
 					});
