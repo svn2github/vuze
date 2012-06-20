@@ -1126,6 +1126,7 @@ public abstract class TableCellSWTBase
   	sb.append((flag & FLAG_UPTODATE) > 0 ? 'U' : onlySet ? ' ' : 'u');
   	sb.append((flag & FLAG_VALID) > 0 ? 'V' : onlySet ? ' ' : 'v');
   	sb.append((flag & FLAG_VISUALLY_CHANGED_SINCE_REFRESH) > 0 ? "VC" : onlySet ? ' ' : "vc");
+  	sb.append((flag & FLAG_PAINTED) > 0 ? "P" : onlySet ? ' ' : "p");
   	return sb.toString();
   }
 
