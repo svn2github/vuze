@@ -101,6 +101,8 @@ public class TorrentUtil {
 			final Composite composite, boolean include_show_details,
 			int selected_dl_types, final TableView tv) {
 
+		// TODO: Build submenus on the fly
+		
 		final boolean isSeedingView;
 		switch (selected_dl_types) {
 			case 1:
