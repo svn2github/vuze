@@ -273,14 +273,17 @@ public class TableCellPainted
 	}
 
 	public Rectangle getBoundsRaw() {
-		return bounds;
+		return new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height);
 	}
 
 	public Rectangle getBoundsOnDisplay() {
-		Rectangle bounds = getBounds();
-		Point pt = ((TableViewPainted) tableRow.getView()).getTableComposite().toDisplay(bounds.x, bounds.y);
+		Rectangle bounds = getBoundsRaw();
+		TableViewPainted tv = ((TableViewPainted) tableRow.getView());
+		Point pt = tv.getTableComposite().toDisplay(bounds.x, bounds.y);
 		bounds.x = pt.x;
 		bounds.y = pt.y;
+		bounds.height = getHeight();
+		bounds.width = getWidthRaw();
 		return bounds;
 	}
 
