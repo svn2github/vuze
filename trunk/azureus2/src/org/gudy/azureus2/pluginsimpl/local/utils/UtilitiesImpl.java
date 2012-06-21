@@ -113,14 +113,21 @@ UtilitiesImpl
 			}
 		};
 		
-		
+	private static ThreadLocal<Object[]>		verified_enablers_tls	= 
+		new ThreadLocal<Object[]>()
+		{
+			public Object[]
+			initialValue()
+			{
+				return( new Object[]{ -1L, 0, null });
+			}
+		};
+			
 	private static List<searchManager>		search_managers 	= new ArrayList<searchManager>();
 	private static List<Object[]>			search_providers	= new ArrayList<Object[]>();
 	
 	private static CopyOnWriteList<Object[]>				feature_enablers 	= new CopyOnWriteList<Object[]>();
 	private static CopyOnWriteList<FeatureManagerListener>	feature_listeners	= new CopyOnWriteList<FeatureManagerListener>();
-	
-	private static Map<String,Object[]>	feature_installed_cache = new HashMap<String, Object[]>();
 	
 	private static FeatureManagerListener 
 		feature_listener = new FeatureManagerListener()
@@ -250,11 +257,6 @@ UtilitiesImpl
 			}
 			
 			COConfigurationManager.setParameter( "featman.cache.features.installed", str );
-		}
-		
-		synchronized( feature_installed_cache ){
-			
-			feature_installed_cache.clear();
 		}
 	}
 	
@@ -1415,26 +1417,7 @@ UtilitiesImpl
 	isFeatureInstalled(
 		String					feature_id )
 	{
-		long	now = SystemTime.getMonotonousTime();
-		
-		synchronized( feature_installed_cache ){
-			
-			Object[]	entry = feature_installed_cache.get( feature_id );
-			
-			if ( entry != null && ( now - (Long)entry[0] < 30*1000 )){
-				
-				return((Boolean)entry[1]);
-			}
-		}
-		
-		boolean result = getVerifiedEnablers().size() > 0 && getFeaturesInstalled().contains( feature_id );
-		
-		synchronized( feature_installed_cache ){
-			
-			feature_installed_cache.put( feature_id, new Object[]{ now, result });
-		}
-		
-		return( result );
+		return( getVerifiedEnablers().size() > 0 && getFeaturesInstalled().contains( feature_id ));
 	}
 	
 	private static FeatureDetails[]
@@ -1493,9 +1476,23 @@ UtilitiesImpl
 	
 	private static final List<FeatureEnabler>
 	getVerifiedEnablers()
-	{
-		List<FeatureEnabler>	enablers = new ArrayList<FeatureEnabler>();
+	{		
+		long	now = SystemTime.getMonotonousTime();
+		int		mut = feature_enablers.getMutationCount();
 		
+		Object[] cache = verified_enablers_tls.get();
+		
+		long	last_time 	= (Long)cache[0];
+		int		old_mut		= (Integer)cache[1];
+		
+		if ( 	last_time != 0 && now - last_time < 30*1000 &&
+				mut == old_mut ){
+			
+			return((List<FeatureEnabler>)cache[2]);
+		}
+		
+		List<FeatureEnabler>	enablers = new ArrayList<FeatureEnabler>();
+
 		for ( Object[] entry: feature_enablers ){
 			
 			PluginInterface enabler_pi 		= (PluginInterface)entry[0];
@@ -1520,6 +1517,8 @@ UtilitiesImpl
 				}
 			}
 		}
+		
+		verified_enablers_tls.set( new Object[]{ now, mut, enablers } );
 		
 		return( enablers );
 	}

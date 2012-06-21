@@ -45,6 +45,8 @@ implements Iterable<T>
 	
 	private static CopyOnWriteList stats;
 	
+	private int	mutation_count;
+	
 	static {
 		if (LOG_STATS) {
 			stats = new CopyOnWriteList(10);
@@ -96,11 +98,19 @@ implements Iterable<T>
 		}
 	}
 
+	public int
+	getMutationCount()
+	{
+		return( mutation_count );
+	}
+	
 	public void
 	add(
 		T	obj )
 	{
 		synchronized( this ){
+			
+			mutation_count++;
 			
 			if ( visible ){
 				
@@ -131,6 +141,8 @@ implements Iterable<T>
 	{
 		synchronized( this ){
 			
+			mutation_count++;
+			
 			if ( visible ){
 				
 				List<T>	new_list = new ArrayList<T>( list );
@@ -158,6 +170,8 @@ implements Iterable<T>
 		Collection<T>	c )
 	{
 		synchronized( this ){
+			
+			mutation_count++;
 			
 			if ( visible ){
 				
@@ -197,6 +211,8 @@ implements Iterable<T>
 	{
 		synchronized( this ){
 			
+			mutation_count++;
+			
 			if ( visible ){
 
 				List<T>	new_list = new ArrayList<T>( list );
@@ -222,7 +238,9 @@ implements Iterable<T>
 	clear()
 	{
 		synchronized( this ){
-								
+				
+			mutation_count++;
+			
 			list	= Collections.EMPTY_LIST;
 			
 			visible = false;
