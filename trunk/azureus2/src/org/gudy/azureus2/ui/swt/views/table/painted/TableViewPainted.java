@@ -1588,7 +1588,6 @@ public class TableViewPainted
 								- (clientArea.y + clientArea.height);
 					}
 					int tableWidth = cTable.getClientArea().width;
-					System.out.println("ofsx=" + boundsRaw.x + ";cbW=" + cellBounds.width + ";ca=" + clientArea + ";" + tableWidth);
 					if (boundsRaw.x + cellBounds.width > clientArea.x
 							+ tableWidth) {
 						cellBounds.width -= (boundsRaw.x + cellBounds.width)
