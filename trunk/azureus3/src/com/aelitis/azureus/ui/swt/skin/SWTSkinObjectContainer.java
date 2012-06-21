@@ -309,14 +309,14 @@ public class SWTSkinObjectContainer
 		Point ourOfs = Utils.getLocationRelativeToShell(control);
 
 		if (getSkinView() instanceof ObfusticateImage) {
-			return ((ObfusticateImage) getSkinView()).obfusticatedImage(image);
+			image = ((ObfusticateImage) getSkinView()).obfusticatedImage(image);
 		}
 
 		Control[] swtChildren = ((Composite) control).getChildren();
 		for (int i = 0; i < swtChildren.length; i++) {
 			Control childControl = swtChildren[i];
 			TableOrTreeSWT tableOrTree = TableOrTreeUtils.getTableOrTreeSWT(childControl);
-			TableView tv = tableOrTree == null ? null
+			TableView tv = tableOrTree == null ? (TableView) control.getData("TableView")
 					: (TableView) tableOrTree.getData("TableView");
 			if (tv instanceof ObfusticateImage) {
 				ObfusticateImage oi = (ObfusticateImage) tv;
@@ -346,7 +346,7 @@ public class SWTSkinObjectContainer
 				continue;
 			}
 			TableOrTreeSWT tableOrTree = TableOrTreeUtils.getTableOrTreeSWT(childControl);
-			TableView tv = tableOrTree == null ? null
+			TableView tv = tableOrTree == null ? (TableView) childControl.getData("TableView")
 					: (TableView) tableOrTree.getData("TableView");
 			if (tv instanceof ObfusticateImage) {
 				ObfusticateImage oi = (ObfusticateImage) tv;
