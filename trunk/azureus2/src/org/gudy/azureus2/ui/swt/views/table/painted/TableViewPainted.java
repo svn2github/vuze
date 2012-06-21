@@ -20,6 +20,7 @@ import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
+import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.HSLColor;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
@@ -899,6 +900,8 @@ public class TableViewPainted
 
 		shell = parent.getShell();
 		mainComposite = tvTabsCommon.createSashForm(parent);
+		mainComposite.setData("Name", tableID);
+		mainComposite.setData("TableView", this);
 		Composite cTableComposite = tvTabsCommon.tableComposite;
 
 		cTableComposite.setLayout(new FormLayout());
@@ -1283,12 +1286,12 @@ public class TableViewPainted
 	}
 
 	@Override
-	public void tableStructureChanged(boolean columnAddedOrRemoved,
-			Class forPluginDataSourceType) {
-		super.tableStructureChanged(columnAddedOrRemoved, forPluginDataSourceType);
+	public void tableStructureChanged(final boolean columnAddedOrRemoved,
+			final Class forPluginDataSourceType) {
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				TableViewPainted.super.tableStructureChanged(columnAddedOrRemoved, forPluginDataSourceType);
 				if (cHeaderArea != null && !cHeaderArea.isDisposed()) {
 					cHeaderArea.redraw();
 				}
@@ -1552,7 +1555,51 @@ public class TableViewPainted
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#obfusticatedImage(org.eclipse.swt.graphics.Image)
 	 */
 	public Image obfusticatedImage(Image image) {
-		//TODO
+		TableColumnCore[] visibleColumns = getVisibleColumns();
+		TableRowPainted[] visibleRows = this.visibleRows.toArray(new TableRowPainted[0]);
+		
+		for (TableRowPainted row : visibleRows) {
+			if (row == null || row.isRowDisposed()) {
+				continue;
+			}
+
+			for (TableColumnCore tc : visibleColumns) {
+				if (tc == null || !tc.isObfusticated()) {
+					continue;
+				}
+
+				TableCellPainted cell = (TableCellPainted) row.getTableCell(tc.getName());
+				if (cell == null) {
+					continue;
+				}
+
+				String text = cell.getObfusticatedText();
+
+				if (text != null) {
+
+					final Rectangle cellBounds = cell.getBoundsOnDisplay();
+					Point ptDisplay = cTable.getShell().getLocation();
+					cellBounds.x -= ptDisplay.x;
+					cellBounds.y -= ptDisplay.y;
+					Rectangle boundsRaw = cell.getBoundsRaw();
+					if (boundsRaw.y + cellBounds.height > clientArea.y
+							+ clientArea.height) {
+						cellBounds.height -= (boundsRaw.y + cellBounds.height)
+								- (clientArea.y + clientArea.height);
+					}
+					int tableWidth = cTable.getClientArea().width;
+					System.out.println("ofsx=" + boundsRaw.x + ";cbW=" + cellBounds.width + ";ca=" + clientArea + ";" + tableWidth);
+					if (boundsRaw.x + cellBounds.width > clientArea.x
+							+ tableWidth) {
+						cellBounds.width -= (boundsRaw.x + cellBounds.width)
+								- (clientArea.x + tableWidth);
+					}
+
+					UIDebugGenerator.obfusticateArea(image, cellBounds, text);
+				}
+
+			}
+		}
 
 		UISWTViewCore view = tvTabsCommon == null ? null
 				: tvTabsCommon.getActiveSubView();
