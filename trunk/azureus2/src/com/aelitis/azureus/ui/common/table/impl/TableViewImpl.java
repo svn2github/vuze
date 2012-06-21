@@ -1076,6 +1076,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
   				mapDataSourceToRow.remove(dataSources[i]);
   				triggerListenerRowRemoved(item);
   				sortedRows.remove(item);
+  				selectedRows.remove(item);
   
   				rows_removed++;
   			}
