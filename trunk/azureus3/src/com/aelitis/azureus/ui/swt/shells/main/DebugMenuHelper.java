@@ -3,10 +3,14 @@ package com.aelitis.azureus.ui.swt.shells.main;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.GC;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.logging.LogAlert;
-import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateShell;
 import org.gudy.azureus2.ui.swt.donations.DonationWindow;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -246,6 +250,59 @@ public class DebugMenuHelper
 			});
 		}
 		
+		item = new MenuItem(menuDebug, SWT.NONE);
+		item.setText("Obfuscated Shell Image");
+		item.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent ev) {
+				Display display = Display.getCurrent();
+				Shell[] shells = display.getShells();
+				for (int i = 0; i < shells.length; i++) {
+					try {
+						Shell shell = shells[i];
+						Image image = null;
+
+						if (shell.isDisposed() || !shell.isVisible()) {
+							continue;
+						}
+
+						if (shell.getData("class") instanceof ObfusticateShell) {
+							ObfusticateShell shellClass = (ObfusticateShell) shell.getData("class");
+
+							try {
+								image = shellClass.generateObfusticatedImage();
+							} catch (Exception e) {
+								Debug.out("Obfuscating shell " + shell, e);
+							}
+						} else {
+
+							Rectangle clientArea = shell.getClientArea();
+							image = new Image(display, clientArea.width, clientArea.height);
+
+							GC gc = new GC(shell);
+							try {
+								gc.copyArea(image, clientArea.x, clientArea.y);
+							} finally {
+								gc.dispose();
+							}
+						}
+
+						if (image != null) {
+							Shell shell2 = new Shell(display);
+							Rectangle bounds = image.getBounds();
+							shell2.setSize(bounds.width, bounds.height);
+							shell2.setBackgroundImage(image);
+							shell2.open();
+						}
+
+					} catch (Exception e) {
+						Logger.log(new LogEvent(LogIDs.GUI,
+								"Creating Obfusticated Image", e));
+					}
+				}
+
+			}
+		});
+
 		
 		return item;
 	}
