@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.skin.SkinPropertiesImpl;
@@ -109,7 +110,11 @@ public class SimplePluginInstallWindow
 		box.open(new UserPrompterResultListener() {
 			public void prompterClosed(int result) {
 				installer.setListener(null);
-				installer.cancel();
+				try {
+					installer.cancel();
+				} catch (Exception e) {
+					Debug.out(e);
+				}
 			}
 		});
 	}
