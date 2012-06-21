@@ -1276,18 +1276,18 @@ public abstract class TableViewImpl<DATASOURCETYPE>
   				if (row == null || row.isRowDisposed()) {
   					continue;
   				}
-  //				if (sortColumn != null) {
-  //					TableCellCore cell = row.getTableCellCore(sortColumn.getName());
-  //					if (cell != null) {
-  //						try {
-  //							cell.invalidate();
-  //							cell.refresh(true);
-  //						} catch (Exception e) {
-  //							Logger.log(new LogEvent(LOGID,
-  //									"Minor error adding a row to table " + sTableID, e));
-  //						}
-  //					}
-  //				}
+  				if (sortColumn != null) {
+  					TableCellCore cell = row.getSortColumnCell(null);
+  					if (cell != null) {
+  						try {
+  							cell.invalidate();
+  							cell.refresh(true);
+  						} catch (Exception e) {
+  							Logger.log(new LogEvent(LOGID,
+  									"Minor error adding a row to table " + getTableID(), e));
+  						}
+  					}
+  				}
   
   				try {
   					int index = 0;
