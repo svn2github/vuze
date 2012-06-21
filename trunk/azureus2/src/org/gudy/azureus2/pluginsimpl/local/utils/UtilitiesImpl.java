@@ -120,6 +120,8 @@ UtilitiesImpl
 	private static CopyOnWriteList<Object[]>				feature_enablers 	= new CopyOnWriteList<Object[]>();
 	private static CopyOnWriteList<FeatureManagerListener>	feature_listeners	= new CopyOnWriteList<FeatureManagerListener>();
 	
+	private static Map<String,Object[]>	feature_installed_cache = new HashMap<String, Object[]>();
+	
 	private static FeatureManagerListener 
 		feature_listener = new FeatureManagerListener()
 		{
@@ -248,6 +250,11 @@ UtilitiesImpl
 			}
 			
 			COConfigurationManager.setParameter( "featman.cache.features.installed", str );
+		}
+		
+		synchronized( feature_installed_cache ){
+			
+			feature_installed_cache.clear();
 		}
 	}
 	
@@ -1408,7 +1415,26 @@ UtilitiesImpl
 	isFeatureInstalled(
 		String					feature_id )
 	{
-		return( getVerifiedEnablers().size() > 0 && getFeaturesInstalled().contains( feature_id ));
+		long	now = SystemTime.getMonotonousTime();
+		
+		synchronized( feature_installed_cache ){
+			
+			Object[]	entry = feature_installed_cache.get( feature_id );
+			
+			if ( entry != null && ( now - (Long)entry[0] < 30*1000 )){
+				
+				return((Boolean)entry[1]);
+			}
+		}
+		
+		boolean result = getVerifiedEnablers().size() > 0 && getFeaturesInstalled().contains( feature_id );
+		
+		synchronized( feature_installed_cache ){
+			
+			feature_installed_cache.put( feature_id, new Object[]{ now, result });
+		}
+		
+		return( result );
 	}
 	
 	private static FeatureDetails[]
