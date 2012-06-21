@@ -119,7 +119,7 @@ UtilitiesImpl
 			public Object[]
 			initialValue()
 			{
-				return( new Object[]{ -1L, 0, null });
+				return( new Object[]{ 0L, 0, null });
 			}
 		};
 			
