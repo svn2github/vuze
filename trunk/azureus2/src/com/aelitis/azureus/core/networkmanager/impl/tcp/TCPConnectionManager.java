@@ -124,6 +124,19 @@ public class TCPConnectionManager {
 					
 					if ( res == 0 ){
 						
+							// check for duplicates
+						
+						InetSocketAddress a1 = r1.address;
+						InetSocketAddress a2 = r2.address;
+						
+						if ( a1.getPort() == a2.getPort()){
+						
+							if ( Arrays.equals( a1.getAddress().getAddress(), a2.getAddress().getAddress())){
+								
+								return( 0 );
+							}
+						}
+						
 						res = r1.getRandom() - r2.getRandom();
 						
 						if ( res == 0 ){
@@ -732,8 +745,22 @@ public class TCPConnectionManager {
 	  ConnectListener 		listener, 
 	  int					connect_timeout, 
 	  int 					priority )
-  {    
-	  List<ConnectionRequest>	kicked = null;
+  {   
+	  if ( address.getPort() == 0 ){
+		  
+		  try{
+			  listener.connectFailure( new Exception( "Invalid port, connection to " + address + " abandoned" ));
+			  
+		  }catch( Throwable e ){
+			  
+			  Debug.out( e );
+		  }
+		  
+		  return;
+	  }
+	  
+	  List<ConnectionRequest>	kicked 		= null;
+	  boolean					duplicate	= false;
 	  
 	  try{
 		  new_canceled_mon.enter();
@@ -744,36 +771,45 @@ public class TCPConnectionManager {
 
 		  ConnectionRequest cr = new ConnectionRequest( connection_request_id_next++, address, listener, connect_timeout, priority );
 
-		  new_requests.add( cr );
-
-		  if ( new_requests.size() >= max_outbound_connections ){
-
-			  if ( !max_conn_exceeded_logged ){
-
-				  max_conn_exceeded_logged = true;
-
-				  Debug.out( "TCPConnectionManager: max outbound connection limit reached (" + max_outbound_connections + ")" );
+		  	// this comparison is via Comparator and will weed out same address being added > once
+		  
+		  if ( new_requests.contains( cr )){
+			  
+			  duplicate = true;
+			  
+		  }else{
+			  
+			  new_requests.add( cr );
+  
+			  if ( new_requests.size() >= max_outbound_connections ){
+	
+				  if ( !max_conn_exceeded_logged ){
+	
+					  max_conn_exceeded_logged = true;
+	
+					  Debug.out( "TCPConnectionManager: max outbound connection limit reached (" + max_outbound_connections + ")" );
+				  }
 			  }
-		  }
-
-		  if ( priority == ProtocolEndpoint.CONNECT_PRIORITY_HIGHEST ){
-
-			  for (Iterator<ConnectionRequest> pen_it = pending_attempts.keySet().iterator(); pen_it.hasNext();){
-
-				  ConnectionRequest request =(ConnectionRequest) pen_it.next();
-
-				  if ( request.priority == ProtocolEndpoint.CONNECT_PRIORITY_LOW ){
-
-					  if ( !canceled_requests.contains( request.listener )){
-					  
-						  canceled_requests.add( request.listener );
-					  
-						  if ( kicked == null ){
+	
+			  if ( priority == ProtocolEndpoint.CONNECT_PRIORITY_HIGHEST ){
+	
+				  for (Iterator<ConnectionRequest> pen_it = pending_attempts.keySet().iterator(); pen_it.hasNext();){
+	
+					  ConnectionRequest request =(ConnectionRequest) pen_it.next();
+	
+					  if ( request.priority == ProtocolEndpoint.CONNECT_PRIORITY_LOW ){
+	
+						  if ( !canceled_requests.contains( request.listener )){
 						  
-							  kicked = new ArrayList<ConnectionRequest>();
+							  canceled_requests.add( request.listener );
+						  
+							  if ( kicked == null ){
+							  
+								  kicked = new ArrayList<ConnectionRequest>();
+							  }
+						  
+							  kicked.add( request );
 						  }
-					  
-						  kicked.add( request );
 					  }
 				  }
 			  }
@@ -781,6 +817,17 @@ public class TCPConnectionManager {
 	  }finally{
 
 		  new_canceled_mon.exit();
+	  }
+	  
+	  if ( duplicate ){
+		  
+		  try{
+			  listener.connectFailure( new Exception( "Connection request already queued for " + address ));
+			  
+		  }catch( Throwable e ){
+			  
+			  Debug.out( e );
+		  }
 	  }
 	  
 	  if ( kicked != null ){
