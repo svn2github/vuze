@@ -273,6 +273,9 @@ public class TableCellPainted
 	}
 
 	public Rectangle getBoundsRaw() {
+		if (bounds == null) {
+			return null;
+		}
 		return new Rectangle(bounds.x, bounds.y, bounds.width, bounds.height);
 	}
 
