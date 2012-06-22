@@ -424,4 +424,7 @@ public interface GlobalManager extends AzureusCoreComponent {
 	 * @since 4.0.0.5
 	 */
 	boolean contains(DownloadManager manager);
+	
+	public void
+	saveState();
 }

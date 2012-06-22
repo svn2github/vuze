@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.impl;
 
+import java.io.File;
 import java.net.InetAddress;
 import java.util.*;
 
@@ -213,7 +214,8 @@ AzureusCoreImpl
 		
 			// set up a backwards pointer from config -> app dir so we can derive one from the other. It'll get saved on closedown, no need to do so now
 				
-		COConfigurationManager.setParameter( "azureus.application.directory", SystemProperties.getApplicationPath());
+		COConfigurationManager.setParameter( "azureus.application.directory", new File( SystemProperties.getApplicationPath()).getAbsolutePath());
+		COConfigurationManager.setParameter( "azureus.user.directory", new File( SystemProperties.getUserPath()).getAbsolutePath());
 		
 		crypto_manager = CryptoManagerFactory.getSingleton();
 		
@@ -1645,6 +1647,19 @@ AzureusCoreImpl
 			
 			throw( new  AzureusCoreException("Can't restart without the 'azupdater' plugin installed"));
 		}
+	}
+	
+	public void
+	saveState()
+	{
+		GlobalManager	gm = global_manager;
+		
+		if ( gm != null ){
+			
+			gm.saveState();
+		}
+		
+		COConfigurationManager.save();
 	}
 	
 	public GlobalManager

@@ -1933,7 +1933,12 @@ public class GlobalManagerImpl
 		}
   }
 
-
+  public void
+  saveState()
+  {
+	  saveDownloads( true );
+  }
+  
   protected void 
   saveDownloads(
   	boolean	immediate ) 

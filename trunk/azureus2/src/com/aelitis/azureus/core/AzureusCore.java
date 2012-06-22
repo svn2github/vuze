@@ -110,6 +110,9 @@ AzureusCore
 	public boolean
 	isRestarting();
 	
+	public void
+	saveState();
+	
 	public LocaleUtil
 	getLocaleUtil();
 	

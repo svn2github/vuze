@@ -42,6 +42,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 public class TextViewerWindow {
   private Shell shell;
   private Text txtInfo;
+  private  Button ok;
   
   private List<TextViewerWindowListener> listeners = new ArrayList<TextViewerWindowListener>();
   
@@ -54,7 +55,14 @@ public class TextViewerWindow {
   
   public 
   TextViewerWindow(
-		 String sTitleID, String sMessageID, String sText, boolean modal ) 
+		 String sTitleID, String sMessageID, String sText, boolean modal )
+  {
+	this( sTitleID, sMessageID, sText, modal, false );		
+  }
+  
+  public 
+  TextViewerWindow(
+		 String sTitleID, String sMessageID, String sText, boolean modal, boolean defer_modal )
   {
     final Display display = SWTThread.getInstance().getDisplay();
     
@@ -94,7 +102,7 @@ public class TextViewerWindow {
     gridData = new GridData( GridData.FILL_HORIZONTAL );
     label.setLayoutData(gridData);
     
-    Button ok = new Button(shell, SWT.PUSH);
+    ok = new Button(shell, SWT.PUSH);
     ok.setText(MessageText.getString("Button.ok"));
     gridData = new GridData();
     gridData.widthHint = 70;
@@ -114,7 +122,9 @@ public class TextViewerWindow {
 	shell.addListener(SWT.Traverse, new Listener() {	
 		public void handleEvent(Event e) {
 			if ( e.character == SWT.ESC){
-				shell.dispose();
+				if ( ok.isEnabled()){
+					shell.dispose();
+				}
 			}
 		}
 	});
@@ -137,10 +147,19 @@ public class TextViewerWindow {
 	Utils.centreWindow( shell );
     shell.open();
     
-    if ( modal ){
-    	while (!shell.isDisposed())
-    		if (!display.readAndDispatch()) display.sleep();
+    if ( modal && !defer_modal ){
+    	goModal();
     }
+  }
+  
+  public void
+  goModal()
+  {
+	    final Display display = SWTThread.getInstance().getDisplay();
+
+	  	while (!shell.isDisposed()){
+    		if (!display.readAndDispatch()) display.sleep();
+	  	}
   }
   
   public void
@@ -164,6 +183,14 @@ public class TextViewerWindow {
   {
 	  txtInfo.setEditable( editable );
   }
+  
+  public void
+  setOKEnabled(
+	boolean	enabled )
+  {
+	  ok.setEnabled( enabled );
+  }
+  
   public void
   addListener(
 	 TextViewerWindowListener		l )

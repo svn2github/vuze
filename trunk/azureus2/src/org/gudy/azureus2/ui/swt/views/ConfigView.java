@@ -324,6 +324,7 @@ public class ConfigView implements UISWTViewEventListener {
     ConfigSection[] internalSections = { 
                                          new ConfigSectionMode(),
                                          new ConfigSectionStartShutdown(),
+                                         new ConfigSectionBackupRestore(),
                                          new ConfigSectionConnection(),
                                          new ConfigSectionConnectionProxy(),
                                          new ConfigSectionConnectionAdvanced(),
