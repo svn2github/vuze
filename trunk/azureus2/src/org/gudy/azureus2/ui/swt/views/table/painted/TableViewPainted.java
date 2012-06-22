@@ -2183,7 +2183,7 @@ public class TableViewPainted
 	}
 
 	protected void swt_updateCanvasImage(Rectangle bounds, boolean immediateRedraw) {
-		if (canvasImage == null || canvasImage.isDisposed()) {
+		if (canvasImage == null || canvasImage.isDisposed() || bounds == null) {
 			return;
 		}
 		//System.out.println("UpdateCanvasImage " + bounds + "; via " + Debug.getCompressedStackTrace());
