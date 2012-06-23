@@ -318,16 +318,16 @@ BackupManagerImpl
 					
 					addActions( installer, source, target );
 				}
+				
+				listener.reportProgress( "Restore action creation complete, restart required to complete the operation" );
+
 			}else{
 				
 				listener.reportProgress( "Directories are different, backup requires patching" );
 
 				throw( new Exception( "Patching isn't implemented yet" ));
 			}
-			
-			
-			listener.reportProgress( "YOU NEED TO MANUALLY RESTART NOW!!!!" );
-			
+						
 			listener.reportComplete();
 			
 		}catch( Throwable e ){

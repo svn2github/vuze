@@ -43,6 +43,8 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import com.aelitis.azureus.core.backup.BackupManager;
 import com.aelitis.azureus.core.backup.BackupManagerFactory;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 
 public class ConfigSectionBackupRestore implements UISWTConfigSection {
@@ -271,7 +273,36 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 													public void
 													reportComplete()
 													{
-														append( "Restore Complete!", true );														
+														append( "Restore Complete!", true );	
+														
+														Utils.execSWTThread(
+															new AERunnable() 
+															{
+																public void 
+																runSupport() 
+																{
+																	MessageBoxShell mb = new MessageBoxShell( 
+													        				SWT.ICON_INFORMATION | SWT.OK,
+													        				MessageText.getString( "ConfigView.section.security.restart.title" ),
+													        				MessageText.getString( "ConfigView.section.security.restart.msg" ));
+												      				mb.setParent(parent.getShell());
+												        			mb.open(
+												        				new UserPrompterResultListener() 
+												        				{
+																			public void 
+																			prompterClosed(
+																				int returnVal) 
+																			{		
+																        		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+																        		
+																            	if ( uiFunctions != null ){
+																            		
+																            		uiFunctions.dispose(true, false);
+																            	}
+																			}
+												        				});
+																}
+															});
 													}
 													
 													public void
