@@ -196,7 +196,7 @@ UpdateInstallerImpl
 		String		to_file )
 	
 		throws UpdateException
-	{
+	{		
 		// System.out.println( "move action:" + from_file_or_resource + " -> " + to_file );
 		
 		if ( from_file_or_resource.indexOf(File.separator) == -1 ){
@@ -264,6 +264,9 @@ UpdateInstallerImpl
 			
 		}
 		
+		from_file_or_resource 	= escapeFile( from_file_or_resource );
+		to_file					= escapeFile( to_file );
+
 		appendAction( "move," + from_file_or_resource  + "," + to_file );
 	}
   
@@ -275,6 +278,8 @@ UpdateInstallerImpl
   
     	throws UpdateException
 	{ 
+		to_file = escapeFile( to_file );
+		
 		appendAction( "chmod," + rights  + "," + to_file );
 	}
   
@@ -284,7 +289,23 @@ UpdateInstallerImpl
   
     	throws UpdateException
 	{ 
+		file = escapeFile( file );
+		
 		appendAction( "remove," + file );
+	}
+	
+	private String
+	escapeFile(
+		String		file )
+	{
+		if ( file.contains( "," )){
+			
+				// needs support in Updater... to fix :(
+			
+			Debug.out( "Installation is going to fail for '" + file + "' as ',' in name not supported" );
+		}
+		
+		return( file );
 	}
 	
 	protected void

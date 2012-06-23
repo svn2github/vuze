@@ -28,12 +28,15 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.update.UpdateInstaller;
 
 import sun.awt.GlobalCursorManager;
 
@@ -180,6 +183,7 @@ BackupManagerImpl
 							continue;
 						}
 					}else if ( 	name.equals( ".lock" ) ||
+								name.equals( "update.properties" ) ||								
 								name.endsWith( ".log" )){
 						
 						continue;
@@ -230,6 +234,30 @@ BackupManagerImpl
 	}
 	
 	private void
+	addActions(
+		UpdateInstaller	installer,
+		File			source,
+		File			target )
+	
+		throws Exception
+	{
+		if ( source.isDirectory()){
+			
+			File[]	files = source.listFiles();
+			
+			for ( File f: files ){
+				
+				addActions( installer, f, new File( target, f.getName()));
+			}
+		}else{
+			
+			installer.addMoveAction(
+					source.getAbsolutePath(),
+					target.getAbsolutePath());
+		}
+	}
+	
+	private void
 	restoreSupport(
 		File				backup_folder,
 		BackupListener		listener )
@@ -266,10 +294,30 @@ BackupManagerImpl
 			listener.reportProgress( "Current user directory:\t"  + current_user_dir.getAbsolutePath());
 			listener.reportProgress( "Backup's user directory:\t" + backup_user_dir.getAbsolutePath());
 			
+			File temp_dir = AETemporaryFileHandler.createTempDir();
+			
 			if ( current_user_dir.equals( backup_user_dir )){
 				
 				listener.reportProgress( "Directories are the same, no patching required" );
 				
+				PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
+				
+				UpdateInstaller installer = pi.getUpdateManager().createInstaller();
+			
+				File[] files = backup_folder.listFiles();
+				
+				for ( File f: files ){
+					
+					File source = new File( temp_dir, f.getName());
+					
+					listener.reportProgress( "Creating restore action for '" + f.getName() + "'" );
+
+					copyFiles( f, source );
+					
+					File target = new File( current_user_dir, f.getName());
+					
+					addActions( installer, source, target );
+				}
 			}else{
 				
 				listener.reportProgress( "Directories are different, backup requires patching" );
@@ -278,7 +326,7 @@ BackupManagerImpl
 			}
 			
 			
-			listener.reportProgress( "THIS ISN'T COMPLETELY IMPLEMENTED YET!" );
+			listener.reportProgress( "YOU NEED TO MANUALLY RESTART NOW!!!!" );
 			
 			listener.reportComplete();
 			
