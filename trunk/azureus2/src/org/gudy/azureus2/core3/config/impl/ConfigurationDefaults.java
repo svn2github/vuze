@@ -576,6 +576,10 @@ public class ConfigurationDefaults {
     def.put( "def.deletetorrent", TRUE );
     def.put( "tb.confirm.delete.content", Long.valueOf(0) ); // 0=ask; 1=delete content; 2=delete torrent
     
+    def.put( "br.backup.auto.enable", FALSE );
+    def.put( "br.backup.auto.everydays", 1L );
+    def.put( "br.backup.auto.retain", 5L );
+    
     //temp section for SpeedManagerAlgorithmProviderV2
     
     try{

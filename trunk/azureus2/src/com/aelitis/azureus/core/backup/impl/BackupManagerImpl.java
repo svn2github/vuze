@@ -40,7 +40,10 @@ import org.gudy.azureus2.plugins.update.UpdateInstaller;
 
 import sun.awt.GlobalCursorManager;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.core.AzureusCoreLifecycleListener;
 import com.aelitis.azureus.core.backup.BackupManager;
 
 public class 
@@ -48,13 +51,31 @@ BackupManagerImpl
 	implements BackupManager
 {
 	private static BackupManagerImpl	singleton = new BackupManagerImpl();
-	
-	private AsyncDispatcher		dispatcher = new AsyncDispatcher();
-	
+		
 	public static BackupManager
 	getSingleton()
 	{
 		return( singleton );
+	}
+	
+	private AsyncDispatcher		dispatcher = new AsyncDispatcher();
+
+	private volatile boolean	closing;
+	
+	private 
+	BackupManagerImpl()
+	{
+		AzureusCoreFactory.getSingleton().addLifecycleListener(
+			new AzureusCoreLifecycleAdapter()
+			{
+				@Override
+				public void
+				stopping(
+					AzureusCore		core )
+				{
+					closing = true;
+				}
+			});
 	}
 	
 	public void
@@ -71,6 +92,17 @@ BackupManagerImpl
 					backupSupport( parent_folder, listener );
 				}
 			});
+	}
+	
+	private void
+	checkClosing()
+	
+		throws Exception
+	{
+		if ( closing ){
+			
+			throw( new Exception( "operation cancelled, app is closing" ));
+		}
 	}
 	
 	private long[]
@@ -93,6 +125,8 @@ BackupManagerImpl
 			File[] files = from_file.listFiles();
 			
 			for ( File f: files ){
+				
+				checkClosing();
 				
 				long[] temp = copyFiles( f, new File( to_file, f.getName()));
 				
@@ -118,98 +152,116 @@ BackupManagerImpl
 	backupSupport(
 		File				parent_folder,
 		BackupListener		listener )
-	{
+	{		
 		try{
 			String date_dir = new SimpleDateFormat( "yyyy-MM-dd" ).format( new Date());
 			
-			File backup_folder = null;
-			
-			for ( int i=0;i<100;i++){
-				
-				String test_dir = date_dir;
-				
-				if ( i > 0 ){
-					
-					test_dir = test_dir + "." + i;
-				}
-				
-				File test_file = new File( parent_folder, test_dir );
-				
-				if ( !test_file.exists()){
-					
-					backup_folder = test_file;
-					
-					backup_folder.mkdirs();
-					
-					break;
-				}
-			}
-			
-			if ( backup_folder == null ){
-				
-				backup_folder = new File( parent_folder, date_dir );
-			}
-			
-			listener.reportProgress( "Writing to " + backup_folder.getAbsolutePath());
-			
-			if ( !backup_folder.exists() && !backup_folder.mkdirs()){
-				
-				throw( new Exception( "Failed to create '" + backup_folder.getAbsolutePath() + "'" ));
-			}
-			
-			listener.reportProgress( "Syncing current state" );
-						
-			AzureusCoreFactory.getSingleton().saveState();
+			File 		backup_folder 	= null;
+			boolean		ok 				= false;
 			
 			try{
-				File user_dir = new File( SystemProperties.getUserPath());
-				
-				listener.reportProgress( "Reading configuration data from " + user_dir.getAbsolutePath());
-				
-				File[] user_files = user_dir.listFiles();
-				
-				for ( File f: user_files ){
+				checkClosing();
+
+				for ( int i=0;i<100;i++){
 					
-					String	name = f.getName();
+					String test_dir = date_dir;
 					
-					if ( f.isDirectory()){
+					if ( i > 0 ){
+						
+						test_dir = test_dir + "." + i;
+					}
 					
-						if ( 	name.equals( "cache" ) ||
-								name.equals( "tmp" ) ||
-								name.equals( "logs" ) ||
-								name.equals( "updates" ) ||
-								name.equals( "debug")){
+					File test_file = new File( parent_folder, test_dir );
+					
+					if ( !test_file.exists()){
+						
+						backup_folder = test_file;
+						
+						backup_folder.mkdirs();
+						
+						break;
+					}
+				}
+				
+				if ( backup_folder == null ){
+					
+					backup_folder = new File( parent_folder, date_dir );
+				}
+				
+				listener.reportProgress( "Writing to " + backup_folder.getAbsolutePath());
+				
+				if ( !backup_folder.exists() && !backup_folder.mkdirs()){
+					
+					throw( new Exception( "Failed to create '" + backup_folder.getAbsolutePath() + "'" ));
+				}
+				
+				listener.reportProgress( "Syncing current state" );
+							
+				AzureusCoreFactory.getSingleton().saveState();
+								
+				try{
+					File user_dir = new File( SystemProperties.getUserPath());
+					
+					listener.reportProgress( "Reading configuration data from " + user_dir.getAbsolutePath());
+					
+					File[] user_files = user_dir.listFiles();
+					
+					for ( File f: user_files ){
+						
+						checkClosing();
+
+						String	name = f.getName();
+						
+						if ( f.isDirectory()){
+						
+							if ( 	name.equals( "cache" ) ||
+									name.equals( "tmp" ) ||
+									name.equals( "logs" ) ||
+									name.equals( "updates" ) ||
+									name.equals( "debug")){
+								
+								continue;
+							}
+						}else if ( 	name.equals( ".lock" ) ||
+									name.equals( "update.properties" ) ||								
+									name.endsWith( ".log" )){
 							
 							continue;
 						}
-					}else if ( 	name.equals( ".lock" ) ||
-								name.equals( "update.properties" ) ||								
-								name.endsWith( ".log" )){
 						
-						continue;
-					}
-					
-					File	dest_file = new File( backup_folder, name );
-					
-					listener.reportProgress( "Copying '" + name  + "' ..." );
-					
-					long[]	result = copyFiles( f, dest_file );
-					
-					String	result_str = DisplayFormatters.formatByteCountToKiBEtc( result[1] );
-					
-					if ( result[0] > 1 ){
+						File	dest_file = new File( backup_folder, name );
 						
-						result_str = result[0] + " files, " + result_str;
+						listener.reportProgress( "Copying '" + name  + "' ..." );
+						
+						long[]	result = copyFiles( f, dest_file );
+						
+						String	result_str = DisplayFormatters.formatByteCountToKiBEtc( result[1] );
+						
+						if ( result[0] > 1 ){
+							
+							result_str = result[0] + " files, " + result_str;
+						}
+						
+						listener.reportProgress( result_str );
 					}
+										
+					listener.reportComplete();
 					
-					listener.reportProgress( result_str );
+					ok	= true;
+
+				}catch( Throwable e ){
+					
+					throw( e );
 				}
+			}finally{
 				
-				listener.reportComplete();
-				
-			}catch( Throwable e ){
-				
-				throw( e );
+				if ( !ok ){
+					
+					if ( backup_folder != null ){
+						
+						FileUtil.recursiveDeleteNoCheck( backup_folder );
+					}
+				}
 			}
 		}catch( Throwable e ){
 			
@@ -263,73 +315,96 @@ BackupManagerImpl
 		BackupListener		listener )
 	{
 		try{
-			listener.reportProgress( "Reading from " + backup_folder.getAbsolutePath());
+			UpdateInstaller installer 	= null;
+			File 			temp_dir 	= null;
 			
-			if ( !backup_folder.isDirectory()){
+			boolean	ok = false;
+			
+			try{
+				listener.reportProgress( "Reading from " + backup_folder.getAbsolutePath());
 				
-				throw( new Exception( "Location '" + backup_folder.getAbsolutePath() + "' must be a directory" ));
-			}
-			
-			listener.reportProgress( "Analysing backup" );
-			
-			File	config = new File( backup_folder, "azureus.config" );
-			
-			if ( !config.exists()){
-				
-				throw( new Exception( "Invalid backup: azureus.config not found" ));
-			}
-			
-			Map config_map = BDecoder.decode( FileUtil.readFileAsByteArray( config ));
-			
-			byte[]	temp = (byte[])config_map.get( "azureus.user.directory" );
-			
-			if ( temp == null ){
-				
-				throw( new Exception( "Invalid backup: azureus.config doesn't contain user directory details" ));
-			}
-			
-			File current_user_dir	= new File( SystemProperties.getUserPath());
-			File backup_user_dir 	= new File( new String( temp, "UTF-8" ));
-			
-			listener.reportProgress( "Current user directory:\t"  + current_user_dir.getAbsolutePath());
-			listener.reportProgress( "Backup's user directory:\t" + backup_user_dir.getAbsolutePath());
-			
-			File temp_dir = AETemporaryFileHandler.createTempDir();
-			
-			if ( current_user_dir.equals( backup_user_dir )){
-				
-				listener.reportProgress( "Directories are the same, no patching required" );
-				
-				PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
-				
-				UpdateInstaller installer = pi.getUpdateManager().createInstaller();
-			
-				File[] files = backup_folder.listFiles();
-				
-				for ( File f: files ){
+				if ( !backup_folder.isDirectory()){
 					
-					File source = new File( temp_dir, f.getName());
-					
-					listener.reportProgress( "Creating restore action for '" + f.getName() + "'" );
-
-					copyFiles( f, source );
-					
-					File target = new File( current_user_dir, f.getName());
-					
-					addActions( installer, source, target );
+					throw( new Exception( "Location '" + backup_folder.getAbsolutePath() + "' must be a directory" ));
 				}
 				
-				listener.reportProgress( "Restore action creation complete, restart required to complete the operation" );
-
-			}else{
+				listener.reportProgress( "Analysing backup" );
 				
-				listener.reportProgress( "Directories are different, backup requires patching" );
-
-				throw( new Exception( "Patching isn't implemented yet" ));
-			}
+				File	config = new File( backup_folder, "azureus.config" );
+				
+				if ( !config.exists()){
+					
+					throw( new Exception( "Invalid backup: azureus.config not found" ));
+				}
+				
+				Map config_map = BDecoder.decode( FileUtil.readFileAsByteArray( config ));
+				
+				byte[]	temp = (byte[])config_map.get( "azureus.user.directory" );
+				
+				if ( temp == null ){
+					
+					throw( new Exception( "Invalid backup: azureus.config doesn't contain user directory details" ));
+				}
+				
+				File current_user_dir	= new File( SystemProperties.getUserPath());
+				File backup_user_dir 	= new File( new String( temp, "UTF-8" ));
+				
+				listener.reportProgress( "Current user directory:\t"  + current_user_dir.getAbsolutePath());
+				listener.reportProgress( "Backup's user directory:\t" + backup_user_dir.getAbsolutePath());
+				
+				temp_dir = AETemporaryFileHandler.createTempDir();
+				
+				if ( current_user_dir.equals( backup_user_dir )){
+					
+					listener.reportProgress( "Directories are the same, no patching required" );
+					
+					PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface();
+					
+					installer = pi.getUpdateManager().createInstaller();
+				
+					File[] files = backup_folder.listFiles();
+					
+					for ( File f: files ){
 						
-			listener.reportComplete();
+						File source = new File( temp_dir, f.getName());
+						
+						listener.reportProgress( "Creating restore action for '" + f.getName() + "'" );
+	
+						copyFiles( f, source );
+						
+						File target = new File( current_user_dir, f.getName());
+						
+						addActions( installer, source, target );
+					}
+					
+					listener.reportProgress( "Restore action creation complete, restart required to complete the operation" );
+	
+				}else{
+					
+					listener.reportProgress( "Directories are different, backup requires patching" );
+	
+					throw( new Exception( "Patching isn't implemented yet" ));
+				}
+							
+				listener.reportComplete();
 			
+				ok = true;
+				
+			}finally{
+				
+				if ( !ok ){
+				
+					if ( installer != null ){
+						
+						installer.destroy();
+					}
+					
+					if ( temp_dir != null ){
+						
+						FileUtil.recursiveDeleteNoCheck( temp_dir );
+					}
+				}
+			}
 		}catch( Throwable e ){
 			
 			listener.reportError( e );

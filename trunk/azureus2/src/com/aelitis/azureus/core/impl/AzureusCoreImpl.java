@@ -57,6 +57,7 @@ import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.backup.BackupManagerFactory;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
@@ -647,6 +648,8 @@ AzureusCoreImpl
 		nat_traverser = new NATTraverser( this );
 		
 		PeerNATTraverser.initialise( this );
+		
+		BackupManagerFactory.getManager();
 		
 			// one off explicit GC to clear up initialisation mem
 		

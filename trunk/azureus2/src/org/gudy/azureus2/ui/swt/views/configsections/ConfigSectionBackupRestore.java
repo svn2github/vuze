@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 import java.io.File;
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -37,6 +38,10 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.config.BooleanParameter;
+import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
+import org.gudy.azureus2.ui.swt.config.IntParameter;
+import org.gudy.azureus2.ui.swt.config.StringParameter;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
@@ -45,6 +50,7 @@ import com.aelitis.azureus.core.backup.BackupManagerFactory;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 
 public class ConfigSectionBackupRestore implements UISWTConfigSection {
@@ -63,7 +69,8 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 	}
 
 	public void configSectionDelete() {
-
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		imageLoader.releaseImage("openFolderButton");
 	}
 	
 	public int maxUserMode() {
@@ -75,6 +82,9 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 	configSectionCreate(
 		final Composite parent) 
 	{
+		ImageLoader imageLoader = ImageLoader.getInstance();
+		Image imgOpenFolder = imageLoader.getImage("openFolderButton");
+		
 		GridData gridData;
 		GridLayout layout;
 
@@ -200,6 +210,91 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 			        }
 				});
 	    
+		final BooleanParameter auto_backup_enable = new BooleanParameter( gBackup, "br.backup.auto.enable", "br.backup.auto.enable" );
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		auto_backup_enable.setLayoutData( gridData );
+
+		Composite gDefaultDir = new Composite(gBackup, SWT.NONE);
+		layout = new GridLayout();
+		layout.numColumns = 3;
+		layout.marginHeight = 2;
+		gDefaultDir.setLayout(layout);
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan = 2;
+		gDefaultDir.setLayoutData(gridData);
+		
+		Label lblDefaultDir = new Label(gDefaultDir, SWT.NONE);
+		Messages.setLanguageText(lblDefaultDir,	"ConfigView.section.file.defaultdir.ask");
+		lblDefaultDir.setLayoutData(new GridData());
+
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		final StringParameter pathParameter = new StringParameter(gDefaultDir, "br.backup.auto.dir");
+		pathParameter.setLayoutData(gridData);
+
+		Button browse = new Button(gDefaultDir, SWT.PUSH);
+		browse.setImage(imgOpenFolder);
+		imgOpenFolder.setBackground(browse.getBackground());
+		browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+
+		browse.addListener(SWT.Selection, new Listener() {
+			/* (non-Javadoc)
+			 * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+			 */
+			public void handleEvent(Event event) {
+				DirectoryDialog dialog = new DirectoryDialog(parent.getShell(),
+						SWT.APPLICATION_MODAL);
+				dialog.setFilterPath(pathParameter.getValue());
+				dialog.setMessage(MessageText.getString("br.backup.auto.dir.select"));
+				dialog.setText(MessageText.getString("ConfigView.section.file.defaultdir.ask"));
+				String path = dialog.open();
+				if (path != null) {
+					pathParameter.setValue(path);
+					
+					COConfigurationManager.setParameter( "br.backup.folder.default", path );
+				}
+			}
+		});
+		
+		
+		Label lbl_backup_days = new Label(gDefaultDir, SWT.NULL);
+		Messages.setLanguageText(lbl_backup_days, "br.backup.auto.everydays" );
+
+		IntParameter backup_everydays = new IntParameter( gDefaultDir, "br.backup.auto.everydays" );
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		backup_everydays.setLayoutData( gridData );
+		
+		Label lbl_backup_retain = new Label(gDefaultDir, SWT.NULL);
+		Messages.setLanguageText(lbl_backup_retain, "br.backup.auto.retain" );
+
+		IntParameter backup_retain = new IntParameter( gDefaultDir, "br.backup.auto.retain" );
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		backup_retain.setLayoutData( gridData );
+		
+		auto_backup_enable.setAdditionalActionPerformer(
+			new ChangeSelectionActionPerformer( lblDefaultDir ));
+					
+		auto_backup_enable.setAdditionalActionPerformer(
+				new ChangeSelectionActionPerformer( pathParameter ));
+
+		auto_backup_enable.setAdditionalActionPerformer(
+				new ChangeSelectionActionPerformer( browse ));
+
+		auto_backup_enable.setAdditionalActionPerformer(
+				new ChangeSelectionActionPerformer( lbl_backup_days ));
+
+		auto_backup_enable.setAdditionalActionPerformer(
+				new ChangeSelectionActionPerformer( backup_everydays ));
+
+		auto_backup_enable.setAdditionalActionPerformer(
+				new ChangeSelectionActionPerformer( lbl_backup_retain ));
+
+		auto_backup_enable.setAdditionalActionPerformer(
+				new ChangeSelectionActionPerformer( backup_retain ));
+
+		
 	    	// restore
 	    
 		Group gRestore = new Group(cBR, SWT.NULL);
