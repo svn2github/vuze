@@ -322,4 +322,9 @@ public class TableCellPainted
 		boolean ret = super.refresh(bDoGraphics, bRowVisible, bCellVisible);
 		return ret;
 	}
+	
+	@Override
+	public boolean needsPainting() {
+		return super.needsPainting() || !hasFlag(FLAG_PAINTED);
+	}
 }

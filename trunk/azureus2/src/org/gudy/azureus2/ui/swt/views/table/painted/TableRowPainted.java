@@ -52,6 +52,10 @@ public class TableRowPainted
 	private int height = 0;
 	
 	private boolean initializing = true;
+
+	private Color colorFG = null;
+
+	private Color colorBG = null;
 	
 
 	public TableRowPainted(TableRowCore parentRow, TableViewPainted tv,
@@ -203,6 +207,13 @@ public class TableRowPainted
     					paintedRow = true;
     					gc.fillRectangle(r);
     					if (paintCell(gc, cellSWT.getBounds(), cellSWT)) {
+    						// row color may have changed; this would update the color
+    						// for all new cells.  However, setting color triggers a
+    						// row redraw that will fix up the UI
+    						//Color fgNew = getForeground();
+    						//if (fgNew != null && fgNew != fg) {
+    						//	fg = fgNew;
+    						//}
     						gc.setBackground(bg);
     						gc.setForeground(fg);
     						gc.setAlpha(rowAlpha);
@@ -210,7 +221,7 @@ public class TableRowPainted
     					}
     					if (DEBUG_ROW_PAINT) {
     						((TableCellSWTBase) cell).debug("painted "
-    								+ (cell.getVisuallyChangedSinceRefresh() ? "VC" : "!UpToDate")
+    								+ (cell.getVisuallyChangedSinceRefresh() ? "VC" : "!P")
     								+ " @ " + r);
     					}
     					cellSWT.setFlag(TableCellSWTBase.FLAG_PAINTED);
@@ -223,7 +234,7 @@ public class TableRowPainted
     				}
     			} else {
     				if (DEBUG_ROW_PAINT) {
-    					((TableCellSWTBase) cell).debug("Skip paintItem; up2date? "
+    					((TableCellSWTBase) cell).debug("Skip paintItem; has FLAG_PAINTED; up2date? "
     							+ cell.isUpToDate() + "; from "
     							+ Debug.getCompressedStackTrace(4));
     				}
@@ -725,9 +736,24 @@ public class TableRowPainted
 	 * @see org.gudy.azureus2.ui.swt.views.table.impl.TableRowSWTBase#setForeground(org.eclipse.swt.graphics.Color)
 	 */
 	@Override
-	public boolean setForeground(Color c) {
-		//TODO
-		return false;
+	public boolean setForeground(Color color) {
+		if (isRowDisposed()) {
+			return false;
+		}
+  	if (color == colorFG || (color != null && color.equals(colorFG))
+				|| (colorFG != null && colorFG.equals(color))) {
+			return false;
+		}
+		
+		colorFG = color;
+		//delays redraw until after.  Could use execSWTThreadLater
+		Utils.getOffOfSWTThread(new AERunnable() {
+			public void runSupport() {
+		  	redraw(false, false);
+			}
+		});
+
+		return true;
 	}
 	
 
@@ -739,14 +765,12 @@ public class TableRowPainted
 
 	@Override
 	public Color getForeground() {
-		//TODO
-		return null;
+		return colorFG;
 	}
 
 	@Override
 	public Color getBackground() {
-		//TODO
-		return null;
+		return colorBG;
 	}
 
 	@Override

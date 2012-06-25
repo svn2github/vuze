@@ -71,7 +71,7 @@ public abstract class TableCellSWTBase
 	/**
 	 * If any visuals change between 2 refreshes, this flag gets set
 	 */
-	protected static final int FLAG_VISUALLY_CHANGED_SINCE_REFRESH = 64;
+	public static final int FLAG_VISUALLY_CHANGED_SINCE_REFRESH = 64;
 
 	public static final int FLAG_PAINTED = 128;
 
@@ -887,12 +887,15 @@ public abstract class TableCellSWTBase
 		//if (bInRefresh && Utils.isThisThreadSWT()) {
 		//	System.out.println("Invalidating when in refresh via " + Debug.getCompressedStackTrace());
 		//}
-		if ((flags & FLAG_VALID) == 0) { //!hasFlag(FLAG_VALID)
+		if ((flags & (FLAG_VALID | FLAG_VISUALLY_CHANGED_SINCE_REFRESH)) == FLAG_VISUALLY_CHANGED_SINCE_REFRESH) { //!hasFlag(FLAG_VALID)
 			if (bMustRefresh) {
 				if ((flags & FLAG_MUSTREFRESH) != 0) {
 					return;
 				}
 			} else {
+				if (DEBUG_FLAGS) {
+					debug("ALREADY FLAGGED for invalidate via " + Debug.getCompressedStackTrace(7));
+				}
 				return;
 			}
 		}
