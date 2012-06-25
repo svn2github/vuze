@@ -21,6 +21,7 @@
 package org.gudy.azureus2.ui.swt.views.piece;
 
 import java.util.Iterator;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -49,12 +50,13 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
-import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * @author TuxPaper
@@ -62,7 +64,7 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
  *
  */
 public class PieceInfoView
-	implements ObfusticateImage, DownloadManagerPieceListener,
+	implements DownloadManagerPieceListener,
 	UISWTViewCoreEventListener
 {
 
@@ -649,7 +651,7 @@ public class PieceInfoView
 			dlm.removePieceListener(this);
 	}
 
-	public Image obfusticatedImage(Image image) {
+	private Image obfusticatedImage(Image image) {
 		UIDebugGenerator.obfusticateArea(image, topLabel, "");
 		return image;
 	}
@@ -719,6 +721,14 @@ public class PieceInfoView
       case UISWTViewEvent.TYPE_REFRESH:
         refresh();
         break;
+
+			case UISWTViewEvent.TYPE_OBFUSCATE:
+				Object data = event.getData();
+				if (data instanceof Map) {
+					obfusticatedImage((Image) MapUtils.getMapObject((Map) data, "image",
+							null, Image.class));
+				}
+				break;
     }
 
     return true;

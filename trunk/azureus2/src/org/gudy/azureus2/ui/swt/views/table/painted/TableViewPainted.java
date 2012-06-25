@@ -71,7 +71,6 @@ public class TableViewPainted
 	/**
 	 * Rows visible to user.  We assume this list is always up to date
 	 */
-	//TableRowPainted[] visibleRows = new TableRowPainted[0];
 	LinkedHashSet<TableRowPainted> visibleRows = new LinkedHashSet<TableRowPainted>();
 	
 	Object visibleRows_sync = new Object();
@@ -901,7 +900,7 @@ public class TableViewPainted
 		shell = parent.getShell();
 		mainComposite = tvTabsCommon.createSashForm(parent);
 		mainComposite.setData("Name", tableID);
-		mainComposite.setData("TableView", this);
+		mainComposite.setData("ObfusticateImage", this);
 		Composite cTableComposite = tvTabsCommon.tableComposite;
 
 		cTableComposite.setLayout(new FormLayout());
@@ -2176,7 +2175,7 @@ public class TableViewPainted
 
 	}
 
-	private void swt_updateCanvasImage(boolean immediateRedraw) {
+	public void swt_updateCanvasImage(boolean immediateRedraw) {
 		if (canvasImage != null && !canvasImage.isDisposed()) {
 			swt_updateCanvasImage(canvasImage.getBounds(), immediateRedraw);
 		}

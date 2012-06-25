@@ -2094,9 +2094,9 @@ public class Utils
 		return userMode;
 	}
 	
-	public static Point getLocationRelativeToShell(Control table) {
-		Point controlLocation = table.toDisplay(table.getLocation());
-		Point shellLocation = table.getShell().getLocation();
+	public static Point getLocationRelativeToShell(Control control) {
+		Point controlLocation = control.toDisplay(0, 0);
+		Point shellLocation = control.getShell().getLocation();
 		return new Point(controlLocation.x - shellLocation.x, controlLocation.y - shellLocation.y);
 	}
 }

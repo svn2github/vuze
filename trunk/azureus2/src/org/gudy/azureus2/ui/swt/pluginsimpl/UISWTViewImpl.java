@@ -31,6 +31,7 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
@@ -46,12 +47,14 @@ import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.plugins.*;
 
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * This class creates an IView that triggers UISWTViewEventListener 
@@ -192,6 +195,12 @@ public class UISWTViewImpl
 		} else if (eventType == UISWTViewEvent.TYPE_LANGUAGEUPDATE) {
 			lastFullTitle = "";
 			Messages.updateLanguageForControl(getComposite());
+		} else if (eventType == UISWTViewEvent.TYPE_OBFUSCATE
+				&& (eventListener instanceof ObfusticateImage)) {
+			if (data instanceof Map) {
+				((ObfusticateImage) eventListener).obfusticatedImage((Image) MapUtils.getMapObject(
+						(Map) data, "image", null, Image.class));
+			}
 		}
 
 		try {

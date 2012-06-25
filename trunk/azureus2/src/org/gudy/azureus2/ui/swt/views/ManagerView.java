@@ -20,30 +20,15 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.events.MenuListener;
-import org.eclipse.swt.events.ModifyEvent;
-import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.PaintEvent;
-import org.eclipse.swt.events.PaintListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
-import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Font;
-import org.eclipse.swt.graphics.FontData;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FormAttachment;
-import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.layout.FormLayout;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.*;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -54,17 +39,13 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.Logger;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.plugins.*;
@@ -98,7 +79,7 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
  * 
  */
 public class ManagerView
-	implements DownloadManagerListener, ObfusticateTab, ObfusticateImage,
+	implements DownloadManagerListener, ObfusticateTab,
 	ViewTitleInfo2, UISWTViewCoreEventListener, UIUpdatable, UIPluginViewToolBarListener
 {
 
@@ -825,18 +806,6 @@ public class ManagerView
 		tabViews.add(view);
 	}
 
-	public Image obfusticatedImage(Image image) {
-		UISWTViewCore view = getActiveView();
-		if (view instanceof ObfusticateImage) {
-			try {
-				((ObfusticateImage)view).obfusticatedImage(image);
-			} catch (Exception e) {
-				Debug.out("Obfusticating " + view, e);
-			}
-		}
-		return image;
-	}
-
 	public String getObfusticatedHeader() {
     int completed = manager.getStats().getCompleted();
     return DisplayFormatters.formatPercentFromThousands(completed) + " : " + manager;
@@ -937,24 +906,27 @@ public class ManagerView
       	dataSourceChanged(event.getData());
         break;
         
+      case UISWTViewEvent.TYPE_OBFUSCATE:
       case UISWTViewEvent.TYPE_FOCUSLOST: {
       	UISWTViewCore view = getActiveView();
   			if (view != null) {
-  				view.triggerEvent(event.getType(), null);
+  				view.triggerEvent(event.getType(), event.getData());
   			}
   			break;
       }
 
-      case UISWTViewEvent.TYPE_FOCUSGAINED:
+      case UISWTViewEvent.TYPE_FOCUSGAINED: {
       	UISWTViewCore view = getActiveView();
   			if (view != null) {
   				view.triggerEvent(event.getType(), null);
   			}
-      	// Fallthrough
+      }
+      // Fallthrough
 
       case UISWTViewEvent.TYPE_REFRESH:
         refresh();
         break;
+
     }
 
     return true;

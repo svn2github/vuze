@@ -24,8 +24,6 @@ import java.util.ArrayList;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
-import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -37,10 +35,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.CompositeMinSize;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
-import org.gudy.azureus2.ui.swt.views.table.TableOrTreeSWT;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableOrTreeUtils;
-
-import com.aelitis.azureus.ui.common.table.TableView;
 
 
 /**
@@ -306,30 +300,28 @@ public class SWTSkinObjectContainer
 		if (!isVisible()) {
 			return image;
 		}
-		Point ourOfs = Utils.getLocationRelativeToShell(control);
 
 		if (getSkinView() instanceof ObfusticateImage) {
 			image = ((ObfusticateImage) getSkinView()).obfusticatedImage(image);
 		}
-
+		
 		Control[] swtChildren = ((Composite) control).getChildren();
 		for (int i = 0; i < swtChildren.length; i++) {
 			Control childControl = swtChildren[i];
-			TableOrTreeSWT tableOrTree = TableOrTreeUtils.getTableOrTreeSWT(childControl);
-			TableView tv = tableOrTree == null ? (TableView) control.getData("TableView")
-					: (TableView) tableOrTree.getData("TableView");
-			if (tv instanceof ObfusticateImage) {
-				ObfusticateImage oi = (ObfusticateImage) tv;
-				oi.obfusticatedImage(image);
-				continue;
-			}
 
 			SWTSkinObject so = (SWTSkinObject) childControl.getData("SkinObject");
 			if (so instanceof ObfusticateImage) {
 				ObfusticateImage oi = (ObfusticateImage) so;
 				oi.obfusticatedImage(image);
-			} else if (so == null && (childControl instanceof Composite)) {
-				obfusticatedImage((Composite) childControl, image);
+			} else if (so == null) { 
+				ObfusticateImage oi = (ObfusticateImage) childControl.getData("ObfusticateImage");
+				if (oi != null) {
+					oi.obfusticatedImage(image);
+					continue;
+				}
+				if (childControl instanceof Composite) {
+					obfusticatedImage((Composite) childControl, image);
+				}
 			}
 		}
 
@@ -343,14 +335,6 @@ public class SWTSkinObjectContainer
 		Control[] children = c.getChildren();
 		for (Control childControl : children) {
 			if (!childControl.isVisible()) {
-				continue;
-			}
-			TableOrTreeSWT tableOrTree = TableOrTreeUtils.getTableOrTreeSWT(childControl);
-			TableView tv = tableOrTree == null ? (TableView) childControl.getData("TableView")
-					: (TableView) tableOrTree.getData("TableView");
-			if (tv instanceof ObfusticateImage) {
-				ObfusticateImage oi = (ObfusticateImage) tv;
-				oi.obfusticatedImage(image);
 				continue;
 			}
 			ObfusticateImage oi = (ObfusticateImage) childControl.getData("ObfusticateImage");

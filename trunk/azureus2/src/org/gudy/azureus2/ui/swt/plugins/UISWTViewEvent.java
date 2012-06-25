@@ -120,6 +120,16 @@ public interface UISWTViewEvent {
 	 */
 	public static final int TYPE_CLOSE = 8;
 
+
+	/**
+	 * Triggered when the UI needs a privacy sensitive view.
+	 * <P>
+	 * Currently, getData() will return a map, with "image" key containing Image
+	 * 
+	 *  @since 4.7.0.3
+	 */
+	public static final int TYPE_OBFUSCATE = 9;
+
 	/**
 	 * Get the type.
 	 * 

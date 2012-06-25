@@ -340,7 +340,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		table.setLinesVisible(Utils.TABLE_GRIDLINE_IS_ALTERNATING_COLOR);
 		table.setMenu(menu);
 		table.setData("Name", tableID);
-		table.setData("TableView", this);
+		table.setData("ObfusticateImage", this);
 		
 		// On Windows, TreeItems POSTPAINT event spendsabout 7% of it's time in getFont()
 		// calling the OS API.  If we set the font, it skips the API call.

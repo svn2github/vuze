@@ -47,24 +47,20 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
-import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
-import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
-import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * View of General information on the torrent
@@ -73,7 +69,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
  * 
  */
 public class GeneralView
-	implements ParameterListener, ObfusticateImage, UISWTViewCoreEventListener, UIPluginViewToolBarListener
+	implements ParameterListener, UISWTViewCoreEventListener, UIPluginViewToolBarListener
 {
 	public static final String MSGID_PREFIX = "GeneralView";
 
@@ -1052,7 +1048,7 @@ public class GeneralView
     graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
   }
 
-	public Image obfusticatedImage(Image image) {
+	private Image obfusticatedImage(Image image) {
 		UIDebugGenerator.obfusticateArea(image, (Control) fileName.getWidget(),
 				manager.toString());
 		UIDebugGenerator.obfusticateArea(image, (Control) saveIn.getWidget(),
@@ -1103,6 +1099,15 @@ public class GeneralView
       case UISWTViewEvent.TYPE_REFRESH:
         refresh();
         break;
+        
+      case UISWTViewEvent.TYPE_OBFUSCATE:
+				Object data = event.getData();
+				if (data instanceof Map) {
+					obfusticatedImage((Image) MapUtils.getMapObject((Map) data, "image",
+							null, Image.class));
+					((Map) data).put("obfuscateSideBar", true);
+				}
+      	break;
     }
 
     return true;

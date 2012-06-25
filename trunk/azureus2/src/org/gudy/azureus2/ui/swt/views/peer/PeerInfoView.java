@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt.views.peer;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Locale;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -41,7 +42,9 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -53,7 +56,6 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
-import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -64,6 +66,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * Piece Map subview for Peers View.
@@ -75,7 +78,7 @@ import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
  * @todo on paint, paint cached image instead of recalc
  */
 public class PeerInfoView
-	implements ObfusticateImage, UISWTViewCoreEventListener
+	implements UISWTViewCoreEventListener
 {
 	private final static int BLOCK_FILLSIZE = 14;
 
@@ -618,7 +621,7 @@ public class PeerInfoView
 		}
 	}
 
-	public Image obfusticatedImage(Image image) {
+	private Image obfusticatedImage(Image image) {
 		UIDebugGenerator.obfusticateArea(image, topLabel, "");
 		return image;
 	}
@@ -654,6 +657,14 @@ public class PeerInfoView
       case UISWTViewEvent.TYPE_REFRESH:
         refresh();
         break;
+
+			case UISWTViewEvent.TYPE_OBFUSCATE:
+				Object data = event.getData();
+				if (data instanceof Map) {
+					obfusticatedImage((Image) MapUtils.getMapObject((Map) data, "image",
+							null, Image.class));
+				}
+				break;
     }
 
     return true;

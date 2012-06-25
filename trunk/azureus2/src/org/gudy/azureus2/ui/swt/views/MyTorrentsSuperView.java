@@ -52,13 +52,14 @@ import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * Wraps a "Incomplete" torrent list and a "Complete" torrent list into
  * one view
  */
 public class MyTorrentsSuperView
-	implements ObfusticateImage, UISWTViewCoreEventListener,
+	implements UISWTViewCoreEventListener,
 	AEDiagnosticsEvidenceGenerator, UIPluginViewToolBarListener
 {
 	private static int SASH_WIDTH = 5;
@@ -383,7 +384,7 @@ public class MyTorrentsSuperView
 	  }
   }
 
-	public Image obfusticatedImage(Image image) {
+	private Image obfusticatedImage(Image image) {
 		if (torrentview != null) {
 			torrentview.obfusticatedImage(image);
 		}
@@ -533,6 +534,14 @@ public class MyTorrentsSuperView
 				break;
 
 			case UISWTViewEvent.TYPE_REFRESH:
+				break;
+				
+			case UISWTViewEvent.TYPE_OBFUSCATE:
+				Object data = event.getData();
+				if (data instanceof Map) {
+					obfusticatedImage((Image) MapUtils.getMapObject((Map) data, "image",
+							null, Image.class));
+				}
 				break;
 		}
 		

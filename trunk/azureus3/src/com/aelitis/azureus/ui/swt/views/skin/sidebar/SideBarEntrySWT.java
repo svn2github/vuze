@@ -18,8 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -50,6 +49,7 @@ import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MdiSWTMenuHackListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * @author TuxPaper
@@ -1103,14 +1103,36 @@ public class SideBarEntrySWT
 
 	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateImage#obfusticatedImage(org.eclipse.swt.graphics.Image)
 	public Image obfusticatedImage(Image image) {
-//		Rectangle bounds = swt_getBounds();
-//		TreeItem treeItem = getTreeItem();
-//		Point location = Utils.getLocationRelativeToShell(treeItem.getParent());
-//
-//		bounds.x += location.x;
-//		bounds.y += location.y;
-//		
-//		UIDebugGenerator.obfusticateArea(image, bounds);
+		Rectangle bounds = swt_getBounds();
+		TreeItem treeItem = getTreeItem();
+		Point location = Utils.getLocationRelativeToShell(treeItem.getParent());
+
+		bounds.x += location.x;
+		bounds.y += location.y;
+		
+		if (getId().startsWith("DMDetails")) {
+			System.out.println("br");
+		}
+		
+		Map<String, Object> map = new HashMap<String, Object>();
+		map.put("image", image);
+		map.put("obfuscateSideBar", false);
+		if (view != null) {
+			view.triggerEvent(UISWTViewEvent.TYPE_OBFUSCATE, map);
+		}
+
+		if (MapUtils.getMapBoolean(map, "obfuscateSideBar", false)) {
+			int ofs = IMAGELEFT_GAP + IMAGELEFT_SIZE;
+			if (treeItem.getParentItem() != null) {
+				ofs += 10 + SIDEBAR_SPACING;
+			}
+			bounds.x += ofs;
+			bounds.width -= ofs + SIDEBAR_SPACING + 1;
+			bounds.height -= 1;
+			
+			UIDebugGenerator.obfusticateArea(image, bounds);
+		}
+		
 
 		return image;
 	}
