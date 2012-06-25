@@ -649,7 +649,7 @@ AzureusCoreImpl
 		
 		PeerNATTraverser.initialise( this );
 		
-		BackupManagerFactory.getManager();
+		BackupManagerFactory.getManager( this );
 		
 			// one off explicit GC to clear up initialisation mem
 		

@@ -45,6 +45,7 @@ import org.gudy.azureus2.ui.swt.config.StringParameter;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.backup.BackupManager;
 import com.aelitis.azureus.core.backup.BackupManagerFactory;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
@@ -103,7 +104,7 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 	    
 	    info_label.setLayoutData( gridData );
 	    
-	    final BackupManager	backup_manager = BackupManagerFactory.getManager();
+	    final BackupManager	backup_manager = BackupManagerFactory.getManager( AzureusCoreFactory.getSingleton());
 	    
 	    	// backup
 	    
@@ -142,70 +143,7 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 																
 							COConfigurationManager.setParameter( "br.backup.folder.default", path );
 								
-							final TextViewerWindow viewer = 
-								new TextViewerWindow(
-										MessageText.getString( "br.backup.progress" ),
-										null, "", true, true );
-											
-							viewer.setEditable( false );
-							
-							viewer.setOKEnabled( false );
-							
-							backup_manager.backup(
-								new File( path ),
-								new BackupManager.BackupListener()
-								{
-									public void
-									reportProgress(
-										String		str )
-									{
-										append( str, false );
-									}
-									
-									public void
-									reportComplete()
-									{
-										append( "Backup Complete!", true );
-
-									}
-									
-									public void
-									reportError(
-										Throwable 	error )
-									{
-										append( "Backup Failed: " + Debug.getNestedExceptionMessage( error ), true );
-									}
-									
-									private void
-									append(
-										final String		str,
-										final boolean		complete )
-									{	
-										Utils.execSWTThread(
-											new AERunnable() 
-											{
-												public void 
-												runSupport() 
-												{
-													if ( str.endsWith( "..." )){
-														
-														viewer.append( str );
-														
-													}else{
-													
-														viewer.append( str + "\r\n" );
-													}
-													
-													if ( complete ){
-														
-														viewer.setOKEnabled( true );
-													}
-												}
-											});
-									}
-								});
-							
-							viewer.goModal();
+							runBackup( backup_manager, path );
 						}
 			        }
 				});
@@ -228,10 +166,17 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 		Messages.setLanguageText(lblDefaultDir,	"ConfigView.section.file.defaultdir.ask");
 		lblDefaultDir.setLayoutData(new GridData());
 
+
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
-		final StringParameter pathParameter = new StringParameter(gDefaultDir, "br.backup.auto.dir");
+		final StringParameter pathParameter = new StringParameter(gDefaultDir, "br.backup.auto.dir", "" );
 		pathParameter.setLayoutData(gridData);
 
+		if ( pathParameter.getValue().length() == 0 ){
+		   	String	def_dir = COConfigurationManager.getStringParameter( "br.backup.folder.default" );
+
+			pathParameter.setValue( def_dir );
+		}
+		
 		Button browse = new Button(gDefaultDir, SWT.PUSH);
 		browse.setImage(imgOpenFolder);
 		imgOpenFolder.setBackground(browse.getBackground());
@@ -260,7 +205,7 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 		Label lbl_backup_days = new Label(gDefaultDir, SWT.NULL);
 		Messages.setLanguageText(lbl_backup_days, "br.backup.auto.everydays" );
 
-		IntParameter backup_everydays = new IntParameter( gDefaultDir, "br.backup.auto.everydays" );
+		IntParameter backup_everydays = new IntParameter( gDefaultDir, "br.backup.auto.everydays", 1, Integer.MAX_VALUE );
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		backup_everydays.setLayoutData( gridData );
@@ -268,11 +213,27 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 		Label lbl_backup_retain = new Label(gDefaultDir, SWT.NULL);
 		Messages.setLanguageText(lbl_backup_retain, "br.backup.auto.retain" );
 
-		IntParameter backup_retain = new IntParameter( gDefaultDir, "br.backup.auto.retain" );
+		IntParameter backup_retain = new IntParameter( gDefaultDir, "br.backup.auto.retain", 1, Integer.MAX_VALUE );
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		backup_retain.setLayoutData( gridData );
 		
+	    Label backup_auto_label = new Label(gDefaultDir, SWT.NULL );
+	    Messages.setLanguageText(backup_auto_label, "br.backup.auto.now");
+
+	    Button backup_auto_button = new Button(gDefaultDir, SWT.PUSH);
+	    Messages.setLanguageText(backup_auto_button, "br.test");
+	    
+	    backup_auto_button.addListener(SWT.Selection, 
+	    		new Listener() 
+				{
+			        public void 
+					handleEvent(Event event) 
+			        {
+			        	runBackup( backup_manager, null );
+			        }
+				});
+	    
 		auto_backup_enable.setAdditionalActionPerformer(
 			new ChangeSelectionActionPerformer( lblDefaultDir ));
 					
@@ -293,6 +254,12 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 
 		auto_backup_enable.setAdditionalActionPerformer(
 				new ChangeSelectionActionPerformer( backup_retain ));
+
+		auto_backup_enable.setAdditionalActionPerformer(
+				new ChangeSelectionActionPerformer( backup_auto_label ));
+
+		auto_backup_enable.setAdditionalActionPerformer(
+				new ChangeSelectionActionPerformer( backup_auto_button ));
 
 		
 	    	// restore
@@ -358,11 +325,11 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 												new File( path ),
 												new BackupManager.BackupListener()
 												{
-													public void
+													public boolean
 													reportProgress(
 														String		str )
 													{
-														append( str, false );
+														return( append( str, false ));
 													}
 													
 													public void
@@ -407,11 +374,16 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 														append( "Restore Failed: " + Debug.getNestedExceptionMessage( error ), true );
 													}
 													
-													private void
+													private boolean
 													append(
 														final String		str,
 														final boolean		complete )
 													{	
+														if ( viewer.isDisposed()){
+															
+															return( false );
+														}
+														
 														Utils.execSWTThread(
 															new AERunnable() 
 															{
@@ -433,6 +405,8 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 																	}
 																}
 															});
+														
+														return( true );
 													}													
 												});
 											
@@ -445,5 +419,92 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 			    });
 	    
 		return( cBR );
+	}
+	
+	private void
+	runBackup(
+		BackupManager	backup_manager,
+		String			path )
+		
+	{
+		final TextViewerWindow viewer = 
+			new TextViewerWindow(
+					MessageText.getString( "br.backup.progress" ),
+					null, "", true, true );
+						
+		viewer.setEditable( false );
+		
+		viewer.setOKEnabled( false );
+		
+		BackupManager.BackupListener	listener = 
+			new BackupManager.BackupListener()
+			{
+				public boolean
+				reportProgress(
+					String		str )
+				{
+					return( append( str, false ));
+				}
+				
+				public void
+				reportComplete()
+				{
+					append( "Backup Complete!", true );
+
+				}
+				
+				public void
+				reportError(
+					Throwable 	error )
+				{
+					append( "Backup Failed: " + Debug.getNestedExceptionMessage( error ), true );
+				}
+				
+				private boolean
+				append(
+					final String		str,
+					final boolean		complete )
+				{	
+					if ( viewer.isDisposed()){
+						
+						return( false );
+					}
+					
+					Utils.execSWTThread(
+						new AERunnable() 
+						{
+							public void 
+							runSupport() 
+							{
+								if ( str.endsWith( "..." )){
+									
+									viewer.append( str );
+									
+								}else{
+								
+									viewer.append( str + "\r\n" );
+								}
+								
+								if ( complete ){
+									
+									viewer.setOKEnabled( true );
+								}
+							}
+						});
+					
+					return( true );
+				}
+			};
+			
+		if ( path == null ){
+			
+			backup_manager.runAutoBackup( listener );
+			
+		}else{
+		
+			backup_manager.backup( new File( path ), listener );
+		}
+		
+		viewer.goModal();
 	}
 }

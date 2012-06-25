@@ -21,14 +21,16 @@
 
 package com.aelitis.azureus.core.backup;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.backup.impl.BackupManagerImpl;
 
 public class 
 BackupManagerFactory 
 {
 	public static BackupManager
-	getManager()
+	getManager(
+		AzureusCore		core )
 	{
-		return( BackupManagerImpl.getSingleton());
+		return( BackupManagerImpl.getSingleton( core ));
 	}
 }

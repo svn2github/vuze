@@ -35,11 +35,19 @@ BackupManager
 	restore(
 		File				backup_folder,
 		BackupListener		listener );
+		
+	public void
+	runAutoBackup(
+		BackupListener		listener );
 	
 	public interface
 	BackupListener
-	{
-		public void
+	{	
+		/**
+		 * @return false -> abandon process
+		 */
+	
+		public boolean
 		reportProgress(
 			String		str );
 		
