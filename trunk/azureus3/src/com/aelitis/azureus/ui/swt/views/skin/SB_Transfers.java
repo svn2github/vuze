@@ -362,9 +362,6 @@ public class SB_Transfers
 								}
 
 								public void categoryChanged(Category category) {
-									if (category.getType() != Category.TYPE_USER) {
-										return;
-									}
 									MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 									if (mdi == null) {
 										return;
@@ -657,9 +654,9 @@ public class SB_Transfers
 		}
 
 		String name = category.getName();
+		String id = "Cat." + Base32.encode(name.getBytes());
 		if (category.getType() != Category.TYPE_USER) {
-			return;
-			//name = MessageText.getString(name);
+			name = "{" + name + "}";
 		}
 
 		ViewTitleInfo viewTitleInfo = new ViewTitleInfo() {
@@ -678,9 +675,8 @@ public class SB_Transfers
 		};
 
 		MdiEntry entry = mdi.createEntryFromSkinRef(
-				MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, "Cat."
-						+ Base32.encode(name.getBytes()), "library", name, viewTitleInfo,
-				category, false, null);
+				MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id, "library",
+				name, viewTitleInfo, category, false, null);
 		if (entry != null) {
 			entry.setImageLeftID("image.sidebar.library");
 		}

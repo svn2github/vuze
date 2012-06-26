@@ -324,7 +324,9 @@ public class SBC_LibraryView
 									
 									s = MessageText.getString(id,
 											new String[] {
-											cat.getName()
+											(cat.getType() != Category.TYPE_USER)
+													? MessageText.getString(cat.getName())
+													: cat.getName()
 									});
 									
 
