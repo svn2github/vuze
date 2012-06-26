@@ -141,7 +141,7 @@ public class TableRowPainted
 	 * @param rowStartY where in the GC this row's y-axis starts
 	 * @param pos
 	 */
-	public void swt_paintGC(GC gc, Rectangle drawBounds, int rowStartX, int rowStartY, int pos) {
+	public void swt_paintGC(GC gc, Rectangle drawBounds, int rowStartX, int rowStartY, int pos, boolean forcePaint) {
 		if (!drawBounds.intersects(rowStartX, rowStartY, 9999, getHeight())) {
 			return;
 		}
@@ -200,7 +200,8 @@ public class TableRowPainted
     				continue;
     			}
     			TableCellSWTBase cellSWT = (TableCellSWTBase) cell;
-    			if (!cellSWT.hasFlag(TableCellSWTBase.FLAG_PAINTED)) {
+    			if (forcePaint || (!cellSWT.hasFlag(TableCellSWTBase.FLAG_PAINTED) || cellSWT.getVisuallyChangedSinceRefresh())) {
+  					cellSWT.clearFlag(TableCellSWTBase.FLAG_PAINTED);
     				Rectangle r = new Rectangle(x, rowStartY, w, getHeight());
     				((TableCellPainted) cell).setBoundsRaw(r);
     				if (drawBounds.intersects(r)) {
@@ -311,7 +312,7 @@ public class TableRowPainted
 				Image graphicSWT = cell.getGraphicSWT();
 				if (graphicSWT != null && !graphicSWT.isDisposed()) {
 					Rectangle imageBounds = graphicSWT.getBounds();
-
+cell.debug("DRAW GRAPHIC "  + graphicSWT);
 					Rectangle graphicBounds = new Rectangle(cellBounds.x, cellBounds.y,
 							cellBounds.width, cellBounds.height);
 					if (cell.getFillCell()) {
@@ -446,13 +447,11 @@ public class TableRowPainted
 					}
 					boolean allRows = (mTableCells != null) && invalidCells.size() == mTableCells.size();
 					if (allRows) {
-						clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
 						getViewPainted().swt_updateCanvasImage(getDrawBounds(), false);
 					} else {
   					for (Object o : invalidCells) {
   						if (o instanceof TableCellPainted) {
   							TableCellPainted cell = (TableCellPainted) o;
-  							cell.clearFlag(TableCellSWTBase.FLAG_PAINTED);
   							Rectangle bounds = cell.getBoundsRaw();
   							if (bounds != null) {
   								getViewPainted().swt_updateCanvasImage(bounds, false);
@@ -471,7 +470,6 @@ public class TableRowPainted
 	}
 
 	public void redraw(boolean doChildren, boolean immediateRedraw) {
-		clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
 		getViewPainted().redrawRow(this, immediateRedraw);
 
 		if (!doChildren) {

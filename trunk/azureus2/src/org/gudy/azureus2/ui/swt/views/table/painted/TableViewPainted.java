@@ -1314,7 +1314,7 @@ public class TableViewPainted
 		//e.gc.drawLine(0, 0, cTable.getSize().x, canvasImage.getBounds().height);
 	}
 
-	protected void swt_paintCanvasImage(GC gc, Rectangle drawBounds) {
+	protected void swt_paintCanvasImage(GC gc, Rectangle drawBounds, boolean forcePaint) {
 		int end = drawBounds.y + drawBounds.height;
 
 		TableRowCore oldRow = null;
@@ -1330,7 +1330,7 @@ public class TableViewPainted
 			}
 			Point drawOffset = paintedRow.getDrawOffset();
 			//debug("Paint " + drawBounds.x + "x" + drawBounds.y + " " + drawBounds.width + "x" + drawBounds.height + "; Row=" +row.getIndex() + ";clip=" + gc.getClipping() +";drawOffset=" + drawOffset);
-			paintedRow.swt_paintGC(gc, drawBounds, 0, drawOffset.y - clientArea.y, pos);
+			paintedRow.swt_paintGC(gc, drawBounds, 0, drawOffset.y - clientArea.y, pos, forcePaint);
 			oldRow = row;
 		}
 
@@ -2181,25 +2181,38 @@ public class TableViewPainted
 		}
 	}
 
-	protected void swt_updateCanvasImage(Rectangle bounds, boolean immediateRedraw) {
-		if (canvasImage == null || canvasImage.isDisposed() || bounds == null) {
+	private boolean in_swt_updateCanvasImage = false;
+	protected void swt_updateCanvasImage(final Rectangle bounds, final boolean immediateRedraw) {
+		if (in_swt_updateCanvasImage) {
+			Utils.execSWTThreadLater(0, new AERunnable() {
+				public void runSupport() {
+					swt_updateCanvasImage(bounds, immediateRedraw);
+				}
+			});
 			return;
 		}
-		//System.out.println("UpdateCanvasImage " + bounds + "; via " + Debug.getCompressedStackTrace());
-		GC gc = new GC(canvasImage);
-		gc.setClipping(bounds);
-		swt_paintCanvasImage(gc, bounds);
-		gc.dispose();
-		if (cTable != null && !cTable.isDisposed()) {
-			cTable.redraw(bounds.x, bounds.y, bounds.width, bounds.height, false);
-			if (immediateRedraw) {
-				cTable.update();
-			}
-		}
-		if (sCanvasImage != null) {
-			sCanvasImage.getShell().setSize(canvasImage.getBounds().width, canvasImage.getBounds().height);
-			sCanvasImage.redraw(bounds.x, bounds.y, bounds.width, bounds.height, true);
-			sCanvasImage.update();
+		try {
+  		if (canvasImage == null || canvasImage.isDisposed() || bounds == null) {
+  			return;
+  		}
+  		//System.out.println("UpdateCanvasImage " + bounds + "; via " + Debug.getCompressedStackTrace());
+  		GC gc = new GC(canvasImage);
+  		gc.setClipping(bounds);
+  		swt_paintCanvasImage(gc, bounds, true);
+  		gc.dispose();
+  		if (cTable != null && !cTable.isDisposed()) {
+  			cTable.redraw(bounds.x, bounds.y, bounds.width, bounds.height, false);
+  			if (immediateRedraw) {
+  				cTable.update();
+  			}
+  		}
+  		if (sCanvasImage != null) {
+  			sCanvasImage.getShell().setSize(canvasImage.getBounds().width, canvasImage.getBounds().height);
+  			sCanvasImage.redraw(bounds.x, bounds.y, bounds.width, bounds.height, true);
+  			sCanvasImage.update();
+  		}
+		} finally {
+			in_swt_updateCanvasImage = false;
 		}
 	}
 

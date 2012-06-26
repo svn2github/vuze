@@ -232,7 +232,7 @@ public class TableCellPainted
 				if (bounds != null) {
 					Composite composite = ((TableViewSWT<?>) tableRow.getView()).getComposite();
 					if (composite != null && !composite.isDisposed()) {
-						composite.redraw(bounds.x, bounds.y, bounds.width, bounds.height, false);
+						((TableViewPainted) tableRow.getView()).swt_updateCanvasImage(bounds, false);
 					}
 				}
 			}
