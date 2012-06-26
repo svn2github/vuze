@@ -1314,7 +1314,7 @@ public class TableViewPainted
 		//e.gc.drawLine(0, 0, cTable.getSize().x, canvasImage.getBounds().height);
 	}
 
-	protected void swt_paintCanvasImage(GC gc, Rectangle drawBounds, boolean forcePaint) {
+	protected void swt_paintCanvasImage(GC gc, Rectangle drawBounds) {
 		int end = drawBounds.y + drawBounds.height;
 
 		TableRowCore oldRow = null;
@@ -1330,7 +1330,7 @@ public class TableViewPainted
 			}
 			Point drawOffset = paintedRow.getDrawOffset();
 			//debug("Paint " + drawBounds.x + "x" + drawBounds.y + " " + drawBounds.width + "x" + drawBounds.height + "; Row=" +row.getIndex() + ";clip=" + gc.getClipping() +";drawOffset=" + drawOffset);
-			paintedRow.swt_paintGC(gc, drawBounds, 0, drawOffset.y - clientArea.y, pos, forcePaint);
+			paintedRow.swt_paintGC(gc, drawBounds, 0, drawOffset.y - clientArea.y, pos);
 			oldRow = row;
 		}
 
@@ -2085,14 +2085,12 @@ public class TableViewPainted
 					TableRowPainted firstRow = visibleRows.iterator().next();
 					if (oldClientArea.y > newClientArea.y && firstRow.getDrawOffset().y < oldClientArea.y) {
 						firstRow.invalidate();
-						firstRow.clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
 					} else {
 						TableRowPainted row = getLastVisibleRow();
 						if (row != null) {
   						int bottom = row.getDrawOffset().y + row.getHeight();
   						if (bottom > oldClientArea.y + oldClientArea.height) {
       					row.invalidate();
-      					row.clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
   						}
 						}
 					}
@@ -2164,7 +2162,7 @@ public class TableViewPainted
 			//System.out.println("Redraw " + Debug.getCompressedStackTrace());
 
 			// swt_updateCanvasImage must be called after clearVisiblePaintedFlag
-			clearVisiblePaintedFlag();
+			//clearVisiblePaintedFlag();
 			swt_updateCanvasImage(false);
 			refreshTable(false);
 		}
@@ -2201,7 +2199,7 @@ public class TableViewPainted
   		//System.out.println("UpdateCanvasImage " + bounds + "; via " + Debug.getCompressedStackTrace());
   		GC gc = new GC(canvasImage);
   		gc.setClipping(bounds);
-  		swt_paintCanvasImage(gc, bounds, true);
+  		swt_paintCanvasImage(gc, bounds);
   		gc.dispose();
   		if (cTable != null && !cTable.isDisposed()) {
   			cTable.redraw(bounds.x, bounds.y, bounds.width, bounds.height, false);
@@ -2429,15 +2427,6 @@ public class TableViewPainted
 		}
 	}
 	
-	private void clearVisiblePaintedFlag() {
-		Set<TableRowPainted> visibleRows = this.visibleRows;
-		if (visibleRows != null) {
-			for (TableRowPainted row : visibleRows) {
-				row.clearCellFlag(TableCellSWTBase.FLAG_PAINTED, false);
-			}
-		}
-	}
-
 	@Override
 	public void uiSelectionChanged(final TableRowCore[] newlySelectedRows,
 			final TableRowCore[] deselectedRows) {

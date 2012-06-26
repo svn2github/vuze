@@ -65,15 +65,15 @@ public abstract class TableCellSWTBase
 
 	protected static final int FLAG_DISPOSED = 16;
 
-	// No idea if this is used anymore.. there's logic, it might do something
+	/**
+	 * Cell has been invalidated, it must refresh on next cycle
+	 */
 	protected static final int FLAG_MUSTREFRESH = 32;
 
 	/**
 	 * If any visuals change between 2 refreshes, this flag gets set
 	 */
 	public static final int FLAG_VISUALLY_CHANGED_SINCE_REFRESH = 64;
-
-	public static final int FLAG_PAINTED = 128;
 
 	private static final boolean DEBUGONLYZERO = false;
 
@@ -705,7 +705,8 @@ public abstract class TableCellSWTBase
 					|| !hasFlag(FLAG_VALID) || hasFlag(FLAG_MUSTREFRESH))) {
 				boolean bWasValid = isValid();
 
-				if (hasFlag(FLAG_MUSTREFRESH)) {
+				ret = hasFlag(FLAG_MUSTREFRESH);
+				if (ret) {
 					clearFlag(FLAG_MUSTREFRESH);
 				}
 
@@ -741,7 +742,8 @@ public abstract class TableCellSWTBase
 			if (iErrCount > 0)
 				tc.setConsecutiveErrCount(0);
 
-			ret = getVisuallyChangedSinceRefresh();
+			// has changed if visually changed or "must refresh"
+			ret |= getVisuallyChangedSinceRefresh();
 			if (bDebug)
 				debug("refresh done; visual change? " + ret + ";"
 						+ Debug.getCompressedStackTrace());
@@ -809,7 +811,8 @@ public abstract class TableCellSWTBase
 		// sort value changes
 		if (cellSWTPaintListeners != null
 				|| tableColumn.hasCellOtherListeners("SWTPaint")) {
-			redraw();
+    	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
+			//redraw();
 		}
 
 		return true;
@@ -859,14 +862,16 @@ public abstract class TableCellSWTBase
 
 	public void setFlag(int flag) {
 		if (DEBUG_FLAGS && (flags & flag) != flag) {
-			debug("SET FLAG " + flagToText((~flags) & flag, true) + " via " + Debug.getCompressedStackTrace(7));
+			debug("SET FLAG " + flagToText((~flags) & flag, true) + " via "
+					+ Debug.getStackTrace(true, true, 1, 7));
 		}
 		flags |= flag;
 	}
 
 	public void clearFlag(int flag) {
 		if (DEBUG_FLAGS && (flags & flag) != 0) {
-			debug("CLEAR FLAG " + flagToText(flags & flag, true) + " via " + Debug.getCompressedStackTrace(7));
+			debug("CLEAR FLAG " + flagToText(flags & flag, true) + " via "
+					+ Debug.getStackTrace(true, true, 1, 7));
 		}
 		flags &= ~flag;
 	}
@@ -883,6 +888,9 @@ public abstract class TableCellSWTBase
 		invalidate(true);
 	}
 
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.common.table.TableCellCore#invalidate(boolean)
+	 */
 	public void invalidate(boolean bMustRefresh) {
 		//if (bInRefresh && Utils.isThisThreadSWT()) {
 		//	System.out.println("Invalidating when in refresh via " + Debug.getCompressedStackTrace());
@@ -901,13 +909,13 @@ public abstract class TableCellSWTBase
 		}
 		clearFlag(FLAG_VALID);
 
-		setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
-
 		if (bDebug)
 			debug("Invalidate Cell;" + bMustRefresh);
 
 		if (bMustRefresh) {
-			setFlag(FLAG_MUSTREFRESH);
+			setFlag(FLAG_MUSTREFRESH | FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
+		} else {
+			setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
 		}
 	}
 
@@ -1129,7 +1137,6 @@ public abstract class TableCellSWTBase
   	sb.append((flag & FLAG_UPTODATE) > 0 ? 'U' : onlySet ? ' ' : 'u');
   	sb.append((flag & FLAG_VALID) > 0 ? 'V' : onlySet ? ' ' : 'v');
   	sb.append((flag & FLAG_VISUALLY_CHANGED_SINCE_REFRESH) > 0 ? "VC" : onlySet ? ' ' : "vc");
-  	sb.append((flag & FLAG_PAINTED) > 0 ? "P" : onlySet ? ' ' : "p");
   	return sb.toString();
   }
 

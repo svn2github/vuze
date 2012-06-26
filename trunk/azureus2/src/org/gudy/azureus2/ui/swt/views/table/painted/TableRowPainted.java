@@ -141,7 +141,7 @@ public class TableRowPainted
 	 * @param rowStartY where in the GC this row's y-axis starts
 	 * @param pos
 	 */
-	public void swt_paintGC(GC gc, Rectangle drawBounds, int rowStartX, int rowStartY, int pos, boolean forcePaint) {
+	public void swt_paintGC(GC gc, Rectangle drawBounds, int rowStartX, int rowStartY, int pos) {
 		if (!drawBounds.intersects(rowStartX, rowStartY, 9999, getHeight())) {
 			return;
 		}
@@ -200,46 +200,36 @@ public class TableRowPainted
     				continue;
     			}
     			TableCellSWTBase cellSWT = (TableCellSWTBase) cell;
-    			if (forcePaint || (!cellSWT.hasFlag(TableCellSWTBase.FLAG_PAINTED) || cellSWT.getVisuallyChangedSinceRefresh())) {
-  					cellSWT.clearFlag(TableCellSWTBase.FLAG_PAINTED);
-    				Rectangle r = new Rectangle(x, rowStartY, w, getHeight());
-    				((TableCellPainted) cell).setBoundsRaw(r);
-    				if (drawBounds.intersects(r)) {
-    					paintedRow = true;
-    					gc.fillRectangle(r);
-    					if (paintCell(gc, cellSWT.getBounds(), cellSWT)) {
-    						// row color may have changed; this would update the color
-    						// for all new cells.  However, setting color triggers a
-    						// row redraw that will fix up the UI
-    						//Color fgNew = getForeground();
-    						//if (fgNew != null && fgNew != fg) {
-    						//	fg = fgNew;
-    						//}
-    						gc.setBackground(bg);
-    						gc.setForeground(fg);
-    						gc.setAlpha(rowAlpha);
-    						gc.setFont(font);
-    					}
-    					if (DEBUG_ROW_PAINT) {
-    						((TableCellSWTBase) cell).debug("painted "
-    								+ (cell.getVisuallyChangedSinceRefresh() ? "VC" : "!P")
-    								+ " @ " + r);
-    					}
-    					cellSWT.setFlag(TableCellSWTBase.FLAG_PAINTED);
-    				} else {
-    					if (DEBUG_ROW_PAINT) {
-    						((TableCellSWTBase) cell).debug("Skip paintItem; no intersects; r="
-    								+ r + ";dB=" + drawBounds + " from "
-    								+ Debug.getCompressedStackTrace(4));
-    					}
-    				}
-    			} else {
-    				if (DEBUG_ROW_PAINT) {
-    					((TableCellSWTBase) cell).debug("Skip paintItem; has FLAG_PAINTED; up2date? "
-    							+ cell.isUpToDate() + "; from "
-    							+ Debug.getCompressedStackTrace(4));
-    				}
-    			}
+  				Rectangle r = new Rectangle(x, rowStartY, w, getHeight());
+  				((TableCellPainted) cell).setBoundsRaw(r);
+  				if (drawBounds.intersects(r)) {
+  					paintedRow = true;
+  					gc.fillRectangle(r);
+  					if (paintCell(gc, cellSWT.getBounds(), cellSWT)) {
+  						// row color may have changed; this would update the color
+  						// for all new cells.  However, setting color triggers a
+  						// row redraw that will fix up the UI
+  						//Color fgNew = getForeground();
+  						//if (fgNew != null && fgNew != fg) {
+  						//	fg = fgNew;
+  						//}
+  						gc.setBackground(bg);
+  						gc.setForeground(fg);
+  						gc.setAlpha(rowAlpha);
+  						gc.setFont(font);
+  					}
+  					if (DEBUG_ROW_PAINT) {
+  						((TableCellSWTBase) cell).debug("painted "
+  								+ (cell.getVisuallyChangedSinceRefresh() ? "VC" : "!P")
+  								+ " @ " + r);
+  					}
+  				} else {
+  					if (DEBUG_ROW_PAINT) {
+  						((TableCellSWTBase) cell).debug("Skip paintItem; no intersects; r="
+  								+ r + ";dB=" + drawBounds + " from "
+  								+ Debug.getCompressedStackTrace(4));
+  					}
+  				}
     
     			x += w;
     		}
@@ -312,7 +302,6 @@ public class TableRowPainted
 				Image graphicSWT = cell.getGraphicSWT();
 				if (graphicSWT != null && !graphicSWT.isDisposed()) {
 					Rectangle imageBounds = graphicSWT.getBounds();
-cell.debug("DRAW GRAPHIC "  + graphicSWT);
 					Rectangle graphicBounds = new Rectangle(cellBounds.x, cellBounds.y,
 							cellBounds.width, cellBounds.height);
 					if (cell.getFillCell()) {
@@ -438,7 +427,12 @@ cell.debug("DRAW GRAPHIC "  + graphicSWT);
 	public List<TableCellCore> refresh(boolean bDoGraphics, boolean bVisible) {
 		final List<TableCellCore> invalidCells = super.refresh(bDoGraphics,
 				bVisible);
+		//System.out.print(SystemTime.getCurrentTime() + "] InvalidCells: ");
 		if (invalidCells.size() > 0) {
+			//for (TableCellCore cell : invalidCells) {
+			//	System.out.print(cell.getTableColumn().getName() + ", ");
+			//}
+			//System.out.println();
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					Composite composite = getViewPainted().getComposite();
@@ -461,6 +455,8 @@ cell.debug("DRAW GRAPHIC "  + graphicSWT);
 					}
 				}
 			});
+		//} else {
+			//System.out.println("NONE");
 		}
 		return invalidCells;
 	}

@@ -365,8 +365,8 @@ public abstract class TableRowSWTBase
   				//System.out.println("skip " + column);
   				continue;
   			}
-  			boolean changed = cell.refresh(bDoGraphics, bVisible,
-  					bVisible && cell.isShown());
+  			boolean cellVisible = bVisible && cell.isShown();
+				boolean changed = cell.refresh(bDoGraphics, bVisible, cellVisible);
   			if (changed) {
   				if (list == Collections.EMPTY_LIST) {
   					list = new ArrayList<TableCellCore>(lTableCells.size());

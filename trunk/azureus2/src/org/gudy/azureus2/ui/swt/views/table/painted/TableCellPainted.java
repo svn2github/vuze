@@ -208,7 +208,6 @@ public class TableCellPainted
 	 * @see com.aelitis.azureus.ui.common.table.TableCellCore#redraw()
 	 */
 	public void redraw() {
-		clearFlag(TableCellSWTBase.FLAG_PAINTED);
 
 		if (!tableRow.isVisible() || redrawScheduled) {
 			return;
@@ -321,10 +320,5 @@ public class TableCellPainted
 			boolean bCellVisible) {
 		boolean ret = super.refresh(bDoGraphics, bRowVisible, bCellVisible);
 		return ret;
-	}
-	
-	@Override
-	public boolean needsPainting() {
-		return super.needsPainting() || !hasFlag(FLAG_PAINTED);
 	}
 }
