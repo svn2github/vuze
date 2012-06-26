@@ -359,11 +359,25 @@ public class CategoryUIUtils
 			}
 		});
 		
+		// upload priority
+		
+		final MenuItem upPriority = new MenuItem(menu, SWT.CHECK );
+
+		upPriority.setSelection( category.getIntAttribute( Category.AT_UPLOAD_PRIORITY ) > 0 );
+		
+		Messages.setLanguageText(upPriority, "cat.upload.priority");
+		upPriority.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				boolean set = upPriority.getSelection();
+				category.setIntAttribute( Category.AT_UPLOAD_PRIORITY, set?1:0 );
+			}
+		});
+		
 		// options
 
 		MenuItem itemOptions = new MenuItem(menu, SWT.PUSH);
 
-		Messages.setLanguageText(itemOptions, "MainWindow.menu.view.configuration");
+		Messages.setLanguageText(itemOptions, "cat.options");
 		itemOptions.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();

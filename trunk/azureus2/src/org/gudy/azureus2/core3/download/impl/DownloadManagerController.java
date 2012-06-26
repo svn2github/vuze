@@ -2065,6 +2065,12 @@ DownloadManagerController
 		return( download_manager.getMaxSeedConnections());
 	}
 	
+	public int
+	getUploadPriority()
+	{
+		return( download_manager.getUploadPriority());
+	}
+
 	public boolean
 	isExtendedMessagingEnabled()
 	{

@@ -4623,6 +4623,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return( hidden_piece );
 	}
 	
+	public int
+	getUploadPriority()
+	{
+		return( adapter.getUploadPriority());
+	}
+	
 	public void IPBlockedListChanged(IpFilter filter) {
 		Iterator	it = peer_transports_cow.iterator();
 		

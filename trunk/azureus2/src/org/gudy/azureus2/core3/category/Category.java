@@ -102,6 +102,7 @@ public interface Category {
   
   public static final String AT_AUTO_TRANSCODE_TARGET 	= "at_att";
   public static final String AT_RSS_GEN					= "at_rss_gen";
+  public static final String AT_UPLOAD_PRIORITY			= "at_up_pri";
   
   public String
   getStringAttribute(
@@ -121,4 +122,12 @@ public interface Category {
 	String		name,
 	boolean		value );
   
+  public int
+  getIntAttribute(
+	String		name );
+  
+  public void
+  setIntAttribute(
+	String		name,
+	int			value );
 }

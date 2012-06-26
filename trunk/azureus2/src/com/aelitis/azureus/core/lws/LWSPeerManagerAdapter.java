@@ -108,6 +108,12 @@ LWSPeerManagerAdapter
 	}
 	
 	public int
+	getUploadPriority()
+	{
+		return( 0 );
+	}
+	
+	public int
 	getMaxUploads()
 	{
 		return( 4 );

@@ -2019,7 +2019,9 @@ implements PEPeerTransport
 
 		if ( connection != null ){
 		
-			connection.getOutgoingMessageQueue().setPriorityBoost( enable_upload_bias && !manager.isSeeding());
+			connection.getOutgoingMessageQueue().setPriorityBoost(
+				manager.getUploadPriority() > 0 ||
+				( enable_upload_bias && !manager.isSeeding()));
 		}
 		
 		if ( fast_extension_enabled ){

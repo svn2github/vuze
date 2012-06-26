@@ -102,9 +102,11 @@ DownloadManagerState
 	public static final String	PARAM_MAX_UPLOAD_WHEN_BUSY				= "max.upload.when.busy";
 	public static final String  PARAM_DND_FLAGS							= "dndflags";
 	public static final String  PARAM_RANDOM_SEED						= "rand";
+	public static final String	PARAM_UPLOAD_PRIORITY					= "up.pri";
 	
-	public static final int DEFAULT_MAX_UPLOADS	= 4;
-	public static final int MIN_MAX_UPLOADS		= 2;
+	public static final int DEFAULT_MAX_UPLOADS		= 4;
+	public static final int MIN_MAX_UPLOADS			= 2;
+	public static final int DEFAULT_UPLOAD_PRIORITY	= 0;
 	
 	public static Object[][] PARAMETERS = {
 		{ PARAM_MAX_PEERS,							new Integer( 0 ) },
@@ -120,6 +122,7 @@ DownloadManagerState
 		{ PARAM_MAX_UPLOAD_WHEN_BUSY,				new Long( 0 ) },
 		{ PARAM_DND_FLAGS, 							new Long( 0 ) },
 		{ PARAM_RANDOM_SEED, 						new Long( 0 ) },
+		{ PARAM_UPLOAD_PRIORITY, 					new Integer( DEFAULT_UPLOAD_PRIORITY ) },
 	};
 	
 	public TOTorrent

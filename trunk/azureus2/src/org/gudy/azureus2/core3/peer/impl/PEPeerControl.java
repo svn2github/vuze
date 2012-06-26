@@ -75,6 +75,9 @@ PEPeerControl
 		int	crypto_level );
 	
 	public int
+	getUploadPriority();
+	
+	public int
 	getHiddenPiece();
 	
 	public void addPeerTransport( PEPeerTransport transport );
@@ -115,6 +118,7 @@ PEPeerControl
 	statsReply(
 		PEPeerTransport		originator,
 		Map					reply );
+	
 	public boolean isRTA();
 	
 	public void

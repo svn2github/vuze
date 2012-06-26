@@ -162,6 +162,18 @@ public class CategoryImpl implements Category, Comparable {
       manager.addRateLimiter( upload_limiter, true );
       manager.addRateLimiter( download_limiter, false );
       
+      int pri = getIntAttribute( AT_UPLOAD_PRIORITY, -1 );
+      
+      if ( pri >= 0 ){
+    	  
+    	  	// another call-during-construction issue to avoid here
+    	  
+    	  if ( manager.getDownloadState() != null ){
+    	  
+    		  manager.setUploadPriority( pri );
+    	  }
+      }
+      
       category_listeners.dispatch(LDT_CATEGORY_DMADDED, manager);
     }
   }
@@ -260,6 +272,49 @@ public class CategoryImpl implements Category, Comparable {
 
   }
   
+  public int
+  getIntAttribute(
+	String		name )
+  {
+	  return( getIntAttribute( name, 0 ));
+  }
+  
+  private int
+  getIntAttribute(
+	String		name,
+	int			def )
+  {
+	 String str = getStringAttribute( name );
+	 
+	 if ( str == null ){
+		 return( def );
+	 }
+	 return( Integer.parseInt( str ));
+  }
+  
+  public void
+  setIntAttribute(
+	String		name,
+	int			value )
+  {
+	  String	str_val = String.valueOf( value );
+	  
+	  String old = attributes.put( name, str_val );
+	  
+	  if ( old == null || !old.equals( value )){
+	  
+		  if ( name.equals( AT_UPLOAD_PRIORITY )){
+			  
+			  for ( DownloadManager dm: managers ){
+				  
+				  dm.setUploadPriority( value );
+			  }
+		  }
+		  
+		  CategoryManagerImpl.getInstance().saveCategories(this);
+	  }
+
+  }
   public boolean
   getBooleanAttribute(
 	String		name )

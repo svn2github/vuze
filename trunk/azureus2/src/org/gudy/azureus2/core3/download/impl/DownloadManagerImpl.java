@@ -495,7 +495,7 @@ DownloadManagerImpl
     private int		current_upload_when_busy_bps;
     private long	last_upload_when_busy_update;
     private long	last_upload_when_busy_dec_time;
-    
+    private int		upload_priority;
     private int		crypto_level = NetworkManager.CRYPTO_OVERRIDE_NONE;
     
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
@@ -1002,6 +1002,9 @@ DownloadManagerImpl
 
 		max_uploads = Math.max( max_uploads, DownloadManagerState.MIN_MAX_UPLOADS );
 		max_uploads_when_seeding = Math.max( max_uploads_when_seeding, DownloadManagerState.MIN_MAX_UPLOADS );
+		
+		upload_priority							= getDownloadState().getIntParameter( DownloadManagerState.PARAM_UPLOAD_PRIORITY );
+
 	}
 	
 	protected int
@@ -1040,6 +1043,12 @@ DownloadManagerImpl
 		return( max_uploads_when_seeding );
 	}
 	
+	protected int
+	getUploadPriority()
+	{
+		return( upload_priority );
+	}
+	
 	public int
 	getMaxUploads()
 	{
@@ -1051,6 +1060,13 @@ DownloadManagerImpl
 		int	max )
 	{
 		download_manager_state.setIntParameter( DownloadManagerState.PARAM_MAX_UPLOADS, max );
+	}
+	
+	public void
+	setUploadPriority(
+		int	priority )
+	{
+		download_manager_state.setIntParameter( DownloadManagerState.PARAM_UPLOAD_PRIORITY, priority );
 	}
 	
 	public int

@@ -435,6 +435,8 @@ DownloadManager
     
     public int getMaxUploads();
     
+    public void setUploadPriority( int pri );
+    
 	/**
 	 * Returns the max uploads depending on whether the download is seeding and it has a separate
 	 * rate for this

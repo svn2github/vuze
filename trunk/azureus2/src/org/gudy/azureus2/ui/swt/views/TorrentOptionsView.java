@@ -358,6 +358,28 @@ TorrentOptionsView
 			max_seeds.setLayoutData(gridData);
 		}
 		
+			// upload priority
+		
+		if ( userMode > 0){
+			
+			label = new Label(gTorrentOptions, SWT.NULL);
+			gridData = new GridData();
+			label.setLayoutData( gridData );
+			Messages.setLanguageText(label, TEXT_PREFIX + "upload.priority" );
+			
+			gridData = new GridData();
+			GenericIntParameter	upload_priority_enabled = 
+				new GenericIntParameter( 
+						ds_param_adapter, 
+						gTorrentOptions, 
+						DownloadManagerState.PARAM_UPLOAD_PRIORITY, 0, 1 );
+						
+			ds_parameters.put( DownloadManagerState.PARAM_UPLOAD_PRIORITY, upload_priority_enabled );
+			upload_priority_enabled.setLayoutData( gridData );		
+		}
+		
+			// reset
+		
 	    Label reset_label = new Label(gTorrentOptions, SWT.NULL );
 	    Messages.setLanguageText(reset_label, TEXT_PREFIX + "reset.to.default");
 

@@ -62,6 +62,9 @@ PEPeerManagerAdapter
 	isMetadataDownload();
 	
 	public int
+	getUploadPriority();
+	
+	public int
 	getTorrentInfoDictSize();
 	
 	public byte[]
