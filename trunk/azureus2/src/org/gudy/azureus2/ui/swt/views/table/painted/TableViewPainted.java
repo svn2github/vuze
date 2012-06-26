@@ -343,12 +343,24 @@ public class TableViewPainted
   					});
 					}
 				} else if (event.keyCode == SWT.ARROW_RIGHT) {
-					if (focusedRow != null && !focusedRow.isExpanded() && canHaveSubItems()) {
+					if (event.stateMask == 0 && focusedRow != null && !focusedRow.isExpanded() && canHaveSubItems()) {
 						focusedRow.setExpanded(true);
+					} else {
+						if (hBar.isEnabled()) {
+							hBar.setSelection(hBar.getSelection() + 50);
+							cTable.redraw();
+							cTable.update();
+						}
 					}
 				} else if (event.keyCode == SWT.ARROW_LEFT) {
-					if (focusedRow != null && focusedRow.isExpanded() && canHaveSubItems()) {
+					if (event.stateMask == 0 && focusedRow != null && focusedRow.isExpanded() && canHaveSubItems()) {
 						focusedRow.setExpanded(false);
+					} else {
+						if (hBar.isEnabled()) {
+							hBar.setSelection(hBar.getSelection() - 50);
+							cTable.redraw();
+							cTable.update();
+						}
 					}
 				}
 				super.keyPressed(event);
