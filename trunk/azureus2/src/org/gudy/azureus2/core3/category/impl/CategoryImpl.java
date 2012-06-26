@@ -197,6 +197,18 @@ public class CategoryImpl implements Category, Comparable {
       manager.removeRateLimiter( upload_limiter, true );
       manager.removeRateLimiter( download_limiter, false );
  
+      int pri = getIntAttribute( AT_UPLOAD_PRIORITY, -1 );
+      
+      if ( pri >= 0 ){
+    	  
+    	  	// another call-during-construction issue to avoid here
+    	  
+    	  if ( manager.getDownloadState() != null ){
+    	  
+    		  manager.setUploadPriority( 0 );
+    	  }
+      }
+      
       category_listeners.dispatch( LDT_CATEGORY_DMREMOVED, manager );
     }
   }
