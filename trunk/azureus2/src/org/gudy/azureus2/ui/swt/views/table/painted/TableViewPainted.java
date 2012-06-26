@@ -2183,6 +2183,8 @@ public class TableViewPainted
 
 	private boolean in_swt_updateCanvasImage = false;
 	protected void swt_updateCanvasImage(final Rectangle bounds, final boolean immediateRedraw) {
+		// no need to sync around in_swt_updateCanvasImage, we are assumed to always
+		// be on SWT thread and in_swt_updateCanvasImage is only used here
 		if (in_swt_updateCanvasImage) {
 			Utils.execSWTThreadLater(0, new AERunnable() {
 				public void runSupport() {
@@ -2191,6 +2193,7 @@ public class TableViewPainted
 			});
 			return;
 		}
+		in_swt_updateCanvasImage = true;
 		try {
   		if (canvasImage == null || canvasImage.isDisposed() || bounds == null) {
   			return;
