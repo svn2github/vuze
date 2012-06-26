@@ -1040,6 +1040,12 @@ public class TableViewPainted
 		cTable.addMouseMoveListener(tvSWTCommon);
 		cTable.addKeyListener(tvSWTCommon);
 		//composite.addSelectionListener(tvSWTCommon);
+		
+		cTable.addTraverseListener(new TraverseListener() {
+			public void keyTraversed(TraverseEvent e) {
+				e.doit = true;
+			}
+		});
 
 		new TableTooltips(this, cTable);
 
