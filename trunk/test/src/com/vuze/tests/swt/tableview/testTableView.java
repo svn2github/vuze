@@ -25,6 +25,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.painted.TableViewPainted;
 
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
@@ -103,8 +104,14 @@ public class testTableView
 			new CT_InvOnlyReord(),
 		};
 
-		com.aelitis.azureus.ui.common.table.impl.TableColumnManager.getInstance().addColumns(
-				columns);
+		TableColumnManager tcm = com.aelitis.azureus.ui.common.table.impl.TableColumnManager.getInstance();
+		tcm.addColumns(columns);
+		String names[] = new String[columns.length];
+		for (int i = 0; i < columns.length; i++) {
+			TableColumnCore c = columns[i];
+			names[i] = c.getName();
+		}
+		tcm.setDefaultColumnNames("test", names);
 
 		tv = TableViewFactory.createTableViewSWT(true, TableViewTestDS.class,
 				"test", "", columns, CT_ID.name, SWT.MULTI | SWT.FULL_SELECTION
