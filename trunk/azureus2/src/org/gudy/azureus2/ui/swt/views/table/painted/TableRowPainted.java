@@ -436,11 +436,11 @@ public class TableRowPainted
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					Composite composite = getViewPainted().getComposite();
-					if (composite == null || composite.isDisposed()) {
+					if (composite == null || composite.isDisposed() || !isVisible()) {
 						return;
 					}
-					boolean allRows = (mTableCells != null) && invalidCells.size() == mTableCells.size();
-					if (allRows) {
+					boolean allCells = (mTableCells != null) && invalidCells.size() == mTableCells.size();
+					if (allCells) {
 						getViewPainted().swt_updateCanvasImage(getDrawBounds(), false);
 					} else {
   					for (Object o : invalidCells) {
