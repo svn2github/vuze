@@ -28,9 +28,6 @@ import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
-//import com.yourkit.api.Controller;
-//import com.yourkit.api.ProfilingModes;
-import com.yourkit.probes.builtin.Messages;
 
 public class testTableView
 {
@@ -62,6 +59,7 @@ public class testTableView
 		TableColumnCreatorV3.initCoreColumns();
 
 		Shell shell = new Shell(display, SWT.SHELL_TRIM);
+		shell.setSize(800, 400);
 		FormLayout fl = new FormLayout();
 		shell.setLayout(fl);
 
