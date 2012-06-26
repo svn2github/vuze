@@ -133,23 +133,21 @@ public class TableViewPainted
 	private ScrollBar vBar;
 	
 	private Canvas sCanvasImage;
-	
-	/*
-		class RefreshTableRunnable extends AERunnable {
-			private boolean forceSort;
-			public void runSupport() {
-				__refreshTable(isForceSort());
-			}
-			public boolean isForceSort() {
-				return forceSort;
-			}
-			public void setForceSort(boolean forceSort) {
-				this.forceSort = forceSort;
-			}
+
+	class RefreshTableRunnable extends AERunnable {
+		private boolean forceSort;
+		public void runSupport() {
+			__refreshTable(isForceSort());
 		}
-		
-		private RefreshTableRunnable refreshTableRunnable = new RefreshTableRunnable();
-	*/
+		public boolean isForceSort() {
+			return forceSort;
+		}
+		public void setForceSort(boolean forceSort) {
+			this.forceSort = forceSort;
+		}
+	}
+	
+	private RefreshTableRunnable refreshTableRunnable = new RefreshTableRunnable();
 
 	/**
 	 * Main Initializer
@@ -517,9 +515,9 @@ public class TableViewPainted
 	 * @see com.aelitis.azureus.ui.common.table.TableView#refreshTable(boolean)
 	 */
 	public void refreshTable(final boolean bForceSort) {
-		__refreshTable(bForceSort);
-		//refreshTableRunnable.setForceSort(bForceSort);
-		//Utils.getOffOfSWTThread(refreshTableRunnable);
+		//__refreshTable(bForceSort);
+		refreshTableRunnable.setForceSort(bForceSort);
+		Utils.getOffOfSWTThread(refreshTableRunnable);
 	}
 
 	public void __refreshTable(boolean bForceSort) {
