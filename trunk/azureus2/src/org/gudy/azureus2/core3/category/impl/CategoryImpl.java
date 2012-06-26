@@ -126,7 +126,7 @@ public class CategoryImpl implements Category, Comparable {
   public List<DownloadManager> getDownloadManagers(List<DownloadManager> all_dms) {
 	  if ( type == Category.TYPE_USER ){
 		  return managers;
-	  }else if ( type == Category.TYPE_ALL ){
+	  }else if ( type == Category.TYPE_ALL || all_dms == null ){
 		  return all_dms;
 	  }else{
 		  List<DownloadManager> result = new ArrayList<DownloadManager>();
