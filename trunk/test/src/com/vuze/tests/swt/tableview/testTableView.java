@@ -1,14 +1,17 @@
 package com.vuze.tests.swt.tableview;
 
 import java.util.List;
+import java.util.ResourceBundle;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
@@ -19,6 +22,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
+import org.gudy.azureus2.ui.swt.views.table.painted.TableViewPainted;
 
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
@@ -26,6 +30,7 @@ import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 //import com.yourkit.api.Controller;
 //import com.yourkit.api.ProfilingModes;
+import com.yourkit.probes.builtin.Messages;
 
 public class testTableView
 {
@@ -50,6 +55,9 @@ public class testTableView
 		UIConfigDefaultsSWT.initialize();
 
 		Colors.getInstance();
+		
+		ResourceBundle bundle = ResourceBundle.getBundle("com.vuze.tests.swt.tableview.text");
+		MessageText.integratePluginMessages(bundle);
 
 		TableColumnCreatorV3.initCoreColumns();
 
@@ -90,6 +98,8 @@ public class testTableView
 			new CT_Text(),
 			new CT_InvalidOnly(),
 			new CT_Live(),
+			new CT_LivePaintOnly(),
+			new CT_LivePaintOnlyExt(),
 			new CT_LiveExt(),
 			new CT_InvOnlyExt(),
 			new CT_InvOnlyReord(),
@@ -112,7 +122,7 @@ public class testTableView
 			}
 			
 			public void rowAdded(TableRowCore row) {
-				row.setHeight((int) (16 + (Math.random() * 100)));
+				//row.setHeight((int) (16 + (Math.random() * 100)));
 			}
 		});
 
@@ -383,6 +393,24 @@ public class testTableView
 			}
 		});
 
+		Button btnRedraw = new Button(cBottom, SWT.PUSH);
+		btnRedraw.setText("redraw");
+		btnRedraw.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				Composite composite = tv.getComposite();
+				Rectangle ca = composite.getClientArea();
+				composite.redraw(ca.x, ca.y, ca.width, ca.height, true);
+				composite.update();
+			}
+		});
+		Button btnRedraw1 = new Button(cBottom, SWT.PUSH);
+		btnRedraw1.setText("redraw1");
+		btnRedraw1.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				((TableViewPainted) tv).swt_updateCanvasImage(false);
+			}
+		});
+
 		Button btnRndInsert = new Button(cBottom, SWT.PUSH);
 		btnRndInsert.setText("RndInsert");
 		btnRndInsert.addListener(SWT.Selection, new Listener() {
@@ -446,6 +474,7 @@ public class testTableView
 					TableViewTestDS tds = (TableViewTestDS) ds;
 					String s = (String) tds.map.get("text");
 					if (s == null || s.length() == 0) {
+						System.out.println("BURP");
 						return true;
 					}
 					return s.contains(filter);

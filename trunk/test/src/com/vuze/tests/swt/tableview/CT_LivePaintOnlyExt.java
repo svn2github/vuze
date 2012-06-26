@@ -15,10 +15,10 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.util.MapUtils;
 
-public class CT_InvOnlyExt
+public class CT_LivePaintOnlyExt
 	extends CoreTableColumn
 	implements TableCellRefreshListener, TableCellSWTPaintListener,
-	TableCellAddedListener
+	TableCellAddedListener, TableCellDisposeListener
 {
 	public static String name = new Object() {
 	}.getClass().getEnclosingClass().getSimpleName();
@@ -31,7 +31,7 @@ public class CT_InvOnlyExt
 
 	private static String ID_CELLPAINTS = name + ".numCP";
 
-	private static String ID_REFRESHES = name + ".num2";
+	private static String ID_CELLREFRESHES = name + ".numR";
 
 	static {
 		timer = new Timer("Simple Timer", 1);
@@ -40,7 +40,7 @@ public class CT_InvOnlyExt
 
 		timer.setWarnWhenFull();
 
-		timer.addEvent("updateLiveExt", SystemTime.getOffsetTime(1000),
+		timer.addEvent("updateLivePOExt", SystemTime.getOffsetTime(1000),
 				new TimerEventPerformer() {
 					public void perform(TimerEvent event) {
 						TableCell[] array = cells.toArray(new TableCell[0]);
@@ -62,32 +62,30 @@ public class CT_InvOnlyExt
 				});
 	}
 
-	public CT_InvOnlyExt() {
-		super(name, 190, "test");
+	public CT_LivePaintOnlyExt() {
+		super(name, 110, "test");
 		addDataSourceType(TableViewTestDS.class);
-		setRefreshInterval(TableColumn.INTERVAL_INVALID_ONLY);
+		setRefreshInterval(TableColumn.INTERVAL_LIVE);
 		setVisible(true);
 	}
 
 	public void refresh(TableCell cell) {
 		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
 
-		int num = MapUtils.getMapInt(ds.map, ID_TICS, 0);
+		int num = MapUtils.getMapInt(ds.map, ID_CELLREFRESHES, 0) + 1;
+		ds.map.put(ID_CELLREFRESHES, num);
 
-		int num2 = MapUtils.getMapInt(ds.map, ID_REFRESHES, 0) + 1;
-		ds.map.put(ID_REFRESHES, num2);
-
-		cell.setSortValue(0);
-		cell.setText("tics=" + num + ";refr=" + num2);
+//		cell.setSortValue(num);
 	}
 
 	public void cellPaint(GC gc, TableCellSWT cell) {
 		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
-
-		int num = MapUtils.getMapInt(ds.map, ID_CELLPAINTS, 0) + 1;
-		ds.map.put(ID_CELLPAINTS, num);
-		GCStringPrinter.printString(gc, "" + num, cell.getBounds(), true, true,
-				SWT.RIGHT);
+		int numP = MapUtils.getMapInt(ds.map, ID_CELLPAINTS, 0) + 1;
+		int numR = MapUtils.getMapInt(ds.map, ID_CELLREFRESHES, 0);
+		int numT = MapUtils.getMapInt(ds.map, ID_TICS, 0);
+		ds.map.put(ID_CELLPAINTS, numP);
+		GCStringPrinter.printString(gc, "t=" + Integer.toString(numT) + ";r=" + Integer.toString(numR) + ";p="
+				+ Integer.toString(numP), cell.getBounds(), true, true, SWT.RIGHT);
 	}
 
 	public void cellAdded(final TableCell cell) {

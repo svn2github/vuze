@@ -17,44 +17,51 @@ import com.aelitis.azureus.util.MapUtils;
 
 public class CT_InvOnlyReord
 	extends CoreTableColumn
-	implements TableCellRefreshListener,
-		TableCellSWTPaintListener,
-		TableCellAddedListener
+	implements TableCellRefreshListener, TableCellSWTPaintListener,
+	TableCellAddedListener
 {
-	public static String name = new Object() { }.getClass().getEnclosingClass().getSimpleName();
+	public static String name = new Object() {
+	}.getClass().getEnclosingClass().getSimpleName();
+
 	private static Timer timer;
+
 	private static List<TableCell> cells = new ArrayList<TableCell>();
+
 	private static String ID_TICS = name + ".num1";
+
 	private static String ID_CELLPAINTS = name + ".numCP";
+
 	private static String ID_REFRESHES = name + ".num2";
 
 	static {
 		timer = new Timer("Simple Timer", 1);
-		
+
 		timer.setIndestructable();
-		
+
 		timer.setWarnWhenFull();
 
-		timer.addEvent("updateInvOnlyRoord", SystemTime.getOffsetTime(10000), new TimerEventPerformer() {
-			public void perform(TimerEvent event) {
-				TableCell[] array = cells.toArray(new TableCell[0]);
-				for (TableCell cell : array) {
-					if (cell.isDisposed()) {
-						synchronized (cells) {
-							cells.remove(cell);
+		timer.addEvent("updateInvOnlyRoord", SystemTime.getOffsetTime(10000),
+				new TimerEventPerformer() {
+					public void perform(TimerEvent event) {
+						TableCell[] array = cells.toArray(new TableCell[0]);
+						for (TableCell cell : array) {
+							if (cell.isDisposed()) {
+								synchronized (cells) {
+									cells.remove(cell);
+								}
+								continue;
+							}
+							TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
+							int num = MapUtils.getMapInt(ds.map, ID_TICS, 0)
+									+ ((int) (Math.random() * 3)) - 1;
+							ds.map.put(ID_TICS, num);
+							cell.invalidate();
 						}
-						continue;
+
+						timer.addEvent("updateInvOnlyRoord",
+								SystemTime.getOffsetTime(10000), this);
 					}
-					TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
-					int num = MapUtils.getMapInt(ds.map, ID_TICS, 0)
-							+ ((int) (Math.random() * 3)) - 1;
-					ds.map.put(ID_TICS, num);
-					cell.invalidate();
-				}
-				
-				timer.addEvent("updateInvOnlyRoord", SystemTime.getOffsetTime(10000), this);
- 			}
-		});
+				});
 	}
 
 	public CT_InvOnlyReord() {
@@ -68,10 +75,10 @@ public class CT_InvOnlyReord
 		TableViewTestDS ds = (TableViewTestDS) cell.getDataSource();
 
 		int num = MapUtils.getMapInt(ds.map, ID_TICS, 0);
-		
+
 		int num2 = MapUtils.getMapInt(ds.map, ID_REFRESHES, 0) + 1;
 		ds.map.put(ID_REFRESHES, num2);
-		
+
 		cell.setSortValue(num);
 		cell.setText("val=" + num + ";refr=" + num2);
 	}
@@ -81,7 +88,8 @@ public class CT_InvOnlyReord
 
 		int num = MapUtils.getMapInt(ds.map, ID_CELLPAINTS, 0) + 1;
 		ds.map.put(ID_CELLPAINTS, num);
-		GCStringPrinter.printString(gc, "" + num, cell.getBounds(), true, true, SWT.RIGHT);
+		GCStringPrinter.printString(gc, "" + num, cell.getBounds(), true, true,
+				SWT.RIGHT);
 	}
 
 	public void cellAdded(final TableCell cell) {
@@ -89,7 +97,7 @@ public class CT_InvOnlyReord
 			cells.add(cell);
 		}
 	}
-	
+
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellDisposeListener#dispose(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void dispose(TableCell cell) {
 		synchronized (cells) {
