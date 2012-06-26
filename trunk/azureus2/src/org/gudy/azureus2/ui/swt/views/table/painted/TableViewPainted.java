@@ -2156,13 +2156,13 @@ public class TableViewPainted
 
 		// paint event will handle any changedX or changedW
 		if (changedY || changedH || canvasChanged) {
-			//System.out.println(changedX + ";" + changedY + ";" + changedW + ";" + changedH + ";" + canvasChanged);
+			//System.out.println(changedX + ";" + changedY + ";" + changedH + ";" + canvasChanged);
 			//System.out.println("Redraw " + Debug.getCompressedStackTrace());
 
-			// swt_updateCanvasImage must be called after clearVisiblePaintedFlag
-			//clearVisiblePaintedFlag();
+			// run refreshTable on SWT (this) thread to ensure rows have been
+			// refreshed for the updateCanvasImage call immediately after it
+			__refreshTable(false);
 			swt_updateCanvasImage(false);
-			refreshTable(false);
 		}
 		
 		//		System.out.println("imgBounds = " + canvasImage.getBounds() + ";ca="
