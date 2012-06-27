@@ -1019,42 +1019,42 @@ BackupManagerImpl
 							
 							boolean	patched = false;
 							
+							BufferedInputStream bis = new BufferedInputStream( new FileInputStream( f ), 1024*1024 );
+							
 							try{
-								BufferedInputStream bis = new BufferedInputStream( new FileInputStream( f ), 1024*1024 );
+								Map m = BDecoder.decode( bis );
 								
-								try{
-									Map m = BDecoder.decode( bis );
+								bis.close();
+								
+								bis = null;
+								
+								if ( m.size() > 0 ){
 									
-									bis.close();
+									int applied = patch( m, backup_user_dir.getAbsolutePath(), current_user_dir.getAbsolutePath());
 									
-									bis = null;
-									
-									if ( m.size() > 0 ){
+									if ( applied > 0 ){
 										
-										int applied = patch( m, backup_user_dir.getAbsolutePath(), current_user_dir.getAbsolutePath());
+										listener.reportProgress( "    Applied " + applied + " patches" );
 										
-										if ( applied > 0 ){
+										patched = FileUtil.writeBytesAsFile2( source.getAbsolutePath(), BEncoder.encode( m ));
+										
+										if ( !patched ){
 											
-											listener.reportProgress( "    Applied " + applied + " patches" );
-											
-											patched = FileUtil.writeBytesAsFile2( source.getAbsolutePath(), BEncoder.encode( m ));
-											
-											if ( !patched ){
-												
-												throw( new Exception( "Failed to write " + source ));
-											}
+											throw( new Exception( "Failed to write " + source ));
 										}
 									}
-								}finally{
-									
-									if ( bis != null ){
-									
+								}
+							}finally{
+								
+								if ( bis != null ){
+								
+									try{
 										bis.close();
+										
+									}catch( Throwable e ){
+										
 									}
 								}
-								
-							}catch( Throwable e ){
-								
 							}
 							
 							if ( !patched ){
