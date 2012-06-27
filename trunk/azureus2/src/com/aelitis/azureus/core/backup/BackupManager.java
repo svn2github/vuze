@@ -40,6 +40,12 @@ BackupManager
 	runAutoBackup(
 		BackupListener		listener );
 	
+	public long
+	getLastBackupTime();
+	
+	public String
+	getLastBackupError();
+	
 	public interface
 	BackupListener
 	{	

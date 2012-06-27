@@ -34,12 +34,14 @@ import java.util.TimeZone;
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -153,6 +155,19 @@ BackupManagerImpl
 			});
 	}
 	
+	public long
+	getLastBackupTime()
+	{
+		return( COConfigurationManager.getLongParameter( "br.backup.last.time", 0 ));
+	
+	}
+	
+	public String
+	getLastBackupError()
+	{
+		return( COConfigurationManager.getStringParameter( "br.backup.last.error", "" ));
+	}
+	
 	private void
 	checkSchedule()
 	{
@@ -178,6 +193,24 @@ BackupManagerImpl
 			}
 			
 			if ( first_schedule_check ){
+				
+				if ( !enabled ){
+					
+					String last_ver = COConfigurationManager.getStringParameter( "br.backup.config.info.ver", "" );
+					
+					String current_ver = Constants.AZUREUS_VERSION;
+					
+					if ( !last_ver.equals( current_ver )){
+						
+						COConfigurationManager.setParameter( "br.backup.config.info.ver", current_ver );
+						
+						Logger.log(
+							new LogAlert(
+								false,
+								LogAlert.AT_INFORMATION,
+								MessageText.getString("br.backup.setup.info")));
+					}				
+				}
 				
 				first_schedule_check = false;
 				
@@ -447,7 +480,7 @@ BackupManagerImpl
 	public void
 	backup(
 		final File				parent_folder,
-		final BackupListener	listener )
+		final BackupListener	_listener )
 	{
 		dispatcher.dispatch(
 			new AERunnable()
@@ -455,7 +488,51 @@ BackupManagerImpl
 				public void
 				runSupport()
 				{
+					BackupListener listener = new 
+					BackupListener()
+					{
+						public boolean
+						reportProgress(
+							String		str )
+						{
+							return( _listener.reportProgress(str));
+						}
+						
+						public void
+						reportComplete()
+						{
+							try{
+								setStatus( "" );
+								
+							}finally{
+								
+								_listener.reportComplete();
+							}
+						}
+						
+						public void
+						reportError(
+							Throwable 	error )
+						{
+							try{
+								setStatus( Debug.getNestedExceptionMessage( error ));
+							
+							}finally{
+							
+								_listener.reportError( error );
+							}
+						}
+					};
+					
 					backupSupport( parent_folder, listener );
+				}
+				
+				private void
+				setStatus(
+					String	error )
+				{
+					COConfigurationManager.setParameter( "br.backup.last.time", SystemTime.getCurrentTime());
+					COConfigurationManager.setParameter( "br.backup.last.error", error );
 				}
 			});
 	}

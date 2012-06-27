@@ -25,6 +25,7 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import java.io.File;
+import java.util.Date;
 
 import org.eclipse.swt.*;
 import org.eclipse.swt.graphics.Image;
@@ -114,6 +115,37 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 		gBackup.setLayout(layout);
 		gBackup.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
 	    
+			// info
+		
+	    Label last_backup_label = new Label(gBackup, SWT.NULL );
+	    Messages.setLanguageText(last_backup_label, "br.backup.last.time");
+	    
+	    final Label last_backup_time = new Label(gBackup, SWT.NULL );
+
+	    Label last_backup_error_label = new Label(gBackup, SWT.NULL );
+	    Messages.setLanguageText(last_backup_error_label, "br.backup.last.error");
+	    
+	    final Label last_backup_error = new Label(gBackup, SWT.NULL );
+	    
+	    final Runnable stats_updater = 
+	    	new Runnable()
+	    	{
+	    		public void 
+	    		run() 
+	    		{
+	    		    long	backup_time = backup_manager.getLastBackupTime();
+	    		    
+	    		    last_backup_time.setText( backup_time==0?"":String.valueOf( new Date( backup_time )));
+	    		    
+	    		    last_backup_error.setText( backup_manager.getLastBackupError());
+
+	    		};
+	    	};
+	    	
+	    stats_updater.run();
+	    
+	    	// manual button
+	    
 	    Label backup_manual_label = new Label(gBackup, SWT.NULL );
 	    Messages.setLanguageText(backup_manual_label, "br.backup.manual.info");
 
@@ -143,7 +175,7 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 																
 							COConfigurationManager.setParameter( "br.backup.folder.default", path );
 								
-							runBackup( backup_manager, path );
+							runBackup( backup_manager, path, stats_updater );
 						}
 			        }
 				});
@@ -230,7 +262,7 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 			        public void 
 					handleEvent(Event event) 
 			        {
-			        	runBackup( backup_manager, null );
+			        	runBackup( backup_manager, null, stats_updater );
 			        }
 				});
 	    
@@ -423,8 +455,9 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 	
 	private void
 	runBackup(
-		BackupManager	backup_manager,
-		String			path )
+		BackupManager		backup_manager,
+		String				path,
+		final Runnable		stats_updater )
 		
 	{
 		final TextViewerWindow viewer = 
@@ -450,7 +483,6 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 				reportComplete()
 				{
 					append( "Backup Complete!", true );
-
 				}
 				
 				public void
@@ -488,7 +520,9 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 								if ( complete ){
 									
 									viewer.setOKEnabled( true );
-								}
+									
+									stats_updater.run();
+								}								
 							}
 						});
 					
