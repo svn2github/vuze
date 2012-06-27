@@ -649,15 +649,15 @@ public class MainStatusBar
 		warningIcon 	= imageLoader.getImage("image.sidebar.vitality.alert");
 		warningGreyIcon = imageLoader.getImage("image.sidebar.vitality.alert-gray");
 		infoIcon 		= imageLoader.getImage("image.sidebar.vitality.info");
-		updateStatusWarnings();
+		updateStatusWarnings( null, false );
 		Messages.setLanguageText(statusWarnings,
 				"MainWindow.status.warning.tooltip");
 		Alerts.addMessageHistoryListener(new AlertHistoryListener() {
-			public void alertHistoryAdded(LogAlert params) {
-				updateStatusWarnings();
+			public void alertHistoryAdded(LogAlert alert) {
+				updateStatusWarnings( alert, true );
 			}
 			public void alertHistoryRemoved(LogAlert alert) {
-				updateStatusWarnings();
+				updateStatusWarnings( alert, false );
 			}
 		});
 		statusWarnings.addMouseListener(new MouseListener() {
@@ -746,12 +746,12 @@ public class MainStatusBar
 		return statusBar;
 	}
 
-	private LogAlert				last_unviewed_alert;
 	private TimerEventPeriodic		alert_flasher_event;
 	private long					alert_flasher_event_start_time;
+	private boolean					alert_flash_activate;
 	
 	
-	protected void updateStatusWarnings() {
+	protected void updateStatusWarnings( final LogAlert current_alert, final boolean current_added ) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (statusWarnings == null || statusWarnings.isDisposed()) {
@@ -782,14 +782,12 @@ public class MainStatusBar
 				statusWarnings.setText("" + count);
 				statusWarnings.layoutNow();
 				
-				if ( icon == warningIcon ){
+				if ( current_added ){
 					
-					LogAlert last = alerts.get( alerts.size()-1 );
+					alert_flash_activate = true;
 					
-					if ( last_unviewed_alert != last ){
-						
-						last_unviewed_alert = last;
-						
+					if ( current_alert.getType() != LogAlert.LT_INFORMATION ){
+											
 						alert_flasher_event_start_time = SystemTime.getMonotonousTime();
 
 						if ( alert_flasher_event == null ){
@@ -830,7 +828,7 @@ public class MainStatusBar
 														if (	statusWarnings == null || 
 																statusWarnings.isDisposed() ||
 																alert_flasher_event == null ||
-																last_unviewed_alert == null ){
+																!alert_flash_activate ){
 																	
 															if ( alert_flasher_event != null ){
 																
@@ -862,13 +860,10 @@ public class MainStatusBar
 										}									
 									});
 						}
-					}else{
-						
-						last_unviewed_alert = null;
 					}
 				}else{
 					
-					last_unviewed_alert = null;
+					alert_flash_activate = false;
 				}
 			}
 		});
