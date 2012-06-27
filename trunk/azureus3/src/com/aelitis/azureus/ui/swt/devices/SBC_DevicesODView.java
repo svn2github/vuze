@@ -38,7 +38,8 @@ import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -72,7 +73,7 @@ SBC_DevicesODView
 	
 	private DeviceOfflineDownloader		device;
 	
-	private TableViewSWTImpl<DeviceOfflineDownload> tv_downloads;
+	private TableViewSWT<DeviceOfflineDownload> tv_downloads;
 
 	private MdiEntrySWT 	mdi_entry;
 	private Composite			control_parent;
@@ -261,8 +262,7 @@ SBC_DevicesODView
 		layout.marginHeight = layout.marginWidth = layout.verticalSpacing = layout.horizontalSpacing = 0;
 		enabled_device_parent.setLayout(layout);
 			
-		tv_downloads = 
-			new TableViewSWTImpl<DeviceOfflineDownload>(
+		tv_downloads = TableViewFactory.createTableViewSWT(
 					DeviceOfflineDownload.class, 
 					TABLE_ID,
 					TABLE_ID, 
@@ -330,7 +330,7 @@ SBC_DevicesODView
 		tv_downloads.addLifeCycleListener(
 			new TableLifeCycleListener() 
 			{
-				private final TableViewSWTImpl<DeviceOfflineDownload>	f_table = tv_downloads;
+				private final TableViewSWT<DeviceOfflineDownload>	f_table = tv_downloads;
 				
 				private Set<DeviceOfflineDownload>	download_set = new HashSet<DeviceOfflineDownload>();
 				

@@ -57,7 +57,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.myshares.CategoryItem;
 import org.gudy.azureus2.ui.swt.views.tableitems.myshares.NameItem;
@@ -98,7 +98,7 @@ implements ShareManagerListener,
 
 	private Menu			menuCategory;
 
-	private TableViewSWTImpl<ShareResource> tv;
+	private TableViewSWT<ShareResource> tv;
 
 	private DropTarget dropTarget;
 
@@ -106,7 +106,7 @@ implements ShareManagerListener,
 	MySharesView()
 	{	
 		super("MySharesView");
-		tv = new TableViewSWTImpl<ShareResource>(ShareResource.class, TableManager.TABLE_MYSHARES,
+		tv = TableViewFactory.createTableViewSWT(ShareResource.class, TableManager.TABLE_MYSHARES,
 				getPropertiesPrefix(), basicItems, "name", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.BORDER | SWT.VIRTUAL);
 

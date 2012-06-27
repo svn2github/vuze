@@ -61,7 +61,7 @@ import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytracker.*;
 
@@ -121,7 +121,7 @@ public class MyTrackerView
 			};
 		}
 
-		tv = new TableViewSWTImpl<TRHostTorrent>(TrackerTorrent.class,
+		tv = TableViewFactory.createTableViewSWT(TrackerTorrent.class,
 				TableManager.TABLE_MYTRACKER, getPropertiesPrefix(), basicItems, "name",
 				SWT.MULTI | SWT.FULL_SELECTION | SWT.BORDER | SWT.VIRTUAL);
 		tv.addLifeCycleListener(this);

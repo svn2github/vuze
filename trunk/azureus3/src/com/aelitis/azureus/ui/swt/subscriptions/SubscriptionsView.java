@@ -25,7 +25,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
@@ -241,7 +241,7 @@ public class SubscriptionsView
 			ColumnSubscriptionAutoDownload.COLUMN_ID,
 		});
 		
-		view = new TableViewSWTImpl(Subscription.class, TABLE_ID, TABLE_ID,
+		view = TableViewFactory.createTableViewSWT(Subscription.class, TABLE_ID, TABLE_ID,
 				columns, "name", SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		
 		view.addLifeCycleListener(new TableLifeCycleListener() {
@@ -303,7 +303,7 @@ public class SubscriptionsView
 		view.setRowDefaultHeight(20);
 		
 		view.initialize(viewComposite);
-		
+
 		final Composite composite = new Composite(viewComposite,SWT.BORDER);
 		composite.setBackgroundMode(SWT.INHERIT_DEFAULT);
 		composite.setBackground(ColorCache.getColor(composite.getDisplay(), "#F1F9F8"));
@@ -392,22 +392,21 @@ public class SubscriptionsView
 		data.right = new FormAttachment(100,0);
 		data.top = new FormAttachment(0,0);
 		data.bottom = new FormAttachment(composite,0);		
-		view.getComposite().setLayoutData(data);
+		viewComposite.setLayoutData(data);
 		
 		data = new FormData();
 		data.left = new FormAttachment(0,0);
 		data.right = new FormAttachment(100,0);
 		data.bottom = new FormAttachment(100,0);		
 		composite.setLayoutData(data);
-		
+
 		COConfigurationManager.setBooleanDefault("subscriptions.view.showhelp", true);
 		if(!COConfigurationManager.getBooleanParameter("subscriptions.view.showhelp")) {
 			composite.setVisible(false);
-			data = (FormData) view.getComposite().getLayoutData();
+			data = (FormData) viewComposite.getLayoutData();
 			data.bottom = new FormAttachment(100,0);
 			viewComposite.layout(true);
 		}
-
 	}
 	
 	private void refresh() {

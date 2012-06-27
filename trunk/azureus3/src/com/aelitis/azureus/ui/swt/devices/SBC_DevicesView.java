@@ -46,7 +46,9 @@ import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -98,14 +100,14 @@ public class SBC_DevicesView
 
 	private TranscodeQueue transcode_queue;
 
-	private TableViewSWTImpl 	tvDevices;
+	private TableViewSWT<?> 	tvDevices;
 	private DragSource 			dragSource;
 	private DropTarget 			dropTarget;
 	private int					drag_drop_line_start = -1;
 	private TableRowCore[]		drag_drop_rows;
 
 	
-	private TableViewSWTImpl<TranscodeFile> tvFiles;
+	private TableViewSWT<TranscodeFile> tvFiles;
 
 	private MdiEntrySWT mdiEntry;
 
@@ -494,7 +496,7 @@ public class SBC_DevicesView
 			}
 		}
 
-		tvFiles = new TableViewSWTImpl<TranscodeFile>(TranscodeFile.class, tableID,
+		tvFiles = TableViewFactory.createTableViewSWT(TranscodeFile.class, tableID,
 				tableID, new TableColumnCore[0], device == null
 						? ColumnTJ_Rank.COLUMN_ID : ColumnTJ_Status.COLUMN_ID, SWT.MULTI
 						| SWT.FULL_SELECTION | SWT.VIRTUAL);
@@ -1029,8 +1031,9 @@ public class SBC_DevicesView
 	 * @since 4.1.0.5
 	 */
 	private void initDeviceListTable(Composite control) {
-		tvDevices = new TableViewSWTImpl(TranscodeProvider.class, TABLE_DEVICES,
-				TABLE_DEVICES, ColumnTJ_Rank.COLUMN_ID);
+		tvDevices = TableViewFactory.createTableViewSWT(TranscodeProvider.class, TABLE_DEVICES,
+				TABLE_DEVICES, new TableColumnCore[0], ColumnTJ_Rank.COLUMN_ID, SWT.SINGLE
+				| SWT.FULL_SELECTION);
 		tvDevices.setRowDefaultHeight(25);
 		tvDevices.setHeaderVisible(true);
 
@@ -1518,7 +1521,7 @@ public class SBC_DevicesView
 	
 	private void 
 	createDragDrop(
-		final TableViewSWTImpl<?>		table )
+		final TableViewSWT<?>		table )
 	{
 		try {
 

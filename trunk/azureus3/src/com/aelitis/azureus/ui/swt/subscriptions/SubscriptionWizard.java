@@ -23,7 +23,7 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -31,7 +31,9 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetails;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionListener;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
@@ -649,7 +651,7 @@ public class SubscriptionWizard {
 		layout.marginHeight = layout.marginWidth = layout.verticalSpacing = layout.horizontalSpacing = 0;
 		cTV.setLayout(layout);
 
-		tvSubscriptions = new TableViewSWTImpl<Subscription>(Subscription.class,
+		tvSubscriptions = TableViewFactory.createTableViewSWT(Subscription.class,
 				TABLE_SUB_WIZ, TABLE_SUB_WIZ, new TableColumnCore[0], "SubWizRank",
 				SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.V_SCROLL | SWT.SINGLE);
 		tvSubscriptions.setMenuEnabled(false);
