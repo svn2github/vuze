@@ -22,6 +22,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 public class TableRowPainted
 	extends TableRowSWTBase
@@ -57,7 +58,7 @@ public class TableRowPainted
 
 	public TableRowPainted(TableRowCore parentRow, TableViewPainted tv,
 			Object dataSource, boolean triggerHeightChange) {
-		// in theory, TableRowPainted could have it's own sync
+		// in theory, TableRowPainted could have its own sync
 		// but in practice, I end up calling code within the sync which inevitably
 		// calls the TableView and causes locks.  So, use the TableView's sync!
 
@@ -65,12 +66,12 @@ public class TableRowPainted
 		subRows_sync = tv.getSyncObject();
 
 		TableColumnCore sortColumn = tv.getSortColumn();
-		if (parentRow == null
-				|| sortColumn.handlesDataSourceType(getDataSource(false).getClass())) {
+		if (sortColumn != null
+				&& (parentRow == null || sortColumn.handlesDataSourceType(getDataSource(
+						false).getClass()))) {
 			cellSort = new TableCellPainted(TableRowPainted.this, sortColumn,
 					sortColumn.getPosition());
 		}
-		//buildCells();
 
 		if (height == 0) {
 			setHeight(tv.getRowDefaultHeight(), false);
@@ -84,6 +85,9 @@ public class TableRowPainted
 	private void buildCells() {
 		//debug("buildCells " + Debug.getCompressedStackTrace());
 		TableColumnCore[] visibleColumns = getView().getVisibleColumns();
+		if (visibleColumns == null) {
+			return;
+		}
 		synchronized (lock) {
 			mTableCells = new LinkedHashMap<String, TableCellCore>(
 					visibleColumns.length, 1);
@@ -141,9 +145,18 @@ public class TableRowPainted
 	 */
 	public void swt_paintGC(GC gc, Rectangle drawBounds, int rowStartX,
 			int rowStartY, int pos) {
+		if (isRowDisposed() || gc == null || gc.isDisposed() || drawBounds == null) {
+			return;
+		}
 		if (!drawBounds.intersects(rowStartX, rowStartY, 9999, getHeight())) {
 			return;
 		}
+
+		TableColumnCore[] visibleColumns = getView().getVisibleColumns();
+		if (visibleColumns == null || visibleColumns.length == 0) {
+			return;
+		}
+
 		Color origBG = gc.getBackground();
 		Color origFG = gc.getForeground();
 		if (isSelected()) {
@@ -187,24 +200,23 @@ public class TableRowPainted
 
 		int x = rowStartX;
 		//boolean paintedRow = false;
-		TableColumnCore[] visibleColumns = getView().getVisibleColumns();
 		synchronized (lock) {
 			if (mTableCells != null) {
 				for (TableColumn tc : visibleColumns) {
 					TableCellCore cell = mTableCells.get(tc.getName());
 					int w = tc.getWidth();
-					if (cell == null || cell.isDisposed()) {
+					if (!(cell instanceof TableCellPainted) || cell.isDisposed()) {
 						gc.fillRectangle(x, rowStartY, w, getHeight());
 						x += w;
 						continue;
 					}
-					TableCellSWTBase cellSWT = (TableCellSWTBase) cell;
+					TableCellPainted cellSWT = (TableCellPainted) cell;
 					Rectangle r = new Rectangle(x, rowStartY, w, getHeight());
-					((TableCellPainted) cell).setBoundsRaw(r);
+					cellSWT.setBoundsRaw(r);
 					if (drawBounds.intersects(r)) {
 						//paintedRow = true;
 						gc.fillRectangle(r);
-						if (paintCell(gc, cellSWT.getBounds(), cellSWT)) {
+						if (swt_paintCell(gc, cellSWT.getBounds(), cellSWT)) {
 							// row color may have changed; this would update the color
 							// for all new cells.  However, setting color triggers a
 							// row redraw that will fix up the UI
@@ -261,7 +273,13 @@ public class TableRowPainted
 		gc.setForeground(origFG);
 	}
 
-	private boolean paintCell(GC gc, Rectangle cellBounds, TableCellSWTBase cell) {
+	private boolean swt_paintCell(GC gc, Rectangle cellBounds,
+			TableCellSWTBase cell) {
+		// Only called from swt_PaintGC, so we can assume GC, cell are valid
+		if (cellBounds == null) {
+			return false;
+		}
+
 		boolean gcChanged = false;
 		try {
 
@@ -273,8 +291,10 @@ public class TableRowPainted
 			view.invokePaintListeners(gc, this, column, cellBounds);
 
 			int fontStyle = getFontStyle();
+			Font oldFont = null;
 			if (fontStyle == SWT.BOLD) {
-				//gc.setFont(getFontBold(gc));
+				oldFont = gc.getFont();
+				gc.setFont(FontUtils.getAnyFontBold(gc));
 				gcChanged = true;
 			}
 
@@ -406,6 +426,10 @@ public class TableRowPainted
 				}
 			}
 			cell.clearVisuallyChangedSinceRefresh();
+			
+			if (oldFont != null) {
+				gc.setFont(oldFont);
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -457,6 +481,9 @@ public class TableRowPainted
 	}
 
 	public void redraw(boolean doChildren, boolean immediateRedraw) {
+		if (isRowDisposed()) {
+			return;
+		}
 		getViewPainted().redrawRow(this, immediateRedraw);
 
 		if (!doChildren) {
