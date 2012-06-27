@@ -2,6 +2,7 @@ package org.gudy.azureus2.ui.swt.views.table.painted;
 
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -10,6 +11,7 @@ import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableRowSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableCellSWTBase;
@@ -181,8 +183,8 @@ public class TableCellPainted
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableCell#getBackgroundGraphic()
 	 */
 	public Graphic getBackgroundGraphic() {
-		// TODO
-		return null;
+		// WARNING: requires SWT Thread!
+		return new UISWTGraphicImpl(getBackgroundImage());
 	}
 
 	/* (non-Javadoc)
@@ -296,9 +298,22 @@ public class TableCellPainted
 	}
 
 	public Rectangle getBoundsOnDisplay() {
+		if (isDisposed() || tableRow == null) {
+			return null;
+		}
 		Rectangle bounds = getBoundsRaw();
+		if (bounds == null) {
+			return null;
+		}
 		TableViewPainted tv = ((TableViewPainted) tableRow.getView());
-		Point pt = tv.getTableComposite().toDisplay(bounds.x, bounds.y);
+		if (tv == null) {
+			return null;
+		}
+		Composite c = tv.getTableComposite();
+		if (c == null || c.isDisposed()) {
+			return null;
+		}
+		Point pt = c.toDisplay(bounds.x, bounds.y);
 		bounds.x = pt.x;
 		bounds.y = pt.y;
 		bounds.height = getHeight();
@@ -307,8 +322,20 @@ public class TableCellPainted
 	}
 
 	public Image getBackgroundImage() {
-		//TODO
-		return null;
+		if (bounds == null || bounds.isEmpty()) {
+			return null;
+		}
+
+		Image image = new Image(Display.getDefault(), bounds.width
+				- (marginWidth * 2), bounds.height - (marginHeight * 2));
+
+		GC gc = new GC(image);
+		gc.setForeground(getBackgroundSWT());
+		gc.setBackground(getBackgroundSWT());
+		gc.fillRectangle(0, 0, bounds.width, bounds.height);
+		gc.dispose();
+
+		return image;
 	}
 
 	public Color getForegroundSWT() {
