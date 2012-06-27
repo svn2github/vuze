@@ -20,6 +20,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 public class TableViewSWT_PaintItem
 	implements Listener
@@ -33,8 +34,6 @@ public class TableViewSWT_PaintItem
 	private TableViewSWTImpl<?> tv;
 
 	private boolean bSkipFirstColumn;
-
-	private static Font fontBold;
 
 	public TableViewSWT_PaintItem(TableViewSWTImpl<?> tv, TableOrTreeSWT table) {
 		this.table = table;
@@ -273,7 +272,7 @@ public class TableViewSWT_PaintItem
 
 			int fontStyle = row.getFontStyle();
 			if (fontStyle == SWT.BOLD) {
-				gc.setFont(getFontBold(gc));
+				gc.setFont(FontUtils.getAnyFontBold(gc));
 			}
 
 			//if (item.getImage(columnIndex) != null) {
@@ -404,7 +403,7 @@ public class TableViewSWT_PaintItem
 					gc.setTextAntialias(SWT.ON);
 					gc.setAlpha(textOpacity);
 				} else if (textOpacity > 255) {
-					gc.setFont(getFontBold(gc));
+					gc.setFont(FontUtils.getAnyFontBold(gc));
 					gc.setTextAntialias(SWT.ON);
 					gc.setAlpha(textOpacity & 255);
 				}
@@ -455,18 +454,6 @@ public class TableViewSWT_PaintItem
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-	}
-
-	private static Font getFontBold(GC gc) {
-		if (fontBold == null) {
-			FontData[] fontData = gc.getFont().getFontData();
-			for (int i = 0; i < fontData.length; i++) {
-				FontData fd = fontData[i];
-				fd.setStyle(SWT.BOLD);
-			}
-			fontBold = new Font(gc.getDevice(), fontData);
-		}
-		return fontBold;
 	}
 
 }
