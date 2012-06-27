@@ -21,12 +21,16 @@
 
 package com.aelitis.azureus.core.backup.impl;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TimeZone;
@@ -41,6 +45,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -819,6 +824,116 @@ BackupManagerImpl
 		}
 	}
 	
+	private int
+	patch(
+		Map<String,Object>	map,
+		String				from,
+		String				to )
+	{
+		int	mods = 0;
+		
+		Iterator<Map.Entry<String,Object>> it = map.entrySet().iterator();
+			
+		Map<String,Object>	replacements = new HashMap<String, Object>();
+		
+		while( it.hasNext()){
+			
+			Map.Entry<String,Object> entry = it.next();
+			
+			String	key = entry.getKey();
+			
+			Object	value = entry.getValue();
+			
+			Object	new_value = value;
+			
+			if ( value instanceof Map ){
+				
+				mods += patch((Map)value, from, to );
+				
+			}else if ( value instanceof List ){
+				
+				mods += patch((List)value, from, to );
+
+			}else if ( value instanceof byte[] ){
+				
+				try{
+					String	str = new String((byte[])value, "UTF-8" );
+					
+					if ( str.startsWith( from )){
+						
+						new_value = to + str.substring( from.length());
+						
+						mods++;
+					}
+				}catch( Throwable e ){
+				}
+			}
+			
+			if ( key.startsWith( from )){
+				
+					// shouldn't really have file names as keys due to charset issues...
+				
+				String new_key = to + key.substring( from.length());
+				
+				mods++;
+				
+				it.remove();
+				
+				replacements.put( new_key, new_value );
+				
+			}else{
+				
+				if ( value != new_value ){
+					
+					entry.setValue( new_value );
+				}
+			}
+		}
+		
+		map.putAll( replacements );
+		
+		return( mods );
+	}
+	
+	private int
+	patch(
+		List				list,
+		String				from,
+		String				to )
+	{
+		int	mods = 0;
+		
+		for ( int i=0;i<list.size();i++){
+		
+			Object entry = list.get( i );
+			
+			if ( entry instanceof Map ){
+				
+				mods += patch((Map)entry, from , to );
+				
+			}else if ( entry instanceof List ){
+				
+				mods += patch((List)entry, from , to );
+				
+			}else if ( entry instanceof byte[] ){
+				
+				try{
+					String	str = new String((byte[])entry, "UTF-8" );
+					
+					if ( str.startsWith( from )){
+						
+						list.set( i, to + str.substring( from.length()));
+						
+						mods++;
+					}
+				}catch( Throwable e ){
+				}
+			}
+		}
+		
+		return( mods );
+	}
+	
 	private void
 	restoreSupport(
 		File				backup_folder,
@@ -864,15 +979,15 @@ BackupManagerImpl
 				
 				temp_dir = AETemporaryFileHandler.createTempDir();
 				
+				PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
+				
+				installer = pi.getUpdateManager().createInstaller();
+			
+				File[] files = backup_folder.listFiles();
+				
 				if ( current_user_dir.equals( backup_user_dir )){
 					
 					listener.reportProgress( "Directories are the same, no patching required" );
-					
-					PluginInterface pi = core.getPluginManager().getDefaultPluginInterface();
-					
-					installer = pi.getUpdateManager().createInstaller();
-				
-					File[] files = backup_folder.listFiles();
 					
 					for ( File f: files ){
 						
@@ -885,17 +1000,77 @@ BackupManagerImpl
 						File target = new File( current_user_dir, f.getName());
 						
 						addActions( installer, source, target );
-					}
-					
-					listener.reportProgress( "Restore action creation complete, restart required to complete the operation" );
-	
+					}	
 				}else{
 					
 					listener.reportProgress( "Directories are different, backup requires patching" );
 	
-					throw( new Exception( "Patching isn't implemented yet" ));
-				}
+					for ( File f: files ){
+						
+						File source = new File( temp_dir, f.getName());
+						
+						listener.reportProgress( "Creating restore action for '" + f.getName() + "'" );
+	
+						if ( f.isDirectory() || !f.getName().contains( ".config" )){
+						
+							copyFiles( f, source );
 							
+						}else{
+							
+							boolean	patched = false;
+							
+							try{
+								BufferedInputStream bis = new BufferedInputStream( new FileInputStream( f ), 1024*1024 );
+								
+								try{
+									Map m = BDecoder.decode( bis );
+									
+									bis.close();
+									
+									bis = null;
+									
+									if ( m.size() > 0 ){
+										
+										int applied = patch( m, backup_user_dir.getAbsolutePath(), current_user_dir.getAbsolutePath());
+										
+										if ( applied > 0 ){
+											
+											listener.reportProgress( "    Applied " + applied + " patches" );
+											
+											patched = FileUtil.writeBytesAsFile2( source.getAbsolutePath(), BEncoder.encode( m ));
+											
+											if ( !patched ){
+												
+												throw( new Exception( "Failed to write " + source ));
+											}
+										}
+									}
+								}finally{
+									
+									if ( bis != null ){
+									
+										bis.close();
+									}
+								}
+								
+							}catch( Throwable e ){
+								
+							}
+							
+							if ( !patched ){
+								
+								copyFiles( f, source );
+							}
+						}
+						
+						File target = new File( current_user_dir, f.getName());
+						
+						addActions( installer, source, target );
+					}
+				}
+				
+				listener.reportProgress( "Restore action creation complete, restart required to complete the operation" );
+
 				listener.reportComplete();
 			
 				ok = true;
