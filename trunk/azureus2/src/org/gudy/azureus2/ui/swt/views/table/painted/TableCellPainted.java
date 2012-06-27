@@ -21,17 +21,24 @@ public class TableCellPainted
 	extends TableCellSWTBase
 {
 	private static final boolean DEBUG_CELLPAINT = false;
+
 	private Rectangle bounds;
+
 	private String text = "";
+
 	private int marginWidth = 0;
+
 	private int marginHeight = 0;
+
 	private boolean redrawScheduled;
+
 	private Color colorFG;
+
 	private Color colorBG;
 
 	public TableCellPainted(TableRowSWT row, TableColumnCore column, int pos) {
 		super(row, column);
-    tableColumn.invokeCellAddedListeners(TableCellPainted.this);
+		tableColumn.invokeCellAddedListeners(TableCellPainted.this);
 	}
 
 	/* (non-Javadoc)
@@ -41,13 +48,13 @@ public class TableCellPainted
 		if (isDisposed()) {
 			return null;
 		}
-		TableRowCore	row = tableRow;
-		TableColumnCore	col	= tableColumn;
-		
-		if ( row == null || col == null){
-			return( null );
+		TableRowCore row = tableRow;
+		TableColumnCore col = tableColumn;
+
+		if (row == null || col == null) {
+			return (null);
 		}
-    return row.getDataSource(col.getUseCoreDataSource());
+		return row.getDataSource(col.getUseCoreDataSource());
 	}
 
 	/* (non-Javadoc)
@@ -71,25 +78,23 @@ public class TableCellPainted
 		return tableRow.getTableID();
 	}
 
-	
 	@SuppressWarnings("null")
 	public static boolean stringEquals(String s0, String s1) {
 		boolean s0Null = s0 == null;
 		boolean s1Null = s1 == null;
 		if (s0Null || s1Null) {
-			return  s0Null == s1Null;
+			return s0Null == s1Null;
 		}
 		return s0.equals(s1);
 	}
-
 
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableCell#getText()
 	 */
 	public String getText() {
-  	if (hasFlag(FLAG_SORTVALUEISTEXT) && sortValue instanceof String) {
-  		return (String)sortValue;
-  	}
+		if (hasFlag(FLAG_SORTVALUEISTEXT) && sortValue instanceof String) {
+			return (String) sortValue;
+		}
 
 		return text;
 	}
@@ -121,16 +126,16 @@ public class TableCellPainted
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableCell#getWidth()
 	 */
 	public int getWidth() {
-  	if (isDisposed()) {
-  		return -1;
-  	}
+		if (isDisposed()) {
+			return -1;
+		}
 		return tableColumn.getWidth() - 2 - (getMarginWidth() * 2);
 	}
-	
+
 	public int getWidthRaw() {
-  	if (isDisposed()) {
-  		return -1;
-  	}
+		if (isDisposed()) {
+			return -1;
+		}
 		return tableColumn.getWidth() - 2;
 	}
 
@@ -186,6 +191,9 @@ public class TableCellPainted
 	public void locationChanged() {
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.views.table.impl.TableCellSWTBase#setCursorID(int)
+	 */
 	@Override
 	public boolean setCursorID(int cursorID) {
 		if (!super.setCursorID(cursorID)) {
@@ -193,10 +201,17 @@ public class TableCellPainted
 		}
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
+				if (isDisposed() || tableRow == null) {
+					return;
+				}
 				if (isMouseOver()) {
-					Composite composite = ((TableViewSWT<?>) tableRow.getView()).getComposite();
-					if (composite != null && !composite.isDisposed()) {
-						composite.setCursor(composite.getDisplay().getSystemCursor(getCursorID()));
+					TableViewSWT<?> view = (TableViewSWT<?>) tableRow.getView();
+					if (view != null) {
+						Composite composite = view.getComposite();
+						if (composite != null && !composite.isDisposed()) {
+							composite.setCursor(composite.getDisplay().getSystemCursor(
+									getCursorID()));
+						}
 					}
 				}
 			}
@@ -214,24 +229,26 @@ public class TableCellPainted
 		}
 		redrawScheduled = true;
 		if (DEBUG_CELLPAINT) {
-  		System.out.println(SystemTime.getCurrentTime() + "r" + tableRow.getIndex()
-  				+ "c" + tableColumn.getPosition() + "} cellredraw via " + Debug.getCompressedStackTrace());
+			System.out.println(SystemTime.getCurrentTime() + "r"
+					+ tableRow.getIndex() + "c" + tableColumn.getPosition()
+					+ "} cellredraw via " + Debug.getCompressedStackTrace());
 		}
 		Utils.execSWTThread(new AERunnable() {
-			
+
 			public void runSupport() {
 				if (isDisposed()) {
 					return;
 				}
 				redrawScheduled = false;
 				if (DEBUG_CELLPAINT) {
-  				System.out.println(SystemTime.getCurrentTime() + "r" + tableRow.getIndex()
-  						+ "c" + tableColumn.getPosition() + "] cellredraw @ " + bounds);
+					System.out.println(SystemTime.getCurrentTime() + "r"
+							+ tableRow.getIndex() + "c" + tableColumn.getPosition()
+							+ "] cellredraw @ " + bounds);
 				}
-				if (bounds != null) {
-					Composite composite = ((TableViewSWT<?>) tableRow.getView()).getComposite();
-					if (composite != null && !composite.isDisposed()) {
-						((TableViewPainted) tableRow.getView()).swt_updateCanvasImage(bounds, false);
+				if (bounds != null && tableRow != null) {
+					TableViewPainted view = (TableViewPainted) tableRow.getView();
+					if (view != null) {
+						view.swt_updateCanvasImage(bounds, false);
 					}
 				}
 			}
@@ -240,17 +257,17 @@ public class TableCellPainted
 
 	public boolean setForeground(Color color) {
 		// Don't need to set when not visible
-  	if (isInvisibleAndCanRefresh()) {
-  		return false;
-  	}
+		if (isInvisibleAndCanRefresh()) {
+			return false;
+		}
 
-  	if (color == colorFG || (color != null && color.equals(colorFG))
+		if (color == colorFG || (color != null && color.equals(colorFG))
 				|| (colorFG != null && colorFG.equals(color))) {
 			return false;
 		}
-		
+
 		colorFG = color;
-  	setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
+		setFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
 
 		return true;
 	}
@@ -313,12 +330,5 @@ public class TableCellPainted
 			this.text = text;
 		}
 		return bChanged;
-	}
-	
-	@Override
-	public boolean refresh(boolean bDoGraphics, boolean bRowVisible,
-			boolean bCellVisible) {
-		boolean ret = super.refresh(bDoGraphics, bRowVisible, bCellVisible);
-		return ret;
 	}
 }
