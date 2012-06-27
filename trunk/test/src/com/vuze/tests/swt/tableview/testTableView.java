@@ -37,6 +37,9 @@ public class testTableView
 	private static boolean pause = true;
 
 	private static boolean printDiff;
+	
+	private static int numChaos = 6;
+	private static Thread[] chaosThreads;
 
 	@SuppressWarnings({
 		"unchecked",
@@ -45,6 +48,7 @@ public class testTableView
 	public static void main(String[] args) {
 		Display display = new Display();
 		FormData fd;
+		
 
 		COConfigurationManager.initialise();
 		COConfigurationManager.setParameter("Table.useTree", true);
@@ -60,6 +64,7 @@ public class testTableView
 		TableColumnCreatorV3.initCoreColumns();
 
 		Shell shell = new Shell(display, SWT.SHELL_TRIM);
+		shell.setText("testTableView");
 		shell.setSize(800, 400);
 		FormLayout fl = new FormLayout();
 		shell.setLayout(fl);
@@ -221,72 +226,86 @@ public class testTableView
 		btnPauseRefresh.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				pause = !pause;
-
+/*
 				SimpleTimer.addEvent("YourKitS", SystemTime.getOffsetTime(1000l * 9),
 						new TimerEventPerformer() {
 							public void perform(TimerEvent event) {
 								try {
-//									Controller controller;
-//									controller = new Controller();
-//									System.out.println("STARTING");
-//									controller.startCPUProfiling(ProfilingModes.CPU_TRACING,
-//											Controller.DEFAULT_FILTERS,
-//											Controller.DEFAULT_WALLTIME_SPEC);
-//									System.out.println("STARTED");
-//
-//									SimpleTimer.addEvent("YourKitE",
-//											SystemTime.getOffsetTime(1000l * 60),
-//											new TimerEventPerformer() {
-//												public void perform(TimerEvent event) {
-//													try {
-//														Controller controller;
-//														controller = new Controller();
-//														controller.stopCPUProfiling();
-//														System.out.println("STOPPED");
-//													} catch (Exception e) {
-//														e.printStackTrace();
-//													}
-//												}
-//											});
+									Controller controller;
+									controller = new Controller();
+									System.out.println("STARTING");
+									controller.startCPUProfiling(ProfilingModes.CPU_TRACING,
+											Controller.DEFAULT_FILTERS,
+											Controller.DEFAULT_WALLTIME_SPEC);
+									System.out.println("STARTED");
+
+									SimpleTimer.addEvent("YourKitE",
+											SystemTime.getOffsetTime(1000l * 60),
+											new TimerEventPerformer() {
+												public void perform(TimerEvent event) {
+													try {
+														Controller controller;
+														controller = new Controller();
+														controller.stopCPUProfiling();
+														System.out.println("STOPPED");
+													} catch (Exception e) {
+														e.printStackTrace();
+													}
+												}
+											});
 								} catch (Exception e) {
 									e.printStackTrace();
 								}
 							}
 						});
+*/
 			}
 		});
 
-		Button btnRndChaos = new Button(cToggles, SWT.TOGGLE);
-		btnRndChaos.setText("RndChaos");
-		btnRndChaos.addListener(SWT.Selection, new Listener() {
-			boolean enabled[] = {
-				false
-			};
+		chaosThreads = new Thread[numChaos];
+		for (int i = 0; i < numChaos; i++) {
+			final boolean[] enabled = { false };
+			final Thread thread = chaosThreads[i] = new Thread("Chaos " + i) {
+				public void run() {
+					while (!enabled[0]) {
+						try {
+							Thread.sleep(100);
+						} catch (InterruptedException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+					}
+					while (enabled[0]) {
+  					if (Math.random() > 0.5) {
+  						rndDel((int) (Math.random() * 100));
+  					} else {
+  						rndInsert((int) (Math.random() * 100));
+  					}
+  					
+  					if (!enabled[0]) {
+  						break;
+  					}
+  					
+  					long sleepFor = (long) (Math.random() * 200);
 
-			public void handleEvent(Event event) {
-				enabled[0] = !enabled[0];
-				if (enabled[0]) {
-					final cChaos cChaos = new cChaos(enabled);
-					startChaos(cChaos);
+  					try {
+							Thread.sleep(sleepFor);
+						} catch (InterruptedException e) {
+						}
+					}
 				}
-			}
-		});
-
-		Button btnRndChaos1 = new Button(cToggles, SWT.TOGGLE);
-		btnRndChaos1.setText("RndChaos");
-		btnRndChaos1.addListener(SWT.Selection, new Listener() {
-			boolean enabled[] = {
-				false
 			};
+			thread.setDaemon(true);
+			thread.start();
+  		final Button btnRndChaos = new Button(cToggles, SWT.TOGGLE);
+  		btnRndChaos.setText("RndChaos " + i);
+  		btnRndChaos.addListener(SWT.Selection, new Listener() {
+  			public void handleEvent(Event event) {
+  				enabled[0] = btnRndChaos.getSelection();
+  			}
+  		});
+		}
 
-			public void handleEvent(Event event) {
-				enabled[0] = !enabled[0];
-				if (enabled[0]) {
-					final cChaos cChaos = new cChaos(enabled);
-					startChaos(cChaos);
-				}
-			}
-		});
 
 		/////////////
 
@@ -550,7 +569,10 @@ public class testTableView
 		TableViewTestDS[] ds = new TableViewTestDS[num];
 		for (int i = 0; i < ds.length; i++) {
 			int pos = (int) (Math.random() * size);
-			ds[i] = (TableViewTestDS) tv.getRow(pos).getDataSource(true);
+			TableRowCore row = tv.getRowQuick(pos);
+			if (row != null) {
+				ds[i] = (TableViewTestDS) row.getDataSource(true);
+			}
 		}
 		tv.removeDataSources(ds);
 	}
@@ -562,36 +584,6 @@ public class testTableView
 			TableViewTestDS ds = new TableViewTestDS();
 			ds.map.put("ID", new Double(pos));
 			tv.addDataSource(ds);
-		}
-	}
-
-	protected static void startChaos(final cChaos cChaos) {
-		for (int i = 0; i < 10; i++) {
-			SimpleTimer.addEvent("chaos" + i,
-					SystemTime.getOffsetTime((long) (Math.random() * 3000)), cChaos);
-		}
-	}
-
-	public static class cChaos
-		implements TimerEventPerformer
-	{
-		private final boolean[] enabled;
-
-		public cChaos(boolean[] enabled) {
-			this.enabled = enabled;
-		}
-
-		public void perform(TimerEvent event) {
-			if (!enabled[0]) {
-				return;
-			}
-			if (Math.random() > 0.5) {
-				rndDel(1);
-			} else {
-				rndInsert(1);
-			}
-			SimpleTimer.addEvent("chaos",
-					SystemTime.getOffsetTime((long) (Math.random() * 3000)), this);
 		}
 	}
 }
