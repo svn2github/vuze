@@ -43,6 +43,8 @@ public class FontUtils
 
 	private static Method mFontData_GetHeightF;
 
+	private static Font fontBold;
+
 	static {
 		try {
 			mFontData_SetHeight = FontData.class.getDeclaredMethod("setHeight",
@@ -328,4 +330,17 @@ public class FontUtils
 		
 		return new Font(baseFont.getDevice(), fontData);
 	}
+	
+	public static Font getAnyFontBold(GC gc) {
+		if (fontBold == null) {
+			FontData[] fontData = gc.getFont().getFontData();
+			for (int i = 0; i < fontData.length; i++) {
+				FontData fd = fontData[i];
+				fd.setStyle(SWT.BOLD);
+			}
+			fontBold = new Font(gc.getDevice(), fontData);
+		}
+		return fontBold;
+	}
+
 }
