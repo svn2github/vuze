@@ -28,8 +28,6 @@ public class TableRowPainted
 {
 	private static final boolean DEBUG_SUBS = true;
 
-	private static Font fontBold;
-
 	private Point drawOffset = new Point(0, 0);
 
 	private int numSubItems;
@@ -41,7 +39,7 @@ public class TableRowPainted
 	private Object subRows_sync;
 
 	private int subRowsHeight;
-	
+
 	TableCellCore cellSort;
 
 	final static public Color[] alternatingColors = new Color[] {
@@ -50,13 +48,12 @@ public class TableRowPainted
 	};
 
 	private int height = 0;
-	
+
 	private boolean initializing = true;
 
 	private Color colorFG = null;
 
 	private Color colorBG = null;
-	
 
 	public TableRowPainted(TableRowCore parentRow, TableViewPainted tv,
 			Object dataSource, boolean triggerHeightChange) {
@@ -70,7 +67,8 @@ public class TableRowPainted
 		TableColumnCore sortColumn = tv.getSortColumn();
 		if (parentRow == null
 				|| sortColumn.handlesDataSourceType(getDataSource(false).getClass())) {
-			cellSort = new TableCellPainted(TableRowPainted.this, sortColumn, sortColumn.getPosition());
+			cellSort = new TableCellPainted(TableRowPainted.this, sortColumn,
+					sortColumn.getPosition());
 		}
 		//buildCells();
 
@@ -87,36 +85,36 @@ public class TableRowPainted
 		//debug("buildCells " + Debug.getCompressedStackTrace());
 		TableColumnCore[] visibleColumns = getView().getVisibleColumns();
 		synchronized (lock) {
-  		mTableCells = new LinkedHashMap<String, TableCellCore>(
-  				visibleColumns.length, 1);
-  
-  		TableColumn currentSortColumn = null;
-  		if (cellSort != null) {
-  			currentSortColumn = cellSort.getTableColumn();
-  		}
-  		TableRowCore parentRow = getParentRowCore();
-  		// create all the cells for the column
-  		for (int i = 0; i < visibleColumns.length; i++) {
-  			if (visibleColumns[i] == null) {
-  				continue;
-  			}
-  
-  			if (parentRow != null
-  					&& !visibleColumns[i].handlesDataSourceType(getDataSource(false).getClass())) {
-  				mTableCells.put(visibleColumns[i].getName(), null);
-  				continue;
-  			}
-  			
-  			//System.out.println(dataSource + ": " + tableColumns[i].getName() + ": " + tableColumns[i].getPosition());
-  			TableCellCore cell = (currentSortColumn != null && visibleColumns[i].equals(currentSortColumn))
-  					? cellSort : new TableCellPainted(TableRowPainted.this,
-  							visibleColumns[i], i);
-  			mTableCells.put(visibleColumns[i].getName(), cell);
-  			//if (i == 10) cell.bDebug = true;
-  		}
+			mTableCells = new LinkedHashMap<String, TableCellCore>(
+					visibleColumns.length, 1);
+
+			TableColumn currentSortColumn = null;
+			if (cellSort != null) {
+				currentSortColumn = cellSort.getTableColumn();
+			}
+			TableRowCore parentRow = getParentRowCore();
+			// create all the cells for the column
+			for (int i = 0; i < visibleColumns.length; i++) {
+				if (visibleColumns[i] == null) {
+					continue;
+				}
+
+				if (parentRow != null
+						&& !visibleColumns[i].handlesDataSourceType(getDataSource(false).getClass())) {
+					mTableCells.put(visibleColumns[i].getName(), null);
+					continue;
+				}
+
+				//System.out.println(dataSource + ": " + tableColumns[i].getName() + ": " + tableColumns[i].getPosition());
+				TableCellCore cell = (currentSortColumn != null && visibleColumns[i].equals(currentSortColumn))
+						? cellSort : new TableCellPainted(TableRowPainted.this,
+								visibleColumns[i], i);
+				mTableCells.put(visibleColumns[i].getName(), cell);
+				//if (i == 10) cell.bDebug = true;
+			}
 		}
 	}
-	
+
 	private void destroyCells() {
 		synchronized (lock) {
 			if (mTableCells != null) {
@@ -141,7 +139,8 @@ public class TableRowPainted
 	 * @param rowStartY where in the GC this row's y-axis starts
 	 * @param pos
 	 */
-	public void swt_paintGC(GC gc, Rectangle drawBounds, int rowStartX, int rowStartY, int pos) {
+	public void swt_paintGC(GC gc, Rectangle drawBounds, int rowStartX,
+			int rowStartY, int pos) {
 		if (!drawBounds.intersects(rowStartX, rowStartY, 9999, getHeight())) {
 			return;
 		}
@@ -187,73 +186,76 @@ public class TableRowPainted
 		Font font = gc.getFont();
 
 		int x = rowStartX;
-		boolean paintedRow = false;
+		//boolean paintedRow = false;
 		TableColumnCore[] visibleColumns = getView().getVisibleColumns();
 		synchronized (lock) {
-  		if (mTableCells != null) {
-    		for (TableColumn tc : visibleColumns) {
-    			TableCellCore cell = mTableCells.get(tc.getName());
-    			int w = tc.getWidth();
-    			if (cell == null || cell.isDisposed()) {
-    				gc.fillRectangle(x, rowStartY, w, getHeight());
-    				x += w;
-    				continue;
-    			}
-    			TableCellSWTBase cellSWT = (TableCellSWTBase) cell;
-  				Rectangle r = new Rectangle(x, rowStartY, w, getHeight());
-  				((TableCellPainted) cell).setBoundsRaw(r);
-  				if (drawBounds.intersects(r)) {
-  					paintedRow = true;
-  					gc.fillRectangle(r);
-  					if (paintCell(gc, cellSWT.getBounds(), cellSWT)) {
-  						// row color may have changed; this would update the color
-  						// for all new cells.  However, setting color triggers a
-  						// row redraw that will fix up the UI
-  						//Color fgNew = getForeground();
-  						//if (fgNew != null && fgNew != fg) {
-  						//	fg = fgNew;
-  						//}
-  						gc.setBackground(bg);
-  						gc.setForeground(fg);
-  						gc.setAlpha(rowAlpha);
-  						gc.setFont(font);
-  					}
-  					if (DEBUG_ROW_PAINT) {
-  						((TableCellSWTBase) cell).debug("painted "
-  								+ (cell.getVisuallyChangedSinceRefresh() ? "VC" : "!P")
-  								+ " @ " + r);
-  					}
-  				} else {
-  					if (DEBUG_ROW_PAINT) {
-  						((TableCellSWTBase) cell).debug("Skip paintItem; no intersects; r="
-  								+ r + ";dB=" + drawBounds + " from "
-  								+ Debug.getCompressedStackTrace(4));
-  					}
-  				}
-    
-    			x += w;
-    		}
-  		}
-  		int w = drawBounds.width - x;
-  		if (w > 0) {
-  			gc.fillRectangle(x, rowStartY, w, getHeight());
-  		}
+			if (mTableCells != null) {
+				for (TableColumn tc : visibleColumns) {
+					TableCellCore cell = mTableCells.get(tc.getName());
+					int w = tc.getWidth();
+					if (cell == null || cell.isDisposed()) {
+						gc.fillRectangle(x, rowStartY, w, getHeight());
+						x += w;
+						continue;
+					}
+					TableCellSWTBase cellSWT = (TableCellSWTBase) cell;
+					Rectangle r = new Rectangle(x, rowStartY, w, getHeight());
+					((TableCellPainted) cell).setBoundsRaw(r);
+					if (drawBounds.intersects(r)) {
+						//paintedRow = true;
+						gc.fillRectangle(r);
+						if (paintCell(gc, cellSWT.getBounds(), cellSWT)) {
+							// row color may have changed; this would update the color
+							// for all new cells.  However, setting color triggers a
+							// row redraw that will fix up the UI
+							//Color fgNew = getForeground();
+							//if (fgNew != null && fgNew != fg) {
+							//	fg = fgNew;
+							//}
+							gc.setBackground(bg);
+							gc.setForeground(fg);
+							gc.setAlpha(rowAlpha);
+							gc.setFont(font);
+						}
+						if (DEBUG_ROW_PAINT) {
+							((TableCellSWTBase) cell).debug("painted "
+									+ (cell.getVisuallyChangedSinceRefresh() ? "VC" : "!P")
+									+ " @ " + r);
+						}
+					} else {
+						if (DEBUG_ROW_PAINT) {
+							((TableCellSWTBase) cell).debug("Skip paintItem; no intersects; r="
+									+ r
+									+ ";dB="
+									+ drawBounds
+									+ " from "
+									+ Debug.getCompressedStackTrace(4));
+						}
+					}
+
+					x += w;
+				}
+			}
+			int w = drawBounds.width - x;
+			if (w > 0) {
+				gc.fillRectangle(x, rowStartY, w, getHeight());
+			}
 
 		}
-		
-//		if (paintedRow) {
-//			//debug("Paint " + e.x + "x" + e.y + " " + e.width + "x" + e.height + ".." + e.count + ";clip=" + e.gc.getClipping() +";drawOffset=" + drawOffset + " via " + Debug.getCompressedStackTrace());
-//		}
 
-		
+		//if (paintedRow) {
+		//	debug("Paint " + e.x + "x" + e.y + " " + e.width + "x" + e.height + ".." + e.count + ";clip=" + e.gc.getClipping() +";drawOffset=" + drawOffset + " via " + Debug.getCompressedStackTrace());
+		//}
+
 		if (isFocused()) {
 			gc.setAlpha(40);
 			gc.setForeground(origFG);
 			gc.setLineStyle(SWT.LINE_DOT);
-			gc.drawRectangle(0, rowStartY, getViewPainted().getClientArea().width - 1, getHeight() - 1);
+			gc.drawRectangle(0, rowStartY,
+					getViewPainted().getClientArea().width - 1, getHeight() - 1);
 			gc.setLineStyle(SWT.LINE_SOLID);
 		}
-		
+
 		gc.setAlpha(255);
 		gc.setBackground(origBG);
 		gc.setForeground(origFG);
@@ -262,7 +264,7 @@ public class TableRowPainted
 	private boolean paintCell(GC gc, Rectangle cellBounds, TableCellSWTBase cell) {
 		boolean gcChanged = false;
 		try {
-			
+
 			gc.setTextAntialias(SWT.ON);
 
 			TableViewSWT<?> view = (TableViewSWT<?>) getView();
@@ -411,18 +413,6 @@ public class TableRowPainted
 		return gcChanged;
 	}
 
-	private static Font getFontBold(GC gc) {
-		if (fontBold == null) {
-			FontData[] fontData = gc.getFont().getFontData();
-			for (int i = 0; i < fontData.length; i++) {
-				FontData fd = fontData[i];
-				fd.setStyle(SWT.BOLD);
-			}
-			fontBold = new Font(gc.getDevice(), fontData);
-		}
-		return fontBold;
-	}
-
 	@Override
 	public List<TableCellCore> refresh(boolean bDoGraphics, boolean bVisible) {
 		final List<TableCellCore> invalidCells = super.refresh(bDoGraphics,
@@ -439,28 +429,29 @@ public class TableRowPainted
 					if (composite == null || composite.isDisposed() || !isVisible()) {
 						return;
 					}
-					boolean allCells = (mTableCells != null) && invalidCells.size() == mTableCells.size();
+					boolean allCells = (mTableCells != null)
+							&& invalidCells.size() == mTableCells.size();
 					if (allCells) {
 						getViewPainted().swt_updateCanvasImage(getDrawBounds(), false);
 					} else {
-  					for (Object o : invalidCells) {
-  						if (o instanceof TableCellPainted) {
-  							TableCellPainted cell = (TableCellPainted) o;
-  							Rectangle bounds = cell.getBoundsRaw();
-  							if (bounds != null) {
-  								getViewPainted().swt_updateCanvasImage(bounds, false);
-  							}
-  						}
-  					}
+						for (Object o : invalidCells) {
+							if (o instanceof TableCellPainted) {
+								TableCellPainted cell = (TableCellPainted) o;
+								Rectangle bounds = cell.getBoundsRaw();
+								if (bounds != null) {
+									getViewPainted().swt_updateCanvasImage(bounds, false);
+								}
+							}
+						}
 					}
 				}
 			});
-		//} else {
+			//} else {
 			//System.out.println("NONE");
 		}
 		return invalidCells;
 	}
-	
+
 	public void redraw(boolean doChildren) {
 		redraw(doChildren, false);
 	}
@@ -506,7 +497,8 @@ public class TableRowPainted
 	public Rectangle getDrawBounds() {
 		TableViewPainted view = (TableViewPainted) getView();
 		Rectangle clientArea = view.getClientArea();
-		Rectangle bounds = new Rectangle(0, drawOffset.y - clientArea.y, 9990, getHeight());
+		Rectangle bounds = new Rectangle(0, drawOffset.y - clientArea.y, 9990,
+				getHeight());
 		return bounds;
 	}
 
@@ -532,7 +524,7 @@ public class TableRowPainted
 			((TableRowPainted) row).subRowHeightChanged(this, oldHeight, newHeight);
 		}
 	}
-	
+
 	public void subRowHeightChanged(TableRowCore row, int oldHeight, int newHeight) {
 		subRowsHeight += (newHeight - oldHeight);
 	}
@@ -543,46 +535,28 @@ public class TableRowPainted
 		}
 		this.drawOffset = drawOffset;
 
-//		synchronized (subRows_sync) {
-//			if (subRows != null) {
-//				int y = drawOffset.y + getHeight();
-//				for (TableRowPainted subrow : subRows) {
-//					subrow.setDrawOffset(new Point(drawOffset.x, y));
-//					y += subrow.getHeight();
-//				}
-//			}
-//		}
-
 		return true;
-		//debug("setDrawOffset " + drawOffset);
 	}
 
 	@Override
 	public void setWidgetSelected(boolean selected) {
 		redraw(false, true);
 	}
-	
+
 	@Override
 	public void setShown(boolean b, boolean force) {
 		synchronized (lock) {
-  		if (b && mTableCells == null) {
-  			buildCells();
-  		}
+			if (b && mTableCells == null) {
+				buildCells();
+			}
 		}
-		
+
 		super.setShown(b, force);
 		if (!b && mTableCells != null) {
 			destroyCells();
 		}
-//		synchronized (subRows_sync) {
-//			if (subRows != null) {
-//				for (TableRowPainted subrow : subRows) {
-//					subrow.setShown(b, force);
-//				}
-//			}
-//		}
 	}
-	
+
 	private void deleteExistingSubRows() {
 		synchronized (subRows_sync) {
 			if (subRows != null) {
@@ -600,7 +574,7 @@ public class TableRowPainted
 			if (DEBUG_SUBS) {
 				debug("setSubItemCount to " + length);
 			}
-			
+
 			deleteExistingSubRows();
 			TableRowPainted[] newSubRows = new TableRowPainted[length];
 			TableViewPainted tv = getViewPainted();
@@ -615,7 +589,7 @@ public class TableRowPainted
 			subRowsHeight = h;
 			getViewPainted().rowHeightChanged(this, oldHeight, getFullHeight());
 			getViewPainted().triggerListenerRowAdded(newSubRows);
-			
+
 			subRows = newSubRows;
 		}
 	}
@@ -673,36 +647,37 @@ public class TableRowPainted
 			}
 		}
 	}
-	
+
 	@Override
 	public void setExpanded(boolean b) {
 		int oldHeight = getFullHeight();
 		super.setExpanded(b);
 		synchronized (subRows_sync) {
 			TableRowPainted[] newSubRows = null;
-  		if (b && (subRows == null || subRows.length != numSubItems)
-  				&& subDataSources != null && subDataSources.length == numSubItems) {
-  			if (DEBUG_SUBS) {
-  				debug("building subrows " + numSubItems);
-  			}
-  
-  			deleteExistingSubRows();
-  			newSubRows = new TableRowPainted[numSubItems];
-  			TableViewPainted tv = getViewPainted();
-  			int h = 0;
-  			for (int i = 0; i < newSubRows.length; i++) {
-  				newSubRows[i] = new TableRowPainted(this, tv, subDataSources[i], false);
-  				newSubRows[i].setTableItem(i, false);
-  				h += newSubRows[i].getHeight();
-  			}
-  			
-  			subRowsHeight = h;
-  			
-  			subRows = newSubRows;
-  		}
+			if (b && (subRows == null || subRows.length != numSubItems)
+					&& subDataSources != null && subDataSources.length == numSubItems) {
+				if (DEBUG_SUBS) {
+					debug("building subrows " + numSubItems);
+				}
+
+				deleteExistingSubRows();
+				newSubRows = new TableRowPainted[numSubItems];
+				TableViewPainted tv = getViewPainted();
+				int h = 0;
+				for (int i = 0; i < newSubRows.length; i++) {
+					newSubRows[i] = new TableRowPainted(this, tv, subDataSources[i],
+							false);
+					newSubRows[i].setTableItem(i, false);
+					h += newSubRows[i].getHeight();
+				}
+
+				subRowsHeight = h;
+
+				subRows = newSubRows;
+			}
 
 			getViewPainted().rowHeightChanged(this, oldHeight, getFullHeight());
-			
+
 			if (newSubRows != null) {
 				getViewPainted().triggerListenerRowAdded(newSubRows);
 			}
@@ -725,7 +700,7 @@ public class TableRowPainted
 			return null;
 		}
 	}
-	
+
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.views.table.impl.TableRowSWTBase#setForeground(org.eclipse.swt.graphics.Color)
 	 */
@@ -734,22 +709,21 @@ public class TableRowPainted
 		if (isRowDisposed()) {
 			return false;
 		}
-  	if (color == colorFG || (color != null && color.equals(colorFG))
+		if (color == colorFG || (color != null && color.equals(colorFG))
 				|| (colorFG != null && colorFG.equals(color))) {
 			return false;
 		}
-		
+
 		colorFG = color;
 		//delays redraw until after.  Could use execSWTThreadLater
 		Utils.getOffOfSWTThread(new AERunnable() {
 			public void runSupport() {
-		  	redraw(false, false);
+				redraw(false, false);
 			}
 		});
 
 		return true;
 	}
-	
 
 	@Override
 	public boolean setIconSize(Point pt) {
@@ -772,8 +746,6 @@ public class TableRowPainted
 		//TODO
 	}
 
-	
-
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#getHeight()
 	 */
@@ -787,7 +759,7 @@ public class TableRowPainted
 	public boolean setHeight(int newHeight) {
 		return setHeight(newHeight, true);
 	}
-	
+
 	public boolean setHeight(int newHeight, boolean trigger) {
 		if (height == newHeight) {
 			return false;
@@ -800,7 +772,7 @@ public class TableRowPainted
 
 		return true;
 	}
-	
+
 	@Override
 	public TableCellCore getTableCellCore(String name) {
 		if (isRowDisposed()) {
@@ -808,53 +780,55 @@ public class TableRowPainted
 		}
 		synchronized (lock) {
 			if (mTableCells == null) {
-  			if (cellSort != null && !cellSort.isDisposed()
-  					&& cellSort.getTableColumn().getName().equals(name)) {
-    			return cellSort;
-    		} else {
-    			return null;
-    		}
+				if (cellSort != null && !cellSort.isDisposed()
+						&& cellSort.getTableColumn().getName().equals(name)) {
+					return cellSort;
+				} else {
+					return null;
+				}
 			}
-  		return mTableCells.get(name);
+			return mTableCells.get(name);
 		}
 	}
-	
+
 	@Override
 	public TableCellSWT getTableCellSWT(String name) {
 		TableCellCore cell = getTableCellCore(name);
 		return (cell instanceof TableCellSWT) ? (TableCellSWT) cell : null;
 	}
-	
+
 	@Override
 	public TableCell getTableCell(String field) {
 		return getTableCellCore(field);
 	}
-	
+
 	public TableCellCore getSortColumnCell(String hint) {
 		return cellSort;
 	}
-	
+
 	public void setSortColumn(String columnID) {
 		synchronized (lock) {
-		
-  		if (mTableCells == null) {
-  			if (cellSort != null && !cellSort.isDisposed()) {
-    			if (cellSort.getTableColumn().getName().equals(columnID)) {
-    				return;
-    			}
-    			cellSort.dispose();
-    			cellSort = null;
-  			}
-  			TableColumnCore sortColumn = (TableColumnCore) getView().getTableColumn(columnID);
-  			if (getParentRowCore() == null
-  					|| sortColumn.handlesDataSourceType(getDataSource(false).getClass())) {
-  				cellSort = new TableCellPainted(TableRowPainted.this, sortColumn, sortColumn.getPosition());
-  			} else {
-  				cellSort = null;
-  			}
-  		} else {
-  			cellSort = mTableCells.get(columnID);
-  		}
-  	}
+
+			if (mTableCells == null) {
+				if (cellSort != null && !cellSort.isDisposed()) {
+					if (cellSort.getTableColumn().getName().equals(columnID)) {
+						return;
+					}
+					cellSort.dispose();
+					cellSort = null;
+				}
+				TableColumnCore sortColumn = (TableColumnCore) getView().getTableColumn(
+						columnID);
+				if (getParentRowCore() == null
+						|| sortColumn.handlesDataSourceType(getDataSource(false).getClass())) {
+					cellSort = new TableCellPainted(TableRowPainted.this, sortColumn,
+							sortColumn.getPosition());
+				} else {
+					cellSort = null;
+				}
+			} else {
+				cellSort = mTableCells.get(columnID);
+			}
+		}
 	}
 }
