@@ -339,16 +339,25 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     Messages.setLanguageText(btnLoadNow, "ConfigView.section.ipfilter.autoload.loadnow");
     btnLoadNow.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				try {
-					btnLoadNow.getShell().setCursor(btnLoadNow.getDisplay().getSystemCursor(
-							SWT.CURSOR_WAIT));
-					COConfigurationManager.setParameter(IpFilterAutoLoaderImpl.CFG_AUTOLOAD_LAST, 0);
-					filter.reload();
-					btnLoadNow.getShell().setCursor(btnLoadNow.getDisplay().getSystemCursor(
-							SWT.CURSOR_ARROW));
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				btnLoadNow.setEnabled(false);
+				COConfigurationManager.setParameter(
+						IpFilterAutoLoaderImpl.CFG_AUTOLOAD_LAST, 0);
+				Utils.getOffOfSWTThread(new AERunnable() {
+					public void runSupport() {
+						try {
+							filter.reloadSync();
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport() {
+								if (!btnLoadNow.isDisposed()) {
+									btnLoadNow.setEnabled(true);
+								}
+							}
+						});
+					}
+				});
 			}
 		});
 

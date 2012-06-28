@@ -177,7 +177,14 @@ IpFilterImpl
 	{
 		reload(true);
 	}
-	
+
+	public void
+	reloadSync()
+		throws Exception
+	{
+		reload(false);
+	}
+
 	public void
 	reload(boolean allowAsyncDownloading)
 		throws Exception

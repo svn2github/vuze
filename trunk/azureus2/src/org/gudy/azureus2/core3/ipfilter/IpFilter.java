@@ -175,4 +175,7 @@ IpFilter
 	public void
 	removeExternalHandler(
 		IpFilterExternalHandler	handler );
+
+	void reloadSync()
+			throws Exception;
 }
