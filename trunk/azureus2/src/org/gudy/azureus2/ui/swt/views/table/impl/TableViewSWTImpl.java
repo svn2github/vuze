@@ -1114,7 +1114,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 				swt_refreshTable(bForceSort);
 
 				if (tvTabsCommon != null) {
-					tvTabsCommon.refresh();
+					tvTabsCommon.swt_refresh();
 				}
 			}
 		});

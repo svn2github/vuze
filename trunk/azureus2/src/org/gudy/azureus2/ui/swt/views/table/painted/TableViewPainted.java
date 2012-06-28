@@ -589,7 +589,13 @@ public class TableViewPainted
 		}
 
 		if (tvTabsCommon != null) {
-			tvTabsCommon.refresh();
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (tvTabsCommon != null) {
+						tvTabsCommon.swt_refresh();
+					}
+				}
+			});
 		}
 	}
 

@@ -435,7 +435,7 @@ public class TableViewSWT_TabsCommon
 		return form;
 	}
 
-	public void refresh() {
+	public void swt_refresh() {
 		if (tv.isTabViewsEnabled() && tabFolder != null && !tabFolder.isDisposed()
 				&& !tabFolder.getMinimized()) {
 			refreshSelectedSubView();
