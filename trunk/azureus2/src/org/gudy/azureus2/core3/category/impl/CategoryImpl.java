@@ -143,7 +143,9 @@ public class CategoryImpl implements Category, Comparable {
   }
   
   public void addManager(DownloadManagerState manager_state) {
-    if (manager_state.getCategory() != this) {
+  	Category manager_cat = manager_state.getCategory();
+		if ((type != Category.TYPE_UNCATEGORIZED && manager_cat != this)
+				|| (type == Category.TYPE_UNCATEGORIZED && manager_cat != null)) {
     	manager_state.setCategory(this);
       // we will be called again by CategoryManager.categoryChange
       return;
@@ -157,7 +159,9 @@ public class CategoryImpl implements Category, Comparable {
     }
     
     if (!managers.contains(manager)) {
-      managers.add(manager);
+    	if (type == Category.TYPE_USER) {
+    		managers.add(manager);
+    	}
       
       manager.addRateLimiter( upload_limiter, true );
       manager.addRateLimiter( download_limiter, false );
@@ -191,7 +195,7 @@ public class CategoryImpl implements Category, Comparable {
     	return;
     }
     
-    if (managers.contains(manager) || type != Category.TYPE_USER) {
+    if (type != Category.TYPE_USER || managers.contains(manager)) {
       managers.remove(manager);
       
       manager.removeRateLimiter( upload_limiter, true );

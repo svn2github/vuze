@@ -1187,19 +1187,16 @@ DownloadManagerStateImpl
 	setCategory(
 		Category 	cat ) 
 	{
-		if ( cat == CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED)){
-			
-			cat	= null;
-		}
-		
 		if ( cat == category ){
-			
 			return;
 		}
 	  
 		if (cat != null && cat.getType() != Category.TYPE_USER){
 	    
 			cat = null;
+			if (cat == category) {
+				return;
+			}
 		}
 		
 		Category oldCategory = (category == null)?CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED):category;
@@ -1214,9 +1211,13 @@ DownloadManagerStateImpl
 		if (category != null ){
 			
 			category.addManager( this );
+
+		} else {
+
+			CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED).addManager(this);
 		}
   	
-		if ( category != null && category.getType() == Category.TYPE_USER ){
+		if ( category != null ){
 			
 			setStringAttribute( AT_CATEGORY, category.getName());
 			
