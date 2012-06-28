@@ -96,6 +96,7 @@ public class TableViewSWT_Common
 	long lastMouseUpEventTime = 0;
 	Point lastMouseUpPos = new Point(0, 0);
 	boolean mouseDown = false;
+	TableRowSWT mouseDownOnRow = null;
 	public void mouseUp(MouseEvent e) {
 		// SWT OSX Bug: two mouseup events when app not in focus and user
 		// clicks on the table.  Only one mousedown, so track that and ignore
@@ -103,6 +104,12 @@ public class TableViewSWT_Common
 			return;
 		}
 		mouseDown = false;
+
+		TableColumnCore tc = tv.getTableColumnByOffset(e.x);
+		TableCellCore cell = tv.getTableCell(e.x, e.y);
+		//TableRowCore row = tv.getTableRow(e.x, e.y, true);
+		mouseUp(mouseDownOnRow, cell, e.button, e.stateMask);
+
 		if (e.button == 1) {
 			long time = e.time & 0xFFFFFFFFL;
 			long diff = time - lastMouseUpEventTime;
@@ -116,9 +123,7 @@ public class TableViewSWT_Common
 			lastMouseUpEventTime = time;
 			lastMouseUpPos = new Point(e.x, e.y);
 		}
-
-		TableColumnCore tc = tv.getTableColumnByOffset(e.x);
-		TableCellCore cell = tv.getTableCell(e.x, e.y);
+		
 		if (cell != null && tc != null) {
 			TableCellMouseEvent event = createMouseEvent(cell, e,
 					TableCellMouseEvent.EVENT_MOUSEUP, false);
@@ -139,7 +144,7 @@ public class TableViewSWT_Common
 		// we need to fill the selected row indexes here because the
 		// dragstart event can occur before the SWT.SELECTION event and
 		// our drag code needs to know the selected rows..
-		TableRowSWT row = tv.getTableRow(e.x, e.y, false);
+		TableRowSWT row = mouseDownOnRow = tv.getTableRow(e.x, e.y, false);
 		TableCellCore cell = tv.getTableCell(e.x, e.y);
 		TableColumnCore tc = cell == null ? null : cell.getTableColumnCore();
 
@@ -184,6 +189,10 @@ public class TableViewSWT_Common
 	}
 
 	public void mouseDown(TableRowSWT row, TableCellCore cell, int button,
+			int stateMask) {
+	}
+
+	public void mouseUp(TableRowCore row, TableCellCore cell, int button,
 			int stateMask) {
 	}
 

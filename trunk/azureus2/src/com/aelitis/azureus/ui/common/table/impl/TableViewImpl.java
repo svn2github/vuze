@@ -1758,6 +1758,10 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		if (row == null || row.isRowDisposed()) {
 			return;
 		}
+		if (isSingleSelection()) {
+			setSelectedRows(new TableRowCore[] { row });
+			return;
+		}
 		synchronized (selectedRows) {
 			if (selected) {
     		if (selectedRows.contains(row)) {
@@ -1856,6 +1860,8 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		}
 
 	}
+	
+	public abstract boolean isSingleSelection();
 	
 	public abstract void uiSelectionChanged(TableRowCore[] newlySelectedRows, TableRowCore[] deselectedRows);
 

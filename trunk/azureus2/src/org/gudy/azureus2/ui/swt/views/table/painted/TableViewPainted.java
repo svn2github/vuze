@@ -186,6 +186,29 @@ public class TableViewPainted
 			}
 
 			@Override
+			public void mouseUp(TableRowCore clickedRow, TableCellCore cell, int button,
+					int stateMask) {
+				super.mouseUp(clickedRow, cell, button, stateMask);
+				
+				if (clickedRow == null) {
+					return;
+				}
+				if (button == 1) {
+  				int keyboardModifier = (stateMask & SWT.MODIFIER_MASK);
+  				if ((keyboardModifier & SWT.SHIFT) > 0) {
+  					// select from focus to row
+  					selectRowsTo(clickedRow);
+  					return;
+  				} else if (keyboardModifier == 0) {
+  					setSelectedRows(new TableRowCore[] {
+  						clickedRow
+  					});
+  					return;
+  				}
+				}
+			}
+
+			@Override
 			public void mouseDown(TableRowSWT clickedRow, TableCellCore cell, int button,
 					int stateMask) {
 				if (clickedRow == null) {
@@ -197,16 +220,7 @@ public class TableViewPainted
   					// control (win), alt (mac)
   					setRowSelected(clickedRow, !clickedRow.isSelected(), true);
   					return;
-  				} else if ((keyboardModifier & SWT.SHIFT) > 0) {
-  					// select from focus to row
-  					selectRowsTo(clickedRow);
-  					return;
-  				} else if ((keyboardModifier & SWT.MOD4) == 0) {
-  					setSelectedRows(new TableRowCore[] {
-  						clickedRow
-  					});
-  					return;
-  				}
+  				} 
 				}
 				if (getSelectedRowsSize() == 0) {
 					setSelectedRows(new TableRowCore[] {
@@ -388,6 +402,12 @@ public class TableViewPainted
 	}
 
 	protected void selectRowsTo(TableRowCore clickedRow) {
+		if (!isMultiSelect) {
+			setSelectedRows(new TableRowCore[] {
+				clickedRow
+			});
+			return;
+		}
 		TableRowCore[] selectedRows = getSelectedRows();
 		TableRowCore firstRow = selectedRows.length > 0 ? selectedRows[0]
 				: getRow(0);
