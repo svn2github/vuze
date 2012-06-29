@@ -510,9 +510,14 @@ public class TrackerStatus {
 		  				scrapeCount % autoUDPscrapeEvery == 0 && 
 		  				udpProbeEnabled && udpScrapeEnabled ){
 		  			
-		  			udpScrapeURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
+		  			String	tracker_network	= AENetworkClassifier.categoriseAddress( reqUrl.getHost()); 
+
+		  			if ( tracker_network == AENetworkClassifier.AT_PUBLIC ){
 		  			
-		  			auto_probe = true;
+		  				udpScrapeURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
+		  			
+		  				auto_probe = true;
+		  			}
 		  		}
 		  		
 		  		try{

@@ -1143,9 +1143,15 @@ TRTrackerBTAnnouncerImpl
 							// skip probe
 							
 						}else{
-							udpAnnounceURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
 							
-							udp_probe = true;
+				  			String	tracker_network	= AENetworkClassifier.categoriseAddress( reqUrl.getHost()); 
+
+				  			if ( tracker_network == AENetworkClassifier.AT_PUBLIC ){
+
+				  				udpAnnounceURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
+							
+				  				udp_probe = true;
+				  			}
 						}
 					}
 			  				
