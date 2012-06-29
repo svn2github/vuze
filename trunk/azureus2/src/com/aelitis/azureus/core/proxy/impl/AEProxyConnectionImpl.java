@@ -212,7 +212,17 @@ AEProxyConnectionImpl
 				
 				}else{
 				
-					Logger.log(new LogEvent(LOGID, "AEProxyProcessor: " + getName()	+ " failed", reason ));
+					String message = reason.getMessage();
+					
+					if ( 	message != null &&
+							( message.contains( "closed" ) || message.contains( "aborted" ))){
+						
+						Logger.log(new LogEvent(LOGID, "AEProxyProcessor: " + getName()	+ " failed: " + message ));
+						
+					}else{
+							
+						Logger.log(new LogEvent(LOGID, "AEProxyProcessor: " + getName()	+ " failed", reason ));
+					}
 				}
 			}
 			
