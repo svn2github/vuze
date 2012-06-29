@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.proxy.impl;
 
 import java.util.*;
 
+import java.io.EOFException;
 import java.nio.channels.*;
 
 import org.gudy.azureus2.core3.logging.*;
@@ -203,16 +204,23 @@ AEProxyConnectionImpl
 		Throwable			reason )
 	{
 		try{
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(LOGID, "AEProxyProcessor: " + getName()
-						+ " failed", reason));
+			if ( Logger.isEnabled()){
+				
+				if ( reason instanceof EOFException ){
+				
+					Logger.log(new LogEvent(LOGID, "AEProxyProcessor: " + getName() + ": connection closed" ));
+				
+				}else{
+				
+					Logger.log(new LogEvent(LOGID, "AEProxyProcessor: " + getName()	+ " failed", reason ));
+				}
+			}
 			
 			close();
 			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
-			
 		}
 	}
 	
