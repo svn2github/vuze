@@ -22,6 +22,8 @@
 package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 
+import java.net.InetAddress;
+import java.net.Socket;
 import java.nio.channels.*;
 import java.nio.channels.spi.AbstractSelectableChannel;
 import java.util.*;
@@ -752,7 +754,14 @@ public class VirtualChannelSelectorImpl {
 	            	
 	        		SocketChannel sc = (SocketChannel)data.channel;
 	        		
-	        		loopback_connection = sc.socket().getInetAddress().isLoopbackAddress();
+	        		Socket socket = sc.socket();
+	        		
+	        		InetAddress address = socket.getInetAddress();
+	        		
+	        		if ( address != null ){
+	        			
+	        			loopback_connection = address.isLoopbackAddress();
+	        		}
 	        	}
 	        	
 	        		// we get no progress triggers when looping back for transcoding due to 
