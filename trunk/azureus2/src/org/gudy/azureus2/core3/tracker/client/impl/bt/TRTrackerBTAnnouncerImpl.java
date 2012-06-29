@@ -2085,6 +2085,43 @@ TRTrackerBTAnnouncerImpl
 		}
 	}
 	
+		// bah, issue with an i2p tracker regarding what is passed it seems: truncate to minimum required and order for the moment...
+	
+	if ( tracker_network == AENetworkClassifier.AT_I2P ){
+	
+		String	temp = request.toString();
+		
+		int	pos = temp.indexOf( '?' );
+		
+		String head = temp.substring( 0, pos );
+		String tail = temp.substring( pos+1 );
+		
+		String[]	bits = tail.split( "&" );
+		
+		Map<String,String>	map = new HashMap<String, String>();
+		
+		for ( String bit: bits ){
+			
+			String[] arg = bit.split( "=" );
+		
+			map.put( arg[0], arg[1] );
+		}
+		
+		tail = "";
+		
+		for ( String str: new String[]{ "info_hash", "peer_id", "port", "ip", "uploaded", "downloaded", "left", "compact", "event" }){
+			
+			String val = map.get( str );
+			
+			if ( val != null ){
+				
+				tail += (tail.length()==0?"":"&") + str + "=" + map.get( str );
+			}
+		}
+		
+		request = new StringBuffer( head + "?" + tail );		
+	}
+	
     return new URL( request.toString());
   }
 
