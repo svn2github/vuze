@@ -26,6 +26,7 @@ import java.util.*;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
+import java.net.SocketTimeoutException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
@@ -370,7 +371,7 @@ AEProxyImpl
 		
 		for (int i=0;i<closes.size();i++){
 			
-			((AEProxyConnectionImpl)closes.get(i)).failed( new Throwable( "timeout" ));
+			((AEProxyConnectionImpl)closes.get(i)).failed( new SocketTimeoutException( "timeout" ));
 		}
 	}
 	
