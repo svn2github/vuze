@@ -153,6 +153,12 @@ AESocksProxyConnectionImpl
 		disable_dns_lookups = false;
 	}
 	
+	public boolean 
+	areDNSLookupsEnabled() 
+	{
+		return( !disable_dns_lookups );
+	}
+	
 	public void
 	close()
 	
@@ -697,7 +703,7 @@ AESocksProxyConnectionImpl
 			
 			if ( command != 1 ){
 				
-				throw( new IOException( "V5: Only connect supported"));
+				throw( new IOException( "V5: Only connect supported: command=" + command ));
 			}
 			
 			if ( address_type == 1 ){
@@ -708,9 +714,12 @@ AESocksProxyConnectionImpl
 				
 				new proxyStateV5RequestDNS();
 				
+			}else if ( address_type == 4 ){
+				
+				new proxyStateV5RequestIPV6();
 			}else{
 				
-				throw( new IOException( "V5: Unsupported address type" ));
+				throw( new IOException( "V5: Unsupported address type: " + address_type ));
 			}
 			
 			return( true );
@@ -758,6 +767,58 @@ AESocksProxyConnectionImpl
 			buffer.flip();
 			
 			byte[]	bytes = new byte[4];
+			
+			buffer.get( bytes );
+			
+			InetAddress inet_address = InetAddress.getByAddress( bytes );
+			
+			new proxyStateV5RequestPort( "", inet_address );
+			
+			return( true );
+		}
+	}
+	
+	protected class
+	proxyStateV5RequestIPV6
+		extends AESocksProxyState
+	{
+		
+		protected
+		proxyStateV5RequestIPV6()
+		{
+			super( AESocksProxyConnectionImpl.this );
+			
+			connection.setReadState( this );
+			
+			buffer	= ByteBuffer.allocate(16);
+		}
+		
+		protected boolean
+		readSupport(
+			SocketChannel 		sc )
+		
+			throws IOException
+		{
+			int	len = sc.read( buffer );
+			
+			if ( len == 0 ){
+				
+				return( false );
+				
+			}else if ( len == -1 ){
+				
+				throw( new IOException( "read channel shutdown" ));
+			}
+			
+			
+			if ( buffer.hasRemaining()){
+				
+				return( true );
+			}
+			
+			buffer.flip();
+			
+			byte[]	bytes = new byte[16];
 			
 			buffer.get( bytes );
 			

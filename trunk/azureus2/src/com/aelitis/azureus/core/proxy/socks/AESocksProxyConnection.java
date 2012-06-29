@@ -46,6 +46,9 @@ AESocksProxyConnection
 	public void
 	enableDNSLookups();
 	
+	public boolean
+	areDNSLookupsEnabled();
+	
 	public void
 	connected()
 	

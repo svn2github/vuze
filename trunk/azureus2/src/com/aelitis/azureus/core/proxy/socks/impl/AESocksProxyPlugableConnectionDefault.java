@@ -30,6 +30,7 @@ import java.nio.channels.SocketChannel;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
+import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.proxy.AEProxyConnection;
@@ -95,12 +96,26 @@ AESocksProxyPlugableConnectionDefault
 		
 		throws IOException
 	{
-		if ( _address.getAddress() == null ){
+		InetAddress address = _address.getAddress();
+		
+		if ( address == null ){
 
-			throw( new IOException( "DNS lookup of '" + _address.getUnresolvedAddress() + "' fails" ));
+			if ( socks_connection.areDNSLookupsEnabled()){
+				
+				try{
+					address = HostNameToIPResolver.syncResolve( _address.getUnresolvedAddress());
+					
+				}catch( Throwable e ){				
+				}
+			}
+			
+			if ( address == null ){
+			
+				throw( new IOException( "DNS lookup of '" + _address.getUnresolvedAddress() + "' fails" ));
+			}
 		}
 		
-		new proxyStateRelayConnect( new InetSocketAddress(_address.getAddress(), _address.getPort()));
+		new proxyStateRelayConnect( new InetSocketAddress( address, _address.getPort()));
 	}
 	
 	public void
