@@ -20,8 +20,6 @@
  */
 package org.gudy.azureus2.ui.swt.help;
 
-import java.util.Properties;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.events.*;
@@ -71,15 +69,6 @@ public class AboutWindow {
     
     paintColorTo = 0;
 
-    Properties properties = new Properties();
-    try {
-      properties.load(AboutWindow.class.getClassLoader().getResourceAsStream("org/gudy/azureus2/ui/swt/about.properties"));
-    }
-    catch (Exception e1) {
-    	Debug.printStackTrace( e1 );
-      return;
-    }
-        
     final Shell window = ShellFactory.createMainShell((Constants.isOSX)
 				? SWT.DIALOG_TRIM : (SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL));
     Utils.setShellIcon(window);
@@ -87,7 +76,7 @@ public class AboutWindow {
 
     window.setText(MessageText.getString("MainWindow.about.title") + " " + Constants.AZUREUS_VERSION); //$NON-NLS-1$
     GridData gridData;
-    window.setLayout(new GridLayout(3, false));
+    window.setLayout(new GridLayout(2, false));
 
     ImageLoader imageLoader = ImageLoader.getInstance();
     imgSrc = imageLoader.getImage(IMG_SPLASH);
@@ -120,54 +109,31 @@ public class AboutWindow {
       imgGray.dispose();
     }
     
-    Group gDevelopers = new Group(window, SWT.NULL);
-    gDevelopers.setLayout(new GridLayout());
-    Messages.setLanguageText(gDevelopers, "MainWindow.about.section.developers"); //$NON-NLS-1$
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gDevelopers.setLayoutData(gridData);
-    
-    Label label = new Label(gDevelopers, SWT.LEFT);
-    label.setText(properties.getProperty("developers")); //$NON-NLS-1$ //$NON-NLS-2$
-    label.setLayoutData(gridData = new GridData());
-    
     final Canvas labelImage = new Canvas(window, SWT.DOUBLE_BUFFERED);
     //labelImage.setImage(image);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
+    gridData.horizontalSpan = 2;
+    gridData.horizontalIndent = gridData.verticalIndent = 0;
     Rectangle imgBounds = image.getBounds();
     gridData.widthHint = 300;
+    gridData.heightHint = imgBounds.height + imgBounds.y + 20;
     labelImage.setLayoutData(gridData);
     labelImage.addPaintListener(new PaintListener() {
 			public void paintControl(PaintEvent e) {
 				Rectangle boundsColor = imgSrc.getBounds();
 				int ofs = (labelImage.getSize().x - boundsColor.width) / 2;
 				if (paintColorTo > 0) {
-					e.gc.drawImage(imgSrc, 0, 0, paintColorTo, boundsColor.height, ofs, 20, paintColorTo, boundsColor.height);
+					e.gc.drawImage(imgSrc, 0, 0, paintColorTo, boundsColor.height, ofs, 10, paintColorTo, boundsColor.height);
 				}
 				Rectangle imgBounds = image.getBounds();
 				if (imgBounds.width - paintColorTo - 1 > 0) {
 					e.gc.drawImage(image, 
 							paintColorTo + 1, 0, imgBounds.width - paintColorTo - 1, imgBounds.height, 
-							paintColorTo + 1 + ofs, 20, imgBounds.width - paintColorTo - 1, imgBounds.height);
+							paintColorTo + 1 + ofs, 10, imgBounds.width - paintColorTo - 1, imgBounds.height);
 				}
 			}
 		});
   
-    Group gTranslators = new Group(window, SWT.NULL);
-    GridLayout gl = new GridLayout();
-    gl.marginHeight = 2;
-    gl.marginWidth = 0;
-    gTranslators.setLayout(gl);
-    Messages.setLanguageText(gTranslators, "MainWindow.about.section.translators"); //$NON-NLS-1$
-    gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gTranslators.setLayoutData(gridData);
-  
-    Text txtTrans = new Text(gTranslators, SWT.READ_ONLY | SWT.MULTI | SWT.WRAP | SWT.NO_FOCUS);
-    txtTrans.setText(properties.getProperty("translators")); //$NON-NLS-1$ //$NON-NLS-2$
-    gridData = new GridData(GridData.FILL_BOTH);
-    gridData.heightHint = txtTrans.computeSize(SWT.DEFAULT, SWT.DEFAULT).y + 10;
-    txtTrans.setLayoutData(gridData);
-    txtTrans.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
-    
     Group gInternet = new Group(window, SWT.NULL);
     GridLayout gridLayout = new GridLayout();
     gridLayout.numColumns = 2;
@@ -175,7 +141,6 @@ public class AboutWindow {
     gInternet.setLayout(gridLayout);
     Messages.setLanguageText(gInternet, "MainWindow.about.section.internet"); //$NON-NLS-1$
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gridData.horizontalSpan = 2;
     gInternet.setLayoutData(gridData);
   
     Group gSys = new Group(window, SWT.NULL);
@@ -199,15 +164,24 @@ public class AboutWindow {
     if (window.getCaret() != null)
     	window.getCaret().setVisible(false);
 
-    final String[][] link =
-      { { "homepage", "sourceforge", "sourceforgedownloads", "bugreports", "forumdiscussion", "wiki" }, {
-          "http://www.vuze.com",
-          "http://azureus.sourceforge.net",
-          "http://sourceforge.net/project/showfiles.php?group_id=84122",
-          "http://forum.vuze.com/forum.jspa?forumID=124",
-          "http://forum.vuze.com",
-          Constants.AZUREUS_WIKI }
-    };
+		final String[][] link = {
+			{
+				"homepage",
+				"sourceforge",
+				"bugreports",
+				"forumdiscussion",
+				"wiki",
+				"contributors"
+			},
+			{
+				"http://www.vuze.com",
+				"http://azureus.sourceforge.net",
+				"http://forum.vuze.com/forum.jspa?forumID=124",
+				"http://forum.vuze.com",
+				Constants.AZUREUS_WIKI,
+				Constants.AZUREUS_WIKI + "Contributors"
+			}
+		};
   
     for (int i = 0; i < link[0].length; i++) {
       final CLabel linkLabel = new CLabel(gInternet, SWT.NULL);
@@ -274,7 +248,7 @@ public class AboutWindow {
               paintColorTo++;
       				Rectangle boundsColor = imgSrc.getBounds();
       				int ofs = (labelImage.getSize().x - boundsColor.width) / 2;
-              labelImage.redraw(paintColorTo - 1 + ofs, 20, 2, maxY, true);
+              labelImage.redraw(paintColorTo - 1 + ofs, 10, 2, maxY, true);
             }
           });
           try {
@@ -307,10 +281,20 @@ public class AboutWindow {
 
   public static void main(String[] args) {
   	try {
-  		new Display();
+  		Display display = new Display();
   		Colors.getInstance();
 			SWTThread.createInstance(null);
 			show();
+			
+			while (!display.isDisposed() && instance != null && !instance.isDisposed()) {
+				if (!display.readAndDispatch()) {
+					display.sleep();
+				}
+			}
+			
+			if (!display.isDisposed()) {
+				display.dispose();
+			}
 		} catch (SWTThreadAlreadyInstanciatedException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
