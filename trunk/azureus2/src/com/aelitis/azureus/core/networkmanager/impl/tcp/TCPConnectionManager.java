@@ -125,7 +125,9 @@ public class TCPConnectionManager {
 					if ( res == 0 ){
 						
 							// check for duplicates
+							// erm, no, think of the socks data proxy connections luke
 						
+						/*
 						InetSocketAddress a1 = r1.address;
 						InetSocketAddress a2 = r2.address;
 						
@@ -136,6 +138,7 @@ public class TCPConnectionManager {
 								return( 0 );
 							}
 						}
+						*/
 						
 						res = r1.getRandom() - r2.getRandom();
 						
