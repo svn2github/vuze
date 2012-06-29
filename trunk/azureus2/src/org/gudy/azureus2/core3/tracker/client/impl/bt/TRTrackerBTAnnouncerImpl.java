@@ -2976,8 +2976,9 @@ TRTrackerBTAnnouncerImpl
 											"ANNOUNCE CompactPeers: num=" + (meta_peers.length/entry_size)));
 						   }
 
+					  	int	peers_length = meta_peers.length;
 				    	
-				    	for (int i=0;i<meta_peers.length;i+=entry_size){
+				    	for (int i=0;i<(peers_length/entry_size)*entry_size;i+=entry_size){
 				    		
 				    		peer_number++;
 				    		
