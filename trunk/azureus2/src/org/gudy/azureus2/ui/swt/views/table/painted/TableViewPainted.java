@@ -214,13 +214,19 @@ public class TableViewPainted
 				if (clickedRow == null) {
 					return;
 				}
+				int keyboardModifier = (stateMask & SWT.MODIFIER_MASK);
 				if (button == 1) {
-  				int keyboardModifier = (stateMask & SWT.MODIFIER_MASK);
   				if ((keyboardModifier & (SWT.MOD1)) > 0) {
   					// control (win), alt (mac)
   					setRowSelected(clickedRow, !clickedRow.isSelected(), true);
   					return;
   				} 
+				} else if (button == 3) {
+					if (!isSelected(clickedRow) && keyboardModifier == 0) {
+						setSelectedRows(new TableRowCore[] {
+							clickedRow
+						});
+					}
 				}
 				if (getSelectedRowsSize() == 0) {
 					setSelectedRows(new TableRowCore[] {
@@ -2477,9 +2483,11 @@ public class TableViewPainted
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				for (TableRowCore row : deselectedRows) {
+					row.invalidate();
 					row.redraw();
 				}
 				for (TableRowCore row : newlySelectedRows) {
+					row.invalidate();
 					row.redraw();
 				}
 				//swt_updateCanvasImage(false);
