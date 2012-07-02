@@ -458,6 +458,10 @@ public class FilesViewMenuUtil
 					
 					Debug.out( "Invalid priority: " + sReturn );
 					
+					new MessageBoxShell(SWT.ICON_ERROR | SWT.OK,
+							MessageText.getString("FilePriority.invalid.title"),
+							MessageText.getString("FilePriority.invalid.text", new String[]{ sReturn })).open(null);
+					
 					return;
 				}
 				
