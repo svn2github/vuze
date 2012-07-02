@@ -1759,27 +1759,25 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			return;
 		}
 		if (isSingleSelection()) {
-			setSelectedRows(new TableRowCore[] { row });
-			return;
-		}
-		synchronized (selectedRows) {
-			if (selected) {
-    		if (selectedRows.contains(row)) {
-    			return;
-    		}
-    		selectedRows.add(row);
-			} else {
-				if (!selectedRows.remove(row)) {
-					return;
+			setSelectedRows(new TableRowCore[] { row }, trigger);
+		} else {
+			boolean somethingChanged = false;
+			ArrayList<TableRowCore> newSelectedRows;
+			synchronized (selectedRows) {
+				newSelectedRows = new ArrayList<TableRowCore>(selectedRows);
+				if (selected) {
+					if (!newSelectedRows.contains(row)) {
+						newSelectedRows.add(row);
+						somethingChanged = true;
+					}
+				} else {
+					somethingChanged = newSelectedRows.remove(row);
 				}
 			}
-  		
-  		listSelectedCoreDataSources = null;
-		}
-		
-		if (trigger) {
-			triggerSelectionListeners(new TableRowCore[] { row });
-			triggerTabViewsDataSourceChanged(false);
+			
+			if (somethingChanged) {
+				setSelectedRows(newSelectedRows.toArray(new TableRowCore[0]), trigger);
+			}
 		}
 	}
 
