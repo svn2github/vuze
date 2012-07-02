@@ -186,6 +186,7 @@ public class TableRowPainted
 		if (isSelected()) {
 			shadowColor = fg;
 			fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
+			gc.setForeground(fg);
 		} else {
   		if (fg == null) {
   			if (isSelected()) {
@@ -405,13 +406,16 @@ public class TableRowPainted
 							cellBounds.height > 20, style);
 
 					boolean fit;
-					
 					if (shadowColor != null) {
 						Color oldFG = gc.getForeground();
 						gc.setForeground(shadowColor);
+						
 						cellBounds.x += 1;
 						cellBounds.y += 1;
+						int alpha = gc.getAlpha();
+						gc.setAlpha(128);
 						sp.printString(gc, cellBounds, style);
+						gc.setAlpha(alpha);
 						gc.setForeground(oldFG);
 
 						cellBounds.x -= 1;
