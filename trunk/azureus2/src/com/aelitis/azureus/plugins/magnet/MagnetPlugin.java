@@ -482,6 +482,48 @@ MagnetPlugin
 						
 					}
 				});
+		
+		final List<Download>	to_delete = new ArrayList<Download>();
+		
+		Download[] downloads = plugin_interface.getDownloadManager().getDownloads();
+		
+		for ( Download download: downloads ){
+			
+			if ( download.getFlag( Download.FLAG_METADATA_DOWNLOAD )){
+				
+				to_delete.add( download );
+			}
+		}
+		
+		if ( to_delete.size() > 0 ){
+			
+			AEThread2 t = 
+				new AEThread2( "MagnetPlugin:delmds", true )
+				{
+					public void
+					run()
+					{
+						for ( Download download: to_delete ){
+							
+							try{
+								download.stop();
+								
+							}catch( Throwable e ){
+							}
+							
+							try{
+								download.remove( true, true );
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					}
+				};
+								
+			t.start();
+		}
 	}
 	
 	public URL
