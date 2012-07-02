@@ -1440,7 +1440,7 @@ public class GCStringPrinter
 	 *
 	 * @since 3.0.4.3
 	 */
-	public void printString(GC gc, Rectangle rectangle, int swtFlags) {
+	public boolean printString(GC gc, Rectangle rectangle, int swtFlags) {
 		this.gc = gc;
 		int printFlags = this.printFlags;
 		if (printArea.width == rectangle.width) {
@@ -1448,7 +1448,7 @@ public class GCStringPrinter
 		}
 		printArea = rectangle;
 		this.swtFlags = swtFlags;
-		printString(printFlags);
+		return printString(printFlags);
 	}
 
 	public Point getCalculatedSize() {
