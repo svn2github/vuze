@@ -182,15 +182,21 @@ public class TableRowPainted
 			gc.setBackground(bg);
 		}
 		Color fg = getForeground();
-		if (fg == null) {
-			if (isSelected()) {
-				fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
-				gc.setForeground(fg);
-			} else {
-				fg = gc.getForeground();
-			}
+		Color shadowColor = null;
+		if (isSelected()) {
+			shadowColor = fg;
+			fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
 		} else {
-			gc.setForeground(fg);
+  		if (fg == null) {
+  			if (isSelected()) {
+  				fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
+  				gc.setForeground(fg);
+  			} else {
+  				fg = gc.getForeground();
+  			}
+  		} else {
+  			gc.setForeground(fg);
+  		}
 		}
 
 		int rowAlpha = getAlpha();
@@ -216,7 +222,7 @@ public class TableRowPainted
 					if (drawBounds.intersects(r)) {
 						//paintedRow = true;
 						gc.fillRectangle(r);
-						if (swt_paintCell(gc, cellSWT.getBounds(), cellSWT)) {
+						if (swt_paintCell(gc, cellSWT.getBounds(), cellSWT, shadowColor)) {
 							// row color may have changed; this would update the color
 							// for all new cells.  However, setting color triggers a
 							// row redraw that will fix up the UI
@@ -274,7 +280,7 @@ public class TableRowPainted
 	}
 
 	private boolean swt_paintCell(GC gc, Rectangle cellBounds,
-			TableCellSWTBase cell) {
+			TableCellSWTBase cell, Color shadowColor) {
 		// Only called from swt_PaintGC, so we can assume GC, cell are valid
 		if (cellBounds == null) {
 			return false;
@@ -309,7 +315,11 @@ public class TableRowPainted
 			Color fg = cell.getForegroundSWT();
 			if (fg != null) {
 				gcChanged = true;
-				gc.setForeground(fg);
+				if (isSelected()) {
+					shadowColor = fg;
+				} else {
+					gc.setForeground(fg);
+				}
 			}
 			Color bg = cell.getBackgroundSWT();
 			if (bg != null) {
@@ -394,7 +404,23 @@ public class TableRowPainted
 					GCStringPrinter sp = new GCStringPrinter(gc, text, cellBounds, true,
 							cellBounds.height > 20, style);
 
-					boolean fit = sp.printString();
+					boolean fit;
+					
+					if (shadowColor != null) {
+						Color oldFG = gc.getForeground();
+						gc.setForeground(shadowColor);
+						cellBounds.x += 1;
+						cellBounds.y += 1;
+						sp.printString(gc, cellBounds, style);
+						gc.setForeground(oldFG);
+
+						cellBounds.x -= 1;
+						cellBounds.y -= 1;
+						fit = sp.printString(gc, cellBounds, style);
+					} else {
+						fit = sp.printString();
+					}
+					
 					if (fit) {
 
 						cell.setDefaultToolTip(null);
