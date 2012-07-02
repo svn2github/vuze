@@ -1210,7 +1210,8 @@ public abstract class TableCellSWTBase
 			return false;
   	}
 
-    if (tableColumn.getType() != TableColumnCore.TYPE_GRAPHIC) {
+		if (tableColumn == null
+				|| tableColumn.getType() != TableColumnCore.TYPE_GRAPHIC) {
       return false;
     }
 
