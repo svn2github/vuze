@@ -27,6 +27,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -370,7 +371,7 @@ DiskManagerUtil
 					
 					
 					for(int i=0;i<res.length;i++)
-						if(toChange[i] > 0 )
+						if(toChange[i] != 0 )
 							listener.filePriorityChanged(res[i]);
 				}
 	
@@ -1091,36 +1092,77 @@ DiskManagerUtil
 		return( CacheFile.CT_LINEAR );
 	}
 	
+	protected static void
+	storeFilePriorities(
+		DownloadManager         download_manager,
+		DiskManagerFileInfo[]   files )
+	{
+		if ( files == null ) return;
+		// bit confusing this: priorities are stored as
+		// >= 1   : priority, 1 = high, 2 = higher etc
+		// 0      : skipped
+		// -1     : normal priority
+		// <= -2  : negative priority , so -2 -> priority -1, -3 -> priority -2 etc
+
+		List file_priorities = new ArrayList(files.length);
+		for (int i=0; i < files.length; i++) {
+			DiskManagerFileInfo file = files[i];
+			if (file == null) return;
+			boolean skipped = file.isSkipped();
+			int priority = file.getPriority();
+			int value;
+			if ( skipped ){
+				value = 0;
+			}else if ( priority > 0 ){
+				value = priority;
+			}else{
+				value = priority - 1;
+				if ( value > 0 ){
+					value = Integer.MIN_VALUE;
+				}
+			}
+			file_priorities.add( i, Long.valueOf(value));
+		}
+		
+	   download_manager.setData( "file_priorities", file_priorities );
+	}
+	  
 	static void
-	  loadFilePriorities(
-	    DownloadManager         download_manager,
-	    DiskManagerFileInfoSet   fileSet )
-	  {
-	    //  TODO: remove this try/catch.  should only be needed for those upgrading from previous snapshot
-	    try {
-	    	DiskManagerFileInfo[] files = fileSet.getFiles();
-	    	
-	        if ( files == null ) return;
-	        List file_priorities = (List)download_manager.getData( "file_priorities" );
-	        if ( file_priorities == null ) return;
-	        
-	        boolean[] toSkip = new boolean[files.length];
-	        int[] prio = new int[files.length];
-	        
-	        for (int i=0; i < files.length; i++) {
-	            DiskManagerFileInfo file = files[i];
-	            if (file == null) return;
-	            int priority = ((Long)file_priorities.get( i )).intValue();
-	            if ( priority == 0 ) toSkip[i] = true;
-	            else if (priority >= 1) prio[i] = priority;
-	        }
-	        
-	        fileSet.setPriority(prio);
-	        fileSet.setSkipped(toSkip, true);
-	        
-	    }
-	    catch (Throwable t) {Debug.printStackTrace( t );}
-	  }
+	loadFilePriorities(
+		DownloadManager         download_manager,
+		DiskManagerFileInfoSet   fileSet )
+	{
+		//  TODO: remove this try/catch.  should only be needed for those upgrading from previous snapshot
+		try {
+			DiskManagerFileInfo[] files = fileSet.getFiles();
+
+			if ( files == null ) return;
+			List file_priorities = (List)download_manager.getData( "file_priorities" );
+			if ( file_priorities == null ) return;
+
+			boolean[] toSkip = new boolean[files.length];
+			int[] prio = new int[files.length];
+
+			for (int i=0; i < files.length; i++) {
+				DiskManagerFileInfo file = files[i];
+				if (file == null) return;
+				int priority = ((Long)file_priorities.get( i )).intValue();
+				if ( priority == 0 ){
+					toSkip[i] = true;
+				}else{
+					if ( priority < 0 ){
+						priority++;
+					}
+					prio[i] = priority;
+				}
+			}
+
+			fileSet.setPriority(prio);
+			fileSet.setSkipped(toSkip, true);
+
+		}
+		catch (Throwable t) {Debug.printStackTrace( t );}
+	}
 
 	protected static void
 	  loadFileDownloaded(

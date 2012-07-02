@@ -26,8 +26,6 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.azureus.core.diskmanager.cache.CacheFile;
-
 /**
  * @author Aaron Grunthal
  * @create 10.05.2008
@@ -61,8 +59,9 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 
 		
 			for(int i=0;i<files.length;i++)
-				if(toChange[i] > 0)
+				if(toChange[i] != 0){
 					files[i].setPriority(toChange[i]);
+				}
 		} finally {
 			dmState.suppressStateSave(false);
 		}

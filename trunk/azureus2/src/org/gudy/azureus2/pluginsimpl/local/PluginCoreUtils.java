@@ -152,7 +152,7 @@ PluginCoreUtils
 				setPriority(
 					int b )
 				{
-					info.setPriority(b>0);
+					info.setNumericPriority(b);
 				}
 				
 				public void 
@@ -244,7 +244,7 @@ PluginCoreUtils
 				public int 
 				getPriority()
 				{
-					return( info.isPriority()?1:0);
+					return( info.getNumericPriorty());
 				}
 				
 				public boolean 

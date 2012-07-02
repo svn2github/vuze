@@ -201,6 +201,7 @@ implements PiecePicker
 	private int					allocate_request_loop_count;
 
 	private int					max_file_priority;
+	private int					min_file_priority;
 	
 	private static boolean		enable_request_hints;
 	private static boolean		includeLanPeersInReqLimiting;
@@ -1040,6 +1041,7 @@ implements PiecePicker
 		DiskManagerFileInfo[] files = diskManager.getFiles();
 		
 		int max = 0;
+		int min = 0;
 		
 		for ( DiskManagerFileInfo file: files ){
 			
@@ -1048,10 +1050,15 @@ implements PiecePicker
 			if ( p > max ){
 				
 				max = p;
+				
+			}else if ( p < min ){
+				
+				min = p;
 			}
 		}
 		
 		max_file_priority = max;
+		min_file_priority = min;
 	}
 	/** This computes the base priority for all pieces that need requesting if there's
 	 * been any availability change or user priority setting changes since the last
@@ -1138,27 +1145,37 @@ implements PiecePicker
 						// startPriority +=(1000 *fileInfo.getPriority()) /255;
 						
 						int file_priority = fileInfo.getPriority();
+													
+						int max = Math.max( file_priority, max_file_priority );
+						int min = Math.min( file_priority, min_file_priority );
 						
-						if ( file_priority > 0 ){
+						int	range = max - min;
+						
+						if ( range > 0 ){
 							
-							int max = Math.max( file_priority, max_file_priority );
-						
+							int	relative_file_priority = file_priority - min;
+							
 							priority += PRIORITY_W_FILE_BASE;
 							
-							if ( max == 1 ){
-								priority += PRIORITY_W_FILE_RANGE;
-							}else{
-								priority += ( PRIORITY_W_FILE_RANGE*file_priority )/max;
-							}
-							if (completionPriorityL)
-							{
-								final long percent =(1000 *downloaded) /length;
-								if (percent >=900)
-									priority +=(PRIORITY_W_COMPLETION *downloaded) /diskManager.getTotalLength();
+							int adjustment = ( PRIORITY_W_FILE_RANGE*relative_file_priority ) / range;
+																
+							priority += adjustment;
+						}
+						
+						if ( completionPriorityL ){
+						
+							final long percent =(1000 *downloaded) /length;
+							
+							if ( percent >=900 ){
+								
+								priority +=(PRIORITY_W_COMPLETION *downloaded) /diskManager.getTotalLength();
 							}
 						}
-						if (priority >startPriority)
-							startPriority =priority;
+						
+						if ( priority > startPriority ){
+						
+							startPriority = priority;
+						}
 					}
 				}
 

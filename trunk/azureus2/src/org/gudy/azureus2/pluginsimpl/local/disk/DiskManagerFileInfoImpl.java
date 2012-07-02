@@ -179,7 +179,7 @@ public class DiskManagerFileInfoImpl
 	}
 		
 	public boolean isPriority() {
-	  return core.getPriority() > 0;
+	  return core.getPriority() != 0;
 	}
 	
 	public boolean isSkipped() {

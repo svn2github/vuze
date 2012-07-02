@@ -2736,19 +2736,7 @@ DiskManagerImpl
     DownloadManager         download_manager,
     DiskManagerFileInfo[]   files )
   {
-    if ( files == null ) return;
-    List file_priorities = new ArrayList(files.length);
-    for (int i=0; i < files.length; i++) {
-      DiskManagerFileInfo file = files[i];
-      if (file == null) return;
-      boolean skipped = file.isSkipped();
-      int priority = file.getPriority();
-      int value = -1;
-      if ( skipped ) value = 0;
-      else if ( priority > 0 ) value = priority;
-      file_priorities.add( i, Long.valueOf(value));
-    }
-    download_manager.setData( "file_priorities", file_priorities );
+	  DiskManagerUtil.storeFilePriorities ( download_manager, files );
   }
 
   protected static void

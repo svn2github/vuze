@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.sharing.ShareManager;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
@@ -52,11 +53,12 @@ import com.aelitis.azureus.ui.common.table.TableView;
  */
 public class FilesViewMenuUtil
 {
-	public static final Object PRIORITY_HIGH = Integer.valueOf(0);
-	public static final Object PRIORITY_NORMAL = Integer.valueOf(1);
-	public static final Object PRIORITY_NUMERIC = Integer.valueOf(99);
-	public static final Object PRIORITY_SKIPPED = Integer.valueOf(2);
-	public static final Object PRIORITY_DELETE = Integer.valueOf(3);
+	public static final Object PRIORITY_HIGH 	= new Object();
+	public static final Object PRIORITY_NORMAL 	= new Object();
+	public static final Object PRIORITY_LOW 	= new Object();
+	public static final Object PRIORITY_NUMERIC = new Object();
+	public static final Object PRIORITY_SKIPPED = new Object();
+	public static final Object PRIORITY_DELETE 	= new Object();
 
 	public static void fillMenu(final TableView tv,
 			final Menu menu, final DownloadManager manager,
@@ -121,9 +123,13 @@ public class FilesViewMenuUtil
 		itemHigh.setData("Priority", PRIORITY_HIGH);
 		Messages.setLanguageText(itemHigh, "FilesView.menu.setpriority.high"); 
 
+		final MenuItem itemNormal = new MenuItem(menuPriority, SWT.CASCADE);
+		itemNormal.setData("Priority", PRIORITY_NORMAL);
+		Messages.setLanguageText(itemNormal, "FilesView.menu.setpriority.normal");
+		
 		final MenuItem itemLow = new MenuItem(menuPriority, SWT.CASCADE);
-		itemLow.setData("Priority", PRIORITY_NORMAL);
-		Messages.setLanguageText(itemLow, "FilesView.menu.setpriority.normal");
+		itemLow.setData("Priority", PRIORITY_LOW);
+		Messages.setLanguageText(itemLow, "FileItem.low");
 
 		final MenuItem itemNumeric = new MenuItem(menuPriority, SWT.CASCADE);
 		itemNumeric.setData("Priority", PRIORITY_NUMERIC);
@@ -150,12 +156,13 @@ public class FilesViewMenuUtil
 			return;
 		}
 
-		boolean open = true;
-		boolean all_compact = true;
-		boolean all_skipped = true;
-		boolean all_priority = true;
-		boolean all_not_priority = true;
-		boolean	all_complete	 = true;
+		boolean open 			= true;
+		boolean all_compact 	= true;
+		boolean all_skipped 	= true;
+		boolean all_high_pri 	= true;
+		boolean all_normal_pri 	= true;
+		boolean all_low_pri 	= true;
+		boolean	all_complete	= true;
 		
 		final DiskManagerFileInfo[] dmi_array = new DiskManagerFileInfo[data_sources.length];
 
@@ -176,19 +183,23 @@ public class FilesViewMenuUtil
 				all_compact = false;
 			}
 
-			if (all_skipped || all_priority || all_not_priority) {
+			if (all_skipped || all_high_pri || all_normal_pri || all_low_pri ) {
 				if (file_info.isSkipped()) {
-					all_priority = false;
-					all_not_priority = false;
+					all_high_pri = all_normal_pri = all_low_pri = false;
 				} else {
 					all_skipped = false;
 
 					// Only do this check if we need to.
-					if (all_not_priority || all_priority) {
-						if (file_info.getPriority() > 0 ) {
-							all_not_priority = false;
-						} else {
-							all_priority = false;
+					if ( all_high_pri || all_normal_pri || all_low_pri ) {
+						int file_pri = file_info.getPriority();
+						if ( file_pri == 0 ){
+							all_high_pri = all_low_pri = false;
+						}else if ( file_pri == 1 ){
+							all_normal_pri = all_low_pri = false;
+						} else if ( file_pri == -1 ){
+							all_normal_pri = all_high_pri = false;
+						}else{
+							all_low_pri = all_normal_pri = all_high_pri = false;
 						}
 					}
 				}
@@ -220,9 +231,11 @@ public class FilesViewMenuUtil
 		
 		itemSkipped.setEnabled(!all_skipped);
 
-		itemHigh.setEnabled(!all_priority);
+		itemHigh.setEnabled(!all_high_pri);
 
-		itemLow.setEnabled(!all_not_priority);
+		itemNormal.setEnabled(!all_normal_pri);
+		
+		itemLow.setEnabled(!all_low_pri);
 
 		itemDelete.setEnabled(!all_compact);
 
@@ -276,7 +289,7 @@ public class FilesViewMenuUtil
 		
 		Listener priorityListener = new Listener() {
 			public void handleEvent(Event event) {
-				final int priority = ((Integer) event.widget.getData("Priority")).intValue();
+				final Object priority = event.widget.getData("Priority");
 				Utils.getOffOfSWTThread(new AERunnable() {
 					public void runSupport() {
 						changePriority(priority, data_sources);
@@ -287,6 +300,7 @@ public class FilesViewMenuUtil
 
 		itemNumeric.addListener(SWT.Selection, priorityListener);
 		itemHigh.addListener(SWT.Selection, priorityListener);
+		itemNormal.addListener(SWT.Selection, priorityListener);
 		itemLow.addListener(SWT.Selection, priorityListener);
 		itemSkipped.addListener(SWT.Selection, priorityListener);
 		itemDelete.addListener(SWT.Selection, priorityListener);
@@ -395,8 +409,17 @@ public class FilesViewMenuUtil
 			}
 			listFileInfos.add(file_infos[i]);
 
-			if (type == PRIORITY_NORMAL || type == PRIORITY_HIGH) {
-				file_infos[i].setPriority(type == PRIORITY_HIGH ? 1 : 0);
+			if ( type == PRIORITY_NORMAL ){
+				
+				file_infos[i].setPriority( 0 );
+	
+			}else if (type == PRIORITY_HIGH ){
+				
+				file_infos[i].setPriority( 1 );
+				
+			}else if (type == PRIORITY_LOW ){
+				
+				file_infos[i].setPriority( -1 );
 			}
 		}
 		boolean skipped = (type == PRIORITY_SKIPPED || type == PRIORITY_DELETE);
@@ -428,42 +451,42 @@ public class FilesViewMenuUtil
 				if (sReturn == null)
 					return;
 				
-				int priority = -1;
+				int priority = 0;
 				try {
 					priority = Integer.valueOf(sReturn).intValue();
 				} catch (NumberFormatException er) {
-					// Ignore
+					
+					Debug.out( "Invalid priority: " + sReturn );
+					
+					return;
 				}
 				
-				if ( priority >= 0 ){
-					Map<DownloadManager, ArrayList<DiskManagerFileInfo>> mapDMtoDMFI = new HashMap<DownloadManager, ArrayList<DiskManagerFileInfo>>();
+				Map<DownloadManager, ArrayList<DiskManagerFileInfo>> mapDMtoDMFI = new HashMap<DownloadManager, ArrayList<DiskManagerFileInfo>>();
 
-					DiskManagerFileInfo[] file_infos = new DiskManagerFileInfo[datasources.length];
-					for (int i = 0; i < datasources.length; i++) {
-						file_infos[i] = (DiskManagerFileInfo) datasources[i];
+				DiskManagerFileInfo[] file_infos = new DiskManagerFileInfo[datasources.length];
+				for (int i = 0; i < datasources.length; i++) {
+					file_infos[i] = (DiskManagerFileInfo) datasources[i];
 
-						DownloadManager dm = file_infos[i].getDownloadManager();
-						ArrayList<DiskManagerFileInfo> listFileInfos = mapDMtoDMFI.get(dm);
-						if (listFileInfos == null) {
-							listFileInfos = new ArrayList<DiskManagerFileInfo>(1);
-							mapDMtoDMFI.put(dm, listFileInfos);
-						}
-						listFileInfos.add(file_infos[i]);
-
-						file_infos[i].setPriority(priority);
+					DownloadManager dm = file_infos[i].getDownloadManager();
+					ArrayList<DiskManagerFileInfo> listFileInfos = mapDMtoDMFI.get(dm);
+					if (listFileInfos == null) {
+						listFileInfos = new ArrayList<DiskManagerFileInfo>(1);
+						mapDMtoDMFI.put(dm, listFileInfos);
 					}
+					listFileInfos.add(file_infos[i]);
 
-					for (DownloadManager dm : mapDMtoDMFI.keySet()) {
-						ArrayList<DiskManagerFileInfo> list = mapDMtoDMFI.get(dm);
-						DiskManagerFileInfo[] fileInfos = list.toArray(new DiskManagerFileInfo[0]);
-						boolean paused = setSkipped(dm, fileInfos, false, false);
+					file_infos[i].setPriority(priority);
+				}
 
-						if (paused) {
+				for (DownloadManager dm : mapDMtoDMFI.keySet()) {
+					ArrayList<DiskManagerFileInfo> list = mapDMtoDMFI.get(dm);
+					DiskManagerFileInfo[] fileInfos = list.toArray(new DiskManagerFileInfo[0]);
+					boolean paused = setSkipped(dm, fileInfos, false, false);
 
-							dm.resume();
-						}
+					if (paused) {
+
+						dm.resume();
 					}
-
 				}
 			}
 		});
