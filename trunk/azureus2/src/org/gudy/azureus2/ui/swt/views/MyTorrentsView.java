@@ -1102,7 +1102,7 @@ public class MyTorrentsView
 						TableRowCore[] rows = tv.getSelectedRows();
 						if (rows.length != 0) {
 							event.doit = true;
-							// System.out.println("DragStart");
+							//System.out.println("DragStart");
 							drag_drop_line_start = rows[0].getIndex();
 							drag_drop_rows = rows;
 						} else {
@@ -1180,7 +1180,7 @@ public class MyTorrentsView
 							}
 						} else if (TextTransfer.getInstance().isSupportedType(
 								event.currentDataType)) {
-							event.detail = event.item == null ? DND.DROP_NONE : DND.DROP_MOVE;
+							event.detail = tv.getTableRowWithCursor() == null ? DND.DROP_NONE : DND.DROP_MOVE;
 							event.feedback = DND.FEEDBACK_SCROLL;
 							enterPoint = new Point(event.x, event.y);
 						}
@@ -1193,7 +1193,7 @@ public class MyTorrentsView
 								event.detail = DND.DROP_NONE;
 								return;
 							}
-							event.detail = event.item == null ? DND.DROP_NONE : DND.DROP_MOVE;
+							event.detail = tv.getTableRowWithCursor() == null ? DND.DROP_NONE : DND.DROP_MOVE;
 							event.feedback = DND.FEEDBACK_SCROLL
 									| ((enterPoint != null && enterPoint.y > event.y)
 											? DND.FEEDBACK_INSERT_BEFORE : DND.FEEDBACK_INSERT_AFTER);
