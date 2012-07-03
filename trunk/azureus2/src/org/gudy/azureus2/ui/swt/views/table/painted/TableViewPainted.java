@@ -237,6 +237,9 @@ public class TableViewPainted
 
 			@Override
 			public void keyPressed(KeyEvent event) {
+				if (getComposite() != event.widget) {
+					return;
+				}
 				if (event.keyCode == SWT.ARROW_UP) {
 					TableRowCore rowToSelect = getPreviousRow(focusedRow);
 					if ((event.stateMask & SWT.SHIFT) > 0) {
@@ -2394,7 +2397,16 @@ public class TableViewPainted
 	public void setSelectedRows(TableRowCore[] newSelectionArray, boolean trigger) {
 		super.setSelectedRows(newSelectionArray, trigger);
 
-		setFocusedRow(newSelectionArray.length == 0 ? null : newSelectionArray[0]);
+		boolean focusInSelection = false;
+		for (TableRowCore row : newSelectionArray) {
+			if (row.equals(focusedRow)) {
+				focusInSelection = true;
+				break;
+			}
+		}
+		if (!focusInSelection) {
+			setFocusedRow(newSelectionArray.length == 0 ? null : newSelectionArray[0]);
+		}
 	}
 
 	public void setRowSelected(final TableRowCore row, boolean selected,

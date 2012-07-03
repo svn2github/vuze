@@ -355,6 +355,14 @@ public class TableViewSWT_Common
 		// Note: Both table key presses and txtFilter keypresses go through this
 		//       method.
 
+		TableViewSWTFilter<?> filter = tv.getSWTFilter();
+		if (event.widget != null && event.widget == filter.widget) {
+			if (event.character == SWT.DEL || event.character == SWT.BS) {
+				handleSearchKeyPress(event);
+				return;
+			}
+		}
+
 		KeyListener[] listeners = tv.getKeyListeners();
 		for (KeyListener l : listeners) {
 			l.keyPressed(event);
@@ -394,7 +402,6 @@ public class TableViewSWT_Common
 		if (event.stateMask == SWT.MOD1) {
 			switch (key) {
 				case 'a': { // CTRL+A select all Torrents
-					TableViewSWTFilter<?> filter = tv.getSWTFilter();
 					if (filter == null || event.widget != filter.widget) {
 						if (!tv.isSingleSelection()) {
 							tv.selectAll();
@@ -419,7 +426,6 @@ public class TableViewSWT_Common
 					event.doit = false;
 					break;
 				case 'x': { // CTRL+X: RegEx search switch
-					TableViewSWTFilter<?> filter = tv.getSWTFilter();
 					if (filter != null && event.widget == filter.widget) {
 						filter.regex = !filter.regex;
 						filter.widget.setBackground(filter.regex?COLOR_FILTER_REGEX:null);
@@ -439,7 +445,6 @@ public class TableViewSWT_Common
 		}
 
 		if (event.stateMask == 0) {
-			TableViewSWTFilter<?> filter = tv.getSWTFilter();
 			if (filter != null && filter.widget == event.widget) {
 				if (event.keyCode == SWT.ARROW_DOWN) {
 					tv.setFocus();
