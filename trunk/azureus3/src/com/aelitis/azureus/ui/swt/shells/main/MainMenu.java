@@ -78,7 +78,9 @@ public class MainMenu
 			addTorrentMenu();
 		}
 
-		addWindowMenu();
+		if (!Constants.isWindows) {
+			addWindowMenu();
+		}
 
 		// ===== Debug menu (development only)====
 		if (org.gudy.azureus2.core3.util.Constants.isCVSVersion()) {
