@@ -99,7 +99,7 @@ BackupManagerImpl
 	{
 		core	= _core;
 				
-		COConfigurationManager.addAndFireParameterListeners(
+		COConfigurationManager.addParameterListener(
 			new String[]{
 				"br.backup.auto.enable",
 				"br.backup.auto.everydays",
