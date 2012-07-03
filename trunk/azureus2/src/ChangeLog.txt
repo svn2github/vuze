@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2012.xx.xx | Vuze 4.7.0.3
+2012.07.xx | Vuze 4.7.0.3
 
 FEATURE: Core | Added a 'low' file priority setting and the ability to set negative priorities for various levels of 'low' [Parg]
 FEATURE: Core | Support for metdata download based magnet link resolution [Parg]
@@ -39,6 +39,9 @@ FEATURE: UI   | Extended recognised clients [Parg]
 FEATURE: UI   | Better error messaging for broken plugin installs [Parg]
 FEATURE: UI   | Enhanced search box - allows for entry of magnet links, torrent urls and hashes in the search box [Parg]
 FEATURE: UI   | Support 'bits' based base-10 display unit [Parg]
+FEATURE: UI   | Export magnet URI menu added to Share View [TuxPaper] 
+FEATURE: UI   | Allow dragging stuff to Share View sidebar entry [TuxPaper]
+
 
 FEATURE: Plug | New highcharts stats demo plugin [Parg]
 FEATURE: Plug | New plugin to add tracker URLs to multiple torrent [Parg]
@@ -65,6 +68,9 @@ CHANGE: UI    | Changed %done torrents view item to excluded DND files [Parg]
 CHANGE: UI    | Improved error message on add-torrent fail to make the cause more obvious [Parg]
 CHANGE: UI    | Auto-open and scroll the details area on magnet add so user sees error messages [Parg]
 CHANGE: UI    | Extended update tracing for 64 bit windows SWT updates [Parg]
+CHANGE: UI    | OSX: Enable playing sound on completion [TuxPaper]
+CHANGE: UI    | Replaced native OS tables with custom (faster, more control) [TuxPaper]
+CHANGE: UI    | 'All' and 'Uncategorized' are now shown in Sidebar when categories in sidebar is enabled [TuxPaper]
 
 BUGFIX: Core  | Fixed I2P Proxy support and updated the plugin to fix issues with I2P network integration [Parg]
 BUGFIX: Core  | Handle malformed XML entity escapes better [Parg]
@@ -93,9 +99,13 @@ BUGFIX: UI    | Re-enable the start/stop toolbar options for transcoding view [P
 BUGFIX: UI    | Disable toolbar icons correctly when no selection [Parg]
 BUGFIX: UI    | Fix drag+drop behaviour onto Shares view [Parg]
 BUGFIX: UI    | Fixed table row consistency issue when downloads rapidly removed and added [Parg]
-BUGFIXL UI    | Fixed incorrect base-10 unit display [Parg]
+BUGFIX: UI    | Fixed incorrect base-10 unit display [Parg]
+BUGFIX: UI    | Fixed menu not showing on first right click on the Torrent Details sidebar entry [TuxPaper]
+BUGFIX: UI    | OSX: Fixed buttons in Column Setup not all being displayed [TuxPaper] 
 
 BUGFIX: Plug  | Various minor fixes to mlDHT [Parg]
+
+
 
 2011.12.02 | Vuze 4.7.0.2
 
