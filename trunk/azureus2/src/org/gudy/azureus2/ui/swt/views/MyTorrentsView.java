@@ -66,7 +66,6 @@ import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
@@ -887,38 +886,29 @@ public class MyTorrentsView
 	
 	private void swt_viewChanged(final TableView<DownloadManager> view) {
 
-		if ( filterParent != null ){
-			
-			Utils.execSWTThread(new AERunnable() {
-				@Override
-				public void runSupport() {
+		if ( filterParent != null && !filterParent.isDisposed()){
+			Object x = filterParent.getData( "ViewUtils:ViewTitleExtraInfo" );
+		
+			if ( x instanceof ViewUtils.ViewTitleExtraInfo ){
+				
+				TableRowCore[] rows = view.getRows();
+				
+				int	active = 0;
+				
+				for ( TableRowCore row: rows ){
 					
-					if ( filterParent != null && !filterParent.isDisposed()){
-						Object x = filterParent.getData( "ViewUtils:ViewTitleExtraInfo" );
+					DownloadManager dm = (DownloadManager)row.getDataSource( true );
 					
-						if ( x instanceof ViewUtils.ViewTitleExtraInfo ){
-							
-							TableRowCore[] rows = view.getRows();
-							
-							int	active = 0;
-							
-							for ( TableRowCore row: rows ){
-								
-								DownloadManager dm = (DownloadManager)row.getDataSource( true );
-								
-								int	state = dm.getState();
-								
-								if ( state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_SEEDING ){
-									
-									active++;
-								}
-							}
-							
-							((ViewUtils.ViewTitleExtraInfo)x).update( tv.getComposite(), isSeedingView, rows.length, active );
-						}
+					int	state = dm.getState();
+					
+					if ( state == DownloadManager.STATE_DOWNLOADING || state == DownloadManager.STATE_SEEDING ){
+						
+						active++;
 					}
 				}
-			});
+				
+				((ViewUtils.ViewTitleExtraInfo)x).update( tv.getComposite(), isSeedingView, rows.length, active );
+			}
 		}
 	}
 
