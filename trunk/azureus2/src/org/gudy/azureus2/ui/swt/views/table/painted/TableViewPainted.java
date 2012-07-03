@@ -34,6 +34,9 @@ import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.table.impl.TableRowCoreSorter;
 import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
@@ -1079,6 +1082,14 @@ public class TableViewPainted
 		cTable.addTraverseListener(new TraverseListener() {
 			public void keyTraversed(TraverseEvent e) {
 				e.doit = true;
+			}
+		});
+		
+		
+		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
+			public void currentlySelectedContentChanged(
+					ISelectedContent[] currentContent, String viewID) {
+				redrawTable();
 			}
 		});
 
@@ -2778,4 +2789,5 @@ public class TableViewPainted
 	public Object getSyncObject() {
 		return lock;
 	}
+	
 }

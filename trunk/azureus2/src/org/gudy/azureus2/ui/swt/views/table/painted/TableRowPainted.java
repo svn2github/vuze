@@ -157,9 +157,12 @@ public class TableRowPainted
 			return;
 		}
 
+		boolean isSelected = isSelected();
+		boolean isSelectedNotFocused = isSelected && !getViewPainted().isTableSelected();
+		
 		Color origBG = gc.getBackground();
 		Color origFG = gc.getForeground();
-		if (isSelected()) {
+		if (isSelected) {
 			Color color;
 			color = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION);
 			gc.setBackground(color);
@@ -183,13 +186,13 @@ public class TableRowPainted
 		}
 		Color fg = getForeground();
 		Color shadowColor = null;
-		if (isSelected()) {
+		if (isSelected) {
 			shadowColor = fg;
 			fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
 			gc.setForeground(fg);
 		} else {
   		if (fg == null) {
-  			if (isSelected()) {
+  			if (isSelected) {
   				fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
   				gc.setForeground(fg);
   			} else {
@@ -201,7 +204,6 @@ public class TableRowPainted
 		}
 
 		int rowAlpha = getAlpha();
-		gc.setAlpha(rowAlpha);
 
 		Font font = gc.getFont();
 
@@ -222,7 +224,17 @@ public class TableRowPainted
 					cellSWT.setBoundsRaw(r);
 					if (drawBounds.intersects(r)) {
 						//paintedRow = true;
-						gc.fillRectangle(r);
+						gc.setAlpha(255);
+						if (isSelectedNotFocused) {
+							gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+							gc.fillRectangle(r);
+							gc.setAlpha(100);
+							gc.setBackground(bg);
+							gc.fillRectangle(r);
+						} else {
+							gc.fillRectangle(r);
+						}
+						gc.setAlpha(rowAlpha);
 						if (swt_paintCell(gc, cellSWT.getBounds(), cellSWT, shadowColor)) {
 							// row color may have changed; this would update the color
 							// for all new cells.  However, setting color triggers a
@@ -233,7 +245,6 @@ public class TableRowPainted
 							//}
 							gc.setBackground(bg);
 							gc.setForeground(fg);
-							gc.setAlpha(rowAlpha);
 							gc.setFont(font);
 						}
 						if (DEBUG_ROW_PAINT) {
