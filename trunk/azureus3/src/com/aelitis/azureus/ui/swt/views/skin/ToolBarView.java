@@ -125,7 +125,7 @@ public class ToolBarView
 		if (!uiClassic) {
 			
 			// ==OPEN
-			item = new ToolBarItemSO(this, "open", "image.button.open", "Button.add");
+			item = new ToolBarItemSO(this, "open", "image.toolbar.open", "Button.add");
 			item.setDefaultActivationListener(new UIToolBarActivationListener() {
 				public boolean toolBarItemActivated(ToolBarItem item,
 						long activationType, Object datasource) {
@@ -138,7 +138,7 @@ public class ToolBarView
 			});
 			item.setAlwaysAvailable(true);
 			item.setGroupID( GROUP_BIG );
-			addToolBarItem(item, "toolbar.area.item", so0th);		
+			addToolBarItem(item, "toolbar.area.0item", so0th);		
 			
 			// ==download
 			item = new ToolBarItemSO(this, "download", "image.button.download",
