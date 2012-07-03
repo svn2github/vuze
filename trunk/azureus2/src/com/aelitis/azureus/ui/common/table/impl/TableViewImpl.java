@@ -15,6 +15,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 
 /**
  * @author TuxPaper
@@ -1021,6 +1022,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			listUnfilteredDataSources.clear();
 
 			selectedRows.clear();
+			listSelectedCoreDataSources = null;
 			
 			if (DEBUGADDREMOVE) {
 				debug("removeAll");
@@ -1080,6 +1082,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
   
   				rows_removed++;
   			}
+  		}
+  		if (rows_removed > 0) {
+  			listSelectedCoreDataSources = null;
   		}
 		}
 
@@ -1901,5 +1906,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 	public void setProvideIndexesOnRemove(boolean provideIndexesOnRemove) {
 		this.provideIndexesOnRemove = provideIndexesOnRemove;
+	}
+
+	public boolean isTableSelected() {
+		return SelectedContentManager.getCurrentlySelectedTableView() == this;
 	}
 }
