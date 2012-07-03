@@ -1798,13 +1798,13 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 		final List<TableRowCore> oldSelectionList = new ArrayList<TableRowCore>();
 		
-		if (oldSelectionList.size() == 0 && newSelectionArray.length == 0) {
-			return;
-		}
-
 		List<TableRowCore> listNewlySelected;
 		boolean somethingChanged;
 		synchronized (selectedRows) {
+			if (selectedRows.size() == 0 && newSelectionArray.length == 0) {
+				return;
+			}
+
 			oldSelectionList.addAll(selectedRows);
 			listSelectedCoreDataSources = null;
 			selectedRows.clear();
