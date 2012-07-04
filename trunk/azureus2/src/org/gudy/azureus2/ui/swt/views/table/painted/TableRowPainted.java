@@ -148,9 +148,10 @@ public class TableRowPainted
 		if (isRowDisposed() || gc == null || gc.isDisposed() || drawBounds == null) {
 			return;
 		}
-		if (!drawBounds.intersects(rowStartX, rowStartY, 9999, getHeight())) {
-			return;
-		}
+		// done by caller
+		//if (!drawBounds.intersects(rowStartX, rowStartY, 9999, getHeight())) {
+		//	return;
+		//}
 
 		TableColumnCore[] visibleColumns = getView().getVisibleColumns();
 		if (visibleColumns == null || visibleColumns.length == 0) {
