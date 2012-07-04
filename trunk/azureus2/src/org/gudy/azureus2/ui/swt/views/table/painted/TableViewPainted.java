@@ -152,6 +152,8 @@ public class TableViewPainted
 	
 	private RefreshTableRunnable refreshTableRunnable = new RefreshTableRunnable();
 
+	protected boolean isFocused;
+
 	/**
 	 * Main Initializer
 	 * @param _sTableID Which table to handle (see 
@@ -1092,6 +1094,19 @@ public class TableViewPainted
 				redrawTable();
 			}
 		});
+		
+		cTable.addFocusListener(new FocusListener() {
+			public void focusLost(FocusEvent e) {
+				isFocused = false;
+				redrawTable();
+			}
+			
+			public void focusGained(FocusEvent e) {
+				isFocused = true;
+				redrawTable();
+			}
+		});
+		isFocused = cTable.isFocusControl();
 
 		new TableTooltips(this, cTable);
 
@@ -2790,4 +2805,9 @@ public class TableViewPainted
 		return lock;
 	}
 	
+	@Override
+	public boolean isTableSelected() {
+		TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
+		return tv == this || (tv == null && isFocused);
+	}
 }
