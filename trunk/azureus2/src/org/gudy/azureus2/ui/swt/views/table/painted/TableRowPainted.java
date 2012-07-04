@@ -447,7 +447,7 @@ public class TableRowPainted
 						cellBounds.x += 1;
 						cellBounds.y += 1;
 						int alpha = gc.getAlpha();
-						gc.setAlpha(128);
+						gc.setAlpha(0x40);
 						sp.printString(gc, cellBounds, style);
 						gc.setAlpha(alpha);
 						gc.setForeground(oldFG);
