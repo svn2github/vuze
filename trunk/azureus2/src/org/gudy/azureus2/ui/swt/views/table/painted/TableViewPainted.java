@@ -2264,7 +2264,7 @@ public class TableViewPainted
   		swt_paintCanvasImage(gc, bounds);
   		gc.dispose();
   		if (cTable != null && !cTable.isDisposed()) {
-  			cTable.redraw(bounds.x, bounds.y, bounds.width, bounds.height, false);
+  			cTable.redraw(bounds.x - clientArea.x, bounds.y, bounds.width, bounds.height, false);
   			if (immediateRedraw) {
   				cTable.update();
   			}
