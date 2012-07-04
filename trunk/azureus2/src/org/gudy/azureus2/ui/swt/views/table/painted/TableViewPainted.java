@@ -1394,6 +1394,7 @@ public class TableViewPainted
 	protected void swt_paintCanvasImage(GC gc, Rectangle drawBounds) {
 		int end = drawBounds.y + drawBounds.height;
 
+		gc.setClipping(drawBounds);
 		TableRowCore oldRow = null;
 		int pos = -1;
 		Set<TableRowPainted> visibleRows = this.visibleRows;
@@ -1438,18 +1439,17 @@ public class TableViewPainted
 			}
 		}
 
-		//gc.setAlpha(90);
-		gc.setForeground(getColorLine());
-		gc.setBackground(cTable.getDisplay().getSystemColor(
-				SWT.COLOR_LIST_BACKGROUND));
+		//gc.setForeground(getColorLine());
 		TableColumnCore[] visibleColumns = getVisibleColumns();
 		int x = 0;
+		gc.setAlpha(20);
 		for (TableColumnCore column : visibleColumns) {
 			x += column.getWidth();
 
 			// Vertical lines between columns
 			gc.drawLine(x - 1, drawBounds.y, x - 1, drawBounds.y + drawBounds.height);
 		}
+		gc.setAlpha(255);
 	}
 	
 	private Color getColorLine() {
@@ -2275,7 +2275,6 @@ public class TableViewPainted
   		}
   		//System.out.println("UpdateCanvasImage " + bounds + "; via " + Debug.getCompressedStackTrace());
   		GC gc = new GC(canvasImage);
-  		gc.setClipping(bounds);
   		swt_paintCanvasImage(gc, bounds);
   		gc.dispose();
   		if (cTable != null && !cTable.isDisposed()) {

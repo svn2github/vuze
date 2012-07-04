@@ -162,20 +162,17 @@ public class TableRowPainted
 		
 		Color origBG = gc.getBackground();
 		Color origFG = gc.getForeground();
+		
+		Color altColor = alternatingColors[pos >= 0 ? pos % 2 : 0];
+		if (altColor == null) {
+			altColor = gc.getDevice().getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+		}
 		if (isSelected) {
 			Color color;
 			color = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION);
 			gc.setBackground(color);
 		} else {
-			Color color;
-			color = alternatingColors[pos >= 0 ? pos % 2 : 0];
-
-			if (color != null) {
-				gc.setBackground(color);
-			} else {
-				gc.setBackground(gc.getDevice().getSystemColor(
-						SWT.COLOR_LIST_BACKGROUND));
-			}
+			gc.setBackground(altColor);
 		}
 
 		Color bg = getBackground();
@@ -204,8 +201,8 @@ public class TableRowPainted
 		}
 
 		int rowAlpha = getAlpha();
-
 		Font font = gc.getFont();
+		Rectangle clipping = gc.getClipping();
 
 		int x = rowStartX;
 		//boolean paintedRow = false;
@@ -226,13 +223,20 @@ public class TableRowPainted
 						//paintedRow = true;
 						gc.setAlpha(255);
 						if (isSelectedNotFocused) {
-							gc.setBackground(gc.getDevice().getSystemColor(SWT.COLOR_LIST_BACKGROUND));
+							gc.setBackground(altColor);
 							gc.fillRectangle(r);
 							gc.setAlpha(100);
 							gc.setBackground(bg);
 							gc.fillRectangle(r);
 						} else {
+							gc.setBackground(bg);
 							gc.fillRectangle(r);
+							if (isSelected) {
+  							gc.setAlpha(80);
+  							gc.setForeground(altColor);
+  							gc.fillGradientRectangle(r.x, r.y, r.width, r.height, true);
+  							gc.setForeground(fg);
+							}
 						}
 						gc.setAlpha(rowAlpha);
 						if (swt_paintCell(gc, cellSWT.getBounds(), cellSWT, shadowColor)) {
@@ -246,6 +250,7 @@ public class TableRowPainted
 							gc.setBackground(bg);
 							gc.setForeground(fg);
 							gc.setFont(font);
+							gc.setClipping(clipping);
 						}
 						if (DEBUG_ROW_PAINT) {
 							((TableCellSWTBase) cell).debug("painted "
@@ -268,7 +273,24 @@ public class TableRowPainted
 			}
 			int w = drawBounds.width - x;
 			if (w > 0) {
-				gc.fillRectangle(x, rowStartY, w, getHeight());
+				Rectangle r = new Rectangle(x, rowStartY, w, getHeight());
+				gc.setAlpha(255);
+				if (isSelectedNotFocused) {
+					gc.setBackground(altColor);
+					gc.fillRectangle(r);
+					gc.setAlpha(100);
+					gc.setBackground(bg);
+					gc.fillRectangle(r);
+				} else {
+					gc.fillRectangle(r);
+					if (isSelected) {
+						gc.setAlpha(80);
+						gc.setForeground(altColor);
+						gc.fillGradientRectangle(r.x, r.y, r.width, r.height, true);
+						gc.setForeground(fg);
+					}
+				}
+				gc.setAlpha(rowAlpha);
 			}
 
 		}
