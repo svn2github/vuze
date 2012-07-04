@@ -455,6 +455,7 @@ public class TableViewPainted
 			rowsToSelect.add(curRow);
 		}
 		setSelectedRows(rowsToSelect.toArray(new TableRowCore[0]));
+		setFocusedRow(clickedRow);
 	}
 
 	protected TableRowCore getPreviousRow(TableRowCore relativeToRow) {
