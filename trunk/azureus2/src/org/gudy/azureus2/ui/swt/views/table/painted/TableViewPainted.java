@@ -460,10 +460,12 @@ public class TableViewPainted
 		ArrayList<TableRowCore> rowsToSelect = new ArrayList<TableRowCore>(Arrays.asList(selectedRows));
 		TableRowCore curRow = firstRow;
 		do {
-			rowsToSelect.add(curRow);
+			if (!rowsToSelect.contains(curRow)) {
+				rowsToSelect.add(curRow);
+			}
 			curRow = (startPos < endPos) ? getNextRow(curRow) : getPreviousRow(curRow);
 		} while (curRow != clickedRow && curRow != null);
-		if (curRow != null) {
+		if (curRow != null && !rowsToSelect.contains(curRow)) {
 			rowsToSelect.add(curRow);
 		}
 		setSelectedRows(rowsToSelect.toArray(new TableRowCore[0]));
@@ -2626,14 +2628,16 @@ public class TableViewPainted
 					menu.setData("inBlankArea", noRow);
 					menu.setData("isHeader", false);
 				}
-				menu.setData("column", getTableColumnByOffset(event.x));
+				Point pt = cHeaderArea.toControl(event.x, event.y);
+				menu.setData("column", getTableColumnByOffset(pt.x));
 			}
 		});
 		cHeaderArea.addListener(SWT.MenuDetect, new Listener() {
 			public void handleEvent(Event event) {
 				menu.setData("inBlankArea", false);
 				menu.setData("isHeader", true);
-				menu.setData("column", getTableColumnByOffset(event.x));
+				Point pt = cHeaderArea.toControl(event.x, event.y);
+				menu.setData("column", getTableColumnByOffset(pt.x));
 			}
 		});
 		MenuBuildUtils.addMaintenanceListenerForMenu(menu,
