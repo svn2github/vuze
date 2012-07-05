@@ -222,6 +222,9 @@ TranscodeQueueImpl
 						private Average eta_average 		= AverageFactory.MovingAverage(ETA_AVERAGE_SIZE);
 						private int		last_percent;
 						
+						private long	initial_file_downloaded 	= job.getFile().getDownloaded();
+						private long	file_size				 	= job.getFile().getLength();
+													
 						public void
 						updateProgress(
 							int			percent,
@@ -342,6 +345,20 @@ TranscodeQueueImpl
 						public void 
 						complete() 
 						{
+								// sanity check: for incomplete files at the start of the process ensure that they have completed
+							
+							long	current_downloaded = job.getFile().getDownloaded();
+														
+							if ( file_size > 0 && initial_file_downloaded < file_size && current_downloaded < file_size ){
+								
+								if ( error[0] == null ){
+									
+									Debug.out( "Premature transcode termination: init=" + initial_file_downloaded + ", curr=" + current_downloaded + ", len=" + file_size );
+
+									error[0] = new TranscodeException( "Transcode terminated prematurely" );
+								}
+							}
+							
 							xcode_sem.release();
 						}
 					};
