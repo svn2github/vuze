@@ -247,7 +247,7 @@ MagnetPluginMDDownloader
 			
 			List<String>	trackers = new ArrayList<String>();
 
-			String	name = "magnet" + Base32.encode( hash );
+			String	name = "magnet:" + Base32.encode( hash );
 			
 			for ( String bit: bits ){
 				
