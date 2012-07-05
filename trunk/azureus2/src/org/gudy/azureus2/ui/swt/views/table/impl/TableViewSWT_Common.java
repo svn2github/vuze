@@ -356,7 +356,7 @@ public class TableViewSWT_Common
 		//       method.
 
 		TableViewSWTFilter<?> filter = tv.getSWTFilter();
-		if (event.widget != null && event.widget == filter.widget) {
+		if (event.widget != null && filter != null && event.widget == filter.widget) {
 			if (event.character == SWT.DEL || event.character == SWT.BS) {
 				handleSearchKeyPress(event);
 				return;
