@@ -41,7 +41,7 @@ FEATURE: UI   | Enhanced search box - allows for entry of magnet links, torrent 
 FEATURE: UI   | Support 'bits' based base-10 display unit [Parg]
 FEATURE: UI   | Export magnet URI menu added to Share View [TuxPaper] 
 FEATURE: UI   | Allow dragging stuff to Share View sidebar entry [TuxPaper]
-
+FEATURE: UI   | Added Tracker Name column header menu option to allow specification of preferred trackers to display for multi-tracker torrents [Parg]
 
 FEATURE: Plug | New highcharts stats demo plugin [Parg]
 FEATURE: Plug | New plugin to add tracker URLs to multiple torrent [Parg]
