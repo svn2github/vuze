@@ -1827,14 +1827,20 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 				for (TableRowCore oldRow : oldSelectionList) {
 					if (oldRow == row) {
 						existed = true;
-						selectedRows.add(row);
+						if (!selectedRows.contains(row)) {
+							selectedRows.add(row);
+						}
 						oldSelectionList.remove(row);
 						break;
 					}
 				}
 				if (!existed) {
-					selectedRows.add(row);
-					listNewlySelected.add(row);
+					if (!selectedRows.contains(row)) {
+						selectedRows.add(row);
+					}
+					if (!listNewlySelected.contains(row)) {
+						listNewlySelected.add(row);
+					}
 				}
 			}
 
