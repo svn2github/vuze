@@ -22,22 +22,19 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.views.columnsetup.TableColumnSetupWindow.TableViewColumnSetup;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
-
-import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
  * @author TuxPaper
@@ -118,18 +115,19 @@ public class ColumnTC_NameInfo
 		Rectangle profBounds = new Rectangle(bounds.width - 100, bounds.y - 2, 100, 20);
 		byte proficiency = columnInfo.getProficiency();
 		if (proficiency > 0 && proficiency < profText.length) {
-			Color oldColor = gc.getForeground();
-			gc.setForeground(Colors.grey);
+			int alpha = gc.getAlpha();
+			gc.setAlpha(0xA0);
 			GCStringPrinter.printString(gc,
 					MessageText.getString("ConfigView.section.mode."
 							+ profText[proficiency]), profBounds, true,
 					false, SWT.RIGHT | SWT.TOP);
-			gc.setForeground(oldColor);
+			gc.setAlpha(alpha);
 		}
 
 		Rectangle hitArea;
-		TableViewSWT tv = (TableViewSWT) ((TableCellCore) cell).getTableRowCore().getView();
-		if (tv.getRow(column) != null) {
+		TableView<?> tv = ((TableCellCore) cell).getTableRowCore().getView();
+		TableColumnSetupWindow tvs = (TableColumnSetupWindow) tv.getParentDataSource();
+		if (tvs.isColumnAdded(column)) {
 			hitArea = Utils.EMPTY_RECT;
 		} else {
 			int x = bounds.x + titleSize.x + 15;
@@ -170,11 +168,12 @@ public class ColumnTC_NameInfo
 			if (data instanceof Rectangle) {
 				Rectangle hitArea = (Rectangle) data;
 				if (hitArea.contains(event.x, event.y)) {
-					TableViewColumnSetup tv = (TableViewColumnSetup) ((TableCellCore) event.cell).getTableRowCore().getView();
+					TableView<?> tv = ((TableCellCore) event.cell).getTableRowCore().getView();
+					TableColumnSetupWindow tvs = (TableColumnSetupWindow) tv.getParentDataSource();
 					Object dataSource = event.cell.getDataSource();
 					if (dataSource instanceof TableColumnCore) {
 						TableColumnCore column = (TableColumnCore) dataSource;
-						tv.chooseColumn(column);
+						tvs.chooseColumn(column);
 					}
 				}
 			}

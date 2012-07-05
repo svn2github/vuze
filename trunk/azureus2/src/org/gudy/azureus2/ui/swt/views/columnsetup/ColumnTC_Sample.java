@@ -32,9 +32,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.FakeTableCell;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import com.aelitis.azureus.ui.common.table.TableCellCore;
-import com.aelitis.azureus.ui.common.table.TableColumnCore;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.*;
 
 /**
  * @author TuxPaper
@@ -62,10 +60,11 @@ public class ColumnTC_Sample
 					return;
 				}
 				TableColumnCore column = (TableColumnCore) cell.getDataSource();
-				TableViewSWT tvs = (TableViewSWT) ((TableCellCore) cell).getTableRowCore().getView();
-				TableRowCore sampleRow = (TableRowCore) tvs.getParentDataSource();
+				TableViewSWT<?> tv = (TableViewSWT<?>) ((TableCellCore) cell).getTableRowCore().getView();
+				TableColumnSetupWindow tvs = (TableColumnSetupWindow) tv.getParentDataSource();
+				TableRowCore sampleRow = (TableRowCore) tvs.getSampleRow();
 
-				cell.addListeners(new Cell(cell, column, tvs.getTableComposite(), sampleRow));
+				cell.addListeners(new Cell(cell, column, tv.getTableComposite(), sampleRow));
 			}
 		});
 	}
