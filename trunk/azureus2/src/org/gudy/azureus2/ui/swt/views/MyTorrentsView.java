@@ -109,6 +109,41 @@ public class MyTorrentsView
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
+	public static volatile Set<String>	preferred_tracker_names;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"mtv.trackername.pref.hosts",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					String prefs = COConfigurationManager.getStringParameter( name, null );
+					
+					Set<String>	new_vals = new HashSet<String>();
+					
+					if ( prefs != null ){
+						
+						String[] bits = prefs.split( ";" );
+						
+						for ( String s: bits ){
+							
+							s = s.trim();
+							
+							if ( s.length() > 0 ){
+								
+								new_vals.add( s );
+							}
+						}
+					}
+					
+					preferred_tracker_names = new_vals;
+				}
+			});
+	}
+	
 	private AzureusCore		azureus_core;
 
   private GlobalManager globalManager;
@@ -1029,7 +1064,25 @@ public class MyTorrentsView
         }
       });
 
-    }
+    }else if (sColumnName.equals("trackername")) {
+        MenuItem item = new MenuItem(menuThisColumn, SWT.PUSH);
+        Messages.setLanguageText(item, "MyTorrentsView.menu.trackername.editprefs");
+        item.addListener(SWT.Selection, new Listener() {
+          public void handleEvent(Event e) {
+      		SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+    				"trackername.prefs.title", "trackername.prefs.message");
+      		entryWindow.setPreenteredText( COConfigurationManager.getStringParameter( "mtv.trackername.pref.hosts", "" ), true );
+      		entryWindow.selectPreenteredText( false );
+    		entryWindow.prompt();
+    		if (entryWindow.hasSubmittedInput()) {
+    			String text = entryWindow.getSubmittedInput();
+    			
+    			COConfigurationManager.setParameter( "mtv.trackername.pref.hosts", text.trim());
+    		}
+          }
+        });
+
+      }
   }
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener#fillMenu(java.lang.String, org.eclipse.swt.widgets.Menu)
