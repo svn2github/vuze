@@ -2185,6 +2185,8 @@ public class TableViewPainted
 
 						int yDiff = oldClientArea.y - newClientArea.y;
 						if (Math.abs(yDiff) < clientArea.height) {
+							boolean wasIn = in_swt_updateCanvasImage;
+							in_swt_updateCanvasImage = true;
   						GC gc = new GC(canvasImage);
   						Rectangle bounds = canvasImage.getBounds();
   						//System.out.println("moving y " + yDiff + ";cah=" + clientArea.height);
@@ -2204,6 +2206,7 @@ public class TableViewPainted
 					  		gc.setClipping((Rectangle) null);
   						}
   						gc.dispose();
+							in_swt_updateCanvasImage = wasIn;
   						
   						needRedraw = true;
 						} else {
