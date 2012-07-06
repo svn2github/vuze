@@ -108,7 +108,7 @@ public class TableColumnManager {
 					iPositionB = 0xFFFF + iPositionB;
 
 				int i = iPositionA - iPositionB;
-				if (i != 0) {
+				if (i != 0 || iPositionA == (0xFFFF + TableColumn.POSITION_LAST)) {
 					return i;
 				}
 				
