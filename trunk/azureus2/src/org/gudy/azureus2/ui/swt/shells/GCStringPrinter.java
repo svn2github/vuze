@@ -1436,11 +1436,13 @@ public class GCStringPrinter
 	}
 
 	/**
-	 * @param rectangle
-	 *
-	 * @since 3.0.4.3
+	 * DO NOT REMOVE OR CHANGE RETURN TYPE -- USED BY PLUGINS
 	 */
-	public boolean printString(GC gc, Rectangle rectangle, int swtFlags) {
+	public void printString(GC gc, Rectangle rectangle, int swtFlags) {
+		printString2(gc, rectangle, swtFlags);
+	}
+
+	public boolean printString2(GC gc, Rectangle rectangle, int swtFlags) {
 		this.gc = gc;
 		int printFlags = this.printFlags;
 		if (printArea.width == rectangle.width) {

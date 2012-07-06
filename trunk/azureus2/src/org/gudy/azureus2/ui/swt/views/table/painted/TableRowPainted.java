@@ -454,7 +454,7 @@ public class TableRowPainted
 
 						cellBounds.x -= 1;
 						cellBounds.y -= 1;
-						fit = sp.printString(gc, cellBounds, style);
+						fit = sp.printString2(gc, cellBounds, style);
 					} else {
 						fit = sp.printString();
 					}
