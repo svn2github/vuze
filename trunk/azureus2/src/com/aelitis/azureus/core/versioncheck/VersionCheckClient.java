@@ -1339,6 +1339,7 @@ public class VersionCheckClient {
 		message.put( "os",      Constants.OSName );
 		message.put( "os_version", System.getProperty( "os.version" ) );
 		message.put( "os_arch", System.getProperty( "os.arch" ) );   //see http://lopica.sourceforge.net/os.html
+		message.put( "os_arch_dm", System.getProperty( "sun.arch.data.model" ) );  // might be needed to openjdk on osx
 
 		boolean using_phe = COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require" );
 		message.put( "using_phe", using_phe ? new Long(1) : new Long(0) );
