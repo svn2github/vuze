@@ -57,8 +57,8 @@ public class TableViewSWT_Common
 
 	private static AEMonitor mon_RowPaintListener = new AEMonitor("rpl");
 
-	public static int xAdj = 0;
-	public static int yAdj = 0;
+	public int xAdj = 0;
+	public int yAdj = 0;
 
 	private ArrayList<TableRowSWTPaintListener> rowPaintListeners;
 
@@ -196,7 +196,7 @@ public class TableViewSWT_Common
 			int stateMask) {
 	}
 
-	private static TableCellMouseEvent createMouseEvent(TableCellCore cell, MouseEvent e,
+	private TableCellMouseEvent createMouseEvent(TableCellCore cell, MouseEvent e,
 			int type, boolean allowOOB) {
 		TableCellMouseEvent event = new TableCellMouseEvent();
 		event.cell = cell;
@@ -226,7 +226,7 @@ public class TableViewSWT_Common
 		return event;
 	}
 
-	private static TableRowMouseEvent createMouseEvent(TableRowSWT row, MouseEvent e,
+	private TableRowMouseEvent createMouseEvent(TableRowSWT row, MouseEvent e,
 			int type, boolean allowOOB) {
 		TableCellMouseEvent event = new TableCellMouseEvent();
 		event.row = row;
