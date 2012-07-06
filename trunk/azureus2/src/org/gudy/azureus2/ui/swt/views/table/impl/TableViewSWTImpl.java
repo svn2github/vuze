@@ -55,14 +55,14 @@ import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
-import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /** 
  * An IView with a sortable table.  Handles composite/menu/table creation
  * and management.
  *
+ * @deprecated This implementation requires much massaging of the native table/tree widget
+ * 
  * @author Olivier (Original PeersView/MyTorrentsView/etc code)
  * @author TuxPaper
  *         2004/Apr/20: Remove need for tableItemToObject
