@@ -2137,7 +2137,7 @@ public class TableViewPainted
 	}
 
 	protected void swt_calculateClientArea() {
-		if (cTable.isDisposed()) {
+		if (cTable == null || cTable.isDisposed()) {
 			return;
 		}
 		Rectangle oldClientArea = clientArea;
