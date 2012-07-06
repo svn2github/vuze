@@ -181,6 +181,9 @@ Device
 	public boolean
 	isExportable();
 	
+	public URL
+	getWikiURL();
+	
 	public VuzeFile
 	getVuzeFile()
 	

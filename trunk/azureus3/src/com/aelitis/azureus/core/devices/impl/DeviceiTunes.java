@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.devices.impl;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -195,6 +196,21 @@ DeviceiTunes
 	isLivenessDetectable() 
 	{
 		return( true );
+	}
+	
+	@Override
+	public URL
+	getWikiURL()
+	{
+		try{
+			return( new URL( MessageText.getString( "device.wiki.itunes" )) );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( null );
+		}
 	}
 	
 	protected void

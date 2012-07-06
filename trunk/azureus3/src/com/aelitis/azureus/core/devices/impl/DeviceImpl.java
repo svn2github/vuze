@@ -791,6 +791,12 @@ DeviceImpl
 		}
 	}
 	
+	public URL
+	getWikiURL()
+	{
+		return( null );
+	}
+	
 	protected void
 	setDirty()
 	{

@@ -23,6 +23,7 @@ package com.aelitis.azureus.ui.swt.devices;
 
 import java.io.File;
 import java.net.InetAddress;
+import java.net.URL;
 import java.util.*;
 import java.util.List;
 
@@ -3110,9 +3111,28 @@ DeviceManagerUI
 				
 			remove_menu_item.addListener( remove_listener );
 
-			// sep
+				// sep
 			
 			menu_manager.addMenuItem("sidebar." + key, "s3" ).setStyle( MenuItem.STYLE_SEPARATOR );
+			
+			final URL wiki_url = device.getWikiURL();
+			
+			if ( wiki_url != null ){
+				
+				MenuItem wiki_menu_item = menu_manager.addMenuItem("sidebar." + key, "device.wiki");
+
+				wiki_menu_item.addListener(
+					new MenuItemListener()
+					{
+						public void 
+						selected(
+							MenuItem 	menu,
+							Object 		target ) 
+						{
+							Utils.launch( wiki_url.toExternalForm());
+						}
+					});
+			}
 			
 			// props
 			
