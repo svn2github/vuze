@@ -714,13 +714,6 @@ public class MyTorrentsView
 						row.setSelected( true );
 					}
 					
-					List<SelectedContent> listSelected = new ArrayList<SelectedContent>( 1 );
-					
-					listSelected.add(new SelectedContent( dm ));
-				
-					SelectedContent[] content = listSelected.toArray(new SelectedContent[0]);
-					
-					SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(), content, tv );
 				}
 			}
 		}
