@@ -37,7 +37,6 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.DelayedListenerMultiCombiner;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
@@ -403,7 +402,7 @@ public class MyTorrentsSuperView
 
 		if (viewWhenDeactivated != null) {
 			viewWhenDeactivated.getComposite().setFocus();
-			viewWhenDeactivated.updateSelectedContent();
+			viewWhenDeactivated.updateSelectedContent(true);
 		} else {
 			MyTorrentsView currentView = getCurrentView();
 			if (currentView != null ) {
@@ -525,14 +524,6 @@ public class MyTorrentsSuperView
 				dataSourceChanged(event.getData());
 				break;
 
-			case UISWTViewEvent.TYPE_FOCUSGAINED:
-				viewActivated();
-				break;
-
-			case UISWTViewEvent.TYPE_FOCUSLOST:
-				viewDeactivated();
-				break;
-
 			case UISWTViewEvent.TYPE_REFRESH:
 				break;
 				
@@ -559,6 +550,19 @@ public class MyTorrentsSuperView
     	} catch (Exception e) {
     		Debug.out(e);
     	}
+		}
+
+		// both subviews will get focusgained, resulting in the last one grabbing
+		// "focus".  We restore last used focus, but only after the subviews are
+		// done being greedy
+		switch (event.getType()) {
+			case UISWTViewEvent.TYPE_FOCUSGAINED:
+				viewActivated();
+				break;
+
+			case UISWTViewEvent.TYPE_FOCUSLOST:
+				viewDeactivated();
+				break;
 		}
 
 		return true;
