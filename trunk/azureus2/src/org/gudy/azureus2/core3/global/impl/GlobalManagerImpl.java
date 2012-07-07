@@ -86,8 +86,9 @@ public class GlobalManagerImpl
 	private static final int LDT_DESTROY_INITIATED		= 3;
 	private static final int LDT_DESTROYED				= 4;
     private static final int LDT_SEEDING_ONLY           = 5;
+    private static final int LDT_EVENT		            = 6;
 	
-	private ListenerManager	listeners 	= ListenerManager.createAsyncManager(
+	private ListenerManager	listeners_and_event_listeners 	= ListenerManager.createAsyncManager(
 		"GM:ListenDispatcher",
 		new ListenerManagerDispatcher()
 		{
@@ -97,30 +98,42 @@ public class GlobalManagerImpl
 				int			type,
 				Object		value )
 			{
-				GlobalManagerListener	target = (GlobalManagerListener)_listener;
-		
-				if ( type == LDT_MANAGER_ADDED ){
+				if ( type == LDT_EVENT ){
 					
-					target.downloadManagerAdded((DownloadManager)value);
+					if ( _listener instanceof GlobalManagerEventListener ){
 					
-				}else if ( type == LDT_MANAGER_REMOVED ){
+						((GlobalManagerEventListener)_listener ).eventOccurred( (GlobalManagerEvent)value );
+					}	
+				}else{
 					
-					target.downloadManagerRemoved((DownloadManager)value);
-					
-				}else if ( type == LDT_DESTROY_INITIATED ){
-					
-					target.destroyInitiated();
-					
-				}else if ( type == LDT_DESTROYED ){
-					
-					target.destroyed();
-                    
-				}else if ( type == LDT_SEEDING_ONLY ){
-                    
-					boolean	[] temp = (boolean[])value;
-					
-                    target.seedingStatusChanged( temp[0], temp[1] );
-                }
+					if ( _listener instanceof GlobalManagerListener ){
+						
+						GlobalManagerListener	target = (GlobalManagerListener)_listener;
+				
+						if ( type == LDT_MANAGER_ADDED ){
+							
+							target.downloadManagerAdded((DownloadManager)value);
+							
+						}else if ( type == LDT_MANAGER_REMOVED ){
+							
+							target.downloadManagerRemoved((DownloadManager)value);
+							
+						}else if ( type == LDT_DESTROY_INITIATED ){
+							
+							target.destroyInitiated();
+							
+						}else if ( type == LDT_DESTROYED ){
+							
+							target.destroyed();
+		                    
+						}else if ( type == LDT_SEEDING_ONLY ){
+		                    
+							boolean	[] temp = (boolean[])value;
+							
+		                    target.seedingStatusChanged( temp[0], temp[1] );
+		                }
+					}
+				}
 			}
 		});
 	
@@ -1064,7 +1077,7 @@ public class GlobalManagerImpl
         }
 
         if (notifyListeners) {
-        	listeners.dispatch( LDT_MANAGER_ADDED, download_manager );
+        	listeners_and_event_listeners.dispatch( LDT_MANAGER_ADDED, download_manager );
         }
         
         download_manager.addListener(this);
@@ -1219,7 +1232,7 @@ public class GlobalManagerImpl
 	
     fixUpDownloadManagerPositions();
     
-    listeners.dispatch( LDT_MANAGER_REMOVED, manager );
+    listeners_and_event_listeners.dispatch( LDT_MANAGER_REMOVED, manager );
     
     manager.removeListener(this);
     
@@ -1918,13 +1931,17 @@ public class GlobalManagerImpl
   private void triggerAddListener(List downloadsToAdd) {
 		try {
 			managers_mon.enter();
-			List listenersCopy = listeners.getListenersCopy();
+			List listenersCopy = listeners_and_event_listeners.getListenersCopy();
 
 			for (int j = 0; j < listenersCopy.size(); j++) {
-				GlobalManagerListener gmListener = (GlobalManagerListener) listenersCopy.get(j);
-				for (int i = 0; i < downloadsToAdd.size(); i++) {
-					DownloadManager dm = (DownloadManager) downloadsToAdd.get(i);
-					gmListener.downloadManagerAdded(dm);
+				Object listener = listenersCopy.get(j);
+				
+				if ( listener instanceof GlobalManagerListener ){
+					GlobalManagerListener gmListener = (GlobalManagerListener)listener;
+					for (int i = 0; i < downloadsToAdd.size(); i++) {
+						DownloadManager dm = (DownloadManager) downloadsToAdd.get(i);
+						gmListener.downloadManagerAdded(dm);
+					}
 				}
 			}
 		} finally {
@@ -2323,13 +2340,13 @@ public class GlobalManagerImpl
 		t.start();
 		*/
 
-  		listeners.dispatch( LDT_DESTROYED, null, true );
+  		listeners_and_event_listeners.dispatch( LDT_DESTROYED, null, true );
   }
   	
   public void 
   informDestroyInitiated()  
   {
-  	listeners.dispatch( LDT_DESTROY_INITIATED, null, true );		
+	  listeners_and_event_listeners.dispatch( LDT_DESTROY_INITIATED, null, true );		
   }
   	
  	public void
@@ -2350,7 +2367,7 @@ public class GlobalManagerImpl
 				
 		}else{			
 							
-			listeners.addListener(listener);
+			listeners_and_event_listeners.addListener(listener);
 			
 			if (!trigger) {
 				return;
@@ -2377,8 +2394,46 @@ public class GlobalManagerImpl
  	removeListener(
 		GlobalManagerListener	listener )
 	{			
-		listeners.removeListener(listener);
+		listeners_and_event_listeners.removeListener(listener);
 	}
+	
+	public void
+	addEventListener(
+		GlobalManagerEventListener 		listener )
+	{
+		listeners_and_event_listeners.addListener( listener );
+	}
+	
+	public void
+	removeEventListener(
+		GlobalManagerEventListener 		listener )
+	{
+		listeners_and_event_listeners.removeListener( listener );
+	}
+
+	
+	public void 
+	fireGlobalManagerEvent(
+		final int 				type, 
+		final DownloadManager 	param )
+	{
+		listeners_and_event_listeners.dispatch(
+			LDT_EVENT,
+			new GlobalManagerEvent()
+			{
+				public int	
+				getEventType()
+				{
+					return( type );
+				}
+				
+				public DownloadManager
+				getDownload()
+				{
+					return( param );
+				}
+			});
+ 	}
 	
 	public void
 	addDownloadWillBeRemovedListener(
@@ -2567,7 +2622,7 @@ public class GlobalManagerImpl
 		      
 		      // System.out.println( "dispatching " + seeding_only_mode + "/" + potentially_seeding_only_mode );
 		      
-		      listeners.dispatch( LDT_SEEDING_ONLY, new boolean[]{ seeding_only_mode, potentially_seeding_only_mode });
+		      listeners_and_event_listeners.dispatch( LDT_SEEDING_ONLY, new boolean[]{ seeding_only_mode, potentially_seeding_only_mode });
 		  }
 	  }
   }

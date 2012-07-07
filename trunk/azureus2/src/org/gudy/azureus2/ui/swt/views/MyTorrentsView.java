@@ -43,6 +43,8 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerEvent;
+import org.gudy.azureus2.core3.global.GlobalManagerEventListener;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -93,6 +95,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 public class MyTorrentsView
        extends TableViewTab<DownloadManager>
        implements GlobalManagerListener,
+       			  GlobalManagerEventListener,
                   ParameterListener,
                   DownloadManagerListener,
                   CategoryManagerListener,
@@ -321,6 +324,7 @@ public class MyTorrentsView
 		    }
 		    CategoryManager.addCategoryManagerListener(MyTorrentsView.this);
 		    globalManager.addListener(MyTorrentsView.this, false);
+		    globalManager.addEventListener( MyTorrentsView.this );
 		    DownloadManager[] dms = globalManager.getDownloadManagers().toArray(new DownloadManager[0]);
 		    for (int i = 0; i < dms.length; i++) {
 					DownloadManager dm = dms[i];
@@ -367,6 +371,7 @@ public class MyTorrentsView
     }
     CategoryManager.removeCategoryManagerListener(this);
     globalManager.removeListener(this);
+    globalManager.removeEventListener( this );
     COConfigurationManager.removeParameterListener("DND Always In Incomplete", this);
     COConfigurationManager.removeParameterListener("User Mode", this);
   }
@@ -677,6 +682,50 @@ public class MyTorrentsView
 		cCategories.getParent().layout(true, true);
 	}
 
+	public void 
+	eventOccurred(
+		GlobalManagerEvent event ) 
+	{
+		if ( event.getEventType() == GlobalManagerEvent.ET_REQUEST_ATTENTION ){
+	
+			DownloadManager dm = event.getDownload();
+			
+			if ( isOurDownloadManager( dm )){
+			
+				TableRowCore row = tv.getRow( dm );
+				
+				if ( row != null ){
+					
+					TableRowCore[] existing = tv.getSelectedRows();
+					
+					if ( existing != null ){
+						
+						for ( TableRowCore e: existing ){
+						
+							if ( e != row ){
+							
+								e.setSelected( false );
+							}
+						}
+					}
+					
+					if ( !row.isSelected()){
+					
+						row.setSelected( true );
+					}
+					
+					List<SelectedContent> listSelected = new ArrayList<SelectedContent>( 1 );
+					
+					listSelected.add(new SelectedContent( dm ));
+				
+					SelectedContent[] content = listSelected.toArray(new SelectedContent[0]);
+					
+					SelectedContentManager.changeCurrentlySelectedContent(tv.getTableID(), content, tv );
+				}
+			}
+		}
+	}
+	
 	public boolean isOurDownloadManager(DownloadManager dm) {
   	if (!isInCategory(dm, currentCategory)) {
   		return false;

@@ -49,6 +49,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerEvent;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -2235,6 +2236,9 @@ public class OpenTorrentWindow
 
 			final String sfExistingName = sExistingName;
 			final DownloadManager fExistingDownload = existingDownload;
+			
+			fExistingDownload.fireGlobalManagerEvent( GlobalManagerEvent.ET_REQUEST_ATTENTION );
+			
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();

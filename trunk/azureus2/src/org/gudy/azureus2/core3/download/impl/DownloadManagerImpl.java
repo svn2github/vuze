@@ -4637,4 +4637,10 @@ DownloadManagerImpl
 		this.renameTorrent(new_path.getName());
 	}
 
+	public void 
+	fireGlobalManagerEvent(
+		int eventType ) 
+	{
+		globalManager.fireGlobalManagerEvent( eventType, this );
+	}
 }

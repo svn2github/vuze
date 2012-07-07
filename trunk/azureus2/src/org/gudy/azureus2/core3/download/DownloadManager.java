@@ -728,5 +728,8 @@ DownloadManager
      * @since 3.0.5.3
      */
     public void setTorrentFile(File new_parent_dir, String new_name) throws DownloadManagerException;
-
+    
+    public void
+    fireGlobalManagerEvent(
+    	int		event_type );
 }

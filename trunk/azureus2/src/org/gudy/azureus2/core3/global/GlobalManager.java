@@ -375,6 +375,19 @@ public interface GlobalManager extends AzureusCoreComponent {
 	removeDownloadManagerInitialisationAdapter(
 		DownloadManagerInitialisationAdapter	adapter );
 
+	public void
+	addEventListener(
+		GlobalManagerEventListener 		listener );
+	
+	public void
+	removeEventListener(
+		GlobalManagerEventListener 		listener );
+
+	public void 
+	fireGlobalManagerEvent(
+		int					type, 
+		DownloadManager 	param );
+	
 	/**
 	 * @param listener
 	 */
