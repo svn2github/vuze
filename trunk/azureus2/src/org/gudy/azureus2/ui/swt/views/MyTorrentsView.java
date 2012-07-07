@@ -218,7 +218,7 @@ public class MyTorrentsView
   	this.isSeedingView 	= isSeedingView;
   	
     tv = createTableView(forDataSourceType, tableID, basicItems);
-    tv.setRowDefaultIconSize(new Point(16, 16));
+    tv.setRowDefaultHeight(17);
     
     /*
      * 'Big' table has taller row height

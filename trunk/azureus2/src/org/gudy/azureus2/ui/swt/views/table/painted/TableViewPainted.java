@@ -69,7 +69,7 @@ public class TableViewPainted
 
 	protected int reOrderDelay = configMan.getIntParameter("ReOrder Delay");
 
-	private int defaultRowHeight = 16;
+	private int defaultRowHeight = 17;
 
 	/**
 	 * Rows visible to user.  We assume this list is always up to date
