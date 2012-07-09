@@ -243,6 +243,7 @@ public class TableViewPainted
 			@Override
 			public void keyPressed(KeyEvent event) {
 				if (getComposite() != event.widget) {
+					super.keyPressed(event);
 					return;
 				}
 				boolean updateTable = false;
