@@ -117,10 +117,16 @@ NetStatusProtocolTester
 
 			ddb = plugin_interface.getDistributedDatabase();
 			
-			ddb.addTransferHandler( transfer_type, this );
+			if ( ddb.isAvailable()){
 			
-			log( "DDB transfer type registered" );
+				ddb.addTransferHandler( transfer_type, this );
 			
+				log( "DDB transfer type registered" );
+				
+			}else{
+				
+				log( "DDB transfer type not registered, DDB unavailable" );
+			}			
 		}catch( Throwable e ){
 			
 			log( "DDB transfer type registration failed", e );
