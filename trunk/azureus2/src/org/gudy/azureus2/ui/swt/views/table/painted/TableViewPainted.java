@@ -1428,8 +1428,15 @@ public class TableViewPainted
 			Point drawOffset = paintedRow.getDrawOffset();
 			int rowStartX = 0;
 			int rowStartY = drawOffset.y - clientArea.y;
+			int rowHeight = paintedRow.getHeight();
 			//debug("Paint " + drawBounds.x + "x" + drawBounds.y + " " + drawBounds.width + "x" + drawBounds.height + "; Row=" +row.getIndex() + ";clip=" + gc.getClipping() +";drawOffset=" + drawOffset);
-			if (drawBounds.intersects(rowStartX, rowStartY, 9999, paintedRow.getHeight())) {
+			if (drawBounds.intersects(rowStartX, rowStartY, 9999, rowHeight)) {
+				// ensure full row height
+				int diffY2 = (rowStartY + rowHeight) - (drawBounds.y + drawBounds.height); 
+				if (diffY2 > 0 ) {
+					drawBounds.height += diffY2; 
+					gc.setClipping(drawBounds);
+				}
 				paintedRow.swt_paintGC(gc, drawBounds, rowStartX, rowStartY, pos);
 			}
 			oldRow = row;
