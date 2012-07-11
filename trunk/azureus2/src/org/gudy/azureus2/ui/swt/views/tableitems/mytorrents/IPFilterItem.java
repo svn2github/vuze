@@ -66,6 +66,7 @@ public class IPFilterItem
   public IPFilterItem(String sTableID) {
     super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, 100, sTableID);
     setRefreshInterval(INTERVAL_LIVE);
+	initializeAsGraphic(POSITION_INVISIBLE, 100);
 	setMinWidth(20);
   }
 
