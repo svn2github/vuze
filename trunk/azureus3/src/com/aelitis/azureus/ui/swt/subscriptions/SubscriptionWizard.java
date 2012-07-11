@@ -767,6 +767,7 @@ public class SubscriptionWizard {
 				
 				addButton.setEnabled(false);
 				addButton.setData("subscription",null);
+				tvSubscriptions.setSelectedRows(new TableRowCore[0]);
 				if (subscriptions != null && subscriptions.length > 0) {
 					TableRowCore row = tvSubscriptions.getRow(subscriptions[0]);
 					if (row != null) {
