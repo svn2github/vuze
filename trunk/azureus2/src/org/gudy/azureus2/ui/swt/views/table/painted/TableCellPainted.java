@@ -28,9 +28,9 @@ public class TableCellPainted
 
 	private String text = "";
 
-	private int marginWidth = 0;
+	private int marginWidth;
 
-	private int marginHeight = 0;
+	private int marginHeight;
 
 	private boolean redrawScheduled;
 

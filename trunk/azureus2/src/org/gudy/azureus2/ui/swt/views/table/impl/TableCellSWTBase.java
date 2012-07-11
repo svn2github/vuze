@@ -150,6 +150,10 @@ public abstract class TableCellSWTBase
 		tooltipErrLoopCount = 0;
 		refreshErrLoopCount = 0;
 		loopFactor = 0;
+		if (column != null && column.getType() == TableColumnCore.TYPE_GRAPHIC) {
+			setMarginHeight(1);
+			setMarginWidth(1);
+		}
 	}
 
 	public void addRefreshListener(TableCellRefreshListener listener) {
