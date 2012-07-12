@@ -1496,7 +1496,12 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		refreshTable(false);
 		triggerLifeCycleListener(TableLifeCycleListener.EVENT_INITIALIZED);
 		
-		addDataSources(unfilteredDS);
+		// some implementers re-add datasource on Initialized trigger.
+		// if they do, we don't have to re-add the unfiltlered (if we do, it
+		// could case dups if the new datasources have different derps)
+		if (listUnfilteredDataSources.size() == 0) {
+			addDataSources(unfilteredDS);
+		}
 	}
 
 	/* (non-Javadoc)
