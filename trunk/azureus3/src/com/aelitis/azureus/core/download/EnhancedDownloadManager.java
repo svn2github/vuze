@@ -745,7 +745,7 @@ EnhancedDownloadManager
 		String			str,
 		boolean			to_file )
 	{
-		str = dm.getDisplayName() + ": " + str;
+		str = dm.toString() + ": " + str;
 		
 		if ( to_file ){
 			
