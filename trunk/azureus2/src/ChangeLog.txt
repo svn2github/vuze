@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2012.07.xx | Vuze 4.7.0.3
+2012.07.13 | Vuze 4.7.1.0
 
 FEATURE: Core | Added a 'low' file priority setting and the ability to set negative priorities for various levels of 'low' [Parg]
 FEATURE: Core | Support for metdata download based magnet link resolution [Parg]
