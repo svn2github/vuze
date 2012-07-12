@@ -28,6 +28,8 @@ import java.io.File;
 import java.util.Date;
 
 import org.eclipse.swt.*;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -43,6 +45,7 @@ import org.gudy.azureus2.ui.swt.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.config.IntParameter;
 import org.gudy.azureus2.ui.swt.config.StringParameter;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
@@ -105,6 +108,27 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 	    
 	    info_label.setLayoutData( gridData );
 	    
+	    
+		// wiki link
+		
+		final Label linkLabel = new Label(cBR, SWT.NULL);
+		linkLabel.setText(MessageText.getString("ConfigView.label.please.visit.here"));
+		linkLabel.setData("http://wiki.vuze.com/w/Backup_And_Restore");
+		linkLabel.setCursor(linkLabel.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+		linkLabel.setForeground(Colors.blue);
+		gridData = new GridData();
+		gridData.horizontalSpan = 1;
+		linkLabel.setLayoutData(gridData);
+		linkLabel.addMouseListener(new MouseAdapter() {
+			public void mouseDoubleClick(MouseEvent arg0) {
+				Utils.launch((String) ((Label) arg0.widget).getData());
+			}
+
+			public void mouseDown(MouseEvent arg0) {
+				Utils.launch((String) ((Label) arg0.widget).getData());
+			}
+		});
+		
 	    final BackupManager	backup_manager = BackupManagerFactory.getManager( AzureusCoreFactory.getSingleton());
 	    
 	    	// backup
