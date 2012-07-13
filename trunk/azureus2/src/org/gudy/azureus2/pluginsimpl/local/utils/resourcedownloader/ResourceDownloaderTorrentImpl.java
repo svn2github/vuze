@@ -338,8 +338,11 @@ ResourceDownloaderTorrentImpl
 			
 			download.setForceStart( true );
 			
-			// Prevents any move-on-completion or move-on-removal behaviour happening.
+				// Prevents any move-on-completion or move-on-removal behaviour happening.
+			
 			download.setFlag(Download.FLAG_DISABLE_AUTO_FILE_MOVE, true);
+			
+			download.setFlag(Download.FLAG_DISABLE_IP_FILTER, true);
 			
 			download_manager.addListener(
 				new DownloadManagerListener()
