@@ -76,6 +76,9 @@ public class MenuBuildUtils {
 	public static void addMaintenanceListenerForMenu(final Menu menu,
 			final MenuBuilder builder) {
 
+		if (Constants.isLinux) { // Hack for Ubuntu Unity -- Show not called when no items
+			new org.eclipse.swt.widgets.MenuItem(menu, SWT.SEPARATOR);
+		}
 		// Was taken from TableView.java
 		menu.addMenuListener(new MenuListener() {
 			boolean bShown = false;
@@ -97,6 +100,9 @@ public class MenuBuildUtils {
 						for (int i = 0; i < items.length; i++) {
 							items[i].dispose();
 						}
+						if (Constants.isLinux) { // Hack for Ubuntu Unity -- Show not called when no items
+							new org.eclipse.swt.widgets.MenuItem(menu, SWT.SEPARATOR);
+						}
 					}
 				});
 			};
@@ -108,6 +114,11 @@ public class MenuBuildUtils {
 
 				bShown = true;
 				builder.buildMenu(menu, e);
+				if (Constants.isLinux) { // Hack for Ubuntu Unity -- Show not called when no items
+					if (menu.getItemCount() == 0) {
+						new org.eclipse.swt.widgets.MenuItem(menu, SWT.SEPARATOR);
+					}
+				}
 			}
 		});
 	}
