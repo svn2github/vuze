@@ -14,7 +14,7 @@ JAVA_ARGS="-Xmx128m"
 
 ######## YOU PROBABLY DO NOT WANT TO TOUCH ANYTHING BELOW! ########
 
-SCRIPT_VERSION=2
+SCRIPT_VERSION=3
 START_CLASS="org.gudy.azureus2.ui.swt.Main"
 
 MSG_LOADING="Loading Azureus:"
@@ -130,6 +130,20 @@ runJavaOutput()
 	fi
 }
 
+moveInSWT()
+{
+	if [ ! -f "${PROGRAM_DIR}/swt.jar" ]; then
+		if [ ! "$(echo ${PROGRAM_DIR}/swt/*.jar)" = "${PROGRAM_DIR}/swt/*.jar" ]; then
+			if [ "`${JAVA_PROGRAM_DIR}java -cp \"${CLASSPATH}\" org.gudy.azureus2.platform.JavaBitMode`" = "64" ]; then 
+				cp ${PROGRAM_DIR}/swt/swt64.jar ${PROGRAM_DIR}/swt.jar
+			else
+				cp ${PROGRAM_DIR}/swt/swt32.jar ${PROGRAM_DIR}/swt.jar
+			fi
+		fi
+	fi
+}
+
+
 echo $MSG_STARTING
 
 # locate and test the java executable
@@ -160,6 +174,8 @@ cd "${PROGRAM_DIR}"
 for FILE in ./*.jar; do
 	CLASSPATH="${CLASSPATH:+${CLASSPATH}:}$FILE"
 done
+
+moveInSWT
 
 # setup Java System Properties (no spaces in values)
 JAVA_PROPS="-Dazureus.script.version=${SCRIPT_VERSION}"
