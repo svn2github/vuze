@@ -647,6 +647,13 @@ public class TableRowPainted
 			destroyCells();
 		}
 	}
+	
+	@Override
+	public void delete() {
+		super.delete();
+		
+		deleteExistingSubRows();
+	}
 
 	private void deleteExistingSubRows() {
 		synchronized (subRows_sync) {
