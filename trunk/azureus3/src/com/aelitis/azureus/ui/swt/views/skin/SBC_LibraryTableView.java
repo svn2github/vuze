@@ -27,6 +27,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -35,6 +36,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -292,6 +294,12 @@ public class SBC_LibraryTableView
 			if (dm != null) {
 				UIFunctionsManager.getUIFunctions().openView(UIFunctions.VIEW_DM_DETAILS, dm);
 				return;
+			}else{
+				DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
+				if (file != null) {
+					UIFunctionsManager.getUIFunctions().openView(UIFunctions.VIEW_DM_DETAILS, file.getDownloadManager());
+					return;
+				}
 			}
 		}else if (mode.equals("2")) {
 			// Show in explorer
@@ -300,6 +308,27 @@ public class SBC_LibraryTableView
 				boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
 				ManagerUtils.open(dm, openMode);
 				return;
+			}else{
+				DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
+				if (file != null) {
+					boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
+					ManagerUtils.open(file, openMode);
+					return;
+				}
+			}
+		}else if (mode.equals("3")) {
+			// Launch
+			DownloadManager dm = DataSourceUtils.getDM(ds);
+			if (dm != null) {
+				TorrentUtil.runDataSources(new Object[]{ dm });
+				PlatformTorrentUtils.setHasBeenOpened(dm, true);
+				return;
+			}else{
+				DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
+				if (file != null) {
+					TorrentUtil.runDataSources(new Object[]{ file });
+					return;
+				}
 			}
 		}
 		

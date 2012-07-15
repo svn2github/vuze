@@ -160,6 +160,7 @@ public class ConfigSectionInterfaceTables
 				"ConfigView.option.dm.dblclick.play",
 				"ConfigView.option.dm.dblclick.details",
 				"ConfigView.option.dm.dblclick.show",
+				"ConfigView.option.dm.dblclick.launch",
 			};
 
 			String dblclickLabels[] = new String[dblclickOptions.length];
