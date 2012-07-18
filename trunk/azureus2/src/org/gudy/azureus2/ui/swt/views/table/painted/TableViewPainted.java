@@ -1414,6 +1414,7 @@ public class TableViewPainted
 	protected void swt_paintCanvasImage(GC gc, Rectangle drawBounds) {
 		int end = drawBounds.y + drawBounds.height;
 
+		gc.setFont(cTable.getFont());
 		gc.setClipping(drawBounds);
 		TableRowCore oldRow = null;
 		int pos = -1;

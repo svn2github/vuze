@@ -324,7 +324,7 @@ public class TableRowPainted
 		boolean gcChanged = false;
 		try {
 
-			gc.setTextAntialias(SWT.ON);
+			gc.setTextAntialias(SWT.DEFAULT);
 
 			TableViewSWT<?> view = (TableViewSWT<?>) getView();
 
