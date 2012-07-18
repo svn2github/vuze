@@ -243,7 +243,7 @@ public class TableViewPainted
 			@Override
 			public void keyPressed(KeyEvent event) {
 				if (getComposite() != event.widget) {
-					super.keyPressed(event);
+					super.keyPressed(event);	
 					return;
 				}
 				boolean updateTable = false;
@@ -990,7 +990,10 @@ public class TableViewPainted
 
 		cTable = new Canvas(cTableComposite, SWT.NO_BACKGROUND | SWT.H_SCROLL | SWT.V_SCROLL);
 		
+		// good test
+		//cTable.setFont(FontUtils.getFontPercentOf(cTable.getFont(), 1.50f));
 		int minRowHeight = FontUtils.getFontHeightInPX(cTable.getFont());
+		minRowHeight += Math.ceil(minRowHeight * 2.0 / 16.0);
 		if (defaultRowHeight < minRowHeight) {
 			defaultRowHeight = minRowHeight;
 		}
