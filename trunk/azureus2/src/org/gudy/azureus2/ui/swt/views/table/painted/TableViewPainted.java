@@ -658,7 +658,9 @@ public class TableViewPainted
 	 * @see com.aelitis.azureus.ui.common.table.TableView#setRowDefaultHeight(int)
 	 */
 	public void setRowDefaultHeight(int iHeight) {
-		defaultRowHeight = iHeight;
+		if (iHeight > defaultRowHeight) {
+			defaultRowHeight = iHeight;
+		}
 	}
 
 	/* (non-Javadoc)
@@ -987,6 +989,11 @@ public class TableViewPainted
 		cHeaderArea.setFont(fontHeader);
 
 		cTable = new Canvas(cTableComposite, SWT.NO_BACKGROUND | SWT.H_SCROLL | SWT.V_SCROLL);
+		
+		int minRowHeight = FontUtils.getFontHeightInPX(cTable.getFont());
+		if (defaultRowHeight < minRowHeight) {
+			defaultRowHeight = minRowHeight;
+		}
 
 		cTable.setBackground(parent.getDisplay().getSystemColor(
 				SWT.COLOR_LIST_BACKGROUND));
