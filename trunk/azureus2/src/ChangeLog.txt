@@ -6,8 +6,14 @@ VUZE CHANGELOG
 FEATURE: UI   | Added double-click -> Launch option to library options [Parg]
 
 CHANGE: Core  | Exclude Vuze update torrents from IP filter rules [Parg]
+CHANGE: UI    | Table Views now draw text in default Antialiasing (hoping that fixes some edge case bugs) [TuxPaper]
 
 BUGFIX: UI    | Fixed subscription wizard column header text [Parg]
+BUGFIX: UI    | *nix: Fix Plugins and Torrents menu not having any entries [TuxPaper]
+BUGFIX: UI    | Fix scrolling issue after Library row gets removed while its subrows are displayed [TuxPaper]
+BUGFIX: UI    | Ensure table row height can fit the default font size [TuxPaper] 
+
+
 
 2012.07.13 | Vuze 4.7.1.0
 
