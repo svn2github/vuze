@@ -3,6 +3,11 @@ VUZE CHANGELOG
 
 2012.0x.xx | Vuze 4.7.1.1
 
+FEATURE: UI   | Added double-click -> Launch option to library options [Parg]
+
+CHANGE: Core  | Exclude Vuze update torrents from IP filter rules [Parg]
+
+BUGFIX: UI    | Fixed subscription wizard column header text [Parg]
 
 2012.07.13 | Vuze 4.7.1.0
 
