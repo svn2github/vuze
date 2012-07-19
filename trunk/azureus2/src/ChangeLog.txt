@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+2012.xx.x | Vuze 4.7.1.3
+
+
+
 2012.07.19 | Vuze 4.7.1.2
 
 FEATURE: UI   | Added double-click -> Launch option to library options [Parg]
