@@ -3287,9 +3287,13 @@ DownloadManagerImpl
 	  finally {if (is_paused) {this.resume();}}
   	}
   
-  private void moveDataFilesSupport0(
-			File new_parent_dir, 
-			String new_filename) throws DownloadManagerException {
+  private void 
+  moveDataFilesSupport0(
+	File 		new_parent_dir, 
+	String 		new_filename )
+  
+  	throws DownloadManagerException 
+  {
 	  if (!canMoveDataFiles()){
 		  throw new DownloadManagerException("canMoveDataFiles is false!");
 	  }
@@ -3402,7 +3406,7 @@ DownloadManagerImpl
 			  }
 		  }
 	  }else{
-		  dm.moveDataFiles( new_save_location.getParentFile(), new_save_location.getName());
+		  dm.moveDataFiles( new_save_location.getParentFile(), new_save_location.getName(), null );
 	  }
   }
   

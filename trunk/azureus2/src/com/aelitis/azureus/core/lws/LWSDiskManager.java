@@ -508,21 +508,15 @@ LWSDiskManager
 	}
   
 	public void
-	downloadEnded()
+	downloadEnded( OperationStatus op_status )
 	{
-	}
-
-	public void
-	moveDataFiles(
-		File	new_parent_dir )
-	{
-		throw( new RuntimeException( "moveDataFiles not implemented" ));
 	}
 	
 	public void 
 	moveDataFiles(
-		File 	new_parent_dir, 
-		String 	new_name )
+		File 				new_parent_dir, 
+		String 				new_name,
+		OperationStatus		op_status )
 	{
 		throw( new RuntimeException( "moveDataFiles not implemented" ));
 	}

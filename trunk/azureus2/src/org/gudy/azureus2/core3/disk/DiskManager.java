@@ -229,12 +229,17 @@ DiskManager
 	getErrorMessage();
   
 	public void
-	downloadEnded();
+	downloadEnded(
+		OperationStatus		op_status );
 
     public void
     downloadRemoved();
 	
-	public void moveDataFiles(File new_parent_dir, String dl_name);
+	public void 
+	moveDataFiles(
+		File 				new_parent_dir, 
+		String 				dl_name, 
+		OperationStatus 	op_status );
 	
 		/**
 		 * returns -1 if no recheck in progress, percentage complete in 1000 notation otherwise
@@ -324,4 +329,19 @@ DiskManager
 	public void
 	generateEvidence(
 		IndentWriter		writer );
+	
+	public interface
+	OperationStatus
+	{
+		public void
+		gonnaTakeAWhile(
+			GettingThere	gt );
+	}
+	
+	public interface
+	GettingThere
+	{
+		public boolean
+		hasGotThere();
+	}
 }

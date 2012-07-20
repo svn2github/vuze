@@ -33,6 +33,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
+import org.gudy.azureus2.core3.disk.DiskManager.GettingThere;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.*;
 import org.gudy.azureus2.core3.logging.*;
@@ -350,6 +351,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private final boolean	is_metadata_download;
 	private int				metadata_infodict_size;
 	
+	private GettingThere	finish_in_progress;
+	
 	public 
 	PEPeerControlImpl(
 		byte[]					_peer_id,
@@ -543,6 +546,21 @@ DiskManagerCheckRequestListener, IPFilterListener
 	public void
 	schedule()
 	{
+		if ( finish_in_progress != null ){
+			
+			// System.out.println( "Finish in prog" );
+			
+			if ( finish_in_progress.hasGotThere()){
+				
+				finish_in_progress = null;
+				
+				// System.out.println( "Finished" );
+			}else{
+				
+				return;
+			}
+		}
+		
 		try{
 				// first off update the stats so they can be used by subsequent steps
 			
@@ -554,6 +572,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 			
 			processPieceChecks();
 
+			if ( finish_in_progress != null ){
+				
+					// get off the scheduler thread while potentially long running operations complete
+				
+				return;
+			}
+			
 			// note that seeding_mode -> torrent totally downloaded, not just non-dnd files
 			// complete, so there is no change of a new piece appearing done by a means such as
 			// background periodic file rescans
@@ -571,6 +596,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			checkCompletionState();	// pick up changes in completion caused by dnd file changes
 
+			if ( finish_in_progress != null ){
+				
+					// get off the scheduler thread while potentially long running operations complete
+
+				return;
+			}
+			
 			checkSeeds();
 
 			if(!seeding_mode) {
@@ -1264,6 +1296,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 				final Object[]	data = (Object[])it.next();
 
+				//bah
+				
 				processPieceCheckResult((DiskManagerCheckRequest)data[0],((Integer)data[1]).intValue());
 
 			}
@@ -1466,9 +1500,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 	 * This method checks if the downloading process is finished.
 	 *
 	 */
+	
 	private void 
 	checkFinished(
-			boolean start_of_day )
+		final boolean start_of_day )
 	{
 		final boolean all_pieces_done =disk_mgr.getRemainingExcludingDND() ==0;
 
@@ -1512,10 +1547,53 @@ DiskManagerCheckRequestListener, IPFilterListener
 			}catch( Throwable e ){
 				Debug.out( "Failed to save resume data", e );
 			}
+			
 			adapter.setStateSeeding( start_of_day );
-			disk_mgr.downloadEnded();
-		} else
-		{
+			
+			final AESemaphore waiting_it = new AESemaphore( "PEC:DE" );
+			
+			new AEThread2( "PEC:DE" ){
+				public void
+				run()
+				{
+					try{
+						disk_mgr.downloadEnded(
+							start_of_day?null:
+							new DiskManager.OperationStatus()
+							{
+								public void 
+								gonnaTakeAWhile(
+									GettingThere gt ) 
+								{
+									boolean	async_set = false;
+									
+									synchronized( PEPeerControlImpl.this ){
+										
+										if ( finish_in_progress == null ){
+											
+											finish_in_progress = gt;
+											
+											async_set = true;
+										}
+									}
+										
+									if ( async_set ){
+									
+										waiting_it.release();
+									}
+								}
+							});
+					}finally{
+						
+						waiting_it.release();
+					}
+				}
+			}.start();
+			
+			waiting_it.reserve();
+						
+		}else{
+			
 			seeding_mode = false;
 		}
 	}
@@ -1544,6 +1622,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 						new LogEvent(	disk_mgr.getTorrent(), LOGID,
 								"Turning off seeding mode for PEPeerManager"));
 			}
+						
 		}else{
 
 			if ( dm_done ){
@@ -1555,6 +1634,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 					Logger.log(
 							new LogEvent(	disk_mgr.getTorrent(), LOGID,
 									"Turning on seeding mode for PEPeerManager"));
+				
 				}
 			}
 		}
