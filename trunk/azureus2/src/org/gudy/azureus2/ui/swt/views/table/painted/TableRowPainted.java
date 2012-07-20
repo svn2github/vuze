@@ -192,10 +192,10 @@ public class TableRowPainted
   		if (fg == null) {
   			if (isSelected) {
   				fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
-  				gc.setForeground(fg);
   			} else {
-  				fg = gc.getForeground();
+  				fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
   			}
+				gc.setForeground(fg);
   		} else {
   			gc.setForeground(fg);
   		}
