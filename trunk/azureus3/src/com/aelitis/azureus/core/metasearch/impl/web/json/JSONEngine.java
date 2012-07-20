@@ -392,7 +392,14 @@ JSONEngine
 				throw((SearchException)e );
 			}
 			
-			throw( new SearchException( "JSON matching failed", e ));
+			String content_str = page;
+			
+			if ( content_str.length() > 256 ){
+				
+				content_str = content_str.substring( 0, 256 ) + "...";
+			}
+			
+			throw( new SearchException( "JSON matching failed for " + getName() + ", content=" + content_str, e ));
 		}
 	}
 	
