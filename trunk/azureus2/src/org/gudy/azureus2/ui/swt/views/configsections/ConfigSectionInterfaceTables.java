@@ -25,8 +25,11 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -142,6 +145,30 @@ public class ConfigSectionInterfaceTables
   				+ "extendedErase").setLayoutData(new GridData(SWT.FILL,
   				SWT.LEFT, true, false, 2, 1));
 		}
+		
+		boolean hhEnabled = COConfigurationManager.getIntParameter("Table.headerHeight") > 0;
+
+		Button chkHeaderHeight = new Button(cSection, SWT.CHECK);
+		Messages.setLanguageText(chkHeaderHeight, MSG_PREFIX + "enableHeaderHeight");
+		chkHeaderHeight.setSelection(hhEnabled);
+		
+		final IntParameter paramHH = new IntParameter(cSection, "Table.headerHeight", 0, 100);
+		paramHH.setEnabled(hhEnabled);
+		
+		chkHeaderHeight.addSelectionListener(new SelectionListener() {
+			public void widgetSelected(SelectionEvent e) {
+				if (((Button) e.widget).getSelection()) {
+					COConfigurationManager.setParameter("Table.headerHeight", 16);
+					paramHH.setEnabled(true);
+				} else {
+					COConfigurationManager.setParameter("Table.headerHeight", 0);
+					paramHH.setEnabled(false);
+				}
+			}
+			
+			public void widgetDefaultSelected(SelectionEvent e) {
+			}
+		});
 
 		{
 			Group cLibrary = new Group(cSection, SWT.NULL);

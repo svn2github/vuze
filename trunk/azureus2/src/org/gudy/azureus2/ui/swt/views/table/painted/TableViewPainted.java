@@ -10,6 +10,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
@@ -59,6 +60,8 @@ public class TableViewPainted
 
 	private static final boolean DEBUG_WITH_SHELL = false;
 
+	private static final int DEFAULT_HEADER_HEIGHT = 27;
+
 	private Composite cTable;
 
 	private int loopFactor;
@@ -68,6 +71,8 @@ public class TableViewPainted
 	protected int graphicsUpdate = configMan.getIntParameter("Graphics Update");
 
 	protected int reOrderDelay = configMan.getIntParameter("ReOrder Delay");
+	
+	protected boolean extendedErase = configMan.getBooleanParameter("Table.extendedErase");
 
 	private int defaultRowHeight = 17;
 
@@ -93,7 +98,7 @@ public class TableViewPainted
 
 	private Color colorLine;
 
-	private int headerHeight = 40;
+	private int headerHeight;
 
 	private Canvas cHeaderArea;
 
@@ -183,7 +188,7 @@ public class TableViewPainted
 		//		iTableStyle = _iTableStyle | SWT.V_SCROLL | SWT.DOUBLE_BUFFERED;
 		this.sDefaultSortOn = _sDefaultSortOn;
 		this.isMultiSelect = (_iTableStyle & SWT.MULTI) > 0;
-
+		
 		// Deselect rows if user clicks on a blank spot (a spot with no row)
 		tvSWTCommon = new TableViewSWT_Common(this) {
 			public void widgetSelected(SelectionEvent event) {
@@ -1001,7 +1006,10 @@ public class TableViewPainted
 		cTable.setBackground(parent.getDisplay().getSystemColor(
 				SWT.COLOR_LIST_BACKGROUND));
 
-		headerHeight = 27;
+		headerHeight = configMan.getIntParameter("Table.headerHeight");
+		if (headerHeight <= 0) {
+			headerHeight = DEFAULT_HEADER_HEIGHT;
+		}
 
 		FormData fd = Utils.getFilledFormData();
 		fd.height = headerHeight;
@@ -1157,6 +1165,8 @@ public class TableViewPainted
 
 		configMan.addParameterListener("Graphics Update", this);
 		configMan.addParameterListener("ReOrder Delay", this);
+		configMan.addParameterListener("Table.extendedErase", this);
+		configMan.addParameterListener("Table.headerHeight", this);
 		Colors.getInstance().addColorsChangedListener(this);
 
 		// So all TableView objects of the same TableID have the same columns,
@@ -1454,30 +1464,32 @@ public class TableViewPainted
 			oldRow = row;
 		}
 
-		int h;
-		int yDirty;
-		if (oldRow == null) {
-			yDirty = drawBounds.y;
-			h = drawBounds.height;
-		} else {
-			yDirty = ((TableRowPainted) oldRow).getDrawOffset().y
-					+ ((TableRowPainted) oldRow).getFullHeight();
-			h = (drawBounds.y + drawBounds.height) - yDirty;
-		}
-		if (h > 0) {
-			int rowHeight = getRowDefaultHeight();
-			while (yDirty < end) {
-				pos++;
-				Color color = TableRowPainted.alternatingColors[pos % 2];
-				if (color != null) {
-					gc.setBackground(color);
-				}
-				if (color == null) {
-					gc.setBackground(gc.getDevice().getSystemColor(
-							SWT.COLOR_LIST_BACKGROUND));
-				}
-				gc.fillRectangle(drawBounds.x, yDirty, drawBounds.width, rowHeight);
-				yDirty += rowHeight;
+		if (extendedErase) {
+  		int h;
+  		int yDirty;
+  		if (oldRow == null) {
+  			yDirty = drawBounds.y;
+  			h = drawBounds.height;
+  		} else {
+  			yDirty = ((TableRowPainted) oldRow).getDrawOffset().y
+  					+ ((TableRowPainted) oldRow).getFullHeight();
+  			h = (drawBounds.y + drawBounds.height) - yDirty;
+  		}
+  		if (h > 0) {
+  			int rowHeight = getRowDefaultHeight();
+  			while (yDirty < end) {
+  				pos++;
+  				Color color = TableRowPainted.alternatingColors[pos % 2];
+  				if (color != null) {
+  					gc.setBackground(color);
+  				}
+  				if (color == null) {
+  					gc.setBackground(gc.getDevice().getSystemColor(
+  							SWT.COLOR_LIST_BACKGROUND));
+  				}
+  				gc.fillRectangle(drawBounds.x, yDirty, drawBounds.width, rowHeight);
+  				yDirty += rowHeight;
+  			}
 			}
 		}
 
@@ -1936,12 +1948,25 @@ public class TableViewPainted
 	 * @see org.gudy.azureus2.core3.config.ParameterListener#parameterChanged(java.lang.String)
 	 */
 	public void parameterChanged(String parameterName) {
+		boolean invalidate = parameterName == null;
 		if (parameterName == null || parameterName.equals("Graphics Update")) {
 			graphicsUpdate = configMan.getIntParameter("Graphics Update");
 		}
 		if (parameterName == null || parameterName.equals("ReOrder Delay")) {
 			reOrderDelay = configMan.getIntParameter("ReOrder Delay");
 		}
+		if (parameterName == null || parameterName.equals("Table.extendedErase")) {
+			extendedErase = configMan.getBooleanParameter("Table.extendedErase");
+			invalidate = true;
+		}
+		if (parameterName == null || parameterName.equals("Table.headerHeight")) {
+			headerHeight = configMan.getIntParameter("Table.headerHeight");
+			if (headerHeight == 0) {
+				headerHeight = DEFAULT_HEADER_HEIGHT;
+			}
+			setHeaderVisible(getHeaderVisible());
+		}
+		
 		if (parameterName == null || parameterName.startsWith("Color")) {
 			tableInvalidate();
 		}
@@ -2623,6 +2648,8 @@ public class TableViewPainted
 		removeAllTableRows();
 		configMan.removeParameterListener("ReOrder Delay", this);
 		configMan.removeParameterListener("Graphics Update", this);
+		configMan.removeParameterListener("Table.extendedErase", this);
+		configMan.removeParameterListener("Table.headerHeight", this);
 		Colors.getInstance().removeColorsChangedListener(this);
 
 		super.delete();
