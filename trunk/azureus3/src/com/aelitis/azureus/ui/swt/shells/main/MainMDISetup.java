@@ -18,6 +18,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
+import com.aelitis.azureus.ui.swt.views.ViewTitleInfoBetaP;
 import com.aelitis.azureus.ui.swt.views.skin.SBC_ActivityTableView;
 import com.aelitis.azureus.ui.swt.views.skin.SBC_PlusFTUX;
 import com.aelitis.azureus.ui.swt.views.skin.SB_Transfers;
@@ -85,13 +86,22 @@ public class MainMDISetup
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
+						
+						final ViewTitleInfoBetaP viewTitleInfo = new ViewTitleInfoBetaP();
+						
 						MdiEntry entry = mdi.createEntryFromSkinRef(
 								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
 								MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
 								"main.area.beta", "{Sidebar.beta.title}",
-								null, null, true, MultipleDocumentInterface.SIDEBAR_POS_FIRST);
+								viewTitleInfo, null, true, MultipleDocumentInterface.SIDEBAR_POS_FIRST);
 						
 						entry.setImageLeftID( "image.sidebar.beta" );
+						
+						entry.addListener(new MdiCloseListener() {
+							public void mdiEntryClosed(MdiEntry entry, boolean userClosed) {
+								viewTitleInfo.clearIndicator();
+							}
+						});
 						
 						return entry;
 					}
