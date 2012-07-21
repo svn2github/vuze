@@ -2448,6 +2448,9 @@ public class TableViewPainted
 					hBar.setVisible(true);
 					hBar.setEnabled(true);
 				}
+				if (vBar.isVisible()) {
+					max += vBar.getSize().x;
+				}
 				hBar.setValues(hBar.getSelection(), 0, max, tableSize, 50, 50);
 			}
 		}
