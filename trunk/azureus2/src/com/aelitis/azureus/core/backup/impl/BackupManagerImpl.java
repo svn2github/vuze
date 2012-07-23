@@ -554,15 +554,33 @@ BackupManagerImpl
 	}
 	
 	private long[]
-	copyFiles(
+ 	copyFiles(
+ 		File		from_file,
+ 		File		to_file )
+ 	
+ 		throws Exception
+ 	{
+		return( copyFilesSupport( from_file, to_file, 1 ));
+ 	}
+	
+	private long[]
+	copyFilesSupport(
 		File		from_file,
-		File		to_file )
+		File		to_file,
+		int			depth )
 	
 		throws Exception
 	{
 		long	total_files		= 0;
 		long	total_copied 	= 0;
 
+		if ( depth > 16 ){
+			
+				// lazy but whatever, our config never gets this deep
+			
+			throw( new Exception( "Loop detected in backup path, abandoning" ));
+		}
+		
 		if ( from_file.isDirectory()){
 			
 			if ( !to_file.mkdirs()){
@@ -576,7 +594,7 @@ BackupManagerImpl
 				
 				checkClosing();
 				
-				long[] temp = copyFiles( f, new File( to_file, f.getName()));
+				long[] temp = copyFilesSupport( f, new File( to_file, f.getName()), depth+1 );
 				
 				total_files 	+= temp[0];
 				total_copied	+= temp[1];
@@ -703,6 +721,20 @@ BackupManagerImpl
 					backup_folder = new File( parent_folder, date_dir );
 				}
 				
+				File user_dir = new File( SystemProperties.getUserPath());
+
+				File temp_dir = backup_folder;
+				
+				while( temp_dir != null ){
+				
+					if ( temp_dir.equals( user_dir )){
+					
+						throw( new Exception( "Backup folder '" + backup_folder + "' is not permitted to be within the configuration folder '" + user_dir + "'.\r\nSelect an alternative location." ));
+					}
+					
+					temp_dir = temp_dir.getParentFile();
+				}
+				
 				listener.reportProgress( "Writing to " + backup_folder.getAbsolutePath());
 				
 				if ( !backup_folder.exists() && !backup_folder.mkdirs()){
@@ -714,9 +746,7 @@ BackupManagerImpl
 							
 				core.saveState();
 								
-				try{
-					File user_dir = new File( SystemProperties.getUserPath());
-					
+				try{					
 					listener.reportProgress( "Reading configuration data from " + user_dir.getAbsolutePath());
 					
 					File[] user_files = user_dir.listFiles();
