@@ -1271,6 +1271,13 @@ public class MyTorrentsView
 							enterPoint = new Point(event.x, event.y);
 						}
 					}
+					
+					// @see org.eclipse.swt.dnd.DropTargetAdapter#dragLeave(org.eclipse.swt.dnd.DropTargetEvent)
+					public void dragLeave(DropTargetEvent event) {
+						super.dragLeave(event);
+
+						tv.getComposite().redraw();
+					}
 
 					public void dragOver(DropTargetEvent event) {
 						if (drag_drop_line_start >= 0) {
@@ -1280,13 +1287,15 @@ public class MyTorrentsView
 								return;
 							}
 							TableRowCore row = tv.getTableRowWithCursor();
-							Rectangle bounds = ((TableRowPainted) row).getBounds();
-							tv.getComposite().redraw();
-							tv.getComposite().update();
-							GC gc = new GC(tv.getComposite());
-							gc.setLineWidth(2);
-							gc.drawLine(bounds.x, bounds.y, bounds.x + bounds.width, bounds.y);
-							gc.dispose();
+							if (row instanceof TableRowPainted) {
+  							Rectangle bounds = ((TableRowPainted) row).getBounds();
+  							tv.getComposite().redraw();
+  							tv.getComposite().update();
+  							GC gc = new GC(tv.getComposite());
+  							gc.setLineWidth(2);
+  							gc.drawLine(bounds.x, bounds.y, bounds.x + bounds.width, bounds.y);
+  							gc.dispose();
+							}
 							event.detail = row == null ? DND.DROP_NONE : DND.DROP_MOVE;
 							event.feedback = DND.FEEDBACK_SCROLL
 									| ((enterPoint != null && enterPoint.y > event.y)
