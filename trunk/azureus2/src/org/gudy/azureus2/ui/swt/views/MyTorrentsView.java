@@ -69,6 +69,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
+import org.gudy.azureus2.ui.swt.views.table.painted.TableRowPainted;
 import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -1278,7 +1279,15 @@ public class MyTorrentsView
 								event.detail = DND.DROP_NONE;
 								return;
 							}
-							event.detail = tv.getTableRowWithCursor() == null ? DND.DROP_NONE : DND.DROP_MOVE;
+							TableRowCore row = tv.getTableRowWithCursor();
+							Rectangle bounds = ((TableRowPainted) row).getBounds();
+							tv.getComposite().redraw();
+							tv.getComposite().update();
+							GC gc = new GC(tv.getComposite());
+							gc.setLineWidth(2);
+							gc.drawLine(bounds.x, bounds.y, bounds.x + bounds.width, bounds.y);
+							gc.dispose();
+							event.detail = row == null ? DND.DROP_NONE : DND.DROP_MOVE;
 							event.feedback = DND.FEEDBACK_SCROLL
 									| ((enterPoint != null && enterPoint.y > event.y)
 											? DND.FEEDBACK_INSERT_BEFORE : DND.FEEDBACK_INSERT_AFTER);
