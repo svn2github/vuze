@@ -68,7 +68,7 @@ public class PlayUtils
 		 * to keep it public for the moment...
 		 */
 	
-	public static final String playableFileExtensions 	= ".avi .flv .flc .mp4 .divx .h264 .mkv .mov .mp2 .m4v .mp3 .aac";
+	public static final String playableFileExtensions 	= ".avi .flv .flc .mp4 .divx .h264 .mkv .mov .mp2 .m4v .mp3 .aac, .mts, .m2ts";
 	
 	private static volatile String actualPlayableFileExtensions = playableFileExtensions;
 	
