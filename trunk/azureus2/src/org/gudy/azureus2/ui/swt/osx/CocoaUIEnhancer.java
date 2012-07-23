@@ -514,6 +514,26 @@ public class CocoaUIEnhancer
 	private void initialize()
 			throws Exception {
 
+		// Get the Mac OS X Application menu.
+		Object sharedApplication = invoke(nsapplicationCls, "sharedApplication");
+		Object mainMenu = invoke(sharedApplication, "mainMenu");
+		Object mainMenuItem = invoke(nsmenuCls, mainMenu, "itemAtIndex",
+				new Object[] {
+					wrapPointer(0)
+				});
+		Object appMenu = invoke(mainMenuItem, "submenu");
+
+
+		// disable services menu
+		Object servicesMenuItem = invoke(nsmenuCls, appMenu, "itemAtIndex",
+				new Object[] {
+					wrapPointer(kServicesMenuItem)
+				});
+		invoke(nsmenuitemCls, servicesMenuItem, "setEnabled", new Object[] {
+			false
+		});
+
+
 		Menu systemMenu = Display.getCurrent().getSystemMenu();
 		if (systemMenu != null) {
 
@@ -597,27 +617,6 @@ public class CocoaUIEnhancer
 			wrapPointer(callBack4Addr),
 			"@:@c"
 		});
-
-		// Get the Mac OS X Application menu.
-		Object sharedApplication = invoke(nsapplicationCls, "sharedApplication");
-		Object mainMenu = invoke(sharedApplication, "mainMenu");
-		Object mainMenuItem = invoke(nsmenuCls, mainMenu, "itemAtIndex",
-				new Object[] {
-					wrapPointer(0)
-				});
-		Object appMenu = invoke(mainMenuItem, "submenu");
-
-
-		// disable services menu
-		Object servicesMenuItem = invoke(nsmenuCls, appMenu, "itemAtIndex",
-				new Object[] {
-					wrapPointer(kServicesMenuItem)
-				});
-		invoke(nsmenuitemCls, servicesMenuItem, "setEnabled", new Object[] {
-			false
-		});
-
-
 
 		initialized = true;
 	}
