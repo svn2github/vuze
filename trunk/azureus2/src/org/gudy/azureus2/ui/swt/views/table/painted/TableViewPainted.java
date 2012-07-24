@@ -2465,6 +2465,9 @@ public class TableViewPainted
 		if (hBar != null && !hBar.isDisposed()) {
 			int tableSize = cTable.getSize().x;
 			int max = columnsWidth;
+			if (vBar.isVisible()) {
+				max += vBar.getSize().x;
+			}
 			if (max < tableSize) {
 				hBar.setSelection(0);
 				hBar.setEnabled(false);
@@ -2473,9 +2476,6 @@ public class TableViewPainted
 				if (!hBar.isVisible()) {
 					hBar.setVisible(true);
 					hBar.setEnabled(true);
-				}
-				if (vBar.isVisible()) {
-					max += vBar.getSize().x;
 				}
 				hBar.setValues(hBar.getSelection(), 0, max, tableSize, 50, tableSize);
 			}
