@@ -1464,32 +1464,36 @@ public class TableViewPainted
 			oldRow = row;
 		}
 
-		if (extendedErase) {
-  		int h;
-  		int yDirty;
-  		if (oldRow == null) {
-  			yDirty = drawBounds.y;
-  			h = drawBounds.height;
-  		} else {
-  			yDirty = ((TableRowPainted) oldRow).getDrawOffset().y
-  					+ ((TableRowPainted) oldRow).getFullHeight();
-  			h = (drawBounds.y + drawBounds.height) - yDirty;
-  		}
-  		if (h > 0) {
-  			int rowHeight = getRowDefaultHeight();
-  			while (yDirty < end) {
-  				pos++;
-  				Color color = TableRowPainted.alternatingColors[pos % 2];
-  				if (color != null) {
-  					gc.setBackground(color);
-  				}
-  				if (color == null) {
-  					gc.setBackground(gc.getDevice().getSystemColor(
-  							SWT.COLOR_LIST_BACKGROUND));
-  				}
-  				gc.fillRectangle(drawBounds.x, yDirty, drawBounds.width, rowHeight);
-  				yDirty += rowHeight;
-  			}
+		int h;
+		int yDirty;
+		if (oldRow == null) {
+			yDirty = drawBounds.y;
+			h = drawBounds.height;
+		} else {
+			yDirty = ((TableRowPainted) oldRow).getDrawOffset().y
+					+ ((TableRowPainted) oldRow).getFullHeight();
+			h = (drawBounds.y + drawBounds.height) - yDirty;
+		}
+		if (h > 0) {
+			int rowHeight = getRowDefaultHeight();
+			if (extendedErase) {
+				while (yDirty < end) {
+					pos++;
+					Color color = TableRowPainted.alternatingColors[pos % 2];
+					if (color != null) {
+						gc.setBackground(color);
+					}
+					if (color == null) {
+						gc.setBackground(gc.getDevice().getSystemColor(
+								SWT.COLOR_LIST_BACKGROUND));
+					}
+					gc.fillRectangle(drawBounds.x, yDirty, drawBounds.width, rowHeight);
+					yDirty += rowHeight;
+				}
+			} else {
+				gc.setBackground(gc.getDevice().getSystemColor(
+						SWT.COLOR_LIST_BACKGROUND));
+				gc.fillRectangle(drawBounds.x, yDirty, drawBounds.width, h);
 			}
 		}
 
