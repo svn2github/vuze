@@ -377,12 +377,21 @@ public class SB_Transfers
 								}
 
 								public void categoryAdded(Category category) {
-									setupCategory(category);
+									Category[] categories = CategoryManager.getCategories();
+									if (categories.length == 3) {
+		  							for (Category cat : categories) {
+		  								setupCategory(cat);
+		  							}
+									} else {
+										setupCategory(category);
+									}
 								}
 							};
 							CategoryManager.addCategoryManagerListener(categoryManagerListener);
-							for (Category category : categories) {
-								setupCategory(category);
+							if (categories.length > 2) {
+  							for (Category category : categories) {
+  								setupCategory(category);
+  							}
 							}
 
 						} else {
