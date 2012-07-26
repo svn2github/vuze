@@ -213,7 +213,7 @@ ConfigurationManager
       	if (key == null) {
       		continue;
       	}
-  			if (key.startsWith("SideBar.Expanded.Category.")) {
+  			if (key.startsWith("SideBar.Expanded.Category.") || key.startsWith("NameColumn.wrapText.")) {
   				removeParameter(key);
   			}
   		}

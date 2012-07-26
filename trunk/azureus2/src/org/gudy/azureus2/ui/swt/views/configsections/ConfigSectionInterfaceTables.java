@@ -138,37 +138,66 @@ public class ConfigSectionInterfaceTables
 
 			new BooleanParameter(cSection, "NameColumn.showProgramIcon", MSG_PREFIX
 					+ "showProgramIcon").setLayoutData(new GridData(SWT.FILL, SWT.LEFT, true, false, 2, 1));
-		}
 
-		if (Constants.isWindows) {
-  		new BooleanParameter(cSection, "Table.extendedErase", MSG_PREFIX
-  				+ "extendedErase").setLayoutData(new GridData(SWT.FILL,
-  				SWT.LEFT, true, false, 2, 1));
-		}
-		
-		boolean hhEnabled = COConfigurationManager.getIntParameter("Table.headerHeight") > 0;
+			////
 
-		Button chkHeaderHeight = new Button(cSection, SWT.CHECK);
-		Messages.setLanguageText(chkHeaderHeight, MSG_PREFIX + "enableHeaderHeight");
-		chkHeaderHeight.setSelection(hhEnabled);
-		
-		final IntParameter paramHH = new IntParameter(cSection, "Table.headerHeight", 0, 100);
-		paramHH.setEnabled(hhEnabled);
-		
-		chkHeaderHeight.addSelectionListener(new SelectionListener() {
-			public void widgetSelected(SelectionEvent e) {
-				if (((Button) e.widget).getSelection()) {
-					COConfigurationManager.setParameter("Table.headerHeight", 16);
-					paramHH.setEnabled(true);
-				} else {
-					COConfigurationManager.setParameter("Table.headerHeight", 0);
-					paramHH.setEnabled(false);
-				}
-			}
+			new BooleanParameter(cSection, "Table.extendedErase", MSG_PREFIX
+					+ "extendedErase").setLayoutData(new GridData(SWT.FILL, SWT.LEFT,
+					true, false, 2, 1));
+
+			////
 			
-			public void widgetDefaultSelected(SelectionEvent e) {
-			}
-		});
+			boolean hhEnabled = COConfigurationManager.getIntParameter("Table.headerHeight") > 0;
+
+			Button chkHeaderHeight = new Button(cSection, SWT.CHECK);
+			Messages.setLanguageText(chkHeaderHeight, MSG_PREFIX + "enableHeaderHeight");
+			chkHeaderHeight.setSelection(hhEnabled);
+			
+			final IntParameter paramHH = new IntParameter(cSection, "Table.headerHeight", 0, 100);
+			paramHH.setEnabled(hhEnabled);
+			
+			chkHeaderHeight.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) {
+					if (((Button) e.widget).getSelection()) {
+						COConfigurationManager.setParameter("Table.headerHeight", 16);
+						paramHH.setEnabled(true);
+					} else {
+						COConfigurationManager.setParameter("Table.headerHeight", 0);
+						paramHH.setEnabled(false);
+					}
+				}
+				
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+			
+			/////
+
+			boolean cdEnabled = COConfigurationManager.getStringParameter("Table.column.dateformat", "").length() > 0;
+
+			Button chkCustomDate = new Button(cSection, SWT.CHECK);
+			Messages.setLanguageText(chkCustomDate, MSG_PREFIX + "customDateFormat");
+			chkCustomDate.setSelection(cdEnabled);
+			
+			final StringParameter paramCustomDate = new StringParameter(cSection, "Table.column.dateformat", "");
+			paramCustomDate.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
+			paramCustomDate.setEnabled(cdEnabled);
+			
+			chkCustomDate.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) {
+					if (((Button) e.widget).getSelection()) {
+						COConfigurationManager.setParameter("Table.column.dateformat", "yyyy/MM/dd");
+						paramCustomDate.setEnabled(true);
+					} else {
+						COConfigurationManager.setParameter("Table.column.dateformat", "");
+						paramCustomDate.setEnabled(false);
+					}
+				}
+				
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+		}
 
 		{
 			Group cLibrary = new Group(cSection, SWT.NULL);

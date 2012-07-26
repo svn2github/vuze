@@ -80,8 +80,6 @@ public class ColumnThumbAndName
 	
 	private boolean showIcon;
 
-	private boolean wrapText;
-
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] {
 			CAT_ESSENTIAL,
@@ -151,28 +149,6 @@ public class ColumnThumbAndName
 			}
 		});
 
-		TableContextMenuItem menuWrapText = addContextMenuItem("label.wrap.text",
-				MENU_STYLE_HEADER);
-		menuWrapText.setStyle(TableContextMenuItem.STYLE_CHECK);
-		menuWrapText.addFillListener(new MenuItemFillListener() {
-			public void menuWillBeShown(MenuItem menu, Object data) {
-				menu.setData(new Boolean(wrapText));
-			}
-		});
-		final String CFG_WRAP_TEXT = "NameColumn.wrapText." + getTableID();
-		menuWrapText.addMultiListener(new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				COConfigurationManager.setParameter(CFG_WRAP_TEXT,
-						((Boolean) menu.getData()).booleanValue());
-			}
-		});
-
-		COConfigurationManager.addAndFireParameterListener(CFG_WRAP_TEXT,
-				new ParameterListener() {
-					public void parameterChanged(String parameterName) {
-						setWrapText(COConfigurationManager.getBooleanParameter(CFG_WRAP_TEXT));
-					}
-				});
 		COConfigurationManager.addAndFireParameterListener(CFG_SHOWPROGRAMICON,
 				new ParameterListener() {
 					public void parameterChanged(String parameterName) {
@@ -186,8 +162,6 @@ public class ColumnThumbAndName
 	public void reset() {
 		super.reset();
 		
-		COConfigurationManager.removeParameter("NameColumn.wrapText."
-				+ getTableID());
 		COConfigurationManager.removeParameter("NameColumn.showProgramIcon."
 				+ getTableID());
 	}
@@ -449,7 +423,7 @@ public class ColumnThumbAndName
 
 		boolean over = GCStringPrinter.printString(gc, name, new Rectangle(textX,
 				cellBounds.y, cellBounds.x + cellBounds.width - textX,
-				cellBounds.height), true, true, wrapText ? SWT.WRAP : SWT.NONE);
+				cellBounds.height), true, true, SWT.WRAP);
 		cell.setToolTip(over ? null : name);
 	}
 
@@ -482,11 +456,6 @@ public class ColumnThumbAndName
 	 */
 	public void setShowIcon(boolean showIcon) {
 		this.showIcon = showIcon;
-		invalidateCells();
-	}
-
-	public void setWrapText(boolean wrap) {
-		this.wrapText = wrap;
 		invalidateCells();
 	}
 

@@ -26,6 +26,7 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -58,6 +59,8 @@ public abstract class ColumnDateSizer
 
 	private boolean multiline = true;
 
+	private String formatOverride = "";
+
 	private static Font fontBold;
 
 	/**
@@ -67,7 +70,7 @@ public abstract class ColumnDateSizer
 	public ColumnDateSizer(Class forDataSrouceType, String columnID, int width, String tableID) {
 		super(forDataSrouceType, columnID, ALIGN_TRAIL, width, tableID);
 
-		TableContextMenuItem menuShowTime = addContextMenuItem(
+		final TableContextMenuItem menuShowTime = addContextMenuItem(
 				"TableColumn.menu.date_added.time", MENU_STYLE_HEADER);
 		menuShowTime.setStyle(TableContextMenuItem.STYLE_CHECK);
 		menuShowTime.addFillListener(new MenuItemFillListener() {
@@ -87,6 +90,28 @@ public abstract class ColumnDateSizer
 					curFormat = TimeFormatter.DATEFORMATS_DESC.length - 1;
 				}
 			}
+		});
+
+		COConfigurationManager.addAndFireParameterListener(
+				"Table.column.dateformat", new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						formatOverride = COConfigurationManager.getStringParameter(
+								"Table.column.dateformat", "");
+						if (formatOverride == null) {
+							formatOverride = "";
+						}
+						curFormat = -1;
+						if (formatOverride.length() == 0) {
+							recalcWidth(new Date());
+							if (curFormat < 0) {
+								curFormat = TimeFormatter.DATEFORMATS_DESC.length - 1;
+							}
+							menuShowTime.setVisible(true);
+						} else {
+							invalidateCells();
+							menuShowTime.setVisible(false);
+						}
+					}
 		});
 	}
 	
@@ -114,6 +139,13 @@ public abstract class ColumnDateSizer
 		}
 
 		if (timestamp <= 0) {
+			return;
+		}
+		
+		if (formatOverride.length() > 0) {
+			Date date = new Date(timestamp);
+			SimpleDateFormat temp = new SimpleDateFormat(formatOverride);
+			cell.setText(temp.format(date));
 			return;
 		}
 
@@ -158,7 +190,7 @@ public abstract class ColumnDateSizer
 		if (oldWidth == width) {
 			return;
 		}
-		if (maxWidthDate != null) {
+		if (maxWidthDate != null && curFormat >= 0) {
 			if (maxWidthDate[curFormat] == null) {
 				maxWidthDate[curFormat] = new Date();
 			}
