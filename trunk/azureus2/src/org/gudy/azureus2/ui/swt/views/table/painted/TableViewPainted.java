@@ -873,7 +873,7 @@ public class TableViewPainted
 		dragSource.addDragListener(new DragSourceAdapter() {
 			public void dragStart(DragSourceEvent event) {
 				cTable.setCursor(null);
-				TableRowCore row = getRow(event.x, event.y);
+				TableRowCore row = getTableRow(event.x, event.y, true);
 				if (row != null && !row.isSelected()) {
 					setSelectedRows(new TableRowCore[] { row });
 				}
