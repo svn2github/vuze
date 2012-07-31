@@ -273,7 +273,13 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		backup_retain.setLayoutData( gridData );
+
+		BooleanParameter chkNotify = new BooleanParameter(gDefaultDir, "br.backup.notify", "br.backup.notify");
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan = 3;
+		chkNotify.setLayoutData(gridData);
 		
+
 	    Label backup_auto_label = new Label(gDefaultDir, SWT.NULL );
 	    Messages.setLanguageText(backup_auto_label, "br.backup.auto.now");
 
@@ -290,33 +296,7 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 			        }
 				});
 	    
-		auto_backup_enable.setAdditionalActionPerformer(
-			new ChangeSelectionActionPerformer( lblDefaultDir ));
-					
-		auto_backup_enable.setAdditionalActionPerformer(
-				new ChangeSelectionActionPerformer( pathParameter ));
-
-		auto_backup_enable.setAdditionalActionPerformer(
-				new ChangeSelectionActionPerformer( browse ));
-
-		auto_backup_enable.setAdditionalActionPerformer(
-				new ChangeSelectionActionPerformer( lbl_backup_days ));
-
-		auto_backup_enable.setAdditionalActionPerformer(
-				new ChangeSelectionActionPerformer( backup_everydays ));
-
-		auto_backup_enable.setAdditionalActionPerformer(
-				new ChangeSelectionActionPerformer( lbl_backup_retain ));
-
-		auto_backup_enable.setAdditionalActionPerformer(
-				new ChangeSelectionActionPerformer( backup_retain ));
-
-		auto_backup_enable.setAdditionalActionPerformer(
-				new ChangeSelectionActionPerformer( backup_auto_label ));
-
-		auto_backup_enable.setAdditionalActionPerformer(
-				new ChangeSelectionActionPerformer( backup_auto_button ));
-
+	  auto_backup_enable.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(gDefaultDir));
 		
 	    	// restore
 	    

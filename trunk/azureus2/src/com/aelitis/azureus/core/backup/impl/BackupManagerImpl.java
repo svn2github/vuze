@@ -354,12 +354,15 @@ BackupManagerImpl
 							System.out.println( "Auto backup completed" );
 							
 							COConfigurationManager.save();
-														
-							Logger.log(
-								new LogAlert(
-									true,
-									LogAlert.AT_INFORMATION,
-									"Backup completed at " + new Date()));
+												
+							
+							if (COConfigurationManager.getBooleanParameter("br.backup.notify")) {
+  							Logger.log(
+  								new LogAlert(
+  									true,
+  									LogAlert.AT_INFORMATION,
+  									"Backup completed at " + new Date()));
+							}
 							
 							int	backup_retain = COConfigurationManager.getIntParameter( "br.backup.auto.retain" );
 
