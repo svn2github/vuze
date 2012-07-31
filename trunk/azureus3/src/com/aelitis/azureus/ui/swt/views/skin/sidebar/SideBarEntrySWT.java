@@ -885,7 +885,10 @@ public class SideBarEntrySWT
 				});
 			}
 			gc.setBackground(oldBG);
-			gc.setFont(sidebar.getHeaderFont());
+			Font headerFont = sidebar.getHeaderFont();
+			if (headerFont != null && !headerFont.isDisposed()) {
+				gc.setFont(headerFont);
+			}
 		}
 	}
 
