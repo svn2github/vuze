@@ -304,7 +304,7 @@ public class TableViewPainted
 					}
 					if ((event.stateMask & SWT.SHIFT) > 0) {
 						selectRowsTo(row);
-					} else {
+					} else if (event.stateMask == 0) {
   					setSelectedRows(new TableRowCore[] {
   						row
   					});
@@ -313,7 +313,7 @@ public class TableViewPainted
 				} else if (event.keyCode == SWT.HOME) {
 					if ((event.stateMask & SWT.SHIFT) > 0) {
 						selectRowsTo(getRow(0));
-					} else {
+					} else if (event.stateMask == 0) {
   					setSelectedRows(new TableRowCore[] {
   						getRow(0)
   					});
