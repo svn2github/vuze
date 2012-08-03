@@ -275,9 +275,11 @@ public class SB_Transfers
 				}
 
 				if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {
-					return "There are " + statsNoLowNoise.numComplete
-							+ " complete torrents, " + statsNoLowNoise.numSeeding
-							+ " of which are currently seeding";
+					return MessageText.getString("sidebar.LibraryCD.tooltip",
+							new String[] {
+								"" + statsNoLowNoise.numComplete,
+								"" + statsNoLowNoise.numSeeding
+							});
 				}
 				return null;
 			}
@@ -306,9 +308,11 @@ public class SB_Transfers
 				}
 
 				if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {
-					return "There are " + statsNoLowNoise.numIncomplete
-							+ " incomplete torrents, " + statsNoLowNoise.numDownloading
-							+ " of which are currently downloading";
+					return MessageText.getString("sidebar.LibraryDL.tooltip",
+							new String[] {
+								"" + statsNoLowNoise.numIncomplete,
+								"" + statsNoLowNoise.numDownloading
+							});
 				}
 
 				return null;
