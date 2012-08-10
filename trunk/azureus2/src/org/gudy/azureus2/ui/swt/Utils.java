@@ -56,6 +56,7 @@ import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableDelegate;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableOrTreeUtils;
 
+import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -964,6 +965,57 @@ public class Utils
 
 		sFile = sFile.replaceAll( "&vzemb=1", "" );
 
+		int	pos = sFile.lastIndexOf( "." );
+		
+		if ( pos >= 0 ){
+			
+			String	ext = sFile.substring( pos+1 ).toLowerCase().trim();
+			
+			for ( int i=0;i<10;i++){
+				
+				String exts = COConfigurationManager.getStringParameter( "Table.lh" + i + ".exts", "" ).trim();
+				String exe 	= COConfigurationManager.getStringParameter( "Table.lh" + i + ".prog", "" ).trim();
+				
+				if ( exts.length() > 0 && exe.length() > 0 && new File( exe ).exists()){
+			
+					exts = "," + exts.toLowerCase();
+					
+					exts = exts.replaceAll( "\\.", "," );
+					exts = exts.replaceAll( ";", "," );
+					exts = exts.replaceAll( " ", "," );
+					
+					exts = exts.replaceAll( "[,]+", "," );
+					
+					File	file = new File( sFile );
+					
+					if ( exts.contains( ","+ext )){
+					
+						try{
+							System.out.println( "Launching " + sFile + " with " + exe );
+							
+							try{
+								PlatformManagerFactory.getPlatformManager().createProcess( exe + " \"" + sFile + "\"", false );
+							
+								return;
+								
+							}catch( Throwable e ){
+							}
+						
+							ProcessBuilder pb = GeneralUtils.createProcessBuilder( file.getParentFile(), new String[]{ exe, file.getName()}, null );
+							
+							pb.start();
+							
+							return;
+							
+						}catch( Throwable e ){
+							
+							Debug.out( "Launch failed", e );
+						}
+					}
+				}
+			}
+		}
+			
 		boolean launched = Program.launch(sFile);
 		if (!launched && Constants.isUnix) {
 			

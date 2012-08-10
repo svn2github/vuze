@@ -205,7 +205,7 @@ public class ConfigSectionInterfaceTables
 			layout = new GridLayout();
 			layout.numColumns = 2;
 			cLibrary.setLayout(layout);
-			cLibrary.setLayoutData(new GridData(SWT.LEFT, SWT.TOP, false, false, 2, 1));
+			cLibrary.setLayoutData(new GridData(SWT.FILL, SWT.TOP, false, false, 2, 1));
 
 			// double-click
 
@@ -230,7 +230,38 @@ public class ConfigSectionInterfaceTables
 			new StringListParameter(cLibrary, "list.dm.dblclick", dblclickLabels,
 					dblclickValues);
 
+				// Launch helpers
+			
+			Group cLaunch = new Group(cLibrary, SWT.NULL);
+			Messages.setLanguageText(cLaunch, MSG_PREFIX + "launch");
+			layout = new GridLayout();
+			layout.numColumns = 5;
+			cLaunch.setLayout(layout);
+			cLaunch.setLayoutData(new GridData(SWT.FILL, SWT.FILL, false, false, 2, 1));
 
+		    Label	info_label = new Label( cLaunch, SWT.WRAP );
+		    Messages.setLanguageText( info_label, "ConfigView.label.lh.info" );
+		    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL );
+		    gridData.horizontalSpan = 5;
+		    info_label.setLayoutData( gridData );
+		    
+			for ( int i=0;i<3;i++){
+				
+				label = new Label(cLaunch, SWT.NULL);
+				Messages.setLanguageText(label, "ConfigView.label.lh.ext");
+
+				new StringParameter(cLaunch, "Table.lh" + i + ".exts", "");
+
+				label = new Label(cLaunch, SWT.NULL);
+				Messages.setLanguageText(label, "ConfigView.label.lh.prog");
+
+		  		new FileParameter(cLaunch, "Table.lh" + i + ".prog", "", new String[0]);
+
+			}
+			
+			
+				// User tree
+			
 			new BooleanParameter(cLibrary, "Table.useTree", MSG_PREFIX
 					+ "useTree").setLayoutData(new GridData(SWT.FILL,
 							SWT.LEFT, true, false, 2, 1));

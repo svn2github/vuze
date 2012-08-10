@@ -21,9 +21,15 @@
 
 package com.aelitis.azureus.core.util;
 
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Pattern;
+
+import org.gudy.azureus2.core3.util.Constants;
 
 public class 
 GeneralUtils 
@@ -251,5 +257,57 @@ GeneralUtils
 		}
 		
 		return( bits.toArray( new String[bits.size()]));
+	}
+	
+	public static ProcessBuilder 
+	createProcessBuilder(
+		File workingDir,
+		String[] cmd, 
+		String[] extra_env) 
+	
+		throws IOException 
+	{
+		ProcessBuilder pb;
+
+		Map<String, String> newEnv = new HashMap<String, String>();
+		newEnv.putAll(System.getenv());
+		newEnv.put("LANG", "C.UTF-8");
+		if (extra_env != null && extra_env.length > 1) {
+			for (int i = 1; i < extra_env.length; i += 2) {
+				newEnv.put(extra_env[i - 1], extra_env[i]);
+			}
+		}
+
+		if ( Constants.isWindows ){
+			String[] i18n = new String[cmd.length + 2];
+			i18n[0] = "cmd";
+			i18n[1] = "/C";
+			i18n[2] = escapeDosCmd(cmd[0]);
+			for (int counter = 1; counter < cmd.length; counter++) {
+				if (cmd[counter].length() == 0) {
+					i18n[counter + 2] = "";
+				} else {
+					String envName = "JENV_" + counter;
+					i18n[counter + 2] = "%" + envName + "%";
+					newEnv.put(envName, cmd[counter]);
+				}
+			}
+			cmd = i18n;
+		}
+
+		pb = new ProcessBuilder(cmd);
+		Map<String, String> env = pb.environment();
+		env.putAll(newEnv);
+
+		if (workingDir != null) {
+			pb.directory(workingDir);
+		}
+		return pb;
+	}
+
+	private static String escapeDosCmd(String string) {
+		String s = string.replaceAll("([&%^])", "^$1");
+		s = s.replaceAll("'", "\"'\"");
+		return s;
 	}
 }
