@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
@@ -241,8 +242,7 @@ public class ConfigSectionInterfaceTables
 
 		    Label	info_label = new Label( cLaunch, SWT.WRAP );
 		    Messages.setLanguageText( info_label, "ConfigView.label.lh.info" );
-		    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL );
-		    gridData.horizontalSpan = 5;
+		    gridData = Utils.getWrappableLabelGridData(5, GridData.HORIZONTAL_ALIGN_FILL );
 		    info_label.setLayoutData( gridData );
 		    
 			for ( int i=0;i<3;i++){
