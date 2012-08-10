@@ -993,14 +993,19 @@ public class Utils
 						try{
 							System.out.println( "Launching " + sFile + " with " + exe );
 							
-							try{
-								PlatformManagerFactory.getPlatformManager().createProcess( exe + " \"" + sFile + "\"", false );
-							
-								return;
+							if ( Constants.isWindows ){
 								
-							}catch( Throwable e ){
+									// need to use createProcess as we want to force the process to decouple correctly (otherwise Vuze won't close until the child closes)
+								
+								try{
+									PlatformManagerFactory.getPlatformManager().createProcess( exe + " \"" + sFile + "\"", false );
+								
+									return;
+									
+								}catch( Throwable e ){
+								}
 							}
-						
+							
 							ProcessBuilder pb = GeneralUtils.createProcessBuilder( file.getParentFile(), new String[]{ exe, file.getName()}, null );
 							
 							pb.start();
