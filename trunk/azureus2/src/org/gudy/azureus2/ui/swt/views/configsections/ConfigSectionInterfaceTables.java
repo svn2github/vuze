@@ -250,13 +250,19 @@ public class ConfigSectionInterfaceTables
 				label = new Label(cLaunch, SWT.NULL);
 				Messages.setLanguageText(label, "ConfigView.label.lh.ext");
 
-				new StringParameter(cLaunch, "Table.lh" + i + ".exts", "");
-
+				StringParameter exts = new StringParameter(cLaunch, "Table.lh" + i + ".exts", "");
+				gridData = new GridData();
+				gridData.widthHint = 200;
+				exts.setLayoutData( gridData );
+				
 				label = new Label(cLaunch, SWT.NULL);
 				Messages.setLanguageText(label, "ConfigView.label.lh.prog");
 
-		  		new FileParameter(cLaunch, "Table.lh" + i + ".prog", "", new String[0]);
+				FileParameter prog = new FileParameter(cLaunch, "Table.lh" + i + ".prog", "", new String[0]);
 
+				gridData = new GridData();
+				gridData.widthHint = 400;
+				prog.getControls()[0].setLayoutData( gridData );
 			}
 			
 			
