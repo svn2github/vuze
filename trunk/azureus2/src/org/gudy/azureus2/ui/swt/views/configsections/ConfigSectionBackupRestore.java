@@ -27,11 +27,12 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 import java.io.File;
 import java.util.Date;
 
-import org.eclipse.swt.*;
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.layout.*;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -46,7 +47,7 @@ import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.config.IntParameter;
 import org.gudy.azureus2.ui.swt.config.StringParameter;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -60,7 +61,6 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class ConfigSectionBackupRestore implements UISWTConfigSection {
 
-	private final static String LBLKEY_PREFIX = "ConfigView.label.";
 
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_ROOT;
@@ -103,8 +103,7 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 				
 	    Label	info_label = new Label( cBR, SWT.WRAP );
 	    Messages.setLanguageText( info_label, "ConfigView.section.br.overview" );
-	    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL );
-	    gridData.horizontalSpan = 1;
+	    gridData = Utils.getWrappableLabelGridData(1, GridData.HORIZONTAL_ALIGN_FILL );
 	    
 	    info_label.setLayoutData( gridData );
 	    
@@ -116,8 +115,7 @@ public class ConfigSectionBackupRestore implements UISWTConfigSection {
 		linkLabel.setData("http://wiki.vuze.com/w/Backup_And_Restore");
 		linkLabel.setCursor(linkLabel.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 		linkLabel.setForeground(Colors.blue);
-		gridData = new GridData();
-		gridData.horizontalSpan = 1;
+    gridData = Utils.getWrappableLabelGridData(1, 0);
 		linkLabel.setLayoutData(gridData);
 		linkLabel.addMouseListener(new MouseAdapter() {
 			public void mouseDoubleClick(MouseEvent arg0) {
