@@ -24,6 +24,8 @@
 
 package org.gudy.azureus2.ui.swt.views.configsections;
 
+import java.io.File;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
@@ -35,6 +37,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
@@ -258,11 +261,80 @@ public class ConfigSectionInterfaceTables
 				label = new Label(cLaunch, SWT.NULL);
 				Messages.setLanguageText(label, "ConfigView.label.lh.prog");
 
-				FileParameter prog = new FileParameter(cLaunch, "Table.lh" + i + ".prog", "", new String[0]);
+				final FileParameter prog = new FileParameter(cLaunch, "Table.lh" + i + ".prog", "", new String[0]);
 
 				gridData = new GridData();
 				gridData.widthHint = 400;
 				prog.getControls()[0].setLayoutData( gridData );
+				
+				if ( Constants.isOSX ){
+					COConfigurationManager.addParameterListener(
+							"Table.lh" + i + ".prog",
+							new ParameterListener()
+							{		
+								private boolean changing 		= false;
+								private String 	last_changed	= "";
+								
+								public void 
+								parameterChanged(
+									String parameter_name)
+								{
+									if ( prog.isDisposed()){
+										
+										COConfigurationManager.removeParameterListener(	parameter_name, this );
+										
+									}else if ( changing ){
+										
+										return;
+										
+									}else{
+										
+										final String value = COConfigurationManager.getStringParameter( parameter_name );
+										
+										if ( value.equals( last_changed )){
+											
+											return;
+										}
+										
+										if ( value.endsWith( ".app" )){
+											
+											Utils.execSWTThreadLater( 
+												1,
+												new Runnable()
+												{
+													public void 
+													run()
+													{
+														last_changed = value;
+														
+														try{
+															changing = true;
+															
+															File file = new File( value );
+																
+															String app_name = file.getName();
+				
+															int pos = app_name.lastIndexOf( "." );
+															
+															app_name = app_name.substring( 0,pos );
+															
+															String new_value = value + "/Contents/MacOS/" + app_name;
+															
+															if ( new File( new_value ).exists()){
+															
+																prog.setValue( new_value );
+															}
+														}finally{
+															
+															changing = false;
+														}
+													}
+												});
+										}
+									}
+								}
+							});
+				}
 			}
 			
 			
