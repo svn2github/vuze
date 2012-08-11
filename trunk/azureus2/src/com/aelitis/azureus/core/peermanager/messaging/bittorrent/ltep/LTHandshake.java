@@ -133,7 +133,23 @@ public class LTHandshake implements LTMessage {
 				}
 			}
 			
-			String debug = ulOnly instanceof byte[]?new String((byte[])ulOnly):String.valueOf( ulOnly );
+			String debug;
+			
+			if ( ulOnly instanceof byte[] ){
+				
+				byte[] bytes = (byte[])ulOnly;
+				
+				debug = new String(bytes) + "/";
+				
+				for ( int i=0;i<bytes.length;i++){
+					
+					debug += (i==0?"":",") + (((int)bytes[i]) & 0x00ff );
+				}
+				
+			}else{
+				
+				debug = String.valueOf( ulOnly );
+			}
 			
 			Debug.out( "Invalid entry for 'upload_only' - " + debug + ", map=" + data_dict );
 			
