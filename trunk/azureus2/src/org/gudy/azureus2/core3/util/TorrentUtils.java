@@ -29,9 +29,12 @@ package org.gudy.azureus2.core3.util;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.DNSUtils;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -1708,8 +1711,28 @@ TorrentUtils
 			return( delegate.isCreated());
 		}
 		
+	   	public URL
+    	getAnnounceURL()
+    	{
+    		URL	url = getAnnounceURLSupport();
+    		
+    		url = applyDNSMods( url );
+    		
+    		return( url );
+    	}
+    	
+       	public TOTorrentAnnounceURLGroup
+    	getAnnounceURLGroup()
+    	{
+       		TOTorrentAnnounceURLGroup group = getAnnounceURLGroupSupport();
+       	
+       		group = applyDNSMods( getAnnounceURL(), group );
+       		
+       		return( group );
+    	}
+       	
 		public URL
-		getAnnounceURL()
+		getAnnounceURLSupport()
 		{
 			return( delegate.getAnnounceURL());
 		}
@@ -1723,7 +1746,7 @@ TorrentUtils
 			
 		
 		public TOTorrentAnnounceURLGroup
-		getAnnounceURLGroup()
+		getAnnounceURLGroupSupport()
 		{
 			return( delegate.getAnnounceURLGroup());
 		}
@@ -2640,6 +2663,229 @@ TorrentUtils
 		torrent_attribute_listeners.remove( listener );
 	}
 	
+	private static final Pattern txt_pattern = Pattern.compile( "(UDP|TCP):([0-9]+)");
+	
+	private static Map<String,DNSTXTEntry>	dns_mapping = new HashMap<String, DNSTXTEntry>();
+	
+	private static DNSTXTEntry
+	getDNSTXTEntry(
+		URL		url )
+	{
+		if ( isDecentralised( url )){
+			
+			return( null );
+		}
+		
+		String host = url.getHost();
+		
+		String	tracker_network	= AENetworkClassifier.categoriseAddress( host ); 
+
+		if ( tracker_network != AENetworkClassifier.AT_PUBLIC ){
+			
+			return( null );
+		}
+		
+		DNSTXTEntry	txt_entry;
+		boolean		is_new = false;
+		
+		synchronized( dns_mapping ){
+		
+			txt_entry = dns_mapping.get( host );
+	
+			if ( txt_entry == null ){
+			
+				txt_entry = new DNSTXTEntry();
+				
+				dns_mapping.put( host, txt_entry );
+				
+				is_new = true;
+			}
+		}
+		
+		if ( is_new ){
+			
+			try{
+				List<String> txts = DNSUtils.getTXTRecords( host );
+					
+				boolean	found_bt = false;
+							
+				for ( String txt: txts ){
+					
+					if ( txt.startsWith( "BITTORRENT " )){
+						
+						found_bt = true;
+						
+						Matcher matcher = txt_pattern.matcher( txt.substring( 11 ));
+						
+						while( matcher.find()){
+							
+							boolean is_tcp	= matcher.group(1).startsWith( "T" );
+							Integer	port	= Integer.parseInt( matcher.group(2));
+							
+							txt_entry.addPort( is_tcp, port );
+						}
+					}
+				}
+		
+				txt_entry.setHasRecords( found_bt );
+				
+			}finally{
+				
+				txt_entry.getSemaphore().releaseForever();
+			}
+		}
+		
+		txt_entry.getSemaphore().reserve();
+		
+		return( txt_entry );
+	}
+	
+	private static URL
+	applyDNSMods(
+		URL		url )
+	{
+		DNSTXTEntry txt_entry = getDNSTXTEntry( url );
+		
+		if ( txt_entry != null && txt_entry.hasRecords()){
+			
+			boolean url_is_tcp 	= url.getProtocol().toLowerCase().startsWith( "http" );
+			int		url_port	= url.getPort();
+			
+			if ( url_port == -1 ){
+				
+				url_port = url.getDefaultPort();
+			}
+			
+			List<DNSTXTPortInfo>	ports = txt_entry.getPorts();
+			
+			if ( ports.size() == 0 ){
+				
+				return( UrlUtils.setHost( url, url.getHost() + ".disabled_by_tracker" ));
+				
+			}else{
+			
+				DNSTXTPortInfo	first_port 	= ports.get(0);
+						
+				if ( url_port != first_port.getPort()){
+				
+					url = UrlUtils.setPort( url, first_port.getPort());
+				}
+				
+				if ( url_is_tcp == first_port.isTCP()){
+					
+					return( url );
+					
+				}else{
+				
+					return( UrlUtils.setProtocol( url, first_port.isTCP()?"http":"udp" ));
+				}
+			}
+		}else{
+		
+			return( url );
+		}
+	}
+	
+	private static TOTorrentAnnounceURLGroup
+	applyDNSMods(
+		URL								announce_url,
+		TOTorrentAnnounceURLGroup		group )
+	{
+		Map<String,Object[]>	dns_maps = new HashMap<String, Object[]>();
+
+		DNSTXTEntry announce_txt_entry = getDNSTXTEntry( announce_url );
+
+		if ( announce_txt_entry != null && announce_txt_entry.hasRecords()){
+			
+			dns_maps.put( announce_url.getHost(), new Object[]{ announce_url, announce_txt_entry });
+		}
+		
+		TOTorrentAnnounceURLSet[] sets = group.getAnnounceURLSets();
+		
+		List<TOTorrentAnnounceURLSet>	mod_sets = new ArrayList<TOTorrentAnnounceURLSet>();
+					
+		for ( TOTorrentAnnounceURLSet set: sets ){
+			
+			URL[] urls = set.getAnnounceURLs();
+			
+			List<URL>	mod_urls = new ArrayList<URL>();
+			
+			for ( URL url: urls ){
+				
+				DNSTXTEntry txt_entry = getDNSTXTEntry( url );
+
+				if ( txt_entry == null || !txt_entry.hasRecords()){
+
+					mod_urls.add( url );
+					
+				}else{
+					
+						// remove any affected entries here, we'll add them in if needed later
+					
+					dns_maps.put( url.getHost(), new Object[]{ url, txt_entry });
+				}
+			}
+			
+			if ( mod_urls.size() != urls.length ){
+				
+				if ( mod_urls.size() > 0 ){
+					
+					mod_sets.add( group.createAnnounceURLSet( mod_urls.toArray( new URL[ mod_urls.size()])));
+				}
+			}else{
+				
+				mod_sets.add( set );
+			}
+		}
+		
+		if ( dns_maps.size() > 0 ){
+			
+			for( Map.Entry<String,Object[]> entry: dns_maps.entrySet()){
+				
+				Object[] stuff		= entry.getValue();
+				
+				URL			url = (URL)stuff[0];
+				DNSTXTEntry	dns	= (DNSTXTEntry)stuff[1];
+				
+				List<DNSTXTPortInfo> ports = dns.getPorts();
+				
+				if ( ports.size() > 0 ){
+				
+					List<URL>	urls = new ArrayList<URL>();
+					
+					for ( DNSTXTPortInfo port: ports ){
+					
+						int		url_port 	= url.getPort();
+						boolean url_is_tcp 	= url.getProtocol().toLowerCase().startsWith( "http" );
+
+						if ( url_port != port.getPort()){
+							
+							url = UrlUtils.setPort( url, port.getPort());
+						}
+						
+						if ( url_is_tcp != port.isTCP()){
+						
+							url = UrlUtils.setProtocol( url, port.isTCP()?"http":"udp" );
+						}
+						
+						urls.add( url );
+					}
+					
+					if ( urls.size() > 0 ){
+					
+						mod_sets.add( group.createAnnounceURLSet( urls.toArray( new URL[ urls.size()])));
+					}
+				}
+			}
+			
+			return( new URLGroup( group, mod_sets ));
+			
+		}else{
+			
+			return( group );
+		}
+	}
+	
 	public interface
 	torrentAttributeListener
 	{
@@ -2648,5 +2894,130 @@ TorrentUtils
 			TOTorrent	torrent,
 			String		attribute,
 			Object		value );
+	}
+	
+	private static class
+	URLGroup
+		implements TOTorrentAnnounceURLGroup
+	{
+		private TOTorrentAnnounceURLGroup		delegate;
+		private TOTorrentAnnounceURLSet[]		sets;
+		
+		private
+		URLGroup(
+			TOTorrentAnnounceURLGroup		_delegate,
+			List<TOTorrentAnnounceURLSet>	mod_sets )
+		{
+			delegate	= _delegate;
+			
+			sets = mod_sets.toArray( new TOTorrentAnnounceURLSet[mod_sets.size()]);
+		}
+
+		public TOTorrentAnnounceURLSet[]
+       	getAnnounceURLSets()
+		{
+			return( sets );
+		}
+       	
+       	public void
+       	setAnnounceURLSets(
+       		TOTorrentAnnounceURLSet[]	_sets )
+       	{
+       		sets = _sets;
+       		
+       		delegate.setAnnounceURLSets(_sets );
+       	}
+       		
+       	public TOTorrentAnnounceURLSet
+       	createAnnounceURLSet(
+       		URL[]	urls )
+       	{
+       		return( delegate.createAnnounceURLSet( urls ));	
+       	}
+	}
+	
+	private static class
+	DNSTXTEntry
+	{
+		private AESemaphore				sem = new AESemaphore( "DNSTXTEntry" );
+		
+		private boolean					has_records;
+		private List<DNSTXTPortInfo>	ports = new ArrayList<DNSTXTPortInfo>();
+		
+		private AESemaphore
+		getSemaphore()
+		{
+			return( sem );
+		}
+		
+		private void
+		setHasRecords(
+			boolean	has )
+		{
+			has_records = has;
+		}
+		
+		private boolean
+		hasRecords()
+		{
+			return( has_records );
+		}
+		
+		private void
+		addPort(
+			boolean	is_tcp,
+			int		port )
+		{
+			ports.add( new DNSTXTPortInfo( is_tcp, port ));
+		}
+		
+		private List<DNSTXTPortInfo>
+		getPorts()
+		{
+			return( ports );
+		}
+	}
+	
+	private static class
+	DNSTXTPortInfo
+	{
+		private boolean	is_tcp;
+		private int		port;
+		
+		private
+		DNSTXTPortInfo(
+			boolean	_is_tcp,
+			int		_port )
+		{
+			is_tcp 	= _is_tcp;
+			port	= _port;
+		}
+		
+		private boolean
+		isTCP()
+		{
+			return( is_tcp );
+		}
+		
+		private int
+		getPort()
+		{
+			return( port );
+		}
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		try{
+			URL url = new URL( "http://tracker.openbittorrent.com/");
+			
+			System.out.println( applyDNSMods( url ));
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 }

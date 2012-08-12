@@ -35,6 +35,8 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
+
 public class 
 DNSUtils 
 {
@@ -113,5 +115,84 @@ DNSUtils
 		}
 		
 		throw( new UnknownHostException( host ));
+	}
+	
+	public static List<String>
+	getTXTRecords(
+		String		query )
+	{
+		List<String>	result = new ArrayList<String>();
+		
+		DirContext context = null;
+		
+		try{
+			context = DNSUtils.getInitialDirContext();
+			
+			Attributes attrs = context.getAttributes( query, new String[]{ "TXT" });
+			
+			NamingEnumeration n_enum = attrs.getAll();
+
+			while( n_enum.hasMoreElements()){
+				
+				Attribute	attr =  (Attribute)n_enum.next();
+
+				NamingEnumeration n_enum2 = attr.getAll();
+				
+				while( n_enum2.hasMoreElements()){
+				
+					String attribute = (String)n_enum2.nextElement();
+
+					if ( attribute != null ){
+						
+						attribute = attribute.trim();
+						
+						if ( attribute.startsWith( "\"" )){
+							
+							attribute = attribute.substring(1);
+						}
+						
+						if ( attribute.endsWith( "\"" )){
+							
+							attribute = attribute.substring(0,attribute.length()-1);
+						}
+						
+						if ( attribute.length() > 0 ){
+														
+							result.add( attribute );
+						}
+					}
+				}
+			}
+						
+		}catch( Throwable e ){
+				
+			//e.printStackTrace();
+			
+		}finally{
+			
+			if ( context != null ){
+				
+				try{
+					context.close();
+					
+				}catch( Throwable e ){
+				}
+			}
+		}
+		
+		return( result );
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		//List<String> records = getTXTRecords( "tracker.openbittorrent.com" );
+		List<String> records = getTXTRecords( "www.ibm.com" );
+		
+		for ( String record: records ){
+			
+			System.out.println( record );
+		}
 	}
 }

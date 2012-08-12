@@ -932,6 +932,26 @@ public class UrlUtils
 	}
 	
 	public static URL
+	setProtocol(
+		URL			u,
+		String		protocol )
+	{
+		String str = u.toExternalForm();
+		
+		int pos = str.indexOf( ":" );
+		
+		try{
+			return( new URL( protocol + str.substring( pos )));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( u );
+		}
+	}
+	
+	public static URL
 	getBaseURL(
 		URL		u )
 	{
