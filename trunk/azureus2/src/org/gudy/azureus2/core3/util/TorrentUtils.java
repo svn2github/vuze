@@ -82,7 +82,10 @@ TorrentUtils
 	
 	private static boolean bSaveTorrentBackup;
 	
-	private static CopyOnWriteList	torrent_attribute_listeners = new CopyOnWriteList();
+	private static CopyOnWriteList<torrentAttributeListener>			torrent_attribute_listeners 	= new CopyOnWriteList<torrentAttributeListener>();
+	private static CopyOnWriteList<TorrentAnnounceURLChangeListener>	torrent_url_changed_listeners 	= new CopyOnWriteList<TorrentAnnounceURLChangeListener>();
+	
+	private static AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
 	static {
 		COConfigurationManager.addAndFireParameterListener("Save Torrent Backup",
@@ -2663,6 +2666,22 @@ TorrentUtils
 		torrent_attribute_listeners.remove( listener );
 	}
 	
+	public static void
+	addTorrentURLChangeListener(
+		TorrentAnnounceURLChangeListener	listener )
+	{
+		torrent_url_changed_listeners.add( listener );
+	}
+	
+	public static void
+	removeTorrentURLChangeListener(
+		TorrentAnnounceURLChangeListener	listener )
+	{
+		torrent_url_changed_listeners.remove( listener );
+	}
+	
+	
+	
 	private static final Pattern txt_pattern = Pattern.compile( "(UDP|TCP):([0-9]+)");
 	
 	private static Map<String,DNSTXTEntry>	dns_mapping = new HashMap<String, DNSTXTEntry>();
@@ -2685,14 +2704,16 @@ TorrentUtils
 			return( null );
 		}
 		
-		DNSTXTEntry	txt_entry;
-		boolean		is_new = false;
+		DNSTXTEntry		txt_entry;
+		DNSTXTEntry		old_txt_entry;
+		
+		boolean			is_new = false;
 		
 		synchronized( dns_mapping ){
 		
-			txt_entry = dns_mapping.get( host );
-	
-			if ( txt_entry == null ){
+			old_txt_entry = txt_entry = dns_mapping.get( host );
+				
+			if ( txt_entry == null || SystemTime.getMonotonousTime() - txt_entry.getCreateTime() > 4*60*60*1000 ){
 			
 				txt_entry = new DNSTXTEntry();
 				
@@ -2711,11 +2732,11 @@ TorrentUtils
 							
 				for ( String txt: txts ){
 					
-					if ( txt.startsWith( "BITTORRENT " )){
+					if ( txt.startsWith( "BITTORRENT" )){
 						
 						found_bt = true;
 						
-						Matcher matcher = txt_pattern.matcher( txt.substring( 11 ));
+						Matcher matcher = txt_pattern.matcher( txt.substring( 10 ));
 						
 						while( matcher.find()){
 							
@@ -2729,6 +2750,30 @@ TorrentUtils
 		
 				txt_entry.setHasRecords( found_bt );
 				
+				if ( old_txt_entry != null ){
+					
+					if ( !old_txt_entry.sameAs( txt_entry )){
+						
+						dispatcher.dispatch(
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									for ( TorrentAnnounceURLChangeListener l: torrent_url_changed_listeners ){
+										
+										try{
+											l.changed();
+											
+										}catch( Throwable e ){
+											
+											Debug.out(e );
+										}
+									}
+								}
+							});
+					}
+				}
 			}finally{
 				
 				txt_entry.getSemaphore().releaseForever();
@@ -2896,6 +2941,13 @@ TorrentUtils
 			Object		value );
 	}
 	
+	public interface
+	TorrentAnnounceURLChangeListener
+	{
+		public void
+		changed();
+	}
+	
 	private static class
 	URLGroup
 		implements TOTorrentAnnounceURLGroup
@@ -2939,10 +2991,18 @@ TorrentUtils
 	private static class
 	DNSTXTEntry
 	{
+		private long					create_time = SystemTime.getMonotonousTime();
+		
 		private AESemaphore				sem = new AESemaphore( "DNSTXTEntry" );
 		
 		private boolean					has_records;
 		private List<DNSTXTPortInfo>	ports = new ArrayList<DNSTXTPortInfo>();
+		
+		private long
+		getCreateTime()
+		{
+			return( create_time );
+		}
 		
 		private AESemaphore
 		getSemaphore()
@@ -2976,6 +3036,30 @@ TorrentUtils
 		{
 			return( ports );
 		}
+		
+		private boolean
+		sameAs(
+			DNSTXTEntry		other )
+		{
+			if ( has_records != other.has_records ){
+				
+				return( false );
+			}
+			
+			if ( ports.size() != other.ports.size()){
+				
+				return( false );
+			}
+			
+			for ( int i=0;i<ports.size();i++ ){
+				
+				if ( !ports.get(i).sameAs( other.ports.get(i))){
+					
+					return( false );
+				}
+			}
+			return( true );
+		}		
 	}
 	
 	private static class
@@ -2991,6 +3075,13 @@ TorrentUtils
 		{
 			is_tcp 	= _is_tcp;
 			port	= _port;
+		}
+		
+		private boolean
+		sameAs(
+			DNSTXTPortInfo		other )
+		{
+			return( is_tcp == other.is_tcp && port == other.port );
 		}
 		
 		private boolean

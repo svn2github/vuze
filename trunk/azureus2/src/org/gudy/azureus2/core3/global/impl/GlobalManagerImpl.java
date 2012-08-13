@@ -567,6 +567,30 @@ public class GlobalManagerImpl
 				}
     		}
     	});
+    
+    TorrentUtils.addTorrentURLChangeListener(
+    	new TorrentUtils.TorrentAnnounceURLChangeListener()
+    	{
+    		public void
+    		changed()
+    		{
+				Logger.log( new LogEvent(LOGID, "Announce URL details have changed, updating trackers" ));
+
+				List	managers = managers_cow;
+				
+				for (int i=0;i<managers.size();i++){
+					
+					DownloadManager	manager = (DownloadManager)managers.get(i);
+					
+					TRTrackerAnnouncer client = manager.getTrackerClient();
+					
+					if ( client != null ){
+						
+						client.resetTrackerUrl( false );
+					}
+				}
+    		}
+    	});
   }
   
   public void loadExistingTorrentsNow(boolean async)

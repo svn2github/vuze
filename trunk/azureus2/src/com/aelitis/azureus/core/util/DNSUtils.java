@@ -21,12 +21,15 @@
 
 package com.aelitis.azureus.core.util;
 
+import java.io.IOException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
+import java.util.Map;
 
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
@@ -117,11 +120,32 @@ DNSUtils
 		throw( new UnknownHostException( host ));
 	}
 	
+	private static Map<String,String>	test_records = new HashMap<String,String>();
+	
+	static{
+		test_records.put( "test1.test.null", "BITTORRENT DENY ALL" );
+		test_records.put( "test2.test.null", "BITTORRENT" );
+		test_records.put( "test3.test.null", "BITTORRENT TCP:1 TCP:2 UDP:1 UDP:2" );
+		test_records.put( "test4.test.null", "BITTORRENT TCP:3" );
+		test_records.put( "test5.test.null", "BITTORRENT UDP:4" );
+	}
+	
 	public static List<String>
 	getTXTRecords(
 		String		query )
 	{
+		// System.out.println( "DNSTXTQuery: " + query );
+		
 		List<String>	result = new ArrayList<String>();
+	
+		String test_reply = test_records.get( query );
+
+		if ( test_reply != null ){
+			
+			result.add( test_reply );
+			
+			return( result );
+		}
 		
 		DirContext context = null;
 		
