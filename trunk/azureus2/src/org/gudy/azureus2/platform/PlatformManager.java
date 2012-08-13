@@ -174,6 +174,17 @@ PlatformManager
 	
 		throws PlatformManagerException;
 	
+		/**
+		 * This max-open-files concept here is from linux/osx where network connections are treated as 'files' 
+		 * @return
+		 * @throws PlatformManagerException
+		 */
+	
+	public int
+	getMaxOpenFiles()
+	
+		throws PlatformManagerException;
+	
     /**
      * <p>Gets whether the platform manager supports a capability</p>
      * <p>Users of PlatformManager should check for supported capabilities before calling

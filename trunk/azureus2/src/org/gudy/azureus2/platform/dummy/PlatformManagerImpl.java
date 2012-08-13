@@ -304,6 +304,14 @@ public class PlatformManagerImpl implements PlatformManager
 	    throw new PlatformManagerException("Unsupported capability called on platform manager");		
 	}
 	
+	public int
+	getMaxOpenFiles()
+	
+		throws PlatformManagerException
+	{
+	    throw new PlatformManagerException("Unsupported capability called on platform manager");		
+	}
+	
     /**
      * {@inheritDoc}
      */

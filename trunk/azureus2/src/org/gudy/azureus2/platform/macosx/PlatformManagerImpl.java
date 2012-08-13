@@ -147,6 +147,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         }
         
         capabilitySet.add(PlatformManagerCapabilities.RunAtLogin);
+        capabilitySet.add(PlatformManagerCapabilities.GetMaxOpenFiles);
     }
 
     /**
@@ -1359,6 +1360,51 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	    throw new PlatformManagerException("Unsupported capability called on platform manager");		
 	}
 	
+	public int
+	getMaxOpenFiles()
+	
+		throws PlatformManagerException
+	{
+        LineNumberReader lnr = null;
+        
+	    try{
+	        Process p = 
+	        	Runtime.getRuntime().exec( 
+	        		new String[]{
+	        				"/bin/sh",
+	        				"-c",
+	        				"ulimit -a" });
+          
+	        lnr = new LineNumberReader( new InputStreamReader( p.getInputStream()));
+	        		    	        
+	        while( true ){
+	        	
+	        	String	line = lnr.readLine();
+	        	
+	        	if ( line == null ){
+	        		
+	        		break;
+	        	}
+	        	
+	        	System.out.println( line );
+	        }
+	    }catch( Throwable e ){
+	    	
+	    }finally{
+	    	
+            if ( lnr != null ){
+            	
+                try{
+                	lnr.close();
+                    
+                }catch( Throwable e ){
+                }
+            }
+        }
+	    
+	    throw new PlatformManagerException("Unsupported capability called on platform manager");
+	}
+	
     public void
     addListener(
     	PlatformManagerListener		listener )
@@ -1435,4 +1481,16 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 
 	}
 
+	public static void
+	main(
+		String[]	args )
+	{
+		try{
+			System.out.println( new PlatformManagerImpl().getMaxOpenFiles());
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
 }

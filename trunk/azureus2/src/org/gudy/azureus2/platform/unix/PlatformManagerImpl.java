@@ -187,6 +187,14 @@ public class PlatformManagerImpl implements PlatformManager
 		throw new PlatformManagerException(ERR_UNSUPPORTED);
 	}
 
+	public int
+	getMaxOpenFiles()
+	
+		throws PlatformManagerException
+	{
+	    throw new PlatformManagerException(ERR_UNSUPPORTED);		
+	}
+	
 	// @see org.gudy.azureus2.platform.PlatformManager#registerApplication()
 	public void registerApplication() throws PlatformManagerException {
 		throw new PlatformManagerException(ERR_UNSUPPORTED);

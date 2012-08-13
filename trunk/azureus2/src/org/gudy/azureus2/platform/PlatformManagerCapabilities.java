@@ -57,6 +57,7 @@ public final class PlatformManagerCapabilities
     public static final PlatformManagerCapabilities AccessExplicitVMOptions = new PlatformManagerCapabilities("AccessExplicitVMOptions");
     
     public static final PlatformManagerCapabilities RunAtLogin				= new PlatformManagerCapabilities("RunAtLogin");
+    public static final PlatformManagerCapabilities GetMaxOpenFiles			= new PlatformManagerCapabilities("GetMaxOpenFiles");
 
     private final String myName; // for debug only
 
