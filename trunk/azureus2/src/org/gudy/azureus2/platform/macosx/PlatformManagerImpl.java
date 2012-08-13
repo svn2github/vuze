@@ -1377,6 +1377,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
           
 	        lnr = new LineNumberReader( new InputStreamReader( p.getInputStream()));
 	        		    	        
+	        Map<String,String>	map = new HashMap<String,String>();
+	        
 	        while( true ){
 	        	
 	        	String	line = lnr.readLine();
@@ -1386,7 +1388,31 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	        		break;
 	        	}
 	        	
-	        	System.out.println( line );
+	        	int	pos1 = line.indexOf( '(' );
+	        	int pos2 = line.indexOf( ')', pos1+1 );
+	        	
+	        	String keyword 	= line.substring( 0, pos1 ).trim().toLowerCase();
+	        	String value	= line.substring( pos2+1 ).trim();
+	        	
+	        	map.put( keyword, value );
+	        }
+	        
+	        String open_files = map.get( "open files" );
+	        
+	        if ( open_files != null ){
+	        	
+	        	if ( open_files.equalsIgnoreCase( "unlimited" )){
+	        		
+	        		return( 0 );
+	        	}else{
+	        		try{
+	        			return( Integer.parseInt( open_files ));
+	        			
+	        		}catch( Throwable e ){
+	        			
+	        			Debug.out( "open files invalid: " + open_files );
+	        		}
+	        	}
 	        }
 	    }catch( Throwable e ){
 	    	
@@ -1401,8 +1427,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
                 }
             }
         }
-	    
-	    throw new PlatformManagerException("Unsupported capability called on platform manager");
+
+	    return( -1 );
 	}
 	
     public void
