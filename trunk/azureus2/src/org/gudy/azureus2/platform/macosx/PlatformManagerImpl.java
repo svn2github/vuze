@@ -137,9 +137,6 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	        capabilitySet.add(PlatformManagerCapabilities.GetVersion);
         }
  
-        AEDiagnostics.addEvidenceGenerator(this);
-        
- 
         if ( checkPList()){
         	
             // one day soon...
@@ -148,6 +145,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         
         capabilitySet.add(PlatformManagerCapabilities.RunAtLogin);
         capabilitySet.add(PlatformManagerCapabilities.GetMaxOpenFiles);
+        
+        AEDiagnostics.addEvidenceGenerator(this);
     }
 
     /**
@@ -1443,29 +1442,33 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     {
     }
 
-		// @see org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator#generate(org.gudy.azureus2.core3.util.IndentWriter)
-		public void generate(IndentWriter writer) {
-			writer.println("PlatformManager: MacOSX");
-			try {
-				writer.indent();
-				
-				if (OSXAccess.isLoaded()) {
-					try {
-						writer.println("Version " + getVersion());
-						writer.println("User Data Dir: " + getLocation(LOC_USER_DATA));
-						writer.println("User Doc Dir: " + getLocation(LOC_DOCUMENTS));
-					} catch (PlatformManagerException e) {
-					}
-				} else {
-					writer.println("Not loaded");
-				}
-				
-				writer.println("Computer Name: " + getComputerName());
+    public void generate(IndentWriter writer) {
+    	writer.println("PlatformManager: MacOSX");
+    	try {
+    		writer.indent();
 
-			} finally {
-				writer.exdent();
-			}
-		}
+    		if (OSXAccess.isLoaded()) {
+    			try {
+    				writer.println("Version " + getVersion());
+    				writer.println("User Data Dir: " + getLocation(LOC_USER_DATA));
+    				writer.println("User Doc Dir: " + getLocation(LOC_DOCUMENTS));
+    			} catch (PlatformManagerException e) {
+    			}
+    		} else {
+    			writer.println("Not loaded");
+    		}
+
+    		writer.println("Computer Name: " + getComputerName());
+    		
+    		try{
+    			writer.println("Max Open Files: " + getMaxOpenFiles());
+    		}catch( Throwable e ){
+    			writer.println("Max Open Files: " + Debug.getNestedExceptionMessage( e ));
+    		}
+    	} finally {
+    		writer.exdent();
+    	}
+    }
 
 	// @see org.gudy.azureus2.platform.PlatformManager#getAzComputerID()
 	public String getAzComputerID() throws PlatformManagerException {
