@@ -1534,14 +1534,18 @@ public class TableViewPainted
 	private void paintHeader(PaintEvent e) {
 
 		Rectangle ca = cHeaderArea.getClientArea();
-		Pattern patternUp = new Pattern(e.display, 0, 0, 0, ca.height * 2, Colors.white,
-				Colors.light_grey);
-		Pattern patternDown = new Pattern(e.display, 0, -ca.height , 0, ca.height, Colors.light_grey,
-				Colors.white);
+		Color c1 = e.display.getSystemColor(SWT.COLOR_LIST_BACKGROUND);
+		Color c2 = e.display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND);
+		Color line = c2;
+		Color fg = e.display.getSystemColor(SWT.COLOR_LIST_FOREGROUND);
+
+		
+		Pattern patternUp = new Pattern(e.display, 0, 0, 0, ca.height, c1, c2);
+		Pattern patternDown = new Pattern(e.display, 0, -ca.height , 0, 0, c2, c1);
 		//e.gc.setBackgroundPattern(patternUp);
 		//e.gc.fillRectangle(ca);
 
-		e.gc.setForeground(Colors.light_grey);
+		e.gc.setForeground(line);
 		//e.gc.drawLine(0, 0, clientArea.width, 0);
 		e.gc.drawLine(0, headerHeight - 1, clientArea.width, headerHeight - 1);
 
@@ -1565,10 +1569,10 @@ public class TableViewPainted
 
 			e.gc.setBackgroundPattern(isSortColumn ? patternDown : patternUp);
 			e.gc.fillRectangle(x, 1, w, headerHeight - 2);
-			e.gc.setForeground(Colors.light_grey);
+			e.gc.setForeground(line);
 			e.gc.drawLine(x + w - 1, 0, x + w - 1, headerHeight - 1);
 
-			e.gc.setForeground(ColorCache.getColor(e.display, 0, 0, 0));
+			e.gc.setForeground(fg);
 			int yOfs = 0;
 			int wText = w;
 /* Top Center
@@ -1615,7 +1619,7 @@ public class TableViewPainted
 					y2 = y1 + arrowHeight;
 				}
 				e.gc.setAntialias(SWT.ON);
-				e.gc.setBackground(ColorCache.getColor(e.display, 0, 0, 0));
+				e.gc.setBackground(fg);
 				e.gc.fillPolygon(new int[] {
 					x + middle - arrowHalfW,
 					y1,
