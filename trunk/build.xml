@@ -204,7 +204,7 @@ extract messagebundles
 
 	    	  <!-- Run deployment script -->
 		     <echo message="Running external deploy script: ${deploy.exec}" />
-		     <exec executable="${deploy.exec}" dir="." >
+		     <exec executable="${deploy.exec}" dir="." failonerror="true" failifexecutionfails="false" >
 		     	   <arg value="${basedir}/${docs.dir}" />
 		      	<arg value="${basedir}/${dist.dir}" />
 		      	<arg value="${build.name}" />
