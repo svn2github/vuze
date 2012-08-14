@@ -1483,7 +1483,7 @@ public class MainStatusBar
 		// IP Filter Status Section
 		IpFilter ip_filter = azureusCore.getIpFilterManager().getIPFilter();
 
-		ipBlocked.setForeground( ip_filter.isEnabled()?Colors.black:Colors.grey);
+		ipBlocked.setForeground( display.getSystemColor(ip_filter.isEnabled()? SWT.COLOR_WIDGET_FOREGROUND : SWT.COLOR_WIDGET_NORMAL_SHADOW));
 		
 		ipBlocked.setText("IPs: "
 				+ numberFormat.format(ip_filter.getNbRanges())
