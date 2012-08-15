@@ -46,6 +46,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntryListener;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
@@ -70,6 +71,22 @@ PMSWTImpl
 						final UIInstance		instance )
 					{
 						if ( instance instanceof UISWTInstance ){
+							
+							UIFunctions uif = UIFunctionsManager.getUIFunctions();
+							
+							if ( uif != null ){
+								
+								uif.getUIUpdater().addListener(
+									new UIUpdater.UIUpdaterListener()
+									{
+										public void 
+										updateComplete(
+											int count )
+										{
+											System.out.println( "updated: " + count );
+										}
+									});
+							}
 							
 							Utils.execSWTThread(
 								new AERunnable() 
@@ -206,8 +223,6 @@ PMSWTImpl
 		String				ip,
 		final boolean		good )
 	{
-		System.out.println( "req: " + ip + "/" + good );
-		
 		Utils.execSWTThread(
 			new AERunnable() 
 			{

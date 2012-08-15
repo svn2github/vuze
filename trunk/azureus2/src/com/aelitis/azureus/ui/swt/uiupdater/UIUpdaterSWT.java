@@ -33,9 +33,11 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.updater.UIUpdatableAlways;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
+import com.aelitis.azureus.ui.common.updater.UIUpdater.UIUpdaterListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
@@ -76,6 +78,9 @@ public class UIUpdaterSWT
 
 	Map averageTimes = DEBUG_TIMER ? new HashMap() : null;
 
+	private int	update_count = 0;
+	private CopyOnWriteList<UIUpdaterListener>		listeners = new CopyOnWriteList<UIUpdaterListener>();
+	
 	public static UIUpdater getInstance() {
 		if (updater == null) {
 			updater = new UIUpdaterSWT();
@@ -138,13 +143,21 @@ public class UIUpdaterSWT
 									"Error while trying to update GUI", e));
 						} finally {
 							refreshed = true;
+							
+							for ( UIUpdaterListener l: listeners ){
+								
+								try{
+									l.updateComplete( ++update_count );
+								}catch( Throwable e ){
+									Debug.out( e );
+								}
+							}
 						}
 					}
 				})) {
 					refreshed = true;
 				}
 			}
-
 			try {
 				Thread.sleep(waitTimeMS);
 			} catch (Exception e) {
@@ -310,5 +323,19 @@ public class UIUpdaterSWT
 
 			mainStatusBar.setDebugInfo(sb.toString());
 		}
+	}
+	
+	public void
+	addListener(
+		UIUpdaterListener		listener )
+	{
+		listeners.add( listener );
+	}
+	
+	public void
+	removeListener(
+		UIUpdaterListener		listener )
+	{
+		listeners.remove( listener );
 	}
 }

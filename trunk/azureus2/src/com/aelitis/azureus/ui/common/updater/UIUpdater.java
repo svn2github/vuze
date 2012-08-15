@@ -34,4 +34,20 @@ public interface UIUpdater
 	public void stopIt();
 
 	public void start();
+	
+	public void
+	addListener(
+		UIUpdaterListener		listener );
+	
+	public void
+	removeListener(
+		UIUpdaterListener		listener );
+	
+	public interface
+	UIUpdaterListener
+	{
+		public void
+		updateComplete(
+			int		count );
+	}
 }

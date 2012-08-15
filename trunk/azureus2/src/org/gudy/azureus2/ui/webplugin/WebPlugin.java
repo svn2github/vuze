@@ -1736,16 +1736,16 @@ WebPlugin
 		String						client_ip,
 		boolean						good )
 	{
-		//System.out.println( "auth: " + client_ip + " -> " + good );
+		PairingManager pm = PairingManagerFactory.getSingleton();
+		
+		pm.recordRequest( plugin_interface.getPluginName(), client_ip, good );
 	}
 	
 	private void
 	recordRequest(
 		TrackerWebPageRequest		request,
 		boolean						good )
-	{
-		//System.out.println( "req: " + request.getClientAddress() + " -> " + good );
-					
+	{					
 		PairingManager pm = PairingManagerFactory.getSingleton();
 		
 		pm.recordRequest( plugin_interface.getPluginName(), request.getClientAddress(), good );
