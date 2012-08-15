@@ -113,6 +113,9 @@ public class SubscriptionsView
 	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
 	 */
 	public void refreshToolBarItems(Map<String, Long> list) {
+		if ( view == null ){
+			return;	// can happen on first selection it seems
+		}
 		int numRows = view.getSelectedRowsSize();
 		list.put("remove", numRows > 0 ? UIToolBarItem.STATE_ENABLED : 0);
 		list.put("share", numRows == 1 ? UIToolBarItem.STATE_ENABLED : 0);

@@ -659,7 +659,11 @@ public class ToolBarView
 				UIToolBarEnablerBase[] enablers = entry.getToolbarEnablers();
 				for (UIToolBarEnablerBase enabler : enablers) {
 					if (enabler instanceof UIPluginViewToolBarListener) {
-						((UIPluginViewToolBarListener) enabler).refreshToolBarItems(mapStates);
+						try{
+							((UIPluginViewToolBarListener) enabler).refreshToolBarItems(mapStates);
+						}catch( Throwable e ){
+							Debug.out( e );	// don't trust them plugins
+						}
 					} else if (enabler instanceof ToolBarEnabler) {
 						Map<String, Boolean> oldMapStates = new HashMap<String, Boolean>();
 						((ToolBarEnabler) enabler).refreshToolBar(oldMapStates);
