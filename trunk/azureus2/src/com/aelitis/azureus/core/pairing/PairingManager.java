@@ -83,6 +83,12 @@ PairingManager
 		throws PairingException;
 	
 	public void
+	recordRequest(
+		String		name,
+		String		ip,
+		boolean		good );
+	
+	public void
 	addListener(
 		PairingManagerListener	l );
 	

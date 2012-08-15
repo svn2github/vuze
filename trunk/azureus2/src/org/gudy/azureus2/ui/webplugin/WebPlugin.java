@@ -189,6 +189,8 @@ WebPlugin
 	
 	private Map<String,Long>	logout_timer 		= new HashMap<String, Long>();
 	
+	private PairingManager	pairing_manager;
+	
 	public 
 	WebPlugin()
 	{
@@ -1297,6 +1299,8 @@ WebPlugin
 							}
 						}
 						
+						recordAuthRequest( client_address, result );
+						
 						return( result );
 					}
 					
@@ -1726,7 +1730,27 @@ WebPlugin
 	{
 		pw_enable.setValue( false );
 	}
-			
+		
+	private void
+	recordAuthRequest(
+		String						client_ip,
+		boolean						good )
+	{
+		//System.out.println( "auth: " + client_ip + " -> " + good );
+	}
+	
+	private void
+	recordRequest(
+		TrackerWebPageRequest		request,
+		boolean						good )
+	{
+		//System.out.println( "req: " + request.getClientAddress() + " -> " + good );
+					
+		PairingManager pm = PairingManagerFactory.getSingleton();
+		
+		pm.recordRequest( plugin_interface.getPluginName(), request.getClientAddress(), good );
+	}
+	
 	public boolean
 	generateSupport(
 		TrackerWebPageRequest		request,
@@ -1761,6 +1785,7 @@ WebPlugin
 					if ( !ia.isLoopbackAddress()){
 				
 						log.log( LoggerChannel.LT_ERROR, "Client '" + client + "' is not local, rejecting" );
+						
 						valid_ip = false;
 					}
 				}else{
@@ -1778,6 +1803,7 @@ WebPlugin
 					if ( !ok ){
 						
 						log.log( LoggerChannel.LT_ERROR, "Client '" + client + "' (" + ia.getHostAddress() + ") is not in range, rejecting" );
+						
 						valid_ip = false;
 					}
 				}
@@ -1786,6 +1812,8 @@ WebPlugin
 					
 					response.setReplyStatus( 403 );
 					
+					recordRequest( request, false );
+					
 					return( returnTextPlain( response, "Cannot access resource from this IP address." ));
 				}
 				
@@ -1793,9 +1821,13 @@ WebPlugin
 				
 				Debug.printStackTrace( e );
 				
+				recordRequest( request, false );
+				
 				return( false );
 			}
 		}
+		
+		recordRequest( request, true );
 		
 		String url = request.getURL();
 		

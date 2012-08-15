@@ -59,8 +59,10 @@ import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
+import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
@@ -86,6 +88,7 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfac
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
 import com.aelitis.azureus.core.pairing.*;
+import com.aelitis.azureus.core.pairing.impl.swt.PMSWTImpl;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -147,6 +150,8 @@ PairingManagerImpl
 	private StringParameter		param_local_ipv4;
 	private StringParameter		param_local_ipv6;
 
+	private BooleanParameter 	param_icon_enable;
+
 	private Map<String,PairedServiceImpl>		services = new HashMap<String, PairedServiceImpl>();
 	
 	private AESemaphore	init_sem = new AESemaphore( "PM:init" );
@@ -182,6 +187,8 @@ PairingManagerImpl
 	private Map<String,Object[]>	local_address_checks = new HashMap<String, Object[]>();
 
 	private CopyOnWriteList<PairingManagerListener>	listeners = new CopyOnWriteList<PairingManagerListener>();
+	
+	private PMSWTImpl		swt_ui = new PMSWTImpl();
 	
 	protected
 	PairingManagerImpl()
@@ -318,6 +325,8 @@ PairingManagerImpl
 				param_local_ipv6,
 			});
 		
+		param_icon_enable = configModel.addBooleanParameter2( "pairing.config.icon.show", "pairing.config.icon.show", true );
+
 		AzureusCoreFactory.addCoreRunningListener(
 			new AzureusCoreRunningListener()
 			{
@@ -365,6 +374,8 @@ PairingManagerImpl
 			
 			dt.queue();
 			
+			swt_ui.initialise( default_pi, param_icon_enable );
+
 		}finally{
 			
 			init_sem.releaseForever();
@@ -1465,6 +1476,15 @@ PairingManagerImpl
 		throws PairingException 
 	{
 		return( new TestServiceImpl( sid, listener ));
+	}
+	
+	public void
+	recordRequest(
+		String		name,
+		String		ip,
+		boolean		good )
+	{
+		swt_ui.recordRequest( name, ip, good );
 	}
 	
 	protected void
