@@ -231,6 +231,10 @@ public class UISWTViewImpl
 	 * @see org.gudy.azureus2.ui.swt.plugins.UISWTView#setTitle(java.lang.String)
 	 */
 	public void setTitle(String title) {
+		if ( title.contains( "." ) && MessageText.keyExists(title)){
+				// it if appears to be a resource key then resolve it here
+			title = MessageText.getString( title );
+		}
 		sTitle = title;
 	}
 
