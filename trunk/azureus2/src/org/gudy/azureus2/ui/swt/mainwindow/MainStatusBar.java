@@ -306,15 +306,6 @@ public class MainStatusBar
 		progressGridData.widthHint = 5;
 		progressBar.setLayoutData(progressGridData);
 
-		if ( isAZ3 ){
-		
-			try{
-				addFeedBack();
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-			}
-		}
 		
 		/*
 		 * Progress reporting window image label
