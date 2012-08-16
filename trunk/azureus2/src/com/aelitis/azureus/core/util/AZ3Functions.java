@@ -58,6 +58,9 @@ AZ3Functions
 		
 			throws Exception;
 		
+		public void
+		openRemotePairingWindow();
+		
 		public boolean
 		canPlay(
 			DownloadManager		dm,
