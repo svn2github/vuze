@@ -22,6 +22,7 @@ import com.aelitis.azureus.ui.swt.views.ViewTitleInfoBetaP;
 import com.aelitis.azureus.ui.swt.views.skin.SBC_ActivityTableView;
 import com.aelitis.azureus.ui.swt.views.skin.SBC_PlusFTUX;
 import com.aelitis.azureus.ui.swt.views.skin.SB_Transfers;
+import com.aelitis.azureus.ui.swt.views.skin.SB_Vuze;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
@@ -158,7 +159,7 @@ public class MainMDISetup
 		mdi.setPreferredOrder(preferredOrder);
 
 		boolean[] disableCollapses = {
-			true,
+			false,
 			true,
 			false,
 			false,
@@ -302,5 +303,6 @@ public class MainMDISetup
 		SBC_ActivityTableView.setupSidebarEntry();
 
 		SB_Transfers.setup(mdi);
+		SB_Vuze.setup(mdi);
 	}
 }
