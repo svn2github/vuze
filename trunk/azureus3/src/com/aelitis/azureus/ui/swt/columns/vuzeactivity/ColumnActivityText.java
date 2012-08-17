@@ -122,7 +122,7 @@ public class ColumnActivityText
 			gc.setFont(font);
 		}
 		
-		int style = (drawBounds.height < 40) ? 0 : SWT.WRAP;
+		int style = SWT.WRAP;
 
 		GCStringPrinter sp = new GCStringPrinter(gc, text, drawBounds, true, true,
 				style);
