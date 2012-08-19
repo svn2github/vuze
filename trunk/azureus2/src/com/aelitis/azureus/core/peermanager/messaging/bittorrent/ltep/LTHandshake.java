@@ -122,7 +122,7 @@ public class LTHandshake implements LTMessage {
 			
 			if ( ulOnly instanceof byte[] ){
 				
-				String	str_val = String.valueOf((byte[])ulOnly );
+				String	str_val = new String((byte[])ulOnly );
 				
 				try{
 					int i = Integer.parseInt( str_val );
