@@ -79,34 +79,10 @@ public class MainMDISetup
 					public void parameterChanged(String parameterName) {
 						boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
 						if (enabled) {
-							mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM);
+							mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM, false);
 						}
 					}
 		});
-		
-		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
-				new MdiEntryCreationListener() {
-					public MdiEntry createMDiEntry(String id) {
-						
-						final ViewTitleInfoBetaP viewTitleInfo = new ViewTitleInfoBetaP();
-						
-						MdiEntry entry = mdi.createEntryFromSkinRef(
-								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
-								MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
-								"main.area.beta", "{Sidebar.beta.title}",
-								viewTitleInfo, null, true, MultipleDocumentInterface.SIDEBAR_POS_FIRST);
-						
-						entry.setImageLeftID( "image.sidebar.beta" );
-						
-						entry.addListener(new MdiCloseListener() {
-							public void mdiEntryClosed(MdiEntry entry, boolean userClosed) {
-								viewTitleInfo.clearIndicator();
-							}
-						});
-						
-						return entry;
-					}
-				});
 		
 		mdi.registerEntry(StatsView.VIEW_ID, new MdiEntryCreationListener() {
 			public MdiEntry createMDiEntry(String id) {
@@ -303,6 +279,6 @@ public class MainMDISetup
 		SBC_ActivityTableView.setupSidebarEntry();
 
 		SB_Transfers.setup(mdi);
-		SB_Vuze.setup(mdi);
+		new SB_Vuze(mdi);
 	}
 }
