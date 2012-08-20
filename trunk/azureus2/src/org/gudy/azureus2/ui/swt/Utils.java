@@ -297,6 +297,9 @@ public class Utils
 	 */
 	public static void centerWindowRelativeTo(final Shell window,
 			final Control control) {
+		if (control == null || control.isDisposed() || window == null || window.isDisposed()) {
+			return;
+		}
 		final Rectangle bounds = control.getBounds();
 		final Point shellSize = window.getSize();
 		window.setLocation(bounds.x + (bounds.width / 2) - shellSize.x / 2,
