@@ -170,6 +170,9 @@ public class UIUpdaterSWT
 	public void parameterChanged(String parameterName) {
 		waitTimeMS = COConfigurationManager.getIntParameter(CFG_REFRESH_INTERVAL);
 		inactiveFactor = COConfigurationManager.getIntParameter(CFG_REFRESH_INACTIVE_FACTOR);
+		if (inactiveFactor == 0) {
+			inactiveFactor = 1;
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.swt.utils.UIUpdater#addUpdater(com.aelitis.azureus.ui.swt.utils.UIUpdatable)
