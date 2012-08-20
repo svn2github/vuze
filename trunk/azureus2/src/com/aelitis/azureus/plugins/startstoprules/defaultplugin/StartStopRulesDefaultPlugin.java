@@ -1493,8 +1493,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			vars.numWaitingOrDLing++;
 		}
 
-		if (state == Download.ST_READY || state == Download.ST_DOWNLOADING
-				|| state == Download.ST_WAITING) {
+		if ( state == Download.ST_READY || state == Download.ST_DOWNLOADING	|| state == Download.ST_WAITING ){
 
 			// Stop torrent if over limit
 			boolean bOverLimit = vars.numWaitingOrDLing > maxDLs
@@ -1502,12 +1501,12 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 			boolean bDownloading = state == Download.ST_DOWNLOADING;
 
-			if ((maxDownloads != 0) && bOverLimit &&
-					(globalRateAdjustedActivelyDownloading || !bDownloading ||
-						(bDownloading && totals.maxActive != 0 && !globalRateAdjustedActivelyDownloading &&	totals.activelyCDing + totals.activelyDLing >= totals.maxActive)
-					)
-				)
-			{
+			if (	maxDownloads != 0 && 
+					bOverLimit &&
+					!( download.isChecking() || download.isMoving()) &&
+					(	globalRateAdjustedActivelyDownloading || 
+						!bDownloading ||
+						(bDownloading && totals.maxActive != 0 && !globalRateAdjustedActivelyDownloading &&	totals.activelyCDing + totals.activelyDLing >= totals.maxActive))){
 				try
 				{
 					if (bDebugLog)
@@ -1947,9 +1946,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 					// not checking AND (at limit of seeders OR rank is set to ignore) AND
 					// (Actively Seeding OR StartingUp OR Seeding a non-active download) 
-					okToStop = !download.isChecking()
-							&& (bOverLimit || rank < DefaultRankCalculator.SR_IGNORED_LESS_THAN)
-							&& (globalRateAdjustedActivelySeeding || !bSeeding || (!globalRateAdjustedActivelySeeding && bSeeding));
+					okToStop = 	!download.isChecking() && 
+								!download.isMoving() &&
+								(bOverLimit || rank < DefaultRankCalculator.SR_IGNORED_LESS_THAN) &&
+								(globalRateAdjustedActivelySeeding || !bSeeding || (!globalRateAdjustedActivelySeeding && bSeeding));
 
 					if (bDebugLog) {
 						if (okToStop) {
@@ -1975,15 +1975,18 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 						}
 					} else {
 						sDebugLine += "\n  NOT queuing: ";
-						if (download.isChecking())
+						if (download.isChecking()){
 							sDebugLine += "can't auto-queue a checking torrent";
-						else if (!bOverLimit)
+						}else if (download.isMoving()){
+							sDebugLine += "can't auto-queue a moving torrent";
+						}else if (!bOverLimit){
 							sDebugLine += "not over limit.  numWaitingOrSeeding("
 									+ vars.numWaitingOrSeeding + ") <= maxSeeders("
 									+ totals.maxSeeders + ")";
-						else
+						}else{
 							sDebugLine += "bActivelySeeding=" + bActivelySeeding
 									+ ";bSeeding" + bSeeding;
+						}
 					}
 				} else {
 					if (bDebugLog)
@@ -1994,7 +1997,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					try {
 						if (state == Download.ST_READY)
 							totals.waitingToSeed--;
-
+						
 						download.stopAndQueue();
 						vars.bStopAndQueued = true;
 						// okToQueue only allows READY and SEEDING state.. and in both cases

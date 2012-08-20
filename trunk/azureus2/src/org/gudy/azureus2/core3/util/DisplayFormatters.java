@@ -260,6 +260,8 @@ DisplayFormatters
 	private static String	ManagerItem_queued;
 	private static String	ManagerItem_error;
 	private static String	ManagerItem_forced;
+	private static String	ManagerItem_moving;
+	
 	private static String	yes;
 	private static String	no;
 	
@@ -285,6 +287,7 @@ DisplayFormatters
 		ManagerItem_queued				= getResourceString( "ManagerItem.queued", "queued" );
 		ManagerItem_error				= getResourceString( "ManagerItem.error", "error" );
 		ManagerItem_forced				= getResourceString( "ManagerItem.forced", "forced" );
+		ManagerItem_moving				= getResourceString( "ManagerItem.moving", "moving" );
 		yes								= getResourceString( "GeneralView.yes", "Yes" );
 		no								= getResourceString( "GeneralView.no", "No" );
 	}
@@ -637,24 +640,36 @@ DisplayFormatters
 
 				DiskManager diskManager = manager.getDiskManager();
 
-				if ((diskManager != null)
-						&& diskManager.getCompleteRecheckStatus() != -1) {
-
-					int done = diskManager.getCompleteRecheckStatus();
-
-					if (done == -1) {
-						done = 1000;
+				if ( diskManager != null ){
+						
+					int	mp = diskManager.getMoveProgress();
+					
+					if ( mp != -1 ){
+						
+						tmp = ManagerItem_moving + ": "	+ formatPercentFromThousands( mp );
+						
+					}else{
+						int done = diskManager.getCompleteRecheckStatus();
+	
+						if ( done != -1 ){
+	
+							tmp = ManagerItem_seeding + " + " + ManagerItem_checking + ": "	+ formatPercentFromThousands(done);
+						}
 					}
-
-					tmp = ManagerItem_seeding + " + " + ManagerItem_checking + ": "
-							+ formatPercentFromThousands(done);
-
-				} else if (manager.getPeerManager() != null
-						&& manager.getPeerManager().isSuperSeedMode()) {
-					tmp = ManagerItem_superseeding;
-				} else {
-					tmp = ManagerItem_seeding;
 				}
+				
+				if ( tmp == "" ){
+					
+					if (manager.getPeerManager() != null && manager.getPeerManager().isSuperSeedMode()) {
+					
+						tmp = ManagerItem_superseeding;
+						
+					}else{
+						
+						tmp = ManagerItem_seeding;
+					}
+				}
+				
 				break;
 			}
 			case DownloadManager.STATE_STOPPED:

@@ -250,6 +250,14 @@ DiskManager
 	getCompleteRecheckStatus();
   
 		/**
+		 * When a download's data is moving (for completion or removal events) this gives the progress in 1000 notation. -1 if nothing's going on
+		 * @return
+		 */
+	
+	public int
+	getMoveProgress();
+	
+		/**
 		 * method for checking that the block details are sensible
 		 * @param pieceNumber
 		 * @param offset

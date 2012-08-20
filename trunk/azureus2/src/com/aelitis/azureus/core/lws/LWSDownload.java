@@ -632,6 +632,12 @@ LWSDownload
 		return( false );
 	}
 	
+	public boolean
+ 	isMoving()
+ 	{
+		return( false );
+ 	}
+	
   	public String
 	getSavePath()
   	{

@@ -1507,8 +1507,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 	{
 		final boolean all_pieces_done =disk_mgr.getRemainingExcludingDND() ==0;
 
-		if (all_pieces_done)
-		{
+		if ( all_pieces_done ){
+		
 			seeding_mode	= true;
 			
 			prefer_udp_bloom = null;
@@ -1558,7 +1558,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 				{
 					try{
 						disk_mgr.downloadEnded(
-							start_of_day?null:
 							new DiskManager.OperationStatus()
 							{
 								public void 

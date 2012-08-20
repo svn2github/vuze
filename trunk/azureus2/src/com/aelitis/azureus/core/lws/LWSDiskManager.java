@@ -527,6 +527,12 @@ LWSDiskManager
 		return( -1 );
 	}
 	
+    public int
+    getMoveProgress()
+    {
+    	return( -1 );
+    }
+    
 	public boolean 
 	checkBlockConsistencyForWrite(
 		String				originator,

@@ -193,7 +193,9 @@ DiskManagerImpl
     private long                skipped_but_downloaded;
 
     private boolean				checking_enabled = true;
-    
+
+    private volatile int		move_in_progress;
+    private volatile int		move_progress;
 
         // DiskManager listeners
 
@@ -350,6 +352,11 @@ DiskManagerImpl
     start()
     {
         try{
+        	if ( move_in_progress > 0 ){
+        		
+        		Debug.out( "start called while move in progress!" );
+        	}
+        	
             start_stop_mon.enter();
 
             if ( used ){
@@ -553,6 +560,11 @@ DiskManagerImpl
     	boolean	closing )
     {
         try{
+        	if ( move_in_progress > 0 ){
+        		
+        		Debug.out( "stop called while move in progress!" );
+        	}
+       	
             start_stop_mon.enter();
 
             if ( !started ){
@@ -646,6 +658,11 @@ DiskManagerImpl
     public boolean 
     isStopped() 
     {
+       	if ( move_in_progress > 0 ){
+    		
+    		Debug.out( "isStopped called while move in progress!" );
+    	}
+       	
         try{
             start_stop_mon.enter();
             
@@ -1862,6 +1879,17 @@ DiskManagerImpl
       return ( checker.getCompleteRecheckStatus());
     }
 
+    public int
+    getMoveProgress()
+    {
+    	if ( move_in_progress > 0 ){
+    		
+    		return( move_progress );
+    	}
+    	
+    	return( -1 );
+    }
+    
 	public void
 	setPieceCheckingEnabled(
 		boolean		enabled )
@@ -2004,6 +2032,9 @@ DiskManagerImpl
     {
       try {
         start_stop_mon.enter();
+        
+        move_in_progress++;
+        
         final boolean ending = !removing; // Just a friendly alias.
 
         /**
@@ -2046,7 +2077,11 @@ DiskManagerImpl
 
       }
       finally{
+    	  
+    	  move_in_progress--;
+    	  
           start_stop_mon.exit();
+          
           if (!removing) {
               try{
                   saveResumeData(false);
@@ -2086,6 +2121,8 @@ DiskManagerImpl
         try {
             start_stop_mon.enter();
 
+            move_in_progress++;
+            
             /**
              * The 0 suffix is indicate that these are quite internal, and are
              * only intended for use within this method.
@@ -2104,7 +2141,9 @@ DiskManagerImpl
         }
         finally{
 
-        start_stop_mon.exit();
+        	move_in_progress--;
+         	  
+        	start_stop_mon.exit();
     }
   }
     
@@ -2192,14 +2231,20 @@ DiskManagerImpl
 	        final String move_from_dir	= save_location.getParentFile().getCanonicalFile().getPath();        
 	         
 	         
-	        File[]    new_files   = new File[files.length];
+	        final File[]    new_files   = new File[files.length];
+	        
 	        File[]    old_files   = new File[files.length];
 	        boolean[] link_only   = new boolean[files.length];
 	
+	        long	total_bytes 		= 0;
+	        long[]	file_lengths	 	= new long[files.length];
+	        
 	        for (int i=0; i < files.length; i++) {
 	
 	            File old_file = files[i].getFile(false);
 	
+	            total_bytes += file_lengths[i] = old_file.length();
+	            
 	            File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, old_file );
 	
 	            if ( !linked_file.equals(old_file)){
@@ -2368,52 +2413,120 @@ DiskManagerImpl
 	            }
 	        }
 	
-	        for (int i=0; i < files.length; i++){
-	
-	            File new_file = new_files[i];
-	
-	            try{
-	
-	              files[i].moveFile( new_file, link_only[i] );
-	
-	              if ( change_to_read_only ){
-	
-	                  files[i].setAccessMode(DiskManagerFileInfo.READ);
-	              }
-	
-	            }catch( CacheFileManagerException e ){
-	
-	              String msg = "Failed to move " + old_files[i].toString() + " to destination dir";
-	
-	              Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
-	
-	              Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
-	                              LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
-	                              new String[] { old_files[i].toString(),
-	                                      Debug.getNestedExceptionMessage(e) });
-	
-	                  // try some recovery by moving any moved files back...
-	
-	              for (int j=0;j<i;j++){
-	
-	                  try{
-	                      files[j].moveFile( old_files[j],  link_only[j]);
-	
-	                  }catch( CacheFileManagerException f ){
-	
-	                      Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
-	                                      LogAlert.AT_ERROR,
-	                                      "DiskManager.alert.movefilerecoveryfails"),
-	                                      new String[] { old_files[j].toString(),
-	                                              Debug.getNestedExceptionMessage(f) });
-	
-	                  }
-	              }
-	
-	              return false;
-	            }
+	        move_progress = 0;
+	        
+	        long	done_bytes = 0;
+	        
+	        final Object	progress_lock = new Object();
+	        final int[] 	current_file_index 	= { 0 };
+	        final long[]	current_file_bs		= { 0 };
+	        final long		f_total_bytes		= total_bytes;
+	        
+	        TimerEventPeriodic timer_event = 
+	        	SimpleTimer.addPeriodicEvent(
+	        		"MoveFile:observer",
+	        		500,
+	        		new TimerEventPerformer()
+	        		{
+	        			public void 
+	        			perform(
+	        				TimerEvent event )
+	        			{
+	        				int			index;
+	        				File		file;
+	        				
+	  		              	synchronized( progress_lock ){
+	  		            	  
+	  		              		index = current_file_index[0];
+
+	  		              		if ( index >= new_files.length ){
+
+	  		              			return;
+	  		              		}
+
+	  		              			// unfortunately file.length() blocks on my NAS until the operation is complete :( 
+
+	  		              		file = new_files[index];
+	  		              	}
+	  		              	
+	  		              	long	file_length = file.length();
+	  		              	
+	  		              	synchronized( progress_lock ){
+	  		              		
+	  		              		if ( index == current_file_index[0]){
+	  		              
+	  		              			long	done_bytes = current_file_bs[0] + file_length;
+	  		            		
+	  		              			move_progress = (int)( 1000*done_bytes/f_total_bytes);
+	  		              		}
+	  		              	} 
+	        			}
+	        		});
+	        
+	        try{
+		        for (int i=0; i < files.length; i++){
+		
+		            File new_file = new_files[i];
+		
+		            try{
+		
+		              long initial_done_bytes = done_bytes;
+		              		              
+		              files[i].moveFile( new_file, link_only[i] );
+		
+		              synchronized( progress_lock ){
+		            	  
+		            	  current_file_index[0] = i+1;
+
+		            	  done_bytes = initial_done_bytes + file_lengths[i];
+		            	  
+		            	  current_file_bs[0] = done_bytes;
+		              }
+		              
+		              move_progress = (int)( 1000*done_bytes/total_bytes);
+		              
+		              if ( change_to_read_only ){
+		
+		                  files[i].setAccessMode(DiskManagerFileInfo.READ);
+		              }
+		
+		            }catch( CacheFileManagerException e ){
+		
+		              String msg = "Failed to move " + old_files[i].toString() + " to destination dir";
+		
+		              Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
+		
+		              Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
+		                              LogAlert.AT_ERROR, "DiskManager.alert.movefilefails"),
+		                              new String[] { old_files[i].toString(),
+		                                      Debug.getNestedExceptionMessage(e) });
+		
+		                  // try some recovery by moving any moved files back...
+		
+		              for (int j=0;j<i;j++){
+		
+		                  try{
+		                      files[j].moveFile( old_files[j],  link_only[j]);
+		
+		                  }catch( CacheFileManagerException f ){
+		
+		                      Logger.logTextResource(new LogAlert(this, LogAlert.REPEATABLE,
+		                                      LogAlert.AT_ERROR,
+		                                      "DiskManager.alert.movefilerecoveryfails"),
+		                                      new String[] { old_files[j].toString(),
+		                                              Debug.getNestedExceptionMessage(f) });
+		
+		                  }
+		              }
+		
+		              return false;
+		            }
+		        }
+	        }finally{
+	        	
+	        	timer_event.cancel();
 	        }
-	
+	        
 	        //remove the old dir
 	
 	        if (  save_location.isDirectory()){

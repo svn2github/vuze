@@ -810,6 +810,19 @@ DownloadImpl
  		return( download_stats.getCheckingDoneInThousandNotation() != -1 );
  	}
 
+ 	public boolean
+ 	isMoving()
+ 	{
+ 		org.gudy.azureus2.core3.disk.DiskManager dm = download_manager.getDiskManager();
+ 		
+ 		if ( dm != null ){
+ 			
+ 			return( dm.getMoveProgress() != -1 );
+ 		}
+ 		
+ 		return( false );
+ 	}
+ 	
 	protected void
 	isRemovable()
 		throws DownloadRemovalVetoException

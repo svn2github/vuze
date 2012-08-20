@@ -839,6 +839,14 @@ RPDownload
  		return( false );
  	}
 	
+	public boolean
+ 	isMoving()
+ 	{
+		notSupported();
+		
+		return( false );
+ 	}
+	
 	public PeerManager
 	getPeerManager()
 	{

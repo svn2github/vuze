@@ -773,6 +773,14 @@ Download extends DownloadEventNotifier
 	public boolean
  	isChecking();
 	
+		/**
+		 * Returns true if the download is currently in the process of having its datafiles moved
+		 * @return
+		 */
+	
+	public boolean
+	isMoving();
+
 	/**
 	 * This returns the full save path for the download. If the download is a simple torrent,
 	 * this will be the full path of the file being downloaded. If the download is a multiple
@@ -781,6 +789,7 @@ Download extends DownloadEventNotifier
 	 * 
 	 * @return Full save path for this download.
 	 */
+		
   	public String
 	getSavePath();
   	
