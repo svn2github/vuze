@@ -6,6 +6,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
@@ -419,13 +420,15 @@ public class TableRowPainted
 					style |= SWT.WRAP;
 				}
 				int textOpacity = cell.getTextAlpha();
+				//gc.setFont(getRandomFont());
+				//textOpacity = 130;
 				if (textOpacity < 255) {
-					gc.setTextAntialias(SWT.ON);
+					//gc.setTextAntialias(SWT.ON);
 					gc.setAlpha(textOpacity);
 					gcChanged = true;
 				} else if (textOpacity > 255) {
-					//gc.setFont(getFontBold(gc));
-					gc.setTextAntialias(SWT.ON);
+					gc.setFont(FontUtils.getAnyFontBold(gc));
+					//gc.setTextAntialias(SWT.ON);
 					//gc.setAlpha(textOpacity & 255);
 					gcChanged = true;
 				}
@@ -499,6 +502,14 @@ public class TableRowPainted
 		}
 
 		return gcChanged;
+	}
+
+	private Font getRandomFont() {
+		FontData[] fontList = Display.getDefault().getFontList(null, (Math.random() > 0.5));
+		FontData fontData = fontList[(int)(Math.random() * fontList.length)];
+		fontData.setStyle((int)(Math.random() * 4));
+		fontData.height = (float) (Math.random() * 50f);
+		return new Font(Display.getDefault(), fontData);
 	}
 
 	@Override
@@ -855,7 +866,10 @@ public class TableRowPainted
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#setHeight(int)
 	 */
 	public boolean setHeight(int newHeight) {
-		return setHeight(newHeight, true);
+		TableRowCore parentRowCore = getParentRowCore();
+		boolean trigger = parentRowCore == null || parentRowCore.isExpanded();
+
+		return setHeight(newHeight, trigger);
 	}
 
 	public boolean setHeight(int newHeight, boolean trigger) {
