@@ -1,16 +1,73 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.ArrayList;
+
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
-import com.aelitis.azureus.ui.mdi.MdiEntry;
-import com.aelitis.azureus.ui.mdi.MdiEntryLoadedListener;
-import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.swt.views.ViewTitleInfoBetaP;
 
 public class SB_Vuze
 {
-	public static void setup(final MultipleDocumentInterface mdi) {
-		mdi.addListener(new MdiEntryLoadedListener() {
+	private ArrayList<MdiEntry> children = new ArrayList<MdiEntry>();
 
+	private ViewTitleInfo titleInfo;
+
+	public SB_Vuze(MultipleDocumentInterface mdi) {
+		setup(mdi);
+	}
+
+	private void setup(final MultipleDocumentInterface mdi) {
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+
+						final ViewTitleInfoBetaP viewTitleInfo = new ViewTitleInfoBetaP();
+
+						MdiEntry entry = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
+								MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
+								"main.area.beta", "{Sidebar.beta.title}", viewTitleInfo, null,
+								false, MultipleDocumentInterface.SIDEBAR_POS_FIRST);
+
+						entry.setImageLeftID("image.sidebar.beta");
+
+						entry.addListener(new MdiCloseListener() {
+							public void mdiEntryClosed(MdiEntry entry, boolean userClosed) {
+								viewTitleInfo.clearIndicator();
+							}
+						});
+
+						return entry;
+					}
+				});
+
+		ViewTitleInfoManager.addListener(new ViewTitleInfoListener() {
+			public void viewTitleInfoRefresh(ViewTitleInfo titleInfo) {
+				MdiEntry childrenArray[] = children.toArray(new MdiEntry[0]);
+				for (MdiEntry entry : childrenArray) {
+					if (entry.getViewTitleInfo() == titleInfo) {
+						if (SB_Vuze.this.titleInfo != null) {
+							ViewTitleInfoManager.refreshTitleInfo(SB_Vuze.this.titleInfo);
+						}
+						break;
+					}
+				}
+			}
+		});
+
+		mdi.addListener(new MdiEntryLoadedListener() {
 			public void mdiEntryLoaded(MdiEntry entry) {
+				if (MultipleDocumentInterface.SIDEBAR_HEADER_VUZE.equals(entry.getParentID())) {
+					children.add(entry);
+					entry.addListener(new MdiChildCloseListener() {
+						public void mdiChildEntryClosed(MdiEntry parent, MdiEntry child,
+								boolean user) {
+							children.remove(child);
+						}
+					});
+				}
 				if (!entry.getId().equals(MultipleDocumentInterface.SIDEBAR_HEADER_VUZE)) {
 					return;
 				}
@@ -19,8 +76,9 @@ public class SB_Vuze
 		});
 	}
 
-	protected static void setupHeader(final MdiEntry entry) {
-		entry.setViewTitleInfo(new ViewTitleInfo() {
+	private void setupHeader(final MdiEntry entry) {
+
+		titleInfo = new ViewTitleInfo() {
 			public Object getTitleInfoProperty(int propertyID) {
 				if (propertyID == ViewTitleInfo.TITLE_INDICATOR_TEXT) {
 					if (entry.isExpanded()) {
@@ -71,6 +129,7 @@ public class SB_Vuze
 				}
 				return null;
 			}
-		});
+		};
+		entry.setViewTitleInfo(titleInfo);
 	}
 }
