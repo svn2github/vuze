@@ -225,7 +225,7 @@ public class UIFunctionsImpl
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getMainShell()
 	public Shell getMainShell() {
-		return mainWindow.shell;
+		return mainWindow == null ? null : mainWindow.shell;
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getPluginViews()
