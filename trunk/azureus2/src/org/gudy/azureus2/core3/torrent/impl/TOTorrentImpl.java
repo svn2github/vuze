@@ -559,6 +559,12 @@ TOTorrentImpl
 		return true;
 	}
 
+	public boolean 
+	isDecentralised() 
+	{
+		return( TorrentUtils.isDecentralised( getAnnounceURL()));
+	}
+	
 	public long
 	getCreationDate()
 	{

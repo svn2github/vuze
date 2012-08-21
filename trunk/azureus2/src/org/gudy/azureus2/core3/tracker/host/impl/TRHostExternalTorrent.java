@@ -128,6 +128,12 @@ TRHostExternalTorrent
 		return( false );
 	}
 	
+	public boolean 
+	isDecentralised() 
+	{
+		return( TorrentUtils.isDecentralised( getAnnounceURL()));
+	}
+	
 	public URL
 	getAnnounceURL()
 	{

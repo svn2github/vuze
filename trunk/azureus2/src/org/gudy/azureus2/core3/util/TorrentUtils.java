@@ -87,6 +87,26 @@ TorrentUtils
 	
 	private static AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
+	private static int						DNS_HISTORY_TIMEOUT	= 4*60*60*1000;
+	
+	private static Map<String,DNSTXTEntry>	dns_mapping = new HashMap<String, DNSTXTEntry>();
+	private static volatile int				dns_mapping_seq_count;
+
+	static{
+		SimpleTimer.addPeriodicEvent(
+			"TU:dnstimer",
+			DNS_HISTORY_TIMEOUT/2,
+			new TimerEventPerformer()
+			{
+				public void 
+				perform(
+					TimerEvent event )
+				{
+					checkDNSTimeouts();
+				}
+			});
+	}
+	
 	static {
 		COConfigurationManager.addAndFireParameterListener("Save Torrent Backup",
 				new ParameterListener() {
@@ -1041,7 +1061,7 @@ TorrentUtils
 			return( false );
 		}
 		
-		return( isDecentralised( torrent.getAnnounceURL()));
+		return( torrent.isDecentralised());
 	}
 	
 
@@ -1600,6 +1620,14 @@ TorrentUtils
 		
 		private long			last_pieces_read_time	= SystemTime.getCurrentTime();
 		
+		private URL							url_mod_last_pre;
+		private URL							url_mod_last_post;
+		private int							url_mod_last_seq;
+		
+		private List<URL>					urlg_mod_last_pre;
+		private TOTorrentAnnounceURLGroup	urlg_mod_last_post;
+		private int							urlg_mod_last_seq;
+		
 		protected
 		torrentDelegate(
 			TOTorrent		_delegate,
@@ -1714,14 +1742,35 @@ TorrentUtils
 			return( delegate.isCreated());
 		}
 		
+		public boolean 
+		isDecentralised() 
+		{
+    		URL	url = getAnnounceURLSupport();
+    		
+    		return( TorrentUtils.isDecentralised( url ));
+		}
+		
 	   	public URL
     	getAnnounceURL()
     	{
     		URL	url = getAnnounceURLSupport();
     		
-    		url = applyDNSMods( url );
+    		int	seq = dns_mapping_seq_count;
     		
-    		return( url );
+    		if ( 	url == url_mod_last_pre && 
+    				url_mod_last_post != null && 
+    				seq == url_mod_last_seq ){
+    			
+    			// System.out.println( "using old url: " + url + " -> " + url_mod_last_post );
+    			
+    			return( url_mod_last_post );
+    		}
+    		
+      		url_mod_last_post 		= applyDNSMods( url );
+      		url_mod_last_pre		= url;
+    		url_mod_last_seq		= seq;
+    		
+    		return( url_mod_last_post );
     	}
     	
        	public TOTorrentAnnounceURLGroup
@@ -1729,9 +1778,66 @@ TorrentUtils
     	{
        		TOTorrentAnnounceURLGroup group = getAnnounceURLGroupSupport();
        	
-       		group = applyDNSMods( getAnnounceURL(), group );
+       		int	seq = dns_mapping_seq_count;
        		
-       		return( group );
+       		if ( seq == urlg_mod_last_seq && urlg_mod_last_pre != null && urlg_mod_last_post != null ){
+       		
+      			TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
+ 
+      			Iterator<URL>	it = urlg_mod_last_pre.iterator();
+ 
+      			boolean	match = true;
+      			
+ outer:
+      			for (int i=0;i<sets.length;i++){
+      					
+      				URL[]	urls = sets[i].getAnnounceURLs();
+  
+   					for ( int j=0;j<urls.length;j++){
+      						
+   						if ( !it.hasNext()){
+   							
+   							match = false;
+   							
+   							break outer;
+   						}
+   						
+   						if ( it.next() != urls[j] ){
+   							
+   							match = false;
+   							
+   							break;
+   						}
+      				}
+      			}
+      			
+      			if ( !it.hasNext() && match ){
+      						
+      	    		// System.out.println( "using old urlg: " + group + " -> " + urlg_mod_last_post );
+      	    			
+      	    		return( urlg_mod_last_post );
+      			}
+       		}
+
+       		List<URL>		url_list = new ArrayList<URL>();
+       		
+ 			TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
+ 			   		
+  			for (int i=0;i<sets.length;i++){
+  					
+  				URL[]	urls = sets[i].getAnnounceURLs();
+  				
+  				for ( URL u: urls ){
+  					
+  					url_list.add( u );
+  				}
+  			}
+  			
+       		urlg_mod_last_post	= applyDNSMods( getAnnounceURL(), group );
+       		urlg_mod_last_pre	= url_list;
+       		urlg_mod_last_seq	= seq;
+       		
+       		return( urlg_mod_last_post );
     	}
        	
 		public URL
@@ -2683,9 +2789,7 @@ TorrentUtils
 	
 	
 	private static final Pattern txt_pattern = Pattern.compile( "(UDP|TCP):([0-9]+)");
-	
-	private static Map<String,DNSTXTEntry>	dns_mapping = new HashMap<String, DNSTXTEntry>();
-	
+		
 	private static DNSTXTEntry
 	getDNSTXTEntry(
 		URL		url )
@@ -2704,6 +2808,52 @@ TorrentUtils
 			return( null );
 		}
 		
+		return( getDNSTXTEntry( host, false ));
+	}
+	
+	private static void
+	checkDNSTimeouts()
+	{
+		final List<String>	hosts = new ArrayList<String>();
+		
+		long now = SystemTime.getMonotonousTime();
+		
+		synchronized( dns_mapping ){
+
+			for ( Map.Entry<String,DNSTXTEntry> entry: dns_mapping.entrySet()){
+				
+				DNSTXTEntry txt_entry = entry.getValue();
+				
+				if ( now - txt_entry.getCreateTime() > DNS_HISTORY_TIMEOUT ){
+					
+					hosts.add( entry.getKey());
+				}
+			}
+		}
+		
+		if ( hosts.size() > 0 ){
+			
+			new AEThread2( "DNS:updates" )
+			{
+				public void
+				run()
+				{
+					for ( String host: hosts ){
+						
+						getDNSTXTEntry( host, true );
+					}
+				}
+			}.start();
+		}
+	}
+	
+	private static DNSTXTEntry
+	getDNSTXTEntry(
+		String		host,
+		boolean		force_update )
+	{
+		//System.out.println( "Getting DNS records for " + host );
+		
 		DNSTXTEntry		txt_entry;
 		DNSTXTEntry		old_txt_entry;
 		
@@ -2713,7 +2863,7 @@ TorrentUtils
 		
 			old_txt_entry = txt_entry = dns_mapping.get( host );
 				
-			if ( txt_entry == null || SystemTime.getMonotonousTime() - txt_entry.getCreateTime() > 4*60*60*1000 ){
+			if ( force_update || txt_entry == null || SystemTime.getMonotonousTime() - txt_entry.getCreateTime() > DNS_HISTORY_TIMEOUT ){
 			
 				txt_entry = new DNSTXTEntry();
 				
@@ -2724,6 +2874,8 @@ TorrentUtils
 		}
 		
 		if ( is_new ){
+			
+			//System.out.println( "Updating DNS records for " + host );
 			
 			try{
 				List<String> txts = DNSUtils.getTXTRecords( host );
@@ -2750,9 +2902,19 @@ TorrentUtils
 		
 				txt_entry.setHasRecords( found_bt );
 				
-				if ( old_txt_entry != null ){
+				if ( old_txt_entry == null ){
+					
+					dns_mapping_seq_count++;
+					
+					//System.out.println( "    New DNS override for " + host + ": " + txt_entry.getString());
+					
+				}else{
 					
 					if ( !old_txt_entry.sameAs( txt_entry )){
+					
+						//System.out.println( "    Updated DNS override for " + host + ": " + txt_entry.getString());
+						
+						dns_mapping_seq_count++;
 						
 						dispatcher.dispatch(
 							new AERunnable()
@@ -2778,6 +2940,11 @@ TorrentUtils
 				
 				txt_entry.getSemaphore().releaseForever();
 			}
+		}
+		
+		if ( !txt_entry.getSemaphore().reserve(3000)){
+			
+			Debug.out( "DNS lookup taking too long for " + host );
 		}
 		
 		txt_entry.getSemaphore().reserve();
@@ -3059,7 +3226,33 @@ TorrentUtils
 				}
 			}
 			return( true );
-		}		
+		}	
+		
+		private String
+		getString()
+		{
+			if ( has_records ){
+				
+				if ( ports.size() == 0 ){
+					
+					return( "Deny all" );
+					
+				}else{
+				
+					String	res = "";
+					
+					for ( DNSTXTPortInfo port: ports ){
+						
+						res += (res.length()==0?"":", ") + port.getString();
+					}
+					
+					return( "Permit " + res );
+				}
+			}else{
+				
+				return( "No records" );
+			}
+		}
 	}
 	
 	private static class
@@ -3094,6 +3287,12 @@ TorrentUtils
 		getPort()
 		{
 			return( port );
+		}
+		
+		private String
+		getString()
+		{
+			return( (is_tcp?"TCP" :"UDP ") + port );
 		}
 	}
 	

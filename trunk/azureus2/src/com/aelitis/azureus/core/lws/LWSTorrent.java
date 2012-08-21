@@ -145,6 +145,12 @@ LWSTorrent
 		return( getDelegate().getCreationDate());
 	}
 	
+	public boolean 
+	isDecentralised() 
+	{
+		return( getDelegate().isDecentralised());
+	}
+	
 	public void
 	setCreationDate(
 		long		date )

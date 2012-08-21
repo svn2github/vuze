@@ -131,6 +131,9 @@ TOTorrent
 	  * @exception	can fail if re-reading of piece hashes for space spacing fails 
 	  */
 	
+	public boolean
+	isDecentralised();
+	
 	public byte[][]
 	getPieces()
 	
