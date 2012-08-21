@@ -87,10 +87,12 @@ TorrentUtils
 	
 	private static AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
+	private static final boolean			TRACE_DNS = false;
 	private static int						DNS_HISTORY_TIMEOUT	= 4*60*60*1000;
 	
 	private static Map<String,DNSTXTEntry>	dns_mapping = new HashMap<String, DNSTXTEntry>();
 	private static volatile int				dns_mapping_seq_count;
+	private static ThreadPool				dns_threads	= new ThreadPool( "DNS:lookups", 16, false );
 
 	static{
 		SimpleTimer.addPeriodicEvent(
@@ -2808,7 +2810,7 @@ TorrentUtils
 			return( null );
 		}
 		
-		return( getDNSTXTEntry( host, false ));
+		return( getDNSTXTEntry( host, false, null ));
 	}
 	
 	private static void
@@ -2840,7 +2842,7 @@ TorrentUtils
 				{
 					for ( String host: hosts ){
 						
-						getDNSTXTEntry( host, true );
+						getDNSTXTEntry( host, true, null );
 					}
 				}
 			}.start();
@@ -2849,10 +2851,25 @@ TorrentUtils
 	
 	private static DNSTXTEntry
 	getDNSTXTEntry(
-		String		host,
-		boolean		force_update )
+		final String			host,
+		boolean					force_update,
+		final List<String>		already_got_records )
 	{
-		//System.out.println( "Getting DNS records for " + host );
+		if ( TRACE_DNS ){
+			System.out.println( "Getting DNS records for " + host + ", force=" + force_update + ", got=" + already_got_records );
+		}
+		
+		String _config_key = "";
+		
+		try{
+			_config_key = "dns.txts.cache." + Base32.encode( host.getBytes( "UTF-8" ));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+
+		final String config_key	= _config_key;
 		
 		DNSTXTEntry		txt_entry;
 		DNSTXTEntry		old_txt_entry;
@@ -2863,7 +2880,12 @@ TorrentUtils
 		
 			old_txt_entry = txt_entry = dns_mapping.get( host );
 				
-			if ( force_update || txt_entry == null || SystemTime.getMonotonousTime() - txt_entry.getCreateTime() > DNS_HISTORY_TIMEOUT ){
+			if ( txt_entry != null && SystemTime.getMonotonousTime() - txt_entry.getCreateTime() > DNS_HISTORY_TIMEOUT ){
+				
+				force_update = true;
+			}
+			
+			if ( force_update || txt_entry == null ){
 			
 				txt_entry = new DNSTXTEntry();
 				
@@ -2875,11 +2897,157 @@ TorrentUtils
 		
 		if ( is_new ){
 			
-			//System.out.println( "Updating DNS records for " + host );
+			if ( TRACE_DNS ){
+				System.out.println( "Updating DNS records for " + host );
+			}
 			
 			try{
-				List<String> txts = DNSUtils.getTXTRecords( host );
+				List<String> txts;
+
+				if ( already_got_records != null ){
 					
+					txts = already_got_records;
+					
+				}else{
+
+					final AESemaphore lookup_sem = new AESemaphore( "DU:ls" );
+					
+					final Object[]	result = { null, null };
+					
+					final DNSTXTEntry	f_txt_entry = txt_entry;
+					
+					dns_threads.run(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								try{
+									List<String> txts = DNSUtils.getTXTRecords( host );
+									
+									if ( TRACE_DNS ){
+										System.out.println( "Actual lookup: " + host + " -> " + txts );
+									}
+									
+									synchronized( result ){
+										
+										if ( result[0] == null ){
+											
+											result[1] = txts;
+											
+											return;
+										}
+									}
+									
+										// they gave up waiting
+									
+									try{										
+										List txts_cache = new ArrayList();
+										
+										for ( String str: txts ){
+											
+											txts_cache.add( str.getBytes( "UTF-8" ));
+										}
+										
+										List old_txts_cache = COConfigurationManager.getListParameter( config_key, null );
+
+										boolean	same = false;
+										
+										if ( old_txts_cache != null ){
+											
+											same = old_txts_cache.size() == txts_cache.size();
+											
+											if ( same ){
+												
+												for ( int i=0;i<old_txts_cache.size();i++){
+													
+													if ( !Arrays.equals((byte[])old_txts_cache.get(i),(byte[])txts_cache.get(i))){
+														
+														same = false;
+														
+														break;
+													}
+												}
+											}
+										}
+										
+										if ( !same ){
+											
+											COConfigurationManager.setParameter( config_key, txts_cache );
+										
+											f_txt_entry.getSemaphore().reserve();
+											
+											if ( already_got_records == null ){
+												
+												getDNSTXTEntry( host, true, txts );
+											}
+										}
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+
+								}finally{
+									
+									lookup_sem.release();
+								}
+							}
+						});
+					
+					List txts_cache = COConfigurationManager.getListParameter( config_key, null );
+
+						// if we have a cache and this isn't a force update and start of day then well just go with the cache
+					
+					if ( old_txt_entry != null || txts_cache == null || force_update ){
+					
+						lookup_sem.reserve( 2500 );
+					}
+					
+					synchronized( result ){
+							
+						result[0] = "";
+							
+						txts = (List<String>)result[1];
+					}
+					
+					try{					
+						if ( txts == null ){
+						
+							txts = new ArrayList<String>();
+							
+							if ( txts_cache == null ){
+								
+								if ( TRACE_DNS ){
+									System.out.println( "    No cache" );
+								}	
+							}else{
+								
+								for ( Object o: txts_cache ){
+									
+									txts.add( new String((byte[])o, "UTF-8" ));
+								}
+								
+								if ( TRACE_DNS ){
+									System.out.println( "    Using cache: " + txts );
+								}
+							}
+						}else{
+							
+							txts_cache = new ArrayList();
+							
+							for ( String str: txts ){
+								
+								txts_cache.add( str.getBytes( "UTF-8" ));
+							}
+							
+							COConfigurationManager.setParameter( config_key, txts_cache );
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+				
 				boolean	found_bt = false;
 							
 				for ( String txt: txts ){
@@ -2906,13 +3074,16 @@ TorrentUtils
 					
 					dns_mapping_seq_count++;
 					
-					//System.out.println( "    New DNS override for " + host + ": " + txt_entry.getString());
-					
+					if ( TRACE_DNS ){
+						System.out.println( "    New DNS override for " + host + ": " + txt_entry.getString());
+					}
 				}else{
 					
 					if ( !old_txt_entry.sameAs( txt_entry )){
 					
-						//System.out.println( "    Updated DNS override for " + host + ": " + txt_entry.getString());
+						if ( TRACE_DNS ){
+							System.out.println( "    Updated DNS override for " + host + ": " + txt_entry.getString());
+						}
 						
 						dns_mapping_seq_count++;
 						
@@ -2941,12 +3112,7 @@ TorrentUtils
 				txt_entry.getSemaphore().releaseForever();
 			}
 		}
-		
-		if ( !txt_entry.getSemaphore().reserve(3000)){
-			
-			Debug.out( "DNS lookup taking too long for " + host );
-		}
-		
+				
 		txt_entry.getSemaphore().reserve();
 		
 		return( txt_entry );
@@ -3225,6 +3391,7 @@ TorrentUtils
 					return( false );
 				}
 			}
+			
 			return( true );
 		}	
 		
@@ -3301,9 +3468,12 @@ TorrentUtils
 		String[]	args )
 	{
 		try{
-			URL url = new URL( "http://tracker.openbittorrent.com/");
+			//URL url = new URL( "http://tracker.openbittorrent.com/");
+			URL url = new URL( "http://inferno.demonoid.com:3413/announce");
 			
 			System.out.println( applyDNSMods( url ));
+			
+			Thread.sleep( 1000*1000 );
 			
 		}catch( Throwable e ){
 			
