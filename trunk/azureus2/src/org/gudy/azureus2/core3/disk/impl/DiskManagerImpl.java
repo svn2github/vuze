@@ -194,7 +194,7 @@ DiskManagerImpl
 
     private boolean				checking_enabled = true;
 
-    private volatile int		move_in_progress;
+    private volatile boolean	move_in_progress;
     private volatile int		move_progress;
 
         // DiskManager listeners
@@ -352,7 +352,7 @@ DiskManagerImpl
     start()
     {
         try{
-        	if ( move_in_progress > 0 ){
+        	if ( move_in_progress ){
         		
         		Debug.out( "start called while move in progress!" );
         	}
@@ -560,7 +560,7 @@ DiskManagerImpl
     	boolean	closing )
     {
         try{
-        	if ( move_in_progress > 0 ){
+        	if ( move_in_progress ){
         		
         		Debug.out( "stop called while move in progress!" );
         	}
@@ -658,7 +658,7 @@ DiskManagerImpl
     public boolean 
     isStopped() 
     {
-       	if ( move_in_progress > 0 ){
+       	if ( move_in_progress ){
     		
     		Debug.out( "isStopped called while move in progress!" );
     	}
@@ -1882,7 +1882,7 @@ DiskManagerImpl
     public int
     getMoveProgress()
     {
-    	if ( move_in_progress > 0 ){
+    	if ( move_in_progress ){
     		
     		return( move_progress );
     	}
@@ -2032,9 +2032,7 @@ DiskManagerImpl
     {
       try {
         start_stop_mon.enter();
-        
-        move_in_progress++;
-        
+                
         final boolean ending = !removing; // Just a friendly alias.
 
         /**
@@ -2077,9 +2075,7 @@ DiskManagerImpl
 
       }
       finally{
-    	  
-    	  move_in_progress--;
-    	  
+    	      	  
           start_stop_mon.exit();
           
           if (!removing) {
@@ -2120,8 +2116,6 @@ DiskManagerImpl
     	
         try {
             start_stop_mon.enter();
-
-            move_in_progress++;
             
             /**
              * The 0 suffix is indicate that these are quite internal, and are
@@ -2129,7 +2123,16 @@ DiskManagerImpl
              */
             boolean files_moved = true;
             if (move_files) {
-                files_moved = moveDataFiles0(loc_change, change_to_read_only, op_status );
+            	try{
+            		move_progress		= 0;
+            		move_in_progress 	= true;
+            		
+            		files_moved = moveDataFiles0(loc_change, change_to_read_only, op_status );
+            		
+            	}finally{
+            		
+            		move_in_progress = false;
+            	}
             }
 
             if (loc_change.hasTorrentChange() && files_moved) {
@@ -2140,9 +2143,7 @@ DiskManagerImpl
             Debug.printStackTrace(e);
         }
         finally{
-
-        	move_in_progress--;
-         	  
+        	  
         	start_stop_mon.exit();
     }
   }
@@ -2237,14 +2238,13 @@ DiskManagerImpl
 	        boolean[] link_only   = new boolean[files.length];
 	
 	        long	total_bytes 		= 0;
-	        long[]	file_lengths	 	= new long[files.length];
+	        
+	        final long[]	file_lengths_to_move	 	= new long[files.length];
 	        
 	        for (int i=0; i < files.length; i++) {
 	
 	            File old_file = files[i].getFile(false);
-	
-	            total_bytes += file_lengths[i] = old_file.length();
-	            
+		            
 	            File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, old_file );
 	
 	            if ( !linked_file.equals(old_file)){
@@ -2393,6 +2393,8 @@ DiskManagerImpl
 	
 	            if ( !link_only[i] ){
 	
+		            total_bytes += file_lengths_to_move[i] = old_file.length();
+
 	                if ( new_file.exists()){
 	
 	                    String msg = "" + linked_file.getName() + " already exists in MoveTo destination dir";
@@ -2412,9 +2414,28 @@ DiskManagerImpl
 	                FileUtil.mkdirs(new_file.getParentFile());
 	            }
 	        }
-	
-	        move_progress = 0;
 	        
+	        String	abs_path = move_to_dir_name.getAbsolutePath();
+	        
+	        String	_average_config_key = null;
+	        
+	        try{
+	        	_average_config_key = "dm.move.target.abps." + Base32.encode( abs_path.getBytes( "UTF-8" ));
+	        	
+	        }catch( Throwable e ){
+	        	
+	        	Debug.out(e );
+	        }
+	        
+	        final String average_config_key	= _average_config_key;
+	        
+	        	// lazy here for rare case where all non-zero length files are links
+	        
+	        if ( total_bytes == 0 ){
+	        	
+	        	total_bytes = 1;
+	        }
+		        
 	        long	done_bytes = 0;
 	        
 	        final Object	progress_lock = new Object();
@@ -2422,7 +2443,130 @@ DiskManagerImpl
 	        final long[]	current_file_bs		= { 0 };
 	        final long		f_total_bytes		= total_bytes;
 	        
-	        TimerEventPeriodic timer_event = 
+	        final long[]	last_progress_bytes		= { 0 };
+	        final long[]	last_progress_update 	= { SystemTime.getMonotonousTime() };
+	        
+	        TimerEventPeriodic timer_event1 = 
+	        	SimpleTimer.addPeriodicEvent(
+	        		"MoveFile:speedster",
+	        		1000,
+	        		new TimerEventPerformer()
+	        		{		
+	        			private long	start_time = SystemTime.getMonotonousTime();
+	        			
+	        			private long	last_update_processed;
+	        			
+	        			private long	estimated_speed = 1*1024*1024;	// 1MB/sec default
+	        				
+	        			{
+	        				if ( average_config_key != null ){
+	        				
+	        					long val = COConfigurationManager.getLongParameter( average_config_key, 0 );
+	        					
+	        					if ( val > 0 ){
+	        						
+	        						estimated_speed = val;
+	        					}
+	        				}
+	        			}
+	        			
+	        			public void 
+	        			perform(
+	        				TimerEvent event )
+	        			{
+	        				synchronized( progress_lock ){
+	        					
+	        					int file_index = current_file_index[0];
+
+	  		              		if ( file_index >= new_files.length ){
+
+	  		              			return;
+	  		              		}
+	  		              			  		              		
+	        					long 	now			= SystemTime.getMonotonousTime();
+	        					
+	        					long	last_update = last_progress_update[0];	        					
+        						long	bytes_moved = last_progress_bytes[0];
+
+	        					if ( last_update != last_update_processed ){
+	        						
+	        						last_update_processed = last_update;
+	        					        						
+	        						if ( bytes_moved > 10*1024*1024 ){
+	        						
+		        							// a usable amount of progress
+		        						
+		        						long	elapsed = now - start_time;
+		        						
+		        						estimated_speed = ( bytes_moved * 1000 ) / elapsed;
+		        						
+		        						// System.out.println( "estimated speed: " + estimated_speed );
+	        						}
+	        					}
+	        					
+	        					long	secs_since_last_update  = ( now - last_update ) / 1000;
+	        					
+	        					if ( secs_since_last_update > 2 ){
+	        					
+	        							// looks like we're not getting useful updates, add some in based on
+	        							// elapsed time and average rate
+	        						
+	        						long	file_start_overall		= current_file_bs[0];
+	        						long	file_end_overall 		= file_start_overall + file_lengths_to_move[ file_index ];
+	        						long	bytes_of_file_remaining	= file_end_overall - bytes_moved;
+	        						
+	        						long	pretend_bytes = 0;
+	        						
+	        						long	current_speed	 	= estimated_speed;
+	        						long	current_remaining	= bytes_of_file_remaining;
+	        						long	current_added		= 0;
+	        						
+	        						int		percentage_to_slow_at	= 80;
+	        						
+	        						// System.out.println( "injection pretend progress" );
+	        						
+	        						for (int i=0;i<secs_since_last_update;i++){
+	        								        							
+	        							current_added += current_speed;
+	        							pretend_bytes += current_speed;
+
+	        							// System.out.println( "    pretend=" + pretend_bytes + ", rate=" + percentage_to_slow_at + ", speed=" + current_speed );
+	        					
+	        							if ( current_added > percentage_to_slow_at*current_remaining/100 ){
+	        								
+	        								percentage_to_slow_at = 50;
+	        								
+	        								current_speed = current_speed / 2;
+	        								
+	        								current_remaining = bytes_of_file_remaining - pretend_bytes;
+	        								
+	        								current_added = 0;
+	        								
+	        								if ( current_speed < 1024 ){
+	        									
+	        									current_speed = 1024;
+	        								}
+	        							}
+	        								        							
+	        							if ( pretend_bytes >= bytes_of_file_remaining ){
+	        								
+	        								pretend_bytes = bytes_of_file_remaining;
+	        								
+	        								break;
+	        							}
+	        						}
+	        						
+	        						long	pretend_bytes_moved = bytes_moved + pretend_bytes;
+	        						
+	  		              			move_progress = (int)( 1000*pretend_bytes_moved/f_total_bytes);
+	  		              			
+	  		              			// System.out.println( "pretend prog: " + move_progress );
+	        					}
+	        				}
+	        			}
+	        		});
+	        
+	        TimerEventPeriodic timer_event2 = 
 	        	SimpleTimer.addPeriodicEvent(
 	        		"MoveFile:observer",
 	        		500,
@@ -2458,12 +2602,18 @@ DiskManagerImpl
 	  		              			long	done_bytes = current_file_bs[0] + file_length;
 	  		            		
 	  		              			move_progress = (int)( 1000*done_bytes/f_total_bytes);
+	  		              			
+	  		              			last_progress_bytes[0]	= done_bytes;
+	  		              			last_progress_update[0]	= SystemTime.getMonotonousTime();
 	  		              		}
 	  		              	} 
 	        			}
 	        		});
-	        
+
+        	long	start = SystemTime.getMonotonousTime();
+
 	        try{
+	        	
 		        for (int i=0; i < files.length; i++){
 		
 		            File new_file = new_files[i];
@@ -2478,13 +2628,16 @@ DiskManagerImpl
 		            	  
 		            	  current_file_index[0] = i+1;
 
-		            	  done_bytes = initial_done_bytes + file_lengths[i];
+		            	  done_bytes = initial_done_bytes + file_lengths_to_move[i];
 		            	  
 		            	  current_file_bs[0] = done_bytes;
+		            	  
+			              move_progress = (int)( 1000*done_bytes/total_bytes);
+
+			              last_progress_bytes[0]	= done_bytes;
+		            	  last_progress_update[0]	= SystemTime.getMonotonousTime();
 		              }
-		              
-		              move_progress = (int)( 1000*done_bytes/total_bytes);
-		              
+		              		              
 		              if ( change_to_read_only ){
 		
 		                  files[i].setAccessMode(DiskManagerFileInfo.READ);
@@ -2524,7 +2677,20 @@ DiskManagerImpl
 		        }
 	        }finally{
 	        	
-	        	timer_event.cancel();
+	        	timer_event1.cancel();
+	        	timer_event2.cancel();
+	        }
+	        
+	        long	elapsed_secs = ( SystemTime.getMonotonousTime() - start )/1000;
+	        
+	        if ( total_bytes > 10*1024*1024 && elapsed_secs > 10 ){
+	        	
+	        	long	bps = total_bytes / elapsed_secs;
+	        	
+	        	if ( average_config_key != null ){
+    				
+					COConfigurationManager.setParameter( average_config_key, bps );
+	        	}
 	        }
 	        
 	        //remove the old dir
