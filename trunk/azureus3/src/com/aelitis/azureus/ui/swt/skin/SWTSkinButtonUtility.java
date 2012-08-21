@@ -1,7 +1,6 @@
 package com.aelitis.azureus.ui.swt.skin;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -19,7 +18,7 @@ import org.gudy.azureus2.ui.swt.Utils;
  */
 public class SWTSkinButtonUtility
 {
-	ArrayList listeners = new ArrayList();
+	ArrayList<ButtonListenerAdapter> listeners = new ArrayList<ButtonListenerAdapter>();
 
 	private final SWTSkinObject skinObject;
 
@@ -47,13 +46,23 @@ public class SWTSkinButtonUtility
 	public SWTSkinButtonUtility(SWTSkinObject skinObject, String imageViewID) {
 		this.skinObject = skinObject;
 		this.imageViewID = imageViewID;
-		
+
+		if (skinObject == null) {
+			Debug.out("Can't make button out of null skinObject");
+			return;
+		}
+		if (skinObject.getControl() == null) {
+			Debug.out("Can't make button out of null skinObject control");
+			return;
+		}
+
 		if (skinObject instanceof SWTSkinObjectButton) {
 			return;
 		}
-		
+
 		Listener l = new Listener() {
 			boolean bDownPressed;
+
 			private TimerEvent timerEvent;
 
 			public void handleEvent(Event event) {
@@ -70,8 +79,7 @@ public class SWTSkinButtonUtility
 										bDownPressed = false;
 
 										boolean stillPressed = true;
-										for (Iterator iter = listeners.iterator(); iter.hasNext();) {
-											ButtonListenerAdapter l = (ButtonListenerAdapter) iter.next();
+										for (ButtonListenerAdapter l : listeners) {
 											stillPressed &= !l.held(SWTSkinButtonUtility.this);
 										}
 										bDownPressed = stillPressed;
@@ -96,8 +104,7 @@ public class SWTSkinButtonUtility
 					return;
 				}
 
-				for (Iterator iter = listeners.iterator(); iter.hasNext();) {
-					ButtonListenerAdapter l = (ButtonListenerAdapter) iter.next();
+				for (ButtonListenerAdapter l : listeners) {
 					l.pressed(SWTSkinButtonUtility.this,
 							SWTSkinButtonUtility.this.skinObject, event.stateMask);
 				}
@@ -115,38 +122,41 @@ public class SWTSkinButtonUtility
 	}
 
 	public boolean isDisabled() {
-		return skinObject.getSuffix().indexOf("-disabled") >= 0;
+		return skinObject == null ? true : skinObject.getSuffix().indexOf(
+				"-disabled") >= 0;
 	}
 
 	private boolean inSetDisabled = false;
+
 	private boolean lastDisabledState = false;
+
 	public void setDisabled(final boolean disabled) {
-		if (inSetDisabled) {
+		if (inSetDisabled || skinObject == null) {
 			return;
 		}
 		inSetDisabled = true;
 		try {
-  		if (disabled == isDisabled()) {
-  			return;
-  		}
-  		if (skinObject instanceof SWTSkinObjectButton) {
-  			lastDisabledState = disabled;
-  			Utils.execSWTThreadLater(100, new AERunnable() {
+			if (disabled == isDisabled()) {
+				return;
+			}
+			if (skinObject instanceof SWTSkinObjectButton) {
+				lastDisabledState = disabled;
+				Utils.execSWTThreadLater(100, new AERunnable() {
 					public void runSupport() {
-			  		if (lastDisabledState == isDisabled()) {
-			  			return;
-			  		}
-						((SWTSkinObjectButton) skinObject).getControl().setEnabled(!lastDisabledState);
+						if (lastDisabledState == isDisabled()) {
+							return;
+						}
+						((SWTSkinObjectButton) skinObject).getControl().setEnabled(
+								!lastDisabledState);
 					}
 				});
-  		}
-  		String suffix = disabled ? "-disabled" : "";
-  		skinObject.switchSuffix(suffix, 1, false);
-  
-  		for (Iterator iter = listeners.iterator(); iter.hasNext();) {
-  			ButtonListenerAdapter l = (ButtonListenerAdapter) iter.next();
-  			l.disabledStateChanged(SWTSkinButtonUtility.this, disabled);
-  		}
+			}
+			String suffix = disabled ? "-disabled" : "";
+			skinObject.switchSuffix(suffix, 1, false);
+
+			for (ButtonListenerAdapter l : listeners) {
+				l.disabledStateChanged(SWTSkinButtonUtility.this, disabled);
+			}
 		} finally {
 			inSetDisabled = false;
 		}
@@ -154,7 +164,7 @@ public class SWTSkinButtonUtility
 
 	public void addSelectionListener(ButtonListenerAdapter listener) {
 		if (skinObject instanceof SWTSkinObjectButton) {
-			((SWTSkinObjectButton)skinObject).addSelectionListener(listener);
+			((SWTSkinObjectButton) skinObject).addSelectionListener(listener);
 			return;
 		}
 
@@ -169,8 +179,11 @@ public class SWTSkinButtonUtility
 	}
 
 	public void setTextID(final String id) {
+		if (skinObject == null) {
+			return;
+		}
 		if (skinObject instanceof SWTSkinObjectButton) {
-			((SWTSkinObjectButton)skinObject).setText(MessageText.getString(id));
+			((SWTSkinObjectButton) skinObject).setText(MessageText.getString(id));
 			return;
 		}
 		Utils.execSWTThreadLater(0, new AERunnable() {
@@ -191,6 +204,9 @@ public class SWTSkinButtonUtility
 	}
 
 	public void setImage(final String id) {
+		if (skinObject == null) {
+			return;
+		}
 		if (skinObject instanceof SWTSkinObjectButton) {
 			// TODO implement
 			return;
@@ -198,7 +214,8 @@ public class SWTSkinButtonUtility
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (imageViewID != null) {
-					SWTSkinObject skinImageObject = skinObject.getSkin().getSkinObject(imageViewID, skinObject);
+					SWTSkinObject skinImageObject = skinObject.getSkin().getSkinObject(
+							imageViewID, skinObject);
 					if (skinImageObject instanceof SWTSkinObjectImage) {
 						((SWTSkinObjectImage) skinImageObject).setImageByID(id, null);
 						return;
@@ -219,6 +236,9 @@ public class SWTSkinButtonUtility
 	}
 
 	public void setTooltipID(final String id) {
+		if (skinObject == null) {
+			return;
+		}
 		if (skinObject instanceof SWTSkinObjectButton) {
 			// TODO implement
 			return;
