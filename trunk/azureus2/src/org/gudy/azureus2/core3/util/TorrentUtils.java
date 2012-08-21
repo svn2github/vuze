@@ -2859,18 +2859,6 @@ TorrentUtils
 			System.out.println( "Getting DNS records for " + host + ", force=" + force_update + ", got=" + already_got_records );
 		}
 		
-		String _config_key = "";
-		
-		try{
-			_config_key = "dns.txts.cache." + Base32.encode( host.getBytes( "UTF-8" ));
-			
-		}catch( Throwable e ){
-			
-			Debug.out( e );
-		}
-
-		final String config_key	= _config_key;
-		
 		DNSTXTEntry		txt_entry;
 		DNSTXTEntry		old_txt_entry;
 		
@@ -2896,6 +2884,18 @@ TorrentUtils
 		}
 		
 		if ( is_new ){
+			
+			String _config_key = "";
+			
+			try{
+				_config_key = "dns.txts.cache." + Base32.encode( host.getBytes( "UTF-8" ));
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+
+			final String config_key	= _config_key;
 			
 			if ( TRACE_DNS ){
 				System.out.println( "Updating DNS records for " + host );
