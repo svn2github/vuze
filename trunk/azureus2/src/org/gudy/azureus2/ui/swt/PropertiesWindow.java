@@ -103,7 +103,9 @@ PropertiesWindow
 		    BufferedLabel	msg_label = new BufferedLabel(main, SWT.NULL);
 		    String msg;
 		    String key = keys[i];
-		    if ( key.startsWith( "!" ) && key.endsWith( "!" )){
+		    if ( key.length() == 0 ){
+		    	msg = "";
+		    }else if ( key.startsWith( "!" ) && key.endsWith( "!" )){
 		    	msg = key.substring(1, key.length()-1 );
 		    }else{
 		    	msg = MessageText.getString( key );
@@ -120,7 +122,7 @@ PropertiesWindow
 		    	value = "";
 		    }else{
 		    	
-		    	msg_label.setText( msg + ":" );
+		    	msg_label.setText( msg.length()==0?"":(msg + ":" ));
 		    }
 		    
 		    gridData = new GridData();

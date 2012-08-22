@@ -1471,6 +1471,18 @@ DeviceImpl
 		}
 		
 		addDP( dp, "device.xcode", MessageText.getString( tran_req_str ));
+		
+		if ( errors.size() > 0 ){
+			
+			String	key = "ManagerItem.error";		
+			
+			for ( String error: errors.values()){
+				
+				addDP( dp, key, error );
+				
+				key = "";
+			}
+		}
 	}
 	
 	protected void
