@@ -228,7 +228,8 @@ DeviceImpl
 	
 	private static final String	GENERIC = "generic";
 	
-	
+	private static final Object KEY_FILE_ALLOC_ERROR	= new Object();
+
 	private DeviceManagerImpl	manager;
 	private int					type;
 	private String				uid;
@@ -898,6 +899,8 @@ DeviceImpl
 	{
 		TranscodeFileImpl	result = null;
 		
+		setError( KEY_FILE_ALLOC_ERROR, null );
+		
 		try{
 			synchronized( this ){
 				
@@ -943,6 +946,11 @@ DeviceImpl
 					
 					File output_file = getWorkingDirectory( true );
 	
+					if ( !output_file.canWrite()){
+						
+						throw( new TranscodeException( "Can't write to transcode folder '" + output_file.getAbsolutePath() + "'" ));
+					}
+					
 					output_file = new File( output_file.getAbsoluteFile(), target_file );
 	
 					result = new TranscodeFileImpl( this, key, profile.getName(), device_files, output_file, for_job );
@@ -962,6 +970,8 @@ DeviceImpl
 			}
 		}catch( Throwable e ){
 			
+			setError( KEY_FILE_ALLOC_ERROR, Debug.getNestedExceptionMessage( e ));
+
 			throw( new TranscodeException( "File allocation failed", e ));
 		}
 		
