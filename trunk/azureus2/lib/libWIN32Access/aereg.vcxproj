@@ -89,7 +89,7 @@
     <OutDir>.\Debug\32\bin</OutDir>
     <IntDir>.\Debug\32</IntDir>
     <LinkIncremental>true</LinkIncremental>
-    <IncludePath>C:\Program Files\Java\jdk1.6.0_18\include\win32;C:\Program Files\Java\jdk1.6.0_18\include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+    <IncludePath>D:\Program Files\Java\jdk1.6.0_25\include;D:\Program Files\Java\jdk1.6.0_25\include\win32;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
     <TargetName>aereg_debug</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -103,20 +103,20 @@
     <OutDir>.\bin\</OutDir>
     <IntDir>.\Release\32\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Program Files\Java\jdk1.6.0_18\include\win32;C:\Program Files\Java\jdk1.6.0_18\include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+    <IncludePath>D:\Program Files\Java\jdk1.6.0_25\include;D:\Program Files\Java\jdk1.6.0_25\include\win32;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>.\bin</OutDir>
     <IntDir>.\Release\64\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Program Files\Java\jdk1.6.0_18\include\win32;C:\Program Files\Java\jdk1.6.0_18\include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+    <IncludePath>D:\Program Files\Java\jdk1.6.0_25\include;D:\Program Files\Java\jdk1.6.0_25\include\win32;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
     <TargetName>$(ProjectName)64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|Win32'">
     <OutDir>.\Release\</OutDir>
     <IntDir>.\Release\</IntDir>
     <LinkIncremental>false</LinkIncremental>
-    <IncludePath>C:\Program Files\Java\jdk1.6.0_18\include\win32;C:\Program Files\Java\jdk1.6.0_18\include;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+    <IncludePath>D:\Program Files\Java\jdk1.6.0_25\include;D:\Program Files\Java\jdk1.6.0_25\include\win32;$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release64|x64'">
     <OutDir>.\Release\</OutDir>
