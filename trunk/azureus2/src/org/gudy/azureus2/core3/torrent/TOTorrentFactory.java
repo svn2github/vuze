@@ -144,7 +144,7 @@ TOTorrentFactory
 	
 		throws TOTorrentException
 	{
-		return( TOTorrentCreateImpl.create( file, announce_url, add_hashes, piece_length ));
+		return( new TOTorrentCreatorImpl( file, announce_url, add_hashes, piece_length ));
 	}
 	
 		// construction methods: variable piece size	
@@ -207,7 +207,7 @@ TOTorrentFactory
 	
 		throws TOTorrentException
 	{
-		return( TOTorrentCreateImpl.create(
+		return( new TOTorrentCreatorImpl(
 					file, announce_url, add_hashes, piece_min_size, piece_max_size,
 					piece_num_lower, piece_num_upper ));
 
@@ -215,9 +215,16 @@ TOTorrentFactory
 	
 	public static long
 	getTorrentDataSizeFromFileOrDir(
-		File			file_or_dir )
+		File			file_or_dir_or_desc,
+		boolean			is_layout_descriptor )
+	
+		throws TOTorrentException
 	{
-		return( TOTorrentCreateImpl.getTorrentDataSizeFromFileOrDir( file_or_dir ));
+		TOTorrentCreatorImpl	creator = new TOTorrentCreatorImpl( file_or_dir_or_desc );
+		
+		creator.setFileIsLayoutDescriptor( is_layout_descriptor );
+		
+		return( creator.getTorrentDataSizeFromFileOrDir());
 	}	
 	
 	public static long

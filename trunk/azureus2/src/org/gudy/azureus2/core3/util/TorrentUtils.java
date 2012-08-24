@@ -60,6 +60,7 @@ TorrentUtils
 	public static final String		TORRENT_AZ_PROP_OBTAINED_FROM			= "obtained_from";
 	public static final String		TORRENT_AZ_PROP_PEER_CACHE				= "peer_cache";
 	public static final String		TORRENT_AZ_PROP_PEER_CACHE_VALID		= "peer_cache_valid";
+	public static final String		TORRENT_AZ_PROP_INITIAL_LINKAGE			= "initial_linkage";
 	
 	private static final String		MEM_ONLY_TORRENT_PATH		= "?/\\!:mem_only:!\\/?";
 	
@@ -78,7 +79,7 @@ TorrentUtils
 			}
 		};
 		
-	private static volatile Set		ignore_set;
+	private static volatile Set<String>		ignore_set;
 	
 	private static boolean bSaveTorrentBackup;
 	
@@ -1262,6 +1263,40 @@ TorrentUtils
 		return(( flags.intValue() & flag ) != 0 );
 	}
 	
+	public static Map<Integer,File>
+	getInitialLinkage(
+		TOTorrent		torrent )
+	{
+		Map<Integer,File>	result = new HashMap<Integer, File>();
+		
+		try{
+			Map	pp = torrent.getAdditionalMapProperty( TOTorrent.AZUREUS_PRIVATE_PROPERTIES );
+			
+			if ( pp != null ){
+				
+				Map<String,String> links = (Map<String,String>)pp.get( TorrentUtils.TORRENT_AZ_PROP_INITIAL_LINKAGE );
+				
+				if ( links != null ){//&& TorrentUtils.isCreatedTorrent( torrent )){
+					
+					links = BDecoder.decodeStrings( links );
+					
+					for ( Map.Entry<String,String> entry: links.entrySet()){
+						
+						int		file_index 	= Integer.parseInt( entry.getKey());
+						String	file		= entry.getValue();
+					
+						result.put( file_index, new File( file ));
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( "Failed to read linkage map", e );
+		}
+		
+		return( result );
+	}
+	
 	public static void
 	setPluginStringProperty(
 		TOTorrent		torrent,
@@ -1478,19 +1513,19 @@ TorrentUtils
 		}
 	}
 	
-	public static Set
+	public static Set<String>
 	getIgnoreSet()
 	{
 		return(getIgnoreSetSupport(false));
 	}
 	
-	public static synchronized Set
+	public static synchronized Set<String>
 	getIgnoreSetSupport(
 		boolean	force )
 	{
 		if ( ignore_set == null || force ){
 			
-			Set		new_ignore_set	= new HashSet();
+			Set<String>		new_ignore_set	= new HashSet<String>();
 		    
 			String	ignore_list = COConfigurationManager.getStringParameter( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
 			

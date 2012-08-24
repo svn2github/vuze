@@ -552,14 +552,45 @@ DownloadManagerImpl
 						persistent && !_recovered, _open_for_seeding, _has_ever_been_started,
 						_initialState );		
 
-		if ( torrent != null && _initialisation_adapter != null ){
+		if ( torrent != null ){
 			
-			try{
-				_initialisation_adapter.initialised( this );
+			if ( _open_for_seeding && !_recovered ){
 				
-			}catch( Throwable e ){
+				Map<Integer,File>	linkage = TorrentUtils.getInitialLinkage( torrent );
+				
+				if ( linkage.size() > 0 ){
+				
+					DownloadManagerState	dms = getDownloadState();
+										
+					DiskManagerFileInfo[]	files = getDiskManagerFileInfoSet().getFiles();
 					
-				Debug.printStackTrace(e);
+					try{
+						dms.suppressStateSave( true );
+
+						for ( Map.Entry<Integer,File> entry: linkage.entrySet()){
+					
+							int	index 	= entry.getKey();
+							File target = entry.getValue();
+								
+							dms.setFileLink( files[index].getFile( false ), target );
+							
+						}
+					}finally{
+							
+						dms.suppressStateSave( false );
+					}
+				}
+			}
+			
+			if ( _initialisation_adapter != null ){
+			
+				try{
+					_initialisation_adapter.initialised( this );
+					
+				}catch( Throwable e ){
+						
+					Debug.printStackTrace(e);
+				}
 			}
 		}
 	}

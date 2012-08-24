@@ -34,72 +34,31 @@ TOTorrentCreateImpl
 	extends		TOTorrentImpl
 	implements	TOTorrentFileHasherListener
 {	
-	protected File							torrent_base;
-	protected long							piece_length;
+	private File							torrent_base;
+	private long							piece_length;
 	
-	protected TOTorrentFileHasher			file_hasher;
+	private TOTorrentFileHasher			file_hasher;
 	
-	protected long	total_file_size		= -1;
-	protected long	total_file_count	= 0;
+	private long	total_file_size		= -1;
+	private long	total_file_count	= 0;
 	
-	protected long							piece_count;
-	protected boolean						add_other_hashes;
+	private long							piece_count;
+	private boolean							add_other_hashes;
 	
-	protected List							progress_listeners = new ArrayList();
+	private List<TOTorrentProgressListener>							progress_listeners = new ArrayList<TOTorrentProgressListener>();
 	
-	protected int	reported_progress;
+	private int	reported_progress;
 		
-	protected Set	ignore_set = new HashSet();
+	private Set<String>	ignore_set = new HashSet<String>();
 	
-	protected boolean	cancelled;
+	private Map<String,File>	linkage_map;
+	private Map<String,String>	linked_tf_map = new HashMap<String, String>();
 	
-	public static TOTorrentCreator
-	create(
-		File						_torrent_base,
-		URL							_announce_url,
-		boolean						_add_other_hashes,
-		long						_piece_length )
-		
-		throws TOTorrentException
-	{
-		TOTorrentCreateImpl	t = 
-			new TOTorrentCreateImpl(
-					_torrent_base,
-					_announce_url,
-					_add_other_hashes,
-					_piece_length );
-		
-		return( new TOTorrentCreatorImpl( t ));
-	}
-	
-	public static TOTorrentCreator
-	create(	
-		File						_torrent_base,
-		URL							_announce_url,
-		boolean						_add_other_hashes,
-		long						_piece_min_size,
-		long						_piece_max_size,
-		long						_piece_num_lower,
-		long						_piece_num_upper )
-	
-		throws TOTorrentException
-	{
-		TOTorrentCreateImpl	t = 
-			new TOTorrentCreateImpl(
-					_torrent_base,
-					_announce_url,
-					_add_other_hashes,
-					_piece_min_size,
-					_piece_max_size,
-					_piece_num_lower,
-					_piece_num_upper );
-		
-		return( new TOTorrentCreatorImpl( t ));
-	}
-	
+	private boolean	cancelled;
 	
 	protected
 	TOTorrentCreateImpl(
+		Map<String,File>			_linkage_map,
 		File						_torrent_base,
 		URL							_announce_url,
 		boolean						_add_other_hashes,
@@ -109,6 +68,7 @@ TOTorrentCreateImpl
 	{
 		super( _torrent_base.getName(), _announce_url, _torrent_base.isFile());
 			
+		linkage_map 		= _linkage_map;
 		torrent_base		= _torrent_base;
 		piece_length		= _piece_length;
 		add_other_hashes	= _add_other_hashes;
@@ -116,6 +76,7 @@ TOTorrentCreateImpl
 	
 	protected
 	TOTorrentCreateImpl(	
+		Map<String,File>			_linkage_map,
 		File						_torrent_base,
 		URL							_announce_url,
 		boolean						_add_other_hashes,
@@ -128,6 +89,7 @@ TOTorrentCreateImpl
 	{
 		super( _torrent_base.getName(), _announce_url, _torrent_base.isFile());
 		
+		linkage_map 		= _linkage_map;
 		torrent_base		= _torrent_base;
 		add_other_hashes	= _add_other_hashes;
 		
@@ -140,8 +102,28 @@ TOTorrentCreateImpl
 	create()
 	
 		throws TOTorrentException
-	{
+	{			
 		constructFixed( torrent_base, piece_length );
+		
+		if ( linkage_map.size() != linked_tf_map.size()){
+			
+			throw( new TOTorrentException( "TOTorrentCreate: unresolved linkages: required=" + linkage_map + ", resolved=" + linked_tf_map,
+					TOTorrentException.RT_DECODE_FAILS));
+		}
+		
+		if ( linked_tf_map.size() > 0 ){
+			
+			Map	m = getAdditionalMapProperty( TOTorrent.AZUREUS_PRIVATE_PROPERTIES );
+			
+			if ( m == null ){
+				
+				m = new HashMap();
+				
+				setAdditionalMapProperty( TOTorrent.AZUREUS_PRIVATE_PROPERTIES, m );
+			}
+			
+			m.put( TorrentUtils.TORRENT_AZ_PROP_INITIAL_LINKAGE, linked_tf_map );
+		}
 	}
 	
 	protected void
@@ -192,8 +174,15 @@ TOTorrentCreateImpl
 		}
 		
 		if ( getSimpleTorrent()){
-							
-			long length = file_hasher.add( _torrent_base );
+						
+			File link = linkage_map.get( _torrent_base.getName());
+			
+			if ( link != null ){
+				
+				linked_tf_map.put( "0", link.getAbsolutePath());
+			}
+			
+			long length = file_hasher.add( link==null?_torrent_base:link );
 		
 			setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, 0, length, new byte[][]{ getName()})});
 			
@@ -201,13 +190,13 @@ TOTorrentCreateImpl
 
 		}else{
 		
-			Vector	encoded = new Vector();
+			List<TOTorrentFileImpl>	encoded = new ArrayList<TOTorrentFileImpl>();
 		
-			processDir( file_hasher, _torrent_base, encoded, "" );
+			processDir( file_hasher, _torrent_base, encoded, _torrent_base.getName());
 		
 			TOTorrentFileImpl[] files = new TOTorrentFileImpl[ encoded.size()];
 		
-			encoded.copyInto( files );
+			encoded.toArray( files );
 		
 			setFiles( files );
 		}
@@ -229,10 +218,10 @@ TOTorrentCreateImpl
 	
 	protected void
 	processDir(
-		TOTorrentFileHasher	hasher,
-		File				dir,
-		Vector				encoded,
-		String				root )
+		TOTorrentFileHasher			hasher,
+		File						dir,
+		List<TOTorrentFileImpl>		encoded,
+		String						root )
 		
 		throws TOTorrentException
 	{
@@ -247,7 +236,7 @@ TOTorrentCreateImpl
 			// sort contents so that multiple encodes of a dir always
 			// generate same torrent
 		
-		List file_list = new ArrayList(Arrays.asList(dir_file_list));
+		List<File> file_list = new ArrayList<File>(Arrays.asList(dir_file_list));
 		
 		Collections.sort(file_list);
 		
@@ -279,9 +268,16 @@ TOTorrentCreateImpl
 							file_name = root + File.separator + file_name;
 						}
 						
-						long length = hasher.add( file );
+						File link = linkage_map.get( file_name );
+						
+						if ( link != null ){
 							
-						TOTorrentFileImpl	tf = new TOTorrentFileImpl( this, offset, length, file_name);
+							linked_tf_map.put( String.valueOf( encoded.size()), link.getAbsolutePath());
+						}
+						
+						long length = hasher.add( link==null?file:link );
+							
+						TOTorrentFileImpl	tf = new TOTorrentFileImpl( this, offset, length, file_name );
 						
 						offset += length;
 						
@@ -297,7 +293,7 @@ TOTorrentCreateImpl
 							tf.setAdditionalProperty( "ed2k", ed2k_digest );
 						}
 						
-						encoded.addElement( tf );
+						encoded.add( tf );
 					}
 				}
 			}
@@ -357,7 +353,7 @@ TOTorrentCreateImpl
 	{
 		report( "Torrent.create.progress.parsingfiles" );
 		
-		long res = getTotalFileSizeSupport( file );
+		long res = getTotalFileSizeSupport( file, "" );
 		
 		report( "Torrent.create.progress.totalfilesize", res );
 
@@ -368,7 +364,8 @@ TOTorrentCreateImpl
 	
 	protected long
 	getTotalFileSizeSupport(
-		File				file )
+		File				file,
+		String				root )
 		
 		throws TOTorrentException
 	{
@@ -391,7 +388,14 @@ TOTorrentCreateImpl
 				
 				total_file_count++;
 			
-				return( file.length());
+				if ( root.length() > 0 ){
+					
+					name = root + File.separator + name;
+				}
+				
+				File link = linkage_map.get( name );
+				
+				return( link==null?file.length():link.length());
 				
 			}else{
 				
@@ -410,9 +414,17 @@ TOTorrentCreateImpl
 			
 			long	length = 0;
 			
+			if ( root.length() == 0 ){
+				
+				root = name;
+			}else{
+				
+				root = root + File.separator + name;
+			}
+			
 			for (int i=0;i<dir_files.length;i++){
 				
-				length += getTotalFileSizeSupport( dir_files[i] );
+				length += getTotalFileSizeSupport( dir_files[i], root );
 			}
 			
 			return( length );
@@ -452,49 +464,7 @@ TOTorrentCreateImpl
 			}
 		}
 	}
-	
-	protected static long
-	getTorrentDataSizeFromFileOrDirSupport(
-		File				file )
-	{
-		String	name = file.getName();
-		
-		if ( name.equals( "." ) || name.equals( ".." )){
-			
-			return( 0 );
-		}
-		
-		if ( !file.exists()){
-		
-			return(0);
-		}
-		
-		if ( file.isFile()){
-						
-			return( file.length());
-			
-		}else{
-			
-			File[]	dir_files = file.listFiles();
-			
-			long	length = 0;
-			
-			for (int i=0;i<dir_files.length;i++){
-				
-				length += getTorrentDataSizeFromFileOrDirSupport( dir_files[i] );
-			}
-			
-			return( length );
-		}
-	}
-	
-	public static long
-	getTorrentDataSizeFromFileOrDir(
-		File			file_or_dir )
-	{
-		return( getTorrentDataSizeFromFileOrDirSupport( file_or_dir ));
-	}	
-	
+
 	public static long
 	getComputedPieceSize(
 		long 	total_size,

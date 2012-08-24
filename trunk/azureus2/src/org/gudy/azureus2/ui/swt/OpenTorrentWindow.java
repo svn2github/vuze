@@ -1490,8 +1490,13 @@ public class OpenTorrentWindow
 					if (!fileInfo.bDownload)
 						continue;
 
+					File file = fileInfo.getInitialLink();
 
-					File file = fileInfo.getDestFileFullName();
+					if ( file == null ){
+					
+						file = fileInfo.getDestFileFullName();
+					}
+					
 					if (!file.exists()) {
 						fileInfo.isValid = false;
 						bTorrentValid = false;
@@ -2636,6 +2641,8 @@ public class OpenTorrentWindow
 
 		boolean disableIPFilter = false;
 		
+		Map<Integer,File>		initial_linkage_map;
+		
 		/**
 		 * Init
 		 * 
@@ -2651,6 +2658,8 @@ public class OpenTorrentWindow
 			this.torrent = torrent;
 			this.sDestDir = OpenTorrentWindow.this.sDestDir;
 
+			initial_linkage_map	= TorrentUtils.getInitialLinkage( torrent );
+			
 			iStartID = getDefaultStartMode();
 			iQueueLocation = QUEUELOCATION_BOTTOM;
 			isValid = true;
@@ -2669,6 +2678,13 @@ public class OpenTorrentWindow
 			}
 		}
 
+		public File
+		getInitialLinkage(
+			int		index )
+		{
+			return( initial_linkage_map.get( index ));
+		}
+		
 		public String getParentDir() {
 			return sDestDir;
 		}
@@ -2906,7 +2922,7 @@ public class OpenTorrentWindow
 		private String destFileName;
 		private String destPathName;
 
-		long iIndex;
+		int iIndex;
 
 		boolean isValid;
 
@@ -2926,7 +2942,7 @@ public class OpenTorrentWindow
 			this.iIndex = iIndex;
 			bDownload = true;
 			isValid = true;
-
+			
 			orgFullName = torrentFile.getRelativePath(); // translated to locale
 			orgFileName = new File(orgFullName).getName();
 		}
@@ -2983,6 +2999,12 @@ public class OpenTorrentWindow
 
 		public boolean okToDisable() {
 			return /* lSize >= MIN_NODOWNLOAD_SIZE	|| */parent.okToDisableAll();
+		}
+
+		public File
+		getInitialLink()
+		{
+			return( parent.getInitialLinkage( iIndex ));
 		}
 		
 		public boolean isLinked()

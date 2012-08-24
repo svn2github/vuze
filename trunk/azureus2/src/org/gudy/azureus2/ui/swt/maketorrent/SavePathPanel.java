@@ -59,7 +59,7 @@ public class SavePathPanel extends AbstractWizardPanel {
   	final NewTorrentWizard _wizard = (NewTorrentWizard)wizard;
   	
   	try{
-  		file_size = TOTorrentFactory.getTorrentDataSizeFromFileOrDir(new File(_wizard.create_from_dir?_wizard.directoryPath:_wizard.singlePath));
+  		file_size = TOTorrentFactory.getTorrentDataSizeFromFileOrDir( new File(_wizard.create_from_dir?_wizard.directoryPath:_wizard.singlePath), false );
   		
   		piece_size = TOTorrentFactory.getComputedPieceSize( file_size );
   		

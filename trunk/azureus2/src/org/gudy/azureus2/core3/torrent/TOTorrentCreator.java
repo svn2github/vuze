@@ -30,11 +30,29 @@ package org.gudy.azureus2.core3.torrent;
 public interface 
 TOTorrentCreator 
 {
+		/**
+		 * A 'layout descriptor' is a file that explicitly details the construction of the torrent from a collection of files, rather than relying
+		 * on a natural file system structure.
+		 * The file is bencoded and consists of a Map with a List<Map> called 'file_map'. The sub-maps have two entries: <logical_path>, <target>
+		 * <logical_path> is a list of Strings that correspond to a virtual folder structure and the logical file name
+		 * <target> is the absolute path of the physical file or dir
+		 * @param b
+		 */
+	
+	public void
+	setFileIsLayoutDescriptor(
+		boolean		b );
+	
 	public TOTorrent
 	create()
 	
 		throws TOTorrentException;
 	
+	public long
+	getTorrentDataSizeFromFileOrDir()
+	
+		throws TOTorrentException;
+		
 	public void
 	cancel();
 	
