@@ -25,13 +25,13 @@ package org.gudy.azureus2.ui.swt.wizard;
  * @author Olivier
  * 
  */
-public interface IWizardPanel {
+public interface IWizardPanel<W> {
   
   public void show();
   
-  public IWizardPanel getNextPanel();
-  public IWizardPanel getPreviousPanel();
-  public IWizardPanel getFinishPanel();
+  public IWizardPanel<W> getNextPanel();
+  public IWizardPanel<W> getPreviousPanel();
+  public IWizardPanel<W> getFinishPanel();
   
   public boolean isPreviousEnabled();
   public boolean isNextEnabled();

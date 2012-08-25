@@ -43,11 +43,11 @@ import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
  * @author Olivier
  *  
  */
-public class DirectoryPanel extends AbstractWizardPanel {
+public class DirectoryPanel extends AbstractWizardPanel<NewTorrentWizard> {
 
   private Text file;
 
-  public DirectoryPanel(NewTorrentWizard wizard, IWizardPanel previous) {
+  public DirectoryPanel(NewTorrentWizard wizard, IWizardPanel<NewTorrentWizard> previous) {
     super(wizard, previous);
   }
 
@@ -90,10 +90,10 @@ public class DirectoryPanel extends AbstractWizardPanel {
           }
         }
         wizard.setErrorMessage(error);
-        wizard.setNextEnabled(!((NewTorrentWizard) wizard).directoryPath.equals("") && error.equals(""));
+        wizard.setNextEnabled(! wizard.directoryPath.equals("") && error.equals(""));
       }
     });
-    file.setText(((NewTorrentWizard) wizard).directoryPath);
+    file.setText( wizard.directoryPath);
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
     file.setLayoutData(gridData);
     Button browse = new Button(panel, SWT.PUSH);
@@ -105,10 +105,10 @@ public class DirectoryPanel extends AbstractWizardPanel {
 			 */
       public void handleEvent(Event arg0) {
         DirectoryDialog fd = new DirectoryDialog(wizard.getWizardWindow());
-        if (wizard.getErrorMessage().equals("") && !((NewTorrentWizard) wizard).directoryPath.equals("")) {
-          fd.setFilterPath(((NewTorrentWizard) wizard).directoryPath);
+        if (wizard.getErrorMessage().equals("") && !wizard.directoryPath.equals("")) {
+          fd.setFilterPath( wizard.directoryPath);
         }else{
-        	String	def = ((NewTorrentWizard) wizard).getDefaultOpenDir();
+        	String	def = wizard.getDefaultOpenDir();
         	
         	if ( def.length() > 0 ){
         		
@@ -125,7 +125,7 @@ public class DirectoryPanel extends AbstractWizardPanel {
           
           if ( parent != null ){
           	
-          	((NewTorrentWizard) wizard).setDefaultOpenDir( parent );
+          	wizard.setDefaultOpenDir( parent );
           }
         }
       }
@@ -151,9 +151,9 @@ public class DirectoryPanel extends AbstractWizardPanel {
 	 * 
 	 * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
 	 */
-  public IWizardPanel getNextPanel() {
+  public IWizardPanel<NewTorrentWizard> getNextPanel() {
     // TODO Auto-generated method stub
-    return new SavePathPanel(((NewTorrentWizard) wizard), this);
+    return new SavePathPanel(wizard, this);
   }
 
   public void setFilename(String filename) {

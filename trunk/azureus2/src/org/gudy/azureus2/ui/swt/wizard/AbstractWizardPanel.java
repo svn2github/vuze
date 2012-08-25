@@ -25,11 +25,11 @@ package org.gudy.azureus2.ui.swt.wizard;
  * @author Olivier
  * 
  */
-public abstract class AbstractWizardPanel<W extends Wizard> implements IWizardPanel {
-  protected IWizardPanel previousPanel;
+public abstract class AbstractWizardPanel<W extends Wizard> implements IWizardPanel<W> {
+  protected IWizardPanel<W> previousPanel;
   protected W wizard;
 
-  public AbstractWizardPanel(W wizard, IWizardPanel previousPanel) {
+  public AbstractWizardPanel(W wizard, IWizardPanel<W> previousPanel) {
     this.previousPanel = previousPanel;
     this.wizard = wizard;
   }
@@ -46,15 +46,15 @@ public abstract class AbstractWizardPanel<W extends Wizard> implements IWizardPa
     return false;
   }
 
-  public IWizardPanel getPreviousPanel() {
+  public IWizardPanel<W> getPreviousPanel() {
     return previousPanel;
   }
 
-  public IWizardPanel getNextPanel() {
+  public IWizardPanel<W> getNextPanel() {
     return null;
   }
 
-  public IWizardPanel getFinishPanel() {
+  public IWizardPanel<W> getFinishPanel() {
     return null;
   }
 

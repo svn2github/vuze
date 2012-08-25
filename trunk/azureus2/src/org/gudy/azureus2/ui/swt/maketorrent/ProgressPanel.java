@@ -53,14 +53,14 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
  * @author Olivier
  * 
  */
-public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgressListener {
+public class ProgressPanel extends AbstractWizardPanel<NewTorrentWizard> implements TOTorrentProgressListener {
 
   Text tasks;
   ProgressBar progress;
   Display display;
 
-  public ProgressPanel(NewTorrentWizard _wizard, IWizardPanel _previousPanel) {
-    super(_wizard, _previousPanel);
+  public ProgressPanel(NewTorrentWizard wizard, IWizardPanel<NewTorrentWizard> _previousPanel) {
+    super(wizard, _previousPanel);
   }
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#show()
@@ -110,46 +110,50 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
   }
   
   public void makeTorrent() {
-  	final NewTorrentWizard _wizard = (NewTorrentWizard)wizard;
   	
-  	int	tracker_type = _wizard.getTrackerType();
+  	int	tracker_type = wizard.getTrackerType();
   	
     if( tracker_type == NewTorrentWizard.TT_EXTERNAL ){
     	
-      TrackersUtil.getInstance().addTracker(_wizard.trackerURL);
+      TrackersUtil.getInstance().addTracker(wizard.trackerURL);
     }
     
     File f;
     
-    if (_wizard.create_from_dir) {
-      f = new File(_wizard.directoryPath);
-    }
-    else {
-      f = new File(_wizard.singlePath);
+    if ( wizard.create_mode == NewTorrentWizard.MODE_DIRECTORY ){
+      f = new File(wizard.directoryPath);
+    }else if ( wizard.create_mode == NewTorrentWizard.MODE_SINGLE_FILE ){
+      f = new File(wizard.singlePath);
+    }else{
+      f = wizard.byo_desc_file;
     }
 
     try {
-      URL url = new URL(_wizard.trackerURL);
+      URL url = new URL(wizard.trackerURL);
       
       final TOTorrent torrent;
       
-      if ( _wizard.getPieceSizeComputed()){
+      if ( wizard.getPieceSizeComputed()){
       	
-        _wizard.creator = 
+        wizard.creator = 
       		TOTorrentFactory.createFromFileOrDirWithComputedPieceLength(
-      					f, url, _wizard.getAddOtherHashes());
+      					f, url, wizard.getAddOtherHashes());
       	
-        _wizard.creator.addListener( this );
+        wizard.creator.addListener( this );
       	
-      	torrent = _wizard.creator.create();
+        wizard.creator.setFileIsLayoutDescriptor( wizard.create_mode == NewTorrentWizard.MODE_BYO );
+        
+      	torrent = wizard.creator.create();
       	
       }else{
       	TOTorrentCreator c = 
       		TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(
-      					f, url, _wizard.getAddOtherHashes(), _wizard.getPieceSizeManual());
+      					f, url, wizard.getAddOtherHashes(), wizard.getPieceSizeManual());
       	
     	c.addListener( this );
       	
+        wizard.creator.setFileIsLayoutDescriptor( wizard.create_mode == NewTorrentWizard.MODE_BYO );
+
       	torrent = c.create();
       }
       
@@ -158,11 +162,11 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       	TorrentUtils.setDecentralised( torrent );
       }
 	  
-      torrent.setComment(_wizard.getComment());
+      torrent.setComment(wizard.getComment());
  
-      TorrentUtils.setDHTBackupEnabled( torrent, _wizard.permitDHT );
+      TorrentUtils.setDHTBackupEnabled( torrent, wizard.permitDHT );
 	  
-      TorrentUtils.setPrivate( torrent, _wizard.privateTorrent );
+      TorrentUtils.setPrivate( torrent, wizard.privateTorrent );
       
       LocaleTorrentUtil.setDefaultTorrentEncoding( torrent );
       
@@ -170,24 +174,37 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       
       final File save_dir;
       
-      if (_wizard.create_from_dir){
+      if ( wizard.create_mode == NewTorrentWizard.MODE_DIRECTORY ){
       	
       	save_dir = f;
       	
-      }else{
+      }else if ( wizard.create_mode == NewTorrentWizard.MODE_SINGLE_FILE ){
       	
       	save_dir = f.getParentFile();
+      	
+      }else{
+    	  
+    	  String save_path = COConfigurationManager.getStringParameter( "Default save path" );
+    	  
+    	  File f_save_path = new File( save_path );
+    	  
+    	  if ( !f_save_path.canWrite()){
+    		  
+    		  throw( new Exception( "Default save path is not configured: See Tools->Options->File" ));
+    	  }
+    	  
+    	  save_dir = f_save_path;
       }
       
-      if(_wizard.useMultiTracker) {
+      if( wizard.useMultiTracker ){
           this.reportCurrentTask(MessageText.getString("wizard.addingmt"));
-          TorrentUtils.listToAnnounceGroups(_wizard.trackers, torrent);
-         }
+          TorrentUtils.listToAnnounceGroups(wizard.trackers, torrent);
+      }
 
-      if (_wizard.useWebSeed && _wizard.webseeds.size() > 0 ){
+      if (wizard.useWebSeed && wizard.webseeds.size() > 0 ){
           this.reportCurrentTask(MessageText.getString("wizard.webseed.adding"));
           
-          Map	ws = _wizard.webseeds;
+          Map	ws = wizard.webseeds;
           
           List	getright = (List)ws.get( "getright" );
           
@@ -227,13 +244,13 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
       
       this.reportCurrentTask(MessageText.getString("wizard.savingfile"));
       
-      final File torrent_file = new File(_wizard.savePath);
+      final File torrent_file = new File(wizard.savePath);
       
       torrent.serialiseToBEncodedFile(torrent_file);
       this.reportCurrentTask(MessageText.getString("wizard.filesaved"));
 	  wizard.switchToClose();
 	  
-	  if ( _wizard.autoOpen ){
+	  if ( wizard.autoOpen ){
 	  	CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
 						new AzureusCoreRunningListener() {
 							public void azureusCoreRunning(AzureusCore core) {
@@ -265,8 +282,8 @@ public class ProgressPanel extends AbstractWizardPanel implements TOTorrentProgr
 									});
 								}
 
-								if (_wizard.autoHost
-										&& _wizard.getTrackerType() != NewTorrentWizard.TT_EXTERNAL) {
+								if (wizard.autoHost
+										&& wizard.getTrackerType() != NewTorrentWizard.TT_EXTERNAL) {
 
 									try {
 										core.getTrackerHost().hostTorrent(torrent, true, false);

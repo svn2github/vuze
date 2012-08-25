@@ -29,9 +29,13 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
+import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
+import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 /**
@@ -64,11 +68,17 @@ NewTorrentWizard
 	}
 	
   //false : singleMode, true: directory
-  boolean create_from_dir;
+	 protected static final int MODE_SINGLE_FILE	= 1;
+	 protected static final int MODE_DIRECTORY		= 2;
+	 protected static final int MODE_BYO			= 3;
+  
+  int create_mode = MODE_SINGLE_FILE;
   String singlePath = "";
   String directoryPath = "";
   String savePath = "";
   
+  File	byo_desc_file;
+  Map	byo_map;
     
   String trackerURL = TT_EXTERNAL_DEFAULT;
   
@@ -188,10 +198,10 @@ NewTorrentWizard
           if (getCurrentPanel() instanceof ModePanel) {
             if (droppedFile.isFile()) {
               singlePath = droppedFile.getAbsolutePath();
-              ((ModePanel) getCurrentPanel()).activateMode(true);
+              ((ModePanel) getCurrentPanel()).activateMode( MODE_SINGLE_FILE);
             } else if (droppedFile.isDirectory()) {
               directoryPath = droppedFile.getAbsolutePath();
-              ((ModePanel) getCurrentPanel()).activateMode(false);
+              ((ModePanel) getCurrentPanel()).activateMode( MODE_DIRECTORY );
             }
           } else if (getCurrentPanel() instanceof DirectoryPanel) {
             if (droppedFile.isDirectory())
@@ -199,6 +209,8 @@ NewTorrentWizard
           } else if (getCurrentPanel() instanceof SingleFilePanel) {
             if (droppedFile.isFile())
               ((SingleFilePanel) getCurrentPanel()).setFilename(droppedFile.getAbsolutePath());
+          } else if (getCurrentPanel() instanceof BYOPanel) {
+        	  ((BYOPanel) getCurrentPanel()).addFilename(droppedFile.getAbsolutePath());
           }
          } else if (getCurrentPanel() instanceof ModePanel) {
            trackerURL = ((URLTransfer.URLType)event.data).linkURL;
@@ -248,5 +260,19 @@ NewTorrentWizard
   getAddOtherHashes()
   {
   	return( addOtherHashes );
+  }
+  
+  protected IWizardPanel<NewTorrentWizard>
+  getNextPanelForMode(
+	  AbstractWizardPanel<NewTorrentWizard>		prev )
+  {
+	  switch( create_mode ){
+	  	case MODE_DIRECTORY:
+		  return new DirectoryPanel( this, prev);
+	  	case MODE_SINGLE_FILE:
+		  return new SingleFilePanel( this, prev );
+		default:
+		  return new BYOPanel( this, prev );  
+	  }
   }
 }

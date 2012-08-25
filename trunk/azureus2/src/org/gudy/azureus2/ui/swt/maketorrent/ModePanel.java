@@ -46,10 +46,11 @@ import java.util.List;
  * @author Olivier
  *  
  */
-public class ModePanel extends AbstractWizardPanel {
+public class ModePanel extends AbstractWizardPanel<NewTorrentWizard> {
 
   private Button bSingle;
   private Button bDirectory;
+  private Button bBYO;
   private Combo tracker;
 
   public ModePanel(NewTorrentWizard wizard, AbstractWizardPanel previous) {
@@ -321,7 +322,7 @@ public class ModePanel extends AbstractWizardPanel {
     gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
     panel.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 4;
+    layout.numColumns = 6;
     panel.setLayout(layout);
 
     //Line:
@@ -329,13 +330,13 @@ public class ModePanel extends AbstractWizardPanel {
     
     Label label1 = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 4;
+    gridData.horizontalSpan = 6;
     label1.setLayoutData(gridData);
 
     //Line:
-    // O single file O Directory mode
+    // O single file O Directory mode O BYO
     bSingle = new Button(panel, SWT.RADIO);
-    bSingle.setSelection(!((NewTorrentWizard) wizard).create_from_dir);
+    bSingle.setSelection( wizard.create_mode == NewTorrentWizard.MODE_SINGLE_FILE );
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     bSingle.setLayoutData(gridData);
@@ -343,12 +344,12 @@ public class ModePanel extends AbstractWizardPanel {
     
     bSingle.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
-        activateMode(true);
+        activateMode(NewTorrentWizard.MODE_SINGLE_FILE);
       }
     });
     
     bDirectory = new Button(panel, SWT.RADIO);
-    bDirectory.setSelection(((NewTorrentWizard) wizard).create_from_dir);
+    bDirectory.setSelection( wizard.create_mode == NewTorrentWizard.MODE_DIRECTORY );
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     bDirectory.setLayoutData(gridData);
@@ -356,10 +357,23 @@ public class ModePanel extends AbstractWizardPanel {
     
     bDirectory.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event arg0) {
-        activateMode(false);
+        activateMode(NewTorrentWizard.MODE_DIRECTORY);
       }
     });
 
+    bBYO = new Button(panel, SWT.RADIO);
+    bBYO.setSelection( wizard.create_mode == NewTorrentWizard.MODE_BYO );
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
+    bBYO.setLayoutData(gridData);
+    Messages.setLanguageText(bBYO, "wizard.newtorrent.byo" );
+    
+    bBYO.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event arg0) {
+        activateMode(NewTorrentWizard.MODE_BYO);
+      }
+    });
+    
     btnSSL.addListener(SWT.Selection, new Listener() {
 		  public void handleEvent(Event arg0) {
 		  	String	url;
@@ -435,7 +449,7 @@ public class ModePanel extends AbstractWizardPanel {
     
     label = new Label(panel, SWT.SEPARATOR | SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 4;
+    gridData.horizontalSpan = 6;
     label.setLayoutData(gridData);
 
     //Line:
@@ -445,7 +459,7 @@ public class ModePanel extends AbstractWizardPanel {
 
     final Text comment = new Text(panel, SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 5;
     comment.setLayoutData(gridData);
     comment.setText(((NewTorrentWizard) wizard).getComment());
 
@@ -457,13 +471,13 @@ public class ModePanel extends AbstractWizardPanel {
 
     label = new Label(panel, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 4;
+    gridData.horizontalSpan = 6;
     label.setLayoutData(gridData);
     label.setText("\n");
 
     label = new Label(panel, SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 4;
+    gridData.horizontalSpan = 6;
     label.setLayoutData(gridData);
     label.setForeground(Colors.blue);
     Messages.setLanguageText(label, "wizard.hint.mode");
@@ -474,30 +488,27 @@ public class ModePanel extends AbstractWizardPanel {
 	 * 
 	 * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
 	 */
-  public IWizardPanel getNextPanel() {
+  public IWizardPanel<NewTorrentWizard> getNextPanel() {
     
     //OSX work-arround to Fix SWT BUG #43396 :
     //Combo doesn't fire Selection Event
     if(Constants.isOSX) {
       //In case we're not using the localTracker, refresh the
       //Tracker URL from the Combo text
-      if( ((NewTorrentWizard) wizard).getTrackerType() == NewTorrentWizard.TT_EXTERNAL ){
+      if( wizard.getTrackerType() == NewTorrentWizard.TT_EXTERNAL ){
         setTrackerUrl(tracker.getText());
       }
     }
     
-    
-    if(((NewTorrentWizard) wizard).useMultiTracker)
-      return new MultiTrackerPanel((NewTorrentWizard) wizard, this);
-
-    if(((NewTorrentWizard) wizard).useWebSeed)
-        return new WebSeedPanel((NewTorrentWizard) wizard, this);
-
-    if (((NewTorrentWizard) wizard).create_from_dir) {
-      return new DirectoryPanel(((NewTorrentWizard) wizard), this);
-    } else {
-      return new SingleFilePanel(((NewTorrentWizard) wizard), this);
+    if( wizard.useMultiTracker){
+      return new MultiTrackerPanel( wizard, this);
     }
+    
+    if(  wizard.useWebSeed ){
+        return new WebSeedPanel( wizard, this);
+    }
+    
+    return( wizard.getNextPanelForMode( this ));
   }
 
   /*
@@ -509,11 +520,12 @@ public class ModePanel extends AbstractWizardPanel {
     return true;
   }
 
-  void activateMode(boolean singleFile) {
-    wizard.setCurrentInfo(MessageText.getString(singleFile ? "wizard.singlefile.help" : "wizard.directory.help"));
-    ((NewTorrentWizard) wizard).create_from_dir = !singleFile;
-    bDirectory.setSelection(!singleFile);
-    bSingle.setSelection(singleFile);
+  void activateMode(int mode) {
+    wizard.setCurrentInfo(MessageText.getString(mode==NewTorrentWizard.MODE_SINGLE_FILE?"wizard.singlefile.help" :(mode==NewTorrentWizard.MODE_DIRECTORY?"wizard.directory.help":"wizard.newtorrent.byo.help")));
+    ((NewTorrentWizard) wizard).create_mode = mode;
+    bDirectory.setSelection(mode==NewTorrentWizard.MODE_DIRECTORY);
+    bSingle.setSelection(mode==NewTorrentWizard.MODE_SINGLE_FILE);
+    bBYO.setSelection(mode==NewTorrentWizard.MODE_BYO);
   }
 
   void updateTrackerURL() {

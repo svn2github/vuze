@@ -46,7 +46,7 @@ import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
  * @author Olivier
  *  
  */
-public class WebSeedPanel extends AbstractWizardPanel implements WebSeedsEditorListener{
+public class WebSeedPanel extends AbstractWizardPanel<NewTorrentWizard> implements WebSeedsEditorListener{
 
   private Combo configList;
   private Tree configDetails;
@@ -55,7 +55,7 @@ public class WebSeedPanel extends AbstractWizardPanel implements WebSeedsEditorL
   private Button btnEdit;
   private Button btnDelete; 
 
-  public WebSeedPanel(NewTorrentWizard wizard, AbstractWizardPanel previous) {
+  public WebSeedPanel(NewTorrentWizard wizard, AbstractWizardPanel<NewTorrentWizard> previous) {
     super(wizard, previous);
   }
 
@@ -153,7 +153,7 @@ public class WebSeedPanel extends AbstractWizardPanel implements WebSeedsEditorL
     gridData.horizontalSpan = 3;
     configDetails.setLayoutData(gridData);    
     
-    refreshList(((NewTorrentWizard)wizard).webSeedConfig);
+    refreshList( wizard.webSeedConfig);
     refreshDetails(); 
     setEditDeleteEnable();
 }
@@ -163,12 +163,8 @@ public class WebSeedPanel extends AbstractWizardPanel implements WebSeedsEditorL
 	 * 
 	 * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
 	 */
-  public IWizardPanel getNextPanel() {
-    if (((NewTorrentWizard) wizard).create_from_dir) {
-      return new DirectoryPanel(((NewTorrentWizard) wizard), this);
-    } else {
-      return new SingleFilePanel(((NewTorrentWizard) wizard), this);
-    }
+  public IWizardPanel<NewTorrentWizard> getNextPanel() {
+	  return( wizard.getNextPanelForMode( this ));
   }
 
 
@@ -178,7 +174,7 @@ public class WebSeedPanel extends AbstractWizardPanel implements WebSeedsEditorL
   
   void refreshDetails() {
     configDetails.removeAll();
-    Map webseeds = ((NewTorrentWizard) wizard).webseeds;
+    Map webseeds = wizard.webseeds;
     Iterator iter = webseeds.entrySet().iterator();
     while(iter.hasNext()) {
         Map.Entry	entry = (Map.Entry)iter.next();

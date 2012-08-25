@@ -45,7 +45,7 @@ import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
  * @author Olivier
  *  
  */
-public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEditorListener{
+public class MultiTrackerPanel extends AbstractWizardPanel<NewTorrentWizard> implements TrackerEditorListener{
 
   private Combo configList;
   private Tree configDetails;
@@ -54,7 +54,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
   private Button btnEdit;
   private Button btnDelete; 
 
-  public MultiTrackerPanel(NewTorrentWizard wizard, AbstractWizardPanel previous) {
+  public MultiTrackerPanel(NewTorrentWizard wizard, AbstractWizardPanel<NewTorrentWizard> previous) {
     super(wizard, previous);
   }
 
@@ -165,14 +165,11 @@ public class MultiTrackerPanel extends AbstractWizardPanel implements TrackerEdi
 	 */
   public IWizardPanel getNextPanel() {
 	  
-	if(((NewTorrentWizard) wizard).useWebSeed)
+	if(((NewTorrentWizard) wizard).useWebSeed){
 	     return new WebSeedPanel((NewTorrentWizard) wizard, this);
-	   
-    if (((NewTorrentWizard) wizard).create_from_dir) {
-      return new DirectoryPanel(((NewTorrentWizard) wizard), this);
-    } else {
-      return new SingleFilePanel(((NewTorrentWizard) wizard), this);
-    }
+	}
+	
+	return(((NewTorrentWizard)wizard).getNextPanelForMode( this ));
   }
 
 

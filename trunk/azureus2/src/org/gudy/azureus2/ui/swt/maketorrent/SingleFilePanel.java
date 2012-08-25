@@ -43,10 +43,10 @@ import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
  * @author Olivier
  *  
  */
-public class SingleFilePanel extends AbstractWizardPanel {
+public class SingleFilePanel extends AbstractWizardPanel<NewTorrentWizard> {
   private Text file;
 
-  public SingleFilePanel(NewTorrentWizard wizard, AbstractWizardPanel previous) {
+  public SingleFilePanel(NewTorrentWizard wizard, AbstractWizardPanel<NewTorrentWizard> previous) {
     super(wizard, previous);
   }
 
@@ -75,7 +75,7 @@ public class SingleFilePanel extends AbstractWizardPanel {
 			 */
       public void modifyText(ModifyEvent arg0) {
         String fName = file.getText();
-        ((NewTorrentWizard) wizard).singlePath = fName;
+        wizard.singlePath = fName;
         String error = "";
         if (!fName.equals("")) {
           File f = new File(file.getText());
@@ -86,12 +86,12 @@ public class SingleFilePanel extends AbstractWizardPanel {
             
             if ( parent != null ){
             	
-            	((NewTorrentWizard) wizard).setDefaultOpenDir( parent );
+            	wizard.setDefaultOpenDir( parent );
             }
           }
         }
         wizard.setErrorMessage(error);
-        wizard.setNextEnabled(!((NewTorrentWizard) wizard).singlePath.equals("") && error.equals(""));
+        wizard.setNextEnabled(!wizard.singlePath.equals("") && error.equals(""));
       }
     });
     file.setText(((NewTorrentWizard) wizard).singlePath);
@@ -107,10 +107,10 @@ public class SingleFilePanel extends AbstractWizardPanel {
 			 */
       public void handleEvent(Event arg0) {
         FileDialog fd = new FileDialog(wizard.getWizardWindow());
-        if (wizard.getErrorMessage().equals("") && !((NewTorrentWizard) wizard).singlePath.equals("")) {
-          fd.setFileName(((NewTorrentWizard) wizard).singlePath);
+        if (wizard.getErrorMessage().equals("") && !wizard.singlePath.equals("")) {
+          fd.setFileName(wizard.singlePath);
         }else{
-        	String	def = ((NewTorrentWizard) wizard).getDefaultOpenDir();
+        	String	def = wizard.getDefaultOpenDir();
         	
         	if ( def.length() > 0 & new File(def).isDirectory() ){
         		
@@ -127,7 +127,7 @@ public class SingleFilePanel extends AbstractWizardPanel {
             
             if ( parent != null ){
             	
-            	((NewTorrentWizard) wizard).setDefaultOpenDir( parent );
+            	wizard.setDefaultOpenDir( parent );
             }
           }
 
@@ -154,7 +154,7 @@ public class SingleFilePanel extends AbstractWizardPanel {
 	 * 
 	 * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#getNextPanel()
 	 */
-  public IWizardPanel getNextPanel() {
+  public IWizardPanel<NewTorrentWizard> getNextPanel() {
     // TODO Auto-generated method stub
     return new SavePathPanel(((NewTorrentWizard) wizard), this);
   }

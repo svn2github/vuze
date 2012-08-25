@@ -41,26 +41,27 @@ import java.io.File;
  * @author Olivier
  * 
  */
-public class SavePathPanel extends AbstractWizardPanel {
+public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
 
 	protected long	file_size;
 	protected long	piece_size;
 	protected long	piece_count;	
 
-  public SavePathPanel(NewTorrentWizard _wizard,AbstractWizardPanel _previousPanel) {
-    super(_wizard,_previousPanel);
+  public SavePathPanel(NewTorrentWizard wizard,AbstractWizardPanel<NewTorrentWizard> _previousPanel) {
+    super(wizard,_previousPanel);
   }
   
   /* (non-Javadoc)
    * @see org.gudy.azureus2.ui.swt.maketorrent.IWizardPanel#show()
    */
   public void show() {
-  	
-  	final NewTorrentWizard _wizard = (NewTorrentWizard)wizard;
-  	
+  	  	
   	try{
-  		file_size = TOTorrentFactory.getTorrentDataSizeFromFileOrDir( new File(_wizard.create_from_dir?_wizard.directoryPath:_wizard.singlePath), false );
-  		
+  		if (wizard.create_mode == NewTorrentWizard.MODE_BYO ){
+  			file_size = TOTorrentFactory.getTorrentDataSizeFromFileOrDir( wizard.byo_desc_file, true );
+  		}else{
+  			file_size = TOTorrentFactory.getTorrentDataSizeFromFileOrDir( new File( wizard.create_mode==NewTorrentWizard.MODE_DIRECTORY? wizard.directoryPath: wizard.singlePath), false );
+  		}
   		piece_size = TOTorrentFactory.getComputedPieceSize( file_size );
   		
   		piece_count = TOTorrentFactory.getPieceCount( file_size, piece_size );
@@ -83,7 +84,7 @@ public class SavePathPanel extends AbstractWizardPanel {
        */
       public void modifyText(ModifyEvent arg0) {       
         String fName = file.getText();
-        ((NewTorrentWizard)wizard).savePath = fName;
+        wizard.savePath = fName;
         String error = "";
         if(! fName.equals("")) {          
           File f = new File(file.getText());
@@ -94,28 +95,36 @@ public class SavePathPanel extends AbstractWizardPanel {
             
             if ( parent != null ){
             	
-            	((NewTorrentWizard) wizard).setDefaultSaveDir( parent );
+            	wizard.setDefaultSaveDir( parent );
             }
           }
         }
         wizard.setErrorMessage(error);
-        wizard.setFinishEnabled(!((NewTorrentWizard)wizard).savePath.equals("") && error.equals(""));
+        wizard.setFinishEnabled(!wizard.savePath.equals("") && error.equals(""));
       }
     });
     
+    String	default_save = wizard.getDefaultSaveDir();
+
     	// if we have a default save dir then use this as the basis for save location
     
     String	target_file;
     
-    if(((NewTorrentWizard)wizard).create_from_dir) {
-    	target_file = ((NewTorrentWizard)wizard).directoryPath + ".torrent";
-    } else {      
-    	target_file = ((NewTorrentWizard)wizard).singlePath + ".torrent";
+    if( wizard.create_mode == NewTorrentWizard.MODE_BYO ){
+    	
+    	target_file = "";
+    	
+    }else if ( wizard.create_mode == NewTorrentWizard.MODE_DIRECTORY ){ 
+    		
+    	target_file = wizard.directoryPath + ".torrent";
+    	
+    }else{
+    	
+    	target_file = wizard.singlePath + ".torrent";
     }
     
-    String	default_save = ((NewTorrentWizard)wizard).getDefaultSaveDir();
     
-    if (default_save.length() > 0 ){
+    if ( default_save.length() > 0 && target_file.length() > 0 ){
     
     	File temp = new File( target_file );
     	
@@ -127,9 +136,9 @@ public class SavePathPanel extends AbstractWizardPanel {
     	}
     }
     
-    ((NewTorrentWizard)wizard).savePath = target_file;
+    wizard.savePath = target_file;
     
-    file.setText(((NewTorrentWizard)wizard).savePath);
+    file.setText( wizard.savePath);
     GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
     file.setLayoutData(gridData);
@@ -140,7 +149,7 @@ public class SavePathPanel extends AbstractWizardPanel {
        */
       public void handleEvent(Event arg0) {
         FileDialog fd = new FileDialog(wizard.getWizardWindow(),SWT.SAVE);
-        final String path = ((NewTorrentWizard)wizard).savePath;
+        final String path = wizard.savePath;
         if(wizard.getErrorMessage().equals("") && !path.equals("")) {
             File fsPath = new File(path);
             if(!path.endsWith(File.separator)) {
@@ -159,8 +168,9 @@ public class SavePathPanel extends AbstractWizardPanel {
 
             String	parent = ff.getParent();
 
-            if ( parent != null )
-                ((NewTorrentWizard) wizard).setDefaultSaveDir( parent );
+            if ( parent != null ){
+                wizard.setDefaultSaveDir( parent );
+            }
           }
       }
     });   
@@ -234,14 +244,14 @@ public class SavePathPanel extends AbstractWizardPanel {
     		
     		if ( index == 0 ){
     			
-    			_wizard.setPieceSizeComputed();
+    			wizard.setPieceSizeComputed();
     			
     			piece_size = TOTorrentFactory.getComputedPieceSize( file_size );
     			
      		}else{
     			piece_size = sizes[index-1];
     			
-    			_wizard.setPieceSizeManual(piece_size);	
+    			wizard.setPieceSizeManual(piece_size);	
     		}
     		
     		piece_count = TOTorrentFactory.getPieceCount( file_size, piece_size );
@@ -274,15 +284,15 @@ public class SavePathPanel extends AbstractWizardPanel {
     
     bAutoOpen.addListener(SWT.Selection,new Listener() {
         public void handleEvent(Event event) {
-          _wizard.autoOpen = bAutoOpen.getSelection();
+          wizard.autoOpen = bAutoOpen.getSelection();
           
-          bAutoHost.setEnabled( _wizard.autoOpen && _wizard.getTrackerType() != NewTorrentWizard.TT_EXTERNAL );
+          bAutoHost.setEnabled( wizard.autoOpen && wizard.getTrackerType() != NewTorrentWizard.TT_EXTERNAL );
         }
       });
     
     bAutoHost.addListener(SWT.Selection,new Listener() {
       public void handleEvent(Event event) {
-        _wizard.autoHost = bAutoHost.getSelection();
+        wizard.autoHost = bAutoHost.getSelection();
       }
     });
     
@@ -302,33 +312,33 @@ public class SavePathPanel extends AbstractWizardPanel {
     
     bAllowDHT.addListener(SWT.Selection,new Listener() {
         public void handleEvent(Event event) {
-          _wizard.permitDHT = bAllowDHT.getSelection();
+          wizard.permitDHT = bAllowDHT.getSelection();
         }
       });
       
 	
 	bPrivateTorrent.addListener(SWT.Selection,new Listener() {
         public void handleEvent(Event event) {
-          _wizard.privateTorrent = bPrivateTorrent.getSelection();
+          wizard.privateTorrent = bPrivateTorrent.getSelection();
 		  
-          if ( _wizard.privateTorrent ){
+          if ( wizard.privateTorrent ){
         	  
         	  bAllowDHT.setSelection( false );
-        	  _wizard.permitDHT = false;
+        	  wizard.permitDHT = false;
           }
-		  bAllowDHT.setEnabled( !_wizard.privateTorrent );
+		  bAllowDHT.setEnabled( !wizard.privateTorrent );
         }
       });
 
-    if ( _wizard.getTrackerType() == NewTorrentWizard.TT_DECENTRAL ){
+    if ( wizard.getTrackerType() == NewTorrentWizard.TT_DECENTRAL ){
 
 		bAllowDHT.setEnabled( false );
 		bPrivateTorrent.setEnabled( false );
     }
   }
   
-  public IWizardPanel getFinishPanel() {
-    return new ProgressPanel((NewTorrentWizard)wizard,this);
+  public IWizardPanel<NewTorrentWizard> getFinishPanel() {
+    return new ProgressPanel( wizard, this );
   }
 
 }
