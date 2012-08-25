@@ -138,8 +138,8 @@ public class Wizard {
     }
     titleFont=new Font(display,data);
     title.setFont(titleFont);
-    currentInfo = new Label(cTitle, SWT.NULL);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    currentInfo = new Label(cTitle, SWT.WRAP);
+    gridData = Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL );
     currentInfo.setLayoutData(gridData);
     currentInfo.setBackground(white);
     errorMessage = new Label(cTitle, SWT.NULL);
@@ -381,7 +381,9 @@ public class Wizard {
   }
 
   public void setCurrentInfo(String currentInfo) {
-    this.currentInfo.setText("\t" + currentInfo);
+	  currentInfo = currentInfo.replaceAll( "\n", "\n\t" );
+	  this.currentInfo.setText("\t" + currentInfo);
+	  this.currentInfo.getParent().layout();
   }
 
   public void setErrorMessage(String errorMessage) {
