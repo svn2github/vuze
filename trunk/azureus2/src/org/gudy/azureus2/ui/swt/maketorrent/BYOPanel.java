@@ -148,6 +148,11 @@ public class BYOPanel extends AbstractWizardPanel<NewTorrentWizard> {
 	  
 	  String 	cont_name = files.size() < 2?null:container.getText().trim();
 	  
+	  if ( cont_name != null ){
+		  
+		  cont_name = FileUtil.convertOSSpecificChars( cont_name, true );
+	  }
+	  
 	  for ( String file: files ){
 		  
 		  Map m = new HashMap();
