@@ -190,32 +190,38 @@ NewTorrentWizard
       public void drop(DropTargetEvent event) {
         if (event.data instanceof String[]) {
           String[] sourceNames = (String[]) event.data;
-          if (sourceNames == null || sourceNames.length != 1)
+          if (sourceNames == null )
             event.detail = DND.DROP_NONE;
           if (event.detail == DND.DROP_NONE)
             return;
-          File droppedFile = new File(sourceNames[0]);
-          if (getCurrentPanel() instanceof ModePanel) {
-            if (droppedFile.isFile()) {
-              singlePath = droppedFile.getAbsolutePath();
-              ((ModePanel) getCurrentPanel()).activateMode( MODE_SINGLE_FILE);
-            } else if (droppedFile.isDirectory()) {
-              directoryPath = droppedFile.getAbsolutePath();
-              ((ModePanel) getCurrentPanel()).activateMode( MODE_DIRECTORY );
-            }
-          } else if (getCurrentPanel() instanceof DirectoryPanel) {
-            if (droppedFile.isDirectory())
-              ((DirectoryPanel) getCurrentPanel()).setFilename(droppedFile.getAbsolutePath());
-          } else if (getCurrentPanel() instanceof SingleFilePanel) {
-            if (droppedFile.isFile())
-              ((SingleFilePanel) getCurrentPanel()).setFilename(droppedFile.getAbsolutePath());
-          } else if (getCurrentPanel() instanceof BYOPanel) {
-        	  ((BYOPanel) getCurrentPanel()).addFilename(droppedFile.getAbsolutePath());
+          
+          for ( String droppedFileStr: sourceNames ){
+        	  File droppedFile = new File( droppedFileStr );
+	          if (getCurrentPanel() instanceof ModePanel) {
+	            if (droppedFile.isFile()) {
+	              singlePath = droppedFile.getAbsolutePath();
+	              ((ModePanel) getCurrentPanel()).activateMode( MODE_SINGLE_FILE);
+	            } else if (droppedFile.isDirectory()) {
+	              directoryPath = droppedFile.getAbsolutePath();
+	              ((ModePanel) getCurrentPanel()).activateMode( MODE_DIRECTORY );
+	            }
+	          } else if (getCurrentPanel() instanceof DirectoryPanel) {
+	            if (droppedFile.isDirectory())
+	              ((DirectoryPanel) getCurrentPanel()).setFilename(droppedFile.getAbsolutePath());
+	          } else if (getCurrentPanel() instanceof SingleFilePanel) {
+	            if (droppedFile.isFile())
+	              ((SingleFilePanel) getCurrentPanel()).setFilename(droppedFile.getAbsolutePath());
+	          } else if (getCurrentPanel() instanceof BYOPanel) {
+	        	  ((BYOPanel) getCurrentPanel()).addFilename(droppedFile.getAbsolutePath());
+	        	  
+	        	  continue;
+	          }
+	          break;
           }
-         } else if (getCurrentPanel() instanceof ModePanel) {
-           trackerURL = ((URLTransfer.URLType)event.data).linkURL;
-           ((ModePanel) getCurrentPanel()).updateTrackerURL();
-         }
+        } else if (getCurrentPanel() instanceof ModePanel) {
+        	trackerURL = ((URLTransfer.URLType)event.data).linkURL;
+        	((ModePanel) getCurrentPanel()).updateTrackerURL();
+        }
        }
     });
   }
