@@ -93,7 +93,7 @@ TorrentUtils
 	
 	private static Map<String,DNSTXTEntry>	dns_mapping = new HashMap<String, DNSTXTEntry>();
 	private static volatile int				dns_mapping_seq_count;
-	private static ThreadPool				dns_threads	= new ThreadPool( "DNS:lookups", 16, false );
+	private static ThreadPool				dns_threads	= new ThreadPool( "DNS:lookups", 16, true );
 
 	static{
 		SimpleTimer.addPeriodicEvent(
