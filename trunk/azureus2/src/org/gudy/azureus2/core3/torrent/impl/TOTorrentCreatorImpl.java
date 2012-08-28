@@ -212,6 +212,11 @@ TOTorrentCreatorImpl
 					throw( new TOTorrentException( "Logical path must have at least one entry: " + m, TOTorrentException.RT_READ_FAILS ));
 				}
 
+				for ( int i=0;i<logical_path.size();i++ ){
+					
+					logical_path.set( i, FileUtil.convertOSSpecificChars( logical_path.get(i), i < logical_path.size()-1));
+				}
+				
 				File	tf = new File( target );
 				
 				if ( !tf.exists()){
@@ -465,7 +470,10 @@ TOTorrentCreatorImpl
 	public void
 	cancel()
 	{
-		torrent.cancel();
+		if ( torrent != null ){
+		
+			torrent.cancel();
+		}
 	}
 	
 	public void

@@ -399,7 +399,7 @@ public class BYOPanel
 		TreeItem item = parent == null ? new TreeItem(tree, 0, 0) : new TreeItem(parent, 0, 0);
 		item.setText(new String[] {
 			name,
-			"<container>"
+			MessageText.getString( "label.container.display")
 		});
 
 		while (tree.getItemCount() > 1) {

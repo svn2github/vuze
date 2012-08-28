@@ -102,6 +102,8 @@ public class FilesView
     new PriorityItem(),
     new StorageTypeItem(),
     new FileExtensionItem(), 
+    new FileIndexItem(),
+    new TorrentRelativePathItem(),
   };
 	public static final String MSGID_PREFIX = "FilesView";
   
