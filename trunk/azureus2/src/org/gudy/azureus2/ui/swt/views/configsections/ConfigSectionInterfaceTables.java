@@ -25,16 +25,15 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Group;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -44,6 +43,7 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 public class ConfigSectionInterfaceTables
@@ -186,6 +186,22 @@ public class ConfigSectionInterfaceTables
 			final StringParameter paramCustomDate = new StringParameter(cSection, "Table.column.dateformat", "");
 			paramCustomDate.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, false));
 			paramCustomDate.setEnabled(cdEnabled);
+			paramCustomDate.addChangeListener(new ParameterChangeAdapter() {
+				
+				public void parameterChanged(Parameter p, boolean caused_internally) {
+					String s = (String) p.getValueObject();
+					boolean ok = false;
+					try {
+						SimpleDateFormat temp = new SimpleDateFormat(s);
+						temp.format(new Date());
+						ok = true;
+					} catch (Exception e) {
+						// probably illegalargumentexception
+					}
+					p.getControl().setBackground(ok ? null : Colors.colorErrorBG);
+				}
+				
+			});
 			
 			chkCustomDate.addSelectionListener(new SelectionListener() {
 				public void widgetSelected(SelectionEvent e) {
