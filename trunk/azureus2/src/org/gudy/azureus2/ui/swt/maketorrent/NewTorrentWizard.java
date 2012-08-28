@@ -212,7 +212,7 @@ NewTorrentWizard
 	            if (droppedFile.isFile())
 	              ((SingleFilePanel) getCurrentPanel()).setFilename(droppedFile.getAbsolutePath());
 	          } else if (getCurrentPanel() instanceof BYOPanel) {
-	        	  ((BYOPanel) getCurrentPanel()).addFilename(droppedFile.getAbsolutePath());
+	        	  ((BYOPanel) getCurrentPanel()).addFilename(droppedFile);
 	        	  
 	        	  continue;
 	          }

@@ -21,12 +21,16 @@
  
 package org.gudy.azureus2.ui.swt.maketorrent;
 
+import java.io.File;
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.Debug;
@@ -34,8 +38,6 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
-
-import java.io.File;
 
 /**
  * @author Olivier
@@ -111,8 +113,22 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
     String	target_file;
     
     if( wizard.create_mode == NewTorrentWizard.MODE_BYO ){
-    	
     	target_file = "";
+    	
+    	if (wizard.byo_map != null) {
+    		java.util.List list = (java.util.List) wizard.byo_map.get("file_map");
+    		if (list != null) {
+    			Map map = (Map) list.get(0);
+    			if (map != null) {
+    				java.util.List path = (java.util.List) map.get("logical_path");
+    				if (path != null) {
+							target_file = new File(
+									COConfigurationManager.getStringParameter("General_sDefaultTorrent_Directory"),
+									(String) path.get(0) + ".torrent").getAbsolutePath();
+    				}
+    			}
+    		}
+    	}
     	
     }else if ( wizard.create_mode == NewTorrentWizard.MODE_DIRECTORY ){ 
     		
