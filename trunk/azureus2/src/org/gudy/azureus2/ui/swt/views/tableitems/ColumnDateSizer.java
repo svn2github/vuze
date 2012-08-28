@@ -144,9 +144,13 @@ public abstract class ColumnDateSizer
 		
 		if (formatOverride.length() > 0) {
 			Date date = new Date(timestamp);
-			SimpleDateFormat temp = new SimpleDateFormat(formatOverride);
-			cell.setText(temp.format(date));
-			return;
+			try {
+  			SimpleDateFormat temp = new SimpleDateFormat(formatOverride);
+  			cell.setText(temp.format(date));
+  			return;
+			} catch (Exception e) {
+				// probably illegalargumentexception
+			}
 		}
 
 		Utils.execSWTThread(new AERunnable() {
