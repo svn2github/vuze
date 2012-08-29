@@ -97,8 +97,8 @@ public class MenuFactory
 		transferMenu.addMenuListener(new MenuListener() {
 			public void menuShown(MenuEvent menu) {
 				if (!AzureusCoreFactory.isCoreRunning()) {
-					itemPause.setEnabled(false);
-					itemResume.setEnabled(false);
+					itemPause.setEnabled(true);
+					itemResume.setEnabled(true);
 				} else {
 					AzureusCore core = AzureusCoreFactory.getSingleton();
 					itemPause.setEnabled(core.getGlobalManager().canPauseDownloads());
@@ -107,6 +107,10 @@ public class MenuFactory
 			}
 
 			public void menuHidden(MenuEvent menu) {
+					// this behaviour required to get the accelerators to work properly as they won't fire if the menu item is
+					// disabled even if if the menu were to be shown they would be...
+				itemPause.setEnabled(true);
+				itemResume.setEnabled(true);
 			}
 		});
 
