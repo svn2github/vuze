@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -51,6 +53,9 @@ public class
 JSONEngine 
 	extends WebEngine 
 {
+	private final static String variablePattern = "\\$\\{[^}]+\\}";
+	private final static Pattern patternVariable = Pattern.compile(variablePattern);
+
 	public static EngineImpl
 	importFromBEncodedMap(
 		MetaSearchImpl	meta_search,
@@ -303,9 +308,26 @@ JSONEngine
 							String fieldFrom = mappings[j].getName();
 							if(fieldFrom != null) {
 								int fieldTo = mappings[j].getField();
-								Object fieldContentObj = ((Object)jsonEntry.get(fieldFrom));
-								if(fieldContentObj != null) {
-									String fieldContent = fieldContentObj.toString();
+								
+								String fieldContent = null;
+								Matcher matcher = patternVariable.matcher(fieldFrom);
+								if (matcher.find()) {
+									fieldContent = fieldFrom;
+									do {
+										String key = matcher.group();
+										key = key.substring(2, key.length() - 1);
+										Object replaceValObject = jsonEntry.get(key);
+										String replaceVal = replaceValObject == null ? ""
+												: replaceValObject.toString();
+										fieldContent = fieldContent.replaceFirst(variablePattern,
+												replaceVal);
+									} while (matcher.find());
+								} else {
+									Object fieldContentObj = jsonEntry.get(fieldFrom);
+									fieldContent = fieldContentObj == null ? ""
+											: fieldContentObj.toString();
+								}
+								if(fieldContent != null) {
 									
 									switch(fieldTo) {
 									case FIELD_NAME :
