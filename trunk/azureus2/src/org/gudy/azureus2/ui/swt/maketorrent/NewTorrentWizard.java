@@ -72,7 +72,7 @@ NewTorrentWizard
 	 protected static final int MODE_DIRECTORY		= 2;
 	 protected static final int MODE_BYO			= 3;
   
-  int create_mode = MODE_SINGLE_FILE;
+  int create_mode = MODE_BYO;
   String singlePath = "";
   String directoryPath = "";
   String savePath = "";
@@ -198,13 +198,6 @@ NewTorrentWizard
           for ( String droppedFileStr: sourceNames ){
         	  File droppedFile = new File( droppedFileStr );
 	          if (getCurrentPanel() instanceof ModePanel) {
-	            if (droppedFile.isFile()) {
-	              singlePath = droppedFile.getAbsolutePath();
-	              ((ModePanel) getCurrentPanel()).activateMode( MODE_SINGLE_FILE);
-	            } else if (droppedFile.isDirectory()) {
-	              directoryPath = droppedFile.getAbsolutePath();
-	              ((ModePanel) getCurrentPanel()).activateMode( MODE_DIRECTORY );
-	            }
 	          } else if (getCurrentPanel() instanceof DirectoryPanel) {
 	            if (droppedFile.isDirectory())
 	              ((DirectoryPanel) getCurrentPanel()).setFilename(droppedFile.getAbsolutePath());

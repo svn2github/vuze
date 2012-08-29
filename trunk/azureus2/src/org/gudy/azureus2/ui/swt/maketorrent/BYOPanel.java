@@ -443,6 +443,29 @@ public class BYOPanel
 	}
 
 	public IWizardPanel<NewTorrentWizard> getNextPanel() {
+		if (tree.getItemCount() == 1) {
+			// might be single file or single directory
+			TreeItem item = tree.getItem(0);
+			String name = item.getText();
+			File file = (File) item.getData();
+			if (file != null && file.getName().equals(name) && file.exists()) {
+				String	parent = file.getParent();
+        if ( parent != null ){
+        	((NewTorrentWizard) wizard).setDefaultOpenDir( parent );
+        }
+
+        if (file.isDirectory()) {
+					wizard.directoryPath = file.getAbsolutePath();
+					wizard.create_mode = wizard.MODE_DIRECTORY;
+					
+					return new SavePathPanel(wizard, this);
+				} else {
+					wizard.singlePath = file.getAbsolutePath();
+					wizard.create_mode = wizard.MODE_SINGLE_FILE;
+					return new SavePathPanel(wizard, this);
+				}
+			}
+		}
 		Map map = new HashMap();
 
 		List<Map> list = new ArrayList<Map>();
