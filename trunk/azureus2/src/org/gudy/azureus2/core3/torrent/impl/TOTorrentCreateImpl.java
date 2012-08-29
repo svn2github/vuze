@@ -192,7 +192,7 @@ TOTorrentCreateImpl
 		
 			List<TOTorrentFileImpl>	encoded = new ArrayList<TOTorrentFileImpl>();
 		
-			processDir( file_hasher, _torrent_base, encoded, _torrent_base.getName());
+			processDir( file_hasher, _torrent_base, encoded, _torrent_base.getName(), "" );
 		
 			TOTorrentFileImpl[] files = new TOTorrentFileImpl[ encoded.size()];
 		
@@ -221,6 +221,7 @@ TOTorrentCreateImpl
 		TOTorrentFileHasher			hasher,
 		File						dir,
 		List<TOTorrentFileImpl>		encoded,
+		String						base_name,
 		String						root )
 		
 		throws TOTorrentException
@@ -257,7 +258,7 @@ TOTorrentCreateImpl
 						file_name = root + File.separator + file_name ;
 					}
 					
-					processDir( hasher, file, encoded, file_name );
+					processDir( hasher, file, encoded, base_name, file_name );
 					
 				}else{
 						
@@ -268,7 +269,7 @@ TOTorrentCreateImpl
 							file_name = root + File.separator + file_name;
 						}
 						
-						File link = linkage_map.get( file_name );
+						File link = linkage_map.get( base_name + File.separator + file_name );
 						
 						if ( link != null ){
 							
