@@ -1614,9 +1614,9 @@ TRTrackerAnnouncerMuxer
 			}else{
 				
 				status = TrackerPeerSource.ST_ERROR;
-				
-				status_str = response.getStatusString();
 			}
+			
+			status_str = response.getStatusString();
 			
 			interval 		= (int)helper.getInterval();
 			min_interval 	= (int)helper.getMinInterval();

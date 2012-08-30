@@ -108,10 +108,21 @@ StatusItem
 
 		String str = js_resources[status];
 		
-		if ( status == TrackerPeerSource.ST_ERROR ){
+		String extra = ps.getStatusString();
+
+		if ( status == TrackerPeerSource.ST_ONLINE ){
 			
-			String extra = ps.getStatusString();
-		
+			if ( extra != null ){
+				
+				int	pos = extra.indexOf( " (" );
+				
+				if ( pos != -1 ){
+					
+					str += extra.substring( pos );
+				}
+			}
+		}else if ( status == TrackerPeerSource.ST_ERROR ){
+			
 			if ( extra != null ){
 				
 				str += ": " + extra;

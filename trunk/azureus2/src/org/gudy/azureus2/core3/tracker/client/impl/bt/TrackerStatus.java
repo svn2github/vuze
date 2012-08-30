@@ -83,6 +83,7 @@ public class TrackerStatus {
 	private final static int		GROUP_SCRAPES_MS				= 60 * 15 * 1000;
 	private final static int		GROUP_SCRAPES_LIMIT				= 20;
 	
+	private static boolean tcpScrapeEnabled; 
 	private static boolean udpScrapeEnabled; 
 	private static boolean udpProbeEnabled; 
 
@@ -92,11 +93,13 @@ public class TrackerStatus {
 		
 	  	COConfigurationManager.addAndFireParameterListeners(
 	  		new String[]{
+	  			"Tracker Client Enable TCP",
 	  			"Server Enable UDP",
 	  			"Tracker UDP Probe Enable"
 	  		}, new ParameterListener()
 	  		{
 			public void parameterChanged(final String parameterName) {
+					tcpScrapeEnabled = COConfigurationManager.getBooleanParameter("Tracker Client Enable TCP");
 					udpScrapeEnabled = COConfigurationManager.getBooleanParameter("Server Enable UDP");
 					udpProbeEnabled  = COConfigurationManager.getBooleanParameter("Tracker UDP Probe Enable");
 				}
@@ -512,11 +515,24 @@ public class TrackerStatus {
 		  			
 		  			String	tracker_network	= AENetworkClassifier.categoriseAddress( reqUrl.getHost()); 
 
-		  			if ( tracker_network == AENetworkClassifier.AT_PUBLIC ){
+		  			if ( tracker_network == AENetworkClassifier.AT_PUBLIC ){ 
 		  			
 		  				udpScrapeURL = new URL(reqUrl.toString().replaceFirst("^http", "udp"));
 		  			
 		  				auto_probe = true;
+		  			}
+		  		}
+		  		
+		  		if ( udpScrapeURL == null ){
+		  			
+		  			if ( !az_tracker && !tcpScrapeEnabled ){
+		  					
+		  				String	tracker_network	= AENetworkClassifier.categoriseAddress( reqUrl.getHost()); 
+
+			  			if ( tracker_network == AENetworkClassifier.AT_PUBLIC ){
+		  				
+			  				throw( new IOException( "HTTP Tracker protocol disabled" ));
+			  			}
 		  			}
 		  		}
 		  		

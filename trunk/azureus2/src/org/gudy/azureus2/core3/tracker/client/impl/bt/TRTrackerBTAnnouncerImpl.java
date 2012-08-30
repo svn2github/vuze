@@ -90,6 +90,7 @@ TRTrackerBTAnnouncerImpl
 	
 	private static int userMinInterval = 0;
 	private static int userMaxNumwant = 100;
+	private static boolean tcpAnnounceEnabled;
 	private static boolean udpAnnounceEnabled;
 	private static boolean udpProbeEnabled;
 
@@ -99,6 +100,7 @@ TRTrackerBTAnnouncerImpl
 	  		new String[] {
 	  			"Tracker Client Min Announce Interval",
 	  			"Tracker Client Numwant Limit",
+	  			"Tracker Client Enable TCP",
 	  			"Server Enable UDP",
 	  			"Tracker UDP Probe Enable"
 	  			},
@@ -108,6 +110,7 @@ TRTrackerBTAnnouncerImpl
 	  			{
 	  				userMinInterval = COConfigurationManager.getIntParameter("Tracker Client Min Announce Interval");
 	  				userMaxNumwant = COConfigurationManager.getIntParameter("Tracker Client Numwant Limit");
+					tcpAnnounceEnabled = COConfigurationManager.getBooleanParameter("Tracker Client Enable TCP");
 	  				udpAnnounceEnabled = COConfigurationManager.getBooleanParameter("Server Enable UDP");
 					udpProbeEnabled  = COConfigurationManager.getBooleanParameter("Tracker UDP Probe Enable");
 	  			}	  		
@@ -174,6 +177,7 @@ TRTrackerBTAnnouncerImpl
 	private int announceFailCount;
 	
 	private byte autoUDPprobeEvery = 1;
+	private int autoUDPProbeSuccessCount;
 	
   
 	private String tracker_id = "";
@@ -753,6 +757,10 @@ TRTrackerBTAnnouncerImpl
 						
 						tracker_status_str = MessageText.getString("PeerManager.status.ok");
 
+						if ( response.wasProbe()){
+							
+							tracker_status_str += " (" + MessageText.getString( "label.udp_probe" ) + ")"; 
+						}
 					}else{
 						
 						tracker_status_str = MessageText.getString("PeerManager.status.ps_disabled");
@@ -942,6 +950,8 @@ TRTrackerBTAnnouncerImpl
 			  			
 		  	URL[]	tracker_url = { original_url };
 		  	
+		  	int	prev_udp_probes_ok = autoUDPProbeSuccessCount;
+		  	
 		  	byte[]	result_bytes = updateOld( tracker_url, request_url);
 		  	
 		  	lastUsedUrl = tracker_url[0];	// url may have redirected, use this value as it will be correct
@@ -952,6 +962,10 @@ TRTrackerBTAnnouncerImpl
 			
 		    if ( resp_status == TRTrackerAnnouncerResponse.ST_ONLINE ){
 					
+		    	if ( autoUDPProbeSuccessCount > prev_udp_probes_ok ){
+		    		
+		    		resp.setWasProbe();
+		    	}
 		    	try{
 		    			// tracker looks ok, make any redirection permanent
 		    		
@@ -1187,6 +1201,7 @@ TRTrackerBTAnnouncerImpl
 							}
 							
 							autoUDPprobeEvery = 1;
+							autoUDPProbeSuccessCount++;
 						}
 					}
 			  		
@@ -1194,7 +1209,24 @@ TRTrackerBTAnnouncerImpl
 			  		
 			  		if ( udpAnnounceURL == null){
 			  			
-			  			failure_reason = announceHTTP( tracker_url, reqUrl, message );
+			  			boolean	failed = false;
+			  			
+			  			if ( !az_tracker && !tcpAnnounceEnabled ){
+			  				
+			  				String	tracker_network	= AENetworkClassifier.categoriseAddress( reqUrl.getHost()); 
+
+				  			if ( tracker_network == AENetworkClassifier.AT_PUBLIC ){
+				  				
+				  				failure_reason = "HTTP Tracker protocol disabled";
+				  				
+				  				failed = true;
+				  			}
+			  			}
+			  			
+			  			if ( !failed ){
+			  			
+			  				failure_reason = announceHTTP( tracker_url, reqUrl, message );
+			  			}
 			  		}
 	
 			  			// if we've got some kind of response then return it
@@ -3199,7 +3231,7 @@ TRTrackerBTAnnouncerImpl
 						int incomplete = incomplete_l == null ? 0 : incomplete_l.intValue();
 
 						if (complete < 0 || incomplete < 0) {
-							resp.setFailurReason(MessageText.getString(
+							resp.setFailureReason(MessageText.getString(
 									"Tracker.announce.ignorePeerSeed",
 									new String[] { (complete < 0
 											? MessageText.getString("MyTorrentsView.seeds") + " == "

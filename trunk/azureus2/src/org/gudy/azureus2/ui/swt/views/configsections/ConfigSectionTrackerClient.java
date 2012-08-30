@@ -104,48 +104,68 @@ ConfigSectionTrackerClient
     new BooleanParameter(scrapeGroup, "Tracker Client Scrape Single Only",
     							"ConfigView.section.tracker.client.scrapesingleonly");
     
-    /////////////////////////
+    	/////////////// INFO GROUP
     
-    // row
+    Group infoGroup = new Group(gMainTab,SWT.NULL);
+    Messages.setLanguageText(infoGroup,"label.information");
+    gridLayout = new GridLayout();
+    gridLayout.numColumns = 2;
+    infoGroup.setLayout(gridLayout);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    infoGroup.setLayoutData( gridData );
+    
+    	// send info
 
     gridData = new GridData();
     gridData.horizontalSpan = 2;
   
-    new BooleanParameter(gMainTab, "Tracker Client Send OS and Java Version",
+    new BooleanParameter(infoGroup, "Tracker Client Send OS and Java Version",
                          "ConfigView.section.tracker.sendjavaversionandos").setLayoutData(gridData);
-
-    label = new Label(gMainTab, SWT.NULL);
+   
+    	// show warnings
     
-
-//////////////////////
+    BooleanParameter showWarnings = new BooleanParameter(infoGroup, "Tracker Client Show Warnings", "ConfigView.section.tracker.client.showwarnings" );
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+	showWarnings.setLayoutData(gridData); 
+	
+   		/////////////// PROTOCOL GROUP
     
-    BooleanParameter enableUDP = new BooleanParameter(gMainTab, "Server Enable UDP", "ConfigView.section.server.enableudp");
+    Group protocolGroup = new Group(gMainTab,SWT.NULL);
+    Messages.setLanguageText(protocolGroup,"label.protocol");
+    gridLayout = new GridLayout();
+    gridLayout.numColumns = 2;
+    protocolGroup.setLayout(gridLayout);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    protocolGroup.setLayoutData( gridData );
+    
+    	// tcp enable
+    
+    BooleanParameter enableTCP = new BooleanParameter(protocolGroup, "Tracker Client Enable TCP", "ConfigView.section.tracker.client.enabletcp");
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    enableTCP.setLayoutData(gridData); 
+    
+    	// udp enable
+    
+    BooleanParameter enableUDP = new BooleanParameter(protocolGroup, "Server Enable UDP", "ConfigView.section.server.enableudp");
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     enableUDP.setLayoutData(gridData); 
     
-    label = new Label(gMainTab, SWT.NULL);
-  
-//////////////////////
+    	// udp probe enable
     
-    BooleanParameter enableUDPProbe = new BooleanParameter(gMainTab, "Tracker UDP Probe Enable", "ConfigView.section.server.enableudpprobe");
+    BooleanParameter enableUDPProbe = new BooleanParameter(protocolGroup, "Tracker UDP Probe Enable", "ConfigView.section.server.enableudpprobe");
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     enableUDPProbe.setLayoutData(gridData); 
-    
-    label = new Label(gMainTab, SWT.NULL);
-  
+      
     enableUDP.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( enableUDPProbe.getControls()));
 
     
-//////////////////////
-    
-    BooleanParameter showWarnings = new BooleanParameter(gMainTab, "Tracker Client Show Warnings", "ConfigView.section.tracker.client.showwarnings" );
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-	showWarnings.setLayoutData(gridData); 
-    
-    label = new Label(gMainTab, SWT.NULL);
+
     
     if (userMode > 0) {
     

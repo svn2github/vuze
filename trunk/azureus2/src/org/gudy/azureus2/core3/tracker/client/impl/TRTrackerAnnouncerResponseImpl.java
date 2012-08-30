@@ -37,6 +37,7 @@ TRTrackerAnnouncerResponseImpl
 	private long			time_to_wait;
 	private String			failure_reason;
 	
+	private boolean			was_udp_probe		= false;
 	private int				scrape_complete		= -1;
 	private int				scrape_incomplete	= -1;
 	
@@ -111,6 +112,11 @@ TRTrackerAnnouncerResponseImpl
 		}else if  (status == ST_ONLINE ){
 			
 			str = "OK";
+			
+			if ( was_udp_probe ){
+				
+				str += " (UDP Probe)";
+			}
 		}else{
 			
 			str = "Failed";
@@ -124,8 +130,23 @@ TRTrackerAnnouncerResponseImpl
 		return( str );
 	}
 	
-	public void setFailurReason(String reason) {
+	public void 
+	setFailureReason(
+		String reason) 
+	{
 		failure_reason = reason;
+	}
+	
+	public void
+	setWasProbe()
+	{
+		was_udp_probe = true;
+	}
+	
+	public boolean
+	wasProbe()
+	{
+		return( was_udp_probe );
 	}
 	
 	public long
@@ -197,7 +218,7 @@ TRTrackerAnnouncerResponseImpl
 	print()
 	{
 		System.out.println( "TRTrackerResponse::print");
-		System.out.println( "\tstatus = " + getStatus());
+		System.out.println( "\tstatus = " + getStatus() + ", probe = " + was_udp_probe );
 		System.out.println( "\tfail msg = " + getAdditionalInfo());
 		System.out.println( "\tpeers:" );
 		
@@ -215,7 +236,7 @@ TRTrackerAnnouncerResponseImpl
 	public String
 	getString()
 	{
-		String	str = "url=" + url + ", status=" + getStatus();
+		String	str = "url=" + url + ", status=" + getStatus() + ", probe=" + was_udp_probe;
 		
 		if ( getStatus() != ST_ONLINE ){
 			
