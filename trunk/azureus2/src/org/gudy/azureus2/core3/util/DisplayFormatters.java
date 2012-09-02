@@ -611,11 +611,11 @@ DisplayFormatters
       			
       			String	res;
       			
-      			if ( diff_at > 11 ){
+      			if ( diff_at >= 11 ){
       				
       				res = str2.substring( 11 );
       				
-      			}else if ( diff_at > 5 ){
+      			}else if ( diff_at >= 5 ){
       				
       				res = str2.substring( 5 );
       				
