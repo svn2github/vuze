@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
@@ -64,6 +65,6 @@ public class ETAItem
 
     if (!cell.setSortValue(value) && cell.isValid())
       return;
-    cell.setText(DisplayFormatters.formatETA(value));
+    cell.setText(DisplayFormatters.formatETA(value, MyTorrentsView.eta_absolute ));
   }
 }

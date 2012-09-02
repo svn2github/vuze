@@ -114,17 +114,21 @@ public class MyTorrentsView
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
 	public static volatile Set<String>	preferred_tracker_names;
+	public static volatile boolean		eta_absolute;
 	
 	static{
-		COConfigurationManager.addAndFireParameterListener(
-			"mtv.trackername.pref.hosts",
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"mtv.trackername.pref.hosts",
+				"mtv.eta.show_absolute",
+			},
 			new ParameterListener()
 			{
 				public void 
 				parameterChanged(
 					String name )
 				{
-					String prefs = COConfigurationManager.getStringParameter( name, null );
+					String prefs = COConfigurationManager.getStringParameter( "mtv.trackername.pref.hosts", null );
 					
 					Set<String>	new_vals = new HashSet<String>();
 					
@@ -144,6 +148,8 @@ public class MyTorrentsView
 					}
 					
 					preferred_tracker_names = new_vals;
+					
+					eta_absolute	= COConfigurationManager.getBooleanParameter( "mtv.eta.show_absolute", false );
 				}
 			});
 	}
@@ -1125,7 +1131,20 @@ public class MyTorrentsView
           }
         });
 
-      }
+    }else if (sColumnName.equals("eta") || sColumnName.equals( "ProgressETA" )) {
+        final MenuItem item = new MenuItem(menuThisColumn, SWT.CHECK );
+        Messages.setLanguageText(item, "MyTorrentsView.menu.eta.abs");
+        item.setSelection( eta_absolute );
+                
+        item.addListener(SWT.Selection, new Listener() {
+          public void handleEvent(Event e) {
+        	eta_absolute = item.getSelection();
+            tv.columnInvalidate("path");
+            tv.refreshTable(false);
+            COConfigurationManager.setParameter( "mtv.eta.show_absolute", eta_absolute );
+          }
+        });
+    }
   }
 
 	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener#fillMenu(java.lang.String, org.eclipse.swt.widgets.Menu)

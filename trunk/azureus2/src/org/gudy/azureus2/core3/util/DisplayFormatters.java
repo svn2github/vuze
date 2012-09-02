@@ -566,16 +566,73 @@ DisplayFormatters
         return( formatDecimal(dbl, precision, true, true) + units_bits[unitIndex] + per_sec );
     }
 
+    public static String
+    formatETA(long eta) 
+    {
+    	return( formatETA( eta, false ));
+    }
 
-   public static String
-   formatETA(long eta) 
-   {
-     if (eta == 0) return PeerManager_status_finished;
-     if (eta == -1) return "";
-     if (eta > 0) return TimeFormatter.format(eta);
+    private static final SimpleDateFormat abs_df = new SimpleDateFormat( "yyyy/MM/dd HH:mm:ss" );
+    
+    public static String
+    formatETA(long eta,boolean abs ) 
+    {
+    	if (eta == 0) return PeerManager_status_finished;
+    	if (eta == -1) return "";
+    	if (eta > 0){
+    		if ( abs && !(eta == Constants.CRAPPY_INFINITY_AS_INT || eta >= Constants.CRAPPY_INFINITE_AS_LONG )){
+    		
+    			long now 	= SystemTime.getCurrentTime();
+    			long then 	= now + eta*1000;
+    			
+    			if ( eta > 5*60 ){
+    				
+    				then = (then/(60*1000))*(60*1000);
+    			}
+    			
+      			String	str1 = abs_df.format(new Date( now ));
+      			String	str2 = abs_df.format(new Date( then ));
 
-     return PeerManager_status_finishedin + " " + TimeFormatter.format(eta * -1);
-   }
+      			int	len = Math.min(str1.length(), str2.length())-2;
+      			
+      			int	diff_at = 0;
+      			
+      			for ( int i=0; i<len; i++){
+      				
+      				char	c1 = str1.charAt( i );
+      				
+      				if ( c1 != str2.charAt(i)){
+      					
+      					diff_at = i;
+      					
+      					break;
+      				}
+      			}
+      			
+      			String	res;
+      			
+      			if ( diff_at > 11 ){
+      				
+      				res = str2.substring( 11 );
+      				
+      			}else if ( diff_at > 5 ){
+      				
+      				res = str2.substring( 5 );
+      				
+      			}else{
+      				
+      				res = str2;
+      			}
+      			
+      			return( res  );
+      			
+    		}else{
+    			return TimeFormatter.format(eta);
+    		}
+    	}
+
+    	return PeerManager_status_finishedin + " " + TimeFormatter.format(eta * -1);
+    }
 
 
 	public static String
