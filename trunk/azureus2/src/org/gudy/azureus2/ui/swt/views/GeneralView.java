@@ -235,7 +235,7 @@ public class GeneralView
 
     Label label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.timeelapsed"); //$NON-NLS-1$
-    timeElapsed = new BufferedLabel(gTransfer, SWT.LEFT);
+    timeElapsed = new BufferedLabel(gTransfer, SWT.LEFT | SWT.DOUBLE_BUFFERED );
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     timeElapsed.setLayoutData(gridData);
     label = new Label(gTransfer, SWT.LEFT);
