@@ -1814,6 +1814,13 @@ AzureusCoreImpl
 		
 		for ( DownloadManager manager: managers ){
 			
+			if ( manager.isPaused()){
+			
+					// if anything's paused we don't want to trigger any actions as something transient (e.g. speed test) is going on
+				
+				return;
+			}
+			
 			int state = manager.getState();
 			
 			if ( state == DownloadManager.STATE_FINISHING ){
