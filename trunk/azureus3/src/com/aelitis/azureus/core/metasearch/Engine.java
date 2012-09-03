@@ -29,7 +29,7 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 public interface 
 Engine 
 {	
-	public static final int	AZ_VERSION		= 1;
+	public static final int	AZ_VERSION		= 2;
 	
 	public static final Object	VUZE_FILE_COMPONENT_ENGINE_KEY = new Object();
 	
