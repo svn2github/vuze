@@ -174,7 +174,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 			label.setText(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(data_rate, protocol_rate));
 		}
 		else {
-			label.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(data_rate));
+			label.setText(DisplayFormatters.formatByteCountToKiBEtcPerSec(data_rate+protocol_rate));
 		}
 	}
 	
