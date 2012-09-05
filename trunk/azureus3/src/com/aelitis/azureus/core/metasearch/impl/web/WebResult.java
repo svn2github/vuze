@@ -174,7 +174,19 @@ public class WebResult extends Result {
 			}
 		}
 	}
-	
+
+	public void setRankFromHTML( String rank_str, float divisor ){
+		if (rank_str == null) {
+			return;
+		}
+		try{
+			float f = Float.parseFloat( rank_str.trim() );
+			
+			rank = f / divisor;
+		}catch( Throwable e ){
+		}
+	}
+
 	public void setRankFromHTML( String rank_str ){
 		if ( rank_str != null ){
 			try{

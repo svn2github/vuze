@@ -81,6 +81,9 @@ JSONEngine
 	}
 	
 	private String resultsEntryPath;
+	private String rankDivisorPath;
+	
+	private float rankDivisor = 1.0f;
 
 	
 		// explicit test constructor
@@ -138,6 +141,7 @@ JSONEngine
 		super( meta_search, map );
 		
 		resultsEntryPath = ImportExportUtils.importString( map, "json.path" );
+		rankDivisorPath = ImportExportUtils.importString( map, "rank.divisor.path" );
 	}
 	
 		// json constructor
@@ -156,6 +160,7 @@ JSONEngine
 		super( meta_search, Engine.ENGINE_TYPE_JSON, id, last_updated, rank_bias, name, map );
 				
 		resultsEntryPath = ImportExportUtils.importString( map, "json_result_key" );
+		rankDivisorPath = ImportExportUtils.importString( map, "rank_divisor_key" );
 	}
 	
 	public Map 
@@ -176,6 +181,8 @@ JSONEngine
 		
 		ImportExportUtils.exportString( res, "json.path", resultsEntryPath );
 		
+		ImportExportUtils.exportString(res, "rank.divisor.path", rankDivisorPath);
+		
 		super.exportToBencodedMap( res, generic );
 		
 		return( res );
@@ -188,6 +195,8 @@ JSONEngine
 		throws IOException
 	{
 		res.put( "json_result_key", resultsEntryPath );
+		
+		res.put("rank_divisor_key", rankDivisorPath);
 
 		super.exportToJSONObject( res );
 	}
@@ -226,7 +235,26 @@ JSONEngine
 
 		try {
 			Object jsonObject = JSONValue.parse(page);
-			
+
+			if (rankDivisorPath != null) {
+				String[] split = rankDivisorPath.split("\\.");
+				try {
+					if (split.length > 0) {
+						Object jsonRankDivisor = jsonObject;
+  					for (int i = 0; i < split.length - 1; i++) {
+  						String key = split[i];
+  						jsonRankDivisor = ((JSONObject)jsonRankDivisor).get(key);
+  					}
+  					if (jsonRankDivisor instanceof Map) {
+  						jsonRankDivisor = ((Map) jsonRankDivisor).get(split[split.length - 1]);
+  					}
+  					
+  					rankDivisor = ((Number) jsonRankDivisor).floatValue();
+					}
+				} catch (Exception e) {
+				}
+			}
+
 			JSONArray resultArray = null;
 			
 			if(resultsEntryPath != null) {
@@ -253,7 +281,7 @@ JSONEngine
 				
 				throw new SearchException("Object is not a result array. Check the JSON service and/or the entry path");
 			}
-				
+
 				
 			if ( resultArray != null ){
 				
@@ -381,6 +409,9 @@ JSONEngine
 									case FIELD_HASH :
 										result.setHash(fieldContent);
 										break;
+									case FIELD_RANK : {
+										result.setRankFromHTML(fieldContent, rankDivisor);
+									}
 									default:
 										break;
 									}
