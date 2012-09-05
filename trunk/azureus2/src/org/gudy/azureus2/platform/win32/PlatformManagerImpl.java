@@ -163,7 +163,26 @@ PlatformManagerImpl
 		
 		app_name		= SystemProperties.getApplicationName();
 		
-		app_exe_name	= app_name + ".exe";
+		String mod_name = System.getProperty( "exe4j.moduleName", null );
+		
+		String exe_name = null;
+		
+		if ( mod_name != null && new File( mod_name ).exists() && mod_name.toLowerCase().endsWith( ".exe" )){
+			
+			int	pos = mod_name.lastIndexOf( File.separator );
+			
+			if ( pos != -1 ){
+				
+				exe_name = mod_name.substring( pos+1 );
+			}
+		}
+		
+		if ( exe_name == null ){
+		
+			exe_name	= app_name + ".exe";
+		}
+		
+		app_exe_name = exe_name;
 		
         initializeCapabilities();
 	}
