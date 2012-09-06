@@ -411,6 +411,7 @@ JSONEngine
 										break;
 									case FIELD_RANK : {
 										result.setRankFromHTML(fieldContent, rankDivisor);
+										break;
 									}
 									default:
 										break;
