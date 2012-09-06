@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.*;
 import org.gudy.azureus2.platform.win32.access.*;
+import org.gudy.azureus2.platform.win32.access.impl.AEWin32AccessInterface;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
@@ -152,6 +153,9 @@ PlatformManagerImpl
 	private File					az_exe;
 	private boolean					az_exe_checked;
 
+	private boolean					prevent_computer_sleep;
+	private AEThread2				prevent_sleep_thread;
+	
 	protected
 	PlatformManagerImpl()
 	
@@ -185,6 +189,8 @@ PlatformManagerImpl
 		app_exe_name = exe_name;
 		
         initializeCapabilities();
+        
+        setPreventComputerSleep( true );
 	}
 
     private void
@@ -238,7 +244,7 @@ PlatformManagerImpl
 	        }
 	        
 	        capabilitySet.add(PlatformManagerCapabilities.RunAtLogin);
-	        
+	        capabilitySet.add(PlatformManagerCapabilities.PreventComputerSleep);
     	}else{
     		
     			// disabled -> only available capability is that to get the version
@@ -761,6 +767,59 @@ PlatformManagerImpl
 		}
 		
 		return( result );
+	}
+	
+	public void
+	setPreventComputerSleep(
+		boolean		prevent_it )
+	{
+		synchronized( this ){
+			
+			prevent_computer_sleep = prevent_it;
+			
+			if ( prevent_it ){
+				
+				if ( prevent_sleep_thread == null ){
+					
+					prevent_sleep_thread = 
+						new AEThread2( "SleepPreventer")
+						{
+							public void run()
+							{
+								while( true ){
+									
+									synchronized( PlatformManagerImpl.this ){
+										
+										if ( !prevent_computer_sleep ){
+											
+											if ( prevent_sleep_thread == this ){
+												
+												prevent_sleep_thread = null;
+											}
+											
+											break;
+										}
+									}
+																		
+									try{
+										access.setThreadExecutionState( AEWin32AccessInterface.ES_SYSTEM_REQUIRED );
+
+										Thread.sleep( 30*1000 );
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+										
+										break;
+									}
+								}
+							}
+						};
+						
+					prevent_sleep_thread.start();
+				}
+			}
+		}
 	}
 	
 	private boolean
@@ -2003,12 +2062,13 @@ PlatformManagerImpl
     {
     }
     
-	public void
+	public int
 	eventOccurred(
 		int		type )
 	{
-		int	t_type;
-		
+		int	t_type 	= -1;
+		int	res 	= -1;
+
 		if ( type == AEWin32AccessListener.ET_SHUTDOWN ){
 			
 			t_type = PlatformManagerListener.ET_SHUTDOWN;
@@ -2017,21 +2077,26 @@ PlatformManagerImpl
 			
 			t_type = PlatformManagerListener.ET_SUSPEND;
 				
+			if ( prevent_computer_sleep ){
+				
+				res = AEWin32AccessListener.RT_SUSPEND_DENY;
+			}
 		}else if ( type == AEWin32AccessListener.ET_RESUME ){
 			
 			t_type = PlatformManagerListener.ET_RESUME;
-				
-		}else{
-			
-			return;
 		}
-		
+				
 		if ( t_type != -1 ){
 			
 			for (int i=0;i<listeners.size();i++){
 				
 				try{
-					((PlatformManagerListener)listeners.get(i)).eventOccurred( t_type );
+					int my_res = ((PlatformManagerListener)listeners.get(i)).eventOccurred( t_type );
+					
+					if ( my_res == PlatformManagerListener.RT_SUSPEND_DENY ){
+						
+						res = AEWin32AccessListener.RT_SUSPEND_DENY;
+					}
 					
 				}catch( Throwable e ){
 					
@@ -2039,6 +2104,8 @@ PlatformManagerImpl
 				}
 			}
 		}
+		
+		return( res );
 	}
 	
     public void

@@ -108,13 +108,24 @@ AEWin32AccessImpl
 			}
 		}
 		
+		int	result = -1;
+		
 		if ( type != -1 ){
 					
 			for (int i=0;i<listeners.size();i++){
 				
 				try{
-					((AEWin32AccessListener)listeners.get(i)).eventOccurred( type );
+					int temp = ((AEWin32AccessListener)listeners.get(i)).eventOccurred( type );
 					
+					if ( temp != result ){
+						
+						if ( result != -1 ){
+							
+							Debug.out( "Incompatible results received: " + result + "/" + temp );
+						}
+						
+						result 	= temp;
+					}
 				}catch( Throwable e ){
 					
 					e.printStackTrace();
@@ -122,7 +133,19 @@ AEWin32AccessImpl
 			}
 		}
 		
-		return( -1 );
+		if ( result == AEWin32AccessListener.RT_SUSPEND_DENY ){
+			
+			if (( param2 & 0x0001 ) != 0 ){
+			
+				return( AEWin32AccessInterface.BROADCAST_QUERY_DENY );
+				
+			}else{
+				
+				Debug.out( "Ignoring suspend deny request as not permitted" );
+			}
+		}
+		
+		return( result );
 	}
 	
 	public long
@@ -640,4 +663,11 @@ AEWin32AccessImpl
   	
   	return false;
   }
+  
+	public void
+	setThreadExecutionState(
+		int		state )
+	{
+		AEWin32AccessInterface.setThreadExecutionState( state );
+	}
 }

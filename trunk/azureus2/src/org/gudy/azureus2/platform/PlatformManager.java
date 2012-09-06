@@ -121,6 +121,12 @@ PlatformManager
 		throws PlatformManagerException;
 	
 	public void
+	setPreventComputerSleep(
+		boolean		prevent_it )
+	
+		throws PlatformManagerException;
+	
+	public void
 	createProcess(
 		String	command_line,
 		boolean	inherit_handles )

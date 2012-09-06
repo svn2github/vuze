@@ -237,7 +237,7 @@ AEWin32Access
 	public Map<File, Map> 
 		getAllDrives();
 
-  public boolean isUSBDrive(Map driveInfo);
+ 	public boolean isUSBDrive(Map driveInfo);
 
 	/**
 	 * @return
@@ -246,4 +246,13 @@ AEWin32Access
 	 * @since 4.5.0.3
 	 */
 	String getLocalAppData() throws AEWin32AccessException;
+	
+	/**
+	 * @since 4713
+	 * @param state
+	 */
+	
+	public void
+	setThreadExecutionState(
+		int		state );
 }

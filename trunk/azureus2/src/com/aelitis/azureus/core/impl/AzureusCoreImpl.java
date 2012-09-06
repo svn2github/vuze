@@ -223,7 +223,7 @@ AzureusCoreImpl
 		PlatformManagerFactory.getPlatformManager().addListener(
 			new PlatformManagerListener()
 			{
-				public void
+				public int
 				eventOccurred(
 					int		type )
 				{
@@ -251,6 +251,8 @@ AzureusCoreImpl
 						
 						announceAll( true );
 					}
+					
+					return( -1 );
 				}
 			});
 		

@@ -49,7 +49,14 @@ AEWin32AccessInterface
 	public static final int	PBT_APMSUSPEND          = 0x0004;
 	public static final int	PBT_APMRESUMESUSPEND    = 0x0007;
 	
-	public static final int ES_SYSTEM_REQUIRED = 0x01;
+	public static final long BROADCAST_QUERY_DENY		= 0x424D5144L;
+		
+
+	public static final int  ES_SYSTEM_REQUIRED   	= 0x00000001;
+	public static final int  ES_DISPLAY_REQUIRED  	= 0x00000002;
+	public static final int  ES_USER_PRESENT      	= 0x00000004;
+	public static final int  ES_AWAYMODE_REQUIRED 	= 0x00000040;
+	public static final int  ES_CONTINUOUS        	= 0x80000000;	
 	
 	private static boolean						enabled;
 	private static boolean						enabled_set;

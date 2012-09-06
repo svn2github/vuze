@@ -29,7 +29,9 @@ PlatformManagerListener
 	public static final int	ET_SUSPEND	= 2;
 	public static final int	ET_RESUME	= 3;
 	
-	public void
+	public static final int	RT_SUSPEND_DENY	= 1;
+
+	public int
 	eventOccurred(
 		int		type );
 }

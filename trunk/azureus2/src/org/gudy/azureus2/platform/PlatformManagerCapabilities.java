@@ -58,6 +58,7 @@ public final class PlatformManagerCapabilities
     
     public static final PlatformManagerCapabilities RunAtLogin				= new PlatformManagerCapabilities("RunAtLogin");
     public static final PlatformManagerCapabilities GetMaxOpenFiles			= new PlatformManagerCapabilities("GetMaxOpenFiles");
+    public static final PlatformManagerCapabilities PreventComputerSleep	= new PlatformManagerCapabilities("PreventComputerSleep");
 
     private final String myName; // for debug only
 

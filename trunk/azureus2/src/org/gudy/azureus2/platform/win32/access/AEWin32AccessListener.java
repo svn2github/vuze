@@ -29,7 +29,9 @@ AEWin32AccessListener
 	public static final int ET_SUSPEND		= 0x0002;
 	public static final int ET_RESUME		= 0x0003;
 	
-	public void
+	public static final int RT_SUSPEND_DENY	= 0x0001;
+	
+	public int
 	eventOccurred(
 		int		type );
 }
