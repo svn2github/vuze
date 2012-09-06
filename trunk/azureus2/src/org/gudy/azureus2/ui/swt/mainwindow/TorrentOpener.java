@@ -30,6 +30,7 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.DropTargetEvent;
+import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
@@ -410,9 +411,26 @@ public class TorrentOpener {
 	public static boolean doesDropHaveTorrents(DropTargetEvent event) {
 		boolean isTorrent = false;
 		if (event.data == null && event.currentDataType != null) {
-			Object object = URLTransfer.getInstance().nativeToJava(event.currentDataType);
-			if (object instanceof URLTransfer.URLType) {
-				isTorrent = true;
+			FileTransfer ft = FileTransfer.getInstance();
+			if (ft.isSupportedType(event.currentDataType)) {
+				Object data = ft.nativeToJava(event.currentDataType);
+				String[] fileList = (data instanceof String) ? new String[] {
+					(String) data
+				} : (String[]) data;
+				if (fileList != null) {
+					for (String file : fileList) {
+						if (file.endsWith(".torrent") || file.endsWith(".vuze")) {
+							isTorrent = true;
+							break;
+						}
+					}
+				}
+			} else {
+				Object object = URLTransfer.getInstance().nativeToJava(
+						event.currentDataType);
+				if (object instanceof URLTransfer.URLType) {
+					isTorrent = true;
+				}
 			}
 		} else if (event.data instanceof String[] || event.data instanceof String) {
 			final String[] sourceNames = (event.data instanceof String[])
