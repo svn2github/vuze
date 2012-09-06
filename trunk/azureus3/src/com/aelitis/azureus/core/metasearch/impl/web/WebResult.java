@@ -329,15 +329,15 @@ public class WebResult extends Result {
 	}
 	
 	public void setCDPLink(String cdpLink) {
-		this.cdpLink = cdpLink;
+		this.cdpLink = UrlUtils.unescapeXML(cdpLink);
 	}
 	
 	public void setDownloadButtonLink(String downloadButtonLink) {
-		this.downloadButtonLink = downloadButtonLink;
+		this.downloadButtonLink = UrlUtils.unescapeXML(downloadButtonLink);
 	}
 	
 	public void setTorrentLink(String torrentLink) {
-		this.torrentLink = torrentLink;
+		this.torrentLink = UrlUtils.unescapeXML(torrentLink);
 	}
 	
 	public void setPlayLink(String playLink) {
