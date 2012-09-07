@@ -668,6 +668,14 @@ public class TableViewPainted
 	public void setRowDefaultHeight(int iHeight) {
 		if (iHeight > defaultRowHeight) {
 			defaultRowHeight = iHeight;
+			
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (vBar != null && !vBar.isDisposed()) {
+						vBar.setIncrement(defaultRowHeight);
+					}
+				}
+			});
 		}
 	}
 
@@ -1083,7 +1091,7 @@ public class TableViewPainted
 		}
 		vBar = cTable.getVerticalBar();
 		if (vBar != null) {
-			vBar.setValues(0, 0, 0, 50, 50, 50);
+			vBar.setValues(0, 0, 0, 50, getRowDefaultHeight(), 50);
 			vBar.addSelectionListener(new SelectionListener() {
 				public void widgetSelected(SelectionEvent e) {
 					swt_vBarChanged();
