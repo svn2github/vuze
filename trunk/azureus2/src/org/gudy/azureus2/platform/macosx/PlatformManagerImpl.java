@@ -292,6 +292,12 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 		 throw new PlatformManagerException("Unsupported capability called on platform manager");
 	}
 	
+	public boolean
+	getPreventComputerSleep()
+	{
+		return( false );
+	}
+	
   	public boolean 
   	getRunAtLogin() 
   	

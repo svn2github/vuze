@@ -169,6 +169,12 @@ public class PlatformManagerImpl implements PlatformManager
 		 throw new PlatformManagerException("Unsupported capability called on platform manager");
 	}
 	
+	public boolean
+	getPreventComputerSleep()
+	{
+		return( false );
+	}
+	
 	public void
 	setExplicitVMOptions(
 		String[]		options )

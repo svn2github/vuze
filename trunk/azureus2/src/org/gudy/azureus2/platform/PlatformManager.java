@@ -126,6 +126,9 @@ PlatformManager
 	
 		throws PlatformManagerException;
 	
+	public boolean
+	getPreventComputerSleep();
+	
 	public void
 	createProcess(
 		String	command_line,

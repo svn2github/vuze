@@ -189,8 +189,6 @@ PlatformManagerImpl
 		app_exe_name = exe_name;
 		
         initializeCapabilities();
-        
-        setPreventComputerSleep( true );
 	}
 
     private void
@@ -769,11 +767,25 @@ PlatformManagerImpl
 		return( result );
 	}
 	
+	public boolean
+	getPreventComputerSleep()
+	{
+		synchronized( this ){
+		
+			return( prevent_computer_sleep );
+		}
+	}
+	
 	public void
 	setPreventComputerSleep(
 		boolean		prevent_it )
 	{
 		synchronized( this ){
+			
+			if ( prevent_computer_sleep == prevent_it ){
+				
+				return;
+			}
 			
 			prevent_computer_sleep = prevent_it;
 			

@@ -238,6 +238,8 @@ public class ConfigurationDefaults {
     def.put("On Downloading Complete Do", "Nothing" );
     def.put("On Seeding Complete Do", "Nothing" );
     def.put("Stop Triggers Auto Reset", TRUE );
+    def.put("Prevent Sleep Downloading", TRUE );
+    def.put("Prevent Sleep FP Seeding", FALSE );
     
     // SWT GUI Settings
     

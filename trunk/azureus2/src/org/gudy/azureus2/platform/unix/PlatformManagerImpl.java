@@ -284,6 +284,12 @@ public class PlatformManagerImpl implements PlatformManager
 		 throw new PlatformManagerException("Unsupported capability called on platform manager");
 	}
 	
+	public boolean
+	getPreventComputerSleep()
+	{
+		return( false );
+	}
+	
 	// @see org.gudy.azureus2.platform.PlatformManager#setTCPTOSEnabled(boolean)
 	public void setTCPTOSEnabled(boolean enabled) throws PlatformManagerException {
 		throw new PlatformManagerException(ERR_UNSUPPORTED);

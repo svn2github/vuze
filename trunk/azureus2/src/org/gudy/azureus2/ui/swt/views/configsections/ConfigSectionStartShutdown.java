@@ -106,46 +106,67 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			layout = new GridLayout(2, false);
 			gStartStop.setLayout(layout);
 			gStartStop.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
-	
-			if ( can_ral ){
-	
-				gridData = new GridData();
-				gridData.horizontalSpan = 2;
-				BooleanParameter start_on_login = new BooleanParameter(gStartStop, "Start On Login", LBLKEY_PREFIX + "start.onlogin");
+		
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			BooleanParameter start_on_login = new BooleanParameter(gStartStop, "Start On Login", LBLKEY_PREFIX + "start.onlogin");
+			
+			try{
+				start_on_login.setSelected( platform.getRunAtLogin());
 				
-				try{
-					start_on_login.setSelected( platform.getRunAtLogin());
-					
-					start_on_login.addChangeListener(
-						new ParameterChangeAdapter()
+				start_on_login.addChangeListener(
+					new ParameterChangeAdapter()
+					{
+						public void 
+						booleanParameterChanging(
+							Parameter p,
+							boolean toValue) 
 						{
-							public void 
-							booleanParameterChanging(
-								Parameter p,
-								boolean toValue) 
-							{
-								try{
-									platform.setRunAtLogin( toValue );
-									
-								}catch( Throwable e ){
-									
-									Debug.out( e );
-								}
+							try{
+								platform.setRunAtLogin( toValue );
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
 							}
-						});
-					
-				}catch( Throwable e ){
-					
-					start_on_login.setEnabled( false );
-					
-					Debug.out( e );
-				}
+						}
+					});
 				
-				start_on_login.setLayoutData(gridData);
+			}catch( Throwable e ){
+				
+				start_on_login.setEnabled( false );
+				
+				Debug.out( e );
 			}
 			
+			start_on_login.setLayoutData(gridData);
 		}
-				
+		
+		if ( platform.hasCapability( PlatformManagerCapabilities.PreventComputerSleep )){
+			
+			Group gSleep = new Group(cDisplay, SWT.NULL);
+			Messages.setLanguageText(gSleep, LBLKEY_PREFIX + "sleep");
+			layout = new GridLayout(2, false);
+			gSleep.setLayout(layout);
+			gSleep.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+		
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			label = new Label(gSleep, SWT.NULL);
+		    Messages.setLanguageText(label, "ConfigView.label.sleep.info");
+		    label.setLayoutData( gridData );
+
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			BooleanParameter no_sleep_dl = new BooleanParameter(gSleep, "Prevent Sleep Downloading", LBLKEY_PREFIX + "sleep.download");
+			no_sleep_dl.setLayoutData(gridData);
+			
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			BooleanParameter no_sleep_se = new BooleanParameter(gSleep, "Prevent Sleep FP Seeding", LBLKEY_PREFIX + "sleep.fpseed");
+			no_sleep_se.setLayoutData(gridData);
+		}
+		
 		if ( userMode > 0 ){
 				
 			Group gPR = new Group(cDisplay, SWT.NULL);

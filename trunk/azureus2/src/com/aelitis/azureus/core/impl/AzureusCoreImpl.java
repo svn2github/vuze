@@ -48,10 +48,12 @@ import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.host.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
@@ -87,6 +89,8 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.launcher.classloading.PrimaryClassloader;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
 import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -192,6 +196,8 @@ AzureusCoreImpl
 	private boolean ca_shutdown_computer_after_stop	= false;
 	private long	ca_last_time_downloading 		= -1;
 	private long	ca_last_time_seeding 			= -1;
+	
+	private boolean prevent_sleep_remove_trigger	= false;
 	
 	protected
 	AzureusCoreImpl()
@@ -1032,7 +1038,7 @@ AzureusCoreImpl
 			   								}
 			   							});
 			   					
-			   					setupCloseActions();
+			   					setupSleepAndCloseActions();
 	   						}
 	   					}.start();
 	   				}
@@ -1739,8 +1745,71 @@ AzureusCoreImpl
 	}
 	
 	private void
-	setupCloseActions()
+	setupSleepAndCloseActions()
 	{
+		if ( PlatformManagerFactory.getPlatformManager().hasCapability( PlatformManagerCapabilities.PreventComputerSleep )){
+			
+			COConfigurationManager.addAndFireParameterListeners(
+				new String[]{
+					"Prevent Sleep Downloading",
+					"Prevent Sleep FP Seeding",
+				},
+				new ParameterListener()
+				{
+					private TimerEventPeriodic timer_event;
+
+					public void 
+					parameterChanged(
+						String parameterName )
+					{
+						synchronized( this ){
+					
+							boolean dl = COConfigurationManager.getBooleanParameter( "Prevent Sleep Downloading" );
+							boolean se = COConfigurationManager.getBooleanParameter( "Prevent Sleep FP Seeding" );
+							
+							boolean	active = dl || se;
+								
+							try{
+								PlatformManagerFactory.getPlatformManager().setPreventComputerSleep( active );
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+							
+							
+							if ( !active ){
+								
+								if ( timer_event != null ){
+									
+									timer_event.cancel();
+									
+									timer_event = null;
+								}
+							}else{
+							
+								if ( timer_event == null ){
+									
+									timer_event = 
+										SimpleTimer.addPeriodicEvent(
+												"core:sleepAct",
+												2*60*1000,
+												new TimerEventPerformer()
+												{
+													public void 
+													perform(
+														TimerEvent event )
+													{
+														checkSleepActions();
+													}
+												});
+								}
+							}
+						}
+					}
+				});
+		}
+		
 		COConfigurationManager.addAndFireParameterListeners(
 			new String[]{
 					"On Downloading Complete Do",
@@ -1806,6 +1875,144 @@ AzureusCoreImpl
 			});
 	}
 
+	protected void
+	checkSleepActions()
+	{
+		boolean ps_downloading 	= COConfigurationManager.getBooleanParameter( "Prevent Sleep Downloading" );
+		boolean ps_fp_seed	 	= COConfigurationManager.getBooleanParameter( "Prevent Sleep FP Seeding" );
+
+		if ( !( ps_downloading || ps_fp_seed )){
+
+			return;
+		}
+
+		PlatformManager platform = PlatformManagerFactory.getPlatformManager();
+
+		List<DownloadManager> managers = getGlobalManager().getDownloadManagers();
+
+		boolean	prevent_sleep 	= false;
+		String	prevent_reason	= null;
+
+		for ( DownloadManager manager: managers ){
+
+			int state = manager.getState();
+
+			if ( state == DownloadManager.STATE_FINISHING ){
+
+				if ( ps_downloading ){
+
+					prevent_sleep 	= true;
+					prevent_reason	= "active downloads";
+					
+					break;
+				}
+
+			}else{
+
+				if ( state == DownloadManager.STATE_DOWNLOADING ){
+
+					PEPeerManager pm = manager.getPeerManager();
+
+					if ( pm != null ){
+
+						if ( pm.hasDownloadablePiece()){
+
+							if ( ps_downloading ){
+
+								prevent_sleep 	= true;
+								prevent_reason	= "active downloads";
+
+								break;
+							}
+						}else{
+
+								// its effectively seeding, change so logic about recheck obeyed below
+
+							state = DownloadManager.STATE_SEEDING;
+						}
+					}
+				}
+
+				if ( state == DownloadManager.STATE_SEEDING && ps_fp_seed ){
+
+					DiskManager disk_manager = manager.getDiskManager();
+
+					if ( disk_manager != null && disk_manager.getCompleteRecheckStatus() != -1 ){
+
+							// wait until recheck is complete before we mark as downloading-complete
+
+						if ( ps_downloading ){
+
+							prevent_sleep 	= true;
+							prevent_reason	= "active downloads";
+
+							break;
+						}
+
+					}else{
+
+						try{
+							DefaultRankCalculator calc = StartStopRulesDefaultPlugin.getRankCalculator( PluginCoreUtils.wrap( manager ));
+
+							if ( calc.getCachedIsFP()){
+								
+								prevent_sleep 	= true;
+								prevent_reason	= "first-priority seeding";
+
+								break;
+							}
+						}catch( Throwable e ){
+
+						}
+					}
+				}
+			}
+		}
+				
+		if ( prevent_sleep != platform.getPreventComputerSleep()){
+			
+			if ( prevent_sleep ){
+				
+				prevent_sleep_remove_trigger = false;
+				
+			}else{
+				
+				if ( !prevent_sleep_remove_trigger ){
+					
+					prevent_sleep_remove_trigger = true;
+					
+					return;
+				}
+			}
+			
+			if ( prevent_reason == null ){
+				
+				if ( ps_downloading && ps_fp_seed ){
+					
+					prevent_reason = "no active downloads or first-priority seeding";
+					
+				}else if ( ps_downloading ){
+					
+					prevent_reason = "no active downloads";
+					
+				}else{
+					
+					prevent_reason = "no active first-priority seeding";
+				}
+			}
+			
+			Logger.log( new LogEvent(LOGID, "Computer sleep prevented state changed to '" + prevent_sleep + "' due to " + prevent_reason ));	
+
+			try{
+				platform.setPreventComputerSleep( prevent_sleep );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
 	protected void
 	checkCloseActions()
 	{
