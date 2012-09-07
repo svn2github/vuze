@@ -2490,6 +2490,11 @@ public class TableViewPainted
 				}
 				hBar.setValues(hBar.getSelection(), 0, max, tableSize, 50, tableSize);
 			}
+			if (vBar != null && !vBar.isDisposed() && hBar.isVisible()) {
+				vBar.setThumb(vBar.getThumb() - hBar.getSize().y);
+				vBar.setPageIncrement(vBar.getPageIncrement() - hBar.getSize().y);
+			}
+
 		}
 	}
 
