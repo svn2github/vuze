@@ -294,7 +294,8 @@ public class TableViewPainted
 					}
 				} else if (event.keyCode == SWT.PAGE_UP) {
 					TableRowCore row = focusedRow;
-					int y = 0;
+					TableRowPainted lastRow = getLastVisibleRow();
+					int y = lastRow == null ? 0 : (clientArea.y + clientArea.height) - lastRow.getDrawOffset().y;
 					while (row != null && y < clientArea.height) {
 						y += row.getHeight();
 						row = getPreviousRow(row);
@@ -357,7 +358,9 @@ public class TableViewPainted
 					}
 				} else if (event.keyCode == SWT.PAGE_DOWN) {
 					TableRowCore row = focusedRow;
-					int y = 0;
+					TableRowPainted firstRow = visibleRows.size() == 0 ? null : visibleRows.iterator().next();
+
+					int y = firstRow == null ? 0 : firstRow.getHeight() - (clientArea.y - firstRow.getDrawOffset().y);
 					while (row != null && y < clientArea.height) {
 						y += row.getHeight();
 						TableRowCore nextRow = getNextRow(row);
@@ -2529,6 +2532,9 @@ public class TableViewPainted
 
 		boolean focusInSelection = false;
 		for (TableRowCore row : newSelectionArray) {
+			if (row == null) {
+				continue;
+			}
 			if (row.equals(focusedRow)) {
 				focusInSelection = true;
 				break;
