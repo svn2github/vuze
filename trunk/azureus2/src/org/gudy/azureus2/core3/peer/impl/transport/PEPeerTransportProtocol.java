@@ -1321,6 +1321,10 @@ implements PEPeerTransport
 	}
 
 
+	private void sendHaveNone() {
+		connection.getOutgoingMessageQueue().addMessage( new BTHaveNone( other_peer_have_none_version ), false );
+	}
+	
 	public void sendHave( int pieceNumber ) {
 		if ( current_peer_state != TRANSFERING || pieceNumber == manager.getHiddenPiece()) return;
 		//only force if the other peer doesn't have this piece and is not yet interested or we;ve disabled
@@ -1477,7 +1481,13 @@ implements PEPeerTransport
 		}
 		
 			//In case we're in super seed mode, we don't send our bitfield
+		
 		if (manager.isSuperSeedMode()){
+		
+				// trying this to see if it fixes issue with libtorrent (v0.15.9.0) 
+			
+			sendHaveNone();
+			
 			return;
 		}
 		
