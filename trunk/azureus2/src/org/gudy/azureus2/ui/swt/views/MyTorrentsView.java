@@ -586,8 +586,9 @@ public class MyTorrentsView
 
 						count++;
 						if (dm.getState() == DownloadManager.STATE_DOWNLOADING
-								|| dm.getState() == DownloadManager.STATE_SEEDING)
+								|| dm.getState() == DownloadManager.STATE_SEEDING){
 							ttlActive++;
+						}
 						ttlSize += dm.getSize();
 						ttlRSpeed += dm.getStats().getDataReceiveRate();
 						ttlSSpeed += dm.getStats().getDataSendRate();
@@ -630,12 +631,17 @@ public class MyTorrentsView
 							+ ttlActive
 							+ "\n"
 							+ "\n"
-							+ "Speed: "
+							+ "Total Speed: "
+							+ DisplayFormatters.formatByteCountToKiBEtcPerSec(ttlRSpeed)
+							+ " / "
+							+ DisplayFormatters.formatByteCountToKiBEtcPerSec(ttlSSpeed)
+							+ "\n"
+							+ "Average Speed: "
 							+ DisplayFormatters.formatByteCountToKiBEtcPerSec(ttlRSpeed
-									/ count)
-							+ "/"
+									/ (ttlActive==0?1:ttlActive))
+							+ " / "
 							+ DisplayFormatters.formatByteCountToKiBEtcPerSec(ttlSSpeed
-									/ count)
+									/ (ttlActive==0?1:ttlActive))
 							+ "\n"
 							+ "Size: "
 							+ DisplayFormatters.formatByteCountToKiBEtc(ttlSize));
