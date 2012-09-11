@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
@@ -38,7 +39,7 @@ public class FileExtensionItem
 	FileExtensionItem(String sTableID) 
 	{
 		super( DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, 50, sTableID);
-		
+		addDataSourceType(DiskManagerFileInfo.class);
 		setMinWidthAuto(true);
 	}
 
@@ -49,22 +50,41 @@ public class FileExtensionItem
 		info.setProficiency(TableColumnInfo.PROFICIENCY_INTERMEDIATE);
 	}
 
-	public void refresh(TableCell cell) {
-		DownloadManager dm = (DownloadManager)cell.getDataSource();
+	public void 
+	refresh( TableCell cell )
+	{		
+		Object ds = cell.getDataSource();
 
 		String	text = "";
 
-		if ( dm != null ){
-			String name = dm.getDownloadState().getPrimaryFile().getFile( true ).getName();
+		if ( ds instanceof DownloadManager ){
 			
-			int	pos = name.lastIndexOf( "." );
+			DownloadManager dm = (DownloadManager) ds;
 			
-			if ( pos >= 0 ){
-				
-				text = name.substring( pos+1 );
-			}
+			text = dm.getDownloadState().getPrimaryFile().getFile( true ).getName();
+			
+		}else if ( ds instanceof DiskManagerFileInfo ){
+			
+			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)ds;
+			
+			text = fileInfo.getFile( true ).getName();
+			
+		}else{
+			
+			return;
 		}
-
+					
+		int	pos = text.lastIndexOf( "." );
+			
+		if ( pos >= 0 ){
+				
+			text = text.substring( pos+1 );
+			
+		}else{
+			
+			text = "";
+		}
+		
 		cell.setText( text );
 	}
 }
