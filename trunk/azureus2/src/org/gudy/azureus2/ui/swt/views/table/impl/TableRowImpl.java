@@ -543,7 +543,11 @@ public class TableRowImpl<COREDATASOURCE>
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.components.BufferedTableRow#invalidate()
 	 */
+	
 	public void invalidate() {
+		invalidate(false);
+	}
+	public void invalidate(boolean mustRefresh) {
 		super.invalidate();
 
 		if (bDisposed) {
@@ -552,7 +556,7 @@ public class TableRowImpl<COREDATASOURCE>
 
 		for (TableCellCore cell : mTableCells.values()) {
 			if (cell != null) {
-				cell.invalidate(false);
+				cell.invalidate(mustRefresh);
 			}
 		}
 	}

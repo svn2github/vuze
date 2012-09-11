@@ -372,7 +372,7 @@ public class FilesViewMenuUtil
 					public void runSupport() {
 						moveFile(manager, fileInfo, ff_target);
 						if (row != null) {
-							row.invalidate();
+							row.invalidate(true);
 						}
 					}
 				});

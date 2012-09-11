@@ -69,6 +69,9 @@ public abstract class TableRowSWTBase
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#invalidate()
 	 */
 	public void invalidate() {
+		invalidate(false);
+	}
+	public void invalidate(boolean mustRefersh) {
 		synchronized (lock) {
   		if (bDisposed || mTableCells == null) {
   			return;
@@ -76,7 +79,7 @@ public abstract class TableRowSWTBase
   
   		for (TableCellCore cell : mTableCells.values()) {
   			if (cell != null) {
-  				cell.invalidate(false);
+  				cell.invalidate(mustRefersh);
   			}
   		}
 		}

@@ -36,6 +36,8 @@ public interface TableRowCore extends TableRow
 	/** Invalidates Row */
 	public void invalidate();
 
+	public void invalidate(boolean mustRefresh);
+
 	/** 
 	 * Delete the row 
 	 */
