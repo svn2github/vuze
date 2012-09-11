@@ -195,6 +195,7 @@ public class TableColumnCreator
 		c.put(MaxUploadsItem.COLUMN_ID, new cInfo(MaxUploadsItem.class, MaxUploadsItem.DATASOURCE_TYPE));
 		c.put(TotalSpeedItem.COLUMN_ID, new cInfo(TotalSpeedItem.class, TotalSpeedItem.DATASOURCE_TYPE));
 		c.put(FilesDoneItem.COLUMN_ID, new cInfo(FilesDoneItem.class, FilesDoneItem.DATASOURCE_TYPE));
+		c.put(FileExtensionItem.COLUMN_ID, new cInfo(FileExtensionItem.class, FileExtensionItem.DATASOURCE_TYPE));
 		c.put(SavePathItem.COLUMN_ID, new cInfo(SavePathItem.class, SavePathItem.DATASOURCE_TYPE));
 		c.put(TorrentPathItem.COLUMN_ID, new cInfo(TorrentPathItem.class, TorrentPathItem.DATASOURCE_TYPE));
 		c.put(CategoryItem.COLUMN_ID, new cInfo(CategoryItem.class, CategoryItem.DATASOURCE_TYPE));
