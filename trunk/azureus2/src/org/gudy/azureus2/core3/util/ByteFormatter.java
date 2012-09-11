@@ -273,4 +273,30 @@ public class ByteFormatter
 			| (array[1] << 8) & 0x000000000000ff00l
 			| array[0] & 0x00000000000000ffl;
 	}
+  
+  public static byte[]
+  intToByteArray(
+		long	v )
+  {
+	 return( new byte[]{
+      (byte)(v >>> 24),
+      (byte)(v >>> 16),
+      (byte)(v >>>  8),
+      (byte)(v >>>  0)});  
+  }
+  
+  public static byte[]
+  longToByteArray(
+		 long	v )
+  {
+	  return( new byte[]{
+		  (byte)(v >>> 56),
+		  (byte)(v >>> 48),
+		  (byte)(v >>> 40),
+		  (byte)(v >>> 32),
+		  (byte)(v >>> 24),
+		  (byte)(v >>> 16),
+		  (byte)(v >>>  8),
+		  (byte)(v >>>  0)});  
+  }
 }

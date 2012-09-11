@@ -58,7 +58,7 @@ DownloadManagerState
 	public static final String AT_SECRETS				 	= "secrets";
 	public static final String AT_RESUME_STATE		 		= "resumecomplete";
 	public static final String AT_PRIMARY_FILE		 		= "primaryfile";
-	public static final String AT_PRIMARY_FILE_IDX		 		= "primaryfileidx";
+	public static final String AT_PRIMARY_FILE_IDX		 	= "primaryfileidx";
 	public static final String AT_TIME_SINCE_DOWNLOAD		= "timesincedl";
 	public static final String AT_TIME_SINCE_UPLOAD			= "timesinceul";
 	public static final String AT_AVAIL_BAD_TIME			= "badavail";
@@ -67,6 +67,7 @@ DownloadManagerState
 	public static final String AT_SCRAPE_CACHE				= "scrapecache";	// long value, seeds in upper word, leechers in lower
 	public static final String AT_REORDER_MIN_MB			= "reordermb";
 	public static final String AT_MD_INFO_DICT_SIZE			= "mdinfodictsize";
+	public static final String AT_FILE_OTHER_HASHES			= "fileotherhashes";
 
 	public static Object[][] ATTRIBUTE_DEFAULTS = {
 		{ AT_VERSION,								new Integer( -1 )},
