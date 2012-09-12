@@ -20,6 +20,7 @@ package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
 import java.util.*;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
@@ -38,6 +39,7 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
+import org.gudy.azureus2.ui.swt.shells.AdvRenameWindow;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
@@ -306,11 +308,8 @@ public class FilesViewMenuUtil
 		itemDelete.addListener(SWT.Selection, priorityListener);
 	}
 
-	public static void rename(final TableView tv, final DownloadManager manager,
+	public static void rename(final TableView tv, final DownloadManager not_used,
 			final Object[] datasources, boolean rename_it, boolean retarget_it) {
-		if (manager == null) {
-			return;
-		}
 		if (datasources.length == 0) {
 			return;
 		}
@@ -323,9 +322,18 @@ public class FilesViewMenuUtil
 			}
 		}
 
+		List<DownloadManager> pausedDownloads = new ArrayList<DownloadManager>(0);
 		boolean paused = false;
 		try {
 			for (int i = 0; i < datasources.length; i++) {
+				if (datasources[i] instanceof DownloadManager) {
+					AdvRenameWindow window = new AdvRenameWindow();
+					window.open((DownloadManager) datasources[i]);
+					continue;
+				}
+				if (!(datasources[i] instanceof DiskManagerFileInfo)) {
+					continue;
+				}
 				final DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) datasources[i];
 				File existing_file = fileInfo.getFile(true);
 				File f_target = null;
@@ -349,6 +357,10 @@ public class FilesViewMenuUtil
 				}
 
 				if (!paused) {
+					DownloadManager manager = fileInfo.getDownloadManager();
+					if (pausedDownloads.contains(manager)) {
+						pausedDownloads.add(manager);
+					}
 					paused = manager.pause();
 				}
 
@@ -370,7 +382,7 @@ public class FilesViewMenuUtil
 				final TableRowCore row = tv == null ? null : tv.getRow(datasources[i]);
 				Utils.getOffOfSWTThread(new AERunnable() {
 					public void runSupport() {
-						moveFile(manager, fileInfo, ff_target);
+						moveFile(fileInfo.getDownloadManager(), fileInfo, ff_target);
 						if (row != null) {
 							row.invalidate(true);
 						}
@@ -378,7 +390,7 @@ public class FilesViewMenuUtil
 				});
 			}
 		} finally {
-			if (paused) {
+			for (DownloadManager manager : pausedDownloads) {
 				manager.resume();
 			}
 		}

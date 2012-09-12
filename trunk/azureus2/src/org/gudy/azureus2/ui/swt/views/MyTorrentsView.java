@@ -1506,6 +1506,13 @@ public class MyTorrentsView
 				return;
 		}
 		
+		if (e.keyCode == SWT.F2 && (e.stateMask & SWT.MODIFIER_MASK) == 0) {
+			FilesViewMenuUtil.rename(tv, null,tv.getSelectedDataSources(true), true, false);
+			e.doit = false;
+			return;
+		}
+
+		
 		// DEL remove selected Torrents
 		if (e.stateMask == 0 && e.keyCode == SWT.DEL && e.widget != txtFilter) {
 			Utils.getOffOfSWTThread(new AERunnable() {

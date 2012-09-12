@@ -31,6 +31,8 @@ import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
+import org.eclipse.swt.events.KeyEvent;
+import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
@@ -82,7 +84,7 @@ public class FilesView
 	extends TableViewTab<DiskManagerFileInfo>
 	implements TableDataSourceChangedListener, TableSelectionListener,
 	TableViewSWTMenuFillListener, TableRefreshListener, DownloadManagerStateAttributeListener,
-	TableLifeCycleListener, TableViewFilterCheck<DiskManagerFileInfo>
+	TableLifeCycleListener, TableViewFilterCheck<DiskManagerFileInfo>, KeyListener
 {
 	private static boolean registeredCoreSubViews = false;
 	boolean refreshing = false;
@@ -175,6 +177,7 @@ public class FilesView
 		tv.addSelectionListener(this, false);
 		tv.addMenuFillListener(this);
 		tv.addLifeCycleListener(this);
+		tv.addKeyListener(this);
 
 		return tv;
 	}
@@ -564,5 +567,18 @@ public class FilesView
 		} else if (event.getType() == UISWTViewEvent.TYPE_FOCUSLOST) {
 		}
 		return b;
+	}
+
+	// @see org.eclipse.swt.events.KeyListener#keyPressed(org.eclipse.swt.events.KeyEvent)
+	public void keyPressed(KeyEvent e) {
+		if (e.keyCode == SWT.F2 && (e.stateMask & SWT.MODIFIER_MASK) == 0) {
+			FilesViewMenuUtil.rename(tv, null, tv.getSelectedDataSources(true), true, false);
+			e.doit = false;
+			return;
+		}
+	}
+
+	// @see org.eclipse.swt.events.KeyListener#keyReleased(org.eclipse.swt.events.KeyEvent)
+	public void keyReleased(KeyEvent e) {
 	}
 }
