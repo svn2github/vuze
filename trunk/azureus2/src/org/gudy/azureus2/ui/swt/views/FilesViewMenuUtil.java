@@ -358,7 +358,7 @@ public class FilesViewMenuUtil
 
 				if (!paused) {
 					DownloadManager manager = fileInfo.getDownloadManager();
-					if (pausedDownloads.contains(manager)) {
+					if (!pausedDownloads.contains(manager)) {
 						pausedDownloads.add(manager);
 					}
 					paused = manager.pause();
