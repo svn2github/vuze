@@ -437,6 +437,92 @@ ConfigurationChecker
 	    	}
 	    }
 	    
+	    boolean	randomize_ports = COConfigurationManager.getBooleanParameter( "Listen.Port.Randomize.Enable" );
+	    
+	    if ( randomize_ports ){
+	    	
+	    	String	random_range = COConfigurationManager.getStringParameter( "Listen.Port.Randomize.Range" );
+	    	
+	    	if ( random_range == null || random_range.trim().length() == 0 ){
+	    		
+	    		random_range = RandomUtils.LISTEN_PORT_MIN + "-" + RandomUtils.LISTEN_PORT_MAX;
+	    	}
+	    	
+	    	int	min_port = RandomUtils.LISTEN_PORT_MIN;
+	    	int	max_port = RandomUtils.LISTEN_PORT_MAX;
+	    	
+	    	String[] bits = random_range.split( "-" );
+	    	
+	    	boolean valid = bits.length == 2;
+	    		
+	    	if ( valid ){
+	    		
+	    		String	lhs = bits[0].trim();
+	    		
+	    		if ( lhs.length() > 0 ){
+	    			
+	    			try{
+	    				min_port = Integer.parseInt( lhs );
+	    				
+	    			}catch( Throwable e ){
+	    				
+	    				valid = false;
+	    			}
+	    		}
+	    		
+	    		String	rhs = bits[1].trim();
+	    		
+	    		if ( rhs.length() > 0 ){
+	    			
+	    			try{
+	    				max_port = Integer.parseInt( rhs );
+	    				
+	    			}catch( Throwable e ){
+	    				
+	    				valid = false;
+	    			}
+	    		}
+	    	}
+	    	
+	    	if ( valid ){
+	    		
+			    boolean	randomize_together = COConfigurationManager.getBooleanParameter( "Listen.Port.Randomize.Together" );
+		    		
+		    	if ( randomize_together ){
+		    		
+		    		int port = RandomUtils.generateRandomNetworkListenPort( min_port, max_port );
+		    		
+			    	COConfigurationManager.setParameter( "TCP.Listen.Port", port );
+			    	COConfigurationManager.setParameter( "UDP.Listen.Port", port );
+		    		COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", port );
+	
+		    	}else{
+		    		
+			    	int old_udp1 = COConfigurationManager.getIntParameter( "UDP.Listen.Port" );
+			    	int old_udp2 = COConfigurationManager.getIntParameter( "UDP.NonData.Listen.Port" );
+	
+		    		int port1 = RandomUtils.generateRandomNetworkListenPort( min_port, max_port );
+	
+		    		COConfigurationManager.setParameter( "TCP.Listen.Port", port1 );
+		    		
+		    		int port2 = RandomUtils.generateRandomNetworkListenPort( min_port, max_port );
+	
+			    	COConfigurationManager.setParameter( "UDP.Listen.Port", port2 );
+	
+			    	if ( old_udp1 == old_udp2 ){
+			    		
+			    		COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", port2 );
+	
+			    	}else{
+			    		
+			    		int port3 = RandomUtils.generateRandomNetworkListenPort( min_port, max_port );
+	
+			    		COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", port3 );
+			    	}
+		    	}
+	    	}
+	    }
+	    
 	    int	tcp_port = COConfigurationManager.getIntParameter( "TCP.Listen.Port" );
 	    
 	    	// reset invalid ports - single-instance socket port and (small) magnet uri listener port range

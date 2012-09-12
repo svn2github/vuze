@@ -97,7 +97,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 
 		label = new Label(cMiniArea, SWT.NULL);
 		Messages.setLanguageText(label, separate_ports?"ConfigView.label.tcplistenport":"ConfigView.label.serverport");
-		gridData = new GridData();
+		gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
 		label.setLayoutData(gridData);
 
 		final IntParameter tcplisten = new IntParameter(cMiniArea,
@@ -245,13 +245,50 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			}
 		}
 		
+		if ( userMode > 0 ){
+			
+			Composite cRandPortArea = new Composite(cMiniArea, SWT.NULL);
+			layout = new GridLayout();
+			layout.numColumns = 4;
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			cRandPortArea.setLayout(layout);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.horizontalSpan = 2;
+			
+			cRandPortArea.setLayoutData(gridData);
+
+			BooleanParameter rand_enable = 
+				new BooleanParameter(cRandPortArea, "Listen.Port.Randomize.Enable",	CFG_PREFIX + "port.rand.enable");
+
+			label = new Label(cRandPortArea, SWT.NULL);
+
+			label.setText(MessageText.getString( CFG_PREFIX + "port.rand.range" ));
+			gridData = new GridData();
+			gridData.horizontalIndent = 20;
+			label.setLayoutData( gridData );
+
+			StringParameter rand_range = new StringParameter( cRandPortArea, "Listen.Port.Randomize.Range" );
+			gridData = new GridData();
+			gridData.widthHint = 100;
+			rand_range.setLayoutData( gridData );
+			
+			BooleanParameter rand_together = 
+				new BooleanParameter(cRandPortArea, "Listen.Port.Randomize.Together",	CFG_PREFIX + "port.rand.together");
+
+			rand_enable.setAdditionalActionPerformer(
+					new ChangeSelectionActionPerformer( label ));
+			rand_enable.setAdditionalActionPerformer(
+					new ChangeSelectionActionPerformer( new Parameter[]{ rand_range, rand_together }));
+		}
+		
 		if ( userMode > 1 ){
 		
 			final BooleanParameter prefer_udp = 
 				new BooleanParameter(cMiniArea, "peercontrol.prefer.udp",	CFG_PREFIX + "prefer.udp");
 			gridData = new GridData();
+			gridData.horizontalSpan = 2;
 			prefer_udp.setLayoutData( gridData );
-			label = new Label(cMiniArea, SWT.NULL);
 		}
 		
 		if (userMode < 2) {

@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemProperties;
 
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
@@ -146,6 +147,9 @@ public class ConfigurationDefaults {
     def.put("HTTP.Data.Listen.Port", new Long( Constants.isWindows?80:8080 ));
     def.put("HTTP.Data.Listen.Port.Override", ZERO);
     def.put("HTTP.Data.Listen.Port.Enable", FALSE );
+    def.put("Listen.Port.Randomize.Enable", FALSE );
+    def.put("Listen.Port.Randomize.Together", TRUE );
+    def.put("Listen.Port.Randomize.Range", RandomUtils.LISTEN_PORT_MIN + "-" + RandomUtils.LISTEN_PORT_MAX );
     
     def.put("IPV6 Enable Support", FALSE );
     def.put("IPV6 Prefer Addresses",FALSE);
