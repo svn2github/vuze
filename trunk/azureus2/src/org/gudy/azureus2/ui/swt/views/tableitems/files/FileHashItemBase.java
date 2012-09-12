@@ -176,7 +176,7 @@ FileHashItemBase
 	
 	private static AsyncDispatcher dispatcher = new AsyncDispatcher();
 	
-	private static Set<DiskManagerFileInfo>	pending = new HashSet<DiskManagerFileInfo>();
+	private static Map<DiskManagerFileInfo,Set<String>>	pending = new HashMap<DiskManagerFileInfo,Set<String>>();
 	
 	private static volatile DiskManagerFileInfo	active;
 	private static volatile String				active_hash;
@@ -215,12 +215,21 @@ FileHashItemBase
 		
 		synchronized( pending ){
 			
-			if ( pending.contains( file )){
+			Set<String> hashes = pending.get( file );
+			
+			if ( hashes != null && hashes.contains( hash_type )){
 				
 				return;
 			}
 			
-			pending.add( file );
+			if ( hashes == null ){
+				
+				hashes = new HashSet<String>();
+				
+				pending.put( file, hashes );
+			}
+			
+			hashes.add( hash_type );
 		}
 		
 		dispatcher.dispatch(
@@ -333,6 +342,7 @@ FileHashItemBase
 							file_hashes.put( hash_type, hash );
 							
 							dm.getDownloadState().setMapAttribute( DownloadManagerState.AT_FILE_OTHER_HASHES, other_hashes );
+							
 						}finally{
 							
 							fis.close();
@@ -345,7 +355,14 @@ FileHashItemBase
 					
 						synchronized( pending ){
 							
-							pending.remove( file );
+							Set<String> hashes = pending.get( file );
+
+							hashes.remove( hash_type );
+							
+							if ( hashes.size() == 0 ){
+								
+								pending.remove( file );
+							}
 							
 							active = null;
 						}
@@ -373,7 +390,9 @@ FileHashItemBase
 		
 		synchronized( pending ){
 			
-			if ( pending.contains( file )){
+			Set<String> hashes = pending.get( file );
+			
+			if ( hashes != null && hashes.contains( hash_type )){
 		
 				if ( active == file && active_hash == hash_type ){
 					
