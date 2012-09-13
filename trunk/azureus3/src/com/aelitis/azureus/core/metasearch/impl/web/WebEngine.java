@@ -86,6 +86,7 @@ WebEngine
 	private boolean needsAuth;
 	private String	authMethod;
 	private String loginPageUrl;
+	private String iconUrl;
 	private String[] requiredCookies;
 	
 	private String local_cookies;
@@ -148,6 +149,7 @@ WebEngine
 		requiredCookies 	= ImportExportUtils.importStringArray( map, "web.required_cookies" );
 
 		automaticDateParser	= ImportExportUtils.importBoolean( map, "web.auto_date", AUTOMATIC_DATE_PARSER_DEFAULT );
+		iconUrl 		= ImportExportUtils.importString( map, "web.icon_url" );
 
 		List	maps = (List)map.get( "web.maps" );
 		
@@ -199,6 +201,9 @@ WebEngine
 			if ( loginPageUrl != null ){
 				ImportExportUtils.exportString( map, "web.login_page",				loginPageUrl );
 			}
+			if ( iconUrl != null ) {
+				ImportExportUtils.exportString(map, "web.icon_url", iconUrl);
+			}
 			if ( requiredCookies != null && requiredCookies.length > 0 ){
 				ImportExportUtils.exportStringArray( map, "web.required_cookies",	requiredCookies );
 			}
@@ -215,6 +220,7 @@ WebEngine
 			ImportExportUtils.exportBoolean( map, "web.needs_auth",				needsAuth );
 			ImportExportUtils.exportString( map, "web.auth_method",				authMethod );
 			ImportExportUtils.exportString( map, "web.login_page",				loginPageUrl );
+			ImportExportUtils.exportString( map, "web.icon_url", iconUrl);
 			ImportExportUtils.exportStringArray( map, "web.required_cookies",	requiredCookies );
 	
 			ImportExportUtils.exportBoolean( map, "web.auto_date", automaticDateParser );
@@ -262,6 +268,7 @@ WebEngine
 		needsAuth			= ImportExportUtils.importBoolean( map, "needs_auth", false );
 		authMethod			= ImportExportUtils.importString( map, "auth_method", WebEngine.AM_TRANSPARENT );
 		loginPageUrl 		= ImportExportUtils.importURL( map, "login_page" );
+		iconUrl 		= ImportExportUtils.importURL( map, "icon_url" );
 		
 		requiredCookies 	= ImportExportUtils.importStringArray( map, "required_cookies" );
 		
@@ -343,6 +350,7 @@ WebEngine
 		ImportExportUtils.exportJSONBoolean( res, "needs_auth",				needsAuth );
 		ImportExportUtils.exportJSONString( res, "auth_method",				authMethod );
 		ImportExportUtils.exportJSONURL( res, "login_page",					loginPageUrl );
+		ImportExportUtils.exportJSONURL( res, "icon_url",					iconUrl );
 		ImportExportUtils.exportJSONStringArray( res, "required_cookies",	requiredCookies );
  
 		if ( !automaticDateParser ){
@@ -1109,6 +1117,9 @@ WebEngine
 	}
 	
 	public String getIcon() {
+		if (iconUrl != null) {
+			return iconUrl;
+		}
 		if(rootPage != null) {
 			return rootPage + "/favicon.ico";
 		}

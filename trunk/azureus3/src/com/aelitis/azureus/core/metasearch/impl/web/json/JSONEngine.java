@@ -457,15 +457,5 @@ JSONEngine
 		}
 	}
 	
-	public String getIcon() {
-		
-		String rootPage = getRootPage();
-		
-		if(rootPage != null) {
-			return rootPage + "/favicon.ico";
-		}
-		return null;
-	}
-	
 
 }
