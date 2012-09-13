@@ -24,6 +24,8 @@ FEATURE: UI   | Option to specify table header height [TuxPaper]
 
 FEATURE: Inst | Installer customize option now permits the clearing of config data [TuxPaper]
 
+FEATURE: Plug | DVD Burn plugin now has Library context menus to create new DVD and add content to existing [Parg]
+
 CHANGE: UI    | Added visual feedback for device problems such as lack of disk space [Parg]
 CHANGE: UI    | Vuze sidebar entry can now be rolled up [TuxPaper]
 CHANGE: UI    | Don't show 'all' and 'uncategorized' entries in sidebar when no categories defined [TuxPaper]
@@ -46,8 +48,6 @@ BUGFIX: UI    | Fixed subscription wizard column header text [Parg]
 BUGFIX: UI    | *nix: Fix Plugins and Torrents menu not having any entries [TuxPaper]
 BUGFIX: UI    | Fix scrolling issue after Library row gets removed while its subrows are displayed [TuxPaper]
 BUGFIX: UI    | Ensure table row height can fit the default font size [TuxPaper] 
-B
-
 
 2012.07.13 | Vuze 4.7.1.0
 
