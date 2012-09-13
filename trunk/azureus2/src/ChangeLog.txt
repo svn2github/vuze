@@ -26,16 +26,23 @@ FEATURE: Inst | Installer customize option now permits the clearing of config da
 
 FEATURE: Plug | DVD Burn plugin now has Library context menus to create new DVD and add content to existing [Parg]
 
+CHANGE: CORE  | Added .mts and .m2ts to playable extensions [Parg]
+
 CHANGE: UI    | Added visual feedback for device problems such as lack of disk space [Parg]
 CHANGE: UI    | Vuze sidebar entry can now be rolled up [TuxPaper]
 CHANGE: UI    | Don't show 'all' and 'uncategorized' entries in sidebar when no categories defined [TuxPaper]
 CHANGE: UI    | 'Draw grid lines and fill blank areas' no longer fills blank areas when unchecked [TuxPaper]
 
+BUGFIX: Core  | Prevent recursive backup hell if backup location selected in wrong location [Parg]
+BUGFIX: Core  | Correctly handle invalid upload_only entries in handshakes [Parg]
+
 BUGFIX: UI    | Table headers now use system colors; IP filter on status bar now obeys system colors [TuxPaper]
 BUGFIX: UI    | Table scrollbars now have proper page-scroll behaviour [TuxPaper]
 BUGFIX: UI    | Fixed ctrl+home/end not working in tables [TuxPaper]
 BUGFIX: UI    | Fixed inability to scroll completely right [TuxPaper]
+BUGFIX: UI    | Fix message texts not being resolved for sidebar entries on occasion [Parg]
 
+BUGFIX: Plug  | DVD Burn: fix bug that was preventing warnings such as dual-layer, rw-disk blanking from showing [TuxPaper]
 
 2012.07.19 | Vuze 4.7.1.2
 
