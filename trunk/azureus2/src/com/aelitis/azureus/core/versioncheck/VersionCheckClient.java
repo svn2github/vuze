@@ -1353,14 +1353,6 @@ public class VersionCheckClient {
 
 			Integer swt_version = (Integer)c.getMethod( "getVersion", new Class[]{} ).invoke( null, new Object[]{} );
 			message.put( "swt_version", new Long( swt_version.longValue() ) );
-
-			if ( send_info ){
-				c = Class.forName("org.gudy.azureus2.ui.swt.mainwindow.MainWindow");
-				if (c != null) {
-					c.getMethod("addToVersionCheckMessage", new Class[] { Map.class }).invoke(
-							null, new Object[] { message });
-				}   
-			}
 		}
 		catch( ClassNotFoundException e ) {  /* ignore */ }
 		catch( NoClassDefFoundError er ) {  /* ignore */ }
