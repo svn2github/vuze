@@ -335,7 +335,17 @@ SubscriptionManagerUI
 			
 			return;
 		}
+
+		icon_rss_small			= loadGraphic( swt, "subscription_icon.png" );
+		icon_rss_big			= icon_rss_small;
+
+		icon_rss_all_add_small	= loadGraphic( swt, "subscription_icon_inactive.png" );
+		icon_rss_all_add_big	= icon_rss_all_add_small;
 		
+		icon_rss_some_add_small	= icon_rss_all_add_small;
+		icon_rss_some_add_big	= icon_rss_some_add_small;
+		
+
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {
@@ -353,15 +363,6 @@ SubscriptionManagerUI
 		if (swt == null) {
 			return;
 		}
-		
-		icon_rss_small			= loadGraphic( swt, "subscription_icon.png" );
-		icon_rss_big			= icon_rss_small;
-
-		icon_rss_all_add_small	= loadGraphic( swt, "subscription_icon_inactive.png" );
-		icon_rss_all_add_big	= icon_rss_all_add_small;
-		
-		icon_rss_some_add_small	= icon_rss_all_add_small;
-		icon_rss_some_add_big	= icon_rss_some_add_small;
 		
 		SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
 		subs_man.addListener(
