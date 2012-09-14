@@ -3,6 +3,8 @@ VUZE CHANGELOG
 
 2012.xx.x | Vuze 4.7.1.3
 
+FEATURE: Blog | See http://devblog.vuze.com/tagged/vuze4720 for beta version blog posts
+
 FEATURE: Core | Option to randomize TCP/UDP listen ports on startup [Parg]
 FEATURE: Core | Window's user options to control computer sleep behaviour while downloading/seeding [Parg]
 FEATURE: Core | Ability to selectively disable tracker client protocols [Parg]
