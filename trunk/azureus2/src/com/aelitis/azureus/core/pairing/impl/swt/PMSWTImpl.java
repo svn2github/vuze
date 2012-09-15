@@ -372,154 +372,153 @@ PMSWTImpl
 					status.setImage( icon_idle );
 				}
 			}
-		}else{
+		}
 			
-			StringBuffer	tooltip_text = new StringBuffer( 256 );
+		StringBuffer	tooltip_text = new StringBuffer( 256 );
+		
+		tooltip_text.append( MessageText.getString( "pairing.ui.icon.tip" ));
 			
-			tooltip_text.append( MessageText.getString( "pairing.ui.icon.tip" ));
-				
-			long newest_bad_mono	= -1;
-			long newest_good_mono	= -1;
+		long newest_bad_mono	= -1;
+		long newest_good_mono	= -1;
 
-			Iterator<Map.Entry<String,RemoteHistory>>	it = history_map.entrySet().iterator();
+		Iterator<Map.Entry<String,RemoteHistory>>	it = history_map.entrySet().iterator();
+		
+		String	oldest_type			= null;
+		long	oldest_type_mono	= Long.MAX_VALUE;
+					
+		while( it.hasNext()){
 			
-			String	oldest_type			= null;
-			long	oldest_type_mono	= Long.MAX_VALUE;
-						
-			while( it.hasNext()){
+			Map.Entry<String,RemoteHistory> entry = it.next();
+			
+			String			name 	= entry.getKey();
+			RemoteHistory	history = entry.getValue();
+			
+			String	oldest_ip		= null;
+			long	oldest_ip_mono	= Long.MAX_VALUE;
+							
+			Map<String,RemoteHistoryEntry> records = history.getEntries();
+			
+			Iterator<Map.Entry<String,RemoteHistoryEntry>>	record_it = records.entrySet().iterator();
+			
+			StringBuffer	tt_ip_details = new StringBuffer( 256 );
+			
+			while( record_it.hasNext()){
 				
-				Map.Entry<String,RemoteHistory> entry = it.next();
+				Map.Entry<String,RemoteHistoryEntry>	record = record_it.next();
 				
-				String			name 	= entry.getKey();
-				RemoteHistory	history = entry.getValue();
+				String				ip 	= record.getKey();
+				RemoteHistoryEntry 	e 	= record.getValue();
 				
-				String	oldest_ip		= null;
-				long	oldest_ip_mono	= Long.MAX_VALUE;
-								
-				Map<String,RemoteHistoryEntry> records = history.getEntries();
+				long e_mono = e.getLastReceivedMono();
 				
-				Iterator<Map.Entry<String,RemoteHistoryEntry>>	record_it = records.entrySet().iterator();
-				
-				StringBuffer	tt_ip_details = new StringBuffer( 256 );
-				
-				while( record_it.hasNext()){
+				if ( e_mono < oldest_ip_mono ){
 					
-					Map.Entry<String,RemoteHistoryEntry>	record = record_it.next();
-					
-					String				ip 	= record.getKey();
-					RemoteHistoryEntry 	e 	= record.getValue();
-					
-					long e_mono = e.getLastReceivedMono();
-					
-					if ( e_mono < oldest_ip_mono ){
-						
-						oldest_ip_mono 	= e_mono;
-						oldest_ip		= ip;
-					}
-					
-					long age = now_mono - e_mono;
-					
-					if ( age > RECORD_EXPIRY ){
-						
-						record_it.remove();
-						
-					}else{
-						
-						String age_str = TimeFormatter.format( age/1000 );
-						
-						tt_ip_details.append( "\n        " );
-						
-						if ( local_addresses.contains( ip )){
-							
-							tt_ip_details.append( "local (" + ip + ")" );
-							
-						}else{
-							
-							tt_ip_details.append( ip );
-						}
-						
-						if ( e.wasLastGood()){
-							
-							tt_ip_details.append( " OK" );
-							
-							newest_good_mono 	= Math.max( newest_good_mono, e_mono );
-							
-						}else{
-							
-							tt_ip_details.append( " Access Denied" );
-							
-							newest_bad_mono 	= Math.max( newest_bad_mono, e_mono );
-						}
-						
-						tt_ip_details.append( " - " + age_str + " ago");
-					}
+					oldest_ip_mono 	= e_mono;
+					oldest_ip		= ip;
 				}
 				
-				if ( records.size() == 0 ){
+				long age = now_mono - e_mono;
+				
+				if ( age > RECORD_EXPIRY ){
 					
-					it.remove();
+					record_it.remove();
 					
 				}else{
 					
-					if ( oldest_ip_mono < oldest_type_mono ){
+					String age_str = TimeFormatter.format( age/1000 );
+					
+					tt_ip_details.append( "\n        " );
+					
+					if ( local_addresses.contains( ip )){
 						
-						oldest_type_mono 	= oldest_ip_mono;
-						oldest_type			= name;
-					}
-				
-					if ( records.size() >= MAX_IPS_PER_TYPE ){
-						
-						records.remove( oldest_ip );
+						tt_ip_details.append( "local (" + ip + ")" );
 						
 					}else{
 						
-						tooltip_text.append( "\n    " + name );
-						tooltip_text.append( tt_ip_details );
+						tt_ip_details.append( ip );
 					}
+					
+					if ( e.wasLastGood()){
+						
+						tt_ip_details.append( " OK" );
+						
+						newest_good_mono 	= Math.max( newest_good_mono, e_mono );
+						
+					}else{
+						
+						tt_ip_details.append( " Access Denied" );
+						
+						newest_bad_mono 	= Math.max( newest_bad_mono, e_mono );
+					}
+					
+					tt_ip_details.append( " - " + age_str + " ago");
 				}
 			}
 			
-			if ( history_map.size() > MAX_TYPES ){
+			if ( records.size() == 0 ){
 				
-				history_map.remove( oldest_type );
-			}
-			
-			if ( !tooltip_text.equals( last_tooltip_text )){
+				it.remove();
 				
-				last_tooltip_text = tooltip_text.toString();
-				
-				status.setTooltipText( last_tooltip_text );
-			}
-			
-			Image	target_image = null;
-			
-			long	age_newest_bad = now_mono - newest_bad_mono;
-		
-			if ( newest_bad_mono >= 0 && age_newest_bad <= BAD_EXPIRY ){
-				
-				target_image = icon_red;
-				
-				last_image_expiry_mono 		= newest_bad_mono + BAD_EXPIRY;
 			}else{
 				
-				long	age_newest_good = now_mono - newest_good_mono;
-
-				if ( newest_good_mono >= 0 && age_newest_good <= GOOD_EXPIRY ){
+				if ( oldest_ip_mono < oldest_type_mono ){
 					
-					target_image = icon_green;
+					oldest_type_mono 	= oldest_ip_mono;
+					oldest_type			= name;
+				}
+			
+				if ( records.size() >= MAX_IPS_PER_TYPE ){
 					
-					last_image_expiry_mono 		= age_newest_good + GOOD_EXPIRY;
+					records.remove( oldest_ip );
+					
+				}else{
+					
+					tooltip_text.append( "\n    " + name );
+					tooltip_text.append( tt_ip_details );
 				}
 			}
+		}
+		
+		if ( history_map.size() > MAX_TYPES ){
 			
-			if ( target_image != null && target_image != last_image ){
+			history_map.remove( oldest_type );
+		}
+		
+		if ( !tooltip_text.equals( last_tooltip_text )){
+			
+			last_tooltip_text = tooltip_text.toString();
+			
+			status.setTooltipText( last_tooltip_text );
+		}
+		
+		Image	target_image = null;
+		
+		long	age_newest_bad = now_mono - newest_bad_mono;
+	
+		if ( newest_bad_mono >= 0 && age_newest_bad <= BAD_EXPIRY ){
+			
+			target_image = icon_red;
+			
+			last_image_expiry_mono 		= newest_bad_mono + BAD_EXPIRY;
+		}else{
+			
+			long	age_newest_good = now_mono - newest_good_mono;
+
+			if ( newest_good_mono >= 0 && age_newest_good <= GOOD_EXPIRY ){
 				
-				last_image = target_image;
+				target_image = icon_green;
 				
-				last_image_expiry_uc_min	= last_update_count + 2;
-				
-				status.setImage( target_image );
+				last_image_expiry_mono 		= age_newest_good + GOOD_EXPIRY;
 			}
+		}
+		
+		if ( target_image != null && target_image != last_image ){
+			
+			last_image = target_image;
+			
+			last_image_expiry_uc_min	= last_update_count + 2;
+			
+			status.setImage( target_image );
 		}
 	}
 	
