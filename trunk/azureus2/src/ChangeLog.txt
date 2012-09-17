@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2012.xx.x | Vuze 4.7.1.3
+2012.09.x | Vuze 4.7.1.3
 
 FEATURE: Blog | See http://devblog.vuze.com/tagged/vuze4720 for beta version blog posts
 
@@ -10,7 +10,6 @@ FEATURE: Core | Window's user options to control computer sleep behaviour while 
 FEATURE: Core | Ability to selectively disable tracker client protocols [Parg]
 FEATURE: Core | DNS Tracker Preferences [http://bittorrent.org/beps/bep_0034.html] implemented [Parg]
 FEATURE: Core | Added explicit application map to be used for launch operations [Parg]
-
 FEATURE: UI   | New column in Library views to show file extension [Parg]
 FEATURE: UI   | File view columns for CRC-32 and MD5 file hashes [Parg]
 FEATURE: UI   | Column-header right-click option on ETA/Progress columns to show absolute ETA [Parg]
@@ -22,14 +21,13 @@ FEATURE: UI   | Vuze remote connection status now shown in the status bar [Parg]
 FEATURE: UI   | Added custom date format for column display [TuxPaper]
 FEATURE: UI   | Added option to disable 'backup complete' notification [TuxPaper]
 FEATURE: UI   | Number of unread blog posts shown in beta side-bar entry [TuxPaper]
-FEATURE: UI   | Option to specify table header height [TuxPaper]    
-
+FEATURE: UI   | Option to specify table header height [TuxPaper]
+FEATURE: Srch | Search templates can now do variable substitution (no UI yet) [TuxPaper]
 FEATURE: Inst | Installer customize option now permits the clearing of config data [TuxPaper]
-
+FEATURE: Inst | Custom install now lets you choose Classic or Vuze UI [TuxPaper]
 FEATURE: Plug | DVD Burn plugin now has Library context menus to create new DVD and add content to existing [Parg]
 
 CHANGE: CORE  | Added .mts and .m2ts to playable extensions [Parg]
-
 CHANGE: UI    | Added visual feedback for device problems such as lack of disk space [Parg]
 CHANGE: UI    | Vuze sidebar entry can now be rolled up [TuxPaper]
 CHANGE: UI    | Don't show 'all' and 'uncategorized' entries in sidebar when no categories defined [TuxPaper]
@@ -37,14 +35,15 @@ CHANGE: UI    | 'Draw grid lines and fill blank areas' no longer fills blank are
 
 BUGFIX: Core  | Prevent recursive backup hell if backup location selected in wrong location [Parg]
 BUGFIX: Core  | Correctly handle invalid upload_only entries in handshakes [Parg]
-
 BUGFIX: UI    | Table headers now use system colors; IP filter on status bar now obeys system colors [TuxPaper]
-BUGFIX: UI    | Table scrollbars now have proper page-scroll behaviour [TuxPaper]
+BUGFIX: UI    | Table scrollbars now have better page-scroll behaviour [TuxPaper]
 BUGFIX: UI    | Fixed ctrl+home/end not working in tables [TuxPaper]
 BUGFIX: UI    | Fixed inability to scroll completely right [TuxPaper]
 BUGFIX: UI    | Fix message texts not being resolved for sidebar entries on occasion [Parg]
-
+BUGFIX: UI    | Alow dropping .torrent files onto blank area of sidebar [TuxPaper]
 BUGFIX: Plug  | DVD Burn: fix bug that was preventing warnings such as dual-layer, rw-disk blanking from showing [TuxPaper]
+
+
 
 2012.07.19 | Vuze 4.7.1.2
 
@@ -57,6 +56,8 @@ BUGFIX: UI    | Fixed subscription wizard column header text [Parg]
 BUGFIX: UI    | *nix: Fix Plugins and Torrents menu not having any entries [TuxPaper]
 BUGFIX: UI    | Fix scrolling issue after Library row gets removed while its subrows are displayed [TuxPaper]
 BUGFIX: UI    | Ensure table row height can fit the default font size [TuxPaper] 
+
+
 
 2012.07.13 | Vuze 4.7.1.0
 
