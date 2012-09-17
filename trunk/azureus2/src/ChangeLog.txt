@@ -40,7 +40,7 @@ BUGFIX: UI    | Table scrollbars now have better page-scroll behaviour [TuxPaper
 BUGFIX: UI    | Fixed ctrl+home/end not working in tables [TuxPaper]
 BUGFIX: UI    | Fixed inability to scroll completely right [TuxPaper]
 BUGFIX: UI    | Fix message texts not being resolved for sidebar entries on occasion [Parg]
-BUGFIX: UI    | Alow dropping .torrent files onto blank area of sidebar [TuxPaper]
+BUGFIX: UI    | Allow dropping .torrent files onto blank area of sidebar [TuxPaper]
 BUGFIX: Plug  | DVD Burn: fix bug that was preventing warnings such as dual-layer, rw-disk blanking from showing [TuxPaper]
 
 
