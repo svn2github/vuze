@@ -61,11 +61,11 @@ public interface UIFunctions
 	/**
 	 * Bring main window to the front
 	 * 
-	 * @param noTricks Don't try any tricks to force it to the top
+	 * @param tryTricks: try tricks to force it to the top
 	 *
 	 * @since 3.0.1.7
 	 */
-	void bringToFront(boolean noTricks);
+	void bringToFront(boolean tryTricks);
 	
 	/**
 	 * Change/Refresh the language of the UI
@@ -126,8 +126,10 @@ public interface UIFunctions
 	 */
 	void openView(int viewID, Object datasource);
 	
-	void doSearch(String searchText);
+	void doSearch(String searchText );
 	
+	void doSearch(String searchText, boolean toSubscribe );
+
 	public void
 	installPlugin(
 		String			plugin_id,

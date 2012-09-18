@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -103,7 +104,7 @@ public class TrackerView
 		
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
-			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
+			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
 			
 			if (pluginUI != null && !registeredCoreSubViews) {
 

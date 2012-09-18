@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.IMainStatusBar;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -297,7 +298,7 @@ public class UIUpdaterSWT
 		//System.out.println(SystemTime.getCurrentTime() + "] Refresh " + ttl + "ms");
 
 		UIFunctionsSWT uiFunctionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		MainStatusBar mainStatusBar = uiFunctionsSWT == null ? null : uiFunctionsSWT.getMainStatusBar();
+		IMainStatusBar mainStatusBar = uiFunctionsSWT == null ? null : uiFunctionsSWT.getMainStatusBar();
 		if (mainStatusBar != null && mainStatusBar.isMouseOver()) {
 			StringBuffer sb = new StringBuffer();
 			for (Iterator iter = averageTimes.keySet().iterator(); iter.hasNext();) {

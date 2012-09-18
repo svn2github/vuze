@@ -70,7 +70,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
  * Moved from MainWindow and GUIUpdater
  */
 public class MainStatusBar
-	implements UIUpdatable
+	implements IMainStatusBar, UIUpdatable
 {
 	/**
 	 * Warning status icon identifier
@@ -1505,12 +1505,6 @@ public class MainStatusBar
 			return false;
 		}
 		return statusText.getDisplay().getCursorControl() == statusText;
-	}
-
-	public static interface CLabelUpdater
-	{
-		public void created(CLabelPadding label);
-		public boolean update(CLabelPadding label);
 	}
 
 	/**

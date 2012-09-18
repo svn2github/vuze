@@ -46,6 +46,8 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.AZ3Functions.provider.TranscodeProfile;
 import com.aelitis.azureus.core.util.AZ3Functions.provider.TranscodeTarget;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.shells.RemotePairingWindow;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
@@ -325,7 +327,7 @@ public class InitialisationFunctions
 								searchRequest(
 									String		term )
 								{
-									MainWindow.doSearch( term );
+									UIFunctionsManager.getUIFunctions().doSearch( term );
 								}
 							});
 					}catch( Throwable e ){

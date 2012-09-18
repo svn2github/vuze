@@ -69,6 +69,8 @@ import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
+import com.aelitis.azureus.ui.swt.shells.main.MainWindowFactory;
+import com.aelitis.azureus.ui.swt.shells.main.MainWindowFactory.MainWindowInitStub;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
 import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
 import com.aelitis.azureus.util.ConstantsVuze;
@@ -130,7 +132,7 @@ public class Initializer
   
 	private AESemaphore init_task = new AESemaphore("delayed init");
 
-	private MainWindow mainWindow;
+	private MainWindowFactory.MainWindowInitStub windowInitStub;;
 	
 	private static Initializer lastInitializer;
 
@@ -271,7 +273,7 @@ public class Initializer
 		
 		checkInstallID();
 
-		mainWindow = new MainWindow(Display.getDefault(), this);
+		windowInitStub = MainWindowFactory.createAsync( Display.getDefault(), this );
 	}
 
 	/**
@@ -440,9 +442,9 @@ public class Initializer
 					main_window_will_report_complete = true;
 					
 					if (STARTUP_UIFIRST) {
-						mainWindow.init(core);
+						windowInitStub.init(core);
 					} else {
-						new MainWindow(core, Display.getDefault(), Initializer.this);
+						MainWindowFactory.create( core, Display.getDefault(), Initializer.this );
 					}
 					
 					reportCurrentTaskByKey("splash.openViews");

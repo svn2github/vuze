@@ -42,6 +42,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.LinkArea;
 import org.gudy.azureus2.ui.swt.components.StringListChooser;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.mainwindow.IMainStatusBar;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
@@ -380,7 +381,7 @@ UpdateWindow
 		    updateWindow.dispose();
       	UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
       	if (functionsSWT != null) {
-      		MainStatusBar mainStatusBar = functionsSWT.getMainStatusBar();
+      		IMainStatusBar mainStatusBar = functionsSWT.getMainStatusBar();
       		if (mainStatusBar != null) {
       			mainStatusBar.setUpdateNeeded(null);
       		}
@@ -440,7 +441,7 @@ UpdateWindow
         	
         	UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
         	if (functionsSWT != null) {
-        		MainStatusBar mainStatusBar = functionsSWT.getMainStatusBar();
+        		IMainStatusBar mainStatusBar = functionsSWT.getMainStatusBar();
         		if (mainStatusBar != null) {
         			mainStatusBar.setUpdateNeeded(UpdateWindow.this);
         		}
@@ -680,7 +681,7 @@ UpdateWindow
     //When completing, remove the link in mainWindow :
   	UIFunctionsSWT functionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
   	if (functionsSWT != null) {
-  		MainStatusBar mainStatusBar = functionsSWT.getMainStatusBar();
+  		IMainStatusBar mainStatusBar = functionsSWT.getMainStatusBar();
   		if (mainStatusBar != null) {
   			mainStatusBar.setUpdateNeeded(null);
   		}

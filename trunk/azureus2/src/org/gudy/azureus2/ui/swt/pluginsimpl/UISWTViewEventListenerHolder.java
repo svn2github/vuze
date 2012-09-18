@@ -32,6 +32,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance.UISWTViewEventListenerWrapper;
 
 /**
  * Holds information to create a real {@link UISWTViewEventListener} from
@@ -41,7 +42,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
  */
 public class 
 UISWTViewEventListenerHolder
-	implements UISWTViewEventListener
+	implements UISWTViewEventListenerWrapper
 {
 	private UISWTViewEventListener		listener;
 	private Reference<PluginInterface>	pi;

@@ -60,7 +60,14 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 public class SystemTraySWT
 	implements UIUpdatableAlways, MessageTextListener
 {
-
+	private static final SystemTraySWT	singleton = new SystemTraySWT();
+	
+	public static SystemTraySWT
+	getTray()
+	{
+		return( singleton );
+	}
+	
 	protected static AzureusCore core = null;
 
 	Display display;
@@ -90,7 +97,7 @@ public class SystemTraySWT
 
 	protected boolean enableTooltip;
 
-	public SystemTraySWT() {
+	private SystemTraySWT() {
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
 				SystemTraySWT.core = core;

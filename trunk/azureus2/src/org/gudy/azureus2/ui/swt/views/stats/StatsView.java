@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance.UISWTViewEventListenerWrapper;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
@@ -134,7 +135,7 @@ public class StatsView
     // Call plugin listeners
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
-			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
+			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
 
 			if (pluginUI != null && !registeredCoreSubViews) {
 				pluginUI.addView(UISWTInstance.VIEW_STATISTICS,
@@ -172,10 +173,10 @@ public class StatsView
 				registeredCoreSubViews = true;
 			}
 
-			UISWTViewEventListenerHolder[] pluginViews = pluginUI == null
+			UISWTViewEventListenerWrapper[] pluginViews = pluginUI == null
 					? null : pluginUI.getViewListeners(UISWTInstance.VIEW_STATISTICS);
 			for (int i = 0; i < pluginViews.length; i++) {
-				UISWTViewEventListenerHolder l = pluginViews[i];
+				UISWTViewEventListenerWrapper l = pluginViews[i];
 				String name = l.getViewID();
 				if (name.equals(ActivityView.MSGID_PREFIX)) {
 					idxActivityTab = i;

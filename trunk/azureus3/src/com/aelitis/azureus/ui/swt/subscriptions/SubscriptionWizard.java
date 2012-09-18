@@ -1184,7 +1184,7 @@ public class SubscriptionWizard {
 		
 		searchListener = new Listener() {
 			public void handleEvent(Event event) {
-				MainWindow.doSearch(searchInput.getText(),true);
+				UIFunctionsManager.getUIFunctions().doSearch(searchInput.getText(),true);
 				shell.close();
 			}
 		};

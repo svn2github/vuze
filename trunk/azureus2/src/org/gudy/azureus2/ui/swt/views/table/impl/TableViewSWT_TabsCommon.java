@@ -14,7 +14,9 @@ import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance.UISWTViewEventListenerWrapper;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 
@@ -189,9 +191,9 @@ public class TableViewSWT_TabsCommon
 		int iNumViews = 0;
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		UISWTViewEventListenerHolder[] pluginViews = null;
+		UISWTViewEventListenerWrapper[] pluginViews = null;
 		if (uiFunctions != null) {
-			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
+			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
 
 			if (pluginUI != null) {
 				pluginViews = pluginUI.getViewListeners(tv.getTableID());
@@ -410,7 +412,7 @@ public class TableViewSWT_TabsCommon
 
 		// Call plugin listeners
 		if (pluginViews != null) {
-			for (UISWTViewEventListenerHolder l : pluginViews) {
+			for (UISWTViewEventListenerWrapper l : pluginViews) {
 				if (l != null) {
 					try {
 						UISWTViewImpl view = new UISWTViewImpl(tv.getTableID(), l.getViewID(), l, null);

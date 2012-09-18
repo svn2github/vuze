@@ -55,6 +55,7 @@ import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
@@ -160,7 +161,7 @@ public class FilesView
   		
   		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
   		if (uiFunctions != null) {
-  			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
+  			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
   			
   			if (pluginUI != null && !registeredCoreSubViews) {
 

@@ -19,6 +19,8 @@
  */
 package com.aelitis.azureus.ui.swt.shells.main;
 
+import java.lang.reflect.Constructor;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
@@ -38,10 +40,12 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.FileDownloadWindow;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
@@ -49,6 +53,7 @@ import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
@@ -65,11 +70,14 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MdiEntryOpenListener;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.Initializer;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
@@ -82,6 +90,8 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
+import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
 import com.aelitis.azureus.util.UrlFilter;
 
@@ -225,7 +235,7 @@ public class UIFunctionsImpl
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getMainShell()
 	public Shell getMainShell() {
-		return mainWindow == null ? null : mainWindow.shell;
+		return mainWindow == null ? null : mainWindow.getShell();
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getPluginViews()
@@ -362,7 +372,7 @@ public class UIFunctionsImpl
 	}
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getMainStatusBar()
-	public MainStatusBar getMainStatusBar() {
+	public IMainStatusBar getMainStatusBar() {
 		return mainWindow.getMainStatusBar();
 	}
 	
@@ -371,7 +381,7 @@ public class UIFunctionsImpl
 		try {
 			boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 			if (uiClassic) {
-				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS, ConfigView.class, null, section, true);
+				openView(SideBar.SIDEBAR_HEADER_PLUGINS, ConfigView.class, null, section, true);
 			} else {
 				ConfigShell.getInstance().open(section);
 			}
@@ -395,17 +405,17 @@ public class UIFunctionsImpl
 	private void _openView(int viewID, Object data) {
 		switch (viewID) {
 			case VIEW_CONSOLE:
-				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS, LoggerView.class,
+				openView(SideBar.SIDEBAR_HEADER_PLUGINS, LoggerView.class,
 						null, data, true);
 				break;
 
 			case VIEW_ALLPEERS:
-				mainWindow.openView(SideBar.SIDEBAR_HEADER_TRANSFERS, PeerSuperView.class,
+				openView(SideBar.SIDEBAR_HEADER_TRANSFERS, PeerSuperView.class,
 						null, data, true);
 				break;
 
 			case VIEW_PEERS_STATS:
-				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS, ClientStatsView.class,
+				openView(SideBar.SIDEBAR_HEADER_PLUGINS, ClientStatsView.class,
 						null, data, true);
 				break;
 
@@ -427,17 +437,17 @@ public class UIFunctionsImpl
 					}
 				}
 
-				mainWindow.openView(SideBar.SIDEBAR_HEADER_TRANSFERS, ManagerView.class,
+				openView(SideBar.SIDEBAR_HEADER_TRANSFERS, ManagerView.class,
 						id, data, true);
 				break;
 
 			case VIEW_DM_MULTI_OPTIONS:
-				mainWindow.openView(SideBar.SIDEBAR_HEADER_TRANSFERS,
+				openView(SideBar.SIDEBAR_HEADER_TRANSFERS,
 						TorrentOptionsView.class, null, data, true);
 				break;
 
 			case VIEW_MYSHARES:
-				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS,
+				openView(SideBar.SIDEBAR_HEADER_PLUGINS,
 						MySharesView.class, null, data, true);
 				break;
 
@@ -450,7 +460,7 @@ public class UIFunctionsImpl
 				break;
 
 			case VIEW_MYTRACKER:
-				mainWindow.openView(SideBar.SIDEBAR_HEADER_PLUGINS, MyTrackerView.class,
+				openView(SideBar.SIDEBAR_HEADER_PLUGINS, MyTrackerView.class,
 						null, data, true);
 				break;
 
@@ -459,7 +469,60 @@ public class UIFunctionsImpl
 		}
 	}
 
+	private void openView(final String parentID,
+			final Class<? extends UISWTViewEventListener> cla, String id,
+			final Object data, final boolean closeable) {
+		final MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+		if (mdi == null) {
+			return;
+		}
 
+		if (id == null) {
+			id = cla.getName();
+			int i = id.lastIndexOf('.');
+			if (i > 0) {
+				id = id.substring(i + 1);
+			}
+		}
+
+		UISWTViewCore viewFromID = mdi.getCoreViewFromID(id);
+		if (viewFromID != null) {
+			viewFromID.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, data);
+			mdi.showEntryByID(id);
+		}
+
+		final String _id = id;
+		Utils.execSWTThreadLater(0, new AERunnable() {
+
+			public void runSupport() {
+				if (mdi.showEntryByID(_id)) {
+					return;
+				}
+				UISWTViewEventListener l = null;
+				try {
+					Constructor<?> constructor = cla.getConstructor(new Class[] {
+						data.getClass()
+					});
+					l = (UISWTViewEventListener) constructor.newInstance(new Object[] {
+						data
+					});
+				} catch (Exception e) {
+				}
+
+				try {
+					if (l == null) {
+						l = cla.newInstance();
+					}
+					mdi.createEntryFromEventListener(parentID, l, _id, closeable,
+							data);
+				} catch (Exception e) {
+					Debug.out(e);
+				}
+				mdi.showEntryByID(_id);
+			}
+		});
+
+	}
 	public UISWTInstance getUISWTInstance() {
 		return mainWindow.getUISWTInstanceImpl();
 	}
@@ -472,7 +535,7 @@ public class UIFunctionsImpl
 	public boolean viewURL(final String url, final String target, final int w,
 			final int h, final boolean allowResize, final boolean isModal) {
 
-		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
+		 mainWindow.getShell().getDisplay().syncExec(new AERunnable() {
 			public void runSupport() {
 				String realURL = url;
 				ContentNetwork cn = ContentNetworkUtils.getContentNetworkFromTarget(target);
@@ -488,11 +551,11 @@ public class UIFunctionsImpl
 					if (UrlFilter.getInstance().urlCanRPC(realURL)) {
 						realURL = cn.appendURLSuffix(realURL, false, true);
 					}
-					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,
+					BrowserWindow window = new BrowserWindow( mainWindow.getShell(), realURL,
 							w, h, allowResize, isModal);
 					window.waitUntilClosed();
 				} else {
-					mainWindow.showURL(realURL, target);
+					showURL(realURL, target);
 				}
 			}
 		});
@@ -502,7 +565,7 @@ public class UIFunctionsImpl
 	public boolean viewURL(final String url, final String target, final double w,
 			final double h, final boolean allowResize, final boolean isModal) {
 
-		mainWindow.shell.getDisplay().syncExec(new AERunnable() {
+		 mainWindow.getShell().getDisplay().syncExec(new AERunnable() {
 			public void runSupport() {
 				String realURL = url;
 				ContentNetwork cn = ContentNetworkUtils.getContentNetworkFromTarget(target);
@@ -517,17 +580,84 @@ public class UIFunctionsImpl
 					if (UrlFilter.getInstance().urlCanRPC(realURL)) {
 						realURL = cn.appendURLSuffix(realURL, false, true);
 					}
-					BrowserWindow window = new BrowserWindow(mainWindow.shell, realURL,
+					BrowserWindow window = new BrowserWindow( mainWindow.getShell(), realURL,
 							w, h, allowResize, isModal);
 					window.waitUntilClosed();
 				} else {
-					mainWindow.showURL(realURL, target);
+					showURL(realURL, target);
 				}
 			}
 		});
 		return true;
 	}
 
+	/**
+	 * @param url
+	 * @param target
+	 */
+	
+	private void showURL(final String url, String target) {
+
+		if ("_blank".equalsIgnoreCase(target)) {
+			Utils.launch(url);
+			return;
+		}
+
+		if (target.startsWith("tab-")) {
+			target = target.substring(4);
+		}
+
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+
+		if (MultipleDocumentInterface.SIDEBAR_SECTION_PLUS.equals(target)) {
+			SBC_PlusFTUX.setSourceRef(url.substring(1));
+			mdi.showEntryByID(target);
+			return;
+		}
+		
+		// Note; We don't setSourceRef on ContentNetwork here like we do
+		// everywhere else because the source ref should already be set
+		// by the caller
+		if (mdi == null || !mdi.showEntryByID(target)) {
+			Utils.launch(url);
+			return;
+		}
+
+		MdiEntry entry = mdi.getEntry(target);
+		entry.addListener(new MdiEntryOpenListener() {
+
+			public void mdiEntryOpen(MdiEntry entry) {
+				entry.removeListener(this);
+
+				mainWindow.setVisible( true, true );
+
+				if (!(entry instanceof SideBarEntrySWT)) {
+					return;
+				}
+				SideBarEntrySWT entrySWT = (SideBarEntrySWT) entry;
+
+				SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entrySWT.getSkinObject());
+
+				if (soBrowser != null) {
+					//((SWTSkinObjectBrowser) skinObject).getBrowser().setVisible(false);
+					if (url == null || url.length() == 0) {
+						soBrowser.restart();
+					} else {
+						String fullURL = url;
+						if (UrlFilter.getInstance().urlCanRPC(url)) {
+							// 4010 Tux: This shouldn't be.. either determine ContentNetwork from
+							//           url or target, or do something..
+							fullURL = ConstantsVuze.getDefaultContentNetwork().appendURLSuffix(
+									url, false, true);
+						}
+
+						soBrowser.setURL(fullURL);
+					}
+				}
+			}
+		});
+	}
+	
 	// @see com.aelitis.azureus.ui.UIFunctions#promptUser(java.lang.String, java.lang.String, java.lang.String[], int, java.lang.String, java.lang.String, boolean, int)
 	public void promptUser(String title, String text, String[] buttons,
 			int defaultOption, String rememberID, String rememberText,
@@ -804,10 +934,86 @@ public class UIFunctionsImpl
 		return closeDialog.getShell();
 	}
 	
-	// @see com.aelitis.azureus.ui.UIFunctions#doSearch(java.lang.String)
-	public void doSearch(String searchText) {
-		MainWindow.doSearch(searchText);
+	/**
+	 * @param searchText
+	 */
+	//TODO : Tux Move to utils? Could you also add a "mode" or something that would be added to the url
+	// eg: &subscribe_mode=true
+	public void doSearch(final String sSearchText) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				doSearch(sSearchText, false);
+			}
+		});
 	}
+
+	public void doSearch(String sSearchText, boolean toSubscribe) {
+		String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
+		if (sSearchText.equals(sDefault) || sSearchText.length() == 0) {
+			return;
+		}
+
+		if ( checkForSpecialSearchTerm( sSearchText )){
+			
+			return;
+		}
+		
+		SearchResultsTabArea.SearchQuery sq = new SearchResultsTabArea.SearchQuery(
+				sSearchText, toSubscribe);
+
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		String id = "Search";
+		MdiEntry existingEntry = mdi.getEntry(id);
+		if (existingEntry != null && existingEntry.isAdded()) {
+			SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
+			if (searchClass != null) {
+				searchClass.anotherSearch(sSearchText, toSubscribe);
+			}
+			mdi.showEntry(existingEntry);
+			return;
+		}
+
+		final MdiEntry entry = mdi.createEntryFromSkinRef(
+				MultipleDocumentInterface.SIDEBAR_HEADER_VUZE, id,
+				"main.area.searchresultstab", sSearchText, null, sq, true, null);
+		if (entry != null) {
+			entry.setImageLeftID("image.sidebar.search");
+			entry.setDatasource(sq);
+			entry.setViewTitleInfo(new ViewTitleInfo() {
+				public Object getTitleInfoProperty(int propertyID) {
+					if (propertyID == TITLE_TEXT) {
+						SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
+						if (searchClass != null && searchClass.sq != null) {
+							return searchClass.sq.term;
+						}
+					}
+					return null;
+				}
+			});
+		}
+		mdi.showEntryByID(id);
+	}
+	
+	private static boolean
+	checkForSpecialSearchTerm(
+		String		str )
+	{
+		str = str.trim();
+		
+		String hit = UrlUtils.parseTextForURL( str, true, true );
+		
+		if ( hit == null ){
+			
+			return( false );
+		}
+		
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		
+		new FileDownloadWindow( uiFunctions.getMainShell(), str, null, null, true );
+			
+		return( true );
+	}
+
 	
 	public void promptForSearch() {
 		SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow("Button.search", "search.dialog.text");

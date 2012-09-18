@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.Legend;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
@@ -116,7 +117,7 @@ public class PiecesView
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
-			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
+			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
 			
 			if (pluginUI != null && !registeredCoreSubViews) {
 				

@@ -229,6 +229,10 @@ public interface UISWTInstance extends UIInstanceBase {
 	 */
 	public UISWTView[] getOpenViews(String sParentID);
 
+	public UISWTViewEventListenerWrapper[] 
+	getViewListeners(
+		String sParentID );
+	
 	/**
 	 * Shows or hides a download bar for a given download.
 	 * 
@@ -278,6 +282,13 @@ public interface UISWTInstance extends UIInstanceBase {
 	 * 
 	 * @since 4.2.0.9
 	 */
-	Shell createShell(int style);
+	public Shell createShell(int style);
 
+	public interface
+	UISWTViewEventListenerWrapper
+		extends UISWTViewEventListener
+	{
+		public String
+		getViewID();
+	}
 }

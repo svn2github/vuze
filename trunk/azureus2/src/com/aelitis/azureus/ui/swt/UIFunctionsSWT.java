@@ -23,6 +23,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
+import org.gudy.azureus2.ui.swt.mainwindow.IMainStatusBar;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
@@ -64,11 +65,6 @@ public interface UIFunctionsSWT
 	/**
 	 * @return
 	 */
-	public UISWTInstanceImpl getSWTPluginInstanceImpl();
-
-	/**
-	 * @return
-	 */
 	public UISWTView[] getPluginViews();
 
 	/**
@@ -100,7 +96,7 @@ public interface UIFunctionsSWT
 
 	public void refreshTorrentMenu();
 
-	public MainStatusBar getMainStatusBar();
+	public IMainStatusBar getMainStatusBar();
 
 	/**
 	 * Creates the main application menu and attach it to the given <code>Shell</code>;

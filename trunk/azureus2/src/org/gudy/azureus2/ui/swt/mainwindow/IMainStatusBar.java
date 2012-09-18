@@ -18,53 +18,52 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
  */
 
-package com.aelitis.azureus.ui.swt.shells.main;
 
-import org.eclipse.swt.widgets.Shell;
+package org.gudy.azureus2.ui.swt.mainwindow;
 
-import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
-import org.gudy.azureus2.ui.swt.mainwindow.IMainStatusBar;
-import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar.CLabelPadding;
+import org.gudy.azureus2.ui.swt.update.UpdateWindow;
 
-import com.aelitis.azureus.core.AzureusCore;
-
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import com.aelitis.azureus.ui.UIStatusTextClickListener;
 
 
-public interface
-MainWindow
-	extends IMainWindow
+public interface 
+IMainStatusBar 
 {
 	public void
-	init(
-		AzureusCore		core );
-	
-	
-	public Shell
-	getShell();
-	
-	public IMainMenu 
-	getMainMenu();
-	
-	public IMainStatusBar 
-	getMainStatusBar();
+	createStatusEntry(
+		CLabelUpdater 	updater );
 	
 	public boolean
-	isReady();
+	isMouseOver();
+	
+	public void
+	setUpdateNeeded(
+		UpdateWindow	update_window );
+	
+	public void
+	setStatusText(
+		String			text );
 	
 	public void 
-	setVisible(
-		boolean visible, 
-		boolean tryTricks );
+	setStatusText(
+		int 						statustype, 
+		String 						string,
+		UIStatusTextClickListener 	l );
 	
-	public UISWTInstanceImpl
-	getUISWTInstanceImpl();
-
-	public void 
-	setSelectedLanguageItem();
+	public void
+	setDebugInfo(
+		String			text );
 	
-	public boolean 
-	dispose(
-		boolean for_restart,
-		boolean close_already_in_progress );
+	public interface 
+	CLabelUpdater
+	{
+		public void 
+		created(
+			CLabelPadding label );
+		
+		public boolean 
+		update(
+			CLabelPadding label );
+	}
 }

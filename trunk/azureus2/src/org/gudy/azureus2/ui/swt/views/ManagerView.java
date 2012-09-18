@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateTab;
 import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance.UISWTViewEventListenerWrapper;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
@@ -339,7 +340,7 @@ public class ManagerView
     // Call plugin listeners
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
-			UISWTInstanceImpl pluginUI = uiFunctions.getSWTPluginInstanceImpl();
+			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
 			
 			if (pluginUI != null && !registeredCoreSubViews) {
 				pluginUI.addView(UISWTInstance.VIEW_MYTORRENTS,
@@ -366,9 +367,9 @@ public class ManagerView
 				registeredCoreSubViews = true;
 			}
 			
-			UISWTViewEventListenerHolder[] pluginViews = pluginUI == null ? null
+			UISWTViewEventListenerWrapper[] pluginViews = pluginUI == null ? null
 					: pluginUI.getViewListeners(UISWTInstance.VIEW_MYTORRENTS);
-			for (UISWTViewEventListenerHolder l : pluginViews) {
+			for (UISWTViewEventListenerWrapper l : pluginViews) {
 				if (l != null) {
 					try {
 						UISWTViewImpl view = new UISWTViewImpl(

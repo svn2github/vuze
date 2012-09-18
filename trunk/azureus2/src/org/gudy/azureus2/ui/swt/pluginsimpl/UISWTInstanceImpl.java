@@ -782,7 +782,7 @@ UISWTInstanceImpl
 			return null;
 		}
 		
-		MainStatusBar mainStatusBar = functionsSWT.getMainStatusBar();
+		IMainStatusBar mainStatusBar = functionsSWT.getMainStatusBar();
 		if (mainStatusBar == null) {
 			Debug.outNoStack("No MainStatusBar on createStatusEntry");
 			return null;
@@ -990,6 +990,9 @@ UISWTInstanceImpl
 			return delegate.openView(sParentID, sViewID, dataSource, setfocus);
 		}
 		
+		public UISWTViewEventListenerWrapper[] getViewListeners(String sParentId) {
+			return delegate.getViewListeners(sParentId);
+		}
 		public UIInputReceiver getInputReceiver() {
 			return delegate.getInputReceiver();
 		}

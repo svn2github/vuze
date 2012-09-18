@@ -19,12 +19,6 @@
  */
 package com.aelitis.azureus.ui;
 
-import java.util.*;
-
-import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.core3.util.Debug;
-
-
 /**
  * @author TuxPaper
  * @created Jul 12, 2006
@@ -33,9 +27,7 @@ import org.gudy.azureus2.core3.util.Debug;
 public class UIFunctionsManager
 {
 	private static UIFunctions instance = null;
-	
-	private static List<UIFRunnable>	pending;
-	
+		
 	public static UIFunctions 
 	getUIFunctions() 
 	{
@@ -45,67 +37,10 @@ public class UIFunctionsManager
 	public static void 
 	setUIFunctions(
 		UIFunctions uiFunctions )
-	{
-		final List<UIFRunnable> to_run;
-		
+	{		
 		synchronized( UIFunctionsManager.class ){
 		
 			instance = uiFunctions;
-							
-			to_run = pending;
-				
-			pending = null;
 		}
-		
-		if ( to_run != null ){
-			
-			new AEThread2( "UIFM:set" )
-			{
-				public void
-				run()
-				{
-					for ( UIFRunnable r: to_run ){
-						
-						try{
-							r.run( instance );
-							
-						}catch( Throwable e ){
-							
-							Debug.out( e );
-						}
-					}
-				}
-			}.start();
-		}
-	}
-	
-	public static void
-	runWithUIF(
-		UIFRunnable		target )
-	{
-		synchronized( UIFunctionsManager.class ){
-			
-			if ( instance == null ){
-				
-				if ( pending == null ){
-					
-					pending = new ArrayList<UIFRunnable>();
-				}
-				
-				pending.add( target );
-				
-				return;
-			}
-		}
-		
-		target.run( instance );
-	}
-	
-	public interface
-	UIFRunnable
-	{
-		public void
-		run(
-			UIFunctions	uif );	
 	}
 }
