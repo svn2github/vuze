@@ -99,7 +99,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		
 		boolean can_ral = platform.hasCapability(PlatformManagerCapabilities.RunAtLogin );
 				
-		if ( can_ral ){
+		if ( can_ral || userMode > 0 ){
 			
 			Group gStartStop = new Group(cDisplay, SWT.NULL);
 			Messages.setLanguageText(gStartStop, LBLKEY_PREFIX + "start");
@@ -107,39 +107,52 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			gStartStop.setLayout(layout);
 			gStartStop.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
 		
-			gridData = new GridData();
-			gridData.horizontalSpan = 2;
-			BooleanParameter start_on_login = new BooleanParameter(gStartStop, "Start On Login", LBLKEY_PREFIX + "start.onlogin");
-			
-			try{
-				start_on_login.setSelected( platform.getRunAtLogin());
+			if ( can_ral ){
 				
-				start_on_login.addChangeListener(
-					new ParameterChangeAdapter()
-					{
-						public void 
-						booleanParameterChanging(
-							Parameter p,
-							boolean toValue) 
+				gridData = new GridData();
+				gridData.horizontalSpan = 2;
+				BooleanParameter start_on_login = new BooleanParameter(gStartStop, "Start On Login", LBLKEY_PREFIX + "start.onlogin");
+				
+				try{
+					start_on_login.setSelected( platform.getRunAtLogin());
+					
+					start_on_login.addChangeListener(
+						new ParameterChangeAdapter()
 						{
-							try{
-								platform.setRunAtLogin( toValue );
-								
-							}catch( Throwable e ){
-								
-								Debug.out( e );
+							public void 
+							booleanParameterChanging(
+								Parameter p,
+								boolean toValue) 
+							{
+								try{
+									platform.setRunAtLogin( toValue );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
 							}
-						}
-					});
-				
-			}catch( Throwable e ){
-				
-				start_on_login.setEnabled( false );
-				
-				Debug.out( e );
+						});
+					
+				}catch( Throwable e ){
+					
+					start_on_login.setEnabled( false );
+					
+					Debug.out( e );
+				}
+			
+				start_on_login.setLayoutData(gridData);
 			}
 			
-			start_on_login.setLayoutData(gridData);
+			if ( userMode > 0 ){
+				
+				gridData = new GridData();
+				gridData.horizontalSpan = 2;
+	
+				BooleanParameter start_in_lr_mode = new BooleanParameter(gStartStop, "Start In Low Resource Mode", LBLKEY_PREFIX + "start.inlrm");
+				
+				start_in_lr_mode.setLayoutData(gridData);
+			}
 		}
 		
 		if ( platform.hasCapability( PlatformManagerCapabilities.PreventComputerSleep )){
