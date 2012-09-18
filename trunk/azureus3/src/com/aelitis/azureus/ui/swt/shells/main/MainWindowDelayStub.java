@@ -174,6 +174,14 @@ MainWindowDelayStub
 			UIFunctionsSWT uif );
 	}
 	
+	private interface
+	Fixup4
+	{
+		public Object
+		fix(
+			UIFunctionsSWT uif );
+	}
+	
 	private void
 	checkMainWindow()
 	{
@@ -249,6 +257,28 @@ MainWindowDelayStub
 		}else{
 			
 			f.fix( uif );
+		}
+	}
+	
+	private Object
+	fixup(
+		Fixup4	f )
+	{
+		core_sem.reserve();
+					
+		checkMainWindow();
+		
+		UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		
+		if ( uif == delayed_uif ){
+			
+			Debug.out( "eh?" );
+			
+			return( null );
+			
+		}else{
+			
+			return( f.fix( uif ));
 		}
 	}
 	
@@ -694,18 +724,14 @@ MainWindowDelayStub
 
 		public IMainMenu 
 		createMainMenu(
-			Shell shell)
+			final Shell shell)
 		{
-			log( "createMainMenu" );
-			
-			return( null );
+			return((IMainMenu)fixup( new Fixup4(){public Object fix( UIFunctionsSWT uif){ return( uif.createMainMenu( shell )); }}));
 		}
 
 		public IMainWindow 
 		getMainWindow()
 		{
-			log( "getMainWindow" );
-			
 			return( MainWindowDelayStub.this );
 		}
 
