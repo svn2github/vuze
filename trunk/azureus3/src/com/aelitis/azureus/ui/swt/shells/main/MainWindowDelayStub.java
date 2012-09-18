@@ -535,10 +535,12 @@ MainWindowDelayStub
 
 		public void 
 		openView(
-			int 		viewID, 
-			Object 		datasource)
+			final int 		viewID, 
+			final Object 	datasource )
 		{
-			log( "openView" );
+				// OSX Vuze->Preferences menu
+			
+			fixup( new Fixup3(){public void fix( UIFunctionsSWT uif){ uif.openView( viewID, datasource ); }});
 		}
 		
 		public void 
@@ -726,6 +728,8 @@ MainWindowDelayStub
 		createMainMenu(
 			final Shell shell)
 		{
+				// OSX Vuze->About menu
+
 			return((IMainMenu)fixup( new Fixup4(){public Object fix( UIFunctionsSWT uif){ return( uif.createMainMenu( shell )); }}));
 		}
 
