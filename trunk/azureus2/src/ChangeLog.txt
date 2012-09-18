@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+2012.xx.xx | Vuze 4.7.2.1
+
+
+
 2012.09.17 | Vuze 4.7.2.0
 
 FEATURE: Blog | See http://devblog.vuze.com/tagged/vuze4720 for beta version blog posts
