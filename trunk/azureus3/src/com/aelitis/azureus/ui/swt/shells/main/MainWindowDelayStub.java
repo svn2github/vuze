@@ -26,6 +26,7 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AERunStateHandler;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
@@ -129,6 +130,25 @@ MainWindowDelayStub
 			
 			initialiser.abortProgress();
 		}
+		
+		AERunStateHandler.addListener(
+			new AERunStateHandler.ActivationListener()
+			{
+				private boolean	handled = false;
+				
+				public void 
+				activated() 
+				{
+					if ( handled ){
+						
+						return;
+					}
+					
+					handled = true;
+					
+					checkMainWindow();
+				}
+			});
 	}
 	
 	private void
@@ -185,6 +205,8 @@ MainWindowDelayStub
 	private void
 	checkMainWindow()
 	{
+		boolean	activated = false;
+		
 		synchronized( this ){
 			
 			if ( main_window == null ){
@@ -214,7 +236,14 @@ MainWindowDelayStub
 					
 					Debug.out( "Gave up waiting for UIFunction component to be created" );
 				}
+				
+				activated = true;
 			}
+		}
+		
+		if ( activated ){
+			
+			AERunStateHandler.setActivated();
 		}
 	}
 	

@@ -21,12 +21,96 @@
 
 package org.gudy.azureus2.core3.util;
 
+import java.util.Iterator;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 public class 
 AERunStateHandler 
 {
+	private static boolean	delayed_start = COConfigurationManager.getBooleanParameter( "Start In Low Resource Mode" );
+	
+	private static AsyncDispatcher	dispatcher = new AsyncDispatcher(2500);
+	
+	private static CopyOnWriteList<ActivationListener>	listeners = new CopyOnWriteList<ActivationListener>();
+	
 	public static boolean
 	isDelayedStartup()
 	{
-		return( false );
+		return( delayed_start );
+	}
+	
+	public static void
+	setActivated()
+	{
+		synchronized( dispatcher ){
+			
+			if ( !delayed_start ){
+				
+				return;
+			}
+		
+			delayed_start = false;
+			
+			final Iterator<ActivationListener> it = listeners.iterator();
+			
+			dispatcher.dispatch(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						while( it.hasNext()){
+							
+							try{								
+								it.next().activated();
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+						
+					}
+				});
+		}
+	}
+	
+	public static void
+	addListener(
+		final ActivationListener	l )
+	{
+		synchronized( dispatcher ){
+
+			listeners.add( l );
+			
+			if ( !delayed_start ){
+				
+				dispatcher.dispatch(
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{
+							try{
+								l.activated();
+
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					});
+			}
+		}
+	}
+	
+	public interface
+	ActivationListener
+	{
+		public void
+		activated();
 	}
 }

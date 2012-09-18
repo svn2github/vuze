@@ -237,6 +237,7 @@ public class ConfigurationDefaults {
     def.put("Use Super Seeding",FALSE);
     
     def.put("Start On Login", FALSE );
+    def.put("Start In Low Resource Mode", FALSE );
     def.put("Pause Downloads On Exit", FALSE );
     def.put("Resume Downloads On Start", FALSE );
     def.put("On Downloading Complete Do", "Nothing" );
