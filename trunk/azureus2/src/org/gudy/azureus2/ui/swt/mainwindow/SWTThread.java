@@ -192,6 +192,15 @@ public class SWTThread {
 
 		Listener lShowMainWindow = new Listener() {
 			public void handleEvent(Event event) {
+				if ( event.type == SWT.Activate ){
+					
+					if ( AERunStateHandler.isDelayedStartup()){
+						
+						Debug.out( "Ignoring activate event as delay start" );
+						
+						return;
+					}
+				}
 				Shell as = Display.getDefault().getActiveShell();
 				if (as != null) {
 					as.setVisible(true);

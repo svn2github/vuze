@@ -22,6 +22,7 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
 import org.eclipse.swt.widgets.Display;
+import org.gudy.azureus2.core3.util.AERunStateHandler;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.IUIIntializer;
@@ -29,7 +30,11 @@ import com.aelitis.azureus.ui.IUIIntializer;
 public class 
 MainWindowFactory 
 {
-	private static final boolean IMMEDIATE = false;
+	private static final boolean
+	isImmediate()
+	{
+		return( !AERunStateHandler.isDelayedStartup());
+	}
 	
 	public static MainWindow
 	create(
@@ -37,7 +42,7 @@ MainWindowFactory
 		Display 				display,
 		IUIIntializer			uiInitializer )
 	{
-		if ( IMMEDIATE ){
+		if ( isImmediate()){
 			
 			return( new MainWindowImpl( core, display, uiInitializer ));
 			
@@ -54,7 +59,7 @@ MainWindowFactory
 	{
 		final MainWindow	window;
 		
-		if ( IMMEDIATE ){
+		if ( isImmediate()){
 		
 			window = new MainWindowImpl( display, uiInitializer );
 			
