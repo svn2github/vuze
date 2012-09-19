@@ -64,6 +64,20 @@ public class SystemProperties {
 	public static void
 	determineApplicationName()
 	{
+		String explicit_name = System.getProperty( "azureus.app.name", null );
+		
+		if ( explicit_name != null ){
+			
+			explicit_name = explicit_name.trim();
+			
+			if ( explicit_name.length() > 0 ){
+				
+				setApplicationName( explicit_name );
+				
+				return;
+			}
+		}
+		
 			// try and infer the application name. this is only required on OSX as the app name
 			// is a component of the "application path" used to find plugins etc.
 
