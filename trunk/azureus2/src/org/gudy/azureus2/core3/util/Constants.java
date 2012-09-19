@@ -262,6 +262,7 @@ Constants
   public static final boolean isOSX_10_5_OrHigher;
   public static final boolean isOSX_10_6_OrHigher;
   public static final boolean isOSX_10_7_OrHigher;
+  public static final boolean isOSX_10_8_OrHigher;
   
   static{
 	  if ( isOSX ){
@@ -287,12 +288,14 @@ Constants
 		  isOSX_10_5_OrHigher = first_digit > 10 || ( first_digit == 10 && second_digit >= 5 );
 		  isOSX_10_6_OrHigher = first_digit > 10 || ( first_digit == 10 && second_digit >= 6 );
 		  isOSX_10_7_OrHigher = first_digit > 10 || ( first_digit == 10 && second_digit >= 7 );
+		  isOSX_10_8_OrHigher = first_digit > 10 || ( first_digit == 10 && second_digit >= 8 );
 		  
 	  }else{
 		  
 		  isOSX_10_5_OrHigher = false;
 		  isOSX_10_6_OrHigher = false;
 		  isOSX_10_7_OrHigher = false;
+		  isOSX_10_8_OrHigher = false;
 	  }
   }
   

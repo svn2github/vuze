@@ -303,6 +303,22 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
   	
   		throws PlatformManagerException 
   	{
+  		if ( Constants.isOSX_10_8_OrHigher ){
+  			
+  			 try
+             {
+                 StringBuffer sb = new StringBuffer();
+                 sb.append("tell application \"");
+                 sb.append("System Events");
+                 sb.append("\" to get the name of every login item");
+
+                 System.out.println( performOSAScript(sb));
+             }
+             catch (Throwable e)
+             {
+                 throw new PlatformManagerException("Failed to move file", e);
+             }
+  		}
   		File f = getLoginPList();
   		
   		if ( !f.exists()){
@@ -1530,7 +1546,9 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 		String[]	args )
 	{
 		try{
-			System.out.println( new PlatformManagerImpl().getMaxOpenFiles());
+			// System.out.println( new PlatformManagerImpl().getMaxOpenFiles());
+			
+			new PlatformManagerImpl().getRunAtLogin();
 			
 		}catch( Throwable e ){
 			
