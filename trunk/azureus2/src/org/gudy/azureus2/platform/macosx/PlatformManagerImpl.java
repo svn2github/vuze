@@ -305,20 +305,33 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
   	{
   		if ( Constants.isOSX_10_8_OrHigher ){
   			
-  			 try
-             {
+  			String item_name = SystemProperties.getApplicationName();
+  			
+  			try{
+  				 
                  StringBuffer sb = new StringBuffer();
                  sb.append("tell application \"");
                  sb.append("System Events");
                  sb.append("\" to get the name of every login item");
 
-                 System.out.println( performOSAScript(sb));
-             }
-             catch (Throwable e)
-             {
-                 throw new PlatformManagerException("Failed to move file", e);
+                 String[] items = performOSAScript(sb).split( "," );
+                 
+                 for ( String item: items ){
+                	 
+                	 if ( item.trim().equalsIgnoreCase( item_name )){
+                		 
+                		 return( true );
+                	 }
+                 }
+                 
+                 return( false );
+                 
+             }catch (Throwable e){
+            	 
+                 throw new PlatformManagerException("Failed to get login items", e);
              }
   		}
+  		
   		File f = getLoginPList();
   		
   		if ( !f.exists()){
@@ -397,6 +410,55 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
  			throw( new PlatformManagerException( "Failed to write set run-at-login, bundle not found" ));
   		}
   		
+		String	abs_target = bundle_file.getAbsolutePath();
+
+  		if ( Constants.isOSX_10_8_OrHigher ){
+  		
+  			if ( run ){
+  				
+  	 			 try{
+  	  				 
+  	                 StringBuffer sb = new StringBuffer();
+  	                 sb.append("tell application \"");
+  	                 sb.append("System Events");
+  	                 sb.append("\" to make login item at end with properties {path:\"" );
+  	                 sb.append(abs_target);
+  	                 sb.append("\", hidden:false}" );
+  	                 
+  	                 System.out.println( performOSAScript(sb));
+  	                 
+  	                 return;
+  	                 
+  	             }catch (Throwable e){
+  	            	 
+  	                 throw new PlatformManagerException("Failed to add login item", e);
+  	             }	
+  			  		
+  			}else{
+  				
+  				
+ 	 			 try{
+  	  				 
+  	                 StringBuffer sb = new StringBuffer();
+  	                 sb.append("tell application \"");
+  	                 sb.append("System Events");
+  	                 sb.append("\" to delete login item \"" );
+  	                 sb.append(SystemProperties.getApplicationName());
+  	                 sb.append("\"" );
+  	                 
+  	                 System.out.println( performOSAScript(sb));
+  	                 
+  	                 return;
+  	                 
+  	             }catch (Throwable e){
+  	            	 
+  	                 throw new PlatformManagerException("Failed to delete login item", e);
+  	             }	  		
+  			}
+  		}
+  		
+
+  		
   		File f = getLoginPList();
   		
   		if ( f.exists()){
@@ -437,9 +499,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
   			int	dict_line 			= -1;
   			int	auto_launch_line 	= -1;
   			int	target_index		= -1;
-  			
-  			String	target = bundle_file.getAbsolutePath();
-  			
+  			  			
   			try{
   				while( true ){
   					
@@ -462,7 +522,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
   						auto_launch_line = lines.size();
   					}
   					
-  					if ( line.contains( target )){
+  					if ( line.contains( abs_target )){
   						
   						target_index = lines.size();
   					}
@@ -498,7 +558,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
   				
  				lines.add( target_index++, "\t\t<dict>" );
 				lines.add( target_index++, "\t\t\t<key>Path</key>" );
-				lines.add( target_index++, "\t\t\t<string>" + target + "</string>" );
+				lines.add( target_index++, "\t\t\t<string>" + abs_target + "</string>" );
  				lines.add( target_index++, "\t\t</dict>" );
   				
   			}else{
@@ -1546,10 +1606,15 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 		String[]	args )
 	{
 		try{
+			SystemProperties.setApplicationName( "Vuze" );
+			
 			// System.out.println( new PlatformManagerImpl().getMaxOpenFiles());
 			
-			new PlatformManagerImpl().getRunAtLogin();
+			PlatformManagerImpl pm = new PlatformManagerImpl();
 			
+			pm.getRunAtLogin();
+			
+			pm.setRunAtLogin( false );
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
