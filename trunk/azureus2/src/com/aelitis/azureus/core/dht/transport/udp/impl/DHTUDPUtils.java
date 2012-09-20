@@ -421,7 +421,7 @@ DHTUDPUtils
 				
 		InetSocketAddress	external_address = deserialiseAddress( is );
 		
-		return( new DHTTransportUDPContactImpl( false, transport, external_address, external_address, version, 0, 0 ));
+		return( new DHTTransportUDPContactImpl( false, transport, external_address, external_address, version, 0, 0, (byte)0 ));
 	}
 	
 

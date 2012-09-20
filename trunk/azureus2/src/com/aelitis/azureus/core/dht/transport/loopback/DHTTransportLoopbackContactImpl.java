@@ -96,6 +96,12 @@ DHTTransportLoopbackContactImpl
 		return( true );
 	}
 	
+	public boolean 
+	isSleeping() 
+	{
+		return( false );
+	}
+	
 	public int
 	getMaxFailForLiveCount()
 	{

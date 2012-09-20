@@ -315,12 +315,12 @@ DHTRouterImpl
 		addContact( node_id, attachment, false );
 	}
 	
-	public DHTRouterContact
+	public void
 	contactAlive(
 		byte[]						node_id,
 		DHTRouterContactAttachment	attachment )
 	{
-		return( addContact( node_id, attachment, true ));
+		addContact( node_id, attachment, true );
 	}
 	
 	// all incoming node actions come through either contactDead or addContact
@@ -399,12 +399,42 @@ DHTRouterImpl
 		
 	}
 	
-	public DHTRouterContact
+	public void
 	addContact(
 		byte[]						node_id,
 		DHTRouterContactAttachment	attachment,
 		boolean						known_to_be_alive )
 	{	
+		if ( attachment.isSleeping()){
+			
+				// sleeping nodes are removed from the router as they're not generally
+				// available for doing stuff
+			
+			if ( Arrays.equals( router_node_id, node_id )){
+				
+				return;
+			}
+			
+			try{
+				this_mon.enter();
+				
+				Object[]	res = findContactSupport( node_id );
+					
+				DHTRouterNodeImpl		node	= (DHTRouterNodeImpl)res[0];
+				DHTRouterContactImpl	contact = (DHTRouterContactImpl)res[1];
+				
+				if ( contact != null ){
+				
+					node.dead( contact, true );
+				}
+			}finally{
+				
+				this_mon.exit();
+			}
+			
+			return;
+		}
+		
 		try{
 			try{
 			
@@ -415,7 +445,8 @@ DHTRouterImpl
 					consecutive_dead	= 0;
 				}
 				
-				return( addContactSupport( node_id, attachment, known_to_be_alive ));
+				addContactSupport( node_id, attachment, known_to_be_alive );
+				
 			}finally{
 				
 				this_mon.exit();
@@ -428,7 +459,7 @@ DHTRouterImpl
 		}
 	}
 	
-	protected DHTRouterContact
+	private DHTRouterContact
 	addContactSupport(
 		byte[]						node_id,
 		DHTRouterContactAttachment	attachment,

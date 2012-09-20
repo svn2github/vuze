@@ -92,6 +92,8 @@ DHTUDPPacketReply
 		target_instance_id	= _local_contact.getInstanceID();
 				
 		skew	= _remote_contact.getClockSkew();
+		
+		flags	= transport.getGenericFlags();
 	}
 	
 	protected

@@ -73,6 +73,8 @@ DHTTransportUDPContactImpl
 	private byte				protocol_version;
 	private int					instance_id;
 	private long				skew;
+	private byte				generic_flags;
+	
 	private int					random_id;
 	private int					node_status	= NODE_STATUS_UNKNOWN;
 		
@@ -86,7 +88,8 @@ DHTTransportUDPContactImpl
 		InetSocketAddress		_external_address,
 		byte					_protocol_version,
 		int						_instance_id,
-		long					_skew )
+		long					_skew,
+		byte					_generic_flags )
 	
 		throws DHTTransportException
 	{
@@ -100,8 +103,9 @@ DHTTransportUDPContactImpl
 			external_address	= transport_address;
 		}
 		
-		instance_id		=		 _instance_id;
+		instance_id		=		_instance_id;
 		skew			= 		_skew;
+		generic_flags	= 		_generic_flags;
 		
 		if ( 	transport_address == external_address ||
 				transport_address.getAddress().equals( external_address.getAddress())){
@@ -168,6 +172,12 @@ DHTTransportUDPContactImpl
 	{
 		return( 	addressMatchesID() &&
 					!transport.invalidExternalAddress( external_address.getAddress()));
+	}
+	
+	public boolean 
+	isSleeping() 
+	{
+		return(( generic_flags & DHTUDPPacket.GF_DHT_SLEEPING ) != 0 );
 	}
 	
 	protected boolean

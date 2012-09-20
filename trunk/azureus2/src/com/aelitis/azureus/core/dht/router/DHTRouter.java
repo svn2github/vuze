@@ -78,7 +78,7 @@ DHTRouter
 		 * @return
 		 */
 	
-	public DHTRouterContact
+	public void
 	contactAlive(
 		byte[]						node_id,
 		DHTRouterContactAttachment	attachment );

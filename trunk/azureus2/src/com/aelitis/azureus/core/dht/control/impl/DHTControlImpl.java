@@ -4545,6 +4545,12 @@ DHTControlImpl
 			return( delegate.isValid());
 		}
 		
+		public boolean 
+		isSleeping()
+		{
+			return( delegate.isSleeping());
+		}
+		
 		public void
 		sendPing(
 			DHTTransportReplyHandler	handler )

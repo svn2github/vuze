@@ -82,4 +82,9 @@ DHTControlContactImpl
 		return( r_contact );
 	}
 	
+	public boolean
+	isSleeping()
+	{
+		return( t_contact.isSleeping());
+	}
 }

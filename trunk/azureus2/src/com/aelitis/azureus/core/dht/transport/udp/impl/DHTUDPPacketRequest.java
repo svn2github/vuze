@@ -95,6 +95,8 @@ DHTUDPPacketRequest
 		originator_address		= _local_contact.getExternalAddress();
 		originator_instance_id	= _local_contact.getInstanceID();
 		originator_time			= SystemTime.getCurrentTime();
+		
+		flags	= transport.getGenericFlags();
 	}
 	
 	protected

@@ -82,6 +82,9 @@ DHTTransportContact
 	public boolean
 	isValid();
 	
+	public boolean
+	isSleeping();
+	
 	public void
 	sendPing(
 		DHTTransportReplyHandler	handler );

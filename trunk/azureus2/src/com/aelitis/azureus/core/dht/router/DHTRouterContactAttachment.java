@@ -42,4 +42,7 @@ DHTRouterContactAttachment
 	
 	public int
 	getInstanceID();
+	
+	public boolean
+	isSleeping();
 }
