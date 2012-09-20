@@ -49,8 +49,8 @@ DHTUDPPacketReply
 		8 +		// con id
 		1 +		// ver
 		1 +		// net 
-		4;		// instance
-	
+		4 +		// instance
+		1;		// flags
 	
 	private DHTTransportUDPImpl 	transport;
 	
@@ -59,7 +59,7 @@ DHTUDPPacketReply
 	private byte	vendor_id	= DHTTransportUDP.VENDOR_ID_NONE;
 	private int		network;
 	private int		target_instance_id;
-	
+	private byte	flags;
 	private long	skew;
 		
 	private DHTNetworkPosition[]	network_positions;
@@ -133,6 +133,11 @@ DHTUDPPacketReply
 		transport = network_handler.getTransport( this );
 
 		target_instance_id	= is.readInt();
+		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS ){
+			
+			flags	= is.readByte();
+		}
 	}
 	
 	public DHTTransportUDPImpl
@@ -175,6 +180,12 @@ DHTUDPPacketReply
 	getNetwork()
 	{
 		return( network );
+	}
+	
+	public byte
+	getGenericFlags()
+	{
+		return( flags );
 	}
 	
 	public void
@@ -222,11 +233,16 @@ DHTUDPPacketReply
 		}
 		
 		os.writeInt( target_instance_id );
+		
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS ){
+
+			os.writeByte( flags );
+		}
 	}
 	
 	public String
 	getString()
 	{
-		return( super.getString() + ",[con="+connection_id+",prot=" + protocol_version + ",ven=" + vendor_id + ",net="+network+"]");
+		return( super.getString() + ",[con="+connection_id+",prot=" + protocol_version + ",ven=" + vendor_id + ",net="+network + ",fl=" + flags + "]");
 	}
 }

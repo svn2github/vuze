@@ -64,6 +64,7 @@ DHTUDPPacketRequest
 	private long				originator_time;
 	private InetSocketAddress	originator_address;
 	private int					originator_instance_id;
+	private byte				flags;
 	
 	private long				skew;
 	
@@ -165,6 +166,11 @@ DHTUDPPacketRequest
 		skew = SystemTime.getCurrentTime() - originator_time;
 		
 		transport.recordSkew( originator_address, skew );
+		
+		if ( originator_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS ){
+			
+			flags	= is.readByte();
+		}
 	}
 	
 	protected void
@@ -235,6 +241,11 @@ DHTUDPPacketRequest
 		os.writeInt( originator_instance_id );
 		
 		os.writeLong( originator_time );
+		
+		if ( originator_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS ){
+
+			os.writeByte( flags );
+		}
 	}
 	
 	protected void
@@ -288,6 +299,12 @@ DHTUDPPacketRequest
 		network	= _network;
 	}
 	
+	public byte
+	getGenericFlags()
+	{
+		return( flags );
+	}
+	
 	protected byte
 	getOriginatorVersion()
 	{
@@ -316,6 +333,6 @@ DHTUDPPacketRequest
 	public String
 	getString()
 	{
-		return( super.getString() + ",[prot=" + protocol_version + ",ven=" + vendor_id + ",net="+network+",ov=" + originator_version + "]");
+		return( super.getString() + ",[prot=" + protocol_version + ",ven=" + vendor_id + ",net="+network+",ov=" + originator_version + ",fl=" + flags + "]");
 	}
 }

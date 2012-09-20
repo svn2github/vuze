@@ -49,6 +49,7 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_4407					= 50;	// cvs
 	public static final byte PROTOCOL_VERSION_4511					= 50;	// main
 	public static final byte PROTOCOL_VERSION_4600					= 50;	// min -> 50
+	public static final byte PROTOCOL_VERSION_4720					= 50;	
 
 	public static final byte PROTOCOL_VERSION_DIV_AND_CONT			= 6;
 	public static final byte PROTOCOL_VERSION_ANTI_SPOOF			= 7;
@@ -92,6 +93,7 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID3			= 50;	// ip and port based restrictions 
 
 	public static final byte PROTOCOL_VERSION_VIVALDI_OPTIONAL		= 51;	// optional vivaldi
+	public static final byte PROTOCOL_VERSION_PACKET_FLAGS			= 51;	// flags field added to request and reply packets
 
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	

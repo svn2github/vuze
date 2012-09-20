@@ -30,4 +30,7 @@ DHTUDPPacket
 	
 	public byte
 	getProtocolVersion();
+	
+	public byte
+	getGenericFlags();
 }
