@@ -40,6 +40,7 @@ import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
+import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.VivaldiPositionFactory;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
@@ -717,8 +718,6 @@ DHTUDPUtils
 
 		if ( reply.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_GENERIC_NETPOS ){
 			
-			os.writeByte((byte)nps.length);
-			
 			boolean	v1_found = false;
 			
 			for (int i=0;i<nps.length;i++){
@@ -728,21 +727,43 @@ DHTUDPUtils
 				if ( np.getPositionType() == DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1 ){
 					
 					v1_found	= true;
+					
+					break;
 				}
+			}
+			
+			if ( !v1_found ){
+				
+				if ( reply.getProtocolVersion() < DHTTransportUDP.PROTOCOL_VERSION_VIVALDI_OPTIONAL ){
+					
+						// need to add one in for backward compatability
+					
+					DHTNetworkPosition np = VivaldiPositionFactory.createPosition( Float.NaN );
+					
+					DHTNetworkPosition[] new_nps = new DHTNetworkPosition[nps.length+1];
+					
+					System.arraycopy( nps, 0, new_nps, 0, nps.length );
+					
+					new_nps[ nps.length ] = np;
+					
+					nps = new_nps;
+				}
+			}
+			
+			os.writeByte((byte)nps.length);
+						
+			for (int i=0;i<nps.length;i++){
+					
+				DHTNetworkPosition	np = nps[i];
 				
 				os.writeByte( np.getPositionType());
 				os.writeByte( np.getSerialisedSize());
 				
 				np.serialise( os );
 			}
-			
-			if ( !v1_found ){
-				
-				Debug.out( "Vivaldi V1 missing" );
-				
-				throw( new IOException( "Vivaldi V1 missing" ));
-			}
 		}else{
+			
+				// dead code these days 
 			
 			for (int i=0;i<nps.length;i++){
 				
@@ -816,26 +837,11 @@ DHTUDPUtils
 			}
 		}else{
 			
+				// dead code these days 
+			
 			nps = new DHTNetworkPosition[]{ DHTNetworkPositionManager.deserialise( reply.getAddress().getAddress(), DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1, is )};	
 		}
-		
-		boolean	v1_found = false;
-		
-		for (int i=0;i<nps.length;i++){
-			
-			if ( nps[i].getPositionType() == DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1 ){
 				
-				v1_found	= true;
-			}			
-		}
-		
-		if ( !v1_found ){
-			
-			// Debug.out( "Vivaldi V1 missing" );
-			
-			throw( new IOException( "Vivaldi V1 missing" ));
-		}
-		
 		reply.setNetworkPositions( nps );
 	}
 	

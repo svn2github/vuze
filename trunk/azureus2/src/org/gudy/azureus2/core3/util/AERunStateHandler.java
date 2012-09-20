@@ -48,6 +48,12 @@ AERunStateHandler
 		return( delayed_start );
 	}
 	
+	public static boolean
+	isDHTSleeping()
+	{
+		return( delayed_start );
+	}
+	
 	public static void
 	setActivated()
 	{

@@ -28,6 +28,7 @@ import java.net.InetSocketAddress;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.AERunStateHandler;
 import org.gudy.azureus2.core3.util.AESemaphore;
 
 
@@ -53,7 +54,15 @@ DHTTransportUDPContactImpl
 	public static final int			NODE_STATUS_ROUTABLE	= 0x00000001;
 
 	static{
-		DHTNetworkPositionManager.registerProvider( new VivaldiPositionProvider());
+		AERunStateHandler.addListener(
+			new AERunStateHandler.ActivationListener()
+			{
+				public void 
+				activated() 
+				{
+					DHTNetworkPositionManager.registerProvider( new VivaldiPositionProvider());	
+				}
+			});
 	}
 	
 	private	DHTTransportUDPImpl		transport;

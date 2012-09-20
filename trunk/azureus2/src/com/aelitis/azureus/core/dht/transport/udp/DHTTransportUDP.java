@@ -91,14 +91,16 @@ DHTTransportUDP
 	
 	public static final byte PROTOCOL_VERSION_RESTRICT_ID3			= 50;	// ip and port based restrictions 
 
+	public static final byte PROTOCOL_VERSION_VIVALDI_OPTIONAL		= 51;	// optional vivaldi
+
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
 	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;
 	
 		// current versions
 	
-	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_RESTRICT_ID3;
-	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_RESTRICT_ID3;
+	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_VIVALDI_OPTIONAL;
+	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_VIVALDI_OPTIONAL;
 
 	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_RESTRICT_ID3;
 	public static final byte PROTOCOL_VERSION_MIN_CVS				= PROTOCOL_VERSION_RESTRICT_ID3;

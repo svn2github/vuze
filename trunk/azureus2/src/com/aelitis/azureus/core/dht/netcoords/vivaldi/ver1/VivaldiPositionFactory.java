@@ -33,4 +33,15 @@ VivaldiPositionFactory
 	{
 		return( new VivaldiPositionImpl(new HeightCoordinatesImpl(0,0,0)));
 	}
+	
+	public static VivaldiPosition
+	createPosition(
+		float		error )
+	{
+		VivaldiPositionImpl np = new VivaldiPositionImpl(new HeightCoordinatesImpl(0,0,0));
+		
+		np.setErrorEstimate( error );
+		
+		return( np );
+	}
 }
