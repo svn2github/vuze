@@ -1139,7 +1139,9 @@ DHTNATPuncherImpl
 		try{
 			server_mon.enter();
 		
-			BindingData	entry = rendezvous_bindings.get( originator.getAddress().toString());
+			String	key =  originator.getAddress().toString();
+
+			BindingData	entry = rendezvous_bindings.get( key );
 			
 			if ( entry == null ){
 			
@@ -1157,8 +1159,15 @@ DHTNATPuncherImpl
 			if ( ok ){
 				
 				long	now = SystemTime.getMonotonousTime();
+								
+				if ( entry == null ){
 				
-				rendezvous_bindings.put( originator.getAddress().toString(), new BindingData( originator, now ));
+					rendezvous_bindings.put( key, new BindingData( originator, now ));
+					
+				}else{
+					
+					entry.rebind();
+				}
 				
 				response.put( "port", new Long( originator.getAddress().getPort()));
 			}
@@ -1560,14 +1569,19 @@ DHTNATPuncherImpl
 				}else{
 					
 					entry.connectFailed();
+					
+					extra_log = " - consec=" + entry.getConsecutiveFailCount();
 				}
 			}else{
 				
-				extra_log = " - (ignored due to consec fails)";
+				extra_log = " - ignored due to consec fails";
 			}
+		}else{
+			
+			extra_log = " - invalid rendezvous";
 		}
 		
-		log( "Rendezvous punch request from " + originator.getString() + " to " + target_str + " " + (ok?"initiated": ( "failed - consec=" + entry.consec_fails  )) + extra_log );
+		log( "Rendezvous punch request from " + originator.getString() + " to " + target_str + " " + (ok?"initiated":"failed") + extra_log );
 
 		response.put( "ok", new Long(ok?1:0));
 	}
@@ -2214,6 +2228,12 @@ DHTNATPuncherImpl
 			bind_time	= _time;
 		}
 		
+		private void
+		rebind()
+		{
+			bind_time	= SystemTime.getMonotonousTime();
+		}
+		
 		private DHTTransportUDPContact
 		getContact()
 		{
@@ -2246,6 +2266,12 @@ DHTNATPuncherImpl
 			return(
 				consec_fails < 8 ||
 				SystemTime.getMonotonousTime() - last_connect_time > 30*1000 );				
+		}
+		
+		private int
+		getConsecutiveFailCount()
+		{
+			return( consec_fails );
 		}
 	}
 }
