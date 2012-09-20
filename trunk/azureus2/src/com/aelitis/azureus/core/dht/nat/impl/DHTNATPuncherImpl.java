@@ -36,7 +36,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.BDecoder;
-import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -112,8 +111,8 @@ DHTNATPuncherImpl
 	private static final int	RENDEZVOUS_CLIENT_PING_PERIOD	= 50*1000;		// some routers only hold tunnel for 60s
 	private static final int	RENDEZVOUS_PING_FAIL_LIMIT		= 4;			// if you make this < 2 change code below!
 	
-	private Monitor	server_mon;
-	private Map 	rendezvous_bindings = new HashMap();
+	private Monitor						server_mon;
+	private Map<String,BindingData> 	rendezvous_bindings = new HashMap<String,BindingData>();
 	
 	private long	last_publish;
 	
@@ -262,30 +261,22 @@ DHTNATPuncherImpl
 					perform(
 						UTTimerEvent		event )
 					{
-						long	now = plugin_interface.getUtilities().getCurrentSystemTime();
+						long	now = SystemTime.getMonotonousTime();
 						
 						try{
 							server_mon.enter();
 							
-							Iterator	it = rendezvous_bindings.values().iterator();
+							Iterator<BindingData>	it = rendezvous_bindings.values().iterator();
 							
 							while( it.hasNext()){
 								
-								Object[]	entry = (Object[])it.next();
+								BindingData	entry = it.next();
 								
-								long	time = ((Long)entry[1]).longValue();
+								long	time = entry.getBindTime();
 								
 								boolean	removed = false;
 								
-								if ( time > now ){
-									
-										// clock change, easiest approach is to remove it
-									
-									it.remove();
-								
-									removed	= true;
-									
-								}else if ( now - time > RENDEZVOUS_SERVER_TIMEOUT ){
+								if ( now - time > RENDEZVOUS_SERVER_TIMEOUT ){
 									
 										// timeout
 									
@@ -296,7 +287,7 @@ DHTNATPuncherImpl
 								
 								if ( removed ){
 									
-									log( "Rendezvous " + ((DHTTransportContact)entry[0]).getString() + " removed due to inactivity" );
+									log( "Rendezvous " + entry.getContact().getString() + " removed due to inactivity" );
 								}
 							}
 						}finally{
@@ -332,58 +323,51 @@ DHTNATPuncherImpl
 	publish(
 		final boolean		force )
 	{
-		long now = plugin_interface.getUtilities().getCurrentSystemTime();
-		
-		if ( now < last_publish && !force ){
+		long now = SystemTime.getMonotonousTime();
+			
+		if ( force || now - last_publish >= REPUBLISH_TIME_MIN ){
 			
 			last_publish	= now;
 			
-		}else{
-			
-			if ( force || now - last_publish >= REPUBLISH_TIME_MIN ){
-				
-				last_publish	= now;
-				
-				plugin_interface.getUtilities().createThread(
-					"DHTNATPuncher:publisher",
-					new Runnable()
+			plugin_interface.getUtilities().createThread(
+				"DHTNATPuncher:publisher",
+				new Runnable()
+				{
+					public void
+					run()
 					{
-						public void
-						run()
-						{
+						try{
+							pub_mon.enter();
+							
+							if ( publish_in_progress ){
+								
+								return;
+							}
+							
+							publish_in_progress	= true;
+							
+						}finally{
+							
+							pub_mon.exit();
+						}
+						
+						try{
+							publishSupport();
+							
+						}finally{
+							
 							try{
 								pub_mon.enter();
 								
-								if ( publish_in_progress ){
-									
-									return;
-								}
-								
-								publish_in_progress	= true;
+								publish_in_progress	= false;
 								
 							}finally{
 								
 								pub_mon.exit();
 							}
-							
-							try{
-								publishSupport();
-								
-							}finally{
-								
-								try{
-									pub_mon.enter();
-									
-									publish_in_progress	= false;
-									
-								}finally{
-									
-									pub_mon.exit();
-								}
-							}
 						}
-					});
-			}
+					}
+				});
 		}
 	}
 	
@@ -1155,7 +1139,7 @@ DHTNATPuncherImpl
 		try{
 			server_mon.enter();
 		
-			Object[]	entry = (Object[])rendezvous_bindings.get( originator.getAddress().toString());
+			BindingData	entry = rendezvous_bindings.get( originator.getAddress().toString());
 			
 			if ( entry == null ){
 			
@@ -1172,9 +1156,9 @@ DHTNATPuncherImpl
 			
 			if ( ok ){
 				
-				long	now = plugin_interface.getUtilities().getCurrentSystemTime();
+				long	now = SystemTime.getMonotonousTime();
 				
-				rendezvous_bindings.put( originator.getAddress().toString(), new Object[]{ originator, new Long( now )});
+				rendezvous_bindings.put( originator.getAddress().toString(), new BindingData( originator, now ));
 				
 				response.put( "port", new Long( originator.getAddress().getPort()));
 			}
@@ -1197,13 +1181,13 @@ DHTNATPuncherImpl
 		try{
 			server_mon.enter();
 			
-			Iterator	it = rendezvous_bindings.values().iterator();
+			Iterator<BindingData>	it = rendezvous_bindings.values().iterator();
 			
 			while( it.hasNext()){
 				
-				Object[]	entry = (Object[])it.next();
+				BindingData	entry = it.next();
 				
-				final DHTTransportUDPContact	contact = (DHTTransportUDPContact)entry[0];
+				final DHTTransportUDPContact	contact = entry.getContact();
 				
 				new AEThread2( "DHTNATPuncher:destroy", true )
 				{
@@ -1541,35 +1525,49 @@ DHTNATPuncherImpl
 		
 		String	target_str = new String((byte[])request.get( "target" ));
 		
-		Object[] entry;
+		BindingData entry;
 		
 		try{
 			server_mon.enter();
 		
-			entry = (Object[])rendezvous_bindings.get( target_str );
+			entry = rendezvous_bindings.get( target_str );
 		
 		}finally{
 			
 			server_mon.exit();
 		}
 		
+		String extra_log = "";
+		
 		if ( entry != null ){
-			
-			DHTTransportUDPContact	target = (DHTTransportUDPContact)entry[0];
-			
-			Map target_client_data = sendConnect( target, originator, (Map)request.get( "client_data" ));
-			
-			if ( target_client_data != null ){
+						
+			if ( entry.isOKToConnect()){
 				
-				response.put( "client_data", target_client_data );
-																
-				response.put( "port", new Long( target.getTransportAddress().getPort()));
+				DHTTransportUDPContact	target = entry.getContact();
+
+				Map target_client_data = sendConnect( target, originator, (Map)request.get( "client_data" ));
 				
-				ok	= true;
+				if ( target_client_data != null ){
+					
+					response.put( "client_data", target_client_data );
+																	
+					response.put( "port", new Long( target.getTransportAddress().getPort()));
+					
+					ok	= true;
+					
+					entry.connectOK();
+					
+				}else{
+					
+					entry.connectFailed();
+				}
+			}else{
+				
+				extra_log = " - (ignored due to consec fails)";
 			}
 		}
 		
-		log( "Rendezvous punch request from " + originator.getString() + " to " + target_str + " " + (ok?"initiated":"failed"));
+		log( "Rendezvous punch request from " + originator.getString() + " to " + target_str + " " + (ok?"initiated":"failed") + extra_log );
 
 		response.put( "ok", new Long(ok?1:0));
 	}
@@ -2195,6 +2193,59 @@ DHTNATPuncherImpl
 	{
 		if ( TRACE ){
 			System.out.println( str );
+		}
+	}
+	
+	private static class
+	BindingData
+	{
+		private DHTTransportUDPContact		contact;
+		private long						bind_time;
+		
+		private int			consec_fails;
+		private long		last_connect_time;
+		
+		private
+		BindingData(
+			DHTTransportUDPContact		_contact,
+			long						_time )
+		{
+			contact		= _contact;
+			bind_time	= _time;
+		}
+		
+		private DHTTransportUDPContact
+		getContact()
+		{
+			return( contact );
+		}
+		
+		private long
+		getBindTime()
+		{
+			return( bind_time );
+		}
+		
+		private void
+		connectOK()
+		{
+			consec_fails		= 0;
+			last_connect_time	= SystemTime.getMonotonousTime();
+		}
+		
+		private void
+		connectFailed()
+		{
+			consec_fails++;
+			last_connect_time	= SystemTime.getMonotonousTime();
+		}
+		
+		private boolean
+		isOKToConnect()
+		{
+			return(
+				consec_fails < 8 ||
+				SystemTime.getMonotonousTime() - last_connect_time > 30*1000 );				
 		}
 	}
 }
