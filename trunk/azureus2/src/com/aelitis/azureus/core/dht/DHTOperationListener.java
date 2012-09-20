@@ -39,7 +39,7 @@ DHTOperationListener
 		int					level,
 		int					active_searches );
 	
-	public void
+	public boolean
 	diversified(
 		String				desc );
 	

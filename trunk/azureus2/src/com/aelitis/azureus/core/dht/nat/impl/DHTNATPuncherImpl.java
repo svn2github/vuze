@@ -656,10 +656,11 @@ DHTNATPuncherImpl
       											boolean				is_closest )
       										{}
       										
-      										public void
+      										public boolean
       										diversified(
       											String		desc )
       										{
+      											return( true );
       										}
       										
       										public void
@@ -707,10 +708,11 @@ DHTNATPuncherImpl
       											boolean				is_closest )
       										{}
       										
-      										public void
+      										public boolean
       										diversified(
       											String		desc )
       										{
+      											return( true );
       										}
       										
       										public void
@@ -761,10 +763,11 @@ DHTNATPuncherImpl
       										boolean				is_closest )
       									{}
       									
-      									public void
+      									public boolean
       									diversified(
       										String		desc )
       									{
+      										return( true );
       									}
       									
       									public void

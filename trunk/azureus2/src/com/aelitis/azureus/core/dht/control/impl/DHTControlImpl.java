@@ -1574,11 +1574,11 @@ DHTControlImpl
 						get_listener.searching(contact, level, active_searches);
 					}
 					
-					public void
+					public boolean
 					diversified(
 						String				desc )
 					{
-						get_listener.diversified(desc);
+						return( get_listener.diversified(desc));
 					}
 					
 					public void
@@ -1676,11 +1676,11 @@ DHTControlImpl
 				{
 				}
 				
-				public void
+				public boolean
 				diversified(
 					String		desc )
 				{
-					lookup_listener.diversified( desc );
+					return( lookup_listener.diversified( desc ));
 				}
 				
 				public void
@@ -1786,7 +1786,10 @@ DHTControlImpl
 
 			if ( div ){
 				
-				get_listener.diversified( this_description );
+				if ( !get_listener.diversified( this_description )){
+					
+					continue;
+				}
 			}
 			
 			boolean	is_stats_query = (flags & DHT.FLAG_STATS ) != 0;
@@ -1811,11 +1814,11 @@ DHTControlImpl
 							DHTTransportContact	cause,
 							byte				diversification_type )
 						{
-							diversified( "Diversification of [" + this_description + "]" );
+							boolean ok_to_div = diversified( "Diversification of [" + this_description + "]" );
 							
 								// we only want to follow one diversification
 							
-							if ( !diversified[0]){
+							if ( ok_to_div && !diversified[0]){
 								
 								diversified[0] = true;
 
@@ -4161,11 +4164,11 @@ DHTControlImpl
 			delegate.searching( contact, level, active_searches );
 		}
 		
-		public void
+		public boolean
 		diversified(
 			String		desc )
 		{
-			delegate.diversified( desc );
+			return( delegate.diversified( desc ));
 		}
 		
 		public void

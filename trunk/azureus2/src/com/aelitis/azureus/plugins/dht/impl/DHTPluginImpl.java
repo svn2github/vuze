@@ -718,10 +718,11 @@ outer:
 							}
 						}
 
-						public void
+						public boolean
 						diversified(
 							String		desc )
 						{
+							return( true );
 						}
 						
 						public void
@@ -841,14 +842,16 @@ outer:
 							}
 						}
 						
-						public void
+						public boolean
 						diversified(
 							String		desc )
 						{
 							if ( listener != null ){
 								
-								listener.diversified();
+								return( listener.diversified());
 							}
+							
+							return( true );
 						}
 						
 						public void
@@ -934,10 +937,11 @@ outer:
 							{
 							}
 
-							public void
+							public boolean
 							diversified(
 								String		desc )
 							{
+								return( true );
 							}
 							
 							public void
@@ -1024,10 +1028,11 @@ outer:
 							{
 							}
 
-							public void
+							public boolean
 							diversified(
 								String		desc )
 							{
+								return( true );
 							}
 							
 							public void

@@ -900,10 +900,12 @@ RelatedContentManager
 					{
 					}
 					
-					public void
+					public boolean
 					diversified()
 					{
 						diversified = true;
+						
+						return( false );
 					}
 					
 					public void
@@ -966,9 +968,10 @@ RelatedContentManager
 										DHTPlugin.FLAG_ANON,
 										new DHTPluginOperationListener()
 										{
-											public void
+											public boolean
 											diversified()
 											{
+												return( true );
 											}
 											
 											public void 
@@ -1235,9 +1238,10 @@ RelatedContentManager
 							}
 						}
 						
-						public void
+						public boolean
 						diversified()
 						{
+							return( true );
 						}
 						
 						public void

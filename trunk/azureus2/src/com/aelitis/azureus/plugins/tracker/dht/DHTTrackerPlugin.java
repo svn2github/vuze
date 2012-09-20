@@ -1656,9 +1656,10 @@ DHTTrackerPlugin
 					false,
 					new DHTPluginOperationListener()
 					{
-						public void
+						public boolean
 						diversified()
 						{
+							return( true );
 						}
 						
 						public void 
@@ -1749,9 +1750,10 @@ DHTTrackerPlugin
 						
 						boolean	complete;
 						
-						public void
+						public boolean
 						diversified()
 						{
+							return( true );
 						}
 						
 						public void 
@@ -2358,9 +2360,10 @@ DHTTrackerPlugin
 						"Tracker deregistration of '" + download.getName() + "' " + target.getDesc(),
 						new DHTPluginOperationListener()
 						{
-							public void
+							public boolean
 							diversified()
 							{
+								return( true );
 							}
 							
 							public void 
@@ -2428,9 +2431,10 @@ DHTTrackerPlugin
 					"Tracker deregistration of '" + download.getName() + "' " + target.getDesc(),
 					new DHTPluginOperationListener()
 					{
-						public void
+						public boolean
 						diversified()
 						{
+							return( true );
 						}
 						
 						public void 
@@ -2645,10 +2649,12 @@ DHTTrackerPlugin
 								private int 	leechers = 0;
 								private int 	seeds	 = 0;
 								
-								public void
+								public boolean
 								diversified()
 								{
 									diversified	= true;
+									
+									return( false );
 								}
 								
 								public void 
@@ -2731,9 +2737,10 @@ DHTTrackerPlugin
 												(byte)0,
 												new DHTPluginOperationListener()
 												{
-													public void
+													public boolean
 													diversified()
 													{
+														return( true );
 													}
 													
 													public void 
@@ -2962,9 +2969,10 @@ DHTTrackerPlugin
 				false, false,
 				new DHTPluginOperationListener()
 				{
-					public void
+					public boolean
 					diversified()
 					{
+						return( true );
 					}
 					
 					public void 

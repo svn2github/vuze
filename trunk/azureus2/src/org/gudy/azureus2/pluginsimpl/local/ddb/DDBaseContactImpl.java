@@ -109,9 +109,10 @@ DDBaseContactImpl
 				{
 				}
 				
-				public void
+				public boolean
 				diversified()
 				{
+					return( true );
 				}
 				
 				public void

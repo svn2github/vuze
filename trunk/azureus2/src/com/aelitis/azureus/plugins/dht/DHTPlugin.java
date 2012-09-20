@@ -255,9 +255,10 @@ DHTPlugin
 		final DHTPluginOperationListener log_polistener =
 			new DHTPluginOperationListener()
 			{
-				public void
+				public boolean
 				diversified()
 				{
+					return( true );
 				}
 				
 				public void 
@@ -1121,10 +1122,10 @@ DHTPlugin
 			DHTPluginOperationListener main_listener = 
 				new DHTPluginOperationListener()
 				{
-					public void
+					public boolean
 					diversified()
 					{
-						listener.diversified();
+						return( listener.diversified());
 					}
 					
 					public void 
@@ -1175,9 +1176,10 @@ DHTPlugin
 						key, description, value, flags, high_priority,
 						new DHTPluginOperationListener()
 						{
-							public void
+							public boolean
 							diversified()
 							{
+								return( true );
 							}
 							
 							public void 
@@ -1284,10 +1286,10 @@ DHTPlugin
 			main_listener = 
 				new DHTPluginOperationListener()
 				{
-					public void
+					public boolean
 					diversified()
 					{
-						original_listener.diversified();
+						return( original_listener.diversified());
 					}
 					
 					public void 
@@ -1336,9 +1338,10 @@ DHTPlugin
 					original_key, description, flags, max_values, timeout, exhaustive, high_priority,
 					new DHTPluginOperationListener()
 					{
-						public void
+						public boolean
 						diversified()
 						{
+							return( true );
 						}
 						
 						public void 
@@ -1406,9 +1409,10 @@ DHTPlugin
 					private int	complete_count 	= 0;
 					private int	result_count	= 0;
 					
-					public void
+					public boolean
 					diversified()
 					{
+						return( main_listener.diversified());
 					}
 					
 					public void 
@@ -1571,9 +1575,10 @@ DHTPlugin
 							key, description, 
 							new DHTPluginOperationListener()
 							{
-								public void
+								public boolean
 								diversified()
 								{
+									return( true );
 								}
 								
 								public void 
@@ -1669,9 +1674,10 @@ DHTPlugin
 						dht_targets, key, description,
 						new DHTPluginOperationListener()
 						{
-							public void
+							public boolean
 							diversified()
 							{
+								return( true );
 							}
 							
 							public void 

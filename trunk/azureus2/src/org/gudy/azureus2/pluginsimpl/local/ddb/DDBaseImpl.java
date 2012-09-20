@@ -811,9 +811,10 @@ DDBaseImpl
 			continuation_num	= _continuation_num;
 		}
 		
-		public void
+		public boolean
 		diversified()
 		{
+			return( true );
 		}
 		
 		public void 

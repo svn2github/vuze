@@ -34,7 +34,7 @@ DHTPluginOperationListener
 	starts(
 		byte[]				key );
 	
-	public void
+	public boolean
 	diversified();
 	
 	public void

@@ -2947,9 +2947,10 @@ SubscriptionManagerImpl
 				
 				private boolean	complete;
 				
-				public void
+				public boolean
 				diversified()
 				{
+					return( true );
 				}
 				
 				public void 
@@ -3333,10 +3334,12 @@ SubscriptionManagerImpl
 					
 					private int	hits = 0;
 					
-					public void
+					public boolean
 					diversified()
 					{
 						diversified = true;
+						
+						return( false );
 					}
 					
 					public void 
@@ -3490,9 +3493,10 @@ SubscriptionManagerImpl
 				{
 					private boolean listener_handled;
 					
-					public void
+					public boolean
 					diversified()
 					{
+						return( true );
 					}
 					
 					public void 
@@ -4277,10 +4281,12 @@ SubscriptionManagerImpl
 				private boolean		diversified;
 				private int			max_ver;
 				
-				public void
+				public boolean
 				diversified()
 				{
 					diversified = true;
+					
+					return( false );
 				}
 				
 				public void 
@@ -4364,9 +4370,10 @@ SubscriptionManagerImpl
 							flags,
 							new DHTPluginOperationListener()
 							{
-								public void
+								public boolean
 								diversified()
 								{
+									return( true );
 								}
 								
 								public void 
@@ -4504,10 +4511,12 @@ SubscriptionManagerImpl
 				private int		hits;
 				private boolean	diversified;
 				
-				public void
+				public boolean
 				diversified()
 				{					
 					diversified = true;
+					
+					return( false );
 				}
 				
 				public void 
@@ -4572,9 +4581,10 @@ SubscriptionManagerImpl
 									flags,
 									new DHTPluginOperationListener()
 									{
-										public void
+										public boolean
 										diversified()
 										{
+											return( true );
 										}
 										
 										public void 
@@ -4701,9 +4711,10 @@ SubscriptionManagerImpl
 				private byte[]	verified_hash;
 				private int		verified_size;
 				
-				public void
+				public boolean
 				diversified()
 				{
+					return( true );
 				}
 				
 				public void 
