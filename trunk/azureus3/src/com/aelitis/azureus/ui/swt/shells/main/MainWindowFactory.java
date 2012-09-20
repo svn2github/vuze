@@ -33,7 +33,7 @@ MainWindowFactory
 	private static final boolean
 	isImmediate()
 	{
-		return( !AERunStateHandler.isDelayedStartup());
+		return( !AERunStateHandler.isDelayedUI());
 	}
 	
 	public static MainWindow

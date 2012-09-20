@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.peermanager;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -36,6 +37,7 @@ import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AEGenericCallback;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunStateHandler;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
@@ -972,29 +974,52 @@ public class PeerManager implements AzureusCoreStatsProvider{
 					Debug.out( e );
 				}
 			}
+
+			ConnectionEndpoint ep = connection.getEndpoint();
 			
-			String host_address = connection.getEndpoint().getNotionalAddress().getAddress().getHostAddress();
+			
+			InetAddress address = ep.getNotionalAddress().getAddress();
+			
+			String host_address = address.getHostAddress();
 
-			boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || host_address.equals( "127.0.0.1" );
+			boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.isLoopbackAddress();
 
-			if( !same_allowed && PeerIdentityManager.containsIPAddress( control.getPeerIdentityDataID(), host_address ) ){
+			if ( !same_allowed && PeerIdentityManager.containsIPAddress( control.getPeerIdentityDataID(), host_address )){
 
-				if (Logger.isEnabled())
+				if (Logger.isEnabled()){
+					
 					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
 							"Incoming connection from [" + connection
 							+ "] dropped as IP address already "
 							+ "connected for ["
 							+ control.getDisplayName() + "]"));
+				}
+				
 				connection.close( "already connected to peer");
 
 				return;
 			}
 
-			if (Logger.isEnabled())
+			if ( AERunStateHandler.isUDPNetworkOnly()){
+				
+				if ( connection.getTransport().getTransportEndpoint().getProtocolEndpoint().getType() == ProtocolEndpoint.PROTOCOL_TCP ){
+					
+					if ( !connection.isLANLocal()){
+					
+						connection.close( "limited network mode: tcp disabled");
+
+						return;
+					}
+				}
+			}
+			
+			if (Logger.isEnabled()){
+				
 				Logger.log(new LogEvent(LOGID, "Incoming connection from ["
 						+ connection + "] routed to legacy download ["
 						+ control.getDisplayName() + "]"));
-
+			}
+			
 			PEPeerTransport	pt = PEPeerTransportFactory.createTransport( control, PEPeerSource.PS_INCOMING, connection, null );
 
 			if ( listener != null ){

@@ -37,7 +37,13 @@ AERunStateHandler
 	private static CopyOnWriteList<ActivationListener>	listeners = new CopyOnWriteList<ActivationListener>();
 	
 	public static boolean
-	isDelayedStartup()
+	isDelayedUI()
+	{
+		return( delayed_start );
+	}
+	
+	public static boolean
+	isUDPNetworkOnly()
 	{
 		return( delayed_start );
 	}

@@ -60,6 +60,20 @@ ProtocolEndpointFactory
 		}
 	}
 	
+	public static boolean
+	isHandlerRegistered(
+		int		type )
+	{
+		if ( type == ProtocolEndpoint.PROTOCOL_TCP || type == ProtocolEndpoint.PROTOCOL_UDP ){
+			
+			return( true );
+			
+		}else{
+			
+			return( other_handlers.containsKey( type ));
+		}
+	}
+	
 	public static ProtocolEndpoint
 	createEndpoint(
 		int						type,

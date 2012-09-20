@@ -544,7 +544,12 @@ implements PEPeerTransport
 				_require_crypto_handshake || 
     			NetworkManager.getCryptoRequired( manager.getAdapter().getCryptoLevel()); 
 
-		if( isLANLocal() )  use_crypto = false;  //dont bother with PHE for lan peers
+		boolean	lan_local = isLANLocal();
+		
+		if ( lan_local ){
+			
+			use_crypto = false;  //dont bother with PHE for lan peers
+		}
 
 		InetSocketAddress	endpoint_address;
 		ProtocolEndpoint	pe;
@@ -553,7 +558,25 @@ implements PEPeerTransport
 
 			endpoint_address = new InetSocketAddress( ip, tcp_listen_port );
 
-			pe = ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, endpoint_address );
+			int	protocol;
+			
+			if ( lan_local || !AERunStateHandler.isUDPNetworkOnly()){
+				
+				protocol = ProtocolEndpoint.PROTOCOL_TCP;
+				
+			}else{
+				
+				if ( ProtocolEndpointFactory.isHandlerRegistered( ProtocolEndpoint.PROTOCOL_UTP )){
+				
+					protocol = ProtocolEndpoint.PROTOCOL_UTP;
+					
+				}else{
+				
+					protocol = ProtocolEndpoint.PROTOCOL_TCP;
+				}
+			}
+			
+			pe = ProtocolEndpointFactory.createEndpoint( protocol, endpoint_address );
 
 		}else{
 

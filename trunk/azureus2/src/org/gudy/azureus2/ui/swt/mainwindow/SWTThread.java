@@ -194,7 +194,7 @@ public class SWTThread {
 			public void handleEvent(Event event) {
 				if ( event.type == SWT.Activate ){
 					
-					if ( AERunStateHandler.isDelayedStartup()){
+					if ( AERunStateHandler.isDelayedUI()){
 						
 						Debug.out( "Ignoring activate event as delay start" );
 						
