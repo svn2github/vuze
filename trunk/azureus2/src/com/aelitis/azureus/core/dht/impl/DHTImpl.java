@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.impl;
 import java.io.*;
 import java.util.Properties;
 
+import org.gudy.azureus2.core3.util.AERunStateHandler;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.dht.DHT;
@@ -49,15 +50,15 @@ import com.aelitis.azureus.core.dht.transport.*;
 
 public class 
 DHTImpl 
-	implements DHT
+	implements DHT, AERunStateHandler.RunStateChangeListener
 {
 	private DHTStorageAdapter		storage_adapter;
 	private DHTNATPuncherAdapter	nat_adapter;
-	private DHTControl			control;
-	private DHTNATPuncher		nat_puncher;
-	private DHTSpeedTester		speed_tester;
-	private	Properties			properties;
-	private DHTLogger			logger;
+	private DHTControl				control;
+	private DHTNATPuncher			nat_puncher;
+	private DHTSpeedTester			speed_tester;
+	private	Properties				properties;
+	private DHTLogger				logger;
 	
 	public 
 	DHTImpl(
@@ -170,6 +171,15 @@ DHTImpl
 		}
 		
 		speed_tester = DHTSpeedTesterFactory.create( this );
+		
+		AERunStateHandler.addListener( this, true );
+	}
+	
+	public void 
+	runStateChanged(
+		long run_state ) 
+	{
+		control.setSleeping( AERunStateHandler.isDHTSleeping());
 	}
 	
 	protected int
@@ -356,6 +366,8 @@ DHTImpl
 		}
 		
 		DHTNetworkPositionManager.destroy( storage_adapter );
+		
+		AERunStateHandler.removeListener( this );
 	}
 	
 	public void

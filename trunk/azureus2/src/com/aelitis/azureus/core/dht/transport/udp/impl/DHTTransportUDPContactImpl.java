@@ -55,14 +55,37 @@ DHTTransportUDPContactImpl
 
 	static{
 		AERunStateHandler.addListener(
-			new AERunStateHandler.ActivationListener()
+			new AERunStateHandler.RunStateChangeListener()
 			{
+				private VivaldiPositionProvider provider = null;
+				
 				public void 
-				activated() 
+				runStateChanged(
+					long run_state )
 				{
-					DHTNetworkPositionManager.registerProvider( new VivaldiPositionProvider());	
+					synchronized( this ){
+						
+						if ( AERunStateHandler.isDHTSleeping()){
+							
+							if ( provider != null ){
+								
+								DHTNetworkPositionManager.unregisterProvider( provider );
+								
+								provider = null;
+							}
+						}else{
+						
+							if ( provider == null ){
+								
+								provider = new VivaldiPositionProvider();
+							
+								DHTNetworkPositionManager.registerProvider( provider );
+							}
+						}
+					}
 				}
-			});
+			},
+			true );
 	}
 	
 	private	DHTTransportUDPImpl		transport;

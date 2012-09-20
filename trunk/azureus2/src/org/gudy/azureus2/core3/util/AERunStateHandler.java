@@ -30,43 +30,59 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 public class 
 AERunStateHandler 
 {
-	private static boolean	delayed_start = COConfigurationManager.getBooleanParameter( "Start In Low Resource Mode" );
+	public static final long		RS_DELAYED_UI			= 0x00000001;
+	public static final long		RS_UDP_NET_ONLY			= 0x00000002;
+	public static final long		RS_DHT_SLEEPING			= 0x00000004;
+	
+	public static final long		RS_ALL_ACTIVE			= 0x00000000;
+	public static final long		RS_ALL_LOW				= 0xffffffff;
+	
+	private static boolean	start_low = COConfigurationManager.getBooleanParameter( "Start In Low Resource Mode" );
+	
+	private static long	current_mode = start_low?RS_ALL_LOW:RS_ALL_ACTIVE;
 	
 	private static AsyncDispatcher	dispatcher = new AsyncDispatcher(2500);
 	
-	private static CopyOnWriteList<ActivationListener>	listeners = new CopyOnWriteList<ActivationListener>();
+	private static CopyOnWriteList<RunStateChangeListener>	listeners = new CopyOnWriteList<RunStateChangeListener>();
 	
 	public static boolean
 	isDelayedUI()
 	{
-		return( delayed_start );
+		return( ( current_mode & RS_DELAYED_UI ) != 0 );
 	}
 	
 	public static boolean
 	isUDPNetworkOnly()
 	{
-		return( delayed_start );
+		return( ( current_mode & RS_UDP_NET_ONLY ) != 0 );
 	}
 	
 	public static boolean
 	isDHTSleeping()
 	{
-		return( delayed_start );
+		return( ( current_mode & RS_DHT_SLEEPING ) != 0 );
+	}
+	
+	public static long
+	getResourceMode()
+	{
+		return( current_mode );
 	}
 	
 	public static void
-	setActivated()
+	setResourceMode(
+		final long		new_mode )
 	{
 		synchronized( dispatcher ){
 			
-			if ( !delayed_start ){
+			if ( new_mode == current_mode ){
 				
 				return;
 			}
 		
-			delayed_start = false;
+			current_mode = new_mode;
 			
-			final Iterator<ActivationListener> it = listeners.iterator();
+			final Iterator<RunStateChangeListener> it = listeners.iterator();
 			
 			dispatcher.dispatch(
 				new AERunnable()
@@ -77,7 +93,7 @@ AERunStateHandler
 						while( it.hasNext()){
 							
 							try{								
-								it.next().activated();
+								it.next().runStateChanged( new_mode );
 								
 							}catch( Throwable e ){
 								
@@ -92,13 +108,14 @@ AERunStateHandler
 	
 	public static void
 	addListener(
-		final ActivationListener	l )
+		final RunStateChangeListener	l,
+		boolean							fire_now )
 	{
 		synchronized( dispatcher ){
 
 			listeners.add( l );
 			
-			if ( !delayed_start ){
+			if ( fire_now ){
 				
 				dispatcher.dispatch(
 					new AERunnable()
@@ -107,7 +124,7 @@ AERunStateHandler
 						runSupport()
 						{
 							try{
-								l.activated();
+								l.runStateChanged( current_mode );
 
 							}catch( Throwable e ){
 								
@@ -119,10 +136,21 @@ AERunStateHandler
 		}
 	}
 	
+	public static void
+	removeListener(
+		RunStateChangeListener	l )
+	{
+		synchronized( dispatcher ){
+
+			listeners.remove( l );
+		}
+	}
+	
 	public interface
-	ActivationListener
+	RunStateChangeListener
 	{
 		public void
-		activated();
+		runStateChanged(
+			long		run_state );
 	}
 }

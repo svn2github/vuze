@@ -102,6 +102,10 @@ DHTControl
 	public DHTControlStats
 	getStats();
 	
+	public void
+	setSleeping(
+		boolean	asleep );
+	
 	public DHTTransport
 	getTransport();
 	

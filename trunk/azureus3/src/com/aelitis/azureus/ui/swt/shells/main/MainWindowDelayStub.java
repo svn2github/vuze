@@ -132,14 +132,15 @@ MainWindowDelayStub
 		}
 		
 		AERunStateHandler.addListener(
-			new AERunStateHandler.ActivationListener()
+			new AERunStateHandler.RunStateChangeListener()
 			{
 				private boolean	handled = false;
 				
 				public void 
-				activated() 
+				runStateChanged(
+					long run_state )
 				{
-					if ( handled ){
+					if ( AERunStateHandler.isDelayedUI() || handled ){
 						
 						return;
 					}
@@ -148,7 +149,7 @@ MainWindowDelayStub
 					
 					checkMainWindow();
 				}
-			});
+			}, false );
 	}
 	
 	private void
@@ -243,7 +244,7 @@ MainWindowDelayStub
 		
 		if ( activated ){
 			
-			AERunStateHandler.setActivated();
+			AERunStateHandler.setResourceMode( AERunStateHandler.RS_ALL_ACTIVE );
 		}
 	}
 	

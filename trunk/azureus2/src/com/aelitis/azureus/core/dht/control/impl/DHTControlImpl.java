@@ -427,6 +427,13 @@ DHTControlImpl
 		return( router_count );
 	}
 	
+	public void
+	setSleeping(
+		boolean	asleep )
+	{
+		
+	}
+	
 	public DHTControlStats
 	getStats()
 	{

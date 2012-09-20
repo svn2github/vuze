@@ -1567,7 +1567,7 @@ DHTNATPuncherImpl
 			}
 		}
 		
-		log( "Rendezvous punch request from " + originator.getString() + " to " + target_str + " " + (ok?"initiated":"failed") + extra_log );
+		log( "Rendezvous punch request from " + originator.getString() + " to " + target_str + " " + (ok?"initiated": ( "failed - consec=" + entry.consec_fails  )) + extra_log );
 
 		response.put( "ok", new Long(ok?1:0));
 	}
