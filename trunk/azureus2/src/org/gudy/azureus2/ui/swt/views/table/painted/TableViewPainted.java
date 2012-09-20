@@ -371,7 +371,7 @@ public class TableViewPainted
 					}
 					if ((event.stateMask & SWT.SHIFT) > 0) {
 						selectRowsTo(row);
-					} else {
+					} else if (event.stateMask == 0) {
   					setSelectedRows(new TableRowCore[] {
   						row
   					});
@@ -381,7 +381,7 @@ public class TableViewPainted
 					TableRowCore lastRow = getRow(getRowCount() - 1);
 					if ((event.stateMask & SWT.SHIFT) > 0) {
 						selectRowsTo(lastRow);
-					} else {
+					} else if (event.stateMask == 0) {
   					setSelectedRows(new TableRowCore[] {
   						lastRow
   					});
