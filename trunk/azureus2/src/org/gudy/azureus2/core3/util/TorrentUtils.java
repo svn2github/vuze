@@ -49,6 +49,58 @@ import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDown
 public class 
 TorrentUtils 
 {
+	static{
+		AEDiagnostics.addEvidenceGenerator(
+			new AEDiagnosticsEvidenceGenerator()
+			{
+				public void 
+				generate(
+					IndentWriter writer) 
+				{
+					writer.println( "DNS TXT Records" );
+					
+					try{
+						writer.indent();
+
+						Set<String> names = COConfigurationManager.getDefinedParameters();
+						
+						String prefix = "dns.txts.cache.";
+						
+						for ( String name: names ){
+							
+							if ( name.startsWith( prefix )){
+								
+								try{
+									String tracker = new String( Base32.decode( name.substring( prefix.length())), "UTF-8" );
+
+									String str = "";
+
+									List<byte[]> txts = (List<byte[]>)COConfigurationManager.getListParameter( name, null );
+
+									if ( txts != null ){
+										
+										for ( byte[] txt: txts ){
+											
+											str += (str.length()==0?"":", ") + new String( txt, "UTF-8" );
+										}
+									}
+									
+									writer.println( tracker + " -> [" + str + "]" );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}
+					}finally{
+						
+						writer.exdent();
+					}
+				}
+			});
+	}
+	
 	public static final int TORRENT_FLAG_LOW_NOISE			= 0x00000001;
 	public static final int TORRENT_FLAG_METADATA_TORRENT	= 0x00000002;
 	

@@ -553,13 +553,13 @@ COConfigurationManager
 		ConfigurationManager.getInstance().removeListener( listener );
 	}
   
-  public static Set
+  public static Set<String>
   getAllowedParameters()
   {
   	return ConfigurationDefaults.getInstance().getAllowedParameters();
   }
   
-  public static Set
+  public static Set<String>
   getDefinedParameters()
   {
   	return ConfigurationManager.getInstance().getDefinedParameters();

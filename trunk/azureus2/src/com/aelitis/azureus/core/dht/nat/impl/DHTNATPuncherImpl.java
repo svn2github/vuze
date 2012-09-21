@@ -148,7 +148,8 @@ DHTNATPuncherImpl
 	private DHTTransportContact		current_target		= null;
 	private int	rendevzous_fail_count = 0;
 	
-	
+	private volatile byte[]							last_publish_key;
+	private volatile List<DHTTransportContact>		last_write_set;
 	
 	public
 	DHTNATPuncherImpl(
@@ -672,13 +673,17 @@ DHTNATPuncherImpl
       							
       							rendevzous_fail_count	= RENDEZVOUS_PING_FAIL_LIMIT - 2; // only 2 attempts to start with
 
+      							final byte[] publish_key = getPublishKey( latest_local );
+      							
       							dht.put(
-      									getPublishKey( latest_local ),
+      									publish_key,
       									"NAT Traversal: rendezvous publish",
       									encodePublishValue( latest_target ),
       									DHT.FLAG_SINGLE_VALUE,
       									new DHTOperationListener()
       									{
+      										private List<DHTTransportContact>	written_to = new ArrayList<DHTTransportContact>();
+      										
       										public void
       										searching(
       											DHTTransportContact	contact,
@@ -709,12 +714,22 @@ DHTNATPuncherImpl
       										wrote(
       											DHTTransportContact	contact,
       											DHTTransportValue	value )
-      										{}
+      										{
+      											synchronized( written_to ){
+      											
+      												written_to.add( contact );
+      											}
+      										}
       										
       										public void
       										complete(
       											boolean				timeout )
-      										{}
+      										{
+      											synchronized( written_to ){
+      												last_publish_key	= publish_key;
+      												last_write_set		= written_to;
+      											}
+      										}
       									});
       						}
       					}else if ( current_target != latest_target ){
@@ -727,13 +742,17 @@ DHTNATPuncherImpl
 
       						rendevzous_fail_count	= RENDEZVOUS_PING_FAIL_LIMIT - 2; // only 2 attempts to start with
       						
+      						final byte[] publish_key = getPublishKey( latest_local );
+      						
       						dht.put(
-      								getPublishKey( latest_local ),
+      								publish_key,
       								"DHTNatPuncher: update publish",
       								encodePublishValue( latest_target ),
       								DHT.FLAG_SINGLE_VALUE,
       								new DHTOperationListener()
       								{
+ 										private List<DHTTransportContact>	written_to = new ArrayList<DHTTransportContact>();
+
       									public void
       									searching(
       										DHTTransportContact	contact,
@@ -764,12 +783,22 @@ DHTNATPuncherImpl
       									wrote(
       										DHTTransportContact	contact,
       										DHTTransportValue	value )
-      									{}
+      									{
+ 											synchronized( written_to ){
+      											
+  												written_to.add( contact );
+  											}
+      									}
       									
       									public void
       									complete(
       										boolean				timeout )
-      									{}
+      									{
+      										synchronized( written_to ){
+      											last_publish_key	= publish_key;
+      											last_write_set		= written_to;
+      										}
+      									}
       								});
       					}
       				}
@@ -1207,6 +1236,23 @@ DHTNATPuncherImpl
 					}
 				}.start();
 			}
+			
+			byte[]						lpk	= last_publish_key;
+			List<DHTTransportContact>	lws = last_write_set;
+			
+			if ( lpk != null && lws != null ){
+				
+				log( "Removing publish on closedown");
+				
+				DHTTransportContact[]	contacts = lws.toArray( new DHTTransportContact[ lws.size()] );
+				
+				dht.remove( 
+					contacts, 
+					lpk, 
+					"NAT Puncher destroy", 
+					new DHTOperationAdapter());
+			}
+			
 		}catch( Throwable e ){
 			
 			log( e );

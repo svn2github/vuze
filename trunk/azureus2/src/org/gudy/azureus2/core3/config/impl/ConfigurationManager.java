@@ -291,10 +291,10 @@ ConfigurationManager
 		return( ConfigurationChecker.isNewInstall());
 	}
 	
-	public Set
+	public Set<String>
 	getDefinedParameters()
 	{
-		return( propertiesMap.keySet());
+		return( new HashSet<String>( propertiesMap.keySet()));
 	}
 	
   public boolean getBooleanParameter(String parameter, boolean defaultValue) {

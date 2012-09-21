@@ -708,7 +708,7 @@ public class ConfigurationDefaults {
   	return def.get(key);
   }
   
-  public Set getAllowedParameters() {
+  public Set<String> getAllowedParameters() {
   	return def.keySet();
   }
  
