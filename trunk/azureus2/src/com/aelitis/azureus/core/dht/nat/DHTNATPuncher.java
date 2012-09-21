@@ -88,4 +88,7 @@ DHTNATPuncher
 		InetSocketAddress	rendezvous,
 		InetSocketAddress	target,
 		Map					message );
+	
+	public String
+	getStats();
 }

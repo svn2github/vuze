@@ -59,6 +59,7 @@ import com.aelitis.azureus.core.dht.control.DHTControlStats;
 import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.db.DHTDBStats;
 import com.aelitis.azureus.core.dht.db.DHTDBValue;
+import com.aelitis.azureus.core.dht.nat.DHTNATPuncher;
 import com.aelitis.azureus.core.dht.nat.DHTNATPuncherAdapter;
 import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
@@ -434,6 +435,12 @@ DHTPluginImpl
 				   	",ind=" + dbv_details[DHTDBStats.VD_INDIRECT_SIZE]+
 				   	",div_f=" + dbv_details[DHTDBStats.VD_DIV_FREQ]+
 				   	",div_s=" + dbv_details[DHTDBStats.VD_DIV_SIZE] );
+		
+		DHTNATPuncher np = dht.getNATPuncher();
+		
+		if ( np != null ){
+			log.log( "NAT: " + np.getStats());
+		}
 	}
 	
 	protected File

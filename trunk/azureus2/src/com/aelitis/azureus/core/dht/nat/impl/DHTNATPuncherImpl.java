@@ -82,7 +82,6 @@ DHTNATPuncherImpl
 	private static final int	RT_QUERY_REPLY			= 9;	
 	private static final int	RT_CLOSE_REQUEST		= 10;	
 	private static final int	RT_CLOSE_REPLY			= 11;	
-
 	
 	
 	private static final int	RESP_OK			= 0;
@@ -122,6 +121,13 @@ DHTNATPuncherImpl
 	private volatile DHTTransportContact		rendezvous_local_contact;
 	private volatile DHTTransportContact		rendezvous_target;
 	private volatile DHTTransportContact		last_ok_rendezvous;
+
+	private final int[]	MESSAGE_STATS 		= new int[12];
+
+	private int	punch_send_ok;
+	private int	punch_send_fail;
+	private int	punch_recv_ok;
+	private int	punch_recv_fail;
 	
 	private static final int FAILED_RENDEZVOUS_HISTORY_MAX	= 16;
 	
@@ -949,6 +955,13 @@ DHTNATPuncherImpl
 		Map						data,
 		int						timeout )
 	{
+		int	type = ((Long)data.get("type")).intValue();
+		
+		if ( type >= 0 && type < MESSAGE_STATS.length ){
+			
+			MESSAGE_STATS[type]++;
+		}
+		
 		try{
 			byte[]	res = sendRequest( target, formatters.bEncode( data ), timeout );
 			
@@ -973,6 +986,11 @@ DHTNATPuncherImpl
 		Map						data )
 	{		
 		int	type = ((Long)data.get("type")).intValue();
+		
+		if ( type >= 0 && type < MESSAGE_STATS.length ){
+			
+			MESSAGE_STATS[type]++;
+		}
 		
 		Map	response = new HashMap();
 		
@@ -1629,6 +1647,15 @@ DHTNATPuncherImpl
 		
 		log( "Rendezvous punch request from " + originator.getString() + " to " + target_str + " " + (ok?"initiated":"failed") + extra_log );
 
+		if ( ok ){
+			
+			punch_recv_ok++;
+			
+		}else{
+			
+			punch_recv_fail++;
+		}
+		
 		response.put( "ok", new Long(ok?1:0));
 	}
 	
@@ -1941,6 +1968,8 @@ DHTNATPuncherImpl
 				
 				log( "    punch to " + target.getString() + " succeeded" );
 				
+				punch_send_ok++;
+				
 				return( target_client_data );
 			}
 			
@@ -1948,6 +1977,8 @@ DHTNATPuncherImpl
 			
 			log( e );
 		}
+		
+		punch_send_fail++;
 		
 		log( "    punch to " + target.getString() + " failed" );
 
@@ -2256,12 +2287,45 @@ DHTNATPuncherImpl
 		}
 	}
 	
+	public String
+	getStats()
+	{
+		DHTTransportContact		target = rendezvous_target;
+		
+		String	str = 
+			"punch:send=" + punch_send_ok + "/" + punch_send_fail + ":recv=" + punch_recv_ok + "/" + punch_recv_fail +
+			",rendezvous=" + (target==null?"none":target.getAddress().getAddress().getHostAddress());
+		
+		String b_str = "";
+		
+		for ( Map.Entry<String,BindingData> binding: rendezvous_bindings.entrySet()){
+			
+			BindingData data = binding.getValue();
+
+			b_str += (b_str.length()==0?"":",") + binding.getKey() + "->ok=" + data.getOKCount() + ";bad=" + data.getConsecutiveFailCount();
+		}
+		
+		str += ",bindings=" + b_str;
+		
+		String m_str ="";
+		
+		for ( int i: MESSAGE_STATS ){
+			
+			m_str += (m_str.length()==0?"":",") + i;
+		}
+		
+		str += ",messages=" + m_str;
+		
+		return( str );
+	}
+	
 	private static class
 	BindingData
 	{
 		private DHTTransportUDPContact		contact;
 		private long						bind_time;
 		
+		private int			ok_count;
 		private int			consec_fails;
 		private long		last_connect_time;
 		
@@ -2295,6 +2359,8 @@ DHTNATPuncherImpl
 		private void
 		connectOK()
 		{
+			ok_count++;
+			
 			consec_fails		= 0;
 			last_connect_time	= SystemTime.getMonotonousTime();
 		}
@@ -2312,6 +2378,12 @@ DHTNATPuncherImpl
 			return(
 				consec_fails < 8 ||
 				SystemTime.getMonotonousTime() - last_connect_time > 30*1000 );				
+		}
+		
+		private int
+		getOKCount()
+		{
+			return( ok_count );
 		}
 		
 		private int
