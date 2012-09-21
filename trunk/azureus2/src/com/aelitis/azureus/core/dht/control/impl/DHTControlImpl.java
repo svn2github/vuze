@@ -2900,10 +2900,19 @@ DHTControlImpl
 	
 	public DHTTransportContact[]
 	findNodeRequest(
-		DHTTransportContact originating_contact, 
-		byte[]				id )
+   		DHTTransportContact originating_contact, 
+   		byte[]				id )
 	{
-		if ( DHTLog.isOn()){
+		return( findNodeRequest( originating_contact, id, false ));
+	}
+	
+	private DHTTransportContact[]
+	findNodeRequest(
+		DHTTransportContact originating_contact, 
+		byte[]				id,
+		boolean				already_logged )
+	{
+		if ( !already_logged && DHTLog.isOn()){
 			DHTLog.log( "findNodeRequest from " + DHTLog.getString( originating_contact.getID()));
 		}
 		
@@ -2964,7 +2973,7 @@ DHTControlImpl
 			}
 		}else{
 			
-			return( new DHTTransportFindValueReplyImpl( findNodeRequest( originating_contact, key )));
+			return( new DHTTransportFindValueReplyImpl( findNodeRequest( originating_contact, key, true )));
 		}
 	}
 	
