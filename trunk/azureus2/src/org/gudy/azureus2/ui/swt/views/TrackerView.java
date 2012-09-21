@@ -30,10 +30,16 @@ import org.eclipse.swt.widgets.MenuItem;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerTPSListener;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
+import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
@@ -175,6 +181,56 @@ public class TrackerView
 								ps.manualUpdate();
 							}
 						}
+					}
+				});
+			
+			final MenuItem edit_item = new MenuItem( menu, SWT.PUSH);
+			
+			Messages.setLanguageText(edit_item, "MyTorrentsView.menu.editTracker");
+						
+			edit_item.addListener(
+				SWT.Selection, 
+				new TableSelectedRowsListener(tv) 
+				{
+					public void 
+					run(
+						TableRowCore row )
+					{
+						final TOTorrent torrent = manager.getTorrent();
+
+						if (torrent == null) {
+							return;
+						}
+
+						Utils.execSWTThread(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									List<List<String>> group = TorrentUtils.announceGroupsToList(torrent);
+			
+									new MultiTrackerEditor(null,null, group, new TrackerEditorListener() {
+										public void trackersChanged(String str, String str2, List<List<String>> _group) {
+											TorrentUtils.listToAnnounceGroups(_group, torrent);
+			
+											try {
+												TorrentUtils.writeToFile(torrent);
+											} catch (Throwable e2) {
+			
+												Debug.printStackTrace(e2);
+											}
+			
+											TRTrackerAnnouncer tc = manager.getTrackerClient();
+			
+											if (tc != null) {
+			
+												tc.resetTrackerUrl(true);
+											}
+										}
+									}, true);
+								}
+							});
 					}
 				});
 			
