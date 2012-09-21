@@ -766,25 +766,26 @@ DownloadManagerImpl
 				 	// final validity test must be based of potentially linked target location as file
 				 	// may have been re-targetted
 	
-				 File	linked_target = getSaveLocation();
-				 
-				 if ( !linked_target.exists()){
 				 	
-				 		// if this isn't a new torrent then we treat the absence of the enclosing folder
-				 		// as a fatal error. This is in particular to solve a problem with the use of
-				 		// externally mounted torrent data on OSX, whereby a re-start with the drive unmounted
-				 		// results in the creation of a local diretory in /Volumes that subsequently stuffs
-				 		// up recovery when the volume is mounted
+					// if this isn't a new torrent then we treat the absence of the enclosing folder
+					// as a fatal error. This is in particular to solve a problem with the use of
+				 	// externally mounted torrent data on OSX, whereby a re-start with the drive unmounted
+				 	// results in the creation of a local diretory in /Volumes that subsequently stuffs
+				 	// up recovery when the volume is mounted
 				 	
-				 		// changed this to only report the error on non-windows platforms 
+				 	// changed this to only report the error on non-windows platforms 
 				 	
-				 	if ( !(new_torrent || Constants.isWindows )){
+				if ( !(new_torrent || Constants.isWindows )){
 				 		
-							// another exception here - if the torrent has never been started then we can
-							// fairly safely continue as its in a stopped state
+						// another exception here - if the torrent has never been started then we can
+						// fairly safely continue as its in a stopped state
 						
-						if ( has_ever_been_started ){
+					if ( has_ever_been_started ){
 				 		
+						 File	linked_target = getSaveLocation();
+							 
+						 if ( !linked_target.exists()){
+
 							throw (new NoStackException(
 									MessageText.getString("DownloadManager.error.datamissing")
 											+ " " + Debug.secretFileName(linked_target.toString())));
@@ -980,15 +981,40 @@ DownloadManagerImpl
 			
 			if ( torrent_save_location != null ){
 				
-				try{
-					torrent_save_location = torrent_save_location.getCanonicalFile();
+				boolean	already_done = false;
+				
+				String cache = download_manager_state.getAttribute( DownloadManagerState.AT_CANONICAL_SD_DMAP );
+				
+				if ( cache != null ){
 					
-				}catch( Throwable e ){
+					String key = torrent_save_location.getAbsolutePath() + "\n";
 					
-					torrent_save_location = torrent_save_location.getAbsoluteFile();
+					if ( cache.startsWith( key )){
+						
+						torrent_save_location = new File( cache.substring( key.length()));
+						
+						already_done = true;
+					}
 				}
 				
-				// update cached stuff in case something changed
+				if ( !already_done ){
+					
+					String key = torrent_save_location.getAbsolutePath() + "\n";
+
+					try{
+						torrent_save_location = torrent_save_location.getCanonicalFile();
+						
+					}catch( Throwable e ){
+						
+						torrent_save_location = torrent_save_location.getAbsoluteFile();
+					}
+					
+					download_manager_state.setAttribute( 
+						DownloadManagerState.AT_CANONICAL_SD_DMAP,
+						key + torrent_save_location.getAbsolutePath());
+				}
+					// update cached stuff in case something changed
+				
 				getSaveLocation();
 			}
 			
