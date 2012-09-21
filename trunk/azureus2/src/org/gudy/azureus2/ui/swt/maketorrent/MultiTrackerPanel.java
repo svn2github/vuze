@@ -109,7 +109,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel<NewTorrentWizard> imp
         List tracker = new ArrayList();
         tracker.add(((NewTorrentWizard)wizard).trackerURL);
         group.add(tracker);
-        new MultiTrackerEditor(null,group,MultiTrackerPanel.this);
+        new MultiTrackerEditor(wizard.getWizardWindow(), null,group,MultiTrackerPanel.this);
       }
     });
     
@@ -123,7 +123,7 @@ public class MultiTrackerPanel extends AbstractWizardPanel<NewTorrentWizard> imp
         int selection = configList.getSelectionIndex();
         String selected = configList.getItem(selection);
         Map multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
-        new MultiTrackerEditor(selected,(List)multiTrackers.get(selected),MultiTrackerPanel.this);
+        new MultiTrackerEditor( wizard.getWizardWindow(),selected,(List)multiTrackers.get(selected),MultiTrackerPanel.this);
       }
     });
     

@@ -20,6 +20,10 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -43,8 +47,8 @@ import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
  * 
  */
 public class TrackerChangerWindow {
-  public TrackerChangerWindow(final Display display, final DownloadManager[] dms ) {
-    final Shell shell = ShellFactory.createShell(display);
+  public TrackerChangerWindow(final DownloadManager[] dms ) {
+    final Shell shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM );
     shell.setText(MessageText.getString("TrackerChangerWindow.title"));
     Utils.setShellIcon(shell);
     GridLayout layout = new GridLayout();
@@ -53,41 +57,76 @@ public class TrackerChangerWindow {
     Label label = new Label(shell, SWT.NONE);
     Messages.setLanguageText(label, "TrackerChangerWindow.newtracker");    
     GridData gridData = new GridData();
-    gridData.widthHint = 200;
+    gridData.widthHint = 400;
     label.setLayoutData(gridData);
 
     final Text url = new Text(shell, SWT.BORDER);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.widthHint = 300;
+    gridData.widthHint = 400;
     url.setLayoutData(gridData);
     Utils.setTextLinkFromClipboard(shell, url, false, false);
 
-    Composite panel = new Composite(shell, SWT.NULL);
+    Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    labelSeparator.setLayoutData(gridData);
+
+    Composite panel = new Composite(shell, SWT.NONE);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    panel.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 3;
     panel.setLayout(layout);        
-    gridData = new GridData();
-    gridData.horizontalSpan = 2;
-    panel.setLayoutData(gridData);
+ 
+    
+    
+    label = new Label( panel, SWT.NONE );
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    label.setLayoutData(gridData );
+    
     Button ok = new Button(panel, SWT.PUSH);
     ok.setText(MessageText.getString("Button.ok"));
     gridData = new GridData();
     gridData.widthHint = 70;
+    gridData.horizontalAlignment = GridData.END;
     ok.setLayoutData(gridData);
     shell.setDefaultButton(ok);
     ok.addListener(SWT.Selection, new Listener() {
-      /* (non-Javadoc)
-       * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-       */
+   
       public void handleEvent(Event event) {
         try {
+        	String[] _urls = url.getText().split( "," );
+        	
+        	List<String>	urls = new ArrayList<String>();
+        	
+    		for ( String url: _urls ){
+    			
+    			url = url.trim();
+    			
+    			if ( url.length() > 0 ){
+    				
+    				try{
+    					new URL( url );
+    					
+    					urls.add( 0, url );
+    					
+    				}catch( Throwable e ){
+    					
+    					Debug.out( "Invalid URL: " + url );
+    				}
+    			}
+    		}
+    		
         	for ( DownloadManager dm: dms ){
+        		
 	        	TOTorrent	torrent = dm.getTorrent();
 	        	
 	        	if ( torrent != null ){
 	        	
-	        		TorrentUtils.announceGroupsInsertFirst( torrent, url.getText());
-	        	
+	        		for ( String url: urls ){
+	        		
+	        			TorrentUtils.announceGroupsInsertFirst( torrent, url );
+	        		}
+	        		
 	        		TorrentUtils.writeToFile( torrent );
 	        	
 	        		TRTrackerAnnouncer announcer = dm.getTrackerClient();
@@ -111,17 +150,17 @@ public class TrackerChangerWindow {
     cancel.setText(MessageText.getString("Button.cancel"));
     gridData = new GridData();
     gridData.widthHint = 70;
+    gridData.horizontalAlignment = GridData.END;
     cancel.setLayoutData(gridData);
     cancel.addListener(SWT.Selection, new Listener() {
-      /* (non-Javadoc)
-       * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
-       */
+   
       public void handleEvent(Event event) {
         shell.dispose();
       }
     });
 
     shell.pack();
+	Utils.centreWindow( shell );
     Utils.createURLDropTarget(shell, url);
     shell.open();
   }

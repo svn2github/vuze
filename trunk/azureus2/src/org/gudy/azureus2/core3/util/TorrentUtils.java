@@ -571,6 +571,143 @@ TorrentUtils
 		return( errorDetail );
 	}
 	
+	public static String
+	announceGroupsToText(
+		TOTorrent	torrent )
+	{
+		URL	announce_url = torrent.getAnnounceURL();
+		
+		String announce_url_str = announce_url==null?"":announce_url.toString().trim();
+		
+		TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
+		
+		TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
+		
+		if ( sets.length == 0 ){
+		
+			return( announce_url_str );
+			
+		}else{
+			
+			StringBuffer	sb = new StringBuffer(1024);
+			
+			boolean	announce_found = false;
+			
+			for (int i=0;i<sets.length;i++){
+											
+				TOTorrentAnnounceURLSet	set = sets[i];
+				
+				URL[]	urls = set.getAnnounceURLs();
+				
+				if ( urls.length > 0 ){
+				
+					for (int j=0;j<urls.length;j++){
+				
+						String	str = urls[j].toString().trim();
+						
+						if ( str.equals( announce_url_str )){
+							
+							announce_found = true;
+						}
+						
+						sb.append( str );
+						sb.append( "\r\n" );
+					}
+					
+					sb.append( "\r\n" );
+				}
+			}
+			
+			String result = sb.toString().trim();
+		
+			if ( !announce_found ){
+				
+				if ( announce_url_str.length() > 0 ){
+					
+					if ( result.length() == 0 ){
+						
+						result = announce_url_str;
+						
+					}else{
+						
+						result = "\r\n\r\n" + announce_url_str;
+					}
+				}
+			}
+			
+			return( result );
+		}
+	}
+
+	public static String
+	announceGroupsToText(
+		List<List<String>>	group )
+	{
+		StringBuffer	sb = new StringBuffer(1024);
+			
+		for ( List<String> urls: group ){
+			
+			if ( sb.length() > 0 ){
+				
+				sb.append( "\r\n" );
+			}
+			
+			for ( String str: urls ){
+				
+				sb.append( str );
+				sb.append( "\r\n" );
+			}
+		}
+		
+		return( sb.toString().trim());
+	}
+	
+	public static List<List<String>>
+	announceTextToGroups(
+		String	text )
+	{
+		List<List<String>>	groups = new ArrayList<List<String>>();
+		
+		String[]	lines = text.split( "\n" );
+		
+		List<String>	current_group = new ArrayList<String>();
+		
+		Set<String>	hits = new HashSet<String>();
+		
+		for( String line: lines ){
+			
+			line = line.trim();
+			
+			if ( line.length() == 0 ){
+				
+				if ( current_group.size() > 0 ){
+					
+					groups.add( current_group );
+					
+					current_group = new ArrayList<String>();
+				}
+			}else{
+				String lc_line = line.toLowerCase();
+				
+				if ( hits.contains( lc_line )){
+					
+					continue;
+				}
+				
+				hits.add( lc_line );
+				
+				current_group.add( line );
+			}
+		}
+		
+		if ( current_group.size() > 0 ){
+			
+			groups.add( current_group );
+		}
+		
+		return( groups );
+	}
+	
 	public static List<List<String>>
 	announceGroupsToList(
 		TOTorrent	torrent )

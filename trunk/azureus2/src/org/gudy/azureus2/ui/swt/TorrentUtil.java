@@ -562,7 +562,7 @@ public class TorrentUtil {
 		itemChangeTracker.addListener(SWT.Selection, new DMTask(dms) {
 			public void run(DownloadManager[] dms) {
 				if ( dms.length > 0 ){
-					new TrackerChangerWindow(composite.getDisplay(), dms);
+					new TrackerChangerWindow(dms);
 				}
 			}
 		});
@@ -618,6 +618,7 @@ public class TorrentUtil {
 					List<List<String>> group = TorrentUtils.announceGroupsToList(torrent);
 
 					new MultiTrackerEditor(
+						null,
 						null, 
 						group, 
 						new TrackerEditorListener() 

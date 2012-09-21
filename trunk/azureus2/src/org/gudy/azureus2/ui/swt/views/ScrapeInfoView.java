@@ -126,7 +126,7 @@ public class ScrapeInfoView
 
 				List<List<String>> group = TorrentUtils.announceGroupsToList(torrent);
 
-				new MultiTrackerEditor(null, group, new TrackerEditorListener() {
+				new MultiTrackerEditor(null,null, group, new TrackerEditorListener() {
 					public void trackersChanged(String str, String str2, List<List<String>> _group) {
 						TorrentUtils.listToAnnounceGroups(_group, torrent);
 

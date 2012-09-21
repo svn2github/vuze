@@ -63,12 +63,10 @@ public class TextViewerWindow {
   public 
   TextViewerWindow(
 		 String sTitleID, String sMessageID, String sText, boolean modal, boolean defer_modal )
-  {
-    final Display display = SWTThread.getInstance().getDisplay();
-    
+  {    
     if ( modal ){
     
-    	shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(display, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE );
+    	shell = ShellFactory.createMainShell( SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE );
     	
     }else{
     	

@@ -28,8 +28,11 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import java.net.URL;
@@ -50,7 +53,6 @@ public class MultiTrackerEditor {
   
   List trackers;
   
-  Display display;
   Shell shell;    
   Text textName;
   Tree treeGroups;
@@ -61,12 +63,13 @@ public class MultiTrackerEditor {
   
   Menu menu;
   
-  public MultiTrackerEditor(String name,List trackers,TrackerEditorListener listener) {
-  	this( name, trackers, listener, false );
+  public MultiTrackerEditor(Shell parent_shell, String name,List trackers,TrackerEditorListener listener) {
+  	this( parent_shell, name, trackers, listener, false );
   }
   
   public 
   MultiTrackerEditor(
+		Shell 					parent_shell,
   		String 					name,
 		List 					trackers,
 		TrackerEditorListener 	listener,
@@ -80,13 +83,17 @@ public class MultiTrackerEditor {
     this.listener = listener;
     anonymous = _anonymous;
     this.trackers = new ArrayList(trackers);
-    createWindow();
+    createWindow( parent_shell );
     
   }
   
-  private void createWindow() {
-    this.display = Display.getCurrent();
-    this.shell = org.gudy.azureus2.ui.swt.components.shell.ShellFactory.createShell(SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE);
+  private void createWindow( Shell parent_shell) {
+	if ( parent_shell == null ){
+		this.shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE);
+	}else{
+		this.shell = ShellFactory.createShell(parent_shell,SWT.DIALOG_TRIM | SWT.RESIZE);
+	}
+	
     Messages.setLanguageText(this.shell,"wizard.multitracker.edit.title");
     Utils.setShellIcon(shell);
     GridLayout layout = new GridLayout();
@@ -148,8 +155,70 @@ public class MultiTrackerEditor {
     gridData.horizontalSpan = 3;
     cButtons.setLayoutData(gridData);
     GridLayout layoutButtons = new GridLayout();
-    layoutButtons.numColumns = 3;
+    layoutButtons.numColumns = 4;
     cButtons.setLayout(layoutButtons);
+    
+    Button btnedittext = new Button(cButtons,SWT.PUSH);
+    gridData = new GridData();
+    gridData.widthHint = 70;
+    gridData.horizontalAlignment = GridData.END;
+    btnedittext.setLayoutData(gridData);
+    Messages.setLanguageText(btnedittext,"wizard.multitracker.edit.text");
+    btnedittext.addListener(SWT.Selection, new Listener() {
+      public void handleEvent(Event e) {
+ 
+    	  final String	old_text = TorrentUtils.announceGroupsToText( trackers );
+    	  
+    	  final TextViewerWindow viewer =
+    		  new TextViewerWindow(
+    				  "wizard.multitracker.edit.text.title", 
+    				  "wizard.multitracker.edit.text.msg", 
+    				  old_text, true, true );
+
+    	  viewer.setEditable( true );
+			
+    	  viewer.addListener(
+				new TextViewerWindow.TextViewerWindowListener()
+				{
+					public void 
+					closed() 
+					{
+				    	  String new_text = viewer.getText();
+				    	  
+				    	  if ( !old_text.equals( new_text )){
+				    		  
+				    		  String[] lines = new_text.split( "\n" );
+				    		  
+				    		  StringBuffer valid_text = new StringBuffer( new_text.length()+1 );
+				    		  
+				    		  for ( String line: lines ){
+				    			  
+				    			  line = line.trim();
+				    			  
+				    			  if ( line.length() > 0 ){
+				    				  
+				    				  if ( !validURL( line )){
+				    					  
+				    					  continue;
+				    				  }
+				    			  }
+				    			  
+				    			  valid_text.append( line );
+				    			  valid_text.append( "\n" );
+				    		  }
+				    		  
+				    		  trackers = TorrentUtils.announceTextToGroups( valid_text.toString());
+				    		  
+				    		  refresh();
+				    	  }
+					}
+				});
+    	  
+    	  viewer.goModal();
+
+      }
+    });
+    
     Label label = new Label(cButtons,SWT.NULL);
     gridData = new GridData(GridData.FILL_HORIZONTAL );
     label.setLayoutData(gridData);
