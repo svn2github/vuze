@@ -77,13 +77,15 @@ DHTUDPPacketRequest
 		DHTTransportUDPContactImpl		_remote_contact )
 	{
 		super( _type, _connection_id );
-		
+				
 		transport	= _transport;
 		
 			// serialisation constructor
 		
 		protocol_version		= _remote_contact.getProtocolVersion();		
 		
+		//System.out.println( "request to " + _remote_contact.getAddress() + ", proto=" + protocol_version );
+
 			// the target might be at a higher protocol version that us, so trim back if necessary
 			// as we obviously can't talk a higher version than what we are!
 		
@@ -114,6 +116,8 @@ DHTUDPPacketRequest
 			// deserialisation constructor
 		
 		protocol_version	= is.readByte();
+		
+		//System.out.println( "request received prot=" + protocol_version );
 		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_VENDOR_ID ){
 			
@@ -169,7 +173,7 @@ DHTUDPPacketRequest
 		
 		transport.recordSkew( originator_address, skew );
 		
-		if ( originator_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS ){
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS ){
 			
 			flags	= is.readByte();
 		}
@@ -244,7 +248,7 @@ DHTUDPPacketRequest
 		
 		os.writeLong( originator_time );
 		
-		if ( originator_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS ){
+		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_PACKET_FLAGS ){
 
 			os.writeByte( flags );
 		}

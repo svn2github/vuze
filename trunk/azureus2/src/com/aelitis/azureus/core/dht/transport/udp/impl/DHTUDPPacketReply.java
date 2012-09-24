@@ -81,6 +81,8 @@ DHTUDPPacketReply
 		
 		protocol_version			= _remote_contact.getProtocolVersion();
 		
+		//System.out.println( "reply to " + _remote_contact.getAddress() + ", proto=" + protocol_version );
+
 			// the target might be at a higher protocol version that us, so trim back if necessary
 			// as we obviously can't talk a higher version than what we are!
 	
@@ -113,7 +115,9 @@ DHTUDPPacketReply
 		connection_id 	= is.readLong();
 		
 		protocol_version			= is.readByte();
-					
+				
+		//System.out.println( "reply prot=" + protocol_version );
+		
 		if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_VENDOR_ID ){
 	
 			vendor_id	= is.readByte();
