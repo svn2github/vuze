@@ -24,9 +24,7 @@ import java.util.List;
 
 import org.eclipse.swt.widgets.Menu;
 
-import org.gudy.azureus2.core3.category.Category;
-import org.gudy.azureus2.core3.category.CategoryManager;
-import org.gudy.azureus2.core3.category.CategoryManagerListener;
+import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -107,6 +105,8 @@ public class SB_Transfers
 	private static List<countRefreshListener> listeners = new ArrayList<countRefreshListener>();
 
 	private static boolean first = true;
+
+	private static CategoryListener categoryListener;
 
 	static {
 		statsNoLowNoise.includeLowNoise = false;
@@ -338,6 +338,17 @@ public class SB_Transfers
 			return;
 		}
 		first = false;
+		
+		categoryListener = new CategoryListener() {
+			
+			public void downloadManagerRemoved(Category cat, DownloadManager removed) {
+				RefreshCategorySideBar(cat);
+			}
+			
+			public void downloadManagerAdded(Category cat, DownloadManager manager) {
+				RefreshCategorySideBar(cat);
+			}
+		};
 
 		COConfigurationManager.addAndFireParameterListener("Library.CatInSideBar",
 				new ParameterListener() {
@@ -366,18 +377,7 @@ public class SB_Transfers
 								}
 
 								public void categoryChanged(Category category) {
-									MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-									if (mdi == null) {
-										return;
-									}
-
-									MdiEntry entry = mdi.getEntry("Cat."
-											+ Base32.encode(category.getName().getBytes()));
-									if (entry == null) {
-										return;
-									}
-
-									ViewTitleInfoManager.refreshTitleInfo(entry.getViewTitleInfo());
+									RefreshCategorySideBar(category);
 								}
 
 								public void categoryAdded(Category category) {
@@ -394,6 +394,7 @@ public class SB_Transfers
 							CategoryManager.addCategoryManagerListener(categoryManagerListener);
 							if (categories.length > 2) {
   							for (Category category : categories) {
+  								category.addCategoryListener(categoryListener);
   								setupCategory(category);
   							}
 							}
@@ -405,6 +406,7 @@ public class SB_Transfers
 								categoryManagerListener = null;
 							}
 							for (Category category : categories) {
+								category.removeCategoryListener(categoryListener);
 								removeCategory(category);
 							}
 						}
@@ -658,6 +660,22 @@ public class SB_Transfers
 
 		recountUnopened();
 		refreshAllLibraries();
+	}
+
+
+	private static void RefreshCategorySideBar(Category category) {
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if (mdi == null) {
+			return;
+		}
+
+		MdiEntry entry = mdi.getEntry("Cat."
+				+ Base32.encode(category.getName().getBytes()));
+		if (entry == null) {
+			return;
+		}
+
+		ViewTitleInfoManager.refreshTitleInfo(entry.getViewTitleInfo());
 	}
 
 	private static void setupCategory(final Category category) {
