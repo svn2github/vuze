@@ -309,7 +309,7 @@ public class ColumnProgressETA
 
 			if (!showSecondLine) {
 				yRelProgressFillStart = (cellBounds.height / 2)
-						- ((boundsImgBG.height + 2) / 2);
+						- ((boundsImgBG.height) / 2);
 			}
 
 			yRelProgressFillEnd = yRelProgressFillStart + boundsImgBG.height;
