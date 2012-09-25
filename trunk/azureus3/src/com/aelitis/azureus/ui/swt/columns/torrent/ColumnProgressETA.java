@@ -342,7 +342,7 @@ public class ColumnProgressETA
 				if (dm.isDownloadComplete(true)) {
 					//sETALine = DisplayFormatters.formatByteCountToKiBEtc(dm.getSize());
 				} else if (eta > 0) {
-					String sETA = DisplayFormatters.formatETA(eta,MyTorrentsView.eta_absolute);
+					String sETA = DisplayFormatters.formatETA(eta,MyTorrentsView.progress_eta_absolute);
 					sETALine = MessageText.getString(
 							"MyTorrents.column.ColumnProgressETA.2ndLine", new String[] {
 								sETA

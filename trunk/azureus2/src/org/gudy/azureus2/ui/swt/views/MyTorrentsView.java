@@ -115,12 +115,14 @@ public class MyTorrentsView
 	
 	public static volatile Set<String>	preferred_tracker_names;
 	public static volatile boolean		eta_absolute;
+	public static volatile boolean		progress_eta_absolute;
 	
 	static{
 		COConfigurationManager.addAndFireParameterListeners(
 			new String[]{
 				"mtv.trackername.pref.hosts",
 				"mtv.eta.show_absolute",
+				"mtv.progress_eta.show_absolute",
 			},
 			new ParameterListener()
 			{
@@ -149,7 +151,8 @@ public class MyTorrentsView
 					
 					preferred_tracker_names = new_vals;
 					
-					eta_absolute	= COConfigurationManager.getBooleanParameter( "mtv.eta.show_absolute", false );
+					eta_absolute			= COConfigurationManager.getBooleanParameter( "mtv.eta.show_absolute", false );
+					progress_eta_absolute	= COConfigurationManager.getBooleanParameter( "mtv.progress_eta.show_absolute", false );
 				}
 			});
 	}
@@ -1137,7 +1140,7 @@ public class MyTorrentsView
           }
         });
 
-    }else if (sColumnName.equals("eta") || sColumnName.equals( "ProgressETA" )) {
+    }else if (sColumnName.equals("eta")) {
         final MenuItem item = new MenuItem(menuThisColumn, SWT.CHECK );
         Messages.setLanguageText(item, "MyTorrentsView.menu.eta.abs");
         item.setSelection( eta_absolute );
@@ -1145,9 +1148,22 @@ public class MyTorrentsView
         item.addListener(SWT.Selection, new Listener() {
           public void handleEvent(Event e) {
         	eta_absolute = item.getSelection();
-            tv.columnInvalidate("path");
+            tv.columnInvalidate("eta");
             tv.refreshTable(false);
             COConfigurationManager.setParameter( "mtv.eta.show_absolute", eta_absolute );
+          }
+        });
+    }else if ( sColumnName.equals( "ProgressETA" )) {
+        final MenuItem item = new MenuItem(menuThisColumn, SWT.CHECK );
+        Messages.setLanguageText(item, "MyTorrentsView.menu.eta.abs");
+        item.setSelection( progress_eta_absolute );
+                
+        item.addListener(SWT.Selection, new Listener() {
+          public void handleEvent(Event e) {
+        	progress_eta_absolute = item.getSelection();
+            tv.columnInvalidate("ProgressETA");
+            tv.refreshTable(false);
+            COConfigurationManager.setParameter( "mtv.progress_eta.show_absolute", progress_eta_absolute );
           }
         });
     }
