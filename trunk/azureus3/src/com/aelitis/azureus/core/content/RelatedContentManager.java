@@ -109,8 +109,6 @@ RelatedContentManager
 	private static final boolean	SEARCH_CVS_ONLY		= Constants.isCurrentVersionLT( "4.7.0.4" );
 	private static final boolean	TRACE_SEARCH		= false;
 	
-	public static final boolean	DISABLE_ALL_UI	= false; // !Constants.isCVSVersion() && COConfigurationManager.getStringParameter("ui", "az3").equals("az3");
-
 	private static final int	MAX_HISTORY					= 16;
 	private static final int	MAX_TITLE_LENGTH			= 80;
 	private static final int	MAX_CONCURRENT_PUBLISH		= 2;
