@@ -73,7 +73,10 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     private volatile String		computer_name;
     private volatile boolean	computer_name_tried;
 
-		private Class<?> claFileManager;
+	private Class<?> claFileManager;
+	
+	private boolean 	prevent_computer_sleep	= false;
+	private Process		prevent_computer_proc;
     
     /**
      * Gets the platform manager singleton, which was already initialized
@@ -145,6 +148,12 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         
         capabilitySet.add(PlatformManagerCapabilities.RunAtLogin);
         capabilitySet.add(PlatformManagerCapabilities.GetMaxOpenFiles);
+        
+        if ( 	new File( "/usr/bin/pmset" ).canRead() ||
+        		new File( "/usr/bin/caffeinate" ).canRead()){
+        	
+        	capabilitySet.add( PlatformManagerCapabilities.PreventComputerSleep );
+        }
         
         AEDiagnostics.addEvidenceGenerator(this);
     }
@@ -280,22 +289,85 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	
 		throws PlatformManagerException
 	{	
-		 throw new PlatformManagerException("Unsupported capability called on platform manager");
+		 throw new PlatformManagerException( "Unsupported capability called on platform manager" );
 	}
 	
 	public void
 	setPreventComputerSleep(
-		boolean			b )
+		boolean		prevent_it )
 	
 		throws PlatformManagerException
-	{	
-		 throw new PlatformManagerException("Unsupported capability called on platform manager");
+	{
+		synchronized( this ){
+			
+			if ( prevent_computer_sleep == prevent_it ){
+				
+				return;
+			}
+			
+			prevent_computer_sleep = prevent_it;
+			
+			if ( prevent_it ){
+				
+				String[] command;
+				
+				File binary = new File( "/usr/bin/caffeinate" );
+				
+				if ( binary.canRead()){
+					
+					command = new String[]{ binary.getAbsolutePath(), "-i" };
+					
+				}else{
+					
+					binary = new File( "/usr/bin/pmset" );
+				
+					if ( binary.canRead()){
+						
+						command = new String[]{ binary.getAbsolutePath(), "noidle" };
+						
+					}else{
+						
+						 throw new PlatformManagerException("Unsupported capability called on platform manager");
+					}
+				}
+			  
+				if ( prevent_computer_proc != null ){
+					
+					Debug.out( "eh?" );
+					
+					prevent_computer_proc.destroy();
+				}
+				
+				try{
+					System.out.println( "Starting idle sleep preventer: " + command[0] );
+
+					prevent_computer_proc = Runtime.getRuntime().exec( command );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}else{
+				
+				if ( prevent_computer_proc != null ){
+					
+					System.out.println( "Stopping idle sleep preventer" );
+					
+					prevent_computer_proc.destroy();
+					
+					prevent_computer_proc = null;
+				}
+			}
+		}	
 	}
 	
 	public boolean
 	getPreventComputerSleep()
 	{
-		return( false );
+		synchronized( this ){
+			
+			return( prevent_computer_sleep );
+		}
 	}
 	
   	public boolean 
