@@ -24,6 +24,8 @@
  
 package org.gudy.azureus2.ui.swt.views;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -31,9 +33,13 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
@@ -51,6 +57,59 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 public class 
 ViewUtils 
 {
+	private static SimpleDateFormat formatOverride = null;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"Table.column.dateformat", new ParameterListener() {
+				public void parameterChanged(String parameterName) {
+					String temp = COConfigurationManager.getStringParameter(
+										"Table.column.dateformat", "");
+					
+					if ( temp == null || temp.trim().length() == 0 ){
+						
+						formatOverride = null;
+						
+					}else{
+						
+						try{
+							SimpleDateFormat format = new SimpleDateFormat( temp.trim());
+							
+							format.format(new Date());
+							
+							formatOverride = format;
+							
+						}catch( Throwable e ){
+							
+							formatOverride = null;
+						}
+					}
+				}
+			});
+	}
+	
+	public static String
+	formatETA(
+		long		value,
+		boolean		absolute )
+	{
+		SimpleDateFormat df = formatOverride;
+		
+		if (	absolute && 
+				df != null && 
+				value > 0 && 
+				!(value == Constants.CRAPPY_INFINITY_AS_INT || value >= Constants.CRAPPY_INFINITE_AS_LONG )){
+			
+			try{
+				return( df.format( new Date( SystemTime.getCurrentTime() + 1000*value )));
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		return( DisplayFormatters.formatETA( value, absolute ));
+	}
+	
 	public static void
 	addSpeedMenu(
 		final Shell 		shell,

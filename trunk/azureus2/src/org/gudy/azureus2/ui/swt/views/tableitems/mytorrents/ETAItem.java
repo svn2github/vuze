@@ -24,9 +24,17 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
+import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
@@ -46,25 +54,28 @@ public class ETAItem
 {
 	public static final Class DATASOURCE_TYPE = DownloadTypeIncomplete.class;
 
-  public static final String COLUMN_ID = "eta";
+	public static final String COLUMN_ID = "eta";
 
-  public void fillTableColumnInfo(TableColumnInfo info) {
+
+	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] { CAT_ESSENTIAL });
 		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
 	/** Default Constructor */
-  public ETAItem(String sTableID) {
-    super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 60, sTableID);
-    setRefreshInterval(INTERVAL_LIVE);
-  }
+	public ETAItem(String sTableID) {
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 60, sTableID);
+		setRefreshInterval(INTERVAL_LIVE);
+	}
 
-  public void refresh(TableCell cell) {
-    DownloadManager dm = (DownloadManager)cell.getDataSource();
-    long value = (dm == null) ? 0 : dm.getStats().getETA();
+	public void refresh(TableCell cell) {
+		DownloadManager dm = (DownloadManager)cell.getDataSource();
+		long value = (dm == null) ? 0 : dm.getStats().getETA();
 
-    if (!cell.setSortValue(value) && cell.isValid())
-      return;
-    cell.setText(DisplayFormatters.formatETA(value, MyTorrentsView.eta_absolute ));
-  }
+		if (!cell.setSortValue(value) && cell.isValid()){
+			return;
+		}
+		
+		cell.setText( ViewUtils.formatETA( value, MyTorrentsView.eta_absolute ));
+	}
 }

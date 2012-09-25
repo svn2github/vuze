@@ -23,6 +23,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.FilesViewMenuUtil;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
+import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -342,7 +343,7 @@ public class ColumnProgressETA
 				if (dm.isDownloadComplete(true)) {
 					//sETALine = DisplayFormatters.formatByteCountToKiBEtc(dm.getSize());
 				} else if (eta > 0) {
-					String sETA = DisplayFormatters.formatETA(eta,MyTorrentsView.progress_eta_absolute);
+					String sETA = ViewUtils.formatETA(eta,MyTorrentsView.progress_eta_absolute);
 					sETALine = MessageText.getString(
 							"MyTorrents.column.ColumnProgressETA.2ndLine", new String[] {
 								sETA
