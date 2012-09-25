@@ -259,10 +259,32 @@ RelatedContentManager
 	
 		throws ContentException
 	{
-		if ( !FeatureAvailability.isRCMEnabled()){
+		COConfigurationManager.addAndFireParameterListeners(
+				new String[]{
+					"rcm.ui.enabled",
+					"rcm.max_search_level",
+					"rcm.max_results",
+				},
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String name )
+					{
+						max_search_level 	= COConfigurationManager.getIntParameter( "rcm.max_search_level", 3 );
+						max_results		 	= COConfigurationManager.getIntParameter( "rcm.max_results", 500 );
+					}
+				});
+		
+		if ( !FeatureAvailability.isRCMEnabled() || 
+			 !COConfigurationManager.getBooleanParameter( "rcm.overall.enabled", true )){
 			
 			enabled		= false;
 			
+			deleteRelatedContent();
+			
+			initialisation_complete_sem.releaseForever();
+
 			return;
 		}
 		
@@ -289,23 +311,6 @@ RelatedContentManager
 			plugin_interface = core.getPluginManager().getDefaultPluginInterface();
 			
 			ta_networks 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
-			
-			COConfigurationManager.addAndFireParameterListeners(
-				new String[]{
-					"rcm.ui.enabled",
-					"rcm.max_search_level",
-					"rcm.max_results",
-				},
-				new ParameterListener()
-				{
-					public void 
-					parameterChanged(
-						String name )
-					{
-						max_search_level 	= COConfigurationManager.getIntParameter( "rcm.max_search_level", 3 );
-						max_results		 	= COConfigurationManager.getIntParameter( "rcm.max_results", 500 );
-					}
-				});
 			
 			plugin_interface.getUtilities().createDelayedTask(new AERunnable() {
 				public void runSupport() {
@@ -1142,6 +1147,11 @@ RelatedContentManager
 	
 		throws ContentException
 	{
+		if ( !enabled ){
+		
+			throw( new ContentException( "rcm is disabled" ));
+		}
+		
 		try{
 			if ( dht_plugin == null ){
 				
@@ -2223,6 +2233,11 @@ RelatedContentManager
 	{
 		initialisation_complete_sem.reserve();
 
+		if ( !enabled ){
+			
+			throw( new SearchException( "rcm is disabled" ));
+		}
+		
 		final MySearchObserver observer = new MySearchObserver( _observer );
 		
 		final String	term = (String)search_parameters.get( SearchProvider.SP_SEARCH_TERM );
