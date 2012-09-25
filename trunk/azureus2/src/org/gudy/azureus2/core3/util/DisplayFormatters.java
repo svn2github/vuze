@@ -595,7 +595,7 @@ DisplayFormatters
 
       			int	len = Math.min(str1.length(), str2.length())-2;
       			
-      			int	diff_at = 0;
+      			int	diff_at = len;
       			
       			for ( int i=0; i<len; i++){
       				
