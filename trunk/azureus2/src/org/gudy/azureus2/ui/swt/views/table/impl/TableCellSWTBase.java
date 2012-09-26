@@ -634,7 +634,9 @@ public abstract class TableCellSWTBase
 			return false;
 		}
 		boolean ret = getVisuallyChangedSinceRefresh();
-		clearFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
+		// don't clear flag -- since anyone can call refresh(), only the code that
+		// actually refreshes the display should clear the flag.
+		//clearFlag(FLAG_VISUALLY_CHANGED_SINCE_REFRESH);
 
 		int iErrCount = 0;
 		if (refreshErrLoopCount > 2) {
