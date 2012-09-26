@@ -49,6 +49,7 @@ import org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 
 
 /**
@@ -75,7 +76,10 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 
 	private Class<?> claFileManager;
 	
-	private boolean 	prevent_computer_sleep	= false;
+	private AzureusCore	azureus_core;
+	
+	private boolean		prevent_computer_sleep_pending	= false;
+	private boolean 	prevent_computer_sleep			= false;
 	private Process		prevent_computer_proc;
     
     /**
@@ -271,10 +275,41 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
   	
 	public void
 	startup(
-		AzureusCore		azureus_core )
+		AzureusCore		_azureus_core )
 	
 		throws PlatformManagerException
 	{	
+		synchronized( this ){
+			
+			azureus_core = _azureus_core;
+			
+			if ( prevent_computer_sleep_pending ){
+				
+				prevent_computer_sleep_pending = false;
+				
+				setPreventComputerSleep( true );
+			}
+		}
+		
+		azureus_core.addLifecycleListener(
+			new AzureusCoreLifecycleAdapter()
+			{
+				public void
+				stopping(
+					AzureusCore		core )
+				{
+					synchronized( PlatformManagerImpl.this ){
+					
+						try{
+							setPreventComputerSleep( false );
+							
+						}catch( Throwable e ){
+						}
+						
+						azureus_core = null;
+					}
+				}
+			});
 	}
 	
 	public int
@@ -299,6 +334,13 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 		throws PlatformManagerException
 	{
 		synchronized( this ){
+			
+			if ( azureus_core == null ){
+				
+				prevent_computer_sleep_pending = prevent_it;
+				
+				return;
+			}
 			
 			if ( prevent_computer_sleep == prevent_it ){
 				
