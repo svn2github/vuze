@@ -33,7 +33,10 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -45,8 +48,10 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
@@ -329,37 +334,183 @@ TranscodeQueueImpl
 						failed(
 							TranscodeException		e )
 						{
-							if ( error[0] == null ){
-							
-								error[0] = e;
-							}
-							
-							if ( e.isRetryDisabled()){
+							try{
+								if ( error[0] == null ){
 								
-								job.setEnableAutoRetry( false );
+									error[0] = e;
+								}
+								
+								if ( e.isRetryDisabled()){
+									
+									job.setEnableAutoRetry( false );
+								}
+							}finally{
+								
+								xcode_sem.release();
 							}
-							
-							xcode_sem.release();
 						}
 						
 						public void 
 						complete() 
 						{
-								// sanity check: for incomplete files at the start of the process ensure that they have completed
-							
-							long	current_downloaded = job.getFile().getDownloaded();
-														
-							if ( file_size > 0 && initial_file_downloaded < file_size && current_downloaded < file_size ){
+							try{
+									// sanity check: for incomplete files at the start of the process ensure that they have completed
 								
-								if ( error[0] == null ){
+								long	current_downloaded = job.getFile().getDownloaded();
+															
+								if ( file_size > 0 && initial_file_downloaded < file_size && current_downloaded < file_size ){
 									
-									Debug.out( "Premature transcode termination: init=" + initial_file_downloaded + ", curr=" + current_downloaded + ", len=" + file_size );
-
-									error[0] = new TranscodeException( "Transcode terminated prematurely" );
+									if ( error[0] == null ){
+										
+											// actually this ain't so simple as we stream data prior to hash check completion (otherwise for
+											// large piece sizes we could be waiting for 4MB to complete downloading before playback)
+											// and getDownloaded() only returns the verified data size 
+										
+										long	contiguous_downloaded = 0;
+										
+										try{
+											DiskManagerFileInfo	_file_info = job.getFile();
+											
+											Download download = _file_info.getDownload();
+										
+											org.gudy.azureus2.core3.disk.DiskManagerFileInfo file_info = PluginCoreUtils.unwrap( _file_info );
+											
+											TOTorrentFile torrent_file = file_info.getTorrentFile();
+											
+											TOTorrent	torrent = torrent_file.getTorrent();
+											
+											TOTorrentFile[]	torrent_files = torrent.getFiles();
+											
+											long	byte_start = 0;
+											
+											for ( TOTorrentFile tf: torrent_files ){
+												
+												if ( tf == torrent_file ){
+													
+													break;
+												}
+												
+												byte_start += tf.getLength();
+											}
+																					
+											DiskManagerPiece[] pieces = PluginCoreUtils.unwrap( download.getDiskManager()).getPieces();
+											
+											long piece_size = torrent.getPieceLength();
+											
+											int	first_piece_index 	= (int)( byte_start / piece_size );
+											int	first_piece_offset	= (int)( byte_start % piece_size );
+											
+											int	last_piece_index	= torrent_file.getLastPieceNumber();
+																					
+											DiskManagerPiece	first_piece = pieces[first_piece_index];
+																							
+											if ( !first_piece.isDone()){
+												
+												boolean[] blocks = first_piece.getWritten();
+															
+												if ( blocks == null ){
+													
+													if ( first_piece.isDone()){
+														
+														contiguous_downloaded = first_piece.getLength() - first_piece_offset;
+													}
+												}else{
+													
+													int	piece_offset = 0;
+													
+													for (int j=0;j<blocks.length;j++){
+													
+														if ( blocks[j] ){
+														
+															int	block_size = first_piece.getBlockSize( j );
+															
+															piece_offset = piece_offset + block_size;
+															
+															if ( contiguous_downloaded == 0 ){
+															
+																if ( piece_offset > first_piece_offset ){
+																	
+																	contiguous_downloaded = piece_offset - first_piece_offset;
+																}
+															}else{
+																
+																contiguous_downloaded += block_size;
+															}						
+														}else{
+															
+															break;
+														}
+													}
+												}	
+											}else{
+											
+												contiguous_downloaded = first_piece.getLength() - first_piece_offset; 
+											
+												for (int i=first_piece_index+1;i<=last_piece_index;i++){
+																									
+													DiskManagerPiece piece = pieces[i];
+													
+													if ( piece.isDone()){
+														
+														contiguous_downloaded += piece.getLength();
+														
+													}else{
+													
+														boolean[] blocks = piece.getWritten();
+																
+														if ( blocks == null ){
+															
+															if ( piece.isDone()){
+														
+																contiguous_downloaded += piece.getLength();
+																
+															}else{
+																
+																break;
+															}
+														}else{
+															
+															for (int j=0;j<blocks.length;j++){
+															
+																if ( blocks[j] ){
+																
+																	contiguous_downloaded += piece.getBlockSize( j );
+																	
+																}else{
+																	
+																	break;
+																}
+															}
+														}
+														
+														break;
+													}
+												}
+											}
+										}catch( Throwable e ){
+											
+											// Debug.out( e );
+										}
+										
+										if ( contiguous_downloaded < file_size ){
+										
+												// things might have improved, check again
+											
+											current_downloaded = job.getFile().getDownloaded();
+											
+											if ( current_downloaded < file_size ){
+		
+												Debug.out( "Premature transcode termination: init=" + initial_file_downloaded + ", curr=" + current_downloaded + ", len=" + file_size );
+		
+												error[0] = new TranscodeException( "Transcode terminated prematurely" );
+											}
+										}
+									}
 								}
-							}
+							}finally{
 							
-							xcode_sem.release();
+								xcode_sem.release();
+							}
 						}
 					};
 				
