@@ -225,9 +225,11 @@ SubscriptionManagerImpl
 	
 	private boolean	config_dirty;
 	
-	private static final int PUB_ASSOC_CONC_MAX	= 3;
+	private static final int PUB_ASSOC_CONC_MAX				= 3;
+	private static final int PUB_SLEEPING_ASSOC_CONC_MAX	= 1;
 	
 	private int		publish_associations_active;
+	private boolean	publish_next_asyc_pending;
 	
 	private boolean publish_subscription_active;
 	
@@ -1580,7 +1582,7 @@ SubscriptionManagerImpl
 				engineUpdated(
 					Engine		engine )
 				{
-					synchronized( this ){
+					synchronized( SubscriptionManagerImpl.this ){
 						
 						for (int i=0;i<subscriptions.size();i++){
 							
@@ -2619,7 +2621,7 @@ SubscriptionManagerImpl
 	{
 		boolean	recheck;
 		
-		synchronized( SubscriptionManagerImpl.this ){
+		synchronized( this ){
 			
 			periodic_lookup_in_progress = false;
 			
@@ -4197,7 +4199,7 @@ SubscriptionManagerImpl
 
 		synchronized( this ){
 			
-			if ( publish_associations_active >= PUB_ASSOC_CONC_MAX ){
+			if ( publish_associations_active >= ( dht_plugin.isSleeping()?PUB_SLEEPING_ASSOC_CONC_MAX:PUB_ASSOC_CONC_MAX )){
 				
 				return( false );
 			}			
@@ -4231,6 +4233,7 @@ SubscriptionManagerImpl
 			publishAssociation( subs_to_publish, assoc_to_publish );
 			
 			return( false );
+			
 		}else{
 					
 			log( "Publishing Associations Complete" );
@@ -4417,14 +4420,55 @@ SubscriptionManagerImpl
 				protected void
 				publishNext()
 				{
-					synchronized( this ){
+					synchronized( SubscriptionManagerImpl.this ){
 						
 						publish_associations_active--;
 					}
 					
-					publishAssociations();
+					publishNextAssociation();
 				}
 			});
+	}
+	
+	private void
+	publishNextAssociation()
+	{
+		boolean	dht_sleeping = dht_plugin.isSleeping();
+		
+		if ( dht_sleeping ){
+			
+			synchronized( this ){
+				
+				if ( publish_next_asyc_pending ){
+					
+					return;
+				}
+				
+				publish_next_asyc_pending = true;
+			}
+			
+			SimpleTimer.addEvent(
+				"subs:pn:async",
+				SystemTime.getCurrentTime() + 60*1000,
+				new TimerEventPerformer()
+				{
+					public void 
+					perform(
+						TimerEvent event) 
+					{
+						synchronized( SubscriptionManagerImpl.this ){
+							
+							publish_next_asyc_pending = false;
+						}
+						
+						publishAssociations();
+					}
+				});
+			
+			return;
+		}
+		
+		publishAssociations();
 	}
 	
 	protected void
@@ -4640,7 +4684,7 @@ SubscriptionManagerImpl
 				protected void
 				publishNext()
 				{
-					synchronized( this ){
+					synchronized( SubscriptionManagerImpl.this ){
 						
 						publish_subscription_active = false;
 					}

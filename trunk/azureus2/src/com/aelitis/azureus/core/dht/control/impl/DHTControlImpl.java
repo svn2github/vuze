@@ -65,8 +65,9 @@ DHTControlImpl
 {
 	private static final boolean DISABLE_REPLICATE_ON_JOIN	= true;
 	
-	public  static 		 int EXTERNAL_LOOKUP_CONCURRENCY	= 16;
-	private static final int EXTERNAL_PUT_CONCURRENCY		= 8;
+	public  static 		 int EXTERNAL_LOOKUP_CONCURRENCY			= 16;
+	private static final int EXTERNAL_PUT_CONCURRENCY				= 8;
+	private static final int EXTERNAL_SLEEPING_PUT_CONCURRENCY		= 4;
 	
 	private static final int RANDOM_QUERY_PERIOD			= 5*60*1000;
 	
@@ -432,6 +433,15 @@ DHTControlImpl
 		boolean	asleep )
 	{
 		transport.setGenericFlag( DHTTransport.GF_DHT_SLEEPING, asleep );
+		
+		if ( asleep ){
+			
+			external_put_pool.setMaxThreads( EXTERNAL_SLEEPING_PUT_CONCURRENCY );
+			
+		}else{
+			
+			external_put_pool.setMaxThreads( EXTERNAL_PUT_CONCURRENCY );
+		}
 	}
 	
 	public DHTControlStats

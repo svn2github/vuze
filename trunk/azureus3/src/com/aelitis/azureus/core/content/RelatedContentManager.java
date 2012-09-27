@@ -181,6 +181,9 @@ RelatedContentManager
 	private static final int CONFIG_SAVE_TICKS				= CONFIG_SAVE_PERIOD/TIMER_PERIOD;
 	private static final int PUBLISH_CHECK_PERIOD			= 30*1000;
 	private static final int PUBLISH_CHECK_TICKS			= PUBLISH_CHECK_PERIOD/TIMER_PERIOD;
+	private static final int PUBLISH_SLEEPING_CHECK_PERIOD	= 5*60*1000;
+	private static final int PUBLISH_SLEEPING_CHECK_TICKS	= PUBLISH_SLEEPING_CHECK_PERIOD/TIMER_PERIOD;
+
 	private static final int SECONDARY_LOOKUP_PERIOD		= 15*60*1000;
 	private static final int SECONDARY_LOOKUP_TICKS			= SECONDARY_LOOKUP_PERIOD/TIMER_PERIOD;
 	private static final int REPUBLISH_PERIOD				= 8*60*60*1000;
@@ -421,7 +424,7 @@ RelatedContentManager
 												
 											if ( tick_count >= INITIAL_PUBLISH_TICKS ){
 												
-												if ( tick_count % PUBLISH_CHECK_TICKS == 0 ){
+												if ( tick_count % ( dht_plugin.isSleeping()?PUBLISH_SLEEPING_CHECK_TICKS:PUBLISH_CHECK_TICKS) == 0 ){
 												
 													publish();
 												}
@@ -884,7 +887,7 @@ RelatedContentManager
 				
 		dht_plugin.get(
 				key_bytes,
-				"Content relationship read: " + from_hash,
+				"Content relationship test: " + from_hash,
 				DHTPlugin.FLAG_SINGLE_VALUE,
 				max_hits,
 				30*1000,

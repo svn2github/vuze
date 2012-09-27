@@ -1616,6 +1616,8 @@ DHTTrackerPlugin
 			
 			final trackerTarget target = targets[i];
 
+			int	target_type = target.getType();
+			
 		 	    // don't let a put block an announce as we don't want to be waiting for 
 		  	    // this at start of day to get a torrent running
 		  	    
@@ -1638,7 +1640,7 @@ DHTTrackerPlugin
 			
 			if ( disable_put ){
 				
-				if ( target.getType() == REG_TYPE_FULL ){
+				if ( target_type == REG_TYPE_FULL ){
 					
 					log( download, "Registration of '" + target.getDesc() + "' skipped as disabled due to use of SOCKS proxy");
 				}
@@ -1646,6 +1648,10 @@ DHTTrackerPlugin
 				
 				log( download, "Registration of '" + target.getDesc() + "' skipped as metadata download");
 				
+			}else if ( target_type == REG_TYPE_DERIVED && dht.isSleeping()){
+				
+				log( download, "Registration of '" + target.getDesc() + "' skipped as sleeping");
+
 			}else{
 				
 				dht.put( 
@@ -1722,7 +1728,13 @@ DHTTrackerPlugin
 			
 			final trackerTarget target = targets[i];
 	
-			if ( target.getType() == REG_TYPE_FULL && derived_only ){
+			int	target_type = target.getType();
+			
+			if ( target_type == REG_TYPE_FULL && derived_only ){
+				
+				continue;
+				
+			}else if ( target_type == REG_TYPE_DERIVED && dht.isSleeping()){
 				
 				continue;
 			}
@@ -1735,7 +1747,7 @@ DHTTrackerPlugin
 					"Tracker announce for '" + download.getName() + "' " + target.getDesc(),
 					isComplete( download )?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
 					NUM_WANT, 
-					target.getType()==REG_TYPE_FULL?ANNOUNCE_TIMEOUT:ANNOUNCE_DERIVED_TIMEOUT,
+					target_type==REG_TYPE_FULL?ANNOUNCE_TIMEOUT:ANNOUNCE_DERIVED_TIMEOUT,
 					false, false,
 					new DHTPluginOperationListener()
 					{

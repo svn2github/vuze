@@ -122,7 +122,9 @@ ThreadPool
 	private boolean	queue_when_full;
 	private List	task_queue	= new ArrayList();
 	
-	AESemaphore	thread_sem;
+	private AESemaphore		thread_sem;
+	private int				reserved_target;
+	private int				reserved_actual;
 	
 	private int			thread_priority	= Thread.NORM_PRIORITY;
 	private boolean		warn_when_full;
@@ -435,6 +437,64 @@ ThreadPool
 		return( thread_sem.getValue() == 0 );
 	}
 	
+	public void
+	setMaxThreads(
+		int		max )
+	{
+		if ( max > max_size ){
+			
+			Debug.out( "should support this sometime..." );
+			
+			return;
+		}
+		
+		setReservedThreadCount( max_size - max );
+	}
+	
+	public void
+	setReservedThreadCount(
+		int		res )
+	{
+		synchronized( this ){
+	
+			if ( res < 0 ){
+				
+				res = 0;
+				
+			}else if ( res > max_size ){
+				
+				res = max_size;
+			}
+			
+			int	 diff =  res - reserved_actual;
+			
+			while( diff < 0 ){
+			
+				thread_sem.release();
+				
+				reserved_actual--;
+				
+				diff++;
+			}
+			
+			while( diff > 0 ){
+				
+				if ( thread_sem.reserveIfAvailable()){
+					
+					reserved_actual++;
+			
+					diff--;
+					
+				}else{
+					
+					break;
+				}
+			}
+			
+			reserved_target = res;
+		}
+	}
+	
 	protected void
 	checkTimeouts()
 	{
@@ -507,8 +567,8 @@ ThreadPool
 		if(!busy.contains(toRelease.worker) || toRelease.manualRelease != ThreadPoolTask.RELEASE_MANUAL_ALLOWED)
 			throw new IllegalStateException("task already released or not manually releasable");
 
-		synchronized (this)
-		{
+		synchronized( this ){
+		
 			long elapsed = SystemTime.getCurrentTime() - toRelease.worker.run_start_time;
 			if (elapsed > WARN_TIME && LOG_WARNINGS)
 				DebugLight.out(toRelease.worker.getWorkerName() + ": terminated, elapsed = " + elapsed + ", state = " + toRelease.worker.state);
@@ -523,10 +583,20 @@ ThreadPool
 					busy_pools.remove(this);
 				}
 
-			if(busy.size() == 0)
-				thread_sem.release();
-			else
-				new threadPoolWorker();		
+			if ( busy.size() == 0){
+				
+				if ( reserved_target > reserved_actual ){
+					
+					reserved_actual++;
+					
+				}else{
+					
+					thread_sem.release();
+				}
+			}else{
+				
+				new threadPoolWorker();
+			}
 		}
 
 	}
@@ -680,8 +750,20 @@ ThreadPool
 				DebugLight.printStackTrace(e);
 			} finally
 			{
-				if(autoRelease)
-					thread_sem.release();
+				if ( autoRelease){
+					
+					synchronized (ThreadPool.this){
+						
+						if ( reserved_target > reserved_actual ){
+							
+							reserved_actual++;
+							
+						}else{
+							
+							thread_sem.release();
+						}
+					}
+				}
 				
 				tls.set(null);
 			}
