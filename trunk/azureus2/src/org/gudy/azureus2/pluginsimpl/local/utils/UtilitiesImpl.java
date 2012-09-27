@@ -1168,6 +1168,37 @@ UtilitiesImpl
 		}
 	}
 	
+	public void 
+	unregisterSearchProvider(
+		SearchProvider 		provider )
+	
+		throws SearchException
+	{
+		List<searchManager>	managers;
+		
+		synchronized( UtilitiesImpl.class ){
+			
+			Iterator<Object[]> it = search_providers.iterator();
+			
+			while( it.hasNext()){
+				
+				Object[] entry = it.next();
+				
+				if ( entry[0] == pi && entry[1] == provider ){
+					
+					it.remove();
+				}
+			}
+			
+			managers = new ArrayList<searchManager>( search_managers );
+		}
+		
+		for (int i=0;i<managers.size();i++){
+				
+			((searchManager)managers.get(i)).removeProvider( pi, provider );
+		}
+	}
+	
 	public SearchInitiator 
 	getSearchInitiator() 
 	
@@ -1572,6 +1603,11 @@ UtilitiesImpl
 	{
 		public void
 		addProvider( 
+			PluginInterface		pi,
+			SearchProvider		provider );
+		
+		public void
+		removeProvider( 
 			PluginInterface		pi,
 			SearchProvider		provider );
 	}
