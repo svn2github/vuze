@@ -27,8 +27,6 @@ import java.net.Inet4Address;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
-import java.security.SecureRandom;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -47,7 +45,6 @@ import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
-import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -150,7 +147,7 @@ DHTTransportUDPImpl
 
 	private boolean		bootstrap_node	= false;
 	
-	private byte		generic_flags	= DHTUDPPacket.GF_NONE;
+	private byte		generic_flags	= DHTTransportUDP.GF_NONE;
 	
 	private static final int CONTACT_HISTORY_MAX 		= 32;
 	private static final int CONTACT_HISTORY_PING_SIZE	= 24;
@@ -578,6 +575,24 @@ DHTTransportUDPImpl
 	getGenericFlags()
 	{
 		return( generic_flags );
+	}
+	
+	public void
+	setGenericFlag(
+		byte		flag,
+		boolean		value )
+	{
+		synchronized( this ){
+			
+			if ( value ){
+				
+				generic_flags |= flag;
+				
+			}else{
+				
+				generic_flags &= ~flag;
+			}
+		}
 	}
 	
 	public boolean 
@@ -2233,7 +2248,7 @@ outer:
 							contact.setRandomID( reply.getRandomID());
 														
 							updateContactStatus( contact, reply.getNodeStatus(), false );
-							
+														
 							request_handler.setTransportEstimatedDHTSize( reply.getEstimatedDHTSize());
 							
 							stats.findNodeOK();
@@ -3959,6 +3974,8 @@ outer:
 			
 			DHTNetworkPositionManager.update( local_contact.getNetworkPositions(), remote_contact.getID(), remote_nps, (float)elapsed_time );						
 		}
+		
+		remote_contact.setGenericFlags( reply.getGenericFlags());
 		
 		if ( reply.getAction() == DHTUDPPacketHelper.ACT_REPLY_ERROR ){
 			

@@ -954,7 +954,7 @@ PRUDPPacketHandlerImpl
 			if ( e instanceof IOException ){
 			
 					// generally uninteresting
-				
+				//e.printStackTrace();
 			}else{
 							
 				Logger.log(new LogEvent(LOGID, "", e));

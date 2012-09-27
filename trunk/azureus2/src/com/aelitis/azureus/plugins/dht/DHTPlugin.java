@@ -1824,6 +1824,12 @@ DHTPlugin
 		return( status );
 	}
 	
+	public boolean
+	isSleeping()
+	{
+		return( AERunStateHandler.isDHTSleeping());
+	}
+	
 	public DHT[]
 	getDHTs()
 	{

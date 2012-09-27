@@ -200,7 +200,14 @@ DHTTransportUDPContactImpl
 	public boolean 
 	isSleeping() 
 	{
-		return(( generic_flags & DHTUDPPacket.GF_DHT_SLEEPING ) != 0 );
+		return(( generic_flags & DHTTransportUDP.GF_DHT_SLEEPING ) != 0 );
+	}
+	
+	protected void
+	setGenericFlags(
+		byte		flags )
+	{
+		generic_flags = flags;
 	}
 	
 	protected boolean

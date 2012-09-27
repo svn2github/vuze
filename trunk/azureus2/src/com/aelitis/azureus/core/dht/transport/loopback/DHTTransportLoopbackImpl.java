@@ -203,6 +203,17 @@ DHTTransportLoopbackImpl
 		return( 0 );
 	}
 	
+	public byte 
+	getGenericFlags() 
+	{
+		return 0;
+	}
+	
+	public void 
+	setGenericFlag(
+		byte flag, boolean value) 
+	{
+	}
 	
 	public long 
 	getTimeout() 

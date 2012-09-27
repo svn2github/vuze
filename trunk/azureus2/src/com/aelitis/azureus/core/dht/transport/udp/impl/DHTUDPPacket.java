@@ -24,10 +24,7 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 
 public interface 
 DHTUDPPacket 
-{
-	public static final byte GF_NONE				= 0x00;
-	public static final byte GF_DHT_SLEEPING		= 0x01;
-	
+{	
 	public DHTTransportUDPImpl
 	getTransport();
 	

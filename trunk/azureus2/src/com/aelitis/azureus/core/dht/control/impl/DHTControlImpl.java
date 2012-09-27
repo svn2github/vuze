@@ -431,7 +431,7 @@ DHTControlImpl
 	setSleeping(
 		boolean	asleep )
 	{
-		
+		transport.setGenericFlag( DHTTransport.GF_DHT_SLEEPING, asleep );
 	}
 	
 	public DHTControlStats

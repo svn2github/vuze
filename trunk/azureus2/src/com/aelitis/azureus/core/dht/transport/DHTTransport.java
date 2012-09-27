@@ -32,6 +32,9 @@ import java.io.*;
 public interface 
 DHTTransport 
 {	
+	public static final byte GF_NONE				= 0x00;
+	public static final byte GF_DHT_SLEEPING		= 0x01;
+
 	public byte
 	getProtocolVersion();
 	
@@ -40,6 +43,14 @@ DHTTransport
 
 	public boolean
 	isIPV6();
+	
+	public byte
+	getGenericFlags();
+	
+	public void
+	setGenericFlag(
+		byte		flag,
+		boolean		value );
 	
 		/**
 		 * Gives access to the node ID for this transport 
