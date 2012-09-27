@@ -187,6 +187,23 @@ public class BTHandshake implements BTMessage, RawMessage {
     
     data.returnToPool();
     
+    if ( peerid[0] == (byte)0 && peerid[1] == (byte)0){
+    	boolean ok = false;
+    	for (int i=2;i<20;i++){
+    		if ( peerid[i] != (byte)0){
+    			
+    			ok = true;
+    			break;
+    		}
+    	}
+    	if ( !ok ){
+    		byte[] x = ("-" + "#@" + "0000" + "-").getBytes();	// bad peer id decode
+    		
+    		RandomUtils.nextBytes( peerid );
+    		
+    		System.arraycopy(x, 0, peerid, 0, x.length );
+    	}
+    }
     return new BTHandshake( reserved, infohash, peerid, version );
   }
   
