@@ -64,6 +64,7 @@ import com.aelitis.azureus.core.metasearch.MetaSearchManagerListener;
 import com.aelitis.azureus.core.metasearch.Result;
 import com.aelitis.azureus.core.metasearch.ResultListener;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
+import com.aelitis.azureus.core.metasearch.impl.plugin.PluginEngine;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManager;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
@@ -245,6 +246,34 @@ MetaSearchManagerImpl
 		}catch( Throwable e ){
 			
 			Debug.out( "Failed to add search provider '" + id + "' (" + provider + ")", e );
+		}
+	}
+	
+	public void 
+	removeProvider(
+		PluginInterface		pi,
+		SearchProvider 		provider ) 
+	{
+		String	id = pi.getPluginID() + "." + provider.getProperty( SearchProvider.PR_NAME );
+		
+		try{
+			Engine[] engines = meta_search.getEngines( false, false );
+			
+			for ( Engine engine: engines ){
+				
+				if ( engine instanceof PluginEngine ){
+					
+					PluginEngine pe = (PluginEngine)engine;
+					
+					if ( pe.getProvider() == provider ){
+						
+						engine.delete();
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( "Failed to remove search provider '" + id + "' (" + provider + ")", e );
 		}
 	}
 	

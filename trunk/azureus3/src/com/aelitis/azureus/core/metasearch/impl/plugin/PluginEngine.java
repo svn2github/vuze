@@ -131,6 +131,12 @@ PluginEngine
 		provider	= _provider;
 	}
 	
+	public SearchProvider
+	getProvider()
+	{
+		return( provider );
+	}
+	
 	protected boolean
 	useAccuracyForRank()
 	{

@@ -346,6 +346,12 @@ Utilities
 	
 		throws SearchException;
 
+	public void
+	unregisterSearchProvider(
+		SearchProvider		provider )
+	
+		throws SearchException;
+	
 	public SearchInitiator
 	getSearchInitiator()
 	
