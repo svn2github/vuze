@@ -135,19 +135,26 @@ public class SWTSkinObjectText1
 					if (firstChar == '+' || firstChar == '-') {
 						sSize = sSize.substring(1);
 					}
-
-					int iSize = NumberFormat.getInstance(Locale.US).parse(sSize).intValue();
-
-					if (firstChar == '+') {
-						fontSize = (int) (fd[0].height + iSize);
-					} else if (firstChar == '-') {
-						fontSize = (int) (fd[0].height - iSize);
+					
+					if (sSize.endsWith("%")) {
+						sSize = sSize.substring(0, sSize.length() - 1);
+						float pctSize = NumberFormat.getInstance(Locale.US).parse(sSize).floatValue();
+						fontSize = FontUtils.getHeight(fd) * pctSize;
 					} else {
-						fontSize = iSize;
-					}
 
-					if (sSize.endsWith("px")) {
-						fontSize = FontUtils.getFontHeightFromPX(label.getFont(), null, iSize);
+  					int iSize = NumberFormat.getInstance(Locale.US).parse(sSize).intValue();
+  
+  					if (firstChar == '+') {
+  						fontSize = (int) (fd[0].height + iSize);
+  					} else if (firstChar == '-') {
+  						fontSize = (int) (fd[0].height - iSize);
+  					} else {
+  						fontSize = iSize;
+  					}
+  
+  					if (sSize.endsWith("px")) {
+  						fontSize = FontUtils.getFontHeightFromPX(label.getFont(), null, iSize);
+  					}
 					}
 
 					bNewFont = true;
