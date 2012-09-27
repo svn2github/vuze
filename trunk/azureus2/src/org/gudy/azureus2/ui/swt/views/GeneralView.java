@@ -201,7 +201,7 @@ public class GeneralView
     gridData.heightHint = 25;
     piecesImage.setLayoutData(gridData);
 
-    piecesPercent = new BufferedLabel(gFile, SWT.RIGHT);
+    piecesPercent = new BufferedLabel(gFile, SWT.RIGHT | SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     gridData.widthHint = 50;
     piecesPercent.setLayoutData(gridData);
@@ -218,7 +218,7 @@ public class GeneralView
     availabilityImage.setLayoutData(gridData);
     Messages.setLanguageText(availabilityImage, "GeneralView.label.status.pieces_available.tooltip");
 
-    availabilityPercent = new BufferedLabel(gFile, SWT.RIGHT);
+    availabilityPercent = new BufferedLabel(gFile, SWT.RIGHT | SWT.DOUBLE_BUFFERED );
     gridData = new GridData(GridData.HORIZONTAL_ALIGN_END);
     gridData.widthHint = 50;
     availabilityPercent.setLayoutData(gridData);
@@ -240,23 +240,23 @@ public class GeneralView
     timeElapsed.setLayoutData(gridData);
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.remaining"); //$NON-NLS-1$
-    timeRemaining = new BufferedLabel(gTransfer, SWT.LEFT);
+    timeRemaining = new BufferedLabel(gTransfer, SWT.LEFT | SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     timeRemaining.setLayoutData(gridData);
     label = new Label(gTransfer, SWT.LEFT); //$NON-NLS-1$
     Messages.setLanguageText(label, "GeneralView.label.shareRatio");
-    shareRatio = new BufferedLabel(gTransfer, SWT.LEFT); //$NON-NLS-1$
+    shareRatio = new BufferedLabel(gTransfer, SWT.LEFT | SWT.DOUBLE_BUFFERED); //$NON-NLS-1$
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     shareRatio.setLayoutData(gridData);
 
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.downloaded"); //$NON-NLS-1$
-    download = new BufferedLabel(gTransfer, SWT.LEFT);
+    download = new BufferedLabel(gTransfer, SWT.LEFT | SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     download.setLayoutData(gridData);
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.downloadspeed"); //$NON-NLS-1$
-    downloadSpeed = new BufferedLabel(gTransfer, SWT.LEFT);
+    downloadSpeed = new BufferedLabel(gTransfer, SWT.LEFT | SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     downloadSpeed.setLayoutData(gridData);
     label = new Label(gTransfer, SWT.LEFT); //$NON-NLS-1$
@@ -267,12 +267,12 @@ public class GeneralView
     
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.uploaded"); //$NON-NLS-1$
-    upload = new BufferedLabel(gTransfer, SWT.LEFT);
+    upload = new BufferedLabel(gTransfer, SWT.LEFT | SWT.DOUBLE_BUFFERED );
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     upload.setLayoutData(gridData);    
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.uploadspeed"); //$NON-NLS-1$
-    uploadSpeed = new BufferedLabel(gTransfer, SWT.LEFT);
+    uploadSpeed = new BufferedLabel(gTransfer, SWT.LEFT | SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     uploadSpeed.setLayoutData(gridData);
@@ -301,20 +301,20 @@ public class GeneralView
     
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.totalspeed"); 
-    totalSpeed = new BufferedLabel(gTransfer, SWT.LEFT);
+    totalSpeed = new BufferedLabel(gTransfer, SWT.LEFT | SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalSpeed.setLayoutData(gridData);
     
     
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.swarm_average_completion"); 
-    ave_completion = new BufferedLabel(gTransfer, SWT.LEFT);
+    ave_completion = new BufferedLabel(gTransfer, SWT.LEFT | SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     ave_completion.setLayoutData(gridData);
     
     label = new Label(gTransfer, SWT.LEFT);
     Messages.setLanguageText(label, "GeneralView.label.distributedCopies"); 
-    distributedCopies = new BufferedLabel(gTransfer, SWT.LEFT);
+    distributedCopies = new BufferedLabel(gTransfer, SWT.LEFT | SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     distributedCopies.setLayoutData(gridData);
     

@@ -349,7 +349,7 @@ public class TorrentInfoView
 			label.setText(MessageText.getString(key) + ": ");
 			label.setToolTipText(MessageText.getString(key + ".info", ""));
 
-			final Composite c = new Composite(gColumns, SWT.NONE);
+			final Composite c = new Composite(gColumns, SWT.DOUBLE_BUFFERED);
 			gridData = new GridData( GridData.FILL_HORIZONTAL);
 			gridData.heightHint = 16;
 			c.setLayoutData(gridData);
