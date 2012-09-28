@@ -100,7 +100,7 @@ public class TransferStatsView
 	private BufferedLabel uploadBiaser;
 	
 	private Composite 		connectionPanel;
-	private Label			upload_label, connection_label;
+	private BufferedLabel	upload_label, connection_label;
 	private SpeedGraphic	upload_graphic;
 	private SpeedGraphic	connection_graphic;
 	
@@ -319,7 +319,7 @@ public class TransferStatsView
 	  Label label = new Label( conn_area, SWT.NULL );
 	  Messages.setLanguageText( label, "SpeedView.stats.con" );
 	  
-	  connection_label = new Label( conn_area, SWT.NULL );
+	  connection_label = new BufferedLabel( conn_area, SWT.DOUBLE_BUFFERED );
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
 	  connection_label.setLayoutData(gridData);
 
@@ -334,7 +334,7 @@ public class TransferStatsView
 	  label = new Label( upload_area, SWT.NULL );
 	  Messages.setLanguageText( label, "SpeedView.stats.upload" );
 
-	  upload_label = new Label( upload_area, SWT.NULL );
+	  upload_label = new BufferedLabel( upload_area, SWT.DOUBLE_BUFFERED );
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
 	  upload_label.setLayoutData(gridData);
 
@@ -670,15 +670,17 @@ public class TransferStatsView
 		  
 	  }
 	  
-	  Messages.setLanguageText( 
-			 connection_label, "SpeedView.stats.con_details",
-			 new String[]{ String.valueOf(total_connections), String.valueOf(total_con_unchoked), String.valueOf(total_con_queued), String.valueOf(total_con_blocked) });
+	  connection_label.setText(
+			MessageText.getString(
+					"SpeedView.stats.con_details",
+					new String[]{ String.valueOf(total_connections), String.valueOf(total_con_unchoked), String.valueOf(total_con_queued), String.valueOf(total_con_blocked) }));
 	  
 	  connection_graphic.addIntsValue( new int[]{ total_connections, total_con_unchoked, total_con_queued, total_con_blocked });
 	  
-	  Messages.setLanguageText( 
-			 upload_label, "SpeedView.stats.upload_details",
-			 new String[]{ DisplayFormatters.formatByteCountToKiBEtc( total_data_queued )});
+	  upload_label.setText(
+			MessageText.getString(
+					"SpeedView.stats.upload_details",
+					new String[]{ DisplayFormatters.formatByteCountToKiBEtc( total_data_queued )}));
 	  
 	  upload_graphic.addIntValue( total_data_queued );
 	  
