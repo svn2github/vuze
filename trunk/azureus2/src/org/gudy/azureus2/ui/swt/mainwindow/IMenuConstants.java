@@ -60,6 +60,8 @@ public interface IMenuConstants
 
 	public static final String MENU_ID_SPEED_LIMITS = "MainWindow.menu.speed_limits";
 	
+	public static final String MENU_ID_QUICK_VIEW = "MainWindow.menu.quick_view";
+
 	public static final String MENU_ID_ADVANCED_TOOLS = "MainWindow.menu.advanced_tools";
 
 	public static final String MENU_ID_WINDOW = "MainWindow.menu.window";

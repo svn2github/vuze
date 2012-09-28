@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
@@ -2158,5 +2159,209 @@ public class Utils
 		Point controlLocation = control.toDisplay(0, 0);
 		Point shellLocation = control.getShell().getLocation();
 		return new Point(controlLocation.x - shellLocation.x, controlLocation.y - shellLocation.y);
+	}
+	
+	private static Set<String>	qv_exts = new HashSet<String>();
+	private static int			qv_max_bytes;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{ "quick.view.exts", "quick.view.maxkb" },
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name ) 
+				{
+					String	exts_str 	= COConfigurationManager.getStringParameter( "quick.view.exts" );
+					int		max_bytes	= COConfigurationManager.getIntParameter( "quick.view.maxkb" )*1024;
+					
+					String[]	bits = exts_str.split( "[;, ]");
+					
+					Set<String>	exts = new HashSet<String>();
+					
+					for ( String bit: bits ){
+						
+						bit = bit.trim();
+						
+						if ( bit.length() > 0 ){
+							
+							exts.add( bit.toLowerCase());
+						}
+					}
+					
+					qv_exts 		= exts;
+					qv_max_bytes	= max_bytes;
+				}
+			});
+	}
+
+	private static Set<DiskManagerFileInfo>	quick_view_active = new HashSet<DiskManagerFileInfo>();
+	private static TimerEventPeriodic		quick_view_event;
+	
+	public static boolean
+	isQuickViewSupported(
+		DiskManagerFileInfo	file )
+	{
+		String ext = file.getExtension().toLowerCase();
+		
+		if ( qv_exts.contains( ext )){
+			
+			if ( file.getLength() <= qv_max_bytes ){	
+			
+				return( true );
+			}
+		}
+		
+		return( false );
+	}
+	
+	public static boolean
+	isQuickViewActive(
+		DiskManagerFileInfo	file )
+	{
+		synchronized( quick_view_active ){
+		
+			return( quick_view_active.contains( file ));
+		}
+	}
+	
+	public static void
+	setQuickViewActive(
+		DiskManagerFileInfo	file,
+		boolean				active )
+	{
+		synchronized( quick_view_active ){
+
+			if ( !active ){
+				
+				quick_view_active.remove( file );
+				
+				return;
+			}
+			
+			if ( quick_view_active.contains( file )){
+					
+				return;
+			}
+	
+			if ( file.getDownloaded() == file.getLength()){
+				
+				quickView( file );
+				
+			}else{
+			
+				quick_view_active.add( file );
+				
+				file.setPriority( 1 );
+				
+				DiskManagerFileInfo[] all_files = file.getDownloadManager().getDiskManagerFileInfoSet().getFiles();
+				
+				for ( DiskManagerFileInfo f: all_files ){
+					
+					if ( !quick_view_active.contains( f )){
+						
+						f.setPriority( 0 );
+					}
+				}
+				
+				if ( quick_view_event == null ){
+					
+					quick_view_event = 
+						SimpleTimer.addPeriodicEvent(
+							"qv_checker",
+							5*1000,
+							new TimerEventPerformer()
+							{
+								public void 
+								perform(
+									TimerEvent event) 
+								{
+									synchronized( quick_view_active ){
+										
+										Iterator<DiskManagerFileInfo> it = quick_view_active.iterator();
+										
+										while( it.hasNext()){
+											
+											DiskManagerFileInfo file = it.next();
+											
+											if ( file.getDownloadManager().isDestroyed()){
+												
+												it.remove();
+												
+											}else{
+												
+												if ( file.getDownloaded() == file.getLength()){
+													
+													quickView( file );
+													
+													it.remove();
+												}
+											}
+										}
+										
+										if ( quick_view_active.isEmpty()){
+											
+											quick_view_event.cancel();
+											
+											quick_view_event = null;
+										}
+									}
+								}
+							});
+				}
+				
+				execSWTThreadLater(
+					10,
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							MessageBoxShell mb = 
+								new MessageBoxShell(
+										SWT.OK,
+										MessageText.getString("quick.view.scheduled.title"),
+										MessageText.getString("quick.view.scheduled.text"));
+
+							mb.setDefaultButtonUsingStyle(SWT.OK);
+							mb.setRemember("quick.view.inform.activated.id", false, MessageText.getString( "label.dont.show.again" ));
+							mb.setLeftImage(SWT.ICON_INFORMATION);
+							mb.open(null);
+						}
+					});
+			}
+		}
+	}
+	
+	private static void
+	quickView(
+		final DiskManagerFileInfo		file )
+	{
+		try{
+			final File		target_file = file.getFile( true );
+			
+			final String contents = FileUtil.readFileAsString( target_file, qv_max_bytes );
+			
+			execSWTThread(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						DownloadManager dm = file.getDownloadManager();
+						
+						new TextViewerWindow(
+								MessageText.getString( "MainWindow.menu.quick_view" ) + ": " + target_file.getName(),
+								MessageText.getString( 
+									"MainWindow.menu.quick_view.msg",
+									new String[]{ target_file.getName(), dm.getDisplayName() }),
+								contents, false  );
+					}
+				});
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
 	}
 }

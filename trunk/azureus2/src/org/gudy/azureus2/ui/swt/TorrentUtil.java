@@ -951,6 +951,65 @@ public class TorrentUtil {
 			}
 		});
 
+		// === advanced > quick view
+				
+		final Menu quickViewMenu = new Menu(menuAdvanced.getShell(), SWT.DROP_DOWN);
+		final MenuItem quickViewMenuItem = new MenuItem(menuAdvanced, SWT.CASCADE);
+		Messages.setLanguageText(quickViewMenuItem,IMenuConstants.MENU_ID_QUICK_VIEW);
+		quickViewMenuItem.setMenu(quickViewMenu);
+		
+		MenuBuildUtils.addMaintenanceListenerForMenu(quickViewMenu,
+			new MenuBuildUtils.MenuBuilder() {
+				public void 
+				buildMenu(
+					Menu 		menu, 
+					MenuEvent 	menuEvent) 
+				{
+					DownloadManager dm = dms[0];
+					
+					DiskManagerFileInfo[]	files = dm.getDiskManagerFileInfoSet().getFiles();
+					
+					int	added = 0;
+					
+					for ( final DiskManagerFileInfo file: files ){
+						
+						if ( Utils.isQuickViewSupported( file )){
+								
+							final MenuItem addItem = new MenuItem(menu, SWT.CHECK );
+							
+							addItem.setSelection( Utils.isQuickViewActive( file ));
+							
+							addItem.setText( file.getTorrentFile().getRelativePath());
+
+							addItem.addListener(
+								SWT.Selection,
+								new Listener()
+								{
+									public void 
+									handleEvent(
+										Event arg ) 
+									{
+										Utils.setQuickViewActive( file, addItem.getSelection());
+									}
+								});
+							
+							added++;
+						}
+					}
+					
+					if ( added == 0 ){
+						
+						final MenuItem addItem = new MenuItem(menu, SWT.PUSH );
+												
+						addItem.setText( MessageText.getString( "quick.view.no.files"));
+
+						addItem.setEnabled( false );
+					}
+				}
+		});
+		
+		quickViewMenuItem.setEnabled( dms.length == 1 );
+		
 		// === advanced > export ===
 		// =========================
 

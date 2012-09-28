@@ -108,6 +108,26 @@ public class FilesViewMenuUtil
 		itemRetarget.setData("rename", Boolean.valueOf(false));
 		itemRetarget.setData("retarget", Boolean.valueOf(true));
 
+			// quick view
+		
+		final MenuItem itemQuickView = new MenuItem(menu, SWT.CHECK);
+		Messages.setLanguageText(itemQuickView, "MainWindow.menu.quick_view");
+
+		itemQuickView.setEnabled( data_sources.length==1 && Utils.isQuickViewSupported((DiskManagerFileInfo)data_sources[0]));
+		itemQuickView.setSelection( data_sources.length==1 && Utils.isQuickViewActive((DiskManagerFileInfo)data_sources[0]));
+		
+		itemQuickView.addListener(
+				SWT.Selection,
+				new Listener()
+				{
+					public void 
+					handleEvent(
+						Event arg ) 
+					{
+						Utils.setQuickViewActive( (DiskManagerFileInfo)data_sources[0], itemQuickView.getSelection());
+					}
+				});
+		
 			// personal share
 		
 		final MenuItem itemPersonalShare = new MenuItem(menu, SWT.PUSH);

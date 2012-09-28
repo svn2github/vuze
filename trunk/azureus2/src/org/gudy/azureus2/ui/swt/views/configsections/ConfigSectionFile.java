@@ -467,7 +467,38 @@ public class ConfigSectionFile
 			sCurConfigID = "priorityExtensionsIgnoreCase";
 			allConfigIDs.add(sCurConfigID);
 		}
+		
+		// quick view
+		
+		sCurConfigID = "quick.view.exts";
+		allConfigIDs.add(sCurConfigID);
 
+		label = new Label(gFile, SWT.WRAP);
+		gridData = new GridData();
+		gridData.widthHint = 180;
+		label.setLayoutData(gridData);
+		Messages.setLanguageText(label, "ConfigView.label.quickviewexts");
+
+		Composite cQuickView = new Composite(gFile, SWT.NULL);
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		cQuickView.setLayoutData(gridData);
+		layout = new GridLayout();
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.numColumns = 3;
+		cQuickView.setLayout(layout);
+
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		new StringParameter(cQuickView, sCurConfigID ).setLayoutData(gridData);
+
+		label = new Label(cQuickView, SWT.NONE);
+		Messages.setLanguageText(label, "ConfigView.label.quickviewmaxkb");
+
+		sCurConfigID = "quick.view.maxkb";
+		allConfigIDs.add(sCurConfigID);
+		IntParameter qvmax = new IntParameter(cQuickView, sCurConfigID, 1, 256 );
+		
+		
 		// rename incomplete
 
 		if (userMode > 0) {
