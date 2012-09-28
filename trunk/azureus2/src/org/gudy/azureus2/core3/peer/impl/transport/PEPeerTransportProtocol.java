@@ -2293,6 +2293,27 @@ implements PEPeerTransport
 			}
 
 			if( close ) {
+				if ( Constants.IS_CVS_VERSION ){
+					try{
+						List<PEPeer> peers = manager.getPeers();
+						String dup_str = "?";
+						for ( PEPeer p: peers ){
+							if ( p == this ){
+								continue;
+							}
+							byte[] id = p.getId();
+							if ( Arrays.equals( id, peer_id )){
+								dup_str = p.getClient() + "/" + p.getClientNameFromExtensionHandshake() + "/" + p.getIp() + "/" + p.getPort();
+								break;
+							}
+						}
+						String my_str = getClient() + "/" + getIp() + "/" + getPort();
+						
+						Debug.outNoStack( 
+							"Duplicate peer id detected: id=" + ByteFormatter.encodeString( peer_id ) + ": this=" + my_str + ",other=" + dup_str );
+					}catch( Throwable e ){
+					}
+				}
 				closeConnectionInternally( "peer matches already-connected peer id" );
 				handshake.destroy();
 				return;
