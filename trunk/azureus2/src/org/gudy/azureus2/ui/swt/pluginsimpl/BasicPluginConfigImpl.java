@@ -736,9 +736,16 @@ BasicPluginConfigImpl
 								(Control[]) controlsToDisable.toArray(cd));
 				    
 	
-				    BooleanParameter	target = (BooleanParameter)((Object[])comp_map.get(param))[0];
+				    Object[] data = (Object[])comp_map.get(param);
 				    
-				    target.setAdditionalActionPerformer(ap);
+				    	// might not be visible (e.g. user mode too low) in which case it won't be in the map
+				    
+				    if ( data != null ){
+				    	
+					    BooleanParameter	target = (BooleanParameter)data[0];
+					    
+					    target.setAdditionalActionPerformer(ap);
+				    }
 				}
 			}
 		}
