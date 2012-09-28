@@ -588,13 +588,16 @@ public class SideBar
 								}
 
 								if (!entry.isCollapseDisabled() && treeItem.getItemCount() > 0) {
-									MdiEntry currentEntry = getCurrentEntry();
-									if (currentEntry != null
-											&& entry.getId().equals(currentEntry.getParentID())) {
-										showEntryByID(SIDEBAR_SECTION_LIBRARY);
+									if (!entry.isSelectable() || event.x < 20) {
+										// Note: On Windows, user can expand row by clicking the invisible area where the OS twisty would be
+  									MdiEntry currentEntry = getCurrentEntry();
+  									if (currentEntry != null
+  											&& entry.getId().equals(currentEntry.getParentID())) {
+  										showEntryByID(SIDEBAR_SECTION_LIBRARY);
+  									}
+  									entry.setExpanded(!wasExpanded);
+  									wasExpanded = !wasExpanded;
 									}
-									entry.setExpanded(!wasExpanded);
-									wasExpanded = !wasExpanded;
 								}
 							}
 
