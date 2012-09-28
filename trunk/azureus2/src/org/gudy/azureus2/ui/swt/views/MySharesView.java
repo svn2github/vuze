@@ -175,22 +175,23 @@ implements ShareManagerListener,
 			}
 		});
 
-		dropTarget = tv.createDropTarget(DND.DROP_DEFAULT | DND.DROP_MOVE
-				| DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
-		if (dropTarget != null) {
-			dropTarget.setTransfer(new Transfer[] { HTMLTransfer.getInstance(),
-					URLTransfer.getInstance(), FileTransfer.getInstance(),
-					TextTransfer.getInstance() });
-
-			dropTarget.addDropListener(new DropTargetAdapter() {
-				public void drop(DropTargetEvent event) {
-					if (!share(event.data)) {
-						TorrentOpener.openDroppedTorrents(event, true);
+		if ( dropTarget == null ){
+			dropTarget = tv.createDropTarget(DND.DROP_DEFAULT | DND.DROP_MOVE
+					| DND.DROP_COPY | DND.DROP_LINK | DND.DROP_TARGET_MOVE);
+			if (dropTarget != null) {
+				dropTarget.setTransfer(new Transfer[] { HTMLTransfer.getInstance(),
+						URLTransfer.getInstance(), FileTransfer.getInstance(),
+						TextTransfer.getInstance() });
+	
+				dropTarget.addDropListener(new DropTargetAdapter() {
+					public void drop(DropTargetEvent event) {
+						if (!share(event.data)) {
+							TorrentOpener.openDroppedTorrents(event, true);
+						}
 					}
-				}
-			});
-		};
-
+				});
+			};
+		}
 	}
 	
 	protected boolean share(Object eventData) {
