@@ -254,6 +254,10 @@ public class VuzeMessageBox
   		}
 		}
 		
+		if (iconResource == null && textIconResource == null) {
+			soTopTitle.setStyle(soText.getStyle() & ~(SWT.RIGHT | SWT.CENTER));
+		}
+		
 		SWTSkinObjectContainer soBottomArea = (SWTSkinObjectContainer) skin.getSkinObject("bottom-area");
 		if (soBottomArea != null) {
 			if (buttonIDs.length == 0) {
