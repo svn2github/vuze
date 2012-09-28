@@ -60,6 +60,12 @@ public class SkinnedDialog
 	}
 
 	public SkinnedDialog(String skinFile, String shellSkinObjectID, int style) {
+		this(SkinnedDialog.class.getClassLoader(), "com/aelitis/azureus/ui/skin/",
+				skinFile, shellSkinObjectID, style);
+	}
+
+	public SkinnedDialog(ClassLoader cla, String skinPath, String skinFile,
+			String shellSkinObjectID, int style) {
 		this.shellSkinObjectID = shellSkinObjectID;
 
 		mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
@@ -67,10 +73,9 @@ public class SkinnedDialog
 
 		Utils.setShellIcon(shell);
 
-		SWTSkin skin = SWTSkinFactory.getNonPersistentInstance(
-				SkinnedDialog.class.getClassLoader(), "com/aelitis/azureus/ui/skin/",
+		SWTSkin skin = SWTSkinFactory.getNonPersistentInstance(cla, skinPath,
 				skinFile + ".properties");
-		
+
 		setSkin(skin);
 
 		skin.initialize(shell, shellSkinObjectID);
