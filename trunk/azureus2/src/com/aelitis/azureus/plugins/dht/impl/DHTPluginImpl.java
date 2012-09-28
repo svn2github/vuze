@@ -411,7 +411,8 @@ DHTPluginImpl
 		log.log( "DHT:ip=" + transport.getLocalContact().getAddress() + 
 					",net=" + transport.getNetwork() +
 					",prot=V" + transport.getProtocolVersion()+
-					",reach=" + transport.isReachable());
+					",reach=" + transport.isReachable()+
+					",flags=" + Integer.toString((int)(transport.getGenericFlags()&0xff), 16 ));
 
 		log.log( 	"Router" +
 					":nodes=" + rs[DHTRouterStats.ST_NODES] +

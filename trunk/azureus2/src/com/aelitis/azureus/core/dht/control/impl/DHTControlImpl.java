@@ -434,6 +434,8 @@ DHTControlImpl
 	{
 		transport.setGenericFlag( DHTTransport.GF_DHT_SLEEPING, asleep );
 		
+		logger.log( "Sleep mode changed to " + asleep );
+		
 		if ( asleep ){
 			
 			external_put_pool.setMaxThreads( EXTERNAL_SLEEPING_PUT_CONCURRENCY );
