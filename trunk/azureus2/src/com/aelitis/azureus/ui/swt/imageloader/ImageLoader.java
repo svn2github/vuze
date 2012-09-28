@@ -1114,7 +1114,7 @@ public class ImageLoader
 		});
 	}
 
-	public void setButtonImage(Button btn, final String key) {
+	public Image setButtonImage(Button btn, final String key) {
 		Image bg = getImage(key);
 		btn.setImage(bg);
 		btn.addDisposeListener(new DisposeListener() {
@@ -1122,6 +1122,8 @@ public class ImageLoader
 				releaseImage(key);
 			}
 		});
+		
+		return( bg );
 	}
 
 	public void setBackgroundImage(Control control, final String key) {
