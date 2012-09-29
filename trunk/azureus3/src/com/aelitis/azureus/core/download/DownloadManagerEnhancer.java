@@ -243,7 +243,7 @@ DownloadManagerEnhancer
 				{
 					private int tick_count;
 					
-					private long	last_inactive_marker = -1;
+					private long	last_inactive_marker = 0;
 					
 					public void 
 					perform(
