@@ -430,11 +430,9 @@ public class TableColumnSetupWindow
 		// >>>>>>> Chosen
 
 		ImageLoader imageLoader = ImageLoader.getInstance();
-
-		List<Image>	button_images = new ArrayList<Image>();
 		
 		Button btnLeft = new Button(cResultButtonArea, SWT.PUSH);
-		button_images.add( imageLoader.setButtonImage(btnLeft, "alignleft"));
+		imageLoader.setButtonImage(btnLeft, "alignleft");
 		btnLeft.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				alignChosen( TableColumnCore.ALIGN_LEAD);
@@ -445,7 +443,7 @@ public class TableColumnSetupWindow
 		});
 		
 		Button btnCentre = new Button(cResultButtonArea, SWT.PUSH);
-		button_images.add(imageLoader.setButtonImage(btnCentre, "aligncentre"));
+		imageLoader.setButtonImage(btnCentre, "aligncentre");
 		btnCentre.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				alignChosen( TableColumnCore.ALIGN_CENTER );
@@ -456,7 +454,7 @@ public class TableColumnSetupWindow
 		});
 		
 		Button btnRight = new Button(cResultButtonArea, SWT.PUSH);
-		button_images.add(imageLoader.setButtonImage(btnRight, "alignright"));
+		imageLoader.setButtonImage(btnRight, "alignright");
 		btnRight.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				alignChosen( TableColumnCore.ALIGN_TRAIL );
@@ -467,7 +465,7 @@ public class TableColumnSetupWindow
 		});
 		
 		Button btnUp = new Button(cResultButtonArea, SWT.PUSH);
-		button_images.add(imageLoader.setButtonImage(btnUp, "up"));
+		imageLoader.setButtonImage(btnUp, "up");
 		btnUp.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				moveChosenUp();
@@ -478,7 +476,7 @@ public class TableColumnSetupWindow
 		});
 
 		Button btnDown = new Button(cResultButtonArea, SWT.PUSH);
-		button_images.add(imageLoader.setButtonImage(btnDown, "down"));
+		imageLoader.setButtonImage(btnDown, "down");
 		btnDown.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				moveChosenDown();
@@ -489,7 +487,7 @@ public class TableColumnSetupWindow
 		});
 
 		Button btnDel = new Button(cResultButtonArea, SWT.PUSH);
-		button_images.add(imageLoader.setButtonImage(btnDel, "delete"));
+		imageLoader.setButtonImage(btnDel, "delete2");
 		btnDel.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
 				removeSelectedChosen();
@@ -498,28 +496,6 @@ public class TableColumnSetupWindow
 			public void widgetDefaultSelected(SelectionEvent e) {
 			}
 		});
-		
-		int	max_button_width 	= 0;
-		int max_button_height 	= 0;
-		
-		for ( Image image: button_images ){
-			if ( image != null ){
-				Rectangle bounds = image.getBounds();
-				max_button_width 	= Math.max( max_button_width, bounds.width );
-				max_button_height 	= Math.max( max_button_height, bounds.height );
-			}
-		}
-		
-		if ( max_button_width == 0 ){
-			max_button_width = 16;
-		}
-		
-		if ( max_button_height == 0 ){
-			max_button_height = 16;
-		}
-		
-		max_button_width 	+= 8;
-		max_button_height 	+= 8;
 		
 		tvChosen = createTVChosen();
 
@@ -630,24 +606,18 @@ public class TableColumnSetupWindow
 		fd = new FormData();
 		fd.top = new FormAttachment(0, 3);
 		fd.left = new FormAttachment(0, 3);
-		fd.width = max_button_width;
-		fd.height= max_button_height;
 		btnLeft.setLayoutData(fd);
 
 		fd = new FormData();
 		fd.left = new FormAttachment(btnLeft, 3);
 		fd.top = new FormAttachment(btnLeft, 0, SWT.TOP);
 		fd.bottom = new FormAttachment(btnLeft, 0, SWT.BOTTOM);
-		fd.width = max_button_width;
-		fd.height= max_button_height;
 		btnCentre.setLayoutData(fd);
 
 		fd = new FormData();
 		fd.left = new FormAttachment(btnCentre, 3);
 		fd.top = new FormAttachment(btnLeft, 0, SWT.TOP);
 		fd.bottom = new FormAttachment(btnLeft, 0, SWT.BOTTOM);
-		fd.width = max_button_width;
-		fd.height= max_button_height;
 		btnRight.setLayoutData(fd);
 
 			// move
@@ -655,29 +625,24 @@ public class TableColumnSetupWindow
 		fd = new FormData();
 		fd.left = new FormAttachment(0, 3);
 		fd.top = new FormAttachment(btnLeft, 2);
-		fd.width = max_button_width;
-		fd.height= max_button_height;
 		btnUp.setLayoutData(fd);
 
 		fd = new FormData();
 		fd.left = new FormAttachment(btnUp, 3);
 		fd.top = new FormAttachment(btnUp, 0, SWT.TOP);
-		fd.width = max_button_width;
-		fd.height= max_button_height;
 		btnDown.setLayoutData(fd);
 
 		fd = new FormData();
 		fd.left = new FormAttachment(btnDown, 3);
 		fd.top = new FormAttachment(btnUp, 0, SWT.TOP);
-		fd.width = max_button_width;
-		fd.height= max_button_height;
 		btnDel.setLayoutData(fd);
 		
-		if (btnReset != null) {
-  		fd = new FormData();
-  		fd.right = new FormAttachment(btnApply, -3);
-  		fd.bottom = new FormAttachment(btnApply, 0, SWT.BOTTOM);
-  		btnReset.setLayoutData(fd);
+		if ( btnReset != null ){
+			
+	  		fd = new FormData();
+	  		fd.right = new FormAttachment(btnApply, -3);
+	  		fd.bottom = new FormAttachment(btnApply, 0, SWT.BOTTOM);
+	  		btnReset.setLayoutData(fd);
 		}
 
 		fd = new FormData();
