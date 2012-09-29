@@ -118,6 +118,8 @@ public abstract class BaseMDI
 		MdiEntry entry = getEntry(id);
 		if (entry != null) {
 			entry.close(false);
+		} else {
+			setEntryAutoOpen(id, null, false);
 		}
 	}
 
