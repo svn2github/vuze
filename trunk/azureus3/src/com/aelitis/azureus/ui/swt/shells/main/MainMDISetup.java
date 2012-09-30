@@ -5,6 +5,13 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
@@ -14,6 +21,7 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.util.FeatureAvailability;
+import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
@@ -160,6 +168,26 @@ public class MainMDISetup
 									boolean user) {
 								if (mdi.getChildrenOf(parent.getId()).size() == 0) {
 									parent.close(true);
+								}
+							}
+						});
+						
+						PluginInterface pi = PluginInitializer.getDefaultInterface();
+						UIManager uim = pi.getUIManager();
+						MenuManager menuManager = uim.getMenuManager();
+						MenuItem menuItem;
+
+						menuItem = menuManager.addMenuItem("sidebar."
+								+ MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
+								"label.plugin.options");
+						
+						menuItem.addListener(new MenuItemListener() {
+							public void selected(MenuItem menu, Object target) {
+								UIFunctions uif = UIFunctionsManager.getUIFunctions();
+
+								if (uif != null) {
+
+									uif.openView(UIFunctions.VIEW_CONFIG, "plugins");
 								}
 							}
 						});
