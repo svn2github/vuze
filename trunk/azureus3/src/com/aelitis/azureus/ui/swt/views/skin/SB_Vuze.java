@@ -29,7 +29,7 @@ public class SB_Vuze
 								MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
 								MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM,
 								"main.area.beta", "{Sidebar.beta.title}", viewTitleInfo, null,
-								false, MultipleDocumentInterface.SIDEBAR_POS_FIRST);
+								true, MultipleDocumentInterface.SIDEBAR_POS_FIRST);
 
 						entry.setImageLeftID("image.sidebar.beta");
 
