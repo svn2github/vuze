@@ -2297,20 +2297,24 @@ implements PEPeerTransport
 					try{
 						List<PEPeer> peers = manager.getPeers();
 						String dup_str = "?";
+						boolean	dup_ip = false;
 						for ( PEPeer p: peers ){
 							if ( p == this ){
 								continue;
 							}
 							byte[] id = p.getId();
 							if ( Arrays.equals( id, peer_id )){
+								dup_ip	= p.getIp().equals( getIp());
 								dup_str = p.getClient() + "/" + p.getClientNameFromExtensionHandshake() + "/" + p.getIp() + "/" + p.getPort();
 								break;
 							}
 						}
 						String my_str = getClient() + "/" + getIp() + "/" + getPort();
 						
-						Debug.outNoStack( 
-							"Duplicate peer id detected: id=" + ByteFormatter.encodeString( peer_id ) + ": this=" + my_str + ",other=" + dup_str );
+						if ( !dup_ip){
+							Debug.outNoStack( 
+								"Duplicate peer id detected: id=" + ByteFormatter.encodeString( peer_id ) + ": this=" + my_str + ",other=" + dup_str );
+						}
 					}catch( Throwable e ){
 					}
 				}
