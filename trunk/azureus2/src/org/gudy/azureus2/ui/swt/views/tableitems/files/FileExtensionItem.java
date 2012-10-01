@@ -23,6 +23,8 @@ package org.gudy.azureus2.ui.swt.views.tableitems.files;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 public class FileExtensionItem
@@ -50,9 +52,20 @@ public class FileExtensionItem
   
   private static String determineFileExt(DiskManagerFileInfo fileInfo) {
 	String name = (fileInfo == null) ? "" : fileInfo.getFile(true).getName();
+	
+	DownloadManager dm = fileInfo==null?null:fileInfo.getDownloadManager();
+
+	String incomp_suffix = dm==null?null:dm.getDownloadState().getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
+	
+	if ( incomp_suffix != null && name.endsWith( incomp_suffix )){
+		
+		name = name.substring( 0, name.length() - incomp_suffix.length());
+	}
+	
 	int dot_position = name.lastIndexOf(".");
 	if (dot_position == -1) {return "";}
+	
+
 	return name.substring(dot_position+1);
   }
-	
 }

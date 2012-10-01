@@ -25,6 +25,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 public class FileExtensionItem
@@ -57,9 +58,11 @@ public class FileExtensionItem
 
 		String	text = "";
 
+		DownloadManager dm;
+		
 		if ( ds instanceof DownloadManager ){
 			
-			DownloadManager dm = (DownloadManager) ds;
+			dm = (DownloadManager) ds;
 			
 			text = dm.getDownloadState().getPrimaryFile().getFile( true ).getName();
 			
@@ -67,13 +70,22 @@ public class FileExtensionItem
 			
 			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)ds;
 			
+			dm = fileInfo.getDownloadManager();
+			
 			text = fileInfo.getFile( true ).getName();
 			
 		}else{
 			
 			return;
+		}		
+		
+		String incomp_suffix = dm==null?null:dm.getDownloadState().getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
+		
+		if ( incomp_suffix != null && text.endsWith( incomp_suffix )){
+			
+			text = text.substring( 0, text.length() - incomp_suffix.length());
 		}
-					
+		
 		int	pos = text.lastIndexOf( "." );
 			
 		if ( pos >= 0 ){
