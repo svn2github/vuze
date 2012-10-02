@@ -2388,8 +2388,10 @@ TRTrackerBTAnnouncerImpl
 	 		try{
 					   //parse the metadata
 				
+	 			Map metaData = null;
+	 			
 	 			try{
-	 				Map metaData = BDecoder.decode(data);
+	 				metaData = BDecoder.decode(data);
 	 				
  					// obey any peers source restrictions
 	 				
@@ -3275,6 +3277,23 @@ TRTrackerBTAnnouncerImpl
 					return (resp);  
 
 				}catch( IOException e ){
+					
+					if ( metaData != null ){
+						
+						byte[]	failure_reason_bytes = (byte[]) metaData.get("failure reason");
+				     	
+			     			// explicit failure from the tracker
+			     	
+						failure_reason = new String( failure_reason_bytes, Constants.DEFAULT_ENCODING);
+                        				
+						return( 
+								new TRTrackerAnnouncerResponseImpl( 
+										url, 
+										torrent_hash, 
+										TRTrackerAnnouncerResponse.ST_REPORTED_ERROR, 
+										Math.max( tracker_interval, getErrorRetryInterval()), 
+										failure_reason ));
+					}
 					
 						// decode could fail if the tracker's returned, say, an HTTP response
 						// indicating server overload
