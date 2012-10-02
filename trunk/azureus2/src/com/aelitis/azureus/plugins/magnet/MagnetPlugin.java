@@ -1526,6 +1526,13 @@ MagnetPlugin
 						
 						remaining -= 500;
 						
+						byte[] torrent = getSecondaryLookupResult( secondary_result );
+						
+						if ( torrent != null ){
+							
+							return( torrent );
+						}
+						
 						synchronized( md_result ){
 							
 							if ( md_result[0] != null ){
@@ -1633,6 +1640,11 @@ MagnetPlugin
 	
 		throws ResourceDownloaderException
 	{
+		if ( result == null ){
+			
+			return( null );
+		}
+		
 		Object x;
 		
 		synchronized( result ){
