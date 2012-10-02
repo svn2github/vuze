@@ -558,6 +558,14 @@ redirect_label:
 					  	
 								}
 								
+								if ( con instanceof HttpURLConnection ){
+									
+										// we want this true but some plugins (grrr) set the global default not to follow
+										// redirects
+									
+									((HttpURLConnection)con).setInstanceFollowRedirects( true );
+								}
+								
 								con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
 					  
 								String connection = getStringProperty( "URL_Connection" );
