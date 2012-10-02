@@ -1498,6 +1498,9 @@ public class SWTSkin
 			} else if (sType.equals("checkbox")) {
 				skinObject = createCheckbox(properties, sID, sConfigID, sTypeParams,
 						parentSkinObject);
+			} else if (sType.equals("toggle")) {
+				skinObject = createToggle(properties, sID, sConfigID, sTypeParams,
+						parentSkinObject);
 			} else if (sType.equals("textbox")) {
 				skinObject = createTextbox(properties, sID, sConfigID, sTypeParams,
 						parentSkinObject);
@@ -1558,6 +1561,16 @@ public class SWTSkin
 			String configID, String[] typeParams, SWTSkinObject parentSkinObject) {
 
 		SWTSkinObject skinObject = new SWTSkinObjectCheckbox(this, properties, id,
+				configID, parentSkinObject);
+		addToControlMap(skinObject);
+
+		return skinObject;
+	}
+
+	private SWTSkinObject createToggle(SWTSkinProperties properties, String id,
+			String configID, String[] typeParams, SWTSkinObject parentSkinObject) {
+
+		SWTSkinObject skinObject = new SWTSkinObjectToggle(this, properties, id,
 				configID, parentSkinObject);
 		addToControlMap(skinObject);
 
