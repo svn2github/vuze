@@ -16,8 +16,10 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
 
+import com.aelitis.azureus.ui.mdi.MdiEntryCreationListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 
 public class PluginsMenuHelper
 {
@@ -54,6 +56,32 @@ public class PluginsMenuHelper
 		}
 	}
 
+	public boolean buildViewMenu(Menu viewMenu, Shell parent) {
+
+		int itemCount = viewMenu.getItemCount();
+		org.gudy.azureus2.plugins.ui.menus.MenuItem[] plugin_items;
+		plugin_items = MenuItemManager.getInstance().getAllAsArray("mainmenu");
+		if (plugin_items.length > 0) {
+			MenuBuildUtils.addPluginMenuItems(parent, plugin_items, viewMenu, true,
+					true, MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);
+		}
+		if (viewMenu.getItemCount() > itemCount) {
+			MenuFactory.addSeparatorMenuItem(viewMenu);
+		}
+
+		try {
+
+			plugin_helper_mon.enter();
+			createViewInfoMenuItems(viewMenu, plugin_view_info_map);
+
+		} finally {
+			plugin_helper_mon.exit();
+		}
+
+
+		return viewMenu.getItemCount() > itemCount;
+	}
+
 	public void buildPluginMenu(Menu pluginMenu, Shell parent,
 			boolean includeGetPluginsMenu) {
 
@@ -61,6 +89,7 @@ public class PluginsMenuHelper
 
 			plugin_helper_mon.enter();
 			createViewInfoMenuItems(pluginMenu, plugin_view_info_map);
+
 
 			MenuItem menu_plugin_logViews = MenuFactory.addLogsViewMenuItem(pluginMenu);
 			createViewInfoMenuItems(menu_plugin_logViews.getMenu(),

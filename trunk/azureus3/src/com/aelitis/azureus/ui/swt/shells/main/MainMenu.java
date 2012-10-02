@@ -301,6 +301,8 @@ public class MainMenu
   			});
 				needsSep = true;
 			}
+			
+			needsSep |= PluginsMenuHelper.getInstance().buildViewMenu(viewMenu, viewMenu.getShell());
 
 			if (needsSep) {
 				MenuFactory.addSeparatorMenuItem(viewMenu);
