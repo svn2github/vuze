@@ -31,6 +31,7 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
@@ -78,9 +79,9 @@ public class DisplayListener
 
 	public static final String OP_REGISTER = "open-register";
 
-	private Browser browser;
+	private BrowserWrapper browser;
 
-	public DisplayListener(String id, Browser browser) {
+	public DisplayListener(String id, BrowserWrapper browser) {
 		super(id);
 		this.browser = browser;
 	}
@@ -88,7 +89,7 @@ public class DisplayListener
 	/**
 	 * 
 	 */
-	public DisplayListener(Browser browser) {
+	public DisplayListener(BrowserWrapper browser) {
 		this(DEFAULT_LISTENER_ID, browser);
 	}
 
@@ -434,7 +435,7 @@ public class DisplayListener
 				SWTSkin skin = SWTSkinFactory.getInstance();
 				SWTSkinObject skinObject = skin.getSkinObject(browserID);
 				if (skinObject instanceof SWTSkinObjectBrowser) {
-					final Browser browser = ((SWTSkinObjectBrowser) skinObject).getBrowser();
+					final BrowserWrapper browser = ((SWTSkinObjectBrowser) skinObject).getBrowser();
 					if (null != browser && false == browser.isDisposed()) {
 						browser.refresh();
 					}

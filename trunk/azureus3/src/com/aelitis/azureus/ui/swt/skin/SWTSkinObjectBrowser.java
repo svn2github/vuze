@@ -34,6 +34,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext.loadingListener;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.util.UrlFilter;
@@ -47,7 +48,7 @@ public class SWTSkinObjectBrowser
 	extends SWTSkinObjectBasic
 {
 
-	private Browser browser;
+	private BrowserWrapper browser;
 
 	private Composite cParent;
 
@@ -106,7 +107,7 @@ public class SWTSkinObjectBrowser
 		}
 
 		try {
-			browser = new Browser(cArea, Utils.getInitialBrowserStyle(SWT.NONE));
+			browser = new BrowserWrapper(cArea, Utils.getInitialBrowserStyle(SWT.NONE));
 
 			browser.setLayoutData(Utils.getFilledFormData());
 			browser.getParent().layout(true);
@@ -164,7 +165,7 @@ public class SWTSkinObjectBrowser
 		}
 	}
 
-	public Browser getBrowser() {
+	public BrowserWrapper getBrowser() {
 		if (browser == null) {
 			init();
 		}

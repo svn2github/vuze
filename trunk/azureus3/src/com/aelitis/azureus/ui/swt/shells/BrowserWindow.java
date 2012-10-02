@@ -34,6 +34,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
 import com.aelitis.azureus.ui.swt.browser.listener.ConfigListener;
 import com.aelitis.azureus.ui.swt.browser.listener.DisplayListener;
 import com.aelitis.azureus.ui.swt.browser.listener.TorrentListener;
@@ -51,7 +52,7 @@ public class BrowserWindow
 
 	private ClientMessageContext context;
 
-	private Browser browser;
+	private BrowserWrapper browser;
 	
 	public BrowserWindow(Shell parent, String url, double wPct, double hPct,
 			boolean allowResize, boolean isModal) {
@@ -116,7 +117,7 @@ public class BrowserWindow
 		});
 
 
-		browser = Utils.createSafeBrowser(shell, SWT.NONE);
+		browser = new BrowserWrapper( Utils.createSafeBrowser(shell, SWT.NONE));
 		
 		if (browser == null) {
 			shell.dispose();

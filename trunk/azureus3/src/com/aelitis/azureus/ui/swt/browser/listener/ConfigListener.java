@@ -37,6 +37,7 @@ import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
+import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.MapUtils;
 import com.aelitis.net.magneturi.MagnetURIHandler;
@@ -63,14 +64,14 @@ public class ConfigListener
 
 	public static final String OP_LOG = "log";
 
-	public ConfigListener(String id, Browser browser) {
+	public ConfigListener(String id, BrowserWrapper browser) {
 		super(id);
 	}
 
 	/**
 	 * 
 	 */
-	public ConfigListener(Browser browser) {
+	public ConfigListener(BrowserWrapper browser) {
 		this(DEFAULT_LISTENER_ID, browser);
 	}
 

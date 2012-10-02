@@ -523,12 +523,12 @@ public class SearchResultsTabArea
 					if (soSearchResults != null) {
 						SWTSkinObjectBrowser browserSkinObject = (SWTSkinObjectBrowser) soSearchResults;
 
-						final Browser browser = browserSkinObject.getBrowser();
+						final BrowserWrapper browser = browserSkinObject.getBrowser();
 						
 						browser.addTitleListener(new TitleListener() {
 							public void changed(TitleEvent event) {
 								if (event.widget.isDisposed()
-										|| ((Browser) event.widget).getShell().isDisposed()) {
+										|| browser.getShell().isDisposed()) {
 									return;
 								}
 								title = event.title;
@@ -561,7 +561,7 @@ public class SearchResultsTabArea
 
 				Control controlTop = browserSkinObject.getControl();
 				Control controlBottom = soSearchResults.getControl();
-				Browser search = ((SWTSkinObjectBrowser) soSearchResults).getBrowser();
+				final BrowserWrapper search = ((SWTSkinObjectBrowser) soSearchResults).getBrowser();
 				String url = MapUtils.getMapString(params, "url",
 						"http://google.com/search?q=" + Math.random());
 				if (UrlFilter.getInstance().urlCanRPC(url)) {
@@ -577,7 +577,7 @@ public class SearchResultsTabArea
 						}
 
 						public void completed(ProgressEvent event) {
-							Browser search = (Browser) event.widget;
+							
 							String execAfterLoad = (String) search.getData("execAfterLoad");
 							//Erase it, so that it's only used once after the page loads
 							search.setData("execAfterLoad", null);
@@ -630,7 +630,7 @@ public class SearchResultsTabArea
 
 				Control controlTop = browserSkinObject.getControl();
 				Control controlBottom = soSearchResults.getControl();
-				Browser search = ((SWTSkinObjectBrowser) soSearchResults).getBrowser();
+				BrowserWrapper search = ((SWTSkinObjectBrowser) soSearchResults).getBrowser();
 
 				soSearchResults.setVisible(false);
 
@@ -699,7 +699,7 @@ public class SearchResultsTabArea
 		if (Utils.isThisThreadSWT()) {
 			try {
   			browserSkinObject.getBrowser().setText("");
-  			final Browser browser = browserSkinObject.getBrowser();
+  			final BrowserWrapper browser = browserSkinObject.getBrowser();
   			final boolean[] done = {false};
   			browser.addLocationListener(new LocationListener() {
   				public void changing(LocationEvent event) {

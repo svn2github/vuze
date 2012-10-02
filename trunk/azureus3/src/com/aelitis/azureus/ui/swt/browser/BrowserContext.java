@@ -67,7 +67,7 @@ public class BrowserContext
 
 	private static final String KEY_ENABLE_MENU = "browser.menu.enable";
 
-	private Browser browser;
+	private BrowserWrapper browser;
 
 	private Display display;
 
@@ -111,10 +111,10 @@ public class BrowserContext
 	 */
 	public 
 	BrowserContext(
-		String 		_id, 
-		Browser 	_browser,
-		Control 	_widgetWaitingIndicator, 
-		boolean 	_forceVisibleAfterLoad ) 
+		String 			_id, 
+		BrowserWrapper 	_browser,
+		Control 		_widgetWaitingIndicator, 
+		boolean 		_forceVisibleAfterLoad ) 
 	{
 		super( _id, null );
 		
@@ -268,11 +268,11 @@ public class BrowserContext
 					return;
 				}
 				event.required = true;
-				
+
 				if (browser.getUrl().contains("js.debug=1") || browser.getUrl().contains("ftux/index.php")) {
-  				final Shell shell = ShellFactory.createMainShell(SWT.SHELL_TRIM);
-  				shell.setLayout(new FillLayout());
-  				shell.setSize(920, 500);
+					final Shell shell = ShellFactory.createMainShell(SWT.SHELL_TRIM);
+					shell.setLayout(new FillLayout());
+					shell.setSize(920, 500);
 					Browser subBrowser = new Browser(shell,
 							Utils.getInitialBrowserStyle(SWT.NONE));
 					subBrowser.addCloseWindowListener(new CloseWindowListener() {
@@ -283,36 +283,38 @@ public class BrowserContext
 					shell.open();
 					event.browser = subBrowser;
 				} else {
-				
-  				final Browser subBrowser = new Browser(browser,
-  						Utils.getInitialBrowserStyle(SWT.NONE));
-  				subBrowser.addLocationListener(new LocationListener() {
-  					public void changed(LocationEvent arg0) {
-  						// TODO Auto-generated method stub
-  						
-  					}
-  					public void changing(LocationEvent event) {
-  						event.doit = false;
+
+					final BrowserWrapper subBrowser = new BrowserWrapper(browser.getBrowser(),
+							Utils.getInitialBrowserStyle(SWT.NONE));
+					subBrowser.addLocationListener(new LocationListener() {
+						public void changed(LocationEvent arg0) {
+							// TODO Auto-generated method stub
+
+						}
+						public void changing(LocationEvent event) {
+							event.doit = false;
 							boolean wasAskCom = browser.getUrl().toLowerCase().startsWith(
-									"http://www.ask.com");
-  						if (wasAskCom) {
-  							Program.launch(event.location);
-  						} else if (allowPopups()
+							"http://www.ask.com");
+							if (wasAskCom) {
+								Program.launch(event.location);
+							} else if (allowPopups()
 									&& !UrlFilter.getInstance().urlIsBlocked(event.location)
 									&& (event.location.startsWith("http://") || event.location.startsWith("https://"))) {
 								debug("open sub browser: " + event.location);
-  							Program.launch(event.location);
-  						} else {
-  							debug("blocked open sub browser: " + event.location);
-  						}
-  						Utils.execSWTThreadLater(0, new AERunnable() {
-  							public void runSupport() {
-  								subBrowser.dispose();
-  							}
-  						});
-  					}
-  				});
-					event.browser = subBrowser;
+								Program.launch(event.location);
+							} else {
+								debug("blocked open sub browser: " + event.location);
+							}
+								// parg 2012/10/2 increase delay in case causing crashes
+							
+							Utils.execSWTThreadLater(1000, new AERunnable() {
+								public void runSupport() {
+									subBrowser.dispose();
+								}
+							});
+						}
+					});
+					event.browser = subBrowser.getBrowser();
 				}
 			}
 		});
@@ -879,7 +881,7 @@ public class BrowserContext
 	}
 
 	public void widgetDisposed(DisposeEvent event) {
-		if (event.widget == browser) {
+		if (event.widget == browser.getBrowser()) {
 			deregisterBrowser();
 		}
 	}

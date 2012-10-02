@@ -33,6 +33,7 @@ import com.aelitis.azureus.core.messenger.ClientMessageContext;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.BrowserMessageDispatcher;
 import com.aelitis.azureus.core.messenger.browser.listeners.BrowserMessageListener;
+import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
 import com.aelitis.azureus.util.JSONUtils;
 import com.aelitis.azureus.util.UrlFilter;
 
@@ -46,7 +47,7 @@ public class MessageDispatcherSWT
 
 	private Map<String, BrowserMessageListener> listeners = new HashMap<String, BrowserMessageListener>();
 
-	private Browser browser;
+	private BrowserWrapper browser;
 
 	private BrowserFunction browserFunction;
 
@@ -57,11 +58,11 @@ public class MessageDispatcherSWT
 		this.context = context;
 	}
 
-	public void registerBrowser(final Browser browser) {
+	public void registerBrowser(final BrowserWrapper browser) {
 		this.browser = browser;
 		
 		try {
-  		browserFunction = new BrowserFunction(browser, "sendMessageToAZ") {
+  		browserFunction = new BrowserFunction(browser.getBrowser(), "sendMessageToAZ") {
   			public Object function(Object[] args) {
   				if (args == null) {
   					context.debug("sendMessageToAZ: arguments null on " + browser.getUrl());
@@ -109,7 +110,7 @@ public class MessageDispatcherSWT
 	 * 
 	 * @param browser {@link Browser} which will no longer send messages
 	 */
-	public void deregisterBrowser(Browser browser) {
+	public void deregisterBrowser(BrowserWrapper browser) {
 		if (browserFunction != null && !browserFunction.isDisposed()) {
 			browserFunction.dispose();
 		}

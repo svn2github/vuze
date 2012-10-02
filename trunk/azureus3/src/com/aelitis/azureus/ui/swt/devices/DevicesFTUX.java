@@ -54,6 +54,7 @@ import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
@@ -74,7 +75,7 @@ public class DevicesFTUX
 
 	Shell shell;
 
-	private Browser browser;
+	private BrowserWrapper browser;
 
 	private Button checkITunes;
 
@@ -129,7 +130,7 @@ public class DevicesFTUX
 		Utils.setShellIcon(shell);
 
 		try {
-			browser = Utils.createSafeBrowser(shell, SWT.NONE);
+			browser = new BrowserWrapper( Utils.createSafeBrowser(shell, SWT.NONE));
 			if (browser != null) {
   			BrowserContext context = new BrowserContext("DevicesFTUX", browser, null, true);
   
@@ -252,7 +253,7 @@ public class DevicesFTUX
 		lblLearnMore.setLayoutData(fd);
 		
 		fd = new FormData();
-		fd.top = new FormAttachment(browser, 0);
+		fd.top = new FormAttachment(browser.getBrowser(), 0);
 		fd.bottom = new FormAttachment(100, 0);
 		fd.left = new FormAttachment(0, 0);
 		fd.right = new FormAttachment(100, 0);

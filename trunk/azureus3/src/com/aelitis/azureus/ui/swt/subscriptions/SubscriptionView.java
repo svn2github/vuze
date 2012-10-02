@@ -35,6 +35,7 @@ import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
+import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 import com.aelitis.azureus.ui.swt.browser.OpenCloseSearchDetailsListener;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
@@ -59,9 +60,9 @@ SubscriptionView
 	//private StyledText	json_area;
 	//private Composite 		controls;
 	
-	private Browser			mainBrowser;
-	private Browser			detailsBrowser;
-	private SubscriptionMDIEntry mdiInfo;
+	private BrowserWrapper			mainBrowser;
+	private BrowserWrapper			detailsBrowser;
+	private SubscriptionMDIEntry 	mdiInfo;
 
 	private UISWTView swtView;
 
@@ -179,7 +180,7 @@ SubscriptionView
 			return;
 		}
 		try{
-			mainBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
+			mainBrowser = new BrowserWrapper(composite,Utils.getInitialBrowserStyle(SWT.NONE));
 			mainBrowser.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					((Browser)e.widget).setUrl("about:blank");
@@ -233,7 +234,7 @@ SubscriptionView
 			data.bottom = new FormAttachment(100,0);
 			mainBrowser.setLayoutData(data);
 			
-			detailsBrowser = new Browser(composite,Utils.getInitialBrowserStyle(SWT.NONE));
+			detailsBrowser = new BrowserWrapper(composite,Utils.getInitialBrowserStyle(SWT.NONE));
 			detailsBrowser.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
 					((Browser)e.widget).setUrl("about:blank");
@@ -311,7 +312,7 @@ SubscriptionView
 			data = new FormData();
 			data.left = new FormAttachment(0,0);
 			data.right = new FormAttachment(100,0);
-			data.top = new FormAttachment(mainBrowser,0);
+			data.top = new FormAttachment(mainBrowser.getBrowser(),0);
 			data.bottom = new FormAttachment(100,0);
 			detailsBrowser.setLayoutData(data);
 							
@@ -394,19 +395,19 @@ SubscriptionView
 				//Gudy, Not Tux, Listener Added
 				String listenerAdded = (String) detailsBrowser.getData("g.nt.la");
 				if(listenerAdded == null) {
+					final BrowserWrapper browser = detailsBrowser;
 					detailsBrowser.setData("g.nt.la","");
 					detailsBrowser.addProgressListener(new ProgressListener() {
 						public void changed(ProgressEvent event) {}
 						
 						public void completed(ProgressEvent event) {
-							Browser search = (Browser) event.widget;
-							String execAfterLoad = (String) search.getData("execAfterLoad");
+								String execAfterLoad = (String) browser.getData("execAfterLoad");
 							//Erase it, so that it's only used once after the page loads
-							search.setData("execAfterLoad",null);
+								browser.setData("execAfterLoad",null);
 							if(execAfterLoad != null && ! execAfterLoad.equals("")) {
 								//String execAfterLoadDisplay = execAfterLoad.replaceAll("'","\\\\'");
 								//search.execute("alert('injecting script : " + execAfterLoadDisplay + "');");
-								boolean result = search.execute(execAfterLoad);
+								boolean result = browser.execute(execAfterLoad);
 								//System.out.println("Injection : " + execAfterLoad + " (" + result + ")");
 							}
 	

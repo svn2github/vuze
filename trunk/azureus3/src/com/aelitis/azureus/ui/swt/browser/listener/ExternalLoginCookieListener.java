@@ -11,6 +11,7 @@ import org.eclipse.swt.browser.ProgressListener;
 import org.eclipse.swt.browser.StatusTextEvent;
 import org.eclipse.swt.browser.StatusTextListener;
 
+import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
 
 public class ExternalLoginCookieListener
@@ -21,7 +22,7 @@ implements StatusTextListener,LocationListener,ProgressListener
 	
 	private CookiesListener listener;
 	
-	private Browser browser;
+	private BrowserWrapper browser;
 	
 	private final static String getCookiesCode = 
 		//"{" +
@@ -34,7 +35,7 @@ implements StatusTextListener,LocationListener,ProgressListener
 		"}" ;
 		//"}";
 	
-	public ExternalLoginCookieListener(CookiesListener _listener,Browser browser) {
+	public ExternalLoginCookieListener(CookiesListener _listener,BrowserWrapper browser) {
 		this.listener = _listener;
 		this.browser = browser;
 		browser.addStatusTextListener(this);
