@@ -190,26 +190,47 @@ TranscodeProviderVuze
 
 			if ( source_file == null ){
 							
-				PluginInterface av_pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
-				
-				if ( av_pi == null ){
-				
-					throw( new TranscodeException( "Media Server plugin not found" ));
-				}
-				
-				IPCInterface av_ipc = av_pi.getIPC();
-				
-				String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ input });
-		
-				if ( url_str != null && url_str.length() > 0 ){
-				
-					source_url = new URL( url_str );
+					// race condition here on auto-transcodes due to downloadadded listeners - can add the xcode to queue
+					// and schedule before added to upnpms - simple hack is to hang about a bit
 			
-					pipe = new TranscodePipeStreamSource( source_url.getHost(), source_url.getPort());
-				
-					source_url = UrlUtils.setHost( source_url, "127.0.0.1" );
+				for ( int i=0; i<10; i++ ){
 
-					source_url = UrlUtils.setPort( source_url, pipe.getPort());					
+					PluginInterface av_pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
+					
+					if ( av_pi == null ){
+					
+						throw( new TranscodeException( "Media Server plugin not found" ));
+					}
+					
+					IPCInterface av_ipc = av_pi.getIPC();
+					
+					String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ input });
+			
+					if ( url_str != null && url_str.length() > 0 ){
+					
+						source_url = new URL( url_str );
+				
+						pipe = new TranscodePipeStreamSource( source_url.getHost(), source_url.getPort());
+					
+						source_url = UrlUtils.setHost( source_url, "127.0.0.1" );
+	
+						source_url = UrlUtils.setPort( source_url, pipe.getPort());					
+					}
+				
+					if ( source_url != null ){
+						
+						break;
+						
+					}else{
+						
+						try{
+							Thread.sleep(1000);
+							
+						}catch( Throwable e ){
+							
+							break;
+						}
+					}
 				}
 			}
 			
