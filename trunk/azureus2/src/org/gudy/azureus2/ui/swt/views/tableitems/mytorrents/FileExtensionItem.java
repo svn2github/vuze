@@ -64,7 +64,9 @@ public class FileExtensionItem
 			
 			dm = (DownloadManager) ds;
 			
-			text = dm.getDownloadState().getPrimaryFile().getFile( true ).getName();
+			DiskManagerFileInfo prim = dm.getDownloadState().getPrimaryFile();
+			
+			text = prim==null?"":prim.getFile( true ).getName();
 			
 		}else if ( ds instanceof DiskManagerFileInfo ){
 			
