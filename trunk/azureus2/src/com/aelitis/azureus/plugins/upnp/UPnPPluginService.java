@@ -32,6 +32,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.internat.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.logging.*;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 
@@ -229,7 +230,9 @@ UPnPPluginService
 				
 					// not found - try and establish it + add entry even if we fail so
 					// that we don't retry later
-							
+				
+				String	error_text = null;
+				
 				try{
 					connection.addPortMapping( 
 						mapping.isTCP(), mapping.getPort(), 
@@ -255,8 +258,10 @@ UPnPPluginService
 						
 						log.logAlertRepeatable( LoggerChannel.LT_INFORMATION, text );
 					}
-					
+										
 				}catch( Throwable e ){
+					
+					error_text = Debug.getNestedExceptionMessage( e );
 					
 					String	text = 
 						MessageText.getString( 
@@ -275,7 +280,13 @@ UPnPPluginService
 					
 					serviceMapping	new_mapping = new serviceMapping( mapping );
 				
+					new_mapping.setError( error_text );
+
 					service_mappings.add( new_mapping );
+					
+				}else{
+					
+					grab_in_progress.setError( error_text );
 				}
 				
 			}else{
@@ -420,6 +431,26 @@ UPnPPluginService
 		}
 	}
 	
+	public String
+	getString()
+	{
+		String str = "name=" + getName() + ",info=" + getInfo() + ",int=" + getAddress() + ":" + getPort() + ",ext=" + getExternalAddress();
+		
+		serviceMapping[] sms = getMappings();
+		
+		for ( serviceMapping sm: sms ){
+			
+			String error = sm.getError();
+			
+			if ( error != null ){
+				
+				str += ":" + sm.getString() + " -> " + error;
+			}
+		}
+		
+		return( str );
+	}
+	
 	public class
 	serviceMapping
 	{
@@ -432,6 +463,8 @@ UPnPPluginService
 		private boolean		external;		// true -> not defined by us
 		
 		private List		logged_mappings = new ArrayList();
+		
+		private String		error;
 		
 		protected
 		serviceMapping(
@@ -524,6 +557,19 @@ UPnPPluginService
 		getInternalHost()
 		{
 			return( internal_host );
+		}
+		
+		private String
+		getError()
+		{
+			return( error );
+		}
+		
+		private void
+		setError(
+			String	_error )
+		{
+			error = _error;
 		}
 		
 		public String

@@ -45,10 +45,12 @@ import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.IndentWriter;
 
 import com.aelitis.net.natpmp.NATPMPDeviceAdapter;
 import com.aelitis.net.natpmp.NatPMPDeviceFactory;
@@ -59,7 +61,7 @@ import com.aelitis.net.upnp.services.*;
 
 public class 
 UPnPPlugin
-	implements Plugin, UPnPListener, UPnPMappingListener, UPnPWANConnectionListener
+	implements Plugin, UPnPListener, UPnPMappingListener, UPnPWANConnectionListener, AEDiagnosticsEvidenceGenerator
 {
 	private static final String UPNP_PLUGIN_CONFIGSECTION_ID 	= "UPnP";
 	private static final String NATPMP_PLUGIN_CONFIGSECTION_ID 	= "NATPMP";
@@ -1536,6 +1538,57 @@ UPnPPlugin
 		}
 		else {
 			this.upnp.reset();
+		}
+	}
+	
+	public void
+	generate(
+		IndentWriter		writer )
+	{
+		List<UPnPMapping>		mappings_copy;
+		List<UPnPPluginService>	services_copy;
+		
+		try{
+			this_mon.enter();
+
+			mappings_copy 	= new ArrayList<UPnPMapping>( mappings );
+			
+			services_copy	= new ArrayList<UPnPPluginService>( services );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		writer.println( "Mappings" );
+		
+		try{
+			writer.indent();
+			
+			for ( UPnPMapping mapping: mappings_copy ){
+				
+				if ( mapping.isEnabled()){
+				
+					writer.println( mapping.getString());
+				}
+			}
+		}finally{
+			
+			writer.exdent();
+		}
+		
+		writer.println( "Services" );
+		
+		try{
+			writer.indent();
+			
+			for ( UPnPPluginService service: services_copy ){
+				
+				writer.println( service.getString());
+			}
+		}finally{
+			
+			writer.exdent();
 		}
 	}
 }

@@ -912,10 +912,31 @@ PluginInterfaceImpl
 			
 			PluginState ps = getPluginState();
 			
-			writer.println( "type:" + type + ",enabled:" + !ps.isDisabled() + ",load_at_start=" + ps.isLoadedAtStartup() + ",operational:" + ps.isOperational());
+			String	info = getPluginconfig().getPluginStringParameter( "plugin.info" );
+
+			writer.println( "type:" + type + ",enabled=" + !ps.isDisabled() + ",load_at_start=" + ps.isLoadedAtStartup() + ",operational=" + ps.isOperational() + (info==null||info.length()==0?"":( ",info=" + info )));
 			
-			if ( !ps.isOperational()){
+			if ( ps.isOperational()){
 				
+				Plugin plugin = getPlugin();
+				
+				if ( plugin instanceof AEDiagnosticsEvidenceGenerator ){
+					
+					try{
+						writer.indent();
+						
+						((AEDiagnosticsEvidenceGenerator)plugin).generate( writer );
+						
+					}catch( Throwable e ){
+						
+						writer.println( "Failed to generate plugin-specific info: " + Debug.getNestedExceptionMessage( e ));
+						
+					}finally{
+						
+						writer.exdent();
+					}
+				}
+			}else{
 				if ( !built_in ){
 					
 					File dir = new File( plugin_dir );
