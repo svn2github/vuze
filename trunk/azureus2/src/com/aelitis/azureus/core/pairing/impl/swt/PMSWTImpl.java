@@ -385,7 +385,9 @@ PMSWTImpl
 		
 		String	oldest_type			= null;
 		long	oldest_type_mono	= Long.MAX_VALUE;
-					
+		
+		int	records_added = 0;
+		
 		while( it.hasNext()){
 			
 			Map.Entry<String,RemoteHistory> entry = it.next();
@@ -431,7 +433,7 @@ PMSWTImpl
 					
 					if ( local_addresses.contains( ip )){
 						
-						tt_ip_details.append( "local (" + ip + ")" );
+						tt_ip_details.append( MessageText.getString( "DHTView.db.local" ) + " (" + ip + ")" );
 						
 					}else{
 						
@@ -446,7 +448,7 @@ PMSWTImpl
 						
 					}else{
 						
-						tt_ip_details.append( " Access Denied" );
+						tt_ip_details.append( " " + MessageText.getString( "label.access.denied" ));
 						
 						newest_bad_mono 	= Math.max( newest_bad_mono, e_mono );
 					}
@@ -475,6 +477,8 @@ PMSWTImpl
 					
 					tooltip_text.append( "\n    " + name );
 					tooltip_text.append( tt_ip_details );
+					
+					records_added++;
 				}
 			}
 		}
@@ -482,6 +486,11 @@ PMSWTImpl
 		if ( history_map.size() > MAX_TYPES ){
 			
 			history_map.remove( oldest_type );
+		}
+		
+		if ( records_added == 0 ){
+			
+			tooltip_text.append( "\n    " + MessageText.getString( "pairing.ui.icon.tip.no.recent" ));
 		}
 		
 		if ( !tooltip_text.equals( last_tooltip_text )){

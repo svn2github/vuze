@@ -190,6 +190,8 @@ PairingManagerImpl
 	
 	private PMSWTImpl		swt_ui = new PMSWTImpl();
 	
+	private int	tests_in_progress = 0;
+	
 	protected
 	PairingManagerImpl()
 	{
@@ -1484,6 +1486,17 @@ PairingManagerImpl
 		String		ip,
 		boolean		good )
 	{
+		synchronized( this ){
+			
+				// don't record any incoming stuff during a test as we don't want to
+				// show this as a significant event
+			
+			if ( tests_in_progress > 0 ){
+				
+				return;
+			}
+		}
+		
 		swt_ui.recordRequest( name, ip, good );
 	}
 	
@@ -1629,6 +1642,11 @@ PairingManagerImpl
 						connection.setConnectTimeout( 10*1000 );
 						
 						try{
+							synchronized( PairingManagerImpl.this ){
+								
+								tests_in_progress++;
+							}
+							
 							InputStream is = connection.getInputStream();
 							
 							Map<String,Object> response = (Map<String,Object>)BDecoder.decode( new BufferedInputStream( is ));
@@ -1687,7 +1705,16 @@ PairingManagerImpl
 						
 					}finally{
 						
-						listener.testComplete( TestServiceImpl.this );
+						try{
+							listener.testComplete( TestServiceImpl.this );
+							
+						}finally{
+						
+							synchronized( PairingManagerImpl.this ){
+							
+								tests_in_progress--;
+							}
+						}
 					}
 				}
 			}.start();
