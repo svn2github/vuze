@@ -128,6 +128,7 @@ public class TableColumnImpl
 	private long lStatsRefreshZeroCount = 0;
 
 	private boolean bSortAscending;
+	private boolean bDefaultSortAscending;
 	
 	private boolean editable;
 
@@ -984,6 +985,9 @@ public class TableColumnImpl
 	public final void loadSettings(Map mapSettings) {
 		// Format: Key = [TableID].column.[columnname]
 		// Value[] = { visible, width, position, autotooltip, sortorder }
+		if ( sName.equals( "rc_rank" )){
+			System.out.println( "arse" );
+		}
 		String itemPrefix = "Column." + sName;
 		String oldItemPrefix = "Table." + sTableID + "." + sName;
 		Object object = mapSettings.get(itemPrefix);
@@ -1042,6 +1046,8 @@ public class TableColumnImpl
 				// which we shouldn't do if we aren't the sorting column
 				bSortAscending = sortOrder == 1;
 			}
+		}else{
+			bSortAscending = bDefaultSortAscending;
 		}
 		
 		pos++;
@@ -1366,6 +1372,13 @@ public class TableColumnImpl
 	 */
 	public boolean isSortAscending() {
 		return bSortAscending;
+	}
+
+	public void setDefaultSortAscending( boolean bAscending ){
+		bDefaultSortAscending = bAscending;
+		if ( isFirstLoad()){
+			bSortAscending = bAscending;
+		}
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableColumn#getMinWidth()

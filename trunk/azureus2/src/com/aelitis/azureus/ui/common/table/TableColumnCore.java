@@ -288,6 +288,13 @@ public interface TableColumnCore
 	void setSortAscending(boolean bAscending);
 
 	/**
+	 * @since 4.7.2.1
+	 * @param bAscending
+	 */
+	
+	void setDefaultSortAscending( boolean bAscending );
+	
+	/**
 	 * @return
 	 *
 	 * @since 3.0.1.1
