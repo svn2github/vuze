@@ -472,7 +472,15 @@ public class TableViewPainted
 			if (!rowsToSelect.contains(curRow)) {
 				rowsToSelect.add(curRow);
 			}
-			curRow = (startPos < endPos) ? getNextRow(curRow) : getPreviousRow(curRow);
+			TableRowCore newRow = (startPos < endPos) ? getNextRow(curRow) : getPreviousRow(curRow);
+			
+				// prevent infinite loop if things go wonky (which they have been soon to do!)
+			if ( newRow == curRow ){
+				break;
+			}else{
+				curRow = newRow;
+			}
+			
 		} while (curRow != clickedRow && curRow != null);
 		if (curRow != null && !rowsToSelect.contains(curRow)) {
 			rowsToSelect.add(curRow);
