@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
@@ -59,10 +60,12 @@ public abstract class ColumnDateSizer
 
 	private boolean multiline = true;
 
-	private String formatOverride = "";
+	private String tableFormatOverride = "";
 
 	private static Font fontBold;
 
+	private ViewUtils.CustomDateFormat cdf;
+	
 	/**
 	 * @param name
 	 * @param tableID
@@ -95,13 +98,13 @@ public abstract class ColumnDateSizer
 		COConfigurationManager.addAndFireParameterListener(
 				"Table.column.dateformat", new ParameterListener() {
 					public void parameterChanged(String parameterName) {
-						formatOverride = COConfigurationManager.getStringParameter(
+						tableFormatOverride = COConfigurationManager.getStringParameter(
 								"Table.column.dateformat", "");
-						if (formatOverride == null) {
-							formatOverride = "";
+						if (tableFormatOverride == null) {
+							tableFormatOverride = "";
 						}
 						curFormat = -1;
-						if (formatOverride.length() == 0) {
+						if (tableFormatOverride.length() == 0) {
 							recalcWidth(new Date());
 							if (curFormat < 0) {
 								curFormat = TimeFormatter.DATEFORMATS_DESC.length - 1;
@@ -113,6 +116,8 @@ public abstract class ColumnDateSizer
 						}
 					}
 		});
+		
+		cdf = ViewUtils.addCustomDateFormat( this );
 	}
 	
 	// @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#postConfigLoad()
@@ -125,6 +130,10 @@ public abstract class ColumnDateSizer
 	    int userMode = COConfigurationManager.getIntParameter("User Mode");
 			showTime = userMode > 1;
 		}
+		
+		cdf.update();
+		
+		super.postConfigLoad();
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
@@ -142,11 +151,22 @@ public abstract class ColumnDateSizer
 			return;
 		}
 		
-		if (formatOverride.length() > 0) {
+		SimpleDateFormat format = cdf.getDateFormat();
+		
+		if ( format != null ){
 			Date date = new Date(timestamp);
 			try {
-  			SimpleDateFormat temp = new SimpleDateFormat(formatOverride);
-  			cell.setText(temp.format(date));
+				cell.setText(format.format(date));
+  			return;
+			} catch (Exception e) {
+
+			}	
+		}
+		if (tableFormatOverride.length() > 0) {
+			Date date = new Date(timestamp);
+			try {
+				SimpleDateFormat temp = new SimpleDateFormat(tableFormatOverride);
+				cell.setText(temp.format(date));
   			return;
 			} catch (Exception e) {
 				// probably illegalargumentexception

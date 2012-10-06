@@ -24,24 +24,17 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.download.DownloadManager;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
-
 
 /**
  *
@@ -56,7 +49,8 @@ public class ETAItem
 
 	public static final String COLUMN_ID = "eta";
 
-
+	private ViewUtils.CustomDateFormat cdf;
+	
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] { CAT_ESSENTIAL });
 		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
@@ -66,6 +60,8 @@ public class ETAItem
 	public ETAItem(String sTableID) {
 		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 60, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
+		
+		cdf = ViewUtils.addCustomDateFormat( this );
 	}
 
 	public void refresh(TableCell cell) {
@@ -76,6 +72,14 @@ public class ETAItem
 			return;
 		}
 		
-		cell.setText( ViewUtils.formatETA( value, MyTorrentsView.eta_absolute ));
+		cell.setText( ViewUtils.formatETA( value, MyTorrentsView.eta_absolute, cdf.getDateFormat()));
+	}
+	
+	public void 
+	postConfigLoad() 
+	{
+		super.postConfigLoad();
+		
+		cdf.update();
 	}
 }

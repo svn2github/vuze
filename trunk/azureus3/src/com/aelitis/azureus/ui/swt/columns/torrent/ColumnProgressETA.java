@@ -89,6 +89,8 @@ public class ColumnProgressETA
 
 	private Color cTextDrop;
 
+	private ViewUtils.CustomDateFormat cdf;
+
 	/**
 	 * 
 	 */
@@ -123,6 +125,8 @@ public class ColumnProgressETA
 		imgPriStopped = imageLoader.getImage("image.fileprogress.pri.stopped");
 		imgBGTorrent = imageLoader.getImage("image.progress.bg.torrent");
 		imgBGfile = imageLoader.getImage("image.progress.bg.file");
+		
+		cdf = ViewUtils.addCustomDateFormat( this );
 	}
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
@@ -343,7 +347,7 @@ public class ColumnProgressETA
 				if (dm.isDownloadComplete(true)) {
 					//sETALine = DisplayFormatters.formatByteCountToKiBEtc(dm.getSize());
 				} else if (eta > 0) {
-					String sETA = ViewUtils.formatETA(eta,MyTorrentsView.progress_eta_absolute);
+					String sETA = ViewUtils.formatETA(eta,MyTorrentsView.progress_eta_absolute,cdf.getDateFormat());
 					sETALine = MessageText.getString(
 							"MyTorrents.column.ColumnProgressETA.2ndLine", new String[] {
 								sETA
@@ -778,5 +782,13 @@ public class ColumnProgressETA
 			}
 			*/
 		}
+	}
+	
+	public void 
+	postConfigLoad() 
+	{
+		super.postConfigLoad();
+		
+		cdf.update();
 	}
 }

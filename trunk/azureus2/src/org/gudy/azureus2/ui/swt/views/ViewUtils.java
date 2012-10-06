@@ -40,11 +40,16 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.ui.common.ToolBarItem;
@@ -90,10 +95,11 @@ ViewUtils
 	
 	public static String
 	formatETA(
-		long		value,
-		boolean		absolute )
+		long				value,
+		boolean				absolute,
+		SimpleDateFormat	override )
 	{
-		SimpleDateFormat df = formatOverride;
+		SimpleDateFormat df = override!=null?override:formatOverride;
 		
 		if (	absolute && 
 				df != null && 
@@ -110,6 +116,125 @@ ViewUtils
 		return( DisplayFormatters.formatETA( value, absolute ));
 	}
 	
+
+	public static class
+	CustomDateFormat
+	{
+		private CoreTableColumn			column;
+		private TableContextMenuItem	custom_date_menu;
+		private SimpleDateFormat		custom_date_format;
+
+		private
+		CustomDateFormat(
+			CoreTableColumn	_column )
+		{
+			column	= _column;
+			
+			custom_date_menu = column.addContextMenuItem(
+					"label.date.format", CoreTableColumn.MENU_STYLE_HEADER );
+			custom_date_menu.setStyle(TableContextMenuItem.STYLE_PUSH);
+			
+			custom_date_menu.addListener(new MenuItemListener() {
+				public void selected(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object target){
+					
+					Object existing_o = column.getUserData( "CustomDate" );
+					
+					String existing_text = "";
+					
+					if ( existing_o instanceof String ){
+						existing_text = (String)existing_o;
+					}else if ( existing_o instanceof byte[] ){
+						try{
+							existing_text = new String((byte[])existing_o, "UTF-8" );
+						}catch( Throwable e ){
+						}
+					}
+					SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+							"ConfigView.section.style.customDateFormat",
+							"label.date.format");
+					
+					entryWindow.setPreenteredText( existing_text, false );
+					
+					entryWindow.prompt(new UIInputReceiverListener() {
+						public void UIInputReceiverClosed(UIInputReceiver entryWindow) {
+							if (!entryWindow.hasSubmittedInput()) {
+								return;
+							}
+							String date_format = entryWindow.getSubmittedInput();
+							
+							if ( date_format == null ){
+								return;
+							}
+							
+							date_format = date_format.trim();
+							
+							column.setUserData( "CustomDate", date_format );
+							
+							column.invalidateCells();
+							
+							update();
+						}
+					});
+				}
+			});
+		}
+			
+		public void
+		update()
+		{
+			Object cd = column.getUserData( "CustomDate" );
+			
+			String	format = null;
+			
+			if ( cd instanceof byte[]){
+				
+				try{
+					cd = new String((byte[])cd, "UTF-8");
+					
+				}catch( Throwable e ){
+					
+				}
+			}
+			
+			if ( cd instanceof String ){
+				
+				String	str = (String)cd;
+				
+				str = str.trim();
+				
+				if ( str.length() > 0 ){
+					
+					format = str;
+				}
+			}
+			
+			if ( format == null ){
+				
+				format = MessageText.getString( "label.table.default" );
+				
+				custom_date_format = null;
+				
+			}else{
+				
+				custom_date_format = new SimpleDateFormat( format );
+			}
+			
+			custom_date_menu.setText( MessageText.getString( "label.date.format" )  + " <" + format + "> ..." );
+		}
+		
+		public SimpleDateFormat
+		getDateFormat()
+		{
+			return( custom_date_format );
+		}
+	}
+	
+	public static CustomDateFormat
+	addCustomDateFormat(
+		CoreTableColumn	column )
+	{
+		return( new CustomDateFormat( column ));
+	}
 	public static void
 	addSpeedMenu(
 		final Shell 		shell,
