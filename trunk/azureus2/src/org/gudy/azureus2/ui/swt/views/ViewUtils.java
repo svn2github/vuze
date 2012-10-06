@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
@@ -216,7 +217,13 @@ ViewUtils
 				
 			}else{
 				
-				custom_date_format = new SimpleDateFormat( format );
+				try{
+					custom_date_format = new SimpleDateFormat( format );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
 			}
 			
 			custom_date_menu.setText( MessageText.getString( "label.date.format" )  + " <" + format + "> ..." );
