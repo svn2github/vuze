@@ -40,6 +40,10 @@ TranscodeProvider
 	public TranscodeProfile[]
 	getProfiles();
 	
+	public TranscodeProfile[]
+	getProfiles(
+		String	classification_prefix );
+	
 	public TranscodeProfile
 	getProfile(
 		String		UID );

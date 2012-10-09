@@ -47,7 +47,8 @@ TranscodeProviderVuze
 	private TranscodeManagerImpl	manager;
 	private PluginInterface			plugin_interface;
 	
-	private volatile TranscodeProfile[]	profiles;
+	private volatile TranscodeProfile[]		profiles;
+	private Map<String,TranscodeProfile[]>	profile_classification_map = new HashMap<String, TranscodeProfile[]>();
 	
 	protected
 	TranscodeProviderVuze(
@@ -76,21 +77,32 @@ TranscodeProviderVuze
 					new Object[] {
 						new AERunnable() {
 							public void runSupport() {
-								profiles = null;
+								
+								resetProfiles();
 							}
 						}
 					});
 		} catch (IPCException e) {
-			//Debug.out(e);
 		}
 		
-		profiles = null;
+		resetProfiles();
 	}
 	
 	public String
 	getName()
 	{
 		return( plugin_interface.getPluginName() + ": version=" + plugin_interface.getPluginVersion());
+	}
+	
+	private void
+	resetProfiles()
+	{
+		synchronized( profile_classification_map ){
+						
+			profile_classification_map.clear();
+			
+			profiles = null;
+		}
 	}
 	
 	public TranscodeProfile[]
@@ -125,6 +137,56 @@ TranscodeProviderVuze
 		}
 	}
 	
+	public TranscodeProfile[] 
+	getProfiles(
+		String classification_prefix ) 
+	{
+		classification_prefix = classification_prefix.toLowerCase();
+
+		TranscodeProfile[] profs = getProfiles();
+		
+		synchronized( profile_classification_map ){
+
+			TranscodeProfile[] 	res = profile_classification_map.get( classification_prefix );
+			
+			if ( res != null ){
+								
+				return( res );
+			}
+		}
+			
+		List<TranscodeProfile> c_profiles = new ArrayList<TranscodeProfile>();
+		
+		for ( TranscodeProfile p : profs ){
+			
+			String c = p.getDeviceClassification();
+			
+			if ( c == null ){
+				
+				manager.log( "Device classification missing for " + p.getName());
+				
+			}else{
+				
+				if ( c.toLowerCase().startsWith( classification_prefix )){
+					
+					c_profiles.add( p );
+				}
+			}
+		}
+		
+		TranscodeProfile[] res = c_profiles.toArray( new TranscodeProfile[ c_profiles.size()]);
+		 
+		synchronized( profile_classification_map ){
+			
+			if ( profs == profiles ){
+				
+				profile_classification_map.put( classification_prefix, res );
+			}
+		}
+		
+		return( res );
+	}
+	
 	public TranscodeProfile
 	getProfile(
 		String		UID )
@@ -151,7 +213,7 @@ TranscodeProviderVuze
 		try{
 			String uid = PROFILE_PREFIX + (String)plugin_interface.getIPC().invoke( "addProfile", new Object[]{ file } );
 			
-			profiles = null;
+			resetProfiles();
 			
 			return( getProfile( uid ));
 			

@@ -1279,23 +1279,14 @@ DeviceImpl
 						
 		for ( TranscodeProvider provider: providers ){
 			
-			TranscodeProfile[] ps = provider.getProfiles();
+			TranscodeProfile[] ps = provider.getProfiles( classification );
 			
-			for ( TranscodeProfile p : ps ){
+			if ( providers.length == 1 ){
 				
-				String c = p.getDeviceClassification();
-				
-				if ( c == null ){
-					
-					log( "Device classification missing for " + p.getName());
-					
-				}else{
-					if ( c.toLowerCase().startsWith( classification.toLowerCase())){
-						
-						profiles.add( p );
-					}
-				}
+				return( ps );
 			}
+			
+			profiles.addAll( Arrays.asList( ps ));
 		}
 		
 		return( profiles.toArray( new TranscodeProfile[profiles.size()] ));
