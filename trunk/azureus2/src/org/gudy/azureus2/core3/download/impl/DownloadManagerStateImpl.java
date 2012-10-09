@@ -23,8 +23,10 @@
 package org.gudy.azureus2.core3.download.impl;
 
 import java.io.*;
+import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -1571,6 +1573,8 @@ DownloadManagerStateImpl
 	  
 	  // links stuff
 	  
+	private volatile WeakReference<CaseSensitiveFileMap>	file_link_cache 	= null;
+	private AtomicInteger									file_cache_inhibit 	= new AtomicInteger();
 	
 	public void
 	setFileLink(
@@ -1608,7 +1612,17 @@ DownloadManagerStateImpl
 			list.add( str );
 		}
 		
-		setListAttribute( AT_FILE_LINKS, list );
+		try{
+			file_cache_inhibit.incrementAndGet();
+		
+			file_link_cache = null;		// ensure write-listeners get recent state
+		
+			setListAttribute( AT_FILE_LINKS, list );
+			
+		}finally{
+			
+			file_cache_inhibit.decrementAndGet();
+		}
 	}
 	
 	public void
@@ -1639,7 +1653,17 @@ DownloadManagerStateImpl
 		
 		if ( changed ){
 	
-			setListAttribute( AT_FILE_LINKS, list );
+			try{
+				file_cache_inhibit.incrementAndGet();
+			
+				file_link_cache = null;		// ensure write-listeners get recent state
+			
+				setListAttribute( AT_FILE_LINKS, list );
+			
+			}finally{
+				
+				file_cache_inhibit.decrementAndGet();
+			}
 		}
 	}
 	
@@ -1647,7 +1671,26 @@ DownloadManagerStateImpl
 	getFileLink(
 		File	link_source )
 	{
-		return((File)getFileLinks().get(link_source));
+		CaseSensitiveFileMap map = null;
+		
+		WeakReference<CaseSensitiveFileMap> ref = file_link_cache;
+		
+		if ( ref != null ){
+			
+			map = ref.get();
+		}
+		
+		if ( map == null ){
+					
+			map = getFileLinks();
+			
+			if ( file_cache_inhibit.get() == 0 ){
+			
+				file_link_cache = new WeakReference<CaseSensitiveFileMap>( map );
+			}
+		}
+		
+		return((File)map.get(link_source));
 	}
 					
 	public CaseSensitiveFileMap
