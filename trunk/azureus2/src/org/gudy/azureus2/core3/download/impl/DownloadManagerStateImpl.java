@@ -1666,9 +1666,7 @@ DownloadManagerStateImpl
 			
 					file_link_cache = null;		// ensure write-listeners get recent state
 				}
-				
-				file_link_cache = null;		// ensure write-listeners get recent state
-			
+							
 				setListAttribute( AT_FILE_LINKS, list );
 			
 			}finally{
