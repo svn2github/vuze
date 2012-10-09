@@ -248,6 +248,13 @@ ProtocolDecoderInitial
 	isComplete(
 		long	now )
 	{
+		if ( transport == null ){
+		
+				// can happen during initialisation
+			
+			return( false );
+		}
+		
 		if ( !processing_complete ){
 		
 			if ( start_time > now ){
