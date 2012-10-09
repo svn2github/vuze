@@ -1299,31 +1299,57 @@ implements PiecePicker
 				nbRarestActive++;
 		}
 		
-		if(!pt.isLANLocal() || includeLanPeersInReqLimiting)
+		final boolean reverse_order = false;
+		
+		if (!pt.isLANLocal() || includeLanPeersInReqLimiting){
 			nbWanted = dispenser.dispense(nbWanted, DiskManager.BLOCK_SIZE);
-		final int[] blocksFound =pePiece.getAndMarkBlocks(pt, nbWanted,enable_request_hints  );
-		final int blockNumber =blocksFound[0];
-		final int nbBlocks =blocksFound[1];
-		if((!pt.isLANLocal() || includeLanPeersInReqLimiting) && nbBlocks != nbWanted)
+		}
+		
+		final int[] blocksFound = pePiece.getAndMarkBlocks(pt, nbWanted,enable_request_hints, reverse_order  );
+		final int blockNumber = blocksFound[0];
+		final int nbBlocks = blocksFound[1];
+		
+		if((!pt.isLANLocal() || includeLanPeersInReqLimiting) && nbBlocks != nbWanted){
 			dispenser.returnUnusedChunks(nbWanted-nbBlocks, DiskManager.BLOCK_SIZE);
+		}
 		
 		if (nbBlocks <=0)
 			return 0;
 
 		int requested =0;
-		// really try to send the request to the peer
-		for (int i =0; i <nbBlocks; i++)
-		{
-			final int thisBlock =blockNumber +i;
+		
+			// really try to send the request to the peer
+		
+		if ( reverse_order ){
 			
-			if (pt.request(pieceNumber, thisBlock *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(thisBlock)) != null ){
-				requested++;
-				pt.setLastPiece(pieceNumber);
-
-				pePiece.setLastRequestedPeerSpeed( peerSpeed );
-				// have requested a block
-			} else{
-				pePiece.clearRequested(thisBlock);
+			for (int i = nbBlocks-1; i >= 0; i--){
+				
+				final int thisBlock = blockNumber + i;
+				
+				if (pt.request(pieceNumber, thisBlock *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(thisBlock)) != null ){
+					requested++;
+					pt.setLastPiece(pieceNumber);
+	
+					pePiece.setLastRequestedPeerSpeed( peerSpeed );
+					// have requested a block
+				} else{
+					pePiece.clearRequested(thisBlock);
+				}
+			}
+		}else{
+			for (int i =0; i <nbBlocks; i++){
+			
+				final int thisBlock =blockNumber +i;
+				
+				if (pt.request(pieceNumber, thisBlock *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(thisBlock)) != null ){
+					requested++;
+					pt.setLastPiece(pieceNumber);
+	
+					pePiece.setLastRequestedPeerSpeed( peerSpeed );
+					// have requested a block
+				} else{
+					pePiece.clearRequested(thisBlock);
+				}
 			}
 		}
 

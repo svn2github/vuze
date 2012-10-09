@@ -370,11 +370,10 @@ public class PEPieceImpl
 	 * TODO: this should return the largest span equal or smaller than nbWanted
 	 * OR, probably a different method should do that, so this one can support 'more sequential' picking
 	 */
-	public int[] getAndMarkBlocks(PEPeer peer, int nbWanted, boolean enable_request_hints )
+	public int[] getAndMarkBlocks(PEPeer peer, int nbWanted, boolean enable_request_hints, boolean reverse_order )
 	{
-		final String ip =peer.getIp();
-        final boolean[] written =dmPiece.getWritten();
-		int blocksFound =0;
+		final String ip = peer.getIp();
+        final boolean[] written = dmPiece.getWritten();
 		
 		if ( enable_request_hints ){
 			
@@ -383,37 +382,76 @@ public class PEPieceImpl
 			if ( request_hint != null && request_hint[0] == dmPiece.getPieceNumber()){
 				
 					// try to honour the hint first
-				
+								
 				int	hint_block_start 	= request_hint[1] / DiskManager.BLOCK_SIZE;
 				int hint_block_count	=  ( request_hint[2] + DiskManager.BLOCK_SIZE-1 ) / DiskManager.BLOCK_SIZE;
 				
-				for (int i =hint_block_start; i < nbBlocks && i <hint_block_start + hint_block_count; i++)
-				{
-					while (blocksFound <nbWanted &&(i +blocksFound) <nbBlocks &&!downloaded[i +blocksFound]
-					    &&requested[i +blocksFound] ==null &&(written ==null ||!written[i]))
-					{
-						requested[i +blocksFound] =ip;
+				for (int i =hint_block_start; i < nbBlocks && i <hint_block_start + hint_block_count; i++){
+					
+					int blocksFound = 0;
+					int	block_index	= i;
+				
+					while ( blocksFound < nbWanted &&
+							block_index < nbBlocks &&
+							!downloaded[ block_index ] &&
+							requested[block_index] == null &&
+							( written == null || !written[block_index] )){
+					
+						requested[i +blocksFound] = ip;
 						blocksFound++;
+						block_index++;
 					}
-					if (blocksFound >0){
-												
+					if ( blocksFound > 0 ){		
 						return new int[] {i, blocksFound};
 					}
 				}
 			}
 		}
 		
-		// scan piece to find first free block
-		for (int i =0; i <nbBlocks; i++)
-		{
-			while (blocksFound <nbWanted &&(i +blocksFound) <nbBlocks &&!downloaded[i +blocksFound]
-			    &&requested[i +blocksFound] ==null &&(written ==null ||!written[i]))
-			{
-				requested[i +blocksFound] =ip;
-				blocksFound++;
+			// scan piece to find first free block
+		
+		if ( reverse_order ){
+			
+			for (int i=nbBlocks-1; i >= 0; i-- ){
+			
+				int blocksFound = 0;
+				int	block_index = i;
+				
+				while (	blocksFound < nbWanted &&
+						block_index >= 0 &&
+						!downloaded[block_index] &&
+						requested[block_index] == null &&
+						( written == null || !written[block_index] )){
+				
+					requested[block_index] = ip;
+					blocksFound++;
+					block_index--;
+				}
+				if ( blocksFound > 0 ){
+					return new int[] {block_index+1, blocksFound};
+				}
 			}
-			if (blocksFound >0)
-				return new int[] {i, blocksFound};
+		}else{
+			
+			for (int i =0; i <nbBlocks; i++){
+			
+				int blocksFound = 0;
+				int	block_index = i;
+				
+				while (	blocksFound < nbWanted &&
+						block_index < nbBlocks &&
+						!downloaded[ block_index ] &&
+						requested[ block_index ] == null &&
+						( written == null || !written[block_index] )){
+				
+					requested[block_index] = ip;
+					blocksFound++;
+					block_index++;
+				}
+				if ( blocksFound > 0 ){
+					return new int[] {i, blocksFound};
+				}
+			}
 		}
 		return new int[] {-1, 0};
 	}
