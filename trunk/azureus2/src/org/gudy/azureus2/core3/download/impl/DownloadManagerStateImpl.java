@@ -1574,7 +1574,7 @@ DownloadManagerStateImpl
 	  // links stuff
 	  
 	private volatile WeakReference<CaseSensitiveFileMap>	file_link_cache 	= null;
-	private AtomicInteger									file_cache_inhibit 	= new AtomicInteger();
+	private int												file_cache_inhibit 	= 0;
 	
 	public void
 	setFileLink(
@@ -1613,15 +1613,21 @@ DownloadManagerStateImpl
 		}
 		
 		try{
-			file_cache_inhibit.incrementAndGet();
+			synchronized( this ){
+				
+				file_cache_inhibit++;
 		
-			file_link_cache = null;		// ensure write-listeners get recent state
-		
+				file_link_cache = null;		// ensure write-listeners get recent state
+			}
+			
 			setListAttribute( AT_FILE_LINKS, list );
 			
 		}finally{
 			
-			file_cache_inhibit.decrementAndGet();
+			synchronized( this ){
+				
+				file_cache_inhibit--;
+			}
 		}
 	}
 	
@@ -1654,15 +1660,23 @@ DownloadManagerStateImpl
 		if ( changed ){
 	
 			try{
-				file_cache_inhibit.incrementAndGet();
+				synchronized( this ){
+					
+					file_cache_inhibit++;
 			
+					file_link_cache = null;		// ensure write-listeners get recent state
+				}
+				
 				file_link_cache = null;		// ensure write-listeners get recent state
 			
 				setListAttribute( AT_FILE_LINKS, list );
 			
 			}finally{
 				
-				file_cache_inhibit.decrementAndGet();
+				synchronized( this ){
+					
+					file_cache_inhibit--;
+				}
 			}
 		}
 	}
@@ -1684,9 +1698,12 @@ DownloadManagerStateImpl
 					
 			map = getFileLinks();
 			
-			if ( file_cache_inhibit.get() == 0 ){
-			
-				file_link_cache = new WeakReference<CaseSensitiveFileMap>( map );
+			synchronized( this ){
+				
+				if ( file_cache_inhibit == 0 ){
+				
+					file_link_cache = new WeakReference<CaseSensitiveFileMap>( map );
+				}
 			}
 		}
 		
