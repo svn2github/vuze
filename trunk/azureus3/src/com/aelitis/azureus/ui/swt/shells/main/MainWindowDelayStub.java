@@ -600,11 +600,13 @@ MainWindowDelayStub
 
 		public void
 		performAction(
-			int				action_id,
-			Object			args,
-			actionListener	listener )
+			final int				action_id,
+			final Object			args,
+			final actionListener	listener )
 		{
-			log( "performAction" );
+				// auto-update restart prompt (for example)
+			
+			fixup( new Fixup3(){public void fix( UIFunctionsSWT uif){ uif.performAction( action_id, args, listener ); }});
 		}
 		
 		public MultipleDocumentInterface 
