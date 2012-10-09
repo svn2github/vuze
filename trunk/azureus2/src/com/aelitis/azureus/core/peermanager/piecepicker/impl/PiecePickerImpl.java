@@ -203,6 +203,9 @@ implements PiecePicker
 	private int					max_file_priority;
 	private int					min_file_priority;
 	
+	private boolean				reverse_block_order;
+	private int[]				global_request_hint;
+	
 	private static boolean		enable_request_hints;
 	private static boolean		includeLanPeersInReqLimiting;
 	
@@ -1298,16 +1301,41 @@ implements PiecePicker
 			if (availability[pieceNumber] <=globalMinOthers)
 				nbRarestActive++;
 		}
+					
+		int[]	request_hint = null;
 		
-		final boolean reverse_order = false;
-		
+		if ( enable_request_hints ){		
+			
+			request_hint = pt.getRequestHint();
+			
+			if ( request_hint != null ){
+				
+				if ( request_hint[0] != pieceNumber ){
+					
+					request_hint = null;
+				}
+			}
+			
+			if ( request_hint == null ){
+				
+				request_hint = global_request_hint;
+				
+				if ( request_hint != null && request_hint[0] != pieceNumber ){
+					
+					request_hint = null;
+				}
+			}
+		}		
+
+
 		if (!pt.isLANLocal() || includeLanPeersInReqLimiting){
 			nbWanted = dispenser.dispense(nbWanted, DiskManager.BLOCK_SIZE);
 		}
+
+		final int[] blocksFound = pePiece.getAndMarkBlocks(pt, nbWanted, request_hint, reverse_block_order  );
 		
-		final int[] blocksFound = pePiece.getAndMarkBlocks(pt, nbWanted,enable_request_hints, reverse_order  );
-		final int blockNumber = blocksFound[0];
-		final int nbBlocks = blocksFound[1];
+		final int blockNumber 	= blocksFound[0];
+		final int nbBlocks 		= blocksFound[1];
 		
 		if((!pt.isLANLocal() || includeLanPeersInReqLimiting) && nbBlocks != nbWanted){
 			dispenser.returnUnusedChunks(nbWanted-nbBlocks, DiskManager.BLOCK_SIZE);
@@ -1320,7 +1348,7 @@ implements PiecePicker
 		
 			// really try to send the request to the peer
 		
-		if ( reverse_order ){
+		if ( reverse_block_order ){
 			
 			for (int i = nbBlocks-1; i >= 0; i--){
 				
@@ -1752,7 +1780,7 @@ implements PiecePicker
 
 		final int[]		peerPriorities	= pt.getPriorityOffsets();
 
-		final long	now =SystemTime.getCurrentTime();
+		final long	now = SystemTime.getCurrentTime();
         
         int[] 	request_hint = pt.getRequestHint();
         int		request_hint_piece_number;
@@ -1770,6 +1798,23 @@ implements PiecePicker
         }else{
         	
         	request_hint_piece_number = -1;
+        }
+        
+        if ( request_hint_piece_number == -1 ){
+        	
+        	int[] g_hint = global_request_hint;
+        	
+        	if ( g_hint != null ){
+        		
+        		request_hint_piece_number = g_hint[0];
+        		
+        		if ( dmPieces[request_hint_piece_number].isDone()){
+            		
+        			g_hint = null;
+            		
+            		request_hint_piece_number	= -1;
+            	}
+        	}
         }
         
 			// Try to continue a piece already loaded, according to priority
@@ -2885,6 +2930,35 @@ implements PiecePicker
 		}
 	}
 
+	public void
+	setGlobalRequestHint(
+		int	piece_number,
+		int	start_bytes,
+		int	byte_count )
+	{
+		if ( piece_number < 0 ){
+			
+			global_request_hint = null;
+			
+		}else{
+			
+			global_request_hint = new int[]{ piece_number, start_bytes, byte_count };
+		}
+	}
+	
+	public void
+	setReverseBlockOrder(
+		boolean		is_reverse )
+	{
+		reverse_block_order = is_reverse;
+	}
+	
+	public boolean
+	getReverseBlockOrder()
+	{
+		return( reverse_block_order );
+	}
+	
 	public void
 	destroy()
 	{

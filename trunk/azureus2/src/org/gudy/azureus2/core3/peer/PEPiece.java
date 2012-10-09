@@ -80,7 +80,7 @@ PEPiece
 	public int			getAvailability();
 
 	public boolean		hasUnrequestedBlock();
-	public int[]		getAndMarkBlocks(PEPeer peer, int nbWanted, boolean enable_hints, boolean reverse_order );
+	public int[]		getAndMarkBlocks(PEPeer peer, int nbWanted, int[] request_hint, boolean reverse_order );
 	
 	public void 		getAndMarkBlock(PEPeer peer, int index);
 	public Object		getRealTimeData();

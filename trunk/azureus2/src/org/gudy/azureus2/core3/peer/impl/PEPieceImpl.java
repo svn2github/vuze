@@ -370,23 +370,27 @@ public class PEPieceImpl
 	 * TODO: this should return the largest span equal or smaller than nbWanted
 	 * OR, probably a different method should do that, so this one can support 'more sequential' picking
 	 */
-	public int[] getAndMarkBlocks(PEPeer peer, int nbWanted, boolean enable_request_hints, boolean reverse_order )
+	public int[] 
+	getAndMarkBlocks(
+		PEPeer 		peer, 
+		int 		nbWanted, 
+		int[]		request_hint,
+		boolean 	reverse_order )	
 	{
 		final String ip = peer.getIp();
+		
         final boolean[] written = dmPiece.getWritten();
 		
-		if ( enable_request_hints ){
+		if ( request_hint != null ){
+					
+				// try to honour the hint first
+							
+			int	hint_block_start 	= request_hint[1] / DiskManager.BLOCK_SIZE;
+			int hint_block_count	= ( request_hint[2] + DiskManager.BLOCK_SIZE-1 ) / DiskManager.BLOCK_SIZE;
 			
-			int[]	request_hint = peer.getRequestHint();
-			
-			if ( request_hint != null && request_hint[0] == dmPiece.getPieceNumber()){
+			if ( reverse_order ){
 				
-					// try to honour the hint first
-								
-				int	hint_block_start 	= request_hint[1] / DiskManager.BLOCK_SIZE;
-				int hint_block_count	=  ( request_hint[2] + DiskManager.BLOCK_SIZE-1 ) / DiskManager.BLOCK_SIZE;
-				
-				for (int i =hint_block_start; i < nbBlocks && i <hint_block_start + hint_block_count; i++){
+				for ( int i = Math.min( nbBlocks, hint_block_start + hint_block_count ) - 1; i >= hint_block_start; i--){
 					
 					int blocksFound = 0;
 					int	block_index	= i;
@@ -397,7 +401,27 @@ public class PEPieceImpl
 							requested[block_index] == null &&
 							( written == null || !written[block_index] )){
 					
-						requested[i +blocksFound] = ip;
+						requested[ block_index ] = ip;
+						blocksFound++;
+						block_index--;
+					}
+					if ( blocksFound > 0 ){		
+						return new int[] {block_index+1, blocksFound};
+					}
+				}
+			}else{
+				for (int i = hint_block_start; i < nbBlocks && i <hint_block_start + hint_block_count; i++){
+					
+					int blocksFound = 0;
+					int	block_index	= i;
+				
+					while ( blocksFound < nbWanted &&
+							block_index < nbBlocks &&
+							!downloaded[ block_index ] &&
+							requested[block_index] == null &&
+							( written == null || !written[block_index] )){
+					
+						requested[ block_index ] = ip;
 						blocksFound++;
 						block_index++;
 					}

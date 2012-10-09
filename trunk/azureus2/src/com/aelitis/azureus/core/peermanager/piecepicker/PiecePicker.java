@@ -80,6 +80,18 @@ public interface PiecePicker
 	
 	public int		getNbPiecesDone();
 	
+	public void
+	setGlobalRequestHint(
+		int	piece_number,
+		int	start_bytes,
+		int	byte_count );
+	
+	public void
+	setReverseBlockOrder(
+		boolean		is_reverse );
+	
+	public boolean
+	getReverseBlockOrder();
 	
 	public void
 	addRTAProvider(
