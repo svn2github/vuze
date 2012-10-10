@@ -627,6 +627,25 @@ DeviceManagerUI
 				}
 			});
 
+			// disable sleep
+		
+		final BooleanParameter disable_sleep = 
+			configModel.addBooleanParameter2( 
+				"device.config.xcode.disable_sleep", "device.config.xcode.disable_sleep",
+				device_manager.getDisableSleep());
+				
+		
+		disable_sleep.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter param) 
+				{
+					device_manager.setDisableSleep( disable_sleep.getValue());
+				}
+			});
+		
 			// itunes
 		
 		final ActionParameter btnITunes = configModel.addActionParameter2("devices.button.installitunes", "UpdateWindow.columns.install");
@@ -662,7 +681,7 @@ DeviceManagerUI
 			"device.xcode.group",
 			new Parameter[]
 			{
-					def_work_dir, max_xcode, btnITunes
+					def_work_dir, max_xcode, disable_sleep, btnITunes
 			});
 		
 			// rss

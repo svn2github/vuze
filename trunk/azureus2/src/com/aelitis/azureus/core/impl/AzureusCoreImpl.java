@@ -53,6 +53,7 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
+import org.gudy.azureus2.plugins.utils.PowerManagementListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
@@ -184,6 +185,8 @@ AzureusCoreImpl
 	private CopyOnWriteList		listeners				= new CopyOnWriteList();
 	private CopyOnWriteList		lifecycle_listeners		= new CopyOnWriteList();
 	private List				operation_listeners		= new ArrayList();
+	
+	private CopyOnWriteList<PowerManagementListener>	power_listeners = new CopyOnWriteList<PowerManagementListener>();
 	
 	private AESemaphore			stopping_sem	= new AESemaphore( "AzureusCore::stopping" );
 	
@@ -1770,7 +1773,7 @@ AzureusCoreImpl
 							boolean	active = dl || se;
 								
 							try{
-								PlatformManagerFactory.getPlatformManager().setPreventComputerSleep( active );
+								setPreventComputerSleep( PlatformManagerFactory.getPlatformManager(), active, "config change" );
 								
 							}catch( Throwable e ){
 								
@@ -1881,94 +1884,118 @@ AzureusCoreImpl
 		boolean ps_downloading 	= COConfigurationManager.getBooleanParameter( "Prevent Sleep Downloading" );
 		boolean ps_fp_seed	 	= COConfigurationManager.getBooleanParameter( "Prevent Sleep FP Seeding" );
 
-		if ( !( ps_downloading || ps_fp_seed )){
+		String	declining_subsystems = "";
+		
+		for ( PowerManagementListener l: power_listeners ){
+			
+			try{
+				if ( !l.requestPowerStateChange( PowerManagementListener.ST_SLEEP, null )){
+					
+					declining_subsystems += (declining_subsystems.length()==0?"":",") + l.getPowerName();
+				}
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
+		if ( declining_subsystems.length() == 0 && !( ps_downloading || ps_fp_seed )){
 
 			return;
 		}
 
 		PlatformManager platform = PlatformManagerFactory.getPlatformManager();
 
-		List<DownloadManager> managers = getGlobalManager().getDownloadManagers();
-
 		boolean	prevent_sleep 	= false;
 		String	prevent_reason	= null;
 
-		for ( DownloadManager manager: managers ){
+		if ( declining_subsystems.length() > 0 ){
+			
+			prevent_sleep 	= true;
+			prevent_reason 	= "subsystems declined sleep: " +  declining_subsystems;
+			
+		}else{
+			
+			List<DownloadManager> managers = getGlobalManager().getDownloadManagers();
 
-			int state = manager.getState();
-
-			if ( state == DownloadManager.STATE_FINISHING ){
-
-				if ( ps_downloading ){
-
-					prevent_sleep 	= true;
-					prevent_reason	= "active downloads";
-					
-					break;
-				}
-
-			}else{
-
-				if ( state == DownloadManager.STATE_DOWNLOADING ){
-
-					PEPeerManager pm = manager.getPeerManager();
-
-					if ( pm != null ){
-
-						if ( pm.hasDownloadablePiece()){
-
-							if ( ps_downloading ){
-
-								prevent_sleep 	= true;
-								prevent_reason	= "active downloads";
-
-								break;
+			for ( DownloadManager manager: managers ){
+	
+				int state = manager.getState();
+	
+				if ( state == DownloadManager.STATE_FINISHING ){
+	
+					if ( ps_downloading ){
+	
+						prevent_sleep 	= true;
+						prevent_reason	= "active downloads";
+						
+						break;
+					}
+	
+				}else{
+	
+					if ( state == DownloadManager.STATE_DOWNLOADING ){
+	
+						PEPeerManager pm = manager.getPeerManager();
+	
+						if ( pm != null ){
+	
+							if ( pm.hasDownloadablePiece()){
+	
+								if ( ps_downloading ){
+	
+									prevent_sleep 	= true;
+									prevent_reason	= "active downloads";
+	
+									break;
+								}
+							}else{
+	
+									// its effectively seeding, change so logic about recheck obeyed below
+	
+								state = DownloadManager.STATE_SEEDING;
 							}
-						}else{
-
-								// its effectively seeding, change so logic about recheck obeyed below
-
-							state = DownloadManager.STATE_SEEDING;
 						}
 					}
-				}
-
-				if ( state == DownloadManager.STATE_SEEDING && ps_fp_seed ){
-
-					DiskManager disk_manager = manager.getDiskManager();
-
-					if ( disk_manager != null && disk_manager.getCompleteRecheckStatus() != -1 ){
-
-							// wait until recheck is complete before we mark as downloading-complete
-
-						if ( ps_downloading ){
-
-							prevent_sleep 	= true;
-							prevent_reason	= "active downloads";
-
-							break;
-						}
-
-					}else{
-
-						try{
-							DefaultRankCalculator calc = StartStopRulesDefaultPlugin.getRankCalculator( PluginCoreUtils.wrap( manager ));
-
-							if ( calc.getCachedIsFP()){
-								
+	
+					if ( state == DownloadManager.STATE_SEEDING && ps_fp_seed ){
+	
+						DiskManager disk_manager = manager.getDiskManager();
+	
+						if ( disk_manager != null && disk_manager.getCompleteRecheckStatus() != -1 ){
+	
+								// wait until recheck is complete before we mark as downloading-complete
+	
+							if ( ps_downloading ){
+	
 								prevent_sleep 	= true;
-								prevent_reason	= "first-priority seeding";
-
+								prevent_reason	= "active downloads";
+	
 								break;
 							}
-						}catch( Throwable e ){
-
+	
+						}else{
+	
+							try{
+								DefaultRankCalculator calc = StartStopRulesDefaultPlugin.getRankCalculator( PluginCoreUtils.wrap( manager ));
+	
+								if ( calc.getCachedIsFP()){
+									
+									prevent_sleep 	= true;
+									prevent_reason	= "first-priority seeding";
+	
+									break;
+								}
+							}catch( Throwable e ){
+	
+							}
 						}
 					}
 				}
 			}
 		}
-				
+		
 		if ( prevent_sleep != platform.getPreventComputerSleep()){
 			
 			if ( prevent_sleep ){
@@ -2000,16 +2027,36 @@ AzureusCoreImpl
 					prevent_reason = "no active first-priority seeding";
 				}
 			}
-			
-			Logger.log( new LogEvent(LOGID, "Computer sleep prevented state changed to '" + prevent_sleep + "' due to " + prevent_reason ));	
 
+			setPreventComputerSleep( platform, prevent_sleep, prevent_reason );
+		}
+	}
+	
+	private void
+	setPreventComputerSleep(
+		PlatformManager		platform,
+		boolean				prevent_sleep,
+		String				prevent_reason )
+	{
+		for ( PowerManagementListener l: power_listeners ){
+			
 			try{
-				platform.setPreventComputerSleep( prevent_sleep );
+				l.informPowerStateChange( PowerManagementListener.ST_SLEEP, new Object[]{ prevent_sleep, prevent_reason });
 				
 			}catch( Throwable e ){
 				
 				Debug.out( e );
 			}
+		}
+		
+		Logger.log( new LogEvent(LOGID, "Computer sleep prevented state changed to '" + prevent_sleep + "' due to " + prevent_reason ));	
+
+		try{
+			platform.setPreventComputerSleep( prevent_sleep );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
 		}
 	}
 	
@@ -2409,5 +2456,19 @@ AzureusCoreImpl
 	   }
 	   
 	   l.azureusCoreRunning(AzureusCoreImpl.getSingleton());
+	}
+	
+	public void
+	addPowerManagementListener(
+		PowerManagementListener	listener )
+	{
+		power_listeners.add( listener );
+	}
+		
+	public void
+	removePowerManagementListener(
+		PowerManagementListener	listener )
+	{
+		power_listeners.remove( listener );
 	}
 }

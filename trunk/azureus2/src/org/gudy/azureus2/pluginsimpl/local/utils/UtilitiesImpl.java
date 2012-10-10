@@ -36,6 +36,7 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.download.Download;
@@ -1709,6 +1710,32 @@ UtilitiesImpl
 			
 			throw( new SubscriptionException( "Subscriptions unavailable", e ));
 		}
+	}
+	
+	public boolean 
+	supportsPowerStateControl(
+		int state ) 
+	{
+		if ( state == PowerManagementListener.ST_SLEEP ){
+			
+			return( PlatformManagerFactory.getPlatformManager().hasCapability( PlatformManagerCapabilities.PreventComputerSleep ));
+		}
+		
+		return( false );
+	}
+	
+	public void
+	addPowerManagementListener(
+		PowerManagementListener	listener )
+	{
+		core.addPowerManagementListener( listener );
+	}
+		
+	public void
+	removePowerManagementListener(
+		PowerManagementListener	listener )
+	{
+		core.removePowerManagementListener( listener );
 	}
 	
 	public interface

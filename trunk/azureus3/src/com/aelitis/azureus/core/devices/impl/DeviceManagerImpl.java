@@ -54,6 +54,7 @@ import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.utils.PowerManagementListener;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
@@ -72,7 +73,7 @@ import com.aelitis.net.upnp.UPnPDevice;
 
 public class 
 DeviceManagerImpl 
-	implements DeviceManager, DeviceOfflineDownloaderManager, AEDiagnosticsEvidenceGenerator
+	implements DeviceManager, DeviceOfflineDownloaderManager, PowerManagementListener, AEDiagnosticsEvidenceGenerator
 {
 	private static final String	LOGGER_NAME 				= "Devices";
 	private static final String	CONFIG_FILE 				= "devices.config";
@@ -86,8 +87,9 @@ DeviceManagerImpl
 	
 	private static final String TRANSCODE_DIR_DEFAULT	= "transcodes";
 	
-	private static final String CONFIG_DEFAULT_WORK_DIR	= "devices.config.def_work_dir";
-	
+	private static final String CONFIG_DEFAULT_WORK_DIR		= "devices.config.def_work_dir";
+	private static final String CONFIG_DISABLE_SLEEP		= "devices.config.disable_sleep";
+
 	
 	protected static final int	DEVICE_UPDATE_PERIOD	= 5*1000;
 	
@@ -491,6 +493,8 @@ DeviceManagerImpl
 			initialized = true;
 			
 			listeners.dispatch( LT_INITIALIZED, null );
+			
+			core.addPowerManagementListener( this );
 			
 		}finally{
 			
@@ -1523,6 +1527,19 @@ DeviceManagerImpl
 		COConfigurationManager.setParameter( CONFIG_DEFAULT_WORK_DIR, dir.getAbsolutePath());
 	}
 	
+	public boolean
+	getDisableSleep()
+	{
+		return( COConfigurationManager.getBooleanParameter( CONFIG_DISABLE_SLEEP, true ));
+	}
+	
+	public void
+	setDisableSleep(
+		boolean		b )
+	{
+		COConfigurationManager.setParameter( CONFIG_DISABLE_SLEEP, b );
+	}
+	
 	public TranscodeManagerImpl
 	getTranscodeManager()
 	{
@@ -1538,6 +1555,36 @@ DeviceManagerImpl
 	getUnassociatedDevices()
 	{
 		return( upnp_manager.getUnassociatedDevices());
+	}
+	
+	public String
+	getPowerName()
+	{
+		return( "Transcode" );
+	}
+	
+	public boolean
+	requestPowerStateChange(
+		int		new_state,
+		Object	data )
+	{
+		if ( getDisableSleep()){
+			
+			if ( getTranscodeManager().getQueue().isTranscoding()){
+				
+				return( false );
+			}
+		}
+		
+		return( true );
+	}
+
+	public void
+	informPowerStateChange(
+		int		new_state,
+		Object	data )
+	{
+		
 	}
 	
   	public void

@@ -364,6 +364,18 @@ Utilities
 	
 	public FeatureManager
 	getFeatureManager();
+	
+	public boolean
+	supportsPowerStateControl(
+		int		state );
+	
+	public void
+	addPowerManagementListener(
+		PowerManagementListener	listener );
+		
+	public void
+	removePowerManagementListener(
+		PowerManagementListener	listener );
 }
 
 

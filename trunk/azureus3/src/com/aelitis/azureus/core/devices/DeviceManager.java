@@ -105,6 +105,13 @@ DeviceManager
 	setTiVoEnabled(
 		boolean	enabled );
 	
+	public boolean
+	getDisableSleep();
+	
+	public void
+	setDisableSleep(
+		boolean		b );
+	
 	public void
 	addDiscoveryListener(
 		DeviceManagerDiscoveryListener	listener );

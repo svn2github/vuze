@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.internat.LocaleUtil;
 
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.utils.PowerManagementListener;
 
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.nat.NATTraverser;
@@ -190,4 +191,12 @@ AzureusCore
 	 * @param component
 	 */
 	void triggerLifeCycleComponentCreated(AzureusCoreComponent component);
+	
+	public void
+	addPowerManagementListener(
+		PowerManagementListener	listener );
+		
+	public void
+	removePowerManagementListener(
+		PowerManagementListener	listener );
 }
