@@ -37,12 +37,15 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.config.generic.GenericBooleanParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
@@ -78,6 +81,16 @@ TorrentOptionsView
 	private Composite 			panel;
 	private Font 				headerFont;
 
+	// info panel
+	
+	private BufferedLabel	agg_size;
+	private BufferedLabel	agg_uploaded;
+	private BufferedLabel	agg_downloaded;
+	private BufferedLabel	agg_share_ratio;
+	private BufferedLabel	agg_upload_speed;
+	private BufferedLabel	agg_download_speed;
+	
+	
 	private Composite parent;
 
 	private UISWTView swtView;
@@ -401,7 +414,152 @@ TorrentOptionsView
 	    	managers[i].getDownloadState().addListener(this, DownloadManagerState.AT_PARAMETERS, DownloadManagerStateAttributeListener.WRITTEN);
 	    }
 	    
+	    
+		Group gTorrentInfo = new Group(panel, SWT.NULL);
+		Messages.setLanguageText(gTorrentInfo, "label.aggregate.info");
+		gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
+		gTorrentInfo.setLayoutData(gridData);
+		layout = new GridLayout();
+		layout.numColumns = 2;
+		gTorrentInfo.setLayout(layout);
+
+			// total size
+		
+		label = new Label(gTorrentInfo, SWT.NULL );
+	    label.setText( MessageText.getString( "TableColumn.header.size" ) + ": " );
+	    
+		agg_size = new BufferedLabel( gTorrentInfo, SWT.LEFT | SWT.DOUBLE_BUFFERED );
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		agg_size.setLayoutData( gridData );
+
+			// uploaded
+		
+		label = new Label(gTorrentInfo, SWT.NULL );
+	    label.setText( MessageText.getString( "MyTrackerView.uploaded" ) + ": " );
+	    
+		agg_uploaded = new BufferedLabel( gTorrentInfo, SWT.LEFT | SWT.DOUBLE_BUFFERED );
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		agg_uploaded.setLayoutData( gridData );
+
+			// downloaded
+		
+		label = new Label(gTorrentInfo, SWT.NULL );
+	    label.setText( MessageText.getString( "MyTrackerView.downloaded" ) + ": " );
+	    
+		agg_downloaded = new BufferedLabel( gTorrentInfo, SWT.LEFT | SWT.DOUBLE_BUFFERED );
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		agg_downloaded.setLayoutData( gridData );
+
+			// upload speed
+		
+		label = new Label(gTorrentInfo, SWT.NULL );
+	    label.setText( MessageText.getString( "SpeedView.uploadSpeed.title" ) + ": " );
+	    
+		agg_upload_speed = new BufferedLabel( gTorrentInfo, SWT.LEFT | SWT.DOUBLE_BUFFERED );
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		agg_upload_speed.setLayoutData( gridData );
+
+			// download speed
+		
+		label = new Label(gTorrentInfo, SWT.NULL );
+	    label.setText( MessageText.getString( "SpeedView.downloadSpeed.title" ) + ": " );
+	    
+		agg_download_speed = new BufferedLabel( gTorrentInfo, SWT.LEFT | SWT.DOUBLE_BUFFERED );
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		agg_download_speed.setLayoutData( gridData );
+		
+			// share ratio
+		
+		label = new Label(gTorrentInfo, SWT.NULL );
+	    label.setText( MessageText.getString( "TableColumn.header.shareRatio" ) + ": " );
+	    
+		agg_share_ratio = new BufferedLabel( gTorrentInfo, SWT.LEFT | SWT.DOUBLE_BUFFERED );
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		agg_share_ratio.setLayoutData( gridData );
+	
+	
 	    panel.layout(true, true);
+	}
+	
+	private void
+	refresh()
+	{
+		long	total_size 				= 0;
+		long	total_good_downloaded	= 0;
+		long	total_downloaded		= 0;
+		long	total_uploaded			= 0;
+		
+		long	total_data_up_speed		= 0;
+		long	total_prot_up_speed		= 0;
+		
+		long	total_data_down_speed		= 0;
+		long	total_prot_down_speed		= 0;
+		
+		for (int i=0;i<managers.length;i++){		
+
+			DownloadManager	dm = managers[i];
+
+			total_size += dm.getSize();
+
+			DownloadManagerStats stats = dm.getStats();
+
+			long	good_received 	= stats.getTotalGoodDataBytesReceived();
+			long	received 		= stats.getTotalDataBytesReceived();
+			long	sent			= stats.getTotalDataBytesSent();
+
+			total_good_downloaded 	+= good_received;
+			total_downloaded 		+= received;
+			total_uploaded			+= sent;
+			
+			total_data_up_speed 		+= stats.getDataSendRate();
+			total_prot_up_speed 		+= stats.getProtocolSendRate();
+			
+			total_data_down_speed 	+= stats.getDataReceiveRate();
+			total_prot_down_speed 	+= stats.getProtocolReceiveRate();
+		}
+		
+		agg_size.setText( DisplayFormatters.formatByteCountToKiBEtc( total_size ));
+		agg_uploaded.setText( DisplayFormatters.formatByteCountToKiBEtc( total_uploaded ));
+		agg_downloaded.setText( DisplayFormatters.formatByteCountToKiBEtc( total_downloaded ));
+		
+		agg_upload_speed.setText( DisplayFormatters.formatDataProtByteCountToKiBEtc( total_data_up_speed, total_prot_up_speed ));
+		agg_download_speed.setText( DisplayFormatters.formatDataProtByteCountToKiBEtc( total_data_down_speed, total_prot_down_speed));
+		
+		long	sr;
+		
+		if ( total_good_downloaded == 0 ){
+			
+			if ( total_uploaded == 0 ){
+				
+				sr = 1;
+			}else{
+				
+				sr = -1;
+			}
+		}else{
+			
+			sr = 1000*total_uploaded/total_good_downloaded;
+		}
+		
+		String	share_ratio_str;
+		
+		if ( sr == -1 ){
+			
+			share_ratio_str = Constants.INFINITY_STRING;
+			
+		}else{
+			
+			String partial = "" + sr%1000;
+			
+			while( partial.length() < 3 ){
+				
+				partial = "0" + partial;
+			}
+			
+			share_ratio_str = (sr/1000) + "." + partial;
+		}
+		
+		agg_share_ratio.setText( share_ratio_str );
 	}
 	
 	protected void
@@ -715,6 +873,7 @@ TorrentOptionsView
       	break;
         
       case UISWTViewEvent.TYPE_REFRESH:
+    	refresh();
         break;
     }
 

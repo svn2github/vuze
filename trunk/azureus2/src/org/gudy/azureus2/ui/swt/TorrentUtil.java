@@ -1185,7 +1185,7 @@ public class TorrentUtil {
 
 		if (userMode > 0) {
 			final MenuItem itemExportXML = new MenuItem(menuAdvanced, SWT.PUSH);
-			Messages.setLanguageText(itemExportXML, "MainWindow.menu.view.configuration");
+			Messages.setLanguageText(itemExportXML, "label.options.and.info");
 			itemExportXML.addListener(SWT.Selection, new DMTask(dms) {
 				public void run(DownloadManager[] dms) {
 					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
