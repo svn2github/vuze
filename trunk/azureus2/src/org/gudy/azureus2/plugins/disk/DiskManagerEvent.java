@@ -33,10 +33,7 @@ DiskManagerEvent
 	
 	public int
 	getType();
-	
-	public DiskManagerRequest
-	getRequest();
-	
+		
 	public long
 	getOffset();
 	

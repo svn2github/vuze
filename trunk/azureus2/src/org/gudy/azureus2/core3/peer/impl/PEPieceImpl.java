@@ -386,11 +386,11 @@ public class PEPieceImpl
 				// try to honour the hint first
 							
 			int	hint_block_start 	= request_hint[1] / DiskManager.BLOCK_SIZE;
-			int hint_block_count	= ( request_hint[2] + DiskManager.BLOCK_SIZE-1 ) / DiskManager.BLOCK_SIZE;
+			int	hint_block_end	 	= ( request_hint[1] + request_hint[2] -1 )/ DiskManager.BLOCK_SIZE;
 			
 			if ( reverse_order ){
 				
-				for ( int i = Math.min( nbBlocks, hint_block_start + hint_block_count ) - 1; i >= hint_block_start; i--){
+				for ( int i = Math.min( nbBlocks-1, hint_block_end ); i >= hint_block_start; i--){
 					
 					int blocksFound = 0;
 					int	block_index	= i;
@@ -410,7 +410,7 @@ public class PEPieceImpl
 					}
 				}
 			}else{
-				for (int i = hint_block_start; i < nbBlocks && i <hint_block_start + hint_block_count; i++){
+				for (int i = hint_block_start; i < nbBlocks && i <= hint_block_end; i++){
 					
 					int blocksFound = 0;
 					int	block_index	= i;

@@ -27,6 +27,8 @@ import java.io.File;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.disk.DiskManagerListener;
+import org.gudy.azureus2.plugins.disk.DiskManagerRandomReadRequest;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
@@ -38,8 +40,9 @@ import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
  *
  */
 
-public class DiskManagerFileInfoImpl
-       implements DiskManagerFileInfo 
+public class 
+DiskManagerFileInfoImpl
+	implements DiskManagerFileInfo 
 {
 	protected DownloadImpl										download;
 	protected org.gudy.azureus2.core3.disk.DiskManagerFileInfo 	core;
@@ -214,9 +217,22 @@ public class DiskManagerFileInfoImpl
 	public DiskManagerChannel
 	createChannel()
 	 	throws DownloadException
-	 	{	
+	{	
 		return( new DiskManagerChannelImpl( download, this ));
 	}
+	
+	public DiskManagerRandomReadRequest
+	createRandomReadRequest(
+		long						file_offset,
+		long						length,
+		boolean						reverse_order,
+		DiskManagerListener			listener )
+	
+		throws DownloadException
+	{
+		return( DiskManagerRandomReadController.createRequest( download, this, file_offset, length, reverse_order, listener ));
+	}
+	
 	
 	// not visible to plugin interface
 	public org.gudy.azureus2.core3.disk.DiskManagerFileInfo

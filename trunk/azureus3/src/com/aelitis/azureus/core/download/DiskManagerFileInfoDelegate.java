@@ -33,6 +33,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
+import org.gudy.azureus2.plugins.disk.DiskManagerRandomReadRequest;
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -208,6 +209,18 @@ DiskManagerFileInfoDelegate
 		throws DownloadException
 	{
 		return( new channel());
+	}
+	
+	public DiskManagerRandomReadRequest
+	createRandomReadRequest(
+		long						file_offset,
+		long						length,
+		boolean						reverse_order,
+		DiskManagerListener			listener )
+	
+		throws DownloadException
+	{
+		return( delegate.createRandomReadRequest( file_offset, length, reverse_order, listener));
 	}
 	
 	private class

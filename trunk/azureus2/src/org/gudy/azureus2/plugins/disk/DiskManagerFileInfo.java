@@ -149,4 +149,24 @@ DiskManagerFileInfo
 	createChannel()
 	
 		throws DownloadException;
+	
+		/**
+		 * Creates a random read request - these will be executed against the download 
+		 * sequentially
+		 * @param file_offset
+		 * @param length
+		 * @param reverse_order	- deliver blocks to the listener in reverse order
+		 * @param listener
+		 * @return
+		 * @throws DownloadException
+		 */
+	
+	public DiskManagerRandomReadRequest
+	createRandomReadRequest(
+		long						file_offset,
+		long						length,
+		boolean						reverse_order,
+		DiskManagerListener			listener )
+	
+		throws DownloadException;
 }

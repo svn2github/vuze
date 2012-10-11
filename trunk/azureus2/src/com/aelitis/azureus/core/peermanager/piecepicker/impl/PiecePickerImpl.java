@@ -2946,6 +2946,12 @@ implements PiecePicker
 		}
 	}
 	
+	public int[]
+	getGlobalRequestHint()
+	{
+		return( global_request_hint );
+	}
+	
 	public void
 	setReverseBlockOrder(
 		boolean		is_reverse )

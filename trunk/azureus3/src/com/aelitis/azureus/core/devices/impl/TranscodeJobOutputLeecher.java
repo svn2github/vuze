@@ -32,6 +32,7 @@ import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
+import org.gudy.azureus2.plugins.disk.DiskManagerRandomReadRequest;
 import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -225,6 +226,18 @@ TranscodeJobOutputLeecher
 		throws DownloadException
 	{
 		return( new Channel());
+	}
+	
+	public DiskManagerRandomReadRequest
+	createRandomReadRequest(
+		long						file_offset,
+		long						length,
+		boolean						reverse_order,
+		DiskManagerListener			listener )
+	
+		throws DownloadException
+	{
+		throw( new DownloadException( "Not supported" ));
 	}
 	
 	protected class

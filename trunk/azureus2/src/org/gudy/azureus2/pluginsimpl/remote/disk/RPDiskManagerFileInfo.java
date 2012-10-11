@@ -26,6 +26,8 @@ import java.io.File;
 
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.plugins.disk.DiskManagerListener;
+import org.gudy.azureus2.plugins.disk.DiskManagerRandomReadRequest;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.pluginsimpl.remote.RPException;
@@ -248,6 +250,20 @@ RPDiskManagerFileInfo
 	
 	public DiskManagerChannel
 	createChannel()
+	{
+		notSupported();
+		
+		return( null );		
+	}
+	
+	public DiskManagerRandomReadRequest
+	createRandomReadRequest(
+		long						file_offset,
+		long						length,
+		boolean						reverse_order,
+		DiskManagerListener			listener )
+	
+		throws DownloadException
 	{
 		notSupported();
 		

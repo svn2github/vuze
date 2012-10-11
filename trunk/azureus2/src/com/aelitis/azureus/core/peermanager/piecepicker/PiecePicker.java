@@ -86,6 +86,9 @@ public interface PiecePicker
 		int	start_bytes,
 		int	byte_count );
 	
+	public int[]
+	getGlobalRequestHint();
+	
 	public void
 	setReverseBlockOrder(
 		boolean		is_reverse );
