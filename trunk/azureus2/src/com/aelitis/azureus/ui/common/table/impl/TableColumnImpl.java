@@ -985,9 +985,7 @@ public class TableColumnImpl
 	public final void loadSettings(Map mapSettings) {
 		// Format: Key = [TableID].column.[columnname]
 		// Value[] = { visible, width, position, autotooltip, sortorder }
-		if ( sName.equals( "rc_rank" )){
-			System.out.println( "arse" );
-		}
+ 
 		String itemPrefix = "Column." + sName;
 		String oldItemPrefix = "Table." + sTableID + "." + sName;
 		Object object = mapSettings.get(itemPrefix);
