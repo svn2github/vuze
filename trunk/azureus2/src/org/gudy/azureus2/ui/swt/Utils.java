@@ -2502,12 +2502,21 @@ public class Utils
 								private TextViewerWindow	viewer;
 								private List<String>		lines = new ArrayList<String>();
 								
+								private volatile boolean	abandon = false;
+								
 								public void
 								entryRead(
 									final String 		name, 
 									final long 			size,
 									final boolean 		password ) 
+								
+									throws IOException
 								{
+									if ( abandon ){
+										
+										throw( new IOException( "Operation abandoned" ));
+									}
+									
 									String line = name + ":    " + DisplayFormatters.formatByteCountToKiBEtc( size );
 									
 									if ( password ){
@@ -2580,8 +2589,14 @@ public class Utils
 													
 												}else{
 													
+													if ( viewer.isDisposed()){
 													
-													viewer.setText( content.toString());
+														abandon = true;
+														
+													}else{
+														
+														viewer.setText( content.toString());
+													}
 												}
 											}
 										});
@@ -2607,6 +2622,7 @@ public class Utils
 		}catch( Throwable e ){
 			
 			Debug.out( e );
+			
 		}finally{
 			
 			if ( !went_async ){
