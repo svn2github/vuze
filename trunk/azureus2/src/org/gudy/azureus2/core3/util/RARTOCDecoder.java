@@ -42,6 +42,36 @@ RARTOCDecoder
 		
 		throws IOException
 	{
+		try{
+			analyseSupport( result_handler );
+			
+			result_handler.complete();
+			
+		}catch( Throwable e ){
+			
+			IOException ioe;
+			
+			if ( e instanceof IOException ){
+				
+				ioe = (IOException)e ;
+				
+			}else{
+				
+				ioe = new IOException( "Analysis failed: " + Debug.getNestedExceptionMessage( e ));
+			}
+			
+			result_handler.failed( ioe  );
+				
+			throw( ioe );
+		}
+	}
+	
+	private void
+	analyseSupport(
+		TOCResultHandler		result_handler )
+		
+		throws IOException
+	{
 			// http://acritum.com/winrar/rar-format
 		
 		byte[]	 header_buffer = new byte[7];	// marker block always 7 bytes
@@ -221,6 +251,13 @@ RARTOCDecoder
 			boolean		password )
 		
 			throws IOException;
+		
+		public void
+		complete();
+		
+		public void
+		failed(
+			IOException error );
 	}
 	
 	public interface
@@ -279,6 +316,19 @@ RARTOCDecoder
 						boolean		password )
 					{
 						System.out.println( name + ": " + size + (password?" protected":""));
+					}
+					
+					public void
+					complete()
+					{
+						System.out.println( "complete" );
+					}
+					
+					public void
+					failed(
+						IOException error )
+					{
+						System.out.println( "failed: " + Debug.getNestedExceptionMessage( error ));
 					}
 				});
 			

@@ -176,6 +176,15 @@ public class TextViewerWindow {
   }
   
   public void
+  setText(
+	 String	text )
+  {
+	  txtInfo.setText( text);
+	  
+	  txtInfo.setSelection( txtInfo.getTextLimit());
+  }
+  
+  public void
   setEditable(
 	boolean	editable )
   {

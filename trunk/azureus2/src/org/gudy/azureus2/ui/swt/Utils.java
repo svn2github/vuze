@@ -2499,14 +2499,94 @@ public class Utils
 						decoder.analyse(
 							new RARTOCDecoder.TOCResultHandler()
 							{
+								private TextViewerWindow	viewer;
+								private List<String>		lines = new ArrayList<String>();
+								
 								public void
 								entryRead(
-									String 		name, 
-									long 		size,
-									boolean 	password ) 
+									final String 		name, 
+									final long 			size,
+									final boolean 		password ) 
 								{
-									System.out.println( name );
+									String line = name + ":    " + DisplayFormatters.formatByteCountToKiBEtc( size );
+									
+									if ( password ){
+										
+										line += "    **** password protected ****";
+									}
+
+									if ( password || name.toLowerCase().contains( "password" )){
+										
+										line = "*\t" + line;
+										
+									}else{
+										
+										line = " \t" + line;
+									}
+									
+									appendLine( line, false );
 								}
+								
+								public void
+								complete()
+								{
+									appendLine( "Done", true );
+								}
+								
+								public void
+								failed(
+									IOException error )
+								{
+									appendLine( "Failed: " + Debug.getNestedExceptionMessage( error ), true );
+								}
+								
+								private void
+								appendLine(
+									final String	line,
+									final boolean	complete )
+								{
+									execSWTThread(
+										new Runnable()
+										{
+											public void
+											run()
+											{												
+												lines.add( line );
+												
+												StringBuffer	content = new StringBuffer();
+												
+												for ( String l: lines ){
+													
+													content.append( l + "\r\n" );
+												}
+												
+												if ( !complete ){
+												
+													content.append( "processing..." );
+												}
+												
+												if ( viewer == null ){
+													
+													final File		target_file = file.getFile( true );
+													
+													DownloadManager dm = file.getDownloadManager();
+												
+													viewer = new TextViewerWindow(
+														MessageText.getString( "MainWindow.menu.quick_view" ) + ": " + target_file.getName(),
+														MessageText.getString( 
+															"MainWindow.menu.quick_view.msg",
+															new String[]{ target_file.getName(), dm.getDisplayName() }),
+														content.toString(), false  );
+													
+												}else{
+													
+													
+													viewer.setText( content.toString());
+												}
+											}
+										});
+								}
+								
 							});
 					}catch( Throwable e ){
 						
