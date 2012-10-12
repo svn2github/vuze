@@ -37,11 +37,17 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.disk.DiskManagerRandomReadRequest;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.download.DownloadListener;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
@@ -64,6 +70,16 @@ DiskManagerRandomReadController
 	
 		throws DownloadException
 	{
+		if ( file_offset < 0 || file_offset >= file.getLength()){
+			
+			throw( new DownloadException( "invalid file offset " + file_offset + ", file size=" + file.getLength()));
+		}
+		
+		if ( length <= 0 || file_offset + length > file.getLength()){
+			
+			throw( new DownloadException( "invalid read length " + length + ", offset=" + file_offset + ", file size=" + file.getLength()));
+		}
+		
 		DiskManagerRandomReadController controller;
 		
 		synchronized( controller_map ){
@@ -76,9 +92,9 @@ DiskManagerRandomReadController
 				
 				controller_map.put( download, controller );
 			}
-		}
 		
-		return( controller.addRequest( file, file_offset, length, reverse_order, listener ));
+			return( controller.addRequest( file, file_offset, length, reverse_order, listener ));
+		}
 	}
 	
 	private DownloadImpl		download;
@@ -87,11 +103,56 @@ DiskManagerRandomReadController
 	
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
+	private boolean	set_force_start;
+	
+	private TimerEventPeriodic		timer_event;
+	private volatile boolean		busy;
+	private volatile long			last_busy_time;
+	
+	
 	private
 	DiskManagerRandomReadController(
 		DownloadImpl		_download )
 	{
 		download	= _download;
+		
+		timer_event = 
+			SimpleTimer.addPeriodicEvent(
+				"dmrr:timer",
+				5000,
+				new TimerEventPerformer()
+				{
+					public void 
+					perform(
+						TimerEvent event) 
+					{
+						if ( busy || SystemTime.getMonotonousTime() - last_busy_time < 5000 ){
+							
+							return;
+						}
+						
+						synchronized( controller_map ){
+							
+							synchronized( requests ){
+								
+								if ( requests.size() > 0 ){
+									
+									return;
+								}
+							}
+							
+							controller_map.remove( download );
+							
+							if ( set_force_start ){
+								
+								download.setForceStart( false );
+							}
+						}
+												
+						timer_event.cancel();
+
+					}
+				});
 	}
 	
 	private DiskManagerRandomReadRequest
@@ -115,7 +176,16 @@ DiskManagerRandomReadController
 				public void
 				runSupport()
 				{
-					executeRequest();
+					try{
+						busy	= true;
+					
+						executeRequest();
+						
+					}finally{
+						
+						busy 			= false;
+						last_busy_time	= SystemTime.getMonotonousTime();
+					}
 				}
 			});
 		
@@ -141,8 +211,7 @@ DiskManagerRandomReadController
 			
 			return;
 		}
-		
-		boolean 					set_force_start = false;
+	
 		DiskManagerFileInfoListener	info_listener	= null;
 		
 		org.gudy.azureus2.core3.disk.DiskManagerFileInfo core_file		= request.getFile().getCore();
@@ -165,7 +234,7 @@ DiskManagerRandomReadController
 				
 				throw( new DownloadException( "Download has been removed" ));
 			}
-					
+				
 			TOTorrentFile	tf = core_file.getTorrentFile();
 			
 			TOTorrent 	torrent = tf.getTorrent();
@@ -181,6 +250,11 @@ DiskManagerRandomReadController
 			
 			long download_byte_start 	= core_file_start_byte + request.getOffset();
 			long download_byte_end		= download_byte_start + request.getLength();
+			
+			if ( download_byte_end > core_file.getLength()){
+				
+				throw( new DownloadException( "Request too large: file size=" + core_file.getLength() + ", request=" + download_byte_start + " -> " + download_byte_end ));
+			}
 			
 			int piece_size	= (int)tf.getTorrent().getPieceLength();
 			
@@ -198,6 +272,47 @@ DiskManagerRandomReadController
 					download.setForceStart( true );
 					
 					set_force_start = true;
+					
+					final AESemaphore running_sem = new AESemaphore( "rs" );
+					
+					DownloadListener dl_listener = 
+						new DownloadListener()
+						{
+							public void
+							stateChanged(
+								Download		download,
+								int				old_state,
+								int				new_state )
+							{
+								if ( new_state == Download.ST_DOWNLOADING || new_state == Download.ST_SEEDING ){
+									
+									running_sem.release();
+								}
+							}
+	
+							public void
+							positionChanged(
+								Download	download, 
+								int oldPosition,
+								int newPosition )
+							{							
+							}
+						};
+						
+					download.addListener( dl_listener );
+					
+					try{			
+						if ( download.getState() != Download.ST_DOWNLOADING && download.getState() != Download.ST_SEEDING ){
+							
+							if ( !running_sem.reserve( 10*1000 )){
+								
+								throw( new DownloadException( "timeout waiting for download to start" ));
+							}
+						}
+					}finally{
+						
+						download.removeListener( dl_listener );
+					}
 				}
 			}
 			
@@ -521,11 +636,6 @@ DiskManagerRandomReadController
 						clearHint( pm, curr_hint_piece );
 					}
 				}
-			}
-			
-			if ( set_force_start ){
-				
-				download.setForceStart( false );
 			}
 			
 			if ( info_listener != null ){

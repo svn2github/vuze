@@ -22,6 +22,7 @@
 package org.gudy.azureus2.ui.swt;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.*;
 import java.util.List;
 
@@ -44,22 +45,23 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
+import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
+import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.*;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableDelegate;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableOrTreeUtils;
 
 import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.core.util.LaunchManager;
-import com.aelitis.azureus.ui.common.table.impl.TableViewImpl;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -2207,13 +2209,13 @@ public class Utils
 		
 		if ( qv_exts.contains( ext )){
 			
-			if ( file.getLength() <= qv_max_bytes ){	
+			if ( file.getLength() <= qv_max_bytes || ext.equals( "rar" )){	
 			
 				return( true );
 			}
 		}
-		
-		return( false );
+				
+		return( true );
 	}
 	
 	public static boolean
@@ -2245,71 +2247,87 @@ public class Utils
 				return;
 			}
 	
-			if ( file.getDownloaded() == file.getLength()){
-				
-				quickView( file );
-				
-			}else{
+			String ext = file.getExtension().toLowerCase();
+
+			boolean	file_complete = file.getDownloaded() == file.getLength();
 			
+			if ( ext.equals( ".rar" )){
+				
 				quick_view_active.add( file );
 				
-				file.setPriority( 1 );
+				quickViewRAR( file );
+								
+			}else{
 				
-				DiskManagerFileInfo[] all_files = file.getDownloadManager().getDiskManagerFileInfoSet().getFiles();
-				
-				for ( DiskManagerFileInfo f: all_files ){
+				if ( file_complete ){
 					
-					if ( !quick_view_active.contains( f )){
+					quickView( file );
+					
+				}else{
+				
+					quick_view_active.add( file );
+					
+					file.setPriority( 1 );
+					
+					DiskManagerFileInfo[] all_files = file.getDownloadManager().getDiskManagerFileInfoSet().getFiles();
+					
+					for ( DiskManagerFileInfo f: all_files ){
 						
-						f.setPriority( 0 );
+						if ( !quick_view_active.contains( f )){
+							
+							f.setPriority( 0 );
+						}
 					}
-				}
-				
-				if ( quick_view_event == null ){
 					
-					quick_view_event = 
-						SimpleTimer.addPeriodicEvent(
-							"qv_checker",
-							5*1000,
-							new TimerEventPerformer()
-							{
-								public void 
-								perform(
-									TimerEvent event) 
+					if ( quick_view_event == null ){
+						
+						quick_view_event = 
+							SimpleTimer.addPeriodicEvent(
+								"qv_checker",
+								5*1000,
+								new TimerEventPerformer()
 								{
-									synchronized( quick_view_active ){
-										
-										Iterator<DiskManagerFileInfo> it = quick_view_active.iterator();
-										
-										while( it.hasNext()){
+									public void 
+									perform(
+										TimerEvent event) 
+									{
+										synchronized( quick_view_active ){
 											
-											DiskManagerFileInfo file = it.next();
+											Iterator<DiskManagerFileInfo> it = quick_view_active.iterator();
 											
-											if ( file.getDownloadManager().isDestroyed()){
+											while( it.hasNext()){
 												
-												it.remove();
+												DiskManagerFileInfo file = it.next();
 												
-											}else{
-												
-												if ( file.getDownloaded() == file.getLength()){
-													
-													quickView( file );
+												if ( file.getDownloadManager().isDestroyed()){
 													
 													it.remove();
+													
+												}else{
+													
+													if ( file.getDownloaded() == file.getLength()){
+														
+														quickView( file );
+														
+														it.remove();
+													}
 												}
 											}
-										}
-										
-										if ( quick_view_active.isEmpty()){
 											
-											quick_view_event.cancel();
-											
-											quick_view_event = null;
+											if ( quick_view_active.isEmpty()){
+												
+												quick_view_event.cancel();
+												
+												quick_view_event = null;
+											}
 										}
 									}
-								}
-							});
+								});
+					}
 				}
+			}
+			
+			if ( !file_complete ){
 				
 				execSWTThreadLater(
 					10,
@@ -2323,7 +2341,7 @@ public class Utils
 										SWT.OK,
 										MessageText.getString("quick.view.scheduled.title"),
 										MessageText.getString("quick.view.scheduled.text"));
-
+	
 							mb.setDefaultButtonUsingStyle(SWT.OK);
 							mb.setRemember("quick.view.inform.activated.id", false, MessageText.getString( "label.dont.show.again" ));
 							mb.setLeftImage(SWT.ICON_INFORMATION);
@@ -2362,6 +2380,162 @@ public class Utils
 		}catch( Throwable e ){
 			
 			Debug.out( e );
+		}
+	}
+	
+	private static void
+	quickViewRAR(
+		final DiskManagerFileInfo		file )
+	{
+		boolean went_async = false;
+		
+		try{
+			final org.gudy.azureus2.plugins.disk.DiskManagerFileInfo plugin_file =  PluginCoreUtils.wrap( file );
+			
+			final RARTOCDecoder decoder = 
+				new RARTOCDecoder(
+					new RARTOCDecoder.DataProvider()
+					{
+						private long	file_position;
+						private long	file_size = file.getLength();
+						
+						public int
+						read(
+							final byte[]		buffer )
+						
+							throws IOException
+						{
+							long	read_from 	= file_position;
+							int		read_length	= buffer.length;
+														
+							long	read_to = Math.min( file_size, read_from + read_length );
+							
+							read_length = (int)( read_to - read_from );
+							
+							if ( read_length <= 0 ){
+								
+								return( -1 );
+							}
+													
+							try{
+								final AESemaphore sem = new AESemaphore( "rarwait" );
+								
+								final Object[] result = { null };
+
+								plugin_file.createRandomReadRequest(
+									read_from, read_length, false,
+									new DiskManagerListener()
+									{
+										private int	buffer_pos;
+										
+										public void
+										eventOccurred(
+											DiskManagerEvent	event )
+										{
+											int	event_type = event.getType();
+											
+											if ( event_type == DiskManagerEvent.EVENT_TYPE_SUCCESS ){
+																								
+												PooledByteBuffer pooled_buffer = event.getBuffer();
+												
+												try{
+													byte[] data = pooled_buffer.toByteArray();
+													
+													System.arraycopy( data, 0, buffer, buffer_pos, data.length );
+													
+													buffer_pos += data.length;
+													
+													if ( buffer_pos == buffer.length ){
+														
+														sem.release();
+													}
+													
+												}finally{
+													
+													pooled_buffer.returnToPool();
+												}
+											}else if ( event_type == DiskManagerEvent.EVENT_TYPE_FAILED ){
+												
+												result[0] = event.getFailure();
+												
+												sem.release();
+											}
+										}
+									});
+								
+								sem.reserve();
+								
+								if ( result[0] instanceof Throwable ){
+									
+									throw((Throwable)result[0]);
+								}
+								
+								file_position += read_length;
+								
+								return( read_length );
+								
+							}catch( Throwable e ){
+								
+								throw( new IOException( "read failed: " + Debug.getNestedExceptionMessage( e )));
+							}
+						}
+						
+						public void
+						skip(
+							long		bytes )
+						
+							throws IOException
+						{
+							file_position += bytes;
+						}
+					});
+			
+			new AEThread2( "rardecoder" )
+			{
+				public void
+				run()
+				{
+					try{
+						decoder.analyse(
+							new RARTOCDecoder.TOCResultHandler()
+							{
+								public void
+								entryRead(
+									String 		name, 
+									long 		size,
+									boolean 	password ) 
+								{
+									System.out.println( name );
+								}
+							});
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+						
+					}finally{
+						
+						synchronized( quick_view_active ){
+
+							quick_view_active.remove( file );
+						}
+					}
+				}
+			}.start();
+			
+			went_async = true;
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}finally{
+			
+			if ( !went_async ){
+				
+				synchronized( quick_view_active ){
+
+					quick_view_active.remove( file );
+				}
+			}
 		}
 	}
 }
