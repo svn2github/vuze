@@ -2186,6 +2186,11 @@ public class Utils
 						
 						bit = bit.trim();
 						
+						if ( bit.startsWith( "." )){
+							
+							bit = bit.substring(1);
+						}
+						
 						if ( bit.length() > 0 ){
 							
 							exts.add( bit.toLowerCase());
@@ -2207,15 +2212,27 @@ public class Utils
 	{
 		String ext = file.getExtension().toLowerCase();
 		
+		if ( ext.startsWith( "." )){
+			
+			ext = ext.substring(1);
+		}
+		
+			// always support .rar
+		
+		if ( ext.equals( "rar" )){
+			
+			return( true );
+		}
+		
 		if ( qv_exts.contains( ext )){
 			
-			if ( file.getLength() <= qv_max_bytes || ext.equals( "rar" )){	
+			if ( file.getLength() <= qv_max_bytes ){	
 			
 				return( true );
 			}
 		}
 				
-		return( true );
+		return( false );
 	}
 	
 	public static boolean
