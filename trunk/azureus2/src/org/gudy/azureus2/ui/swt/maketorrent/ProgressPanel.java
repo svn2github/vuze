@@ -146,15 +146,15 @@ public class ProgressPanel extends AbstractWizardPanel<NewTorrentWizard> impleme
       	torrent = wizard.creator.create();
       	
       }else{
-      	TOTorrentCreator c = 
+    	wizard.creator = 
       		TOTorrentFactory.createFromFileOrDirWithFixedPieceLength(
       					f, url, wizard.getAddOtherHashes(), wizard.getPieceSizeManual());
       	
-    	c.addListener( this );
+    	wizard.creator.addListener( this );
       	
         wizard.creator.setFileIsLayoutDescriptor( wizard.create_mode == NewTorrentWizard.MODE_BYO );
 
-      	torrent = c.create();
+      	torrent = wizard.creator.create();
       }
       
       if ( tracker_type == NewTorrentWizard.TT_DECENTRAL ){
