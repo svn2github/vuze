@@ -1082,10 +1082,19 @@ public class TrackerStatus {
 
 					con = ssl_con;
 
-				} else {
+				}else{
+					
 					con = (HttpURLConnection) reqUrl.openConnection();
 				}
 
+				if ( con instanceof HttpURLConnection ){
+					
+						// we want this true but some plugins (grrr) set the global default not to follow
+						// redirects
+				
+					((HttpURLConnection)con).setInstanceFollowRedirects( true );
+				}
+				
 				String	user_agent = (String)http_properties.get( ClientIDGenerator.PR_USER_AGENT );
 
 				if ( user_agent != null ){
