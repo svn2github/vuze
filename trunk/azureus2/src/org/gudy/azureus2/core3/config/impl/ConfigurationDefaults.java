@@ -367,6 +367,7 @@ public class ConfigurationDefaults {
 	def.put( "Tracker Client Min Announce Interval", ZERO);
 	def.put( "Tracker Client Numwant Limit", new Long(100));
 	def.put( "Tracker Client No Port Announce", FALSE);
+	def.put( "Tracker Client Exclude LAN", TRUE);
 	
     def.put( "Tracker Public Enable", FALSE );
     def.put( "Tracker Log Enable", FALSE );

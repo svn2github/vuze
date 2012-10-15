@@ -130,6 +130,13 @@ ConfigSectionTrackerClient
     gridData.horizontalSpan = 2;
 	showWarnings.setLayoutData(gridData); 
 	
+		// exclude LAN
+	
+	BooleanParameter excludeLAN = new BooleanParameter(infoGroup, "Tracker Client Exclude LAN", "ConfigView.section.tracker.client.exclude_lan" );
+	gridData = new GridData();
+	gridData.horizontalSpan = 2;
+	excludeLAN.setLayoutData(gridData); 
+	
    		/////////////// PROTOCOL GROUP
     
     Group protocolGroup = new Group(gMainTab,SWT.NULL);

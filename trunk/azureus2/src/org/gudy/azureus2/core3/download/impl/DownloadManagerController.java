@@ -29,6 +29,7 @@ import java.net.InetSocketAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerDiskListener;
@@ -73,6 +74,22 @@ DownloadManagerController
 	private static long STATE_FLAG_COMPLETE_NO_DND = 0x02;
 	
 	private static long skeleton_builds;
+	
+	private static boolean	tracker_stats_exclude_lan;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"Tracker Client Exclude LAN",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name) 
+				{
+					tracker_stats_exclude_lan = COConfigurationManager.getBooleanParameter( name );
+				}
+			});
+	}
 	
 	private static ExternalSeedPlugin	ext_seed_plugin;
 	private static boolean				ext_seed_plugin_tried;
@@ -357,6 +374,8 @@ DownloadManagerController
 		tracker_client.setAnnounceDataProvider(
 	    		new TRTrackerAnnouncerDataProvider()
 	    		{
+	    			final private PEPeerManagerStats	pm_stats = temp.getStats();
+	    			
 	    			private long	last_reported_total_received;
 	    			private long	last_reported_total_received_data;
 	    			private long	last_reported_total_received_discard;
@@ -371,14 +390,15 @@ DownloadManagerController
 	    			public long
 	    			getTotalSent()
 	    			{
-	    				return(temp.getStats().getTotalDataBytesSentNoLan());
+	    				return( tracker_stats_exclude_lan?pm_stats.getTotalDataBytesSentNoLan():pm_stats.getTotalDataBytesSent());
 	    			}
+	    			
 	    			public long
 	    			getTotalReceived()
 	    			{
-	    				long received 	= temp.getStats().getTotalDataBytesReceivedNoLan();
-	    				long discarded 	= temp.getStats().getTotalDiscarded();
-	    				long failed		= temp.getStats().getTotalHashFailBytes();
+	    				long received 	= tracker_stats_exclude_lan?pm_stats.getTotalDataBytesReceivedNoLan():pm_stats.getTotalDataBytesReceived();
+	    				long discarded 	= pm_stats.getTotalDiscarded();
+	    				long failed		= pm_stats.getTotalHashFailBytes();
 	    				
 	    				long verified = received - ( discarded + failed );
 
@@ -426,7 +446,7 @@ DownloadManagerController
 	    			public long 
 	    			getFailedHashCheck() 
 	    			{
-	    				return( temp.getStats().getTotalHashFailBytes());
+	    				return( pm_stats.getTotalHashFailBytes());
 	    			}
 	    			
 					public String
