@@ -29,6 +29,7 @@ package org.gudy.azureus2.core3.global.impl;
 import java.io.File;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 
@@ -236,6 +237,7 @@ public class GlobalManagerImpl
     private int initSaveResumeLoopCount = 60*1000 / waitTime;
     private int natCheckLoopCount		= 30*1000 / waitTime;
     private int seedPieceCheckCount		= 30*1000 / waitTime;
+    private int oneMinuteThingCount		= 60*1000 / waitTime;
            
     private AESemaphore	run_sem = new AESemaphore( "GM:Checker:run");
     
@@ -289,20 +291,35 @@ public class GlobalManagerImpl
 	        	seedPieceRecheck();
 	        }
 	        
-	        for (Iterator it=managers_cow.iterator();it.hasNext();) {
-          	
-	        	DownloadManager manager = (DownloadManager)it.next();
-            
-	        	if ( loopFactor % saveResumeLoopCount == 0 ) {
-	        		
-	        		manager.saveResumeData();
-	        	}
+        	if ( loopFactor % saveResumeLoopCount == 0 ) {
+
+		        for (Iterator it=managers_cow.iterator();it.hasNext();) {
+	          	
+		        	DownloadManager manager = (DownloadManager)it.next();
+	            
+		        		
+		        	manager.saveResumeData();
+		       	}
 	        	
 		            /*
 		             * seeding rules have been moved to StartStopRulesDefaultPlugin
 		             */
-	        }        
-
+	        }  
+        	
+        	if ( loopFactor % oneMinuteThingCount == 0 ) {
+        		
+        		try{
+	        		if ( !HttpURLConnection.getFollowRedirects()){
+	        			
+	        			Debug.outNoStack( "Something has set global 'follow redirects' to false!!!!" );
+	        			
+	        			HttpURLConnection.setFollowRedirects( true );
+	        		}
+        		}catch( Throwable e ){
+        			
+        			Debug.out( e );
+        		}
+        	}
       	}catch( Throwable e ){
       		
       		Debug.printStackTrace( e );
