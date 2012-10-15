@@ -226,7 +226,7 @@ public class TableCellPainted
 	 */
 	public void redraw() {
 
-		if (!tableRow.isVisible() || redrawScheduled) {
+		if (tableRow==null || !tableRow.isVisible() || redrawScheduled) {
 			return;
 		}
 		redrawScheduled = true;
