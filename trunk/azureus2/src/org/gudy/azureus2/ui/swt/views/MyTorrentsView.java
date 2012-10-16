@@ -96,7 +96,6 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 public class MyTorrentsView
        extends TableViewTab<DownloadManager>
        implements GlobalManagerListener,
-       			  GlobalManagerEventListener,
                   ParameterListener,
                   DownloadManagerListener,
                   CategoryManagerListener,
@@ -160,6 +159,52 @@ public class MyTorrentsView
 	private AzureusCore		azureus_core;
 
   private GlobalManager globalManager;
+  
+  	// keep this listener separate class as there is confusion within the globalmanager
+  	// if the same instance is registered as both a GlobalManagerListener and a GlobalManagerEventListener
+  	// yes, I know 
+  
+  private GlobalManagerEventListener gm_event_listener = 
+	  new GlobalManagerEventListener()
+  	{
+		public void 
+		eventOccurred(
+			GlobalManagerEvent event ) 
+		{
+			if ( event.getEventType() == GlobalManagerEvent.ET_REQUEST_ATTENTION ){
+		
+				DownloadManager dm = event.getDownload();
+				
+				if ( isOurDownloadManager( dm )){
+				
+					TableRowCore row = tv.getRow( dm );
+					
+					if ( row != null ){
+						
+						TableRowCore[] existing = tv.getSelectedRows();
+						
+						if ( existing != null ){
+							
+							for ( TableRowCore e: existing ){
+							
+								if ( e != row ){
+								
+									e.setSelected( false );
+								}
+							}
+						}
+						
+						if ( !row.isSelected()){
+						
+							row.setSelected( true );
+						}
+						
+					}
+				}
+			}
+		}
+  	};
+  	
   protected boolean isSeedingView;
 
   private Composite cTablePanel;
@@ -334,7 +379,7 @@ public class MyTorrentsView
 		    }
 		    CategoryManager.addCategoryManagerListener(MyTorrentsView.this);
 		    globalManager.addListener(MyTorrentsView.this, false);
-		    globalManager.addEventListener( MyTorrentsView.this );
+		    globalManager.addEventListener( gm_event_listener );
 		    DownloadManager[] dms = globalManager.getDownloadManagers().toArray(new DownloadManager[0]);
 		    for (int i = 0; i < dms.length; i++) {
 					DownloadManager dm = dms[i];
@@ -381,7 +426,7 @@ public class MyTorrentsView
     }
     CategoryManager.removeCategoryManagerListener(this);
     globalManager.removeListener(this);
-    globalManager.removeEventListener( this );
+    globalManager.removeEventListener( gm_event_listener );
     COConfigurationManager.removeParameterListener("DND Always In Incomplete", this);
     COConfigurationManager.removeParameterListener("User Mode", this);
   }
@@ -696,43 +741,6 @@ public class MyTorrentsView
 		}
 		
 		cCategories.getParent().layout(true, true);
-	}
-
-	public void 
-	eventOccurred(
-		GlobalManagerEvent event ) 
-	{
-		if ( event.getEventType() == GlobalManagerEvent.ET_REQUEST_ATTENTION ){
-	
-			DownloadManager dm = event.getDownload();
-			
-			if ( isOurDownloadManager( dm )){
-			
-				TableRowCore row = tv.getRow( dm );
-				
-				if ( row != null ){
-					
-					TableRowCore[] existing = tv.getSelectedRows();
-					
-					if ( existing != null ){
-						
-						for ( TableRowCore e: existing ){
-						
-							if ( e != row ){
-							
-								e.setSelected( false );
-							}
-						}
-					}
-					
-					if ( !row.isSelected()){
-					
-						row.setSelected( true );
-					}
-					
-				}
-			}
-		}
 	}
 	
 	public boolean isOurDownloadManager(DownloadManager dm) {

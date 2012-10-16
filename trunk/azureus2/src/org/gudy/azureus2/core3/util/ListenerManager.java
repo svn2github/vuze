@@ -120,6 +120,9 @@ ListenerManager<T>
 			ArrayList<T>	new_listeners	= new ArrayList<T>( listeners );
 			
 			if (new_listeners.contains(listener)) {
+				if ( Constants.IS_CVS_VERSION ){
+					Debug.out( "check this out" );
+				}
 				Logger.log(new LogEvent(LogIDs.CORE, LogEvent.LT_WARNING,
 						"addListener called but listener already added for " + name
 								+ "\n\t" + Debug.getStackTrace(true, false)));
@@ -127,6 +130,9 @@ ListenerManager<T>
 			new_listeners.add( listener );
 			
 			if (new_listeners.size() > 50) {
+				if ( Constants.IS_CVS_VERSION ){
+					Debug.out( "check this out" );
+				}
 				Logger.log(new LogEvent(LogIDs.CORE, LogEvent.LT_WARNING,
 						"addListener: over 50 listeners added for " + name
 								+ "\n\t" + Debug.getStackTrace(true, false)));
