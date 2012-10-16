@@ -1339,6 +1339,8 @@ PlatformManagerImpl
 			checkExeKey( exe_loc );
 		}
 		
+		String app_path = SystemProperties.getApplicationPath();
+		
 		try{
 				// always trigger magnet reg here if not owned so old users get it...
 					
@@ -1417,19 +1419,35 @@ PlatformManagerImpl
 		File		exe )
 	{
 		String	exe_str = exe.getAbsolutePath();
+		String path_str = exe.getParent();
 		
-		String str = null;
+		String execReg = null;
+		String parentReg = null;
 		
 		try{
-			str = access.readStringValue( hkey, "software\\" + app_name, "exec" );
+			execReg = access.readStringValue( hkey, "software\\" + app_name, "exec" );
 
 		}catch( Throwable e ){
 		}
-		
+
 		try{
-			if ( str == null || !str.equals( exe_str )){
+			parentReg = access.readStringValue( hkey, "software\\" + app_name, "");
+
+		}catch( Throwable e ){
+		}
+
+		try{
+			if ( execReg == null || !execReg.equals( exe_str )){
 				
 				access.writeStringValue( hkey, "software\\" + app_name,	"exec",	exe_str );
+			}
+		}catch( Throwable e ){
+		}
+
+		try{
+			if ( parentReg == null || !parentReg.equals( path_str )){
+				
+				access.writeStringValue( hkey, "software\\" + app_name,	"",	path_str );
 			}
 		}catch( Throwable e ){
 		}
