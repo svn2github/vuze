@@ -585,6 +585,22 @@ TranscodeManagerImpl
 		return( new TranscodeProvider[]{ vp });
 	}
 	
+	protected TranscodeProvider
+	getProvider(
+		int		p_id )
+	
+		throws TranscodeException
+	{
+		TranscodeProviderVuze	vp = vuzexcode_provider;
+
+		if ( p_id == TranscodeProvider.TP_VUZE && vp != null ){
+			
+			return( vp );
+		}
+		
+		throw( new TranscodeException( "Transcode provider not registered" ));
+	}
+	
 	protected TranscodeProfile
 	getProfileFromUID(
 		String		uid )

@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.devices.impl;
 import java.io.File;
 import java.util.*;
 
+import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeProvider;
 
@@ -31,19 +32,22 @@ public class
 TranscodeProfileImpl 
 	implements TranscodeProfile
 {
-	private TranscodeProvider		provider;
+	private TranscodeManagerImpl	manager;
+	private int						pid;
 	private String					uid;
 	private String 					name;
 	private Map<String,Object>		properties;
 	
 	protected 
 	TranscodeProfileImpl(
-		TranscodeProvider		_provider,			
+		TranscodeManagerImpl	_manager,
+		int						_provider_id,
 		String					_uid,
 		String					_name,
 		Map<String,Object>		_properties )
 	{
-		provider	= _provider;
+		manager		= _manager;
+		pid			= _provider_id;
 		uid			= _uid;
 		name		= _name;
 		properties	= _properties;
@@ -64,8 +68,10 @@ TranscodeProfileImpl
 	
 	public TranscodeProvider
 	getProvider()
+	
+		throws TranscodeException
 	{
-		return( provider );
+		return( manager.getProvider( pid ));
 	}
 	
 	public boolean
@@ -113,11 +119,5 @@ TranscodeProfileImpl
 		}
 		
 		return( 0 );
-	}
-	
-	public File
-	getAssetDirectory()
-	{
-		return( provider.getAssetDirectory());
 	}
 }

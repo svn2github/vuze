@@ -111,12 +111,6 @@ DeviceImpl
 			{
 				return( null );
 			}
-			
-			public File
-			getAssetDirectory()
-			{
-				return( null );
-			}
 		};
 		
 	protected static DeviceImpl

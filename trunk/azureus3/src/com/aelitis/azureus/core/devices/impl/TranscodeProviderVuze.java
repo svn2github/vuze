@@ -122,7 +122,7 @@ TranscodeProviderVuze
 			
 			for ( Map.Entry<String, Map<String,Object>> entry : profiles_map.entrySet()){
 				
-				res[ index++] = new TranscodeProfileImpl( this, PROFILE_PREFIX + entry.getKey(), entry.getKey(), entry.getValue());
+				res[ index++] = new TranscodeProfileImpl( manager, TP_VUZE, PROFILE_PREFIX + entry.getKey(), entry.getKey(), entry.getValue());
 			}
 			
 			profiles	= res;
