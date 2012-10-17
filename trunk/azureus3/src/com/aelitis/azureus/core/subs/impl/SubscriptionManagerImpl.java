@@ -5906,9 +5906,11 @@ SubscriptionManagerImpl
 		}
 	}
 	
-	protected synchronized AEDiagnosticsLogger
+	private AEDiagnosticsLogger
 	getLogger()
 	{
+			// sync not required (and has caused deadlock) as AEDiagnostics handles singleton
+		
 		if ( logger == null ){
 			
 			logger = AEDiagnostics.getLogger( LOGGER_NAME );
