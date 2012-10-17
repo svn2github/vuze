@@ -92,7 +92,7 @@ public class ColumnTJ_Status
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
 	public void refresh(TableCell cell) {
 		TranscodeFile tf = (TranscodeFile) cell.getDataSource();
-		if (tf == null) {
+		if (tf == null || tf.isDeleted()){
 			return;
 		}
 		TranscodeJob job = tf.getJob();
