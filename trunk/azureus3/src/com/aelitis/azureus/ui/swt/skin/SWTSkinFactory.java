@@ -26,23 +26,18 @@ package com.aelitis.azureus.ui.swt.skin;
  */
 public class SWTSkinFactory
 {
-	private static SWTSkin instance = null;
-
-	public static SWTSkin getInstance() {
-		synchronized (SWTSkinFactory.class) {
-			if (instance == null) {
-				instance = new SWTSkin();
-			}
-		}
-		return instance;
+	public static SWTSkin 
+	getInstance() 
+	{
+		return( SWTSkin.getDefaultInstance());
 	}
 
-	public static void setInstance(SWTSkin skin) {
-		instance = skin;
-	}
-
-	public static SWTSkin getNonPersistentInstance(ClassLoader classLoader, String skinPath,
-			String mainSkinFile) {
+	public static SWTSkin 
+	getNonPersistentInstance(
+		ClassLoader classLoader, 
+		String 		skinPath,
+		String 		mainSkinFile) 
+	{
 		return new SWTSkin(classLoader, skinPath, mainSkinFile);
 	}
 }

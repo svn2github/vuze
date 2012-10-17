@@ -55,10 +55,21 @@ public class SWTSkin
 
 	private static final SWTSkinObjectListener[] NOLISTENERS = new SWTSkinObjectListener[0];
 
+	private static SWTSkin default_instance;
+	
+	protected static synchronized SWTSkin
+	getDefaultInstance()
+	{
+		if ( default_instance == null ){
+			
+			default_instance = new SWTSkin();
+		}
+		
+		return( default_instance );
+	}
+	
 	public boolean DEBUGLAYOUT = System.getProperty("debuglayout") != null;
 	
-	private static int numSkins = 0;
-
 	private Map<SkinProperties, ImageLoader> mapImageLoaders = new ConcurrentHashMap<SkinProperties, ImageLoader>();
 
 	private SWTSkinProperties skinProperties;
@@ -93,8 +104,6 @@ public class SWTSkin
 
 	private CopyOnWriteList<SWTSkinLayoutCompleteListener> listenersLayoutComplete = new CopyOnWriteList<SWTSkinLayoutCompleteListener>();
 
-	private boolean ourSkinProperties = false;
-
 	private int currentSkinObjectcreationCount = 0;
 
 	private ImageLoader imageLoader;
@@ -106,23 +115,21 @@ public class SWTSkin
 	/**
 	 * 
 	 */
-	public SWTSkin() {
-		ourSkinProperties = true;
-		init(new SWTSkinPropertiesImpl());
+	protected SWTSkin() {
+		init(new SWTSkinPropertiesImpl(), true );
 	}
 
-	public SWTSkin(ClassLoader classLoader, String skinPath, String mainSkinFile) {
-		ourSkinProperties = true;
-		init(new SWTSkinPropertiesImpl(classLoader, skinPath, mainSkinFile));
+	protected SWTSkin(ClassLoader classLoader, String skinPath, String mainSkinFile) {
+		init(new SWTSkinPropertiesImpl(classLoader, skinPath, mainSkinFile), false );
 	}
 
-	private void init(SWTSkinProperties skinProperties) {
-		numSkins++;
+	private void init(SWTSkinProperties skinProperties, boolean is_default) {
+	
 		this.skinProperties = skinProperties;
-		// the first skin gets the default image loader.  We don't add it to
+		// the default skin gets the default image loader.  We don't add it to
 		// the mapImageLoaders because non-skin objects may use the image loader
 		// mapImageLoaders is used to dispose of images when the skin is disposed
-		if (numSkins == 1) {
+		if ( is_default ) {
 			imageLoader = ImageLoader.getInstance();
 			imageLoader.addSkinProperties(skinProperties);
 		} else {
@@ -621,13 +628,9 @@ public class SWTSkin
 	 * @since 4.0.0.5
 	 */
 	private void disposeSkin() {
-		numSkins--;
 		for (Iterator<ImageLoader> iter = mapImageLoaders.values().iterator(); iter.hasNext();) {
 			ImageLoader loader = iter.next();
 			loader.unLoadImages();
-		}
-		if (ourSkinProperties) {
-			//skinProperties.dispose();
 		}
 	}
 

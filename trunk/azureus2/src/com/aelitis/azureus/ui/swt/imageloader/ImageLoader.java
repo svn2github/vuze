@@ -91,16 +91,16 @@ public class ImageLoader
 	private File cache_dir = new File(SystemProperties.getUserPath(), "cache" );
 	
 
-	public static ImageLoader getInstance() {
-		if (ImageLoader.instance == null) {
-			ImageLoader.instance = new ImageLoader(Display.getDefault(), null);
+	public static synchronized ImageLoader getInstance() {
+		if (instance == null) {
+			instance = new ImageLoader(Display.getDefault(), null);
 			// always add az2 icons to instance
 			SkinPropertiesImpl skinProperties = new SkinPropertiesImpl(
 					ImageRepository.class.getClassLoader(),
 					"org/gudy/azureus2/ui/icons/", "icons.properties");
-			ImageLoader.instance.addSkinProperties(skinProperties);
+			instance.addSkinProperties(skinProperties);
 		}
-		return ImageLoader.instance;
+		return instance;
 	}
 
 	public ImageLoader(/*ClassLoader classLoader,*/Display display,
@@ -253,7 +253,7 @@ public class ImageLoader
 				}
 
 				if (images[i] == null) {
-					images[i] = getNoImage();
+					images[i] = getNoImage( sKey );
 				}
 			}
 		} else {
@@ -696,7 +696,7 @@ public class ImageLoader
 
 			for (int i = 0; i < images.length; i++) {
 				if (images[i] == null) {
-					images[i] = getNoImage();
+					images[i] = getNoImage( sKey );
 				}
 			}
 		} else {
@@ -715,7 +715,7 @@ public class ImageLoader
 	public Image getImage(String sKey) {
 		Image[] images = getImages(sKey);
 		if (images == null || images.length == 0 || images[0].isDisposed()) {
-			return getNoImage();
+			return getNoImage( sKey );
 		}
 		return images[0];
 	}
@@ -839,7 +839,12 @@ public class ImageLoader
 		}
 	}
 
-	private static Image getNoImage() {
+	private static Image getNoImage( String key ) {
+		/*
+		if ( key != null ){
+			System.out.println( "Missing image: " + key );
+		}
+		*/
 		if (noImage == null) {
 			Display display = Display.getDefault();
 			final int SIZE = 10;
@@ -875,7 +880,13 @@ public class ImageLoader
 	}
 
 	public static boolean isRealImage(Image image) {
-		return image != null && image != getNoImage() && !image.isDisposed();
+		if ( image == null || image.isDisposed() ){
+			return( false );
+		}
+		if ( noImage != null ){
+			return( image != noImage );
+		}
+		return( image != getNoImage( null ));
 	}
 
 	public int getAnimationDelay(String sKey) {
