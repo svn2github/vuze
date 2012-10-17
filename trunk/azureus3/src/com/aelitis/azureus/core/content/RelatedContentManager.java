@@ -662,7 +662,16 @@ RelatedContentManager
 				
 				if ( new_info.size() > 0 ){
 					
+					final List<String>	base32_hashes = new ArrayList<String>();
+					
 					for ( DownloadInfo info: new_info ){
+						
+						byte[] hash = info.getHash();
+						
+						if ( hash != null ){
+							
+							base32_hashes.add( Base32.encode( hash ));
+						}
 						
 						Map<String,Object> map = serialiseDI( info, null );
 							
@@ -678,6 +687,39 @@ RelatedContentManager
 					}
 					
 					COConfigurationManager.setParameter( "rcm.dlinfo.history", history );
+					
+					if ( base32_hashes.size() > 0 ){
+						
+						content_change_dispatcher.dispatch(
+							new AERunnable()
+							{
+								public void
+								runSupport()
+								{
+									List<RelatedContent>	to_remove = new ArrayList<RelatedContent>();
+									
+									synchronized( RelatedContentManager.this ){
+										
+										ContentCache content_cache = loadRelatedContent();
+										
+										for ( String h: base32_hashes ){
+										
+											DownloadInfo di = content_cache.related_content.get( h );
+											
+											if ( di != null ){
+												
+												to_remove.add( di );
+											}
+										}
+									}
+									
+									if ( to_remove.size() > 0 ){
+										
+										delete( to_remove.toArray( new RelatedContent[ to_remove.size()] ));
+									}
+								}
+							});
+					}
 				}
 			}
 		}
@@ -2149,54 +2191,64 @@ RelatedContentManager
 				
 				DownloadInfo c = it.next();
 				
-				String title = c.getTitle().toLowerCase();
+				String title 	= c.getTitle();
+				String lc_title = c.getTitle().toLowerCase();
 				
 				boolean	match 			= true;
 				boolean	at_least_one 	= false;
 				
-				for (int i=0;i<bits.length;i++){
+				if ( title.equalsIgnoreCase( term ) && term.trim().length() > 0 ){
 					
-					String bit = bits[i];
+						// pick up a direct match regardless of anything else
 					
-					if ( bit.length() > 0 ){
+					at_least_one = true;
+					
+				}else{
+					
+					for (int i=0;i<bits.length;i++){
 						
-						boolean	hit;
+						String bit = bits[i];
 						
-						if ( bit_patterns[i] == null ){
-						
-							hit = title.contains( bit );
+						if ( bit.length() > 0 ){
 							
-						}else{
-						
-							hit = bit_patterns[i].matcher( title ).find();
-						}
-						
-						int	type = bit_types[i];
-						
-						if ( hit ){
-													
-							if ( type == 2 ){
-								
-								match = false;
-								
-								break;
+							boolean	hit;
+							
+							if ( bit_patterns[i] == null ){
+							
+								hit = lc_title.contains( bit );
 								
 							}else{
-								
-								at_least_one = true;
-	
+							
+								hit = bit_patterns[i].matcher( lc_title ).find();
 							}
-						}else{
 							
-							if ( type == 2 ){
+							int	type = bit_types[i];
 							
-								at_least_one = true;
-								
+							if ( hit ){
+														
+								if ( type == 2 ){
+									
+									match = false;
+									
+									break;
+									
+								}else{
+									
+									at_least_one = true;
+		
+								}
 							}else{
 								
-								match = false;
-							
-								break;
+								if ( type == 2 ){
+								
+									at_least_one = true;
+									
+								}else{
+									
+									match = false;
+								
+									break;
+								}
 							}
 						}
 					}
@@ -3779,7 +3831,10 @@ RelatedContentManager
 	{
 		if ( last_key_bloom_update == -1 || SystemTime.getMonotonousTime() - last_key_bloom_update > 10*60*1000 ){
 			
-			updateKeyBloom( loadRelatedContent());
+			synchronized( this ){
+				
+				updateKeyBloom( loadRelatedContent());
+			}
 		}
 	}
 	
@@ -3789,7 +3844,10 @@ RelatedContentManager
 	{
 		if ( key_bloom_with_local == null ){
 				
-			updateKeyBloom( loadRelatedContent());
+			synchronized( this ){
+			
+				updateKeyBloom( loadRelatedContent());
+			}
 		}
 			
 		if ( include_dht_local ){
