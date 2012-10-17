@@ -1068,7 +1068,7 @@ public class SBC_DevicesView
 			if (tvFiles == null) {
 				return;
 			}
-			TableRowCore row = tvFiles.getRow(job.getTranscodeFile());
+			TableRowCore row = tvFiles.getRow( getFileInTable( job.getTranscodeFile()));
 			if (row != null) {
 				row.invalidate();
 				if (row.isVisible()) {
@@ -1090,10 +1090,10 @@ public class SBC_DevicesView
 			if (transTarget == null) {
 				TranscodeFile file = job.getTranscodeFile();
 				if (file != null) {
-					removeFileFromTable( file );
+					tvFiles.removeDataSource( getFileInTable( file ));
 				}
 			} else {
-				TableRowCore row = tvFiles.getRow(job.getTranscodeFile());
+				TableRowCore row = tvFiles.getRow( getFileInTable( job.getTranscodeFile()));
 				if (row != null) {
 					row.invalidate();
 					if (row.isVisible()) {
@@ -1107,19 +1107,20 @@ public class SBC_DevicesView
 		}
 	}
 
-	private void
-	removeFileFromTable(
-		TranscodeFile	file )
+	private TranscodeFile
+	getFileInTable(
+		TranscodeFile		file )
 	{
-			// since table-views were moved to using identity hash maps to manage rows (which is good!) this has broken
-			// removal of files as due to the caching optimisations employed by the device manager muliple file-facades
-			// can be created to denote an actual TranscodeFile :(
-		
-		if ( tvFiles.getRow( file )!= null ){
-		
-			tvFiles.removeDataSource(file);
+		// since table-views were moved to using identity hash maps to manage rows (which is good!) this has broken
+		// removal of files as due to the caching optimisations employed by the device manager muliple file-facades
+		// can be created to denote an actual TranscodeFile :(
+	
+		if ( file == null ){
 			
-		}else{
+			return( null );
+		}
+		
+		if ( tvFiles.getRow( file ) == null ){
 			
 			List<TranscodeFile>	files = tvFiles.getDataSources();
 			
@@ -1127,12 +1128,12 @@ public class SBC_DevicesView
 				
 				if ( f.equals( file )){
 					
-					tvFiles.removeDataSource( f );
-					
-					break;
+					return( f );
 				}
 			}
 		}
+		
+		return( file );
 	}
 	
 	/* (non-Javadoc)
@@ -1388,7 +1389,7 @@ public class SBC_DevicesView
 			if (tvFiles == null) {
 				return;
 			}
-			row = tvFiles.getRow(file);
+			row = tvFiles.getRow( getFileInTable( file ));
 		}
 		if (row != null) {
 			row.invalidate();
@@ -1405,7 +1406,7 @@ public class SBC_DevicesView
 	public void fileRemoved(TranscodeFile file) {
 		synchronized (this) {
 			if (tvFiles != null) {
-				removeFileFromTable( file );
+				tvFiles.removeDataSource( getFileInTable( file ));
 			}
 		}
 	}
