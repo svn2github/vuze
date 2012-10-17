@@ -1090,7 +1090,7 @@ public class SBC_DevicesView
 			if (transTarget == null) {
 				TranscodeFile file = job.getTranscodeFile();
 				if (file != null) {
-					tvFiles.removeDataSource(file);
+					removeFileFromTable( file );
 				}
 			} else {
 				TableRowCore row = tvFiles.getRow(job.getTranscodeFile());
@@ -1107,6 +1107,34 @@ public class SBC_DevicesView
 		}
 	}
 
+	private void
+	removeFileFromTable(
+		TranscodeFile	file )
+	{
+			// since table-views were moved to using identity hash maps to manage rows (which is good!) this has broken
+			// removal of files as due to the caching optimisations employed by the device manager muliple file-facades
+			// can be created to denote an actual TranscodeFile :(
+		
+		if ( tvFiles.getRow( file )!= null ){
+		
+			tvFiles.removeDataSource(file);
+			
+		}else{
+			
+			List<TranscodeFile>	files = tvFiles.getDataSources();
+			
+			for ( TranscodeFile f: files ){
+				
+				if ( f.equals( file )){
+					
+					tvFiles.removeDataSource( f );
+					
+					break;
+				}
+			}
+		}
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
 	 */
@@ -1377,7 +1405,7 @@ public class SBC_DevicesView
 	public void fileRemoved(TranscodeFile file) {
 		synchronized (this) {
 			if (tvFiles != null) {
-				tvFiles.removeDataSource(file);
+				removeFileFromTable( file );
 			}
 		}
 	}
