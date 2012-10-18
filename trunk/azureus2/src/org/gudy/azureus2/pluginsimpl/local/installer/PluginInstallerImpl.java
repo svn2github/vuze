@@ -745,32 +745,13 @@ PluginInstallerImpl
 	
 		throws PluginException
 	{
-		uninstall( 
-			pis,
-			new PluginInstallationListener()
-			{
-				public void
-				completed()
-				{
-				}
-				
-				public void
-				cancelled()
-				{
-				}
-				
-				public void
-				failed(
-					PluginException	e )
-				{
-				}
-			});
+		uninstall( pis, null );
 	}
 	
 	public void
 	uninstall(
 		final PluginInterface[]				pis,
-		final PluginInstallationListener	listener )
+		final PluginInstallationListener	listener_maybe_null )
 	
 		throws PluginException
 	{
@@ -961,35 +942,38 @@ PluginInstallerImpl
 					}, false );
 			}
 
-			inst.addListener( 
-				new UpdateCheckInstanceListener()
-				{
-					public void
-					cancelled(
-						UpdateCheckInstance		instance )
+			if ( listener_maybe_null != null ){
+				
+				inst.addListener( 
+					new UpdateCheckInstanceListener()
 					{
-						listener.cancelled();
-					}
-					
-					public void
-					complete(
-						UpdateCheckInstance		instance )
-					{
-						int	wait_count;
-						
-						synchronized( rds_added ){
-						
-							wait_count = rds_added[0];
+						public void
+						cancelled(
+							UpdateCheckInstance		instance )
+						{
+							listener_maybe_null.cancelled();
 						}
 						
-						for ( int i=0;i<wait_count;i++ ){
+						public void
+						complete(
+							UpdateCheckInstance		instance )
+						{
+							int	wait_count;
 							
-							rd_waiter_sem.reserve();
+							synchronized( rds_added ){
+							
+								wait_count = rds_added[0];
+							}
+							
+							for ( int i=0;i<wait_count;i++ ){
+								
+								rd_waiter_sem.reserve();
+							}
+							
+							listener_maybe_null.completed();
 						}
-						
-						listener.completed();
-					}
-				});
+					});
+			}
 			
 			inst.start();
 
@@ -1014,7 +998,10 @@ PluginInstallerImpl
 				pe = new PluginException( "Uninstall failed", e );
 			}
 			
-			listener.failed( pe );
+			if ( listener_maybe_null != null ){
+			
+				listener_maybe_null.failed( pe );
+			}
 			
 			Debug.printStackTrace(e);
 		}

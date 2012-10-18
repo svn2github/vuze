@@ -51,6 +51,7 @@ import org.gudy.azureus2.ui.swt.config.IAdditionalActionPerformer;
 import org.gudy.azureus2.ui.swt.config.plugins.PluginParameter;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+import org.gudy.azureus2.ui.swt.pluginsinstaller.InstallPluginWizard;
 import org.gudy.azureus2.ui.swt.views.ConfigView;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -457,7 +458,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 		layout = new GridLayout();
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
-		layout.numColumns = 4;
+		layout.numColumns = 5;
 		cButtons.setLayout(layout);
 		cButtons.setLayoutData(new GridData());
 		
@@ -656,8 +657,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 										table.setItemCount(pluginIFs.size());
 										Collections.sort(pluginIFs, comparator);
 										table.clearAll();
-										
-										btnUninstall.setEnabled( true );
+										table.setSelection(new int[0]);
 									}
 								});
 						}
@@ -667,6 +667,17 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 		});
 		btnUninstall.setEnabled( false );
 
+			// install
+		
+		final Button btnInstall = new Button(cButtons, SWT.PUSH);
+		btnInstall.setLayoutData(new GridData());
+		btnInstall.setText( MessageText.getString( "UpdateWindow.columns.install" ) + "..." );
+		btnInstall.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				new InstallPluginWizard();
+			}
+		});
+		
 		table.addListener(SWT.SetData, new Listener() {
 			public void handleEvent(Event event) {
 				TableItem item = (TableItem) event.item;
