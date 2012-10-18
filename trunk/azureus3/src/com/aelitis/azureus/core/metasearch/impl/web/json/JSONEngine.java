@@ -471,7 +471,7 @@ JSONEngine
 				content_str = content_str.substring( 0, 256 ) + "...";
 			}
 			
-			System.out.println( page );
+			//System.out.println( page );
 			
 			throw( new SearchException( "JSON matching failed for " + getName() + ", content=" + content_str, e ));
 		}
