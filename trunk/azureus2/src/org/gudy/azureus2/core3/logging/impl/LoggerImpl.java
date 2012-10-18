@@ -198,6 +198,12 @@ public class LoggerImpl {
 		//	new Exception("No logging check done!").printStackTrace(psOldErr);
 		//}
 		
+		/* ever wondered where a log is coming from? turn on log-to-file and breakpoint here
+		if ( event.text.startsWith( "Added Listener")){
+			int n=0;
+		}
+		*/
+		
 		if (bLogToStdOut && psOldOut != null)
 			psOldOut.println(event.text);
 
