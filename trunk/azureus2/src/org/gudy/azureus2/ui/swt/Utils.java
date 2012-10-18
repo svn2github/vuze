@@ -2433,7 +2433,9 @@ public class Utils
 								
 								return( -1 );
 							}
-													
+								
+							final int f_read_length = read_length;
+							
 							try{
 								final AESemaphore sem = new AESemaphore( "rarwait" );
 								
@@ -2462,7 +2464,7 @@ public class Utils
 													
 													buffer_pos += data.length;
 													
-													if ( buffer_pos == buffer.length ){
+													if ( buffer_pos == f_read_length ){
 														
 														sem.release();
 													}
@@ -2519,6 +2521,9 @@ public class Utils
 								private TextViewerWindow	viewer;
 								private List<String>		lines = new ArrayList<String>();
 								
+								private int	pw_entries 	= 0;
+								private int pw_text		= 0;
+								
 								private volatile boolean	abandon = false;
 								
 								public void
@@ -2539,11 +2544,15 @@ public class Utils
 									if ( password ){
 										
 										line += "    **** password protected ****";
+										
+										pw_entries++;
 									}
 
 									if ( password || name.toLowerCase().contains( "password" )){
 										
 										line = "*\t" + line;
+										
+										pw_text++;
 										
 									}else{
 										
@@ -2555,7 +2564,7 @@ public class Utils
 								
 								public void
 								complete()
-								{
+								{									
 									appendLine( "Done", true );
 								}
 								
@@ -2564,6 +2573,21 @@ public class Utils
 									IOException error )
 								{
 									appendLine( "Failed: " + Debug.getNestedExceptionMessage( error ), true );
+								}
+								
+								private String
+								getInfo()
+								{
+									if ( pw_entries > 0 ){
+										
+										return( pw_entries + " password protected file(s) found" );
+										
+									}else if ( pw_text > 0 ){
+										
+										return( pw_text + " file(s) mentioning 'password' found" );
+									}
+									
+									return( "" );
 								}
 								
 								private void
@@ -2589,6 +2613,15 @@ public class Utils
 												if ( !complete ){
 												
 													content.append( "processing..." );
+													
+												}else{
+													
+													String info = getInfo();
+													
+													if ( info.length() > 0 ){
+														
+														content.append( info + "\r\n" );
+													}
 												}
 												
 												if ( viewer == null ){

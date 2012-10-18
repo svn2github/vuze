@@ -101,7 +101,7 @@ DiskManagerRandomReadController
 	
 	private List<DiskManagerRandomReadRequestImpl>	requests = new ArrayList<DiskManagerRandomReadRequestImpl>();
 	
-	private AsyncDispatcher	dispatcher = new AsyncDispatcher();
+	private AsyncDispatcher	dispatcher = new AsyncDispatcher( "dm_rand_reads");
 	
 	private boolean	set_force_start;
 	

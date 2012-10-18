@@ -102,13 +102,11 @@ RARTOCDecoder
 			
 			int	read = provider.read( header_buffer );
 			
-			if ( read <= 0 ){
+			if ( read < 7 ){
+				
+					// seen some short archive, just bail
 				
 				break;
-			
-			}else if ( read != 7 ){
-				
-				throw( new IOException( "unexpected end-of-file" ));
 			}
 		
 			int	block_type	= header_buffer[2]&0xff;
@@ -116,7 +114,7 @@ RARTOCDecoder
 			int	entry_flags	= getShort( header_buffer, 3 );
 			int	header_size	= getShort( header_buffer, 5 );
 
-			// System.out.println( "type=" + Integer.toString( block_type, 16 ) + ", flags: " + Integer.toString( entry_flags, 16 ) + ", hs=" + header_size);
+			//System.out.println( "type=" + Integer.toString( block_type, 16 ) + ", flags: " + Integer.toString( entry_flags, 16 ) + ", hs=" + header_size);
 
 			if ( block_type < 0x70 || block_type > 0x90 ){
 			
@@ -203,19 +201,35 @@ RARTOCDecoder
 						decoded_name =  new String( name, "UTF-8" );
 						
 					}else{
-						// in theory the second part of the name should be Unicode but this don't appear to work ;(
-						// decoded_name =  new String( name, zero_pos+1, name.length - (zero_pos+1), "UTF-8" );
+					
+						decoded_name =  decodeName( name, zero_pos + 1 );
 						
-						decoded_name =  new String( name, 0, zero_pos , "UTF-8" );
+						if ( decoded_name == null ){
+						
+							decoded_name =  new String( name, 0, zero_pos , "UTF-8" );
+						}
 					}
 				}else{
 					
 					decoded_name =  new String( name, "UTF-8" );
 				}
 				
-				result_handler.entryRead( decoded_name, act_size, password );
+				if ( ( entry_flags & 0xe0 ) == 0xe0 ){
+					
+						// directory
+					
+				}else{
+				
+					result_handler.entryRead( decoded_name, act_size, password );
+				}
 				
 				provider.skip( header_size - ( 7 + 25 + extended_length + name_length ) + comp_size );
+				
+			}else if ( block_type == 0x7b ){
+				
+					// end of archive
+				
+				break;
 				
 			}else{
 				
@@ -229,6 +243,95 @@ RARTOCDecoder
 		}
 	}
 	
+	private String
+	decodeName(
+		byte[]		b_data,
+		int			pos )
+	{
+		try{
+			int Flags		= 0;
+			int FlagBits	= 0;
+			
+			byte[]	Name 		= b_data;
+			byte[] 	EncName 	= b_data;
+			int 	EncSize 	= b_data.length;
+			int 	MaxDecSize 	= 4096;
+	
+			int[] NameW = new int[MaxDecSize];
+	
+			int EncPos = pos;
+			int DecPos = 0;
+			
+			byte HighByte = EncName[EncPos++];
+			
+			while ( EncPos<EncSize && DecPos<MaxDecSize ){
+				
+				if ( FlagBits ==0 ){
+					
+					Flags		= EncName[EncPos++];
+					FlagBits	= 8;
+				}
+				
+				switch((Flags>>6)&0x03){
+				
+					case 0:{
+						NameW[DecPos++]=EncName[EncPos++]&0xff;
+						
+						break;
+					}
+					case 1:{
+						NameW[DecPos++]=(EncName[EncPos++]&0xff)+((HighByte<<8)&0xff00);
+						
+						break;
+					}
+					case 2:{
+						NameW[DecPos++]=(EncName[EncPos++]&0xff)+((EncName[EncPos++]<<8)&0xff00);
+											
+						break;
+					}
+					case 3:{
+						int Length = EncName[EncPos++]&0xff;
+						
+						if ((Length & 0x80) != 0){
+							
+							byte Correction = EncName[EncPos++];
+							
+							for (Length=(Length&0x7f)+2;Length>0 && DecPos<MaxDecSize;Length--,DecPos++){
+								
+								NameW[DecPos]=((Name[DecPos]+Correction)&0xff)+((HighByte<<8)&0xff00);
+							}
+						}else{
+							for (Length+=2;Length>0 && DecPos<MaxDecSize;Length--,DecPos++){
+								
+								NameW[DecPos]=Name[DecPos]&0xff;
+							}
+						}
+						
+						break;
+					}
+				}
+				
+				Flags		<<=2;
+				FlagBits	-=2;
+			}
+	
+			byte[] 	temp = new byte[DecPos*2];
+	
+			for (int i=0;i<DecPos;i++){
+				
+				temp[i*2] 	= (byte)(( NameW[i]>>8 ) & 0xff);
+				temp[i*2+1] = (byte)(( NameW[i] ) & 0xff);
+			}
+	
+			return( new String( temp, "UTF-16BE" ));
+			
+		}catch( Throwable e ){
+			
+			Debug.outNoStack( "Failed to decode name: " + ByteFormatter.encodeString( b_data ) + " - " + Debug.getNestedExceptionMessage( e ));
+			
+			return( null );
+		}
+	}
 	private void
 	readFully(
 		byte[]	buffer )
@@ -281,7 +384,7 @@ RARTOCDecoder
 		String[]	args )
 	{
 		try{
-			final FileInputStream fis = new FileInputStream( "C:\\temp\\pw.rar" );
+			final FileInputStream fis = new FileInputStream( "C:\\temp\\mp.part6.rar" );
 			
 			RARTOCDecoder decoder = 
 				new RARTOCDecoder(
