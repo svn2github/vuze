@@ -234,8 +234,26 @@ JSONEngine
 		FieldMapping[] mappings = getMappings();
 
 		try {
-			Object jsonObject = JSONValue.parse(page);
-
+			Object jsonObject;
+			
+			try{
+				jsonObject = JSONValue.parse(page);
+				
+			}catch( Throwable e ){
+				
+					// fix a vaguely common error: trailing \ before end-of-string:    - \",  
+				
+				String temp_page = page.replaceAll( "\\\\\",", "\"," );
+				
+				try{
+					jsonObject = JSONValue.parse( temp_page );
+					
+				}catch( Throwable f ){
+					
+					throw( e );
+				}
+			}
+			
 			if (rankDivisorPath != null) {
 				String[] split = rankDivisorPath.split("\\.");
 				try {
@@ -452,6 +470,8 @@ JSONEngine
 				
 				content_str = content_str.substring( 0, 256 ) + "...";
 			}
+			
+			System.out.println( page );
 			
 			throw( new SearchException( "JSON matching failed for " + getName() + ", content=" + content_str, e ));
 		}
