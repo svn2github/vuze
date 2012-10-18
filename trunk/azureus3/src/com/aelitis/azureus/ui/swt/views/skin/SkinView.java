@@ -62,7 +62,7 @@ public abstract class SkinView
 			try {
 				UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(
 						updateable);
-			} catch (Exception e) {
+			} catch ( Throwable e) {
 				Debug.out(e);
 			}
 		}

@@ -27,9 +27,11 @@ package com.aelitis.azureus.ui.common.updater;
 public interface UIUpdater
 {
 
-	public void addUpdater(UIUpdatable updateable);
+	public void addUpdater(UIUpdatable updateable );
 
-	public void removeUpdater(UIUpdatable updateable);
+	public boolean isAdded( UIUpdatable updateable );
+	
+	public void removeUpdater(UIUpdatable updateable );
 
 	public void stopIt();
 

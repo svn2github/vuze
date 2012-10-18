@@ -61,6 +61,7 @@ import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryCreationListener;
@@ -157,8 +158,15 @@ public class SideBar
 		createSideBar();
 
 		try {
-			UIFunctionsManager.getUIFunctions().getUIUpdater().addUpdater(this);
-		} catch (Exception e) {
+				// don't think this is required as the SideBar constructor (well SkinView) registers it
+			
+			UIUpdater updater = UIFunctionsManager.getUIFunctions().getUIUpdater();
+			
+			if ( !updater.isAdded( this )){
+				
+				updater.addUpdater(this);
+			}
+		} catch ( Throwable  e) {
 			Debug.out(e);
 		}
 

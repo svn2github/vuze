@@ -196,6 +196,18 @@ public class UIUpdaterSWT
 		}
 	}
 
+	public boolean 
+	isAdded(
+		UIUpdatable updateable) 
+	{
+		updateables_mon.enter();
+		try {
+			return( updateables.contains(updateable));
+		} finally {
+			updateables_mon.exit();
+		}
+	}
+	
 	// @see com.aelitis.azureus.ui.swt.utils.UIUpdater#removeUpdater(com.aelitis.azureus.ui.swt.utils.UIUpdatable)
 	public void removeUpdater(UIUpdatable updateable) {
 		updateables_mon.enter();
