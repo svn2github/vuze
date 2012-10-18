@@ -37,7 +37,10 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -59,6 +62,7 @@ import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.installer.PluginInstallationListener;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
@@ -453,7 +457,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 		layout = new GridLayout();
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
-		layout.numColumns = 3;
+		layout.numColumns = 4;
 		cButtons.setLayout(layout);
 		cButtons.setLayoutData(new GridData());
 		
@@ -555,6 +559,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 		});
 		btnLoad.setEnabled( false );
 		
+			// scan
 		
 		final Button btnScan = new Button(cButtons, SWT.PUSH);
 		btnScan.setLayoutData(new GridData());
@@ -569,6 +574,98 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 			}
 		});
 
+			// uninstall
+		
+		final Button btnUninstall = new Button(cButtons, SWT.PUSH);
+		btnUninstall.setLayoutData(new GridData());
+		Messages.setLanguageText(btnUninstall, "ConfigView.pluginlist.uninstallSelected");
+		btnUninstall.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				
+				btnUninstall.setEnabled( false );
+				
+				final int[] items = table.getSelectionIndices();
+
+				new AEThread2( "uninstall" ){
+					public void
+					run()
+					{
+						try{
+	
+							List<PluginInterface> pis = new ArrayList<PluginInterface>();
+							
+							for (int i = 0; i < items.length; i++) {
+								int index = items[i];
+								if (index >= 0 && index < pluginIFs.size()) {
+									PluginInterface pluginIF = (PluginInterface) pluginIFs.get(index);
+									
+									pis.add( pluginIF );
+								}
+							}
+							
+							if ( pis.size() > 0 ){
+								
+								PluginInterface[]	ps = new PluginInterface[ pis.size()];
+	
+								pis.toArray( ps );
+	
+								try{
+
+									final AESemaphore wait_sem = new AESemaphore( "unist:wait" );
+									
+									ps[0].getPluginManager().getPluginInstaller().uninstall(
+										ps,
+										new PluginInstallationListener()
+										{
+											public void
+											completed()
+											{
+												wait_sem.release();
+											}
+											
+											public void
+											cancelled()
+											{
+												wait_sem.release();
+											}
+											
+											public void
+											failed(
+												PluginException	e )
+											{
+												wait_sem.release();
+											}
+										});
+	
+									wait_sem.reserve();
+									
+								}catch(Exception e){
+	
+									Debug.printStackTrace(e);
+								}
+							}
+						}finally{	
+							
+							Utils.execSWTThread(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										pluginIFs = rebuildPluginIFs();
+										table.setItemCount(pluginIFs.size());
+										Collections.sort(pluginIFs, comparator);
+										table.clearAll();
+										
+										btnUninstall.setEnabled( true );
+									}
+								});
+						}
+					}
+				}.start();
+			}
+		});
+		btnUninstall.setEnabled( false );
 
 		table.addListener(SWT.SetData, new Listener() {
 			public void handleEvent(Event event) {
@@ -615,6 +712,7 @@ public class ConfigSectionPlugins implements UISWTConfigSection, ParameterListen
 				
 				btnUnload.setEnabled(pluginIF.getPluginState().isOperational() && pluginIF.getPluginState().isUnloadable()); 
 				btnLoad.setEnabled(!pluginIF.getPluginState().isOperational() && !pluginIF.getPluginState().hasFailed());
+				btnUninstall.setEnabled(! (pluginIF.getPluginState().isBuiltIn()||pluginIF.getPluginState().isMandatory()));
 			}
 		});
 

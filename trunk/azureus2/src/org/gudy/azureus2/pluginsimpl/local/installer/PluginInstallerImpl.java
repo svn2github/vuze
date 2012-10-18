@@ -745,6 +745,35 @@ PluginInstallerImpl
 	
 		throws PluginException
 	{
+		uninstall( 
+			pis,
+			new PluginInstallationListener()
+			{
+				public void
+				completed()
+				{
+				}
+				
+				public void
+				cancelled()
+				{
+				}
+				
+				public void
+				failed(
+					PluginException	e )
+				{
+				}
+			});
+	}
+	
+	public void
+	uninstall(
+		final PluginInterface[]				pis,
+		final PluginInstallationListener	listener )
+	
+		throws PluginException
+	{
 		for (int i=0;i<pis.length;i++){
 			
 			PluginInterface	pi = pis[i];
@@ -775,6 +804,10 @@ PluginInstallerImpl
 						UpdateCheckInstance.UCI_UNINSTALL,
 						"update.instance.uninstall");
 
+			final int[]	rds_added = { 0 };
+			
+			final AESemaphore rd_waiter_sem = new AESemaphore( "uninst:rd:wait" );
+			
 			for (int i=0;i<pis.length;i++){
 				
 				final PluginInterface	pi = pis[i];
@@ -837,7 +870,12 @@ PluginInstallerImpl
 									pi.getPluginVersion(),
 									rd,
 									pi.getPluginState().isUnloadable()?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
+								
+								synchronized( rds_added ){
 									
+									rds_added[0]++;
+								}
+								
 								rd.addListener(
 										new ResourceDownloaderAdapter()
 										{
@@ -847,42 +885,52 @@ PluginInstallerImpl
 												InputStream			data )
 											{
 												try{
-													if ( pi.getPluginState().isUnloadable()){
-												
-														pi.getPluginState().unload();
-														
-														FileUtil.recursiveDelete( new File( plugin_dir ));
-													
-													}
-																	
-													UpdateInstaller installer = checker.createInstaller();
-														
-													installer.addRemoveAction( new File( plugin_dir ).getCanonicalPath());
-												
-													update.complete( true );
-													
 													try{
-														PluginInitializer.fireEvent(
-															PluginEvent.PEV_PLUGIN_UNINSTALLED,
-															pi.getPluginID());
+														if ( pi.getPluginState().isUnloadable()){
+													
+															pi.getPluginState().unload();
+															
+															if ( !FileUtil.recursiveDelete( new File( plugin_dir ))){
+																
+																update.setRestartRequired( Update.RESTART_REQUIRED_YES );
+																
+																checker.reportProgress( "Failed to remove plugin, restart will be required" );
+															}
+														}
+																		
+														UpdateInstaller installer = checker.createInstaller();
+															
+														installer.addRemoveAction( new File( plugin_dir ).getCanonicalPath());
+													
+														update.complete( true );
 														
+														try{
+															PluginInitializer.fireEvent(
+																PluginEvent.PEV_PLUGIN_UNINSTALLED,
+																pi.getPluginID());
+															
+														}catch( Throwable e ){
+															
+															Debug.out( e );
+														}
 													}catch( Throwable e ){
 														
-														Debug.out( e );
+														update.complete( false );
+														
+														Debug.printStackTrace(e);
+														
+														Logger.log(new LogAlert(LogAlert.REPEATABLE,
+																"Plugin uninstall failed", e));
 													}
-												}catch( Throwable e ){
+																									
+														// don't close the stream as we process it later
+														
+													return( true );
 													
-													update.complete( false );
+												}finally{
 													
-													Debug.printStackTrace(e);
-													
-													Logger.log(new LogAlert(LogAlert.REPEATABLE,
-															"Plugin uninstall failed", e));
+													rd_waiter_sem.release();
 												}
-												
-													// don't close the stream as we process it later
-													
-												return( true );
 											}
 											
 											public void
@@ -890,12 +938,17 @@ PluginInstallerImpl
 												ResourceDownloader			downloader,
 												ResourceDownloaderException e )
 											{
-												update.complete( false );
-												
-												if ( !downloader.isCancelled()){
+												try{
+													update.complete( false );
 													
-													Logger.log(new LogAlert(LogAlert.REPEATABLE,
-															"Plugin uninstall failed", e));
+													if ( !downloader.isCancelled()){
+														
+														Logger.log(new LogAlert(LogAlert.REPEATABLE,
+																"Plugin uninstall failed", e));
+													}
+												}finally{
+													
+													rd_waiter_sem.release();
 												}
 											}
 										});
@@ -908,9 +961,60 @@ PluginInstallerImpl
 					}, false );
 			}
 
+			inst.addListener( 
+				new UpdateCheckInstanceListener()
+				{
+					public void
+					cancelled(
+						UpdateCheckInstance		instance )
+					{
+						listener.cancelled();
+					}
+					
+					public void
+					complete(
+						UpdateCheckInstance		instance )
+					{
+						int	wait_count;
+						
+						synchronized( rds_added ){
+						
+							wait_count = rds_added[0];
+						}
+						
+						for ( int i=0;i<wait_count;i++ ){
+							
+							rd_waiter_sem.reserve();
+						}
+						
+						listener.completed();
+					}
+				});
+			
 			inst.start();
+
+			/*
+			UpdateChecker[] checkers = inst.getCheckers();
+			
+			for ( UpdateChecker checker: checkers ){
+			
+				checker.
+			}*/
 			
 		}catch( Throwable e ){
+			
+			PluginException pe;
+			
+			if ( e instanceof PluginException ){
+				
+				pe = (PluginException)e;
+				
+			}else{
+				
+				pe = new PluginException( "Uninstall failed", e );
+			}
+			
+			listener.failed( pe );
 			
 			Debug.printStackTrace(e);
 		}

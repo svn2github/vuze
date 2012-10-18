@@ -43,7 +43,6 @@ import org.gudy.azureus2.ui.swt.components.LinkArea;
 import org.gudy.azureus2.ui.swt.components.StringListChooser;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainStatusBar;
-import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -305,6 +304,16 @@ UpdateWindow
 			 }
 		}
     });
+    
+    updateWindow.addDisposeListener(
+    	new DisposeListener()
+    	{
+    		public void widgetDisposed(DisposeEvent arg0) {
+    			if ( !check_instance.isCancelled()){
+    				check_instance.cancel();
+    			}
+    		}
+    	});
     
     formData = new FormData();
     formData.left = new FormAttachment(0,0);

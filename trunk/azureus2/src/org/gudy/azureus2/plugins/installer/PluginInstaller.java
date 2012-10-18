@@ -114,6 +114,12 @@ PluginInstaller
 	uninstall(
 		PluginInterface[]	plugin_interfaces )
 	
+		throws PluginException;
+	
+	public void
+	uninstall(
+		PluginInterface[]			plugin_interfaces,
+		PluginInstallationListener	listener )
 	
 		throws PluginException;
 	
