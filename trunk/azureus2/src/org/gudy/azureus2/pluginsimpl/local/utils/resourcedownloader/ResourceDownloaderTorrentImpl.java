@@ -342,7 +342,8 @@ ResourceDownloaderTorrentImpl
 			
 			download.setFlag(Download.FLAG_DISABLE_AUTO_FILE_MOVE, true);
 			
-			download.setFlag(Download.FLAG_DISABLE_IP_FILTER, true);
+			// seems reasonable to me but whatever: http://forum.vuze.com/thread.jspa?threadID=111012
+			// download.setFlag(Download.FLAG_DISABLE_IP_FILTER, true);
 			
 			download_manager.addListener(
 				new DownloadManagerListener()
