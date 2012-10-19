@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.torrent.impl;
 import java.io.*;
 import java.net.*;
 import java.util.*;
+import java.util.zip.GZIPOutputStream;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.*;
@@ -122,7 +123,28 @@ TOTorrentCreateImpl
 				setAdditionalMapProperty( TOTorrent.AZUREUS_PRIVATE_PROPERTIES, m );
 			}
 			
-			m.put( TorrentUtils.TORRENT_AZ_PROP_INITIAL_LINKAGE, linked_tf_map );
+			if ( linked_tf_map.size() < 100 ){
+			
+				m.put( TorrentUtils.TORRENT_AZ_PROP_INITIAL_LINKAGE, linked_tf_map );
+				
+			}else{
+				
+				ByteArrayOutputStream baos = new ByteArrayOutputStream( 100*1024 );
+				
+				try{
+					GZIPOutputStream gos = new GZIPOutputStream( baos );
+					
+					gos.write( BEncoder.encode( linked_tf_map ));
+					
+					gos.close();
+					
+					m.put( TorrentUtils.TORRENT_AZ_PROP_INITIAL_LINKAGE2, baos.toByteArray() );
+					
+				}catch( Throwable e ){
+					
+					throw( new TOTorrentException( "Failed to serialise linkage", TOTorrentException.RT_WRITE_FAILS ));
+				}
+			}
 		}
 	}
 	

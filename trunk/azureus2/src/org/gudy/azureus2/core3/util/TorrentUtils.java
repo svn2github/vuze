@@ -31,6 +31,7 @@ import java.net.*;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.zip.GZIPInputStream;
 
 import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -113,6 +114,7 @@ TorrentUtils
 	public static final String		TORRENT_AZ_PROP_PEER_CACHE				= "peer_cache";
 	public static final String		TORRENT_AZ_PROP_PEER_CACHE_VALID		= "peer_cache_valid";
 	public static final String		TORRENT_AZ_PROP_INITIAL_LINKAGE			= "initial_linkage";
+	public static final String		TORRENT_AZ_PROP_INITIAL_LINKAGE2		= "initial_linkage2";
 	
 	private static final String		MEM_ONLY_TORRENT_PATH		= "?/\\!:mem_only:!\\/?";
 	
@@ -1463,8 +1465,19 @@ TorrentUtils
 			
 			if ( pp != null ){
 				
-				Map<String,String> links = (Map<String,String>)pp.get( TorrentUtils.TORRENT_AZ_PROP_INITIAL_LINKAGE );
+				Map<String,String> links;
 				
+				byte[]	g_data = (byte[])pp.get( TorrentUtils.TORRENT_AZ_PROP_INITIAL_LINKAGE2 );
+				
+				if ( g_data == null ){
+				
+					links = (Map<String,String>)pp.get( TorrentUtils.TORRENT_AZ_PROP_INITIAL_LINKAGE );
+					
+				}else{
+					
+					links = (Map<String,String>)BDecoder.decode(new BufferedInputStream( new GZIPInputStream( new ByteArrayInputStream( g_data ))));
+
+				}
 				if ( links != null ){//&& TorrentUtils.isCreatedTorrent( torrent )){
 					
 					links = BDecoder.decodeStrings( links );
