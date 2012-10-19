@@ -114,7 +114,8 @@ RelatedContentManager
 	private static final int	MAX_CONCURRENT_PUBLISH		= 2;
 	private static final int	MAX_REMOTE_SEARCH_RESULTS	= 30;
 	private static final int	MAX_REMOTE_SEARCH_CONTACTS	= 50;
-	private static final int	MAX_REMOTE_SEARCH_MILLIS	= 25*1000;
+	private static final int	MAX_REMOTE_SEARCH_MILLIS		= 25*1000;
+	private static final int	REDUCED_REMOTE_SEARCH_MILLIS	= 10*1000;
 	
 	private static final int	TEMPORARY_SPACE_DELTA	= 50;
 	
@@ -2557,7 +2558,7 @@ RelatedContentManager
 										
 									// hard limit of total results found and overall elapsed
 								
-								if ( 	observer.getResultCount() >= 100 || 
+								if ( 	observer.getResultCount() >= 200 || 
 										SystemTime.getMonotonousTime() - start >= max ){
 									
 									logSearch( "Hard limit exceeded" );
@@ -2669,12 +2670,12 @@ RelatedContentManager
 									
 									if ( done[0] >= MAX_REMOTE_SEARCH_CONTACTS / 2 ){
 										
-										logSearch( "Switching to 5 second limit (1)" );
+										logSearch( "Switching to reduced time limit (1)" );
 										
 											// give another 5 secs for results to come in
 										
 										start		= SystemTime.getMonotonousTime();
-										max			= 5*1000;
+										max			= REDUCED_REMOTE_SEARCH_MILLIS;
 										
 										break;
 									}
@@ -2696,24 +2697,24 @@ RelatedContentManager
 							
 							for ( int i=0;i<sent;i++ ){
 								
-								if ( done[0] > sent*4/5 ){
+								if ( done[0] > sent*9/10 ){
 									
-									logSearch( "4/5ths replied (" + done[0] + "/" + sent + "), done" );
+									logSearch( "9/10ths replied (" + done[0] + "/" + sent + "), done" );
 									
 									break;
 								}
 								
 								long	remaining = ( start + max ) - SystemTime.getMonotonousTime();
 								
-								if ( 	remaining > 5000 &&
+								if ( 	remaining > REDUCED_REMOTE_SEARCH_MILLIS &&
 										done[0] >= MAX_REMOTE_SEARCH_CONTACTS / 2 ){
 									
-									logSearch( "Switching to 5 second limit (2)" );
+									logSearch( "Switching to reduced time limit (2)" );
 									
 										// give another 5 secs for results to come in
 									
 									start		= SystemTime.getMonotonousTime();
-									max			= 5*1000;
+									max			= REDUCED_REMOTE_SEARCH_MILLIS;
 								}
 								
 								if ( remaining > 0 ){
@@ -3087,7 +3088,7 @@ RelatedContentManager
 			
 			if ( req_type != null ){
 				
-				logSearch( "Received remote request: " + request );
+				logSearch( "Received remote request: " + BDecoder.decodeStrings( request ));
 				
 				if ( req_type.equals( "f" )){
 					
@@ -3121,6 +3122,8 @@ RelatedContentManager
 				String	term = ImportExportUtils.importString( request, "t" );
 			
 				if ( term != null ){
+					
+					logSearch( "Received remote search: " + term );
 					
 					List<RelatedContent>	matches = matchContent( term );
 	
@@ -3453,12 +3456,6 @@ RelatedContentManager
 					}
 					
 					enforceMaxResults( cc, false );
-
-				}else{
-					
-					if ( TRACE ){
-						System.out.println( "rcm: load existing" );
-					}
 				}
 				
 				content_cache_ref = cc;
