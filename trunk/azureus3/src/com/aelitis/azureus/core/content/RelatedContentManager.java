@@ -443,9 +443,9 @@ RelatedContentManager
 													
 													saveRelatedContent( tick_count );
 												}
-												
-												harvestBlooms();
 											}
+												
+											harvestBlooms();
 										}
 										
 										checkKeyBloom();
@@ -3951,8 +3951,11 @@ RelatedContentManager
 			
 			BloomFilter non_dht_bloom = BloomFilterFactory.createAddOnly( non_dht_desired_bits );
 
+			List<String>	non_dht_words_rand = new ArrayList<String>( non_dht_words );
 			
-			for ( String word: non_dht_words ){
+			Collections.shuffle( non_dht_words_rand );
+			
+			for ( String word: non_dht_words_rand ){
 				
 				try{
 					byte[]	bytes = word.getBytes( "UTF8" );
@@ -3968,8 +3971,11 @@ RelatedContentManager
 				}
 			}
 				
+			List<String>	dht_only_words_rand = new ArrayList<String>( dht_only_words );
 			
-			for ( String word: dht_only_words ){
+			Collections.shuffle( dht_only_words_rand );
+
+			for ( String word: dht_only_words_rand ){
 				
 				try{
 					byte[]	bytes = word.getBytes( "UTF8" );
