@@ -318,7 +318,9 @@ TOTorrentImpl
 		
 		Map	root = new HashMap();
 		
-		writeStringToMetaData( root, TK_ANNOUNCE, announce_url.toString());
+			// seen a NPE here, not sure of cause so handling null announce_url in case
+		
+		writeStringToMetaData( root, TK_ANNOUNCE, (announce_url==null?TorrentUtils.getDecentralisedEmptyURL():announce_url).toString());
 		
 		TOTorrentAnnounceURLSet[] sets = announce_group.getAnnounceURLSets();
 		
@@ -551,6 +553,13 @@ TOTorrentImpl
 		String s1 = (announce_url == null) ? "" : announce_url.toString();
 		if (s0.equals(s1))
 			return false;
+		
+		if ( newURL == null ){
+			
+				// anything's better than null...
+			
+			newURL = TorrentUtils.getDecentralisedEmptyURL();
+		}
 		
 		announce_url	= StringInterner.internURL(newURL);
 		
