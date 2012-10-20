@@ -627,7 +627,7 @@ RelatedContentManager
 				}
 			}
 			
-			List<Map<String,Object>> history = (List<Map<String,Object>>)COConfigurationManager.getListParameter( "rcm.dlinfo.history", new ArrayList<Map<String,Object>>());
+			List<Map<String,Object>> history = (List<Map<String,Object>>)COConfigurationManager.getListParameter( "rcm.dlinfo.history.privx", new ArrayList<Map<String,Object>>());
 			
 			if ( initialising ){
 		
@@ -687,7 +687,7 @@ RelatedContentManager
 						history.remove(0);
 					}
 					
-					COConfigurationManager.setParameter( "rcm.dlinfo.history", history );
+					COConfigurationManager.setParameter( "rcm.dlinfo.history.privx", history );
 					
 					if ( base32_hashes.size() > 0 ){
 						
