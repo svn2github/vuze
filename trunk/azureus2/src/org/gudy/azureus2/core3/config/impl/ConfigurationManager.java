@@ -1028,7 +1028,7 @@ ConfigurationManager
 					
 						// don't dump crypto stuff
 					
-					if ( key.startsWith( CryptoManager.CRYPTO_CONFIG_PREFIX )){
+					if ( key.startsWith( CryptoManager.CRYPTO_CONFIG_PREFIX ) || key.endsWith( ".privx" )){
 						
 						continue;
 					}
