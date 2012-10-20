@@ -254,6 +254,10 @@ RelatedContentManager
 					persist = COConfigurationManager.getBooleanParameter( "rcm.persist" ) || true;
 				}
 			});
+		
+			// remove one day
+		
+		COConfigurationManager.removeParameter( "rcm.dlinfo.history" );
 	}
 	
 	protected
