@@ -3015,7 +3015,10 @@ DownloadManagerStateImpl
 				
 				if ( realSets.length != sets.length ){
 					
-					Debug.out("Cached announce group state does not match real state");
+					// not a major issue - since we now allow the cached groups and persisted ones to
+					// drift (see DNS changes) the cached ones will be accurate and the persisted ones
+					// will be re-adjusted should they become visible
+					// Debug.out("Cached announce group state does not match real state");
 					
 				}else{
 				
