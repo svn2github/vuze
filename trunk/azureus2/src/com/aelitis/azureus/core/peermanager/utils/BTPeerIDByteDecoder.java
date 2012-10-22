@@ -602,8 +602,11 @@ public class BTPeerIDByteDecoder {
 		
 		assertDecode( "Invalid PeerID 0.0.0.0", "-#@0000-Em6o1EmvwLtD");
 		
-		assertDecode( "MediaGet 2.1", "2D4D47323111302D3234705F6436706E55673362" );
+		assertDecode( "MediaGet2 2.1", "2D4D47323111302D3234705F6436706E55673362" );
+		
+		assertDecode( "Ares 2.1.7.1", "-AN2171-nr17R1h19O7n" );
 
+		
 		System.out.println("Done.");
 	}
 }

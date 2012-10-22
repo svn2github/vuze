@@ -233,6 +233,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		// ... and then do everything else alphabetically.
 		addAzStyle("A~", "Ares", VER_AZ_THREE_DIGITS);
 		addAzStyle("AG", "Ares", VER_AZ_THREE_DIGITS);
+		addAzStyle("AN", "Ares", VER_AZ_FOUR_DIGITS);
 		//addAzStyle("AR", "ArcticTorrent", NO_VERSION); //based on libtorrent but same peerid for different versions
 		addAzStyle("AR", "Ares"); // Ares is more likely than ArcticTorrent
 		addAzStyle("AV", "Avicora");
