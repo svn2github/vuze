@@ -232,14 +232,22 @@ RelatedContentManager
 			}
 		};
 	
-	private static final int					HARVEST_MAX_BLOOMS				= 50;
-	private static final int					HARVEST_MAX_FAILS_HISTORY		= 128;
-	private static final int					HARVEST_BLOOM_UPDATE_MILLIS		= 15*60*1000;
-	private static final int					HARVEST_BLOOM_DISCARD_MILLIS	= 60*60*1000;
-	
+	private static final int	HARVEST_MAX_BLOOMS				= 50;
+	private static final int	HARVEST_MAX_FAILS_HISTORY		= 128;
+	private static final int	HARVEST_BLOOM_UPDATE_MILLIS		= 15*60*1000;
+	private static final int	HARVEST_BLOOM_DISCARD_MILLIS	= 60*60*1000;
+	private static final int 	HARVEST_BLOOM_OP_RESET_MILLIS	= 5*60*1000;
+	private static final int 	HARVEST_BLOOM_OP_RESET_TICKS	= HARVEST_BLOOM_OP_RESET_MILLIS/TIMER_PERIOD;
+	private static final int 	HARVEST_BLOOM_SE_RESET_MILLIS	= 1*60*1000;
+	private static final int 	HARVEST_BLOOM_SE_RESET_TICKS	= HARVEST_BLOOM_SE_RESET_MILLIS/TIMER_PERIOD;
+
 	private ByteArrayHashMap<ForeignBloom>		harvested_blooms 	= new ByteArrayHashMap<ForeignBloom>();
 	private ByteArrayHashMap<String>			harvested_fails 	= new ByteArrayHashMap<String>();
 	
+	private volatile BloomFilter harvest_op_requester_bloom = BloomFilterFactory.createAddOnly( 2048 );
+	private volatile BloomFilter harvest_se_requester_bloom = BloomFilterFactory.createAddRemove4Bit( 512 );
+			
+			
 	private boolean	persist;
 	
 	{
@@ -451,6 +459,16 @@ RelatedContentManager
 											}
 												
 											harvestBlooms();
+											
+											if ( tick_count % HARVEST_BLOOM_SE_RESET_TICKS == 0 ){
+												
+												harvest_se_requester_bloom = harvest_se_requester_bloom.getReplica();
+											}
+											
+											if ( tick_count % HARVEST_BLOOM_OP_RESET_TICKS == 0 ){
+												
+												harvest_op_requester_bloom = harvest_op_requester_bloom.getReplica();
+											}									
 										}
 										
 										checkKeyBloom();
@@ -3068,6 +3086,8 @@ RelatedContentManager
 			
 			byte[] originator_id = originator.getID();
 			
+			byte[] originator_bytes = originator.getAddress().getAddress().getAddress();
+
 			for ( DHT d: dhts ){
 				
 				List<DHTTransportContact> contacts = d.getControl().getClosestKContactsList( d.getRouter().getID(), true );
@@ -3091,113 +3111,127 @@ RelatedContentManager
 			String	req_type = ImportExportUtils.importString( request, "x" );
 			
 			if ( req_type != null ){
-				
-				logSearch( "Received remote request: " + BDecoder.decodeStrings( request ));
-				
-				if ( req_type.equals( "f" )){
+							
+				boolean dup = harvest_op_requester_bloom.contains( originator_bytes );
 					
-					BloomFilter filter = getKeyBloom( !originator_is_neighbour );
+				logSearch( "Received remote request: " + BDecoder.decodeStrings( request ) + " from " + originator.getAddress() + "/" + originator.getDHT() + ", dup=" + dup + ", bs=" + harvest_op_requester_bloom.getEntryCount());
+				
+				if ( !dup ){
 					
-					if ( filter != null ){
+					harvest_op_requester_bloom.add( originator_bytes );
+					
+					if ( req_type.equals( "f" )){
 						
-						response.put( "f", filter.serialiseToMap());
-					}
-				}else if ( req_type.equals( "u" )){
-					
-					BloomFilter filter = getKeyBloom( !originator_is_neighbour );
-					
-					if ( filter != null ){
-
-						int	existing_size = ImportExportUtils.importInt( request, "s", 0 );
-					
-						if ( existing_size != filter.getEntryCount()){
+						BloomFilter filter = getKeyBloom( !originator_is_neighbour );
+						
+						if ( filter != null ){
 							
 							response.put( "f", filter.serialiseToMap());
-							
-						}else{
-							
-							response.put( "s", new Long( existing_size ));
+						}
+					}else if ( req_type.equals( "u" )){
+						
+						BloomFilter filter = getKeyBloom( !originator_is_neighbour );
+						
+						if ( filter != null ){
+	
+							int	existing_size = ImportExportUtils.importInt( request, "s", 0 );
+						
+							if ( existing_size != filter.getEntryCount()){
+								
+								response.put( "f", filter.serialiseToMap());
+								
+							}else{
+								
+								response.put( "s", new Long( existing_size ));
+							}
 						}
 					}
 				}
 			}else{
 					// fallback to default handling
 
+				int hits = harvest_se_requester_bloom.count( originator_bytes );
+				
 				String	term = ImportExportUtils.importString( request, "t" );
-			
-				if ( term != null ){
+
+				logSearch( "Received remote search: '" + term + "' from " + originator.getAddress() + ", hits=" + hits + ", bs=" + harvest_se_requester_bloom.getEntryCount());
+
+				if ( hits < 10 ){
 					
-					logSearch( "Received remote search: " + term );
+					harvest_se_requester_bloom.add( originator_bytes );
 					
-					List<RelatedContent>	matches = matchContent( term );
-	
-					if ( matches.size() > MAX_REMOTE_SEARCH_RESULTS ){
-						
-						Collections.sort(
-							matches,
-							new Comparator<RelatedContent>()
-							{
-								public int 
-								compare(
-									RelatedContent o1,
-									RelatedContent o2) 
-								{
-									return( o2.getRank() - o1.getRank());
-								}
-							});
-					}
-					
-					List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
-					
-					for (int i=0;i<Math.min( matches.size(),MAX_REMOTE_SEARCH_RESULTS);i++){
-						
-						RelatedContent	c = matches.get(i);
-						
-						Map<String,Object>	map = new HashMap<String, Object>();
-						
-						list.add( map );
-						
-						ImportExportUtils.exportString( map, "n", c.getTitle());
-						ImportExportUtils.exportLong( map, "s", c.getSize());
-						ImportExportUtils.exportLong( map, "r", c.getRank());
-						ImportExportUtils.exportLong( map, "d", c.getLastSeenSecs());
-						ImportExportUtils.exportLong( map, "p", c.getPublishDate()/(60*60*1000));
-						ImportExportUtils.exportLong( map, "l", c.getLeechers());
-						ImportExportUtils.exportLong( map, "z", c.getSeeds());
-						ImportExportUtils.exportLong( map, "c", c.getContentNetwork());
-						
-						byte[] hash = c.getHash();
-						
-						if ( hash != null ){
+					if ( term != null ){
+												
+						List<RelatedContent>	matches = matchContent( term );
+		
+						if ( matches.size() > MAX_REMOTE_SEARCH_RESULTS ){
 							
-							map.put( "h", hash );
+							Collections.sort(
+								matches,
+								new Comparator<RelatedContent>()
+								{
+									public int 
+									compare(
+										RelatedContent o1,
+										RelatedContent o2) 
+									{
+										return( o2.getRank() - o1.getRank());
+									}
+								});
 						}
 						
-							// don't bother with tracker as no use to caller really
+						List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+						
+						for (int i=0;i<Math.min( matches.size(),MAX_REMOTE_SEARCH_RESULTS);i++){
+							
+							RelatedContent	c = matches.get(i);
+							
+							Map<String,Object>	map = new HashMap<String, Object>();
+							
+							list.add( map );
+							
+							ImportExportUtils.exportString( map, "n", c.getTitle());
+							ImportExportUtils.exportLong( map, "s", c.getSize());
+							ImportExportUtils.exportLong( map, "r", c.getRank());
+							ImportExportUtils.exportLong( map, "d", c.getLastSeenSecs());
+							ImportExportUtils.exportLong( map, "p", c.getPublishDate()/(60*60*1000));
+							ImportExportUtils.exportLong( map, "l", c.getLeechers());
+							ImportExportUtils.exportLong( map, "z", c.getSeeds());
+							ImportExportUtils.exportLong( map, "c", c.getContentNetwork());
+							
+							byte[] hash = c.getHash();
+							
+							if ( hash != null ){
+								
+								map.put( "h", hash );
+							}
+							
+								// don't bother with tracker as no use to caller really
+						}
+						
+						response.put( "l", list );
 					}
 					
-					response.put( "l", list );
-				}
-				
-				List<DistributedDatabaseContact> bloom_hits = searchForeignBlooms( term );
-				
-				if ( bloom_hits.size() > 0 ){
+					List<DistributedDatabaseContact> bloom_hits = searchForeignBlooms( term );
 					
-					List<Map>	list = new ArrayList<Map>();
-					
-					for ( DistributedDatabaseContact c: bloom_hits ){
+					if ( bloom_hits.size() > 0 ){
 						
-						Map	m = new HashMap();
+						List<Map>	list = new ArrayList<Map>();
 						
-						list.add( m );
+						for ( DistributedDatabaseContact c: bloom_hits ){
+							
+							Map	m = new HashMap();
+							
+							list.add( m );
+							
+							InetSocketAddress address = c.getAddress();
+							
+							m.put( "a", address.getAddress().getHostAddress());
+							m.put( "p", new Long( address.getPort()));
+						}
 						
-						InetSocketAddress address = c.getAddress();
-						
-						m.put( "a", address.getAddress().getHostAddress());
-						m.put( "p", new Long( address.getPort()));
+						response.put( "c", list );
 					}
-					
-					response.put( "c", list );
 				}
 			}
 		}catch( Throwable e ){
