@@ -293,9 +293,8 @@ public class BrowserContext
 						}
 						public void changing(LocationEvent event) {
 							event.doit = false;
-							boolean wasAskCom = browser.getUrl().toLowerCase().startsWith(
-							"http://www.ask.com");
-							if (wasAskCom) {
+							boolean doLinkExternally = PlatformConfigMessenger.areLinksExternal(browser.getUrl());
+							if (doLinkExternally) {
 								Program.launch(event.location);
 							} else if (allowPopups()
 									&& !UrlFilter.getInstance().urlIsBlocked(event.location)
