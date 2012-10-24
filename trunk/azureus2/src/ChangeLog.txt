@@ -1,15 +1,42 @@
 VUZE CHANGELOG
 -----------------
 
-2012.xx.xx | Vuze 4.7.2.1
+2012.10.24 | Vuze 4.8.0.0
 
+FEATURE: Blog | See http://devblog.vuze.com/tagged/4800 for beta version blog posts
+
+FEATURE: Plug | Swarm Discoveries
+FEATURE: Plug | The RSS Feed plugin now can filter on min+max file types and also has a 'copy-filter' function [Parg+Community]
+FEATURE: Core | Reduced resource usage mode on startup - still in a beta state [Parg]
+FEATURE: Core | 'Prevent Computer Sleep' options now available on OSX [Parg]
+FEATURE: Core | Added options to streaming and transcoding to prevent computer sleep [Parg]
+FEATURE: Core | Auto-preview for .nfo and .txt files (Quick View) option added to Library and Files view [Parg]
+FEATURE: Core | Analysis of .rar file content (indication of password protected entries) added as a Quick View function [Parg]
+FEATURE: UI   | Added 'edit as text' option to the tracker URL editor dialog [Parg]
+FEATURE: UI   | Added right-click menu to Sources tab to allow tracker URL edits [Parg]
+FEATURE: UI   | Extended the existing 'add tracker url' Library menu option to accept multiple trackers [Parg]
+FEATURE: UI   | Custom date format now applicable to ETA colums [Parg]
+FEATURE: UI   | Added 'Torrent Creation Date' column to Library views [Parg]
+FEATURE: UI   | Added per-column date formats for the ETA columns [Parg]
+FEATURE: UI   | Added aggregate stats view (e.g. aggregate share-ratio for a number of downloads) to the 'Torrent Options' view [Parg]
+FEATURE: UI   | Added plugin install and uninstall buttons to the plugin configuration view [Parg]
+
+CHANGE: Core  | The previous release disabled IPFilters for Vuze update torrents, this has been reverted [Parg]
 CHANGE: UI    | Plugin views now listed in View menu [TuxPaper]
 CHANGE:       | 64 bit support
+CHANGE: UI    | Absolute ETA display now separately configurable for ETA and Progress column [Parg]
+CHANGE: UI    | Ignore temporary 'incomplete' suffix when showing file types [Parg]
+CHANGE: UI    | Updated Catalan translation [GosGroc]
 
+BUGFIX: Core  | Fixed bug whereby some transcodes were being incorrectly failed as 'prematurely terminated' [Parg]
+BUGFIX: Core  | Fixed race condition that occurred when auto-transcoding from an RSS feed [Parg]
+BUGFIX: Core  | Fixed error when creating manually-selected piece size torrents [Parg] 
 BUGFIX: UI    | Fix CTRL-PGDN/CTRL-END in Library [TuxPaper]
 BUGFIX: UI    | Fix sidebar entries for categories not updating numbers [TuxPaper]
 BUGFIX: UI    | Fix sort column not refreshing sometimes [TuxPaper]
-
+BUGFIX: UI    | Added some double buffering to fields that were flickering on update [Parg]
+BUGFIX: UI    | Fixed UI hang under some multi-select conditions [Parg]
+BUGFIX: Plug  | Transcoding was sometimes reporting 'no disk space' errors instead of the actual error [Parg]
 
 2012.09.17 | Vuze 4.7.2.0
 
