@@ -2479,7 +2479,11 @@ RelatedContentManager
 									if ( !contact_map.containsKey( address )){
 										
 										try{
-											DistributedDatabaseContact c = ddb.importContact( address, DHTTransportUDP.PROTOCOL_VERSION_MIN, network==DHT.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN );
+											DistributedDatabaseContact c = 
+												ddb.importContact( 
+													address, 
+													DHTTransportUDP.PROTOCOL_VERSION_MIN, 
+													network==DHT.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN );
 											
 											contact_map.put( address, c );
 											
@@ -2815,7 +2819,7 @@ RelatedContentManager
 			Map<String,Object> reply = (Map<String,Object>)BDecoder.decode((byte[])value.getValue( byte[].class ));
 			
 			List<Map<String,Object>>	list = (List<Map<String,Object>>)reply.get( "l" );
-			
+						
 			for ( final Map<String,Object> map: list ){
 				
 				final String title = ImportExportUtils.importString( map, "n" );
@@ -3840,28 +3844,6 @@ RelatedContentManager
 	}
 	
 	private void
-	testKeyBloom()
-	{
-		/*
-		BloomFilter bloom = getBloom();
-		
-		if ( bloom != null ){
-			
-			String[] words = { "pork", "fridge" };
-				
-			for ( String word: words ){
-				try{
-					System.out.println( "Search: " + word + " -> " + bloom.contains( word.getBytes( "UTF8") ));
-					
-				}catch( Throwable e ){
-					
-				}
-			}
-		}
-		*/
-	}
-	
-	private void
 	checkKeyBloom()
 	{
 		if ( last_key_bloom_update == -1 || SystemTime.getMonotonousTime() - last_key_bloom_update > 10*60*1000 ){
@@ -3900,7 +3882,6 @@ RelatedContentManager
 		String		title )
 	{
 		title = title.toLowerCase( Locale.US );
-		
 		
 		char[]	chars = title.toCharArray();
 		
@@ -3996,11 +3977,15 @@ RelatedContentManager
 					byte[]	bytes = word.getBytes( "UTF8" );
 					
 					all_bloom.add( bytes );
-					non_dht_bloom.add( bytes );
 					
 					if ( all_bloom.getEntryCount() >= KEY_BLOOM_MAX_ENTRIES ){
 						
 						break;
+					}
+					
+					if ( non_dht_bloom.getEntryCount() < KEY_BLOOM_MAX_ENTRIES ){
+					
+						non_dht_bloom.add( bytes );
 					}
 				}catch( Throwable e ){
 				}
@@ -4035,6 +4020,109 @@ RelatedContentManager
 			key_bloom_without_local = non_dht_bloom;
 			
 			last_key_bloom_update = SystemTime.getMonotonousTime();
+		}
+	}
+	
+	private void
+	testKeyBloom()
+	{
+		if ( true ){
+			return;
+		}
+		
+		System.out.println( "test key bloom" );
+		
+		try{
+			Map<String,int[]>	all_words 		= new HashMap<String,int[]>();
+	
+			synchronized( this ){
+				
+				ContentCache cache = loadRelatedContent();
+				
+				List<DownloadInfo>		dht_infos		= getDHTInfos();
+				
+				Iterator<DownloadInfo>	it_dht 			= dht_infos.iterator();
+							
+				Iterator<DownloadInfo>	it_transient 	= transient_info_cache.values().iterator();
+				
+				Iterator<DownloadInfo>	it_rc 			= cache.related_content.values().iterator();			
+	
+				updateKeyBloom( cache );
+				
+				int	 i=0;
+				
+				for ( Iterator _it: new Iterator[]{ it_transient, it_rc, it_dht }){
+					
+					Iterator<DownloadInfo> it = (Iterator<DownloadInfo>)_it;
+					
+					while( it.hasNext()){
+					
+						DownloadInfo di = it.next();
+								
+						List<String>	words = getDHTWords( di.getTitle());
+						
+						for ( String word: words ){
+									
+							int[] x = all_words.get( word );
+							
+							if ( x == null ){
+								
+								x = new int[3];
+								
+								all_words.put( word, x );
+							}
+							
+							x[i] = 1;
+						}
+					}
+					
+					i++;
+				}
+			}
+			
+			BloomFilter bloom = getKeyBloom( true );
+	
+			int	total 	= 0;
+			int	clashes	= 0;
+			int misses	= 0;
+			
+			int match_fails = 0;
+			
+			Random random = new Random();
+			
+			for ( Map.Entry<String,int[]> entry: all_words.entrySet()){
+				
+				String 	word 	= entry.getKey();
+				int[]	source 	= entry.getValue();
+				
+				boolean	r1 = bloom.contains( word.getBytes("UTF-8") );
+				boolean r2 = bloom.contains( (word + random.nextLong()).getBytes("UTF-8"));
+				
+				System.out.println( word + " -> " + r1 + "/" +r2 );
+				
+				total++;
+				if ( r1 && r2 ){
+					clashes++;
+				}
+				if ( !r1 ){
+					
+					misses++;
+				}
+				
+				List<RelatedContent> hits = matchContent( word );
+				
+				if ( hits.size() == 0 ){
+					
+					hits = matchContent( word );
+					match_fails++;
+				}
+			}
+			
+			System.out.println( "total=" + total + ", clash=" + clashes + ", miss=" + misses + ", fails=" + match_fails + ", bloom=" + bloom.getString() );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
 		}
 	}
 	
