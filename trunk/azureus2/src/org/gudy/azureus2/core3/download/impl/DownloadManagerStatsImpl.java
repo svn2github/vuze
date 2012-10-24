@@ -720,6 +720,8 @@ DownloadManagerStatsImpl
 				+ "],dl_comp=" + downloadCompleted
 				+ ",remaining=" + getRemaining());
 	
+			writer.println( "down_lim=" + getDownloadRateLimitBytesPerSecond() +
+							",up_lim=" + getUploadRateLimitBytesPerSecond());
 		}finally{
 			
 			writer.exdent();

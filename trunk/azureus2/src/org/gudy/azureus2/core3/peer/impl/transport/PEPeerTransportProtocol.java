@@ -4914,7 +4914,7 @@ implements PEPeerTransport
 	{
 		writer.println( 
 				"ip=" + getIp() + ",in=" + isIncoming() + ",port=" + getPort() + ",cli=" + client + ",tcp=" + getTCPListenPort() + ",udp=" + getUDPListenPort() + 
-				",oudp=" + getUDPNonDataListenPort() + ",p_state=" + getPeerState() + ",c_state=" + getConnectionState() + ",seed=" + isSeed() + "partialSeed=" + isRelativeSeed() + ",pex=" + peer_exchange_supported + ",closing=" + closing );
+				",oudp=" + getUDPNonDataListenPort() + ",prot=" + getProtocol() + ",p_state=" + getPeerState() + ",c_state=" + getConnectionState() + ",seed=" + isSeed() + ",partialSeed=" + isRelativeSeed() + ",pex=" + peer_exchange_supported + ",closing=" + closing );
 		writer.println( "    choked=" + effectively_choked_by_other_peer + "/" + really_choked_by_other_peer + ",choking=" + choking_other_peer + ",is_opt=" + is_optimistic_unchoke ); 
 		writer.println( "    interested=" + interested_in_other_peer + ",interesting=" + other_peer_interested_in_me + ",snubbed=" + snubbed );
 		writer.println( "    lp=" + _lastPiece + ",up=" + uniquePiece + ",rp=" + reserved_pieces );
