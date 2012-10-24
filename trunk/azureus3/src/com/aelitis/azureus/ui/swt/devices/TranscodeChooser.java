@@ -435,13 +435,20 @@ public abstract class TranscodeChooser
 		};
 
 		GridData gridData;
+		
+		int	total_images = 0;
+		
 		for (TranscodeProfile profile : transcodeProfiles) {
 			addImageBox(parent, clickListener, listenerMouseInout, profile,
 					profile.getIconURL(), profile.getName());
+			
+			total_images++;
 		}
 		if (selectedTranscodeTarget != null) {
 			addImageBox(parent, clickListener, listenerMouseInout, 
 					selectedTranscodeTarget.getBlankProfile(), "", "Do not transcode");
+			
+			total_images++;
 		}
 		SWTSkinObjectText soTitle = (SWTSkinObjectText) skin.getSkinObject("title");
 		if (soTitle != null) {
@@ -462,7 +469,10 @@ public abstract class TranscodeChooser
 			soButtonBottomArea.setVisible(false);
 		}
 
-		Point computeSize = shell.computeSize(600, SWT.DEFAULT, true);
+			// once we get to 13 icons (e.g. for iTunes now we have ipad4/ipad mini we increase the width)
+			// to ensure the dialog doesn't get too long
+		
+		Point computeSize = shell.computeSize(total_images>12?800:600, SWT.DEFAULT, true);
 		shell.setSize(computeSize);
 		Utils.centerWindowRelativeTo(shell, mainShell);
 	}
