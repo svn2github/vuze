@@ -23,7 +23,7 @@ FEATURE: UI   | Added plugin install and uninstall buttons to the plugin configu
 
 CHANGE: Core  | The previous release disabled IPFilters for Vuze update torrents, this has been reverted [Parg]
 CHANGE: UI    | Plugin views now listed in View menu [TuxPaper]
-CHANGE:       | 64 bit support
+CHANGE:       | 64 bit support [TuxPaper]
 CHANGE: UI    | Absolute ETA display now separately configurable for ETA and Progress column [Parg]
 CHANGE: UI    | Ignore temporary 'incomplete' suffix when showing file types [Parg]
 CHANGE: UI    | Updated Catalan translation [GosGroc]
@@ -37,6 +37,8 @@ BUGFIX: UI    | Fix sort column not refreshing sometimes [TuxPaper]
 BUGFIX: UI    | Added some double buffering to fields that were flickering on update [Parg]
 BUGFIX: UI    | Fixed UI hang under some multi-select conditions [Parg]
 BUGFIX: Plug  | Transcoding was sometimes reporting 'no disk space' errors instead of the actual error [Parg]
+
+
 
 2012.09.17 | Vuze 4.7.2.0
 
