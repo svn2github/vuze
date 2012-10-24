@@ -3,6 +3,12 @@ VUZE CHANGELOG
 
 2012.xx.xx | Vuze 4.7.2.1
 
+CHANGE: UI    | Plugin views now listed in View menu [TuxPaper]
+CHANGE:       | 64 bit support
+
+BUGFIX: UI    | Fix CTRL-PGDN/CTRL-END in Library [TuxPaper]
+BUGFIX: UI    | Fix sidebar entries for categories not updating numbers [TuxPaper]
+BUGFIX: UI    | Fix sort column not refreshing sometimes [TuxPaper]
 
 
 2012.09.17 | Vuze 4.7.2.0
