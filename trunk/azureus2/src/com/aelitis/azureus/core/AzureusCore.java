@@ -43,6 +43,12 @@ import com.aelitis.azureus.core.speedmanager.SpeedManager;
 public interface 
 AzureusCore 
 {	
+	public static final String	CA_QUIT_VUZE	= "QuitVuze";
+	public static final String	CA_SLEEP		= "Sleep";
+	public static final String	CA_HIBERNATE	= "Hibernate";
+	public static final String	CA_SHUTDOWN		= "Shutdown";
+	
+	
 	public void
 	start()
 	
@@ -110,6 +116,11 @@ AzureusCore
 	
 	public boolean
 	isRestarting();
+	
+	public void
+	executeCloseAction(
+		String		action,			// see CA_ constants above
+		String		reason );
 	
 	public void
 	saveState();

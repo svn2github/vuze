@@ -37,6 +37,9 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -161,6 +164,15 @@ DeviceManagerUI
 	private boolean needsAddAllDevices;
 
 	private MdiEntry entryHeader;
+	
+	private static final String	OXC_NOTHING		= "Nothing";
+	private static final String	OXC_QUIT_VUZE	= AzureusCore.CA_QUIT_VUZE;
+	private static final String	OXC_SLEEP		= AzureusCore.CA_SLEEP;
+	private static final String	OXC_HIBERNATE	= AzureusCore.CA_HIBERNATE;
+	private static final String	OXC_SHUTDOWN	= AzureusCore.CA_SHUTDOWN;
+	
+	private String 	oxc_action		= OXC_NOTHING;
+	private boolean	oxc_trigger_set	= false;
 	
 	
 	static {
@@ -467,26 +479,31 @@ DeviceManagerUI
 					protected void
 					check()
 					{
-						int job_count = device_manager.getTranscodeManager().getQueue().getJobCount();
-
-						if ( job_count != last_job_count ){
-
-							if ( job_count == 0 || last_job_count == 0 ){
-
-								MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-
-								if ( mdi != null ){
-
-									MdiEntry main_entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
-
-									if ( main_entry != null ){
-
-										ViewTitleInfoManager.refreshTitleInfo( main_entry.getViewTitleInfo());
+						try{
+							int job_count = device_manager.getTranscodeManager().getQueue().getJobCount();
+	
+							if ( job_count != last_job_count ){
+	
+								if ( job_count == 0 || last_job_count == 0 ){
+	
+									MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+	
+									if ( mdi != null ){
+	
+										MdiEntry main_entry = mdi.getEntry( SideBar.SIDEBAR_SECTION_DEVICES );
+	
+										if ( main_entry != null ){
+	
+											ViewTitleInfoManager.refreshTitleInfo( main_entry.getViewTitleInfo());
+										}
 									}
 								}
+	
+								last_job_count = job_count;
 							}
-
-							last_job_count = job_count;
+						}finally{
+							
+							checkOXCState();
 						}
 					}
 				});
@@ -1841,7 +1858,7 @@ DeviceManagerUI
 		createOverallMenu(menu_manager, "sidebar." + SideBar.SIDEBAR_SECTION_DEVICES);
 	}
 
-	private void createOverallMenu(MenuManager menu_manager, String parentID) {
+	private void createOverallMenu(final MenuManager menu_manager, String parentID) {
 		MenuItem de_menu_item = menu_manager.addMenuItem(parentID, "device.search");
 
 		de_menu_item.addListener(new MenuItemListener() {
@@ -1966,6 +1983,101 @@ DeviceManagerUI
 
 		de_menu_item.setStyle(MenuItem.STYLE_SEPARATOR);
 
+			// on complete do
+		
+		final MenuItem de_oxc_menu = menu_manager.addMenuItem(parentID, "devices.sidebar.onxcodecomplete");
+
+		de_oxc_menu.setStyle(MenuItem.STYLE_MENU );
+
+		de_oxc_menu.addFillListener(
+			new MenuItemFillListener()
+			{
+				public void 
+				menuWillBeShown(
+					MenuItem menu, Object data) 
+				{
+					menu.removeAllChildItems();
+					
+					final List<MenuItem> oxc_items = new ArrayList<MenuItem>();
+					
+					final MenuItem oxc_nothing = menu_manager.addMenuItem( de_oxc_menu, "devices.sidebar.oxc.nothing" );
+					oxc_items.add( oxc_nothing );
+					oxc_nothing.setStyle( MenuItem.STYLE_CHECK );
+					oxc_nothing.setData( oxc_action == OXC_NOTHING );
+					
+					final MenuItem oxc_close_vuze = menu_manager.addMenuItem( de_oxc_menu, "devices.sidebar.oxc.closevuze" );
+					oxc_items.add( oxc_close_vuze );
+					oxc_close_vuze.setStyle( MenuItem.STYLE_CHECK );
+					oxc_close_vuze.setData( oxc_action == OXC_QUIT_VUZE  );
+					
+					PlatformManager pm = PlatformManagerFactory.getPlatformManager();
+					
+					int	sdt = pm.getShutdownTypes();
+					
+					final Map<MenuItem,String>	oxc_pm_map = new HashMap<MenuItem,String>();
+					
+					for ( int type: PlatformManager.SD_ALL ){
+						
+						if ( ( sdt | type ) != 0 ){
+							
+							String	action = OXC_NOTHING;
+							
+							if ( type == PlatformManager.SD_SLEEP ){
+								action = OXC_SLEEP;
+							}else if ( type == PlatformManager.SD_HIBERNATE ){
+								action = OXC_HIBERNATE;
+							}else if ( type == PlatformManager.SD_SHUTDOWN ){
+								action = OXC_SHUTDOWN;
+							}else{
+								Debug.out( "Unknown type: " + type );
+							}
+							
+							MenuItem oxc_pm = menu_manager.addMenuItem( de_oxc_menu, "devices.sidebar.oxc.pm." + type );
+							oxc_items.add( oxc_pm );
+							oxc_pm.setStyle( MenuItem.STYLE_CHECK );
+							oxc_pm.setData( oxc_action == action );
+							
+							oxc_pm_map.put( oxc_pm, action );
+						}
+					}
+					
+					MenuItemListener oxc_mil = 
+						new MenuItemListener()
+						{
+							public void 
+							selected(
+								MenuItem menu, 
+								Object target) 
+							{
+								if ((Boolean)menu.getData()){
+									
+									if ( menu == oxc_nothing ){
+										
+										setOXCState( OXC_NOTHING );
+										
+									}else if ( menu == oxc_close_vuze ){
+										
+										setOXCState( OXC_QUIT_VUZE );
+										
+									}else{
+										
+										setOXCState( oxc_pm_map.get(menu ));
+									}
+								}
+							}
+						};
+						
+					for ( MenuItem mi: oxc_items ){
+						
+						mi.addListener( oxc_mil );
+					}
+				};
+			});
+		
+		de_menu_item = menu_manager.addMenuItem(parentID, "sep2");
+
+		de_menu_item.setStyle(MenuItem.STYLE_SEPARATOR);
+
 		// options 
 
 		de_menu_item = menu_manager.addMenuItem(parentID, "MainWindow.menu.view.configuration");
@@ -2038,6 +2150,42 @@ DeviceManagerUI
 		});
 	}
 
+	private void
+	setOXCState(
+		String		new_action )
+	{
+		oxc_action = new_action;
+			
+		checkOXCState();			
+	}
+	
+	private void
+	checkOXCState()
+	{
+		if ( oxc_action == OXC_NOTHING ){
+			
+			oxc_trigger_set	= false;
+			
+			return;
+		}
+		
+		int	jobs = device_manager.getTranscodeManager().getQueue().getJobCount();
+		
+		if ( jobs > 0 ){
+			
+			oxc_trigger_set	= true;
+
+		}else{
+			
+			if ( oxc_trigger_set ){
+					
+				oxc_trigger_set = false;
+				
+				AzureusCoreFactory.getSingleton().executeCloseAction( oxc_action, MessageText.getString( "core.shutdown.xcode" ));
+			}
+		}
+	}
+	
 	private void 
 	setupTranscodeMenus()
 	{					

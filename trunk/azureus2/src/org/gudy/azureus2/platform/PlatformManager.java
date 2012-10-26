@@ -46,10 +46,12 @@ PlatformManager
   	public static final int USER_REQUEST_WARNING 	= 2;
   	public static final int USER_REQUEST_QUESTION 	= 3;  	
   	
- 	public static final int	SD_SHUTDOWN		= 0x00000001;
+ 	public static final int	SD_SHUTDOWN		= 0x00000001;	// don't change these as used to index msgs
  	public static final int	SD_HIBERNATE	= 0x00000002;
  	public static final int	SD_SLEEP		= 0x00000004;
   	
+ 	public static final int[] SD_ALL = { SD_SHUTDOWN, SD_HIBERNATE, SD_SLEEP };
+ 	
 	public int
 	getPlatformType();
 	

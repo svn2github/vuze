@@ -2140,7 +2140,7 @@ AzureusCoreImpl
 		
 			if ( ca_last_time_downloading >= 0 && !is_downloading && now - ca_last_time_downloading >= 30*1000 ){
 				
-				executeCloseAction( true, dl_act );
+				executeCloseAction( true, true, dl_act, null );
 			}
 		}
 		
@@ -2150,22 +2150,32 @@ AzureusCoreImpl
 			
 			if ( ca_last_time_seeding >= 0 && !is_seeding && now - ca_last_time_seeding >= 30*1000 ){
 				
-				executeCloseAction( false, se_act );
+				executeCloseAction( true, false, se_act, null );
 			}
 		}
 	}
 	
+	public void
+	executeCloseAction(
+		String		action,
+		String		reason )
+	{
+		executeCloseAction( false, false, action, reason );
+	}
+	
 	private void
 	executeCloseAction(
+		final boolean	obey_reset,
 		final boolean	download_trigger,
-		final String	action )
+		final String	action,
+		final String	reason )
 	{
 			// prevent retriggering on resume from standby
 		
 		ca_last_time_downloading	= -1;
 		ca_last_time_seeding		= -1;
 		
-		boolean reset = COConfigurationManager.getBooleanParameter( "Stop Triggers Auto Reset" );
+		boolean reset = obey_reset && COConfigurationManager.getBooleanParameter( "Stop Triggers Auto Reset" );
 		
 		if ( reset ){
 			
@@ -2179,7 +2189,7 @@ AzureusCoreImpl
 			}
 		}
 		
-		String type_str		= MessageText.getString( "core.shutdown." + (download_trigger?"dl":"se"));
+		String type_str		= reason==null?MessageText.getString( "core.shutdown." + (download_trigger?"dl":"se")):reason;
 		String action_str 	= MessageText.getString( "ConfigView.label.stop." + action );
 				
 		String message = 
@@ -2217,24 +2227,24 @@ AzureusCoreImpl
 						// shutdown computer -> quit vuze + shutdown
 						// sleep/hibernate = announceAll and then sleep/hibernate with Vuze still running
 					
-					if ( action.equals( "QuitVuze" )){
+					if ( action.equals( CA_QUIT_VUZE )){
 						
 						requestStop();
 					
-					}else if ( action.equals( "Sleep" ) || action.equals( "Hibernate" )){
+					}else if ( action.equals( CA_SLEEP ) || action.equals( CA_HIBERNATE )){
 
 						announceAll( true );
 						
 						try{
 							PlatformManagerFactory.getPlatformManager().shutdown( 
-									action.equals( "Sleep" )?PlatformManager.SD_SLEEP:PlatformManager.SD_HIBERNATE );
+									action.equals( CA_SLEEP )?PlatformManager.SD_SLEEP:PlatformManager.SD_HIBERNATE );
 							
 						}catch( Throwable e ){
 							
 							Debug.out( "PlatformManager: shutdown failed", e );
 						}
 						
-					}else if ( action.equals( "Shutdown" )){
+					}else if ( action.equals( CA_SHUTDOWN )){
 
 						ca_shutdown_computer_after_stop = true;
 						
