@@ -198,6 +198,33 @@ MetaSearchImpl
 		}	
 	}
 	
+	public SearchProvider
+	resolveProvider(
+		PluginEngine	for_engine )
+	{
+		List<EngineImpl> l = engines.getList();
+
+		for ( EngineImpl e: l ){
+			
+			if ( e instanceof PluginEngine ){
+				
+				PluginEngine pe = (PluginEngine)e;
+				
+				SearchProvider provider = pe.getProvider();
+				
+				if ( provider != null ){
+					
+					if ( pe.getName().equals( for_engine.getName())){
+						
+						return( provider );
+					}
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
 	public Engine 
 	createRSSEngine(
 		String		name,

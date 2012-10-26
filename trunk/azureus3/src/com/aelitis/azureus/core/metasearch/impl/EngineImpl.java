@@ -985,6 +985,12 @@ EngineImpl
 		meta_search.removeEngine( this );
 	}
 	
+	protected MetaSearchImpl
+	getMetaSearch()
+	{
+		return( meta_search );
+	}
+	
 	protected int
 	vuzeFieldToID(
 		String	field )

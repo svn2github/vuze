@@ -262,7 +262,12 @@ PluginEngine
 	{
 		if ( provider == null ){
 			
-			return( new Result[0]  );
+			provider = getMetaSearch().resolveProvider( this );
+			
+			if ( provider == null ){
+				
+				return( new Result[0]  );
+			}
 		}
 		
 		Map search_parameters = new HashMap();
