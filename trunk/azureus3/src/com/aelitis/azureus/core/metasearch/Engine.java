@@ -29,7 +29,13 @@ import com.aelitis.azureus.core.vuzefile.VuzeFile;
 public interface 
 Engine 
 {	
-	public static final int	AZ_VERSION		= 2;
+	/**
+	 * AZ_VERSION:
+	 * 1: Original
+	 * 2: field value substitution in JSON engine type using ${FIELD_ID}
+	 * 3: field value substitution in REGEX engine type using ${FIELD_NO}
+	 */
+	public static final int	AZ_VERSION		= 3;
 	
 	public static final Object	VUZE_FILE_COMPONENT_ENGINE_KEY = new Object();
 	
