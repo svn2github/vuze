@@ -90,9 +90,12 @@ public class UrlUtils
 		
 		URL announce_url = torrent.getAnnounceURL();
 		
-		if ( !TorrentUtils.isDecentralised( announce_url )){
+		if ( announce_url != null ){
 			
-			tracker_urls.add( announce_url.toExternalForm());
+			if ( !TorrentUtils.isDecentralised( announce_url )){
+				
+				tracker_urls.add( announce_url.toExternalForm());
+			}
 		}
 		
 		TorrentAnnounceURLList list = torrent.getAnnounceURLList();

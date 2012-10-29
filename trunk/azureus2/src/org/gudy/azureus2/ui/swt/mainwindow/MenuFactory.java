@@ -1,6 +1,7 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.io.File;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -14,11 +15,16 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
+import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
+import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.*;
@@ -965,6 +971,31 @@ public class MenuFactory
 					buildMenu(
 						final Menu menu, MenuEvent menuEvent) 
 					{
+						MenuItem viewTorrent = new MenuItem(menu, SWT.PUSH);
+						
+						Messages.setLanguageText(viewTorrent, "torrent.view.info" );
+																
+						viewTorrent.addListener(
+							SWT.Selection,
+							new Listener()
+							{
+								public void 
+								handleEvent(
+									Event arg )
+								{
+									Utils.execSWTThreadLater(
+											1,
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													handleTorrentView();
+												}
+											});
+								}
+							});
+						
 						MenuItem fixTorrent = new MenuItem(menu, SWT.PUSH);
 						
 						Messages.setLanguageText(fixTorrent, "torrent.fix.corrupt" );
@@ -993,6 +1024,144 @@ public class MenuFactory
 		});
 		
 		return( advancedHelpMenuItem );
+	}
+	
+	private static void
+	handleTorrentView()
+	{
+		final Shell shell = Utils.findAnyShell();
+		
+		try{
+			FileDialog dialog = new FileDialog( shell.getShell(), SWT.SYSTEM_MODAL | SWT.OPEN );
+			
+			dialog.setFilterExtensions(new String[] { "*.torrent", "*.tor", Constants.FILE_WILDCARD });
+			
+			dialog.setFilterNames(new String[] { "*.torrent", "*.tor", Constants.FILE_WILDCARD });
+			
+			dialog.setFilterPath( TorrentOpener.getFilterPathTorrent());
+									
+			dialog.setText(MessageText.getString( "torrent.fix.corrupt.browse" ));
+			
+			String str = dialog.open();
+													
+			if ( str != null ){
+			
+				TorrentOpener.setFilterPathTorrent( str );
+
+				File file = new File( str );
+				
+				StringBuffer content = new StringBuffer();
+				
+				String NL = "\r\n";
+				
+				try{
+					TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedFile( file );
+					
+					LocaleUtilDecoder	locale_decoder = LocaleTorrentUtil.getTorrentEncoding( torrent );
+
+					content.append( "Character Encoding:\t" + locale_decoder.getName() + NL );
+
+					String display_name = locale_decoder.decodeString( torrent.getName());
+					
+					content.append( "Name:\t" + display_name + NL );
+					
+					byte[] hash = torrent.getHash();
+					
+					content.append( "Hash:\t" + ByteFormatter.encodeString( hash ) + NL );
+										
+					content.append( 
+						"Size:\t" + DisplayFormatters.formatByteCountToKiBEtc( torrent.getSize()) + 
+						", piece size=" + DisplayFormatters.formatByteCountToKiBEtc( torrent.getPieceLength()) + 
+						", piece count=" + torrent.getPieces().length + NL );
+					
+					if ( torrent.getPrivate()){
+						
+						content.append( "Private Torrent" + NL );
+					}
+					
+					URL announce_url = torrent.getAnnounceURL();
+					
+					if ( announce_url != null ){
+					
+						content.append( "Announce URL:\t" + announce_url + NL );
+					}
+					
+					TOTorrentAnnounceURLSet[] sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+					
+					if ( sets.length > 0 ){
+						
+						content.append( "Announce List" + NL );
+						
+						for ( TOTorrentAnnounceURLSet set: sets ){
+							
+							String x = "";
+							
+							URL[] urls = set.getAnnounceURLs();
+							
+							for ( URL u: urls ){
+								
+								x += ( x.length()==0?"":", ") + u;
+							}
+						
+							content.append( "\t" + x + NL );
+						}
+					}
+					
+					content.append( "Magnet URI:\t" + UrlUtils.getMagnetURI( display_name, PluginCoreUtils.wrap( torrent )) + NL );
+
+					long c_date = torrent.getCreationDate();
+					
+					if ( c_date > 0 ){
+					
+						content.append(  "Created On:\t" + DisplayFormatters.formatDate( c_date*1000) + NL );
+					}
+					
+					byte[] created_by = torrent.getCreatedBy();
+					
+					if ( created_by != null ){
+					
+						content.append( "Created By:\t" + locale_decoder.decodeString( created_by ) + NL );
+					}
+					
+					byte[] comment = torrent.getComment();
+					
+					if ( comment != null ){
+					
+						content.append( "Comment:\t" + locale_decoder.decodeString( comment ) + NL );
+					}
+					
+					TOTorrentFile[] files = torrent.getFiles();
+					
+					content.append( "Files:\t" + files.length + NL );
+					
+					for ( TOTorrentFile tf: files ){
+						
+						byte[][] comps = tf.getPathComponents();
+						
+						String f_name = "";
+						
+						for ( byte[] comp: comps ){
+							
+							f_name += (f_name.length()==0?"":File.separator) + locale_decoder.decodeString( comp );
+						}
+						
+						content.append( "\t" + f_name + "\t\t" + DisplayFormatters.formatByteCountToKiBEtc( tf.getLength()) + NL );
+					}
+					
+				}catch( Throwable e ){
+					
+					content.append( Debug.getNestedExceptionMessage( e ));
+				}
+				
+				new TextViewerWindow(
+						MessageText.getString( "MainWindow.menu.quick_view" ) + ": " + file.getName(),
+						null, content.toString(), false  );
+
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
 	}
 	
 	private static void
