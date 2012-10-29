@@ -47,6 +47,8 @@ public class
 RegexEngine 
 	extends WebEngine 
 {	
+	private final static String variablePattern = "\\$\\{[^}]+\\}";
+	private final static Pattern patternVariable = Pattern.compile(variablePattern);
 	
 	public static EngineImpl
 	importFromBEncodedMap(
@@ -339,73 +341,93 @@ RegexEngine
 									int	fields_matched = 0;
 									
 									for(int i = 0 ; i < mappings.length ; i++) {
-										int group = -1;
-										try {
-											group = Integer.parseInt(mappings[i].getName());
-										} catch(Exception e) {
-											//In "Debug/Test" mode, we should fire an exception / notification
+										String fieldFrom = mappings[i].getName();
+										
+										String fieldContent = null;
+										Matcher matcher = patternVariable.matcher(fieldFrom);
+										if (matcher.find()) {
+											fieldContent = fieldFrom;
+											do {
+												String key = matcher.group();
+												key = key.substring(2, key.length() - 1);
+												try {
+													int groupNo = Integer.parseInt(key);
+													
+													fieldContent = fieldContent.replaceFirst(variablePattern,
+															m.group(groupNo));
+													
+												} catch (Exception e) {
+													
+												}
+											} while (matcher.find());
+										} else {
+											try {
+												int groupNo = Integer.parseInt(fieldFrom);
+												fieldContent = m.group(groupNo);
+											} catch(Exception e) {
+												//In "Debug/Test" mode, we should fire an exception / notification
+											}
 										}
 										
-										if (group > 0 && group <= m.groupCount()) {
+										if (fieldContent != null) {
 											
-											int field = mappings[i].getField();
-											String groupContent = m.group(group);
+											int fieldTo = mappings[i].getField();
 											
-											debugLog( "    " + field + "=" + groupContent );
+											debugLog( "    " + fieldTo + "=" + fieldContent );
 											
 											fields_matched++;
 											
-											switch(field) {
+											switch(fieldTo) {
 												case FIELD_NAME :
-													result.setNameFromHTML(groupContent);
+													result.setNameFromHTML(fieldContent);
 													break;
 												case FIELD_SIZE :
-													result.setSizeFromHTML(groupContent);
+													result.setSizeFromHTML(fieldContent);
 													break;
 												case FIELD_PEERS :
-													result.setNbPeersFromHTML(groupContent);
+													result.setNbPeersFromHTML(fieldContent);
 													break;
 												case FIELD_SEEDS :
-													result.setNbSeedsFromHTML(groupContent);
+													result.setNbSeedsFromHTML(fieldContent);
 													break;
 												case FIELD_CATEGORY :
-													result.setCategoryFromHTML(groupContent);
+													result.setCategoryFromHTML(fieldContent);
 													break;
 												case FIELD_DATE :
-													result.setPublishedDateFromHTML(groupContent);
+													result.setPublishedDateFromHTML(fieldContent);
 													break;
 												case FIELD_CDPLINK :
-													result.setCDPLink(groupContent);
+													result.setCDPLink(fieldContent);
 													break;
 												case FIELD_TORRENTLINK :
-													result.setTorrentLink(groupContent);
+													result.setTorrentLink(fieldContent);
 													break;
 												case FIELD_PLAYLINK :
-													result.setPlayLink(groupContent);
+													result.setPlayLink(fieldContent);
 													break;
 												case FIELD_DOWNLOADBTNLINK :
-													result.setDownloadButtonLink(groupContent);
+													result.setDownloadButtonLink(fieldContent);
 													break;
 												case FIELD_COMMENTS :
-													result.setCommentsFromHTML(groupContent);
+													result.setCommentsFromHTML(fieldContent);
 													break;
 												case FIELD_VOTES :
-													result.setVotesFromHTML(groupContent);
+													result.setVotesFromHTML(fieldContent);
 													break;
 												case FIELD_SUPERSEEDS :
-													result.setNbSuperSeedsFromHTML(groupContent);
+													result.setNbSuperSeedsFromHTML(fieldContent);
 													break;
 												case FIELD_PRIVATE :
-													result.setPrivateFromHTML(groupContent);
+													result.setPrivateFromHTML(fieldContent);
 													break;
 												case FIELD_DRMKEY :
-													result.setDrmKey(groupContent);
+													result.setDrmKey(fieldContent);
 													break;
 												case FIELD_VOTES_DOWN :
-													result.setVotesDownFromHTML(groupContent);
+													result.setVotesDownFromHTML(fieldContent);
 													break;
 												case FIELD_HASH :
-													result.setHash(groupContent);
+													result.setHash(fieldContent);
 													break;
 												default:
 													fields_matched--;
