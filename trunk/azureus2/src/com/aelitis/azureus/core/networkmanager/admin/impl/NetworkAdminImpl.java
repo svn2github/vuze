@@ -1331,6 +1331,16 @@ addressLoop:
 		return( protocol.test( null ));
 	}
 	   
+	public NetworkAdminSocksProxy
+	createSocksProxy(
+		String		host,
+		int			port,
+		String		username,
+		String		password )
+	{
+		return( new NetworkAdminSocksProxyImpl( host, ""+port, username, password ));
+	}
+	
 	public NetworkAdminSocksProxy[]
 	getSocksProxies()
 	{

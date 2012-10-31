@@ -132,6 +132,13 @@ NetworkAdmin
 	
 		throws NetworkAdminException;
 	
+	public abstract NetworkAdminSocksProxy
+	createSocksProxy(
+		String		host,
+		int			port,
+		String		username,
+		String		password );
+	
 	public abstract NetworkAdminSocksProxy[]
 	getSocksProxies();
 	

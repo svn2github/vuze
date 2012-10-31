@@ -514,8 +514,8 @@ public class ProxyLoginHandler {
             "connection not allowed by ruleset",
             "Network unreachable",
             "Host unreachable",
-            "Connection refused",
-            "TTL expired",
+            "Connection refused (authentication failure?)",
+            "TTL expired (can mean authentication failure)",
             "Command not supported",
             "Address type not supported" };
         String error_msg = rep < error_msgs.length ? error_msgs[ rep ] : "Unknown error";

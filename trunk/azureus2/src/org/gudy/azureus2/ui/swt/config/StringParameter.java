@@ -43,6 +43,9 @@ public class StringParameter extends Parameter{
     this(composite, name, COConfigurationManager.getStringParameter(name));
   }
 
+  public StringParameter(Composite composite,final String name, boolean generateIntermediateEvents) {
+	    this(composite, name, COConfigurationManager.getStringParameter(name),generateIntermediateEvents );
+	  }
   public StringParameter(Composite composite,final String name, String defaultValue) {
 	  this( composite, name, defaultValue, true );
   }

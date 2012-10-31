@@ -20,19 +20,32 @@
 
 package org.gudy.azureus2.ui.swt.views.configsections;
 
+import java.util.HashMap;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.TextViewerWindow;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
 
 public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 
@@ -125,32 +138,205 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 
 		Label lHost = new Label(gProxyTracker, SWT.NULL);
 		Messages.setLanguageText(lHost, CFG_PREFIX + "host");
-		StringParameter pHost = new StringParameter(gProxyTracker, "Proxy.Host", "");
+		final StringParameter pHost = new StringParameter(gProxyTracker, "Proxy.Host", "", false );
 		gridData = new GridData();
 		gridData.widthHint = 105;
 		pHost.setLayoutData(gridData);
 
 		Label lPort = new Label(gProxyTracker, SWT.NULL);
 		Messages.setLanguageText(lPort, CFG_PREFIX + "port");
-		StringParameter pPort = new StringParameter(gProxyTracker, "Proxy.Port", "");
+		final StringParameter pPort = new StringParameter(gProxyTracker, "Proxy.Port", "", false );
 		gridData = new GridData();
 		gridData.widthHint = 40;
 		pPort.setLayoutData(gridData);
 
 		Label lUser = new Label(gProxyTracker, SWT.NULL);
 		Messages.setLanguageText(lUser, CFG_PREFIX + "username");
-		StringParameter pUser = new StringParameter(gProxyTracker, "Proxy.Username" );
+		final StringParameter pUser = new StringParameter(gProxyTracker, "Proxy.Username", false );
 		gridData = new GridData();
 		gridData.widthHint = 105;
 		pUser.setLayoutData(gridData);
 
 		Label lPass = new Label(gProxyTracker, SWT.NULL);
 		Messages.setLanguageText(lPass, CFG_PREFIX + "password");
-		StringParameter pPass = new StringParameter(gProxyTracker, "Proxy.Password", "");
+		final StringParameter pPass = new StringParameter(gProxyTracker, "Proxy.Password", "", false );
 		gridData = new GridData();
 		gridData.widthHint = 105;
 		pPass.setLayoutData(gridData);
 
+		final NetworkAdminSocksProxy[]	test_proxy = { null };
+		
+		final Button test_socks = new Button(gProxyTracker, SWT.PUSH);
+		Messages.setLanguageText(test_socks, CFG_PREFIX	+ "testsocks");
+		
+		test_socks.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+
+				final NetworkAdminSocksProxy target;
+				
+				synchronized( test_proxy ){
+					
+					target = test_proxy[0];
+				}
+				
+				if ( target != null ){
+					
+					final TextViewerWindow viewer = new TextViewerWindow(
+							MessageText.getString( CFG_PREFIX	+ "testsocks.title" ),
+							null,
+							"Testing SOCKS connection to " + target.getHost() + ":" + target.getPort(), false  );
+					
+					final AESemaphore	test_done = new AESemaphore( "" );
+					
+					new AEThread2( "SOCKS test" )
+					{
+						public void
+						run()
+						{
+							try{
+								String[] vers = target.getVersionsSupported();
+								
+								String ver = "";
+								
+								for ( String v: vers ){
+								
+									ver += (ver.length()==0?"":", ") + v;
+								}
+								
+								appendText( viewer, "\r\nConnection OK - supported version(s): " + ver );
+								
+								
+							}catch( Throwable e ){
+								
+								appendText( viewer, "\r\n" + Debug.getNestedExceptionMessage( e ));
+								
+							}finally{
+								
+								test_done.release();
+							}
+						}
+					}.start();
+					
+					new AEThread2( "SOCKS test dotter" )
+					{
+						public void
+						run()
+						{
+							while( !test_done.reserveIfAvailable()){
+								
+								appendText( viewer, "." );
+								
+								try{
+									Thread.sleep(500);
+									
+								}catch( Throwable e ){
+									
+									break;
+								}
+							}
+						}
+					}.start();
+				}
+			}
+			
+			private void
+			appendText(
+				final TextViewerWindow	viewer,
+				final String			line )
+			{
+				Utils.execSWTThread(
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							if ( !viewer.isDisposed()){
+								
+								viewer.append2( line );
+							}
+						}
+					});
+			}
+		});
+		
+		Parameter[] socks_params = { enableProxy, enableSocks, pHost, pPort, pUser, pPass };
+		
+		ParameterChangeAdapter socks_adapter = 
+			new ParameterChangeAdapter()
+			{
+				public void
+				parameterChanged(
+					Parameter	p,
+					boolean		caused_internally )
+				{
+					if ( test_socks.isDisposed()){
+						
+						p.removeChangeListener( this );
+						
+					}else{
+						if ( !caused_internally ){
+							
+							boolean 	enabled = 
+								enableProxy.isSelected() && 
+								enableSocks.isSelected() &&
+								pHost.getValue().trim().length() > 0 &&
+								pPort.getValue().trim().length() > 0;
+							
+							if ( enabled ){
+								
+								try{
+									int port = Integer.parseInt( pPort.getValue() );
+								
+									NetworkAdminSocksProxy nasp = 
+										NetworkAdmin.getSingleton().createSocksProxy(
+											pHost.getValue(), port, pUser.getValue(),pPass.getValue());
+									
+									synchronized( test_proxy ){
+										
+										test_proxy[0] = nasp;
+									}
+								}catch( Throwable e ){
+									
+									enabled = false;
+								}
+							}
+														
+							if ( !enabled ){
+								
+								synchronized( test_proxy ){
+								
+									test_proxy[0] = null;
+								}
+							}
+							
+							final boolean f_enabled = enabled;
+							
+							Utils.execSWTThread(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										if ( !test_socks.isDisposed()){
+										
+											test_socks.setEnabled( f_enabled );
+										}
+									}
+								});
+
+						}
+					}
+				}
+			};
+			
+		for ( Parameter p: socks_params ){
+			
+			p.addChangeListener( socks_adapter );
+				
+		}
+		
+		socks_adapter.parameterChanged( null, false );	// init settings
+		
 		////////////////////////////////////////////////
 		
 		Group gProxyPeer = new Group(cSection, SWT.NULL);

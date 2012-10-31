@@ -169,6 +169,16 @@ public class TextViewerWindow {
 	  txtInfo.setSelection( txtInfo.getTextLimit());
   }
   
+  public void
+  append2(
+	String	str )
+  {
+	  txtInfo.append( str );
+	  
+	  txtInfo.setSelection( txtInfo.getTextLimit());
+  }
+  
+  
   public String
   getText()
   {

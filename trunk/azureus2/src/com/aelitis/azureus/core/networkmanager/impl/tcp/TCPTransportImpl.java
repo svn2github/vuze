@@ -177,11 +177,13 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
       return;
     }
     
-    final boolean use_proxy = COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" );
+    final InetSocketAddress	address = protocol_endpoint.getAddress();
+
+    final boolean use_proxy = COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" ) && !address.equals( ProxyLoginHandler.DEFAULT_SOCKS_SERVER_ADDRESS );
+
     final TCPTransportImpl transport_instance = this;    
     
-    final InetSocketAddress	address = protocol_endpoint.getAddress();
-    
+     
     TCPConnectionManager.ConnectListener connect_listener = new TCPConnectionManager.ConnectListener() {
       public int connectAttemptStarted(
     		  int default_connect_timeout ) {
