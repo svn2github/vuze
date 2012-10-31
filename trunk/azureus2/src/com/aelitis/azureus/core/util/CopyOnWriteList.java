@@ -27,6 +27,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.IndentWriter;
 
 public class 
@@ -276,6 +277,11 @@ implements Iterable<T>
 		synchronized( this ){
 
 			visible = true;
+			
+			if ( Constants.IS_CVS_VERSION ){
+				
+				return( Collections.unmodifiableList( list ));
+			}
 			
 			return( list );
 		}

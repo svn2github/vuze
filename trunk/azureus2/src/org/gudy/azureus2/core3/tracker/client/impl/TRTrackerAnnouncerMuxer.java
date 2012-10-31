@@ -262,7 +262,10 @@ TRTrackerAnnouncerMuxer
 			
 			Iterator<TOTorrentAnnounceURLSet[]> ns_it = new_sets.iterator();
 			
-			List<TRTrackerAnnouncerHelper> existing_announcers 	= announcers.getList();
+				// need to copy list as we modify it and returned list ain't thread safe
+			
+			List<TRTrackerAnnouncerHelper> existing_announcers 	= new ArrayList<TRTrackerAnnouncerHelper>( announcers.getList());
+			
 			List<TRTrackerAnnouncerHelper> new_announcers 		= new ArrayList<TRTrackerAnnouncerHelper>();
 			
 				// first look for unchanged sets
