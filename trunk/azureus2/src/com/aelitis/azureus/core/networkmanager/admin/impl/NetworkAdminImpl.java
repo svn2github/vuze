@@ -557,6 +557,108 @@ addressLoop:
 
 	}
 	
+	private void 
+	checkBindAddresses()
+	{		
+		Pattern addressSplitter 	= Pattern.compile(";");
+		Pattern interfaceSplitter 	= Pattern.compile("[\\]\\[]");
+		
+		String[] tokens = addressSplitter.split(COConfigurationManager.getStringParameter("Bind IP", "").trim());
+
+		String	failed_entries = "";
+		
+		for(int i=0;i<tokens.length;i++){
+			
+			String currentAddress = tokens[i];
+			
+			currentAddress = currentAddress.trim();
+			
+			if ( currentAddress.length() == 0 ){
+				
+				continue;
+			}
+			
+			boolean ok = false;
+			
+			InetAddress parsedAddress = null;
+			
+			try{
+				if ( currentAddress.indexOf('.') != -1 || currentAddress.indexOf(':') != -1 ){
+					
+					parsedAddress = InetAddress.getByName(currentAddress);
+				}
+			}catch ( Throwable e){
+			}
+			
+			if ( parsedAddress != null ){
+				
+				try{	
+					if (  	parsedAddress.isAnyLocalAddress() || 
+							NetworkInterface.getByInetAddress( parsedAddress ) != null ){
+						
+						ok = true;
+					}
+					
+				}catch( Throwable e ){	
+				}
+			}else{
+				
+					// interface name
+				
+				String[] ifaces = interfaceSplitter.split( currentAddress );
+	
+				NetworkInterface netInterface = null;
+				
+				try{
+					netInterface = NetworkInterface.getByName( ifaces[0] );
+					
+				}catch( Throwable e ){
+				}
+				
+				if ( netInterface != null ){
+	
+					Enumeration interfaceAddresses = netInterface.getInetAddresses();
+				
+					if ( ifaces.length != 2 ){
+				
+						ok = interfaceAddresses.hasMoreElements();
+						
+					}else{
+				
+						try{ 
+							int selectedAddress = Integer.parseInt(ifaces[1]); 
+							
+							for( int j=0; interfaceAddresses.hasMoreElements(); j++, interfaceAddresses.nextElement()){
+						
+								if (j == selectedAddress ){
+									
+									ok = true;
+									
+									break;
+								}
+							}
+						}catch( Throwable e ){						
+						}
+					}
+				}
+			}
+			
+			if ( !ok ){
+				
+				failed_entries += (failed_entries.length()==0?"":", " ) + currentAddress;
+			}
+		}
+		
+		if ( failed_entries.length() > 0 ){
+			
+			Logger.log(
+					new LogAlert(
+						true,
+						LogAlert.AT_WARNING,
+						"Bind IPs not resolved: " + failed_entries + "\n\nSee Tools->Options->Connection->Advanced Network Settings" ));
+
+		}
+	}
 	
 	protected void checkDefaultBindAddress(boolean first_time)
 	{
@@ -1719,6 +1821,11 @@ addressLoop:
 			}
 		}
 
+		if ( COConfigurationManager.getBooleanParameter( "Check Bind IP On Start" )){
+			
+			checkBindAddresses();
+		}
+		
         NetworkAdminSpeedTestScheduler nast = NetworkAdminSpeedTestSchedulerImpl.getInstance();
         
         nast.initialise();

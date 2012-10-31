@@ -159,11 +159,16 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		Messages.setLanguageText(
 				lbind2,
 				"ConfigView.label.bindip.details",
-				new String[] {NetworkAdmin.getSingleton().getNetworkInterfacesAsString() });
+				new String[] { "\t" + NetworkAdmin.getSingleton().getNetworkInterfacesAsString().replaceAll( "\\\n", "\n\t" ) });
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		lbind2.setLayoutData(gridData);
 
+		
+		BooleanParameter check_bind = new BooleanParameter(gSocket, "Check Bind IP On Start","network.check.ipbinding");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		check_bind.setLayoutData(gridData);
 
 		Label lpbind = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lpbind, CFG_PREFIX + "bind_port");

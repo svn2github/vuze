@@ -343,6 +343,7 @@ public class ConfigurationDefaults {
 
   
     def.put( "Bind IP", "" );
+    def.put( "Check Bind IP On Start", TRUE );
     def.put( "Enforce Bind IP", FALSE);
     def.put( "Stats Export Peer Details", FALSE );
     def.put( "Stats Export File Details", FALSE );
