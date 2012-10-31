@@ -122,7 +122,8 @@ NetworkAdminImpl
 	private int roundRobinCounterV4 = 0;
 	private int roundRobinCounterV6 = 0;
 	
-
+	private boolean logged_bind_force_issue;
+	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
 	
 	
@@ -563,11 +564,23 @@ addressLoop:
 		Pattern addressSplitter 	= Pattern.compile(";");
 		Pattern interfaceSplitter 	= Pattern.compile("[\\]\\[]");
 		
-		String[] tokens = addressSplitter.split(COConfigurationManager.getStringParameter("Bind IP", "").trim());
+		String 	bind_ips 	= COConfigurationManager.getStringParameter("Bind IP", "").trim();
+		boolean enforceBind = COConfigurationManager.getBooleanParameter("Enforce Bind IP");
+
+		if ( enforceBind && bind_ips.length() == 0 ){
+			
+			Logger.log(
+					new LogAlert(
+						true,
+						LogAlert.AT_WARNING,
+						"'Enforce IP Bindings' is selected but no bindings have been specified\n\nSee Tools->Options->Connection->Advanced Network Settings" ));
+		}
+		
+		String[] tokens = addressSplitter.split( bind_ips );
 
 		String	failed_entries = "";
 		
-		for(int i=0;i<tokens.length;i++){
+		for ( int i=0;i<tokens.length;i++ ){
 			
 			String currentAddress = tokens[i];
 			
@@ -656,15 +669,34 @@ addressLoop:
 						true,
 						LogAlert.AT_WARNING,
 						"Bind IPs not resolved: " + failed_entries + "\n\nSee Tools->Options->Connection->Advanced Network Settings" ));
-
 		}
 	}
 	
 	protected void checkDefaultBindAddress(boolean first_time)
 	{
 		boolean changed = false;
-		String bind_ip = COConfigurationManager.getStringParameter("Bind IP", "").trim();
+		String 	bind_ip 	= COConfigurationManager.getStringParameter("Bind IP", "").trim();
 		boolean enforceBind = COConfigurationManager.getBooleanParameter("Enforce Bind IP");
+		
+		if ( enforceBind ){
+			
+			if ( bind_ip.length() == 0 ){
+			
+				if ( !logged_bind_force_issue ){
+				
+					logged_bind_force_issue = true;
+					
+					Debug.out( "'Enforce IP Bindings' is selected but no bindings have been specified - ignoring force request!" );
+				}
+				
+				enforceBind = false;
+				
+			}else{
+				
+				logged_bind_force_issue = false;
+			}
+		}
+		
 		InetAddress[] addrs = calcBindAddresses(bind_ip, enforceBind);
 		changed = !Arrays.equals(currentBindIPs, addrs);
 		if(changed){
@@ -2272,7 +2304,9 @@ addressLoop:
 				
 				writer.indent();
 				
-				writer.println( "bind to: " + getString( getAllBindAddresses( false )));
+				boolean enforceBind = COConfigurationManager.getBooleanParameter("Enforce Bind IP");
+
+				writer.println( "bind to: " + getString( getAllBindAddresses( false )) + ", enforce=" + enforceBind );
 				
 				writer.println( "bindable: " + getString( getBindableAddresses()));
 				
