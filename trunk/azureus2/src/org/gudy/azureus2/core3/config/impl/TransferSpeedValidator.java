@@ -207,6 +207,9 @@ public final class TransferSpeedValidator
     isAutoUploadAvailable(
     	AzureusCore	core )
     {
+    	if ( core == null ){
+    		return( false );
+    	}
     	SpeedManager speedManager = core.getSpeedManager();
     	return speedManager == null ? false : speedManager.isAvailable();
     }
