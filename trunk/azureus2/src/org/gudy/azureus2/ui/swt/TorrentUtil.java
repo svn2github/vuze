@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt;
 import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.List;
@@ -794,6 +795,80 @@ public class TorrentUtil {
 		});
 		itemManualScrape.setEnabled(manualScrape);
 
+			// download link
+		
+		final MenuItem itemTorrentDL = new MenuItem(menuTracker, SWT.PUSH);
+		Messages.setLanguageText(itemTorrentDL, "MyTorrentsView.menu.torrent.dl" );
+		itemTorrentDL.addListener(SWT.Selection, new DMTask(dms, false) {
+			public void run(DownloadManager dm) {
+
+				String	content;
+				
+				TOTorrent torrent = dm.getTorrent();
+				
+				String	link = null;
+				
+				if ( torrent == null ){
+					
+					content = "Torrent not available";
+					
+				}else{
+					
+					link = TorrentUtils.getObtainedFrom( torrent );
+					
+					if ( link != null ){
+						
+						try{
+							new URL( link );
+							
+						}catch( Throwable e ){
+							
+							link = null;
+						}
+					}
+					
+					if ( link != null ){
+						
+						if ( link.toLowerCase().startsWith( "magnet:" )){
+							
+							link = UrlUtils.getMagnetURI(dm.getDisplayName(), PluginCoreUtils.wrap( torrent ));
+							
+							content = "Torrent's magnet link:\r\n\r\n\t" + link;
+							
+						}else{
+						
+							content = "Torrent was obtained from\r\n\r\n\t" + link;
+						}
+					}else{
+						
+						if ( TorrentUtils.isReallyPrivate( torrent )){
+							
+							content = "Origin of torrent unknown and it is private so a magnet URI can't be used - sorry!";
+							
+						}else{
+							
+							link = UrlUtils.getMagnetURI(dm.getDisplayName(), PluginCoreUtils.wrap( torrent ));
+							
+							content = "Origin unavailable but magnet URI may work:\r\n\r\n\t" + link;
+						}
+					}
+				}
+				
+				if ( link != null ){
+					
+					ClipboardCopy.copyToClipBoard( link );
+					
+					content += "\r\n\r\nLink copied to clipboard";
+				}
+				
+				final TextViewerWindow viewer = new TextViewerWindow(
+						MessageText.getString( "MyTorrentsView.menu.torrent.dl" ) + ": " + dm.getDisplayName(),
+						null,
+						content, false  );
+			}
+		});
+		itemTorrentDL.setEnabled(dms.length==1);
+		
 			// explore torrent file
 		
 		final MenuItem itemTorrentExplore = new MenuItem(menuTracker, SWT.PUSH);
