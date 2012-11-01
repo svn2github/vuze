@@ -25,6 +25,8 @@ import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -52,6 +54,8 @@ CustomizationManagerImpl
 		return( singleton );
 	}
 
+	private boolean	initialised;
+	
 	private Map	customization_file_map = new HashMap();
 	
 	private String				current_customization_name;
@@ -60,6 +64,201 @@ CustomizationManagerImpl
 	protected
 	CustomizationManagerImpl()
 	{
+	}
+	
+	public boolean
+	preInitialize()
+	{
+	    File	user_dir = FileUtil.getUserFile("custom");
+	    
+	    File	app_dir	 = FileUtil.getApplicationFile("custom");
+	    
+	    boolean changed = preInitialize( app_dir );
+	    
+	    if ( !user_dir.equals( app_dir )){
+	    
+	    	if ( preInitialize( user_dir )){
+	    		
+	    		changed = true;
+	    	}
+	    }
+	    
+		return( changed );
+	}
+	
+	private boolean
+	preInitialize(
+		File	dir )
+	{
+		boolean changed = false;
+		
+		if ( dir.isDirectory()){
+			
+			File[]	files = dir.listFiles();
+			
+			if ( files != null ){
+				
+				for (int i=0;i<files.length;i++){
+					
+					File	file = files[i];
+					
+					String	name = file.getName();
+					
+					if ( !name.endsWith( ".config" )){
+						
+						continue;
+					}
+					
+					FileInputStream	fis = null;
+					
+					boolean	ok = false;
+					
+					System.out.println( "Processing config presets: " + file );
+					
+					try{
+						fis = new FileInputStream( file );
+					
+						Properties props = new Properties();
+					
+						props.load( fis );
+						
+						List<String> errors = new ArrayList<String>();
+						
+						for ( Map.Entry<Object,Object> entry: props.entrySet()){
+						
+							String	config_name 	= (String)entry.getKey();
+							String	config_value 	= (String)entry.getValue();
+							
+							System.out.println( "\t" + config_name + " -> " + config_value );
+							
+							try{
+								int	pos = config_value.indexOf( ':' );
+								
+								if ( pos == -1 ){
+									
+									throw( new Exception( "Value is invalid - missing type specification" ));
+								}
+								
+								String	config_type = config_value.substring( 0, pos ).trim().toLowerCase();
+								
+								config_value = config_value.substring( pos+1 );
+								
+								if ( config_type.equals( "bool" )){
+									
+									config_value = config_value.trim().toLowerCase();
+									
+									boolean b;
+									
+									if ( config_value.equals( "true" )){
+										
+										b = true;
+										
+									}else if ( config_value.equals( "false" )){
+										
+										b = false;
+										
+									}else{
+										
+										throw( new Exception( "Invalid boolean value" ));
+									}
+	
+									COConfigurationManager.setParameter( config_name, b );
+									
+								}else if ( config_type.equals( "long" )){
+									
+									long	l = Long.parseLong( config_value.trim());
+									
+									COConfigurationManager.setParameter( config_name, l );
+									
+								}else if ( config_type.equals( "float" )){
+									
+									float	f = Float.parseFloat( config_value.trim());
+									
+									COConfigurationManager.setParameter( config_name, f );
+									
+								}else if ( config_type.equals( "string" )){
+									
+									COConfigurationManager.setParameter( config_name, config_value );
+									
+								}else if ( config_type.equals( "byte[]" )){
+									
+									COConfigurationManager.setParameter( config_name, ByteFormatter.decodeString( config_value ));
+
+								}else if ( config_type.equals( "list" )){
+									
+									COConfigurationManager.setParameter( config_name, (List)BDecoder.decode( ByteFormatter.decodeString( config_value )));
+									
+								}else if ( config_type.equals( "map" )){
+									
+									COConfigurationManager.setParameter( config_name, (Map)BDecoder.decode( ByteFormatter.decodeString( config_value )));
+
+								}else{
+									
+									throw( new Exception( "Value is invalid - unknown type specifier" ));
+								}
+								
+								changed = true;
+								
+							}catch( Throwable e ){
+								
+								errors.add( e.getMessage() + ": " + config_name + "=" + entry.getValue());
+							}
+						}
+						
+						if ( errors.size() > 0 ){
+							
+							throw( new Exception( "Found " + errors.size() + " errors: " + errors.toString()));
+						}
+						
+						ok = true;
+						
+						System.out.println( "Presets applied" );
+						
+					}catch( Throwable e ){
+						
+						System.err.println( "Failed to process custom .config file " + file );
+						
+						e.printStackTrace();
+						
+					}finally{
+						
+						if ( fis != null ){
+							
+							try{
+								fis.close();
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+							}
+						}
+						
+						File	rename_target = new File( file.getAbsolutePath() + (ok?".applied":".bad" ));
+							
+						rename_target.delete();
+						
+						file.renameTo( rename_target );
+					}
+				}
+			}
+		}
+		
+		return( changed );
+	}
+	
+	public void
+	initialize()
+	{
+		synchronized( this ){
+			
+			if ( initialised ){
+				
+				return;
+			}
+			
+			initialised = true;
+		}
+		
 		VuzeFileHandler.getSingleton().addProcessor(
 				new VuzeFileProcessor()
 				{
@@ -160,7 +359,10 @@ CustomizationManagerImpl
 					
 					if ( !name.endsWith( ".zip" )){
 						
-						logInvalid( file );
+						if ( !name.contains( ".config" )){
+						
+							logInvalid( file );
+						}
 						
 						continue;
 					}

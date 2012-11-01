@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 
+import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 import com.aelitis.azureus.core.proxy.socks.AESocksProxy;
 import com.aelitis.azureus.core.proxy.socks.AESocksProxyFactory;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
@@ -269,7 +270,7 @@ ConfigurationChecker
 	      return;
 	    checked = true;
 	    
-	    boolean	changed	= false;
+	    boolean	changed	= CustomizationManagerFactory.getSingleton().preInitialize();
 	    
 	    String	last_version = COConfigurationManager.getStringParameter( "azureus.version", "" );
 	    

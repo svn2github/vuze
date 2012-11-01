@@ -1372,9 +1372,11 @@ SpeedLimitHandler
 		    
 		    result.add( "Download Limits" );
 		    
-		    int	total_download_limits = 0;
-		    int	total_download_limits_up 	= 0;
-		    int	total_download_limits_down 	= 0;
+		    int	total_download_limits 				= 0;
+		    int	total_download_limits_up 			= 0;
+		    int	total_download_limits_up_disabled 	= 0;
+		    int	total_download_limits_down 			= 0;
+		    int	total_download_limits_down_disabled	= 0;
 		    
 			GlobalManager gm = core.getGlobalManager();
 			
@@ -1393,8 +1395,23 @@ SpeedLimitHandler
 		    		int	up 		= limits[0];
 		    		int	down 	= limits[1];
 		    		
-		    		total_download_limits_up 	+= up;
-		    		total_download_limits_down 	+= down;
+		    		if ( up < 0 ){
+		    			
+		    			total_download_limits_up_disabled++;
+		    			
+		    		}else{
+		    			
+		    			total_download_limits_up 	+= up;
+		    		}
+		    		
+		    		if ( down < 0 ){
+		    			
+		    			total_download_limits_down_disabled++;
+		    			
+		    		}else{
+		    			
+		    			total_download_limits_down 	+= down;
+		    		}
 		    		
 		    		result.add( "    " + dm.getDisplayName() + ": " + formatUp( up ) + ", " + formatDown( down ));
 		    	}
@@ -1408,7 +1425,12 @@ SpeedLimitHandler
 		    	
 		    	result.add( "    ----" );
 		    	
-		    	result.add( "    Total=" + total_download_limits + " - Compounded limits: " + formatUp( total_download_limits_up ) + ", " + formatDown( total_download_limits_down ));
+		    	result.add( 
+		    		"    Total=" + total_download_limits + 
+		    		" - Compounded limits: " + formatUp( total_download_limits_up ) + 
+		    		(total_download_limits_up_disabled==0?"":( " [" + total_download_limits_up_disabled + " disabled]" )) +
+		    		", " + formatDown( total_download_limits_down ) +
+		    		(total_download_limits_down_disabled==0?"":( " [" + total_download_limits_down_disabled + " disabled]" )));
 		    }
 		    
 			Category[] categories = CategoryManager.getCategories();
@@ -1424,7 +1446,7 @@ SpeedLimitHandler
 
 			result.add( "Category Limits" );
 			
-			int	total_cat_limits = 0;
+			int	total_cat_limits 		= 0;
 		    int	total_cat_limits_up 	= 0;
 		    int	total_cat_limits_down 	= 0;
 

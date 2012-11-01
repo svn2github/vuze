@@ -22,7 +22,10 @@
 package com.aelitis.azureus.core.impl;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.InetAddress;
+import java.net.SocketAddress;
+import java.net.URI;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -78,6 +81,7 @@ import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.pairing.PairingManagerFactory;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.nat.PeerNATTraverser;
+import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
 import com.aelitis.azureus.plugins.clientid.ClientIDPlugin;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
@@ -267,7 +271,9 @@ AzureusCoreImpl
 		
 			//ensure early initialization
 				
-		CustomizationManagerFactory.getSingleton();
+		CustomizationManagerFactory.getSingleton().initialize();
+		
+		AEProxySelectorFactory.getSelector();
 		
 		NetworkManager.getSingleton();
 		
@@ -2480,5 +2486,5 @@ AzureusCoreImpl
 		PowerManagementListener	listener )
 	{
 		power_listeners.remove( listener );
-	}
+	}	
 }

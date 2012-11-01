@@ -24,6 +24,12 @@ package com.aelitis.azureus.core.custom;
 public interface 
 CustomizationManager 
 {
+	public boolean
+	preInitialize();
+	
+	public void
+	initialize();
+	
 	public Customization
 	getActiveCustomization();
 	

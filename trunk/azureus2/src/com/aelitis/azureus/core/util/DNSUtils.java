@@ -21,7 +21,6 @@
 
 package com.aelitis.azureus.core.util;
 
-import java.io.IOException;
 import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
@@ -31,6 +30,7 @@ import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
+import javax.naming.Context;
 import javax.naming.NamingEnumeration;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
@@ -38,7 +38,6 @@ import javax.naming.directory.Attributes;
 import javax.naming.directory.DirContext;
 import javax.naming.directory.InitialDirContext;
 
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminException;
 
 public class 
 DNSUtils 
@@ -56,10 +55,25 @@ DNSUtils
 	{
 		Hashtable env = new Hashtable();
 		
-		env.put ("java.naming.factory.initial", getFactory());
+		env.put ( Context.INITIAL_CONTEXT_FACTORY, getFactory());
 		
 		return( new InitialDirContext( env ));
 
+	}
+	
+	public static DirContext
+	getDirContextForServer(
+		String		dns_server_ip )
+	
+		throws NamingException
+	{
+		Hashtable env = new Hashtable();
+		
+		env.put( Context.INITIAL_CONTEXT_FACTORY, getFactory());
+		
+		env.put( Context.PROVIDER_URL, "dns://"+dns_server_ip+"/" );
+		
+		return( new InitialDirContext( env ));
 	}
 	
 	public static Inet6Address
@@ -104,6 +118,72 @@ DNSUtils
 								result.add( (Inet6Address)InetAddress.getByName((String)value));
 								
 							}catch( Throwable e ){
+							}
+						}
+					}
+				}
+			}
+		}catch( Throwable e ){
+		}
+		
+		if ( result.size() > 0 ){
+		
+			return( result );
+		}
+		
+		throw( new UnknownHostException( host ));
+	}
+	
+	public static List<InetAddress>
+	getAllByName(
+		String		host )
+		
+		throws UnknownHostException
+	{
+		try{
+			return( getAllByName( getInitialDirContext(), host ));
+			
+		}catch( NamingException e ){
+			
+			throw( new UnknownHostException( host ));
+		}
+	}
+	
+	public static List<InetAddress>
+	getAllByName(
+		DirContext	context,
+		String		host )
+		
+		throws UnknownHostException
+	{
+		List<InetAddress>	result = new ArrayList<InetAddress>();
+
+		try{						
+			String[] attributes = new String[]{ "A", "AAAA" };
+			
+			Attributes attrs = context.getAttributes( host, attributes );
+			
+			if ( attrs != null ){
+			
+				for( String a: attributes ){
+					
+					Attribute attr = attrs.get( a );
+				
+					if ( attr != null ){
+						
+						NamingEnumeration values = attr.getAll();
+				
+						while( values.hasMore()){
+						
+							Object value = values.next();
+							
+							if ( value instanceof String ){
+								
+								try{
+									result.add( InetAddress.getByName((String)value));
+									
+								}catch( Throwable e ){
+								}
 							}
 						}
 					}
@@ -211,12 +291,24 @@ DNSUtils
 	main(
 		String[]	args )
 	{
-		//List<String> records = getTXTRecords( "tracker.openbittorrent.com" );
-		List<String> records = getTXTRecords( "www.ibm.com" );
-		
-		for ( String record: records ){
+		try{
+			//List<String> records = getTXTRecords( "tracker.openbittorrent.com" );
+			/*			
+			List<String> records = getTXTRecords( "www.ibm.com" );
 			
-			System.out.println( record );
+			for ( String record: records ){
+				
+				System.out.println( record );
+			}
+			*/
+			
+			DirContext ctx = getDirContextForServer( "8.8.4.4" );
+
+			System.out.println( getAllByName( ctx, "www.google.com" ));
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
 		}
 	}
 }
