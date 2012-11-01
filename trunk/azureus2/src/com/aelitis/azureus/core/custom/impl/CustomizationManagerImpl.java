@@ -25,6 +25,7 @@ import java.io.*;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
@@ -34,6 +35,9 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 
 import com.aelitis.azureus.core.custom.*;
 
@@ -290,12 +294,93 @@ CustomizationManagerImpl
 										
 										Debug.printStackTrace(e);
 									}
+								}else if ( comp.getType() == VuzeFileComponent.COMP_TYPE_CONFIG_SETTINGS ){
+									
+									try{
+										Map map = comp.getContent();
+										
+										String	name = new String((byte[])map.get( "name" ));
+
+										UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+										
+										String details = MessageText.getString(
+												"custom.settings.import",
+												new String[]{ name });
+										
+										long res = ui_manager.showMessageBox(
+												"custom.settings.import.title",
+												"!" + details + "!",
+												UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+										
+										if ( res == UIManagerEvent.MT_YES ){	
+											
+											Map<String,Object> config = (Map<String,Object>)map.get( "settings" );
+											
+											int	num_set = 0;
+											
+											for ( Map.Entry<String,Object> entry: config.entrySet()){
+												
+												String	key 	= entry.getKey();
+												Object	value 	= entry.getValue();
+												
+												if ( value instanceof Long ){
+													
+													COConfigurationManager.setParameter( key, (Long)value );
+													
+												}else if ( value instanceof byte[] ){
+													
+													COConfigurationManager.setParameter( key, (byte[])value );
+													
+												}else if ( value instanceof List ){
+													
+													COConfigurationManager.setParameter( key, (List)value );
+													
+												}else if ( value instanceof Map ){
+													
+													COConfigurationManager.setParameter( key, (Map)value );
+													
+												}else{
+													
+													Debug.out( "Unsupported entry: " + key + "=" + value );
+												}
+												
+												num_set++;
+												
+											}
+											
+											Long l_restart = (Long)map.get( "restart" );
+											
+											boolean restart = l_restart != null && l_restart != 0;
+														
+											String restart_text = "";
+											
+											if ( restart ){
+												
+												restart_text = "\r\n\r\n" + MessageText.getString( "ConfigView.section.security.restart.title" );
+											}
+											
+											String res_details = MessageText.getString(
+													"custom.settings.import.res",
+													new String[]{ String.valueOf( num_set ), restart_text });
+											
+											ui_manager.showMessageBox(
+													"custom.settings.import.res.title",
+													"!" + res_details + "!",
+													UIManagerEvent.MT_OK );
+										}
+										
+										comp.setProcessed();
+										
+									}catch( Throwable e ){
+										
+										Debug.printStackTrace(e);
+									}
 								}
 							}
 						}
 					}
 				});	
-		
+		 
 	    File	user_dir = FileUtil.getUserFile("custom");
 	    
 	    File	app_dir	 = FileUtil.getApplicationFile("custom");
@@ -585,12 +670,43 @@ CustomizationManagerImpl
 	main(
 		String[]		args )
 	{
+		/*
 		try{
 			CustomizationManagerImpl	manager = (CustomizationManagerImpl)getSingleton();
 			
 			CustomizationImpl cust = new CustomizationImpl( manager, "blah", "1.2", new File( "C:\\temp\\cust\\details.zip" ));
 		
 			cust.exportToVuzeFile( new File( "C:\\temp\\cust" ));
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+		*/
+		
+		try{
+			VuzeFile	vf = VuzeFileHandler.getSingleton().create();
+			
+			Map	config = new HashMap();
+			
+			List list = new ArrayList();
+			
+			list.add( "trout" );
+			list.add( 45 );
+			
+			config.put( "test.a10", "Hello mum" );
+			config.put( "test.a11", new Long(100));
+			config.put( "test.a13", list );
+			
+			Map	map = new HashMap();
+			
+			map.put( "name", "My Proxy Settings" );
+			map.put( "settings", config );
+			map.put( "restart", new Long( 1 ));
+			
+			vf.addComponent( VuzeFileComponent.COMP_TYPE_CONFIG_SETTINGS, map );
+			
+			vf.write( new File( "C:\\temp\\p_config.vuze" ) );
 			
 		}catch( Throwable e ){
 			

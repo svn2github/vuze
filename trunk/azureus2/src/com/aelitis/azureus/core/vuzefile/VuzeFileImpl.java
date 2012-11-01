@@ -208,6 +208,10 @@ VuzeFileImpl
 					return( "Content Network" );
 				case COMP_TYPE_METASEARCH_OPERATION: 
 					return( "Search Operation" );
+				case COMP_TYPE_DEVICE: 
+					return( "Device" );
+				case COMP_TYPE_CONFIG_SETTINGS: 
+					return( "Config Settings" );
 				default: 
 					return( "Unknown" );
 			}
