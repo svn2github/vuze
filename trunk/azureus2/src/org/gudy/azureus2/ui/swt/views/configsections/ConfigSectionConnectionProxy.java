@@ -451,13 +451,25 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		enableSocksPeer.setAdditionalActionPerformer(proxy_peer_enabler);
 		sameConfig.setAdditionalActionPerformer(proxy_peer_enabler);
 
+		
+			// dns info
+		
+		Label label = new Label(cSection, SWT.WRAP);
+		Messages.setLanguageText(label, CFG_PREFIX + "dns.info");
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan = 2;
+		gridData.widthHint = 200;  // needed for wrap
+		label.setLayoutData(gridData);
+		
+			// check on start
+		
 		final BooleanParameter checkOnStart = new BooleanParameter(cSection,
 				"Proxy.Check.On.Start", CFG_PREFIX + "check.on.start");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		checkOnStart.setLayoutData(gridData);
 
-		Label label = new Label(cSection, SWT.WRAP);
+		label = new Label(cSection, SWT.WRAP);
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		label.setLayoutData(gridData);
