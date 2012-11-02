@@ -329,6 +329,7 @@ public class ConfigView implements UISWTViewEventListener {
                                          new ConfigSectionConnectionProxy(),
                                          new ConfigSectionConnectionAdvanced(),
                                          new ConfigSectionConnectionEncryption(),
+                                         new ConfigSectionConnectionDNS(),
                                          new ConfigSectionTransfer(),
                                          new ConfigSectionTransferAutoSpeedSelect(),
                                          new ConfigSectionTransferAutoSpeed(),

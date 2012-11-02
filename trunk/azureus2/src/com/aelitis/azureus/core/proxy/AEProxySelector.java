@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.proxy;
 
+import java.net.InetSocketAddress;
 import java.net.Proxy;
 
 public interface 
@@ -31,8 +32,14 @@ AEProxySelector
 	
 	public Proxy
 	getSOCKSProxy(
-		String				host,
-		int					port );
+		InetSocketAddress	proxy_address,
+		InetSocketAddress	target );
+	
+	public Proxy
+	getSOCKSProxy(
+		String				proxy_host,
+		int					proxy_port,
+		InetSocketAddress	target );
 	
 	public void
 	connectFailed(

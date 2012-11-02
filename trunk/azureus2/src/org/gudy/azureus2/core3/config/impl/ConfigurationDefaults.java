@@ -306,6 +306,9 @@ public class ConfigurationDefaults {
     def.put( "Proxy.Data.Username", "<none>" );
     def.put( "Proxy.Data.Password", "" );
 
+    def.put( "DNS Alt Servers", "8.8.8.8" );
+    def.put( "DNS Alt Servers SOCKS Enable", TRUE );
+    
     //old
     def.put( "Start Num Peers", new Long(-1) );
     def.put( "Max Upload Speed", new Long(-1) );

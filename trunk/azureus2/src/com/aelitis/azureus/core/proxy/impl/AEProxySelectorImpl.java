@@ -22,26 +22,14 @@
 package com.aelitis.azureus.core.proxy.impl;
 
 import java.io.IOException;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.Proxy;
-import java.net.ProxySelector;
-import java.net.SocketAddress;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.net.*;
+import java.util.*;
+
 
 import javax.naming.directory.DirContext;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -54,6 +42,8 @@ AEProxySelectorImpl
 	extends ProxySelector
 	implements AEProxySelector
 {		
+	private static final boolean	LOG = false;
+	
 	private static AEProxySelectorImpl		singleton = new AEProxySelectorImpl();
 	
 	private static List<Proxy>		no_proxy_list = Arrays.asList( new Proxy[]{ Proxy.NO_PROXY });
@@ -65,17 +55,14 @@ AEProxySelectorImpl
 		return( singleton );
 	}
 	
-	private volatile ActiveProxy		active_proxy;
-	
 	private final ProxySelector			existing_selector;
-		
-	private List<String>				alt_dns_servers	= new ArrayList<String>();
+
+	private volatile ActiveProxy		active_proxy;			
+	private volatile List<String>		alt_dns_servers	= new ArrayList<String>();
 	
 	private
 	AEProxySelectorImpl()
 	{	
-		alt_dns_servers.add( "8.8.8.8" );
-
 		COConfigurationManager.addAndFireListener(
 				new COConfigurationListener()
 				{
@@ -104,7 +91,52 @@ AEProxySelectorImpl
 							}
 					    }
 
+					    List<String>	new_servers = new ArrayList<String>();
+
+					    if ( COConfigurationManager.getBooleanParameter( "DNS Alt Servers SOCKS Enable" )){
+					    
+						    String	alt_servers = COConfigurationManager.getStringParameter( "DNS Alt Servers" );
+						    
+						    alt_servers = alt_servers.replace( ',', ';' );
+						    
+						    String[] servers = alt_servers.split(  ";" );    
+						    
+						    for ( String s: servers ){
+						    	
+						    	s = s.trim();
+						    	
+						    	if ( s.length() > 0 ){
+						    		
+						    		new_servers.add( s );
+						    	}
+						    }
+					    }
+					    
 					    synchronized( AEProxySelectorImpl.this ){
+					    	
+					    	boolean	servers_changed = false;
+					    	
+					    	if ( alt_dns_servers.size() != new_servers.size()){
+					    		
+					    		servers_changed = true;
+					    		
+					    	}else{
+					    		
+					    		for ( String s: new_servers ){
+					    			
+					    			if ( !alt_dns_servers.contains( s )){
+					    				
+					    				servers_changed = true;
+					    				
+					    				break;
+					    			}
+					    		}
+					    	}
+					    	
+					    	if ( servers_changed ){
+					    		
+					    		alt_dns_servers = new_servers;
+					    	}
 					    	
 					    	if ( proxy_host == null ){
 					    		
@@ -116,7 +148,14 @@ AEProxySelectorImpl
 						    	if ( 	active_proxy == null ||
 						    			!active_proxy.sameAddress( proxy_host, proxy_port )){
 						    							   
-						    		active_proxy = new ActiveProxy( proxy_host, proxy_port );
+						    		active_proxy = new ActiveProxy( proxy_host, proxy_port, new_servers );
+						    		
+						    	}else{
+						    		
+						    		if ( servers_changed ){
+						    			
+						    			active_proxy.updateServers( new_servers );
+						    		}
 						    	}
 					    	}
 					    }
@@ -140,7 +179,9 @@ AEProxySelectorImpl
 	{	
 		List<Proxy>  result = selectSupport( uri );
 		
-		System.out.println( "select: " + uri + " -> " + result );
+		if ( LOG ){
+			System.out.println( "select: " + uri + " -> " + result );
+		}
 		
 		return( result );
 	}
@@ -213,7 +254,7 @@ AEProxySelectorImpl
 			}
 		}
 		
-		return( active.select());
+		return( Arrays.asList( new Proxy[]{ active.select()}));
 	}
 
 	private void
@@ -247,24 +288,35 @@ AEProxySelectorImpl
 	
 	public Proxy
 	getSOCKSProxy(
-		String		host,
-		int			port )
+		String				host,
+		int					port,
+		InetSocketAddress	target )
 	{		
 		InetSocketAddress isa = new InetSocketAddress( host, port );
 		
+		return( getSOCKSProxy( isa, target ));
+	}
+	
+	public Proxy
+	getSOCKSProxy(
+		InetSocketAddress	isa,
+		InetSocketAddress	target )
+	{		
 		ActiveProxy active = active_proxy;
 		
-		if ( active == null ){
+		if ( 	active == null || 
+				!active.getAddress().equals( isa )){
 			
 			return( new Proxy( Proxy.Type.SOCKS, isa ));
 		}
 		
-		if ( !active.getAddress().equals( isa )){
-			
-			return( new Proxy( Proxy.Type.SOCKS, isa ));
+		Proxy result = active.select();
+		
+		if ( LOG ){
+			System.out.println( "select: " + target + " -> " + result );
 		}
 		
-		return( active.select().get(0));
+		return( result );
 	}
 	
 	public boolean
@@ -302,6 +354,8 @@ AEProxySelectorImpl
 	private class
 	ActiveProxy
 	{
+		private static final int	DNS_RETRY_MILLIS = 15*60*1000;
+		
 		private final String				proxy_host;
 		private final int 					proxy_port;
 		
@@ -309,26 +363,38 @@ AEProxySelectorImpl
 		
 		private volatile List<MyProxy>		proxy_list_cow 	= new ArrayList<MyProxy>();
 
-		private Boolean			alt_dns_enable;
+		private Boolean				alt_dns_enable;
 		
-		private List<String>	alt_dns_to_try		= new ArrayList<String>();
-		private List<String>	alt_dns_tried		= new ArrayList<String>();
+		private List<String>		alt_dns_to_try;
+		private Map<String,Long>	alt_dns_tried		= new HashMap<String,Long>();
 		
-		private boolean			default_dns_tried	= false;
+		private long				default_dns_tried_time	= -1;
 		
 		private
 		ActiveProxy(
-			String		_proxy_host,
-			int			_proxy_port )
+			String			_proxy_host,
+			int				_proxy_port,
+			List<String>	_servers )
 		{
-			proxy_host	= _proxy_host;
-			proxy_port	= _proxy_port;
-			
+			proxy_host		= _proxy_host;
+			proxy_port		= _proxy_port;
+	   		alt_dns_to_try 	= _servers;
+
 			address	= new InetSocketAddress( proxy_host, proxy_port );
 			    								    		
     		proxy_list_cow.add( new MyProxy( address ));
-    		
-    		alt_dns_to_try.addAll( alt_dns_servers );
+ 		}
+		
+		private void
+		updateServers(
+			List<String>	servers )
+		{
+			synchronized( this ){
+				
+				alt_dns_to_try	= servers;
+				
+				alt_dns_tried.clear();
+			}
 		}
 		
 		private boolean
@@ -345,14 +411,18 @@ AEProxySelectorImpl
 			return( address );
 		}
 		
-		private List<Proxy>
+		private MyProxy
 		select()
 		{
 				// only return one proxy - this avoids the Java runtime from cycling through a bunch of
 				// them that fail in the same way (e.g. if the address being connected to is unreachable) and
 				// thus slugging everything
 			
-			return( Arrays.asList( new Proxy[]{ proxy_list_cow.get( 0 )}));
+			MyProxy proxy = proxy_list_cow.get( 0 );
+			
+			proxy.handedOut();
+			
+			return( proxy );
 		}
 		
 		private void
@@ -360,17 +430,20 @@ AEProxySelectorImpl
 			InetSocketAddress	failed_isa,
 			Throwable 			error )
 		{
-			String msg = Debug.getNestedExceptionMessage( error );
+			String msg = Debug.getNestedExceptionMessage( error ).toLowerCase();
 				
 				// filter out errors that are not associated with the socks server itself but rather then destination
 			
-			if ( msg.toLowerCase().contains( "unreachable" )){
+			if ( 	msg.contains( "unreachable" ) ||
+					msg.contains( "operation on nonsocket" )){
 				
 				return;
 			}		
 
-			System.out.println( "failed: " + failed_isa + " -> " + msg );
-
+			if ( LOG ){
+				System.out.println( "failed: " + failed_isa + " -> " + msg );
+			}
+			
 			synchronized( this ){
 													
 				InetAddress	failed_ia 		= failed_isa.getAddress();
@@ -440,9 +513,12 @@ AEProxySelectorImpl
 					
 					if ( alt_dns_enable ){
 
-						if ( !default_dns_tried ){
+						long	now_mono = SystemTime.getMonotonousTime();
+						
+						if ( 	default_dns_tried_time == -1 ||
+								now_mono - default_dns_tried_time >= DNS_RETRY_MILLIS ){
 							
-							default_dns_tried = true;
+							default_dns_tried_time = now_mono;
 							
 							if ( failed_ia != null ){
 								
@@ -461,11 +537,28 @@ AEProxySelectorImpl
 						
 						if ( dns_to_try == null ){
 							
+							if ( alt_dns_to_try.size() == 0 ){
+								
+								Iterator<Map.Entry<String,Long>> it = alt_dns_tried.entrySet().iterator();
+								
+								while( it.hasNext()){
+									
+									Map.Entry<String,Long> entry = it.next();
+									
+									if ( now_mono - entry.getValue() >= DNS_RETRY_MILLIS ){
+										
+										it.remove();
+										
+										alt_dns_to_try.add( entry.getKey());
+									}
+								}
+							}
+							
 							if ( alt_dns_to_try.size() > 0 ){
 								
 								String try_dns = alt_dns_to_try.remove( 0 );
 								
-								alt_dns_tried.add( try_dns );
+								alt_dns_tried.put( try_dns, now_mono );
 								
 								try{
 									dns_to_try = DNSUtils.getDirContextForServer( try_dns );
@@ -482,7 +575,9 @@ AEProxySelectorImpl
 							try{					
 								List<InetAddress> addresses = DNSUtils.getAllByName( dns_to_try, proxy_host );
 								
-								System.out.println( "DNS " + dns_to_try + " returned " + addresses );
+								if ( LOG ){
+									System.out.println( "DNS " + dns_to_try.getEnvironment() + " resolve for " + proxy_host + " returned " + addresses );
+								}
 								
 								Collections.shuffle( addresses );
 								
@@ -510,7 +605,10 @@ AEProxySelectorImpl
 	MyProxy
 		extends Proxy
 	{
+		private int		use_count	= 0;
 		private int		fail_count	= 0;
+		
+		private long	last_use;
 		private long	last_fail;
 		
 		private
@@ -518,6 +616,14 @@ AEProxySelectorImpl
 			InetSocketAddress	address )
 		{
 			super( Proxy.Type.SOCKS, address );
+		}
+		
+		private void
+		handedOut()
+		{
+			use_count++;
+			
+			last_use	= SystemTime.getMonotonousTime();
 		}
 		
 		private void

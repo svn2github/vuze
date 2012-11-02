@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.SocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
@@ -34,6 +36,9 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxySelector;
+import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
+import com.aelitis.azureus.core.proxy.socks.impl.AESocksProxyState;
 
 
 /**
@@ -93,6 +98,8 @@ public class ProxyLoginHandler {
 	  default_socks_password = COConfigurationManager.getStringParameter( socks_same ? "Proxy.Password" : "Proxy.Data.Password" );
 
   }
+  
+  private static final AEProxySelector	proxy_selector = AEProxySelectorFactory.getSelector();
   
   private final TCPTransportImpl proxy_connection;
   private final InetSocketAddress remote_address;  
@@ -172,6 +179,26 @@ public class ProxyLoginHandler {
     
   }
 
+  public static InetSocketAddress
+  getProxyAddress(
+	InetSocketAddress	target )
+  {
+	  Proxy p = proxy_selector.getSOCKSProxy( DEFAULT_SOCKS_SERVER_ADDRESS, target  );
+	  
+	  	// always use a proxy here as the calling code should know what it is doing...
+	  
+	  if ( p.type() == Proxy.Type.SOCKS ){
+		  
+		  SocketAddress sa = p.address();
+		  
+		  if ( sa instanceof InetSocketAddress ){
+			  
+			  return((InetSocketAddress)sa);
+		  }
+	  }
+	  
+	  return( DEFAULT_SOCKS_SERVER_ADDRESS );
+  }
 
   private void doSocks4Login( final ByteBuffer[] data ) {
     try {

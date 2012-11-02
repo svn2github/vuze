@@ -20,8 +20,6 @@
 
 package org.gudy.azureus2.ui.swt.views.configsections;
 
-import java.util.HashMap;
-
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
