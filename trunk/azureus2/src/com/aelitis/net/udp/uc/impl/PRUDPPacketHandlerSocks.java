@@ -108,7 +108,7 @@ PRUDPPacketHandlerSocks
 	
 		AEProxySelector	proxy_selector = AEProxySelectorFactory.getSelector();
 		
-		Proxy proxy = proxy_selector.getSOCKSProxy( socks_host, socks_port );
+		Proxy proxy = proxy_selector.getSOCKSProxy( socks_host, socks_port, target );
 		
 		boolean		proxy_connected = false;
 		Throwable	error			= null;
