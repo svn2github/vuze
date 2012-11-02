@@ -62,6 +62,8 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
   private int		fallback_count;
   private final boolean fallback_allowed;
 
+  private boolean	is_socks;
+  
   
   /**
    * Constructor for disconnected (outbound) transport.
@@ -139,7 +141,18 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 	  return( true );
   }
 	
-  public String getProtocol(){ return "TCP"; }
+  public String 
+  getProtocol()
+  {
+	  if ( is_socks ){
+		  
+		  return( "TCP (SOCKS)" );
+		  
+	  }else{
+		  
+		  return "TCP";
+	  }
+  }
   
   /**
    * Get a textual description for this transport.
@@ -179,7 +192,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     
     final InetSocketAddress	address = protocol_endpoint.getAddress();
 
-    final boolean use_proxy = COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" ) && !address.equals( ProxyLoginHandler.DEFAULT_SOCKS_SERVER_ADDRESS );
+    is_socks = COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" ) && !address.equals( ProxyLoginHandler.DEFAULT_SOCKS_SERVER_ADDRESS );
 
     final TCPTransportImpl transport_instance = this;    
     
@@ -209,7 +222,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         connect_request_key = null;
         description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
 
-        if( use_proxy ) {  //proxy server connection established, login
+        if( is_socks ) {  //proxy server connection established, login
         	if (Logger.isEnabled())
         		Logger.log(new LogEvent(LOGID,"Socket connection established to proxy server [" +description+ "], login initiated..."));
           
@@ -243,7 +256,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     
     connect_request_key = connect_listener;
     
-    InetSocketAddress to_connect = use_proxy ? ProxyLoginHandler.getProxyAddress( address ): address;
+    InetSocketAddress to_connect = is_socks ? ProxyLoginHandler.getProxyAddress( address ): address;
     
     TCPNetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection( to_connect, connect_listener, priority );
   }
