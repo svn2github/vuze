@@ -40,6 +40,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxySelector;
+import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
@@ -103,14 +105,23 @@ PRUDPPacketHandlerSocks
 		target	= _target;
 		
 		boolean	ok = false;
+	
+		AEProxySelector	proxy_selector = AEProxySelectorFactory.getSelector();
+		
+		Proxy proxy = proxy_selector.getSOCKSProxy( socks_host, socks_port );
+		
+		boolean		proxy_connected = false;
+		Throwable	error			= null;
 		
 		try{
 		    delegate = new PRUDPPacketHandlerImpl( 0, null, this );
 
 			control_socket = new Socket( Proxy.NO_PROXY );
 			
-			control_socket.connect( new InetSocketAddress( socks_host, socks_port ));
+			control_socket.connect( proxy.address());
 		
+			proxy_connected	= true;
+			
 			DataOutputStream 	dos = new DataOutputStream( new BufferedOutputStream( control_socket.getOutputStream(), 256 ));
 			DataInputStream 	dis = new DataInputStream( control_socket.getInputStream());
 						
@@ -265,9 +276,16 @@ PRUDPPacketHandlerSocks
 			
 		}catch( Throwable e ){
 			
+			error = e;
+			
 			throw( new PRUDPPacketHandlerException( "socks setup failed: " + Debug.getNestedExceptionMessage(e), e));
 			
 		}finally{
+			
+			if ( !proxy_connected ){
+				
+				proxy_selector.connectFailed( proxy, error );
+			}
 			
 			if ( !ok ){
 				

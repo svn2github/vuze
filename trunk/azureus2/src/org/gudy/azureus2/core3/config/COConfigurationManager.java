@@ -504,6 +504,13 @@ COConfigurationManager
 	}
 
 	public static void
+	addAndFireListener(
+		COConfigurationListener		listener )
+	{
+		ConfigurationManager.getInstance().addAndFireListener( listener );
+	}
+	
+	public static void
 	addParameterListener(String parameter, ParameterListener listener)
 	{
 	  ConfigurationManager.getInstance().addParameterListener(parameter, listener);

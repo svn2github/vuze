@@ -932,7 +932,15 @@ ConfigurationManager
   		
   	}
   }
+  public void addAndFireListener(COConfigurationListener listener) {
+  	synchronized( listenerz ){
 
+  		listenerz.add(listener);
+  		
+  	}
+  	
+  	listener.configurationSaved();
+  }
   public void removeListener(COConfigurationListener listener) {
 	  synchronized( listenerz ){
   	

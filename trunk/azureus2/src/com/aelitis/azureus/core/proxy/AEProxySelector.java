@@ -21,7 +21,21 @@
 
 package com.aelitis.azureus.core.proxy;
 
+import java.net.Proxy;
+
 public interface 
 AEProxySelector 
 {
+	public boolean
+	isSOCKSProxyingActive();
+	
+	public Proxy
+	getSOCKSProxy(
+		String				host,
+		int					port );
+	
+	public void
+	connectFailed(
+		Proxy				proxy,
+		Throwable			error );
 }
