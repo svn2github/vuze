@@ -27,8 +27,8 @@ import java.net.Proxy;
 public interface 
 AEProxySelector 
 {
-	public boolean
-	isSOCKSProxyingActive();
+	public Proxy
+	getActiveProxy();
 	
 	public Proxy
 	getSOCKSProxy(
@@ -45,4 +45,19 @@ AEProxySelector
 	connectFailed(
 		Proxy				proxy,
 		Throwable			error );
+	
+	public long
+	getLastConnectionTime();
+	
+	public int
+	getConnectionCount();
+	
+	public long
+	getLastFailTime();
+	
+	public int
+	getFailCount();
+	
+	public String
+	getInfo();
 }

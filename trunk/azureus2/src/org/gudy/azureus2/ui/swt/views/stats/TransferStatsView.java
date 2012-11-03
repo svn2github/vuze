@@ -22,6 +22,8 @@
 package org.gudy.azureus2.ui.swt.views.stats;
 
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -29,6 +31,8 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -36,6 +40,7 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
@@ -54,10 +59,13 @@ import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.Legend;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.components.graphics.PingGraphic;
 import org.gudy.azureus2.ui.swt.components.graphics.Plot3D;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
@@ -70,6 +78,8 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.proxy.AEProxySelector;
+import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
@@ -107,6 +117,10 @@ public class TransferStatsView
 	private Composite generalPanel;
 	private BufferedLabel nowUp, nowDown, sessionDown, sessionUp, session_ratio, sessionTime, totalDown, totalUp, total_ratio, totalTime;
   
+	private Label socksState;
+	private BufferedLabel socksCurrent, socksFails;
+	private Label socksMore;
+	
 	private Group autoSpeedPanel;
 	private StackLayout autoSpeedPanelLayout;
 	private Composite autoSpeedInfoPanel;
@@ -164,92 +178,176 @@ public class TransferStatsView
   }
 
   private void createGeneralPanel() {
-    generalPanel = new Composite(mainPanel,SWT.BORDER);
-    GridData generalPanelData = new GridData(GridData.FILL_HORIZONTAL);
-    generalPanel.setLayoutData(generalPanelData);
+	generalPanel = new Composite(mainPanel, SWT.NULL);
+	GridLayout outerLayout = new GridLayout();
+	outerLayout.numColumns = 2;
+	generalPanel.setLayout(outerLayout);
+	GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+	generalPanel.setLayoutData(gridData);
+	
+	Composite generalStatsPanel = new Composite(generalPanel,SWT.BORDER);
+	gridData = new GridData(GridData.FILL_HORIZONTAL);
+	gridData.grabExcessHorizontalSpace = true;
+    generalStatsPanel.setLayoutData(gridData);
     
     GridLayout panelLayout = new GridLayout();
     panelLayout.numColumns = 5;
     panelLayout.makeColumnsEqualWidth = true;
-    generalPanel.setLayout(panelLayout);
+    generalStatsPanel.setLayout(panelLayout);
     
-    GridData gridData;
     
-    Label lbl = new Label(generalPanel,SWT.NULL);
+    Label lbl = new Label(generalStatsPanel,SWT.NULL);
     
-    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.downloaded");
     
-    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.uploaded");
     
-    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.ratio");
     
-    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.uptime");
     
-    lbl = new Label(generalPanel,SWT.NULL);
-    lbl = new Label(generalPanel,SWT.NULL);
-    lbl = new Label(generalPanel,SWT.NULL);
-    lbl = new Label(generalPanel,SWT.NULL);
-    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
     
     /////// NOW /////////
-    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.now");
     
-    nowDown = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
+    nowDown = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     nowDown.setLayoutData(gridData);
     
-    nowUp = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
+    nowUp = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     nowUp.setLayoutData(gridData);
     
-    lbl = new Label(generalPanel,SWT.NULL);
-    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
     
     
     //////// SESSION ////////
-    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.session");
-    sessionDown = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
+    sessionDown = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     sessionDown.setLayoutData(gridData);
     
-    sessionUp = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
+    sessionUp = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     sessionUp.setLayoutData(gridData);
     
-    session_ratio = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
+    session_ratio = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     session_ratio.setLayoutData(gridData);    
     
-    sessionTime = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED );
+    sessionTime = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED );
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     sessionTime.setLayoutData(gridData);
     
     
     ///////// TOTAL ///////////
-    lbl = new Label(generalPanel,SWT.NULL);
+    lbl = new Label(generalStatsPanel,SWT.NULL);
     Messages.setLanguageText(lbl,"SpeedView.stats.total");
     
-    totalDown = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
+    totalDown = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalDown.setLayoutData(gridData);
     
-    totalUp = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
+    totalUp = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalUp.setLayoutData(gridData);
     
-    total_ratio = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
+    total_ratio = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     total_ratio.setLayoutData(gridData);
     
-    totalTime = new BufferedLabel(generalPanel,SWT.DOUBLE_BUFFERED);
+    totalTime = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalTime.setLayoutData(gridData);
+    
+    	// SOCKS area
+    
+	Composite generalSocksPanel = new Composite(generalPanel,SWT.BORDER);
+    GridData generalSocksData = new GridData();
+    generalSocksPanel.setLayoutData(generalSocksData);
+    
+    GridLayout socksLayout = new GridLayout();
+    socksLayout.numColumns = 2;
+	generalSocksPanel.setLayout(socksLayout);
+	
+    lbl = new Label(generalSocksPanel,SWT.NULL);
+    Messages.setLanguageText(lbl,"label.socks");
+    
+    lbl = new Label(generalSocksPanel,SWT.NULL);
+    
+    	// proxy state
+    
+    lbl = new Label(generalSocksPanel,SWT.NULL);
+    lbl.setText( MessageText.getString( "label.proxy" ) + ":" );
+    
+    socksState =  new Label(generalSocksPanel,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.widthHint = 120;
+    socksState.setLayoutData(gridData);
+    
+    	// current details
+    
+    lbl = new Label(generalSocksPanel,SWT.NULL);
+    lbl.setText( MessageText.getString( "PeersView.state" ) + ":" );
+    
+    socksCurrent =  new BufferedLabel(generalSocksPanel,SWT.DOUBLE_BUFFERED);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    socksCurrent.setLayoutData(gridData);
+    
+    	// fail details
+    
+    lbl = new Label(generalSocksPanel,SWT.NULL);
+    lbl.setText( MessageText.getString( "label.fails" ) + ":" );
+   
+    socksFails =  new BufferedLabel(generalSocksPanel,SWT.DOUBLE_BUFFERED);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    socksFails.setLayoutData(gridData);
+    
+    	// more info
+    
+    lbl = new Label(generalSocksPanel,SWT.NULL);
+    
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalAlignment = GridData.END;
+    socksMore  =  new Label(generalSocksPanel, SWT.NULL );
+    socksMore.setText( MessageText.getString( "label.more") + "..." ); 
+    socksMore.setLayoutData( gridData );
+    socksMore.setCursor(socksMore.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+    socksMore.setForeground(Colors.blue);
+    socksMore.addMouseListener(new MouseAdapter() {
+      public void mouseDoubleClick(MouseEvent arg0) {
+    	  showSOCKSInfo();
+      }
+      public void mouseUp(MouseEvent arg0) {
+    	  showSOCKSInfo();
+      }
+    });		
+  }
+  
+  private void
+  showSOCKSInfo()
+  {
+	  AEProxySelector proxy_selector = AEProxySelectorFactory.getSelector();
+
+	  String	info = proxy_selector.getInfo();
+	  
+	  TextViewerWindow viewer = new TextViewerWindow(
+			MessageText.getString( "proxy.info.title" ),
+			null,
+			info, false  );
+
   }
   
   private void
@@ -618,6 +716,59 @@ public class TransferStatsView
       total_ratio.setText( t_ratio );
       session_ratio.setText( s_ratio );
     }
+    
+    AEProxySelector proxy_selector = AEProxySelectorFactory.getSelector();
+    
+    Proxy proxy = proxy_selector.getActiveProxy();
+    
+    socksMore.setEnabled( proxy != null );
+    
+    socksState.setText( proxy==null?MessageText.getString( "label.inactive" ): ((InetSocketAddress)proxy.address()).getHostName());
+    
+    long	last_con 	= proxy_selector.getLastConnectionTime();
+    long	last_fail 	= proxy_selector.getLastFailTime();
+    int		total_cons	= proxy_selector.getConnectionCount();
+    int		total_fails	= proxy_selector.getFailCount();
+    
+    long	now = SystemTime.getMonotonousTime();
+    
+    long	con_ago		= now - last_con;
+    long	fail_ago 	= now - last_fail;
+   
+    String	state_str;
+    
+    if ( last_fail < 0 ){
+    	
+    	state_str = "PeerManager.status.ok";
+    	
+    }else{
+    	
+	    if ( fail_ago > 60*1000 ){
+	    	
+	    	if ( con_ago < fail_ago ){
+	    		
+	    		state_str = "PeerManager.status.ok";
+	    		
+	    	}else{
+	    		
+	    		state_str = "SpeedView.stats.unknown";
+	    	}
+	    }else{
+	    	
+	    	state_str = "ManagerItem.error";
+	    }
+    }
+    
+    socksCurrent.setText( MessageText.getString( state_str ) + ", tot=" + total_cons );
+    
+    long	fail_ago_secs = fail_ago/1000;
+    
+    if ( fail_ago_secs == 0 ){
+    	
+    	fail_ago_secs = 1;
+    }
+    
+    socksFails.setText( last_fail<0?"":(DisplayFormatters.formatETA( fail_ago_secs, false ) + " " + MessageText.getString( "label.ago" ) + ", tot=" + total_fails ));
   }  
   
   private void
@@ -650,6 +801,8 @@ public class TransferStatsView
 	  
 	  int	total_data_queued	= 0;
 	  
+	  int	total_in 	= 0;
+	  
 	  List<DownloadManager> dms = global_manager.getDownloadManagers();
 	  
 	  for ( DownloadManager dm: dms ){
@@ -666,14 +819,17 @@ public class TransferStatsView
 			  total_con_blocked	+= pm.getNbPeersWithUploadBlocked();
 			  
 			  total_con_unchoked += pm.getNbPeersUnchoked();
+			  
+			  total_in += pm.getNbRemoteTCPConnections() + pm.getNbRemoteUDPConnections() + pm.getNbRemoteUTPConnections();
 		  }
-		  
 	  }
 	  
 	  connection_label.setText(
 			MessageText.getString(
 					"SpeedView.stats.con_details",
-					new String[]{ String.valueOf(total_connections), String.valueOf(total_con_unchoked), String.valueOf(total_con_queued), String.valueOf(total_con_blocked) }));
+					new String[]{ 
+							String.valueOf(total_connections) + "[" +MessageText.getString( "label.in").toLowerCase() + ":" + total_in + "]", 
+							String.valueOf(total_con_unchoked), String.valueOf(total_con_queued), String.valueOf(total_con_blocked) }));
 	  
 	  connection_graphic.addIntsValue( new int[]{ total_connections, total_con_unchoked, total_con_queued, total_con_blocked });
 	  

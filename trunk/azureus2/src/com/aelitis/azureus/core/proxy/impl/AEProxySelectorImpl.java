@@ -44,6 +44,8 @@ AEProxySelectorImpl
 {		
 	private static final boolean	LOG = false;
 	
+	private static final String NL = "\r\n";
+
 	private static AEProxySelectorImpl		singleton = new AEProxySelectorImpl();
 	
 	private static List<Proxy>		no_proxy_list = Arrays.asList( new Proxy[]{ Proxy.NO_PROXY });
@@ -319,28 +321,24 @@ AEProxySelectorImpl
 		return( result );
 	}
 	
-	public boolean
-	isSOCKSProxyingActive()
+	public Proxy
+	getActiveProxy()
 	{
-		try{
-			List<Proxy> proxies =  select( new URL( "http://www.google.com/" ).toURI());
+		String proxy = System.getProperty( "socksProxyHost", "" );
+		
+		if ( proxy.trim().length() == 0 ){
 			
-			for ( Proxy p: proxies ){
-				
-				if ( p.type() == Proxy.Type.SOCKS ){
-					
-					return( true );
-				}
-			}
-			
-			return( false );
-			
-		}catch( Throwable e ){
-			
-			Debug.out( e );
-			
-			return( false );
+			return( null );
 		}
+		
+		ActiveProxy active = active_proxy;
+		
+		if ( active == null ){
+			
+			return( null );
+		}
+		
+		return( new Proxy( Proxy.Type.SOCKS, active.getAddress()));
 	}
 	
 	public void
@@ -349,6 +347,71 @@ AEProxySelectorImpl
 		Throwable		error )
 	{
 		connectFailed( proxy.address(), error );
+	}
+	
+	public long
+	getLastConnectionTime()
+	{
+		ActiveProxy active = active_proxy;
+		
+		if ( active == null ){
+			
+			return( -1 );
+		}
+		
+		return( active.getLastConnectionTime());
+	}
+	
+	public long
+	getLastFailTime()
+	{
+		ActiveProxy active = active_proxy;
+		
+		if ( active == null ){
+			
+			return( -1 );
+		}
+		
+		return( active.getLastFailTime());
+	}
+	
+	public int 
+	getConnectionCount() 
+	{
+		ActiveProxy active = active_proxy;
+		
+		if ( active == null ){
+			
+			return( 0 );
+		}
+		
+		return( active.getConnectionCount());
+	}
+	
+	public int
+	getFailCount()
+	{
+		ActiveProxy active = active_proxy;
+		
+		if ( active == null ){
+			
+			return( 0 );
+		}
+		
+		return( active.getFailCount());
+	}
+	
+	public String
+	getInfo()
+	{
+		ActiveProxy active = active_proxy;
+		
+		if ( active == null || getActiveProxy() == null ){
+			
+			return( "No proxy active" );
+		}
+		
+		return( active.getInfo());
 	}
 	
 	private class
@@ -370,6 +433,11 @@ AEProxySelectorImpl
 		
 		private long				default_dns_tried_time	= -1;
 		
+		private volatile long	last_connection_time	= -1;
+		private volatile int 	connection_count		= 0;
+		private volatile long	last_fail_time			= -1;
+		private volatile int	fail_count				= 0;
+		
 		private
 		ActiveProxy(
 			String			_proxy_host,
@@ -384,6 +452,32 @@ AEProxySelectorImpl
 			    								    		
     		proxy_list_cow.add( new MyProxy( address ));
  		}
+		
+		public String
+		getInfo()
+		{			
+			StringBuffer sb = new StringBuffer(2048);
+			
+			long now		= SystemTime.getCurrentTime();
+			long mono_now 	= SystemTime.getMonotonousTime();
+			
+			sb.append( "Proxy: " + address + NL );
+			sb.append( "Last connection attempt: " + (last_connection_time==-1?"Never":( new Date( now - ( mono_now - last_connection_time )))) + NL );
+			sb.append( "Last failure: " + (last_fail_time==-1?"Never":( new Date( now - ( mono_now - last_fail_time )))) + NL );
+			sb.append( "Total connections: " + connection_count + NL );
+			sb.append( "Total failures: " + fail_count + NL );
+			
+			List<MyProxy> proxies = new ArrayList<MyProxy>( proxy_list_cow );
+			
+			sb.append( NL );
+			
+			for ( MyProxy p: proxies ){
+				
+				sb.append( p.getInfo( now, mono_now ) + NL );
+			}
+			
+			return( sb.toString());
+		}
 		
 		private void
 		updateServers(
@@ -411,6 +505,30 @@ AEProxySelectorImpl
 			return( address );
 		}
 		
+		public long
+		getLastConnectionTime()
+		{
+			return( last_connection_time );
+		}
+		
+		public int
+		getConnectionCount()
+		{
+			return( connection_count );
+		}
+		
+		public long
+		getLastFailTime()
+		{
+			return( last_fail_time );
+		}
+		
+		public int
+		getFailCount()
+		{
+			return( fail_count );
+		}
+		
 		private MyProxy
 		select()
 		{
@@ -421,6 +539,10 @@ AEProxySelectorImpl
 			MyProxy proxy = proxy_list_cow.get( 0 );
 			
 			proxy.handedOut();
+			
+			last_connection_time = SystemTime.getMonotonousTime();
+			
+			connection_count++;
 			
 			return( proxy );
 		}
@@ -440,6 +562,12 @@ AEProxySelectorImpl
 				return;
 			}		
 
+			long	now_mono = SystemTime.getMonotonousTime();
+
+			last_fail_time	= now_mono;
+			
+			fail_count++;
+			
 			if ( LOG ){
 				System.out.println( "failed: " + failed_isa + " -> " + msg );
 			}
@@ -512,8 +640,6 @@ AEProxySelectorImpl
 					}
 					
 					if ( alt_dns_enable ){
-
-						long	now_mono = SystemTime.getMonotonousTime();
 						
 						if ( 	default_dns_tried_time == -1 ||
 								now_mono - default_dns_tried_time >= DNS_RETRY_MILLIS ){
@@ -638,6 +764,29 @@ AEProxySelectorImpl
 		getFailCount()
 		{
 			return( fail_count );
+		}
+		
+		private String
+		getInfo(
+			long	now,
+			long	mono_now )
+		{
+			InetSocketAddress address = (InetSocketAddress)address();
+			
+			InetAddress ia = address.getAddress();
+			
+			String str = ia==null?address.getHostName():ia.getHostAddress();
+			
+			if ( last_use > 0 ){
+			
+				str += NL + "\tcons=" + use_count + ", last=" + new Date( now - ( mono_now - last_use ));
+			}
+			if ( last_fail > 0 ){
+				
+				str += NL + "\tfails=" + fail_count + ", last=" + new Date( now - ( mono_now - last_fail ));
+			}
+		
+			return( str );
 		}
 	}
 }
