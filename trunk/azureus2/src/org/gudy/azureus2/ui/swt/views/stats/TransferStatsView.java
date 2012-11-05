@@ -759,7 +759,7 @@ public class TransferStatsView
 	    }
     }
     
-    socksCurrent.setText( MessageText.getString( state_str ) + ", tot=" + total_cons );
+    socksCurrent.setText( MessageText.getString( state_str ) + ", con=" + total_cons );
     
     long	fail_ago_secs = fail_ago/1000;
     

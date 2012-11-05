@@ -502,7 +502,7 @@ public class MainStatusBar
 
 		Listener lStats = new Listener() {
 			public void handleEvent(Event e) {
-				uiFunctions.getMDI().loadEntryByID(StatsView.VIEW_ID, true, false, "transfers");
+				uiFunctions.getMDI().loadEntryByID(StatsView.VIEW_ID, true, false, "TransferStatsView");
 			}
 		};
 
@@ -517,7 +517,7 @@ public class MainStatusBar
 
 		Listener lDHT = new Listener() {
 			public void handleEvent(Event e) {
-				uiFunctions.getMDI().loadEntryByID(StatsView.VIEW_ID, true, false, "dht");
+				uiFunctions.getMDI().loadEntryByID(StatsView.VIEW_ID, true, false, "DHTView");
 			}
 		};
 
@@ -526,7 +526,7 @@ public class MainStatusBar
 		Listener lSR = new Listener() {
 			public void handleEvent(Event e) {
 
-				uiFunctions.getMDI().loadEntryByID(StatsView.VIEW_ID, true, false, "activity");
+				uiFunctions.getMDI().loadEntryByID(StatsView.VIEW_ID, true, false, "SpeedView");
 
 				OverallStats stats = StatsFactory.getStats();
 				

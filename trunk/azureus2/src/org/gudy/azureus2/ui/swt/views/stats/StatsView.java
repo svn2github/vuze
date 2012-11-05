@@ -189,7 +189,7 @@ public class StatsView
 					try {
 						UISWTViewImpl view = new UISWTViewImpl(
 								UISWTInstance.VIEW_STATISTICS, name, l, null);
-						addSection(view, null);
+						addSection(view, name);
 					} catch (Exception e) {
 						// skip
 					}
@@ -238,6 +238,8 @@ public class StatsView
   		Object ds = item.getData("ds");
   		if (ds == null) {
   			ds = dataSource;
+  		}else{
+  			dataSource = ds;
   		}
 
 			UISWTViewCore view = (UISWTViewCore) item.getData("IView");
@@ -373,24 +375,19 @@ public class StatsView
 			return;
 		}
 		if (newDataSource instanceof String) {
-			int i = -1;
-
-			if ("dht".equals(newDataSource)) {
-				i = idxDHTView;
-			} else if ("transfers".equals(newDataSource)) {
-				i = idxTransfersView;
-			} else {
-				i = idxActivityTab;
+			
+			for ( CTabItem item: folder.getItems()){
+				
+				String ds = (String)item.getData( "ds" );
+				
+				if ( newDataSource.equals( ds ))
+			
+					selectView(item);
 			}
-
-			if (i >= 0) {
-				CTabItem item = folder.getItem(i);
-				selectView(item);
-			}
-
 		}
 	}
 
+	/*
 	private int addSection(String titleIdPrefix, Class<?> claEventListener) {
 		return addSection(titleIdPrefix, claEventListener, null);
 	}
@@ -404,7 +401,8 @@ public class StatsView
 		}
 		return folder.indexOf(item);
 	}
-
+	*/
+	
 	private void addSection(UISWTViewCore view, Object dataSource) {
 		if (view == null)
 			return;
@@ -414,6 +412,9 @@ public class StatsView
 		CTabItem item = new CTabItem(folder, SWT.NULL);
 		Messages.setLanguageText(item, view.getTitleID());
 		item.setData("IView", view);
+		if (dataSource != null) {
+			item.setData("ds", dataSource);
+		}
 		tabViews.add(view);
 	}
 
