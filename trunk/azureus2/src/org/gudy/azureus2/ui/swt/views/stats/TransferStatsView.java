@@ -58,6 +58,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -723,52 +724,65 @@ public class TransferStatsView
     
     socksMore.setEnabled( proxy != null );
     
+    if ( Constants.isOSX ){
+    	
+    	socksMore.setForeground(proxy==null?Colors.light_grey:Colors.blue);
+    }
+    
     socksState.setText( proxy==null?MessageText.getString( "label.inactive" ): ((InetSocketAddress)proxy.address()).getHostName());
     
-    long	last_con 	= proxy_selector.getLastConnectionTime();
-    long	last_fail 	= proxy_selector.getLastFailTime();
-    int		total_cons	= proxy_selector.getConnectionCount();
-    int		total_fails	= proxy_selector.getFailCount();
-    
-    long	now = SystemTime.getMonotonousTime();
-    
-    long	con_ago		= now - last_con;
-    long	fail_ago 	= now - last_fail;
-   
-    String	state_str;
-    
-    if ( last_fail < 0 ){
+    if ( proxy == null ){
     	
-    	state_str = "PeerManager.status.ok";
+    	socksCurrent.setText( "" );
+    	
+    	socksFails.setText( "" );
     	
     }else{
-    	
-	    if ( fail_ago > 60*1000 ){
+	    long	last_con 	= proxy_selector.getLastConnectionTime();
+	    long	last_fail 	= proxy_selector.getLastFailTime();
+	    int		total_cons	= proxy_selector.getConnectionCount();
+	    int		total_fails	= proxy_selector.getFailCount();
+	    
+	    long	now = SystemTime.getMonotonousTime();
+	    
+	    long	con_ago		= now - last_con;
+	    long	fail_ago 	= now - last_fail;
+	   
+	    String	state_str;
+	    
+	    if ( last_fail < 0 ){
 	    	
-	    	if ( con_ago < fail_ago ){
-	    		
-	    		state_str = "PeerManager.status.ok";
-	    		
-	    	}else{
-	    		
-	    		state_str = "SpeedView.stats.unknown";
-	    	}
+	    	state_str = "PeerManager.status.ok";
+	    	
 	    }else{
 	    	
-	    	state_str = "ManagerItem.error";
+		    if ( fail_ago > 60*1000 ){
+		    	
+		    	if ( con_ago < fail_ago ){
+		    		
+		    		state_str = "PeerManager.status.ok";
+		    		
+		    	}else{
+		    		
+		    		state_str = "SpeedView.stats.unknown";
+		    	}
+		    }else{
+		    	
+		    	state_str = "ManagerItem.error";
+		    }
 	    }
+	    
+	    socksCurrent.setText( MessageText.getString( state_str ) + ", con=" + total_cons );
+	    
+	    long	fail_ago_secs = fail_ago/1000;
+	    
+	    if ( fail_ago_secs == 0 ){
+	    	
+	    	fail_ago_secs = 1;
+	    }
+	    
+	    socksFails.setText( last_fail<0?"":(DisplayFormatters.formatETA( fail_ago_secs, false ) + " " + MessageText.getString( "label.ago" ) + ", tot=" + total_fails ));
     }
-    
-    socksCurrent.setText( MessageText.getString( state_str ) + ", con=" + total_cons );
-    
-    long	fail_ago_secs = fail_ago/1000;
-    
-    if ( fail_ago_secs == 0 ){
-    	
-    	fail_ago_secs = 1;
-    }
-    
-    socksFails.setText( last_fail<0?"":(DisplayFormatters.formatETA( fail_ago_secs, false ) + " " + MessageText.getString( "label.ago" ) + ", tot=" + total_fails ));
   }  
   
   private void
