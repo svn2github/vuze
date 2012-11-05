@@ -62,12 +62,6 @@ public class StatsView
 
 	private ArrayList<UISWTViewCore> tabViews = new ArrayList<UISWTViewCore>();
 
-	private int idxActivityTab = -1;
-
-	private int idxDHTView = -1;
-
-	private int idxTransfersView = -1;
-
 	private UpdateThread updateThread;
 
 	private Object dataSource;
@@ -178,21 +172,13 @@ public class StatsView
 			for (int i = 0; i < pluginViews.length; i++) {
 				UISWTViewEventListenerWrapper l = pluginViews[i];
 				String name = l.getViewID();
-				if (name.equals(ActivityView.MSGID_PREFIX)) {
-					idxActivityTab = i;
-				} else if (name.equals(TransferStatsView.MSGID_PREFIX)) {
-					idxTransfersView = i;
-				} else if (idxDHTView == -1 && name.equals(DHTView.MSGID_PREFIX)) {
-					idxTransfersView = i;
-				}
-				if (l != null) {
-					try {
-						UISWTViewImpl view = new UISWTViewImpl(
-								UISWTInstance.VIEW_STATISTICS, name, l, null);
-						addSection(view, name);
-					} catch (Exception e) {
-						// skip
-					}
+			
+				try {
+					UISWTViewImpl view = new UISWTViewImpl(
+							UISWTInstance.VIEW_STATISTICS, name, l, null);
+					addSection(view, name);
+				} catch (Exception e) {
+					// skip
 				}
 			}
 		}
@@ -209,6 +195,19 @@ public class StatsView
 			public void runSupport() {
 				if (folder == null || folder.isDisposed() || folder.getItemCount() == 0) {
 					return;
+				}
+				if ( dataSource != null ){
+					for ( CTabItem item: folder.getItems()){
+						
+						String ds = (String)item.getData( "ds" );
+						
+						if ( dataSource.equals( ds )){
+							
+							selectView( item );
+							
+							return;
+						}
+					}
 				}
 				selectView(folder.getItem(0));
 			}
@@ -235,25 +234,26 @@ public class StatsView
 			// wants to do something when view goes invisible
 			refresh();
 
-  		Object ds = item.getData("ds");
-  		if (ds == null) {
-  			ds = dataSource;
-  		}else{
-  			dataSource = ds;
-  		}
+			Object ds = item.getData("ds");
+						
+			if (ds == null) {
+				ds = dataSource;
+			}else{
+				dataSource = ds;
+			}
 
 			UISWTViewCore view = (UISWTViewCore) item.getData("IView");
-    	if (view == null) {
-    		Class<?> cla = (Class<?>)item.getData("claEventListener");
-    		UISWTViewEventListener l = (UISWTViewEventListener) cla.newInstance();
+			if (view == null) {
+				Class<?> cla = (Class<?>)item.getData("claEventListener");
+				UISWTViewEventListener l = (UISWTViewEventListener) cla.newInstance();
 				view = new UISWTViewImpl(UISWTInstance.VIEW_MAIN, cla.getSimpleName(),
 						l, ds);
-    		item.setData("IView", view);
-    	}
+				item.setData("IView", view);
+			}
 			activeView = view;
 
 			if (item.getControl() == null) {
-    		view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, ds);
+				view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, ds);
 				view.initialize(folder);
 				item.setControl(view.getComposite());
 			}
@@ -262,6 +262,8 @@ public class StatsView
 
 			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 			if (uiFunctions != null) {
+				uiFunctions.getMDI().getEntry( StatsView.VIEW_ID ).setDatasource( dataSource );
+				
 				uiFunctions.refreshIconBar(); // For edit columns view
 			}
 
@@ -370,6 +372,13 @@ public class StatsView
 	}
 
 	private void dataSourceChanged(Object newDataSource) {
+		if ( dataSource == newDataSource ){
+			return;
+		}
+		if ( dataSource != null && newDataSource != null && dataSource.equals( newDataSource )){
+			return;
+		}
+		
 		dataSource = newDataSource;
 		if (folder == null) {
 			return;
@@ -380,9 +389,10 @@ public class StatsView
 				
 				String ds = (String)item.getData( "ds" );
 				
-				if ( newDataSource.equals( ds ))
+				if ( newDataSource.equals( ds )){
 			
 					selectView(item);
+				}
 			}
 		}
 	}
