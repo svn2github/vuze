@@ -34,7 +34,11 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.proxy.*;
+import com.aelitis.azureus.core.proxy.impl.swt.AEProxySelectorSWTImpl;
 import com.aelitis.azureus.core.util.DNSUtils;
 
 public class 
@@ -173,6 +177,17 @@ AEProxySelectorImpl
 			
 			Debug.out( e );
 		}
+		
+		AzureusCoreFactory.addCoreRunningListener(
+				new AzureusCoreRunningListener()
+				{
+					public void 
+					azureusCoreRunning(
+						AzureusCore core )
+					{						
+						new AEProxySelectorSWTImpl( core, AEProxySelectorImpl.this );
+					}
+				});
 	}
 	
 	public List<Proxy> 
@@ -563,10 +578,6 @@ AEProxySelectorImpl
 			}		
 
 			long	now_mono = SystemTime.getMonotonousTime();
-
-			last_fail_time	= now_mono;
-			
-			fail_count++;
 			
 			if ( LOG ){
 				System.out.println( "failed: " + failed_isa + " -> " + msg );
@@ -619,10 +630,17 @@ AEProxySelectorImpl
 				
 				if ( matching_proxy == null ){
 					
-					System.out.println( "No proxy match for " + failed_isa );
+						// can happen when switching proxy config
 					
+					if ( LOG ){
+						System.out.println( "No proxy match for " + failed_isa );
+					}
 				}else{
 					
+					last_fail_time	= now_mono;
+					
+					fail_count++;
+
 						// stick it at the end of the list
 					
 					new_list.add( matching_proxy );

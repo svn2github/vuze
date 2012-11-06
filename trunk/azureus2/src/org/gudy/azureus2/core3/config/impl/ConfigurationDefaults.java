@@ -295,7 +295,8 @@ public class ConfigurationDefaults {
     def.put( "Proxy.Username", "<none>" );	// default is explicit "none", as opposed to "not defined"
     def.put( "Proxy.Password", "" );
     def.put( "Proxy.Check.On.Start", TRUE );
-    
+    def.put( "Proxy.SOCKS.ShowIcon", TRUE );
+    	
     	// data proxy defaults
     def.put( "Proxy.Data.Enable", FALSE);
     def.put( "Proxy.Data.SOCKS.version", "V4" );
