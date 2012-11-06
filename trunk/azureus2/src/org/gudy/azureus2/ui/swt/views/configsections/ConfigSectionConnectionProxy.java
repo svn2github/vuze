@@ -477,6 +477,16 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		gridData.horizontalSpan = 2;
 		showIcon.setLayoutData(gridData);
 		
+		final BooleanParameter flagIncoming = new BooleanParameter(cSection,
+				"Proxy.SOCKS.ShowIcon.FlagIncoming", CFG_PREFIX + "show_icon.flag.incoming");
+		gridData = new GridData();
+		gridData.horizontalIndent=50;
+		gridData.horizontalSpan = 2;
+		flagIncoming.setLayoutData(gridData);
+		
+		showIcon.setAdditionalActionPerformer(
+			new ChangeSelectionActionPerformer(flagIncoming));
+		
 			// username info
 		
 		label = new Label(cSection, SWT.WRAP);

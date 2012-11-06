@@ -68,6 +68,18 @@ AEProxySelectorSWTImpl
 	
 	private Image	last_icon;
 
+	private boolean	flag_incoming;
+	
+	{
+		COConfigurationManager.addAndFireParameterListener(
+			"Proxy.SOCKS.ShowIcon.FlagIncoming",
+			new ParameterListener()
+			{
+				public void parameterChanged(String name) {
+					flag_incoming = COConfigurationManager.getBooleanParameter( name );
+				}
+			});
+	}
 	private long	last_bad_peer_update;
 	
 	private volatile boolean	is_visible;
@@ -307,53 +319,56 @@ AEProxySelectorSWTImpl
 		    }
 		}
 		
-		boolean	bad_incoming = false;
-
-		if ( now - last_bad_peer_update > 15*1000 ){
+		if ( flag_incoming ){
 			
-			last_bad_peer_update = now;
-			
-			List<DownloadManager> dms = core.getGlobalManager().getDownloadManagers();
-						
-			for ( DownloadManager dm: dms ){
+			boolean	bad_incoming = false;
+	
+			if ( now - last_bad_peer_update > 15*1000 ){
 				
-				PEPeerManager pm = dm.getPeerManager();
+				last_bad_peer_update = now;
 				
-				if ( pm != null ){
-					
-					if ( pm.getNbRemoteTCPConnections() + pm.getNbRemoteUDPConnections() + pm.getNbRemoteUTPConnections() > 0 ){
-						
-						List<PEPeer> peers = pm.getPeers();
-						
-						for ( PEPeer peer: peers ){
+				List<DownloadManager> dms = core.getGlobalManager().getDownloadManagers();
 							
-							if ( peer.isIncoming()){
+				for ( DownloadManager dm: dms ){
+					
+					PEPeerManager pm = dm.getPeerManager();
+					
+					if ( pm != null ){
+						
+						if ( pm.getNbRemoteTCPConnections() + pm.getNbRemoteUDPConnections() + pm.getNbRemoteUTPConnections() > 0 ){
+							
+							List<PEPeer> peers = pm.getPeers();
+							
+							for ( PEPeer peer: peers ){
 								
-								if ( !peer.isLANLocal()){
+								if ( peer.isIncoming()){
 									
-									bad_incoming = true;
-									
-									break;
+									if ( !peer.isLANLocal()){
+										
+										bad_incoming = true;
+										
+										break;
+									}
 								}
 							}
 						}
 					}
-				}
-				
-				if ( bad_incoming ){
 					
-					break;
+					if ( bad_incoming ){
+						
+						break;
+					}
 				}
+			}else if ( last_icon == icon_red ){
+				
+				bad_incoming = true;
 			}
-		}else if ( last_icon == icon_red ){
 			
-			bad_incoming = true;
-		}
-		
-		if ( bad_incoming ){
-			
-			icon 	= icon_red;
-			tip_key	= "proxy.socks.bad.incoming";
+			if ( bad_incoming ){
+				
+				icon 	= icon_red;
+				tip_key	= "proxy.socks.bad.incoming";
+			}
 		}
 		
 		if ( last_icon != icon ){
