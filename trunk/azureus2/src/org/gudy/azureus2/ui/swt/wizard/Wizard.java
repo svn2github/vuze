@@ -430,6 +430,10 @@ public class Wizard {
   }
 
   public void switchToClose() {
+	  switchToClose(null);
+  }
+  
+  public void switchToClose( final Runnable do_it) {
     if (!wizardWindow.isDisposed()) {
 	    display.asyncExec(new AERunnable() {
 	       public void runSupport() {
@@ -438,6 +442,10 @@ public class Wizard {
 	          cancel.setText(MessageText.getString("wizard.close"));
 	          cancel.setEnabled(true);
 			  setDefaultButton();
+			  
+			  if ( do_it != null ){
+				  do_it.run();
+			  }
 	        }
 	      }
 	    });

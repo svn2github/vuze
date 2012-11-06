@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -41,8 +43,10 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 
@@ -58,6 +62,7 @@ public class ProgressPanel extends AbstractWizardPanel<NewTorrentWizard> impleme
   Text tasks;
   ProgressBar progress;
   Display display;
+  Button show_torrent_file;
 
   public ProgressPanel(NewTorrentWizard wizard, IWizardPanel<NewTorrentWizard> _previousPanel) {
     super(wizard, _previousPanel);
@@ -79,20 +84,50 @@ public class ProgressPanel extends AbstractWizardPanel<NewTorrentWizard> impleme
     GridData gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.FILL_HORIZONTAL);
     panel.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 1;
+    layout.numColumns = 2;
     panel.setLayout(layout);
 
     tasks = new Text(panel, SWT.BORDER | SWT.MULTI | SWT.READ_ONLY);
     tasks.setBackground(display.getSystemColor(SWT.COLOR_WHITE));
     gridData = new GridData(GridData.FILL_BOTH);
     gridData.heightHint = 120;
+    gridData.horizontalSpan = 2;
     tasks.setLayoutData(gridData);
 
     progress = new ProgressBar(panel, SWT.NULL);
     progress.setMinimum(0);
     progress.setMaximum(0);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
     progress.setLayoutData(gridData);
+    
+    Label label = new Label( panel, SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    label.setLayoutData(gridData);
+    Composite Browsepanel = new Composite(panel, SWT.NULL);
+    layout = new GridLayout();
+    layout.numColumns = 2;
+    Browsepanel.setLayout(layout);
+    
+	label = new Label(Browsepanel, SWT.NULL);
+	Messages.setLanguageText(label, "wizard.newtorrent.showtorrent" );
+
+	show_torrent_file = new Button( Browsepanel, SWT.PUSH );
+	
+ 	Messages.setLanguageText( show_torrent_file, "MyTorrentsView.menu.explore");
+ 	
+ 	show_torrent_file.addSelectionListener(
+ 		new SelectionAdapter()
+ 		{
+ 			public void
+ 			widgetSelected(
+ 				SelectionEvent e )
+ 			{
+ 				ManagerUtils.open( new File( wizard.savePath));
+ 			}
+ 		});
+ 	
+ 	show_torrent_file.setEnabled( false );
   }
 
   /* (non-Javadoc)
@@ -248,7 +283,16 @@ public class ProgressPanel extends AbstractWizardPanel<NewTorrentWizard> impleme
       
       torrent.serialiseToBEncodedFile(torrent_file);
       this.reportCurrentTask(MessageText.getString("wizard.filesaved"));
-	  wizard.switchToClose();
+            
+	  wizard.switchToClose(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+				     show_torrent_file.setEnabled( true );
+				}
+			});
 	  
 	  if ( wizard.autoOpen ){
 	  	CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
