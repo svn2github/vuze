@@ -90,7 +90,7 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
         String error = "";
         if(! fName.equals("")) {          
           File f = new File(file.getText());
-          if(f.exists() || f.isDirectory()) {
+          if( f.isDirectory() || ( f.getParentFile() != null && !f.getParentFile().canWrite())){
             error = MessageText.getString("wizard.invalidfile");
           }else{           
             String	parent = f.getParent();
@@ -357,4 +357,28 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
     return new ProgressPanel( wizard, this );
   }
 
+  public boolean
+  isFinishSelectionOK()
+  {
+	  String save_path = wizard.savePath;
+
+	  File f = new File( save_path );
+
+	  if ( f.isFile()){
+		  MessageBox mb = new MessageBox(wizard.getWizardWindow(),SWT.ICON_QUESTION | SWT.YES | SWT.NO);
+
+		  mb.setText(MessageText.getString("exportTorrentWizard.process.outputfileexists.title"));
+
+		  mb.setMessage(MessageText.getString("exportTorrentWizard.process.outputfileexists.message"));
+
+		  int result = mb.open();
+
+		  if( result == SWT.NO ){
+
+			  return( false );
+		  }
+	  }
+	  
+	  return( true );
+  }
 }
