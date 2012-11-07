@@ -54,6 +54,15 @@ AEProxySelectorImpl
 	
 	private static List<Proxy>		no_proxy_list = Arrays.asList( new Proxy[]{ Proxy.NO_PROXY });
 
+	private static ThreadLocal<Integer>		tls	= 
+		new ThreadLocal<Integer>()
+		{
+			public Integer
+			initialValue()
+			{
+				return( 0 );
+			}
+		};
 	
 	public static AEProxySelector
 	getSingleton()
@@ -190,11 +199,32 @@ AEProxySelectorImpl
 				});
 	}
 	
+	public void
+	startNoProxy()
+	{
+		tls.set( tls.get() + 1  );
+	}
+	
+	public void
+	endNoProxy()
+	{
+		tls.set( tls.get() - 1  );
+	}
+	
 	public List<Proxy> 
 	select(
 		URI uri )
 	{	
-		List<Proxy>  result = selectSupport( uri );
+		List<Proxy>  result;
+		
+		if ( tls.get() > 0 ){
+			
+			result = no_proxy_list;
+			
+		}else{
+		
+			result = selectSupport( uri );
+		}
 		
 		if ( LOG ){
 			System.out.println( "select: " + uri + " -> " + result );
@@ -273,7 +303,7 @@ AEProxySelectorImpl
 		
 		return( Arrays.asList( new Proxy[]{ active.select()}));
 	}
-
+	
 	private void
 	connectFailed(
 		SocketAddress	sa,
@@ -308,7 +338,7 @@ AEProxySelectorImpl
 		String				host,
 		int					port,
 		InetSocketAddress	target )
-	{		
+	{	
 		InetSocketAddress isa = new InetSocketAddress( host, port );
 		
 		return( getSOCKSProxy( isa, target ));
@@ -319,15 +349,26 @@ AEProxySelectorImpl
 		InetSocketAddress	isa,
 		InetSocketAddress	target )
 	{		
-		ActiveProxy active = active_proxy;
+		Proxy result;
 		
-		if ( 	active == null || 
-				!active.getAddress().equals( isa )){
+		if ( tls.get() > 0 ){
 			
-			return( new Proxy( Proxy.Type.SOCKS, isa ));
-		}
+			result = Proxy.NO_PROXY;
+			
+		}else{
 		
-		Proxy result = active.select();
+			ActiveProxy active = active_proxy;
+			
+			if ( 	active == null || 
+					!active.getAddress().equals( isa )){
+				
+				result = new Proxy( Proxy.Type.SOCKS, isa );
+				
+			}else{
+		
+				result = active.select();
+			}
+		}
 		
 		if ( LOG ){
 			System.out.println( "select: " + target + " -> " + result );

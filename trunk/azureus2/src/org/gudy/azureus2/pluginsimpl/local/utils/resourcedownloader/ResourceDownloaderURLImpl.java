@@ -26,6 +26,8 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
  *
  */
 
+import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
+import com.aelitis.azureus.core.proxy.impl.AEProxySelectorImpl;
 import com.aelitis.azureus.core.util.Java15Utils;
 
 import java.io.*;
@@ -240,6 +242,11 @@ ResourceDownloaderURLImpl
 				url = AddressUtils.adjustURL( url );
 
 				try{
+					if ( force_no_proxy ){
+						
+						AEProxySelectorFactory.getSelector().startNoProxy();
+					}
+					
 					if ( auth_supplied ){
 	
 						SESecurityManager.setPasswordHandler( url, this );
@@ -338,6 +345,11 @@ ResourceDownloaderURLImpl
 					if ( auth_supplied ){
 					
 						SESecurityManager.setPasswordHandler( url, null );
+					}
+					
+					if ( force_no_proxy ){
+						
+						AEProxySelectorFactory.getSelector().startNoProxy();
 					}
 				}
 			}catch (java.net.MalformedURLException e){
@@ -507,6 +519,11 @@ ResourceDownloaderURLImpl
 				url = AddressUtils.adjustURL( url );
 				
 				try{
+					if ( force_no_proxy ){
+						
+						AEProxySelectorFactory.getSelector().startNoProxy();
+					}
+					
 					if ( auth_supplied ){
 						
 						SESecurityManager.setPasswordHandler( url, this );
@@ -974,6 +991,11 @@ redirect_label:
 								
 						SESecurityManager.setPasswordHandler( url, null );
 					}
+					
+					if ( force_no_proxy ){
+						
+						AEProxySelectorFactory.getSelector().endNoProxy();
+					}
 				}
 			}catch (java.net.MalformedURLException e){
 				
@@ -1154,9 +1176,20 @@ redirect_label:
 	{
 	}
 	
-	private URLConnection openConnection(URL url) throws IOException {
-		if (this.force_no_proxy) {return Java15Utils.openConnectionForceNoProxy(url);}
-		else {return url.openConnection();}
+	private URLConnection 
+	openConnection(
+		URL url) 
+	
+		throws IOException 
+	{
+		if ( force_no_proxy ){
+		
+			return( url.openConnection( Proxy.NO_PROXY ));
+			
+		}else{
+			
+			return url.openConnection();
+		}
 	}
 	
 	protected String

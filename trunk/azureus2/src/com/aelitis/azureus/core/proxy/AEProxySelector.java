@@ -30,6 +30,12 @@ AEProxySelector
 	public Proxy
 	getActiveProxy();
 	
+	public void
+	startNoProxy();
+	
+	public void
+	endNoProxy();
+	
 	public Proxy
 	getSOCKSProxy(
 		InetSocketAddress	proxy_address,

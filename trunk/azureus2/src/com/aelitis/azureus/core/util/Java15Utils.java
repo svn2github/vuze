@@ -21,11 +21,8 @@
 
 package com.aelitis.azureus.core.util;
 
-import java.io.IOException;
 import java.lang.management.ManagementFactory;
 import java.lang.management.ThreadMXBean;
-import java.net.Proxy;
-import java.net.URL;
 import java.net.URLConnection;
 
 
@@ -75,14 +72,5 @@ Java15Utils
 	dumpThreads()
 	{
 		AEThreadMonitor.dumpThreads();
-	}
-	
-	public static URLConnection 
-	openConnectionForceNoProxy(
-		URL url) 
-	
-		throws IOException 
-	{
-		return url.openConnection(Proxy.NO_PROXY);
 	}
 }

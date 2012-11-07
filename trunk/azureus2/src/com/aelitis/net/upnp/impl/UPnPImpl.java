@@ -31,6 +31,7 @@ import java.util.*;
 import java.net.*;
 import java.io.*;
 
+import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
 import com.aelitis.azureus.core.util.Java15Utils;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -765,9 +766,11 @@ UPnPImpl
 			if ( use_http_connection ){
 				
 				try{
+					AEProxySelectorFactory.getSelector().startNoProxy();
+					
 					TorrentUtils.setTLSDescription( "UPnP Device: " + service.getDevice().getFriendlyName());
 				
-					HttpURLConnection	con1 = (HttpURLConnection)Java15Utils.openConnectionForceNoProxy(control);
+					HttpURLConnection	con1 = (HttpURLConnection)control.openConnection();
 						
 					con1.setRequestProperty( "SOAPAction", "\""+ soap_action + "\"");
 						
@@ -850,6 +853,8 @@ UPnPImpl
 				}finally{
 					
 					TorrentUtils.setTLSDescription( null );
+					
+					AEProxySelectorFactory.getSelector().endNoProxy();
 				}
 			}else{
 				final int CONNECT_TIMEOUT 	= 15*1000;
