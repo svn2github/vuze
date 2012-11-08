@@ -1167,34 +1167,34 @@ UPnPPlugin
 			
 		mapping_manager.serviceFound( wan_service );
 
+		log.log( "    Found " + ( wan_service.getGenericService().getServiceType().indexOf("PPP") == -1? "WANIPConnection":"WANPPPConnection" ));
+		
+		UPnPWANConnectionPortMapping[] ports;
+		
+		String	usn = wan_service.getGenericService().getDevice().getRootDevice().getUSN();
+		
+		if ( getDeviceStats( usn, STATS_READ_OK ) == 0 && getDeviceStats( usn, STATS_READ_BAD ) > 2 ){
+			
+			ports = new UPnPWANConnectionPortMapping[0];
+			
+			wan_service.periodicallyRecheckMappings( false );
+			
+			log.log( "    Not reading port mappings from device due to previous failures" );
+			
+		}else{
+			
+			ports = wan_service.getPortMappings();
+		}
+		
+		for (int j=0;j<ports.length;j++){
+			
+			log.log( "      mapping [" + j  + "] " + ports[j].getExternalPort() + "/" + 
+							(ports[j].isTCP()?"TCP":"UDP" ) + " [" + ports[j].getDescription() + "] -> " + ports[j].getInternalHost());
+		}
+			
 		try{
 			this_mon.enter();
-		
-			log.log( "    Found " + ( wan_service.getGenericService().getServiceType().indexOf("PPP") == -1? "WANIPConnection":"WANPPPConnection" ));
-			
-			UPnPWANConnectionPortMapping[] ports;
-			
-			String	usn = wan_service.getGenericService().getDevice().getRootDevice().getUSN();
-			
-			if ( getDeviceStats( usn, STATS_READ_OK ) == 0 && getDeviceStats( usn, STATS_READ_BAD ) > 2 ){
-				
-				ports = new UPnPWANConnectionPortMapping[0];
-				
-				wan_service.periodicallyRecheckMappings( false );
-				
-				log.log( "    Not reading port mappings from device due to previous failures" );
-				
-			}else{
-				
-				ports = wan_service.getPortMappings();
-			}
-			
-			for (int j=0;j<ports.length;j++){
-				
-				log.log( "      mapping [" + j  + "] " + ports[j].getExternalPort() + "/" + 
-								(ports[j].isTCP()?"TCP":"UDP" ) + " [" + ports[j].getDescription() + "] -> " + ports[j].getInternalHost());
-			}
-			
+
 			services.add(new UPnPPluginService( wan_service, ports, alert_success_param, grab_ports_param, alert_other_port_param, release_mappings_param ));
 			
 			if ( services.size() > 1 ){
