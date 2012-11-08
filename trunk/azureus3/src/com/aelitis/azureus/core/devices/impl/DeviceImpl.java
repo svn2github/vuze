@@ -192,6 +192,7 @@ DeviceImpl
 	protected static final String PP_REND_CLASSIFICATION	= "tt_rend_class";
 
 	protected static final String	PP_IP_ADDRESS 		= "rend_ip";	
+	protected static final String	PP_DONT_AUTO_HIDE	= "rend_no_ah";	
 	protected static final String	TP_IP_ADDRESS 		= "DeviceUPnPImpl:ip";	// transient
 	protected static final String	PP_FILTER_FILES 	= "rend_filter";
 	protected static final String	PP_RESTRICT_ACCESS	= "restrict_access";	

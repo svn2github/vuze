@@ -104,9 +104,12 @@ DeviceMediaRendererImpl
 				if (!address.equals(device.getAddress()) || !device.isAlive()) {
 					continue;
 				}
-
+				
+				
 				if (hasUPnPDevice) {
-					if (device.getType() == DT_MEDIA_RENDERER) {
+					boolean no_auto_hide = device.getPersistentBooleanProperty( DeviceImpl.PP_DONT_AUTO_HIDE, false );
+
+					if (device.getType() == DT_MEDIA_RENDERER && !no_auto_hide ) {
 						// prefer UPnP Device over Manual one added by a Browse event
 						if (deviceUPnP.getUPnPDevice() != null) {
 							int fileCount = deviceUPnP.getFileCount();
@@ -120,17 +123,21 @@ DeviceMediaRendererImpl
 						}
 					}
 				} else {
-					if (device.getType() == DT_MEDIA_RENDERER) {
-						int fileCount = getFileCount();
-						// prefer UPnP Device over Manual one added by a Browse event
-						if (fileCount == 0 && !isHidden()) {
-							log("hiding " + getName() + "/" + getClassification() + "/"
-									+ getID() + " due to " + device.getName() + "/"
-									+ device.getClassification() + "/" + device.getID());
-							setHidden(true);
-						} else if (fileCount > 0 && Constants.IS_CVS_VERSION && isHidden()) {
-							// Fix beta bug where we hid devices that had files.  Remove after 4605
-							setHidden(false);
+					if (device.getType() == DT_MEDIA_RENDERER ){
+						boolean no_auto_hide = getPersistentBooleanProperty( DeviceImpl.PP_DONT_AUTO_HIDE, false );
+
+						if ( !no_auto_hide ){
+							int fileCount = getFileCount();
+							// prefer UPnP Device over Manual one added by a Browse event
+							if (fileCount == 0 && !isHidden()) {
+								log("hiding " + getName() + "/" + getClassification() + "/"
+										+ getID() + " due to " + device.getName() + "/"
+										+ device.getClassification() + "/" + device.getID());
+								setHidden(true);
+							} else if (fileCount > 0 && Constants.IS_CVS_VERSION && isHidden()) {
+								// Fix beta bug where we hid devices that had files.  Remove after 4605
+								setHidden(false);
+							}
 						}
 					} else {
 						// Device has UPnP stuff, but did not register itself as

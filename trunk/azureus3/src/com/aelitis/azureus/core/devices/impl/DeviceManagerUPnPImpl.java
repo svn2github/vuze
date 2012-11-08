@@ -853,7 +853,16 @@ DeviceManagerUPnPImpl
 		}
 		
 		DeviceMediaRendererImpl newDevice = new DeviceMediaRendererImpl( manager, uid, unique_name, false, display_name );
+		
 		DeviceMediaRendererImpl device = (DeviceMediaRendererImpl)manager.addDevice( newDevice );
+		
+			// there's auto-hide code to hide devices created by receiving a browser event
+			// when a concrete upnp-based version is discovered at the same IP
+			// we don't want this happening for these generic devices, especially the Browser one
+			// as it is straight forward to get browse events from this on an IP that also
+			// happens to be exposing UPnP devices (e.g. windows media player)
+		
+		device.setPersistentBooleanProperty( DeviceImpl.PP_DONT_AUTO_HIDE, true );
 		
 		device.setAddress( address.getAddress());
 		
