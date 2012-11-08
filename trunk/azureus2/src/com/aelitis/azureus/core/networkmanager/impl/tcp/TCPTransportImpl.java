@@ -45,7 +45,7 @@ import com.aelitis.azureus.core.networkmanager.impl.TransportImpl;
 public class TCPTransportImpl extends TransportImpl implements Transport {
 	private static final LogIDs LOGID = LogIDs.NET;
   
-  protected ProtocolEndpointTCP		protocol_endpoint;
+  private final  ProtocolEndpointTCP		protocol_endpoint;
 
 
   
@@ -123,10 +123,16 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
   	return helper.getSocketChannel();  
   }
   
-  public TransportEndpoint
+  public TransportEndpointTCP
   getTransportEndpoint()
   {
 	  return( new TransportEndpointTCP( protocol_endpoint, getSocketChannel()));
+  }
+  
+  public TransportStartpoint 
+  getTransportStartpoint() 
+  {
+	  return( new TransportStartpointTCP( getTransportEndpoint()));
   }
   
   public int

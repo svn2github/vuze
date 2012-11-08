@@ -46,6 +46,7 @@ Transport
    */
   public void setAlreadyRead( ByteBuffer bytes_already_read );
   
+  public TransportStartpoint getTransportStartpoint();
   
   /**
    * Get the socket channel used by the transport.

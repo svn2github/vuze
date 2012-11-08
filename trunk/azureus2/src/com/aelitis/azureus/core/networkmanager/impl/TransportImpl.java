@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.TimeFormatter;
 import com.aelitis.azureus.core.networkmanager.EventWaiter;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.Transport;
+import com.aelitis.azureus.core.networkmanager.TransportStartpoint;
 
 public abstract class 
 TransportImpl 
@@ -58,6 +59,12 @@ TransportImpl
 	protected
 	TransportImpl()
 	{
+	}
+	
+	public TransportStartpoint 
+	getTransportStartpoint() 
+	{
+		return( null );
 	}
 	
 	public void

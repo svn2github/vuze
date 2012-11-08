@@ -53,6 +53,11 @@ import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
 import com.aelitis.azureus.core.instancemanager.AZInstanceTracked;
+import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.networkmanager.Transport;
+import com.aelitis.azureus.core.networkmanager.TransportBase;
+import com.aelitis.azureus.core.networkmanager.TransportStartpoint;
 import com.aelitis.azureus.core.networkmanager.admin.*;
 import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
@@ -206,6 +211,8 @@ NetworkAdminImpl
 					TimerEvent event )
 				{
 					checkNetworkInterfaces( false, false );
+					
+					checkConnectionRoutes();
 				}
 			});
 		
@@ -2266,6 +2273,55 @@ addressLoop:
 			
 			((AESemaphore)sems.get(i)).reserve();
 		}
+	}
+	
+	private void
+	checkConnectionRoutes()
+	{
+		System.out.println( "Checking connection routes" );
+		
+		Set<NetworkConnectionBase> connections = NetworkManager.getSingleton().getConnections();
+		
+		Map<InetAddress,int[]>	incoming_map = new HashMap<InetAddress, int[]>();
+		Map<InetAddress,int[]>	outgoing_map = new HashMap<InetAddress, int[]>();
+		
+		for ( NetworkConnectionBase connection: connections ){
+			
+			Map<InetAddress,int[]>	map = connection.isIncoming()?incoming_map:outgoing_map;
+			
+			TransportBase tb = connection.getTransportBase();
+			
+			if ( tb instanceof Transport ){
+				
+				Transport transport = (Transport)tb;
+					
+				TransportStartpoint start = transport.getTransportStartpoint();
+			
+				if ( start != null ){
+					
+					InetSocketAddress socket_address = start.getProtocolStartpoint().getAddress();
+					
+					if ( socket_address != null ){
+						
+						InetAddress address = socket_address.getAddress();
+						
+						int[] num = map.get( address );
+						
+						if ( num == null ){
+							
+							num = new int[]{ 0 };
+							
+							map.put( address, num );
+						}
+						
+						num[0]++;
+					}
+				}
+			}
+		}
+		
+		System.out.println( "    incoming: " + incoming_map );
+		System.out.println( "    outgoing: " + outgoing_map );
 	}
 	
 	public void

@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.LogIDs;
 
 import com.aelitis.azureus.core.networkmanager.TransportEndpoint;
+import com.aelitis.azureus.core.networkmanager.TransportStartpoint;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.TransportImpl;
 
@@ -81,6 +82,12 @@ UDPTransport
 		return( new TransportEndpointUDP( endpoint ));
 	}
 	  
+	public TransportStartpoint 
+	getTransportStartpoint() 
+	{
+		return( null );
+	}
+	
 	public int
 	getMssSize()
 	{

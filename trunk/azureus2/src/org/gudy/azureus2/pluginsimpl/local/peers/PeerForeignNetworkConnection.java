@@ -99,7 +99,13 @@ PeerForeignNetworkConnection
 	{
 		return( NetworkManager.getMinMssSize() );
 	}
-		 
+		
+	public boolean 
+	isIncoming() 
+	{
+		return false;
+	}
+	
 	public boolean 
 	isLANLocal()
 	{

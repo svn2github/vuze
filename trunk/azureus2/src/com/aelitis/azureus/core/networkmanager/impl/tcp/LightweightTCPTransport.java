@@ -31,6 +31,7 @@ import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
 import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.TransportEndpoint;
+import com.aelitis.azureus.core.networkmanager.TransportStartpoint;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 
 
@@ -39,12 +40,15 @@ import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
  */
 public class LightweightTCPTransport implements Transport {
 	
-	private final TransportEndpoint			transport_endpoint;
-	private final TransportHelperFilter 	filter;	
+	private final TransportStartpointTCP		transport_startpoint;
+	private final TransportEndpointTCP			transport_endpoint;
+	private final TransportHelperFilter 		filter;	
 	
 	public LightweightTCPTransport( ProtocolEndpoint	pe, TransportHelperFilter filter ) {
 		SocketChannel channel = ((TCPTransportHelper)filter.getHelper()).getSocketChannel();
-		transport_endpoint	= new TransportEndpointTCP( pe, channel );
+		transport_endpoint		= new TransportEndpointTCP( pe, channel );
+		transport_startpoint	= new TransportStartpointTCP( transport_endpoint );
+
 		this.filter = filter;
 	}
 	
@@ -54,6 +58,12 @@ public class LightweightTCPTransport implements Transport {
 		return( transport_endpoint );
 	}
 
+	public TransportStartpoint 
+	getTransportStartpoint() 
+	{
+		return( transport_startpoint );
+	}
+	
   public long write( ByteBuffer[] buffers, int array_offset, int length ) throws IOException {
   	return filter.write( buffers, array_offset, length );
   }

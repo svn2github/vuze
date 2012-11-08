@@ -26,7 +26,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
@@ -58,8 +57,9 @@ public class TransferProcessor {
   private final ByteBucket main_bucket;
   private final EntityHandler main_controller;
   
-  private final HashMap group_buckets = new HashMap();
-  private final HashMap connections = new HashMap();
+  private final HashMap<LimitedRateGroup,GroupData> 			group_buckets 	= new HashMap<LimitedRateGroup,GroupData>();
+  private final HashMap<NetworkConnectionBase,ConnectionData> 	connections 	= new HashMap<NetworkConnectionBase,ConnectionData>();
+  
   private final AEMonitor connections_mon;
 
   private final boolean	multi_threaded;
@@ -149,6 +149,20 @@ public class TransferProcessor {
     finally {  connections_mon.exit();  }
     
     main_controller.registerPeerConnection( connection );
+  }
+  
+  public List<NetworkConnectionBase>
+  getConnections()
+  {
+	  try{ 
+		  connections_mon.enter();
+
+		  return( new ArrayList<NetworkConnectionBase>( connections.keySet()));
+
+	  }finally{
+
+		  connections_mon.exit(); 
+	  }
   }
   
   public boolean isRegistered( NetworkConnectionBase connection ){

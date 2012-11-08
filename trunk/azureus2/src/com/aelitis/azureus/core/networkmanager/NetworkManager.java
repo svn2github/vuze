@@ -24,7 +24,9 @@ package com.aelitis.azureus.core.networkmanager;
 
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -236,10 +238,7 @@ public class NetworkManager {
   isLANRateEnabled()
   {
 	  return( lan_rate_enabled );
-  }
-  
-  private NetworkManagerStats	stats = new NetworkManagerStats();
-  
+  }  
   
   private NetworkManager() {
   }
@@ -464,10 +463,18 @@ public class NetworkManager {
 	  }
   }  
   
-  
-  
-
- 
+  public Set<NetworkConnectionBase>
+  getConnections()
+  {
+	  Set<NetworkConnectionBase>	result = new HashSet<NetworkConnectionBase>();
+	  
+	  result.addAll( lan_upload_processor.getConnections());
+	  result.addAll( lan_download_processor.getConnections());
+	  result.addAll( upload_processor.getConnections());
+	  result.addAll( download_processor.getConnections());
+	  
+	  return( result );
+  } 
   
   /**
    * Register peer connection for network upload and download handling.
@@ -643,13 +650,6 @@ public class NetworkManager {
 		  } 
 	  }
   }
-  
-  public NetworkManagerStats
-  getStats()
-  {
-	  return( stats );
-  }
-  
   
   /**
    * Byte stream match filter for routing.

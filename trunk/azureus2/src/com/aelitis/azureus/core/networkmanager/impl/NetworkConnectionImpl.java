@@ -48,6 +48,7 @@ NetworkConnectionImpl
 	implements NetworkConnection 
 {
   private final ConnectionEndpoint	connection_endpoint;
+  private final boolean				is_incoming;
   
   private boolean connect_with_crypto;
   private boolean allow_fallback;
@@ -80,6 +81,7 @@ NetworkConnectionImpl
 		  		byte[][] _shared_secrets ) 
   {
 	connection_endpoint	= _target;
+	is_incoming			= false;
     connect_with_crypto	= _connect_with_crypto;
     allow_fallback = _allow_fallback;
     shared_secrets = _shared_secrets;
@@ -102,7 +104,8 @@ NetworkConnectionImpl
   public NetworkConnectionImpl( Transport _transport, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
     transport = _transport;
     connection_endpoint = transport.getTransportEndpoint().getProtocolEndpoint().getConnectionEndpoint();
-    is_connected = true;
+    is_incoming		= true;
+    is_connected 	= true;
     outgoing_message_queue = new OutgoingMessageQueueImpl( encoder );
     outgoing_message_queue.setTransport( transport );
     incoming_message_queue = new IncomingMessageQueueImpl( decoder, this );
@@ -115,6 +118,12 @@ NetworkConnectionImpl
   getEndpoint()
   {
 	  return( connection_endpoint );
+  }
+  
+  public boolean
+  isIncoming()
+  {
+	  return( is_incoming );
   }
   
   public void connect( int priority, ConnectionListener listener ) {
@@ -369,6 +378,12 @@ NetworkConnectionImpl
 		getTransportEndpoint()
 		{
 			return( transport.getTransportEndpoint());
+		}
+		
+		public TransportStartpoint 
+		getTransportStartpoint() 
+		{
+			return( transport.getTransportStartpoint());
 		}
 
 		public boolean 

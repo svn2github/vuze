@@ -1,5 +1,5 @@
 /*
- * Created on 21-Jan-2006
+ * Created on 16 Jun 2006
  * Created by Paul Gardner
  * Copyright (C) 2006 Aelitis, All Rights Reserved.
  *
@@ -22,31 +22,17 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
-/**
- * XXX: This class seems to be unused. 
- */
-public class 
-NetworkManagerStats 
-{
-	public static final int	ATTEMPTED	 	= 0;
-	public static final int	SUCCESSFUL	 	= 1;
-	public static final int	ENCRYPTED	 	= 2;
-	
-	private long[]	outbound	= new long[3];
-	private long[]	inbound		= new long[3];
+import java.net.InetSocketAddress;
 
+public interface 
+ProtocolStartpoint 
+{
+	public int
+	getType();
 	
-	public long
-	getOutbound(
-		int	type )
-	{
-		return( outbound[type] );
-	}
-	
-	public long
-	getInbound(
-		int	type )
-	{
-		return( inbound[type] );
-	}
+	public InetSocketAddress
+	getAddress();
+
+	public String
+	getDescription();
 }
