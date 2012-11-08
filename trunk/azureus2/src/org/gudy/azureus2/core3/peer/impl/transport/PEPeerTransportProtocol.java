@@ -1083,10 +1083,15 @@ implements PEPeerTransport
 			data_dict.put("metadata_size", new Integer(metainfo_size));
 		}
 		
-		InetAddress defaultV6 = NetworkAdmin.getSingleton().hasIPV6Potential(true) ? NetworkAdmin.getSingleton().getDefaultPublicAddressV6() : null;
+		NetworkAdmin na = NetworkAdmin.getSingleton();
 		
-		if(defaultV6 != null){
-			data_dict.put("ipv6",defaultV6.getAddress());
+		if ( !na.isSocksActive()){
+				// don't send public address in handshake
+			InetAddress defaultV6 = na.hasIPV6Potential(true) ? na.getDefaultPublicAddressV6() : null;
+			
+			if(defaultV6 != null){
+				data_dict.put("ipv6",defaultV6.getAddress());
+			}
 		}
 		
 		LTHandshake lt_handshake = new LTHandshake(data_dict, other_peer_bt_lt_ext_version );
@@ -1128,6 +1133,15 @@ implements PEPeerTransport
 		if(peerSessionID != null)
 			Logger.log(new LogEvent(this, LOGID, LogEvent.LT_INFORMATION,"notifying peer of reconnect attempt"));
   
+		InetAddress defaultV6 = null;
+		
+		NetworkAdmin na = NetworkAdmin.getSingleton();
+		
+		if ( !na.isSocksActive()){
+				// don't send public address in handshake
+			defaultV6 = na.hasIPV6Potential(true) ? na.getDefaultPublicAddressV6() : null;
+		}
+		
 		AZHandshake az_handshake = new AZHandshake(
 				AZPeerIdentityManager.getAZPeerIdentity(),
 				mySessionID,
@@ -1137,7 +1151,7 @@ implements PEPeerTransport
 				local_tcp_port,
 				local_udp_port,
 				local_udp2_port,
-				NetworkAdmin.getSingleton().hasIPV6Potential(true) ? NetworkAdmin.getSingleton().getDefaultPublicAddressV6() : null,
+				defaultV6,
 				is_metadata_download?0:manager.getTorrentInfoDictSize(),
 				avail_ids,
 				avail_vers,

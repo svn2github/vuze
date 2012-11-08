@@ -57,6 +57,7 @@ import com.aelitis.azureus.core.networkmanager.admin.*;
 import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
+import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
 import com.aelitis.azureus.core.proxy.socks.AESocksProxy;
 import com.aelitis.azureus.core.proxy.socks.AESocksProxyFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -1361,6 +1362,15 @@ addressLoop:
 		throws NetworkAdminException
 	{
 		return( protocol.test( null ));
+	}
+	
+	@Override
+	public boolean 
+	isSocksActive() 
+	{
+		Proxy proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
+		
+		return( proxy != null && proxy.type() == Proxy.Type.SOCKS );
 	}
 	   
 	public NetworkAdminSocksProxy

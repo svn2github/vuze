@@ -139,6 +139,9 @@ NetworkAdmin
 		String		username,
 		String		password );
 	
+	public abstract boolean
+	isSocksActive();
+	
 	public abstract NetworkAdminSocksProxy[]
 	getSocksProxies();
 	
