@@ -474,6 +474,20 @@ DownloadManager
 
         throws DownloadManagerException;
     
+    	/**
+    	 * At some point someone made the file-move operations stop+restart the download when it was
+    	 * designed to work without doing this (see move-on-complete for example). As I don't know the
+    	 * reason for this change I've (parg) added a new method to do this in the hope that we might
+    	 * in time migrate back to the 'proper' behaviour. grrr
+    	 * @param new_parent_dir
+    	 * @throws DownloadManagerException
+    	 */
+    
+    public void
+    moveDataFilesLive(
+        File    new_parent_dir )
+
+        throws DownloadManagerException;
     /**
      * Rename the download - this means the name of the file being downloaded (for single
      * file torrents), or the name of the directory holding the files (in a multi-file torrent).

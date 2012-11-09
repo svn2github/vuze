@@ -3261,7 +3261,16 @@ DownloadManagerImpl
   
   	throws DownloadManagerException
   {
-	  this.moveDataFiles(new_parent_dir, null);
+	  moveDataFiles(new_parent_dir, null);
+  }
+  
+  public void 
+  moveDataFilesLive(
+	File new_parent_dir)
+	
+  	throws DownloadManagerException 
+  {
+	  moveDataFiles(new_parent_dir, null, true);
   }
   
   public void renameDownload(String new_name) throws DownloadManagerException {
@@ -3272,6 +3281,17 @@ DownloadManagerImpl
   moveDataFiles(
 	final File 		destination, 
 	final String    new_name) 
+  
+  	throws DownloadManagerException 
+  {
+	  moveDataFiles( destination, new_name, false );
+  }
+  
+  public void 
+  moveDataFiles(
+	final File 		destination, 
+	final String    new_name,
+	final boolean	live )
   
   	throws DownloadManagerException 
   {
@@ -3311,8 +3331,14 @@ DownloadManagerImpl
 						AzureusCoreOperation operation) 
 					{
 						try{
-							moveDataFilesSupport( destination, new_name );
+							if ( live ){
+								
+								moveDataFilesSupport0( destination, new_name );
+								
+							}else{
 							
+								moveDataFilesSupport( destination, new_name );
+							}
 						}catch( DownloadManagerException e ){
 							
 							throw( new RuntimeException( e ));
@@ -3334,8 +3360,8 @@ DownloadManagerImpl
   
   private void 
   moveDataFilesSupport(
-	File new_parent_dir, 
-	String new_filename) 
+	File 	new_parent_dir, 
+	String 	new_filename) 
   
   	throws DownloadManagerException 
   	{

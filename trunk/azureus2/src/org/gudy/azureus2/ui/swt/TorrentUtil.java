@@ -911,7 +911,7 @@ public class TorrentUtil {
 						for (int i = 0; i < dms.length; i++) {
 
 							try {
-								dms[i].moveDataFiles(target);
+								dms[i].moveDataFilesLive( target);
 
 							}
 							catch (Throwable e) {
