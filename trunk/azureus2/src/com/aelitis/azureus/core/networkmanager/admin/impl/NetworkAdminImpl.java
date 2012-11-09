@@ -2324,6 +2324,101 @@ addressLoop:
 		System.out.println( "    outgoing: " + outgoing_map );
 	}
 	
+	public String
+	classifyRoute(
+		InetAddress					address )
+	{
+		byte[]	address_bytes = address.getAddress();
+		
+		Set<NetworkInterface> interfaces = old_network_interfaces;
+		
+		if ( interfaces == null ){
+			
+			return( "Initializing" );
+		}
+		
+		NetworkInterface	best_intf 	= null;
+		InetAddress			best_addr	= null;
+		int					best_prefix	= 0;
+		
+		for ( NetworkInterface intf: interfaces ){
+			
+			Enumeration<InetAddress> addresses = intf.getInetAddresses();
+			
+			int	num_addresses = 0;
+			
+			InetAddress	derp = null;
+			
+			while( addresses.hasMoreElements()){
+				
+				InetAddress 	other_address 	= addresses.nextElement();
+				byte[]			other_bytes 	= other_address.getAddress();
+				
+				if ( other_bytes.length == address_bytes.length ){
+				
+					num_addresses++;
+					
+					int	prefix_len = 0;
+				
+					for ( int i=0;i<other_bytes.length;i++){
+						
+						byte	b1 = address_bytes[i];
+						byte	b2 = other_bytes[i];
+						
+						if ( b1 == b2 ){
+							
+							prefix_len += 8;
+							
+						}else{
+							
+							for ( int j=7;j>=1;j--){
+								
+								if ( (( b1>>j ) & 0x01 ) == (( b2>>j ) & 0x01 )){
+									
+									prefix_len++;
+									
+								}else{
+									
+									break;
+								}
+							}
+							
+							break;
+						}
+					}
+					
+					if ( prefix_len > best_prefix ){
+						
+						best_prefix = prefix_len;
+						
+						best_intf 	= intf;
+						
+						best_addr	= null;
+						derp		= other_address;
+					}
+				}				
+			}
+			
+			if ( derp != null && num_addresses > 1 ){
+				
+				best_addr = derp;
+			}
+		}
+		
+		if ( best_addr != null ){
+			
+			return( best_intf.getName() + "/" + best_addr.getHostAddress());
+			
+		}else if ( best_intf != null ){
+			
+			return( best_intf.getName());
+			
+		}else{
+		
+			return( address.getHostAddress());
+		}
+	}
+	
 	public void
 	addPropertyChangeListener(
 		NetworkAdminPropertyChangeListener	listener )

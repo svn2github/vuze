@@ -22,14 +22,21 @@
 package org.gudy.azureus2.ui.swt.views.stats;
 
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Random;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
@@ -40,9 +47,9 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.TabFolder;
@@ -54,19 +61,21 @@ import org.gudy.azureus2.core3.download.impl.DownloadManagerRateController;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.Legend;
-import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.components.graphics.PingGraphic;
 import org.gudy.azureus2.ui.swt.components.graphics.Plot3D;
 import org.gudy.azureus2.ui.swt.components.graphics.SpeedGraphic;
@@ -79,6 +88,11 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.networkmanager.NetworkConnection;
+import com.aelitis.azureus.core.networkmanager.Transport;
+import com.aelitis.azureus.core.networkmanager.TransportBase;
+import com.aelitis.azureus.core.networkmanager.TransportStartpoint;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.proxy.AEProxySelector;
 import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
@@ -86,6 +100,8 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
+import com.aelitis.net.udp.uc.PRUDPPacketHandler;
+import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
 
 /**
  * 
@@ -114,6 +130,12 @@ public class TransferStatsView
 	private BufferedLabel	upload_label, connection_label;
 	private SpeedGraphic	upload_graphic;
 	private SpeedGraphic	connection_graphic;
+	
+	private TabFolder 			con_folder;
+	private long				last_route_update;
+	private Composite 			route_comp;
+	private BufferedLabel[][]	route_labels 	= new BufferedLabel[0][0];
+	private Map<String,Long>	route_last_seen	= new HashMap<String, Long>();
 	
 	private Composite generalPanel;
 	private BufferedLabel nowUp, nowDown, sessionDown, sessionUp, session_ratio, sessionTime, totalDown, totalUp, total_ratio, totalTime;
@@ -405,6 +427,7 @@ public class TransferStatsView
 
 	  GridLayout panelLayout = new GridLayout();
 	  panelLayout.numColumns = 2;
+	  panelLayout.makeColumnsEqualWidth = true;
 	  connectionPanel.setLayout(panelLayout);
 
 	  Composite conn_area = new Composite( connectionPanel, SWT.NULL );
@@ -440,7 +463,20 @@ public class TransferStatsView
 
 	  	// connections
 	  
-	  Canvas connection_canvas = new Canvas(connectionPanel,SWT.NO_BACKGROUND);
+	  con_folder = new TabFolder(connectionPanel, SWT.LEFT);
+	  gridData = new GridData(GridData.FILL_BOTH);
+	  gridData.horizontalSpan = 1;
+	  con_folder.setLayoutData(gridData);
+	  con_folder.setBackground(Colors.background);
+	  
+	  	// connection counts
+	  
+	  TabItem conn_item = new TabItem(con_folder, SWT.NULL);
+	    
+	  conn_item.setText( MessageText.getString( "label.connections" ));
+
+	  Canvas connection_canvas = new Canvas(con_folder,SWT.NO_BACKGROUND);
+	  conn_item.setControl( connection_canvas );
 	  gridData = new GridData(GridData.FILL_BOTH);
 	  gridData.heightHint = 200;
 	  connection_canvas.setLayoutData(gridData);
@@ -460,10 +496,41 @@ public class TransferStatsView
 
 	  connection_graphic.setLineColors( colors );
 	  
+	  	// route info
+	  
+	  TabItem route_info_tab = new TabItem(con_folder, SWT.NULL);
+	    
+	  route_info_tab.setText( MessageText.getString( "label.routing" ));
+
+	  Composite route_tab_comp = new Composite( con_folder, SWT.NULL );
+	  route_tab_comp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	  GridLayout routeTabLayout = new GridLayout();
+	  routeTabLayout.numColumns = 1;
+	  route_tab_comp.setLayout(routeTabLayout);
+	  
+	  route_info_tab.setControl( route_tab_comp );
+	  
+	  ScrolledComposite sc = new ScrolledComposite( route_tab_comp, SWT.V_SCROLL );
+	  sc.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+	  route_comp = new Composite( sc, SWT.NULL );
+	 
+	  route_comp.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+	  GridLayout routeLayout = new GridLayout();
+	  routeLayout.numColumns = 3;
+	  //routeLayout.makeColumnsEqualWidth = true;
+	  route_comp.setLayout(routeLayout);
+	  
+	  sc.setContent( route_comp );
+	
+	  buildRouteComponent( 5 );
+	  
+	  
 	  	// upload queued
 	  
 	  Canvas upload_canvas = new Canvas(connectionPanel,SWT.NO_BACKGROUND);
 	  gridData = new GridData(GridData.FILL_BOTH);
+	  gridData.heightHint = 200;
 	  upload_canvas.setLayoutData(gridData);
 	  upload_graphic = 
 		  SpeedGraphic.getInstance(
@@ -478,6 +545,58 @@ public class TransferStatsView
 	  
 	  upload_graphic.initialize(upload_canvas);
 	  
+  }
+  
+  private void
+  buildRouteComponent(
+	int			rows )
+  {
+	  if ( rows <= route_labels.length ){
+		  
+		  for ( int i=rows;i<route_labels.length;i++){
+			  
+			  for ( int j=0;j<3;j++){
+				  
+				  route_labels[i][j].setText( "" );
+			  }
+		  }		  
+	  }else{
+	  
+		  Control[] labels = route_comp.getChildren();
+		  for (int i = 0; i < labels.length; i++){
+				labels[i].dispose();
+		  }
+		  
+		  Label h1 = new Label( route_comp, SWT.NULL );
+		  h1.setLayoutData( new GridData(GridData.FILL_HORIZONTAL ));
+		  h1.setText( MessageText.getString( "label.route" ));
+		  Label h2 = new Label( route_comp, SWT.NULL );
+		  h2.setLayoutData( new GridData(GridData.FILL_HORIZONTAL ));
+		  h2.setText( MessageText.getString( "tps.type.incoming" ));
+		  Label h3 = new Label( route_comp, SWT.NULL );
+		  h3.setLayoutData( new GridData(GridData.FILL_HORIZONTAL ));
+		  h3.setText( MessageText.getString( "label.outgoing" ));
+		  
+		  new Label( route_comp, SWT.NULL );
+		  new Label( route_comp, SWT.NULL );
+		  new Label( route_comp, SWT.NULL );
+
+		  route_labels = new BufferedLabel[rows][3];
+		  
+		  for ( int i=0;i<rows;i++ ){
+			 
+			  for ( int j=0;j<3;j++){
+				  BufferedLabel l = new BufferedLabel( route_comp, SWT.DOUBLE_BUFFERED );
+				  GridData gridData = new GridData(GridData.FILL_HORIZONTAL );
+				  l.setLayoutData( gridData );
+				  route_labels[i][j] = l;
+			  }	
+		  }
+	  }
+	  
+	  Point size = route_comp.computeSize(route_comp.getParent().getSize().x, SWT.DEFAULT);
+	 	  
+	  route_comp.setSize(size);
   }
   
   private void createAutoSpeedPanel() {
@@ -856,6 +975,314 @@ public class TransferStatsView
 	  
 	  upload_graphic.refresh();
 	  connection_graphic.refresh();
+	  	  	  
+	  if ( con_folder.getSelectionIndex() == 1 ){
+		  
+		  long	now = SystemTime.getMonotonousTime();
+		  
+		  if ( now - last_route_update >= 2*1000 ){
+			  
+			  last_route_update = now;
+		  
+			  NetworkAdmin na = NetworkAdmin.getSingleton();
+			  
+			  Map<InetAddress,String>		ip_to_name_map		= new HashMap<InetAddress,String>();
+			  
+			  Map<String,RouteInfo>			name_to_route_map 	= new HashMap<String,RouteInfo>();
+			  	  
+			  RouteInfo udp_info 		= null;
+			  RouteInfo unknown_info 	= null;
+			  
+			  List<PRUDPPacketHandler> udp_handlers = PRUDPPacketHandlerFactory.getHandlers();
+			  
+			  InetAddress	udp_bind_ip = null;
+			  
+			  for ( PRUDPPacketHandler handler: udp_handlers ){
+				  
+				  if ( handler.hasPrimordialHandler()){
+					  
+					  udp_bind_ip = handler.getBindIP();
+					  
+					  if ( udp_bind_ip != null ){
+						  
+						  if( udp_bind_ip.isAnyLocalAddress()){
+							  
+							  udp_bind_ip = null;
+						  }
+					  }
+				  }
+			  }
+			  
+			  for ( DownloadManager dm: dms ){
+				  
+				  PEPeerManager pm = dm.getPeerManager();
+				  
+				  if ( pm != null ){
+					  
+					  List<PEPeer> peers = pm.getPeers();
+					  
+					  for ( PEPeer p: peers ){
+						  
+						  NetworkConnection nc = PluginCoreUtils.unwrap( p.getPluginConnection());
+						  
+						  boolean done = false;
+						  
+						  if ( nc != null ){
+							  
+							  Transport transport = nc.getTransport();
+								
+							  if ( transport != null ){
+								  
+								  if ( transport.isTCP()){
+								  
+									  TransportStartpoint start = transport.getTransportStartpoint();
+										
+									  if ( start != null ){
+											
+										  InetSocketAddress socket_address = start.getProtocolStartpoint().getAddress();
+												
+										  if ( socket_address != null ){
+											  
+											  InetAddress	address = socket_address.getAddress();
+											  
+											  RouteInfo	info;
+											  
+											  String name = ip_to_name_map.get( address );
+											  
+											  if ( name == null ){
+												  
+												  name = na.classifyRoute( address);
+											  			
+												  ip_to_name_map.put( address, name );
+												  
+												  info = name_to_route_map.get( name );
+												  
+												  route_last_seen.put( name, now );
+												  
+												  if ( info == null ){
+												  
+													  info = new RouteInfo( name );
+												  
+													  name_to_route_map.put( name, info );
+												  }
+												  
+											  }else{
+												  
+												  info = name_to_route_map.get( name );
+											  }
+											  
+											  info.update( p );
+											  
+											  done = true;
+										  }
+									  }
+								  }else{
+									  
+									  if ( udp_bind_ip != null ){
+										  
+										  RouteInfo	info;
+										  
+										  String name = ip_to_name_map.get( udp_bind_ip );
+										  
+										  if ( name == null ){
+											  
+											  name = na.classifyRoute( udp_bind_ip);
+										  			
+											  ip_to_name_map.put( udp_bind_ip, name );
+											  
+											  info = name_to_route_map.get( name );
+											  
+											  route_last_seen.put( name, now );
+											  
+											  if ( info == null ){
+											  
+												  info = new RouteInfo( name );
+											  
+												  name_to_route_map.put( name, info );
+											  }
+											  
+										  }else{
+											  
+											  info = name_to_route_map.get( name );
+										  }
+										  
+										  info.update( p );
+										  
+										  done = true;
+										  
+									  }else{
+										  
+										  if ( udp_info == null ){
+											  
+											  udp_info 		= new RouteInfo( "* (UDP)" );
+											  
+											  route_last_seen.put( udp_info.getName(), now );
+										  }
+										  
+										  udp_info.update( p );
+									  
+										  done = true;
+									  }
+								  }
+							  }
+						  }
+						  
+						  if ( !done ){
+							  
+							  if ( unknown_info == null ){
+								  
+								  unknown_info 		= new RouteInfo( "Pending" );
+								  
+								  route_last_seen.put( unknown_info.getName(), now );
+							  }
+							  
+							  unknown_info.update( p );
+						  }
+					  }
+				  }
+			  }
+			  
+			  List<RouteInfo>	rows = new ArrayList<RouteInfo>();
+		
+			  Iterator<Map.Entry<String,Long>> it = route_last_seen.entrySet().iterator();
+		
+			  while( it.hasNext()){
+				  
+				  Map.Entry<String,Long> entry = it.next();
+				  
+				  long	when = entry.getValue();
+				  
+				  if ( now - when > 60*1000 ){
+					  
+					  it.remove();
+					  
+				  }else if ( when != now ){
+				
+					  rows.add( new RouteInfo( entry.getKey()));
+				  }
+			  }
+			  
+			  rows.addAll( name_to_route_map.values());
+			  
+			  Collections.sort(
+					 rows,
+					 new Comparator<RouteInfo>()
+					 {
+						public int 
+						compare(
+							RouteInfo o1, 
+							RouteInfo o2)
+						{
+							return( o1.getName().compareTo(o2.getName()));
+						} 
+					 });
+			  
+			  if ( udp_info != null ){
+				  rows.add( udp_info );
+			  }
+			  
+			  if ( unknown_info != null ){
+				  rows.add( unknown_info );
+			  }
+			  
+			  buildRouteComponent( rows.size());
+		
+			  for ( int i=0;i<rows.size();i++){
+				  
+				  RouteInfo	info = rows.get( i );
+				  
+				  route_labels[i][0].setText( info.getName());
+				  route_labels[i][1].setText( info.getIncomingString());
+				  route_labels[i][2].setText( info.getOutgoingString());
+			  }
+			  
+			  buildRouteComponent( rows.size());
+		  }
+	  }
+  }
+  
+  private static class
+  RouteInfo
+  {
+	  private String			name;
+	  private RouteInfoRecord	incoming = new RouteInfoRecord();
+	  private RouteInfoRecord	outgoing = new RouteInfoRecord();
+	  
+	  private
+	  RouteInfo(
+		String		_name )
+	  {
+		  name	= _name;
+	  }
+	  
+	  private String
+	  getName()
+	  {
+		  return( name );
+	  }
+	  
+	  private String
+	  getIncomingString()
+	  {
+		  return( incoming.getString());
+	  }
+	  
+	  private String
+	  getOutgoingString()
+	  {
+		  return( outgoing.getString());
+	  }
+	  
+	  private void
+	  update(
+		  PEPeer	peer )
+	  {
+		  RouteInfoRecord record;
+		  
+		  if ( peer.isIncoming()){
+			  
+			  record = incoming;
+			  
+		  }else{
+			  
+			  record = outgoing;
+		  }
+		  
+		  record.update( peer );
+	  }
+  }
+  
+  private static class
+  RouteInfoRecord
+  {
+	  private int	peer_count;
+	  private int	up_rate;
+	  private int	down_rate;
+	  
+	  private void
+	  update(
+		  PEPeer	peer )
+	  {
+		  peer_count++;
+		  
+		  PEPeerStats stats = peer.getStats();
+		  
+		  up_rate 	+= stats.getDataSendRate() + stats.getProtocolSendRate();
+		  down_rate += stats.getDataReceiveRate() + stats.getProtocolReceiveRate();
+	  }
+	  
+	  private String
+	  getString()
+	  {
+		  if ( peer_count == 0 ){
+			  
+			  return( "0" );
+		  }
+		  
+		  return( peer_count + ": up=" + 
+				  DisplayFormatters.formatByteCountToKiBEtcPerSec( up_rate ) + ", down=" +
+				  DisplayFormatters.formatByteCountToKiBEtcPerSec( down_rate ));
+	  }
   }
   
   private void refreshPingPanel() {

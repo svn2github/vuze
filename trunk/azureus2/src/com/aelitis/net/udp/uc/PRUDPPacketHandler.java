@@ -119,6 +119,9 @@ PRUDPPacketHandler
 	
 		throws PRUDPPacketHandlerException;
 	
+	public boolean
+	hasPrimordialHandler();
+	
 	public void
 	addPrimordialHandler(
 		PRUDPPrimordialHandler	handler );
@@ -129,6 +132,9 @@ PRUDPPacketHandler
 	
 	public int
 	getPort();
+	
+	public InetAddress
+	getBindIP();
 	
 	public void
 	setDelays(

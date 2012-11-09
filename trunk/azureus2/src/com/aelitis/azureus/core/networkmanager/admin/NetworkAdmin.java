@@ -187,6 +187,10 @@ NetworkAdmin
 		NetworkAdminASNListener		listener );
 	
 	
+	public abstract String
+	classifyRoute(
+		InetAddress					address );
+	
 	public abstract boolean
 	canTraceRoute();
 	

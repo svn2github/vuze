@@ -39,11 +39,25 @@ import com.aelitis.net.udp.uc.PRUDPRequestHandler;
 public class 
 PRUDPPacketHandlerFactoryImpl 
 {
-	private static Map			receiver_map = new HashMap();
+	private static Map<Integer,PRUDPPacketHandlerImpl>			receiver_map = new HashMap<Integer,PRUDPPacketHandlerImpl>();
+	
 	private static AEMonitor	class_mon	= new AEMonitor( "PRUDPPHF" );
 	private static Map			releasable_map = new HashMap();
 	private static Set			non_releasable_set = new HashSet();
 	
+	public static List<PRUDPPacketHandler>
+	getHandlers()
+	{
+		try{
+			class_mon.enter();
+			
+			return( new ArrayList<PRUDPPacketHandler>( receiver_map.values()));
+			
+		}finally{
+			
+			class_mon.exit();
+		}
+	}
 
 	public static PRUDPPacketHandler
 	getHandler(
@@ -58,7 +72,7 @@ PRUDPPacketHandlerFactoryImpl
 		
 			non_releasable_set.add( f_port );
 			
-			PRUDPPacketHandlerImpl	receiver = (PRUDPPacketHandlerImpl)receiver_map.get( f_port );
+			PRUDPPacketHandlerImpl	receiver = receiver_map.get( f_port );
 			
 			if ( receiver == null ){
 				

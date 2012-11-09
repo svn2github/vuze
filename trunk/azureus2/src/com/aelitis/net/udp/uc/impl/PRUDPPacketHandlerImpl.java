@@ -183,6 +183,15 @@ PRUDPPacketHandlerImpl
 		init_sem.reserve();
 	}
 	
+	public boolean
+	hasPrimordialHandler()
+	{
+		synchronized( primordial_handlers ){
+
+			return( primordial_handlers.size() > 0 );
+		}
+	}
+	
 	public void
 	addPrimordialHandler(
 		PRUDPPrimordialHandler	handler )
@@ -307,6 +316,12 @@ PRUDPPacketHandlerImpl
 		}
 		
 		return( port );
+	}
+	
+	public InetAddress
+	getBindIP()
+	{
+		return( current_bind_ip );
 	}
 	
 	protected void

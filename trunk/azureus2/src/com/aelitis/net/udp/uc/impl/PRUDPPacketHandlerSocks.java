@@ -478,6 +478,12 @@ PRUDPPacketHandlerSocks
 		throw( new PRUDPPacketHandlerException( "not imp" ));
 	}
 	
+	public boolean
+	hasPrimordialHandler()
+	{
+		return( delegate.hasPrimordialHandler());
+	}
+	
 	public void
 	addPrimordialHandler(
 		PRUDPPrimordialHandler	handler )
@@ -494,6 +500,12 @@ PRUDPPacketHandlerSocks
 	getPort()
 	{
 		return( delegate.getPort());
+	}
+	
+	public InetAddress 
+	getBindIP() 
+	{
+		return( delegate.getBindIP());
 	}
 	
 	public void

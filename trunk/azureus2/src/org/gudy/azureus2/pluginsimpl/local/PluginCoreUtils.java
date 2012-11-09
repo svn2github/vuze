@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
+import org.gudy.azureus2.plugins.network.Connection;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -49,10 +50,13 @@ import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
+import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.PeerImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.PeerManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.tracker.TrackerTorrentImpl;
+
+import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 
 public class 
 PluginCoreUtils 
@@ -104,6 +108,25 @@ PluginCoreUtils
 			
 			return( null );
 		}
+	}
+	
+	public static NetworkConnection
+	unwrap(
+		Connection		connection )
+	{
+		if ( connection instanceof ConnectionImpl ){
+			
+			return(((ConnectionImpl)connection).getCoreConnection());
+		}
+		
+		return( null );
+	}
+	
+	public static Connection
+	wrap(
+		NetworkConnection			connection )
+	{
+		return( new ConnectionImpl( connection, connection.isIncoming()));
 	}
 	
 	public static org.gudy.azureus2.plugins.disk.DiskManagerFileInfo
