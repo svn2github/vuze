@@ -1201,22 +1201,18 @@ public class TransferStatsView
 							String	n1 = o1.getName();
 							String	n2 = o2.getName();
 							
-							if ( n1.startsWith( "*" )){
+								// wildcard and pending to the bottom 
+							if ( n1.startsWith( "*" ) || n1.equals( "Pending" )){
 								n1 = "zzzz" + n1;
 							}
-							if ( n2.startsWith( "*" )){
+							if ( n2.startsWith( "*" ) || n2.equals( "Pending" )){
 								n2 = "zzzz" + n2;
 							}
 							
 							return( n1.compareTo(n2));
 						} 
 					 });
-			  			  
-			  if ( unknown_info != null ){
-				  rows.remove( unknown_info );
-				  rows.add( unknown_info );
-			  }
-			  
+		  
 			  buildRouteComponent( rows.size());
 		
 			  for ( int i=0;i<rows.size();i++){
