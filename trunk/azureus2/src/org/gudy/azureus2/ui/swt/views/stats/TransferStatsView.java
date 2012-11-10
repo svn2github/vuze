@@ -604,6 +604,21 @@ public class TransferStatsView
 	  
 	  route_comp.setSize(size);
 	  
+	  if ( !changed ){
+		  
+		  	// sometimes things get layouted when not visibel and things don't work proper when visibilized ;(
+		  	// look for something zero height that shouldn't be
+		  
+		  for ( int i=0;i<route_labels.length;i++){
+			  for (int j=0;j<3;j++){
+				  BufferedLabel lab = route_labels[i][j];
+				  if ( lab.getControl().getSize().y == 0 &&  lab.getText().length() > 0 ){
+					  changed = true;
+				  }
+			  }
+		  }
+	  }
+	  
 	  if ( changed ){
 		  
 		  route_comp.getParent().layout( true, true );
