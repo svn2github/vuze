@@ -70,6 +70,12 @@ UDPTransport
 		return( false );
 	}
 	
+	public boolean 
+	isSOCKS() 
+	{
+		return( false );
+	}
+	
 	public String 
 	getProtocol()
 	{

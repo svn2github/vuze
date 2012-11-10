@@ -142,6 +142,12 @@ TransportImpl
 		return( filter==null?false:filter.isEncrypted());
 	}
 	 
+	public boolean 
+	isSOCKS() 
+	{
+		return( false );
+	}
+	
 	  /**
 	   * Is the transport ready to write,
 	   * i.e. will a write request result in >0 bytes written.

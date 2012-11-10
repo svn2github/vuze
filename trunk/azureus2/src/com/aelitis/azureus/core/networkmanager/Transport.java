@@ -64,6 +64,8 @@ Transport
      
   public String getProtocol();
   
+  public boolean isSOCKS();
+  
   /**
    * fake a wakeup so that a read cycle is attempted
    */

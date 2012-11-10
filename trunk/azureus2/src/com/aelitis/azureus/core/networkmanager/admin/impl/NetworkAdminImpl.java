@@ -2280,52 +2280,122 @@ addressLoop:
 	{
 		System.out.println( "Checking connection routes" );
 		
+		if ( getAllBindAddresses( false ).length > 0 ){
+			
+			System.out.println( "    Bind IP found" );
+			
+			return;
+		}
+		
 		Set<NetworkConnectionBase> connections = NetworkManager.getSingleton().getConnections();
 		
-		Map<InetAddress,int[]>	incoming_map = new HashMap<InetAddress, int[]>();
-		Map<InetAddress,int[]>	outgoing_map = new HashMap<InetAddress, int[]>();
+			// check if all outgoing TCP connections are being routed through the same interface
+		
+		boolean	found_wildcard = false;
+		
+		Map<InetAddress,Object[]>	lookup_map 	= new HashMap<InetAddress, Object[]>();
+		Map<String,Object[]>		bind_map 	= new HashMap<String, Object[]>();
 		
 		for ( NetworkConnectionBase connection: connections ){
 			
-			Map<InetAddress,int[]>	map = connection.isIncoming()?incoming_map:outgoing_map;
+			if ( !connection.isIncoming()){
 			
-			TransportBase tb = connection.getTransportBase();
+				TransportBase tb = connection.getTransportBase();
 			
-			if ( tb instanceof Transport ){
+				if ( tb instanceof Transport ){
 				
-				Transport transport = (Transport)tb;
+					Transport transport = (Transport)tb;
 					
-				TransportStartpoint start = transport.getTransportStartpoint();
+					if ( transport.isTCP()){
+						
+						TransportStartpoint start = transport.getTransportStartpoint();
 			
-				if ( start != null ){
-					
-					InetSocketAddress socket_address = start.getProtocolStartpoint().getAddress();
-					
-					if ( socket_address != null ){
-						
-						InetAddress address = socket_address.getAddress();
-						
-						int[] num = map.get( address );
-						
-						if ( num == null ){
+						if ( start != null ){
 							
-							num = new int[]{ 0 };
+							InetSocketAddress socket_address = start.getProtocolStartpoint().getAddress();
 							
-							map.put( address, num );
+							if ( socket_address != null ){
+								
+								InetAddress address = socket_address.getAddress();
+								
+								if ( address.isAnyLocalAddress()){
+									
+									found_wildcard = true;
+									
+								}else{
+									
+									Object[] details = lookup_map.get( address );
+									
+									if ( details == null ){
+									
+										if ( !lookup_map.containsKey( address )){
+										
+											details = getInterfaceForAddress( address );
+											
+											lookup_map.put( address, details );
+										}
+									}
+									
+									if ( details != null && details[0] instanceof NetworkInterface ){
+										
+										NetworkInterface intf = (NetworkInterface)details[0];
+										
+										InetAddress intf_address = details.length==1?null:(InetAddress)details[1];
+										
+										String key = intf.getName() + "/" + intf_address;
+										
+										Object[] entry = bind_map.get( key );
+										
+										if ( entry == null ){
+											
+											entry = new Object[]{ new int[1], details };
+											
+											bind_map.put( key, entry );
+										}
+										
+										((int[])entry[0])[0]++;
+									}
+								}
+							}
 						}
-						
-						num[0]++;
 					}
 				}
 			}
 		}
 		
-		System.out.println( "    incoming: " + incoming_map );
-		System.out.println( "    outgoing: " + outgoing_map );
+		if ( !found_wildcard && bind_map.size() == 1 ){
+			
+			System.out.println( "All outgoing TCP bound to same" );
+		}
 	}
 	
 	public String
 	classifyRoute(
+		InetAddress					address )
+	{
+		Object[] details = getInterfaceForAddress( address );
+		
+		if ( details == null ){
+			
+			return( "Initializing" );
+		}
+		
+		if ( details.length == 2){
+			
+			return(((NetworkInterface)details[0]).getName() + "/" + ((InetAddress)details[1]).getHostAddress());
+			
+		}else if ( details[0] instanceof NetworkInterface ){
+			
+			return(((NetworkInterface)details[0]).getName());
+			
+		}else{
+		
+			return(((InetAddress)details[0]).getHostAddress());
+		}
+	}
+	
+	public Object[]
+	getInterfaceForAddress(
 		InetAddress					address )
 	{
 		byte[]	address_bytes = address.getAddress();
@@ -2334,7 +2404,7 @@ addressLoop:
 		
 		if ( interfaces == null ){
 			
-			return( "Initializing" );
+			return( null );
 		}
 		
 		NetworkInterface	best_intf 	= null;
@@ -2407,15 +2477,15 @@ addressLoop:
 		
 		if ( best_addr != null ){
 			
-			return( best_intf.getName() + "/" + best_addr.getHostAddress());
+			return( new Object[]{ best_intf, best_addr });
 			
 		}else if ( best_intf != null ){
 			
-			return( best_intf.getName());
+			return( new Object[]{ best_intf });
 			
 		}else{
 		
-			return( address.getHostAddress());
+			return( new Object[]{ address });
 		}
 	}
 	

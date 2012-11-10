@@ -551,6 +551,8 @@ public class TransferStatsView
   buildRouteComponent(
 	int			rows )
   {
+	  boolean	changed = false;
+	  
 	  if ( rows <= route_labels.length ){
 		  
 		  for ( int i=rows;i<route_labels.length;i++){
@@ -592,11 +594,22 @@ public class TransferStatsView
 				  route_labels[i][j] = l;
 			  }	
 		  }
+		  
+		  changed = true;
 	  }
 	  
 	  Point size = route_comp.computeSize(route_comp.getParent().getSize().x, SWT.DEFAULT);
 	 	  
+	  changed = changed || !route_comp.getSize().equals( size );
+	  
 	  route_comp.setSize(size);
+	  
+	  if ( changed ){
+		  
+		  route_comp.getParent().layout( true, true );
+	  }
+	  
+	  route_comp.update();
   }
   
   private void createAutoSpeedPanel() {
@@ -1042,33 +1055,41 @@ public class TransferStatsView
 										  InetSocketAddress socket_address = start.getProtocolStartpoint().getAddress();
 												
 										  if ( socket_address != null ){
-											  
+											  											  
 											  InetAddress	address = socket_address.getAddress();
 											  
-											  RouteInfo	info;
+											  String name;
 											  
-											  String name = ip_to_name_map.get( address );
+											  if ( address.isAnyLocalAddress()){
+												  
+												  name = "* (TCP)";
+												  
+											  }else{
+												  
+												  name = ip_to_name_map.get( address );
+											  }
 											  
 											  if ( name == null ){
 												  
 												  name = na.classifyRoute( address);
-											  			
+											  													  
 												  ip_to_name_map.put( address, name );
+											  }
+											  
+											  if ( transport.isSOCKS()){
 												  
-												  info = name_to_route_map.get( name );
+												  name += " (SOCKS)";
+											  }
+											  		
+											  RouteInfo	info = name_to_route_map.get( name );
+																							  
+											  if ( info == null ){
+											  
+												  info = new RouteInfo( name );
+												  
+												  name_to_route_map.put( name, info );
 												  
 												  route_last_seen.put( name, now );
-												  
-												  if ( info == null ){
-												  
-													  info = new RouteInfo( name );
-												  
-													  name_to_route_map.put( name, info );
-												  }
-												  
-											  }else{
-												  
-												  info = name_to_route_map.get( name );
 											  }
 											  
 											  info.update( p );
@@ -1116,6 +1137,8 @@ public class TransferStatsView
 											  
 											  udp_info 		= new RouteInfo( "* (UDP)" );
 											  
+											  name_to_route_map.put( udp_info.getName(), udp_info );
+											  
 											  route_last_seen.put( udp_info.getName(), now );
 										  }
 										  
@@ -1132,6 +1155,8 @@ public class TransferStatsView
 							  if ( unknown_info == null ){
 								  
 								  unknown_info 		= new RouteInfo( "Pending" );
+								  
+								  name_to_route_map.put( unknown_info.getName(), unknown_info );
 								  
 								  route_last_seen.put( unknown_info.getName(), now );
 							  }
@@ -1173,15 +1198,22 @@ public class TransferStatsView
 							RouteInfo o1, 
 							RouteInfo o2)
 						{
-							return( o1.getName().compareTo(o2.getName()));
+							String	n1 = o1.getName();
+							String	n2 = o2.getName();
+							
+							if ( n1.startsWith( "*" )){
+								n1 = "zzzz" + n1;
+							}
+							if ( n2.startsWith( "*" )){
+								n2 = "zzzz" + n2;
+							}
+							
+							return( n1.compareTo(n2));
 						} 
 					 });
-			  
-			  if ( udp_info != null ){
-				  rows.add( udp_info );
-			  }
-			  
+			  			  
 			  if ( unknown_info != null ){
+				  rows.remove( unknown_info );
 				  rows.add( unknown_info );
 			  }
 			  

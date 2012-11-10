@@ -112,6 +112,7 @@ public class LightweightTCPTransport implements Transport {
   public String getEncryption(boolean verbose){ return( filter.getName(verbose)); }
   public boolean isEncrypted(){ return( filter.isEncrypted());}
   public boolean isTCP(){ return true; }
+  public boolean isSOCKS(){ return( false ); };
   public String getProtocol(){ return "TCP"; }
   
   public void

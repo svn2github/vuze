@@ -147,6 +147,12 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 	  return( true );
   }
 	
+  public boolean 
+  isSOCKS()
+  {
+	  return( is_socks );
+  }
+  
   public String 
   getProtocol()
   {

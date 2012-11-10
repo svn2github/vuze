@@ -355,6 +355,12 @@ NetworkConnectionImpl
 			return( transport.isTCP());
 		}
 		
+		public boolean 
+		isSOCKS() 
+		{
+			return( transport.isSOCKS());
+		}
+		
 		public String 
 		getDescription()
 		{
