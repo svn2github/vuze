@@ -544,7 +544,13 @@ TRTrackerUtils
 					
 			}else{
 					
-				url += bind_ip;
+				if ( bind_ip.contains( ":" )){
+				
+					url += "[" + bind_ip + "]";
+					
+				}else{
+				      url += bind_ip;
+				}
 			}		
 			
 			int	port = url_in.getPort();
