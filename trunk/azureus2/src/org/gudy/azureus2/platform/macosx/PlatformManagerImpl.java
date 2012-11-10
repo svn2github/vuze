@@ -192,7 +192,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 			SystemProperties.SEP+ SystemProperties.getApplicationName() + ".app/Contents/Info.plist";
 
 		if (!new File(plist).exists()) {
-			Debug.out("WARNING: plist not found: " + plist);
+			// don't use Debug.out - initialisation recursion issue...
+			System.err.println("WARNING: plist not found: " + plist);
 			return null;
 		}
 		PListEditor editor = new PListEditor( plist );
@@ -228,7 +229,10 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 			
     	}catch( Throwable e ){
     		
-    		Debug.out( "Failed to update plist", e );
+    			// don't use Debug.out - initialsiation recursion issue
+    		
+    		System.err.println( "Failed to update plist" );
+    		e.printStackTrace();
     		
     		return( false );
     	}
