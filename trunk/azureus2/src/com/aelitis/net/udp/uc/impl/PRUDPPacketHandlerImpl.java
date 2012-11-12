@@ -1063,17 +1063,16 @@ PRUDPPacketHandlerImpl
 			throw( new PRUDPPacketHandlerException( "Transport unavailable" ));
 		}
 		
+		checkTargetAddress( destination_address );
+
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
 		
-		if (	delegate != null && 
-				destination_address.getAddress().getClass().isInstance(delegate.explicit_bind_ip)){
+		if ( delegate != null && destination_address.getAddress().getClass().isInstance(delegate.explicit_bind_ip)){
 			
-			return delegate.sendAndReceive(auth, request_packet, destination_address, receiver, timeout, priority);		
+			return delegate.sendAndReceive(auth, request_packet, destination_address, receiver, timeout, priority);
 		}
 		
-		try{
-			checkTargetAddress( destination_address );
-			
+		try{			
 			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			
 			DataOutputStream os = new DataOutputStream( baos );
@@ -1384,10 +1383,11 @@ PRUDPPacketHandlerImpl
 			throw( new PRUDPPacketHandlerException( "Transport unavailable" ));
 		}
 		
+		checkTargetAddress( destination_address );
+
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
 		
-		if (	delegate != null && 
-				destination_address.getAddress().getClass().isInstance(delegate.explicit_bind_ip)){
+		if ( delegate != null && destination_address.getAddress().getClass().isInstance(delegate.explicit_bind_ip)){
 		
 			delegate.send(request_packet, destination_address);
 			
@@ -1395,7 +1395,6 @@ PRUDPPacketHandlerImpl
 		}
 		
 		try{
-			checkTargetAddress( destination_address );
 			
 			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 			
@@ -1422,11 +1421,7 @@ PRUDPPacketHandlerImpl
 			stats.packetSent( buffer.length );
 			
 				// this is a reply to a request, no time delays considered here 
-			
-		}catch( PRUDPPacketHandlerException e ){
-			
-			throw( e );
-			
+						
 		}catch( Throwable e ){
 			
 			if ( e instanceof NoRouteToHostException ){
@@ -1534,7 +1529,9 @@ PRUDPPacketHandlerImpl
 			
 			throw( new PRUDPPacketHandlerException( "Transport unavailable" ));
 		}
-		
+
+		checkTargetAddress( target );
+
 		PRUDPPacketHandlerImpl delegate = altProtocolDelegate;
 		
 		if ( 	delegate != null && 
@@ -1545,9 +1542,7 @@ PRUDPPacketHandlerImpl
 			return;
 		}
 		
-		try{
-			checkTargetAddress( target );
-			
+		try{	
 			DatagramPacket dg_packet = new DatagramPacket(buffer, buffer.length, target );
 			
 			// System.out.println( "Outgoing to " + dg_packet.getAddress());	
