@@ -759,6 +759,13 @@ addressLoop:
 	public InetAddress[]
   	getBindableAddresses()
   	{
+		return( getBindableAddresses( false ));
+  	}
+	
+	private InetAddress[]
+	getBindableAddresses(
+		boolean	ignore_loopback )
+	{
   		List<InetAddress>	bindable = new ArrayList<InetAddress>();
   		
   		NetworkAdminNetworkInterface[] interfaces = NetworkAdmin.getSingleton().getInterfaces();
@@ -771,9 +778,14 @@ addressLoop:
 
   				InetAddress a = address.getAddress();
   				
-  				if ( canBind( a )){
+  				if ( ignore_loopback && a.isLoopbackAddress()){
   					
-  					bindable.add( a );
+  				}else{
+  					
+	  				if ( canBind( a )){
+	  					
+	  					bindable.add( a );
+	  				}
   				}
   			}
   		}
@@ -2291,7 +2303,8 @@ addressLoop:
 		
 			// check if all outgoing TCP connections are being routed through the same interface
 		
-		boolean	found_wildcard = false;
+		boolean	found_wildcard 	= false;
+		int		tcp_found		= 0;
 		
 		Map<InetAddress,Object[]>	lookup_map 	= new HashMap<InetAddress, Object[]>();
 		Map<String,Object[]>		bind_map 	= new HashMap<String, Object[]>();
@@ -2315,6 +2328,8 @@ addressLoop:
 							InetSocketAddress socket_address = start.getProtocolStartpoint().getAddress();
 							
 							if ( socket_address != null ){
+								
+								tcp_found++;
 								
 								InetAddress address = socket_address.getAddress();
 								
@@ -2363,9 +2378,159 @@ addressLoop:
 			}
 		}
 		
-		if ( !found_wildcard && bind_map.size() == 1 ){
+		if ( tcp_found > 8 ){
 			
-			System.out.println( "All outgoing TCP bound to same" );
+			if ( found_wildcard && bind_map.size() == 0 ){
+				
+					// unfortunately we don't always get access to the locally bound
+					// interfaces, so for the case where we have nothing useful look 
+					// to see if there are more than one interface and if one looks like
+					// a vpn. I did try an explicit 'connect with bind' to see if I could
+					// work out if just one was routing but unfortunately this didn't 
+					// work (with open-vpn at least) as it still permits explicit connections
+					// through non-vpn interface - grrr!
+				
+				System.out.println( "Everything wildcard" );
+				
+				InetAddress[] addresses = getBindableAddresses( true );
+								
+				System.out.println( "Bindable=" + addresses.length );
+				
+				if ( addresses.length > 1 ){
+				
+					Map<String, NetworkInterface> intf_map = new HashMap<String, NetworkInterface>();
+					
+					for ( InetAddress address: addresses ){
+						
+							// unlikely to be interesting
+						
+						if ( address.isLinkLocalAddress()){
+							
+							continue;
+						}
+						
+						Object[] details = getInterfaceForAddress( address );
+						
+						if ( details != null && details[0] instanceof NetworkInterface ){
+							
+							NetworkInterface intf = (NetworkInterface)details[0];
+							
+							intf_map.put( intf.getName(), intf );
+						}
+					}
+					
+					if ( intf_map.size() > 1 ){
+												
+						int	eth_like = 0;
+						
+						Set<String>	vpn_like = new HashSet<String>();
+						
+						for ( Map.Entry<String,NetworkInterface> entry: intf_map.entrySet()){
+							
+							int type = categoriseIntf( entry.getValue());
+							
+							if ( type == 1 ){
+								
+								eth_like++;
+								
+							}else if ( type == 2 ){
+								
+								vpn_like.add( entry.getKey());								
+							}
+						}
+						
+						if ( vpn_like.size() == 1 && eth_like > 0 ){
+							
+							System.out.println( "Looks like VPN: " + vpn_like );
+						}
+					}
+				}
+			}else if ( !found_wildcard && bind_map.size() == 1 ){
+				
+				Object[]	bound_details = (Object[])bind_map.values().iterator().next()[1];
+
+				NetworkInterface bound_intf = (NetworkInterface)bound_details[0];
+
+				System.out.println( "All outgoing TCP bound to same: " + bound_intf );
+								
+				int bound_type = categoriseIntf( bound_intf );
+				
+				if ( bound_type == 2 ){
+					
+					InetAddress[] addresses = getBindableAddresses( true );
+										
+					if ( addresses.length > 1 ){
+											
+						int	eth_like	= 0;
+						int vpn_like	= 0;
+						
+						for ( InetAddress address: addresses ){
+							
+								// unlikely to be interesting
+							
+							if ( address.isLinkLocalAddress()){
+								
+								continue;
+							}
+							
+							Object[] details = getInterfaceForAddress( address );
+							
+							if ( details != null && details[0] instanceof NetworkInterface ){
+								
+								NetworkInterface intf = (NetworkInterface)details[0];
+								
+								if ( intf != bound_intf ){
+									
+									int type = categoriseIntf( intf);
+									
+									if ( type == 1 ){
+										
+										eth_like++;
+										
+									}else if ( type == 2 ){
+										
+										vpn_like++;
+									}
+								}
+							}
+						}
+						
+						if ( vpn_like == 0 && eth_like > 0 ){
+					
+							System.out.println( "Looks like VPN: " + bound_intf.getName());
+						}
+					}
+				}	
+			}
+		}
+	}
+	
+	private int
+	categoriseIntf(
+		NetworkInterface	intf )
+	{
+		String name = intf.getName().toLowerCase();
+		String desc	= intf.getDisplayName().toLowerCase();
+		
+		if ( desc.toLowerCase().startsWith( "tap-" )){
+			
+			return( 2 );
+			
+		}else if ( name.startsWith( "ppp" )){
+			
+			return( 2 );
+			
+		}else if ( name.startsWith( "tun" )){
+			
+			return( 2 );
+			
+		}else if ( name.startsWith( "eth" ) || name.startsWith( "en" )){
+
+			return( 1 );
+			
+		}else{
+			
+			return( 0 );
 		}
 	}
 	
