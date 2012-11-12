@@ -25,12 +25,15 @@ package org.gudy.azureus2.plugins.ui;
 public interface 
 UIManagerEvent 
 {
-	public static final int MT_NONE		= 0x00000000;
-	public static final int MT_OK		= 0x00000001;
-	public static final int MT_CANCEL	= 0x00000002;
-	public static final int MT_YES		= 0x00000004;
-	public static final int MT_NO		= 0x00000008;
+	public static final int MT_NONE			= 0x00000000;
+	public static final int MT_OK			= 0x00000001;
+	public static final int MT_CANCEL		= 0x00000002;
+	public static final int MT_YES			= 0x00000004;
+	public static final int MT_NO			= 0x00000008;
+	public static final int MT_YES_DEFAULT	= 0x00000010;	// as for YES but makes it the default selection
+	public static final int MT_NO_DEFAULT	= 0x00000020;	// as for NO but makes it the default selection
 	
+
 	public static final int ET_SHOW_TEXT_MESSAGE				= 1;		// data is String[] - title, message, text
 	public static final int ET_OPEN_TORRENT_VIA_FILE			= 2;		// data is File 
 	public static final int ET_OPEN_TORRENT_VIA_URL				= 3;		// data is Object[]{URL,URL,Boolean} - { torrent_url, referrer url, auto_download, Map request_properties}  

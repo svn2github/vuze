@@ -33,6 +33,7 @@ import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -44,6 +45,9 @@ import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerPingCallback;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.Utilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
@@ -101,6 +105,9 @@ NetworkAdminImpl
 	}
 
 	
+	private static final int INTERFACE_CHECK_MILLIS = 15*1000;
+	private static final int ROUTE_CHECK_MILLIS		= 60*1000;
+	private static final int ROUTE_CHECK_TICKS		= ROUTE_CHECK_MILLIS / INTERFACE_CHECK_MILLIS;
 	
 	
 	private Set<NetworkInterface>		old_network_interfaces;
@@ -203,16 +210,24 @@ NetworkAdminImpl
 		
 		SimpleTimer.addPeriodicEvent(
 			"NetworkAdmin:checker",
-			15000,
+			INTERFACE_CHECK_MILLIS,
 			new TimerEventPerformer()
 			{
+				private int	tick_count;
+				
 				public void 
 				perform(
 					TimerEvent event )
 				{
-					checkNetworkInterfaces( false, false );
+					tick_count++;
 					
-					checkConnectionRoutes();
+					boolean changed = checkNetworkInterfaces( false, false );
+					
+					if ( 	changed || 
+							tick_count % ROUTE_CHECK_TICKS == 0 ){
+					
+						checkConnectionRoutes();
+					}
 				}
 			});
 		
@@ -244,16 +259,16 @@ NetworkAdminImpl
 		}
 	}
 	
-	protected void
+	protected boolean
 	checkNetworkInterfaces(
 		boolean		first_time,
 		boolean		force )
 	{
+		boolean	changed	= false;
+
 		try{
 			List<NetworkInterface>	x = NetUtils.getNetworkInterfaces();
 			
-			boolean	changed	= false;
-
 			if ( x.size() == 0 && old_network_interfaces == null ){
 				
 			}else if ( x.size() == 0 ){
@@ -366,6 +381,8 @@ NetworkAdminImpl
 			}
 		}catch( Throwable e ){
 		}
+		
+		return( changed );
 	}
 	
 	public InetAddress getMultiHomedOutgoingRoundRobinBindAddress(InetAddress target)
@@ -759,12 +776,13 @@ addressLoop:
 	public InetAddress[]
   	getBindableAddresses()
   	{
-		return( getBindableAddresses( false ));
+		return( getBindableAddresses( false, false ));
   	}
 	
 	private InetAddress[]
 	getBindableAddresses(
-		boolean	ignore_loopback )
+		boolean	ignore_loopback,
+		boolean	ignore_link_local )
 	{
   		List<InetAddress>	bindable = new ArrayList<InetAddress>();
   		
@@ -778,7 +796,8 @@ addressLoop:
 
   				InetAddress a = address.getAddress();
   				
-  				if ( ignore_loopback && a.isLoopbackAddress()){
+  				if ( 	( ignore_loopback && a.isLoopbackAddress()) ||
+  						( ignore_link_local && a.isLinkLocalAddress())){
   					
   				}else{
   					
@@ -802,7 +821,7 @@ addressLoop:
   		try{
   			ssc = ServerSocketChannel.open();
   		
-  			ssc.socket().bind( new InetSocketAddress(bind_ip,0), 16 );
+  			ssc.socket().bind( new InetSocketAddress( bind_ip, 0 ), 16 );
   			
   			return( true );
   			
@@ -2392,23 +2411,16 @@ addressLoop:
 				
 				System.out.println( "Everything wildcard" );
 				
-				InetAddress[] addresses = getBindableAddresses( true );
+				InetAddress[] bindable_addresses = getBindableAddresses( true, true );
 								
-				System.out.println( "Bindable=" + addresses.length );
+				System.out.println( "Bindable=" + bindable_addresses.length );
 				
-				if ( addresses.length > 1 ){
+				if ( bindable_addresses.length > 1 ){
 				
 					Map<String, NetworkInterface> intf_map = new HashMap<String, NetworkInterface>();
 					
-					for ( InetAddress address: addresses ){
-						
-							// unlikely to be interesting
-						
-						if ( address.isLinkLocalAddress()){
-							
-							continue;
-						}
-						
+					for ( InetAddress address: bindable_addresses ){
+												
 						Object[] details = getInterfaceForAddress( address );
 						
 						if ( details != null && details[0] instanceof NetworkInterface ){
@@ -2423,7 +2435,7 @@ addressLoop:
 												
 						int	eth_like = 0;
 						
-						Set<String>	vpn_like = new HashSet<String>();
+						Map<String,NetworkInterface>	vpn_like = new HashMap<String, NetworkInterface>();
 						
 						for ( Map.Entry<String,NetworkInterface> entry: intf_map.entrySet()){
 							
@@ -2435,13 +2447,13 @@ addressLoop:
 								
 							}else if ( type == 2 ){
 								
-								vpn_like.add( entry.getKey());								
+								vpn_like.put( entry.getKey(), entry.getValue());								
 							}
 						}
 						
 						if ( vpn_like.size() == 1 && eth_like > 0 ){
 							
-							System.out.println( "Looks like VPN: " + vpn_like );
+							maybeVPN( vpn_like.values().iterator().next());
 						}
 					}
 				}
@@ -2452,52 +2464,50 @@ addressLoop:
 				NetworkInterface bound_intf = (NetworkInterface)bound_details[0];
 
 				System.out.println( "All outgoing TCP bound to same: " + bound_intf );
-								
+						
+				//maybeVPN( bound_intf );
+				
 				int bound_type = categoriseIntf( bound_intf );
 				
 				if ( bound_type == 2 ){
 					
-					InetAddress[] addresses = getBindableAddresses( true );
-										
-					if ( addresses.length > 1 ){
-											
-						int	eth_like	= 0;
-						int vpn_like	= 0;
+					if ( !maybeVPNDone( bound_intf )){
 						
-						for ( InetAddress address: addresses ){
+						InetAddress[] bindable_addresses = getBindableAddresses( true, true );
+											
+						if ( bindable_addresses.length > 1 ){
+												
+							int	eth_like	= 0;
+							int vpn_like	= 0;
 							
-								// unlikely to be interesting
-							
-							if ( address.isLinkLocalAddress()){
+							for ( InetAddress address: bindable_addresses ){
+															
+								Object[] details = getInterfaceForAddress( address );
 								
-								continue;
-							}
-							
-							Object[] details = getInterfaceForAddress( address );
-							
-							if ( details != null && details[0] instanceof NetworkInterface ){
-								
-								NetworkInterface intf = (NetworkInterface)details[0];
-								
-								if ( intf != bound_intf ){
+								if ( details != null && details[0] instanceof NetworkInterface ){
 									
-									int type = categoriseIntf( intf);
+									NetworkInterface intf = (NetworkInterface)details[0];
 									
-									if ( type == 1 ){
+									if ( intf != bound_intf ){
 										
-										eth_like++;
+										int type = categoriseIntf( intf);
 										
-									}else if ( type == 2 ){
-										
-										vpn_like++;
+										if ( type == 1 ){
+											
+											eth_like++;
+											
+										}else if ( type == 2 ){
+											
+											vpn_like++;
+										}
 									}
 								}
 							}
-						}
+							
+							if ( vpn_like == 0 && eth_like > 0 ){
 						
-						if ( vpn_like == 0 && eth_like > 0 ){
-					
-							System.out.println( "Looks like VPN: " + bound_intf.getName());
+								maybeVPN( bound_intf );
+							}
 						}
 					}
 				}	
@@ -2505,6 +2515,71 @@ addressLoop:
 		}
 	}
 	
+	private boolean
+	maybeVPNDone(
+		NetworkInterface		intf )
+	{
+		return(	COConfigurationManager.getBooleanParameter( "network.admin.maybe.vpn.done." + getConfigKey( intf ), false ));
+	}
+	
+	private void
+	maybeVPN(
+		final NetworkInterface		intf )
+	{
+		final UIManager ui_manager = StaticUtilities.getUIManager( 5*1000 );
+		
+		if ( ui_manager == null ){
+			
+			return;
+		}
+		
+		COConfigurationManager.setParameter( "network.admin.maybe.vpn.done." + getConfigKey( intf ), true );
+		
+		new AEThread2( "NetworkAdmin:vpn?" )
+		{
+			public void
+			run()
+			{
+				String details = MessageText.getString(
+						"network.admin.maybe.vpn.msg",
+						new String[]{ intf.getName() + " - " + intf.getDisplayName() });
+				
+				long res = ui_manager.showMessageBox(
+							"network.admin.maybe.vpn.title",
+							"!" + details + "!",
+							UIManagerEvent.MT_YES | UIManagerEvent.MT_NO_DEFAULT );
+				
+				if ( res == UIManagerEvent.MT_YES ){
+					
+					COConfigurationManager.setParameter( "User Mode", 2 );
+					COConfigurationManager.setParameter( "Bind IP", intf.getName());
+					COConfigurationManager.setParameter( "Enforce Bind IP", true );
+					COConfigurationManager.setParameter( "Check Bind IP On Start", true );
+					COConfigurationManager.save();
+					
+					ui_manager.showMessageBox(
+								"settings.updated.title",
+								"settings.updated.msg",
+								UIManagerEvent.MT_OK );
+				}
+			}
+		}.start();
+	}
+	
+	private String
+	getConfigKey(
+		NetworkInterface	intf )
+	{
+		try{
+			return( Base32.encode( intf.getName().getBytes( "UTF-8" )));
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( "derp" );
+		}
+	}
 	private int
 	categoriseIntf(
 		NetworkInterface	intf )
