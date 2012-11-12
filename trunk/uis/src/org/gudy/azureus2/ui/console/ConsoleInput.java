@@ -292,6 +292,7 @@ public class ConsoleInput extends Thread {
 		registerCommand(new XML());
 		registerCommand(new Hack());
 		registerCommand(new AddFind());
+		registerCommand(new Create());
 		registerCommand(new TorrentCheck());
 		registerCommand(new TorrentQueue());
 		registerCommand(new TorrentRemove());

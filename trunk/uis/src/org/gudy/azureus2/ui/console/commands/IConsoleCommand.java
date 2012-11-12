@@ -45,7 +45,7 @@ public abstract class IConsoleCommand {
 	 * @param console
 	 * @param arguments
 	 */
-	public abstract void execute(String commandName, ConsoleInput console, List arguments);
+	public abstract void execute(String commandName, ConsoleInput console, List<String> arguments);
 	
 	/**
 	 * return high-level help about the commands supported by this object.
