@@ -177,14 +177,25 @@ UISWTInstanceImpl
 							long	_styles = ((Long)(params[2])).longValue();
 							
 							int		styles	= 0;
+							int		def		= 0;
 							
 							if (( _styles & UIManagerEvent.MT_YES ) != 0 ){
 								
 								styles |= SWT.YES;
 							}
+							if (( _styles & UIManagerEvent.MT_YES_DEFAULT ) != 0 ){
+								
+								styles |= SWT.YES;
+								def = SWT.YES;
+							}
 							if (( _styles & UIManagerEvent.MT_NO ) != 0 ){
 								
 								styles |= SWT.NO;
+							}
+							if (( _styles & UIManagerEvent.MT_NO_DEFAULT ) != 0 ){
+								
+								styles |= SWT.NO;
+								def = SWT.NO;
 							}
 							if (( _styles & UIManagerEvent.MT_OK ) != 0 ){
 								
@@ -196,10 +207,19 @@ UISWTInstanceImpl
 							}
 							
 
-							MessageBoxShell mb = new MessageBoxShell(styles, 
+							MessageBoxShell mb = 
+								new MessageBoxShell(
+									styles, 
 									MessageText.getString((String)params[0]), 
 									MessageText.getString((String)params[1]));
+							
+							if ( def != 0 ){
+								
+								mb.setDefaultButtonUsingStyle( def );
+							}
+							
 							mb.open(null);
+							
 							int _r = mb.waitUntilClosed();
 							
 							int	r = 0;
