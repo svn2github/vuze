@@ -191,11 +191,15 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 			System.getProperty("user.dir") +
 			SystemProperties.SEP+ SystemProperties.getApplicationName() + ".app/Contents/Info.plist";
 
-		if (!new File(plist).exists()) {
-			// don't use Debug.out - initialisation recursion issue...
-			System.err.println("WARNING: plist not found: " + plist);
-			return null;
+		File plist_file = new File( plist );
+			
+			// since 4800 the plist is read-only (as we sign it to play niceley with OSX and
+			// updating it breaks the sig)
+		
+		if ( !plist_file.canWrite()){
+			return( null );
 		}
+		
 		PListEditor editor = new PListEditor( plist );
 	
 		return( editor );
@@ -207,7 +211,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     	try{
     		PListEditor editor = getPList();
     		
-    		if (editor == null) {
+    		if ( editor == null) {
     			
     			return( false );
     		}
@@ -244,11 +248,14 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
        	try{
     		PListEditor editor = getPList();
   	
-    		editor.touchFile();
+    		if ( editor != null ){
     		
+    			editor.touchFile();
+    		}
        	}catch( Throwable e ){
     		
-    		Debug.out( "Failed to touch plist", e );
+       		System.err.println( "Failed to touch plist" );
+       		e.printStackTrace();
     	}
     }
     
