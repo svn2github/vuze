@@ -65,18 +65,20 @@ ListenerManager<T>
 	}
 	
 	
-	protected String	name;
+	private String	name;
 	
-	protected ListenerManagerDispatcher<T>				target;
-	protected ListenerManagerDispatcherWithException	target_with_exception;
+	private ListenerManagerDispatcher<T>				target;
+	private ListenerManagerDispatcherWithException		target_with_exception;
 	
-	protected boolean	async;
-	protected AEThread2	async_thread;
+	private boolean		async;
+	private AEThread2	async_thread;
 	
-	protected List<T>			listeners		= new ArrayList<T>(0);
+	private List<T>			listeners		= new ArrayList<T>(0);
 	
-	protected List<Object[]>	dispatch_queue;
-	protected AESemaphore		dispatch_sem;
+	private List<Object[]>	dispatch_queue;
+	private AESemaphore		dispatch_sem;
+	
+	private boolean	logged_too_many_listeners;
 	
 	protected
 	ListenerManager(
@@ -121,7 +123,7 @@ ListenerManager<T>
 			
 			if (new_listeners.contains(listener)) {
 				if ( Constants.IS_CVS_VERSION ){
-					Debug.out( "check this out" );
+					Debug.out( "check this out: listener added twice" );
 				}
 				Logger.log(new LogEvent(LogIDs.CORE, LogEvent.LT_WARNING,
 						"addListener called but listener already added for " + name
@@ -131,7 +133,11 @@ ListenerManager<T>
 			
 			if (new_listeners.size() > 50) {
 				if ( Constants.IS_CVS_VERSION ){
-					Debug.out( "check this out" );
+					Debug.out( "check this out: lots of listeners!" );
+					if (!logged_too_many_listeners){
+						logged_too_many_listeners= true;
+						Debug.out( String.valueOf( new_listeners ));
+					}
 				}
 				Logger.log(new LogEvent(LogIDs.CORE, LogEvent.LT_WARNING,
 						"addListener: over 50 listeners added for " + name
