@@ -408,6 +408,7 @@ AEDiagnostics
 	   		{	"WSOCKHK",			"n", },
 	   		{	"InjHook12",		"n", },
 	   		{	"FPServiceProvider","n", },
+	   		{	"SBLSP.dll",		"y"  },
 	};
 
 	public static void
