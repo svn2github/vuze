@@ -641,7 +641,7 @@ public class ToolBarView
 				}
 			}, 250);
 
-	private Map<DownloadManager, DownloadManagerListener> dm_listener_map = new HashMap<DownloadManager, DownloadManagerListener>();
+	private IdentityHashMap<DownloadManager, DownloadManagerListener> dm_listener_map = new IdentityHashMap<DownloadManager, DownloadManagerListener>();
 
 	public void refreshCoreToolBarItems() {
 		refresh_limiter.dispatch();
@@ -688,7 +688,7 @@ public class ToolBarView
 
 			synchronized (dm_listener_map) {
 
-				Map<DownloadManager, DownloadManagerListener> copy = new HashMap<DownloadManager, DownloadManagerListener>(
+				Map<DownloadManager, DownloadManagerListener> copy = new IdentityHashMap<DownloadManager, DownloadManagerListener>(
 						dm_listener_map);
 
 				for (ISelectedContent content : currentContent) {
@@ -728,7 +728,7 @@ public class ToolBarView
 
 							dm_listener_map.put(dm, l);
 
-							// System.out.println( "Added " + dm.getDisplayName() + " - size=" + dm_listener_map.size());
+							//System.out.println( "Added " + dm.getDisplayName() + " - size=" + dm_listener_map.size());
 						}
 					}
 				}
@@ -741,7 +741,7 @@ public class ToolBarView
 
 					dm_listener_map.remove(dm);
 
-					// System.out.println( "Removed " + dm.getDisplayName() + " - size=" + dm_listener_map.size());
+					//System.out.println( "Removed " + dm.getDisplayName() + " - size=" + dm_listener_map.size());
 				}
 			}
 
