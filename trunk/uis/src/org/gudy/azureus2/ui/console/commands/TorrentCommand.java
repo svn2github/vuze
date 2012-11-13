@@ -60,7 +60,7 @@ public abstract class TorrentCommand extends IConsoleCommand {
 		return( false );
 	}
 
-	public void execute(String commandName, ConsoleInput ci, List args)
+	public void execute(String commandName, ConsoleInput ci, List<String> args)
 	{
 		if (!args.isEmpty()) {
 		    String subcommand = (String) args.remove(0);

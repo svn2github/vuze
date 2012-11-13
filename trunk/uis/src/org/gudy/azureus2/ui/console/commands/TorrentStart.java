@@ -42,7 +42,7 @@ public class TorrentStart extends TorrentCommand {
 	{
 		super("start" , "s", "Starting");
 	}
-	public void execute(String commandName, ConsoleInput console, List args) {
+	public void execute(String commandName, ConsoleInput console, List<String> args) {
 		startNow = false;
 		Vector newargs = new Vector(args);
 		if (!newargs.isEmpty() && newargs.contains("now") ) {

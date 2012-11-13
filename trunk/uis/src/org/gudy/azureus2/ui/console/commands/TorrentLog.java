@@ -57,7 +57,7 @@ public class TorrentLog extends TorrentCommand implements ILogEventListener
 		super("tlog", "tl", "Torrent Logging");
 	}
 
-	public void execute(String commandName, ConsoleInput ci, List args) {
+	public void execute(String commandName, ConsoleInput ci, List<String> args) {
 		mode = MODE_ON;
 		Vector newargs = new Vector(args);
 		if (newargs.isEmpty()) {
