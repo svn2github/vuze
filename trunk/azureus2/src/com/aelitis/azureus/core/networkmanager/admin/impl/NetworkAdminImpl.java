@@ -53,6 +53,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.instancemanager.AZInstance;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerListener;
@@ -63,6 +64,7 @@ import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.TransportBase;
 import com.aelitis.azureus.core.networkmanager.TransportStartpoint;
 import com.aelitis.azureus.core.networkmanager.admin.*;
+import com.aelitis.azureus.core.networkmanager.admin.impl.swt.NetworkAdminSWTImpl;
 import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
@@ -238,6 +240,17 @@ NetworkAdminImpl
 		checkDefaultBindAddress( true );
 		
 		AEDiagnostics.addEvidenceGenerator( this );
+		
+		AzureusCoreFactory.addCoreRunningListener(
+			new AzureusCoreRunningListener()
+			{
+				public void 
+				azureusCoreRunning(
+					AzureusCore core ) 
+				{
+					new NetworkAdminSWTImpl( core, NetworkAdminImpl.this );
+				}
+			});
 		
 		initialised = true;
 	}
@@ -583,7 +596,7 @@ addressLoop:
 
 	}
 	
-	private void 
+	private String 
 	checkBindAddresses()
 	{		
 		Pattern addressSplitter 	= Pattern.compile(";");
@@ -694,7 +707,11 @@ addressLoop:
 						true,
 						LogAlert.AT_WARNING,
 						"Bind IPs not resolved: " + failed_entries + "\n\nSee Tools->Options->Connection->Advanced Network Settings" ));
+			
+			return( failed_entries );
 		}
+		
+		return( null );
 	}
 	
 	protected void checkDefaultBindAddress(boolean first_time)
@@ -2306,6 +2323,185 @@ addressLoop:
 		}
 	}
 	
+		// for the icon 
+	
+	public static final int BS_INACTIVE	= 0;
+	public static final int BS_OK		= 1;
+	public static final int BS_WARNING	= 2;
+	public static final int BS_ERROR	= 3;
+	
+	private long		bs_last_calc 	= 0;
+	private Object[]	bs_last_value 	= null;
+	
+	public Object[]
+	getBindingStatus()
+	{
+		long now = SystemTime.getMonotonousTime();
+		
+		if ( bs_last_value != null && now - bs_last_calc < 30*1000 ){
+			
+			return( bs_last_value );
+		}
+		
+		String 	bind_ips 	= COConfigurationManager.getStringParameter("Bind IP", "").trim();
+
+		if ( bind_ips.length() == 0 ){
+			
+			return( new Object[]{ BS_INACTIVE, "" });
+		}
+		
+		boolean enforceBind = COConfigurationManager.getBooleanParameter( "Enforce Bind IP" );
+
+		String missing = checkBindAddresses();
+		
+		InetAddress[] binds = getAllBindAddresses( false );
+		
+		List<InetAddress> bindable 		= new ArrayList<InetAddress>();
+		List<InetAddress> unbindable 	= new ArrayList<InetAddress>();
+		
+		for ( InetAddress b: binds ){
+			
+			if ( canBind( b )){
+				
+				bindable.add( b );
+				
+			}else{
+			
+				if ( !( b.isLoopbackAddress() || b.isLinkLocalAddress())){
+				
+					unbindable.add( b );
+				}	
+			}
+		}
+		
+		Set<NetworkConnectionBase> connections = NetworkManager.getSingleton().getConnections();
+						
+		Map<InetAddress,int[]>	lookup_map 	= new HashMap<InetAddress, int[]>();
+		
+		for ( NetworkConnectionBase connection: connections ){
+					
+			TransportBase tb = connection.getTransportBase();
+		
+			if ( tb instanceof Transport ){
+			
+				Transport transport = (Transport)tb;
+										
+				TransportStartpoint start = transport.getTransportStartpoint();
+	
+				if ( start != null ){
+					
+					InetSocketAddress socket_address = start.getProtocolStartpoint().getAddress();
+					
+					if ( socket_address != null ){
+															
+						InetAddress address = socket_address.getAddress();
+						
+						int[]	counts = lookup_map.get( address );
+						
+						if ( counts == null ){
+							
+							counts = new int[2];
+							
+							lookup_map.put( address, counts );
+						}
+							
+						if ( connection.isIncoming()){
+							
+							counts[0]++;
+							
+						}else{
+							
+							counts[1]++;
+						}
+					}
+				}
+			}
+		}
+	
+		int	status = BS_OK;
+		
+		if ( unbindable.size() > 0 || missing != null ){
+			
+			status = enforceBind?BS_ERROR:BS_WARNING;
+		}
+		
+		String	str = 
+			"Binding: " + getString( bindable ) + ", force=" + enforceBind;
+		
+		if ( unbindable.size() > 0 ){
+			str += "\nUnbindable: " + getString( unbindable );
+		}
+		
+		if ( missing != null ){
+			str += "\nMissing: " + missing;
+		}
+		
+		boolean	unbound_connections = false;
+		
+		if ( lookup_map.size() == 0 ){
+			
+			str += "\nNo Connections";
+			
+		}else{
+			
+			String con_str = "";
+			
+			for ( Map.Entry<InetAddress,int[]> entry: lookup_map.entrySet()){
+				
+				InetAddress address = entry.getKey();
+				int[]		counts	= entry.getValue();
+				
+				String s;
+				
+				if ( address.isAnyLocalAddress()){
+					
+					s = "*";
+					
+					unbound_connections = true;
+					
+				}else{
+					
+					s = address.getHostAddress();
+					
+					if ( !bindable.contains( address )){
+						
+						unbound_connections = true;
+					}
+				}
+				
+				s += " - in=" + counts[0] + ", out=" + counts[1];
+			
+				con_str += (con_str.length()==0?"":"; ") + s;
+			}
+			
+			str += "\nConnections: " + con_str;
+		}
+			
+		if ( unbound_connections ){
+			
+			status = enforceBind?BS_ERROR:BS_WARNING;
+		}
+		
+		bs_last_value 	= new Object[]{ status, str };
+		bs_last_calc	= now;
+		
+		return( bs_last_value );
+	}
+	
+	private String
+	getString(
+		List<InetAddress>		addresses )
+	{
+		String str = "";
+		
+		for ( InetAddress address: addresses ){
+			
+			str += (str.length()==0?"":", ") + address.getHostAddress();
+		}
+		
+		return( str );
+	}
+	
 	private void
 	checkConnectionRoutes()
 	{
@@ -2587,7 +2783,7 @@ addressLoop:
 		String name = intf.getName().toLowerCase();
 		String desc	= intf.getDisplayName().toLowerCase();
 		
-		if ( desc.toLowerCase().startsWith( "tap-" )){
+		if ( desc.startsWith( "tap-" ) || desc.contains( "vpn" )){
 			
 			return( 2 );
 			

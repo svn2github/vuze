@@ -280,6 +280,9 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		
 		new BooleanParameter(cSection, "Enforce Bind IP","network.enforce.ipbinding");
 		
+		new BooleanParameter(cSection, "Show IP Bindings Icon", "network.ipbinding.icon.show");
+
+		
 		//////////////////////////////////////////////////////////////////////////
 
 		return cSection;
