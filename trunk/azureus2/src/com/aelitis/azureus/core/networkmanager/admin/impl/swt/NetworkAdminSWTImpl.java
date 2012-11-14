@@ -202,7 +202,7 @@ NetworkAdminSWTImpl
 			
 													if ( uif != null ){
 			
-														uif.openView( UIFunctions.VIEW_CONFIG, "proxy" );
+														uif.openView( UIFunctions.VIEW_CONFIG, "connection.advanced" );
 													}
 												}
 											});
