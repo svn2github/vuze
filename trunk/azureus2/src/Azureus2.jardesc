@@ -186,6 +186,7 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.tracker"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.security.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.diskmanager.access.impl"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.networkmanager.admin.impl.swt"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.platform.win32.access"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.remote.disk"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.views"/>
