@@ -132,6 +132,16 @@ NetworkAdminImpl
 						setIPv6Enabled( COConfigurationManager.getBooleanParameter("IPV6 Enable Support"));
 					}
 				});
+		
+		COConfigurationManager.addResetToDefaultsListener(
+				new COConfigurationManager.ResetToDefaultsListener()
+				{
+					public void 
+					reset() 
+					{
+						clearMaybeVPNs();
+					}
+				});
 	}
 	
 	private int roundRobinCounterV4 = 0;
@@ -2725,6 +2735,20 @@ addressLoop:
 		}
 	}
 	
+	private void
+	clearMaybeVPNs()
+	{
+		Set<String> keys = COConfigurationManager.getDefinedParameters();
+		
+		for ( String key: keys ){
+			
+			if ( key.startsWith( "network.admin.maybe.vpn.done." )){
+			
+				COConfigurationManager.removeParameter( key );
+			}
+		}
+	}
+	
 	private boolean
 	maybeVPNDone(
 		NetworkInterface		intf )
@@ -2743,6 +2767,13 @@ addressLoop:
 			return;
 		}
 		
+			// might have done in the meantime
+		
+		if ( maybeVPNDone( intf )){
+			
+			return;
+		}
+		
 		COConfigurationManager.setParameter( "network.admin.maybe.vpn.done." + getConfigKey( intf ), true );
 		
 		new AEThread2( "NetworkAdmin:vpn?" )
@@ -2750,13 +2781,13 @@ addressLoop:
 			public void
 			run()
 			{
-				String details = MessageText.getString(
+				String msg_details = MessageText.getString(
 						"network.admin.maybe.vpn.msg",
 						new String[]{ intf.getName() + " - " + intf.getDisplayName() });
 				
 				long res = ui_manager.showMessageBox(
 							"network.admin.maybe.vpn.title",
-							"!" + details + "!",
+							"!" + msg_details + "!",
 							UIManagerEvent.MT_YES | UIManagerEvent.MT_NO_DEFAULT );
 				
 				if ( res == UIManagerEvent.MT_YES ){
@@ -2766,6 +2797,66 @@ addressLoop:
 					COConfigurationManager.setParameter( "Enforce Bind IP", true );
 					COConfigurationManager.setParameter( "Check Bind IP On Start", true );
 					COConfigurationManager.save();
+					
+					try{
+						Set<NetworkConnectionBase> connections = NetworkManager.getSingleton().getConnections();
+	
+						Map<InetAddress,Object[]>	lookup_map 	= new HashMap<InetAddress, Object[]>();
+	
+						for ( NetworkConnectionBase connection: connections ){
+												
+							TransportBase tb = connection.getTransportBase();
+						
+							if ( tb instanceof Transport ){
+							
+								boolean ok = false;
+	
+								Transport transport = (Transport)tb;
+								
+								if ( transport.isTCP()){
+									
+									TransportStartpoint start = transport.getTransportStartpoint();
+						
+									if ( start != null ){
+										
+										InetSocketAddress socket_address = start.getProtocolStartpoint().getAddress();
+										
+										if ( socket_address != null ){
+												
+											InetAddress address = socket_address.getAddress();
+											
+											Object[] details = lookup_map.get( address );
+											
+											if ( details == null ){
+											
+												if ( !lookup_map.containsKey( address )){
+												
+													details = getInterfaceForAddress( address );
+													
+													lookup_map.put( address, details );
+												}
+												
+												if ( details[0] == intf ){
+													
+													ok = true;
+												}
+											}									
+										}
+									}
+								}
+							
+								if ( !ok ){
+								
+									transport.close( "Explicit bind IP set, disconnecting incompatible connections" );
+								}
+							}
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e);
+					}
+					
+					bs_last_calc = 0;
 					
 					ui_manager.showMessageBox(
 								"settings.updated.title",

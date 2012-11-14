@@ -681,6 +681,13 @@ COConfigurationManager
 	  ConfigurationManager.getInstance().resetToDefaults();
   }
   
+  public static void
+  addResetToDefaultsListener(
+	  ResetToDefaultsListener		l )
+  {
+	  ConfigurationManager.getInstance().addResetToDefaultsListener( l );
+  }
+  
   public interface
   ParameterVerifier
   {
@@ -688,5 +695,12 @@ COConfigurationManager
 	  verify(
 		String	parameter,
 		Object	value );
+  }
+  
+  public interface
+  ResetToDefaultsListener
+  {
+	public void
+	reset();
   }
 }

@@ -49,6 +49,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 
 import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
 
 
 
@@ -273,8 +274,10 @@ public class ConfigSectionMode implements UISWTConfigSection {
 							if (returnVal != SWT.OK) {
 								return;
 							}
+							
+							RememberedDecisionsManager.ensureLoaded();
 
-							COConfigurationManager.resetToDefaults();
+							COConfigurationManager.resetToDefaults();						
 	        			}
 	        		});
 	        }

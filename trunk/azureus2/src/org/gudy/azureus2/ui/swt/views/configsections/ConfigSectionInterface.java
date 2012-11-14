@@ -46,6 +46,8 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 
+import com.aelitis.azureus.ui.common.RememberedDecisionsManager;
+
 import java.util.HashMap;
 
 public class ConfigSectionInterface implements UISWTConfigSection {
@@ -223,8 +225,7 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		clear_decisions.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 
-				COConfigurationManager.setParameter("MessageBoxWindow.decisions",
-						new HashMap());
+				RememberedDecisionsManager.clearAll();
 			}
 		});
 

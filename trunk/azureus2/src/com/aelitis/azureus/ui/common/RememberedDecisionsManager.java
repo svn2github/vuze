@@ -34,7 +34,29 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
  */
 public class RememberedDecisionsManager
 {
-
+	static{
+		COConfigurationManager.addResetToDefaultsListener(
+			new COConfigurationManager.ResetToDefaultsListener()
+			{
+				public void 
+				reset() 
+				{
+					clearAll();
+				}
+			});
+	}
+	
+	public static void
+	ensureLoaded()
+	{	
+	}
+	
+	public static void
+	clearAll()
+	{
+		COConfigurationManager.setParameter("MessageBoxWindow.decisions", new HashMap());
+	}
+	
 	public static int getRememberedDecision(String id) {
 		return getRememberedDecision(id, -1);
 	}

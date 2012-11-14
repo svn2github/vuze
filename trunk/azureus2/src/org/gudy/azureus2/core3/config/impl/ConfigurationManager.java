@@ -27,8 +27,10 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager.ParameterVerifier;
+import org.gudy.azureus2.core3.config.COConfigurationManager.ResetToDefaultsListener;
 
 import com.aelitis.azureus.core.security.CryptoManager;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  * A singleton used to store configuration into a bencoded file.
@@ -53,6 +55,8 @@ ConfigurationManager
   private List<COConfigurationListener>		listenerz 			= new ArrayList<COConfigurationListener>();
   private Map<String,ParameterListener[]> 	parameterListenerz 	= new HashMap<String,ParameterListener[]>();
     
+  private CopyOnWriteList<ResetToDefaultsListener>	reset_to_def_listeners = new CopyOnWriteList<ResetToDefaultsListener>();
+  
   private static FrequencyLimitedDispatcher dirty_dispatcher = 
 	  new FrequencyLimitedDispatcher(
 			  new AERunnable()
@@ -768,6 +772,13 @@ ConfigurationManager
   }
     
   public void
+  addResetToDefaultsListener(
+	  ResetToDefaultsListener		l )
+  {
+	  reset_to_def_listeners.add( l );
+  }
+  
+  public void
   resetToDefaults()
   {
 	  ConfigurationDefaults def = ConfigurationDefaults.getInstance();
@@ -779,6 +790,17 @@ ConfigurationManager
 		  if ( propertiesMap.remove( s ) != null ){
 			 
 			  notifyParameterListeners( s );
+		  }
+	  }
+	  
+	  for ( ResetToDefaultsListener l: reset_to_def_listeners ){
+		  
+		  try{
+			  l.reset();
+			  
+		  }catch( Throwable e ){
+			  
+			  Debug.out( e );
 		  }
 	  }
 	  
