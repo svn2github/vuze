@@ -597,7 +597,8 @@ addressLoop:
 	}
 	
 	private String 
-	checkBindAddresses()
+	checkBindAddresses(
+		boolean	log_alerts )
 	{		
 		Pattern addressSplitter 	= Pattern.compile(";");
 		Pattern interfaceSplitter 	= Pattern.compile("[\\]\\[]");
@@ -607,11 +608,14 @@ addressLoop:
 
 		if ( enforceBind && bind_ips.length() == 0 ){
 			
-			Logger.log(
+			if ( log_alerts ){
+				
+				Logger.log(					
 					new LogAlert(
 						true,
 						LogAlert.AT_WARNING,
 						"'Enforce IP Bindings' is selected but no bindings have been specified\n\nSee Tools->Options->Connection->Advanced Network Settings" ));
+			}
 		}
 		
 		String[] tokens = addressSplitter.split( bind_ips );
@@ -702,11 +706,14 @@ addressLoop:
 		
 		if ( failed_entries.length() > 0 ){
 			
-			Logger.log(
+			if ( log_alerts ){
+			
+				Logger.log(
 					new LogAlert(
 						true,
 						LogAlert.AT_WARNING,
 						"Bind IPs not resolved: " + failed_entries + "\n\nSee Tools->Options->Connection->Advanced Network Settings" ));
+			}
 			
 			return( failed_entries );
 		}
@@ -1930,7 +1937,7 @@ addressLoop:
 
 		if ( COConfigurationManager.getBooleanParameter( "Check Bind IP On Start" )){
 			
-			checkBindAddresses();
+			checkBindAddresses( true );
 		}
 		
         NetworkAdminSpeedTestScheduler nast = NetworkAdminSpeedTestSchedulerImpl.getInstance();
@@ -2352,7 +2359,7 @@ addressLoop:
 		
 		boolean enforceBind = COConfigurationManager.getBooleanParameter( "Enforce Bind IP" );
 
-		String missing = checkBindAddresses();
+		String missing = checkBindAddresses( false );
 		
 		InetAddress[] binds = getAllBindAddresses( false );
 		
