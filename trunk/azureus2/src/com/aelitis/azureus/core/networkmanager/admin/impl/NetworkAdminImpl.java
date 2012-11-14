@@ -2433,21 +2433,23 @@ addressLoop:
 		}
 		
 		String	str = 
-			"Binding: " + getString( bindable ) + ", force=" + enforceBind;
+			MessageText.getString( 
+				"network.admin.binding.state", 
+				new String[]{ getString( bindable ), MessageText.getString( enforceBind?"GeneralView.yes":"GeneralView.no" ).toLowerCase()});
 		
 		if ( unbindable.size() > 0 ){
 			str += "\nUnbindable: " + getString( unbindable );
 		}
 		
 		if ( missing != null ){
-			str += "\nMissing: " + missing;
+			str += "\n" + MessageText.getString( "label.missing" ) + ": " + missing;
 		}
 		
 		boolean	unbound_connections = false;
 		
 		if ( lookup_map.size() == 0 ){
 			
-			str += "\nNo Connections";
+			str += "\n" + MessageText.getString( "label.no.connections" );
 			
 		}else{
 			
@@ -2476,12 +2478,12 @@ addressLoop:
 					}
 				}
 				
-				s += " - in=" + counts[0] + ", out=" + counts[1];
+				s += " - " + MessageText.getString( "label.in" ) + "=" + counts[0] + ", " + MessageText.getString( "label.out" ) + "=" + counts[1];
 			
-				con_str += (con_str.length()==0?"":"; ") + s;
+				con_str += (con_str.length()==0?"":"; ") + s.toLowerCase();
 			}
 			
-			str += "\nConnections: " + con_str;
+			str += "\n" + MessageText.getString( "label.connections" ) + ": " + con_str;
 		}
 			
 		if ( unbound_connections ){
@@ -2499,6 +2501,11 @@ addressLoop:
 	getString(
 		List<InetAddress>		addresses )
 	{
+		if ( addresses.size() == 0 ){
+			
+			return( "<none>" );
+		}
+		
 		String str = "";
 		
 		for ( InetAddress address: addresses ){
@@ -2512,11 +2519,11 @@ addressLoop:
 	private void
 	checkConnectionRoutes()
 	{
-		System.out.println( "Checking connection routes" );
+		// System.out.println( "Checking connection routes" );
 		
 		if ( getAllBindAddresses( false ).length > 0 ){
 			
-			System.out.println( "    Bind IP found" );
+			// System.out.println( "    Bind IP found" );
 			
 			return;
 		}
@@ -2612,11 +2619,11 @@ addressLoop:
 					// work (with open-vpn at least) as it still permits explicit connections
 					// through non-vpn interface - grrr!
 				
-				System.out.println( "Everything wildcard" );
+				// System.out.println( "Everything wildcard" );
 				
 				InetAddress[] bindable_addresses = getBindableAddresses( true, true );
 								
-				System.out.println( "Bindable=" + bindable_addresses.length );
+				// System.out.println( "Bindable=" + bindable_addresses.length );
 				
 				if ( bindable_addresses.length > 1 ){
 				
@@ -2666,7 +2673,7 @@ addressLoop:
 
 				NetworkInterface bound_intf = (NetworkInterface)bound_details[0];
 
-				System.out.println( "All outgoing TCP bound to same: " + bound_intf );
+				// System.out.println( "All outgoing TCP bound to same: " + bound_intf );
 						
 				//maybeVPN( bound_intf );
 				

@@ -115,10 +115,10 @@ NetworkAdminSWTImpl
 									{
 										ImageLoader imageLoader = ImageLoader.getInstance();
 	
-										icon_grey	 	= imageLoader.getImage( "grayled" );
-										icon_yellow 	= imageLoader.getImage( "yellowled" );
-										icon_green 		= imageLoader.getImage( "greenled" );
-										icon_red		= imageLoader.getImage( "redled" );
+										icon_grey	 	= imageLoader.getImage( "st_net_grey" );
+										icon_yellow 	= imageLoader.getImage( "st_net_yellow" );
+										icon_green 		= imageLoader.getImage( "st_net_green" );
+										icon_red		= imageLoader.getImage( "st_net_red" );
 				
 										final UISWTInstance	ui_instance = (UISWTInstance)instance;
 										
