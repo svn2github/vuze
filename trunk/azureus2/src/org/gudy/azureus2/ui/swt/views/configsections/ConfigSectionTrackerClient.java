@@ -171,7 +171,10 @@ ConfigSectionTrackerClient
       
     enableUDP.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( enableUDPProbe.getControls()));
 
+    if (userMode > 1 ){
     
+    	BooleanParameter enableDNS = new BooleanParameter(protocolGroup, "Tracker DNS Records Enable", "ConfigView.section.server.enablednsrecords");
+    }
 
     
     if (userMode > 0) {

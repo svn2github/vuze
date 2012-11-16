@@ -142,7 +142,8 @@ TorrentUtils
 	
 	private static AsyncDispatcher	dispatcher = new AsyncDispatcher();
 	
-	private static final boolean			TRACE_DNS = false;
+	private static boolean					DNS_HANDLING_ENABLE	= true;
+	private static final boolean			TRACE_DNS 			= false;
 	private static int						DNS_HISTORY_TIMEOUT	= 4*60*60*1000;
 	
 	private static Map<String,DNSTXTEntry>	dns_mapping = new HashMap<String, DNSTXTEntry>();
@@ -159,18 +160,26 @@ TorrentUtils
 				perform(
 					TimerEvent event )
 				{
-					checkDNSTimeouts();
+					if ( DNS_HANDLING_ENABLE ){
+
+						checkDNSTimeouts();
+					}
 				}
 			});
 	}
 	
 	static {
-		COConfigurationManager.addAndFireParameterListener("Save Torrent Backup",
-				new ParameterListener() {
-					public void parameterChanged(String parameterName) {
-						bSaveTorrentBackup = COConfigurationManager.getBooleanParameter(parameterName);
-					}
-				});
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{ "Save Torrent Backup", "Tracker DNS Records Enable" },
+			new ParameterListener() {
+				public void 
+				parameterChanged(
+					String _name) 
+				{
+					bSaveTorrentBackup = COConfigurationManager.getBooleanParameter( "Save Torrent Backup" );
+					DNS_HANDLING_ENABLE = COConfigurationManager.getBooleanParameter( "Tracker DNS Records Enable" );
+				}
+			});
 		
 		created_torrents = COConfigurationManager.getListParameter( "my.created.torrents", new ArrayList());
 		
@@ -3359,44 +3368,50 @@ TorrentUtils
 	applyDNSMods(
 		URL		url )
 	{
-		DNSTXTEntry txt_entry = getDNSTXTEntry( url );
-		
-		if ( txt_entry != null && txt_entry.hasRecords()){
+		if ( DNS_HANDLING_ENABLE ){
 			
-			boolean url_is_tcp 	= url.getProtocol().toLowerCase().startsWith( "http" );
-			int		url_port	= url.getPort();
+			DNSTXTEntry txt_entry = getDNSTXTEntry( url );
 			
-			if ( url_port == -1 ){
+			if ( txt_entry != null && txt_entry.hasRecords()){
 				
-				url_port = url.getDefaultPort();
-			}
-			
-			List<DNSTXTPortInfo>	ports = txt_entry.getPorts();
-			
-			if ( ports.size() == 0 ){
+				boolean url_is_tcp 	= url.getProtocol().toLowerCase().startsWith( "http" );
+				int		url_port	= url.getPort();
 				
-				return( UrlUtils.setHost( url, url.getHost() + ".disabled_by_tracker" ));
-				
-			}else{
-			
-				DNSTXTPortInfo	first_port 	= ports.get(0);
-						
-				if ( url_port != first_port.getPort()){
-				
-					url = UrlUtils.setPort( url, first_port.getPort());
+				if ( url_port == -1 ){
+					
+					url_port = url.getDefaultPort();
 				}
 				
-				if ( url_is_tcp == first_port.isTCP()){
+				List<DNSTXTPortInfo>	ports = txt_entry.getPorts();
+				
+				if ( ports.size() == 0 ){
 					
-					return( url );
+					return( UrlUtils.setHost( url, url.getHost() + ".disabled_by_tracker" ));
 					
 				}else{
 				
-					return( UrlUtils.setProtocol( url, first_port.isTCP()?"http":"udp" ));
+					DNSTXTPortInfo	first_port 	= ports.get(0);
+							
+					if ( url_port != first_port.getPort()){
+					
+						url = UrlUtils.setPort( url, first_port.getPort());
+					}
+					
+					if ( url_is_tcp == first_port.isTCP()){
+						
+						return( url );
+						
+					}else{
+					
+						return( UrlUtils.setProtocol( url, first_port.isTCP()?"http":"udp" ));
+					}
 				}
+			}else{
+			
+				return( url );
 			}
 		}else{
-		
+			
 			return( url );
 		}
 	}
@@ -3406,95 +3421,101 @@ TorrentUtils
 		URL								announce_url,
 		TOTorrentAnnounceURLGroup		group )
 	{
-		Map<String,Object[]>	dns_maps = new HashMap<String, Object[]>();
+		if ( DNS_HANDLING_ENABLE ){
 
-		DNSTXTEntry announce_txt_entry = getDNSTXTEntry( announce_url );
-
-		if ( announce_txt_entry != null && announce_txt_entry.hasRecords()){
-			
-			dns_maps.put( announce_url.getHost(), new Object[]{ announce_url, announce_txt_entry });
-		}
-		
-		TOTorrentAnnounceURLSet[] sets = group.getAnnounceURLSets();
-		
-		List<TOTorrentAnnounceURLSet>	mod_sets = new ArrayList<TOTorrentAnnounceURLSet>();
-					
-		for ( TOTorrentAnnounceURLSet set: sets ){
-			
-			URL[] urls = set.getAnnounceURLs();
-			
-			List<URL>	mod_urls = new ArrayList<URL>();
-			
-			for ( URL url: urls ){
+			Map<String,Object[]>	dns_maps = new HashMap<String, Object[]>();
+	
+			DNSTXTEntry announce_txt_entry = getDNSTXTEntry( announce_url );
+	
+			if ( announce_txt_entry != null && announce_txt_entry.hasRecords()){
 				
-				DNSTXTEntry txt_entry = getDNSTXTEntry( url );
-
-				if ( txt_entry == null || !txt_entry.hasRecords()){
-
-					mod_urls.add( url );
+				dns_maps.put( announce_url.getHost(), new Object[]{ announce_url, announce_txt_entry });
+			}
+			
+			TOTorrentAnnounceURLSet[] sets = group.getAnnounceURLSets();
+			
+			List<TOTorrentAnnounceURLSet>	mod_sets = new ArrayList<TOTorrentAnnounceURLSet>();
+						
+			for ( TOTorrentAnnounceURLSet set: sets ){
+				
+				URL[] urls = set.getAnnounceURLs();
+				
+				List<URL>	mod_urls = new ArrayList<URL>();
+				
+				for ( URL url: urls ){
 					
+					DNSTXTEntry txt_entry = getDNSTXTEntry( url );
+	
+					if ( txt_entry == null || !txt_entry.hasRecords()){
+	
+						mod_urls.add( url );
+						
+					}else{
+						
+							// remove any affected entries here, we'll add them in if needed later
+						
+						dns_maps.put( url.getHost(), new Object[]{ url, txt_entry });
+					}
+				}
+				
+				if ( mod_urls.size() != urls.length ){
+					
+					if ( mod_urls.size() > 0 ){
+						
+						mod_sets.add( group.createAnnounceURLSet( mod_urls.toArray( new URL[ mod_urls.size()])));
+					}
 				}else{
 					
-						// remove any affected entries here, we'll add them in if needed later
-					
-					dns_maps.put( url.getHost(), new Object[]{ url, txt_entry });
+					mod_sets.add( set );
 				}
 			}
 			
-			if ( mod_urls.size() != urls.length ){
+			if ( dns_maps.size() > 0 ){
 				
-				if ( mod_urls.size() > 0 ){
+				for( Map.Entry<String,Object[]> entry: dns_maps.entrySet()){
 					
-					mod_sets.add( group.createAnnounceURLSet( mod_urls.toArray( new URL[ mod_urls.size()])));
+					Object[] stuff		= entry.getValue();
+					
+					URL			url = (URL)stuff[0];
+					DNSTXTEntry	dns	= (DNSTXTEntry)stuff[1];
+					
+					List<DNSTXTPortInfo> ports = dns.getPorts();
+					
+					if ( ports.size() > 0 ){
+					
+						List<URL>	urls = new ArrayList<URL>();
+						
+						for ( DNSTXTPortInfo port: ports ){
+						
+							int		url_port 	= url.getPort();
+							boolean url_is_tcp 	= url.getProtocol().toLowerCase().startsWith( "http" );
+	
+							if ( url_port != port.getPort()){
+								
+								url = UrlUtils.setPort( url, port.getPort());
+							}
+							
+							if ( url_is_tcp != port.isTCP()){
+							
+								url = UrlUtils.setProtocol( url, port.isTCP()?"http":"udp" );
+							}
+							
+							urls.add( url );
+						}
+						
+						if ( urls.size() > 0 ){
+						
+							mod_sets.add( group.createAnnounceURLSet( urls.toArray( new URL[ urls.size()])));
+						}
+					}
 				}
+				
+				return( new URLGroup( group, mod_sets ));
+				
 			}else{
 				
-				mod_sets.add( set );
+				return( group );
 			}
-		}
-		
-		if ( dns_maps.size() > 0 ){
-			
-			for( Map.Entry<String,Object[]> entry: dns_maps.entrySet()){
-				
-				Object[] stuff		= entry.getValue();
-				
-				URL			url = (URL)stuff[0];
-				DNSTXTEntry	dns	= (DNSTXTEntry)stuff[1];
-				
-				List<DNSTXTPortInfo> ports = dns.getPorts();
-				
-				if ( ports.size() > 0 ){
-				
-					List<URL>	urls = new ArrayList<URL>();
-					
-					for ( DNSTXTPortInfo port: ports ){
-					
-						int		url_port 	= url.getPort();
-						boolean url_is_tcp 	= url.getProtocol().toLowerCase().startsWith( "http" );
-
-						if ( url_port != port.getPort()){
-							
-							url = UrlUtils.setPort( url, port.getPort());
-						}
-						
-						if ( url_is_tcp != port.isTCP()){
-						
-							url = UrlUtils.setProtocol( url, port.isTCP()?"http":"udp" );
-						}
-						
-						urls.add( url );
-					}
-					
-					if ( urls.size() > 0 ){
-					
-						mod_sets.add( group.createAnnounceURLSet( urls.toArray( new URL[ urls.size()])));
-					}
-				}
-			}
-			
-			return( new URLGroup( group, mod_sets ));
-			
 		}else{
 			
 			return( group );
