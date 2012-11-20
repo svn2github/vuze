@@ -315,7 +315,7 @@ Constants
 		 int	first	= Integer.parseInt( bits[0] );
 		 int	second 	= Integer.parseInt( bits[1] );
 		  
-		  _7plus = first >= 1 && second >= 7;
+		  _7plus = first > 1 || second >= 7;
 			  
 	  }catch( Throwable e ){
 		  
