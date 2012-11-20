@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
@@ -170,6 +171,16 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 		gridData.horizontalSpan = 2;
 		check_bind.setLayoutData(gridData);
 
+		BooleanParameter force_bind = new BooleanParameter(gSocket, "Enforce Bind IP","network.enforce.ipbinding");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		force_bind.setLayoutData(gridData);
+		
+		BooleanParameter bind_icon = new BooleanParameter(gSocket, "Show IP Bindings Icon", "network.ipbinding.icon.show");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		bind_icon.setLayoutData(gridData);
+		
 		Label lpbind = new Label(gSocket, SWT.NULL);
 		Messages.setLanguageText(lpbind, CFG_PREFIX + "bind_port");
 		final IntParameter port_bind = new IntParameter(gSocket,
@@ -275,13 +286,12 @@ public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 
 		new BooleanParameter( cSection, "IPV6 Enable Support", "network.ipv6.enable.support"  );
 
-		
 		new BooleanParameter( cSection, "IPV6 Prefer Addresses", "network.ipv6.prefer.addresses"  );
-		
-		new BooleanParameter(cSection, "Enforce Bind IP","network.enforce.ipbinding");
-		
-		new BooleanParameter(cSection, "Show IP Bindings Icon", "network.ipbinding.icon.show");
 
+		if ( Constants.isWindowsVistaOrHigher && Constants.isJava7OrHigher ){
+		
+			new BooleanParameter( cSection, "IPV4 Prefer Stack", "network.ipv4.prefer.stack"  );
+		}
 		
 		//////////////////////////////////////////////////////////////////////////
 

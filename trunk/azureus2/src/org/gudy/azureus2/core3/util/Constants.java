@@ -301,6 +301,34 @@ Constants
   
   public static final String	JAVA_VERSION = System.getProperty("java.version");
   
+  public static final boolean isJava7OrHigher;
+  
+  static{
+	  	// http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
+	  	// should always start with n.n.
+	  
+	  boolean	_7plus;
+	  
+	  try{
+		  String[]	bits = JAVA_VERSION.split( "\\." );
+		  
+		 int	first	= Integer.parseInt( bits[0] );
+		 int	second 	= Integer.parseInt( bits[1] );
+		  
+		  _7plus = first >= 1 && second >= 7;
+			  
+	  }catch( Throwable e ){
+		  
+		  System.err.println( "Unparsable Java version: " + JAVA_VERSION );
+		  
+		  e.printStackTrace();
+		  
+		  _7plus = false;	// derp
+	  }
+	  
+	  isJava7OrHigher = _7plus;
+  }
+  
   public static final String	FILE_WILDCARD = isWindows?"*.*":"*";
   
   	/**
