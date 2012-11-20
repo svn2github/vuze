@@ -152,8 +152,9 @@ public class ConfigurationDefaults {
     def.put("Listen.Port.Randomize.Range", RandomUtils.LISTEN_PORT_MIN + "-" + RandomUtils.LISTEN_PORT_MAX );
     
     def.put("IPV6 Enable Support", FALSE );
-    def.put("IPV6 Prefer Addresses",FALSE);
-    	
+    def.put("IPV6 Prefer Addresses",FALSE );
+    def.put("IPV4 Prefer Stack", FALSE );
+    
     def.put("max active torrents", new Long(4));
     def.put("max downloads", new Long(4));
     def.put("min downloads", ONE);

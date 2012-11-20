@@ -141,6 +141,61 @@ ConfigurationChecker
 	  			}
 	  		});
 	  	
+	  	if ( Constants.isWindowsVistaOrHigher ){
+	  		
+	  		COConfigurationManager.addAndFireParameterListener(
+		  		"IPV4 Prefer Stack",
+		  		new ParameterListener()
+		  		{
+		  			private boolean done_something = false;
+		  			
+		  			public void 
+		  			parameterChanged(
+		  				String name )
+		  			{
+		  			  	boolean	prefer_ipv4 	= COConfigurationManager.getBooleanParameter( name );
+		  		  		
+		  			  	boolean existing = !System.getProperty( "java.net.preferIPv4Stack", "false" ).equalsIgnoreCase( "false" );
+		  			  	
+		  			  		// if user has overridden with a -D at az start then we don't want to let our config
+		  			  		// setting (which currently defaults to FALSE) to set this back
+		  			  	
+		  			  	if ( existing && !done_something ){
+		  			  		
+		  			  		return;
+		  			  	}
+		  			  	
+		  			  	if ( existing != prefer_ipv4 ){
+		  			  		
+		  			  		done_something = true;
+		  			  	
+			  		  		System.setProperty( "java.net.preferIPv4Stack", prefer_ipv4?"true":"false" );
+			  		  		
+			  		  		try{
+			  		  			Class<?> plainSocketImpl = getClass().forName( "java.net.PlainSocketImpl");
+
+			  		  			Field pref_field = plainSocketImpl.getDeclaredField( "preferIPv4Stack" );
+			  		  			
+			  		  			pref_field.setAccessible( true );
+			  		  			
+			  		  			pref_field.setBoolean( null, prefer_ipv4 );
+			  		  						  		  				
+				  		  		Field dual_field = plainSocketImpl.getDeclaredField( "useDualStackImpl" );
+				  		  			
+				  		  		dual_field.setAccessible( true );
+				  		  			
+				  		  		dual_field.setBoolean( null, !prefer_ipv4 );	  		  			
+			  		  	
+			  		  		}catch( Throwable e ){
+			  		  			
+			  		  			Debug.out( "Failed to update 'preferIPv4Stack'", e );
+			  		  		}
+		  			  	}
+		  			}
+		  		});
+	  	}
+	  	
+	  	
       // socket connect/read timeouts
 	  	
 	  	int	connect_timeout = COConfigurationManager.getIntParameter( "Tracker Client Connect Timeout");
