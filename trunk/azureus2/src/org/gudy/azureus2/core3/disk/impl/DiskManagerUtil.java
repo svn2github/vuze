@@ -310,16 +310,63 @@ DiskManagerUtil
 
 	static abstract class FileSkeleton implements DiskManagerFileInfoHelper {
 	    protected int     priority;
-	    protected boolean skipped;
+	    protected boolean skipped_internal;
 		protected long    downloaded;
+		
+		protected abstract File
+		setSkippedInternal( boolean skipped );
 	}
 
+	
+	public static volatile boolean 	dnd_subfolder_enable;
+	public static volatile String	dnd_subfolder;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{ "Enable Subfolder for DND Files", "Subfolder for DND Files" },
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameterName) 
+				{
+					boolean enable  = COConfigurationManager.getBooleanParameter( "Enable Subfolder for DND Files" );
+				
+					if ( enable ){
+						
+						String folder = COConfigurationManager.getStringParameter( "Subfolder for DND Files" ).trim();
+						
+						if ( folder.length() > 0 ){
+							
+							folder = FileUtil.convertOSSpecificChars( folder, true ).trim();
+						}
+						
+						if ( folder.length() > 0 ){
+							
+							dnd_subfolder = folder;
+							
+						}else{
+						
+							dnd_subfolder = null;
+						}
+					}else{
+						
+						dnd_subfolder = null;
+					}
+					
+					dnd_subfolder_enable = enable;
+				}
+			});
+	}
+	
+
+		
 	public static DiskManagerFileInfoSet
 	getFileInfoSkeleton(
 	    final DownloadManager       download_manager,
 	    final DiskManagerListener   listener )
 	{
-	    TOTorrent   torrent = download_manager.getTorrent();
+	    final TOTorrent   torrent = download_manager.getTorrent();
 	
 	    if ( torrent == null ){
 	
@@ -426,18 +473,31 @@ DiskManagerUtil
 	    				}
 	        		}
 	        		
-					for(int i=0;i<res.length;i++)
-						if(toChange[i])
-							res[i].skipped = setSkipped;
-					
-					if(!setSkipped)
-						doFileExistenceChecks(this, toChange, download_manager, true);
+	        		File[]	to_link = new File[res.length];
+	        		
+					for(int i=0;i<res.length;i++){
+						if(toChange[i]){
+							to_link[i] = res[i].setSkippedInternal( setSkipped );
+						}
+					}
 					
 					DiskManagerImpl.storeFilePriorities( download_manager, res);
+
+					for(int i=0;i<res.length;i++){
+						if ( to_link[i] != null ){
+							download_manager.getDownloadState().setFileLink( res[i].getFile( false ), to_link[i] );
+						}
+					}
 					
-					for(int i=0;i<res.length;i++)
-						if(toChange[i])
+					if(!setSkipped){
+						doFileExistenceChecks(this, toChange, download_manager, true);
+					}
+										
+					for(int i=0;i<res.length;i++){
+						if(toChange[i]){
 							listener.filePriorityChanged(res[i]);
+						}
+					}
 				}
 	
 				public boolean[] setStorageTypes(boolean[] toChange, int newStorageType) {
@@ -513,13 +573,15 @@ DiskManagerUtil
 											DiskManagerUtil.convertDMStorageTypeToCache( newStorageType ));
 	
 									cache_file.close();
-	
-									toSkip[i] = ( newStorageType == FileSkeleton.ST_COMPACT || newStorageType == FileSkeleton.ST_REORDER_COMPACT )&& !res[i].isSkipped();
-									if(toSkip[i])
-										toSkipCount++;
 								}
-	
-	
+								
+								toSkip[i] = ( newStorageType == FileSkeleton.ST_COMPACT || newStorageType == FileSkeleton.ST_REORDER_COMPACT )&& !res[i].isSkipped();
+								
+								if ( toSkip[i] ){
+									
+									toSkipCount++;
+								}
+								
 								modified[i] = true;
 	
 							}catch( Throwable e ){
@@ -547,9 +609,11 @@ DiskManagerUtil
 						 * properly
 						 */
 						dmState.setListAttribute( DownloadManagerState.AT_FILE_STORE_TYPES, types);
-						if(toSkipCount > 0)
-							setSkipped(toSkip, true);
 						
+						if ( toSkipCount > 0){
+							
+							setSkipped( toSkip, true );
+						}
 						
 						for(int i=0;i<res.length;i++)
 						{
@@ -622,18 +686,21 @@ DiskManagerUtil
 	            			}
 	            		}
 
-	            		skipped = _skipped;
-	
+	            		File to_link = setSkippedInternal( _skipped );
+    					
 	            		DiskManagerImpl.storeFilePriorities( download_manager, res );
+
+	            		if ( to_link != null ){
+	            			
+	            			download_manager.getDownloadState().setFileLink( getFile( false ), to_link );
+	            		}
 	            		
-	            		if(!_skipped)
-	            		{
+	            		if ( !_skipped ){
 	            			boolean[] toCheck = new boolean[fileSetSkeleton.nbFiles()];
 	            			toCheck[file_index] = true;
 	            			doFileExistenceChecks(fileSetSkeleton, toCheck, download_manager, true);                			
 	            		}
 	            		
-	
 	            		listener.filePriorityChanged( this );
 	            	}
 	
@@ -708,10 +775,126 @@ DiskManagerUtil
 	            		return( priority );
 	            	}
 	
+	            	protected File
+	            	setSkippedInternal(
+	            		boolean	_skipped )
+	            	{
+	            			// returns the file to link to if linkage is required
+	            		
+	            		skipped_internal = _skipped;
+
+    					if ( !torrent.isSimpleTorrent()){
+
+    						DownloadManagerState dm_state = download_manager.getDownloadState();
+    						
+		            		String dnd_sf = dm_state.getAttribute( DownloadManagerState.AT_DND_SUBFOLDER );
+		            		
+		            		if ( dnd_sf == null ){
+		            			
+		            			if ( dnd_subfolder_enable ){
+		            				
+		            				dnd_sf = dnd_subfolder;
+		            				
+		            				if ( dnd_sf != null ){
+		            					
+		            					dm_state.setAttribute( DownloadManagerState.AT_DND_SUBFOLDER, dnd_sf );
+		            				}
+		            			}
+		            		}
+		            		
+		            		if ( dnd_sf != null ){
+		            			
+		            			File	link = getLink();
+		            			
+		        				File 	file = getFile( false );
+		        				
+			            		if ( _skipped ){
+			            				            			
+			            			if ( link == null || link.equals( file )){
+			            				
+		            					File parent = file.getParentFile();
+		            					
+		            					if ( parent != null ){
+		            						
+		            						File new_parent = new File( parent, dnd_sf );
+		            						
+		            						File new_file = new File( new_parent, file.getName());
+		            						
+		            						if ( !new_file.exists()){
+		            							
+			            						if ( !new_parent.exists()){
+			            							
+			            							new_parent.mkdirs();
+			            						}
+			            			
+			            						boolean ok;
+			            						
+			            						if ( file.exists()){
+			            							
+			            							ok = FileUtil.renameFile( file, new_file );
+			            							
+			            						}else{
+			            							
+			            							ok = true;
+			            						}
+			            						
+			            						if ( ok ){
+			            							
+			            							return( new_file );
+			            						}
+		            						}
+		            					}
+			            			}
+			            		}else{
+			            				            			
+			            			if ( link != null && !file.exists()){
+			            						            					
+		            					File parent = file.getParentFile();
+		            					
+		            					if ( parent != null ){
+		            						
+		            						File new_parent = parent.getName().equals( dnd_sf )?parent:new File( parent, dnd_sf );
+		            						
+		            						File new_file = new File( new_parent, file.getName());
+		            						
+		            						if ( new_file.equals( link )){
+		            							
+		            							boolean	ok;
+		            							
+		            							if ( new_file.exists()){
+		            								
+		            								ok = FileUtil.renameFile( new_file, file );
+		            								
+		            							}else{
+		            								
+		            								ok = true;
+		            							}
+		            							
+		            							if ( ok ){
+		            									            								
+		            								File[] files = new_parent.listFiles();
+		            								
+		            								if ( files != null && files.length == 0 ){
+		            									
+		            									new_parent.delete();
+		            								}
+		            								
+		            								return( file );
+		            							}
+		            						}
+		            					}
+			            			}
+			            		}
+		            		}
+    					}
+    					
+    					return( null );
+	            	}
+	            	
 	            	public boolean
 	            	isSkipped()
 	            	{
-	            		return( skipped );
+	            		return( skipped_internal );
 	            	}
 	
 	            	public DiskManager

@@ -502,6 +502,9 @@ public class ConfigSectionFile
 		// rename incomplete
 
 		if (userMode > 0) {
+			
+				// rename incomplete files
+			
 			sCurConfigID = "Rename Incomplete Files";
 			allConfigIDs.add(sCurConfigID);
 
@@ -522,6 +525,32 @@ public class ConfigSectionFile
 					rename_incomplete_ext.getControls(), false);
 			rename_incomplete.setAdditionalActionPerformer(incompFileAP);
 
+				// put 'dnd' files in subdir
+			
+			
+			sCurConfigID = "Enable Subfolder for DND Files";
+			allConfigIDs.add(sCurConfigID);
+
+			gridData = new GridData();
+			gridData.horizontalSpan = 1;
+			BooleanParameter enable_subfolder = new BooleanParameter(gFile,
+					sCurConfigID, "ConfigView.section.file.subfolder.dnd");
+			rename_incomplete.setLayoutData(gridData);
+
+			sCurConfigID = "Subfolder for DND Files";
+			allConfigIDs.add(sCurConfigID);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			StringParameter subfolder_name = new StringParameter(gFile,
+					sCurConfigID);
+			subfolder_name.setLayoutData(gridData);
+
+			IAdditionalActionPerformer subfolderAP = new ChangeSelectionActionPerformer(
+					subfolder_name.getControls(), false);
+			enable_subfolder.setAdditionalActionPerformer(subfolderAP);
+			
+			
+				// torrent create/delete ignore files 
+			
 			Label lIgnoreFiles = new Label(gFile, SWT.NULL);
 			Messages.setLanguageText(lIgnoreFiles,
 					"ConfigView.section.file.torrent.ignorefiles");

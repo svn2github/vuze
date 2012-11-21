@@ -225,6 +225,9 @@ public class ConfigurationDefaults {
     def.put("Rename Incomplete Files", FALSE );
     def.put("Rename Incomplete Files Extension", ".az!" );
     
+    def.put("Enable Subfolder for DND Files", TRUE );
+    def.put("Subfolder for DND Files", ".dnd_az!" );
+    
     def.put("Ip Filter Enabled", TRUE);
     def.put("Ip Filter Allow",FALSE);
     def.put("Ip Filter Enable Banning", TRUE);

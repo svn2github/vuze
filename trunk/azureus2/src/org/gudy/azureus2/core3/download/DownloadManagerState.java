@@ -69,6 +69,7 @@ DownloadManagerState
 	public static final String AT_MD_INFO_DICT_SIZE			= "mdinfodictsize";
 	public static final String AT_FILE_OTHER_HASHES			= "fileotherhashes";
 	public static final String AT_CANONICAL_SD_DMAP			= "canosavedir";
+	public static final String AT_DND_SUBFOLDER				= "dnd_sf";
 
 	public static Object[][] ATTRIBUTE_DEFAULTS = {
 		{ AT_VERSION,								new Integer( -1 )},

@@ -694,6 +694,9 @@ public class FilesViewMenuUtil
 						}
 					}else{
 						
+							// compact only currently supports first+last piece and therefore is not
+							// good for handling partial DND files (as other partial pieces will be discarded....)
+						
 						new_storage_type = non_compact_target;
 					}
 				}

@@ -126,7 +126,7 @@ public class DiskManagerFileInfoSetImpl implements DiskManagerFileInfoSet {
 			for (int i = 0; i < files.length; i++)
 				if (toChange[i])
 				{
-					files[i].skipped = setSkipped;
+					files[i].setSkippedInternal( setSkipped );
 					diskManager.skippedFileSetChanged(files[i]);
 				}
 

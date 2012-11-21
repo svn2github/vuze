@@ -1581,6 +1581,8 @@ DownloadManagerStateImpl
 		File	link_source,
 		File	link_destination )
 	{
+		System.out.println( "link: " + link_source + "/" + link_destination );
+		
 		CaseSensitiveFileMap	links = getFileLinks();
 		
 		File	existing = (File)links.get(link_source);

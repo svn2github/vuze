@@ -60,7 +60,7 @@ DiskManagerFileInfoImpl
   
   private int 		priority 	= 0;
   
-  protected boolean 	skipped 	= false;
+  protected boolean 	skipped_internal 	= false;
   
   private CopyOnWriteList	listeners;
   
@@ -86,7 +86,7 @@ DiskManagerFileInfoImpl
   	
   	if ( cache_st == CacheFile.CT_COMPACT || cache_st == CacheFile.CT_PIECE_REORDER_COMPACT ){
   		
-  		skipped = true;
+  		skipped_internal = true;
   	}
   }
   
@@ -330,7 +330,7 @@ DiskManagerFileInfoImpl
    * @return
    */
   public boolean isSkipped() {
-	return skipped;
+	return skipped_internal;
   }
 
   /**
@@ -354,7 +354,7 @@ DiskManagerFileInfoImpl
 		}
 	}
 	
-	skipped = _skipped;
+	setSkippedInternal( _skipped );
 	diskManager.skippedFileSetChanged( this );
 	if(!_skipped)
 	{
@@ -364,6 +364,167 @@ DiskManagerFileInfoImpl
 	}
   }
 
+	protected void
+	setSkippedInternal(
+		boolean	_skipped )
+	{
+		skipped_internal = _skipped;
+
+		if ( !torrent_file.getTorrent().isSimpleTorrent()){
+
+    		String dnd_sf = diskManager.getDownloadState().getAttribute( DownloadManagerState.AT_DND_SUBFOLDER );
+    		
+    		if ( dnd_sf == null ){
+    			
+    			if ( DiskManagerUtil.dnd_subfolder_enable ){
+    				
+    				dnd_sf = DiskManagerUtil.dnd_subfolder;
+    				
+    				if ( dnd_sf != null ){
+    					
+    					diskManager.getDownloadState().setAttribute( DownloadManagerState.AT_DND_SUBFOLDER, dnd_sf );
+    				}
+    			}
+    		}
+    		
+    		if ( dnd_sf != null ){
+    			
+    			File	link = getLink();
+    			
+				File 	file = getFile( false );
+				
+        		if ( _skipped ){
+        				            			
+        			if ( link == null || link.equals( file )){
+        				
+    					File parent = file.getParentFile();
+    					
+    					if ( parent != null ){
+    						
+    						File new_parent = new File( parent, dnd_sf );
+    						
+    						File new_file = new File( new_parent, file.getName());
+    						
+    						if ( !new_file.exists()){
+    							
+        						if ( !new_parent.exists()){
+        							
+        							new_parent.mkdirs();
+        						}
+        			
+        						boolean ok;
+        						boolean	link_updated = false;
+        						
+        						if ( file.exists()){
+        							
+        							try{
+        								diskManager.getDownloadState().setFileLink( file, new_file );
+        								
+        								link_updated = true;
+        								
+    									cache_file.moveFile( new_file );
+    								
+    									ok = true;
+    									
+    								}catch( Throwable e ){
+    									
+    									ok = false;
+    									
+    									Debug.out( e );
+    								}        							
+        						}else{
+        							
+        							ok = true;
+        						}
+        						
+        						if ( ok ){
+        							
+        							if ( !link_updated ){
+        							
+        								diskManager.getDownloadState().setFileLink( file, new_file );
+        							}
+        						}else{
+        							
+        							if ( link_updated ){
+        							
+        								diskManager.getDownloadState().setFileLink( file, link );
+        							}
+        						}
+    						}
+    					}
+        			}
+        		}else{
+        				            			
+        			if ( link != null && !file.exists()){
+        						            					
+    					File parent = file.getParentFile();
+    					
+    					if ( parent != null ){
+    						
+    						File new_parent = parent.getName().equals( dnd_sf )?parent:new File( parent, dnd_sf );
+    						
+    						File new_file = new File( new_parent, file.getName());
+    						
+    						if ( new_file.equals( link )){
+    							
+    							boolean	ok;
+    							boolean	link_updated = false;
+    							
+    							if ( new_file.exists()){
+    								
+    								try{  	
+    									diskManager.getDownloadState().setFileLink( file, null );
+    									
+    									link_updated = true;
+    									
+    									cache_file.moveFile( file );
+    								
+    									ok = true;
+    									
+    								}catch( Throwable e ){
+    									
+    									ok = false;
+    									
+    									Debug.out( e );
+    								}
+    							}else{
+    								
+    								ok = true;
+    							}
+    							
+    							if ( ok ){
+        							
+        							if ( !link_updated ){
+        							
+        								diskManager.getDownloadState().setFileLink( file, null );
+        							}
+        						}else{
+        							
+        							if ( link_updated ){
+        							
+        								diskManager.getDownloadState().setFileLink( file, link );
+        							}
+        						}
+       						
+    							if ( ok ){
+    							    								
+    								File[] files = new_parent.listFiles();
+    								
+    								if ( files != null && files.length == 0 ){
+    									
+    									new_parent.delete();
+    								}
+    							}
+    						}
+    					}
+        			}
+        		}
+    		}
+		}
+	}
+  
+  
+  
   public DiskManager getDiskManager() {
     return diskManager;
   }
