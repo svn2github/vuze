@@ -695,9 +695,14 @@ public class ToolBarView
 
 					DownloadManager dm = content.getDownloadManager();
 
-					if (dm != null) {
+					if ( dm != null ){
 
-						if (copy.remove(dm) == null) {
+						copy.remove( dm );
+						
+							// so in files view we can have multiple selections that map onto the SAME download manager
+							// - ensure that we only add the listener once!
+						
+						if ( !dm_listener_map.containsKey( dm )) {
 
 							DownloadManagerListener l = new DownloadManagerListener() {
 								public void stateChanged(DownloadManager manager, int state) {
