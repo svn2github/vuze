@@ -650,6 +650,9 @@ public class LoggerView
 			setFilter(null);
 		} else if (newDataSource instanceof Object[]) {
 			setFilter((Object[]) newDataSource);
+		} else if (newDataSource instanceof Boolean) {
+			stopOnNull = ((Boolean) newDataSource);
+			return;
 		} else {
 			setFilter(new Object[] { newDataSource });
 		}
