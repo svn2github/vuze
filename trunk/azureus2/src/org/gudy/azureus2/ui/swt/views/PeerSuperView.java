@@ -83,7 +83,10 @@ public class PeerSuperView
    */
   public PeerSuperView() {
   	super("AllPeersView");
+	}	
 
+  // @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initYourTableView()
+  public TableViewSWT<PEPeer> initYourTableView() {
   	TableColumnCore[] items = PeersView.getBasicColumnItems(TableManager.TABLE_ALL_PEERS);
   	TableColumnCore[] basicItems = new TableColumnCore[items.length + 1];
   	System.arraycopy(items, 0, basicItems, 0, items.length);
@@ -101,12 +104,13 @@ public class PeerSuperView
 			
 			if (pluginUI != null && !registeredCoreSubViews) {
 
-				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "PeerInfoView",
-						new PeerInfoView());
-				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "RemotePieceDistributionView",
-						new RemotePieceDistributionView());
-				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "LoggerView",
-						new LoggerView(true));
+				pluginUI.addView(TableManager.TABLE_ALL_PEERS, "PeerInfoView",
+						PeerInfoView.class, null);
+				pluginUI.addView(TableManager.TABLE_ALL_PEERS,
+						"RemotePieceDistributionView", RemotePieceDistributionView.class,
+						null);
+				pluginUI.addView(TableManager.TABLE_ALL_PEERS, "LoggerView",
+						LoggerView.class, true);
 
 				registeredCoreSubViews = true;
 			}
@@ -115,9 +119,6 @@ public class PeerSuperView
 		tv.addLifeCycleListener(this);
 		tv.addMenuFillListener(this);
 		
-	}	
-
-  public TableViewSWT<PEPeer> initYourTableView() {
   	return tv;
   }
 
