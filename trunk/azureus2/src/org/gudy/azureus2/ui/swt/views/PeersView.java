@@ -156,11 +156,12 @@ public class PeersView
 			if (pluginUI != null && !registeredCoreSubViews) {
 
 				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "PeerInfoView",
-						PeerInfoView.class, manager);
-				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "RemotePieceDistributionView",
-						RemotePieceDistributionView.class, manager);
+						PeerInfoView.class, null);
+				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS,
+						"RemotePieceDistributionView", RemotePieceDistributionView.class,
+						null);
 				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "LoggerView",
-						new LoggerView(true));
+						LoggerView.class, true);
 
 				registeredCoreSubViews = true;
 			}
