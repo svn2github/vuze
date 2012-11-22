@@ -28,6 +28,8 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
@@ -38,6 +40,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
+import org.gudy.azureus2.plugins.ui.tables.TableCellToolTipListener;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 
 /**
@@ -47,7 +50,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
  */
 public abstract class ColumnDateSizer
 	extends CoreTableColumn
-	implements TableCellRefreshListener
+	implements TableCellRefreshListener, TableCellToolTipListener
 {
 	private static int PADDING = 10;
 	int curFormat = 0;
@@ -317,5 +320,19 @@ public abstract class ColumnDateSizer
 	 */
 	public void setMultiline(boolean multiline) {
 		this.multiline = multiline;
+	}
+	
+	public void cellHover(TableCell cell) {
+		Object ds = cell.getSortValue();
+		if (ds instanceof Number) {
+			long timestamp = ((Number) ds).longValue();
+			long eta = (SystemTime.getCurrentTime() - timestamp) / 1000;
+			if (eta > 0) {
+				cell.setToolTip(DisplayFormatters.formatETA(eta, false));
+			}
+		}
+	}
+	public void cellHoverComplete(TableCell cell) {
+		cell.setToolTip(null);
 	}
 }
