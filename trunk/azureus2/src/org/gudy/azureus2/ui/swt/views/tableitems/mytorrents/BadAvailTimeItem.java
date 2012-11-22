@@ -29,16 +29,14 @@ import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
+import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 
 public class BadAvailTimeItem
-	extends CoreTableColumn
-	implements TableCellRefreshListener
+	extends ColumnDateSizer
 {
 	public static final Class DATASOURCE_TYPE = Download.class;
 
@@ -61,7 +59,7 @@ public class BadAvailTimeItem
 	}
 	
 	public BadAvailTimeItem(String sTableID) {
-		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_CENTER, 120, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, TableColumnCreator.DATE_COLUMN_WIDTH, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
 	}
 	
@@ -73,7 +71,7 @@ public class BadAvailTimeItem
 		info.setProficiency(TableColumnInfo.PROFICIENCY_ADVANCED);
 	}
 
-	public void refresh(TableCell cell) {
+	public void refresh(TableCell cell, long timestamp) {
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
 		long value = dm==null?-1:dm.getStats().getAvailWentBadTime();
 
@@ -101,20 +99,25 @@ public class BadAvailTimeItem
 				value = -2;
 			}
 		}
-		
-		String text;
-		
-		if ( value == -1 ){
-			text = "";
-		}else if ( value == -2 ){
-			text = now_string;
-		}else{
-			text = DisplayFormatters.formatDate(value);
-		}
-		
-		if (!cell.setSortValue(value) && cell.isValid())
-			return;
 
-		cell.setText(text);
+		if (value > 0) {
+			super.refresh(cell, value);
+		} else {
+  		String text;
+  		
+  		if ( value <= 0 ){
+  			text = "";
+  		}else if ( value == -2 ){
+  			text = now_string;
+  		}else{
+  			text = DisplayFormatters.formatDate(value);
+  		}
+		
+  		if (!cell.setSortValue(value) && cell.isValid()) {
+  			return;
+  		}
+
+  		cell.setText(text);
+		}
 	}
 }
