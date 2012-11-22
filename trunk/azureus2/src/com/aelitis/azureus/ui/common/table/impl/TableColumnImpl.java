@@ -306,13 +306,19 @@ public class TableColumnImpl
 					+ " already added"));
 		}
 		*/
-		
-		iAlignment = alignment;
-		
-		if ( iDefaultAlignment == -1 ){
-			iDefaultAlignment = alignment;
+
+		if (alignment == -1) {
+			if (iDefaultAlignment != -1) {
+				iAlignment = iDefaultAlignment;
+			}
+		} else {
+			iAlignment = alignment;
+
+			if (iDefaultAlignment == -1) {
+				iDefaultAlignment = alignment;
+			}
 		}
-		
+
 		// Commented out because size hasn't changed!
 		//if (bColumnAdded && bVisible) {
 		//	triggerColumnSizeChange();
@@ -1093,7 +1099,7 @@ public class TableColumnImpl
 			new Integer(auto_tooltip ? 1 : 0),
 			new Integer(lLastSortValueChange == 0 ? -1 : (bSortAscending ? 1 : 0)),
 			userData != null ? userData : Collections.EMPTY_MAP,
-			new Integer(iAlignment)
+			new Integer(iAlignment == iDefaultAlignment ? -1 : iAlignment)
 		}));
 		// cleanup old config
 		sItemPrefix = "Table." + sTableID + "." + sName; 
