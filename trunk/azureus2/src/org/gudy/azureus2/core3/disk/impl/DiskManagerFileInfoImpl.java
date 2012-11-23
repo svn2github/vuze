@@ -370,7 +370,9 @@ DiskManagerFileInfoImpl
 	{
 		skipped_internal = _skipped;
 
-		if ( !torrent_file.getTorrent().isSimpleTorrent()){
+		DownloadManager dm = getDownloadManager();
+		
+		if ( dm != null && dm.isPersistent() && !torrent_file.getTorrent().isSimpleTorrent() ){
 
     		String dnd_sf = diskManager.getDownloadState().getAttribute( DownloadManagerState.AT_DND_SUBFOLDER );
     		
@@ -413,42 +415,24 @@ DiskManagerFileInfoImpl
         						}
         			
         						boolean ok;
-        						boolean	link_updated = false;
-        						
-        						if ( file.exists()){
-        							
-        							try{
-        								diskManager.getDownloadState().setFileLink( file, new_file );
-        								
-        								link_updated = true;
-        								
-    									cache_file.moveFile( new_file );
-    								
-    									ok = true;
-    									
-    								}catch( Throwable e ){
-    									
-    									ok = false;
-    									
-    									Debug.out( e );
-    								}        							
-        						}else{
-        							
-        							ok = true;
-        						}
-        						
-        						if ( ok ){
-        							
-        							if ( !link_updated ){
-        							
-        								diskManager.getDownloadState().setFileLink( file, new_file );
-        							}
-        						}else{
-        							
-        							if ( link_updated ){
-        							
-        								diskManager.getDownloadState().setFileLink( file, link );
-        							}
+         						        							
+    							try{
+    								diskManager.getDownloadState().setFileLink( file, new_file );
+    								   								
+									cache_file.moveFile( new_file );
+								
+									ok = true;
+									
+								}catch( Throwable e ){
+									
+									ok = false;
+									
+									Debug.out( e );
+								}        							
+       						
+        						if ( !ok ){
+        							        							
+       								diskManager.getDownloadState().setFileLink( file, link );
         						}
     						}
     					}
@@ -468,53 +452,32 @@ DiskManagerFileInfoImpl
     						if ( new_file.equals( link )){
     							
     							boolean	ok;
-    							boolean	link_updated = false;
-    							
-    							if ( new_file.exists()){
-    								
-    								try{  	
-    									diskManager.getDownloadState().setFileLink( file, null );
-    									
-    									link_updated = true;
-    									
-    									cache_file.moveFile( file );
-    								
-    									ok = true;
-    									
-    								}catch( Throwable e ){
-    									
-    									ok = false;
-    									
-    									Debug.out( e );
-    								}
-    							}else{
-    								
-    								ok = true;
-    							}
-    							
-    							if ( ok ){
-        							
-        							if ( !link_updated ){
-        							
-        								diskManager.getDownloadState().setFileLink( file, null );
-        							}
-        						}else{
-        							
-        							if ( link_updated ){
-        							
-        								diskManager.getDownloadState().setFileLink( file, link );
-        							}
-        						}
-       						
-    							if ( ok ){
-    							    								
-    								File[] files = new_parent.listFiles();
+     								
+								try{  	
+									diskManager.getDownloadState().setFileLink( file, null );
+																		
+									cache_file.moveFile( file );
+								
+									File[] files = new_parent.listFiles();
     								
     								if ( files != null && files.length == 0 ){
     									
     									new_parent.delete();
     								}
-    							}
+    								
+									ok = true;
+									
+								}catch( Throwable e ){
+									
+									ok = false;
+									
+									Debug.out( e );
+								}
+    							
+    							if ( !ok ){
+        							
+        							diskManager.getDownloadState().setFileLink( file, link );
+        						}
     						}
     					}
         			}

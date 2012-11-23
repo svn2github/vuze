@@ -1581,8 +1581,6 @@ DownloadManagerStateImpl
 		File	link_source,
 		File	link_destination )
 	{
-		System.out.println( "link: " + link_source + "/" + link_destination );
-		
 		CaseSensitiveFileMap	links = getFileLinks();
 		
 		File	existing = (File)links.get(link_source);
@@ -2250,6 +2248,9 @@ DownloadManagerStateImpl
 	informWritten(
 		final String		attribute_name )
 	{
+			// don't make any of this async as the link management code for cache files etc
+			// relies on callbacks here being synchronous...
+		
 		List	listeners_ref = listeners_cow.getList();
 		
 		for (int i=0;i<listeners_ref.size();i++){

@@ -28,6 +28,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.ui.swt.views.FilesView;
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -128,6 +129,25 @@ public class PathItem
     			path = File.separator;
     		}
       }
+    }
+    
+    if ( fileInfo.isSkipped()){
+    	String dnd_sf = dm.getDownloadState().getAttribute( DownloadManagerState.AT_DND_SUBFOLDER );
+    
+    	if ( dnd_sf != null ){
+    		
+    		dnd_sf = dnd_sf.trim();
+    		
+    		if ( dnd_sf.length() > 0 ){
+    			
+    			dnd_sf += File.separatorChar;
+    			
+    			if ( path.endsWith( dnd_sf )){
+    				
+    				path = path.substring( 0, path.length() - dnd_sf.length());
+    			}
+    		}
+    	}
     }
     
     return path;
