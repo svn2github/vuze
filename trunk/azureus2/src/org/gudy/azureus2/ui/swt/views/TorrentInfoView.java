@@ -250,9 +250,8 @@ public class TorrentInfoView
 			}
 		}
 		
-		blabel = new BufferedLabel(gTorrentInfo, SWT.NULL);
-		gridData = new GridData();
-		blabel.setLayoutData( gridData );
+		blabel = new BufferedLabel(gTorrentInfo, SWT.WRAP);
+		blabel.setLayoutData(Utils.getWrappableLabelGridData(1, GridData.FILL_HORIZONTAL));
 		blabel.setText( trackers );
 
 		
