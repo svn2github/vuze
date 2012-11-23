@@ -132,6 +132,7 @@ public class PathItem
     }
     
     if ( fileInfo.isSkipped()){
+    	
     	String dnd_sf = dm.getDownloadState().getAttribute( DownloadManagerState.AT_DND_SUBFOLDER );
     
     	if ( dnd_sf != null ){
@@ -140,11 +141,25 @@ public class PathItem
     		
     		if ( dnd_sf.length() > 0 ){
     			
-    			dnd_sf += File.separatorChar;
-    			
-    			if ( path.endsWith( dnd_sf )){
+    			if ( show_full_path ){
     				
-    				path = path.substring( 0, path.length() - dnd_sf.length());
+	    			dnd_sf += File.separatorChar;
+	    			
+	    			if ( path.endsWith( dnd_sf )){
+	    				
+	    				path = path.substring( 0, path.length() - dnd_sf.length());
+	    			}
+    			}else{
+    				
+    				if ( path.endsWith( dnd_sf )){
+	    				
+	    				path = path.substring( 0, path.length() - dnd_sf.length());
+	    				
+	    				if ( path.length() > 0 && path.endsWith( File.separator )){
+	    					
+	    					path = path.substring( 0, path.length()-1 );
+	    				}
+	    			}
     			}
     		}
     	}
