@@ -69,6 +69,7 @@ import org.gudy.azureus2.plugins.ddb.DistributedDatabaseProgressListener;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferHandler;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseValue;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
@@ -1012,81 +1013,245 @@ RelatedContentManager
 						byte[]				key,
 						boolean				timeout_occurred )
 					{
-						boolean	do_it;
-						
-						// System.out.println( from_hash + ": hits=" + hits + ", div=" + diversified );
-						
-						if ( diversified || hits >= 10 ){
+						try{
+							boolean	do_it;
 							
-							do_it = false;
+							// System.out.println( from_hash + ": hits=" + hits + ", div=" + diversified );
 							
-						}else if ( hits <= 5 ){
-							
-							do_it = true;
-														
-						}else{
-													
-							do_it = RandomUtils.nextInt( hits - 5 + 1 ) == 0;
-						}
-							
-						if ( do_it ){
-							
-							try{
-								dht_plugin.put(
-										key_bytes,
-										"Content relationship: " +  from_hash + " -> " + to_hash,
-										map_bytes,
-										DHTPlugin.FLAG_ANON,
-										new DHTPluginOperationListener()
-										{
-											public boolean
-											diversified()
-											{
-												return( true );
-											}
-											
-											public void 
-											starts(
-												byte[] 				key ) 
-											{
-											}
-											
-											public void
-											valueRead(
-												DHTPluginContact	originator,
-												DHTPluginValue		value )
-											{
-											}
-											
-											public void
-											valueWritten(
-												DHTPluginContact	target,
-												DHTPluginValue		value )
-											{
-											}
-											
-											public void
-											complete(
-												byte[]				key,
-												boolean				timeout_occurred )
-											{
-												publishNext();
-											}
-										});
-							}catch( Throwable e ){
+							if ( diversified || hits >= 10 ){
 								
-								Debug.printStackTrace(e);
+								do_it = false;
+								
+							}else if ( hits <= 5 ){
+								
+								do_it = true;
+															
+							}else{
+														
+								do_it = RandomUtils.nextInt( hits - 5 + 1 ) == 0;
+							}
+								
+							if ( do_it ){
+								
+								try{
+									dht_plugin.put(
+											key_bytes,
+											"Content relationship: " +  from_hash + " -> " + to_hash,
+											map_bytes,
+											DHTPlugin.FLAG_ANON,
+											new DHTPluginOperationListener()
+											{
+												public boolean
+												diversified()
+												{
+													return( true );
+												}
+												
+												public void 
+												starts(
+													byte[] 				key ) 
+												{
+												}
+												
+												public void
+												valueRead(
+													DHTPluginContact	originator,
+													DHTPluginValue		value )
+												{
+												}
+												
+												public void
+												valueWritten(
+													DHTPluginContact	target,
+													DHTPluginValue		value )
+												{
+												}
+												
+												public void
+												complete(
+													byte[]				key,
+													boolean				timeout_occurred )
+												{
+													publishNext();
+												}
+											});
+								}catch( Throwable e ){
+									
+									Debug.printStackTrace(e);
+									
+									publishNext();
+								}
+							}else{
 								
 								publishNext();
 							}
-						}else{
+						}finally{
 							
-							publishNext();
+							checkAlternativePubs( to_info, map_bytes );
 						}
 					}
 				});
 	}
 		
+	private void
+	checkAlternativePubs(
+		DownloadInfo	to_info,
+		final byte[]	map_bytes )
+	{
+		Download dl = to_info.getRelatedToDownload();
+		
+		if ( dl != null ){
+			
+			DiskManagerFileInfo[] files = dl.getDiskManagerFileInfo();
+			
+			List<Long>	sizes = new ArrayList<Long>();
+			
+			for ( DiskManagerFileInfo file: files ){
+				
+				long	size = file.getLength();
+				
+				if ( size > 50*1024*1024 ){
+					
+					sizes.add( size );
+				}
+			}
+			
+			if ( sizes.size() > 0 ){
+
+				try{
+					final String to_hash	= ByteFormatter.encodeString( to_info.getHash());
+	
+					final long selected_size = sizes.get( new Random().nextInt( sizes.size()));
+	
+					final byte[] key_bytes	= ( "az:rcm:size:assoc:" + selected_size ).getBytes( "UTF-8" );
+					
+					int	max_hits = 30;
+					
+					dht_plugin.get(
+							key_bytes,
+							"Content size relationship test: " + to_hash,
+							DHTPlugin.FLAG_SINGLE_VALUE,
+							max_hits,
+							30*1000,
+							false,
+							false,
+							new DHTPluginOperationListener()
+							{
+								private boolean diversified;
+								private int		hits;
+								
+								private Set<String>	entries = new HashSet<String>();
+								
+								public void
+								starts(
+									byte[]				key )
+								{
+								}
+								
+								public boolean
+								diversified()
+								{
+									diversified = true;
+									
+									return( false );
+								}
+								
+								public void
+								valueRead(
+									DHTPluginContact	originator,
+									DHTPluginValue		value )
+								{		
+									hits++;
+								}
+								
+								public void
+								valueWritten(
+									DHTPluginContact	target,
+									DHTPluginValue		value )
+								{
+									
+								}
+								
+								public void
+								complete(
+									byte[]				key,
+									boolean				timeout_occurred )
+								{
+									boolean	do_it;
+									
+									// System.out.println( from_hash + ": hits=" + hits + ", div=" + diversified );
+									
+									if ( diversified || hits >= 10 ){
+										
+										do_it = false;
+										
+									}else if ( hits <= 5 ){
+										
+										do_it = true;
+																	
+									}else{
+																
+										do_it = RandomUtils.nextInt( hits - 5 + 1 ) == 0;
+									}
+										
+									if ( do_it ){
+										
+										try{
+											dht_plugin.put(
+												key_bytes,
+												"Content size relationship: " +  selected_size + " -> " + to_hash,
+												map_bytes,
+												DHTPlugin.FLAG_ANON,
+												new DHTPluginOperationListener()
+												{
+													public boolean
+													diversified()
+													{
+														return( true );
+													}
+													
+													public void 
+													starts(
+														byte[] 				key ) 
+													{
+													}
+													
+													public void
+													valueRead(
+														DHTPluginContact	originator,
+														DHTPluginValue		value )
+													{
+													}
+													
+													public void
+													valueWritten(
+														DHTPluginContact	target,
+														DHTPluginValue		value )
+													{
+													}
+													
+													public void
+													complete(
+														byte[]				key,
+														boolean				timeout_occurred )
+													{
+													}
+												});
+										}catch( Throwable e ){
+											
+											Debug.printStackTrace(e);
+										}
+									}
+								}
+							});
+				}catch( Throwable e ){
+					
+					Debug.out( e);
+				}
+			}
+		}
+	}
+	
 	private DownloadInfo
 	decodeInfo(
 		Map				map,
