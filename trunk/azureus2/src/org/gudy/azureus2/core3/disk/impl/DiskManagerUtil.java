@@ -783,7 +783,7 @@ DiskManagerUtil
 	            		
 	            		skipped_internal = _skipped;
 
-    					if ( download_manager.isPersistent() && !torrent.isSimpleTorrent()){
+    					if ( download_manager.isPersistent() && !torrent.isSimpleTorrent() && !download_manager.isDestroyed()){
 
     						DownloadManagerState dm_state = download_manager.getDownloadState();
     						

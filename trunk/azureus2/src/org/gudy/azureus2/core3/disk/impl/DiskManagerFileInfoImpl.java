@@ -372,7 +372,7 @@ DiskManagerFileInfoImpl
 
 		DownloadManager dm = getDownloadManager();
 		
-		if ( dm != null && dm.isPersistent() && !torrent_file.getTorrent().isSimpleTorrent() ){
+		if ( dm != null && dm.isPersistent() && !torrent_file.getTorrent().isSimpleTorrent() && !dm.isDestroyed()){
 
     		String dnd_sf = diskManager.getDownloadState().getAttribute( DownloadManagerState.AT_DND_SUBFOLDER );
     		
