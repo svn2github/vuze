@@ -24,6 +24,8 @@
 
 package com.aelitis.azureus.ui.swt.columns.torrent;
 
+import java.io.File;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 
@@ -31,6 +33,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
@@ -402,6 +405,27 @@ public class ColumnThumbAndName
 		String s = fileInfo.getFile(true).toString();
 		if (s.startsWith(prefix)) {
 			s = s.substring(prefix.length() + 1);
+		}
+		if ( fileInfo.isSkipped()){
+	
+	    	String dnd_sf = fileInfo.getDownloadManager().getDownloadState().getAttribute( DownloadManagerState.AT_DND_SUBFOLDER );
+	        
+	    	if ( dnd_sf != null ){
+	    		
+	    		dnd_sf = dnd_sf.trim();
+	    		
+	    		if ( dnd_sf.length() > 0 ){
+	    			
+	    			dnd_sf += File.separatorChar;
+	    			
+	    			int pos = s.indexOf( dnd_sf );
+	    			
+	    			if ( pos != -1 ){
+	    				
+	    				s = s.substring( 0, pos ) + s.substring( pos + dnd_sf.length());
+	    			}
+	    		}
+	    	}
 		}
 		boolean over = GCStringPrinter.printString(gc, s, cellArea, true, false,
 				SWT.LEFT);
