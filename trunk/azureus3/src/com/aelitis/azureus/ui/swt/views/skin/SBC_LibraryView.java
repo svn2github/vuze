@@ -57,6 +57,8 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.Initializer;
@@ -100,7 +102,8 @@ public class SBC_LibraryView
 
 	private static boolean	header_show_uptime;
 	
-	private static volatile OverallStats totalStats;
+	private static volatile OverallStats 	totalStats;
+	private static volatile int				selection_count;
 	
 	static{
 		SimpleTimer.addPeriodicEvent(
@@ -143,6 +146,20 @@ public class SBC_LibraryView
 					AzureusCore core) 
 				{
 					totalStats = StatsFactory.getStats();
+				}
+			});
+		
+		SelectedContentManager.addCurrentlySelectedContentListener(
+			new SelectedContentListener()
+			{
+				public void 
+				currentlySelectedContentChanged(
+					ISelectedContent[] 	currentContent, 
+					String 				viewId ) 
+				{
+					selection_count = currentContent.length;
+					
+					SB_Transfers.triggerCountRefreshListeners();
 				}
 			});
 	}
@@ -445,6 +462,13 @@ public class SBC_LibraryView
 								}
 							}
 							
+							if ( selection_count > 1 ){
+								
+								s += ", " + 
+										MessageText.getString(
+										"label.num_selected", new String[]{ String.valueOf( selection_count )});
+							}
+
 							if ( header_show_uptime && totalStats != null ){
 								
 								long up_secs = (totalStats.getSessionUpTime()/60)*60;
@@ -466,12 +490,12 @@ public class SBC_LibraryView
 								
 								up_str = up_str.substring( 0, up_str.lastIndexOf(' ' ));
 								
-								s += ", " + 
+								s += "; " + 
 									MessageText.getString(
 										"label.uptime_coarse",
 										new String[]{ op, up_str } ).toLowerCase();
 							}
-							
+														
 							soLibraryInfo.setText(s);
 						}
 						
