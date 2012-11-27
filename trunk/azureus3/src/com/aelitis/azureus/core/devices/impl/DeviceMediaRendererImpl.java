@@ -201,6 +201,18 @@ DeviceMediaRendererImpl
 		return( false );
 	}
 	
+	public boolean
+	getAutoCopyToDevice()
+	{
+		return( false );
+	}
+		
+	public void
+	setAutoCopyToDevice(
+		boolean		auto )
+	{
+	}
+	
 	public int
 	getCopyToDevicePending()
 	{
@@ -312,6 +324,10 @@ DeviceMediaRendererImpl
 			
 			addDP( dp, "devices.copy.folder.auto", getAutoCopyToFolder());
 			addDP( dp, "devices.copy.folder.dest", getCopyToFolder());
+		}
+		
+		if ( canCopyToDevice()){
+			addDP( dp, "devices.copy.device.auto", getAutoCopyToDevice());
 		}
 		
 		if ( canShowCategories()){

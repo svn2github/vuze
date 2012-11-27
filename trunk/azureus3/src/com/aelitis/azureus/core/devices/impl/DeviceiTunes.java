@@ -52,8 +52,9 @@ DeviceiTunes
 {
 	private static final String UID = "a5d7869e-1ab9-6098-fef9-88476d988455";
 	
-	private static final Object	ERRROR_KEY_ITUNES = new Object();
-	
+	private static final Object	ERRROR_KEY_ITUNES 	= new Object();
+	private static final Object	COPY_PENDING_KEY 	= new Object();
+
 	private static final int INSTALL_CHECK_PERIOD	= 60*1000;
 	private static final int RUNNING_CHECK_PERIOD	= 30*1000;
 	private static final int DEVICE_CHECK_PERIOD	= 10*1000;
@@ -77,6 +78,8 @@ DeviceiTunes
 	
 	private long				last_update_fail;
 	private int					consec_fails;
+	
+	private volatile boolean	manual_copy_activated;
 	
 	protected
 	DeviceiTunes(
@@ -369,6 +372,23 @@ DeviceiTunes
 		return( true );
 	}
 	
+	public boolean
+	getAutoCopyToDevice()
+	{
+			// default is true for itunes
+		
+		return( getPersistentBooleanProperty( PP_AUTO_COPY, true  ));
+	}
+		
+	public void
+	setAutoCopyToDevice(
+		boolean		auto )
+	{
+		setPersistentBooleanProperty( PP_AUTO_COPY, auto );
+		
+		setCopyOutstanding();
+	}
+	
 	public int
 	getCopyToDevicePending()
 	{
@@ -393,6 +413,21 @@ DeviceiTunes
 		}
 		
 		return( result );
+	}
+	
+	public void 
+	manualCopy() 
+	
+		throws DeviceManagerException 
+	{
+		if ( getAutoCopyToDevice()){
+			
+			throw( new DeviceManagerException( "Operation prohibited - auto copy enabled" ));
+		}
+		
+		manual_copy_activated = true;
+		
+		setCopyOutstanding();
 	}
 	
 	protected void
@@ -487,7 +522,43 @@ DeviceiTunes
 				
 				while( copy_sem.reserveIfAvailable());
 			}
+				
+			if ( !getAutoCopyToDevice()){
+				
+				if ( manual_copy_activated ){
+					
+					manual_copy_activated = false;
+					
+				}else{
+					
+					TranscodeFileImpl[] files = getFiles();
+					
+					int to_copy = 0;
+					
+					for ( TranscodeFileImpl file: files ){
+							
+						if ( file.isComplete() && !file.isCopiedToDevice()){
+							
+							to_copy++;
+						}
+					}
+					
+					if ( to_copy == 0 ){
 						
+						setInfo( COPY_PENDING_KEY, null );
+					}else{
+					
+						String str = MessageText.getString( "devices.info.copypending3", new String[]{ String.valueOf( to_copy ) });
+	
+						setInfo( COPY_PENDING_KEY, str );
+					}
+					
+					continue;
+				}
+			}
+			
+			setInfo( COPY_PENDING_KEY, null );
+
 			boolean	auto_start = getAutoStartDevice();
 			
 			synchronized( this ){

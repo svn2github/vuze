@@ -2908,6 +2908,61 @@ DeviceManagerUI
 
 				}
 				
+				if ( renderer.canCopyToDevice()){
+					
+					need_sep = true;
+					
+					MenuItem autocopy_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.autoCopy.device");
+					autocopy_menu_item.setStyle(MenuItem.STYLE_CHECK);
+					
+					autocopy_menu_item.addFillListener(new MenuItemFillListener() {
+						public void menuWillBeShown(MenuItem menu, Object data) {
+							menu.setData(new Boolean(renderer.getAutoCopyToDevice()));
+						}
+					});
+					autocopy_menu_item.addListener(new MenuItemListener() {
+						public void selected(MenuItem menu, Object target) {
+			 				renderer.setAutoCopyToDevice((Boolean) menu.getData());
+						}
+					});
+					
+					final MenuItem mancopy_menu_item = menu_manager.addMenuItem("sidebar." + key, "devices.xcode.mancopy");
+					mancopy_menu_item.setStyle(MenuItem.STYLE_PUSH);
+					
+					mancopy_menu_item.addListener(new MenuItemListener() {
+						public void 
+						selected(
+							MenuItem menu, Object target) 
+						{
+							try{
+								renderer.manualCopy();
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					});
+					
+					mancopy_menu_item.addFillListener(
+							new MenuItemFillListener()
+							{
+								public void 
+								menuWillBeShown(
+										MenuItem menu, Object data )
+								{
+									boolean	enabled = false;
+									
+									if ( !renderer.getAutoCopyToDevice()){
+										
+										enabled = renderer.getCopyToDevicePending() > 0;
+									}
+									
+									mancopy_menu_item.setEnabled( enabled );
+								}
+							});
+				}
+				
 				if ( renderer.canAutoStartDevice()){
 					
 					need_sep = true;

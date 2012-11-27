@@ -61,6 +61,13 @@ DeviceMediaRenderer
 	public boolean
 	canCopyToDevice();
 	
+	public boolean
+	getAutoCopyToDevice();
+		
+	public void
+	setAutoCopyToDevice(
+		boolean		auto );
+	
 	public int
 	getCopyToDevicePending();
 	
