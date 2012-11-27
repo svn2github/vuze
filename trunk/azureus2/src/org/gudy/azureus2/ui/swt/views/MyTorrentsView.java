@@ -398,7 +398,9 @@ public class MyTorrentsView
 					"User Mode"
 				}, MyTorrentsView.this);
 
-		    if (currentCategory != null) {
+		    	// can get an activate prior to this running so need to guard against adding the category listener twice
+		    
+		    if (currentCategory != null && !currentCategory.hasCategoryListener( MyTorrentsView.this)) {
 		    	currentCategory.addCategoryListener(MyTorrentsView.this);
 		    }
 		    CategoryManager.addCategoryManagerListener(MyTorrentsView.this);

@@ -50,6 +50,10 @@ public interface Category {
    */  
   public void removeCategoryListener(CategoryListener l);
 
+  public boolean
+  hasCategoryListener(
+	 CategoryListener	l );
+  
   /** Retrieve the name of the category.  All category names are unique.
    * @return If type is TYPE_USER, returns name of the category
    *         Otherwise, returns ID in MessageBundle.

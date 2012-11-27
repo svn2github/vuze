@@ -75,17 +75,16 @@ public class CategoryImpl implements Category, Comparable {
   
   private static final int LDT_CATEGORY_DMADDED     = 1;
   private static final int LDT_CATEGORY_DMREMOVED   = 2;
-	private ListenerManager	category_listeners = ListenerManager.createManager(
+	private ListenerManager<CategoryListener>	category_listeners = ListenerManager.createManager(
 		"CatListenDispatcher",
-		new ListenerManagerDispatcher()
+		new ListenerManagerDispatcher<CategoryListener>()
 		{
 			public void
-			dispatch(Object		_listener,
-               int			type,
-               Object		value )
+			dispatch(
+				CategoryListener		target,
+				int						type,
+				Object					value )
 			{
-				CategoryListener target = (CategoryListener)_listener;
-
 				if ( type == LDT_CATEGORY_DMADDED )
 					target.downloadManagerAdded((Category) CategoryImpl.this, (DownloadManager)value);
 				else if ( type == LDT_CATEGORY_DMREMOVED )
@@ -107,14 +106,21 @@ public class CategoryImpl implements Category, Comparable {
     attributes = _attributes;
   }
 
-	public void addCategoryListener(CategoryListener l) {
-		category_listeners.addListener( l );
-	}
-	
-	public void removeCategoryListener(CategoryListener l) {
-		category_listeners.removeListener( l );
-	}
+  public void addCategoryListener(CategoryListener l) {
+	  category_listeners.addListener( l );
+  }
 
+  public void removeCategoryListener(CategoryListener l) {
+	  category_listeners.removeListener( l );
+  }
+
+  public boolean
+  hasCategoryListener(
+	 CategoryListener	l )
+  {
+	  return( category_listeners.hasListener( l ));
+  }
+  
   public String getName() {
     return sName;
   }
