@@ -316,18 +316,14 @@ public class MyTorrentsView
 				filterParent = filterParent.getParent();
 			}
 			Menu menuFilterHeader = new Menu(filterParent);
+			
+				// show header
+			
 			final MenuItem menuItemAlwaysShow = new MenuItem(menuFilterHeader,
 					SWT.CHECK);
 			Messages.setLanguageText(menuItemAlwaysShow,
 					"ConfigView.label.alwaysShowLibraryHeader");
-			menuFilterHeader.addMenuListener(new MenuListener() {
-				public void menuShown(MenuEvent e) {
-					menuItemAlwaysShow.setSelection(forceHeaderVisible);
-				}
 
-				public void menuHidden(MenuEvent e) {
-				}
-			});
 			menuItemAlwaysShow.addSelectionListener(new SelectionListener() {
 				public void widgetSelected(SelectionEvent e) {
 					COConfigurationManager.setParameter(
@@ -337,6 +333,34 @@ public class MyTorrentsView
 				public void widgetDefaultSelected(SelectionEvent e) {
 				}
 			});
+			
+				// show uptime
+			
+			final MenuItem menuItemShowUptime = new MenuItem(menuFilterHeader, SWT.CHECK);
+			Messages.setLanguageText( menuItemShowUptime, "ConfigView.label.showuptime" );
+
+			menuItemShowUptime.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) {
+					COConfigurationManager.setParameter(
+							"MyTorrentsView.showuptime", menuItemShowUptime.getSelection());
+				}
+
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+			
+				// hooks
+			
+			menuFilterHeader.addMenuListener(new MenuListener() {
+				public void menuShown(MenuEvent e) {
+					menuItemAlwaysShow.setSelection(forceHeaderVisible);
+					menuItemShowUptime.setSelection(COConfigurationManager.getBooleanParameter( "MyTorrentsView.showuptime" ));
+				}
+
+				public void menuHidden(MenuEvent e) {
+				}
+			});
+			
 			filterParent.setMenu(menuFilterHeader);
 			Control[] children = filterParent.getChildren();
 			for (Control control : children) {

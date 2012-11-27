@@ -29,9 +29,18 @@ import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.stats.transfer.OverallStats;
+import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
@@ -89,6 +98,55 @@ public class SBC_LibraryView
 		"library.table.small"
 	};
 
+	private static boolean	header_show_uptime;
+	
+	private static volatile OverallStats totalStats;
+	
+	static{
+		SimpleTimer.addPeriodicEvent(
+			"SBLV:updater",
+			60*1000,
+			new TimerEventPerformer()
+			{
+				public void 
+				perform(
+					TimerEvent event ) 
+				{
+					if ( header_show_uptime ){
+						
+						SB_Transfers.triggerCountRefreshListeners();
+					}
+				}
+			});
+		
+		header_show_uptime = COConfigurationManager.getBooleanParameter( "MyTorrentsView.showuptime" );
+		
+		COConfigurationManager.addParameterListener( 
+			"MyTorrentsView.showuptime",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name ) 
+				{
+					header_show_uptime = COConfigurationManager.getBooleanParameter( "MyTorrentsView.showuptime" );
+
+					SB_Transfers.triggerCountRefreshListeners();
+				}
+			});
+		
+		AzureusCoreFactory.addCoreRunningListener(
+			new AzureusCoreRunningListener() 
+			{
+				public void 
+				azureusCoreRunning(
+					AzureusCore core) 
+				{
+					totalStats = StatsFactory.getStats();
+				}
+			});
+	}
+	
 	private int viewMode = -1;
 
 	private SWTSkinButtonUtility btnSmallTable;
@@ -385,6 +443,33 @@ public class SBC_LibraryView
 									
 									s += " " + extra;
 								}
+							}
+							
+							if ( header_show_uptime && totalStats != null ){
+								
+								long up_secs = (totalStats.getSessionUpTime()/60)*60;
+								
+								String	op;
+								
+								if ( up_secs < 60 ){
+									
+									up_secs = 60;
+									
+									op = "<";
+									
+								}else{
+									
+									op = "=";
+								}
+								
+								String up_str = DisplayFormatters.formatETA( up_secs );
+								
+								up_str = up_str.substring( 0, up_str.lastIndexOf(' ' ));
+								
+								s += ", " + 
+									MessageText.getString(
+										"label.uptime_coarse",
+										new String[]{ op, up_str } ).toLowerCase();
 							}
 							
 							soLibraryInfo.setText(s);

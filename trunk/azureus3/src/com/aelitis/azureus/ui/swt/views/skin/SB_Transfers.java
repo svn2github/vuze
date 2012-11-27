@@ -51,6 +51,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
@@ -102,7 +103,7 @@ public class SB_Transfers
 
 	private static stats statsNoLowNoise = new stats();
 
-	private static List<countRefreshListener> listeners = new ArrayList<countRefreshListener>();
+	private static CopyOnWriteList<countRefreshListener> listeners = new CopyOnWriteList<countRefreshListener>();
 
 	private static boolean first = true;
 
