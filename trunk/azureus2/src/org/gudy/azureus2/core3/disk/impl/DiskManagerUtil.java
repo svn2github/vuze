@@ -827,20 +827,23 @@ DiskManagerUtil
 			            							new_parent.mkdirs();
 			            						}
 			            			
-			            						boolean ok;
-			            						
-			            						if ( file.exists()){
+			            						if ( new_parent.canWrite()){
 			            							
-			            							ok = FileUtil.renameFile( file, new_file );
-			            							
-			            						}else{
-			            							
-			            							ok = true;
-			            						}
-			            						
-			            						if ( ok ){
-			            							
-			            							return( new_file );
+				            						boolean ok;
+				            						
+				            						if ( file.exists()){
+				            							
+				            							ok = FileUtil.renameFile( file, new_file );
+				            							
+				            						}else{
+				            							
+				            							ok = true;
+				            						}
+				            						
+				            						if ( ok ){
+				            							
+				            							return( new_file );
+				            						}
 			            						}
 		            						}
 		            					}
@@ -851,7 +854,7 @@ DiskManagerUtil
 			            						            					
 		            					File parent = file.getParentFile();
 		            					
-		            					if ( parent != null ){
+		            					if ( parent != null && parent.canWrite()){
 		            						
 		            						File new_parent = parent.getName().equals( dnd_sf )?parent:new File( parent, dnd_sf );
 		            						

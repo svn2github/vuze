@@ -414,25 +414,28 @@ DiskManagerFileInfoImpl
         							new_parent.mkdirs();
         						}
         			
-        						boolean ok;
-         						        							
-    							try{
-    								diskManager.getDownloadState().setFileLink( file, new_file );
-    								   								
-									cache_file.moveFile( new_file );
-								
-									ok = true;
+        						if ( new_parent.canWrite()){
+        							
+	        						boolean ok;
+	         						        							
+	    							try{
+	    								diskManager.getDownloadState().setFileLink( file, new_file );
+	    								   								
+										cache_file.moveFile( new_file );
 									
-								}catch( Throwable e ){
-									
-									ok = false;
-									
-									Debug.out( e );
-								}        							
-       						
-        						if ( !ok ){
-        							        							
-       								diskManager.getDownloadState().setFileLink( file, link );
+										ok = true;
+										
+									}catch( Throwable e ){
+										
+										ok = false;
+										
+										Debug.out( e );
+									}        							
+	       						
+	        						if ( !ok ){
+	        							        							
+	       								diskManager.getDownloadState().setFileLink( file, link );
+	        						}
         						}
     						}
     					}
@@ -443,7 +446,7 @@ DiskManagerFileInfoImpl
         						            					
     					File parent = file.getParentFile();
     					
-    					if ( parent != null ){
+    					if ( parent != null && parent.canWrite()){
     						
     						File new_parent = parent.getName().equals( dnd_sf )?parent:new File( parent, dnd_sf );
     						
