@@ -105,6 +105,8 @@ public class
 RelatedContentManager
 	implements DistributedDatabaseTransferHandler
 {
+	public static final long FILE_ASSOC_MIN_SIZE	= 50*1024*1024;
+	
 	private static final boolean 	TRACE 			= false;
 	
 	private static final boolean	SEARCH_CVS_ONLY		= Constants.isCurrentVersionLT( "4.7.0.4" );
@@ -1110,7 +1112,7 @@ RelatedContentManager
 				
 				long	size = file.getLength();
 				
-				if ( size > 50*1024*1024 ){
+				if ( size >= FILE_ASSOC_MIN_SIZE ){
 					
 					sizes.add( size );
 				}
@@ -1369,6 +1371,84 @@ RelatedContentManager
 		}
 	}
 	
+	public void
+	lookupContent(
+		final long							file_size,
+		final RelatedContentLookupListener	listener )
+	
+		throws ContentException
+	{
+		if ( file_size < FILE_ASSOC_MIN_SIZE ){
+			
+			throw( new ContentException( "file size is invalid - min=" + FILE_ASSOC_MIN_SIZE ));
+		}
+
+		if ( 	!initialisation_complete_sem.isReleasedForever() ||
+				( dht_plugin != null && dht_plugin.isInitialising())){
+			
+			AsyncDispatcher dispatcher = new AsyncDispatcher();
+	
+			dispatcher.dispatch(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						try{
+							initialisation_complete_sem.reserve();
+							
+							lookupContentSupport( file_size, listener );
+							
+						}catch( ContentException e ){
+							
+							Debug.out( e );
+						}
+					}
+				});
+		}else{
+			
+			lookupContentSupport( file_size, listener );
+		}
+	}
+	
+	private void
+	lookupContentSupport(
+		final long							file_size,
+		final RelatedContentLookupListener	listener )
+	
+		throws ContentException
+	{
+		if ( !enabled ){
+			
+			throw( new ContentException( "rcm is disabled" ));
+		}
+	
+		if ( dht_plugin == null ){
+			
+			throw( new ContentException( "DHT plugin unavailable" ));
+		}
+
+		try{
+			final byte[] key_bytes	= ( "az:rcm:size:assoc:" + file_size ).getBytes( "UTF-8" );
+
+				// we need something to use
+			
+			final byte[] from_hash = new SHA1Simple().calculateHash( key_bytes );
+			
+			String op_str = "Content relationship read: size=" + file_size;
+
+			lookupContentSupport0( from_hash, key_bytes, op_str, 0, true, listener );
+			
+		}catch( ContentException e ){
+			
+			throw( e );
+			
+		}catch( Throwable e ){
+			
+			throw( new ContentException( "lookup failed", e ));
+		}
+	}
+	
 	private void
 	lookupContentSupport(
 		final byte[]						from_hash,
@@ -1383,21 +1463,48 @@ RelatedContentManager
 			throw( new ContentException( "rcm is disabled" ));
 		}
 		
+		if ( dht_plugin == null ){
+			
+			throw( new ContentException( "DHT plugin unavailable" ));
+		}
+
 		try{
-			if ( dht_plugin == null ){
-				
-				throw( new ContentException( "DHT plugin unavailable" ));
-			}
 			
 			final String from_hash_str	= ByteFormatter.encodeString( from_hash );
 		
 			final byte[] key_bytes	= ( "az:rcm:assoc:" + from_hash_str ).getBytes( "UTF-8" );
 			
+			String op_str = "Content relationship read: " + from_hash_str;
+
+			lookupContentSupport0( from_hash, key_bytes, op_str, level, explicit, listener );
+			
+		}catch( ContentException e ){
+			
+			throw( e );
+			
+		}catch( Throwable e ){
+			
+			throw( new ContentException( "lookup failed", e ));
+		}
+	}
+			
+	private void
+	lookupContentSupport0(
+		final byte[]						from_hash,
+		final byte[]						key_bytes,
+		final String						op_str,
+		final int							level,
+		final boolean						explicit,
+		final RelatedContentLookupListener	listener )
+	
+		throws ContentException
+	{
+		try{
 			final int max_hits = 30;
 			
 			dht_plugin.get(
 					key_bytes,
-					"Content relationship read: " + from_hash_str,
+					op_str,
 					DHTPlugin.FLAG_SINGLE_VALUE,
 					max_hits,
 					60*1000,
