@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
@@ -483,13 +484,11 @@ public class SBC_LibraryView
 									
 								}else{
 									
-									op = "=";
+									op = " ";
 								}
 								
-								String up_str = DisplayFormatters.formatETA( up_secs );
-								
-								up_str = up_str.substring( 0, up_str.lastIndexOf(' ' ));
-								
+								String up_str = TimeFormatter.format2( up_secs, false );
+																
 								s += "; " + 
 									MessageText.getString(
 										"label.uptime_coarse",

@@ -111,6 +111,53 @@ public class TimeFormatter {
 		return result;
 	}
 
+	/**
+	 * format seconds into significant y d h m s (e.g. 12d 02h 03m 23s) and drop secs if wanted
+	 * @param time_secs
+	 * @param do_seconds
+	 * @return
+	 */
+	public static String 
+	format2(
+		long 	time_secs, 
+		boolean do_seconds ) 
+	{	
+		if (time_secs == Constants.CRAPPY_INFINITY_AS_INT || time_secs >= Constants.CRAPPY_INFINITE_AS_LONG)
+			return Constants.INFINITY_STRING;
+
+		if (time_secs < 0)
+			return "";
+
+		// secs, mins, hours, days
+		int[] vals = {
+			(int) time_secs % 60,
+			(int) (time_secs / 60) % 60,
+			(int) (time_secs / 3600) % 24,
+			(int) (time_secs / 86400) % 365,
+			(int) (time_secs / 31536000)
+			};
+
+		int start = vals.length - 1;
+		while (vals[start] == 0 && start > 0) {
+			start--;
+		}
+		
+		int	end = do_seconds?0:1;
+		
+		if ( start==0&&!do_seconds ){
+			start=1;
+		}
+		
+		String result = "";
+		
+		for ( int i=start;i>=end;i--){
+		
+			result += (i==start?vals[i]:(" " + twoDigits(vals[i]))) + TIME_SUFFIXES[i];
+		}
+		
+		return result;
+	}
+	
 	public static String format100ths(long time_millis) {
 		
 		long time_secs = time_millis / 1000;
