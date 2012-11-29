@@ -1692,11 +1692,60 @@ public class FileUtil {
 		}
 	}
 	
-	public static String translateMoveFilePath(String old_root, String new_root, String file_to_move) {
-		if (!file_to_move.startsWith(old_root)) {return null;}
+	public static String 
+	translateMoveFilePath(
+		String old_root, 
+		String new_root, 
+		String file_to_move )
+	{
+			// we're trying to get the bit from the file_to_move beyond the old_root and append it to the new_root
+		
+		if ( !file_to_move.startsWith(old_root)){
+			
+			return null;
+		}
+	
+		if ( old_root.equals( new_root )){
+			
+				// roots are the same -> nothings gonna change
+			
+			return( file_to_move );
+		}
+		
+		if ( new_root.equals( file_to_move )){
+		
+				// new root already the same as the from file, nothing to change
+			
+			return( file_to_move );
+		}
+		
 		String file_suffix = file_to_move.substring(old_root.length());
-		if (new_root.endsWith(File.separator)) {new_root = new_root.substring(0, new_root.length()-1);}
-		if (file_suffix.startsWith(File.separator)) {file_suffix = file_suffix.substring(1);}
+		
+		if ( file_suffix.startsWith(File.separator )){
+			
+			file_suffix = file_suffix.substring(1);
+			
+		}else{
+				// hack to deal with special known case of this
+				// old_root:  c:\fred\jim.dat
+				// new_root:  c:\temp\egor\grtaaaa
+				// old_file:  c:\fred\jim.dat.az!
+				
+			if ( new_root.endsWith( File.separator )){
+			
+				Debug.out( "Hmm, this is not going to work out well... " + old_root + ", " + new_root + ", " + file_to_move );
+
+			}else{
+				
+				return( new_root + file_suffix );
+			}
+		}
+		
+		if ( new_root.endsWith(File.separator)){
+		
+			new_root = new_root.substring( 0, new_root.length()-1 );
+		}
+	
 		return new_root + File.separator + file_suffix;
 	}
 	

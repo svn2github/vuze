@@ -1296,10 +1296,17 @@ DownloadManagerImpl
 	protected void updateFileLink(String old_path, String new_path, String from_loc, String to_loc) {
 		
 		if (to_loc == null) return;
+	
 		if (this.torrent.isSimpleTorrent()) {
 			if (!old_path.equals(from_loc)) {throw new RuntimeException("assert failure: old_path=" + old_path + ", from_loc=" + from_loc);}
 			download_manager_state.setFileLink(new File(old_path), null );
-			download_manager_state.setFileLink(new File(new_path), new File(new_path)); // Or should the second bit be null?
+				// in general links on simple torrents aren't used, instead the download's save-path is switched to the
+				// alternate location (only a single file after all this is simplest implementation). Unfortunately links can
+				// actually still be set (e.g. to add an 'incomplete' suffix to a file) so we still need to support link-rewriting
+				// properly
+			String to_loc_to_use = FileUtil.translateMoveFilePath(old_path, new_path, to_loc);
+			if ( to_loc_to_use == null ){ to_loc_to_use = new_path; }
+			download_manager_state.setFileLink(new File(new_path), new File(to_loc_to_use)); // Or should the second bit be null?
 			return;
 		}
 			
@@ -3396,7 +3403,7 @@ DownloadManagerImpl
 		  throw( new DownloadManagerException( "Failed to get canonical paths", e ));
 	  }
 
-	  File current_save_location = old_file;
+	  final File current_save_location = old_file;
 	  File new_save_location = new File(
 			  (new_parent_dir == null) ? old_file.getParentFile() : new_parent_dir,
 			  (new_filename == null) ? old_file.getName() : new_filename
@@ -3486,6 +3493,11 @@ DownloadManagerImpl
 			  }else{
 				  
 				  throw( new DownloadManagerException( "rename operation failed" ));
+			  }
+			  
+			  if (  current_save_location.isDirectory()){
+
+				  TorrentUtils.recursiveEmptyDirDelete( current_save_location, false );
 			  }
 		  }
 	  }else{

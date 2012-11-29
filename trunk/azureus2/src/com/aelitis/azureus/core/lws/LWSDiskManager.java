@@ -196,7 +196,8 @@ LWSDiskManager
 				DiskManagerFileInfoImpl	file_info = 
 					new DiskManagerFileInfoImpl( 
 											this, 
-											new File( save_location, relative_file.toString()), 
+											save_location.toString(), 
+											relative_file, 
 											i,
 											pm_info.getTorrentFile(),
 											DiskManagerFileInfo.ST_LINEAR );

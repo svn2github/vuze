@@ -858,12 +858,21 @@ DiskManagerUtil
 		            						
 		            						File new_parent = parent.getName().equals( dnd_sf )?parent:new File( parent, dnd_sf );
 		            						
-		            						File new_file = new File( new_parent, file.getName());
+		            							// use link name to handle incomplete file suffix if set
+		            						
+		            						File new_file = new File( new_parent, link.getName());
 		            						
 		            						if ( new_file.equals( link )){
 		            							
 		            							boolean	ok;
 		            							
+		            							String incomp_ext = dm_state.getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
+
+		    									if  ( incomp_ext != null && incomp_ext.length() > 0 ){
+		    										
+		    										file = new File( file.getParentFile(), file.getName() + incomp_ext );
+		    									}
+		    									
 		            							if ( new_file.exists()){
 		            								
 		            								ok = FileUtil.renameFile( new_file, file );

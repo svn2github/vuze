@@ -823,14 +823,13 @@ DiskManagerImpl
     	int							storage_type )
     
     	throws Exception
-    {
-       	File target_file = new File( root_dir + relative_file.toString());
-    	
+    {    	
         try{
         
             return( new DiskManagerFileInfoImpl(
                                 this,
-                                target_file,
+                                root_dir,
+                                relative_file,
                                 file_index,
                                 pm_info.getTorrentFile(),
                                 storage_type ));
@@ -845,6 +844,8 @@ DiskManagerImpl
         	
         	if ( Debug.getNestedExceptionMessage(e).contains( "volume label syntax is incorrect" )){
         		
+              	File target_file = new File( root_dir + relative_file.toString());
+
         		File actual_file = state.getFileLink( target_file );
         		
         		if ( actual_file == null ){
@@ -909,7 +910,7 @@ DiskManagerImpl
         				
         				temp = new File( temp, comp );
         			}
-        			
+        			       			
            			Debug.outNoStack( "Fixing unsupported file path: " + actual_file.getAbsolutePath() + " -> " + temp.getAbsolutePath());
            			
            			state.setFileLink( target_file, temp );
@@ -917,7 +918,8 @@ DiskManagerImpl
                     return(
                     	new DiskManagerFileInfoImpl(
                             this,
-                            target_file,
+                            root_dir,
+                            relative_file,
                             file_index,
                             pm_info.getTorrentFile(),
                             storage_type ));
@@ -1550,7 +1552,7 @@ DiskManagerImpl
 	                    					
 	                    					if ( !new_file.exists()){
 	                    						
-	                    						this_file.renameFile( new_name, false );
+	                    						this_file.renameFile( new_name );
 	                    						
 	                    						if ( base_file.equals( new_file )){
 	                    							
@@ -2177,6 +2179,19 @@ DiskManagerImpl
 	  
     private boolean moveDataFiles0(SaveLocationChange loc_change, final boolean change_to_read_only, OperationStatus op_status ) throws Exception  {
     	
+    		// there is a time race condition here between a piece being marked as complete and the
+    		// associated file actions being taken (switch to read only, do the 'incomplete file suffix' nonsense)
+    		// and the peer controller noting that the download is complete and kicking off these actions.
+    		// in order to ensure that the completion actions are done prior to us running here we do:
+    	
+    	try{
+            file_piece_mon.enter();
+             
+    	}finally{
+    		
+    		file_piece_mon.exit();
+    	}
+    	
     	File move_to_dir_name = loc_change.download_location;
     	if (move_to_dir_name == null) {move_to_dir_name = download_manager.getAbsoluteSaveLocation().getParentFile();}
 
@@ -2229,9 +2244,9 @@ DiskManagerImpl
 	        	// It is important that we are able to get the canonical form of the directory to
 	        	// move to, because later code determining new file paths will break otherwise.
 	 
+	        final String move_from_name	= save_location.getName();
 	        final String move_from_dir	= save_location.getParentFile().getCanonicalFile().getPath();        
-	         
-	         
+	                  
 	        final File[]    new_files   = new File[files.length];
 	        
 	        File[]    old_files   = new File[files.length];
@@ -2612,6 +2627,20 @@ DiskManagerImpl
 
         	long	start = SystemTime.getMonotonousTime();
 
+        	String	old_root_dir;
+        	String	new_root_dir;
+        	
+        	if ( simple_torrent ){
+        		
+        		old_root_dir = move_from_dir;
+        		new_root_dir = move_to_dir;
+        		
+        	}else{
+        		
+        		old_root_dir = move_from_dir + File.separator + move_from_name;
+        		new_root_dir = move_to_dir + File.separator + (new_name==null?move_from_name:new_name ); 	
+        	}
+        	
 	        try{
 	        	
 		        for (int i=0; i < files.length; i++){
@@ -2622,7 +2651,7 @@ DiskManagerImpl
 		
 		              long initial_done_bytes = done_bytes;
 		              		              
-		              files[i].moveFile( new_file, link_only[i] );
+		              files[i].moveFile( new_root_dir, new_file, link_only[i] );
 		
 		              synchronized( progress_lock ){
 		            	  
@@ -2659,7 +2688,7 @@ DiskManagerImpl
 		              for (int j=0;j<i;j++){
 		
 		                  try{
-		                      files[j].moveFile( old_files[j],  link_only[j]);
+		                      files[j].moveFile( old_root_dir, old_files[j],  link_only[j]);
 		
 		                  }catch( CacheFileManagerException f ){
 		

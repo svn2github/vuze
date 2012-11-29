@@ -48,7 +48,9 @@ public class
 DiskManagerFileInfoImpl
 	implements DiskManagerFileInfo, CacheFileOwner
 {
-  private File			file;
+  private String				root_dir;
+  private final File			relative_file;
+  
   private int			file_index;
   private CacheFile		cache_file;
   
@@ -67,7 +69,8 @@ DiskManagerFileInfoImpl
   public
   DiskManagerFileInfoImpl(
 	DiskManagerHelper	_disk_manager,
-  	File				_file,
+  	String				_root_dir,
+  	File				_relative_file,
   	int					_file_index,
 	TOTorrentFile		_torrent_file,
 	int					_storage_type )
@@ -77,12 +80,14 @@ DiskManagerFileInfoImpl
     diskManager 	= _disk_manager;
     torrent_file	= _torrent_file;
   	
-    file		= _file;
-    file_index	= _file_index;
+    root_dir		= _root_dir.endsWith(File.separator)?_root_dir:(_root_dir + File.separator);
+    relative_file	= _relative_file;
+    
+    file_index		= _file_index;
     
     int	cache_st = DiskManagerUtil.convertDMStorageTypeToCache( _storage_type );
     
-  	cache_file = CacheFileManagerFactory.getSingleton().createFile( this, _file, cache_st);
+  	cache_file = CacheFileManagerFactory.getSingleton().createFile( this, new File( root_dir + relative_file.toString()), cache_st);
   	
   	if ( cache_st == CacheFile.CT_COMPACT || cache_st == CacheFile.CT_PIECE_REORDER_COMPACT ){
   		
@@ -124,32 +129,27 @@ DiskManagerFileInfoImpl
   
   public void 
   moveFile(
-  	File	newFile,
+	String	new_root_dir,
+  	File	new_absolute_file,
   	boolean	link_only )
   
   	throws CacheFileManagerException
   {
 	  if ( !link_only ){
 		  
-		  cache_file.moveFile( newFile );
+		  cache_file.moveFile( new_absolute_file );
 	  }
 	  
-	  file	= newFile;
+	 root_dir	= new_root_dir.endsWith(File.separator)?new_root_dir:(new_root_dir + File.separator);
   }
   
   public void 
   renameFile(
-  	String	new_name,
-  	boolean	link_only )
+  	String	new_name )
   
   	throws CacheFileManagerException
   {
-	  if ( !link_only ){
-		  
-		  cache_file.renameFile( new_name );
-	  }
-	  
-	  file	= new File( file.getParentFile(), new_name );
+	  cache_file.renameFile( new_name );
   }
   
   public CacheFile
@@ -213,7 +213,7 @@ DiskManagerFileInfoImpl
 		  }
 	  }
 	  
-	  return( file );
+	  return( new File( root_dir + relative_file.toString()));
   	}
 
   	public TOTorrentFile
@@ -374,7 +374,9 @@ DiskManagerFileInfoImpl
 		
 		if ( dm != null && dm.isPersistent() && !torrent_file.getTorrent().isSimpleTorrent() && !dm.isDestroyed()){
 
-    		String dnd_sf = diskManager.getDownloadState().getAttribute( DownloadManagerState.AT_DND_SUBFOLDER );
+			DownloadManagerState dm_state =  diskManager.getDownloadState();
+
+    		String dnd_sf = dm_state.getAttribute( DownloadManagerState.AT_DND_SUBFOLDER );
     		
     		if ( dnd_sf == null ){
     			
@@ -384,7 +386,7 @@ DiskManagerFileInfoImpl
     				
     				if ( dnd_sf != null ){
     					
-    					diskManager.getDownloadState().setAttribute( DownloadManagerState.AT_DND_SUBFOLDER, dnd_sf );
+    					dm_state.setAttribute( DownloadManagerState.AT_DND_SUBFOLDER, dnd_sf );
     				}
     			}
     		}
@@ -419,7 +421,7 @@ DiskManagerFileInfoImpl
 	        						boolean ok;
 	         						        							
 	    							try{
-	    								diskManager.getDownloadState().setFileLink( file, new_file );
+	    								dm_state.setFileLink( file, new_file );
 	    								   								
 										cache_file.moveFile( new_file );
 									
@@ -434,7 +436,7 @@ DiskManagerFileInfoImpl
 	       						
 	        						if ( !ok ){
 	        							        							
-	       								diskManager.getDownloadState().setFileLink( file, link );
+	        							dm_state.setFileLink( file, link );
 	        						}
         						}
     						}
@@ -450,17 +452,32 @@ DiskManagerFileInfoImpl
     						
     						File new_parent = parent.getName().equals( dnd_sf )?parent:new File( parent, dnd_sf );
     						
-    						File new_file = new File( new_parent, file.getName());
+    							// use link name to handle incomplete file suffix if set
+    						
+    						File new_file = new File( new_parent, link.getName());
     						
     						if ( new_file.equals( link )){
     							
     							boolean	ok;
      								
 								try{  	
-									diskManager.getDownloadState().setFileLink( file, null );
+									String incomp_ext = dm_state.getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
+
+									if  ( incomp_ext != null && incomp_ext.length() > 0 ){
+										
+										File new_link = new File( file.getParentFile(), file.getName() + incomp_ext );
+										
+										dm_state.setFileLink( file, new_link );
+										
+										cache_file.moveFile( new_link );
+										
+									}else{
+										
+										dm_state.setFileLink( file, null );
 																		
-									cache_file.moveFile( file );
-								
+										cache_file.moveFile( file );
+									}
+									
 									File[] files = new_parent.listFiles();
     								
     								if ( files != null && files.length == 0 ){
@@ -479,7 +496,7 @@ DiskManagerFileInfoImpl
     							
     							if ( !ok ){
         							
-        							diskManager.getDownloadState().setFileLink( file, link );
+    								dm_state.setFileLink( file, link );
         						}
     						}
     					}
