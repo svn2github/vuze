@@ -192,6 +192,19 @@ public interface GlobalManager extends AzureusCoreComponent {
 	public void pauseDownloads();
 
 	/**
+	 * pause any non-paused downloads and auto-resume all downloads after n seconds
+	 * @param seconds
+	 */
+	public void pauseDownloadsForPeriod( int seconds );
+	
+	/**
+	 * seconds remaining, 0 if not active
+	 * @return
+	 */
+	
+	public int getPauseDownloadPeriodRemaining();
+	
+	/**
 	 * Indicates whether or not there are any downloads that can be paused.
 	 * @return true if there is at least one download to pause, false if none
 	 */

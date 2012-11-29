@@ -1496,6 +1496,60 @@ public class GlobalManagerImpl
 	  return( false );
   }
 
+  private TimerEvent	auto_resume_timer;
+  
+  public void 
+  pauseDownloadsForPeriod( 
+	  int seconds )
+  {
+	try{
+      	paused_list_mon.enter();
+   
+      	if ( auto_resume_timer != null ){
+      		
+      		auto_resume_timer.cancel();
+      	}
+      	
+      	auto_resume_timer = 
+      		SimpleTimer.addEvent(
+      			"GM:auto-resume",
+      			SystemTime.getOffsetTime( seconds*1000 ),
+      			new TimerEventPerformer()
+      			{
+      				public void 
+      				perform(
+      					TimerEvent event )
+      				{
+      					resumeDownloads();
+      				}
+      			});
+	}finally{
+		
+		paused_list_mon.exit();  
+	}
+	
+	pauseDownloads();
+  }
+  
+  public int
+  getPauseDownloadPeriodRemaining()
+  {
+	  try{
+	      	paused_list_mon.enter();
+	   
+	      	if ( auto_resume_timer != null ){ 
+	      		
+	      		long rem = auto_resume_timer.getWhen() - SystemTime.getCurrentTime();
+	      		
+	      		return(Math.max( 0, (int)(rem/1000)));
+	      	}
+	  }finally{
+			
+			paused_list_mon.exit();  
+	  }
+	  
+	  return( 0 );
+  }
   
   public void 
   pauseDownloads() 
@@ -1672,28 +1726,35 @@ public class GlobalManagerImpl
   }
   
   public void resumeDownloads() {
-    try {  paused_list_mon.enter();
-      for( int i=0; i < paused_list.size(); i++ ) {     
-      	Object[]	data = (Object[])paused_list.get(i);
-      	
-        HashWrapper hash = (HashWrapper)data[0];
-        boolean		force = ((Boolean)data[1]).booleanValue();
-        
-        DownloadManager manager = getDownloadManager( hash );
-      
-        if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
-          
-          if ( force ){
-          	manager.setForceStart(true);
-          }else{
-          	
-        	manager.stopIt( DownloadManager.STATE_QUEUED, false, false );
-          }
-        }
-      }
-      paused_list.clear();
-    }
-    finally {  paused_list_mon.exit();  }
+	  try {  paused_list_mon.enter();
+
+	  if ( auto_resume_timer != null ){
+
+		  auto_resume_timer.cancel();
+
+		  auto_resume_timer = null;
+	  }
+	  for( int i=0; i < paused_list.size(); i++ ) {     
+		  Object[]	data = (Object[])paused_list.get(i);
+
+		  HashWrapper hash = (HashWrapper)data[0];
+		  boolean		force = ((Boolean)data[1]).booleanValue();
+
+		  DownloadManager manager = getDownloadManager( hash );
+
+		  if( manager != null && manager.getState() == DownloadManager.STATE_STOPPED ) {
+
+			  if ( force ){
+				  manager.setForceStart(true);
+			  }else{
+
+				  manager.stopIt( DownloadManager.STATE_QUEUED, false, false );
+			  }
+		  }
+	  }
+	  paused_list.clear();
+	  }
+	  finally {  paused_list_mon.exit();  }
   }
 
 

@@ -93,8 +93,9 @@ public class MenuFactory
 		MenuFactory.addStartAllMenuItem(transferMenu);
 		MenuFactory.addStopAllMenuItem(transferMenu);
 
-		final MenuItem itemPause = MenuFactory.addPauseMenuItem(transferMenu);
-		final MenuItem itemResume = MenuFactory.addResumeMenuItem(transferMenu);
+		final MenuItem itemPause 	= MenuFactory.addPauseMenuItem(transferMenu);
+		final MenuItem itemPauseFor = MenuFactory.addPauseForMenuItem(transferMenu);
+		final MenuItem itemResume 	= MenuFactory.addResumeMenuItem(transferMenu);
 		//		if (notMainWindow) {
 		//			MenuFactory.performOneTimeDisable(itemPause, true);
 		//			MenuFactory.performOneTimeDisable(itemResume, true);
@@ -586,6 +587,62 @@ public class MenuFactory
 		});
 	}
 
+	public static MenuItem addPauseForMenuItem(final Menu menu) {
+		return addMenuItem(menu, MENU_ID_PAUSE_TRANSFERS_FOR, new ListenerNeedingCoreRunning() {
+			public void handleEvent(AzureusCore core, Event event) {
+				
+				String text = MessageText.getString( "dialog.pause.for.period.text" );
+				
+				int rem = core.getGlobalManager().getPauseDownloadPeriodRemaining();
+				
+				if ( rem > 0 ){
+										
+					text += "\n\n" + MessageText.getString( "dialog.pause.for.period.text2", new String[]{ TimeFormatter.format2( rem, true ) });
+				}
+				
+				SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+						"dialog.pause.for.period.title",
+						"!" + text + "!");
+				
+				int def = COConfigurationManager.getIntParameter( "pause.for.period.default", 10 );
+				
+				entryWindow.setPreenteredText( String.valueOf( def ), false );
+				
+				entryWindow.prompt(new UIInputReceiverListener() {
+					public void UIInputReceiverClosed(UIInputReceiver entryWindow) {
+						if (!entryWindow.hasSubmittedInput()) {
+							return;
+						}
+						String sReturn = entryWindow.getSubmittedInput();
+						
+						if (sReturn == null)
+							return;
+						
+						int mins = -1;
+						try {
+							mins = Integer.valueOf(sReturn).intValue();
+						} catch (NumberFormatException er) {
+							// Ignore
+						}
+												
+						if (mins <= 0) {
+							MessageBox mb = new MessageBox(menu.getShell(), SWT.ICON_ERROR
+									| SWT.OK);
+							mb.setText(MessageText.getString("MyTorrentsView.dialog.NumberError.title"));
+							mb.setMessage(MessageText.getString("MyTorrentsView.dialog.NumberError.text"));
+							
+							mb.open();
+							return;
+						}
+						
+						COConfigurationManager.setParameter( "pause.for.period.default", mins );
+						
+						ManagerUtils.asyncPauseForPeriod( mins*60 );
+					}
+				});
+			}
+		});
+	}
 	public static MenuItem addResumeMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_RESUME_TRANSFERS, new Listener() {
 			public void handleEvent(Event event) {

@@ -592,6 +592,14 @@ public class ManagerUtils {
 				});
 	}
 
+	public static void asyncPauseForPeriod( final int seconds ) {
+		CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
+				new AzureusCoreRunningListener() {
+					public void azureusCoreRunning(AzureusCore core) {
+						core.getGlobalManager().pauseDownloadsForPeriod(seconds);
+					}
+				});
+	}
 	public static void asyncResume() {
 		CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
 				new AzureusCoreRunningListener() {

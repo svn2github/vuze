@@ -113,6 +113,8 @@ public interface IMenuConstants
 	public static final String MENU_ID_STOP_ALL_TRANSFERS = "MainWindow.menu.transfers.stopalltransfers";
 
 	public static final String MENU_ID_PAUSE_TRANSFERS = "MainWindow.menu.transfers.pausetransfers";
+	
+	public static final String MENU_ID_PAUSE_TRANSFERS_FOR = "MainWindow.menu.transfers.pausetransfersfor";
 
 	public static final String MENU_ID_RESUME_TRANSFERS = "MainWindow.menu.transfers.resumetransfers";
 
