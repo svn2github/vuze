@@ -251,6 +251,7 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.mainwindow"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.common.util"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.disk.impl.piecemapper"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto.agreement.srp"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.skin"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.peer.util"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.speedmanager.impl.v2"/>
