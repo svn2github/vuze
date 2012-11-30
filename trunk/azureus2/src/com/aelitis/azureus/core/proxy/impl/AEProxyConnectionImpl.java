@@ -214,8 +214,16 @@ AEProxyConnectionImpl
 				
 					String message = reason.getMessage();
 					
+					if ( message != null ){
+						
+						message = message.toLowerCase();
+					}
+					
 					if ( 	message != null &&
-							( message.contains( "closed" ) || message.contains( "aborted" ))){
+							( 	message.contains( "closed" ) || 
+								message.contains( "aborted" ) || 
+								message.contains( "timeout" ) || 
+								message.contains( "timed" ))){
 						
 						Logger.log(new LogEvent(LOGID, "AEProxyProcessor: " + getName()	+ " failed: " + message ));
 						
