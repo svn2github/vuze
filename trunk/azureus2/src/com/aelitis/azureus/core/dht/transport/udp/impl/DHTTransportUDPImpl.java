@@ -520,6 +520,12 @@ DHTTransportUDPImpl
 		return( protocol_version );
 	}
 	
+	public byte
+	getMinimumProtocolVersion()
+	{
+		return( getNetwork()==DHT.NW_CVS?DHTTransportUDP.PROTOCOL_VERSION_MIN_CVS:DHTTransportUDP.PROTOCOL_VERSION_MIN );
+	}
+	
 	public int
 	getPort()
 	{

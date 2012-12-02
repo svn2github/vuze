@@ -1924,7 +1924,7 @@ DHTNATPuncherImpl
 		try{
 			DHTTransportUDP	transport = (DHTTransportUDP)dht.getTransport();
 
-			DHTTransportUDPContact contact = transport.importContact( target[0], transport.getProtocolVersion());
+			DHTTransportUDPContact contact = transport.importContact( target[0], transport.getMinimumProtocolVersion());
 			
 			Map	result = punch( reason, contact, rendezvous_used, originator_client_data );
 			
@@ -1994,8 +1994,8 @@ DHTNATPuncherImpl
 		try{
 			DHTTransportUDP	transport = (DHTTransportUDP)dht.getTransport();
 
-			DHTTransportUDPContact rend_contact 	= transport.importContact( rendezvous, transport.getProtocolVersion());
-			DHTTransportUDPContact target_contact 	= transport.importContact( target, transport.getProtocolVersion());
+			DHTTransportUDPContact rend_contact 	= transport.importContact( rendezvous, transport.getMinimumProtocolVersion());
+			DHTTransportUDPContact target_contact 	= transport.importContact( target, transport.getMinimumProtocolVersion());
 						
 			Map	result = sendPunch( rend_contact, target_contact, message, true );
 

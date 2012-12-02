@@ -38,6 +38,9 @@ DHTTransport
 	public byte
 	getProtocolVersion();
 	
+	public byte
+	getMinimumProtocolVersion();
+	
 	public int
 	getNetwork();
 

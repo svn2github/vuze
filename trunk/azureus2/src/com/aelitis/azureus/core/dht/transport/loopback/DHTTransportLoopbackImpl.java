@@ -52,6 +52,12 @@ DHTTransportLoopbackImpl
 		return( VERSION );
 	}
 	
+	public byte
+	getMinimumProtocolVersion()
+	{
+		return( VERSION );
+	}
+	
 	public int
 	getNetwork()
 	{
