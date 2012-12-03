@@ -1297,6 +1297,16 @@ WebPlugin
 								
 								waiter.reserve( DELAY );
 							}
+						} else {
+							// Some clients have no cookie support and will always try with 
+							// no auth info, then, once getting a failed response, try again 
+							// with the auth info.
+							// This results in a loop of 1 good, 1 bad.  
+							// Prevent this from causing the "too many recent failures" delay to kick in by removing from map
+							// on goodness
+							synchronized( fail_map ){
+								fail_map.remove(client_address);
+							}
 						}
 						
 						recordAuthRequest( client_address, result );
