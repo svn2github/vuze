@@ -619,7 +619,16 @@ public class RemotePairingWindow
 			} else {
 				testPairing(false);
 			}
+		}else{
+			String last_error = pm.getLastServerError();
+		
+			if ( last_error != null && last_error.length() > 0 ){
+				soStatusText.setText(last_error);
+				soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(),
+						"#c90000"));
+			}
 		}
+		
 		if (newAccessCode) {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
