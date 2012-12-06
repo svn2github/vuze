@@ -4239,13 +4239,41 @@ RelatedContentManager
 				
 				String host = u.getHost().toLowerCase( Locale.US );
 				
+				if ( host.contains( ":" )){
+				
+						// ipv6 raw
+					
+					return;
+				}
+				
 				String[] bits = host.split( "\\." );
 				
 				int	len = bits.length;
 				
 				if ( len >= 2 ){
 					
-					set.add( bits[len-2] + "." + bits[len-1] );
+					String	end = bits[len-1];
+					
+					char[] chars = end.toCharArray();
+					
+						// simple check for ipv4 raw
+					
+					boolean	all_digits = true;
+					
+					for ( char c: chars ){
+						
+						if ( !Character.isDigit( c )){
+							
+							all_digits = false;
+							
+							break;
+						}
+					}
+					
+					if ( !all_digits ){
+						
+						set.add( bits[len-2] + "." + end );
+					}
 				}
 			}
 		}
