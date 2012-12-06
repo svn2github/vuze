@@ -39,12 +39,17 @@ RelatedContent
 	
 	private byte[]		related_to_hash;
 
+	private byte[]		tracker_keys;
+	private byte[]		ws_keys;
+	
 	public
 	RelatedContent(
 		byte[]		_related_to_hash,
 		String		_title,
 		byte[]		_hash,
 		String		_tracker,
+		byte[]		_tracker_keys,
+		byte[]		_ws_keys,
 		long		_size,
 		int			_date,
 		int			_seeds_leechers,
@@ -54,6 +59,8 @@ RelatedContent
 		title				= _title;
 		hash				= _hash;
 		tracker				= _tracker;
+		tracker_keys		= _tracker_keys;
+		ws_keys				= _ws_keys;
 		size				= _size;
 		date				= _date;
 		seeds_leechers		= _seeds_leechers;
@@ -70,9 +77,28 @@ RelatedContent
 		int			_seeds_leechers,
 		byte		_cnet )
 	{
+			// legacy constructor as referenced from plugin - remove oneday!
+		
+		this( _title, _hash, _tracker, null, null, _size, _date, _seeds_leechers, _cnet );
+	}
+	
+	public
+	RelatedContent(
+		String		_title,
+		byte[]		_hash,
+		String		_tracker,
+		byte[]		_tracker_keys,
+		byte[]		_ws_keys,
+		long		_size,
+		int			_date,
+		int			_seeds_leechers,
+		byte		_cnet )
+	{
 		title				= _title;
 		hash				= _hash;
 		tracker				= _tracker;
+		tracker_keys		= _tracker_keys;
+		ws_keys				= _ws_keys;
 		size				= _size;
 		date				= _date;
 		seeds_leechers		= _seeds_leechers;
@@ -127,6 +153,18 @@ RelatedContent
 	getTracker()
 	{
 		return( tracker );
+	}
+	
+	public byte[]
+	getTrackerKeys()
+	{
+		return( tracker_keys );
+	}
+	
+	public byte[]
+	getWebSeedKeys()
+	{
+		return( ws_keys );
 	}
 	
 	public long

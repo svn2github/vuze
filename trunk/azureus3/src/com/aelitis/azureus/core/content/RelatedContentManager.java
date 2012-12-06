@@ -28,6 +28,7 @@ import java.io.UnsupportedEncodingException;
 import java.lang.ref.WeakReference;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.regex.Pattern;
@@ -38,6 +39,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
+import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -612,6 +615,8 @@ RelatedContentManager
 							seeds_leechers 	= (int)((seeds<<16)|(leechers&0xffff));
 						}
 
+						byte[][] keys = getKeys( download );
+						
 						DownloadInfo info = 
 							new DownloadInfo(
 								hash,
@@ -619,6 +624,8 @@ RelatedContentManager
 								download.getName(),
 								(int)rand,
 								torrent.isPrivate()?StringInterner.intern(torrent.getAnnounceURL().getHost()):null,
+								keys[0],
+								keys[1],
 								0,
 								false,
 								torrent.getSize(),
@@ -936,7 +943,16 @@ RelatedContentManager
 					}
 					if ( seeds > 0 ){
 						map.put( "z", new Long( seeds ));
-					}					
+					}		
+					
+					byte[][] keys = getKeys( d );
+					
+					if ( keys[0] != null ){
+						map.put( "k", keys[0] );
+					}
+					if ( keys[1] != null ){
+						map.put( "w", keys[1] );
+					}
 				}
 			}catch( Throwable e ){		
 			}
@@ -1318,9 +1334,12 @@ RelatedContentManager
 				seeds_leechers = (seeds.intValue()<<16)|(leechers.intValue()&0xffff);
 			}
 				
+			byte[] tracker_keys = (byte[])map.get( "k" );
+			byte[] ws_keys 		= (byte[])map.get( "w" );
+			
 			return(
 				new DownloadInfo( 
-						from_hash, hash, title, rand, tracker, level, explicit, size, 
+						from_hash, hash, title, rand, tracker, tracker_keys, ws_keys, level, explicit, size, 
 						published==null?0:published.intValue(),
 						seeds_leechers,
 						(byte)(cnet==null?ContentNetwork.CONTENT_NETWORK_UNKNOWN:cnet.byteValue()))); 
@@ -3482,6 +3501,18 @@ RelatedContentManager
 								map.put( "h", hash );
 							}
 							
+							byte[] tracker_keys = c.getTrackerKeys();
+							
+							if ( tracker_keys != null ){
+								map.put( "k", tracker_keys );
+							}
+							
+							byte[] ws_keys	= c.getWebSeedKeys();
+							
+							if ( ws_keys != null ){
+								map.put( "w", ws_keys );
+							}
+							
 								// don't bother with tracker as no use to caller really
 						}
 						
@@ -4077,6 +4108,149 @@ RelatedContentManager
 		}
 	}
 	
+	private byte[][]
+	getKeys(
+		Download		download )
+	{
+		byte[]	tracker_keys	= null;
+		byte[]	ws_keys			= null;
+		
+		try{
+			Torrent torrent = download.getTorrent();
+		
+			if ( torrent != null ){
+				
+				TOTorrent to_torrent = PluginCoreUtils.unwrap( torrent );
+				
+				Set<String>	tracker_domains = new HashSet<String>();
+				
+				addURLToDomainKeySet( tracker_domains, to_torrent.getAnnounceURL());
+				
+				TOTorrentAnnounceURLGroup group = to_torrent.getAnnounceURLGroup();
+				
+				TOTorrentAnnounceURLSet[] sets = group.getAnnounceURLSets();
+				
+				for ( TOTorrentAnnounceURLSet set: sets ){
+					
+					URL[] urls = set.getAnnounceURLs();
+					
+					for ( URL u: urls ){
+						
+						addURLToDomainKeySet( tracker_domains, u );
+					}
+				}
+				
+				tracker_keys = domainsToArray( tracker_domains, 8 );
+				
+				Set<String>	ws_domains = new HashSet<String>();
+
+				List getright = BDecoder.decodeStrings( getURLList( to_torrent, "url-list" ));
+				List webseeds = BDecoder.decodeStrings( getURLList( to_torrent, "httpseeds" ));
+								
+				for ( List l: new List[]{ getright, webseeds }){
+					
+					for ( Object o: l ){
+					
+						if ( o instanceof String ){
+						
+							try{
+								addURLToDomainKeySet( ws_domains, new URL((String)o));
+								
+							}catch( Throwable e ){
+								
+							}
+						}
+					}
+				}
+				
+				ws_keys = domainsToArray( ws_domains, 3 );
+			}
+		}catch( Throwable e ){	
+		}
+		
+		return( new byte[][]{ tracker_keys, ws_keys });
+	}
+	
+	protected byte[]
+	domainsToArray(
+		Set<String>	domains,
+		int			max )
+	{
+		int	entries = Math.min( domains.size(), max );
+		
+		if ( entries > 0 ){
+			
+			byte[] keys = new byte[ entries*4 ];
+			
+			int	pos = 0;
+			
+			for ( String dom: domains ){
+				
+				int hash = dom.hashCode();
+				
+				byte[]	bytes = { (byte)(hash>>24), (byte)(hash>>16),(byte)(hash>>8),(byte)hash };
+				
+				System.arraycopy( bytes, 0, keys, pos, 4 );
+			
+				pos += 4;
+			}
+			
+			return( keys );
+		}
+		
+		return( null );
+	}
+	
+	protected List
+	getURLList(
+		TOTorrent	torrent,
+		String		key )
+	{
+		Object obj = torrent.getAdditionalProperty( key );
+		
+		if ( obj instanceof byte[] ){
+			
+            List l = new ArrayList();
+            
+	        l.add(obj);
+	        
+	        return( l );
+	        
+		}else if ( obj instanceof List ){
+			
+			return((List)obj);
+			
+		}else{
+			
+			return( new ArrayList());
+		}
+	}
+	
+	private void
+	addURLToDomainKeySet(
+		Set<String>	set,
+		URL			u )
+	{
+		String prot = u.getProtocol();
+		
+		if ( prot != null ){
+			
+			if ( prot.equalsIgnoreCase( "http" ) || prot.equalsIgnoreCase( "udp" )){
+				
+				String host = u.getHost().toLowerCase( Locale.US );
+				
+				String[] bits = host.split( "\\." );
+				
+				int	len = bits.length;
+				
+				if ( len >= 2 ){
+					
+					set.add( bits[len-2] + "." + bits[len-1] );
+				}
+			}
+		}
+	}
+			
 	private List<DownloadInfo>
 	getDHTInfos()
 	{
@@ -5038,6 +5212,15 @@ outer:
 			ImportExportUtils.exportInt( info_map, "q", (info.getSeeds()<<16)|(info.getLeechers()&0xffff));
 			ImportExportUtils.exportInt( info_map, "c", (int)info.getContentNetwork());
 
+			byte[] tracker_keys = info.getTrackerKeys();
+			if ( tracker_keys != null ){
+				info_map.put( "k", tracker_keys );
+			}
+			
+			byte[] ws_keys = info.getWebSeedKeys();
+			if ( ws_keys != null ){
+				info_map.put( "w", ws_keys );
+			}
 			if ( cc != null ){
 							
 				ImportExportUtils.exportBoolean( info_map, "u", info.isUnread());
@@ -5071,10 +5254,12 @@ outer:
 			int		date 			=  ImportExportUtils.importInt( info_map, "p", 0 );
 			int		seeds_leechers 	=  ImportExportUtils.importInt( info_map, "q", -1 );
 			byte	cnet 			=  (byte)ImportExportUtils.importInt( info_map, "c", (int)ContentNetwork.CONTENT_NETWORK_UNKNOWN );
+			byte[]	tracker_keys	= (byte[])info_map.get( "k");
+			byte[]	ws_keys			= (byte[])info_map.get( "w" );
 			
 			if ( cc == null ){
 			
-				return( new DownloadInfo( hash, hash, title, rand, tracker, 0, false, size, date, seeds_leechers, cnet ));
+				return( new DownloadInfo( hash, hash, title, rand, tracker, tracker_keys, ws_keys, 0, false, size, date, seeds_leechers, cnet ));
 				
 			}else{
 				
@@ -5086,7 +5271,7 @@ outer:
 				
 				int	level = ImportExportUtils.importInt( info_map, "e" );
 				
-				return( new DownloadInfo( hash, title, rand, tracker, unread, rand_list, last_seen, level, size, date, seeds_leechers, cnet, cc ));
+				return( new DownloadInfo( hash, title, rand, tracker, tracker_keys, ws_keys, unread, rand_list, last_seen, level, size, date, seeds_leechers, cnet, cc ));
 			}
 		}catch( Throwable e ){
 			
@@ -5119,6 +5304,8 @@ outer:
 			String		_title,
 			int			_rand,
 			String		_tracker,
+			byte[]		_tracker_keys,
+			byte[]		_ws_keys,
 			int			_level,
 			boolean		_explicit,
 			long		_size,
@@ -5126,7 +5313,7 @@ outer:
 			int			_seeds_leechers,
 			byte		_cnet )
 		{
-			super( _related_to, _title, _hash, _tracker, _size, _date, _seeds_leechers, _cnet );
+			super( _related_to, _title, _hash, _tracker, _tracker_keys, _ws_keys, _size, _date, _seeds_leechers, _cnet );
 			
 			rand		= _rand;
 			level		= _level;
@@ -5141,6 +5328,8 @@ outer:
 			String			_title,
 			int				_rand,
 			String			_tracker,
+			byte[]			_tracker_keys,
+			byte[]			_ws_keys,
 			boolean			_unread,
 			int[]			_rand_list,
 			int				_last_seen,
@@ -5151,7 +5340,7 @@ outer:
 			byte			_cnet,
 			ContentCache	_cc )
 		{
-			super( _title, _hash, _tracker, _size, _date, _seeds_leechers, _cnet );
+			super( _title, _hash, _tracker, _tracker_keys, _ws_keys, _size, _date, _seeds_leechers, _cnet );
 			
 			rand		= _rand;
 			unread		= _unread;
