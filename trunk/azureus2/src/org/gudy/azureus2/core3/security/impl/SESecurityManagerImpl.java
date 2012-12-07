@@ -41,6 +41,7 @@ import java.util.*;
 import javax.net.ssl.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -91,6 +92,21 @@ SESecurityManagerImpl
 
 	}
 	
+	private static boolean	auto_install_certs;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"security.cert.auto.install",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameter_name )
+				{
+					auto_install_certs = COConfigurationManager.getBooleanParameter( parameter_name );
+				}
+			});
+	}
 	protected String	keystore_name;
 	protected String	truststore_name;
 	
@@ -830,21 +846,28 @@ SESecurityManagerImpl
 					count++;
 				}
 
-				if ( handler != null ){
+				if ( auto_install_certs ){
 					
-					if (((SECertificateListener)handler[0]).trustCertificate( resource, x509_cert )){
-						
+					return( addCertToTrustStore( alias, cert, true ));
+
+				}else{
 				
-						return( addCertToTrustStore( alias, cert, true ));
+					if ( handler != null ){
+						
+						if (((SECertificateListener)handler[0]).trustCertificate( resource, x509_cert )){
+							
+					
+							return( addCertToTrustStore( alias, cert, true ));
+						}
 					}
-				}
-				
-				for (int i=0;i<certificate_listeners.size();i++){
 					
-					if (((SECertificateListener)certificate_listeners.get(i)).trustCertificate( resource, x509_cert )){
+					for (int i=0;i<certificate_listeners.size();i++){
 						
-				
-						return( addCertToTrustStore( alias, cert, true ));
+						if (((SECertificateListener)certificate_listeners.get(i)).trustCertificate( resource, x509_cert )){
+							
+					
+							return( addCertToTrustStore( alias, cert, true ));
+						}
 					}
 				}
 				

@@ -517,6 +517,7 @@ public class ConfigurationDefaults {
     def.put( "config.style.table.defaultSortOrder", ZERO);
     def.put( "Ignore.peer.ports", "0" );
     def.put( "Security.JAR.tools.dir", "" );
+    def.put( "security.cert.auto.install", TRUE );
     
     boolean	tcp_half_open_limited = Constants.isWindows && !(Constants.isWindowsVistaSP2OrHigher || Constants.isWindows7OrHigher );
     

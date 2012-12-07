@@ -127,7 +127,16 @@ ConfigSectionSecurity
 			    });
 	    
 	    new Label(gSecurity, SWT.NULL );
+
+	    // row
 	    
+	    gridData = new GridData();
+	    gridData.horizontalSpan = 3;
+	    new BooleanParameter(
+	    		gSecurity, 
+	    		"security.cert.auto.install", 
+	    		"security.cert.auto.install").setLayoutData( gridData );
+
 	    // row
 
 	    Label	info_label = new Label( gSecurity, SWT.WRAP );
