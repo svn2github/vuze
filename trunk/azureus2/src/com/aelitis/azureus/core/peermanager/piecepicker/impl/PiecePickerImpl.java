@@ -158,6 +158,7 @@ implements PiecePicker
 	private int		nbRarestActive;
 	private int		globalMin;
 	private int		globalMax;
+	private long bytesUnavailable;
 	/**
 	 * The rarest availability level of pieces that we affirmatively want to try to request from others soonest
 	 * ie; our prime targets for requesting rarest pieces
@@ -210,6 +211,7 @@ implements PiecePicker
 	private static boolean		includeLanPeersInReqLimiting;
 	
 	private CopyOnWriteList		listeners = new CopyOnWriteList();
+
 
 	static
 	{
@@ -424,6 +426,7 @@ implements PiecePicker
 		int total =0;
 		int rarestActive =0;
 		long totalAvail =0;
+		long newBytesUnavailable = 0;
 		for (i =0; i <nbPieces; i++ )
 		{
 			final int avail =availability[i];
@@ -437,6 +440,8 @@ implements PiecePicker
 				if (avail <=rarestMin &&dmPiece.isDownloadable() && pePiece != null && !pePiece.isRequested())
 					rarestActive++;
 				totalAvail +=avail;
+			} else {
+				newBytesUnavailable += dmPiece.getLength();
 			}
 		}
 		// copy updated local variables into globals
@@ -447,6 +452,7 @@ implements PiecePicker
 			timeAvailLessThanOne= 0;
 		}
 		
+		bytesUnavailable = newBytesUnavailable;
 		globalAvail = newGlobalAvail;
 		nbRarestActive =rarestActive;
 		globalAvgAvail =totalAvail /(float)(nbPieces)
@@ -508,6 +514,10 @@ implements PiecePicker
 	public final float getMinAvailability()
 	{
 		return globalAvail;
+	}
+	
+	public final long getBytesUnavailable() {
+		return bytesUnavailable;
 	}
 	
 	public final long getAvailWentBadTime()

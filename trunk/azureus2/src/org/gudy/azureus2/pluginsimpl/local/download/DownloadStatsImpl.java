@@ -196,6 +196,12 @@ DownloadStatsImpl
 		return( dm_stats.getAvailability());
 	}
 
+	public long
+	getBytesUnavailable()
+	{
+		return( dm_stats.getBytesUnavailable());
+	}
+
 	public long getSecondsOnlySeeding() {
 		return dm_stats.getSecondsOnlySeeding();
 	}

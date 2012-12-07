@@ -62,6 +62,7 @@ public interface PiecePicker
     public int		getMaxAvailability();
     public float    getAvgAvail();
 	public long 	getAvailWentBadTime();
+	public long getBytesUnavailable();
 	
 	public void		allocateRequests();
 

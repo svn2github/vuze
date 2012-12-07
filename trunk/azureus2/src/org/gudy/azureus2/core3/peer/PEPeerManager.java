@@ -79,6 +79,8 @@ PEPeerManager
 	public float getMinAvailability();
 
 	public long getAvailWentBadTime();
+
+	public long getBytesUnavailable();
 	
 	public boolean hasDownloadablePiece();
 	
@@ -414,4 +416,5 @@ PEPeerManager
 			PEPeer		peer,
 			Map			stats );
 	}
+
 }

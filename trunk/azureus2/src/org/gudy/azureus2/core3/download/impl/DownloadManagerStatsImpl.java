@@ -506,7 +506,20 @@ DownloadManagerStatsImpl
 		
 	    return( pm.getMinAvailability());
 	}
-	 
+
+	public long
+	getBytesUnavailable()
+	{
+	    PEPeerManager  pm = download_manager.getPeerManager();
+
+	    if ( pm == null ){
+	    	
+	    	return( -1 );
+	    }
+		
+	    return( pm.getBytesUnavailable());
+	}
+
   
 	public int 
 	getUploadRateLimitBytesPerSecond() 

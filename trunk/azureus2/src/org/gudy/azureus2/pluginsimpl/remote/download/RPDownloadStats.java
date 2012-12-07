@@ -51,6 +51,7 @@ RPDownloadStats
 	public String			eta;
 	public int				share_ratio;
 	public float			availability;
+	public long				bytesUnavailable;
 	public int				health;
 	
 	public static RPDownloadStats
@@ -92,6 +93,7 @@ RPDownloadStats
 		eta							= delegate.getETA();
 		share_ratio					= delegate.getShareRatio();
 		availability				= delegate.getAvailability();
+		bytesUnavailable = delegate.getBytesUnavailable();
 		health						= delegate.getHealth();
 	}
 	
@@ -309,5 +311,12 @@ RPDownloadStats
 	getHealth()
 	{
 		return( health );
+	}
+
+	// @see org.gudy.azureus2.plugins.download.DownloadStats#getBytesUnavailable()
+	public long
+	getBytesUnavailable() 
+	{
+		return bytesUnavailable;
 	}
 }

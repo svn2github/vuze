@@ -129,7 +129,7 @@ DownloadStats
 	public int
 	getCheckingDoneInThousandNotation();
 
-	/*
+	/**
 	 * resets totals. stops and restarts torrent if running to do so
 	 * @since 4511. Supply -1 to leave a value unchanged
 	 */
@@ -166,7 +166,9 @@ DownloadStats
 	getUploaded();
 
 	/**
-	 * Gives the number of bytes discarded
+	 * Gives the number of bytes discarded.
+	 * Does not include {@link #getHashFails()}
+	 * (ex. end game mode where multiple peers send same block, et)
 	 * @return
    *
    * @since 2.0.7.0
@@ -252,7 +254,8 @@ DownloadStats
 	public long
 	getTimeStarted();
 	
-  /* Time that the torrent started seeding.
+  /**
+   * Time that the torrent started seeding.
    * @return the difference, measured in milliseconds, between the torrent 
    *         started seeding and midnight, January 1, 1970 UTC.  see
    *         SystemTime.getCurrentTime().
@@ -273,7 +276,8 @@ DownloadStats
 	getAvailability();
 
 
-  /* Return the # of seconds that the torrent has been downloading.  This 
+  /**
+   * Return the # of seconds that the torrent has been downloading.  This 
    * number is totalled across sessions.
    *
    * @return -1 if it has never downloaded
@@ -283,7 +287,8 @@ DownloadStats
 	public long 
 	getSecondsDownloading();
 
-  /* Return the # of seconds that the torrent has been only seeding.  This 
+  /**
+   * Return the # of seconds that the torrent has been only seeding.  This 
    * number is totalled across sessions, and does not include the time
    * seeding during the download phase.
    *
@@ -319,4 +324,15 @@ DownloadStats
 	
 	public int
 	getHealth();
+
+	/**
+	 * Return the number of bytes of data fromt he torrent that is unavailable
+	 * given the current sources (peers)
+	 * 
+	 * @return -1 if could not be determined
+	 * 
+	 * @since 4.8.0.1
+	 */
+	public long
+	getBytesUnavailable();
 }

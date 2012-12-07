@@ -195,6 +195,7 @@ DownloadManagerStats
 	public int getTimeSinceLastDataSentInSeconds();
 	
 	public long getAvailWentBadTime();
+	public long getBytesUnavailable();
 	
 	/*
 	public long getEstimatedDownloaded();
@@ -209,4 +210,5 @@ DownloadManagerStats
 		long		_saved_hashfails,
 		long		_saved_SecondsDownloading,
 		long		_saved_SecondsOnlySeeding );
+
 }

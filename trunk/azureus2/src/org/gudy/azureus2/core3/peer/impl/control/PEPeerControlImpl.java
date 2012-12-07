@@ -1804,6 +1804,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 	{
 		return piecePicker.getMinAvailability();
 	}
+	
+	public long getBytesUnavailable() {
+		return piecePicker.getBytesUnavailable();
+	}
 
 	public float getAvgAvail()
 	{
