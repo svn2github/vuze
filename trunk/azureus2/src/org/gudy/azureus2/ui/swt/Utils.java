@@ -265,15 +265,18 @@ public class Utils
 	}
 	
 	public static void centreWindow(Shell shell, boolean shrink_if_needed) {
-		Rectangle displayArea; // area to center in
+		Rectangle centerInArea; // area to center in
+		Rectangle displayArea;
+		try {
+			displayArea = shell.getMonitor().getClientArea();
+		} catch (NoSuchMethodError e) {
+			displayArea = shell.getDisplay().getClientArea();
+		}
+		
 		if (shell.getParent() != null) {
-			displayArea = shell.getParent().getBounds();
+			centerInArea = shell.getParent().getBounds();
 		} else {
-  		try {
-  			displayArea = shell.getMonitor().getClientArea();
-  		} catch (NoSuchMethodError e) {
-  			displayArea = shell.getDisplay().getClientArea();
-  		}
+			centerInArea = displayArea;
 		}
 
 		Rectangle shellRect = shell.getBounds();
@@ -287,8 +290,8 @@ public class Utils
 			}
 		}
 		
-		shellRect.x = displayArea.x + (displayArea.width - shellRect.width) / 2;
-		shellRect.y = displayArea.y + (displayArea.height - shellRect.height) / 2;
+		shellRect.x = centerInArea.x + (centerInArea.width - shellRect.width) / 2;
+		shellRect.y = centerInArea.y + (centerInArea.height - shellRect.height) / 2;
 
 		shell.setBounds(shellRect);
 	}
