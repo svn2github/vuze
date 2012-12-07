@@ -327,7 +327,9 @@ DownloadStats
 
 	/**
 	 * Return the number of bytes of data fromt he torrent that is unavailable
-	 * given the current sources (peers)
+	 * given the current sources (peers).
+	 *
+	 * Does not exclude DND files
 	 * 
 	 * @return -1 if could not be determined
 	 * 
