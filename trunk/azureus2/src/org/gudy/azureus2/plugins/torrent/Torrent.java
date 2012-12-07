@@ -71,6 +71,9 @@ Torrent
 	setComment(
 		String		comment );
 	
+	/**
+	 * UNIX epoch format in seconds
+	 */
 	public long
 	getCreationDate();
 	
