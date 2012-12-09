@@ -380,7 +380,7 @@ DiskManagerFileInfoImpl
     		
     		if ( dnd_sf == null ){
     			
-    			if ( DiskManagerUtil.dnd_subfolder_enable ){
+    			if ( DiskManagerUtil.dnd_subfolder_enable && torrent_file.getTorrent().getFiles().length <= DownloadManagerState.MAX_FILES_FOR_INCOMPLETE_AND_DND_LINKAGE ){
     				
     				dnd_sf = DiskManagerUtil.dnd_subfolder;
     				

@@ -2955,47 +2955,50 @@ public class GlobalManagerImpl
 							String existing_ext = state.getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
 
 							if ( ext.length() > 0 && existing_ext == null ){
-									
-								ext = FileUtil.convertOSSpecificChars( ext, false );
-								
+																	
 								DiskManagerFileInfo[] fileInfos = manager.getDiskManagerFileInfo();
 								
-								try{
-									state.suppressStateSave(true);
-																	
-									for ( int i=0; i<fileInfos.length; i++ ){
-										
-										DiskManagerFileInfo fileInfo = fileInfos[i];
-										
-										File base_file = fileInfo.getFile( false );
-										
-										File existing_link = state.getFileLink( base_file );
-										
-										if ( existing_link == null && base_file.exists()){
+								if ( fileInfos.length <= DownloadManagerState.MAX_FILES_FOR_INCOMPLETE_AND_DND_LINKAGE ){
+									
+									ext = FileUtil.convertOSSpecificChars( ext, false );
+	
+									try{
+										state.suppressStateSave(true);
+																		
+										for ( int i=0; i<fileInfos.length; i++ ){
 											
-												// file already exists, do nothing as probably adding for seeding
+											DiskManagerFileInfo fileInfo = fileInfos[i];
 											
-										}else if ( existing_link == null || !existing_link.exists()){
+											File base_file = fileInfo.getFile( false );
 											
-											File	new_link;
+											File existing_link = state.getFileLink( base_file );
 											
-											if ( existing_link == null ){
+											if ( existing_link == null && base_file.exists()){
 												
-												new_link = new File( base_file.getParentFile(), base_file.getName() + ext );
+													// file already exists, do nothing as probably adding for seeding
 												
-											}else{
+											}else if ( existing_link == null || !existing_link.exists()){
 												
-												new_link = new File( existing_link.getParentFile(), existing_link.getName() + ext );
+												File	new_link;
+												
+												if ( existing_link == null ){
+													
+													new_link = new File( base_file.getParentFile(), base_file.getName() + ext );
+													
+												}else{
+													
+													new_link = new File( existing_link.getParentFile(), existing_link.getName() + ext );
+												}
+												
+												state.setFileLink( base_file,new_link );
 											}
-											
-											state.setFileLink( base_file,new_link );
 										}
+									}finally{
+										
+										state.setAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX, ext );
+										
+										state.suppressStateSave(false);
 									}
-								}finally{
-									
-									state.setAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX, ext );
-									
-									state.suppressStateSave(false);
 								}
 							}
 						}

@@ -128,6 +128,11 @@ DownloadManagerState
 		{ PARAM_UPLOAD_PRIORITY, 					new Integer( DEFAULT_UPLOAD_PRIORITY ) },
 	};
 	
+		// current implementation of file links is too memory inefficient for a large number of files, disable these features
+		// for huge torrents until this can be fixed :( 
+	
+	public static final int MAX_FILES_FOR_INCOMPLETE_AND_DND_LINKAGE	= 2048;
+	
 	public TOTorrent
 	getTorrent();
 	

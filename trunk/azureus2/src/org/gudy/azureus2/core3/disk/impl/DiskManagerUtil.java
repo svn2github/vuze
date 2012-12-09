@@ -791,7 +791,7 @@ DiskManagerUtil
 		            		
 		            		if ( dnd_sf == null ){
 		            			
-		            			if ( dnd_subfolder_enable ){
+		            			if ( dnd_subfolder_enable && torrent.getFiles().length <= DownloadManagerState.MAX_FILES_FOR_INCOMPLETE_AND_DND_LINKAGE ){
 		            				
 		            				dnd_sf = dnd_subfolder;
 		            				
@@ -950,8 +950,10 @@ DiskManagerUtil
 	
 	            		// for a simple torrent the target file can be changed
 	
-	            		if ( tor.isSimpleTorrent()){
+	            		if ( tor == null || tor.isSimpleTorrent()){
 	
+	            				// rumour has it tor can sometimes be null
+	            			
 	            			simpleFile = download_manager.getAbsoluteSaveLocation();
 	
 	            		}else{
