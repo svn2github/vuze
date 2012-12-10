@@ -104,7 +104,7 @@ MagnetPlugin
 	public static final int	FL_DISABLE_MD_LOOKUP	= 0x00000001;
 	
 	private static final String	SECONDARY_LOOKUP 			= "http://magnet.vuze.com/";
-	private static final int	SECONDARY_LOOKUP_DELAY		= 1*1000; // 20*1000;
+	private static final int	SECONDARY_LOOKUP_DELAY		= 20*1000;
 	private static final int	SECONDARY_LOOKUP_MAX_TIME	= 2*60*1000;
 	
 	private static final int	MD_LOOKUP_DELAY_SECS_DEFAULT		= 20;
