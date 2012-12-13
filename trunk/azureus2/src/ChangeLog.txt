@@ -1,9 +1,55 @@
 VUZE CHANGELOG
 -----------------
 
-2012.xx.xx | Vuze 4.8.0.1
+2012.xx.xx | Vuze 4.8.1.0
 
+FEATURE: Blog | See http://devblog.vuze.com/tagged/4810 for beta version blog posts
 
+FEATURE: Core | Added a 'pause for' (or 'resume after') option to the File menu to temporarily suspend downloads for a time period [Parg]
+FEATURE: Core | Added option to prevent automatic copy to iTunes after conversion to allow tagging [Parg]
+FEATURE: Core | Option to place 'do not download' stub files into a subdirectory (currently limited to downloads with <= 2048 files for performance reasons) [Parg]
+FEATURE: Core | Added ability to prefer the IPv4 stack to help with some connection issues on Java 1.7 [Parg]
+FEATURE: Core | Vuze now attempts to detect if you are running over a VPN and prompt you to bind to the VPN interface for increased privacy [Parg]
+FEATURE: Core | Added ability to specify alternative DNS servers (default=Google DNS) to be used when resolving SOCKS proxies [Parg]
+FEATURE: Core | Vuze now detects if an explictly bound interface is present when you start Vuze [Parg]
+FEATURE: Core | Added option to close Vuze/perform computer power functions when transcoding completes [Parg]
+FEATURE: Core | Added a .vuze file format for setting configuration items (e.g. installing a SOCKS proxy) [Parg]
+FEATURE: Core | Added a customisation file type for configuration settings [Parg]
+FEATURE: Core | Support php-like variable substitution in search template field names [TuxPaper]
+FEATURE: UI   | Added 'create torrent' command to console UI [Parg]
+FEATURE: UI   | Ability to show Vuze uptime added to Library headers [Parg]
+FEATURE: UI   | Number of selected torrents now shown in Library headers [Parg]
+FEATURE: UI   | Added a network binding staus icon to the status bar showing peer connection bindings [Parg]
+FEATURE: UI   | The 'Transfers' view of the Statistics panel now shows connection routing details [Parg]
+FEATURE: UI   | Added a SOCKS icon to the status bar - shows status and in particular if non-proxied incoming connections are being received [Parg]
+FEATURE: UI   | Added a SOCKS status area to the Transfers view showing SOCKS proxy status [Parg] 
+FEATURE: UI   | Under Options->Connection->Proxy Options there is now a 'test' button to check proxy status [Parg]
+FEATURE: UI   | Added download context menu option to show the link that was used to download a torrent (where available) [Parg]
+FEATURE: UI   | Added Help->Advanced option to show a torrent's details without loading the torrent into Vuze [Parg]
+FEATURE: UI   | Added a 'browse to generated torrent' button to the new-torrent wizard [Parg]
+
+CHANGE: Core  | Automatically accept unknown SSL certificated from HTTPS trackers (option to revert behaviour if required) [Parg]
+CHANGE: Core  | Made it possible to disable the DNS tracker extension support as some users experiencing issues with their AV software and increased DNS activity [Parg]
+CHANGE: Core  | Handle remote clients with no cookie support better [TuxPaper]
+CHANGE: Core  | Improved the 'reset configuration state' behaviour somewhat [Parg]  
+CHANGE: UI    | The new-torrent wizard will now prompt to overwrite the created torrent file if one already exists with same name [Parg]
+CHANGE: UI    | Don't permit the auto-hiding of soem devices we know should never auto-hide [Parg] 
+CHANGE: UI    | Spanish translation updated [Valtiel]
+CHANGE: UI    | Brazilian Portuguese translation update [Havokdan]
+CHANGE: UI    | Korean translation update [Dong-yoon Han]
+CHANGE: UI    | Romanian translation update [muntealb]
+
+BUGFIX: Core  | Fixed a SOCKS issue regarding local UPnP services [Parg]
+BUGFIX: Core  | Fixed error caused by read-only plist causing incorrect 'document dir' default under OSX [Parg]
+BUGFIX: Core  | Don't block Vuze initialisation when reading UPnP state from 'slow' routers [Parg]
+BUGFIX: UI    | Fixed bug where the upload speed options were sometimes missing in the right-click status icon menu [Parg]
+BUGFIX: UI    | Dialogs weren't be centered correctly under some circumstances [TuxPaper]
+BUGFIX: UI    | Show pairing errors in remote-pairing dialog [Parg]
+BUGFIX: UI    | Fix columns not being able to change their default alignment because user saved an unchanged alignment for it [TuxPaper]
+BUGFIX: UI    | Fix AllPeersView nad PeersView getting their subviews mixed up [TuxPaper]
+BUGFIX: UI    | Fix All Peers View not showing subviews (Piece Map, etc) [TuxPaper]
+BUGFIX: UI    | Fix ever growing listeners list bug [Parg]
+BUGFIX: UI    | Some statistics sub-views weren't opening correctly [Parg]
 
 2012.10.24 | Vuze 4.8.0.0
 
