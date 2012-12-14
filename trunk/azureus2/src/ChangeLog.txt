@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2012.xx.xx | Vuze 4.8.1.0
+2012.12.14 | Vuze 4.8.1.0
 
 FEATURE: Blog | See http://devblog.vuze.com/tagged/4810 for beta version blog posts
 
@@ -50,6 +50,8 @@ BUGFIX: UI    | Fix AllPeersView nad PeersView getting their subviews mixed up [
 BUGFIX: UI    | Fix All Peers View not showing subviews (Piece Map, etc) [TuxPaper]
 BUGFIX: UI    | Fix ever growing listeners list bug [Parg]
 BUGFIX: UI    | Some statistics sub-views weren't opening correctly [Parg]
+
+
 
 2012.10.24 | Vuze 4.8.0.0
 
