@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+201x.xx.xx | Vuze 4.8.1.1
+
+
+
 2012.12.14 | Vuze 4.8.1.0
 
 FEATURE: Blog | See http://devblog.vuze.com/tagged/4810 for beta version blog posts
