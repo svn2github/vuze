@@ -1476,6 +1476,28 @@ TRTrackerAnnouncerMuxer
 					return( -1 );
 				}			
 
+				public int 
+				getLastUpdate() 
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary != null ){
+						
+						long time = summary.getTime();
+						
+						if ( time == 0 ){
+							
+							return( 0 );
+						}
+						
+						long elapsed = SystemTime.getMonotonousTime() - time;
+						
+						return((int)( (SystemTime.getCurrentTime() - elapsed ) / 1000 ));
+					}
+					
+					return( 0 );
+				}
+				
 				public int
 				getSecondsToUpdate()
 				{

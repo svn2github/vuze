@@ -21,7 +21,11 @@
 
 package com.aelitis.azureus.core.pairing;
 
+import java.io.IOException;
 import java.util.List;
+
+import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
+import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 
 public interface 
 PairingManager 
@@ -54,9 +58,14 @@ PairingManager
 	
 		throws PairingException;
 	
+	public void
+	setSRPPassword(
+		char[]		password );
+	
 	public PairedService
 	addService(
-		String		sid );
+		String							sid,
+		PairedServiceRequestHandler		handler );
 	
 	public PairedService
 	getService(
@@ -82,6 +91,13 @@ PairingManager
 	
 		throws PairingException;
 	
+	public boolean
+	handleLocalTunnel(
+		TrackerWebPageRequest		request,
+		TrackerWebPageResponse		response )
+	
+		throws IOException;
+		
 	public void
 	recordRequest(
 		String		name,

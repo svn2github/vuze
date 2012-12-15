@@ -82,7 +82,7 @@ ResourceDownloaderURLImpl
 	
 	protected boolean       force_no_proxy = false;
 
-	private final String post_data;
+	private final byte[] 	post_data;
 
 	public 
 	ResourceDownloaderURLImpl(
@@ -127,7 +127,7 @@ ResourceDownloaderURLImpl
 	ResourceDownloaderURLImpl(
 		ResourceDownloaderBaseImpl	_parent,
 		URL							_url,
-		String 						_data,
+		byte[] 						_data,
 		boolean						_auth_supplied,
 		String						_user_name,
 		String						_password )
@@ -587,7 +587,13 @@ redirect_label:
 					  
 								String connection = getStringProperty( "URL_Connection" );
 								
-								if ( connection == null || !connection.equals( "skip" )){
+								if ( connection != null && connection.equalsIgnoreCase( "Keep-Alive" )){
+									
+									con.setRequestProperty( "Connection", "Keep-Alive" );
+
+										// gah, no idea what the intent behind 'skip' is!
+									
+								}else if ( connection == null || !connection.equals( "skip" )){
 									
 										// default is close
 									
@@ -614,13 +620,13 @@ redirect_label:
 									
 									((HttpURLConnection)con).setRequestMethod( verb );
 									
-									if ( post_data.length() > 0 ){
+									if ( post_data.length > 0 ){
 										
-										OutputStreamWriter wr = new OutputStreamWriter(con.getOutputStream());
+										OutputStream os = con.getOutputStream();
 										
-										wr.write(post_data);
+										os.write( post_data );
 										
-										wr.flush();
+										os.flush();
 									}
 								}
 	

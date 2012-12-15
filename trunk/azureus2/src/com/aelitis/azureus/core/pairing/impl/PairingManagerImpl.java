@@ -37,6 +37,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -59,10 +61,10 @@ import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
-import org.gudy.azureus2.plugins.ui.UIInstance;
+import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
+import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
-import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
@@ -78,6 +80,7 @@ import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
+import org.gudy.azureus2.ui.swt.auth.CryptoWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -91,6 +94,7 @@ import com.aelitis.azureus.core.pairing.*;
 import com.aelitis.azureus.core.pairing.impl.swt.PMSWTImpl;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
+import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 import com.aelitis.azureus.plugins.upnp.UPnPPluginService;
@@ -142,6 +146,9 @@ PairingManagerImpl
 	private InfoParameter		param_last_error;
 	private HyperlinkParameter	param_view;
 	
+	private BooleanParameter 	param_srp_enable;
+	private LabelParameter		param_srp_state;
+	
 	private BooleanParameter 	param_e_enable;
 	private StringParameter		param_public_ipv4;
 	private StringParameter		param_public_ipv6;
@@ -163,6 +170,8 @@ PairingManagerImpl
 	
 	private String			local_v4	= "";
 	private String			local_v6	= "";
+	
+	private PairingManagerTunnelHandler	tunnel_handler;
 	
 	private boolean	update_outstanding;
 	private boolean	updates_enabled;
@@ -266,6 +275,86 @@ PairingManagerImpl
 				}
 			});
 		
+			// srp
+		
+		LabelParameter	param_srp_info = configModel.addLabelParameter2( "pairing.srp.info" );
+		
+		HyperlinkParameter param_srp_link = configModel.addHyperlinkParameter2( "label.more.info.here", MessageText.getString( "ConfigView.section.connection.pairing.srp.url" ));
+
+		param_srp_enable 	= configModel.addBooleanParameter2( "pairing.srp.enable", "pairing.srp.enable", false );
+
+		param_srp_state 	= configModel.addLabelParameter2( "" );
+
+		updateSRPState();
+		
+		final ActionParameter param_srp_set = configModel.addActionParameter2( "pairing.srp.setpw", "pairing.srp.setpw.doit" );
+		
+		param_srp_set.addListener(
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					Parameter 	param ) 
+				{
+					param_srp_set.setEnabled( false );
+					
+					new AEThread2( "getpw" )
+					{
+						public void
+						run()
+						{
+							try{
+								CryptoWindow pw_win = new CryptoWindow( true );
+							
+								CryptoWindow.passwordDetails result = 
+									pw_win.getPassword(
+										-1,
+										CryptoManagerPasswordHandler.ACTION_PASSWORD_SET,
+										true, "arse ");
+								
+								if ( result != null ){
+									
+									tunnel_handler.setSRPPassword( result.getPassword());
+								}
+							}finally{
+								
+								param_srp_set.setEnabled( true );
+							}
+						}
+					}.start();
+				}
+			});
+		
+		param_srp_enable.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter 	param ) 
+					{
+						boolean active = param_srp_enable.getValue();
+						
+						tunnel_handler.setActive( active );
+												
+						updateSRPState();
+					}
+				});
+		
+		param_srp_enable.addEnabledOnSelection( param_srp_state );
+		param_srp_enable.addEnabledOnSelection( param_srp_set );
+
+		configModel.createGroup(
+				"pairing.group.srp",
+				new Parameter[]{
+					param_srp_info,
+					param_srp_link,
+					param_srp_enable,
+					param_srp_state,
+					param_srp_set,
+				});
+		
+			// explicit
+		
 		LabelParameter	param_e_info = configModel.addLabelParameter2( "pairing.explicit.info" );
 		
 		param_e_enable = configModel.addBooleanParameter2( "pairing.explicit.enable", "pairing.explicit.enable", false );
@@ -350,8 +439,10 @@ PairingManagerImpl
 			
 			azureus_core	= _core;
 		}
-		
+				
 		try{
+			tunnel_handler = new PairingManagerTunnelHandler( this, azureus_core );
+
 			PluginInterface default_pi = PluginInitializer.getDefaultInterface();
 
 			DelayedTask dt = default_pi.getUtilities().createDelayedTask(
@@ -377,10 +468,12 @@ PairingManagerImpl
 			dt.queue();
 			
 			swt_ui.initialise( default_pi, param_icon_enable );
-
+		
 		}finally{
 			
 			init_sem.releaseForever();
+			
+			updateSRPState();
 		}
 	}
 	
@@ -497,6 +590,15 @@ PairingManagerImpl
 		if ( !last_error.equals( error )){
 			
 			param_last_error.setValue( error );
+			
+			if ( error.contains( "generate a new one" )){
+				
+				Logger.log(					
+					new LogAlert(
+						true,
+						LogAlert.AT_WARNING,
+						"The pairing access code is invalid.\n\nCreate a new one via Tools->Options->Connection->Pairing or disable the pairing feature." ));
+			}
 			
 			fireChanged();
 		}
@@ -647,7 +749,8 @@ PairingManagerImpl
 	
 	public PairedService
 	addService(
-		String		sid )
+		String							sid,
+		PairedServiceRequestHandler		handler )
 	{
 		synchronized( this ){
 						
@@ -659,22 +762,25 @@ PairingManagerImpl
 					System.out.println( "PS: added " + sid );
 				}
 				
-				result = new PairedServiceImpl( sid );
+				result = new PairedServiceImpl( sid, handler );
 				
 				services.put( sid, result );
+				
+			}else{
+				result.setHandler( handler );
 			}
 			
 			return( result );
 		}
 	}
 	
-	public PairedService
+	public PairedServiceImpl
 	getService(
 		String		sid )
 	{
 		synchronized( this ){
 			
-			PairedService	result = services.get( sid );
+			PairedServiceImpl	result = services.get( sid );
 			
 			return( result );
 		}
@@ -1007,6 +1113,8 @@ PairingManagerImpl
 						
 			boolean	is_enabled = param_enable.getValue();
 			
+			boolean	has_services = false;
+			
 			synchronized( this ){
 				
 				List<Map<String,String>>	list =  new ArrayList<Map<String,String>>();
@@ -1047,6 +1155,9 @@ PairingManagerImpl
 						
 						list.add( service.toMap());
 					}
+					
+					has_services = list.size() > 0;
+					
 				}else{
 					
 						// when we get to zero services we want to push through the
@@ -1089,6 +1200,17 @@ PairingManagerImpl
 			if ( gc != null && gc.length() > 0 ){
 				
 				payload.put( "gc", gc );
+			}
+			
+			if ( is_enabled && has_services && param_srp_enable.getValue()){
+			
+				tunnel_handler.setActive( true );
+				
+				tunnel_handler.updateRegistrationData( payload );
+			
+			}else{
+				
+				tunnel_handler.setActive( false );
 			}
 			
 			synchronized( this ){
@@ -1171,6 +1293,13 @@ PairingManagerImpl
 				        	Set<UPnPRootDevice> devices = new HashSet<UPnPRootDevice>();
 				        	
 				        	for ( UPnPPluginService service: services ){
+				        		
+				        			// some users get silly numbers of services :(
+				        		
+				        		if ( upnp_list.size() > 10 ){
+				        			
+				        			break;
+				        		}
 				        		
 				        		UPnPRootDevice root_device = service.getService().getGenericService().getDevice().getRootDevice();
 				        		
@@ -1480,6 +1609,50 @@ PairingManagerImpl
 		return( new TestServiceImpl( sid, listener ));
 	}
 	
+	protected void
+	updateSRPState()
+	{
+		String	text;
+		
+		if ( param_srp_enable.getValue()){
+		
+			if ( tunnel_handler == null ){
+				
+				text = MessageText.getString( "pairing.status.initialising" ) + "...";
+				
+			}else{
+			
+				text = tunnel_handler.getStatus();
+			}
+		}else{
+			
+			text = MessageText.getString( "MyTorrentsView.menu.setSpeed.disabled" );
+		}
+		
+		param_srp_state.setLabelText( MessageText.getString( "pairing.srp.state", new String[]{ text }));
+	}
+	
+	public void
+	setSRPPassword(
+		char[]		password )
+	{
+		init_sem.reserve();
+		
+		tunnel_handler.setSRPPassword( password );
+	}
+	
+	public boolean
+	handleLocalTunnel(
+		TrackerWebPageRequest		request,
+		TrackerWebPageResponse		response )
+	
+		throws IOException
+	{
+		init_sem.reserve();
+		
+		return( tunnel_handler.handleLocalTunnel( request, response ));
+	}
+	
 	public void
 	recordRequest(
 		String		name,
@@ -1746,17 +1919,34 @@ PairingManagerImpl
 		private String				sid;
 		private Map<String,String>	attributes	= new HashMap<String, String>();
 		
+		private	PairedServiceRequestHandler		request_handler;
+		
 		protected
 		PairedServiceImpl(
-			String		_sid )
+			String							_sid,
+			PairedServiceRequestHandler		_request_handler )
 		{
-			sid		= _sid;
+			sid				= _sid;
+			request_handler	= _request_handler;
 		}
 		
 		public String
 		getSID()
 		{
 			return( sid );
+		}
+		
+		protected void
+		setHandler(
+			PairedServiceRequestHandler		_h )
+		{
+			request_handler	= _h;
+		}
+		
+		protected PairedServiceRequestHandler
+		getHandler()
+		{
+			return( request_handler );
 		}
 		
 		public PairingConnectionData

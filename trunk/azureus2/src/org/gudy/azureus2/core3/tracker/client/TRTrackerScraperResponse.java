@@ -29,8 +29,6 @@ import org.gudy.azureus2.core3.util.HashWrapper;
 /**
  * @author parg
  *
- * To change the template for this generated type comment go to
- * Window&gt;Preferences&gt;Java&gt;Code Generation&gt;Code and Comments
  */
 public interface 
 TRTrackerScraperResponse 
@@ -59,6 +57,11 @@ TRTrackerScraperResponse
 	public int
  	getStatus();
 
+		// time status last set in seconds
+	
+	public int
+	getScrapeTime();
+	
 	public long
 	getScrapeStartTime();
 

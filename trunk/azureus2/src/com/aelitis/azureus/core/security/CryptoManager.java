@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.security;
 
+import java.math.BigInteger;
+
 public interface 
 CryptoManager 
 {
@@ -69,4 +71,22 @@ CryptoManager
 	public void
 	removeKeyListener(
 		CryptoManagerKeyListener		listener );
+	
+	public void
+	setSRPParameters(
+		byte[]		salt,
+		BigInteger	verifier );
+		
+	public SRPParameters
+	getSRPParameters();
+	
+	public interface
+	SRPParameters
+	{		
+		public byte[]
+		getSalt();
+		
+		public BigInteger
+		getVerifier();
+	}
 }

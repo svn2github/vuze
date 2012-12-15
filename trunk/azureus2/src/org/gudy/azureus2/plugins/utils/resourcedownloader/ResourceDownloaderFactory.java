@@ -198,7 +198,16 @@ ResourceDownloaderFactory
 		 * @param postData
 		 * @return
 		 */
-		ResourceDownloader create(URL url, String postData);
+	
+	ResourceDownloader 
+	create(
+		URL 		url, 
+		String 		post_data );
+		
+	ResourceDownloader 
+	create(
+		URL 		url, 
+		byte[] 		post_data );
 		
 	/**
 	 * Creates multiple resource downloaders which can be used to download

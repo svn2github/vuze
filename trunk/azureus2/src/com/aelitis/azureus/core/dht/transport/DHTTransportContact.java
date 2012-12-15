@@ -68,6 +68,9 @@ DHTTransportContact
 	getAddress();
 	
 	public InetSocketAddress
+	getTransportAddress();
+	
+	public InetSocketAddress
 	getExternalAddress();
 	
 	public boolean

@@ -46,6 +46,7 @@ NATTraverser
 {
 	public static final int	TRAVERSE_REASON_PEER_DATA			= 1;
 	public static final int	TRAVERSE_REASON_GENERIC_MESSAGING	= 2;
+	public static final int	TRAVERSE_REASON_PAIR_TUNNEL			= 3;
 	
 	private static final int	MAX_QUEUE_SIZE	= 128;
 	

@@ -68,6 +68,12 @@ TrackerPeerSourceAdapter
 	}
 	
 	public int
+	getLastUpdate() 
+	{
+		return( 0 );
+	}
+	
+	public int
 	getSecondsToUpdate()
 	{
 		return( -1 );

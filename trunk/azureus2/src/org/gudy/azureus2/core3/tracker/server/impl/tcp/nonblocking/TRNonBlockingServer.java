@@ -302,7 +302,7 @@ TRNonBlockingServer
         	
         }else{
 
-          VirtualChannelSelector.VirtualSelectorListener read_listener = 
+        	VirtualChannelSelector.VirtualSelectorListener read_listener = 
 	        	new VirtualChannelSelector.VirtualSelectorListener() 
 				{
         	  		private boolean	selector_registered;
@@ -328,12 +328,17 @@ TRNonBlockingServer
 		        				removeAndCloseConnection( processor );
 		        				
 		        			}else{
-		        			
+		        					// more reading required
+		        				
 			        			if ( !selector_registered ){
 			        				
 			        				selector_registered	= true;
 			        				
 			        		        read_selector.register( sc, this, null );
+			        		        
+			        			}else{
+			        				
+			        				read_selector.resumeSelects( sc );
 			        			}
 		        			}
 			        			
@@ -360,6 +365,8 @@ TRNonBlockingServer
 	        		}	
 				};
 				
+			processor.setReadListener( read_listener );
+			
 			read_listener.selectSuccess( read_selector, channel, null );
         }
     }
@@ -368,68 +375,81 @@ TRNonBlockingServer
 	readyToWrite(
 		final TRNonBlockingServerProcessor	processor )
     {
-        final VirtualChannelSelector.VirtualSelectorListener write_listener = 
-        	new VirtualChannelSelector.VirtualSelectorListener() 
-			{
-        		private boolean	selector_registered;
-
-            	public boolean 
-				selectSuccess( 
-					VirtualChannelSelector 	selector, 
-					SocketChannel 			sc, 
-					Object 					attachment ) 
-            	{
-            		try{
-	            		int write_result = processor.processWrite();
-	              
-	            		if( write_result > 0 ) { //more writing is needed
-	            			
-	            			if ( selector_registered ){
-	            				
-		            			write_selector.resumeSelects( sc );  //resume for more writing
-
-	            			}else{
-	            				
-	            				selector_registered	= true;
-	            				
-	            				write_selector.register( sc, this, null ); 
-	            			}
-	            			
-	            		}else if( write_result == 0 ) {  //write processing is complete
-
-	            			removeAndCloseConnection( processor );
+    	VirtualChannelSelector.VirtualSelectorListener write_listener = processor.getWriteListener();
+    	
+    	if ( write_listener == null ){
+    		
+	        write_listener = 
+	        	new VirtualChannelSelector.VirtualSelectorListener() 
+				{
+	        		private boolean	selector_registered;
 	
-	            		}else if( write_result < 0 ) {  //a write error occured
-
-	            			processor.failed();
+	            	public boolean 
+					selectSuccess( 
+						VirtualChannelSelector 	selector, 
+						SocketChannel 			sc, 
+						Object 					attachment ) 
+	            	{
+	            		try{
+		            		int write_result = processor.processWrite();
+		              
+		            		if ( write_result > 0 ) { //more writing is needed
+		            			
+		            			if ( selector_registered ){
+		            				
+			            			write_selector.resumeSelects( sc );  //resume for more writing
+	
+		            			}else{
+		            				
+		            				selector_registered	= true;
+		            				
+		            				write_selector.register( sc, this, null ); 
+		            			}
+		            			
+		            		}else if ( write_result == 0 ) {  //write processing is complete
+	
+		            			if ( processor.getKeepAlive()){
+		            				
+		            				processor.getReadListener().selectSuccess( read_selector, sc, null );
+		            				
+		            			}else{
+		            			
+		            				removeAndCloseConnection( processor );
+		            			}
+		            			
+		            		}else if( write_result < 0 ) {  //a write error occured
+	
+		            			processor.failed();
+		            			
+		            			removeAndCloseConnection( processor );
+		            		}
+		            		
+		            		return( write_result != 2 );
+		            		
+	            		}catch( Throwable e ){
 	            			
+	            			Debug.printStackTrace(e);
+	            				            			
 	            			removeAndCloseConnection( processor );
+	            			
+	            			return( false );
 	            		}
-	            		
-	            		return( write_result != 2 );
-	            		
-            		}catch( Throwable e ){
-            			
-            			Debug.printStackTrace(e);
-            			
-            			removeAndCloseConnection( processor );
-            			
-            			return( false );
-            		}
-            	}
-
-            	public void 
-				selectFailure( 
-					VirtualChannelSelector 	selector, 
-					SocketChannel 			sc, 
-					Object 					attachment, 
-					Throwable 				msg ) 
-            	{
-            		removeAndCloseConnection( processor );
-            	}
-			};
+	            	}
+	
+	            	public void 
+					selectFailure( 
+						VirtualChannelSelector 	selector, 
+						SocketChannel 			sc, 
+						Object 					attachment, 
+						Throwable 				msg ) 
+	            	{
+	            		removeAndCloseConnection( processor );
+	            	}
+				};
   
-
+			processor.setWriteListener( write_listener );
+    	}
+    	
 		write_listener.selectSuccess( write_selector, processor.getSocketChannel(), null );
     }
     
@@ -509,7 +529,7 @@ TRNonBlockingServer
         		
         		TRNonBlockingServerProcessor	processor = (TRNonBlockingServerProcessor)processors.get(i);
         		
-        		if ( now - processor.getStartTime() > PROCESSING_GET_LIMIT ){
+        		if ( now - processor.getStartTime() > PROCESSING_GET_LIMIT && !processor.areTimeoutsDisabled()){
               
         			read_selector.cancel( processor.getSocketChannel() );
         			write_selector.cancel( processor.getSocketChannel() );

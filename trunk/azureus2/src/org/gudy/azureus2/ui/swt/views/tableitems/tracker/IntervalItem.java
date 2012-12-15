@@ -24,6 +24,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.tracker;
 
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
@@ -68,7 +69,7 @@ IntervalItem
 			min_interval	= ps.getMinInterval();
 		}
 		
-		long	sort = ( interval<<31 ) | min_interval;
+		long	sort = ( interval<<31 ) | (min_interval&0xffffffffL);
 		
 		if (!cell.setSortValue(sort) && cell.isValid()){
 		
@@ -83,17 +84,24 @@ IntervalItem
 			
 		}else if ( interval <= 0 ){
 			
-			str = "(" + min_interval + ")";
+			str = "(" + format(min_interval) + ")";
 			
 		}else if ( min_interval <= 0 ){
 		
-			str = String.valueOf( interval );
+			str = format(interval);
 			
 		}else{
 		
-			str = interval + " (" + min_interval + ")";
+			str = format(interval) + " (" + format(min_interval) + ")";
 		}
 		
 		cell.setText( str );
+	}
+	
+	private String
+	format(
+		long	secs )
+	{
+		return( TimeFormatter.format2( secs, secs < 300 && secs%60 != 0));
 	}
 }

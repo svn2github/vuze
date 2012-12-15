@@ -96,7 +96,15 @@ ResourceDownloaderFactoryImpl
 	public ResourceDownloader
 	create(
 		URL		url,
-		String postData)
+		String 	postData )
+	{
+		return new ResourceDownloaderURLImpl(null, url, postData.getBytes(), false, null, null);
+	}
+	
+	public ResourceDownloader
+	create(
+		URL		url,
+		byte[]	postData)
 	{
 		return new ResourceDownloaderURLImpl(null, url, postData, false, null, null);
 	}

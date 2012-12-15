@@ -3786,7 +3786,7 @@ DownloadManagerImpl
 			 					private TRTrackerAnnouncer		ta;
 			  					private long					ta_fixup;
 
-			  					private long		last_scrape_time;
+			  					private long		last_scrape_fixup_time;
 			  					private int[]		last_scrape;
 			  					
 								private TrackerPeerSource
@@ -3829,12 +3829,15 @@ DownloadManagerImpl
 								{
 									long now = SystemTime.getMonotonousTime();
 									
-									if ( now - last_scrape_time > 30*1000 || last_scrape == null ){
+									if ( now - last_scrape_fixup_time > 30*1000 || last_scrape == null ){
 
 										TRTrackerScraper	scraper = globalManager.getTrackerScraper();
 
 										int	max_peers = -1;
 										int max_seeds = -1;
+										
+										int max_time 	= 0;
+										int	min_scrape	= Integer.MAX_VALUE;
 										
 										for ( URL u: urls ){
 										
@@ -3844,8 +3847,8 @@ DownloadManagerImpl
 												
 												if ( !resp.isDHTBackup()){
 													
-													int peers = resp.getPeers();
-													int seeds = resp.getSeeds();
+													int peers 	= resp.getPeers();
+													int seeds 	= resp.getSeeds();
 													
 													if ( peers > max_peers ){
 													
@@ -3856,13 +3859,35 @@ DownloadManagerImpl
 														
 														max_seeds = seeds;
 													}
+													
+													if ( resp.getStatus() != TRTrackerScraperResponse.ST_INITIALIZING ){
+													
+														int	time	= resp.getScrapeTime();
+
+														if ( time > max_time ){
+														
+															max_time = time;
+														}
+														
+														long next_scrape = resp.getNextScrapeStartTime();
+														
+														if ( next_scrape > 0 ){
+															
+															int	 ns = (int)(next_scrape/1000);
+															
+															if ( ns < min_scrape ){
+																
+																min_scrape = ns;
+															}
+														}
+													}
 												}
 											}
 										}
 										
-										last_scrape = new int[]{ max_seeds, max_peers }; 
+										last_scrape = new int[]{ max_seeds, max_peers, max_time, min_scrape }; 
 										
-										last_scrape_time = now;
+										last_scrape_fixup_time = now;
 									}
 									
 									return( last_scrape );
@@ -3973,6 +3998,16 @@ DownloadManagerImpl
 									
 									if ( delegate == null ){
 									
+										int[] si = getScrape();
+										
+										int	last 	= si[2];
+										int next	= si[3];
+										
+										if ( last > 0 && next < Integer.MAX_VALUE && last < next ){
+											
+											return( next - last );
+										}
+										
 										return( -1 );
 									}
 									
@@ -4003,6 +4038,19 @@ DownloadManagerImpl
 									}
 									
 									return( delegate.isUpdating());							
+								}
+								
+								public int 
+								getLastUpdate() 
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( getScrape()[2] );
+									}
+									
+									return( delegate.getLastUpdate());
 								}
 								
 								public int

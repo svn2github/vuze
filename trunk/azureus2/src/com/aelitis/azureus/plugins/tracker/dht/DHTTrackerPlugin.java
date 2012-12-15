@@ -1056,7 +1056,7 @@ DHTTrackerPlugin
 						
 						if ( cache == null ){
 						
-							running_downloads.put( download, new int[]{ register_type, 0, 0, 0 });
+							running_downloads.put( download, new int[]{ register_type, 0, 0, 0, 0 });
 							
 						}else{
 							
@@ -1942,6 +1942,8 @@ DHTTrackerPlugin
 									run_data[2]	= full?leecher_count:Math.max( run_data[2], leecher_count);
 									run_data[3] = full?peer_count:Math.max( run_data[3], peer_count);
 										
+									run_data[4] = (int)(SystemTime.getCurrentTime()/1000);
+									
 									long	absolute_retry = SystemTime.getCurrentTime() + retry;
 								
 									if ( absolute_retry > max_retry[0] ){
@@ -2240,6 +2242,8 @@ DHTTrackerPlugin
 
 										run_data[1] = f_adj_seeds;
 										run_data[2]	= f_adj_leechers;
+										
+										run_data[4] = (int)(SystemTime.getCurrentTime()/1000);
 									}
 								}finally{
 									
@@ -2809,6 +2813,8 @@ DHTTrackerPlugin
 												run_data[1] = Math.max( run_data[1], seeds );
 												run_data[2] = Math.max( run_data[2], leechers );
 											}
+											
+											run_data[4] = (int)(SystemTime.getCurrentTime()/1000);
 										}
 									}finally{
 										
@@ -3621,6 +3627,19 @@ DHTTrackerPlugin
 					}
 					
 					return( run_data[3] );
+				}
+				
+				public int 
+				getLastUpdate() 
+				{
+					fixup();
+					
+					if ( run_data == null ){
+						
+						return( 0 );
+					}
+					
+					return( run_data[4] );
 				}
 				
 				public int

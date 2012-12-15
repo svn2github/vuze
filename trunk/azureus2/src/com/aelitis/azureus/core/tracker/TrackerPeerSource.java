@@ -67,6 +67,9 @@ TrackerPeerSource
 	getPeers();
 	
 	public int
+	getLastUpdate();
+	
+	public int
 	getSecondsToUpdate();
 	
 	public int

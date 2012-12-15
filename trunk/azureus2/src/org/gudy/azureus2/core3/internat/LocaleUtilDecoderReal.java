@@ -130,14 +130,13 @@ LocaleUtilDecoderReal
 			return( null );
 		}
 		
-		ByteBuffer bb = ByteBuffer.wrap(bytes);
-      		
-		CharBuffer cb = CharBuffer.allocate(bytes.length);
-      		
-		CoderResult cr = decoder.decode(bb,cb, true);
-			
 		try{
-			
+			ByteBuffer bb = ByteBuffer.wrap(bytes);
+      		
+			CharBuffer cb = CharBuffer.allocate(bytes.length);
+	      		
+			CoderResult cr = decoder.decode(bb,cb, true);
+				
 			if ( !cr.isError() ){
 								
 				cb.flip();

@@ -825,7 +825,10 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     	
       TorrentDownloaderImpl other = (TorrentDownloaderImpl) obj;
       
-      if (other.getURL().equals(this.url.toString())){
+      	// possible during init that url is not yet assigned as async so use original_url as this is more likely
+      	// to be set!
+      
+      if ( other.original_url.equals( this.original_url )){
     	  
     	  File	other_file 	= other.getFile();
     	  File	this_file	= file;

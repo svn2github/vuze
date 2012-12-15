@@ -50,11 +50,21 @@ CryptoWindow
 	implements CryptoManagerPasswordHandler
 {	
 	private static final int DAY = 60*60*24;
-	
+		
 	public
 	CryptoWindow()
 	{
-		CryptoManagerFactory.getSingleton().addPasswordHandler( this );
+		this( false );
+	}
+	
+	public
+	CryptoWindow(
+		boolean	stand_alone )
+	{		
+		if ( !stand_alone ){
+					
+			CryptoManagerFactory.getSingleton().addPasswordHandler( this );
+		}
 	}
 	
 	public int
@@ -185,7 +195,9 @@ CryptoWindow
 	 	
 	 		Utils.setShellIcon(shell);
 	 		
-		 	Messages.setLanguageText(shell, "security.crypto.title");
+		 	boolean set_password = action_type == CryptoManagerPasswordHandler.ACTION_PASSWORD_SET;
+
+		 	Messages.setLanguageText(shell, set_password?"security.crypto.pw.title":"security.crypto.title");
     		
 		 	GridLayout layout = new GridLayout();
 		 	layout.numColumns = 3;
@@ -193,7 +205,7 @@ CryptoWindow
 		 	shell.setLayout (layout);
 	    
 		 	GridData gridData;
-	    
+	    		 	
 		 	if ( action_type == CryptoManagerPasswordHandler.ACTION_ENCRYPT ){
 		 	
 				Label reason_label = new Label(shell,SWT.WRAP);
@@ -203,7 +215,7 @@ CryptoWindow
 				gridData.widthHint = 300;
 				reason_label.setLayoutData(gridData);
 				
-		 	}else{
+		 	}else if ( action_type == CryptoManagerPasswordHandler.ACTION_DECRYPT ){
 		 	
 				Label decrypt_label = new Label(shell,SWT.WRAP);
 				Messages.setLanguageText(decrypt_label, "security.crypto.decrypt");
@@ -251,7 +263,7 @@ CryptoWindow
 			password_value.setEchoChar('*');
 			password_value.setText("");
 			gridData = new GridData(GridData.FILL_BOTH);
-			gridData.horizontalSpan = 1;
+			gridData.horizontalSpan = 2;
 			password_value.setLayoutData(gridData);
 
 			password_value.addListener(SWT.Modify, new Listener() {
@@ -259,9 +271,9 @@ CryptoWindow
 				 password = password_value.getText().toCharArray();
 			   }});
 
-			new Label(shell,SWT.NULL);
+			//new Label(shell,SWT.NULL);
 			
-		 	if ( action_type == CryptoManagerPasswordHandler.ACTION_ENCRYPT ){
+		 	if ( action_type == CryptoManagerPasswordHandler.ACTION_ENCRYPT || set_password ){
 
 		 			// password
 
@@ -277,7 +289,7 @@ CryptoWindow
 				password2_value.setEchoChar('*');
 				password2_value.setText("");
 				gridData = new GridData(GridData.FILL_BOTH);
-				gridData.horizontalSpan = 1;
+				gridData.horizontalSpan = 2;
 				password2_value.setLayoutData(gridData);
 
 				password2_value.addListener(SWT.Modify, new Listener() {
@@ -285,70 +297,74 @@ CryptoWindow
 					 password2 = password2_value.getText().toCharArray();
 				   }});
 
-				new Label(shell,SWT.NULL);	
+				//new Label(shell,SWT.NULL);	
 		 	}
 		 	
-				// persist
-			
-			Label strength_label = new Label(shell,SWT.NULL);
-			Messages.setLanguageText(strength_label, "security.crypto.persist_for");
-			gridData = new GridData(GridData.FILL_BOTH);
-			gridData.horizontalSpan = 1;
-			strength_label.setLayoutData(gridData);
-			
-			String[] 		duration_keys = { "dont_save", "session", "day", "week", "30days", "forever" };
-			final int[]		duration_secs = { 0,           -1,        DAY,   DAY*7,  DAY*30,   Integer.MAX_VALUE };
-			
-			final Combo durations_combo = new Combo(shell, SWT.SINGLE | SWT.READ_ONLY);
-			   
-			for (int i=0;i<duration_keys.length;i++){
+		 	if ( !set_password ){
+		 		
+					// persist
 				
-				String text = MessageText.getString( "security.crypto.persist_for." + duration_keys[i] );
+				Label strength_label = new Label(shell,SWT.NULL);
+				Messages.setLanguageText(strength_label, "security.crypto.persist_for");
+				gridData = new GridData(GridData.FILL_BOTH);
+				gridData.horizontalSpan = 1;
+				strength_label.setLayoutData(gridData);
 				
-				durations_combo.add( text );
-			}
-			      
-			durations_combo.select(4);
-			
-			persist_for_secs	= duration_secs[4];
-			
-			durations_combo.addListener(
-				SWT.Selection,
-				new Listener() 
-				{
-					public void 
-					handleEvent(
-						Event e ) 
+				String[] 		duration_keys = { "dont_save", "session", "day", "week", "30days", "forever" };
+				final int[]		duration_secs = { 0,           -1,        DAY,   DAY*7,  DAY*30,   Integer.MAX_VALUE };
+				
+				final Combo durations_combo = new Combo(shell, SWT.SINGLE | SWT.READ_ONLY);
+				   
+				for (int i=0;i<duration_keys.length;i++){
+					
+					String text = MessageText.getString( "security.crypto.persist_for." + duration_keys[i] );
+					
+					durations_combo.add( text );
+				}
+				      
+				durations_combo.select(4);
+				
+				persist_for_secs	= duration_secs[4];
+				
+				durations_combo.addListener(
+					SWT.Selection,
+					new Listener() 
 					{
-						persist_for_secs	= duration_secs[ durations_combo.getSelectionIndex()];
-				   	}
+						public void 
+						handleEvent(
+							Event e ) 
+						{
+							persist_for_secs	= duration_secs[ durations_combo.getSelectionIndex()];
+					   	}
+					});
+				
+				gridData = new GridData(GridData.FILL_BOTH);
+				gridData.horizontalSpan = 1;
+				durations_combo.setLayoutData(gridData);
+				
+				new Label(shell,SWT.NULL);
+				
+					// wiki
+							
+				final Label linkLabel = new Label(shell, SWT.NULL);
+				linkLabel.setText(MessageText.getString("ConfigView.label.please.visit.here"));
+				linkLabel.setData("http://wiki.vuze.com/w/Public_Private_Keys");
+				linkLabel.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
+				linkLabel.setForeground(Colors.blue);
+				gridData = new GridData();
+				gridData.horizontalSpan = 3;
+				linkLabel.setLayoutData(gridData);
+				linkLabel.addMouseListener(new MouseAdapter() {
+					public void mouseDoubleClick(MouseEvent arg0) {
+						Utils.launch((String) ((Label) arg0.widget).getData());
+					}
+	
+					public void mouseDown(MouseEvent arg0) {
+						Utils.launch((String) ((Label) arg0.widget).getData());
+					}
 				});
-			
-			gridData = new GridData(GridData.FILL_BOTH);
-			gridData.horizontalSpan = 1;
-			durations_combo.setLayoutData(gridData);
-			
-			new Label(shell,SWT.NULL);
-			
-				// wiki
-						
-			final Label linkLabel = new Label(shell, SWT.NULL);
-			linkLabel.setText(MessageText.getString("ConfigView.label.please.visit.here"));
-			linkLabel.setData("http://wiki.vuze.com/w/Public_Private_Keys");
-			linkLabel.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
-			linkLabel.setForeground(Colors.blue);
-			gridData = new GridData();
-			gridData.horizontalSpan = 3;
-			linkLabel.setLayoutData(gridData);
-			linkLabel.addMouseListener(new MouseAdapter() {
-				public void mouseDoubleClick(MouseEvent arg0) {
-					Utils.launch((String) ((Label) arg0.widget).getData());
-				}
-
-				public void mouseDown(MouseEvent arg0) {
-					Utils.launch((String) ((Label) arg0.widget).getData());
-				}
-			});
+		 	}
+		 	
 				// line
 			
 			Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);

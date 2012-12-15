@@ -126,6 +126,12 @@ DHTTransportLoopbackContactImpl
 		return( null );
 	}
 	
+	public InetSocketAddress
+	getTransportAddress()
+	{
+		return( null );
+	}
+	
 	public InetSocketAddress 
 	getExternalAddress() 
 	{

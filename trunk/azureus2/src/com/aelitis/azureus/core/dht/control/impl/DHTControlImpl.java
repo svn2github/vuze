@@ -4547,6 +4547,12 @@ DHTControlImpl
 		}
 		
 		public InetSocketAddress
+		getTransportAddress()
+		{
+			return( getAddress());
+		}
+		
+		public InetSocketAddress
 		getExternalAddress()
 		{
 			return( getAddress());

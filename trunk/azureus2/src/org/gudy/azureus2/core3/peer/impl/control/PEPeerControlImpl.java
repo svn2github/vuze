@@ -59,6 +59,7 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
+import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.control.PeerControlInstance;
 import com.aelitis.azureus.core.peermanager.control.PeerControlScheduler;
 import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
@@ -462,8 +463,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		// activate after marked as running as we may synchronously add connections here due to pending activations
 
-		adapter.getPeerManagerRegistration().activate( this );
+		PeerManagerRegistration reg = adapter.getPeerManagerRegistration();
 
+		if ( reg != null ){
+		
+			reg.activate( this );
+		}
+		
 		PeerNATTraverser.getSingleton().register( this );
 
 		PeerControlSchedulerFactory.getSingleton(partition_id).register(this);
@@ -481,8 +487,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		// remove legacy controller activation
 
-		adapter.getPeerManagerRegistration().deactivate();
-
+		PeerManagerRegistration reg = adapter.getPeerManagerRegistration();
+		
+		if ( reg != null ){
+		
+			reg.deactivate();
+		}
+		
 		closeAndRemoveAllPeers("download stopped", false);
 
 		// clear pieces

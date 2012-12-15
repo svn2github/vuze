@@ -44,6 +44,10 @@ DHTNATPuncher
 	public boolean
 	active();
 	
+	public void
+	forceActive(
+		boolean		force );
+
 		/**
 		 * Got a good running rendezvous
 		 * @return
@@ -51,6 +55,15 @@ DHTNATPuncher
 	
 	public boolean
 	operational();
+	
+	public DHTTransportContact
+	getLocalContact();
+	
+	public DHTTransportContact
+	getRendezvous();
+	
+	public DHTNATPuncher
+	getSecondaryPuncher();
 	
 	public Map
 	punch(
@@ -91,4 +104,12 @@ DHTNATPuncher
 	
 	public String
 	getStats();
+	
+	public void
+	addListener(
+		DHTNATPuncherListener	listener );
+	
+	public void
+	removeListener(
+		DHTNATPuncherListener	listener );
 }

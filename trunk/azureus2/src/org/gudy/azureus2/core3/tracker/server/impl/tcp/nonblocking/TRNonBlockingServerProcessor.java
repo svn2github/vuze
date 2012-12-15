@@ -35,7 +35,10 @@ import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerProcessorT
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerTCP;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncController;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+
+import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 
 /**
  * @author parg
@@ -46,18 +49,28 @@ public abstract class
 TRNonBlockingServerProcessor 
 	extends TRTrackerServerProcessorTCP
 {
+	private static final int MAX_POST = 256*1024;
+	
 	private static final int			READ_BUFFER_INITIAL		= 1024;
 	private static final int			READ_BUFFER_INCREMENT	= 1024;
 	private static final int			READ_BUFFER_LIMIT		= 32*1024;	// needs to be reasonable size to handle scrapes with plugin generated per-hash content
 		
 	private SocketChannel				socket_channel;
 	
+	private VirtualChannelSelector.VirtualSelectorListener 	read_listener;
+	private VirtualChannelSelector.VirtualSelectorListener 	write_listener;
+	
 	private long						start_time;
 	
 	private ByteBuffer					read_buffer;
+	private ByteBuffer					post_data_buffer;
+	
 	private String						request_header;
+	private String						lc_request_header;
 	
 	private ByteBuffer					write_buffer;
+	
+	private boolean						keep_alive;
 	
 	protected
 	TRNonBlockingServerProcessor(
@@ -72,7 +85,33 @@ TRNonBlockingServerProcessor
 		
 		read_buffer = ByteBuffer.allocate( READ_BUFFER_INITIAL );
 		
-		// System.out.println( "created: " + System.currentTimeMillis());
+		// System.out.println( "create: " + System.currentTimeMillis());
+	}
+	
+	protected void
+	setReadListener(
+		VirtualChannelSelector.VirtualSelectorListener		rl )
+	{
+		read_listener	= rl;
+	}
+	
+	protected VirtualChannelSelector.VirtualSelectorListener 
+	getReadListener()
+	{
+		return( read_listener );
+	}
+	
+	protected void
+	setWriteListener(
+		VirtualChannelSelector.VirtualSelectorListener 		wl )
+	{
+		write_listener	= wl;
+	}
+	
+	protected VirtualChannelSelector.VirtualSelectorListener 
+	getWriteListener()
+	{
+		return( write_listener );
 	}
 
 		// 0 -> complete
@@ -83,6 +122,34 @@ TRNonBlockingServerProcessor
 	protected int
 	processRead()
 	{
+		if ( post_data_buffer != null ){
+			
+			try{
+				int len = socket_channel.read( post_data_buffer );
+				
+				if ( len < 0 ){
+					
+					return( -1 );
+				}
+								
+				if ( post_data_buffer.remaining() == 0 ){
+					
+					post_data_buffer.flip();
+					
+					getServer().runProcessor( this );
+					
+					return( 0 );
+					
+				}else{
+					
+					return( 1 );
+				}
+			}catch( IOException e ){
+				
+				return( -1 );
+			}
+		}
+		
 		if ( read_buffer.remaining() == 0 ){
 			
 			int	capacity = read_buffer.capacity();
@@ -121,21 +188,120 @@ TRNonBlockingServerProcessor
 			}
 			
 			byte[]	data = read_buffer.array();
-						
-			for (int i=read_buffer.position()-4;i>=0;i--){
+					
+			int array_offset		= read_buffer.arrayOffset();
+			int	array_position 		= array_offset + read_buffer.position();
+			
+			for (int i=array_offset;i<=array_position-4;i++){
 				
 				if ( 	data[i]   == CR &&
 						data[i+1] == FF &&
 						data[i+2] == CR &&
 						data[i+3] == FF ){
 					
-					request_header = new String(data,0,read_buffer.position());
+					int	header_end 		= i + 4;
+					int	header_length 	= header_end - array_offset;
 					
-					// System.out.println( "read done: " + System.currentTimeMillis());
+					request_header 		= new String( data, array_offset, header_length );
+					lc_request_header 	= request_header.toLowerCase();
+				
+					int	rem = array_position - header_end;
 					
-					getServer().runProcessor( this );
+					if ( rem == 0 ){
+						
+						read_buffer = ByteBuffer.allocate( READ_BUFFER_INITIAL );
+						
+					}else{
+											
+						read_buffer = ByteBuffer.allocate( rem + READ_BUFFER_INCREMENT );
+						
+						read_buffer.put( data, header_end, rem );
+					}
 					
-					return( 0 );				
+					post_data_buffer = null;
+					
+					int	pos1 = lc_request_header.indexOf( "content-length" );
+					
+					if ( pos1 == -1 ){
+						
+						if ( 	lc_request_header.contains( "transfer-encoding" ) && 
+								lc_request_header.contains( "chunked" )){
+							
+							Debug.out( "Chunked transfer-encoding not supported!!!!" );
+						}
+					}else{
+						
+						int pos2 = lc_request_header.indexOf( NL, pos1 );
+					
+						String entry;
+						
+						if ( pos2 == -1 ){
+							
+							entry = lc_request_header.substring( pos1 );
+							
+						}else{
+							
+							entry = lc_request_header.substring( pos1, pos2 );
+						}
+					
+						int	pos = entry.indexOf(':');
+						
+						if ( pos != -1 ){
+													
+							int content_length = Integer.parseInt( entry.substring( pos+1 ).trim());
+							
+							if ( content_length > 0 ){
+								
+								if ( content_length > MAX_POST ){
+									
+									throw( new IOException( "content-length too large, max=" + MAX_POST ));
+								}
+								
+								post_data_buffer = ByteBuffer.allocate( content_length );
+								
+								int buffer_position = read_buffer.position();
+								
+								if ( buffer_position > 0 ){
+									
+									byte[] already_read = new byte[Math.min( buffer_position, content_length )];
+									
+									read_buffer.flip();
+									
+									read_buffer.get( already_read );
+									
+									byte[] xrem = new byte[ read_buffer.remaining()];
+									
+									read_buffer.get( xrem );
+									
+									read_buffer = ByteBuffer.allocate( xrem.length + READ_BUFFER_INCREMENT );
+									
+									read_buffer.put( xrem );
+
+									post_data_buffer.put( already_read );
+									
+									if ( post_data_buffer.remaining() == 0 ){
+										
+										getServer().runProcessor( this );
+										
+										return( 0 );
+									}
+								}
+							}
+						}
+					}
+					
+					if ( post_data_buffer == null ){
+						
+						// System.out.println( "read done: " + System.currentTimeMillis());
+						
+						getServer().runProcessor( this );
+						
+						return( 0 );
+						
+					}else{
+						
+						return( 1 );
+					}
 				}
 			}
 			
@@ -161,6 +327,8 @@ TRNonBlockingServerProcessor
 		}
 		
 		if ( !write_buffer.hasRemaining()){
+					
+			writeComplete();
 			
 			return( 0 );
 		}
@@ -178,6 +346,8 @@ TRNonBlockingServerProcessor
 				return( 1 );
 			}
 			
+			writeComplete();
+			
 			return( 0 );
 			
 		}catch( IOException e ){
@@ -192,7 +362,7 @@ TRNonBlockingServerProcessor
 		boolean	async = false;
 		
 		try{
-			String	url = request_header.substring(4).trim();
+			String	url = request_header.substring(request_header.indexOf(' ')).trim();
 			
 			int	pos = url.indexOf( " " );
 									
@@ -222,7 +392,7 @@ TRNonBlockingServerProcessor
 			try{
 				ByteArrayOutputStream	response = 
 					process( 	request_header,
-								request_header.toLowerCase(),
+								lc_request_header,
 								url, 
 								(InetSocketAddress)socket_channel.socket().getRemoteSocketAddress(),
 								TRTrackerServerImpl.restrict_non_blocking_requests,
@@ -293,10 +463,38 @@ TRNonBlockingServerProcessor
 		return( socket_channel );
 	}
 	
+	protected byte[]
+	getPostData()
+	{
+		ByteBuffer result = post_data_buffer;
+		
+		if ( result == null ){
+			
+			return( null );
+		}
+		
+		post_data_buffer = null;
+		
+		return( result.array());
+	}
+	
 	protected long
 	getStartTime()
 	{
 		return( start_time );
+	}
+	
+	protected boolean
+	getKeepAlive()
+	{
+		return( keep_alive );
+	}
+	
+	protected void
+	setKeepAlive(
+		boolean	k )
+	{
+		keep_alive	= k;
 	}
 	
 	public void
@@ -312,14 +510,25 @@ TRNonBlockingServerProcessor
 	}
 	
 	protected void
+	writeComplete()
+	{
+		if ( keep_alive ){
+			
+			// reset timer at end of current request ready for the next one
+		
+			start_time	= SystemTime.getCurrentTime(); 
+		}
+	}
+	
+	protected void
 	completed()
 	{
-		// System.out.println( "complete: " + System.currentTimeMillis());
+		//System.out.println( "complete: " + System.currentTimeMillis());
 	}
 	
 	protected void
 	closed()
 	{
-		// System.out.println( "close: " + System.currentTimeMillis());
+		//System.out.println( "close: " + System.currentTimeMillis());
 	}
 }

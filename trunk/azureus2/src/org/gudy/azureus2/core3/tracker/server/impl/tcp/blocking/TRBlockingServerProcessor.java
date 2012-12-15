@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerProcessorT
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerTCP;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 
 /**
  * @author parg
@@ -190,7 +191,13 @@ TRBlockingServerProcessor
 						
 						if ( cl_str == null ){
 							
-							throw( new Exception( "Content-Length missing" ));
+							if ( 	lowercase_header.contains( "transfer-encoding" ) && 
+									lowercase_header.contains( "chunked" )){
+								
+								Debug.out( "Chunked transfer-encoding not supported!!!!" );
+							}
+							
+							cl_str = "0";
 						}
 						
 						int content_length = Integer.parseInt( cl_str );

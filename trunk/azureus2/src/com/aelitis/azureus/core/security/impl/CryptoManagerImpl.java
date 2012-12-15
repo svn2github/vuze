@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.security.impl;
 
 import java.util.*;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 
 import javax.crypto.Cipher;
@@ -53,6 +54,7 @@ import com.aelitis.azureus.core.security.CryptoManagerException;
 import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordException;
 import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
+import com.aelitis.azureus.core.security.CryptoManager.SRPParameters;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -640,7 +642,38 @@ CryptoManagerImpl
 			char[]		pw );
 	}
 	
-	public class
+	public void
+	setSRPParameters(
+		byte[]		salt,
+		BigInteger	verifier )
+	{
+		if ( salt == null ){
+			
+			COConfigurationManager.removeParameter( CryptoManager.CRYPTO_CONFIG_PREFIX + "srp.def.salt" );
+			COConfigurationManager.removeParameter( CryptoManager.CRYPTO_CONFIG_PREFIX + "srp.def.verifier" );
+			
+		}else{
+			
+			COConfigurationManager.setParameter( CryptoManager.CRYPTO_CONFIG_PREFIX + "srp.def.salt", salt );
+			COConfigurationManager.setParameter( CryptoManager.CRYPTO_CONFIG_PREFIX + "srp.def.verifier", verifier.toByteArray());
+		}
+	}
+		
+	public SRPParameters
+	getSRPParameters()
+	{
+		byte[]	salt 		= COConfigurationManager.getByteParameter( CryptoManager.CRYPTO_CONFIG_PREFIX + "srp.def.salt", null );
+		byte[]	verifier	= COConfigurationManager.getByteParameter( CryptoManager.CRYPTO_CONFIG_PREFIX + "srp.def.verifier", null );
+
+		if ( salt != null && verifier != null ){
+			
+			return( new SRPParametersImpl( salt, new BigInteger( verifier )));
+		}
+		
+		return( null );
+	}
+	
+	protected class
 	passwordDetails
 	{
 		private char[]		password;
@@ -665,6 +698,35 @@ CryptoManagerImpl
 		getHandlerType()
 		{
 			return( type );
+		}
+	}
+	
+	private class
+	SRPParametersImpl
+		implements SRPParameters
+	{
+		private byte[]		salt;
+		private BigInteger	verifier;
+		
+		private
+		SRPParametersImpl(
+			byte[]		_salt,
+			BigInteger	_verifier )
+		{
+			salt		= _salt;
+			verifier	= _verifier;
+		}
+		
+		public byte[]
+		getSalt()
+		{
+			return( salt );
+		}
+		
+		public BigInteger
+		getVerifier()
+		{
+			return( verifier );
 		}
 	}
 	

@@ -42,7 +42,6 @@ import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
@@ -76,6 +75,7 @@ public class TrackerView
 		new LeechersItem(),
 		new UpdateInItem(),
 		new IntervalItem(),
+		new LastUpdateItem(TableManager.TABLE_TORRENT_TRACKERS),
 	};
 
 	public static final String MSGID_PREFIX = "TrackerView";

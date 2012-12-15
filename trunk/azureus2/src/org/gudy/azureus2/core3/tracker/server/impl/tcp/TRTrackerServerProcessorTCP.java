@@ -81,13 +81,13 @@ TRTrackerServerProcessorTCP
 		server_url = (server.isSSL()?"https":"http") + "://" + UrlUtils.convertIPV6Host(server.getHost()) + ":" + server.getPort();
 	}	
 
-	protected boolean
+	public boolean
 	areTimeoutsDisabled()
 	{
 		return( disable_timeouts );
 	}
 	
-	protected void
+	public void
 	setTimeoutsDisabled(
 		boolean	d )
 	{

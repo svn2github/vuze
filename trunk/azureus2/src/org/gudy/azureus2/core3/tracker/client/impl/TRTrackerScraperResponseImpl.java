@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.StringInterner;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 public abstract class 
 TRTrackerScraperResponseImpl 
@@ -48,6 +49,8 @@ TRTrackerScraperResponseImpl
   private int status;
   private int last_status;
 
+  private int last_status_set_time;
+  
   protected 
   TRTrackerScraperResponseImpl(                                     
 	  HashWrapper _hash ) 
@@ -63,6 +66,8 @@ TRTrackerScraperResponseImpl
      int  completed,
      long _scrapeStartTime)  
   {
+	last_status_set_time = (int)(SystemTime.getCurrentTime()/1000);
+	  
     hash = _hash;
     seeds = _seeds;
     this.completed = completed;
@@ -119,6 +124,8 @@ TRTrackerScraperResponseImpl
   setStatus(
   	int	s )
   {
+	last_status_set_time = (int)(SystemTime.getCurrentTime()/1000);
+	  
   	status	= s;
   }
   
@@ -126,10 +133,14 @@ TRTrackerScraperResponseImpl
   setStatus(
 	String	str )
   {
+	  last_status_set_time = (int)(SystemTime.getCurrentTime()/1000);
+	  
 	  sStatus	= str;
   }
   
   public void setStatus(int iNewStatus, String sNewStatus) {
+    last_status_set_time = (int)(SystemTime.getCurrentTime()/1000);
+
     if (last_status != status && iNewStatus != status)
       last_status = status;
     if (iNewStatus == TRTrackerScraperResponse.ST_ONLINE) {
@@ -150,6 +161,12 @@ TRTrackerScraperResponseImpl
   public void revertStatus() {
     status = last_status;
     sStatus = sLastStatus;
+  }
+  
+  public int
+  getScrapeTime()
+  {
+	  return( last_status_set_time );
   }
   
   public void 

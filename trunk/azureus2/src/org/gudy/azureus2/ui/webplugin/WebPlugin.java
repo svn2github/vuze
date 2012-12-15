@@ -41,12 +41,11 @@ import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.*;
 
 import com.aelitis.azureus.core.pairing.PairedService;
+import com.aelitis.azureus.core.pairing.PairedServiceRequestHandler;
 import com.aelitis.azureus.core.pairing.PairingConnectionData;
 import com.aelitis.azureus.core.pairing.PairingManager;
 import com.aelitis.azureus.core.pairing.PairingManagerFactory;
 import com.aelitis.azureus.core.pairing.PairingManagerListener;
-import com.aelitis.azureus.core.pairing.PairingTest;
-import com.aelitis.azureus.core.pairing.PairingTestListener;
 import com.aelitis.azureus.plugins.upnp.UPnPMapping;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
@@ -188,9 +187,7 @@ WebPlugin
 	private static final String	GRACE_PERIOD_MARKER	= "<grace_period>";
 	
 	private Map<String,Long>	logout_timer 		= new HashMap<String, Long>();
-	
-	private PairingManager	pairing_manager;
-	
+		
 	public 
 	WebPlugin()
 	{
@@ -1579,7 +1576,20 @@ WebPlugin
 				
 				log( "Adding pairing service" );
 				
-				service =  pm.addService( sid ); 
+				service =  
+					pm.addService( 
+						sid,
+						new PairedServiceRequestHandler()
+						{
+							public byte[] 
+							handleRequest(
+								InetAddress originator,
+								String		endpoint_url,
+								byte[] 		request) 
+							{
+								return( handleTunnelRequest( originator, endpoint_url, request ));
+							}
+						}); 
 				
 				PairingConnectionData cd = service.getConnectionData();
 
@@ -1771,10 +1781,228 @@ WebPlugin
 		return( false );
 	}
 	
+	private byte[]
+	handleTunnelRequest(
+		final InetAddress		originator,
+		final String			endpoint_url,
+		final byte[]			request_bytes )
+	{
+		TrackerWebPageRequest request = 
+			new TrackerWebPageRequest()
+			{
+				public Tracker
+				getTracker()
+				{
+					return( null );
+				}
+				
+				public String
+				getClientAddress()
+				{
+					return( originator.getHostAddress());
+				}
+				
+				public InetSocketAddress
+				getClientAddress2()
+				{
+					return( new InetSocketAddress( originator, 0 ));
+				}
+				
+				public InetSocketAddress
+				getLocalAddress()
+				{
+					return( new InetSocketAddress( "127.0.0.1", 0 ));
+				}
+				
+				public String
+				getUser()
+				{
+					return( null );
+				}
+				
+				public String
+				getURL()
+				{
+					return( endpoint_url );
+				}
+				
+				public String
+				getHeader()
+				{
+					return( "" );
+				}
+				
+				public Map 
+				getHeaders()
+				{
+					return( new HashMap());
+				}
+				
+				public InputStream
+				getInputStream()
+				{
+					return( new ByteArrayInputStream( request_bytes ));
+				}
+				
+				public URL
+				getAbsoluteURL()
+				{
+					try{
+						return( new URL( "http://127.0.0.1" + getURL()));
+						
+					}catch( Throwable e ){
+						
+						return( null );
+					}
+				}
+				
+				public TrackerWebContext
+				getContext()
+				{
+					return( null );
+				}
+			};
+		final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+		
+		TrackerWebPageResponse	response = 
+			new TrackerWebPageResponse()
+			{
+				public OutputStream
+				getOutputStream()
+				{
+					return( baos );
+				}
+				
+				public void
+				setReplyStatus(
+					int		status )
+				{					
+				}
+				
+				public void
+				setContentType(
+					String		type )
+				{					
+				}
+				
+				public void
+				setLastModified(
+					long		time )
+				{				
+				}
+				
+				public void
+				setExpires(
+					long		time )
+				{				
+				}
+				
+				public void
+				setHeader(
+					String		name,
+					String		value )
+				{				
+				}
+				
+				public void
+				setGZIP(
+					boolean		gzip )
+				{
+				}
+								
+				public boolean
+				useFile(
+					String		root_dir,
+					String		relative_url )
+				
+					throws IOException
+				{
+					Debug.out( "Not supported" );
+					
+					return( false );
+				}
+				
+				public void
+				useStream(
+					String		file_type,
+					InputStream	stream )
+				
+					throws IOException
+				{
+					Debug.out( "Not supported" );
+				}
+				
+				public void
+				writeTorrent(
+					TrackerTorrent	torrent )
+				
+					throws IOException
+				{
+					Debug.out( "Not supported" );
+				}
+				
+				public void
+				setAsynchronous(
+					boolean		async )
+				
+					throws IOException
+				{
+					Debug.out( "Not supported" );
+				}
+				
+				public boolean
+				getAsynchronous()
+				{
+					return( false );
+				}
+			};
+			
+		try{
+			if ( generate2( request, response, true )){
+			
+				return( baos.toByteArray());
+				
+			}else{
+			
+				Debug.out( "Tunnelled request not handled" );
+				
+				return( new byte[0] );
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( new byte[0] );
+		}
+	}
+	
 	public boolean
 	generate(
 		TrackerWebPageRequest		request,
 		TrackerWebPageResponse		response )
+	
+		throws IOException
+	{
+		String url = request.getURL();
+			
+		if ( url.startsWith( "/pairing/tunnel/" )){
+				
+			final PairingManager pm = PairingManagerFactory.getSingleton();
+
+			if ( pm.isEnabled()){
+					
+				return( pm.handleLocalTunnel( request, response ));
+			}
+		}
+		
+		return( generate2( request, response, false ));
+	}
+	
+	private boolean
+	generate2(
+		TrackerWebPageRequest		request,
+		TrackerWebPageResponse		response,
+		boolean						is_tunnel )
 	
 		throws IOException
 	{
@@ -1841,7 +2069,6 @@ WebPlugin
 		
 		String url = request.getURL();
 		
-	
 		if ( url.toString().endsWith(".class")){
 			
 			System.out.println( "WebPlugin::generate:" + url );
@@ -1967,6 +2194,11 @@ WebPlugin
 		if ( generateSupport( request, response )){
 			
 			return(true);
+		}
+		
+		if ( is_tunnel ){
+			
+			return( false );
 		}
 				
 		if ( url.equals("/") || url.startsWith( "/?" )){

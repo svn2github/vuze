@@ -56,7 +56,7 @@ Constants
    
   public static final String SPEED_TEST_SERVER		= "speedtest.vuze.com";
   
-  public static final String PAIRING_URL			= "http://pair.vuze.com/pairing";
+  public static final String PAIRING_URL			= "https://pair.vuze.com/pairing";
 
   
   public static final String[] AZUREUS_DOMAINS = { "azureusplatform.com", "azureus.com", "aelitis.com", "vuze.com" };

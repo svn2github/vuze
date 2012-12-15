@@ -34,8 +34,9 @@ CryptoManagerPasswordHandler
 	public static final int HANDLER_TYPE_SYSTEM		= 2;
 	public static final int HANDLER_TYPE_ALL		= 3;	// just for clearing passwords...
 	
-	public static final int ACTION_ENCRYPT			= 1;
-	public static final int	ACTION_DECRYPT			= 2;
+	public static final int ACTION_ENCRYPT				= 1;
+	public static final int	ACTION_DECRYPT				= 2;
+	public static final int	ACTION_PASSWORD_SET			= 3;
 	
 	public int
 	getHandlerType();
