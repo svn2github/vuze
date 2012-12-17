@@ -629,9 +629,29 @@ DownloadManagerImpl
 				 
 					// establish any file links
 				 DownloadManagerStateAttributeListener attr_listener = new DownloadManagerStateAttributeListener() {
+					 private boolean	links_changing;
 					 public void attributeEventOccurred(DownloadManager dm, String attribute_name, int event_type) {
 						 if (attribute_name.equals(DownloadManagerState.AT_FILE_LINKS)) {
-							 setFileLinks();
+					 			synchronized( this ){
+					 				
+					 				if ( links_changing ){
+					 										 					
+					 					return;
+					 				}
+					 				
+					 				links_changing = true;
+					 			}
+					 			
+					 			try{					 			
+					 				setFileLinks();
+					 				
+					 			}finally{
+					 				
+					 				synchronized( this ){
+					 					
+						 				links_changing = false;
+					 				}
+					 			}
 						 }
 						 else if (attribute_name.equals(DownloadManagerState.AT_PARAMETERS)) {
 							 readParameters();
