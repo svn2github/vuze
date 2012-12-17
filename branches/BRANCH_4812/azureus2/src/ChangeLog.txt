@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+2012.12.17 | Vuze 4.8.1.2
+
+BUGFIX: Core  | Removed the 'move do not download files to a subfolder' feature as it is misbehaving - see the 4813 beta series if you want to help test this [Parg]
+
 2012.12.14 | Vuze 4.8.1.0
 
 FEATURE: Blog | See http://devblog.vuze.com/tagged/4810 for beta version blog posts
