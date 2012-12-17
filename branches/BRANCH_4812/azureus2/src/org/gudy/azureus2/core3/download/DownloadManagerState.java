@@ -23,6 +23,7 @@
 package org.gudy.azureus2.core3.download;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.category.Category;
@@ -286,6 +287,11 @@ DownloadManagerState
 		File	link_source,
 		File	link_destination );
 
+	public void
+	setFileLinks(
+		List<File>	link_sources,
+		List<File>	link_destinations );
+	
 	public void
 	clearFileLinks();
 	

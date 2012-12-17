@@ -763,6 +763,13 @@ ConfigurationChecker
 	    	ConfigurationDefaults.getInstance().addParameter( SpeedManagerImpl.CONFIG_VERSION, 1 );	// 1 == classic, 2 == beta
 	    }
 	    
+	    if ( COConfigurationManager.getBooleanParameter( "Enable Subfolder for DND Files" )){
+	    	
+	    	COConfigurationManager.removeParameter( "Enable Subfolder for DND Files" );
+	    	
+	    	changed = true;
+	    }
+	    
 	    int check_level = COConfigurationManager.getIntParameter( "config.checker.level", 0 );
 	    
 	    if ( check_level < 1 ){

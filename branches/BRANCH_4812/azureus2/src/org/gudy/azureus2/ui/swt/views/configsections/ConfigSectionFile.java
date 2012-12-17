@@ -527,7 +527,7 @@ public class ConfigSectionFile
 
 				// put 'dnd' files in subdir
 			
-			
+			/*
 			sCurConfigID = "Enable Subfolder for DND Files";
 			allConfigIDs.add(sCurConfigID);
 
@@ -547,7 +547,7 @@ public class ConfigSectionFile
 			IAdditionalActionPerformer subfolderAP = new ChangeSelectionActionPerformer(
 					subfolder_name.getControls(), false);
 			enable_subfolder.setAdditionalActionPerformer(subfolderAP);
-			
+			*/
 			
 				// torrent create/delete ignore files 
 			

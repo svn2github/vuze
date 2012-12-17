@@ -1632,6 +1632,76 @@ DownloadManagerStateImpl
 	}
 	
 	public void
+	setFileLinks(
+		List<File>	link_sources,
+		List<File>	link_destinations )
+	{
+		CaseSensitiveFileMap	links = getFileLinks();
+		
+		boolean changed = false;
+		
+		for ( int i=0;i<link_sources.size();i++){
+			
+			File	link_source 		= link_sources.get(i);
+			File	link_destination 	= link_destinations.get(i);
+		
+			File	existing = (File)links.get(link_source);
+			
+			if ( link_destination == null ){
+				
+				if ( existing == null ){
+					
+					continue;
+				}
+			}else if ( existing != null && existing.equals( link_destination )){
+				
+				continue;
+			}
+			
+			links.put( link_source, link_destination );
+			
+			changed = true;
+		}
+		
+		if ( !changed ){
+			
+			return;
+		}
+		
+		List	list = new ArrayList();
+		
+		Iterator	it = links.keySetIterator();
+		
+		while( it.hasNext()){
+			
+			File	source = (File)it.next();
+			File	target = (File)links.get(source);
+			
+			String	str = source + "\n" + (target==null?"":target.toString());
+			
+			list.add( str );
+		}
+		
+		try{
+			synchronized( this ){
+				
+				file_cache_inhibit++;
+		
+				file_link_cache = null;		// ensure write-listeners get recent state
+			}
+			
+			setListAttribute( AT_FILE_LINKS, list );
+			
+		}finally{
+			
+			synchronized( this ){
+				
+				file_cache_inhibit--;
+			}
+		}
+	}
+	
+	public void
 	clearFileLinks()
 	{
 		CaseSensitiveFileMap	links = getFileLinks();
@@ -2689,6 +2759,14 @@ DownloadManagerStateImpl
 			File	link_destination )
 	    {
 	    }
+	    
+		public void
+		setFileLinks(
+			List<File>	link_sources,
+			List<File>	link_destinations )
+		{
+		}
+		
 		public void
 		clearFileLinks()
 		{
