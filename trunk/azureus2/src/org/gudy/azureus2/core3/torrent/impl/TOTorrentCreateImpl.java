@@ -189,52 +189,57 @@ TOTorrentCreateImpl
 					(int)_piece_length, 
 					progress_listeners.size()==0?null:this );
 		
-		if ( cancelled ){
-			
-			throw( new TOTorrentException( 	"TOTorrentCreate: operation cancelled",
-											TOTorrentException.RT_CANCELLED ));
-		}
-		
-		if ( getSimpleTorrent()){
-						
-			File link = linkage_map.get( _torrent_base.getName());
-			
-			if ( link != null ){
+		try{
+			if ( cancelled ){
 				
-				linked_tf_map.put( "0", link.getAbsolutePath());
+				throw( new TOTorrentException( 	"TOTorrentCreate: operation cancelled",
+												TOTorrentException.RT_CANCELLED ));
 			}
 			
-			long length = file_hasher.add( link==null?_torrent_base:link );
-		
-			setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, 0, length, new byte[][]{ getName()})});
+			if ( getSimpleTorrent()){
+							
+				File link = linkage_map.get( _torrent_base.getName());
+				
+				if ( link != null ){
+					
+					linked_tf_map.put( "0", link.getAbsolutePath());
+				}
+				
+				long length = file_hasher.add( link==null?_torrent_base:link );
 			
+				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, 0, length, new byte[][]{ getName()})});
+				
+				setPieces( file_hasher.getPieces());
+	
+			}else{
+			
+				List<TOTorrentFileImpl>	encoded = new ArrayList<TOTorrentFileImpl>();
+			
+				processDir( file_hasher, _torrent_base, encoded, _torrent_base.getName(), "" );
+			
+				TOTorrentFileImpl[] files = new TOTorrentFileImpl[ encoded.size()];
+			
+				encoded.toArray( files );
+			
+				setFiles( files );
+			}
+											 
 			setPieces( file_hasher.getPieces());
-
-		}else{
-		
-			List<TOTorrentFileImpl>	encoded = new ArrayList<TOTorrentFileImpl>();
-		
-			processDir( file_hasher, _torrent_base, encoded, _torrent_base.getName(), "" );
-		
-			TOTorrentFileImpl[] files = new TOTorrentFileImpl[ encoded.size()];
-		
-			encoded.toArray( files );
-		
-			setFiles( files );
-		}
-										 
-		setPieces( file_hasher.getPieces());
-		
-		if ( add_other_hashes ){
 			
-			byte[]	sha1_digest = file_hasher.getSHA1Digest();
-			byte[]	ed2k_digest = file_hasher.getED2KDigest();
+			if ( add_other_hashes ){
+				
+				byte[]	sha1_digest = file_hasher.getSHA1Digest();
+				byte[]	ed2k_digest = file_hasher.getED2KDigest();
+				
+				addAdditionalInfoProperty( "sha1", sha1_digest );
+				addAdditionalInfoProperty( "ed2k", ed2k_digest );
+				
+				//System.out.println( "overall:sha1 = " + ByteFormatter.nicePrint( sha1_digest, true));
+				//System.out.println( "overall:ed2k = " + ByteFormatter.nicePrint( ed2k_digest, true));
+			}
+		}finally{
 			
-			addAdditionalInfoProperty( "sha1", sha1_digest );
-			addAdditionalInfoProperty( "ed2k", ed2k_digest );
-			
-			//System.out.println( "overall:sha1 = " + ByteFormatter.nicePrint( sha1_digest, true));
-			//System.out.println( "overall:ed2k = " + ByteFormatter.nicePrint( ed2k_digest, true));
+			file_hasher = null;
 		}
 	}
 	
