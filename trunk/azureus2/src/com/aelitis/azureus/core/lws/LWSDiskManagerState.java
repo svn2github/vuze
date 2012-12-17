@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.lws;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.category.Category;
@@ -356,6 +357,13 @@ LWSDiskManagerState
 	setFileLink(
 		File	link_source,
 		File	link_destination )
+    {
+    }
+    
+    public void
+	setFileLinks(
+		List<File>	link_sources,
+		List<File>	link_destinations )
     {
     }
     

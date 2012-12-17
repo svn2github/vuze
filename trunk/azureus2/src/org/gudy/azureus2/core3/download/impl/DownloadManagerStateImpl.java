@@ -26,7 +26,6 @@ import java.io.*;
 import java.lang.ref.WeakReference;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 
@@ -37,7 +36,6 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFactory;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.*;
-import org.gudy.azureus2.core3.ipfilter.IpFilterManager;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -1632,6 +1630,76 @@ DownloadManagerStateImpl
 	}
 	
 	public void
+	setFileLinks(
+		List<File>	link_sources,
+		List<File>	link_destinations )
+	{
+		CaseSensitiveFileMap	links = getFileLinks();
+		
+		boolean changed = false;
+		
+		for ( int i=0;i<link_sources.size();i++){
+			
+			File	link_source 		= link_sources.get(i);
+			File	link_destination 	= link_destinations.get(i);
+		
+			File	existing = (File)links.get(link_source);
+			
+			if ( link_destination == null ){
+				
+				if ( existing == null ){
+					
+					continue;
+				}
+			}else if ( existing != null && existing.equals( link_destination )){
+				
+				continue;
+			}
+			
+			links.put( link_source, link_destination );
+			
+			changed = true;
+		}
+		
+		if ( !changed ){
+			
+			return;
+		}
+		
+		List	list = new ArrayList();
+		
+		Iterator	it = links.keySetIterator();
+		
+		while( it.hasNext()){
+			
+			File	source = (File)it.next();
+			File	target = (File)links.get(source);
+			
+			String	str = source + "\n" + (target==null?"":target.toString());
+			
+			list.add( str );
+		}
+		
+		try{
+			synchronized( this ){
+				
+				file_cache_inhibit++;
+		
+				file_link_cache = null;		// ensure write-listeners get recent state
+			}
+			
+			setListAttribute( AT_FILE_LINKS, list );
+			
+		}finally{
+			
+			synchronized( this ){
+				
+				file_cache_inhibit--;
+			}
+		}
+	}
+	
+	public void
 	clearFileLinks()
 	{
 		CaseSensitiveFileMap	links = getFileLinks();
@@ -2097,7 +2165,7 @@ DownloadManagerStateImpl
 		if ( changed ){
 			
 			write_required	= true;
-			
+		
 			informWritten( attribute_name );
 		}
 	}
@@ -2689,6 +2757,14 @@ DownloadManagerStateImpl
 			File	link_destination )
 	    {
 	    }
+	    
+	    public void
+		setFileLinks(
+			List<File>	link_sources,
+			List<File>	link_destinations )
+	    {
+	    }
+	    
 		public void
 		clearFileLinks()
 		{

@@ -2964,7 +2964,10 @@ public class GlobalManagerImpl
 	
 									try{
 										state.suppressStateSave(true);
-																		
+											
+										List<File>	from_links 	= new ArrayList<File>();
+										List<File>	to_links 	= new ArrayList<File>();
+										
 										for ( int i=0; i<fileInfos.length; i++ ){
 											
 											DiskManagerFileInfo fileInfo = fileInfos[i];
@@ -2990,8 +2993,15 @@ public class GlobalManagerImpl
 													new_link = new File( existing_link.getParentFile(), existing_link.getName() + ext );
 												}
 												
-												state.setFileLink( base_file,new_link );
+												from_links.add( base_file );
+												
+												to_links.add( new_link );
 											}
+										}
+										
+										if ( from_links.size() > 0 ){
+											
+											state.setFileLinks( from_links, to_links );
 										}
 									}finally{
 										

@@ -483,10 +483,18 @@ DiskManagerUtil
 					
 					DiskManagerImpl.storeFilePriorities( download_manager, res);
 
+					List<File>	from_links 	= new ArrayList<File>();
+					List<File>	to_links	= new ArrayList<File>();
+					
 					for(int i=0;i<res.length;i++){
 						if ( to_link[i] != null ){
-							download_manager.getDownloadState().setFileLink( res[i].getFile( false ), to_link[i] );
+							from_links.add( res[i].getFile( false ));
+							to_links.add( to_link[i] );
 						}
+					}
+					
+					if ( from_links.size() > 0 ){
+						download_manager.getDownloadState().setFileLinks( from_links, to_links );
 					}
 					
 					if(!setSkipped){

@@ -628,13 +628,44 @@ DownloadManagerImpl
 				 readParameters();
 				 
 					// establish any file links
-				 DownloadManagerStateAttributeListener attr_listener = new DownloadManagerStateAttributeListener() {
-					 public void attributeEventOccurred(DownloadManager dm, String attribute_name, int event_type) {
-						 if (attribute_name.equals(DownloadManagerState.AT_FILE_LINKS)) {
-							 setFileLinks();
-						 }
-						 else if (attribute_name.equals(DownloadManagerState.AT_PARAMETERS)) {
-							 readParameters();
+				 
+				 DownloadManagerStateAttributeListener attr_listener = 
+					 new DownloadManagerStateAttributeListener() 
+				 	 {
+					 	private boolean	links_changing;
+					 	
+					 	public void 
+					 	attributeEventOccurred(
+							DownloadManager dm, String attribute_name, int event_type) 
+					 	{
+					 		if (attribute_name.equals(DownloadManagerState.AT_FILE_LINKS)){
+					 			
+					 			synchronized( this ){
+					 				
+					 				if ( links_changing ){
+					 					
+					 					System.out.println( "recursive!" );
+					 					
+					 					return;
+					 				}
+					 				
+					 				links_changing = true;
+					 			}
+					 			
+					 			try{
+					 			
+					 				setFileLinks();
+					 				
+					 			}finally{
+					 				
+					 				synchronized( this ){
+					 					
+						 				links_changing = false;
+					 				}
+					 			}
+					 		}else if (attribute_name.equals(DownloadManagerState.AT_PARAMETERS)){
+					 			
+					 			readParameters();
 						 }
 					 }
 				 };
@@ -1259,7 +1290,7 @@ DownloadManagerImpl
 		download_manager_state.clearFileLinks();
 	}
 	
-	protected void updateFileLinks(File old_save_path, File new_save_path) {
+	private void updateFileLinks(File old_save_path, File new_save_path) {
 		try {old_save_path = old_save_path.getCanonicalFile();}
 		catch (IOException ioe) {old_save_path = old_save_path.getAbsoluteFile();}
 		try {new_save_path = new_save_path.getCanonicalFile();}
@@ -1271,6 +1302,9 @@ DownloadManagerImpl
 		CaseSensitiveFileMap links = download_manager_state.getFileLinks();
 		Iterator it = links.keySetIterator();
 		
+		List<File>	from_links 	= new ArrayList<File>();
+		List<File>	to_links	= new ArrayList<File>();
+		
 		while(it.hasNext()){
 			File	from 	= (File)it.next();
 			File	to		= (File)links.get(from);
@@ -1278,11 +1312,16 @@ DownloadManagerImpl
 			String  to_s    = (to == null) ? null : to.getAbsolutePath();
 		
 			try {
-				updateFileLink(old_path, new_path, from_s, to_s);
+				updateFileLink(old_path, new_path, from_s, to_s, from_links, to_links );
 			}
 			catch (Exception e) {
 				Debug.printStackTrace(e);
 			}
+		}
+		
+		if ( from_links.size() > 0 ){
+			
+			download_manager_state.setFileLinks( from_links, to_links );
 		}
 	}
 	
@@ -1293,20 +1332,29 @@ DownloadManagerImpl
 	// We have to update from_loc and to_loc.
 	// We should always be modifying from_loc. Only modify to_loc if it sits within
 	// the old path.
-	protected void updateFileLink(String old_path, String new_path, String from_loc, String to_loc) {
+	private void 
+	updateFileLink(
+		String old_path, String new_path, String from_loc, String to_loc, List<File> from_links, List<File> to_links ){
 		
 		if (to_loc == null) return;
 	
 		if (this.torrent.isSimpleTorrent()) {
 			if (!old_path.equals(from_loc)) {throw new RuntimeException("assert failure: old_path=" + old_path + ", from_loc=" + from_loc);}
-			download_manager_state.setFileLink(new File(old_path), null );
+			
+			from_links.add( new File(old_path));
+			to_links.add( null );
+			
 				// in general links on simple torrents aren't used, instead the download's save-path is switched to the
 				// alternate location (only a single file after all this is simplest implementation). Unfortunately links can
 				// actually still be set (e.g. to add an 'incomplete' suffix to a file) so we still need to support link-rewriting
 				// properly
 			String to_loc_to_use = FileUtil.translateMoveFilePath(old_path, new_path, to_loc);
+			
 			if ( to_loc_to_use == null ){ to_loc_to_use = new_path; }
-			download_manager_state.setFileLink(new File(new_path), new File(to_loc_to_use)); // Or should the second bit be null?
+			
+			from_links.add(new File(new_path));
+			to_links.add( new File(to_loc_to_use));
+			
 			return;
 		}
 			
@@ -1316,88 +1364,12 @@ DownloadManagerImpl
 		String to_loc_to_use = FileUtil.translateMoveFilePath(old_path, new_path, to_loc);
 		if (to_loc_to_use == null) {to_loc_to_use = to_loc;}
 		
-		download_manager_state.setFileLink(new File(from_loc), null);
-		download_manager_state.setFileLink(new File(from_loc_to_use), new File(to_loc_to_use));
+		from_links.add(new File(from_loc));
+		to_links.add( null );
 		
+		from_links.add( new File(from_loc_to_use));
+		to_links.add( new File(to_loc_to_use));		
 	}
-	
-	// Superceded by updateFileLinks(String, String).
-	/*
-	protected void
-	updateFileLinks(
-		String		_old_dir,
-		String		_new_dir,
-		File		_old_save_dir )
-	{
-		try{
-			String	old_dir 		= new File( _old_dir ).getCanonicalPath();
-			String	new_dir 		= new File( _new_dir ).getCanonicalPath();
-			String	old_save_dir 	= _old_save_dir.getCanonicalPath();
-			
-			CaseSensitiveFileMap	links = download_manager_state.getFileLinks();
-			Iterator	it = links.keySetIterator();
-			
-			while( it.hasNext()){
-				
-				File	from 	= (File)it.next();
-				File	to		= (File)links.get(from);
-				
-				if ( to == null ){
-					
-					continue;
-					
-				}
-				
-				String	from_str = from.getCanonicalPath();
-				
-				if ( from_str.startsWith( old_save_dir )){
-					
-					String	new_from_str;
-					
-					String	from_suffix = from_str.substring( old_dir.length());
-					
-					if ( from_suffix.startsWith( File.separator )){
-						
-						new_from_str = new_dir + from_suffix;
-						
-					}else{
-						
-						new_from_str = new_dir + File.separator + from_suffix;
-					}
-					
-					String	to_str = to.getCanonicalPath();
-
-					if ( to_str.startsWith( old_save_dir )){
-
-						String	new_to_str;
-						
-						String	to_suffix = to_str.substring( old_dir.length());
-						
-						if ( to_suffix.startsWith( File.separator )){
-							
-							new_to_str = new_dir + to_suffix;
-							
-						}else{
-							
-							new_to_str = new_dir + File.separator + to_suffix;
-						}
-						
-						to	= new File( new_to_str );
-					}
-					
-					// System.out.println( "Updating file link:" + from + "->" + to + ":" + new_from_str );
-					
-					download_manager_state.setFileLink( from, null );
-					download_manager_state.setFileLink( new File( new_from_str), to ); 
-				}
-			}
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
-		}
-	}
-	*/
 	
 	/**
 	 * @deprecated
