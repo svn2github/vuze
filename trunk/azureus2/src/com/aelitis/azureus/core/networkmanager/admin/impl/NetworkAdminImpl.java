@@ -760,13 +760,21 @@ addressLoop:
 		changed = !Arrays.equals(currentBindIPs, addrs);
 		if(changed){
 			currentBindIPs = addrs;
-			if (!first_time)
-			{
+			if (!first_time){
+			
 				String logmsg = "NetworkAdmin: default bind ip has changed to '";
 				for(int i=0;i<addrs.length;i++)
 					logmsg+=(addrs[i] == null ? "none" : addrs[i].getHostAddress()) + (i<addrs.length? ";" : "");
 				logmsg+="'";
 				Logger.log(new LogEvent(LOGID, logmsg));
+				
+					// if the user has removed a previous bind enforcement then re-activate the maybe-vpn
+					// logic as they may be switching VPN
+				
+				if ( bind_ip.length() == 0 ){
+					
+					clearMaybeVPNs();
+				}
 			}
 			firePropertyChange(NetworkAdmin.PR_DEFAULT_BIND_ADDRESS);
 		}
