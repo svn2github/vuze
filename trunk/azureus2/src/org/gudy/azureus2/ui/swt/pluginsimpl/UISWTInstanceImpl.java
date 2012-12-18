@@ -218,6 +218,18 @@ UISWTInstanceImpl
 								mb.setDefaultButtonUsingStyle( def );
 							}
 							
+							if ( params.length >= 6 ){
+								
+								String	rememberID 			= (String)params[3];
+								Boolean	rememberByDefault 	= (Boolean)params[4];
+								String	rememberText		= (String)params[5];
+								
+								if ( rememberID != null && rememberByDefault != null && rememberText != null ){
+								
+									mb.setRemember( rememberID, rememberByDefault, rememberText );
+								}
+							}
+							
 							mb.open(null);
 							
 							int _r = mb.waitUntilClosed();

@@ -619,11 +619,32 @@ UIManagerImpl
 		String		message_resource,
 		long		message_map )
 	{
+		return( showMessageBox( title_resource, message_resource, message_map, new Object[0] ));
+	}
+	
+	public long
+	showMessageBox(
+		String		title_resource,
+		String		message_resource,
+		long		message_map,
+		Object[]	params )
+	{
+		Object[]	all_params = new Object[3+params.length];
+		
+		all_params[0]	= title_resource;
+		all_params[1]	= message_resource;
+		all_params[2]	= new Long( message_map );
+		
+		for ( int i=0;i<params.length;i++){
+			
+			all_params[i+3] = params[i];
+		}
+		
 		UIManagerEventAdapter event = 
 			new UIManagerEventAdapter(
 					pi,
 					UIManagerEvent.ET_SHOW_MSG_BOX, 
-					new Object[]{ title_resource, message_resource, new Long( message_map ) });
+					all_params );
 		
 		if (!fireEvent( event )){
 			

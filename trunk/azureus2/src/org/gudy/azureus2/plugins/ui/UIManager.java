@@ -146,6 +146,21 @@ UIManager
 		String					title_resource,
 		String					message_resource,
 		long					message_map );
+	/**
+	 * @param title_resource
+	 * @param message
+	 * @param message_map - see UIManagerEvent.MT_x
+	 * @param params - [ remember-id (String), remember-by-default (Boolean), remember-resource (String) ]
+	 * @return selected value
+	 * @since 4.8.1.3
+	 */
+	
+	public long
+	showMessageBox(
+		String					title_resource,
+		String					message_resource,
+		long					message_map,
+		Object[]				params );
 	
 		/**
 		 * @since 2.3.0.6
