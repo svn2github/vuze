@@ -26,6 +26,7 @@ import java.net.InetAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.HashWrapper;
@@ -307,6 +308,9 @@ public class AZHandshake implements AZMessage {
     Long ulOnly = (Long)root.get("upload_only");
     boolean uploadOnly = ulOnly != null && ulOnly.longValue() > 0L ? true : false;
 
+    if ( name.equals( Constants.AZUREUS_PROTOCOL_NAME_PRE_4813 )){
+    	name = Constants.AZUREUS_PROTOCOL_NAME;
+    }
     return new AZHandshake( id, session == null ? null : new HashWrapper(session),reconnect == null ? null : new HashWrapper(reconnect), name, client_version, tcp_lport.intValue(), udp_lport.intValue(), udp2_lport.intValue(), ipv6, md_size, ids, vers, h_type.intValue(), version , uploadOnly);
   }
   

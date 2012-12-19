@@ -1060,7 +1060,7 @@ implements PEPeerTransport
 	}
 
 	private void sendLTHandshake() {
-		String client_name = Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION;
+		String client_name = Constants.AZUREUS_PROTOCOL_NAME + " " + Constants.AZUREUS_VERSION;
 		int localTcpPort = TCPNetworkManager.getSingleton().getTCPListeningPortNumber();
 		String tcpPortOverride = COConfigurationManager.getStringParameter("TCP.Listen.Port.Override");
 		try
@@ -1142,11 +1142,29 @@ implements PEPeerTransport
 			defaultV6 = na.hasIPV6Potential(true) ? na.getDefaultPublicAddressV6() : null;
 		}
 		
+		String peer_name = Constants.AZUREUS_PROTOCOL_NAME;
+		
+		if (	peer_id[0] == '-' && 
+				peer_id[1] == 'A' &&
+				peer_id[2] == 'Z' &&
+				peer_id[7] == '-' ){
+		
+			try{
+				int version = Integer.parseInt( new String( peer_id, 3, 4 ));
+				
+				if ( version < 4813 ){
+					
+					peer_name = Constants.AZUREUS_PROTOCOL_NAME_PRE_4813;
+				}
+			}catch( Throwable e ){
+			}
+		}
+		
 		AZHandshake az_handshake = new AZHandshake(
 				AZPeerIdentityManager.getAZPeerIdentity(),
 				mySessionID,
 				peerSessionID,
-				Constants.AZUREUS_NAME,
+				peer_name,
 				Constants.AZUREUS_VERSION,
 				local_tcp_port,
 				local_udp_port,

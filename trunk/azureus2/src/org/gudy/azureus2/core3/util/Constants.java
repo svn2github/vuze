@@ -118,7 +118,9 @@ Constants
     //      2.0.8.3_Bnn       // incremental build
   
   public static String APP_NAME = "Vuze";
-  public static final String AZUREUS_NAME	  = "Azureus";
+  public static final String AZUREUS_NAME	  					= "Azureus";
+  public static final String AZUREUS_PROTOCOL_NAME_PRE_4813	  	= "Azureus";
+  public static final String AZUREUS_PROTOCOL_NAME	  			= "Vuze";
   public static final String AZUREUS_VERSION  = "4.8.1.3_CVS";
   public static final String BUILD_VERSION  = "@build.version@";   //Ant replace
   public static final String AZUREUS_SUBVER	  = "";

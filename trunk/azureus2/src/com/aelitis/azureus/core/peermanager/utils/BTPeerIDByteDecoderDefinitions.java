@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.peermanager.utils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 
 public class BTPeerIDByteDecoderDefinitions {
 
@@ -228,7 +229,7 @@ public class BTPeerIDByteDecoderDefinitions {
 	 */
 	static {
 		// We define ourselves first... :)
-		addAzStyle("AZ", "Azureus", VER_AZ_FOUR_DIGITS);
+		addAzStyle("AZ", Constants.AZUREUS_PROTOCOL_NAME, VER_AZ_FOUR_DIGITS);
 		
 		// ... and then do everything else alphabetically.
 		addAzStyle("A~", "Ares", VER_AZ_THREE_DIGITS);
