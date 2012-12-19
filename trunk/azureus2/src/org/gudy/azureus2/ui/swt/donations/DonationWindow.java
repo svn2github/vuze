@@ -176,14 +176,9 @@ public class DonationWindow
 		shell.addTraverseListener(new TraverseListener() {
 			public void keyTraversed(TraverseEvent e) {
 				if (e.detail == SWT.TRAVERSE_ESCAPE) {
+					shell.dispose();
 					e.doit = false;
 				}
-			}
-		});
-		
-		shell.addShellListener(new ShellAdapter() {
-			public void shellClosed(ShellEvent e) {
-				e.doit = false;
 			}
 		});
 		
