@@ -82,10 +82,13 @@ public class ColumnTC_Sample
 				return;
 			}
 			Object ds = sampleRow.getDataSource(true);
-			sampleCell = new FakeTableCell(column, ds);
-
-			Rectangle bounds = ((TableCellSWT)parentCell).getBounds();
-			sampleCell.setControl(c, bounds, false);
+			Object pds = sampleRow.getDataSource(false);
+			if (column.handlesDataSourceType(pds.getClass())) {
+  			sampleCell = new FakeTableCell(column, ds);
+  
+  			Rectangle bounds = ((TableCellSWT)parentCell).getBounds();
+  			sampleCell.setControl(c, bounds, false);
+			}
 		}
 		
 		public void dispose(TableCell cell) {
@@ -100,6 +103,7 @@ public class ColumnTC_Sample
 			Rectangle bounds = cell.getBounds();
 			sampleCell.setCellArea(bounds);
 			try {
+				sampleCell.refresh();
 				sampleCell.doPaint(gc);
 			} catch (Throwable e) {
 				Debug.out(e);
