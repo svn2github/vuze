@@ -467,7 +467,7 @@ public class BTPeerIDByteDecoder {
 		assertDecode("Ares 2.0.5.3", "-AG2053-Em6o1EmvwLtD");
 		assertDecode("Ares 1.6.7.0", "-AR1670-3Ql6wM3hgtCc");
 		assertDecode("Artemis 2.5.2.0", "-AT2520-vEEt0wO6v0cr");
-		assertDecode("Azureus 2.2.0.0", "-AZ2200-6wfG2wk6wWLc");
+		assertDecode("Vuze 2.2.0.0", "-AZ2200-6wfG2wk6wWLc");
 		assertDecode("BT Next Evolution 1.0.9", "-NE1090002IKyMn4g7Ko");
 		assertDecode("BitRocket 0.3(32)", "-BR0332-!XVceSn(*KIl");
 		assertDecode("Mainline 6.0 Beta", "2D555436 3030422D A78DC290 C3F7BDE0 15EC3CC7");
