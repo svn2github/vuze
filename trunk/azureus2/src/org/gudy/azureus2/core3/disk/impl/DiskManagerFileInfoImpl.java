@@ -372,26 +372,13 @@ DiskManagerFileInfoImpl
 
 		DownloadManager dm = getDownloadManager();
 		
-		if ( dm != null && dm.isPersistent() && !torrent_file.getTorrent().isSimpleTorrent() && !dm.isDestroyed()){
+		if ( dm != null && !dm.isDestroyed()){
 
 			DownloadManagerState dm_state =  diskManager.getDownloadState();
 
     		String dnd_sf = dm_state.getAttribute( DownloadManagerState.AT_DND_SUBFOLDER );
     		
-    		if ( dnd_sf == null ){
-    			
-    			if ( DiskManagerUtil.dnd_subfolder_enable && torrent_file.getTorrent().getFiles().length <= DownloadManagerState.MAX_FILES_FOR_INCOMPLETE_AND_DND_LINKAGE ){
-    				
-    				dnd_sf = DiskManagerUtil.dnd_subfolder;
-    				
-    				if ( dnd_sf != null ){
-    					
-    					dm_state.setAttribute( DownloadManagerState.AT_DND_SUBFOLDER, dnd_sf );
-    				}
-    			}
-    		}
-    		
-    		if ( dnd_sf != null ){
+     		if ( dnd_sf != null ){
     			
     			File	link = getLink();
     			

@@ -246,6 +246,47 @@ DownloadManagerImpl
 
 	private static Object TPS_Key = new Object();
 	
+	public static volatile String	dnd_subfolder;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{ "Enable Subfolder for DND Files", "Subfolder for DND Files" },
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameterName) 
+				{
+					boolean enable  = COConfigurationManager.getBooleanParameter( "Enable Subfolder for DND Files" );
+				
+					if ( enable ){
+						
+						String folder = COConfigurationManager.getStringParameter( "Subfolder for DND Files" ).trim();
+						
+						if ( folder.length() > 0 ){
+							
+							folder = FileUtil.convertOSSpecificChars( folder, true ).trim();
+						}
+						
+						if ( folder.length() > 0 ){
+							
+							dnd_subfolder = folder;
+							
+						}else{
+						
+							dnd_subfolder = null;
+						}
+					}else{
+						
+						dnd_subfolder = null;
+					}
+				}
+			});
+	}
+	
+
+	
+	
 	private ListenerManager<DownloadManagerPeerListener>	peer_listeners 	= ListenerManager.createManager(
 			"DM:PeerListenDispatcher",
 			new ListenerManagerDispatcher<DownloadManagerPeerListener>()
@@ -880,6 +921,24 @@ DownloadManagerImpl
 				 		
 				 		download_manager_state.clearResumeData();
 				 	}
+				 	
+				 		// set up the dnd-subfolder status on addition
+				 	
+				 	if ( persistent && !for_seeding && !torrent.isSimpleTorrent()){
+				 		
+				 		String dnd_sf = dnd_subfolder;
+				 		
+				 		if ( dnd_sf != null ){
+
+				 			if ( torrent.getFiles().length <= DownloadManagerState.MAX_FILES_FOR_INCOMPLETE_AND_DND_LINKAGE ){
+            				
+				 				if ( download_manager_state.getAttribute( DownloadManagerState.AT_DND_SUBFOLDER ) == null ){
+				 					
+				 					download_manager_state.setAttribute( DownloadManagerState.AT_DND_SUBFOLDER, dnd_sf );
+				 				}
+            				}
+            			}
+            		}
 				 }else{
 					 
 					 long	add_time = download_manager_state.getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
