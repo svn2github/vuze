@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -47,6 +48,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
@@ -286,6 +288,9 @@ DeviceManagerImpl
 	private AESemaphore			init_sem = new AESemaphore( "dm:init" );
 	
 	private volatile boolean initialized = false;
+	
+	private Object		lsn_lock			= new Object();
+	private String		local_service_name;
 	
 	protected
 	DeviceManagerImpl()
@@ -542,6 +547,41 @@ DeviceManagerImpl
 	getUPnPManager()
 	{
 		return( upnp_manager );
+	}
+	
+	public String 
+	getLocalServiceName() 
+	{
+		synchronized( lsn_lock ){
+			
+			if ( local_service_name == null ){
+				
+					// try to use the media server's name
+				
+				try{
+					local_service_name = (String)getUPnPManager().getUPnPAVIPC().invoke( "getServiceName", new Object[]{});
+									
+				}catch( Throwable e ){
+				}
+				
+				if ( local_service_name == null ){
+					
+					local_service_name = Constants.APP_NAME;
+					
+					try{
+						String cn = PlatformManagerFactory.getPlatformManager().getComputerName();
+						
+						if ( cn != null && cn.length() > 0 ){
+						
+							local_service_name += " on " + cn;
+						}
+					}catch( Throwable e ){
+					}
+				}
+			}
+			
+			return( local_service_name );
+		}
 	}
 	
 	public boolean

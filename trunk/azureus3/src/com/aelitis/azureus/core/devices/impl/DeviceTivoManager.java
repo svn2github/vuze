@@ -63,7 +63,6 @@ DeviceTivoManager
 	
 	private boolean	is_enabled;
 	private String	uid;
-	private String	server_name	= "Vuze";
 	
 	private Searcher	current_search;
 	
@@ -101,26 +100,6 @@ DeviceTivoManager
 			uid = Base32.encode( bytes );
 			
 			COConfigurationManager.setParameter( "devices.tivo.uid", uid );
-		}
-				
-			// set up default server name
-		
-		try{
-			String cn = PlatformManagerFactory.getPlatformManager().getComputerName();
-			
-			if ( cn != null && cn.length() > 0 ){
-			
-				server_name += " on " + cn;
-			}
-		}catch( Throwable e ){
-		}
-
-			// try to use the media server's name
-		
-		try{
-			server_name = (String)device_manager.getUPnPManager().getUPnPAVIPC().invoke( "getServiceName", new Object[]{});
-							
-		}catch( Throwable e ){
 		}
 		
 		boolean	found_tivo = false;
@@ -213,7 +192,7 @@ DeviceTivoManager
 			"swversion=1" + LF +	
 			"method=" + (is_broadcast?"broadcast":"connected") + LF +
 			"identity=" + uid + LF +
-			"machine=" + server_name + LF +
+			"machine=" + device_manager.getLocalServiceName() + LF +
 			"platform=pc" + LF +
 			"services=TiVoMediaServer:" + my_port + "/http";
 
@@ -293,7 +272,9 @@ DeviceTivoManager
 		uid	= "tivo:" + uid;
 		
 		DeviceImpl[] devices = device_manager.getDevices();
-				
+		
+		String server_name = device_manager.getLocalServiceName();
+		
 		for ( DeviceImpl device: devices ){
 			
 			if ( device instanceof DeviceTivo ){

@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.devices.impl;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -35,6 +36,8 @@ DeviceContentDirectoryImpl
 	extends DeviceUPnPImpl
 	implements DeviceContentDirectory
 {
+	private UPnPService		upnp_service;
+	
 	protected
 	DeviceContentDirectoryImpl(
 		DeviceManagerImpl	_manager,
@@ -42,6 +45,8 @@ DeviceContentDirectoryImpl
 		UPnPService			_service )
 	{
 		super( _manager, _device, Device.DT_CONTENT_DIRECTORY );
+		
+		upnp_service = _service;
 	}
 	
 	protected
@@ -73,6 +78,28 @@ DeviceContentDirectoryImpl
 		
 		DeviceContentDirectoryImpl other = (DeviceContentDirectoryImpl)_other;
 				
+		if ( other.upnp_service != null ){
+			
+			upnp_service = other.upnp_service;
+		}
+		
 		return( true );
+	}
+	
+	public URL
+	getControlURL()
+	{
+		if ( upnp_service != null ){
+		
+			try{
+				return( upnp_service.getControlURL());
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
+		return( null );
 	}
 }

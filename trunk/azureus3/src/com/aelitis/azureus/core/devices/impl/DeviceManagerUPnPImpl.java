@@ -47,6 +47,7 @@ import com.aelitis.azureus.core.content.AzureusContentDownload;
 import com.aelitis.azureus.core.content.AzureusContentFile;
 import com.aelitis.azureus.core.content.AzureusContentFilter;
 import com.aelitis.azureus.core.devices.DeviceMediaRenderer;
+import com.aelitis.azureus.core.devices.TranscodeTarget;
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.util.UUIDGenerator;
 import com.aelitis.net.upnp.UPnP;
@@ -398,7 +399,9 @@ DeviceManagerUPnPImpl
 							String client_info 	= (String)headers.get( "x-av-client-info" );
 							
 							InetSocketAddress client_address = request.getClientAddress2();
-													
+								
+							DeviceMediaRenderer	explicit_renderer = null;
+							
 							boolean	handled = false;
 														
 							if ( user_agent != null ){
@@ -434,6 +437,12 @@ DeviceManagerUPnPImpl
 									
 									handlePS3( client_address );
 									
+									handled = true;
+									
+								}else if ( lc_info.contains( "azureus" ) || lc_info.contains( "vuze" )){
+									
+									explicit_renderer = handleVuzeMSBrowser( client_address, client_info );
+																		
 									handled = true;
 								}
 							}
@@ -476,6 +485,14 @@ DeviceManagerUPnPImpl
 								if ( device instanceof DeviceMediaRendererImpl ){
 								
 									DeviceMediaRendererImpl renderer = (DeviceMediaRendererImpl)device;
+									
+									if ( explicit_renderer != null ){
+										
+										if ( renderer != explicit_renderer ){
+											
+											continue;
+										}
+									}
 									
 									InetAddress device_address = renderer.getAddress();
 									
@@ -828,6 +845,47 @@ DeviceManagerUPnPImpl
 		InetSocketAddress	address )
 	{
 		handleGeneric( address, "browser", "Browser" );
+	}
+	
+	protected DeviceMediaRenderer
+	handleVuzeMSBrowser(
+		InetSocketAddress	address,
+		String				info )
+	{
+		String[] bits = info.split( ";" );
+		
+		String	client = "";
+		
+		for ( String bit: bits ){
+			
+			String[] temp = bit.split( "=" );
+			
+			if ( temp.length == 2 && temp[0].trim().equalsIgnoreCase( "mn")){
+				
+				client = temp[1].trim();
+				
+				if ( client.startsWith( "\"" )){
+					
+					client = client.substring(1);
+				}
+				
+				if ( client.endsWith( "\"" )){
+					
+					client = client.substring( 0, client.length()-1);
+				}
+			}
+		}
+		
+		if ( client.length() == 0 ){
+			
+			client = "Vuze on " + address.getAddress().getHostAddress();
+		}
+		
+		DeviceMediaRenderer result = handleGeneric( address, "vuze-ms-browser." + client, client );
+		
+		result.setTranscodeRequirement( TranscodeTarget.TRANSCODE_NEVER );
+		
+		return( result );
 	}
 	
 	protected DeviceMediaRenderer

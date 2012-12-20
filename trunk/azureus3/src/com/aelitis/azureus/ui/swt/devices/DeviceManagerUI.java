@@ -89,6 +89,11 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.net.upnpms.UPNPMSBrowser;
+import com.aelitis.net.upnpms.UPNPMSBrowserFactory;
+import com.aelitis.net.upnpms.UPNPMSContainer;
+import com.aelitis.net.upnpms.UPNPMSItem;
+import com.aelitis.net.upnpms.UPnPMSException;
 
 public class 
 DeviceManagerUI 
@@ -3417,7 +3422,7 @@ DeviceManagerUI
 
 				// update skin3_constants.properties!
 			
-			id = "mswmp";
+				id = "mswmp";
 				
 			}else if ( classification.toLowerCase().contains( "android")){
 
@@ -3427,6 +3432,10 @@ DeviceManagerUI
 
 				id = "neotv";
 
+			}else if ( classification.startsWith( "vuze-ms-browser.")){
+
+				id = "vuze";
+				
 			}else{
 				
 				if (device.isGenericUSB()) {
@@ -4183,7 +4192,7 @@ DeviceManagerUI
 	  }
 	}
 	
-	protected static class
+	protected class
 	deviceView
 		implements 	ViewTitleInfo, TranscodeTargetListener, UISWTViewEventListener
 	{
@@ -4229,19 +4238,179 @@ DeviceManagerUI
 			
 			composite.setLayout( layout );
 			
-			FormData data = new FormData();
-			
-			data.left 	= new FormAttachment(0,0);
-			data.right 	= new FormAttachment(100,0);
-			data.top 	= new FormAttachment(composite,0);
-			data.bottom = new FormAttachment(100,0);
+			if ( device instanceof DeviceContentDirectory ){
+				
+				Label  ms_label = new Label( composite, SWT.NULL );				
+				ms_label.setText( "Media Server: " + device.getName());
+				
+				Button refresh = new Button( composite, SWT.PUSH );				
+				refresh.setText( "Refresh" );
 
+				final Text   info = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
 
-			Label label = new Label( composite, SWT.NULL );
+				FormData data = new FormData();				
+				data.left 	= new FormAttachment(0,0);
+				data.bottom = new FormAttachment(info,-8);
+				ms_label.setLayoutData( data );
+				
+				
+				data = new FormData();
+				data.left 	= new FormAttachment(ms_label,4 );
+				data.top 	= new FormAttachment(composite,0);
+				refresh.setLayoutData( data );
+									
+
+				data = new FormData();				
+				data.left 	= new FormAttachment(0,0);
+				data.right 	= new FormAttachment(100,0);
+				data.top 	= new FormAttachment(refresh,4);
+				data.bottom = new FormAttachment(100,0);
+				info.setLayoutData( data );
+				
+				final Runnable do_refresh =
+					new Runnable()
+					{
+						public void
+						run()
+						{
+							info.setText( "" );
+							
+							DeviceContentDirectory cd = (DeviceContentDirectory)device;
+							
+							final URL endpoint = cd.getControlURL();
 			
-			label.setText( "Nothing to show for " + device.getName());
+							if ( endpoint == null ){
 			
-			label.setLayoutData( data );
+								info.append( "Media Server is offline" );
+								
+							}else{
+								
+								new AEThread2( "CD:populate" )
+								{
+									private StringBuffer buffer = new StringBuffer( 2048 );
+									
+									
+									public void
+									run()
+									{
+										try{
+											String client_name = device_manager.getLocalServiceName();
+											
+											UPNPMSBrowser browser = UPNPMSBrowserFactory.create( client_name, endpoint );
+											
+											print( browser.getRoot(), "" );
+																			
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+										}
+									}
+									
+									private void
+									print(
+										UPNPMSContainer		container,
+										String				indent )
+									
+										throws UPnPMSException
+									{
+										appendInfo( indent, container.getTitle());
+										
+										indent += "    ";
+										
+										List<UPNPMSContainer> kids = container.getContainers();
+										
+										for ( UPNPMSContainer kid: kids ){
+										
+											print( kid, indent );
+										}
+										
+										List<UPNPMSItem>	items = container.getItems();
+										
+										for ( UPNPMSItem item: items ){
+											
+											print( item, indent );
+										}
+										
+										updateInfo();
+									}
+									
+									private void
+									print(
+										UPNPMSItem			item,
+										String				indent )
+									{
+										appendInfo( indent, item.getTitle());
+									}
+									
+									private void
+									appendInfo(
+										String	indent,
+										String	line )
+									{
+										buffer.append( indent );
+										buffer.append( line );
+										buffer.append( "\r\n" );
+									}
+									
+									private void
+									updateInfo()
+									{
+										if ( info.isDisposed()){
+											
+											return;
+										}
+										
+										final StringBuffer temp = buffer;
+										
+										buffer = new StringBuffer( 2048 );
+										
+										Utils.execSWTThread(
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													if ( info.isDisposed()){
+														
+														return;
+													}
+													
+													info.append( temp.toString());
+												}
+											});
+									}
+								}.start();
+							}
+						}
+					};
+					
+				do_refresh.run();
+				
+				refresh.addListener(
+					SWT.Selection,
+					new Listener()
+					{
+						public void 
+						handleEvent(Event arg0) 
+						{
+							do_refresh.run();
+						}
+					});
+			}else{
+				
+				FormData data = new FormData();
+				
+				data.left 	= new FormAttachment(0,0);
+				data.right 	= new FormAttachment(100,0);
+				data.top 	= new FormAttachment(composite,0);
+				data.bottom = new FormAttachment(100,0);
+
+				Label label = new Label( composite, SWT.NULL );
+				
+				label.setText( "Nothing to show for " + device.getName());
+				
+				label.setLayoutData( data );
+			}
 		}
 		
 		public Composite 

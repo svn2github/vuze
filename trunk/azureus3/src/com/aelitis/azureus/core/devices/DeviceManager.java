@@ -112,6 +112,9 @@ DeviceManager
 	setDisableSleep(
 		boolean		b );
 	
+	public String
+	getLocalServiceName();
+	
 	public void
 	addDiscoveryListener(
 		DeviceManagerDiscoveryListener	listener );
