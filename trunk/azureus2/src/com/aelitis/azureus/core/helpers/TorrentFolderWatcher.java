@@ -45,9 +45,9 @@ public class TorrentFolderWatcher {
 
 	private final static String PARAMID_FOLDER = "Watch Torrent Folder";
 
-	private GlobalManager global_manager;
+	private volatile GlobalManager _global_manager;
 
-	private boolean running = false;
+	private volatile boolean running = false;
 
 	private final ArrayList to_delete = new ArrayList();
 
@@ -98,7 +98,7 @@ public class TorrentFolderWatcher {
 	 * @param global_manager
 	 */
 	public TorrentFolderWatcher(GlobalManager _global_manager) {
-		this.global_manager = _global_manager;
+		_global_manager = _global_manager;
 
 		if (COConfigurationManager.getBooleanParameter(PARAMID_FOLDER)) {
 			running = true;
@@ -115,7 +115,7 @@ public class TorrentFolderWatcher {
 	 */
 	public void destroy() {
 		running = false;
-		global_manager = null;
+		_global_manager = null;
 		COConfigurationManager.removeParameterListener(PARAMID_FOLDER,
 				param_listener);
 	}
@@ -125,9 +125,17 @@ public class TorrentFolderWatcher {
 		try {
 			this_mon.enter();
 
-			if (!running)
+			if (!running){
 				return;
-
+			}
+			
+			GlobalManager global_manager = _global_manager;
+			
+			if ( global_manager == null ){
+				
+				return;
+			}
+			
 			boolean save_torrents = COConfigurationManager
 					.getBooleanParameter("Save Torrent Files");
 
@@ -236,6 +244,11 @@ public class TorrentFolderWatcher {
 
 			for (int i = 0; i < currentFileList.length; i++) {
 
+				if ( !running ){
+					
+					return;
+				}
+				
 				File file = new File(folder, currentFileList[i]);
 
 				// make sure we've got a valid torrent file before proceeding
