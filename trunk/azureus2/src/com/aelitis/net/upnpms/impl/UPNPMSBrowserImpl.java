@@ -78,21 +78,24 @@ UPNPMSBrowserImpl
 			int	starting_index = 0;
 			
 			while( true ){
-								
-				String soap_action = "urn:schemas-upnp-org:service:ContentDirectory:1#Browse";
 				
+				String NL = "\r\n";
+				
+				String soap_action = "urn:schemas-upnp-org:service:ContentDirectory:1#Browse";
+
 				String request = 
-					"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" +
-					"<s:Body>" +
-					"<u:Browse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\">" +
-					"<ObjectID>" + id + "</ObjectID>" +
-					"<BrowseFlag>BrowseDirectChildren</BrowseFlag>" +
-					"<Filter>*</Filter>" +
-					"<StartingIndex>" + starting_index + "</StartingIndex>" +
-					"<RequestedCount>256</RequestedCount>" +
-					"<SortCriteria></SortCriteria>" +
-					"</u:Browse>" +
-					"</s:Body>" +
+					"<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + NL +
+					"<s:Envelope xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\" s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\">" + NL +
+					"<s:Body>" + NL +
+					"<u:Browse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\">" + NL +
+					"<ObjectID>" + id + "</ObjectID>" + NL +
+					"<BrowseFlag>BrowseDirectChildren</BrowseFlag>" + NL +
+					"<Filter>dc:date</Filter>" + NL +
+					"<StartingIndex>" + starting_index + "</StartingIndex>" + NL +
+					"<RequestedCount>256</RequestedCount>" + NL +
+					"<SortCriteria></SortCriteria>" + NL +
+					"</u:Browse>" + NL +
+					"</s:Body>" + NL +
 					"</s:Envelope>";
 				
 				SimpleXMLParserDocument doc = getXML( endpoint, soap_action, request );
@@ -149,9 +152,9 @@ UPNPMSBrowserImpl
 		ResourceDownloader rd = new ResourceDownloaderFactoryImpl().create( url, post_data );
 		
 		try{
-			rd.setProperty( "URL_SOAPAction", soap_action );
+			rd.setProperty( "URL_SOAPAction", "\"" + soap_action + "\"");
 			rd.setProperty( "URL_X-AV-Client-Info", "av=1.0; cn=\"Azureus Software, Inc.\"; mn=\"" + client_name + "\"; mv=\""+ Constants.AZUREUS_VERSION + "\"" );
-			
+			rd.setProperty( "URL_Content-Type", "text/xml; charset=\"utf-8\"" );
 					
 			SimpleXMLParserDocument  doc = SimpleXMLParserDocumentFactory.create( rd.download());
 
