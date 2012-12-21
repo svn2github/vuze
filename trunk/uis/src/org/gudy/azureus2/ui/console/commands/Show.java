@@ -21,6 +21,7 @@ import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.ListIterator;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -93,6 +94,7 @@ public class Show extends IConsoleCommand {
 		out.println("\t\tactive\t\ta\tShow only active torrents.");
 		out.println("\t\tcomplete\tc\tShow only complete torrents.");
 		out.println("\t\tincomplete\ti\tShow only incomplete torrents.");
+		out.println("\t\tdead [days]\td [days]Show only dead torrents (complete and not uploaded for [days] (default 7) uptime (NOT elapsed)).");
 		out.println("\te.g. show t a *Az* - shows all active torrents with 'Az' occurring in their name." );
 		out.println("> -----");
 	}
@@ -130,7 +132,9 @@ public class Show extends IConsoleCommand {
 			boolean bShowOnlyComplete = false;
 			boolean bShowOnlyIncomplete = false;
 			boolean bShowOnlyTransferring = false;
-			for (Iterator iter = args.iterator(); iter.hasNext();) {
+			int	bShowDeadForDays=0;
+			
+			for (ListIterator<String> iter = args.listIterator(); iter.hasNext();) {
 				String arg = (String) iter.next();
 				if ("active".equalsIgnoreCase(arg) || "a".equalsIgnoreCase(arg)) {
 					bShowOnlyActive = true;
@@ -145,6 +149,26 @@ public class Show extends IConsoleCommand {
 					bShowOnlyTransferring = true;
 					bShowOnlyActive = true;
 					iter.remove();
+				} else if ("dead".equalsIgnoreCase(arg) || "d".equalsIgnoreCase(arg)) {
+					
+					iter.remove();
+					
+					bShowDeadForDays = 7;	// default 1 week
+					
+					if ( iter.hasNext()){
+						
+						String days = iter.next();
+						
+						try{
+							bShowDeadForDays = Integer.parseInt(days);
+							
+							iter.remove();
+							
+						}catch( Throwable e ){
+							
+							iter.previous();
+						}
+					}
 				}
 				
 			}
@@ -182,6 +206,41 @@ public class Show extends IConsoleCommand {
 					catch (Exception e) {}
 				}
 
+				if ( bCanShow && bShowDeadForDays > 0 ){
+					
+					int dmstate = dm.getState();
+					
+					bCanShow = false;
+					
+					if ( 	dmstate == DownloadManager.STATE_SEEDING ||
+							( bDownloadCompleted && ( dmstate == DownloadManager.STATE_QUEUED || dmstate == DownloadManager.STATE_STOPPED ))){
+							
+						long seeding_secs = stats.getSecondsOnlySeeding();
+						
+						long seeding_days = seeding_secs/(24*60*60);
+
+						if ( seeding_days >= bShowDeadForDays ){
+							
+							int secs_since_last_up = stats.getTimeSinceLastDataSentInSeconds();
+							
+							if ( secs_since_last_up == -1 ){
+								
+									// never uploaded
+								
+								bCanShow = true;
+								
+							}else{
+								
+								int days_since_last_up = secs_since_last_up/(24*60*60);
+								
+								if ( days_since_last_up >= bShowDeadForDays ){
+									
+									bCanShow = true;
+								}
+							}
+						}
+					}
+				}
 				if (bCanShow) {
 					
 					shown_torrents.add( dm );
