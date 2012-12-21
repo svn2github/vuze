@@ -856,6 +856,9 @@ public class UrlUtils
 		URL		u,
 		int		port )
 	{
+		if ( port == -1 ){
+			port = u.getDefaultPort();
+		}
 		StringBuffer result = new StringBuffer();
 		result.append(u.getProtocol());
 		result.append(":");

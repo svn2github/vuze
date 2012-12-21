@@ -22,6 +22,7 @@
 package com.aelitis.net.upnpms.impl;
 
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 
 import com.aelitis.net.upnpms.*;
@@ -60,7 +61,17 @@ Test
 		String[]	args )
 	{
 		try{
-			UPNPMSBrowser browser = new UPNPMSBrowserImpl( "Vuze", new URL( "http://192.168.1.5:2659/" ));
+			UPNPMSBrowser browser = 
+				new UPNPMSBrowserImpl( 
+						"Vuze", 
+						Arrays.asList( new URL[]{ new URL( "http://192.168.1.5:2659/" )}),
+						new UPNPMSBrowserListener()
+						{
+							public void 
+							setPreferredURL(URL url) 
+							{
+							}
+						});
 			
 			UPNPMSContainer root = browser.getRoot();
 			

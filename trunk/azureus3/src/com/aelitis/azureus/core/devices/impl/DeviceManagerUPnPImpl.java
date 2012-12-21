@@ -780,7 +780,8 @@ DeviceManagerUPnPImpl
 			
 			String[] STs = {
 				"upnp:rootdevice",
-				"urn:schemas-upnp-org:device:MediaRenderer:1"
+				"urn:schemas-upnp-org:device:MediaRenderer:1",
+				"urn:schemas-upnp-org:service:ContentDirectory:1",
 			};
 			
 			upnp.search( STs );

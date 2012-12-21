@@ -91,6 +91,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerList
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.net.upnpms.UPNPMSBrowser;
 import com.aelitis.net.upnpms.UPNPMSBrowserFactory;
+import com.aelitis.net.upnpms.UPNPMSBrowserListener;
 import com.aelitis.net.upnpms.UPNPMSContainer;
 import com.aelitis.net.upnpms.UPNPMSItem;
 import com.aelitis.net.upnpms.UPnPMSException;
@@ -4275,11 +4276,11 @@ DeviceManagerUI
 						{
 							info.setText( "" );
 							
-							DeviceContentDirectory cd = (DeviceContentDirectory)device;
+							final DeviceContentDirectory cd = (DeviceContentDirectory)device;
 							
-							final URL endpoint = cd.getControlURL();
+							final List<URL> endpoints = cd.getControlURLs();
 			
-							if ( endpoint == null ){
+							if ( endpoints.size() == 0 ){
 			
 								info.append( "Media Server is offline" );
 								
@@ -4296,7 +4297,19 @@ DeviceManagerUI
 										try{
 											String client_name = device_manager.getLocalServiceName();
 											
-											UPNPMSBrowser browser = UPNPMSBrowserFactory.create( client_name, endpoint );
+											UPNPMSBrowser browser = 
+												UPNPMSBrowserFactory.create( 
+													client_name, 
+													endpoints,
+													new UPNPMSBrowserListener()
+													{
+														public void 
+														setPreferredURL(
+															URL url )
+														{
+															cd.setPreferredControlURL( url );
+														}
+													});
 											
 											print( browser.getRoot(), "" );
 																			

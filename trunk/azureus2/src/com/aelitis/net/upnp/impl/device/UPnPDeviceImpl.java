@@ -174,7 +174,7 @@ UPnPDeviceImpl
 		return( (UPnPImpl)root_device.getUPnP());
 	}
 	
-	public UPnPRootDevice
+	public UPnPRootDeviceImpl
 	getRootDevice()
 	{
 		return( root_device );

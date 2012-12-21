@@ -59,11 +59,14 @@ UPnPRootDeviceImpl
 		};
 	
 	final private UPnPImpl			upnp;
+	
 	final private NetworkInterface	network_interface;
 	final private InetAddress		local_address;
 	
 	final private String		usn;
 	final private URL			location;
+	
+	final private List<URL>		alt_locations = new ArrayList<URL>();
 	
 	private URL			url_base_for_relative_urls;
 	private URL			saved_url_base_for_relative_urls;
@@ -325,6 +328,39 @@ UPnPRootDeviceImpl
 	getLocation()
 	{
 		return( location );
+	}
+	
+	public boolean
+	addAlternativeLocation(
+		URL		alt_location )
+	{
+		synchronized( alt_locations ){
+			
+			if ( !alt_locations.contains( alt_location )){
+				
+				alt_locations.add( alt_location );
+				
+				if ( alt_locations.size() > 10 ){
+					
+					alt_locations.remove(0);
+				}
+				
+				return( true );
+				
+			}else{
+				
+				return( false );
+			}
+		}
+	}
+	
+	public List<URL>
+	getAlternativeLocations()
+	{
+		synchronized( alt_locations ){
+			
+			return( new ArrayList<URL>( alt_locations ));
+		}
 	}
 	
 	public UPnPDevice

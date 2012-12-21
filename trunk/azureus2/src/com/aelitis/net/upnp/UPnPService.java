@@ -28,6 +28,7 @@ package com.aelitis.net.upnp;
  */
 
 import java.net.URL;
+import java.util.List;
 
 import com.aelitis.net.upnp.services.*;
 
@@ -40,10 +41,14 @@ UPnPService
 	public String
 	getServiceType();
 
-	public URL
-	getControlURL()
+	public List<URL>
+	getControlURLs()
 	
 		throws UPnPException;
+	
+	public void 
+	setPreferredControlURL(
+		URL		url );
 	
 	public boolean
 	isConnectable();

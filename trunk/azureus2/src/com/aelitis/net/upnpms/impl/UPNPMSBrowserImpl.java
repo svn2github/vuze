@@ -37,19 +37,25 @@ public class
 UPNPMSBrowserImpl 
 	implements UPNPMSBrowser
 {
-	private URL					endpoint;
-	private String				client_name;
+	private List<URL>				endpoints;
+	private String					client_name;
+	private UPNPMSBrowserListener	listener;
+	
 	private UPNPMSContainerImpl	root;
+	
+	private URL	preferred_endpoint;
 	
 	public 
 	UPNPMSBrowserImpl(
-		String	_client_name,
-		URL		_url )
+		String					_client_name,
+		List<URL>				_urls,
+		UPNPMSBrowserListener	_listener )
 	
 		throws UPnPMSException
 	{
 		client_name	= _client_name;
-		endpoint 	= _url;
+		endpoints 	= _urls;
+		listener	= _listener;
 	
 		client_name = client_name.replaceAll( "\"", "'" );
 		client_name = client_name.replaceAll( ";", "," );
@@ -64,6 +70,24 @@ UPNPMSBrowserImpl
 		throws UPnPMSException 
 	{
 		return( root );
+	}
+	
+	private void
+	setPreferredEndpoint(
+		URL		url )
+	{
+		if ( endpoints.size() > 1 ){
+			
+			if ( url != preferred_endpoint ){
+				
+				preferred_endpoint = url;
+				
+				listener.setPreferredURL( preferred_endpoint );
+				
+				endpoints.remove( preferred_endpoint );
+				endpoints.add( 0, preferred_endpoint );
+			}
+		}
 	}
 	
 	protected List<SimpleXMLParserDocumentNode>
@@ -98,7 +122,29 @@ UPNPMSBrowserImpl
 					"</s:Body>" + NL +
 					"</s:Envelope>";
 				
-				SimpleXMLParserDocument doc = getXML( endpoint, soap_action, request );
+				SimpleXMLParserDocument doc = null;
+				
+				UPnPMSException last_error = null;
+				
+				for ( URL endpoint: new ArrayList<URL>( endpoints )){
+				
+					try{
+						doc = getXML( endpoint, soap_action, request );
+						
+						setPreferredEndpoint( endpoint );
+						
+						break;
+						
+					}catch( UPnPMSException e ){
+						
+						last_error = e;
+					}
+				}
+				
+				if ( doc == null ){
+					
+					throw( last_error );
+				}
 				
 				SimpleXMLParserDocumentNode body = doc.getChild( "Body" );
 				

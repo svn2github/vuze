@@ -25,6 +25,8 @@ package com.aelitis.net.natpmp.upnp.impl;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -252,12 +254,18 @@ NatPMPUPnPRootDeviceImpl
 			return( "IP" );	// ??
 		}
 		
-		public URL
-		getControlURL()
+		public List<URL>
+		getControlURLs()
 		
 			throws UPnPException
 		{
-			return( null );
+			return( new ArrayList<URL>(0));
+		}
+		
+		public void 
+		setPreferredControlURL(
+			URL url) 
+		{
 		}
 		
 		public boolean 

@@ -22,11 +22,16 @@
 package com.aelitis.azureus.core.devices;
 
 import java.net.URL;
+import java.util.List;
 
 public interface 
 DeviceContentDirectory
 	extends Device
 {
-	public URL
-	getControlURL();
+	public List<URL>
+	getControlURLs();
+	
+	public void
+	setPreferredControlURL(
+		URL		url );
 }

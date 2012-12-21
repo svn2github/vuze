@@ -131,7 +131,7 @@ UPnPActionInvocationImpl
 				throw((UPnPException)e);
 			}
 			
-			throw( new UPnPException( "Invoke of '" + soap_action + "' on '" + action.getService().getControlURL() + "' failed: " + e.getMessage(), e ));	
+			throw( new UPnPException( "Invoke of '" + soap_action + "' on '" + action.getService().getControlURLs() + "' failed: " + e.getMessage(), e ));	
 		}
 	}
 	

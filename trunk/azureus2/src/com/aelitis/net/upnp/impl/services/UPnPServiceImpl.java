@@ -30,6 +30,7 @@ package com.aelitis.net.upnp.impl.services;
 import java.net.*;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
 
@@ -41,16 +42,18 @@ public class
 UPnPServiceImpl
 	implements 	UPnPService
 {
-	protected UPnPDeviceImpl	device;
+	private UPnPDeviceImpl	device;
 	
-	protected String			service_type;
-	protected String			local_desc_url;
-	protected String			local_control_url;
+	private String			service_type;
+	private String			local_desc_url;
+	private String			local_control_url;
 	
-	protected List				actions;
-	protected List				state_vars;
+	private List			actions;
+	private List			state_vars;
 	
-	protected boolean			direct_invoke;
+	private boolean			direct_invoke;
+	
+	private URL				preferred_control_url;
 	
 	public
 	UPnPServiceImpl(
@@ -85,35 +88,43 @@ UPnPServiceImpl
 	isConnectable() 
 	{
 		try{
-			URL url = getControlURL();
+			List<URL> urls = getControlURLs();
 			
-			Socket socket = new Socket();
-			
-			try{
-				int	port = url.getPort();
+			for ( URL url: urls ){
 				
-				if ( port <= 0 ){
-					
-					port = url.getDefaultPort();
-				}
-				
-				socket.connect( new InetSocketAddress( url.getHost(), port ), 5000 );
-				
-				return( true );
-				
-			}finally{
+				Socket socket = new Socket();
 				
 				try{
-					socket.close();
+					int	port = url.getPort();
 					
-				}catch( Throwable e ){
+					if ( port <= 0 ){
+						
+						port = url.getDefaultPort();
+					}
 					
+					socket.connect( new InetSocketAddress( url.getHost(), port ), 5000 );
+					
+					if ( getPreferredControlURL() == null ){
+					
+						setPreferredControlURL( url );
+					}
+					
+					return( true );
+					
+				}finally{
+					
+					try{
+						socket.close();
+						
+					}catch( Throwable e ){
+						
+					}
 				}
 			}
 		}catch( Throwable e ){
-						
-			return( false );
 		}
+				
+		return( false );
 	}
 	
 	public UPnPAction[]
@@ -196,12 +207,58 @@ UPnPServiceImpl
 		return( getURL( device.getAbsoluteURL( local_desc_url )));
 	}
 	
-	public URL
-	getControlURL()
+	public List<URL>
+	getControlURLs()
 	
 		throws UPnPException
 	{
-		return( getURL( device.getAbsoluteURL( local_control_url )));
+		List<URL>	result = new ArrayList<URL>();
+
+		String control_url = device.getAbsoluteURL( local_control_url );
+		
+		URL main_url =  getURL( control_url );
+				
+		result.add( main_url );
+		
+		List<URL>	alt_locs = device.getRootDevice().getAlternativeLocations();
+		
+		if ( alt_locs.size() > 0 ){
+			
+			for ( URL alt_loc: alt_locs ){
+				
+				URL alt_url = main_url;
+				
+				alt_url = UrlUtils.setHost( alt_url, alt_loc.getHost());
+				alt_url = UrlUtils.setPort( alt_url, alt_loc.getPort());
+				
+				result.add( alt_url );
+			}
+		}
+		
+		if ( result.size() > 1 && preferred_control_url != null  ){
+							
+			if ( 	!result.get(0).equals( preferred_control_url ) &&
+					result.contains( preferred_control_url )){
+					
+				result.remove( preferred_control_url );
+				result.add( 0, preferred_control_url );
+			}
+		}
+		
+		return( result );
+	}
+	
+	public void 
+	setPreferredControlURL(
+		URL url) 
+	{
+		preferred_control_url	= url;
+	}
+	
+	protected URL 
+	getPreferredControlURL()
+	{
+		return( preferred_control_url );
 	}
 	
 	protected URL

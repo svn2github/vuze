@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.devices.impl;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.Debug;
@@ -86,13 +87,13 @@ DeviceContentDirectoryImpl
 		return( true );
 	}
 	
-	public URL
-	getControlURL()
+	public List<URL>
+	getControlURLs()
 	{
 		if ( upnp_service != null ){
 		
 			try{
-				return( upnp_service.getControlURL());
+				return( upnp_service.getControlURLs());
 				
 			}catch( Throwable e ){
 				
@@ -101,5 +102,15 @@ DeviceContentDirectoryImpl
 		}
 		
 		return( null );
+	}
+	
+	public void 
+	setPreferredControlURL(
+		URL url) 
+	{
+		if ( upnp_service != null ){
+			
+			upnp_service.setPreferredControlURL( url );
+		}
 	}
 }

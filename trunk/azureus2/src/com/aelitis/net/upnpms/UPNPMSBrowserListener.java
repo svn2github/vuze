@@ -1,8 +1,8 @@
 /*
- * Created on Dec 19, 2012
+ * Created on Dec 21, 2012
  * Created by Paul Gardner
  * 
- * Copyright 2012 Vuze, Inc.  All rights reserved.
+ * Copyright 2012 Azureus Software, Inc.  All rights reserved.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,21 +22,11 @@
 package com.aelitis.net.upnpms;
 
 import java.net.URL;
-import java.util.List;
 
-import com.aelitis.net.upnpms.impl.UPNPMSBrowserImpl;
-
-public class 
-UPNPMSBrowserFactory 
+public interface 
+UPNPMSBrowserListener 
 {
-	public static UPNPMSBrowser
-	create(
-		String						client_name,
-		List<URL>					endpoints,
-		UPNPMSBrowserListener		listener )
-	
-		throws Exception
-	{
-		return( new UPNPMSBrowserImpl( client_name, endpoints, listener ));
-	}
+	public void
+	setPreferredURL(
+		URL			url );
 }
