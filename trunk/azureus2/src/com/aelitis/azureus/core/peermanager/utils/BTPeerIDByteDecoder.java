@@ -337,7 +337,7 @@ public class BTPeerIDByteDecoder {
 				&& (peer_id[9] == three)
 				&& (peer_id[10] == three)
 				&& (peer_id[11] == three)) {
-			return "Snark";
+			return "I2PSnark";
 		}
 
 		if ((iFirstNonZeroPos == 12) && (peer_id[12] == (byte)97) && (peer_id[13] == (byte)97)) {

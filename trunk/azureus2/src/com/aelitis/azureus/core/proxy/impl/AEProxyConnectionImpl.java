@@ -223,7 +223,8 @@ AEProxyConnectionImpl
 							( 	message.contains( "closed" ) || 
 								message.contains( "aborted" ) || 
 								message.contains( "timeout" ) || 
-								message.contains( "timed" ))){
+								message.contains( "timed" ) ||
+								message.contains( "dns lookup" ))){
 						
 						Logger.log(new LogEvent(LOGID, "AEProxyProcessor: " + getName()	+ " failed: " + message ));
 						

@@ -1959,19 +1959,23 @@ TRTrackerBTAnnouncerImpl
     
     request.append("&no_peer_id=1");
       
+    String	tracker_network	= AENetworkClassifier.categoriseAddress( _url.getHost()); 
+
     	// latest space saving measure, a compact return type where peers are returned
     	// as 6 byte entries in a single byte[] (4 bytes ip, 2 byte port)
     	// leave this as always supplied, ask PARG why
     
-    request.append( "&compact=1" );
-	
+    if ( tracker_network != AENetworkClassifier.AT_I2P ){
+    
+    	request.append( "&compact=1" );
+    }
+    
     	// any explicit override takes precedence over any implicit override added 
     	// when hosting torrents
     
     String explicit_ips = COConfigurationManager.getStringParameter( "Override Ip", "" );
     
     String 	ip					= null;
-    String	tracker_network	= AENetworkClassifier.categoriseAddress( _url.getHost()); 
     
     	// make sure this tracker network is enabled
     
