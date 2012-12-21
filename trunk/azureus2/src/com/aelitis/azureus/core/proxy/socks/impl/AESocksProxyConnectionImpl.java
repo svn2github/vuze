@@ -195,7 +195,7 @@ AESocksProxyConnectionImpl
 				
 			}else if ( len == -1 ){
 				
-				throw( new IOException( "read channel shutdown" ));
+				throw( new IOException( "Connection closed" ));
 			}
 			
 			if ( buffer.hasRemaining()){
@@ -267,7 +267,7 @@ AESocksProxyConnectionImpl
 				
 			}else if ( len == -1 ){
 				
-				throw( new IOException( "read channel shutdown" ));
+				throw( new IOException( "Connection closed" ));
 			}
 						
 			if ( buffer.hasRemaining()){
@@ -373,7 +373,7 @@ AESocksProxyConnectionImpl
 				
 			}else if ( len == -1 ){
 				
-				throw( new IOException( "read channel shutdown" ));
+				throw( new IOException( "Connection closed" ));
 			}
 			
 			
@@ -525,7 +525,7 @@ AESocksProxyConnectionImpl
 				
 			}else if ( len == -1 ){
 				
-				throw( new IOException( "read channel shutdown" ));
+				throw( new IOException( "Connection closed" ));
 			}
 			
 			
@@ -574,7 +574,7 @@ AESocksProxyConnectionImpl
 				
 			}else if ( len == -1 ){
 				
-				throw( new IOException( "read channel shutdown" ));
+				throw( new IOException( "Connection closed" ));
 			}
 			
 			
@@ -682,7 +682,7 @@ AESocksProxyConnectionImpl
 				
 			}else if ( len == -1 ){
 				
-				throw( new IOException( "read channel shutdown" ));
+				throw( new IOException( "Connection closed" ));
 			}
 			
 			
@@ -701,27 +701,32 @@ AESocksProxyConnectionImpl
 			
 			int address_type	= buffer.get();
 			
-			if ( command != 1 ){
+			if ( command == 1 ){
+				
+				if ( address_type == 1 ){
+					
+					new proxyStateV5RequestIP();
+					
+				}else if ( address_type == 3 ){
+					
+					new proxyStateV5RequestDNS();
+					
+				}else if ( address_type == 4 ){
+					
+					new proxyStateV5RequestIPV6();
+				}else{
+					
+					throw( new IOException( "V5: Unsupported address type: " + address_type ));
+				}
+			}else if ( command == 3 ){
+					
+				new proxyStateV5UDPAssociateReply();
+					
+			}else{
 				
 				throw( new IOException( "V5: Only connect supported: command=" + command ));
 			}
-			
-			if ( address_type == 1 ){
-			
-				new proxyStateV5RequestIP();
-				
-			}else if ( address_type == 3 ){
-				
-				new proxyStateV5RequestDNS();
-				
-			}else if ( address_type == 4 ){
-				
-				new proxyStateV5RequestIPV6();
-			}else{
-				
-				throw( new IOException( "V5: Unsupported address type: " + address_type ));
-			}
-			
+						
 			return( true );
 		}
 	}
@@ -755,7 +760,7 @@ AESocksProxyConnectionImpl
 				
 			}else if ( len == -1 ){
 				
-				throw( new IOException( "read channel shutdown" ));
+				throw( new IOException( "Connection closed" ));
 			}
 			
 			
@@ -807,7 +812,7 @@ AESocksProxyConnectionImpl
 				
 			}else if ( len == -1 ){
 				
-				throw( new IOException( "read channel shutdown" ));
+				throw( new IOException( "Connection closed" ));
 			}
 			
 			
@@ -860,7 +865,7 @@ AESocksProxyConnectionImpl
 				
 			}else if ( len == -1 ){
 				
-				throw( new IOException( "read channel shutdown" ));
+				throw( new IOException( "Connection closed" ));
 			}
 			
 			
@@ -954,7 +959,7 @@ AESocksProxyConnectionImpl
 				
 			}else if ( len == -1 ){
 				
-				throw( new IOException( "read channel shutdown" ));
+				throw( new IOException( "Connection closed" ));
 			}
 			
 			
@@ -1054,6 +1059,52 @@ AESocksProxyConnectionImpl
 		}
 	}
 	
+	
+	protected class
+	proxyStateV5UDPAssociateReply
+		extends AESocksProxyState
+	{
+		
+		protected
+		proxyStateV5UDPAssociateReply()
+		
+			throws IOException
+		{
+			super( AESocksProxyConnectionImpl.this );
+						
+			connection.setWriteState( this );
+			
+			byte[]	addr = new byte[4];
+			
+			int		port = 0;
+			
+			int	reply_state = 0x45;
+			
+			buffer	= ByteBuffer.wrap(
+					new byte[]{(byte)5,(byte)reply_state,(byte)0,(byte)1,
+								addr[0],addr[1],addr[2],addr[3],
+								(byte)((port>>8)&0xff), (byte)(port&0xff)});
+					
+			
+			write( source_channel );			
+		}
+		
+		protected boolean
+		writeSupport(
+			SocketChannel 		sc )
+		
+			throws IOException
+		{
+			int len = sc.write( buffer );
+			
+			if ( buffer.hasRemaining()){
+				
+				connection.requestWriteSelect( sc );
+			}
+			
+			return( len > 0 );
+		}
+	}
 	public void
 	connected()
 	

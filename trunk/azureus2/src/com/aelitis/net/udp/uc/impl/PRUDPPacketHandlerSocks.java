@@ -95,7 +95,7 @@ PRUDPPacketHandlerSocks
 	private PRUDPPacketHandler		delegate;
 	
 	private byte[]	packet_out_header;
-	
+		
 	protected
 	PRUDPPacketHandlerSocks(
 		InetSocketAddress		_target )
@@ -118,7 +118,9 @@ PRUDPPacketHandlerSocks
 
 			control_socket = new Socket( Proxy.NO_PROXY );
 			
-			control_socket.connect( proxy.address());
+			InetSocketAddress proxy_address = (InetSocketAddress)proxy.address();
+			
+			control_socket.connect( proxy_address );
 		
 			proxy_connected	= true;
 			
@@ -192,6 +194,22 @@ PRUDPPacketHandlerSocks
 		    byte reply = dis.readByte();
 		    
 		    if ( reply != 0 ){
+		    	
+		    		// special hack for internal socks servers just being used for plumbing connections
+		    		// for other protocols - 0x45 means 'go transparent'
+		    	
+		    	if ( reply == 0x45 && proxy_address.getAddress().isLoopbackAddress()){
+		    		
+		    		control_socket.close();
+		    		
+		    		control_socket = null;
+		    		
+		    		ok = true;
+		    		
+		    			// relay is null here - this drives other direct behaviour
+		    		
+		    		return;
+		    	}
 		    	
 	        	throw( new IOException( "SOCKS 5: udp association fails [reply=" +reply+ "]" ));
 		    }
@@ -318,7 +336,12 @@ PRUDPPacketHandlerSocks
 	public void
 	transformSend(
 		DatagramPacket	packet )
-	{		
+	{	
+		if ( relay == null ){
+			
+			return;
+		}
+		
 		byte[]	data 		= packet.getData();
 		int		data_len	= packet.getLength();
 		
@@ -334,6 +357,11 @@ PRUDPPacketHandlerSocks
 	transformReceive(
 		DatagramPacket	packet )
 	{
+		if ( relay == null ){
+			
+			return;
+		}
+		
 		byte[]	data 		= packet.getData();
 		int		data_len	= packet.getLength();
 		
@@ -398,7 +426,12 @@ PRUDPPacketHandlerSocks
 	{
 		checkAddress( destination_address );
 		
-		delegate.sendAndReceive( request_packet, relay, receiver, timeout, priority );
+		if ( relay != null ){
+			
+			destination_address = relay;
+		}
+		
+		delegate.sendAndReceive( request_packet, destination_address, receiver, timeout, priority );
 	}
 	
 	public PRUDPPacket
@@ -411,7 +444,12 @@ PRUDPPacketHandlerSocks
 	{
 		checkAddress( destination_address );
 		
-		return( delegate.sendAndReceive( auth, request_packet, relay));
+		if ( relay != null ){
+			
+			destination_address = relay;
+		}
+		
+		return( delegate.sendAndReceive( auth, request_packet, destination_address));
 	}
 	
 	public PRUDPPacket
@@ -425,7 +463,12 @@ PRUDPPacketHandlerSocks
 	{
 		checkAddress( destination_address );
 		
-		return( delegate.sendAndReceive(auth, request_packet, relay, timeout_millis ));
+		if ( relay != null ){
+			
+			destination_address = relay;
+		}
+		
+		return( delegate.sendAndReceive(auth, request_packet, destination_address, timeout_millis ));
 	}
 	
 	public PRUDPPacket
@@ -440,7 +483,12 @@ PRUDPPacketHandlerSocks
 	{
 		checkAddress( destination_address );
 		
-		return( delegate.sendAndReceive(auth, request_packet, relay, timeout_millis, priority ));
+		if ( relay != null ){
+			
+			destination_address = relay;
+		}
+		
+		return( delegate.sendAndReceive(auth, request_packet, destination_address, timeout_millis, priority ));
 	}
 	
 	public void
@@ -452,7 +500,12 @@ PRUDPPacketHandlerSocks
 	{
 		checkAddress( destination_address );
 		
-		delegate.send( request_packet, relay );
+		if ( relay != null ){
+			
+			destination_address = relay;
+		}
+		
+		delegate.send( request_packet, destination_address );
 	}
 	
 	public PRUDPRequestHandler
