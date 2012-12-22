@@ -225,6 +225,7 @@ AEProxyConnectionImpl
 								message.contains( "timeout" ) || 
 								message.contains( "timed" ) ||
 								message.contains( "refused" ) ||
+								message.contains( "key is invalid" ) ||
 								message.contains( "dns lookup" ))){
 						
 						Logger.log(new LogEvent(LOGID, "AEProxyProcessor: " + getName()	+ " failed: " + message ));
