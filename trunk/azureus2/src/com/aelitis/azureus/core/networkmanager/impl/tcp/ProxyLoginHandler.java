@@ -160,7 +160,7 @@ public class ProxyLoginHandler {
         doSocks4Login( createSocks4Message() );
       }
       catch( Throwable t ) {
-        Debug.out( t );
+        //Debug.out( t );
         proxy_listener.connectFailure( t );
       }
     }
@@ -169,7 +169,7 @@ public class ProxyLoginHandler {
         doSocks4Login( createSocks4aMessage() );
       }
       catch( Throwable t ) {
-        Debug.out( t );
+        //Debug.out( t );
         proxy_listener.connectFailure( t );
       }
     }
@@ -230,15 +230,18 @@ public class ProxyLoginHandler {
          }
         
         public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
-          Debug.out( msg );
+          //Debug.out( msg );
           TCPNetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
           proxy_listener.connectFailure( msg );
         }
       }, null );
     }
     catch( Throwable t ) {
-      Debug.out( t );
-      TCPNetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
+      //Debug.out( t );
+      SocketChannel chan = proxy_connection.getSocketChannel();
+      if ( chan != null ){
+    	  TCPNetworkManager.getSingleton().getReadSelector().cancel( chan );
+      }
       proxy_listener.connectFailure( t );
     }
   }
@@ -292,14 +295,14 @@ public class ProxyLoginHandler {
         }
         
         public void selectFailure( VirtualChannelSelector selector, SocketChannel sc,Object attachment, Throwable msg ) {
-          Debug.out( msg );
+          //Debug.out( msg );
           TCPNetworkManager.getSingleton().getReadSelector().cancel( proxy_connection.getSocketChannel() );
           proxy_listener.connectFailure( msg );
         }
       }, null );
     }
     catch( Throwable t ) {
-      Debug.out( t );
+      //Debug.out( t );
       SocketChannel chan = proxy_connection.getSocketChannel();
       if ( chan != null ){
     	  TCPNetworkManager.getSingleton().getReadSelector().cancel( chan );
@@ -331,7 +334,7 @@ public class ProxyLoginHandler {
       if( proxy_connection.write( new ByteBuffer[]{ msg }, 0, 1 ) < 1 ) {
         if( SystemTime.getCurrentTime() - start_time > 30*1000 ) {
           String error = "proxy handshake message send timed out after 30sec";
-          Debug.out( error );
+          //Debug.out( error );
           throw new IOException( error );
         }
         
@@ -355,7 +358,7 @@ public class ProxyLoginHandler {
 
     if( SystemTime.getCurrentTime() - read_start_time > 30*1000 ) {
       String error = "proxy message read timed out after 30sec";
-      Debug.out( error );
+      //Debug.out( error );
       throw new IOException( error );
     }
     
