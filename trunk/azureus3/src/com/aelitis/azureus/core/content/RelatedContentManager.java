@@ -110,6 +110,10 @@ RelatedContentManager
 {
 	public static final long FILE_ASSOC_MIN_SIZE	= 50*1024*1024;
 	
+	public static final int RCM_SEARCH_PROPERTY_CONTENT_NETWORK	= 50000;	// don't change these, used in plugin
+	public static final int RCM_SEARCH_PROPERTY_TRACKER_KEYS	= 50001;
+	public static final int RCM_SEARCH_PROPERTY_WEB_SEED_KEYS	= 50002;
+	
 	private static final boolean 	TRACE 			= false;
 	
 	private static final boolean	SEARCH_CVS_ONLY		= Constants.isCurrentVersionLT( "4.7.0.4" );
@@ -1336,6 +1340,16 @@ RelatedContentManager
 				
 			byte[] tracker_keys = (byte[])map.get( "k" );
 			byte[] ws_keys 		= (byte[])map.get( "w" );
+			
+			if ( tracker_keys != null && tracker_keys.length % 4 != 0 ){
+				
+				tracker_keys = null;
+			}
+			
+			if ( ws_keys != null && ws_keys.length % 4 != 0 ){
+				
+				ws_keys = null;
+			}
 			
 			return(
 				new DownloadInfo( 
@@ -2605,6 +2619,8 @@ RelatedContentManager
 			throw( new SearchException( "rcm is disabled" ));
 		}
 		
+		//dump();
+		
 		final MySearchObserver observer = new MySearchObserver( _observer );
 		
 		final String	term = (String)search_parameters.get( SearchProvider.SP_SEARCH_TERM );
@@ -2709,6 +2725,17 @@ RelatedContentManager
 												
 												return( UrlUtils.getMagnetURI( hash ));
 											}
+										}else if ( property_name == RCM_SEARCH_PROPERTY_CONTENT_NETWORK ){
+											
+											return( c.getContentNetwork());
+											
+										}else if ( property_name == RCM_SEARCH_PROPERTY_TRACKER_KEYS ){
+											
+											return( c.getTrackerKeys());
+											
+										}else if ( property_name == RCM_SEARCH_PROPERTY_WEB_SEED_KEYS ){
+											
+											return( c.getWebSeedKeys());
 										}
 										
 										return( null );
@@ -3195,7 +3222,21 @@ RelatedContentManager
 										
 										return( UrlUtils.getMagnetURI( hash ));
 									}
+								}else if (  property_name == RCM_SEARCH_PROPERTY_CONTENT_NETWORK ){
+									
+									long cnet = ImportExportUtils.importLong( map, "c", ContentNetwork.CONTENT_NETWORK_UNKNOWN );
+
+									return( cnet );
+									
+								}else if ( property_name == RCM_SEARCH_PROPERTY_TRACKER_KEYS ){
+									
+									return( map.get( "k" ));
+									
+								}else if ( property_name == RCM_SEARCH_PROPERTY_WEB_SEED_KEYS ){
+									
+									return( map.get( "w" ));
 								}
+
 							}catch( Throwable e ){
 							}
 							
@@ -5285,6 +5326,16 @@ outer:
 			byte[]	tracker_keys	= (byte[])info_map.get( "k");
 			byte[]	ws_keys			= (byte[])info_map.get( "w" );
 			
+			if ( tracker_keys != null && tracker_keys.length % 4 != 0 ){
+				
+				tracker_keys = null;
+			}
+		
+			if ( ws_keys != null && ws_keys.length % 4 != 0 ){
+				
+				ws_keys = null;
+			}
+			
 			if ( cc == null ){
 			
 				return( new DownloadInfo( hash, hash, title, rand, tracker, tracker_keys, ws_keys, 0, false, size, date, seeds_leechers, cnet ));
@@ -5306,6 +5357,91 @@ outer:
 			Debug.out( e );
 			
 			return( null );
+		}
+	}
+	
+	private void
+	dump()
+	{
+		RelatedContent[] related_content = getRelatedContent();
+		
+		ByteArrayHashMap<List<String>>	tk_map = new ByteArrayHashMap<List<String>>();
+		ByteArrayHashMap<List<String>>	ws_map = new ByteArrayHashMap<List<String>>();
+		
+		for ( RelatedContent rc: related_content ){
+						
+			byte[] tracker_keys = rc.getTrackerKeys();
+			
+			if ( tracker_keys != null ){
+				
+				for (int i=0;i<tracker_keys.length;i+=4 ){
+					
+					byte[] tk = new byte[4];
+					
+					System.arraycopy( tracker_keys, i, tk, 0, 4 );
+					
+					List<String> titles = tk_map.get( tk );
+					
+					if ( titles == null ){
+						
+						titles = new ArrayList<String>();
+						
+						tk_map.put( tk, titles );
+					}
+					
+					titles.add( rc.getTitle());
+				}
+			}
+			byte[] ws_keys = rc.getWebSeedKeys();
+			
+			if ( ws_keys != null ){
+				
+				for (int i=0;i<ws_keys.length;i+=4 ){
+					
+					byte[] wk = new byte[4];
+					
+					System.arraycopy( ws_keys, i, wk, 0, 4 );
+					
+					List<String> titles = ws_map.get( wk );
+					
+					if ( titles == null ){
+						
+						titles = new ArrayList<String>();
+						
+						ws_map.put( wk, titles );
+					}
+					
+					titles.add( rc.getTitle());
+				}
+			}
+		}
+		
+		System.out.println( "-- Trackers --" );
+		
+		for ( byte[] key: tk_map.keys()){
+			
+			List<String>	titles = tk_map.get( key );
+			
+			System.out.println( ByteFormatter.encodeString( key ));
+			
+			for ( String title: titles ){
+				
+				System.out.println( "    " + title );
+			}
+		}
+		
+		System.out.println( "-- Web Seeds --" );
+		
+		for ( byte[] key: ws_map.keys()){
+			
+			List<String>	titles = ws_map.get( key );
+			
+			System.out.println( ByteFormatter.encodeString( key ));
+			
+			for ( String title: titles ){
+				
+				System.out.println( "    " + title );
+			}
 		}
 	}
 	
