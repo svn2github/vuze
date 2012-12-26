@@ -97,8 +97,8 @@ public class TorrentFolderWatcher {
 	 * 
 	 * @param global_manager
 	 */
-	public TorrentFolderWatcher(GlobalManager _global_manager) {
-		_global_manager = _global_manager;
+	public TorrentFolderWatcher(GlobalManager global_manager) {
+		_global_manager = global_manager;
 
 		if (COConfigurationManager.getBooleanParameter(PARAMID_FOLDER)) {
 			running = true;
