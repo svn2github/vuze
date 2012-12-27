@@ -46,6 +46,7 @@ import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -106,8 +107,13 @@ PairingManagerTunnelHandler
 			}
 		};
 	
-	private long last_local_server_create_time;
-	private long last_local_server_agree_time;	
+	private long 	last_server_create_time;
+	private long 	last_server_agree_time;
+	private int		total_servers;
+		
+	private long 	last_local_server_create_time;
+	private long 	last_local_server_agree_time;	
+	private int		total_local_servers;
 	
 	private static final int MAX_TUNNELS	= 10;
 	
@@ -334,10 +340,7 @@ PairingManagerTunnelHandler
 								return size() > 10;
 							}
 						};
-					
-					private long last_server_create_time;
-					private long last_server_agree_time;
-						
+											
 					public int
 					getType()
 					{
@@ -420,6 +423,8 @@ PairingManagerTunnelHandler
 									server_map.put( session, new Object[]{ server, B });
 									
 									last_server_create_time = SystemTime.getMonotonousTime();
+									
+									total_servers++;
 	
 								}else{
 									
@@ -816,6 +821,8 @@ PairingManagerTunnelHandler
 					
 					last_local_server_create_time = SystemTime.getMonotonousTime();			
 						
+					total_local_servers++;
+					
 					result.put( "srp_salt", Base32.encode( SRP_SALT ));
 					
 			        result.put( "srp_b", Base32.encode( B.toByteArray()));
@@ -1107,6 +1114,61 @@ PairingManagerTunnelHandler
 		synchronized( tunnels ){
 			
 			tunnels.remove( tunnel.getKey());
+		}
+	}
+	
+	protected void 
+	generateEvidence(
+		IndentWriter writer )
+	{
+		writer.println( "Tunnel Handler" );
+		
+		writer.indent();
+		
+		writer.println( "started=" + started + ", active=" + active );
+		
+		if ( init_fail != null ){
+			
+			writer.println( "Init fail: " + init_fail );
+		}
+		
+		long	now = SystemTime.getMonotonousTime();
+		
+		writer.println( "total local=" + total_local_servers );
+		writer.println( "last local create=" + (last_local_server_create_time==0?"<never>":String.valueOf(now-last_local_server_create_time)));
+		writer.println( "last local agree=" + (last_local_server_agree_time==0?"<never>":String.valueOf(now-last_local_server_agree_time)));
+
+		writer.println( "total remote=" + total_servers );
+		writer.println( "last remote create=" + (last_server_create_time==0?"<never>":String.valueOf(now-last_server_create_time)));
+		writer.println( "last remote agree=" + (last_server_agree_time==0?"<never>":String.valueOf(now-last_server_agree_time)));
+
+		synchronized( tunnels ){
+
+			writer.println( "tunnels=" + tunnels.size());
+			
+			for ( PairManagerTunnel tunnel: tunnels.values()){
+				
+				writer.println( "    " + tunnel.getString());
+			}
+		}
+		
+		try{
+			writer.println( "IPv4 punchers: " + nat_punchers_ipv4.size());
+			
+			for ( DHTNATPuncher p: nat_punchers_ipv4 ){
+				
+				writer.println( "    " + p.getStats());
+			}
+			
+			writer.println( "IPv6 punchers: " + nat_punchers_ipv6.size());
+			
+			for ( DHTNATPuncher p: nat_punchers_ipv6 ){
+				
+				writer.println( "    " + p.getStats());
+			}
+		}finally{
+			
+			writer.exdent();
 		}
 	}
 }

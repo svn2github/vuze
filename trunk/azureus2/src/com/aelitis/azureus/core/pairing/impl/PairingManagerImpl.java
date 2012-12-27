@@ -39,6 +39,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AEDiagnostics;
+import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -51,6 +53,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -103,7 +106,7 @@ import com.aelitis.net.upnp.UPnPRootDevice;
 
 public class 
 PairingManagerImpl
-	implements PairingManager
+	implements PairingManager, AEDiagnosticsEvidenceGenerator
 {
 	private static final boolean DEBUG	= false;
 	
@@ -204,6 +207,8 @@ PairingManagerImpl
 	protected
 	PairingManagerImpl()
 	{
+		AEDiagnostics.addEvidenceGenerator( this );
+		
 		must_update_once = COConfigurationManager.getBooleanParameter( "pairing.updateoutstanding" );
 
 		PluginInterface default_pi = PluginInitializer.getDefaultInterface();
@@ -1717,6 +1722,25 @@ PairingManagerImpl
 		}
 		
 		return( new String( bytes, "UTF-8" ));
+	}
+	
+	public void 
+	generate(
+		IndentWriter writer )
+	{
+		writer.println( "Pairing Manager" );
+		
+		try{
+			writer.indent();
+			
+			if ( tunnel_handler != null ){
+				
+				tunnel_handler.generateEvidence( writer );
+			}
+		}finally{
+			
+			writer.exdent();
+		}
 	}
 	
 	protected class

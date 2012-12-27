@@ -160,6 +160,8 @@ DHTNATPuncherImpl
 	private DHTTransportContact		current_local		= null;
 	private DHTTransportContact		current_target		= null;
 	private int	rendevzous_fail_count = 0;
+	private long rendezvous_last_ok_time;
+	private long rendezvous_last_fail_time;
 	
 	private volatile byte[]							last_publish_key;
 	private volatile List<DHTTransportContact>		last_write_set;
@@ -972,6 +974,8 @@ DHTNATPuncherImpl
       	
       				if ( current_target != null ){
       							
+      					long	now = SystemTime.getMonotonousTime();
+      					
       					int	bind_result = sendBind( current_target );
       					
       					if ( bind_result == RESP_OK ){
@@ -979,6 +983,8 @@ DHTNATPuncherImpl
       						trace( "Rendezvous:" + current_target.getString() + " OK" );
       												
       						rendevzous_fail_count	= 0;
+      						
+      						rendezvous_last_ok_time = now;
       						
       						if ( last_ok_rendezvous != current_target ){
       							
@@ -992,6 +998,8 @@ DHTNATPuncherImpl
       							}
       						}
       					}else{
+      						
+      						rendezvous_last_fail_time = now;
       						
       						if ( bind_result == RESP_NOT_OK ){
       							
@@ -2490,19 +2498,26 @@ DHTNATPuncherImpl
 	public String
 	getStats()
 	{
+		long now = SystemTime.getMonotonousTime();
+
 		DHTTransportContact		target = rendezvous_target;
 		
-		String	str = 
-			"punch:send=" + punch_send_ok + "/" + punch_send_fail + ":recv=" + punch_recv_ok + "/" + punch_recv_fail +
+		String 	str = 
+			"ok=" + (rendezvous_last_ok_time==0?"<never>":String.valueOf(now-rendezvous_last_ok_time)) +
+			",fail=" + (rendezvous_last_fail_time==0?"<never>":String.valueOf(now-rendezvous_last_fail_time))+
+			",fc=" + rendevzous_fail_count;
+
+		str += 
+			",punch:send=" + punch_send_ok + "/" + punch_send_fail + ":recv=" + punch_recv_ok + "/" + punch_recv_fail +
 			",rendezvous=" + (target==null?"none":target.getAddress().getAddress().getHostAddress());
 		
 		String b_str = "";
-		
+				
 		for ( Map.Entry<String,BindingData> binding: rendezvous_bindings.entrySet()){
 			
 			BindingData data = binding.getValue();
 
-			b_str += (b_str.length()==0?"":",") + binding.getKey() + "->ok=" + data.getOKCount() + ";bad=" + data.getConsecutiveFailCount();
+			b_str += (b_str.length()==0?"":",") + binding.getKey() + "->ok=" + data.getOKCount() + ";bad=" + data.getConsecutiveFailCount() + ";age=" + (now-data.bind_time);
 		}
 		
 		str += ",bindings=" + b_str;
