@@ -198,6 +198,9 @@ UPNPMSBrowserImpl
 		ResourceDownloader rd = new ResourceDownloaderFactoryImpl().create( url, post_data );
 		
 		try{
+			rd.setProperty( "URL_Connection", "Keep-Alive" );
+			rd.setProperty( "URL_Read_Timeout", 10*60*1000 );
+			rd.setProperty( "URL_Connect_Timeout", 5*60*1000 );
 			rd.setProperty( "URL_SOAPAction", "\"" + soap_action + "\"");
 			rd.setProperty( "URL_X-AV-Client-Info", "av=1.0; cn=\"Azureus Software, Inc.\"; mn=\"" + client_name + "\"; mv=\""+ Constants.AZUREUS_VERSION + "\"" );
 			rd.setProperty( "URL_Content-Type", "text/xml; charset=\"utf-8\"" );
