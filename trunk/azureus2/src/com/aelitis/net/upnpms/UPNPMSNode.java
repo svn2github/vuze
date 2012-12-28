@@ -1,8 +1,8 @@
 /*
- * Created on Dec 19, 2012
+ * Created on Dec 28, 2012
  * Created by Paul Gardner
  * 
- * Copyright 2012 Vuze, Inc.  All rights reserved.
+ * Copyright 2012 Azureus Software, Inc.  All rights reserved.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,23 +21,12 @@
 
 package com.aelitis.net.upnpms;
 
-import java.net.URL;
-
 public interface 
-UPNPMSItem 
-	extends UPNPMSNode
+UPNPMSNode 
 {
-	public static final String IC_AUDIO	= "audio";
-	public static final String IC_VIDEO	= "video";
-	public static final String IC_IMAGE	= "image";
-	public static final String IC_OTHER	= "other";
-
 	public String
-	getItemClass();
+	getID();
 	
-	public long
-	getSize();
-	
-	public URL
-	getURL();
+	public String
+	getTitle();
 }

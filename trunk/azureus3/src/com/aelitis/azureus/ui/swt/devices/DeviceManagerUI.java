@@ -106,6 +106,7 @@ import com.aelitis.net.upnpms.UPNPMSBrowserFactory;
 import com.aelitis.net.upnpms.UPNPMSBrowserListener;
 import com.aelitis.net.upnpms.UPNPMSContainer;
 import com.aelitis.net.upnpms.UPNPMSItem;
+import com.aelitis.net.upnpms.UPNPMSNode;
 import com.aelitis.net.upnpms.UPnPMSException;
 
 public class 
@@ -4256,7 +4257,7 @@ DeviceManagerUI
 				Label  ms_label = new Label( composite, SWT.NULL );				
 				ms_label.setText( "Media Server: " + device.getName());
 				
-				Button refresh = new Button( composite, SWT.PUSH );				
+				final Button refresh = new Button( composite, SWT.PUSH );				
 				refresh.setText( "Refresh" );
 
 				final StyledText   info = new StyledText(composite, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
@@ -4474,185 +4475,213 @@ DeviceManagerUI
 						public void
 						run()
 						{
-							info.setText( "" );
+							boolean	went_async = false;
 							
-							play_available = PlayUtils.isEMPAvailable();
+							try{
+								refresh.setEnabled( false );
 							
-							final DeviceContentDirectory cd = (DeviceContentDirectory)device;
-							
-							final List<URL> endpoints = cd.getControlURLs();
-			
-							if ( endpoints == null || endpoints.size() == 0 ){
-			
-								info.append( "Media Server is offline" );
+								info.setText( "" );
 								
-							}else{
+								play_available = PlayUtils.isEMPAvailable();
 								
-								new AEThread2( "CD:populate" )
-								{
-									private List<Object[]>	lines_to_add = new ArrayList<Object[]>();
+								final DeviceContentDirectory cd = (DeviceContentDirectory)device;
+								
+								final List<URL> endpoints = cd.getControlURLs();
+				
+								if ( endpoints == null || endpoints.size() == 0 ){
+				
+									info.append( "Media Server is offline" );
 									
+								}else{
 									
-									public void
-									run()
+									new AEThread2( "CD:populate" )
 									{
-										try{
-											String client_name = device_manager.getLocalServiceName();
-											
-											UPNPMSBrowser browser = 
-												UPNPMSBrowserFactory.create( 
-													client_name, 
-													endpoints,
-													new UPNPMSBrowserListener()
-													{
-														public void 
-														setPreferredURL(
-															URL url )
+										private List<Object[]>	lines_to_add = new ArrayList<Object[]>();
+										
+										
+										public void
+										run()
+										{
+											try{
+												String client_name = device_manager.getLocalServiceName();
+												
+												UPNPMSBrowser browser = 
+													UPNPMSBrowserFactory.create( 
+														client_name, 
+														endpoints,
+														new UPNPMSBrowserListener()
 														{
-															cd.setPreferredControlURL( url );
-														}
-													});
-											
-											print( browser.getRoot(), "" );
-																			
-										}catch( Throwable e ){
-											
-											Debug.out( e );
-										}
-									}
-									
-									private void
-									print(
-										UPNPMSContainer		container,
-										String				indent )
-									
-										throws UPnPMSException
-									{
-										appendLine( indent, container );
-										
-										indent += "    ";
-										
-										List<UPNPMSContainer> kids = container.getContainers();
-										
-										for ( UPNPMSContainer kid: kids ){
-										
-											print( kid, indent );
-										}
-										
-										List<UPNPMSItem>	items = container.getItems();
-										
-										for ( UPNPMSItem item: items ){
-											
-											print( item, indent );
+															public void 
+															setPreferredURL(
+																URL url )
+															{
+																cd.setPreferredControlURL( url );
+															}
+														});
+												
+												print( browser.getRoot(), "" );
+																				
+											}catch( Throwable e ){
+												
+												Debug.out( e );
+												
+											}finally{
+												
+												Utils.execSWTThread(
+														new Runnable()
+														{
+															public void
+															run()
+															{
+																if ( !refresh.isDisposed()){
+															
+																	refresh.setEnabled( true );
+																}
+															}
+														});
+											}
 										}
 										
-										updateInfo();
-									}
-									
-									private void
-									print(
-										UPNPMSItem			item,
-										String				indent )
-									{
-										appendLine( indent, item );
-									}
-									
-									private void
-									appendLine(
-										String	indent,
-										Object	obj )
-									{
-										lines_to_add.add( new Object[]{ indent, obj });
-									}
-									
-									private void
-									updateInfo()
-									{
-										if ( info.isDisposed()){
+										private void
+										print(
+											UPNPMSContainer		container,
+											String				indent )
+										
+											throws UPnPMSException
+										{
+											appendLine( indent, container );
 											
-											return;
-										}
-										
-										final List<Object[]> temp = lines_to_add;
-										
-										lines_to_add = new ArrayList<Object[]>();
-										
-										Utils.execSWTThread(
-											new Runnable()
-											{
-												public void
-												run()
-												{
-													if ( info.isDisposed()){
-														
-														return;
-													}
+											indent += "\t\t";
+											
+											List<UPNPMSNode> kids = container.getChildren();
+											
+											for ( UPNPMSNode kid: kids ){
+											
+												if ( kid instanceof UPNPMSContainer){
+												
+													print((UPNPMSContainer)kid, indent );
 													
-													for ( Object[] entry: temp ){
+												}else{
+													
+													print((UPNPMSItem)kid, indent );
+												}
+											}
+											
+											updateInfo();
+										}
+										
+										private void
+										print(
+											UPNPMSItem			item,
+											String				indent )
+										{
+											appendLine( indent, item );
+										}
+										
+										private void
+										appendLine(
+											String	indent,
+											Object	obj )
+										{
+											lines_to_add.add( new Object[]{ indent, obj });
+										}
+										
+										private void
+										updateInfo()
+										{
+											if ( info.isDisposed()){
+												
+												return;
+											}
+											
+											final List<Object[]> temp = lines_to_add;
+											
+											lines_to_add = new ArrayList<Object[]>();
+											
+											Utils.execSWTThread(
+												new Runnable()
+												{
+													public void
+													run()
+													{
+														if ( info.isDisposed()){
+															
+															return;
+														}
 														
-														String	indent 	= (String)entry[0];
-														Object	obj		= entry[1];
-														
-														String line = indent;
-														
-														if ( obj instanceof UPNPMSContainer ){
+														for ( Object[] entry: temp ){
 															
-															UPNPMSContainer container = (UPNPMSContainer)obj;
-														
-															line += container.getTitle();
+															String	indent 	= (String)entry[0];
+															Object	obj		= entry[1];
 															
-															line += "\r\n";
+															String line = indent;
 															
-															int	start_pos = info.getCharCount();
-																														
-															info.append( line );
-															
-															StyleRange style = new StyleRange(start_pos, line.length(), null, null, SWT.BOLD );
-																									
-															info.setStyleRange( style );
-														
-														}else{
-															
-															UPNPMSItem item = (UPNPMSItem)obj;
-															
-															line += item.getTitle();
-															
-															line += "\r\n";
-															
-															int	start_pos = info.getCharCount();
-																														
-															info.append( line );
-															
-															String item_class = item.getItemClass();
-															
-															if ( 	play_available &&
-																	item.getURL() != null &&
-																	(	item_class == UPNPMSItem.IC_VIDEO ||
-																		item_class == UPNPMSItem.IC_AUDIO )){
+															if ( obj instanceof UPNPMSContainer ){
 																
-																StyleRange style = new StyleRange(start_pos + indent.length(), line.length() - indent.length(), null, null, SWT.NORMAL );
-																		
-																style.underline 		= true;
-																style.underlineStyle 	= SWT.UNDERLINE_LINK;
+																UPNPMSContainer container = (UPNPMSContainer)obj;
+															
+																line += container.getTitle();
 																
-																style.data = item;
+																line += "\r\n";
 																
+																int	start_pos = info.getCharCount();
+																															
+																info.append( line );
+																
+																StyleRange style = new StyleRange(start_pos, line.length(), null, null, SWT.BOLD );
+																										
 																info.setStyleRange( style );
-																
+															
 															}else{
 																
-																StyleRange style = new StyleRange(start_pos, line.length(), null, null, SWT.ITALIC );
+																UPNPMSItem item = (UPNPMSItem)obj;
 																
-																style.data = item;
+																line += item.getTitle();
 																
-																info.setStyleRange( style );
+																line += "\r\n";
+																
+																int	start_pos = info.getCharCount();
+																															
+																info.append( line );
+																
+																String item_class = item.getItemClass();
+																
+																if ( 	play_available &&
+																		item.getURL() != null &&
+																		(	item_class == UPNPMSItem.IC_VIDEO ||
+																			item_class == UPNPMSItem.IC_AUDIO )){
+																	
+																	StyleRange style = new StyleRange(start_pos + indent.length(), line.length() - indent.length(), null, null, SWT.NORMAL );
+																			
+																	style.underline 		= true;
+																	style.underlineStyle 	= SWT.UNDERLINE_LINK;
+																	
+																	style.data = item;
+																	
+																	info.setStyleRange( style );
+																	
+																}else{
+																	
+																	StyleRange style = new StyleRange(start_pos, line.length(), null, null, SWT.ITALIC );
+																	
+																	style.data = item;
+																	
+																	info.setStyleRange( style );
+																}
 															}
 														}
 													}
-												}
-											});
-									}
-								}.start();
+												});
+										}
+									}.start();
+									
+									went_async = true;
+								}
+							}finally{
+								if ( !went_async ){
+								
+									refresh.setEnabled( true );
+								}
 							}
 						}
 					};

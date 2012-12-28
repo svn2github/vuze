@@ -30,6 +30,7 @@ import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentN
 
 import com.aelitis.net.upnpms.UPNPMSContainer;
 import com.aelitis.net.upnpms.UPNPMSItem;
+import com.aelitis.net.upnpms.UPNPMSNode;
 import com.aelitis.net.upnpms.UPnPMSException;
 
 public class 
@@ -40,8 +41,7 @@ UPNPMSContainerImpl
 	private String					id;
 	private String					title;
 	
-	private List<UPNPMSContainer>		containers;
-	private List<UPNPMSItem>			items;
+	private List<UPNPMSNode>		children;
 	
 	protected
 	UPNPMSContainerImpl(
@@ -73,10 +73,9 @@ UPNPMSContainerImpl
 	{
 		synchronized( this ){
 			
-			if ( containers == null ){
+			if ( children == null ){
 				
-				containers 	= new ArrayList<UPNPMSContainer>();
-				items		= new ArrayList<UPNPMSItem>();
+				children 	= new ArrayList<UPNPMSNode>();
 				
 				List<SimpleXMLParserDocumentNode> results = browser.getContainerContents( id );
 				
@@ -95,7 +94,7 @@ UPNPMSContainerImpl
 							String	id 		= kid.getAttribute( "id" ).getValue();
 							String	title	= kid.getChild( "title" ).getValue();
 							
-							containers.add( new UPNPMSContainerImpl( browser, id, title ));
+							children.add( new UPNPMSContainerImpl( browser, id, title ));
 							
 						}else if ( name.equalsIgnoreCase( "item" )){
 							
@@ -161,7 +160,7 @@ UPNPMSContainerImpl
 							}
 							if ( url != null ){
 							
-								items.add( new UPNPMSItemImpl( id, title, item_class, size, url ));
+								children.add( new UPNPMSItemImpl( id, title, item_class, size, url ));
 							}
 						}
 					}
@@ -170,23 +169,13 @@ UPNPMSContainerImpl
 		}
 	}
 	
-	public List<UPNPMSContainer>
-	getContainers()
+	public List<UPNPMSNode>
+	getChildren()
 	
 		throws  UPnPMSException
 	{
 		populate();
 		
-		return( containers );
-	}
-	
-	public List<UPNPMSItem>
-	getItems()
-	
-		throws  UPnPMSException
-	{
-		populate();
-		
-		return( items );
+		return( children );
 	}
 }

@@ -25,20 +25,10 @@ import java.util.List;
 
 public interface 
 UPNPMSContainer 
+	extends UPNPMSNode
 {
-	public String
-	getID();
-	
-	public String
-	getTitle();
-	
-	public List<UPNPMSContainer>
-	getContainers()
+	public List<UPNPMSNode>
+	getChildren()
 		
-		throws UPnPMSException;
-	
-	public List<UPNPMSItem>
-	getItems()
-	
 		throws UPnPMSException;
 }

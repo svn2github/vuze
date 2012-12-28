@@ -41,18 +41,18 @@ Test
 		
 		indent += "    ";
 		
-		List<UPNPMSContainer>	kids = container.getContainers();
+		List<UPNPMSNode>	kids = container.getChildren();
 		
-		for ( UPNPMSContainer kid: kids ){
+		for ( UPNPMSNode kid: kids ){
 			
-			dump( kid, indent );
-		}
-		
-		List<UPNPMSItem>	items = container.getItems();
-		
-		for ( UPNPMSItem item: items ){
-			
-			System.out.println( indent + item.getTitle() + " - " + item.getID());
+			if ( kid instanceof UPNPMSContainer ){
+				
+				dump((UPNPMSContainer)kid, indent );
+			}else{
+				
+				System.out.println( indent + kid.getTitle() + " - " + kid.getID());
+
+			}
 		}
 	}
 	
