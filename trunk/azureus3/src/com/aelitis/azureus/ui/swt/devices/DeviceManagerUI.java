@@ -4280,7 +4280,7 @@ DeviceManagerUI
 							
 							final List<URL> endpoints = cd.getControlURLs();
 			
-							if ( endpoints.size() == 0 ){
+							if ( endpoints == null || endpoints.size() == 0 ){
 			
 								info.append( "Media Server is offline" );
 								
