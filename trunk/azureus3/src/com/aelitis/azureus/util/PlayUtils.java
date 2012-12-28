@@ -73,13 +73,6 @@ public class PlayUtils
 	private static volatile String actualPlayableFileExtensions = playableFileExtensions;
 	
 	
-	private static boolean triedLoadingEmpPluginClass = false;
-
-	private static Method methodIsExternallyPlayable;
-	private static Method methodIsExternallyPlayable2;
-
-	private static PluginInterface piEmp;
-
 	private static Boolean hasQuickTime;
 	
 	//private static Method methodIsExternalPlayerInstalled;
@@ -448,88 +441,7 @@ public class PlayUtils
 		
 	}*/
 	
-	private static synchronized final boolean loadEmpPluginClass() {
-		if (piEmp != null && piEmp.getPluginState().isUnloaded()) {
-			piEmp = null;
-			triedLoadingEmpPluginClass = false;
-			methodIsExternallyPlayable = null;
-			methodIsExternallyPlayable2 = null;
-		}
 
-		if (!triedLoadingEmpPluginClass) {
-			triedLoadingEmpPluginClass = true;
-
-  		try {
-  			piEmp = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
-  					"azemp");
-  
-  			if (piEmp == null) {
-  
-  				return (false);
-  			}
-  
-  			Class empPluginClass = piEmp.getPlugin().getClass();
-
-  			methodIsExternallyPlayable = empPluginClass.getMethod("isExternallyPlayable", new Class[] {
-  				TOTorrent.class
-  			});
-  			
-  			try{
-  				methodIsExternallyPlayable2 = empPluginClass.getMethod("isExternallyPlayable", new Class[] {
-  						TOTorrent.class, int.class
- 	  				});
-  			}catch( Throwable e ){
-  				Logger.log(new LogEvent(LogIDs.UI3, "isExternallyPlayable with file_index not found"));
-  			}
- 			
-  			//methodIsExternalPlayerInstalled = empPluginClass.getMethod("isExternalPlayerInstalled", new Class[] {});
-  			
-  		} catch (Exception e1) {
-  			return false;
-  		}
-		}
-		return true;
-	}
-/*	
-	public static File getPrimaryFile(Download d) {
-		DiskManagerFileInfo info = getPrimaryFileInfo(d);
-
-		if ( info == null ){
-			return( null );
-		}else{
-			return( info.getFile( true ));
-		}
-	}
-	
-	public static int getPrimaryFileIndex(DownloadManager dm ){
-		return( getPrimaryFileIndex( PluginCoreUtils.wrap( dm )));
-	}
-	
-	public static int getPrimaryFileIndex(Download d) {
-		DiskManagerFileInfo info = getPrimaryFileInfo(d);
-		
-		if ( info == null ){
-			return( -1 );
-		}else{
-			return( info.getIndex());
-		}
-	}
-	
-	public static DiskManagerFileInfo getPrimaryFileInfo(Download d) {
-		long size = d.getTorrent().getSize();
-		DiskManagerFileInfo[] infos = d.getDiskManagerFileInfo();
-		for(int i = 0; i < infos.length ; i++) {
-			DiskManagerFileInfo info = infos[i];
-			if ( info.isSkipped() || info.isDeleted()){
-				continue;
-			}
-			if( info.getLength() > (long)fileSizeThreshold * size / 100l) {
-				return info;
-			}
-		}
-		return null;
-	}
-*/	
 	public static boolean isExternallyPlayable(Download d, int file_index, boolean complete_only ) {
 		
 		int primary_file_index = -1;
@@ -655,44 +567,12 @@ public class PlayUtils
 		if (torrent == null) {
 			return false;
 		}
-		if(!loadEmpPluginClass() || methodIsExternallyPlayable == null) {
-			return isExternallyPlayable(torrent, file_index, complete_only );
-		}
-		
-		//Data is passed to the openWindow via download manager.
-		try {
 
-			if ( file_index != -1 && methodIsExternallyPlayable2 != null ){
-				
-				try{
-					Object retObj = methodIsExternallyPlayable2.invoke(null, new Object[] {
-							torrent, file_index
-						});
-				}catch( Throwable e ){
-					Logger.log(new LogEvent(LogIDs.UI3, "isExternallyPlayable with file_index failed", e ));
-				}
-			}
-			
-			Object retObj = methodIsExternallyPlayable.invoke(null, new Object[] {
-				torrent
-			});
-			
-			if (retObj instanceof Boolean) {
-				return ((Boolean) retObj).booleanValue();
-			}
-		} catch (Throwable e) {
-			e.printStackTrace();
-			if (e.getMessage() == null
-					|| !e.getMessage().toLowerCase().endsWith("only")) {
-				Debug.out(e);
-			}
-		}
-
-		return false;
+		return isExternallyPlayable(torrent, file_index, complete_only );
 	}
 
 	/**
-	 * @deprecated
+	 * @deprecated but still used by EMP
 	 */
 	public static int getPrimaryFileIndex(Download dl) {
 		EnhancedDownloadManager edm = DownloadManagerEnhancer.getSingleton().getEnhancedDownload( PluginCoreUtils.unwrap(dl) );
@@ -708,22 +588,27 @@ public class PlayUtils
 	public static boolean
 	isEMPAvailable()
 	{
-		return( loadEmpPluginClass());
+		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "azemp");
+		
+		if ( pi == null || pi.getPluginState().isDisabled()){
+			
+			return( false );
+		}
+		
+		return( true );
 	}
+
 	
 	public static boolean 
 	playURL( 
 		URL url, String name )
 	{
 		try{
-			PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+			PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "azemp");
 			
-			PluginInterface pi = pm.getPluginInterfaceByID("azemp", false);
-			
-		
-			if (pi == null) {
-				Logger.log(new LogEvent(LogIDs.UI3, "Media server plugin not found"));
-				return false;
+			if ( pi == null || pi.getPluginState().isDisabled()){
+				
+				return( false );
 			}
 		
 			Class<?> ewp_class = pi.getPlugin().getClass().getClassLoader().loadClass( "com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT" );
