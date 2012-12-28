@@ -61,6 +61,7 @@ public class PlayUtils
 {
 	public static final boolean COMPLETE_PLAY_ONLY = true;
 	
+	// deprecated but here for older versions of vzemp that still refer to it
 	public static final int fileSizeThreshold = 90;
 	
 		/**
