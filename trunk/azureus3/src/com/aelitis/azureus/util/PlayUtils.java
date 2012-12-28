@@ -704,4 +704,49 @@ public class PlayUtils
 
 		return edm.getPrimaryFileIndex();
 	}
+	
+	public static boolean
+	isEMPAvailable()
+	{
+		return( loadEmpPluginClass());
+	}
+	
+	public static boolean 
+	playURL( 
+		URL url, String name )
+	{
+		try{
+			PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+			
+			PluginInterface pi = pm.getPluginInterfaceByID("azemp", false);
+			
+		
+			if (pi == null) {
+				Logger.log(new LogEvent(LogIDs.UI3, "Media server plugin not found"));
+				return false;
+			}
+		
+			Class<?> ewp_class = pi.getPlugin().getClass().getClassLoader().loadClass( "com.azureus.plugins.azemp.ui.swt.emp.EmbeddedPlayerWindowSWT" );
+			
+			if ( ewp_class != null ){
+				
+				Method ow = ewp_class.getMethod( "openWindow", URL.class, String.class );
+				
+				if ( ow != null ){
+					
+					ow.invoke( null, url, name );
+					
+					return( true );
+				}
+			}
+			
+			return( false );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e);
+			
+			return( false );
+		}
+	}
 }

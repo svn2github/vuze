@@ -114,7 +114,7 @@ UPNPMSBrowserImpl
 					"<u:Browse xmlns:u=\"urn:schemas-upnp-org:service:ContentDirectory:1\">" + NL +
 					"<ObjectID>" + id + "</ObjectID>" + NL +
 					"<BrowseFlag>BrowseDirectChildren</BrowseFlag>" + NL +
-					"<Filter>dc:date</Filter>" + NL +
+					"<Filter>dc:date,res@protocolInfo,res@size</Filter>" + NL +
 					"<StartingIndex>" + starting_index + "</StartingIndex>" + NL +
 					"<RequestedCount>256</RequestedCount>" + NL +
 					"<SortCriteria></SortCriteria>" + NL +
@@ -207,6 +207,8 @@ UPNPMSBrowserImpl
 					
 			SimpleXMLParserDocument  doc = SimpleXMLParserDocumentFactory.create( rd.download());
 
+			// doc.print();
+			
 			return( doc );
 			
 		}catch( Throwable e ){

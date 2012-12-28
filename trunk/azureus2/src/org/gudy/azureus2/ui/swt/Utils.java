@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.util.*;
 import java.util.List;
 
@@ -956,6 +957,11 @@ public class Utils
 			});
 		
 	}
+	
+	public static void launch(URL url) {
+		launch( url.toExternalForm());
+	}
+	
 	public static void launch(String sFile) {
 		if (sFile == null || sFile.trim().length() == 0) {
 			return;
@@ -979,6 +985,15 @@ public class Utils
 		if ( pos >= 0 ){
 			
 			String	ext = sFile.substring( pos+1 ).toLowerCase().trim();
+			
+				// if this is a URL then hack off any possible query params
+			
+			int	q_pos = ext.indexOf( "?" );
+			
+			if ( q_pos > 0 ){
+				
+				ext = ext.substring( 0, q_pos );
+			}
 			
 			for ( int i=0;i<10;i++){
 				

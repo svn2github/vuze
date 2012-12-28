@@ -28,7 +28,17 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StyleRange;
+import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.events.MenuAdapter;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseTrackAdapter;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -38,7 +48,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
-import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
@@ -57,6 +66,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
@@ -89,6 +99,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SkinView;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
+import com.aelitis.azureus.util.PlayUtils;
 import com.aelitis.net.upnpms.UPNPMSBrowser;
 import com.aelitis.net.upnpms.UPNPMSBrowserFactory;
 import com.aelitis.net.upnpms.UPNPMSBrowserListener;
@@ -4247,8 +4258,10 @@ DeviceManagerUI
 				Button refresh = new Button( composite, SWT.PUSH );				
 				refresh.setText( "Refresh" );
 
-				final Text   info = new Text(composite, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+				final StyledText   info = new StyledText(composite, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
 
+				info.setEditable( false );
+				
 				FormData data = new FormData();				
 				data.left 	= new FormAttachment(0,0);
 				data.bottom = new FormAttachment(info,-8);
@@ -4267,14 +4280,177 @@ DeviceManagerUI
 				data.top 	= new FormAttachment(refresh,4);
 				data.bottom = new FormAttachment(100,0);
 				info.setLayoutData( data );
-				
+
 				final Runnable do_refresh =
 					new Runnable()
 					{
+						{
+							info.addMouseListener(
+								new MouseListener()
+								{
+									public void 
+									mouseDoubleClick(
+										MouseEvent arg0) 
+									{
+									}
+									
+									public void 
+									mouseDown(
+										MouseEvent event) 
+									{
+										if ( info.isDisposed()){
+											return;
+										}
+										
+										try{
+											int offset = info.getOffsetAtLocation(new Point (event.x, event.y));
+											
+											StyleRange style = info.getStyleRangeAtOffset(offset);
+											
+											if ( style != null ){
+												
+												Object data = style.data;
+												
+												if ( data instanceof UPNPMSItem ){
+													
+													UPNPMSItem item = (UPNPMSItem)data;
+													
+													if ( event.button == 1 ){
+															
+														if ( style.underline ){
+														
+															URL url = item.getURL();
+														
+															if ( url != null ){
+															
+																PlayUtils.playURL( url, item.getTitle());
+															}
+														}
+													}else if (	event.button == 3 || 
+																(event.button == 1 && event.stateMask == SWT.CONTROL)){
+														
+														  final Menu menu = new Menu(info.getShell(),SWT.POP_UP);
+														  
+														  final URL url = item.getURL();
+															
+														  if ( url != null ){
+	
+															  org.eclipse.swt.widgets.MenuItem   menu_item = new org.eclipse.swt.widgets.MenuItem( menu,SWT.NONE );
+		
+															  menu_item.setText( MessageText.getString( "devices.copy_url"));
+		
+															  menu_item.addSelectionListener(
+																  new SelectionAdapter()
+																  {
+																	  public void 
+																	  widgetSelected(
+																			  SelectionEvent arg0) 
+																	  {
+																		  ClipboardCopy.copyToClipBoard(url.toExternalForm());
+																	  }
+																  });
+															  
+															 
+															  menu_item = new org.eclipse.swt.widgets.MenuItem( menu,SWT.NONE );
+																	
+															  menu_item.setText( MessageText.getString( "iconBar.run"));
+			
+															  menu_item.addSelectionListener(
+																  new SelectionAdapter()
+																  {
+																	  public void 
+																	  widgetSelected(
+																		  SelectionEvent arg0) 
+																	  {
+																		 Utils.launch( url );
+																	  }
+																  });
+															 
+														  
+															  menu_item.setEnabled( item.getItemClass() != UPNPMSItem.IC_OTHER );
+														  }
+														  
+														  info.setMenu( menu );
+	
+														  menu.addMenuListener(
+																  new MenuAdapter()
+																  {
+																	  public void 
+																	  menuHidden(
+																			  MenuEvent arg0 )
+																	  {
+																		  if ( info.getMenu() == menu ){
+																		  
+																			  info.setMenu( null );
+																		  }
+																	  }
+																  });
+	
+														  menu.setVisible( true );
+													}
+												}
+											}
+										}catch( Throwable e ){
+										}
+									}
+									
+									public void 
+									mouseUp(
+										MouseEvent arg0) 
+									{
+									}
+								});
+					
+							info.addMouseTrackListener(
+									new MouseTrackAdapter()
+									{
+										@Override
+										public void 
+										mouseHover(
+											MouseEvent event ) 
+										{
+											if ( info.isDisposed()){
+												return;
+											}
+											
+											String tooltip = "";
+											
+											try{
+												int offset = info.getOffsetAtLocation(new Point (event.x, event.y));
+												
+												StyleRange style = info.getStyleRangeAtOffset(offset);
+												
+												if ( style != null ){
+													
+													Object data = style.data;
+													
+													if ( data instanceof UPNPMSItem ){
+														
+														UPNPMSItem item = (UPNPMSItem)data;
+														
+														if ( item != null ){
+															
+															tooltip = DisplayFormatters.formatByteCountToKiBEtc( item.getSize());
+														}
+													}
+												}
+											}catch( Throwable e ){
+												
+											}
+											
+											info.setToolTipText( tooltip );
+										}
+									});
+						}
+						
+						boolean play_available;
+						
 						public void
 						run()
 						{
 							info.setText( "" );
+							
+							play_available = PlayUtils.isEMPAvailable();
 							
 							final DeviceContentDirectory cd = (DeviceContentDirectory)device;
 							
@@ -4288,7 +4464,7 @@ DeviceManagerUI
 								
 								new AEThread2( "CD:populate" )
 								{
-									private StringBuffer buffer = new StringBuffer( 2048 );
+									private List<Object[]>	lines_to_add = new ArrayList<Object[]>();
 									
 									
 									public void
@@ -4326,7 +4502,7 @@ DeviceManagerUI
 									
 										throws UPnPMSException
 									{
-										appendInfo( indent, container.getTitle());
+										appendLine( indent, container );
 										
 										indent += "    ";
 										
@@ -4352,17 +4528,15 @@ DeviceManagerUI
 										UPNPMSItem			item,
 										String				indent )
 									{
-										appendInfo( indent, item.getTitle());
+										appendLine( indent, item );
 									}
 									
 									private void
-									appendInfo(
+									appendLine(
 										String	indent,
-										String	line )
+										Object	obj )
 									{
-										buffer.append( indent );
-										buffer.append( line );
-										buffer.append( "\r\n" );
+										lines_to_add.add( new Object[]{ indent, obj });
 									}
 									
 									private void
@@ -4373,9 +4547,9 @@ DeviceManagerUI
 											return;
 										}
 										
-										final StringBuffer temp = buffer;
+										final List<Object[]> temp = lines_to_add;
 										
-										buffer = new StringBuffer( 2048 );
+										lines_to_add = new ArrayList<Object[]>();
 										
 										Utils.execSWTThread(
 											new Runnable()
@@ -4388,7 +4562,67 @@ DeviceManagerUI
 														return;
 													}
 													
-													info.append( temp.toString());
+													for ( Object[] entry: temp ){
+														
+														String	indent 	= (String)entry[0];
+														Object	obj		= entry[1];
+														
+														String line = indent;
+														
+														if ( obj instanceof UPNPMSContainer ){
+															
+															UPNPMSContainer container = (UPNPMSContainer)obj;
+														
+															line += container.getTitle();
+															
+															line += "\r\n";
+															
+															int	start_pos = info.getCharCount();
+																														
+															info.append( line );
+															
+															StyleRange style = new StyleRange(start_pos, line.length(), null, null, SWT.BOLD );
+																									
+															info.setStyleRange( style );
+														
+														}else{
+															
+															UPNPMSItem item = (UPNPMSItem)obj;
+															
+															line += item.getTitle();
+															
+															line += "\r\n";
+															
+															int	start_pos = info.getCharCount();
+																														
+															info.append( line );
+															
+															String item_class = item.getItemClass();
+															
+															if ( 	play_available &&
+																	item.getURL() != null &&
+																	(	item_class == UPNPMSItem.IC_VIDEO ||
+																		item_class == UPNPMSItem.IC_AUDIO )){
+																
+																StyleRange style = new StyleRange(start_pos + indent.length(), line.length() - indent.length(), null, null, SWT.NORMAL );
+																		
+																style.underline 		= true;
+																style.underlineStyle 	= SWT.UNDERLINE_LINK;
+																
+																style.data = item;
+																
+																info.setStyleRange( style );
+																
+															}else{
+																
+																StyleRange style = new StyleRange(start_pos, line.length(), null, null, SWT.ITALIC );
+																
+																style.data = item;
+																
+																info.setStyleRange( style );
+															}
+														}
+													}
 												}
 											});
 									}
