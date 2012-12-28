@@ -34,6 +34,7 @@ import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseListener;
+import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
@@ -4441,6 +4442,31 @@ DeviceManagerUI
 											info.setToolTipText( tooltip );
 										}
 									});
+							
+							info.addMouseMoveListener(
+								new MouseMoveListener()
+								{
+									private StyleRange	last_style;
+									
+									public void 
+									mouseMove(
+										MouseEvent event) 
+									{
+										try{
+											int offset = info.getOffsetAtLocation(new Point (event.x, event.y));
+										
+											StyleRange style = info.getStyleRangeAtOffset(offset);
+										
+											if ( style != last_style ){
+												
+												last_style = style;
+												
+												info.setToolTipText( "" );
+											}
+										}catch( Throwable e ){											
+										}
+									}
+								});
 						}
 						
 						boolean play_available;
