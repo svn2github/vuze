@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.proxy.impl.swt;
 
 
+import java.net.InetAddress;
 import java.net.Proxy;
 import java.util.List;
 
@@ -33,6 +34,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIInstance;
@@ -344,6 +346,14 @@ AEProxySelectorSWTImpl
 								if ( peer.isIncoming()){
 									
 									if ( !peer.isLANLocal()){
+										
+										try{
+											if ( InetAddress.getByAddress( HostNameToIPResolver.hostAddressToBytes( peer.getIp())).isLoopbackAddress()){
+												
+												continue;
+											}
+										}catch( Throwable e ){	
+										}
 										
 										bad_incoming = true;
 										
