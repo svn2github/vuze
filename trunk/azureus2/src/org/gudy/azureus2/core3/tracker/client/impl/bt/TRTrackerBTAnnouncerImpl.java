@@ -3041,7 +3041,7 @@ TRTrackerBTAnnouncerImpl
 				    	
 			  			String	tracker_network	= AENetworkClassifier.categoriseAddress( url.getHost()); 
 
-			  			if ( tracker_network == AENetworkClassifier.AT_I2P ){
+			  			if ( tracker_network == AENetworkClassifier.AT_I2P && ( meta_peers.length % 32 == 0 )){
 			  				
 			  					// 32 byte SHA256 b32 addresses
 			  				
