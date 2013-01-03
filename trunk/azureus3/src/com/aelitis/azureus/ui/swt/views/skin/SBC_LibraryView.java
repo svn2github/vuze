@@ -19,6 +19,7 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Map;
 
 import org.eclipse.swt.events.PaintEvent;
@@ -416,7 +417,13 @@ public class SBC_LibraryView
 											String.valueOf(stats.numComplete + stats.numIncomplete),
 											String.valueOf(stats.numSeeding + stats.numDownloading),
 									});
-									
+								
+									if ( stats.numQueued > 0 ){
+										
+										s += ", " + 
+										MessageText.getString(
+												"label.num_queued", new String[]{ String.valueOf( stats.numQueued )}).toLowerCase( Locale.US );
+									}
 								}
 							} else if (torrentFilterMode == TORRENTS_UNOPENED) {
 								String id = "library.unopened.header";
