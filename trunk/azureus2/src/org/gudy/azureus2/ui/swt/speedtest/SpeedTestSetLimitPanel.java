@@ -267,12 +267,19 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
                     downlaodLimitKBPS = uploadLimitKBPS;
                 }
 
-                //set upload limits
+                	// turn off auto-speed!
+                
+                COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_ENABLED_CONFIGKEY, false );
+                COConfigurationManager.setParameter( TransferSpeedValidator.AUTO_UPLOAD_SEEDING_ENABLED_CONFIGKEY, false );
+                
+                	//set upload limits
+                
                 COConfigurationManager.setParameter( "AutoSpeed Max Upload KBs", uploadLimitKBPS );
                 COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_CONFIGKEY, uploadLimitKBPS );
                 COConfigurationManager.setParameter( TransferSpeedValidator.UPLOAD_SEEDING_CONFIGKEY , uploadLimitKBPS );
-                // - Do we set these?
-                //COConfigurationManager.setParameter( TransferSpeedValidator.DOWNLOAD_CONFIGKEY, downlaodLimitKBPS );
+                
+                	// - Do we set these?
+                	//COConfigurationManager.setParameter( TransferSpeedValidator.DOWNLOAD_CONFIGKEY, downlaodLimitKBPS );
 
                 if(downloadTestRan){
                     int dIndex = downConfLevelCombo.getSelectionIndex();
