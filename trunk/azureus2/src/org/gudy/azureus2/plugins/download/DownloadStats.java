@@ -224,12 +224,13 @@ DownloadStats
 	/**
 	 * ETA time in seconds.
 	 * 
-	 * @since 4.2.0.3
 	 * @return
-	 *   0 = download is complete.
-	 * < 0 = download is complete and it took -xxx time to complete.
-	 * 	-1 = unknown eta (no peer manager) or download completed 1s ago
-	 * Constants.CRAPPY_INFINITE_AS_LONG = incomplete and 0 average speed   
+	 *   0 = download is complete.<BR>
+	 * < 0 = download is complete and it took -xxx time to complete.<BR>
+	 * 	-1 = unknown eta (no peer manager) or download completed 1s ago<BR>
+	 * 315360000000L = incomplete and 0 average speed<BR> 
+	 * 
+	 * @since 4.2.0.3
 	 */
 	
 	public long
