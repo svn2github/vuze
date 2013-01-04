@@ -181,6 +181,10 @@ PEPeerManagerAdapter
 	isPeerSourceEnabled(
 		String peer_source );
 	
+	public boolean
+	isNetworkEnabled(
+		String	network );
+	
 	public void
 	priorityConnectionChanged(
 		boolean	added );

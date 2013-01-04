@@ -186,7 +186,9 @@ DownloadManagerController
 	
 	private boolean					cached_complete_excluding_dnd;
 	private boolean					cached_has_dnd_files;
-	private boolean         cached_values_set;
+	private boolean         		cached_values_set;
+	
+	private Set<String>				cached_networks;
 	
 	private PeerManagerRegistration	peer_manager_registration;
 	private PEPeerManager 			peer_manager;
@@ -360,6 +362,8 @@ DownloadManagerController
 			control_mon.exit();
 	
 		}
+		
+		cacheNetworks();
 		
 			// make sure it is started before making it "visible"
 		
@@ -1332,6 +1336,27 @@ DownloadManagerController
 		String		peer_source )
 	{
 		return( download_manager.getDownloadState().isPeerSourceEnabled( peer_source ));
+	}
+	
+	private void
+	cacheNetworks()
+	{
+		 cached_networks = new HashSet<String>( Arrays.asList( download_manager.getDownloadState().getNetworks()));
+	}
+	
+	public boolean
+	isNetworkEnabled(
+		String	network )
+	{
+		Set<String>	cache = cached_networks;
+		
+		if ( cache == null ){
+			
+			return( download_manager.getDownloadState().isNetworkEnabled( network ));
+		}else{
+			
+			return( cache.contains( network ));
+		}
 	}
 	
 		// secrets for inbound connections, support all

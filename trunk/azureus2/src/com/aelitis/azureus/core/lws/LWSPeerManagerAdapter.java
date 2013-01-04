@@ -143,6 +143,13 @@ LWSPeerManagerAdapter
 		return( true );
 	}
 	
+	public boolean
+	isNetworkEnabled(
+		String	network )
+	{
+		return( true );
+	}
+	
 	public int 
 	getCryptoLevel() 
 	{

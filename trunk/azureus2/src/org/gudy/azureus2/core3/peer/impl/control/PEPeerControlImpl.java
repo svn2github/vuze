@@ -1018,13 +1018,22 @@ DiskManagerCheckRequestListener, IPFilterListener
 			byte		crypto_level,
 			Map			user_data )
 	{    
-		//make sure this connection isn't filtered
+			//make sure this connection isn't filtered
    
-		if( ip_filter.isInRange( address, getDisplayName(), getTorrentHash())) {
-			return "IPFilter block";
+		if ( ip_filter.isInRange( address, getDisplayName(), getTorrentHash())) {
+			
+			return( "IPFilter block" );
 		}
-
-		//make sure we need a new connection
+		
+		String net_cat = AENetworkClassifier.categoriseAddress( address );
+		
+		if ( !adapter.isNetworkEnabled( net_cat )){
+			
+			return( "Network '" + net_cat + "' is not enabled" );
+		}
+		
+			//make sure we need a new connection
+		
 		final int needed = getMaxNewConnectionsAllowed();
 
 		boolean	is_priority_connection = false;
@@ -1046,14 +1055,17 @@ DiskManagerCheckRequestListener, IPFilterListener
 							AddressUtils.isLANLocalAddress( address ) != AddressUtils.LAN_LOCAL_NO,
 							is_priority_connection )){
 
-				return "Too many connections";
+				return( "Too many connections" );
 			}
 		}
 
 		//make sure not already connected to the same IP address; allow loopback connects for co-located proxy-based connections and testing
+		
 		final boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.equals( "127.0.0.1" );
-		if( !same_allowed && PeerIdentityManager.containsIPAddress( _hash, address ) ){  
-			return "Already connected to IP";
+		
+		if( !same_allowed && PeerIdentityManager.containsIPAddress( _hash, address ) ){
+			
+			return( "Already connected to IP" );
 		}
 
 		if( PeerUtils.ignorePeerPort( tcp_port ) ) {
@@ -1061,8 +1073,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 				Logger.log(new LogEvent(disk_mgr.getTorrent(), LOGID,
 						"Skipping connect with " + address + ":" + tcp_port
 						+ " as peer port is in ignore list."));
-			return "TCP port in ignore list";
+			
+			return( "TCP port '" + tcp_port + "' is in ignore list" );
 		}
+
 
 			//start the connection
 		
