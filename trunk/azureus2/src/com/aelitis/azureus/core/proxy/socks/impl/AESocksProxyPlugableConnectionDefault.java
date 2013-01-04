@@ -179,7 +179,20 @@ AESocksProxyPlugableConnectionDefault
 		    
 	        if ( bindIP != null ){
 	        	
-	        	target_channel.socket().bind( new InetSocketAddress( bindIP, 0 ) );
+	        	try{
+	        		target_channel.socket().bind( new InetSocketAddress( bindIP, 0 ) );
+	        		
+	        	}catch( IOException e ){
+	        		
+	        			// if the address is unresolved then the calculated bind address can be invalid
+	        			// (might pick an IPv6 address for example when this is unbindable). In this case
+	        			// carry on and attempt to connect as this will fail anyway
+	        		
+	        		if ( ! ( e.getMessage().contains( "not supported" ) && address.isUnresolved())){
+	        			
+	        			throw( e );
+	        		}
+	        	}
 	        }
 	        
 	        target_channel.configureBlocking( false );
