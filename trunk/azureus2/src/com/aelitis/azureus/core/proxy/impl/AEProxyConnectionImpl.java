@@ -225,6 +225,8 @@ AEProxyConnectionImpl
 								message.contains( "timeout" ) || 
 								message.contains( "timed" ) ||
 								message.contains( "refused" ) ||
+								message.contains( "reset" ) ||
+								message.contains( "no route" ) ||
 								message.contains( "key is invalid" ) ||
 								message.contains( "dns lookup" ))){
 						
@@ -253,7 +255,8 @@ AEProxyConnectionImpl
 		try{
 			try{
 				cancelReadSelect( source_channel );
-        cancelWriteSelect( source_channel );
+        
+				cancelWriteSelect( source_channel );
 				
 				source_channel.close();
 				
