@@ -4970,7 +4970,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 				public int
 				getPeers()
 				{
-					return( peer_database.getExchangedPeersUsed());
+					return( isPeerExchangeEnabled()?peer_database.getExchangedPeersUsed():-1);
 				}
 			});
 	}

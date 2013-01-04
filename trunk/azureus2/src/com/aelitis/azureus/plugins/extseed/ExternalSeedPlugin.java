@@ -594,7 +594,7 @@ ExternalSeedPlugin
 					
 					if ( running ){
 					
-						return( peers.length );
+						return( peers.length==0?-1:peers.length );
 						
 					}else{
 						

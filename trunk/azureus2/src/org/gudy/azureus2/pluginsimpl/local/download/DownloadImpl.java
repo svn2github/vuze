@@ -1175,9 +1175,19 @@ DownloadImpl
 								}
 								
 								details 	= str;
-								seeds		= s;
-								leechers	= l;
-								peers		= p;
+								
+								if ( str.length() == 0 ){
+									
+									seeds		= -1;
+									leechers	= -1;
+									peers		= -1;
+									
+								}else{
+									
+									seeds		= s;
+									leechers	= l;
+									peers		= p;
+								}
 								
 							}finally{
 								
