@@ -43,13 +43,13 @@ TRTrackerAnnouncerFactoryImpl
 
 	public static TRTrackerAnnouncer
 	create(
-		TOTorrent		torrent,
-		String[]		networks,
-		boolean			manual )
+		TOTorrent									torrent,
+		TRTrackerAnnouncerFactory.DataProvider		provider,
+		boolean										manual )
 		
 		throws TRTrackerAnnouncerException
 	{
-		TRTrackerAnnouncerImpl	client = new TRTrackerAnnouncerMuxer( torrent, networks, manual );
+		TRTrackerAnnouncerImpl	client = new TRTrackerAnnouncerMuxer( torrent, provider, manual );
 		
 		if ( !manual ){
 			

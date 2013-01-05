@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerException;
+import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerFactory;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerResponse;
 import org.gudy.azureus2.core3.tracker.client.impl.bt.TRTrackerBTAnnouncerImpl;
 import org.gudy.azureus2.core3.tracker.client.impl.dht.TRTrackerDHTAnnouncerImpl;
@@ -60,8 +61,8 @@ TRTrackerAnnouncerMuxer
 	private static final int ACT_CHECK_SEEDING_LONG_DELAY		= 3*60*1000;
 	
 	
-	private String[]			networks;
-	private boolean				is_manual;
+	private TRTrackerAnnouncerFactory.DataProvider		f_provider;
+	private boolean										is_manual;
 	
 	private long				create_time = SystemTime.getMonotonousTime();
 	
@@ -88,9 +89,9 @@ TRTrackerAnnouncerMuxer
 	
 	protected
 	TRTrackerAnnouncerMuxer(
-		TOTorrent		_torrent,
-		String[]		_networks,
-		boolean			_manual )
+		TOTorrent								_torrent,
+		TRTrackerAnnouncerFactory.DataProvider	_f_provider,
+		boolean									_manual )
 	
 		throws TRTrackerAnnouncerException
 	{
@@ -106,9 +107,9 @@ TRTrackerAnnouncerMuxer
 			throw( new TRTrackerAnnouncerException( "TRTrackerAnnouncer: URL encode fails"));	
 		}
 
-		networks	= _networks;
 		is_manual 	= _manual;
-			
+		f_provider	= _f_provider;
+		
 		split();
 	}
 	
@@ -117,6 +118,8 @@ TRTrackerAnnouncerMuxer
 	
 		throws TRTrackerAnnouncerException
 	{
+		String[]	networks = f_provider==null?null:f_provider.getNetworks();
+		
 		TRTrackerAnnouncerHelper to_activate = null;
 		
 		synchronized( this ){
@@ -347,7 +350,7 @@ TRTrackerAnnouncerMuxer
 				
 			}else if ( new_dht_set != null ){
 				
-				TRTrackerAnnouncerHelper a = create( torrent, new_dht_set );
+				TRTrackerAnnouncerHelper a = create( torrent, networks, new_dht_set );
 				
 				new_announcers.add( a );
 			}
@@ -372,7 +375,7 @@ TRTrackerAnnouncerMuxer
 				
 					if ( url != null ){
 						
-						forceStop((TRTrackerBTAnnouncerImpl)a, url );
+						forceStop((TRTrackerBTAnnouncerImpl)a, networks, url );
 					}
 				}
 				
@@ -389,7 +392,7 @@ TRTrackerAnnouncerMuxer
 				
 				TOTorrentAnnounceURLSet[] s = ns_it.next();
 				
-				TRTrackerAnnouncerHelper a = create( torrent, s );
+				TRTrackerAnnouncerHelper a = create( torrent, networks, s );
 				
 				new_announcers.add( a );
 			}
@@ -415,7 +418,7 @@ TRTrackerAnnouncerMuxer
 						
 							if ( url != null ){
 								
-								forceStop((TRTrackerBTAnnouncerImpl)a, url );
+								forceStop((TRTrackerBTAnnouncerImpl)a, networks, url );
 							}
 						}
 					}finally{
@@ -751,6 +754,7 @@ TRTrackerAnnouncerMuxer
 	protected void
 	forceStop(
 		final TRTrackerBTAnnouncerImpl		announcer,
+		final String[]						networks,
 		final URL							url )
 	{
 		if (Logger.isEnabled()) {
@@ -781,10 +785,10 @@ TRTrackerAnnouncerMuxer
 		}.start();
 	}
 	
-	
-	protected TRTrackerAnnouncerHelper
+	private TRTrackerAnnouncerHelper
 	create(
 		TOTorrent						torrent,
+		String[]						networks,
 		TOTorrentAnnounceURLSet[]		sets )
 	
 		throws TRTrackerAnnouncerException

@@ -1598,7 +1598,17 @@ DownloadManagerImpl
 					tracker_client.destroy();
 				}
 	
-				tracker_client = TRTrackerAnnouncerFactory.create( torrent, download_manager_state.getNetworks());
+				tracker_client = 
+					TRTrackerAnnouncerFactory.create( 
+						torrent, 
+						new TRTrackerAnnouncerFactory.DataProvider()
+						{
+							public String[] 
+							getNetworks()
+							{
+								return( download_manager_state.getNetworks());
+							}
+						});
 	    
 				tracker_client.setTrackerResponseCache( download_manager_state.getTrackerResponseCache());
 					

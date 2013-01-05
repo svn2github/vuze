@@ -50,11 +50,11 @@ TRTrackerAnnouncerFactory
 	public static TRTrackerAnnouncer
 	create(
 		TOTorrent		torrent,
-		String[]		networks )
+		DataProvider	provider )
 		
 		throws TRTrackerAnnouncerException
 	{
-		return( TRTrackerAnnouncerFactoryImpl.create( torrent, networks, false ));
+		return( TRTrackerAnnouncerFactoryImpl.create( torrent, provider, false ));
 	}
 	
 	public static void
@@ -69,5 +69,13 @@ TRTrackerAnnouncerFactory
 		TRTrackerAnnouncerFactoryListener	l )
 	{
 		TRTrackerAnnouncerFactoryImpl.removeListener(l);	
+	}
+	
+	
+	public interface
+	DataProvider
+	{
+		public String[]
+		getNetworks();
 	}
 }
