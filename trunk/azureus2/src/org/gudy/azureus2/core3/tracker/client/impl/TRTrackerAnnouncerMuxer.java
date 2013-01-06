@@ -379,7 +379,7 @@ TRTrackerAnnouncerMuxer
 					}
 				}
 				
-				a.setAnnounceSets( s );
+				a.setAnnounceSets( s, networks );
 				
 				new_announcers.add( a );
 			}

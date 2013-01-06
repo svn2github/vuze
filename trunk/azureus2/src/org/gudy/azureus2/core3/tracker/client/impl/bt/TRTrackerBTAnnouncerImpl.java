@@ -2245,9 +2245,11 @@ TRTrackerBTAnnouncerImpl
   
 	public void
 	setAnnounceSets(
-		TOTorrentAnnounceURLSet[]		_set )
+		TOTorrentAnnounceURLSet[]		_set,
+		String[]						_peer_networks )
 	{
-		announce_urls = _set;
+		announce_urls 	= _set;
+		peer_networks	= _peer_networks;
 	}
 	
 	public TOTorrentAnnounceURLSet[]

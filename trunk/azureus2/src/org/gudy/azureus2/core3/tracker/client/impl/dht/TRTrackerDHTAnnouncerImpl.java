@@ -155,7 +155,8 @@ TRTrackerDHTAnnouncerImpl
 	
 	public void
 	setAnnounceSets(
-		TOTorrentAnnounceURLSet[]		_set )
+		TOTorrentAnnounceURLSet[]		_set,
+		String[]						_peer_networks )
 	{
 		Debug.out( "Not implemented" );
 	}
