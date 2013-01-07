@@ -170,14 +170,20 @@ TorrentUtils
 	
 	static {
 		COConfigurationManager.addAndFireParameterListeners(
-			new String[]{ "Save Torrent Backup", "Tracker DNS Records Enable" },
+			new String[]{ 
+				"Save Torrent Backup", 
+				"Tracker DNS Records Enable",
+				"Enable.Proxy" },
 			new ParameterListener() {
 				public void 
 				parameterChanged(
 					String _name) 
 				{
 					bSaveTorrentBackup = COConfigurationManager.getBooleanParameter( "Save Torrent Backup" );
-					DNS_HANDLING_ENABLE = COConfigurationManager.getBooleanParameter( "Tracker DNS Records Enable" );
+					
+					boolean enable_proxy 	= COConfigurationManager.getBooleanParameter( "Enable.Proxy" );
+					
+					DNS_HANDLING_ENABLE = COConfigurationManager.getBooleanParameter( "Tracker DNS Records Enable" ) && !enable_proxy;
 				}
 			});
 		
