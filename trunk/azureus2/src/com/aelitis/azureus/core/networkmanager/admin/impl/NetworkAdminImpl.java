@@ -404,7 +404,7 @@ NetworkAdminImpl
 						
 						long	age = now - entry.getLastSeen();
 						
-						if ( age > 10*1000 ){
+						if ( age > 10*60*1000 ){
 							
 							it.remove();
 						}
