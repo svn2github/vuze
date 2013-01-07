@@ -112,7 +112,10 @@ NetworkAdminImpl
 	private static final int ROUTE_CHECK_TICKS		= ROUTE_CHECK_MILLIS / INTERFACE_CHECK_MILLIS;
 	
 	
-	private Set<NetworkInterface>		old_network_interfaces;
+	private Set<NetworkInterface>				old_network_interfaces;
+	private Map<String,AddressHistoryRecord>	address_history			= new HashMap<String,AddressHistoryRecord>();
+	private long								address_history_update_time;
+	
 	private InetAddress[]				currentBindIPs			= new InetAddress[] { null };
 	private boolean						supportsIPv6withNIO		= true;
 	private boolean						supportsIPv6 = true;
@@ -292,7 +295,7 @@ NetworkAdminImpl
 		try{
 			List<NetworkInterface>	x = NetUtils.getNetworkInterfaces();
 			
-			if ( x.size() == 0 && old_network_interfaces == null ){
+			if ( ( x == old_network_interfaces ) || ( x.size() == 0 && old_network_interfaces == null )){
 				
 			}else if ( x.size() == 0 ){
 				
@@ -340,6 +343,11 @@ NetworkAdminImpl
 				boolean newV4 = false;
 				
 				Set<NetworkInterface> interfaces = old_network_interfaces;
+				
+				long now = SystemTime.getMonotonousTime();
+
+				List<AddressHistoryRecord>	a_history = new ArrayList<AddressHistoryRecord>();
+				
 				if (interfaces != null)
 				{
 					Iterator<NetworkInterface> it = interfaces.iterator();
@@ -350,7 +358,9 @@ NetworkAdminImpl
 						while (addresses.hasMoreElements())
 						{
 							InetAddress ia = (InetAddress) addresses.nextElement();
-
+							
+							a_history.add( new AddressHistoryRecord( ni, ia, now ));
+							
 							if (ia.isLoopbackAddress()){
 								continue;
 							}
@@ -361,6 +371,42 @@ NetworkAdminImpl
 							}else if (ia instanceof Inet4Address){
 								newV4 = true;
 							}
+						}
+					}
+				}
+				
+				
+				synchronized( address_history ){
+					
+					address_history_update_time = now;
+					
+					for ( AddressHistoryRecord entry: a_history ){
+						
+						String name = entry.getAddress().getHostAddress();
+						
+						AddressHistoryRecord existing = address_history.get( name );
+						
+						if ( existing == null ){
+							
+							address_history.put( name, entry );
+							
+						}else{
+							
+							existing.setLastSeen( now );
+						}
+					}
+					
+					Iterator<AddressHistoryRecord> it = address_history.values().iterator();
+						
+					while( it.hasNext()){
+						
+						AddressHistoryRecord entry = it.next();
+						
+						long	age = now - entry.getLastSeen();
+						
+						if ( age > 10*1000 ){
+							
+							it.remove();
 						}
 					}
 				}
@@ -2922,24 +2968,69 @@ addressLoop:
 	classifyRoute(
 		InetAddress					address )
 	{
-		Object[] details = getInterfaceForAddress( address );
+		synchronized( address_history ){
+			
+			if ( address_history_update_time == 0 ){
+				
+				return( "Initializing" );
+			}
+			
+			byte[]	address_bytes = address.getAddress();
+
+			AddressHistoryRecord	best_entry	= null;
+			int						best_prefix	= 0;
+
+			for ( AddressHistoryRecord entry: address_history.values()){
+									
+				InetAddress 	other_address 	= entry.getAddress();
+				byte[]			other_bytes 	= other_address.getAddress();
+					
+				if ( other_bytes.length == address_bytes.length ){
+											
+					int	prefix_len = 0;
+				
+					for ( int i=0;i<other_bytes.length;i++){
+						
+						byte	b1 = address_bytes[i];
+						byte	b2 = other_bytes[i];
+						
+						if ( b1 == b2 ){
+							
+							prefix_len += 8;
+							
+						}else{
+							
+							for ( int j=7;j>=1;j--){
+								
+								if ( (( b1>>j ) & 0x01 ) == (( b2>>j ) & 0x01 )){
+									
+									prefix_len++;
+									
+								}else{
+									
+									break;
+								}
+							}
+							
+							break;
+						}
+					}
+					
+					if ( prefix_len > best_prefix ){
+						
+						best_prefix = prefix_len;
+						
+						best_entry	= entry;
+					}		
+				}		
+			}
 		
-		if ( details == null ){
+			if ( best_entry == null ){
 			
-			return( "Initializing" );
-		}
+				return( "Unknown" );
+			}
 		
-		if ( details.length == 2){
-			
-			return(((NetworkInterface)details[0]).getName() + "/" + ((InetAddress)details[1]).getHostAddress());
-			
-		}else if ( details[0] instanceof NetworkInterface ){
-			
-			return(((NetworkInterface)details[0]).getName());
-			
-		}else{
-		
-			return(((InetAddress)details[0]).getHostAddress());
+			return( best_entry.getName( address_history_update_time ));
 		}
 	}
 	
@@ -3793,6 +3884,80 @@ addressLoop:
 	{
 		if (AzureusCoreFactory.isCoreRunning()) {
 			generateDiagnostics( iw, getInboundProtocols(AzureusCoreFactory.getSingleton()));
+		}
+	}
+	
+	private static class
+	AddressHistoryRecord
+	{
+		private String					ni_name;
+		private boolean					ni_has_multiple_addresses;
+		private InetAddress				address;
+		private long					last_seen;
+		
+		private 
+		AddressHistoryRecord(
+			NetworkInterface		_ni,
+			InetAddress				_a,
+			long					_now )
+		{
+			ni_name		= _ni.getName();
+			address		= _a;
+			last_seen	= _now;
+			
+			Enumeration<InetAddress> addresses = _ni.getInetAddresses();
+			
+			int hits = 0;	
+			
+			int len = address.getAddress().length;
+			
+			while( addresses.hasMoreElements()){
+			
+				if ( addresses.nextElement().getAddress().length == len ){
+					
+					hits++;
+				}
+			}
+			
+			ni_has_multiple_addresses = hits > 1;
+		}
+			
+		private void
+		setLastSeen(
+			long		t )
+		{
+			last_seen	= t;
+		}
+		
+		private long
+		getLastSeen()
+		{
+			return( last_seen );
+		}
+		
+		private InetAddress
+		getAddress()
+		{
+			return( address );
+		}
+		
+		private String
+		getName(
+			long	last_update )
+		{
+			String result = ni_name;
+			
+			if ( ni_has_multiple_addresses ){
+				
+				result += "/" + address.getHostAddress();
+			}
+			
+			if ( last_update > last_seen ){
+				
+				result += " (disconnected)";
+			}
+			
+			return( result );
 		}
 	}
 	
