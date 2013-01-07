@@ -135,7 +135,7 @@ DHTTrackerPlugin
 	private static final int	DL_DERIVED_MAX_TRACK		= 20;
 	private static final int	DIRECT_INJECT_PEER_MAX		= 5;
 	
-	private static boolean ADD_ASN_DERIVED_TARGET			= true;
+	private static boolean ADD_ASN_DERIVED_TARGET			= false;
 	private static boolean ADD_NETPOS_DERIVED_TARGETS		= false;
 	
 	private static URL	DEFAULT_URL;
