@@ -583,7 +583,7 @@ implements PiecePicker
 		final int peersSize =peers.size();
 
 		//final long[] upRates =new long[peersSize];
-		final ArrayList bestUploaders =new ArrayList( peersSize );
+		final ArrayList<PEPeerTransport> bestUploaders =new ArrayList<PEPeerTransport>( peersSize );
 
 		for (int i =0; i <peersSize; i++){
 
@@ -610,62 +610,77 @@ implements PiecePicker
 		 * randomize list first to not pick the same candidates if the list of best doesn't return conclusive results
 		 */
 		Collections.shuffle(bestUploaders);
-		Collections.sort(bestUploaders, new Comparator() {
-			public int compare(Object o1, Object o2) {
-				if ( o1 == o2 ){
-					return( 0 );
-				}
-				PEPeerTransport pt2 = (PEPeerTransport)o2;
-				PEPeerTransport pt1 = (PEPeerTransport)o1;
-				PEPeerStats stats2 = pt2.getStats();
-				PEPeerStats stats1 = pt1.getStats();
-				/* pt1 comes first if we want to request data from it more than from pt2
-				 * it is "smaller", i.e. return is < 0 
-				 */
-				int toReturn = 0;
-
-				// lan peers to the front of the queue as they'll ignore request limiting
-				if(pt1.isLANLocal() && !pt2.isLANLocal())
-					toReturn = -1;
-				else if(!pt1.isLANLocal() && pt2.isLANLocal())
-					toReturn = 1;
-
-				// try to download from the currently fastest, this is important for the request focusing
-				if(toReturn == 0)
-					toReturn = (int)(stats2.getSmoothDataReceiveRate() - stats1.getSmoothDataReceiveRate());
-
-				// we're here because we're not requesting anything from both peers
-				// which means we might have to send the next request to this peer
+		
+		for ( int i=0;i<3;i++){
+			try{
 				
-				// first try to download from peers that we're uploading to, that should stabilize tit-for-tat a bit
-				if(toReturn == 0 && (!pt2.isChokedByMe() || !pt1.isChokedByMe()))
-					toReturn = (int)(stats2.getDataSendRate() - stats1.getDataSendRate());
-
-				// ok, we checked all downloading and uploading peers by now
-				// avoid snubbed ones for the next step here
-				if(toReturn == 0 && pt2.isSnubbed() && !pt1.isSnubbed())
-					toReturn = -1;
-				if(toReturn == 0 && !pt2.isSnubbed() && pt1.isSnubbed())
-					toReturn = 1;
-
-				// try some peer we haven't downloaded from yet (this should allow us to taste all peers)
-				if(toReturn == 0 && stats2.getTotalDataBytesReceived() == 0 && stats1.getTotalDataBytesReceived() > 0)
-					toReturn = 1;
-				if(toReturn == 0 && stats1.getTotalDataBytesReceived() == 0 && stats2.getTotalDataBytesReceived() > 0)
-					toReturn = -1;
+				Collections.sort(bestUploaders, new Comparator<PEPeerTransport>() {
+					public int compare(PEPeerTransport pt1, PEPeerTransport pt2) {
+						if ( pt1 == pt2 ){
+							return( 0 );
+						}
+						
+						PEPeerStats stats2 = pt2.getStats();
+						PEPeerStats stats1 = pt1.getStats();
+						/* pt1 comes first if we want to request data from it more than from pt2
+						 * it is "smaller", i.e. return is < 0 
+						 */
+						int toReturn = 0;
+		
+						// lan peers to the front of the queue as they'll ignore request limiting
+						if(pt1.isLANLocal() && !pt2.isLANLocal())
+							toReturn = -1;
+						else if(!pt1.isLANLocal() && pt2.isLANLocal())
+							toReturn = 1;
+		
+						// try to download from the currently fastest, this is important for the request focusing
+						if(toReturn == 0)
+							toReturn = (int)(stats2.getSmoothDataReceiveRate() - stats1.getSmoothDataReceiveRate());
+		
+						// we're here because we're not requesting anything from both peers
+						// which means we might have to send the next request to this peer
+						
+						// first try to download from peers that we're uploading to, that should stabilize tit-for-tat a bit
+						if(toReturn == 0 && (!pt2.isChokedByMe() || !pt1.isChokedByMe()))
+							toReturn = (int)(stats2.getDataSendRate() - stats1.getDataSendRate());
+		
+						// ok, we checked all downloading and uploading peers by now
+						// avoid snubbed ones for the next step here
+						if(toReturn == 0 && pt2.isSnubbed() && !pt1.isSnubbed())
+							toReturn = -1;
+						if(toReturn == 0 && !pt2.isSnubbed() && pt1.isSnubbed())
+							toReturn = 1;
+		
+						// try some peer we haven't downloaded from yet (this should allow us to taste all peers)
+						if(toReturn == 0 && stats2.getTotalDataBytesReceived() == 0 && stats1.getTotalDataBytesReceived() > 0)
+							toReturn = 1;
+						if(toReturn == 0 && stats1.getTotalDataBytesReceived() == 0 && stats2.getTotalDataBytesReceived() > 0)
+							toReturn = -1;
+						
+						/*
+		
+						// still nothing, next try peers from which we have downloaded most in the past 
+						// NO, we don't want to focus on what may have become a bad peer
+						if(toReturn == 0)
+							toReturn = (int)(stats2.getTotalDataBytesReceived() - stats1.getTotalDataBytesReceived());
+						*/
+						
+						return toReturn;
+					}
+				});
+	
+				break;
 				
-				/*
-
-				// still nothing, next try peers from which we have downloaded most in the past 
-				// NO, we don't want to focus on what may have become a bad peer
-				if(toReturn == 0)
-					toReturn = (int)(stats2.getTotalDataBytesReceived() - stats1.getTotalDataBytesReceived());
-				*/
-				
-				return toReturn;
+			}catch( IllegalArgumentException e ){
+				// jdk1.7 introduced this exception 
+				// java.lang.IllegalArgumentException: Comparison method violates its general contract!
+				// under contract violation. We have an unstable comparator here as it uses all sorts of
+				// data that can change during the sort. To fix this properly we would need to cache this
+				// data for the duration of the sort, which is expensive given that we don't hugely care
+				// for the accuracy of this sort. So swallow the occasional error
 			}
-		});
-
+		}
+		
 		final int uploadersSize =bestUploaders.size();
 
 		if ( uploadersSize == 0 ){
