@@ -981,14 +981,14 @@ public class MainWindowImpl
 			return true;
 		}
 
-		isReady = false;
-
 		disposedOrDisposing = true;
 		if (core != null
 				&& !UIExitUtilsSWT.canClose(core.getGlobalManager(), bForRestart)) {
 			disposedOrDisposing = false;
 			return false;
 		}
+
+		isReady = false;
 
 		UIExitUtilsSWT.uiShutdown();
 
