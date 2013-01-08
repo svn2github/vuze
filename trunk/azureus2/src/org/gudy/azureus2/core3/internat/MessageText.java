@@ -31,6 +31,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Constants;
@@ -56,16 +57,16 @@ public class MessageText {
   private static Collection pluginResourceBundles = new ArrayList();
   private static IntegratedResourceBundle RESOURCE_BUNDLE;
   private static Set			platform_specific_keys	= new HashSet();
-	private static final Pattern PAT_PARAM_ALPHA = Pattern.compile("\\{([^0-9].+?)\\}");
+  private static final Pattern PAT_PARAM_ALPHA = Pattern.compile("\\{([^0-9].+?)\\}");
 
-
+	
   private static int bundle_fail_count	= 0;
   
   private static List listeners = new ArrayList();
   
   // preload default language w/o plugins
   static{
-	  setResourceBundle( new IntegratedResourceBundle( getResourceBundle( BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()), pluginLocalizationPaths, 4000 ));
+	  setResourceBundle( new IntegratedResourceBundle( getResourceBundle( BUNDLE_NAME, LOCALE_DEFAULT, MessageText.class.getClassLoader()), pluginLocalizationPaths, null, 4000, true ));
   }
 
   	// grab a reference to the default bundle
@@ -733,7 +734,7 @@ public class MessageText {
 				newLocale = newResourceBundle.getLocale();
 				Locale.setDefault(newLocale.equals(LOCALE_DEFAULT) ? LOCALE_ENGLISH : newLocale);
 				LOCALE_CURRENT = newLocale;
-				setResourceBundle(new IntegratedResourceBundle(newResourceBundle, pluginLocalizationPaths, 3200));
+				setResourceBundle(new IntegratedResourceBundle(newResourceBundle, pluginLocalizationPaths, null, 4000, true ));
 				if(newLocale.equals(LOCALE_DEFAULT))
 					DEFAULT_BUNDLE = RESOURCE_BUNDLE;
 				return true;
@@ -780,7 +781,7 @@ public class MessageText {
 			pluginResourceBundles.add(bundle);
 		}
 		
-		RESOURCE_BUNDLE.addResourceMessages(bundle);
+		RESOURCE_BUNDLE.addResourceMessages(bundle,true);
 		setResourceBundle(RESOURCE_BUNDLE);
 
 		return true;

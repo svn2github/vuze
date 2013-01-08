@@ -81,7 +81,7 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
     gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
     label.setLayoutData(gridData);
     Messages.setLanguageText( label, "MainWindow.menu.language" );  //old name path, but already translated
-
+    
     Locale[] locales = MessageText.getLocales(true);
     
     String[] drop_labels = new String[ locales.length ];
@@ -114,7 +114,7 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
     
     locale_param.addChangeListener( new ParameterChangeAdapter() {
       public void parameterChanged( Parameter p, boolean caused_internally ) {
-				MessageText.loadBundle();
+		MessageText.loadBundle();
         DisplayFormatters.setUnits();
         DisplayFormatters.loadMessages();
         UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
@@ -122,6 +122,20 @@ public class ConfigSectionInterfaceLanguage implements UISWTConfigSection {
         	uiFunctions.refreshLanguage();    
         }
       }
+    });
+    
+    BooleanParameter uc = new BooleanParameter( cMain, "label.lang.upper.case", false, "label.lang.upper.case" );
+
+    uc.addChangeListener( new ParameterChangeAdapter() {
+        public void parameterChanged( Parameter p, boolean caused_internally ) {
+    		MessageText.loadBundle(true);
+            DisplayFormatters.setUnits();
+            DisplayFormatters.loadMessages();
+            UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+            if (uiFunctions != null) {
+            	uiFunctions.refreshLanguage();    
+            }
+        }
     });
     
     return cMain;

@@ -26,6 +26,8 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
@@ -48,7 +50,23 @@ IntegratedResourceBundle
 	private static final Map	bundle_map = new WeakHashMap();
 
 	private static TimerEventPeriodic	compact_timer;		
-
+	
+	protected static boolean upper_case_enabled;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"label.lang.upper.case",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					upper_case_enabled = COConfigurationManager.getBooleanParameter( name, false );
+				}
+			});
+	}
+	
 	protected static void
 	resetCompactTimer()
 	{
@@ -102,6 +120,7 @@ IntegratedResourceBundle
 	}
 	
 	private Locale	locale;
+	private boolean	is_message_bundle;
 
 	private Map	messages;
 	private Map	used_messages;
@@ -142,14 +161,27 @@ IntegratedResourceBundle
 		Collection 			resource_bundles,
 		int					initCapacity)  
 	{
-		this.initCapacity = initCapacity;
+		this( main, localizationPaths, resource_bundles, initCapacity, false );
+	}
+	
+	public 
+	IntegratedResourceBundle(
+		ResourceBundle 		main, 
+		Map 				localizationPaths,
+		Collection 			resource_bundles,
+		int					initCapacity,
+		boolean				isMessageBundle )
+	{
+		this.initCapacity 	= initCapacity;
+		is_message_bundle	= isMessageBundle;
+		
 		messages = new LightHashMap(initCapacity);
 
 		locale = main.getLocale();
 
 			// use a somewhat decent initial capacity, proper calculation would require java 1.6
 		
-		addResourceMessages( main );
+		addResourceMessages( main, isMessageBundle );
 		
 		synchronized (localizationPaths)
 		{
@@ -321,7 +353,7 @@ IntegratedResourceBundle
 			}
 		}
 				
-		addResourceMessages(newResourceBundle);
+		addResourceMessages(newResourceBundle, true );
 
 		
 	}
@@ -330,6 +362,16 @@ IntegratedResourceBundle
 	addResourceMessages(
 		ResourceBundle bundle )
 	{
+		addResourceMessages( bundle, false );
+	}
+	
+	public void 
+	addResourceMessages(
+		ResourceBundle 	bundle,
+		boolean			are_messages )
+	{
+		boolean upper_case = upper_case_enabled && ( is_message_bundle || are_messages );
+		
 		synchronized (bundle_map)
 		{
 			loadMessages();
@@ -340,20 +382,90 @@ IntegratedResourceBundle
 				
 				if ( bundle instanceof IntegratedResourceBundle ){
 					
-					messages.putAll(((IntegratedResourceBundle)bundle).getMessages());
+					if ( upper_case ){
+						
+						Map<String,String> m = ((IntegratedResourceBundle)bundle).getMessages();
+						
+						for ( Map.Entry<String,String> entry: m.entrySet()){
+							
+							messages.put( entry.getKey(), toUpperCase( entry.getValue()));
+						}
+					}else{
 					
+						messages.putAll(((IntegratedResourceBundle)bundle).getMessages());
+					}
 				}else{
 					
 					for (Enumeration enumeration = bundle.getKeys(); enumeration.hasMoreElements();) {
 						
 						String key = (String) enumeration.nextElement();
 						
-						messages.put(key, bundle.getObject(key));
+						if ( upper_case ){
+							
+							messages.put(key, toUpperCase((String)bundle.getObject(key)));
+						}else{
+						
+							messages.put(key, bundle.getObject(key));
+						}
 					}
 				}
 			}			
 		}
 //		System.out.println("after addrb; IRB Size = " + messages.size() + "/cap=" + initCapacity + ";" + Debug.getCompressedStackTrace());
+	}
+	
+	private String
+	toUpperCase(
+		String	str )
+	{
+		int	pos1 = str.indexOf( '{' );
+	
+		if ( pos1 == -1 ){
+			
+			return( str.toUpperCase( locale ));
+		}
+		
+		int	pos = 0;
+		int	len = str.length();
+		
+		StringBuffer result = new StringBuffer( len );
+		
+		while( pos < len ){
+			
+			if ( pos1 > pos ){
+			
+				result.append( str.substring( pos, pos1 ).toUpperCase( locale ));
+			}
+			
+			if ( pos1 == len ){
+				
+				return( result.toString());
+			}
+			
+			int pos2 = str.indexOf( '}', pos1 );
+			
+			if ( pos2 == -1 ){
+				
+				result.append( str.substring( pos1 ).toUpperCase( locale ));
+				
+				return( result.toString());
+			}
+			
+			pos2++;
+			
+			result.append( str.substring( pos1, pos2 ));
+			
+			pos = pos2;
+			
+			pos1 = str.indexOf( '{', pos );
+			
+			if ( pos1 == -1 ){
+				
+				pos1 = len;
+			}
+		}
+		
+		return( result.toString());
 	}
 	
 	protected boolean

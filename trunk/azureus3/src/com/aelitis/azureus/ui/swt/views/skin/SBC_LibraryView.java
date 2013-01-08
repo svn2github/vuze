@@ -422,7 +422,7 @@ public class SBC_LibraryView
 										
 										s += ", " + 
 										MessageText.getString(
-												"label.num_queued", new String[]{ String.valueOf( stats.numQueued )}).toLowerCase( Locale.US );
+												"label.num_queued", new String[]{ String.valueOf( stats.numQueued )});
 									}
 								}
 							} else if (torrentFilterMode == TORRENTS_UNOPENED) {
@@ -499,7 +499,7 @@ public class SBC_LibraryView
 								s += "; " + 
 									MessageText.getString(
 										"label.uptime_coarse",
-										new String[]{ op, up_str } ).toLowerCase();
+										new String[]{ op, up_str } );
 							}
 														
 							soLibraryInfo.setText(s);
