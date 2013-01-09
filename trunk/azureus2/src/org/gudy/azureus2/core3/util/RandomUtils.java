@@ -36,6 +36,16 @@ RandomUtils
 {
 	public static final Random RANDOM = new Random( System.currentTimeMillis() );
 	
+	public static final String INSTANCE_ID;
+	
+	static{
+		byte[] bytes = new byte[3];
+		
+		RANDOM.nextBytes( bytes );
+		
+		INSTANCE_ID = Base32.encode( bytes ).toLowerCase();
+	}
+	
 	public static final SecureRandom SECURE_RANDOM = new SecureRandom();
 	
 	/**

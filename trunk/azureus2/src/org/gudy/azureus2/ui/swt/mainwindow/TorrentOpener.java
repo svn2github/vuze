@@ -168,9 +168,31 @@ public class TorrentOpener {
 	}
 
   public static void openDroppedTorrents(DropTargetEvent event, boolean deprecated_sharing_param ){
-		if (event.data == null)
+	  	Object data = event.data;
+	  	
+	  	if (data == null){
 			return;
+	  	}
+	  	
+		// prevent attempt to handle drop of URLs that refer to content as torrents
+		// I'd prefer to disable the drop altogether but can't find a way to get the
+		// drop data before the drop actually occurs
 
+		if ( data instanceof String ){
+			if (((String)data).contains( "azcdid=" + RandomUtils.INSTANCE_ID )){
+				event.detail 	= DND.DROP_NONE;
+				return;
+			}
+		}else if ( data instanceof URLTransfer.URLType ){
+			
+			String link = ((URLTransfer.URLType)data).linkURL;
+			
+			if ( link != null && link.contains( "azcdid=" + RandomUtils.INSTANCE_ID )){
+				event.detail 	= DND.DROP_NONE;
+				return;
+			}
+		}
+		
 		final boolean bOverrideToStopped = event.detail == DND.DROP_COPY;
 
 		if (event.data instanceof String[] || event.data instanceof String) {

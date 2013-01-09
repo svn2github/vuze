@@ -30,6 +30,15 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
+import org.eclipse.swt.dnd.DND;
+import org.eclipse.swt.dnd.DragSource;
+import org.eclipse.swt.dnd.DragSourceAdapter;
+import org.eclipse.swt.dnd.DragSourceEvent;
+import org.eclipse.swt.dnd.DropTarget;
+import org.eclipse.swt.dnd.TextTransfer;
+import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.events.DisposeEvent;
+import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.MenuAdapter;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MouseEvent;
@@ -38,6 +47,7 @@ import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
@@ -86,6 +96,7 @@ import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
@@ -4260,9 +4271,80 @@ DeviceManagerUI
 				final Button refresh = new Button( composite, SWT.PUSH );				
 				refresh.setText( "Refresh" );
 
-				final StyledText   info = new StyledText(composite, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
+				final StyledText   info = 
+					new StyledText(composite, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL)
+					{
+						private boolean adding = false;
+						private Event	last_event;
+						
+						public void
+						addListener(
+							int 			eventType, 
+							final Listener	listener)
+						{
+							if ( eventType == SWT.MouseDown && !adding ){
+								
+								try{
+									adding = true;
+								
+									super.addListener(
+										eventType,
+										new Listener()
+										{
+											public void 
+											handleEvent(
+												Event event )
+											{
+												if ( event.type == SWT.MouseDown && event != last_event ){
+													
+													if ( event.button == 1 && event.stateMask != SWT.CONTROL ){
+														
+														last_event = event;
+														
+														try{
+																// this code is to allow a click+drag operation to work as StyledText needs a selection
+																// before it will initiate a drag
+															
+															int offset = getOffsetAtLocation( new Point( event.x, event.y ));
+															
+															final StyleRange style = getStyleRangeAtOffset(offset);
+															
+															if ( style != null ){
+																
+																Object data = style.data;
+																
+																if ( data instanceof UPNPMSItem ){
+																	
+																	int line 		= getLineAtOffset(offset);
+																	int lineOffset 	= getOffsetAtLine(line);	
+																	
+																	setSelection( lineOffset, lineOffset + getLine( line ).length());
+																}
+															}	
+														}catch( Throwable e){
+														}
+													}
+												}
+																								
+												listener.handleEvent( event );
+											}	
+											
+										});
+								}finally{
+									
+									adding = false;
+								}
+							}else{
+								
+								super.addListener(eventType, listener);
+							}
+						}
+					};
 
 				info.setEditable( false );
+				
+				info.setSelectionForeground( info.getForeground());
+				info.setSelectionBackground( info.getBackground());
 				
 				FormData data = new FormData();				
 				data.left 	= new FormAttachment(0,0);
@@ -4286,7 +4368,108 @@ DeviceManagerUI
 				final Runnable do_refresh =
 					new Runnable()
 					{
+						private	UPNPMSItem dragging_item;
+						
 						{
+							final DragSource drag_source = new DragSource(info, DND.DROP_MOVE | DND.DROP_COPY);
+							
+							drag_source.setTransfer( new Transfer[] { TextTransfer.getInstance() });
+							
+							drag_source.addDragListener(
+								new DragSourceAdapter() 
+								{	
+									public void 
+									dragStart(
+										DragSourceEvent event ) 
+									{		
+										event.doit = false;
+										
+										try{
+											int offset = info.getOffsetAtLocation(new Point(event.x, event.y));
+											
+											StyleRange style = info.getStyleRangeAtOffset(offset);
+											
+											if ( style != null ){
+												
+												Object data = style.data;
+												
+												if ( data instanceof UPNPMSItem ){
+													
+													UPNPMSItem item = (UPNPMSItem)data;
+														
+													if ( item.getURL() != null ){
+													
+														dragging_item = item;
+													
+														event.doit = true;
+													}
+												}
+											}
+										}catch( Throwable e ){	
+										}
+									}
+									
+									public void 
+									dragSetData(
+										DragSourceEvent event) 
+									{
+										if ( dragging_item != null ){
+											
+											String url = dragging_item.getURL().toExternalForm();
+											
+												// these parameters are used to identify this as a content-data relative
+												// URL as opposed to a torrent download one, and also provide the content name
+											
+											url += ( url.contains( "?" )?"&":"?") + "azcdid=" + RandomUtils.INSTANCE_ID + "&azcddn=" + UrlUtils.encode( dragging_item.getTitle());
+																					
+											event.data = url;
+											
+										}else{
+											
+											event.data 	= null;
+											event.doit	= false;
+										}
+									}
+									
+									public void 
+									dragFinished(
+										DragSourceEvent event) 
+									{
+										dragging_item = null;
+										
+										try{
+											Point selection = info.getSelection();
+											
+											info.setSelection( selection.x, selection.x );
+											
+										}catch( Throwable e ){	
+										}
+									}
+								});
+							
+							final DropTarget drop_target = new DropTarget(info, DND.DROP_MOVE | DND.DROP_COPY | DND.DROP_LINK);
+							
+							drop_target.setTransfer(new Transfer[0]);
+
+							info.addDisposeListener(
+								new DisposeListener() 
+								{
+									public void 
+									widgetDisposed(
+										DisposeEvent e ) 
+									{
+										if (!drag_source.isDisposed()) {
+											drag_source.dispose();
+										}
+										
+										if (!drop_target.isDisposed()) {
+											drop_target.dispose();
+										}
+									}
+								});
+							
+					
+							
 							info.addMouseListener(
 								new MouseListener()
 								{
@@ -4317,19 +4500,8 @@ DeviceManagerUI
 													
 													UPNPMSItem item = (UPNPMSItem)data;
 													
-													if ( event.button == 1 ){
-															
-														if ( style.underline ){
-														
-															URL url = item.getURL();
-														
-															if ( url != null ){
-															
-																PlayUtils.playURL( url, item.getTitle());
-															}
-														}
-													}else if (	event.button == 3 || 
-																(event.button == 1 && event.stateMask == SWT.CONTROL)){
+													if (	event.button == 3 || 
+															(event.button == 1 && event.stateMask == SWT.CONTROL)){
 														
 														  final Menu menu = new Menu(info.getShell(),SWT.POP_UP);
 														  
@@ -4398,8 +4570,41 @@ DeviceManagerUI
 									
 									public void 
 									mouseUp(
-										MouseEvent arg0) 
+										MouseEvent event) 
 									{
+										if ( info.isDisposed()){
+											return;
+										}
+										
+										try{
+											int offset = info.getOffsetAtLocation(new Point (event.x, event.y));
+											
+											StyleRange style = info.getStyleRangeAtOffset(offset);
+											
+											if ( style != null ){
+												
+												Object data = style.data;
+												
+												if ( data instanceof UPNPMSItem ){
+													
+													UPNPMSItem item = (UPNPMSItem)data;
+													
+													if ( event.button == 1 ){
+															
+														if ( style.underline ){
+														
+															URL url = item.getURL();
+														
+															if ( url != null ){
+															
+																PlayUtils.playURL( url, item.getTitle());
+															}
+														}
+													}
+												}
+											}
+										}catch( Throwable e ){
+										}
 									}
 								});
 					
