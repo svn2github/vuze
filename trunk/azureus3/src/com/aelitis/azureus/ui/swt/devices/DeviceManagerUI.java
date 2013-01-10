@@ -47,7 +47,6 @@ import org.eclipse.swt.events.MouseMoveListener;
 import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.TypedEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormAttachment;
@@ -96,7 +95,6 @@ import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
@@ -204,7 +202,23 @@ DeviceManagerUI
 	private String 	oxc_action		= OXC_NOTHING;
 	private boolean	oxc_trigger_set	= false;
 	
+	private static final int	MAX_MS_DISPLAY_LINE_DEFAULT = 5000;
 	
+	private static int	max_ms_display_lines;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"Plugin.default.device.config.ms.maxlines",
+			new org.gudy.azureus2.core3.config.ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name ) 
+				{
+					max_ms_display_lines = COConfigurationManager.getIntParameter( name, MAX_MS_DISPLAY_LINE_DEFAULT );
+				}
+			});
+	}
 	static {
 		try {
   		if (Constants.isOSX) {
@@ -730,6 +744,23 @@ DeviceManagerUI
 			{
 					def_work_dir, max_xcode, disable_sleep, btnITunes
 			});
+		
+		// media servers
+			
+			// max lines
+		
+		final IntParameter max_ms_lines = 
+			configModel.addIntParameter2( 
+				"device.config.ms.maxlines", "device.config.ms.maxlines",
+				MAX_MS_DISPLAY_LINE_DEFAULT, 
+				0, Integer.MAX_VALUE );
+		
+		configModel.createGroup(
+				"device.ms.group",
+				new Parameter[]
+				{
+					max_ms_lines
+				});
 		
 			// rss
 		
@@ -3510,7 +3541,10 @@ DeviceManagerUI
 		final Object				payload,
 		final boolean				allow_retry )
 	{
-		if (!(payload instanceof String[]) && !(payload instanceof String)) {
+		if (	!(payload instanceof String[]) && 
+				!(payload instanceof String) &&
+				!(payload instanceof URLTransfer.URLType )){
+					
 			return false;
 		}
 		TranscodeChooser deviceChooser = new TranscodeChooser(target) {
@@ -3763,6 +3797,9 @@ DeviceManagerUI
 					}
 				}
 			}
+		}else if ( payload instanceof URLTransfer.URLType ){
+			
+			
 		}
 	}
 	
@@ -4701,6 +4738,7 @@ DeviceManagerUI
 									
 									new AEThread2( "CD:populate" )
 									{
+										private int				line_count;
 										private List<Object[]>	lines_to_add = new ArrayList<Object[]>();
 										
 										
@@ -4747,48 +4785,79 @@ DeviceManagerUI
 											}
 										}
 										
-										private void
+										private boolean
 										print(
 											UPNPMSContainer		container,
 											String				indent )
 										
 											throws UPnPMSException
 										{
-											appendLine( indent, container );
-											
-											indent += "\t\t";
-											
-											List<UPNPMSNode> kids = container.getChildren();
-											
-											for ( UPNPMSNode kid: kids ){
-											
-												if ( kid instanceof UPNPMSContainer){
+											if ( !appendLine( indent, container )){
 												
-													print((UPNPMSContainer)kid, indent );
-													
-												}else{
-													
-													print((UPNPMSItem)kid, indent );
-												}
+												return( false );
 											}
 											
-											updateInfo();
+											try{
+												indent += "\t\t";
+												
+												List<UPNPMSNode> kids = container.getChildren();
+												
+												for ( UPNPMSNode kid: kids ){
+												
+													if ( kid instanceof UPNPMSContainer){
+													
+														if ( !print((UPNPMSContainer)kid, indent )){
+															
+															return( false );
+														}
+														
+													}else{
+														
+														if ( !print((UPNPMSItem)kid, indent )){
+															
+															return( false );
+														}
+													}
+												}
+												
+												return( true );
+												
+											}finally{
+											
+												updateInfo();
+											}
 										}
 										
-										private void
+										private boolean
 										print(
 											UPNPMSItem			item,
 											String				indent )
 										{
-											appendLine( indent, item );
+											return( appendLine( indent, item ));
 										}
 										
-										private void
+										private boolean
 										appendLine(
 											String	indent,
 											Object	obj )
 										{
-											lines_to_add.add( new Object[]{ indent, obj });
+											line_count++;
+											
+											if ( line_count >= max_ms_display_lines ){
+												
+												if ( line_count == max_ms_display_lines ){
+												
+													lines_to_add.add( new Object[]{ indent, "Too many entries, output truncated..." });
+												}
+												
+												return( false );
+												
+											}else{
+											
+												lines_to_add.add( new Object[]{ indent, obj });
+												
+												return( true );
+											}
 										}
 										
 										private void
@@ -4837,7 +4906,7 @@ DeviceManagerUI
 																										
 																info.setStyleRange( style );
 															
-															}else{
+															}else if ( obj instanceof UPNPMSItem ){
 																
 																UPNPMSItem item = (UPNPMSItem)obj;
 																
@@ -4873,6 +4942,19 @@ DeviceManagerUI
 																	
 																	info.setStyleRange( style );
 																}
+															}else{
+																
+																line += (String)obj;
+																
+																line += "\r\n";
+																
+																int	start_pos = info.getCharCount();
+																															
+																info.append( line );
+																
+																StyleRange style = new StyleRange(start_pos, line.length(), null, null, SWT.NULL );
+																										
+																info.setStyleRange( style );
 															}
 														}
 													}
