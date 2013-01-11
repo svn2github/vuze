@@ -375,7 +375,6 @@ public class SideBar
 			new SelectionAdapter()
 			{
 				public void widgetSelected(SelectionEvent e) {
-					System.out.println( e );
 					if ( e.detail == SWT.None ){
 						SideBarEntrySWT[] sideBarEntries = mapIdToEntry.values().toArray(
 								new SideBarEntrySWT[0]);
