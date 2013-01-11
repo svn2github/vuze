@@ -73,6 +73,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -2199,7 +2200,6 @@ public class OpenTorrentWindow
 			return null;
 		}
 
-		String sExistingName = null;
 		try {
 			HashWrapper hash = torrent.getHashWrapper();
 			if (hash != null) {
@@ -2222,16 +2222,17 @@ public class OpenTorrentWindow
 		} catch (Exception e) {
 		}
 
-		DownloadManager existingDownload = null;
-		if (sExistingName == null) {
+		String 			existingName 		= null;
+		DownloadManager existingDownload 	= null;
+
 			// Check if torrent already exists in gm, and add if not
-			existingDownload = (gm == null) ? null : gm.getDownloadManager(torrent);
-			if (existingDownload != null) {
-				sExistingName = existingDownload.getDisplayName();
-			}
+		existingDownload = (gm == null) ? null : gm.getDownloadManager(torrent);
+	
+		if (existingDownload != null) {
+			existingName = existingDownload.getDisplayName();
 		}
 
-		if (sExistingName == null) {
+		if (existingName == null) {
 			info = new TorrentInfo(torrentFile.getAbsolutePath(), torrent,
 					bDeleteFileOnCancel);
 			info.sOriginatingLocation = sOriginatingLocation;
@@ -2239,8 +2240,9 @@ public class OpenTorrentWindow
 
 		} else {
 
-			final String sfExistingName = sExistingName;
-			final DownloadManager fExistingDownload = existingDownload;
+			final TOTorrent 		fTorrent			= torrent;
+			final String 			fExistingName 		= existingName;
+			final DownloadManager 	fExistingDownload 	= existingDownload;
 			
 			fExistingDownload.fireGlobalManagerEvent( GlobalManagerEvent.ET_REQUEST_ATTENTION );
 			
@@ -2251,19 +2253,58 @@ public class OpenTorrentWindow
 						new MessageSlideShell(Display.getCurrent(), SWT.ICON_INFORMATION,
 								MSG_ALREADY_EXISTS, null, new String[] {
 									":" + sOriginatingLocation,
-									sfExistingName,
+									fExistingName,
 									MessageText.getString(MSG_ALREADY_EXISTS_NAME),
 								}, new Object[] {
 									fExistingDownload
 								}, -1 );
-					} else {
-						MessageBoxShell mb = new MessageBoxShell(SWT.OK, MSG_ALREADY_EXISTS,
-								new String[] {
-									":" + sOriginatingLocation,
-									sfExistingName,
-									MessageText.getString(MSG_ALREADY_EXISTS_NAME),
+					}else{
+						
+						boolean	can_merge = TorrentUtils.canMergeAnnounceURLs( fTorrent, fExistingDownload.getTorrent());
+						
+						if ( can_merge ){
+							
+							String text = MessageText.getString(
+									MSG_ALREADY_EXISTS + ".text",
+									new String[] {
+										":" + sOriginatingLocation,
+										fExistingName,
+										MessageText.getString(MSG_ALREADY_EXISTS_NAME),
+									});
+							
+							text += "\n\n" + MessageText.getString( "openTorrentWindow.mb.alreadyExists.merge" );
+							
+							MessageBoxShell mb = 
+								new MessageBoxShell(
+									SWT.YES | SWT.NO,
+									MessageText.getString( MSG_ALREADY_EXISTS+".title" ),
+									text );
+									
+							mb.open(
+								new UserPrompterResultListener()
+								{
+									public void 
+									prompterClosed(
+										int result) 
+									{
+										if ( result == SWT.YES ){
+								
+											TorrentUtils.mergeAnnounceURLs( fTorrent, fExistingDownload.getTorrent());
+										}
+									}
 								});
-						mb.open(null);
+						}else{
+							MessageBoxShell mb = 
+								new MessageBoxShell(
+									SWT.OK, 
+									MSG_ALREADY_EXISTS,
+									new String[] {
+										":" + sOriginatingLocation,
+										fExistingName,
+										MessageText.getString(MSG_ALREADY_EXISTS_NAME),
+									});
+							mb.open(null);
+						}
 					}
 				}
 			});

@@ -978,9 +978,27 @@ TorrentUtils
 	}
 	
 	public static boolean
+	canMergeAnnounceURLs(
+		TOTorrent	new_torrent,
+		TOTorrent	dest_torrent )
+	{
+		return( mergeAnnounceURLsSupport( new_torrent, dest_torrent, false ));
+
+	}
+	
+	public static boolean
 	mergeAnnounceURLs(
 		TOTorrent 	new_torrent,
 		TOTorrent	dest_torrent )
+	{
+		return( mergeAnnounceURLsSupport( new_torrent, dest_torrent, true ));
+	}
+	
+	private static boolean
+	mergeAnnounceURLsSupport(
+		TOTorrent 	new_torrent,
+		TOTorrent	dest_torrent,
+		boolean		do_it )
 	{
 		if ( new_torrent == null || dest_torrent == null ){
 			
@@ -1043,7 +1061,10 @@ TorrentUtils
 			dest_groups.add(i,groups_to_add.get(i));
 		}
 		
-		listToAnnounceGroups( dest_groups, dest_torrent );
+		if ( do_it ){
+		
+			listToAnnounceGroups( dest_groups, dest_torrent );
+		}
 		
 		return( true );
 	}
