@@ -130,6 +130,19 @@ UPNPMSContainerImpl
 								
 								if ( x.getName().equalsIgnoreCase( "res" )){
 									
+									SimpleXMLParserDocumentAttribute a_size = x.getAttribute( "size" );
+
+									long	this_size = 0;
+									
+									if ( a_size != null ){
+										
+										try{
+											this_size = Long.parseLong( a_size.getValue().trim());
+											
+										}catch( Throwable e ){
+										}
+									}
+									
 									SimpleXMLParserDocumentAttribute pi = x.getAttribute( "protocolInfo" );
 									
 									if ( pi != null ){
@@ -139,23 +152,18 @@ UPNPMSContainerImpl
 										if ( pi_str.toLowerCase().startsWith( "http-get" )){
 											
 											try{
-												url = new URL( x.getValue().trim());
+												if ( size == 0 || this_size > size ){
 												
+													url = new URL( x.getValue().trim());
+													
+													size = this_size;
+												}
 											}catch( Throwable e ){
 											}
 										}
 									}
 									
-									SimpleXMLParserDocumentAttribute a_size = x.getAttribute( "size" );
 
-									if ( a_size != null ){
-										
-										try{
-											size = Long.parseLong( a_size.getValue().trim());
-											
-										}catch( Throwable e ){
-										}
-									}
 								}
 							}
 							if ( url != null ){

@@ -155,7 +155,7 @@ UPNPMSBrowserImpl
 				String 	didl_str = didl_result.getValue();
 				
 				SimpleXMLParserDocument	didle_doc = SimpleXMLParserDocumentFactory.create( didl_str );
-				
+								
 				results.add( didle_doc );
 				
 				int	num_returned 	= Integer.parseInt( response.getChild( "NumberReturned" ).getValue());
