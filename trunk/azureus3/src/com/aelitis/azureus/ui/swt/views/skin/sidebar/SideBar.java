@@ -722,6 +722,8 @@ public class SideBar
 				if (Constants.isOSX) {
 					tree.redraw();
 				}
+				
+				event.feedback = DND.FEEDBACK_SELECT | DND.FEEDBACK_SCROLL | DND.FEEDBACK_EXPAND;
 			}
 
 			// @see org.eclipse.swt.dnd.DropTargetAdapter#dragLeave(org.eclipse.swt.dnd.DropTargetEvent)

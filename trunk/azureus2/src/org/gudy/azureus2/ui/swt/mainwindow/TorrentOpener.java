@@ -451,9 +451,21 @@ public class TorrentOpener {
 				Object object = URLTransfer.getInstance().nativeToJava(
 						event.currentDataType);
 				if (object instanceof URLTransfer.URLType) {
-					isTorrent = true;
+					
+					URLTransfer.URLType xfer = (URLTransfer.URLType)object;
+					
+					String link = xfer.linkURL;
+					
+					if ( link == null || !link.contains( "azcdid=" + RandomUtils.INSTANCE_ID )){
+					
+						isTorrent = true;
+					}
 				}
 			}
+		}else if ( event.data instanceof String && ((String)event.data).contains( "azcdid=" + RandomUtils.INSTANCE_ID )){
+			
+			// not a torrent
+			
 		} else if (event.data instanceof String[] || event.data instanceof String) {
 			final String[] sourceNames = (event.data instanceof String[])
 					? (String[]) event.data : new String[] {
@@ -467,7 +479,15 @@ public class TorrentOpener {
 				}
 			}
 		} else if (event.data instanceof URLTransfer.URLType) {
-			isTorrent = true;
+			
+			URLTransfer.URLType xfer = (URLTransfer.URLType)event.data;
+			
+			String link = xfer.linkURL;
+			
+			if ( link == null || !link.contains( "azcdid=" + RandomUtils.INSTANCE_ID )){
+				
+				isTorrent = true;
+			}
 		}
 		return isTorrent;
 	}
