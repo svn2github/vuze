@@ -56,6 +56,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoURL;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.average.Average;
@@ -664,8 +665,9 @@ TranscodeQueueImpl
 						job.setStream( source_url.openConnection().getInputStream());
 					}
 				}else{
+					boolean url_input_source = source instanceof DiskManagerFileInfoURL;
 					
-					if ( device.getAlwaysCacheFiles()){
+					if ( device.getAlwaysCacheFiles() || url_input_source ){
 						
 						PluginInterface av_pi = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaceByID( "azupnpav" );
 						
@@ -685,6 +687,11 @@ TranscodeQueueImpl
 						if ( url_str == null || url_str.length() == 0 ){
 							
 								// see if we can use the file directly
+							
+							if ( url_input_source ){
+								
+								((DiskManagerFileInfoURL)source).download();
+							}
 							
 							File source_file = source.getFile();
 							

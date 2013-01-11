@@ -37,6 +37,7 @@ import com.aelitis.azureus.core.devices.TranscodeProviderAdapter;
 import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeProviderAnalysis;
 import com.aelitis.azureus.core.devices.TranscodeProviderJob;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoURL;
 
 public class 
 TranscodeProviderVuze 
@@ -251,46 +252,52 @@ TranscodeProviderVuze
 			TranscodePipe		pipe = null;
 
 			if ( source_file == null ){
-							
-					// race condition here on auto-transcodes due to downloadadded listeners - can add the xcode to queue
-					// and schedule before added to upnpms - simple hack is to hang about a bit
-			
-				for ( int i=0; i<10; i++ ){
-
-					PluginInterface av_pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
 					
-					if ( av_pi == null ){
+				if ( input instanceof DiskManagerFileInfoURL ){
 					
-						throw( new TranscodeException( "Media Server plugin not found" ));
-					}
+					source_url = ((DiskManagerFileInfoURL)input).getURL();
 					
-					IPCInterface av_ipc = av_pi.getIPC();
-					
-					String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ input });
-			
-					if ( url_str != null && url_str.length() > 0 ){
-					
-						source_url = new URL( url_str );
+				}else{
+						// race condition here on auto-transcodes due to downloadadded listeners - can add the xcode to queue
+						// and schedule before added to upnpms - simple hack is to hang about a bit
 				
-						pipe = new TranscodePipeStreamSource( source_url.getHost(), source_url.getPort());
-					
-						source_url = UrlUtils.setHost( source_url, "127.0.0.1" );
+					for ( int i=0; i<10; i++ ){
 	
-						source_url = UrlUtils.setPort( source_url, pipe.getPort());					
-					}
+						PluginInterface av_pi = plugin_interface.getPluginManager().getPluginInterfaceByID( "azupnpav" );
+						
+						if ( av_pi == null ){
+						
+							throw( new TranscodeException( "Media Server plugin not found" ));
+						}
+						
+						IPCInterface av_ipc = av_pi.getIPC();
+						
+						String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ input });
 				
-					if ( source_url != null ){
+						if ( url_str != null && url_str.length() > 0 ){
 						
-						break;
+							source_url = new URL( url_str );
+					
+							pipe = new TranscodePipeStreamSource( source_url.getHost(), source_url.getPort());
 						
-					}else{
-						
-						try{
-							Thread.sleep(1000);
-							
-						}catch( Throwable e ){
+							source_url = UrlUtils.setHost( source_url, "127.0.0.1" );
+		
+							source_url = UrlUtils.setPort( source_url, pipe.getPort());					
+						}
+					
+						if ( source_url != null ){
 							
 							break;
+							
+						}else{
+							
+							try{
+								Thread.sleep(1000);
+								
+							}catch( Throwable e ){
+								
+								break;
+							}
 						}
 					}
 				}
@@ -565,6 +572,11 @@ TranscodeProviderVuze
 
 			if ( direct_input ){
 				
+				if ( input instanceof DiskManagerFileInfoURL ){
+					
+					((DiskManagerFileInfoURL)input).download();
+				}
+				
 				if ( input.getDownloaded() == input.getLength()){
 					
 					File	file = input.getFile();
@@ -583,52 +595,60 @@ TranscodeProviderVuze
 			
 			if ( source_url == null ){
 				
-				IPCInterface av_ipc = av_pi.getIPC();
-				
-				String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ input });
-				
-				
-				if ( url_str == null || url_str.length() == 0 ){
+				if ( input instanceof DiskManagerFileInfoURL ){
 					
-						// see if we can use the file directly
+					source_url = ((DiskManagerFileInfoURL)input).getURL();
 					
-					File source_file = input.getFile();
+				}else{
 					
-					if ( source_file.exists()){
+					IPCInterface av_ipc = av_pi.getIPC();
+					
+					String url_str = (String)av_ipc.invoke( "getContentURL", new Object[]{ input });
+					
+					
+					if ( url_str == null || url_str.length() == 0 ){
 						
-						pipe = 
-							new TranscodePipeFileSource( 
-									source_file,
-									new TranscodePipe.errorListener()
-									{
-										public void 
-										error(
-											Throwable e )
+							// see if we can use the file directly
+						
+						File source_file = input.getFile();
+						
+						if ( source_file.exists()){
+							
+							pipe = 
+								new TranscodePipeFileSource( 
+										source_file,
+										new TranscodePipe.errorListener()
 										{
-											_adapter.failed(
-												new TranscodeException( "File access error", e ));
-											
-											if ( xcode_job[0] != null ){
+											public void 
+											error(
+												Throwable e )
+											{
+												_adapter.failed(
+													new TranscodeException( "File access error", e ));
 												
-												xcode_job[0].cancel();
+												if ( xcode_job[0] != null ){
+													
+													xcode_job[0].cancel();
+												}
 											}
-										}
-									});
-						
-						source_url = new URL( "http://127.0.0.1:" + pipe.getPort() + "/" );
-						
+										});
+							
+							source_url = new URL( "http://127.0.0.1:" + pipe.getPort() + "/" );
+							
+						}else{
+							
+							throw( new TranscodeException( "Source file doesn't exist" ));
+						}
 					}else{
 						
-						throw( new TranscodeException( "Source file doesn't exist" ));
-					}
-				}else{
-					source_url = new URL( url_str );
-				
-					pipe = new TranscodePipeStreamSource( source_url.getHost(), source_url.getPort());
+						source_url = new URL( url_str );
 					
-					source_url = UrlUtils.setHost( source_url, "127.0.0.1" );
-
-					source_url = UrlUtils.setPort( source_url, pipe.getPort());		
+						pipe = new TranscodePipeStreamSource( source_url.getHost(), source_url.getPort());
+						
+						source_url = UrlUtils.setHost( source_url, "127.0.0.1" );
+	
+						source_url = UrlUtils.setPort( source_url, pipe.getPort());		
+					}
 				}
 			}
 			

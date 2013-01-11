@@ -48,6 +48,7 @@ import com.aelitis.azureus.core.devices.TranscodeException;
 import com.aelitis.azureus.core.devices.TranscodeActionVetoException;
 import com.aelitis.azureus.core.devices.TranscodeTarget;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoURL;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.ImportExportUtils;
@@ -356,6 +357,11 @@ TranscodeJobImpl
 	protected boolean
 	canUseDirectInput()
 	{
+		if ( file instanceof DiskManagerFileInfoURL ){
+			
+			return( true );
+		}
+		
 		long	length = file.getLength();
 
 		return( file.getDownloaded() == length &&

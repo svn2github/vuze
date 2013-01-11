@@ -90,6 +90,8 @@ import com.aelitis.azureus.core.devices.*;
 import com.aelitis.azureus.core.devices.DeviceManager.DeviceManufacturer;
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoStream;
+import com.aelitis.azureus.core.download.DiskManagerFileInfoURL;
 import com.aelitis.azureus.core.download.StreamManager;
 import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
@@ -3718,6 +3720,27 @@ DeviceManagerUI
 	}
 	
 	protected static void
+	addURL(
+		TranscodeTarget			target,
+		TranscodeProfile 		profile,
+		int						transcode_requirement,
+		String					url )
+	{
+		try{
+			DeviceManagerFactory.getSingleton().getTranscodeManager().getQueue().add(
+				target,
+				profile,
+				new DiskManagerFileInfoURL( new URL( url )),
+				transcode_requirement,
+				false );
+				
+		}catch( Throwable e ){
+				
+			Debug.out( e );
+		}
+	}
+	
+	protected static void
 	handleDrop(
 		TranscodeTarget		target,
 		TranscodeProfile 	profile,
@@ -3796,10 +3819,18 @@ DeviceManagerUI
 						addFile( target, profile, transcode_requirement, f );
 					}
 				}
+			}else if ( stuff.startsWith( "http:" ) || stuff.startsWith( "https://" )){
+				
+				addURL( target, profile, transcode_requirement, stuff );
 			}
 		}else if ( payload instanceof URLTransfer.URLType ){
 			
+			String url = ((URLTransfer.URLType)payload).linkURL;
 			
+			if ( url != null ){
+				
+				addURL( target, profile, transcode_requirement, url );
+			}
 		}
 	}
 	
