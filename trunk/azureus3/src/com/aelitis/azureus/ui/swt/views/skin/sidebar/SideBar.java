@@ -25,6 +25,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
+import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.*;
@@ -367,7 +368,22 @@ public class SideBar
 		font = FontUtils.getFontWithHeight(tree.getFont(), null, fontHeight);
 
 		tree.setFont(font);
-
+		
+			// after a scroll we need to recalculate the hit areas as they will have moved!
+		
+		tree.getVerticalBar().addSelectionListener( 
+			new SelectionAdapter()
+			{
+				public void widgetSelected(SelectionEvent e) {
+					System.out.println( e );
+					if ( e.detail == SWT.None ){
+						SideBarEntrySWT[] sideBarEntries = mapIdToEntry.values().toArray(
+								new SideBarEntrySWT[0]);
+						swt_updateSideBarHitAreasY(sideBarEntries);
+					}
+				}
+			});
+		
 		Listener treeListener = new Listener() {
 			TreeItem lastTopItem = null;
 
