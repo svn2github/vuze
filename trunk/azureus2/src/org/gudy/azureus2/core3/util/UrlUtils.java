@@ -26,6 +26,7 @@ import java.net.*;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -1001,6 +1002,37 @@ public class UrlUtils
 		}
 	}
 	
+	public static String
+	getCanonicalString(
+		URL		url )
+	{
+		String protocol = url.getProtocol();
+		
+		if ( !protocol.equals( protocol.toLowerCase( Locale.US ))){
+			
+			protocol = protocol.toLowerCase( Locale.US );
+			
+			url = UrlUtils.setProtocol( url, protocol ); 
+		}
+		
+		int	port = url.getPort();
+		
+		if ( protocol.equals( "http" ) || protocol.equals( "https" )){
+		
+			if ( port == url.getDefaultPort()){
+				
+				url = UrlUtils.setPort( url, 0 );
+			}
+		}else{
+			
+			if ( port == -1 ){
+				
+				url = UrlUtils.setPort( url, url.getDefaultPort());
+			}
+		}
+		
+		return( url.toString());
+	}
 	
 		/**
 		 * Returns an explicit IPv4 url if the supplied one has both IPv6 and IPv4 addresses

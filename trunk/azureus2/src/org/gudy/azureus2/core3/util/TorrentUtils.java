@@ -739,7 +739,7 @@ TorrentUtils
 		
 			List<String>	s = new ArrayList<String>();
 			
-			s.add( getCanonicalString( torrent.getAnnounceURL()));
+			s.add( UrlUtils.getCanonicalString( torrent.getAnnounceURL()));
 			
 			groups.add(s);
 			
@@ -757,7 +757,7 @@ TorrentUtils
 				
 				for (int j=0;j<urls.length;j++){
 				
-					String u = getCanonicalString( urls[j] );
+					String u = UrlUtils.getCanonicalString( urls[j] );
 					
 					s.add( u );
 					
@@ -770,7 +770,7 @@ TorrentUtils
 				}
 			}
 			
-			String a = getCanonicalString( torrent.getAnnounceURL());
+			String a = UrlUtils.getCanonicalString( torrent.getAnnounceURL());
 			
 			if ( !all_urls.contains( a )){
 				
@@ -1021,7 +1021,7 @@ TorrentUtils
 					
 						for ( URL m: mods ){
 							
-							if ( !all_dest.contains( getCanonicalString( m ))){
+							if ( !all_dest.contains( UrlUtils.getCanonicalString( m ))){
 								
 								return( true );
 							}
@@ -1106,38 +1106,6 @@ TorrentUtils
 		listToAnnounceGroups( dest_groups, dest_torrent );
 		
 		return( true );
-	}
-	
-	public static String
-	getCanonicalString(
-		URL		url )
-	{
-		String protocol = url.getProtocol();
-		
-		if ( !protocol.equals( protocol.toLowerCase( Locale.US ))){
-			
-			protocol = protocol.toLowerCase( Locale.US );
-			
-			url = UrlUtils.setProtocol( url, protocol ); 
-		}
-		
-		int	port = url.getPort();
-		
-		if ( protocol.equals( "http" ) || protocol.equals( "https" )){
-		
-			if ( port == url.getDefaultPort()){
-				
-				url = UrlUtils.setPort( url, 0 );
-			}
-		}else{
-			
-			if ( port == -1 ){
-				
-				url = UrlUtils.setPort( url, url.getDefaultPort());
-			}
-		}
-		
-		return( url.toString());
 	}
 	
 	public static boolean
