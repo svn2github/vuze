@@ -2248,8 +2248,13 @@ public class OpenTorrentWindow
 			
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
+					boolean	can_merge = TorrentUtils.canMergeAnnounceURLs( fTorrent, fExistingDownload.getTorrent());
+
 					Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
-					if (Display.getDefault().getActiveShell() == null || !mainShell.isVisible() || mainShell.getMinimized() ) {
+					
+					if ( ( Display.getDefault().getActiveShell() == null || !mainShell.isVisible() || mainShell.getMinimized() ) &&
+							(!can_merge )){
+						
 						new MessageSlideShell(Display.getCurrent(), SWT.ICON_INFORMATION,
 								MSG_ALREADY_EXISTS, null, new String[] {
 									":" + sOriginatingLocation,
@@ -2260,7 +2265,6 @@ public class OpenTorrentWindow
 								}, -1 );
 					}else{
 						
-						boolean	can_merge = TorrentUtils.canMergeAnnounceURLs( fTorrent, fExistingDownload.getTorrent());
 						
 						if ( can_merge ){
 							

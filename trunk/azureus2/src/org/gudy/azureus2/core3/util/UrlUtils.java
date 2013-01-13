@@ -872,9 +872,17 @@ public class UrlUtils
 			}
 			pos = authority.lastIndexOf(':');
 			if ( pos == -1 ){
-				result.append(authority + ":" + port );
+				if ( port > 0 ){
+					result.append(authority + ":" + port );
+				}else{
+					result.append(authority);
+				}
 			}else{
-				result.append(authority.substring(0,pos+1) + port );				
+				if ( port > 0 ){
+					result.append(authority.substring(0,pos+1) + port );
+				}else{
+					result.append(authority.substring(0,pos));
+				}
 			}
 		}
 		if (u.getPath() != null) {

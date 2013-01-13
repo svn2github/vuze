@@ -38,4 +38,9 @@ Handler
 		return new UDPURLConnection(u);
 	}
 
+	 public int 
+	 getDefaultPort()
+	 {
+		 return( 80 );
+	 }
 }

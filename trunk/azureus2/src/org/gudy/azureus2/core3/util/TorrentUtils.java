@@ -739,10 +739,13 @@ TorrentUtils
 		
 			List<String>	s = new ArrayList<String>();
 			
-			s.add( torrent.getAnnounceURL().toString());
+			s.add( getCanonicalString( torrent.getAnnounceURL()));
 			
 			groups.add(s);
+			
 		}else{
+			
+			Set<String>	all_urls = new HashSet<String>();
 			
 			for (int i=0;i<sets.length;i++){
 			
@@ -754,13 +757,28 @@ TorrentUtils
 				
 				for (int j=0;j<urls.length;j++){
 				
-					s.add( urls[j].toString());
+					String u = getCanonicalString( urls[j] );
+					
+					s.add( u );
+					
+					all_urls.add( u );
 				}
 				
 				if ( s.size() > 0 ){
 					
 					groups.add(s);
 				}
+			}
+			
+			String a = getCanonicalString( torrent.getAnnounceURL());
+			
+			if ( !all_urls.contains( a )){
+				
+				List<String>	s = new ArrayList<String>();
+
+				s.add( a );
+				
+				groups.add( 0, s );
 			}
 		}
 		
@@ -982,23 +1000,47 @@ TorrentUtils
 		TOTorrent	new_torrent,
 		TOTorrent	dest_torrent )
 	{
-		return( mergeAnnounceURLsSupport( new_torrent, dest_torrent, false ));
+		try{
+			List<List<String>>	new_groups 	= announceGroupsToList( new_torrent );
+			List<List<String>> 	dest_groups = announceGroupsToList( dest_torrent );
+			
+			Set<String>	all_dest 	= new HashSet<String>();
+			
+			for ( List<String> l: dest_groups ){
+				
+				all_dest.addAll( l );
+			}
 
+			for ( List<String> l: new_groups ){
+				
+				for ( String u: l ){
+				
+					List<URL> mods = applyAllDNSMods( new URL( u ));
+					
+					if ( mods != null ){
+					
+						for ( URL m: mods ){
+							
+							if ( !all_dest.contains( getCanonicalString( m ))){
+								
+								return( true );
+							}
+						}
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		return( false );
 	}
-	
+		
 	public static boolean
 	mergeAnnounceURLs(
 		TOTorrent 	new_torrent,
 		TOTorrent	dest_torrent )
-	{
-		return( mergeAnnounceURLsSupport( new_torrent, dest_torrent, true ));
-	}
-	
-	private static boolean
-	mergeAnnounceURLsSupport(
-		TOTorrent 	new_torrent,
-		TOTorrent	dest_torrent,
-		boolean		do_it )
 	{
 		if ( new_torrent == null || dest_torrent == null ){
 			
@@ -1060,13 +1102,42 @@ TorrentUtils
 			
 			dest_groups.add(i,groups_to_add.get(i));
 		}
-		
-		if ( do_it ){
-		
-			listToAnnounceGroups( dest_groups, dest_torrent );
-		}
+				
+		listToAnnounceGroups( dest_groups, dest_torrent );
 		
 		return( true );
+	}
+	
+	public static String
+	getCanonicalString(
+		URL		url )
+	{
+		String protocol = url.getProtocol();
+		
+		if ( !protocol.equals( protocol.toLowerCase( Locale.US ))){
+			
+			protocol = protocol.toLowerCase( Locale.US );
+			
+			url = UrlUtils.setProtocol( url, protocol ); 
+		}
+		
+		int	port = url.getPort();
+		
+		if ( protocol.equals( "http" ) || protocol.equals( "https" )){
+		
+			if ( port == url.getDefaultPort()){
+				
+				url = UrlUtils.setPort( url, 0 );
+			}
+		}else{
+			
+			if ( port == -1 ){
+				
+				url = UrlUtils.setPort( url, url.getDefaultPort());
+			}
+		}
+		
+		return( url.toString());
 	}
 	
 	public static boolean
@@ -2057,36 +2128,44 @@ TorrentUtils
        		
        		if ( seq == urlg_mod_last_seq && urlg_mod_last_pre != null && urlg_mod_last_post != null ){
        		
-      			TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
- 
-      			Iterator<URL>	it = urlg_mod_last_pre.iterator();
- 
-      			boolean	match = true;
+       			boolean	match = !(urlg_mod_last_post instanceof URLGroup && ((URLGroup)urlg_mod_last_post).hasBeenModified());
+       				
+       			if ( match ){
+       			
+	      			TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
+	 
+	      			Iterator<URL>	it = urlg_mod_last_pre.iterator(); 			
       			
  outer:
-      			for (int i=0;i<sets.length;i++){
-      					
-      				URL[]	urls = sets[i].getAnnounceURLs();
-  
-   					for ( int j=0;j<urls.length;j++){
-      						
-   						if ( !it.hasNext()){
-   							
-   							match = false;
-   							
-   							break outer;
-   						}
-   						
-   						if ( it.next() != urls[j] ){
-   							
-   							match = false;
-   							
-   							break;
-   						}
-      				}
-      			}
-      			
-      			if ( !it.hasNext() && match ){
+	      			for (int i=0;i<sets.length;i++){
+	      					
+	      				URL[]	urls = sets[i].getAnnounceURLs();
+	  
+	   					for ( int j=0;j<urls.length;j++){
+	      						
+	   						if ( !it.hasNext()){
+	   							
+	   							match = false;
+	   							
+	   							break outer;
+	   						}
+	   						
+	   						if ( it.next() != urls[j] ){
+	   							
+	   							match = false;
+	   							
+	   							break;
+	   						}
+	      				}
+	      			}
+	      			
+	      			if (it.hasNext()){
+	      				
+	      				match = false;
+	      			}
+       			}
+       			
+      			if ( match ){
       						
       	    		// System.out.println( "using old urlg: " + group + " -> " + urlg_mod_last_post );
       	    			
@@ -3443,6 +3522,63 @@ TorrentUtils
 		}
 	}
 	
+	private static List<URL>
+	applyAllDNSMods(
+		URL		url )
+	{
+		if ( DNS_HANDLING_ENABLE ){
+			
+			DNSTXTEntry txt_entry = getDNSTXTEntry( url );
+			
+			if ( txt_entry != null && txt_entry.hasRecords()){
+				
+				boolean url_is_tcp 	= url.getProtocol().toLowerCase().startsWith( "http" );
+				int		url_port	= url.getPort();
+				
+				if ( url_port == -1 ){
+					
+					url_port = url.getDefaultPort();
+				}
+				
+				List<DNSTXTPortInfo>	ports = txt_entry.getPorts();
+				
+				if ( ports.size() == 0 ){
+					
+					return( null );
+					
+				}else{
+				
+					List<URL>	result = new ArrayList<URL>();
+					
+					for ( DNSTXTPortInfo port: ports ){
+							
+						URL	mod_url = url;
+						
+						if ( url_port != port.getPort()){
+						
+							mod_url = UrlUtils.setPort( mod_url, port.getPort());
+						}
+						
+						if ( url_is_tcp != port.isTCP()){
+						
+							mod_url = UrlUtils.setProtocol( mod_url, port.isTCP()?"http":"udp" );
+						}
+						
+						result.add( mod_url );
+					}
+					
+					return( result );
+				}
+			}else{
+			
+				return( null );
+			}
+		}else{
+			
+			return( null );
+		}
+	}
+	
 	private static TOTorrentAnnounceURLGroup
 	applyDNSMods(
 		URL								announce_url,
@@ -3573,6 +3709,8 @@ TorrentUtils
 		private TOTorrentAnnounceURLGroup		delegate;
 		private TOTorrentAnnounceURLSet[]		sets;
 		
+		private boolean modified;
+		
 		private
 		URLGroup(
 			TOTorrentAnnounceURLGroup		_delegate,
@@ -3593,6 +3731,8 @@ TorrentUtils
        	setAnnounceURLSets(
        		TOTorrentAnnounceURLSet[]	_sets )
        	{
+       		modified = true;
+       		
        		sets = _sets;
        		
        		delegate.setAnnounceURLSets(_sets );
@@ -3603,6 +3743,12 @@ TorrentUtils
        		URL[]	urls )
        	{
        		return( delegate.createAnnounceURLSet( urls ));	
+       	}
+       	
+       	protected boolean
+       	hasBeenModified()
+       	{
+       		return( modified );
        	}
 	}
 	
