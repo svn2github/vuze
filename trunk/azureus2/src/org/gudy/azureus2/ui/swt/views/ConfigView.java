@@ -40,7 +40,6 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.plugins.ui.config.ConfigSectionSWT;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -371,7 +370,7 @@ public class ConfigView implements UISWTViewEventListener {
       
       ConfigSection section = pluginSections.get(i);
       
-      if (section instanceof ConfigSectionSWT || section instanceof UISWTConfigSection ) {
+      if ( section instanceof UISWTConfigSection ) {
         String name;
         try {
           name = section.configSectionGetName();
@@ -440,15 +439,7 @@ public class ConfigView implements UISWTViewEventListener {
       		sc.addListener(SWT.Resize, scResizeListener);
           
           if(i == 0) {
-            Composite c;
-            if ( section instanceof ConfigSectionSWT ){
-          	  
-          	  c = ((ConfigSectionSWT)section).configSectionCreate(sc);
-          	  
-            }else{
-   
-            	  c = ((UISWTConfigSection)section).configSectionCreate(sc);
-            }
+            Composite c = ((UISWTConfigSection)section).configSectionCreate(sc);
             sectionsCreated.add(section);
             sc.setContent(c);
           }
@@ -733,16 +724,8 @@ public class ConfigView implements UISWTViewEventListener {
           Utils.disposeComposite((Composite)previous,true);
         }
         
-        Composite c;
+        Composite c = ((UISWTConfigSection)configSection).configSectionCreate(item);
         
-        if ( configSection instanceof ConfigSectionSWT ){
-      	  
-      	  c = ((ConfigSectionSWT)configSection).configSectionCreate(item);
-      	  
-        }else{
-
-          c = ((UISWTConfigSection)configSection).configSectionCreate(item);
-        }
         sectionsCreated.add(configSection);
         
         item.setContent(c);
