@@ -34,8 +34,10 @@ import org.eclipse.swt.widgets.Composite;
 
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
@@ -71,9 +73,13 @@ NetStatusPluginView
 	
 	public
 	NetStatusPluginView(
-		NetStatusPlugin		_plugin )
+		NetStatusPlugin	_plugin,
+		UIInstance		_ui,
+		String			VIEW_ID )
 	{
 		plugin	= _plugin;
+		
+		((UISWTInstance)_ui).addView( UISWTInstance.VIEW_MAIN, VIEW_ID, this );
 	}
 	
 	public boolean 

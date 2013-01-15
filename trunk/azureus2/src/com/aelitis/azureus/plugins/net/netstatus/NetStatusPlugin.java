@@ -37,9 +37,6 @@ import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-
-import com.aelitis.azureus.plugins.net.netstatus.swt.NetStatusPluginView;
 
 public class 
 NetStatusPlugin
@@ -149,15 +146,17 @@ NetStatusPlugin
 				UIAttached(
 					UIInstance		instance )
 				{
-					if ( instance instanceof UISWTInstance ){
+					if ( instance.getUIType() == UIInstance.UIT_SWT ){
 						
-						UISWTInstance swt_ui = (UISWTInstance)instance;
-						
-						NetStatusPluginView view = new NetStatusPluginView( NetStatusPlugin.this );
-
-						swt_ui.addView(	UISWTInstance.VIEW_MAIN, VIEW_ID, view );
-						
-						//swt_ui.openMainView( VIEW_ID, view, null );
+						try{
+							Class.forName( "com.aelitis.azureus.plugins.net.netstatus.swt.NetStatusPluginView" ).getConstructor(
+								new Class[]{ NetStatusPlugin.class, UIInstance.class, String.class } ).newInstance(
+									new Object[]{ NetStatusPlugin.this, instance, VIEW_ID } );
+							
+						}catch( Throwable e ){
+							
+							e.printStackTrace();
+						}
 					}
 				}
 
