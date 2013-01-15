@@ -36,7 +36,6 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.proxy.*;
-import com.aelitis.azureus.core.proxy.impl.swt.AEProxySelectorSWTImpl;
 import com.aelitis.azureus.core.util.DNSUtils;
 
 public class 
@@ -191,8 +190,19 @@ AEProxySelectorImpl
 					public void 
 					azureusCoreRunning(
 						AzureusCore core )
-					{						
-						new AEProxySelectorSWTImpl( core, AEProxySelectorImpl.this );
+					{	
+						try{
+								// decouple SWT stuff from core
+							
+							Class.forName( "com.aelitis.azureus.core.proxy.impl.swt.AEProxySelectorSWTImpl").getConstructor(
+								new Class[]{ AzureusCore.class, AEProxySelectorImpl.class }).newInstance( 
+										new Object[]{ core,AEProxySelectorImpl.this }); 
+						
+							//new AEProxySelectorSWTImpl( core, AEProxySelectorImpl.this );
+							
+						}catch( Throwable e ){
+							
+						}
 					}
 				});
 	}
