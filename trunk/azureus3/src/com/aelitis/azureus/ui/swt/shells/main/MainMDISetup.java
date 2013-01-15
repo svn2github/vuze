@@ -26,6 +26,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.views.ViewTitleInfoBetaP;
 import com.aelitis.azureus.ui.swt.views.skin.SBC_ActivityTableView;
 import com.aelitis.azureus.ui.swt.views.skin.SBC_PlusFTUX;
@@ -37,7 +38,7 @@ import com.aelitis.azureus.util.ContentNetworkUtils;
 
 public class MainMDISetup
 {
-	public static void setupSideBar(final MultipleDocumentInterface mdi, final MdiListener l) {
+	public static void setupSideBar(final MultipleDocumentInterfaceSWT mdi, final MdiListener l) {
 		if (Utils.isAZ2UI()) {
 			setupSidebarClassic(mdi);
 		} else {

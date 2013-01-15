@@ -54,7 +54,9 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 
 public class 
 SubscriptionManagerUI 
@@ -823,7 +825,7 @@ SubscriptionManagerUI
 	{
 		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 
-		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		
 		if (mdi == null) {
 			return;
@@ -1180,7 +1182,7 @@ SubscriptionManagerUI
 	}
 	
 	private MdiEntry createSubsEntry(final Subscription subs) {
-		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		
 		if ( mdi == null ){
 			

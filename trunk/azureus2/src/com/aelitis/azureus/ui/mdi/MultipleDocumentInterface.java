@@ -3,8 +3,6 @@ package com.aelitis.azureus.ui.mdi;
 import java.util.List;
 import java.util.Map;
 
-import org.gudy.azureus2.plugins.ui.UIPluginView;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 
@@ -57,9 +55,6 @@ public interface MultipleDocumentInterface
 	public MdiEntry createEntryFromSkinRef(String parentID, String id,
 			String configID, String title, ViewTitleInfo titleInfo, Object params,
 			boolean closeable, String preferedAfterID);
-
-	public MdiEntry createEntryFromEventListener(String parentID,
-			UISWTViewEventListener l, String id, boolean closeable, Object datasource);
 
 	public MdiEntry getCurrentEntry();
 
