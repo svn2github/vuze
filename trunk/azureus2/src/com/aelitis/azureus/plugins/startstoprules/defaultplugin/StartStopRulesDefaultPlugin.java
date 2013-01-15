@@ -44,10 +44,8 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
-import com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt.StartStopRulesDefaultPluginSWTUI;
 
 /** Handles Starting and Stopping of torrents.
  *
@@ -193,7 +191,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	// UI
 	private TableContextMenuItem debugMenuItem = null;
 
-	private boolean bSWTUI = false;
+	private UIAdapter	swt_ui;
 	
 	private CopyOnWriteList listenersFP = new CopyOnWriteList();
 
@@ -284,11 +282,21 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					seedingRankColumn.addCellRefreshListener(columnListener);
 					tm.addColumn(seedingRankColumn);
 
-					if (instance instanceof UISWTInstance) {
-						bSWTUI = true;
-						// We have our own config model :)
+					if (instance.getUIType() == UIInstance.UIT_SWT ){
+						
+							// We have our own config model :)
+						
 						configModel.destroy();
-						new StartStopRulesDefaultPluginSWTUI(pi);
+						
+						try{
+							swt_ui = (UIAdapter)Class.forName( "com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt.StartStopRulesDefaultPluginSWTUI").getConstructor(
+									new Class[]{ PluginInterface.class }).newInstance(
+											new Object[]{ pi } );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
 					}
 				}
 
@@ -870,8 +878,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 								DefaultRankCalculator dlData = downloadDataMap.get(ds);
 
 								if (dlData != null) {
-									if (bSWTUI)
-										StartStopRulesDefaultPluginSWTUI.openDebugWindow(dlData);
+									if ( swt_ui != null )
+										swt_ui.openDebugWindow(dlData);
 									else
 										pi.getUIManager().showTextMessage(
 												null,
@@ -2267,6 +2275,14 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	
 	public List getFPListeners() {
 		return listenersFP.getList();
+	}
+	
+	public interface
+	UIAdapter
+	{
+		public void
+		openDebugWindow(
+			DefaultRankCalculator		dlData );
 	}
 } // class
 

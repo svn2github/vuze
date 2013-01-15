@@ -35,11 +35,14 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 
-import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
+import com.aelitis.azureus.plugins.startstoprules.defaultplugin.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 
-public class StartStopRulesDefaultPluginSWTUI {
+public class 
+StartStopRulesDefaultPluginSWTUI
+	implements StartStopRulesDefaultPlugin.UIAdapter
+{
 	public StartStopRulesDefaultPluginSWTUI(PluginInterface plugin_interface) {
 		plugin_interface.addConfigSection(new ConfigSectionQueue());
 		plugin_interface.addConfigSection(new ConfigSectionSeeding());
@@ -48,7 +51,7 @@ public class StartStopRulesDefaultPluginSWTUI {
 		plugin_interface.addConfigSection(new ConfigSectionSeedingIgnore());
 	}
 
-	public static void openDebugWindow(final DefaultRankCalculator dlData) {
+	public void openDebugWindow(final DefaultRankCalculator dlData) {
 		final Shell shell = new Shell(Display.getCurrent(), SWT.ON_TOP
 				| SWT.SHELL_TRIM | SWT.TOOL | SWT.CLOSE);
 
