@@ -30,7 +30,6 @@ import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 /**
  * @author Allan Crooks
@@ -149,8 +148,10 @@ public class PluginDeprecation {
 					// Force it to be auto-opened.
 					UIManagerListener uiml = new UIManagerListener() {
 						public void UIAttached(UIInstance inst) {
-							if (inst instanceof UISWTInstance) {
-								((UISWTInstance)inst).openView(model);
+							if ( inst.getUIType() == UIInstance.UIT_SWT ){
+							
+								inst.openView(model);
+							
 								pi.getUIManager().removeUIListener(this);
 							}
 						}

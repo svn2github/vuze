@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.plugins.ui;
 
+import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 
 /**
@@ -48,6 +49,8 @@ UIInstance
 	public int
 	getUIType();
 	
+	public boolean openView(BasicPluginViewModel model);
+
 	/**
 	 * Prompts the user with a title, text, and a series of options.  The options
 	 * are typically displayed as buttons.

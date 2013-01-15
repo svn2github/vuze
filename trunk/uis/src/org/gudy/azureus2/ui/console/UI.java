@@ -21,6 +21,7 @@ import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UIConst;
@@ -276,6 +277,11 @@ UI
 				"Console UI devs need to implement this function!");
 
 		return defaultOption;
+	}
+	
+	public boolean openView(BasicPluginViewModel model) {
+			// TODO Auto-generated method stub
+			return false;
 	}
 	
 	/** Not yet supported. **/
