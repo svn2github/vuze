@@ -30,7 +30,6 @@ import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.ui.model.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 /**
  * Management tools for the user interface.
