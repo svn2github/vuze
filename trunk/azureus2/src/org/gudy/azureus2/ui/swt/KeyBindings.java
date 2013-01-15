@@ -354,6 +354,9 @@ public final class KeyBindings
      */
     private static void setAccelerator(final MenuItem menu, final KeyBindingInfo kbInfo)
     {
+    	if ( menu.isDisposed()){
+    		return;
+    	}
         if(kbInfo.accelerator != SWT.NONE)
         {
             menu.setAccelerator(kbInfo.accelerator);
