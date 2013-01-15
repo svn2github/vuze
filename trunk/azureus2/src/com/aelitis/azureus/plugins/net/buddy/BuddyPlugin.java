@@ -64,17 +64,14 @@ import org.gudy.azureus2.plugins.utils.security.SEPublicKey;
 import org.gudy.azureus2.plugins.utils.security.SEPublicKeyLocator;
 import org.gudy.azureus2.plugins.utils.security.SESecurityManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.*;
-import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
-import com.aelitis.azureus.plugins.net.buddy.swt.BuddyPluginView;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 
 public class 
@@ -514,15 +511,18 @@ BuddyPlugin
 				UIAttached(
 					final UIInstance		instance )
 				{
-					if ( instance instanceof UISWTInstance ){
-						
-						UISWTInstance swt_ui = (UISWTInstance)instance;
-						
-						BuddyPluginView view = new BuddyPluginView( BuddyPlugin.this, swt_ui );
-
-						swt_ui.addView(	UISWTInstance.VIEW_MAIN, VIEW_ID, view );
-						
-						//swt_ui.openMainView( VIEW_ID, view, null );
+					if ( instance.getUIType() == UIInstance.UIT_SWT ){
+							
+						try{
+							Class.forName( "com.aelitis.azureus.plugins.net.buddy.swt.BuddyPluginView").getConstructor(
+								new Class[]{ BuddyPlugin.class, UIInstance.class, String.class } ).newInstance(
+									new Object[]{ BuddyPlugin.this, instance, VIEW_ID } );
+							
+							// new BuddyPluginView( BuddyPlugin.this, swt_ui, VIEW_ID );
+							
+						}catch( Throwable e ){
+							e.printStackTrace();
+						}
 					}
 					
 					setupDisablePrompt(instance);

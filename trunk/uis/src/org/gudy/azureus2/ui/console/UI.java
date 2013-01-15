@@ -53,6 +53,12 @@ UI
     return args;
   }
   
+  public int 
+  getUIType() 
+  {
+	  return( UIT_CONSOLE );
+  }
+  
   public void startUI() {
     super.startUI();
     

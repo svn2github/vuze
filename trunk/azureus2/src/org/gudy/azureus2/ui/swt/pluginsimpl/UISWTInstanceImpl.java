@@ -107,6 +107,12 @@ UISWTInstanceImpl
 		uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 	}
 	
+	public int 
+	getUIType() 
+	{
+		return( UIT_SWT );
+	}
+	
 	public void init(IUIIntializer init) {
 		UIManager ui_manager = PluginInitializer.getDefaultInterface().getUIManager();
 		ui_manager.addUIEventListener(this);
@@ -936,6 +942,12 @@ UISWTInstanceImpl
 			delegate.detach();
 		}
 	
+		public int 
+		getUIType() 
+		{
+			return( delegate.getUIType());
+		}
+		
 		public Display
 		getDisplay()
 		{

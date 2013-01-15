@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTStatusEntry;
@@ -66,10 +67,11 @@ BuddyPluginView
 	public
 	BuddyPluginView(
 		BuddyPlugin		_plugin,
-		UISWTInstance	_ui_instance )
+		UIInstance		_ui_instance,
+		String			VIEW_ID )
 	{
 		plugin			= _plugin;
-		ui_instance		= _ui_instance;
+		ui_instance		= (UISWTInstance)_ui_instance;
 		
 		plugin.getAZ2Handler().addListener(
 			new BuddyPluginAZ2Listener()
@@ -128,6 +130,8 @@ BuddyPluginView
 				iconOUT = imageLoader.getImage( "bbb_out" );
 			}
 		});
+		
+		ui_instance.addView(	UISWTInstance.VIEW_MAIN, VIEW_ID, this );
 	}
 	
 	public boolean 

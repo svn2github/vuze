@@ -37,6 +37,17 @@ import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 public interface 
 UIInstance 
 {
+	public static final int	UIT_SWT			= 1;
+	public static final int	UIT_CONSOLE		= 2;
+	
+		/**
+		 * @since 4.8.1.3
+		 * @return
+		 */
+	
+	public int
+	getUIType();
+	
 	/**
 	 * Prompts the user with a title, text, and a series of options.  The options
 	 * are typically displayed as buttons.
