@@ -23,7 +23,7 @@ package org.gudy.azureus2.core3.util;
 
 import java.io.*;
 import java.net.UnknownHostException;
-import java.rmi.ConnectException;
+import java.net.ConnectException;
 import java.util.*;
 
 /**
