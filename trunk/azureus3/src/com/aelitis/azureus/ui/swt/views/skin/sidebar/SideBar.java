@@ -534,7 +534,7 @@ public class SideBar
 						case SWT.MouseMove: {
 							int indent = END_INDENT ? tree.getClientArea().width - 1 : 0;
 							treeItem = tree.getItem(new Point(indent, event.y));
-							SideBarEntrySWT entry = (SideBarEntrySWT) (treeItem == null
+							SideBarEntrySWT entry = (SideBarEntrySWT) ((treeItem == null || treeItem.isDisposed())
 									? null : treeItem.getData("MdiEntry"));
 
 							int cursorNo = SWT.CURSOR_ARROW;

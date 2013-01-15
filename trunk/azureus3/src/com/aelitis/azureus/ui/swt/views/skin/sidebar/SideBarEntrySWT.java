@@ -989,7 +989,10 @@ public class SideBarEntrySWT
 		}
 		
 		final Tree tree = sidebar.getTree();
-		if (tree.isDisposed() || swtItem.isDisposed() || tree.getShell().isDisposed()) {
+		
+			// swtItem can get set to null between the above test and here...
+		
+		if (tree.isDisposed() || ( swtItem != null && swtItem.isDisposed()) || tree.getShell().isDisposed()) {
 			return;
 		}
 
