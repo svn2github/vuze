@@ -33,7 +33,6 @@ import java.util.List;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 
-import com.aelitis.azureus.core.util.Java15Utils;
 
 public class 
 ThreadPool 
@@ -298,14 +297,14 @@ ThreadPool
 	{
 		if ( log_cpu ){
 			
-			long	start_cpu = log_cpu?Java15Utils.getThreadCPUTime():0;
+			long	start_cpu = log_cpu?AEJavaManagement.getThreadCPUTime():0;
 			long	start_time	= SystemTime.getHighPrecisionCounter();
 			
 			runnable.run();
 			
 			if ( start_cpu > 0 ){
 				
-				long	end_cpu = log_cpu?Java15Utils.getThreadCPUTime():0;
+				long	end_cpu = log_cpu?AEJavaManagement.getThreadCPUTime():0;
 				
 				long	diff_cpu = ( end_cpu - start_cpu ) / 1000000;
 			

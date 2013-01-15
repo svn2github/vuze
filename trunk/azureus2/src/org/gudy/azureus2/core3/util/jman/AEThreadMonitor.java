@@ -20,7 +20,7 @@
  *
  */
 
-package com.aelitis.azureus.core.util;
+package org.gudy.azureus2.core3.util.jman;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -33,10 +33,37 @@ import org.gudy.azureus2.core3.util.*;
 
 public class 
 AEThreadMonitor 
+	implements AEJavaManagement.ThreadStuff
 {
-	private static boolean disable_getThreadCpuTime = false; 
-	public static void
-	initialise()
+	private static AEThreadMonitor singleton = new AEThreadMonitor();
+	
+	private boolean disable_getThreadCpuTime = false; 
+	
+	private ThreadMXBean	thread_bean;
+	
+	{
+		try{
+			thread_bean = ManagementFactory.getThreadMXBean();
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
+	}
+	
+	public long
+	getThreadCPUTime()
+	{
+		if ( thread_bean == null ){
+			
+			return( 0 );
+		}
+		
+		return( thread_bean.getCurrentThreadCpuTime());
+	}
+	
+	private
+	AEThreadMonitor()
 	{	
 		String	java_version = (String)System.getProperty("java.runtime.version");
 
@@ -97,56 +124,7 @@ AEThreadMonitor
 		}
 	}
 	
-	private static void
-	monitor14()
-	{
-		AEDiagnosticsLogger log = AEDiagnostics.getLogger( "thread" );
 
-		int num_processors = Runtime.getRuntime().availableProcessors();
-
-		if ( num_processors < 1 ){
-			
-			num_processors = 1;
-		}
-		
-		log.log( "Monitoring starts [1.4] (processors =" + num_processors + ")" );
-
-		while( true ){
-						
-			try{
-				
-				Thread.sleep(10000);
-				
-			}catch( Throwable e ){
-				
-				log.log(e);
-			}
-			
-			try{
-				ThreadGroup	group = Thread.currentThread().getThreadGroup();
-				
-				Thread[]	threads = new Thread[group.activeCount()];
-				
-				group.enumerate( threads );
-				
-				for (int i=0;i<threads.length;i++){
-					
-					Thread	t = threads[i];
-					
-					if ( t != null ){
-						
-						if ( t.getName().equals( "Thread-2")){
-							
-							t.dumpStack();
-						}
-					}
-				}
-			}catch( Throwable e ){
-				
-			}
-		}
-	}
-	
 	private static void
 	monitor15()
 	{
@@ -273,7 +251,7 @@ AEThreadMonitor
 		}
 	}
 
-	public static void
+	public void
 	dumpThreads()
 	{
 		StringWriter	sw = new StringWriter();
@@ -287,7 +265,7 @@ AEThreadMonitor
 		Debug.out( sw.toString());
 	}
 	
-	private static void
+	private void
 	dumpThreads(
 		IndentWriter		writer )
 	{
@@ -389,7 +367,7 @@ AEThreadMonitor
 		writer.exdent();
 	}
 
-	private static class EvidenceGenerateor implements
+	private class EvidenceGenerateor implements
 			AEDiagnosticsEvidenceGenerator
 	{
 		public void generate(IndentWriter writer) {

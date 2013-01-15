@@ -28,7 +28,6 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
 
 import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
 import com.aelitis.azureus.core.proxy.impl.AEProxySelectorImpl;
-import com.aelitis.azureus.core.util.Java15Utils;
 
 import java.io.*;
 import java.net.*;

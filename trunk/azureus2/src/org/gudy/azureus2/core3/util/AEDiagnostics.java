@@ -30,9 +30,6 @@ import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 
-import com.aelitis.azureus.core.util.AEThreadMonitor;
-import com.aelitis.azureus.core.util.Java15Utils;
-
 
 /**
  * @author parg
@@ -238,10 +235,8 @@ AEDiagnostics
 				debug_dir.mkdir();
 			}
 			
-			AEThreadMonitor.initialise();
-			
-			AEMemoryMonitor.initialise();
-			
+			AEJavaManagement.initialise();
+						
 		}catch( Throwable e ){
 			
 				// with webui we don't have the file stuff so this fails with class not found
@@ -259,7 +254,7 @@ AEDiagnostics
 	public static void
 	dumpThreads()
 	{
-		Java15Utils.dumpThreads();
+		AEJavaManagement.dumpThreads();
 	}
 	
 	/**

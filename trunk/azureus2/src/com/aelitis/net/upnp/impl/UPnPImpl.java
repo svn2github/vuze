@@ -32,7 +32,6 @@ import java.net.*;
 import java.io.*;
 
 import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
-import com.aelitis.azureus.core.util.Java15Utils;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;

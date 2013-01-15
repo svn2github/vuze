@@ -39,7 +39,6 @@ import org.gudy.azureus2.plugins.torrent.TorrentAnnounceURLListSet;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploader;
 
-import com.aelitis.azureus.core.util.Java15Utils;
 import com.aelitis.net.magneturi.MagnetURIHandler;
 
 /**
@@ -600,12 +599,12 @@ public class UrlUtils
 	{
 		if ( connect_timeout != -1 ){
 				
-			Java15Utils.setConnectTimeout( connection, (int)connect_timeout );	
+			connection.setConnectTimeout( (int)connect_timeout );	
 		}
 			
 		if ( read_timeout != -1 ){
 				
-			Java15Utils.setReadTimeout( connection, (int)read_timeout );	
+			connection.setReadTimeout( (int)read_timeout );	
 		}
 			
 		connection.connect();

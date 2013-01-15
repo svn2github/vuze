@@ -38,7 +38,6 @@ import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.azureus.core.util.Java15Utils;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 
 public class 
@@ -238,7 +237,7 @@ ExternalSeedHTTPDownloaderLinear
 					
 					if ( time_remaining > 0 ){
 						
-						Java15Utils.setConnectTimeout( connection, time_remaining );
+						connection.setConnectTimeout( time_remaining );
 					}
 								
 					connection.connect();
@@ -250,7 +249,7 @@ ExternalSeedHTTPDownloaderLinear
 						throw( new IOException( "Timeout during connect" ));
 					}
 					
-					Java15Utils.setReadTimeout( connection, time_remaining );
+					connection.setReadTimeout( time_remaining );
 							
 					connected	= true;
 					

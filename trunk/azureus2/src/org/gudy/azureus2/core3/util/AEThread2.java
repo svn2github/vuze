@@ -25,8 +25,6 @@ package org.gudy.azureus2.core3.util;
 
 import java.util.LinkedList;
 
-import com.aelitis.azureus.core.util.Java15Utils;
-
 
 public abstract class 
 AEThread2 
@@ -278,7 +276,7 @@ AEThread2
 						if ( TRACE_TIMES ){
 
 							long 	start_time 	= SystemTime.getHighPrecisionCounter();
-							long	start_cpu 	= Java15Utils.getThreadCPUTime();
+							long	start_cpu 	= AEJavaManagement.getThreadCPUTime();
 
 							try{
 
@@ -287,7 +285,7 @@ AEThread2
 							}finally{
 								
 								long	time_diff 	= ( SystemTime.getHighPrecisionCounter() - start_time )/1000000;
-								long	cpu_diff	= ( Java15Utils.getThreadCPUTime() - start_cpu ) / 1000000;
+								long	cpu_diff	= ( AEJavaManagement.getThreadCPUTime() - start_cpu ) / 1000000;
 								
 								if ( cpu_diff > 10 || time_diff > 10 ){
 								

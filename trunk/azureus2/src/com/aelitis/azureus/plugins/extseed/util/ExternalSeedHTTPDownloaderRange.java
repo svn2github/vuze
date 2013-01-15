@@ -44,7 +44,6 @@ import org.gudy.azureus2.core3.security.SEPasswordListener;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.Debug;
 
-import com.aelitis.azureus.core.util.Java15Utils;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 
 public class 
@@ -171,7 +170,7 @@ redirect_loop:
 						
 						if ( time_remaining > 0 ){
 							
-							Java15Utils.setConnectTimeout( connection, time_remaining );
+							connection.setConnectTimeout( time_remaining );
 						}
 									
 						connection.connect();
@@ -183,7 +182,7 @@ redirect_loop:
 							throw( new IOException( "Timeout during connect" ));
 						}
 						
-						Java15Utils.setReadTimeout( connection, time_remaining );
+						connection.setReadTimeout( time_remaining );
 								
 						connected	= true;
 						

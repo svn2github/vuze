@@ -32,7 +32,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AEMemoryMonitor;
+import org.gudy.azureus2.core3.util.AEJavaManagement;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.platform.PlatformManager;
@@ -389,7 +389,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		{
 				// max mem
 			
-			long	max_mem = AEMemoryMonitor.getJVMLongOption( options, "-Xmx" );
+			long	max_mem = AEJavaManagement.getJVMLongOption( options, "-Xmx" );
 			
 			final int MIN_MAX_JVM = 32*1024*1024;
 	
@@ -441,13 +441,13 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 													
 							String[] options = platform.getExplicitVMOptions();
 							
-							options = AEMemoryMonitor.setJVMLongOption( options, "-Xmx", max_mem );
+							options = AEJavaManagement.setJVMLongOption( options, "-Xmx", max_mem );
 	
-							long	min_mem = AEMemoryMonitor.getJVMLongOption( options, "-Xms" );
+							long	min_mem = AEJavaManagement.getJVMLongOption( options, "-Xms" );
 	
 							if ( min_mem == -1 || min_mem > max_mem ){
 								
-								options = AEMemoryMonitor.setJVMLongOption( options, "-Xms", max_mem );
+								options = AEJavaManagement.setJVMLongOption( options, "-Xms", max_mem );
 							}
 							
 							platform.setExplicitVMOptions( options );
@@ -483,7 +483,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			label.setLayoutData(gridData);
 			
-			Long max_heap_mb = AEMemoryMonitor.getMaxHeapMB();
+			Long max_heap_mb = AEJavaManagement.getMaxHeapMB();
 			
 			if ( max_heap_mb > 0 ){
 				
@@ -496,7 +496,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			
 			final int MIN_MIN_JVM = 8*1024*1024;
 	
-			long	min_mem = AEMemoryMonitor.getJVMLongOption( options, "-Xms" );
+			long	min_mem = AEJavaManagement.getJVMLongOption( options, "-Xms" );
 	
 			GridData gridData = new GridData();
 			Label label = new Label(area, SWT.NULL);
@@ -546,13 +546,13 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 													
 							String[] options = platform.getExplicitVMOptions();
 							
-							options = AEMemoryMonitor.setJVMLongOption( options, "-Xms", min_mem );
+							options = AEJavaManagement.setJVMLongOption( options, "-Xms", min_mem );
 	
-							long	max_mem = AEMemoryMonitor.getJVMLongOption( options, "-Xmx" );
+							long	max_mem = AEJavaManagement.getJVMLongOption( options, "-Xmx" );
 	
 							if ( max_mem == -1 || max_mem < min_mem ){
 								
-								options = AEMemoryMonitor.setJVMLongOption( options, "-Xmx", min_mem );
+								options = AEJavaManagement.setJVMLongOption( options, "-Xmx", min_mem );
 							}
 							
 							platform.setExplicitVMOptions( options );
@@ -596,7 +596,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			
 			final String OPTION_KEY = "-XX:MaxDirectMemorySize=";
 			
-			long	max_direct = AEMemoryMonitor.getJVMLongOption( options, OPTION_KEY );
+			long	max_direct = AEJavaManagement.getJVMLongOption( options, OPTION_KEY );
 	
 			GridData gridData = new GridData();
 			Label label = new Label(area, SWT.NULL);
@@ -646,7 +646,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 													
 							String[] options = platform.getExplicitVMOptions();
 							
-							options = AEMemoryMonitor.setJVMLongOption( options, OPTION_KEY, max_direct );
+							options = AEJavaManagement.setJVMLongOption( options, OPTION_KEY, max_direct );
 								
 							platform.setExplicitVMOptions( options );
 							

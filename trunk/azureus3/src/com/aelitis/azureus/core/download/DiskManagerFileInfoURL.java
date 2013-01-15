@@ -49,12 +49,9 @@ import org.gudy.azureus2.plugins.disk.DiskManagerRequest;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
-import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.pluginsimpl.local.utils.PooledByteBufferImpl;
-import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
-import com.aelitis.azureus.core.util.Java15Utils;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 
 public class 
@@ -608,11 +605,11 @@ redirect_loop:
 										connection.setRequestProperty( "Range", "bytes=" + offset + "-" + (offset+length-1));
 									}
 									
-									Java15Utils.setConnectTimeout( connection, 20*1000 );
+									connection.setConnectTimeout( 20*1000 );
 																
 									connection.connect();
 									
-									Java15Utils.setReadTimeout( connection, 10*1000 );
+									connection.setReadTimeout( 10*1000 );
 																					
 									response = connection.getResponseCode();
 					
