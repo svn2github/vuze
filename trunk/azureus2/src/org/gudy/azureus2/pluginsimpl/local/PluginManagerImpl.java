@@ -122,11 +122,21 @@ PluginManagerImpl
 				
 				if ( mi != null && mi.equalsIgnoreCase("true")){
 					
-					System.setProperty( org.gudy.azureus2.ui.swt.Main.PR_MULTI_INSTANCE, "true" );
+					System.setProperty( PluginManager.PR_MULTI_INSTANCE, "true" );
 				}
 			}
 			
-			org.gudy.azureus2.ui.swt.Main.main(new String[0]);
+				// 	org.gudy.azureus2.ui.swt.Main.main(new String[0]);
+			
+			try{
+				Class.forName( "org.gudy.azureus2.ui.swt.Main" ).getMethod(
+					"main", new Class[]{ String[].class } ).invoke(
+						null, new Object[]{ new String[0] });
+				
+			}catch( Throwable e ){
+				
+				throw( new RuntimeException( "Main method invocation failed", e ));
+			}
 		}
 		
 		if ( azureus_core == null ){
