@@ -28,15 +28,12 @@ import java.io.OutputStream;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 import java.util.StringTokenizer;
-
-import javax.naming.*;
-import javax.naming.directory.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
@@ -207,63 +204,19 @@ NetworkAdminASNLookupImpl
 	
 		throws NetworkAdminException
 	{
-		DirContext context = null;
+		DNSUtils.DNSUtilsIntf dns_utils = DNSUtils.getSingleton();
+
+		if ( dns_utils == null ){
+			
+			throw( new NetworkAdminException( "DNS lookup unavailable" ));
+		}
 		
 		try{
-			context = DNSUtils.getInitialDirContext();
+			return( dns_utils.getTXTRecord(query));
 			
-			Attributes attrs = context.getAttributes( query, new String[]{ "TXT" });
+		}catch( UnknownHostException e ){
 			
-			NamingEnumeration n_enum = attrs.getAll();
-
-			while( n_enum.hasMoreElements()){
-				
-				Attribute	attr =  (Attribute)n_enum.next();
-
-				NamingEnumeration n_enum2 = attr.getAll();
-				
-				while( n_enum2.hasMoreElements()){
-				
-					String attribute = (String)n_enum2.nextElement();
-
-					if ( attribute != null ){
-						
-						attribute = attribute.trim();
-						
-						if ( attribute.startsWith( "\"" )){
-							
-							attribute = attribute.substring(1);
-						}
-						
-						if ( attribute.endsWith( "\"" )){
-							
-							attribute = attribute.substring(0,attribute.length()-1);
-						}
-						
-						if ( attribute.length() > 0 ){
-														
-							return( attribute );
-						}
-					}
-				}
-			}
-			
-			throw( new NetworkAdminException( "DNS query returned no results" ));
-			
-		}catch( Throwable e ){
-			
-			throw( new NetworkAdminException( "DNS query failed", e ));
-			
-		}finally{
-			
-			if ( context != null ){
-				
-				try{
-					context.close();
-					
-				}catch( Throwable e ){
-				}
-			}
+			throw( new NetworkAdminException( "Query failed for '" + query + "'", e ));
 		}
 	}
 	

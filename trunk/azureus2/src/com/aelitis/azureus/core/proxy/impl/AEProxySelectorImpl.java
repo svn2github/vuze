@@ -26,8 +26,6 @@ import java.net.*;
 import java.util.*;
 
 
-import javax.naming.directory.DirContext;
-
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
@@ -687,9 +685,11 @@ AEProxySelectorImpl
 					new_list.add( matching_proxy );
 				}
 				
-				if ( all_failed ){
+				DNSUtils.DNSUtilsIntf dns_utils = DNSUtils.getSingleton();
+				
+				if ( dns_utils != null && all_failed ){
 					
-					DirContext	dns_to_try = null;
+					DNSUtils.DNSDirContext	dns_to_try = null;
 					
 						// make sure the host isn't an IP address...
 					
@@ -711,7 +711,7 @@ AEProxySelectorImpl
 									// moving onto possible others
 																										
 								try{
-									dns_to_try = DNSUtils.getInitialDirContext();
+									dns_to_try = dns_utils.getInitialDirContext();
 									
 								}catch( Throwable e ){
 									
@@ -746,7 +746,7 @@ AEProxySelectorImpl
 								alt_dns_tried.put( try_dns, now_mono );
 								
 								try{
-									dns_to_try = DNSUtils.getDirContextForServer( try_dns );
+									dns_to_try = dns_utils.getDirContextForServer( try_dns );
 									
 								}catch( Throwable e ){
 									
@@ -758,10 +758,10 @@ AEProxySelectorImpl
 						if ( dns_to_try != null ){
 													
 							try{					
-								List<InetAddress> addresses = DNSUtils.getAllByName( dns_to_try, proxy_host );
+								List<InetAddress> addresses = dns_utils.getAllByName( dns_to_try, proxy_host );
 								
 								if ( LOG ){
-									System.out.println( "DNS " + dns_to_try.getEnvironment() + " resolve for " + proxy_host + " returned " + addresses );
+									System.out.println( "DNS " + dns_to_try.getString() + " resolve for " + proxy_host + " returned " + addresses );
 								}
 								
 								Collections.shuffle( addresses );

@@ -1280,13 +1280,18 @@ public class VersionCheckClient {
 
 			}catch( UnknownHostException e ){
 
-				try{
-					return( DNSUtils.getIPV6ByName( v6_address ).getHostAddress());
-
-				}catch( UnknownHostException f ){
-
-					return( v6_address );
+				DNSUtils.DNSUtilsIntf dns_utils = DNSUtils.getSingleton();
+				
+				if ( dns_utils != null ){
+					
+					try{
+						return( dns_utils.getIPV6ByName( v6_address ).getHostAddress());
+	
+					}catch( UnknownHostException f ){	
+					}
 				}
+				
+				return( v6_address );
 			}
 		}else{
 

@@ -168,6 +168,8 @@ TorrentUtils
 			});
 	}
 	
+	static DNSUtils.DNSUtilsIntf dns_utils = DNSUtils.getSingleton();
+	
 	static {
 		COConfigurationManager.addAndFireParameterListeners(
 			new String[]{ 
@@ -183,7 +185,7 @@ TorrentUtils
 					
 					boolean enable_proxy 	= COConfigurationManager.getBooleanParameter( "Enable.Proxy" );
 					
-					DNS_HANDLING_ENABLE = COConfigurationManager.getBooleanParameter( "Tracker DNS Records Enable" ) && !enable_proxy;
+					DNS_HANDLING_ENABLE = dns_utils != null && COConfigurationManager.getBooleanParameter( "Tracker DNS Records Enable" ) && !enable_proxy;
 				}
 			});
 		
@@ -3243,7 +3245,7 @@ TorrentUtils
 							runSupport()
 							{
 								try{
-									List<String> txts = DNSUtils.getTXTRecords( host );
+									List<String> txts = dns_utils.getTXTRecords( host );
 									
 									if ( TRACE_DNS ){
 										System.out.println( "Actual lookup: " + host + " -> " + txts );
