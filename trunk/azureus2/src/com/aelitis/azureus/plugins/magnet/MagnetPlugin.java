@@ -32,7 +32,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.net.InetSocketAddress;
-import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
@@ -68,8 +67,6 @@ import org.gudy.azureus2.plugins.sharing.ShareException;
 import org.gudy.azureus2.plugins.sharing.ShareResourceDir;
 import org.gudy.azureus2.plugins.sharing.ShareResourceFile;
 import org.gudy.azureus2.plugins.torrent.Torrent;
-import org.gudy.azureus2.plugins.torrent.TorrentAnnounceURLList;
-import org.gudy.azureus2.plugins.torrent.TorrentAnnounceURLListSet;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
@@ -85,7 +82,6 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.FeatureAvailability;
@@ -463,15 +459,17 @@ MagnetPlugin
 					UIAttached(
 						UIInstance		instance )
 					{
-						if ( instance instanceof UISWTInstance ){
+						if ( instance.getUIType() == UIInstance.UIT_SWT ){
 							
-							UISWTInstance	swt = (UISWTInstance)instance;
-							
-							Image	image = swt.loadImage( "com/aelitis/azureus/plugins/magnet/icons/magnet.gif" );
-
-							menu1.setGraphic( swt.createGraphic( image ));
-							menu2.setGraphic( swt.createGraphic( image ));							
-							menu3.setGraphic( swt.createGraphic( image ));							
+							try{
+								Class.forName( "com.aelitis.azureus.plugins.magnet.swt.MagnetPluginUISWT" ).getConstructor(
+									new Class[]{ UIInstance.class, TableContextMenuItem[].class }).newInstance(
+										new Object[]{ instance, new TableContextMenuItem[]{ menu1, menu2, menu3 }} );
+								
+							}catch( Throwable e ){
+								
+								e.printStackTrace();
+							}
 						}
 					}
 					
