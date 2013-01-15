@@ -64,7 +64,6 @@ import com.aelitis.azureus.core.networkmanager.Transport;
 import com.aelitis.azureus.core.networkmanager.TransportBase;
 import com.aelitis.azureus.core.networkmanager.TransportStartpoint;
 import com.aelitis.azureus.core.networkmanager.admin.*;
-import com.aelitis.azureus.core.networkmanager.admin.impl.swt.NetworkAdminSWTImpl;
 import com.aelitis.azureus.core.networkmanager.impl.http.HTTPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
@@ -261,7 +260,13 @@ NetworkAdminImpl
 				azureusCoreRunning(
 					AzureusCore core ) 
 				{
-					new NetworkAdminSWTImpl( core, NetworkAdminImpl.this );
+					try{
+						Class.forName( "com.aelitis.azureus.core.networkmanager.admin.impl.swt.NetworkAdminSWTImpl" ).getConstructor(
+							new Class[]{ AzureusCore.class, NetworkAdminImpl.class }).newInstance(
+								new Object[]{ core, NetworkAdminImpl.this });
+						
+					}catch( Throwable e ){
+					}
 				}
 			});
 		

@@ -83,7 +83,6 @@ import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
-import org.gudy.azureus2.ui.swt.auth.CryptoWindow;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -94,10 +93,8 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfac
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
 import com.aelitis.azureus.core.pairing.*;
-import com.aelitis.azureus.core.pairing.impl.swt.PMSWTImpl;
 import com.aelitis.azureus.core.security.CryptoManager;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
-import com.aelitis.azureus.core.security.CryptoManagerPasswordHandler;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 import com.aelitis.azureus.plugins.upnp.UPnPPluginService;
@@ -200,7 +197,7 @@ PairingManagerImpl
 
 	private CopyOnWriteList<PairingManagerListener>	listeners = new CopyOnWriteList<PairingManagerListener>();
 	
-	private PMSWTImpl		swt_ui = new PMSWTImpl();
+	private UIAdapter		ui;
 	
 	private int	tests_in_progress = 0;
 	
@@ -208,6 +205,13 @@ PairingManagerImpl
 	PairingManagerImpl()
 	{
 		AEDiagnostics.addEvidenceGenerator( this );
+		
+		try{
+			ui = (UIAdapter)Class.forName( "com.aelitis.azureus.core.pairing.impl.swt.PMSWTImpl" ).newInstance();
+			
+		}catch( Throwable e ){
+			
+		}
 		
 		must_update_once = COConfigurationManager.getBooleanParameter( "pairing.updateoutstanding" );
 
@@ -309,17 +313,17 @@ PairingManagerImpl
 						run()
 						{
 							try{
-								CryptoWindow pw_win = new CryptoWindow( true );
-							
-								CryptoWindow.passwordDetails result = 
-									pw_win.getPassword(
-										-1,
-										CryptoManagerPasswordHandler.ACTION_PASSWORD_SET,
-										true, "arse ");
-								
-								if ( result != null ){
+								if ( ui != null ){
 									
-									tunnel_handler.setSRPPassword( result.getPassword());
+									char[] password = ui.getSRPPassword();
+									
+									if ( password != null ){
+										
+										tunnel_handler.setSRPPassword( password );
+									}
+								}else{
+									
+									Debug.out( "No UI available" );
 								}
 							}finally{
 								
@@ -472,8 +476,10 @@ PairingManagerImpl
 			
 			dt.queue();
 			
-			swt_ui.initialise( default_pi, param_icon_enable );
-		
+			if ( ui != null ){
+			
+				ui.initialise( default_pi, param_icon_enable );
+			}
 		}finally{
 			
 			init_sem.releaseForever();
@@ -1675,7 +1681,10 @@ PairingManagerImpl
 			}
 		}
 		
-		swt_ui.recordRequest( name, ip, good );
+		if ( ui != null ){
+		
+			ui.recordRequest( name, ip, good );
+		}
 	}
 	
 	protected void
@@ -2192,5 +2201,23 @@ PairingManagerImpl
 		{
 			throw( new RuntimeException( "Not supported" ));
 		}
+	}
+	
+	public interface
+	UIAdapter
+	{
+		public void
+		initialise(
+			PluginInterface			pi,
+			BooleanParameter		icon_enable );
+		
+		public void
+		recordRequest(
+			final String		name,
+			final String		ip,
+			final boolean		good );
+		
+		public char[]
+		getSRPPassword();
 	}
 }
