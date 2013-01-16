@@ -86,12 +86,5 @@ CoreTableColumnSWT
 		}
 		  	
 		super.addListeners(listenerObject);
-	}
-	
-	public int
-	arse()
-	{ 
-		return( 1 );
-	}
-			
+	}		
 }

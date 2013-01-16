@@ -145,7 +145,4 @@ public abstract class CoreTableColumn
   
   public void fillTableColumnInfo(TableColumnInfo info) {
   }
-  
-  public abstract int
-  arse();
 }
