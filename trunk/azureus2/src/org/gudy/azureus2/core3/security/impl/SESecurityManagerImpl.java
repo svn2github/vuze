@@ -51,6 +51,7 @@ import org.gudy.azureus2.core3.security.SEKeyDetails;
 import org.gudy.azureus2.core3.security.SEPasswordListener;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.RandomUtils;
@@ -295,25 +296,32 @@ SESecurityManagerImpl
 	protected void
 	installSecurityManager()
 	{
-		String	prop = System.getProperty( "azureus.security.manager.install", "1" );
-		
-		if ( prop.equals( "0" )){
+		if ( Constants.isAndroid ){
 			
-			Debug.outNoStack( "Not installing security manager - disabled by system property" );
+			// can't do this
 			
-			return;
-		}
-		
-		try{
-			final SecurityManager	old_sec_man	= System.getSecurityManager();
+		}else{
 			
-			my_sec_man = new AzureusSecurityManager( old_sec_man );
+			String	prop = System.getProperty( "azureus.security.manager.install", "1" );
 			
-			System.setSecurityManager( my_sec_man );
-
-		}catch( Throwable e ){
+			if ( prop.equals( "0" )){
+				
+				Debug.outNoStack( "Not installing security manager - disabled by system property" );
+				
+				return;
+			}
 			
-			Debug.printStackTrace(e);
+			try{
+				final SecurityManager	old_sec_man	= System.getSecurityManager();
+				
+				my_sec_man = new AzureusSecurityManager( old_sec_man );
+				
+				System.setSecurityManager( my_sec_man );
+	
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace(e);
+			}
 		}
 	}
 	
