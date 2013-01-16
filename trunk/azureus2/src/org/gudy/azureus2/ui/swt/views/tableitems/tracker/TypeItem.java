@@ -29,15 +29,15 @@ import java.util.Locale;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 
 
 public class 
 TypeItem
-	extends CoreTableColumn 
+	extends CoreTableColumnSWT 
     implements TableCellRefreshListener
 {
 	private static final String[] js_resource_keys = {

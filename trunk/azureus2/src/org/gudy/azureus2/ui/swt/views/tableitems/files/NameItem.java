@@ -41,8 +41,8 @@ import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
@@ -56,7 +56,7 @@ import com.aelitis.azureus.core.AzureusCoreOperationTask;
  * @author Olivier
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class NameItem extends CoreTableColumn implements
+public class NameItem extends CoreTableColumnSWT implements
 		TableCellLightRefreshListener, ObfusticateCellText, TableCellDisposeListener
 {
 	private static boolean bShowIcon;

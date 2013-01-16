@@ -31,12 +31,12 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.ui.swt.views.FilesView;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 
 
 public class PathItem
-       extends CoreTableColumn 
+       extends CoreTableColumnSWT 
        implements TableCellRefreshListener
 {
   

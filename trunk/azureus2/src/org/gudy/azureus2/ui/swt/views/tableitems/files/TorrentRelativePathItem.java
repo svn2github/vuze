@@ -21,14 +21,13 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
-
 
 
 public class TorrentRelativePathItem
-       extends CoreTableColumn 
+       extends CoreTableColumnSWT 
        implements TableCellRefreshListener
 {
   

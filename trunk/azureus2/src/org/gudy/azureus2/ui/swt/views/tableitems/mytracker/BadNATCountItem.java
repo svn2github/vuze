@@ -26,7 +26,8 @@ import org.gudy.azureus2.core3.tracker.host.TRHostTorrent;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
+
 
 /**
  * @author parg
@@ -35,7 +36,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 public class 
 BadNATCountItem 
-	extends CoreTableColumn 
+	extends CoreTableColumnSWT 
 	implements TableCellRefreshListener
 {
 	/** Default Constructor */

@@ -31,8 +31,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.columns.utils.ColumnImageClickArea;
@@ -48,7 +48,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  *
  */
 public class ColumnControls
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellAddedListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;

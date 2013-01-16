@@ -34,9 +34,9 @@ import org.eclipse.swt.graphics.Rectangle;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
@@ -53,7 +53,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  */
 
 public class ColumnThumbnail
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellRefreshListener, TableCellSWTPaintListener, TableCellToolTipListener
 {
 	public static final String COLUMN_ID = "Thumbnail";

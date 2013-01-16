@@ -22,8 +22,8 @@ package org.gudy.azureus2.ui.swt.views.tableitems.pieces;
 
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /**
  *
@@ -31,7 +31,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  * @since 2.0.8.5
  */
 public class AvailabilityItem
-       extends CoreTableColumn 
+       extends CoreTableColumnSWT 
        implements TableCellRefreshListener
 {
   /** Default Constructor */

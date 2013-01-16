@@ -46,9 +46,9 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
@@ -62,7 +62,7 @@ import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3.ContentImageLoadedListe
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
 public class ColumnThumbAndName
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellLightRefreshListener, ObfusticateCellText,
 	TableCellDisposeListener, TableCellSWTPaintListener,
 	TableCellClipboardListener, TableCellMouseMoveListener

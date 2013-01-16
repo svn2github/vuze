@@ -26,19 +26,18 @@ package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
-
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 /**
  *
  * @author Olivier
  * @author TuxPaper (2004/Apr/19: modified to TableCellAdapter)
  */
 public class DownSpeedItem
-       extends CoreTableColumn 
+       extends CoreTableColumnSWT 
        implements TableCellRefreshListener
 {
 	public static final String COLUMN_ID = "downloadspeed";

@@ -24,11 +24,10 @@ import org.eclipse.swt.graphics.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
@@ -42,7 +41,7 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
  *
  */
 public class ColumnTC_NameInfo
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellRefreshListener, TableCellSWTPaintListener,
 	TableCellMouseMoveListener, TableCellToolTipListener
 {

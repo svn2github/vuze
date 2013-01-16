@@ -21,7 +21,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionHistory;
@@ -32,7 +32,7 @@ import com.aelitis.azureus.core.subs.SubscriptionHistory;
  *
  */
 public class ColumnSubscriptionAutoDownload
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellRefreshListener
 {
 	public static String COLUMN_ID = "auto-download";

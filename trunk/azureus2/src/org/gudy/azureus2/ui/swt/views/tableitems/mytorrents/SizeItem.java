@@ -29,15 +29,13 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.HSLColor;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
-
-import com.aelitis.azureus.ui.common.table.TableCellCore;
 
 /** Size of Torrent cell
  *
@@ -45,7 +43,7 @@ import com.aelitis.azureus.ui.common.table.TableCellCore;
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
 public class SizeItem
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellRefreshListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;

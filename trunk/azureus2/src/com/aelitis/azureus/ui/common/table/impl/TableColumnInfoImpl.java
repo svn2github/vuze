@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
 
-package org.gudy.azureus2.ui.swt.views.table.utils;
+package com.aelitis.azureus.ui.common.table.impl;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 

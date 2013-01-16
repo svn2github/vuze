@@ -26,11 +26,11 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.FakeTableCell;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.common.table.*;
 
@@ -40,7 +40,7 @@ import com.aelitis.azureus.ui.common.table.*;
  *
  */
 public class ColumnTC_Sample
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellAddedListener
 {
 	public static final String COLUMN_ID = "TableColumnSample";

@@ -1,10 +1,13 @@
-package com.aelitis.azureus.ui.common.table;
+package org.gudy.azureus2.ui.swt.views.table;
 
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Utils;
+
+import com.aelitis.azureus.ui.common.table.TableGroupRowRunner;
+import com.aelitis.azureus.ui.common.table.TableView;
 
 /** 
  * Listener primarily for Menu Selection.  Implement run(TableRowCore) and it

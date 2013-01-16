@@ -33,7 +33,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
@@ -49,7 +49,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
  *
  */
 public abstract class ColumnDateSizer
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellRefreshListener, TableCellToolTipListener
 {
 	private static int PADDING = 10;

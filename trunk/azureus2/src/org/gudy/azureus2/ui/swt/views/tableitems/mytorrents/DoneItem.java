@@ -27,10 +27,11 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
+
 
 
 /** % Done column in My Torrents
@@ -39,7 +40,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
 public class DoneItem
-       extends CoreTableColumn 
+       extends CoreTableColumnSWT 
        implements TableCellRefreshListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;

@@ -35,8 +35,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerStats;
@@ -50,7 +50,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @since 2.0.8.5
  */
 public class BlocksItem
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellDisposeListener
 {

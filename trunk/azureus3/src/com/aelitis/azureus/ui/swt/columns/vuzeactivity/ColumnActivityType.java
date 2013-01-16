@@ -25,9 +25,9 @@ import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -42,7 +42,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
  *
  */
 public class ColumnActivityType
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellSWTPaintListener, TableCellRefreshListener
 {
 	public static final String COLUMN_ID = "activityType";

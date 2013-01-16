@@ -24,15 +24,14 @@ package org.gudy.azureus2.ui.swt.views.tableitems.pieces;
 
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.plugins.ui.tables.*;
-
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 /**
  * @author MjrTom
  * Shows if more requests can be made on the piece or not
  */
 public class RequestedItem
-    extends CoreTableColumn
+    extends CoreTableColumnSWT
     implements TableCellRefreshListener
 {
     /** Default Constructor */

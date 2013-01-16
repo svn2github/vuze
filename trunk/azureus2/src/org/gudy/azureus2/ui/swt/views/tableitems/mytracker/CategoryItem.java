@@ -31,9 +31,10 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.common.table.impl.CoreTableColumn;
 
 /**
  * @author parg
@@ -42,7 +43,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 
 public class 
 CategoryItem 
-	extends CoreTableColumn 
+	extends CoreTableColumnSWT 
 	implements TableCellRefreshListener
 {
 		/** Default Constructor */

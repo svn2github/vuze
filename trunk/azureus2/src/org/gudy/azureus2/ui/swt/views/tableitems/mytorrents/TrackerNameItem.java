@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.util.StringInterner;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -42,7 +42,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  *
  */
 public class TrackerNameItem
-       extends CoreTableColumn 
+       extends CoreTableColumnSWT 
        implements TableCellRefreshListener, TableCellToolTipListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;

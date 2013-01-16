@@ -30,7 +30,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDefaultPlugin;
@@ -46,7 +46,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
 public class DownSpeedItem
-       extends CoreTableColumn 
+       extends CoreTableColumnSWT 
        implements TableCellAddedListener
 {
 	public static final Class DATASOURCE_TYPE = DownloadTypeIncomplete.class;

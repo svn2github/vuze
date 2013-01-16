@@ -36,7 +36,7 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellAddedListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 /**
  *
@@ -45,7 +45,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  * @author TuxPaper 2005/Oct/13: Full Copy text & Scrape listener 
  */
 public class SeedsItem
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellAddedListener, ParameterListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;

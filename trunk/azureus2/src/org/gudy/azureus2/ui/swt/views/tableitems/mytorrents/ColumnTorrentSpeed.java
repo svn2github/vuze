@@ -8,10 +8,9 @@ import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
-import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
@@ -20,7 +19,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
  *
  */
 public class ColumnTorrentSpeed
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellRefreshListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;

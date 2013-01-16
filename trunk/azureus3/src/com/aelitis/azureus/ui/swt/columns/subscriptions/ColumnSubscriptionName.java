@@ -23,13 +23,12 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
@@ -42,7 +41,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  *
  */
 public class ColumnSubscriptionName
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellRefreshListener, TableCellSWTPaintListener, TableCellMouseListener
 {
 	public static String COLUMN_ID = "name";

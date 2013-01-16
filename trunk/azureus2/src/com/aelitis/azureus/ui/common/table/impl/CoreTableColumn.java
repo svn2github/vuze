@@ -20,11 +20,8 @@
  * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
  
-package org.gudy.azureus2.ui.swt.views.table.utils;
+package com.aelitis.azureus.ui.common.table.impl;
 
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-
-import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -33,6 +30,13 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  *
  * @author TuxPaper
  */
+
+/*
+ * OK, this really shouldn't be here, we shoudl create a CoreTableColumnSWT that implements this
+ * listener logic, but I'm not sure exactly 
+ */
+
+
 public abstract class CoreTableColumn
 	extends TableColumnImpl
 	implements TableColumnExtraInfoListener
@@ -139,16 +143,9 @@ public abstract class CoreTableColumn
     setAlignment(TableColumn.ALIGN_CENTER);
   }
   
-  // @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#addListeners(java.lang.Object)
-  public void addListeners(Object listenerObject) {
-  	if (listenerObject instanceof TableCellSWTPaintListener) {
-  		super.addCellOtherListener("SWTPaint", listenerObject);
-  	}
-  	
-  	super.addListeners(listenerObject);
-  }
-  
-  // @see org.gudy.azureus2.plugins.ui.tables.TableColumnExtraInfoListener#fillTableColumnInfo(org.gudy.azureus2.plugins.ui.tables.TableColumnInfo)
   public void fillTableColumnInfo(TableColumnInfo info) {
   }
+  
+  public abstract int
+  arse();
 }

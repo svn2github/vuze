@@ -24,8 +24,7 @@ import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.plugins.ui.tables.*;
-
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 /**
  *
@@ -33,7 +32,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  * @since 2.0.8.5
  */
 public class RemainingPiecesItem
-       extends CoreTableColumn 
+       extends CoreTableColumnSWT 
        implements TableCellRefreshListener
 {
   /** Default Constructor */

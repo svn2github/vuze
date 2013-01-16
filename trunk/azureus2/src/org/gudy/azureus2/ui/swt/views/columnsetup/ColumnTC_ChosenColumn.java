@@ -21,7 +21,7 @@ package org.gudy.azureus2.ui.swt.views.columnsetup;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
@@ -31,7 +31,7 @@ import com.aelitis.azureus.ui.common.table.TableColumnCore;
  *
  */
 public class ColumnTC_ChosenColumn
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellRefreshListener
 {
 	public static final String COLUMN_ID = "TableColumnChosenColumn";

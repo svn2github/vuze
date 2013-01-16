@@ -23,7 +23,7 @@ import org.eclipse.swt.graphics.Image;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -37,7 +37,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  *
  */
 public class ColumnUnopened
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellMouseListener
 {

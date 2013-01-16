@@ -34,11 +34,12 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.tables.*;
+
 
 /**
  * Torrent Completion Level Graphic Cell for My Torrents.
@@ -46,7 +47,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @author Olivier
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class ProgressGraphItem extends CoreTableColumn implements TableCellAddedListener, TableCellDisposeListener, TableCellVisibilityListener {
+public class ProgressGraphItem extends CoreTableColumnSWT implements TableCellAddedListener, TableCellDisposeListener, TableCellVisibilityListener {
 	private static final int	borderWidth	= 1;
 
 	/** Default Constructor */

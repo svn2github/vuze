@@ -28,11 +28,10 @@ import org.eclipse.swt.widgets.Display;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.util.GeneralUtils;
@@ -41,7 +40,6 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
-import com.aelitis.azureus.util.ContentNetworkUtils;
 import com.aelitis.azureus.util.StringCompareUtils;
 import com.aelitis.azureus.util.UrlFilter;
 
@@ -53,7 +51,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  *
  */
 public class ColumnActivityText
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellSWTPaintListener, TableCellRefreshListener,
 	TableCellMouseMoveListener, TableCellToolTipListener
 {

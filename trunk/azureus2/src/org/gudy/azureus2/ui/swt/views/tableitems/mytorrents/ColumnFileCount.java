@@ -34,9 +34,9 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.FilesView;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -51,7 +51,7 @@ import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
  *
  */
 public class ColumnFileCount
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellMouseListener, TableCellSWTPaintListener,
 	TableCellAddedListener
 {

@@ -27,10 +27,11 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
+
 
 /**
  * User-editable comment for a download.
@@ -38,7 +39,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @author amc1
  */
 public class CommentItem
-       extends CoreTableColumn 
+       extends CoreTableColumnSWT 
        implements TableCellRefreshListener, TableCellMouseListener, ObfusticateCellText
 {
 	public static final Class DATASOURCE_TYPE = Download.class;

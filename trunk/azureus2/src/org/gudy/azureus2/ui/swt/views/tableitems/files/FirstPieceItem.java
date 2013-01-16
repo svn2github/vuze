@@ -22,8 +22,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.ui.tables.*;
-
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 /** File's First Piece # 
  *
@@ -31,7 +30,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
  * @since 2.0.8.5
  */
 public class FirstPieceItem
-       extends CoreTableColumn 
+       extends CoreTableColumnSWT 
        implements TableCellRefreshListener
 {
   /** Default Constructor */

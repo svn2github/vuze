@@ -29,8 +29,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
@@ -42,7 +42,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @author amc1
  */
 public class CommentIconItem
-       extends CoreTableColumn 
+       extends CoreTableColumnSWT 
        implements TableCellRefreshListener, TableCellMouseListener, TableCellAddedListener, TableCellToolTipListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;

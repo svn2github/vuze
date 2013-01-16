@@ -30,15 +30,14 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.plugins.ui.tables.*;
-
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 /**
  *
  * @author Olivier
  * @author TuxPaper (2004/Apr/19: modified to TableCellAdapter)
  */
-public class UpItem extends CoreTableColumn implements TableCellRefreshListener
+public class UpItem extends CoreTableColumnSWT implements TableCellRefreshListener
 {
 	protected static boolean separate_prot_data_stats;
 

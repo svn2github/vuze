@@ -25,15 +25,16 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.tracker;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 
 
+
 public class 
 LeechersItem
-	extends CoreTableColumn 
+	extends CoreTableColumnSWT 
     implements TableCellRefreshListener
 {
 	public 

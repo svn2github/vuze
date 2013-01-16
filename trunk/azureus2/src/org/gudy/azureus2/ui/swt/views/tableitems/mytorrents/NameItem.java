@@ -40,15 +40,15 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 /** Torrent name cell for My Torrents.
  *
  * @author Olivier
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
-public class NameItem extends CoreTableColumn implements
+public class NameItem extends CoreTableColumnSWT implements
 		TableCellLightRefreshListener, ObfusticateCellText, TableCellDisposeListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;

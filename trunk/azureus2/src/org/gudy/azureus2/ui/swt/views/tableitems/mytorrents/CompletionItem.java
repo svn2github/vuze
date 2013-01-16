@@ -34,9 +34,9 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -51,7 +51,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
 public class CompletionItem
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellDisposeListener, TableCellSWTPaintListener
 {

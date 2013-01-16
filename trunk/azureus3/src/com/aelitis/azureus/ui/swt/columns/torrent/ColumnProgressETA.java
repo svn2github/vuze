@@ -23,9 +23,9 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import org.gudy.azureus2.ui.swt.views.FilesViewMenuUtil;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
+import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWTPaintListener;
-import org.gudy.azureus2.ui.swt.views.table.utils.CoreTableColumn;
 
 import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
@@ -46,7 +46,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  *
  */
 public class ColumnProgressETA
-	extends CoreTableColumn
+	extends CoreTableColumnSWT
 	implements TableCellAddedListener, TableCellMouseListener,
 	TableCellRefreshListener, TableCellSWTPaintListener
 {
