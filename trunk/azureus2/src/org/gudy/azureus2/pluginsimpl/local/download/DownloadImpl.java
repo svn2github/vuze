@@ -1892,11 +1892,10 @@ DownloadImpl
          download_manager.getStats().setDownloadRateLimitBytesPerSecond( kb < 0 ? 0 : kb*1024 );
  	}
   	
-  	public int
-	getMaximumDownloadKBPerSecond()
-  	{
-  		return( download_manager.getStats().getDownloadRateLimitBytesPerSecond() /1024 );
-  	}
+	public int getMaximumDownloadKBPerSecond() {
+		int bps = download_manager.getStats().getDownloadRateLimitBytesPerSecond();
+		return bps <= 0 ? bps : (bps < 1024 ? 1 : bps / 1024);
+	}
     
   	public int getUploadRateLimitBytesPerSecond() {
       return download_manager.getStats().getUploadRateLimitBytesPerSecond();

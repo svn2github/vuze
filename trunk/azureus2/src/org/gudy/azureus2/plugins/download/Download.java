@@ -691,10 +691,16 @@ Download extends DownloadEventNotifier
   	public void
 	setMaximumDownloadKBPerSecond(
 		int		kb );
-  	
-  	public int
-	getMaximumDownloadKBPerSecond();
-    
+
+	/**
+	 * Get the max download rate allowed for this download
+	 * 
+	 * @return upload rate in KB/s, 0 for unlimited<BR>
+	 *         Since 4.8.1.3: -1 for download disabled
+	 * 
+	 * @since 2.1.0.2
+	 */
+	public int getMaximumDownloadKBPerSecond();    
     
 	    /**
 	     * Get the max upload rate allowed for this download.
