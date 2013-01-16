@@ -67,7 +67,7 @@ SESecurityManagerImpl
 	protected static String	KEYSTORE_TYPE;
 	
 	static{
-		String[]	types = { "JKS", "GKR" };
+		String[]	types = { "JKS", "GKR", "BKS" };
 		
 		for (int i=0;i<types.length;i++){
 			try{
@@ -172,7 +172,10 @@ SESecurityManagerImpl
 		installAuthenticator();
 		
 	
-		String[]	providers = { "com.sun.net.ssl.internal.ssl.Provider", "org.metastatic.jessie.provider.Jessie" };
+		String[]	providers = 
+			{ 	"com.sun.net.ssl.internal.ssl.Provider", 
+				"org.metastatic.jessie.provider.Jessie",
+				"org.bouncycastle.jce.provider.BouncyCastleProvider"};
 			
 		String	provider = null;
 		

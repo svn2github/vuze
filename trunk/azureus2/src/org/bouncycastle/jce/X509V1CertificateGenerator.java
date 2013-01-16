@@ -155,7 +155,7 @@ public class X509V1CertificateGenerator
     {
         try
         {
-            return generateX509Certificate(key, "BC", null);
+            return generateX509Certificate(key, "BC_VUZE", null);
         }
         catch (NoSuchProviderException e)
         {
@@ -174,7 +174,7 @@ public class X509V1CertificateGenerator
     {
         try
         {
-            return generateX509Certificate(key, "BC", random);
+            return generateX509Certificate(key, "BC_VUZE", random);
         }
         catch (NoSuchProviderException e)
         {

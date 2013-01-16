@@ -77,7 +77,7 @@ CryptoSTSEngineImpl
 		try{
 			ecDH = new InternalDH();
 			
-			//ecDH = KeyAgreement.getInstance("ECDH", "BC");
+			//ecDH = KeyAgreement.getInstance("ECDH", "BC_VUZE");
 			
 			ecDH.init(ephemeralKeyPair.getPrivate());
 			

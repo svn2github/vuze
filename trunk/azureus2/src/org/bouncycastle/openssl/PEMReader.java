@@ -63,7 +63,7 @@ public class PEMReader extends BufferedReader
     public PEMReader(
         Reader reader)
     {
-        this(reader, null, "BC");
+        this(reader, null, "BC_VUZE");
     }
 
     /**
@@ -76,7 +76,7 @@ public class PEMReader extends BufferedReader
         Reader          reader,
         PasswordFinder  pFinder)
     {
-        this(reader, pFinder, "BC");
+        this(reader, pFinder, "BC_VUZE");
     }
 
     /**

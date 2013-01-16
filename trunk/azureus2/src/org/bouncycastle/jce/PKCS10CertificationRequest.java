@@ -127,7 +127,7 @@ public class PKCS10CertificationRequest
         throws NoSuchAlgorithmException, NoSuchProviderException,
                 InvalidKeyException, SignatureException
     {
-        this(signatureAlgorithm, subject, key, attributes, signingKey, "BC");
+        this(signatureAlgorithm, subject, key, attributes, signingKey, "BC_VUZE");
     }
 
     /**
@@ -212,7 +212,7 @@ public class PKCS10CertificationRequest
     public PublicKey getPublicKey()
         throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException
     {
-        return getPublicKey("BC");
+        return getPublicKey("BC_VUZE");
     }
 
     public PublicKey getPublicKey(
@@ -242,7 +242,7 @@ public class PKCS10CertificationRequest
         throws NoSuchAlgorithmException, NoSuchProviderException,
                 InvalidKeyException, SignatureException
     {
-        return verify("BC");
+        return verify("BC_VUZE");
     }
 
     public boolean verify(

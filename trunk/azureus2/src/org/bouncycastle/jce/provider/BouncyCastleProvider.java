@@ -30,7 +30,7 @@ public final class BouncyCastleProvider extends Provider
 {
 	private static String info = "BouncyCastle Security Provider v1.23";
 
-    public static String PROVIDER_NAME = "BC";
+    public static String PROVIDER_NAME = "BC_VUZE";
 
 	/**
 	 * Construct a new provider.  This should only be required when

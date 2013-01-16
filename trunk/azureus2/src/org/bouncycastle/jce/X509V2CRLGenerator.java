@@ -212,7 +212,7 @@ public class X509V2CRLGenerator
     {
         try
         {
-            return generateX509CRL(key, "BC", null);
+            return generateX509CRL(key, "BC_VUZE", null);
         }
         catch (NoSuchProviderException e)
         {
@@ -232,7 +232,7 @@ public class X509V2CRLGenerator
     {
         try
         {
-            return generateX509CRL(key, "BC", random);
+            return generateX509CRL(key, "BC_VUZE", random);
         }
         catch (NoSuchProviderException e)
         {

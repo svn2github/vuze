@@ -52,7 +52,7 @@ CryptoECCUtils
 	{
 		try
 		{
-			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", "BC");
+			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", "BC_VUZE");
 			
 			keyGen.initialize(ECCparam);
 
@@ -72,7 +72,7 @@ CryptoECCUtils
 	{
 		try
 		{
-			Signature ECCsig = Signature.getInstance("SHA1withECDSA", "BC");
+			Signature ECCsig = Signature.getInstance("SHA1withECDSA", "BC_VUZE");
 			
 			if( key instanceof ECPrivateKey ){
 				
@@ -126,7 +126,7 @@ CryptoECCUtils
    		PrivateKey privkey = null;
    		
    		try{
-   			privkey = KeyFactory.getInstance("ECDSA","BC").generatePrivate(keyspec);
+   			privkey = KeyFactory.getInstance("ECDSA","BC_VUZE").generatePrivate(keyspec);
    			
    			return privkey;
    			
@@ -163,7 +163,7 @@ CryptoECCUtils
 
    		try{
    			
-   			return KeyFactory.getInstance("ECDSA", "BC").generatePublic(keyspec);
+   			return KeyFactory.getInstance("ECDSA", "BC_VUZE").generatePublic(keyspec);
    			
    		}catch (Throwable e){
    		

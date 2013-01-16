@@ -39,7 +39,7 @@ MD4Hasher
 	MD4Hasher()
     {
     	try{
-    		md4 = MessageDigest.getInstance("MD4", "BC");
+    		md4 = MessageDigest.getInstance("MD4", "BC_VUZE");
     		  		
     	}catch( Throwable e ){
     		

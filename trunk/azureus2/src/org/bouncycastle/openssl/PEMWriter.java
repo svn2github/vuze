@@ -49,7 +49,7 @@ public class PEMWriter
      */
     public PEMWriter(Writer out)
     {
-        this(out, "BC");
+        this(out, "BC_VUZE");
     }
 
     public PEMWriter(

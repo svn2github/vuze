@@ -86,7 +86,7 @@ public class PKCS7SignedData
         throws SecurityException, CRLException, InvalidKeyException,
         CertificateException, NoSuchProviderException, NoSuchAlgorithmException
     {
-        this(in, "BC");
+        this(in, "BC_VUZE");
     }
 
     /**
@@ -228,7 +228,7 @@ public class PKCS7SignedData
         throws SecurityException, InvalidKeyException,
         NoSuchProviderException, NoSuchAlgorithmException
     {
-        this(privKey, certChain, hashAlgorithm, "BC");
+        this(privKey, certChain, hashAlgorithm, "BC_VUZE");
     }
 
     /**

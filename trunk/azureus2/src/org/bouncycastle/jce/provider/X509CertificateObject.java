@@ -170,7 +170,7 @@ public class X509CertificateObject
      */
     public String getSigAlgName()
     {
-        Provider    prov = Security.getProvider("BC");
+        Provider    prov = Security.getProvider("BC_VUZE");
         String      algName = prov.getProperty("Alg.Alias.Signature." + this.getSigAlgOID());
 
         if (algName != null)
@@ -642,7 +642,7 @@ public class X509CertificateObject
 
         try
         {
-            signature = Signature.getInstance(c.getSignatureAlgorithm().getObjectId().getId(), "BC");
+            signature = Signature.getInstance(c.getSignatureAlgorithm().getObjectId().getId(), "BC_VUZE");
         }
         catch (Exception e)
         {
