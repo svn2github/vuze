@@ -301,13 +301,25 @@ Constants
 	  }
   }
   
-  public static final String	JAVA_VERSION = System.getProperty("java.version");
+  public static final boolean	isAndroid;
+  
+  static{
+	  String vm_name = System.getProperty( "java.vm.name", "" );
+	  
+	  isAndroid = vm_name.equalsIgnoreCase( "Dalvik" );
+  }
+  
+  	// Android is roughly 1.6 (reports as 0 for java.version)
+  
+  public static final String	JAVA_VERSION = isAndroid?"1.6":System.getProperty("java.version");
   
   public static final boolean isJava7OrHigher;
   
   static{
 	  	// http://www.oracle.com/technetwork/java/javase/versioning-naming-139433.html
 	  	// should always start with n.n.
+	  
+	  	// unless it is Android where it is always 0
 	  
 	  boolean	_7plus;
 	  
