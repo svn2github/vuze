@@ -2453,6 +2453,11 @@ PluginInitializer
 		{
 			Class[] context = SESecurityManager.getClassContext();
 			
+			if ( context.length == 0 ){
+				
+				return;
+			}
+			
 			if ( context[2] != PluginInitializer.class ){
 				
 				Debug.out( "Illegal operation" );
