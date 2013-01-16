@@ -455,6 +455,14 @@ MainWindowDelayStub
 			fixup( new Fixup3(){public void fix( UIFunctionsSWT uif){ uif.bringToFront( tryTricks ); }});
 		}
 
+		public void
+		runOnUIThread(
+			final int			ui_type,
+			final Runnable		runnable )
+		{
+			fixup( new Fixup3(){public void fix( UIFunctionsSWT uif){ uif.runOnUIThread( ui_type, runnable ); }});
+		}
+		
 		public void 
 		refreshLanguage()
 		{	

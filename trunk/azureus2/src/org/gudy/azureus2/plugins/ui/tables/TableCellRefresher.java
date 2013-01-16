@@ -6,8 +6,10 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread2;
-import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.plugins.ui.UIInstance;
 
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnImpl;
 
 
@@ -73,13 +75,23 @@ public class TableCellRefresher {
 					
 					iterationNumber = 0;
 					
+					UIFunctions uif = UIFunctionsManager.getUIFunctions();
+					
 					while (true) {
 
-						if (mapCellsToColumn.size() > 0 && !inProgress) {
-							inProgress = true;
-  						Utils.execSWTThread(runnable);
+						if ( uif != null ){
+							
+							if ( mapCellsToColumn.size() > 0 && !inProgress ){
+								
+								inProgress = true;
+	  						
+									// this whole class shouldn't be here, but as it is and
+									// it is used by plugins then keep it around
+								
+								uif.runOnUIThread( UIInstance.UIT_SWT, runnable );
+							}
 						}
-
+						
 						Thread.sleep(100);
 
 						iterationNumber++;

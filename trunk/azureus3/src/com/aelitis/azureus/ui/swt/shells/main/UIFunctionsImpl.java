@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
+import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.FileDownloadWindow;
@@ -1072,5 +1073,20 @@ public class UIFunctionsImpl
 			return (UIToolBarManager) tb;
 		}
 		return null;
+	}
+	
+	public void
+	runOnUIThread(
+		final int			ui_type,
+		final Runnable		runnable )
+	{
+		if ( ui_type == UIInstance.UIT_SWT ){
+		
+			Utils.execSWTThread( runnable );
+			
+		}else{
+			
+			runnable.run();
+		}
 	}
 }

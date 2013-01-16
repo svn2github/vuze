@@ -166,5 +166,10 @@ public interface UIFunctions
 	 * Might launch the old-school Mr Slidey
 	 */
 	void forceNotify(int iconID, String title, String text, String details,
-			Object[] relatedObjects, int timeoutSecs);		
+			Object[] relatedObjects, int timeoutSecs);	
+	
+	public void
+	runOnUIThread(
+		int			ui_type,
+		Runnable	runnable );
 }
