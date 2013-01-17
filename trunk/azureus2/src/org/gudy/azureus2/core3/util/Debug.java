@@ -436,6 +436,23 @@ public class Debug {
 		return( last_message );
 	}
 	
+	public static boolean
+	containsException(
+		Throwable					error,
+		Class<? extends Throwable>	cla )
+	{
+		if ( error == null ){
+			
+			return( false );
+				
+		}else if ( cla.isInstance( error )){
+			
+			return( true );
+		}
+		
+		return( containsException( error.getCause(), cla ));
+	}
+	
 	public static String
 	getNestedExceptionMessageAndStack(
 		Throwable 		e )

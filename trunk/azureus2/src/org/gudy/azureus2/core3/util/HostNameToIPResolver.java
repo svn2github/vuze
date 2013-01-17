@@ -182,6 +182,26 @@ HostNameToIPResolver
 		}
 	}
 	
+	public static InetAddress
+	hostAddressToInetAddress(
+		String		host )
+	{
+		byte[]	bytes = hostAddressToBytes( host );
+		
+		if ( bytes != null ){
+			
+			try{
+				return( InetAddress.getByAddress( bytes ));
+				
+			}catch( Throwable e ){
+				
+				return( null );
+			}
+		}
+		
+		return( null );
+	}
+	
 	public static byte[]
 	hostAddressToBytes(
 		String		host )

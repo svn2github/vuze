@@ -259,11 +259,18 @@ public class ConfigurationDefaults {
     //default data location options
     def.put("Use default data dir", FALSE);	
 	String docPath =  SystemProperties.getDocPath();
-	File f = new File(docPath, "Azureus Downloads");
 	
-		// switch to Vuze Downloads for new installs
-	if ( !f.exists()){
-		f = new File(docPath, "Vuze Downloads");
+	File f;
+	
+	if ( Constants.isAndroid ){
+		f = new File(docPath, "Downloads");
+	}else{
+		f = new File(docPath, "Azureus Downloads");
+		
+			// switch to Vuze Downloads for new installs
+		if ( !f.exists()){
+			f = new File(docPath, "Vuze Downloads");
+		}
 	}
 	
 	def.put("Default save path", f.getAbsolutePath());
