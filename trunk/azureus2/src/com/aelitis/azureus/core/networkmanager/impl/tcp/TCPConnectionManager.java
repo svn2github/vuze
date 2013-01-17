@@ -53,6 +53,9 @@ import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
 public class TCPConnectionManager {
   private static final LogIDs LOGID = LogIDs.NWMAN;
 
+  private static int CONNECT_SELECT_LOOP_TIME			= 100;
+  private static int CONNECT_SELECT_LOOP_MIN_TIME		= 0;
+
   private static int MIN_SIMULTANIOUS_CONNECT_ATTEMPTS = 3;  
   public static int MAX_SIMULTANIOUS_CONNECT_ATTEMPTS;
   
@@ -93,6 +96,22 @@ public class TCPConnectionManager {
 					String name )
 				{
 					max_outbound_connections = COConfigurationManager.getIntParameter( "network.tcp.max.connections.outstanding" );
+				}
+			});
+	
+	COConfigurationManager.addAndFireParameterListeners(
+			new String[]{ 
+				"network.tcp.connect.select.time", 
+				"network.tcp.connect.select.min.time", 
+			},
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					CONNECT_SELECT_LOOP_TIME 		= COConfigurationManager.getIntParameter(  "network.tcp.connect.select.time" );
+					CONNECT_SELECT_LOOP_MIN_TIME 	= COConfigurationManager.getIntParameter(  "network.tcp.connect.select.min.time" );
 				}
 			});
   }
@@ -580,9 +599,32 @@ public class TCPConnectionManager {
       new_canceled_mon.exit();
     }
 
-    //run select
+    	//run select
+    
     try{
-      connect_selector.select(100);
+		if ( CONNECT_SELECT_LOOP_MIN_TIME > 0 ){
+			
+			long	start = SystemTime.getHighPrecisionCounter();
+			
+			connect_selector.select( CONNECT_SELECT_LOOP_TIME );
+			
+			long duration = SystemTime.getHighPrecisionCounter() - start;
+			
+			duration = duration/1000000;
+			
+			long	sleep = CONNECT_SELECT_LOOP_MIN_TIME - duration;
+			
+			if ( sleep > 0 ){
+						    						
+				try{   							
+					Thread.sleep( sleep );
+					
+				}catch( Throwable e ){		
+				}
+			}
+		}else{
+			connect_selector.select( CONNECT_SELECT_LOOP_TIME );
+		}
     }
     catch( Throwable t ) {
       Debug.out("connnectSelectLoop() EXCEPTION: ", t);

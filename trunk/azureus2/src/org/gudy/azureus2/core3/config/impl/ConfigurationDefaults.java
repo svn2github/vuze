@@ -537,9 +537,12 @@ public class ConfigurationDefaults {
     def.put( "network.tcp.socket.SO_RCVBUF", ZERO );
     def.put( "network.tcp.socket.IPDiffServ", "" );
     def.put( "network.tcp.read.select.time", new Long(25));
-    def.put( "network.tcp.read.select.min.time", new Long(0));
+    def.put( "network.tcp.read.select.min.time", ZERO );
     def.put( "network.tcp.write.select.time", new Long(25));
-    def.put( "network.tcp.write.select.min.time", new Long(0));
+    def.put( "network.tcp.write.select.min.time", ZERO );
+    def.put( "network.tcp.connect.select.time", new Long( 100 ));
+    def.put( "network.tcp.connect.select.min.time", ZERO );
+
     def.put( "network.control.write.idle.time", new Long(50));
     def.put( "network.control.write.aggressive", FALSE );
     def.put( "network.control.read.idle.time", new Long(50));
