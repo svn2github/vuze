@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -159,7 +160,9 @@ MCGroupImpl
 		selected_interfaces	= _interfaces;
 		
 		try{	
-			group_address = new InetSocketAddress(InetAddress.getByName(group_address_str), 0 );
+			InetAddress ia = HostNameToIPResolver.syncResolve( group_address_str );
+			
+			group_address = new InetSocketAddress( ia, 0 );
 
 			processNetworkInterfaces( true );
 					
