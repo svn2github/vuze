@@ -1160,7 +1160,10 @@ public class VersionCheckClient {
 			}
 		}catch( Throwable e ){
 
-			Debug.printStackTrace(e);
+			if ( !Debug.containsException( e, UnknownHostException.class )){
+			
+				Debug.printStackTrace(e);
+			}
 		}
 
 		Long	as_advice = (Long)reply.get( "as_advice" );
