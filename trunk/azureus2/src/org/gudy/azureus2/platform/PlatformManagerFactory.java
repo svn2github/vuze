@@ -48,18 +48,25 @@ PlatformManagerFactory
 			if ( platform_manager == null && !force_dummy ){
 										  
 				try{
-					if ( getPlatformType() == PlatformManager.PT_WINDOWS ){
-						
-						platform_manager = org.gudy.azureus2.platform.win32.PlatformManagerImpl.getSingleton();
-						
-					}else if( getPlatformType() == PlatformManager.PT_MACOSX ){
-						
-	                    platform_manager = org.gudy.azureus2.platform.macosx.PlatformManagerImpl.getSingleton();
-	                    
-					}else if( getPlatformType() == PlatformManager.PT_UNIX ){
-						
-						platform_manager = org.gudy.azureus2.platform.unix.PlatformManagerImpl.getSingleton();
+					String cla = System.getProperty( "az.factory.platformmanager.impl", "" );
 
+					if ( cla.length()> 0 ){
+						
+						platform_manager = (PlatformManager)Class.forName( cla ).newInstance();
+						
+					}else{
+						if ( getPlatformType() == PlatformManager.PT_WINDOWS ){
+							
+							platform_manager = org.gudy.azureus2.platform.win32.PlatformManagerImpl.getSingleton();
+							
+						}else if( getPlatformType() == PlatformManager.PT_MACOSX ){
+							
+		                    platform_manager = org.gudy.azureus2.platform.macosx.PlatformManagerImpl.getSingleton();
+		                    
+						}else if( getPlatformType() == PlatformManager.PT_UNIX ){
+							
+							platform_manager = org.gudy.azureus2.platform.unix.PlatformManagerImpl.getSingleton();
+						}
 					}
 				}catch( PlatformManagerException e ){
 					

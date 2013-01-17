@@ -196,6 +196,21 @@ PlatformManager
 	
 		throws PlatformManagerException;
 	
+		/**
+		 * Gives a particular platform the ability to alter the class-loading method
+		 * @param loader
+		 * @param class_name
+		 * @return
+		 * @throws PlatformManagerException
+		 */
+	
+	public Class<?>
+	loadClass(
+		ClassLoader	loader,
+		String		class_name )
+		
+		throws PlatformManagerException;
+		
     /**
      * <p>Gets whether the platform manager supports a capability</p>
      * <p>Users of PlatformManager should check for supported capabilities before calling

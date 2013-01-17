@@ -354,12 +354,28 @@ public class PlatformManagerImpl implements PlatformManager
     {
     }
 
-		// @see org.gudy.azureus2.platform.PlatformManager#getAzComputerID()
-		public String getAzComputerID() throws PlatformManagerException {
-	    throw new PlatformManagerException("Unsupported capability called on platform manager");
-		}
+    // @see org.gudy.azureus2.platform.PlatformManager#getAzComputerID()
+    public String getAzComputerID() throws PlatformManagerException {
+    	throw new PlatformManagerException("Unsupported capability called on platform manager");
+    }
 
-		public void requestUserAttention(int type, Object data) throws PlatformManagerException {
-			throw new PlatformManagerException("Unsupported capability called on platform manager");
+    public void requestUserAttention(int type, Object data) throws PlatformManagerException {
+    	throw new PlatformManagerException("Unsupported capability called on platform manager");
+    }
+    
+	public Class<?>
+	loadClass(
+		ClassLoader	loader,
+		String		class_name )
+		
+		throws PlatformManagerException
+	{
+		try{
+			return( loader.loadClass( class_name ));
+			
+		}catch( Throwable e ){
+			
+			throw( new PlatformManagerException( "load of '" + class_name + "' failed", e ));
 		}
+	}
 }

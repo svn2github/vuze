@@ -38,7 +38,9 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.platform.PlatformManagerException;
 import org.gudy.azureus2.pluginsimpl.local.launch.PluginLauncherImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.update.UpdateManagerImpl;
@@ -1182,53 +1184,62 @@ PluginInitializer
 						  if ( plugin == null ){
 
 							  try{
-								  Class c = plugin_class_loader.loadClass(plugin_class);
-
-								  plugin	= (Plugin) c.newInstance();
-
 								  try{
-									  // kick off any pre-inits
-
-									  if ( plugin_class_loader instanceof URLClassLoader ){
-
-										  URL[] urls = ((URLClassLoader)plugin_class_loader).getURLs();
-
-										  for ( URL u: urls ){
-
-											  String path = u.getPath();
-
-											  if ( path.endsWith( ".jar" )){
-
-												  int	s1 = path.lastIndexOf( '/' );
-												  int	s2 = path.lastIndexOf( '\\' );
-
-												  path = path.substring( Math.max( s1, s2 )+1);
-
-												  s2 = path.indexOf( '_' );
-
-												  if ( s2 > 0 ){
-
-													  path = path.substring( 0, s2 );
-
-													  path = path.replaceAll( "-", "" );
-													  
-													  String cl = "plugin.preinit." + pid + ".PI" + path;
-													  
-													  try{
-														  Class pic = plugin_class_loader.loadClass( cl );
-
-														  if ( pic != null ){
-
-															  pic.newInstance();
+									  Class<Plugin> c = (Class<Plugin>)PlatformManagerFactory.getPlatformManager().loadClass( plugin_class_loader, plugin_class );
+								  
+								   
+									  //Class c = plugin_class_loader.loadClass(plugin_class);
+	
+									  plugin	= c.newInstance();
+	
+									  try{
+										  // kick off any pre-inits
+	
+										  if ( plugin_class_loader instanceof URLClassLoader ){
+	
+											  URL[] urls = ((URLClassLoader)plugin_class_loader).getURLs();
+	
+											  for ( URL u: urls ){
+	
+												  String path = u.getPath();
+	
+												  if ( path.endsWith( ".jar" )){
+	
+													  int	s1 = path.lastIndexOf( '/' );
+													  int	s2 = path.lastIndexOf( '\\' );
+	
+													  path = path.substring( Math.max( s1, s2 )+1);
+	
+													  s2 = path.indexOf( '_' );
+	
+													  if ( s2 > 0 ){
+	
+														  path = path.substring( 0, s2 );
+	
+														  path = path.replaceAll( "-", "" );
+														  
+														  String cl = "plugin.preinit." + pid + ".PI" + path;
+														  
+														  try{
+															  Class pic = plugin_class_loader.loadClass( cl );
+	
+															  if ( pic != null ){
+	
+																  pic.newInstance();
+															  }
+														  }catch( Throwable e ){			    						  
 														  }
-													  }catch( Throwable e ){			    						  
 													  }
 												  }
 											  }
 										  }
+									  }catch( Throwable e ){
 									  }
-								  }catch( Throwable e ){
+								  }catch( PlatformManagerException e ){
+									  
+									  throw( e.getCause());
 								  }
+
 							  }catch (java.lang.UnsupportedClassVersionError e) {
 								  plugin = new FailedPlugin(plugin_name,directory.getAbsolutePath());
 
