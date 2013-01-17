@@ -28,6 +28,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 
@@ -106,6 +107,13 @@ ExternalSeedReaderFactoryWebSeed
 
 				for (int i=0;i<urls.size();i++){
 					
+					if ( readers.size() > 10 ){
+						
+						Debug.out( "Too many WS seeds, truncating" );
+						
+						break;
+					}
+					
 					try{
 						String	url_str = new String((byte[])urls.get(i));
 						
@@ -127,7 +135,11 @@ ExternalSeedReaderFactoryWebSeed
 						}
 					}catch( Throwable e ){
 						
-						e.printStackTrace();
+						Object o = urls.get(i);
+						
+						String str = (o instanceof byte[])?new String((byte[])o):String.valueOf(o);
+
+						Debug.out( "WS seed invalid: " + str, e );
 					}
 				}
 				
