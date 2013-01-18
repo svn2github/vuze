@@ -976,7 +976,10 @@ PluginUpdatePlugin
 					ResourceDownloader			downloader,
 					ResourceDownloaderException e )
 				{
-					Debug.out( downloader.getName() + " failed", e );
+					if ( !downloader.isCancelled()){
+					
+						Debug.out( downloader.getName() + " failed", e );
+					}
 					
 					update.complete( false );
 				}
