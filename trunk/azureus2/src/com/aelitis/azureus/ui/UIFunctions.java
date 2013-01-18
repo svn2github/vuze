@@ -172,4 +172,9 @@ public interface UIFunctions
 	runOnUIThread(
 		int			ui_type,
 		Runnable	runnable );
+	
+	public boolean
+	isProgramInstalled(
+		String		extension,
+		String		name );
 }

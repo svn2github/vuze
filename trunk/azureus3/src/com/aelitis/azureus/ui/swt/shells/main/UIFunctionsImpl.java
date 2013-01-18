@@ -20,11 +20,13 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
 import java.lang.reflect.Constructor;
+import java.util.Locale;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
@@ -1088,5 +1090,20 @@ public class UIFunctionsImpl
 			
 			runnable.run();
 		}
+	}
+	
+	public boolean 
+	isProgramInstalled(
+		String extension, 
+		String name ) 
+	{
+		if ( !extension.startsWith( "." )){
+			
+			extension = "." + extension;
+		}
+		
+		Program program = Program.findProgram( extension );
+		
+		return( program == null ? false:(program.getName().toLowerCase(Locale.US).indexOf( name.toLowerCase(Locale.US)) != -1));
 	}
 }

@@ -18,12 +18,9 @@
  
 package com.aelitis.azureus.util;
 
-import java.io.File;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
 
-import org.eclipse.swt.program.Program;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -42,7 +39,6 @@ import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.utils.FeatureManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.pluginsimpl.local.download.DownloadManagerImpl;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -50,6 +46,8 @@ import com.aelitis.azureus.core.download.DownloadManagerEnhancer;
 import com.aelitis.azureus.core.download.EnhancedDownloadManager;
 import com.aelitis.azureus.core.download.StreamManager;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentV3;
 
 /**
@@ -297,6 +295,7 @@ public class PlayUtils
 	 *
 	 * @since 3.0.4.3
 	 */
+	/*
 	public static String getContentUrl(DownloadManager dmContent) {
 		String contentPath;
 		if (dmContent.isDownloadComplete(false)) {
@@ -325,12 +324,13 @@ public class PlayUtils
 		}
 		return null;
 	}
-
+	*/
 	/**
 	 * @param dl
 	 *
 	 * @since 3.0.2.3
 	 */
+	/*
 	public static String getMediaServerContentURL(Download dl) {
 	
 		//TorrentListViewsUtils.debugDCAD("enter - getMediaServerContentURL");
@@ -370,6 +370,7 @@ public class PlayUtils
 	
 		return null;
 	}
+	*/
 	
 	public static URL getMediaServerContentURL(DiskManagerFileInfo file) {
 		
@@ -389,19 +390,27 @@ public class PlayUtils
 		}
 	
 		try {
-			if (hasQuickTime == null) {
-				Program program = Program.findProgram(".qtl");
-				hasQuickTime = program == null ? false
-						: (program.getName().toLowerCase().indexOf("quicktime") != -1);
+			if ( hasQuickTime == null ){
+				
+				UIFunctions uif = UIFunctionsManager.getUIFunctions();
+				
+				if ( uif != null ){
+					
+					hasQuickTime = uif.isProgramInstalled( ".qtl", "Quicktime" );
+	
+					try{
+						pi.getIPC().invoke("setQuickTimeAvailable", new Object[] { hasQuickTime	});
+						
+					}catch( Throwable e ){
+						
+						Logger.log(new LogEvent(LogIDs.UI3, LogEvent.LT_WARNING,
+								"IPC to media server plugin failed", e));
+					}
+				}
 			}
 	
-			pi.getIPC().invoke("setQuickTimeAvailable", new Object[] {
-				hasQuickTime
-			});
-	
-			Object url = pi.getIPC().invoke("getContentURL", new Object[] {
-					file
-			});
+			Object url = pi.getIPC().invoke("getContentURL", new Object[] { file });
+			
 			if (url instanceof String) {
 				return new URL( (String) url);
 			}

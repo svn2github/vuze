@@ -800,6 +800,14 @@ MainWindowDelayStub
 			return( null );
 		}
 		
+		public boolean 
+		isProgramInstalled(
+			final String extension, 
+			final String name ) 
+		{
+			return((Boolean)fixup( new Fixup4(){public Object fix( UIFunctionsSWT uif){ return( uif.isProgramInstalled( extension, name )); }}));
+		}
+		
 		public MultipleDocumentInterfaceSWT 
 		getMDISWT()
 		{
