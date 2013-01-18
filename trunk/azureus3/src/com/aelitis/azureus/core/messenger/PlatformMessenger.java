@@ -36,7 +36,6 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.util.*;
 
 /**
