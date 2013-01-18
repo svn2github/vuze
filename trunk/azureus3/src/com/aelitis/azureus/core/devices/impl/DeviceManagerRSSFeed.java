@@ -49,6 +49,7 @@ import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 
 import com.aelitis.azureus.core.devices.Device;
+import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
@@ -118,9 +119,9 @@ DeviceManagerRSSFeed
 
 		pw.setEnabled( false );
 
-		boolean hide_generic = COConfigurationManager.getBooleanParameter( DeviceManagerUI.CONFIG_VIEW_HIDE_REND_GENERIC, true );
+		boolean hide_generic = COConfigurationManager.getBooleanParameter( DeviceManager.CONFIG_VIEW_HIDE_REND_GENERIC, true );
 		
-		boolean show_only_tagged = COConfigurationManager.getBooleanParameter( DeviceManagerUI.CONFIG_VIEW_SHOW_ONLY_TAGGED, false);
+		boolean show_only_tagged = COConfigurationManager.getBooleanParameter( DeviceManager.CONFIG_VIEW_SHOW_ONLY_TAGGED, false);
 
 		if ( path.length() <= 1 ){
 			

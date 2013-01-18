@@ -1,4 +1,4 @@
-package com.aelitis.azureus.core.metasearch.impl;
+package com.aelitis.azureus.ui.swt.browser.listener;
 
 public interface ExternalLoginListener {
 

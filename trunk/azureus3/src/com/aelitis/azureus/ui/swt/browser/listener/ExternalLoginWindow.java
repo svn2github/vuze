@@ -1,4 +1,4 @@
-package com.aelitis.azureus.core.metasearch.impl;
+package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.util.*;
 import java.net.URL;
@@ -29,7 +29,6 @@ import com.aelitis.azureus.core.util.http.HTTPAuthHelper;
 import com.aelitis.azureus.core.util.http.HTTPAuthHelperListener;
 import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
 import com.aelitis.azureus.ui.swt.browser.CookiesListener;
-import com.aelitis.azureus.ui.swt.browser.listener.ExternalLoginCookieListener;
 
 public class ExternalLoginWindow {
 	

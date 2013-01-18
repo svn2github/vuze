@@ -27,6 +27,12 @@ import java.net.InetAddress;
 public interface 
 DeviceManager 
 {
+		// not the best place for these, but it'll do for the moment
+	
+	public static final String CONFIG_VIEW_HIDE_REND_GENERIC	= "device.sidebar.ui.rend.hidegeneric";
+	public static final String CONFIG_VIEW_SHOW_ONLY_TAGGED		= "device.sidebar.ui.rend.showonlytagged";
+
+	
 	public DeviceTemplate[]
 	getDeviceTemplates(
 		int		device_type );

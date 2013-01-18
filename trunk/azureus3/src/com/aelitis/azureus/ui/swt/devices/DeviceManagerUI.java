@@ -133,8 +133,8 @@ DeviceManagerUI
 	
 	private static final String CONFIG_VIEW_TYPE				= "device.sidebar.ui.viewtype";
 	
-	public static final String CONFIG_VIEW_HIDE_REND_GENERIC	= "device.sidebar.ui.rend.hidegeneric";
-	public static final String CONFIG_VIEW_SHOW_ONLY_TAGGED		= "device.sidebar.ui.rend.showonlytagged";
+	public static final String CONFIG_VIEW_HIDE_REND_GENERIC	= DeviceManager.CONFIG_VIEW_HIDE_REND_GENERIC;
+	public static final String CONFIG_VIEW_SHOW_ONLY_TAGGED		= DeviceManager.CONFIG_VIEW_SHOW_ONLY_TAGGED;
 	
 	private static final String SPINNER_IMAGE_ID 	= "image.sidebar.vitality.dl";
 	private static final String INFO_IMAGE_ID		= "image.sidebar.vitality.info";
