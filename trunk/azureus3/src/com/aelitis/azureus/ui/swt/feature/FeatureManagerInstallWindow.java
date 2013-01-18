@@ -42,6 +42,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBox;
 import com.aelitis.azureus.ui.swt.views.skin.VuzeMessageBoxListener;
+import com.aelitis.azureus.util.FeatureUtils;
 
 /**
  * @author TuxPaper
@@ -78,7 +79,7 @@ public class FeatureManagerInstallWindow
 			return;
 		}
 
-		boolean isTrial = FeatureManagerUI.isTrialLicence(licence);
+		boolean isTrial = FeatureUtils.isTrialLicence(licence);
 		box = new VuzeMessageBox(MessageText.getString("dlg.auth.title"),
 				"", null, 0);
 		box.setSubTitle(MessageText.getString(isTrial ? "dlg.auth.install.subtitle.trial"

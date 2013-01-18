@@ -32,6 +32,7 @@ import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBrowser;
 import com.aelitis.azureus.util.ConstantsVuze;
+import com.aelitis.azureus.util.FeatureUtils;
 
 /**
  * @author TuxPaper
@@ -104,7 +105,7 @@ public class SBC_PlusFTUX
 
 	private void buildURL(boolean forceSet) {
 		String sRef2;
-		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryDisplayTimeStamp();
+		long plusExpiryTimeStamp = FeatureUtils.getPlusExpiryDisplayTimeStamp();
 		if (plusExpiryTimeStamp > 0 && plusExpiryTimeStamp < SystemTime.getCurrentTime()) {
 			sRef2 = "-/plus/renew";
 		} else {

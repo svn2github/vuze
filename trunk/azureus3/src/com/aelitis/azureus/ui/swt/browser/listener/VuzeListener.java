@@ -10,7 +10,7 @@ import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessa
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
-import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI.licenceDetails;
+import com.aelitis.azureus.util.FeatureUtils;
 import com.aelitis.azureus.util.MapUtils;
 
 
@@ -76,7 +76,7 @@ public class VuzeListener
 			
 			if (callback != null) {
 				
-				context.executeInBrowser(callback + "('" + FeatureManagerUI.getMode() + "')");
+				context.executeInBrowser(callback + "('" + FeatureUtils.getMode() + "')");
 				
 			} else {
 				
@@ -89,7 +89,7 @@ public class VuzeListener
 			
 			if (callback != null) {
 
-				licenceDetails fd = FeatureManagerUI.getFullFeatureDetails();
+				FeatureUtils.licenceDetails fd = FeatureUtils.getFullFeatureDetails();
 				if (fd == null || fd.expiry == 0) {
 					context.executeInBrowser(callback + "()");
 				} else {

@@ -259,7 +259,7 @@ public class PlatformMessenger
 		Map<String, Object> mapPayload = new HashMap<String, Object>();
 		mapPayload.put("azid", ConstantsVuze.AZID);
 		mapPayload.put("azv", Constants.AZUREUS_VERSION);
-		mapPayload.put("mode", FeatureManagerUI.getMode());
+		mapPayload.put("mode", FeatureUtils.getMode());
 		mapPayload.putAll(mapExtra);
 		List<Map> listCommands = new ArrayList<Map>();
 		mapPayload.put("commands", listCommands);

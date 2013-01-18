@@ -33,6 +33,7 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkin;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.util.FeatureUtils;
 
 public class FeatureManagerUIListener
 	implements FeatureManagerListener
@@ -274,7 +275,7 @@ public class FeatureManagerUIListener
 	}
 
 	private void _updateUI() {
-		final boolean hasFullLicence = FeatureManagerUI.hasFullLicence();
+		final boolean hasFullLicence = FeatureUtils.hasFullLicence();
 
 		try {
 			buildNotifications();
@@ -326,8 +327,8 @@ public class FeatureManagerUIListener
 	}
 
 	private static void _buildNotifications() {
-		long plusDisplayExpiryTimeStamp = FeatureManagerUI.getPlusExpiryDisplayTimeStamp();
-		long plusExpiryTimeStamp = FeatureManagerUI.getPlusExpiryTimeStamp();
+		long plusDisplayExpiryTimeStamp = FeatureUtils.getPlusExpiryDisplayTimeStamp();
+		long plusExpiryTimeStamp = FeatureUtils.getPlusExpiryTimeStamp();
 		
 		if (plusExpiryTimeStamp <= 0) {
 			return;

@@ -35,6 +35,7 @@ import com.aelitis.azureus.ui.swt.views.skin.SB_Vuze;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
+import com.aelitis.azureus.util.FeatureUtils;
 
 public class MainMDISetup
 {
@@ -290,7 +291,7 @@ public class MainMDISetup
 								mdi.loadEntryByID(
 										MultipleDocumentInterface.SIDEBAR_SECTION_PLUS, false);
 
-								if (!FeatureManagerUI.hasFullBurn()) {
+								if (!FeatureUtils.hasFullBurn()){
 									mdi.loadEntryByID(
 											MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
 											false);
