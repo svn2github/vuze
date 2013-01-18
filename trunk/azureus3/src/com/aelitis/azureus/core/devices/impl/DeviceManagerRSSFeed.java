@@ -52,7 +52,6 @@ import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
-import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
 
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
