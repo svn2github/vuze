@@ -41,16 +41,25 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -77,16 +86,54 @@ SpeedLimitHandler
 	}
 	
 	private AzureusCore		core;
-		
+	
+	private LoggerChannel	logger;
+	
 	private TimerEventPeriodic		schedule_event;
 	private List<ScheduleRule>		current_rules	= new ArrayList<ScheduleRule>();
 	private ScheduleRule			active_rule;
 	
+	
+	private Map<String,IPSet>		current_ip_sets = new HashMap<String,IPSet>();
+	private TimerEventPeriodic		ip_set_event;
+
 	private
 	SpeedLimitHandler(
 		AzureusCore		_core )
 	{
 		core 	= _core;
+		
+		PluginInterface plugin_interface = core.getPluginManager().getDefaultPluginInterface();
+		
+		logger = plugin_interface.getLogger().getTimeStampedChannel( "Speed Limit Handler" );
+		
+		UIManager	ui_manager = plugin_interface.getUIManager();
+
+		final BasicPluginViewModel model = 
+			ui_manager.createBasicPluginViewModel( "Speed Limit Handler" );
+
+		model.getActivity().setVisible( false );
+		model.getProgress().setVisible( false );
+		
+		logger.addListener(
+				new LoggerChannelListener()
+				{
+					public void
+					messageLogged(
+						int		type,
+						String	message )
+					{
+						model.getLogArea().appendText( message+"\n");
+					}
+					
+					public void
+					messageLogged(
+						String		str,
+						Throwable	error )
+					{
+						model.getLogArea().appendText( error.toString()+"\n");
+					}
+				});
 		
 		loadSchedule();
 	}
@@ -431,10 +478,11 @@ SpeedLimitHandler
 		List<String>	result = new ArrayList<String>();
 		
 		List<String> schedule_lines = BDecoder.decodeStrings( COConfigurationManager.getListParameter( "speed.limit.handler.schedule.lines", new ArrayList()));
-
+	
 		boolean	enabled = true;
 		
-		List<ScheduleRule>	rules = new ArrayList<ScheduleRule>();
+		List<ScheduleRule>	rules 	= new ArrayList<ScheduleRule>();
+		Map<String,IPSet>	ip_sets	= new HashMap<String, IPSet>();
 		
 		for ( String line: schedule_lines ){
 			
@@ -472,6 +520,46 @@ SpeedLimitHandler
 				if ( !ok ){
 					
 					result.add( "'" +line + "' is invalid: use enable=(yes|no)" );
+				}
+			}else if ( lc_line.startsWith( "ip_set" )){
+
+				String[]	bits = lc_line.substring(6).split( "=" );
+
+				if ( bits.length != 2 ){
+					
+					result.add( "'" +line + "' is invalid: use ip_set <name>=<cidrs...>" );
+					
+				}else{
+					
+					String name = bits[0].trim();
+					
+					String def = bits[1].replace(';', ' ');
+					
+					def = def.replace( ',', ' ' );
+					
+					IPSet set = ip_sets.get( name );
+					
+					if( set == null ){
+						
+						set = new IPSet( name );
+						
+						ip_sets.put( name, set );
+					}
+					
+					bits = def.split( " " );
+					
+					for ( String bit: bits ){
+						
+						bit = bit.trim();
+						
+						if ( bit.length() > 0 ){
+							
+							if ( !set.addCIDR( bit )){
+								
+								result.add( "CIDR '" + bit + "' isn't valid" );
+							}
+						}
+					}
 				}
 			}else{
 				
@@ -622,6 +710,11 @@ SpeedLimitHandler
 			
 				checkSchedule();
 			}
+			
+			current_ip_sets = ip_sets;
+			
+			checkIPSets();
+			
 		}else{
 	
 			current_rules.clear();
@@ -639,6 +732,10 @@ SpeedLimitHandler
 				
 				reset();
 			}
+			
+			current_ip_sets.clear();
+			
+			checkIPSets();
 		}
 		
 		return( result );
@@ -659,6 +756,186 @@ SpeedLimitHandler
 		}
 		
 		return( -1 );
+	}
+	
+	
+	private synchronized void
+	checkIPSets()
+	{
+		if ( current_ip_sets.size() == 0 ){
+			
+			if ( ip_set_event != null ){
+				
+				ip_set_event.cancel();
+				
+				ip_set_event = null;
+			}
+		}else{
+			
+			if ( ip_set_event == null ){
+				
+				ip_set_event = 
+					
+					SimpleTimer.addPeriodicEvent(
+						"speed handler ip_set handler",
+						1000,
+						new TimerEventPerformer()
+						{
+							int	tick_count = 0;
+							
+							public void 
+							perform(
+								TimerEvent event) 
+							{
+								updateIPSets( tick_count ++ );
+							}
+						});
+			}
+		}
+	}
+	
+	private static Object	ip_set_peer_key = new Object();
+	
+	private void
+	updateIPSets(
+		int	tick_count )
+	{
+		IPSet[]		sets;
+		long[][][]	set_ranges;
+		
+		synchronized( current_ip_sets ){
+			
+			int	len = current_ip_sets.size();
+			
+			sets 		= new IPSet[len];
+			set_ranges	= new long[len][][];
+			
+			int	pos = 0;
+			
+			for ( IPSet set: current_ip_sets.values()){
+				
+				sets[pos]		= set;
+				set_ranges[pos]	= set.getRanges();
+				
+				pos++;
+			}
+		}
+		
+		if ( sets.length == 0 ){
+			
+			return;
+		}
+		
+		List<DownloadManager> dms = core.getGlobalManager().getDownloadManagers();
+		
+		for ( DownloadManager dm: dms ){
+			
+			PEPeerManager pm = dm.getPeerManager();
+			
+			if ( pm != null ){
+				
+				List<PEPeer> peers = pm.getPeers();
+				
+				for ( PEPeer peer: peers ){
+					
+					long[] entry = (long[])peer.getUserData( ip_set_peer_key );
+
+					long	l_address;
+
+					if ( entry == null ){
+						
+						l_address = 0;
+						
+						String ip = peer.getIp();
+						
+						if ( !ip.contains( ":" )){
+							
+							byte[] bytes = HostNameToIPResolver.hostAddressToBytes( ip );
+							
+							if ( bytes != null ){
+								
+								l_address = ((long)((bytes[0]<<24)&0xff000000 | (bytes[1] << 16)&0x00ff0000 | (bytes[2] << 8)&0x0000ff00 | bytes[3]&0x000000ff))&0xffffffffL;
+
+							}
+						}
+						
+						entry = new long[]{ l_address, -1, -1 };
+						
+						peer.setUserData( ip_set_peer_key, entry );
+						
+					}else{
+						
+						l_address = entry[0];
+					}
+					
+					if ( l_address != 0 ){
+						
+						long	sent_diff = -1;
+						long	recv_diff = -1;
+						
+						for ( int i=0;i<set_ranges.length;i++ ){
+							
+							long[][] ranges = set_ranges[i];
+							
+							for ( long[] range: ranges ){
+								
+								if ( l_address >= range[0] && l_address <= range[1] ){
+									
+									if ( sent_diff == -1 ){
+										
+										PEPeerStats stats = peer.getStats();
+														
+										long sent = stats.getTotalDataBytesSent() + stats.getTotalProtocolBytesSent();
+										long recv = stats.getTotalDataBytesReceived() + stats.getTotalProtocolBytesReceived();
+										
+										long	old_sent 	= entry[1];
+										long	old_recv	= entry[2];
+										
+										if ( old_sent == -1 ){
+											
+											sent_diff = entry[1] = 0;
+											recv_diff = entry[2] = 0;
+											
+										}else{
+											
+											sent_diff = sent - old_sent;
+											
+											recv_diff = recv - old_recv;
+											
+											entry[1] = sent;
+											entry[2] = recv;
+										}
+											
+									}
+									
+									sets[i].updateStats( sent_diff, recv_diff );
+									
+									break;
+								}
+							}
+						}
+						
+						if ( sent_diff == -1 ){
+							
+							entry[1]	= -1;
+							entry[2]	= -1;
+						}
+					}
+				}
+			}
+		}
+			
+		if ( tick_count % 5 == 0 ){
+			
+			String str = "";
+			
+			for ( IPSet set: sets ){
+				
+				str += (str.length()==0?"":", ") + set.getString();
+			}
+			
+			logger.log( str );
+		}
 	}
 	
 	private synchronized void
@@ -758,14 +1035,17 @@ SpeedLimitHandler
 		result.add( "#    <frequency> <profile_name> from <time> to <time>" );
 		result.add( "#        frequency: daily|weekdays|weekends|<day_of_week>" );
 		result.add( "#            days_of_week: mon|tue|wed|thu|fri|sat|sun" );
-		result.add( "#    <time>: hh:mm - 24 hour clock; 00:00=midnight; local time" );
+		result.add( "#        time: hh:mm - 24 hour clock; 00:00=midnight; local time" );
+		result.add( "#    ip_set <ip_set_name> <CIDR_specs...>" );
 		result.add( "#" );
 		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_uplaod' defined:" );
 		result.add( "#" );
 		result.add( "#     daily no_limits from 00:00 to 23:59" );
 		result.add( "#     daily limited_upload from 06:00 to 22:00" );
+		result.add( "#     ip_set external=211.34.128.0/19,211.35.128.0/17" );
 		result.add( "#" );
 		result.add( "# When multiple rules apply the one further down the list of rules take precedence" );
+		result.add( "# Currently ip_set declarations only result is rate display, not limiting..." );
 		result.add( "# Comment lines are prefixed with '#'" );
 
 		
@@ -837,6 +1117,8 @@ SpeedLimitHandler
 		}
 		
 		COConfigurationManager.setParameter( "speed.limit.handler.schedule.lines", lines );
+		
+		COConfigurationManager.save();
 		
 		return( loadSchedule());
 	}
@@ -1751,6 +2033,126 @@ SpeedLimitHandler
 			}
 			
 			return( str );
+		}
+	}
+	
+	private class
+	IPSet
+	{
+		private String				name;
+		private List<String>		cidrs = new ArrayList<String>();
+		
+		private long[][]			ranges = new long[0][];
+		
+		private Average send_rate		= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+		private Average receive_rate	= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+
+		private
+		IPSet(
+			String	_name )
+		{
+			name	= _name;
+		}
+		
+		private boolean
+		addCIDR(
+			String		cidr )
+		{
+			int	pos = cidr.indexOf( '/' );
+			
+			if ( pos == -1 ){
+				
+				return( false );
+			}
+			
+			String	address = cidr.substring( 0, pos );
+			
+				// no ipv6 atm
+			
+			if ( address.contains( ":" )){
+				
+				return( false );
+			}
+			
+			try{
+				byte[] start_bytes = HostNameToIPResolver.syncResolve( address ).getAddress();
+			
+				cidrs.add( cidr );
+			
+				int	cidr_mask = Integer.parseInt( cidr.substring( pos+1 ));
+				
+				int	rev_mask = 0;
+				
+				for (int i=0;i<32-cidr_mask;i++){
+					
+					rev_mask = ( rev_mask << 1 ) | 1;
+				}
+			
+				start_bytes[0] &= ~(rev_mask>>24);
+				start_bytes[1] &= ~(rev_mask>>16);
+				start_bytes[2] &= ~(rev_mask>>8);
+				start_bytes[3] &= ~(rev_mask);
+				
+				byte[] end_bytes = start_bytes.clone();
+				
+				end_bytes[0] |= (rev_mask>>24)&0xff;
+				end_bytes[1] |= (rev_mask>>16)&0xff;
+				end_bytes[2] |= (rev_mask>>8)&0xff;
+				end_bytes[3] |= (rev_mask)&0xff;
+
+				long	l_start = ((long)((start_bytes[0]<<24)&0xff000000 | (start_bytes[1] << 16)&0x00ff0000 | (start_bytes[2] << 8)&0x0000ff00 | start_bytes[3]&0x000000ff))&0xffffffffL;
+				long	l_end	= ((long)((end_bytes[0]<<24)&0xff000000 | (end_bytes[1] << 16)&0x00ff0000 | (end_bytes[2] << 8)&0x0000ff00 | end_bytes[3]&0x000000ff))&0xffffffffL;
+				
+				//System.out.println( cidr + " -> " + ByteFormatter.encodeString( start_bytes ) + " - " +  ByteFormatter.encodeString( end_bytes ) + ": " + ((l_end-l_start+1)));
+				
+				int	len = ranges.length;
+				
+				long[][] new_ranges = new long[len+1][];
+				
+				for (int i=0;i<len;i++){
+					
+					new_ranges[i] = ranges[i];
+				}
+				
+				new_ranges[len] = new long[]{ l_start, l_end };
+				
+				ranges = new_ranges;
+				
+				return( true );
+				
+			}catch( Throwable e ){
+				
+				return( false );
+			}
+		}
+		
+		private long[][]
+		getRanges()
+		{
+			return( ranges );
+		}
+		
+		private void
+		updateStats(
+			long	sent,
+			long	recv )
+		{
+			send_rate.addValue( sent );
+			receive_rate.addValue( recv );
+		}
+		
+		private String
+		getString()
+		{
+			long	addresses = 0;
+			
+			for ( long[] range: ranges ){
+				addresses += range[1] - range[0] + 1;
+			}
+			
+			return( name + // ", addresses=" + addresses + 
+					": send=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( send_rate.getAverage()) +
+					", recv=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( receive_rate.getAverage()));
 		}
 	}
 }
