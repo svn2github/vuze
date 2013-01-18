@@ -62,7 +62,7 @@ import com.aelitis.azureus.core.devices.TranscodeProfile;
 import com.aelitis.azureus.core.devices.TranscodeProviderAnalysis;
 import com.aelitis.azureus.core.devices.TranscodeQueue;
 import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.swt.plugininstall.SimplePluginInstaller;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 public class 
 StreamManager 
@@ -1062,6 +1062,13 @@ StreamManager
 			
 			if ( pi == null ){
 				
+				UIFunctions uif = UIFunctionsManager.getUIFunctions();
+				
+				if ( uif == null ){
+					
+					throw( new Exception( "UIFunctions unavailable - can't install plugin '" + name + "'" ));
+				}
+				
 				listener.updateActivity( "Installing " + name );
 				
 				final AESemaphore sem = new AESemaphore( "analyserWait" );
@@ -1078,7 +1085,7 @@ StreamManager
 				
 				final Throwable[] error = { null };
 				
-				new SimplePluginInstaller(
+				uif.installPlugin(
 						id,
 	    				"dlg.install." + id,
 	    				new UIFunctions.actionListener()
