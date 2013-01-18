@@ -169,17 +169,22 @@ public class ConsoleInput extends Thread {
 		registerPluginCommands();
 		
 		if ( azureus_core != null ){
-			azureus_core.addLifecycleListener(
-				new AzureusCoreLifecycleAdapter()
-				{
-					public void
-					started(
-						AzureusCore		core )
+			
+			if ( controlling ){
+					// don't check updates if we're not controlling things
+				
+				azureus_core.addLifecycleListener(
+					new AzureusCoreLifecycleAdapter()
 					{
-						registerUpdateChecker();
-					}
-				});
-	
+						public void
+						started(
+							AzureusCore		core )
+						{
+							registerUpdateChecker();
+						}
+					});
+			}
+			
 			try {
 				loadAliases();
 			} catch (IOException e) {
