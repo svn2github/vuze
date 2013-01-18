@@ -44,12 +44,9 @@ import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.AZ3Functions;
-import com.aelitis.azureus.core.util.AZ3Functions.provider.TranscodeProfile;
-import com.aelitis.azureus.core.util.AZ3Functions.provider.TranscodeTarget;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.shells.RemotePairingWindow;
-import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.views.skin.TorrentListViewsUtils;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -139,7 +136,16 @@ public class InitialisationFunctions
 				public void 
 				openRemotePairingWindow() 
 				{
-					RemotePairingWindow.open();
+					UIFunctions uif = UIFunctionsManager.getUIFunctions();
+					
+					if ( uif == null ){
+						
+						Debug.out( "UIFunctions not available, can't open remote pairing window" );
+						
+					}else{
+						
+						uif.openRemotePairingWindow();
+					}
 				}
 				
 				public boolean
@@ -163,13 +169,21 @@ public class InitialisationFunctions
 						}
 					}
 					
-					if ( PlayUtils.canPlayDS(dm, file_index)){
-						TorrentListViewsUtils.playOrStreamDataSource(ds,
-								DLReferals.DL_REFERAL_PLAYDM, false, true);
-					}
-					if ( PlayUtils.canStreamDS(dm, file_index)){
-						TorrentListViewsUtils.playOrStreamDataSource(ds,
-								DLReferals.DL_REFERAL_PLAYDM, true, false);
+					UIFunctions uif = UIFunctionsManager.getUIFunctions();
+					
+					if ( uif == null ){
+						
+						Debug.out( "UIFunctions not available, can't open play/stream content" );
+						
+					}else{
+						if ( PlayUtils.canPlayDS(dm, file_index)){
+							
+							uif.playOrStreamDataSource( ds, DLReferals.DL_REFERAL_PLAYDM, false, true );
+							
+						}else if ( PlayUtils.canStreamDS(dm, file_index)){
+							
+							uif.playOrStreamDataSource( ds, DLReferals.DL_REFERAL_PLAYDM, true, false );
+						}
 					}
 				}	
 				

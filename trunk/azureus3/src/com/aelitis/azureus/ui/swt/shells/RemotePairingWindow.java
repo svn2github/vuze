@@ -384,7 +384,7 @@ public class RemotePairingWindow
 				}
 
 				public void testComplete(PairingTest test) {
-					if ( skinnedDialog == null || skinnedDialog.isDisposed()) {
+					if ( skinnedDialog == null || skinnedDialog.isDisposed() || control.isDisposed()) {
 						return;
 					}
 
@@ -431,10 +431,12 @@ public class RemotePairingWindow
 					lastPairingTestError = pairingTest.getErrorMessage();
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
-							control.redraw();
-							SWTSkinObjectImage soImage = (SWTSkinObjectImage) skin.getSkinObject("status-image");
-							if (soImage != null) {
-								soImage.setImageByID(fIconID, null);
+							if ( !control.isDisposed()){
+								control.redraw();
+								SWTSkinObjectImage soImage = (SWTSkinObjectImage) skin.getSkinObject("status-image");
+								if (soImage != null) {
+									soImage.setImageByID(fIconID, null);
+								}
 							}
 						}
 					});

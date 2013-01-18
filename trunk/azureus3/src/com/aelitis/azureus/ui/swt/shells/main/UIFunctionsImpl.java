@@ -86,6 +86,7 @@ import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.plugininstall.SimplePluginInstaller;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
+import com.aelitis.azureus.ui.swt.shells.RemotePairingWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
@@ -1105,5 +1106,21 @@ public class UIFunctionsImpl
 		Program program = Program.findProgram( extension );
 		
 		return( program == null ? false:(program.getName().toLowerCase(Locale.US).indexOf( name.toLowerCase(Locale.US)) != -1));
+	}
+	
+	public void 
+	openRemotePairingWindow() 
+	{
+		RemotePairingWindow.open();
+	}
+	
+	public void
+	playOrStreamDataSource(
+		Object 		ds, 
+		String 		referal,
+		boolean 	launch_already_checked, 
+		boolean 	complete_only )
+	{
+		TorrentListViewsUtils.playOrStreamDataSource( ds, referal, launch_already_checked, complete_only );	
 	}
 }

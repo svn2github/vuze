@@ -177,4 +177,14 @@ public interface UIFunctions
 	isProgramInstalled(
 		String		extension,
 		String		name );
+	
+	public void
+	openRemotePairingWindow();
+	
+	public void
+	playOrStreamDataSource(
+		Object 		ds, 
+		String 		referal,
+		boolean 	launch_already_checked, 
+		boolean 	complete_only ); 
 }

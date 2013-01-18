@@ -829,5 +829,21 @@ MainWindowDelayStub
 			
 			return( null );
 		}
+		
+		public void
+		openRemotePairingWindow()
+		{
+			log( "openRemotePairingWindow" );
+		}
+		
+		public void
+		playOrStreamDataSource(
+			Object 		ds, 
+			String 		referal,
+			boolean 	launch_already_checked, 
+			boolean 	complete_only )
+		{
+			log( "playOrStreamDataSource" );
+		}
 	}
 }
