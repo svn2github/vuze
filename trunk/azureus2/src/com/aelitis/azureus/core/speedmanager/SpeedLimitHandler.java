@@ -41,7 +41,6 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.BDecoder;
@@ -56,8 +55,17 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadManagerListener;
+import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
+import org.gudy.azureus2.plugins.network.RateLimiter;
+import org.gudy.azureus2.plugins.peers.Peer;
+import org.gudy.azureus2.plugins.peers.PeerManager;
+import org.gudy.azureus2.plugins.peers.PeerManagerEvent;
+import org.gudy.azureus2.plugins.peers.PeerManagerListener2;
+import org.gudy.azureus2.plugins.peers.PeerStats;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
@@ -86,6 +94,7 @@ SpeedLimitHandler
 	}
 	
 	private AzureusCore		core;
+	private PluginInterface plugin_interface;
 	
 	private LoggerChannel	logger;
 	
@@ -94,7 +103,9 @@ SpeedLimitHandler
 	private ScheduleRule			active_rule;
 	
 	
-	private Map<String,IPSet>		current_ip_sets = new HashMap<String,IPSet>();
+	private Map<String,IPSet>		current_ip_sets 			= new HashMap<String,IPSet>();
+	private Map<String,RateLimiter>	ip_set_rate_limiters_up 	= new HashMap<String,RateLimiter>();
+	private Map<String,RateLimiter>	ip_set_rate_limiters_down 	= new HashMap<String,RateLimiter>();
 	private TimerEventPeriodic		ip_set_event;
 
 	private
@@ -103,7 +114,7 @@ SpeedLimitHandler
 	{
 		core 	= _core;
 		
-		PluginInterface plugin_interface = core.getPluginManager().getDefaultPluginInterface();
+		plugin_interface = core.getPluginManager().getDefaultPluginInterface();
 		
 		logger = plugin_interface.getLogger().getTimeStampedChannel( "Speed Limit Handler" );
 		
@@ -758,10 +769,59 @@ SpeedLimitHandler
 		return( -1 );
 	}
 	
-	
+	private DownloadManagerListener dml;
+	private static Object	ip_set_peer_key = new Object();
+
 	private synchronized void
 	checkIPSets()
 	{
+		org.gudy.azureus2.plugins.download.DownloadManager download_manager = plugin_interface.getDownloadManager();
+		
+		Download[] downloads = download_manager.getDownloads();
+		
+		for ( Download dm: downloads ){
+			
+			PeerManager pm = dm.getPeerManager();
+			
+			if ( pm != null ){
+				
+				Peer[] peers = pm.getPeers();
+				
+				for ( Peer peer: peers ){
+					
+					RateLimiter[] lims = peer.getRateLimiters( false );
+					
+					for ( RateLimiter l: lims ){
+						
+						if ( ip_set_rate_limiters_down.containsValue( l )){
+							
+							peer.removeRateLimiter( l , false );
+						}
+					}
+					
+					lims = peer.getRateLimiters( true );
+					
+					for ( RateLimiter l: lims ){
+						
+						if ( ip_set_rate_limiters_up.containsValue( l )){
+							
+							peer.removeRateLimiter( l , true );
+						}
+					}
+				}
+			}
+		}
+		
+		ip_set_rate_limiters_down.clear();
+		ip_set_rate_limiters_up.clear();
+		
+		for ( IPSet set: current_ip_sets.values()){
+			
+			ip_set_rate_limiters_down.put( set.getName(), set.getDownLimiter());
+			
+			ip_set_rate_limiters_up.put( set.getName(), set.getUpLimiter());
+		}
+		
 		if ( current_ip_sets.size() == 0 ){
 			
 			if ( ip_set_event != null ){
@@ -769,36 +829,116 @@ SpeedLimitHandler
 				ip_set_event.cancel();
 				
 				ip_set_event = null;
+				
+			}
+			if ( dml != null ){
+				
+				download_manager.removeListener( dml );
+				
+				dml = null;
 			}
 		}else{
 			
 			if ( ip_set_event == null ){
 				
 				ip_set_event = 
-					
 					SimpleTimer.addPeriodicEvent(
-						"speed handler ip_set handler",
+						"speed handler ip set scheduler",
 						1000,
 						new TimerEventPerformer()
 						{
-							int	tick_count = 0;
+							private int	tick_count;
 							
 							public void 
 							perform(
 								TimerEvent event) 
 							{
-								updateIPSets( tick_count ++ );
+								tick_count++;
+								
+								synchronized( current_ip_sets){
+									
+									for ( IPSet set: current_ip_sets.values()){
+										
+										set.updateStats();
+									}
+									
+									if ( tick_count % 5 == 0 ){
+
+										String str = "";
+										
+										for ( IPSet set: current_ip_sets.values()){
+											
+											str += (str.length()==0?"":", ") + set.getString();
+										}
+										
+										logger.log( str );
+									}
+								}
 							}
 						});
+			}
+			
+			if ( dml == null ){
+				
+				dml = 
+					new DownloadManagerListener()
+					{
+						public void
+						downloadAdded(
+							Download	download )
+						{
+							download.addPeerListener(
+								new DownloadPeerListener()
+								{
+									public void
+									peerManagerAdded(
+										Download		download,
+										PeerManager		peer_manager )
+									{
+										peer_manager.addListener(
+											new PeerManagerListener2()
+											{
+												public void
+												eventOccurred(
+													PeerManagerEvent	event )
+												{
+													if ( event.getType() == PeerManagerEvent.ET_PEER_ADDED ){
+														
+														peersAdded( new Peer[]{ event.getPeer() });
+													}
+												}
+											});
+										
+										Peer[] peers = peer_manager.getPeers();
+																					
+										peersAdded( peers );
+									}
+									
+									public void
+									peerManagerRemoved(
+										Download		download,
+										PeerManager		peer_manager )
+									{						
+									}
+								});
+						}
+					
+							
+						public void
+						downloadRemoved(
+							Download	download )
+						{
+						}
+					};
+				
+				download_manager.addListener( dml, true );
 			}
 		}
 	}
 	
-	private static Object	ip_set_peer_key = new Object();
-	
 	private void
-	updateIPSets(
-		int	tick_count )
+	peersAdded(
+		Peer[]	peers )
 	{
 		IPSet[]		sets;
 		long[][][]	set_ranges;
@@ -826,115 +966,99 @@ SpeedLimitHandler
 			return;
 		}
 		
-		List<DownloadManager> dms = core.getGlobalManager().getDownloadManagers();
-		
-		for ( DownloadManager dm: dms ){
+		for ( Peer peer: peers ){
 			
-			PEPeerManager pm = dm.getPeerManager();
-			
-			if ( pm != null ){
+			long[] entry = (long[])peer.getUserData( ip_set_peer_key );
+
+			long	l_address;
+
+			if ( entry == null ){
 				
-				List<PEPeer> peers = pm.getPeers();
+				l_address = 0;
 				
-				for ( PEPeer peer: peers ){
+				String ip = peer.getIp();
+				
+				if ( !ip.contains( ":" )){
 					
-					long[] entry = (long[])peer.getUserData( ip_set_peer_key );
+					byte[] bytes = HostNameToIPResolver.hostAddressToBytes( ip );
+					
+					if ( bytes != null ){
+						
+						l_address = ((long)((bytes[0]<<24)&0xff000000 | (bytes[1] << 16)&0x00ff0000 | (bytes[2] << 8)&0x0000ff00 | bytes[3]&0x000000ff))&0xffffffffL;
 
-					long	l_address;
-
-					if ( entry == null ){
-						
-						l_address = 0;
-						
-						String ip = peer.getIp();
-						
-						if ( !ip.contains( ":" )){
-							
-							byte[] bytes = HostNameToIPResolver.hostAddressToBytes( ip );
-							
-							if ( bytes != null ){
-								
-								l_address = ((long)((bytes[0]<<24)&0xff000000 | (bytes[1] << 16)&0x00ff0000 | (bytes[2] << 8)&0x0000ff00 | bytes[3]&0x000000ff))&0xffffffffL;
-
-							}
-						}
-						
-						entry = new long[]{ l_address, -1, -1 };
-						
-						peer.setUserData( ip_set_peer_key, entry );
-						
-					}else{
-						
-						l_address = entry[0];
 					}
-					
-					if ( l_address != 0 ){
-						
-						long	sent_diff = -1;
-						long	recv_diff = -1;
-						
-						for ( int i=0;i<set_ranges.length;i++ ){
-							
-							long[][] ranges = set_ranges[i];
-							
-							for ( long[] range: ranges ){
+				}
+				
+				entry = new long[]{ l_address };
+				
+				peer.setUserData( ip_set_peer_key, entry );
+				
+			}else{
+				
+				l_address = entry[0];
+			}
+			
+			if ( l_address != 0 ){
 								
-								if ( l_address >= range[0] && l_address <= range[1] ){
-									
-									if ( sent_diff == -1 ){
-										
-										PEPeerStats stats = peer.getStats();
+				for ( int i=0;i<set_ranges.length;i++ ){
+					
+					long[][] ranges = set_ranges[i];
+					
+					for ( long[] range: ranges ){
+						
+						if ( l_address >= range[0] && l_address <= range[1] ){
 														
-										long sent = stats.getTotalDataBytesSent() + stats.getTotalProtocolBytesSent();
-										long recv = stats.getTotalDataBytesReceived() + stats.getTotalProtocolBytesReceived();
+							IPSet set = sets[i];
+							
+							{
+								RateLimiter l = set.getUpLimiter();
+								
+								RateLimiter[] existing = peer.getRateLimiters( true );
+								
+								boolean found = false;
+								
+								for ( RateLimiter e: existing ){
+									
+									if ( e == l ){
 										
-										long	old_sent 	= entry[1];
-										long	old_recv	= entry[2];
+										found = true;
 										
-										if ( old_sent == -1 ){
-											
-											sent_diff = entry[1] = 0;
-											recv_diff = entry[2] = 0;
-											
-										}else{
-											
-											sent_diff = sent - old_sent;
-											
-											recv_diff = recv - old_recv;
-											
-											entry[1] = sent;
-											entry[2] = recv;
-										}
-											
+										break;
 									}
-									
-									sets[i].updateStats( sent_diff, recv_diff );
-									
-									break;
+								}
+								if ( !found ){
+																			
+									peer.addRateLimiter( l, true );
 								}
 							}
-						}
-						
-						if ( sent_diff == -1 ){
 							
-							entry[1]	= -1;
-							entry[2]	= -1;
+							{
+								RateLimiter l = set.getDownLimiter();
+								
+								RateLimiter[] existing = peer.getRateLimiters( false );
+								
+								boolean found = false;
+								
+								for ( RateLimiter e: existing ){
+									
+									if ( e == l ){
+										
+										found = true;
+										
+										break;
+									}
+								}
+								if ( !found ){
+																		
+									peer.addRateLimiter( l, false );
+								}
+							}
+							
+							break;
 						}
 					}
 				}
 			}
-		}
-			
-		if ( tick_count % 5 == 0 ){
-			
-			String str = "";
-			
-			for ( IPSet set: sets ){
-				
-				str += (str.length()==0?"":", ") + set.getString();
-			}
-			
-			logger.log( str );
 		}
 	}
 	
@@ -2044,14 +2168,23 @@ SpeedLimitHandler
 		
 		private long[][]			ranges = new long[0][];
 		
+		private long	last_send_total = -1;
+		private long	last_recv_total = -1;
+		
 		private Average send_rate		= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 		private Average receive_rate	= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
 
+		private RateLimiter		up_limiter;
+		private RateLimiter		down_limiter;
+		
 		private
 		IPSet(
 			String	_name )
 		{
 			name	= _name;
+			
+			up_limiter 		= plugin_interface.getConnectionManager().createRateLimiter( "ips-" + name, 0 );
+			down_limiter 	= plugin_interface.getConnectionManager().createRateLimiter( "ips-" + name, 0 );
 		}
 		
 		private boolean
@@ -2125,6 +2258,11 @@ SpeedLimitHandler
 				return( false );
 			}
 		}
+		private String
+		getName()
+		{
+			return( name );
+		}
 		
 		private long[][]
 		getRanges()
@@ -2132,14 +2270,34 @@ SpeedLimitHandler
 			return( ranges );
 		}
 		
-		private void
-		updateStats(
-			long	sent,
-			long	recv )
+		private RateLimiter
+		getUpLimiter()
 		{
-			send_rate.addValue( sent );
-			receive_rate.addValue( recv );
+			return( up_limiter );
 		}
+		
+		private RateLimiter
+		getDownLimiter()
+		{
+			return( down_limiter );
+		}
+		
+		private void
+		updateStats()
+		{
+			long	send_total 	= up_limiter.getRateLimitTotalByteCount();
+			long	recv_total	= down_limiter.getRateLimitTotalByteCount();
+			
+			if ( last_send_total != -1 ){
+				
+				send_rate.addValue( send_total - last_send_total );
+				receive_rate.addValue( recv_total - last_recv_total );
+			}
+			
+			last_send_total = send_total;
+			last_recv_total = recv_total;
+		}
+	
 		
 		private String
 		getString()
@@ -2152,7 +2310,7 @@ SpeedLimitHandler
 			
 			return( name + // ", addresses=" + addresses + 
 					": send=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( send_rate.getAverage()) +
-					", recv=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( receive_rate.getAverage()));
+					", recv=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( receive_rate.getAverage())); 
 		}
 	}
 }
