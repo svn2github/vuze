@@ -35,18 +35,34 @@ NetworkConnectionHelper
 			{
 				return( "per_con_up: " + getString());
 			}
-			public int getRateLimitBytesPerSecond() {  return upload_limit;  }
+			public int getRateLimitBytesPerSecond() 
+			{ 
+				return upload_limit;
+			}
+			public void
+			updateBytesUsed(
+					int	used )
+			{  
+			}
 	  };
 
 	  private int	download_limit;
 
-	  private final LimitedRateGroup download_limiter = new LimitedRateGroup() {
+	  private final LimitedRateGroup download_limiter = 
+		  new LimitedRateGroup() 
+	  	{
 			public String 
 			getName() 
 			{
 				return( "per_con_down: " + getString());
 			}
 			public int getRateLimitBytesPerSecond() {  return download_limit;  }
+			
+			public void
+			updateBytesUsed(
+					int	used )
+			{  
+			}
 	  };
 	  
 	  private LimitedRateGroup[]	upload_limiters 	= { upload_limiter };

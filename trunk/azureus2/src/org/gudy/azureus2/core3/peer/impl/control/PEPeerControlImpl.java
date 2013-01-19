@@ -334,6 +334,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 		public int getRateLimitBytesPerSecond() {
 			return adapter.getUploadRateLimitBytesPerSecond();
 		}
+		
+		public void
+		updateBytesUsed(
+				int	used )
+		{  
+		}
 	};
 
 	private final LimitedRateGroup download_limited_rate_group = new LimitedRateGroup() {
@@ -344,6 +350,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 		public int getRateLimitBytesPerSecond() {
 			return adapter.getDownloadRateLimitBytesPerSecond();
+		}
+		
+		public void
+		updateBytesUsed(
+				int	used )
+		{  
 		}
 	};
 

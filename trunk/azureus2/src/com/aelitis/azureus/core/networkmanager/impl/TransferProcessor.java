@@ -88,6 +88,7 @@ public class TransferProcessor {
         
         public void bytesProcessed( int num_bytes_written ) {
           main_bucket.setBytesUsed( num_bytes_written );
+          max_rate.updateBytesUsed( num_bytes_written );
         }
       };
       
@@ -439,6 +440,7 @@ public class TransferProcessor {
           if ( RATE_LIMIT_LAN_TOO || !( connection.isLANLocal() && NetworkManager.isLANRateEnabled())){
 	          for (int i=0;i<conn_data.group_datas.length;i++){
 	        	  conn_data.group_datas[i].bucket.setBytesUsed( num_bytes_written );
+	        	  conn_data.groups[i].updateBytesUsed( num_bytes_written );
 	          }
           }
           main_bucket.setBytesUsed( num_bytes_written );

@@ -34,4 +34,6 @@ public interface LimitedRateGroup {
    * @return rate in bytes per second, 0 for unlimited, -1 for disabled
    */
   public int getRateLimitBytesPerSecond();
+  
+  public void updateBytesUsed( int num );
 }

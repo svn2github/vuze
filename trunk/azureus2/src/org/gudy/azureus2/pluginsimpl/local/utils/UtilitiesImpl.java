@@ -57,6 +57,7 @@ import org.gudy.azureus2.plugins.utils.xml.rss.RSSFeed;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentFactory;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.network.ConnectionManagerImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourceuploader.ResourceUploaderFactoryImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.security.*;
@@ -190,15 +191,15 @@ UtilitiesImpl
 	
 			// need to use a consistent wrapped group as its object identity drives byte allocs...
 		
-	private static WeakHashMap<RateLimiter,LimitedRateGroup>	limiter_map = new WeakHashMap<RateLimiter,LimitedRateGroup>();
+	private static WeakHashMap<RateLimiter,PluginLimitedRateGroup>	limiter_map = new WeakHashMap<RateLimiter,PluginLimitedRateGroup>();
 	
-	public static LimitedRateGroup
+	public static PluginLimitedRateGroup
 	wrapLimiter(
 		final RateLimiter	limiter )
 	{
 		synchronized( limiter_map ){
 		
-			LimitedRateGroup l = limiter_map.get( limiter );
+			PluginLimitedRateGroup l = limiter_map.get( limiter );
 			
 			if ( l == null ){
 				
@@ -209,6 +210,13 @@ UtilitiesImpl
 			
 			return( l );
 		}
+	}
+	
+	public static RateLimiter
+	unwrapLmiter(
+		PluginLimitedRateGroup l )
+	{
+		return( l.limiter );
 	}
 	
 	private static void
@@ -1808,11 +1816,18 @@ UtilitiesImpl
 	{
 		private RateLimiter	limiter;
 		
+		private ConnectionManagerImpl.PluginRateLimiter plimiter;
+		
 		private
 		PluginLimitedRateGroup(
 			RateLimiter		_limiter )
 		{
 			limiter	= _limiter;
+			
+			if ( limiter instanceof ConnectionManagerImpl.PluginRateLimiter ){
+				
+				plimiter = (ConnectionManagerImpl.PluginRateLimiter)limiter;
+			}
 		}
 		
 		public String 
@@ -1825,6 +1840,16 @@ UtilitiesImpl
 		getRateLimitBytesPerSecond()
 		{
 			 return( limiter.getRateLimitBytesPerSecond());
+		}
+		
+		public void
+		updateBytesUsed(
+			int	used )
+		{  
+			if ( plimiter != null ){
+				
+				plimiter.updateBytesUsed( used );
+			}
 		}
 	}
 	

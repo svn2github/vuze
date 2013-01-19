@@ -47,6 +47,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl.PluginLimitedRateGroup;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkConnectionBase;
@@ -117,6 +118,36 @@ PeerForeignDelegate
 					  boolean			is_upload )
 				  {
 					  network_connection.removeRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), is_upload );
+				  }
+				  
+				  public RateLimiter[]
+				  getRateLimiters(
+					 boolean			is_upload )
+				  {
+						LimitedRateGroup[] limiters = network_connection.getRateLimiters( is_upload );
+						
+						RateLimiter[]	result = new RateLimiter[limiters.length];
+						
+						int	pos = 0;
+						
+						for ( LimitedRateGroup l: limiters ){
+							
+							if ( l instanceof PluginLimitedRateGroup  ){
+								
+								result[pos++] = UtilitiesImpl.unwrapLmiter((PluginLimitedRateGroup)l);
+							}
+						}
+						
+						if ( pos == result.length ){
+							
+							return( result );
+						}
+						
+						RateLimiter[]	result_mod = new RateLimiter[pos];
+						
+						System.arraycopy( result, 0, result_mod, 0, pos );
+						
+						return( result_mod );  
 				  }
 			});
 	}

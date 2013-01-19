@@ -284,4 +284,8 @@ Peer
   removeRateLimiter(
 		  RateLimiter		limiter,
 		  boolean			is_upload );
+  
+  public RateLimiter[]
+  getRateLimiters(
+   		 boolean	is_upload );
 }

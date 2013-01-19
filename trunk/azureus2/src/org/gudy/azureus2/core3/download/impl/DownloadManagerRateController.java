@@ -99,6 +99,12 @@ DownloadManagerRateController
 				{
 					return( rate_limit );
 				}
+				
+				public void
+				updateBytesUsed(
+					int	used )
+				{  
+				}
 			};
 	
 	private static final int TIMER_MILLIS			= 1000;

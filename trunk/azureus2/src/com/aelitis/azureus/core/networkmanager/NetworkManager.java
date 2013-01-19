@@ -176,6 +176,12 @@ public class NetworkManager {
 			{  
 				return max_upload_rate_bps;  
 			}
+			
+			public void
+			updateBytesUsed(
+					int	used )
+			{  
+			}
 		},
 		write_controllers.size() > 1 );
   
@@ -193,6 +199,12 @@ public class NetworkManager {
 			getRateLimitBytesPerSecond() 
 			{
 				return max_download_rate_bps;  
+			}
+			
+			public void
+			updateBytesUsed(
+					int	used )
+			{  
 			}
 		},
 		read_controllers.size() > 1 );
@@ -213,6 +225,12 @@ public class NetworkManager {
 			{  
 				return max_lan_upload_rate_bps;  
 			}
+			
+			public void
+			updateBytesUsed(
+					int	used )
+			{  
+			}
 		},
 		write_controllers.size() > 1 );
   
@@ -230,6 +248,12 @@ public class NetworkManager {
 			getRateLimitBytesPerSecond() 
 			{  
 				return max_lan_download_rate_bps;  
+			}
+			
+			public void
+			updateBytesUsed(
+					int	used )
+			{  
 			}
 		},
 		read_controllers.size() > 1 );

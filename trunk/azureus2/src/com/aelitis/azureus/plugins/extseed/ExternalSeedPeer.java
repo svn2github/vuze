@@ -888,6 +888,22 @@ ExternalSeedPeer
 		}	
 	}
 	  
+	public RateLimiter[]
+	getRateLimiters(
+		boolean	is_upload )
+	{
+		if ( connection_stub != null ){
+			
+			return( connection_stub.getRateLimiters( is_upload ));
+			
+		}else{
+			
+			Debug.out( "connection not bound" );
+			
+			return( new RateLimiter[0] );
+		}	
+	}
+	
 	public int
 	getPercentDoneOfCurrentIncomingRequest()
 	{

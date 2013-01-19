@@ -173,10 +173,11 @@ public class ConnectionManagerImpl implements ConnectionManager {
   PluginRateLimiter
 	implements RateLimiter
   {
-		
 		private String		name;
 		private int			rate;
 			
+		private long		total;
+		
 		private
 		PluginRateLimiter(
 			String		_name,
@@ -203,6 +204,19 @@ public class ConnectionManagerImpl implements ConnectionManager {
 			int		bytes_per_second )
 		{
 			rate = bytes_per_second;
+		}
+		
+		public long 
+		getRateLimitTotalByteCount() 
+		{
+			return( total );
+		}
+		
+		public void
+		updateBytesUsed(
+			int	used )
+		{  
+			total += used;
 		}
 	}
 }

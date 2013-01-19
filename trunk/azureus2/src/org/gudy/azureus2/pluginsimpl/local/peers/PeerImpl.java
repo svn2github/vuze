@@ -39,7 +39,9 @@ import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl.PluginLimitedRateGroup;
 
+import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 
@@ -347,6 +349,36 @@ PeerImpl
 	  boolean			is_upload )
 	{
 		delegate.removeRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), is_upload );
+	}
+	
+	public RateLimiter[]
+	getRateLimiters(
+		boolean	is_upload )
+	{
+		LimitedRateGroup[] limiters = delegate.getRateLimiters( is_upload );
+		
+		RateLimiter[]	result = new RateLimiter[limiters.length];
+		
+		int	pos = 0;
+		
+		for ( LimitedRateGroup l: limiters ){
+			
+			if ( l instanceof PluginLimitedRateGroup  ){
+				
+				result[pos++] = UtilitiesImpl.unwrapLmiter((PluginLimitedRateGroup)l);
+			}
+		}
+		
+		if ( pos == result.length ){
+			
+			return( result );
+		}
+		
+		RateLimiter[]	result_mod = new RateLimiter[pos];
+		
+		System.arraycopy( result, 0, result_mod, 0, pos );
+		
+		return( result_mod );
 	}
 	
 	public void

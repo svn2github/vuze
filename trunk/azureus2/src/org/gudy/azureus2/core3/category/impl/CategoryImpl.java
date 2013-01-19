@@ -56,6 +56,13 @@ public class CategoryImpl implements Category, Comparable {
 		  {
 			  return( upload_speed );
 		  }
+		  
+		  public void
+		  updateBytesUsed(
+				int	used )
+		  {
+			  
+		  }
 	  };
    
   private LimitedRateGroup download_limiter = 
@@ -70,6 +77,13 @@ public class CategoryImpl implements Category, Comparable {
 	  getRateLimitBytesPerSecond()
 	  {
 		  return( download_speed );
+	  }
+	  
+	  public void
+	  updateBytesUsed(
+			int	used )
+	  {
+		  
 	  }
   };  
   
