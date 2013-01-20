@@ -534,43 +534,82 @@ SpeedLimitHandler
 				}
 			}else if ( lc_line.startsWith( "ip_set" )){
 
-				String[]	bits = lc_line.substring(6).split( "=" );
-
-				if ( bits.length != 2 ){
+				try{
+					String[] args = lc_line.substring(6).split( "," );
 					
-					result.add( "'" +line + "' is invalid: use ip_set <name>=<cidrs...>" );
+					boolean	inverse 	= false;
+					int		up_lim		= 0;
+					int		down_lim	= 0;
 					
-				}else{
+					IPSet set = null;
 					
-					String name = bits[0].trim();
-					
-					String def = bits[1].replace(';', ' ');
-					
-					def = def.replace( ',', ' ' );
-					
-					IPSet set = ip_sets.get( name );
-					
-					if( set == null ){
+					for ( String arg: args ){
 						
-						set = new IPSet( name );
-						
-						ip_sets.put( name, set );
-					}
-					
-					bits = def.split( " " );
-					
-					for ( String bit: bits ){
-						
-						bit = bit.trim();
-						
-						if ( bit.length() > 0 ){
+						String[]	bits = arg.split( "=" );
+		
+						if ( bits.length != 2 ){
 							
-							if ( !set.addCIDR( bit )){
+							throw( new Exception( ));
+							
+						}else{
+							
+							String lhs = bits[0].trim();
+							String rhs = bits[1].trim();
+							
+							if ( lhs.equals( "inverse" )){
+							
+								inverse = rhs.equals( "yes" );
 								
-								result.add( "CIDR '" + bit + "' isn't valid" );
+							}else if ( lhs.equals( "up" )){
+								
+								up_lim = parseRate( rhs );
+								
+							}else if ( lhs.equals( "down" )){
+								
+								down_lim = parseRate( rhs );
+								
+							}else{
+								String name = lhs;
+							
+								String def = rhs.replace(';', ' ');
+														
+								set = ip_sets.get( name );
+								
+								if( set == null ){
+									
+									set = new IPSet( name );
+									
+									ip_sets.put( name, set );
+								}
+								
+								bits = def.split( " " );
+								
+								for ( String bit: bits ){
+									
+									bit = bit.trim();
+									
+									if ( bit.length() > 0 ){
+										
+										if ( !set.addCIDR( bit )){
+											
+											result.add( "CIDR '" + bit + "' isn't valid" );
+										}
+									}
+								}
 							}
 						}
 					}
+					
+					if ( set == null ){
+						
+						throw( new Exception());
+					}
+					
+					set.setParameters( inverse, up_lim, down_lim );
+					
+				}catch( Throwable e ){
+					
+					result.add( "'" +line + "' is invalid: use ip_set <name>=<cidrs...> [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>]" );
 				}
 			}else{
 				
@@ -753,6 +792,46 @@ SpeedLimitHandler
 	}
 	
 	private int
+	parseRate(
+		String	str )
+	{
+		int	pos = str.indexOf( "/" );
+		
+		if ( pos != -1 ){
+			
+			str = str.substring( 0, pos ).trim();
+		}
+	
+		String 	num 	= "";
+		int		mult	= 1;
+		
+		for ( int i=0;i<str.length();i++){
+			
+			char c = str.charAt(i);
+			
+			if ( Character.isDigit( c )){
+				
+				num += c;
+				
+			}else{
+				
+				if ( c == 'k' ){
+					
+					mult = 1024;
+					
+				}else if ( c == 'm' ){
+					
+					mult = 1024*1024;
+				}
+				
+				break;
+			}
+		}
+		
+		return( Integer.parseInt( num ) * mult );
+	}
+	
+	private int
 	getMins(
 		String	str )
 	{
@@ -878,61 +957,63 @@ SpeedLimitHandler
 						});
 			}
 			
-			if ( dml == null ){
+			if ( dml != null ){
 				
-				dml = 
-					new DownloadManagerListener()
-					{
-						public void
-						downloadAdded(
-							Download	download )
-						{
-							download.addPeerListener(
-								new DownloadPeerListener()
-								{
-									public void
-									peerManagerAdded(
-										Download		download,
-										PeerManager		peer_manager )
-									{
-										peer_manager.addListener(
-											new PeerManagerListener2()
-											{
-												public void
-												eventOccurred(
-													PeerManagerEvent	event )
-												{
-													if ( event.getType() == PeerManagerEvent.ET_PEER_ADDED ){
-														
-														peersAdded( new Peer[]{ event.getPeer() });
-													}
-												}
-											});
-										
-										Peer[] peers = peer_manager.getPeers();
-																					
-										peersAdded( peers );
-									}
-									
-									public void
-									peerManagerRemoved(
-										Download		download,
-										PeerManager		peer_manager )
-									{						
-									}
-								});
-						}
-					
-							
-						public void
-						downloadRemoved(
-							Download	download )
-						{
-						}
-					};
-				
-				download_manager.addListener( dml, true );
+				download_manager.removeListener( dml );
 			}
+			
+			dml = 
+				new DownloadManagerListener()
+				{
+					public void
+					downloadAdded(
+						Download	download )
+					{
+						download.addPeerListener(
+							new DownloadPeerListener()
+							{
+								public void
+								peerManagerAdded(
+									Download		download,
+									PeerManager		peer_manager )
+								{
+									peer_manager.addListener(
+										new PeerManagerListener2()
+										{
+											public void
+											eventOccurred(
+												PeerManagerEvent	event )
+											{
+												if ( event.getType() == PeerManagerEvent.ET_PEER_ADDED ){
+													
+													peersAdded( new Peer[]{ event.getPeer() });
+												}
+											}
+										});
+									
+									Peer[] peers = peer_manager.getPeers();
+																				
+									peersAdded( peers );
+								}
+								
+								public void
+								peerManagerRemoved(
+									Download		download,
+									PeerManager		peer_manager )
+								{						
+								}
+							});
+					}
+				
+						
+					public void
+					downloadRemoved(
+						Download	download )
+					{
+					}
+				};
+			
+			download_manager.addListener( dml, true );
 		}
 	}
 	
@@ -1004,62 +1085,79 @@ SpeedLimitHandler
 					
 					long[][] ranges = set_ranges[i];
 					
+					IPSet set = sets[i];
+					
+					boolean	hit = false;
+					
 					for ( long[] range: ranges ){
 						
 						if ( l_address >= range[0] && l_address <= range[1] ){
 														
-							IPSet set = sets[i];
-							
-							{
-								RateLimiter l = set.getUpLimiter();
-								
-								RateLimiter[] existing = peer.getRateLimiters( true );
-								
-								boolean found = false;
-								
-								for ( RateLimiter e: existing ){
-									
-									if ( e == l ){
-										
-										found = true;
-										
-										break;
-									}
-								}
-								if ( !found ){
-																			
-									peer.addRateLimiter( l, true );
-								}
-							}
-							
-							{
-								RateLimiter l = set.getDownLimiter();
-								
-								RateLimiter[] existing = peer.getRateLimiters( false );
-								
-								boolean found = false;
-								
-								for ( RateLimiter e: existing ){
-									
-									if ( e == l ){
-										
-										found = true;
-										
-										break;
-									}
-								}
-								if ( !found ){
-																		
-									peer.addRateLimiter( l, false );
-								}
-							}
-							
+							hit	= true;
+
+							addLimiters( peer, set );
+
 							break;
 						}
+					}
+					
+					if ( set.isInverse() && !hit ){
+						
+						addLimiters( peer, set );
 					}
 				}
 			}
 		}
+	}
+
+	private void
+	addLimiters(
+		Peer	peer,
+		IPSet	set )
+	{
+		{
+			RateLimiter l = set.getUpLimiter();
+			
+			RateLimiter[] existing = peer.getRateLimiters( true );
+			
+			boolean found = false;
+			
+			for ( RateLimiter e: existing ){
+				
+				if ( e == l ){
+					
+					found = true;
+					
+					break;
+				}
+			}
+			if ( !found ){
+														
+				peer.addRateLimiter( l, true );
+			}
+		}
+		
+		{
+			RateLimiter l = set.getDownLimiter();
+			
+			RateLimiter[] existing = peer.getRateLimiters( false );
+			
+			boolean found = false;
+			
+			for ( RateLimiter e: existing ){
+				
+				if ( e == l ){
+					
+					found = true;
+					
+					break;
+				}
+			}
+			if ( !found ){
+													
+				peer.addRateLimiter( l, false );
+			}
+		}	
 	}
 	
 	private synchronized void
@@ -1160,16 +1258,17 @@ SpeedLimitHandler
 		result.add( "#        frequency: daily|weekdays|weekends|<day_of_week>" );
 		result.add( "#            days_of_week: mon|tue|wed|thu|fri|sat|sun" );
 		result.add( "#        time: hh:mm - 24 hour clock; 00:00=midnight; local time" );
-		result.add( "#    ip_set <ip_set_name> <CIDR_specs...>" );
+		result.add( "#    ip_set <ip_set_name> <CIDR_specs...> [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>]" );
 		result.add( "#" );
 		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_uplaod' defined:" );
 		result.add( "#" );
 		result.add( "#     daily no_limits from 00:00 to 23:59" );
 		result.add( "#     daily limited_upload from 06:00 to 22:00" );
+		result.add( "#" );
 		result.add( "#     ip_set external=211.34.128.0/19,211.35.128.0/17" );
 		result.add( "#" );
 		result.add( "# When multiple rules apply the one further down the list of rules take precedence" );
-		result.add( "# Currently ip_set declarations only result is rate display, not limiting..." );
+		result.add( "# Currently ip_set limits are no schedulable" );
 		result.add( "# Comment lines are prefixed with '#'" );
 
 		
@@ -2168,6 +2267,8 @@ SpeedLimitHandler
 		
 		private long[][]			ranges = new long[0][];
 		
+		boolean	inverse;
+		
 		private long	last_send_total = -1;
 		private long	last_recv_total = -1;
 		
@@ -2185,6 +2286,18 @@ SpeedLimitHandler
 			
 			up_limiter 		= plugin_interface.getConnectionManager().createRateLimiter( "ips-" + name, 0 );
 			down_limiter 	= plugin_interface.getConnectionManager().createRateLimiter( "ips-" + name, 0 );
+		}
+		
+		private void
+		setParameters(
+			boolean		_inverse,
+			int			_up_lim,
+			int			_down_lim )
+		{
+			inverse	= _inverse;
+			
+			up_limiter.setRateLimitBytesPerSecond( _up_lim );
+			down_limiter.setRateLimitBytesPerSecond( _down_lim );
 		}
 		
 		private boolean
@@ -2298,6 +2411,11 @@ SpeedLimitHandler
 			last_recv_total = recv_total;
 		}
 	
+		private boolean
+		isInverse()
+		{
+			return( inverse );
+		}
 		
 		private String
 		getString()
