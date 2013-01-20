@@ -56,6 +56,7 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadAttributeListener;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.download.DownloadPeerListener;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -66,6 +67,7 @@ import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerManagerEvent;
 import org.gudy.azureus2.plugins.peers.PeerManagerListener2;
 import org.gudy.azureus2.plugins.peers.PeerStats;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
@@ -93,8 +95,9 @@ SpeedLimitHandler
 		}
 	}
 	
-	private AzureusCore		core;
-	private PluginInterface plugin_interface;
+	private AzureusCore			core;
+	private PluginInterface 	plugin_interface;
+	private TorrentAttribute	category_attribute;
 	
 	private LoggerChannel	logger;
 	
@@ -116,6 +119,8 @@ SpeedLimitHandler
 		
 		plugin_interface = core.getPluginManager().getDefaultPluginInterface();
 		
+		category_attribute	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_CATEGORY );
+
 		logger = plugin_interface.getLogger().getTimeStampedChannel( "Speed Limit Handler" );
 		
 		UIManager	ui_manager = plugin_interface.getUIManager();
@@ -535,11 +540,15 @@ SpeedLimitHandler
 			}else if ( lc_line.startsWith( "ip_set" )){
 
 				try{
-					String[] args = lc_line.substring(6).split( "," );
+						// uppercase here as category names are case sensitive..
+					
+					String[] args = line.substring(6).split( "," );
 					
 					boolean	inverse 	= false;
 					int		up_lim		= 0;
 					int		down_lim	= 0;
+					
+					List<String>	categories = new ArrayList<String>();
 					
 					IPSet set = null;
 					
@@ -553,25 +562,46 @@ SpeedLimitHandler
 							
 						}else{
 							
-							String lhs = bits[0].trim();
-							String rhs = bits[1].trim();
+							String lhs 		= bits[0].trim().toLowerCase( Locale.US );
+							String ac_rhs 	= bits[1].trim();
 							
+							String lc_rhs = ac_rhs.toLowerCase( Locale.US );
+
 							if ( lhs.equals( "inverse" )){
 							
-								inverse = rhs.equals( "yes" );
+								inverse = lc_rhs.equals( "yes" );
 								
 							}else if ( lhs.equals( "up" )){
 								
-								up_lim = parseRate( rhs );
+								up_lim = parseRate( lc_rhs );
 								
 							}else if ( lhs.equals( "down" )){
 								
-								down_lim = parseRate( rhs );
+								down_lim = parseRate( lc_rhs );
 								
+							}else if ( lhs.equals( "cat" )){
+								
+								String[] cats = ac_rhs.split( " " );
+								
+								for ( String cat: cats ){
+									
+									cat = cat.trim();
+									
+									if ( cat.length() > 0 ){
+										
+										if ( categories == null ){
+											
+											categories = new ArrayList<String>();
+										}
+										
+										categories.add( cat );
+									}
+								}
 							}else{
+								
 								String name = lhs;
 							
-								String def = rhs.replace(';', ' ');
+								String def = lc_rhs.replace(';', ' ');
 														
 								set = ip_sets.get( name );
 								
@@ -605,7 +635,7 @@ SpeedLimitHandler
 						throw( new Exception());
 					}
 					
-					set.setParameters( inverse, up_lim, down_lim );
+					set.setParameters( inverse, up_lim, down_lim, categories );
 					
 				}catch( Throwable e ){
 					
@@ -854,7 +884,7 @@ SpeedLimitHandler
 	private synchronized void
 	checkIPSets()
 	{
-		org.gudy.azureus2.plugins.download.DownloadManager download_manager = plugin_interface.getDownloadManager();
+		final org.gudy.azureus2.plugins.download.DownloadManager download_manager = plugin_interface.getDownloadManager();
 		
 		Download[] downloads = download_manager.getDownloads();
 		
@@ -894,11 +924,18 @@ SpeedLimitHandler
 		ip_set_rate_limiters_down.clear();
 		ip_set_rate_limiters_up.clear();
 		
+		boolean	has_cats = false;
+		
 		for ( IPSet set: current_ip_sets.values()){
 			
 			ip_set_rate_limiters_down.put( set.getName(), set.getDownLimiter());
 			
 			ip_set_rate_limiters_up.put( set.getName(), set.getUpLimiter());
+			
+			if ( set.getCategories() != null ){
+				
+				has_cats = true;
+			}
 		}
 		
 		if ( current_ip_sets.size() == 0 ){
@@ -962,21 +999,67 @@ SpeedLimitHandler
 				download_manager.removeListener( dml );
 			}
 			
+			final boolean	f_has_cats = has_cats;
+			
 			dml = 
 				new DownloadManagerListener()
 				{
+					final DownloadManagerListener this_dml = this;
+					
+					final DownloadAttributeListener attr_listener = new
+						DownloadAttributeListener()
+						{
+							public void 
+							attributeEventOccurred(
+								Download 			download, 
+								TorrentAttribute 	attribute, 
+								int 				event_type )
+							{
+								if ( dml != this_dml ){
+									
+									download.removeAttributeListener( this, category_attribute, DownloadAttributeListener.WRITTEN );
+									
+									return;
+								}
+								
+								checkIPSets();
+							}
+						};
+						
 					public void
 					downloadAdded(
-						Download	download )
+						final Download	download )
 					{
+						if ( dml != this_dml ){
+							
+							download_manager.removeListener( this );
+							
+							return;
+						}
+						
+						if ( f_has_cats ){
+							
+							download.addAttributeListener(
+								attr_listener,
+								category_attribute,
+								DownloadAttributeListener.WRITTEN );
+						}
+							
 						download.addPeerListener(
 							new DownloadPeerListener()
 							{
 								public void
 								peerManagerAdded(
-									Download		download,
-									PeerManager		peer_manager )
+									final Download			download,
+									final PeerManager		peer_manager )
 								{
+									if ( dml != this_dml ){
+										
+										download.removePeerListener( this );
+										
+										return;
+									}
+									
 									peer_manager.addListener(
 										new PeerManagerListener2()
 										{
@@ -984,16 +1067,23 @@ SpeedLimitHandler
 											eventOccurred(
 												PeerManagerEvent	event )
 											{
+												if ( dml != this_dml ){
+													
+													peer_manager.removeListener( this );
+													
+													return;
+												}
+												
 												if ( event.getType() == PeerManagerEvent.ET_PEER_ADDED ){
 													
-													peersAdded( new Peer[]{ event.getPeer() });
+													peersAdded( download, new Peer[]{ event.getPeer() });
 												}
 											}
 										});
 									
 									Peer[] peers = peer_manager.getPeers();
 																				
-									peersAdded( peers );
+									peersAdded( download, peers );
 								}
 								
 								public void
@@ -1019,10 +1109,13 @@ SpeedLimitHandler
 	
 	private void
 	peersAdded(
-		Peer[]	peers )
+		Download	download,
+		Peer[]		peers )
 	{
 		IPSet[]		sets;
 		long[][][]	set_ranges;
+		
+		String	category = null;
 		
 		synchronized( current_ip_sets ){
 			
@@ -1039,6 +1132,11 @@ SpeedLimitHandler
 				set_ranges[pos]	= set.getRanges();
 				
 				pos++;
+				
+				if ( category == null && set.getCategories() != null ){
+				
+					category = download.getAttribute( category_attribute );
+				}
 			}
 		}
 		
@@ -1087,23 +1185,33 @@ SpeedLimitHandler
 					
 					IPSet set = sets[i];
 					
-					boolean	hit = false;
+					boolean is_inverse = set.isInverse();
 					
-					for ( long[] range: ranges ){
+					List<String> set_cats = set.getCategories();
+					
+					if ( set_cats == null || set_cats.contains( category )){
+					
+						boolean	hit = false;
 						
-						if ( l_address >= range[0] && l_address <= range[1] ){
-														
-							hit	= true;
-
-							addLimiters( peer, set );
-
-							break;
+						for ( long[] range: ranges ){
+							
+							if ( l_address >= range[0] && l_address <= range[1] ){
+															
+								hit	= true;
+	
+								if ( !is_inverse ){
+								
+									addLimiters( peer, set );
+								}
+	
+								break;
+							}
 						}
-					}
-					
-					if ( set.isInverse() && !hit ){
 						
-						addLimiters( peer, set );
+						if ( is_inverse && !hit ){
+							
+							addLimiters( peer, set );
+						}
 					}
 				}
 			}
@@ -1258,7 +1366,7 @@ SpeedLimitHandler
 		result.add( "#        frequency: daily|weekdays|weekends|<day_of_week>" );
 		result.add( "#            days_of_week: mon|tue|wed|thu|fri|sat|sun" );
 		result.add( "#        time: hh:mm - 24 hour clock; 00:00=midnight; local time" );
-		result.add( "#    ip_set <ip_set_name> <CIDR_specs...> [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>]" );
+		result.add( "#    ip_set <ip_set_name> <CIDR_specs...> [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [cat=<cat names>]" );
 		result.add( "#" );
 		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_uplaod' defined:" );
 		result.add( "#" );
@@ -2267,7 +2375,9 @@ SpeedLimitHandler
 		
 		private long[][]			ranges = new long[0][];
 		
-		boolean	inverse;
+		private boolean	inverse;
+		
+		private List<String>	categories;
 		
 		private long	last_send_total = -1;
 		private long	last_recv_total = -1;
@@ -2290,14 +2400,17 @@ SpeedLimitHandler
 		
 		private void
 		setParameters(
-			boolean		_inverse,
-			int			_up_lim,
-			int			_down_lim )
+			boolean			_inverse,
+			int				_up_lim,
+			int				_down_lim,
+			List<String>	_cats )
 		{
 			inverse	= _inverse;
 			
 			up_limiter.setRateLimitBytesPerSecond( _up_lim );
 			down_limiter.setRateLimitBytesPerSecond( _down_lim );
+			
+			categories = _cats.size()==0?null:_cats;
 		}
 		
 		private boolean
@@ -2393,6 +2506,12 @@ SpeedLimitHandler
 		getDownLimiter()
 		{
 			return( down_limiter );
+		}
+		
+		private List<String>
+		getCategories()
+		{
+			return( categories );
 		}
 		
 		private void
