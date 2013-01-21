@@ -1123,4 +1123,11 @@ public class UIFunctionsImpl
 	{
 		TorrentListViewsUtils.playOrStreamDataSource( ds, referal, launch_already_checked, complete_only );	
 	}
+	
+	public void 
+	setHideAll( 
+		boolean hidden ) 
+	{
+		mainWindow.setHideAll( hidden );
+	}
 }

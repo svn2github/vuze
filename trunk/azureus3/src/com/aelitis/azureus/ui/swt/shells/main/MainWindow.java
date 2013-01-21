@@ -63,6 +63,10 @@ MainWindow
 	public void 
 	setSelectedLanguageItem();
 	
+	public void
+	setHideAll(
+		boolean	hide );
+	
 	public boolean 
 	dispose(
 		boolean for_restart,

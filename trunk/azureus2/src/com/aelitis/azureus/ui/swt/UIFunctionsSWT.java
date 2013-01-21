@@ -131,4 +131,6 @@ public interface UIFunctionsSWT
 	public void promptForSearch();
 
 	public UIToolBarManager getToolBarManager();
+	
+	public void setHideAll( boolean hidden );
 }

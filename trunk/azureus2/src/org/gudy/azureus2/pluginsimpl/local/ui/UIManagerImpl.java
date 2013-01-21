@@ -709,6 +709,13 @@ UIManagerImpl
 		return model;
 	}
  	 	
+	public void 
+	setEverythingHidden( 
+		boolean hidden )
+	{
+		fireEvent( pi, UIManagerEvent.ET_HIDE_ALL, hidden );
+	}
+	
 	public static void
 	unload(
 		PluginInterface	pi )

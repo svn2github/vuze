@@ -523,7 +523,11 @@ UISWTInstanceImpl
 				ManagerUtils.open(file_to_use, use_open_containing_folder);
 				break;
 			}			
-			
+			case UIManagerEvent.ET_HIDE_ALL: {
+				boolean hide = (Boolean)data;
+				
+				uiFunctions.setHideAll( hide );
+			}
 			default:
 			{
 				done	= false;

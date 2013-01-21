@@ -429,6 +429,13 @@ MainWindowDelayStub
 		log( "setVisible" );	
 	}
 
+	public void 
+	setHideAll(
+		boolean hide) 
+	{
+		log( "setHideAll" );	
+	}
+	
 	public Rectangle 
 	getMetrics(
 		int windowElement)
@@ -844,6 +851,13 @@ MainWindowDelayStub
 			boolean 	complete_only )
 		{
 			log( "playOrStreamDataSource" );
+		}
+		
+		public void 
+		setHideAll( 
+			boolean hidden) 
+		{
+			log( "setHideAll" );
 		}
 	}
 }

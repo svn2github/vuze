@@ -60,6 +60,7 @@ UIManagerEvent
 	public static final int ET_FILE_OPEN                        = 24;       // data is File
 	public static final int ET_REGISTER_COLUMN                  = 25;       // data is Class, String, TableColumnCreationListener
 	public static final int ET_UNREGISTER_COLUMN                = 26;       // data is Class, String, TableColumnCreationListener
+	public static final int ET_HIDE_ALL			                = 27;       // data is Boolean
 
 	
 	public static final int ET_CALLBACK_MSG_SELECTION			= 100;		// data is Long - MT_OK etc

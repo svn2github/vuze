@@ -1427,7 +1427,37 @@ public class MainWindowImpl
 		}
 	}
 
-
+	public void 
+	setHideAll(
+		final boolean hide )
+	{
+		Utils.execSWTThread(
+			new AERunnable() 
+			{
+				public void
+				runSupport()
+				{
+					if ( hide ){
+						
+						setVisible( false, true );
+					
+						if ( systemTraySWT != null ){
+						
+							systemTraySWT.dispose();
+						}
+					}else{
+						
+						setVisible( true, true );
+						
+						if ( COConfigurationManager.getBooleanParameter("Enable System Tray")) {
+			
+							systemTraySWT = SystemTraySWT.getTray();
+						}
+					}
+				}
+			});
+	}
+	
 	private void setVisible(final boolean visible) {
 		setVisible(visible, true);
 	}

@@ -60,11 +60,16 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 public class SystemTraySWT
 	implements UIUpdatableAlways, MessageTextListener
 {
-	private static final SystemTraySWT	singleton = new SystemTraySWT();
+	private static SystemTraySWT	singleton;
 	
-	public static SystemTraySWT
+	public static synchronized SystemTraySWT
 	getTray()
 	{
+		if ( singleton == null ){
+			
+			singleton = new SystemTraySWT();
+		}
+		
 		return( singleton );
 	}
 	
@@ -368,6 +373,8 @@ public class SystemTraySWT
 				}
 			}
 		});
+		
+		singleton = null;
 	}
 
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
