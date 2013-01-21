@@ -155,9 +155,20 @@ DHTControlImpl
 
 	private Cipher 			spoof_cipher;
 	private SecretKey		spoof_key;
-	private DHTTransportContact	spoof_last_verify_contact;
-	private int					spoof_last_verify_result;
 	
+	private static final int	SPOOF_GEN_HISTORY_SIZE	= 256;
+	
+	private Map<InetAddress,Integer>	spoof_gen_history = 
+		new LinkedHashMap<InetAddress,Integer>(SPOOF_GEN_HISTORY_SIZE,0.75f,true)
+		{
+			protected boolean 
+			removeEldestEntry(
+		   		Map.Entry<InetAddress,Integer> eldest) 
+			{
+				return( size() > SPOOF_GEN_HISTORY_SIZE );
+			}
+		};
+			
 	private long			last_node_add_check;
 	private byte[]			node_add_check_uninteresting_limit;
 	
@@ -3940,20 +3951,26 @@ DHTControlImpl
 			return( 0 );
 		}
 		
+		InetAddress iad = contact.getAddress().getAddress();
+		
 		try{
 			spoof_mon.enter();
 			
 				// during cache forwarding we get a lot of consecutive requests from the
 				// same contact so we can save CPU by caching the latest result and optimising for this
 			
-			if ( contact == spoof_last_verify_contact ){
-								
-				return( spoof_last_verify_result );
-			}
+			Integer existing = spoof_gen_history.get( iad );
 			
+			if ( existing != null ){
+				
+				//System.out.println( "anti-spoof: cached " + existing + " for " + contact.getAddress() + " - total=" + spoof_gen_history.size());
+				
+				return( existing );
+			}
+						
 			spoof_cipher.init(Cipher.ENCRYPT_MODE, spoof_key ); 
 		
-			byte[]	address = contact.getAddress().getAddress().getAddress();
+			byte[]	address = iad.getAddress();
 					
 			byte[]	data_out = spoof_cipher.doFinal( address );
 	
@@ -3962,10 +3979,9 @@ DHTControlImpl
 						(data_out[2] << 8)&0x0000ff00 | 
 						data_out[3]&0x000000ff;
 			
-			// System.out.println( "anti-spoof: generating " + res + " for " + contact.getAddress());
+			//System.out.println( "anti-spoof: generating " + res + " for " + contact.getAddress() + " - total=" + spoof_gen_history.size());
 
-			spoof_last_verify_contact 	= contact;
-			spoof_last_verify_result	= res;
+			spoof_gen_history.put( iad, res );
 			
 			return( res );
 
