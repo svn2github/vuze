@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.dht.transport.udp;
 
 import java.net.InetSocketAddress;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 
@@ -101,13 +103,25 @@ DHTTransportUDP
 	
 		// current versions
 	
-	public static final byte PROTOCOL_VERSION_MAIN					= PROTOCOL_VERSION_VIVALDI_OPTIONAL;
-	public static final byte PROTOCOL_VERSION_CVS					= PROTOCOL_VERSION_VIVALDI_OPTIONAL;
+	public static class
+	Helper{
+		private static int explicit_min = COConfigurationManager.getIntParameter( "DHT.protocol.version.min", -1 );
+		
+		static byte
+		getVersion(
+			byte	min )
+		{
+			return( (byte)Math.max( explicit_min, min&0x00ff ));
+		}
+	}
+	
+	public static final byte PROTOCOL_VERSION_MAIN					= Helper.getVersion( PROTOCOL_VERSION_VIVALDI_OPTIONAL );
+	public static final byte PROTOCOL_VERSION_CVS					= Helper.getVersion( PROTOCOL_VERSION_VIVALDI_OPTIONAL );
 
-	public static final byte PROTOCOL_VERSION_MIN					= PROTOCOL_VERSION_RESTRICT_ID3;
-	public static final byte PROTOCOL_VERSION_MIN_CVS				= PROTOCOL_VERSION_RESTRICT_ID3;
+	public static final byte PROTOCOL_VERSION_MIN					= Helper.getVersion( PROTOCOL_VERSION_RESTRICT_ID3 );
+	public static final byte PROTOCOL_VERSION_MIN_CVS				= Helper.getVersion( PROTOCOL_VERSION_RESTRICT_ID3 );
 	
-	
+
 	
 	public static final byte VENDOR_ID_AELITIS		= 0x00;
 	public static final byte VENDOR_ID_ShareNET		= 0x01;			// http://www.sharep2p.net/
