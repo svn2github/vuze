@@ -105,10 +105,11 @@ public class BadAvailTimeItem
 		} else {
   		String text;
   		
-  		if ( value <= 0 ){
-  			text = "";
-  		}else if ( value == -2 ){
+  		if ( value == -2 ){
   			text = now_string;
+  		}else if ( value <= 0 ){
+  			text = "";
+  			
   		}else{
   			text = DisplayFormatters.formatDate(value);
   		}

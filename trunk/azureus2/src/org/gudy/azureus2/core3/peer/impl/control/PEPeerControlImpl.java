@@ -366,6 +366,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 	
 	private GettingThere	finish_in_progress;
 	
+	private long			last_seed_disconnect_time;
+	
 	public 
 	PEPeerControlImpl(
 		byte[]					_peer_id,
@@ -1853,7 +1855,17 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	public long getAvailWentBadTime()
 	{
-		return( piecePicker.getAvailWentBadTime());
+		long went_bad = piecePicker.getAvailWentBadTime();
+					
+				// there's a chance a seed connects and then disconnects (when we're seeding) quickly
+				// enough for the piece picker not to notice...
+			
+		if ( piecePicker.getMinAvailability() < 1.0 && last_seed_disconnect_time > went_bad - 5000 ){
+			
+			went_bad = last_seed_disconnect_time;
+		}
+		
+		return( went_bad );
 	}
 	
 	public void addPeerTransport( PEPeerTransport transport ) {
@@ -2995,6 +3007,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 			}
 		}
 
+		if ( pc.isSeed()){
+			
+			last_seed_disconnect_time = SystemTime.getCurrentTime();
+		}
+		
 		adapter.removePeer(pc);  //async downloadmanager notification
 
 		//sync peermanager notification
