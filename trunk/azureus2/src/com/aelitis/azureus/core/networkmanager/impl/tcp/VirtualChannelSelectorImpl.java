@@ -137,6 +137,9 @@ public class VirtualChannelSelectorImpl {
     protected Selector selector;
     private final SelectorGuard selector_guard;
     
+    private int	consec_select_fails;
+    private long consec_select_fails_start;
+    
     private final LinkedList<Object> 	register_cancel_list 		= new LinkedList<Object>();
     private final AEMonitor 			register_cancel_list_mon	= new AEMonitor( "VirtualChannelSelector:RCL");
 
@@ -552,28 +555,55 @@ public class VirtualChannelSelectorImpl {
       	}
       }
       
-  
-      //do the actual select
+      	//do the actual select
+      
       int count = 0;
+      
       selector_guard.markPreSelectTime();
-      try {
-        count = selector.select( timeout );
-      }
-      catch (Throwable t) {
-    	long	now = SystemTime.getCurrentTime();
+      
+      try{
+    	  count = selector.select( timeout );
+        
+    	  consec_select_fails = 0;
+        
+      }catch (Throwable t) {
     	  
-    	if ( last_select_debug > now || now - last_select_debug > 5000 ){
-    		
-    		last_select_debug = now;
-    		
-    		String msg = t.getMessage();
-    		
-    		if ( msg == null || !msg.equalsIgnoreCase( "bad file descriptor" )){
-    		
-    			Debug.out( "Caught exception on selector.select() op: " +msg, t );
-    		}
-    	}
-        try {  Thread.sleep( timeout );  }catch(Throwable e) { e.printStackTrace(); }
+       	  long	now = SystemTime.getMonotonousTime();
+
+    	  consec_select_fails++;
+    	  
+    	  if ( consec_select_fails == 1 ){
+    		  
+    		  consec_select_fails_start = now;
+    	  }
+    	  
+    	  if ( consec_select_fails > 20 && consec_select_fails_start - now > 16*1000 ){
+    		  
+    		  consec_select_fails = 0;
+    		  
+    		  Debug.out( "Consecutive fail exceeded (" + consec_select_fails + ") - recreating selector" );
+    		  
+    		  closeExistingSelector();
+    		  
+    		  try {  Thread.sleep( 1000 );  }catch( Throwable x ) {x.printStackTrace();}
+    		  
+    		  selector = openNewSelector();
+    		  
+    		  return( 0 );
+    	  }
+ 
+    	  if ( now - last_select_debug > 5000 ){
+
+    		  last_select_debug = now;
+
+    		  String msg = t.getMessage();
+
+    		  if ( msg == null || !msg.equalsIgnoreCase( "bad file descriptor" )){
+
+    			  Debug.out( "Caught exception on selector.select() op: " +msg, t );
+    		  }
+    	  }
+    	  try {  Thread.sleep( timeout );  }catch(Throwable e) { e.printStackTrace(); }
       }
       
       	// do this after the select so that any pending cancels (prior to destroy) are processed
