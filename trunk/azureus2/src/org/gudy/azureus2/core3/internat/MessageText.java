@@ -31,7 +31,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Constants;
@@ -51,8 +50,15 @@ public class MessageText {
   public static final Locale LOCALE_ENGLISH = Constants.LOCALE_ENGLISH;
   
   public static final Locale LOCALE_DEFAULT = new Locale("", ""); // == english
+  
   private static Locale LOCALE_CURRENT = LOCALE_DEFAULT;
-  private static final String BUNDLE_NAME = "org.gudy.azureus2.internat.MessagesBundle"; //$NON-NLS-1$
+  
+  private static final String BUNDLE_NAME;
+  
+  static{
+	  BUNDLE_NAME = System.getProperty( "az.factory.internat.bundle", "org.gudy.azureus2.internat.MessagesBundle" );
+  }
+  
   private static Map pluginLocalizationPaths = new HashMap();
   private static Collection pluginResourceBundles = new ArrayList();
   private static IntegratedResourceBundle RESOURCE_BUNDLE;
