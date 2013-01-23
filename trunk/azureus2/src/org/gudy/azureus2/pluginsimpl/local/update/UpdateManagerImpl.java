@@ -46,7 +46,7 @@ import com.aelitis.azureus.core.AzureusCore;
 
 public class 
 UpdateManagerImpl
-	implements UpdateManager
+	implements UpdateManager, UpdateCheckInstanceListener
 {
 	private static UpdateManagerImpl		singleton;
 		
@@ -149,6 +149,8 @@ UpdateManagerImpl
 			
 			checkers.add( res );
 			
+			res.addListener( this );
+			
 			for (int i=0;i<listeners.size();i++){
 				
 				((UpdateManagerListener)listeners.get(i)).checkInstanceCreated( res );
@@ -187,6 +189,8 @@ UpdateManagerImpl
 			
 			checkers.add( res );
 			
+			res.addListener( this );
+			
 			for (int i=0;i<listeners.size();i++){
 				
 				((UpdateManagerListener)listeners.get(i)).checkInstanceCreated( res );
@@ -220,6 +224,28 @@ UpdateManagerImpl
 		installers.toArray( res );
 		
 		return( res );
+	}
+	
+	public void
+	cancelled(
+		UpdateCheckInstance		instance )
+	{
+		complete( instance );
+	}
+	
+	public void
+	complete(
+		UpdateCheckInstance		instance )
+	{
+		try{
+			this_mon.enter();
+		
+			checkers.remove( instance );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
 	}
 	
 	protected void
