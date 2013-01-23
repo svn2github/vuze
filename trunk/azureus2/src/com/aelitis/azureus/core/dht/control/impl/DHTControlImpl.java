@@ -455,6 +455,8 @@ DHTControlImpl
 			
 			external_put_pool.setMaxThreads( EXTERNAL_PUT_CONCURRENCY );
 		}
+		
+		database.setSleeping( asleep );
 	}
 	
 	public DHTControlStats

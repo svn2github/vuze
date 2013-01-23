@@ -159,6 +159,10 @@ DHTDB
 	getStats();
 	
 	public void
+	setSleeping(
+		boolean	asleep );
+	
+	public void
 	print(
 		boolean		full );
 }

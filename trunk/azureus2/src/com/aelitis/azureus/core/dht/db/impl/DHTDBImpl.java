@@ -153,6 +153,8 @@ DHTDBImpl
 				return size() > MAX_SURVEY_STATE_SIZE;
 			}
 		};
+	
+	private boolean	sleeping;
 		
 	public
 	DHTDBImpl(
@@ -450,6 +452,11 @@ DHTDBImpl
 		try{
 			this_mon.enter();
 						
+			if ( sleeping ){
+				
+				return( DHT.DT_NONE );
+			}
+			
 			checkCacheExpiration( false );
 				
 			DHTDBMapping	mapping = (DHTDBMapping)stored_values.get( key );
@@ -2868,7 +2875,58 @@ DHTDBImpl
 		}
 	}
 	
-	
+	public void
+	setSleeping(
+		boolean	asleep )
+	{
+		try{
+			this_mon.enter();
+			
+			sleeping = asleep;
+			
+			if ( asleep ){
+				
+				Iterator<Map.Entry<HashWrapper,DHTDBMapping>>	it = stored_values.entrySet().iterator();
+				
+				while( it.hasNext()){
+					
+					Map.Entry<HashWrapper,DHTDBMapping>	entry = it.next();
+					
+					HashWrapper			key		= entry.getKey();
+					
+					DHTDBMapping		mapping	= entry.getValue();
+										
+					Iterator<DHTDBValueImpl>	it2 = mapping.getValues();
+					
+					boolean	all_remote = it2.hasNext();
+										
+					while( it2.hasNext()){
+						
+						DHTDBValueImpl	value = it2.next();
+					
+						if ( value.isLocal()){
+							
+							all_remote = false;
+							
+							break;
+						}
+					}
+					
+					if ( all_remote ){
+						
+						it.remove();
+						
+						removeFromPrefixMap( mapping );
+							
+						mapping.destroy();
+					}
+				}		
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+	}
 	
 	public DHTTransportQueryStoreReply
 	queryStore(
