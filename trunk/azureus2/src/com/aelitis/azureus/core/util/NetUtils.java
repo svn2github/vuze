@@ -34,6 +34,7 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl.runnableWithException;
@@ -107,11 +108,11 @@ NetUtils
 								
 							long	old_period = current_check_millis;
 							
-							if ( elapsed_millis > 1000 && current_check_millis <  INC2_NI_CHECK_MILLIS ){
+							if ( elapsed_millis > (Constants.isAndroid?5000:1000) && current_check_millis <  INC2_NI_CHECK_MILLIS ){
 													
 								current_check_millis = INC2_NI_CHECK_MILLIS;
 								
-							}else if ( elapsed_millis > 250 && current_check_millis < INC1_NI_CHECK_MILLIS ){
+							}else if ( elapsed_millis > (Constants.isAndroid?1000:250) && current_check_millis < INC1_NI_CHECK_MILLIS ){
 								
 								current_check_millis = INC1_NI_CHECK_MILLIS;
 							}
