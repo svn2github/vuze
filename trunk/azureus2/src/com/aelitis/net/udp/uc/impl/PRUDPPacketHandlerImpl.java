@@ -1169,7 +1169,7 @@ PRUDPPacketHandlerImpl
 												+ request_packet.getString()));
 							}
 								
-							Thread.sleep( send_delay );
+							Thread.sleep( send_delay * 4 );
 							
 						}else{
 							
