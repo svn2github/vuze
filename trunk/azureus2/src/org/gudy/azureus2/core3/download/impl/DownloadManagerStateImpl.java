@@ -1208,15 +1208,20 @@ DownloadManagerStateImpl
 			oldCategory.removeManager( this );
   		}
 		
-		if (category != null ){
+		DownloadManager dm = getDownloadManager();
+		
+		if ( dm != null && !dm.isDestroyed()){
 			
-			category.addManager( this );
-
-		} else {
-
-			CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED).addManager(this);
+			if ( category != null ){
+				
+				category.addManager( this );
+	
+			} else {
+	
+				CategoryManager.getCategory(Category.TYPE_UNCATEGORIZED).addManager(this);
+			}
 		}
-  	
+		
 		if ( category != null ){
 			
 			setStringAttribute( AT_CATEGORY, category.getName());
