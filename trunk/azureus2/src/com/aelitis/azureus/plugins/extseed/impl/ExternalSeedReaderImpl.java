@@ -22,9 +22,10 @@
 
 package com.aelitis.azureus.plugins.extseed.impl;
 
-import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
@@ -64,6 +65,22 @@ ExternalSeedReaderImpl
 	
 	public static final int TOP_PIECE_PRIORITY			= 100*1000;
 
+	private static boolean	use_avail_to_activate;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+				"webseed.activation.uses.availability",
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String name ) 
+					{
+						use_avail_to_activate = COConfigurationManager.getBooleanParameter( name );
+					}
+				});
+	}
+	
 	private ExternalSeedPlugin	plugin;
 	private Torrent				torrent;
 	
@@ -402,6 +419,13 @@ ExternalSeedReaderImpl
 			
 				// availability and speed based stuff needs a little time before being applied
 			
+			if ( !use_avail_to_activate ){
+				
+				log( getName() + ": activating as availability-based activation disabled" );
+
+				return( true );
+			}
+			
 			if ( fast_activate || !early_days ){
 				
 				if ( min_availability > 0 ){
@@ -462,33 +486,36 @@ ExternalSeedReaderImpl
 			boolean	deactivate = false;
 			String	reason		= "";
 			
-			if ( min_availability > 0 ){
-
-				float availability = peer_manager.getDownload().getStats().getAvailability();
-			
-				if ( availability >= min_availability + 1 ){
+			if ( use_avail_to_activate ){
 				
-					reason =  "availability is good";
+				if ( min_availability > 0 ){
+	
+					float availability = peer_manager.getDownload().getStats().getAvailability();
 				
-					deactivate = true;
+					if ( availability >= min_availability + 1 ){
+					
+						reason =  "availability is good";
+					
+						deactivate = true;
+					}
 				}
-			}
-			
-			if ( min_download_speed > 0 ){
 				
-				long	my_speed 		= peer.getStats().getDownloadAverage();
-				
-				long	overall_speed 	= peer_manager.getStats().getDownloadAverage();
-				
-				if ( overall_speed - my_speed > 2 * min_download_speed ){
+				if ( min_download_speed > 0 ){
 					
-					reason += (reason.length()==0?"":", ") + "speed is good";
-
-					deactivate = true;
+					long	my_speed 		= peer.getStats().getDownloadAverage();
 					
-				}else{
+					long	overall_speed 	= peer_manager.getStats().getDownloadAverage();
 					
-					deactivate = false;
+					if ( overall_speed - my_speed > 2 * min_download_speed ){
+						
+						reason += (reason.length()==0?"":", ") + "speed is good";
+	
+						deactivate = true;
+						
+					}else{
+						
+						deactivate = false;
+					}
 				}
 			}
 			

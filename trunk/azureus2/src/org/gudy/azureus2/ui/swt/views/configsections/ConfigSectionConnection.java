@@ -368,6 +368,26 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			enable_http.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( http_port_override ));
 		}
 		
+		if ( userMode > 0 ){
+			
+			/////////////////////// WebSeeds ///////////////////
+
+			Group ws_group = new Group(cSection, SWT.NULL);
+			
+			Messages.setLanguageText(ws_group,CFG_PREFIX + "group.webseed");
+			
+			GridLayout ws_layout = new GridLayout();
+			
+			ws_layout.numColumns = 2;
+
+			ws_group.setLayout(ws_layout);
+
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			ws_group.setLayoutData(gridData);
+			
+			new BooleanParameter(ws_group, "webseed.activation.uses.availability", CFG_PREFIX + "webseed.act.on.avail");
+		}
+		
 		if (userMode > 0) {
 			/////////////////////// PEER SOURCES GROUP ///////////////////
 
