@@ -75,7 +75,8 @@ DownloadManagerEnhancer
 	
 	private boolean			progressive_enabled;
 	
-	private AtomicLong	progressive_active_counter = new AtomicLong();
+	private long				progressive_active_counter;
+	private TimerEventPeriodic	pa_timer;
 	
 	protected
 	DownloadManagerEnhancer(
@@ -236,54 +237,6 @@ DownloadManagerEnhancer
 				}
 			});
 		
-		SimpleTimer.addPeriodicEvent(
-				"DownloadManagerEnhancer:speedChecker",
-				TICK_PERIOD,
-				new TimerEventPerformer()
-				{
-					private int tick_count;
-					
-					private long	last_inactive_marker = 0;
-					
-					public void 
-					perform(
-						TimerEvent event ) 
-					{
-						tick_count++;
-						
-						long	current_marker = progressive_active_counter.get();
-						
-						if ( last_inactive_marker == current_marker ){
-							
-							return;
-						}
-												
-						List	downloads = core.getGlobalManager().getDownloadManagers();
-						
-						boolean	is_active = false;
-						
-						for ( int i=0;i<downloads.size();i++){
-							
-							DownloadManager download = (DownloadManager)downloads.get(i);
-															
-							EnhancedDownloadManager edm = getEnhancedDownload( download );
-								
-							if ( edm != null ){
-																	
-								if ( edm.updateStats( tick_count )){
-										
-									is_active = true;
-								}
-							}
-						}
-						
-						if ( !is_active ){
-							
-							last_inactive_marker = current_marker;
-						}
-					}
-				});
-		
 			// listener to pick up on streams kicked off externally
 		
 		DiskManagerChannelImpl.addListener(
@@ -328,7 +281,71 @@ DownloadManagerEnhancer
 	protected void
 	progressiveActivated()
 	{
-		progressive_active_counter.incrementAndGet();
+		synchronized( this ){
+		
+			progressive_active_counter++;
+		
+			if ( pa_timer == null ){
+				
+				pa_timer = 
+					SimpleTimer.addPeriodicEvent(
+						"DownloadManagerEnhancer:speedChecker",
+						TICK_PERIOD,
+						new TimerEventPerformer()
+						{
+							private int tick_count;
+							
+							private long	last_inactive_marker = 0;
+							
+							public void 
+							perform(
+								TimerEvent event ) 
+							{
+								tick_count++;
+								
+								long current_marker;
+								
+								synchronized( DownloadManagerEnhancer.this ){
+											
+									current_marker = progressive_active_counter;
+									
+									if ( last_inactive_marker == current_marker ){
+									
+										pa_timer.cancel();
+										
+										pa_timer = null;
+										
+										return;
+									}
+								}
+														
+								List	downloads = core.getGlobalManager().getDownloadManagers();
+								
+								boolean	is_active = false;
+								
+								for ( int i=0;i<downloads.size();i++){
+									
+									DownloadManager download = (DownloadManager)downloads.get(i);
+																	
+									EnhancedDownloadManager edm = getEnhancedDownload( download );
+										
+									if ( edm != null ){
+																			
+										if ( edm.updateStats( tick_count )){
+												
+											is_active = true;
+										}
+									}
+								}
+								
+								if ( !is_active ){
+									
+									last_inactive_marker = current_marker;
+								}
+							}
+						});
+			}
+		}
 	}
 	
 	protected AzureusCore
