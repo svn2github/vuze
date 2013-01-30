@@ -190,7 +190,10 @@ NetworkAdminUDPTester
 
 						request_packet.setPayload( data_to_send );
 
-						listener.reportProgress( "Sending outbound packet and waiting for reply probe (timeout=" + timeout + ")" );
+						if ( listener != null ){
+							
+							listener.reportProgress( "Sending outbound packet and waiting for reply probe (timeout=" + timeout + ")" );
+						}
 						
 						NetworkAdminNATUDPReply reply_packet = 
 							(NetworkAdminNATUDPReply)packet_handler.sendAndReceive( 
@@ -246,8 +249,10 @@ NetworkAdminUDPTester
 
 					// fire off one last packet in attempt to inform server of completion
 
-					listener.reportProgress( "Sending completion event" );
-
+					if ( listener != null ){
+						listener.reportProgress( "Sending completion event" );
+					}
+					
 					packet_handler.send( request_packet, new InetSocketAddress( UDP_SERVER_ADDRESS, UDP_SERVER_PORT ));
 
 				}catch( Throwable e){  
