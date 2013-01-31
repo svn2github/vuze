@@ -626,9 +626,9 @@ ThreadPool
 
 		protected threadPoolWorker()
 		{
-			super(name + "[" + (thread_name_index++) + "]",true);
+			super(name + " " + (thread_name_index++),true);
 			setPriority(thread_priority);
-			worker_name = name + "[" + (thread_name_index++) + "]";
+			worker_name = getName();
 			start();
 		}
 		
