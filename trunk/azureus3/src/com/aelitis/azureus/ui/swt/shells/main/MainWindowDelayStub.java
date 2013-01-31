@@ -111,45 +111,62 @@ MainWindowDelayStub
 	private void
 	init()
 	{		
-		shell = new Shell(display, SWT.SHELL_TRIM);
-	
-		UIFunctionsManagerSWT.setUIFunctions( delayed_uif );
-	
-		boolean bEnableTray = COConfigurationManager.getBooleanParameter("Enable System Tray");
-
-		if ( bEnableTray ){
+		final AESemaphore sem = new AESemaphore( "shell:create" );
 		
-			swt_tray = SystemTraySWT.getTray();
-		}
-		
-		MainHelpers.initTransferBar();
-		
-		if ( initialiser != null ){
-		
-			initialiser.initializationComplete();
-			
-			initialiser.abortProgress();
-		}
-		
-		AERunStateHandler.addListener(
-			new AERunStateHandler.RunStateChangeListener()
+		Utils.execSWTThread(
+			new Runnable()
 			{
-				private boolean	handled = false;
-				
-				public void 
-				runStateChanged(
-					long run_state )
+				public void
+				run()
 				{
-					if ( AERunStateHandler.isDelayedUI() || handled ){
+					try{
+						shell = new Shell(display, SWT.SHELL_TRIM);
+
+						UIFunctionsManagerSWT.setUIFunctions( delayed_uif );
 						
-						return;
+						boolean bEnableTray = COConfigurationManager.getBooleanParameter("Enable System Tray");
+
+						if ( bEnableTray ){
+						
+							swt_tray = SystemTraySWT.getTray();
+						}
+						
+						MainHelpers.initTransferBar();
+						
+						if ( initialiser != null ){
+						
+							initialiser.initializationComplete();
+							
+							initialiser.abortProgress();
+						}
+						
+						AERunStateHandler.addListener(
+							new AERunStateHandler.RunStateChangeListener()
+							{
+								private boolean	handled = false;
+								
+								public void 
+								runStateChanged(
+									long run_state )
+								{
+									if ( AERunStateHandler.isDelayedUI() || handled ){
+										
+										return;
+									}
+									
+									handled = true;
+									
+									checkMainWindow();
+								}
+							}, false );
+					}finally{
+						
+						sem.release();
 					}
-					
-					handled = true;
-					
-					checkMainWindow();
 				}
-			}, false );
+			});
+		
+		sem.reserve();
 	}
 	
 	private void
