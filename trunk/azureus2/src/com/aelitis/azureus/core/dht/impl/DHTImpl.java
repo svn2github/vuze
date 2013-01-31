@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.AERunStateHandler;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.DHTListener;
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.DHTStorageAdapter;
@@ -42,6 +43,7 @@ import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
 import com.aelitis.azureus.core.dht.speed.DHTSpeedTesterFactory;
 import com.aelitis.azureus.core.dht.transport.*;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  * @author parg
@@ -59,6 +61,8 @@ DHTImpl
 	private DHTSpeedTester			speed_tester;
 	private	Properties				properties;
 	private DHTLogger				logger;
+	
+	private CopyOnWriteList<DHTListener>	listeners = new CopyOnWriteList<DHTListener>();
 	
 	public 
 	DHTImpl(
@@ -169,9 +173,7 @@ DHTImpl
 			
 			nat_puncher	= DHTNATPuncherFactory.create( nat_adapter, this );
 		}
-		
-		speed_tester = DHTSpeedTesterFactory.create( this );
-		
+				
 		AERunStateHandler.addListener( this, true );
 	}
 	
@@ -179,7 +181,47 @@ DHTImpl
 	runStateChanged(
 		long run_state ) 
 	{
-		control.setSleeping( AERunStateHandler.isDHTSleeping());
+		boolean	sleeping = AERunStateHandler.isDHTSleeping();
+		
+		control.setSleeping( sleeping );
+		
+		DHTSpeedTester old_tester = null;
+		DHTSpeedTester new_tester = null;
+		
+		synchronized( this ){
+			
+			if ( sleeping ){
+				
+				if ( speed_tester != null ){
+					
+					old_tester = speed_tester;
+					
+					speed_tester = null;
+				}
+			}else{
+				
+				new_tester = speed_tester = DHTSpeedTesterFactory.create( this );
+			}
+		}
+		
+		if ( old_tester != null ){
+			
+			old_tester.destroy();
+		}
+		
+		if ( new_tester != null ){
+			
+			for ( DHTListener l: listeners ){
+				
+				try{
+					l.speedTesterAvailable( new_tester );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
 	}
 	
 	protected int
@@ -407,5 +449,26 @@ DHTImpl
 		boolean	full )
 	{
 		control.print( full );
+	}
+	
+	public void
+	addListener(
+		DHTListener		listener )
+	{
+		listeners.add( listener );
+		
+		DHTSpeedTester st = speed_tester;
+		
+		if ( st != null ){
+			
+			listener.speedTesterAvailable( st );
+		}
+	}
+	
+	public void
+	removeListener(
+		DHTListener		listener )
+	{
+		listeners.remove( listener );
 	}
 }

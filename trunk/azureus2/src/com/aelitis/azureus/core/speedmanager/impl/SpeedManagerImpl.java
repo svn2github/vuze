@@ -458,6 +458,11 @@ SpeedManagerImpl
 	setSpeedTester(
 		DHTSpeedTester	_tester )
 	{
+		if ( _tester == speed_tester ){
+			
+			return;
+		}
+		
 		if ( speed_tester != null ){
 			
 			if ( !emulated_ping_source ){
@@ -659,6 +664,12 @@ SpeedManagerImpl
 								addPingHistory( average, sources_changed );
 							}
 						}
+					}
+					
+					public void 
+					destroyed() 
+					{
+						speed_tester = null;
 					}
 				});
 		

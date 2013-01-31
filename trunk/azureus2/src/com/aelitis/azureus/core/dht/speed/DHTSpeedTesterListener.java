@@ -33,4 +33,7 @@ DHTSpeedTesterListener
 	resultGroup(
 		DHTSpeedTesterContact[]	contacts,
 		int[]					round_trip_times );
+	
+	public void
+	destroyed();
 }

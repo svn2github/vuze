@@ -66,6 +66,8 @@ import com.aelitis.azureus.core.*;
 import com.aelitis.azureus.core.backup.BackupManagerFactory;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.DHTListener;
+import com.aelitis.azureus.core.dht.speed.DHTSpeedTester;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManager;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerAdapter;
 import com.aelitis.azureus.core.instancemanager.AZInstanceManagerFactory;
@@ -899,8 +901,17 @@ AzureusCoreImpl
 								
 									DHT 	dht = (DHT)ev.getValue();
 									
-									speed_manager.setSpeedTester( dht.getSpeedTester());
-									
+									dht.addListener(
+										new DHTListener()
+										{
+											public void 
+											speedTesterAvailable(
+												DHTSpeedTester tester ) 
+											{
+												speed_manager.setSpeedTester( tester );
+											}
+										});
+																
 									global_manager.addListener(
 											new GlobalManagerAdapter()
 											{

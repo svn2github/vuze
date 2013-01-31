@@ -33,6 +33,9 @@ DHTSpeedTester
 		int		number );
 	
 	public void
+	destroy();
+	
+	public void
 	addListener(
 		DHTSpeedTesterListener	listener );
 	

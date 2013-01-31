@@ -58,8 +58,8 @@ DHTSpeedTesterImpl
 	private LinkedList			pending_contacts 	= new LinkedList();
 	private List				active_pings		= new ArrayList();
 	
-	private List			new_listeners	= new ArrayList();
-	private CopyOnWriteList	listeners 		= new CopyOnWriteList();
+	private List<DHTSpeedTesterListener>			new_listeners	= new ArrayList<DHTSpeedTesterListener>();
+	private CopyOnWriteList<DHTSpeedTesterListener>	listeners 		= new CopyOnWriteList<DHTSpeedTesterListener>();
 	
 	public 
 	DHTSpeedTesterImpl(
@@ -313,6 +313,37 @@ DHTSpeedTesterImpl
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace(e);
+			}
+		}
+	}
+	
+	public void 
+	destroy() 
+	{
+		synchronized( new_listeners ){
+
+			for ( DHTSpeedTesterListener l: new_listeners ){
+				
+				try{					
+					l.destroyed();
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+			
+			new_listeners.clear();
+		}
+		
+		for ( DHTSpeedTesterListener l: listeners ){
+			
+			try{
+				l.destroyed();
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
 			}
 		}
 	}

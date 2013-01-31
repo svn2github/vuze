@@ -194,9 +194,6 @@ DHT
 	public DHTNATPuncher
 	getNATPuncher();
 	
-	public DHTSpeedTester
-	getSpeedTester();
-	
 	public DHTStorageAdapter
 	getStorageAdapter();
 	
@@ -249,4 +246,12 @@ DHT
 	public void
 	print(
 		boolean	full );
+	
+	public void
+	addListener(
+		DHTListener		listener );
+	
+	public void
+	removeListener(
+		DHTListener		listener );
 }

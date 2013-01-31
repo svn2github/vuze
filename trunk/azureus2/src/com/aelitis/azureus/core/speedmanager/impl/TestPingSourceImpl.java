@@ -163,6 +163,16 @@ TestPingSourceImpl
 		}
 	}	
 	
+	
+	public void 
+	destroy() 
+	{
+		for (int i=0;i<listeners.size();i++){
+		
+			((DHTSpeedTesterListener)listeners.get(i)).destroyed();
+		}
+	}
+		
 	public void
 	addListener(
 		DHTSpeedTesterListener	listener )
