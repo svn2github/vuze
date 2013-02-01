@@ -47,6 +47,7 @@ import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
@@ -66,7 +67,6 @@ import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerManagerEvent;
 import org.gudy.azureus2.plugins.peers.PeerManagerListener2;
-import org.gudy.azureus2.plugins.peers.PeerStats;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
@@ -111,6 +111,15 @@ SpeedLimitHandler
 	private Map<String,RateLimiter>	ip_set_rate_limiters_down 	= new HashMap<String,RateLimiter>();
 	private TimerEventPeriodic		ip_set_event;
 
+	private List<String> predefined_profile_names = new ArrayList<String>();
+	
+	{
+		predefined_profile_names.add( "pause_all" );
+		predefined_profile_names.add( "resume_all" );
+	}
+	
+	private boolean pause_all_active;
+	
 	private
 	SpeedLimitHandler(
 		AzureusCore		_core )
@@ -151,6 +160,8 @@ SpeedLimitHandler
 					}
 				});
 		
+		loadPauseAllActive();
+		
 		loadSchedule();
 	}
 	
@@ -169,9 +180,42 @@ SpeedLimitHandler
 		COConfigurationManager.save();
 	}
 	
+	private void
+	loadPauseAllActive()
+	{
+		setPauseAllActive( COConfigurationManager.getBooleanParameter( "speed.limit.handler.schedule.pa_active", false ));
+	}
+	
+	private void
+	setPauseAllActive(
+		boolean	active )
+	{
+		GlobalManager gm = core.getGlobalManager();
+
+		if ( active ){
+			
+			gm.pauseDownloads();
+
+			pause_all_active = true;
+			
+		}else{
+
+			gm.resumeDownloads();
+			
+			pause_all_active = false;
+		}
+		
+		COConfigurationManager.setParameter( "speed.limit.handler.schedule.pa_active", active );
+	}
+	
 	public List<String>
 	reset()
 	{
+		if ( pause_all_active ){
+			
+			setPauseAllActive( false );
+		}
+		
 		LimitDetails details = new LimitDetails();
 		
 		details.loadForReset();
@@ -712,7 +756,7 @@ SpeedLimitHandler
 					
 					String	profile = bits.get(1);
 					
-					if ( !profileExists( profile )){
+					if ( !profileExists( profile ) && !predefined_profile_names.contains( profile.toLowerCase())){
 						
 						errors.add( "profile '" + profile + "' not found" );
 						
@@ -1334,11 +1378,38 @@ SpeedLimitHandler
 			
 		}else{
 			
+			GlobalManager gm = core.getGlobalManager();
+
 			String	profile_name = latest_match.profile_name;
-							
+				
+			boolean is_pause_all = false;
+			
 			if ( active_rule == null || !active_rule.sameAs( latest_match )){
 				
-				if ( profileExists( profile_name )){
+				String lc_profile_name = profile_name.toLowerCase();
+				
+				if ( predefined_profile_names.contains( lc_profile_name)){
+					
+					if ( lc_profile_name.equals( "pause_all" )){
+						
+						active_rule = latest_match;
+						
+						is_pause_all = true;
+						
+						setPauseAllActive( true );
+						
+					}else if ( lc_profile_name.equals( "resume_all" )){
+						
+						active_rule = latest_match;
+						
+						setPauseAllActive( false );
+						
+					}else{
+						
+						Debug.out( "Unknown pre-def name '" + profile_name + "'" );
+					}
+					
+				}else if ( profileExists( profile_name )){
 
 					active_rule = latest_match;
 				
@@ -1349,6 +1420,25 @@ SpeedLimitHandler
 					active_rule = null;
 					
 					reset();
+				}
+			}else{
+				
+				is_pause_all = pause_all_active;	// same rule as before
+			}
+			
+			if ( pause_all_active ){
+				
+				if ( !is_pause_all ){
+				
+					setPauseAllActive( false );
+					
+					
+				}else{
+					
+					if ( gm.canPauseDownloads()){
+						
+						gm.pauseDownloads();
+					}
 				}
 			}
 		}
@@ -1372,21 +1462,24 @@ SpeedLimitHandler
 		result.add( "#" );
 		result.add( "#     daily no_limits from 00:00 to 23:59" );
 		result.add( "#     daily limited_upload from 06:00 to 22:00" );
+		result.add( "#     daily pause_all from 08:00 to 17:00" );
 		result.add( "#" );
 		result.add( "#     ip_set external=211.34.128.0/19,211.35.128.0/17" );
 		result.add( "#" );
 		result.add( "# When multiple rules apply the one further down the list of rules take precedence" );
-		result.add( "# Currently ip_set limits are no schedulable" );
+		result.add( "# Currently ip_set limits are not schedulable" );
 		result.add( "# Comment lines are prefixed with '#'" );
+		result.add( "# Pre-defined profiles: " + predefined_profile_names );
 
 		
 		List<String> profiles = getProfileNames();
 		
 		if ( profiles.size() == 0 ){
 			
-			result.add( "# No profiles currently defined, you'll need to add some." );
+			result.add( "# No user profiles currently defined." );
 			
 		}else{
+			
 			String	str = "";
 			
 			for( String s: profiles ){
