@@ -25,7 +25,13 @@ public class ExternalUIConst {
 	
 	static {
 		parameterlegacy = new LegacyHashtable();
-    parameterlegacy.put("General_sDefaultSave_Directory", "Default save path");
+		
+			// abbreviations
+		
+		parameterlegacy.put("max_up", "Max Upload Speed KBs");
+		parameterlegacy.put("max_down", "Max Download Speed KBs");
+
+		parameterlegacy.put("General_sDefaultSave_Directory", "Default save path");
 		parameterlegacy.put("Core_sOverrideIP", "Override Ip");
 		//parameterlegacy.put("Core_bAllocateNew", "Zero New");
 		parameterlegacy.put("Core_iTCPListenPort", "TCP.Listen.Port");
@@ -77,9 +83,9 @@ public class ExternalUIConst {
 		parameterlegacy.put("Logger_sDir_Directory", "Logging Dir");
 		parameterlegacy.put("Logger_iMaxSize", "Logging Max Size");
     
-    parameterlegacy.put("Tracker_Password_Enable","Tracker Password Enable Web");
-    parameterlegacy.put("Tracker_UserName","Tracker Username");
-    parameterlegacy.put("Tracker_Password","Tracker Password");
+		parameterlegacy.put("Tracker_Password_Enable","Tracker Password Enable Web");
+		parameterlegacy.put("Tracker_UserName","Tracker Username");
+		parameterlegacy.put("Tracker_Password","Tracker Password");
     
 		int[] logComponents = { 0, 1, 2, 4 };
 		for (int i = 0; i < logComponents.length; i++)

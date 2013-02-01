@@ -29,8 +29,10 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
+import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
@@ -83,7 +85,7 @@ public class Show extends IConsoleCommand {
 	public void printHelpExtra(PrintStream out, List args) {
 		out.println("> -----");
 		out.println("'show' options: ");
-		out.println("<#>\t\t\t\tFurther info on a single torrent. Run 'show torrents' first for the number.");
+		out.println("<#>\t\t\t\tFurther info on a single torrent - args from [peers|pieces]+. Run 'show torrents' first for the number.");
 		out.println("options\t\t\to\tShow list of options for 'set' (also available by 'set' without parameters).");
 		out.println("files\t\t\tf\tShow list of files found from the 'add -f' command (also available by 'add -l')");
 		out.println("dht\t\t\td\tShow distributed database statistics");
@@ -359,7 +361,7 @@ public class Show extends IConsoleCommand {
 					return;
 				}
 				DownloadManager dm = (DownloadManager) ci.torrents.get(number - 1);
-				printTorrentDetails(ci.out, dm, number, args.size() > 0  );
+				printTorrentDetails(ci.out, dm, number, args );
 			}
 			catch (Exception e) {
 				ci.out.println("> Command 'show': Subcommand '" + subCommand + "' unknown.");
@@ -562,7 +564,7 @@ public class Show extends IConsoleCommand {
 	 * @param dm
 	 * @param torrentNum
 	 */
-	private static void printTorrentDetails( PrintStream out, DownloadManager dm, int torrentNum, boolean verbose)
+	private static void printTorrentDetails( PrintStream out, DownloadManager dm, int torrentNum, List<String> args)
 	{
 		String name = dm.getDisplayName();
 		if (name == null)
@@ -635,47 +637,83 @@ public class Show extends IConsoleCommand {
 				} else
 					out.println("Info not available.");
 			}
-		} else
+		} else{
 			out.println("  Info not available.");
+		}
 		
-		if ( verbose ){
+		for ( String arg: args ){
 			
-			out.println( "Pieces" );
-			
-			PEPeerManager pm = dm.getPeerManager();
-			
-			if ( pm != null ){
+			arg = arg.toLowerCase();
+		
+			if ( arg.startsWith( "pie" )){
 				
-				PiecePicker picker = pm.getPiecePicker();
+				out.println( "Pieces" );
 				
-				PEPiece[] pieces = pm.getPieces();
+				PEPeerManager pm = dm.getPeerManager();
 				
-				String	line = "";
-				
-				for (int i=0;i<pieces.length;i++){
+				if ( pm != null ){
 					
-					String str = picker.getPieceString( i );
+					PiecePicker picker = pm.getPiecePicker();
 					
-					line += (line.length()==0?(i + " "):",") + str;
+					PEPiece[] pieces = pm.getPieces();
 					
-					PEPiece piece = pieces[i];
-
-					if ( piece != null ){
+					String	line = "";
 					
-						line += ":" + piece.getString();
+					for (int i=0;i<pieces.length;i++){
+						
+						String str = picker.getPieceString( i );
+						
+						line += (line.length()==0?(i + " "):",") + str;
+						
+						PEPiece piece = pieces[i];
+	
+						if ( piece != null ){
+						
+							line += ":" + piece.getString();
+						}
+						
+						if ( (i+1)%10 == 0 ){
+							
+							out.println( line );
+							
+							line = "";
+						}
 					}
 					
-					if ( (i+1)%10 == 0 ){
+					if ( line.length() > 0 ){
 						
 						out.println( line );
-						
-						line = "";
 					}
 				}
+			}else if ( arg.startsWith( "pee" )){
 				
-				if ( line.length() > 0 ){
+				out.println( "Peers" );
+				
+				PEPeerManager pm =dm.getPeerManager();
+				
+				if ( pm == null ){
 					
-					out.println( line );
+					out.println( "\tDownload is not running" );
+					
+				}else{
+					
+					List<PEPeer> peers = pm.getPeers();
+					
+					out.println( "\tConnected to " + peers.size() + " peers" );
+					
+					for ( PEPeer peer: peers ){
+						
+						PEPeerStats stats = peer.getStats();
+						
+						System.out.println( "\t\t" + peer.getIp() + 
+								", in=" + ( peer.isIncoming()?"Y":"N" ) + 
+								", prot=" + peer.getProtocol() +
+								", choked=" + ( peer.isChokingMe()?"Y":"N" ) +
+								", up=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getDataSendRate() + stats.getProtocolSendRate()) +
+								", down=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getDataReceiveRate() + stats.getProtocolReceiveRate()) +
+								", in_req=" + peer.getIncomingRequestCount() + 
+								", out_req=" + peer.getOutgoingRequestCount());
+					}
 				}
 			}
 		}

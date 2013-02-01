@@ -42,10 +42,13 @@ public class Set extends IConsoleCommand {
 	}
 	
 	public String getCommandDescriptions() {
-		return("set [options] [parameter] [value]\t\t+\tSet a configuration parameter. The whitespaceless notation has to be used. If value is omitted, the current setting is shown. Parameter may be a wildcard to narrow results");
+		return("set [options] [parameter] [value]\t\t+\tSet a configuration parameter. Use \"param name\" when the name includes a space. If value is omitted, the current setting is shown. Parameter may be a wildcard to narrow results");
 	}
 	public void printHelpExtra(PrintStream out, List args) {
 		out.println("> -----");
+		out.println("'set' common parameter abbreviations: ");
+		out.println("\tmax_up: Maximum upload speed in KB/sec" );		// see ExternalUIConst for the mappings for these
+		out.println("\tmax_down: Maximum download speed in KB/sec" );
 		out.println("'set' options: ");
 		out.println("\t-export\t\tPrints all the options with non-defaut values.");
 	}
