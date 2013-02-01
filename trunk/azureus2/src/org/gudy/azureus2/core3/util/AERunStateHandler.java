@@ -37,6 +37,19 @@ AERunStateHandler
 	public static final long		RS_ALL_ACTIVE			= 0x00000000;
 	public static final long		RS_ALL_LOW				= 0xffffffff;
 	
+	public static final long[] RS_MODES = { 
+		RS_DELAYED_UI, 
+		RS_UDP_NET_ONLY, 
+		RS_DHT_SLEEPING 
+	};
+	
+	public static final String[] RS_MODE_NAMES = { 
+		"dui: Delay UI Initialisation", 
+		"uno: UDP Network Only", 
+		"ds:  DHT Sleeping" 
+	};
+	
+	
 	private static boolean	start_low = COConfigurationManager.getBooleanParameter( "Start In Low Resource Mode" );
 	
 	private static long	current_mode = start_low?RS_ALL_LOW:RS_ALL_ACTIVE;
