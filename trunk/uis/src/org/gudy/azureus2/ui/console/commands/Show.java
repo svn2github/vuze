@@ -691,11 +691,7 @@ public class Show extends IConsoleCommand {
 				
 				PEPeerManager pm =dm.getPeerManager();
 				
-				if ( pm == null ){
-					
-					out.println( "\tDownload is not running" );
-					
-				}else{
+				if ( pm != null ){
 					
 					List<PEPeer> peers = pm.getPeers();
 					

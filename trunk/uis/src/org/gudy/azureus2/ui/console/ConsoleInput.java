@@ -309,6 +309,7 @@ public class ConsoleInput extends Thread {
 		registerCommand(new TorrentLog());
 		registerCommand(new Log());
 		registerCommand(new Move());
+		registerCommand(new RunState());
 		registerCommand(new Share());
 		registerCommand(new Set());
 		registerCommand(new Show());
