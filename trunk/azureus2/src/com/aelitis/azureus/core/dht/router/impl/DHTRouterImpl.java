@@ -95,6 +95,8 @@ DHTRouterImpl
 	
 	private final CopyOnWriteList	observers = new CopyOnWriteList();
 
+	private boolean	sleeping;
+	
 	private BloomFilter recent_contact_bloom = 
 		BloomFilterFactory.createRotating(
 			BloomFilterFactory.createAddOnly(10*1024),
@@ -298,6 +300,13 @@ DHTRouterImpl
 		DHTRouterAdapter	_adapter )
 	{
 		adapter	= _adapter;
+	}
+	
+	public void
+	setSleeping(
+		boolean	_sleeping )
+	{
+		sleeping = _sleeping;
 	}
 	
 	public void
@@ -514,7 +523,17 @@ DHTRouterImpl
 
 					List	buckets = current_node.getBuckets();
 
-					if ( buckets.size() == K ){
+					int	buckets_size = buckets.size();
+					
+					if ( sleeping && buckets_size >= K/4 && !current_node.containsRouterNodeID()){
+						
+							// keep non-important buckets less full when sleeping
+						
+						DHTRouterContactImpl new_contact = new DHTRouterContactImpl( node_id, attachment, known_to_be_alive );
+						
+						return( current_node.addReplacement( new_contact, 1 ));					
+						
+					}else if ( buckets_size == K ){
 						
 							// split if either
 							// 1) this list contains router_node_id or
@@ -616,7 +635,7 @@ DHTRouterImpl
 							
 							DHTRouterContactImpl new_contact = new DHTRouterContactImpl( node_id, attachment, known_to_be_alive );
 							
-							return( current_node.addReplacement( new_contact, max_rep_per_node ));					
+							return( current_node.addReplacement( new_contact, sleeping?1:max_rep_per_node ));					
 						}
 					}else{
 						

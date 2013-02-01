@@ -146,6 +146,10 @@ DHTRouter
 	getStats();
 	
 	public void
+	setSleeping(
+		boolean	sleeping );
+	
+	public void
 	destroy();
 	
 	public void

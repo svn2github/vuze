@@ -236,6 +236,9 @@ DHT
 	public void
 	destroy();
 	
+	public boolean
+	isSleeping();
+	
 	public void
 	setLogging(
 		boolean	on );

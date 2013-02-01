@@ -175,6 +175,8 @@ DHTControlImpl
 	private long			rbs_time;
 	private byte[]			rbs_id	= {};
 	
+	private boolean			sleeping;
+	
 	public
 	DHTControlImpl(
 		DHTControlAdapter	_adapter,
@@ -368,6 +370,8 @@ DHTControlImpl
 					new DHTControlContactImpl( local_contact ),
 					logger);
 		
+		router.setSleeping( sleeping );
+		
 		router.setAdapter( 
 			new DHTRouterAdapter()
 			{
@@ -443,6 +447,15 @@ DHTControlImpl
 	setSleeping(
 		boolean	asleep )
 	{
+		sleeping	= asleep;
+		
+		DHTRouter current_router = router;
+		
+		if ( current_router != null ){
+			
+			current_router.setSleeping( asleep );
+		}
+		
 		transport.setGenericFlag( DHTTransport.GF_DHT_SLEEPING, asleep );
 		
 		logger.log( "Sleep mode changed to " + asleep );

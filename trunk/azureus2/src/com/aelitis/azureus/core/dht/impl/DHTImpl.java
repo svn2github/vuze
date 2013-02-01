@@ -64,6 +64,9 @@ DHTImpl
 	
 	private CopyOnWriteList<DHTListener>	listeners = new CopyOnWriteList<DHTListener>();
 	
+	private boolean	runstate_startup 	= true;
+	private boolean	sleeping			= false;
+	
 	public 
 	DHTImpl(
 		DHTTransport			_transport,
@@ -181,47 +184,78 @@ DHTImpl
 	runStateChanged(
 		long run_state ) 
 	{
-		boolean	sleeping = AERunStateHandler.isDHTSleeping();
-		
-		control.setSleeping( sleeping );
-		
-		DHTSpeedTester old_tester = null;
-		DHTSpeedTester new_tester = null;
-		
-		synchronized( this ){
+		try{
+			boolean	is_sleeping = AERunStateHandler.isDHTSleeping();
 			
-			if ( sleeping ){
-				
-				if ( speed_tester != null ){
-					
-					old_tester = speed_tester;
-					
-					speed_tester = null;
-				}
-			}else{
-				
-				new_tester = speed_tester = DHTSpeedTesterFactory.create( this );
-			}
-		}
-		
-		if ( old_tester != null ){
+			if ( sleeping != is_sleeping ){
 			
-			old_tester.destroy();
-		}
-		
-		if ( new_tester != null ){
-			
-			for ( DHTListener l: listeners ){
+				sleeping = is_sleeping;
 				
-				try{
-					l.speedTesterAvailable( new_tester );
-					
-				}catch( Throwable e ){
-					
-					Debug.out( e );
+				if ( !runstate_startup ){
+				
+					System.out.println( "DHT sleeping=" + sleeping );
 				}
 			}
+			
+			control.setSleeping( sleeping );
+			
+			DHTSpeedTester old_tester = null;
+			DHTSpeedTester new_tester = null;
+			
+			synchronized( this ){
+				
+				if ( sleeping ){
+					
+					if ( speed_tester != null ){
+						
+						old_tester = speed_tester;
+						
+						speed_tester = null;
+					}
+				}else{
+					
+					new_tester = speed_tester = DHTSpeedTesterFactory.create( this );
+				}
+			}
+			
+			if ( old_tester != null ){
+		
+				if ( !runstate_startup ){
+					
+					System.out.println( "    destroying speed tester" );
+				}
+				
+				old_tester.destroy();
+			}
+			
+			if ( new_tester != null ){
+				
+				if ( !runstate_startup ){
+					
+					System.out.println( "    creating speed tester" );
+				}
+				
+				for ( DHTListener l: listeners ){
+					
+					try{
+						l.speedTesterAvailable( new_tester );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		}finally{
+			
+			runstate_startup = false;
 		}
+	}
+	
+	public boolean
+	isSleeping()
+	{
+		return( sleeping );
 	}
 	
 	protected int
