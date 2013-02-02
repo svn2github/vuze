@@ -773,7 +773,8 @@ public class Show extends IConsoleCommand {
 				ci.out.println( 	"DHT:ip=" + transport.getLocalContact().getAddress() + 
 									",net=" + transport.getNetwork() +
 									",prot=V" + transport.getProtocolVersion() + 
-									",np=" + np_str);
+									",np=" + np_str + 
+									",sleeping=" + dht.isSleeping());
 				
 				ci.out.println( 	
 							"Router" +
@@ -800,6 +801,8 @@ public class Show extends IConsoleCommand {
 						   	",ind=" + dbv_details[DHTDBStats.VD_INDIRECT_SIZE]+
 						   	",div_f=" + dbv_details[DHTDBStats.VD_DIV_FREQ]+
 						   	",div_s=" + dbv_details[DHTDBStats.VD_DIV_SIZE] );
+				
+				dht.getRouter().print();
 			}
 			
 		}catch( Throwable e ){
