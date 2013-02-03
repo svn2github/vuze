@@ -478,7 +478,12 @@ PairingManagerImpl
 			
 			if ( ui != null ){
 			
-				ui.initialise( default_pi, param_icon_enable );
+				try{
+					ui.initialise( default_pi, param_icon_enable );
+					
+				}catch( Throwable e ){
+					// ignore swt errors console UI users get here
+				}
 			}
 		}finally{
 			
@@ -1683,7 +1688,12 @@ PairingManagerImpl
 		
 		if ( ui != null ){
 		
-			ui.recordRequest( name, ip, good );
+			try{
+				ui.recordRequest( name, ip, good );
+				
+			}catch( Throwable e ){
+				// ignore swt errors console UI users get here
+			}
 		}
 	}
 	
