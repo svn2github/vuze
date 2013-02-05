@@ -55,6 +55,8 @@ public class
 LongTermStatsImpl 
 	implements LongTermStats
 {
+	private static final int VERSION = 1;
+	
 	public static final int RT_SESSION_START	= 1;
 	public static final int RT_SESSION_STATS	= 2;
 	public static final int RT_SESSION_END		= 3;
@@ -346,6 +348,8 @@ LongTermStatsImpl
 		    		( current_dht_received - ss_dht_received )});
 	}
 	
+	private long[] line_stats_prev = new long[6];
+	
 	private void
 	write(
 		int		record_type,
@@ -362,14 +366,29 @@ LongTermStatsImpl
 				
 				String stats_str = "";
 				
-				for ( long s: line_stats ){
+				if ( record_type == RT_SESSION_START ){
 					
-					stats_str += "," + s;
+						// absolute values
+					
+					for ( long s: line_stats ){
+						
+						stats_str += "," + s;
+					}
+				}else{
+					
+						// relative values
+					
+					for ( int i=0;i< line_stats.length;i++){
+						
+						stats_str += "," + ( line_stats[i] - line_stats_prev[i] );
+						
+						line_stats_prev[i] = line_stats[i];
+					}
 				}
 				
 				if ( record_type != RT_SESSION_STATS ){
 					
-					line = (record_type==RT_SESSION_START?"s,":"e,") + when_mins + stats_str;
+					line = (record_type==RT_SESSION_START?"s,":"e,") + VERSION + "," + when_mins + stats_str;
 					
 				}else{
 					
