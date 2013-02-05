@@ -370,6 +370,7 @@ public class ConfigurationDefaults {
     def.put( "Stats Period", new Long(StatsWriterPeriodic.DEFAULT_SLEEP_PERIOD) );
     def.put( "Stats Dir", "" );
     def.put( "Stats File", StatsWriterPeriodic.DEFAULT_STATS_FILE_NAME );
+    def.put( "long.term.stats.enable", TRUE );
     def.put( "File.Torrent.IgnoreFiles", TOTorrent.DEFAULT_IGNORE_FILES );
     def.put( "File.save.peers.max", new Long( TRTrackerAnnouncer.DEFAULT_PEERS_TO_CACHE ) );
     

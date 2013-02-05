@@ -28,12 +28,16 @@ import java.util.Set;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreComponent;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
 import com.aelitis.azureus.core.stats.AzureusCoreStatsProvider;
+import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 
 /**
@@ -54,15 +58,24 @@ OverallStatsImpl
   private static final int	SAVE_PERIOD		= 10*60*1000;	// 10 min
   private static final int	SAVE_TICKS		= SAVE_PERIOD / STATS_PERIOD;
   
-  private AzureusCore	core;
-   
+  private AzureusCore			core;
+  private GlobalManagerStats	gm_stats;
+  
+  private DHT[] dhts;
+  
   private long totalDownloaded;
   private long totalUploaded;
   private long totalUptime;
   
+  private long totalDHTUploaded;
+  private long totalDHTDownloaded;
+  
   private long lastDownloaded;
   private long lastUploaded;
-  private long lastUptime; 
+  private long lastUptime;
+  
+  private long lastDHTUploaded;
+  private long lastDHTDownloaded;
   
   
   	// separate stats
@@ -77,6 +90,7 @@ OverallStatsImpl
   private long lastProtocolDownloaded;
   private long lastDataDownloaded;
   
+  private long[]	lastSnapshot;
   
   private long session_start_time = SystemTime.getCurrentTime();
   
@@ -124,11 +138,28 @@ OverallStatsImpl
 	totalUploaded = getLong( overallMap, "uploaded" );
 	totalUptime = getLong( overallMap, "uptime" );	
 	
+	totalDHTDownloaded = getLong( overallMap, "dht_down" );
+	totalDHTUploaded = getLong( overallMap, "dht_up" );
+	
     totalProtocolUploaded 	= getLong( overallMap, "p_uploaded" );
     totalDataUploaded 		= getLong( overallMap, "d_uploaded" );
     totalProtocolDownloaded = getLong( overallMap, "p_downloaded" );
     totalDataDownloaded 	= getLong( overallMap, "d_downloaded" );
+    
+    
+    long	current_total_d_received 	= gm_stats.getTotalDataBytesReceived();
+    long	current_total_p_received 	= gm_stats.getTotalProtocolBytesReceived();
 
+    long	current_total_d_sent		= gm_stats.getTotalDataBytesSent();
+    long	current_total_p_sent		= gm_stats.getTotalProtocolBytesSent();
+
+	lastSnapshot = 
+		 new long[]{ 	totalProtocolUploaded, totalDataUploaded, 
+			 			totalProtocolDownloaded, totalDataDownloaded,
+			 			totalDHTUploaded, totalDHTDownloaded, 
+			 			current_total_p_sent, current_total_d_sent,
+			 			current_total_p_received, current_total_d_received,
+			 			0, 0 };
   }
   
   protected long
@@ -151,9 +182,11 @@ OverallStatsImpl
   
   public 
   OverallStatsImpl(
-	AzureusCore _core) 
+	AzureusCore 		_core,
+	GlobalManagerStats	_gm_stats )
   {
-	core	= _core;
+	core		= _core;
+	gm_stats	= _gm_stats;
 	
     Map 	stats = load();
     
@@ -179,32 +212,30 @@ OverallStatsImpl
 			  		this_mon.enter();
 			  		
 			  		if ( core.isStarted()){
-			  			
-					    GlobalManagerStats stats = core.getGlobalManager().getStats();
-	
+			  				
 						if ( types.contains( AzureusCoreStats.ST_XFER_UPLOADED_PROTOCOL_BYTES )){
 							
 							values.put( 
 								AzureusCoreStats.ST_XFER_UPLOADED_PROTOCOL_BYTES, 
-								new Long( totalProtocolUploaded + ( stats.getTotalProtocolBytesSent() - lastProtocolUploaded )));
+								new Long( totalProtocolUploaded + ( gm_stats.getTotalProtocolBytesSent() - lastProtocolUploaded )));
 						}
 						if ( types.contains( AzureusCoreStats.ST_XFER_UPLOADED_DATA_BYTES )){
 							
 							values.put( 
 								AzureusCoreStats.ST_XFER_UPLOADED_DATA_BYTES, 
-								new Long( totalDataUploaded + ( stats.getTotalDataBytesSent() - lastDataUploaded )));
+								new Long( totalDataUploaded + ( gm_stats.getTotalDataBytesSent() - lastDataUploaded )));
 						}
 						if ( types.contains( AzureusCoreStats.ST_XFER_DOWNLOADED_PROTOCOL_BYTES )){
 							
 							values.put( 
 								AzureusCoreStats.ST_XFER_DOWNLOADED_PROTOCOL_BYTES, 
-								new Long( totalProtocolDownloaded + ( stats.getTotalProtocolBytesReceived() - lastProtocolDownloaded )));
+								new Long( totalProtocolDownloaded + ( gm_stats.getTotalProtocolBytesReceived() - lastProtocolDownloaded )));
 						}
 						if ( types.contains( AzureusCoreStats.ST_XFER_DOWNLOADED_DATA_BYTES )){
 							
 							values.put( 
 								AzureusCoreStats.ST_XFER_DOWNLOADED_DATA_BYTES, 
-								new Long( totalDataDownloaded + ( stats.getTotalDataBytesReceived() - lastDataDownloaded )));
+								new Long( totalDataDownloaded + ( gm_stats.getTotalDataBytesReceived() - lastDataDownloaded )));
 						}
 			  		}
 			  	}finally{
@@ -279,6 +310,19 @@ OverallStatsImpl
     updateStats( true );
   }
 
+  protected long[]
+  getLastSnapshot()
+  {
+  	try{
+  		this_mon.enter();
+  		
+  		return( lastSnapshot );
+  		
+ 	}finally{
+ 	  	
+  		this_mon.exit();
+  	}
+  }
   private void updateStats( boolean force ) 
   {
   	try{
@@ -290,14 +334,12 @@ OverallStatsImpl
 	      lastUptime = current_time;
 	      return;
 	    }
-	    
-	    GlobalManagerStats stats = core.getGlobalManager().getStats();
-	    
-	    long	current_total_d_received 	= stats.getTotalDataBytesReceived();
-	    long	current_total_p_received 	= stats.getTotalProtocolBytesReceived();
+	    	    
+	    long	current_total_d_received 	= gm_stats.getTotalDataBytesReceived();
+	    long	current_total_p_received 	= gm_stats.getTotalProtocolBytesReceived();
 
-	    long	current_total_d_sent		= stats.getTotalDataBytesSent();
-	    long	current_total_p_sent		= stats.getTotalProtocolBytesSent();
+	    long	current_total_d_sent		= gm_stats.getTotalDataBytesSent();
+	    long	current_total_p_sent		= gm_stats.getTotalProtocolBytesSent();
    
 	    long	current_total_received 	= current_total_d_received + current_total_p_received;
 	    long	current_total_sent		= current_total_d_sent + current_total_p_sent;
@@ -330,6 +372,58 @@ OverallStatsImpl
 	    lastProtocolUploaded = current_total_p_sent;    
 	    if( totalProtocolUploaded < 0 )  totalProtocolUploaded = 0;
 	    
+	    	// DHT
+	    
+	    if ( dhts == null ){
+	    	
+		    try{
+		        PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
+		          
+		        if ( dht_pi == null ){
+		           
+		        	dhts = new DHT[0];
+		        	
+		        }else{
+		        	
+		        	DHTPlugin plugin = (DHTPlugin)dht_pi.getPlugin();
+		        	
+		        	if ( plugin.isEnabled()){
+		        	
+		        		dhts = ((DHTPlugin)dht_pi.getPlugin()).getDHTs();
+		        		
+		        	}else{
+		        		
+		        		dhts = new DHT[0];
+		        	}
+		        }
+		    }catch( Throwable e ){
+		    	
+		    	dhts = new DHT[0];
+		    }
+	    }
+	    
+	    long current_total_dht_up 	= 0;
+	    long current_total_dht_down = 0;
+	    
+	    if ( dhts != null ){
+	    	
+		    for ( DHT dht: dhts ){
+		    	
+		    	DHTTransportStats stats = dht.getTransport().getStats();
+		    	
+		    	current_total_dht_up 	+= stats.getBytesSent();
+		    	current_total_dht_down 	+= stats.getBytesReceived();
+		    }
+	    }
+	    
+	    totalDHTUploaded +=  current_total_dht_up - lastDHTUploaded;
+	    lastDHTUploaded = current_total_dht_up;    
+	    if( totalDHTUploaded < 0 )  totalDHTUploaded = 0;
+	    
+	    totalDHTDownloaded +=  current_total_dht_down - lastDHTDownloaded;
+	    lastDHTDownloaded = current_total_dht_down;    
+	    if( totalDHTDownloaded < 0 )  totalDHTDownloaded = 0;
+
 	    	// TIME
 	    
 	    long delta = current_time - lastUptime;
@@ -347,12 +441,25 @@ OverallStatsImpl
 	    
 	    totalUptime += delta;
 	    lastUptime = current_time;
-	        
+
+		lastSnapshot = 
+			 new long[]{ 	totalProtocolUploaded, totalDataUploaded, 
+				 			totalProtocolDownloaded, totalDataDownloaded,
+				 			totalDHTUploaded, 
+				 			totalDHTDownloaded,
+				 			current_total_p_sent, current_total_d_sent,
+				 			current_total_p_received, current_total_d_received,
+				 			current_total_dht_up, 
+				 			current_total_dht_down };
+	    
 	    HashMap	overallMap = new HashMap();
 	    
 	    overallMap.put("downloaded",new Long(totalDownloaded));
 	    overallMap.put("uploaded",new Long(totalUploaded));
 	    overallMap.put("uptime",new Long(totalUptime));
+
+	    overallMap.put("dht_down",new Long(totalDHTDownloaded));
+	    overallMap.put("dht_up",new Long(totalDHTUploaded));
 
 	    overallMap.put("p_uploaded",new Long(totalProtocolUploaded));
 	    overallMap.put("d_uploaded",new Long(totalDataUploaded));

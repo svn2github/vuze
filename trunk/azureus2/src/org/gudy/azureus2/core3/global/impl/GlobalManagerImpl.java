@@ -360,7 +360,7 @@ public class GlobalManagerImpl
     stats = new GlobalManagerStatsImpl( this );
        
     try{
-    	stats_writer = new GlobalManagerStatsWriter( core );
+    	stats_writer = new GlobalManagerStatsWriter( core, stats );
     	
     }catch( Throwable e ){
     	

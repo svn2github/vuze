@@ -20,6 +20,8 @@
  */
 package org.gudy.azureus2.core3.stats.transfer;
 
+import org.gudy.azureus2.core3.global.GlobalManagerStats;
+import org.gudy.azureus2.core3.stats.transfer.impl.LongTermStatsImpl;
 import org.gudy.azureus2.core3.stats.transfer.impl.OverallStatsImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -28,14 +30,30 @@ import com.aelitis.azureus.core.AzureusCore;
  * @author Olivier
  * 
  */
-public class StatsFactory {
-  public static OverallStats stats;
+public class 
+StatsFactory 
+{
+	private static OverallStats 	overall_stats;
+	private static LongTermStats	longterm_stats;
+	
+	public static OverallStats 
+	getStats() 
+	{	
+		return( overall_stats );
+	}
+	
+	public static LongTermStats 
+	getLongTermStats() 
+	{	
+		return( longterm_stats );
+	}
   
-  public static OverallStats getStats() {
-   return stats;
-  }
-  
-  public static void initialize(AzureusCore core ) {
-   stats = new OverallStatsImpl(core); 
-  }
+	public static void 
+	initialize(
+		AzureusCore 		core,
+		GlobalManagerStats	stats )
+	{
+		overall_stats 	= new OverallStatsImpl( core, stats );
+		longterm_stats	= new LongTermStatsImpl( core, stats );
+	}
 }
