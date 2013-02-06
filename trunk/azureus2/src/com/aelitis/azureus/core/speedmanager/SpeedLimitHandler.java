@@ -41,6 +41,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.stats.transfer.LongTermStats;
+import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.BDecoder;
@@ -241,7 +243,33 @@ SpeedLimitHandler
 		lines.add( "    Rules defined: " + current_rules.size());
 		lines.add( "    Active rule: " + (rule==null?"None":rule.getString()));
 		
+		lines.add( "" );
+		lines.add( "Network Totals" );
+		
+		LongTermStats lt_stats = StatsFactory.getLongTermStats();
+		
+		if( lt_stats == null ){
+			
+			lines.add( "    Not Available" );
+			
+		}else{
+			
+			lines.add( "    Today:\t\t" + getString( lt_stats.getTotalUsageInPeriod( LongTermStats.PT_CURRENT_DAY )));
+			lines.add( "    This week:\t" + getString( lt_stats.getTotalUsageInPeriod( LongTermStats.PT_CURRENT_WEEK )));
+			lines.add( "    This month:\t" + getString( lt_stats.getTotalUsageInPeriod( LongTermStats.PT_CURRENT_MONTH )));
+		}
+		
 		return( lines );
+	}
+	
+	private String
+	getString(
+		long[]		stats )
+	{
+		long total_up = stats[LongTermStats.ST_PROTOCOL_UPLOAD] + stats[LongTermStats.ST_DATA_UPLOAD] + stats[LongTermStats.ST_DHT_UPLOAD];
+		long total_do = stats[LongTermStats.ST_PROTOCOL_DOWNLOAD] + stats[LongTermStats.ST_DATA_DOWNLOAD] + stats[LongTermStats.ST_DHT_DOWNLOAD];
+		
+		return( "Upload=" + DisplayFormatters.formatByteCountToKiBEtc( total_up ) + ", download=" + DisplayFormatters.formatByteCountToKiBEtc( total_do ));
 	}
 	
 	public List<String>
