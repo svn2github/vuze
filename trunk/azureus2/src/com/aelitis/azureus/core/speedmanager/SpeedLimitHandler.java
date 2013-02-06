@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStats;
+import org.gudy.azureus2.core3.stats.transfer.LongTermStatsListener;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Average;
@@ -79,6 +80,7 @@ import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 
 public class 
 SpeedLimitHandler 
+	implements LongTermStatsListener
 {
 	private static SpeedLimitHandler		singleton;
 	
@@ -113,6 +115,10 @@ SpeedLimitHandler
 	private Map<String,RateLimiter>	ip_set_rate_limiters_down 	= new HashMap<String,RateLimiter>();
 	private TimerEventPeriodic		ip_set_event;
 
+	private boolean					net_limit_listener_added;
+	
+	private Map<Integer,long[]>		net_limits	= new HashMap<Integer, long[]>();
+	
 	private List<String> predefined_profile_names = new ArrayList<String>();
 	
 	{
@@ -120,7 +126,8 @@ SpeedLimitHandler
 		predefined_profile_names.add( "resume_all" );
 	}
 	
-	private boolean pause_all_active;
+	private boolean rule_pause_all_active;
+	private boolean net_limit_pause_all_active;
 	
 	private
 	SpeedLimitHandler(
@@ -185,39 +192,108 @@ SpeedLimitHandler
 	private void
 	loadPauseAllActive()
 	{
-		setPauseAllActive( COConfigurationManager.getBooleanParameter( "speed.limit.handler.schedule.pa_active", false ));
+		setRulePauseAllActive( COConfigurationManager.getBooleanParameter( "speed.limit.handler.schedule.pa_active", false ));
+		
+		setNetLimitPauseAllActive( COConfigurationManager.getBooleanParameter( "speed.limit.handler.schedule.nl_pa_active", false ));
 	}
 	
 	private void
-	setPauseAllActive(
+	setRulePauseAllActive(
 		boolean	active )
 	{
 		GlobalManager gm = core.getGlobalManager();
 
 		if ( active ){
 			
+			if ( !rule_pause_all_active ){
+				
+				logger.logAlertRepeatable(
+						LoggerChannel.LT_INFORMATION,
+						"Pausing all downloads due to pause_all rule" );
+			}
+			
 			gm.pauseDownloads();
 
-			pause_all_active = true;
+			rule_pause_all_active = true;
 			
 		}else{
 
-			gm.resumeDownloads();
+			if ( !net_limit_pause_all_active ){
 			
-			pause_all_active = false;
+				if ( rule_pause_all_active ){
+					
+					logger.logAlertRepeatable(
+							LoggerChannel.LT_INFORMATION,
+							"Resuming all downloads as pause_all rule no longer applies" );
+				}
+				
+				gm.resumeDownloads();
+			}
+			
+			rule_pause_all_active = false;
 		}
 		
 		COConfigurationManager.setParameter( "speed.limit.handler.schedule.pa_active", active );
 	}
 	
-	public List<String>
-	reset()
+	private void
+	setNetLimitPauseAllActive(
+		boolean	active )
 	{
-		if ( pause_all_active ){
+		GlobalManager gm = core.getGlobalManager();
+
+		if ( active ){
 			
-			setPauseAllActive( false );
+			if ( !net_limit_pause_all_active ){
+				
+				logger.logAlertRepeatable(
+					LoggerChannel.LT_INFORMATION,
+					"Pausing all downloads as network limit exceeded" );
+			}
+			
+			gm.pauseDownloads();
+
+			net_limit_pause_all_active = true;
+			
+		}else{
+
+			if ( !rule_pause_all_active ){
+			
+				if ( net_limit_pause_all_active ){
+					
+					logger.logAlertRepeatable(
+						LoggerChannel.LT_INFORMATION,
+						"Resuming all downloads as network limit no longer exceeded" );
+				}
+				
+				gm.resumeDownloads();
+			}
+			
+			net_limit_pause_all_active = false;
 		}
 		
+		COConfigurationManager.setParameter( "speed.limit.handler.schedule.nl_pa_active", active );
+	}
+	
+	public List<String>
+	reset()
+	{		
+		if ( net_limit_pause_all_active ){
+			
+			setNetLimitPauseAllActive( false );
+		}
+		
+		return( resetRules());
+	}
+	
+	private List<String>
+	resetRules()
+	{
+		if ( rule_pause_all_active ){
+			
+			setRulePauseAllActive( false );
+		}
+				
 		LimitDetails details = new LimitDetails();
 		
 		details.loadForReset();
@@ -248,15 +324,17 @@ SpeedLimitHandler
 		
 		LongTermStats lt_stats = StatsFactory.getLongTermStats();
 		
-		if( lt_stats == null ){
+		if ( lt_stats == null || !lt_stats.isEnabled()){
 			
 			lines.add( "    Not Available" );
 			
 		}else{
 			
-			lines.add( "    Today:\t\t" + getString( lt_stats.getTotalUsageInPeriod( LongTermStats.PT_CURRENT_DAY )));
-			lines.add( "    This week:\t" + getString( lt_stats.getTotalUsageInPeriod( LongTermStats.PT_CURRENT_WEEK )));
-			lines.add( "    This month:\t" + getString( lt_stats.getTotalUsageInPeriod( LongTermStats.PT_CURRENT_MONTH )));
+			lines.add( "    Today:\t\t" + getString( lt_stats.getTotalUsageInPeriod( LongTermStats.PT_CURRENT_DAY ), net_limits.get( LongTermStats.PT_CURRENT_DAY ), false ));
+			lines.add( "    This week:\t" + getString( lt_stats.getTotalUsageInPeriod( LongTermStats.PT_CURRENT_WEEK ), net_limits.get( LongTermStats.PT_CURRENT_WEEK ), false ));
+			lines.add( "    This month:\t" + getString( lt_stats.getTotalUsageInPeriod( LongTermStats.PT_CURRENT_MONTH ), net_limits.get( LongTermStats.PT_CURRENT_MONTH ), false ));
+			lines.add( "" );
+			lines.add( "    Rate:\t\t" + getString( lt_stats.getCurrentRateBytesPerSecond(), null, true));
 		}
 		
 		return( lines );
@@ -264,12 +342,48 @@ SpeedLimitHandler
 	
 	private String
 	getString(
-		long[]		stats )
+		long[]		stats,
+		long[]		limits,
+		boolean		is_rate )
 	{
 		long total_up = stats[LongTermStats.ST_PROTOCOL_UPLOAD] + stats[LongTermStats.ST_DATA_UPLOAD] + stats[LongTermStats.ST_DHT_UPLOAD];
 		long total_do = stats[LongTermStats.ST_PROTOCOL_DOWNLOAD] + stats[LongTermStats.ST_DATA_DOWNLOAD] + stats[LongTermStats.ST_DHT_DOWNLOAD];
 		
-		return( "Upload=" + DisplayFormatters.formatByteCountToKiBEtc( total_up ) + ", download=" + DisplayFormatters.formatByteCountToKiBEtc( total_do ));
+		String	lim_str = "";
+		
+		if ( limits != null ){
+			
+			long total_lim 	= limits[0];
+			long up_lim		= limits[1];
+			long down_lim	= limits[2];
+			
+			if ( total_lim > 0 ){
+				
+				lim_str += "Total=" + DisplayFormatters.formatByteCountToKiBEtc( total_lim ) + " " + (100*(total_up+total_do)/total_lim) + "%";
+			}
+			if ( up_lim > 0 ){
+				
+				lim_str += (lim_str.length()==0?"":", ") + "Up=" + DisplayFormatters.formatByteCountToKiBEtc( up_lim ) + " " + (100*(total_up)/up_lim) + "%";
+			}
+			if ( down_lim > 0 ){
+				
+				lim_str += (lim_str.length()==0?"":", ") + "Down=" + DisplayFormatters.formatByteCountToKiBEtc( down_lim ) + " " + (100*(total_do)/down_lim) + "%";
+			}
+
+			if ( lim_str.length() > 0 ){
+				
+				lim_str = "\t[ Limits: " + lim_str + "]";
+			}
+		}
+		
+		if ( is_rate ){
+		
+			return( "Upload=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( total_up ) + ", Download=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( total_do ));
+			
+		}else{
+			
+			return( "Upload=" + DisplayFormatters.formatByteCountToKiBEtc( total_up ) + ", Download=" + DisplayFormatters.formatByteCountToKiBEtc( total_do ) + lim_str );
+		}
 	}
 	
 	public List<String>
@@ -572,6 +686,10 @@ SpeedLimitHandler
 		List<ScheduleRule>	rules 	= new ArrayList<ScheduleRule>();
 		Map<String,IPSet>	ip_sets	= new HashMap<String, IPSet>();
 		
+		Map<Integer,long[]> new_net_limits = new HashMap<Integer, long[]>();
+
+		boolean checked_lts_enabled = false;
+		
 		for ( String line: schedule_lines ){
 			
 			line = line.trim();
@@ -645,11 +763,11 @@ SpeedLimitHandler
 								
 							}else if ( lhs.equals( "up" )){
 								
-								up_lim = parseRate( lc_rhs );
+								up_lim = (int)parseRate( lc_rhs );
 								
 							}else if ( lhs.equals( "down" )){
 								
-								down_lim = parseRate( lc_rhs );
+								down_lim = (int)parseRate( lc_rhs );
 								
 							}else if ( lhs.equals( "cat" )){
 								
@@ -713,6 +831,96 @@ SpeedLimitHandler
 					
 					result.add( "'" +line + "' is invalid: use ip_set <name>=<cidrs...> [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>]" );
 				}
+			}else if ( lc_line.startsWith( "net_limit" )){
+
+				if ( !checked_lts_enabled ){
+				
+					checked_lts_enabled = true;
+					
+					if ( !StatsFactory.getLongTermStats().isEnabled()){
+						
+						result.add( "Long-term stats are currently disabled, limits will NOT be applied" );
+					}
+				}
+				
+				line = lc_line.substring(9).replace( ",", " " );
+				
+				String[] args = line.split( " " );
+				
+				int		type = -1;
+				
+				long	total_lim	= 0;
+				long	up_lim		= 0;
+				long	down_lim	= 0;
+								
+				for ( String arg: args ){
+					
+					arg = arg.trim();
+					
+					if ( arg.length() == 0 ){
+						
+						continue;
+					}
+					
+					if ( type == -1 ){
+						
+						if ( arg.equalsIgnoreCase( "daily" )){
+							
+							type = LongTermStats.PT_CURRENT_DAY;
+							
+						}else if ( arg.equalsIgnoreCase( "weekly" )){
+							
+							type = LongTermStats.PT_CURRENT_WEEK;
+							
+						}else if ( arg.equalsIgnoreCase( "monthly" )){
+							
+							type = LongTermStats.PT_CURRENT_MONTH;
+							
+						}else{
+							
+							result.add( "net_limit type of '" + arg + "' not recognised - use daily, weekly or monthly" );
+							
+							break;
+						}
+					}else{
+					
+						String[]	bits = arg.split( "=" );
+		
+						if ( bits.length != 2 ){
+							
+							result.add( "'" + line + "': invalid net_limit specification" );
+							
+						}else{
+							
+							String lhs = bits[0];
+							String rhs = bits[1];
+							
+							long lim = parseRate( rhs );
+							
+							if ( lhs.equalsIgnoreCase( "total" )){
+								
+								total_lim = lim;
+								
+							}else if ( lhs.equalsIgnoreCase( "up" )){
+									
+								up_lim = lim;
+								
+							}else if ( lhs.equalsIgnoreCase( "down" )){
+								
+								down_lim = lim;
+								
+							}else{
+								
+								result.add( "'" + line + "': invalid net_limit specification" );
+							}
+						}
+					}
+				}
+				
+				if ( type != -1 ){
+					
+					new_net_limits.put( type, new long[]{ total_lim, up_lim, down_lim } );
+				}				
 			}else{
 				
 				String[]	_bits = line.split( " " );
@@ -841,7 +1049,7 @@ SpeedLimitHandler
 			
 			current_rules = rules;
 			
-			if ( schedule_event == null && rules.size() > 0 ){
+			if ( schedule_event == null && ( rules.size() > 0 || net_limits.size() > 0 )){
 				
 				schedule_event = 
 					SimpleTimer.addPeriodicEvent(
@@ -858,7 +1066,7 @@ SpeedLimitHandler
 						});
 			}
 			
-			if ( active_rule != null || rules.size() > 0 ){
+			if ( active_rule != null || rules.size() > 0 || net_limits.size() > 0 ){
 			
 				checkSchedule();
 			}
@@ -867,6 +1075,28 @@ SpeedLimitHandler
 			
 			checkIPSets();
 			
+			net_limits = new_net_limits;
+
+			if ( net_limits.size() > 0 ){
+				
+				if ( !net_limit_listener_added ){
+					
+					net_limit_listener_added = true;
+					
+					StatsFactory.getLongTermStats().addListener( 1024*1024, this );
+				}
+				
+				updated( StatsFactory.getLongTermStats());
+				
+			}else{
+				
+				if ( net_limit_listener_added ){
+					
+					net_limit_listener_added = false;
+					
+					StatsFactory.getLongTermStats().removeListener( this );
+				}
+			}
 		}else{
 	
 			current_rules.clear();
@@ -882,18 +1112,32 @@ SpeedLimitHandler
 				
 				active_rule	= null;
 				
-				reset();
+				resetRules();
 			}
 			
 			current_ip_sets.clear();
 			
 			checkIPSets();
+			
+			if ( net_limit_pause_all_active ){
+				
+				setNetLimitPauseAllActive( false );
+			}
+			
+			net_limits.clear();
+			
+			if ( net_limit_listener_added ){
+				
+				net_limit_listener_added = false;
+				
+				StatsFactory.getLongTermStats().removeListener( this );
+			}
 		}
 		
 		return( result );
 	}
 	
-	private int
+	private long
 	parseRate(
 		String	str )
 	{
@@ -904,14 +1148,14 @@ SpeedLimitHandler
 			str = str.substring( 0, pos ).trim();
 		}
 	
-		String 	num 	= "";
-		int		mult	= 1;
+		String	 	num 	= "";
+		long		mult	= 1;
 		
 		for ( int i=0;i<str.length();i++){
 			
 			char c = str.charAt(i);
 			
-			if ( Character.isDigit( c )){
+			if ( Character.isDigit( c ) || c == '.' ){
 				
 				num += c;
 				
@@ -924,13 +1168,24 @@ SpeedLimitHandler
 				}else if ( c == 'm' ){
 					
 					mult = 1024*1024;
+					
+				}else if ( c == 'g' ){
+					
+					mult = 1024*1024*1024L;
 				}
 				
 				break;
 			}
 		}
 		
-		return( Integer.parseInt( num ) * mult );
+		if ( num.contains( "." )){
+			
+			return((long)( Float.parseFloat( num ) * mult ));
+			
+		}else{
+			
+			return( Integer.parseInt( num ) * mult );
+		}
 	}
 	
 	private int
@@ -1050,7 +1305,7 @@ SpeedLimitHandler
 										set.updateStats();
 									}
 									
-									if ( tick_count % 5 == 0 ){
+									if ( tick_count % 30 == 0 ){
 
 										String str = "";
 										
@@ -1398,19 +1653,19 @@ SpeedLimitHandler
 			}
 		}
 		
+		GlobalManager gm = core.getGlobalManager();
+
 		if ( latest_match == null ){
 			
 			active_rule = null;
 			
-			reset();
+			resetRules();
 			
 		}else{
 			
-			GlobalManager gm = core.getGlobalManager();
-
 			String	profile_name = latest_match.profile_name;
 				
-			boolean is_pause_all = false;
+			boolean is_rule_pause_all = false;
 			
 			if ( active_rule == null || !active_rule.sameAs( latest_match )){
 				
@@ -1422,15 +1677,15 @@ SpeedLimitHandler
 						
 						active_rule = latest_match;
 						
-						is_pause_all = true;
+						is_rule_pause_all = true;
 						
-						setPauseAllActive( true );
+						setRulePauseAllActive( true );
 						
 					}else if ( lc_profile_name.equals( "resume_all" )){
 						
 						active_rule = latest_match;
 						
-						setPauseAllActive( false );
+						setRulePauseAllActive( false );
 						
 					}else{
 						
@@ -1447,20 +1702,19 @@ SpeedLimitHandler
 					
 					active_rule = null;
 					
-					reset();
+					resetRules();
 				}
 			}else{
 				
-				is_pause_all = pause_all_active;	// same rule as before
+				is_rule_pause_all = rule_pause_all_active;	// same rule as before
 			}
 			
-			if ( pause_all_active ){
+			if ( rule_pause_all_active ){
 				
-				if ( !is_pause_all ){
+				if ( !is_rule_pause_all ){
 				
-					setPauseAllActive( false );
-					
-					
+					setRulePauseAllActive( false );
+							
 				}else{
 					
 					if ( gm.canPauseDownloads()){
@@ -1468,6 +1722,14 @@ SpeedLimitHandler
 						gm.pauseDownloads();
 					}
 				}
+			}
+		}
+			
+		if ( net_limit_pause_all_active ){
+				
+			if ( gm.canPauseDownloads()){
+					
+				gm.pauseDownloads();
 			}
 		}
 	}
@@ -1485,6 +1747,7 @@ SpeedLimitHandler
 		result.add( "#            days_of_week: mon|tue|wed|thu|fri|sat|sun" );
 		result.add( "#        time: hh:mm - 24 hour clock; 00:00=midnight; local time" );
 		result.add( "#    ip_set <ip_set_name> <CIDR_specs...> [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [cat=<cat names>]" );
+		result.add( "#    net_limit [daily|weekly|monthly] total=<limit>|[up=<limit> down=<limit>]");
 		result.add( "#" );
 		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_uplaod' defined:" );
 		result.add( "#" );
@@ -1590,6 +1853,50 @@ SpeedLimitHandler
 		}
 		
 		return( result );
+	}
+	
+	public void 
+	updated(
+		LongTermStats stats ) 
+	{
+		boolean exceeded = false;
+		
+		for (Map.Entry<Integer,long[]> entry: net_limits.entrySet()){
+		
+			int	type = entry.getKey();
+			
+			long[] usage = stats.getTotalUsageInPeriod( type );
+						
+			long total_up = usage[LongTermStats.ST_PROTOCOL_UPLOAD] + usage[LongTermStats.ST_DATA_UPLOAD] + usage[LongTermStats.ST_DHT_UPLOAD];
+			long total_do = usage[LongTermStats.ST_PROTOCOL_DOWNLOAD] + usage[LongTermStats.ST_DATA_DOWNLOAD] + usage[LongTermStats.ST_DHT_DOWNLOAD];
+			
+			long[]	limits = entry.getValue();
+
+			if ( limits[0] > 0 ){
+				
+				exceeded = total_up + total_do >= limits[0];
+			}
+			
+			if ( limits[1] > 0 && !exceeded){
+				
+				exceeded = total_up >= limits[1];
+			}
+		
+			if ( limits[2] > 0 && !exceeded){
+				
+				exceeded = total_do >= limits[2];
+			}
+			
+			if ( exceeded ){
+				
+				break;
+			}
+		}
+		
+		if ( net_limit_pause_all_active != exceeded ){
+			
+			setNetLimitPauseAllActive( exceeded );
+		}
 	}
 	
 	private String

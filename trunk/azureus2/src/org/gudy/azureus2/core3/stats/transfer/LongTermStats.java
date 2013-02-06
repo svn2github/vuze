@@ -37,6 +37,12 @@ LongTermStats
 	public static final int PT_CURRENT_WEEK			= 2;	// sun is start of week
 	public static final int PT_CURRENT_MONTH		= 3;
 	
+	public boolean
+	isEnabled();
+	
+	public long[]
+	getCurrentRateBytesPerSecond();
+	
 	public long[]
 	getTotalUsageInPeriod(
 		Date		start_date,
@@ -45,4 +51,13 @@ LongTermStats
 	public long[]
 	getTotalUsageInPeriod(
 		int	period_type );
+	
+	public void
+	addListener(
+		long						min_delta_bytes,
+		LongTermStatsListener		listener );
+	
+	public void
+	removeListener(
+		LongTermStatsListener		listener );
 }
