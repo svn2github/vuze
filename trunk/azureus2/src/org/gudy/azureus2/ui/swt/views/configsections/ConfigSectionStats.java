@@ -24,6 +24,10 @@
 
 package org.gudy.azureus2.ui.swt.views.configsections;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
@@ -263,18 +267,50 @@ public class ConfigSectionStats implements UISWTConfigSection {
  
 	Group gLong = new Group(gOutter, SWT.NULL);
 	Messages.setLanguageText(gLong, "stats.longterm.group");
-	layout = new GridLayout(3, false);
+	layout = new GridLayout(2, false);
 	gLong.setLayout(layout);
 	gLong.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+	
 	  // row
 
     gridData = new GridData();
-    gridData.horizontalSpan = 3;
+    gridData.horizontalSpan = 2;
     BooleanParameter enableLongStats = 
         new BooleanParameter(gLong, "long.term.stats.enable",
                              "ConfigView.section.stats.enable");
     enableLongStats.setLayoutData(gridData);
     
+    	// week start
+    
+    Label lWeekStart = new Label(gLong, SWT.NULL);
+    Messages.setLanguageText(lWeekStart, "stats.long.weekstart");
+    
+    final String wsLabels[] = new String[7];
+    final int wsValues[] = new int[7];
+    
+    Calendar cal = new GregorianCalendar();
+    SimpleDateFormat format = new SimpleDateFormat( "E" );
+    
+    for ( int i=0;i<7;i++){
+    	int dow = i+1;	// sun = 1 etc
+    	cal.set( Calendar.DAY_OF_WEEK, dow );
+    	wsLabels[i] = format.format( cal.getTime());
+    	wsValues[i] = i+1;
+    }
+
+    IntListParameter week_start = new IntListParameter(gLong, "long.term.stats.weekstart", Calendar.SUNDAY, wsLabels, wsValues);
+    
+    	// month start 
+    
+    Label lMonthStart = new Label(gLong, SWT.NULL);
+    Messages.setLanguageText(lMonthStart, "stats.long.monthstart");
+
+    IntParameter month_start = new IntParameter( gLong, "long.term.stats.monthstart", 1, 28 );
+    
+    enableLongStats.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( new Control[]{ lWeekStart, lMonthStart }));
+    enableLongStats.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( week_start, month_start ));
+    	
+
     return gOutter;
   }
 }
