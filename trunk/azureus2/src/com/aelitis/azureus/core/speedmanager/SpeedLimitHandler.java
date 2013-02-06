@@ -689,6 +689,7 @@ SpeedLimitHandler
 		Map<Integer,long[]> new_net_limits = new HashMap<Integer, long[]>();
 
 		boolean checked_lts_enabled = false;
+		boolean	lts_enabled	= false;
 		
 		for ( String line: schedule_lines ){
 			
@@ -837,7 +838,9 @@ SpeedLimitHandler
 				
 					checked_lts_enabled = true;
 					
-					if ( !StatsFactory.getLongTermStats().isEnabled()){
+					lts_enabled = StatsFactory.getLongTermStats().isEnabled();
+					
+					if ( !lts_enabled ){
 						
 						result.add( "Long-term stats are currently disabled, limits will NOT be applied" );
 					}
@@ -1074,6 +1077,11 @@ SpeedLimitHandler
 			current_ip_sets = ip_sets;
 			
 			checkIPSets();
+			
+			if ( !lts_enabled ){
+				
+				new_net_limits.clear();
+			}
 			
 			net_limits = new_net_limits;
 

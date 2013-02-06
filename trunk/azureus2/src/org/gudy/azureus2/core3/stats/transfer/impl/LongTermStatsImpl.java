@@ -602,41 +602,44 @@ LongTermStatsImpl
 			}
 		}
 		
-		final List<LongTermStatsListener> to_fire = new ArrayList<LongTermStatsListener>();
-		
-		for ( Object[] entry: listeners ){
+		if ( record_type != RT_SESSION_END ){
 			
-			long	diff = session_total - (Long)entry[2];
+			final List<LongTermStatsListener> to_fire = new ArrayList<LongTermStatsListener>();
 			
-			if ( diff >= (Long)entry[1]){
+			for ( Object[] entry: listeners ){
 				
-				entry[2] = session_total;
+				long	diff = session_total - (Long)entry[2];
 				
-				to_fire.add((LongTermStatsListener)entry[0]);
+				if ( diff >= (Long)entry[1]){
+					
+					entry[2] = session_total;
+					
+					to_fire.add((LongTermStatsListener)entry[0]);
+				}
 			}
-		}
-		
-		if ( to_fire.size() > 0 ){
 			
-			dispatcher.dispatch(
-				new AERunnable()
-				{
-					@Override
-					public void 
-					runSupport() 
+			if ( to_fire.size() > 0 ){
+				
+				dispatcher.dispatch(
+					new AERunnable()
 					{
-						for ( LongTermStatsListener l: to_fire ){
-							
-							try{
-								l.updated( LongTermStatsImpl.this );
+						@Override
+						public void 
+						runSupport() 
+						{
+							for ( LongTermStatsListener l: to_fire ){
 								
-							}catch( Throwable e ){
-								
-								Debug.out( e );
+								try{
+									l.updated( LongTermStatsImpl.this );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
 							}
 						}
-					}
-				});
+					});
+			}
 		}
 	}
 	
