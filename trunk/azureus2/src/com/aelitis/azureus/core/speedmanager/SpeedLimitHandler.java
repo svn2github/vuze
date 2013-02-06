@@ -1755,6 +1755,8 @@ SpeedLimitHandler
 		result.add( "#     daily limited_upload from 06:00 to 22:00" );
 		result.add( "#     daily pause_all from 08:00 to 17:00" );
 		result.add( "#" );
+		result.add( "#     net_limit monthly total=250G" );
+		result.add( "#" );
 		result.add( "#     ip_set external=211.34.128.0/19,211.35.128.0/17" );
 		result.add( "#" );
 		result.add( "# When multiple rules apply the one further down the list of rules take precedence" );

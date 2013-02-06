@@ -144,6 +144,9 @@ LongTermStatsImpl
 	
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher( "lts", 5000 );
 	
+	private int	start_of_week 	= -1;
+	private int start_of_month	= -1;
+	
 	private
 	LongTermStatsImpl(
 		File	_stats_dir )
@@ -944,6 +947,22 @@ LongTermStatsImpl
 	getTotalUsageInPeriod(
 		int	period_type )
 	{		
+		if ( start_of_week == -1 ){
+			
+			COConfigurationManager.addAndFireParameterListeners(
+				new String[]{ "long.term.stats.weekstart", "long.term.stats.monthstart" },
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String name )
+					{
+						start_of_week 	= COConfigurationManager.getIntParameter( "long.term.stats.weekstart" );
+						start_of_month 	= COConfigurationManager.getIntParameter( "long.term.stats.monthstart" );
+					}
+				});
+		}
+		
 		Calendar calendar = new GregorianCalendar();
 		
 		calendar.setTimeInMillis( SystemTime.getCurrentTime());
@@ -958,18 +977,44 @@ LongTermStatsImpl
 			
 		}else if ( period_type == PT_CURRENT_WEEK ){
 			
+				// sun = 1, mon = 2 etc
+			
 			int day_of_week = calendar.get( Calendar.DAY_OF_WEEK );
 			
-			if ( day_of_week != Calendar.SUNDAY ){
+			if ( day_of_week == start_of_week ){
 				
-					// sun = 1, mon = 2 etc
+			}else if ( day_of_week > start_of_week ){
+						
+				calendar.add( Calendar.DAY_OF_WEEK, - ( day_of_week - start_of_week ));
 				
-				calendar.add( Calendar.DAY_OF_WEEK, Calendar.SUNDAY - day_of_week );
+			}else{
+				
+				calendar.add( Calendar.DAY_OF_WEEK, - ( 7 - ( start_of_week - day_of_week )));
 			}
 			
 		}else{
 			
-			calendar.set( Calendar.DAY_OF_MONTH, 1 );
+			if ( start_of_month == 1 ){
+			
+				calendar.set( Calendar.DAY_OF_MONTH, 1 );
+				
+			}else{
+				
+				int day_of_month = calendar.get( Calendar.DAY_OF_MONTH );
+				
+				if ( day_of_month == start_of_month ){
+					
+				}else if ( day_of_month > start_of_month ){
+					
+					calendar.set( Calendar.DAY_OF_MONTH, start_of_month );
+					
+				}else{
+					
+					calendar.add( Calendar.MONTH, -1 );
+					
+					calendar.set( Calendar.DAY_OF_MONTH, start_of_month );
+				}
+			}
 		}
 		
 		long bottom_time = calendar.getTimeInMillis();
