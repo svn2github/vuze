@@ -2960,7 +2960,7 @@ DHTControlImpl
 		
 		if ( id.length == router.getID().length ){
 			
-			l = getClosestKContactsList( id, false );
+			l = getClosestKContactsList( id, true );	// parg: switched to live-only to reduce client lookup steps 2013/02/06
 			
 		}else{
 			
