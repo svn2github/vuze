@@ -33,6 +33,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.events.MouseAdapter;
@@ -40,7 +41,6 @@ import org.eclipse.swt.events.MouseEvent;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
-import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -91,36 +91,59 @@ public class ConfigSectionStats implements UISWTConfigSection {
 		GridData gridData;
     GridLayout layout;
 
-    Composite gStats = new Composite(parent, SWT.NULL);
+    Composite gOutter = new Composite(parent, SWT.NULL);
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
-    gStats.setLayoutData(gridData);
+    gOutter.setLayoutData(gridData);
     layout = new GridLayout();
-    layout.numColumns = 3;
-    gStats.setLayout(layout);
+    layout.numColumns = 1;
+    gOutter.setLayout(layout);
+
+    	// display
+    
+	Group gDisplay = new Group(gOutter, SWT.NULL);
+	Messages.setLanguageText(gDisplay, "stats.display.group");
+	layout = new GridLayout(1, false);
+	gDisplay.setLayout(layout);
+	gDisplay.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+    
+    gridData = new GridData();
+
+    BooleanParameter graph_dividers = new BooleanParameter(gDisplay, "Stats Graph Dividers", "ConfigView.section.stats.graph_update_dividers");
+    graph_dividers.setLayoutData(gridData);
+
+    
+
+    	// snapshots
+    
+	Group gSnap = new Group(gOutter, SWT.NULL);
+	Messages.setLanguageText(gSnap, "stats.snapshot.group");
+	layout = new GridLayout(3, false);
+	gSnap.setLayout(layout);
+	gSnap.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
 
     // row
 
     gridData = new GridData();
     gridData.horizontalSpan = 3;
     BooleanParameter enableStats = 
-        new BooleanParameter(gStats, "Stats Enable",
+        new BooleanParameter(gSnap, "Stats Enable",
                              "ConfigView.section.stats.enable");
     enableStats.setLayoutData(gridData);
 
-    Control[] controls = new Control[14];
+    Control[] controls = new Control[13];
 
     // row
 
-    Label lStatsPath = new Label(gStats, SWT.NULL);
+    Label lStatsPath = new Label(gSnap, SWT.NULL);
     Messages.setLanguageText(lStatsPath, "ConfigView.section.stats.defaultsavepath"); //$NON-NLS-1$
 
     gridData = new GridData();
     gridData.widthHint = 150;
-    final StringParameter pathParameter = new StringParameter(gStats, "Stats Dir", ""); //$NON-NLS-1$ //$NON-NLS-2$
+    final StringParameter pathParameter = new StringParameter(gSnap, "Stats Dir", ""); //$NON-NLS-1$ //$NON-NLS-2$
     pathParameter.setLayoutData(gridData);
     controls[0] = lStatsPath;
     controls[1] = pathParameter.getControl();
-    Button browse = new Button(gStats, SWT.PUSH);
+    Button browse = new Button(gSnap, SWT.PUSH);
     browse.setImage(imgOpenFolder);
     imgOpenFolder.setBackground(browse.getBackground());
     browse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
@@ -142,29 +165,29 @@ public class ConfigSectionStats implements UISWTConfigSection {
 
     // row
 
-    Label lSaveFile = new Label(gStats, SWT.NULL);
+    Label lSaveFile = new Label(gSnap, SWT.NULL);
     Messages.setLanguageText(lSaveFile, "ConfigView.section.stats.savefile"); //$NON-NLS-1$
     controls[3] = lSaveFile;
     
     gridData = new GridData();
     gridData.widthHint = 150;
-    final StringParameter fileParameter = new StringParameter(gStats, "Stats File", StatsWriterPeriodic.DEFAULT_STATS_FILE_NAME );
+    final StringParameter fileParameter = new StringParameter(gSnap, "Stats File", StatsWriterPeriodic.DEFAULT_STATS_FILE_NAME );
     fileParameter.setLayoutData(gridData);
     controls[4] = fileParameter.getControl();
-    new Label(gStats, SWT.NULL);
+    new Label(gSnap, SWT.NULL);
 
     // row
 
-    Label lxslFile = new Label(gStats, SWT.NULL);
+    Label lxslFile = new Label(gSnap, SWT.NULL);
     Messages.setLanguageText(lxslFile, "ConfigView.section.stats.xslfile"); //$NON-NLS-1$
     controls[5] = lxslFile;
     
     gridData = new GridData();
     gridData.widthHint = 150;
-    final StringParameter xslParameter = new StringParameter(gStats, "Stats XSL File", "" );
+    final StringParameter xslParameter = new StringParameter(gSnap, "Stats XSL File", "" );
     xslParameter.setLayoutData(gridData);
     controls[6] = xslParameter.getControl();
-    Label lxslDetails = new Label(gStats, SWT.NULL);
+    Label lxslDetails = new Label(gSnap, SWT.NULL);
     Messages.setLanguageText(lxslDetails, "ConfigView.section.stats.xslfiledetails"); //$NON-NLS-1$
     final String linkFAQ = "http://plugins.vuze.com/faq.php#20";
     lxslDetails.setCursor(lxslDetails.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
@@ -181,7 +204,7 @@ public class ConfigSectionStats implements UISWTConfigSection {
     
     // row
 
-    Label lSaveFreq = new Label(gStats, SWT.NULL);
+    Label lSaveFreq = new Label(gSnap, SWT.NULL);
 
     Messages.setLanguageText(lSaveFreq, "ConfigView.section.stats.savefreq");
     controls[8] = lSaveFreq;
@@ -207,15 +230,15 @@ public class ConfigSectionStats implements UISWTConfigSection {
     }
 
     controls[9] = lSaveFreq;
-    controls[10] = new IntListParameter(gStats, "Stats Period", defaultStatsPeriod, spLabels, spValues).getControl();
-    new Label(gStats, SWT.NULL);
+    controls[10] = new IntListParameter(gSnap, "Stats Period", defaultStatsPeriod, spLabels, spValues).getControl();
+    new Label(gSnap, SWT.NULL);
 
     	// ROW
     
     gridData = new GridData();
     gridData.horizontalSpan = 3;
     BooleanParameter exportPeers = 
-        new BooleanParameter(gStats, "Stats Export Peer Details",
+        new BooleanParameter(gSnap, "Stats Export Peer Details",
                              "ConfigView.section.stats.exportpeers");
     exportPeers.setLayoutData(gridData);
 
@@ -226,26 +249,32 @@ public class ConfigSectionStats implements UISWTConfigSection {
     gridData = new GridData();
     gridData.horizontalSpan = 3;
     BooleanParameter exportFiles = 
-        new BooleanParameter(gStats, "Stats Export File Details",
+        new BooleanParameter(gSnap, "Stats Export File Details",
                              "ConfigView.section.stats.exportfiles");
     exportFiles.setLayoutData(gridData);
 
     controls[12] = exportFiles.getControl();
 
-    // ROW
-    
-    gridData = new GridData();
-    gridData.horizontalSpan = 3;
-    BooleanParameter graph_dividers = new BooleanParameter(gStats, "Stats Graph Dividers", "ConfigView.section.stats.graph_update_dividers");
-    graph_dividers.setLayoutData(gridData);
-
-    controls[13] = graph_dividers.getControl();
-    
-    	// control stuff
+      	// control stuff
     
     enableStats.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
 
+    	// long term
  
-    return gStats;
+	Group gLong = new Group(gOutter, SWT.NULL);
+	Messages.setLanguageText(gLong, "stats.longterm.group");
+	layout = new GridLayout(3, false);
+	gLong.setLayout(layout);
+	gLong.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+	  // row
+
+    gridData = new GridData();
+    gridData.horizontalSpan = 3;
+    BooleanParameter enableLongStats = 
+        new BooleanParameter(gLong, "long.term.stats.enable",
+                             "ConfigView.section.stats.enable");
+    enableLongStats.setLayoutData(gridData);
+    
+    return gOutter;
   }
 }

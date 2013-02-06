@@ -21,8 +21,28 @@
 
 package org.gudy.azureus2.core3.stats.transfer;
 
+import java.util.Date;
+
 public interface 
 LongTermStats 
 {
-
+	public static final int ST_PROTOCOL_UPLOAD		= 0;
+	public static final int ST_DATA_UPLOAD			= 1;
+	public static final int ST_PROTOCOL_DOWNLOAD	= 2;
+	public static final int ST_DATA_DOWNLOAD		= 3;
+	public static final int ST_DHT_UPLOAD			= 4;
+	public static final int ST_DHT_DOWNLOAD			= 5;
+	
+	public static final int PT_CURRENT_DAY			= 1;
+	public static final int PT_CURRENT_WEEK			= 2;	// sun is start of week
+	public static final int PT_CURRENT_MONTH		= 3;
+	
+	public long[]
+	getTotalUsageInPeriod(
+		Date		start_date,
+		Date		end_date );
+	
+	public long[]
+	getTotalUsageInPeriod(
+		int	period_type );
 }

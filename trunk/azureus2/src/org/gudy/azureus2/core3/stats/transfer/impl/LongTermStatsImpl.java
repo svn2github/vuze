@@ -22,12 +22,13 @@
 package org.gudy.azureus2.core3.stats.transfer.impl;
 
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.LineNumberReader;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
+import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -57,6 +58,9 @@ LongTermStatsImpl
 {
 	private static final int VERSION = 1;
 	
+	private final long MIN_IN_MILLIS	= 60*1000;
+	private final long DAY_IN_MILLIS	= 24*60*60*1000;
+
 	public static final int RT_SESSION_START	= 1;
 	public static final int RT_SESSION_STATS	= 2;
 	public static final int RT_SESSION_END		= 3;
@@ -90,13 +94,22 @@ LongTermStatsImpl
 	private PrintWriter			writer;
 	private String				writer_rel_file;
 	
-	private SimpleDateFormat	date_format = new SimpleDateFormat( "yyyy,MM,dd" );
+	private static SimpleDateFormat	debug_utc_format 	= new SimpleDateFormat( "yyyy,MM,dd:HH:mm" );
+	private static SimpleDateFormat	utc_date_format 	= new SimpleDateFormat( "yyyy,MM,dd" );
 	
-	{
-		date_format.setTimeZone( TimeZone.getTimeZone( "UTC" ));
+	static{
+		debug_utc_format.setTimeZone( TimeZone.getTimeZone( "UTC" ));
+		utc_date_format.setTimeZone( TimeZone.getTimeZone( "UTC" ));
 	}
 	
-	private File stats_dir		= FileUtil.getUserFile( "stats" );
+	private final File stats_dir;
+	
+	private
+	LongTermStatsImpl(
+		File	_stats_dir )
+	{	
+		stats_dir = _stats_dir;
+	}
 	
 	public
 	LongTermStatsImpl(
@@ -105,6 +118,8 @@ LongTermStatsImpl
 	{
 		core		= _core;
 		gm_stats 	= _gm_stats;
+		
+		stats_dir		= FileUtil.getUserFile( "stats" );
 		
 		COConfigurationManager.addParameterListener(
 			"long.term.stats.enable",
@@ -272,7 +287,7 @@ LongTermStatsImpl
 			    event = 
 			    	SimpleTimer.addPeriodicEvent(
 				    	"LongTermStats", 
-				    	60*1000, 
+				    	MIN_IN_MILLIS, 
 				    	new TimerEventPerformer()
 				    	{
 				    		public void 
@@ -370,15 +385,18 @@ LongTermStatsImpl
 					
 						// absolute values
 					
-					for ( long s: line_stats ){
+					for ( int i=0;i<line_stats.length;i++ ){
 						
-						stats_str += "," + s;
+						stats_str += "," + line_stats[i];
+						
+						line_stats_prev[i] = 0;
 					}
+					
 				}else{
 					
 						// relative values
 					
-					for ( int i=0;i< line_stats.length;i++){
+					for ( int i=0;i<line_stats.length;i++ ){
 						
 						stats_str += "," + ( line_stats[i] - line_stats_prev[i] );
 						
@@ -395,7 +413,7 @@ LongTermStatsImpl
 					line = stats_str.substring(1);
 				}
 				
-				String[] bits = date_format.format( new Date( now )).split( "," );
+				String[] bits = utc_date_format.format( new Date( now )).split( "," );
 				
 				String	current_rel_file = bits[0] + File.separator + bits[1] + File.separator + bits[2] + ".dat";
 				
@@ -461,12 +479,16 @@ LongTermStatsImpl
 														
 							stats_str = "";
 							
-							for ( long s: new long[]{ st_p_sent,st_d_sent, st_p_received,st_d_received, st_dht_sent, st_dht_received }){
+							long[] st_stats =  new long[]{ st_p_sent,st_d_sent, st_p_received,st_d_received, st_dht_sent, st_dht_received };
+							
+							for ( int i=0;i<st_stats.length; i++ ){
 								
-								stats_str += "," + s;
+								stats_str += "," + st_stats[i];
+								
+								line_stats_prev[i] = 0;
 							}
 							
-							line = "s," + when_mins + stats_str;
+							line = "s," + VERSION + "," + when_mins + stats_str;
 						
 							writer.println( line );
 						}
@@ -500,6 +522,476 @@ LongTermStatsImpl
 					}
 				}
 			}
+		}
+	}
+	
+	private static String
+	getString(
+		long[] stats )
+	{
+		String str = "";
+		
+		for ( long s: stats ){
+			
+			str += (str.length()==0?"":", ") + s;
+		}
+		
+		return( str );
+	}
+	
+	public long[]
+	getTotalUsageInPeriod(
+		Date		start_date,
+		Date		end_date )
+	{
+		long[] result = new long[6];
+		
+		long start_millis 	= start_date.getTime();
+		long end_millis 	= end_date.getTime();
+		
+		long	now = SystemTime.getCurrentTime();
+		
+		long	now_day	= (now/DAY_IN_MILLIS)*DAY_IN_MILLIS;
+		
+		if ( end_millis > now ){
+			
+			end_millis = now;
+		}
+		
+		long start_day 	= (start_millis/DAY_IN_MILLIS)*DAY_IN_MILLIS;
+		long end_day 	= (end_millis/DAY_IN_MILLIS)*DAY_IN_MILLIS;
+		
+		if ( start_day > end_day ){
+			
+			return( result );
+		}
+		
+		long start_offset = start_millis - start_day;
+		
+		start_offset = start_offset/MIN_IN_MILLIS;
+		
+		boolean	offset_cachable = start_offset % 60 == 0;
+		
+		System.out.println( "start=" + debug_utc_format.format( start_date ) + ", end=" + debug_utc_format.format( end_date ) + ", offset=" + start_offset);
+		
+		MonthCache	month_cache = null;
+		
+		for ( long time=start_day;time<=end_day;time+=DAY_IN_MILLIS ){
+			
+			String[] bits = utc_date_format.format( new Date( time )).split( "," );
+			
+			String	year_str 	= bits[0];
+			String	month_str	= bits[1];
+			
+			int	year 	= Integer.parseInt( year_str );
+			int	month	= Integer.parseInt( month_str );
+			int	day		= Integer.parseInt( bits[2] );
+			
+			if ( month_cache == null || !month_cache.isForMonth( year_str, month_str )){
+				
+				if ( month_cache != null && month_cache.isDirty()){
+					
+					month_cache.save();
+				}
+				
+				month_cache = new MonthCache( year_str, month_str );
+			}
+			
+			boolean	can_cache = 
+				time != now_day &&
+				( time > start_day || ( time == start_day && offset_cachable )) &&
+				time < end_day;
+			
+			long	cache_offset = time == start_day?start_offset:0;
+			
+			if ( can_cache ){
+				
+				long[] cached_totals = month_cache.getTotals( day, cache_offset );
+				
+				if ( cached_totals != null ){
+					
+					for ( int i=0;i<cached_totals.length;i++){
+						
+						result[i] += cached_totals[i];
+					}
+					
+					continue;
+				}
+			}
+			
+			String	current_rel_file = bits[0] + File.separator + bits[1] + File.separator + bits[2] + ".dat";
+
+			System.out.println( current_rel_file );
+			
+			File stats_file = new File( stats_dir, current_rel_file );
+			
+			if ( !stats_file.exists()){
+				
+				if ( can_cache ){
+					
+					month_cache.setTotals( day, cache_offset, new long[0] );
+				}
+			}else{
+				
+				LineNumberReader lnr = null;
+				
+				try{
+					System.out.println( "Reading " + stats_file );
+					
+					lnr = new LineNumberReader( new FileReader( stats_file ));
+					
+					long	file_start_time	= 0;
+					
+					long[]	file_totals = null;
+					
+					long[]	file_result_totals  = new long[6];
+					
+					long[]	session_start_stats = null;
+					long	session_start_time	= 0;
+					long	session_time		= 0;
+					
+					while( true ){
+						
+						String line = lnr.readLine();
+						
+						if ( line == null ){
+							
+							break;
+						}
+						
+						//System.out.println( line );
+						
+						String[] fields = line.split( "," );
+						
+						if ( fields.length < 6 ){
+							
+							continue;
+						}
+						
+						String first_field = fields[0];
+						
+						if ( first_field.equals("s")){
+														
+							session_start_time = Long.parseLong( fields[2] )*MIN_IN_MILLIS;
+							
+							if ( file_totals == null ){
+								
+								file_totals = new long[6];
+								
+								file_start_time = session_start_time;
+							}
+
+							session_time = session_start_time;
+							
+							session_start_stats = new long[6];
+							
+							for ( int i=3;i<9;i++){
+								
+								session_start_stats[i-3] = Long.parseLong( fields[i] );
+							}
+						}else if ( session_start_time > 0 ){
+							
+							session_time += MIN_IN_MILLIS;
+							
+							int	field_offset = 0;
+							
+							if ( first_field.equals( "e" )){
+								
+								field_offset = 3;
+							}
+							
+							long[] line_stats = new long[6];
+							
+							for ( int i=0;i<6;i++){
+								
+								line_stats[i] = Long.parseLong( fields[i+field_offset] );
+								
+								file_totals[i] += line_stats[i];
+							}
+							
+							if ( 	session_time >= start_millis && 
+									session_time <= end_millis ){
+								
+								for ( int i=0;i<6;i++){
+									
+									result[i] += line_stats[i];
+									
+									file_result_totals[i] += line_stats[i];
+								}
+							}
+							
+							//System.out.println( getString( line_stats ));
+						}
+					}
+					
+					System.out.println( "File total: start=" + debug_utc_format.format(file_start_time) + ", end=" + debug_utc_format.format(session_time) + " - " + getString( file_totals ));
+					
+					if ( can_cache ){
+						
+						month_cache.setTotals( day, cache_offset, file_result_totals );
+						
+						if ( cache_offset != 0 ){
+							
+							month_cache.setTotals( day, 0, file_totals );
+						}
+					}
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+					
+				}finally{
+					
+					if ( lnr != null ){
+						
+						try{
+							lnr.close();
+							
+						}catch( Throwable e ){
+						}
+					}
+				}
+			}
+		}
+		
+		if ( month_cache != null && month_cache.isDirty()){
+			
+			month_cache.save();
+		}
+				
+		return( result );
+	}
+	
+	public long[]
+	getTotalUsageInPeriod(
+		int	period_type )
+	{		
+		Calendar calendar = new GregorianCalendar();
+		
+		calendar.setTimeInMillis( SystemTime.getCurrentTime());
+		
+		calendar.set( Calendar.MILLISECOND, 0 );
+		calendar.set( Calendar.MINUTE, 0 );
+		calendar.set( Calendar.HOUR_OF_DAY, 0 );
+		
+		long top_time = calendar.getTimeInMillis() + DAY_IN_MILLIS - 1;
+		
+		if ( period_type == PT_CURRENT_DAY ){
+			
+		}else if ( period_type == PT_CURRENT_WEEK ){
+			
+			int day_of_week = calendar.get( Calendar.DAY_OF_WEEK );
+			
+			if ( day_of_week != Calendar.SUNDAY ){
+				
+					// sun = 1, mon = 2 etc
+				
+				calendar.add( Calendar.DAY_OF_WEEK, Calendar.SUNDAY - day_of_week );
+			}
+			
+		}else{
+			
+			calendar.set( Calendar.DAY_OF_MONTH, 1 );
+		}
+		
+		long bottom_time = calendar.getTimeInMillis();
+		
+		return( getTotalUsageInPeriod( new Date( bottom_time ), new Date( top_time )));
+	}
+	
+	private class
+	MonthCache
+	{	
+		private String			year;
+		private String			month;
+	
+		private boolean		dirty;
+		
+		private Map<String,List<Long>>	contents;
+		
+		private
+		MonthCache(
+			String		_year,
+			String		_month )
+		{
+			year	= _year;
+			month	= _month;
+		}
+	
+		private File
+		getCacheFile()
+		{
+			return( new File( stats_dir, year + File.separator + month + File.separator + "cache.dat" ));
+		}
+		
+		private boolean
+		isForMonth(
+			String	_year,
+			String	_month ) 
+		{
+			return( year.equals( _year ) && month.equals( _month ));
+		}
+		
+		private Map<String,List<Long>>
+		getContents()
+		{
+			if ( contents == null ){
+				
+				File file = getCacheFile();
+				
+				if ( file.exists()){
+					
+					contents = FileUtil.readResilientFile( file );
+					
+				}else{
+					
+					contents = new HashMap<String, List<Long>>();
+				}
+			}
+			
+			return( contents );
+		}
+		
+		private long[]
+		getTotals(
+			int		day )
+		{
+			List<Long> records = getContents().get( String.valueOf( day ));
+			
+			if ( records != null ){
+				
+				long[] result = new long[6];
+				
+				if ( records.size() == 6 ){
+				
+					for ( int i=0;i<6;i++){
+						
+						result[i] = (Long)records.get(i);
+					}
+				}
+				
+				return( result );
+			}
+			
+			return( null );
+		}
+		
+		private long[]
+ 		getTotals(
+ 			int		day,
+ 			long	start_offset )
+ 		{
+			if ( start_offset == 0 ){
+				
+				return( getTotals( day ));
+				
+			}else{
+			
+	 			List<Long> records = getContents().get( day + "." + start_offset );
+	 			
+	 			if ( records != null ){
+	 				
+	 				long[] result = new long[6];
+	 				
+	 				if ( records.size() == 6 ){
+	 				
+	 					for ( int i=0;i<6;i++){
+	 						
+	 						result[i] = (Long)records.get(i);
+	 					}
+	 				}
+	 				
+	 				return( result );
+	 			}
+	 			
+	 			return( null );
+			}
+ 		}
+		
+		private void
+		setTotals(
+			int		day,
+			long[]	totals )
+		{
+			List<Long>	records = new ArrayList<Long>();
+			
+			for ( Long l: totals ){
+				
+				records.add( l );
+			}
+			
+			getContents().put( String.valueOf( day ), records );
+			
+			dirty	= true;
+		}
+		
+		private void
+		setTotals(
+			int		day,
+			long	start_offset,
+			long[]	totals )
+		{
+			if ( start_offset == 0 ){
+				
+				setTotals( day, totals );
+				
+			}else{
+				
+				List<Long>	records = new ArrayList<Long>();
+				
+				for ( Long l: totals ){
+					
+					records.add( l );
+				}
+				
+				getContents().put( day + "." + start_offset, records );
+				
+				dirty	= true;
+			}
+		}
+		
+		private boolean
+		isDirty()
+		{
+			return( dirty );
+		}
+		
+		private void
+		save()
+		{
+			File file = getCacheFile();
+
+			file.getParentFile().mkdirs();
+			
+			FileUtil.writeResilientFile( file, contents );
+			
+			dirty = false;
+		}
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		try{
+			LongTermStatsImpl impl = new LongTermStatsImpl( new File( "C:\\Test\\plus2\\stats" ));
+			
+			SimpleDateFormat local_format = new SimpleDateFormat( "yyyy,MM,dd" );
+			
+			Date start_date = local_format.parse( "2013,02,04" );
+			Date end_date 	= local_format.parse( "2013,02,06" );
+			
+			long[] usage = impl.getTotalUsageInPeriod( start_date, end_date );
+			
+			System.out.println( getString( usage ));
+		
+			System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_DAY )));
+			System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_WEEK )));
+			System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_MONTH )));
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
 		}
 	}
 }
