@@ -242,6 +242,13 @@ SpeedManagerPingMapperImpl
 				down_capacity 	= loadLimit((Map)map.get( "downcap" ));
 				
 				log( "Loaded " + ping_count + " entries from " + history_file + ": bad_up=" + getLimitString(last_bad_ups) + ", bad_down=" + getLimitString(last_bad_downs));
+				
+			}else{
+				
+				// first time with this ASN - removed auto speed test in 4813 so decided to increase
+				// the initial estimated upload limit to avoid starting out too low
+				
+				setEstimatedUploadCapacityBytesPerSec( 75*1024, SpeedManagerLimitEstimate.TYPE_ESTIMATED );
 			}
 		
 			prev_ping 			= null;
