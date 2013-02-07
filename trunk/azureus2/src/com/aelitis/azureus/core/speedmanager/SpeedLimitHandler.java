@@ -312,6 +312,16 @@ SpeedLimitHandler
 		
 		List<String> lines = details.getString( true );
 		
+		lines.add( "" );
+		lines.add( "IP Sets" );
+		if ( current_ip_sets.size() == 0 ){
+			lines.add( "    None" );
+		}else{
+			for( Map.Entry<String,IPSet> entry: current_ip_sets.entrySet()){
+				lines.add( "    " + entry.getValue().getDetailString());
+			}
+		}
+		
 		ScheduleRule rule = active_rule;
 		
 		lines.add( "" );
@@ -334,7 +344,7 @@ SpeedLimitHandler
 			lines.add( "    This week:\t" + getString( lt_stats.getTotalUsageInPeriod( LongTermStats.PT_CURRENT_WEEK ), net_limits.get( LongTermStats.PT_CURRENT_WEEK ), false ));
 			lines.add( "    This month:\t" + getString( lt_stats.getTotalUsageInPeriod( LongTermStats.PT_CURRENT_MONTH ), net_limits.get( LongTermStats.PT_CURRENT_MONTH ), false ));
 			lines.add( "" );
-			lines.add( "    Rate:\t\t" + getString( lt_stats.getCurrentRateBytesPerSecond(), null, true));
+			lines.add( "    Rate (3 minute average):\t\t" + getString( lt_stats.getCurrentRateBytesPerSecond(), null, true));
 		}
 		
 		return( lines );
@@ -2974,6 +2984,28 @@ SpeedLimitHandler
 			return( inverse );
 		}
 		
+		private String
+		getAddressString()
+		{
+			long	address_count = 0;
+			
+			for ( long[] range: ranges ){
+				address_count += range[1] - range[0] + 1;
+			}
+			
+			return( String.valueOf( address_count ));
+		}
+		
+		private String
+		getDetailString()
+		{
+			return( name + ": Up=" + format(up_limiter.getRateLimitBytesPerSecond()) + 
+					", Down=" + format( down_limiter.getRateLimitBytesPerSecond()) + 
+					", Addresses=" + getAddressString() + 
+					", Inverse=" + inverse +
+					", Categories=" + categories );
+					
+		}
 		private String
 		getString()
 		{
