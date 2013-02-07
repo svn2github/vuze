@@ -1323,6 +1323,7 @@ SpeedLimitHandler
 										set.updateStats();
 									}
 									
+									/*
 									if ( tick_count % 30 == 0 ){
 
 										String str = "";
@@ -1334,6 +1335,7 @@ SpeedLimitHandler
 										
 										logger.log( str );
 									}
+									*/
 								}
 							}
 						});
@@ -1767,7 +1769,7 @@ SpeedLimitHandler
 		result.add( "#    ip_set <ip_set_name> <CIDR_specs...> [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [cat=<cat names>]" );
 		result.add( "#    net_limit [daily|weekly|monthly] total=<limit>|[up=<limit> down=<limit>]");
 		result.add( "#" );
-		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_uplaod' defined:" );
+		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_upload' defined:" );
 		result.add( "#" );
 		result.add( "#     daily no_limits from 00:00 to 23:59" );
 		result.add( "#     daily limited_upload from 06:00 to 22:00" );
@@ -2999,8 +3001,8 @@ SpeedLimitHandler
 		private String
 		getDetailString()
 		{
-			return( name + ": Up=" + format(up_limiter.getRateLimitBytesPerSecond()) + 
-					", Down=" + format( down_limiter.getRateLimitBytesPerSecond()) + 
+			return( name + ": Up=" + format(up_limiter.getRateLimitBytesPerSecond()) + " (" + DisplayFormatters.formatByteCountToKiBEtcPerSec(send_rate.getAverage()) + ")" + 
+					", Down=" + format( down_limiter.getRateLimitBytesPerSecond()) + " (" + DisplayFormatters.formatByteCountToKiBEtcPerSec(receive_rate.getAverage()) + ")" + 
 					", Addresses=" + getAddressString() + 
 					", Inverse=" + inverse +
 					", Categories=" + categories );

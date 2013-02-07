@@ -1012,6 +1012,23 @@ public class MenuFactory
 											});
 								}
 							});
+						
+						addSeparatorMenuItem( menu );
+						
+						MenuItem helpItem = new MenuItem(menu, SWT.PUSH);
+						Messages.setLanguageText(helpItem, "MainWindow.menu.speed_limits.wiki" );
+																
+						helpItem.addListener(
+							SWT.Selection,
+							new Listener()
+							{
+								public void 
+								handleEvent(
+									Event arg0 )
+								{
+									Utils.launch( MessageText.getString("MainWindow.menu.speed_limits.wiki.url"));
+								}
+							});
 						}
 					}
 				});
