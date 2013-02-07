@@ -366,6 +366,8 @@ LongTermStatsImpl
 			if ( event != null ){
 				
 				event.cancel();
+				
+				event = null;
 			}
 		}
 	}
