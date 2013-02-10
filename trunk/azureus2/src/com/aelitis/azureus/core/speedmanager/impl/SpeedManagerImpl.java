@@ -639,7 +639,7 @@ SpeedManagerImpl
 						
 						if ( miss ){
 							
-							Debug.out( "Auto-speed: source missing" );
+							// happens, no biggy Debug.out( "Auto-speed: source missing" );
 							
 						}else{
 						
