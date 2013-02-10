@@ -2955,7 +2955,7 @@ DownloadManagerImpl
 	    	
 	    		// only report "complete" if we really are complete, not a dnd completion event
 	    	
-	    	if ( dm != null && dm.getRemaining() == 0 ){
+	    	if ( dm != null && dm.getRemaining() == 0 && !COConfigurationManager.getBooleanParameter( "peercontrol.hide.piece" )){
 	    		
 	    		tc.complete( never_downloaded );
 	    	}
