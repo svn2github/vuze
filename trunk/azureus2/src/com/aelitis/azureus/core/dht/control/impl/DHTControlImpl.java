@@ -1317,7 +1317,7 @@ DHTControlImpl
 							// if we've come back to an already hit contact due to a diversification loop
 							// then ignore it
 						
-						Debug.out( "Put: contact encountered for a second time, ignoring" );
+						// Debug.out( "Put: contact encountered for a second time, ignoring" );
 						
 						skipped++;
 						
