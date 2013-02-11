@@ -304,9 +304,24 @@ public class SWTSkinObjectText2
 		});
 
 		canvas.addMouseMoveListener(new MouseMoveListener() {
+			Boolean doUrlToolTip = null;
 			public void mouseMove(MouseEvent e) {
 				if (lastStringPrinter != null && lastStringPrinter.hasHitUrl()) {
 					URLInfo hitUrl = lastStringPrinter.getHitUrl(e.x, e.y);
+					if (doUrlToolTip == null) {
+						doUrlToolTip = getTooltipID(false) == null;
+					}
+					if (doUrlToolTip) {
+  					String tooltip = null;
+  					if (hitUrl != null) {
+  						if (hitUrl.title == null) {
+  							tooltip = "!" + hitUrl.url + "!";
+  						} else {
+  							tooltip = "!" + hitUrl.title + " (" + hitUrl.url + ")!";
+  						}
+  					}
+  					setTooltipID(tooltip);
+					}
 					canvas.setCursor(hitUrl == null ? null
 							: canvas.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
 				}
