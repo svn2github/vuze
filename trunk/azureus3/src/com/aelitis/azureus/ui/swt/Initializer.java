@@ -300,9 +300,6 @@ public class Initializer
 		
 		if (storedInstallID == null || !storedInstallID.equals(installID)) {
 			COConfigurationManager.setParameter("install.id", installID);
-			// different or new installid
-			Utils.launch(ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(
-					"/install/first.start?iid=" + installID, true));
 		}
 	}
 
