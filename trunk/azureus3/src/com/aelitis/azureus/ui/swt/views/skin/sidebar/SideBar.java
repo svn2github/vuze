@@ -146,14 +146,6 @@ public class SideBar
 		soSideBarList = skin.getSkinObject("sidebar-list");
 		soSideBarPopout = skin.getSkinObject("sidebar-pop");
 
-		if (ConfigurationChecker.isNewVersion()
-				&& Constants.compareVersions(Constants.AZUREUS_VERSION, "4.5.0.4") == 0) {
-			final SWTSkinObjectSash soSash = (SWTSkinObjectSash) skin.getSkinObject("sidebar-sash");
-			if (soSash != null) {
-				soSash.resetWidth();
-			}
-		}
-
 		// addTestMenus();
 
 		createSideBar();
