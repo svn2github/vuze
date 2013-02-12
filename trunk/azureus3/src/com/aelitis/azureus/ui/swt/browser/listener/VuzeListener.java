@@ -2,14 +2,17 @@ package com.aelitis.azureus.ui.swt.browser.listener;
 
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.ui.swt.speedtest.SpeedTestSelector;
 
 import com.aelitis.azureus.core.messenger.browser.BrowserMessage;
 import com.aelitis.azureus.core.messenger.browser.listeners.AbstractBrowserMessageListener;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
+import com.aelitis.azureus.ui.swt.views.skin.WelcomeView;
 import com.aelitis.azureus.util.FeatureUtils;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -26,6 +29,8 @@ public class VuzeListener
 	public static final String OP_GET_MODE = "get-mode";
 	
 	public static final String OP_GET_REMAINING = "get-plus-remaining";
+
+	public static final String OP_RUN_SPEED_TEST = "run-speed-test";
 
 	public 
 	VuzeListener() 
@@ -68,6 +73,13 @@ public class VuzeListener
 			}
 		}else if (OP_INSTALL_TRIAL.equals(opid)) {
 			FeatureManagerUI.createTrial();
+
+		}else if (OP_RUN_SPEED_TEST.equals(opid)) {
+			Map decodedMap = message.getDecodedMap();
+			
+			boolean allowShaperLogicProbe = MapUtils.getMapBoolean(decodedMap,
+					"allowShaperLogicProbe", false);
+			SpeedTestSelector.runMLABTest(allowShaperLogicProbe, null);
 
 		}else if (OP_GET_MODE.equals(opid)) {
 			Map decodedMap = message.getDecodedMap();
