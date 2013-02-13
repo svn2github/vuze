@@ -124,7 +124,10 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		
 			// **** 
 		
-		new BooleanParameter(cDisplay, "Show Status In Window Title", LBLKEY_PREFIX + "info.in.window.title");
+		if ( !Constants.isOSX ){
+		
+			new BooleanParameter(cDisplay, "Show Status In Window Title", LBLKEY_PREFIX + "info.in.window.title");
+		}
 		
 		new BooleanParameter(cDisplay, "Remember transfer bar location", LBLKEY_PREFIX + "transferbar.remember_location");
 

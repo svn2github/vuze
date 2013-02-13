@@ -932,88 +932,94 @@ public class MainWindowImpl
 				}
 			});
 			
-			COConfigurationManager.addAndFireParameterListener(
-				"Show Status In Window Title",
-				new ParameterListener()
-				{
-					private TimerEventPeriodic 	timer;
-					private String				old_text;
-					private String				my_last_text;
-					
-					public void 
-					parameterChanged(
-						final String name ) 
+			if ( !Constants.isOSX ){
+				
+				COConfigurationManager.addAndFireParameterListener(
+					"Show Status In Window Title",
+					new ParameterListener()
 					{
-						Utils.execSWTThread(
-							new AERunnable() 
-							{
-								public void 
-								runSupport() 
+						private TimerEventPeriodic 	timer;
+						private String				old_text;
+						private String				my_last_text;
+						
+						public void 
+						parameterChanged(
+							final String name ) 
+						{
+							Utils.execSWTThread(
+								new AERunnable() 
 								{
-									boolean enable = COConfigurationManager.getBooleanParameter( name );
-									
-									if ( enable ){
+									public void 
+									runSupport() 
+									{
+										boolean enable = COConfigurationManager.getBooleanParameter( name );
 										
-										if ( timer == null ){
+										if ( enable ){
 											
-											timer = SimpleTimer.addPeriodicEvent(
-												"window.title.updater",
-												1000,
-												new TimerEventPerformer()
-												{
-													public void 
-													perform(
-														TimerEvent event) 
-													{
-														Utils.execSWTThread(
-																new AERunnable() 
-																{
-																	public void 
-																	runSupport() 
-																	{
-																		if( shell.isDisposed()){
-																			
-																			return;
-																		}
-																		
-																		String txt = shell.getText();
-																		
-																		if ( txt != null && !txt.equals( my_last_text )){
-																			
-																			old_text = txt;
-																		}
-																		
-																		txt = getCurrentTitleText();
+											if ( timer == null ){
 												
-																		shell.setText( txt );
-																		
-																		my_last_text = txt;
-																	}
-																});
-													}
-												});
-										}
-									}else{
-										
-										if ( timer != null ){
+												timer = SimpleTimer.addPeriodicEvent(
+													"window.title.updater",
+													1000,
+													new TimerEventPerformer()
+													{
+														public void 
+														perform(
+															TimerEvent event) 
+														{
+															Utils.execSWTThread(
+																	new AERunnable() 
+																	{
+																		public void 
+																		runSupport() 
+																		{
+																			if ( shell.isDisposed()){
+																				
+																				return;
+																			}
+																			
+																			String txt = shell.getText();
+																			
+																			if ( txt != null && !txt.equals( my_last_text )){
+																				
+																				old_text = txt;
+																			}
+																			
+																			txt = getCurrentTitleText();
+													
+																			if ( txt != null ){
+																			
+																				shell.setText( txt );
+																			
+																				my_last_text = txt;
+																			}
+																		}
+																	});
+														}
+													});
+											}
+										}else{
 											
-											timer.cancel();
+											if ( timer != null ){
+												
+												timer.cancel();
+												
+												timer = null;
+											}
 											
-											timer = null;
-										}
-										
-										if ( old_text != null && !shell.isDisposed()){
-											
-											shell.setText( old_text );
+											if ( old_text != null && !shell.isDisposed()){
+												
+												shell.setText( old_text );
+											}
 										}
 									}
-								}
-							});
-					}
-				});
+								});
+						}
+					});
+			}
 		}
 	}
-
+	
 	private String	last_eta_str = null;
 	private long	last_eta;
 	private int		eta_tick_count;
@@ -1021,11 +1027,16 @@ public class MainWindowImpl
 	private String
 	getCurrentTitleText()
 	{
+		if ( core == null ){
+			
+			return( null );
+		}
+		
 		GlobalManager gm = core.getGlobalManager();
 		
 		if ( gm == null ){
 			
-			return( "" );
+			return( null );
 		}
 		
 		GlobalManagerStats stats = gm.getStats();
