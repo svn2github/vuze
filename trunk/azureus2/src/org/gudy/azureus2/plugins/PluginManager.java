@@ -213,6 +213,9 @@ PluginManager
 	public abstract boolean
 	isSilentRestartEnabled();
 
+	public abstract boolean
+	isInitialized();
+	
 	/**
 	 * returns the plugin interface with a given id, or null if not found
 	 * @param id

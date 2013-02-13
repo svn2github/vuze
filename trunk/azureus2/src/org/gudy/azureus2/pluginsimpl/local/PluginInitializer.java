@@ -1611,6 +1611,12 @@ PluginInitializer
   		}
   	}
   
+  	protected boolean
+	isInitialized()
+  	{
+  		return( plugins_initialised );
+  	}
+  	
   	private void
 	initialisePlugin(
 		List	l )

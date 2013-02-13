@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreComponent;
@@ -377,25 +378,30 @@ OverallStatsImpl
 	    if ( dhts == null ){
 	    	
 		    try{
-		        PluginInterface dht_pi = core.getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
-		          
-		        if ( dht_pi == null ){
-		           
-		        	dhts = new DHT[0];
-		        	
-		        }else{
-		        	
-		        	DHTPlugin plugin = (DHTPlugin)dht_pi.getPlugin();
-		        	
-		        	if ( plugin.isEnabled()){
-		        	
-		        		dhts = ((DHTPlugin)dht_pi.getPlugin()).getDHTs();
-		        		
-		        	}else{
-		        		
-		        		dhts = new DHT[0];
-		        	}
-		        }
+		    	PluginManager pm = core.getPluginManager();
+		    	
+		    	if ( pm.isInitialized()){
+		    
+			        PluginInterface dht_pi = pm.getPluginInterfaceByClass( DHTPlugin.class );
+			          
+			        if ( dht_pi == null ){
+			           
+			        	dhts = new DHT[0];
+			        	
+			        }else{
+			        	
+			        	DHTPlugin plugin = (DHTPlugin)dht_pi.getPlugin();
+			        	
+			        	if ( plugin.isEnabled()){
+			        	
+			        		dhts = ((DHTPlugin)dht_pi.getPlugin()).getDHTs();
+			        		
+			        	}else{
+			        		
+			        		dhts = new DHT[0];
+			        	}
+			        }
+		    	}
 		    }catch( Throwable e ){
 		    	
 		    	dhts = new DHT[0];

@@ -382,4 +382,10 @@ PluginManagerImpl
 		
 		return( true );
 	}
+	
+	public boolean
+	isInitialized()
+	{
+		return( pi.isInitialized());
+	}
 }
