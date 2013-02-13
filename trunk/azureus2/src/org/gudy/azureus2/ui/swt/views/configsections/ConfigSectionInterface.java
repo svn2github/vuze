@@ -124,6 +124,8 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		
 			// **** 
 		
+		new BooleanParameter(cDisplay, "Show Status In Window Title", LBLKEY_PREFIX + "info.in.window.title");
+		
 		new BooleanParameter(cDisplay, "Remember transfer bar location", LBLKEY_PREFIX + "transferbar.remember_location");
 
 		Group gSysTray = new Group(cDisplay, SWT.NULL);

@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
+import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -930,9 +931,223 @@ public class MainWindowImpl
 					});
 				}
 			});
+			
+			COConfigurationManager.addAndFireParameterListener(
+				"Show Status In Window Title",
+				new ParameterListener()
+				{
+					private TimerEventPeriodic 	timer;
+					private String				old_text;
+					private String				my_last_text;
+					
+					public void 
+					parameterChanged(
+						final String name ) 
+					{
+						Utils.execSWTThread(
+							new AERunnable() 
+							{
+								public void 
+								runSupport() 
+								{
+									boolean enable = COConfigurationManager.getBooleanParameter( name );
+									
+									if ( enable ){
+										
+										if ( timer == null ){
+											
+											timer = SimpleTimer.addPeriodicEvent(
+												"window.title.updater",
+												1000,
+												new TimerEventPerformer()
+												{
+													public void 
+													perform(
+														TimerEvent event) 
+													{
+														Utils.execSWTThread(
+																new AERunnable() 
+																{
+																	public void 
+																	runSupport() 
+																	{
+																		if( shell.isDisposed()){
+																			
+																			return;
+																		}
+																		
+																		String txt = shell.getText();
+																		
+																		if ( txt != null && !txt.equals( my_last_text )){
+																			
+																			old_text = txt;
+																		}
+																		
+																		txt = getCurrentTitleText();
+												
+																		shell.setText( txt );
+																		
+																		my_last_text = txt;
+																	}
+																});
+													}
+												});
+										}
+									}else{
+										
+										if ( timer != null ){
+											
+											timer.cancel();
+											
+											timer = null;
+										}
+										
+										if ( old_text != null && !shell.isDisposed()){
+											
+											shell.setText( old_text );
+										}
+									}
+								}
+							});
+					}
+				});
 		}
 	}
 
+	private String	last_eta_str = null;
+	private long	last_eta;
+	private int		eta_tick_count;
+	
+	private String
+	getCurrentTitleText()
+	{
+		GlobalManager gm = core.getGlobalManager();
+		
+		if ( gm == null ){
+			
+			return( "" );
+		}
+		
+		GlobalManagerStats stats = gm.getStats();
+		
+		int down 	= stats.getDataReceiveRate() + stats.getProtocolReceiveRate();
+		int up		= stats.getDataSendRate() + stats.getProtocolSendRate();
+		
+		eta_tick_count++;
+		
+		String eta_str = last_eta_str;
+		
+		if ( 	eta_str == null ||
+				last_eta < 120 ||
+				eta_tick_count%10 == 0 ){
+			
+			long	min_eta = Long.MAX_VALUE;
+			int		num_downloading = 0;
+			
+			List<DownloadManager> dms = gm.getDownloadManagers();
+			
+			for ( DownloadManager dm: dms ){
+				
+				if ( dm.getState() == DownloadManager.STATE_DOWNLOADING ){
+					
+					num_downloading++;
+					
+					long dm_eta = dm.getStats().getETA();
+					
+					if ( dm_eta < min_eta ){
+						
+						min_eta = dm_eta;
+					}
+				}
+			}
+			
+			if ( min_eta == Long.MAX_VALUE ){
+				
+				min_eta = Constants.CRAPPY_INFINITE_AS_LONG;
+			}
+			
+			last_eta = min_eta;
+			
+			eta_str = last_eta_str = num_downloading==0?"":DisplayFormatters.formatETA(min_eta);
+		}
+		
+		
+		String down_str = formatRateCompact( down );
+		String up_str 	= formatRateCompact( up );
+		
+		StringBuilder result = new StringBuilder( 50 );
+		
+		result.append( MessageText.getString( "ConfigView.download.abbreviated" ));
+		result.append( " " );
+		result.append( down_str );
+		result.append( " " );
+		result.append( MessageText.getString( "ConfigView.upload.abbreviated" ));
+		result.append( " " );
+		result.append( up_str );
+		
+		if ( eta_str.length() > 0 ){
+			
+			result.append( " " );
+			result.append( MessageText.getString( "ConfigView.eta.abbreviated" ));
+			result.append( " " );
+			result.append( eta_str );
+		}
+		
+		return( result.toString());
+	}
+	
+	private String
+	formatRateCompact(
+		int		rate )
+	{
+		String down_str = DisplayFormatters.formatByteCountToKiBEtc( rate, false, true, 2 );
+		
+		String[] bits = down_str.split( " " );
+	
+		if ( bits.length == 2 ){
+	
+			String sep = String.valueOf( DisplayFormatters.getDecimalSeparator());
+			
+			String num 	= bits[0];
+			String unit = bits[1];
+			
+			int	num_len = num.length();
+			
+			if ( num_len < 4 ){
+				
+				if ( !num.contains( sep )){
+					
+					num += sep;
+					
+					num_len++;
+				}
+				
+				while( num_len < 4 ){
+					
+					num += "0";
+					
+					num_len++;
+				}
+			}else{
+				if ( num_len > 4 ){
+					
+					num = num.substring( 0, 4 );
+					
+					num_len = 4;
+				}
+			}
+			
+			if ( num.endsWith( sep )){
+
+				num = num.substring( 0, num_len - 1 ) + " ";
+			}
+			
+			down_str = num + " " + unit.charAt(0);
+		}
+		
+		return( down_str );
+	}
+	
 	/**
 	 * @param uiInitializer
 	 * @param taskKey TODO
