@@ -759,7 +759,7 @@ SpeedLimitHandler
 		
 						if ( bits.length != 2 ){
 							
-							throw( new Exception( ));
+							throw( new Exception( "Expected <key>=<value> for '" + arg + "'" ));
 							
 						}else{
 							
@@ -840,7 +840,7 @@ SpeedLimitHandler
 					
 				}catch( Throwable e ){
 					
-					result.add( "'" +line + "' is invalid: use ip_set <name>=<cidrs...> [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>]" );
+					result.add( "'" +line + "' is invalid: use ip_set <name>=<cidrs...> [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [,cat=<categories>]: " + e.getMessage());
 				}
 			}else if ( lc_line.startsWith( "net_limit" )){
 
