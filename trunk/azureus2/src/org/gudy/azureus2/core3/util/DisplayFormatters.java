@@ -423,6 +423,46 @@ DisplayFormatters
 				+ (rate ? units_rate[unitIndex] : units[unitIndex]);
 	}
 
+	public static
+	String formatByteCountToKiBEtc(
+			long	n,
+			boolean	rate,
+			boolean bTruncateZeros,
+			int precision,
+			int	minUnit )
+	{
+		double dbl = (rate && use_units_rate_bits) ? n * 8 : n;
+
+		int unitIndex = UNIT_B;
+
+		long	div = force_si_values?1024:(use_si_units?1024:1000);
+
+		while (dbl >= div && unitIndex < unitsStopAt){ 
+
+			dbl /= div;
+			unitIndex++;
+		}
+
+		while( unitIndex < minUnit ){
+			dbl /= div;
+			unitIndex++;
+		}
+		if (precision < 0) {
+			precision = UNITS_PRECISION[unitIndex];
+		}
+
+		// round for rating, because when the user enters something like 7.3kbps
+		// they don't want it truncated and displayed as 7.2  
+		// (7.3*1024 = 7475.2; 7475/1024.0 = 7.2998;  trunc(7.2998, 1 prec.) == 7.2
+		//
+		// Truncate for rest, otherwise we get complaints like:
+		// "I have a 1.0GB torrent and it says I've downloaded 1.0GB.. why isn't 
+		//  it complete? waaah"
+
+		return formatDecimal(dbl, precision, bTruncateZeros, rate)
+		+ (rate ? units_rate[unitIndex] : units[unitIndex]);
+	}
+	
 	public static boolean
 	isDataProtSeparate()
 	{

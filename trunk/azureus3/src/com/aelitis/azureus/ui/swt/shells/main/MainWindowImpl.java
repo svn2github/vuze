@@ -1111,9 +1111,9 @@ public class MainWindowImpl
 	formatRateCompact(
 		int		rate )
 	{
-		String down_str = DisplayFormatters.formatByteCountToKiBEtc( rate, false, true, 2 );
+		String str = DisplayFormatters.formatByteCountToKiBEtc( rate, false, true, 2, DisplayFormatters.UNIT_KB );
 		
-		String[] bits = down_str.split( " " );
+		String[] bits = str.split( " " );
 	
 		if ( bits.length == 2 ){
 	
@@ -1153,10 +1153,10 @@ public class MainWindowImpl
 				num = num.substring( 0, num_len - 1 ) + " ";
 			}
 			
-			down_str = num + " " + unit.charAt(0);
+			str = num + " " + unit.charAt(0);
 		}
 		
-		return( down_str );
+		return( str );
 	}
 	
 	/**
