@@ -187,9 +187,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     
     	throws IOException
     {
-		String	plist = 
-			System.getProperty("user.dir") +
-			SystemProperties.SEP+ SystemProperties.getApplicationName() + ".app/Contents/Info.plist";
+		String	plist = SystemProperties.getApplicationPath() +
+			SystemProperties.getApplicationName() + ".app/Contents/Info.plist";
 
 		File plist_file = new File( plist );
 			
@@ -1013,7 +1012,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     private String
     getBundlePath()
     {
-		return( System.getProperty("user.dir") +SystemProperties.SEP+ SystemProperties.getApplicationName() + ".app" );
+		return( SystemProperties.getApplicationPath() + SystemProperties.getApplicationName() + ".app" );
     }
     
     private File
