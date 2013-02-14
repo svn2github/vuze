@@ -112,7 +112,7 @@ public class FileUtil {
     String path = SystemProperties.getApplicationPath();
       
       if(Constants.isOSX) {
-        path = path + "/" + SystemProperties.getApplicationName() + ".app/Contents/";
+        path = path + SystemProperties.getApplicationName() + ".app/Contents/";
       }
       
       return new File(path, filename);
