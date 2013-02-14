@@ -353,6 +353,14 @@ public class SystemProperties {
 		  
 		  temp_app_path += SEP;
 	  }
+	  
+	  if (Constants.isOSX) {
+	  	// Java7 appaends .app to user.dir
+	  	String appName = SystemProperties.getApplicationName() + ".app/";
+	  	if (temp_app_path.endsWith(appName)) {
+	  		temp_app_path = temp_app_path.substring(0, temp_app_path.length() - appName.length());
+	  	}
+	  }
 
 	  app_path = temp_app_path;
 	  
