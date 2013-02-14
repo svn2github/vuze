@@ -28,13 +28,13 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.LaunchablePlugin;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.logging.LoggerChannelListener;
 import org.gudy.azureus2.pluginsimpl.PluginUtils;
-
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -365,14 +365,7 @@ PluginLauncherImpl
  	getApplicationFile(
  		String filename) 
  	{      
- 	    String path = SystemProperties.getApplicationPath();
- 	      
- 	    if (Constants.isOSX ){
- 	    	
- 	        path = path + "/" + SystemProperties.getApplicationName() + ".app/Contents/";
- 	    }
- 	      
- 	    return new File(path, filename);
+ 		return FileUtil.getApplicationFile(filename);
  	}
  	
   	public static File[]
