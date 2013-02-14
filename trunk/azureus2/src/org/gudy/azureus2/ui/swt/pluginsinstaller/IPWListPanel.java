@@ -33,8 +33,9 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.html.HTMLUtils;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.installer.InstallablePlugin;
 import org.gudy.azureus2.plugins.installer.StandardPlugin;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.LinkArea;
@@ -42,7 +43,6 @@ import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
-import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
@@ -52,7 +52,7 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
  * @author Olivier Chalouhi
  *
  */
-public class IPWListPanel extends AbstractWizardPanel {
+public class IPWListPanel extends AbstractWizardPanel<InstallPluginWizard> {
 
   Table pluginList;
  
@@ -60,8 +60,8 @@ public class IPWListPanel extends AbstractWizardPanel {
   
   public 
   IPWListPanel(
-	Wizard 					wizard, 
-	IWizardPanel 			previous ) 
+	InstallPluginWizard 					wizard, 
+	IWizardPanel<InstallPluginWizard> 		previous ) 
   {
 	super(wizard, previous);
   }
@@ -119,18 +119,18 @@ public class IPWListPanel extends AbstractWizardPanel {
 		public void azureusCoreRunning(AzureusCore core) {
 	    final StandardPlugin plugins[];
 	    try {
-	      plugins = ((InstallPluginWizard)wizard).getStandardPlugins(core);
+	      plugins = wizard.getStandardPlugins(core);
 	      
 	      Arrays.sort( 
 	      	plugins,
-		  	new Comparator()
+		  	new Comparator<StandardPlugin>()
 			{
 	      		public int 
 				compare(
-					Object o1, 
-					Object o2)
+					StandardPlugin o1, 
+					StandardPlugin o2)
 	      		{
-	      			return(((StandardPlugin)o1).getName().compareToIgnoreCase(((StandardPlugin)o2).getName()));
+	      			return( o1.getName().compareToIgnoreCase( o2.getName()));
 	      		}
 			});
 			
@@ -151,7 +151,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	       
 	        lblStatus.setText( ((InstallPluginWizard)wizard).getListTitleText());
 	        
-	        List	selected_plugins = ((InstallPluginWizard)wizard).getPluginList();
+	        List<InstallablePlugin>	selected_plugins = wizard.getPluginList();
 
 	        for(int i = 0 ; i < plugins.length ; i++) {
 	          StandardPlugin plugin = plugins[i];
@@ -163,7 +163,7 @@ public class IPWListPanel extends AbstractWizardPanel {
 	            item.setText(0,plugin.getName());
 	            boolean	selected = false;
 	            for (int j=0;j<selected_plugins.size();j++){
-	            	if (((StandardPlugin)selected_plugins.get(j)).getId() == plugin.getId()){
+	            	if ( selected_plugins.get(j).getId() == plugin.getId()){
 	            		selected = true;
 	            	}
 	            }
@@ -210,8 +210,8 @@ public class IPWListPanel extends AbstractWizardPanel {
 	      final StandardPlugin plugin = (StandardPlugin) selected_item.getData();
 	      
 	      
-	      AEThread detailsLoader = new AEThread("Detail Loader") {
-	        public void runSupport() {	         
+	      AEThread2 detailsLoader = new AEThread2("Detail Loader") {
+	        public void run() {	         
 	         final String description = HTMLUtils.convertListToString(HTMLUtils.convertHTMLToText(plugin.getDescription(),""));
 	         wizard.getDisplay().asyncExec(new AERunnable() {
 			      public void runSupport() {
@@ -230,7 +230,6 @@ public class IPWListPanel extends AbstractWizardPanel {
 	        }
 	      };
 	      
-	      detailsLoader.setDaemon(true);
 	      detailsLoader.start();
   	}
   
@@ -240,20 +239,20 @@ public class IPWListPanel extends AbstractWizardPanel {
 		return(((InstallPluginWizard)wizard).getPluginList().size() > 0 );
 	}
 	
-  public IWizardPanel getNextPanel() {
+  public IWizardPanel<InstallPluginWizard> getNextPanel() {
     return new IPWInstallModePanel(wizard,this);
   }
 	
   public void updateList() {
-    ArrayList list = new ArrayList();
+    ArrayList<InstallablePlugin> list = new ArrayList<InstallablePlugin>();
     TableItem[] items = pluginList.getItems();
     for(int i = 0 ; i < items.length ; i++) {
       if(items[i].getChecked()){
-        list.add(items[i].getData());
+        list.add((InstallablePlugin)items[i].getData());
       }
     }
-    ((InstallPluginWizard)wizard).setPluginList(list);
-    ((InstallPluginWizard)wizard).setNextEnabled( isNextEnabled() );
+    wizard.setPluginList( list );
+    wizard.setNextEnabled( isNextEnabled() );
     
   }
 }

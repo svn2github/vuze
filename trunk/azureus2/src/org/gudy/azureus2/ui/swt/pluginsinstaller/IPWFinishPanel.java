@@ -31,17 +31,16 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
-import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 /**
  * @author Olivier Chalouhi
  *
  */
-public class IPWFinishPanel extends AbstractWizardPanel {
+public class IPWFinishPanel extends AbstractWizardPanel<InstallPluginWizard> {
 
   public IPWFinishPanel(
-      Wizard wizard,
-      IWizardPanel 			previous) 
+	  InstallPluginWizard wizard,
+      IWizardPanel<InstallPluginWizard> 			previous) 
   {
 	super(wizard, previous);
   }
@@ -71,7 +70,7 @@ public class IPWFinishPanel extends AbstractWizardPanel {
   }
   
   public void finish() {
-    ((InstallPluginWizard)wizard).performInstall();
+    wizard.performInstall();
     wizard.switchToClose();
   }
   

@@ -36,13 +36,12 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
-import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 /**
  * @author Olivier Chalouhi
  *
  */
-public class IPWModePanel extends AbstractWizardPanel {
+public class IPWModePanel extends AbstractWizardPanel<InstallPluginWizard> {
   
   private static final int MODE_FROM_LIST = 0;
   private static final int MODE_FROM_FILE = 1;
@@ -52,8 +51,8 @@ public class IPWModePanel extends AbstractWizardPanel {
   
   public 
   IPWModePanel(
-	Wizard 					wizard, 
-	IWizardPanel 			previous ) 
+	InstallPluginWizard 					wizard, 
+	IWizardPanel<InstallPluginWizard> 		previous ) 
   {
 	super(wizard, previous);
   }
@@ -120,7 +119,7 @@ public class IPWModePanel extends AbstractWizardPanel {
 	}
 }
 
-	public IWizardPanel 
+	public IWizardPanel<InstallPluginWizard>
 	getNextPanel()
 	{
 	  switch(mode) {

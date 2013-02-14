@@ -49,7 +49,7 @@ public class InstallPluginWizard extends Wizard {
   int mode;
   
   StandardPlugin[]	standard_plugins;
-  List plugins = new ArrayList();
+  List<InstallablePlugin> plugins = new ArrayList<InstallablePlugin>();
   boolean shared = false;
   String list_title_text;
   
@@ -109,7 +109,7 @@ public class InstallPluginWizard extends Wizard {
 		standard_plugins 	= new StandardPlugin[]{ plugin };
 		list_title_text		= reason;
 		
-		plugins = new ArrayList();
+		plugins = new ArrayList<InstallablePlugin>();
 		plugins.add( plugin );
 		
 		IPWListPanel list_panel = new IPWListPanel(this,null);
@@ -149,11 +149,11 @@ public class InstallPluginWizard extends Wizard {
 	}
   	
   	public void 
-	setPluginList(List _plugins) {
+	setPluginList(List<InstallablePlugin> _plugins) {
   	  plugins = _plugins;
   	}
   	
-  	public List
+  	public List<InstallablePlugin>
   	getPluginList()
   	{
   		return( plugins );

@@ -38,7 +38,6 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.ListenerNeedingCoreRunning;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
-import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 import com.aelitis.azureus.core.AzureusCore;
 
@@ -46,14 +45,15 @@ import com.aelitis.azureus.core.AzureusCore;
  * @author Olivier Chalouhi
  *
  */
-public class IPWFilePanel extends AbstractWizardPanel {
+public class IPWFilePanel extends AbstractWizardPanel<InstallPluginWizard> {
   
   Text txtFile;
   boolean valid = false;
   
   public IPWFilePanel(
-      Wizard wizard,
-      IWizardPanel previous) {
+	InstallPluginWizard wizard,
+    IWizardPanel<InstallPluginWizard> previous) 
+  {
     super(wizard,previous);
   }
   
@@ -110,11 +110,11 @@ public class IPWFilePanel extends AbstractWizardPanel {
 					&& (f.getName().endsWith(".jar") || f.getName().endsWith(".zip"))) {
 				wizard.setErrorMessage("");
 				wizard.setNextEnabled(true);
-				List list = new ArrayList();
+				List<InstallablePlugin> list = new ArrayList<InstallablePlugin>();
 				InstallablePlugin plugin = core.getPluginManager().getPluginInstaller().installFromFile(
 						f);
 				list.add(plugin);
-				((InstallPluginWizard) wizard).plugins = list;
+				wizard.plugins = list;
 				valid = true;
 				return;
 			}
@@ -147,7 +147,7 @@ public class IPWFilePanel extends AbstractWizardPanel {
 	   return valid;
 	}
 	
-	public IWizardPanel getNextPanel() {
+	public IWizardPanel<InstallPluginWizard> getNextPanel() {
 	   return new IPWInstallModePanel(wizard,this);
 	}
 }

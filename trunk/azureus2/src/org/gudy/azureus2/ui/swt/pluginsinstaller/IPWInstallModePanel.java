@@ -33,21 +33,20 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.wizard.AbstractWizardPanel;
 import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
-import org.gudy.azureus2.ui.swt.wizard.Wizard;
 
 /**
  * @author Olivier Chalouhi
  *
  */
-public class IPWInstallModePanel extends AbstractWizardPanel {
+public class IPWInstallModePanel extends AbstractWizardPanel<InstallPluginWizard> {
   
   private static final int MODE_USER   = 0;
   private static final int MODE_SHARED = 1;
   
   public 
   IPWInstallModePanel(
-	Wizard 					wizard, 
-	IWizardPanel 			previous ) 
+	InstallPluginWizard 					wizard, 
+	IWizardPanel<InstallPluginWizard> 		previous ) 
   {
 	super(wizard, previous);
   }
@@ -71,14 +70,14 @@ public class IPWInstallModePanel extends AbstractWizardPanel {
 	layout.numColumns = 1;
 	panel.setLayout(layout);
 
-		// default is shared installation
+		// default is PER_USER installation (changed 2013/02/14 by parg)
 	
-	((InstallPluginWizard) wizard).shared = true;
+	wizard.shared = false;
 
 	Button bSharedMode = new Button(panel,SWT.RADIO);
 	Messages.setLanguageText(bSharedMode,"installPluginsWizard.installMode.shared");
 	bSharedMode.setData("mode",new Integer(MODE_SHARED));
-	bSharedMode.setSelection(true);
+	bSharedMode.setSelection(wizard.shared);
 	GridData data = new GridData(GridData.FILL_VERTICAL);
 	data.verticalAlignment = GridData.VERTICAL_ALIGN_END;
 	bSharedMode.setLayoutData(data);
@@ -87,6 +86,7 @@ public class IPWInstallModePanel extends AbstractWizardPanel {
 	Button bUserMode = new Button(panel,SWT.RADIO);
 	Messages.setLanguageText(bUserMode,"installPluginsWizard.installMode.user");
 	bUserMode.setData("mode",new Integer(MODE_USER));
+	bUserMode.setSelection(!wizard.shared);
 	data = new GridData(GridData.FILL_VERTICAL);
 	data.verticalAlignment = GridData.VERTICAL_ALIGN_BEGINNING;
 	bUserMode.setLayoutData(data);
@@ -94,7 +94,7 @@ public class IPWInstallModePanel extends AbstractWizardPanel {
 	
 	Listener modeListener = new Listener() {
 	  public void handleEvent(Event e) {
-	    ((InstallPluginWizard) wizard).shared = ((Integer) e.widget.getData("mode")).intValue() == MODE_SHARED;
+	    wizard.shared = ((Integer) e.widget.getData("mode")).intValue() == MODE_SHARED;
 	  }
 	};
 
@@ -108,7 +108,7 @@ public class IPWInstallModePanel extends AbstractWizardPanel {
 	   return( true );
 	}
 	
-	public IWizardPanel getFinishPanel() {
+	public IWizardPanel<InstallPluginWizard> getFinishPanel() {
 	    return new IPWFinishPanel(wizard,this);
 	}
 }
