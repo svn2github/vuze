@@ -325,7 +325,7 @@ public class TopBarView
 						new ViewDownSpeedGraph());
 				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "ViewUpSpeedGraph",
 						new ViewUpSpeedGraph());
-				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "ViewDownSpeedGraph",
+				uiSWTinstance.addView(UISWTInstance.VIEW_TOPBAR, "VivaldiView",
 						new VivaldiView(false));
 
 				registeredCoreSubViews = true;
