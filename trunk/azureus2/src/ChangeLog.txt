@@ -42,9 +42,13 @@ BUGFIX: UI    | Declining a 'Close Vuze?' prompt left window in invalid state [P
 BUGFIX: UI    | Recalculate hot spots in sidebar when scrolled [Parg]
 BUGFIX: UI    | 'Full copy last seen' column was broken [Parg]
 
+
+
 2012.12.17 | Vuze 4.8.1.2
 
 BUGFIX: Core  | Removed the 'move do not download files to a subfolder' feature as it is misbehaving - see the 4813 beta series if you want to help test this [Parg]
+
+
 
 2012.12.14 | Vuze 4.8.1.0
 
