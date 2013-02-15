@@ -2580,9 +2580,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	/**
 	 * Returns the ETA time in seconds.
-	 * If the returned time is 0, the download is complete.
-	 * If the returned time is negative, the download
-	 * is complete and it took -xxx time to complete.
+	 *   0 = download is complete.
+	 * < 0 = download is complete and it took -xxx time to complete.
+	 * Constants.CRAPPY_INFINITE_AS_LONG = incomplete and 0 average speed   
 	 */
 	public long 
 	getETA() 

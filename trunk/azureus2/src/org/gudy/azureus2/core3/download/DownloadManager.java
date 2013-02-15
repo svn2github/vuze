@@ -281,6 +281,9 @@ DownloadManager
     public String
     getTrackerStatus();
 
+    /**
+     * When the next call to the tracker will occur (in seconds)
+     */
     public int
     getTrackerTime();
 

@@ -62,6 +62,9 @@ TRTrackerScraperResponse
 	public int
 	getScrapeTime();
 	
+	/**
+	 * When the scrape started (in ms)
+	 */
 	public long
 	getScrapeStartTime();
 

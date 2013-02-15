@@ -29,6 +29,7 @@ public interface
 DownloadManagerStats 
 {	
   /** Find out percentage done of current state
+   * <P>
    * Use getDownloadCompleted() if you wish to find out a torrents download completion level
    *
    * @return 0 to 1000, 0% to 100% respectively
@@ -40,25 +41,28 @@ DownloadManagerStats
 	getCompleted();
 
   /** Retrieve the level of download completion.
-   * 
+   * <P>
    * To understand the bLive parameter, you must know a bit about the
-   * Torrent activation process:
-   * 1) Torrent goes into ST_WAITING
-   * 2) Torrent moves to ST_PREPARING
+   * Torrent activation process:<BR>
+   * 1) Torrent goes into ST_WAITING<BR>
+   * 2) Torrent moves to ST_PREPARING<BR>
    * 3) Torrent moves to ST_DOWNLOADING or ST_SEEDING
-   *
+   * <P>
    * While in ST_PREPARING, Completion Level is rebuilt (either via Fast Resume
    * or via piece checking). Quite often, the download completion level before
    * ST_PREPARING and after ST_PREPARING are identical.
-   *
+   * <P>
    * Before going into ST_PREPARING, we store the download completion level.
    * If you wish to retrieve this value instead of the live "building" one,
    * pass false for the parameter.
    *
-   * @param bLive true - Always returns the known completion level of the torrent
-   *               false - In the case of ST_PREPARING, return completion level 
-   *                       before of the torrent ST_PREPARING started.  
-   *                       Otherwise, same as true.
+   * @param bLive
+   * 	true - Always returns the known completion level of the torrent
+   * <P>
+   *  false - In the case of ST_PREPARING, return completion level 
+   *          before of the torrent ST_PREPARING started.  
+   *          Otherwise, same as true.
+   *
    * @return 0 - 1000
    */
 	public int
@@ -92,11 +96,14 @@ DownloadManagerStats
   	
 	public long getTotalProtocolBytesSent();
 	
-	/*
+	/**
 	 * Resets the total bytes sent/received - will stop and start the download if it is running
 	 */
 	public void resetTotalBytesSentReceived( long sent, long received );
 
+	/**
+	 * Returns the bytes remaining.  Excludes DND files only if there is a DiskManager!
+	 */
 	public long getRemaining();
 	
 	public long
@@ -149,6 +156,13 @@ DownloadManagerStats
 	public long
 	getTimeStartedSeeding();
 
+	/**
+	 * Returns the ETA time in seconds.
+	 *   0 = download is complete.
+	 * < 0 = download is complete and it took -xxx time to complete.
+	 * 	-1 = unknown eta (no peer manager) or download completed 1s ago
+	 * Constants.CRAPPY_INFINITE_AS_LONG = incomplete and 0 average speed   
+	 */
 	public long
 	getETA();
 	

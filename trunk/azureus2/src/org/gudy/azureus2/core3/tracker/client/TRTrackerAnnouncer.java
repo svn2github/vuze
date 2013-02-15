@@ -86,6 +86,9 @@ TRTrackerAnnouncer
 	public int
 	getTimeUntilNextUpdate();
 	
+	/** 
+	 * Last Update Time in seconds
+	 */
 	public int
 	getLastUpdateTime();
 			

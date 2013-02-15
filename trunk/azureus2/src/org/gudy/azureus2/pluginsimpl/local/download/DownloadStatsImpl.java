@@ -159,6 +159,9 @@ DownloadStatsImpl
 		return( dm_stats.getElapsedTime());
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.plugins.download.DownloadStats#getETA()
+	 */
 	public String
 	getETA()
 	{

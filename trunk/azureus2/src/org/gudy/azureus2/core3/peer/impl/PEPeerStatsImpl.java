@@ -120,6 +120,10 @@ PEPeerStatsImpl
       }
     }
     
+    /**
+     * 0 if complete
+     * Long.MaxValue if infinite
+     */
     public long
     getEstimatedSecondsToCompletion()
     {

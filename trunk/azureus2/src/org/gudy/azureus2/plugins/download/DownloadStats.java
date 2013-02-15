@@ -149,8 +149,9 @@ DownloadStats
 	getDownloaded();
 	
 	/**
-	 * Gives number of bytes remaining
-	 * @return
+	 * Gives number of bytes remaining.  Excludes DND files only if disk manager exists
+	 * 
+	 * @since 2.5.0.2
 	 */
 	
 	public long
