@@ -25,7 +25,6 @@ package org.gudy.azureus2.plugins.torrent;
  * @author parg
  *
  */
-
 public interface 
 TorrentDownloader 
 {
@@ -54,4 +53,21 @@ TorrentDownloader
 		String	encoding )
 	
 		throws TorrentException;
+
+	
+	/**
+	 * 
+	 * @param key "URL_Cookie" to set cookies
+	 * @param value
+	 * 
+	 * @since 4.8.1.3
+	 */
+	public void setRequestProperty(String key, Object value) throws TorrentException;
+
+	/**
+	 * @param key "URL_Cookie" to get cookies
+	 * @return
+	 */
+	public Object getRequestProperty(String key) throws TorrentException;
+
 }

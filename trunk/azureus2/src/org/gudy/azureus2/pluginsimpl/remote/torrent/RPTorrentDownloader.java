@@ -158,4 +158,14 @@ RPTorrentDownloader
 			throw( e );
 		}	
 	}
+
+	public void setRequestProperty(String key, Object value)
+			throws TorrentException {
+		delegate.setRequestProperty(key, value);
+	}
+
+	public Object getRequestProperty(String key)
+			throws TorrentException {
+		return delegate.getRequestProperty(key);
+	}
 }

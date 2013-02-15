@@ -171,4 +171,28 @@ TorrentDownloaderImpl
 		
 		return( download());
 	}
+
+	public void setRequestProperty(String key, Object value)
+			throws TorrentException {
+		if (_downloader != null) {
+			try {
+				_downloader.setProperty(key, value);
+			} catch (ResourceDownloaderException e) {
+				throw new TorrentException(e);
+			}
+		}
+	}
+
+	public Object getRequestProperty(String key)
+		throws TorrentException {
+		if (_downloader != null) {
+			try {
+				return _downloader.getProperty(key);
+			} catch (ResourceDownloaderException e) {
+				throw new TorrentException(e);
+			}
+		}
+		return null;
+	}
+
 }
