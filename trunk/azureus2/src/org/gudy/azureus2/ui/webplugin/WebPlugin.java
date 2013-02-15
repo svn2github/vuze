@@ -1284,7 +1284,9 @@ WebPlugin
 										log( "Too many recent authentication failures from '" + client_address + "' - rate limiting" );
 
 										x[2] = now+DELAY;
-										
+										// there's a bug where flipping the password on doesn't reset the pw so we automatically fail without checking
+										// this is not the correct fix, but it works
+										last_pw = "";										
 										waiter = (AESemaphore)x[0];
 									}
 								}
