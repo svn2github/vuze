@@ -129,6 +129,11 @@ RPDiskManagerFileInfo
 		return( 0 );
 	}
 	
+	public int getNumericPriority() {
+		notSupported();
+		return 0;
+	}
+	
 	public void 
 	setNumericPriority(
 		int priority) 

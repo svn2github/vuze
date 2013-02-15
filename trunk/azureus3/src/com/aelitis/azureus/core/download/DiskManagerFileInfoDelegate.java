@@ -83,6 +83,12 @@ DiskManagerFileInfoDelegate
 		return( delegate.getNumericPriorty());
 	}
 	
+	public int 
+	getNumericPriority() 
+	{
+		return( delegate.getNumericPriority());
+	}
+	
 	public void 
 	setNumericPriority(
 		int priority) 

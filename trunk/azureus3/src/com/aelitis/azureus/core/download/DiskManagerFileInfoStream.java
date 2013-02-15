@@ -105,7 +105,14 @@ DiskManagerFileInfoStream
 	{
 		throw( new RuntimeException( "Not supported" ));
 	}
+
+	public int 
+	getNumericPriority() 
+	{
+		return( 0 );
+	}
 	
+
 	public int 
 	getNumericPriorty() 
 	{

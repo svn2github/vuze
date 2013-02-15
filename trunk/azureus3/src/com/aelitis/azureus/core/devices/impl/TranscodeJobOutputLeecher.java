@@ -87,6 +87,12 @@ TranscodeJobOutputLeecher
 		return( 0 );
 	}
 	
+	public int 
+	getNumericPriority() 
+	{
+		return( 0 );
+	}
+	
 	public void 
 	setNumericPriority(
 		int priority) 

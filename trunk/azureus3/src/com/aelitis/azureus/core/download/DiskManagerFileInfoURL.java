@@ -269,6 +269,12 @@ DiskManagerFileInfoURL
 	}
 	
 	public int 
+	getNumericPriority() 
+	{
+		return( 0 );
+	}
+	
+	public int 
 	getNumericPriorty() 
 	{
 		return( 0 );

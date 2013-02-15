@@ -37,6 +37,10 @@ DiskManagerFileInfo
 {
 	public static final int READ = 1;
 	public static final int WRITE = 2;
+	
+	public static final int PRIORITY_LOW = -1;
+	public static final int PRIORITY_NORMAL = 0;
+	public static final int PRIORITY_HIGH = 1;
 
 		// set methods
 		
@@ -44,11 +48,13 @@ DiskManagerFileInfo
 	setPriority(
 		boolean b );
 	
-		/**
-		 * @since 4407
-		 * @param priority
-		 */
-	
+  /**
+   * Sets the file's download priority base on a number
+   * 
+   * @param priority Any number or {@link #PRIORITY_LOW}, {@link #PRIORITY_NORMAL}, {@link #PRIORITY_HIGH}
+   * 
+   * @since 4407
+   */
 	public void
 	setNumericPriority(
 		int		priority );
@@ -124,11 +130,22 @@ DiskManagerFileInfo
 		/**
 		 * @since 4407
 		 * @return
+		 * @deprecated
 		 */
 	
 	public int
 	getNumericPriorty();
+
 	
+	/**
+	 * 
+	 * @return
+	 * 
+	 * @since 4.8.1.3
+	 */
+	public int
+	getNumericPriority();
+
 	public boolean 
 	isSkipped();
 	

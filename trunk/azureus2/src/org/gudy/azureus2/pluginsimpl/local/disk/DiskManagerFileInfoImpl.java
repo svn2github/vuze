@@ -70,6 +70,10 @@ DiskManagerFileInfoImpl
 		return( core.getPriority());
 	}
 	
+	public int getNumericPriority() {
+		return( core.getPriority());
+	}
+	
 	public void 
 	setNumericPriority(
 		int priority) 
