@@ -269,7 +269,7 @@ public class BrowserContext
 				}
 				event.required = true;
 
-				if (browser.getUrl().contains("js.debug=1") || browser.getUrl().contains("ftux/index.php")) {
+				if (browser.getUrl().contains("js.debug=1")) {
 					final Shell shell = ShellFactory.createMainShell(SWT.SHELL_TRIM);
 					shell.setLayout(new FillLayout());
 					shell.setSize(920, 500);
