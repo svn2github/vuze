@@ -1,7 +1,46 @@
 VUZE CHANGELOG
 -----------------
 
-201x.xx.xx | Vuze 4.8.1.3
+2013.02.15 | Vuze 4.9.0.0
+
+FEATURE: Blog | See http://devblog.vuze.com/tagged/4900 for beta version blog posts
+
+FEATURE: Core | 'move do not download files to a subfolder' is back but defaults to 'disabled' [Parg]
+FEATURE: Core | Support compact I2P announce responses [Parg]
+FEATURE: Core | Speed Limit handler now supports pausing and resuming, total transfer limits and ip-sets [Parg]
+FEATURE: Core | Added option to disable availability-based webseed activation to support faster startup [Parg]
+FEATURE: Plug | Added 'boss key' plugin for Windows users [Parg]
+FEATURE: Plug | Swarm Discoveries now support 'tracker sources' [Parg&TuxPaper]
+FEATURE: UI   | Added UPnP media-server browser and playback (and add-to-device) under Devices Playback (deselect 'simple view' to access) [Parg]
+FEATURE: UI   | Console UI now supports 'show t' option for dead torrents [Parg]
+FEATURE: UI   | Added 'number of queued downloads' to library view header [Parg]
+FEATURE: UI   | Added keyboard shortcut for 'pause-for-time' menu option [Parg]
+FEATURE: UI   | Added option to show Vuze interface in all uppercase for those users that seem to be unable to turn capslock off on the forums [Parg]
+FEATURE: UI   | When adding a torrent with the same hash as an existing download you are now prompted to merge in any additional trackers [Parg]
+FEATURE: UI   | For non-OSX users the current transfer rates can now be displayed in the window title [Parg]
+
+CHANGE: Core  | Reset the 'maybe VPN' settings when bind IPs modified [Parg]
+CHANGE: Core  | Vuze clients are now displayed as 'Vuze' in the peers view instead of 'Azureus' [Parg]
+CHANGE: Core  | The 'move dnd files to subfolder' now only applies to new downloads [Parg]
+CHANGE: Core  | Support multiple routers to UPnP devices and try alternatives when one fails [Parg]
+CHANGE: Plug  | Disabled the per-ASN DHT announces as no evidence it is of significant benefit [Parg]
+CHANGE: Plug  | Plugin installer now defaults to per-user installs [Parg]
+CHANGE: UI    | Speed test is now not automatically run on first install but linked from FTUX [TuxPaper]
+CHANGE: UI    | Search results details pages now open in exernal browser [TuxPaper]
+CHANGE: UI    | Brazilian Portuguese translation update [Havokdan]
+CHANGE: UI    | Basque translation update [Azpidatziak]
+CHANGE: UI    | Spanish translation update [Valtiel]
+
+BUGFIX: Core  | Fixed rare sort-contract-violation error under Java 7 during piece picking [Parg]
+BUGFIX: Core  | Keep definitions of old network interfaces so correct classification can still be applied after an interface is lost [Parg]
+BUGFIX: Core  | Disable DND TXT handling when using SOCKS proxy [Parg]
+BUGFIX: Core  | Turn off auto-speed when applying the result of a speedtest otherwise it overwrites it [Parg]
+BUGFIX: Core  | Fix update operations failing on OSX with Java 7 [Tuxpaper]
+BUGFIX: UI    | Fixed display of disabled peer sources in sources view [Parg]
+BUGFIX: UI    | Fixed 'escape' key not closing donation dialog [TuxPaper]
+BUGFIX: UI    | Declining a 'Close Vuze?' prompt left window in invalid state [Parg]
+BUGFIX: UI    | Recalculate hot spots in sidebar when scrolled [Parg]
+BUGFIX: UI    | 'Full copy last seen' column was broken [Parg]
 
 2012.12.17 | Vuze 4.8.1.2
 
