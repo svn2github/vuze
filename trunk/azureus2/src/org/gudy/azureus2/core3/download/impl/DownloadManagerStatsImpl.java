@@ -128,6 +128,9 @@ DownloadManagerStatsImpl
   
   
 	
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.download.DownloadManagerStats#getETA()
+	 */
 	public long 
 	getETA()
 	{
@@ -141,6 +144,9 @@ DownloadManagerStatsImpl
 		return -1;   //return exactly -1 if ETA is unknown
 	}
 
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.core3.download.DownloadManagerStats#getCompleted()
+	 */
 	public int 
 	getCompleted() 
 	{
@@ -372,7 +378,7 @@ DownloadManagerStatsImpl
 	    if ( disk_manager == null ){
 	    	
 	    	return download_manager.getSize() - 
-		             ((long)getCompleted() * download_manager.getSize() / 1000L);
+		             ((long)getDownloadCompleted(false) * download_manager.getSize() / 1000L);
 		
 	    }else{
 		     
