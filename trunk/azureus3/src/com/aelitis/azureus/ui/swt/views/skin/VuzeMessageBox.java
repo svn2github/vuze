@@ -281,6 +281,10 @@ public class VuzeMessageBox
 		}
 		dlg.open();
 	}
+	
+	public Button[] getButtons() {
+		return buttons;
+	}
 
 	private void createButtons(SWTSkinObjectContainer soBottomArea) {
 		FormData fd;
