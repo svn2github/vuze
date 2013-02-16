@@ -1,6 +1,10 @@
 VUZE CHANGELOG
 -----------------
 
+2013.xx.xx | Vuze 4.9.0.1
+
+
+
 2013.02.15 | Vuze 4.9.0.0
 
 FEATURE: Blog | See http://devblog.vuze.com/tagged/4900 for beta version blog posts
