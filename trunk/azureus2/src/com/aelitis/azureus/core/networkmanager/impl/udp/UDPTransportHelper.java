@@ -547,51 +547,72 @@ UDPTransportHelper
     protected void
     fireReadSelect()
     {
-     	synchronized( this ){
-     		 
-	   		if ( read_listener != null && !read_selects_paused ){
-	   			
-	   			if ( failed != null  ){
-	   				
-	   	 			selector.ready( this, read_listener, read_attachment, failed );
-	   	 		  
-	   			}else if ( closed ){
-	   				
-	   	   			selector.ready( this, read_listener, read_attachment, new Throwable( "Transport closed" ));
-	   	   		 
-	   			}else if ( connection.canRead()){
-	   				
-	   	 			selector.ready( this, read_listener, read_attachment );
-	   			}
-	   		}
-     	}
+    	try{
+	     	synchronized( this ){
+	     		 
+		   		if ( read_listener != null && !read_selects_paused ){
+		   			
+		   			if ( failed != null  ){
+		   				
+		   	 			selector.ready( this, read_listener, read_attachment, failed );
+		   	 		  
+		   			}else if ( closed ){
+		   				
+		   	   			selector.ready( this, read_listener, read_attachment, new Throwable( "Transport closed" ));
+		   	   		 
+		   			}else if ( connection.canRead()){
+		   				
+		   	 			selector.ready( this, read_listener, read_attachment );
+		   			}
+		   		}
+	     	}
+    	}catch( IOException e ){
+    		
+    			// most likely selector has been destroyed so don't fire writeselect else
+    			// we'll get into a loop
+    		
+    		failed = e;
+    		
+    		connection.failedSupport( e );
+    	}
     }
+    
     protected void
     fireWriteSelect()
     {
-      	synchronized( this ){
-       	    
-	   		if ( write_listener != null && !write_selects_paused ){
-	   			
-	   			if ( failed != null  ){
-	   				
-	   				write_selects_paused	= true;
-	   				
-	   	 			selector.ready( this, write_listener, write_attachment, failed );
-	   	 		  
-	   			}else if ( closed ){
-	   				
-	   				write_selects_paused	= true;
-
-	   	   			selector.ready( this, write_listener, write_attachment, new Throwable( "Transport closed" ));
-
-	   			}else if ( connection.canWrite()){
-	   				
-	   				write_selects_paused	= true;
-	   					   				
-	   	 			selector.ready( this, write_listener, write_attachment );
-	   			}
-	   		}
+    	try{
+	      	synchronized( this ){
+	       	    
+		   		if ( write_listener != null && !write_selects_paused ){
+		   			
+		   			if ( failed != null  ){
+		   				
+		   				write_selects_paused	= true;
+		   				
+		   	 			selector.ready( this, write_listener, write_attachment, failed );
+		   	 		  
+		   			}else if ( closed ){
+		   				
+		   				write_selects_paused	= true;
+	
+		   	   			selector.ready( this, write_listener, write_attachment, new Throwable( "Transport closed" ));
+	
+		   			}else if ( connection.canWrite()){
+		   				
+		   				write_selects_paused	= true;
+		   					   				
+		   	 			selector.ready( this, write_listener, write_attachment );
+		   			}
+		   		}
+	    	}  	
+	      }catch( IOException e ){
+    		
+    			// most likely selector has been destroyed so don't fire readselect else
+    			// we'll get into a loop
+    		
+    		failed = e;
+    		
+    		connection.failedSupport( e );
     	}
     }
     

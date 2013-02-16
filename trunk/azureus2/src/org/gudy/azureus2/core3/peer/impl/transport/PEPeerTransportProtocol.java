@@ -552,43 +552,53 @@ implements PEPeerTransport
 		}
 
 		InetSocketAddress	endpoint_address;
-		ProtocolEndpoint	pe;
+		ProtocolEndpoint	pe1;
+		ProtocolEndpoint	pe2 = null;
 
 		if ( _use_tcp ){
 
-			endpoint_address = new InetSocketAddress( ip, tcp_listen_port );
-
-			int	protocol;
+			boolean utp_available = ProtocolEndpointFactory.isHandlerRegistered( ProtocolEndpoint.PROTOCOL_UTP );
 			
-			if ( lan_local || !AERunStateHandler.isUDPNetworkOnly()){
+			boolean socks_active = NetworkAdmin.getSingleton().isSocksActive();
+			
+			endpoint_address = new InetSocketAddress( ip, tcp_listen_port );
+			
+			if ( lan_local || !utp_available ){
 				
-				protocol = ProtocolEndpoint.PROTOCOL_TCP;
+				pe1 = ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, endpoint_address );
+				
+			}else if ( AERunStateHandler.isUDPNetworkOnly() && !socks_active ){
+				
+				pe1 = ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_UTP, endpoint_address );
 				
 			}else{
+							
+				pe1 = ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, endpoint_address );
 				
-				if ( ProtocolEndpointFactory.isHandlerRegistered( ProtocolEndpoint.PROTOCOL_UTP )){
+				if ( !socks_active ){
 				
-					protocol = ProtocolEndpoint.PROTOCOL_UTP;
+					if ( RandomUtils.nextInt(2) == 1 ){
 					
-				}else{
-				
-					protocol = ProtocolEndpoint.PROTOCOL_TCP;
+						pe2 = ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_UTP, endpoint_address );
+					}
 				}
 			}
-			
-			pe = ProtocolEndpointFactory.createEndpoint( protocol, endpoint_address );
-
 		}else{
 
 			endpoint_address = new InetSocketAddress( ip, udp_listen_port );
 
-			pe = ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_UDP, endpoint_address );
+			pe1 = ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_UDP, endpoint_address );
 		}
 
 		ConnectionEndpoint connection_endpoint	= new ConnectionEndpoint( endpoint_address );
 
-		connection_endpoint.addProtocol( pe );
+		connection_endpoint.addProtocol( pe1 );
 
+		if ( pe2 != null ){
+			
+			connection_endpoint.addProtocol( pe2 );
+		}
+		
 		connection = 
 			NetworkManager.getSingleton().createConnection(
 					connection_endpoint, 
@@ -4832,7 +4842,13 @@ implements PEPeerTransport
 	public boolean
 	isTCP()
 	{
-		return( connection.getEndpoint().getProtocols()[0].getType() == ProtocolEndpoint.PROTOCOL_TCP );
+		ProtocolEndpoint[] protocols = connection.getEndpoint().getProtocols();
+		
+			// not very good here - for most purposes we lump uTP with TCP as 'UDP' originally
+			// meant the Vuze UDP protocol. The reconnect handling, for example, requires uTP to
+			// appear to be TCP so for the moment lets make it so
+		
+		return( protocols[0].getType() != ProtocolEndpoint.PROTOCOL_UDP );
 	}
 
 

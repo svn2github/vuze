@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.udp;
 
+import java.io.IOException;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
@@ -133,16 +134,16 @@ UDPSelector
 		TransportHelper						transport,
 		TransportHelper.selectListener		listener,
 		Object								attachment )
+	
+		throws IOException
 	{
 		boolean	removed = false;
 		
 		synchronized( ready_set ){
 
 			if( destroyed ){
-				
-				Debug.out( "Selector has been destroyed" );
-				
-				throw( new RuntimeException( "Selector has been destroyed" ));
+								
+				throw( new IOException( "Selector has been destroyed" ));
 			}
 			
 			Iterator	it = ready_set.iterator();
@@ -176,16 +177,16 @@ UDPSelector
 		TransportHelper.selectListener		listener,
 		Object								attachment,
 		Throwable							error )
+	
+		throws IOException
 	{
 		boolean	removed = false;
 		
 		synchronized( ready_set ){
 
 			if( destroyed ){
-				
-				Debug.out( "Selector has been destroyed" );
-				
-				throw( new RuntimeException( "Selector has been destroyed" ));
+								
+				throw( new IOException( "Selector has been destroyed" ));
 			}
 		
 			Iterator	it = ready_set.iterator();
