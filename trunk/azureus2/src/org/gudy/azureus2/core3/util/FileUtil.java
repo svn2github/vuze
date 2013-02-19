@@ -1737,6 +1737,13 @@ public class FileUtil {
 
 			}else{
 				
+					// deal with case where new root already has the right suffix
+				
+				if ( new_root.endsWith( file_suffix )){
+					
+					return( new_root );
+				}
+				
 				return( new_root + file_suffix );
 			}
 		}

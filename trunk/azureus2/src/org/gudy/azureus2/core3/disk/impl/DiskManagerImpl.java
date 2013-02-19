@@ -1564,6 +1564,42 @@ DiskManagerImpl
 	                    						}
 	                    					}
 	                    				}
+	                    			}else{
+	                    				
+	                    					/* bit nasty this but I (parg) spent a while trying to find an alternative solution to this and gave up
+	                    					 * With simple torrents, if a 'file-move' operation is performed while incomplete with a suffix defined then
+	                    					 * the actual save location gets updated and the link information lost as a result (it is as if the user went and
+	                    					 * moved the file to another one that happened to end in the suffix). Detect this situation and do the best we
+	                    					 * can to remove the auto-added suffix
+	                    					 */
+	                    				
+	                    				if ( this_file.getTorrentFile().getTorrent().isSimpleTorrent()){
+	                    			
+	                    					File save_location = download_manager.getSaveLocation();
+	                    					
+	                    					String	name = save_location.getName();
+		                    				
+		                    				if ( name.endsWith( suffix ) && name.length() > suffix.length()){
+		                    					
+		                    					String	new_name = name.substring( 0, name.length() - suffix.length());
+		                    					
+		                    					File new_file = new File( save_location.getParentFile(), new_name );
+		                    					
+		                    					if ( !new_file.exists()){
+		                    						
+		                    						this_file.renameFile( new_name );
+		                    						
+		                    						if ( save_location.equals( new_file )){
+		                    							
+		                    							state.setFileLink( save_location, null );
+		                    							
+		                    						}else{
+		                    							
+		                    							state.setFileLink( save_location, new_file );
+		                    						}
+		                    					}
+		                    				}
+	                    				}	
 	                    			}
 	                    		}
                     		}finally{
