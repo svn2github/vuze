@@ -362,6 +362,12 @@ public class UrlUtils
 		
 		Pattern pattern;
 		Matcher matcher;
+		
+		pattern = Pattern.compile("magnet:\\?[a-z%0-9=_:&.]+", Pattern.CASE_INSENSITIVE);
+		matcher = pattern.matcher(text);
+		if (matcher.find()) {
+			return matcher.group();
+		}
 
 		pattern = Pattern.compile("bc://bt/([a-z0-9=\\+/]+)", Pattern.CASE_INSENSITIVE);
 		matcher = pattern.matcher(text.replaceAll(" ", "+"));
