@@ -2146,20 +2146,19 @@ public class TorrentUtil {
 			if (parentShell != null) {
 				boolean isHTML = sFirstChunk.indexOf("<html") >= 0;
 				
-				final String retry_url = UrlUtils.parseTextForMagnets( torrentName );
+				String retry_url = UrlUtils.parseTextForMagnets( torrentName );
+				if (retry_url == null) {
+					retry_url = UrlUtils.parseTextForMagnets(sFirstChunk); 	
+				}
+				
+				if (retry_url != null) {
+					TorrentOpener.openTorrent( retry_url );
+					return false;
+				}
 				
 				String[] buttons;
 				
-				if ( retry_url == null ){
-					
-					buttons = new String[]{ MessageText.getString("Button.ok") };
-				}else{
-					
-					buttons = 
-						new String[]{
-							MessageText.getString( "OpenTorrentWindow.mb.notTorrent.retry" ),
-							MessageText.getString( "Button.cancel" )};
-				}
+				buttons = new String[]{ MessageText.getString("Button.ok") };
 				
 				MessageBoxShell boxShell = new MessageBoxShell(
 						MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
@@ -2174,19 +2173,7 @@ public class TorrentUtil {
 				if (isHTML) {
 					boxShell.setHtml(sFirstChunk);
 				}
-				boxShell.open(
-					new UserPrompterResultListener()
-					{
-						public void 
-						prompterClosed(
-							int result )
-						{
-							if ( result == 0 && retry_url != null ){
-								
-								TorrentOpener.openTorrent( retry_url );
-							}
-						}
-					});
+				boxShell.open(null);
 			}
 
 			return false;
