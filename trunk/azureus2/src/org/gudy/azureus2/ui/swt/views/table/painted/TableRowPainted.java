@@ -125,7 +125,9 @@ public class TableRowPainted
 			if (mTableCells != null) {
 				for (TableCellCore cell : mTableCells.values()) {
 					if (cell != null && cell != cellSort) {
-						cell.dispose();
+						if ( !cell.isDisposed()){
+							cell.dispose();
+						}
 					}
 				}
 				mTableCells = null;
