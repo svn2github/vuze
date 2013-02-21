@@ -330,6 +330,12 @@ public class PiecesItem
 					} else {
 						cell.setGraphic(new UISWTGraphicImpl(image));
 					}
+					
+					if ( oldImage != null && image != oldImage && !oldImage.isDisposed()){
+						
+						oldImage.dispose();
+					}
+					
 					if (bImageChanged || image != oldImage) {
 						cell.invalidate();
 					}
