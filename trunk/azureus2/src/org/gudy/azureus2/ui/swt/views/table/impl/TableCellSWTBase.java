@@ -532,6 +532,12 @@ public abstract class TableCellSWTBase
 	}
 
 	public void dispose() {
+		if ( isDisposed()){
+			// parg added this check at same time as removing the isDisposed check in getDataSource
+			// in case there is some recursive disposal occuring on a dispose-listener
+			Debug.out( "Double disposal!" );
+			return;
+		}
 		setFlag(FLAG_DISPOSED);
 
 		if (tableColumn != null) {
