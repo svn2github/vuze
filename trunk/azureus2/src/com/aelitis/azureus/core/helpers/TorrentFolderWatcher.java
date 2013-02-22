@@ -66,30 +66,95 @@ public class TorrentFolderWatcher {
 			if (COConfigurationManager.getBooleanParameter(PARAMID_FOLDER)) {
 				if (!running) {
 					running = true;
-					watch_thread.setDaemon(true);
-					watch_thread.setPriority(Thread.MIN_PRIORITY);
-					watch_thread.start();
+					if ( !watch_thread.isAlive()){
+							// crap code this but I can't be bothered to fix it
+						watch_thread.setDaemon(true);
+						watch_thread.setPriority(Thread.MIN_PRIORITY);
+						watch_thread.start();
+					}
 				}
-			} else
+			} else{
 				running = false;
-		}
-	};
-
-	private final Thread watch_thread = new AEThread("FolderWatcher") {
-		public void runSupport() {
-			while (running) {
-				int sleepMS = COConfigurationManager
-						.getIntParameter("Watch Torrent Folder Interval");
-				try {
-					Thread.sleep(sleepMS * 60000);
-				} catch (Exception e) {
-					Debug.printStackTrace(e);
-				}
-
-				importAddedFiles();
 			}
 		}
 	};
+
+	private final Thread watch_thread = 
+		new AEThread("FolderWatcher")
+		{
+			private long	last_run = 0;	// trigger a run on startup
+			
+			private AESemaphore wait_sem = new AESemaphore( "fw:wait" );
+			
+			{
+				COConfigurationManager.addParameterListener(
+					new String[]{
+						PARAMID_FOLDER,
+						"Watch Torrent Folder Interval Secs",
+					},
+					new ParameterListener()
+					{
+						public void 
+						parameterChanged(
+							String name )
+						{
+							wait_sem.release();
+						};
+					});
+			}
+			
+			public void 
+			runSupport() 
+			{
+				while( true ){
+					
+					while( true ){
+						
+						long	now = SystemTime.getMonotonousTime();
+						
+						int sleep_secs = COConfigurationManager.getIntParameter("Watch Torrent Folder Interval Secs");
+						
+						if ( sleep_secs < 1 ){
+							
+							sleep_secs = 1;
+						}
+						
+						int sleep_ms	= sleep_secs*1000;
+						
+						long	remaining = last_run + sleep_ms - now;
+						
+						if ( remaining < 250 || last_run == 0 ){
+							
+							last_run = now;
+							
+							break;
+						}
+						
+						if ( remaining < 250 ){
+								
+							remaining = 250;
+						}
+														
+						wait_sem.reserve( remaining );
+					}
+									
+					try{
+						if ( running ){
+							
+							importAddedFiles();
+														
+						}else{
+							
+							wait_sem.reserve(60*1000);
+						}
+												
+					}catch( Throwable e){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		};
 
 	/**
 	 * Start a folder watcher, which will auto-import torrents via the given

@@ -818,6 +818,17 @@ ConfigurationChecker
 	    
 	    // check_level 3 was used temporarily
 	    
+	    if ( COConfigurationManager.doesParameterNonDefaultExist( "Watch Torrent Folder Interval" )){
+	    	
+	    	long mins = COConfigurationManager.getIntParameter( "Watch Torrent Folder Interval" );
+	    	
+	    	COConfigurationManager.removeParameter( "Watch Torrent Folder Interval" );
+	    	
+	    	COConfigurationManager.setParameter( "Watch Torrent Folder Interval Secs", 60*mins );
+	    	
+	    	changed = true;
+	    }
+	    
 	    if(changed) {
 	      COConfigurationManager.save();
 	    } 

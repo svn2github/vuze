@@ -72,6 +72,7 @@ public class ConfigurationDefaults {
   
   private static final Long ZERO	= new Long(0);
   private static final Long ONE		= new Long(1);
+  private static final Long SIXTY	= new Long(60);
 
   private static final Long FALSE	= ZERO;
   private static final Long TRUE	= ONE;
@@ -335,7 +336,8 @@ public class ConfigurationDefaults {
     def.put( "Play Download Finished", FALSE );
     def.put( "Play Download Finished File", "" );
     def.put( "Watch Torrent Folder", FALSE );
-    def.put( "Watch Torrent Folder Interval", ONE );
+    def.put( "Watch Torrent Folder Interval", ONE );	// deprecated, use secs below, migrated in checker
+    def.put( "Watch Torrent Folder Interval Secs", SIXTY );
     def.put( "Start Watched Torrents Stopped", FALSE );
     def.put( "Watch Torrent Folder Path", "" );
     def.put( "Prioritize First Piece", FALSE );
@@ -381,7 +383,7 @@ public class ConfigurationDefaults {
     def.put( "Tracker Key Enable Server", TRUE );
     def.put( "Tracker Separate Peer IDs", FALSE);
     def.put( "Tracker Client Connect Timeout", new Long(120));
-    def.put( "Tracker Client Read Timeout", new Long(60));
+    def.put( "Tracker Client Read Timeout", SIXTY );
 	def.put( "Tracker Client Send OS and Java Version", TRUE);
 	def.put( "Tracker Client Show Warnings", TRUE);
 	def.put( "Tracker Client Min Announce Interval", ZERO);
@@ -465,7 +467,7 @@ public class ConfigurationDefaults {
     def.put( "Sharing Protocol", "DHT" );
     def.put( "Sharing Add Hashes", FALSE );
     def.put( "Sharing Rescan Enable", FALSE);
-    def.put( "Sharing Rescan Period", new Long(60));
+    def.put( "Sharing Rescan Period", SIXTY );
     def.put( "Sharing Torrent Comment", "" );
     def.put( "Sharing Permit DHT", TRUE);
     def.put( "Sharing Torrent Private", FALSE);
@@ -565,7 +567,7 @@ public class ConfigurationDefaults {
     
     def.put( "BT Request Max Block Size", new Long(65536));
     def.put( "network.tcp.enable_safe_selector_mode", FALSE );
-    def.put( "network.tcp.safe_selector_mode.chunk_size", new Long( 60 ));
+    def.put( "network.tcp.safe_selector_mode.chunk_size", SIXTY );
     
     def.put( "network.transport.encrypted.require", FALSE );
     def.put( "network.transport.encrypted.min_level", "RC4" );
@@ -637,7 +639,7 @@ public class ConfigurationDefaults {
 	
 	    //default V2 algorithm seeding and download mode usage, stored as an Int
 	    def.put( SpeedLimitMonitor.USED_UPLOAD_CAPACITY_SEEDING_MODE, new Long(90) );  
-	    def.put( SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE, new Long(60) );
+	    def.put( SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE, SIXTY );
 	
 	    def.put( SpeedManagerAlgorithmProviderV2.SETTING_WAIT_AFTER_ADJUST, TRUE );
 	    def.put( SpeedManagerAlgorithmProviderV2.SETTING_INTERVALS_BETWEEN_ADJUST, new Long(2) );
