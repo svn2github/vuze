@@ -1012,7 +1012,12 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	}
 
 	public void removeAllTableRows() {
+		
+		ArrayList<TableRowCore> itemsToRemove;
+		
 		synchronized (rows_sync) {
+			
+			itemsToRemove = new ArrayList<TableRowCore>( mapDataSourceToRow.values());
 			mapDataSourceToRow.clear();
 			sortedRows.clear();
 			
@@ -1027,6 +1032,15 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			if (DEBUGADDREMOVE) {
 				debug("removeAll");
 			}
+		}
+		
+			// parg - added this to ensure resources associated with rows (e.g. graphics) are released properly
+			// not sure if any of the other things that normally happen on row-removal are also required to happen here
+			// e.g. triggerListenerRowRemoved(item); and uiRemoveRows(...)
+		
+		for ( TableRowCore row: itemsToRemove ){
+			
+			row.delete();
 		}
 	}
 
