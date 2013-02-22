@@ -1814,7 +1814,9 @@ SpeedLimitHandler
 		
 		result.add( "# ---- Do not edit this line or any text above! ----" );
 		
-		List<String> schedule_lines = BDecoder.decodeStrings( COConfigurationManager.getListParameter( "speed.limit.handler.schedule.lines", new ArrayList()));
+		List lines_list = COConfigurationManager.getListParameter( "speed.limit.handler.schedule.lines", new ArrayList());
+		
+		List<String> schedule_lines = BDecoder.decodeStrings(BEncoder.cloneList(lines_list) );
 		
 		if ( schedule_lines.size() == 0 ){
 			
