@@ -465,8 +465,10 @@ TRTrackerServerTorrentImpl
 					
 				if ( existing_tracker_key_hash_code != tracker_key_hash_code ){
 			
-					throw( new TRTrackerServerException( "Unauthorised: key mismatch "));
+					if ( server.isKeyEnabled()){
 					
+						throw( new TRTrackerServerException( "Unauthorised: key mismatch "));
+					}
 				}
 				
 				if ( ip_override ){
