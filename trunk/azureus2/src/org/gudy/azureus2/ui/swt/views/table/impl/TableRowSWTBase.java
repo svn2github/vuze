@@ -149,7 +149,7 @@ public abstract class TableRowSWTBase
 			if (mTableCells != null) {
   			for (TableCellCore cell : mTableCells.values()) {
   				try {
-  					if (cell != null) {
+  					if (cell != null && !cell.isDisposed()) {
   						cell.dispose();
   					}
   				} catch (Exception e) {
@@ -201,9 +201,12 @@ public abstract class TableRowSWTBase
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#getDataSource(boolean)
 	 */
 	public Object getDataSource(boolean bCoreObject) {
-		if (bDisposed) {
-			return null;
-		}
+		// we don't want to do this because we need callers to be able to get access to the
+		// underlying datasource during the disposal process so they can release any
+		// associated resources
+		//if (bDisposed) {
+		//	return null;
+		//}
 
 		if (bCoreObject) {
 			return coreDataSource;
