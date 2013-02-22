@@ -665,6 +665,13 @@ public class TableRowPainted
 	public void delete() {
 		super.delete();
 		
+		if ( cellSort != null && !cellSort.isDisposed()){
+			
+			cellSort.dispose();
+			
+			cellSort = null;
+		}
+		
 		deleteExistingSubRows();
 	}
 
