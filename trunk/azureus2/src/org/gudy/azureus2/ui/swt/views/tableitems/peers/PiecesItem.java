@@ -24,6 +24,9 @@
 
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
@@ -103,22 +106,55 @@ public class PiecesItem
 		synchronized (this) {
 			row_count--;
 		}
-		// Named infoObj so code can be copied easily to the other PiecesItem
+				
+			// Named infoObj so code can be copied easily to the other PiecesItem
+				
+		final List<Image>	to_dispose = new ArrayList<Image>();
+
 		PEPeer infoObj = (PEPeer) cell.getDataSource();
-		if (infoObj == null)
-			return;
+		
+		if ( infoObj != null ){
 
-		final Image img = (Image) infoObj.getData("PiecesImage");
-		Utils.execSWTThread(new AERunnable() {
-
-			public void runSupport() {
-				if (img != null && !img.isDisposed())
-					img.dispose();
+			Image img = (Image) infoObj.getData("PiecesImage");
+	
+			if ( img != null ){
+				
+				to_dispose.add( img );
 			}
-		});
+			
+			infoObj.setData("PiecesImageBuffer", null);
+			infoObj.setData("PiecesImage", null);
+		}
+		
+		Graphic graphic = cell.getGraphic();
+		
+		if ( graphic instanceof UISWTGraphic ){
+				
+			Image img = ((UISWTGraphic) graphic).getImage();
+			
+			if ( img != null && to_dispose.contains( img )){
+				
+				to_dispose.add( img );
+			}
+		}
+		
+		if ( to_dispose.size() > 0 ){
+			Utils.execSWTThread(new AERunnable() {
+	
+				public void 
+				runSupport() 
+				{
+					for ( Image img: to_dispose ){
+						
+						if ( !img.isDisposed()){
+							
+							img.dispose();
+						}
+					}
+				}
+			});
+		}
 
-		infoObj.setData("PiecesImageBuffer", null);
-		infoObj.setData("PiecesImage", null);
 	}
 
 	public void refresh(final TableCell cell) {
@@ -143,6 +179,11 @@ public class PiecesItem
 
 			public void runSupport() {
 
+				if( cell.isDisposed()){
+				
+					return;
+				}
+				
 				//Compute bounds ...
 				int newWidth = cell.getWidth();
 				if (newWidth <= 0)
