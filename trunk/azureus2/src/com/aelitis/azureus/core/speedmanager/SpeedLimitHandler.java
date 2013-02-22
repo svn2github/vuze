@@ -227,7 +227,7 @@ SpeedLimitHandler
 							"Resuming all downloads as pause_all rule no longer applies" );
 				}
 				
-				gm.resumeDownloads();
+				gm.resumeDownloads( true );
 			}
 			
 			rule_pause_all_active = false;
@@ -266,7 +266,7 @@ SpeedLimitHandler
 						"Resuming all downloads as network limit no longer exceeded" );
 				}
 				
-				gm.resumeDownloads();
+				gm.resumeDownloads( true );
 			}
 			
 			net_limit_pause_all_active = false;

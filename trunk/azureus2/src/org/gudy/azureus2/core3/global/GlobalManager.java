@@ -216,6 +216,14 @@ public interface GlobalManager extends AzureusCoreComponent {
 	public void resumeDownloads();
 
 	/**
+	 * Attempt to automatically resume downloads - request may be denied if manual override in effect
+	 * @param is_auto_resume
+	 * @return whether operation was accepted
+	 */
+	
+	public boolean resumeDownloads( boolean is_auto_resume );
+
+	/**
 	 * Indicates whether or not there are any paused downloads to resume.
 	 * @return true if there is at least one download to resume, false if none.
 	 */

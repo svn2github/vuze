@@ -228,6 +228,16 @@ public class GlobalManagerImpl
    List addingDMs = new ArrayList();
 	
    private MainlineDHTProvider provider = null;
+
+   private TimerEvent	auto_resume_timer;
+   private boolean		auto_resume_disabled;
+   
+   {
+   	auto_resume_disabled = 
+   		COConfigurationManager.getBooleanParameter( "Pause Downloads On Exit" ) &&
+   		!COConfigurationManager.getBooleanParameter( "Resume Downloads On Start" );
+   }
+   
    
    public class Checker extends AEThread {
     int loopFactor;
@@ -240,7 +250,6 @@ public class GlobalManagerImpl
     private int oneMinuteThingCount		= 60*1000 / waitTime;
            
     private AESemaphore	run_sem = new AESemaphore( "GM:Checker:run");
-    
 
      public Checker() {
       super("Global Status Checker");
@@ -1495,8 +1504,6 @@ public class GlobalManagerImpl
 	  
 	  return( false );
   }
-
-  private TimerEvent	auto_resume_timer;
   
   public void 
   pauseDownloadsForPeriod( 
@@ -1726,6 +1733,8 @@ public class GlobalManagerImpl
   }
   
   public void resumeDownloads() {
+	  auto_resume_disabled = false;
+	  
 	  try {  paused_list_mon.enter();
 
 	  if ( auto_resume_timer != null ){
@@ -1757,6 +1766,19 @@ public class GlobalManagerImpl
 	  finally {  paused_list_mon.exit();  }
   }
 
+  public boolean 
+  resumeDownloads(
+	 boolean is_auto_resume) 
+  {
+	if ( is_auto_resume && auto_resume_disabled ){
+		
+		return( false );
+	}
+	
+	resumeDownloads();
+	
+	return( true );
+  }
 
   public boolean canResumeDownloads() {
     try {  paused_list_mon.enter();
