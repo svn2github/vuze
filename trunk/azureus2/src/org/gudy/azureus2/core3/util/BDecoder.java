@@ -960,7 +960,9 @@ public class BDecoder
 	}
 
 	/**
-	 * Converts any byte[] entries into UTF-8 strings
+	 * Converts any byte[] entries into UTF-8 strings.
+	 * REPLACES EXISTING MAP VALUES
+	 * 
 	 * @param map
 	 * @return
 	 */
@@ -1003,6 +1005,13 @@ public class BDecoder
 		return( map );
 	}
 
+	/**
+	 * Decodes byte arrays into strings.  
+	 * REPLACES EXISTING LIST VALUES
+	 * 
+	 * @param list
+	 * @return the same list passed in
+	 */
 	public static List
 	decodeStrings(
 		List	list )
