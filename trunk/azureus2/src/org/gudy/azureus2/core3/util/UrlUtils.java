@@ -140,15 +140,22 @@ public class UrlUtils
 			}
 		}else if ( obj instanceof List ){
 			
-			List<byte[]> l = (List<byte[]>)obj;
-			
-			for ( byte[] b: l ){
+			for ( Object o: (List)obj ){
 				
 				try{
-					ws_urls.add( new URL( new String((byte[])b, "UTF-8" )).toExternalForm());
+					if (o instanceof byte[]) {
+						ws_urls.add( new URL( new String((byte[])o, "UTF-8" )).toExternalForm());
+					} else if (o instanceof String) {
+						ws_urls.add( new URL((String) o).toExternalForm());
+					}
 					
 				}catch( Throwable e ){							
 				}
+			}
+		} else if ( obj instanceof String ) {
+			try{
+				ws_urls.add(new URL((String) obj).toExternalForm());
+			}catch( Throwable e ){							
 			}
 		}
 		
