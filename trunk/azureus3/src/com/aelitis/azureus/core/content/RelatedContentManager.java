@@ -4259,7 +4259,7 @@ RelatedContentManager
 	        
 		}else if ( obj instanceof List ){
 			
-			return((List)obj);
+			return (List)BEncoder.clone(obj);
 			
 		}else{
 			
