@@ -445,6 +445,10 @@ public class BTPeerIDByteDecoderDefinitions {
 
 		client = addSimpleClient("\u00B5Torrent Mac", "-UM");	
 		addVersionedClient(client, VER_BYTE_UM_STYLE, 4);
+		
+		client = addSimpleClient("\u00B5Torrent", "-UT");		// UT 3.4+
+		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 3);
+
 	}
 	
 	static class ClientData {

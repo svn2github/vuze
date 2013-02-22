@@ -606,6 +606,7 @@ public class BTPeerIDByteDecoder {
 		
 		assertDecode( "Ares 2.1.7.1", "-AN2171-nr17R1h19O7n" );
 
+		assertDecode( "\u00B5Torrent 3.4.0", "2D55543334302D000971FDE48C3688D2023506FC" );
 		
 		System.out.println("Done.");
 	}
