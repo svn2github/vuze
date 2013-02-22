@@ -298,6 +298,8 @@ UDPConnectionManager
 				Logger.log(new LogEvent(LOGID, "UDPConnectionManager: activating" ));
 			}
 			
+			idle_start = SystemTime.getMonotonousTime();
+			
 			selector = new UDPSelector(this );
 			
 			protocol_timer = new ProtocolTimer();
@@ -318,16 +320,12 @@ UDPConnectionManager
 			
 		}else{
 			
-			long	now = SystemTime.getCurrentTime();
+			long	now = SystemTime.getMonotonousTime();
 			
 			if ( idle_start == 0 ){
 				
 				idle_start = now;
-				
-			}else if ( idle_start > now ){
-				
-				idle_start = now;
-				
+								
 			}else if ( now - idle_start > THREAD_LINGER_ON_IDLE_PERIOD ){
 				
 				if (Logger.isEnabled()){
