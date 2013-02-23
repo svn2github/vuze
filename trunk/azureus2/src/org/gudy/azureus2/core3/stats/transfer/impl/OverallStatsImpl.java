@@ -392,13 +392,16 @@ OverallStatsImpl
 			        	
 			        	DHTPlugin plugin = (DHTPlugin)dht_pi.getPlugin();
 			        	
-			        	if ( plugin.isEnabled()){
-			        	
-			        		dhts = ((DHTPlugin)dht_pi.getPlugin()).getDHTs();
+			        	if ( !plugin.isInitialising()){
 			        		
-			        	}else{
-			        		
-			        		dhts = new DHT[0];
+				        	if ( plugin.isEnabled()){
+				        	
+				        		dhts = ((DHTPlugin)dht_pi.getPlugin()).getDHTs();
+				        		
+				        	}else{
+				        		
+				        		dhts = new DHT[0];
+				        	}
 			        	}
 			        }
 		    	}
