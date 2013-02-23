@@ -586,6 +586,10 @@ PRUDPPacketHandlerImpl
 								Debug.out( "UDP Packet truncated: received length=" + packet.getLength() + ", current max=" + MAX_PACKET_SIZE );
 							
 								MAX_PACKET_SIZE = Math.min( packet.getLength() + 256, PRUDPPacket.MAX_PACKET_SIZE );
+								
+								buffer = null;
+								
+								continue;
 							}
 						}
 						
