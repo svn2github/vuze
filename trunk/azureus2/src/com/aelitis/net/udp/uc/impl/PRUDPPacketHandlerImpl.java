@@ -54,6 +54,22 @@ PRUDPPacketHandlerImpl
 	
 	private boolean			TRACE_REQUESTS	= false;
 	
+	private static int 	MAX_PACKET_SIZE;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"network.udp.mtu.size",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameter_name ) 
+				{
+					MAX_PACKET_SIZE = COConfigurationManager.getIntParameter( parameter_name );
+				}
+			});
+	}
+	
 	private static final long	MAX_SEND_QUEUE_DATA_SIZE	= 2*1024*1024;
 	private static final long	MAX_RECV_QUEUE_DATA_SIZE	= 1*1024*1024;
 	
@@ -556,13 +572,23 @@ PRUDPPacketHandlerImpl
 						
 						if ( buffer == null ){
 							
-							buffer = new byte[PRUDPPacket.MAX_PACKET_SIZE];
+							buffer = new byte[MAX_PACKET_SIZE];
 						}
 	
 						DatagramPacket packet = new DatagramPacket( buffer, buffer.length, address );
 						
 						receiveFromSocket( packet );
 												
+						if ( packet.getLength() > MAX_PACKET_SIZE ){
+							
+							if ( MAX_PACKET_SIZE < PRUDPPacket.MAX_PACKET_SIZE ){
+								
+								Debug.out( "UDP Packet truncated: received length=" + packet.getLength() + ", current max=" + MAX_PACKET_SIZE );
+							
+								MAX_PACKET_SIZE = Math.min( packet.getLength() + 256, PRUDPPacket.MAX_PACKET_SIZE );
+							}
+						}
+						
 						long	receive_time = SystemTime.getCurrentTime();
 						
 						successful_accepts++;
