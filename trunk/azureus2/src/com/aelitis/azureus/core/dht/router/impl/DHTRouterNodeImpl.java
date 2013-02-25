@@ -45,8 +45,8 @@ DHTRouterNodeImpl
 	private int				depth;
 	private boolean			contains_router_node_id;
 	
-	private List	buckets;
-	private List	replacements;
+	private List<DHTRouterContactImpl>	buckets;
+	private List<DHTRouterContactImpl>	replacements;
 	
 	private DHTRouterNodeImpl	left;
 	private DHTRouterNodeImpl	right;
@@ -55,10 +55,10 @@ DHTRouterNodeImpl
 	
 	protected
 	DHTRouterNodeImpl(
-		DHTRouterImpl	_router,
-		int				_depth,
-		boolean			_contains_router_node_id,
-		List			_buckets )
+		DHTRouterImpl					_router,
+		int								_depth,
+		boolean							_contains_router_node_id,
+		List<DHTRouterContactImpl>		_buckets )
 	{
 		router					= _router;
 		depth					= _depth;
@@ -99,7 +99,16 @@ DHTRouterNodeImpl
 		
 		if ( replacements != null ){
 			
-			Debug.out( "DHTRouterNode: inconsistenct - splitting a node with replacements" );
+				// we can get this when coming out of sleep mode
+			
+			// Debug.out( "DHTRouterNode: inconsistenct - splitting a node with replacements" );
+			
+			for ( DHTRouterContactImpl rep: replacements ){
+				
+				router.notifyRemoved( rep );
+			}
+			
+			replacements = null;
 		}
 		
 		left	= new_left;
@@ -112,7 +121,7 @@ DHTRouterNodeImpl
 		return( buckets );
 	}
 	
-	protected List
+	protected List<DHTRouterContactImpl>
 	getReplacements()
 	{
 		return( replacements );
@@ -149,7 +158,7 @@ DHTRouterNodeImpl
 			
 			try_ping	= true;
 			
-			replacements = new ArrayList();
+			replacements = new ArrayList<DHTRouterContactImpl>();
 			
 		}else{
 				
