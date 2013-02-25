@@ -1270,7 +1270,7 @@ PlatformManagerImpl
 				Runtime.getRuntime().exec(
 					new String[]{
 						windir + "\\system32\\rundll32.exe",
-						"powrprof.dll,SetSuspendState"	
+						"powrprof.dll,SetSuspendState Sleep"	
 					});
 				
 			}else if ( type == SD_HIBERNATE ){
