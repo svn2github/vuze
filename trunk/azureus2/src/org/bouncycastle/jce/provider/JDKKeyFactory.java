@@ -33,6 +33,7 @@ import java.io.InputStream;
 import java.security.InvalidKeyException;
 import java.security.Key;
 import java.security.KeyFactorySpi;
+import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.interfaces.DSAPrivateKey;
@@ -61,6 +62,7 @@ import org.bouncycastle.jce.interfaces.ElGamalPrivateKey;
 import org.bouncycastle.jce.interfaces.ElGamalPublicKey;
 import org.bouncycastle.jce.spec.ECPrivateKeySpec;
 import org.bouncycastle.jce.spec.ECPublicKeySpec;
+import org.gudy.azureus2.core3.util.Debug;
 
 public abstract class 
 JDKKeyFactory 
@@ -230,8 +232,54 @@ JDKKeyFactory
 	    String  algorithm;
 	
 	    public EC()
+	    
+	    	throws NoSuchAlgorithmException
 	    {
 	        this("EC");
+	        
+	        	// PARG - bail if we're constructing an X509 cert for SSL as the BC SSL impl is old and doesn't have recent named curves
+	        	// If we allow this to continue it borks constructing the EC public key and takes the whole SSL process down with
+	        	// utimately a 
+	        	// Caused by: java.io.IOException: subject key, java.lang.NullPointerException
+	        	// at sun.security.x509.X509Key.parse(X509Key.java:157)
+	    		// at sun.security.x509.CertificateX509Key.<init>(CertificateX509Key.java:58)
+	    		// at sun.security.x509.X509CertInfo.parse(X509CertInfo.java:688)
+	    		// at sun.security.x509.X509CertInfo.<init>(X509CertInfo.java:152)
+	        
+	        try{
+	        	StackTraceElement[] elements = new Exception().getStackTrace();
+	        
+	        	boolean	ssl 	= false;
+	        	boolean	x509	= false;
+	        	
+	        	for ( StackTraceElement elt: elements ){
+	        	
+	        		String name = elt.getClassName() + "." + elt.getMethodName();
+	        		
+	        		if ( name.contains( "SSLSocketFactory" )){
+	        			
+	        			ssl = true;
+	        		}else if ( name.contains( "X509" )){
+	        			
+	        			
+	        			x509 = true;
+	        		}
+	        	}
+	        	
+	        	if( ssl && x509 ){
+	        		
+	        		//Debug.out( "Hacking SSL EC" );
+	        		
+	        		throw( new NoSuchAlgorithmException());
+	        	}
+	        }catch( NoSuchAlgorithmException e ){
+	        	
+	        	throw( e );
+	        	
+	        }catch( Throwable e ){
+	        	
+	        	Debug.out( e );
+	        }
 	    }
 	
 	    public EC(
