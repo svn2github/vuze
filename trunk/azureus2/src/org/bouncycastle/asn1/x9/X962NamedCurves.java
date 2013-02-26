@@ -2,7 +2,9 @@ package org.bouncycastle.asn1.x9;
 
 import java.math.BigInteger;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Hashtable;
+import java.util.Set;
 
 import org.bouncycastle.asn1.DERObjectIdentifier;
 import org.bouncycastle.math.ec.ECCurve;
@@ -136,6 +138,8 @@ public class X962NamedCurves
         curves.put(X9ObjectIdentifiers.prime256v1, prime256v1);       
     }
 
+    private static Set<String>	missing_oids = new HashSet<String>();
+    
     public static X9ECParameters getByName(
         String  name)
     {
@@ -158,7 +162,21 @@ public class X962NamedCurves
     public static X9ECParameters getByOID(
         DERObjectIdentifier  oid)
     {
-        return (X9ECParameters)curves.get(oid);
+    	X9ECParameters result = (X9ECParameters)curves.get(oid);
+    	
+        if ( result == null ){
+        	
+        	String id = oid.getId();
+        	
+        	if ( !missing_oids.contains( id )){
+        		
+        		missing_oids.add( id );
+        		
+        		new Exception( "Missing named curve: " + id ).printStackTrace();
+        	}
+        }
+        
+        return( result );
     }
 
     /**
