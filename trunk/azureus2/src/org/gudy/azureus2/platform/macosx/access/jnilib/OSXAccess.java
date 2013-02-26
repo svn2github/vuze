@@ -54,7 +54,7 @@ public class OSXAccess
 			bLoaded = true;
 			initDriveDetection();
 		} catch (Throwable e1) {
-			Debug.outNoStack("Could not find lib" + lib + ".jnilib; " + e1.toString());
+			System.err.println("Could not find lib" + lib + ".jnilib; " + e1.toString());
 		}
 		
 		return bLoaded;
