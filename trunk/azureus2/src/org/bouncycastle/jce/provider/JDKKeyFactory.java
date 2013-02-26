@@ -256,7 +256,7 @@ JDKKeyFactory
 	        	
 	        		String name = elt.getClassName() + "." + elt.getMethodName();
 	        		
-	        		if ( name.contains( "SSLSocketFactory" )){
+	        		if ( name.contains( "SSLSocketFactory" ) || name.contains( "KeyStore.load" )){
 	        			
 	        			ssl = true;
 	        		}else if ( name.contains( "X509" )){
