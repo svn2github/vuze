@@ -1103,15 +1103,16 @@ PRUDPPacketHandlerImpl
 		}
 		
 		try{			
-			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+			MyByteArrayOutputStream	baos = new MyByteArrayOutputStream( MAX_PACKET_SIZE );
 			
 			DataOutputStream os = new DataOutputStream( baos );
 					
 			request_packet.serialise(os);
 			
-			byte[]	buffer = baos.toByteArray();
+			byte[]	_buffer = baos.getBuffer();
+			int		_length	= baos.size();
 			
-			request_packet.setSerialisedSize( buffer.length );
+			request_packet.setSerialisedSize( _length );
 			
 			if ( auth != null ){
 				
@@ -1146,7 +1147,7 @@ PRUDPPacketHandlerImpl
 				
 				hasher = new SHA1Hasher();
 				
-				hasher.update( buffer );
+				hasher.update( _buffer, 0, _length );
 				hasher.update( user_bytes );
 				hasher.update( sha1_password );
 				
@@ -1157,10 +1158,11 @@ PRUDPPacketHandlerImpl
 				baos.write( user_bytes );
 				baos.write( overall_hash, 0, 8 );
 				
-				buffer = baos.toByteArray();
+				_buffer = baos.getBuffer();
+				_length	= baos.size();
 			}
 			
-			DatagramPacket dg_packet = new DatagramPacket(buffer, buffer.length, destination_address );
+			DatagramPacket dg_packet = new DatagramPacket(_buffer, _length, destination_address );
 			
 			PRUDPPacketHandlerRequestImpl	request = new PRUDPPacketHandlerRequestImpl( receiver, timeout );
 		
@@ -1190,7 +1192,7 @@ PRUDPPacketHandlerImpl
 							
 							sendToSocket( dg_packet );
 							
-							stats.packetSent( buffer.length );
+							stats.packetSent( _length );
 							
 							if ( TRACE_REQUESTS ){
 								Logger.log(new LogEvent(LOGID,
@@ -1339,7 +1341,7 @@ PRUDPPacketHandlerImpl
 					
 					// System.out.println( "sent:" + buffer.length );
 					
-					stats.packetSent( buffer.length );
+					stats.packetSent( _length );
 					
 					if ( TRACE_REQUESTS ){
 						Logger.log(new LogEvent(LOGID, "PRUDPPacketHandler: "
@@ -1426,17 +1428,18 @@ PRUDPPacketHandlerImpl
 		
 		try{
 			
-			ByteArrayOutputStream	baos = new ByteArrayOutputStream();
+			MyByteArrayOutputStream	baos = new MyByteArrayOutputStream( MAX_PACKET_SIZE );
 			
 			DataOutputStream os = new DataOutputStream( baos );
 					
 			request_packet.serialise(os);
 			
-			byte[]	buffer = baos.toByteArray();
+			byte[]	_buffer = baos.getBuffer();
+			int		_length	= baos.size();
 			
-			request_packet.setSerialisedSize( buffer.length );
+			request_packet.setSerialisedSize( _length );
 
-			DatagramPacket dg_packet = new DatagramPacket(buffer, buffer.length, destination_address );
+			DatagramPacket dg_packet = new DatagramPacket( _buffer, _length, destination_address );
 			
 			// System.out.println( "Outgoing to " + dg_packet.getAddress());	
 			
@@ -1448,7 +1451,7 @@ PRUDPPacketHandlerImpl
 			
 			sendToSocket( dg_packet );
 			
-			stats.packetSent( buffer.length );
+			stats.packetSent( _length );
 			
 				// this is a reply to a request, no time delays considered here 
 						
@@ -1663,6 +1666,24 @@ PRUDPPacketHandlerImpl
 	
 		throws PRUDPPacketHandlerException
 	{
+	}
+	
+	private class
+	MyByteArrayOutputStream
+		extends ByteArrayOutputStream
+	{
+		private
+		MyByteArrayOutputStream(
+			int	size )
+		{
+			super( size );
+		}
+		
+		private byte[]
+		getBuffer()
+		{
+			return( buf );
+		}
 	}
 	
 	protected interface
