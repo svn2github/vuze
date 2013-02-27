@@ -22,10 +22,8 @@
 package com.aelitis.azureus.core.impl;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.InetAddress;
-import java.net.SocketAddress;
-import java.net.URI;
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -55,6 +53,8 @@ import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.platform.PlatformManagerListener;
 import org.gudy.azureus2.plugins.*;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.torrent.TorrentDownloader;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.plugins.utils.PowerManagementListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
@@ -94,6 +94,10 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerFactory;
 import com.aelitis.azureus.core.update.AzureusRestarterFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
+import com.aelitis.azureus.core.vuzefile.VuzeFile;
+import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+import com.aelitis.azureus.core.vuzefile.VuzeFileProcessor;
 import com.aelitis.azureus.launcher.classloading.PrimaryClassloader;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.startstoprules.defaultplugin.DefaultRankCalculator;
@@ -102,6 +106,7 @@ import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.util.MapUtils;
 
 /**
  * @author parg
@@ -866,6 +871,103 @@ AzureusCoreImpl
 			System.err.println("Core stopped while starting");
 			return;
 		}
+		
+		VuzeFileHandler.getSingleton().addProcessor(
+				new VuzeFileProcessor()
+				{
+					public void
+					process(
+						VuzeFile[]		files,
+						int				expected_types )
+					{
+						for (int i=0;i<files.length;i++){
+							
+							VuzeFile	vf = files[i];
+							
+							VuzeFileComponent[] comps = vf.getComponents();
+							
+							for (int j=0;j<comps.length;j++){
+								
+								VuzeFileComponent comp = comps[j];
+								
+								int	comp_type = comp.getType();
+								
+								if ( comp_type == VuzeFileComponent.COMP_TYPE_ADD_TORRENT ){
+									
+									PluginInterface default_pi = getPluginManager().getDefaultPluginInterface();
+									
+									Map map = comp.getContent();
+									
+									try{
+										Torrent torrent;
+
+										String url = MapUtils.getMapString(map, "torrent_url", null );
+																				
+										if ( url != null ){
+											
+											TorrentDownloader dl = default_pi.getTorrentManager().getURLDownloader( new URL( url ));
+											
+											torrent = dl.download();
+																						
+										}else{
+											
+											String tf = MapUtils.getMapString(map, "torrent_file", null );
+
+											if ( tf != null ){
+												
+												File file = new File( tf );
+												
+												if ( !file.canRead() || file.isDirectory()){
+													
+													throw( new Exception( "torrent_file '" + tf + "' is invalid" ));
+												}
+												
+												torrent = default_pi.getTorrentManager().createFromBEncodedFile(file);
+																								
+											}else{
+												
+												throw( new Exception( "torrent_url or torrent_file must be specified" ));
+											}
+										}
+										
+										File	dest = null;
+										
+										String save_folder = MapUtils.getMapString(map, "save_folder", null );
+										
+										if ( save_folder != null ){
+											
+											dest = new File( save_folder, torrent.getName());
+											
+										}else{
+											
+											String save_file = MapUtils.getMapString(map, "save_file", null );
+
+											if ( save_file != null ){
+												
+												dest = new File( save_file );
+											}
+										}
+
+										if ( dest != null ){
+											
+											dest.getParentFile().mkdirs();
+										}
+										
+										default_pi.getDownloadManager().addDownload( torrent, null, dest );
+
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+									
+									comp.setProcessed();
+								}
+							}
+						}
+					}
+				});
+		
+		
 		
 		triggerLifeCycleComponentCreated(global_manager);
 
