@@ -32,10 +32,12 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.util.JSONUtils;
 
 
 public class 
@@ -137,7 +139,43 @@ VuzeFileHandler
 			BufferedInputStream bis = new BufferedInputStream( is );
 			
 			try{
-				Map	map = BDecoder.decode(bis);
+				bis.mark(100);
+				
+				boolean is_json = false;
+				
+				while( true ){
+				
+					int next = bis.read();
+				
+					if ( next == -1 ){
+						
+						break;
+					}
+					
+					char c = (char)next;
+					
+					if ( !Character.isWhitespace(c)){
+						
+						is_json = c == '{';
+						
+						break;
+					}
+				}
+				
+				bis.reset();
+				
+				Map map;
+				
+				if ( is_json ){
+					
+					byte[] bytes = FileUtil.readInputStreamAsByteArray( bis, 2*1024*1024 );
+										
+					map = BDecoder.decodeFromJSON( new String( bytes, "UTF-8" ));
+					
+				}else{
+
+					map = BDecoder.decode(bis);
+				}
 				
 				return( loadVuzeFile( map ));
 				

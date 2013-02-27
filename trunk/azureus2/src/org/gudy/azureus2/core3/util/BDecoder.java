@@ -27,10 +27,16 @@ import java.nio.ByteBuffer;
 import java.nio.CharBuffer;
 import java.nio.charset.CharsetDecoder;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
+import com.aelitis.azureus.util.JSONUtils;
 
 /**
  * A set of utility methods to decode a bencoded array of byte into a Map.
@@ -1070,6 +1076,97 @@ public class BDecoder
 			e.printStackTrace();
 		}
 	}
+	
+   	// JSON
+    
+    private static Object
+    decodeFromJSONGeneric(
+    	Object		obj )
+    {
+    	if ( obj == null ){
+    		
+    		return( null );
+    		
+    	}else if ( obj instanceof Map ){
+    		
+    		return( decodeFromJSONObject((Map)obj));
+    		
+    	}else if ( obj instanceof List ){
+    		
+    		return( decodeFromJSONArray((List)obj));
+    		
+     	}else if ( obj instanceof String ){
+      		
+     		try{
+     			return(((String)obj).getBytes( "UTF-8" ));
+     			
+     		}catch( Throwable e ){
+     			
+     			return(((String)obj).getBytes());
+     		}
+      		
+     	}else if ( obj instanceof Long ){
+      		
+      		return( obj );
+      		
+      	}else if ( obj instanceof Boolean ){
+      		    		
+    		return( new Long(((Boolean)obj)?1:0 ));
+    		
+    	}else if ( obj instanceof Double ){
+    		
+    		return( String.valueOf((Double)obj));
+    		
+    	}else{
+    		
+    		System.err.println( "Unexpected JSON value type: " + obj.getClass());
+    		
+    		return( obj );
+    	}
+    }
+    
+    public static List
+    decodeFromJSONArray(
+    	List		j_list )
+    {    	
+    	List	b_list = new ArrayList();
+    	
+    	for ( Object o: j_list ){
+    		
+    		b_list.add( decodeFromJSONGeneric( o ));
+    	}
+    	
+    	return( b_list );
+    }
+    
+    
+    public static Map
+    decodeFromJSONObject(
+    	Map<Object,Object>		j_map )
+    {
+    	Map	b_map = new HashMap();
+    	
+    	for ( Map.Entry<Object,Object> entry: j_map.entrySet()){
+    		
+    		Object	key = entry.getKey();
+    		Object	val	= entry.getValue();
+    		
+    		b_map.put((String)key, decodeFromJSONGeneric( val ));
+    	}
+    	
+    	return( b_map );
+    }
+    
+    public static Map
+    decodeFromJSON(
+    	String	json )
+    {
+    	Map j_map = JSONUtils.decodeJSON(json);
+    	    	
+    	return( decodeFromJSONObject( j_map ));
+    }
+	
+	
 /*
 	private interface
 	BDecoderInputStream

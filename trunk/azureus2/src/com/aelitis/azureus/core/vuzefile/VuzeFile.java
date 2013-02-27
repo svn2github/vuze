@@ -49,6 +49,11 @@ VuzeFile
 	
 		throws IOException;
 	
+	public String
+	exportToJSON()
+	
+		throws IOException;
+	
 	public void
 	write(
 		File	target )

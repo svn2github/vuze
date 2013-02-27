@@ -142,6 +142,14 @@ VuzeFileImpl
 		return( BEncoder.encode( exportToMap()));
 	}
 	
+	public String
+	exportToJSON()
+	
+		throws IOException
+	{
+		return( BEncoder.encodeToJSON( exportToMap()));
+	}
+	
 	public void 
 	write(
 		File target )

@@ -28,6 +28,10 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+
+import com.aelitis.azureus.util.JSONUtils;
 
 /**
  * A set of utility methods to encode a Map into a bencoded array of byte.
@@ -497,8 +501,10 @@ BEncoder
        		o = new Long(((Integer)o).longValue());
       	}else if ( o instanceof Boolean ){
        		o = new Long(((Boolean)o).booleanValue()?1:0);
-      	}else if ( o instanceof Float ){
+     	}else if ( o instanceof Float ){
        		o = String.valueOf((Float)o);
+     	}else if ( o instanceof Double ){
+       		o = String.valueOf((Double)o);
        	}else if ( o instanceof byte[] ){    		
        		try{
        			o = new String((byte[])o,"UTF-8");			
@@ -755,6 +761,67 @@ BEncoder
      	return( writer.encode( map, simple ));
     }    
     
+    	// JSON
+    
+    private static Object
+    encodeToJSONGeneric(
+    	Object		obj )
+    {
+    	if ( obj instanceof Map ){
+    		
+    		return( encodeToJSONObject((Map)obj));
+    		
+    	}else if ( obj instanceof List ){
+    		
+    		return( encodeToJSONArray((List)obj));
+    		
+    	}else{
+    		
+    		return( normaliseObject( obj ));
+    	}
+    }
+    
+    public static JSONArray
+    encodeToJSONArray(
+    	List		b_list )
+    {
+    	JSONArray	j_list = new JSONArray();
+    	
+    	for ( Object o: b_list ){
+    		
+    		j_list.add( encodeToJSONGeneric( o ));
+    	}
+    	
+    	return( j_list );
+    }
+    
+    
+    public static JSONObject
+    encodeToJSONObject(
+    	Map<Object,Object>		b_map )
+    {
+    	JSONObject	j_map = new JSONObject();
+    	
+    	for ( Map.Entry<Object,Object> entry: b_map.entrySet()){
+    		
+    		Object	key = entry.getKey();
+    		Object	val	= entry.getValue();
+    		
+    		j_map.put((String)key, encodeToJSONGeneric( val ));
+    	}
+    	
+    	return( j_map );
+    }
+    
+    public static String
+    encodeToJSON(
+    	Map	b_map )
+    {
+    	JSONObject j_map = encodeToJSONObject( b_map );
+    	
+    	return( JSONUtils.encodeToJSON( j_map ));
+    }
+    
     	/*
     	 * The following code is from Integer.java as we don't want to 
     	 */
@@ -863,5 +930,29 @@ BEncoder
     		
     		return( writer.getBuffer());
     	}
+    }
+    
+    public static void
+    main(
+    	String[]	args )
+    {
+    	Map map = new HashMap();
+    	
+    	map.put( "a", new Float(1.2));
+    	map.put( "b", true );
+    	map.put( "c", "fred".getBytes());
+    	
+    	Map m2 = new HashMap();
+    	
+    	m2.put( "boo", "meep" );
+    	map.put( "m", m2 );
+    	
+    	List l = new ArrayList();
+    	
+    	l.add( "foo" );
+    	
+    	map.put( "l", l );
+    	
+    	System.out.println( encodeToJSON( map ));
     }
 }
