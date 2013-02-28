@@ -1792,6 +1792,8 @@ WebPlugin
 		TrackerWebPageRequest request = 
 			new TrackerWebPageRequest()
 			{
+				private Map headers = new HashMap();
+				
 				public Tracker
 				getTracker()
 				{
@@ -1837,7 +1839,7 @@ WebPlugin
 				public Map 
 				getHeaders()
 				{
-					return( new HashMap());
+					return( headers );
 				}
 				
 				public InputStream
@@ -2193,6 +2195,8 @@ WebPlugin
 			}
 		}
 	
+		request.getHeaders().put( "x-vuze-is-tunnel", is_tunnel?"true":"false" );
+		
 		if ( generateSupport( request, response )){
 			
 			return(true);
