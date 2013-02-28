@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.networkmanager.impl.udp;
 import java.io.IOException;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
@@ -35,7 +36,7 @@ import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 public class 
 UDPSelector 
 {
-	private static final int POLL_FREQUENCY	= 100;
+	private static final int POLL_FREQUENCY	= COConfigurationManager.getIntParameter( "network.udp.poll.time", 100 );
 	
 	private List		ready_set	= new LinkedList();
 	private AESemaphore	ready_sem	= new AESemaphore( "UDPSelector" );

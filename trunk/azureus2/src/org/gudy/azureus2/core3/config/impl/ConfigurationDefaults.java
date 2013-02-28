@@ -537,6 +537,7 @@ public class ConfigurationDefaults {
     def.put( "network.tcp.connect.outbound.enable", TRUE );  
     def.put( "network.tcp.mtu.size", new Long(1500) );
     def.put( "network.udp.mtu.size", new Long(1500) );
+    def.put( "network.udp.poll.time", new Long( 100 ));
     def.put( "network.tcp.socket.SO_SNDBUF", ZERO );
     def.put( "network.tcp.socket.SO_RCVBUF", ZERO );
     def.put( "network.tcp.socket.IPDiffServ", "" );
