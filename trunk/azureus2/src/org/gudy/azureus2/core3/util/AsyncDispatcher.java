@@ -30,7 +30,8 @@ AsyncDispatcher
 	private String					name;
 	private AEThread2				thread;
 	private int						priority	= Thread.NORM_PRIORITY;
-	private LinkedList<AERunnable>	queue 		= new LinkedList<AERunnable>();
+	private AERunnable				queue_head;
+	private LinkedList<AERunnable>	queue_tail;
 	private AESemaphore				queue_sem 	= new AESemaphore( "AsyncDispatcher" );
 	
 	private int						num_priority;
@@ -80,15 +81,40 @@ AsyncDispatcher
 	{
 		synchronized( this ){
 			
-			if ( is_priority ){
-			
-				queue.add( num_priority, target );
+			if ( queue_head == null ){
 				
-				num_priority++;
+				queue_head = target;
 				
+				if ( is_priority ){
+					
+					num_priority++;
+				}
 			}else{
-			
-				queue.add( target );
+				
+				if ( queue_tail == null ){
+					
+					queue_tail = new LinkedList<AERunnable>();
+				}
+				
+				if ( is_priority ){
+				
+					if ( num_priority == 0 ){
+						
+						queue_tail.add( 0, queue_head );
+						
+						queue_head = target;
+						
+					}else{
+						
+						queue_tail.add( num_priority-1, target );
+					}
+					
+					num_priority++;
+					
+				}else{
+				
+					queue_tail.add( target );
+				}
 			}
 			
 			if ( thread == null ){
@@ -107,14 +133,25 @@ AsyncDispatcher
 																
 								synchronized( AsyncDispatcher.this ){
 									
-									if ( queue.isEmpty()){
+									if ( queue_head == null){
+										
+										queue_tail = null;
 										
 										thread = null;
 										
 										break;
 									}
 									
-									to_run = queue.removeFirst();
+									to_run = queue_head;
+									
+									if ( queue_tail != null && !queue_tail.isEmpty()){
+										
+										queue_head = queue_tail.removeFirst();
+										
+									}else{
+										
+										queue_head = null;
+									}
 									
 									if ( num_priority > 0 ){
 										
@@ -156,7 +193,14 @@ AsyncDispatcher
 	{
 		synchronized( this ){
 
-			return( queue.size());
+			int	result = queue_head == null?0:1;
+			
+			if ( queue_tail != null ){
+				
+				result += queue_tail.size();
+			}
+			
+			return( result );
 		}
 	}
 	
