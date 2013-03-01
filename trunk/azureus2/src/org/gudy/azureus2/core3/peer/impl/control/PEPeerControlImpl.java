@@ -143,7 +143,8 @@ DiskManagerCheckRequestListener, IPFilterListener
    				"peercontrol.udp.fallback.connect.fail",
    				"peercontrol.udp.fallback.connect.drop",
    				"peercontrol.udp.probe.enable",
-   				"peercontrol.hide.piece",
+  				"peercontrol.hide.piece",
+  				"peercontrol.hide.piece.ds",
    				"peercontrol.prefer.udp",
 			},
 			new ParameterListener()
@@ -162,8 +163,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 					udp_fallback_for_dropped_connection	= COConfigurationManager.getBooleanParameter( "peercontrol.udp.fallback.connect.drop" );				
 					udp_probe_enabled					= COConfigurationManager.getBooleanParameter( "peercontrol.udp.probe.enable" );				
 					hide_a_piece						= COConfigurationManager.getBooleanParameter( "peercontrol.hide.piece" );
+					boolean hide_a_piece_ds				= COConfigurationManager.getBooleanParameter( "peercontrol.hide.piece.ds" );
 					
-					if ( hide_a_piece ){
+					if ( hide_a_piece && !hide_a_piece_ds ){
 						
 						disconnect_seeds_when_seeding = false;
 					}
@@ -236,7 +238,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private int 				superSeedModeNumberOfAnnounces;
 	private SuperSeedPiece[]	superSeedPieces;
 
-	private final int			hidden_piece;
+	private int			hidden_piece;
 	
 	private final AEMonitor     this_mon = new AEMonitor( "PEPeerControl");
 
@@ -393,10 +395,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 		hidden_piece = hide_a_piece?((int)(Math.abs(adapter.getRandomSeed())%_nbPieces)):-1;
 
+		/*
 		if ( hidden_piece >= 0 ){
 		
 			System.out.println( "Hidden piece for " + getDisplayName() + " = " + hidden_piece );
 		}
+		*/
 		
 		piecePicker = PiecePickerFactory.create( this );
 
@@ -1276,6 +1280,60 @@ DiskManagerCheckRequestListener, IPFilterListener
 					}
 				}
 
+			}
+			
+			if ( hidden_piece >= 0 ){
+				
+				int	hp_avail = piecePicker.getAvailability( hidden_piece );
+				
+				if ( hp_avail < (dm_pieces[hidden_piece].isDone()?2:1)){
+				
+					int[] avails = piecePicker.getAvailability();
+					
+					int	num = 0;
+					
+					for ( int i=0;i<avails.length;i++){
+						
+						if ( avails[i] > 0 && !dm_pieces[i].isDone() && pePieces[i] == null ){
+							
+							num++;
+						}
+					}
+					
+					if ( num > 0 ){
+						
+						num = RandomUtils.nextInt( num );
+						
+						int	backup = -1;
+						
+						for ( int i=0;i<avails.length;i++){
+							
+							if ( avails[i] > 0 && !dm_pieces[i].isDone() && pePieces[i] == null ){
+								
+								if ( backup == -1 ){
+									
+									backup = i;
+								}
+								
+								if ( num == 0 ){
+									
+									hidden_piece = i;
+									
+									backup = -1;
+									
+									break;
+								}
+								
+								num--;
+							}
+						}
+						
+						if ( backup != -1 ){
+							
+							hidden_piece = backup;
+						}
+					}
+				}
 			}
 		}
 	}

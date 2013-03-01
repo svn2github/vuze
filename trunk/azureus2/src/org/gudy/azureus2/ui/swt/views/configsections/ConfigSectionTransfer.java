@@ -555,8 +555,7 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 			BooleanParameter useReqLimitingPrios = new BooleanParameter(cSection, "Use Request Limiting Priorities",
 				"ConfigView.label.userequestlimitingpriorities");
 			useReqLimitingPrios.setLayoutData(gridData);
-			useReqLimiting
-			.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+			useReqLimiting.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
 					useReqLimitingPrios.getControl()));
 			
 			
@@ -574,6 +573,26 @@ public class ConfigSectionTransfer implements UISWTConfigSection {
 					"Use Lazy Bitfield", "ConfigView.label.lazybitfield");
 			lazybf.setLayoutData(gridData);
 
+			// don't declare completion
+			
+			if (userMode > 1) {
+				gridData = new GridData();
+				gridData.horizontalSpan = 2;
+				BooleanParameter hap = new BooleanParameter(cSection,
+						"peercontrol.hide.piece", "ConfigView.label.hap");
+				hap.setLayoutData(gridData);
+
+				gridData = new GridData();
+				gridData.horizontalSpan = 2;
+				BooleanParameter hapds = new BooleanParameter(cSection,
+						"peercontrol.hide.piece.ds", "ConfigView.label.hapds");
+				hapds.setLayoutData(gridData);
+				
+				hap.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+						hapds.getControl()));
+
+			}
+				
 			// prioritise first/last pieces
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
