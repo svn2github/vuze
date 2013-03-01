@@ -34,7 +34,9 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
+import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
@@ -452,6 +454,8 @@ PairingManagerTunnelHandler
 						        }
 							}else if ( op == 3 ){
 								
+								boolean log_error = true;
+								
 								try{	
 									long diff = SystemTime.getMonotonousTime() - last_server_agree_time;
 									
@@ -486,7 +490,16 @@ PairingManagerTunnelHandler
 									
 									byte[] dec = decipher.doFinal( (byte[])data.get( "enc_data" ));
 									
-									JSONObject dec_json = (JSONObject)JSONUtils.decodeJSON( new String( dec, "UTF-8" ));
+									String json_str = new String( dec, "UTF-8" );
+									
+									if ( !json_str.startsWith( "{" )){
+										
+										log_error = false;
+										
+										throw( new Exception( "decode failed" ));
+									}
+									
+									JSONObject dec_json = (JSONObject)JSONUtils.decodeJSON( json_str );
 																	
 									String tunnel_url = (String)dec_json.get( "url" );
 									
@@ -503,8 +516,21 @@ PairingManagerTunnelHandler
 									
 								}catch( Throwable e ){
 									
-									e.printStackTrace();
+									result.put( "op", 4 );
+									result.put( "status", "failed" );
 									
+										// filter usual errors on bad agreement
+									
+									if ( 	e instanceof BadPaddingException ||
+											e instanceof IllegalBlockSizeException ){
+										
+										log_error = false;
+									}
+									
+									if ( log_error ){
+									
+										e.printStackTrace();
+									}
 								}finally{
 									
 									last_server_agree_time = SystemTime.getMonotonousTime();
