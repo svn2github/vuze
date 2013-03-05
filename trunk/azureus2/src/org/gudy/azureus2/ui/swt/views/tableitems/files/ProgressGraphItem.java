@@ -79,8 +79,14 @@ public class ProgressGraphItem extends CoreTableColumnSWT implements TableCellAd
 		if (graphic instanceof UISWTGraphic)
 		{
 			final Image img = ((UISWTGraphic) graphic).getImage();
-			if (img != null && !img.isDisposed())
-				img.dispose();
+			if (img != null && !img.isDisposed()){
+				img.dispose();	
+				
+					// see http://forum.vuze.com/thread.jspa?threadID=117243
+					// could it be that it isn't being marked as disposed after disposal and
+					// being double-disposed?
+				((UISWTGraphic) graphic).setImage( null );
+			}
 		}
 	}
 
