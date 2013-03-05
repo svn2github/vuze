@@ -108,10 +108,15 @@ public class MenuBuildUtils {
 			};
 
 			public void menuShown(MenuEvent e) {
-				org.eclipse.swt.widgets.MenuItem[] items = menu.getItems();
-				for (int i = 0; i < items.length; i++)
-					items[i].dispose();
-
+				try{
+					org.eclipse.swt.widgets.MenuItem[] items = menu.getItems();
+					for (int i = 0; i < items.length; i++){
+						items[i].dispose();
+					}
+				}catch( Throwable f ){
+					// getting java.lang.NegativeArraySizeException sometimes on linux. ignore
+				}
+				
 				bShown = true;
 				builder.buildMenu(menu, e);
 				if (Constants.isLinux) { // Hack for Ubuntu Unity -- Show not called when no items
