@@ -169,6 +169,9 @@ DHTControlImpl
 			}
 		};
 			
+	private byte[]			sid_faraway;
+	private long			sid_faraway_calc_time;
+	
 	private long			last_node_add_check;
 	private byte[]			node_add_check_uninteresting_limit;
 	
@@ -2109,7 +2112,7 @@ DHTControlImpl
 				Map level_map;
 
 				// record the set of contacts we've queried to avoid re-queries
-				Map contacts_queried;
+				ByteArrayHashMap<DHTTransportContact> contacts_queried;
 				// record the set of contacts that we've had a reply from
 				// furthest away at front
 				Set ok_contacts;
@@ -2145,7 +2148,8 @@ DHTControlImpl
 					level_map = new LightHashMap();
 
 					// record the set of contacts we've queried to avoid re-queries
-					contacts_queried = new LightHashMap();
+					contacts_queried = new ByteArrayHashMap<DHTTransportContact>();
+					
 					// record the set of contacts that we've had a reply from
 					// furthest away at front
 					ok_contacts = new sortedTransportContactSet(lookup_id, false).getSet();
@@ -2233,7 +2237,7 @@ DHTControlImpl
 
 							if (timeout <= 0 && !value_search)
 								// we can use the results of this to estimate the DHT size
-								estimateDHTSize(lookup_id, contacts_queried, search_accuracy);
+								estimateDHTSize(lookup_id, contacts_queried.values(), search_accuracy);
 
 						} finally
 						{
@@ -2408,7 +2412,7 @@ DHTControlImpl
 								final DHTTransportContact f_closest = closest;
 								
 								contacts_to_query.remove(closest);
-								contacts_queried.put(new HashWrapper(closest.getID()), closest);
+								contacts_queried.put( closest.getID(), closest);
 								// never search ourselves!
 								if (router.isID(closest.getID()))
 								{
@@ -2459,7 +2463,7 @@ DHTControlImpl
 													if (compareDistances(router.getID(), contact.getID()) == 0)
 														continue;
 
-													if (contacts_queried.get(new HashWrapper(contact.getID())) == null && (!contacts_to_query.contains(contact)))
+													if (contacts_queried.get( contact.getID()) == null && (!contacts_to_query.contains(contact)))
 													{
 														if ( DHTLog.isOn()){
 															DHTLog.log("    new contact for query: " + DHTLog.getString(contact));
@@ -3771,9 +3775,9 @@ DHTControlImpl
 	
 	protected void
 	estimateDHTSize(
-		byte[]	id,
-		Map		contacts,
-		int		contacts_to_use )
+		byte[]							id,
+		List<DHTTransportContact>		contacts,
+		int								contacts_to_use )
 	{
 			// if called with contacts then this is in internal estimation based on lookup values
 		
@@ -3800,7 +3804,7 @@ DHTControlImpl
 					
 					Set	sorted_set	= new sortedTransportContactSet( id, true ).getSet(); 
 		
-					sorted_set.addAll( contacts.values());
+					sorted_set.addAll( contacts );
 					
 					l = new ArrayList( sorted_set );
 					
@@ -3964,6 +3968,41 @@ DHTControlImpl
 		if ( spoof_cipher == null  ){
 			
 			return( 0 );
+		}
+		
+		if ( transport.getNetwork() != DHT.NW_CVS ){
+		
+			long	now = SystemTime.getMonotonousTime();
+			
+			byte[] originator_id 	= contact.getID();
+			byte[] my_id			= local_contact.getID();
+
+			if ( sid_faraway == null || now - sid_faraway_calc_time > 1*60*1000 ){
+				
+				int	c_factor = router.getK() * 2;
+	
+	
+				List<DHTTransportContact>	closest_contacts = getClosestContactsList( my_id, c_factor, true );
+				
+				if ( closest_contacts.size() >= c_factor ){
+					
+					sid_faraway = closest_contacts.get( closest_contacts.size()-1).getID();
+					
+					sid_faraway_calc_time = now;
+				}
+			}
+			
+			if ( sid_faraway != null ){
+			
+				int res = computeAndCompareDistances( sid_faraway, originator_id, my_id );
+				
+				//System.out.println( "cac: " + DHTLog.getString2( sid_faraway ) + ", " +  DHTLog.getString2( originator_id ) +  ", " + DHTLog.getString2( my_id ) + " -> " + res );
+				
+				if ( res < 0 ){
+					
+					return( 0 );
+				}
+			}
 		}
 		
 		InetAddress iad = contact.getAddress().getAddress();

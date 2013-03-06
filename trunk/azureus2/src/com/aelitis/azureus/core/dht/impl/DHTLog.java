@@ -30,6 +30,7 @@ package com.aelitis.azureus.core.dht.impl;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.HashWrapper;
 
@@ -240,6 +241,25 @@ DHTLog
 		}
 	}
 	
+	public static String
+	getString(
+		ByteArrayHashMap<?>			s )
+	{
+		if ( logging_on ){
+			String	res = "{";
+			
+			List<byte[]> keys = s.keys();
+			
+			for ( byte[] key: keys ){
+				
+				res += (res.length()==1?"":",") + getString( key );
+			}
+			
+			return( res + "}" );	
+		}else{
+			return( "" );
+		}
+	}
 	public static String
 	getString(
 		DHTTransportValue[]	values )
