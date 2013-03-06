@@ -713,7 +713,16 @@ public class VirtualChannelSelectorImpl {
     	  }
       }else{
     	  
-    	  ready_keys = new ArrayList<SelectionKey>( selector.selectedKeys());
+    	  Set<SelectionKey> selected = selector.selectedKeys();
+    	  
+    	  if ( selected.size() == 0 ){
+    		  
+    		  ready_keys = Collections.emptyList();
+    		  
+    	  }else{
+    	  
+    		  ready_keys = new ArrayList<SelectionKey>( selected );
+    	  }
       }
             
       boolean	randy = randomise_keys;
