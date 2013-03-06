@@ -48,6 +48,8 @@ DHTNetworkPositionManager
 	private static CopyOnWriteList<DHTNetworkPositionProviderListener>	provider_listeners = new CopyOnWriteList<DHTNetworkPositionProviderListener>();
 	private static CopyOnWriteList<DHTNetworkPositionListener>			position_listeners;
 	
+	private static DHTNetworkPosition[] NP_EMPTY_ARRAY = {};
+	
 	public static void
 	initialise(
 		DHTStorageAdapter		adapter )
@@ -353,46 +355,52 @@ DHTNetworkPositionManager
 	{
 		DHTNetworkPositionProvider[]	prov = providers;
 		
-		DHTNetworkPosition[]	res = new DHTNetworkPosition[prov.length];
+		if ( prov.length == 0 ){
 		
-		int	skipped	= 0;
-		
-		for (int i=0;i<res.length;i++){
+			return( NP_EMPTY_ARRAY );
 			
-			try{
-				res[i] = prov[i].create( ID, is_local );
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-				
-				skipped++;
-			}
-		}
-		
-		if  ( skipped > 0 ){
+		}else{
+			DHTNetworkPosition[]	res = new DHTNetworkPosition[prov.length];
 			
-			DHTNetworkPosition[] x	= new DHTNetworkPosition[ res.length - skipped ];
-			
-			int	pos = 0;
+			int	skipped	= 0;
 			
 			for (int i=0;i<res.length;i++){
 				
-				if ( res[i] != null ){
+				try{
+					res[i] = prov[i].create( ID, is_local );
 					
-					x[pos++] = res[i];
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+					
+					skipped++;
 				}
 			}
 			
-			res	= x;
-			
-			if ( res.length == 0 ){
+			if  ( skipped > 0 ){
 				
-				Debug.out( "hmm" );
+				DHTNetworkPosition[] x	= new DHTNetworkPosition[ res.length - skipped ];
+				
+				int	pos = 0;
+				
+				for (int i=0;i<res.length;i++){
+					
+					if ( res[i] != null ){
+						
+						x[pos++] = res[i];
+					}
+				}
+				
+				res	= x;
+				
+				if ( res.length == 0 ){
+					
+					Debug.out( "hmm" );
+				}
 			}
+			
+			return( res );
 		}
-		
-		return( res );
 	}
 	
 	public static float

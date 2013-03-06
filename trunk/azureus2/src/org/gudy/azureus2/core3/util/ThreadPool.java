@@ -37,6 +37,8 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 public class 
 ThreadPool 
 {
+	private static final boolean	NAME_THREADS = Constants.IS_CVS_VERSION && System.getProperty( "az.thread.pool.naming.enable", "true" ).equals( "true" ); 
+	
 	private static final boolean	LOG_WARNINGS	= false;
 	private static final int		WARN_TIME		= 10000;
 	
@@ -626,7 +628,8 @@ ThreadPool
 
 		protected threadPoolWorker()
 		{
-			super(name + " " + (thread_name_index++),true);
+			super(NAME_THREADS?(name + " " + (thread_name_index)):name,true);
+			thread_name_index++;
 			setPriority(thread_priority);
 			worker_name = getName();
 			start();
@@ -694,7 +697,7 @@ ThreadPool
 						{
 							ThreadPoolTask tpt = (ThreadPoolTask) runnable;
 							tpt.worker = this;
-							String task_name = tpt.getName();
+							String task_name = NAME_THREADS?tpt.getName():null;
 							try
 							{
 								if (task_name != null)
