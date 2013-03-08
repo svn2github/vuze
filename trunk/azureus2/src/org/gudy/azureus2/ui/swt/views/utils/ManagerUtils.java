@@ -373,6 +373,21 @@ public class ManagerUtils {
     }
   }
   
+  public static void pause(DownloadManager dm, Shell shell) {
+		if (dm == null) {
+			return;
+		}
+
+		int state = dm.getState();
+
+		if (state == DownloadManager.STATE_STOPPED
+				|| state == DownloadManager.STATE_STOPPING ){
+			return;
+		}
+		
+		asyncPause(dm);
+  }
+  
   public static void stop(DownloadManager dm, Shell shell) {
   	stop(dm, shell, DownloadManager.STATE_STOPPED);
   }
@@ -565,6 +580,19 @@ public class ManagerUtils {
 		});
   	}
 
+ 	public static void
+	asyncPause(
+		final DownloadManager	dm )
+  	{
+    	async.dispatch(new AERunnable() {
+    		public void
+			runSupport()
+    		{
+    			dm.pause();
+    		}
+		});
+  	}
+ 	
 	public static void asyncStartAll() {
 		CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
 				new AzureusCoreRunningListener() {

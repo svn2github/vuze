@@ -1643,9 +1643,26 @@ public class TorrentUtil {
 			itemForceStart.setEnabled(forceStartEnabled);
 		}
 
+		// Pause
+		if (userMode > 0) {
+			final MenuItem itemPause = new MenuItem(menu, SWT.PUSH);
+			Messages.setLanguageText(itemPause, "v3.MainWindow.button.pause"); 
+			Utils.setMenuItemImage(itemPause, "pause");
+			itemPause.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					Utils.getOffOfSWTThread(new AERunnable() {
+						public void runSupport() {
+							pauseDataSources(dms);
+						}
+					});
+				}
+			}); 
+			itemPause.setEnabled(stop);
+		}
+		
 		// Stop
 		final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); //$NON-NLS-1$
+		Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop"); 
 		Utils.setMenuItemImage(itemStop, "stop");
 		itemStop.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -1943,6 +1960,13 @@ public class TorrentUtil {
 		}
 	}
 
+	public static void pauseDataSources(Object[] datasources) {
+		DownloadManager[] dms = toDMS(datasources);
+		for (DownloadManager dm : dms) {
+			ManagerUtils.pause(dm, null);
+		}
+	}
+	
 	public static void queueDataSources(Object[] datasources,
 			boolean startStoppedParents) {
 		DownloadManager[] dms = toDMS(datasources);
