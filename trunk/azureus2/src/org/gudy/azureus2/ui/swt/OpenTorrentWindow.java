@@ -38,6 +38,7 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 
@@ -62,6 +63,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -1673,6 +1675,8 @@ public class OpenTorrentWindow
 		if (Utils.LAST_TABLECOLUMN_EXPANDS)
 			tc.setData("Width", new Long(90));
 
+		final Button[] f_btnSwarmIt = { null };
+		
 		dataFileTable.addListener(SWT.SetData, new Listener() {
 			public void handleEvent(Event event) {
 				if (bClosed)
@@ -1721,6 +1725,18 @@ public class OpenTorrentWindow
 						file.bDownload = item.getChecked();
 
 					updateSize();
+				}else{
+					TableItem[] selected = dataFileTable.getSelection();
+					
+					boolean enable = selected != null && selected.length == 1;
+					
+					if ( enable ){
+						int index = dataFileTable.indexOf(selected[0]);
+						TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(index);
+						enable = file.lSize >= 50*1024*1024;
+					}
+						
+					f_btnSwarmIt[0].setEnabled( enable );
 				}
 			}
 
@@ -1832,6 +1848,46 @@ public class OpenTorrentWindow
 			}
 		});
 
+		try{
+			if ( COConfigurationManager.getBooleanParameter( "rcm.overall.enabled", true )){
+				final PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "aercm" );
+	
+				if ( 	pi != null && 
+						pi.getPluginState().isOperational() &&
+						pi.getIPC().canInvoke( "lookupBySize", new Object[]{ new Long(0)})){
+						
+							
+					Label pad = new Label( cButtons, SWT.NONE );
+					pad.setLayoutData( new RowData( 50,0 ));
+					
+					Button btnSwarmIt = f_btnSwarmIt[0] = new Button(cButtons, SWT.PUSH);
+					Messages.setLanguageText(btnSwarmIt, "Button.swarmit");
+				
+					btnSwarmIt.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							int[] indexes = dataFileTable.getSelectionIndices();
+							for (int i = 0; i < indexes.length; i++) {
+								TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(indexes[i]);
+								
+								try{
+									pi.getIPC().invoke( "lookupBySize", new Object[]{ new Long( file.lSize )});
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+								break;
+							}
+						}
+					});
+					
+					btnSwarmIt.setEnabled( false );
+				}
+			}
+		}catch( Throwable e ){
+			
+		}
+		
 		dataFileTableLabel = new Label(cBottomArea, SWT.WRAP);
 		dataFileTableLabel.setAlignment(SWT.RIGHT);
 		gridData = new GridData(SWT.END, SWT.BEGINNING, true, false);
