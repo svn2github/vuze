@@ -996,7 +996,7 @@ ExternalSeedPeer
 	
 				public void notifyOfExternalSend( Message message ){}  
 	
-				public int getPercentDoneOfCurrentMessage(){ return( 0 );};
+				public int getPercentDoneOfCurrentMessage(){ return( -1 );};
 	
 				public int getDataQueuedBytes(){ return( 0 ); }
 	

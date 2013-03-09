@@ -864,7 +864,7 @@ ExternalSeedReaderImpl
 		
 		if ( cr == null ){
 			
-			return( 0 );
+			return( -1 );
 		}
 		
 		return( cr.getPercentDoneOfCurrentIncomingRequest());
