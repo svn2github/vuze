@@ -39,6 +39,8 @@ DDBaseKeyImpl
 	private byte[]		key_bytes;
 	private String		description;
 	
+	private int			flags;
+	
 	protected 
 	DDBaseKeyImpl(
 		Object	_key )
@@ -89,5 +91,18 @@ DDBaseKeyImpl
 	getDescription()
 	{
 		return( description );
+	}
+	
+	public int 
+	getFlags() 
+	{
+		return( flags );
+	}
+	
+	public void 
+	setFlags(
+		int 	_flags ) 
+	{
+		flags	= _flags;
 	}
 }

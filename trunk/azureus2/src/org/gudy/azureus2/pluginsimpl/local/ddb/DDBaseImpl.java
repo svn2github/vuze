@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.ddb.*;
 
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
@@ -362,6 +363,15 @@ DDBaseImpl
 			}
 		}
 		
+		byte	extra_flags = 0;
+		
+		int key_flags = key.getFlags();
+		
+		if ((key_flags & DistributedDatabaseKey.FL_ANON ) != 0 ){
+			
+			extra_flags |= DHT.FLAG_ANON;
+		}
+		
 		if ( values.length == 0 ){
 			
 			delete( listener, key );
@@ -372,7 +382,7 @@ DDBaseImpl
 					((DDBaseKeyImpl)key).getBytes(),
 					key.getDescription(),
 					((DDBaseValueImpl)values[0]).getBytes(),
-					DHTPlugin.FLAG_SINGLE_VALUE,
+					(byte)( DHTPlugin.FLAG_SINGLE_VALUE | extra_flags ),
 					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0, false, false ));
 		}else{
 			
@@ -440,7 +450,7 @@ DDBaseImpl
 							f_current_key,
 							key.getDescription(),
 							copy,
-							DHTPlugin.FLAG_MULTI_VALUE,
+							(byte)( DHTPlugin.FLAG_MULTI_VALUE | extra_flags ),
 							new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0, false, false ));
 					
 					payload_length	= 1;
@@ -463,7 +473,7 @@ DDBaseImpl
 						f_current_key,
 						key.getDescription(),
 						copy,
-						DHTPlugin.FLAG_MULTI_VALUE,
+						(byte)( DHTPlugin.FLAG_MULTI_VALUE | extra_flags ),
 						new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0, false, false ));
 			}
 		}
