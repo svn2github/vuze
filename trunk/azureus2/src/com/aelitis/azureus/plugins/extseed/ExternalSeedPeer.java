@@ -28,9 +28,16 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.messaging.Message;
+import org.gudy.azureus2.plugins.messaging.MessageStreamEncoder;
 import org.gudy.azureus2.plugins.network.Connection;
+import org.gudy.azureus2.plugins.network.ConnectionListener;
 import org.gudy.azureus2.plugins.network.ConnectionStub;
+import org.gudy.azureus2.plugins.network.IncomingMessageQueue;
+import org.gudy.azureus2.plugins.network.IncomingMessageQueueListener;
+import org.gudy.azureus2.plugins.network.OutgoingMessageQueue;
+import org.gudy.azureus2.plugins.network.OutgoingMessageQueueListener;
 import org.gudy.azureus2.plugins.network.RateLimiter;
+import org.gudy.azureus2.plugins.network.Transport;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.*;
@@ -41,7 +48,7 @@ import com.aelitis.azureus.core.util.CopyOnWriteList;
 public class 
 ExternalSeedPeer
 	implements Peer, ExternalSeedReaderListener
-{
+{	
 	private ExternalSeedPlugin		plugin;
 	
 	private Download				download;
@@ -69,6 +76,9 @@ ExternalSeedPeer
 	private Monitor					listeners_mon;
 		
 	private boolean					doing_allocations;
+	
+	private final ESConnection	connection = new ESConnection();
+
 	
 	protected
 	ExternalSeedPeer(
@@ -821,7 +831,7 @@ ExternalSeedPeer
 	public Connection 
 	getConnection()
 	{
-		return( null );
+		return( connection );
 	}
   
   
@@ -967,5 +977,93 @@ ExternalSeedPeer
 	}
 	
 	public void setPriorityConnection(boolean is_priority) {
+	}
+	
+	private class
+	ESConnection
+		implements Connection
+	{
+		private OutgoingMessageQueue out_q = 
+			new	OutgoingMessageQueue()
+			{
+				public void setEncoder( MessageStreamEncoder encoder ){}
+	
+				public void sendMessage( Message message ){}
+	
+				public void registerListener( OutgoingMessageQueueListener listener ){}
+	
+				public void deregisterListener( OutgoingMessageQueueListener listener ){}
+	
+				public void notifyOfExternalSend( Message message ){}  
+	
+				public int getPercentDoneOfCurrentMessage(){ return( 0 );};
+	
+				public int getDataQueuedBytes(){ return( 0 ); }
+	
+				public int getProtocolQueuedBytes(){ return( 0 ); }
+	
+				public boolean isBlocked(){ return( false ); };
+			};
+			
+		private IncomingMessageQueue in_q =
+			new	IncomingMessageQueue()
+			{
+				public void registerListener( IncomingMessageQueueListener listener ){}
+	
+				public void registerPriorityListener( IncomingMessageQueueListener listener ){}
+	
+				public void deregisterListener( IncomingMessageQueueListener listener ){}
+	
+				public void notifyOfExternalReceive( Message message ){}
+	
+				public int getPercentDoneOfCurrentMessage(){ return( ExternalSeedPeer.this.getPercentDoneOfCurrentIncomingRequest()); }
+			};
+			
+		public void 
+		connect( 
+			ConnectionListener listener )
+		{	
+		}
+
+		public void 
+		close()
+		{
+			Debug.out( "hmm" );
+		}
+
+		public OutgoingMessageQueue 
+		getOutgoingMessageQueue()
+		{
+			return( out_q );
+		}
+
+		public IncomingMessageQueue 
+		getIncomingMessageQueue()
+		{
+			return( in_q );
+		}
+
+		public void 
+		startMessageProcessing()
+		{
+		}
+
+		public Transport 
+		getTransport()
+		{
+			return( null );
+		}
+
+		public boolean 
+		isIncoming()
+		{
+			return( false );
+		}
+
+		public String
+		getString()
+		{
+			return( "External Seed" );
+		}
 	}
 }
