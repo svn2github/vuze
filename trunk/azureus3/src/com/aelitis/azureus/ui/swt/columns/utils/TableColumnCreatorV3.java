@@ -46,6 +46,7 @@ public class TableColumnCreatorV3
 			ColumnProgressETA.COLUMN_ID,
 			//DateCompletedItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
+			"RatingColumn",
 			StatusItem.COLUMN_ID,
 			ColumnTorrentSpeed.COLUMN_ID,
 			SeedsItem.COLUMN_ID,
@@ -99,6 +100,7 @@ public class TableColumnCreatorV3
 			SeedsItem.COLUMN_ID,
 			PeersItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
+			"RatingColumn",
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
@@ -166,8 +168,8 @@ public class TableColumnCreatorV3
 		final String[] defaultVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
 			ColumnThumbAndName.COLUMN_ID,
-			"RatingColumn",
 			"azsubs.ui.column.subs",
+			"RatingColumn",
 			SizeItem.COLUMN_ID,
 			StatusItem.COLUMN_ID,
 			ShareRatioItem.COLUMN_ID,
@@ -214,6 +216,7 @@ public class TableColumnCreatorV3
 			ColumnUnopened.COLUMN_ID,
 			ColumnThumbAndName.COLUMN_ID,
 			"azsubs.ui.column.subs",
+			"RatingColumn",
 			SizeItem.COLUMN_ID,
 			ColumnProgressETA.COLUMN_ID,
 			StatusItem.COLUMN_ID,
