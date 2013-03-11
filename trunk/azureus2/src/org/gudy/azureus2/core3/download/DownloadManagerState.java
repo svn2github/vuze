@@ -361,6 +361,8 @@ DownloadManagerState
 	
 	public void generateEvidence(IndentWriter writer);
 	
+	public void dump( IndentWriter writer );
+	
 	/**
 	 * This method should only be invoked in matching try-finally pairs. If it is invoked with true
 	 * multiple times it must be invoked with false the equal amount of times to reallow state

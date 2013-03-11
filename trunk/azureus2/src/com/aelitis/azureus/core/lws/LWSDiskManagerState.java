@@ -470,6 +470,12 @@ LWSDiskManagerState
 	{
 	}
 	
+	public void 
+	dump(
+		IndentWriter writer)
+	{
+	}
+	
 	public String 
 	getDisplayName()
 	{

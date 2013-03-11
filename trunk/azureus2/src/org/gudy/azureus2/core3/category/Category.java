@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.util.IndentWriter;
 
 /** A Category for grouping torrents (DownloadManagers)
  * @author TuxPaper
@@ -134,4 +135,6 @@ public interface Category {
   setIntAttribute(
 	String		name,
 	int			value );
+  
+  public void dump( IndentWriter writer );
 }

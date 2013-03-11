@@ -37,6 +37,7 @@ import java.net.URL;
 
 import org.gudy.azureus2.core3.config.impl.*;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.core3.util.protocol.AzURLStreamHandlerFactory;
 
@@ -686,6 +687,13 @@ COConfigurationManager
 	  ResetToDefaultsListener		l )
   {
 	  ConfigurationManager.getInstance().addResetToDefaultsListener( l );
+  }
+  
+  public static void
+  dumpConfigChanges(
+	IndentWriter	writer )
+  {
+	 ConfigurationManager.getInstance().dumpConfigChanges( writer );
   }
   
   public interface

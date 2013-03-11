@@ -28,6 +28,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryListener;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 
@@ -384,4 +385,17 @@ public class CategoryImpl implements Category, Comparable {
       return 1;
     return -1;
   }
+  
+  public void dump(IndentWriter writer) {
+	if ( upload_speed != 0 ){
+		writer.println( "up=" + upload_speed );
+	}
+	if ( download_speed != 0 ){
+		writer.println( "down=" + download_speed );
+	}
+	if ( attributes.size() > 0 ){
+		
+		writer.println( "attributes: " + attributes );
+	}
+	}
 }

@@ -1,6 +1,8 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.io.File;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +14,8 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -66,6 +70,7 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
@@ -1094,6 +1099,31 @@ public class MenuFactory
 											});
 								}
 							});
+						
+						MenuItem showChanges = new MenuItem(menu, SWT.PUSH);
+						
+						Messages.setLanguageText(showChanges, "show.config.changes" );
+																
+						showChanges.addListener(
+							SWT.Selection,
+							new Listener()
+							{
+								public void 
+								handleEvent(
+									Event arg )
+								{
+									Utils.execSWTThreadLater(
+											1,
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													handleShowChanges();
+												}
+											});
+								}
+							});
 					}
 		});
 		
@@ -1373,6 +1403,143 @@ public class MenuFactory
 			Debug.out( e );
 		}
 	}
+	
+	private static void
+	handleShowChanges()
+	{
+		final String NL = "\r\n";
+		
+		StringWriter content = new StringWriter();
+				
+		content.append( "**** Please review the contents of this before submitting it ****" + NL + NL );
+		
+		content.append( "Settings" + NL );
+		
+		IndentWriter iw = new IndentWriter( new PrintWriter( content ));
+
+		iw.indent();
+		
+		try{
+			COConfigurationManager.dumpConfigChanges( iw );
+		
+		}finally{
+			
+			iw.exdent();
+
+			iw.close();
+		}
+		
+		AzureusCore	core = AzureusCoreFactory.getSingleton();
+		
+		content.append( "Plugins" + NL );
+		
+		PluginInterface[] plugins = core.getPluginManager().getPlugins();
+		
+		for ( PluginInterface pi: plugins ){
+		
+			if ( pi.getPluginState().isBuiltIn()){
+				
+				continue;
+			}
+			
+			content.append( "    " + pi.getPluginName() + ": " + pi.getPluginVersion() + NL );
+		}
+				
+		java.util.List<DownloadManager> dms = core.getGlobalManager().getDownloadManagers();
+		
+		content.append( "Downloads - " + dms.size() + NL );
+
+		iw = new IndentWriter( new PrintWriter( content ));
+		
+		iw.indent();
+		
+		try{
+			for ( DownloadManager dm: dms ){
+				
+				String	hash_str;
+				
+				try{
+					byte[] hash = dm.getTorrent().getHash();
+					
+					hash_str = Base32.encode( hash ).substring( 0, 16 );
+					
+				}catch( Throwable e ){
+					
+					hash_str = "<no hash>";
+				}
+				
+				content.append( "    " + hash_str + ": " + DisplayFormatters.formatDownloadStatus( dm ) + NL );
+				
+				iw.indent();
+				
+				dm.getDownloadState().dump( iw );
+				
+				try{
+					
+				}finally{
+					
+					iw.exdent();
+				}
+			}
+		}finally{
+			
+			iw.exdent();
+
+			iw.close();
+		}
+		
+		content.append( "Categories" + NL );
+
+		Category[] cats = CategoryManager.getCategories();
+		
+		iw = new IndentWriter( new PrintWriter( content ));
+
+		iw.indent();
+
+		try{
+			for ( Category cat: cats ){
+				
+				iw.println( cat.getName());
+
+				iw.indent();
+				
+				try{
+					cat.dump( iw );
+					
+				}finally{
+					
+					iw.exdent();
+				}
+			}
+		}finally{
+			
+			iw.exdent();
+
+			iw.close();
+		}
+		
+		content.append( "Speed Limits" + NL );
+
+		iw = new IndentWriter( new PrintWriter( content ));
+
+		iw.indent();
+
+		try{
+			SpeedLimitHandler.getSingleton( core ).dump( iw );
+		
+		}finally{
+			
+			iw.exdent();
+
+			iw.close();
+		}
+		
+		new TextViewerWindow(
+				MessageText.getString( "config.changes.title" ),
+				null, content.toString(), false  );
+
+	}
+	
 	
 	public static void
 	showText(

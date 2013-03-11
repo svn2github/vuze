@@ -2478,6 +2478,14 @@ DownloadManagerStateImpl
 		}
 	}
 	
+	
+	public void 
+	dump(
+		IndentWriter writer) 
+	{
+		writer.println( "attributes: " + parameters );
+	}
+	
 	protected static class
 	nullState
 		implements DownloadManagerState
@@ -2838,7 +2846,12 @@ DownloadManagerStateImpl
 		{
 			writer.println( "DownloadManagerState: broken torrent" );
 		}
-
+		public void 
+		dump(
+			IndentWriter writer)
+		{
+		}	
+		
 		public boolean isOurContent() {
 			// TODO Auto-generated method stub
 			return false;

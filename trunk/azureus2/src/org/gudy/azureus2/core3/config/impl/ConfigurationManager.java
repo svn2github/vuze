@@ -979,6 +979,26 @@ ConfigurationManager
   	}
   }
   
+  	private boolean
+  	ignoreKeyForDump(
+  		String		key )
+  	{
+  		String	lc_key = key.toLowerCase( Locale.US );
+  		
+		if ( 	key.startsWith( CryptoManager.CRYPTO_CONFIG_PREFIX ) || 
+				lc_key.equals( "id" ) ||
+				lc_key.endsWith( ".privx" ) ||
+				lc_key.endsWith( ".user" ) ||
+				lc_key.contains( "password" ) ||
+				lc_key.contains( "username" ) ||
+				lc_key.contains( "session key" )){
+			
+			return( true );
+		}
+			
+		return( false );
+  	}
+  	
 	public void
 	generate(
 		IndentWriter		writer )
@@ -1067,7 +1087,7 @@ ConfigurationManager
 					
 						// don't dump crypto stuff
 					
-					if ( key.startsWith( CryptoManager.CRYPTO_CONFIG_PREFIX ) || key.endsWith( ".privx" )){
+					if ( ignoreKeyForDump( key )){
 						
 						continue;
 					}
@@ -1115,7 +1135,7 @@ ConfigurationManager
 							char	c = (char)b[i];
 							
 							if ( !	( 	Character.isLetterOrDigit(c) ||
-										"`�\"�$%^&*()-_=+[{]};:'@#~,<.>/?'".indexOf(c) != -1 )){
+										"\\ `¬\"£$%^&*()-_=+[{]};:'@#~,<.>/?'".indexOf(c) != -1 )){
 								
 								hex	= true;
 								
@@ -1139,6 +1159,94 @@ ConfigurationManager
 		}
 	}
 	
+	public void
+	dumpConfigChanges(
+		IndentWriter	writer )
+	{
+		ConfigurationDefaults defaults = ConfigurationDefaults.getInstance();
+		
+		Set<String> keys =
+			new TreeSet<String>(
+				new Comparator<String>()
+				{
+					public int 
+					compare(
+						String o1, 
+						String o2) 
+					{
+						return( o1.compareToIgnoreCase( o2 ));
+					}
+				});
+	
+		keys.addAll( propertiesMap.keySet());
+		
+		Iterator<String> it = keys.iterator();
+		
+		while( it.hasNext()){
+			
+			String	key 	= it.next();
+			
+				// don't dump crypto stuff
+			
+			if ( ignoreKeyForDump( key )){
+				
+				continue;
+			}
+			
+			Object	value	= propertiesMap.get(key);
+			
+			boolean bParamExists = defaults.doesParameterDefaultExist(key.toString());
+			
+			if ( bParamExists ){
+				
+				Object def = defaults.getParameter( key );
+				
+				if ( def != null && value != null ){
+					
+					if ( !BEncoder.objectsAreIdentical( def, value )){
+												
+						if ( value instanceof Long ){
+							
+							writer.println( key + "=" + value );
+							
+						}else if ( value instanceof List ){
+							
+							writer.println( key + "=" + BDecoder.decodeStrings((List)BEncoder.clone(value)) + "[list]" );
+							
+						}else if ( value instanceof Map ){
+							
+							writer.println( key + "=" + BDecoder.decodeStrings((Map)BEncoder.clone(value)) + "[map]" );
+							
+						}else if ( value instanceof byte[] ){
+							
+							byte[]	b = (byte[])value;
+						
+							boolean	hex	= false;
+							
+							for (int i=0;i<b.length;i++){
+								
+								char	c = (char)b[i];
+								
+								if ( !	( 	Character.isLetterOrDigit(c) ||
+											"\\ `¬\"£$%^&*()-_=+[{]};:'@#~,<.>/?'".indexOf(c) != -1 )){
+									
+									hex	= true;
+									
+									break;
+								}
+							}
+							writer.println( key + "=" + (hex?ByteFormatter.nicePrint(b):bytesToString((byte[])value)));
+							
+						}else{
+							
+							writer.println( key + "=" + value + "[unknown]" );
+						}
+					}
+				}
+			}
+		}
+	}
+		
 	protected static String
 	bytesToString(
 		byte[]	bytes )

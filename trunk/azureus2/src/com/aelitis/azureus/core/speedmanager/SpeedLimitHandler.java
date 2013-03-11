@@ -54,6 +54,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
+import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
@@ -300,7 +301,7 @@ SpeedLimitHandler
 		
 		details.apply();
 		
-		return( details.getString( true ));
+		return( details.getString( true, false ));
 	}
 	
 	public List<String>
@@ -310,7 +311,7 @@ SpeedLimitHandler
 		
 		details.loadCurrent();
 		
-		List<String> lines = details.getString( true );
+		List<String> lines = details.getString( true, false );
 		
 		lines.add( "" );
 		lines.add( "IP Sets" );
@@ -443,7 +444,7 @@ SpeedLimitHandler
 					
 					ld.apply();
 					
-					return( ld.getString( false ));
+					return( ld.getString( false, false ));
 				}
 			}
 		}
@@ -483,6 +484,14 @@ SpeedLimitHandler
 	getProfile(
 		String		name )
 	{
+		return( getProfileSupport( name, false ));
+	}
+	
+	public List<String>
+	getProfileSupport(
+		String		name,
+		boolean		use_hashes )
+	{
 		Map	map = loadConfig();
 		
 		List<Map> list = (List<Map>)map.get( "profiles" );
@@ -499,7 +508,7 @@ SpeedLimitHandler
 					
 					LimitDetails ld = new LimitDetails( profile );
 										
-					return( ld.getString( false ));
+					return( ld.getString( false, use_hashes ));
 				}
 			}
 		}
@@ -681,7 +690,7 @@ SpeedLimitHandler
 			details.apply();
 		}
 		
-		return( details.getString( false ));
+		return( details.getString( false, false ));
 	}
 	
 	private synchronized List<String>
@@ -2068,6 +2077,59 @@ SpeedLimitHandler
     	return( null );
     }
     
+    public void
+    dump(
+    	IndentWriter		iw )
+    {
+    	iw.println( "Profiles" );
+    	
+    	iw.indent();
+    	
+    	try{
+	    	List<String> profiles = getProfileNames();
+	    	
+	    	for (String profile: profiles ){
+	    	
+	    		iw.println( profile );
+	    		
+	    		iw.indent();
+	    		
+	    		try{
+	    			List<String> p_lines = getProfileSupport( profile, true );
+	    			
+	    			for ( String line: p_lines ){
+	    				
+	    				iw.println( line );
+	    			}
+	    		}finally{
+	    			
+	    			iw.exdent();
+	    		}
+	    	}
+    	}finally{
+    		
+    		iw.exdent();
+    	}
+    	
+    	iw.println( "Schedule" );
+    	
+    	iw.indent();
+		
+    	try{
+	    	List lines_list = COConfigurationManager.getListParameter( "speed.limit.handler.schedule.lines", new ArrayList());
+			
+			List<String> schedule_lines = BDecoder.decodeStrings(BEncoder.cloneList(lines_list) );
+	
+			for ( String line: schedule_lines ){
+				
+				iw.println( line );
+			}
+    	}finally{
+		
+    		iw.exdent();
+    	}
+    }
+    
 	private class
 	LimitDetails
 	{
@@ -2398,7 +2460,8 @@ SpeedLimitHandler
 	    
 	    private List<String>
 	    getString(
-	    	boolean	is_current )
+	    	boolean	is_current,
+	    	boolean	use_hashes )
 	    {
 			List<String> result = new ArrayList<String>();
 			
@@ -2448,7 +2511,9 @@ SpeedLimitHandler
 			
 			for ( Map.Entry<String,int[]> entry: download_limits.entrySet()){
 				
-				byte[] hash = Base32.decode( entry.getKey());
+				String hash_str = entry.getKey();
+				
+				byte[] hash = Base32.decode( hash_str );
 				
 				DownloadManager dm = gm.getDownloadManager( new HashWrapper( hash ));
 			
@@ -2479,7 +2544,7 @@ SpeedLimitHandler
 		    			total_download_limits_down 	+= down;
 		    		}
 		    		
-		    		result.add( "    " + dm.getDisplayName() + ": " + formatUp( up ) + ", " + formatDown( down ));
+		    		result.add( "    " + (use_hashes?hash_str.substring(0,16):dm.getDisplayName()) + ": " + formatUp( up ) + ", " + formatDown( down ));
 		    	}
 			}
 			
