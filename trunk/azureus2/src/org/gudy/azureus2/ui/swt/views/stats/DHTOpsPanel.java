@@ -22,7 +22,11 @@
  */
 package org.gudy.azureus2.ui.swt.views.stats;
 
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Color;
@@ -32,10 +36,13 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
 import com.aelitis.azureus.core.dht.control.DHTControlListener;
+import com.aelitis.azureus.core.dht.control.DHTControlActivity.ActivityNode;
+import com.aelitis.azureus.core.dht.control.DHTControlActivity.ActivityState;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
 public class 
@@ -45,6 +52,8 @@ DHTOpsPanel
 	private static final int ALPHA_FOCUS = 255;
 	private static final int ALPHA_NOFOCUS = 150;
 
+	private static final int	FADE_OUT	= 10*1000;
+	
 	Display display;
 	Composite parent;
 
@@ -63,7 +72,7 @@ DHTOpsPanel
 	private boolean autoAlpha = false;
 
 	private DHT	current_dht;
-	
+	private Map<DHTControlActivity,ActivityDetail>	activity_map = new HashMap<DHTControlActivity,ActivityDetail>();
 
 	private class Scale {
 		int width;
@@ -244,7 +253,24 @@ DHTOpsPanel
 		DHTControlActivity	activity,
 		int					type )
 	{
-		System.out.println( activity.getString() + "/" + type + "/" + activity.getCurrentState().getString());
+		//System.out.println( activity.getString() + "/" + type + "/" + activity.getCurrentState().getString());
+		
+		synchronized( activity_map ){
+			
+			ActivityDetail details = activity_map.get( activity );
+			
+			if ( details == null ){
+				
+				details = new ActivityDetail( activity );
+				
+				activity_map.put( activity, details );
+			}
+			
+			if ( type == DHTControlListener.CT_REMOVED ){
+				
+				details.setComplete();
+			}
+		}
 	}
 	
 	public void 
@@ -259,6 +285,11 @@ DHTOpsPanel
 			}
 			
 			current_dht = dht;
+			
+			synchronized( activity_map ){
+				
+				activity_map.clear();
+			}
 			
 			dht.getControl().addListener( this );
 		}
@@ -288,25 +319,100 @@ DHTOpsPanel
 		
 		GC gc = new GC(img);
 
+		gc.setAdvanced( true );
+		
+		gc.setAntialias( SWT.ON );
+		gc.setTextAntialias( SWT.ON );
+		
 		Color white = ColorCache.getColor(display,255,255,255);
 		gc.setForeground(white);
 		gc.setBackground(white);
 		gc.fillRectangle(size);
 
-		Color blue = ColorCache.getColor(display,66,87,104);
-		gc.setForeground(blue);
-		gc.setBackground(blue);
+		List<ActivityDetail>	activities;
+		
+		List<ActivityDetail>	to_remove = new ArrayList<ActivityDetail>();
 
+		synchronized( activity_map ){
+			
+			activities = new ArrayList<ActivityDetail>( activity_map.values());
+		}
+		
+		long	now = SystemTime.getMonotonousTime();
+		
+		int	max_slot = Math.max( activities.size(), 8 );	// always have at least 8 slots
+		
+		for ( ActivityDetail details: activities ){
+			
+			max_slot = Math.max( max_slot, details.getSlot()+1);
+			
+			long comp_at = details.getCompleteTime();
+			
+			if ( comp_at >= 0 && now - comp_at > FADE_OUT ){
+				
+				to_remove.add( details );
+			}
+		}
+		
+		boolean[]	slots_in_use = new boolean[max_slot];
 
-	 	int x0 = scale.getX(0, 0);
-		int y0 = scale.getY(0, 0);
-		gc.drawLine(x0-5, y0, x0+5, y0); 
-		gc.drawLine(x0, y0-5, x0, y0+5);
+		for ( ActivityDetail details: activities ){
+							
+			int	slot = details.getSlot();
+		
+			if ( slot != -1 ){
+				
+				slots_in_use[slot] = true;
+			}
+		}
+		
+		int pos = 0;
+		
+		for ( ActivityDetail details: activities ){
+			
+			int	slot = details.getSlot();
+		
+			if ( slot == -1 ){
+				
+				while( slots_in_use[pos] ){
+					
+					pos++;
+				}
+				
+				details.setSlot( pos++ );
+			}
+		}
+		
+	 	int x_origin = scale.getX(0, 0);
+		int y_origin = scale.getY(0, 0);
+
+		double slice_angle = 2*Math.PI/max_slot;
+		
+		for ( ActivityDetail details: activities ){
+		
+			details.draw( gc, x_origin, y_origin, slice_angle );
+		}
+		
+		gc.setForeground( ColorCache.getColor( gc.getDevice(), 0, 0, 0 ));
+		
+		gc.drawLine(x_origin-5, y_origin, x_origin+5, y_origin); 
+		gc.drawLine(x_origin, y_origin-5, x_origin, y_origin+5);
 
 
 		gc.dispose();
 
 		canvas.redraw();
+		
+		if ( to_remove.size() > 0 ){
+			
+			synchronized( activity_map ){
+
+				for ( ActivityDetail detail: to_remove ){
+					
+					activity_map.remove( detail.getActivity());
+				}
+			}
+		}
 	}
 
 
@@ -334,6 +440,193 @@ DHTOpsPanel
 		if(img != null && !img.isDisposed())
 		{
 			img.dispose();
+		}
+		
+		if ( current_dht != null ){
+			
+			current_dht.getControl().removeListener( this );
+			
+			current_dht = null;
+		}
+		
+		synchronized( activity_map ){
+			
+			activity_map.clear();
+		}
+	}
+	
+	private class
+	ActivityDetail
+	{
+		private DHTControlActivity		activity;
+		private long					complete_time = -1;
+		
+		private int		slot	= -1;
+		
+		private
+		ActivityDetail(
+			DHTControlActivity		_act )
+		{
+			activity	= _act;
+		}
+		
+		private DHTControlActivity
+		getActivity()
+		{
+			return( activity );
+		}
+		
+		private void
+		setComplete()
+		{
+			complete_time = SystemTime.getMonotonousTime();
+		}
+		
+		private long
+		getCompleteTime()
+		{
+			return( complete_time );
+		}
+		
+		private int
+		getSlot()
+		{
+			return( slot );
+		}
+		
+		private void
+		setSlot(
+			int	_s )
+		{
+			slot	= _s;
+		}
+		
+		private void
+		draw(
+			GC		gc,
+			int		x_origin,
+			int		y_origin,
+			double	slice_angle )
+		{
+			setColour( gc );
+						
+			double angle = slice_angle*slot;
+						
+			ActivityState state = activity.getCurrentState();
+			
+			int	depth = state.getDepth();
+			
+			int	level_depth = 750/depth;
+			
+			ActivityNode root = state.getRootNode();
+			
+			List<Object[]> level_nodes = new ArrayList<Object[]>();
+			
+			float x_start = (float)( 50*Math.sin( angle ));
+			float y_start = (float)( 50*Math.cos( angle ));
+			
+			level_nodes.add( new Object[]{ root, x_start, y_start });
+			
+			int	node_distance = 50;
+			
+			while( true ){
+				
+				int	nodes_at_next_level = 0;
+				
+				for ( Object[] entry: level_nodes ){
+					
+					nodes_at_next_level += ((ActivityNode)entry[0]).getChildren().size();
+				}
+				
+				if ( nodes_at_next_level == 0 ){
+					
+					break;
+				}
+				
+				node_distance += level_depth;
+				
+				double node_slice_angle = slice_angle/nodes_at_next_level;
+				
+				double current_angle = angle - (slice_angle/2);
+				
+				List<Object[]> next_level_nodes = new ArrayList<Object[]>();
+
+				for ( Object[] entry: level_nodes ){
+					
+					ActivityNode	node 	= (ActivityNode)entry[0];
+					float			node_x	= (Float)entry[1]; 
+					float			node_y	= (Float)entry[2]; 
+					
+					int seg_start_x = scale.getX(node_x, node_y);
+					int seg_start_y = scale.getY(node_x, node_y);
+					
+					List<ActivityNode> kids = node.getChildren();
+					
+					for ( ActivityNode kid: kids ){
+						
+						float	kid_x = (float)( node_distance*Math.sin( current_angle ));
+						float	kid_y = (float)( node_distance*Math.cos( current_angle ));
+						
+						next_level_nodes.add( new Object[]{ kid, kid_x, kid_y } );
+						
+						current_angle += node_slice_angle;
+						
+						int seg_end_x = scale.getX(kid_x, kid_y);
+						int seg_end_y = scale.getY(kid_x, kid_y);
+						
+						gc.drawLine(seg_start_x, seg_start_y, seg_end_x, seg_end_y );
+					}
+				}
+				
+				level_nodes = next_level_nodes;
+			}
+			
+			float x_end = (float)( 950*Math.sin( angle ));
+			float y_end = (float)( 950*Math.cos( angle ));
+			
+		 	int text_x = scale.getX(x_end, y_end);
+			int text_y = scale.getY(x_end, y_end);
+			
+			gc.drawText( activity.getDescription(), text_x, text_y );
+			
+			//gc.drawLine(x_origin, y_origin, (int)x_end, (int)y_end );
+		}
+		
+		private void
+		setColour(
+			GC		gc )
+		{
+			if ( complete_time != -1 ){
+				
+				int age = (int)( SystemTime.getMonotonousTime() - complete_time );
+				
+				gc.setAlpha( Math.max( 0, 200 - (255*age/FADE_OUT)));
+				
+				gc.setForeground( ColorCache.getColor( gc.getDevice(), 0, 0, 0 ));
+				
+			}else{
+				
+				gc.setAlpha( 255 );
+				
+				int type = activity.getType();
+							
+				if ( type == DHTControlActivity.AT_EXTERNAL_GET ){
+					
+					gc.setForeground( ColorCache.getColor( gc.getDevice(), 20, 220, 20 ));
+
+				}else if ( type == DHTControlActivity.AT_INTERNAL_GET ){
+					
+					gc.setForeground( ColorCache.getColor( gc.getDevice(), 40, 160, 40 ));
+
+				}else if ( type == DHTControlActivity.AT_EXTERNAL_PUT ){
+
+					gc.setForeground( ColorCache.getColor( gc.getDevice(), 220, 20, 20 ));
+
+				}else{
+					
+					gc.setForeground( ColorCache.getColor( gc.getDevice(), 160, 40, 40 ));
+				}
+			}
 		}
 	}
 }

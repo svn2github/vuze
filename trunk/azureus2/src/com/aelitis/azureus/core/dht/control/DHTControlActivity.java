@@ -64,6 +64,9 @@ DHTControlActivity
 		public ActivityNode
 		getRootNode();
 		
+		public int
+		getDepth();
+		
 		public String
 		getString();
 	}
