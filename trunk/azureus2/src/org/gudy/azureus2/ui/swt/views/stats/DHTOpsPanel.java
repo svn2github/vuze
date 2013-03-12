@@ -185,7 +185,9 @@ DHTOpsPanel
 		});
 
 		canvas.addMouseMoveListener(new MouseMoveListener() {
+			private long last_refresh;
 			public void mouseMove(MouseEvent event) {
+				boolean	do_refresh = false;
 				if(mouseLeftDown && (event.stateMask & SWT.MOD4) == 0) {
 					int deltaX = event.x - xDown;
 					int deltaY = event.y - yDown;
@@ -199,7 +201,7 @@ DHTOpsPanel
 					scale.maxX = scale.saveMaxX - realDeltaX;
 					scale.minY = scale.saveMinY - realDeltaY;
 					scale.maxY = scale.saveMaxY - realDeltaY;
-					refresh();
+					do_refresh = true;
 				}
 				if(mouseRightDown || (mouseLeftDown && (event.stateMask & SWT.MOD4) > 0)) {
 					int deltaX = event.x - xDown;
@@ -221,7 +223,19 @@ DHTOpsPanel
 					float centerY = (scale.saveMinY + scale.saveMaxY)/2;
 					scale.minY = scale.saveMinY + moveFactor * (centerY - scale.saveMinY);
 					scale.maxY = scale.saveMaxY - moveFactor * (scale.saveMaxY - centerY);
-					refresh();
+					do_refresh = true;
+				}
+				
+				if ( do_refresh ){
+					
+					long now = SystemTime.getMonotonousTime();
+					
+					if ( now - last_refresh >= 250 ){
+						
+						last_refresh = now;
+						
+						refresh();
+					}
 				}
 			}
 		});
@@ -299,7 +313,7 @@ DHTOpsPanel
 
 	public void 
 	refresh()
-	{
+	{		
 		if ( canvas.isDisposed()){
 			
 			return;
@@ -547,8 +561,16 @@ DHTOpsPanel
 				
 				double node_slice_angle = slice_angle/nodes_at_next_level;
 				
-				double current_angle = angle - (slice_angle/2);
+				double current_angle = angle;
 				
+				if ( nodes_at_next_level > 1 ){
+					
+					current_angle = current_angle - (slice_angle/2);
+					
+					current_angle += (slice_angle - node_slice_angle*(nodes_at_next_level-1))/2;
+				}
+				
+			
 				List<Object[]> next_level_nodes = new ArrayList<Object[]>();
 
 				for ( Object[] entry: level_nodes ){
@@ -575,14 +597,16 @@ DHTOpsPanel
 						int seg_end_y = scale.getY(kid_x, kid_y);
 						
 						gc.drawLine(seg_start_x, seg_start_y, seg_end_x, seg_end_y );
+						
+						gc.drawOval( seg_end_x, seg_end_y, 1, 1 );
 					}
 				}
 				
 				level_nodes = next_level_nodes;
 			}
 			
-			float x_end = (float)( 950*Math.sin( angle ));
-			float y_end = (float)( 950*Math.cos( angle ));
+			float x_end = (float)( 850*Math.sin( angle ));
+			float y_end = (float)( 850*Math.cos( angle ));
 			
 		 	int text_x = scale.getX(x_end, y_end);
 			int text_y = scale.getY(x_end, y_end);
@@ -590,6 +614,8 @@ DHTOpsPanel
 			gc.drawText( activity.getDescription(), text_x, text_y );
 			
 			//gc.drawLine(x_origin, y_origin, (int)x_end, (int)y_end );
+			
+			gc.setAlpha( 255 );
 		}
 		
 		private void
@@ -612,19 +638,19 @@ DHTOpsPanel
 							
 				if ( type == DHTControlActivity.AT_EXTERNAL_GET ){
 					
-					gc.setForeground( ColorCache.getColor( gc.getDevice(), 20, 220, 20 ));
+					gc.setForeground( ColorCache.getColor( gc.getDevice(), 20, 200, 20 ));
 
 				}else if ( type == DHTControlActivity.AT_INTERNAL_GET ){
 					
-					gc.setForeground( ColorCache.getColor( gc.getDevice(), 40, 160, 40 ));
+					gc.setForeground( ColorCache.getColor( gc.getDevice(), 80, 160, 40 ));
 
 				}else if ( type == DHTControlActivity.AT_EXTERNAL_PUT ){
 
-					gc.setForeground( ColorCache.getColor( gc.getDevice(), 220, 20, 20 ));
+					gc.setForeground( ColorCache.getColor( gc.getDevice(), 20, 20, 220 ));
 
 				}else{
 					
-					gc.setForeground( ColorCache.getColor( gc.getDevice(), 160, 40, 40 ));
+					gc.setForeground( ColorCache.getColor( gc.getDevice(), 40, 80, 160 ));
 				}
 			}
 		}

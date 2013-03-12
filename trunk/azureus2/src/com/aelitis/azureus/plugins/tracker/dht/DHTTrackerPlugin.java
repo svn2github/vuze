@@ -1656,7 +1656,7 @@ DHTTrackerPlugin
 				
 				dht.put( 
 					target.getHash(),
-					"Tracker registration of '" + download.getName() + "' " + target.getDesc() + " -> " + encoded,
+					"Tracker reg of '" + download.getName() + "'" + target.getDesc() + " -> " + encoded,
 					encoded_bytes,
 					flags,
 					false,
@@ -1744,7 +1744,7 @@ DHTTrackerPlugin
 			num_done++;
 			
 			dht.get(target.getHash(), 
-					"Tracker announce for '" + download.getName() + "' " + target.getDesc(),
+					"Tracker announce for '" + download.getName() + "'" + target.getDesc(),
 					isComplete( download )?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
 					NUM_WANT, 
 					target_type==REG_TYPE_FULL?ANNOUNCE_TIMEOUT:ANNOUNCE_DERIVED_TIMEOUT,
@@ -2373,7 +2373,7 @@ DHTTrackerPlugin
 				
 				dht.remove( 
 						target.getHash(),
-						"Tracker deregistration of '" + download.getName() + "' " + target.getDesc(),
+						"Tracker dereg of '" + download.getName() + "'" + target.getDesc(),
 						new DHTPluginOperationListener()
 						{
 							public boolean
@@ -2444,7 +2444,7 @@ DHTTrackerPlugin
 			
 			dht.remove( 
 					target.getHash(),
-					"Tracker deregistration of '" + download.getName() + "' " + target.getDesc(),
+					"Tracker dereg of '" + download.getName() + "'" + target.getDesc(),
 					new DHTPluginOperationListener()
 					{
 						public boolean
@@ -2980,7 +2980,7 @@ DHTTrackerPlugin
 		final AESemaphore	sem = new AESemaphore( "DHTTrackerPlugin:scrape" );
 		
 		dht.get(hash, 
-				"Scrape for '" + ByteFormatter.nicePrint( hash ) + "'",
+				"Scrape for " + ByteFormatter.encodeString( hash ).substring( 0, 16 ),
 				DHTPlugin.FLAG_DOWNLOADING,
 				NUM_WANT, 
 				SCRAPE_TIMEOUT,
@@ -3902,7 +3902,7 @@ DHTTrackerPlugin
 				return( "(" + desc + ")" );
 			}
 			
-			return( "(root)" );
+			return( "" );
 		}
 	}
 	

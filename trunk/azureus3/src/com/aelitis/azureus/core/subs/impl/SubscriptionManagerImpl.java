@@ -2935,7 +2935,7 @@ SubscriptionManagerImpl
 		
 		dht_plugin.get(
 			key.getBytes(),
-			"Subscription association read: " + ByteFormatter.encodeString( hash ),
+			"Subs assoc read: " + Base32.encode( hash ).substring( 0, 16 ),
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			30,
 			60*1000,
@@ -3485,7 +3485,7 @@ SubscriptionManagerImpl
 			
 			dht_plugin.get(
 				key.getBytes(),
-				"Subscription lookup read: " + ByteFormatter.encodeString( sid ) + ":" + version,
+				"Subs lookup read: " + ByteFormatter.encodeString( sid ) + ":" + version,
 				DHTPlugin.FLAG_SINGLE_VALUE,
 				12,
 				60*1000,
@@ -4272,7 +4272,7 @@ SubscriptionManagerImpl
 		
 		dht_plugin.get(
 			key.getBytes(),
-			"Subscription association read: " + ByteFormatter.encodeString( assoc_hash ),
+			"Subs assoc read: " + Base32.encode( assoc_hash ).substring( 0, 16 ),
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			30,
 			60*1000,
@@ -4368,7 +4368,7 @@ SubscriptionManagerImpl
 						
 						dht_plugin.put(
 							key.getBytes(),
-							"Subscription association write: " + ByteFormatter.encodeString( assoc.getHash()) + " -> " + ByteFormatter.encodeString( subs.getShortID() ) + ":" + subs.getVersion(),
+							"Subs assoc write: " + Base32.encode( assoc.getHash()).substring( 0, 16 ) + " -> " + Base32.encode( subs.getShortID() ) + ":" + subs.getVersion(),
 							put_value,
 							flags,
 							new DHTPluginOperationListener()
@@ -4544,7 +4544,7 @@ SubscriptionManagerImpl
 						
 		dht_plugin.get(
 			key.getBytes(),
-			"Subscription presence read: " + ByteFormatter.encodeString( sub_id ) + ":" + sub_version,
+			"Subs presence read: " + ByteFormatter.encodeString( sub_id ) + ":" + sub_version,
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			24,
 			60*1000,
@@ -4620,7 +4620,7 @@ SubscriptionManagerImpl
 								
 								dht_plugin.put(
 									key.getBytes(),
-									"Subscription presence write: " + ByteFormatter.encodeString( subs.getShortID() ) + ":" + subs.getVersion(),
+									"Subs presence write: " + Base32.encode( subs.getShortID() ) + ":" + subs.getVersion(),
 									put_value,
 									flags,
 									new DHTPluginOperationListener()
@@ -4744,7 +4744,7 @@ SubscriptionManagerImpl
 						
 		dht_plugin.get(
 			key.getBytes(),
-			"Subscription update read: " + ByteFormatter.encodeString( sub_id ) + ":" + new_version,
+			"Subs update read: " + Base32.encode( sub_id ) + ":" + new_version,
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			12,
 			60*1000,

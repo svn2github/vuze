@@ -975,7 +975,7 @@ RelatedContentManager
 				
 		dht_plugin.get(
 				key_bytes,
-				"Content relationship test: " + from_hash,
+				"Content rel test: " + from_hash.substring( 0, 16 ),
 				DHTPlugin.FLAG_SINGLE_VALUE,
 				max_hits,
 				30*1000,
@@ -1058,7 +1058,7 @@ RelatedContentManager
 								try{
 									dht_plugin.put(
 											key_bytes,
-											"Content relationship: " +  from_hash + " -> " + to_hash,
+											"Content rel: " +  from_hash.substring( 0, 16 ) + " -> " + to_hash.substring( 0, 16 ),
 											map_bytes,
 											DHTPlugin.FLAG_ANON,
 											new DHTPluginOperationListener()
@@ -1151,7 +1151,7 @@ RelatedContentManager
 					
 					dht_plugin.get(
 							key_bytes,
-							"Content size relationship test: " + to_hash,
+							"Content size rel test: " + to_hash.substring( 0, 16 ),
 							DHTPlugin.FLAG_SINGLE_VALUE,
 							max_hits,
 							30*1000,
@@ -1221,7 +1221,7 @@ RelatedContentManager
 										try{
 											dht_plugin.put(
 												key_bytes,
-												"Content size relationship: " +  selected_size + " -> " + to_hash,
+												"Content size rel: " +  selected_size + " -> " + to_hash.substring( 0, 16 ),
 												map_bytes,
 												DHTPlugin.FLAG_ANON,
 												new DHTPluginOperationListener()
@@ -1468,7 +1468,7 @@ RelatedContentManager
 			
 			final byte[] from_hash = new SHA1Simple().calculateHash( key_bytes );
 			
-			String op_str = "Content relationship read: size=" + file_size;
+			String op_str = "Content rel read: size=" + file_size;
 
 			lookupContentSupport0( from_hash, key_bytes, op_str, 0, true, listener );
 			
@@ -1507,7 +1507,7 @@ RelatedContentManager
 		
 			final byte[] key_bytes	= ( "az:rcm:assoc:" + from_hash_str ).getBytes( "UTF-8" );
 			
-			String op_str = "Content relationship read: " + from_hash_str;
+			String op_str = "Content rel read: " + from_hash_str.substring( 0, 16 );
 
 			lookupContentSupport0( from_hash, key_bytes, op_str, level, explicit, listener );
 			

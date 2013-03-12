@@ -2730,9 +2730,7 @@ DHTControlImpl
 					ANImpl root_node = new ANImpl( local );
 					
 					ASImpl result = new ASImpl( root_node );
-				
-					int	depth = 1;
-					
+									
 						// can be null if 'added' listener callback runs before class init complete...
 					
 					if ( contacts_to_query_mon != null ){
@@ -2777,12 +2775,6 @@ DHTControlImpl
 									
 									
 									Object[] entry = lme.getValue();
-									int	level = (Integer)entry[0];
-									
-									if ( level > depth ){
-										
-										depth = level;
-									}
 									
 									DHTTransportContact parent 	= (DHTTransportContact)entry[1];
 									
@@ -2813,9 +2805,7 @@ DHTControlImpl
 							contacts_to_query_mon.exit();
 						}
 					}
-					
-					result.setDepth( depth + 1 );
-					
+										
 					return( result );
 				}
 			};
@@ -2830,7 +2820,7 @@ DHTControlImpl
 		implements DHTControlActivity.ActivityState
 	{
 		private final ANImpl	root;
-		private int				depth;
+		private int				depth = -1;
 		
 		private
 		ASImpl(
@@ -2845,16 +2835,14 @@ DHTControlImpl
 			return( root );
 		}
 		
-		private void
-		setDepth(
-			int		d )
-		{
-			depth = d;
-		}
-		
 		public int
 		getDepth()
 		{
+			if ( depth == -1 ){
+				
+				depth = root.getMaxDepth() - 1;
+			}
+			
 			return( depth );
 		}
 		
@@ -2889,6 +2877,19 @@ DHTControlImpl
 		getChildren()
 		{
 			return( kids );
+		}
+		
+		private int
+		getMaxDepth()
+		{
+			int	max = 0;
+			
+			for ( ActivityNode n: kids ){
+				
+				max = Math.max( max, ((ANImpl)n).getMaxDepth());
+			}
+			
+			return( max + 1 );
 		}
 		
 		private void
