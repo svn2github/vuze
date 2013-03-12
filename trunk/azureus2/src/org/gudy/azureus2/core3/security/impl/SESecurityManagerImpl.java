@@ -203,6 +203,8 @@ SESecurityManagerImpl
 			
 		}catch( Throwable e ){
 			
+			Debug.out( e );
+			
 			Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
 					"Bouncy Castle not available"));
 		}
