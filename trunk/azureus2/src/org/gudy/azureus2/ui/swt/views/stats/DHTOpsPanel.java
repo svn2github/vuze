@@ -477,6 +477,8 @@ DHTOpsPanel
 		
 		private int		slot	= -1;
 		
+		private int		draw_count	= 0;
+		
 		private
 		ActivityDetail(
 			DHTControlActivity		_act )
@@ -522,6 +524,8 @@ DHTOpsPanel
 			int		y_origin,
 			double	slice_angle )
 		{
+			draw_count++;
+			
 			setColour( gc );
 						
 			double angle = slice_angle*slot;
@@ -622,7 +626,7 @@ DHTOpsPanel
 		setColour(
 			GC		gc )
 		{
-			if ( complete_time != -1 ){
+			if ( complete_time != -1 && draw_count > 1 ){
 				
 				int age = (int)( SystemTime.getMonotonousTime() - complete_time );
 				
@@ -642,7 +646,7 @@ DHTOpsPanel
 
 				}else if ( type == DHTControlActivity.AT_INTERNAL_GET ){
 					
-					gc.setForeground( ColorCache.getColor( gc.getDevice(), 80, 160, 40 ));
+					gc.setForeground( ColorCache.getColor( gc.getDevice(), 140, 160, 40 ));
 
 				}else if ( type == DHTControlActivity.AT_EXTERNAL_PUT ){
 
@@ -650,7 +654,7 @@ DHTOpsPanel
 
 				}else{
 					
-					gc.setForeground( ColorCache.getColor( gc.getDevice(), 40, 80, 160 ));
+					gc.setForeground( ColorCache.getColor( gc.getDevice(), 40, 140, 160 ));
 				}
 			}
 		}

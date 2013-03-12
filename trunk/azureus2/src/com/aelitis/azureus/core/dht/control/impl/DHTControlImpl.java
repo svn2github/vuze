@@ -2841,6 +2841,11 @@ DHTControlImpl
 			if ( depth == -1 ){
 				
 				depth = root.getMaxDepth() - 1;
+				
+				if ( depth == 0 ){
+					
+					depth = 1;
+				}
 			}
 			
 			return( depth );
