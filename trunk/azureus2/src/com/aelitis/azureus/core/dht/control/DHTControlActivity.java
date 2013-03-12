@@ -22,6 +22,10 @@
 
 package com.aelitis.azureus.core.dht.control;
 
+import java.util.List;
+
+import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
+
 /**
  * @author parg
  *
@@ -47,6 +51,30 @@ DHTControlActivity
 	public boolean
 	isQueued();
 	
+	public ActivityState
+	getCurrentState();
+	
 	public String
 	getString();
+	
+	
+	public interface
+	ActivityState
+	{
+		public ActivityNode
+		getRootNode();
+		
+		public String
+		getString();
+	}
+	
+	public interface
+	ActivityNode
+	{
+		public DHTTransportContact
+		getContact();
+		
+		public List<ActivityNode>
+		getChildren();
+	}
 }

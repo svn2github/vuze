@@ -145,6 +145,10 @@ public class StatsView
 						DHTView.class, DHTView.DHT_TYPE_MAIN);
 
 				pluginUI.addView(UISWTInstance.VIEW_STATISTICS,
+						DHTOpsView.MSGID_PREFIX, DHTOpsView.class,
+						DHTOpsView.DHT_TYPE_MAIN);
+
+				pluginUI.addView(UISWTInstance.VIEW_STATISTICS,
 						VivaldiView.MSGID_PREFIX, VivaldiView.class,
 						VivaldiView.DHT_TYPE_MAIN);
 

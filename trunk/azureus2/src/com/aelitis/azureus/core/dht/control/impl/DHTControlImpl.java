@@ -28,6 +28,7 @@ import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.Map.Entry;
 
 import javax.crypto.Cipher;
 import javax.crypto.KeyGenerator;
@@ -40,6 +41,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.dht.*;
 import com.aelitis.azureus.core.dht.control.*;
+import com.aelitis.azureus.core.dht.control.DHTControlActivity.ActivityNode;
 import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.db.DHTDBFactory;
 import com.aelitis.azureus.core.dht.db.DHTDBLookupResult;
@@ -799,6 +801,13 @@ DHTControlImpl
 					getTarget()
 					{
 						return( target );
+					}
+					
+					@Override
+					public DHTControlActivity.ActivityState 
+					getCurrentState()
+					{
+						return( null );
 					}
 					
 					public String
@@ -2109,7 +2118,7 @@ DHTControlImpl
 
 				Set contacts_to_query;
 				AEMonitor contacts_to_query_mon;
-				Map level_map;
+				Map<DHTTransportContact,Object[]> level_map;
 
 				// record the set of contacts we've queried to avoid re-queries
 				ByteArrayHashMap<DHTTransportContact> contacts_queried;
@@ -2143,9 +2152,11 @@ DHTControlImpl
 				
 				private void startLookup()
 				{
-					contacts_to_query = getClosestContactsSet(lookup_id, K, false);
 					contacts_to_query_mon = new AEMonitor("DHTControl:ctq");
-					level_map = new LightHashMap();
+					
+					contacts_to_query = getClosestContactsSet(lookup_id, K, false);
+				
+					level_map = new LightHashMap<DHTTransportContact,Object[]>();
 
 					// record the set of contacts we've queried to avoid re-queries
 					contacts_queried = new ByteArrayHashMap<DHTTransportContact>();
@@ -2168,7 +2179,7 @@ DHTControlImpl
 					{
 						DHTTransportContact contact = (DHTTransportContact) it.next();
 						handler.found(contact,false);
-						level_map.put(contact, new Integer(0));
+						level_map.put(contact, new Object[]{ new Integer(0), null });
 					}
 					
 					if ( DHTLog.isOn()){
@@ -2419,7 +2430,7 @@ DHTControlImpl
 									release();
 									continue;
 								}
-								final int search_level = ((Integer) level_map.get(closest)).intValue();
+								final int search_level = ((Integer) level_map.get(closest)[0]).intValue();
 								active_searches++;
 								handler.searching(closest, search_level, active_searches);
 
@@ -2471,7 +2482,7 @@ DHTControlImpl
 														
 														contacts_to_query.add(contact);
 														handler.found(contact,false);
-														level_map.put(contact, new Integer(search_level + 1));
+														level_map.put(contact, new Object[]{ new Integer(search_level + 1), target_contact });
 														if (idle_searches > 0)
 														{
 															idle_searches--;
@@ -2710,6 +2721,93 @@ DHTControlImpl
 				public String getDescription() {
 					return (description);
 				}
+				
+				public DHTControlActivity.ActivityState
+				getCurrentState()
+				{					
+					DHTTransportContact	local = local_contact;
+					
+					ANImpl root_node = new ANImpl( local );
+					
+					DHTControlActivity.ActivityState result = new ASImpl( root_node );
+				
+						// can be null if 'added' listener callback runs before class init complete...
+					
+					if ( contacts_to_query_mon != null ){
+						
+						contacts_to_query_mon.enter();
+	
+						try{
+	
+							if ( contacts_queried != null && level_map != null ){
+								
+								List<Map.Entry<DHTTransportContact, Object[]>> lm_entries = new ArrayList<Map.Entry<DHTTransportContact,Object[]>>( level_map.entrySet());
+								
+								Collections.sort(
+									lm_entries,
+									new Comparator<Map.Entry<DHTTransportContact, Object[]>>()
+									{
+										public int compare(
+												Entry<DHTTransportContact, Object[]> o1,
+												Entry<DHTTransportContact, Object[]> o2)
+										{
+											int	l1 = (Integer)o1.getValue()[0];
+											int	l2 = (Integer)o2.getValue()[0];
+											
+											return( l1 - l2 );
+										}
+									});
+								
+								Set<DHTTransportContact>	qd = new HashSet<DHTTransportContact>( contacts_queried.values());
+								
+								Map<DHTTransportContact,ANImpl>	node_map = new HashMap<DHTTransportContact, ANImpl>();
+								
+								node_map.put( local, root_node );
+								
+								for ( Map.Entry<DHTTransportContact, Object[]> lme: lm_entries ){
+									
+									DHTTransportContact contact = lme.getKey();
+									
+									if ( !qd.contains( contact )){
+										
+										continue;
+									}
+									
+									
+									Object[] entry = lme.getValue();
+									
+									DHTTransportContact parent 	= (DHTTransportContact)entry[1];
+									
+									if ( parent == null ){
+										
+										parent = local;
+									}
+									
+									ANImpl p_node = node_map.get( parent );
+									
+									if ( p_node == null ){
+										
+										Debug.out( "eh" );
+										
+									}else{
+										
+										ANImpl new_node = new ANImpl( contact );
+									
+										node_map.put( contact, new_node );
+										
+										p_node.add( new_node );
+									}
+								}
+							}
+														
+						}finally{
+							
+							contacts_to_query_mon.exit();
+						}
+					}
+					
+					return( result );
+				}
 			};
 			
 		thread_pool.run( task, high_priority, true);
@@ -2717,8 +2815,84 @@ DHTControlImpl
 		return( task );
 	}
 	
-
+	private static class
+	ASImpl
+		implements DHTControlActivity.ActivityState
+	{
+		private final ANImpl	root;
+		
+		private
+		ASImpl(
+			ANImpl	_root )
+		{
+			root = _root;
+		}
+		
+		public ActivityNode
+		getRootNode()
+		{
+			return( root );
+		}
+		
+		public String
+		getString()
+		{
+			return( root.getString());
+		}
+	}
 	
+	private static class
+	ANImpl
+		implements DHTControlActivity.ActivityNode
+	{
+		private final DHTTransportContact		contact;
+		private final List<ActivityNode>		kids = new ArrayList<ActivityNode>();
+		
+		private
+		ANImpl(
+			DHTTransportContact	_contact )
+		{
+			contact = _contact;
+		}
+		
+		public DHTTransportContact
+		getContact()
+		{
+			return( contact );
+		}
+		
+		public List<ActivityNode>
+		getChildren()
+		{
+			return( kids );
+		}
+		
+		private void
+		add(
+			ActivityNode	n )
+		{
+			kids.add( n );
+		}
+		private String
+		getString()
+		{
+			String str = "";
+			
+			if ( kids.size() > 0 ){
+				
+				for ( ActivityNode k: kids ){
+					
+					ANImpl a = (ANImpl)k;
+					
+					str += (str.length()==0?"":",") + a.getString();
+				}
+				
+				str = "["  + str + "]";
+			}
+			
+			return( contact.getAddress().getAddress() + " - " + str );
+		}
+	}
 	
 		// Request methods
 	
@@ -4893,6 +5067,9 @@ DHTControlImpl
 		
 		public abstract String
 		getDescription();
+		
+		public abstract DHTControlActivity.ActivityState
+		getCurrentState();
 	}
 	
 	protected static class
@@ -5027,7 +5204,7 @@ DHTControlImpl
 		implements DHTControlActivity
 	{
 		protected ThreadPool	tp;
-		protected DhtTask			task;
+		protected DhtTask		task;
 		protected int			type;
 		
 		protected
@@ -5078,6 +5255,12 @@ DHTControlImpl
 		isQueued()
 		{
 			return( tp.isQueued( task ));
+		}
+		
+		public ActivityState
+		getCurrentState()
+		{
+			return( task.getCurrentState());
 		}
 		
 		public String
