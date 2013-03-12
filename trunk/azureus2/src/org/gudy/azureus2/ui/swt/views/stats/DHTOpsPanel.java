@@ -351,7 +351,7 @@ DHTOpsPanel
 			
 			activities = new ArrayList<ActivityDetail>( activity_map.values());
 		}
-		
+				
 		long	now = SystemTime.getMonotonousTime();
 		
 		int	max_slot = Math.max( activities.size(), 8 );	// always have at least 8 slots
@@ -409,9 +409,16 @@ DHTOpsPanel
 		
 		gc.setForeground( ColorCache.getColor( gc.getDevice(), 0, 0, 0 ));
 		
-		gc.drawLine(x_origin-5, y_origin, x_origin+5, y_origin); 
-		gc.drawLine(x_origin, y_origin-5, x_origin, y_origin+5);
+		if ( activities.size() == 0 ){
+			
+			gc.drawText( MessageText.getString( DHTOpsView.MSGID_PREFIX + ".idle" ), x_origin, y_origin );
+			
+		}else{
+			
+			gc.drawLine(x_origin-5, y_origin, x_origin+5, y_origin); 
+			gc.drawLine(x_origin, y_origin-5, x_origin, y_origin+5);
 
+		}
 
 		gc.dispose();
 
