@@ -24,6 +24,7 @@ package org.gudy.azureus2.ui.swt.views.stats;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
@@ -36,7 +37,11 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
@@ -74,6 +79,8 @@ DHTOpsPanel
 	private DHT	current_dht;
 	private Map<DHTControlActivity,ActivityDetail>	activity_map = new HashMap<DHTControlActivity,ActivityDetail>();
 
+	private TimerEventPeriodic timeout_timer;
+	
 	private class Scale {
 		int width;
 		int height;
@@ -256,6 +263,40 @@ DHTOpsPanel
 				}
 			}
 		});
+		
+		timeout_timer = 
+			SimpleTimer.addPeriodicEvent( 
+				"DHTOps:timer",
+				30*1000,
+				new TimerEventPerformer()
+				{
+					public void 
+					perform(
+						TimerEvent event) 
+					{
+						if ( canvas.isDisposed()){
+							
+							timeout_timer.cancel();
+							
+							return;
+						}
+						
+						synchronized( activity_map ){
+							
+							Iterator<ActivityDetail> it = activity_map.values().iterator();
+							
+							while( it.hasNext()){
+								
+								ActivityDetail act = it.next();
+								
+								if ( act.isComplete()){
+									
+									it.remove();
+								}
+							}
+						}
+					}	
+				});
 	}
 
 	public void setLayoutData(Object data) {
@@ -509,6 +550,13 @@ DHTOpsPanel
 		getCompleteTime()
 		{
 			return( complete_time );
+		}
+		
+		private boolean
+		isComplete()
+		{
+			return( complete_time != -1 && 
+					SystemTime.getMonotonousTime() - complete_time > FADE_OUT );
 		}
 		
 		private int
