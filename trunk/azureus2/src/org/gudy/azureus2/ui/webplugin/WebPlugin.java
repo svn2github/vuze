@@ -28,6 +28,7 @@ package org.gudy.azureus2.ui.webplugin;
 
 import java.io.*;
 import java.util.*;
+import java.util.zip.GZIPOutputStream;
 import java.net.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -1790,25 +1791,47 @@ WebPlugin
 	private byte[]
 	handleTunnelRequest(
 		final InetAddress		originator,
-		final String			endpoint_url,
+		String					endpoint_url,
 		final byte[]			request_bytes )
 	
 		throws IOException
 	{
-		int	format_pos = endpoint_url.indexOf( "tunnel_format=" );
+		int	q_pos = endpoint_url.indexOf( '?' );
 		
 		boolean	raw = true;
+
+		if ( q_pos != -1 ){
+			
+			String params = endpoint_url.substring( q_pos+1 );
+			
+			String[] args = params.split( "&" );
 		
-		if ( format_pos != -1 ){
+			String new_endpoint = endpoint_url.substring( 0, q_pos );
 			
-			String temp = endpoint_url.substring( format_pos + 14 );
+			String	sep = "?";
 			
-			if ( temp.startsWith( "h" )){
-				
-				raw = false;
+			for ( String arg: args ){
+			
+				if ( arg.startsWith( "tunnel_format=" )){
+					
+					String temp = arg.substring( 14 );
+					
+					if ( temp.startsWith( "h" )){
+						
+						raw = false;
+					}
+				}else{
+					
+					new_endpoint += sep + arg;
+					
+					sep = "&";
+				}
 			}
+		
+			endpoint_url = new_endpoint;
 		}
 		
+		final String		f_endpoint_url	= endpoint_url;
 		final JSONObject	request_headers = new JSONObject();
 
 		final int			data_start;
@@ -1863,7 +1886,14 @@ WebPlugin
 				public String
 				getURL()
 				{
-					return( endpoint_url );
+					String url = (String)request_headers.get( "HTTP-URL" );
+					
+					if ( url != null ){
+						
+						return( url );
+					}
+					
+					return( f_endpoint_url );
 				}
 				
 				public String
@@ -2011,7 +2041,7 @@ WebPlugin
 				
 			}else{
 			
-				Debug.out( "Tunnelled request not handled" );
+				Debug.out( "Tunnelled request not handled: " + request.getURL());
 			
 				response.setReplyStatus( 404 );
 				
@@ -2023,6 +2053,23 @@ WebPlugin
 				return( bytes );
 				
 			}else{
+				
+				String accept_encoding = (String)request_headers.get( "Accept-Encoding" );
+								
+				if ( accept_encoding != null && accept_encoding.contains( "gzip" )){
+										
+					reply_headers.put( "Content-Encoding", "gzip" );
+					
+					ByteArrayOutputStream	temp = new ByteArrayOutputStream( bytes.length + 512 );
+					
+					GZIPOutputStream gos = new GZIPOutputStream( temp );
+					
+					gos.write( bytes );
+					
+					gos.close();
+					
+					bytes = temp.toByteArray();
+				}
 				
 				ByteArrayOutputStream baos2 = new ByteArrayOutputStream( bytes.length + 512 );
 				
