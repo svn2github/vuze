@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.tracker.web.*;
 import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.config.*;
 import org.gudy.azureus2.plugins.ui.model.*;
+import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.pairing.PairedService;
 import com.aelitis.azureus.core.pairing.PairedServiceRequestHandler;
@@ -48,6 +49,7 @@ import com.aelitis.azureus.core.pairing.PairingManagerFactory;
 import com.aelitis.azureus.core.pairing.PairingManagerListener;
 import com.aelitis.azureus.plugins.upnp.UPnPMapping;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
+import com.aelitis.azureus.util.JSONUtils;
 
 public class 
 WebPlugin
@@ -1587,7 +1589,9 @@ WebPlugin
 							handleRequest(
 								InetAddress originator,
 								String		endpoint_url,
-								byte[] 		request) 
+								byte[] 		request ) 
+							
+								throws IOException
 							{
 								return( handleTunnelRequest( originator, endpoint_url, request ));
 							}
@@ -1788,12 +1792,44 @@ WebPlugin
 		final InetAddress		originator,
 		final String			endpoint_url,
 		final byte[]			request_bytes )
+	
+		throws IOException
 	{
+		int	format_pos = endpoint_url.indexOf( "tunnel_format=" );
+		
+		boolean	raw = true;
+		
+		if ( format_pos != -1 ){
+			
+			String temp = endpoint_url.substring( format_pos + 14 );
+			
+			if ( temp.startsWith( "h" )){
+				
+				raw = false;
+			}
+		}
+		
+		final JSONObject	request_headers = new JSONObject();
+
+		final int			data_start;
+		
+		if ( raw ){
+			
+			data_start = 0;
+			
+		}else{
+			int	request_header_len = ((request_bytes[0]<<8)&0x0000ff00) | (request_bytes[1]&0x000000ff);
+			
+			String	reply_json_str = new String( request_bytes, 2, request_header_len, "UTF-8" );	
+			
+			request_headers.putAll( JSONUtils.decodeJSON( reply_json_str ));
+			
+			data_start = request_header_len + 2;
+		}
+		
 		TrackerWebPageRequest request = 
 			new TrackerWebPageRequest()
-			{
-				private Map headers = new HashMap();
-				
+			{				
 				public Tracker
 				getTracker()
 				{
@@ -1839,13 +1875,13 @@ WebPlugin
 				public Map 
 				getHeaders()
 				{
-					return( headers );
+					return( request_headers );
 				}
 				
 				public InputStream
 				getInputStream()
 				{
-					return( new ByteArrayInputStream( request_bytes ));
+					return( new ByteArrayInputStream( request_bytes, data_start, request_bytes.length - data_start ));
 				}
 				
 				public URL
@@ -1868,6 +1904,8 @@ WebPlugin
 			};
 		final ByteArrayOutputStream	baos = new ByteArrayOutputStream();
 		
+		final Map	reply_headers	= new HashMap();
+		
 		TrackerWebPageResponse	response = 
 			new TrackerWebPageResponse()
 			{
@@ -1880,13 +1918,15 @@ WebPlugin
 				public void
 				setReplyStatus(
 					int		status )
-				{					
+				{	
+					reply_headers.put( "HTTP-Status", String.valueOf( status ));
 				}
 				
 				public void
 				setContentType(
 					String		type )
-				{					
+				{	
+					reply_headers.put( "Content-Type", type );
 				}
 				
 				public void
@@ -1905,7 +1945,8 @@ WebPlugin
 				setHeader(
 					String		name,
 					String		value )
-				{				
+				{
+					reply_headers.put( name, value );
 				}
 				
 				public void
@@ -1962,15 +2003,42 @@ WebPlugin
 			};
 			
 		try{
+			byte[]		bytes;
+			
 			if ( generate2( request, response, true )){
 			
-				return( baos.toByteArray());
+				bytes = baos.toByteArray();
 				
 			}else{
 			
 				Debug.out( "Tunnelled request not handled" );
+			
+				response.setReplyStatus( 404 );
 				
-				return( new byte[0] );
+				bytes = new byte[0];
+			}
+			
+			if ( raw ){
+				
+				return( bytes );
+				
+			}else{
+				
+				ByteArrayOutputStream baos2 = new ByteArrayOutputStream( bytes.length + 512 );
+				
+				String header_json = JSONUtils.encodeToJSON( reply_headers );
+	
+				byte[] header_bytes = header_json.getBytes( "UTF-8" );
+				
+				int	header_len = header_bytes.length;
+				
+				byte[] header_len_bytes = new byte[]{ (byte)(header_len>>8), (byte)header_len };
+	
+				baos2.write( header_len_bytes );
+				baos2.write( header_bytes );
+				baos2.write( bytes );
+				
+				return( baos2.toByteArray());
 			}
 		}catch( Throwable e ){
 			

@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.pairing;
 
+import java.io.IOException;
 import java.net.InetAddress;
 
 public interface 
@@ -30,5 +31,7 @@ PairedServiceRequestHandler
 	handleRequest(
 		InetAddress		originator,
 		String			endpoint_url,
-		byte[]			request );
+		byte[]			request )
+	
+		throws IOException;
 }
