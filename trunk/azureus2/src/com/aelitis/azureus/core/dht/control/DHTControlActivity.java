@@ -68,6 +68,9 @@ DHTControlActivity
 		getDepth();
 		
 		public String
+		getResult();
+		
+		public String
 		getString();
 	}
 	

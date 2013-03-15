@@ -73,15 +73,31 @@ public class DHTOpsView
 
 			if ( dht_pi == null ){
 
+				if ( drawPanel != null ){
+					
+					drawPanel.setUnavailable();
+				}
+				
 				return;
 			}
 
-			DHT[] dhts = ((DHTPlugin)dht_pi.getPlugin()).getDHTs();
+			DHTPlugin dht_plugin = (DHTPlugin)dht_pi.getPlugin();
+			
+			DHT[] dhts = dht_plugin.getDHTs();
 
 			for (int i=0;i<dhts.length;i++){
 				if ( dhts[i].getTransport().getNetwork() == dht_type ){
 					dht = dhts[i];
 					break;
+				}
+			}
+			
+			if ( drawPanel != null ){
+				
+				if ( 	dht == null &&
+						!dht_plugin.isInitialising()){
+					
+					drawPanel.setUnavailable();
 				}
 			}
 

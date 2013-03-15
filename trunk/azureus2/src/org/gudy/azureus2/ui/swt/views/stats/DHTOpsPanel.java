@@ -42,7 +42,9 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.control.DHTControlActivity;
 import com.aelitis.azureus.core.dht.control.DHTControlListener;
@@ -65,6 +67,8 @@ DHTOpsPanel
 	Canvas canvas;
 	Scale scale;
 
+	private boolean	unavailable;
+	
 	private boolean mouseLeftDown = false;
 	private boolean mouseRightDown = false;
 	private int xDown;
@@ -131,7 +135,9 @@ DHTOpsPanel
 				} else {
 					e.gc.setBackground(display.getSystemColor(SWT.COLOR_WIDGET_BACKGROUND));
 					e.gc.fillRectangle(e.x, e.y, e.width, e.height);
-					e.gc.drawText(MessageText.getString( DHTOpsView.MSGID_PREFIX + ".notAvailable"), 10,
+										
+					e.gc.drawText(
+							MessageText.getString( unavailable?(DHTOpsView.MSGID_PREFIX + ".notAvailable"):"v3.MainWindow.view.wait"), 10,
 							10, true);
 				}
 			}
@@ -326,6 +332,25 @@ DHTOpsPanel
 				details.setComplete();
 			}
 		}
+	}
+	
+	protected void
+	setUnavailable()
+	{
+		Utils.execSWTThread(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					unavailable = true;
+					
+					if ( !canvas.isDisposed()){
+						
+						canvas.redraw();
+					}
+				}
+			});
 	}
 	
 	public void 
@@ -526,6 +551,7 @@ DHTOpsPanel
 		private int		slot	= -1;
 		
 		private int		draw_count	= 0;
+		private String	result_str	= "";
 		
 		private
 		ActivityDetail(
@@ -670,7 +696,12 @@ DHTOpsPanel
 		 	int text_x = scale.getX(x_end, y_end);
 			int text_y = scale.getY(x_end, y_end);
 			
-			gc.drawText( activity.getDescription(), text_x, text_y );
+			if ( complete_time>=0 && result_str.length() == 0 ){
+				
+				result_str = ": " + state.getResult();
+			}
+			
+			gc.drawText( activity.getDescription() + result_str, text_x, text_y );
 			
 			//gc.drawLine(x_origin, y_origin, (int)x_end, (int)y_end );
 			

@@ -2729,7 +2729,26 @@ DHTControlImpl
 					
 					ANImpl root_node = new ANImpl( local );
 					
-					ASImpl result = new ASImpl( root_node );
+					String result_str;
+					
+					if ( timeout_occurred ){
+						result_str = "Timeout";
+					}else{
+						long elapsed = SystemTime.getMonotonousTime() - start;
+						
+						String	elapsed_str = elapsed<1000?(elapsed+"ms"):((elapsed/1000)+"s");
+						
+						if ( value_search ){
+						
+							result_str = values_found + " hits, time=" + elapsed_str;
+							
+						}else{
+							
+							result_str = "time=" + elapsed_str;
+						}
+					}
+					
+					ASImpl result = new ASImpl( root_node, result_str );
 									
 						// can be null if 'added' listener callback runs before class init complete...
 					
@@ -2820,19 +2839,28 @@ DHTControlImpl
 		implements DHTControlActivity.ActivityState
 	{
 		private final ANImpl	root;
-		private int				depth = -1;
+		private int				depth 	= -1;
+		private String			result;
 		
 		private
 		ASImpl(
-			ANImpl	_root )
+			ANImpl	_root,
+			String	_result )
 		{
-			root = _root;
+			root 	= _root;
+			result	= _result;
 		}
 		
 		public ActivityNode
 		getRootNode()
 		{
 			return( root );
+		}
+		
+		public String 
+		getResult() 
+		{
+			return( result );
 		}
 		
 		public int
