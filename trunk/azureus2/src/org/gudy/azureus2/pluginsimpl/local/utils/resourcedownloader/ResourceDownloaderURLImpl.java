@@ -27,7 +27,6 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
  */
 
 import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
-import com.aelitis.azureus.core.proxy.impl.AEProxySelectorImpl;
 
 import java.io.*;
 import java.net.*;
@@ -348,7 +347,7 @@ ResourceDownloaderURLImpl
 					
 					if ( force_no_proxy ){
 						
-						AEProxySelectorFactory.getSelector().startNoProxy();
+						AEProxySelectorFactory.getSelector().endNoProxy();
 					}
 				}
 			}catch (java.net.MalformedURLException e){
