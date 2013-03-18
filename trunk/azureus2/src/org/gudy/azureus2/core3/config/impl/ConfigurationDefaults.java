@@ -548,6 +548,8 @@ public class ConfigurationDefaults {
     def.put( "network.tcp.connect.select.time", new Long( 100 ));
     def.put( "network.tcp.connect.select.min.time", ZERO );
 
+    def.put( "network.tracker.tcp.select.time", new Long( 100 ));
+
     def.put( "network.control.write.idle.time", new Long(50));
     def.put( "network.control.write.aggressive", FALSE );
     def.put( "network.control.read.idle.time", new Long(50));

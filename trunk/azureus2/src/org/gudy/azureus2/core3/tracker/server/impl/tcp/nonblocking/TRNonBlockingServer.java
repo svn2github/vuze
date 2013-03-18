@@ -30,6 +30,7 @@ import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServerException;
 import org.gudy.azureus2.core3.tracker.server.impl.tcp.TRTrackerServerTCP;
@@ -58,6 +59,24 @@ TRNonBlockingServer
 	
 	private static final int CLOSE_DELAY			= 5*1000;
 	
+	private static int SELECT_LOOP_TIME;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{ 
+				"network.tracker.tcp.select.time", 
+			},
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					SELECT_LOOP_TIME 		= COConfigurationManager.getIntParameter(  "network.tracker.tcp.select.time", 100 );
+				}
+			});
+  	}
+
 	private TRNonBlockingServerProcessorFactory	processor_factory;
 	
 	private final VirtualChannelSelector read_selector;
@@ -241,7 +260,7 @@ TRNonBlockingServer
 		while( !closed ){
 			
 			try{
-				selector.select( 100 );
+				selector.select( SELECT_LOOP_TIME );
 				
 					// only use one selector to trigger the timeouts!
 				
