@@ -881,7 +881,12 @@ DHTDBImpl
 		
 		Iterator<Map.Entry<HashWrapper,List<DHTDBValueImpl>>>	it = republish.entrySet().iterator();
 		
+		int key_tot	= republish.size();
+		int	key_num = 0;
+		
 		while( it.hasNext()){
+		
+			key_num++;
 			
 			Map.Entry<HashWrapper,List<DHTDBValueImpl>>	entry = it.next();
 			
@@ -896,7 +901,7 @@ DHTDBImpl
 				
 				values_published++;
 				
-				control.putEncodedKey( key.getHash(), "Republish", values.get(i), 0, true );
+				control.putEncodedKey( key.getHash(), "Republish orig: " + key_num + " of " + key_tot, values.get(i), 0, true );
 			}
 		}
 		
@@ -1154,7 +1159,14 @@ DHTDBImpl
 		
 			Iterator<Object[]> it2 = contact_map.values().iterator();
 			
+			final int	con_tot 	= contact_map.size();
+			int con_num 	= 0;
+			
 			while( it2.hasNext()){
+				
+				con_num++;
+				
+				final int f_con_num = con_num;
 				
 				final Object[]	data = it2.next();
 				
@@ -1216,7 +1228,7 @@ DHTDBImpl
 									
 									control.putDirectEncodedKeys( 
 											store_keys, 
-											"Republish cache",
+											"Republish cache: " + f_con_num + " of " + con_tot,
 											store_values,
 											contacts );
 								}finally{
