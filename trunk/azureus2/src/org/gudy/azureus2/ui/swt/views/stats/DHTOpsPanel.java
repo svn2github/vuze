@@ -611,83 +611,85 @@ DHTOpsPanel
 						
 			double angle = slice_angle*slot;
 						
-			ActivityState state = activity.getCurrentState();
+			ActivityState state_maybe_null = activity.getCurrentState();
 			
-			int	depth = state.getDepth();
-			
-			int	level_depth = 750/depth;
-			
-			ActivityNode root = state.getRootNode();
-			
-			List<Object[]> level_nodes = new ArrayList<Object[]>();
-			
-			float x_start = (float)( 50*Math.sin( angle ));
-			float y_start = (float)( 50*Math.cos( angle ));
-			
-			level_nodes.add( new Object[]{ root, x_start, y_start });
-			
-			int	node_distance = 50;
-			
-			while( true ){
+			if ( state_maybe_null != null ){
 				
-				int	nodes_at_next_level = 0;
+				int	depth = state_maybe_null.getDepth();
 				
-				for ( Object[] entry: level_nodes ){
-					
-					nodes_at_next_level += ((ActivityNode)entry[0]).getChildren().size();
-				}
+				int	level_depth = 750/depth;
 				
-				if ( nodes_at_next_level == 0 ){
-					
-					break;
-				}
+				ActivityNode root = state_maybe_null.getRootNode();
 				
-				node_distance += level_depth;
+				List<Object[]> level_nodes = new ArrayList<Object[]>();
 				
-				double node_slice_angle = slice_angle/nodes_at_next_level;
+				float x_start = (float)( 50*Math.sin( angle ));
+				float y_start = (float)( 50*Math.cos( angle ));
 				
-				double current_angle = angle;
+				level_nodes.add( new Object[]{ root, x_start, y_start });
 				
-				if ( nodes_at_next_level > 1 ){
-					
-					current_angle = current_angle - (slice_angle/2);
-					
-					current_angle += (slice_angle - node_slice_angle*(nodes_at_next_level-1))/2;
-				}
+				int	node_distance = 50;
 				
-			
-				List<Object[]> next_level_nodes = new ArrayList<Object[]>();
-
-				for ( Object[] entry: level_nodes ){
+				while( true ){
 					
-					ActivityNode	node 	= (ActivityNode)entry[0];
-					float			node_x	= (Float)entry[1]; 
-					float			node_y	= (Float)entry[2]; 
+					int	nodes_at_next_level = 0;
 					
-					int seg_start_x = scale.getX(node_x, node_y);
-					int seg_start_y = scale.getY(node_x, node_y);
-					
-					List<ActivityNode> kids = node.getChildren();
-					
-					for ( ActivityNode kid: kids ){
+					for ( Object[] entry: level_nodes ){
 						
-						float	kid_x = (float)( node_distance*Math.sin( current_angle ));
-						float	kid_y = (float)( node_distance*Math.cos( current_angle ));
-						
-						next_level_nodes.add( new Object[]{ kid, kid_x, kid_y } );
-						
-						current_angle += node_slice_angle;
-						
-						int seg_end_x = scale.getX(kid_x, kid_y);
-						int seg_end_y = scale.getY(kid_x, kid_y);
-						
-						gc.drawLine(seg_start_x, seg_start_y, seg_end_x, seg_end_y );
-						
-						gc.drawOval( seg_end_x, seg_end_y, 1, 1 );
+						nodes_at_next_level += ((ActivityNode)entry[0]).getChildren().size();
 					}
-				}
+					
+					if ( nodes_at_next_level == 0 ){
+						
+						break;
+					}
+					
+					node_distance += level_depth;
+					
+					double node_slice_angle = slice_angle/nodes_at_next_level;
+					
+					double current_angle = angle;
+					
+					if ( nodes_at_next_level > 1 ){
+						
+						current_angle = current_angle - (slice_angle/2);
+						
+						current_angle += (slice_angle - node_slice_angle*(nodes_at_next_level-1))/2;
+					}	
 				
-				level_nodes = next_level_nodes;
+					List<Object[]> next_level_nodes = new ArrayList<Object[]>();
+	
+					for ( Object[] entry: level_nodes ){
+						
+						ActivityNode	node 	= (ActivityNode)entry[0];
+						float			node_x	= (Float)entry[1]; 
+						float			node_y	= (Float)entry[2]; 
+						
+						int seg_start_x = scale.getX(node_x, node_y);
+						int seg_start_y = scale.getY(node_x, node_y);
+						
+						List<ActivityNode> kids = node.getChildren();
+						
+						for ( ActivityNode kid: kids ){
+							
+							float	kid_x = (float)( node_distance*Math.sin( current_angle ));
+							float	kid_y = (float)( node_distance*Math.cos( current_angle ));
+							
+							next_level_nodes.add( new Object[]{ kid, kid_x, kid_y } );
+							
+							current_angle += node_slice_angle;
+							
+							int seg_end_x = scale.getX(kid_x, kid_y);
+							int seg_end_y = scale.getY(kid_x, kid_y);
+							
+							gc.drawLine(seg_start_x, seg_start_y, seg_end_x, seg_end_y );
+							
+							gc.drawOval( seg_end_x, seg_end_y, 1, 1 );
+						}
+					}
+					
+					level_nodes = next_level_nodes;
+				}
 			}
 			
 			float x_end = (float)( 850*Math.sin( angle ));
@@ -696,9 +698,12 @@ DHTOpsPanel
 		 	int text_x = scale.getX(x_end, y_end);
 			int text_y = scale.getY(x_end, y_end);
 			
-			if ( complete_time>=0 && result_str.length() == 0 ){
+			if ( complete_time >= 0 && result_str.length() == 0 ){
 				
-				result_str = ": " + state.getResult();
+				if ( state_maybe_null != null ){
+				
+					result_str = ": " + state_maybe_null.getResult();
+				}
 			}
 			
 			gc.drawText( activity.getDescription() + result_str, text_x, text_y );
