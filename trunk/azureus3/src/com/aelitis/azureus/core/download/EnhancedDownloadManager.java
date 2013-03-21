@@ -179,13 +179,9 @@ EnhancedDownloadManager
 				{
 					synchronized( EnhancedDownloadManager.this ){
 
-						progressive_active		= false;
-						
-						if ( current_piece_pickler != null ){
-					
-							buffer_provider.deactivate(  current_piece_pickler );
+						if ( progressive_active ){
 							
-							current_piece_pickler	= null;	
+							setProgressiveMode( false );
 						}
 					}
 				}
