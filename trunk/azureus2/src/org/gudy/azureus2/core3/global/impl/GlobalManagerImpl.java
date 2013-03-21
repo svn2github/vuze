@@ -61,6 +61,9 @@ import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 import org.gudy.azureus2.plugins.network.ConnectionManager;
@@ -88,7 +91,7 @@ public class GlobalManagerImpl
 	private static final int LDT_DESTROYED				= 4;
     private static final int LDT_SEEDING_ONLY           = 5;
     private static final int LDT_EVENT		            = 6;
-	
+	   
 	private ListenerManager	listeners_and_event_listeners 	= ListenerManager.createAsyncManager(
 		"GM:ListenDispatcher",
 		new ListenerManagerDispatcher()
@@ -236,6 +239,9 @@ public class GlobalManagerImpl
    	auto_resume_disabled = 
    		COConfigurationManager.getBooleanParameter( "Pause Downloads On Exit" ) &&
    		!COConfigurationManager.getBooleanParameter( "Resume Downloads On Start" );
+   	
+	TagManagerFactory.getTagManger().registerTaggableResolver( this );
+
    }
    
    
@@ -2423,6 +2429,25 @@ public class GlobalManagerImpl
       }
     }
   
+	
+	public long 
+	getResolverID()
+	{
+		return( TR_DOWNLOAD );
+	}
+	
+	public Taggable
+	resolveTaggable(
+		String		id )
+	{
+		if ( id == null ){
+			
+			return( null );
+		}
+		
+		return( getDownloadManager( new HashWrapper( Base32.decode( id ))));
+	}
+	
   protected void  informDestroyed() {
   		if ( destroyed )
   		{

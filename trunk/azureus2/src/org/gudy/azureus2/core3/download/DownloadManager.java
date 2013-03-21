@@ -39,10 +39,12 @@ import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 
 public interface
 DownloadManager
+	extends Taggable
 {
     public static final int STATE_START_OF_DAY  = -1;   // should never actually see this one
 

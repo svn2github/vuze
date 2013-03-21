@@ -32,9 +32,17 @@ import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.tag.TagDownload;
+import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.impl.TagImpl;
 
-public class CategoryImpl implements Category, Comparable {
+public class 
+CategoryImpl 
+	extends TagImpl 
+	implements Category, Comparable, TagDownload 
+{
   private String sName;
   private int type;
   private List<DownloadManager> managers = new ArrayList<DownloadManager>();
@@ -107,7 +115,9 @@ public class CategoryImpl implements Category, Comparable {
 			}
 		});
 
-  public CategoryImpl(String sName, int maxup, int maxdown, Map<String,String> _attributes ) {
+  public CategoryImpl(CategoryManagerImpl manager, String sName, int maxup, int maxdown, Map<String,String> _attributes ) {
+	super( manager, sName );
+	
     this.sName = sName;
     this.type = Category.TYPE_USER;
     upload_speed	= maxup;
@@ -115,7 +125,8 @@ public class CategoryImpl implements Category, Comparable {
     attributes = _attributes;
   }
 
-  public CategoryImpl(String sName, int type, Map<String,String> _attributes) {
+  public CategoryImpl(CategoryManagerImpl manager, String sName, int type, Map<String,String> _attributes) {
+	super( manager, sName );
     this.sName = sName;
     this.type = type;
     attributes = _attributes;
@@ -179,6 +190,8 @@ public class CategoryImpl implements Category, Comparable {
     	return;
     }
     
+    addTaggable( manager );
+    
     if (!managers.contains(manager)) {
     	if (type == Category.TYPE_USER) {
     		managers.add(manager);
@@ -215,6 +228,8 @@ public class CategoryImpl implements Category, Comparable {
     if ( manager == null ){
     	return;
     }
+    
+    removeTaggable( manager );
     
     if (type != Category.TYPE_USER || managers.contains(manager)) {
       managers.remove(manager);
@@ -373,6 +388,61 @@ public class CategoryImpl implements Category, Comparable {
 		  CategoryManagerImpl.getInstance().saveCategories(this);
 	  }
 
+  }
+  
+  public int
+  getTagUploadLimit()
+  {
+	  return( getUploadSpeed());
+  }
+
+  public void
+  setTagUploadLimit(
+		  int		bps )
+  {
+	  setUploadSpeed( bps );
+  }
+
+  public int
+  getTagCurrentUploadRate()
+  {
+	  return( -1 );
+  }
+
+  public int
+  getTagDownloadLimit()
+  {
+	  return( getDownloadSpeed());
+  }
+
+  public void
+  setTagDownloadLimit(
+		  int		bps )
+  {
+	  setDownloadSpeed( bps );
+  }
+
+  public int
+  getTagDownloadUploadRate()
+  {
+	  return( -1 );
+  }
+  
+  public List<DownloadManager>
+  getTaggedDownloads()
+  {
+	 return( getDownloadManagers( AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers()));
+  }
+  
+  @Override
+  public List<Taggable> getTagged() {
+	  return( new ArrayList<Taggable>( getTaggedDownloads()));
+  }
+  
+  protected void
+  destroy()
+  {
+	  removeTag();
   }
   
   public int compareTo(Object b)

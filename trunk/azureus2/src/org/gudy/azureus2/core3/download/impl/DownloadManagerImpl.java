@@ -72,6 +72,8 @@ import com.aelitis.azureus.core.AzureusCoreOperationTask;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
+import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.TaggableResolver;
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
@@ -88,7 +90,7 @@ import com.aelitis.azureus.plugins.tracker.local.LocalTrackerPlugin;
 public class 
 DownloadManagerImpl 
 	extends LogRelation
-	implements DownloadManager
+	implements DownloadManager, Taggable
 {
 	private final static long SCRAPE_DELAY_ERROR_TORRENTS = 1000 * 60 * 60 * 2;// 2 hrs
 	private final static long SCRAPE_DELAY_STOPPED_TORRENTS = 1000 * 60 * 60;  // 1 hr
@@ -636,7 +638,18 @@ DownloadManagerImpl
 		}
 	}
 
+	public TaggableResolver 
+	getTaggableResolver() 
+	{
+		return( globalManager );
+	}
 
+	public String 
+	getTaggableID() 
+	{
+		return( dl_identity==null?null:Base32.encode(dl_identity));
+	}
+	
 	private void 
 	readTorrent(
 		String		torrent_save_dir,

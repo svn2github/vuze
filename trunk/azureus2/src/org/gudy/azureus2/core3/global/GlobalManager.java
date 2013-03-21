@@ -25,6 +25,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.aelitis.azureus.core.AzureusCoreComponent;
+import com.aelitis.azureus.core.tag.TaggableResolver;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.*;
@@ -37,7 +38,7 @@ import org.gudy.azureus2.plugins.dht.mainline.MainlineDHTProvider;
  * The GlobalManager contains a list of all the downloads
  * (DownloadManager objects) that Azureus controls. 
  */
-public interface GlobalManager extends AzureusCoreComponent {
+public interface GlobalManager extends AzureusCoreComponent, TaggableResolver {
 	/**
 	 * Create and add a Download Manager to the global list
 	 * 

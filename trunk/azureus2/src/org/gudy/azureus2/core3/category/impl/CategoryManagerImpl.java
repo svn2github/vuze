@@ -38,7 +38,6 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
-import java.lang.reflect.Array;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
@@ -47,7 +46,6 @@ import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
-import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.*;
@@ -62,10 +60,14 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
+import com.aelitis.azureus.core.tag.TagDownload;
+import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.tag.impl.TagTypeNonPersistentBase;
 
 public class 
 CategoryManagerImpl 
-	implements RSSGeneratorPlugin.Provider 
+	extends TagTypeNonPersistentBase
+	implements RSSGeneratorPlugin.Provider, TagType
 {
   private static final String PROVIDER = "categories";
 
@@ -104,10 +106,10 @@ CategoryManagerImpl
         }
     });
 
-
   protected
   CategoryManagerImpl()
   {
+	super( TagDownload.TYPE, TagDownload.FEATURES, "Categories" );
   	loadCategories();
   }
   
@@ -179,6 +181,7 @@ CategoryManagerImpl
 	          categories.put( 
 	        	catName,
 	        	  new CategoryImpl( 
+	        		  this,
 	        		  catName, 
 	        		  l_maxup==null?0:l_maxup.intValue(),
 	        		  l_maxdown==null?0:l_maxdown.intValue(),
@@ -301,7 +304,7 @@ CategoryManagerImpl
     makeSpecialCategories();
     CategoryImpl newCategory = getCategory(name);
     if (newCategory == null) {
-      newCategory = new CategoryImpl(name, 0, 0, new HashMap<String,String>());
+      newCategory = new CategoryImpl(this,name, 0, 0, new HashMap<String,String>());
       categories.put(name, newCategory);
       saveCategories();
 
@@ -313,9 +316,13 @@ CategoryManagerImpl
 
   public void removeCategory(Category category) {
     if (categories.containsKey(category.getName())) {
-      categories.remove(category.getName());
+      CategoryImpl old = categories.remove(category.getName());
       saveCategories();
       category_listeners.dispatch( LDT_CATEGORY_REMOVED, category );
+      
+      if ( old != null ){
+    	  old.destroy();
+      }
     }
   }
 
@@ -339,12 +346,12 @@ CategoryManagerImpl
 
   private void makeSpecialCategories() {
     if (catAll == null) {
-      catAll = new CategoryImpl("Categories.all", Category.TYPE_ALL, new HashMap<String,String>());
+      catAll = new CategoryImpl(this,"Categories.all", Category.TYPE_ALL, new HashMap<String,String>());
       categories.put("Categories.all", catAll);
     }
     
     if (catUncategorized == null) {
-      catUncategorized = new CategoryImpl("Categories.uncategorized", Category.TYPE_UNCATEGORIZED, new HashMap<String,String>());
+      catUncategorized = new CategoryImpl(this,"Categories.uncategorized", Category.TYPE_UNCATEGORIZED, new HashMap<String,String>());
       categories.put("Categories.uncategorized", catUncategorized);
     }
   }
