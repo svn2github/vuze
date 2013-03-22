@@ -246,6 +246,8 @@ ViewUtils
 	addSpeedMenu(
 		final Shell 		shell,
 		Menu				menuAdvanced,
+		boolean				doUpMenu,
+		boolean				doDownMenu,
 		boolean				isTorrentContext,
 		boolean				hasSelection,
 		boolean				downSpeedDisabled,
@@ -261,233 +263,236 @@ ViewUtils
 		final int			num_entries,
 		final SpeedAdapter	adapter )
 	{
-		// advanced > Download Speed Menu //
-		final MenuItem itemDownSpeed = new MenuItem(menuAdvanced, SWT.CASCADE);
-		Messages.setLanguageText(itemDownSpeed, "MyTorrentsView.menu.setDownSpeed"); //$NON-NLS-1$
-		Utils.setMenuItemImage(itemDownSpeed, "speed");
-
-		final Menu menuDownSpeed = new Menu(shell, SWT.DROP_DOWN);
-		itemDownSpeed.setMenu(menuDownSpeed);
-
-		final MenuItem itemCurrentDownSpeed = new MenuItem(menuDownSpeed, SWT.PUSH);
-		itemCurrentDownSpeed.setEnabled(false);
-		StringBuffer speedText = new StringBuffer();
-		String separator = "";
-		//itemDownSpeed.                   
-		if (downSpeedDisabled) {
-			speedText.append(MessageText
-					.getString("MyTorrentsView.menu.setSpeed.disabled"));
-			separator = " / ";
-		}
-		if (downSpeedUnlimited) {
-			speedText.append(separator);
-			speedText.append(MessageText
-					.getString("MyTorrentsView.menu.setSpeed.unlimited"));
-			separator = " / ";
-		}
-		if (totalDownSpeed > 0) {
-			speedText.append(separator);
-			speedText.append(DisplayFormatters
-					.formatByteCountToKiBEtcPerSec(totalDownSpeed));
-		}
-		itemCurrentDownSpeed.setText(speedText.toString());
-
-		new MenuItem(menuDownSpeed, SWT.SEPARATOR);
-
-		final MenuItem itemsDownSpeed[] = new MenuItem[12];
-		Listener itemsDownSpeedListener = new Listener() {
-			public void handleEvent(Event e) {
-				if (e.widget != null && e.widget instanceof MenuItem) {
-					MenuItem item = (MenuItem) e.widget;
-					int speed = item.getData("maxdl") == null ? 0 : ((Integer) item
-							.getData("maxdl")).intValue();
-					adapter.setDownSpeed(speed);
-				}
-			}
-		};
-
-		itemsDownSpeed[1] = new MenuItem(menuDownSpeed, SWT.PUSH);
-		Messages.setLanguageText(itemsDownSpeed[1],
-				"MyTorrentsView.menu.setSpeed.unlimit");
-		itemsDownSpeed[1].setData("maxdl", new Integer(0));
-		itemsDownSpeed[1].addListener(SWT.Selection, itemsDownSpeedListener);
-
-		if (hasSelection) {
-
-			//using 200KiB/s as the default limit when no limit set.
-			if (maxDownload == 0){		
-				if ( downSpeedSetMax == 0 ){
-					maxDownload = 200 * 1024;
-				}else{
-					maxDownload	= 4 * ( downSpeedSetMax/1024 ) * 1024;
-				}
-			}
-
-			for (int i = 2; i < 12; i++) {
-				itemsDownSpeed[i] = new MenuItem(menuDownSpeed, SWT.PUSH);
-				itemsDownSpeed[i].addListener(SWT.Selection, itemsDownSpeedListener);
-	
-				// dms.length has to be > 0 when hasSelection
-				int limit = (int)(maxDownload / (10 * num_entries) * (12 - i));
-				StringBuffer speed = new StringBuffer();
-				speed.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit
-						* num_entries));
-				if (num_entries > 1) {
-					speed.append(" ");
-					speed.append(MessageText
-							.getString("MyTorrentsView.menu.setSpeed.in"));
-					speed.append(" ");
-					speed.append(num_entries);
-					speed.append(" ");
-					speed.append(MessageText
-							.getString("MyTorrentsView.menu.setSpeed.slots"));
-					speed.append(" ");
-					speed
-							.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit));
-				}
-				itemsDownSpeed[i].setText(speed.toString());
-				itemsDownSpeed[i].setData("maxdl", new Integer(limit));
-			}
-		}
-
-		// ---
-		new MenuItem(menuDownSpeed, SWT.SEPARATOR);
-		
 		String menu_key = "MyTorrentsView.menu.manual";
 		if (num_entries > 1) {menu_key += (isTorrentContext?".per_torrent":".per_peer" );}
 
-		final MenuItem itemDownSpeedManualSingle = new MenuItem(menuDownSpeed, SWT.PUSH);
-		Messages.setLanguageText(itemDownSpeedManualSingle, menu_key);
-		itemDownSpeedManualSingle.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				int speed_value = getManualSpeedValue(shell, true);
-				if (speed_value > 0) {adapter.setDownSpeed(speed_value);}
+		if ( doDownMenu ){
+			// advanced > Download Speed Menu //
+			final MenuItem itemDownSpeed = new MenuItem(menuAdvanced, SWT.CASCADE);
+			Messages.setLanguageText(itemDownSpeed, "MyTorrentsView.menu.setDownSpeed"); //$NON-NLS-1$
+			Utils.setMenuItemImage(itemDownSpeed, "speed");
+	
+			final Menu menuDownSpeed = new Menu(shell, SWT.DROP_DOWN);
+			itemDownSpeed.setMenu(menuDownSpeed);
+	
+			final MenuItem itemCurrentDownSpeed = new MenuItem(menuDownSpeed, SWT.PUSH);
+			itemCurrentDownSpeed.setEnabled(false);
+			StringBuffer speedText = new StringBuffer();
+			String separator = "";
+			//itemDownSpeed.                   
+			if (downSpeedDisabled) {
+				speedText.append(MessageText
+						.getString("MyTorrentsView.menu.setSpeed.disabled"));
+				separator = " / ";
 			}
-		});
+			if (downSpeedUnlimited) {
+				speedText.append(separator);
+				speedText.append(MessageText
+						.getString("MyTorrentsView.menu.setSpeed.unlimited"));
+				separator = " / ";
+			}
+			if (totalDownSpeed > 0) {
+				speedText.append(separator);
+				speedText.append(DisplayFormatters
+						.formatByteCountToKiBEtcPerSec(totalDownSpeed));
+			}
+			itemCurrentDownSpeed.setText(speedText.toString());
+	
+			new MenuItem(menuDownSpeed, SWT.SEPARATOR);
+	
+			final MenuItem itemsDownSpeed[] = new MenuItem[12];
+			Listener itemsDownSpeedListener = new Listener() {
+				public void handleEvent(Event e) {
+					if (e.widget != null && e.widget instanceof MenuItem) {
+						MenuItem item = (MenuItem) e.widget;
+						int speed = item.getData("maxdl") == null ? 0 : ((Integer) item
+								.getData("maxdl")).intValue();
+						adapter.setDownSpeed(speed);
+					}
+				}
+			};
+	
+			itemsDownSpeed[1] = new MenuItem(menuDownSpeed, SWT.PUSH);
+			Messages.setLanguageText(itemsDownSpeed[1],
+					"MyTorrentsView.menu.setSpeed.unlimit");
+			itemsDownSpeed[1].setData("maxdl", new Integer(0));
+			itemsDownSpeed[1].addListener(SWT.Selection, itemsDownSpeedListener);
+	
+			if (hasSelection) {
+	
+				//using 200KiB/s as the default limit when no limit set.
+				if (maxDownload == 0){		
+					if ( downSpeedSetMax == 0 ){
+						maxDownload = 200 * 1024;
+					}else{
+						maxDownload	= 4 * ( downSpeedSetMax/1024 ) * 1024;
+					}
+				}
+	
+				for (int i = 2; i < 12; i++) {
+					itemsDownSpeed[i] = new MenuItem(menuDownSpeed, SWT.PUSH);
+					itemsDownSpeed[i].addListener(SWT.Selection, itemsDownSpeedListener);
 		
-		if (num_entries > 1) {
-			final MenuItem itemDownSpeedManualShared = new MenuItem(menuDownSpeed, SWT.PUSH);
-			Messages.setLanguageText(itemDownSpeedManualShared, isTorrentContext?"MyTorrentsView.menu.manual.shared_torrents":"MyTorrentsView.menu.manual.shared_peers");
-			itemDownSpeedManualShared.addSelectionListener(new SelectionAdapter() {
+					// dms.length has to be > 0 when hasSelection
+					int limit = (int)(maxDownload / (10 * num_entries) * (12 - i));
+					StringBuffer speed = new StringBuffer();
+					speed.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit
+							* num_entries));
+					if (num_entries > 1) {
+						speed.append(" ");
+						speed.append(MessageText
+								.getString("MyTorrentsView.menu.setSpeed.in"));
+						speed.append(" ");
+						speed.append(num_entries);
+						speed.append(" ");
+						speed.append(MessageText
+								.getString("MyTorrentsView.menu.setSpeed.slots"));
+						speed.append(" ");
+						speed
+								.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit));
+					}
+					itemsDownSpeed[i].setText(speed.toString());
+					itemsDownSpeed[i].setData("maxdl", new Integer(limit));
+				}
+			}
+	
+			// ---
+			new MenuItem(menuDownSpeed, SWT.SEPARATOR);
+				
+			final MenuItem itemDownSpeedManualSingle = new MenuItem(menuDownSpeed, SWT.PUSH);
+			Messages.setLanguageText(itemDownSpeedManualSingle, menu_key);
+			itemDownSpeedManualSingle.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
-					int speed_value = getManualSharedSpeedValue(shell, true, num_entries);
+					int speed_value = getManualSpeedValue(shell, true);
 					if (speed_value > 0) {adapter.setDownSpeed(speed_value);}
 				}
 			});
+			
+			if (num_entries > 1) {
+				final MenuItem itemDownSpeedManualShared = new MenuItem(menuDownSpeed, SWT.PUSH);
+				Messages.setLanguageText(itemDownSpeedManualShared, isTorrentContext?"MyTorrentsView.menu.manual.shared_torrents":"MyTorrentsView.menu.manual.shared_peers");
+				itemDownSpeedManualShared.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						int speed_value = getManualSharedSpeedValue(shell, true, num_entries);
+						if (speed_value > 0) {adapter.setDownSpeed(speed_value);}
+					}
+				});
+			}
 		}
 		
-		// advanced >Upload Speed Menu //
-		final MenuItem itemUpSpeed = new MenuItem(menuAdvanced, SWT.CASCADE);
-		Messages.setLanguageText(itemUpSpeed, "MyTorrentsView.menu.setUpSpeed"); //$NON-NLS-1$
-		Utils.setMenuItemImage(itemUpSpeed, "speed");
-
-		final Menu menuUpSpeed = new Menu(shell, SWT.DROP_DOWN);
-		itemUpSpeed.setMenu(menuUpSpeed);
-
-		final MenuItem itemCurrentUpSpeed = new MenuItem(menuUpSpeed, SWT.PUSH);
-		itemCurrentUpSpeed.setEnabled(false);
-		separator = "";
-		speedText = new StringBuffer();
-		//itemUpSpeed.                   
-		if (upSpeedDisabled) {
-			speedText.append(MessageText
-					.getString("MyTorrentsView.menu.setSpeed.disabled"));
-			separator = " / ";
-		}
-		if (upSpeedUnlimited) {
-			speedText.append(separator);
-			speedText.append(MessageText
-					.getString("MyTorrentsView.menu.setSpeed.unlimited"));
-			separator = " / ";
-		}
-		if (totalUpSpeed > 0) {
-			speedText.append(separator);
-			speedText.append(DisplayFormatters
-					.formatByteCountToKiBEtcPerSec(totalUpSpeed));
-		}
-		itemCurrentUpSpeed.setText(speedText.toString());
-
-		// ---
-		new MenuItem(menuUpSpeed, SWT.SEPARATOR);
-
-		final MenuItem itemsUpSpeed[] = new MenuItem[12];
-		Listener itemsUpSpeedListener = new Listener() {
-			public void handleEvent(Event e) {
-				if (e.widget != null && e.widget instanceof MenuItem) {
-					MenuItem item = (MenuItem) e.widget;
-					int speed = item.getData("maxul") == null ? 0 : ((Integer) item
-							.getData("maxul")).intValue();
-					adapter.setUpSpeed(speed);
-				}
+		if ( doUpMenu ){
+			// advanced >Upload Speed Menu //
+			final MenuItem itemUpSpeed = new MenuItem(menuAdvanced, SWT.CASCADE);
+			Messages.setLanguageText(itemUpSpeed, "MyTorrentsView.menu.setUpSpeed"); //$NON-NLS-1$
+			Utils.setMenuItemImage(itemUpSpeed, "speed");
+	
+			final Menu menuUpSpeed = new Menu(shell, SWT.DROP_DOWN);
+			itemUpSpeed.setMenu(menuUpSpeed);
+	
+			final MenuItem itemCurrentUpSpeed = new MenuItem(menuUpSpeed, SWT.PUSH);
+			itemCurrentUpSpeed.setEnabled(false);
+			String separator = "";
+			StringBuffer speedText = new StringBuffer();
+			//itemUpSpeed.                   
+			if (upSpeedDisabled) {
+				speedText.append(MessageText
+						.getString("MyTorrentsView.menu.setSpeed.disabled"));
+				separator = " / ";
 			}
-		};
-
-		itemsUpSpeed[1] = new MenuItem(menuUpSpeed, SWT.PUSH);
-		Messages.setLanguageText(itemsUpSpeed[1],
-				"MyTorrentsView.menu.setSpeed.unlimit");
-		itemsUpSpeed[1].setData("maxul", new Integer(0));
-		itemsUpSpeed[1].addListener(SWT.Selection, itemsUpSpeedListener);
-
-		if (hasSelection) {
-			//using 75KiB/s as the default limit when no limit set.
-			if (maxUpload == 0){
-				maxUpload = 75 * 1024;
-			}else{
-				if ( upSpeedSetMax == 0 ){
-					maxUpload = 200 * 1024;
+			if (upSpeedUnlimited) {
+				speedText.append(separator);
+				speedText.append(MessageText
+						.getString("MyTorrentsView.menu.setSpeed.unlimited"));
+				separator = " / ";
+			}
+			if (totalUpSpeed > 0) {
+				speedText.append(separator);
+				speedText.append(DisplayFormatters
+						.formatByteCountToKiBEtcPerSec(totalUpSpeed));
+			}
+			itemCurrentUpSpeed.setText(speedText.toString());
+	
+			// ---
+			new MenuItem(menuUpSpeed, SWT.SEPARATOR);
+	
+			final MenuItem itemsUpSpeed[] = new MenuItem[12];
+			Listener itemsUpSpeedListener = new Listener() {
+				public void handleEvent(Event e) {
+					if (e.widget != null && e.widget instanceof MenuItem) {
+						MenuItem item = (MenuItem) e.widget;
+						int speed = item.getData("maxul") == null ? 0 : ((Integer) item
+								.getData("maxul")).intValue();
+						adapter.setUpSpeed(speed);
+					}
+				}
+			};
+	
+			itemsUpSpeed[1] = new MenuItem(menuUpSpeed, SWT.PUSH);
+			Messages.setLanguageText(itemsUpSpeed[1],
+					"MyTorrentsView.menu.setSpeed.unlimit");
+			itemsUpSpeed[1].setData("maxul", new Integer(0));
+			itemsUpSpeed[1].addListener(SWT.Selection, itemsUpSpeedListener);
+	
+			if (hasSelection) {
+				//using 75KiB/s as the default limit when no limit set.
+				if (maxUpload == 0){
+					maxUpload = 75 * 1024;
 				}else{
-					maxUpload = 4 * ( upSpeedSetMax/1024 ) * 1024;
+					if ( upSpeedSetMax == 0 ){
+						maxUpload = 200 * 1024;
+					}else{
+						maxUpload = 4 * ( upSpeedSetMax/1024 ) * 1024;
+					}
+				}
+				for (int i = 2; i < 12; i++) {
+					itemsUpSpeed[i] = new MenuItem(menuUpSpeed, SWT.PUSH);
+					itemsUpSpeed[i].addListener(SWT.Selection, itemsUpSpeedListener);
+	
+					int limit = (int)( maxUpload / (10 * num_entries) * (12 - i));
+					StringBuffer speed = new StringBuffer();
+					speed.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit
+							* num_entries));
+					if (num_entries > 1) {
+						speed.append(" ");
+						speed.append(MessageText
+								.getString("MyTorrentsView.menu.setSpeed.in"));
+						speed.append(" ");
+						speed.append(num_entries);
+						speed.append(" ");
+						speed.append(MessageText
+								.getString("MyTorrentsView.menu.setSpeed.slots"));
+						speed.append(" ");
+						speed
+								.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit));
+					}
+	
+					itemsUpSpeed[i].setText(speed.toString());
+					itemsUpSpeed[i].setData("maxul", new Integer(limit));
 				}
 			}
-			for (int i = 2; i < 12; i++) {
-				itemsUpSpeed[i] = new MenuItem(menuUpSpeed, SWT.PUSH);
-				itemsUpSpeed[i].addListener(SWT.Selection, itemsUpSpeedListener);
-
-				int limit = (int)( maxUpload / (10 * num_entries) * (12 - i));
-				StringBuffer speed = new StringBuffer();
-				speed.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit
-						* num_entries));
-				if (num_entries > 1) {
-					speed.append(" ");
-					speed.append(MessageText
-							.getString("MyTorrentsView.menu.setSpeed.in"));
-					speed.append(" ");
-					speed.append(num_entries);
-					speed.append(" ");
-					speed.append(MessageText
-							.getString("MyTorrentsView.menu.setSpeed.slots"));
-					speed.append(" ");
-					speed
-							.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit));
-				}
-
-				itemsUpSpeed[i].setText(speed.toString());
-				itemsUpSpeed[i].setData("maxul", new Integer(limit));
-			}
-		}
-
-		new MenuItem(menuUpSpeed, SWT.SEPARATOR);
-
-		final MenuItem itemUpSpeedManualSingle = new MenuItem(menuUpSpeed, SWT.PUSH);
-		Messages.setLanguageText(itemUpSpeedManualSingle, menu_key);
-		itemUpSpeedManualSingle.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				int speed_value = getManualSpeedValue(shell, false);
-				if (speed_value > 0) {adapter.setUpSpeed(speed_value);}
-			}
-		});
-		
-		if (num_entries > 1) {
-			final MenuItem itemUpSpeedManualShared = new MenuItem(menuUpSpeed, SWT.PUSH);
-			Messages.setLanguageText(itemUpSpeedManualShared, isTorrentContext?"MyTorrentsView.menu.manual.shared_torrents":"MyTorrentsView.menu.manual.shared_peers" );
-			itemUpSpeedManualShared.addSelectionListener(new SelectionAdapter() {
+	
+			new MenuItem(menuUpSpeed, SWT.SEPARATOR);
+	
+			final MenuItem itemUpSpeedManualSingle = new MenuItem(menuUpSpeed, SWT.PUSH);
+			Messages.setLanguageText(itemUpSpeedManualSingle, menu_key);
+			itemUpSpeedManualSingle.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
-					int speed_value = getManualSharedSpeedValue(shell, false, num_entries);
+					int speed_value = getManualSpeedValue(shell, false);
 					if (speed_value > 0) {adapter.setUpSpeed(speed_value);}
 				}
 			});
+			
+			if (num_entries > 1) {
+				final MenuItem itemUpSpeedManualShared = new MenuItem(menuUpSpeed, SWT.PUSH);
+				Messages.setLanguageText(itemUpSpeedManualShared, isTorrentContext?"MyTorrentsView.menu.manual.shared_torrents":"MyTorrentsView.menu.manual.shared_peers" );
+				itemUpSpeedManualShared.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						int speed_value = getManualSharedSpeedValue(shell, false, num_entries);
+						if (speed_value > 0) {adapter.setUpSpeed(speed_value);}
+					}
+				});
+			}
 		}
-		
 	}
 	
 	public static int getManualSpeedValue(Shell shell, boolean for_download) {

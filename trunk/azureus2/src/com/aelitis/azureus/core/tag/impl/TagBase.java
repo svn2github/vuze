@@ -32,12 +32,13 @@ import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.Taggable;
 
 public abstract class 
-TagImpl
+TagBase
 	implements Tag
 {
 	private static AtomicInteger	next_tag_id = new AtomicInteger();
 	  
-	private TagTypeNonPersistentBase	tag_type;
+	private TagTypeBase	tag_type;
+	
 	private int			tag_id;
 	private String		tag_name;
 	
@@ -57,19 +58,19 @@ TagImpl
 				{					
 					if ( type == TL_ADD ){
 						
-						listener.tagabbleAdded((Taggable)value);
+						listener.tagabbleAdded(TagBase.this,(Taggable)value);
 						
 					}else if ( type == TL_REMOVE ){
 						
-						listener.tagabbleRemoved((Taggable)value);
+						listener.tagabbleRemoved(TagBase.this,(Taggable)value);
 					}
 				}
 			});	
 	
 	protected
-	TagImpl(
-		TagTypeNonPersistentBase	_tag_type,
-		String		_tag_name )
+	TagBase(
+		TagTypeBase	_tag_type,
+		String						_tag_name )
 	{
 		tag_type		= _tag_type;
 		tag_id			= next_tag_id.incrementAndGet();
@@ -78,7 +79,7 @@ TagImpl
 		tag_type.addTag( this );
 	}
 	
-	public TagTypeNonPersistentBase
+	public TagTypeBase
 	getTagType()
 	{
 		return( tag_type );
@@ -96,17 +97,14 @@ TagImpl
 		return( tag_name );
 	}
 	
-	public boolean
-	isTagPersistent()
-	{
-		return( false );
-	}
 	
 	public void
 	addTaggable(
 		Taggable	t )
 	{
 		t_listeners.dispatch( TL_ADD, t );
+		
+		tag_type.fireChanged( this );
 	}
 	
 	public void
@@ -114,22 +112,43 @@ TagImpl
 		Taggable	t )
 	{
 		t_listeners.dispatch( TL_REMOVE, t );
+		
+		tag_type.fireChanged( this );
 	}
 	
-	public abstract List<Taggable>
-	getTagged();
+	public int 
+	getTaggedCount() 
+	{
+		return( getTagged().size());
+	}
+		
+	public boolean 
+	hasTaggable(
+		Taggable	t )
+	{
+		return( getTagged().contains( t ));
+	}
 	
 	public void
 	removeTag()
 	{
-		System.out.println( "removeTag: " + tag_name );
+		tag_type.removeTag( this );
 	}
 	
 	public void
 	addTagListener(
-		TagListener	listener )
+		TagListener	listener,
+		boolean		fire_for_existing )
 	{
 		t_listeners.addListener( listener );
+		
+		if ( fire_for_existing ){
+			
+			for ( Taggable t: getTagged()){
+				
+				listener.tagabbleAdded( this, t );
+			}
+		}
 	}
 	
 	public void

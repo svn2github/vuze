@@ -28,6 +28,7 @@ public interface
 TagType 
 {
 	public static final int TT_DOWNLOAD_CATEGORY	= 1;
+	public static final int TT_DOWNLOAD_STATE		= 2;
 
 		/**
 		 * Unique type denoting this species of tag
@@ -46,6 +47,10 @@ TagType
 	public long
 	getTagTypeFeatures();
 	
+	public boolean
+	hasTagTypeFeature(
+		long		feature );
+	
 	public void
 	addTag(
 		Tag	t );
@@ -62,7 +67,8 @@ TagType
 	
 	public void
 	addTagTypeListener(
-		TagTypeListener	listener );
+		TagTypeListener	listener,
+		boolean			first_for_existing );
 	
 	public void
 	removeTagTypeListener(

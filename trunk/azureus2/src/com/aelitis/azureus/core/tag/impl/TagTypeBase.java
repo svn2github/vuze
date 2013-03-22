@@ -21,26 +21,22 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
-import java.util.List;
-
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 
 import com.aelitis.azureus.core.tag.*;
-import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public abstract class 
-TagTypeNonPersistentBase
+TagTypeBase
 	implements TagType
 {	
 	private int		tag_type;
 	private int		tag_type_features;
 	private String	tag_type_name;
-	
-	private CopyOnWriteList<Tag>	tags = new CopyOnWriteList<Tag>();
-	
+		
 	private static final int TTL_ADD 	= 1;
-	private static final int TTL_REMOVE = 2;
+	private static final int TTL_CHANGE = 2;
+	private static final int TTL_REMOVE = 3;
 	
 	private ListenerManager<TagTypeListener>	tt_listeners 	= 
 		ListenerManager.createManager(
@@ -57,6 +53,10 @@ TagTypeNonPersistentBase
 						
 						listener.tagAdded((Tag)value);
 						
+					}else if ( type == TTL_CHANGE ){
+						
+						listener.tagChanged((Tag)value);
+						
 					}else if ( type == TTL_REMOVE ){
 						
 						listener.tagRemoved((Tag)value);
@@ -65,7 +65,7 @@ TagTypeNonPersistentBase
 			});	
 			
 	protected
-	TagTypeNonPersistentBase(
+	TagTypeBase(
 		int			_tag_type,
 		int			_tag_features,
 		String		_tag_name )
@@ -73,6 +73,8 @@ TagTypeNonPersistentBase
 		tag_type			= _tag_type;
 		tag_type_features	= _tag_features;
 		tag_type_name		= _tag_name;
+		
+		TagManagerImpl.getSingleton().addTagType( this );
 	}
 	
 	public int
@@ -99,6 +101,13 @@ TagTypeNonPersistentBase
 		return( tag_type_features );
 	}
 	
+	public boolean 
+	hasTagTypeFeature(
+		long feature ) 
+	{
+		return((tag_type_features&feature) != 0 );
+	}
+	
 	public void
 	addTag(
 		Tag	t )
@@ -113,10 +122,11 @@ TagTypeNonPersistentBase
 		tt_listeners.dispatch( TTL_REMOVE, t );
 	}
 	
-	public List<Tag>
-	getTags()
+	protected void
+	fireChanged(
+		Tag	t )
 	{
-		return( tags.getList());
+		tt_listeners.dispatch( TTL_CHANGE, t );
 	}
 	
 	public void
@@ -127,9 +137,18 @@ TagTypeNonPersistentBase
 	
 	public void
 	addTagTypeListener(
-		TagTypeListener	listener )
+		TagTypeListener	listener,
+		boolean			fire_for_existing )
 	{
 		tt_listeners.addListener( listener );
+		
+		if ( fire_for_existing ){
+			
+			for ( Tag t: getTags()){
+				
+				listener.tagAdded( t );
+			}
+		}
 	}
 	
 	public void

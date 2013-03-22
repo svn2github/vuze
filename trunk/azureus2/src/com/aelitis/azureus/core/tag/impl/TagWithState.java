@@ -1,5 +1,5 @@
 /*
- * Created on Mar 20, 2013
+ * Created on Mar 21, 2013
  * Created by Paul Gardner
  * 
  * Copyright 2013 Azureus Software, Inc.  All rights reserved.
@@ -23,72 +23,59 @@ package com.aelitis.azureus.core.tag.impl;
 
 import java.util.List;
 
-import com.aelitis.azureus.core.tag.TagManager;
-import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
-import com.aelitis.azureus.core.tag.TaggableLifecycleHandler;
-import com.aelitis.azureus.core.tag.TaggableResolver;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
-TagManagerImpl
-	implements TagManager
+TagWithState 
+	extends TagBase
 {
-	private static TagManagerImpl	singleton = new TagManagerImpl();
+	private CopyOnWriteList<Taggable>	objects = new CopyOnWriteList<Taggable>();
 	
-	public static TagManagerImpl
-	getSingleton()
+	public
+	TagWithState(
+		TagTypeBase			tt,
+		String				name )
 	{
-		return( singleton );
-	}
-	
-	private CopyOnWriteList<TagType>	tag_types = new CopyOnWriteList<TagType>();
-	
-	private
-	TagManagerImpl()
-	{
-		
+		super( tt, name );
 	}
 	
 	public void
-	addTagType(
-		TagType		tag_type )
+	addTaggable(
+		Taggable	t )
 	{
-		tag_types.add( tag_type );
+		//System.out.println( getTagName() + ": add " + t.getTaggableID());
+		objects.add( t );
+		
+		super.addTaggable( t );
 	}
 	
-	protected void
-	removeTagType(
-		TagType		tag_type )
+	public void
+	removeTaggable(
+		Taggable	t )
 	{
-		tag_types.remove( tag_type );
+		//System.out.println( getTagName() + ": rem " + t.getTaggableID());
+		objects.remove( t );
+		
+		super.removeTaggable( t );
 	}
 	
-	public List<TagType>
-	getTagTypes()
+	public int 
+	getTaggedCount() 
 	{
-		return( tag_types.getList());
+		return( objects.size());
 	}
 	
-	public TaggableLifecycleHandler
-	registerTaggableResolver(
-		TaggableResolver	resolver )
+	public boolean 
+	hasTaggable(
+		Taggable	t )
 	{
-		return(
-			new TaggableLifecycleHandler()
-			{
-				public void
-				taggableCreated(
-					Taggable	t )
-				{	
-				}
-				
-				public void
-				taggableDestroyed(
-					Taggable	t )
-				{
-				}
-			});
+		return( objects.contains( t ));
 	}
 	
+	public List<Taggable>
+	getTagged()
+	{
+		return( objects.getList());
+	}
 }

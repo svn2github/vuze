@@ -1977,7 +1977,7 @@ public class MyTorrentsView
   			
   			if ( tag != null ){
   				
-  				tag.addTagListener(this);
+  				tag.addTagListener(this,false);
   			}
   			
   			currentTag = tag;

@@ -1,5 +1,5 @@
 /*
- * Created on Mar 20, 2013
+ * Created on Mar 21, 2013
  * Created by Paul Gardner
  * 
  * Copyright 2013 Azureus Software, Inc.  All rights reserved.
@@ -22,15 +22,13 @@
 package com.aelitis.azureus.core.tag;
 
 public interface 
-TagListener 
+TaggableLifecycleHandler 
 {
 	public void
-	tagabbleAdded(
-		Tag			tag,
-		Taggable	tagged );
+	taggableCreated(
+		Taggable	t );
 	
 	public void
-	tagabbleRemoved(
-		Tag			tag,
-		Taggable	tagged );
+	taggableDestroyed(
+		Taggable	t );
 }

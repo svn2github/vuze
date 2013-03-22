@@ -1,5 +1,5 @@
 /*
- * Created on Mar 20, 2013
+ * Created on Mar 22, 2013
  * Created by Paul Gardner
  * 
  * Copyright 2013 Azureus Software, Inc.  All rights reserved.
@@ -19,18 +19,49 @@
  */
 
 
-package com.aelitis.azureus.core.tag;
+package com.aelitis.azureus.core.tag.impl;
 
-public interface 
-TagListener 
+import java.util.List;
+
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
+public class 
+TagTypeWithState
+	extends TagTypeBase
 {
-	public void
-	tagabbleAdded(
-		Tag			tag,
-		Taggable	tagged );
+	private CopyOnWriteList<Tag>	tags = new CopyOnWriteList<Tag>();
+
+	protected
+	TagTypeWithState(
+		int			tag_type,
+		int			tag_features,
+		String		tag_name )
+	{
+		super( tag_type, tag_features, tag_name );
+	}
 	
 	public void
-	tagabbleRemoved(
-		Tag			tag,
-		Taggable	tagged );
+	addTag(
+		Tag	t )
+	{
+		tags.add( t );
+		
+		super.addTag( t );
+	}
+	
+	public void
+	removeTag(
+		Tag	t )
+	{
+		tags.remove( t );
+		
+		super.removeTag( t );
+	}
+	
+	public List<Tag>
+	getTags()
+	{
+		return( tags.getList());
+	}
 }

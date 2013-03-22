@@ -25,8 +25,6 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.widgets.*;
 
-import org.gudy.azureus2.core3.category.Category;
-import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -42,6 +40,11 @@ import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagDownload;
+import com.aelitis.azureus.core.tag.TagFeature;
+import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
@@ -53,9 +56,9 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
  * @created Nov 15, 2010
  *
  */
-public class CategoryUIUtils
+public class TagUIUtils
 {
-	public static void setupCategoryMenu(final Menu menu, final Category category) {
+	public static void setupCategoryMenu(final Menu menu, final Tag tag) {
 		menu.addMenuListener(new MenuListener() {
 			boolean bShown = false;
 
@@ -87,58 +90,48 @@ public class CategoryUIUtils
 
 				bShown = true;
 
-				createMenuItems(menu, category);
+				createMenuItems(menu, tag);
 			}
 		});
 	}
 
-	public static void createMenuItems(final Menu menu, final Category category) {
-		if (category.getType() == Category.TYPE_USER) {
+	public static void createMenuItems(final Menu menu, final Tag tag) {
 
-			final MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
+		TagType	tag_type = tag.getTagType();
+		
+		if ( tag_type.hasTagTypeFeature( TagFeature.TF_RATE_LIMIT )) {
 
-			Messages.setLanguageText(itemDelete,
-					"MyTorrentsView.menu.category.delete");
-
-			itemDelete.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-					List<?> managers = category.getDownloadManagers(gm.getDownloadManagers());
-					// move to array,since setcategory removed it from the category,
-					// which would mess up our loop
-					DownloadManager dms[] = managers.toArray(new DownloadManager[managers.size()]);
-					for (int i = 0; i < dms.length; i++) {
-						dms[i].getDownloadState().setCategory(null);
-					}
-					CategoryManager.removeCategory(category);
-				}
-			});
+			final TagFeatureRateLimit	tf_rate_limit = (TagFeatureRateLimit)tag;
+			
+			boolean	has_up 		= tf_rate_limit.supportsTagUploadLimit();
+			boolean	has_down 	= tf_rate_limit.supportsTagDownloadLimit();
+			
+			if ( has_up || has_down ){
+				
+				long maxDownload = COConfigurationManager.getIntParameter(
+						"Max Download Speed KBs", 0) * 1024;
+				long maxUpload = COConfigurationManager.getIntParameter(
+						"Max Upload Speed KBs", 0) * 1024;
+	
+				int down_speed 	= tf_rate_limit.getTagDownloadLimit();
+				int up_speed 	= tf_rate_limit.getTagUploadLimit();
+	
+				ViewUtils.addSpeedMenu(menu.getShell(), menu, has_up, has_down, true, true, false,
+						down_speed == 0, down_speed, down_speed, maxDownload, false,
+						up_speed == 0, up_speed, up_speed, maxUpload, 1, new SpeedAdapter() {
+							public void setDownSpeed(int val) {
+								tf_rate_limit.setTagDownloadLimit(val);
+							}
+	
+							public void setUpSpeed(int val) {
+								tf_rate_limit.setTagUploadLimit(val);
+	
+							}
+						});
+			}
 		}
 
-		if (category.getType() != Category.TYPE_ALL) {
-
-			long maxDownload = COConfigurationManager.getIntParameter(
-					"Max Download Speed KBs", 0) * 1024;
-			long maxUpload = COConfigurationManager.getIntParameter(
-					"Max Upload Speed KBs", 0) * 1024;
-
-			int down_speed = category.getDownloadSpeed();
-			int up_speed = category.getUploadSpeed();
-
-			ViewUtils.addSpeedMenu(menu.getShell(), menu, true, true, true, true, false,
-					down_speed == 0, down_speed, down_speed, maxDownload, false,
-					up_speed == 0, up_speed, up_speed, maxUpload, 1, new SpeedAdapter() {
-						public void setDownSpeed(int val) {
-							category.setDownloadSpeed(val);
-						}
-
-						public void setUpSpeed(int val) {
-							category.setUploadSpeed(val);
-
-						}
-					});
-		}
-
+		/*
 		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		List<?> managers = category.getDownloadManagers(gm.getDownloadManagers());
 
@@ -377,23 +370,29 @@ public class CategoryUIUtils
 			});
 		}
 		
+		*/
+		
 		// options
 
-		MenuItem itemOptions = new MenuItem(menu, SWT.PUSH);
+		if ( tag instanceof TagDownload ){
+			
+			MenuItem itemOptions = new MenuItem(menu, SWT.PUSH);
+	
+			final List<DownloadManager> dms = ((TagDownload)tag).getTaggedDownloads();
 
-		Messages.setLanguageText(itemOptions, "cat.options");
-		itemOptions.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-
-				uiFunctions.openView(UIFunctions.VIEW_DM_MULTI_OPTIONS, dms);
+			Messages.setLanguageText(itemOptions, "cat.options");
+			itemOptions.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+	
+					uiFunctions.openView(UIFunctions.VIEW_DM_MULTI_OPTIONS, dms.toArray( new DownloadManager[dms.size()]));
+				}
+			});
+	
+			if (dms.size() == 0) {
+	
+				itemOptions.setEnabled(false);
 			}
-		});
-
-		if (dms.length == 0) {
-
-			itemOptions.setEnabled(false);
 		}
 	}
-
 }

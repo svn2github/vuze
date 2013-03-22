@@ -29,7 +29,6 @@ public interface
 TagDownload 
 	extends Tag, TagFeatureRateLimit
 {
-	public static final int TYPE		= TT_DOWNLOAD_CATEGORY;
 	public static final int FEATURES 	= TF_RATE_LIMIT;
 	
 	public List<DownloadManager>

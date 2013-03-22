@@ -390,6 +390,18 @@ CategoryImpl
 
   }
   
+  public boolean
+  supportsTagUploadLimit()
+  {
+	  return( true );
+  }
+
+  public boolean
+  supportsTagDownloadLimit()
+  {
+	  return( true );
+  }
+	
   public int
   getTagUploadLimit()
   {

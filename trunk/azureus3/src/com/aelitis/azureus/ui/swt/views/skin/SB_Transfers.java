@@ -45,6 +45,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -485,7 +486,7 @@ public class SB_Transfers
 								{
 									setupTag( tag );
 									
-									tag.addTagListener( tagListener );
+									tag.addTagListener( tagListener, false );
 								}
 								
 								public void
@@ -962,16 +963,14 @@ public class SB_Transfers
 			entry.setImageLeftID("image.sidebar.tag");
 		}
 
-		/*
 		if (entry instanceof SideBarEntrySWT) {
 			final SideBarEntrySWT entrySWT = (SideBarEntrySWT) entry;
 			entrySWT.addListener(new MdiSWTMenuHackListener() {
 				public void menuWillBeShown(MdiEntry entry, Menu menuTree) {
-					CategoryUIUtils.createMenuItems(menuTree, category);
+					TagUIUtils.createMenuItems(menuTree, tag);
 				}
 			});
 		}
-		 */
 		
 		/*
 		entry.addListener(new MdiEntryDropListener() {

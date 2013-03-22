@@ -56,15 +56,23 @@ Tag
 	removeTaggable(
 		Taggable	t );
 	
+	public int
+	getTaggedCount();
+	
 	public List<Taggable>
 	getTagged();
+	
+	public boolean
+	hasTaggable(
+		Taggable	t );
 	
 	public void
 	removeTag();
 	
 	public void
 	addTagListener(
-		TagListener	listener );
+		TagListener	listener,
+		boolean		fire_for_existing );
 	
 	public void
 	removeTagListener(

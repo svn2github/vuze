@@ -33,7 +33,7 @@ TagManager
 	public List<TagType>
 	getTagTypes();
 	
-	public void
+	public TaggableLifecycleHandler
 	registerTaggableResolver(
 		TaggableResolver	resolver );
 }

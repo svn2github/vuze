@@ -26,9 +26,13 @@ TagTypeListener
 {
 	public void
 	tagAdded(
-		Tag	t );
+		Tag			tag );
+	
+	public void
+	tagChanged(
+		Tag			tag );
 	
 	public void
 	tagRemoved(
-		Tag	t );
+		Tag			tag );
 }

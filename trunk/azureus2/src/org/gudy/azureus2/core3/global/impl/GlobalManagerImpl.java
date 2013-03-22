@@ -63,14 +63,12 @@ import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
-import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.TaggableLifecycleHandler;
-import com.aelitis.azureus.core.tag.impl.TagTypeBase;
+import com.aelitis.azureus.core.tag.impl.TagDownloadWithState;
 import com.aelitis.azureus.core.tag.impl.TagTypeWithState;
-import com.aelitis.azureus.core.tag.impl.TagWithState;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 import org.gudy.azureus2.plugins.network.ConnectionManager;
@@ -3438,13 +3436,13 @@ public class GlobalManagerImpl
 		{
 			super( TagType.TT_DOWNLOAD_STATE, TagDownload.FEATURES, "State" );
 			
-			tag_initialising		= new TagWithState( this, "Initializing" ); 
-			tag_downloading			= new TagWithState( this, "Downloading" );
-			tag_seeding				= new TagWithState( this, "Seeding" );
-			tag_queued_downloading	= new TagWithState( this, "Queued for Download" );
-			tag_queued_seeding		= new TagWithState( this, "Queued for Seeding" );
-			tag_stopped				= new TagWithState( this, "Stopped" );
-			tag_error				= new TagWithState( this, "Error" );
+			tag_initialising		= new TagDownloadWithState( this, "Initializing", false, false ); 
+			tag_downloading			= new TagDownloadWithState( this, "Downloading", true, true );
+			tag_seeding				= new TagDownloadWithState( this, "Seeding", true, false );
+			tag_queued_downloading	= new TagDownloadWithState( this, "Queued for Download", false, false );
+			tag_queued_seeding		= new TagDownloadWithState( this, "Queued for Seeding", false, false );
+			tag_stopped				= new TagDownloadWithState( this, "Stopped", false, false );
+			tag_error				= new TagDownloadWithState( this, "Error", false, false );
 			
 			_gm.addListener( 
 				new GlobalManagerAdapter()

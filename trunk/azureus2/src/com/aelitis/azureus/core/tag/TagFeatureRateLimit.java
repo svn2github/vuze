@@ -25,6 +25,12 @@ public interface
 TagFeatureRateLimit 
 	extends TagFeature
 {
+	public boolean
+	supportsTagUploadLimit();
+	
+	public boolean
+	supportsTagDownloadLimit();
+	
 	public int
 	getTagUploadLimit();
 	
