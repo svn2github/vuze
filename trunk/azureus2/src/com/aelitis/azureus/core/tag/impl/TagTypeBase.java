@@ -122,6 +122,21 @@ TagTypeBase
 		tt_listeners.dispatch( TTL_REMOVE, t );
 	}
 	
+	public Tag
+	getTag(
+		int	tag_id )
+	{
+		for ( Tag t: getTags()){
+			
+			if ( t.getTagID() == tag_id ){
+				
+				return( t );
+			}
+		}
+		
+		return( null );
+	}
+	
 	protected void
 	fireChanged(
 		Tag	t )

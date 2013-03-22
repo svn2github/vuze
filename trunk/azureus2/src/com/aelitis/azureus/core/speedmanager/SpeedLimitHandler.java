@@ -78,6 +78,12 @@ import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagFeature;
+import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 
 public class 
 SpeedLimitHandler 
@@ -2146,6 +2152,7 @@ SpeedLimitHandler
 	    
 	    private Map<String,int[]>	download_limits = new HashMap<String, int[]>();
 	    private Map<String,int[]>	category_limits = new HashMap<String, int[]>();
+	    private Map<String,int[]>	tag_limits 		= new HashMap<String, int[]>();
 	    
 	    private 
 	    LimitDetails()
@@ -2213,6 +2220,24 @@ SpeedLimitHandler
 	    			}
 	    		}
 	    	}
+	    	
+	    	List<Map<String,Object>>	t_list = (List<Map<String,Object>>)map.get( "tgs" );
+	    	
+	    	if ( t_list != null ){
+	    		
+	    		for ( Map<String,Object> m: t_list ){
+	    			
+	    			String	t = importString( m, "k" );
+	    			
+	    			if ( t != null ){
+	    				
+	    				int	ul = importInt( m, "u" );
+	    				int	dl = importInt( m, "d" );
+	    				
+	    				tag_limits.put( t, new int[]{ ul, dl });
+	    			}
+	    		}
+	    	}
 	    }
 	    
 	    private Map<String,Object>
@@ -2257,6 +2282,21 @@ SpeedLimitHandler
 	    		Map<String,Object> m = new HashMap<String,Object>();
 	    		
 	    		c_list.add( m );
+	    		
+	    		exportString( m, "k", entry.getKey());
+	    		exportInt( m, "u", entry.getValue()[0]);
+	    		exportInt( m, "d", entry.getValue()[1]);
+	    	}
+	    	
+	    	List<Map<String,Object>>	t_list = new ArrayList<Map<String,Object>>();
+	    	
+	    	map.put( "tgs", t_list );
+	    	
+	    	for ( Map.Entry<String,int[]> entry: tag_limits.entrySet()){
+	    		
+	    		Map<String,Object> m = new HashMap<String,Object>();
+	    		
+	    		t_list.add( m );
 	    		
 	    		exportString( m, "k", entry.getKey());
 	    		exportInt( m, "u", entry.getValue()[0]);
@@ -2333,6 +2373,38 @@ SpeedLimitHandler
 		    	if ( cat_up_limit > 0 || cat_down_limit > 0 ){
 		    	
 		    		category_limits.put( category.getName(), new int[]{ cat_up_limit, cat_down_limit });
+		    	}
+		    }
+		    
+			List<TagType>	tag_types = TagManagerFactory.getTagManger().getTagTypes();
+			 
+			tag_limits.clear();
+			
+		    for ( TagType tag_type: tag_types ){
+		    	
+		    	if ( tag_type.getTagType() == TagType.TT_DOWNLOAD_CATEGORY ){
+		    		
+		    		continue;
+		    	}
+		    	
+		    	if ( tag_type.hasTagTypeFeature( TagFeature.TF_RATE_LIMIT )){
+		    		
+		    		List<Tag> tags = tag_type.getTags();
+		    		
+		    		for ( Tag tag: tags ){
+		    			
+			    		TagFeatureRateLimit rl = (TagFeatureRateLimit)tag;
+			    		
+				    	int	tag_up_limit	 	= rl.getTagUploadLimit();
+				    	int	tag_down_limit 		= rl.getTagDownloadLimit();
+				    	
+				    	if ( tag_up_limit > 0 || tag_down_limit > 0 ){
+				    	
+				    		tag_limits.put( 
+				    			tag_type.getTagType() + "." + tag.getTagID(),
+				    			new int[]{ tag_up_limit, tag_down_limit });
+				    	}
+		    		}
 		    	}
 		    }
 	    }
@@ -2425,6 +2497,8 @@ SpeedLimitHandler
 				dm.getStats().setDownloadRateLimitBytesPerSecond( 0 );
 			}
 			
+				//cats
+			
 			Set<Category> all_categories = new HashSet<Category>( Arrays.asList(CategoryManager.getCategories()));
 			 
 			Map<String, Category> cat_map = new HashMap<String, Category>();
@@ -2455,6 +2529,77 @@ SpeedLimitHandler
 				
 	    		category.setUploadSpeed( 0 );
 	    		category.setDownloadSpeed( 0 );
+			}
+			
+				// tags
+			
+			TagManager tm = TagManagerFactory.getTagManger();
+			
+			List<TagType> all_tts = tm.getTagTypes();
+			
+			Set<Tag>	all_rl_tags = new HashSet<Tag>();
+			
+			for ( TagType tt: all_tts ){
+				
+				if ( tt.getTagType() == TagType.TT_DOWNLOAD_CATEGORY ){
+					continue;
+				}
+				
+				if ( tt.hasTagTypeFeature( TagFeature.TF_RATE_LIMIT )){
+					
+					all_rl_tags.addAll( tt.getTags());
+				}
+			}
+			
+			for ( Map.Entry<String,int[]> entry: tag_limits.entrySet()){
+		    	
+		    	String tag_key = entry.getKey();
+		    	
+		    	String[] bits = tag_key.split( "\\." );
+		    	
+		    	try{
+		    		int	tag_type 	= Integer.parseInt( bits[0] );
+		    		int tag_id		= Integer.parseInt( bits[1] );
+		    	
+		    		TagType tt = tm.getTagType( tag_type );
+		    		
+		    		if ( tt == null || !tt.hasTagTypeFeature( TagFeature.TF_RATE_LIMIT )){
+		    			
+		    			continue;
+		    		}
+		    		
+		    		Tag tag = tt.getTag( tag_id );
+		    			
+		    		if ( tag == null ){
+		    		
+		    			continue;
+		    		}
+		    		
+		    		TagFeatureRateLimit rl = (TagFeatureRateLimit)tag;
+		    		
+		    		int[]	limits = entry.getValue();
+		    		
+		    		rl.setTagUploadLimit( limits[0] );
+		    		rl.setTagDownloadLimit( limits[1] );
+		    		
+		    		all_rl_tags.remove( tag );
+		    		
+		    	}catch( Throwable e ){
+		    		
+		    	}
+			}
+			
+			for ( Tag tag: all_rl_tags ){
+				
+				try{
+					TagFeatureRateLimit rl = (TagFeatureRateLimit)tag;
+					
+					rl.setTagUploadLimit( 0 );
+		    		rl.setTagDownloadLimit( 0 );
+
+				}catch( Throwable e ){
+		    		
+		    	}	
 			}
 	    }
 	    
@@ -2619,6 +2764,73 @@ SpeedLimitHandler
 		    	result.add( "    Total=" + total_cat_limits + " - Compounded limits: " + formatUp( total_cat_limits_up ) + ", " + formatDown( total_cat_limits_down ));
 
 		    }
+		    
+		    result.add( "" );
+
+			result.add( "Tag Limits" );
+			
+			int	total_tag_limits 		= 0;
+		    int	total_tag_limits_up 	= 0;
+		    int	total_tag_limits_down 	= 0;
+
+		    TagManager tm = TagManagerFactory.getTagManger();
+		    
+			for ( Map.Entry<String,int[]> entry: tag_limits.entrySet()){
+		    	
+		    	String tag_key = entry.getKey();
+		    	
+		    	String[] bits = tag_key.split( "\\." );
+		    	
+		    	try{
+		    		int	tag_type 	= Integer.parseInt( bits[0] );
+		    		int tag_id		= Integer.parseInt( bits[1] );
+		    	
+		    		TagType tt = tm.getTagType( tag_type );
+		    		
+		    		if ( tt == null || !tt.hasTagTypeFeature( TagFeature.TF_RATE_LIMIT )){
+		    			
+		    			continue;
+		    		}
+		    		
+		    		Tag tag = tt.getTag( tag_id );
+		    			
+		    		if ( tag == null ){
+		    		
+		    			continue;
+		    		}
+		    		
+		    		String tag_name = tt.getTagTypeName() + ": " + tag.getTagName();
+		    		
+					int[]	limits = entry.getValue();
+					
+		    		total_tag_limits++;
+
+		    		int	up 		= limits[0];
+		    		int	down 	= limits[1];
+		    		
+		    		total_tag_limits_up 	+= up;
+		    		total_tag_limits_down 	+= down;
+		    		
+		    		result.add( "    " + tag_name + "." + formatUp( up ) + ", " + formatDown( down ));
+
+		    	}catch( Throwable e ){
+		    		
+		    	}
+		    }
+		    
+		    if ( total_tag_limits == 0 ){
+		    	
+		    	result.add( "    None" );
+		    	
+		    }else{
+		    	
+		    	result.add( "    ----" );
+		    	
+		    	result.add( "    Total=" + total_tag_limits + " - Compounded limits: " + formatUp( total_tag_limits_up ) + ", " + formatDown( total_tag_limits_down ));
+
+		    }
+		    
+		    
 		    
 		    if ( is_current ){
 		    	

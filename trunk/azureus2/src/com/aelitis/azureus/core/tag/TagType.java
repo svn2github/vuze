@@ -59,6 +59,10 @@ TagType
 	removeTag(
 		Tag	t );
 	
+	public Tag
+	getTag(
+		int	tag_id );
+	
 	public List<Tag>
 	getTags();
 	

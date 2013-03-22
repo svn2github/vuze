@@ -30,6 +30,10 @@ TagManager
 	addTagType(
 		TagType		tag_type );
 	
+	public TagType
+	getTagType(
+		int			tag_type );
+	
 	public List<TagType>
 	getTagTypes();
 	

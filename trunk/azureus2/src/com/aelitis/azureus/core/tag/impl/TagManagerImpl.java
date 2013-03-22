@@ -21,7 +21,9 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
-import java.util.List;
+import java.util.*;
+
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagType;
@@ -44,17 +46,36 @@ TagManagerImpl
 	
 	private CopyOnWriteList<TagType>	tag_types = new CopyOnWriteList<TagType>();
 	
+	private Map<Integer,TagType>	tag_type_map = new HashMap<Integer, TagType>();
+	
 	private
 	TagManagerImpl()
 	{
-		
 	}
 	
 	public void
 	addTagType(
 		TagType		tag_type )
 	{
+		synchronized( tag_type_map ){
+			
+			if ( tag_type_map.put( tag_type.getTagType(), tag_type) != null ){
+				
+				Debug.out( "Duplicate tag type!" );
+			}
+		}
+		
 		tag_types.add( tag_type );
+	}
+	
+	public TagType 
+	getTagType(
+		int 	tag_type) 
+	{
+		synchronized( tag_type_map ){
+
+			return( tag_type_map.get( tag_type ));
+		}
 	}
 	
 	protected void
