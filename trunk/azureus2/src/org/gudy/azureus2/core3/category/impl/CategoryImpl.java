@@ -36,11 +36,11 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.Taggable;
-import com.aelitis.azureus.core.tag.impl.TagImpl;
+import com.aelitis.azureus.core.tag.impl.TagBase;
 
 public class 
 CategoryImpl 
-	extends TagImpl 
+	extends TagBase 
 	implements Category, Comparable, TagDownload 
 {
   private String sName;
@@ -434,8 +434,9 @@ CategoryImpl
 	 return( getDownloadManagers( AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers()));
   }
   
-  @Override
-  public List<Taggable> getTagged() {
+  public List<Taggable> 
+  getTagged() 
+  {
 	  return( new ArrayList<Taggable>( getTaggedDownloads()));
   }
   

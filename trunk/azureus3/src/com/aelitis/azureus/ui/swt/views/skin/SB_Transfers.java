@@ -49,6 +49,12 @@ import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagListener;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.tag.TagTypeListener;
+import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -108,8 +114,6 @@ public class SB_Transfers
 	private static CopyOnWriteList<countRefreshListener> listeners = new CopyOnWriteList<countRefreshListener>();
 
 	private static boolean first = true;
-
-	private static CategoryListener categoryListener;
 
 	static {
 		statsNoLowNoise.includeLowNoise = false;
@@ -191,6 +195,9 @@ public class SB_Transfers
 				new CategoryAdderWindow(null);
 			}
 		});
+		
+			// cats in sidebar
+		
 		menuItem.addFillListener(new MenuItemFillListener() {
 			public void menuWillBeShown(MenuItem menu, Object data) {
 				menu.setVisible(COConfigurationManager.getBooleanParameter("Library.CatInSideBar"));
@@ -211,6 +218,24 @@ public class SB_Transfers
 			public void menuWillBeShown(MenuItem menu, Object data) {
 				menu.setVisible(CategoryManager.getCategories().length > 0);
 				menu.setData(Boolean.valueOf(COConfigurationManager.getBooleanParameter("Library.CatInSideBar")));
+			}
+		});
+		
+			// tags
+		
+		menuItem = menuManager.addMenuItem("sidebar."
+				+ MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+				"ConfigView.section.style.TagInSidebar");
+		menuItem.setStyle(MenuItem.STYLE_CHECK);
+		menuItem.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				boolean b = COConfigurationManager.getBooleanParameter("Library.TagInSideBar");
+				COConfigurationManager.setParameter("Library.TagInSideBar", !b);
+			}
+		});
+		menuItem.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.setData(Boolean.valueOf(COConfigurationManager.getBooleanParameter("Library.TagInSideBar")));
 			}
 		});
 	}
@@ -342,7 +367,7 @@ public class SB_Transfers
 		}
 		first = false;
 		
-		categoryListener = new CategoryListener() {
+		final CategoryListener categoryListener = new CategoryListener() {
 			
 			public void downloadManagerRemoved(Category cat, DownloadManager removed) {
 				RefreshCategorySideBar(cat);
@@ -416,6 +441,108 @@ public class SB_Transfers
 					}
 				});
 
+		final TagListener tagListener = 
+			new TagListener() 
+			{
+				public void
+				tagabbleAdded(
+					Tag			tag,
+					Taggable	tagged )
+				{
+					RefreshTagSideBar( tag );
+				}
+				
+				public void
+				tagabbleRemoved(
+					Tag			tag,
+					Taggable	tagged )
+				{
+					RefreshTagSideBar( tag );
+				}
+		};
+
+		COConfigurationManager.addAndFireParameterListener("Library.TagInSideBar",
+				new ParameterListener() {
+					private TagTypeListener tagTypeListenerListener;
+
+					public void parameterChanged(String parameterName) {
+						if (Utils.isAZ2UI()) {
+							return;
+						}
+
+						boolean tagInSidebar = COConfigurationManager.getBooleanParameter("Library.TagInSideBar");
+						
+						if (tagInSidebar) {
+							if (tagTypeListenerListener != null) {
+								return;
+							}
+
+							tagTypeListenerListener = new TagTypeListener() {
+
+								public void
+								tagAdded(
+									Tag			tag )
+								{
+									setupTag( tag );
+									
+									tag.addTagListener( tagListener );
+								}
+								
+								public void
+								tagChanged(
+									Tag			tag )
+								{
+									RefreshTagSideBar( tag );
+								}
+								
+								public void
+								tagRemoved(
+									Tag			tag )
+								{
+									removeTag( tag );
+								}
+							};
+							
+							List<TagType> tag_types = TagManagerFactory.getTagManger().getTagTypes();
+							
+							for ( TagType tt: tag_types ){
+								
+								if ( tt.getTagType() == TagType.TT_DOWNLOAD_STATE ){
+									
+									tt.addTagTypeListener( tagTypeListenerListener, true );
+								}
+							}
+						
+						} else {
+						
+							if ( tagTypeListenerListener != null ){
+								
+								List<TagType> tag_types = TagManagerFactory.getTagManger().getTagTypes();
+								
+								for ( TagType tt: tag_types ){
+									
+									if ( tt.getTagType() == TagType.TT_DOWNLOAD_STATE ){
+										
+										tt.removeTagTypeListener( tagTypeListenerListener );
+									}
+									
+									for ( Tag t: tt.getTags()){
+										
+										t.removeTagListener( tagListener );
+										
+										removeTag( t );
+									}
+								}
+								
+								tagTypeListenerListener = null;
+							}
+						}
+					}
+				});
+
+		
+		
+		
 		final GlobalManager gm = core.getGlobalManager();
 		final DownloadManagerListener dmListener = new DownloadManagerAdapter() {
 			public void stateChanged(DownloadManager dm, int state) {
@@ -681,7 +808,8 @@ public class SB_Transfers
 		refreshAllLibraries();
 	}
 
-
+		// category stuff
+	
 	private static void RefreshCategorySideBar(Category category) {
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 		if (mdi == null) {
@@ -791,6 +919,115 @@ public class SB_Transfers
 		}
 	}
 
+		// tag stuff
+	
+	private static void RefreshTagSideBar(Tag tag) {
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if (mdi == null) {
+			return;
+		}
+
+		MdiEntry entry = mdi.getEntry("Tag." + tag.getTagType().getTagType() + "." + tag.getTagID());
+		
+		if (entry == null) {
+			return;
+		}
+
+		ViewTitleInfoManager.refreshTitleInfo(entry.getViewTitleInfo());
+	}
+
+	private static void setupTag(final Tag tag) {
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if (mdi == null) {
+			return;
+		}
+
+		String name = tag.getTagName();
+		String id = "Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
+
+		ViewTitleInfo viewTitleInfo = new ViewTitleInfo() {
+
+			public Object getTitleInfoProperty(int propertyID) {
+				if (propertyID == TITLE_INDICATOR_TEXT) {
+					return( String.valueOf( tag.getTaggedCount()));
+				}
+				return null;
+			}
+		};
+
+		MdiEntry entry = mdi.createEntryFromSkinRef(
+				MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id, "library",
+				name, viewTitleInfo, tag, false, null);
+		if (entry != null) {
+			entry.setImageLeftID("image.sidebar.tag");
+		}
+
+		/*
+		if (entry instanceof SideBarEntrySWT) {
+			final SideBarEntrySWT entrySWT = (SideBarEntrySWT) entry;
+			entrySWT.addListener(new MdiSWTMenuHackListener() {
+				public void menuWillBeShown(MdiEntry entry, Menu menuTree) {
+					CategoryUIUtils.createMenuItems(menuTree, category);
+				}
+			});
+		}
+		 */
+		
+		/*
+		entry.addListener(new MdiEntryDropListener() {
+			public boolean mdiEntryDrop(MdiEntry entry, Object payload) {
+				if (!(payload instanceof String)) {
+					return false;
+				}
+
+				String dropped = (String) payload;
+				String[] split = Constants.PAT_SPLIT_SLASH_N.split(dropped);
+				if (split.length > 1) {
+					String type = split[0];
+					if (type.startsWith("DownloadManager")) {
+						GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+						for (int i = 1; i < split.length; i++) {
+							String hash = split[i];
+
+							try {
+								DownloadManager dm = gm.getDownloadManager(new HashWrapper(
+										Base32.decode(hash)));
+
+								if (dm != null) {
+									TorrentUtil.assignToCategory(new Object[] {
+										dm
+									}, category);
+								}
+
+							} catch (Throwable t) {
+
+							}
+						}
+					}
+				}
+
+				return true;
+			}
+		});
+		*/
+	}
+
+	private static void removeTag(Tag tag) {
+		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		if (mdi == null) {
+			return;
+		}
+
+		MdiEntry entry = mdi.getEntry("Tag." + tag.getTagType().getTagType() + "." + tag.getTagID());
+
+		if (entry != null) {
+			entry.close(true);
+		}
+	}
+	
+	
+		// -------------------
+	
 	private static int updateDMCounts(DownloadManager dm) {
 		boolean isSeeding;
 		boolean isDownloading;

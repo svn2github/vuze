@@ -65,7 +65,10 @@ public class MyTorrentsView_Big
 				return false;
 			}
 		} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_ALL) {
-			return isInCurrentCategory(dm);
+			if ( !isInCurrentCategory(dm)){
+				return(false );
+			}
+			return( isInCurrentTag(dm));
 		}
 		
 		return super.isOurDownloadManager(dm);

@@ -74,6 +74,9 @@ import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagListener;
+import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -100,6 +103,7 @@ public class MyTorrentsView
                   DownloadManagerListener,
                   CategoryManagerListener,
                   CategoryListener,
+                  TagListener,
                   KeyListener,
                   TableLifeCycleListener, 
                   TableViewSWTPanelCreator,
@@ -216,8 +220,9 @@ public class MyTorrentsView
   private TimerEventPeriodic	txtFilterUpdateEvent;
 
   
-  private Category currentCategory;
-
+  private Category 	currentCategory;
+  private Tag		currentTag;
+  
   // table item index, where the drag has started
   private int drag_drop_line_start = -1;
   private TableRowCore[] drag_drop_rows = null;
@@ -302,8 +307,11 @@ public class MyTorrentsView
     tv.addTableDataSourceChangedListener(new TableDataSourceChangedListener() {
 			public void tableDataSourceChanged(Object newDataSource) {
 				if (newDataSource instanceof Category) {
-		    	neverShowCatButtons = true;
+					neverShowCatButtons = true;
 					activateCategory((Category) newDataSource);
+				}else if ( newDataSource instanceof Tag ){
+					neverShowCatButtons = true;
+					activateTag((Tag) newDataSource);
 				}
 			}
 		}, true);
@@ -451,6 +459,9 @@ public class MyTorrentsView
     	currentCategory.removeCategoryListener(this);
     }
     CategoryManager.removeCategoryManagerListener(this);
+    if ( currentTag != null ){
+    	currentTag.removeTagListener(this);
+    }
     globalManager.removeListener(this);
     globalManager.removeEventListener( gm_event_listener );
     COConfigurationManager.removeParameterListener("DND Always In Incomplete", this);
@@ -770,10 +781,13 @@ public class MyTorrentsView
 	}
 	
 	public boolean isOurDownloadManager(DownloadManager dm) {
-  	if (!isInCategory(dm, currentCategory)) {
-  		return false;
-  	}
+		if (!isInCategory(dm, currentCategory)) {
+			return false;
+		}
 
+		if ( !isInTag( dm, currentTag )){
+			return( false );
+		}
 		boolean bCompleted =  dm.isDownloadComplete(bDNDalwaysIncomplete);
 		boolean bOurs = (bCompleted && isSeedingView)
 				|| (!bCompleted && !isSeedingView);
@@ -1947,6 +1961,98 @@ public class MyTorrentsView
   public void categoryChanged(Category category) {	
   }
 
+  
+  		// tags 
+  
+  	private void 
+  	activateTag(
+  		Tag tag) 
+  	{
+  		if ( tag != currentTag ){
+  			
+  			if ( currentTag != null ){
+  			
+  				currentTag.removeTagListener(this);
+  			}
+  			
+  			if ( tag != null ){
+  				
+  				tag.addTagListener(this);
+  			}
+  			
+  			currentTag = tag;
+  		}
+
+  		tv.processDataSourceQueue();
+  		Object[] managers = globalManager.getDownloadManagers().toArray();
+  		List<DownloadManager> listRemoves = new ArrayList<DownloadManager>();
+  		List<DownloadManager> listAdds = new ArrayList<DownloadManager>();
+
+  		for (int i = 0; i < managers.length; i++) {
+  			DownloadManager dm = (DownloadManager) managers[i];
+
+  			boolean bHave = tv.isUnfilteredDataSourceAdded(dm);
+  			if (!isOurDownloadManager(dm)) {
+  				if (bHave) {
+  					listRemoves.add(dm);
+  				}
+  			} else {
+  				if (!bHave) {
+  					listAdds.add(dm);
+  				}
+  			}
+  		}
+  		tv.removeDataSources(listRemoves.toArray(new DownloadManager[0]));
+  		tv.addDataSources(listAdds.toArray(new DownloadManager[0]));
+
+  		tv.processDataSourceQueue();
+  		//tv.refreshTable(false);
+  	}
+  
+  	private boolean 
+  	isInTag(
+  		DownloadManager		manager, 
+  		Tag 				tag ) 
+  	{
+  		if ( tag == null ){
+  			return true;
+  		}
+  		
+  		return( tag.hasTaggable( manager ));
+  	}
+  	
+  	public boolean 
+  	isInCurrentTag(
+  		DownloadManager 	manager ) 
+  	{
+  		return( isInTag(manager, currentTag ));
+  	}
+
+	public void
+	tagabbleAdded(
+		Tag			tag,
+		Taggable	tagged )
+	{
+		DownloadManager	manager = (DownloadManager)tagged;
+		
+	 	if ( isOurDownloadManager(manager)){
+	 		
+	 		tv.addDataSource( manager );
+	    }
+	}
+	
+	public void
+	tagabbleRemoved(
+		Tag			tag,
+		Taggable	tagged )
+	{
+		DownloadManager	manager = (DownloadManager)tagged;
+
+		tv.removeDataSource( manager );
+	}
+  
+  
+  
   // globalmanagerlistener Functions
   public void downloadManagerAdded( DownloadManager dm ) {
     dm.addListener( this );

@@ -54,6 +54,7 @@ import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
@@ -406,7 +407,16 @@ public class SBC_LibraryView
 													: cat.getName()
 									});
 									
+								}else if (datasource instanceof Tag) {
+									
+									Tag tag = (Tag) datasource;
 
+									String id = "library.tag.header";
+
+									s = MessageText.getString(id,
+											new String[] {
+												tag.getTagName() });
+												
 								} else {
 									String id = "library.all.header";
 									if (stats.numComplete + stats.numIncomplete != 1) {

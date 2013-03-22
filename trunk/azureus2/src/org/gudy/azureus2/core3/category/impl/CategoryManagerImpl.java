@@ -60,14 +60,15 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
+import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagType;
-import com.aelitis.azureus.core.tag.impl.TagTypeNonPersistentBase;
+import com.aelitis.azureus.core.tag.impl.TagTypeBase;
 
 public class 
 CategoryManagerImpl 
-	extends TagTypeNonPersistentBase
-	implements RSSGeneratorPlugin.Provider, TagType
+	extends TagTypeBase
+	implements RSSGeneratorPlugin.Provider
 {
   private static final String PROVIDER = "categories";
 
@@ -109,7 +110,8 @@ CategoryManagerImpl
   protected
   CategoryManagerImpl()
   {
-	super( TagDownload.TYPE, TagDownload.FEATURES, "Categories" );
+	super( TagType.TT_DOWNLOAD_CATEGORY, TagDownload.FEATURES, "Categories" );
+	
   	loadCategories();
   }
   
@@ -357,6 +359,11 @@ CategoryManagerImpl
   }
   
   
+  public List<Tag> 
+  getTags() 
+  {
+	  return( new ArrayList<Tag>( categories.values()));
+  }
   
   private void
   checkConfig()

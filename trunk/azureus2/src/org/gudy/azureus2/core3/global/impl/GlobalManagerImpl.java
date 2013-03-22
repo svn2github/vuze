@@ -61,9 +61,16 @@ import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.peermanager.control.PeerControlSchedulerFactory;
 import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.TaggableLifecycleHandler;
+import com.aelitis.azureus.core.tag.impl.TagTypeBase;
+import com.aelitis.azureus.core.tag.impl.TagTypeWithState;
+import com.aelitis.azureus.core.tag.impl.TagWithState;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 import org.gudy.azureus2.plugins.network.ConnectionManager;
@@ -235,12 +242,14 @@ public class GlobalManagerImpl
    private TimerEvent	auto_resume_timer;
    private boolean		auto_resume_disabled;
    
+   private TaggableLifecycleHandler	taggable_life_manager;
+   
    {
    	auto_resume_disabled = 
    		COConfigurationManager.getBooleanParameter( "Pause Downloads On Exit" ) &&
    		!COConfigurationManager.getBooleanParameter( "Resume Downloads On Start" );
    	
-	TagManagerFactory.getTagManger().registerTaggableResolver( this );
+   	taggable_life_manager = TagManagerFactory.getTagManger().registerTaggableResolver( this );
 
    }
    
@@ -623,6 +632,8 @@ public class GlobalManagerImpl
 				}
     		}
     	});
+    
+    new DownloadStateTagger( this );
   }
   
   public void loadExistingTorrentsNow(boolean async)
@@ -1133,7 +1144,10 @@ public class GlobalManagerImpl
         }
 
         if (notifyListeners) {
+        	
         	listeners_and_event_listeners.dispatch( LDT_MANAGER_ADDED, download_manager );
+        
+        	taggable_life_manager.taggableCreated( download_manager );
         }
         
         download_manager.addListener(this);
@@ -1289,6 +1303,8 @@ public class GlobalManagerImpl
     fixUpDownloadManagerPositions();
     
     listeners_and_event_listeners.dispatch( LDT_MANAGER_REMOVED, manager );
+    
+    taggable_life_manager.taggableDestroyed( manager );
     
     manager.removeListener(this);
     
@@ -3400,6 +3416,148 @@ public class GlobalManagerImpl
 				glob.put( "bias_ulim", new Long( COConfigurationManager.getBooleanParameter( "Bias Upload Handle No Limit" )?1:0 ));
 			}
 		}catch( Throwable e ){
+		}
+	}
+	
+	private static class
+	DownloadStateTagger
+		extends TagTypeWithState
+		implements DownloadManagerListener
+	{
+		Tag	tag_initialising;
+		Tag	tag_downloading;
+		Tag	tag_seeding;
+		Tag	tag_queued_downloading;
+		Tag	tag_queued_seeding;
+		Tag	tag_stopped;
+		Tag	tag_error;
+	
+		private
+		DownloadStateTagger(
+			GlobalManagerImpl		_gm )
+		{
+			super( TagType.TT_DOWNLOAD_STATE, TagDownload.FEATURES, "State" );
+			
+			tag_initialising		= new TagWithState( this, "Initializing" ); 
+			tag_downloading			= new TagWithState( this, "Downloading" );
+			tag_seeding				= new TagWithState( this, "Seeding" );
+			tag_queued_downloading	= new TagWithState( this, "Queued for Download" );
+			tag_queued_seeding		= new TagWithState( this, "Queued for Seeding" );
+			tag_stopped				= new TagWithState( this, "Stopped" );
+			tag_error				= new TagWithState( this, "Error" );
+			
+			_gm.addListener( 
+				new GlobalManagerAdapter()
+				{
+					public void
+					downloadManagerAdded(
+						DownloadManager	dm )
+					{
+						dm.addListener( DownloadStateTagger.this, true );
+					}
+						
+					public void
+					downloadManagerRemoved( 
+						DownloadManager	dm )
+					{
+						dm.removeListener( DownloadStateTagger.this );
+						
+						remove( dm );
+					}	
+				});
+		}
+
+		public void
+		stateChanged(
+			DownloadManager 	manager,
+			int					state )
+		{
+			Tag	new_tag;
+			
+			Tag old_tag = (Tag)manager.getUserData( DownloadStateTagger.class );
+
+			switch( state ){
+				case DownloadManager.STATE_WAITING:
+				case DownloadManager.STATE_INITIALIZING:
+				case DownloadManager.STATE_INITIALIZED:
+				case DownloadManager.STATE_ALLOCATING:
+				case DownloadManager.STATE_CHECKING:
+				case DownloadManager.STATE_READY:
+					if ( old_tag == null ){
+						new_tag = tag_initialising;
+					}else{
+						new_tag = old_tag;
+					}
+					break;
+				case DownloadManager.STATE_DOWNLOADING:
+				case DownloadManager.STATE_FINISHING:
+					new_tag = tag_downloading;
+					break;
+				case DownloadManager.STATE_SEEDING:
+					new_tag = tag_seeding;
+					break;
+				case DownloadManager.STATE_STOPPING:
+				case DownloadManager.STATE_STOPPED:
+				case DownloadManager.STATE_CLOSED:
+					new_tag = tag_stopped;
+					break;
+				case DownloadManager.STATE_QUEUED:
+					if ( manager.isDownloadComplete( false )){
+						new_tag = tag_queued_seeding;
+					}else{
+						new_tag = tag_queued_downloading;
+					}
+					break;
+				case DownloadManager.STATE_ERROR:
+				default:
+					new_tag = tag_error;
+					break;
+			}
+						
+			if ( old_tag != new_tag ){
+				
+				if ( old_tag != null ){
+					
+					old_tag.removeTaggable( manager );
+				}
+				
+				new_tag.addTaggable( manager );
+				
+				manager.setUserData( DownloadStateTagger.class, new_tag );
+			}
+		}
+		
+		private void
+		remove(
+			DownloadManager		manager )
+		{
+			Tag old_tag = (Tag)manager.getUserData( DownloadStateTagger.class );
+			
+			if ( old_tag != null ){
+				
+				old_tag.removeTaggable( manager );
+			}
+		}
+		
+		public void
+		downloadComplete(DownloadManager manager)
+		{
+		}
+
+		public void
+		completionChanged(DownloadManager manager, boolean bCompleted)
+		{
+			stateChanged( manager, manager.getState());
+		}
+
+		public void
+		positionChanged(DownloadManager download, int oldPosition, int newPosition)
+		{
+		}
+
+		public void
+		filePriorityChanged( DownloadManager download, DiskManagerFileInfo file )
+		{
 		}
 	}
 }
