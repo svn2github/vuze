@@ -38,6 +38,8 @@ TagTypeBase
 	private static final int TTL_CHANGE = 2;
 	private static final int TTL_REMOVE = 3;
 	
+	private static TagManagerImpl manager = TagManagerImpl.getSingleton();
+	
 	private ListenerManager<TagTypeListener>	tt_listeners 	= 
 		ListenerManager.createManager(
 			"TagTypeListeners",
@@ -74,7 +76,7 @@ TagTypeBase
 		tag_type_features	= _tag_features;
 		tag_type_name		= _tag_name;
 		
-		TagManagerImpl.getSingleton().addTagType( this );
+		manager.addTagType( this );
 	}
 	
 	public int
@@ -147,7 +149,7 @@ TagTypeBase
 	public void
 	removeTagType()
 	{
-		TagManagerImpl.getSingleton().removeTagType( this );
+		manager.removeTagType( this );
 	}
 	
 	public void
@@ -171,5 +173,23 @@ TagTypeBase
 		TagTypeListener	listener )
 	{
 		tt_listeners.removeListener( listener );
+	}
+	
+	protected long
+	readLongAttribute(
+		TagBase	tag,
+		String	attr,
+		long	def )
+	{
+		return( manager.readLongAttribute( this, tag, attr, def ));
+	}
+	
+	protected void
+	writeLongAttribute(
+		TagBase	tag,
+		String	attr,
+		long	value )
+	{
+		manager.writeLongAttribute( this, tag, attr, value );
 	}
 }

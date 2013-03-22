@@ -3435,14 +3435,16 @@ public class GlobalManagerImpl
 			GlobalManagerImpl		_gm )
 		{
 			super( TagType.TT_DOWNLOAD_STATE, TagDownload.FEATURES, "State" );
+						
+				// keep these ids constant as they are externalised
 			
-			tag_initialising		= new TagDownloadWithState( this, "Initializing", false, false ); 
-			tag_downloading			= new TagDownloadWithState( this, "Downloading", true, true );
-			tag_seeding				= new TagDownloadWithState( this, "Seeding", true, false );
-			tag_queued_downloading	= new TagDownloadWithState( this, "Queued for Download", false, false );
-			tag_queued_seeding		= new TagDownloadWithState( this, "Queued for Seeding", false, false );
-			tag_stopped				= new TagDownloadWithState( this, "Stopped", false, false );
-			tag_error				= new TagDownloadWithState( this, "Error", false, false );
+			tag_initialising		= new TagDownloadWithState( this, 0, "Initializing", false, false ); 
+			tag_downloading			= new TagDownloadWithState( this, 1, "Downloading", true, true );
+			tag_seeding				= new TagDownloadWithState( this, 2, "Seeding", true, false );
+			tag_queued_downloading	= new TagDownloadWithState( this, 3, "Queued for Download", false, false );
+			tag_queued_seeding		= new TagDownloadWithState( this, 4, "Queued for Seeding", false, false );
+			tag_stopped				= new TagDownloadWithState( this, 5, "Stopped", false, false );
+			tag_error				= new TagDownloadWithState( this, 6, "Error", false, false );
 			
 			_gm.addListener( 
 				new GlobalManagerAdapter()

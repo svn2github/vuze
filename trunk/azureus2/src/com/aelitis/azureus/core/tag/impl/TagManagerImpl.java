@@ -112,4 +112,22 @@ TagManagerImpl
 			});
 	}
 	
+	protected long
+	readLongAttribute(
+		TagTypeBase	tag_type,
+		TagBase		tag,
+		String		attr,
+		long		def )
+	{
+		return( def );
+	}
+	
+	protected void
+	writeLongAttribute(
+		TagTypeBase		tag_type,
+		TagBase			tag,
+		String			attr,
+		long			value )
+	{
+	}	
 }

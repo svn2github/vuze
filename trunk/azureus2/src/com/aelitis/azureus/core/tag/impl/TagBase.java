@@ -21,9 +21,6 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
-import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
-
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 
@@ -35,8 +32,9 @@ public abstract class
 TagBase
 	implements Tag
 {
-	private static AtomicInteger	next_tag_id = new AtomicInteger();
-	  
+	protected static final String	AT_RATELIMIT_UP		= "rl.up";
+	protected static final String	AT_RATELIMIT_DOWN	= "rl.down";
+		  
 	private TagTypeBase	tag_type;
 	
 	private int			tag_id;
@@ -69,11 +67,12 @@ TagBase
 	
 	protected
 	TagBase(
-		TagTypeBase	_tag_type,
-		String						_tag_name )
+		TagTypeBase			_tag_type,
+		int					_tag_id,
+		String				_tag_name )
 	{
 		tag_type		= _tag_type;
-		tag_id			= next_tag_id.incrementAndGet();
+		tag_id			= _tag_id;
 		tag_name		= _tag_name;
 		
 		tag_type.addTag( this );
@@ -156,5 +155,21 @@ TagBase
 		TagListener	listener )
 	{
 		t_listeners.removeListener( listener );
+	}
+	
+	protected long
+	readLongAttribute(
+		String	attr,
+		long	def )
+	{
+		return( tag_type.readLongAttribute( this, attr, def ));
+	}
+	
+	protected void
+	writeLongAttribute(
+		String	attr,
+		long	value )
+	{
+		tag_type.writeLongAttribute( this, attr, value );
 	}
 }

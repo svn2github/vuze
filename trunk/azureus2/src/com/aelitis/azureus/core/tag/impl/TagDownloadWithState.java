@@ -90,14 +90,18 @@ TagDownloadWithState
 	public
 	TagDownloadWithState(
 		TagTypeBase		tt,
+		int				tag_id,
 		String			name,
 		boolean			_do_up,
 		boolean			_do_down )
 	{
-		super( tt, name );
+		super( tt, tag_id, name );
 		
 		do_up		= _do_up;
 		do_down		= _do_down;
+		
+		upload_rate_limit 	= (int)readLongAttribute( AT_RATELIMIT_UP, 0 );
+		download_rate_limit = (int)readLongAttribute( AT_RATELIMIT_DOWN, 0 );
 		
 		addTagListener(
 			new TagListener()
@@ -157,6 +161,8 @@ TagDownloadWithState
 		int		bps )
 	{
 		upload_rate_limit	= bps;
+		
+		writeLongAttribute( AT_RATELIMIT_UP, upload_rate_limit );
 	}
 	
 	public int
@@ -176,6 +182,8 @@ TagDownloadWithState
 		int		bps )
 	{
 		download_rate_limit	= bps;
+		
+		writeLongAttribute( AT_RATELIMIT_DOWN, download_rate_limit );
 	}
 	
 	public int

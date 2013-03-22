@@ -24,6 +24,7 @@ package org.gudy.azureus2.core3.category.impl;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryListener;
@@ -51,6 +52,8 @@ CategoryImpl
   private int download_speed;
 
   private final Map<String,String>	attributes;
+  
+  private static AtomicInteger	tag_ids = new AtomicInteger();
   
   private LimitedRateGroup upload_limiter = 
 	  new LimitedRateGroup()
@@ -116,7 +119,7 @@ CategoryImpl
 		});
 
   public CategoryImpl(CategoryManagerImpl manager, String sName, int maxup, int maxdown, Map<String,String> _attributes ) {
-	super( manager, sName );
+	super( manager, tag_ids.incrementAndGet(), sName );
 	
     this.sName = sName;
     this.type = Category.TYPE_USER;
@@ -126,7 +129,7 @@ CategoryImpl
   }
 
   public CategoryImpl(CategoryManagerImpl manager, String sName, int type, Map<String,String> _attributes) {
-	super( manager, sName );
+	super( manager, tag_ids.incrementAndGet(), sName );
     this.sName = sName;
     this.type = type;
     attributes = _attributes;

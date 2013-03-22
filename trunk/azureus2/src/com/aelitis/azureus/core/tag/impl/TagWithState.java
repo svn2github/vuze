@@ -35,9 +35,10 @@ TagWithState
 	public
 	TagWithState(
 		TagTypeBase			tt,
+		int					tag_id,
 		String				name )
 	{
-		super( tt, name );
+		super( tt, tag_id, name );
 	}
 	
 	public void
