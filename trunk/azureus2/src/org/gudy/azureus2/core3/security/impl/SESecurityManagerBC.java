@@ -28,16 +28,19 @@ package org.gudy.azureus2.core3.security.impl;
  */
 
 import java.math.BigInteger;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
-import java.security.SecureRandom;
 import java.security.Security;
 import java.security.cert.Certificate;
 import java.security.cert.X509Certificate;
 import java.util.Calendar;
 
 import org.bouncycastle.jce.*;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.asn1.x509.X509Name;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -46,8 +49,20 @@ SESecurityManagerBC
 {
 	protected static void
 	initialise()
-	{
-		Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+	{		
+		try{
+			Security.addProvider(new org.bouncycastle.jce.provider.BouncyCastleProvider());
+
+			KeyFactory kf = KeyFactory.getInstance( "ECDSA", BouncyCastleProvider.PROVIDER_NAME );
+			
+			if ( Constants.IS_CVS_VERSION ){
+			
+				Debug.outNoStack( "BC Provider '" +  BouncyCastleProvider.PROVIDER_NAME + "' initialised successfully" );
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( "BC Provider initialisation failed", e );
+		}
 	}
 	
 	public static Certificate
