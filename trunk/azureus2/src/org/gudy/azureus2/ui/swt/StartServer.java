@@ -219,7 +219,7 @@ StartServer
         	
     	if ( i == 1 ){
     		
-	  	    if ( arg.equalsIgnoreCase( "--closedown" )){
+	  	    if ( arg.equalsIgnoreCase( "--closedown" ) || arg.equalsIgnoreCase( "--shutdown" )){
 	
 	  	    		// discard any pending updates as we need to shutdown immediately (this
 	  	    		// is called from installer to close running instance)
@@ -241,6 +241,17 @@ StartServer
 	  	    	if ( uiFunctions != null ){
 	  	    		
 	  	    		uiFunctions.dispose(false, false);
+	  	    	}
+	  	    	
+	  	    	return;
+	  	    	
+	  	    }else if ( arg.equalsIgnoreCase( "--restart" )){
+	  	    		
+	  	    	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+	  	    	
+	  	    	if ( uiFunctions != null ){
+	  	    		
+	  	    		uiFunctions.dispose(true, false);
 	  	    	}
 	  	    	
 	  	    	return;

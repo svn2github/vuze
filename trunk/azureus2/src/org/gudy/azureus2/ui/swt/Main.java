@@ -155,7 +155,7 @@ Main
 
     	String	arg = args[i];
     	
-    	if ( arg.equalsIgnoreCase( "--closedown" )){
+    	if ( arg.equalsIgnoreCase( "--closedown" ) || arg.equalsIgnoreCase( "--shutdown" ) || arg.equalsIgnoreCase( "--restart" ) ){
     		
     		closedown	= true;
     		
