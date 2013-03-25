@@ -394,5 +394,21 @@ public class TagUIUtils
 				itemOptions.setEnabled(false);
 			}
 		}
+		
+		if ( !tag.getTagType().isTagTypeAuto()){
+			
+			new MenuItem( menu, SWT.SEPARATOR);
+			
+			MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
+			
+			Utils.setMenuItemImage(itemDelete, "delete");
+			
+			Messages.setLanguageText(itemDelete, "FileItem.delete");
+			itemDelete.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					tag.removeTag();
+				}
+			});
+		}
 	}
 }

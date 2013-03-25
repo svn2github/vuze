@@ -25,6 +25,9 @@ public interface
 TaggableLifecycleHandler 
 {
 	public void
+	initialized();
+	
+	public void
 	taggableCreated(
 		Taggable	t );
 	

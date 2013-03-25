@@ -26,6 +26,9 @@ TaggableResolver
 {
 	public static final int TR_DOWNLOAD = 1;
 	
+	public long
+	getResolverID();
+	
 	public Taggable
 	resolveTaggable(
 		String		id );

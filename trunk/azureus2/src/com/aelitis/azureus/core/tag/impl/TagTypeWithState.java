@@ -24,6 +24,8 @@ package com.aelitis.azureus.core.tag.impl;
 import java.util.List;
 
 import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.TaggableResolver;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -32,6 +34,8 @@ TagTypeWithState
 {
 	private CopyOnWriteList<Tag>	tags = new CopyOnWriteList<Tag>();
 
+	private TaggableResolver		resolver;
+	
 	protected
 	TagTypeWithState(
 		int			tag_type,
@@ -39,6 +43,44 @@ TagTypeWithState
 		String		tag_name )
 	{
 		super( tag_type, tag_features, tag_name );
+	}
+	
+	protected
+	TagTypeWithState(
+		int					tag_type,
+		TaggableResolver	_resolver,
+		int					tag_features,
+		String				tag_name )
+	{
+		super( tag_type, tag_features, tag_name );
+		
+		resolver = _resolver;
+	}
+	
+	protected Taggable
+	resolveTaggable(
+		String		id )
+	{
+		if ( resolver == null ){
+			
+			return( super.resolveTaggable( id ));
+		}
+		
+		return( resolver.resolveTaggable( id ));
+	}
+	
+	protected void
+	removeTaggable(
+		TaggableResolver	_resolver,
+		Taggable			taggable )
+	{	
+		if ( resolver == _resolver ){
+			
+			for ( Tag t: tags ){
+				
+				t.removeTaggable( taggable );
+			}
+		}
 	}
 	
 	public void

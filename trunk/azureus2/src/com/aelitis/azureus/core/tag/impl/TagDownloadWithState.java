@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 
@@ -92,11 +93,32 @@ TagDownloadWithState
 		TagTypeBase		tt,
 		int				tag_id,
 		String			name,
-		boolean			_do_up,
-		boolean			_do_down )
+		boolean			do_up,
+		boolean			do_down )
 	{
 		super( tt, tag_id, name );
 		
+		init( do_up, do_down );
+	}
+	
+	protected
+	TagDownloadWithState(
+		TagTypeBase		tt,
+		int				tag_id,
+		Map				details,
+		boolean			do_up,
+		boolean			do_down )
+	{
+		super( tt, tag_id, details );
+		
+		init( do_up, do_down );
+	}
+	
+	private void
+	init(
+		boolean		_do_up,
+		boolean		_do_down )
+	{
 		do_up		= _do_up;
 		do_down		= _do_down;
 		
@@ -129,6 +151,19 @@ TagDownloadWithState
 				}
 			},
 			true );
+	}
+	
+	@Override
+	public void 
+	removeTag() 
+	{
+		for ( DownloadManager dm: getTaggedDownloads()){
+			
+			dm.removeRateLimiter( upload_limiter, true );
+			dm.removeRateLimiter( download_limiter, false );
+		}
+		
+		super.removeTag();
 	}
 	
 	public 

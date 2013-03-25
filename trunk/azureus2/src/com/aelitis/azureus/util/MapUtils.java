@@ -97,6 +97,22 @@ public class MapUtils
 		}
 	}
 
+	public static void setMapString(Map map, String key, String val ){
+		if ( map == null ){
+			Debug.out( "Map is null!" );
+			return;
+		}
+		try{
+			if ( val == null ){
+				map.remove( key );
+			}else{
+				map.put( key, val.getBytes( "utf-8" ));
+			}
+		}catch( Throwable e ){
+			Debug.out(e);
+		}
+	}
+	
 	public static byte[] getMapByteArray(Map map, String key, byte[] def) {
 		if (map == null) {
 			return def;

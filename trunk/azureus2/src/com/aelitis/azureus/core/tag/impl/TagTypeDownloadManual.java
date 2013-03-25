@@ -21,23 +21,27 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
+import java.util.Map;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.TaggableResolver;
 
 public class 
 TagTypeDownloadManual
 	extends TagTypeWithState
 {
 	private AtomicInteger	next_tag_id = new AtomicInteger(0);
-	
+		
 	protected
-	TagTypeDownloadManual()
+	TagTypeDownloadManual(
+		TaggableResolver		resolver )
 	{
-		super( TagType.TT_DOWNLOAD_MANUAL, TagDownload.FEATURES, "Manual" );
+		super( TagType.TT_DOWNLOAD_MANUAL, resolver, TagDownload.FEATURES, "Manual" );
 	}
 	
 	public boolean
@@ -60,6 +64,18 @@ TagTypeDownloadManual
 	{
 		TagDownloadWithState new_tag = new TagDownloadWithState( this, next_tag_id.incrementAndGet(), name, true, true );
 				
+		return( new_tag );
+	}
+	
+	protected Tag
+	createTag(
+		int		tag_id,
+		Map		details )
+	{
+		TagDownloadWithState new_tag = new TagDownloadWithState( this, tag_id, details, true, true );
+		
+		next_tag_id.set( Math.max( next_tag_id.get(), tag_id+1 ));
+		
 		return( new_tag );
 	}
 }

@@ -21,17 +21,24 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.util.MapUtils;
 
 public class 
 TagWithState 
 	extends TagBase
 {
 	private CopyOnWriteList<Taggable>	objects = new CopyOnWriteList<Taggable>();
+	
+	private boolean	removed;
 	
 	public
 	TagWithState(
@@ -40,6 +47,68 @@ TagWithState
 		String				name )
 	{
 		super( tt, tag_id, name );		
+	}
+	
+	protected
+	TagWithState(
+		TagTypeBase			tt,
+		int					tag_id,
+		Map					map )
+	{
+		super( tt, tag_id, MapUtils.getMapString( map, "n", "" ));
+		
+		if ( map != null ){
+			
+			List<byte[]> list = (List<byte[]>)map.get( "o" );
+			
+			if ( list != null ){
+				
+				for ( byte[] b: list ){
+					
+					try{
+						String id = new String( b, "UTF-8" );
+						
+						Taggable taggable = tt.resolveTaggable( id );
+						
+						if ( taggable != null ){
+							
+							objects.add( taggable );
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		}
+	}
+	
+	protected void
+	exportDetails(
+		Map			map,
+		boolean		do_contents )
+	{
+		MapUtils.setMapString( map, "n", getTagName());
+		
+		if ( do_contents ){
+			
+			List<Taggable> o = objects.getList();
+			
+			List l = new ArrayList( o.size());
+			
+			for ( Taggable t: o ){
+				
+				try{
+					l.add( t.getTaggableID().getBytes( "UTF-8" ));
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+			
+			map.put( "o", l );
+		}
 	}
 	
 	public void 
@@ -57,7 +126,13 @@ TagWithState
 	addTaggable(
 		Taggable	t )
 	{
-		//System.out.println( getTagName() + ": add " + t.getTaggableID());
+		if ( removed ){
+			
+			Debug.out( "Tag has been removed" );
+			
+			return;
+		}
+		
 		objects.add( t );
 		
 		super.addTaggable( t );
@@ -69,12 +144,26 @@ TagWithState
 	removeTaggable(
 		Taggable	t )
 	{
-		//System.out.println( getTagName() + ": rem " + t.getTaggableID());
 		objects.remove( t );
 		
 		super.removeTaggable( t );
 		
 		getManager().tagContentsChanged( this );
+	}
+	
+	@Override
+	public void 
+	removeTag() 
+	{	
+		super.removeTag();
+		
+		removed = true;
+	}
+	
+	protected boolean
+	isRemoved()
+	{
+		return( removed );
 	}
 	
 	public int 

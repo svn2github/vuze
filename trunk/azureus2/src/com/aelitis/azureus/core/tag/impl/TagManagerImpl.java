@@ -47,6 +47,13 @@ TagManagerImpl
 {
 	private static final String	CONFIG_FILE 				= "tag.config";
 	
+		// order is important as 'increases' in effects (see applyConfigUpdates)
+	
+	private static final int CU_TAG_CREATE		= 1;
+	private static final int CU_TAG_CHANGE		= 2;
+	private static final int CU_TAG_CONTENTS	= 3;
+	private static final int CU_TAG_REMOVE		= 4;
+	
 	private static TagManagerImpl	singleton;
 	
 	public static synchronized TagManagerImpl
@@ -74,6 +81,15 @@ TagManagerImpl
 				public void
 				runSupport()
 				{
+					try{
+							// just in case there's a bunch of changes coming in together
+						
+						Thread.sleep( 1000 );
+						
+					}catch( Throwable e ){
+						
+					}
+					
 					writeConfig();
 				}
 			},
@@ -84,6 +100,9 @@ TagManagerImpl
 	private WeakReference<Map>	config_ref;
 	
 	private boolean				config_dirty;
+	
+	private List<Object[]>		config_change_queue = new ArrayList<Object[]>();
+	
 	
 	private CopyOnWriteList<TagManagerListener>		listeners = new CopyOnWriteList<TagManagerListener>();
 	
@@ -97,8 +116,6 @@ TagManagerImpl
 	private void
 	init()
 	{
-		new TagTypeDownloadManual();
-		
 		AzureusCoreFactory.getSingleton().addLifecycleListener(
 			new AzureusCoreLifecycleAdapter()
 			{
@@ -111,6 +128,54 @@ TagManagerImpl
 			});
 	}
 	
+	private void
+	resolverInitialized(
+		TaggableResolver		resolver )
+	{
+		TagTypeDownloadManual ttdm = new TagTypeDownloadManual( resolver );
+		
+		synchronized( this ){
+			
+			Map config = getConfig();
+			
+			Map<String,Object> tt = (Map<String,Object>)config.get( String.valueOf( ttdm.getTagType()));
+			
+			if ( tt != null ){
+				
+				for ( Map.Entry<String,Object> entry: tt.entrySet()){
+					
+					String key = entry.getKey();
+					
+					try{
+						if ( Character.isDigit( key.charAt(0))){
+						
+							int	tag_id 	= Integer.parseInt( key );
+							Map m		= (Map)entry.getValue();
+							
+							ttdm.createTag( tag_id, m );
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		}
+	}
+	
+	private void
+	removeTaggable(
+		TaggableResolver	resolver,
+		Taggable			taggable )
+	{
+		for ( TagType	tt: tag_types ){
+			
+			TagTypeBase	ttb = (TagTypeBase)tt;
+			
+			ttb.removeTaggable( resolver, taggable );
+		}
+	}
+		
 	public void
 	addTagType(
 		TagType		tag_type )
@@ -151,21 +216,29 @@ TagManagerImpl
 	
 	public TaggableLifecycleHandler
 	registerTaggableResolver(
-		TaggableResolver	resolver )
+		final TaggableResolver	resolver )
 	{
 		return(
 			new TaggableLifecycleHandler()
 			{
+				public void 
+				initialized() 
+				{				
+					resolverInitialized( resolver );
+				}
+				
 				public void
 				taggableCreated(
 					Taggable	t )
 				{	
+					// could do some initial tag allocations here
 				}
 				
 				public void
 				taggableDestroyed(
 					Taggable	t )
 				{
+					removeTaggable( resolver, t );
 				}
 			});
 	}
@@ -197,28 +270,132 @@ TagManagerImpl
 	tagCreated(
 		TagWithState	tag )
 	{
-		
+		addConfigUpdate( CU_TAG_CREATE, tag );
 	}
 	
 	protected void
 	tagChanged(
 		TagWithState	tag )
 	{
-		
+		addConfigUpdate( CU_TAG_CHANGE, tag );
+
 	}
 	
 	protected void
 	tagRemoved(
 		TagWithState	tag )
 	{
-		
+		addConfigUpdate( CU_TAG_REMOVE, tag );
 	}
 	
 	protected void
 	tagContentsChanged(
 		TagWithState	tag )
 	{
+		addConfigUpdate( CU_TAG_CONTENTS, tag );
+	}
+	
+	private void
+	addConfigUpdate(
+		int				type,
+		TagWithState	tag )
+	{
+		if ( !tag.getTagType().isTagTypePersistent()){
+			
+			return;
+		}
 		
+		if ( tag.isRemoved() && type != CU_TAG_REMOVE ){
+			
+			return;
+		}
+		
+		synchronized( this ){
+			
+			config_change_queue.add( new Object[]{ type, tag });
+		}
+		    
+		setDirty();
+	}
+	
+	private void
+	applyConfigUpdates(
+		Map			config )
+	{
+		Map<TagWithState,Integer>	updates = new HashMap<TagWithState, Integer>();
+		
+		for ( Object[] update: config_change_queue ){
+			
+			int				type	= (Integer)update[0];
+			TagWithState	tag 	= (TagWithState)update[1];
+			
+			if ( tag.isRemoved()){
+				
+				type = CU_TAG_REMOVE;
+			}
+			
+			Integer existing = updates.get( tag );
+			
+			if ( existing == null ){
+				
+				updates.put( tag, type );
+				
+			}else{
+				
+				if ( existing == CU_TAG_REMOVE ){
+					
+				}else if ( type > existing ){
+					
+					updates.put( tag, type );			
+				}
+			}
+		}
+		
+		for ( Map.Entry<TagWithState,Integer> entry: updates.entrySet()){
+			
+			TagWithState 	tag = entry.getKey();
+			int				type	= entry.getValue();
+			
+			TagType	tag_type = tag.getTagType();
+			
+			String tt_key = String.valueOf( tag_type.getTagType());
+			
+			Map tt = (Map)config.get( tt_key );
+			
+			if ( tt == null ){
+				
+				if ( type == CU_TAG_REMOVE ){
+					
+					continue;
+				}
+				
+				tt = new HashMap();
+					
+				config.put( tt_key, tt );
+			}
+			
+			String t_key = String.valueOf( tag.getTagID());
+			
+			if ( type == CU_TAG_REMOVE ){
+				
+				tt.remove( t_key );
+				
+				continue;
+			}
+			
+			Map t = (Map)tt.get( t_key );
+			
+			if ( t == null ){
+				
+				t = new HashMap();
+				
+				tt.put( t_key, t );
+			}
+			
+			tag.exportDetails( t, type == CU_TAG_CONTENTS );
+		}
+
+		config_change_queue.clear();
 	}
 	
 	private void
@@ -295,6 +472,11 @@ TagManagerImpl
 			}
 	
 			config_dirty = false;
+			
+			if ( config_change_queue.size() > 0 ){
+			
+				applyConfigUpdates( getConfig());
+			}
 			
 			if ( config != null ){
 							

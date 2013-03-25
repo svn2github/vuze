@@ -85,6 +85,20 @@ TagTypeBase
 		return( manager );
 	}
 	
+	protected Taggable
+	resolveTaggable(
+		String		id )
+	{
+		return( null );
+	}
+	
+	protected void
+	removeTaggable(
+		TaggableResolver	resolver,
+		Taggable			taggable )
+	{	
+	}
+	
 	public int
 	getTagType()
 	{

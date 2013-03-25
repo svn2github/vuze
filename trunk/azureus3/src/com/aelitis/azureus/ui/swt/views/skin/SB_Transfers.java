@@ -18,7 +18,6 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -1025,6 +1024,7 @@ public class SB_Transfers
 		}
 		
 		if ( !tag.getTagType().isTagTypeAuto()){
+			
 			entry.addListener(new MdiEntryDropListener() {
 				public boolean mdiEntryDrop(MdiEntry entry, Object payload) {
 					if (!(payload instanceof String)) {
