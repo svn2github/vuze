@@ -46,13 +46,21 @@ Tag
 	getTagID();
 	
 	public String
-	getTagName();
+	getTagName( 
+		boolean	localize );
 		
 	public void
 	setTagName(
 		String		name )
 	
 		throws TagException;
+	
+	public boolean
+	isVisible();
+	
+	public void
+	setVisible(
+		boolean		visible );
 	
 	public void
 	addTaggable(

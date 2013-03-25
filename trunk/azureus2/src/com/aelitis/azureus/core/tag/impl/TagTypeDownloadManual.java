@@ -28,7 +28,6 @@ import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.TagType;
-import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.TaggableResolver;
 
 public class 
@@ -41,7 +40,7 @@ TagTypeDownloadManual
 	TagTypeDownloadManual(
 		TaggableResolver		resolver )
 	{
-		super( TagType.TT_DOWNLOAD_MANUAL, resolver, TagDownload.FEATURES, "Manual" );
+		super( TagType.TT_DOWNLOAD_MANUAL, resolver, TagDownload.FEATURES, "tag.type.man" );
 	}
 	
 	public boolean

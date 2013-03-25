@@ -180,7 +180,9 @@ public class SB_Transfers
 	protected static void addHeaderMenu() {
 		PluginInterface pi = PluginInitializer.getDefaultInterface();
 		UIManager uim = pi.getUIManager();
-		MenuManager menuManager = uim.getMenuManager();
+		
+		final MenuManager menuManager = uim.getMenuManager();
+		
 		MenuItem menuItem;
 
 		menuItem = menuManager.addMenuItem("sidebar."
@@ -216,50 +218,151 @@ public class SB_Transfers
 				menu.setData(Boolean.valueOf(COConfigurationManager.getBooleanParameter("Library.CatInSideBar")));
 			}
 		});
-		
-			// tags
-		
-		menuItem = menuManager.addMenuItem("sidebar."
-				+ MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
-				"label.add.tag");
-		menuItem.addListener(new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
-						"TagAddWindow.title", "TagAddWindow.message");
-				entryWindow.prompt();
-				if (entryWindow.hasSubmittedInput()) {
-					String tag_name = entryWindow.getSubmittedInput().trim();
-					TagType tt = TagManagerFactory.getTagManger().getTagType( TagType.TT_DOWNLOAD_MANUAL );
-					
-					Tag existing = tt.getTag( tag_name );
-					
-					if ( existing == null ){
-						
-						try{
-							tt.createTag( tag_name );
-														
-						}catch( TagException e ){
-							
-							Debug.out( e );
-						}
-					}
-				}
-			}
-		});
+				
+			// show tags in sidebar
 		
 		menuItem = menuManager.addMenuItem("sidebar."
 				+ MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
 				"ConfigView.section.style.TagInSidebar");
+		
 		menuItem.setStyle(MenuItem.STYLE_CHECK);
+		
 		menuItem.addListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
 				boolean b = COConfigurationManager.getBooleanParameter("Library.TagInSideBar");
 				COConfigurationManager.setParameter("Library.TagInSideBar", !b);
 			}
 		});
+		
 		menuItem.addFillListener(new MenuItemFillListener() {
 			public void menuWillBeShown(MenuItem menu, Object data) {
 				menu.setData(Boolean.valueOf(COConfigurationManager.getBooleanParameter("Library.TagInSideBar")));
+			}
+		});
+		
+			// tag options
+		
+		menuItem = menuManager.addMenuItem("sidebar."
+				+ MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+				"label.tags");
+		
+		menuItem.setStyle(MenuItem.STYLE_MENU);
+		
+		menuItem.addFillListener(new MenuItemFillListener() {
+			public void menuWillBeShown(MenuItem menu, Object data) {
+				menu.removeAllChildItems();
+				
+				MenuItem menuItem = menuManager.addMenuItem( menu, "label.add.tag");
+				
+				menuItem.addListener(new MenuItemListener() {
+					public void selected(MenuItem menu, Object target) {
+						SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+								"TagAddWindow.title", "TagAddWindow.message");
+						
+						entryWindow.prompt();
+						
+						if (entryWindow.hasSubmittedInput()) {
+							String tag_name = entryWindow.getSubmittedInput().trim();
+							TagType tt = TagManagerFactory.getTagManger().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+							
+							Tag existing = tt.getTag( tag_name, true );
+							
+							if ( existing == null ){
+								
+								try{
+									tt.createTag( tag_name );
+																
+								}catch( TagException e ){
+									
+									Debug.out( e );
+								}
+							}
+						}
+					}
+				});
+				
+				
+				menuItem = menuManager.addMenuItem( menu, "wizard.maketorrent.auto" );
+				
+				menuItem.setStyle( MenuItem.STYLE_MENU );
+				
+				menuItem.addFillListener(new MenuItemFillListener() {
+					public void menuWillBeShown(MenuItem menu, Object data) {
+						menu.removeAllChildItems();
+						
+						List<TagType> tag_types = TagManagerFactory.getTagManger().getTagTypes();
+						
+						for ( final TagType tag_type: tag_types ){
+							
+							if ( tag_type.getTagType() == TagType.TT_DOWNLOAD_CATEGORY ){
+								
+								continue;
+							}
+							
+							if ( !tag_type.isTagTypeAuto()){
+								
+								continue;
+							}
+							
+							MenuItem menuItem = menuManager.addMenuItem( menu, tag_type.getTagTypeName( false ));
+
+							menuItem.setStyle(MenuItem.STYLE_MENU);
+							
+							menuItem.addFillListener(new MenuItemFillListener() {
+								public void menuWillBeShown(MenuItem menu, Object data) {
+									menu.removeAllChildItems();
+
+									final List<Tag> tags = tag_type.getTags();
+
+									MenuItem menuItem = menuManager.addMenuItem( menu, "label.show.all" );
+									menuItem.setStyle(MenuItem.STYLE_PUSH );
+									
+									menuItem.addListener(new MenuItemListener() {
+										public void selected(MenuItem menu, Object target) {
+											for ( Tag t: tags ){
+												t.setVisible( true );
+											}
+										}
+									});
+									
+									boolean	all_visible = true;
+									
+									for ( Tag t: tags ){
+										if ( !t.isVisible()){
+											all_visible = false;
+											break;
+										}
+									}
+									
+									menuItem.setEnabled( !all_visible );
+									
+									menuItem = menuManager.addMenuItem( menu, "sep" );
+									
+									menuItem.setStyle(MenuItem.STYLE_SEPARATOR );
+																		
+									for ( final Tag t: tags ){
+										
+										menuItem = menuManager.addMenuItem( menu, t.getTagName( false ));
+										
+										menuItem.setStyle(MenuItem.STYLE_CHECK );
+										
+										menuItem.addListener(new MenuItemListener() {
+											public void selected(MenuItem menu, Object target) {
+												t.setVisible( menu.isSelected());
+											}
+										});
+										menuItem.addFillListener(new MenuItemFillListener() {
+											public void menuWillBeShown(MenuItem menu, Object data) {
+												menu.setData( t.isVisible());
+											}
+										});
+									}
+								}
+							});
+						}
+					}
+				});
+					
 			}
 		});
 	}
@@ -514,9 +617,12 @@ public class SB_Transfers
 									tagAdded(
 										Tag			tag )
 									{
-										setupTag( tag );
-										
-										tag.addTagListener( tagListener, false );
+										if ( tag.isVisible()){
+											
+											setupTag( tag );
+											
+											tag.addTagListener( tagListener, false );
+										}
 									}
 									
 									public void
@@ -981,10 +1087,32 @@ public class SB_Transfers
 
 		MdiEntry entry = mdi.getEntry("Tag." + tag.getTagType().getTagType() + "." + tag.getTagID());
 		
-		if (entry == null) {
+		if ( entry == null ){
+			
+			if ( tag.isVisible()){
+				
+				setupTag( tag );
+			}
+			
 			return;
 		}
 
+		if ( !tag.isVisible()){
+			
+			removeTag( tag );
+			
+			return;
+		}
+		
+		String old_title = entry.getTitle();
+		
+		String tag_title = tag.getTagName( true );
+		
+		if ( !old_title.equals( tag_title )){
+		
+			entry.setTitle( tag_title );
+		}
+		
 		ViewTitleInfoManager.refreshTitleInfo(entry.getViewTitleInfo());
 	}
 
@@ -994,7 +1122,9 @@ public class SB_Transfers
 			return;
 		}
 
-		String name = tag.getTagName();
+		boolean auto = tag.getTagType().isTagTypeAuto();
+		
+		String name = tag.getTagName( true );
 		String id = "Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
 
 		ViewTitleInfo viewTitleInfo = new ViewTitleInfo() {
@@ -1009,9 +1139,38 @@ public class SB_Transfers
 
 		MdiEntry entry = mdi.createEntryFromSkinRef(
 				MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id, "library",
-				name, viewTitleInfo, tag, false, null);
+				name, viewTitleInfo, tag, auto, null);
+		
+		if ( auto ){
+			
+			entry.addListener(
+				new MdiCloseListener()
+				{
+					public void 
+					mdiEntryClosed(
+						MdiEntry 	entry, 
+						boolean 	userClosed )
+					{
+						if ( userClosed ){
+							
+								// userClosed isn't all we want - it just means we're not closing... So to prevent
+								// a deselection of 'show tags in sidebar' 'user-closing' the entries we need this test
+							
+							if ( COConfigurationManager.getBooleanParameter("Library.TagInSideBar")){
+							
+								tag.setVisible( false );
+							}
+						}
+					}
+				});
+		}
+		
 		if (entry != null) {
-			entry.setImageLeftID("image.sidebar.tag");
+			if ( tag.getTagType().isTagTypePersistent()){
+				entry.setImageLeftID("image.sidebar.tag-green");
+			}else{
+				entry.setImageLeftID("image.sidebar.tag-blue");
+			}
 		}
 
 		if (entry instanceof SideBarEntrySWT) {
@@ -1023,7 +1182,7 @@ public class SB_Transfers
 			});
 		}
 		
-		if ( !tag.getTagType().isTagTypeAuto()){
+		if ( !auto ){
 			
 			entry.addListener(new MdiEntryDropListener() {
 				public boolean mdiEntryDrop(MdiEntry entry, Object payload) {

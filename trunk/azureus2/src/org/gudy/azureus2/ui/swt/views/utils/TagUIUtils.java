@@ -31,9 +31,11 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
@@ -398,6 +400,32 @@ public class TagUIUtils
 		if ( !tag.getTagType().isTagTypeAuto()){
 			
 			new MenuItem( menu, SWT.SEPARATOR);
+			
+			MenuItem itemRename = new MenuItem(menu, SWT.PUSH);
+						
+			Messages.setLanguageText(itemRename, "MyTorrentsView.menu.rename");
+			itemRename.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+							"TagRenameWindow.title", "TagRenameWindow.message");
+					
+					entryWindow.setPreenteredText( tag.getTagName( true ), false );
+					entryWindow.selectPreenteredText( true );
+					
+					entryWindow.prompt();
+					
+					if ( entryWindow.hasSubmittedInput()){
+						
+						try{
+							tag.setTagName( entryWindow.getSubmittedInput().trim());
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			});
 			
 			MenuItem itemDelete = new MenuItem(menu, SWT.PUSH);
 			

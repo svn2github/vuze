@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 
@@ -106,8 +107,17 @@ TagTypeBase
 	}
 	
 	public String
-	getTagTypeName()
+	getTagTypeName(
+		boolean	localize )
 	{
+		if ( localize ){
+			
+			if ( tag_type_name.startsWith( "tag." )){
+				
+				return( MessageText.getString( tag_type_name ));
+			}
+		}
+		
 		return( tag_type_name );
 	}
 	
@@ -176,11 +186,12 @@ TagTypeBase
 	
 	public Tag
 	getTag(
-		String	tag_name )
+		String	tag_name,
+		boolean	is_localized )
 	{
 		for ( Tag t: getTags()){
 			
-			if ( t.getTagName().equals( tag_name )){
+			if ( t.getTagName( is_localized ).equals( tag_name )){
 				
 				return( t );
 			}
@@ -223,6 +234,24 @@ TagTypeBase
 		TagTypeListener	listener )
 	{
 		tt_listeners.removeListener( listener );
+	}
+	
+	protected boolean
+	readBooleanAttribute(
+		TagBase	tag,
+		String	attr,
+		boolean	def )
+	{
+		return( manager.readBooleanAttribute( this, tag, attr, def ));
+	}
+	
+	protected void
+	writeBooleanAttribute(
+		TagBase	tag,
+		String	attr,
+		boolean	value )
+	{
+		manager.writeBooleanAttribute( this, tag, attr, value );
 	}
 	
 	protected long

@@ -489,6 +489,26 @@ TagManagerImpl
 		}
 	}
 	
+	protected boolean
+	readBooleanAttribute(
+		TagTypeBase	tag_type,
+		TagBase		tag,
+		String		attr,
+		boolean		def )
+	{
+		return( readLongAttribute(tag_type, tag, attr, def?1:0 ) == 1 );
+	}
+	
+	protected void
+	writeBooleanAttribute(
+		TagTypeBase		tag_type,
+		TagBase			tag,
+		String			attr,
+		boolean			value )
+	{
+		writeLongAttribute( tag_type, tag, attr, value?1:0 );
+	}
+	
 	protected long
 	readLongAttribute(
 		TagTypeBase	tag_type,

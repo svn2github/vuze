@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 
@@ -35,7 +36,8 @@ TagBase
 {
 	protected static final String	AT_RATELIMIT_UP		= "rl.up";
 	protected static final String	AT_RATELIMIT_DOWN	= "rl.down";
-		  
+	protected static final String	AT_VISIBLE			= "vis";
+	  
 	private TagTypeBase	tag_type;
 	
 	private int			tag_id;
@@ -65,6 +67,8 @@ TagBase
 					}
 				}
 			});	
+		
+	private boolean	is_visible;
 	
 	protected
 	TagBase(
@@ -75,6 +79,8 @@ TagBase
 		tag_type		= _tag_type;
 		tag_id			= _tag_id;
 		tag_name		= _tag_name;
+		
+		is_visible = readBooleanAttribute( AT_VISIBLE, getVisibleDefault());
 		
 		tag_type.addTag( this );
 	}
@@ -98,8 +104,14 @@ TagBase
 	}
 	
 	public String
-	getTagName()
+	getTagName(
+		boolean		localize )
 	{
+		if ( localize && tag_name.startsWith( "tag." )){
+			
+			return( MessageText.getString( tag_name ));
+		}
+		
 		return( tag_name );
 	}
 	
@@ -117,6 +129,32 @@ TagBase
 		tag_name = name;
 				
 		tag_type.fireChanged( this );
+	}
+	
+	protected boolean
+	getVisibleDefault()
+	{
+		return( true );
+	}
+	
+	public boolean
+	isVisible()
+	{
+		return( is_visible );
+	}
+	
+	public void
+	setVisible(
+		boolean	v )
+	{
+		if ( v != is_visible ){
+			
+			is_visible	= v;
+			
+			writeBooleanAttribute( AT_VISIBLE, v );
+			
+			tag_type.fireChanged( this );
+		}
 	}
 	
 	public void
@@ -177,6 +215,22 @@ TagBase
 		TagListener	listener )
 	{
 		t_listeners.removeListener( listener );
+	}
+	
+	protected boolean
+	readBooleanAttribute(
+		String	attr,
+		boolean	def )
+	{
+		return( tag_type.readBooleanAttribute( this, attr, def ));
+	}
+	
+	protected void
+	writeBooleanAttribute(
+		String	attr,
+		boolean	value )
+	{
+		tag_type.writeBooleanAttribute( this, attr, value );
 	}
 	
 	protected long

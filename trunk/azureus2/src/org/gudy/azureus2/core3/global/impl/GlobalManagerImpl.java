@@ -3439,17 +3439,17 @@ public class GlobalManagerImpl
 		DownloadStateTagger(
 			GlobalManagerImpl		_gm )
 		{
-			super( TagType.TT_DOWNLOAD_STATE, TagDownload.FEATURES, "State" );
+			super( TagType.TT_DOWNLOAD_STATE, TagDownload.FEATURES, "tag.type.ds" );
 						
 				// keep these ids constant as they are externalised
 			
-			tag_initialising		= new TagDownloadWithState( this, 0, "Initializing", false, false ); 
-			tag_downloading			= new TagDownloadWithState( this, 1, "Downloading", true, true );
-			tag_seeding				= new TagDownloadWithState( this, 2, "Seeding", true, false );
-			tag_queued_downloading	= new TagDownloadWithState( this, 3, "Queued for Download", false, false );
-			tag_queued_seeding		= new TagDownloadWithState( this, 4, "Queued for Seeding", false, false );
-			tag_stopped				= new TagDownloadWithState( this, 5, "Stopped", false, false );
-			tag_error				= new TagDownloadWithState( this, 6, "Error", false, false );
+			tag_initialising		= new TagDownloadWithState( this, 0, "tag.type.ds.init", false, false ){ protected boolean getVisibleDefault(){ return( false );}}; 
+			tag_downloading			= new TagDownloadWithState( this, 1, "tag.type.ds.down", true, true );
+			tag_seeding				= new TagDownloadWithState( this, 2, "tag.type.ds.seed", true, false );
+			tag_queued_downloading	= new TagDownloadWithState( this, 3, "tag.type.ds.qford", false, false );
+			tag_queued_seeding		= new TagDownloadWithState( this, 4, "tag.type.ds.qfors", false, false );
+			tag_stopped				= new TagDownloadWithState( this, 5, "tag.type.ds.stop", false, false );
+			tag_error				= new TagDownloadWithState( this, 6, "tag.type.ds.err", false, false );
 			
 			_gm.addListener( 
 				new GlobalManagerAdapter()

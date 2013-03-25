@@ -40,7 +40,8 @@ TagType
 	getTagType();
 	
 	public String
-	getTagTypeName();
+	getTagTypeName(
+		boolean		localize );
 		
 	public boolean
 	isTagTypeAuto();
@@ -75,7 +76,8 @@ TagType
 	
 	public Tag
 	getTag(
-		String	tag_name );
+		String		tag_name,
+		boolean		is_localized );
 	
 	public List<Tag>
 	getTags();

@@ -88,7 +88,7 @@ TagWithState
 		Map			map,
 		boolean		do_contents )
 	{
-		MapUtils.setMapString( map, "n", getTagName());
+		MapUtils.setMapString( map, "n", getTagName( false ));
 		
 		if ( do_contents ){
 			

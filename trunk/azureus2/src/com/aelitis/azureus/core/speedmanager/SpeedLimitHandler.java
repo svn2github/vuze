@@ -2799,7 +2799,7 @@ SpeedLimitHandler
 		    			continue;
 		    		}
 		    		
-		    		String tag_name = tt.getTagTypeName() + ": " + tag.getTagName();
+		    		String tag_name = tt.getTagTypeName( true ) + ": " + tag.getTagName( true );
 		    		
 					int[]	limits = entry.getValue();
 					

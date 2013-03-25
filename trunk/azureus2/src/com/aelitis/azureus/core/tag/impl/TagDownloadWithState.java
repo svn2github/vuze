@@ -46,7 +46,7 @@ TagDownloadWithState
 			public String 
 			getName() 
 			{
-				return( "tag_up: " + getTagName());
+				return( "tag_up: " + getTagName( true ));
 			}
 			public int 
 			getRateLimitBytesPerSecond()
@@ -68,7 +68,7 @@ TagDownloadWithState
 			public String 
 			getName() 
 			{
-				return( "tag_down: " + getTagName());
+				return( "tag_down: " + getTagName( true ));
 			}
 			public int 
 			getRateLimitBytesPerSecond()
