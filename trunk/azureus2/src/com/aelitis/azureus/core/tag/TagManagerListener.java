@@ -1,5 +1,5 @@
 /*
- * Created on Mar 20, 2013
+ * Created on Mar 23, 2013
  * Created by Paul Gardner
  * 
  * Copyright 2013 Azureus Software, Inc.  All rights reserved.
@@ -21,66 +21,16 @@
 
 package com.aelitis.azureus.core.tag;
 
-import java.util.List;
-
-
 public interface 
-Tag 
+TagManagerListener 
 {
-	public static final int TT_DOWNLOAD_CATEGORY	= 1;
-
-		/**
-		 * Unique type denoting this species of tag
-		 * @return
-		 */
-	
-	public TagType
-	getTagType();
-
-		/**
-		 * Unique ID within this tag type 
-		 * @return
-		 */
-	
-	public int
-	getTagID();
-	
-	public String
-	getTagName();
-		
 	public void
-	setTagName(
-		String		name )
-	
-		throws TagException;
+	tagTypeAdded(
+		TagManager		manager,
+		TagType			tag_type );
 	
 	public void
-	addTaggable(
-		Taggable	t );
-	
-	public void
-	removeTaggable(
-		Taggable	t );
-	
-	public int
-	getTaggedCount();
-	
-	public List<Taggable>
-	getTagged();
-	
-	public boolean
-	hasTaggable(
-		Taggable	t );
-	
-	public void
-	removeTag();
-	
-	public void
-	addTagListener(
-		TagListener	listener,
-		boolean		fire_for_existing );
-	
-	public void
-	removeTagListener(
-		TagListener	listener );
+	tagTypeRemoved(
+		TagManager		manager,
+		TagType			tag_type );
 }

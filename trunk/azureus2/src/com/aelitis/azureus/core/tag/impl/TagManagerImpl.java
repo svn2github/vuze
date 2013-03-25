@@ -33,6 +33,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerListener;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.TaggableLifecycleHandler;
@@ -45,12 +46,19 @@ TagManagerImpl
 	implements TagManager
 {
 	private static final String	CONFIG_FILE 				= "tag.config";
-
-	private static TagManagerImpl	singleton = new TagManagerImpl();
 	
-	public static TagManagerImpl
+	private static TagManagerImpl	singleton;
+	
+	public static synchronized TagManagerImpl
 	getSingleton()
 	{
+		if ( singleton == null ){
+			
+			singleton = new TagManagerImpl();
+			
+			singleton.init();
+		}
+		
 		return( singleton );
 	}
 	
@@ -77,12 +85,20 @@ TagManagerImpl
 	
 	private boolean				config_dirty;
 	
+	private CopyOnWriteList<TagManagerListener>		listeners = new CopyOnWriteList<TagManagerListener>();
 	
 	
 	
 	private
 	TagManagerImpl()
 	{
+	}
+	
+	private void
+	init()
+	{
+		new TagTypeDownloadManual();
+		
 		AzureusCoreFactory.getSingleton().addLifecycleListener(
 			new AzureusCoreLifecycleAdapter()
 			{
@@ -152,6 +168,57 @@ TagManagerImpl
 				{
 				}
 			});
+	}
+	
+	public void
+	addTagManagerListener(
+		TagManagerListener		listener,
+		boolean					fire_for_existing )
+	{
+		listeners.add( listener );
+		
+		if ( fire_for_existing ){
+						
+			for (TagType tt: tag_types ){
+				
+				listener.tagTypeAdded( this, tt );
+			}
+		}
+	}
+	
+	public void
+	removeTagManagerListener(
+		TagManagerListener		listener )
+	{
+		listeners.remove( listener );
+	}
+	
+	protected void
+	tagCreated(
+		TagWithState	tag )
+	{
+		
+	}
+	
+	protected void
+	tagChanged(
+		TagWithState	tag )
+	{
+		
+	}
+	
+	protected void
+	tagRemoved(
+		TagWithState	tag )
+	{
+		
+	}
+	
+	protected void
+	tagContentsChanged(
+		TagWithState	tag )
+	{
+		
 	}
 	
 	private void

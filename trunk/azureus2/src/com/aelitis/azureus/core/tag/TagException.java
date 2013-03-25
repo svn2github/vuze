@@ -1,5 +1,5 @@
 /*
- * Created on Mar 20, 2013
+ * Created on Mar 23, 2013
  * Created by Paul Gardner
  * 
  * Copyright 2013 Azureus Software, Inc.  All rights reserved.
@@ -21,32 +21,24 @@
 
 package com.aelitis.azureus.core.tag;
 
-import java.util.List;
+@SuppressWarnings( "serial" )
 
-public interface 
-TagManager 
+public class 
+TagException
+	extends Exception
 {
-	public void
-	addTagType(
-		TagType		tag_type );
+	public
+	TagException(
+		String	str )
+	{
+		super( str );
+	}
 	
-	public TagType
-	getTagType(
-		int			tag_type );
-	
-	public List<TagType>
-	getTagTypes();
-	
-	public TaggableLifecycleHandler
-	registerTaggableResolver(
-		TaggableResolver	resolver );
-	
-	public void
-	addTagManagerListener(
-		TagManagerListener		listener,
-		boolean					fire_for_existing );
-	
-	public void
-	removeTagManagerListener(
-		TagManagerListener		listener );
+	public 
+	TagException(
+		String		str,
+		Throwable	cause )
+	{
+		super( str, cause );
+	}
 }

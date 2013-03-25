@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.tag.impl;
 
 import java.util.List;
 
+import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -38,7 +39,18 @@ TagWithState
 		int					tag_id,
 		String				name )
 	{
-		super( tt, tag_id, name );
+		super( tt, tag_id, name );		
+	}
+	
+	public void 
+	setTagName(
+		String name )
+	
+		throws TagException 
+	{
+		super.setTagName( name );
+		
+		getManager().tagChanged( this );
 	}
 	
 	public void
@@ -49,6 +61,8 @@ TagWithState
 		objects.add( t );
 		
 		super.addTaggable( t );
+		
+		getManager().tagContentsChanged( this );
 	}
 	
 	public void
@@ -59,6 +73,8 @@ TagWithState
 		objects.remove( t );
 		
 		super.removeTaggable( t );
+		
+		getManager().tagContentsChanged( this );
 	}
 	
 	public int 

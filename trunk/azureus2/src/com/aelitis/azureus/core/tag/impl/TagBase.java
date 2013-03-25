@@ -25,6 +25,7 @@ import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 
 import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.Taggable;
 
@@ -78,6 +79,12 @@ TagBase
 		tag_type.addTag( this );
 	}
 	
+	protected TagManagerImpl
+	getManager()
+	{
+		return( tag_type.getManager());
+	}
+	
 	public TagTypeBase
 	getTagType()
 	{
@@ -96,6 +103,21 @@ TagBase
 		return( tag_name );
 	}
 	
+	public void 
+	setTagName(
+		String name )
+	
+		throws TagException 
+	{
+		if ( getTagType().isTagTypeAuto()){
+			
+			throw( new TagException( "Not supported" ));
+		}
+		
+		tag_name = name;
+				
+		tag_type.fireChanged( this );
+	}
 	
 	public void
 	addTaggable(

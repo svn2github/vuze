@@ -29,6 +29,7 @@ TagType
 {
 	public static final int TT_DOWNLOAD_CATEGORY	= 1;
 	public static final int TT_DOWNLOAD_STATE		= 2;
+	public static final int TT_DOWNLOAD_MANUAL		= 3;
 
 		/**
 		 * Unique type denoting this species of tag
@@ -42,6 +43,9 @@ TagType
 	getTagTypeName();
 		
 	public boolean
+	isTagTypeAuto();
+	
+	public boolean
 	isTagTypePersistent();
 	
 	public long
@@ -50,6 +54,12 @@ TagType
 	public boolean
 	hasTagTypeFeature(
 		long		feature );
+	
+	public Tag
+	createTag(
+		String		name )
+	
+		throws TagException;
 	
 	public void
 	addTag(
@@ -63,6 +73,10 @@ TagType
 	getTag(
 		int	tag_id );
 	
+	public Tag
+	getTag(
+		String	tag_name );
+	
 	public List<Tag>
 	getTags();
 	
@@ -71,10 +85,10 @@ TagType
 	
 	public void
 	addTagTypeListener(
-		TagTypeListener	listener,
-		boolean			first_for_existing );
+		TagTypeListener		listener,
+		boolean				fire_for_existing );
 	
 	public void
 	removeTagTypeListener(
-		TagTypeListener	listener );
+		TagTypeListener		listener );
 }

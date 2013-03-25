@@ -79,6 +79,12 @@ TagTypeBase
 		manager.addTagType( this );
 	}
 	
+	protected TagManagerImpl
+	getManager()
+	{
+		return( manager );
+	}
+	
 	public int
 	getTagType()
 	{
@@ -89,6 +95,12 @@ TagTypeBase
 	getTagTypeName()
 	{
 		return( tag_type_name );
+	}
+	
+	public boolean 
+	isTagTypeAuto() 
+	{
+		return( true );
 	}
 	
 	public boolean
@@ -108,6 +120,15 @@ TagTypeBase
 		long feature ) 
 	{
 		return((tag_type_features&feature) != 0 );
+	}
+	
+	public Tag 
+	createTag(
+		String name )
+	
+		throws TagException 
+	{
+		throw( new TagException( "Not supported" ));
 	}
 	
 	public void
@@ -131,6 +152,21 @@ TagTypeBase
 		for ( Tag t: getTags()){
 			
 			if ( t.getTagID() == tag_id ){
+				
+				return( t );
+			}
+		}
+		
+		return( null );
+	}
+	
+	public Tag
+	getTag(
+		String	tag_name )
+	{
+		for ( Tag t: getTags()){
+			
+			if ( t.getTagName().equals( tag_name )){
 				
 				return( t );
 			}

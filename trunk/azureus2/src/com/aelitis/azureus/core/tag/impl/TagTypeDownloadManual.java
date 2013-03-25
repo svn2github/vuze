@@ -1,5 +1,5 @@
 /*
- * Created on Mar 22, 2013
+ * Created on Mar 23, 2013
  * Created by Paul Gardner
  * 
  * Copyright 2013 Azureus Software, Inc.  All rights reserved.
@@ -21,57 +21,45 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
-import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.aelitis.azureus.core.tag.Tag;
-import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.tag.TagDownload;
+import com.aelitis.azureus.core.tag.TagException;
+import com.aelitis.azureus.core.tag.TagType;
 
 public class 
-TagTypeWithState
-	extends TagTypeBase
+TagTypeDownloadManual
+	extends TagTypeWithState
 {
-	private CopyOnWriteList<Tag>	tags = new CopyOnWriteList<Tag>();
-
+	private AtomicInteger	next_tag_id = new AtomicInteger(0);
+	
 	protected
-	TagTypeWithState(
-		int			tag_type,
-		int			tag_features,
-		String		tag_name )
+	TagTypeDownloadManual()
 	{
-		super( tag_type, tag_features, tag_name );
+		super( TagType.TT_DOWNLOAD_MANUAL, TagDownload.FEATURES, "Manual" );
 	}
 	
-	public void
-	addTag(
-		Tag		t )
+	public boolean
+	isTagTypePersistent()
 	{
-		tags.add( t );
-		
-		if ( t instanceof TagWithState ){
-		
-			getManager().tagCreated((TagWithState)t );
-		}
-		
-		super.addTag( t );		
+		return( true );
 	}
 	
-	public void
-	removeTag(
-		Tag		t )
+	public boolean 
+	isTagTypeAuto() 
 	{
-		tags.remove( t );
-		
-		if ( t instanceof TagWithState ){
-			
-			getManager().tagRemoved((TagWithState)t );
-		}
-		
-		super.removeTag( t );		
+		return( false );
 	}
 	
-	public List<Tag>
-	getTags()
+	public Tag
+	createTag(
+		String	name )
+	
+		throws TagException
 	{
-		return( tags.getList());
+		TagDownloadWithState new_tag = new TagDownloadWithState( this, next_tag_id.incrementAndGet(), name, true, true );
+				
+		return( new_tag );
 	}
 }
