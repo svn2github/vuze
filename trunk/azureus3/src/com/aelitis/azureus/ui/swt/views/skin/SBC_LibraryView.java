@@ -415,7 +415,7 @@ public class SBC_LibraryView
 
 									s = MessageText.getString(id,
 											new String[] {
-												tag.getTagName() });
+												tag.getTagName( true ) });
 												
 								} else {
 									String id = "library.all.header";
@@ -585,7 +585,10 @@ public class SBC_LibraryView
 									if (soWait != null) {
 										soWait.setVisible(false);
 									}
-									setupView(core, skinObject);
+									if ( !skinObject.isDisposed()){
+									
+										setupView(core, skinObject);
+									}
 								}
 							});
 						}
@@ -599,7 +602,7 @@ public class SBC_LibraryView
 	
 	
 
-	protected void setupView(AzureusCore core, SWTSkinObject skinObject) {
+	private void setupView(AzureusCore core, SWTSkinObject skinObject) {
 		torrentFilter = skinObject.getSkinObjectID();
 		if (torrentFilter.equalsIgnoreCase(SideBar.SIDEBAR_SECTION_LIBRARY_DL)) {
 			torrentFilterMode = TORRENTS_INCOMPLETE;
