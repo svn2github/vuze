@@ -24,7 +24,6 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
-import org.gudy.azureus2.core3.internat.MessageText;
 
 /**
  * @author Olivier

@@ -40,6 +40,7 @@ import org.gudy.azureus2.plugins.ui.menus.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
@@ -50,12 +51,7 @@ import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.core.tag.Tag;
-import com.aelitis.azureus.core.tag.TagListener;
-import com.aelitis.azureus.core.tag.TagManagerFactory;
-import com.aelitis.azureus.core.tag.TagType;
-import com.aelitis.azureus.core.tag.TagTypeListener;
-import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.torrent.HasBeenOpenedListener;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -226,6 +222,34 @@ public class SB_Transfers
 		
 		menuItem = menuManager.addMenuItem("sidebar."
 				+ MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+				"label.add.tag");
+		menuItem.addListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+						"TagAddWindow.title", "TagAddWindow.message");
+				entryWindow.prompt();
+				if (entryWindow.hasSubmittedInput()) {
+					String tag_name = entryWindow.getSubmittedInput().trim();
+					TagType tt = TagManagerFactory.getTagManger().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+					
+					Tag existing = tt.getTag( tag_name );
+					
+					if ( existing == null ){
+						
+						try{
+							tt.createTag( tag_name );
+														
+						}catch( TagException e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			}
+		});
+		
+		menuItem = menuManager.addMenuItem("sidebar."
+				+ MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
 				"ConfigView.section.style.TagInSidebar");
 		menuItem.setStyle(MenuItem.STYLE_CHECK);
 		menuItem.addListener(new MenuItemListener() {
@@ -363,10 +387,13 @@ public class SB_Transfers
 	}
 
 	protected static void setupViewTitleWithCore(AzureusCore core) {
-		if (!first) {
-			return;
+		
+		synchronized( SB_Transfers.class ){
+			if (!first) {
+				return;
+			}
+			first = false;
 		}
-		first = false;
 		
 		final CategoryListener categoryListener = new CategoryListener() {
 			
@@ -463,8 +490,9 @@ public class SB_Transfers
 		};
 
 		COConfigurationManager.addAndFireParameterListener("Library.TagInSideBar",
-				new ParameterListener() {
-					private TagTypeListener tagTypeListenerListener;
+				new ParameterListener(){
+					private TagManagerListener	tagManagerListener;
+					private TagTypeListener 	tagTypeListenerListener;
 
 					public void parameterChanged(String parameterName) {
 						if (Utils.isAZ2UI()) {
@@ -473,56 +501,79 @@ public class SB_Transfers
 
 						boolean tagInSidebar = COConfigurationManager.getBooleanParameter("Library.TagInSideBar");
 						
-						if (tagInSidebar) {
-							if (tagTypeListenerListener != null) {
+						if ( tagInSidebar ){
+							
+							if ( tagManagerListener != null ){
+								
 								return;
 							}
 
-							tagTypeListenerListener = new TagTypeListener() {
+							tagTypeListenerListener = 
+								new TagTypeListener()
+								{
+									public void
+									tagAdded(
+										Tag			tag )
+									{
+										setupTag( tag );
+										
+										tag.addTagListener( tagListener, false );
+									}
+									
+									public void
+									tagChanged(
+										Tag			tag )
+									{
+										RefreshTagSideBar( tag );
+									}
+									
+									public void
+									tagRemoved(
+										Tag			tag )
+									{
+										removeTag( tag );
+									}
+								};
+							
+							tagManagerListener = 
+								new TagManagerListener()
+								{
+									public void
+									tagTypeAdded(
+										TagManager		manager,
+										TagType			tag_type )
+									{
+										if ( tag_type.getTagType() != TagType.TT_DOWNLOAD_CATEGORY ){
+											
+											tag_type.addTagTypeListener( tagTypeListenerListener, true );
+										}
+									}
+									
+									public void
+									tagTypeRemoved(
+										TagManager		manager,
+										TagType			tag_type )
+									{
+										for ( Tag t: tag_type.getTags()){
+																						
+											removeTag( t );
+										}
+									}
+								};
 
-								public void
-								tagAdded(
-									Tag			tag )
-								{
-									setupTag( tag );
-									
-									tag.addTagListener( tagListener, false );
-								}
-								
-								public void
-								tagChanged(
-									Tag			tag )
-								{
-									RefreshTagSideBar( tag );
-								}
-								
-								public void
-								tagRemoved(
-									Tag			tag )
-								{
-									removeTag( tag );
-								}
-							};
-							
-							List<TagType> tag_types = TagManagerFactory.getTagManger().getTagTypes();
-							
-							for ( TagType tt: tag_types ){
-								
-								if ( tt.getTagType() == TagType.TT_DOWNLOAD_STATE ){
-									
-									tt.addTagTypeListener( tagTypeListenerListener, true );
-								}
-							}
+							TagManagerFactory.getTagManger().addTagManagerListener( tagManagerListener, true );
 						
-						} else {
+						}else{
 						
-							if ( tagTypeListenerListener != null ){
-								
+							if ( tagManagerListener != null ){
+
+								TagManagerFactory.getTagManger().removeTagManagerListener( tagManagerListener );
+						
 								List<TagType> tag_types = TagManagerFactory.getTagManger().getTagTypes();
 								
 								for ( TagType tt: tag_types ){
 									
-									if ( tt.getTagType() == TagType.TT_DOWNLOAD_STATE ){
+									if ( tt.getTagType() != TagType.TT_DOWNLOAD_CATEGORY ){
 										
 										tt.removeTagTypeListener( tagTypeListenerListener );
 									}
@@ -535,6 +586,7 @@ public class SB_Transfers
 									}
 								}
 								
+								tagManagerListener		= null;
 								tagTypeListenerListener = null;
 							}
 						}
@@ -972,43 +1024,48 @@ public class SB_Transfers
 			});
 		}
 		
-		/*
-		entry.addListener(new MdiEntryDropListener() {
-			public boolean mdiEntryDrop(MdiEntry entry, Object payload) {
-				if (!(payload instanceof String)) {
-					return false;
-				}
-
-				String dropped = (String) payload;
-				String[] split = Constants.PAT_SPLIT_SLASH_N.split(dropped);
-				if (split.length > 1) {
-					String type = split[0];
-					if (type.startsWith("DownloadManager")) {
-						GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-						for (int i = 1; i < split.length; i++) {
-							String hash = split[i];
-
-							try {
-								DownloadManager dm = gm.getDownloadManager(new HashWrapper(
-										Base32.decode(hash)));
-
-								if (dm != null) {
-									TorrentUtil.assignToCategory(new Object[] {
-										dm
-									}, category);
+		if ( !tag.getTagType().isTagTypeAuto()){
+			entry.addListener(new MdiEntryDropListener() {
+				public boolean mdiEntryDrop(MdiEntry entry, Object payload) {
+					if (!(payload instanceof String)) {
+						return false;
+					}
+	
+					String dropped = (String) payload;
+					String[] split = Constants.PAT_SPLIT_SLASH_N.split(dropped);
+					if (split.length > 1) {
+						String type = split[0];
+						if (type.startsWith("DownloadManager")) {
+							GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+							for (int i = 1; i < split.length; i++) {
+								String hash = split[i];
+	
+								try {
+									DownloadManager dm = gm.getDownloadManager(new HashWrapper(
+											Base32.decode(hash)));
+	
+									if ( dm != null ){
+										
+										if ( tag.hasTaggable( dm )){
+											
+											tag.removeTaggable( dm );
+											
+										}else{
+										
+											tag.addTaggable( dm );
+										}
+									}
+								}catch ( Throwable t ){
+	
 								}
-
-							} catch (Throwable t) {
-
 							}
 						}
 					}
+	
+					return true;
 				}
-
-				return true;
-			}
-		});
-		*/
+			});
+		}
 	}
 
 	private static void removeTag(Tag tag) {
