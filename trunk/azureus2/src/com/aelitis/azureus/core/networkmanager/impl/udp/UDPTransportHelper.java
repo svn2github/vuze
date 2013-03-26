@@ -571,9 +571,12 @@ UDPTransportHelper
     			// most likely selector has been destroyed so don't fire writeselect else
     			// we'll get into a loop
     		
-    		failed = e;
+    		if ( failed == null ){
     		
-    		connection.failedSupport( e );
+    			failed = e;
+    		
+    			connection.failedSupport( e );
+    		}
     	}
     }
     
@@ -610,9 +613,12 @@ UDPTransportHelper
     			// most likely selector has been destroyed so don't fire readselect else
     			// we'll get into a loop
     		
-    		failed = e;
+	    	if ( failed == null ){
     		
-    		connection.failedSupport( e );
+	    		failed = e;
+    		
+	    		connection.failedSupport( e );
+	    	}
     	}
     }
     
