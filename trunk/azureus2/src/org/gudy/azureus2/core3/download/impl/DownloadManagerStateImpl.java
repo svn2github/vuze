@@ -3314,7 +3314,8 @@ DownloadManagerStateImpl
 					// Debug.outNoStack( "Fixup on thread " + Thread.currentThread().getName() + ": " + Debug.getCompressedStackTrace());
 					
 				}else{
-					Debug.out( "Premature fixup?" );
+					
+					Debug.outNoStack( Debug.getCompressedStackTrace( new Exception(){public String toString(){ return( "Premature fixup?" );}}, 2, 10, true ), true);
 				}
 			}
 			
