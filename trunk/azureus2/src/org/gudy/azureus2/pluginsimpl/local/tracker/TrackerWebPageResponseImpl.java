@@ -33,8 +33,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.GZIPOutputStream;
 
@@ -69,7 +71,7 @@ TrackerWebPageResponseImpl
 
 	private int					reply_status	= 200;
 
-	private Map<String,String>		header_map 	= new LinkedHashMap<String,String>();
+	private Map<String,Object>		header_map 	= new LinkedHashMap<String,Object>();
 
 	private TrackerWebPageRequestImpl 	request;
 	private boolean						is_async;
@@ -127,7 +129,43 @@ TrackerWebPageResponseImpl
 		String		name,
 		String		value )
 	{
-		addHeader( name, value, true );
+		if ( name.equalsIgnoreCase( "set-cookie" )){
+			
+			Iterator<String>	it = header_map.keySet().iterator();
+
+			while( it.hasNext()){
+
+				String	key = it.next();
+
+				if ( key.equalsIgnoreCase( name )){
+
+					Object existing = header_map.get( key );
+					
+					if ( existing instanceof String ){
+						
+						String old = (String)existing;
+						
+						List l = new ArrayList(3);
+						
+						l.add( old );
+						l.add( value );
+						
+						header_map.put( name, l );
+						
+					}else{
+						
+						((List)existing).add( value );
+					}
+				
+					return;
+				}
+			}
+			
+			header_map.put( name, value );
+		}else{
+		
+			addHeader( name, value, true );
+		}
 	}
 
 	public void
@@ -157,7 +195,23 @@ TrackerWebPageResponseImpl
 
 				}else{
 
-					return( header_map.get( key ));
+					Object existing = header_map.get( key );
+					
+					if ( existing instanceof String ){
+						
+						return((String)existing);
+						
+					}else if ( existing instanceof List ){
+						
+						List<String> l = (List<String>)existing;
+						
+						if ( l.size() > 0 ){
+							
+							return( l.get(0));
+						}
+					}
+						
+					return( null );
 				}
 			}
 		}
@@ -253,14 +307,26 @@ TrackerWebPageResponseImpl
 			}
 		}
 		
-		Iterator	it = header_map.keySet().iterator();
+		Iterator<String>	it = header_map.keySet().iterator();
 
 		while( it.hasNext()){
 
-			String	name 	= (String)it.next();
-			String	value 	= (String)header_map.get(name);
+			String	name 	= it.next();
+			Object	value 	= header_map.get(name);
 
-			reply_header += name + ": " + value + NL;
+			if ( value instanceof String ){
+			
+				reply_header += name + ": " + value + NL;
+				
+			}else{
+				
+				List<String>	l = (List<String>)value;
+				
+				for ( String v: l ){
+					
+					reply_header += name + ": " + v + NL;
+				}
+			}
 		}
 		
 		if ( do_gzip ){

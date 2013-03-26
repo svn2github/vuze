@@ -1306,8 +1306,20 @@ WebPlugin
 							// This results in a loop of 1 good, 1 bad.  
 							// Prevent this from causing the "too many recent failures" delay to kick in by removing from map
 							// on goodness
+							
 							synchronized( fail_map ){
-								fail_map.remove(client_address);
+								
+								fail_map.remove( client_address );
+							}
+							
+							String	cookies = getHeaderField( headers, "Cookie" );
+							
+							if ( pairing_session_code != null ){
+							
+								if ( cookies == null || !cookies.contains( pairing_session_code )){
+							
+									tls.set( pairing_session_code );
+								}
 							}
 						}
 						
