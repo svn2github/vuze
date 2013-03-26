@@ -3427,14 +3427,17 @@ public class GlobalManagerImpl
 		extends TagTypeWithState
 		implements DownloadManagerListener
 	{
-		Tag	tag_initialising;
-		Tag	tag_downloading;
-		Tag	tag_seeding;
-		Tag	tag_queued_downloading;
-		Tag	tag_queued_seeding;
-		Tag	tag_stopped;
-		Tag	tag_error;
+		TagDownloadWithState	tag_initialising;
+		TagDownloadWithState	tag_downloading;
+		TagDownloadWithState	tag_seeding;
+		TagDownloadWithState	tag_queued_downloading;
+		TagDownloadWithState	tag_queued_seeding;
+		TagDownloadWithState	tag_stopped;
+		TagDownloadWithState	tag_error;
 	
+		TagDownloadWithState	tag_active;
+		TagDownloadWithState	tag_paused;
+		
 		private
 		DownloadStateTagger(
 			GlobalManagerImpl		_gm )
@@ -3450,6 +3453,8 @@ public class GlobalManagerImpl
 			tag_queued_seeding		= new TagDownloadWithState( this, 4, "tag.type.ds.qfors", false, false );
 			tag_stopped				= new TagDownloadWithState( this, 5, "tag.type.ds.stop", false, false );
 			tag_error				= new TagDownloadWithState( this, 6, "tag.type.ds.err", false, false );
+			tag_active				= new TagDownloadWithState( this, 7, "tag.type.ds.act", false, false );
+			tag_paused				= new TagDownloadWithState( this, 8, "tag.type.ds.pau", false, false ){ protected boolean getVisibleDefault(){ return( false );}}; 
 			
 			_gm.addListener( 
 				new GlobalManagerAdapter()
@@ -3469,6 +3474,19 @@ public class GlobalManagerImpl
 						
 						remove( dm );
 					}	
+				});
+			
+			SimpleTimer.addPeriodicEvent(
+				"gm:ds",
+				10*1000,
+				new TimerEventPerformer()
+				{
+					public void 
+					perform(
+						TimerEvent event ) 
+					{
+						updateActive();
+					}
 				});
 		}
 
@@ -3529,6 +3547,47 @@ public class GlobalManagerImpl
 				new_tag.addTaggable( manager );
 				
 				manager.setUserData( DownloadStateTagger.class, new_tag );
+				
+				if ( new_tag != tag_seeding && new_tag != tag_downloading ){
+					
+					tag_active.removeTaggable( manager );
+				}
+				
+				if ( new_tag == tag_stopped && manager.isPaused()){
+					
+					tag_paused.addTaggable( manager );
+					
+				}else if ( old_tag == tag_stopped ){
+					
+					tag_paused.removeTaggable( manager );
+				}
+			}
+		}
+		
+		private void
+		updateActive()
+		{
+			Set<DownloadManager> active = new HashSet<DownloadManager>( tag_active.getTaggedDownloads());
+			
+			for ( TagDownloadWithState tag: new TagDownloadWithState[]{ tag_downloading, tag_seeding }){
+			
+				for ( DownloadManager dm: tag.getTaggedDownloads()){
+			
+					DownloadManagerStats stats = dm.getStats();
+					
+					if ( stats.getDataReceiveRate() + stats.getDataSendRate() > 0 ){
+						
+						if ( !active.remove( dm )){
+							
+							tag_active.addTaggable( dm );
+						}
+					}
+				}
+			}
+			
+			for ( DownloadManager dm: active ){
+				
+				tag_active.removeTaggable( dm );
 			}
 		}
 		
