@@ -511,6 +511,11 @@ TranscodeManagerImpl
 	{
 		Download download = PluginCoreUtils.wrap( dm );
 		
+		if ( download == null ){
+			
+			return;
+		}
+		
 		if ( download.getFlag( Download.FLAG_LOW_NOISE )){
 			
 			return;
