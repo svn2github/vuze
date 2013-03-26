@@ -565,6 +565,10 @@ WebPlugin
 						if ( pairing_enable.getValue() && pm.isEnabled()){
 					
 							setupAutoAuth();
+							
+						}else{
+							
+							setupSessionCode( null );
 						}
 					}
 				});
@@ -684,6 +688,11 @@ WebPlugin
 							
 							param_auto_auth.setValue( false );
 						}
+					}
+					
+					if ( param == p_user_name || param == p_password ){
+						
+						setupSessionCode( null );
 					}
 				}
 			};
@@ -1236,6 +1245,8 @@ WebPlugin
 						String		user,
 						String		pw )
 					{
+						//System.out.println( resource + ": " + user + "/" + pw );
+					
 						long	now = SystemTime.getMonotonousTime();
 
 						String	client_address = getHeaderField( headers, "X-Real-IP" );
@@ -1261,43 +1272,48 @@ WebPlugin
 																				
 						if ( !result ){
 							
-							AESemaphore waiter = null;
+								// don't delay clients that keep failing to send auth entirely (old Android browsers for example)
 							
-							synchronized( fail_map ){
-
+							if ( !pw.equals( "" )){
 								
-								Object[] x = fail_map.get( client_address );
-							
-								if ( x == null ){
+								AESemaphore waiter = null;
+								
+								synchronized( fail_map ){
+	
 									
-									x = new Object[]{ new AESemaphore( "af:waiter" ), new Long(-1), new Long(-1), now };
-									
-									fail_map.put( client_address, x );
-									
-								}else{
-									
-									x[1] = x[2];
-									x[2] = x[3];
-									x[3] = now;
-									
-									long t = (Long)x[1];
-									
-									if ( now - t < 10*1000 ){
+									Object[] x = fail_map.get( client_address );
+								
+									if ( x == null ){
 										
-										log( "Too many recent authentication failures from '" + client_address + "' - rate limiting" );
-
-										x[2] = now+DELAY;
-										// there's a bug where flipping the password on doesn't reset the pw so we automatically fail without checking
-										// this is not the correct fix, but it works
-										last_pw = "";										
-										waiter = (AESemaphore)x[0];
+										x = new Object[]{ new AESemaphore( "af:waiter" ), new Long(-1), new Long(-1), now };
+										
+										fail_map.put( client_address, x );
+										
+									}else{
+										
+										x[1] = x[2];
+										x[2] = x[3];
+										x[3] = now;
+										
+										long t = (Long)x[1];
+										
+										if ( now - t < 10*1000 ){
+											
+											log( "Too many recent authentication failures from '" + client_address + "' - rate limiting" );
+	
+											x[2] = now+DELAY;
+											// there's a bug where flipping the password on doesn't reset the pw so we automatically fail without checking
+											// this is not the correct fix, but it works
+											last_pw = "";										
+											waiter = (AESemaphore)x[0];
+										}
 									}
 								}
-							}
-							
-							if ( waiter != null ){
 								
-								waiter.reserve( DELAY );
+								if ( waiter != null ){
+									
+									waiter.reserve( DELAY );
+								}
 							}
 						} else {
 							// Some clients have no cookie support and will always try with 
@@ -1325,6 +1341,20 @@ WebPlugin
 						
 						recordAuthRequest( client_address, result );
 						
+						if ( !result ){
+						
+								// going to be generous here as (old android browsers at least) sometimes fail to provide
+								// auth on .png files
+							
+								// no I'm not, too many risks associated with this (e.g. xmwebui has some
+								// prefix url logic which may be exploitable)
+							
+							//if ( resource.getPath().endsWith( ".png" )){
+							//									
+							//	result = true;
+							//}
+						}
+						
 						return( result );
 					}
 					
@@ -1348,6 +1378,8 @@ WebPlugin
 							if ( auto_auth ){
 								
 								user = user.trim().toLowerCase();
+								
+								pw = pw.toUpperCase();
 							}
 							
 							if ( !user.equals( p_user_name.getValue())){
@@ -1391,6 +1423,9 @@ WebPlugin
 														
 								result = hasOurCookie( getHeaderField( headers, "Cookie" ));
 							}
+						}else{
+							
+							result = hasOurCookie( getHeaderField( headers, "Cookie" ));
 						}
 						
 						return( result );
@@ -1623,7 +1658,8 @@ WebPlugin
 		}else{
 			
 			pairing_access_code 	= null;
-			pairing_session_code	= null;
+			
+			setupSessionCode( null );
 			
 			if ( service != null ){
 				
@@ -1634,70 +1670,80 @@ WebPlugin
 		}
 	}
 		
+	private void
+	setupSessionCode(
+		String		key )
+	{
+		if ( key == null ){
+			
+			key = Base32.encode( p_user_name.getValue().getBytes()) + Base32.encode( p_password.getValue());
+		}
+		
+		synchronized( this ){
+			
+			String existing_key = plugin_config.getPluginStringParameter( PAIRING_SESSION_KEY, "" );
+		
+			String[]	bits = existing_key.split( "=" );
+			
+			if ( bits.length == 2 && bits[0].equals( key )){
+				
+				pairing_session_code = bits[1];
+				
+			}else{
+		
+				pairing_session_code = Base32.encode( RandomUtils.nextSecureHash());
+				
+				plugin_config.setPluginParameter( PAIRING_SESSION_KEY, key + "=" + pairing_session_code );
+			}
+		}
+	}
+	
 	protected void
 	setupAutoAuth()
 	{
 		PairingManager pm = PairingManagerFactory.getSingleton();
 
 		String ac = pm.peekAccessCode();
-		
-		if ( ac != null && ( pairing_access_code == null || !ac.equals( pairing_access_code ))){
-			
-			synchronized( this ){
-			
-				String existing_key = plugin_config.getPluginStringParameter( PAIRING_SESSION_KEY, "" );
-			
-				String[]	bits = existing_key.split( "=" );
 				
-				if ( bits.length == 2 && bits[0].equals( ac )){
-					
-					pairing_session_code = bits[1];
-					
-				}else{
-			
-					pairing_session_code = Base32.encode( RandomUtils.nextSecureHash());
-					
-					plugin_config.setPluginParameter( PAIRING_SESSION_KEY, ac + "=" + pairing_session_code );
-				}
-			}
-		}
-		
 		pairing_access_code = ac;
 		
 			// good time to check the default pairing auth settings
 		
-		if ( pairing_access_code != null ){
-			
-			if ( param_auto_auth.getValue()){
+		if ( pairing_access_code != null && param_auto_auth.getValue()){
 				
-				try{
-					setting_auto_auth = true;
+			setupSessionCode( ac );
+			
+			try{
+				setting_auto_auth = true;
+				
+				if ( !p_user_name.getValue().equals( "vuze" )){
 					
-					if ( !p_user_name.getValue().equals( "vuze" )){
-						
-						p_user_name.setValue( "vuze" );
-					}
-					
-			        SHA1Hasher hasher = new SHA1Hasher();
-			        
-			        byte[] encoded = hasher.calculateHash( pairing_access_code.getBytes());
-			        
-					if ( !Arrays.equals( p_password.getValue(), encoded )){
-						
-						p_password.setValue( pairing_access_code );
-					}
-					
-					if ( !pw_enable.getValue()){
-						
-						pw_enable.setValue( true );
-					}
-				}finally{
-					
-					setting_auto_auth = false;
+					p_user_name.setValue( "vuze" );
 				}
+				
+		        SHA1Hasher hasher = new SHA1Hasher();
+		        
+		        byte[] encoded = hasher.calculateHash( pairing_access_code.getBytes());
+		        
+				if ( !Arrays.equals( p_password.getValue(), encoded )){
+					
+					p_password.setValue( pairing_access_code );
+				}
+				
+				if ( !pw_enable.getValue()){
+					
+					pw_enable.setValue( true );
+				}
+			}finally{
+				
+				setting_auto_auth = false;
 			}
+		}else{
+			
+			setupSessionCode( null );
 		}
 	}
+	
 	protected void
 	updatePairing(
 		String		sid )
@@ -2216,7 +2262,7 @@ WebPlugin
 			
 				// set session cookie
 		
-			response.setHeader( "Set-Cookie", "vuze_pairing_sc=" + cookie_to_set + "; HttpOnly" );
+			response.setHeader( "Set-Cookie", "vuze_pairing_sc=" + cookie_to_set + "; path=/; HttpOnly" );
 			
 			tls.set( null );
 		}
