@@ -154,7 +154,12 @@ TrackerWebPageResponseImpl
 						
 					}else{
 						
-						((List)existing).add( value );
+						List l = (List)existing;
+						
+						if ( !l.contains( value )){
+						
+							l.add( value );
+						}
 					}
 				
 					return;
@@ -162,6 +167,7 @@ TrackerWebPageResponseImpl
 			}
 			
 			header_map.put( name, value );
+			
 		}else{
 		
 			addHeader( name, value, true );
