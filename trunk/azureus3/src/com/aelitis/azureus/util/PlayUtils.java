@@ -20,9 +20,13 @@ package com.aelitis.azureus.util;
 
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -31,6 +35,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -452,7 +457,76 @@ public class PlayUtils
 	}*/
 	
 
+	private static AtomicInteger dm_uid = new AtomicInteger();
+	
+	private static Map<String,Object[]>	ext_play_cache = 
+		new LinkedHashMap<String,Object[]>(100,0.75f,true)
+		{
+			protected boolean 
+			removeEldestEntry(
+		   		Map.Entry<String,Object[]> eldest) 
+			{
+				return size() > 100;
+			}
+		};	
+		
 	public static boolean isExternallyPlayable(Download d, int file_index, boolean complete_only ) {
+				
+		if ( d == null ){
+			
+			return( false );
+		}
+		
+		boolean use_cache = d.getState() != Download.ST_DOWNLOADING;
+		
+		String 	cache_key 	= null;
+		long	now 		= 0;
+		
+		if ( use_cache ){
+			
+			Integer uid = (Integer)d.getUserData( PlayUtils.class );
+			
+			if ( uid == null ){
+				
+				uid = dm_uid.getAndIncrement();
+				
+				d.setUserData( PlayUtils.class, uid );
+			}
+			
+			cache_key = uid+"/"+file_index+"/"+complete_only;
+			
+			Object[] cached;
+			
+			synchronized( ext_play_cache ){
+				
+				cached = ext_play_cache.get( cache_key );
+			}
+			
+			now = SystemTime.getMonotonousTime();
+			
+			if ( cached != null ){
+			
+				if ( now - (Long)cached[0] < 60*1000 ){
+					
+					return((Boolean)cached[1]);
+				}
+			}
+		}
+		
+		boolean result = isExternallyPlayableSupport(d, file_index, complete_only);
+		
+		if ( use_cache ){
+		
+			synchronized( ext_play_cache ){
+
+				ext_play_cache.put( cache_key, new Object[]{ now, result });
+			}
+		}
+		
+		return( result );
+	}
+	
+	private static boolean isExternallyPlayableSupport(Download d, int file_index, boolean complete_only ) {
 		
 		int primary_file_index = -1;
 
@@ -511,29 +585,26 @@ public class PlayUtils
 		return( isExternallyPlayable( d.getDiskManagerFileInfo()[primary_file_index] ));
 	}
 	
-	public static String
-	getPlayableFileExtensions()
-	{
-		return( actualPlayableFileExtensions );
-	}
-	
-		/**
-		 * This method available for player plugins to extend playable set if needed
-		 * @param str
-		 */
-	
-	public static void
-	setPlayableFileExtensions(
-		String	str )
-	{
-		actualPlayableFileExtensions = str;
-	}
-	
 	private static boolean
 	isExternallyPlayable(
 		DiskManagerFileInfo	file )
 	{		
 		String	name = file.getFile( true ).getName();
+		
+		try{
+			Download dl = file.getDownload();
+			
+			if ( dl != null ){
+			
+				String is = PluginCoreUtils.unwrap( dl ).getDownloadState().getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
+				
+				if ( is != null && name.endsWith( is )){
+					
+					name = name.substring( 0, name.length() - is.length()); 
+				}
+			}
+		}catch( Throwable e ){
+		}
 		
 		int extIndex = name.lastIndexOf(".");
 		
@@ -580,6 +651,25 @@ public class PlayUtils
 
 		return isExternallyPlayable(torrent, file_index, complete_only );
 	}
+
+	public static String
+	getPlayableFileExtensions()
+	{
+		return( actualPlayableFileExtensions );
+	}
+	
+		/**
+		 * This method available for player plugins to extend playable set if needed
+		 * @param str
+		 */
+	
+	public static void
+	setPlayableFileExtensions(
+		String	str )
+	{
+		actualPlayableFileExtensions = str;
+	}
+	
 
 	/**
 	 * @deprecated but still used by EMP
