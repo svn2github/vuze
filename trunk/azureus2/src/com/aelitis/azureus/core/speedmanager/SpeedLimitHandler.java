@@ -2799,7 +2799,7 @@ SpeedLimitHandler
 		    			continue;
 		    		}
 		    		
-		    		String tag_name = tt.getTagTypeName( true ) + ": " + tag.getTagName( true );
+		    		String tag_name = tt.getTagTypeName( true ) + " - " + tag.getTagName( true );
 		    		
 					int[]	limits = entry.getValue();
 					
@@ -2811,7 +2811,7 @@ SpeedLimitHandler
 		    		total_tag_limits_up 	+= up;
 		    		total_tag_limits_down 	+= down;
 		    		
-		    		result.add( "    " + tag_name + "." + formatUp( up ) + ", " + formatDown( down ));
+		    		result.add( "    " + tag_name + ": " + formatUp( up ) + ", " + formatDown( down ));
 
 		    	}catch( Throwable e ){
 		    		
