@@ -930,7 +930,11 @@ TRTrackerServerProcessorTCP
 				}
 			}
 			
-			os.write( ("HTTP/1.1 401 BAD\r\nWWW-Authenticate: Basic realm=\"" + server.getName() + "\"\r\n\r\nAccess Denied\r\n").getBytes() );
+			os.write( 
+				(	"HTTP/1.1 401 Not Authorized" + NL +
+					"WWW-Authenticate: Basic realm=\"" + server.getName() + "\"" + NL +
+					"Content-Length: 15" + NL + NL + 
+					"Access Denied" + NL).getBytes() );
 			
 			os.flush();
 				
