@@ -49,5 +49,5 @@ TagFeatureRateLimit
 		int		bps );
 	
 	public int
-	getTagDownloadUploadRate();
+	getTagCurrentDownloadRate();
 }

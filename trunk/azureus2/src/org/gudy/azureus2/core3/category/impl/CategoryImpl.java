@@ -444,7 +444,7 @@ CategoryImpl
   }
 
   public int
-  getTagDownloadUploadRate()
+  getTagCurrentDownloadRate()
   {
 	  return( -1 );
   }

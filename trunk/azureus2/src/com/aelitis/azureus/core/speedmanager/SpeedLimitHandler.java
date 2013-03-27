@@ -3652,6 +3652,54 @@ SpeedLimitHandler
 				}
 			}
 			
+			public boolean
+			supportsTagUploadLimit()
+			{
+				return( false );
+			}
+
+			public boolean
+			supportsTagDownloadLimit()
+			{
+				return( false );
+			}
+
+			public int
+			getTagUploadLimit()
+			{
+				return( up_limiter.getRateLimitBytesPerSecond());
+			}
+			
+			public void
+			setTagUploadLimit(
+				int		bps )
+			{
+			}
+			
+			public int
+			getTagCurrentUploadRate()
+			{
+				return( (int)send_rate.getAverage());
+			}
+			
+			public int
+			getTagDownloadLimit()
+			{
+				return( down_limiter.getRateLimitBytesPerSecond());
+			}
+			
+			public void
+			setTagDownloadLimit(
+				int		bps )
+			{
+			}
+			
+			public int
+			getTagCurrentDownloadRate()
+			{
+				return( (int)receive_rate.getAverage());
+			}
+			
 			private void
 			destroy()
 			{

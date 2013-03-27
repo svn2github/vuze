@@ -27,9 +27,9 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 
 public interface 
 TagPeer
-	extends Tag
+	extends Tag, TagFeatureRateLimit
 {
-	public static final int FEATURES = TagFeature.TF_NONE;
+	public static final int FEATURES = TagFeature.TF_RATE_LIMIT;
 	
 	public List<PEPeer>
 	getTaggedPeers();
