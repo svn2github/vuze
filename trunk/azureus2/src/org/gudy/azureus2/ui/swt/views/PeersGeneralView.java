@@ -120,7 +120,7 @@ PeersGeneralView
 		Tag			tag,
 		Taggable	tagged )
 	{
-		
+		 tv.addDataSource((PEPeer)tagged);
 	}
 	
 	public void
@@ -128,7 +128,7 @@ PeersGeneralView
 		Tag			tag,
 		Taggable	tagged )
 	{
-		
+		 tv.removeDataSource((PEPeer)tagged);
 	}
 	
 	public void 

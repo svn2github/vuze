@@ -24,10 +24,14 @@ package com.aelitis.azureus.core.speedmanager;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
+import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -75,6 +79,7 @@ import org.gudy.azureus2.plugins.peers.PeerManagerListener2;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -1203,6 +1208,11 @@ SpeedLimitHandler
 				resetRules();
 			}
 			
+			for( IPSet s: current_ip_sets.values()){
+				
+				s.destroy();
+			}
+
 			current_ip_sets.clear();
 			
 			checkIPSets();
@@ -1390,7 +1400,7 @@ SpeedLimitHandler
 									
 									for ( IPSet set: current_ip_sets.values()){
 										
-										set.updateStats();
+										set.updateStats( tick_count );
 									}
 									
 									/*
@@ -1494,6 +1504,10 @@ SpeedLimitHandler
 												if ( event.getType() == PeerManagerEvent.ET_PEER_ADDED ){
 													
 													peersAdded( download, new Peer[]{ event.getPeer() });
+													
+												}else if ( event.getType() == PeerManagerEvent.ET_PEER_REMOVED ){
+													
+													peerRemoved( download, event.getPeer());
 												}
 											}
 										});
@@ -1636,10 +1650,35 @@ SpeedLimitHandler
 	}
 
 	private void
+	peerRemoved(
+		Download	download,
+		Peer		peer )
+	{
+		Collection<IPSet> sets;
+		
+		synchronized( current_ip_sets ){
+			
+			if ( current_ip_sets.size() == 0 ){
+				
+				return;
+			}
+			
+			sets = current_ip_sets.values();
+		}
+		
+		for ( IPSet s: sets ){
+			
+			s.removePeer( peer );
+		}
+	}
+	
+	private void
 	addLimiters(
 		Peer	peer,
 		IPSet	set )
 	{
+		boolean	matched = false;
+		
 		{
 			RateLimiter l = set.getUpLimiter();
 			
@@ -1659,6 +1698,8 @@ SpeedLimitHandler
 			if ( !found ){
 														
 				peer.addRateLimiter( l, true );
+				
+				matched = true;
 			}
 		}
 		
@@ -1681,8 +1722,15 @@ SpeedLimitHandler
 			if ( !found ){
 													
 				peer.addRateLimiter( l, false );
+				
+				matched = true;
 			}
-		}	
+		}
+		
+		if ( matched ){
+			
+			set.addPeer( peer );
+		}
 	}
 	
 	private synchronized void
@@ -3158,7 +3206,7 @@ SpeedLimitHandler
 		private
 		IPSetTagType()
 		{
-			super( TagType.TT_PEER_IPSET, TagPeer.FEATURES, "IP Sets" );
+			super( TagType.TT_PEER_IPSET, TagPeer.FEATURES, "tag.type.ipset" );
 		}
 	}
 	
@@ -3288,6 +3336,7 @@ SpeedLimitHandler
 				return( false );
 			}
 		}
+		
 		private String
 		getName()
 		{
@@ -3319,7 +3368,8 @@ SpeedLimitHandler
 		}
 		
 		private void
-		updateStats()
+		updateStats(
+			int	tick_count )
 		{
 			long	send_total 	= up_limiter.getRateLimitTotalByteCount();
 			long	recv_total	= down_limiter.getRateLimitTotalByteCount();
@@ -3332,6 +3382,13 @@ SpeedLimitHandler
 			
 			last_send_total = send_total;
 			last_recv_total = recv_total;
+						
+			TagPeerImpl tag = tag_impl;
+				
+			if ( tag != null ){
+					
+				tag.update(tick_count );
+			}
 		}
 	
 		private boolean
@@ -3341,11 +3398,37 @@ SpeedLimitHandler
 		}
 		
 		private void
+		addPeer(
+			Peer		peer )
+		{
+			TagPeerImpl tag = tag_impl;
+			
+			if ( tag != null ){
+				
+				tag.add( PluginCoreUtils.unwrap( peer ));
+			}
+		}
+		
+		private void
+		removePeer(
+			Peer		peer )
+		{
+			TagPeerImpl tag = tag_impl;
+			
+			if ( tag != null ){
+				
+				tag.remove( PluginCoreUtils.unwrap( peer ));
+			}
+		}
+		
+		private void
 		destroy()
 		{
 			if ( tag_impl != null ){
 				
 				tag_impl.destroy();
+				
+				tag_impl = null;
 			}
 		}
 		
@@ -3391,6 +3474,9 @@ SpeedLimitHandler
 			extends TagBase
 			implements TagPeer
 		{
+			private Set<PEPeer>	added_peers 	= new HashSet<PEPeer>();
+			private Set<PEPeer>	pending_peers 	= new HashSet<PEPeer>();
+			
 			private 
 			TagPeerImpl(
 				int		tag_id )
@@ -3404,16 +3490,166 @@ SpeedLimitHandler
 				return( Taggable.TT_PEER );
 			}
 			 
+			private void
+			update(
+				int		tick_count )
+			{
+				List<PEPeer> to_remove 	= null;
+				List<PEPeer> to_add		= null;
+				
+				if ( tick_count % 5 == 0 ){
+					
+					synchronized( this ){
+						
+						Iterator<PEPeer> it = added_peers.iterator();
+						
+						while( it.hasNext()){
+							
+							PEPeer peer = it.next();
+							
+							if ( peer.getPeerState() == PEPeer.DISCONNECTED ){
+								
+								it.remove();
+								
+								if ( to_remove == null ){
+									
+									to_remove = new ArrayList<PEPeer>();
+								}
+																
+								to_remove.add( peer );
+							}
+						}
+					}
+				}
+				
+				synchronized( this ){	
+					
+					Iterator<PEPeer> it = pending_peers.iterator();
+					
+					while ( it.hasNext()){
+						
+						PEPeer peer = it.next();
+						
+						int state =  peer.getPeerState();
+						
+						if ( state == PEPeer.TRANSFERING ){
+						
+							it.remove();
+							
+							added_peers.add( peer );
+							
+							if ( to_add == null ){
+								
+								to_add = new ArrayList<PEPeer>();
+							}
+
+							to_add.add( peer );
+							
+						}else if ( state == PEPeer.DISCONNECTED ){
+						
+							it.remove();
+							
+							if ( to_remove == null ){
+								
+								to_remove = new ArrayList<PEPeer>();
+							}
+
+							to_remove.add( peer );
+						}	
+					}
+				}
+				
+				if ( to_add != null ){
+	
+					for ( PEPeer peer: to_add ){
+						
+						addTaggable( peer );
+					}
+				}
+				
+				if ( to_remove != null ){
+					
+					for ( PEPeer peer: to_remove ){
+						
+						removeTaggable( peer );
+					}
+				}
+			}
+			
+			private void
+			add(
+				PEPeer		peer )
+			{
+				synchronized( this ){
+										
+					if ( peer.getPeerState() == PEPeer.TRANSFERING ){
+						
+						if ( added_peers.contains( peer )){
+							
+							return;
+						}
+						
+						pending_peers.remove( peer );
+						
+						added_peers.add( peer );
+						
+					}else{
+						
+						pending_peers.add( peer );
+						
+						return;
+					}
+				}
+								
+				addTaggable( peer );
+			}
+			
+			private void
+			remove(
+				PEPeer		peer )
+			{
+				synchronized( this ){
+					
+					if ( pending_peers.remove( peer )){
+					
+						return;
+					}
+					
+					if ( !added_peers.remove( peer )){
+						
+						return;
+					}
+				}
+								
+				removeTaggable( peer );
+			}
+			
+			
+			public int
+			getTaggedCount()
+			{
+				synchronized( this ){
+					
+					return( added_peers.size());
+				}
+			}
+			
 			public List<PEPeer>
 			getTaggedPeers()
 			{
-				return( new ArrayList<PEPeer>());
+				synchronized( this ){
+				
+					return( new ArrayList<PEPeer>( added_peers ));
+				}
 			}
 			
 			public List<Taggable> 
 			getTagged() 
 			{
-				  return( new ArrayList<Taggable>( getTaggedPeers()));
+				synchronized( this ){
+					
+					return( new ArrayList<Taggable>( added_peers ));
+				}
 			}
 			
 			private void
