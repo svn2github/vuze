@@ -34,6 +34,7 @@ import java.security.spec.KeySpec;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.interfaces.ECPrivateKey;
 import org.bouncycastle.jce.interfaces.ECPublicKey;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.jce.spec.ECParameterSpec;
 import org.bouncycastle.jce.spec.ECPrivateKeySpec;
@@ -52,7 +53,7 @@ CryptoECCUtils
 	{
 		try
 		{
-			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", "BC_VUZE");
+			KeyPairGenerator keyGen = KeyPairGenerator.getInstance("ECDSA", BouncyCastleProvider.PROVIDER_NAME);
 			
 			keyGen.initialize(ECCparam);
 
@@ -72,7 +73,7 @@ CryptoECCUtils
 	{
 		try
 		{
-			Signature ECCsig = Signature.getInstance("SHA1withECDSA", "BC_VUZE");
+			Signature ECCsig = Signature.getInstance("SHA1withECDSA", BouncyCastleProvider.PROVIDER_NAME);
 			
 			if( key instanceof ECPrivateKey ){
 				
@@ -126,7 +127,7 @@ CryptoECCUtils
    		PrivateKey privkey = null;
    		
    		try{
-   			privkey = KeyFactory.getInstance("ECDSA","BC_VUZE").generatePrivate(keyspec);
+   			privkey = KeyFactory.getInstance("ECDSA",BouncyCastleProvider.PROVIDER_NAME).generatePrivate(keyspec);
    			
    			return privkey;
    			
@@ -163,7 +164,7 @@ CryptoECCUtils
 
    		try{
    			
-   			return KeyFactory.getInstance("ECDSA", "BC_VUZE").generatePublic(keyspec);
+   			return KeyFactory.getInstance("ECDSA", BouncyCastleProvider.PROVIDER_NAME).generatePublic(keyspec);
    			
    		}catch (Throwable e){
    		

@@ -33,6 +33,7 @@ import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.CertificateList;
 import org.bouncycastle.asn1.x509.X509CertificateStructure;
 import org.bouncycastle.asn1.x509.X509Name;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.provider.X509CRLObject;
 import org.bouncycastle.jce.provider.X509CertificateObject;
 
@@ -86,7 +87,7 @@ public class PKCS7SignedData
         throws SecurityException, CRLException, InvalidKeyException,
         CertificateException, NoSuchProviderException, NoSuchAlgorithmException
     {
-        this(in, "BC_VUZE");
+        this(in, BouncyCastleProvider.PROVIDER_NAME);
     }
 
     /**
@@ -228,7 +229,7 @@ public class PKCS7SignedData
         throws SecurityException, InvalidKeyException,
         NoSuchProviderException, NoSuchAlgorithmException
     {
-        this(privKey, certChain, hashAlgorithm, "BC_VUZE");
+        this(privKey, certChain, hashAlgorithm, BouncyCastleProvider.PROVIDER_NAME);
     }
 
     /**

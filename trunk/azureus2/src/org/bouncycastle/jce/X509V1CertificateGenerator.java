@@ -31,6 +31,7 @@ import org.bouncycastle.asn1.x509.Time;
 import org.bouncycastle.asn1.x509.V1TBSCertificateGenerator;
 import org.bouncycastle.asn1.x509.X509CertificateStructure;
 import org.bouncycastle.asn1.x509.X509Name;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.provider.X509CertificateObject;
 
 /**
@@ -155,7 +156,7 @@ public class X509V1CertificateGenerator
     {
         try
         {
-            return generateX509Certificate(key, "BC_VUZE", null);
+            return generateX509Certificate(key, BouncyCastleProvider.PROVIDER_NAME, null);
         }
         catch (NoSuchProviderException e)
         {
@@ -174,7 +175,7 @@ public class X509V1CertificateGenerator
     {
         try
         {
-            return generateX509Certificate(key, "BC_VUZE", random);
+            return generateX509Certificate(key, BouncyCastleProvider.PROVIDER_NAME, random);
         }
         catch (NoSuchProviderException e)
         {

@@ -57,7 +57,27 @@ SESecurityManagerBC
 			
 			if ( Constants.IS_CVS_VERSION ){
 			
-				Debug.outNoStack( "BC Provider '" +  BouncyCastleProvider.PROVIDER_NAME + "' initialised successfully" );
+				String	where = "";
+				
+				try{
+				
+					where = BouncyCastleProvider.class.getClassLoader().getResource( "org/bouncycastle/jce/provider/BouncyCastleProvider.class" ).toExternalForm();
+					
+				}catch( Throwable e ){
+					
+					ClassLoader cl = BouncyCastleProvider.class.getClassLoader();
+					
+					if ( cl == null ){
+						
+						where = "<bootstrap>";
+						
+					}else{
+						
+						where = cl.toString();
+					}
+				}
+				
+				Debug.outNoStack( "BC Provider '" +  BouncyCastleProvider.PROVIDER_NAME + "' initialised successfully (loaded from " + where + ")" );
 			}
 		}catch( Throwable e ){
 			

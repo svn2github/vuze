@@ -26,6 +26,7 @@ import org.bouncycastle.asn1.pkcs.CertificationRequestInfo;
 import org.bouncycastle.asn1.x509.AlgorithmIdentifier;
 import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x509.X509Name;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 
 /**
  * A class for verifying and creating PKCS10 Certification requests. 
@@ -127,7 +128,7 @@ public class PKCS10CertificationRequest
         throws NoSuchAlgorithmException, NoSuchProviderException,
                 InvalidKeyException, SignatureException
     {
-        this(signatureAlgorithm, subject, key, attributes, signingKey, "BC_VUZE");
+        this(signatureAlgorithm, subject, key, attributes, signingKey, BouncyCastleProvider.PROVIDER_NAME);
     }
 
     /**
@@ -212,7 +213,7 @@ public class PKCS10CertificationRequest
     public PublicKey getPublicKey()
         throws NoSuchAlgorithmException, NoSuchProviderException, InvalidKeyException
     {
-        return getPublicKey("BC_VUZE");
+        return getPublicKey(BouncyCastleProvider.PROVIDER_NAME);
     }
 
     public PublicKey getPublicKey(
@@ -242,7 +243,7 @@ public class PKCS10CertificationRequest
         throws NoSuchAlgorithmException, NoSuchProviderException,
                 InvalidKeyException, SignatureException
     {
-        return verify("BC_VUZE");
+        return verify(BouncyCastleProvider.PROVIDER_NAME);
     }
 
     public boolean verify(

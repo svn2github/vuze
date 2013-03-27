@@ -12,6 +12,7 @@ import org.bouncycastle.asn1.x509.IssuerSerial;
 import org.bouncycastle.asn1.x509.ObjectDigestInfo;
 import org.bouncycastle.jce.PrincipalUtil;
 import org.bouncycastle.jce.X509Principal;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Arrays;
 import org.bouncycastle.util.Selector;
 
@@ -353,7 +354,7 @@ public class AttributeCertificateHolder
                 MessageDigest md = null;
                 try
                 {
-                    md = MessageDigest.getInstance(getDigestAlgorithm(), "BC_VUZE");
+                    md = MessageDigest.getInstance(getDigestAlgorithm(), BouncyCastleProvider.PROVIDER_NAME);
 
                 }
                 catch (Exception e)

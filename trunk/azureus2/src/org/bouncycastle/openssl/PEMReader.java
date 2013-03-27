@@ -14,6 +14,7 @@ import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo;
 import org.bouncycastle.asn1.x9.X9ObjectIdentifiers;
 import org.bouncycastle.jce.ECNamedCurveTable;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.spec.ECNamedCurveParameterSpec;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
@@ -63,7 +64,7 @@ public class PEMReader extends BufferedReader
     public PEMReader(
         Reader reader)
     {
-        this(reader, null, "BC_VUZE");
+        this(reader, null, BouncyCastleProvider.PROVIDER_NAME);
     }
 
     /**
@@ -76,7 +77,7 @@ public class PEMReader extends BufferedReader
         Reader          reader,
         PasswordFinder  pFinder)
     {
-        this(reader, pFinder, "BC_VUZE");
+        this(reader, pFinder, BouncyCastleProvider.PROVIDER_NAME);
     }
 
     /**

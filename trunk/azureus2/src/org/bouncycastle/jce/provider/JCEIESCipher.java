@@ -107,7 +107,7 @@ public class JCEIESCipher //extends WrapCipherSpi
 
                 try
                 {
-                    engineParam = AlgorithmParameters.getInstance(name, "BC_VUZE");
+                    engineParam = AlgorithmParameters.getInstance(name, BouncyCastleProvider.PROVIDER_NAME);
                     engineParam.init(engineParams);
                 }
                 catch (Exception e)

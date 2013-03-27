@@ -82,7 +82,7 @@ public  class PKIXCertPath
 		ByteArrayOutputStream outStream;
 		DEROutputStream derOutStream;
 		certificates = new ArrayList();
-		CertificateFactory certFactory= CertificateFactory.getInstance( "X.509", "BC_VUZE" );
+		CertificateFactory certFactory= CertificateFactory.getInstance( "X.509", BouncyCastleProvider.PROVIDER_NAME );
 		while ( enumx.hasMoreElements() ) {
 		    outStream = new ByteArrayOutputStream();
 		    derOutStream = new DEROutputStream(outStream);

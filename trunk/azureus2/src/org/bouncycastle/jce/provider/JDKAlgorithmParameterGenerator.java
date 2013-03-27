@@ -74,7 +74,7 @@ public abstract class JDKAlgorithmParameterGenerator
 
             try
             {
-                params = AlgorithmParameters.getInstance("DH", "BC_VUZE");
+                params = AlgorithmParameters.getInstance("DH", BouncyCastleProvider.PROVIDER_NAME);
                 params.init(new DHParameterSpec(p.getP(), p.getG(), l));
             }
             catch (Exception e)
@@ -116,7 +116,7 @@ public abstract class JDKAlgorithmParameterGenerator
 
             try
             {
-                params = AlgorithmParameters.getInstance("DSA", "BC_VUZE");
+                params = AlgorithmParameters.getInstance("DSA", BouncyCastleProvider.PROVIDER_NAME);
                 params.init(new DSAParameterSpec(p.getP(), p.getQ(), p.getG()));
             }
             catch (Exception e)
@@ -158,7 +158,7 @@ public abstract class JDKAlgorithmParameterGenerator
 
             try
             {
-                params = AlgorithmParameters.getInstance("ElGamal", "BC_VUZE");
+                params = AlgorithmParameters.getInstance("ElGamal", BouncyCastleProvider.PROVIDER_NAME);
                 params.init(new ElGamalParameterSpec(p.getP(), p.getG()));
             }
             catch (Exception e)
@@ -196,7 +196,7 @@ public abstract class JDKAlgorithmParameterGenerator
 
             try
             {
-                params = AlgorithmParameters.getInstance("DES", "BC_VUZE");
+                params = AlgorithmParameters.getInstance("DES", BouncyCastleProvider.PROVIDER_NAME);
                 params.init(new IvParameterSpec(iv));
             }
             catch (Exception e)
@@ -244,7 +244,7 @@ public abstract class JDKAlgorithmParameterGenerator
 
                 try
                 {
-                    params = AlgorithmParameters.getInstance("RC2", "BC_VUZE");
+                    params = AlgorithmParameters.getInstance("RC2", BouncyCastleProvider.PROVIDER_NAME);
                     params.init(new IvParameterSpec(iv));
                 }
                 catch (Exception e)
@@ -256,7 +256,7 @@ public abstract class JDKAlgorithmParameterGenerator
             {
                 try
                 {
-                    params = AlgorithmParameters.getInstance("RC2", "BC_VUZE");
+                    params = AlgorithmParameters.getInstance("RC2", BouncyCastleProvider.PROVIDER_NAME);
                     params.init(spec);
                 }
                 catch (Exception e)
@@ -295,7 +295,7 @@ public abstract class JDKAlgorithmParameterGenerator
 
             try
             {
-                params = AlgorithmParameters.getInstance("AES", "BC_VUZE");
+                params = AlgorithmParameters.getInstance("AES", BouncyCastleProvider.PROVIDER_NAME);
                 params.init(new IvParameterSpec(iv));
             }
             catch (Exception e)
@@ -333,7 +333,7 @@ public abstract class JDKAlgorithmParameterGenerator
 
             try
             {
-                params = AlgorithmParameters.getInstance("IDEA", "BC_VUZE");
+                params = AlgorithmParameters.getInstance("IDEA", BouncyCastleProvider.PROVIDER_NAME);
                 params.init(new IvParameterSpec(iv));
             }
             catch (Exception e)
@@ -371,7 +371,7 @@ public abstract class JDKAlgorithmParameterGenerator
 
             try
             {
-                params = AlgorithmParameters.getInstance("CAST5", "BC_VUZE");
+                params = AlgorithmParameters.getInstance("CAST5", BouncyCastleProvider.PROVIDER_NAME);
                 params.init(new IvParameterSpec(iv));
             }
             catch (Exception e)

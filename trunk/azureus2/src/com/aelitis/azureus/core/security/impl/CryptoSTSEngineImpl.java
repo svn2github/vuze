@@ -32,6 +32,7 @@ import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.security.Signature;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.provider.JCEECDHKeyAgreement;
 
 import com.aelitis.azureus.core.security.CryptoECCUtils;
@@ -77,7 +78,7 @@ CryptoSTSEngineImpl
 		try{
 			ecDH = new InternalDH();
 			
-			//ecDH = KeyAgreement.getInstance("ECDH", "BC_VUZE");
+			//ecDH = KeyAgreement.getInstance("ECDH", BouncyCastleProvider.PROVIDER_NAME);
 			
 			ecDH.init(ephemeralKeyPair.getPrivate());
 			

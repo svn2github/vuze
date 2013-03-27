@@ -10,6 +10,7 @@ import org.bouncycastle.asn1.pkcs.PrivateKeyInfo;
 import org.bouncycastle.asn1.pkcs.RSAPrivateKeyStructure;
 import org.bouncycastle.asn1.x509.DSAParameter;
 import org.bouncycastle.jce.PKCS10CertificationRequest;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.util.Strings;
 import org.bouncycastle.util.encoders.Base64;
 import org.bouncycastle.util.encoders.Hex;
@@ -49,7 +50,7 @@ public class PEMWriter
      */
     public PEMWriter(Writer out)
     {
-        this(out, "BC_VUZE");
+        this(out, BouncyCastleProvider.PROVIDER_NAME);
     }
 
     public PEMWriter(

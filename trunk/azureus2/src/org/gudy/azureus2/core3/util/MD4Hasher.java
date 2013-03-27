@@ -24,6 +24,8 @@ package org.gudy.azureus2.core3.util;
 
 import java.security.*;
 
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
+
 
 public class 
 MD4Hasher
@@ -39,7 +41,7 @@ MD4Hasher
 	MD4Hasher()
     {
     	try{
-    		md4 = MessageDigest.getInstance("MD4", "BC_VUZE");
+    		md4 = MessageDigest.getInstance("MD4", BouncyCastleProvider.PROVIDER_NAME );
     		  		
     	}catch( Throwable e ){
     		

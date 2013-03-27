@@ -33,6 +33,7 @@ import org.bouncycastle.asn1.x509.V2TBSCertListGenerator;
 import org.bouncycastle.asn1.x509.X509Extension;
 import org.bouncycastle.asn1.x509.X509Extensions;
 import org.bouncycastle.asn1.x509.X509Name;
+import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.jce.provider.X509CRLObject;
 
 /**
@@ -212,7 +213,7 @@ public class X509V2CRLGenerator
     {
         try
         {
-            return generateX509CRL(key, "BC_VUZE", null);
+            return generateX509CRL(key, BouncyCastleProvider.PROVIDER_NAME, null);
         }
         catch (NoSuchProviderException e)
         {
@@ -232,7 +233,7 @@ public class X509V2CRLGenerator
     {
         try
         {
-            return generateX509CRL(key, "BC_VUZE", random);
+            return generateX509CRL(key, BouncyCastleProvider.PROVIDER_NAME, random);
         }
         catch (NoSuchProviderException e)
         {
