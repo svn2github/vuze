@@ -30,6 +30,7 @@ TagType
 	public static final int TT_DOWNLOAD_CATEGORY	= 1;
 	public static final int TT_DOWNLOAD_STATE		= 2;
 	public static final int TT_DOWNLOAD_MANUAL		= 3;
+	public static final int TT_PEER_IPSET			= 4;
 
 		/**
 		 * Unique type denoting this species of tag

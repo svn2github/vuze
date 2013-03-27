@@ -393,6 +393,12 @@ CategoryImpl
 
   }
   
+  public int 
+  getTaggableTypes() 
+  {
+	  return( Taggable.TT_DOWNLOAD );
+  }
+  
   public boolean
   supportsTagUploadLimit()
   {

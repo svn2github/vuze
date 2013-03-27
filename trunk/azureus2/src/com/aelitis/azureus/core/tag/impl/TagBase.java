@@ -103,16 +103,37 @@ TagBase
 		return( tag_id );
 	}
 	
+	protected String
+	getTagNameRaw()
+	{
+		return( tag_name );
+	}
+	
 	public String
 	getTagName(
 		boolean		localize )
 	{
-		if ( localize && tag_name.startsWith( "tag." )){
+		if ( localize ){
 			
-			return( MessageText.getString( tag_name ));
-		}
+			if ( tag_name.startsWith( "tag." )){
+			
+				return( MessageText.getString( tag_name ));
+				
+			}else{
+				
+				return( tag_name );
+			}
+		}else{
 		
-		return( tag_name );
+			if ( tag_name.startsWith( "tag." )){
+			
+				return( tag_name );
+				
+			}else{
+				
+				return( "!" + tag_name + "!" );
+			}
+		}
 	}
 	
 	public void 

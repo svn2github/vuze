@@ -61,6 +61,7 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.utils.*;
+import com.aelitis.azureus.core.tag.TaggableResolver;
 
 
 public class 
@@ -4956,6 +4957,9 @@ implements PEPeerTransport
 		return( generateFastSet( manager.getHash(), getIp(), nbPieces, num ));	
 	}
 	
+   	public String getTaggableID(){ return( null ); }
+	public TaggableResolver	getTaggableResolver(){ return( null ); }
+
 	public void
 	generateEvidence(
 			IndentWriter	writer )

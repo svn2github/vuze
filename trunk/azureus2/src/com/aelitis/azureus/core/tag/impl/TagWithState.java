@@ -32,7 +32,7 @@ import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.util.MapUtils;
 
-public class 
+public abstract class 
 TagWithState 
 	extends TagBase
 {
@@ -88,7 +88,7 @@ TagWithState
 		Map			map,
 		boolean		do_contents )
 	{
-		MapUtils.setMapString( map, "n", getTagName( false ));
+		MapUtils.setMapString( map, "n", getTagNameRaw());
 		
 		if ( do_contents ){
 			
@@ -144,11 +144,14 @@ TagWithState
 	removeTaggable(
 		Taggable	t )
 	{
-		objects.remove( t );
+		boolean removed = objects.remove( t );
 		
 		super.removeTaggable( t );
 		
-		getManager().tagContentsChanged( this );
+		if ( removed ){
+		
+			getManager().tagContentsChanged( this );
+		}
 	}
 	
 	@Override

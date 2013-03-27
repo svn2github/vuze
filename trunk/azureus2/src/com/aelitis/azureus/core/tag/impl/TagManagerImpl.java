@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerListener;
 import com.aelitis.azureus.core.tag.TagType;
@@ -206,6 +207,8 @@ TagManagerImpl
 		TagType		tag_type )
 	{
 		tag_types.remove( tag_type );
+		
+		removeConfig( tag_type );
 	}
 	
 	public List<TagType>
@@ -611,4 +614,53 @@ TagManagerImpl
 			Debug.out( e );
 		}
 	}	
+	
+	protected void
+	removeConfig(
+		TagType	tag_type )
+	{
+		synchronized( this ){
+			
+			Map m = getConfig();
+			
+			String tt_key = String.valueOf( tag_type.getTagType());
+			
+			Map tt = (Map)m.remove( tt_key );
+
+			if ( tt != null ){
+				
+				setDirty();
+			}
+		}
+	}
+	
+	protected void
+	removeConfig(
+		Tag	tag )
+	{
+		TagType	tag_type = tag.getTagType();
+		
+		synchronized( this ){
+			
+			Map m = getConfig();
+			
+			String tt_key = String.valueOf( tag_type.getTagType());
+			
+			Map tt = (Map)m.get( tt_key );
+
+			if ( tt == null ){
+				
+				return;
+			}
+			
+			String t_key = String.valueOf( tag.getTagID());
+			
+			Map t = (Map)tt.remove( t_key );
+			
+			if ( t != null ){
+				
+				setDirty();
+			}
+		}
+	}
 }

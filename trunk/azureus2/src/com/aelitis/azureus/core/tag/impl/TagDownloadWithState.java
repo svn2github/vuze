@@ -166,6 +166,12 @@ TagDownloadWithState
 		super.removeTag();
 	}
 	
+	public int 
+	getTaggableTypes() 
+	{
+		return( Taggable.TT_DOWNLOAD );
+	}
+	
 	public 
 	List<DownloadManager> 
 	getTaggedDownloads() 

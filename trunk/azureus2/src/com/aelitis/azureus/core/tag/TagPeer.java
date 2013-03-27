@@ -1,5 +1,5 @@
 /*
- * Created on Mar 20, 2013
+ * Created on Mar 26, 2013
  * Created by Paul Gardner
  * 
  * Copyright 2013 Azureus Software, Inc.  All rights reserved.
@@ -21,13 +21,16 @@
 
 package com.aelitis.azureus.core.tag;
 
+import java.util.List;
+
+import org.gudy.azureus2.core3.peer.PEPeer;
+
 public interface 
-TaggableResolver 
+TagPeer
+	extends Tag
 {
-	public long
-	getResolverTaggableType();
+	public static final int FEATURES = TagFeature.TF_NONE;
 	
-	public Taggable
-	resolveTaggable(
-		String		id );
+	public List<PEPeer>
+	getTaggedPeers();
 }

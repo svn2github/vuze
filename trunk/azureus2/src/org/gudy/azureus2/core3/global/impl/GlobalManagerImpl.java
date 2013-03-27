@@ -2450,9 +2450,9 @@ public class GlobalManagerImpl
   
 	
 	public long 
-	getResolverID()
+	getResolverTaggableType()
 	{
-		return( TR_DOWNLOAD );
+		return( Taggable.TT_DOWNLOAD );
 	}
 	
 	public Taggable

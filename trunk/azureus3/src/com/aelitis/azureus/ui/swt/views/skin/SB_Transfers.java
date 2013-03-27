@@ -44,6 +44,8 @@ import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
+import org.gudy.azureus2.ui.swt.views.PeersGeneralView;
+import org.gudy.azureus2.ui.swt.views.PeersSuperView;
 import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
@@ -58,7 +60,9 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.mdi.MdiSWTMenuHackListener;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
@@ -300,6 +304,11 @@ public class SB_Transfers
 							}
 							
 							if ( !tag_type.isTagTypeAuto()){
+								
+								continue;
+							}
+							
+							if ( tag_type.getTags().size() == 0 ){
 								
 								continue;
 							}
@@ -1117,7 +1126,7 @@ public class SB_Transfers
 	}
 
 	private static void setupTag(final Tag tag) {
-		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		if (mdi == null) {
 			return;
 		}
@@ -1137,9 +1146,20 @@ public class SB_Transfers
 			}
 		};
 
-		MdiEntry entry = mdi.createEntryFromSkinRef(
-				MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id, "library",
-				name, viewTitleInfo, tag, auto, null);
+		MdiEntry entry;
+		
+		if ( tag.getTaggableTypes() == Taggable.TT_DOWNLOAD ){
+			entry = mdi.createEntryFromSkinRef(
+					MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id, "library",
+					name, viewTitleInfo, tag, auto, null);
+		}else{
+			
+			entry = mdi.createEntryFromEventListener(
+						MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, 
+						new PeersGeneralView( tag ), id, auto, null);
+			
+			entry.setViewTitleInfo( viewTitleInfo );
+		}
 		
 		if ( auto ){
 			
@@ -1166,7 +1186,9 @@ public class SB_Transfers
 		}
 		
 		if (entry != null) {
-			if ( tag.getTagType().isTagTypePersistent()){
+			if ( tag.getTagType().getTagType() == TagType.TT_PEER_IPSET ){
+				entry.setImageLeftID("image.sidebar.tag-red");
+			}else if ( tag.getTagType().isTagTypePersistent()){
 				entry.setImageLeftID("image.sidebar.tag-green");
 			}else{
 				entry.setImageLeftID("image.sidebar.tag-blue");

@@ -81,7 +81,7 @@ public abstract class TableViewTab<DATASOURCETYPE>
 		}
 	}
 
-	public final String getFullTitle() {
+	public String getFullTitle() {
 		return MessageText.getString(getPropertiesPrefix() + ".title.full");
 	}
 

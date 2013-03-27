@@ -66,7 +66,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  *			2005/Oct/08: Add PieceItem
  */
 
-public class PeerSuperView
+public class PeersSuperView
 	extends TableViewTab<PEPeer>
 	implements GlobalManagerListener, DownloadManagerPeerListener,
 	TableLifeCycleListener, TableViewSWTMenuFillListener
@@ -74,14 +74,15 @@ public class PeerSuperView
 	private TableViewSWT<PEPeer> tv;
 	private Shell shell;
 	private boolean active_listener = true;
-	private static boolean registeredCoreSubViews = false;
+	
+	protected static boolean registeredCoreSubViews = false;
 
 
   /**
    * Initialize
    *
    */
-  public PeerSuperView() {
+  public PeersSuperView() {
   	super("AllPeersView");
 	}	
 

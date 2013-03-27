@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.network.Connection;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+import com.aelitis.azureus.core.tag.Taggable;
 
 
 /**
@@ -47,6 +48,7 @@ import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 
 public interface 
 PEPeer 
+	extends Taggable
 {
 	public final static int CONNECTING 		= 10;
 	public final static int HANDSHAKING 	= 20;

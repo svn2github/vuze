@@ -113,12 +113,24 @@ TagTypeBase
 		if ( localize ){
 			
 			if ( tag_type_name.startsWith( "tag." )){
-				
+			
 				return( MessageText.getString( tag_type_name ));
+				
+			}else{
+				
+				return( tag_type_name );
+			}
+		}else{
+		
+			if ( tag_type_name.startsWith( "tag." )){
+			
+				return( tag_type_name );
+				
+			}else{
+				
+				return( "!" + tag_type_name + "!" );
 			}
 		}
-		
-		return( tag_type_name );
 	}
 	
 	public boolean 
@@ -167,6 +179,8 @@ TagTypeBase
 		Tag	t )
 	{
 		tt_listeners.dispatch( TTL_REMOVE, t );
+		
+		manager.removeConfig( t );
 	}
 	
 	public Tag

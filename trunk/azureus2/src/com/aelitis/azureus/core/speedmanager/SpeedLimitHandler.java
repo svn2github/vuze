@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
@@ -83,7 +84,11 @@ import com.aelitis.azureus.core.tag.TagFeature;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagPeer;
 import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.impl.TagBase;
+import com.aelitis.azureus.core.tag.impl.TagTypeWithState;
 
 public class 
 SpeedLimitHandler 
@@ -135,6 +140,8 @@ SpeedLimitHandler
 	
 	private boolean rule_pause_all_active;
 	private boolean net_limit_pause_all_active;
+	
+	private IPSetTagType	ip_set_tag_type = new IPSetTagType();
 	
 	private
 	SpeedLimitHandler(
@@ -822,7 +829,7 @@ SpeedLimitHandler
 														
 								set = ip_sets.get( name );
 								
-								if( set == null ){
+								if ( set == null ){
 									
 									set = new IPSet( name );
 									
@@ -1100,7 +1107,54 @@ SpeedLimitHandler
 				checkSchedule();
 			}
 			
+			for( IPSet s: current_ip_sets.values()){
+				
+				s.destroy();
+			}
+			
 			current_ip_sets = ip_sets;
+			
+			Map<IPSet,Integer>	id_map 		= new HashMap<IPSet, Integer>();
+			int					id_max		= -1;
+			
+			for ( int i=0;i<2;i++ ){
+				
+				for ( IPSet s: current_ip_sets.values()){
+					
+					String name = s.getName();
+					
+					try{
+						String config_key = "speed.limit.handler.ipset_n." + Base32.encode( name.getBytes( "UTF-8" ));
+						
+						if ( i == 0 ){
+							
+							int existing = COConfigurationManager.getIntParameter( config_key, -1 );
+							
+							if ( existing != -1 ){
+								
+								id_map.put( s, existing );
+								
+								id_max = Math.max( id_max, existing );
+							}
+						}else{
+							
+							Integer tag_id = id_map.get( s );
+							
+							if ( tag_id == null ){
+								
+								tag_id = ++id_max;
+								
+								COConfigurationManager.setParameter( config_key, tag_id );
+							}
+							
+							s.initialise( tag_id );
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
 			
 			checkIPSets();
 			
@@ -3098,9 +3152,20 @@ SpeedLimitHandler
 	}
 	
 	private class
+	IPSetTagType
+		extends TagTypeWithState
+	{
+		private
+		IPSetTagType()
+		{
+			super( TagType.TT_PEER_IPSET, TagPeer.FEATURES, "IP Sets" );
+		}
+	}
+	
+	private class
 	IPSet
 	{
-		private String				name;
+		private final String		name;
 		private List<String>		cidrs = new ArrayList<String>();
 		
 		private long[][]			ranges = new long[0][];
@@ -3118,14 +3183,23 @@ SpeedLimitHandler
 		private RateLimiter		up_limiter;
 		private RateLimiter		down_limiter;
 		
+		private TagPeerImpl		tag_impl;
+		
 		private
 		IPSet(
 			String	_name )
-		{
+		{			
 			name	= _name;
 			
 			up_limiter 		= plugin_interface.getConnectionManager().createRateLimiter( "ips-" + name, 0 );
 			down_limiter 	= plugin_interface.getConnectionManager().createRateLimiter( "ips-" + name, 0 );
+		}
+		
+		private void
+		initialise(
+			int		tag_id )
+		{
+			tag_impl	= new TagPeerImpl( tag_id );
 		}
 		
 		private void
@@ -3266,6 +3340,15 @@ SpeedLimitHandler
 			return( inverse );
 		}
 		
+		private void
+		destroy()
+		{
+			if ( tag_impl != null ){
+				
+				tag_impl.destroy();
+			}
+		}
+		
 		private String
 		getAddressString()
 		{
@@ -3288,6 +3371,7 @@ SpeedLimitHandler
 					", Categories=" + categories );
 					
 		}
+		
 		private String
 		getString()
 		{
@@ -3300,6 +3384,43 @@ SpeedLimitHandler
 			return( name + // ", addresses=" + addresses + 
 					": send=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( send_rate.getAverage()) +
 					", recv=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( receive_rate.getAverage())); 
+		}
+		
+		private class
+		TagPeerImpl
+			extends TagBase
+			implements TagPeer
+		{
+			private 
+			TagPeerImpl(
+				int		tag_id )
+			{
+				super( ip_set_tag_type, tag_id, name );
+			}
+			
+			public int 
+			getTaggableTypes() 
+			{
+				return( Taggable.TT_PEER );
+			}
+			 
+			public List<PEPeer>
+			getTaggedPeers()
+			{
+				return( new ArrayList<PEPeer>());
+			}
+			
+			public List<Taggable> 
+			getTagged() 
+			{
+				  return( new ArrayList<Taggable>( getTaggedPeers()));
+			}
+			
+			private void
+			destroy()
+			{
+				ip_set_tag_type.removeTag( this );
+			}
 		}
 	}
 }

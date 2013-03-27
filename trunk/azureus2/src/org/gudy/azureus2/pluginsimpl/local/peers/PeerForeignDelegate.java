@@ -56,6 +56,7 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+import com.aelitis.azureus.core.tag.TaggableResolver;
 
 public class 
 PeerForeignDelegate
@@ -1102,4 +1103,6 @@ PeerForeignDelegate
 	public String getClientNameFromExtensionHandshake() {return null;}
 	public String getClientNameFromPeerID() {return null;}
 	
+   	public String getTaggableID(){ return( null ); }
+	public TaggableResolver	getTaggableResolver(){ return( null ); }
 }

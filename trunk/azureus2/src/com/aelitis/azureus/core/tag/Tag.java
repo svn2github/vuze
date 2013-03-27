@@ -27,8 +27,6 @@ import java.util.List;
 public interface 
 Tag 
 {
-	public static final int TT_DOWNLOAD_CATEGORY	= 1;
-
 		/**
 		 * Unique type denoting this species of tag
 		 * @return
@@ -54,6 +52,9 @@ Tag
 		String		name )
 	
 		throws TagException;
+	
+	public int
+	getTaggableTypes();
 	
 	public boolean
 	isVisible();

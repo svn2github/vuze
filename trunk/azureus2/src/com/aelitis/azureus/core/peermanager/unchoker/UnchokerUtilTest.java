@@ -36,6 +36,7 @@ import org.gudy.azureus2.plugins.network.Connection;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
+import com.aelitis.azureus.core.tag.TaggableResolver;
 
 /**
 * @author MjrTom
@@ -113,6 +114,8 @@ public class UnchokerUtilTest {
       
       final PEPeerStats[] f_stats = { null };
       final PEPeer peer = new PEPeer() {
+    	public String getTaggableID(){ return( null ); }
+    	public TaggableResolver	getTaggableResolver(){ return( null ); }
     	public InetAddress getAlternativeIPv6() { return null; }
         public void addListener( PEPeerListener listener ){}
         public void removeListener( PEPeerListener listener ){}
