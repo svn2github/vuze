@@ -109,8 +109,6 @@ PeersGeneralView
 
 		tv.addLifeCycleListener(this);
 		tv.addMenuFillListener(this);
-
-		tag.addTagListener( this, true );
 		
 		return tv;
 	}
@@ -135,6 +133,8 @@ PeersGeneralView
 	tableViewInitialized() 
 	{
 		shell = tv.getComposite().getShell();
+		
+		tag.addTagListener( this, true );
 	}
 
 	public void 
