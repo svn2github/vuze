@@ -3497,10 +3497,10 @@ SpeedLimitHandler
 				List<PEPeer> to_remove 	= null;
 				List<PEPeer> to_add		= null;
 				
-				if ( tick_count % 5 == 0 ){
-					
-					synchronized( this ){
-						
+				synchronized( this ){
+
+					if ( tick_count % 5 == 0 ){
+								
 						Iterator<PEPeer> it = added_peers.iterator();
 						
 						while( it.hasNext()){
@@ -3520,10 +3520,7 @@ SpeedLimitHandler
 							}
 						}
 					}
-				}
-				
-				synchronized( this ){	
-					
+							
 					Iterator<PEPeer> it = pending_peers.iterator();
 					
 					while ( it.hasNext()){
@@ -3549,13 +3546,8 @@ SpeedLimitHandler
 						
 							it.remove();
 							
-							if ( to_remove == null ){
-								
-								to_remove = new ArrayList<PEPeer>();
-							}
-
-							to_remove.add( peer );
-						}	
+								// no need to untag as never added
+						}
 					}
 				}
 				
