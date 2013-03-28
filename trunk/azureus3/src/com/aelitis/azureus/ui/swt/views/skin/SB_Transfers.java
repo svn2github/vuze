@@ -45,7 +45,6 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import org.gudy.azureus2.ui.swt.views.PeersGeneralView;
-import org.gudy.azureus2.ui.swt.views.PeersSuperView;
 import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
 import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
@@ -1136,15 +1135,76 @@ public class SB_Transfers
 		String name = tag.getTagName( true );
 		String id = "Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
 
-		ViewTitleInfo viewTitleInfo = new ViewTitleInfo() {
-
-			public Object getTitleInfoProperty(int propertyID) {
-				if (propertyID == TITLE_INDICATOR_TEXT) {
-					return( String.valueOf( tag.getTaggedCount()));
+		ViewTitleInfo viewTitleInfo = 
+			new ViewTitleInfo() 
+			{
+				public Object 
+				getTitleInfoProperty(
+					int pid )
+				{
+					if ( pid == TITLE_INDICATOR_TEXT ){
+						
+						return( String.valueOf( tag.getTaggedCount()));
+						
+					}else if ( pid == TITLE_INDICATOR_TEXT_TOOLTIP ){
+						
+						TagType tag_type = tag.getTagType();
+						
+						String 	str = tag_type.getTagTypeName( true );
+						
+						if ( tag_type.hasTagTypeFeature( TagFeature.TF_RATE_LIMIT )){
+							
+							TagFeatureRateLimit rl = (TagFeatureRateLimit)tag;
+							
+							String 	up_str 		= "";
+							String	down_str 	= "";
+							
+							int	limit_up = rl.getTagUploadLimit();
+								
+							if ( limit_up > 0 ){
+								
+								up_str += "Limit=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( limit_up );
+							}
+							
+							int current_up 		= rl.getTagCurrentUploadRate();
+							
+							if ( current_up >= 0 ){
+								
+								up_str += (up_str.length()==0?"":", " ) + "Current=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( current_up);
+							}
+							
+							int	limit_down = rl.getTagDownloadLimit();
+							
+							if ( limit_down > 0 ){
+								
+								down_str += "Limit=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( limit_down );
+							}
+							
+							int current_down 		= rl.getTagCurrentDownloadRate();
+							
+							if ( current_down >= 0 ){
+								
+								down_str += (down_str.length()==0?"":", " ) + "Current=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( current_down);
+							}
+							
+							
+							if ( up_str.length() > 0 ){
+								
+								str += "\r\n    Up: " + up_str;
+							}
+							
+							if ( down_str.length() > 0 ){
+								
+								str += "\r\n    Down: " + down_str;
+							}
+						}
+						
+						return( str );
+					}
+					
+					return null;
 				}
-				return null;
-			}
-		};
+			};
 
 		MdiEntry entry;
 		

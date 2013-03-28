@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.tag.Tag;
@@ -39,6 +41,11 @@ TagDownloadWithState
 {
 	private int upload_rate_limit;
 	private int download_rate_limit;
+	
+	private int	upload_rate		= -1;
+	private int	download_rate	= -1;
+	
+	private long last_rate_update;
 	
 	private LimitedRateGroup upload_limiter = 
 		new LimitedRateGroup()
@@ -209,7 +216,9 @@ TagDownloadWithState
 	public int
 	getTagCurrentUploadRate()
 	{
-		return( -1 );
+		updateRates();
+		
+		return( download_rate );
 	}
 	
 	public int
@@ -230,6 +239,45 @@ TagDownloadWithState
 	public int
 	getTagCurrentDownloadRate()
 	{
-		return( -1 );
+		updateRates();
+		
+		return( upload_rate );
+	}
+	
+	private void
+	updateRates()
+	{
+		long	now = SystemTime.getCurrentTime();
+		
+		if ( now - last_rate_update > 2500 ){ 
+			
+			int	new_up;
+			int new_down;
+			
+			List<DownloadManager> dms = getTaggedDownloads();
+			
+			if ( dms.size() == 0 ){
+				
+				new_up		= -1;
+				new_down	= -1;
+
+			}else{
+				
+				new_up		= 0;
+				new_down	= 0;
+				
+				for ( DownloadManager dm: dms ){
+		
+					DownloadManagerStats stats = dm.getStats();
+					
+					new_up 		+= stats.getDataSendRate() + stats.getProtocolSendRate();
+					new_down 	+= stats.getDataReceiveRate() + stats.getProtocolReceiveRate();
+				}
+			}
+			
+			upload_rate			= new_up;
+			download_rate		= new_down;
+			last_rate_update 	= now;
+		}
 	}
 }
