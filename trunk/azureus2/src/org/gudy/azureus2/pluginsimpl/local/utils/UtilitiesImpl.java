@@ -130,7 +130,7 @@ UtilitiesImpl
 	
 	private static CopyOnWriteList<Object[]>				feature_enablers 	= new CopyOnWriteList<Object[]>();
 	private static CopyOnWriteList<FeatureManagerListener>	feature_listeners	= new CopyOnWriteList<FeatureManagerListener>();
-	
+
 	private static FeatureManagerListener 
 		feature_listener = new FeatureManagerListener()
 		{
@@ -192,6 +192,11 @@ UtilitiesImpl
 			// need to use a consistent wrapped group as its object identity drives byte allocs...
 		
 	private static WeakHashMap<RateLimiter,PluginLimitedRateGroup>	limiter_map = new WeakHashMap<RateLimiter,PluginLimitedRateGroup>();
+
+	
+	private static CopyOnWriteList<LocationProvider>	location_providers = new CopyOnWriteList<LocationProvider>();
+	
+	
 	
 	public static PluginLimitedRateGroup
 	wrapLimiter(
@@ -1744,6 +1749,26 @@ UtilitiesImpl
 		PowerManagementListener	listener )
 	{
 		core.removePowerManagementListener( listener );
+	}
+	
+	public List<LocationProvider>	
+	getLocationProviders()
+	{
+		return( location_providers.getList());
+	}
+	
+	public void
+	addLocationProvider(
+		LocationProvider	provider )
+	{
+		location_providers.add( provider );
+	}
+	
+	public void
+	removeLocationProvider(
+		LocationProvider	provider )
+	{
+		location_providers.remove( provider );
 	}
 	
 	public interface

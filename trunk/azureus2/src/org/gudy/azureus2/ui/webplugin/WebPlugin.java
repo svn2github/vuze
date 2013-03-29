@@ -1829,11 +1829,19 @@ WebPlugin
 	private void
 	recordRequest(
 		TrackerWebPageRequest		request,
-		boolean						good )
+		boolean						good,
+		boolean						is_tunnel )
 	{					
 		PairingManager pm = PairingManagerFactory.getSingleton();
 		
-		pm.recordRequest( plugin_interface.getPluginName(), request.getClientAddress(), good );
+		String	str = request.getClientAddress();
+		
+		if ( is_tunnel ){
+			
+			str = "Tunnel (" + str + ")";
+		}
+		
+		pm.recordRequest( plugin_interface.getPluginName(), str, good );
 	}
 	
 	public boolean
@@ -2227,7 +2235,7 @@ WebPlugin
 					
 					response.setReplyStatus( 403 );
 					
-					recordRequest( request, false );
+					recordRequest( request, false, is_tunnel );
 					
 					return( returnTextPlain( response, "Cannot access resource from this IP address." ));
 				}
@@ -2236,13 +2244,13 @@ WebPlugin
 				
 				Debug.printStackTrace( e );
 				
-				recordRequest( request, false );
+				recordRequest( request, false, is_tunnel );
 				
 				return( false );
 			}
 		}
 		
-		recordRequest( request, true );
+		recordRequest( request, true, is_tunnel );
 		
 		String url = request.getURL();
 		

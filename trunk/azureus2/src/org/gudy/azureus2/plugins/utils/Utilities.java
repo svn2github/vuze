@@ -32,6 +32,7 @@ import java.io.InputStream;
 import java.net.InetAddress;
 import java.net.URL;
 import java.nio.ByteBuffer;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.plugins.PluginException;
@@ -376,6 +377,17 @@ Utilities
 	public void
 	removePowerManagementListener(
 		PowerManagementListener	listener );
+	
+	public List<LocationProvider>	
+	getLocationProviders();
+	
+	public void
+	addLocationProvider(
+		LocationProvider	provider );
+	
+	public void
+	removeLocationProvider(
+		LocationProvider	provider );
 }
 
 
