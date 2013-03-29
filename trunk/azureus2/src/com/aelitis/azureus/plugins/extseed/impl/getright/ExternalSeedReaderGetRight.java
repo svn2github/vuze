@@ -28,6 +28,7 @@ import java.net.URLEncoder;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
@@ -99,62 +100,81 @@ ExternalSeedReaderGetRight
 			piece_group_size	= 1;
 		}
 		
-		TOTorrent	to_torrent = ((TorrentImpl)_torrent).getTorrent();
-
-		String	ua = getUserAgent();
-		
-		if ( to_torrent.isSimpleTorrent()){
+			// delay the construction of the downloaders until needed
+	}
+	
+	private void
+	setupDownloaders()
+	{
+		synchronized( this ){
 			
-			http_downloaders = 
-				new ExternalSeedHTTPDownloader[]{ 
-					linear_download?new ExternalSeedHTTPDownloaderLinear( url, ua ):new ExternalSeedHTTPDownloaderRange( url, ua )};
-			
-			downloader_offsets 	= new long[]{ 0 };
-			downloader_lengths	= new long[]{ to_torrent.getSize() };
-			
-		}else{
-			
-			TOTorrentFile[]	files = to_torrent.getFiles();
-			
-			http_downloaders = new ExternalSeedHTTPDownloader[ files.length ];
-			
-			downloader_offsets 	= new long[ files.length ];
-			downloader_lengths	= new long[ files.length ];
-
-			long	offset	= 0;
-			
-				// encoding is a problem, assume ISO-8859-1
-			
-			String	base_url = url.toString();
-			
-			if ( base_url.endsWith( "/" )){
+			if ( http_downloaders != null ){
 				
-				base_url = base_url.substring( 0, base_url.length()-1 );
+				return;
 			}
 			
-			base_url += "/" + URLEncoder.encode( new String( to_torrent.getName(), "ISO-8859-1" ), "ISO-8859-1" ).replaceAll("\\+", "%20");
+			TOTorrent	to_torrent = ((TorrentImpl)getTorrent()).getTorrent();
+	
+			String	ua = getUserAgent();
 			
-			for (int i=0;i<files.length;i++ ){
+			if ( to_torrent.isSimpleTorrent()){
 				
-				TOTorrentFile	file = files[i];
+				http_downloaders = 
+					new ExternalSeedHTTPDownloader[]{ 
+						linear_download?new ExternalSeedHTTPDownloaderLinear( url, ua ):new ExternalSeedHTTPDownloaderRange( url, ua )};
 				
-				long length = file.getLength();
+				downloader_offsets 	= new long[]{ 0 };
+				downloader_lengths	= new long[]{ to_torrent.getSize() };
+				
+			}else{
+				
+				TOTorrentFile[]	files = to_torrent.getFiles();
+				
+				http_downloaders = new ExternalSeedHTTPDownloader[ files.length ];
+				
+				downloader_offsets 	= new long[ files.length ];
+				downloader_lengths	= new long[ files.length ];
+	
+				long	offset	= 0;
+				
+					// encoding is a problem, assume ISO-8859-1
+				
+				String	base_url = url.toString();
+				
+				if ( base_url.endsWith( "/" )){
 					
-				String	file_url_str = base_url;
-				
-				byte[][] bits = file.getPathComponents();
-				
-				for (int j=0;j<bits.length;j++){
-					
-					file_url_str += "/" + URLEncoder.encode( new String( bits[j], "ISO-8859-1" ), "ISO-8859-1" ).replaceAll("\\+", "%20");
+					base_url = base_url.substring( 0, base_url.length()-1 );
 				}
 				
-				http_downloaders[i] = linear_download?new ExternalSeedHTTPDownloaderLinear( new URL( file_url_str), ua ):new ExternalSeedHTTPDownloaderRange( new URL( file_url_str), ua );
-				
-				downloader_offsets[i]	= offset;
-				downloader_lengths[i]	= length;
-				
-				offset += length;
+				try{
+					base_url += "/" + URLEncoder.encode( new String( to_torrent.getName(), "ISO-8859-1" ), "ISO-8859-1" ).replaceAll("\\+", "%20");
+					
+					for (int i=0;i<files.length;i++ ){
+						
+						TOTorrentFile	file = files[i];
+						
+						long length = file.getLength();
+							
+						String	file_url_str = base_url;
+						
+						byte[][] bits = file.getPathComponents();
+						
+						for (int j=0;j<bits.length;j++){
+							
+							file_url_str += "/" + URLEncoder.encode( new String( bits[j], "ISO-8859-1" ), "ISO-8859-1" ).replaceAll("\\+", "%20");
+						}
+						
+						http_downloaders[i] = linear_download?new ExternalSeedHTTPDownloaderLinear( new URL( file_url_str), ua ):new ExternalSeedHTTPDownloaderRange( new URL( file_url_str), ua );
+						
+						downloader_offsets[i]	= offset;
+						downloader_lengths[i]	= length;
+						
+						offset += length;
+					}
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}					
 			}
 		}
 	}
@@ -235,9 +255,19 @@ ExternalSeedReaderGetRight
 			
 			if ( !active ){
 				
-				for ( ExternalSeedHTTPDownloader d: http_downloaders ){
+				boolean	downloaders_set;
+				
+				synchronized( this ){
 					
-					d.deactivate();
+					downloaders_set = http_downloaders != null;
+				}
+				
+				if ( downloaders_set ){
+					
+					for ( ExternalSeedHTTPDownloader d: http_downloaders ){
+						
+						d.deactivate();
+					}
 				}
 			}
 		}
@@ -287,6 +317,8 @@ ExternalSeedReaderGetRight
 	
 		throws ExternalSeedException
 	{	
+		setupDownloaders();
+		
 		setReconnectDelay( RECONNECT_DEFAULT, false );
 		
 		long	request_start 	= start_piece_number * (long)piece_size + start_piece_offset;
