@@ -133,9 +133,13 @@ public class SBC_DevicesView
 		transcode_queue = transcode_manager.getQueue();
 
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
-		if (mdi != null) {
+		if (mdi != null){
 			mdiEntry = mdi.getCurrentEntrySWT();
-			device = (Device) mdiEntry.getDatasource();
+			Object ds = mdiEntry.getDatasource();
+			if ( !( ds instanceof Device )){
+				return( null );
+			}
+			device = (Device)ds;
 		}
 
 		if (device instanceof TranscodeTarget) {
