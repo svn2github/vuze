@@ -45,6 +45,13 @@ LocationProvider
 		return((getCapabilities()&capability) != 0 );
 	}
 		
+	public boolean
+	hasCapabilities(
+		long		capabilities )
+	{
+		return((getCapabilities()&capabilities) == capabilities );
+	}
+	
 	public String
 	getCountryNameForIP(
 		InetAddress		address,

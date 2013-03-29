@@ -839,6 +839,10 @@ public class ImageLoader
 		}
 	}
 
+	public static Image getNoImage(){
+		return( getNoImage( "explicit" ));
+	}
+	
 	private static Image getNoImage( String key ) {
 		/*
 		if ( key != null ){

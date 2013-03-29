@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.graphics.PieUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -88,7 +89,7 @@ public class PeersGraphicView
   private Composite panel;
 
 	private UISWTView swtView;
-  private static final int PEER_SIZE = 15;
+  private static final int PEER_SIZE = 18;
   //private static final int PACKET_SIZE = 10;
   private static final int OWN_SIZE = 75;
   
@@ -346,8 +347,14 @@ public class PeersGraphicView
           }
         }*/
       //PieUtils.drawPie(gcBuffer,(x1 - PS / 2),y1 - PS / 2,PS,PS,peer.getPercentDoneInThousandNotation() / 10);
-      PieUtils.drawPie(gcBuffer,x1 - PEER_SIZE / 2,y1 - PEER_SIZE / 2,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
       
+      Image flag = ImageRepository.getCountryFlag( peer, false );
+      if ( flag != null ){
+    	  PieUtils.drawPie(gcBuffer, flag, x1 - PEER_SIZE / 2,y1 - PEER_SIZE / 2,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
+      }else{
+      
+    	  PieUtils.drawPie(gcBuffer,x1 - PEER_SIZE / 2,y1 - PEER_SIZE / 2,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
+      }
       //gcBuffer.drawText(peer.getIp() , x1 + 8 , y1 , true);
     }
     

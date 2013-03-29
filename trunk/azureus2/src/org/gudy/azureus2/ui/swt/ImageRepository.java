@@ -24,7 +24,11 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.InputStream;
 import java.lang.reflect.Method;
+import java.net.InetAddress;
+import java.util.HashMap;
+import java.util.Map;
 
 import javax.imageio.ImageIO;
 
@@ -36,10 +40,14 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.utils.LocationProvider;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.skin.SkinProperties;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
@@ -364,6 +372,121 @@ public class ImageRepository
 		return getIconFromExtension(file, ext, bBig, minifolder);
 	}
 
+	private static LocationProvider	flag_provider;
+	private static long				flag_provider_last_check;
+
+	private static Image	flag_none		= ImageLoader.getNoImage();
+	private static Object	flag_small_key 	= new Object();
+	private static Object	flag_big_key 	= new Object();
+	
+	private static Map<String,Image>	flag_cache = new HashMap<String, Image>();
+	
+	public static Image
+	getCountryFlag(
+		PEPeer		peer,
+		boolean		small )
+	{
+		if ( !Utils.isSWTThread()){
+			
+			Debug.out( "Needs to be swt thread..." );
+			
+			return( null );
+		}
+		
+		Object	peer_key = small?flag_small_key:flag_big_key;
+		
+		Image flag = (Image)peer.getUserData( peer_key );
+		
+		if ( flag == null ){
+					
+			if ( flag_provider != null ){
+				
+				if ( flag_provider.isDestroyed()){
+					
+					flag_provider 				= null;
+					flag_provider_last_check	= 0;
+				}
+			}
+			
+			if ( flag_provider == null ){
+				
+				long	now = SystemTime.getMonotonousTime();
+				
+				if ( flag_provider_last_check == 0 || now - flag_provider_last_check > 20*1000 ){
+					
+					flag_provider_last_check = now;
+					
+					java.util.List<LocationProvider> providers = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUtilities().getLocationProviders();
+	
+					for ( LocationProvider provider: providers ){
+						
+						if ( 	provider.hasCapabilities( 
+									LocationProvider.CAP_ISO3166_BY_IP |
+									LocationProvider.CAP_FLAG_BY_IP )){
+							
+							flag_provider = provider;
+						}
+					}
+				}
+			}
+			
+			if ( flag_provider != null ){	
+				
+				try{
+	
+					InetAddress peer_address = InetAddress.getByName( peer.getIp());
+					
+					String cc_key = flag_provider.getISO3166CodeForIP( peer_address ) + (small?".s":".l");
+					
+					flag = flag_cache.get( cc_key );
+					
+					if ( flag != null ){
+					
+						peer.setUserData( peer_key, flag );
+						
+					}else{
+				
+						InputStream is = flag_provider.getCountryFlagForIP( peer_address, small?0:1 );
+							
+						if ( is != null ){
+							
+							try{
+								flag = new Image( Display.getDefault(), is);
+
+								//System.out.println( "Created flag image for " + cc_key );
+								
+							}finally{
+								
+								is.close();
+							}
+						}else{
+							
+							flag = flag_none;
+						}
+						
+						flag_cache.put( cc_key, flag );
+						
+						peer.setUserData( peer_key, flag );
+					}
+					
+				}catch( Throwable e ){
+						
+				}
+			}
+		}
+		
+		if ( flag == flag_none ){
+			
+			return( null );
+		}
+		
+		return( flag );
+	}
+	
+	
+	
+	
+	
 	public static void main(String[] args) {
 		Display display = new Display();
 		Shell shell = new Shell(display, SWT.SHELL_TRIM);
