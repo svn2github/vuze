@@ -234,6 +234,12 @@ LWSTorrent
 		return( lws.getSize());
 	}
 	
+	public int
+	getFileCount()
+	{
+		return( getDelegate().getFileCount());
+	}
+	
 	public TOTorrentFile[]
 	getFiles()
 	{

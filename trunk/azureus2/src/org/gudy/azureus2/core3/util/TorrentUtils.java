@@ -2352,6 +2352,12 @@ TorrentUtils
 			return( delegate.getSize());
 		}
 		
+		public int
+		getFileCount()
+		{
+			return( delegate.getFileCount());
+		}
+		
 		public TOTorrentFile[]
 		getFiles()
 		{

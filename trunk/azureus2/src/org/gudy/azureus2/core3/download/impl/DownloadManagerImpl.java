@@ -2458,10 +2458,8 @@ DownloadManagerImpl
 	}
 	
 	public int getNumFileInfos() {
-		// probably faster than controller.getDiskManagerFileInfoSet().nbFiles()
-		// (especially when the facade isn't filled yet)
-		return torrent == null ? 0 : torrent.isSimpleTorrent() ? 1
-				: torrent.getFiles().length;
+	
+		return torrent == null ? 0 : torrent.getFileCount();
 	}
 	
 	public PEPeerManager

@@ -833,6 +833,12 @@ TOTorrentImpl
 		pieces = _pieces;
 	}
 	
+	public int
+	getFileCount()
+	{
+		return( files.length );
+	}
+	
 	public TOTorrentFile[]
 	getFiles()
 	{

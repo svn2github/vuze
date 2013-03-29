@@ -224,7 +224,12 @@ TRHostExternalTorrent
 		return( -1 );
 	}
 	
-
+   	public int
+	getFileCount()
+   	{
+   		return( 0 );
+   	}
+   	
 	public TOTorrentFile[]
 	getFiles()
 	{

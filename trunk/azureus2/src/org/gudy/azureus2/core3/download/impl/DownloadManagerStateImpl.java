@@ -2891,6 +2891,7 @@ DownloadManagerStateImpl
 		
 		private Boolean		simple_torrent;
 		private long		size;
+		private int			file_count;
 		
 		private URL										announce_url;
 		private cacheGroup								announce_group;
@@ -2932,6 +2933,13 @@ DownloadManagerStateImpl
 			if ( st != null ){
 				
 				simple_torrent = new Boolean( st.longValue()==1 );
+			}
+			
+			Long	fc = (Long)cache.get( "fc" );
+
+			if ( fc != null ){
+				
+				file_count = fc.intValue();
 			}
 			
 			Long	l_size = (Long)cache.get( "size" );
@@ -3016,6 +3024,13 @@ DownloadManagerStateImpl
 				if ( simple_torrent != null ){
 					
 					cache.put( "simple", new Long(simple_torrent.booleanValue()?1:0 ));
+				}
+				
+				int	fc = csw.file_count;
+				
+				if ( fc > 0 ){
+					
+					cache.put( "fc", new Long( fc ));
 				}
 			}else{
 				
@@ -3546,13 +3561,22 @@ DownloadManagerStateImpl
     	setAnnounceURL(
     		URL		url )
        	{
-    		
+    		if ( announce_url != null ){
+    			
+    			if ( announce_url.toExternalForm().equals( url.toExternalForm())){
+    				
+    				return( false );
+    			}
+    		}
     		
 	   		if ( fixup()){
+	   			
 				return( delegate.setAnnounceURL( url ));
-			} else
-				announce_url = url;
 				
+			}else{
+				
+				announce_url = url;
+			}
 	   		
 	   		return( false );
     	}
@@ -3668,6 +3692,20 @@ DownloadManagerStateImpl
 	   		return( 0 );
     	}
     	
+       	public int
+    	getFileCount()
+       	{
+       		if ( file_count == 0 ){
+ 
+       			if ( fixup()){
+    			
+       				file_count= delegate.getFileCount();
+       			}
+       		}
+    		
+       		return( file_count );
+       	}
+       	
     	public TOTorrentFile[]
     	getFiles()
        	{

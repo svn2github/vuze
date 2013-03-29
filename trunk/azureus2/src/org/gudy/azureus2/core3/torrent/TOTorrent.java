@@ -164,6 +164,9 @@ TOTorrent
 	public long
 	getSize();
 	
+	public int
+	getFileCount();
+	
 	/**
 	 * A torrent consists of one or more files. These are accessed via this method.
 	 * @return
