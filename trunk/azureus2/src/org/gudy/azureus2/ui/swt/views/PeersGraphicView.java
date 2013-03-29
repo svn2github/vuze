@@ -25,23 +25,33 @@ package org.gudy.azureus2.ui.swt.views;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseListener;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -49,9 +59,13 @@ import org.gudy.azureus2.ui.swt.components.graphics.PieUtils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 
@@ -83,6 +97,9 @@ public class PeersGraphicView
   private AEMonitor peers_mon = new AEMonitor( "PeersGraphicView:peers" );;
   private PeerComparator peerComparator;
   
+  private Map<PEPeer,int[]>		peer_hit_map = new HashMap<PEPeer, int[]>();
+  private int					me_hit_x;
+  private int					me_hit_y;
   
   //UI Stuff
   private Display display;
@@ -151,8 +168,11 @@ public class PeersGraphicView
   }
 
   private void delete() {
-  	if (manager != null)
+  	if (manager != null){
   		manager.removePeerListener(this);
+  	}
+  	
+  	peer_hit_map.clear();
   }
 
   private Composite getComposite() {    
@@ -166,6 +186,126 @@ public class PeersGraphicView
   private void initialize(Composite composite) {
     display = composite.getDisplay();
     panel = new Canvas(composite,SWT.NULL);
+    
+    panel.setBackground( Colors.white );
+    
+    panel.addListener(SWT.MouseHover, new Listener() {
+		public void handleEvent(Event event) {
+			
+			if ( manager == null ){
+				return;
+			}
+			
+			int	x = event.x;
+			int y = event.y;
+			
+			String tt;
+
+			if ( 	x >= me_hit_x && x <= me_hit_x+OWN_SIZE &&
+					y >= me_hit_y && y <= me_hit_y+OWN_SIZE ){
+				
+				tt = DisplayFormatters.formatDownloadStatus( manager ) + ", " + 
+						DisplayFormatters.formatPercentFromThousands(manager.getStats().getCompleted());
+				
+			}else{
+				
+				PEPeer target = null;
+							
+				for( Map.Entry<PEPeer,int[]> entry: peer_hit_map.entrySet()){
+					
+					int[] loc = entry.getValue();
+					
+					int	loc_x = loc[0];
+					int loc_y = loc[1];
+					
+					if ( 	x >= loc_x && x <= loc_x+PEER_SIZE &&
+							y >= loc_y && y <= loc_y+PEER_SIZE ){
+						
+						target = entry.getKey();
+						
+						break;
+					}
+				}	
+				
+				if ( target == null ){
+					
+					tt = null;
+					
+				}else{
+					
+					PEPeerStats stats = target.getStats();
+					
+					tt = target.getIp() + ", " + 
+							DisplayFormatters.formatPercentFromThousands(target.getPercentDoneInThousandNotation()) + "\r\n" +
+							"Up=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getDataSendRate() + stats.getProtocolSendRate()) + ", " +
+							"Down=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getDataReceiveRate() + stats.getProtocolReceiveRate());
+				}
+			}
+			
+			panel.setToolTipText( tt );
+		}
+    });
+    
+    panel.addMouseListener(
+    	new MouseAdapter()
+    	{
+    		public void 
+    		mouseDoubleClick(
+    			MouseEvent event )
+    		{
+    			int	x = event.x;
+    			int y = event.y;
+    										
+				for( Map.Entry<PEPeer,int[]> entry: peer_hit_map.entrySet()){
+					
+					int[] loc = entry.getValue();
+					
+					int	loc_x = loc[0];
+					int loc_y = loc[1];
+					
+					if ( 	x >= loc_x && x <= loc_x+PEER_SIZE &&
+							y >= loc_y && y <= loc_y+PEER_SIZE ){
+						
+						PEPeer target = entry.getKey();
+						
+						try{
+							String dm_id = "DMDetails_" + Base32.encode( manager.getTorrent().getHash());
+							
+							MdiEntry mdi_entry = UIFunctionsManager.getUIFunctions().getMDI().getEntry( dm_id );
+						
+							if ( mdi_entry != null ){
+								
+								UIPluginView view = mdi_entry.getView();
+								
+								if ( view instanceof UISWTViewImpl ){
+									
+									UISWTViewImpl swt_view = (UISWTViewImpl)view;
+									
+									UISWTViewEventListener listener = swt_view.getEventListener();
+									
+									if ( listener instanceof ManagerView ){
+									
+										ManagerView	manager_view = (ManagerView)listener;
+																				
+										PeersView pv = (PeersView)manager_view.showView( PeersView.class );
+										
+										if ( pv != null ){
+											
+											pv.selectPeer( target );
+										}
+									}
+									
+								}
+							}
+						}catch( Throwable e ){
+							
+						}
+						
+						break;
+					}
+				}		
+    		}
+    	});
   }
 
   private void refresh() {
@@ -200,6 +340,8 @@ public class PeersGraphicView
   }
   
   private void render(PEPeer[] sortedPeers) {
+	peer_hit_map.clear();
+	  
     if(panel == null || panel.isDisposed() || manager == null)
       return;
     Point panelSize = panel.getSize();
@@ -348,18 +490,27 @@ public class PeersGraphicView
         }*/
       //PieUtils.drawPie(gcBuffer,(x1 - PS / 2),y1 - PS / 2,PS,PS,peer.getPercentDoneInThousandNotation() / 10);
       
+      int peer_x = x1 - PEER_SIZE / 2;
+      int peer_y = y1 - PEER_SIZE / 2;
+      
+      peer_hit_map.put( peer, new int[]{ peer_x, peer_y });
+      
       Image flag = ImageRepository.getCountryFlag( peer, false );
       if ( flag != null ){
-    	  PieUtils.drawPie(gcBuffer, flag, x1 - PEER_SIZE / 2,y1 - PEER_SIZE / 2,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
+    	  PieUtils.drawPie(gcBuffer, flag, peer_x, peer_y,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
       }else{
       
-    	  PieUtils.drawPie(gcBuffer,x1 - PEER_SIZE / 2,y1 - PEER_SIZE / 2,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
+    	  PieUtils.drawPie(gcBuffer, peer_x, peer_y,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
       }
       //gcBuffer.drawText(peer.getIp() , x1 + 8 , y1 , true);
     }
     
     gcBuffer.setBackground(Colors.blues[Colors.BLUES_MIDDARK]);
-    PieUtils.drawPie(gcBuffer,x0 - OWN_SIZE / 2 ,y0 - OWN_SIZE / 2,OWN_SIZE,OWN_SIZE,manager.getStats().getCompleted() / 10);
+    
+    me_hit_x = x0 - OWN_SIZE / 2;
+    me_hit_y = y0 - OWN_SIZE / 2;
+        
+    PieUtils.drawPie(gcBuffer, me_hit_x, me_hit_y,OWN_SIZE,OWN_SIZE,manager.getStats().getCompleted() / 10);
     
     gcBuffer.dispose();
     GC gcPanel = new GC(panel);

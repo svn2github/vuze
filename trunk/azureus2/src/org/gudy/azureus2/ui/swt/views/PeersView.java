@@ -398,6 +398,20 @@ public class PeersView
     tv.removeDataSource(removed);
   }
 
+  protected void
+  selectPeer(
+	PEPeer		peer )
+  {
+	  TableRowCore row = tv.getRow( peer );
+	  
+	  if ( row != null ){
+		  
+		  tv.setSelectedRows( new TableRowCore[]{ row } );
+		  
+		  tv.showRow( row );
+	  }
+  }
+  
   public void peerManagerWillBeAdded( PEPeerManager	peer_manager ){}
   public void peerManagerAdded(PEPeerManager manager) {	}
   public void peerManagerRemoved(PEPeerManager manager) {

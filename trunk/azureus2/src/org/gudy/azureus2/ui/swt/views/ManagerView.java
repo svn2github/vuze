@@ -611,6 +611,38 @@ public class ManagerView
 		}
 	}
 
+	protected Object
+	showView(
+		Class	view_class )
+	{
+		CTabItem[] items = folder.getItems();
+		
+	    for (int i = 0; i < items.length; i++) {
+	    	
+	    	CTabItem item = items[i];
+	    	
+	    	UISWTViewCore view = (UISWTViewCore) item.getData("IView");
+	    	
+	    	UISWTViewEventListener listener = view.getEventListener();
+	    	
+	    	if ( listener instanceof UISWTViewEventListenerHolder ){
+	    		
+	    		UISWTViewEventListenerHolder lh = (UISWTViewEventListenerHolder)listener;
+	    		
+	    		UISWTViewEventListener delegated_listener = lh.getDelegatedEventListener( view );
+	    		
+	    		if ( view_class.isInstance( delegated_listener )){
+	    			
+	    			selectView( item );
+	    			
+	    			return( delegated_listener );
+	    		}
+	    	}
+	    }
+	    
+	    return( null );
+	}
+	
 	public void 
 	filterSet(
 		final TableViewSWT<?>	tv,
