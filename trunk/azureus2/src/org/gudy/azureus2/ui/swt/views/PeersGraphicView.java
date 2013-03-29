@@ -115,11 +115,23 @@ public class PeersGraphicView
   class PeerComparator implements Comparator<PEPeer> {
   	public int compare(PEPeer peer0, PEPeer peer1) {
 
-      //Then we sort on %, but depending on interested ...
       int percent0 = peer0.getPercentDoneInThousandNotation();
       int percent1 = peer1.getPercentDoneInThousandNotation();
       
-      return percent0 - percent1;
+      int result = percent0 - percent1;
+      
+      if ( result == 0 ){
+    	  
+    	  long l = peer0.getTimeSinceConnectionEstablished() - peer1.getTimeSinceConnectionEstablished();
+    	  
+    	  if ( l < 0 ){
+    		  result = -1;
+    	  }else if ( result > 0 ){
+    		  result = 1;
+    	  }
+      }
+      
+      return( result );
     }
   }
   
