@@ -242,8 +242,11 @@ public class NatTestWindow {
     
     textServerTCPListen.addListener(SWT.Modify, new Listener() {
       public void handleEvent(Event e) {
-        final int TCPListenPort = Integer.parseInt(textServerTCPListen.getText());
-        serverTCPListenPort = TCPListenPort;
+    	  try{
+    		  final int TCPListenPort = Integer.parseInt(textServerTCPListen.getText());
+    		  serverTCPListenPort = TCPListenPort;
+    	  }catch( Throwable f ){  		  
+    	  }
       }
     });
 
@@ -281,8 +284,11 @@ public class NatTestWindow {
     
     textServerUDPListen.addListener(SWT.Modify, new Listener() {
       public void handleEvent(Event e) {
-        final int UDPListenPort = Integer.parseInt(textServerUDPListen.getText());
-        serverUDPListenPort =UDPListenPort;
+    	  try{
+    		  final int UDPListenPort = Integer.parseInt(textServerUDPListen.getText());
+    		  serverUDPListenPort =UDPListenPort;
+    	  }catch( Throwable f ){  		  
+    	  }
       }
     });
 
