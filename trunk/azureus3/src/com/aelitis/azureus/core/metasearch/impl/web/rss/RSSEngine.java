@@ -650,6 +650,16 @@ RSSEngine
 						}
 					}
 
+					dlink = result.getDownloadLink();
+					
+					if ( dlink == null || dlink.length() == 0 ){
+
+							// last ditch effort, sometimes the download link is the <link> so stuff it in and hope (could test download once I guess and then
+							// record the outcome if it is a torrent but, meh)
+						
+						result.setTorrentLink( result.getCDPLink());
+					}
+					
 					results.add(result);
 					
 					if ( absolute_max_matches >= 0 && results.size() == absolute_max_matches ){
