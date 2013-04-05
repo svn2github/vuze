@@ -1752,6 +1752,37 @@ public class GlobalManagerImpl
 	}
   }
   
+  public boolean 
+  resumingDownload(
+	 DownloadManager manager)
+  {
+		try {  
+			paused_list_mon.enter();
+			
+		    for( int i=0; i < paused_list.size(); i++ ) {
+		    	
+		      	Object[]	data = (Object[])paused_list.get(i);
+		      	
+		        HashWrapper hash = (HashWrapper)data[0];
+		        		        
+		        DownloadManager this_manager = getDownloadManager( hash );
+		      
+		        if ( this_manager == manager ){
+		        	
+		        	paused_list.remove(i);
+		        	
+		        	return( true );
+		        }
+		    }
+		}finally{  
+		    	
+			paused_list_mon.exit();  
+	   	}
+		
+		return( false );
+  }
+
+	
   public void resumeDownloads() {
 	  auto_resume_disabled = false;
 	  

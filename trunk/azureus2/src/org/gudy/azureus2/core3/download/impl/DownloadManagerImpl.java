@@ -1657,6 +1657,8 @@ DownloadManagerImpl
 	public void
 	setStateWaiting()
 	{
+		checkResuming();
+		
 		controller.setStateWaiting();
 	}
   
@@ -1669,6 +1671,8 @@ DownloadManagerImpl
   	public void
   	setStateQueued()
   	{
+  		checkResuming();
+  		
   		controller.setStateQueued();
   	}
   
@@ -1783,6 +1787,12 @@ DownloadManagerImpl
 		}
 	}
   	
+	private void
+	checkResuming()
+	{
+		globalManager.resumingDownload( this );
+	}
+	
 	public boolean
 	pause()
 	{

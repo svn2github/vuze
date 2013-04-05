@@ -231,6 +231,14 @@ public interface GlobalManager extends AzureusCoreComponent, TaggableResolver {
 	public boolean canResumeDownloads();
 
 	/**
+	 * This reports that a download is being resumed in order to remove it from the paused set
+	 * Don't use this to actually resume a download, use resumeDownload !
+	 * @param dm
+	 * @return
+	 */
+	public boolean resumingDownload(DownloadManager dm);
+
+	/**
 	 * Pause one DownloadManager
 	 * @param dm DownloadManager to pause
 	 * @return False if DownloadManager was invalid, stopped, or pause failed
