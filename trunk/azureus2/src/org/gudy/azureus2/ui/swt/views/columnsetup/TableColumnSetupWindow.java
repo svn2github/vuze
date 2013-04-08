@@ -1073,12 +1073,12 @@ public class TableColumnSetupWindow
 		Map<String, TableColumnCore> mapColumns = tcm.getTableColumnsAsMap(
 				TableColumn.class, TABLEID_AVAIL);
 		TableColumnCore[] columns;
-		int[] widths = { 405, 110 };
+		int[] widths = { 405, 105 };
 		if (sampleRow == null) {
 			columns = new TableColumnCore[] {
 				mapColumns.get(ColumnTC_NameInfo.COLUMN_ID),
 			};
-			widths = new int[] { 525 };
+			widths = new int[] { 510 };
 		} else {
 			columns = new TableColumnCore[] {
 				mapColumns.get(ColumnTC_NameInfo.COLUMN_ID),
