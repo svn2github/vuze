@@ -272,7 +272,9 @@ public class ColumnThumbAndName
 				Rectangle hitArea = new Rectangle(paddingX, middleY - halfHeight
 						- cellBounds.y, width, (halfHeight * 4) + 1);
 				rowCore.setData(ID_EXPANDOHITAREA, hitArea);
+			}
 
+			if (!NEVER_SHOW_TWISTY) {
 				cellBounds.x += paddingX * 2 + width;
 				cellBounds.width -= paddingX * 2 + width;
 			}
