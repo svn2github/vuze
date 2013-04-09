@@ -115,6 +115,8 @@ public interface MdiEntry
 
 	public void hide();
 
+	public void requestAttention();
+	
 	public String getTitle();
 	
 	public void setTitle(String title);

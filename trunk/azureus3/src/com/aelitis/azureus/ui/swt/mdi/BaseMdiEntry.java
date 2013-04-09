@@ -662,6 +662,11 @@ public abstract class BaseMdiEntry
 			}
 		});
 	}
+	
+	public void
+	requestAttention()
+	{
+	}
 
 	protected void swt_hide() {
 		SWTSkinObject skinObjectMaster = getSkinObjectMaster();

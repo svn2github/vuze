@@ -48,12 +48,14 @@ AzureusCore
 	public static final String	CA_HIBERNATE	= "Hibernate";
 	public static final String	CA_SHUTDOWN		= "Shutdown";
 	
-	
+	public long
+	getCreateTime();
+
 	public void
 	start()
 	
 		throws AzureusCoreException;
-	
+		
 	public boolean
 	isStarted();
 	

@@ -328,50 +328,60 @@ public class ConfigSectionInterfaceAlerts
 					f_sound_info
 				}));
 
-		cArea = new Composite(cSection, SWT.NULL);
-		layout = new GridLayout();
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
-		layout.numColumns = 2;
-		cArea.setLayout(layout);
-		cArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		boolean isAZ3 = COConfigurationManager.getStringParameter("ui").equals("az3");
+		
+		if ( isAZ3 ){
+			
+			BooleanParameter flash_on_dl_added = new BooleanParameter(cArea,
+					"Request Attention On New Download", LBLKEY_PREFIX + "dl.add.req.attention");
 
-		BooleanParameter popup_dl_added = new BooleanParameter(cArea,
+		}
+		
+			// popups group
+		
+		Group gPopup = new Group(cSection, SWT.NULL);
+		Messages.setLanguageText( gPopup, "label.popups" );
+		layout = new GridLayout();
+		layout.numColumns = 2;
+		gPopup.setLayout(layout);
+		gPopup.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+		BooleanParameter popup_dl_added = new BooleanParameter(gPopup,
 				"Popup Download Added", LBLKEY_PREFIX + "popupdownloadadded");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		popup_dl_added.setLayoutData(gridData);
 
-		BooleanParameter popup_dl_completed = new BooleanParameter(cArea,
+		BooleanParameter popup_dl_completed = new BooleanParameter(gPopup,
 				"Popup Download Finished", LBLKEY_PREFIX + "popupdownloadfinished");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		popup_dl_completed.setLayoutData(gridData);
 
-		BooleanParameter popup_file_completed = new BooleanParameter(cArea,
+		BooleanParameter popup_file_completed = new BooleanParameter(gPopup,
 				"Popup File Finished", LBLKEY_PREFIX + "popupfilefinished");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		popup_file_completed.setLayoutData(gridData);
 
-		BooleanParameter disable_sliding = new BooleanParameter(cArea,
+		BooleanParameter disable_sliding = new BooleanParameter(gPopup,
 				"GUI_SWT_DisableAlertSliding", STYLE_PREFIX + "disableAlertSliding");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		disable_sliding.setLayoutData(gridData);
 
 		// Timestamps for popup alerts.
-		BooleanParameter show_alert_timestamps = new BooleanParameter(cArea,
+		BooleanParameter show_alert_timestamps = new BooleanParameter(gPopup,
 				"Show Timestamp For Alerts", LBLKEY_PREFIX + "popup.timestamp");
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
 		show_alert_timestamps.setLayoutData(gridData);
 
 		// Auto-hide popup setting.
-		Label label = new Label(cArea, SWT.WRAP);
+		Label label = new Label(gPopup, SWT.WRAP);
 		Messages.setLanguageText(label, LBLKEY_PREFIX + "popup.autohide");
 		label.setLayoutData(new GridData());
-		IntParameter auto_hide_alert = new IntParameter(cArea,
+		IntParameter auto_hide_alert = new IntParameter(gPopup,
 				"Message Popup Autoclose in Seconds", 0, 86400);
 		gridData = new GridData();
 		gridData.horizontalSpan = 1;

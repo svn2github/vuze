@@ -104,16 +104,20 @@ public class SB_Transfers
 		int numStoppedIncomplete = 0;
 
 		boolean includeLowNoise;
+		
+		long	newestDownloadTime = 0;
 	};
 
 	private static stats statsWithLowNoise = new stats();
 
 	private static stats statsNoLowNoise = new stats();
-
+	
 	private static CopyOnWriteList<countRefreshListener> listeners = new CopyOnWriteList<countRefreshListener>();
 
 	private static boolean first = true;
 
+	private static long		coreCreateTime;
+	
 	static {
 		statsNoLowNoise.includeLowNoise = false;
 		statsWithLowNoise.includeLowNoise = true;
@@ -463,11 +467,39 @@ public class SB_Transfers
 	}
 
 	protected static MdiEntry createDownloadingEntry(MultipleDocumentInterface mdi) {
+		final MdiEntry[] entry_holder = { null };
+
 		ViewTitleInfo titleInfoDownloading = new ViewTitleInfo() {
+			private long	max_dl_time;
 			public Object getTitleInfoProperty(int propertyID) {
 				if (propertyID == TITLE_INDICATOR_TEXT) {
-					if (statsNoLowNoise.numIncomplete > 0)
-						return statsNoLowNoise.numIncomplete + ""; // + " of " + numIncomplete;
+					if ( COConfigurationManager.getBooleanParameter( "Request Attention On New Download" )){
+
+						if ( coreCreateTime > 0 ){
+							
+							if ( max_dl_time == 0 ){
+								
+								max_dl_time = coreCreateTime;
+							}
+							
+							if ( statsNoLowNoise.newestDownloadTime > max_dl_time ){
+											
+								MdiEntry entry = entry_holder[0];
+								
+								if ( entry != null ){
+									
+									max_dl_time = statsNoLowNoise.newestDownloadTime;
+															
+									entry.requestAttention();
+								}
+							}
+						}
+					}
+					
+					int	current = statsNoLowNoise.numIncomplete;
+
+					if (current > 0)
+						return current + ""; // + " of " + numIncomplete;
 				}
 
 				if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {
@@ -485,6 +517,9 @@ public class SB_Transfers
 				SideBar.SIDEBAR_HEADER_TRANSFERS, SideBar.SIDEBAR_SECTION_LIBRARY_DL,
 				"library", "{sidebar.LibraryDL}",
 				titleInfoDownloading, null, false, null);
+		
+		entry_holder[0] = entry;
+		
 		entry.setImageLeftID("image.sidebar.downloading");
 
 		MdiEntryVitalityImage vitalityImage = entry.addVitalityImage(ID_VITALITY_ACTIVE);
@@ -503,6 +538,8 @@ public class SB_Transfers
 				return;
 			}
 			first = false;
+			
+			coreCreateTime = core.getCreateTime();
 		}
 		
 		final CategoryListener categoryListener = new CategoryListener() {
@@ -845,7 +882,6 @@ public class SB_Transfers
 						&& PlatformTorrentUtils.isAdvancedViewOnly(dm)) {
 					return;
 				}
-
 				recountUnopened();
 				if (dm.getAssumedComplete()) {
 					stats.numComplete--;
@@ -894,6 +930,7 @@ public class SB_Transfers
 						&& PlatformTorrentUtils.isAdvancedViewOnly(dm)) {
 					return;
 				}
+				stats.newestDownloadTime = Math.max( stats.newestDownloadTime, dm.getCreationTime());
 				int dm_state = dm.getState();
 				if (dm.getAssumedComplete()) {
 					stats.numComplete++;
@@ -911,10 +948,16 @@ public class SB_Transfers
 				}
 			}
 		}, false);
-		List<?> downloadManagers = gm.getDownloadManagers();
-		for (Iterator<?> iter = downloadManagers.iterator(); iter.hasNext();) {
+		
+		List<DownloadManager> downloadManagers = gm.getDownloadManagers();
+		for (Iterator<DownloadManager> iter = downloadManagers.iterator(); iter.hasNext();) {
 			DownloadManager dm = (DownloadManager) iter.next();
 			boolean lowNoise = PlatformTorrentUtils.isAdvancedViewOnly(dm);
+			long createTime = dm.getCreationTime();
+			statsWithLowNoise.newestDownloadTime = Math.max( statsWithLowNoise.newestDownloadTime, createTime);
+			if (!lowNoise) {
+				statsNoLowNoise.newestDownloadTime = Math.max( statsNoLowNoise.newestDownloadTime, createTime);
+			}
 			dm.addListener(dmListener, false);
 			int dm_state = dm.getState();
 			if (dm_state == DownloadManager.STATE_STOPPED) {

@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.debug.UIDebugGenerator;
@@ -116,6 +117,10 @@ public class SideBarEntrySWT
 	
 	private boolean neverPainted = true;
 
+	private long 	attention_start = -1;
+	private boolean	attention_flash_on;
+
+	
 	public SideBarEntrySWT(SideBar sidebar, SWTSkin _skin, String id) {
 		super(sidebar, id);
 		this.skin = _skin;
@@ -235,7 +240,32 @@ public class SideBarEntrySWT
 		}
 		return null;
 	}
-
+	
+	public void
+	requestAttention()
+	{
+		attention_start = SystemTime.getMonotonousTime();
+		
+		sidebar.requestAttention( this );
+	}
+	
+	protected boolean
+	attentionUpdate(
+		int	ticks )
+	{
+		if ( 	attention_start == -1 ||
+				SystemTime.getMonotonousTime() - attention_start > SideBar.SIDEBAR_ATTENTION_DURATION ){
+			
+			attention_start = -1;
+			
+			return( false );
+		}
+		
+		attention_flash_on = ticks%2==0;
+		
+		return( true );
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.mdi.MdiEntry#redraw()
 	 */
@@ -898,6 +928,13 @@ public class SideBarEntrySWT
 		boolean selected = (detail & SWT.SELECTED) > 0;
 		//boolean focused = (detail & SWT.FOCUSED) > 0;
 		boolean hot = (detail & SWT.HOT) > 0;
+		if (selected) {
+			attention_start = -1;
+		}else{
+			if ( attention_start != -1 && attention_flash_on ){
+				selected = true;
+			}
+		}
 		if (selected) {
 			//System.out.println("gmmm" + drawBounds + ": " + Debug.getCompressedStackTrace());
 			gc.setClipping((Rectangle) null);

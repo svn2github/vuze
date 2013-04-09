@@ -354,6 +354,7 @@ public class ConfigurationDefaults {
     def.put( "Popup File Finished", FALSE);
     def.put( "Popup Download Added", FALSE);
     def.put( "Show Timestamp For Alerts", FALSE);
+    def.put( "Request Attention On New Download", TRUE );
     
     //default torrent directory option
     def.put( "Save Torrent Files", TRUE );

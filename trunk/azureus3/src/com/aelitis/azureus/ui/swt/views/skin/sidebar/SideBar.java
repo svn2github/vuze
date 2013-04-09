@@ -19,6 +19,7 @@
 package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -100,6 +101,9 @@ public class SideBar
 
 	private static final boolean GAP_BETWEEN_LEVEL_1 = true;
 
+	protected static final int SIDEBAR_ATTENTION_PERIOD	 	= 500;
+	protected static final int SIDEBAR_ATTENTION_DURATION 	= 5000;
+	
 	private SWTSkin skin;
 
 	private SWTSkinObjectContainer soSideBarContents;
@@ -126,8 +130,12 @@ public class SideBar
 
 	private List<MdiSWTMenuHackListener> listMenuHackListners;
 
+	private List<SideBarEntrySWT> 	attention_seekers = new ArrayList<SideBarEntrySWT>();
+	private TimerEventPeriodic		attention_event;
+
 	public static SideBar instance = null;
 
+	
 	public SideBar() {
 		super();
 		if (instance == null) {
@@ -1557,7 +1565,95 @@ public class SideBar
 		}
 		return null;
 	}
-
+	
+	protected void
+	requestAttention(
+		SideBarEntrySWT	entry )
+	{
+		synchronized( attention_seekers ){
+	
+			if ( !attention_seekers.contains( entry )){
+				
+				attention_seekers.add( entry );
+			}
+			
+			if ( attention_event == null ){
+				
+				attention_event = 
+					SimpleTimer.addPeriodicEvent(
+						"SideBar:attention",
+						SIDEBAR_ATTENTION_PERIOD,
+						new TimerEventPerformer()
+						{
+							int	tick_count = 0;
+							
+							public void 
+							perform(
+								TimerEvent event ) 
+							{
+								tick_count++;
+								
+								final List<SideBarEntrySWT>	repaints = new ArrayList<SideBarEntrySWT>();
+								
+								synchronized( attention_seekers ){
+									
+									Iterator<SideBarEntrySWT> it = attention_seekers.iterator();
+									
+									while ( it.hasNext()){
+										
+										SideBarEntrySWT entry = it.next();
+										
+										if ( entry.isDisposed()){
+											
+											it.remove();
+											
+										}else{
+										
+											if ( !entry.attentionUpdate( tick_count )){
+																																				
+												it.remove();
+											}
+											
+											repaints.add( entry );
+										}
+									}
+									
+									if ( attention_seekers.size() == 0 ){
+										
+										TimerEventPeriodic ev = attention_event;
+										
+										if ( ev != null ){
+											
+											ev.cancel();
+											
+											attention_event = null;
+										}
+									}
+								}
+								
+								if ( repaints.size() > 0 ){
+									
+									Utils.execSWTThread(
+										new AERunnable() 
+										{
+											@Override
+											public void 
+											runSupport() 
+											{
+												for ( SideBarEntrySWT entry: repaints ){
+													
+													entry.redraw();
+												}
+											}
+										});
+								}
+							}
+						});
+						
+			}
+		}
+	}
+	
 	public void generate(IndentWriter writer) {
 		MdiEntrySWT[] entries = getEntriesSWT();
 		for (MdiEntrySWT entry : entries) {

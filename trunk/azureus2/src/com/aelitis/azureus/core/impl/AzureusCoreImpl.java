@@ -186,7 +186,7 @@ AzureusCoreImpl
 	private CryptoManager		crypto_manager;
 	private NATTraverser		nat_traverser;
 	
-	private long create_time = SystemTime.getCurrentTime();
+	private final long create_time;
 
 
 	private volatile boolean				started;
@@ -216,6 +216,8 @@ AzureusCoreImpl
 	protected
 	AzureusCoreImpl()
 	{
+		create_time = SystemTime.getCurrentTime();
+		
 		if(!SUPPRESS_CLASSLOADER_ERRORS && !(this.getClass().getClassLoader() instanceof PrimaryClassloader))
 			System.out.println("###\nWarning: Core not instantiated through a PrimaryClassloader, this can lead to restricted functionality or bugs in future versions\n###");
 		
@@ -689,6 +691,12 @@ AzureusCoreImpl
 						System.gc();
 					}
 				});
+	}
+	
+	public long
+	getCreateTime()
+	{
+		return( create_time );
 	}
 	
 	protected void
