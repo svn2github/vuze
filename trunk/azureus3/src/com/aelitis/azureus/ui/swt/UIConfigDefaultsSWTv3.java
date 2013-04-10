@@ -160,7 +160,6 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("Library.CatInSideBar", startAdvanced ? 1 : 0);
 		
 		defaults.addParameter("list.dm.dblclick", "0");
-		defaults.addParameter("NameColumn.showProgramIcon", startAdvanced);
 
 		//=== defaults used by MainWindow
 		defaults.addParameter("vista.adminquit", false);
