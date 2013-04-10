@@ -3458,16 +3458,27 @@ public class GlobalManagerImpl
 		extends TagTypeWithState
 		implements DownloadManagerListener
 	{
-		TagDownloadWithState	tag_initialising;
-		TagDownloadWithState	tag_downloading;
-		TagDownloadWithState	tag_seeding;
-		TagDownloadWithState	tag_queued_downloading;
-		TagDownloadWithState	tag_queued_seeding;
-		TagDownloadWithState	tag_stopped;
-		TagDownloadWithState	tag_error;
+		private Object	main_tag_key 	= new Object();
+		private Object	comp_tag_key	= new Object();
+		
+			// exclusive tags
+		
+		private TagDownloadWithState	tag_initialising;
+		private TagDownloadWithState	tag_downloading;
+		private TagDownloadWithState	tag_seeding;
+		private TagDownloadWithState	tag_queued_downloading;
+		private TagDownloadWithState	tag_queued_seeding;
+		private TagDownloadWithState	tag_stopped;
+		private TagDownloadWithState	tag_error;
 	
-		TagDownloadWithState	tag_active;
-		TagDownloadWithState	tag_paused;
+			// non-exclusive/derived tags
+		
+		private TagDownloadWithState	tag_active;
+		private TagDownloadWithState	tag_inactive;
+		private TagDownloadWithState	tag_complete;
+		private TagDownloadWithState	tag_incomplete;
+		
+		private TagDownloadWithState	tag_paused;
 		
 		private
 		DownloadStateTagger(
@@ -3486,6 +3497,9 @@ public class GlobalManagerImpl
 			tag_error				= new TagDownloadWithState( this, 6, "tag.type.ds.err", false, false );
 			tag_active				= new TagDownloadWithState( this, 7, "tag.type.ds.act", false, false );
 			tag_paused				= new TagDownloadWithState( this, 8, "tag.type.ds.pau", false, false ){ protected boolean getVisibleDefault(){ return( false );}}; 
+			tag_inactive			= new TagDownloadWithState( this, 9, "tag.type.ds.inact", false, false ){ protected boolean getVisibleDefault(){ return( false );}}; 
+			tag_complete			= new TagDownloadWithState( this, 10, "tag.type.ds.comp", true, false ){ protected boolean getVisibleDefault(){ return( false );}}; 
+			tag_incomplete			= new TagDownloadWithState( this, 11, "tag.type.ds.incomp", true, true ){ protected boolean getVisibleDefault(){ return( false );}}; 
 			
 			_gm.addListener( 
 				new GlobalManagerAdapter()
@@ -3526,10 +3540,19 @@ public class GlobalManagerImpl
 			DownloadManager 	manager,
 			int					state )
 		{
+			if ( manager.isDestroyed()){
+				
+				remove( manager );
+				
+				return;
+			}
+			
 			Tag	new_tag;
 			
-			Tag old_tag = (Tag)manager.getUserData( DownloadStateTagger.class );
+			Tag old_tag = (Tag)manager.getUserData( main_tag_key );
 
+			boolean complete = manager.isDownloadComplete( false );
+			
 			switch( state ){
 				case DownloadManager.STATE_WAITING:
 				case DownloadManager.STATE_INITIALIZING:
@@ -3556,7 +3579,7 @@ public class GlobalManagerImpl
 					new_tag = tag_stopped;
 					break;
 				case DownloadManager.STATE_QUEUED:
-					if ( manager.isDownloadComplete( false )){
+					if ( complete ){
 						new_tag = tag_queued_seeding;
 					}else{
 						new_tag = tag_queued_downloading;
@@ -3574,18 +3597,36 @@ public class GlobalManagerImpl
 					
 					old_tag.removeTaggable( manager );
 				}
-				
+								
 				new_tag.addTaggable( manager );
 				
-				manager.setUserData( DownloadStateTagger.class, new_tag );
+				manager.setUserData( main_tag_key, new_tag );
 				
-				if ( new_tag != tag_seeding && new_tag != tag_downloading ){
+				synchronized( this ){
 					
-					tag_active.removeTaggable( manager );
+					boolean	was_inactive = tag_inactive.hasTaggable( manager );
+					
+					if ( new_tag != tag_seeding && new_tag != tag_downloading ){
+												
+						tag_active.removeTaggable( manager );
+						
+						if ( !was_inactive ){
+							
+							tag_inactive.addTaggable( manager );
+						}
+					}else{
+						
+						boolean	was_active = tag_active.hasTaggable( manager );
+
+						if ( !( was_active || was_inactive )){
+							
+							tag_inactive.addTaggable( manager );
+						}
+					}
 				}
 				
 				if ( new_tag == tag_stopped && manager.isPaused()){
-					
+											
 					tag_paused.addTaggable( manager );
 					
 				}else if ( old_tag == tag_stopped ){
@@ -3593,32 +3634,74 @@ public class GlobalManagerImpl
 					tag_paused.removeTaggable( manager );
 				}
 			}
+			
+			Boolean was_complete = (Boolean)manager.getUserData( comp_tag_key );
+
+			if ( was_complete == null || was_complete != complete ){
+				
+				synchronized( this ){
+					
+					if ( complete ){
+						
+						if ( !tag_complete.hasTaggable( manager )){
+														
+							tag_complete.addTaggable( manager );
+							
+							tag_incomplete.removeTaggable( manager );
+						}
+					}else{
+						
+						if ( !tag_incomplete.hasTaggable( manager )){
+							
+							tag_incomplete.addTaggable( manager );
+							
+							tag_complete.removeTaggable( manager );
+						}
+					}
+					
+					manager.setUserData(  comp_tag_key, complete );
+				}
+			}
 		}
 		
 		private void
 		updateActive()
 		{
-			Set<DownloadManager> active = new HashSet<DownloadManager>( tag_active.getTaggedDownloads());
-			
-			for ( TagDownloadWithState tag: new TagDownloadWithState[]{ tag_downloading, tag_seeding }){
-			
-				for ( DownloadManager dm: tag.getTaggedDownloads()){
-			
-					DownloadManagerStats stats = dm.getStats();
-					
-					if ( stats.getDataReceiveRate() + stats.getDataSendRate() > 0 ){
+			synchronized( this ){
+				
+				Set<DownloadManager> active 	= new HashSet<DownloadManager>( tag_active.getTaggedDownloads());
+				
+				for ( TagDownloadWithState tag: new TagDownloadWithState[]{ tag_downloading, tag_seeding }){
+				
+					for ( DownloadManager dm: tag.getTaggedDownloads()){
+				
+						DownloadManagerStats stats = dm.getStats();
 						
-						if ( !active.remove( dm )){
+						boolean is_active = 
+							stats.getDataReceiveRate() + stats.getDataSendRate() > 0 &&
+							!dm.isDestroyed();
+						
+						if ( is_active ){
 							
-							tag_active.addTaggable( dm );
+							if ( !active.remove( dm )){
+																
+								tag_active.addTaggable( dm );
+								
+								tag_inactive.removeTaggable( dm );
+							}
 						}
 					}
 				}
-			}
-			
-			for ( DownloadManager dm: active ){
 				
-				tag_active.removeTaggable( dm );
+				for ( DownloadManager dm: active ){
+					
+					tag_active.removeTaggable( dm );
+					
+					if ( !dm.isDestroyed()){
+						
+						tag_inactive.addTaggable( dm );
+					}
+				}
 			}
 		}
 		
@@ -3626,12 +3709,33 @@ public class GlobalManagerImpl
 		remove(
 			DownloadManager		manager )
 		{
-			Tag old_tag = (Tag)manager.getUserData( DownloadStateTagger.class );
+			Tag old_tag = (Tag)manager.getUserData( main_tag_key );
 			
 			if ( old_tag != null ){
 				
 				old_tag.removeTaggable( manager );
 			}
+			
+			synchronized( this ){
+			
+				if ( tag_active.hasTaggable( manager )){
+					
+					tag_active.removeTaggable( manager );
+					
+				}else{
+					
+					tag_inactive.removeTaggable( manager );
+				}
+				
+				if ( tag_complete.hasTaggable( manager )){
+					
+					tag_complete.removeTaggable( manager );
+					
+				}else{
+					
+					tag_incomplete.removeTaggable( manager );
+				}
+			}	
 		}
 		
 		public void
