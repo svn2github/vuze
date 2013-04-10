@@ -21,11 +21,17 @@
  */
 package org.gudy.azureus2.core3.peer.util;
 
-import java.util.HashSet;
-import java.util.Set;
+import java.net.InetAddress;
+import java.util.*;
+
 
 import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.utils.LocationProvider;
+
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 
 /**
@@ -207,5 +213,85 @@ public class PeerUtils {
 		// System.out.println( "generated new peer id:" + ByteFormatter.nicePrint(peerId));
 
 		return( peerId );
+	}
+	
+	
+	private static volatile LocationProvider	country_provider;
+	private static long							country_provider_last_check;
+
+	private static Object	country_key 	= new Object();
+		
+	private static LocationProvider
+	getCountryProvider()
+	{
+		if ( country_provider != null ){
+			
+			if ( country_provider.isDestroyed()){
+				
+				country_provider 			= null;
+				country_provider_last_check	= 0;
+			}
+		}
+		
+		if ( country_provider == null ){
+			
+			long	now = SystemTime.getMonotonousTime();
+			
+			if ( country_provider_last_check == 0 || now - country_provider_last_check > 20*1000 ){
+				
+				country_provider_last_check = now;
+				
+				java.util.List<LocationProvider> providers = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUtilities().getLocationProviders();
+	
+				for ( LocationProvider provider: providers ){
+					
+					if ( 	provider.hasCapabilities( 
+								LocationProvider.CAP_ISO3166_BY_IP |
+								LocationProvider.CAP_COUNTY_BY_IP )){
+						
+						country_provider = provider;
+					}
+				}
+			}
+		}
+		
+		return( country_provider );
+	}
+	
+	public static String[]
+	getCountryDetails(
+		PEPeer	peer )
+	{
+		String[] details = (String[])peer.getUserData( country_key );
+		
+		if ( details == null ){
+			
+			LocationProvider lp = getCountryProvider();
+			
+			if ( lp != null ){
+				
+				try{				
+					InetAddress peer_address = InetAddress.getByName( peer.getIp());
+					
+					String code = lp.getISO3166CodeForIP( peer_address );
+					String name = lp.getCountryNameForIP( peer_address, Locale.getDefault());
+					
+					if ( code != null && name != null ){
+						
+						details = new String[]{ code, name };
+						
+					}else{
+						
+						details = new String[0];
+					}
+					
+					peer.setUserData( country_key, details );
+					
+				}catch( Throwable e ){	
+				}
+			}
+		}
+		
+		return( details );
 	}
 }

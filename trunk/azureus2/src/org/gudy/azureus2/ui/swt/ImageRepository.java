@@ -381,6 +381,64 @@ public class ImageRepository
 	
 	private static Map<String,Image>	flag_cache = new HashMap<String, Image>();
 	
+	private static LocationProvider
+	getFlagProvider()
+	{
+		if ( flag_provider != null ){
+			
+			if ( flag_provider.isDestroyed()){
+				
+				flag_provider 				= null;
+				flag_provider_last_check	= 0;
+			}
+		}
+		
+		if ( flag_provider == null ){
+			
+			long	now = SystemTime.getMonotonousTime();
+			
+			if ( flag_provider_last_check == 0 || now - flag_provider_last_check > 20*1000 ){
+				
+				flag_provider_last_check = now;
+				
+				java.util.List<LocationProvider> providers = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUtilities().getLocationProviders();
+	
+				for ( LocationProvider provider: providers ){
+					
+					if ( 	provider.hasCapabilities( 
+								LocationProvider.CAP_ISO3166_BY_IP |
+								LocationProvider.CAP_FLAG_BY_IP )){
+						
+						flag_provider = provider;
+					}
+				}
+			}
+		}
+		
+		return( flag_provider );
+	}
+	
+	public static boolean
+	hasCountryFlags(
+		boolean		small )
+	{
+		if ( !Utils.isSWTThread()){
+			
+			Debug.out( "Needs to be swt thread..." );
+			
+			return( false );
+		}
+		
+		LocationProvider fp = getFlagProvider();
+		
+		if ( fp == null ){
+			
+			return( false );
+		}
+		
+		return( true );
+	}
+	
 	public static Image
 	getCountryFlag(
 		PEPeer		peer,
@@ -399,44 +457,15 @@ public class ImageRepository
 		
 		if ( flag == null ){
 					
-			if ( flag_provider != null ){
-				
-				if ( flag_provider.isDestroyed()){
-					
-					flag_provider 				= null;
-					flag_provider_last_check	= 0;
-				}
-			}
+			LocationProvider fp = getFlagProvider();
 			
-			if ( flag_provider == null ){
-				
-				long	now = SystemTime.getMonotonousTime();
-				
-				if ( flag_provider_last_check == 0 || now - flag_provider_last_check > 20*1000 ){
-					
-					flag_provider_last_check = now;
-					
-					java.util.List<LocationProvider> providers = AzureusCoreFactory.getSingleton().getPluginManager().getDefaultPluginInterface().getUtilities().getLocationProviders();
-	
-					for ( LocationProvider provider: providers ){
-						
-						if ( 	provider.hasCapabilities( 
-									LocationProvider.CAP_ISO3166_BY_IP |
-									LocationProvider.CAP_FLAG_BY_IP )){
-							
-							flag_provider = provider;
-						}
-					}
-				}
-			}
-			
-			if ( flag_provider != null ){	
+			if ( fp != null ){	
 				
 				try{
 	
 					InetAddress peer_address = InetAddress.getByName( peer.getIp());
 					
-					String cc_key = flag_provider.getISO3166CodeForIP( peer_address ) + (small?".s":".l");
+					String cc_key = fp.getISO3166CodeForIP( peer_address ) + (small?".s":".l");
 					
 					flag = flag_cache.get( cc_key );
 					
@@ -446,7 +475,7 @@ public class ImageRepository
 						
 					}else{
 				
-						InputStream is = flag_provider.getCountryFlagForIP( peer_address, small?0:1 );
+						InputStream is = fp.getCountryFlagForIP( peer_address, small?0:1 );
 							
 						if ( is != null ){
 							

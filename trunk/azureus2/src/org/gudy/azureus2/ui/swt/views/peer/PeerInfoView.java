@@ -47,12 +47,14 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.Plugin;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
@@ -228,7 +230,7 @@ public class PeerInfoView
 
 		imageLabel = new Label(peerInfoComposite, SWT.NULL);
 		gridData = new GridData();
-		if (countryLocator != null)
+		if (ImageRepository.hasCountryFlags( false ) || countryLocator != null)
 			gridData.widthHint = 28;
 		imageLabel.setLayoutData(gridData);
 
@@ -353,32 +355,52 @@ public class PeerInfoView
 							.getPercentDoneInThousandNotation());
 			topLabel.setText(s);
 
-			if (countryLocator != null) {
-				try {
-					String sCountry = (String) countryLocator.getClass().getMethod(
-							"getIPCountry", new Class[] { String.class, Locale.class })
-							.invoke(countryLocator,
-									new Object[] { peer.getIp(), Locale.getDefault() });
-
-					String sCode = (String) countryLocator.getClass().getMethod(
-							"getIPISO3166", new Class[] { String.class }).invoke(
-							countryLocator, new Object[] { peer.getIp() });
-
-					imageLabel.setToolTipText(sCode + "- " + sCountry);
-
-					InputStream is = countryLocator.getClass().getClassLoader()
-							.getResourceAsStream(
-									sCountryImagesDir + "/" + sCode.toLowerCase() + ".png");
-					if (is != null) {
-						Image img = new Image(imageLabel.getDisplay(), is);
-						img.setBackground(imageLabel.getBackground());
-						imageLabel.setImage(img);
-					}
-
-				} catch (Exception e) {
-					// ignore
+			Image flag = ImageRepository.getCountryFlag( peer, false );
+			
+			if ( flag != null ){
+				
+				flag = new Image( flag.getDevice(), flag.getImageData());
+				
+				flag.setBackground(imageLabel.getBackground());
+				
+				imageLabel.setImage(flag);
+				
+				String[] country_details = PeerUtils.getCountryDetails( peer );
+				
+				if ( country_details != null && country_details.length == 2 ){
+					imageLabel.setToolTipText(country_details[0] + "- " + country_details[1]);
+				}else{
+					imageLabel.setToolTipText( "" );
 				}
+			}else if (countryLocator != null) {
+					try {
+						String sCountry = (String) countryLocator.getClass().getMethod(
+								"getIPCountry", new Class[] { String.class, Locale.class })
+								.invoke(countryLocator,
+										new Object[] { peer.getIp(), Locale.getDefault() });
+	
+						String sCode = (String) countryLocator.getClass().getMethod(
+								"getIPISO3166", new Class[] { String.class }).invoke(
+								countryLocator, new Object[] { peer.getIp() });
+	
+						imageLabel.setToolTipText(sCode + "- " + sCountry);
+	
+						InputStream is = countryLocator.getClass().getClassLoader()
+								.getResourceAsStream(
+										sCountryImagesDir + "/" + sCode.toLowerCase() + ".png");
+						if (is != null) {
+							Image img = new Image(imageLabel.getDisplay(), is);
+							img.setBackground(imageLabel.getBackground());
+							imageLabel.setImage(img);
+						}
+	
+					} catch (Exception e) {
+						// ignore
+					}
+			}else{
+				imageLabel.setToolTipText( "" );
 			}
+		
 		}
 		refreshInfoCanvas();
 	}
