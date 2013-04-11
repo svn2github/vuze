@@ -1597,13 +1597,15 @@ public class VersionCheckClient {
 		try{
 			COConfigurationManager.initialise();
 
+			COConfigurationManager.setParameter( "IPV6 Enable Support", true );
+			
 			boolean v6= true;
 
 			// Test connectivity.
 			if (true) {
 				// System.out.println( "UDP:  " + getSingleton().getExternalIpAddressUDP(null,0,v6));
 				// System.out.println( "TCP:  " + getSingleton().getExternalIpAddressTCP(null,0,v6));
-				// System.out.println( "HTTP: " + getSingleton().getExternalIpAddressHTTP(v6));
+				System.out.println( "HTTP: " + getSingleton().getExternalIpAddressHTTP(v6));
 			}
 
 			Map data = constructVersionCheckMessage(VersionCheckClient.REASON_UPDATE_CHECK_START);

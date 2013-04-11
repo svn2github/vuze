@@ -28,6 +28,8 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketHandler;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPRequestHandler;
 
 /**
  * @author parg
@@ -135,4 +137,10 @@ DHTTransportUDP
 		byte				protocol_version )
 	
 		throws DHTTransportException;
+	
+	public DHTUDPRequestHandler
+	getRequestHandler();
+	
+	public DHTUDPPacketHandler
+	getPacketHandler();
 }

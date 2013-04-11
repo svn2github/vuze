@@ -524,9 +524,11 @@ DHTPlugin
 												
 											}else{
 												
-												if ( dht.importSeed( ip, port ) != null ){
+												DHTTransportContact seed = dht.importSeed( ip, port );
+												
+												if ( seed != null ){
 													
-													dht.integrateDHT( false, null );
+													dht.integrateDHT( false, seed );
 												}
 											}
 										}
@@ -1229,9 +1231,19 @@ DHTPlugin
 		if ( main_dht != null ){
 			
 			return( main_dht.getLocalValue( key ));
+			
+		}else if ( cvs_dht != null ){
+			
+			return( cvs_dht.getLocalValue( key ));
+			
+		}else if ( main_v6_dht != null ){
+			
+			return( main_v6_dht.getLocalValue( key ));
+			
+		}else{
+			
+			return( null );
 		}
-		
-		return( cvs_dht.getLocalValue( key ));
 	}
 	
 	public List<DHTPluginValue>
@@ -1240,9 +1252,18 @@ DHTPlugin
 		if ( main_dht != null ){
 			
 			return( main_dht.getValues());
-		}
+			
+		}else if ( cvs_dht != null ){
 		
-		return( cvs_dht.getValues());
+			return( cvs_dht.getValues());
+			
+		}else if ( main_v6_dht != null ){
+			
+			return( main_v6_dht.getValues());
+		}else{
+			
+			return( new ArrayList<DHTPluginValue>());
+		}
 	}
 	
 	public void

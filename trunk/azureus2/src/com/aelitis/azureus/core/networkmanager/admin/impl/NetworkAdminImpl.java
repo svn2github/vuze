@@ -1350,7 +1350,19 @@ addressLoop:
 			
 			InetAddress v6 = getDefaultPublicAddressV6();
 			
-			return( v6 != null && !AddressUtils.isTeredo( v6 ));
+			if ( v6 == null ){
+				
+				return( false );
+			}
+			
+			if ( Constants.IS_CVS_VERSION ){
+				
+				return( true );
+				
+			}else{
+				
+				return( !AddressUtils.isTeredo( v6 ));
+			}
 		}
 		
 		return( false );

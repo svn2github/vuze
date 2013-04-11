@@ -22,14 +22,26 @@
 
 package com.aelitis.azureus.core.dht.transport.udp.impl.packethandler;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.InetSocketAddress;
+import java.net.URL;
 
 import org.gudy.azureus2.core3.util.AddressUtils;
+import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.UrlUtils;
 
+import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketHelper;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketReply;
 import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketRequest;
+import com.aelitis.azureus.core.util.DNSUtils;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 import com.aelitis.net.udp.uc.PRUDPPacket;
@@ -37,10 +49,12 @@ import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerRequest;
 import com.aelitis.net.udp.uc.PRUDPPacketReceiver;
+import com.aelitis.net.udp.uc.PRUDPPacketReply;
 
 
 public class 
 DHTUDPPacketHandler 
+	implements DHTUDPPacketHandlerStub
 {
 	private DHTUDPPacketHandlerFactory	factory;
 	private int							network;
@@ -83,13 +97,13 @@ DHTUDPPacketHandler
 		test_network_alive	= alive;
 	}
 	
-	protected DHTUDPRequestHandler
+	public DHTUDPRequestHandler
 	getRequestHandler()
 	{
 		return( request_handler );
 	}
 	
-	protected PRUDPPacketHandler
+	public PRUDPPacketHandler
 	getPacketHandler()
 	{
 		return( packet_handler );
@@ -105,23 +119,28 @@ DHTUDPPacketHandler
 	updateBloom(
 		InetSocketAddress		destination_address )
 	{
-	    long diff = SystemTime.getCurrentTime() - last_bloom_rotation_time;
-	    
-	    if( diff < 0 || diff > BLOOM_ROTATION_PERIOD ) {
-	    
-	    	// System.out.println( "bloom rotate: entries = " + bloom1.getEntryCount() + "/" + bloom2.getEntryCount());
-	    	
-	    	bloom1 = bloom2;
-	    	
-	    	bloom2 = BloomFilterFactory.createAddOnly( BLOOM_FILTER_SIZE );
-	        
-	        last_bloom_rotation_time = SystemTime.getCurrentTime();
-	    }
-
-	    byte[]	address_bytes = destination_address.getAddress().getAddress();
-	    
-	    bloom1.add( address_bytes );
-	    bloom2.add( address_bytes );
+			// allow unresolved through (e.g. ipv6 dht seed) as handled later
+		
+		if ( !destination_address.isUnresolved()){
+			
+		    long diff = SystemTime.getCurrentTime() - last_bloom_rotation_time;
+		    
+		    if( diff < 0 || diff > BLOOM_ROTATION_PERIOD ) {
+		    
+		    	// System.out.println( "bloom rotate: entries = " + bloom1.getEntryCount() + "/" + bloom2.getEntryCount());
+		    	
+		    	bloom1 = bloom2;
+		    	
+		    	bloom2 = BloomFilterFactory.createAddOnly( BLOOM_FILTER_SIZE );
+		        
+		        last_bloom_rotation_time = SystemTime.getCurrentTime();
+		    }
+	
+		    byte[]	address_bytes = destination_address.getAddress().getAddress();
+		    
+		    bloom1.add( address_bytes );
+		    bloom2.add( address_bytes );
+		}
 	}
 	
 	public void
@@ -143,44 +162,51 @@ DHTUDPPacketHandler
 			
 			if ( test_network_alive ){
 				
-				updateBloom( destination_address );
-			    
-				packet_handler.sendAndReceive( 
-					request, 
-					destination_address, 
-					new PRUDPPacketReceiver()
-					{
-						public void
-						packetReceived(
-							PRUDPPacketHandlerRequest	request,
-							PRUDPPacket					packet,
-							InetSocketAddress			from_address )
+				if ( destination_address.isUnresolved() && destination_address.getHostName().equals( Constants.DHT_SEED_ADDRESS_V6 )){
+					
+					tunnelIPv6SeedRequest( request, destination_address, receiver );
+					
+				}else{
+				
+					updateBloom( destination_address );
+				    
+					packet_handler.sendAndReceive( 
+						request, 
+						destination_address, 
+						new PRUDPPacketReceiver()
 						{
-							DHTUDPPacketReply	reply = (DHTUDPPacketReply)packet;
-							
-							stats.packetReceived( reply.getSerialisedSize() );
-							
-							if ( reply.getNetwork() == network ){
+							public void
+							packetReceived(
+								PRUDPPacketHandlerRequest	request,
+								PRUDPPacket					packet,
+								InetSocketAddress			from_address )
+							{
+								DHTUDPPacketReply	reply = (DHTUDPPacketReply)packet;
 								
-								receiver.packetReceived(reply, from_address, request.getElapsedTime());
+								stats.packetReceived( reply.getSerialisedSize() );
 								
-							}else{
-								
-								Debug.out( "Non-matching network reply received: expected=" + network + ", actual=" + reply.getNetwork());
-								
-								receiver.error( new DHTUDPPacketHandlerException( new Exception( "Non-matching network reply received" )));
+								if ( reply.getNetwork() == network ){
+									
+									receiver.packetReceived(reply, from_address, request.getElapsedTime());
+									
+								}else{
+									
+									Debug.out( "Non-matching network reply received: expected=" + network + ", actual=" + reply.getNetwork());
+									
+									receiver.error( new DHTUDPPacketHandlerException( new Exception( "Non-matching network reply received" )));
+								}
 							}
-						}
-			
-						public void
-						error(
-							PRUDPPacketHandlerException	e )
-						{
-							receiver.error( new DHTUDPPacketHandlerException( e ));
-						}
-					}, 
-					timeout, 
-					priority );
+				
+							public void
+							error(
+								PRUDPPacketHandlerException	e )
+							{
+								receiver.error( new DHTUDPPacketHandlerException( e ));
+							}
+						}, 
+						timeout, 
+						priority );
+				}
 			}else{
 				
 				receiver.error( new DHTUDPPacketHandlerException( new Exception( "Test network disabled" )));
@@ -312,5 +338,88 @@ DHTUDPPacketHandler
 	getStats()
 	{
 		return( stats );
+	}
+	
+	
+	private void
+	tunnelIPv6SeedRequest(
+		DHTUDPPacketRequest			request,
+		InetSocketAddress			destination_address,
+		DHTUDPPacketReceiver		receiver )
+	
+		throws DHTUDPPacketHandlerException
+	{
+		if ( request.getAction() != DHTUDPPacketHelper.ACT_REQUEST_FIND_NODE ){
+			
+			return;
+		}
+		
+		try{
+			long start = SystemTime.getMonotonousTime();
+			
+			ByteArrayOutputStream baos_req = new ByteArrayOutputStream();
+			
+			DataOutputStream dos = new DataOutputStream( baos_req );
+			
+			request.serialise( dos );
+			
+			dos.close();
+			
+			byte[] request_bytes = baos_req.toByteArray();
+			
+			String host = Constants.DHT_SEED_ADDRESS_V6_TUNNEL;
+			
+			DNSUtils.DNSUtilsIntf dns_utils = DNSUtils.getSingleton();
+			
+			if ( dns_utils != null ){
+				
+				try{
+					host = dns_utils.getIPV6ByName( host ).getHostAddress();
+				
+					host = UrlUtils.convertIPV6Host( host );
+
+				}catch( Throwable e ){
+				}
+			}			
+			
+			URL url = new URL( "http://" + host + "/dht?port=" + packet_handler.getPort() + "&request=" + Base32.encode( request_bytes ));
+			
+			HttpURLConnection connection = (HttpURLConnection)url.openConnection();
+
+			connection.setConnectTimeout( 10*1000 );
+			connection.setReadTimeout( 20*1000 );
+
+			InputStream is = connection.getInputStream();
+			
+			ByteArrayOutputStream baos_rep = new ByteArrayOutputStream( 1000 );
+			
+			byte[]	buffer = new byte[8*1024];
+			
+			while( true ){
+			
+				int len = is.read( buffer );
+				
+				if ( len <= 0  ){
+					
+					break;
+				}
+				
+				baos_rep.write( buffer, 0, len );
+			}
+				
+			byte[] reply_bytes = baos_rep.toByteArray();
+			
+			if ( reply_bytes.length > 0 ){
+				
+				DHTUDPPacketReply reply = (DHTUDPPacketReply)PRUDPPacketReply.deserialiseReply( 
+						packet_handler, destination_address, 
+						new DataInputStream(new ByteArrayInputStream( reply_bytes )));
+				
+				receiver.packetReceived( reply, destination_address, SystemTime.getMonotonousTime() - start );
+			}
+		}catch( Throwable e ){
+			
+			throw( new DHTUDPPacketHandlerException( "Tunnel failed", e ));
+		}
 	}
 }

@@ -72,6 +72,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportTransferHandler;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.util.DNSUtils;
 
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
@@ -600,7 +601,7 @@ outer:
 		
 				last_root_seed_import_time	= now;
 				
-				return( importSeed( getSeedAddress(), SEED_PORT ));
+				return( importSeed( getSeedAddress()));
 			
 			}else{
 				
@@ -620,9 +621,8 @@ outer:
 		int			port )
 	{
 		try{
-			
-			return( importSeed( InetAddress.getByName( ip ), port ));
-			
+			return(	transport.importContact( checkResolve( new InetSocketAddress( ip, port )), protocol_version ));
+		
 		}catch( Throwable e ){
 			
 			log.log(e);
@@ -638,8 +638,7 @@ outer:
 	
 	{
 		try{
-			return(
-				transport.importContact( new InetSocketAddress(ia, port ), protocol_version ));
+			return(	transport.importContact( new InetSocketAddress( ia, port ), protocol_version ));
 		
 		}catch( Throwable e ){
 			
@@ -649,25 +648,53 @@ outer:
 		}
 	}
 	
-	protected InetAddress
-	getSeedAddress()
+	protected DHTTransportContact
+	importSeed(
+		InetSocketAddress		ia )
+	
 	{
 		try{
-			return( InetAddress.getByName( v6?SEED_ADDRESS_V6:SEED_ADDRESS_V4 ));
-		}
-		catch (java.net.UnknownHostException e) {
-			Debug.out("Could not get DHT seed address: " + e);
-			return null;
-			
+			return(	transport.importContact( ia, protocol_version ));
+		
 		}catch( Throwable e ){
-				
-			Debug.printStackTrace( e );
+			
+			log.log(e);
 			
 			return( null );
 		}
 	}
 	
-
+	protected InetSocketAddress
+	getSeedAddress()
+	{
+		return( checkResolve( new InetSocketAddress( v6?SEED_ADDRESS_V6:SEED_ADDRESS_V4, SEED_PORT )));
+	}
+	
+	private InetSocketAddress
+	checkResolve(
+		InetSocketAddress	isa )
+	{
+		if ( v6 ){
+	
+			if ( isa.isUnresolved()){
+				
+				try{
+					DNSUtils.DNSUtilsIntf dns_utils = DNSUtils.getSingleton();
+					
+					if ( dns_utils != null ){
+						
+						String host = dns_utils.getIPV6ByName( isa.getHostName()).getHostAddress();
+					
+						isa = new InetSocketAddress( host, isa.getPort());
+					}
+				}catch( Throwable e ){
+				}
+			}
+		}
+		
+		return( isa );
+	}
+	
 	public boolean
 	isDiversified(
 		byte[]		key )

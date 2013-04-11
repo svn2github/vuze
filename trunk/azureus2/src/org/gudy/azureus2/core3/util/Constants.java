@@ -48,8 +48,9 @@ Constants
   public static final String  VERSION_SERVER_V4 	= "version.vuze.com";
   public static final String  VERSION_SERVER_V6 	= "version6.vuze.com";
 
-  public static final String DHT_SEED_ADDRESS_V4	= "dht.vuze.com";
-  public static final String DHT_SEED_ADDRESS_V6	= "dht6.vuze.com";
+  public static final String DHT_SEED_ADDRESS_V4		= "dht.vuze.com";
+  public static final String DHT_SEED_ADDRESS_V6		= "dht6.vuze.com";
+  public static final String DHT_SEED_ADDRESS_V6_TUNNEL	= "dht6tunnel.vuze.com";
   
   public static final String NAT_TEST_SERVER		= "nettest.vuze.com";
   public static final String NAT_TEST_SERVER_HTTP	= "http://nettest.vuze.com/";

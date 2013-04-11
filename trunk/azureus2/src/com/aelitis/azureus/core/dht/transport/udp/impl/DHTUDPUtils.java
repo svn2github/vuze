@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -77,17 +78,23 @@ DHTUDPUtils
 	
 		throws DHTTransportException
 	{		
+		final String	key;
+
 		InetAddress ia = address.getAddress();
 		
 		if ( ia == null ){
 			
-			// Debug.out( "Address '" + address + "' is unresolved" );
-			
-			throw( new DHTTransportException( "Address '" + address + "' is unresolved" ));
-			
+			if ( address.getHostName().equals( Constants.DHT_SEED_ADDRESS_V6 )){
+				
+				key = "IPv6SeedHack";
+				
+			}else{
+				// Debug.out( "Address '" + address + "' is unresolved" );
+				
+				throw( new DHTTransportException( "Address '" + address + "' is unresolved" ));
+			}
 		}else{
 			
-			String	key;
 			
 			if ( protocol_version >= DHTTransportUDP.PROTOCOL_VERSION_RESTRICT_ID3 ){
 				
@@ -138,22 +145,22 @@ DHTUDPUtils
 			
 				key = ia.getHostAddress() + ":" + address.getPort();
 			}
+		}
+		
+		synchronized( node_id_history ){
 			
-			synchronized( node_id_history ){
-				
-				byte[]	res = node_id_history.get( key );
-				
-				if ( res == null ){
-									
-					res = hasher.calculateHash( key.getBytes());
+			byte[]	res = node_id_history.get( key );
 			
-					node_id_history.put( key, res );
-				}
-				
-				// System.out.println( "NodeID: " + address + " -> " + DHTLog.getString( res ));
-			
-				return( res );
+			if ( res == null ){
+								
+				res = hasher.calculateHash( key.getBytes());
+		
+				node_id_history.put( key, res );
 			}
+			
+			// System.out.println( "NodeID: " + address + " -> " + DHTLog.getString( res ));
+		
+			return( res );
 		}
 	}
 	

@@ -31,4 +31,10 @@ DHTUDPRequestHandler
 	process(
 		DHTUDPPacketRequest		request,
 		boolean					alien );
+	
+	public void
+	process(
+		DHTUDPPacketHandlerStub		packet_handler,
+		DHTUDPPacketRequest			request,
+		boolean						alien );
 }

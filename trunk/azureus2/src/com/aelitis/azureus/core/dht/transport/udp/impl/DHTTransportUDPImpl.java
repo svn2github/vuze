@@ -61,6 +61,7 @@ import com.aelitis.azureus.core.dht.transport.udp.*;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketHandler;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketHandlerException;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketHandlerFactory;
+import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketHandlerStub;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketReceiver;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPRequestHandler;
 import com.aelitis.azureus.core.dht.transport.util.DHTTransportRequestCounter;
@@ -386,6 +387,18 @@ DHTTransportUDPImpl
 			
 			stats.setStats( packet_handler.getStats());
 		}
+	}
+	
+	public DHTUDPRequestHandler 
+	getRequestHandler() 
+	{
+		return( this );
+	}
+	
+	public DHTUDPPacketHandler
+	getPacketHandler()
+	{
+		return( packet_handler );
 	}
 	
 	protected void
@@ -1388,35 +1401,42 @@ DHTTransportUDPImpl
 				// don't need to synchronize access to the bloom filter as it works fine
 				// without protection (especially as its add only)
 			
-			byte[]	addr = contact.getTransportAddress().getAddress().getAddress();
+			InetAddress ia = contact.getTransportAddress().getAddress();
 			
-			if ( bad_ip_bloom_filter == null ){
+			if ( ia != null ){
 				
-				bad_ip_bloom_filter = BloomFilterFactory.createAddOnly( BAD_IP_BLOOM_FILTER_SIZE );
+					// allow unresolved addresses through (e.g. ipv6 seed) as handled later
 				
-			}else{
+				byte[]	addr = ia.getAddress();
 				
-				if ( bad_ip_bloom_filter.contains( addr )){
-					
-					throw( new DHTUDPPacketHandlerException( "IPFilter check fails (repeat)" ));
-				}
-			}
-			
-			if ( ip_filter.isInRange( 
-					contact.getTransportAddress().getAddress(), "DHT", null,
-					logger.isEnabled( DHTLogger.LT_IP_FILTER ))){
-				
-					// don't let an attacker deliberately fill up our filter so we start
-					// rejecting valid addresses
-				
-				if ( bad_ip_bloom_filter.getEntryCount() >= BAD_IP_BLOOM_FILTER_SIZE/10 ){
+				if ( bad_ip_bloom_filter == null ){
 					
 					bad_ip_bloom_filter = BloomFilterFactory.createAddOnly( BAD_IP_BLOOM_FILTER_SIZE );
+					
+				}else{
+					
+					if ( bad_ip_bloom_filter.contains( addr )){
+						
+						throw( new DHTUDPPacketHandlerException( "IPFilter check fails (repeat)" ));
+					}
 				}
 				
-				bad_ip_bloom_filter.add( addr );
-				
-				throw( new DHTUDPPacketHandlerException( "IPFilter check fails" ));
+				if ( ip_filter.isInRange( 
+						contact.getTransportAddress().getAddress(), "DHT", null,
+						logger.isEnabled( DHTLogger.LT_IP_FILTER ))){
+					
+						// don't let an attacker deliberately fill up our filter so we start
+						// rejecting valid addresses
+					
+					if ( bad_ip_bloom_filter.getEntryCount() >= BAD_IP_BLOOM_FILTER_SIZE/10 ){
+						
+						bad_ip_bloom_filter = BloomFilterFactory.createAddOnly( BAD_IP_BLOOM_FILTER_SIZE );
+					}
+					
+					bad_ip_bloom_filter.add( addr );
+					
+					throw( new DHTUDPPacketHandlerException( "IPFilter check fails" ));
+				}
 			}
 		}
 	}
@@ -3438,6 +3458,15 @@ outer:
 		DHTUDPPacketRequest	request,
 		boolean				alien )
 	{
+		process( packet_handler, request, alien  );
+	}
+	
+	public void
+	process(
+		DHTUDPPacketHandlerStub		packet_handler_stub,
+		DHTUDPPacketRequest			request,
+		boolean						alien )
+	{
 		if ( request_handler == null ){
 			
 			logger.log( "Ignoring packet as not yet ready to process" );
@@ -3501,7 +3530,7 @@ outer:
 				
 				requestReceiveReplyProcessor( originating_contact, reply );
 				
-				packet_handler.send( reply, request.getAddress());
+				packet_handler_stub.send( reply, request.getAddress());
 
 			}else{
 				
@@ -3542,7 +3571,7 @@ outer:
 						
 						requestReceiveReplyProcessor( originating_contact, reply );
 
-						packet_handler.send( reply, request.getAddress());
+						packet_handler_stub.send( reply, request.getAddress());
 					}
 				}else if ( request instanceof DHTUDPPacketRequestKeyBlock ){
 						
@@ -3567,7 +3596,7 @@ outer:
 						
 						requestReceiveReplyProcessor( originating_contact, reply );
 
-						packet_handler.send( reply, request.getAddress());
+						packet_handler_stub.send( reply, request.getAddress());
 					}
 				}else if ( request instanceof DHTUDPPacketRequestStats ){
 					
@@ -3617,7 +3646,7 @@ outer:
 					
 					requestReceiveReplyProcessor( originating_contact, reply );
 
-					packet_handler.send( reply, request.getAddress());
+					packet_handler_stub.send( reply, request.getAddress());
 
 				}else if ( request instanceof DHTUDPPacketRequestStore ){
 					
@@ -3651,7 +3680,7 @@ outer:
 								
 								requestReceiveReplyProcessor( originating_contact, reply );
 
-								packet_handler.send( reply, request.getAddress());
+								packet_handler_stub.send( reply, request.getAddress());
 							}else{
 								
 								DHTUDPPacketReplyStore	reply = 
@@ -3666,7 +3695,7 @@ outer:
 								
 								requestReceiveReplyProcessor( originating_contact, reply );
 		
-								packet_handler.send( reply, request.getAddress());
+								packet_handler_stub.send( reply, request.getAddress());
 							}
 						}else{
 							
@@ -3682,7 +3711,7 @@ outer:
 							
 							requestReceiveReplyProcessor( originating_contact, reply );
 	
-							packet_handler.send( reply, request.getAddress());
+							packet_handler_stub.send( reply, request.getAddress());
 						}
 					}
 				}else if ( request instanceof DHTUDPPacketRequestQueryStorage ){
@@ -3709,7 +3738,7 @@ outer:
 					
 					requestReceiveReplyProcessor( originating_contact, reply );
 
-					packet_handler.send( reply, request.getAddress());
+					packet_handler_stub.send( reply, request.getAddress());
 					
 				}else if ( request instanceof DHTUDPPacketRequestFindNode ){
 					
@@ -3765,7 +3794,7 @@ outer:
 						
 						requestReceiveReplyProcessor( originating_contact, reply );
 
-						packet_handler.send( reply, request.getAddress());
+						packet_handler_stub.send( reply, request.getAddress());
 					}
 					
 				}else if ( request instanceof DHTUDPPacketRequestFindValue ){
@@ -3799,7 +3828,7 @@ outer:
 								
 								requestReceiveReplyProcessor( originating_contact, reply );
 
-								packet_handler.send( reply, request.getAddress());
+								packet_handler_stub.send( reply, request.getAddress());
 								
 							}else{
 								
@@ -3815,7 +3844,7 @@ outer:
 								
 								requestReceiveReplyProcessor( originating_contact, reply );
 	
-								packet_handler.send( reply, request.getAddress());
+								packet_handler_stub.send( reply, request.getAddress());
 							}
 							
 						}else{
@@ -3855,7 +3884,7 @@ outer:
 																			
 										reply.setValues( x, res.getDiversificationType(), true );	// continuation = true
 																		
-										packet_handler.send( reply, request.getAddress());
+										packet_handler_stub.send( reply, request.getAddress());
 										
 										values_size	= 0;
 										
@@ -3881,7 +3910,7 @@ outer:
 									
 								requestReceiveReplyProcessor( originating_contact, reply );
 	
-								packet_handler.send( reply, request.getAddress());
+								packet_handler_stub.send( reply, request.getAddress());
 							
 							}else{
 								
@@ -3889,7 +3918,7 @@ outer:
 								
 								requestReceiveReplyProcessor( originating_contact, reply );
 	
-								packet_handler.send( reply, request.getAddress());
+								packet_handler_stub.send( reply, request.getAddress());
 							}
 						}
 					}
