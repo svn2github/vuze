@@ -152,7 +152,7 @@ public class HealthItem
 		} else if (health == DownloadManager.WEALTH_ERROR) {
 			image_name = "st_error";
 		} else {
-			image_name = "st_stopped";
+			image_name = "";
 		}
 
 		if (isShare) {
@@ -165,7 +165,7 @@ public class HealthItem
 		try {
   		Rectangle cellBounds = cell.getBounds();
   
-  		if (img != null && !img.isDisposed()) {
+  		if (ImageLoader.isRealImage(img)) {
   			Rectangle imgBounds = img.getBounds();
   			gc.drawImage(img, cellBounds.x
   					+ ((cellBounds.width - imgBounds.width) / 2), cellBounds.y
