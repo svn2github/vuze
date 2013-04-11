@@ -218,8 +218,6 @@ public class ColumnProgressETA
 		}
 	}
 
-	private static final int MAX_PROGRESS_FILL_HEIGHT = 19;
-
 	public void refresh(TableCell cell) {
 		Object ds = cell.getDataSource();
 
@@ -235,7 +233,7 @@ public class ColumnProgressETA
 			if (completedTime <= 0 || !dm.isDownloadComplete(false)) {
 				sortValue = Long.MAX_VALUE - 10000 + percentDone;
 			} else {
-				sortValue = completedTime;
+				sortValue = completedTime << 2 + dm.getState();
 			}
 		} else if (ds instanceof DiskManagerFileInfo) {
 			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
@@ -369,7 +367,7 @@ public class ColumnProgressETA
 				+ yRelProgressFillStart - 1, progressWidth + 1, boundsImgBG.height + 1);
 
 		int pctWidth = (int) (percentDone * (progressWidth) / 1000);
-		gc.setBackground(percentDone == 1000 ? cBGcd : cBGdl);
+		gc.setBackground(percentDone == 1000 || dm.isDownloadComplete(false) ? cBGcd : cBGdl);
 		gc.fillRectangle(xStart + xRelProgressFillStart, yStart
 				+ yRelProgressFillStart, pctWidth, boundsImgBG.height);
 		if (progressWidth > pctWidth) {
