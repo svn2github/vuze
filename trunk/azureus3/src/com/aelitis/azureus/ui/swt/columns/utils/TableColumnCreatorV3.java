@@ -1,11 +1,14 @@
 package com.aelitis.azureus.ui.swt.columns.utils;
 
 import java.lang.reflect.Constructor;
-import java.util.Iterator;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
+import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.*;
 
@@ -15,11 +18,6 @@ import com.aelitis.azureus.ui.common.table.TableColumnCoreCreationListener;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.swt.columns.torrent.*;
 import com.aelitis.azureus.ui.swt.columns.vuzeactivity.*;
-
-import org.gudy.azureus2.plugins.download.Download;
-import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
-import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
-import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 
 /**
  * A utility class for creating some common column sets; this is a virtual clone of <code>TableColumnCreator</code>
@@ -36,38 +34,50 @@ public class TableColumnCreatorV3
 	 *
 	 * @since 4.0.0.1
 	 */
-	public static TableColumnCore[] createAllDM(String tableID,
-			boolean big) {
-		final String[] defaultVisibleOrder = {
+	public static TableColumnCore[] createAllDM(String tableID, boolean big) {
+		final String[] oldVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
 			ColumnThumbAndName.COLUMN_ID,
 			ColumnStream.COLUMN_ID,
 			SizeItem.COLUMN_ID,
 			ColumnProgressETA.COLUMN_ID,
-			//DateCompletedItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
-			"RatingColumn",
 			StatusItem.COLUMN_ID,
 			ColumnTorrentSpeed.COLUMN_ID,
 			SeedsItem.COLUMN_ID,
 			PeersItem.COLUMN_ID,
 			ShareRatioItem.COLUMN_ID
 		};
+		final String[] defaultVisibleOrder = {
+			RankItem.COLUMN_ID,
+			ColumnThumbAndName.COLUMN_ID,
+			ColumnStream.COLUMN_ID,
+			ColumnProgressETA.COLUMN_ID,
+			SizeItem.COLUMN_ID,
+			ColumnTorrentSpeed.COLUMN_ID,
+			ETAItem.COLUMN_ID,
+			//DateCompletedItem.COLUMN_ID,
+			"RatingColumn",
+			"azsubs.ui.column.subs",
+			DateAddedItem.COLUMN_ID
+		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
 		Map<String, TableColumnCore> mapTCs = tcManager.getTableColumnsAsMap(
 				Download.class, tableID);
-		
+
 		tcManager.setDefaultColumnNames(tableID, defaultVisibleOrder);
 
 		if (!tcManager.loadTableColumnSettings(Download.class, tableID)
 				|| areNoneVisible(mapTCs)) {
-			setVisibility(mapTCs, defaultVisibleOrder);
-			ColumnProgressETA tc = (ColumnProgressETA) mapTCs.get(ColumnProgressETA.COLUMN_ID);
+			setVisibility(mapTCs, defaultVisibleOrder, true);
+			RankItem tc = (RankItem) mapTCs.get(RankItem.COLUMN_ID);
 			if (tc != null) {
-				tcManager.setDefaultSortColumnName(tableID, ColumnProgressETA.COLUMN_ID);
-				tc.setSortAscending(false);
+				tcManager.setDefaultSortColumnName(tableID, RankItem.COLUMN_ID);
+				tc.setSortAscending(true);
 			}
+		} else {
+			upgradeColumns(oldVisibleOrder, defaultVisibleOrder, mapTCs);
 		}
 
 		// special changes
@@ -76,7 +86,7 @@ public class TableColumnCreatorV3
 			tcStatusItem.setChangeRowFG(false);
 			if (big) {
 				tcStatusItem.setChangeCellFG(false);
-				tcStatusItem.setShowTrackerErrors( true );
+				tcStatusItem.setShowTrackerErrors(true);
 			}
 		}
 		if (big) {
@@ -90,8 +100,42 @@ public class TableColumnCreatorV3
 		return mapTCs.values().toArray(new TableColumnCore[0]);
 	}
 
+	private static void upgradeColumns(String[] oldOrder, String[] newOrder,
+			Map<String, TableColumnCore> mapTCs) {
+		List<String> listCurrentOrder = new ArrayList<String>();
+
+		for (TableColumnCore tc : mapTCs.values()) {
+			if (tc.isVisible()) {
+				listCurrentOrder.add(tc.getName());
+			}
+		}
+
+		System.out.println("upgradeColumns; old=" + oldOrder.length + ";cur=" + listCurrentOrder.size() + ";" + Debug.getCompressedStackTrace());
+		if (oldOrder.length == listCurrentOrder.size()) {
+			List<String> listOldOrder = Arrays.asList(oldOrder);
+			if (listOldOrder.containsAll(listCurrentOrder)) {
+				// exactly the same items (perhaps in different order) -- upgrade to new list
+				System.out.println("upgradeColumns: SAME -> UPGRADING!");
+				setVisibility(mapTCs, newOrder, true);
+			}
+		} else if (listCurrentOrder.size() > oldOrder.length) {
+			List<String> listNewOrder = Arrays.asList(newOrder);
+			if (listCurrentOrder.containsAll(listNewOrder)) {
+				System.out.println("upgradeColumns: has all old plus -> UPGRADING!");
+				// Current visible has all of old order, plus some added ones
+				// make all new columns visible (keep old ones visible too)
+				for (String id : newOrder) {
+					TableColumnCore tc = mapTCs.get(id);
+					if (tc != null) {
+						tc.setVisible(true);
+					}
+				}
+			}
+		}
+	}
+
 	public static TableColumnCore[] createIncompleteDM(String tableID, boolean big) {
-		final String[] defaultVisibleOrder = {
+		final String[] oldVisibleOrder = {
 			ColumnThumbAndName.COLUMN_ID,
 			ColumnStream.COLUMN_ID,
 			SizeItem.COLUMN_ID,
@@ -100,7 +144,19 @@ public class TableColumnCreatorV3
 			SeedsItem.COLUMN_ID,
 			PeersItem.COLUMN_ID,
 			"azsubs.ui.column.subs",
+		};
+		final String[] defaultVisibleOrder = {
+			RankItem.COLUMN_ID,
+			ColumnThumbAndName.COLUMN_ID,
+			ColumnStream.COLUMN_ID,
+			SizeItem.COLUMN_ID,
+			ColumnFileCount.COLUMN_ID,
+			ColumnProgressETA.COLUMN_ID,
+			ColumnTorrentSpeed.COLUMN_ID,
+			ETAItem.COLUMN_ID,
 			"RatingColumn",
+			"azsubs.ui.column.subs",
+			DateAddedItem.COLUMN_ID
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
@@ -110,14 +166,15 @@ public class TableColumnCreatorV3
 		tcManager.setDefaultColumnNames(tableID, defaultVisibleOrder);
 
 		if (!tcManager.loadTableColumnSettings(DownloadTypeIncomplete.class,
-				tableID)
-				|| areNoneVisible(mapTCs)) {
-			setVisibility(mapTCs, defaultVisibleOrder);
-			ColumnThumbAndName tc = (ColumnThumbAndName) mapTCs.get(ColumnThumbAndName.COLUMN_ID);
+				tableID) || areNoneVisible(mapTCs)) {
+			setVisibility(mapTCs, defaultVisibleOrder, true);
+			RankItem tc = (RankItem) mapTCs.get(RankItem.COLUMN_ID);
 			if (tc != null) {
-				tcManager.setDefaultSortColumnName(tableID, ColumnThumbAndName.COLUMN_ID);
+				tcManager.setDefaultSortColumnName(tableID, RankItem.COLUMN_ID);
 				tc.setSortAscending(true);
 			}
+		} else {
+			upgradeColumns(oldVisibleOrder, defaultVisibleOrder, mapTCs);
 		}
 
 		// special changes
@@ -128,7 +185,7 @@ public class TableColumnCreatorV3
 				tcStatusItem.setChangeCellFG(false);
 			}
 		}
-		
+
 		if (big) {
 			ShareRatioItem tcShareRatioItem = (ShareRatioItem) mapTCs.get(ShareRatioItem.COLUMN_ID);
 			if (tcShareRatioItem != null) {
@@ -144,12 +201,13 @@ public class TableColumnCreatorV3
 	 * @param mapTCs
 	 * @param defaultVisibleOrder
 	 */
-	private static void setVisibility(Map mapTCs, String[] defaultVisibleOrder) {
+	private static void setVisibility(Map mapTCs, String[] defaultVisibleOrder,
+			boolean reorder) {
 		for (Iterator iter = mapTCs.values().iterator(); iter.hasNext();) {
 			TableColumnCore tc = (TableColumnCore) iter.next();
-			Long force_visible = (Long)tc.getUserData( TableColumn.UD_FORCE_VISIBLE );
-			if ( force_visible == null || force_visible==0 ){
-			
+			Long force_visible = (Long) tc.getUserData(TableColumn.UD_FORCE_VISIBLE);
+			if (force_visible == null || force_visible == 0) {
+
 				tc.setVisible(false);
 			}
 		}
@@ -159,21 +217,34 @@ public class TableColumnCreatorV3
 			TableColumnCore tc = (TableColumnCore) mapTCs.get(id);
 			if (tc != null) {
 				tc.setVisible(true);
-				tc.setPositionNoShift(i);
+				if (reorder) {
+					tc.setPositionNoShift(i);
+				}
 			}
 		}
 	}
 
 	public static TableColumnCore[] createCompleteDM(String tableID, boolean big) {
-		final String[] defaultVisibleOrder = {
+		final String[] oldVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
 			ColumnThumbAndName.COLUMN_ID,
-			"azsubs.ui.column.subs",
 			"RatingColumn",
+			"azsubs.ui.column.subs",
 			SizeItem.COLUMN_ID,
 			StatusItem.COLUMN_ID,
 			ShareRatioItem.COLUMN_ID,
 			DateCompletedItem.COLUMN_ID,
+		};
+		final String[] defaultVisibleOrder = {
+			RankItem.COLUMN_ID,
+			ColumnThumbAndName.COLUMN_ID,
+			ColumnStream.COLUMN_ID,
+			StatusItem.COLUMN_ID,
+			SizeItem.COLUMN_ID,
+			ColumnTorrentSpeed.COLUMN_ID,
+			"RatingColumn",
+			"azsubs.ui.column.subs",
+			DateCompletedItem.COLUMN_ID
 		};
 
 		TableColumnManager tcManager = TableColumnManager.getInstance();
@@ -184,12 +255,14 @@ public class TableColumnCreatorV3
 
 		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class, tableID)
 				|| areNoneVisible(mapTCs)) {
-			setVisibility(mapTCs, defaultVisibleOrder);
+			setVisibility(mapTCs, defaultVisibleOrder, true);
 			DateCompletedItem tc = (DateCompletedItem) mapTCs.get(DateCompletedItem.COLUMN_ID);
 			if (tc != null) {
 				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
 				tc.setSortAscending(false);
 			}
+		} else {
+			upgradeColumns(oldVisibleOrder, defaultVisibleOrder, mapTCs);
 		}
 
 		// special changes
@@ -212,6 +285,15 @@ public class TableColumnCreatorV3
 	}
 
 	public static TableColumnCore[] createUnopenedDM(String tableID, boolean big) {
+		final String[] oldVisibleOrder = {
+			ColumnUnopened.COLUMN_ID,
+			ColumnThumbAndName.COLUMN_ID,
+			"azsubs.ui.column.subs",
+			SizeItem.COLUMN_ID,
+			ColumnProgressETA.COLUMN_ID,
+			StatusItem.COLUMN_ID,
+			DateCompletedItem.COLUMN_ID,
+		};
 		final String[] defaultVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
 			ColumnThumbAndName.COLUMN_ID,
@@ -229,15 +311,16 @@ public class TableColumnCreatorV3
 
 		tcManager.setDefaultColumnNames(tableID, defaultVisibleOrder);
 
-		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class,
-				tableID)
+		if (!tcManager.loadTableColumnSettings(DownloadTypeComplete.class, tableID)
 				|| areNoneVisible(mapTCs)) {
-			setVisibility(mapTCs, defaultVisibleOrder);
+			setVisibility(mapTCs, defaultVisibleOrder, true);
 			DateCompletedItem tc = (DateCompletedItem) mapTCs.get(DateCompletedItem.COLUMN_ID);
 			if (tc != null) {
 				tcManager.setDefaultSortColumnName(tableID, DateCompletedItem.COLUMN_ID);
 				tc.setSortAscending(false);
 			}
+		} else {
+			upgradeColumns(oldVisibleOrder, defaultVisibleOrder, mapTCs);
 		}
 
 		// special changes
@@ -275,7 +358,7 @@ public class TableColumnCreatorV3
 
 		if (!tcManager.loadTableColumnSettings(VuzeActivitiesEntry.class, tableID)
 				|| areNoneVisible(mapTCs)) {
-			setVisibility(mapTCs, defaultVisibleOrder);
+			setVisibility(mapTCs, defaultVisibleOrder, true);
 			ColumnActivityDate tc = (ColumnActivityDate) mapTCs.get(ColumnActivityDate.COLUMN_ID);
 			if (tc != null) {
 				tcManager.setDefaultSortColumnName(tableID,
@@ -308,7 +391,7 @@ public class TableColumnCreatorV3
 
 		if (!tcManager.loadTableColumnSettings(VuzeActivitiesEntry.class, tableID)
 				|| areNoneVisible(mapTCs)) {
-			setVisibility(mapTCs, defaultVisibleOrder);
+			setVisibility(mapTCs, defaultVisibleOrder, true);
 
 			ColumnActivityText tcText = (ColumnActivityText) mapTCs.get(ColumnActivityText.COLUMN_ID);
 			if (tcText != null) {
@@ -325,8 +408,6 @@ public class TableColumnCreatorV3
 		return (TableColumnCore[]) mapTCs.values().toArray(new TableColumnCore[0]);
 	}
 
-	
-	
 	/**
 	 * 
 	 *
@@ -355,12 +436,18 @@ public class TableColumnCreatorV3
 		// short variable names to reduce wrapping
 		final Map<String, cInfo> c = new LightHashMap<String, cInfo>(7);
 
-		c.put(ColumnUnopened.COLUMN_ID, new cInfo(ColumnUnopened.class, ColumnUnopened.DATASOURCE_TYPE));
-		c.put(ColumnThumbAndName.COLUMN_ID, new cInfo(ColumnThumbAndName.class, ColumnThumbAndName.DATASOURCE_TYPES));
-		c.put(ColumnStream.COLUMN_ID, new cInfo(ColumnStream.class, ColumnStream.DATASOURCE_TYPES));
-		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class, DateAddedItem.DATASOURCE_TYPE));
-		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class, DateCompletedItem.DATASOURCE_TYPE));
-		c.put(ColumnProgressETA.COLUMN_ID, new cInfo(ColumnProgressETA.class, ColumnProgressETA.DATASOURCE_TYPE));
+		c.put(ColumnUnopened.COLUMN_ID, new cInfo(ColumnUnopened.class,
+				ColumnUnopened.DATASOURCE_TYPE));
+		c.put(ColumnThumbAndName.COLUMN_ID, new cInfo(ColumnThumbAndName.class,
+				ColumnThumbAndName.DATASOURCE_TYPES));
+		c.put(ColumnStream.COLUMN_ID, new cInfo(ColumnStream.class,
+				ColumnStream.DATASOURCE_TYPES));
+		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class,
+				DateAddedItem.DATASOURCE_TYPE));
+		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class,
+				DateCompletedItem.DATASOURCE_TYPE));
+		c.put(ColumnProgressETA.COLUMN_ID, new cInfo(ColumnProgressETA.class,
+				ColumnProgressETA.DATASOURCE_TYPE));
 
 		/////////
 
@@ -409,7 +496,8 @@ public class TableColumnCreatorV3
 			}
 		};
 
-		tcManager.unregisterColumn(NameItem.DATASOURCE_TYPE, NameItem.COLUMN_ID, null);
+		tcManager.unregisterColumn(NameItem.DATASOURCE_TYPE, NameItem.COLUMN_ID,
+				null);
 
 		for (Iterator<String> iter = c.keySet().iterator(); iter.hasNext();) {
 			String id = iter.next();
@@ -421,7 +509,6 @@ public class TableColumnCreatorV3
 				tcManager.registerColumn(cla, id, tcCreator);
 			}
 		}
-		
 
 	}
 
@@ -430,7 +517,7 @@ public class TableColumnCreatorV3
 		public Class cla;
 
 		public Class[] forDataSourceTypes;
-		
+
 		public cInfo(Class cla, Class forDataSourceType) {
 			this.cla = cla;
 			this.forDataSourceTypes = new Class[] {
