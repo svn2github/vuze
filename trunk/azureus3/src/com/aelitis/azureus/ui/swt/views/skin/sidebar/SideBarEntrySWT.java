@@ -678,7 +678,7 @@ public class SideBarEntrySWT
 				}
 				gc.setBackgroundPattern(pattern);
 				*/
-				gc.setBackground(ColorCache.getColor(gc.getDevice(), "#5b6e87"));
+				gc.setBackground(ColorCache.getSchemedColor(gc.getDevice(), "#5b6e87"));
 				gc.fillRoundRectangle(startX, startY, width, height, textSize.y * 2 / 3,
 						height * 2 / 3);
 				gc.setBackgroundPattern(null);
@@ -947,11 +947,11 @@ public class SideBarEntrySWT
 			Color color1;
 			Color color2;
 			if (sidebar.getTree().isFocusControl()) {
-				color1 = ColorCache.getColor(gc.getDevice(), "#166688");
-				color2 = ColorCache.getColor(gc.getDevice(), "#1c2458");
+				color1 = ColorCache.getSchemedColor(gc.getDevice(), "#166688");
+				color2 = ColorCache.getSchemedColor(gc.getDevice(), "#1c2458");
 			} else {
-				color1 = ColorCache.getColor(gc.getDevice(), "#447281");
-				color2 = ColorCache.getColor(gc.getDevice(), "#393e58");
+				color1 = ColorCache.getSchemedColor(gc.getDevice(), "#447281");
+				color2 = ColorCache.getSchemedColor(gc.getDevice(), "#393e58");
 			}
 
 			gc.setBackground(color1);
