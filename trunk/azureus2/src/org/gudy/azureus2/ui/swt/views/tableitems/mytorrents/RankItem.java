@@ -24,6 +24,7 @@
  
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
+import org.eclipse.swt.graphics.Image;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -33,12 +34,14 @@ import org.gudy.azureus2.core3.util.Debug;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
 /**
  * Torrent Position column.
@@ -56,14 +59,16 @@ public class RankItem
 
 	public static final String COLUMN_ID = "#";
 
+	private Image imgUp;
+
+	private Image imgDown;
+
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] { CAT_CONTENT });
 	}
 
 	private boolean bInvalidByTrigger = false;
 	
-	private boolean showCompleteIncomplete = false;
-
   /** Default Constructor */
   public RankItem(String sTableID) {
     super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 50, sTableID);
@@ -75,11 +80,10 @@ public class RankItem
 		});
     setMaxWidthAuto(true);
     setMinWidthAuto(true);
-  }
 
-  public RankItem(String sTableID, boolean showCompleteIncomplete) {
-  	this(sTableID);
-		this.showCompleteIncomplete = showCompleteIncomplete;
+    ImageLoader imageLoader = ImageLoader.getInstance();
+    imgUp = imageLoader.getImage("image.torrentspeed.up");
+    imgDown = imageLoader.getImage("image.torrentspeed.down");
   }
 
   public void refresh(TableCell cell) {
@@ -87,20 +91,21 @@ public class RankItem
 
     DownloadManager dm = (DownloadManager)cell.getDataSource();
     long value = (dm == null) ? 0 : dm.getPosition();
-    String text;
-    
-    if (showCompleteIncomplete) {
-    	boolean complete = dm == null ? false : dm.getAssumedComplete();
-    	text = (complete ? "Done\n#" : "Partial\n#") + value; 
-    	if (complete) {
-    		value += 0x10000;
-    	}
-    } else {
-    	text = "" + value; 
-    }
+    String text = "" + value;
+
+  	boolean complete = dm == null ? false : dm.getAssumedComplete();
+  	if (complete) {
+  		value += 0x10000;
+  	}
     
     cell.setSortValue(value);
     cell.setText(text);
+
+    if (cell instanceof TableCellSWT) {
+    	Image img = dm.getAssumedComplete() ? imgUp : imgDown;
+    	((TableCellSWT)cell).setIcon(img);
+    }
+
   }
   
   private class GMListener implements GlobalManagerListener {
@@ -157,11 +162,4 @@ public class RankItem
 			}
   }
 
-	public boolean isShowCompleteIncomplete() {
-		return showCompleteIncomplete;
-	}
-
-	public void setShowCompleteIncomplete(boolean showCompleteIncomplete) {
-		this.showCompleteIncomplete = showCompleteIncomplete;
-	}
 }
