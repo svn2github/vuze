@@ -155,7 +155,7 @@ AddressUtils
 				
 			}catch( Throwable e ){
 				
-				Debug.printStackTrace(e);
+				// Debug.printStackTrace(e);
 			}
 		}
 		
@@ -207,7 +207,7 @@ AddressUtils
 						
 					}catch( Throwable e ){
 						
-						Debug.printStackTrace(e);
+						//Debug.printStackTrace(e);
 					}
 				}
 				
@@ -273,7 +273,7 @@ AddressUtils
 			if ( AzureusCoreFactory.isCoreAvailable()){
 				
 				try{
-					instance_manager = AzureusCoreFactory.getSingleton().getInstanceManager();
+					//instance_manager = AzureusCoreFactory.getSingleton().getInstanceManager();
 					
 				}catch( Throwable e ){
 					
