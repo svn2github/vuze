@@ -101,6 +101,8 @@ public class TagUIUtils
 
 		TagType	tag_type = tag.getTagType();
 		
+		boolean	needs_separator_next = false;
+		
 		if ( tag_type.hasTagTypeFeature( TagFeature.TF_RATE_LIMIT )) {
 
 			final TagFeatureRateLimit	tf_rate_limit = (TagFeatureRateLimit)tag;
@@ -109,6 +111,8 @@ public class TagUIUtils
 			boolean	has_down 	= tf_rate_limit.supportsTagDownloadLimit();
 			
 			if ( has_up || has_down ){
+				
+				needs_separator_next = true;
 				
 				long maxDownload = COConfigurationManager.getIntParameter(
 						"Max Download Speed KBs", 0) * 1024;
@@ -378,6 +382,8 @@ public class TagUIUtils
 
 		if ( tag instanceof TagDownload ){
 			
+			needs_separator_next = true;
+			
 			MenuItem itemOptions = new MenuItem(menu, SWT.PUSH);
 	
 			final List<DownloadManager> dms = ((TagDownload)tag).getTaggedDownloads();
@@ -397,7 +403,10 @@ public class TagUIUtils
 			}
 		}
 		
-		new MenuItem( menu, SWT.SEPARATOR);
+		if ( needs_separator_next ){
+		
+			new MenuItem( menu, SWT.SEPARATOR);
+		}
 
 		if ( tag.getTagType().isTagTypeAuto()){
 			
