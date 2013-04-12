@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCoreCreationListener;
+import com.aelitis.azureus.ui.common.table.TableStructureEventDispatcher;
 import com.aelitis.azureus.util.MapUtils;
 
 import org.gudy.azureus2.plugins.download.Download;
@@ -50,7 +51,20 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 public class TableColumnManager {
 
   private static final String CONFIG_FILE = "tables.config";
-	private static TableColumnManager instance;
+  
+  static{
+	  COConfigurationManager.addResetToDefaultsListener(
+		  new COConfigurationManager.ResetToDefaultsListener()
+		  {
+			  public void 
+			  reset() 
+			  {
+				  getInstance().resetAllTables();
+			  }
+		  });
+  }
+
+  private static TableColumnManager instance;
   private static AEMonitor 			class_mon 	= new AEMonitor( "TableColumnManager" );
 
   /* Holds all the TableColumnCore objects.
@@ -762,5 +776,38 @@ public class TableColumnManager {
 		}
 
 		return columnInfo;
+	}
+	
+	private void
+	resetAllTables()
+	{
+		for ( String tableID: new ArrayList<String>( mapTableDefaultColumns.keySet())){
+			
+			String[] defaultColumnNames = getDefaultColumnNames( tableID );
+			
+			if ( defaultColumnNames != null ){
+				
+				TableStructureEventDispatcher disp = TableStructureEventDispatcher.getInstance( tableID );
+				
+				Set<Class<?>> dataSourceTypes = disp.prepareForTableReset();
+				
+				int i = 0;
+				for (String name : defaultColumnNames) {
+					TableColumnCore column = getTableColumnCore(tableID, name);
+					if (column != null) {
+						column.reset();
+						column.setVisible(true);
+						column.setPositionNoShift(i++);
+					}
+				}
+				
+				for ( Class<?> cla: dataSourceTypes ){
+					
+					saveTableColumns( cla, tableID);
+				
+					TableStructureEventDispatcher.getInstance( tableID ).tableStructureChanged(true, cla );
+				}
+			}
+		}
 	}
 }

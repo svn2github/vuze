@@ -1433,7 +1433,7 @@ public class TableViewPainted
 			}
 		});
 	}
-
+	
 	protected void swt_paintComposite(PaintEvent e) {
 		swt_calculateClientArea();
 		if (canvasImage == null) {

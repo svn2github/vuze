@@ -25,8 +25,10 @@
 package com.aelitis.azureus.ui.common.table;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
@@ -99,6 +101,23 @@ public class TableStructureEventDispatcher implements
 		}
 	}
 
+	public Set<Class<?>> prepareForTableReset() 
+	{
+		Set<Class<?>> dataSourceTypes = new HashSet<Class<?>>();
+		
+		Iterator iter = listeners.iterator();
+		while (iter.hasNext()) {
+			TableStructureModificationListener listener = (TableStructureModificationListener) iter.next();
+			try{
+				dataSourceTypes.addAll( listener.prepareForTableReset());
+			}catch( Throwable e ){
+				Debug.printStackTrace(e);
+			}
+		}	
+		
+		return( dataSourceTypes );
+	}
+	
 	public void tableStructureChanged( boolean columnAddedOrRemoved, Class forPluginDataSourceType ) {
 
 			Iterator iter = listeners.iterator();
