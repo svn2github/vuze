@@ -295,7 +295,8 @@ DHTTransportLoopbackImpl
 	
 	public DHTTransportContact
 	importContact(
-		DataInputStream		is )
+		DataInputStream		is,
+		boolean				is_bootstrap )
 	
 		throws IOException
 	{
@@ -319,7 +320,7 @@ DHTTransportLoopbackImpl
 		
 		DHTTransportContact contact = new DHTTransportLoopbackContactImpl( this, id );
 		
-		request_handler.contactImported( contact );
+		request_handler.contactImported( contact, is_bootstrap );
 		
 		return( contact );
 	}

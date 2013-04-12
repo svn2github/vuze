@@ -548,14 +548,19 @@ outer:
 							int	peer_udp_port = p.getUDPNonDataListenPort();
 							
 							if ( peer_udp_port != 0 ){
-														
-								if ( importSeed( p.getIp(), peer_udp_port ) != null ){
+											
+								boolean is_v6 = p.getIp().contains( ":" );
+								
+								if ( is_v6 == v6 ){
 									
-									peers_imported++;
-																
-									if ( peers_imported > seed_limit ){
+									if ( importSeed( p.getIp(), peer_udp_port ) != null ){
 										
-										break outer;
+										peers_imported++;
+																	
+										if ( peers_imported > seed_limit ){
+											
+											break outer;
+										}
 									}
 								}
 							}	
@@ -621,7 +626,7 @@ outer:
 		int			port )
 	{
 		try{
-			return(	transport.importContact( checkResolve( new InetSocketAddress( ip, port )), protocol_version ));
+			return(	transport.importContact( checkResolve( new InetSocketAddress( ip, port )), protocol_version, true ));
 		
 		}catch( Throwable e ){
 			
@@ -638,7 +643,7 @@ outer:
 	
 	{
 		try{
-			return(	transport.importContact( new InetSocketAddress( ia, port ), protocol_version ));
+			return(	transport.importContact( new InetSocketAddress( ia, port ), protocol_version, true ));
 		
 		}catch( Throwable e ){
 			
@@ -654,7 +659,7 @@ outer:
 	
 	{
 		try{
-			return(	transport.importContact( ia, protocol_version ));
+			return(	transport.importContact( ia, protocol_version, true ));
 		
 		}catch( Throwable e ){
 			
@@ -1115,7 +1120,7 @@ outer:
 		InetSocketAddress				address )
 	{
 		try{
-			return( new DHTPluginContactImpl( this, transport.importContact( address, protocol_version )));
+			return( new DHTPluginContactImpl( this, transport.importContact( address, protocol_version, false )));
 			
 		}catch( DHTTransportException	e ){
 			
@@ -1131,7 +1136,7 @@ outer:
 		byte							version )
 	{
 		try{
-			return( new DHTPluginContactImpl( this, transport.importContact( address, version )));
+			return( new DHTPluginContactImpl( this, transport.importContact( address, version, false )));
 			
 		}catch( DHTTransportException	e ){
 			

@@ -152,7 +152,7 @@ public class ConfigurationDefaults {
     def.put("Listen.Port.Randomize.Together", TRUE );
     def.put("Listen.Port.Randomize.Range", RandomUtils.LISTEN_PORT_MIN + "-" + RandomUtils.LISTEN_PORT_MAX );
     def.put("webseed.activation.uses.availability", TRUE );
-    def.put("IPV6 Enable Support", FALSE );
+    def.put("IPV6 Enable Support", Constants.IS_CVS_VERSION );	// hack to test ipv6 DHT - 12th april 2013
     def.put("IPV6 Prefer Addresses",FALSE );
     def.put("IPV4 Prefer Stack", FALSE );
     

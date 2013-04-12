@@ -503,9 +503,10 @@ DHTControlImpl
 	
 	public void
 	contactImported(
-		DHTTransportContact	contact )
+		DHTTransportContact	contact,
+		boolean				is_bootstrap )
 	{		
-		router.contactKnown( contact.getID(), new DHTControlContactImpl(contact));
+		router.contactKnown( contact.getID(), new DHTControlContactImpl(contact), is_bootstrap );
 	}
 	
 	public void
@@ -675,7 +676,7 @@ DHTControlImpl
 				
 				long	time_alive = dais.readLong();
 				
-				DHTTransportContact	contact = transport.importContact( dais );
+				DHTTransportContact	contact = transport.importContact( dais, false );
 								
 				imported_state.put( new HashWrapper( contact.getID()), new Object[]{ new Long( time_alive ), contact });
 				
@@ -2454,7 +2455,7 @@ DHTControlImpl
 													continue;
 
 												// dunno if its alive or not, however record its existance
-												router.contactKnown(contact.getID(), new DHTControlContactImpl(contact));
+												router.contactKnown(contact.getID(), new DHTControlContactImpl(contact), false );
 											}
 											try
 											{

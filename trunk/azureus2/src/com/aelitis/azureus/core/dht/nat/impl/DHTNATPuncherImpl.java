@@ -2113,7 +2113,7 @@ DHTNATPuncherImpl
 		try{
 			DHTTransportUDP	transport = (DHTTransportUDP)dht.getTransport();
 
-			DHTTransportUDPContact contact = transport.importContact( target[0], transport.getMinimumProtocolVersion());
+			DHTTransportUDPContact contact = transport.importContact( target[0], transport.getMinimumProtocolVersion(), false );
 			
 			Map	result = punch( reason, contact, rendezvous_used, originator_client_data );
 			
@@ -2183,8 +2183,8 @@ DHTNATPuncherImpl
 		try{
 			DHTTransportUDP	transport = (DHTTransportUDP)dht.getTransport();
 
-			DHTTransportUDPContact rend_contact 	= transport.importContact( rendezvous, transport.getMinimumProtocolVersion());
-			DHTTransportUDPContact target_contact 	= transport.importContact( target, transport.getMinimumProtocolVersion());
+			DHTTransportUDPContact rend_contact 	= transport.importContact( rendezvous, transport.getMinimumProtocolVersion(), false);
+			DHTTransportUDPContact target_contact 	= transport.importContact( target, transport.getMinimumProtocolVersion(), false);
 						
 			Map	result = sendPunch( rend_contact, target_contact, message, true );
 
@@ -2276,7 +2276,7 @@ DHTNATPuncherImpl
 					throw( new Exception( "Unsupported rendezvous version '" + version + "'" ));
 				}
 				
-				result = dht.getTransport().importContact( dis );
+				result = dht.getTransport().importContact( dis, false );
 				
 			}catch( Throwable e ){
 				
@@ -2433,7 +2433,7 @@ DHTNATPuncherImpl
 			
 			DataInputStream	dis = new DataInputStream( bais );
 						
-			return((DHTTransportUDPContact)dht.getTransport().importContact( dis ));
+			return((DHTTransportUDPContact)dht.getTransport().importContact( dis, false ));
 			
 		}catch( Throwable e ){
 			

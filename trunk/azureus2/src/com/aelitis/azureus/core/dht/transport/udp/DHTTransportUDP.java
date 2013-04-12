@@ -134,7 +134,8 @@ DHTTransportUDP
 	public DHTTransportUDPContact
 	importContact(
 		InetSocketAddress	address,
-		byte				protocol_version )
+		byte				protocol_version,
+		boolean				is_bootstrap )
 	
 		throws DHTTransportException;
 	

@@ -77,7 +77,8 @@ DHTTransportRequestHandler
 
 	public void
 	contactImported(
-		DHTTransportContact	contact );
+		DHTTransportContact		contact,
+		boolean					is_bootstrap );
 	
 	public void
 	contactRemoved(

@@ -81,7 +81,8 @@ DHTTransport
 	
 	public DHTTransportContact
 	importContact(
-		DataInputStream		is )
+		DataInputStream		is,
+		boolean				is_bootstrap )
 	
 		throws IOException, DHTTransportException;
 	

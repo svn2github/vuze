@@ -69,7 +69,8 @@ DHTRouter
 	public void
 	contactKnown(
 		byte[]						node_id,
-		DHTRouterContactAttachment	attachment );
+		DHTRouterContactAttachment	attachment,
+		boolean						force );
 	
 		/**
 		 * Adds a contact to the router and marks it as "known to be alive"

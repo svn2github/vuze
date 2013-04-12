@@ -32,6 +32,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.TreeSet;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -62,6 +63,8 @@ DHTRouterImpl
 	implements DHTRouter
 {
 	private static final int	SMALLEST_SUBTREE_MAX_EXCESS	= 10*1024;
+	
+	private boolean		is_bootstrap_proxy;
 	
 	private int		K;
 	private int		B;
@@ -131,7 +134,9 @@ DHTRouterImpl
 			
 			class_mon.exit();
 		}
-				
+			
+		is_bootstrap_proxy = COConfigurationManager.getBooleanParameter( "dht.bootstrap.is.proxy", false );
+		
 		K					= _K;
 		B					= _B;
 		max_rep_per_node	= _max_rep_per_node;
@@ -312,11 +317,15 @@ DHTRouterImpl
 	public void
 	contactKnown(
 		byte[]						node_id,
-		DHTRouterContactAttachment	attachment )
+		DHTRouterContactAttachment	attachment,
+		boolean						force )
 	{
 		if ( recent_contact_bloom.contains( node_id )){
 
-			return;
+			if ( !force ){
+				
+				return;
+			}
 		}
 		
 		recent_contact_bloom.add( node_id );
@@ -383,7 +392,7 @@ DHTRouterImpl
 				
 					if ( consecutive_dead < 100 || force ){
 
-						node.dead( contact, force );
+						contactDeadSupport( node, contact, force );
 					}
 				}
 				
@@ -399,6 +408,28 @@ DHTRouterImpl
 			
 			dispatchNodeAdds();
 		}
+	}
+	
+	private void
+	contactDeadSupport(
+		DHTRouterNodeImpl		node,
+		DHTRouterContactImpl	contact,
+		boolean					force )
+	{
+			// bootstrap proxy has no network so we can't detect liveness of contacts. simply allow replacement of bucket
+			// entries when possible to rotate somewhat
+		
+		if ( is_bootstrap_proxy ){
+			
+			List<DHTRouterContactImpl> replacements = node.getReplacements();
+			
+			if ( replacements == null || replacements.size() == 0 ){
+			
+				return;
+			}
+		}
+		
+		node.dead( contact, force );
 	}
 	
 	public void
@@ -434,7 +465,7 @@ DHTRouterImpl
 				
 				if ( contact != null ){
 				
-					node.dead( contact, true );
+					contactDeadSupport( node, contact, true );
 				}
 			}finally{
 				

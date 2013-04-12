@@ -458,7 +458,7 @@ DHTPlugin
 														contact = 
 																transport.importContact(
 																		new InetSocketAddress( host, port ),
-																		transport.getProtocolVersion());
+																		transport.getProtocolVersion(), false );
 													}
 													
 													log.log( "Stats request to " + contact.getName());

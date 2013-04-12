@@ -1246,13 +1246,14 @@ DHTTransportUDPImpl
 	
 	public DHTTransportContact
 	importContact(
-		DataInputStream		is )
+		DataInputStream		is,
+		boolean				is_bootstrap )
 	
 		throws IOException, DHTTransportException
 	{
 		DHTTransportUDPContactImpl	contact = DHTUDPUtils.deserialiseContact( this, is );
 				
-		importContact( contact );
+		importContact( contact, is_bootstrap );
 			
 		return( contact );
 	}
@@ -1260,7 +1261,8 @@ DHTTransportUDPImpl
 	public DHTTransportUDPContact
 	importContact(
 		InetSocketAddress	_address,
-		byte				_protocol_version )
+		byte				_protocol_version,
+		boolean				is_bootstrap )
 	
 		throws DHTTransportException
 	{
@@ -1268,14 +1270,15 @@ DHTTransportUDPImpl
 		
 		DHTTransportUDPContactImpl	contact = new DHTTransportUDPContactImpl( false, this, _address, _address, _protocol_version, 0, 0, (byte)0 );
 		
-		importContact( contact );
+		importContact( contact, is_bootstrap );
 
 		return( contact );
 	}
 	
 	protected void
 	importContact(
-		DHTTransportUDPContactImpl	contact )
+		DHTTransportUDPContactImpl	contact,
+		boolean						is_bootstrap )
 	{
 		try{
 			this_mon.enter();
@@ -1294,7 +1297,7 @@ DHTTransportUDPImpl
 			this_mon.exit();
 		}
 		
-		request_handler.contactImported( contact );
+		request_handler.contactImported( contact, is_bootstrap );
 		
 		// logger.log( "Imported contact " + contact.getString());
 	}
@@ -2284,19 +2287,18 @@ outer:
 								// scavenge any contacts here to help bootstrap process
 								// when ip wrong and no import history
 							
-							for (int i=0; contact_history.size() < CONTACT_HISTORY_MAX && i<contacts.length;i++){
+							try{
+								this_mon.enter();
 								
-								DHTTransportUDPContact c = (DHTTransportUDPContact)contacts[i];
+								for (int i=0; contact_history.size() < CONTACT_HISTORY_MAX && i<contacts.length;i++){
 								
-								try{
-									this_mon.enter();
-									
-									contact_history.put( c.getTransportAddress(), c );
-
-								}finally{
-									
-									this_mon.exit();
+									DHTTransportUDPContact c = (DHTTransportUDPContact)contacts[i];
+								
+										contact_history.put( c.getTransportAddress(), c );
 								}
+							}finally{
+									
+								this_mon.exit();
 							}
 							
 							handler.findNodeReply( contact, contacts );

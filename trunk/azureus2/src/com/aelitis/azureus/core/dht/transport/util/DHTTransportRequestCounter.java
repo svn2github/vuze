@@ -129,9 +129,10 @@ DHTTransportRequestCounter
 		
 	public void
 	contactImported(
-		DHTTransportContact	contact )
+		DHTTransportContact		contact,
+		boolean					is_bootstrap )
 	{
-		delegate.contactImported( contact );
+		delegate.contactImported( contact, is_bootstrap );
 	}
 	
 	public void
