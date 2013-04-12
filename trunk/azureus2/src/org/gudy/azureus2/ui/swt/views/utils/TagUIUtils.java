@@ -397,10 +397,59 @@ public class TagUIUtils
 			}
 		}
 		
-		if ( !tag.getTagType().isTagTypeAuto()){
+		new MenuItem( menu, SWT.SEPARATOR);
+
+		if ( tag.getTagType().isTagTypeAuto()){
 			
-			new MenuItem( menu, SWT.SEPARATOR);
+			final List<Tag>	tags = tag.getTagType().getTags();
 			
+			int	invisible_count = 0;
+			
+			for ( Tag t: tags ){
+				
+				if ( !t.isVisible()){
+					
+					invisible_count++;
+				}
+			}
+			
+			final Menu menuShow = new Menu(menu.getShell(), SWT.DROP_DOWN);
+			final MenuItem showitem = new MenuItem(menu, SWT.CASCADE);
+			Messages.setLanguageText(showitem, "label.show.tag");
+			showitem.setMenu(menuShow);			
+			
+			if ( invisible_count > 1 ){
+				MenuItem showAll = new MenuItem(menuShow, SWT.PUSH);
+				Messages.setLanguageText(showAll, "label.show.all");
+				showAll.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event){
+						for ( Tag t: tags ){
+							
+							if ( !t.isVisible()){
+								t.setVisible( true );
+							}
+						}
+					}});
+				
+				new MenuItem( menuShow, SWT.SEPARATOR);
+			}
+			
+			for ( final Tag t: tags ){
+				
+				if ( !t.isVisible()){
+					MenuItem showTag = new MenuItem(menuShow, SWT.PUSH);
+					Messages.setLanguageText(showTag, t.getTagName( false ));
+					showTag.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event){
+							t.setVisible( true );
+						}});
+				}
+			}
+			
+			showitem.setEnabled( invisible_count > 0 );
+			
+		}else{
+						
 			MenuItem itemRename = new MenuItem(menu, SWT.PUSH);
 						
 			Messages.setLanguageText(itemRename, "MyTorrentsView.menu.rename");
