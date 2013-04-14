@@ -320,6 +320,14 @@ DHTRouterImpl
 		DHTRouterContactAttachment	attachment,
 		boolean						force )
 	{
+			// especially for small DHTs we don't want to prevent a contact from being re-added as long as they've been away for 
+			// a bit
+		
+		if ( SystemTime.getMonotonousTime() - recent_contact_bloom.getStartTimeMono() > 10*60*1000 ){
+			
+			recent_contact_bloom.clear();
+		}
+		
 		if ( recent_contact_bloom.contains( node_id )){
 
 			if ( !force ){
