@@ -26,6 +26,8 @@ import java.io.InputStream;
 import java.net.*;
 import java.util.*;
 
+import javax.net.ssl.SSLSocketFactory;
+
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -296,6 +298,9 @@ ClientIDManagerImpl
 			
 			URL	url = (URL)properties.get( ClientIDGenerator.PR_URL );
 			
+			boolean	is_ssl = url.getProtocol().toLowerCase().equals( "https" );
+			
+			/*
 			if ( !url.getProtocol().toLowerCase().equals( "http" )){
 				
 				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_ERROR,
@@ -303,6 +308,7 @@ ClientIDManagerImpl
 				
 				return;
 			}
+			*/
 			
 			try{
 				String	url_str = url.toString();
@@ -319,6 +325,11 @@ ClientIDManagerImpl
 				
 				String	new_url = url_str.substring(0,host_pos) + "127.0.0.1:" + filter_port;
 				
+				if ( is_ssl ){
+					
+					new_url = "http" + new_url.substring( new_url.indexOf( ':' ));
+				}
+				
 				String	rem = url_str.substring( host_pos + target_host.length());
 				
 				if ( rem.charAt(0) == ':' ){
@@ -328,7 +339,7 @@ ClientIDManagerImpl
 				
 				int q_pos = rem.indexOf( '?' );
 				
-				new_url += rem.substring(0,q_pos+1) + "cid=" + target_host + ":" + target_port + "&" + rem.substring(q_pos+1);
+				new_url += rem.substring(0,q_pos+1) + "cid=" + (is_ssl?".":"") + target_host + ":" + target_port + "&" + rem.substring(q_pos+1);
 				
 				properties.put( ClientIDGenerator.PR_URL, new URL( new_url ));
 				
@@ -440,6 +451,18 @@ ClientIDManagerImpl
 				String	target_host	= cid.substring( 0, p3 );
 				int		target_port	= Integer.parseInt( cid.substring(p3+1));
 				
+				boolean	is_ssl;
+				
+				if ( target_host.startsWith( "." )){
+				
+					is_ssl = true;
+					
+					target_host = target_host.substring(1);
+					
+				}else{
+					
+					is_ssl = false;
+				}
 					// fix up the Host: entry with the target details
 				
 				for (int i=1;i<lines_in.length;i++){
@@ -496,7 +519,16 @@ ClientIDManagerImpl
 				
 				header_out += NL;
 				
-				Socket	target = new Socket();
+				Socket	target;
+				
+				if ( is_ssl ){
+					
+					target = SSLSocketFactory.getDefault().createSocket();
+
+				}else{
+					
+					target = new Socket();					
+				}
 				
 				InetSocketAddress targetSockAddress = new InetSocketAddress(  InetAddress.getByName(target_host) , target_port  );
 			    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress(targetSockAddress.getAddress() instanceof Inet6Address ? NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V6 : NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V4);
