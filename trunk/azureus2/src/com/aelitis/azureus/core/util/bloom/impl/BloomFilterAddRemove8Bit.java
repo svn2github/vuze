@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.util.bloom.impl;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
@@ -123,5 +124,13 @@ BloomFilterAddRemove8Bit
 		byte	value )
 	{
 		map[index] = value;
+	}
+	
+	public void
+	clear()
+	{
+		Arrays.fill( map, (byte)0);
+		
+		super.clear();
 	}
 }

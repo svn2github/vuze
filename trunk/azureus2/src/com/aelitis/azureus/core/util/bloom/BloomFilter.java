@@ -56,6 +56,12 @@ BloomFilter
 		 * @return
 		 */
 	
+	public void 
+	clear();
+	
+	public long
+	getStartTimeMono();
+	
 	public int
 	getSize();
 	

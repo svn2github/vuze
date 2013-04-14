@@ -26,6 +26,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.SystemTime;
+
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 
 public class 
@@ -36,6 +38,8 @@ BloomFilterRotator
 	private int						current_filter_index;
 	
 	private final BloomFilter[]	filters;
+	
+	private long start_time = SystemTime.getMonotonousTime();
 	
 	public
 	BloomFilterRotator(
@@ -210,6 +214,18 @@ BloomFilterRotator
 	getReplica()
 	{
 		return( new BloomFilterRotator( current_filter, filters.length ));
+	}
+	
+	public long 
+	getStartTimeMono()
+	{
+		return( start_time );
+	}
+	
+	public void 
+	clear() 
+	{
+		current_filter.clear();
 	}
 	
 	public String

@@ -28,6 +28,7 @@ import java.util.Map;
 import java.util.Random;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.util.MapUtils;
@@ -97,6 +98,8 @@ BloomFilterImpl
 	//private BigInteger	bi_max_entries;
 	
 	private int			entry_count;
+	
+	private long		start_time = SystemTime.getMonotonousTime();
 	
 	public 
 	BloomFilterImpl(
@@ -551,17 +554,31 @@ BloomFilterImpl
 		return( max_entries );
 	}
 	
-	 protected static byte[] 
-	 getSerialization(
-	 	byte[]	address,
-	 	int		port )
-	 {
-		    //combine address and port bytes into one
-		    byte[] full_address = new byte[ address.length +2 ];
-		    System.arraycopy( address, 0, full_address, 0, address.length );
-		    full_address[ address.length ] = (byte)(port >> 8);
-		    full_address[ address.length +1 ] = (byte)(port & 0xff);
-		    return full_address;
+	public void 
+	clear() 
+	{
+		start_time  = SystemTime.getMonotonousTime();
+		
+		entry_count = 0;
+	}
+	
+	public long 
+	getStartTimeMono() 
+	{
+		return( start_time );
+	}
+	
+	protected static byte[] 
+	getSerialization(
+		byte[]	address,
+	    int		port )
+	{
+		//combine address and port bytes into one
+		byte[] full_address = new byte[ address.length +2 ];
+		System.arraycopy( address, 0, full_address, 0, address.length );
+		full_address[ address.length ] = (byte)(port >> 8);
+		full_address[ address.length +1 ] = (byte)(port & 0xff);
+		return full_address;
 	}
 	 
 	public String

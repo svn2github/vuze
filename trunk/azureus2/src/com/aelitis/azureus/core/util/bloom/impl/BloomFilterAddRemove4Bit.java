@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.util.bloom.impl;
 
+import java.util.Arrays;
 import java.util.Map;
 
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
@@ -146,5 +147,13 @@ BloomFilterAddRemove4Bit
 		// System.out.println( "setValue[" + index + "]:" + Integer.toHexString( map[index/2]&0xff) + "->" + Integer.toHexString( b&0xff ));
 		
 		map[index/2] = b;
+	}
+	
+	public void
+	clear()
+	{
+		Arrays.fill( map, (byte)0);
+		
+		super.clear();
 	}
 }
