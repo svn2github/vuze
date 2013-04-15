@@ -127,12 +127,6 @@ public class ColumnProgressETA
 
 		fileProgress = new ColumnTorrentFileProgress(display);
 
-		Object oShowETA = getUserData(CFG_SHOWETA);
-		if (oShowETA == null) {
-			showETA = false; // we could read a global default from somewhere
-		} else if (oShowETA instanceof Number) {
-			showETA = ((Number) oShowETA).intValue() == 1;
-		}
 		TableContextMenuItem menuShowETA = addContextMenuItem(
 				"ColumnProgressETA.showETA", MENU_STYLE_HEADER);
 		menuShowETA.setStyle(TableContextMenuItem.STYLE_CHECK);
@@ -148,12 +142,6 @@ public class ColumnProgressETA
 			}
 		});
 
-		Object oShowSpeed = getUserData(CFG_SHOWSPEED);
-		if (oShowSpeed == null) {
-			showSpeed = false; // we could read a global default from somewhere
-		} else if (oShowSpeed instanceof Number) {
-			showSpeed = ((Number) oShowSpeed).intValue() == 1;
-		}
 		TableContextMenuItem menuShowSpeed = addContextMenuItem(
 				"ColumnProgressETA.showSpeed", MENU_STYLE_HEADER);
 		menuShowSpeed.setStyle(TableContextMenuItem.STYLE_CHECK);
@@ -170,6 +158,8 @@ public class ColumnProgressETA
 		});
 
 	}
+	
+	
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] {
@@ -542,6 +532,20 @@ public class ColumnProgressETA
 
 	public void postConfigLoad() {
 		super.postConfigLoad();
+
+		Object oShowETA = getUserData(CFG_SHOWETA);
+		if (oShowETA == null) {
+			showETA = false; // we could read a global default from somewhere
+		} else if (oShowETA instanceof Number) {
+			showETA = ((Number) oShowETA).intValue() == 1;
+		}
+
+		Object oShowSpeed = getUserData(CFG_SHOWSPEED);
+		if (oShowSpeed == null) {
+			showSpeed = false; // we could read a global default from somewhere
+		} else if (oShowSpeed instanceof Number) {
+			showSpeed = ((Number) oShowSpeed).intValue() == 1;
+		}
 
 		cdf.update();
 	}
