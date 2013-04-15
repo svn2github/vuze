@@ -322,14 +322,19 @@ DHTUDPUtils
 		
 		if ( ia == null ){
 			
-			Debug.out( "Address '" + address + "' is unresolved" );
+				// could be an unresolved dht6 seed, stick in a fake value as we are committed to serialising
+				// something here
 			
-			throw( new DHTTransportException( "Address '" + address + "' is unresolved" ));
+			serialiseByteArray( os, new byte[4], 16 );
+			
+			os.writeShort( 0 );
+			
+		}else{
+		
+			serialiseByteArray( os, ia.getAddress(), 16);	// 16 (Pv6) + 1 length
+			
+			os.writeShort( address.getPort());	//19
 		}
-		
-		serialiseByteArray( os, ia.getAddress(), 16);	// 16 (Pv6) + 1 length
-		
-		os.writeShort( address.getPort());	//19
 	}
 	
 	protected static InetSocketAddress
@@ -693,13 +698,18 @@ DHTUDPUtils
 	{
 		int	len = deserialiseLength( is, 65535 );
 		
-		List	l = new ArrayList( len );
+		List<DHTTransportContact>	l = new ArrayList<DHTTransportContact>( len );
 		
 		for (int i=0;i<len;i++){
 			
 			try{
 				
-				l.add( deserialiseContact( transport, is ));
+				DHTTransportContact contact = deserialiseContact( transport, is );
+				
+				if ( contact.getAddress().getPort() > 0 ){
+				
+					l.add( contact );
+				}
 				
 			}catch( DHTTransportException e ){
 				
