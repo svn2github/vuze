@@ -217,6 +217,20 @@ TagManagerImpl
 		return( tag_types.getList());
 	}
 	
+	public List<Tag>
+	getTagsForTaggable(
+		Taggable	taggable )
+	{
+		Set<Tag>	result = new HashSet<Tag>();
+		
+		for ( TagType tt: tag_types ){
+			
+			result.addAll( tt.getTagsForTaggable( taggable ));
+		}
+		
+		return( new ArrayList<Tag>( result ));
+	}
+	
 	public TaggableLifecycleHandler
 	registerTaggableResolver(
 		final TaggableResolver	resolver )

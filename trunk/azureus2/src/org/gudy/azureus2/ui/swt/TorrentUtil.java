@@ -73,6 +73,7 @@ import org.gudy.azureus2.ui.swt.views.FilesViewMenuUtil;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.RankItem;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -1609,6 +1610,18 @@ public class TorrentUtil {
 			itemPersonalShare.setEnabled( can_share_pers );
 		}
 		
+		// Tags
+		
+		
+		Menu menuTags = new Menu(composite.getShell(), SWT.DROP_DOWN);
+		final MenuItem itemTags = new MenuItem(menu, SWT.CASCADE);
+		Messages.setLanguageText(itemTags, "label.tags");
+		itemTags.setMenu(menuTags);
+		itemTags.setEnabled(hasSelection);
+
+		TagUIUtils.addLibraryViewTagsSubMenu(dms, menuTags, composite);
+
+		
 		// ---
 		new MenuItem(menu, SWT.SEPARATOR);
 
@@ -1768,6 +1781,8 @@ public class TorrentUtil {
 
 	}
 
+
+	
   private static void moveSelectedTorrentsTo(TableView tv,
 			DownloadManager[] dms, int iNewPos) {
     if (dms == null || dms.length == 0) {

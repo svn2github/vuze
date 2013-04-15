@@ -21,6 +21,9 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
@@ -212,6 +215,23 @@ TagTypeBase
 		}
 		
 		return( null );
+	}
+	
+	public List<Tag>
+	getTagsForTaggable(
+		Taggable	taggable )
+	{
+		List<Tag>	result = new ArrayList<Tag>();
+		
+		for ( Tag t: getTags()){
+			
+			if ( t.hasTaggable( taggable )){
+				
+				result.add( t );
+			}
+		}
+		
+		return( result );
 	}
 	
 	protected void

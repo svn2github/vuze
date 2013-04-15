@@ -83,6 +83,10 @@ TagType
 	public List<Tag>
 	getTags();
 	
+	public List<Tag>
+	getTagsForTaggable(
+		Taggable	taggable );
+	
 	public void
 	removeTagType();
 	

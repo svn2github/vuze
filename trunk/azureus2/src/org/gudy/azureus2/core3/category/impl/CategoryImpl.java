@@ -29,6 +29,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryListener;
 import org.gudy.azureus2.core3.download.*;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
@@ -399,6 +400,18 @@ CategoryImpl
 	  return( Taggable.TT_DOWNLOAD );
   }
   
+  public String
+  getTagName(
+    boolean		localize )
+  {
+	  if ( localize ){
+		  if ( type == Category.TYPE_ALL ||  type == Category.TYPE_UNCATEGORIZED){
+			  return( MessageText.getString( getTagNameRaw()));
+		  }
+	  }
+	  return( super.getTagName(localize));
+  }
+	
   public boolean
   supportsTagUploadLimit()
   {

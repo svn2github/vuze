@@ -37,6 +37,10 @@ TagManager
 	public List<TagType>
 	getTagTypes();
 	
+	public List<Tag>
+	getTagsForTaggable(
+		Taggable	taggable );
+	
 	public TaggableLifecycleHandler
 	registerTaggableResolver(
 		TaggableResolver	resolver );
