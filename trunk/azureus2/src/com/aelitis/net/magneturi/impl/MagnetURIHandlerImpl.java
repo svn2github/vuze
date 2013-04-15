@@ -243,9 +243,13 @@ MagnetURIHandlerImpl
 								errors++;
 								
 								if ( errors > 100 ){
-									if (Logger.isEnabled())
+									
+									if (Logger.isEnabled()){
 										Logger.log(new LogEvent(LOGID,
 										"MagnetURIHandler: bailing out, too many socket errors"));
+									}
+									
+									break;
 								}
 							}
 						}
