@@ -249,6 +249,13 @@ public class ConfigSectionQueue implements UISWTConfigSection
 
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
+		new BooleanParameter(cSection, "StartStopManager_bRetainForceStartWhenComplete",
+				"ConfigView.label.queue.retainforce").setLayoutData(gridData);
+
+		// row
+
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
 		new BooleanParameter(cSection, "Alert on close",
 				"ConfigView.label.showpopuponclose").setLayoutData(gridData);
 

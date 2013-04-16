@@ -367,6 +367,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				"ConfigView.label.queue.debuglog", false);
 		configModel.addBooleanParameter2("StartStopManager_bNewSeedsMoveTop",
 				"ConfigView.label.queue.newseedsmovetop", true);
+		configModel.addBooleanParameter2("StartStopManager_bRetainForceStartWhenComplete",
+				"ConfigView.label.queue.retainforce", false);
 
 		configModel.addIntParameter2(
 				"StartStopManager_iMaxActiveTorrentsWhenSeeding",

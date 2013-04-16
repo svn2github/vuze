@@ -2958,9 +2958,12 @@ DownloadManagerImpl
 	{
 	    if ( !never_downloaded ){
 		
-	    	if (isForceStart()){
-    	
-	    		setForceStart(false);
+	    	if ( !COConfigurationManager.getBooleanParameter( "StartStopManager_bRetainForceStartWhenComplete" )){
+	    	
+	    		if (isForceStart()){
+	    			
+    	    		setForceStart(false);
+	    		}
 	    	}
 
 	    	setAssumedComplete(true);
