@@ -39,7 +39,6 @@ import org.gudy.azureus2.plugins.ui.menus.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
-import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
@@ -782,9 +781,12 @@ public class SB_Transfers
 						&& PlatformTorrentUtils.isAdvancedViewOnly(dm)) {
 					return;
 				}
-				stats.newestDownloadTime = Math.max( stats.newestDownloadTime, dm.getCreationTime());
+				boolean assumed_complete = dm.getAssumedComplete();
+				if ( dm.isPersistent()){
+					stats.newestDownloadTime = Math.max( stats.newestDownloadTime, dm.getCreationTime());
+				}
 				int dm_state = dm.getState();
-				if (dm.getAssumedComplete()) {
+				if (assumed_complete) {
 					stats.numComplete++;
 					if (dm_state == DownloadManager.STATE_SEEDING) {
 						stats.numSeeding++;
@@ -805,10 +807,12 @@ public class SB_Transfers
 		for (Iterator<DownloadManager> iter = downloadManagers.iterator(); iter.hasNext();) {
 			DownloadManager dm = (DownloadManager) iter.next();
 			boolean lowNoise = PlatformTorrentUtils.isAdvancedViewOnly(dm);
-			long createTime = dm.getCreationTime();
-			statsWithLowNoise.newestDownloadTime = Math.max( statsWithLowNoise.newestDownloadTime, createTime);
-			if (!lowNoise) {
-				statsNoLowNoise.newestDownloadTime = Math.max( statsNoLowNoise.newestDownloadTime, createTime);
+			if ( dm.isPersistent()){
+				long createTime = dm.getCreationTime();
+				statsWithLowNoise.newestDownloadTime = Math.max( statsWithLowNoise.newestDownloadTime, createTime);
+				if (!lowNoise) {
+					statsNoLowNoise.newestDownloadTime = Math.max( statsNoLowNoise.newestDownloadTime, createTime);
+				}
 			}
 			dm.addListener(dmListener, false);
 			int dm_state = dm.getState();
