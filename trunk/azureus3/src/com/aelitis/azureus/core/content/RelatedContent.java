@@ -29,6 +29,8 @@ import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 public abstract class 
 RelatedContent 
 {
+	public final static String[]	NO_TAGS = {};
+	
 	final private String 		title;
 	final private byte[]		hash;
 	final private String		tracker;
@@ -42,6 +44,8 @@ RelatedContent
 	private byte[]		tracker_keys;
 	private byte[]		ws_keys;
 	
+	private String[]	tags;
+	
 	public
 	RelatedContent(
 		byte[]		_related_to_hash,
@@ -50,6 +54,7 @@ RelatedContent
 		String		_tracker,
 		byte[]		_tracker_keys,
 		byte[]		_ws_keys,
+		String[]	_tags,
 		long		_size,
 		int			_date,
 		int			_seeds_leechers,
@@ -61,6 +66,7 @@ RelatedContent
 		tracker				= _tracker;
 		tracker_keys		= _tracker_keys;
 		ws_keys				= _ws_keys;
+		tags				= _tags;
 		size				= _size;
 		date				= _date;
 		seeds_leechers		= _seeds_leechers;
@@ -79,7 +85,7 @@ RelatedContent
 	{
 			// legacy constructor as referenced from plugin - remove oneday!
 		
-		this( _title, _hash, _tracker, null, null, _size, _date, _seeds_leechers, _cnet );
+		this( _title, _hash, _tracker, null, null, null, _size, _date, _seeds_leechers, _cnet );
 	}
 	
 	public
@@ -89,6 +95,7 @@ RelatedContent
 		String		_tracker,
 		byte[]		_tracker_keys,
 		byte[]		_ws_keys,
+		String[]	_tags,
 		long		_size,
 		int			_date,
 		int			_seeds_leechers,
@@ -99,6 +106,7 @@ RelatedContent
 		tracker				= _tracker;
 		tracker_keys		= _tracker_keys;
 		ws_keys				= _ws_keys;
+		tags				= _tags;
 		size				= _size;
 		date				= _date;
 		seeds_leechers		= _seeds_leechers;
@@ -165,6 +173,19 @@ RelatedContent
 	getWebSeedKeys()
 	{
 		return( ws_keys );
+	}
+	
+	public String[]
+	getTags()
+	{
+		return( tags==null?NO_TAGS:tags );
+	}
+	
+	protected void
+	setTags(
+		String[]	_tags )
+	{
+		tags	= _tags;
 	}
 	
 	public long

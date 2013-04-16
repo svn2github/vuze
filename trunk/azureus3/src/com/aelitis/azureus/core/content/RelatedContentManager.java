@@ -92,6 +92,10 @@ import com.aelitis.azureus.core.dht.transport.DHTTransport;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.FeatureAvailability;
@@ -113,6 +117,7 @@ RelatedContentManager
 	public static final int RCM_SEARCH_PROPERTY_CONTENT_NETWORK	= 50000;	// don't change these, used in plugin
 	public static final int RCM_SEARCH_PROPERTY_TRACKER_KEYS	= 50001;
 	public static final int RCM_SEARCH_PROPERTY_WEB_SEED_KEYS	= 50002;
+	public static final int RCM_SEARCH_PROPERTY_TAGS			= 50003;
 	
 	private static final boolean 	TRACE 			= false;
 	
@@ -162,8 +167,11 @@ RelatedContentManager
 	
 	private PluginInterface 				plugin_interface;
 	private TorrentAttribute 				ta_networks;
+	private TorrentAttribute 				ta_category;
 	private DHTPlugin						dht_plugin;
 
+	private TagManager						tag_manager;
+	
 	private long	global_random_id = -1;
 	
 	private LinkedList<DownloadInfo>		download_infos1 	= new LinkedList<DownloadInfo>();
@@ -335,6 +343,9 @@ RelatedContentManager
 			plugin_interface = core.getPluginManager().getDefaultPluginInterface();
 			
 			ta_networks 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
+			ta_category 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_CATEGORY );
+
+			tag_manager	= TagManagerFactory.getTagManger();
 			
 			plugin_interface.getUtilities().createDelayedTask(new AERunnable() {
 				public void runSupport() {
@@ -630,6 +641,7 @@ RelatedContentManager
 								torrent.isPrivate()?StringInterner.intern(torrent.getAnnounceURL().getHost()):null,
 								keys[0],
 								keys[1],
+								getTags( download ),
 								0,
 								false,
 								torrent.getSize(),
@@ -957,6 +969,12 @@ RelatedContentManager
 					if ( keys[1] != null ){
 						map.put( "w", keys[1] );
 					}
+					
+					String[] _tags = getTags( d );
+					
+					if ( _tags != null ){
+						map.put( "g", encodeTags( _tags ));
+					}
 				}
 			}catch( Throwable e ){		
 			}
@@ -970,6 +988,8 @@ RelatedContentManager
 		}
 		
 		final byte[] map_bytes = BEncoder.encode( map );
+		
+		//System.out.println( "rcmsize=" + map_bytes.length );
 		
 		final int max_hits = 30;
 				
@@ -1351,9 +1371,13 @@ RelatedContentManager
 				ws_keys = null;
 			}
 			
+			byte[]	_tags = (byte[])map.get( "g" );
+			
+			String[] tags = decodeTags( _tags );
+			
 			return(
 				new DownloadInfo( 
-						from_hash, hash, title, rand, tracker, tracker_keys, ws_keys, level, explicit, size, 
+						from_hash, hash, title, rand, tracker, tracker_keys, ws_keys, tags, level, explicit, size, 
 						published==null?0:published.intValue(),
 						seeds_leechers,
 						(byte)(cnet==null?ContentNetwork.CONTENT_NETWORK_UNKNOWN:cnet.byteValue()))); 
@@ -2543,8 +2567,30 @@ RelatedContentManager
 							
 							if ( bit_patterns[i] == null ){
 							
-								hit = lc_title.contains( bit );
+								if ( bit.startsWith( "tag:" )){
+									
+									String[] tags = c.getTags();
+									
+									hit = false;
+									
+									if ( tags != null && tags.length > 0 ){
+										
+										String	target_tag = bit.substring( 4 ).toLowerCase( Locale.US );
+										
+										for ( String t: tags ){
+											
+											if ( t.equals( target_tag )){
+												
+												hit = true;
+												
+												break;
+											}
+										}
+									}
+								}else{
 								
+									hit = lc_title.contains( bit );
+								}
 							}else{
 							
 								hit = bit_patterns[i].matcher( lc_title ).find();
@@ -2736,6 +2782,10 @@ RelatedContentManager
 										}else if ( property_name == RCM_SEARCH_PROPERTY_WEB_SEED_KEYS ){
 											
 											return( c.getWebSeedKeys());
+											
+										}else if ( property_name == RCM_SEARCH_PROPERTY_TAGS ){
+
+											return( c.getTags());
 										}
 										
 										return( null );
@@ -3235,6 +3285,10 @@ RelatedContentManager
 								}else if ( property_name == RCM_SEARCH_PROPERTY_WEB_SEED_KEYS ){
 									
 									return( map.get( "w" ));
+									
+								}else if ( property_name == RCM_SEARCH_PROPERTY_TAGS ){
+									
+									return( decodeTags((byte[])map.get( "g" )));
 								}
 
 							}catch( Throwable e ){
@@ -3552,6 +3606,12 @@ RelatedContentManager
 							
 							if ( ws_keys != null ){
 								map.put( "w", ws_keys );
+							}
+							
+							String[] tags = c.getTags();
+							
+							if ( tags != null ){
+								map.put( "g", encodeTags( tags ));
 							}
 							
 								// don't bother with tracker as no use to caller really
@@ -4319,7 +4379,155 @@ RelatedContentManager
 			}
 		}
 	}
+		
+	private String[]
+	getTags(
+		Download	download )
+	{
+		Set<String>	all_tags = new HashSet<String>();
+		
+		String	cat_name = ta_category==null?null:download.getAttribute( ta_category );
+		
+		if ( cat_name != null ){
 			
+			all_tags.add( cat_name.toLowerCase( Locale.US ));
+		}
+		
+		List<Tag> tags = tag_manager.getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTagsForTaggable( PluginCoreUtils.unwrap( download ));
+		
+		for ( Tag t: tags ){
+			
+			all_tags.add( t.getTagName( true ).toLowerCase( Locale.US ));
+		}
+		
+		if ( all_tags.size() == 0 ){
+		
+			return( null );
+			
+		}else if ( all_tags.size() == 1 ){
+			
+			return( new String[]{ all_tags.iterator().next()});
+			
+		}else{
+			
+			List<String> temp = new ArrayList<String>( all_tags );
+			
+			Collections.shuffle( temp );
+			
+			return( temp.toArray( new String[ temp.size()] ));
+		}
+	}
+	
+	final int MAX_TAGS 			= 3;
+	final int MAX_TAG_LENGTH	= 16;
+	
+	private byte[]
+	encodeTags(
+		String[]		tags )
+	{
+		if ( tags == null || tags.length == 0 ){
+			
+			return( null );
+		}
+		
+		byte[]	temp 	= new byte[MAX_TAGS*(MAX_TAG_LENGTH+1)];
+		int		pos		= 0;
+		
+		for ( int i=0;i<Math.min( MAX_TAGS, tags.length);i++){
+			
+			String tag = tags[i];
+			
+			if ( tag.length() > MAX_TAG_LENGTH ){
+				
+				tag = tag.substring( 0, MAX_TAG_LENGTH );
+			}
+			
+			while( tag.length() > 0 ){
+			
+				try{
+					byte[] tag_bytes = tag.getBytes( "UTF-8" );
+					
+					int	tb_len = tag_bytes.length;
+					
+					if ( tb_len <= MAX_TAG_LENGTH ){
+						
+						temp[pos++] = (byte)tb_len;
+						
+						System.arraycopy( tag_bytes, 0, temp, pos, tb_len );
+						
+						pos += tb_len;
+						
+						break;
+						
+					}else{
+						
+						tag = tag.substring( 0, tag.length() - 1 );
+					}
+					
+				}catch( Throwable e ){
+					
+					break;
+				}
+			}
+		}
+		
+		if ( pos == 0 ){
+			
+			return( null );
+			
+		}else{
+			
+			byte[] result = new byte[pos];
+			
+			System.arraycopy( temp, 0, result, 0, pos );
+			
+			return( result );
+		}
+	}
+	
+	private String[]
+	decodeTags(
+		byte[]		bytes )
+	{
+		if ( bytes == null || bytes.length == 0 ){
+		
+			return( null );
+		}
+		
+		List<String>	tags = new ArrayList<String>( MAX_TAGS );
+		
+		int	pos = 0;
+		
+		while( pos < bytes.length ){
+			
+			int	tag_len = bytes[pos++]&0x000000ff;
+			
+			if ( tag_len > MAX_TAG_LENGTH ){
+				
+				break;
+			}
+			
+			try{
+				tags.add( new String( bytes, pos, tag_len, "UTF-8" ));
+				
+				pos += tag_len;
+				
+			}catch( Throwable e ){
+				
+				break;
+			}
+		}
+		
+		if ( tags.size() == 0 ){
+		
+			return( null );
+			
+		}else{
+			
+			return( tags.toArray( new String[ tags.size()] ));
+		}
+	}
+	
 	private List<DownloadInfo>
 	getDHTInfos()
 	{
@@ -5290,6 +5498,11 @@ outer:
 			if ( ws_keys != null ){
 				info_map.put( "w", ws_keys );
 			}
+			
+			String[] tags = info.getTags();
+			if ( tags != null ){
+				info_map.put( "g", encodeTags(tags));
+			}
 			if ( cc != null ){
 							
 				ImportExportUtils.exportBoolean( info_map, "u", info.isUnread());
@@ -5336,9 +5549,13 @@ outer:
 				ws_keys = null;
 			}
 			
+			byte[]	_tags	= (byte[])info_map.get( "g" );
+
+			String[] tags = decodeTags( _tags );
+			
 			if ( cc == null ){
 			
-				return( new DownloadInfo( hash, hash, title, rand, tracker, tracker_keys, ws_keys, 0, false, size, date, seeds_leechers, cnet ));
+				return( new DownloadInfo( hash, hash, title, rand, tracker, tracker_keys, ws_keys, tags, 0, false, size, date, seeds_leechers, cnet ));
 				
 			}else{
 				
@@ -5350,7 +5567,7 @@ outer:
 				
 				int	level = ImportExportUtils.importInt( info_map, "e" );
 				
-				return( new DownloadInfo( hash, title, rand, tracker, tracker_keys, ws_keys, unread, rand_list, last_seen, level, size, date, seeds_leechers, cnet, cc ));
+				return( new DownloadInfo( hash, title, rand, tracker, tracker_keys, ws_keys, tags, unread, rand_list, last_seen, level, size, date, seeds_leechers, cnet, cc ));
 			}
 		}catch( Throwable e ){
 			
@@ -5470,6 +5687,7 @@ outer:
 			String		_tracker,
 			byte[]		_tracker_keys,
 			byte[]		_ws_keys,
+			String[]	_tags,
 			int			_level,
 			boolean		_explicit,
 			long		_size,
@@ -5477,7 +5695,7 @@ outer:
 			int			_seeds_leechers,
 			byte		_cnet )
 		{
-			super( _related_to, _title, _hash, _tracker, _tracker_keys, _ws_keys, _size, _date, _seeds_leechers, _cnet );
+			super( _related_to, _title, _hash, _tracker, _tracker_keys, _ws_keys, _tags, _size, _date, _seeds_leechers, _cnet );
 			
 			rand		= _rand;
 			level		= _level;
@@ -5494,6 +5712,7 @@ outer:
 			String			_tracker,
 			byte[]			_tracker_keys,
 			byte[]			_ws_keys,
+			String[]		_tags,
 			boolean			_unread,
 			int[]			_rand_list,
 			int				_last_seen,
@@ -5504,7 +5723,7 @@ outer:
 			byte			_cnet,
 			ContentCache	_cc )
 		{
-			super( _title, _hash, _tracker, _tracker_keys, _ws_keys, _size, _date, _seeds_leechers, _cnet );
+			super( _title, _hash, _tracker, _tracker_keys, _ws_keys, _tags, _size, _date, _seeds_leechers, _cnet );
 			
 			rand		= _rand;
 			unread		= _unread;
@@ -5573,38 +5792,111 @@ outer:
 						result = true;
 					}
 				}
+			}
 				
-				if ( info.getLevel() < level ){
+			if ( info.getLevel() < level ){
+				
+				level = info.getLevel();
+				
+				result = true;
+			}
+			
+			long cn =  info.getContentNetwork();
+			
+			if ( 	cn != ContentNetwork.CONTENT_NETWORK_UNKNOWN && 
+					getContentNetwork() == ContentNetwork.CONTENT_NETWORK_UNKNOWN ){
+				
+				setContentNetwork( cn );
+			}
+			
+			int sl = info.getSeedsLeechers();
+			
+			if ( sl != -1 && sl != getSeedsLeechers()){
+				
+				setSeedsLeechers( sl );
+				
+				result = true;
+			}
+			
+			int	d = info.getDateHours();
+			
+			if ( d > 0 && getDateHours() == 0 ){
+				
+				setDateHours( d );
+				
+				result = true;
+			}
+				
+			String[] other_tags = info.getTags();
+			
+			if ( other_tags != null && other_tags.length > 0 ){
+			
+				String[] existing_tags = getTags();
+				
+				if ( existing_tags == NO_TAGS ){
 					
-					level = info.getLevel();
+					setTags( other_tags );
 					
 					result = true;
-				}
-				
-				long cn =  info.getContentNetwork();
-				
-				if ( 	cn != ContentNetwork.CONTENT_NETWORK_UNKNOWN && 
-						getContentNetwork() == ContentNetwork.CONTENT_NETWORK_UNKNOWN ){
 					
-					setContentNetwork( cn );
-				}
-				
-				int sl = info.getSeedsLeechers();
-				
-				if ( sl != -1 && sl != getSeedsLeechers()){
+				}else{
 					
-					setSeedsLeechers( sl );
+					boolean	same;
 					
-					result = true;
-				}
-				
-				int	d = info.getDateHours();
-				
-				if ( d > 0 && d != getDateHours()){
+					if ( other_tags.length == existing_tags.length ){
 					
-					setDateHours( d );
+						if ( existing_tags.length == 1 ){
+							
+							same = other_tags[0].equals( existing_tags[0] );
+							
+						}else{
+							
+							same = true;
+							
+							for ( int i=0;i<existing_tags.length;i++ ){
+								
+								String e_tag = existing_tags[i];
+								
+								boolean	found = false;
+								
+								for ( int j=0;j<other_tags.length;j++){
+									
+									if ( e_tag.equals( other_tags[j])){
+										
+										found = true;
+										
+										break;
+									}
+								}
+								
+								if ( !found ){
+									
+									same = false;
+									
+									break;
+								}
+							}
+						}
+					}else{
 					
-					result = true;
+						same = false;
+					}
+					
+					if ( !same ){
+						
+						Set<String>	tags = new HashSet<String>();
+						
+						for ( String t: existing_tags ){
+							tags.add( t );
+						}
+						for ( String t: other_tags ){
+							tags.add( t );
+						}
+						
+						setTags( tags.toArray( new String[tags.size()]));
+						
+						result = true;
+					}
 				}
 			}
 			
