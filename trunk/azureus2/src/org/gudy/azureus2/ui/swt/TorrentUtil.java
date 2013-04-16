@@ -1565,7 +1565,8 @@ public class TorrentUtil {
 		 itemsSpeed[0].addListener(SWT.Selection,itemsSpeedListener);
 		 */
 
-		// Category
+			// Category
+		
 		Menu menuCategory = new Menu(composite.getShell(), SWT.DROP_DOWN);
 		final MenuItem itemCategory = new MenuItem(menu, SWT.CASCADE);
 		Messages.setLanguageText(itemCategory, "MyTorrentsView.menu.setCategory"); //$NON-NLS-1$
@@ -1574,6 +1575,18 @@ public class TorrentUtil {
 		itemCategory.setEnabled(hasSelection);
 
 		addCategorySubMenu(dms, menuCategory, composite);
+		
+			// Tags
+			
+		Menu menuTags = new Menu(composite.getShell(), SWT.DROP_DOWN);
+		final MenuItem itemTags = new MenuItem(menu, SWT.CASCADE);
+		Messages.setLanguageText(itemTags, "label.tags");
+		itemTags.setMenu(menuTags);
+		itemTags.setEnabled(hasSelection);
+
+		TagUIUtils.addLibraryViewTagsSubMenu(dms, menuTags, composite);
+
+			// personal share
 		
 		if ( isSeedingView ){
 			final MenuItem itemPersonalShare = new MenuItem(menu, SWT.PUSH);
@@ -1610,17 +1623,6 @@ public class TorrentUtil {
 			itemPersonalShare.setEnabled( can_share_pers );
 		}
 		
-		// Tags
-		
-		
-		Menu menuTags = new Menu(composite.getShell(), SWT.DROP_DOWN);
-		final MenuItem itemTags = new MenuItem(menu, SWT.CASCADE);
-		Messages.setLanguageText(itemTags, "label.tags");
-		itemTags.setMenu(menuTags);
-		itemTags.setEnabled(hasSelection);
-
-		TagUIUtils.addLibraryViewTagsSubMenu(dms, menuTags, composite);
-
 		
 		// ---
 		new MenuItem(menu, SWT.SEPARATOR);
