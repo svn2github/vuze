@@ -980,6 +980,21 @@ RelatedContentManager
 			}
 		}
 		
+		try{
+			Download d = from_info.getRelatedToDownload();
+		
+			if ( d != null ){
+				
+				String[] _tags = getTags( d );
+			
+				if ( _tags != null ){
+					
+					map.put( "m", encodeTags( _tags ));
+				}
+			}
+		}catch( Throwable e ){		
+		}
+		
 		long	size = to_info.getSize();
 		
 		if ( size != 0 ){
@@ -2577,9 +2592,13 @@ RelatedContentManager
 										
 										String	target_tag = bit.substring( 4 ).toLowerCase( Locale.US );
 										
+										target_tag = unescapeTag( target_tag );
+										
+										target_tag = truncateTag( target_tag );
+										
 										for ( String t: tags ){
 											
-											if ( t.equals( target_tag )){
+											if ( t.startsWith( target_tag )){
 												
 												hit = true;
 												
@@ -4437,37 +4456,21 @@ RelatedContentManager
 			
 			String tag = tags[i];
 			
-			if ( tag.length() > MAX_TAG_LENGTH ){
+			tag = truncateTag( tag );
+			
+			try{
+				byte[] tag_bytes = tag.getBytes( "UTF-8" );
+					
+				int	tb_len = tag_bytes.length;
+											
+				temp[pos++] = (byte)tb_len;
+						
+				System.arraycopy( tag_bytes, 0, temp, pos, tb_len );
+						
+				pos += tb_len;
 				
-				tag = tag.substring( 0, MAX_TAG_LENGTH );
-			}
-			
-			while( tag.length() > 0 ){
-			
-				try{
-					byte[] tag_bytes = tag.getBytes( "UTF-8" );
-					
-					int	tb_len = tag_bytes.length;
-					
-					if ( tb_len <= MAX_TAG_LENGTH ){
-						
-						temp[pos++] = (byte)tb_len;
-						
-						System.arraycopy( tag_bytes, 0, temp, pos, tb_len );
-						
-						pos += tb_len;
-						
-						break;
-						
-					}else{
-						
-						tag = tag.substring( 0, tag.length() - 1 );
-					}
-					
-				}catch( Throwable e ){
-					
-					break;
-				}
+			}catch( Throwable e ){
+
 			}
 		}
 		
@@ -4483,6 +4486,62 @@ RelatedContentManager
 			
 			return( result );
 		}
+	}
+	
+	private String
+	escapeTag(
+		String	tag )
+	{
+		if ( tag.contains( " " )){
+			
+			tag = tag.replaceAll( " ", "+" );
+		}
+		
+		return( tag );
+	}
+	
+	private String
+	unescapeTag(
+		String	tag )
+	{
+		if ( tag.contains( "+" )){
+			
+			tag = tag.replaceAll( "\\+", " " );
+		}
+		
+		return( tag );
+	}
+	
+	private String
+	truncateTag(
+		String	tag )
+	{
+		if ( tag.length() > MAX_TAG_LENGTH ){
+			
+			tag = tag.substring( 0, MAX_TAG_LENGTH );
+		}
+		
+		while( tag.length() > 0 ){
+			
+			try{
+				byte[] tag_bytes = tag.getBytes( "UTF-8" );
+								
+				if ( tag_bytes.length <= MAX_TAG_LENGTH ){
+					
+					break;
+					
+				}else{
+					
+					tag = tag.substring( 0, tag.length() - 1 );
+				}
+				
+			}catch( Throwable e ){
+				
+				break;
+			}
+		}
+		
+		return( tag );
 	}
 	
 	private String[]
@@ -4523,7 +4582,7 @@ RelatedContentManager
 			return( null );
 			
 		}else{
-			
+						
 			return( tags.toArray( new String[ tags.size()] ));
 		}
 	}
@@ -4602,8 +4661,10 @@ RelatedContentManager
 	
 	private List<String>
 	getDHTWords(
-		String		title )
+		DownloadInfo	info )
 	{
+		String title = info.getTitle();
+		
 		title = title.toLowerCase( Locale.US );
 		
 		char[]	chars = title.toCharArray();
@@ -4625,6 +4686,18 @@ RelatedContentManager
 			if ( word.length() > 0 && !ignore_words.contains( word )){
 				
 				result.add( word );
+			}
+		}
+		
+		String[] tags = info.getTags();
+		
+		if ( tags != null ){
+			
+			for ( String tag: tags ){
+				
+				tag = escapeTag( tag );
+								
+				result.add( "tag:" + tag );
 			}
 		}
 		
@@ -4656,7 +4729,7 @@ RelatedContentManager
 				
 					DownloadInfo di = it.next();
 							
-					List<String>	words = getDHTWords( di.getTitle());
+					List<String>	words = getDHTWords( di );
 					
 					for ( String word: words ){
 															
@@ -4782,7 +4855,7 @@ RelatedContentManager
 					
 						DownloadInfo di = it.next();
 								
-						List<String>	words = getDHTWords( di.getTitle());
+						List<String>	words = getDHTWords( di );
 						
 						for ( String word: words ){
 									
@@ -5042,6 +5115,9 @@ outer:
 		try{
 			String[]	 bits = Constants.PAT_SPLIT_SPACE.split(term.toLowerCase());
 	
+				// note that we don't need to unescape tags in this process as tags are escaped when
+				// inserted into the blooms
+			
 			int[]			bit_types 		= new int[bits.length];
 			byte[][]		bit_bytes	 	= new byte[bit_types.length][];
 			byte[][][]		extras			= new byte[bit_types.length][][];
