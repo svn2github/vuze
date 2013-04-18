@@ -4461,7 +4461,10 @@ RelatedContentManager
 		
 		for ( Tag t: tags ){
 			
-			all_tags.add( t.getTagName( true ).toLowerCase( Locale.US ));
+			if ( t.isPublic()){
+			
+				all_tags.add( t.getTagName( true ).toLowerCase( Locale.US ));
+			}
 		}
 		
 		if ( all_tags.size() == 0 ){

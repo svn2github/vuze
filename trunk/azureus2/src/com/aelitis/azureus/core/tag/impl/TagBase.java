@@ -37,6 +37,7 @@ TagBase
 	protected static final String	AT_RATELIMIT_UP		= "rl.up";
 	protected static final String	AT_RATELIMIT_DOWN	= "rl.down";
 	protected static final String	AT_VISIBLE			= "vis";
+	protected static final String	AT_PUBLIC			= "pub";
 	  
 	private TagTypeBase	tag_type;
 	
@@ -69,6 +70,7 @@ TagBase
 			});	
 		
 	private boolean	is_visible;
+	private boolean	is_public;
 	
 	protected
 	TagBase(
@@ -81,6 +83,7 @@ TagBase
 		tag_name		= _tag_name;
 		
 		is_visible = readBooleanAttribute( AT_VISIBLE, getVisibleDefault());
+		is_public = readBooleanAttribute( AT_PUBLIC, getPublicDefault());
 		
 		tag_type.addTag( this );
 	}
@@ -154,6 +157,32 @@ TagBase
 	
 	protected boolean
 	getVisibleDefault()
+	{
+		return( true );
+	}
+	
+	public boolean
+	isPublic()
+	{
+		return( is_public );
+	}
+	
+	public void
+	setPublic(
+		boolean	v )
+	{
+		if ( v != is_public ){
+			
+			is_public	= v;
+			
+			writeBooleanAttribute( AT_PUBLIC, v );
+			
+			tag_type.fireChanged( this );
+		}
+	}
+	
+	protected boolean
+	getPublicDefault()
 	{
 		return( true );
 	}

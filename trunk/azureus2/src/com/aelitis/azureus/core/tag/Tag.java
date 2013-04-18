@@ -57,6 +57,13 @@ Tag
 	getTaggableTypes();
 	
 	public boolean
+	isPublic();
+	
+	public void
+	setPublic(
+		boolean	pub );
+	
+	public boolean
 	isVisible();
 	
 	public void
