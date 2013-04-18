@@ -65,6 +65,7 @@ import org.gudy.azureus2.ui.swt.sharing.progress.ProgressWindow;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestSelector;
+import org.gudy.azureus2.ui.swt.views.utils.LocProvUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import org.gudy.azureus2.ui.swt.welcome.WelcomeWindow;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
@@ -101,7 +102,7 @@ import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.*;
 
-/**
+/** 
  * @author TuxPaper
  * @created May 29, 2006
  *
@@ -376,6 +377,8 @@ public class MainWindowImpl
 			VuzeActivitiesManager.initialize(core);
 		}
 
+		LocProvUtils.initialise( core );
+		
 		if (!Constants.isSafeMode) {
 			
 			if (core.getTrackerHost().getTorrents().length > 0) {

@@ -194,7 +194,9 @@ UtilitiesImpl
 	private static WeakHashMap<RateLimiter,PluginLimitedRateGroup>	limiter_map = new WeakHashMap<RateLimiter,PluginLimitedRateGroup>();
 
 	
-	private static CopyOnWriteList<LocationProvider>	location_providers = new CopyOnWriteList<LocationProvider>();
+	private static CopyOnWriteList<LocationProviderListener>	lp_listeners 		= new CopyOnWriteList<LocationProviderListener>();
+	private static CopyOnWriteList<LocationProvider>			location_providers 	= new CopyOnWriteList<LocationProvider>();
+	
 	
 	
 	
@@ -1762,6 +1764,17 @@ UtilitiesImpl
 		LocationProvider	provider )
 	{
 		location_providers.add( provider );
+		
+		for ( LocationProviderListener l: lp_listeners ){
+			
+			try{
+				l.locationProviderAdded( provider );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
 	}
 	
 	public void
@@ -1769,6 +1782,36 @@ UtilitiesImpl
 		LocationProvider	provider )
 	{
 		location_providers.remove( provider );
+		
+		for ( LocationProviderListener l: lp_listeners ){
+			
+			try{
+				l.locationProviderRemoved( provider );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	public void
+	addLocationProviderListener(
+		LocationProviderListener		listener )
+	{
+		lp_listeners.add( listener );
+		
+		for ( LocationProvider lp: location_providers ){
+			
+			listener.locationProviderAdded( lp );
+		}
+	}
+	
+	public void
+	removeLocationProviderListener(
+		LocationProviderListener		listener )
+	{
+		lp_listeners.remove( listener );
 	}
 	
 	public interface

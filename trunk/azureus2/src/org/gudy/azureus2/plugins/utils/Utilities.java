@@ -388,6 +388,14 @@ Utilities
 	public void
 	removeLocationProvider(
 		LocationProvider	provider );
+	
+	public void
+	addLocationProviderListener(
+		LocationProviderListener		listener );
+	
+	public void
+	removeLocationProviderListener(
+		LocationProviderListener		listener );
 }
 
 

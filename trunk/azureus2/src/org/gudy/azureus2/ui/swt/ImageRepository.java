@@ -45,7 +45,9 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.utils.LocationProvider;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.skin.SkinProperties;
@@ -441,12 +443,18 @@ public class ImageRepository
 	
 	public static Image
 	getCountryFlag(
+		Peer		peer,
+		boolean		small )
+	{
+		return( getCountryFlag( PluginCoreUtils.unwrap( peer ), small ));
+	}
+	
+	public static Image
+	getCountryFlag(
 		PEPeer		peer,
 		boolean		small )
 	{
-		if ( !Utils.isSWTThread()){
-			
-			Debug.out( "Needs to be swt thread..." );
+		if ( peer == null ){
 			
 			return( null );
 		}

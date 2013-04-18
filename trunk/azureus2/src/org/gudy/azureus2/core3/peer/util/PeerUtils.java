@@ -29,7 +29,9 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.utils.LocationProvider;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 
@@ -259,9 +261,21 @@ public class PeerUtils {
 	}
 	
 	public static String[]
+ 	getCountryDetails(
+ 		Peer	peer )
+	{
+		return( getCountryDetails( PluginCoreUtils.unwrap( peer )));
+	}
+	
+	public static String[]
 	getCountryDetails(
 		PEPeer	peer )
 	{
+		if ( peer == null ){
+			
+			return( null );
+		}
+		
 		String[] details = (String[])peer.getUserData( country_key );
 		
 		if ( details == null ){
