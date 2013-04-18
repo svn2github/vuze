@@ -1312,7 +1312,7 @@ RelatedContentManager
 	private DownloadInfo
 	decodeInfo(
 		Map				map,
-		byte[]			from_hash,
+		byte[]			from_hash,	// will be null for those trawled from teh local DHT
 		int				level,
 		boolean			explicit,
 		Set<String>		unique_keys )
@@ -1389,7 +1389,7 @@ RelatedContentManager
 			byte[]	_tags = (byte[])map.get( "g" );
 			
 			String[] tags = decodeTags( _tags );
-			
+						
 			return(
 				new DownloadInfo( 
 						from_hash, hash, title, rand, tracker, tracker_keys, ws_keys, tags, level, explicit, size, 
@@ -4582,7 +4582,7 @@ RelatedContentManager
 			return( null );
 			
 		}else{
-						
+				
 			return( tags.toArray( new String[ tags.size()] ));
 		}
 	}
