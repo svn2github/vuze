@@ -2478,6 +2478,34 @@ RelatedContentManager
 				});
 	}
 	
+	private String
+	fixupTerm(
+		String	term )
+	{
+		if ( term == null ){
+			
+			return( null );
+		}
+		
+		// if someone has a | in the expression then they probably mean "or" so to work with the following we remove any spaces
+		// either side of it
+	
+		if ( term.contains( "|" )){
+			
+			while( term.contains( " |" )){
+				
+				term = term.replaceAll( " \\|", "|" );
+			}
+			
+		while( term.contains( "| " )){
+				
+				term = term.replaceAll( "\\| ", "|" );
+			}
+		}
+		
+		return( term );
+	}
+	
 	protected List<RelatedContent>
 	matchContent(
 		String		term )
@@ -2486,7 +2514,7 @@ RelatedContentManager
 			// each bit can be prefixed by + or -, a leading - means 'bit doesn't match'. + doesn't mean anything
 			// each bit (with prefix removed) can be "(" regexp ")"
 			// if bit isn't regexp but has "|" in it it is turned into a regexp so a|b means 'a or b'
-				
+		
 		String[]	 bits = Constants.PAT_SPLIT_SPACE.split(term.toLowerCase());
 
 		int[]		bit_types 		= new int[bits.length];
@@ -2526,12 +2554,15 @@ RelatedContentManager
 					}
 				}else if ( bit.contains( "|" )){
 					
-					try{
-						if ( !RegExUtil.mightBeEvil( bit )){
+					if ( !bit.contains( "tag:" )){
 						
-							bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
+						try{
+							if ( !RegExUtil.mightBeEvil( bit )){
+							
+								bit_patterns[i] = Pattern.compile( bit, Pattern.CASE_INSENSITIVE );
+							}
+						}catch( Throwable e ){
 						}
-					}catch( Throwable e ){
 					}
 				}
 			}
@@ -2582,33 +2613,45 @@ RelatedContentManager
 							
 							if ( bit_patterns[i] == null ){
 							
-								if ( bit.startsWith( "tag:" )){
-									
-									String[] tags = c.getTags();
-									
-									hit = false;
-									
-									if ( tags != null && tags.length > 0 ){
+								String[]	sub_bits = bit.split("\\|");
+								
+								hit = false;
+								
+								for ( String sub_bit: sub_bits ){
+
+									if ( sub_bit.startsWith( "tag:" )){
 										
-										String	target_tag = bit.substring( 4 ).toLowerCase( Locale.US );
+										String[] tags = c.getTags();
 										
-										target_tag = unescapeTag( target_tag );
+										hit = false;
 										
-										target_tag = truncateTag( target_tag );
-										
-										for ( String t: tags ){
+										if ( tags != null && tags.length > 0 ){
 											
-											if ( t.startsWith( target_tag )){
+											String	target_tag = sub_bit.substring( 4 ).toLowerCase( Locale.US );
+											
+											target_tag = unescapeTag( target_tag );
+											
+											target_tag = truncateTag( target_tag );
+											
+											for ( String t: tags ){
 												
-												hit = true;
-												
-												break;
+												if ( t.startsWith( target_tag )){
+													
+													hit = true;
+													
+													break;
+												}
 											}
 										}
+									}else{
+									
+										hit = lc_title.contains( sub_bit );
 									}
-								}else{
-								
-									hit = lc_title.contains( bit );
+									
+									if ( hit ){
+										
+										break;
+									}
 								}
 							}else{
 							
@@ -2688,7 +2731,7 @@ RelatedContentManager
 		
 		final MySearchObserver observer = new MySearchObserver( _observer );
 		
-		final String	term = (String)search_parameters.get( SearchProvider.SP_SEARCH_TERM );
+		final String	term = fixupTerm( (String)search_parameters.get( SearchProvider.SP_SEARCH_TERM ));
 		
 		final SearchInstance si = 
 			new SearchInstance()
@@ -3563,6 +3606,8 @@ RelatedContentManager
 				
 				String	term = ImportExportUtils.importString( request, "t" );
 
+				term = fixupTerm( term );
+				
 				logSearch( "Received remote search: '" + term + "' from " + originator.getAddress() + ", hits=" + hits + ", bs=" + harvest_se_requester_bloom.getEntryCount());
 
 				if ( hits < 10 ){
@@ -5116,7 +5161,7 @@ outer:
 			String[]	 bits = Constants.PAT_SPLIT_SPACE.split(term.toLowerCase());
 	
 				// note that we don't need to unescape tags in this process as tags are escaped when
-				// inserted into the blooms
+				// inserted into the blooms and include the 'tag:' prefix
 			
 			int[]			bit_types 		= new int[bits.length];
 			byte[][]		bit_bytes	 	= new byte[bit_types.length][];
