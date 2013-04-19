@@ -18,9 +18,6 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -806,7 +803,7 @@ public class SB_Transfers
 					return;
 				}
 				boolean assumed_complete = dm.getAssumedComplete();
-				if ( dm.isPersistent()){
+				if ( dm.isPersistent() && dm.getTorrent() != null){	// ignore borked torrents as their create time is inaccurate
 					stats.newestDownloadTime = Math.max( stats.newestDownloadTime, dm.getCreationTime());
 				}
 				int dm_state = dm.getState();
@@ -831,7 +828,7 @@ public class SB_Transfers
 		for (Iterator<DownloadManager> iter = downloadManagers.iterator(); iter.hasNext();) {
 			DownloadManager dm = (DownloadManager) iter.next();
 			boolean lowNoise = PlatformTorrentUtils.isAdvancedViewOnly(dm);
-			if ( dm.isPersistent()){
+			if ( dm.isPersistent() && dm.getTorrent() != null){	// ignore borked torrents as their create time is inaccurate
 				long createTime = dm.getCreationTime();
 				statsWithLowNoise.newestDownloadTime = Math.max( statsWithLowNoise.newestDownloadTime, createTime);
 				if (!lowNoise) {
