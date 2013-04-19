@@ -151,13 +151,14 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("MyTorrentsView.table.style", 0);
 		defaults.addParameter("v3.Show Welcome", true);
 		
-    int userMode = COConfigurationManager.getIntParameter("User Mode");
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
 		boolean startAdvanced = userMode > 1;
 		defaults.addParameter("Library.viewmode", startAdvanced ? 1 : 0);
 		defaults.addParameter("LibraryDL.viewmode", startAdvanced ? 1 : 0);
 		defaults.addParameter("LibraryUnopened.viewmode", startAdvanced ? 1 : 0);
 		defaults.addParameter("LibraryCD.viewmode", startAdvanced ? 1 : 0);
 		defaults.addParameter("Library.CatInSideBar", startAdvanced ? 1 : 0);
+		defaults.addParameter("Library.TagInSideBar", 1 );
 		
 		defaults.addParameter("list.dm.dblclick", "0");
 

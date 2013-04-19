@@ -24,6 +24,14 @@ package com.aelitis.azureus.core.tag;
 public interface 
 TagTypeListener 
 {
+		/**
+		 * General change not specific to one tag
+		 */
+	
+	public void
+	tagTypeChanged(
+		TagType		tag_type );
+	
 	public void
 	tagAdded(
 		Tag			tag );

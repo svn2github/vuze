@@ -91,11 +91,12 @@ public abstract class BaseMdiEntry
 
 	private SWTSkinObject soMaster;
 
-	private Set<UIToolBarEnablerBase> setToolBarEnablers = new HashSet<UIToolBarEnablerBase>(
-			1);
+	private Set<UIToolBarEnablerBase> setToolBarEnablers = new HashSet<UIToolBarEnablerBase>(1);
 
 	private String preferredAfterID;
 
+	private Map<Object,Object>	user_data;
+	
 	@SuppressWarnings("unused")
 	private BaseMdiEntry() {
 		mdi = null;
@@ -925,5 +926,36 @@ public abstract class BaseMdiEntry
 
 	public String getPreferredAfterID() {
 		return preferredAfterID;
+	}
+	
+	public void
+	setUserData(
+		Object		key,
+		Object		data )
+	{
+		synchronized( this ){
+			
+			if ( user_data == null ){
+				
+				user_data = new LightHashMap<Object,Object>();
+			}
+			
+			user_data.put( key, data );
+		}
+	}
+	
+	public Object
+	getUserData(
+		Object 		key )
+	{
+		synchronized( this ){
+			
+			if ( user_data == null ){
+				
+				return( null );
+			}
+			
+			return( user_data.get( key ));
+		}
 	}
 }

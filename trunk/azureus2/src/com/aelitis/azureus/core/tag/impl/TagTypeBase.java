@@ -38,9 +38,10 @@ TagTypeBase
 	private int		tag_type_features;
 	private String	tag_type_name;
 		
-	private static final int TTL_ADD 	= 1;
-	private static final int TTL_CHANGE = 2;
-	private static final int TTL_REMOVE = 3;
+	private static final int TTL_ADD 			= 1;
+	private static final int TTL_CHANGE 		= 2;
+	private static final int TTL_REMOVE 		= 3;
+	private static final int TTL_TYPE_CHANGE 	= 4;
 	
 	private static TagManagerImpl manager = TagManagerImpl.getSingleton();
 	
@@ -66,6 +67,10 @@ TagTypeBase
 					}else if ( type == TTL_REMOVE ){
 						
 						listener.tagRemoved((Tag)value);
+						
+					}else if ( type == TTL_TYPE_CHANGE ){
+						
+						listener.tagTypeChanged( TagTypeBase.this );
 					}
 				}
 			});	
@@ -159,6 +164,12 @@ TagTypeBase
 		long feature ) 
 	{
 		return((tag_type_features&feature) != 0 );
+	}
+	
+	protected void
+	fireChanged()
+	{
+		tt_listeners.dispatch( TTL_TYPE_CHANGE, null );
 	}
 	
 	public Tag 
@@ -270,11 +281,11 @@ TagTypeBase
 		tt_listeners.removeListener( listener );
 	}
 	
-	protected boolean
+	protected Boolean
 	readBooleanAttribute(
-		TagBase	tag,
-		String	attr,
-		boolean	def )
+		TagBase		tag,
+		String		attr,
+		Boolean		def )
 	{
 		return( manager.readBooleanAttribute( this, tag, attr, def ));
 	}

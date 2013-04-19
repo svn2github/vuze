@@ -71,7 +71,8 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
  */
 public class SB_Transfers
 {
-
+	private static final Object AUTO_CLOSE_KEY = new Object();
+	
 	private static final String ID_VITALITY_ACTIVE = "image.sidebar.vitality.dl";
 
 	private static final String ID_VITALITY_ALERT = "image.sidebar.vitality.alert";
@@ -509,6 +510,23 @@ public class SB_Transfers
 							tagTypeListenerListener = 
 								new TagTypeListener()
 								{
+									public void 
+									tagTypeChanged(
+										TagType		tag_type )
+									{
+										for ( Tag tag: tag_type.getTags()){
+											
+											if ( tag.isVisible()){
+												
+												setupTag( tag );
+												
+											}else{
+									
+												RefreshTagSideBar( tag );
+											}
+										}
+									}
+										
 									public void
 									tagAdded(
 										Tag			tag )
@@ -1023,17 +1041,28 @@ public class SB_Transfers
 		ViewTitleInfoManager.refreshTitleInfo(entry.getViewTitleInfo());
 	}
 
-	private static void setupTag(final Tag tag) {
+	private static void 
+	setupTag(
+		final Tag tag ) 
+	{
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
-		if (mdi == null) {
+		
+		if ( mdi == null ){
+			
+			return;
+		}
+
+		String id = "Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
+
+		if ( mdi.getEntry( id ) != null ){
+			
 			return;
 		}
 
 		boolean auto = tag.getTagType().isTagTypeAuto();
 		
 		String name = tag.getTagName( true );
-		String id = "Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
-
+		
 		ViewTitleInfo viewTitleInfo = 
 			new ViewTitleInfo() 
 			{
@@ -1108,6 +1137,7 @@ public class SB_Transfers
 		MdiEntry entry;
 		
 		if ( tag.getTaggableTypes() == Taggable.TT_DOWNLOAD ){
+			
 			entry = mdi.createEntryFromSkinRef(
 					MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id, "library",
 					name, viewTitleInfo, tag, auto, null);
@@ -1130,9 +1160,9 @@ public class SB_Transfers
 						MdiEntry 	entry, 
 						boolean 	userClosed )
 					{
-						if ( userClosed ){
+						if ( userClosed && entry.getUserData( AUTO_CLOSE_KEY ) == null ){
 							
-								// userClosed isn't all we want - it just means we're not closing... So to prevent
+								// userClosed isn't all we want - it just means we're not closing the app... So to prevent
 								// a deselection of 'show tags in sidebar' 'user-closing' the entries we need this test
 							
 							if ( COConfigurationManager.getBooleanParameter("Library.TagInSideBar")){
@@ -1217,7 +1247,10 @@ public class SB_Transfers
 		MdiEntry entry = mdi.getEntry("Tag." + tag.getTagType().getTagType() + "." + tag.getTagID());
 
 		if (entry != null) {
-			entry.close(true);
+			
+			entry.setUserData( AUTO_CLOSE_KEY, "" );
+			
+			entry.close( true );
 		}
 	}
 	

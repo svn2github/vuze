@@ -36,6 +36,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.*;
@@ -68,6 +69,7 @@ import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.TaggableLifecycleHandler;
 import com.aelitis.azureus.core.tag.impl.TagDownloadWithState;
+import com.aelitis.azureus.core.tag.impl.TagTypeBase;
 import com.aelitis.azureus.core.tag.impl.TagTypeWithState;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -3480,6 +3482,29 @@ public class GlobalManagerImpl
 		
 		private TagDownloadWithState	tag_paused;
 		
+		private int user_mode = -1;
+		
+		{
+			COConfigurationManager.addAndFireParameterListener(
+				"User Mode", 
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String parameterName ) 
+					{
+						int	old_mode = user_mode;
+					
+						user_mode = COConfigurationManager.getIntParameter("User Mode");
+						
+						if ( old_mode != -1 ){
+							
+							fireChanged();
+						}
+					}	
+				});
+		}
+		
 		private
 		DownloadStateTagger(
 			GlobalManagerImpl		_gm )
@@ -3488,18 +3513,18 @@ public class GlobalManagerImpl
 						
 				// keep these ids constant as they are externalised
 			
-			tag_initialising		= new TagDownloadWithState( this, 0, "tag.type.ds.init", false, false ){ protected boolean getVisibleDefault(){ return( false );}}; 
-			tag_downloading			= new TagDownloadWithState( this, 1, "tag.type.ds.down", true, true );
-			tag_seeding				= new TagDownloadWithState( this, 2, "tag.type.ds.seed", true, false );
-			tag_queued_downloading	= new TagDownloadWithState( this, 3, "tag.type.ds.qford", false, false );
-			tag_queued_seeding		= new TagDownloadWithState( this, 4, "tag.type.ds.qfors", false, false );
-			tag_stopped				= new TagDownloadWithState( this, 5, "tag.type.ds.stop", false, false );
-			tag_error				= new TagDownloadWithState( this, 6, "tag.type.ds.err", false, false );
-			tag_active				= new TagDownloadWithState( this, 7, "tag.type.ds.act", false, false );
-			tag_paused				= new TagDownloadWithState( this, 8, "tag.type.ds.pau", false, false ){ protected boolean getVisibleDefault(){ return( false );}}; 
-			tag_inactive			= new TagDownloadWithState( this, 9, "tag.type.ds.inact", false, false ){ protected boolean getVisibleDefault(){ return( false );}}; 
-			tag_complete			= new TagDownloadWithState( this, 10, "tag.type.ds.comp", true, false ){ protected boolean getVisibleDefault(){ return( false );}}; 
-			tag_incomplete			= new TagDownloadWithState( this, 11, "tag.type.ds.incomp", true, true ){ protected boolean getVisibleDefault(){ return( false );}}; 
+			tag_initialising		= new MyTag( 0, "tag.type.ds.init", false, false ); 
+			tag_downloading			= new MyTag( 1, "tag.type.ds.down", true, true );
+			tag_seeding				= new MyTag( 2, "tag.type.ds.seed", true, false );
+			tag_queued_downloading	= new MyTag( 3, "tag.type.ds.qford", false, false );
+			tag_queued_seeding		= new MyTag( 4, "tag.type.ds.qfors", false, false );
+			tag_stopped				= new MyTag( 5, "tag.type.ds.stop", false, false );
+			tag_error				= new MyTag( 6, "tag.type.ds.err", false, false );
+			tag_active				= new MyTag( 7, "tag.type.ds.act", false, false );
+			tag_paused				= new MyTag( 8, "tag.type.ds.pau", false, false );
+			tag_inactive			= new MyTag( 9, "tag.type.ds.inact", false, false ); 
+			tag_complete			= new MyTag( 10, "tag.type.ds.comp", true, false );
+			tag_incomplete			= new MyTag( 11, "tag.type.ds.incomp", true, true );
 			
 			_gm.addListener( 
 				new GlobalManagerAdapter()
@@ -3757,6 +3782,36 @@ public class GlobalManagerImpl
 		public void
 		filePriorityChanged( DownloadManager download, DiskManagerFileInfo file )
 		{
+		}
+	
+		private class
+		MyTag
+			extends TagDownloadWithState
+		{
+			private
+			MyTag(
+				int				tag_id,
+				String			name,
+				boolean			do_up,
+				boolean			do_down )
+			{
+				super( DownloadStateTagger.this, tag_id, name, do_up, do_down );
+			}
+			
+			protected boolean 
+			getVisibleDefault()
+			{
+				int	id = getTagID();
+				
+				if ( id >= 7 && id <= 9 ){
+					
+					return( user_mode > 0 );
+					
+				}else{
+					
+					return( false );
+				}
+			}
 		}
 	}
 }

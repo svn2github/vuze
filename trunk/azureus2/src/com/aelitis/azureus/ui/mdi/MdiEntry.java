@@ -153,4 +153,13 @@ public interface MdiEntry
 	public void setPreferredAfterID(String preferredAfterID);
 
 	public String getPreferredAfterID();
+	
+	public void
+	setUserData(
+		Object	key,
+		Object	value );
+	
+	public Object
+	getUserData(
+		Object	key );
 }

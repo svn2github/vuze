@@ -69,8 +69,8 @@ TagBase
 				}
 			});	
 		
-	private boolean	is_visible;
-	private boolean	is_public;
+	private Boolean	is_visible;
+	private Boolean	is_public;
 	
 	protected
 	TagBase(
@@ -82,8 +82,8 @@ TagBase
 		tag_id			= _tag_id;
 		tag_name		= _tag_name;
 		
-		is_visible = readBooleanAttribute( AT_VISIBLE, getVisibleDefault());
-		is_public = readBooleanAttribute( AT_PUBLIC, getPublicDefault());
+		is_visible = readBooleanAttribute( AT_VISIBLE, null );
+		is_public = readBooleanAttribute( AT_PUBLIC, null );
 		
 		tag_type.addTag( this );
 	}
@@ -155,23 +155,19 @@ TagBase
 		tag_type.fireChanged( this );
 	}
 	
-	protected boolean
-	getVisibleDefault()
-	{
-		return( true );
-	}
+		// public
 	
 	public boolean
 	isPublic()
 	{
-		return( is_public );
+		return( is_public==null?getPublicDefault():is_public );
 	}
 	
 	public void
 	setPublic(
 		boolean	v )
 	{
-		if ( v != is_public ){
+		if ( is_public == null || v != is_public ){
 			
 			is_public	= v;
 			
@@ -186,18 +182,19 @@ TagBase
 	{
 		return( true );
 	}
+		// visible
 	
 	public boolean
 	isVisible()
 	{
-		return( is_visible );
+		return( is_visible==null?getVisibleDefault():is_visible );
 	}
 	
 	public void
 	setVisible(
 		boolean	v )
 	{
-		if ( v != is_visible ){
+		if ( is_visible == null || v != is_visible ){
 			
 			is_visible	= v;
 			
@@ -207,6 +204,12 @@ TagBase
 		}
 	}
 	
+	protected boolean
+	getVisibleDefault()
+	{
+		return( true );
+	}
+
 	public void
 	addTaggable(
 		Taggable	t )
@@ -266,11 +269,11 @@ TagBase
 	{
 		t_listeners.removeListener( listener );
 	}
-	
-	protected boolean
+		
+	protected Boolean
 	readBooleanAttribute(
-		String	attr,
-		boolean	def )
+		String		attr,
+		Boolean		def )
 	{
 		return( tag_type.readBooleanAttribute( this, attr, def ));
 	}

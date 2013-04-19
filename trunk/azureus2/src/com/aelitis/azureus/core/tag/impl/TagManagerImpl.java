@@ -506,14 +506,21 @@ TagManagerImpl
 		}
 	}
 	
-	protected boolean
+	protected Boolean
 	readBooleanAttribute(
 		TagTypeBase	tag_type,
 		TagBase		tag,
 		String		attr,
-		boolean		def )
+		Boolean		def )
 	{
-		return( readLongAttribute(tag_type, tag, attr, def?1:0 ) == 1 );
+		Long result = readLongAttribute(tag_type, tag, attr, def==null?null:(def?1L:0L));
+		
+		if ( result == null ){
+			
+			return( null );
+		}
+		
+		return( result == 1 );
 	}
 	
 	protected void
@@ -526,12 +533,12 @@ TagManagerImpl
 		writeLongAttribute( tag_type, tag, attr, value?1:0 );
 	}
 	
-	protected long
+	protected Long
 	readLongAttribute(
 		TagTypeBase	tag_type,
 		TagBase		tag,
 		String		attr,
-		long		def )
+		Long		def )
 	{
 		try{
 			synchronized( this ){
@@ -559,7 +566,14 @@ TagManagerImpl
 					return( def );
 				}
 				
-				return( MapUtils.getMapLong( conf, attr, def ));
+				Long value = (Long)conf.get( attr );
+				
+				if ( value == null ){
+					
+					return( def );
+				}
+				
+				return( value );
 			}
 		}catch( Throwable e ){
 			
