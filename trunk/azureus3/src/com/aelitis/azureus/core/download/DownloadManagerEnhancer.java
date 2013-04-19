@@ -667,12 +667,19 @@ DownloadManagerEnhancer
 				
 				boolean is_vhdn = PlatformTorrentUtils.getContentNetworkID(torrent) == ContentNetwork.CONTENT_NETWORK_VHDNL;
 				
+				String content_type = PlatformTorrentUtils.getContentType(torrent);
+
+				if ( content_type != null && !content_type.toLowerCase().contains( "vhdn" )){
+					
+						// content type overrides vhdn unless is specifically says it is
+					
+					is_vhdn = false;
+				}
+				
 				if ( is_vhdn ){
 					
 					handleAutoTag( dm, "tag.type.man.vhdn", "image.sidebar.tag.vhdn" );
-				}
-							
-				String content_type = PlatformTorrentUtils.getContentType(torrent);
+				}							
 				
 				if ( content_type != null && content_type.equalsIgnoreCase( "featured" )){
 					
