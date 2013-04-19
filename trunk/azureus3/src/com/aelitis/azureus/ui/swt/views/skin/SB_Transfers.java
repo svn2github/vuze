@@ -475,15 +475,22 @@ public class SB_Transfers
 			new TagListener() 
 			{
 				public void
-				tagabbleAdded(
+				taggableAdded(
 					Tag			tag,
 					Taggable	tagged )
 				{
 					RefreshTagSideBar( tag );
 				}
 				
+				public void 
+				taggableSync(
+					Tag 		tag ) 
+				{
+					RefreshTagSideBar( tag );
+				}
+				
 				public void
-				tagabbleRemoved(
+				taggableRemoved(
 					Tag			tag,
 					Taggable	tagged )
 				{

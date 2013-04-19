@@ -21,6 +21,10 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Shell;
@@ -114,15 +118,43 @@ PeersGeneralView
 	}
 
 	public void
-	tagabbleAdded(
+	taggableAdded(
 		Tag			tag,
 		Taggable	tagged )
 	{
 		 tv.addDataSource((PEPeer)tagged);
 	}
 	
+	public void 
+	taggableSync(
+		Tag 		tag ) 
+	{
+		if ( tv.getRowCount() != tag.getTaggedCount()){
+					
+			Set<PEPeer>	peers_in_table 	= new HashSet<PEPeer>( tv.getDataSources());
+			
+			Set<PEPeer> peers_in_tag	= new HashSet<PEPeer>((List)tag.getTagged());
+			
+			for ( PEPeer peer: peers_in_table ){
+				
+				if ( !peers_in_tag.contains( peer )){
+										
+					tv.removeDataSource( peer );
+				}
+			}
+			
+			for ( PEPeer peer: peers_in_tag ){
+				
+				if ( !peers_in_table.contains( peer )){
+										
+					tv.addDataSource( peer );
+				}
+			}
+		}
+	}
+	
 	public void
-	tagabbleRemoved(
+	taggableRemoved(
 		Tag			tag,
 		Taggable	tagged )
 	{

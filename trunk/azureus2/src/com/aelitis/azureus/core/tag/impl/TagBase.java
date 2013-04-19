@@ -48,6 +48,7 @@ TagBase
 	
 	private static final int TL_ADD 	= 1;
 	private static final int TL_REMOVE 	= 2;
+	private static final int TL_SYNC 	= 3;
 	
 	private ListenerManager<TagListener>	t_listeners 	= 
 		ListenerManager.createManager(
@@ -62,11 +63,15 @@ TagBase
 				{					
 					if ( type == TL_ADD ){
 						
-						listener.tagabbleAdded(TagBase.this,(Taggable)value);
+						listener.taggableAdded(TagBase.this,(Taggable)value);
 						
 					}else if ( type == TL_REMOVE ){
 						
-						listener.tagabbleRemoved(TagBase.this,(Taggable)value);
+						listener.taggableRemoved(TagBase.this,(Taggable)value);
+						
+					}else if ( type == TL_SYNC ){
+						
+						listener.taggableSync( TagBase.this );
 					}
 				}
 			});	
@@ -264,6 +269,12 @@ TagBase
 		tag_type.fireChanged( this );
 	}
 	
+	protected void
+	sync()
+	{
+		t_listeners.dispatch( TL_SYNC, null );
+	}
+	
 	public int 
 	getTaggedCount() 
 	{
@@ -294,7 +305,7 @@ TagBase
 			
 			for ( Taggable t: getTagged()){
 				
-				listener.tagabbleAdded( this, t );
+				listener.taggableAdded( this, t );
 			}
 		}
 	}
@@ -305,7 +316,7 @@ TagBase
 	{
 		t_listeners.removeListener( listener );
 	}
-		
+	
 	protected Boolean
 	readBooleanAttribute(
 		String		attr,

@@ -198,6 +198,17 @@ TagTypeBase
 		manager.removeConfig( t );
 	}
 	
+	protected void
+	sync()
+	{
+		List<Tag>	tags = getTags();
+		
+		for ( Tag t: tags ){
+			
+			((TagBase)t).sync();
+		}
+	}
+	
 	public Tag
 	getTag(
 		int	tag_id )

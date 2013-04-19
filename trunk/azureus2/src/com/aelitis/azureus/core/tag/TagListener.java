@@ -25,12 +25,16 @@ public interface
 TagListener 
 {
 	public void
-	tagabbleAdded(
+	taggableAdded(
 		Tag			tag,
 		Taggable	tagged );
 	
 	public void
-	tagabbleRemoved(
+	taggableSync(
+		Tag			tag );
+	
+	public void
+	taggableRemoved(
 		Tag			tag,
 		Taggable	tagged );
 }

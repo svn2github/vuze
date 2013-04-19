@@ -28,6 +28,9 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -127,6 +130,22 @@ TagManagerImpl
 					destroy();
 				}
 			});
+		
+		SimpleTimer.addPeriodicEvent(
+			"TM:Sync",
+			30*1000,
+			new TimerEventPerformer()
+			{
+				public void 
+				perform(
+					TimerEvent event) 
+				{
+					for ( TagType tt: tag_types ){
+						
+						((TagTypeBase)tt).sync();
+					}
+				}
+			});
 	}
 	
 	private void
@@ -206,6 +225,11 @@ TagManagerImpl
 	removeTagType(
 		TagType		tag_type )
 	{
+		synchronized( tag_type_map ){
+			
+			tag_type_map.remove( tag_type.getTagType());
+		}
+		
 		tag_types.remove( tag_type );
 		
 		removeConfig( tag_type );

@@ -137,7 +137,7 @@ TagDownloadWithState
 			new TagListener()
 			{
 				public void
-				tagabbleAdded(
+				taggableAdded(
 					Tag			tag,
 					Taggable	tagged )
 				{
@@ -147,8 +147,14 @@ TagDownloadWithState
 					manager.addRateLimiter( download_limiter, false );
 				}
 				
+				public void 
+				taggableSync(
+					Tag 		tag ) 
+				{
+				}
+				
 				public void
-				tagabbleRemoved(
+				taggableRemoved(
 					Tag			tag,
 					Taggable	tagged )
 				{

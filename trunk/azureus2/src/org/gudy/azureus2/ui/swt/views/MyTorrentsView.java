@@ -2029,7 +2029,7 @@ public class MyTorrentsView
   	}
 
 	public void
-	tagabbleAdded(
+	taggableAdded(
 		Tag			tag,
 		Taggable	tagged )
 	{
@@ -2041,8 +2041,46 @@ public class MyTorrentsView
 	    }
 	}
 	
+	public void 
+	taggableSync(
+		Tag 		tag ) 
+	{
+		Set<DownloadManager>	dms_in_tag = new HashSet<DownloadManager>();
+		
+		for ( Taggable t: tag.getTagged()){
+			
+			DownloadManager	manager = (DownloadManager)t;
+			
+			if ( isOurDownloadManager( manager )){
+				
+				dms_in_tag.add( manager );
+			}
+		}
+		
+		if ( tv.getRowCount() != dms_in_tag.size()){
+						
+			Set<DownloadManager> dms_in_table = new HashSet<DownloadManager>(tv.getDataSources());
+			
+			for ( DownloadManager dm: dms_in_table ){
+				
+				if ( !dms_in_tag.contains( dm )){
+										
+					tv.removeDataSource( dm );
+				}
+			}
+			
+			for ( DownloadManager dm: dms_in_tag ){
+				
+				if ( !dms_in_table.contains( dm )){
+										
+					tv.addDataSource( dm );
+				}
+			}
+		}
+	}
+	
 	public void
-	tagabbleRemoved(
+	taggableRemoved(
 		Tag			tag,
 		Taggable	tagged )
 	{
