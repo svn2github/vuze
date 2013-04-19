@@ -38,6 +38,7 @@ TagBase
 	protected static final String	AT_RATELIMIT_DOWN	= "rl.down";
 	protected static final String	AT_VISIBLE			= "vis";
 	protected static final String	AT_PUBLIC			= "pub";
+	protected static final String	AT_ORIGINAL_NAME	= "oname";
 	  
 	private TagTypeBase	tag_type;
 	
@@ -76,7 +77,8 @@ TagBase
 	TagBase(
 		TagTypeBase			_tag_type,
 		int					_tag_id,
-		String				_tag_name )
+		String				_tag_name,
+		boolean				_auto_add )
 	{
 		tag_type		= _tag_type;
 		tag_id			= _tag_id;
@@ -85,7 +87,10 @@ TagBase
 		is_visible = readBooleanAttribute( AT_VISIBLE, null );
 		is_public = readBooleanAttribute( AT_PUBLIC, null );
 		
-		tag_type.addTag( this );
+		if ( _auto_add ){
+		
+			tag_type.addTag( this );
+		}
 	}
 	
 	protected TagManagerImpl
@@ -134,6 +139,13 @@ TagBase
 				
 			}else{
 				
+				String original_name = readStringAttribute( AT_ORIGINAL_NAME, null );
+
+				if ( original_name != null && original_name.startsWith( "tag." )){
+					
+					return( original_name );
+				}
+				
 				return( "!" + tag_name + "!" );
 			}
 		}
@@ -148,6 +160,16 @@ TagBase
 		if ( getTagType().isTagTypeAuto()){
 			
 			throw( new TagException( "Not supported" ));
+		}
+		
+		if ( tag_name.startsWith( "tag." )){
+		
+			String original_name = readStringAttribute( AT_ORIGINAL_NAME, null );
+		
+			if ( original_name == null ){
+			
+				writeStringAttribute( AT_ORIGINAL_NAME, tag_name );
+			}
 		}
 		
 		tag_name = name;
@@ -300,5 +322,21 @@ TagBase
 		long	value )
 	{
 		tag_type.writeLongAttribute( this, attr, value );
+	}
+	
+	protected String
+	readStringAttribute(
+		String	attr,
+		String	def )
+	{
+		return( tag_type.readStringAttribute( this, attr, def ));
+	}
+	
+	protected void
+	writeStringAttribute(
+		String	attr,
+		String	value )
+	{
+		tag_type.writeStringAttribute( this, attr, value );
 	}
 }

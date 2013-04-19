@@ -44,9 +44,10 @@ TagWithState
 	TagWithState(
 		TagTypeBase			tt,
 		int					tag_id,
-		String				name )
+		String				name,
+		boolean				auto_add )
 	{
-		super( tt, tag_id, name );		
+		super( tt, tag_id, name, auto_add );		
 	}
 	
 	protected
@@ -55,7 +56,7 @@ TagWithState
 		int					tag_id,
 		Map					map )
 	{
-		super( tt, tag_id, MapUtils.getMapString( map, "n", "" ));
+		super( tt, tag_id, MapUtils.getMapString( map, "n", "" ), true );
 		
 		if ( map != null ){
 			

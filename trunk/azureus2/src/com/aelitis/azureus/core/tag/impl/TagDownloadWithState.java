@@ -100,10 +100,11 @@ TagDownloadWithState
 		TagTypeBase		tt,
 		int				tag_id,
 		String			name,
+		boolean			auto_add,
 		boolean			do_up,
 		boolean			do_down )
 	{
-		super( tt, tag_id, name );
+		super( tt, tag_id, name, auto_add );
 		
 		init( do_up, do_down );
 	}

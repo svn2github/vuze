@@ -174,7 +174,8 @@ TagTypeBase
 	
 	public Tag 
 	createTag(
-		String name )
+		String 	name,
+		boolean	auto_add )
 	
 		throws TagException 
 	{
@@ -315,5 +316,23 @@ TagTypeBase
 		long	value )
 	{
 		manager.writeLongAttribute( this, tag, attr, value );
+	}
+	
+	protected String
+	readStringAttribute(
+		TagBase	tag,
+		String	attr,
+		String	def )
+	{
+		return( manager.readStringAttribute( this, tag, attr, def ));
+	}
+	
+	protected void
+	writeStringAttribute(
+		TagBase	tag,
+		String	attr,
+		String	value )
+	{
+		manager.writeStringAttribute( this, tag, attr, value );
 	}
 }

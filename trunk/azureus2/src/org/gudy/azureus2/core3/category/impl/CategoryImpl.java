@@ -120,7 +120,7 @@ CategoryImpl
 		});
 
   public CategoryImpl(CategoryManagerImpl manager, String sName, int maxup, int maxdown, Map<String,String> _attributes ) {
-	super( manager, tag_ids.incrementAndGet(), sName );
+	super( manager, tag_ids.incrementAndGet(), sName, true );
 	
     this.sName = sName;
     this.type = Category.TYPE_USER;
@@ -130,7 +130,7 @@ CategoryImpl
   }
 
   public CategoryImpl(CategoryManagerImpl manager, String sName, int type, Map<String,String> _attributes) {
-	super( manager, tag_ids.incrementAndGet(), sName );
+	super( manager, tag_ids.incrementAndGet(), sName, true );
     this.sName = sName;
     this.type = type;
     attributes = _attributes;

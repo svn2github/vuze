@@ -211,7 +211,7 @@ public class TagUIUtils
 			if ( existing == null ){
 				
 				try{
-					return( tt.createTag( tag_name ));
+					return( tt.createTag( tag_name, true ));
 					
 				}catch( TagException e ){
 					

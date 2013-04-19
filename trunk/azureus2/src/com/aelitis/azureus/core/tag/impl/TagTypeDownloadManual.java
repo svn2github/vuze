@@ -55,13 +55,15 @@ TagTypeDownloadManual
 		return( false );
 	}
 	
+	@Override
 	public Tag
 	createTag(
-		String	name )
+		String		name,
+		boolean		auto_add )
 	
 		throws TagException
 	{
-		TagDownloadWithState new_tag = new TagDownloadWithState( this, next_tag_id.incrementAndGet(), name, true, true );
+		TagDownloadWithState new_tag = new TagDownloadWithState( this, next_tag_id.incrementAndGet(), name, auto_add, true, true );
 				
 		return( new_tag );
 	}

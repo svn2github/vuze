@@ -3795,7 +3795,7 @@ public class GlobalManagerImpl
 				boolean			do_up,
 				boolean			do_down )
 			{
-				super( DownloadStateTagger.this, tag_id, name, do_up, do_down );
+				super( DownloadStateTagger.this, tag_id, name, true, do_up, do_down );
 			}
 			
 			protected boolean 

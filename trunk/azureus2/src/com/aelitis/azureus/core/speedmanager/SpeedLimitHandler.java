@@ -3481,7 +3481,7 @@ SpeedLimitHandler
 			TagPeerImpl(
 				int		tag_id )
 			{
-				super( ip_set_tag_type, tag_id, name );
+				super( ip_set_tag_type, tag_id, name, true );
 			}
 			
 			public int 

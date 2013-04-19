@@ -59,7 +59,8 @@ TagType
 	
 	public Tag
 	createTag(
-		String		name )
+		String		name,
+		boolean		auto_add )
 	
 		throws TagException;
 	

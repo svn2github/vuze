@@ -506,6 +506,62 @@ TagManagerImpl
 		}
 	}
 	
+	private Map
+	getConf(
+		TagTypeBase	tag_type,
+		TagBase		tag,
+		boolean		create )
+	{
+		Map m = getConfig();
+		
+		String tt_key = String.valueOf( tag_type.getTagType());
+
+		Map tt = (Map)m.get( tt_key );
+		
+		if ( tt == null ){
+			
+			if ( create ){
+				
+				tt = new HashMap();
+				
+				m.put( tt_key, tt );
+				
+			}else{
+				
+				return( null );
+			}
+		}
+		
+		String t_key = String.valueOf( tag.getTagID());
+
+		Map t = (Map)tt.get( t_key );
+		
+		if ( t == null ){
+			
+			if ( create ){
+				
+				t = new HashMap();
+				
+				tt.put( t_key, t );
+				
+			}else{
+			
+				return( null );
+			}
+		}
+		
+		Map conf = (Map)t.get( "c" );
+		
+		if ( conf == null && create ){
+			
+			conf = new HashMap();
+			
+			t.put( "c", conf );
+		}
+		
+		return( conf );
+	}
+	
 	protected Boolean
 	readBooleanAttribute(
 		TagTypeBase	tag_type,
@@ -543,23 +599,7 @@ TagManagerImpl
 		try{
 			synchronized( this ){
 				
-				Map m = getConfig();
-				
-				Map tt = (Map)m.get( String.valueOf( tag_type.getTagType()));
-				
-				if ( tt == null ){
-					
-					return( def );
-				}
-				
-				Map t = (Map)tt.get( String.valueOf( tag.getTagID()));
-				
-				if ( t == null ){
-					
-					return( def );
-				}
-				
-				Map conf = (Map)t.get( "c" );
+				Map conf = getConf( tag_type, tag, false );
 				
 				if ( conf == null ){
 					
@@ -593,38 +633,7 @@ TagManagerImpl
 		try{
 			synchronized( this ){
 				
-				Map m = getConfig();
-				
-				String tt_key = String.valueOf( tag_type.getTagType());
-				
-				Map tt = (Map)m.get( tt_key );
-				
-				if ( tt == null ){
-					
-					tt = new HashMap();
-					
-					m.put( tt_key, tt );
-				}
-				
-				String t_key = String.valueOf( tag.getTagID());
-				
-				Map t = (Map)tt.get( t_key );
-				
-				if ( t == null ){
-					
-					t = new HashMap();
-					
-					tt.put( t_key, t );
-				}
-				
-				Map conf = (Map)t.get( "c" );
-				
-				if ( conf == null ){
-					
-					conf= new HashMap();
-					
-					t.put( "c", conf );
-				}
+				Map conf = getConf( tag_type, tag, true );
 				
 				long old = MapUtils.getMapLong( conf, attr, 0 );
 				
@@ -634,6 +643,66 @@ TagManagerImpl
 				}
 				
 				conf.put( attr, value );
+				
+				setDirty();
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}	
+	
+	protected String
+	readStringAttribute(
+		TagTypeBase	tag_type,
+		TagBase		tag,
+		String		attr,
+		String		def )
+	{
+		try{
+			synchronized( this ){
+				
+				Map conf = getConf( tag_type, tag, false );
+				
+				if ( conf == null ){
+					
+					return( def );
+				}
+				
+				return( MapUtils.getMapString( conf, attr, def ));
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( def );
+		}
+	}
+	
+	protected void
+	writeStringAttribute(
+		TagTypeBase		tag_type,
+		TagBase			tag,
+		String			attr,
+		String			value )
+	{
+		try{
+			synchronized( this ){
+				
+				Map conf = getConf( tag_type, tag, true );
+				
+				String old = MapUtils.getMapString( conf, attr, null );
+				
+				if ( old == value ){
+					
+					return;
+					
+				}else if ( old != null && value != null && old.equals( value )){
+					
+					return;
+				}
+				
+				MapUtils.setMapString( conf, attr, value );
 				
 				setDirty();
 			}
