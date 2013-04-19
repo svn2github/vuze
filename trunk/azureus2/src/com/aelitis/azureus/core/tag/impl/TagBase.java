@@ -39,6 +39,7 @@ TagBase
 	protected static final String	AT_VISIBLE			= "vis";
 	protected static final String	AT_PUBLIC			= "pub";
 	protected static final String	AT_ORIGINAL_NAME	= "oname";
+	protected static final String	AT_IMAGE_ID			= "img.id";
 	  
 	private TagTypeBase	tag_type;
 	
@@ -232,6 +233,19 @@ TagBase
 		return( true );
 	}
 
+	public String
+	getImageID()
+	{
+		return( readStringAttribute( AT_IMAGE_ID, null ));
+	}
+	
+	public void
+	setImageID(
+		String		id )
+	{
+		writeStringAttribute( AT_IMAGE_ID, id );
+	}
+	
 	public void
 	addTaggable(
 		Taggable	t )

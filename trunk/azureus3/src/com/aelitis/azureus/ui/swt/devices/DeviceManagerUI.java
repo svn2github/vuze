@@ -2764,7 +2764,7 @@ DeviceManagerUI
 			}else{
 				
 				entry = mdi.createEntryFromEventListener(parent, view, key, false,
-						device);
+						device, null);
 				entry.setExpanded(true);
 
 			}
@@ -3942,7 +3942,7 @@ DeviceManagerUI
 		
 		MdiEntry entry = mdi.createEntryFromEventListener(
 				SideBar.SIDEBAR_HEADER_DEVICES, eventListener, key, false, new Integer(
-						device_type));
+						device_type), null);
 
 		addDefaultDropListener( entry );
 		

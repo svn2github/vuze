@@ -98,7 +98,7 @@ public class MainMDISetup
 			public MdiEntry createMDiEntry(String id) {
 				MdiEntry entry = mdi.createEntryFromEventListener(
 						MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
-						new StatsView(), id, true, null);
+						new StatsView(), id, true, null, null);
 				return entry;
 			}
 		});

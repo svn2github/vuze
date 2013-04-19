@@ -303,7 +303,7 @@ public class UIFunctionsImpl
 				}
 				
 				MdiEntry entry = mdi.createEntryFromEventListener(sidebarParentID, l, sViewID,
-						true, dataSource);
+						true, dataSource, null);
 				if (bSetFocus) {
 					mdi.showEntryByID(sViewID);
 				} else if (entry instanceof BaseMdiEntry) {
@@ -518,7 +518,7 @@ public class UIFunctionsImpl
 						l = cla.newInstance();
 					}
 					mdi.createEntryFromEventListener(parentID, l, _id, closeable,
-							data);
+							data, null );
 				} catch (Exception e) {
 					Debug.out(e);
 				}

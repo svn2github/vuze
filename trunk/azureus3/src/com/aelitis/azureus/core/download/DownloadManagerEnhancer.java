@@ -24,8 +24,9 @@
 package com.aelitis.azureus.core.download;
 
 import java.util.*;
-import java.util.concurrent.atomic.AtomicLong;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerListener;
@@ -35,6 +36,11 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerChannelImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.tag.TagTypeAdapter;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.ExternalStimulusHandler;
 import com.aelitis.azureus.util.ExternalStimulusListener;
@@ -84,6 +90,8 @@ DownloadManagerEnhancer
 	{
 		core	= _core;
 		
+		boolean	tag_all = initAutoTag();
+		
 		core.getGlobalManager().addListener(
 			new GlobalManagerListener()
 			{
@@ -93,6 +101,8 @@ DownloadManagerEnhancer
 				{
 					// Don't auto-add to download_map. getEnhancedDownload will
 					// take care of it later if we ever need the download
+					
+					handleAutoTag( dm );
 				}
 					
 				public void
@@ -130,7 +140,7 @@ DownloadManagerEnhancer
 			    	boolean seeding_only_mode, boolean b )
 			    {
 			    }
-			});
+			}, tag_all );
 		
 		ExternalStimulusHandler.addListener(
 			new ExternalStimulusListener()
@@ -568,5 +578,139 @@ DownloadManagerEnhancer
 			}
 		}
 		return null;
+	}
+	
+	private boolean
+	initAutoTag()
+	{
+			// these are also used in TagUIUtils in the main tag menu
+		
+		final String[]	tag_ids = { "tag.type.man.vhdn", "tag.type.man.featcon" };
+		
+		final TagType tt = TagManagerFactory.getTagManger().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+
+		tt.addTagTypeListener(
+			new TagTypeAdapter()
+			{
+				public void
+				tagRemoved(
+					Tag			tag )
+				{
+					String name = tag.getTagName( false );
+					
+					for ( String t: tag_ids ){
+						
+						if ( t.equals( name )){
+							
+							COConfigurationManager.setParameter( name + ".enabled", false );
+						}
+					}
+				}
+			},
+			false );
+		
+		for ( final String id: tag_ids ){
+			
+			COConfigurationManager.addParameterListener(
+				id + ".enabled",
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						String name )
+					{
+						if ( COConfigurationManager.getBooleanParameter( name )){
+							
+							handleAutoTag( core.getGlobalManager().getDownloadManagers());
+							
+						}else{
+							
+							Tag tag = tt.getTag( id, false );
+							
+							if ( tag != null ){
+								
+								tag.removeTag();
+							}
+						}
+					}
+				});
+		}
+		
+		boolean run_all = COConfigurationManager.getBooleanParameter( "dme.autotag.init_pending", true );
+		
+		if ( run_all ){
+			
+			COConfigurationManager.setParameter( "dme.autotag.init_pending", false );
+		}
+		
+		return( run_all );
+	}
+	
+	private void
+	handleAutoTag(
+		List<DownloadManager>	dms )
+	{
+		for ( DownloadManager dm: dms ){
+			
+			handleAutoTag( dm );
+		}
+	}
+	
+	private void
+	handleAutoTag(
+		DownloadManager	dm )
+	{
+		TOTorrent torrent = dm.getTorrent();
+		
+		if ( torrent != null ){
+			
+			boolean is_vhdn = PlatformTorrentUtils.getContentNetworkID(torrent) == ContentNetwork.CONTENT_NETWORK_VHDNL;
+			
+			if ( is_vhdn ){
+				
+				handleAutoTag( dm, "tag.type.man.vhdn", "image.sidebar.tag.vhdn" );
+				
+				handleAutoTag( dm, "tag.type.man.featcon", "image.sidebar.tag.featcon" );
+			}
+		}
+	}
+	
+	private void
+	handleAutoTag(
+		DownloadManager		dm,
+		String				tag_id,
+		String				img_id )
+	{	
+		TagType tt = TagManagerFactory.getTagManger().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+			
+		Tag t = tt.getTag( tag_id, false );
+			
+		if ( t == null ){
+			
+			if ( COConfigurationManager.getBooleanParameter( tag_id + ".enabled", true )){
+				
+				try{
+					t = tt.createTag( tag_id, false );
+					
+					t.setImageID( img_id  );
+					
+					t.setPublic( false );
+					
+					tt.addTag( t );
+											
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
+		
+		if ( t != null ){
+				
+			if ( !t.hasTaggable( dm )){
+			
+				t.addTaggable( dm );
+			}
+		}
 	}
 }

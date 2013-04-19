@@ -23,7 +23,7 @@ public interface MultipleDocumentInterfaceSWT
 	public UISWTViewCore getCoreViewFromID(String id);
 
 	public MdiEntry createEntryFromEventListener(String parentID,
-			UISWTViewEventListener l, String id, boolean closeable, Object datasource);
+			UISWTViewEventListener l, String id, boolean closeable, Object datasource, String preferredAfterID);
 
 	public MdiEntry createEntryFromView(String parentID, UISWTViewCore view,
 			String id, Object datasource, boolean closeable, boolean show,

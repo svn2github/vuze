@@ -112,6 +112,43 @@ public class TagUIUtils
 					public void menuWillBeShown(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object data) {
 						menu.removeAllChildItems();
 						
+							// content 
+						
+						org.gudy.azureus2.plugins.ui.menus.MenuItem menuItem = menuManager.addMenuItem( menu, "label.content" );
+
+						menuItem.setStyle(org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_MENU);
+						
+						menuItem.addFillListener(new org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener() {
+							public void menuWillBeShown(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object data) {
+								menu.removeAllChildItems();
+
+								String[]	tag_ids = { "tag.type.man.vhdn", "tag.type.man.featcon" };
+
+								for ( String id: tag_ids ){
+									
+									final String c_id = id + ".enabled";
+									
+									org.gudy.azureus2.plugins.ui.menus.MenuItem menuItem = menuManager.addMenuItem( menu, id);
+
+									menuItem.setStyle(org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_CHECK );
+									
+									menuItem.addListener(new org.gudy.azureus2.plugins.ui.menus.MenuItemListener() {
+										public void selected(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object target) {
+											COConfigurationManager.setParameter( c_id, menu.isSelected());
+										}
+									});
+									menuItem.addFillListener(new org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener() {
+										public void menuWillBeShown(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object data) {
+											menu.setData( COConfigurationManager.getBooleanParameter( c_id, true ));
+										}
+									});
+								}
+							}});
+								
+						
+							// autos
+								
+						
 						List<TagType> tag_types = TagManagerFactory.getTagManger().getTagTypes();
 						
 						for ( final TagType tag_type: tag_types ){
@@ -131,7 +168,7 @@ public class TagUIUtils
 								continue;
 							}
 							
-							org.gudy.azureus2.plugins.ui.menus.MenuItem menuItem = menuManager.addMenuItem( menu, tag_type.getTagTypeName( false ));
+							menuItem = menuManager.addMenuItem( menu, tag_type.getTagTypeName( false ));
 
 							menuItem.setStyle(org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_MENU);
 							

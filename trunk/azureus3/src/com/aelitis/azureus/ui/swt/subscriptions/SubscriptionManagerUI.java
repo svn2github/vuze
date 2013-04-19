@@ -836,7 +836,7 @@ SubscriptionManagerUI
 				new UISWTViewEventListenerHolder(
 						MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
 						SubscriptionsView.class, null, null),
-				MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS, false, null);
+				MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS, false, null, null );
 
 		if (mdiEntryOverview == null) {
 			return;
@@ -1242,7 +1242,7 @@ SubscriptionManagerUI
 		MdiEntry entry = mdi.createEntryFromEventListener(
 				MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS,
 				new UISWTViewEventListenerHolder(key, SubscriptionView.class, subs, null),
-				key, false, subs);
+				key, false, subs, null);
 		entry.setViewTitleInfo(viewTitleInfo);
 
 		// This sets up the entry (menu, etc)

@@ -316,7 +316,7 @@ public class TabbedMDI
 	}
 
 	public MdiEntry createEntryFromEventListener(String parentID,
-			UISWTViewEventListener l, String id, boolean closeable, Object datasource) {
+			UISWTViewEventListener l, String id, boolean closeable, Object datasource, String preferredAfterID) {
 		MdiEntry oldEntry = getEntry(id);
 		if (oldEntry != null) {
 			return oldEntry;
@@ -325,6 +325,7 @@ public class TabbedMDI
 		TabbedEntry entry = new TabbedEntry(this, skin, id);
 
 		entry.setDatasource(datasource);
+		entry.setPreferredAfterID(preferredAfterID);
 		entry.setEventListener(l);
 
 		setupNewEntry(entry, id, -1);

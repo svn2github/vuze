@@ -116,7 +116,7 @@ public abstract class BaseMDI
 	}
 
 	public abstract MdiEntry createEntryFromEventListener(String parentID,
-			UISWTViewEventListener l, String id, boolean closeable, Object datasource);
+			UISWTViewEventListener l, String id, boolean closeable, Object datasource, String preferedAfterID);
 
 	public abstract MdiEntry createEntryFromView(String parentID, UISWTViewCore iview,
 			String id, Object datasource, boolean closeable, boolean show,
@@ -385,7 +385,7 @@ public abstract class BaseMDI
 							true, false, true);
 				} else if (viewInfo.event_listener != null) {
 					entry = createEntryFromEventListener(parentID,
-							viewInfo.event_listener, id, true, datasource);
+							viewInfo.event_listener, id, true, datasource,null);
   				entry.setTitle(title);
 				}
 			}

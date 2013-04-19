@@ -18,8 +18,13 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 import org.eclipse.swt.widgets.Menu;
 
@@ -38,6 +43,7 @@ import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.menus.*;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -1058,11 +1064,54 @@ public class SB_Transfers
 			
 			return;
 		}
-
-		boolean auto = tag.getTagType().isTagTypeAuto();
 		
 		String name = tag.getTagName( true );
+
+			// find where to locate this in the sidebar
+				
+		TreeMap<String,String>	name_map = 
+			new TreeMap<String,String>(new FormattersImpl().getAlphanumericComparator( true ));
 		
+		name_map.put( name, id );
+		
+		for ( Tag t: tag.getTagType().getTags()){
+			
+			if ( t.isVisible()){
+				
+				String tid = "Tag." + tag.getTagType().getTagType() + "." + t.getTagID();
+
+				if ( mdi.getEntry( tid ) != null ){
+					
+					name_map.put( t.getTagName( true ), tid );
+				}
+			}
+		}
+		
+		String	prev_id = null;
+		
+		for ( Map.Entry<String,String> entry: name_map.entrySet()){
+		
+			String	this_id = entry.getValue();
+			
+			if ( this_id == id ){
+				
+				break;
+			}
+			
+			prev_id = this_id;
+		}
+		
+		if ( prev_id == null && name_map.size() > 1 ){
+						
+			Iterator<String>	it = name_map.values().iterator();
+			
+			it.next();
+			
+			prev_id = "~" + it.next();
+		}
+		
+		boolean auto = tag.getTagType().isTagTypeAuto();
+				
 		ViewTitleInfo viewTitleInfo = 
 			new ViewTitleInfo() 
 			{
@@ -1140,12 +1189,12 @@ public class SB_Transfers
 			
 			entry = mdi.createEntryFromSkinRef(
 					MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id, "library",
-					name, viewTitleInfo, tag, auto, null);
+					name, viewTitleInfo, tag, auto, prev_id);
 		}else{
 			
 			entry = mdi.createEntryFromEventListener(
 						MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, 
-						new PeersGeneralView( tag ), id, auto, null);
+						new PeersGeneralView( tag ), id, auto, null, prev_id);
 			
 			entry.setViewTitleInfo( viewTitleInfo );
 		}
@@ -1175,7 +1224,11 @@ public class SB_Transfers
 		}
 		
 		if (entry != null) {
-			if ( tag.getTagType().getTagType() == TagType.TT_PEER_IPSET ){
+			String image_id = tag.getImageID();
+			
+			if ( image_id != null ){
+				entry.setImageLeftID( image_id );
+			}else if ( tag.getTagType().getTagType() == TagType.TT_PEER_IPSET ){
 				entry.setImageLeftID("image.sidebar.tag-red");
 			}else if ( tag.getTagType().isTagTypePersistent()){
 				entry.setImageLeftID("image.sidebar.tag-green");

@@ -70,6 +70,13 @@ Tag
 	setVisible(
 		boolean		visible );
 	
+	public String
+	getImageID();
+	
+	public void
+	setImageID(
+		String		id );
+	
 	public void
 	addTaggable(
 		Taggable	t );

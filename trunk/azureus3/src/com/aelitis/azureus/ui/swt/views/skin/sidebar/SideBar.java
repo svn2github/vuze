@@ -1218,11 +1218,24 @@ public class SideBar
 			if (preferredAfterID.length() == 0) {
 				index = 0;
 			} else {
+				boolean hack_it = preferredAfterID.startsWith( "~" );
+				
+				if ( hack_it ){
+					
+						//hack - this means preferred BEFORE ID...
+					
+					preferredAfterID = preferredAfterID.substring(1);
+				}
+				
 				MdiEntry entryAbove = getEntry(preferredAfterID);
 				if (entryAbove != null) {
 					index = indexOf(entryAbove);
-					if (index >= 0) {
-						index++;
+					if ( hack_it ){
+				
+					}else{
+						if (index >= 0) {
+							index++;
+						}
 					}
 					//System.out.println("ENTRY " + id + " is going to go below " + entryAbove.getId() + " at " + index);
 				}
@@ -1341,7 +1354,7 @@ public class SideBar
 	 *  @see com.aelitis.azureus.ui.swt.mdi.BaseMDI#createEntryFromEventListener(java.lang.String, org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener, java.lang.String, boolean, java.lang.Object)
 	 */
 	public MdiEntry createEntryFromEventListener(String parentID,
-			UISWTViewEventListener l, String id, boolean closeable, Object datasource) {
+			UISWTViewEventListener l, String id, boolean closeable, Object datasource, String preferredAfterID) {
 
 		MdiEntry oldEntry = getEntry(id);
 		if (oldEntry != null) {
@@ -1359,7 +1372,7 @@ public class SideBar
 
 			entry.setParentID(parentID);
 			entry.setDatasource(datasource);
-
+			entry.setPreferredAfterID(preferredAfterID);
 			setupNewEntry(entry, id, false, closeable);
 
 			entry.setEventListener(l);
