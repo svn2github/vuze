@@ -52,6 +52,19 @@ public interface MultipleDocumentInterface
 
 	public boolean showEntryByID(String id);
 
+		/**
+		 * If you prefix the 'preferedAfterID' string with '~' then the operation will actually
+		 * switch to 'preferedBeforeID'
+		 * @param parentID
+		 * @param id
+		 * @param configID
+		 * @param title
+		 * @param titleInfo
+		 * @param params
+		 * @param closeable
+		 * @param preferedAfterID
+		 * @return
+		 */
 	public MdiEntry createEntryFromSkinRef(String parentID, String id,
 			String configID, String title, ViewTitleInfo titleInfo, Object params,
 			boolean closeable, String preferedAfterID);

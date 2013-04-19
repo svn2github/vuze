@@ -22,6 +22,17 @@ public interface MultipleDocumentInterfaceSWT
 
 	public UISWTViewCore getCoreViewFromID(String id);
 
+	/**
+	 * If you prefix the 'preferedAfterID' string with '~' then the operation will actually
+	 * switch to 'preferedBeforeID'
+	 * @param parentID
+	 * @param l
+	 * @param id
+	 * @param closeable
+	 * @param datasource
+	 * @param preferredAfterID
+	 * @return
+	 */
 	public MdiEntry createEntryFromEventListener(String parentID,
 			UISWTViewEventListener l, String id, boolean closeable, Object datasource, String preferredAfterID);
 
