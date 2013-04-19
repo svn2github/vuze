@@ -624,7 +624,17 @@ public class TagUIUtils
 			showitem.setEnabled( invisible_count > 0 );
 			
 		}else{
-						
+			
+			MenuItem item_create = new MenuItem( menu, SWT.PUSH);
+			
+			Messages.setLanguageText(item_create, "label.add.tag");
+			item_create.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					
+					createManualTag();
+				}
+			});
+			
 			MenuItem itemRename = new MenuItem(menu, SWT.PUSH);
 						
 			Messages.setLanguageText(itemRename, "MyTorrentsView.menu.rename");

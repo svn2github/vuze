@@ -660,18 +660,28 @@ DownloadManagerEnhancer
 	handleAutoTag(
 		DownloadManager	dm )
 	{
-		TOTorrent torrent = dm.getTorrent();
-		
-		if ( torrent != null ){
+		try{
+			TOTorrent torrent = dm.getTorrent();
 			
-			boolean is_vhdn = PlatformTorrentUtils.getContentNetworkID(torrent) == ContentNetwork.CONTENT_NETWORK_VHDNL;
-			
-			if ( is_vhdn ){
+			if ( torrent != null ){
 				
-				handleAutoTag( dm, "tag.type.man.vhdn", "image.sidebar.tag.vhdn" );
+				boolean is_vhdn = PlatformTorrentUtils.getContentNetworkID(torrent) == ContentNetwork.CONTENT_NETWORK_VHDNL;
 				
-				handleAutoTag( dm, "tag.type.man.featcon", "image.sidebar.tag.featcon" );
+				if ( is_vhdn ){
+					
+					handleAutoTag( dm, "tag.type.man.vhdn", "image.sidebar.tag.vhdn" );
+				}
+							
+				String content_type = PlatformTorrentUtils.getContentType(torrent);
+				
+				if ( content_type != null && content_type.equalsIgnoreCase( "featured" )){
+					
+					handleAutoTag( dm, "tag.type.man.featcon", "image.sidebar.tag.featcon" );
+				}
 			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
 		}
 	}
 	
