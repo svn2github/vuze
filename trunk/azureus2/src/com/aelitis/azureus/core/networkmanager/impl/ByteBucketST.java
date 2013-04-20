@@ -84,7 +84,11 @@ ByteBucketST
 		}
 		
 	    avail_bytes -= bytes_used;
-	    if( avail_bytes < 0 ) Debug.out( "avail_bytes < 0: " + avail_bytes);
+	    if( avail_bytes < 0 ){
+	    	avail_bytes = 0;
+	    	// this isn't synchronized so we can expect to see these every now and then (and we do...)
+	    	//Debug.out( "avail_bytes < 0: " + avail_bytes);
+	  	}
 	  }
 	  
 	  
