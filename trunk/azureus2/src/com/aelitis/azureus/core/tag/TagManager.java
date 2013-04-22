@@ -41,6 +41,13 @@ TagManager
 	getTagsForTaggable(
 		Taggable	taggable );
 	
+	public void
+	setTagPublicDefault(
+		boolean	pub );
+	
+	public boolean
+	getTagPublicDefault();
+	
 	public TaggableLifecycleHandler
 	registerTaggableResolver(
 		TaggableResolver	resolver );

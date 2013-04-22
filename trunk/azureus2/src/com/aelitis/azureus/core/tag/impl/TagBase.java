@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 
@@ -38,6 +39,7 @@ TagBase
 	protected static final String	AT_RATELIMIT_DOWN	= "rl.down";
 	protected static final String	AT_VISIBLE			= "vis";
 	protected static final String	AT_PUBLIC			= "pub";
+	protected static final String	AT_CAN_BE_PUBLIC	= "canpub";
 	protected static final String	AT_ORIGINAL_NAME	= "oname";
 	protected static final String	AT_IMAGE_ID			= "img.id";
 	  
@@ -197,6 +199,13 @@ TagBase
 	{
 		if ( is_public == null || v != is_public ){
 			
+			if ( v && !canBePublic()){
+				
+				Debug.out( "Invalid attempt to set public" );
+				
+				return;
+			}
+			
 			is_public	= v;
 			
 			writeBooleanAttribute( AT_PUBLIC, v );
@@ -208,8 +217,41 @@ TagBase
 	protected boolean
 	getPublicDefault()
 	{
+		if ( !getCanBePublicDefault()){
+			
+			return( false );
+		}
+		
+		return( tag_type.getManager().getTagPublicDefault());
+	}
+	
+	public void
+	setCanBePublic(
+		boolean	can_be_public )
+	{
+		writeBooleanAttribute( AT_CAN_BE_PUBLIC, can_be_public );
+		
+		if ( !can_be_public ){
+			
+			if ( isPublic()){
+				
+				setPublic( false );
+			}
+		}
+	}
+	
+	public boolean
+	canBePublic()
+	{
+		return( readBooleanAttribute( AT_CAN_BE_PUBLIC, getCanBePublicDefault()));
+	}
+	
+	protected boolean
+	getCanBePublicDefault()
+	{
 		return( true );
 	}
+	
 		// visible
 	
 	public boolean

@@ -713,12 +713,20 @@ DownloadManagerEnhancer
 					
 					t.setPublic( false );
 					
+					t.setCanBePublic( false );
+					
 					tt.addTag( t );
 											
 				}catch( Throwable e ){
 					
 					Debug.out( e );
 				}
+			}
+		}else{
+			
+			if ( t.canBePublic()){
+				
+				t.setCanBePublic( false );
 			}
 		}
 		

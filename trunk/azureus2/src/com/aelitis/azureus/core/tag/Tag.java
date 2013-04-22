@@ -56,6 +56,13 @@ Tag
 	public int
 	getTaggableTypes();
 	
+	public void
+	setCanBePublic(
+		boolean	can_be_public );
+	
+	public boolean
+	canBePublic();
+	
 	public boolean
 	isPublic();
 	

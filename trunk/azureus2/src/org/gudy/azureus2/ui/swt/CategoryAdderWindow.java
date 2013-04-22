@@ -24,6 +24,7 @@ import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 /**
  * @author Olivier
@@ -38,6 +39,9 @@ public class CategoryAdderWindow
 				"CategoryAddWindow.title", "CategoryAddWindow.message");
 		entryWindow.prompt();
 		if (entryWindow.hasSubmittedInput()) {
+			
+			TagUIUtils.checkTagSharing( false );
+			
 			newCategory = CategoryManager.createCategory(entryWindow.getSubmittedInput());
 		}
 	}

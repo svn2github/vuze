@@ -189,6 +189,23 @@ public class CategoryUIUtils
 		});
 		itemStop.setEnabled(stop);
 
+		if ( category.canBePublic()){
+							
+			new MenuItem( menu, SWT.SEPARATOR);
+					
+			final MenuItem itemPublic = new MenuItem(menu, SWT.CHECK );
+			
+			itemPublic.setSelection( category.isPublic());
+			
+			Messages.setLanguageText(itemPublic, "cat.share");
+
+			itemPublic.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					
+					category.setPublic( itemPublic.getSelection());
+				}});
+		}
+		
 		// share with friends
 
 		PluginInterface bpi = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaceByClass(

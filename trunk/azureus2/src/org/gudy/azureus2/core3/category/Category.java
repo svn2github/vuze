@@ -26,10 +26,12 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.util.IndentWriter;
 
+import com.aelitis.azureus.core.tag.Tag;
+
 /** A Category for grouping torrents (DownloadManagers)
  * @author TuxPaper
  */
-public interface Category {
+public interface Category extends Tag{
   /** User created Category */  
   public static final int TYPE_USER = 0;
   /** Category which contains all DownloadManagers */  

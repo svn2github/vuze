@@ -462,6 +462,12 @@ CategoryImpl
 	  return( -1 );
   }
   
+  public boolean
+  getCanBePublicDefault()
+  {
+	  return( type == Category.TYPE_USER );
+  }
+  
   public List<DownloadManager>
   getTaggedDownloads()
   {

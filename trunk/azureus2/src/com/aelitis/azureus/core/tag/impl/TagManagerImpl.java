@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.tag.impl;
 import java.lang.ref.WeakReference;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -282,6 +283,19 @@ TagManagerImpl
 					removeTaggable( resolver, t );
 				}
 			});
+	}
+	
+	public void
+	setTagPublicDefault(
+		boolean	pub )
+	{
+		COConfigurationManager.setParameter( "tag.manager.pub.default", pub );
+	}
+	
+	public boolean
+	getTagPublicDefault()
+	{
+		return( COConfigurationManager.getBooleanParameter( "tag.manager.pub.default", true ));
 	}
 	
 	public void

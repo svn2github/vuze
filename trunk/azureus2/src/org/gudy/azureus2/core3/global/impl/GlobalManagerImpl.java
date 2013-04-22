@@ -3812,6 +3812,12 @@ public class GlobalManagerImpl
 					return( false );
 				}
 			}
+			
+			protected boolean
+			getCanBePublicDefault()
+			{
+				return( false );
+			}
 		}
 	}
 }

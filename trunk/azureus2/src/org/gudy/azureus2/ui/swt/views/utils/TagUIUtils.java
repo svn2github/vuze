@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
@@ -41,6 +42,9 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
 
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagException;
@@ -51,6 +55,7 @@ import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
 /**
@@ -229,6 +234,82 @@ public class TagUIUtils
 					
 			}
 		});
+		
+		AzureusCoreFactory.addCoreRunningListener(
+			new AzureusCoreRunningListener()
+			{
+				public void 
+				azureusCoreRunning(
+					AzureusCore core) 
+				{
+					checkTagSharing( true );
+				}
+			});
+
+	}
+	
+	public static void
+	checkTagSharing(
+		boolean		start_of_day )
+	{
+		UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+		
+		if ( uiFunctions != null ){
+			
+			TagManager tm = TagManagerFactory.getTagManger();
+
+			if ( start_of_day ){
+				
+				if ( COConfigurationManager.getBooleanParameter( "tag.sharing.default.checked", false )){
+					
+					return;
+				}
+				
+				COConfigurationManager.setParameter( "tag.sharing.default.checked", true );
+				
+				List<TagType> tag_types = tm.getTagTypes();
+				
+				boolean	prompt_required = false;
+				
+				for ( TagType tag_type: tag_types ){
+					
+					List<Tag> tags = tag_type.getTags();
+					
+					for ( Tag tag: tags ){
+						
+						if ( tag.isPublic()){
+							
+							prompt_required = true;
+						}
+					}
+				}
+				
+				if ( !prompt_required ){
+					
+					return;
+				}
+			}
+		
+			String title = MessageText.getString("tag.sharing.enable.title");
+			
+			String text = MessageText.getString("tag.sharing.enable.text" );
+			
+			UIFunctionsUserPrompter prompter = uiFunctions.getUserPrompter(title, text, new String[] {
+				MessageText.getString("Button.yes"),
+				MessageText.getString("Button.no")
+			}, 0);
+			
+			prompter.setRemember( "tag.share.default", true,
+					MessageText.getString("MessageBoxWindow.nomoreprompting"));
+			
+			prompter.setAutoCloseInMS(0);
+			
+			prompter.open(null);
+			
+			boolean	share = prompter.waitUntilClosed() == 0;
+			
+			tm.setTagPublicDefault( share );
+		}
 	}
 	
 	private static Tag
@@ -248,6 +329,8 @@ public class TagUIUtils
 			if ( existing == null ){
 				
 				try{
+					checkTagSharing( false );
+					
 					return( tt.createTag( tag_name, true ));
 					
 				}catch( TagException e ){
@@ -567,6 +650,28 @@ public class TagUIUtils
 	
 				itemOptions.setEnabled(false);
 			}
+		}
+		
+		if ( tag.canBePublic()){
+			
+			if ( needs_separator_next ){
+				
+				new MenuItem( menu, SWT.SEPARATOR);
+			}
+			
+			needs_separator_next = true;
+			
+			final MenuItem itemPublic = new MenuItem(menu, SWT.CHECK );
+			
+			itemPublic.setSelection( tag.isPublic());
+			
+			Messages.setLanguageText(itemPublic, "tag.share");
+
+			itemPublic.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					
+					tag.setPublic( itemPublic.getSelection());
+				}});
 		}
 		
 		if ( needs_separator_next ){

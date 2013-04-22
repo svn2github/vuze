@@ -1389,7 +1389,7 @@ RelatedContentManager
 			byte[]	_tags = (byte[])map.get( "g" );
 			
 			String[] tags = decodeTags( _tags );
-						
+					
 			return(
 				new DownloadInfo( 
 						from_hash, hash, title, rand, tracker, tracker_keys, ws_keys, tags, level, explicit, size, 
@@ -4454,7 +4454,12 @@ RelatedContentManager
 		
 		if ( cat_name != null ){
 			
-			all_tags.add( cat_name.toLowerCase( Locale.US ));
+			Tag cat_tag = tag_manager.getTagType( TagType.TT_DOWNLOAD_CATEGORY ).getTag( cat_name, true );
+			
+			if ( cat_tag != null && cat_tag.isPublic()){
+			
+				all_tags.add( cat_name.toLowerCase( Locale.US ));
+			}
 		}
 		
 		List<Tag> tags = tag_manager.getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTagsForTaggable( PluginCoreUtils.unwrap( download ));
@@ -4486,7 +4491,7 @@ RelatedContentManager
 	}
 	
 	final int MAX_TAGS 			= 3;
-	final int MAX_TAG_LENGTH	= 16;
+	final int MAX_TAG_LENGTH	= 20;
 	
 	private byte[]
 	encodeTags(
