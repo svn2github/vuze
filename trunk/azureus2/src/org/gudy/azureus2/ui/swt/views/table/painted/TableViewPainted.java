@@ -1146,7 +1146,11 @@ public class TableViewPainted
 		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
 			public void currentlySelectedContentChanged(
 					ISelectedContent[] currentContent, String viewID) {
-				redrawTable();
+				if ( cTable == null || cTable.isDisposed()){
+					SelectedContentManager.removeCurrentlySelectedContentListener( this );
+				}else{
+					redrawTable();
+				}
 			}
 		});
 		

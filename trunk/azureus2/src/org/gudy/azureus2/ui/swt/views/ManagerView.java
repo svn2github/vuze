@@ -66,6 +66,8 @@ import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo2;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -81,7 +83,7 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
  */
 public class ManagerView
 	implements DownloadManagerListener, ObfusticateTab,
-	ViewTitleInfo2, UISWTViewCoreEventListener, UIUpdatable, UIPluginViewToolBarListener
+	ViewTitleInfo2, UISWTViewCoreEventListener, UIUpdatable, UIPluginViewToolBarListener, SelectedContentListener
 {
 
 	private static boolean registeredCoreSubViews = false;
@@ -98,11 +100,15 @@ public class ManagerView
 	private final int 	TOP_BAR_HEIGHT = 30;
 	private Label		header_label;
 	private Font		header_font;
+	
+	private FilterCheckHandler	filter_check_handler;
+	
 	private Text		txtFilter;
 	private Control		txtControl;
 	private Composite	filterParent; 
 	private boolean 	forceHeaderVisible = false;
 	
+	private int 		selection_count = 0;
   /**
 	 * 
 	 */
@@ -175,6 +181,8 @@ public class ManagerView
   		Debug.out(e);
   	}
 
+  	SelectedContentManager.removeCurrentlySelectedContentListener( this );
+  	
     if (folder != null && !folder.isDisposed()){
     	folder.setSelection(0);
     }
@@ -301,9 +309,6 @@ public class ManagerView
 			  control.setMenu(menuFilterHeader);
 		  }
 	  }
-	  
-		Object x = filterParent.getData( "SBC_LibraryView" );
-
 		
   	this.parent = composite;
   	if (folder == null) {
@@ -390,7 +395,11 @@ public class ManagerView
 			 parameterChanged(
 				String parameterName) 
 			 {
-				Utils.execSWTThread(new AERunnable() {
+				 if ( parent.isDisposed()){
+					 COConfigurationManager.removeParameter(parameterName);
+					 return;
+				 }
+				 Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
 						if ( txtFilter != null && !txtFilter.isDisposed()) {
 							forceHeaderVisible = COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader");
@@ -412,6 +421,8 @@ public class ManagerView
 		 });
 	 
 
+	 SelectedContentManager.addCurrentlySelectedContentListener( this );
+	 
 	 Menu menu = new Menu(folder);
 
 	 menu.setData( "downloads", new DownloadManager[]{ manager });
@@ -500,92 +511,18 @@ public class ManagerView
     	
     	if ( listener instanceof TableViewTab<?> && listener instanceof TableViewFilterCheck<?>){
     		
-    		final TableViewTab<Object> tvt = (TableViewTab<Object>)listener;
+    		TableViewTab<Object> tvt = (TableViewTab<Object>)listener;
     		
-    		final TableViewFilterCheck	delegate = (TableViewFilterCheck)tvt;
+    		TableViewFilterCheck	delegate = (TableViewFilterCheck)tvt;
     		
     		txtControl.setVisible( true );
     		
      		header_label.setVisible( true );
     		
-    		tvt.getTableView().enableFilterCheck(
-    			txtFilter, 
-    			new TableViewFilterCheck.TableViewFilterCheckEx<Object>()
-    			{
-    				boolean		enabled;
-    				int			value;
-    				
-    				{
-    					updateHeader();
-    				}
-    				
-    				public boolean 
-    				filterCheck(
-    					Object ds, 
-    					String filter, 
-    					boolean regex) 
-    				{
-    					return( delegate.filterCheck( ds, filter, regex ));
-    				};
-    				
-    				public void 
-    				filterSet(
-    					String filter ) 
-    				{
-    					boolean	was_enabled = enabled;
-    					
-    					enabled = filter != null && filter.length() > 0;
-    					
-    					ManagerView.this.filterSet( tvt.getTableView(), filter );
-    					
-    					delegate.filterSet( filter );
-    					
-    					if ( enabled != was_enabled ){
-    						
-    						Utils.execSWTThread(new AERunnable() {
-    							public void runSupport() {
-    								updateHeader();
-    							}});
-    					}
-     				}
-    				
-    				public void 
-    				viewChanged( 
-    					TableView<Object>	view )
-    				{
-    					value = view.size( false );
-    					
-    					if ( enabled ){
-    						
-    						Utils.execSWTThread(new AERunnable() {
-    							public void runSupport() {
-    								updateHeader();
-    							}});
-    					}
-    				}
-    				
-    				private void
-    				updateHeader()
-    				{
-    					int	total = manager.getNumFileInfos();
-    					
-    					String s = MessageText.getString( 
-    								"library.unopened.header" + (total>1?".p":"" ),
-    								new String[]{ String.valueOf( total )});
-    					
-    					if ( enabled ){
-    						
-    						String extra = 
-								MessageText.getString(
-										"filter.header.matches1",
-										new String[]{ String.valueOf( value ) });
-							
-							s += " " + extra;
-    					}
-    					
-    					header_label.setText( s );
-    				}
-    			});
+     		filter_check_handler = new FilterCheckHandler( tvt, delegate );
+     		
+    		tvt.getTableView().enableFilterCheck( txtFilter, filter_check_handler ); 
+
     	}else{
     		txtControl.setVisible( false );
     		header_label.setVisible( false );
@@ -611,6 +548,22 @@ public class ManagerView
 		}
 	}
 
+	public void 
+	currentlySelectedContentChanged(
+		ISelectedContent[] 	currentContent, 
+		String 				viewId ) 
+	{
+		selection_count = currentContent.length;
+		
+		if ( filter_check_handler != null ){
+			
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					filter_check_handler.updateHeader();
+				}});
+		}
+	}
+	 
 	protected Object
 	showView(
 		Class	view_class )
@@ -1149,4 +1102,101 @@ public class ManagerView
 			return textWidget;
 		}
 	}
+	
+	private class
+	FilterCheckHandler
+		implements TableViewFilterCheck.TableViewFilterCheckEx<Object>
+	{
+		private TableViewTab<Object> 	tvt;
+		private TableViewFilterCheck	delegate;
+
+		boolean		enabled;
+		int			value;
+		
+		private
+		FilterCheckHandler(
+			TableViewTab<Object> 	_tvt,
+	    	TableViewFilterCheck	_delegate )
+
+		{
+			tvt			= _tvt;
+			delegate	= _delegate;
+			
+			updateHeader();
+		}
+		
+		public boolean 
+		filterCheck(
+			Object ds, 
+			String filter, 
+			boolean regex) 
+		{
+			return( delegate.filterCheck( ds, filter, regex ));
+		};
+		
+		public void 
+		filterSet(
+			String filter ) 
+		{
+			boolean	was_enabled = enabled;
+			
+			enabled = filter != null && filter.length() > 0;
+			
+			ManagerView.this.filterSet( tvt.getTableView(), filter );
+			
+			delegate.filterSet( filter );
+			
+			if ( enabled != was_enabled ){
+				
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						updateHeader();
+					}});
+			}
+			}
+		
+		public void 
+		viewChanged( 
+			TableView<Object>	view )
+		{
+			value = view.size( false );
+			
+			if ( enabled ){
+				
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						updateHeader();
+					}});
+			}
+		}
+		
+		private void
+		updateHeader()
+		{
+			int	total = manager.getNumFileInfos();
+			
+			String s = MessageText.getString( 
+						"library.unopened.header" + (total>1?".p":"" ),
+						new String[]{ String.valueOf( total )});
+			
+			if ( enabled ){
+				
+				String extra = 
+					MessageText.getString(
+							"filter.header.matches1",
+							new String[]{ String.valueOf( value ) });
+				
+				s += " " + extra;
+			}
+			
+			if ( selection_count > 1 ){
+				
+				s += ", " + 
+						MessageText.getString(
+						"label.num_selected", new String[]{ String.valueOf( selection_count )});
+			}
+			
+			header_label.setText( s );
+		}
+	};
 }

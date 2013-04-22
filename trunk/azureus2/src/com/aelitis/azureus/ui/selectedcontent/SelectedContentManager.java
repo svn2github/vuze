@@ -53,6 +53,10 @@ public class SelectedContentManager
 		l.currentlySelectedContentChanged(currentlySelectedContent, viewID);
 	}
 
+	public static void removeCurrentlySelectedContentListener(
+			SelectedContentListener l) {
+		listeners.remove(l);
+	}
 	public static void clearCurrentlySelectedContent() {
 		changeCurrentlySelectedContentNoTrigger(null, null, null);
 		// Always trigger selected content listeners since toolbar relies it
