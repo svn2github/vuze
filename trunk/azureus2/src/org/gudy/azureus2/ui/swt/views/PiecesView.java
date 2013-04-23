@@ -26,6 +26,7 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerPieceListener;
@@ -93,9 +94,9 @@ public class PiecesView
 
 	public static final String MSGID_PREFIX = "PiecesView";
 
-	DownloadManager manager;
-  
-	private TableViewSWT<PEPiece> tv;
+	private DownloadManager 		manager;
+	private boolean					enable_tabs = true;
+	private TableViewSWT<PEPiece> 	tv;
 
 	private Composite legendComposite;
 
@@ -113,7 +114,7 @@ public class PiecesView
 		tv = TableViewFactory.createTableViewSWT(PEPiece.class,
 				TableManager.TABLE_TORRENT_PIECES, getPropertiesPrefix(), basicItems,
 				basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
-		tv.setEnableTabViews(true);
+		tv.setEnableTabViews(enable_tabs,true);
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
@@ -139,23 +140,45 @@ public class PiecesView
 
 	// @see com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener#tableDataSourceChanged(java.lang.Object)
 	public void tableDataSourceChanged(Object newDataSource) {
-		if (manager != null){
-			manager.removePeerListener(this);
-			manager.removePieceListener(this);
+	  	DownloadManager old_manager = manager;
+		if (newDataSource == null){
+			manager = null;
+		}else if (newDataSource instanceof Object[]){
+			Object temp = ((Object[])newDataSource)[0];
+			if ( temp instanceof DownloadManager ){
+				manager = (DownloadManager)temp;
+			}else if ( temp instanceof DiskManagerFileInfo){
+				manager = ((DiskManagerFileInfo)temp).getDownloadManager();
+			}else{
+				return;
+			}
+		}else{
+			if ( newDataSource instanceof DownloadManager ){
+				manager = (DownloadManager)newDataSource;
+			}else if ( newDataSource instanceof DiskManagerFileInfo){
+				manager = ((DiskManagerFileInfo)newDataSource).getDownloadManager();
+			}else{
+				return;
+			}
 		}
 		
-		if (newDataSource == null)
-			manager = null;
-		else if (newDataSource instanceof Object[])
-			manager = (DownloadManager)((Object[])newDataSource)[0];
-		else
-			manager = (DownloadManager)newDataSource;
+		if ( old_manager == manager ){
+			return;
+		}
+		
+		if (old_manager != null){
+			old_manager.removePeerListener(this);
+			old_manager.removePieceListener(this);
+		}
 
-  	if (manager != null) {
-			manager.addPeerListener(this, false);
-			manager.addPieceListener(this, false);
-			addExistingDatasources();
-    }
+		if ( !tv.isDisposed()){
+			tv.removeAllTableRows();
+			if (manager != null) {
+				manager.addPeerListener(this, false);
+				manager.addPieceListener(this, false);
+				addExistingDatasources();
+			}
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
@@ -237,7 +260,10 @@ public class PiecesView
 	public boolean eventOccurred(UISWTViewEvent event) {
 	    switch (event.getType()) {
 	     
-	        
+	      case UISWTViewEvent.TYPE_CREATE:{
+			enable_tabs = !event.getView().getViewID().contains( "tabs=false" );
+			break;
+	      }
 	      case UISWTViewEvent.TYPE_FOCUSGAINED:
 	      	String id = "DMDetails_Pieces";
 	      	if (manager != null) {

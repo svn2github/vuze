@@ -121,6 +121,7 @@ public class TableViewPainted
 	private TableRowPainted focusedRow;
 
 	private boolean enableTabViews;
+	private boolean tabViewsExpandedByDefault = true;
 
 	protected boolean isDragging;
 
@@ -646,14 +647,21 @@ public class TableViewPainted
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.common.table.TableView#setEnableTabViews(boolean)
 	 */
-	public void setEnableTabViews(boolean enableTabViews) {
+	public void setEnableTabViews(boolean enableTabViews, boolean expandByDefault ){
 		this.enableTabViews = enableTabViews;
+		tabViewsExpandedByDefault = expandByDefault;
 	}
 
 	public boolean isTabViewsEnabled() {
 		return enableTabViews;
 	}
 
+	public boolean 
+	getTabViewsExpandedByDefault()
+	{
+		return( tabViewsExpandedByDefault );
+	}
+	
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.common.table.TableView#setFocus()
 	 */

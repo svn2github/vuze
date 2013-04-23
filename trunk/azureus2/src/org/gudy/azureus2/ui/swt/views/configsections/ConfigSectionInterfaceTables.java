@@ -374,6 +374,14 @@ public class ConfigSectionInterfaceTables
 				new BooleanParameter(cLibrary, "Library.CatInSideBar", MSG_PREFIX
 						+ "CatInSidebar").setLayoutData(new GridData(SWT.FILL,
 								SWT.LEFT, true, false, 2, 1));
+				
+				new BooleanParameter(cLibrary, "Library.TagInSideBar", MSG_PREFIX
+						+ "TagInSidebar").setLayoutData(new GridData(SWT.FILL,
+								SWT.LEFT, true, false, 2, 1));
+			
+				new BooleanParameter(cLibrary, "Library.ShowTabsInTorrentView", MSG_PREFIX
+						+ "ShowTabsInTorrentView").setLayoutData(new GridData(SWT.FILL,
+								SWT.LEFT, true, false, 2, 1));
 			}
 		}
 

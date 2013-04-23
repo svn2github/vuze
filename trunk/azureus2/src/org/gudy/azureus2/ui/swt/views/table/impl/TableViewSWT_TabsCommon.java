@@ -187,7 +187,7 @@ public class TableViewSWT_TabsCommon
 		}
 
 		ConfigurationManager configMan = ConfigurationManager.getInstance();
-
+		
 		int iNumViews = 0;
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -206,6 +206,8 @@ public class TableViewSWT_TabsCommon
 			return tableComposite;
 		}
 
+		final String	props_prefix = tv.getTableID() + "." + tv.getPropertiesPrefix();
+		
 		FormData formData;
 
 		final Composite form = new Composite(composite, SWT.NONE);
@@ -249,7 +251,7 @@ public class TableViewSWT_TabsCommon
 		formData.left = new FormAttachment(0, 0);
 		formData.right = new FormAttachment(100, 0);
 		formData.bottom = new FormAttachment(100, 0);
-		int iSplitAt = configMan.getIntParameter(tv.getPropertiesPrefix() + ".SplitAt",
+		int iSplitAt = configMan.getIntParameter(props_prefix + ".SplitAt",
 				3000);
 		// Was stored at whole
 		if (iSplitAt < 100) {
@@ -297,7 +299,7 @@ public class TableViewSWT_TabsCommon
 					tabFolder.setMinimized(false);
 					refreshSelectedSubView();
 					ConfigurationManager configMan = ConfigurationManager.getInstance();
-					configMan.setParameter(tv.getPropertiesPrefix() + ".subViews.minimized",
+					configMan.setParameter(props_prefix + ".subViews.minimized",
 							false);
 				}
 
@@ -310,7 +312,7 @@ public class TableViewSWT_TabsCommon
 				sash.setData("PCT", l);
 				if (e.detail != SWT.DRAG) {
 					ConfigurationManager configMan = ConfigurationManager.getInstance();
-					configMan.setParameter(tv.getPropertiesPrefix() + ".SplitAt",
+					configMan.setParameter(props_prefix + ".SplitAt",
 							(int) (l.doubleValue() * 10000));
 				}
 			}
@@ -334,7 +336,7 @@ public class TableViewSWT_TabsCommon
 
 				
 				ConfigurationManager configMan = ConfigurationManager.getInstance();
-				configMan.setParameter(tv.getPropertiesPrefix() + ".subViews.minimized", true);
+				configMan.setParameter(props_prefix + ".subViews.minimized", true);
 			}
 
 			public void restore(CTabFolderEvent event) {
@@ -352,7 +354,7 @@ public class TableViewSWT_TabsCommon
 				refreshSelectedSubView();
 
 				ConfigurationManager configMan = ConfigurationManager.getInstance();
-				configMan.setParameter(tv.getPropertiesPrefix() + ".subViews.minimized", false);
+				configMan.setParameter(props_prefix + ".subViews.minimized", false);
 			}
 
 		};
@@ -425,7 +427,7 @@ public class TableViewSWT_TabsCommon
 		}
 
 		if (configMan.getBooleanParameter(
-				tv.getPropertiesPrefix() + ".subViews.minimized", false)) {
+				props_prefix + ".subViews.minimized", !tv.getTabViewsExpandedByDefault())){
 			tabFolder.setMinimized(true);
 			tabFolderData.height = iFolderHeightAdj;
 		} else {

@@ -28,6 +28,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerTPSListener;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -81,8 +82,9 @@ public class TrackerView
 
 	public static final String MSGID_PREFIX = "TrackerView";
 
-	DownloadManager manager;
-  
+	private DownloadManager 	manager;
+	private boolean				enable_tabs = true;
+	
 	private TableViewSWT<TrackerPeerSource> tv;
 
 	/**
@@ -107,7 +109,8 @@ public class TrackerView
 		tv.addLifeCycleListener(this);
 		tv.addMenuFillListener(this);
 		tv.addTableDataSourceChangedListener(this, true);
-		tv.setEnableTabViews(true);
+		
+		tv.setEnableTabViews(enable_tabs,true);
 		
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
@@ -271,29 +274,46 @@ public class TrackerView
 	tableDataSourceChanged(
 		Object newDataSource ) 
 	{
-	  	if ( manager != null ){
-	  		
-	  		manager.removeTPSListener( this );
-		}
-	
-		if ( newDataSource == null ){
-			
+	  	DownloadManager old_manager = manager;
+		if (newDataSource == null){
 			manager = null;
-			
-		}else if ( newDataSource instanceof Object[] ){
-		
-			manager = (DownloadManager)((Object[])newDataSource)[0];
-			
+		}else if (newDataSource instanceof Object[]){
+			Object temp = ((Object[])newDataSource)[0];
+			if ( temp instanceof DownloadManager ){
+				manager = (DownloadManager)temp;
+			}else if ( temp instanceof DiskManagerFileInfo){
+				manager = ((DiskManagerFileInfo)temp).getDownloadManager();
+			}else{
+				return;
+			}
 		}else{
-			
-			manager = (DownloadManager)newDataSource;
+			if ( newDataSource instanceof DownloadManager ){
+				manager = (DownloadManager)newDataSource;
+			}else if ( newDataSource instanceof DiskManagerFileInfo){
+				manager = ((DiskManagerFileInfo)newDataSource).getDownloadManager();
+			}else{
+				return;
+			}
+		}
+		if ( old_manager == manager ){
+			return;
 		}
 		
-	  	if ( manager != null && !tv.isDisposed()){
-	    	
-  			manager.addTPSListener( this );
+	  	if ( old_manager != null ){
 	  		
-	    	addExistingDatasources();
+	  		old_manager.removeTPSListener( this );
+		}
+		
+	  	if ( !tv.isDisposed()){
+	  		
+			tv.removeAllTableRows();
+	  	
+			if ( manager != null ){
+	    	
+				manager.addTPSListener( this );
+	  		
+				addExistingDatasources();
+			}
 	    }
 	}
 	
@@ -335,7 +355,10 @@ public class TrackerView
 	public boolean eventOccurred(UISWTViewEvent event) {
 	    switch (event.getType()) {
 	     
-	        
+	      case UISWTViewEvent.TYPE_CREATE:{
+			enable_tabs = !event.getView().getViewID().contains( "tabs=false" );
+			break;
+	      }
 	      case UISWTViewEvent.TYPE_FOCUSGAINED:
 	      	String id = "DMDetails_Sources";
 	      	if (manager != null) {

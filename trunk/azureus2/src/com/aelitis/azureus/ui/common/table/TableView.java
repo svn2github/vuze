@@ -232,7 +232,7 @@ public interface TableView<DATASOURCETYPE>
 	/**
 	 * @param enableTabViews
 	 */
-	void setEnableTabViews(boolean enableTabViews);
+	void setEnableTabViews(boolean enableTabViews, boolean expandByDefault );
 
 	void setFocus();
 

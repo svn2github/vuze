@@ -56,6 +56,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener;
@@ -65,7 +66,9 @@ import org.gudy.azureus2.ui.swt.components.CompositeMinSize;
 import org.gudy.azureus2.ui.swt.help.HealthHelpWindow;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
@@ -85,6 +88,7 @@ import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /** Displays a list of torrents in a table view.
@@ -2132,12 +2136,62 @@ public class MyTorrentsView
 	 * @param basicItems
 	 * @return
 	 */
+	
+	private static boolean registeredCoreSubViews = false;
+	
 	protected TableViewSWT<DownloadManager> createTableView(
 			Class<?> forDataSourceType, String tableID, TableColumnCore[] basicItems) {
 		int tableExtraStyle = COConfigurationManager.getIntParameter("MyTorrentsView.table.style");
-		return TableViewFactory.createTableViewSWT(forDataSourceType, tableID,
+		TableViewSWT<DownloadManager> table = 
+			TableViewFactory.createTableViewSWT(forDataSourceType, tableID,
 				getPropertiesPrefix(), basicItems, "#", tableExtraStyle | SWT.MULTI
 						| SWT.FULL_SELECTION | SWT.VIRTUAL | SWT.CASCADE);
+		
+			// config??
+		
+		boolean	enable_tab_views = !Utils.isAZ2UI() && COConfigurationManager.getBooleanParameter( "Library.ShowTabsInTorrentView" );
+		
+		String[] views_with_tabs = { 
+			TableManager.TABLE_MYTORRENTS_ALL_BIG,
+			TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG,	
+		};
+
+		if ( enable_tab_views ){
+
+			enable_tab_views = false;
+			
+			for ( String id: views_with_tabs ){
+		
+				if ( tableID.equals( id )){
+			
+					enable_tab_views = true;
+				}
+			}
+		}
+		
+		table.setEnableTabViews( enable_tab_views, false );
+		
+		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (uiFunctions != null) {
+			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
+			
+			if (pluginUI != null && !registeredCoreSubViews) {
+
+				registeredCoreSubViews = true;
+				
+				for ( String id: views_with_tabs ){
+					
+					pluginUI.addView(id, "GeneralView",	GeneralView.class, null);
+					pluginUI.addView(id, "TrackerView[tabs=false]",	TrackerView.class, null);
+					pluginUI.addView(id, "PeersView[tabs=false]", PeersView.class, null);
+					pluginUI.addView(id, "PeersGraphic", PeersGraphicView.class, null);
+					pluginUI.addView(id, "PiecesView[tabs=false]", PiecesView.class, null);
+					pluginUI.addView(id, "FilesView[tabs=false]", FilesView.class, null);
+				}
+			}
+		}
+		
+		return( table );
 	}
 
 	/**

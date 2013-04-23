@@ -114,6 +114,8 @@ public class FilesView
   
   private DownloadManager manager = null;
   
+  private boolean	enable_tabs = true;
+  
   public static boolean show_full_path;
 
   static{
@@ -157,8 +159,8 @@ public class FilesView
 				"firstpiece", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		tv.setRowDefaultIconSize(new Point(16, 16));
 		if (allowTabViews) {
-  		tv.setEnableTabViews(true);
-  		
+	  		tv.setEnableTabViews(enable_tabs,true);
+		}
   		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
   		if (uiFunctions != null) {
   			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
@@ -171,7 +173,6 @@ public class FilesView
   				registeredCoreSubViews = true;
   			}
   		}
-		}
 
 		tv.addTableDataSourceChangedListener(this, true);
 		tv.addRefreshListener(this, true);
@@ -186,13 +187,31 @@ public class FilesView
   
   // @see com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener#tableDataSourceChanged(java.lang.Object)
   public void tableDataSourceChanged(Object newDataSource) {
-	  DownloadManager old_manager = manager;
-		if (newDataSource == null)
+	  	DownloadManager old_manager = manager;
+		if (newDataSource == null){
 			manager = null;
-		else if (newDataSource instanceof Object[])
-			manager = (DownloadManager)((Object[])newDataSource)[0];
-		else
-			manager = (DownloadManager)newDataSource;
+		}else if (newDataSource instanceof Object[]){
+			Object temp = ((Object[])newDataSource)[0];
+			if ( temp instanceof DownloadManager ){
+				manager = (DownloadManager)temp;
+			}else if ( temp instanceof DiskManagerFileInfo){
+				manager = ((DiskManagerFileInfo)temp).getDownloadManager();
+			}else{
+				return;
+			}
+		}else{
+			if ( newDataSource instanceof DownloadManager ){
+				manager = (DownloadManager)newDataSource;
+			}else if ( newDataSource instanceof DiskManagerFileInfo){
+				manager = ((DiskManagerFileInfo)newDataSource).getDownloadManager();
+			}else{
+				return;
+			}
+		}
+		
+		if ( old_manager == manager ){
+			return;
+		}
 		
 		if (old_manager != null) {
 			old_manager.getDownloadState().removeListener(this, DownloadManagerState.AT_FILE_LINKS, DownloadManagerStateAttributeListener.WRITTEN);
@@ -201,7 +220,9 @@ public class FilesView
 			manager.getDownloadState().addListener(this, DownloadManagerState.AT_FILE_LINKS, DownloadManagerStateAttributeListener.WRITTEN);
 		}
 
-		tv.removeAllTableRows();
+		if ( !tv.isDisposed()){
+			tv.removeAllTableRows();
+		}
 	}
 	
 	// @see com.aelitis.azureus.ui.common.table.TableSelectionListener#deselected(com.aelitis.azureus.ui.common.table.TableRowCore[])
@@ -562,6 +583,10 @@ public class FilesView
 	}
 
 	public boolean eventOccurred(UISWTViewEvent event) {
+		if (event.getType() == UISWTViewEvent.TYPE_CREATE){
+			enable_tabs = !event.getView().getViewID().contains( "tabs=false" );
+		}
+		
 		boolean b = super.eventOccurred(event);
 		if (event.getType() == UISWTViewEvent.TYPE_FOCUSGAINED) {
 	    updateSelectedContent();

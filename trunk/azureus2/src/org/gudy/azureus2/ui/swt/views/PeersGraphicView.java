@@ -41,6 +41,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -113,7 +114,11 @@ public class PeersGraphicView
 	private UISWTView swtView;
   private static final int PEER_SIZE = 18;
   //private static final int PACKET_SIZE = 10;
-  private static final int OWN_SIZE = 75;
+  private static final int OWN_SIZE_DEFAULT = 75;
+  private static final int OWN_SIZE_MIN		= 30;
+  private static final int OWN_SIZE_MAX 	= 75;
+  private static int OWN_SIZE = OWN_SIZE_DEFAULT;
+  
   
   //Comparator Class
   //Note: this comparator imposes orderings that are inconsistent with equals.
@@ -170,15 +175,36 @@ public class PeersGraphicView
   } 
   
   private void dataSourceChanged(Object newDataSource) {
-	  if (manager != null)
-		  manager.removePeerListener(this);
-
-	  if (newDataSource == null)
+	  DownloadManager old_manager = manager;
+	  if (newDataSource == null){
 		  manager = null;
-	  else if (newDataSource instanceof Object[])
-		  manager = (DownloadManager)((Object[])newDataSource)[0];
-	  else
-		  manager = (DownloadManager)newDataSource;
+	  }else if (newDataSource instanceof Object[]){
+		  Object temp = ((Object[])newDataSource)[0];
+		  if ( temp instanceof DownloadManager ){
+			  manager = (DownloadManager)temp;
+		  }else if ( temp instanceof DiskManagerFileInfo){
+			  manager = ((DiskManagerFileInfo)temp).getDownloadManager();
+		  }else{
+			  return;
+		  }
+	  }else{
+		  if ( newDataSource instanceof DownloadManager ){
+			  manager = (DownloadManager)newDataSource;
+		  }else if ( newDataSource instanceof DiskManagerFileInfo){
+			  manager = ((DiskManagerFileInfo)newDataSource).getDownloadManager();
+		  }else{
+			  return;
+		  }
+	  }
+
+	  if ( old_manager == manager ){
+		  return;
+	  }
+	  
+	  if (old_manager != null){
+		  old_manager.removePeerListener(this);
+	  }
+	  
 
 	  try {
 		  peers_mon.enter();
@@ -187,8 +213,9 @@ public class PeersGraphicView
 	  } finally {
 		  peers_mon.exit();
 	  }
-	  if (manager != null)
+	  if (manager != null){
 		  manager.addPeerListener(this);
+	  }
   }
 
   private void delete() {
@@ -373,6 +400,21 @@ public class PeersGraphicView
     if(panel == null || panel.isDisposed() || manager == null)
       return;
     Point panelSize = panel.getSize();
+    
+    int	min_dim = Math.min( panelSize.x, panelSize.y );
+    
+    if ( min_dim <= 100 ){
+    	OWN_SIZE = OWN_SIZE_MIN;
+    }else if ( min_dim >= 400 ){
+    	OWN_SIZE = OWN_SIZE_DEFAULT;
+    }else{
+    	int s_diff = OWN_SIZE_MAX - OWN_SIZE_MIN;
+    	float rat = (min_dim - 100.0f)/(400-100);
+    	
+    	OWN_SIZE = OWN_SIZE_MIN + (int)(s_diff * rat );
+    }
+    
+    
     int x0 = panelSize.x / 2;
     int y0 = panelSize.y / 2;  
     int a = x0 - 20;

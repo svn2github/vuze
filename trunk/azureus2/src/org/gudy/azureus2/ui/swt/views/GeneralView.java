@@ -24,6 +24,7 @@ import java.text.DecimalFormat;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.dnd.Transfer;
@@ -38,6 +39,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
@@ -123,7 +125,8 @@ public class GeneralView
   private int graphicsUpdate = COConfigurationManager.getIntParameter("Graphics Update");
 
   private Composite parent;
-	private UISWTView swtView;
+  private ScrolledComposite	scrolled_comp;
+  private UISWTView swtView;
 
   /**
    * Initialize GeneralView
@@ -132,12 +135,31 @@ public class GeneralView
   }
 
 	public void dataSourceChanged(Object newDataSource) {
-		if (newDataSource == null)
+	  	DownloadManager old_manager = manager;
+		if (newDataSource == null){
 			manager = null;
-		else if (newDataSource instanceof Object[])
-			manager = (DownloadManager)((Object[])newDataSource)[0];
-		else
-			manager = (DownloadManager)newDataSource;
+		}else if (newDataSource instanceof Object[]){
+			Object temp = ((Object[])newDataSource)[0];
+			if ( temp instanceof DownloadManager ){
+				manager = (DownloadManager)temp;
+			}else if ( temp instanceof DiskManagerFileInfo){
+				manager = ((DiskManagerFileInfo)temp).getDownloadManager();
+			}else{
+				return;
+			}
+		}else{
+			if ( newDataSource instanceof DownloadManager ){
+				manager = (DownloadManager)newDataSource;
+			}else if ( newDataSource instanceof DiskManagerFileInfo){
+				manager = ((DiskManagerFileInfo)newDataSource).getDownloadManager();
+			}else{
+				return;
+			}
+		}
+		
+		if ( old_manager == manager ){
+			return;
+		}
 
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -149,7 +171,19 @@ public class GeneralView
   public void initialize(Composite composite) {
   	parent = composite;
 
-    genComposite = new Canvas(parent, SWT.NULL);
+  	scrolled_comp = new ScrolledComposite(composite, SWT.V_SCROLL );
+	scrolled_comp.setExpandHorizontal(true);
+	scrolled_comp.setExpandVertical(true);
+	GridLayout layout = new GridLayout();
+	layout.horizontalSpacing = 0;
+	layout.verticalSpacing = 0;
+	layout.marginHeight = 0;
+	layout.marginWidth = 0;
+	scrolled_comp.setLayout(layout);
+	GridData gridData = new GridData(GridData.FILL, GridData.FILL, true, true, 2, 1);
+	scrolled_comp.setLayoutData(gridData);
+	
+    genComposite = new Canvas(scrolled_comp, SWT.NULL);
 
 
     GridLayout genLayout = new GridLayout();
@@ -163,11 +197,20 @@ public class GeneralView
     genLayout.numColumns = 1;
     genComposite.setLayout(genLayout);
 
+    scrolled_comp.setContent(genComposite);
+	scrolled_comp.addControlListener(new ControlAdapter() {
+		public void controlResized(ControlEvent e) {
+			Rectangle r = scrolled_comp.getClientArea();
+			scrolled_comp.setMinSize(genComposite.computeSize(r.width, SWT.DEFAULT ));
+		}
+	});
+	
     Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				swt_refreshInfo();
 			}
 		});
+    
     COConfigurationManager.addParameterListener("Graphics Update", this);
   }
   
@@ -487,6 +530,9 @@ public class GeneralView
     });
 
     genComposite.layout();
+    
+	Rectangle r = scrolled_comp.getClientArea();
+	scrolled_comp.setMinSize(genComposite.computeSize(r.width, SWT.DEFAULT ));
     //Utils.changeBackgroundComposite(genComposite,MainWindow.getWindow().getBackground());
   }
 

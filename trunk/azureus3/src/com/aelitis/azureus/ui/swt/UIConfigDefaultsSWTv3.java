@@ -159,7 +159,7 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("LibraryCD.viewmode", startAdvanced ? 1 : 0);
 		defaults.addParameter("Library.CatInSideBar", startAdvanced ? 1 : 0);
 		defaults.addParameter("Library.TagInSideBar", 1 );
-		
+		defaults.addParameter("Library.ShowTabsInTorrentView", 1 );
 		defaults.addParameter("list.dm.dblclick", "0");
 
 		//=== defaults used by MainWindow

@@ -249,6 +249,8 @@ public interface TableViewSWT<DATASOURCETYPE>
 
 	boolean isTabViewsEnabled();
 
+	boolean getTabViewsExpandedByDefault();
+	
 	Composite createMainPanel(Composite composite);
 
 	void tableInvalidate();

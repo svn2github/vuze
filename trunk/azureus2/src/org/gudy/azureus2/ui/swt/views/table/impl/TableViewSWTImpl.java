@@ -152,8 +152,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	private ColumnMoveListener columnMoveListener = new ColumnMoveListener();
 
 	/** TabViews */
-	public boolean bEnableTabViews = false;
-
+	private boolean bEnableTabViews = false;
+	private boolean tabViewsExpandedByDefault = true;
+	
 	private TableRowSWT[] visibleRows;
 
 	private boolean[] columnsVisible;
@@ -2313,14 +2314,21 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	// from common.TableView
-	public void setEnableTabViews(boolean enableTabViews) {
+	public void setEnableTabViews(boolean enableTabViews,boolean expandByDefault) {
 		bEnableTabViews = enableTabViews;
+		tabViewsExpandedByDefault = expandByDefault;
 	}
 	
 	public boolean isTabViewsEnabled() {
 		return bEnableTabViews;
 	}
 
+	public boolean 
+	getTabViewsExpandedByDefault()
+	{
+		return( tabViewsExpandedByDefault );
+	}
+	
 	public void addMenuFillListener(TableViewSWTMenuFillListener l) {
 		tvSWTCommon.addMenuFillListener(l);
 	}

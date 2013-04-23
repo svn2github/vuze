@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -40,14 +41,12 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.peer.RemotePieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.table.TableSelectedRowsListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
 
@@ -131,6 +130,8 @@ public class PeersView
 	private TableViewSWT<PEPeer> tv;
 	private Shell shell;
 
+	private boolean enable_tabs = true;
+	
 	private static boolean registeredCoreSubViews = false;
 
 
@@ -148,7 +149,7 @@ public class PeersView
 				getPropertiesPrefix(), basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL);
 		tv.setRowDefaultHeight(16);
-		tv.setEnableTabViews(true);
+		tv.setEnableTabViews(enable_tabs,true);
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
@@ -175,20 +176,45 @@ public class PeersView
 	}
   
 	public void tableDataSourceChanged(Object newDataSource) {
-  	if (manager != null)
-  		manager.removePeerListener(this);
 
-		if (newDataSource == null)
+	  	DownloadManager old_manager = manager;
+		if (newDataSource == null){
 			manager = null;
-		else if (newDataSource instanceof Object[])
-			manager = (DownloadManager)((Object[])newDataSource)[0];
-		else
-			manager = (DownloadManager)newDataSource;
+		}else if (newDataSource instanceof Object[]){
+			Object temp = ((Object[])newDataSource)[0];
+			if ( temp instanceof DownloadManager ){
+				manager = (DownloadManager)temp;
+			}else if ( temp instanceof DiskManagerFileInfo){
+				manager = ((DiskManagerFileInfo)temp).getDownloadManager();
+			}else{
+				return;
+			}
+		}else{
+			if ( newDataSource instanceof DownloadManager ){
+				manager = (DownloadManager)newDataSource;
+			}else if ( newDataSource instanceof DiskManagerFileInfo){
+				manager = ((DiskManagerFileInfo)newDataSource).getDownloadManager();
+			}else{
+				return;
+			}
+		}
+		
+		if ( old_manager == manager ){
+			return;
+		}
 
-  	if (manager != null && !tv.isDisposed()) {
-    	manager.addPeerListener(this, false);
-    	addExistingDatasources();
-    }
+		if (old_manager != null){
+			old_manager.removePeerListener(this);
+		}
+		
+		if ( !tv.isDisposed()){
+			tv.removeAllTableRows();
+		
+			if (manager != null ){
+				manager.addPeerListener(this, false);
+				addExistingDatasources();
+			}
+		}
 	}
 
   
@@ -439,7 +465,11 @@ public class PeersView
 	public boolean eventOccurred(UISWTViewEvent event) {
 	    switch (event.getType()) {
 	     
-	        
+	      case UISWTViewEvent.TYPE_CREATE:{
+	    	  
+	    	  enable_tabs = !event.getView().getViewID().contains( "tabs=false" );
+	    	  break;
+	      }
 	      case UISWTViewEvent.TYPE_FOCUSGAINED:
 	      	String id = "DMDetails_Peers";
 	      	if (manager != null) {
