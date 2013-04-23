@@ -2264,28 +2264,42 @@ public class TableViewPainted
 						if (Math.abs(yDiff) < clientArea.height) {
 							boolean wasIn = in_swt_updateCanvasImage;
 							in_swt_updateCanvasImage = true;
-  						GC gc = new GC(canvasImage);
-  						Rectangle bounds = canvasImage.getBounds();
-  						//System.out.println("moving y " + yDiff + ";cah=" + clientArea.height);
-  						if (yDiff > 0) {
-  							gc.copyArea(0, 0, bounds.width, bounds.height, 0, yDiff, false);
-					  		swt_paintCanvasImage(gc, new Rectangle(0, 0, 9999, yDiff));
-					  		gc.setClipping((Rectangle) null);
-  						} else {
-  							gc.copyArea(0, -yDiff, bounds.width, bounds.height , 0, 0, false);
-  							int h = -yDiff;
-  							TableRowPainted row = getLastVisibleRow();
-  							if (row != null) {
-  								//row.invalidate();
-  								h += row.getHeight();
-  							}
-					  		swt_paintCanvasImage(gc, new Rectangle(0, bounds.height - h, 9999, h));
-					  		gc.setClipping((Rectangle) null);
-  						}
-  						gc.dispose();
-							in_swt_updateCanvasImage = wasIn;
-  						
-  						needRedraw = true;
+							try{
+								GC gc = new GC(canvasImage);
+								try{
+									Rectangle bounds = canvasImage.getBounds();
+									//System.out.println("moving y " + yDiff + ";cah=" + clientArea.height);
+									if (yDiff > 0) {
+										gc.copyArea(0, 0, bounds.width, bounds.height, 0, yDiff, false);
+										swt_paintCanvasImage(gc, new Rectangle(0, 0, 9999, yDiff));
+										gc.setClipping((Rectangle) null);
+									} else {
+										gc.copyArea(0, -yDiff, bounds.width, bounds.height , 0, 0, false);
+										int h = -yDiff;
+										TableRowPainted row = getLastVisibleRow();
+										if (row != null) {
+											//row.invalidate();
+											h += row.getHeight();
+										}
+										swt_paintCanvasImage(gc, new Rectangle(0, bounds.height - h, 9999, h));
+										gc.setClipping((Rectangle) null);
+									}
+								}finally{
+									gc.dispose();
+								}
+							}catch( Throwable e ){
+								
+									// seen an exception here caused, I think, by canvasImage already being
+									// selected into a GC by code 'further down the stack'...
+								
+								refreshTable = true;
+								
+							}finally{
+								
+								in_swt_updateCanvasImage = wasIn;
+							}
+							
+							needRedraw = true;
 						} else {
 							refreshTable = true;
 						}
