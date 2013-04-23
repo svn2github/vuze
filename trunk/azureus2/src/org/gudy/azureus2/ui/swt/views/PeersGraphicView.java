@@ -48,6 +48,7 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPeerStats;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
@@ -258,7 +259,11 @@ public class PeersGraphicView
 					
 					PEPeerStats stats = target.getStats();
 					
-					tt = target.getIp() + ", " + 
+					String[] details = PeerUtils.getCountryDetails( target );
+					
+					String dstr = (details==null||details.length<2)?"":(" - " + details[0] + "/" + details[1]);
+					
+					tt = target.getIp() + dstr + ", " + 
 							DisplayFormatters.formatPercentFromThousands(target.getPercentDoneInThousandNotation()) + "\r\n" +
 							"Up=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getDataSendRate() + stats.getProtocolSendRate()) + ", " +
 							"Down=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( stats.getDataReceiveRate() + stats.getProtocolReceiveRate());
