@@ -22,6 +22,7 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -62,6 +63,8 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
@@ -99,6 +102,8 @@ public class PeersGraphicView
   private Map<PEPeer,int[]>		peer_hit_map = new HashMap<PEPeer, int[]>();
   private int					me_hit_x;
   private int					me_hit_y;
+  
+  private Image					my_flag;
   
   //UI Stuff
   private Display display;
@@ -154,6 +159,13 @@ public class PeersGraphicView
     
     this.peers = new ArrayList<PEPeer>();
     this.peerComparator = new PeerComparator();
+    
+    InetAddress ia = NetworkAdmin.getSingleton().getDefaultPublicAddress();
+    
+    if ( ia != null ){
+    	
+    	my_flag = ImageRepository.getCountryFlag( ia, false );
+    }
   } 
   
   private void dataSourceChanged(Object newDataSource) {
@@ -508,7 +520,7 @@ public class PeersGraphicView
       
       Image flag = ImageRepository.getCountryFlag( peer, false );
       if ( flag != null ){
-    	  PieUtils.drawPie(gcBuffer, flag, peer_x, peer_y,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
+    	  PieUtils.drawPie(gcBuffer, flag, peer_x, peer_y,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10, true );
       }else{
       
     	  PieUtils.drawPie(gcBuffer, peer_x, peer_y,PEER_SIZE,PEER_SIZE,peer.getPercentDoneInThousandNotation() / 10);
@@ -520,8 +532,12 @@ public class PeersGraphicView
     
     me_hit_x = x0 - OWN_SIZE / 2;
     me_hit_y = y0 - OWN_SIZE / 2;
-        
-    PieUtils.drawPie(gcBuffer, me_hit_x, me_hit_y,OWN_SIZE,OWN_SIZE,manager.getStats().getCompleted() / 10);
+      
+   	PieUtils.drawPie(gcBuffer, me_hit_x, me_hit_y,OWN_SIZE,OWN_SIZE,manager.getStats().getCompleted() / 10);
+
+    if ( my_flag != null ){
+    	PieUtils.drawPie(gcBuffer, my_flag, me_hit_x, me_hit_y,OWN_SIZE,OWN_SIZE,manager.getStats().getCompleted() / 10, false );
+    }
     
     gcBuffer.dispose();
     GC gcPanel = new GC(panel);

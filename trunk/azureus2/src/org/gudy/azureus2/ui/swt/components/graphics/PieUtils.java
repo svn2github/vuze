@@ -52,7 +52,7 @@ public class PieUtils {
   
 	public static void 
 	drawPie(
-		GC gc,Image image, int x, int y,int width,int height,int percent) 
+		GC gc,Image image, int x, int y,int width,int height,int percent, boolean draw_border ) 
 	{
 		Rectangle image_size = image.getBounds();
 		
@@ -89,25 +89,26 @@ public class PieUtils {
 		gc.setAlpha( 75 );
 		gc.drawImage(image, x+width_pad, y+height_pad+1);
 		gc.setAlpha( 255 );
-				
-		
-		
+	
 		gc.setClipping( old_clipping );
 		
-		gc.setForeground(Colors.blue);
-		
-		if ( percent == 100 ){
+		if ( draw_border ){
 			
-			gc.drawOval(x , y , width-1, height-1);
+			gc.setForeground(Colors.blue);
 			
-		}else{
-			
-			if ( angle > 0 ){
+			if ( percent == 100 ){
 				
-				gc.drawPath( path_done );
+				gc.drawOval(x , y , width-1, height-1);
+				
+			}else{
+				
+				if ( angle > 0 ){
+					
+					gc.drawPath( path_done );
+				}
 			}
 		}
-				 
+		
 		path_done.dispose();
 		path_undone.dispose();
 		old_clipping.dispose();

@@ -520,7 +520,62 @@ public class ImageRepository
 		return( flag );
 	}
 	
-	
+	public static Image
+	getCountryFlag(
+		InetAddress		address,
+		boolean			small )
+	{
+		if ( address == null ){
+			
+			return( null );
+		}
+		
+		Image flag = null;
+		
+		LocationProvider fp = getFlagProvider();
+		
+		if ( fp != null ){	
+			
+			try{				
+				String cc_key = fp.getISO3166CodeForIP( address ) + (small?".s":".l");
+				
+				flag = flag_cache.get( cc_key );
+				
+				if ( flag == null ){
+			
+					InputStream is = fp.getCountryFlagForIP( address, small?0:1 );
+						
+					if ( is != null ){
+						
+						try{
+							flag = new Image( Display.getDefault(), is);
+
+							//System.out.println( "Created flag image for " + cc_key );
+							
+						}finally{
+							
+							is.close();
+						}
+					}else{
+						
+						flag = flag_none;
+					}
+					
+					flag_cache.put( cc_key, flag );				
+				}
+				
+			}catch( Throwable e ){
+					
+			}
+		}
+		
+		if ( flag == flag_none ){
+			
+			return( null );
+		}
+		
+		return( flag );
+	}
 	
 	
 	
