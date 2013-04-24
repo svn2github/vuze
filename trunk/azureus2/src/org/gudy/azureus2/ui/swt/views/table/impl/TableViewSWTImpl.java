@@ -2941,4 +2941,8 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			tvSWTCommon.showColumnEditor();
 		}
 	}
+	
+	public TableViewSWT_TabsCommon getTabsCommon() {
+		return( tvTabsCommon );
+	}
 }

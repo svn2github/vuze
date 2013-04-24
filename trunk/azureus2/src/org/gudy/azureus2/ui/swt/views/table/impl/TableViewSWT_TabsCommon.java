@@ -83,6 +83,37 @@ public class TableViewSWT_TabsCommon
 		}
 	}
 
+	public void triggerTabViewsDataSourceChanged(TableViewSWT<?> tv) {
+		if (tabViews == null || tabViews.size() == 0) {
+			return;
+		}
+
+		// Set Data Object for all tabs.  
+
+		Object[] dataSourcesCore = tv.getSelectedDataSources(true);
+		Object[] dataSourcesPlugin = null;
+
+		for (int i = 0; i < tabViews.size(); i++) {
+			UISWTViewCore view = tabViews.get(i);
+			if (view != null) {
+				if (view.useCoreDataSource()) {
+					view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
+							dataSourcesCore.length == 0 ? tv.getParentDataSource()
+									: dataSourcesCore);
+				} else {
+					if (dataSourcesPlugin == null) {
+						dataSourcesPlugin = tv.getSelectedDataSources(false);
+					}
+
+					view.triggerEvent(
+							UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
+							dataSourcesPlugin.length == 0 ? PluginCoreUtils.convert(
+									tv.getParentDataSource(), false) : dataSourcesPlugin);
+				}
+			}
+		}
+	}
+	
 	public void triggerTabViewDataSourceChanged(UISWTViewCore view) {
 		if (view != null) {
 			view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, tv.getParentDataSource());

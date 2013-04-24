@@ -2669,6 +2669,10 @@ public class TableViewPainted
 		}
 	}
 	
+	public TableViewSWT_TabsCommon getTabsCommon() {
+		return( tvTabsCommon );
+	}
+	
 	@Override
 	public void uiSelectionChanged(final TableRowCore[] newlySelectedRows,
 			final TableRowCore[] deselectedRows) {

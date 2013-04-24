@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_TabsCommon;
 import org.gudy.azureus2.ui.swt.views.table.painted.TableRowPainted;
 
 import com.aelitis.azureus.ui.common.table.*;
@@ -260,4 +261,6 @@ public interface TableViewSWT<DATASOURCETYPE>
 	TableRowCore getRowQuick(int index);
 
 	void invokeRefreshListeners(TableRowCore row);
+	
+	TableViewSWT_TabsCommon getTabsCommon();
 }

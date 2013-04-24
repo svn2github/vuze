@@ -49,7 +49,13 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
+import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionAdapter;
+import com.aelitis.azureus.ui.common.table.TableSelectionListener;
+import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
+import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -277,6 +283,31 @@ public class MyTorrentsSuperView
 				TableManager.TABLE_MYTORRENTS_COMPLETE, true, getCompleteColumns(),
 				child2);
 
+    	// delegate selections from the incomplete view to the sub-tabs owned by the seeding view
+    
+    SelectedContentManager.addCurrentlySelectedContentListener(
+    	new SelectedContentListener()
+    	{
+    		public void 
+    		currentlySelectedContentChanged(
+    			ISelectedContent[] 		currentContent, 
+    			String 					viewId ) 
+    		{
+    			if ( form.isDisposed()){
+    				
+    				SelectedContentManager.removeCurrentlySelectedContentListener( this );
+    				
+    			}else{
+	    			TableView<?> tv = SelectedContentManager.getCurrentlySelectedTableView();
+	    			
+	    			if ( tv == torrentview.getTableView()){
+	    				
+	    	   			seedingview.getTableView().getTabsCommon().triggerTabViewsDataSourceChanged( torrentview.getTableView());
+	    			}
+    			}
+    		}
+    	});
+    
   	initializeDone();
   }
 
@@ -458,13 +489,20 @@ public class MyTorrentsSuperView
 	 * @param child1 
 	 * @return
 	 */
-	protected MyTorrentsView createTorrentView(AzureusCore _azureus_core,
-			String tableID, boolean isSeedingView, TableColumnCore[] columns, Composite c) {
+	protected MyTorrentsView 
+	createTorrentView(
+		AzureusCore 		_azureus_core,
+		String 				tableID, 
+		boolean 			isSeedingView, 
+		TableColumnCore[] 	columns, 
+		Composite 			c ) 
+	{
 		MyTorrentsView view = new MyTorrentsView(_azureus_core, tableID,
 				isSeedingView, columns, txtFilter, cCats);
 		
 		try {
 			UISWTViewImpl swtView = new UISWTViewImpl(UISWTInstance.VIEW_MAIN, tableID, view, ds);
+			
 			swtView.initialize(c);
 		} catch (Exception e) {
 			Debug.out(e);

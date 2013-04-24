@@ -2152,8 +2152,10 @@ public class MyTorrentsView
 		boolean	enable_tab_views = !Utils.isAZ2UI() && COConfigurationManager.getBooleanParameter( "Library.ShowTabsInTorrentView" );
 		
 		String[] views_with_tabs = { 
-			TableManager.TABLE_MYTORRENTS_ALL_BIG,
-			TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG,	
+			TableManager.TABLE_MYTORRENTS_ALL_BIG,			// all simple views
+			TableManager.TABLE_MYTORRENTS_INCOMPLETE,		// downloading view
+			TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG,	// downloading view
+			TableManager.TABLE_MYTORRENTS_COMPLETE,			// bottom part of split views (hack of course)
 		};
 
 		if ( enable_tab_views ){
