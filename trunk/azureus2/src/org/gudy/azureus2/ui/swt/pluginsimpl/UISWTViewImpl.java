@@ -112,7 +112,9 @@ public class UISWTViewImpl
 			triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, initialDatasource);
 		}
 
-		if (!eventListener.eventOccurred(new UISWTViewEventImpl(this,
+			// we could pass the parentid as the data for the create call but unfortunately
+			// there's a bunch of crap out there that assumes that data is the view object :(
+		if (!eventListener.eventOccurred(new UISWTViewEventImpl(sParentID, this,
 				UISWTViewEvent.TYPE_CREATE, this)))
 			throw new UISWTViewEventCancelledException();
 
@@ -204,7 +206,7 @@ public class UISWTViewImpl
 		}
 
 		try {
-			eventListener.eventOccurred(new UISWTViewEventImpl(this, eventType, data));
+			eventListener.eventOccurred(new UISWTViewEventImpl(null,this, eventType, data));
 		} catch (Throwable t) {
 			Debug.out("ViewID=" + sViewID + "; EventID=" + eventType + "; data="
 					+ data, t);
@@ -219,7 +221,7 @@ public class UISWTViewImpl
 
 	protected boolean triggerEventRaw(int eventType, Object data) {
 		try {
-			return eventListener.eventOccurred(new UISWTViewEventImpl(this,
+			return eventListener.eventOccurred(new UISWTViewEventImpl(null,this,
 					eventType, data));
 		} catch (Throwable t) {
 			throw (new UIRuntimeException("UISWTView.triggerEvent:: ViewID="

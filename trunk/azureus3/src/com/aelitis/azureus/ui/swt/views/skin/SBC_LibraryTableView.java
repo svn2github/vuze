@@ -165,15 +165,15 @@ public class SBC_LibraryTableView
 					torrentFilterMode, false);
 			if (torrentFilterMode == SBC_LibraryView.TORRENTS_COMPLETE) {
 				swtViewListener = torrentView = new MyTorrentsView(core, tableID, true, columns, txtFilter,
-						cCats);
+						cCats,true);
 
 			} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_INCOMPLETE) {
 				swtViewListener = torrentView = new MyTorrentsView(core, tableID, false, columns, txtFilter,
-						cCats);
+						cCats,true);
 
 			} else if (torrentFilterMode == SBC_LibraryView.TORRENTS_UNOPENED) {
 				swtViewListener = torrentView = new MyTorrentsView(core, tableID, true, columns, txtFilter,
-						cCats) {
+						cCats, true) {
 					public boolean isOurDownloadManager(DownloadManager dm) {
 						if (PlatformTorrentUtils.getHasBeenOpened(dm)) {
 							return false;

@@ -86,12 +86,11 @@ public class ManagerView
 	ViewTitleInfo2, UISWTViewCoreEventListener, UIUpdatable, UIPluginViewToolBarListener, SelectedContentListener
 {
 
-	private static boolean registeredCoreSubViews = false;
-  private DownloadManager 	manager;
-  private CTabFolder folder;
-  private ArrayList<UISWTViewCore> tabViews = new ArrayList<UISWTViewCore>();
-  
-  int lastCompleted = -1;
+	private DownloadManager 	manager;
+	private CTabFolder folder;
+	private ArrayList<UISWTViewCore> tabViews = new ArrayList<UISWTViewCore>();
+
+	int lastCompleted = -1;
 	private UISWTView swtView;
 	private GlobalManagerAdapter gmListener;
 	private Composite parent;
@@ -347,38 +346,19 @@ public class ManagerView
 		if (uiFunctions != null) {
 			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
 			
-			if (pluginUI != null && !registeredCoreSubViews) {
-				pluginUI.addView(UISWTInstance.VIEW_MYTORRENTS,
-						GeneralView.MSGID_PREFIX, GeneralView.class, null);
-				pluginUI.addView(UISWTInstance.VIEW_MYTORRENTS,
-						TrackerView.MSGID_PREFIX, TrackerView.class, null);
-				pluginUI.addView(UISWTInstance.VIEW_MYTORRENTS, PeersView.MSGID_PREFIX,
-						PeersView.class, null);
-				pluginUI.addView(UISWTInstance.VIEW_MYTORRENTS,
-						PeersGraphicView.MSGID_PREFIX, PeersGraphicView.class, null);
-				pluginUI.addView(UISWTInstance.VIEW_MYTORRENTS,
-						PiecesView.MSGID_PREFIX, PiecesView.class, null);
-				pluginUI.addView(UISWTInstance.VIEW_MYTORRENTS, FilesView.MSGID_PREFIX,
-						FilesView.class, null);
-				pluginUI.addView(UISWTInstance.VIEW_MYTORRENTS,
-						TorrentInfoView.MSGID_PREFIX, TorrentInfoView.class, null);
-				pluginUI.addView(UISWTInstance.VIEW_MYTORRENTS,
-						TorrentOptionsView.MSGID_PREFIX, TorrentOptionsView.class, null);
-
-				if (Logger.isEnabled()) {
-					pluginUI.addView(UISWTInstance.VIEW_MYTORRENTS,
-							LoggerView.MSGID_PREFIX, LoggerView.class, null);
-				}
-				registeredCoreSubViews = true;
-			}
+			MyTorrentsView.registerPluginViews( pluginUI );
+			
+				// unfortunately views for the manager view are currently registered
+				// against 'MyTorrents'...
 			
 			UISWTViewEventListenerWrapper[] pluginViews = pluginUI == null ? null
 					: pluginUI.getViewListeners(UISWTInstance.VIEW_MYTORRENTS);
+			
 			for (UISWTViewEventListenerWrapper l : pluginViews) {
 				if (l != null) {
 					try {
 						UISWTViewImpl view = new UISWTViewImpl(
-								UISWTInstance.VIEW_MYTORRENTS, l.getViewID(), l, null);
+								UISWTInstance.VIEW_MANAGER, l.getViewID(), l, null);
 						addSection(view);
 					} catch (Exception e) {
 						// skip

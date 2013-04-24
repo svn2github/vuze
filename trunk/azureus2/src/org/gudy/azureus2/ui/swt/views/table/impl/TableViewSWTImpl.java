@@ -153,6 +153,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	/** TabViews */
 	private boolean bEnableTabViews = false;
+	private String[]tabViewRestriction;
 	private boolean tabViewsExpandedByDefault = true;
 	
 	private TableRowSWT[] visibleRows;
@@ -2314,7 +2315,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	// from common.TableView
-	public void setEnableTabViews(boolean enableTabViews,boolean expandByDefault) {
+	public void setEnableTabViews(boolean enableTabViews,boolean expandByDefault, String[] restrictedToIDs) {
 		bEnableTabViews = enableTabViews;
 		tabViewsExpandedByDefault = expandByDefault;
 	}
@@ -2322,7 +2323,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	public boolean isTabViewsEnabled() {
 		return bEnableTabViews;
 	}
-
+	public String[] getTabViewsRestrictedTo() {
+		return( tabViewRestriction );
+	}
 	public boolean 
 	getTabViewsExpandedByDefault()
 	{

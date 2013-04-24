@@ -1,7 +1,10 @@
 package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.*;
@@ -443,13 +446,26 @@ public class TableViewSWT_TabsCommon
 			}
 		});
 
+		String[] restricted_to = tv.getTabViewsRestrictedTo();
+		
+		Set<String> rt_set = new HashSet<String>();
+		
+		if ( restricted_to != null ){
+			
+			rt_set.addAll( Arrays.asList( restricted_to ));
+		}
+		
 		// Call plugin listeners
 		if (pluginViews != null) {
 			for (UISWTViewEventListenerWrapper l : pluginViews) {
 				if (l != null) {
 					try {
-						UISWTViewImpl view = new UISWTViewImpl(tv.getTableID(), l.getViewID(), l, null);
-						addTabView(view);
+						String view_id = l.getViewID();
+						
+						if ( restricted_to == null || rt_set.contains( view_id )){
+							UISWTViewImpl view = new UISWTViewImpl(tv.getTableID(), view_id, l, null);
+							addTabView(view);
+						}
 					} catch (Exception e) {
 						// skip, plugin probably specifically asked to not be added
 					}

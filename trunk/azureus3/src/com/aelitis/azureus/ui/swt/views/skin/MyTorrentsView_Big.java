@@ -21,6 +21,7 @@ public class MyTorrentsView_Big
 
 	public MyTorrentsView_Big(AzureusCore _azureus_core, int torrentFilterMode,
 			TableColumnCore[] basicItems, Text txtFilter, Composite cCats) {
+		super( true );
 		this.torrentFilterMode = torrentFilterMode;
 		this.txtFilter = txtFilter;
 		this.cCategories = cCats;

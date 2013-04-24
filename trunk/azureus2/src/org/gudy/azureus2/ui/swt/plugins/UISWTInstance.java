@@ -48,7 +48,13 @@ public interface UISWTInstance extends UIInstanceBase {
 	 * 
 	 * @since 2.3.0.7
 	 */
-	public static final String VIEW_MYTORRENTS = "MyTorrents";
+	public static final String VIEW_MYTORRENTS 	= "MyTorrents";
+
+	/**
+	 * @since 4901
+	 */
+	
+	public static final String VIEW_MANAGER 	= "ManagerView";
 
 	/** 
 	 * ID of "Peers" view

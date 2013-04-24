@@ -95,7 +95,7 @@ public class PeersSuperView
 				getPropertiesPrefix(), basicItems, "connected_time", SWT.MULTI
 						| SWT.FULL_SELECTION | SWT.VIRTUAL);
 		tv.setRowDefaultHeight(16);
-		tv.setEnableTabViews(true,true);
+		tv.setEnableTabViews(true,true,null);
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {

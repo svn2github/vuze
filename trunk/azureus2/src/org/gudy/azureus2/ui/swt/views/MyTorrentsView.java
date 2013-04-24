@@ -68,7 +68,6 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
@@ -214,7 +213,7 @@ public class MyTorrentsView
   	};
   	
   protected boolean isSeedingView;
-
+  private boolean	supportsTabs;
   private Composite cTablePanel;
   private Font fontButton = null;
   protected Composite cCategories;
@@ -244,8 +243,9 @@ public class MyTorrentsView
 	
 	private boolean rebuildListOnFocusGain = false;
 
-	public MyTorrentsView() {
+	public MyTorrentsView( boolean supportsTabs ) {
 		super("MyTorrentsView");
+		this.supportsTabs = supportsTabs;
 	}
 	
   /**
@@ -258,15 +258,18 @@ public class MyTorrentsView
    */
   public 
   MyTorrentsView(
-  		AzureusCore				_azureus_core,
-  		String						tableID,
-  		boolean 					isSeedingView,
-      TableColumnCore[]	basicItems,
-      Text txtFilter, Composite cCats) 
+  		AzureusCore			_azureus_core,
+  		String				tableID,
+  		boolean 			isSeedingView,
+  		TableColumnCore[]	basicItems,
+  		Text 				txtFilter, 
+  		Composite 			cCats,
+  		boolean				supportsTabs ) 
   {
 		super("MyTorrentsView");
 		this.txtFilter = txtFilter;
 		this.cCategories = cCats;
+		this.supportsTabs = supportsTabs;
 		init(_azureus_core, tableID, isSeedingView, isSeedingView
 				? DownloadTypeComplete.class : DownloadTypeIncomplete.class, basicItems);
   }
@@ -2139,8 +2142,12 @@ public class MyTorrentsView
 	
 	private static boolean registeredCoreSubViews = false;
 	
-	protected TableViewSWT<DownloadManager> createTableView(
-			Class<?> forDataSourceType, String tableID, TableColumnCore[] basicItems) {
+	protected TableViewSWT<DownloadManager>
+	createTableView(
+		Class<?> 			forDataSourceType, 
+		String 				tableID, 
+		TableColumnCore[] 	basicItems )
+	{
 		int tableExtraStyle = COConfigurationManager.getIntParameter("MyTorrentsView.table.style");
 		TableViewSWT<DownloadManager> table = 
 			TableViewFactory.createTableViewSWT(forDataSourceType, tableID,
@@ -2149,53 +2156,73 @@ public class MyTorrentsView
 		
 			// config??
 		
-		boolean	enable_tab_views = !Utils.isAZ2UI() && COConfigurationManager.getBooleanParameter( "Library.ShowTabsInTorrentView" );
-		
-		String[] views_with_tabs = { 
-			TableManager.TABLE_MYTORRENTS_ALL_BIG,			// all simple views
-			TableManager.TABLE_MYTORRENTS_INCOMPLETE,		// downloading view
-			TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG,	// downloading view
-			TableManager.TABLE_MYTORRENTS_COMPLETE,			// bottom part of split views (hack of course)
-		};
-
-		if ( enable_tab_views ){
-
-			enable_tab_views = false;
+		boolean	enable_tab_views = 
+			!Utils.isAZ2UI() &&
+			supportsTabs &&
+			COConfigurationManager.getBooleanParameter( "Library.ShowTabsInTorrentView" );
 			
-			for ( String id: views_with_tabs ){
-		
-				if ( tableID.equals( id )){
-			
-					enable_tab_views = true;
-				}
-			}
-		}
-		
-		table.setEnableTabViews( enable_tab_views, false );
+		table.setEnableTabViews( 
+				enable_tab_views, false, 
+				new String[]{
+					GeneralView.MSGID_PREFIX,
+					TrackerView.MSGID_PREFIX,
+					PeersView.MSGID_PREFIX,
+					PeersGraphicView.MSGID_PREFIX,
+					PiecesView.MSGID_PREFIX,
+					FilesView.MSGID_PREFIX
+				});
 		
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
 			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
 			
-			if (pluginUI != null && !registeredCoreSubViews) {
-
-				registeredCoreSubViews = true;
-				
-				for ( String id: views_with_tabs ){
-					
-					pluginUI.addView(id, "GeneralView",	GeneralView.class, null);
-					pluginUI.addView(id, "TrackerView[tabs=false]",	TrackerView.class, null);
-					pluginUI.addView(id, "PeersView[tabs=false]", PeersView.class, null);
-					pluginUI.addView(id, "PeersGraphic", PeersGraphicView.class, null);
-					pluginUI.addView(id, "PiecesView[tabs=false]", PiecesView.class, null);
-					pluginUI.addView(id, "FilesView[tabs=false]", FilesView.class, null);
-				}
-			}
+			registerPluginViews( pluginUI );
 		}
 		
 		return( table );
 	}
 
+	protected static void
+	registerPluginViews(
+		UISWTInstance pluginUI )
+	{
+		if ( pluginUI != null && !registeredCoreSubViews ){
+			
+			String[] views_with_tabs = { 
+					TableManager.TABLE_MYTORRENTS_ALL_BIG,			// all simple views
+					TableManager.TABLE_MYTORRENTS_INCOMPLETE,		// downloading view
+					TableManager.TABLE_MYTORRENTS_INCOMPLETE_BIG,	// downloading view
+					TableManager.TABLE_MYTORRENTS_COMPLETE,			// bottom part of split views (hack of course)
+			};
+
+			for ( String id: views_with_tabs ){
+
+				pluginUI.addView( id, GeneralView.MSGID_PREFIX, GeneralView.class, null);
+				pluginUI.addView( id, TrackerView.MSGID_PREFIX, TrackerView.class, null);
+				pluginUI.addView( id, PeersView.MSGID_PREFIX,	PeersView.class, null);
+				pluginUI.addView( id, PeersGraphicView.MSGID_PREFIX, PeersGraphicView.class, null);
+				pluginUI.addView( id, PiecesView.MSGID_PREFIX, PiecesView.class, null);
+				pluginUI.addView( id, FilesView.MSGID_PREFIX,	FilesView.class, null);
+				pluginUI.addView( id, TorrentInfoView.MSGID_PREFIX, TorrentInfoView.class, null);
+				pluginUI.addView( id, TorrentOptionsView.MSGID_PREFIX, TorrentOptionsView.class, null);
+	
+				if (Logger.isEnabled()) {
+					pluginUI.addView( id, LoggerView.MSGID_PREFIX, LoggerView.class, null);
+				}
+			
+				/*
+				pluginUI.addView(id, "GeneralView",	GeneralView.class, null);
+				pluginUI.addView(id, "TrackerView[tabs=false]",	TrackerView.class, null);
+				pluginUI.addView(id, "PeersView[tabs=false]", PeersView.class, null);
+				pluginUI.addView(id, "PeersGraphic", PeersGraphicView.class, null);
+				pluginUI.addView(id, "PiecesView[tabs=false]", PiecesView.class, null);
+				pluginUI.addView(id, "FilesView[tabs=false]", FilesView.class, null);
+				*/
+			}
+			
+			registeredCoreSubViews = true;
+		}
+	}
 	/**
 	 * Returns the default row height for the table
 	 * Subclasses my override to return a different height if needed; a height of -1 means use default

@@ -120,8 +120,9 @@ public class TableViewPainted
 
 	private TableRowPainted focusedRow;
 
-	private boolean enableTabViews;
-	private boolean tabViewsExpandedByDefault = true;
+	private boolean 	enableTabViews;
+	private String[]	tabViewRestriction;
+	private boolean 	tabViewsExpandedByDefault = true;
 
 	protected boolean isDragging;
 
@@ -647,8 +648,9 @@ public class TableViewPainted
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.common.table.TableView#setEnableTabViews(boolean)
 	 */
-	public void setEnableTabViews(boolean enableTabViews, boolean expandByDefault ){
+	public void setEnableTabViews(boolean enableTabViews, boolean expandByDefault, String[] restrictedToIDs  ){
 		this.enableTabViews = enableTabViews;
+		tabViewRestriction = restrictedToIDs;
 		tabViewsExpandedByDefault = expandByDefault;
 	}
 
@@ -656,6 +658,9 @@ public class TableViewPainted
 		return enableTabViews;
 	}
 
+	public String[] getTabViewsRestrictedTo() {
+		return( tabViewRestriction );
+	}
 	public boolean 
 	getTabViewsExpandedByDefault()
 	{

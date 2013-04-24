@@ -303,21 +303,17 @@ public class MyTorrentsSuperView
     				
 	    			TableView<?> selected_tv = SelectedContentManager.getCurrentlySelectedTableView();
 	    			
-    				TableViewSWT<?> incomp_tv = torrentview.getTableView();
+    				TableViewSWT<?> incomp_tv 	= torrentview.getTableView();
+       				TableViewSWT<?> comp_tv 	= seedingview.getTableView();
 
-	    			if ( incomp_tv != null && selected_tv == incomp_tv ){
-	    				
-	       				TableViewSWT<?> comp_tv = seedingview.getTableView();
-
-	    				if ( comp_tv != null ){
-	    					
-	    					TableViewSWT_TabsCommon tabs = comp_tv.getTabsCommon();
-	    				
-	    					if ( tabs != null ){
-	    				
-	    						tabs.triggerTabViewsDataSourceChanged( incomp_tv );
-	    					}
-	    				}
+	    			if ( incomp_tv != null && comp_tv != null && ( selected_tv == incomp_tv || selected_tv == comp_tv )){
+	    					    					
+    					TableViewSWT_TabsCommon tabs = comp_tv.getTabsCommon();
+    				
+    					if ( tabs != null ){
+    				
+    						tabs.triggerTabViewsDataSourceChanged( (TableViewSWT<?>)selected_tv );
+    					}
 	    			}
     			}
     		}
@@ -513,7 +509,7 @@ public class MyTorrentsSuperView
 		Composite 			c ) 
 	{
 		MyTorrentsView view = new MyTorrentsView(_azureus_core, tableID,
-				isSeedingView, columns, txtFilter, cCats);
+				isSeedingView, columns, txtFilter, cCats, isSeedingView );
 		
 		try {
 			UISWTViewImpl swtView = new UISWTViewImpl(UISWTInstance.VIEW_MAIN, tableID, view, ds);

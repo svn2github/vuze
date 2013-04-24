@@ -89,7 +89,7 @@ PeersGeneralView
 				| SWT.FULL_SELECTION | SWT.VIRTUAL);
 		
 		tv.setRowDefaultHeight(16);
-		tv.setEnableTabViews(true,true);
+		tv.setEnableTabViews(true,true,null);
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		

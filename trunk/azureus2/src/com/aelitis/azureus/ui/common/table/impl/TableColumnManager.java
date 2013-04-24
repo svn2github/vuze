@@ -287,6 +287,16 @@ public class TableColumnManager {
   	return columnNames;
   }
   
+  public void setDefaultColumnNames(String tableID, TableColumn[] columns) {
+	List<String>names = new ArrayList<String>( columns.length );
+	for ( TableColumn column: columns ){
+		if ( column.isVisible()){
+			names.add( column.getName());
+		}
+	}
+	setDefaultColumnNames( tableID, names.toArray( new String[ names.size()] ));
+  }
+  
   public void setDefaultColumnNames(String tableID, String[] columnNames) {
   	mapTableDefaultColumns.put(tableID, columnNames);
   }

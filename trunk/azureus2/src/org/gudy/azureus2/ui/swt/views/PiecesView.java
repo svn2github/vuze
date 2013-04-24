@@ -33,15 +33,12 @@ import org.gudy.azureus2.core3.download.DownloadManagerPieceListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
-import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 import org.gudy.azureus2.ui.swt.views.piece.MyPieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
@@ -53,6 +50,7 @@ import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener;
 import com.aelitis.azureus.ui.common.table.TableLifeCycleListener;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -92,6 +90,12 @@ public class PiecesView
 		new RequestedItem()
 	};
 
+	static{
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+
+		tcManager.setDefaultColumnNames( TableManager.TABLE_TORRENT_PIECES, basicItems );
+	}
+	
 	public static final String MSGID_PREFIX = "PiecesView";
 
 	private DownloadManager 		manager;
@@ -114,7 +118,7 @@ public class PiecesView
 		tv = TableViewFactory.createTableViewSWT(PEPiece.class,
 				TableManager.TABLE_TORRENT_PIECES, getPropertiesPrefix(), basicItems,
 				basicItems[0].getName(), SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL);
-		tv.setEnableTabViews(enable_tabs,true);
+		tv.setEnableTabViews(enable_tabs,true,null);
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
@@ -261,8 +265,13 @@ public class PiecesView
 	    switch (event.getType()) {
 	     
 	      case UISWTViewEvent.TYPE_CREATE:{
-			enable_tabs = !event.getView().getViewID().contains( "tabs=false" );
-			break;
+	    	  if ( event instanceof UISWTViewEventImpl ){
+	    		  
+	    		  String parent = ((UISWTViewEventImpl)event).getParentID();
+	    		  
+	    		  enable_tabs = parent != null && parent.equals( UISWTInstance.VIEW_MANAGER );
+	    	  }
+	    	  break;
 	      }
 	      case UISWTViewEvent.TYPE_FOCUSGAINED:
 	      	String id = "DMDetails_Pieces";

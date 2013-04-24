@@ -43,11 +43,11 @@ import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 import org.gudy.azureus2.ui.swt.views.table.TableSelectedRowsListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.tracker.*;
 
@@ -110,7 +110,7 @@ public class TrackerView
 		tv.addMenuFillListener(this);
 		tv.addTableDataSourceChangedListener(this, true);
 		
-		tv.setEnableTabViews(enable_tabs,true);
+		tv.setEnableTabViews(enable_tabs,true,null);
 		
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
@@ -356,8 +356,13 @@ public class TrackerView
 	    switch (event.getType()) {
 	     
 	      case UISWTViewEvent.TYPE_CREATE:{
-			enable_tabs = !event.getView().getViewID().contains( "tabs=false" );
-			break;
+	    	  if ( event instanceof UISWTViewEventImpl ){
+	    		  
+	    		  String parent = ((UISWTViewEventImpl)event).getParentID();
+	    		  
+	    		  enable_tabs = parent != null && parent.equals( UISWTInstance.VIEW_MANAGER );
+	    	  }
+	    	  break;
 	      }
 	      case UISWTViewEvent.TYPE_FOCUSGAINED:
 	      	String id = "DMDetails_Sources";

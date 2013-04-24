@@ -57,7 +57,7 @@ import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 import org.gudy.azureus2.ui.swt.views.file.FileInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -69,6 +69,7 @@ import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -110,7 +111,14 @@ public class FilesView
     new FileCRC32Item(),
     new FileMD5Item(),
   };
-	public static final String MSGID_PREFIX = "FilesView";
+  
+  static{
+	TableColumnManager tcManager = TableColumnManager.getInstance();
+
+	tcManager.setDefaultColumnNames( TableManager.TABLE_TORRENT_FILES, basicItems );
+  }
+	
+  public static final String MSGID_PREFIX = "FilesView";
   
   private DownloadManager manager = null;
   
@@ -159,7 +167,7 @@ public class FilesView
 				"firstpiece", SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
 		tv.setRowDefaultIconSize(new Point(16, 16));
 		if (allowTabViews) {
-	  		tv.setEnableTabViews(enable_tabs,true);
+	  		tv.setEnableTabViews(enable_tabs,true,null);
 		}
   		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
   		if (uiFunctions != null) {
@@ -584,8 +592,13 @@ public class FilesView
 
 	public boolean eventOccurred(UISWTViewEvent event) {
 		if (event.getType() == UISWTViewEvent.TYPE_CREATE){
-			enable_tabs = !event.getView().getViewID().contains( "tabs=false" );
-		}
+	    	  if ( event instanceof UISWTViewEventImpl ){
+	    		  
+	    		  String parent = ((UISWTViewEventImpl)event).getParentID();
+	    		  
+	    		  enable_tabs = parent != null && parent.equals( UISWTInstance.VIEW_MANAGER );
+	    	  }
+	    }
 		
 		boolean b = super.eventOccurred(event);
 		if (event.getType() == UISWTViewEvent.TYPE_FOCUSGAINED) {

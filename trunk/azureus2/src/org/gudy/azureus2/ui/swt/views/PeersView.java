@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.peer.RemotePieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.table.TableSelectedRowsListener;
@@ -52,6 +53,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
 
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
+import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -122,8 +124,14 @@ public class PeersView
 		};
 	}
 	
-  private static final TableColumnCore[] basicItems = getBasicColumnItems(TableManager.TABLE_TORRENT_PEERS);
+	private static final TableColumnCore[] basicItems = getBasicColumnItems(TableManager.TABLE_TORRENT_PEERS);
 
+	static{
+		TableColumnManager tcManager = TableColumnManager.getInstance();
+
+		tcManager.setDefaultColumnNames( TableManager.TABLE_TORRENT_PEERS, basicItems );
+	}
+	
 	public static final String MSGID_PREFIX = "PeersView";
   
   private DownloadManager manager;
@@ -149,7 +157,7 @@ public class PeersView
 				getPropertiesPrefix(), basicItems, "pieces", SWT.MULTI | SWT.FULL_SELECTION
 						| SWT.VIRTUAL);
 		tv.setRowDefaultHeight(16);
-		tv.setEnableTabViews(enable_tabs,true);
+		tv.setEnableTabViews(enable_tabs,true,null);
 
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {
@@ -467,7 +475,12 @@ public class PeersView
 	     
 	      case UISWTViewEvent.TYPE_CREATE:{
 	    	  
-	    	  enable_tabs = !event.getView().getViewID().contains( "tabs=false" );
+	    	  if ( event instanceof UISWTViewEventImpl ){
+	    		  
+	    		  String parent = ((UISWTViewEventImpl)event).getParentID();
+	    		  
+	    		  enable_tabs = parent != null && parent.equals( UISWTInstance.VIEW_MANAGER );
+	    	  }
 	    	  break;
 	      }
 	      case UISWTViewEvent.TYPE_FOCUSGAINED:
