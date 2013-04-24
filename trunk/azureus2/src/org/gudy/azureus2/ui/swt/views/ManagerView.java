@@ -351,17 +351,23 @@ public class ManagerView
 				// unfortunately views for the manager view are currently registered
 				// against 'MyTorrents'...
 			
-			UISWTViewEventListenerWrapper[] pluginViews = pluginUI == null ? null
-					: pluginUI.getViewListeners(UISWTInstance.VIEW_MYTORRENTS);
+			for ( String id: new String[]{ UISWTInstance.VIEW_MYTORRENTS, UISWTInstance.VIEW_MANAGER }){
 			
-			for (UISWTViewEventListenerWrapper l : pluginViews) {
-				if (l != null) {
-					try {
-						UISWTViewImpl view = new UISWTViewImpl(
-								UISWTInstance.VIEW_MANAGER, l.getViewID(), l, null);
-						addSection(view);
-					} catch (Exception e) {
-						// skip
+				UISWTViewEventListenerWrapper[] pluginViews = pluginUI.getViewListeners( id );
+				
+				for ( UISWTViewEventListenerWrapper l : pluginViews ){
+					
+					if ( l != null ){
+						
+						try{
+							UISWTViewImpl view = new UISWTViewImpl(	UISWTInstance.VIEW_MANAGER, l.getViewID(), l, null);
+							
+							addSection(view);
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
 					}
 				}
 			}
