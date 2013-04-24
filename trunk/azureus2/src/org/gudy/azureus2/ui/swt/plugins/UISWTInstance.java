@@ -78,7 +78,9 @@ public interface UISWTInstance extends UIInstanceBase {
 	 */
 	public static final String VIEW_TOPBAR = "TopBar";
 
-	public static final String VIEW_STATISTICS = "StatsView";
+	public static final String VIEW_STATISTICS 	= "StatsView";
+	
+	public static final String VIEW_CONFIG 		= "ConfigView";
 
 	
 	/** Retrieve the SWT Display object that Azureus uses (when in SWT mode).

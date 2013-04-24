@@ -53,7 +53,8 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 @SuppressWarnings("deprecation")
 public class ConfigView implements UISWTViewEventListener {
-	private static final LogIDs LOGID = LogIDs.GUI;
+  public static final String VIEW_ID = UISWTInstance.VIEW_CONFIG;
+  private static final LogIDs LOGID = LogIDs.GUI;
   public static final String sSectionPrefix = "ConfigView.section.";
   
   Map<TreeItem, ConfigSection> sections = new HashMap<TreeItem, ConfigSection>();

@@ -42,6 +42,8 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_TabsCommon;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -293,16 +295,29 @@ public class MyTorrentsSuperView
     			ISelectedContent[] 		currentContent, 
     			String 					viewId ) 
     		{
-    			if ( form.isDisposed()){
+    			if ( form.isDisposed() || torrentview == null || seedingview == null ){
     				
     				SelectedContentManager.removeCurrentlySelectedContentListener( this );
     				
     			}else{
-	    			TableView<?> tv = SelectedContentManager.getCurrentlySelectedTableView();
+    				
+	    			TableView<?> selected_tv = SelectedContentManager.getCurrentlySelectedTableView();
 	    			
-	    			if ( tv == torrentview.getTableView()){
+    				TableViewSWT<?> incomp_tv = torrentview.getTableView();
+
+	    			if ( incomp_tv != null && selected_tv == incomp_tv ){
 	    				
-	    	   			seedingview.getTableView().getTabsCommon().triggerTabViewsDataSourceChanged( torrentview.getTableView());
+	       				TableViewSWT<?> comp_tv = seedingview.getTableView();
+
+	    				if ( comp_tv != null ){
+	    					
+	    					TableViewSWT_TabsCommon tabs = comp_tv.getTabsCommon();
+	    				
+	    					if ( tabs != null ){
+	    				
+	    						tabs.triggerTabViewsDataSourceChanged( incomp_tv );
+	    					}
+	    				}
 	    			}
     			}
     		}

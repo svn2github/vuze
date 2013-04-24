@@ -13,6 +13,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.ConfigView;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -108,7 +109,7 @@ public class MainMDISetup
 		//		startTime = SystemTime.getCurrentTime();
 	}
 	
-	private static void setupSidebarClassic(final MultipleDocumentInterface mdi) {
+	private static void setupSidebarClassic(final MultipleDocumentInterfaceSWT mdi) {
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY,
 				new MdiEntryCreationListener() {
 
@@ -128,6 +129,15 @@ public class MainMDISetup
 				});
 
 		mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY);
+		
+		mdi.registerEntry( ConfigView.VIEW_ID, new MdiEntryCreationListener() {
+			public MdiEntry createMDiEntry(String id) {
+				MdiEntry entry = mdi.createEntryFromEventListener(
+						MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
+						new ConfigView(), id, true, null, null);
+				return entry;
+			}
+		});
 	}
 
 	
