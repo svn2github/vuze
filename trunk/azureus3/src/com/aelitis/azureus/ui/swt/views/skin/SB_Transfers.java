@@ -1262,11 +1262,18 @@ public class SB_Transfers
 					String[] split = Constants.PAT_SPLIT_SLASH_N.split(dropped);
 					if (split.length > 1) {
 						String type = split[0];
-						if (type.startsWith("DownloadManager")) {
+						if (type.startsWith("DownloadManager") || type.startsWith( "DiskManagerFileInfo" )) {
 							GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 							for (int i = 1; i < split.length; i++) {
 								String hash = split[i];
 	
+								int sep = hash.indexOf( ";" );	// for files
+								
+								if ( sep != -1 ){
+									
+									hash = hash.substring( 0, sep );
+								}
+								
 								try {
 									DownloadManager dm = gm.getDownloadManager(new HashWrapper(
 											Base32.decode(hash)));
