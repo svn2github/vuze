@@ -2,8 +2,10 @@ package org.gudy.azureus2.ui.swt.views.table.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
@@ -13,7 +15,11 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -30,12 +36,14 @@ public class TableViewSWT_TabsCommon
 {
 	TableViewSWT<?> tv;
 	
-	/** TabViews */
-	private ArrayList<UISWTViewCore> tabViews = new ArrayList<UISWTViewCore>(1);
+		/** TabViews */
+	private ArrayList<UISWTViewCore> 					tabViews 		= new ArrayList<UISWTViewCore>(1);
 
+	private ArrayList<UISWTViewEventListenerWrapper>	removedViews 	= new ArrayList<UISWTViewEventListenerWrapper>();
+	
 	/** TabViews */
-	private CTabFolder tabFolder;
-
+	private CTabFolder 			tabFolder;
+	
 	/** Composite that stores the table (sometimes the same as mainComposite) */
 	public Composite tableComposite;
 
@@ -146,7 +154,7 @@ public class TableViewSWT_TabsCommon
 			for (int i = 0; i < tabViews.size(); i++) {
 				UISWTViewCore view = tabViews.get(i);
 				if (view != null) {
-      		view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
+					view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
 				}
 			}
 		}
@@ -197,22 +205,169 @@ public class TableViewSWT_TabsCommon
 		}
 	}
 
-	// TabViews Functions
-	public void addTabView(UISWTViewCore view) {
-		if (view == null || tabFolder == null) {
-			return;
+	private String
+	getViewTitleID(
+		String	view_id )
+	{
+		String history_key = "swt.ui.table.tab.view.namecache." + view_id;
+
+		String id = COConfigurationManager.getStringParameter( history_key, "" );
+
+		if ( id.length() == 0 ){
+			
+			String test = view_id + ".title.full";
+			
+			if ( MessageText.keyExists( test )){
+			
+				return( test );
+			}
+			
+			id = "!" + view_id + "!";
 		}
 		
-		triggerTabViewDataSourceChanged(view);
-
-		CTabItem item = new CTabItem(tabFolder, SWT.NULL);
-		item.setData("IView", view);
-		Messages.setLanguageText(item, view.getTitleID());
-		view.initialize(tabFolder);
-		item.setControl(view.getComposite());
-		tabViews.add(view);
+		return( id );
 	}
 
+		// TabViews Functions
+	
+	private void 
+	addTabView(
+		UISWTViewEventListenerWrapper 	listener,
+		boolean							start_of_day ) 
+	{
+		if ( tabFolder == null){
+			
+			return;
+		}
+				
+		String view_id = listener.getViewID();
+		
+		try{
+			UISWTViewImpl view = new UISWTViewImpl(tv.getTableID(), view_id, listener, null);
+			
+			triggerTabViewDataSourceChanged(view);
+	
+			int	insert_at = tabFolder.getItemCount();
+			
+			if ( !start_of_day && insert_at > 0 ){
+				
+				UIFunctionsSWT ui_func  = UIFunctionsManagerSWT.getUIFunctionsSWT();
+				
+				if ( ui_func != null ){
+					
+					UISWTInstance ui_swt = ui_func.getUISWTInstance();
+
+					if ( ui_swt != null ){
+						
+						ArrayList<UISWTViewEventListenerWrapper> listeners = new ArrayList<UISWTViewEventListenerWrapper>( Arrays.asList( ui_swt.getViewListeners(tv.getTableID())));
+					
+						int	l_index = listeners.indexOf( listener );
+						
+						CTabItem[] items = tabFolder.getItems();
+													
+						for ( int j=0;j<items.length;j++){
+									
+							UISWTViewImpl v = (UISWTViewImpl)items[j].getData( "IView" );
+									
+							if ( v != null ){
+										
+								int v_index = listeners.indexOf( v.getEventListener());
+							
+								if ( v_index > l_index ){
+									
+									insert_at = j;
+									
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+			
+			CTabItem item = new CTabItem( tabFolder, SWT.NULL, insert_at );
+			
+			item.setData("IView", view);
+			
+			String title_id = view.getTitleID();
+			
+			String history_key = "swt.ui.table.tab.view.namecache." + view_id;
+			
+			String existing = COConfigurationManager.getStringParameter( history_key, "" );
+			
+			if ( !existing.equals( title_id )){
+				
+				COConfigurationManager.setParameter( history_key, title_id );
+			}
+			
+			Messages.setLanguageText(item, title_id );
+			
+			view.initialize(tabFolder);
+			
+			item.setControl(view.getComposite());
+			
+			tabViews.add(view);
+			
+			if ( !start_of_day ){
+				
+				removedViews.remove( listener );
+				
+				tabFolder.setSelection( item );
+			}
+
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+	}
+	
+	private void
+	checkTabViews(
+		Map		closed )
+	{
+		for ( UISWTViewEventListenerWrapper l: new ArrayList<UISWTViewEventListenerWrapper>( removedViews )){
+			
+			String view_id = l.getViewID();
+			
+			if ( !closed.containsKey( view_id )){
+				
+				addTabView( l, false );
+			}
+		}
+		
+		for ( CTabItem item: tabFolder.getItems()){
+			
+			UISWTViewImpl view = (UISWTViewImpl)item.getData( "IView" );
+			
+			if ( view != null ){
+				
+				String view_id = view.getViewID();
+				
+				if ( closed.containsKey( view_id )){
+					
+					removeTabView( item );
+				}
+			}
+		}
+	}
+	
+	private void
+	removeTabView(
+		CTabItem		item )
+	{
+		UISWTViewImpl view = (UISWTViewImpl)item.getData( "IView" );
+		
+		if ( view != null ){
+						
+			removedViews.add((UISWTViewEventListenerWrapper)view.getEventListener());
+			
+			tabViews.remove( view );
+			
+			view.triggerEvent(UISWTViewEvent.TYPE_DESTROY, null);
+		
+			item.dispose();
+		}
+	}
 
 	public Composite createSashForm(final Composite composite) {
 		if (!tv.isTabViewsEnabled()) {
@@ -392,6 +547,7 @@ public class TableViewSWT_TabsCommon
 			}
 
 		};
+		
 		tabFolder.addCTabFolder2Listener(folderListener);
 
 		tabFolder.addSelectionListener(new SelectionListener() {
@@ -429,8 +585,127 @@ public class TableViewSWT_TabsCommon
 					tabFolder.notifyListeners(SWT.MouseExit, null);
 				}
 			}
+			public void mouseDoubleClick(MouseEvent e) {
+				if (!tabFolder.getMinimized()) {
+					folderListener.minimize( null );
+				}
+			}
 		});
 
+		final Menu menu = new Menu( tabFolder );
+		
+		tabFolder.addListener(SWT.MenuDetect, new Listener() {
+			public void handleEvent(Event event) {
+				
+				for ( MenuItem item: menu.getItems()){
+					
+					item.dispose();
+				}
+												
+				final CTabItem item = tabFolder.getItem( tabFolder.toControl( event.x, event.y ));
+				
+				boolean	need_sep = false;
+				
+				if ( item != null ){
+					
+					tabFolder.setSelection( item );
+						
+					UISWTViewImpl view = (UISWTViewImpl)item.getData( "IView" );
+					
+					if ( view != null ){
+						
+						final String view_id = view.getViewID();
+						
+						MenuItem mi = new MenuItem( menu, SWT.PUSH );
+						
+						mi.setText( MessageText.getString( "label.close.tab" ));
+						
+						mi.addListener(
+							SWT.Selection,
+							new Listener()
+							{
+								public void 
+								handleEvent(
+									Event event ) 
+								{
+									String key = props_prefix + ".closedtabs";
+									
+									Map closedtabs = COConfigurationManager.getMapParameter(key, new HashMap());
+									
+									if ( !closedtabs.containsKey( view_id )){
+										
+										closedtabs.put( view_id, "" );
+										
+										COConfigurationManager.setParameter( key, closedtabs );
+									}
+								}
+							});
+						
+						need_sep = true;
+					}
+				}else{
+					
+					for ( final UISWTViewEventListenerWrapper l: removedViews ){
+						
+						need_sep = true;
+						
+						final String view_id = l.getViewID();
+						
+						MenuItem mi = new MenuItem( menu, SWT.PUSH );
+						
+						mi.setText( MessageText.getString( getViewTitleID( view_id )));
+						
+						mi.addListener(
+							SWT.Selection,
+							new Listener()
+							{
+								public void 
+								handleEvent(
+									Event event ) 
+								{
+									String key = props_prefix + ".closedtabs";
+									
+									Map closedtabs = COConfigurationManager.getMapParameter(key, new HashMap());
+									
+									if ( closedtabs.containsKey( view_id )){
+									
+										closedtabs.remove( view_id );
+									
+										COConfigurationManager.setParameter( key, closedtabs );
+									}
+								}
+							});
+					}
+				}
+				
+				if ( need_sep ){
+				
+					new MenuItem( menu, SWT.SEPARATOR );
+				}
+				
+				final MenuItem mi = new MenuItem( menu, SWT.CHECK );
+				
+				mi.setSelection( COConfigurationManager.getBooleanParameter( "Library.ShowTabsInTorrentView"));
+				
+				mi.setText( MessageText.getString( "ConfigView.section.style.ShowTabsInTorrentView" ));
+				
+				mi.addListener(
+					SWT.Selection,
+					new Listener()
+					{
+						public void 
+						handleEvent(
+							Event event ) 
+						{
+							COConfigurationManager.setParameter( "Library.ShowTabsInTorrentView", mi.getSelection());
+						}
+					});
+				
+				menu.setVisible(true);
+
+			}
+		});
+		
 		form.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(Event e) {
 				if (tabFolder.getMinimized()) {
@@ -446,6 +721,29 @@ public class TableViewSWT_TabsCommon
 			}
 		});
 
+		String key = props_prefix + ".closedtabs";
+		
+		Map closed_tabs = COConfigurationManager.getMapParameter(key, new HashMap());
+
+		COConfigurationManager.addParameterListener(
+			key,
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String	name )
+				{
+					if ( tabFolder.isDisposed()){
+						
+						COConfigurationManager.removeParameterListener( name, this );
+						
+					}else{
+						
+						checkTabViews( COConfigurationManager.getMapParameter(name, new HashMap()));
+					}
+				}
+			});
+		
 		String[] restricted_to = tv.getTabViewsRestrictedTo();
 		
 		Set<String> rt_set = new HashSet<String>();
@@ -456,6 +754,7 @@ public class TableViewSWT_TabsCommon
 		}
 		
 		// Call plugin listeners
+		
 		if (pluginViews != null) {
 			for (UISWTViewEventListenerWrapper l : pluginViews) {
 				if (l != null) {
@@ -463,8 +762,15 @@ public class TableViewSWT_TabsCommon
 						String view_id = l.getViewID();
 						
 						if ( restricted_to == null || rt_set.contains( view_id )){
-							UISWTViewImpl view = new UISWTViewImpl(tv.getTableID(), view_id, l, null);
-							addTabView(view);
+						
+							if ( closed_tabs.containsKey( view_id )){
+								
+								removedViews.add( l );
+								
+							}else{
+								
+								addTabView( l, true );
+							}
 						}
 					} catch (Exception e) {
 						// skip, plugin probably specifically asked to not be added
