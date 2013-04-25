@@ -478,22 +478,7 @@ public class MyTorrentsView
   
   // @see org.gudy.azureus2.ui.swt.views.table.TableViewSWTPanelCreator#createTableViewPanel(org.eclipse.swt.widgets.Composite)
   public Composite createTableViewPanel(Composite composite) {
-  	composite.addListener(SWT.Activate, new Listener() {
-			public void handleEvent(Event event) {
-				viewActive = true;
-		    updateSelectedContent();
-		    //refreshIconBar();
-			}
-		});
-  	composite.addListener(SWT.Deactivate, new Listener() {
-			public void handleEvent(Event event) {
-				viewActive = false;
-				// don't updateSelectedContent() because we may have switched
-				// to a button or a text field, and we still want out content to be
-				// selected
-			}
-		});
-  	
+
     GridData gridData;
     cTableParentPanel = new Composite(composite, SWT.NONE);
     GridLayout layout = new GridLayout();
@@ -508,6 +493,22 @@ public class MyTorrentsView
     
     cTablePanel = new Composite(cTableParentPanel, SWT.NULL);
 
+    cTablePanel.addListener(SWT.Activate, new Listener() {
+		public void handleEvent(Event event) {
+			viewActive = true;
+	    updateSelectedContent();
+	    //refreshIconBar();
+		}
+	});
+    cTablePanel.addListener(SWT.Deactivate, new Listener() {
+		public void handleEvent(Event event) {
+			viewActive = false;
+			// don't updateSelectedContent() because we may have switched
+			// to a button or a text field, and we still want out content to be
+			// selected
+		}
+	});
+	
     gridData = new GridData(GridData.FILL_BOTH);
     cTablePanel.setLayoutData(gridData);
 

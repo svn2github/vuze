@@ -31,6 +31,8 @@ import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.GC;
@@ -62,10 +64,11 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 
-import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
@@ -323,6 +326,8 @@ public class PeersGraphicView
 						
 						PEPeer target = entry.getKey();
 						
+							// ugly code to locate any associated 'PeersView' that we can locate the peer in
+						
 						try{
 							String dm_id = "DMDetails_" + Base32.encode( manager.getTorrent().getHash());
 							
@@ -350,6 +355,42 @@ public class PeersGraphicView
 										}
 									}
 									
+								}
+							}else{
+								
+								Composite comp = panel.getParent();
+								
+								while( comp != null ){
+									
+									if ( comp instanceof CTabFolder ){
+										
+										CTabFolder tf = (CTabFolder)comp;
+										
+										CTabItem[] items = tf.getItems();
+										
+										for ( CTabItem item: items ){
+											
+											UISWTViewCore view = (UISWTViewCore)item.getData("IView");
+											
+											UISWTViewEventListener listener = view.getEventListener();
+											
+											if ( listener instanceof UISWTViewEventListenerHolder ){
+												
+												listener = ((UISWTViewEventListenerHolder)listener).getDelegatedEventListener( view );
+											}
+											
+											if ( listener instanceof PeersView ){
+												
+												tf.setSelection( item );
+												
+												((PeersView)listener).selectPeer( target );
+												
+												return;
+											}
+										}
+									}
+										
+									comp = comp.getParent();
 								}
 							}
 						}catch( Throwable e ){
@@ -618,7 +659,7 @@ public class PeersGraphicView
 	public boolean eventOccurred(UISWTViewEvent event) {
     switch (event.getType()) {
       case UISWTViewEvent.TYPE_CREATE:
-      	swtView = (UISWTView)event.getData();
+      	swtView = event.getView();
       	swtView.setTitle(MessageText.getString(getData()));
       	swtView.setToolBarListener(this);
         break;
