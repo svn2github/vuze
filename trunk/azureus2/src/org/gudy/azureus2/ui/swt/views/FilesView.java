@@ -199,13 +199,19 @@ public class FilesView
 		if (newDataSource == null){
 			manager = null;
 		}else if (newDataSource instanceof Object[]){
-			Object temp = ((Object[])newDataSource)[0];
-			if ( temp instanceof DownloadManager ){
-				manager = (DownloadManager)temp;
-			}else if ( temp instanceof DiskManagerFileInfo){
-				manager = ((DiskManagerFileInfo)temp).getDownloadManager();
+			Object[] ds = (Object[])newDataSource;
+			
+			if ( ds.length == 1 ){
+				Object temp = ds[0];
+				if ( temp instanceof DownloadManager ){
+					manager = (DownloadManager)temp;
+				}else if ( temp instanceof DiskManagerFileInfo){
+					manager = ((DiskManagerFileInfo)temp).getDownloadManager();
+				}else{
+					return;
+				}
 			}else{
-				return;
+				manager = null;
 			}
 		}else{
 			if ( newDataSource instanceof DownloadManager ){
