@@ -29,7 +29,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -104,6 +106,19 @@ public class ActivityView
     				stats.getProtocolSendRate(),
     				COConfigurationManager.getIntParameter(TransferSpeedValidator.getActiveUploadParameter( manager )) * 1024,
     				swarms_peer_speed });
+    
+    Utils.execSWTThread(
+    	new Runnable()
+    	{
+    		public void
+    		run()
+    		{
+    			if ( panel.isVisible()){
+    				
+    				refresh();
+    			}
+    		}
+    	});
   }
   
   private void initialize(Composite composite) {
@@ -148,6 +163,18 @@ public class ActivityView
 	};
 
 	Legend.createLegendComposite(panel, colors, colorConfigs);
+	
+	panel.addListener( 
+		SWT.Activate,
+		new Listener()
+		{
+			public void 
+			handleEvent(
+				Event event )
+			{
+				refresh();
+			}
+		});
   }
   
   private void delete() {    
@@ -176,7 +203,7 @@ public class ActivityView
 	public boolean eventOccurred(UISWTViewEvent event) {
     switch (event.getType()) {
       case UISWTViewEvent.TYPE_CREATE:
-      	swtView = (UISWTView)event.getData();
+      	swtView = event.getView();
       	swtView.setTitle(MessageText.getString(MSGID_PREFIX + ".title.full"));
         break;
 
