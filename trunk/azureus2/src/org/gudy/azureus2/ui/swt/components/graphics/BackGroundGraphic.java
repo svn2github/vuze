@@ -56,7 +56,7 @@ public class BackGroundGraphic implements Graphic {
 		colorWhite = ColorCache.getColor(canvas.getDisplay(), 255, 255, 255);
   }
   
-  public void refresh() {    
+  public void refresh(boolean force) {    
   }
   
   protected void drawBackGround(boolean sizeChanged) {    

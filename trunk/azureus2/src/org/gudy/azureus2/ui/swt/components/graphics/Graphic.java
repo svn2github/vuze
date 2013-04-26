@@ -30,6 +30,6 @@ public interface Graphic {
   
   public void initialize(Canvas canvas);
   
-  public void refresh();
+  public void refresh(boolean force);
 
 }

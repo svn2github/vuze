@@ -1001,8 +1001,8 @@ public class TransferStatsView
 	  
 	  upload_graphic.addIntValue( total_data_queued );
 	  
-	  upload_graphic.refresh();
-	  connection_graphic.refresh();
+	  upload_graphic.refresh(false);
+	  connection_graphic.refresh(false);
 	  	  	  
 	  if ( con_folder.getSelectionIndex() == 1 ){
 		  
@@ -1453,7 +1453,7 @@ public class TransferStatsView
 	  protected void
 	  refresh()
 	  {
-		  plotGraph.refresh();
+		  plotGraph.refresh( false );
 	  }
 	  
 	  protected void

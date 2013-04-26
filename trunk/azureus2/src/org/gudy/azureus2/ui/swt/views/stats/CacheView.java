@@ -402,10 +402,10 @@ public class CacheView
     refreshWrites();
     
     //Graphics
-    rfcGraph.refresh();
-    rffGraph.refresh();
-    wtcGraph.refresh();
-    wtfGraph.refresh();    
+    rfcGraph.refresh(false);
+    rffGraph.refresh(false);
+    wtcGraph.refresh(false);
+    wtfGraph.refresh(false);    
   }  
   
   /**

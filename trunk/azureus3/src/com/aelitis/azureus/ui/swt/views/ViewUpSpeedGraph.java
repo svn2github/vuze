@@ -128,7 +128,7 @@ public class ViewUpSpeedGraph
 				}
 			});
 		}
-		upSpeedGraphic.refresh();
+		upSpeedGraphic.refresh(false);
 	}
 
 	public boolean eventOccurred(UISWTViewEvent event) {

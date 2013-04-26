@@ -188,7 +188,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
 	  addIntsValue( new int[]{ value });
   }
   
-  public void refresh() {
+  public void refresh(boolean force) {
     if(drawCanvas == null || drawCanvas.isDisposed())
       return;
     
@@ -228,7 +228,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
       internalLoop = 0;
     
     
-    if(internalLoop == 0 || sizeChanged) {
+    if(internalLoop == 0 || sizeChanged || force ) {
 	    drawChart(sizeChanged);
     }
     

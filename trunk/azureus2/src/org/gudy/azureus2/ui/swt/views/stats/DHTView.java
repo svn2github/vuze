@@ -577,8 +577,8 @@ public class DHTView
 			return;
   	}
     
-    inGraph.refresh();
-    outGraph.refresh();
+    inGraph.refresh(false);
+    outGraph.refresh(false);
     
     refreshGeneral();
     refreshDB();

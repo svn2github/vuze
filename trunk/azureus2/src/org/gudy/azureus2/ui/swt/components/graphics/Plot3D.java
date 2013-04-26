@@ -117,7 +117,7 @@ Plot3D
 	}
 	
 	public void 
-	refresh()
+	refresh(boolean force)
 	{
 		if ( canvas == null || canvas.isDisposed()){
 			
@@ -140,7 +140,7 @@ Plot3D
 			internalLoop = 0;
 		}
 
-		if (internalLoop == 0 || sizeChanged ){
+		if (internalLoop == 0 || sizeChanged || force ){
 			
 			drawPlot();
 		}

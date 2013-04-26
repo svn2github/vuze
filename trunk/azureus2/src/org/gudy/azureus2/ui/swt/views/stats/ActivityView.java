@@ -92,7 +92,7 @@ public class ActivityView
   	if (manager == null || stats == null) {
   		return;
   	}
-	  
+	 
 	int swarms_peer_speed = (int)stats.getTotalSwarmsPeerRate(true,false);
 	
     downSpeedGraphic.addIntsValue(
@@ -106,19 +106,6 @@ public class ActivityView
     				stats.getProtocolSendRate(),
     				COConfigurationManager.getIntParameter(TransferSpeedValidator.getActiveUploadParameter( manager )) * 1024,
     				swarms_peer_speed });
-    
-    Utils.execSWTThread(
-    	new Runnable()
-    	{
-    		public void
-    		run()
-    		{
-    			if ( panel.isVisible()){
-    				
-    				refresh();
-    			}
-    		}
-    	});
   }
   
   private void initialize(Composite composite) {
@@ -172,7 +159,7 @@ public class ActivityView
 			handleEvent(
 				Event event )
 			{
-				refresh();
+				refresh(true);
 			}
 		});
   }
@@ -188,9 +175,9 @@ public class ActivityView
     return panel;
   }
   
-  private void refresh() {
-    downSpeedGraphic.refresh();
-    upSpeedGraphic.refresh();
+  private void refresh(boolean force) {
+    downSpeedGraphic.refresh(force);
+    upSpeedGraphic.refresh(force);
   }  
   
   public void parameterChanged(String param_name) {
@@ -226,7 +213,7 @@ public class ActivityView
       	break;
         
       case UISWTViewEvent.TYPE_REFRESH:
-        refresh();
+        refresh(false);
         break;
 
       case StatsView.EVENT_PERIODIC_UPDATE:
