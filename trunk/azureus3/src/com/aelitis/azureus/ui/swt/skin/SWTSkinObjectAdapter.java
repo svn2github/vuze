@@ -32,26 +32,44 @@ import org.gudy.azureus2.core3.util.Debug;
 public class SWTSkinObjectAdapter
 	implements SWTSkinObjectListener
 {
+	/**
+	 * Skin Object was shown
+	 */
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		return null;
 	}
 
+	/**
+	 * Skin Object was hidden
+	 */
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
 		return null;
 	}
 
+	/**
+	 * Skin Object was selected (activated)
+	 */
 	public Object skinObjectSelected(SWTSkinObject skinObject, Object params) {
 		return null;
 	}
 
+	/**
+	 * Skin Object was destroyed
+	 */
 	public Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
 		return null;
 	}
 	
+	/**
+	 * Skin Object was created.  All children are guaranteed to be created.
+	 */
 	public Object skinObjectCreated(SWTSkinObject skinObject, Object params) {
 		return null;
 	}
 
+	/**
+	 * skinObject needs to update any text
+	 */
 	public Object updateLanguage(SWTSkinObject skinObject, Object params) {
 		return null;
 	}
