@@ -3,6 +3,7 @@ package com.aelitis.azureus.ui.swt.columns.torrent;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -17,6 +18,8 @@ import org.gudy.azureus2.ui.swt.views.FilesViewMenuUtil;
 
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinFactory;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinProperties;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
@@ -38,6 +41,10 @@ public class ColumnTorrentFileProgress
 
 	private Display display;
 
+	private Color cBGdl;
+	private Color cBGcd;
+	private Color cBGskipped;
+
 	public ColumnTorrentFileProgress(Display display) {
 		this.display = display;
 
@@ -47,6 +54,17 @@ public class ColumnTorrentFileProgress
 		imgPriNormal = imageLoader.getImage("image.fileprogress.pri.normal");
 		imgPriStopped = imageLoader.getImage("image.fileprogress.pri.stopped");
 		imgBGfile = imageLoader.getImage("image.progress.bg.file");
+
+		SWTSkinProperties skinProperties = SWTSkinFactory.getInstance().getSkinProperties();
+		cBGdl = skinProperties.getColor("color.progress.bg.dl");
+		if (cBGdl == null) {
+			cBGdl = Colors.blues[Colors.BLUES_DARKEST];
+		}
+		cBGcd = skinProperties.getColor("color.progress.bg.cd");
+		if (cBGcd == null) {
+			cBGcd = Colors.green;
+		}
+		cBGskipped = skinProperties.getColor("color.progress.bg.cd");
 	}
 
 	void fillInfoProgressETA(TableRowCore row, GC gc,
@@ -54,6 +72,10 @@ public class ColumnTorrentFileProgress
 		long percent = 0;
 		long bytesDownloaded = fileInfo.getDownloaded();
 		long length = fileInfo.getLength();
+
+		if (cBGskipped == null) {
+			cBGskipped = ColorCache.getSchemedColor(display, "#a6bdce");
+		}
 
 		if (bytesDownloaded < 0) {
 
@@ -100,8 +122,9 @@ public class ColumnTorrentFileProgress
 					PROGRESS_HEIGHT + 1);
 	
 			int pctWidth = (int) (percent * (progressWidth - 1) / 1000);
-			gc.setBackground(ColorCache.getSchemedColor(display, fileInfo.isSkipped()
-					? "#a6bdce" : "#8ccfff"));
+			gc.setBackground(fileInfo.isSkipped() ? cBGskipped : percent == 1000
+					|| fileInfo.getDownloadManager().isDownloadComplete(false) ? cBGcd
+					: cBGdl);
 			gc.fillRectangle(cellArea.x + ofsX + 1, cellArea.y + ofsY, pctWidth,
 					PROGRESS_HEIGHT);
 			gc.setBackground(Colors.white);
