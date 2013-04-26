@@ -43,6 +43,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
@@ -396,13 +397,115 @@ public class ColumnThumbAndName
 		cellPaintName(cell, gc, cellBounds, textX);
 	}
 
-	private void cellPaintFileInfo(GC gc, TableCellSWT cell,
+	private void cellPaintFileInfo(GC gc, final TableCellSWT cell,
 			DiskManagerFileInfo fileInfo) {
-		Rectangle cellArea = cell.getBounds();
+		Rectangle cellBounds = cell.getBounds();
 		//System.out.println(cellArea);
-		int padding = 10 + 20 + (showIcon ? cellArea.height : 0);
-		cellArea.x += padding;
-		cellArea.width -= padding;
+		int padding = 5 + (true ? cellBounds.height : 0);
+		cellBounds.x += padding;
+		cellBounds.width -= padding;
+
+		int textX = cellBounds.x;
+		
+		Image[] imgThumbnail = { ImageRepository.getPathIcon(fileInfo.getFile(true).getPath(),
+				cellBounds.height >= 20, false) };
+
+		if (imgThumbnail != null && ImageLoader.isRealImage(imgThumbnail[0])) {
+			try {
+
+				if (cellBounds.height > 30) {
+					cellBounds.y += 1;
+					cellBounds.height -= 3;
+				}
+				Rectangle imgBounds = imgThumbnail[0].getBounds();
+
+				int dstWidth;
+				int dstHeight;
+				if (imgBounds.height > cellBounds.height) {
+					dstHeight = cellBounds.height;
+					dstWidth = imgBounds.width * cellBounds.height / imgBounds.height;
+				} else if (imgBounds.width > cellBounds.width) {
+					dstWidth = cellBounds.width - 4;
+					dstHeight = imgBounds.height * cellBounds.width / imgBounds.width;
+				} else {
+					dstWidth = imgBounds.width;
+					dstHeight = imgBounds.height;
+				}
+
+				if (cellBounds.height <= 18) {
+					dstWidth = Math.min(dstWidth, cellBounds.height);
+					dstHeight = Math.min(dstHeight, cellBounds.height);
+					if (imgBounds.width > 16) {
+						cellBounds.y++;
+						dstHeight -= 2;
+					}
+				}
+
+				try {
+					gc.setAdvanced(true);
+					gc.setInterpolation(SWT.HIGH);
+				} catch (Exception e) {
+				}
+				int x = cellBounds.x;
+				textX = x + dstWidth + 3;
+				int minWidth = dstHeight;
+				int imgPad = 0;
+				if (dstHeight > 25) {
+					if (dstWidth < minWidth) {
+						imgPad = ((minWidth - dstWidth + 1) / 2);
+						x = cellBounds.x + imgPad;
+						textX = cellBounds.x + minWidth + 3;
+					}
+				}
+				if (cellBounds.width - dstWidth - (imgPad * 2) < 100 && dstHeight > 18) {
+					dstWidth = Math.min(32, dstHeight);
+					x = cellBounds.x + ((32 - dstWidth + 1) / 2);
+					dstHeight = imgBounds.height * dstWidth / imgBounds.width;
+					textX = cellBounds.x + dstWidth + 3;
+				}
+				int y = cellBounds.y + ((cellBounds.height - dstHeight + 1) / 2);
+				if (dstWidth > 0 && dstHeight > 0 && !imgBounds.isEmpty()) {
+					//Rectangle dst = new Rectangle(x, y, dstWidth, dstHeight);
+					Rectangle lastClipping = gc.getClipping();
+					try {
+						gc.setClipping(cellBounds);
+
+						for (int i = 0; i < imgThumbnail.length; i++) {
+							Image image = imgThumbnail[i];
+							if (image == null || image.isDisposed()) {
+								continue;
+							}
+							Rectangle srcBounds = image.getBounds();
+							if (i == 0) {
+								int w = dstWidth;
+								int h = dstHeight;
+								if (imgThumbnail.length > 1) {
+									w = w * 9 / 10;
+									h = h * 9 / 10;
+								}
+								gc.drawImage(image, srcBounds.x, srcBounds.y, srcBounds.width,
+										srcBounds.height, x, y, w, h);
+							} else {
+								int w = dstWidth * 3 / 8;
+								int h = dstHeight * 3 / 8;
+								gc.drawImage(image, srcBounds.x, srcBounds.y, srcBounds.width,
+										srcBounds.height, x + dstWidth - w, y + dstHeight - h, w, h);
+							}
+						}
+					} catch (Exception e) {
+						Debug.out(e);
+					} finally {
+						gc.setClipping(lastClipping);
+					}
+				}
+
+			} catch (Throwable t) {
+				Debug.out(t);
+			}
+		}
+
+		
+		
 		String prefix = fileInfo.getDownloadManager().getSaveLocation().toString();
 		String s = fileInfo.getFile(true).toString();
 		if (s.startsWith(prefix)) {
@@ -429,8 +532,12 @@ public class ColumnThumbAndName
 	    		}
 	    	}
 		}
-		boolean over = GCStringPrinter.printString(gc, s, cellArea, true, false,
-				SWT.LEFT);
+		
+		cellBounds.width -= (textX - cellBounds.x);
+		cellBounds.x = textX;
+		
+		boolean over = GCStringPrinter.printString(gc, s, cellBounds, true, false,
+				SWT.LEFT | SWT.WRAP);
 		cell.setToolTip(over ? null : s);
 	}
 
