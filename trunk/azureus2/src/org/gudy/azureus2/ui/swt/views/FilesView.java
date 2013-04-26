@@ -505,17 +505,18 @@ public class FilesView
 	private void createDragDrop() {
 		try {
 
-			Transfer[] types = new Transfer[] { TextTransfer.getInstance() };
+			Transfer[] types = new Transfer[] { TextTransfer.getInstance(), FileTransfer.getInstance() };
 
 			if (dragSource != null && !dragSource.isDisposed()) {
 				dragSource.dispose();
 			}
 
-			dragSource = tv.createDragSource(DND.DROP_MOVE | DND.DROP_COPY);
+			dragSource = tv.createDragSource(DND.DROP_COPY);
 			if (dragSource != null) {
 				dragSource.setTransfer(types);
 				dragSource.addDragListener(new DragSourceAdapter() {
-					private String eventData;
+					private String eventData1;
+					private String[] eventData2;
 
 					public void dragStart(DragSourceEvent event) {
 						TableRowCore[] rows = tv.getSelectedRows();
@@ -530,22 +531,31 @@ public class FilesView
 						// Build eventData here because on OSX, selection gets cleared
 						// by the time dragSetData occurs
 						Object[] selectedDownloads = tv.getSelectedDataSources().toArray();
-						eventData = "DiskManagerFileInfo\n";
+						eventData2 = new String[selectedDownloads.length];
+						eventData1 = "DiskManagerFileInfo\n";
 						TOTorrent torrent = manager.getTorrent();
 						for (int i = 0; i < selectedDownloads.length; i++) {
 							DiskManagerFileInfo fi = (DiskManagerFileInfo) selectedDownloads[i];
 							
 							try {
-								eventData += torrent.getHashWrapper().toBase32String() + ";"
+								eventData1 += torrent.getHashWrapper().toBase32String() + ";"
 										+ fi.getIndex() + "\n";
 							} catch (Exception e) {
 							}
+							try {
+								eventData2[i] = fi.getFile(true).getAbsolutePath();
+  						} catch (Exception e) {
+  						}
 						}
 					}
 
 					public void dragSetData(DragSourceEvent event) {
-						// System.out.println("DragSetData");
-						event.data = eventData;
+						if (FileTransfer.getInstance().isSupportedType(event.dataType)) {
+							event.data = eventData2;
+							event.detail = DND.DROP_COPY;
+						} else {
+							event.data = eventData1;
+						}
 					}
 				});
 			}
