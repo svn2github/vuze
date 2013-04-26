@@ -312,14 +312,14 @@ public class SWTSkin
 
 	public SWTSkinObject getSkinObjectByID(String sID) {
 		SWTSkinObject[] objects = mapIDsToSOs.get(sID);
-		if (objects == null) {
+		if (objects == null || objects.length == 0) {
 			return null;
 		}
 
 		return objects[0];
 	}
 
-	protected SWTSkinObject getSkinObjectByID(String sID, SWTSkinObject parent) {
+	public SWTSkinObject getSkinObjectByID(String sID, SWTSkinObject parent) {
 		if (parent == null) {
 			// XXX Search for parent is shell directly
 			return getSkinObjectByID(sID);
