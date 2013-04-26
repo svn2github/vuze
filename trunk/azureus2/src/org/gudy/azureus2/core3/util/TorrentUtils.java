@@ -792,6 +792,11 @@ TorrentUtils
 		List<List<String>>		groups,
 		TOTorrent				torrent )
 	{
+			// if the new groups no longer contain the main announce url then we replace this with the first in the groups. The primary reason for this
+			// is that the DNS TXT record munging code always considers the announce-url as input to the generation of (potentially) modified URLs and if we
+			// leave the announce-url there it will magically re-appear
+			//
+				
 		try{
 			TOTorrentAnnounceURLGroup tg = torrent.getAnnounceURLGroup();
 			
@@ -809,18 +814,33 @@ TorrentUtils
 				}
 			}
 			
+			String announce_url 	= torrent.getAnnounceURL().toExternalForm();
+			
+			URL	first_url		= null;
 			
 			Vector	g = new Vector();
 			
 			for (int i=0;i<groups.size();i++){
 				
-				List	set = (List)groups.get(i);
+				List<String>	set = (List<String>)groups.get(i);
 				
 				URL[]	urls = new URL[set.size()];
 				
 				for (int j=0;j<set.size();j++){
 				
+					String url_str = set.get(j);
+					
+					if ( announce_url != null && url_str.equals( announce_url )){
+						
+						announce_url = null;
+					}
+					
 					urls[j] = new URL((String)set.get(j));
+					
+					if ( first_url == null ){
+						
+						first_url = urls[j];
+					}
 				}
 				
 				if ( urls.length > 0 ){
@@ -828,20 +848,27 @@ TorrentUtils
 					g.add( tg.createAnnounceURLSet( urls ));
 				}
 			}
-			
+
 			TOTorrentAnnounceURLSet[]	sets = new TOTorrentAnnounceURLSet[g.size()];
-			
-			g.copyInto( sets );
-			
-			tg.setAnnounceURLSets( sets );
-			
+
 			if ( sets.length == 0 ){
 			
 					// hmm, no valid urls at all
 				
 				torrent.setAnnounceURL( new URL( "http://no.valid.urls.defined/announce"));
-			}
+				
+			}else{
 			
+				if ( announce_url != null ){
+					
+					torrent.setAnnounceURL( first_url );
+				}
+			}			
+			
+			g.copyInto( sets );
+			
+			tg.setAnnounceURLSets( sets );
+
 		}catch( MalformedURLException e ){
 			
 			Debug.printStackTrace( e );
