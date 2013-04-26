@@ -95,7 +95,7 @@ public interface UISWTView extends UIPluginView {
 	/**
 	 * Trigger an event for this view
 	 * 
-	 * @param eventType  Event to trigger
+	 * @param eventType  Event to trigger {@link UISWTViewEvent}}
 	 * @param data data to send with trigger
 	 * 
 	 * @since 2.3.0.6
