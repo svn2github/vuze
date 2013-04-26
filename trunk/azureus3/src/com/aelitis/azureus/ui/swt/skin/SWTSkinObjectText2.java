@@ -679,6 +679,10 @@ public class SWTSkinObjectText2
 		}
 
 		gc.setAlpha(alpha);
+		// hack to fix shadow wrapping (different widths for text drawn with alpha and text drawn without)
+		if (alpha == 255 && hasShadow && (colorShadow.color == null || colorShadow.alpha < 255)) {
+			gc.setAlpha(254);
+		}
 		lastStringPrinter = new GCStringPrinter(gc, sDisplayText, clientArea, true,
 				false, style);
 		if (colorUrl != null) {
