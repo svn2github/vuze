@@ -1855,7 +1855,6 @@ public class TableViewPainted
 		}
 		filter.widget = txtFilter;
 		if (txtFilter != null) {
-			txtFilter.setMessage(MessageText.getString("MyTorrentsView.filter"));
 			txtFilter.addKeyListener(tvSWTCommon);
 
 			filter.widgetModifyListener = new ModifyListener() {
