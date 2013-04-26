@@ -1,5 +1,7 @@
 package com.aelitis.azureus.ui.swt.mdi;
 
+import java.util.regex.Pattern;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
@@ -223,6 +225,9 @@ public class TabbedMDI
 
 	public boolean loadEntryByID(String id, boolean activate,
 			boolean onlyLoadOnce, Object datasource) {
+		if (id == null) {
+			return false;
+		}
 		MdiEntry entry = mapIdToEntry.get(id);
 		if (entry != null) {
 			if (datasource != null) {
@@ -240,7 +245,13 @@ public class TabbedMDI
 			return false;
 		}
 
-		MdiEntryCreationListener mdiEntryCreationListener = mapIdToCreationListener.get(id);
+		MdiEntryCreationListener mdiEntryCreationListener = null;
+		for (String key : mapIdToCreationListener.keySet()) {
+			if (Pattern.matches(key, id)) {
+				mdiEntryCreationListener = mapIdToCreationListener.get(key);
+				break;
+			}
+		}
 		if (mdiEntryCreationListener != null) {
 			entry = mdiEntryCreationListener.createMDiEntry(id);
 			if (entry != null) {

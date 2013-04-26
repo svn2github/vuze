@@ -21,25 +21,19 @@ package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
-import org.eclipse.swt.events.MenuEvent;
-import org.eclipse.swt.events.MenuListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.ui.UIInstance;
-import org.gudy.azureus2.plugins.ui.UIManager;
-import org.gudy.azureus2.plugins.ui.UIManagerListener;
-import org.gudy.azureus2.plugins.ui.UIPluginView;
+import org.gudy.azureus2.plugins.ui.*;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
@@ -51,10 +45,7 @@ import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
-import org.gudy.azureus2.ui.swt.plugins.PluginUISWTSkinObject;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.plugins.UISWTView;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
+import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
@@ -69,10 +60,7 @@ import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryCreationListener;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-import com.aelitis.azureus.ui.swt.mdi.BaseMDI;
-import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
-import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
-import com.aelitis.azureus.ui.swt.mdi.MdiSWTMenuHackListener;
+import com.aelitis.azureus.ui.swt.mdi.*;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
@@ -1474,7 +1462,13 @@ public class SideBar
 			return true;
 		}
 
-		MdiEntryCreationListener mdiEntryCreationListener = mapIdToCreationListener.get(id);
+		MdiEntryCreationListener mdiEntryCreationListener = null;
+		for (String key : mapIdToCreationListener.keySet()) {
+			if (Pattern.matches(key, id)) {
+				mdiEntryCreationListener = mapIdToCreationListener.get(key);
+				break;
+			}
+		}
 		if (mdiEntryCreationListener != null) {
 			MdiEntry mdiEntry = mdiEntryCreationListener.createMDiEntry(id);
 			if (datasource != null) {
