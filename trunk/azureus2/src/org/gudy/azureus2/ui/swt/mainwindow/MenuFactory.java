@@ -157,7 +157,7 @@ public class MenuFactory
 
 	public static void buildTorrentMenu(Menu menu) {
 		DownloadManager[] current_dls = (DownloadManager[]) menu.getData("downloads");
-		if (current_dls == null) {
+		if (current_dls == null || current_dls[0] == null) {
 			return;
 		}
 
