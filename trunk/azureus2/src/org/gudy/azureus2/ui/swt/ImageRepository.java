@@ -263,7 +263,7 @@ public class ImageRepository
 
 				if (idxDot == -1) {
 					if (noAWT) {
-						return getImage("folder");
+						return getIconFromExtension(file, "", bBig, false);
 					}
 
 					key = "?!blank";
