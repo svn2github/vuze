@@ -75,6 +75,7 @@ public abstract class SkinView
 		return visible;
 	}
 
+	// @see {com.aelitis.azureus.ui.swt.skin.SWTSkinObjectAdapter#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)}
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		setMainSkinObject(skinObject);
 		
