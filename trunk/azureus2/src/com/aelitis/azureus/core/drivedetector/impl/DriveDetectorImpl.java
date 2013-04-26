@@ -179,4 +179,17 @@ public class DriveDetectorImpl
 			}
 		}
 	}
+
+	public static void main(String[] args) {
+		DriveDetectedInfo[] infos = DriveDetectorFactory.getDeviceDetector().getDetectedDriveInfo();
+		for (DriveDetectedInfo info : infos) {
+			System.out.println(info.getLocation());
+			
+			Map<String, Object> infoMap = info.getInfoMap();
+			for (String key : infoMap.keySet()) {
+				Object val = infoMap.get(key);
+				System.out.println("\t" + key + ": " + val);
+			}
+		}
+	}
 }
