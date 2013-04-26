@@ -417,8 +417,8 @@ public class ColumnProgressETA
 		if (showSecondLine && sStatusLine != null) {
 			gc.setForeground(fgFirst);
 			boolean over = GCStringPrinter.printString(gc, sStatusLine,
-					new Rectangle(xStart + 2, yStart + yRelProgressFillEnd,
-							xRelProgressFillEnd, newHeight - yRelProgressFillEnd), true,
+					new Rectangle(cellBounds.x, yStart + yRelProgressFillEnd,
+							cellBounds.width, newHeight - yRelProgressFillEnd), true,
 					false, SWT.CENTER);
 			cell.setToolTip(over ? sStatusLine : null);
 			gc.setForeground(fgOriginal);
