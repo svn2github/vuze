@@ -487,10 +487,15 @@ public abstract class BaseMdiEntry
 
 	public void addToolbarEnabler(UIToolBarEnablerBase enabler) {
 		setToolBarEnablers.add(enabler);
+		setToolbarVisibility(setToolBarEnablers.size() > 0);
+	}
+
+	protected void setToolbarVisibility(boolean visible) {
 	}
 
 	public void removeToolbarEnabler(UIToolBarEnablerBase enabler) {
 		setToolBarEnablers.remove(enabler);
+		setToolbarVisibility(setToolBarEnablers.size() > 0);
 	}
 
 	public UIToolBarEnablerBase[] getToolbarEnablers() {
@@ -545,6 +550,9 @@ public abstract class BaseMdiEntry
 			if (view != null) {
 				view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, datasource);
 			}
+		}
+		if (skinObject != null) {
+			setToolbarVisibility(setToolBarEnablers.size() > 0);
 		}
 	}
 

@@ -84,6 +84,8 @@ public class PieceInfoView
 
 	private final static int BLOCKCOLOR_AVAILCOUNT = 4;
 
+	public static final String MSGID_PREFIX = "PieceInfoView";
+
 	private Composite pieceInfoComposite;
 
 	private ScrolledComposite sc;
@@ -148,9 +150,17 @@ public class PieceInfoView
   				dlm.addPieceListener(this, false);
   				fillPieceInfoSection();
   			}
+			} else 	if (objects.length > 0 && (objects[0] instanceof DownloadManager)) {
+				oldBlockInfo = null;
+				if (dlm != null) {
+					dlm.removePieceListener(this);
+				}
+				dlm = (DownloadManager)objects[0];
+				dlm.addPieceListener(this, false);
+				fillPieceInfoSection();
 			}
 		}
-	}
+}
 
 	private String getFullTitle() {
 		return MessageText.getString("PeersView.BlockView.title");

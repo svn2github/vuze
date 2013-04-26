@@ -188,8 +188,6 @@ public interface IMenuConstants
 
 	public static final String MENU_ID_SEARCH_BAR = "v3.MainWindow.menu.view.searchbar"; // dead
 
-	public static final String MENU_ID_TAB_BAR = "v3.MainWindow.menu.view.tabbar"; // dead
-
 	public static final String MENU_ID_COMMUNITY = "MainWindow.menu.community";
 
 	public static final String MENU_ID_COMMUNITY_BLOG = "MainWindow.menu.community.blog";

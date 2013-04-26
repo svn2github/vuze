@@ -224,16 +224,6 @@ public class MainMenu
 						}
 					});
 
-			MenuFactory.addMenuItem(viewMenu, SWT.CHECK, PREFIX_V3
-					+ ".view.toolbartext", new Listener() {
-				public void handleEvent(Event event) {
-					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-					if (tb != null) {
-						tb.flipShowText();
-					}
-				}
-			});
-
 			if (Constants.isCVSVersion()) {
 				MenuItem itemStatusBar = MenuFactory.createTopLevelMenuItem(viewMenu,
 						"v3.MainWindow.menu.view.statusbar");

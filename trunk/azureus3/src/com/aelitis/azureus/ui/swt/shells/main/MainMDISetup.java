@@ -47,6 +47,12 @@ public class MainMDISetup
 			setupSidebarVuze(mdi);
 		}
 
+		mdi.registerEntry(SideBar.SIDEBAR_TORRENT_DETAILS_PREFIX + ".*", new MdiEntryCreationListener() {
+			public MdiEntry createMDiEntry(String id) {
+				return createTorrentDetailEntry(mdi, id);
+			}
+		});
+
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				final String CFG_STARTTAB = "v3.StartTab";
@@ -320,5 +326,16 @@ public class MainMDISetup
 
 		SB_Transfers.setup(mdi);
 		new SB_Vuze(mdi);
+	}
+	
+
+	protected static MdiEntry createTorrentDetailEntry(MultipleDocumentInterface mdi, String id) {
+		MdiEntry torrentDetailEntry = mdi.createEntryFromSkinRef(
+				SideBar.SIDEBAR_HEADER_TRANSFERS,
+				id, "torrentdetails",
+				"", null, null, true, null);
+		torrentDetailEntry.setImageLeftID("image.sidebar.details");
+
+		return torrentDetailEntry;
 	}
 }

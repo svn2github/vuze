@@ -68,6 +68,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
@@ -2170,6 +2171,7 @@ public class MyTorrentsView
 					PeersView.MSGID_PREFIX,
 					PeersGraphicView.MSGID_PREFIX,
 					PiecesView.MSGID_PREFIX,
+					PieceInfoView.MSGID_PREFIX,
 					FilesView.MSGID_PREFIX
 				});
 		
@@ -2183,7 +2185,7 @@ public class MyTorrentsView
 		return( table );
 	}
 
-	protected static void
+	public static void
 	registerPluginViews(
 		UISWTInstance pluginUI )
 	{
@@ -2206,6 +2208,7 @@ public class MyTorrentsView
 				pluginUI.addView( id, FilesView.MSGID_PREFIX,	FilesView.class, null);
 				pluginUI.addView( id, TorrentInfoView.MSGID_PREFIX, TorrentInfoView.class, null);
 				pluginUI.addView( id, TorrentOptionsView.MSGID_PREFIX, TorrentOptionsView.class, null);
+				pluginUI.addView( id, PieceInfoView.MSGID_PREFIX, PieceInfoView.class, null);
 	
 				if (Logger.isEnabled()) {
 					pluginUI.addView( id, LoggerView.MSGID_PREFIX, LoggerView.class, null);

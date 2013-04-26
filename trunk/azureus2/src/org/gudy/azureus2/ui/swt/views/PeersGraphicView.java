@@ -43,6 +43,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
+
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
@@ -77,6 +78,8 @@ import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 
 /**
+ * This is the "Swarm" View
+ * 
  * @author Olivier Chalouhi
  *
  */
@@ -335,27 +338,8 @@ public class PeersGraphicView
 						
 							if ( mdi_entry != null ){
 								
-								UIPluginView view = mdi_entry.getView();
+								mdi_entry.setDatasource(new Object[] { manager, target } );
 								
-								if ( view instanceof UISWTViewImpl ){
-									
-									UISWTViewImpl swt_view = (UISWTViewImpl)view;
-									
-									UISWTViewEventListener listener = swt_view.getEventListener();
-									
-									if ( listener instanceof ManagerView ){
-									
-										ManagerView	manager_view = (ManagerView)listener;
-																				
-										PeersView pv = (PeersView)manager_view.showView( PeersView.class );
-										
-										if ( pv != null ){
-											
-											pv.selectPeer( target );
-										}
-									}
-									
-								}
 							}else{
 								
 								Composite comp = panel.getParent();

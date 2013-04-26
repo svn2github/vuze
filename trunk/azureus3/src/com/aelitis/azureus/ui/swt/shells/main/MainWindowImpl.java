@@ -98,9 +98,10 @@ import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
-import com.aelitis.azureus.ui.swt.views.skin.*;
+import com.aelitis.azureus.ui.swt.views.skin.WelcomeView;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
-import com.aelitis.azureus.util.*;
+import com.aelitis.azureus.util.MapUtils;
+import com.aelitis.azureus.util.NavigationHelper;
 
 /** 
  * @author TuxPaper
@@ -159,8 +160,6 @@ public class MainWindowImpl
 	private String lastShellStatus = null;
 
 	private Color colorSearchTextBG;
-
-	private Color colorSearchTextFGdef;
 
 	private Color colorSearchTextFG;
 	
@@ -700,9 +699,9 @@ public class MainWindowImpl
 
 				Listener toggleListener = new Listener() {
 					public void handleEvent(Event event) {
-						ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-						if (tb != null) {
-							tb.flipShowText();
+						SWTSkinObject so = skin.getSkinObject(SkinConstants.VIEWID_TOOLBAR);
+						if (so != null) {
+							so.setVisible(!so.isVisible());
 						}
 					}
 				};
@@ -1571,25 +1570,6 @@ public class MainWindowImpl
 			core.triggerLifeCycleComponentCreated(uiFunctions);
 		}
 
-		Utils.execSWTThreadLater(0, new AERunnable() {
-			public void runSupport() {
-				fixupActionBarSize();
-				SWTSkinObject soPlusHeader = skin.getSkinObject("plus-header");
-				if (soPlusHeader != null) {
-					soPlusHeader.addListener(new SWTSkinObjectListener() {
-						public Object eventOccured(SWTSkinObject skinObject, int eventType,
-								Object params) {
-							if (eventType == SWTSkinObjectListener.EVENT_HIDE
-									|| eventType == SWTSkinObjectListener.EVENT_SHOW) {
-								fixupActionBarSize();
-							}
-							return null;
-						}
-					});
-				}
-			}
-		});
-
 		System.out.println("---------READY AT " + SystemTime.getCurrentTime() + ";"
 				+ (SystemTime.getCurrentTime() - Initializer.startTime) + "ms");
 		isReady = true;
@@ -1868,6 +1848,18 @@ public class MainWindowImpl
 			attachSearchBox(skinObject);
 		}
 
+		skinObject = skin.getSkinObject("add-torrent");
+		if (skinObject instanceof SWTSkinObjectButton) {
+			SWTSkinObjectButton btn = (SWTSkinObjectButton) skinObject;
+			btn.addSelectionListener(new ButtonListenerAdapter() {
+				// @see com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter#pressed(com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility, com.aelitis.azureus.ui.swt.skin.SWTSkinObject, int)
+				public void pressed(SWTSkinButtonUtility buttonUtility,
+						SWTSkinObject skinObject, int stateMask) {
+					TorrentOpener.openTorrentWindow( false );
+				}
+			});
+		}
+
 		skinObject = skin.getSkinObject(SkinConstants.VIEWID_PLUGINBAR);
 		if (skinObject != null) {
 			Menu topbarMenu = new Menu(shell, SWT.POP_UP);
@@ -1878,19 +1870,6 @@ public class MainWindowImpl
 						SkinConstants.VIEWID_PLUGINBAR + ".visible",
 						SkinConstants.VIEWID_PLUGINBAR, true, -1);
 			}
-
-			final MenuItem itemShowText = new MenuItem(topbarMenu, SWT.CHECK);
-			Messages.setLanguageText(itemShowText,
-					"v3.MainWindow.menu.showActionBarText");
-			itemShowText.addSelectionListener(new SelectionAdapter() {
-				// @see org.eclipse.swt.events.SelectionAdapter#widgetSelected(org.eclipse.swt.events.SelectionEvent)
-				public void widgetSelected(SelectionEvent e) {
-					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-					if (tb != null) {
-						tb.flipShowText();
-					}
-				}
-			});
 
 			new MenuItem(topbarMenu, SWT.SEPARATOR);
 			
@@ -1949,21 +1928,9 @@ public class MainWindowImpl
 				}
 			});
 			
-			topbarMenu.addMenuListener(new MenuListener() {
-				public void menuShown(MenuEvent e) {
-					ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-					if (tb != null) {
-						itemShowText.setSelection(tb.getShowText());
-					}
-				}
-
-				public void menuHidden(MenuEvent e) {
-				}
-			});
-
 			addMenuAndNonTextChildren((Composite) skinObject.getControl(), topbarMenu);
 
-			skinObject = skin.getSkinObject("tabbar");
+			skinObject = skin.getSkinObject(SkinConstants.VIEWID_TOOLBAR);
 			if (skinObject != null) {
 				addMenuAndNonTextChildren((Composite) skinObject.getControl(),
 						topbarMenu);
@@ -1992,13 +1959,8 @@ public class MainWindowImpl
 	private void attachSearchBox(SWTSkinObject skinObject) {
 		Composite cArea = (Composite) skinObject.getControl();
 
-		shell.addListener(SWT.Resize, new Listener() {
-			public void handleEvent(Event event) {
-				fixupActionBarSize();
-			}
-		});
-
 		final Text text = new Text(cArea, SWT.NONE);
+		text.setMessage(MessageText.getString("v3.MainWindow.search.defaultText"));
 		FormData filledFormData = Utils.getFilledFormData();
 		text.setLayoutData(filledFormData);
 
@@ -2051,8 +2013,6 @@ public class MainWindowImpl
   		});
 		}
 
-		final String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
-
 		String tooltip = MessageText.getString( "v3.MainWindow.search.tooltip" );
 		
 		text.setToolTipText( tooltip );
@@ -2060,32 +2020,10 @@ public class MainWindowImpl
 		SWTSkinProperties properties = skinObject.getProperties();
 		colorSearchTextBG = properties.getColor("color.search.text.bg");
 		colorSearchTextFG = properties.getColor("color.search.text.fg");
-		colorSearchTextFGdef = properties.getColor("color.search.text.fg.default");
 
-		if (colorSearchTextFGdef != null) {
-			text.setForeground(colorSearchTextFGdef);
-		}
 		if (colorSearchTextBG != null) {
 			text.setBackground(colorSearchTextBG);
 		}
-		text.addMouseListener(new MouseListener() {
-
-			public void mouseUp(MouseEvent e) {
-				Text text = (Text) e.widget;
-				if (text.getText().equals(sDefault)) {
-					if (colorSearchTextFG != null) {
-						text.setForeground(colorSearchTextFG);
-					}
-					text.setText("");
-				}
-			}
-
-			public void mouseDown(MouseEvent e) {
-			}
-
-			public void mouseDoubleClick(MouseEvent e) {
-			}
-		});
 
 		text.addKeyListener(new KeyListener() {
 			public void keyPressed(KeyEvent e) {
@@ -2112,16 +2050,6 @@ public class MainWindowImpl
 		text.addListener(SWT.KeyDown, new Listener() {
 
 			public void handleEvent(Event event) {
-				if (text.getText().equals(sDefault)) {
-					if (colorSearchTextFG != null) {
-						text.setForeground(colorSearchTextFG);
-					}
-					if (event.character != '\0') {
-						text.setText("");
-					}
-					return;
-				}
-
 				Text text = (Text) event.widget;
 				if (event.keyCode == SWT.ESC) {
 					text.setText("");
@@ -2132,10 +2060,6 @@ public class MainWindowImpl
 				}
 			}
 		});
-
-		// must be done after layout
-		text.setText(sDefault);
-		//text.selectAll();
 
 		SWTSkinObject searchGo = skin.getSkinObject("search-go");
 		if (searchGo != null) {
@@ -2149,30 +2073,7 @@ public class MainWindowImpl
 			});
 		}
 
-		SWTSkinObject so = skin.getSkinObject("sidebar-list");
-		if (so != null
-				&& so.getProperties().getBooleanValue(
-						so.getConfigID() + ".resizeSearch", false)) {
-			Listener l = new Listener() {
-				public void handleEvent(Event event) {
-					SWTSkinObject soSearchArea = skin.getSkinObject("topbar-area-search");
-					if (soSearchArea != null) {
-						Control c = soSearchArea.getControl();
-						Rectangle bounds = ((Control) event.widget).getBounds();
-						FormData fd = (FormData) c.getLayoutData();
-						int newWidth = bounds.width - 1 - c.getBounds().x;
-						if (bounds.width < 125) {
-							return;
-						}
-						fd.width = newWidth;
-						Utils.relayout(c);
-					}
-				}
-			};
-			so.getControl().addListener(SWT.Resize, l);
-		}
-
-		so = skin.getSkinObject("search-dropdown");
+		SWTSkinObject so = skin.getSkinObject("search-dropdown");
 		if (so != null) {
 			SWTSkinButtonUtility btnSearchDD = new SWTSkinButtonUtility(so);
 			btnSearchDD.setTooltipID( "v3.MainWindow.search.tooltip" );
@@ -2185,44 +2086,6 @@ public class MainWindowImpl
 			});
 		}
 	}
-
-	/**
-	 * 
-	 *
-	 * @since 4.0.0.1
-	 */
-	private void fixupActionBarSize() {
-		final int MAXWIDTH = 320;
-		Rectangle clientArea = shell.getClientArea();
-		SWTSkinObject soSearch = skin.getSkinObject("topbar-area-search");
-		if (soSearch == null) {
-			return;
-		}
-		FormData fd = (FormData) soSearch.getControl().getLayoutData();
-		if (fd == null || fd.width <= 0) {
-			return;
-		}
-		if (clientArea.width > 1124 && fd.width == MAXWIDTH) {
-			return;
-		}
-		SWTSkinObject soTabBar = skin.getSkinObject(SkinConstants.VIEWID_TAB_BAR);
-		if (soTabBar == null) {
-			return;
-		}
-		Point size = soTabBar.getControl().computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		int oldWidth = fd.width;
-		fd.width = clientArea.width - (size.x - oldWidth) - 5;
-		if (fd.width < 100) {
-			fd.width = 100;
-		} else if (fd.width > MAXWIDTH) {
-			fd.width = MAXWIDTH;
-		}
-
-		if (oldWidth != fd.width) {
-			((Composite) soTabBar.getControl()).layout(true, true);
-		}
-	}
-
 
 	/**
 	 * 
@@ -2294,7 +2157,7 @@ public class MainWindowImpl
 
 	public boolean isVisible(int windowElement) {
 		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
-			SWTSkinObject skinObject = skin.getSkinObject("tabbar");
+			SWTSkinObject skinObject = skin.getSkinObject(SkinConstants.VIEWID_TOOLBAR);
 			if (skinObject != null) {
 				return skinObject.isVisible();
 			}
@@ -2315,7 +2178,7 @@ public class MainWindowImpl
 	public void setVisible(int windowElement, boolean value) {
 		if (windowElement == IMainWindow.WINDOW_ELEMENT_TOOLBAR) {
 			SWTSkinUtils.setVisibility(skin, "IconBar.enabled",
-					SkinConstants.VIEWID_TAB_BAR, value, true, true);
+					SkinConstants.VIEWID_TOOLBAR, value, true, true);
 		} else if (windowElement == IMainWindow.WINDOW_ELEMENT_TOPBAR) {
 
 			SWTSkinUtils.setVisibility(skin, SkinConstants.VIEWID_PLUGINBAR

@@ -18,13 +18,14 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.*;
-import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -55,7 +56,6 @@ import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.toolbar.ToolBarItemSO;
-import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager.SkinViewManagerListener;
 import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.PlayUtils;
 import com.aelitis.azureus.util.StringCompareUtils;
@@ -82,9 +82,7 @@ public class ToolBarView
 
 	private boolean showText = true;
 
-	private SWTSkinObject skinObject;
-
-	private SWTSkinObject so0th;
+	private SWTSkinObject so1st;
 	private SWTSkinObject so2nd;
 
 	private SWTSkinObject soGap;
@@ -95,17 +93,22 @@ public class ToolBarView
 			1);
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#showSupport(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
-	public Object skinObjectInitialShow(final SWTSkinObject skinObject,
+	public Object skinObjectInitialShow(SWTSkinObject skinObject,
 			Object params) {
 		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals(
 				"az2");
+		
+		if (uiClassic && !"global-toolbar".equals(skinObject.getViewID())) {
+			skinObject.setVisible(false);
+			return null;
+		}
 
-		this.skinObject = skinObject;
 		buttonListener = new toolbarButtonListener();
-		so0th = skinObject.getSkin().getSkinObject("global-toolbar-0th");
-		so2nd = skinObject.getSkin().getSkinObject("global-toolbar-2nd");
+		//SWTSkin skin = skinObject.getSkin();
+		so1st = skin.getSkinObject("toolbar-1st", skinObject);
+		so2nd = skin.getSkinObject("toolbar-2nd", skinObject);
 
-		soGap = skinObject.getSkin().getSkinObject("toolbar-gap");
+		soGap = skin.getSkinObject("toolbar-gap", skinObject);
 		if (soGap != null) {
 			Control cGap = soGap.getControl();
 			FormData fd = (FormData) cGap.getLayoutData();
@@ -123,46 +126,6 @@ public class ToolBarView
 		ToolBarItemSO item;
 
 		if (!uiClassic) {
-			
-			// ==OPEN
-			item = new ToolBarItemSO(this, "open", "image.toolbar.open", "Button.add");
-			item.setDefaultActivationListener(new UIToolBarActivationListener() {
-				public boolean toolBarItemActivated(ToolBarItem item,
-						long activationType, Object datasource) {
-					if (activationType != ACTIVATIONTYPE_NORMAL) {
-						return false;
-					}
-					TorrentOpener.openTorrentWindow( false );
-					return true;
-				}
-			});
-			item.setAlwaysAvailable(true);
-			item.setGroupID( GROUP_BIG );
-			addToolBarItem(item, "toolbar.area.0item", so0th);		
-			
-			// ==download
-			item = new ToolBarItemSO(this, "download", "image.button.download",
-					"v3.MainWindow.button.download");
-			item.setGroupID(GROUP_BIG);
-			item.setDefaultActivationListener(new UIToolBarActivationListener() {
-				public boolean toolBarItemActivated(ToolBarItem item,
-						long activationType, Object datasource) {
-					if (activationType != ACTIVATIONTYPE_NORMAL) {
-						return false;
-					}
-					// This is for our CDP pages
-					ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-					if (sc != null && sc.length == 1
-							&& (sc[0].getHash() != null || sc[0].getDownloadInfo() != null)) {
-						TorrentListViewsUtils.downloadDataSource(sc[0], false,
-								DLReferals.DL_REFERAL_TOOLBAR);
-						return true;
-					}
-					return false;
-				}
-			});
-			addToolBarItem(item, "toolbar.area.item", soMain);
-
 			// ==play
 			item = new ToolBarItemSO(this, "play", "image.button.play",
 					"iconBar.play");
@@ -187,9 +150,9 @@ public class ToolBarView
 					return false;
 				}
 			});
-			addToolBarItem(item, "toolbar.area.item", soMain);
+			addToolBarItem(item, "toolbar.area.item", so1st);
 
-			addSeperator("toolbar.area.item.sep", soMain);
+			addSeperator("toolbar.area.item.sep", so1st);
 
 			lastControl = null;
 
@@ -492,14 +455,6 @@ public class ToolBarView
 			}
 		});
 
-		try {
-			if (!COConfigurationManager.getBooleanParameter("ToolBar.showText")) {
-				flipShowText();
-			}
-		} catch (Throwable t) {
-			Debug.out(t);
-		}
-
 		initComplete = true;
 
 		synchronized (listeners) {
@@ -569,10 +524,10 @@ public class ToolBarView
 	 */
 	protected void resizeGap() {
 		if (soGap == null) {
-			skinObject.getControl().getParent().layout();
+			Utils.relayout(so2nd.getControl());
 			return;
 		}
-		Rectangle boundsLeft = skinObject.getControl().getBounds();
+		Rectangle boundsLeft = so1st.getControl().getBounds();
 		Rectangle boundsRight = so2nd.getControl().getBounds();
 
 		Rectangle clientArea = soGap.getControl().getParent().getClientArea();
@@ -958,7 +913,7 @@ public class ToolBarView
 			}
 			for (int i = 0; i < list.size(); i++) {
 				String itemID = list.get(i);
-				SWTSkinObject so = skin.getSkinObjectByID("toolbar:" + itemID);
+				SWTSkinObject so = skin.getSkinObjectByID("toolbar:" + itemID, soMain);
 				if (so != null) {
 					so.dispose();
 				}
@@ -996,7 +951,7 @@ public class ToolBarView
 
 		Control attachToControl = this.lastControl;
 		String id = "toolbar:" + item.getID();
-		SWTSkinObject oldSO = skin.getSkinObjectByID(id);
+		SWTSkinObject oldSO = skin.getSkinObjectByID(id, soMain);
 		if (oldSO != null) {
 			Object layoutData = oldSO.getControl().getLayoutData();
 			if (layoutData instanceof FormData) {
@@ -1080,7 +1035,9 @@ public class ToolBarView
 			UIToolBarItem tbi = allToolBarItems[i];
 			SWTSkinObject so = ((ToolBarItemSO) tbi).getSkinButton().getSkinObject();
 			SWTSkinObject soTitle = skin.getSkinObject("toolbar-item-title", so);
-			soTitle.setVisible(showText);
+			if (soTitle != null) {
+				soTitle.setVisible(showText);
+			}
 		}
 	}
 
@@ -1117,57 +1074,6 @@ public class ToolBarView
 		}
 	}
 
-	public void flipShowText() {
-		ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-		if (tb == null) {
-			SkinViewManager.addListener(new SkinViewManagerListener() {
-				public void skinViewAdded(SkinView skinview) {
-					if (skinview instanceof ToolBarView) {
-						SkinViewManager.RemoveListener(this);
-						flipShowText();
-					}
-				}
-			});
-			return;
-		}
-
-		try {
-			boolean showText = !tb.getShowText();
-			COConfigurationManager.setParameter("ToolBar.showText", showText);
-			tb.setShowText(showText);
-
-			SWTSkinObject skinObject;
-			skinObject = skin.getSkinObject("search-text");
-			if (skinObject != null) {
-				Control control = skinObject.getControl();
-				FormData fd = (FormData) control.getLayoutData();
-				fd.top.offset = showText ? 6 : 5;
-				fd.bottom.offset = showText ? -3 : -2;
-			}
-			skinObject = skin.getSkinObject("topgap");
-			if (skinObject != null) {
-				Control control = skinObject.getControl();
-				FormData fd = (FormData) control.getLayoutData();
-				fd.height = showText ? 6 : 2;
-			}
-			skinObject = skin.getSkinObject("tabbar");
-			if (skinObject != null) {
-				Control control = skinObject.getControl();
-				FormData fd = (FormData) control.getLayoutData();
-				fd.height = showText ? 50 : 32;
-				//Utils.relayout(control);
-				skinObject.switchSuffix(showText ? "" : "-small", 4, true);
-
-				Shell shell = control.getShell();
-				shell.layout(true, true);
-				shell.redraw();
-			}
-
-		} catch (Exception e) {
-			Debug.out(e);
-		}
-	}
-
 	public void addListener(ToolBarViewListener l) {
 		synchronized (listeners) {
 			listeners.add(l);
@@ -1198,7 +1104,7 @@ public class ToolBarView
 		if (toolBarItem instanceof ToolBarItemSO) {
 			ToolBarItemSO item = (ToolBarItemSO) toolBarItem;
 			item.dispose();
-			SWTSkinObject so = skin.getSkinObjectByID("toolbar:" + item.getID());
+			SWTSkinObject so = skin.getSkinObjectByID("toolbar:" + item.getID(), soMain);
 			if (so != null) {
 				so.dispose();
 			}

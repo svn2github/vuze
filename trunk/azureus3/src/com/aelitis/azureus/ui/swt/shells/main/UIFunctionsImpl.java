@@ -427,8 +427,8 @@ public class UIFunctionsImpl
 				showConfig((data instanceof String) ? (String) data : null);
 				break;
 
-			case VIEW_DM_DETAILS:
-				String id = "DMDetails_";
+			case VIEW_DM_DETAILS: {
+				String id = SideBar.SIDEBAR_TORRENT_DETAILS_PREFIX;
 				if (data instanceof DownloadManager) {
 					DownloadManager dm = (DownloadManager) data;
 					TOTorrent torrent = dm.getTorrent();
@@ -440,9 +440,12 @@ public class UIFunctionsImpl
 						}
 					}
 				}
-
-				openView(SideBar.SIDEBAR_HEADER_TRANSFERS, ManagerView.class,
-						id, data, true);
+				
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				if (mdi != null) {
+					mdi.loadEntryByID(id, true, false, data);
+				}
+			}
 				break;
 
 			case VIEW_DM_MULTI_OPTIONS:
@@ -952,8 +955,7 @@ public class UIFunctionsImpl
 	}
 
 	public void doSearch(String sSearchText, boolean toSubscribe) {
-		String sDefault = MessageText.getString("v3.MainWindow.search.defaultText");
-		if (sSearchText.equals(sDefault) || sSearchText.length() == 0) {
+		if (sSearchText.length() == 0) {
 			return;
 		}
 

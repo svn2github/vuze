@@ -45,11 +45,13 @@ import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
+import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MdiSWTMenuHackListener;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.ui.swt.views.skin.InfoBarUtil;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -77,6 +79,10 @@ public class SideBarEntrySWT
 		"#166688",
 		"#1c2056"
 	};
+
+	private static final String SO_ID_ENTRY_WRAPPER = "mdi.content.item";
+
+	private static final String SO_ID_TOOLBAR = "mdientry.toolbar.full";
 
 	private static long uniqueNumber = 0;
 
@@ -437,10 +443,10 @@ public class SideBarEntrySWT
 					// wrap skinRef with a container that we control visibility of
 					// (invisible by default)
 					SWTSkinObjectContainer soContents = (SWTSkinObjectContainer) skin.createSkinObject(
-							"MdiContents." + uniqueNumber++, "mdi.content.item",
+							"MdiContents." + uniqueNumber++, SO_ID_ENTRY_WRAPPER,
 							getParentSkinObject(), null);
 					skin.addSkinObject(soContents);
-
+					
 					SWTSkinObject skinObject = skin.createSkinObject(id, skinRef,
 							soContents, getDatasourceCore());
 					skin.addSkinObject(soContents);
@@ -455,7 +461,7 @@ public class SideBarEntrySWT
 			} else if (view != null) {
 				try {
 					SWTSkinObjectContainer soContents = (SWTSkinObjectContainer) skin.createSkinObject(
-							"MdiIView." + uniqueNumber++, "mdi.content.item",
+							"MdiIView." + uniqueNumber++, SO_ID_ENTRY_WRAPPER,
 							getParentSkinObject());
 					skin.addSkinObject(soContents);
 
@@ -534,6 +540,7 @@ public class SideBarEntrySWT
 				return false;
 			}
 		} // control == null
+
 		return true;
 	}
 
@@ -1178,5 +1185,27 @@ public class SideBarEntrySWT
 		
 
 		return image;
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry#setToolbarVisibility(boolean)
+	protected void setToolbarVisibility(boolean visible) {
+		SWTSkinObject soMaster = getSkinObjectMaster();
+		if (soMaster == null) {
+			return;
+		}
+		SWTSkinObject so = getSkinObject();
+		if (so == null) {
+			return;
+		}
+		SWTSkinObject soToolbar = skin.getSkinObject(SkinConstants.VIEWID_VIEW_TOOLBAR, soMaster);
+		if (soToolbar == null && visible) {
+			new InfoBarUtil(so, SO_ID_TOOLBAR, true, "", "") {
+				public boolean allowShow() {
+					return true;
+				}
+			};
+		} else if (soToolbar != null) {
+			soToolbar.setVisible(visible);
+		}
 	}
 }

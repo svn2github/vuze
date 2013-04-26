@@ -1,5 +1,6 @@
 package com.aelitis.azureus.ui.mdi;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -37,6 +38,8 @@ public interface MultipleDocumentInterface
 	public static final String SIDEBAR_SECTION_LIBRARY_CD = "LibraryCD";
 
 	public static final String SIDEBAR_SECTION_LIBRARY_UNOPENED = "LibraryUnopened";
+	
+	public static final String SIDEBAR_TORRENT_DETAILS_PREFIX = "DMDetails_";
 
 	public static final String SIDEBAR_SECTION_WELCOME = "Welcome";
 

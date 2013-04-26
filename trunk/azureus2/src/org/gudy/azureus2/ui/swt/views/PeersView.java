@@ -432,7 +432,7 @@ public class PeersView
     tv.removeDataSource(removed);
   }
 
-  protected void
+  public void
   selectPeer(
 	PEPeer		peer )
   {
