@@ -57,7 +57,12 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 	private boolean bReallyAddingDataSources = false;
 
-	private AEMonitor sortColumn_mon = new AEMonitor("TableView:sC");
+	// PARG: replaced sortColumn_mon with rows_sync as deadlock from a pair of
+	// sortColumn_mon -> rows_sync
+	// rows_sync -> sortColumn_mon
+	// thread paths
+
+	// private AEMonitor sortColumn_mon = new AEMonitor("TableView:sC");
 
 	/** Sorting functions */
 	private TableColumnCore sortColumn;
@@ -1157,9 +1162,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			return;
 		}
 
-		try {
-			sortColumn_mon.enter();
-
+			// replaced sortColumn_mon 
+		synchronized (rows_sync) {
+			
 			long lTimeStart;
 			if (DEBUG_SORTER) {
 				//System.out.println(">>> Sort.. ");
@@ -1229,8 +1234,6 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 							+ Debug.getCompressedStackTrace());
 				}
 			}
-		} finally {
-			sortColumn_mon.exit();
 		}
 	}
 
@@ -1749,9 +1752,12 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		if (newSortColumn == null) {
 			return false;
 		}
-		sortColumn_mon.enter();
-		try {
-  		boolean isSameColumn = newSortColumn.equals(sortColumn);
+		
+			// did use sortColumn_mon
+		
+		synchronized (rows_sync) {
+
+			boolean isSameColumn = newSortColumn.equals(sortColumn);
  			if (allowOrderChange) {
   			if (!isSameColumn) {
   				sortColumn = newSortColumn;
@@ -1786,8 +1792,6 @@ public abstract class TableViewImpl<DATASOURCETYPE>
  			resetLastSortedOn();
  			sortColumn(!isSameColumn);
 			return !isSameColumn;
-		} finally {
-			sortColumn_mon.exit();
 		}
 	}
 
