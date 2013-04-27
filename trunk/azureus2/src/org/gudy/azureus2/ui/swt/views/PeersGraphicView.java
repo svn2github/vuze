@@ -180,7 +180,33 @@ public class PeersGraphicView
     }
   } 
   
+  private boolean comp_focused;
+  private Object focus_pending_ds;
+  
+  private void
+  setFocused( boolean foc )
+  {
+	  if ( foc ){
+		  
+		  comp_focused = true;
+		  
+		  dataSourceChanged( focus_pending_ds );
+		  
+	  }else{
+		  
+		  focus_pending_ds = manager;
+		  
+		  dataSourceChanged( null );
+		  
+		  comp_focused = false;
+	  }
+  }
+  
   private void dataSourceChanged(Object newDataSource) {
+	  if ( !comp_focused ){
+		  focus_pending_ds = newDataSource;
+		  return;
+	  }
 	  DownloadManager old_manager = manager;
 	  if (newDataSource == null){
 		  manager = null;
@@ -242,10 +268,9 @@ public class PeersGraphicView
 
   private void initialize(Composite composite) {
     display = composite.getDisplay();
-    panel = new Canvas(composite,SWT.NULL);
     
-    panel.setBackground( Colors.white );
-    
+    panel = new Canvas(composite,SWT.NO_BACKGROUND);
+        
     panel.addListener(SWT.MouseHover, new Listener() {
 		public void handleEvent(Event event) {
 			
@@ -366,6 +391,14 @@ public class PeersGraphicView
 											if ( listener instanceof PeersView ){
 												
 												tf.setSelection( item );
+												
+												Event ev = new Event();
+												
+												ev.item = item;
+												
+													// manual setSelection doesn't file selection event - derp
+												
+												tf.notifyListeners( SWT.Selection, ev );
 												
 												((PeersView)listener).selectPeer( target );
 												
@@ -678,8 +711,12 @@ public class PeersGraphicView
 	      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
 	      		new SelectedContent(manager)
 	      	});
-      	break;
-        
+	      	
+	      setFocused( true );
+	      break;
+      case UISWTViewEvent.TYPE_FOCUSLOST:
+    	  setFocused( false );
+    	  break;
       case UISWTViewEvent.TYPE_REFRESH:
         refresh();
         break;

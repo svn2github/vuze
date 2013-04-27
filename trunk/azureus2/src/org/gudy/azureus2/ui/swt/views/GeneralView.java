@@ -1105,7 +1105,7 @@ public class GeneralView
 	public boolean eventOccurred(UISWTViewEvent event) {
     switch (event.getType()) {
       case UISWTViewEvent.TYPE_CREATE:
-      	swtView = (UISWTView)event.getData();
+      	swtView = event.getView();
       	swtView.setTitle(getFullTitle());
       	swtView.setToolBarListener(this);
         break;

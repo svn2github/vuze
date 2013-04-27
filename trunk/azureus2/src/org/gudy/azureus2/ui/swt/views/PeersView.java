@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
@@ -142,6 +143,10 @@ public class PeersView
 	
 	private static boolean registeredCoreSubViews = false;
 
+	private boolean 	comp_focused;
+	private Object 		focus_pending_ds;
+	private PEPeer		select_peer_pending;
+
 
   /**
    * Initialize
@@ -182,9 +187,31 @@ public class PeersView
 		tv.addMenuFillListener(this);
 		return tv;
 	}
+  	  
+	  private void
+	  setFocused( boolean foc )
+	  {
+		  if ( foc ){
+	
+			  comp_focused = true;
+	
+			  dataSourceChanged( focus_pending_ds );
+	
+		  }else{
+	
+			  focus_pending_ds = manager;
+	
+			  dataSourceChanged( null );
+	
+			  comp_focused = false;
+		  }
+	  }
   
 	public void tableDataSourceChanged(Object newDataSource) {
-
+		if ( !comp_focused ){
+			focus_pending_ds = newDataSource;
+			return;
+		}
 	  	DownloadManager old_manager = manager;
 		if (newDataSource == null){
 			manager = null;
@@ -241,6 +268,8 @@ public class PeersView
   	if (manager != null) {
   		manager.removePeerListener(this);
   	}
+  	
+  	select_peer_pending = null;
 	}
 	
 	public void fillMenu(String sColumnName, Menu menu) {fillMenu(menu, tv, shell, true);}
@@ -434,16 +463,32 @@ public class PeersView
 
   public void
   selectPeer(
-	PEPeer		peer )
+	final PEPeer		peer )
   {
-	  TableRowCore row = tv.getRow( peer );
+	  	// need to insert an async here as if we are in the process of switching to this view the
+	  	// selection sometimes get lost. grrr
 	  
-	  if ( row != null ){
-		  
-		  tv.setSelectedRows( new TableRowCore[]{ row } );
-		  
-		  tv.showRow( row );
-	  }
+	  Utils.execSWTThreadLater(
+		 1, 
+		 new Runnable()
+		  {
+			  public void
+			  run()
+			  {
+		
+				  TableRowCore row = tv.getRow( peer );
+				  
+				  if ( row != null ){
+					  
+					  tv.setSelectedRows( new TableRowCore[]{ row } );
+					  
+					  tv.showRow( row );
+				  }else{
+					  
+					  select_peer_pending = peer;
+				  }
+			  }
+		  });
   }
   
   public void peerManagerWillBeAdded( PEPeerManager	peer_manager ){}
@@ -462,12 +507,25 @@ public class PeersView
 		}
 
 		PEPeer[] dataSources = manager.getCurrentPeers();
-		if (dataSources == null || dataSources.length == 0) {
-			return;
+		if (dataSources != null && dataSources.length > 0) {
+		
+			tv.addDataSources(dataSources);
+			tv.processDataSourceQueue();
 		}
 		
-		tv.addDataSources(dataSources);
-		tv.processDataSourceQueue();
+		if ( select_peer_pending != null ){
+			
+			TableRowCore row = tv.getRow( select_peer_pending );
+
+			if ( row != null ){
+
+				tv.setSelectedRows( new TableRowCore[]{ row } );
+
+				tv.showRow( row );
+			}
+			
+			select_peer_pending = null;
+		}
 	}
 	
 	public boolean eventOccurred(UISWTViewEvent event) {
@@ -496,7 +554,11 @@ public class PeersView
 	      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
 	      		new SelectedContent(manager)
 	      	});
-	      	break;
+		    setFocused( true );
+		    break;
+	      case UISWTViewEvent.TYPE_FOCUSLOST:
+	    	  setFocused( false );
+	    	  break;	    
 	    }
 	    
 	    return( super.eventOccurred(event));

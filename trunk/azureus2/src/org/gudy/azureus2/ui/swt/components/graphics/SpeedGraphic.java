@@ -133,7 +133,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
   public static SpeedGraphic getInstance() {
     return new SpeedGraphic(new Scale(),new ValueFormater() {
       public String format(int value) {
-        return DisplayFormatters.formatByteCountToBase10KBEtcPerSec(value);
+        return DisplayFormatters.formatByteCountToKiBEtcPerSec(value);
       }
     });
   }
@@ -220,7 +220,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     }
     
     
-    boolean sizeChanged = (oldSize == null || oldSize.x != bounds.width || oldSize.y != bounds.height);
+    boolean sizeChanged = force || (oldSize == null || oldSize.x != bounds.width || oldSize.y != bounds.height);
     oldSize = new Point(bounds.width,bounds.height);
     
     internalLoop++;

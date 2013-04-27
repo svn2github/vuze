@@ -210,6 +210,7 @@ public class ActivityView
         break;
         
       case UISWTViewEvent.TYPE_FOCUSGAINED:
+    	refresh(true);
       	break;
         
       case UISWTViewEvent.TYPE_REFRESH:

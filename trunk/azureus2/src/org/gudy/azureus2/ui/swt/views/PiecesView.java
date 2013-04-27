@@ -142,8 +142,34 @@ public class PiecesView
 		return tv;
 	}
 
+	private boolean comp_focused;
+	private Object focus_pending_ds;
+
+	private void
+	setFocused( boolean foc )
+	{
+		if ( foc ){
+
+			comp_focused = true;
+
+			dataSourceChanged( focus_pending_ds );
+
+		}else{
+
+			focus_pending_ds = manager;
+
+			dataSourceChanged( null );
+
+			comp_focused = false;
+		}
+	}
+	  
 	// @see com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener#tableDataSourceChanged(java.lang.Object)
 	public void tableDataSourceChanged(Object newDataSource) {
+		if ( !comp_focused ){
+			focus_pending_ds = newDataSource;
+			return;
+		}
 	  	DownloadManager old_manager = manager;
 		if (newDataSource == null){
 			manager = null;
@@ -286,7 +312,11 @@ public class PiecesView
 	      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
 	      		new SelectedContent(manager)
 	      	});
-	      	break;
+		    setFocused( true );
+		    break;
+	      case UISWTViewEvent.TYPE_FOCUSLOST:
+	    	  setFocused( false );
+	    	  break;	
 	    }
 	    
 	    return( super.eventOccurred(event));

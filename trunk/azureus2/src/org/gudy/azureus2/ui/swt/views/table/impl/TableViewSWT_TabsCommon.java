@@ -519,10 +519,8 @@ public class TableViewSWT_TabsCommon
 				form.layout();
 
 				UISWTViewCore view = getActiveSubView();
-				if (view != null) {
-					view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
-				}
-
+				
+				fireFocusLost( view );	// fire even if null so we pick up current...
 				
 				ConfigurationManager configMan = ConfigurationManager.getInstance();
 				configMan.setParameter(props_prefix + ".subViews.minimized", true);
@@ -538,7 +536,7 @@ public class TableViewSWT_TabsCommon
 
 				UISWTViewCore view = getActiveSubView();
 				if (view != null) {
-					view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+					fireFocusGained( view );
 				}
 				refreshSelectedSubView();
 
@@ -557,10 +555,9 @@ public class TableViewSWT_TabsCommon
 					((CTabItem) e.item).getControl().setVisible(true);
 					((CTabItem) e.item).getControl().moveAbove(null);
 
-					// TODO: Need to viewDeactivated old one
 					UISWTViewCore view = getActiveSubView();
 					if (view != null) {
-						view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+						fireFocusGained( view );
 					}
 					
 				} catch (Exception t) {
@@ -792,6 +789,39 @@ public class TableViewSWT_TabsCommon
 		return form;
 	}
 
+	private UISWTViewCore	focused_view = null;
+	
+	private void
+	fireFocusGained(
+		UISWTViewCore		view )
+	{
+		if ( focused_view != null ){
+			
+			focused_view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
+		}
+		
+		focused_view = view;
+		
+		view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+	}
+	
+	private void
+	fireFocusLost(
+		UISWTViewCore		view )
+	{
+		if ( focused_view != null && focused_view != view ){
+			
+			focused_view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
+		}
+		
+		focused_view = null;
+		
+		if ( view != null ){
+		
+			view.triggerEvent(UISWTViewEvent.TYPE_FOCUSLOST, null);
+		}
+	}
+	
 	public void swt_refresh() {
 		if (tv.isTabViewsEnabled() && tabFolder != null && !tabFolder.isDisposed()
 				&& !tabFolder.getMinimized()) {
