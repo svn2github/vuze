@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.tag.impl;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
@@ -186,11 +187,10 @@ TagDownloadWithState
 		return( Taggable.TT_DOWNLOAD );
 	}
 	
-	public 
-	List<DownloadManager> 
+	public Set<DownloadManager> 
 	getTaggedDownloads() 
 	{
-		return((List<DownloadManager>)(Object)getTagged());
+		return((Set<DownloadManager>)(Object)getTagged());
 	}
 	
 	public boolean
@@ -261,7 +261,7 @@ TagDownloadWithState
 			int	new_up;
 			int new_down;
 			
-			List<DownloadManager> dms = getTaggedDownloads();
+			Set<DownloadManager> dms = getTaggedDownloads();
 			
 			if ( dms.size() == 0 ){
 				

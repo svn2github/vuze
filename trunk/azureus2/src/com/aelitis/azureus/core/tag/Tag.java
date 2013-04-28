@@ -21,7 +21,7 @@
 
 package com.aelitis.azureus.core.tag;
 
-import java.util.List;
+import java.util.Set;
 
 
 public interface 
@@ -95,7 +95,7 @@ Tag
 	public int
 	getTaggedCount();
 	
-	public List<Taggable>
+	public Set<Taggable>
 	getTagged();
 	
 	public boolean

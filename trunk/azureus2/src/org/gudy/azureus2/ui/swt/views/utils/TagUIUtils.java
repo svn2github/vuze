@@ -25,6 +25,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
 
@@ -635,7 +636,7 @@ public class TagUIUtils
 			
 			MenuItem itemOptions = new MenuItem(menu, SWT.PUSH);
 	
-			final List<DownloadManager> dms = ((TagDownload)tag).getTaggedDownloads();
+			final Set<DownloadManager> dms = ((TagDownload)tag).getTaggedDownloads();
 
 			Messages.setLanguageText(itemOptions, "cat.options");
 			itemOptions.addListener(SWT.Selection, new Listener() {

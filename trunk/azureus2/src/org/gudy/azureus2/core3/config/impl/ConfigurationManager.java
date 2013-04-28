@@ -868,6 +868,10 @@ ConfigurationManager
 	    
 	    	ParameterListener[]	new_listeners = new ParameterListener[ listeners.length + 1 ];
 	    	
+	    	if ( Constants.IS_CVS_VERSION && listeners.length > 100 ){
+	    		Debug.out( parameter );
+	    	}
+	    	
 	    	int	pos;
 	    	
 	    	if ( new_listener instanceof PriorityParameterListener ){

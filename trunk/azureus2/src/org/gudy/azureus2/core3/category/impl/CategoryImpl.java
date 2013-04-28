@@ -21,9 +21,11 @@
 
 package org.gudy.azureus2.core3.category.impl;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import org.gudy.azureus2.core3.category.Category;
@@ -39,6 +41,7 @@ import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.impl.TagBase;
+import com.aelitis.azureus.core.util.IdentityHashSet;
 
 public class 
 CategoryImpl 
@@ -468,16 +471,16 @@ CategoryImpl
 	  return( type == Category.TYPE_USER );
   }
   
-  public List<DownloadManager>
+  public Set<DownloadManager>
   getTaggedDownloads()
   {
-	 return( getDownloadManagers( AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers()));
+	 return( new IdentityHashSet<DownloadManager>(getDownloadManagers( AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers())));
   }
   
-  public List<Taggable> 
+  public Set<Taggable> 
   getTagged() 
   {
-	  return( new ArrayList<Taggable>( getTaggedDownloads()));
+	  return((Set<Taggable>)(Object)( getTaggedDownloads()));
   }
   
   protected void

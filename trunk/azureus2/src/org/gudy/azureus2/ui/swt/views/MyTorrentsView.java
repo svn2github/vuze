@@ -68,6 +68,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
@@ -2171,7 +2172,7 @@ public class MyTorrentsView
 					PeersGraphicView.MSGID_PREFIX,
 					PiecesView.MSGID_PREFIX,
 					DownloadActivityView.MSGID_PREFIX,
-					//PieceInfoView.MSGID_PREFIX,
+					PieceInfoView.MSGID_PREFIX,
 					FilesView.MSGID_PREFIX
 				});
 		

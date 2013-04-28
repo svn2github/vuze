@@ -22,21 +22,24 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.Taggable;
-import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.CopyOnWriteSet;
 import com.aelitis.azureus.util.MapUtils;
 
 public abstract class 
 TagWithState 
 	extends TagBase
 {
-	private CopyOnWriteList<Taggable>	objects = new CopyOnWriteList<Taggable>();
+	private CopyOnWriteSet<Taggable>	objects = new CopyOnWriteSet<Taggable>();
 	
 	private boolean	removed;
 	
@@ -93,14 +96,14 @@ TagWithState
 		
 		if ( do_contents ){
 			
-			List<Taggable> o = objects.getList();
+			Iterator<Taggable> it = objects.iterator();
 			
-			List l = new ArrayList( o.size());
+			List<byte[]> l = new ArrayList<byte[]>( objects.size());
 			
-			for ( Taggable t: o ){
+			while( it.hasNext()){
 				
 				try{
-					l.add( t.getTaggableID().getBytes( "UTF-8" ));
+					l.add( it.next().getTaggableID().getBytes( "UTF-8" ));
 					
 				}catch( Throwable e ){
 					
@@ -183,9 +186,9 @@ TagWithState
 		return( objects.contains( t ));
 	}
 	
-	public List<Taggable>
+	public Set<Taggable>
 	getTagged()
 	{
-		return( objects.getList());
+		return( objects.getSet());
 	}
 }

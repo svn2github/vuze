@@ -112,7 +112,46 @@ DownloadManagerStateImpl
 	
 	private static AEMonitor	class_mon	= new AEMonitor( "DownloadManagerState:class" );
 	
-	private static Map					state_map 					= new HashMap();
+	private static Map<HashWrapper,DownloadManagerStateImpl>		state_map 					= new HashMap<HashWrapper,DownloadManagerStateImpl>();
+	
+	static{
+		ParameterListener listener = 
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String parameterName) 
+				{
+					List<DownloadManagerStateImpl> states;
+					
+					synchronized( state_map ){
+						
+						states = new ArrayList<DownloadManagerStateImpl>( state_map.values());
+					}
+					
+					for ( DownloadManagerStateImpl state: states ){
+						
+						try{	
+							state.parameterChanged( parameterName );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			};
+			
+		COConfigurationManager.addParameterListener( "Max.Peer.Connections.Per.Torrent.When.Seeding", listener );
+		COConfigurationManager.addParameterListener( "Max.Peer.Connections.Per.Torrent.When.Seeding.Enable", listener );
+		COConfigurationManager.addParameterListener( "Max.Peer.Connections.Per.Torrent", listener );
+		COConfigurationManager.addParameterListener( "Max Uploads", listener );
+		COConfigurationManager.addParameterListener( "Max Uploads Seeding", listener );
+		COConfigurationManager.addParameterListener( "Max Seeds Per Torrent", listener );
+		COConfigurationManager.addParameterListener( "enable.seedingonly.maxuploads", listener );
+	}
+	
+	
 	private static Map					global_state_cache			= new HashMap();
 	private static ArrayList			global_state_cache_wrappers	= new ArrayList();
 	
@@ -543,8 +582,6 @@ DownloadManagerStateImpl
         	
         	setIntAttribute( AT_VERSION, VER_CURRENT );
         }
-
-        addListeners();
 	}
 	
 	public void 
@@ -554,30 +591,6 @@ DownloadManagerStateImpl
 			// get any listeners to pick up new values as their defaults are based on core params
 		
 		informWritten( AT_PARAMETERS );
-	}
-	
-	protected void
-	addListeners()
-	{
-		COConfigurationManager.addParameterListener( "Max.Peer.Connections.Per.Torrent.When.Seeding", this );
-		COConfigurationManager.addParameterListener( "Max.Peer.Connections.Per.Torrent.When.Seeding.Enable", this );
-		COConfigurationManager.addParameterListener( "Max.Peer.Connections.Per.Torrent", this );
-		COConfigurationManager.addParameterListener( "Max Uploads", this );
-		COConfigurationManager.addParameterListener( "Max Uploads Seeding", this );
-		COConfigurationManager.addParameterListener( "Max Seeds Per Torrent", this );
-		COConfigurationManager.addParameterListener( "enable.seedingonly.maxuploads", this );
-	}
-	
-	protected void
-	removeListeners()
-	{
-		COConfigurationManager.removeParameterListener( "Max.Peer.Connections.Per.Torrent.When.Seeding", this );
-		COConfigurationManager.removeParameterListener( "Max.Peer.Connections.Per.Torrent.When.Seeding.Enable", this );
-		COConfigurationManager.removeParameterListener( "Max.Peer.Connections.Per.Torrent", this );
-		COConfigurationManager.removeParameterListener( "Max Uploads", this );
-		COConfigurationManager.removeParameterListener( "Max Uploads Seeding", this );
-		COConfigurationManager.removeParameterListener( "Max Seeds Per Torrent", this );
-		COConfigurationManager.removeParameterListener( "enable.seedingonly.maxuploads", this );
 	}
 	
 	public DownloadManager
@@ -817,9 +830,6 @@ DownloadManagerStateImpl
 				
 				FileUtil.recursiveDelete( dir );
 			}
-			
-			removeListeners();
-			
 		}catch( Throwable e ){
 	    	
 	    	Debug.printStackTrace( e );
@@ -975,7 +985,7 @@ DownloadManagerStateImpl
 						// default overrides
 					
 						// **** note - if you add to these make sure you extend the parameter listeners
-						// registered as well (see addParameterListeners)
+						// registered as well (see static initialiser at top)
 					
 					if ( name == PARAM_MAX_UPLOADS_WHEN_SEEDING_ENABLED ){
 						

@@ -21,7 +21,7 @@
 
 package com.aelitis.azureus.core.tag;
 
-import java.util.List;
+import java.util.Set;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 
@@ -31,6 +31,6 @@ TagDownload
 {
 	public static final int FEATURES 	= TF_RATE_LIMIT;
 	
-	public List<DownloadManager>
+	public Set<DownloadManager>
 	getTaggedDownloads();
 }

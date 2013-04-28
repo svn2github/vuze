@@ -28,17 +28,30 @@ import java.util.Set;
 public class 
 CopyOnWriteSet<T> 
 {
-	private volatile Set<T>	set = new HashSet<T>();
+	private volatile IdentityHashSet<T>	set = new IdentityHashSet<T>();
+	
+	private boolean	visible = false;
 	
 	public void
 	add(
 		T		o )
 	{
-		synchronized( set ){
+		synchronized( this ){
 			
-			Set<T> new_set = new HashSet<T>( set );
-			new_set.add( o );
-			set = new_set;
+			if ( visible ){
+			
+				IdentityHashSet<T> new_set = new IdentityHashSet<T>( set );
+			
+				new_set.add( o );
+			
+				set = new_set;
+				
+				visible = false;
+				
+			}else{
+				
+				set.add( o );
+			}
 		}
 	}
 	
@@ -46,13 +59,24 @@ CopyOnWriteSet<T>
 	remove(
 		T		o )
 	{
-		synchronized( set ){
+		synchronized( this ){
 			
-			Set<T> new_set = new HashSet<T>( set );
-			boolean res = new_set.remove( o );
-			set = new_set;
-			
-			return( res );
+			if ( visible ){
+				
+				IdentityHashSet<T> new_set = new IdentityHashSet<T>( set );
+				
+				boolean res = new_set.remove( o );
+				
+				set = new_set;
+				
+				visible = false;
+				
+				return( res );
+				
+			}else{
+				
+				return( set.remove( o ));
+			}
 		}
 	}
 	
@@ -69,10 +93,26 @@ CopyOnWriteSet<T>
 		return( set.size());
 	}
 	
+	public Set<T>
+	getSet()
+	{
+		synchronized( this ){
+
+			visible = true;
+			
+			return( set );
+		}
+	}
+	
 	public Iterator<T>
 	iterator()
 	{
-		return( new CopyOnWriteSetIterator( set.iterator()));
+		synchronized( this ){
+
+			visible = true;
+		
+			return( new CopyOnWriteSetIterator( set.iterator()));
+		}
 	}
 	
 	private class

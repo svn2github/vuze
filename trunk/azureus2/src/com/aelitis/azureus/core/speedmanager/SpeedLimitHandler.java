@@ -3635,12 +3635,22 @@ SpeedLimitHandler
 				}
 			}
 			
-			public List<Taggable> 
+			public Set<Taggable> 
 			getTagged() 
 			{
 				synchronized( this ){
 					
-					return( new ArrayList<Taggable>( added_peers ));
+					return( new HashSet<Taggable>( added_peers ));
+				}
+			}
+			
+			public boolean 
+			hasTaggable(
+				Taggable	t )
+			{
+				synchronized( this ){
+					
+					return( added_peers.contains( t ));
 				}
 			}
 			
