@@ -133,7 +133,7 @@ PeersGeneralView
 					
 			Set<PEPeer>	peers_in_table 	= new HashSet<PEPeer>( tv.getDataSources());
 			
-			Set<PEPeer> peers_in_tag	= new HashSet<PEPeer>((List)tag.getTagged());
+			Set<PEPeer> peers_in_tag	= new HashSet<PEPeer>((Set)tag.getTagged());
 			
 			for ( PEPeer peer: peers_in_table ){
 				
