@@ -56,7 +56,6 @@ import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.ui.swt.ImageRepository;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -68,7 +67,6 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventListenerHolder;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -364,51 +362,49 @@ public class PeersGraphicView
 							if ( mdi_entry != null ){
 								
 								mdi_entry.setDatasource(new Object[] { manager, target } );
+							}
 								
-							}else{
+							Composite comp = panel.getParent();
+							
+							while( comp != null ){
 								
-								Composite comp = panel.getParent();
-								
-								while( comp != null ){
+								if ( comp instanceof CTabFolder ){
 									
-									if ( comp instanceof CTabFolder ){
+									CTabFolder tf = (CTabFolder)comp;
+									
+									CTabItem[] items = tf.getItems();
+									
+									for ( CTabItem item: items ){
 										
-										CTabFolder tf = (CTabFolder)comp;
+										UISWTViewCore view = (UISWTViewCore)item.getData("IView");
 										
-										CTabItem[] items = tf.getItems();
+										UISWTViewEventListener listener = view.getEventListener();
 										
-										for ( CTabItem item: items ){
+										if ( listener instanceof UISWTViewEventListenerHolder ){
 											
-											UISWTViewCore view = (UISWTViewCore)item.getData("IView");
+											listener = ((UISWTViewEventListenerHolder)listener).getDelegatedEventListener( view );
+										}
+										
+										if ( listener instanceof PeersView ){
 											
-											UISWTViewEventListener listener = view.getEventListener();
+											tf.setSelection( item );
 											
-											if ( listener instanceof UISWTViewEventListenerHolder ){
-												
-												listener = ((UISWTViewEventListenerHolder)listener).getDelegatedEventListener( view );
-											}
+											Event ev = new Event();
 											
-											if ( listener instanceof PeersView ){
-												
-												tf.setSelection( item );
-												
-												Event ev = new Event();
-												
-												ev.item = item;
-												
-													// manual setSelection doesn't file selection event - derp
-												
-												tf.notifyListeners( SWT.Selection, ev );
-												
-												((PeersView)listener).selectPeer( target );
-												
-												return;
-											}
+											ev.item = item;
+											
+												// manual setSelection doesn't file selection event - derp
+											
+											tf.notifyListeners( SWT.Selection, ev );
+											
+											((PeersView)listener).selectPeer( target );
+											
+											return;
 										}
 									}
-										
-									comp = comp.getParent();
 								}
+									
+								comp = comp.getParent();
 							}
 						}catch( Throwable e ){
 							
