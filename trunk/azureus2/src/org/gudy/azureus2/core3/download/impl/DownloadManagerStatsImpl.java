@@ -62,8 +62,12 @@ DownloadManagerStatsImpl
 	private int max_upload_rate_bps = 0;  //0 for unlimited
 	private int max_download_rate_bps = 0;  //0 for unlimited
   
-  
-
+	private static final int HISTORY_MAX_SECS = 30*60;
+	private volatile boolean history_retention_required;
+	private long[]	history;
+	private int		history_pos;
+	private boolean	history_wrapped;
+	
 	protected
 	DownloadManagerStatsImpl(
 		DownloadManagerImpl	dm )
@@ -370,6 +374,114 @@ DownloadManagerStatsImpl
 		return( saved_protocol_bytes_uploaded );
 	}
  
+	public void
+	setRecentHistoryRetention(
+		boolean		required )
+	{
+		synchronized( this ){
+			
+			if ( required ){
+				
+				if ( !history_retention_required ){
+					
+					history 	= new long[HISTORY_MAX_SECS];
+					
+					history_pos	= 0;
+					
+					history_retention_required = true;
+				}
+			}else{
+				
+				history = null;
+				
+				history_retention_required = false;
+			}
+		}
+	}
+	
+	public int[][]
+	getRecentHistory()
+	{
+		synchronized( this ){
+
+			if ( history == null ){
+		
+				return( new int[3][0] );
+				
+			}else{
+			
+				int	entries = history_wrapped?HISTORY_MAX_SECS:history_pos;
+				int	start	= history_wrapped?history_pos:0;
+				
+				int[][] result = new int[3][entries];
+				
+				int	pos = start;
+				
+				for ( int i=0;i<entries;i++){
+					
+					if ( pos == HISTORY_MAX_SECS ){
+						
+						pos = 0;
+					}
+					
+					long entry = history[pos++];
+					
+					int	send_rate 	= (int)((entry>>32)&0x0000ffffL);
+					int	recv_rate 	= (int)((entry>>16)&0x0000ffffL);
+					int	swarm_rate 	= (int)((entry)&0x0000ffffL);
+					
+					result[0][i] = send_rate*1024;
+					result[1][i] = recv_rate*1024;
+					result[2][i] = swarm_rate*1024;
+				}
+				
+				return( result );
+			}
+		}
+	}
+	
+	protected void
+	timerTick()
+	{
+		if ( !history_retention_required ){
+			
+			return;
+		}
+		
+		PEPeerManager pm = download_manager.getPeerManager();
+		
+		if ( pm == null ){
+			
+			return;
+		}
+		
+		PEPeerManagerStats stats = pm.getStats();
+		
+		long send_rate 			= stats.getDataSendRate() + stats.getProtocolSendRate();
+		long receive_rate 		= stats.getDataReceiveRate() + stats.getProtocolReceiveRate();
+		long peer_swarm_average = stats.getTotalAverage();
+		
+		long	entry = 
+			(((send_rate/1024)<<32) 	& 0x0000ffff00000000L ) |
+			(((receive_rate/1024)<<16)  & 0x00000000ffff0000L ) |
+			(((peer_swarm_average/1024))& 0x000000000000ffffL );
+			
+		
+		synchronized( this ){
+			
+			if ( history != null ){
+				
+				history[history_pos++] = entry;
+				
+				if ( history_pos == HISTORY_MAX_SECS ){
+					
+					history_pos 	= 0;
+					history_wrapped	= true;
+				}
+			}
+		}
+	}
+	
 	public long 
 	getRemaining()
 	{

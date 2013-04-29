@@ -145,6 +145,23 @@ DownloadManagerStats
 	public long
 	getTotalAveragePerPeer();
 	
+		/**
+		 * In general history isn't available, however if this method is called it will start retention for a certain period of time
+		 * @return
+		 */
+	
+	public void
+	setRecentHistoryRetention(
+		boolean		required );
+	
+		/**
+		 * Get any recent history. Returned values are send rate, receive rate and peer-swarm average
+		 * @return
+		 */
+	
+	public int[][]
+	getRecentHistory();
+	
 	public String
 	getElapsedTime();
 	

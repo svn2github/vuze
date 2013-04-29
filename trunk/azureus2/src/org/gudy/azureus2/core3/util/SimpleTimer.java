@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.util;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 /**
  * @author parg
  *
@@ -38,6 +40,8 @@ SimpleTimer
 	
 	protected static final Timer	timer;
 	
+	private static CopyOnWriteList<TimerTickReceiver>		tick_receivers = new CopyOnWriteList<TimerTickReceiver>( true );
+	
 	static{
 		timer = new Timer("Simple Timer",32);
 		
@@ -48,6 +52,32 @@ SimpleTimer
 		// timer.setLogCPU();
 		
 		// timer.setLogging(true);
+		
+		addPeriodicEvent(
+			"SimpleTimer:ticker",
+			1000,
+			new TimerEventPerformer()
+			{
+				private int tick_count;
+				
+				public void 
+				perform(
+					TimerEvent event ) 
+				{
+					tick_count++;
+					
+					for ( TimerTickReceiver ttr: tick_receivers ){
+						
+						try{
+							ttr.tick( tick_count );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			});
 	}
 	
 	public static TimerEvent
@@ -94,5 +124,27 @@ SimpleTimer
 		TimerEventPeriodic	res = timer.addPeriodicEvent( name, frequency, absolute, performer );
 				
 		return( res );
+	}
+	
+	public static void
+	addTickReceiver(
+		TimerTickReceiver	receiver )
+	{
+		tick_receivers.add( receiver );
+	}
+	
+	public static void
+	removeTickReceiver(
+		TimerTickReceiver	receiver )
+	{
+		tick_receivers.remove( receiver );
+	}
+	
+	public interface
+	TimerTickReceiver
+	{
+		public void
+		tick(
+			int	tick_ount );
 	}
 }

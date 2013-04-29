@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 /**
@@ -48,12 +49,7 @@ MultiPlotGraphic
 	implements ParameterListener 
 {
 	private static final int	DEFAULT_ENTRIES	= 2000;
-    
-	private Color[] colors = new Color[] {
-			  	Colors.red, Colors.blues[Colors.BLUES_MIDDARK], Colors.colorInverse, Colors.blue, Colors.grey,
-			  	Colors.light_grey
-			  };
-	
+    	
 	public static MultiPlotGraphic 
 	getInstance(
 		ValueSource[]	sources,
@@ -87,19 +83,45 @@ MultiPlotGraphic
     
 		value_sources	= sources;
 		
-		init();
+		init( null );
 		
 	    COConfigurationManager.addAndFireParameterListeners(
 	    	new String[]{ "Graphics Update", "Stats Graph Dividers" }, this );
 	}
   
 	private void
-	init()
+	init(
+		int[][]	history )
 	{
 		nbValues		= 0;
 		maxEntries		= DEFAULT_ENTRIES;
 		all_values		= new int[value_sources.length][maxEntries];
 		currentPosition	= 0;
+		
+		if ( history != null ){
+			
+			if ( history.length != value_sources.length ){
+				
+				Debug.out( "Incompatible history records, ignored" );
+				
+			}else{
+				int	history_entries = history[0].length;
+				
+				int	offset = Math.max( history_entries - maxEntries, 0 );
+								
+				for ( int i=offset; i<history_entries;i++){
+					
+					for ( int j=0;j<history.length;j++){
+						
+						all_values[j][nbValues] = history[j][i]; 
+					}
+					
+					nbValues++;
+				}
+				
+				currentPosition = nbValues;
+			}
+		}
 	}
 	
 	public void 
@@ -202,9 +224,20 @@ MultiPlotGraphic
 	}
   
 	public void
-	reset()
+	reset(
+		int[][]		history )
 	{
-		init();
+		init( history );
+		
+		Utils.execSWTThread(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					refresh( true );
+				}
+			});
 	}
   
 	private void 
@@ -376,41 +409,43 @@ MultiPlotGraphic
 				}
 			}
 			
-			int max = maxs[0];
+			int max = 0;
+			
+			for ( int i=0;i<maxs.length;i++){
+				
+				if ( !value_sources[i].isTrimmable()){
+					
+					max = Math.max( max, maxs[i] );
+				}
+			}
+			
 			int max_primary = max;
 			
-			for (int i = 1; i < maxs.length; i++)
-			{
-				int m = maxs[i];
-				if (i == 1)
-				{
-					if (max < m)
-					{
-						max = m;
-						max_primary = max;
-					}
-				} else
-				{
-					// trim secondary indicators so we don't loose the more important info 
-					if (max < m)
-					{
-						if (m <= 2 * max_primary)
-						{
+			for ( int i=0;i<maxs.length;i++){
+			
+				if ( value_sources[i].isTrimmable()){
+					
+						// trim secondary indicators so we don't loose the more important info
+					
+					int m = maxs[i];
+					
+					if ( max < m ){
+						
+						if ( m <= 2 * max_primary ){
+						
 							max = m;
-						} else
-						{
+							
+						}else{
+							
 							max = 2 * max_primary;
+							
 							break;
 						}
 					}
 				}
 			}
 			
-			scale.setMax(max);
-			int maxHeight = scale.getScaledValue(max);
-			
-			Color background = colors[0]; 
-			Color foreground = colors[0]; 
+			scale.setMax( max );
 			
 			for (int x = 0; x < bounds.width - 71; x++){
 				
@@ -428,51 +463,77 @@ MultiPlotGraphic
 				
 				int xDraw = bounds.width - 71 - x;
 				
-				int height = scale.getScaledValue(all_values[0][position]);
+				for ( int order=0;order<2;order++){
 
-				gcImage.setForeground(background);
-				gcImage.setBackground(foreground);
-					
-				for (int chartIdx = 0; chartIdx < all_values.length; chartIdx++){
-				
-					Color line_color = colors[chartIdx%colors.length];
-					
-					int targetValue = all_values[chartIdx][position];
-					
-					int oldTargetValue = oldTargetValues[chartIdx];
-					
-					if (x > 1 ){
-					
-						int trimmed = 0;
-						if (targetValue > max)
-						{
-							targetValue = max;
-							trimmed++;
-						}
-						if (oldTargetValue > max)
-						{
-							oldTargetValue = max;
-							trimmed++;
-						}
-						if (trimmed < 2 || trimmed == 2 && position % 3 == 0)
-						{
-							int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
-							int h2 = bounds.height - scale.getScaledValue(oldTargetValue) - 2;
-							gcImage.setForeground( line_color );
-							gcImage.drawLine(xDraw, h1, xDraw + 1, h2);
+					for (int chartIdx = 0; chartIdx < all_values.length; chartIdx++){
+
+						ValueSource source = value_sources[chartIdx];
+						
+						if ( source.isTrimmable() == (order==0 )){
+							
+							Color line_color = source.getLineColor();
+							
+							int targetValue = all_values[chartIdx][position];
+							
+							int oldTargetValue = oldTargetValues[chartIdx];
+							
+							if ( x > 1 ){
+							
+								int trimmed = 0;
+								if (targetValue > max)
+								{
+									targetValue = max;
+									trimmed++;
+								}
+								if (oldTargetValue > max)
+								{
+									oldTargetValue = max;
+									trimmed++;
+								}
+								if (trimmed < 2 || trimmed == 2 && position % 3 == 0)
+								{
+									int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
+									int h2 = bounds.height - scale.getScaledValue(oldTargetValue) - 2;
+									gcImage.setForeground( line_color );
+									gcImage.drawLine(xDraw, h1, xDraw + 1, h2);
+								}
+							}
+							
+							oldTargetValues[chartIdx] = all_values[chartIdx][position];
 						}
 					}
-					oldTargetValues[chartIdx] = all_values[chartIdx][position];
 				}
 			}
-			/*
-			if (nbValues > 0)
-			{
-				int height = bounds.height - scale.getScaledValue(computeAverage(currentPosition - 6)) - 2;
-				gcImage.setForeground(colors[COLOR_AVERAGE]);
-				gcImage.drawText(formater.format(computeAverage(currentPosition - 6)), bounds.width - 65, height - 12, true);
+			
+			if ( nbValues > 0 ){
+			
+				for ( int order=0;order<2;order++){
+
+					for ( int chartIdx = 0; chartIdx < all_values.length; chartIdx++){
+					
+						ValueSource source = value_sources[chartIdx];
+						
+						if ( source.isTrimmable() == (order==0 )){
+
+							int	average_val = computeAverage( chartIdx, currentPosition - 6 );
+							
+							int average_mod = average_val;
+							
+							if ( average_mod > max ){
+								
+								average_mod = max;
+							}
+							
+							int height = bounds.height - scale.getScaledValue( average_mod) - 2;
+							
+							gcImage.setForeground( source.getLineColor());
+							
+							gcImage.drawText(formater.format( average_val ), bounds.width - 65, height - 12, false);
+						}
+					}
+				}
 			}
-			*/
+			
 			
 		}catch( Throwable e ){
 			
@@ -489,6 +550,22 @@ MultiPlotGraphic
 		}
 	}
   
+	private int 
+	computeAverage(
+		int	line_index,
+		int position ) 
+	{
+		long sum = 0;
+		for(int i = -5 ; i < 6 ; i++) {
+			int pos = position + i;
+			pos %= maxEntries;
+			if (pos < 0)
+				pos += maxEntries;
+			sum += all_values[line_index][pos];
+		}
+		return(int)(sum / 11);
+
+	}
 
 	public void 
 	parameterChanged(

@@ -21,11 +21,16 @@
 
 package org.gudy.azureus2.ui.swt.components.graphics;
 
+import org.eclipse.swt.graphics.Color;
+
 public interface 
 ValueSource 
 {
 	public String
 	getName();
+	
+	public Color
+	getLineColor();
 	
 	public boolean
 	isTrimmable();

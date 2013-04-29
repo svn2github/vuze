@@ -68,7 +68,7 @@ import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 public class 
 DownloadManagerController 
 	extends LogRelation
-	implements PEPeerManagerAdapter, PeerManagerRegistrationAdapter
+	implements PEPeerManagerAdapter, PeerManagerRegistrationAdapter, SimpleTimer.TimerTickReceiver
 {
 	private static long STATE_FLAG_HASDND = 0x01;
 	private static long STATE_FLAG_COMPLETE_NO_DND = 0x02;
@@ -340,6 +340,8 @@ DownloadManagerController
 					// try and continue....
 				
 				peer_manager.stopAll();
+				
+				SimpleTimer.removeTickReceiver( this );
 				
 				DownloadManagerRateController.removePeerManager( peer_manager );
 				
@@ -613,6 +615,8 @@ DownloadManagerController
 			peer_manager = temp;
 
 			DownloadManagerRateController.addPeerManager( peer_manager );
+			
+			SimpleTimer.addTickReceiver( this );
 			
 			limiters = external_rate_limiters_cow;
 			
@@ -988,7 +992,9 @@ DownloadManagerController
 					  peer_manager.stopAll(); 
 					  
 					  stats.saveSessionTotals();
-					  
+
+					  SimpleTimer.removeTickReceiver( this );
+
 					  DownloadManagerRateController.removePeerManager( peer_manager );
 					}
 					
@@ -2318,6 +2324,13 @@ DownloadManagerController
 	
 	public int getPosition() {
 		return download_manager.getPosition();
+	}
+	
+	public void
+	tick(
+		int	tick_ount )
+	{
+		stats.timerTick();
 	}
 	
 	public void 

@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
@@ -42,6 +43,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.graphics.MultiPlotGraphic;
 import org.gudy.azureus2.ui.swt.components.graphics.ValueFormater;
 import org.gudy.azureus2.ui.swt.components.graphics.ValueSource;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
@@ -113,6 +115,12 @@ DownloadActivityView
 	    			return( "Up" );
 	    		}
 	    		
+	    		public Color 
+	    		getLineColor() 
+	    		{
+	    			return( Colors.blue );
+	    		}
+	    		
 	    		public boolean
 	    		isTrimmable()
 	    		{
@@ -122,7 +130,16 @@ DownloadActivityView
 	    		public int
 	    		getValue()
 	    		{
-	    			return((int)(manager.getStats().getDataSendRate() + manager.getStats().getProtocolSendRate()));
+	    			DownloadManager dm = manager;
+	    			
+	    			if ( dm == null ){
+	    				
+	    				return( 0 );
+	    			}
+	    			
+	    			DownloadManagerStats stats = manager.getStats();
+	    			
+	    			return((int)(stats.getDataSendRate() + stats.getProtocolSendRate()));
 	    		}
 	    	},
 	    	new ValueSource()
@@ -133,6 +150,12 @@ DownloadActivityView
 	    			return( "Down" );
 	    		}
 	    		
+	    		public Color 
+	    		getLineColor() 
+	    		{
+	    			return( Colors.green );
+	    		}
+	    		
 	    		public boolean
 	    		isTrimmable()
 	    		{
@@ -142,7 +165,49 @@ DownloadActivityView
 	    		public int
 	    		getValue()
 	    		{
-	    			return((int)(manager.getStats().getDataReceiveRate() + manager.getStats().getProtocolReceiveRate()));
+	    			DownloadManager dm = manager;
+	    			
+	    			if ( dm == null ){
+	    				
+	    				return( 0 );
+	    			}
+	    			
+	    			DownloadManagerStats stats = manager.getStats();
+	    			
+	    			return((int)(stats.getDataReceiveRate() +stats.getProtocolReceiveRate()));
+	    		}
+	    	},
+	    	new ValueSource()
+	    	{
+	    		public String
+	    		getName()
+	    		{
+	    			return( "Swarm Peer Average" );
+	    		}
+	    		
+	    		public Color 
+	    		getLineColor() 
+	    		{
+	    			return( Colors.red );
+	    		}
+	    		
+	    		public boolean
+	    		isTrimmable()
+	    		{
+	    			return( true );
+	    		}
+	    		
+	    		public int
+	    		getValue()
+	    		{
+	    			DownloadManager dm = manager;
+	    			
+	    			if ( dm == null ){
+	    				
+	    				return( 0 );
+	    			}
+	    				    			
+	    			return((int)(manager.getStats().getTotalAveragePerPeer()));
 	    		}
 	    	}
 	    };
@@ -229,7 +294,13 @@ DownloadActivityView
 		
 		}else{
 		
-			mpg.reset();
+			DownloadManagerStats stats = manager.getStats();
+			
+			stats.setRecentHistoryRetention( true );
+			
+			int[][] history = stats.getRecentHistory();
+			
+			mpg.reset( history );
 			
 			mpg.setActive( true );
 		}
