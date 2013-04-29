@@ -80,7 +80,7 @@ public class SWTSkinObjectTextbox
 			if (Arrays.binarySearch(styles, "search") >= 0) {
 				style |= SWT.SEARCH | SWT.ICON_SEARCH | SWT.ICON_CANCEL;
 				if (Constants.isWindows) {
-					cBubble = new Composite(createOn, SWT.NONE);
+					cBubble = new Composite(createOn, SWT.DOUBLE_BUFFERED);
 					cBubble.setLayout(new FormLayout());
 				}
 			}
