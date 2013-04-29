@@ -235,7 +235,6 @@ public class MyTorrentsView
 	private TableViewSWT<DownloadManager> tv;
 	private Composite cTableParentPanel;
 	protected boolean viewActive;
-	private boolean forceHeaderVisible = false;
 	private TableSelectionListener defaultSelectedListener;
 
 	private Composite filterParent;
@@ -324,7 +323,6 @@ public class MyTorrentsView
 			}
 		}, true);
 
-    forceHeaderVisible = COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader");
 		if (txtFilter != null) {
 			filterParent = txtFilter.getParent();
 			if (Constants.isWindows) {
@@ -332,23 +330,6 @@ public class MyTorrentsView
 				filterParent = filterParent.getParent();
 			}
 			Menu menuFilterHeader = new Menu(filterParent);
-			
-				// show header
-			
-			final MenuItem menuItemAlwaysShow = new MenuItem(menuFilterHeader,
-					SWT.CHECK);
-			Messages.setLanguageText(menuItemAlwaysShow,
-					"ConfigView.label.alwaysShowLibraryHeader");
-
-			menuItemAlwaysShow.addSelectionListener(new SelectionListener() {
-				public void widgetSelected(SelectionEvent e) {
-					COConfigurationManager.setParameter(
-							"MyTorrentsView.alwaysShowHeader", !forceHeaderVisible);
-				}
-
-				public void widgetDefaultSelected(SelectionEvent e) {
-				}
-			});
 			
 				// show uptime
 			
@@ -369,7 +350,6 @@ public class MyTorrentsView
 			
 			menuFilterHeader.addMenuListener(new MenuListener() {
 				public void menuShown(MenuEvent e) {
-					menuItemAlwaysShow.setSelection(forceHeaderVisible);
 					menuItemShowUptime.setSelection(COConfigurationManager.getBooleanParameter( "MyTorrentsView.showuptime" ));
 				}
 
@@ -410,7 +390,6 @@ public class MyTorrentsView
 			public void runSupport() {
 		    COConfigurationManager.addAndFireParameterListeners(new String[] {
 					"DND Always In Incomplete",
-					"MyTorrentsView.alwaysShowHeader",
 					"User Mode"
 				}, MyTorrentsView.this);
 
@@ -524,13 +503,6 @@ public class MyTorrentsView
     return cTablePanel;
   }
   
-  public void setForceHeaderVisible(boolean forceHeaderVisible) {
-		this.forceHeaderVisible  = forceHeaderVisible;
-		if (cTablePanel != null && !cTablePanel.isDisposed()) {
-			createTabs();
-		}
-  }
-
   private void createTabs() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
@@ -947,21 +919,6 @@ public class MyTorrentsView
 						
 			public void runSupport() {
 				if (txtFilter != null) {
-					boolean visible = forceHeaderVisible || filter.length() > 0;
-					Object layoutData = filterParent.getLayoutData();
-					if (layoutData instanceof FormData) {
-						FormData fd = (FormData) layoutData;
-						boolean wasVisible = fd.height != 0;
-						if (visible != wasVisible) {
-  						fd.height = visible ? SWT.DEFAULT : 0;
-  						filterParent.setLayoutData(layoutData);
-  						filterParent.getParent().layout();
-						}
-					}
-					if (!visible) {
-						tv.setFocus();
-					}
-					
 					Object x = filterParent.getData( "ViewUtils:ViewTitleExtraInfo" );
 					
 					if ( x instanceof ViewUtils.ViewTitleExtraInfo ){
@@ -1728,9 +1685,6 @@ public class MyTorrentsView
 		if (parameterName == null
 				|| parameterName.equals("DND Always In Incomplete")) {
 			bDNDalwaysIncomplete = COConfigurationManager.getBooleanParameter("DND Always In Incomplete");
-		}
-		if (parameterName == null || parameterName.equals("MyTorrentsView.alwaysShowHeader")) {
-			setForceHeaderVisible(COConfigurationManager.getBooleanParameter("MyTorrentsView.alwaysShowHeader"));
 		}
 	}
 

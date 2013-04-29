@@ -366,10 +366,6 @@ public class ConfigSectionInterfaceTables
 								SWT.LEFT, true, false, 2, 1));
 			}
 
-			new BooleanParameter(cLibrary, "MyTorrentsView.alwaysShowHeader",
-					"ConfigView.label.alwaysShowLibraryHeader").setLayoutData(new GridData(
-							SWT.FILL, SWT.LEFT, true, false, 2, 1));
-
 			if (isAZ3) {
 				new BooleanParameter(cLibrary, "Library.CatInSideBar", MSG_PREFIX
 						+ "CatInSidebar").setLayoutData(new GridData(SWT.FILL,
