@@ -453,6 +453,11 @@ MultiPlotGraphic
 				}
 			}
 			
+			if ( max > 5*1024 ){
+				
+				max = (( max + 1023 )/1024)*1024;
+			}
+			
 			scale.setMax( max );
 			
 			for (int x = 0; x < bounds.width - 71; x++){

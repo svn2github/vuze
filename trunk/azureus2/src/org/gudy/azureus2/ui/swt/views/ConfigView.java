@@ -523,6 +523,10 @@ public class ConfigView implements UISWTViewEventListener {
 								if (filterDelayTimer != null) {
 									return;
 								}
+								if ( tree.isDisposed()){
+									return;
+								}
+								
 								Shell shell = tree.getShell();
 								if (shell != null) {
 									shell.setCursor(shell.getDisplay().getSystemCursor(
