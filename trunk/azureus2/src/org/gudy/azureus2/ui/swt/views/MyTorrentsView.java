@@ -2206,24 +2206,15 @@ public class MyTorrentsView
 				pluginUI.addView( id, PeersView.MSGID_PREFIX,	PeersView.class, null);
 				pluginUI.addView( id, PeersGraphicView.MSGID_PREFIX, PeersGraphicView.class, null);
 				pluginUI.addView( id, PiecesView.MSGID_PREFIX, PiecesView.class, null);
+				pluginUI.addView( id, PieceInfoView.MSGID_PREFIX, PieceInfoView.class, null);
 				pluginUI.addView( id, DownloadActivityView.MSGID_PREFIX, DownloadActivityView.class, null);
 				pluginUI.addView( id, FilesView.MSGID_PREFIX,	FilesView.class, null);
 				pluginUI.addView( id, TorrentInfoView.MSGID_PREFIX, TorrentInfoView.class, null);
 				pluginUI.addView( id, TorrentOptionsView.MSGID_PREFIX, TorrentOptionsView.class, null);
-				//pluginUI.addView( id, PieceInfoView.MSGID_PREFIX, PieceInfoView.class, null);
 	
 				if (Logger.isEnabled()) {
 					pluginUI.addView( id, LoggerView.MSGID_PREFIX, LoggerView.class, null);
 				}
-			
-				/*
-				pluginUI.addView(id, "GeneralView",	GeneralView.class, null);
-				pluginUI.addView(id, "TrackerView[tabs=false]",	TrackerView.class, null);
-				pluginUI.addView(id, "PeersView[tabs=false]", PeersView.class, null);
-				pluginUI.addView(id, "PeersGraphic", PeersGraphicView.class, null);
-				pluginUI.addView(id, "PiecesView[tabs=false]", PiecesView.class, null);
-				pluginUI.addView(id, "FilesView[tabs=false]", FilesView.class, null);
-				*/
 			}
 			
 			registeredCoreSubViews = true;

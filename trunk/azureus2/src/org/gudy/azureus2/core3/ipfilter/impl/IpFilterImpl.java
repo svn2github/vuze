@@ -69,9 +69,9 @@ IpFilterImpl
 	private long	last_update_time;
     
   
-	private List	listeners = new ArrayList();
+	private CopyOnWriteList<IPFilterListener>	listenerz = new CopyOnWriteList<IPFilterListener>( true );
 	
-	private CopyOnWriteList	external_handlers = new CopyOnWriteList();
+	private CopyOnWriteList<IpFilterExternalHandler>	external_handlers = new CopyOnWriteList<IpFilterExternalHandler>();
 	
 	FrequencyLimitedDispatcher blockedListChangedDispatcher;
 
@@ -111,11 +111,9 @@ IpFilterImpl
 		blockedListChangedDispatcher = new FrequencyLimitedDispatcher(
 				new AERunnable() {
 					public void runSupport() {
-						Object[] listenersArray = listeners.toArray();
-						for (int i = 0; i < listenersArray.length; i++) {
+						for ( IPFilterListener listener: listenerz ){
 							try {
-								IPFilterListener l = (IPFilterListener) listenersArray[i];
-								l.IPBlockedListChanged(IpFilterImpl.this);
+								listener.IPBlockedListChanged(IpFilterImpl.this);
 							} catch (Exception e) {
 								Debug.out(e);
 							}
@@ -749,13 +747,11 @@ IpFilterImpl
 		boolean		loggable ) 
 	{
 		if ( torrent_hash != null ){
-			
-			List	listeners_ref = listeners;
-	
-			for (int j=0;j<listeners_ref.size();j++){
+				
+			for ( IPFilterListener listener: listenerz ){
 	
 				try{
-					if ( !((IPFilterListener)listeners_ref.get(j)).canIPBeBlocked( ip.getBlockedIp(), torrent_hash )){
+					if ( !listener.canIPBeBlocked( ip.getBlockedIp(), torrent_hash )){
 	
 						return( false );
 					}
@@ -767,7 +763,8 @@ IpFilterImpl
 			}
 		}
 		
-		try{  class_mon.enter();
+		try{  
+			class_mon.enter();
 
 			ipsBlocked.addLast( ip );
 	
@@ -783,6 +780,7 @@ IpFilterImpl
 				ipsBlocked.removeFirst();
 			}
 		}finally{
+			
 			class_mon.exit();  
 		}
 		
@@ -987,12 +985,10 @@ IpFilterImpl
 		
 		if ( !manual ){
 			
-			List	listeners_ref = listeners;
-			
-			for (int j=0;j<listeners_ref.size();j++){
+			for ( IPFilterListener listener: listenerz ){
 				
 				try{
-					if ( !((IPFilterListener)listeners_ref.get(j)).canIPBeBanned( ipAddress )){
+					if ( !listener.canIPBeBanned( ipAddress )){
 						
 						return( false );
 					}
@@ -1078,16 +1074,14 @@ IpFilterImpl
 			class_mon.exit();
 		}
 			
-		List	listeners_ref = listeners;
-
 		for (int i=0;i<new_bans.size();i++){
 			
 			BannedIp entry	= (BannedIp)new_bans.get(i);
 			
-			for (int j=0;j<listeners_ref.size();j++){
+			for ( IPFilterListener listener: listenerz ){
 				
 				try{
-					((IPFilterListener)listeners_ref.get(j)).IPBanned( entry );
+					listener.IPBanned( entry );
 					
 				}catch( Throwable e ){
 					
@@ -1337,38 +1331,14 @@ IpFilterImpl
 	addListener(
 		IPFilterListener	l )
 	{
-		try{
-			class_mon.enter();
-		
-			List	new_listeners = new ArrayList( listeners );
-			
-			new_listeners.add( l );
-			
-			listeners	= new_listeners;
-			
-		}finally{
-			
-			class_mon.exit();
-		}
+		listenerz.add( l );
 	}
 	
 	public void
 	removeListener(
 		IPFilterListener	l )
 	{
-		try{
-			class_mon.enter();
-		
-			List	new_listeners = new ArrayList( listeners );
-			
-			new_listeners.remove( l );
-			
-			listeners	= new_listeners;
-			
-		}finally{
-			
-			class_mon.exit();
-		}
+		listenerz.remove( l );
 	}
 	
 	public void

@@ -28,6 +28,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 
 public class 
@@ -39,6 +40,8 @@ implements Iterable<T>
 	//private int mutation_count = 0;
 	
 	private List<T>	list = Collections.EMPTY_LIST;
+	
+	private final boolean	use_linked_list;
 	
 	private boolean	visible = false;
 	
@@ -82,6 +85,7 @@ implements Iterable<T>
 	 */
 	public CopyOnWriteList(int initialCapacity) {
 		this.initialCapacity = initialCapacity;
+		use_linked_list = false;
 		if (stats != null) {
 			stats.add(new WeakReference(this));
 		}
@@ -94,11 +98,21 @@ implements Iterable<T>
 		// Smaller default initial capacity as most of our lists are small
 		// Last check on 7/24/2008: 444 lists with 456 total entries
 		this.initialCapacity = 1;
+		use_linked_list = false;
 		if (stats != null) {
 			stats.add(new WeakReference(this));
 		}
 	}
 
+	public 
+	CopyOnWriteList(boolean _use_linked_list ) {
+		this.initialCapacity = 1;
+		use_linked_list = _use_linked_list;
+		if (stats != null) {
+			stats.add(new WeakReference(this));
+		}
+	}
+	
 	public int
 	getMutationCount()
 	{
@@ -115,7 +129,7 @@ implements Iterable<T>
 			
 			if ( visible ){
 				
-				List<T>	new_list = new ArrayList<T>( list );
+				List<T>	new_list = use_linked_list?new LinkedList<T>( list ):new ArrayList<T>( list );
 				
 				//mutated();
 				
@@ -127,7 +141,7 @@ implements Iterable<T>
 				
 			}else{
 				if (list == Collections.EMPTY_LIST) {
-					list = new ArrayList<T>(initialCapacity);
+					list = use_linked_list?new LinkedList<T>():new ArrayList<T>(initialCapacity);
 				}
 				
 				list.add( obj );
@@ -140,13 +154,16 @@ implements Iterable<T>
 		int	index,
 		T	obj )
 	{
+		if ( Constants.IS_CVS_VERSION && use_linked_list ){
+			Debug.out( "hmm" );
+		}
 		synchronized( this ){
 			
 			mutation_count++;
 			
 			if ( visible ){
 				
-				List<T>	new_list = new ArrayList<T>( list );
+				List<T>	new_list = use_linked_list?new LinkedList<T>(list):new ArrayList<T>( list );
 				
 				//mutated();
 				
@@ -158,7 +175,7 @@ implements Iterable<T>
 				
 			}else{
 				if (list == Collections.EMPTY_LIST) {
-					list = new ArrayList<T>(initialCapacity);
+					list = use_linked_list?new LinkedList<T>():new ArrayList<T>(initialCapacity);
 				}
 				
 				list.add( index, obj );
@@ -176,7 +193,7 @@ implements Iterable<T>
 			
 			if ( visible ){
 				
-				List<T>	new_list = new ArrayList<T>( list );
+				List<T>	new_list = use_linked_list?new LinkedList<T>( list ):new ArrayList<T>( list );
 				
 				//mutated();
 				
@@ -188,7 +205,7 @@ implements Iterable<T>
 				
 			}else{
 				if (list == Collections.EMPTY_LIST) {
-					list = new ArrayList<T>(initialCapacity);
+					list = use_linked_list?new LinkedList<T>():new ArrayList<T>(initialCapacity);
 				}
 				
 				list.addAll( c );
@@ -200,6 +217,10 @@ implements Iterable<T>
 	get(
 		int		index )
 	{
+		if ( Constants.IS_CVS_VERSION && use_linked_list ){
+			Debug.out( "hmm" );
+		}
+		
 		synchronized( this ){
 			
 			return( list.get(index));
@@ -216,7 +237,7 @@ implements Iterable<T>
 			
 			if ( visible ){
 
-				List<T>	new_list = new ArrayList<T>( list );
+				List<T>	new_list = use_linked_list?new LinkedList<T>(list):new ArrayList<T>( list );
 				
 				//mutated();
 				
