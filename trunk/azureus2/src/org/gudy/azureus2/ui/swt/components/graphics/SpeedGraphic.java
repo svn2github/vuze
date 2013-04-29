@@ -220,7 +220,7 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     }
     
     
-    boolean sizeChanged = force || (oldSize == null || oldSize.x != bounds.width || oldSize.y != bounds.height);
+    boolean sizeChanged = (oldSize == null || oldSize.x != bounds.width || oldSize.y != bounds.height);
     oldSize = new Point(bounds.width,bounds.height);
     
     internalLoop++;
@@ -230,6 +230,11 @@ public class SpeedGraphic extends ScaledGraphic implements ParameterListener {
     
     if(internalLoop == 0 || sizeChanged || force ) {
 	    drawChart(sizeChanged);
+	    
+	    	// second drawing required to pick up and redraw the scale correctly
+	    if ( force ){
+	    	drawChart(true);
+	    }
     }
     
     drawCanvas.redraw();

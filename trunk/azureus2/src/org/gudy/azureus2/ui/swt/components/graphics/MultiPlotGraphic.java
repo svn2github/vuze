@@ -327,7 +327,7 @@ MultiPlotGraphic
 			}
 		}
     
-		boolean sizeChanged = force || (oldSize == null || oldSize.x != bounds.width || oldSize.y != bounds.height);
+		boolean sizeChanged = (oldSize == null || oldSize.x != bounds.width || oldSize.y != bounds.height);
 		
 		oldSize = new Point(bounds.width,bounds.height);
 
@@ -339,7 +339,15 @@ MultiPlotGraphic
 
 		if ( internalLoop == 0 || sizeChanged || force ){
 			
-			drawChart(sizeChanged);
+			drawChart( sizeChanged );
+			
+				// to get the scale to redraw correctly we need to force a second drawing as it
+				// is the result of the initial draw that sets the scale...
+			
+			if ( force ){
+				
+				drawChart( true );
+			}
 		}
 
 		drawCanvas.redraw();

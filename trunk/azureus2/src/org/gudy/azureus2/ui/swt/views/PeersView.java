@@ -24,6 +24,8 @@ package org.gudy.azureus2.ui.swt.views;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
@@ -31,11 +33,13 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -52,6 +56,10 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.util.IdentityHashSet;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
@@ -274,7 +282,13 @@ public class PeersView
 	
 	public void fillMenu(String sColumnName, Menu menu) {fillMenu(menu, tv, shell, true);}
 
-	public static void fillMenu(final Menu menu, final TableView<?> tv, final Shell shell, boolean download_specific) {
+	public static void 
+	fillMenu(
+		final Menu menu, 
+		final TableView<?> tv, 
+		final Shell shell, 
+		boolean download_specific) 
+	{
 		Object[] peers = tv.getSelectedDataSources().toArray();
 		
 		boolean hasSelection = (peers.length > 0);
@@ -290,10 +304,29 @@ public class PeersView
 		long	upSpeedSetMax		= 0;
 		long	maxUp				= 0;
 		
-		if (hasSelection){
+		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+		
+		final IdentityHashSet<DownloadManager>	download_managers = new IdentityHashSet<DownloadManager>();
+		
+		if ( hasSelection ){
+			
 			for (int i = 0; i < peers.length; i++) {
 				PEPeer peer = (PEPeer)peers[i];
 
+				PEPeerManager m = peer.getManager();
+				
+				if ( m != null ){
+					if ( gm != null ){
+						
+						DownloadManager dm = gm.getDownloadManager( new HashWrapper( m.getHash()));
+						
+						if ( dm != null ){
+						
+							download_managers.add( dm );
+						}
+					}
+				}
+				
 				try {
 					int maxul = peer.getStats().getUploadRateLimitBytesPerSecond();
 					
@@ -359,6 +392,35 @@ public class PeersView
   					peer.setSnubbed(newSnubbedValue);
   				}
   			});
+			}
+		}else{
+			
+			if ( download_managers.size() > 0 ){
+				
+				MenuItem itemDetails = new MenuItem(menu, SWT.PUSH);
+				
+				Messages.setLanguageText(itemDetails, "PeersView.menu.showdownload");
+				
+				Utils.setMenuItemImage(itemDetails, "details");
+				
+				itemDetails.addListener(
+					SWT.Selection,
+					new Listener()
+					{
+						public void 
+						handleEvent(
+							Event event) 
+						{
+							UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+							if (uiFunctions != null) {
+								for ( DownloadManager dm: download_managers ){
+									uiFunctions.openView(UIFunctions.VIEW_DM_DETAILS, dm);
+								}
+							}
+						}
+					});
+				
+				new MenuItem(menu, SWT.SEPARATOR);
 			}
 		}
 

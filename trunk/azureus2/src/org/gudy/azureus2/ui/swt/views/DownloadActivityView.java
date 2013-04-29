@@ -188,7 +188,7 @@ DownloadActivityView
 	    		public Color 
 	    		getLineColor() 
 	    		{
-	    			return( Colors.red );
+	    			return( Colors.light_grey );
 	    		}
 	    		
 	    		public boolean
