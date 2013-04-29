@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -57,16 +58,25 @@ public class Legend {
 	 * @return The composite containing the legend
 	 */
 	public static Composite createLegendComposite(Composite panel,
-			Color[] blockColors, String[] keys) {
+			Color[] blockColors, String[] keys ) {
+		return( createLegendComposite( panel, blockColors, keys, true ));
+	}
+	
+	public static Composite createLegendComposite(Composite panel,
+			Color[] blockColors, String[] keys, boolean horizontal ) {
 		Object layout = panel.getLayout();
 		Object layoutData = null;
 		if (layout instanceof GridLayout)
 			layoutData = new GridData(GridData.FILL_HORIZONTAL);
 
-		return createLegendComposite(panel, blockColors, keys, layoutData);
+		return createLegendComposite(panel, blockColors, keys, layoutData, horizontal );
 	}
 
 
+	public static Composite createLegendComposite(final Composite panel,
+			final Color[] blockColors, final String[] keys, Object layoutData) {
+		return( createLegendComposite( panel, blockColors, keys, layoutData, true ));
+	}
 	/**
 	 * Create a legend containing a modifyable color box and description
 	 * 
@@ -78,7 +88,7 @@ public class Legend {
 	 * @return The composite containing the legend
 	 */
 	public static Composite createLegendComposite(final Composite panel,
-			final Color[] blockColors, final String[] keys, Object layoutData) {
+			final Color[] blockColors, final String[] keys, Object layoutData, boolean horizontal) {
 		
 		final ConfigurationManager config = ConfigurationManager.getInstance();
 
@@ -93,7 +103,7 @@ public class Legend {
 		if (layoutData != null)
 			legend.setLayoutData(layoutData);
 
-		RowLayout layout = new RowLayout(SWT.HORIZONTAL);
+		RowLayout layout = new RowLayout(horizontal?SWT.HORIZONTAL:SWT.VERTICAL);
 		layout.wrap = true;
 		layout.marginBottom = 0;
 		layout.marginTop = 0;
@@ -137,13 +147,15 @@ public class Legend {
 					int index = iIndex.intValue();
 
 					if (e.button == 1) {
-						ColorDialog cd = new ColorDialog(panel.getShell());
-						cd.setRGB(blockColors[index].getRGB());
 						
-						RGB rgb = cd.open();
-						if (rgb != null)
+						RGB rgb = Utils.showColorDialog( panel, blockColors[index].getRGB());
+						
+						if ( rgb != null ){
+							
 							config.setRGBParameter(keys[index], rgb.red, rgb.green, rgb.blue);
-					} else {
+						}
+					}else{
+						
 						config.removeRGBParameter(keys[index]);
 					}
 				}

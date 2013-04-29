@@ -313,6 +313,47 @@ public class Utils
 				bounds.y + (bounds.height / 2) - shellSize.y / 2);
 	}
 
+	public static RGB
+	showColorDialog(
+		Composite	parent,
+		RGB			existing )
+	{
+		Shell parent_shell = parent.getShell();
+		
+		Shell centerShell = new Shell( parent_shell, SWT.NO_TRIM );
+		
+		try{
+			Rectangle displayArea;
+			
+			try{
+				displayArea = parent_shell.getMonitor().getClientArea();
+				
+			}catch (NoSuchMethodError e) {
+				
+				displayArea = parent_shell.getDisplay().getClientArea();
+			}
+			
+				// no way to get actual dialog size - guess...
+			
+			final int x = displayArea.x + displayArea.width / 2 - 120;       
+			final int y = displayArea.y + displayArea.height / 2 - 170;      
+			
+			centerShell.setLocation( x, y );
+			
+			ColorDialog cd = new ColorDialog(centerShell);
+			
+			cd.setRGB( existing );
+			
+			RGB rgb = cd.open();
+		
+			return( rgb );
+			
+		}finally{
+		
+			centerShell.dispose();	
+		}
+	}
+	
 	public static void createTorrentDropTarget(Composite composite,
 			boolean bAllowShareAdd) {
 		try {

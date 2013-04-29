@@ -598,6 +598,13 @@ MultiPlotGraphic
 			bufferImage.dispose();
 		}
 
+		if ( update_event != null ){
+			
+			update_event.cancel();
+			
+			update_event = null;
+		}
+		
 		COConfigurationManager.removeParameterListener("Graphics Update",this);
 		COConfigurationManager.removeParameterListener("Stats Graph Dividers" ,this);
 	}

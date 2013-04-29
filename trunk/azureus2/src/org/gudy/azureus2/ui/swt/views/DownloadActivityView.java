@@ -40,13 +40,16 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.components.graphics.MultiPlotGraphic;
 import org.gudy.azureus2.ui.swt.components.graphics.ValueFormater;
 import org.gudy.azureus2.ui.swt.components.graphics.ValueSource;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
@@ -60,7 +63,10 @@ DownloadActivityView
 {
 	public static final String MSGID_PREFIX = "DownloadActivityView";
 
+	private static Color[]	colors = { Colors.blues[Colors.BLUES_MIDDARK], Colors.fadedGreen, Colors.light_grey };
+		
 	private UISWTView 				swtView;
+	private boolean					legend_at_bottom;
 	private Composite				panel;
 	private MultiPlotGraphic 		mpg;
 	
@@ -82,14 +88,35 @@ DownloadActivityView
 		Composite composite )
 	{
 	    panel = new Composite(composite,SWT.NULL);
-	    panel.setLayout(new GridLayout());
+	    panel.setLayout(new GridLayout(legend_at_bottom?1:2, false));
 	    GridData gridData;
-	        
-	    Group gSpeed = new Group(panel,SWT.NULL);
-	    Messages.setLanguageText(gSpeed,"TableColumn.header.Speed");
+	    
+		String[] color_configs = new String[] {
+				"DownloadActivityView.legend.up",
+				"DownloadActivityView.legend.down",
+				"DownloadActivityView.legend.peeraverage",
+			};
+
+		if ( !legend_at_bottom ){
+				
+			gridData = new GridData();
+			
+			Legend.createLegendComposite(panel, colors, color_configs, gridData, false );
+		}
+
+	    Composite gSpeed = new Composite(panel,SWT.NULL);
+	   // Messages.setLanguageText(gSpeed,"TableColumn.header.Speed");
 	    gridData = new GridData(GridData.FILL_BOTH);
 	    gSpeed.setLayoutData(gridData);    
 	    gSpeed.setLayout(new GridLayout());
+	     
+	    if ( legend_at_bottom ){
+	    	
+			gridData = new GridData();
+			
+			Legend.createLegendComposite(panel, colors, color_configs, gridData, true );
+
+	    }
 	    
 	    Canvas speedCanvas = new Canvas(gSpeed,SWT.NO_BACKGROUND);
 	    gridData = new GridData(GridData.FILL_BOTH);
@@ -118,7 +145,7 @@ DownloadActivityView
 	    		public Color 
 	    		getLineColor() 
 	    		{
-	    			return( Colors.blue );
+	    			return( colors[0] );
 	    		}
 	    		
 	    		public boolean
@@ -153,7 +180,7 @@ DownloadActivityView
 	    		public Color 
 	    		getLineColor() 
 	    		{
-	    			return( Colors.green );
+	    			return( colors[1] );
 	    		}
 	    		
 	    		public boolean
@@ -188,7 +215,7 @@ DownloadActivityView
 	    		public Color 
 	    		getLineColor() 
 	    		{
-	    			return( Colors.light_grey );
+	    			return( colors[2] );
 	    		}
 	    		
 	    		public boolean
@@ -329,6 +356,13 @@ DownloadActivityView
 		    	
 		    	swtView.setToolBarListener(this);
 		    	
+		    	if ( event instanceof UISWTViewEventImpl ){
+
+		    		String parent = ((UISWTViewEventImpl)event).getParentID();
+
+		    		legend_at_bottom = parent != null && parent.equals( UISWTInstance.VIEW_MANAGER );
+		    	}
+		    	 
 		    	break;
 		    }
 		    case UISWTViewEvent.TYPE_DESTROY:{
