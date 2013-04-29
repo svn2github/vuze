@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
@@ -32,6 +33,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Utils;
 
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 
 /**
@@ -47,6 +49,7 @@ public class SWTSkinObjectButton
 	private Button button;
 	private ArrayList<ButtonListenerAdapter> buttonListeners = new ArrayList<ButtonListenerAdapter>(1);
 	private boolean textOverride;
+	private String imageID;
 
 	public SWTSkinObjectButton(SWTSkin skin, final SWTSkinProperties properties,
 			String id, String configID, SWTSkinObject parentSkinObject) {
@@ -72,6 +75,9 @@ public class SWTSkinObjectButton
 		}
 
 		button = new Button(createOn, SWT.PUSH);
+		
+
+		
 		
 		if (Constants.isWindows) {
 			button.setLayoutData(Utils.getFilledFormData());
@@ -107,7 +113,31 @@ public class SWTSkinObjectButton
 		if (text != null) {
 			setText(text, true);
 		}
-		
+
+		final String fSuffix = suffix;
+		String oldImageID = imageID;
+		imageID = sConfigID + ".image" + fSuffix;
+		final String imageVal = properties.getStringValue(imageID);
+		if (imageVal != null) {
+			if (oldImageID != null) {
+				final ImageLoader imageLoader = skin.getImageLoader(properties);
+				imageLoader.releaseImage(oldImageID);
+			}
+			Utils.execSWTThread(new AERunnable() {
+				public void runSupport() {
+					if (button != null && !button.isDisposed() && imageID != null) {
+						final ImageLoader imageLoader = skin.getImageLoader(properties);
+						Image image = imageLoader.getImage(imageID);
+						if (ImageLoader.isRealImage(image)) {
+							button.setImage(image);
+						} else {
+							button.setImage(null);
+						}
+					}
+				}
+			});
+		}
+
 		return suffix;
 	}
 
