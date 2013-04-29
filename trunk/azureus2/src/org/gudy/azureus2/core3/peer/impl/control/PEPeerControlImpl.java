@@ -93,7 +93,7 @@ import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
 public class 
 PEPeerControlImpl
 extends LogRelation
-implements 	PEPeerControl, ParameterListener, DiskManagerWriteRequestListener, PeerControlInstance, PeerNATInitiator,
+implements 	PEPeerControl, DiskManagerWriteRequestListener, PeerControlInstance, PeerNATInitiator,
 DiskManagerCheckRequestListener, IPFilterListener
 {
 	private static final LogIDs LOGID = LogIDs.PEER;
@@ -404,10 +404,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		
 		piecePicker = PiecePickerFactory.create( this );
 
-		COConfigurationManager.addParameterListener("Ip Filter Enabled", this);
-
 		ip_filter.addListener( this );
-
 	}
 
 
@@ -522,7 +519,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 
 		// 5. Remove listeners
-		COConfigurationManager.removeParameterListener("Ip Filter Enabled", this);
 
 		ip_filter.removeListener(this);
 
@@ -3804,17 +3800,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 	}
 
-
-	public void 
-	parameterChanged(
-			String parameterName)
-	{   
-		if ( parameterName.equals("Ip Filter Enabled")){
-
-			checkForBannedConnections();
-		}
-	}
-
 	private void
 	checkForBannedConnections()
 	{
@@ -3822,14 +3807,14 @@ DiskManagerCheckRequestListener, IPFilterListener
 			ArrayList to_close = null;
 
 			final ArrayList	peer_transports = peer_transports_cow;
-		
-		String name 	= getDisplayName();
-		byte[]	hash	= getTorrentHash();
-		
+
+			String name 	= getDisplayName();
+			byte[]	hash	= getTorrentHash();
+
 			for (int i=0; i < peer_transports.size(); i++) {
 				final PEPeerTransport conn = (PEPeerTransport)peer_transports.get( i );
 
-  			if ( ip_filter.isInRange( conn.getIp(), name, hash )) {        	
+				if ( ip_filter.isInRange( conn.getIp(), name, hash )) {        	
 					if( to_close == null )  to_close = new ArrayList();
 					to_close.add( conn );
 				}
@@ -4786,6 +4771,16 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 	}
 
+	public void
+	IPFilterEnabledChanged(
+		boolean			is_enabled )
+	{
+		if ( is_enabled ){
+			
+			checkForBannedConnections();
+		}
+	}
+	
 	public boolean 
 	canIPBeBanned(
 			String ip ) 
@@ -4799,29 +4794,6 @@ DiskManagerCheckRequestListener, IPFilterListener
 		byte[]	torrent_hash )
 	{
 		return true;
-	}
-	
-	public long 
-	getHiddenBytes() 
-	{
-		if ( hidden_piece < 0 ){
-			
-			return( 0 );
-		}
-		
-		return( dm_pieces[hidden_piece].getLength());
-	}
-	
-	public int
-	getHiddenPiece()
-	{
-		return( hidden_piece );
-	}
-	
-	public int
-	getUploadPriority()
-	{
-		return( adapter.getUploadPriority());
 	}
 	
 	public void IPBlockedListChanged(IpFilter filter) {
@@ -4851,6 +4823,28 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 	}
 
+	public long 
+	getHiddenBytes() 
+	{
+		if ( hidden_piece < 0 ){
+			
+			return( 0 );
+		}
+		
+		return( dm_pieces[hidden_piece].getLength());
+	}
+	
+	public int
+	getHiddenPiece()
+	{
+		return( hidden_piece );
+	}
+	
+	public int
+	getUploadPriority()
+	{
+		return( adapter.getUploadPriority());
+	}
 
 	public int getAverageCompletionInThousandNotation()
 	{

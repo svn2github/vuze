@@ -63,6 +63,12 @@ CacheDiscovery
 		ip_filter.addListener(
 			new IPFilterListener()
 			{
+				public void
+				IPFilterEnabledChanged(
+					boolean			is_enabled )
+				{
+				}
+				
 				public boolean
 				canIPBeBanned(
 					String			ip )

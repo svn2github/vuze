@@ -567,6 +567,12 @@ public class ConfigSectionIPFilter implements UISWTConfigSection {
     
     
 		filterListener = new IPFilterListener() {
+			public void
+			IPFilterEnabledChanged(
+				boolean			is_enabled )
+			{
+			}
+			
 			public boolean canIPBeBanned(String ip) {
 				return true;
 			}

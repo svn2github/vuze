@@ -96,6 +96,17 @@ IpFilterImpl
 				{
 					ip_filter_enabled 	= COConfigurationManager.getBooleanParameter( "Ip Filter Enabled" );
 					ip_filter_allow 	= COConfigurationManager.getBooleanParameter( "Ip Filter Allow" );
+					
+					if ( parameterName != null ){
+						
+						if ( parameterName.equals( "Ip Filter Enabled" )){
+						
+							for ( IPFilterListener listener: listenerz ){
+							
+								listener.IPFilterEnabledChanged( ip_filter_enabled );
+							}
+						}
+					}
 				}
 			});
 	}
