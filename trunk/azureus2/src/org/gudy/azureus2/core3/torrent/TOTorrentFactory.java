@@ -40,10 +40,12 @@ TOTorrentFactory
 	public static final long	TO_DEFAULT_VARIABLE_PIECE_NUM_UPPER = 2048;
 	
 	
-	public static final long[]	STANDARD_PIECE_SIZES = { 32*1024, 48*1024, 64*1024, 96*1024, 
-														 128*1024, 192*1024, 256*1024, 384*1024,
-														 512*1024, 768*1024, 1024*1024,
-														 1536*1024, 2*1024*1024, 3*1024*1024, 4*1024*1024 };
+	public static final long[]	
+	                         STANDARD_PIECE_SIZES = { 32*1024, 48*1024, 64*1024, 96*1024, 
+													 128*1024, 192*1024, 256*1024, 384*1024,
+													 512*1024, 768*1024, 1024*1024,
+													 1536*1024, 2*1024*1024, 3*1024*1024, 4*1024*1024,
+													 8*1024*1024, 16*1024*1024, 32*1024*1024 };
 	
 		// deserialisation methods
 		
