@@ -1931,10 +1931,32 @@ public class MenuFactory
 									}
 								}
 								if (!hasUpdates) {
-									MessageBoxShell mb = new MessageBoxShell(
-											SWT.ICON_INFORMATION | SWT.OK,
-											"window.update.noupdates", (String[]) null);
-									mb.open(null);
+									
+									int build = Constants.getIncrementalBuild();
+								
+									if ( COConfigurationManager.getBooleanParameter( "Beta Programme Enabled" ) && build > 0 ){
+										
+										String build_str = "" + build;
+										
+										if ( build_str.length() == 1 ){
+											
+											build_str = "0" + build_str;
+										}
+										
+										MessageBoxShell mb = new MessageBoxShell(
+												SWT.ICON_INFORMATION | SWT.OK,
+												"window.update.noupdates.beta", new String[]{ "B" + build_str });
+										
+										mb.open(null);
+										
+									}else{
+										
+										MessageBoxShell mb = new MessageBoxShell(
+												SWT.ICON_INFORMATION | SWT.OK,
+												"window.update.noupdates", (String[]) null);
+										
+										mb.open(null);
+									}
 								}
 							}
 						});
