@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerFactory;
@@ -2049,8 +2050,9 @@ AzureusCoreImpl
 			for ( DownloadManager manager: managers ){
 	
 				int state = manager.getState();
-	
-				if ( state == DownloadManager.STATE_FINISHING ){
+				
+				if ( 	state == DownloadManager.STATE_FINISHING ||
+						manager.getDownloadState().getFlag( DownloadManagerState.FLAG_METADATA_DOWNLOAD )){
 	
 					if ( ps_downloading ){
 	
@@ -2200,6 +2202,11 @@ AzureusCoreImpl
 			if ( manager.isPaused()){
 			
 					// if anything's paused we don't want to trigger any actions as something transient (e.g. speed test) is going on
+				
+				return;
+			}
+			
+			if ( manager.getDownloadState().getFlag( DownloadManagerState.FLAG_METADATA_DOWNLOAD )){
 				
 				return;
 			}
