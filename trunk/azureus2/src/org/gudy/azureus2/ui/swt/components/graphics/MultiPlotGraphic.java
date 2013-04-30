@@ -392,6 +392,9 @@ MultiPlotGraphic
 			
 			gcImage.drawImage(bufferScale, 0, 0);
 			
+			gcImage.setAntialias( SWT.ON );
+			gcImage.setTextAntialias( SWT.ON );
+			
 			int[] oldTargetValues = new int[all_values.length];
 			
 			int[] maxs = new int[all_values.length];
@@ -503,8 +506,9 @@ MultiPlotGraphic
 									oldTargetValue = max;
 									trimmed++;
 								}
-								if (trimmed < 2 || trimmed == 2 && position % 3 == 0)
-								{
+								if (trimmed < 2 || trimmed == 2 && position % 4 == 0){
+								
+									gcImage.setLineWidth( trimmed==2?3:1 );
 									int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
 									int h2 = bounds.height - scale.getScaledValue(oldTargetValue) - 2;
 									gcImage.setForeground( line_color );
