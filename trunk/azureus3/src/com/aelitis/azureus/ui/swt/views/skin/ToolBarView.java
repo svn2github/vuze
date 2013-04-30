@@ -403,6 +403,12 @@ public class ToolBarView
 		addNonToolBar("toolbar.area.sitem.left2", so2nd);
 		bulkSetupItems("views", "toolbar.area.vitem", so2nd);
 		addNonToolBar("toolbar.area.sitem.left2", so2nd);
+		
+		Utils.execSWTThreadLater(0, new Runnable() {
+			public void run() {
+				Utils.relayout(so2nd.getControl());
+			}
+		});
 
 		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
 			String lastViewID = null;
