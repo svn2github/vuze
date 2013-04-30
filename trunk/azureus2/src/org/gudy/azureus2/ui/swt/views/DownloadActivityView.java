@@ -357,7 +357,7 @@ DownloadActivityView
 
 		    		String parent = ((UISWTViewEventImpl)event).getParentID();
 
-		    		legend_at_bottom = parent != null && parent.equals( UISWTInstance.VIEW_MANAGER );
+		    		legend_at_bottom = parent != null && parent.equals( UISWTInstance.VIEW_TORRENT_DETAILS );
 		    	}
 		    	 
 		    	break;

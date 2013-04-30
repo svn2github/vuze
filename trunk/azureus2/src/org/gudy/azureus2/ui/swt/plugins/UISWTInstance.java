@@ -51,10 +51,12 @@ public interface UISWTInstance extends UIInstanceBase {
 	public static final String VIEW_MYTORRENTS 	= "MyTorrents";
 
 	/**
+	 * ID of the torrent details view (The one you see when you right click on a torrent in Library and select "Details"
+	 * 
 	 * @since 4901
 	 */
 	
-	public static final String VIEW_MANAGER 	= "ManagerView";
+	public static final String VIEW_TORRENT_DETAILS 	= "TorrentDetailsView";
 
 	/** 
 	 * ID of "Peers" view

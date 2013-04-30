@@ -619,7 +619,7 @@ public class PeersView
 	    		  
 	    		  String parent = ((UISWTViewEventImpl)event).getParentID();
 	    		  
-	    		  enable_tabs = parent != null && parent.equals( UISWTInstance.VIEW_MANAGER );
+	    		  enable_tabs = parent != null && parent.equals( UISWTInstance.VIEW_TORRENT_DETAILS );
 	    	  }
 	    	  break;
 	      }

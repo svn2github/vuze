@@ -289,7 +289,7 @@ public class SBC_TorrentDetailsView
 
 			for (String id : new String[] {
 				UISWTInstance.VIEW_MYTORRENTS,
-				UISWTInstance.VIEW_MANAGER
+				UISWTInstance.VIEW_TORRENT_DETAILS
 			}) {
 
 				UISWTViewEventListenerWrapper[] pluginViews = pluginUI.getViewListeners(id);
@@ -306,7 +306,7 @@ public class SBC_TorrentDetailsView
 
 						try {
 							UISWTViewImpl view = new UISWTViewImpl(
-									UISWTInstance.VIEW_MANAGER, l.getViewID(), l, null);
+									UISWTInstance.VIEW_TORRENT_DETAILS, l.getViewID(), l, null);
 
 							addSection(view);
 
