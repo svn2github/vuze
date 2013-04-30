@@ -60,7 +60,7 @@ DownloadActivityView
 {
 	public static final String MSGID_PREFIX = "DownloadActivityView";
 
-	private static Color[]	colors = { Colors.blues[Colors.BLUES_MIDDARK], Colors.fadedGreen, Colors.light_grey };
+	private static Color[]	colors = { Colors.fadedGreen, Colors.blues[Colors.BLUES_DARKEST], Colors.light_grey };
 		
 	private UISWTView 				swtView;
 	private boolean					legend_at_bottom;
