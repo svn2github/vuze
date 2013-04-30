@@ -57,10 +57,18 @@ public class ColumnStream
 
 	private static int WIDTH = 62; // enough to fit title
 
-	private static Image imgEnabled;
+	private static Image imgGreen;
 
 	private static Image imgDisabled;
 	
+	private static Image imgBlue;
+
+	private static Image imgGreenSmall;
+
+	private static Image imgDisabledSmall;
+	
+	private static Image imgBlueSmall;
+
 	private static boolean first = true;
 	
 	private static boolean skipPaint = true;
@@ -83,8 +91,14 @@ public class ColumnStream
 
 		initializeAsGraphic(WIDTH);
 		setAlignment(ALIGN_CENTER);
-		imgEnabled = ImageLoader.getInstance().getImage("image.stream.small.on");
-		imgDisabled = ImageLoader.getInstance().getImage("image.stream.small.off");
+		if (imgGreen == null) {
+  		imgGreen = ImageLoader.getInstance().getImage("column.image.play.green");
+  		imgDisabled = ImageLoader.getInstance().getImage("column.image.play.off");
+  		imgBlue = ImageLoader.getInstance().getImage("column.image.play.blue");
+  		imgGreenSmall = ImageLoader.getInstance().getImage("column.image.play.green.small");
+  		imgDisabledSmall = ImageLoader.getInstance().getImage("column.image.play.off.small");
+  		imgBlueSmall = ImageLoader.getInstance().getImage("column.image.play.blue.small");
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.impl.TableColumnImpl#preAdd()
@@ -119,8 +133,7 @@ public class ColumnStream
 			return false;
 		}
 
-		if (dm.getAssumedComplete()
-				|| (dm.getNumFileInfos() > 1 && rowCore.isExpanded())) {
+		if ((dm.getNumFileInfos() > 1 && rowCore.isExpanded())) {
 			return true;
 		}
 		return false;
@@ -141,11 +154,9 @@ public class ColumnStream
 		int sortVal = ((Number) sortValue).intValue();
 		boolean canStream = (sortVal & 2) > 0;
 		boolean canPlay = (sortVal & 1) > 0;
-		Image img = canStream ? imgEnabled : imgDisabled;
-
-		if (!canStream && canPlay) {
-			return;
-		}
+		// for now, always use green
+		Image img = cell.getHeight() > 18 ? (canStream ? imgGreen : canPlay ? imgGreen : imgDisabled)
+				: (canStream ? imgGreenSmall : canPlay ? imgGreenSmall : imgDisabledSmall);
 
 		Rectangle cellBounds = cell.getBounds();
 
@@ -186,7 +197,7 @@ public class ColumnStream
 		} else {
 			boolean canStream = PlayUtils.canStreamDS(ds, -1);
 			boolean canPlay = PlayUtils.canPlayDS(ds, -1);
-			sortVal = (canStream ? 2 : 0) + (canPlay ? 0 : 1);
+			sortVal = (canStream ? 2 : 0) + (canPlay ? 1 : 0);
 		}
 
 		if (cell.setSortValue(sortVal)) {
@@ -199,7 +210,7 @@ public class ColumnStream
 		if (event.eventType == TableRowMouseEvent.EVENT_MOUSEDOWN
 				&& event.button == 1) {
 			Object ds = event.cell.getDataSource();
-			if (PlayUtils.canStreamDS(ds, -1)) {
+			if (PlayUtils.canStreamDS(ds, -1) || PlayUtils.canPlayDS(ds, -1)) {
 				TorrentListViewsUtils.playOrStreamDataSource(ds, "column", true, false);
 			}
 		}
