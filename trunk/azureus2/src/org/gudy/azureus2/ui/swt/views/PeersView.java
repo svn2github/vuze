@@ -525,32 +525,59 @@ public class PeersView
 
   public void
   selectPeer(
-	final PEPeer		peer )
+	PEPeer		peer )
+  {	  
+	  showPeer( peer, 0 );
+  }
+  
+  private void
+  showPeer(
+	final PEPeer		peer,
+	final int			attempt )
   {
+	  if ( attempt > 10 ){
+		  
+		  return;
+	  }
+	  
 	  	// need to insert an async here as if we are in the process of switching to this view the
 	  	// selection sometimes get lost. grrr
+	  	// also, due to the way things work, as the table is building it is possible to select the entry
+	  	// only to have the selection get lost due to the table re-calculating stuff, so we keep trying for
+	  	// a while until we get an affirmation that it really is visible
 	  
 	  Utils.execSWTThreadLater(
-		 1, 
-		 new Runnable()
-		  {
-			  public void
-			  run()
+			  attempt==0?1:10, 
+			  new Runnable()
 			  {
-		
-				  TableRowCore row = tv.getRow( peer );
-				  
-				  if ( row != null ){
+				  public void
+				  run()
+				  {
+					  TableRowCore row = tv.getRow( peer );
 					  
-					  tv.setSelectedRows( new TableRowCore[]{ row } );
+					  if ( row == null ){
+						  
+						  if ( attempt == 0 ){
+							  
+							  select_peer_pending = peer;
+							  
+							  return;
+						  }
+					  }else{
+
+						  tv.setSelectedRows( new TableRowCore[]{ row } );
+						  
+						  tv.showRow( row );  
+						  
+						  if ( row.isVisible()){
+							  
+							  return;
+						  }
+					  }
 					  
-					  tv.showRow( row );
-				  }else{
-					  
-					  select_peer_pending = peer;
+					  showPeer( peer, attempt+1 );
 				  }
-			  }
-		  });
+  			});	
   }
   
   public void peerManagerWillBeAdded( PEPeerManager	peer_manager ){}
@@ -577,14 +604,7 @@ public class PeersView
 		
 		if ( select_peer_pending != null ){
 			
-			TableRowCore row = tv.getRow( select_peer_pending );
-
-			if ( row != null ){
-
-				tv.setSelectedRows( new TableRowCore[]{ row } );
-
-				tv.showRow( row );
-			}
+			showPeer( select_peer_pending, 1 );
 			
 			select_peer_pending = null;
 		}
