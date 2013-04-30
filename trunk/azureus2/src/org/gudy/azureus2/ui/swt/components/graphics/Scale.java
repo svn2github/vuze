@@ -69,9 +69,9 @@ public class Scale {
       targetNbLevels = 1;
     scaleFactor = max / targetNbLevels;
     powFactor = 1;
-    while(scaleFactor >= 16) {
-      powFactor = 16 * powFactor;
-      scaleFactor = scaleFactor / 16;
+    while(scaleFactor >= 8) {
+      powFactor = 8 * powFactor;
+      scaleFactor = scaleFactor / 8;
     }
    
     if(scaleFactor >= 4)

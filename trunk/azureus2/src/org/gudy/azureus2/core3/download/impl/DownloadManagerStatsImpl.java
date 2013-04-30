@@ -399,6 +399,8 @@ DownloadManagerStatsImpl
 		}
 	}
 	
+	private static final int HISTORY_DIV = 512;
+	
 	public int[][]
 	getRecentHistory()
 	{
@@ -430,9 +432,9 @@ DownloadManagerStatsImpl
 					int	recv_rate 	= (int)((entry>>16)&0x0000ffffL);
 					int	swarm_rate 	= (int)((entry)&0x0000ffffL);
 					
-					result[0][i] = send_rate*1024;
-					result[1][i] = recv_rate*1024;
-					result[2][i] = swarm_rate*1024;
+					result[0][i] = send_rate*HISTORY_DIV;
+					result[1][i] = recv_rate*HISTORY_DIV;
+					result[2][i] = swarm_rate*HISTORY_DIV;
 				}
 				
 				return( result );
@@ -462,9 +464,9 @@ DownloadManagerStatsImpl
 		long peer_swarm_average = stats.getTotalAverage();
 		
 		long	entry = 
-			(((send_rate/1024)<<32) 	& 0x0000ffff00000000L ) |
-			(((receive_rate/1024)<<16)  & 0x00000000ffff0000L ) |
-			(((peer_swarm_average/1024))& 0x000000000000ffffL );
+			((((send_rate-1+HISTORY_DIV/2)/HISTORY_DIV)<<32) 	& 0x0000ffff00000000L ) |
+			((((receive_rate-1+HISTORY_DIV/2)/HISTORY_DIV)<<16)  & 0x00000000ffff0000L ) |
+			((((peer_swarm_average-1+HISTORY_DIV/2)/HISTORY_DIV))& 0x000000000000ffffL );
 			
 		
 		synchronized( this ){
