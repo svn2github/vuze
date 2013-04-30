@@ -221,7 +221,7 @@ public class ColumnProgressETA
 			long completedTime = dm.getDownloadState().getLongParameter(
 					DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
 			if (completedTime <= 0 || !dm.isDownloadComplete(false)) {
-				sortValue = Long.MAX_VALUE - 10000 + percentDone;
+				sortValue = Long.MAX_VALUE - ((10000 + percentDone) << 2 + dm.getState());
 			} else {
 				sortValue = completedTime << 2 + dm.getState();
 			}
