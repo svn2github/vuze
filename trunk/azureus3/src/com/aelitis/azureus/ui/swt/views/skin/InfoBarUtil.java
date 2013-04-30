@@ -99,7 +99,6 @@ public abstract class InfoBarUtil
 		FormData fdForSO = (FormData) ldForSO;
 		SWTSkinObject parent = forSO.getParent();
 		soInfoBar = skin.createSkinObject(skintemplateid + (uniqueNo++), skintemplateid, parent);
-		skin.addSkinObject(soInfoBar);
 
 		FormData fdInfoBar = (FormData) soInfoBar.getControl().getLayoutData();
 		if (fdInfoBar == null) {

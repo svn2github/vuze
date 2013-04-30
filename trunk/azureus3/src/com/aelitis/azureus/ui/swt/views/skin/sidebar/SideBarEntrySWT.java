@@ -445,11 +445,9 @@ public class SideBarEntrySWT
 					SWTSkinObjectContainer soContents = (SWTSkinObjectContainer) skin.createSkinObject(
 							"MdiContents." + uniqueNumber++, SO_ID_ENTRY_WRAPPER,
 							getParentSkinObject(), null);
-					skin.addSkinObject(soContents);
 					
 					SWTSkinObject skinObject = skin.createSkinObject(id, skinRef,
 							soContents, getDatasourceCore());
-					skin.addSkinObject(soContents);
 
 					control = skinObject.getControl();
 					control.setLayoutData(Utils.getFilledFormData());
@@ -463,7 +461,6 @@ public class SideBarEntrySWT
 					SWTSkinObjectContainer soContents = (SWTSkinObjectContainer) skin.createSkinObject(
 							"MdiIView." + uniqueNumber++, SO_ID_ENTRY_WRAPPER,
 							getParentSkinObject());
-					skin.addSkinObject(soContents);
 
 					parent.setBackgroundMode(SWT.INHERIT_NONE);
 
@@ -1159,10 +1156,6 @@ public class SideBarEntrySWT
 
 		bounds.x += location.x;
 		bounds.y += location.y;
-		
-		if (getId().startsWith("DMDetails")) {
-			System.out.println("br");
-		}
 		
 		Map<String, Object> map = new HashMap<String, Object>();
 		map.put("image", image);

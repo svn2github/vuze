@@ -103,7 +103,6 @@ public class TabbedEntry
 					SWTSkinObjectContainer soContents = (SWTSkinObjectContainer) skin.createSkinObject(
 							"MdiIView." + uniqueNumber++, "mdi.content.item",
 							soParent);
-					skin.addSkinObject(soContents);
 
 					parent.setBackgroundMode(SWT.INHERIT_NONE);
 
