@@ -20,12 +20,9 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -82,10 +79,7 @@ public class ToolBarView
 
 	private boolean showText = true;
 
-	private SWTSkinObject so1st;
 	private SWTSkinObject so2nd;
-
-	private SWTSkinObject soGap;
 
 	private boolean initComplete = false;
 
@@ -105,59 +99,11 @@ public class ToolBarView
 
 		buttonListener = new toolbarButtonListener();
 		//SWTSkin skin = skinObject.getSkin();
-		so1st = skin.getSkinObject("toolbar-1st", skinObject);
 		so2nd = skin.getSkinObject("toolbar-2nd", skinObject);
-
-		soGap = skin.getSkinObject("toolbar-gap", skinObject);
-		if (soGap != null) {
-			Control cGap = soGap.getControl();
-			FormData fd = (FormData) cGap.getLayoutData();
-			if (fd.width == SWT.DEFAULT) {
-				cGap.getParent().addListener(SWT.Resize, new Listener() {
-					public void handleEvent(Event event) {
-						resizeGap();
-					}
-				});
-			} else {
-				soGap = null;
-			}
-		}
 
 		ToolBarItemSO item;
 
-		if (!uiClassic) {
-			// ==play
-			item = new ToolBarItemSO(this, "play", "image.button.play",
-					"iconBar.play");
-			item.setGroupID(GROUP_BIG);
-			item.setDefaultActivationListener(new UIToolBarActivationListener() {
-				public boolean toolBarItemActivated(ToolBarItem item,
-						long activationType, Object datasource) {
-					if (activationType != ACTIVATIONTYPE_NORMAL) {
-						return false;
-					}
-					ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
-					if (sc != null && sc.length > 0) {
-
-						if (PlayUtils.canStreamDS(sc[0], sc[0].getFileIndex())) {
-							TorrentListViewsUtils.playOrStreamDataSource(sc[0],
-									DLReferals.DL_REFERAL_TOOLBAR, true, false);
-						} else {
-							TorrentListViewsUtils.playOrStreamDataSource(sc[0],
-									DLReferals.DL_REFERAL_TOOLBAR, false, true);
-						}
-					}
-					return false;
-				}
-			});
-			addToolBarItem(item, "toolbar.area.item", so1st);
-
-			addSeperator("toolbar.area.item.sep", so1st);
-
-			lastControl = null;
-
-		} else {
-
+		if (uiClassic) {
 			lastControl = null;
 
 			// ==OPEN
@@ -190,6 +136,33 @@ public class ToolBarView
 			});
 			item.setAlwaysAvailable(true);
 			item.setGroupID("classic");
+			addToolBarItemNoCreate(item);
+		}
+
+		if (!uiClassic) {
+			// ==play
+			item = new ToolBarItemSO(this, "play", "image.button.play",
+					"iconBar.play");
+			item.setDefaultActivationListener(new UIToolBarActivationListener() {
+				public boolean toolBarItemActivated(ToolBarItem item,
+						long activationType, Object datasource) {
+					if (activationType != ACTIVATIONTYPE_NORMAL) {
+						return false;
+					}
+					ISelectedContent[] sc = SelectedContentManager.getCurrentlySelectedContent();
+					if (sc != null && sc.length > 0) {
+
+						if (PlayUtils.canStreamDS(sc[0], sc[0].getFileIndex())) {
+							TorrentListViewsUtils.playOrStreamDataSource(sc[0],
+									DLReferals.DL_REFERAL_TOOLBAR, true, false);
+						} else {
+							TorrentListViewsUtils.playOrStreamDataSource(sc[0],
+									DLReferals.DL_REFERAL_TOOLBAR, false, true);
+						}
+					}
+					return false;
+				}
+			});
 			addToolBarItemNoCreate(item);
 		}
 
@@ -431,8 +404,6 @@ public class ToolBarView
 		bulkSetupItems("views", "toolbar.area.vitem", so2nd);
 		addNonToolBar("toolbar.area.sitem.left2", so2nd);
 
-		resizeGap();
-
 		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
 			String lastViewID = null;
 			public void currentlySelectedContentChanged(
@@ -515,34 +486,6 @@ public class ToolBarView
 			gm.moveTop(dms);
 		}
 		return true;
-	}
-
-	/**
-	 * 
-	 *
-	 * @since 3.1.1.1
-	 */
-	protected void resizeGap() {
-		if (soGap == null) {
-			Utils.relayout(so2nd.getControl());
-			return;
-		}
-		Rectangle boundsLeft = so1st.getControl().getBounds();
-		Rectangle boundsRight = so2nd.getControl().getBounds();
-
-		Rectangle clientArea = soGap.getControl().getParent().getClientArea();
-
-		FormData fd = (FormData) soGap.getControl().getLayoutData();
-		fd.width = clientArea.width - (boundsLeft.x + boundsLeft.width)
-				- (boundsRight.width);
-		if (fd.width < 0) {
-			fd.width = 0;
-		} else if (fd.width > 50) {
-			fd.width -= 30;
-		} else if (fd.width > 20) {
-			fd.width = 20;
-		}
-		soGap.getControl().getParent().layout();
 	}
 
 	public UIToolBarItem getToolBarItem(String itemID) {

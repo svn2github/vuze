@@ -598,24 +598,6 @@ public class MainWindowImpl
   			String skinPath = SkinPropertiesImpl.PATH_SKIN_DEFS + "skin3_classic";
   			ResourceBundle rb = ResourceBundle.getBundle(skinPath);
   			skinProperties.addResourceBundle(rb, skinPath);
-  			String[] ids = {
-  				"image.toolbar.2nd.m-bg",
-  				"image.toolbar.2nd.r-bg",
-  				"image.toolbar.2nd.l-bg",
-  				"image.toolbar.2nd-view.l-bg",
-  				"image.toolbar.2nd-view.r-bg",
-  				"image.toolbar.start",
-  				"image.toolbar.stop",
-  				"image.toolbar.remove",
-  				"image.toolbar.up",
-  				"image.toolbar.down",
-  			};
-  			for (String id : ids) {
-  				String s = skinProperties.getStringValue(id);
-  				if (s != null) {
-  					skinProperties.addProperty(id, s.replaceAll("/tb/", "/tb/c/"));
-  				}
-  			}
 			}
 
 			/*
