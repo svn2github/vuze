@@ -181,32 +181,26 @@ public class Legend {
 								final int g = config.getIntParameter(keys[j] + ".green");
 								final int b = config.getIntParameter(keys[j] + ".blue");
 								
-								final RGB rgb = new RGB(r, g, b);
-								if (blockColors[j].isDisposed()
-										|| !rgb.equals(blockColors[j].getRGB())) {
-
-									Utils.execSWTThread(new AERunnable() {
-										public void runSupport() {
-											if (panel == null || panel.isDisposed())
-												return;
-											Color color = ColorCache.getColor(panel.getDisplay(), r, g, b);
-											blockColors[index] = color;
-											cColor.redraw();
-										}
-									});
-								}
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										if (panel == null || panel.isDisposed())
+											return;
+										Color color = ColorCache.getColor(panel.getDisplay(), r, g, b);
+										blockColors[index] = color;
+										cColor.redraw();
+									}
+								});
+							
 							} else {
-								if (blockColors[j].isDisposed()
-										|| !blockColors[j].equals(defaultColors[j])) {
-									Utils.execSWTThread(new AERunnable() {
-										public void runSupport() {
-											if (panel == null || panel.isDisposed())
-												return;
-											blockColors[index] = defaultColors[index];
-											cColor.redraw();
-										}
-									});
-								}
+								
+								Utils.execSWTThread(new AERunnable() {
+									public void runSupport() {
+										if (panel == null || panel.isDisposed())
+											return;
+										blockColors[index] = defaultColors[index];
+										cColor.redraw();
+									}
+								});
 							}
 						}
 					}
