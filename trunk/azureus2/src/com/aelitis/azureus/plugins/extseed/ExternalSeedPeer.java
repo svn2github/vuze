@@ -920,6 +920,19 @@ ExternalSeedPeer
 		return( reader.getPercentDoneOfCurrentIncomingRequest());
 	}
 		  
+	public int[] 
+	getOutgoingRequestedPieceNumbers()
+	{
+		return( reader.getOutgoingRequestedPieceNumbers());
+	}
+
+	public int
+	getOutgoingRequestCount()
+	{
+		return( reader.getOutgoingRequestCount());
+	}
+	
+	
 	public int
 	getPercentDoneOfCurrentOutgoingRequest()
 	{

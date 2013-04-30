@@ -993,22 +993,13 @@ PeerForeignDelegate
 	
 	public int getOutgoingRequestCount()
 	{
-		return( foreign.getRequests().size());
+		return( foreign.getOutgoingRequestCount());
 	}
 	 
 	public int[] 
 	getOutgoingRequestedPieceNumbers() 
 	{
-		List	l = foreign.getRequests();
-		
-		int[]	res = new int[l.size()];
-		
-		for (int i=0;i<l.size();i++){
-			
-			res[i] = ((PeerReadRequest)l.get(i)).getPieceNumber();
-		}
-		
-		return( res );
+		return( foreign.getOutgoingRequestedPieceNumbers());
 	}
 
 	public int getOutboundDataQueueSize()

@@ -109,6 +109,12 @@ ExternalSeedReader
 	public int
 	getPercentDoneOfCurrentIncomingRequest();
 	
+	public int[] 
+   	getOutgoingRequestedPieceNumbers();
+
+   	public int
+   	getOutgoingRequestCount();
+	       	
 	public byte[]
 	read(
 		int			piece_number,

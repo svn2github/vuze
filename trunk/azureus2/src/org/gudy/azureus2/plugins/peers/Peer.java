@@ -198,7 +198,13 @@ Peer
 	
 	public int
 	getPercentDoneOfCurrentIncomingRequest();
-		  
+		
+	public int[] 
+	getOutgoingRequestedPieceNumbers(); 
+	
+	public int
+	getOutgoingRequestCount();
+	
 	public int
 	getPercentDoneOfCurrentOutgoingRequest();
   

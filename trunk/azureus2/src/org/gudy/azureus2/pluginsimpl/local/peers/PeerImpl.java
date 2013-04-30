@@ -252,6 +252,15 @@ PeerImpl
 		return( delegate.getPercentDoneInThousandNotation());
 	}
 
+	public int getOutgoingRequestCount() {
+		return( delegate.getOutgoingRequestCount());
+	}
+	
+	public int[] 
+	getOutgoingRequestedPieceNumbers(){
+		return( delegate.getOutgoingRequestedPieceNumbers());
+	}
+	
 	public int getPercentDoneInThousandNotation()
 	{
 		return( delegate.getPercentDoneInThousandNotation());
@@ -267,9 +276,9 @@ PeerImpl
 		return( delegate.isOptimisticUnchoke());
 	}
 	
-  public void setOptimisticUnchoke( boolean is_optimistic ) {
-    delegate.setOptimisticUnchoke( is_optimistic );
-  }
+	public void setOptimisticUnchoke( boolean is_optimistic ) {
+		delegate.setOptimisticUnchoke( is_optimistic );
+	}
 	
 	public void
 	initialize()

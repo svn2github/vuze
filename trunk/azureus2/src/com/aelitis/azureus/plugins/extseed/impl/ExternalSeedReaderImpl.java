@@ -1364,6 +1364,109 @@ ExternalSeedReaderImpl
 		return( res );
 	}
 	
+	public int[] 
+   	getOutgoingRequestedPieceNumbers()
+	{
+		try{
+			requests_mon.enter();
+
+			int size = requests.size();
+			
+			if ( dangling_requests != null ){
+				
+				size += dangling_requests.size();
+			}
+			
+			int[] res = new int[size];
+
+			int	pos = 0;
+			
+			if ( dangling_requests != null ){
+				
+				for ( PeerReadRequest r: dangling_requests ){
+					
+					int	piece_number = r.getPieceNumber();
+					
+					boolean	hit = false;
+					
+					for ( int i=0;i<pos;i++){
+						
+						if ( piece_number == res[i] ){
+							
+							hit = true;
+							
+							break;
+						}
+					}
+					
+					if ( !hit ){
+						
+						res[pos++] = piece_number;
+					}
+				}
+			}
+			
+			for ( PeerReadRequest r: requests ){
+				
+				int	piece_number = r.getPieceNumber();
+				
+				boolean	hit = false;
+				
+				for ( int i=0;i<pos;i++){
+					
+					if ( piece_number == res[i] ){
+						
+						hit = true;
+						
+						break;
+					}
+				}
+				
+				if ( !hit ){
+					
+					res[pos++] = piece_number;
+				}
+			}
+			
+			if ( pos == res.length ){
+				
+				return( res );
+			}
+			
+			int[]	trunc = new int[pos];
+			
+			System.arraycopy( res, 0, trunc, 0, pos );
+			
+			return( trunc );
+			
+		}finally{
+			
+			requests_mon.exit();
+		}		
+	}
+
+   	public int
+  	getOutgoingRequestCount()
+   	{
+		try{
+			requests_mon.enter();
+
+			int res = requests.size();
+			
+			if ( dangling_requests != null ){
+				
+				res += dangling_requests.size();
+			}
+			
+			return( res );
+			
+		}finally{
+			
+			requests_mon.exit();
+		}		
+   	}
+	          	
+	
 	protected void
 	informComplete(
 		PeerReadRequest		request,
