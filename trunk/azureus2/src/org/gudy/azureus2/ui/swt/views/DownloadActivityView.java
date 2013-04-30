@@ -96,20 +96,20 @@ DownloadActivityView
 
 		if ( !legend_at_bottom ){
 				
-			gridData = new GridData();
+			gridData = new GridData( GridData.FILL_VERTICAL );
+			gridData.verticalAlignment = SWT.CENTER;
 			
 			Legend.createLegendComposite(panel, colors, color_configs, gridData, false );
 		}
 
 	    Composite gSpeed = new Composite(panel,SWT.NULL);
-	   // Messages.setLanguageText(gSpeed,"TableColumn.header.Speed");
 	    gridData = new GridData(GridData.FILL_BOTH);
 	    gSpeed.setLayoutData(gridData);    
 	    gSpeed.setLayout(new GridLayout());
 	     
 	    if ( legend_at_bottom ){
 	    	
-			gridData = new GridData();
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			
 			Legend.createLegendComposite(panel, colors, color_configs, gridData, true );
 
