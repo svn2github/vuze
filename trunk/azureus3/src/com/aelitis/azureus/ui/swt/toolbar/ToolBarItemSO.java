@@ -123,10 +123,12 @@ public class ToolBarItemSO
 	}
 
 	public void setState(long state) {
+		// TODO: This gets called a lot for the same toolbar item -- need to look
+		// into why.
 		setEnabled((state & STATE_ENABLED) > 0);
 		isDown = (state & STATE_DOWN) > 0;
 		if (skinButton != null) {
-			skinButton.getSkinObject().switchSuffix(isDown ? "-down" : "", 2, false);
+			skinButton.getSkinObject().switchSuffix(isDown ? "-selected" : "", 2, false);
 		}
 	}
 
