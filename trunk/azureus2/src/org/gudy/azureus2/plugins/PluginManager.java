@@ -59,6 +59,23 @@ PluginManager
    */  
 	public static final String	PR_MULTI_INSTANCE	= "MULTI_INSTANCE";
 	
+	/**
+	 * Where the azureus config (i.e. per-user type) state is stored
+	 * String value
+	 * @since 4.9.0.1
+	 */
+	
+	public static final String	PR_USER_DIRECTORY	= "USER_DIR";
+	
+	/**
+	 * Where azureus is 'installed'. For embedded use you probably want to set config and app
+	 * dir to a shared per-user location
+	 * String value
+	 * @since 4.9.0.1
+	 */
+	
+	public static final String	PR_APP_DIRECTORY	= "APP_DIR";
+
 	public static PluginManagerDefaults
 	getDefaults()
 	{

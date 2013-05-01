@@ -90,6 +90,22 @@ PluginManagerImpl
 			class_mon.exit();
 		}
 		
+		String	config_dir = (String)properties.get( PR_USER_DIRECTORY );
+		
+		if ( config_dir != null ){
+			
+			System.setProperty( "azureus.config.path", config_dir );
+		}
+		
+		String	user_dir = (String)properties.get( PR_APP_DIRECTORY );
+		
+		if ( user_dir != null ){
+			
+			System.setProperty( "azureus.install.path", user_dir );
+			System.setProperty( "user.dir", user_dir );
+		}
+		
+		
 			// there's a small window here when an immediate "stop" wouldn't work coz
 			// this code would carry on after the stop and start. However, can't easily
 			// fix this here...
