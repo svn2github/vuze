@@ -105,6 +105,20 @@ PluginManagerImpl
 			System.setProperty( "user.dir", user_dir );
 		}
 		
+		String	doc_dir = (String)properties.get( PR_DOC_DIRECTORY );
+		
+		if ( doc_dir != null ){
+			
+			System.setProperty( "azureus.doc.path", doc_dir );
+		}
+		
+		
+		String	disable_native = (String)properties.get( PR_DISABLE_NATIVE_SUPPORT );
+		
+		if ( disable_native != null && disable_native.equalsIgnoreCase( "true" )){
+		
+			System.setProperty( "azureus.platform.manager.disable", "true" );
+		}
 		
 			// there's a small window here when an immediate "stop" wouldn't work coz
 			// this code would carry on after the stop and start. However, can't easily

@@ -76,6 +76,23 @@ PluginManager
 	
 	public static final String	PR_APP_DIRECTORY	= "APP_DIR";
 
+	/**
+	 * Parent folder that contains the downloads directory
+	 * String value
+	 * @since 4.9.0.1
+	 */
+	
+	public static final String	PR_DOC_DIRECTORY	= "DOC_DIR";
+
+	/**
+	 * Set this to "true" (String) if you want to disable any native platform support
+	 * String value
+	 * @since 4.9.0.1
+	 */
+	
+	public static final String	PR_DISABLE_NATIVE_SUPPORT	= "DISABLE_NATIVE";
+
+	
 	public static PluginManagerDefaults
 	getDefaults()
 	{

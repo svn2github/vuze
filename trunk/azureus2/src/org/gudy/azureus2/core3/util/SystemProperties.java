@@ -453,6 +453,19 @@ public class SystemProperties {
   }
   
   public static String getDocPath() {
+	  String explicit_dir = System.getProperty( "azureus.doc.path", null );
+		  
+	  if ( explicit_dir != null ){
+		  File temp = new File( explicit_dir );
+		  if ( !temp.exists()){
+			  if ( !temp.mkdirs()){
+				  System.err.println( "Failed to create document dir: " + temp );
+			  }
+		  }else if ( !(temp.isDirectory() && temp.canWrite())){
+			  System.err.println( "Document dir is not a directory or not writable: " + temp );
+		  }
+		  return( temp.getAbsolutePath());
+	  }
 	  if ( PORTABLE ){
 		 
 		  return( getUserPath());
