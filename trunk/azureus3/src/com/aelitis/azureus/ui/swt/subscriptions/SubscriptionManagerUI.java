@@ -832,7 +832,7 @@ SubscriptionManagerUI
 		}
 		
 		mdiEntryOverview = mdi.createEntryFromEventListener(
-				MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS, 
+				MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY, 
 				new UISWTViewEventListenerHolder(
 						MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
 						SubscriptionsView.class, null, null),
@@ -844,12 +844,14 @@ SubscriptionManagerUI
 			
 		mdiEntryOverview.setImageLeftID("image.sidebar.subscriptions");
 
-		MdiEntry headerEntry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS);
-		if (headerEntry != null) {
-			setupHeader(mdi, headerEntry);
-		}
+		setupHeader(mdi, mdiEntryOverview);
 
-		String parentID = "sidebar." + MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS;
+//		MdiEntry headerEntry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY);
+//		if (headerEntry != null) {
+//			setupHeader(mdi, headerEntry);
+//		}
+
+		String parentID = "sidebar." + MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY;
 
 		MenuManager menu_manager = ui_manager.getMenuManager();
 		
@@ -1240,7 +1242,7 @@ SubscriptionManagerUI
 		final String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
 		
 		MdiEntry entry = mdi.createEntryFromEventListener(
-				MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS,
+				MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY,
 				new UISWTViewEventListenerHolder(key, SubscriptionView.class, subs, null),
 				key, false, subs, null);
 		entry.setViewTitleInfo(viewTitleInfo);

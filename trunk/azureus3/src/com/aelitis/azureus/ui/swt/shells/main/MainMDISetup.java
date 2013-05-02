@@ -151,8 +151,9 @@ public class MainMDISetup
 		MdiEntry entry;
 
 		String[] preferredOrder = new String[] {
-			MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
 			MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+			MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
+			MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY,
 			MultipleDocumentInterface.SIDEBAR_HEADER_DEVICES,
 			MultipleDocumentInterface.SIDEBAR_HEADER_SUBSCRIPTIONS,
 			MultipleDocumentInterface.SIDEBAR_HEADER_DVD,
@@ -161,8 +162,9 @@ public class MainMDISetup
 		mdi.setPreferredOrder(preferredOrder);
 
 		boolean[] disableCollapses = {
-			false,
 			true,
+			false,
+			false,
 			false,
 			false,
 			false,
@@ -224,7 +226,7 @@ public class MainMDISetup
 		mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_DEVICES, false);
 
 		entry = mdi.createEntryFromSkinRef(
-				MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
+				MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY,
 				ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork()),
 				"main.area.browsetab", "{sidebar.VuzeHDNetwork}",
 				null, null, false, null);
@@ -258,7 +260,7 @@ public class MainMDISetup
 					new MdiEntryCreationListener() {
 						public MdiEntry createMDiEntry(String id) {
 							MdiEntry entry = mdi.createEntryFromSkinRef(
-									MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
+									MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY,
 									MultipleDocumentInterface.SIDEBAR_SECTION_GAMES,
 									"main.generic.browse",
 									"{mdi.entry.games}", null, null, true,

@@ -15,6 +15,8 @@ public interface MultipleDocumentInterface
 
 	public static final String SIDEBAR_HEADER_TRANSFERS = "header.transfers";
 
+	public static final String SIDEBAR_HEADER_DISCOVERY = "header.discovery";
+
 	public static final String SIDEBAR_HEADER_DEVICES = "header.devices";
 
 	public static final String SIDEBAR_HEADER_DVD = "header.dvd";

@@ -980,7 +980,7 @@ public class UIFunctionsImpl
 		}
 
 		final MdiEntry entry = mdi.createEntryFromSkinRef(
-				MultipleDocumentInterface.SIDEBAR_HEADER_VUZE, id,
+				MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY, id,
 				"main.area.searchresultstab", sSearchText, null, sq, true, null);
 		if (entry != null) {
 			entry.setImageLeftID("image.sidebar.search");

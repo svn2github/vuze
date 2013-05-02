@@ -1538,7 +1538,7 @@ public class SideBar
 		boolean closeable = (prop instanceof Boolean)
 				? ((Boolean) prop).booleanValue() : false;
 		final SideBarEntrySWT entry = (SideBarEntrySWT) createEntryFromSkinRef(
-				SIDEBAR_HEADER_VUZE, entryID, "main.area.browsetab", name, null, cn,
+				SIDEBAR_HEADER_DISCOVERY, entryID, "main.area.browsetab", name, null, cn,
 				closeable, SIDEBAR_SECTION_WELCOME);
 
 		Image image = ImageLoader.getInstance().getImage("image.sidebar.vuze");
