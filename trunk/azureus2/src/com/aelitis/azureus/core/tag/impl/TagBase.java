@@ -22,18 +22,22 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
+import org.gudy.azureus2.core3.util.SimpleTimer;
 
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagException;
+import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.Taggable;
 
 public abstract class 
 TagBase
-	implements Tag
+	implements Tag, SimpleTimer.TimerTickReceiver
 {
 	protected static final String	AT_RATELIMIT_UP		= "rl.up";
 	protected static final String	AT_RATELIMIT_DOWN	= "rl.down";
@@ -82,6 +86,9 @@ TagBase
 	private Boolean	is_visible;
 	private Boolean	is_public;
 	
+	private TagFeatureRateLimit	tag_rl;
+	
+	
 	protected
 	TagBase(
 		TagTypeBase			_tag_type,
@@ -94,6 +101,11 @@ TagBase
 		
 		is_visible = readBooleanAttribute( AT_VISIBLE, null );
 		is_public = readBooleanAttribute( AT_PUBLIC, null );
+		
+		if ( this instanceof TagFeatureRateLimit ){
+			
+			tag_rl = (TagFeatureRateLimit)this;
+		}
 	}
 	
 	protected void
@@ -465,4 +477,127 @@ TagBase
 	{
 		tag_type.writeStringAttribute( this, attr, value );
 	}
+	
+	
+	private static final int HISTORY_MAX_SECS = 30*60;
+	private volatile boolean history_retention_required;
+	private long[]	history;
+	private int		history_pos;
+	private boolean	history_wrapped;
+	private boolean	timer_registered;
+	
+	public void
+	setRecentHistoryRetention(
+		boolean	required )
+	{
+		if ( tag_rl == null || !tag_rl.supportsTagRates()){
+			
+			return;
+		}
+		
+		synchronized( this ){
+			
+			if ( required ){
+				
+				if ( !history_retention_required ){
+					
+					history 	= new long[HISTORY_MAX_SECS];
+					
+					history_pos	= 0;
+					
+					history_retention_required = true;
+					
+					if ( !timer_registered ){
+						
+						SimpleTimer.addTickReceiver( this );
+						
+						timer_registered = true;
+					}
+				}
+			}else{
+				
+				history = null;
+				
+				history_retention_required = false;
+				
+				if ( timer_registered ){
+					
+					SimpleTimer.removeTickReceiver( this );
+					
+					timer_registered = false;
+				}
+			}
+		}
+	}
+	
+	public int[][]
+ 	getRecentHistory()
+ 	{
+ 		synchronized( this ){
+
+ 			if ( history == null ){
+ 		
+ 				return( new int[2][0] );
+ 				
+ 			}else{
+ 			
+ 				int	entries = history_wrapped?HISTORY_MAX_SECS:history_pos;
+ 				int	start	= history_wrapped?history_pos:0;
+ 				
+ 				int[][] result = new int[2][entries];
+ 				
+ 				int	pos = start;
+ 				
+ 				for ( int i=0;i<entries;i++){
+ 					
+ 					if ( pos == HISTORY_MAX_SECS ){
+ 						
+ 						pos = 0;
+ 					}
+ 					
+ 					long entry = history[pos++];
+ 					
+ 					int	send_rate 	= (int)((entry>>32)&0xffffffffL);
+ 					int	recv_rate 	= (int)((entry)    &0xffffffffL);
+ 					
+ 					result[0][i] = send_rate;
+ 					result[1][i] = recv_rate;
+  				}
+ 				
+ 				return( result );
+ 			}
+ 		}
+ 	}
+ 	
+ 	public void
+ 	tick(
+ 		int count )
+ 	{
+ 		if ( !history_retention_required ){
+ 			
+ 			return;
+ 		}
+ 		
+  		long send_rate 			= tag_rl.getTagCurrentUploadRate();
+ 		long receive_rate 		= tag_rl.getTagCurrentDownloadRate();
+ 		
+ 		long	entry = 
+ 			(((send_rate)<<32) & 0xffffffff00000000L ) |
+ 			(((receive_rate)   & 0x00000000ffffffffL ));
+  			
+ 		
+ 		synchronized( this ){
+ 			
+ 			if ( history != null ){
+ 				
+ 				history[history_pos++] = entry;
+ 				
+ 				if ( history_pos == HISTORY_MAX_SECS ){
+ 					
+ 					history_pos 	= 0;
+ 					history_wrapped	= true;
+ 				}
+ 			}
+ 		}
+ 	}
 }

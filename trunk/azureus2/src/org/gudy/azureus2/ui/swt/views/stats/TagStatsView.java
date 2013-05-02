@@ -158,7 +158,7 @@ public class TagStatsView
 		tag_types	= TagUIUtils.sortTagTypes( tag_types );
 		
 		List<TagFeatureRateLimit>	visible_tags = new ArrayList<TagFeatureRateLimit>();
-		
+				
 		for ( TagType tag_type: tag_types ){
 						
 			if ( tag_type.hasTagTypeFeature( TagFeature.TF_RATE_LIMIT )){
@@ -240,59 +240,23 @@ public class TagStatsView
 	    
 	    final int[] hovered_source = {-1};
 	    
+		List<int[]>	history_records 	= new ArrayList<int[]>();
+		int			history_record_max	= 0;
+		
 	    for ( int i=0;i<visible_tags.size();i++ ){
 	    	
-	    	final int f_i = i;
-	    	
 	    	final TagFeatureRateLimit tag = visible_tags.get(i);
-	    	
-	    	sources.add(
-		    	new ValueSource()
-		    	{
-		    		public String
-		    		getName()
-		    		{
-		    			return( text_array[f_i] );
-		    		}
-		    		
-		    		public Color 
-		    		getLineColor() 
-		    		{
-		    			return( color_array[f_i]);
-		    		}
-		    		
-		    		public boolean
-		    		isTrimmable()
-		    		{
-		    			return( false );
-		    		}
-		    		
-		    		public int 
-		    		getStyle() 
-		    		{
-		    			int	style = STYLE_DOWN;
-		    			
-		    			if ( hovered_source[0] == f_i ){
-		    				
-		    				style |= STYLE_BOLD;
-		    			}
-		    			
-		    			return( style );
-		    		}
-		    		
-		    		public int
-		    		getValue()
-		    		{
-		    			int rate = tag.getTagCurrentDownloadRate();
-		    			
-		    			if ( rate < 0 ){
-		    				
-		    				rate = 0;
-		    			}
-		    			
-		    			return( rate );
-		    		}
-		    	});
+
+			tag.setRecentHistoryRetention( true );
+			
+			int[][] history = tag.getRecentHistory();
+			
+			history_record_max = Math.max( history[0].length, history_record_max );
+			
+			history_records.add( history[0] );
+			history_records.add( history[1] );
+
+	    	final int f_i = i;
 	    	
 	    	sources.add(
 			    	new ValueSource()
@@ -341,6 +305,54 @@ public class TagStatsView
 			    			return( rate );
 			    		}
 			    	});
+	    	
+	    	sources.add(
+			    	new ValueSource()
+			    	{
+			    		public String
+			    		getName()
+			    		{
+			    			return( text_array[f_i] );
+			    		}
+			    		
+			    		public Color 
+			    		getLineColor() 
+			    		{
+			    			return( color_array[f_i]);
+			    		}
+			    		
+			    		public boolean
+			    		isTrimmable()
+			    		{
+			    			return( false );
+			    		}
+			    		
+			    		public int 
+			    		getStyle() 
+			    		{
+			    			int	style = STYLE_DOWN;
+			    			
+			    			if ( hovered_source[0] == f_i ){
+			    				
+			    				style |= STYLE_BOLD;
+			    			}
+			    			
+			    			return( style );
+			    		}
+			    		
+			    		public int
+			    		getValue()
+			    		{
+			    			int rate = tag.getTagCurrentDownloadRate();
+			    			
+			    			if ( rate < 0 ){
+			    				
+			    				rate = 0;
+			    			}
+			    			
+			    			return( rate );
+			    		}
+			    	});
 	    };
 		
 	    ValueFormater formatter =
@@ -363,6 +375,23 @@ public class TagStatsView
 
 		final MultiPlotGraphic f_mpg = mpg = MultiPlotGraphic.getInstance( sources.toArray( new ValueSource[ sources.size()]), formatter );
 
+		int[][] history = new int[history_records.size()][];
+		
+		for ( int i=0;i<history.length;i++){
+			int[] 	hist 		= history_records.get(i);
+			int		hist_len 	= hist.length;
+			
+			if ( hist_len == history_record_max ){
+				history[i] = hist;
+			}else{
+				int[] temp = new int[history_record_max];
+				System.arraycopy( hist, 0, temp, history_record_max-hist_len, hist_len );
+				history[i] = temp;
+			}
+		}
+		
+		mpg.reset( history );
+		
 	    GridData gridData;
 	    
 				

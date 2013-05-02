@@ -399,7 +399,7 @@ DownloadManagerStatsImpl
 		}
 	}
 	
-	private static final int HISTORY_DIV = 512;
+	private static final int HISTORY_DIV = 16;
 	
 	public int[][]
 	getRecentHistory()
@@ -428,9 +428,9 @@ DownloadManagerStatsImpl
 					
 					long entry = history[pos++];
 					
-					int	send_rate 	= (int)((entry>>32)&0x0000ffffL);
-					int	recv_rate 	= (int)((entry>>16)&0x0000ffffL);
-					int	swarm_rate 	= (int)((entry)&0x0000ffffL);
+					int	send_rate 	= (int)((entry>>42)&0x001fffffL);
+					int	recv_rate 	= (int)((entry>>21)&0x001fffffL);
+					int	swarm_rate 	= (int)((entry)&0x001fffffL);
 					
 					result[0][i] = send_rate*HISTORY_DIV;
 					result[1][i] = recv_rate*HISTORY_DIV;
@@ -464,9 +464,9 @@ DownloadManagerStatsImpl
 		long peer_swarm_average = stats.getTotalAverage();
 		
 		long	entry = 
-			((((send_rate-1+HISTORY_DIV/2)/HISTORY_DIV)<<32) 	& 0x0000ffff00000000L ) |
-			((((receive_rate-1+HISTORY_DIV/2)/HISTORY_DIV)<<16)  & 0x00000000ffff0000L ) |
-			((((peer_swarm_average-1+HISTORY_DIV/2)/HISTORY_DIV))& 0x000000000000ffffL );
+			((((send_rate-1+HISTORY_DIV/2)/HISTORY_DIV)<<32) 	&  0xeffffc0000000000L ) |
+			((((receive_rate-1+HISTORY_DIV/2)/HISTORY_DIV)<<16)  & 0x000003ffffe00000L ) |
+			((((peer_swarm_average-1+HISTORY_DIV/2)/HISTORY_DIV))& 0x00000000001fffffL );
 			
 		
 		synchronized( this ){

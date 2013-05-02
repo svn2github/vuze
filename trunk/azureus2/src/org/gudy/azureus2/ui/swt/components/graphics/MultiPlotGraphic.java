@@ -144,19 +144,6 @@ MultiPlotGraphic
 	{
 	  	super.initialize(canvas);
 	  	
-	  	canvas.addMouseTrackListener(new MouseTrackListener() {
-				public void mouseHover(MouseEvent e) {
-				}
-			
-				public void mouseExit(MouseEvent e) {
-					
-				}
-			
-				public void mouseEnter(MouseEvent e) {
-					
-				}
-			});
-	  	
 	  	drawCanvas.addPaintListener(new PaintListener() {
 				public void paintControl(PaintEvent e) {
 					if (bufferImage != null && !bufferImage.isDisposed()) {
@@ -575,8 +562,7 @@ MultiPlotGraphic
 																	
 									if ( h1 != prev_y[chartIdx] || force_draw ){
 										
-										boolean bold = ( source.getStyle() & ValueSource.STYLE_BOLD ) != 0;
-										gcImage.setLineWidth( trimmed==2?3:bold?4:2 );
+										gcImage.setLineWidth( trimmed==2?3:is_bold?4:2 );
 										gcImage.setForeground( line_color );
 
 										gcImage.drawLine(xDraw+1, prev_y[chartIdx], prev_x[chartIdx], prev_y[chartIdx]);

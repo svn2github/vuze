@@ -53,4 +53,11 @@ TagFeatureRateLimit
 	
 	public int
 	getTagCurrentDownloadRate();
+	
+	public void
+	setRecentHistoryRetention(
+		boolean	enable );
+	
+	public int[][]
+	getRecentHistory();
 }
