@@ -151,6 +151,12 @@ DownloadActivityView
 	    			return( false );
 	    		}
 	    		
+	    		public int 
+	    		getStyle() 
+	    		{
+	    			return( STYLE_NONE );
+	    		}
+	    		
 	    		public int
 	    		getValue()
 	    		{
@@ -186,6 +192,12 @@ DownloadActivityView
 	    			return( false );
 	    		}
 	    		
+	    		public int 
+	    		getStyle() 
+	    		{
+	    			return( STYLE_NONE );
+	    		}
+	    		
 	    		public int
 	    		getValue()
 	    		{
@@ -219,6 +231,12 @@ DownloadActivityView
 	    		isTrimmable()
 	    		{
 	    			return( true );
+	    		}
+	    		
+	    		public int 
+	    		getStyle() 
+	    		{
+	    			return( STYLE_NONE );
 	    		}
 	    		
 	    		public int

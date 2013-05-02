@@ -26,6 +26,11 @@ import org.eclipse.swt.graphics.Color;
 public interface 
 ValueSource 
 {
+	public static final int STYLE_NONE	= 0x00000000;
+	public static final int STYLE_UP	= 0x00000001;
+	public static final int STYLE_DOWN	= 0x00000002;
+	public static final int STYLE_NAMED	= 0x00000004;
+	
 	public String
 	getName();
 	
@@ -37,4 +42,7 @@ ValueSource
 	
 	public int
 	getValue();
+	
+	public int
+	getStyle();
 }

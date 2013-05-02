@@ -566,11 +566,38 @@ MultiPlotGraphic
 								average_mod = max;
 							}
 							
+							int	style = source.getStyle();
+							
 							int height = bounds.height - scale.getScaledValue( average_mod) - 2;
 							
 							gcImage.setForeground( source.getLineColor());
 							
 							gcImage.drawText(formater.format( average_val ), bounds.width - 65, height - 12, false);
+							
+							Color bg = gcImage.getBackground();
+							
+							if (( style & ValueSource.STYLE_DOWN ) != 0 ){
+								
+								int	x = bounds.width - 72;
+								int y = height - 12;
+								
+								gcImage.setBackground( source.getLineColor());
+
+								gcImage.fillPolygon(new int[] { x, y, x+7, y, x+3, y+7 });
+								
+								gcImage.setBackground( bg );
+								
+							}else  if (( style & ValueSource.STYLE_UP ) != 0 ){
+								
+								int	x = bounds.width - 72;
+								int y = height - 12;
+								
+								gcImage.setBackground( source.getLineColor());
+
+								gcImage.fillPolygon(new int[] { x, y+7, x+7, y+7, x+3, y });
+								
+								gcImage.setBackground( bg );
+							}
 						}
 					}
 				}

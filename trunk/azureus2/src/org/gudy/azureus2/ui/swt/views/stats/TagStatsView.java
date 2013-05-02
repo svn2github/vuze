@@ -305,6 +305,12 @@ public class TagStatsView
 		    			return( false );
 		    		}
 		    		
+		    		public int 
+		    		getStyle() 
+		    		{
+		    			return( STYLE_DOWN );
+		    		}
+		    		
 		    		public int
 		    		getValue()
 		    		{
@@ -339,6 +345,12 @@ public class TagStatsView
 			    		{
 			    			return( false );
 			    		}
+			    		
+			    		public int 
+			    		getStyle() 
+			    		{
+			    			return( STYLE_UP );
+			    		}			    		
 			    		
 			    		public int
 			    		getValue()
