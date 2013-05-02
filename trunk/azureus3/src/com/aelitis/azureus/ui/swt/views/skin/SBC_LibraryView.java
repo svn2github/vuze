@@ -45,6 +45,7 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.*;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarEnablerBase;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -191,6 +192,8 @@ public class SBC_LibraryView
 
 	private Object datasource;
 
+	private MdiEntry currentEntry;
+
 	public void setViewMode(int viewMode, boolean save) {
 		if (viewMode >= modeViewIDs.length || viewMode < 0
 				|| viewMode == this.viewMode) {
@@ -240,9 +243,9 @@ public class SBC_LibraryView
 
 		if (entryID != null) {
 			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-			MdiEntry entry = mdi.getEntry(entryID);
-			if (entry != null) {
-				entry.setLogID(entryID + "-" + viewMode);
+			currentEntry = mdi.getEntry(entryID);
+			if (currentEntry != null) {
+				currentEntry.setLogID(entryID + "-" + viewMode);
 			}
 		}
 
