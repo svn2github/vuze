@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 /**
  * @author Olivier
@@ -71,6 +70,8 @@ MultiPlotGraphic
 	private int[][]				all_values;
 	private int					currentPosition	= 0;
   
+	private boolean				update_outstanding = false;
+	
 	private TimerEventPeriodic	update_event;
 	
 	private 
@@ -122,6 +123,8 @@ MultiPlotGraphic
 				currentPosition = nbValues;
 			}
 		}
+		
+		update_outstanding = true;
 	}
 	
 	public void 
@@ -283,6 +286,21 @@ MultiPlotGraphic
 	    	
 	    	this_mon.exit();
 	    }
+	    
+	    if ( update_outstanding ){
+	    
+	    	update_outstanding = false;
+	    	
+			Utils.execSWTThread(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						refresh( true );
+					}
+				});
+	    }
 	}
   
   
@@ -291,6 +309,7 @@ MultiPlotGraphic
 		boolean force ) 
 	{
 		if ( drawCanvas == null || drawCanvas.isDisposed()){
+			
 			return;
 		}
 		
@@ -371,18 +390,20 @@ MultiPlotGraphic
 			drawScale( sizeChanged );
 			
 			if ( bufferScale == null || bufferScale.isDisposed()){
+				
 				return;
 			}
 			
 			Rectangle bounds = drawCanvas.getClientArea();
 			
-			if (bounds.isEmpty()){
+			if ( bounds.isEmpty()){
 				return;
 			}
 			
 				//If bufferedImage is not null, dispose it
 			
 			if (bufferImage != null && !bufferImage.isDisposed()){
+				
 				bufferImage.dispose();
 			}
 			
@@ -399,22 +420,26 @@ MultiPlotGraphic
 			
 			int[] maxs = new int[all_values.length];
 			
-			for (int x = 0; x < bounds.width - 71; x++)
-			{
+			for (int x = 0; x < bounds.width - 71; x++){
+			
 				int position = currentPosition - x - 1;
-				if (position < 0)
-				{
+				
+				if ( position < 0 ){
+					
 					position += maxEntries;
-					if (position < 0)
-					{
+					
+					if ( position < 0 ){
+						
 						position = 0;
 					}
 				}
-				for (int chartIdx = 0; chartIdx < all_values.length; chartIdx++)
-				{
+				
+				for (int chartIdx = 0; chartIdx < all_values.length; chartIdx++){
+				
 					int value = all_values[chartIdx][position];
-					if (value > maxs[chartIdx])
-					{
+					
+					if (value > maxs[chartIdx]){
+						
 						maxs[chartIdx] = value;
 					}
 				}

@@ -92,7 +92,7 @@ TagDownloadWithState
 			}
 		}; 
 		
-		
+	private boolean	do_rates;
 	private boolean	do_up;
 	private boolean	do_down;
 		
@@ -101,13 +101,13 @@ TagDownloadWithState
 		TagTypeBase		tt,
 		int				tag_id,
 		String			name,
-		boolean			auto_add,
+		boolean			do_rates,
 		boolean			do_up,
 		boolean			do_down )
 	{
-		super( tt, tag_id, name, auto_add );
+		super( tt, tag_id, name );
 		
-		init( do_up, do_down );
+		init( do_rates, do_up, do_down );
 	}
 	
 	protected
@@ -115,19 +115,22 @@ TagDownloadWithState
 		TagTypeBase		tt,
 		int				tag_id,
 		Map				details,
+		boolean			do_rates,
 		boolean			do_up,
 		boolean			do_down )
 	{
 		super( tt, tag_id, details );
 		
-		init( do_up, do_down );
+		init( do_rates, do_up, do_down );
 	}
 	
 	private void
 	init(
+		boolean		_do_rates,
 		boolean		_do_up,
 		boolean		_do_down )
 	{
+		do_rates	= _do_rates;
 		do_up		= _do_up;
 		do_down		= _do_down;
 		
@@ -194,6 +197,12 @@ TagDownloadWithState
 	}
 	
 	public boolean
+	supportsTagRates()
+	{
+		return( do_rates );
+	}
+	
+	public boolean
 	supportsTagUploadLimit()
 	{
 		return( do_up );
@@ -225,7 +234,7 @@ TagDownloadWithState
 	{
 		updateRates();
 		
-		return( download_rate );
+		return( upload_rate );
 	}
 	
 	public int
@@ -248,7 +257,7 @@ TagDownloadWithState
 	{
 		updateRates();
 		
-		return( upload_rate );
+		return( download_rate );
 	}
 	
 	private void
@@ -258,8 +267,8 @@ TagDownloadWithState
 		
 		if ( now - last_rate_update > 2500 ){ 
 			
-			int	new_up;
-			int new_down;
+			int	new_up		= 0;
+			int new_down	= 0;
 			
 			Set<DownloadManager> dms = getTaggedDownloads();
 			

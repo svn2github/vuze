@@ -3513,18 +3513,18 @@ public class GlobalManagerImpl
 						
 				// keep these ids constant as they are externalised
 			
-			tag_initialising		= new MyTag( 0, "tag.type.ds.init", false, false ); 
-			tag_downloading			= new MyTag( 1, "tag.type.ds.down", true, true );
-			tag_seeding				= new MyTag( 2, "tag.type.ds.seed", true, false );
-			tag_queued_downloading	= new MyTag( 3, "tag.type.ds.qford", false, false );
-			tag_queued_seeding		= new MyTag( 4, "tag.type.ds.qfors", false, false );
-			tag_stopped				= new MyTag( 5, "tag.type.ds.stop", false, false );
-			tag_error				= new MyTag( 6, "tag.type.ds.err", false, false );
-			tag_active				= new MyTag( 7, "tag.type.ds.act", false, false );
-			tag_paused				= new MyTag( 8, "tag.type.ds.pau", false, false );
-			tag_inactive			= new MyTag( 9, "tag.type.ds.inact", false, false ); 
-			tag_complete			= new MyTag( 10, "tag.type.ds.comp", true, false );
-			tag_incomplete			= new MyTag( 11, "tag.type.ds.incomp", true, true );
+			tag_initialising		= new MyTag( 0, "tag.type.ds.init", false, false, false ); 
+			tag_downloading			= new MyTag( 1, "tag.type.ds.down", true, true, true );
+			tag_seeding				= new MyTag( 2, "tag.type.ds.seed", true, true, false );
+			tag_queued_downloading	= new MyTag( 3, "tag.type.ds.qford", false, false, false );
+			tag_queued_seeding		= new MyTag( 4, "tag.type.ds.qfors", false, false, false );
+			tag_stopped				= new MyTag( 5, "tag.type.ds.stop", false, false, false );
+			tag_error				= new MyTag( 6, "tag.type.ds.err", false, false, false );
+			tag_active				= new MyTag( 7, "tag.type.ds.act", true, false, false );
+			tag_paused				= new MyTag( 8, "tag.type.ds.pau", false, false, false );
+			tag_inactive			= new MyTag( 9, "tag.type.ds.inact", false, false, false ); 
+			tag_complete			= new MyTag( 10, "tag.type.ds.comp", true, true, false );
+			tag_incomplete			= new MyTag( 11, "tag.type.ds.incomp", true, true, true );
 			
 			_gm.addListener( 
 				new GlobalManagerAdapter()
@@ -3792,10 +3792,13 @@ public class GlobalManagerImpl
 			MyTag(
 				int				tag_id,
 				String			name,
+				boolean			do_rates,
 				boolean			do_up,
 				boolean			do_down )
 			{
-				super( DownloadStateTagger.this, tag_id, name, true, do_up, do_down );
+				super( DownloadStateTagger.this, tag_id, name, do_rates, do_up, do_down );
+				
+				addTag();
 			}
 			
 			protected boolean 

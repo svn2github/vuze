@@ -3481,7 +3481,9 @@ SpeedLimitHandler
 			TagPeerImpl(
 				int		tag_id )
 			{
-				super( ip_set_tag_type, tag_id, name, true );
+				super( ip_set_tag_type, tag_id, name );
+				
+				addTag();
 			}
 			
 			public int 
@@ -3654,6 +3656,12 @@ SpeedLimitHandler
 				}
 			}
 			
+			public boolean
+			supportsTagRates()
+			{
+				return( true );
+			}
+			 
 			public boolean
 			supportsTagUploadLimit()
 			{

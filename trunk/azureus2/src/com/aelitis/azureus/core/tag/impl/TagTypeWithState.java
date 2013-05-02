@@ -91,7 +91,7 @@ TagTypeWithState
 		
 		if ( t instanceof TagWithState ){
 		
-			getManager().tagCreated((TagWithState)t );
+			getTagManager().tagCreated((TagWithState)t );
 		}
 		
 		super.addTag( t );		
@@ -105,7 +105,7 @@ TagTypeWithState
 		
 		if ( t instanceof TagWithState ){
 			
-			getManager().tagRemoved((TagWithState)t );
+			getTagManager().tagRemoved((TagWithState)t );
 		}
 		
 		super.removeTag( t );		

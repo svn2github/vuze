@@ -88,8 +88,8 @@ TagTypeBase
 		manager.addTagType( this );
 	}
 	
-	protected TagManagerImpl
-	getManager()
+	public TagManagerImpl
+	getTagManager()
 	{
 		return( manager );
 	}

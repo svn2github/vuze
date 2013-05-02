@@ -31,10 +31,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.ColorDialog;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -57,25 +55,39 @@ public class Legend {
 	 * @param keys array of keys for each legend entry
 	 * @return The composite containing the legend
 	 */
-	public static Composite createLegendComposite(Composite panel,
-			Color[] blockColors, String[] keys ) {
+	public static Composite 
+	createLegendComposite(
+		Composite panel,
+		Color[] blockColors, 
+		String[] keys ) 
+	{
 		return( createLegendComposite( panel, blockColors, keys, true ));
 	}
 	
-	public static Composite createLegendComposite(Composite panel,
-			Color[] blockColors, String[] keys, boolean horizontal ) {
+	public static Composite 
+	createLegendComposite(
+		Composite panel,
+		Color[] blockColors, 
+		String[] keys, 
+		boolean horizontal ) 
+	{
 		Object layout = panel.getLayout();
 		Object layoutData = null;
 		if (layout instanceof GridLayout)
 			layoutData = new GridData(GridData.FILL_HORIZONTAL);
 
-		return createLegendComposite(panel, blockColors, keys, layoutData, horizontal );
+		return createLegendComposite(panel, blockColors, keys, null, layoutData, horizontal );
 	}
 
 
-	public static Composite createLegendComposite(final Composite panel,
-			final Color[] blockColors, final String[] keys, Object layoutData) {
-		return( createLegendComposite( panel, blockColors, keys, layoutData, true ));
+	public static Composite 
+	createLegendComposite(
+		final Composite panel,
+		final Color[] blockColors, 
+		final String[] keys, 
+		Object layoutData) 
+	{
+		return( createLegendComposite( panel, blockColors, keys, null, layoutData, true ));
 	}
 	/**
 	 * Create a legend containing a modifyable color box and description
@@ -87,8 +99,15 @@ public class Legend {
 	 * @param layoutData How to layout the legend (ie. GridData, LayoutData, etc)
 	 * @return The composite containing the legend
 	 */
-	public static Composite createLegendComposite(final Composite panel,
-			final Color[] blockColors, final String[] keys, Object layoutData, boolean horizontal) {
+	public static Composite 
+	createLegendComposite(
+		final Composite panel,
+		final Color[] blockColors, 
+		final String[] keys, 
+		final String[] key_texts,
+		Object layoutData, 
+		boolean horizontal) 
+	{
 		
 		final ConfigurationManager config = ConfigurationManager.getInstance();
 
@@ -162,8 +181,13 @@ public class Legend {
 			});
 
 			Label lblDesc = new Label(colorSet, SWT.NULL);
-			Messages.setLanguageText(lblDesc, keys[i]);
-
+			
+			if ( key_texts == null ){
+				Messages.setLanguageText(lblDesc, keys[i]);
+			}else{
+				lblDesc.setText( key_texts[i] );
+			}
+			
 			data = new RowData();
 			data.width = 20;
 			data.height = lblDesc.computeSize(SWT.DEFAULT, SWT.DEFAULT).y - 3;

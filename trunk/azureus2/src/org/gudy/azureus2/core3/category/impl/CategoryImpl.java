@@ -123,7 +123,8 @@ CategoryImpl
 		});
 
   public CategoryImpl(CategoryManagerImpl manager, String sName, int maxup, int maxdown, Map<String,String> _attributes ) {
-	super( manager, tag_ids.incrementAndGet(), sName, true );
+	super( manager, tag_ids.incrementAndGet(), sName );
+	addTag();
 	
     this.sName = sName;
     this.type = Category.TYPE_USER;
@@ -133,7 +134,9 @@ CategoryImpl
   }
 
   public CategoryImpl(CategoryManagerImpl manager, String sName, int type, Map<String,String> _attributes) {
-	super( manager, tag_ids.incrementAndGet(), sName, true );
+	super( manager, tag_ids.incrementAndGet(), sName);
+	addTag();
+	
     this.sName = sName;
     this.type = type;
     attributes = _attributes;
@@ -413,6 +416,12 @@ CategoryImpl
 		  }
 	  }
 	  return( super.getTagName(localize));
+  }
+	
+  public boolean
+  supportsTagRates()
+  {
+	  return( false );
   }
 	
   public boolean

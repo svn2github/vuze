@@ -22,7 +22,7 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -47,10 +47,9 @@ TagWithState
 	TagWithState(
 		TagTypeBase			tt,
 		int					tag_id,
-		String				name,
-		boolean				auto_add )
+		String				name )
 	{
-		super( tt, tag_id, name, auto_add );		
+		super( tt, tag_id, name );		
 	}
 	
 	protected
@@ -59,7 +58,9 @@ TagWithState
 		int					tag_id,
 		Map					map )
 	{
-		super( tt, tag_id, MapUtils.getMapString( map, "n", "" ), true );
+		super( tt, tag_id, MapUtils.getMapString( map, "n", "" ));
+		
+		addTag();
 		
 		if ( map != null ){
 			
@@ -188,7 +189,7 @@ TagWithState
 	
 	public Set<Taggable>
 	getTagged()
-	{
-		return( objects.getSet());
+	{			
+		return(objects.getSet());
 	}
 }

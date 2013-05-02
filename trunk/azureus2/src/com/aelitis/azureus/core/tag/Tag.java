@@ -84,6 +84,13 @@ Tag
 	setImageID(
 		String		id );
 	
+	public int[]
+	getColor();
+	
+	public void
+	setColor(
+		int[]		rgb );
+	
 	public void
 	addTaggable(
 		Taggable	t );

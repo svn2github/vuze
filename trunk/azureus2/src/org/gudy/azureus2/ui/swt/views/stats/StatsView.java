@@ -168,6 +168,10 @@ public class StatsView
 							VivaldiView.DHT_TYPE_CVS);
 				}
 
+				pluginUI.addView(UISWTInstance.VIEW_STATISTICS,
+						TagStatsView.MSGID_PREFIX, TagStatsView.class,
+						null );
+
 				registeredCoreSubViews = true;
 			}
 

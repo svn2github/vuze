@@ -91,6 +91,9 @@ TagType
 	public void
 	removeTagType();
 	
+	public TagManager
+	getTagManager();
+	
 	public void
 	addTagTypeListener(
 		TagTypeListener		listener,

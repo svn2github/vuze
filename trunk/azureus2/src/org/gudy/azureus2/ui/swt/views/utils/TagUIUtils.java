@@ -42,6 +42,7 @@ import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
+import org.gudy.azureus2.ui.swt.views.stats.StatsView;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -232,7 +233,16 @@ public class TagUIUtils
 						}
 					}
 				});
-					
+				
+				menuItem = menuManager.addMenuItem( menu, "tag.show.stats");
+				
+				menuItem.addListener(new org.gudy.azureus2.plugins.ui.menus.MenuItemListener() {
+					public void selected(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object target) {
+						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+						uiFunctions.getMDI().loadEntryByID(StatsView.VIEW_ID, true, false, "TagStatsView");
+
+					}
+				});
 			}
 		});
 		
@@ -652,13 +662,15 @@ public class TagUIUtils
 				itemOptions.setEnabled(false);
 			}
 		}
-		
-		if ( tag.canBePublic()){
+
+		if ( needs_separator_next ){
 			
-			if ( needs_separator_next ){
-				
-				new MenuItem( menu, SWT.SEPARATOR);
-			}
+			new MenuItem( menu, SWT.SEPARATOR);
+			
+			needs_separator_next = false;
+		}
+
+		if ( tag.canBePublic()){
 			
 			needs_separator_next = true;
 			
@@ -675,9 +687,23 @@ public class TagUIUtils
 				}});
 		}
 		
+		needs_separator_next = true;
+
+		MenuItem itemShowStats = new MenuItem(menu, SWT.PUSH);
+		
+		Messages.setLanguageText(itemShowStats, "tag.show.stats");
+		itemShowStats.addListener(SWT.Selection, new Listener() {
+			public void handleEvent( Event event ){
+				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+				uiFunctions.getMDI().loadEntryByID(StatsView.VIEW_ID, true, false, "TagStatsView");
+			}
+		});
+		
 		if ( needs_separator_next ){
 		
 			new MenuItem( menu, SWT.SEPARATOR);
+			
+			needs_separator_next = false;
 		}
 
 		if ( tag.getTagType().isTagTypeAuto()){
@@ -958,7 +984,7 @@ public class TagUIUtils
 		});
 	}
 	
-	private static List<TagType>
+	public static List<TagType>
 	sortTagTypes(
 		Collection<TagType>	_tag_types )
 	{
@@ -979,7 +1005,7 @@ public class TagUIUtils
 		return( tag_types );
 	}
 	
-	private static List<Tag>
+	public static List<Tag>
 	sortTags(
 		Collection<Tag>	_tags )
 	{

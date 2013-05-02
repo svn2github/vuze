@@ -26,6 +26,9 @@ TagFeatureRateLimit
 	extends TagFeature
 {
 	public boolean
+	supportsTagRates();
+	
+	public boolean
 	supportsTagUploadLimit();
 	
 	public boolean

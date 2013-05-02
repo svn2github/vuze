@@ -99,7 +99,7 @@ DownloadActivityView
 			gridData = new GridData( GridData.FILL_VERTICAL );
 			gridData.verticalAlignment = SWT.CENTER;
 			
-			Legend.createLegendComposite(panel, colors, color_configs, gridData, false );
+			Legend.createLegendComposite(panel, colors, color_configs, null, gridData, false );
 		}
 
 	    Composite gSpeed = new Composite(panel,SWT.NULL);
@@ -111,7 +111,7 @@ DownloadActivityView
 	    	
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			
-			Legend.createLegendComposite(panel, colors, color_configs, gridData, true );
+			Legend.createLegendComposite(panel, colors, color_configs, null, gridData, true );
 
 	    }
 	    

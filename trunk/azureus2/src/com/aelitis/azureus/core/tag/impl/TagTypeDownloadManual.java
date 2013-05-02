@@ -63,8 +63,13 @@ TagTypeDownloadManual
 	
 		throws TagException
 	{
-		TagDownloadWithState new_tag = new TagDownloadWithState( this, next_tag_id.incrementAndGet(), name, auto_add, true, true );
+		TagDownloadWithState new_tag = new TagDownloadWithState( this, next_tag_id.incrementAndGet(), name, true, true, true );
 				
+		if ( auto_add ){
+			
+			addTag( new_tag );
+		}
+		
 		return( new_tag );
 	}
 	
@@ -73,7 +78,7 @@ TagTypeDownloadManual
 		int		tag_id,
 		Map		details )
 	{
-		TagDownloadWithState new_tag = new TagDownloadWithState( this, tag_id, details, true, true );
+		TagDownloadWithState new_tag = new TagDownloadWithState( this, tag_id, details, true, true, true );
 		
 		next_tag_id.set( Math.max( next_tag_id.get(), tag_id+1 ));
 		

@@ -42,6 +42,7 @@ TagBase
 	protected static final String	AT_CAN_BE_PUBLIC	= "canpub";
 	protected static final String	AT_ORIGINAL_NAME	= "oname";
 	protected static final String	AT_IMAGE_ID			= "img.id";
+	protected static final String	AT_COLOR_ID			= "col.rgb";
 	  
 	private TagTypeBase	tag_type;
 	
@@ -85,8 +86,7 @@ TagBase
 	TagBase(
 		TagTypeBase			_tag_type,
 		int					_tag_id,
-		String				_tag_name,
-		boolean				_auto_add )
+		String				_tag_name )
 	{
 		tag_type		= _tag_type;
 		tag_id			= _tag_id;
@@ -94,17 +94,18 @@ TagBase
 		
 		is_visible = readBooleanAttribute( AT_VISIBLE, null );
 		is_public = readBooleanAttribute( AT_PUBLIC, null );
-		
-		if ( _auto_add ){
-		
-			tag_type.addTag( this );
-		}
+	}
+	
+	protected void
+	addTag()
+	{
+		tag_type.addTag( this );
 	}
 	
 	protected TagManagerImpl
 	getManager()
 	{
-		return( tag_type.getManager());
+		return( tag_type.getTagManager());
 	}
 	
 	public TagTypeBase
@@ -222,7 +223,7 @@ TagBase
 			return( false );
 		}
 		
-		return( tag_type.getManager().getTagPublicDefault());
+		return( tag_type.getTagManager().getTagPublicDefault());
 	}
 	
 	public void
@@ -291,6 +292,64 @@ TagBase
 		String		id )
 	{
 		writeStringAttribute( AT_IMAGE_ID, id );
+	}
+	
+	private int[]
+	decodeRGB(
+		String str )
+	{
+		if ( str == null ){
+			
+			return( null );
+		}
+		
+		String[] bits = str.split( "," );
+		
+		if ( bits.length != 3 ){
+			
+			return( null );
+		}
+		
+		int[] rgb = new int[3];
+		
+		for ( int i=0;i<bits.length;i++){
+			
+			try{
+				
+				rgb[i] = Integer.parseInt(bits[i]);
+				
+			}catch( Throwable e ){
+				
+				return( null );
+			}
+		}
+		
+		return( rgb );
+	}
+	
+	private String
+	encodeRGB(
+		int[]	rgb )
+	{
+		if ( rgb == null || rgb.length != 3 ){
+			
+			return( null );
+		}
+		
+		return( rgb[0]+","+rgb[1]+","+rgb[2] );
+	}
+	
+	public int[]
+	getColor()
+	{
+		return( decodeRGB( readStringAttribute( AT_COLOR_ID, null )));
+	}
+	
+	public void
+	setColor(
+		int[]		rgb )
+	{
+		writeStringAttribute( AT_COLOR_ID, encodeRGB( rgb ));
 	}
 	
 	public void
