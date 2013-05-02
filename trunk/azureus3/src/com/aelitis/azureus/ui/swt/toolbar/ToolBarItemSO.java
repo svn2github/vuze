@@ -128,7 +128,7 @@ public class ToolBarItemSO
 		setEnabled((state & STATE_ENABLED) > 0);
 		isDown = (state & STATE_DOWN) > 0;
 		if (skinButton != null) {
-			skinButton.getSkinObject().switchSuffix(isDown ? "-selected" : "", 2, false);
+			skinButton.getSkinObject().switchSuffix(isDown ? "-selected" : "", 4, false);
 		}
 	}
 
