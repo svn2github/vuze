@@ -32,6 +32,7 @@ import org.eclipse.swt.layout.RowData;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
@@ -108,7 +109,19 @@ public class Legend {
 		Object layoutData, 
 		boolean horizontal) 
 	{
-		
+		return( createLegendComposite( panel, blockColors, keys, key_texts, layoutData, horizontal, null ));
+	}
+	
+	public static Composite 
+	createLegendComposite(
+		final Composite panel,
+		final Color[] blockColors, 
+		final String[] keys, 
+		final String[] key_texts,
+		Object layoutData, 
+		boolean horizontal,
+		final LegendListener	listener ) 
+	{	
 		final ConfigurationManager config = ConfigurationManager.getInstance();
 
 		if (blockColors.length != keys.length)
@@ -132,6 +145,9 @@ public class Legend {
 		legend.setLayout(layout);
 
 		RowData data;
+			
+		final int[] hover_state = { -1, 0 };
+		
 		for (int i = 0; i < blockColors.length; i++) {
 			int r = config.getIntParameter(keys[i] + ".red", -1);
 			if (r >= 0) {
@@ -230,6 +246,42 @@ public class Legend {
 					}
 				}
 			});
+			
+			if ( listener != null ){
+				
+				final int f_i = i;
+				
+				Control[] controls = { colorSet, cColor, lblDesc };
+						
+				MouseTrackListener ml = 
+					new MouseTrackListener()
+					{						
+						public void 
+						mouseEnter(
+							MouseEvent e )
+						{
+							handleHover( listener, true, f_i, hover_state );
+						}
+
+						public void 
+						mouseExit(
+							MouseEvent e )
+						{
+							handleHover( listener, false, f_i, hover_state );
+						}
+					
+						public void 
+						mouseHover(
+							MouseEvent e )
+						{
+						}
+					};
+					
+				for ( Control c: controls ){
+					
+					c.addMouseTrackListener( ml );
+				}
+			}
 		}
 		
 		legend.addDisposeListener(new DisposeListener() {
@@ -245,5 +297,61 @@ public class Legend {
 		});
 
 		return legend;
+	}
+	
+	private static void
+	handleHover(
+		final LegendListener	listener,
+		boolean					entry,
+		int						index,
+		final int[]				state )
+	{
+		if ( entry ){
+			
+			state[1]++;
+			
+			if ( state[0] != index ){
+				
+				state[0] = index;
+								
+				listener.hoverChange( true, index );
+			}
+		}else{
+			
+			if ( state[0] == -1 ){
+				
+				return;
+			}
+						
+			final int timer_index = ++state[1];
+							
+			Utils.execSWTThreadLater(
+				100,
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						int	leaving = state[0];
+
+						if ( timer_index != state[1] || leaving == -1 ){
+							
+							return;
+						}
+												
+						state[0] = -1;
+												
+						listener.hoverChange( false, leaving );
+					}
+				});
+		}
+	}
+	public interface
+	LegendListener
+	{
+		public void
+		hoverChange(
+			boolean	entry,
+			int		index );
 	}
 }

@@ -487,8 +487,13 @@ MultiPlotGraphic
 			}
 			
 			scale.setMax( max );
+						
+			int[]	prev_x = new int[value_sources.length];
+			int[]	prev_y = new int[value_sources.length];
 			
-			for (int x = 0; x < bounds.width - 71; x++){
+			int	bounds_width_adj = bounds.width - 71;
+			
+			for (int x = 0; x < bounds_width_adj; x++){
 				
 				int position = currentPosition - x - 1;
 				
@@ -502,7 +507,7 @@ MultiPlotGraphic
 					}
 				}
 				
-				int xDraw = bounds.width - 71 - x;
+				int xDraw = bounds_width_adj - x;
 				
 				for ( int order=0;order<2;order++){
 
@@ -518,26 +523,50 @@ MultiPlotGraphic
 							
 							int oldTargetValue = oldTargetValues[chartIdx];
 							
-							if ( x > 1 ){
+							if ( x > 0 ){
 							
 								int trimmed = 0;
-								if (targetValue > max)
-								{
+								
+								if (targetValue > max){
 									targetValue = max;
 									trimmed++;
 								}
-								if (oldTargetValue > max)
-								{
+								
+								if (oldTargetValue > max){
 									oldTargetValue = max;
 									trimmed++;
 								}
-								if (trimmed < 2 || trimmed == 2 && position % 4 == 0){
+																
+								boolean force_draw = ( trimmed == 2 && position % 4 == 0 ) || xDraw == 1;
 								
-									gcImage.setLineWidth( trimmed==2?3:1 );
-									int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
+								int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
+
+								if ( x == 1 ){
+									
 									int h2 = bounds.height - scale.getScaledValue(oldTargetValue) - 2;
-									gcImage.setForeground( line_color );
-									gcImage.drawLine(xDraw, h1, xDraw + 1, h2);
+									
+									prev_x[chartIdx] = xDraw+1;
+									prev_y[chartIdx] = h2;
+								}
+								
+								if ( trimmed < 2 || force_draw ){
+																	
+									if ( h1 != prev_y[chartIdx] || force_draw ){
+										
+										boolean bold = ( source.getStyle() & ValueSource.STYLE_BOLD ) != 0;
+										gcImage.setLineWidth( trimmed==2?3:bold?4:2 );
+										gcImage.setForeground( line_color );
+
+										gcImage.drawLine(xDraw+1, prev_y[chartIdx], prev_x[chartIdx], prev_y[chartIdx]);
+										gcImage.drawLine(xDraw, h1, xDraw + 1, prev_y[chartIdx]);
+										
+										prev_x[chartIdx] = xDraw;
+										prev_y[chartIdx] = h1;
+									}	
+								}else{
+									
+									prev_x[chartIdx] = xDraw;
+									prev_y[chartIdx] = h1;
 								}
 							}
 							
@@ -546,7 +575,7 @@ MultiPlotGraphic
 					}
 				}
 			}
-			
+		
 			if ( nbValues > 0 ){
 			
 				for ( int order=0;order<2;order++){

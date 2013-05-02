@@ -30,6 +30,7 @@ ValueSource
 	public static final int STYLE_UP	= 0x00000001;
 	public static final int STYLE_DOWN	= 0x00000002;
 	public static final int STYLE_NAMED	= 0x00000004;
+	public static final int STYLE_BOLD	= 0x00000008;
 	
 	public String
 	getName();

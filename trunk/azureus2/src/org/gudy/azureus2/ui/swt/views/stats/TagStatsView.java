@@ -233,50 +233,13 @@ public class TagStatsView
 			}
 		}
 		
-	    GridData gridData;
-	    
-				
-		gridData = new GridData( GridData.FILL_VERTICAL );
-		gridData.verticalAlignment = SWT.CENTER;
-			
+		
 		final Color[]		color_array = colors.toArray( new Color[ colors.size()]);
 		final String[]		text_array = texts.toArray( new String[ texts.size()]);
-		
-		Legend.createLegendComposite(
-			legend_panel, 
-			color_array, 
-			configs.toArray( new String[ configs.size()]), 
-			text_array,
-			gridData, 
-			false );
-						
-		Point r = legend_panel.computeSize( SWT.DEFAULT, SWT.DEFAULT);
-		
-		legend_panel_sc.setMinSize( r.x, SWT.DEFAULT );
-		
-			// speed
-		
-		for ( Control c: speed_panel.getChildren()){
-			
-			c.dispose();
-		}
-				
-	    Canvas speed_canvas = new Canvas( speed_panel,SWT.NO_BACKGROUND);
-	    gridData = new GridData(GridData.FILL_BOTH);
-	    speed_canvas.setLayoutData(gridData);
 
-	    ValueFormater formatter =
-	    	new ValueFormater() 
-	    	{
-	        	public String 
-	        	format(
-	        		int value) 
-	        	{
-	        		return DisplayFormatters.formatByteCountToKiBEtcPerSec( value );
-	        	}
-	    	};
-	      
-	    List<ValueSource>	sources = new ArrayList<ValueSource>();
+	    final List<ValueSource>	sources = new ArrayList<ValueSource>();
+	    
+	    final int[] hovered_source = {-1};
 	    
 	    for ( int i=0;i<visible_tags.size();i++ ){
 	    	
@@ -308,7 +271,14 @@ public class TagStatsView
 		    		public int 
 		    		getStyle() 
 		    		{
-		    			return( STYLE_DOWN );
+		    			int	style = STYLE_DOWN;
+		    			
+		    			if ( hovered_source[0] == f_i ){
+		    				
+		    				style |= STYLE_BOLD;
+		    			}
+		    			
+		    			return( style );
 		    		}
 		    		
 		    		public int
@@ -349,7 +319,14 @@ public class TagStatsView
 			    		public int 
 			    		getStyle() 
 			    		{
-			    			return( STYLE_UP );
+			    			int	style = STYLE_UP;
+			    			
+			    			if ( hovered_source[0] == f_i ){
+			    				
+			    				style |= STYLE_BOLD;
+			    			}
+			    			
+			    			return( style );
 			    		}			    		
 			    		
 			    		public int
@@ -367,12 +344,74 @@ public class TagStatsView
 			    	});
 	    };
 		
+	    ValueFormater formatter =
+	    	new ValueFormater() 
+	    	{
+	        	public String 
+	        	format(
+	        		int value) 
+	        	{
+	        		return DisplayFormatters.formatByteCountToKiBEtcPerSec( value );
+	        	}
+	    	};
+	      
+
+		
 		if ( mpg != null ){
 			
 			mpg.dispose();
 		}
 
-		mpg = MultiPlotGraphic.getInstance( sources.toArray( new ValueSource[ sources.size()]), formatter );
+		final MultiPlotGraphic f_mpg = mpg = MultiPlotGraphic.getInstance( sources.toArray( new ValueSource[ sources.size()]), formatter );
+
+	    GridData gridData;
+	    
+				
+		gridData = new GridData( GridData.FILL_VERTICAL );
+		gridData.verticalAlignment = SWT.CENTER;
+		
+		Legend.createLegendComposite(
+			legend_panel, 
+			color_array, 
+			configs.toArray( new String[ configs.size()]), 
+			text_array,
+			gridData, 
+			false,
+			new Legend.LegendListener()
+			{
+				public void 
+				hoverChange(
+					boolean 	entry, 
+					int 		index ) 
+				{
+					if ( entry ){
+						
+						hovered_source[0] = index;
+						
+					}else{
+						
+						hovered_source[0] = -1;	
+					}
+					
+					f_mpg.refresh( true );
+				}
+			});
+						
+		Point r = legend_panel.computeSize( SWT.DEFAULT, SWT.DEFAULT);
+		
+		legend_panel_sc.setMinSize( r.x, SWT.DEFAULT );
+		
+			// speed
+		
+		for ( Control c: speed_panel.getChildren()){
+			
+			c.dispose();
+		}
+				
+	    Canvas speed_canvas = new Canvas( speed_panel,SWT.NO_BACKGROUND);
+	    gridData = new GridData(GridData.FILL_BOTH);
+	    speed_canvas.setLayoutData(gridData);
+
 
 		mpg.initialize( speed_canvas, true );
 		
