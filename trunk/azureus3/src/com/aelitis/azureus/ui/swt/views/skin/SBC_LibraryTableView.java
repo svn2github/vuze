@@ -391,6 +391,9 @@ public class SBC_LibraryTableView
 	}
 
 	public void refreshToolBarItems(Map<String, Long> list) {
+		if (!isVisible()) {
+			return;
+		}
 		if (view != null) {
 			view.refreshToolBarItems(list);
 		}
@@ -417,6 +420,9 @@ public class SBC_LibraryTableView
 
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
 		// currently stream and play are handled by ToolbarView..
+		if (isVisible() && view != null) {
+			return view.toolBarItemActivated(item, activationType, datasource);
+		}
 		return false;
 	}
 
