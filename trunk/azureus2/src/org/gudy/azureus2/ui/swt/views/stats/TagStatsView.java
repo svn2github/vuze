@@ -107,14 +107,13 @@ public class TagStatsView
 		legend_panel_sc.setLayoutData(gridData);
 		
 		legend_panel = new Composite( legend_panel_sc, SWT.NULL );
-		
+				
 		legend_panel.setLayout(new GridLayout());
 
 		legend_panel_sc.setContent(legend_panel);
 		legend_panel_sc.addControlListener(new ControlAdapter() {
 			public void controlResized(ControlEvent e) {
-				Rectangle r = legend_panel_sc.getClientArea();
-				legend_panel_sc.setMinSize(legend_panel.computeSize(r.width, SWT.DEFAULT ));
+				legend_panel_sc.setMinSize(legend_panel.computeSize(SWT.DEFAULT, SWT.DEFAULT ));
 			}
 		});
 	    
@@ -397,9 +396,7 @@ public class TagStatsView
 				}
 			});
 						
-		Point r = legend_panel.computeSize( SWT.DEFAULT, SWT.DEFAULT);
-		
-		legend_panel_sc.setMinSize( r.x, SWT.DEFAULT );
+		legend_panel_sc.setMinSize(legend_panel.computeSize(SWT.DEFAULT, SWT.DEFAULT ));
 		
 			// speed
 		

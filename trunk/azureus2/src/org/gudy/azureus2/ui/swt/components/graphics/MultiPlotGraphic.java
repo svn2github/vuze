@@ -20,6 +20,9 @@
  */
 package org.gudy.azureus2.ui.swt.components.graphics;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.events.MouseTrackListener;
@@ -445,11 +448,20 @@ MultiPlotGraphic
 				}
 			}
 			
+			Set<ValueSource>	bold_sources = new HashSet<ValueSource>();
+			
 			int max = 0;
 			
 			for ( int i=0;i<maxs.length;i++){
 				
-				if ( !value_sources[i].isTrimmable()){
+				ValueSource source = value_sources[i];
+				
+				if (( source.getStyle() & ValueSource.STYLE_BOLD ) != 0 ){
+					
+					bold_sources.add( source );
+				}
+				
+				if ( !source.isTrimmable()){
 					
 					max = Math.max( max, maxs[i] );
 				}
@@ -493,6 +505,9 @@ MultiPlotGraphic
 			
 			int	bounds_width_adj = bounds.width - 71;
 			
+			int	cycles = bold_sources.size()==0?2:3;
+
+			
 			for (int x = 0; x < bounds_width_adj; x++){
 				
 				int position = currentPosition - x - 1;
@@ -509,13 +524,20 @@ MultiPlotGraphic
 				
 				int xDraw = bounds_width_adj - x;
 				
-				for ( int order=0;order<2;order++){
-
+				for ( int order=0;order<cycles;order++){
+					
 					for (int chartIdx = 0; chartIdx < all_values.length; chartIdx++){
 
 						ValueSource source = value_sources[chartIdx];
 						
-						if ( source.isTrimmable() == (order==0 )){
+						boolean is_bold = bold_sources.contains( source );
+						
+						if ( is_bold && order != 2 ){
+							
+							continue;
+						}
+						
+						if ( ( source.isTrimmable() == (order==0 ) && order < 2 ) || ( is_bold && order == 2 )){
 							
 							Color line_color = source.getLineColor();
 							
@@ -577,15 +599,22 @@ MultiPlotGraphic
 			}
 		
 			if ( nbValues > 0 ){
-			
-				for ( int order=0;order<2;order++){
+							
+				for ( int order=0;order<cycles;order++){
 
 					for ( int chartIdx = 0; chartIdx < all_values.length; chartIdx++){
 					
 						ValueSource source = value_sources[chartIdx];
 						
-						if ( source.isTrimmable() == (order==0 )){
-
+						boolean is_bold = bold_sources.contains( source );
+						
+						if ( is_bold && order != 2 ){
+							
+							continue;
+						}
+						
+						if ( ( source.isTrimmable() == (order==0 ) && order < 2 ) || ( is_bold && order == 2 )){
+							
 							int	average_val = computeAverage( chartIdx, currentPosition - 6 );
 							
 							int average_mod = average_val;
