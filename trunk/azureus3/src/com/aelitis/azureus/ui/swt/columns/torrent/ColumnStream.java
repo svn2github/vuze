@@ -155,8 +155,8 @@ public class ColumnStream
 		boolean canStream = (sortVal & 2) > 0;
 		boolean canPlay = (sortVal & 1) > 0;
 		// for now, always use green
-		Image img = cell.getHeight() > 18 ? (canStream ? imgGreen : canPlay ? imgGreen : imgDisabled)
-				: (canStream ? imgGreenSmall : canPlay ? imgGreenSmall : imgDisabledSmall);
+		Image img = cell.getHeight() > 18 ? (canStream ? imgBlue : canPlay ? imgGreen : imgDisabled)
+				: (canStream ? imgBlueSmall : canPlay ? imgGreenSmall : imgDisabledSmall);
 
 		Rectangle cellBounds = cell.getBounds();
 
