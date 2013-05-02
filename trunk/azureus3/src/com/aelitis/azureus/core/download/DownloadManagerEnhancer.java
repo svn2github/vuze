@@ -711,6 +711,8 @@ DownloadManagerEnhancer
 					
 					t.setImageID( img_id  );
 					
+					t.setColor( new int[]{ 0, 74, 156 });
+					
 					t.setPublic( false );
 					
 					t.setCanBePublic( false );
