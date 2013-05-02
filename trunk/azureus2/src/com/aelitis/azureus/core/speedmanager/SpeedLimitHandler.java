@@ -50,7 +50,6 @@ import org.gudy.azureus2.core3.stats.transfer.LongTermStats;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStatsListener;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.util.Average;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
@@ -94,6 +93,8 @@ import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.impl.TagBase;
 import com.aelitis.azureus.core.tag.impl.TagTypeWithState;
+import com.aelitis.azureus.core.util.average.Average;
+import com.aelitis.azureus.core.util.average.AverageFactory;
 
 public class 
 SpeedLimitHandler 
@@ -3225,8 +3226,10 @@ SpeedLimitHandler
 		private long	last_send_total = -1;
 		private long	last_recv_total = -1;
 		
-		private Average send_rate		= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
-		private Average receive_rate	= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+		//private Average send_rate		= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+		//private Average receive_rate	= Average.getInstance(1000, 10);  //average over 10s, update every 1000ms
+		private Average send_rate		= AverageFactory.MovingImmediateAverage( 10 );
+		private Average receive_rate	= AverageFactory.MovingImmediateAverage( 10 );
 
 		private RateLimiter		up_limiter;
 		private RateLimiter		down_limiter;
@@ -3376,8 +3379,11 @@ SpeedLimitHandler
 			
 			if ( last_send_total != -1 ){
 				
-				send_rate.addValue( send_total - last_send_total );
-				receive_rate.addValue( recv_total - last_recv_total );
+				long send_diff = send_total - last_send_total;
+				long recv_diff = recv_total - last_recv_total;
+				
+				send_rate.update( send_diff );
+				receive_rate.update( recv_diff );
 			}
 			
 			last_send_total = send_total;
@@ -3447,26 +3453,12 @@ SpeedLimitHandler
 		private String
 		getDetailString()
 		{
-			return( name + ": Up=" + format(up_limiter.getRateLimitBytesPerSecond()) + " (" + DisplayFormatters.formatByteCountToKiBEtcPerSec(send_rate.getAverage()) + ")" + 
-					", Down=" + format( down_limiter.getRateLimitBytesPerSecond()) + " (" + DisplayFormatters.formatByteCountToKiBEtcPerSec(receive_rate.getAverage()) + ")" + 
+			return( name + ": Up=" + format(up_limiter.getRateLimitBytesPerSecond()) + " (" + DisplayFormatters.formatByteCountToKiBEtcPerSec((long)send_rate.getAverage()) + ")" + 
+					", Down=" + format( down_limiter.getRateLimitBytesPerSecond()) + " (" + DisplayFormatters.formatByteCountToKiBEtcPerSec((long)receive_rate.getAverage()) + ")" + 
 					", Addresses=" + getAddressString() + 
 					", Inverse=" + inverse +
 					", Categories=" + categories );
 					
-		}
-		
-		private String
-		getString()
-		{
-			long	addresses = 0;
-			
-			for ( long[] range: ranges ){
-				addresses += range[1] - range[0] + 1;
-			}
-			
-			return( name + // ", addresses=" + addresses + 
-					": send=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( send_rate.getAverage()) +
-					", recv=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( receive_rate.getAverage())); 
 		}
 		
 		private class
