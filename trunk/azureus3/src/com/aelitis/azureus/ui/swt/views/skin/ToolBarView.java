@@ -101,7 +101,7 @@ public class ToolBarView
 		//SWTSkin skin = skinObject.getSkin();
 		so2nd = skin.getSkinObject("toolbar-2nd", skinObject);
 		
-		if (so2nd != null) {
+		if (so2nd == null) {
 			skinObject.setVisible(false);
 			return null;
 		}
