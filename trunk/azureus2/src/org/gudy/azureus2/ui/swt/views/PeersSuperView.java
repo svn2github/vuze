@@ -55,6 +55,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
+ * AllPeersView
+ * 
  * @author Olivier
  * @author TuxPaper
  *         2004/Apr/20: Use TableRowImpl instead of PeerRow
