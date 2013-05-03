@@ -26,11 +26,12 @@ import org.eclipse.swt.graphics.Color;
 public interface 
 ValueSource 
 {
-	public static final int STYLE_NONE	= 0x00000000;
-	public static final int STYLE_UP	= 0x00000001;
-	public static final int STYLE_DOWN	= 0x00000002;
-	public static final int STYLE_NAMED	= 0x00000004;
-	public static final int STYLE_BOLD	= 0x00000008;
+	public static final int STYLE_NONE		= 0x00000000;
+	public static final int STYLE_UP		= 0x00000001;
+	public static final int STYLE_DOWN		= 0x00000002;
+	public static final int STYLE_NAMED		= 0x00000004;
+	public static final int STYLE_BOLD		= 0x00000008;
+	public static final int STYLE_INVISIBLE	= 0x00000010;
 	
 	public String
 	getName();

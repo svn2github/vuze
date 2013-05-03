@@ -300,6 +300,8 @@ public class Messages {
 				((Label) widget).setToolTipText(sToolTip);
 			else if (widget instanceof Text)
 				((Text) widget).setToolTipText(sToolTip);
+			else if (widget instanceof Canvas)
+				((Canvas) widget).setToolTipText(sToolTip);
 			else
 				System.out.println("No cast for " + widget.getClass().getName());
 		}

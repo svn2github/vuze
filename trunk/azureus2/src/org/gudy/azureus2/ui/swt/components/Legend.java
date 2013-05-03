@@ -36,9 +36,11 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Label;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
@@ -164,6 +166,9 @@ public class Legend {
 
 			final Canvas cColor = new Canvas(colorSet, SWT.BORDER);
 			cColor.setData("Index", new Integer(i));
+			
+			Messages.setLanguageTooltip( cColor, "label.click.to.change" );
+
 			// XXX Use paint instead of setBackgrond, because OSX does translucent
 			// crap
 			cColor.addPaintListener(new PaintListener() {
@@ -196,12 +201,34 @@ public class Legend {
 				}
 			});
 
-			Label lblDesc = new Label(colorSet, SWT.NULL);
+			final Label lblDesc = new Label(colorSet, SWT.NULL);
 			
 			if ( key_texts == null ){
 				Messages.setLanguageText(lblDesc, keys[i]);
 			}else{
 				lblDesc.setText( key_texts[i] );
+			}
+			
+			Messages.setLanguageTooltip( lblDesc, "label.click.to.showhide" );
+			
+			if ( listener != null ){
+
+				final int f_i = i;
+				
+				lblDesc.addMouseListener(new MouseAdapter() {
+					public void mouseUp(MouseEvent e) {
+						boolean vis = !config.getBooleanParameter(keys[f_i] + ".vis", true );
+						config.setParameter(keys[f_i] + ".vis", vis );
+						listener.visibilityChange( vis, f_i );
+						lblDesc.setForeground(vis?lblDesc.getDisplay().getSystemColor( SWT.COLOR_BLACK ):Colors.grey );
+					}
+				});
+				
+				boolean vis = config.getBooleanParameter(keys[f_i] + ".vis", true );
+				if ( !vis ){
+					listener.visibilityChange( vis, i );
+					lblDesc.setForeground( Colors.grey );
+				}
 			}
 			
 			data = new RowData();
@@ -352,6 +379,11 @@ public class Legend {
 		public void
 		hoverChange(
 			boolean	entry,
+			int		index );
+		
+		public void
+		visibilityChange(
+			boolean	visible,
 			int		index );
 	}
 }

@@ -409,6 +409,18 @@ MultiPlotGraphic
 			gcImage.setAntialias( SWT.ON );
 			gcImage.setTextAntialias( SWT.ON );
 			
+			Set<ValueSource>	invisible_sources = new HashSet<ValueSource>();
+
+			for ( int i=0;i<value_sources.length;i++){
+				
+				ValueSource source = value_sources[i];
+				
+				if (( source.getStyle() & ValueSource.STYLE_INVISIBLE ) != 0 ){
+					
+					invisible_sources.add( source );
+				}
+			}
+			
 			int[] oldTargetValues = new int[all_values.length];
 			
 			int[] maxs = new int[all_values.length];
@@ -428,7 +440,14 @@ MultiPlotGraphic
 				}
 				
 				for (int chartIdx = 0; chartIdx < all_values.length; chartIdx++){
-				
+					
+					ValueSource source = value_sources[chartIdx];
+					
+					if ( invisible_sources.contains( source )){
+						
+						continue;
+					}
+					
 					int value = all_values[chartIdx][position];
 					
 					if (value > maxs[chartIdx]){
@@ -446,6 +465,11 @@ MultiPlotGraphic
 				
 				ValueSource source = value_sources[i];
 				
+				if ( invisible_sources.contains( source )){
+					
+					continue;
+				}
+				
 				if (( source.getStyle() & ValueSource.STYLE_BOLD ) != 0 ){
 					
 					bold_sources.add( source );
@@ -461,7 +485,14 @@ MultiPlotGraphic
 			
 			for ( int i=0;i<maxs.length;i++){
 			
-				if ( value_sources[i].isTrimmable()){
+				ValueSource source = value_sources[i];
+				
+				if ( invisible_sources.contains( source )){
+					
+					continue;
+				}
+				
+				if ( source.isTrimmable()){
 					
 						// trim secondary indicators so we don't loose the more important info
 					
@@ -519,6 +550,11 @@ MultiPlotGraphic
 					for (int chartIdx = 0; chartIdx < all_values.length; chartIdx++){
 
 						ValueSource source = value_sources[chartIdx];
+												
+						if ( invisible_sources.contains( source )){
+							
+							continue;
+						}
 						
 						boolean is_bold = bold_sources.contains( source );
 						
@@ -595,6 +631,11 @@ MultiPlotGraphic
 					
 						ValueSource source = value_sources[chartIdx];
 						
+						if ( invisible_sources.contains( source )){
+							
+							continue;
+						}
+
 						boolean is_bold = bold_sources.contains( source );
 						
 						if ( is_bold && order != 2 ){
@@ -648,9 +689,7 @@ MultiPlotGraphic
 						}
 					}
 				}
-			}
-			
-			
+			}	
 		}catch( Throwable e ){
 			
 			Debug.out( e );

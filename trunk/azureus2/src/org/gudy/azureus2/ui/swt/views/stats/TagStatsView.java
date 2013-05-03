@@ -237,10 +237,8 @@ public class TagStatsView
 		final Color[]		color_array = colors.toArray( new Color[ colors.size()]);
 		final String[]		text_array = texts.toArray( new String[ texts.size()]);
 
-	    final List<ValueSource>	sources = new ArrayList<ValueSource>();
-	    
-	    final int[] hovered_source = {-1};
-	    
+	    final List<ValueSourceImpl>	sources = new ArrayList<ValueSourceImpl>();
+	    	    
 		List<int[]>	history_records 	= new ArrayList<int[]>();
 		int			history_record_max	= 0;
 		
@@ -256,104 +254,9 @@ public class TagStatsView
 			
 			history_records.add( history[0] );
 			history_records.add( history[1] );
-
-	    	final int f_i = i;
 	    	
-	    	sources.add(
-			    	new ValueSource()
-			    	{
-			    		public String
-			    		getName()
-			    		{
-			    			return( text_array[f_i] );
-			    		}
-			    		
-			    		public Color 
-			    		getLineColor() 
-			    		{
-			    			return( color_array[f_i]);
-			    		}
-			    		
-			    		public boolean
-			    		isTrimmable()
-			    		{
-			    			return( false );
-			    		}
-			    		
-			    		public int 
-			    		getStyle() 
-			    		{
-			    			int	style = STYLE_UP;
-			    			
-			    			if ( hovered_source[0] == f_i ){
-			    				
-			    				style |= STYLE_BOLD;
-			    			}
-			    			
-			    			return( style );
-			    		}			    		
-			    		
-			    		public int
-			    		getValue()
-			    		{
-			    			int rate = tag.getTagCurrentUploadRate();
-			    			
-			    			if ( rate < 0 ){
-			    				
-			    				rate = 0;
-			    			}
-			    			
-			    			return( rate );
-			    		}
-			    	});
-	    	
-	    	sources.add(
-			    	new ValueSource()
-			    	{
-			    		public String
-			    		getName()
-			    		{
-			    			return( text_array[f_i] );
-			    		}
-			    		
-			    		public Color 
-			    		getLineColor() 
-			    		{
-			    			return( color_array[f_i]);
-			    		}
-			    		
-			    		public boolean
-			    		isTrimmable()
-			    		{
-			    			return( false );
-			    		}
-			    		
-			    		public int 
-			    		getStyle() 
-			    		{
-			    			int	style = STYLE_DOWN;
-			    			
-			    			if ( hovered_source[0] == f_i ){
-			    				
-			    				style |= STYLE_BOLD;
-			    			}
-			    			
-			    			return( style );
-			    		}
-			    		
-			    		public int
-			    		getValue()
-			    		{
-			    			int rate = tag.getTagCurrentDownloadRate();
-			    			
-			    			if ( rate < 0 ){
-			    				
-			    				rate = 0;
-			    			}
-			    			
-			    			return( rate );
-			    		}
-			    	});
+	    	sources.add( new ValueSourceImpl( tag, text_array[i], i, color_array, true ));
+	    	sources.add( new ValueSourceImpl( tag, text_array[i], i, color_array, false ));
 	    };
 		
 	    ValueFormater formatter =
@@ -409,18 +312,42 @@ public class TagStatsView
 				false,
 				new Legend.LegendListener()
 				{
+					private int	hover_index = -1;
+					
 					public void 
 					hoverChange(
 						boolean 	entry, 
 						int 		index ) 
 					{
+						if ( hover_index != -1 ){
+							
+							for ( int i=hover_index*2;i<hover_index*2+2;i++){
+								
+								sources.get(i).setHover( false );
+							}
+						}
+						
 						if ( entry ){
 							
-							hovered_source[0] = index;
+							hover_index = index;
 							
-						}else{
+							for ( int i=hover_index*2;i<hover_index*2+2;i++){
+								
+								sources.get(i).setHover( true );
+							}
+						}
+											
+						f_mpg.refresh( true );
+					}
+					
+					public void
+					visibilityChange(
+						boolean	visible,
+						int		index )
+					{
+						for ( int i=index*2;i<index*2+2;i++){
 							
-							hovered_source[0] = -1;	
+							sources.get(i).setVisible( visible );
 						}
 						
 						f_mpg.refresh( true );
@@ -436,6 +363,7 @@ public class TagStatsView
 			
 			lab.setLayoutData( gridData );
 		}
+		
 		legend_panel_sc.setMinSize(legend_panel.computeSize(SWT.DEFAULT, SWT.DEFAULT ));
 		
 			// speed
@@ -606,5 +534,97 @@ public class TagStatsView
 		}
 
 		return true;
+	}
+	
+	private class
+	ValueSourceImpl
+		implements ValueSource
+	{	
+		TagFeatureRateLimit		tag;
+		String					name;
+		int						index;
+		Color[]					colours;
+		boolean					is_up;
+		
+		private boolean			is_hover;
+		private boolean			is_invisible;
+		
+		private
+		ValueSourceImpl(
+			TagFeatureRateLimit		_tag,
+			String					_name,
+			int						_index,
+			Color[]					_colours,
+			boolean					_is_up )
+		{
+			tag		= _tag;
+			name	= _name;
+			index	= _index;
+			colours	= _colours;
+			is_up	= _is_up;
+		}
+			
+		public String
+		getName()
+		{
+			return( name );
+		}
+		
+		public Color 
+		getLineColor() 
+		{
+			return( colours[index] );
+		}
+		
+		public boolean
+		isTrimmable()
+		{
+			return( false );
+		}
+		
+		private void
+		setHover(
+			boolean	h )
+		{
+			is_hover = h;
+		}
+		
+		private void
+		setVisible(
+			boolean	visible )
+		{
+			is_invisible = !visible;
+		}
+		
+		public int 
+		getStyle() 
+		{
+			if ( is_invisible ){
+				
+				return( STYLE_INVISIBLE );
+			}
+			
+			int	style = is_up?STYLE_UP:STYLE_DOWN;
+			
+			if ( is_hover ){
+				
+				style |= STYLE_BOLD;
+			}
+			
+			return( style );
+		}
+		
+		public int
+		getValue()
+		{
+			int rate = is_up?tag.getTagCurrentUploadRate():tag.getTagCurrentDownloadRate();
+			
+			if ( rate < 0 ){
+				
+				rate = 0;
+			}
+			
+			return( rate );
+		}
 	}
 }
