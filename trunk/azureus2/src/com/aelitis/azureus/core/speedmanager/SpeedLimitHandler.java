@@ -29,14 +29,11 @@ import java.util.Collections;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.IdentityHashMap;
 import java.util.Iterator;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
@@ -46,6 +43,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStats;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStatsListener;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
@@ -53,7 +51,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.HashWrapper;
@@ -792,26 +789,27 @@ SpeedLimitHandler
 							
 						}else{
 							
-							String lhs 		= bits[0].trim().toLowerCase( Locale.US );
-							String ac_rhs 	= bits[1].trim();
+							String lhs		= bits[0].trim();
+							String lc_lhs	= lhs.toLowerCase( Locale.US );
+							String rhs 		= bits[1].trim();
 							
-							String lc_rhs = ac_rhs.toLowerCase( Locale.US );
+							String lc_rhs = rhs.toLowerCase( Locale.US );
 
-							if ( lhs.equals( "inverse" )){
+							if ( lc_lhs.equals( "inverse" )){
 							
 								inverse = lc_rhs.equals( "yes" );
 								
-							}else if ( lhs.equals( "up" )){
+							}else if ( lc_lhs.equals( "up" )){
 								
 								up_lim = (int)parseRate( lc_rhs );
 								
-							}else if ( lhs.equals( "down" )){
+							}else if ( lc_lhs.equals( "down" )){
 								
 								down_lim = (int)parseRate( lc_rhs );
 								
-							}else if ( lhs.equals( "cat" )){
+							}else if ( lc_lhs.equals( "cat" )){
 								
-								String[] cats = ac_rhs.split( " " );
+								String[] cats = rhs.split( " " );
 								
 								for ( String cat: cats ){
 									
@@ -831,7 +829,7 @@ SpeedLimitHandler
 								
 								String name = lhs;
 							
-								String def = lc_rhs.replace(';', ' ');
+								String def = rhs.replace(';', ' ');
 														
 								set = ip_sets.get( name );
 								
@@ -850,9 +848,18 @@ SpeedLimitHandler
 									
 									if ( bit.length() > 0 ){
 										
-										if ( !set.addCIDR( bit )){
+										IPSet other_set = ip_sets.get( bit );
+										
+										if ( other_set != null && other_set != set ){
 											
-											result.add( "CIDR '" + bit + "' isn't valid" );
+											set.addSet( other_set );
+											
+										}else{
+											
+											if ( !set.addCIDRorCC( bit )){
+											
+												result.add( "CIDR, CC or ip_set reference '" + bit + "' isn't valid" );
+											}
 										}
 									}
 								}
@@ -1546,6 +1553,9 @@ SpeedLimitHandler
 	{
 		IPSet[]		sets;
 		long[][][]	set_ranges;
+		Set[]		set_ccs;
+		
+		boolean	has_ccs = false;
 		
 		String	category = null;
 		
@@ -1555,6 +1565,7 @@ SpeedLimitHandler
 			
 			sets 		= new IPSet[len];
 			set_ranges	= new long[len][][];
+			set_ccs		= new Set[len];
 			
 			int	pos = 0;
 			
@@ -1562,6 +1573,12 @@ SpeedLimitHandler
 				
 				sets[pos]		= set;
 				set_ranges[pos]	= set.getRanges();
+				set_ccs[pos]	= set.getCountryCodes();
+				
+				if ( set_ccs[pos].size() > 0 ){
+					
+					has_ccs = true;
+				}
 				
 				pos++;
 				
@@ -1609,11 +1626,30 @@ SpeedLimitHandler
 				l_address = entry[0];
 			}
 			
+			String	peer_cc = null;
+			
+			if ( has_ccs ){
+				
+				String[] details = PeerUtils.getCountryDetails( peer );
+				
+				if ( details != null && details.length > 0 ){
+					
+					peer_cc = details[0];
+				}	
+			}
+			
+			Set<IPSet>	added_to_sets = new HashSet<IPSet>();
+			
 			if ( l_address != 0 ){
 								
 				for ( int i=0;i<set_ranges.length;i++ ){
 					
 					long[][] ranges = set_ranges[i];
+					
+					if ( ranges.length == 0 ){
+						
+						continue;
+					}
 					
 					IPSet set = sets[i];
 					
@@ -1634,6 +1670,8 @@ SpeedLimitHandler
 								if ( !is_inverse ){
 								
 									addLimiters( peer, set );
+									
+									added_to_sets.add( set );
 								}
 	
 								break;
@@ -1641,6 +1679,42 @@ SpeedLimitHandler
 						}
 						
 						if ( is_inverse && !hit ){
+							
+							addLimiters( peer, set );
+							
+							added_to_sets.add( set );
+						}
+					}
+				}
+			}
+			
+			if ( peer_cc != null ){
+				
+				for ( int i=0;i<set_ccs.length;i++ ){
+					
+					IPSet set = sets[i];
+
+					if ( added_to_sets.contains( set )){
+						
+						continue;
+					}
+					
+					Set<String>	ccs = set_ccs[i];
+					
+					if ( ccs.size() == 0 ){
+						
+						continue;
+					}
+										
+					boolean not_inverse = !set.isInverse();
+					
+					List<String> set_cats = set.getCategories();
+					
+					if ( set_cats == null || set_cats.contains( category )){
+											
+						boolean	hit = ccs.contains( peer_cc );
+															
+						if ( hit == not_inverse ){
 							
 							addLimiters( peer, set );
 						}
@@ -1885,7 +1959,7 @@ SpeedLimitHandler
 		result.add( "#        frequency: daily|weekdays|weekends|<day_of_week>" );
 		result.add( "#            days_of_week: mon|tue|wed|thu|fri|sat|sun" );
 		result.add( "#        time: hh:mm - 24 hour clock; 00:00=midnight; local time" );
-		result.add( "#    ip_set <ip_set_name> <CIDR_specs...> [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [cat=<cat names>]" );
+		result.add( "#    ip_set <ip_set_name> [<CIDR_specs...>|CC list|<prior_set_name>] [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [cat=<cat names>]" );
 		result.add( "#    net_limit [daily|weekly|monthly] total=<limit>|[up=<limit> down=<limit>]");
 		result.add( "#" );
 		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_upload' defined:" );
@@ -1896,7 +1970,9 @@ SpeedLimitHandler
 		result.add( "#" );
 		result.add( "#     net_limit monthly total=250G" );
 		result.add( "#" );
-		result.add( "#     ip_set external=211.34.128.0/19,211.35.128.0/17" );
+		result.add( "#     ip_set external=211.34.128.0/19 211.35.128.0/17" );
+		result.add( "#     ip_set EU=AL;AD;AM;AT;AZ;BY;BE;BA;BG;HR;CY;CZ;DK;EE;FO;FI;FR;GE;DE;GI;GR;GL;HU;IE;IS;IT;KZ;KG;LV;LI;LT;LU;MK;MT;MD;MC;NL;NO;PL;PT;RO;RU;SM;RS;ME;SK;SI;ES;SE;CH;TJ;TR;TM;UA;UZ;VA" );
+		result.add( "#     ip_set Blorp=EU;US" );
 		result.add( "#" );
 		result.add( "# When multiple rules apply the one further down the list of rules take precedence" );
 		result.add( "# Currently ip_set limits are not schedulable" );
@@ -3215,9 +3291,9 @@ SpeedLimitHandler
 	IPSet
 	{
 		private final String		name;
-		private List<String>		cidrs = new ArrayList<String>();
 		
-		private long[][]			ranges = new long[0][];
+		private long[][]			ranges 			= new long[0][];
+		private Set<String>			country_codes 	= new HashSet<String>();
 		
 		private boolean	inverse;
 		
@@ -3269,75 +3345,104 @@ SpeedLimitHandler
 		}
 		
 		private boolean
-		addCIDR(
-			String		cidr )
+		addCIDRorCC(
+			String		cidr_or_cc )
 		{
-			int	pos = cidr.indexOf( '/' );
-			
-			if ( pos == -1 ){
+			if ( Character.isDigit( cidr_or_cc.charAt( 0 ))){
 				
-				return( false );
-			}
-			
-			String	address = cidr.substring( 0, pos );
-			
-				// no ipv6 atm
-			
-			if ( address.contains( ":" )){
+				String cidr = cidr_or_cc;
 				
-				return( false );
-			}
-			
-			try{
-				byte[] start_bytes = HostNameToIPResolver.syncResolve( address ).getAddress();
-			
-				cidrs.add( cidr );
-			
-				int	cidr_mask = Integer.parseInt( cidr.substring( pos+1 ));
+				int	pos = cidr.indexOf( '/' );
 				
-				int	rev_mask = 0;
-				
-				for (int i=0;i<32-cidr_mask;i++){
+				if ( pos == -1 ){
 					
-					rev_mask = ( rev_mask << 1 ) | 1;
-				}
-			
-				start_bytes[0] &= ~(rev_mask>>24);
-				start_bytes[1] &= ~(rev_mask>>16);
-				start_bytes[2] &= ~(rev_mask>>8);
-				start_bytes[3] &= ~(rev_mask);
-				
-				byte[] end_bytes = start_bytes.clone();
-				
-				end_bytes[0] |= (rev_mask>>24)&0xff;
-				end_bytes[1] |= (rev_mask>>16)&0xff;
-				end_bytes[2] |= (rev_mask>>8)&0xff;
-				end_bytes[3] |= (rev_mask)&0xff;
-
-				long	l_start = ((long)((start_bytes[0]<<24)&0xff000000 | (start_bytes[1] << 16)&0x00ff0000 | (start_bytes[2] << 8)&0x0000ff00 | start_bytes[3]&0x000000ff))&0xffffffffL;
-				long	l_end	= ((long)((end_bytes[0]<<24)&0xff000000 | (end_bytes[1] << 16)&0x00ff0000 | (end_bytes[2] << 8)&0x0000ff00 | end_bytes[3]&0x000000ff))&0xffffffffL;
-				
-				//System.out.println( cidr + " -> " + ByteFormatter.encodeString( start_bytes ) + " - " +  ByteFormatter.encodeString( end_bytes ) + ": " + ((l_end-l_start+1)));
-				
-				int	len = ranges.length;
-				
-				long[][] new_ranges = new long[len+1][];
-				
-				for (int i=0;i<len;i++){
-					
-					new_ranges[i] = ranges[i];
+					return( false );
 				}
 				
-				new_ranges[len] = new long[]{ l_start, l_end };
+				String	address = cidr.substring( 0, pos );
 				
-				ranges = new_ranges;
+					// no ipv6 atm
+				
+				if ( address.contains( ":" )){
+					
+					return( false );
+				}
+				
+				try{
+					byte[] start_bytes = HostNameToIPResolver.syncResolve( address ).getAddress();
+								
+					int	cidr_mask = Integer.parseInt( cidr.substring( pos+1 ));
+					
+					int	rev_mask = 0;
+					
+					for (int i=0;i<32-cidr_mask;i++){
+						
+						rev_mask = ( rev_mask << 1 ) | 1;
+					}
+				
+					start_bytes[0] &= ~(rev_mask>>24);
+					start_bytes[1] &= ~(rev_mask>>16);
+					start_bytes[2] &= ~(rev_mask>>8);
+					start_bytes[3] &= ~(rev_mask);
+					
+					byte[] end_bytes = start_bytes.clone();
+					
+					end_bytes[0] |= (rev_mask>>24)&0xff;
+					end_bytes[1] |= (rev_mask>>16)&0xff;
+					end_bytes[2] |= (rev_mask>>8)&0xff;
+					end_bytes[3] |= (rev_mask)&0xff;
+	
+					long	l_start = ((long)((start_bytes[0]<<24)&0xff000000 | (start_bytes[1] << 16)&0x00ff0000 | (start_bytes[2] << 8)&0x0000ff00 | start_bytes[3]&0x000000ff))&0xffffffffL;
+					long	l_end	= ((long)((end_bytes[0]<<24)&0xff000000 | (end_bytes[1] << 16)&0x00ff0000 | (end_bytes[2] << 8)&0x0000ff00 | end_bytes[3]&0x000000ff))&0xffffffffL;
+					
+					//System.out.println( cidr + " -> " + ByteFormatter.encodeString( start_bytes ) + " - " +  ByteFormatter.encodeString( end_bytes ) + ": " + ((l_end-l_start+1)));
+					
+					int	len = ranges.length;
+					
+					long[][] new_ranges = new long[len+1][];
+					
+					for (int i=0;i<len;i++){
+						
+						new_ranges[i] = ranges[i];
+					}
+					
+					new_ranges[len] = new long[]{ l_start, l_end };
+					
+					ranges = new_ranges;
+					
+					return( true );
+					
+				}catch( Throwable e ){
+					
+					return( false );
+				}
+			}else{
+				
+				String cc = cidr_or_cc;
+				
+				if ( cc.length() != 2 ){
+					
+					return( false );
+				}
+				
+				country_codes.add( cc.toUpperCase( Locale.US ));
 				
 				return( true );
-				
-			}catch( Throwable e ){
-				
-				return( false );
 			}
+		}
+		
+		private void
+		addSet(
+			IPSet	other )
+		{
+			long[][] new_ranges = new long[ ranges.length + other.ranges.length ][];
+			
+			System.arraycopy( ranges, 0, new_ranges, 0, ranges.length );
+			System.arraycopy( other.ranges, 0, new_ranges, ranges.length, other.ranges.length );
+			
+			ranges = new_ranges;
+			
+			country_codes.addAll( other.country_codes );
 		}
 		
 		private String
@@ -3350,6 +3455,12 @@ SpeedLimitHandler
 		getRanges()
 		{
 			return( ranges );
+		}
+		
+		private Set<String>
+		getCountryCodes()
+		{
+			return( country_codes );
 		}
 		
 		private RateLimiter
