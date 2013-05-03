@@ -100,6 +100,11 @@ public class ToolBarView
 		buttonListener = new toolbarButtonListener();
 		//SWTSkin skin = skinObject.getSkin();
 		so2nd = skin.getSkinObject("toolbar-2nd", skinObject);
+		
+		if (so2nd != null) {
+			skinObject.setVisible(false);
+			return null;
+		}
 
 		ToolBarItemSO item;
 
