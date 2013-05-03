@@ -27,13 +27,13 @@ import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.graphics.Color;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Group;
+import org.eclipse.swt.widgets.Label;
 
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -65,7 +65,7 @@ public class TagStatsView
 	public static final String MSGID_PREFIX = "TagStatsView";
   
 	private Composite 			panel;
-	private Composite 			legend_panel;
+	private Group	 			legend_panel;
 	private ScrolledComposite	legend_panel_sc;
   
 	private Composite			speed_panel;
@@ -106,8 +106,9 @@ public class TagStatsView
 		GridData gridData = new GridData(GridData.FILL_VERTICAL );
 		legend_panel_sc.setLayoutData(gridData);
 		
-		legend_panel = new Composite( legend_panel_sc, SWT.NULL );
-				
+		legend_panel = new Group( legend_panel_sc, SWT.NULL );
+		legend_panel.setText( MessageText.getString( "label.tags" ));
+		
 		legend_panel.setLayout(new GridLayout());
 
 		legend_panel_sc.setContent(legend_panel);
@@ -393,38 +394,48 @@ public class TagStatsView
 		mpg.reset( history );
 		
 	    GridData gridData;
-	    
-				
-		gridData = new GridData( GridData.FILL_VERTICAL );
-		gridData.verticalAlignment = SWT.CENTER;
+	    		
+		if ( color_array.length > 0 ){
 		
-		Legend.createLegendComposite(
-			legend_panel, 
-			color_array, 
-			configs.toArray( new String[ configs.size()]), 
-			text_array,
-			gridData, 
-			false,
-			new Legend.LegendListener()
-			{
-				public void 
-				hoverChange(
-					boolean 	entry, 
-					int 		index ) 
+			gridData = new GridData( GridData.FILL_VERTICAL );
+			gridData.verticalAlignment = SWT.CENTER;
+
+			Legend.createLegendComposite(
+				legend_panel, 
+				color_array, 
+				configs.toArray( new String[ configs.size()]), 
+				text_array,
+				gridData, 
+				false,
+				new Legend.LegendListener()
 				{
-					if ( entry ){
+					public void 
+					hoverChange(
+						boolean 	entry, 
+						int 		index ) 
+					{
+						if ( entry ){
+							
+							hovered_source[0] = index;
+							
+						}else{
+							
+							hovered_source[0] = -1;	
+						}
 						
-						hovered_source[0] = index;
-						
-					}else{
-						
-						hovered_source[0] = -1;	
+						f_mpg.refresh( true );
 					}
-					
-					f_mpg.refresh( true );
-				}
-			});
-						
+				});
+		}else{
+
+			gridData = new GridData( GridData.FILL_HORIZONTAL );
+			gridData.verticalAlignment = SWT.TOP;
+
+			Label lab = new Label( legend_panel, SWT.NULL );
+			lab.setText( MessageText.getString( "tag.stats.none.defined" ));
+			
+			lab.setLayoutData( gridData );
+		}
 		legend_panel_sc.setMinSize(legend_panel.computeSize(SWT.DEFAULT, SWT.DEFAULT ));
 		
 			// speed

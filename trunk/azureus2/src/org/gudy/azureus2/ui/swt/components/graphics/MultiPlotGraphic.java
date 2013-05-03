@@ -109,18 +109,21 @@ MultiPlotGraphic
 				Debug.out( "Incompatible history records, ignored" );
 				
 			}else{
-				int	history_entries = history[0].length;
-				
-				int	offset = Math.max( history_entries - maxEntries, 0 );
-								
-				for ( int i=offset; i<history_entries;i++){
+				if ( history.length > 0 ){
 					
-					for ( int j=0;j<history.length;j++){
+					int	history_entries = history[0].length;
+					
+					int	offset = Math.max( history_entries - maxEntries, 0 );
+									
+					for ( int i=offset; i<history_entries;i++){
 						
-						all_values[j][nbValues] = history[j][i]; 
+						for ( int j=0;j<history.length;j++){
+							
+							all_values[j][nbValues] = history[j][i]; 
+						}
+						
+						nbValues++;
 					}
-					
-					nbValues++;
 				}
 				
 				currentPosition = nbValues;
