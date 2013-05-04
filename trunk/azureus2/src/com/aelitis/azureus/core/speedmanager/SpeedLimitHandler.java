@@ -772,8 +772,8 @@ SpeedLimitHandler
 					String[] args = line.substring(6).split( "," );
 					
 					boolean	inverse 	= false;
-					int		up_lim		= 0;
-					int		down_lim	= 0;
+					int		up_lim		= -1;
+					int		down_lim	= -1;
 					
 					List<String>	categories = new ArrayList<String>();
 					
@@ -3299,6 +3299,9 @@ SpeedLimitHandler
 		
 		private List<String>	categories;
 		
+		private boolean	has_explicit_up_lim;
+		private boolean	has_explicit_down_lim;
+		
 		private long	last_send_total = -1;
 		private long	last_recv_total = -1;
 		
@@ -3327,6 +3330,16 @@ SpeedLimitHandler
 			int		tag_id )
 		{
 			tag_impl	= new TagPeerImpl( tag_id );
+			
+			if ( !has_explicit_up_lim ){
+				
+				up_limiter.setRateLimitBytesPerSecond( COConfigurationManager.getIntParameter( "speed.limit.handler.ipset_n." + tag_id + ".up", 0 ));
+			}
+			
+			if ( !has_explicit_down_lim ){
+				
+				down_limiter.setRateLimitBytesPerSecond( COConfigurationManager.getIntParameter( "speed.limit.handler.ipset_n." + tag_id + ".down", 0 ));
+			}
 		}
 		
 		private void
@@ -3337,6 +3350,16 @@ SpeedLimitHandler
 			List<String>	_cats )
 		{
 			inverse	= _inverse;
+			
+			has_explicit_up_lim = _up_lim >= 0;
+			if ( !has_explicit_up_lim ){
+				_up_lim = 0;
+			}
+			
+			has_explicit_down_lim = _down_lim >= 0;
+			if ( !has_explicit_down_lim ){
+				_down_lim = 0;
+			}
 			
 			up_limiter.setRateLimitBytesPerSecond( _up_lim );
 			down_limiter.setRateLimitBytesPerSecond( _down_lim );
@@ -3768,13 +3791,13 @@ SpeedLimitHandler
 			public boolean
 			supportsTagUploadLimit()
 			{
-				return( false );
+				return( !has_explicit_up_lim );
 			}
 
 			public boolean
 			supportsTagDownloadLimit()
 			{
-				return( false );
+				return( !has_explicit_down_lim );
 			}
 
 			public int
@@ -3787,6 +3810,12 @@ SpeedLimitHandler
 			setTagUploadLimit(
 				int		bps )
 			{
+				if ( supportsTagUploadLimit()){
+					
+					up_limiter.setRateLimitBytesPerSecond( bps );
+					
+					COConfigurationManager.setParameter( "speed.limit.handler.ipset_n." + getTagID() + ".up", bps );
+				}
 			}
 			
 			public int
@@ -3805,6 +3834,12 @@ SpeedLimitHandler
 			setTagDownloadLimit(
 				int		bps )
 			{
+				if ( supportsTagDownloadLimit()){
+					
+					down_limiter.setRateLimitBytesPerSecond( bps );
+					
+					COConfigurationManager.setParameter( "speed.limit.handler.ipset_n." + getTagID() + ".down", bps );
+				}
 			}
 			
 			public int
