@@ -464,8 +464,8 @@ DownloadManagerStatsImpl
 		long peer_swarm_average = stats.getTotalAverage();
 		
 		long	entry = 
-			((((send_rate-1+HISTORY_DIV/2)/HISTORY_DIV)<<32) 	&  0xeffffc0000000000L ) |
-			((((receive_rate-1+HISTORY_DIV/2)/HISTORY_DIV)<<16)  & 0x000003ffffe00000L ) |
+			((((send_rate-1+HISTORY_DIV/2)/HISTORY_DIV)<<42) 	&  0xeffffc0000000000L ) |
+			((((receive_rate-1+HISTORY_DIV/2)/HISTORY_DIV)<<21)  & 0x000003ffffe00000L ) |
 			((((peer_swarm_average-1+HISTORY_DIV/2)/HISTORY_DIV))& 0x00000000001fffffL );
 			
 		
