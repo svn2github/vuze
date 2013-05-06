@@ -322,9 +322,16 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.UIFunctions#refreshIconBar()
 	public void refreshIconBar() {
 		try {
-			ToolBarView tb = (ToolBarView) SkinViewManager.getByClass(ToolBarView.class);
-			if (tb != null) {
-				tb.refreshCoreToolBarItems();
+			SkinView[] tbSkinViews = SkinViewManager.getMultiByClass(ToolBarView.class);
+			if (tbSkinViews != null) {
+				for (SkinView skinview : tbSkinViews) {
+					if (skinview instanceof ToolBarView) {
+						ToolBarView tb = (ToolBarView) skinview;
+  					if (tb.isVisible()) {
+  						tb.refreshCoreToolBarItems();
+  					}
+					}
+				}
 			}
 
 		} catch (Exception e) {
