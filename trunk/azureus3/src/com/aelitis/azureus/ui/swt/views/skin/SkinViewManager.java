@@ -57,7 +57,7 @@ public class SkinViewManager
 	public static void add(final SkinView skinView) {
 		mon_skinViews.enter();
 		try {
-  		List<SkinView> list = mapSkinViews.get(skinView);
+  		List<SkinView> list = mapSkinViews.get(skinView.getClass());
   		if (list == null) {
   			list = new ArrayList<SkinView>(1);
   			mapSkinViews.put(skinView.getClass(), list);
