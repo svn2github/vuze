@@ -63,7 +63,7 @@ import com.aelitis.azureus.util.StringCompareUtils;
  */
 public class ToolBarView
 	extends SkinView
-	implements UIToolBarManagerCore
+	implements UIToolBarManagerCore, SelectedContentListener
 {
 	private static boolean DEBUG = false;
 
@@ -82,6 +82,8 @@ public class ToolBarView
 	private SWTSkinObject so2nd;
 
 	private boolean initComplete = false;
+	
+	private boolean showCalled = false;
 
 	private ArrayList<ToolBarViewListener> listeners = new ArrayList<ToolBarViewListener>(
 			1);
@@ -415,28 +417,6 @@ public class ToolBarView
 			}
 		});
 
-		SelectedContentManager.addCurrentlySelectedContentListener(new SelectedContentListener() {
-			String lastViewID = null;
-			public void currentlySelectedContentChanged(
-					ISelectedContent[] currentContent, String viewID) {
-				if (!StringCompareUtils.equals(lastViewID, viewID)) {
-					lastViewID = viewID;
-					ToolBarItem[] allToolBarItems = getAllSWTToolBarItems();
-					for (int i = 0; i < allToolBarItems.length; i++) {
-						UIToolBarItem toolBarItem = allToolBarItems[i];
-						if (toolBarItem instanceof ToolBarItemSO) {
-							toolBarItem.setState(((ToolBarItemSO) toolBarItem).getDefaultState());
-						} else {
-							toolBarItem.setState(0);
-						}
-					}
-				}
-				refreshCoreToolBarItems();
-				//updateCoreItems(currentContent, viewID);
-				UIFunctionsManagerSWT.getUIFunctionsSWT().refreshTorrentMenu();
-			}
-		});
-
 		initComplete = true;
 
 		synchronized (listeners) {
@@ -452,8 +432,53 @@ public class ToolBarView
 		return null;
 	}
 
+	String lastViewID = null;
+	public void currentlySelectedContentChanged(
+			ISelectedContent[] currentContent, String viewID) {
+		//System.err.println("currentlySelectedContentChanged " + viewID + ";" + currentContent + ";" + getMainSkinObject() + this + " via " + Debug.getCompressedStackTrace());
+		if (!StringCompareUtils.equals(lastViewID, viewID)) {
+			lastViewID = viewID;
+			ToolBarItem[] allToolBarItems = getAllSWTToolBarItems();
+			for (int i = 0; i < allToolBarItems.length; i++) {
+				UIToolBarItem toolBarItem = allToolBarItems[i];
+				if (toolBarItem instanceof ToolBarItemSO) {
+					toolBarItem.setState(((ToolBarItemSO) toolBarItem).getDefaultState());
+				} else {
+					toolBarItem.setState(0);
+				}
+			}
+		}
+		refreshCoreToolBarItems();
+		//updateCoreItems(currentContent, viewID);
+		UIFunctionsManagerSWT.getUIFunctionsSWT().refreshTorrentMenu();
+	}
+
+	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
+		
+		if (showCalled) {
+			return null;
+		}
+		showCalled = true;
+		SelectedContentManager.addCurrentlySelectedContentListener(this);
+
+		return super.skinObjectShown(skinObject, params);
+	}
+	
+	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
+		showCalled = false;
+		SelectedContentManager.removeCurrentlySelectedContentListener(this);
+
+		return super.skinObjectHidden(skinObject, params);
+	}
+
 	public boolean triggerToolBarItem(ToolBarItem item, long activationType,
 			Object datasource) {
+		if (DEBUG && !isVisible()) {
+			Debug.out("Trying to triggerToolBarItem when toolbar is not visible");
+			return false;
+		}
 		if (triggerViewToolBar(item, activationType, datasource)) {
 			return true;
 		}
@@ -557,6 +582,9 @@ public class ToolBarView
 	}
 
 	public void _refreshCoreToolBarItems() {
+		if (DEBUG && !isVisible()) {
+			Debug.out("Trying to refresh core toolbar items when toolbar is not visible " + this + getMainSkinObject());
+		}
 
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 
@@ -771,6 +799,10 @@ public class ToolBarView
 
 	private boolean triggerViewToolBar(ToolBarItem item, long activationType,
 			Object datasource) {
+		if (DEBUG && !isVisible()) {
+			Debug.out("Trying to triggerViewToolBar when toolbar is not visible");
+			return false;
+		}
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		if (mdi != null) {
 			MdiEntrySWT entry = mdi.getCurrentEntrySWT();
