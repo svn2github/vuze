@@ -2351,8 +2351,13 @@ public class TorrentUtil {
 				mapNewToolbarStates.put("remove", canRemove
 						? UIToolBarItem.STATE_ENABLED : 0);
 				
-				mapNewToolbarStates.put("up", canMoveUp ? UIToolBarItem.STATE_ENABLED : 0);
-				mapNewToolbarStates.put("down", canMoveDown ? UIToolBarItem.STATE_ENABLED : 0);
+					// actually we roll the dm indexes when > 1 selected and we get
+					// to the top/bottom, so only enforce this for single selection :)
+				
+				if ( currentContent.length == 1 ){
+					mapNewToolbarStates.put("up", canMoveUp ? UIToolBarItem.STATE_ENABLED : 0);
+					mapNewToolbarStates.put("down", canMoveDown ? UIToolBarItem.STATE_ENABLED : 0);
+				}
 			}
 	
 	    boolean canRun = has1Selection && ((hasDM && !canRunFileInfo) || (!hasDM && canRunFileInfo));
