@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.logging.LogAlert;
@@ -2290,14 +2291,23 @@ public class TorrentUtil {
 	
 			boolean canStart = false;
 			boolean canStop = false;
-	    boolean canRemoveFileInfo = false;
-	    boolean canRunFileInfo = false;
-	    boolean hasDM = false;
+			boolean canRemoveFileInfo = false;
+			boolean canRunFileInfo = false;
+			boolean hasDM = false;
 	
 			if (currentContent.length > 0 && hasRealDM) {
+				boolean	canMoveUp	= true;
+				boolean	canMoveDown	= true;
+				GlobalManager gm = currentContent[0].getDownloadManager().getGlobalManager();
 				for (int i = 0; i < currentContent.length; i++) {
 					ISelectedContent content = currentContent[i];
 					DownloadManager dm = content.getDownloadManager();
+					if ( !gm.isMoveableUp( dm )){
+						canMoveUp = false;
+					}
+					if ( !gm.isMoveableDown( dm )){
+						canMoveDown = false;
+					}
 					int fileIndex = content.getFileIndex();
 					if (fileIndex == -1) {
 						hasDM = true;
@@ -2337,8 +2347,12 @@ public class TorrentUtil {
 					}
 				}
 				boolean canRemove = hasDM || canRemoveFileInfo;
-			mapNewToolbarStates.put("remove", canRemove
-					? UIToolBarItem.STATE_ENABLED : 0);
+				
+				mapNewToolbarStates.put("remove", canRemove
+						? UIToolBarItem.STATE_ENABLED : 0);
+				
+				mapNewToolbarStates.put("up", canMoveUp ? UIToolBarItem.STATE_ENABLED : 0);
+				mapNewToolbarStates.put("down", canMoveDown ? UIToolBarItem.STATE_ENABLED : 0);
 			}
 	
 	    boolean canRun = has1Selection && ((hasDM && !canRunFileInfo) || (!hasDM && canRunFileInfo));
