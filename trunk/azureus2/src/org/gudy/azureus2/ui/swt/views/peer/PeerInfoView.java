@@ -182,8 +182,10 @@ public class PeerInfoView
 
 	private void dataSourceChanged(Object newDataSource) {
 		if (newDataSource instanceof Object[]) {
-			peer = (PEPeer) ((Object[]) newDataSource)[0];
-		} else if (newDataSource instanceof PEPeer) {
+			newDataSource = ((Object[]) newDataSource)[0];
+		}
+		
+		if (newDataSource instanceof PEPeer) {
 			peer = (PEPeer) newDataSource;
 		} else {
 			peer = null;
