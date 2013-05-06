@@ -49,6 +49,9 @@ public class SelectedContentManager
 
 	public static void addCurrentlySelectedContentListener(
 			SelectedContentListener l) {
+		if (listeners.contains(l)) {
+			return;
+		}
 		listeners.add(l);
 		l.currentlySelectedContentChanged(currentlySelectedContent, viewID);
 	}
