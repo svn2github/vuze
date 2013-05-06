@@ -84,6 +84,7 @@ TorrentOptionsView
 	// info panel
 	
 	private BufferedLabel	agg_size;
+	private BufferedLabel	agg_remaining;
 	private BufferedLabel	agg_uploaded;
 	private BufferedLabel	agg_downloaded;
 	private BufferedLabel	agg_share_ratio;
@@ -432,6 +433,15 @@ TorrentOptionsView
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		agg_size.setLayoutData( gridData );
 
+			// remaining
+		
+		label = new Label(gTorrentInfo, SWT.NULL );
+	    label.setText( MessageText.getString( "TableColumn.header.remaining" ) + ": " );
+	    
+		agg_remaining = new BufferedLabel( gTorrentInfo, SWT.LEFT | SWT.DOUBLE_BUFFERED );
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		agg_remaining.setLayoutData( gridData );
+	
 			// uploaded
 		
 		label = new Label(gTorrentInfo, SWT.NULL );
@@ -485,6 +495,7 @@ TorrentOptionsView
 	refresh()
 	{
 		long	total_size 				= 0;
+		long	total_remaining			= 0;
 		long	total_good_downloaded	= 0;
 		long	total_downloaded		= 0;
 		long	total_uploaded			= 0;
@@ -503,6 +514,8 @@ TorrentOptionsView
 
 			DownloadManagerStats stats = dm.getStats();
 
+			total_remaining += stats.getRemaining();
+			
 			long	good_received 	= stats.getTotalGoodDataBytesReceived();
 			long	received 		= stats.getTotalDataBytesReceived();
 			long	sent			= stats.getTotalDataBytesSent();
@@ -519,6 +532,7 @@ TorrentOptionsView
 		}
 		
 		agg_size.setText( DisplayFormatters.formatByteCountToKiBEtc( total_size ));
+		agg_remaining.setText( DisplayFormatters.formatByteCountToKiBEtc( total_remaining ));
 		agg_uploaded.setText( DisplayFormatters.formatByteCountToKiBEtc( total_uploaded ));
 		agg_downloaded.setText( DisplayFormatters.formatByteCountToKiBEtc( total_downloaded ));
 		
