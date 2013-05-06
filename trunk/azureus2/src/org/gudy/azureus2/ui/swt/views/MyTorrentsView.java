@@ -56,6 +56,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
+import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
@@ -68,9 +69,11 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.minibar.DownloadBar;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_TabsCommon;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.table.painted.TableRowPainted;
 import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
@@ -1688,15 +1691,39 @@ public class MyTorrentsView
 		}
 	}
 
+	private UISWTViewCore getActiveView() {
+		TableViewSWT_TabsCommon tabsCommon = tv.getTabsCommon();
+		if (tabsCommon != null) {
+			return tabsCommon.getActiveSubView();
+		}
+		return null;
+	}
 
   public void refreshToolBarItems(Map<String, Long> list) {
+		UISWTViewCore active_view = getActiveView();
+		if (active_view != null) {
+			UIPluginViewToolBarListener l = active_view.getToolBarListener();
+			if (l != null) {
+				l.refreshToolBarItems(list);
+				return;
+			}
+		}
+  	
 		Map<String, Long> states = TorrentUtil.calculateToolbarStates(
 				SelectedContentManager.getCurrentlySelectedContent(), tv.getTableID());
 		list.putAll(states);
   }  
 
   public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
-  	String itemKey = item.getID();
+		UISWTViewCore active_view = getActiveView();
+		if (active_view != null) {
+			UIPluginViewToolBarListener l = active_view.getToolBarListener();
+			if (l != null && l.toolBarItemActivated(item, activationType, datasource)) {
+				return true;
+			}
+		}
+
+		String itemKey = item.getID();
   	if (activationType == UIToolBarActivationListener.ACTIVATIONTYPE_HELD) {
       if(itemKey.equals("up")) {
         moveSelectedTorrentsTop();
