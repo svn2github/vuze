@@ -32,8 +32,10 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Listener;
 
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -133,6 +135,18 @@ public class TagStatsView
 	    	
 	    	tt.addTagTypeListener( this, false );
 	    }
+	    
+		panel.addListener( 
+			SWT.Activate,
+			new Listener()
+			{
+				public void 
+				handleEvent(
+					Event event )
+				{
+					refresh(true);
+				}
+			});
 	}
   
 	private void
