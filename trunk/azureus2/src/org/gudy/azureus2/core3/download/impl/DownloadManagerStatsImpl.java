@@ -399,7 +399,7 @@ DownloadManagerStatsImpl
 		}
 	}
 	
-	private static final int HISTORY_DIV = 16;
+	private static final int HISTORY_DIV = 64;
 	
 	public int[][]
 	getRecentHistory()
@@ -461,7 +461,7 @@ DownloadManagerStatsImpl
 		
 		long send_rate 			= stats.getDataSendRate() + stats.getProtocolSendRate();
 		long receive_rate 		= stats.getDataReceiveRate() + stats.getProtocolReceiveRate();
-		long peer_swarm_average = stats.getTotalAverage();
+		long peer_swarm_average = getTotalAveragePerPeer();
 		
 		long	entry = 
 			((((send_rate-1+HISTORY_DIV/2)/HISTORY_DIV)<<42) 	&  0x7ffffc0000000000L ) |
