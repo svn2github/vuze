@@ -1971,8 +1971,8 @@ SpeedLimitHandler
 		result.add( "#     net_limit monthly total=250G" );
 		result.add( "#" );
 		result.add( "#     ip_set external=211.34.128.0/19 211.35.128.0/17" );
-		result.add( "#     ip_set EU=AL;AD;AM;AT;AZ;BY;BE;BA;BG;HR;CY;CZ;DK;EE;FO;FI;FR;GE;DE;GI;GR;GL;HU;IE;IS;IT;KZ;KG;LV;LI;LT;LU;MK;MT;MD;MC;NL;NO;PL;PT;RO;RU;SM;RS;ME;SK;SI;ES;SE;CH;TJ;TR;TM;UA;UZ;VA" );
-		result.add( "#     ip_set Blorp=EU;US" );
+		result.add( "#     ip_set Europe=EU;AD;AL;AT;BA;BE;BG;BY;CH;CS;CZ;DE;DK;EE;ES;FI;FO;FR;FX;GB;GI;GR;HR;HU;IE;IS;IT;LI;LT;LU;LV;MC;MD;MK;MT;NL;NO;PL;PT;RO;SE;SI;SJ;SK;SM;UA;VA" );
+		result.add( "#     ip_set Blorp=Europe;US" );
 		result.add( "#" );
 		result.add( "# When multiple rules apply the one further down the list of rules take precedence" );
 		result.add( "# Currently ip_set limits are not schedulable" );
