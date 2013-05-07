@@ -218,10 +218,14 @@ public class GeneralView
   	if (manager == null || parent == null){
   		if ( genComposite != null && !genComposite.isDisposed()){
   			
+  		  	Utils.disposeComposite(genComposite, false);
+
   			Label lab = new Label( genComposite, SWT.NULL );
   			GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
   			lab.setLayoutData(gridData);
   			Messages.setLanguageText(lab, "label.no.download.selected" );
+  			
+  			genComposite.layout();
   		}
   		return;
   	}
