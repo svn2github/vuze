@@ -233,7 +233,8 @@ public class TableViewSWT_TabsCommon
 	private void 
 	addTabView(
 		UISWTViewEventListenerWrapper 	listener,
-		boolean							start_of_day ) 
+		boolean							start_of_day,
+		boolean							start_minimized )
 	{
 		if ( tabFolder == null){
 			
@@ -287,7 +288,18 @@ public class TableViewSWT_TabsCommon
 			
 			CTabItem item = new CTabItem( tabFolder, SWT.NULL, insert_at );
 			
-			item.setToolTipText( MessageText.getString( tabFolder.getMaximized()?"label.dblclick.to.min":"label.click.to.restore"));
+			boolean	is_expanded;
+			
+			if ( start_of_day ){
+				
+				is_expanded = !start_minimized;
+				
+			}else{
+				
+				is_expanded = tabFolder.getMaximized();
+			}
+						
+			item.setToolTipText( MessageText.getString( is_expanded?"label.dblclick.to.min":"label.click.to.restore"));
 			
 			item.setData("IView", view);
 			
@@ -333,7 +345,7 @@ public class TableViewSWT_TabsCommon
 			
 			if ( !closed.containsKey( view_id )){
 				
-				addTabView( l, false );
+				addTabView( l, false, false );
 			}
 		}
 		
@@ -538,7 +550,6 @@ public class TableViewSWT_TabsCommon
 				}
 				
 				CTabItem[] items = tabFolder.getItems();
-				
 				String tt = MessageText.getString( "label.dblclick.to.min"  );
 				
 				for (int i = 0; i < items.length; i++) {
@@ -766,6 +777,9 @@ public class TableViewSWT_TabsCommon
 			rt_set.addAll( Arrays.asList( restricted_to ));
 		}
 		
+		boolean folder_minimized = 
+			configMan.getBooleanParameter( props_prefix + ".subViews.minimized", !tv.getTabViewsExpandedByDefault());
+		
 		// Call plugin listeners
 		
 		if (pluginViews != null) {
@@ -782,7 +796,7 @@ public class TableViewSWT_TabsCommon
 								
 							}else{
 								
-								addTabView( l, true );
+								addTabView( l, true, folder_minimized );
 							}
 						}
 					} catch (Exception e) {
@@ -792,11 +806,14 @@ public class TableViewSWT_TabsCommon
 			}
 		}
 
-		if (configMan.getBooleanParameter(
-				props_prefix + ".subViews.minimized", !tv.getTabViewsExpandedByDefault())){
+		if ( folder_minimized ){
+			
 			tabFolder.setMinimized(true);
+			
 			tabFolderData.height = iFolderHeightAdj;
-		} else {
+			
+		}else{
+			
 			tabFolder.setMinimized(false);
 		}
 
