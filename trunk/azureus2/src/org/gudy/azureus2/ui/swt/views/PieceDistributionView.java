@@ -83,8 +83,12 @@ public abstract class PieceDistributionView
 		pieceDistCanvas = new Canvas(comp,SWT.NONE);
 		pieceDistCanvas.addListener(SWT.Paint, new Listener() {
 			public void handleEvent(Event event) {
-				if (imgToPaint != null && !imgToPaint.isDisposed()) {
-					event.gc.drawImage(imgToPaint, 0, 0);
+				if ( pem==null || pem.isDestroyed()){
+					event.gc.fillRectangle(event.x, event.y, event.width, event.height);
+				}else{
+					if (imgToPaint != null && !imgToPaint.isDisposed()) {
+						event.gc.drawImage(imgToPaint, 0, 0);
+					}
 				}
 			}
 		});

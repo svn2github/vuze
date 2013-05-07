@@ -400,6 +400,9 @@ PEPeerManager
 	public int
 	getPartitionID();
 
+	public boolean
+	isDestroyed();
+	
 	public void
 	generateEvidence(
 		IndentWriter		writer );
