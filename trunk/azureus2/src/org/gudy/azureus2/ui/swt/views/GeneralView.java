@@ -216,7 +216,7 @@ public class GeneralView
   
   private void swt_refreshInfo() {
   	if (manager == null || parent == null){
-  		if ( !genComposite.isDisposed()){
+  		if ( genComposite != null && !genComposite.isDisposed()){
   			
   			Label lab = new Label( genComposite, SWT.NULL );
   			GridData gridData = new GridData(GridData.FILL_HORIZONTAL);

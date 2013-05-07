@@ -451,8 +451,16 @@ public class PeersGraphicView
   private void render(PEPeer[] sortedPeers) {
 	peer_hit_map.clear();
 	  
-    if(panel == null || panel.isDisposed() || manager == null)
-      return;
+    if(panel == null || panel.isDisposed()){
+    	return;
+    }
+    
+    if ( manager == null ){
+    	GC gcPanel = new GC(panel);
+    	gcPanel.fillRectangle( panel.getBounds());
+    	gcPanel.dispose();
+    	return;
+    }
     Point panelSize = panel.getSize();
     
     int	min_dim = Math.min( panelSize.x, panelSize.y );
@@ -696,6 +704,9 @@ public class PeersGraphicView
         
       case UISWTViewEvent.TYPE_FOCUSGAINED:
         	String id = "DMDetails_Swarm";
+        	
+        	setFocused( true );	// do this before next code as it can pick up the corrent 'manager' ref
+  	      
 	      	if (manager != null) {
 	      		if (manager.getTorrent() != null) {
 	  					id += "." + manager.getInternalName();
@@ -708,7 +719,6 @@ public class PeersGraphicView
 	      		new SelectedContent(manager)
 	      	});
 	      	
-	      setFocused( true );
 	      break;
       case UISWTViewEvent.TYPE_FOCUSLOST:
     	  setFocused( false );

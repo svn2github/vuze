@@ -333,6 +333,8 @@ DownloadActivityView
 		if ( manager == null ){
 			
 			mpg.setActive( false );
+			
+			mpg.reset( new int[3][0] );
 		
 		}else{
 		
@@ -415,6 +417,8 @@ DownloadActivityView
 	    		
 	    		String id = "DMDetails_DownloadGraph";
 
+			    setFocused( true );	// do this here to pick up corrent manager before rest of code
+
 	    		if ( manager != null ){
 
 	    			if ( manager.getTorrent() != null ){
@@ -430,9 +434,7 @@ DownloadActivityView
 	    		SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[]{ new SelectedContent(manager)});
 
 	    		refresh( true );
-	    		
-			    setFocused( true );
-			    
+	    					    
 			    break;
 	    	}
 		    case UISWTViewEvent.TYPE_FOCUSLOST:{

@@ -288,18 +288,18 @@ public class TableViewSWT_TabsCommon
 			
 			CTabItem item = new CTabItem( tabFolder, SWT.NULL, insert_at );
 			
-			boolean	is_expanded;
+			boolean	is_minimized;
 			
 			if ( start_of_day ){
 				
-				is_expanded = !start_minimized;
+				is_minimized = start_minimized;
 				
 			}else{
 				
-				is_expanded = tabFolder.getMaximized();
+				is_minimized = tabFolder.getMinimized();
 			}
 						
-			item.setToolTipText( MessageText.getString( is_expanded?"label.dblclick.to.min":"label.click.to.restore"));
+			item.setToolTipText( MessageText.getString( is_minimized?"label.click.to.restore":"label.dblclick.to.min"));
 			
 			item.setData("IView", view);
 			

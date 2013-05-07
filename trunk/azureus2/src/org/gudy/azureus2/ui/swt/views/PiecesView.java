@@ -301,6 +301,9 @@ public class PiecesView
 	      }
 	      case UISWTViewEvent.TYPE_FOCUSGAINED:
 	      	String id = "DMDetails_Pieces";
+	      	
+	      	setFocused( true );	// do this here to pick up corrent manager before rest of code
+	      	
 	      	if (manager != null) {
 	      		if (manager.getTorrent() != null) {
 	  					id += "." + manager.getInternalName();
@@ -312,7 +315,7 @@ public class PiecesView
 	      	SelectedContentManager.changeCurrentlySelectedContent(id, new SelectedContent[] {
 	      		new SelectedContent(manager)
 	      	});
-		    setFocused( true );
+		 
 		    break;
 	      case UISWTViewEvent.TYPE_FOCUSLOST:
 	    	  setFocused( false );
