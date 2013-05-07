@@ -3848,6 +3848,12 @@ SpeedLimitHandler
 				return( (int)receive_rate.getAverage());
 			}
 			
+			public boolean
+			getCanBePublicDefault()
+			{
+				return( false );
+			}
+			
 			private void
 			destroy()
 			{
