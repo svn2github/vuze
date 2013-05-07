@@ -142,8 +142,6 @@ public class SBC_TorrentDetailsView
 			}
 		};
 		gm.addListener(gmListener, false);
-
-		UIFunctionsManagerSWT.getUIFunctionsSWT().getUIUpdater().addUpdater(this);
 	}
 
 	private void dataSourceChanged(Object newDataSource) {
