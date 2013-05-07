@@ -297,11 +297,10 @@ public class TableColumnCreatorV3
 		final String[] defaultVisibleOrder = {
 			ColumnUnopened.COLUMN_ID,
 			ColumnThumbAndName.COLUMN_ID,
-			"azsubs.ui.column.subs",
-			"RatingColumn",
+			ColumnStream.COLUMN_ID,
 			SizeItem.COLUMN_ID,
-			ColumnProgressETA.COLUMN_ID,
-			StatusItem.COLUMN_ID,
+			"RatingColumn",
+			"azsubs.ui.column.subs",
 			DateCompletedItem.COLUMN_ID,
 		};
 
