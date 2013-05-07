@@ -226,7 +226,7 @@ public class PieceInfoView
 					return;
 				try {
 					Rectangle bounds = (img == null) ? null : img.getBounds();
-					if (bounds == null) {
+					if (bounds == null || dlm == null || dlm.getPeerManager() == null ) {
 						e.gc.fillRectangle(e.x, e.y, e.width, e.height);
 					} else {
 						if (e.x + e.width > bounds.width)
