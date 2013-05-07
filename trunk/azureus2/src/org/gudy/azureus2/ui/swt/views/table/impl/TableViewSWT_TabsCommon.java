@@ -287,6 +287,8 @@ public class TableViewSWT_TabsCommon
 			
 			CTabItem item = new CTabItem( tabFolder, SWT.NULL, insert_at );
 			
+			item.setToolTipText( MessageText.getString( tabFolder.getMaximized()?"label.dblclick.to.min":"label.click.to.restore"));
+			
 			item.setData("IView", view);
 			
 			String title_id = view.getTitleID();
@@ -512,8 +514,10 @@ public class TableViewSWT_TabsCommon
 				tabFolder.setMinimized(true);
 				tabFolderData.height = iFolderHeightAdj;
 				CTabItem[] items = tabFolder.getItems();
+				String tt = MessageText.getString( "label.click.to.restore" );
 				for (int i = 0; i < items.length; i++) {
 					CTabItem tabItem = items[i];
+					tabItem.setToolTipText( tt );
 					tabItem.getControl().setVisible(false);
 				}
 				form.layout();
@@ -532,6 +536,16 @@ public class TableViewSWT_TabsCommon
 				if (selection != null) {
 					selection.getControl().setVisible(true);
 				}
+				
+				CTabItem[] items = tabFolder.getItems();
+				
+				String tt = MessageText.getString( "label.dblclick.to.min"  );
+				
+				for (int i = 0; i < items.length; i++) {
+					CTabItem tabItem = items[i];
+					tabItem.setToolTipText( tt );
+				}
+				
 				form.notifyListeners(SWT.Resize, null);
 
 				UISWTViewCore view = getActiveSubView();
@@ -542,6 +556,8 @@ public class TableViewSWT_TabsCommon
 
 				ConfigurationManager configMan = ConfigurationManager.getInstance();
 				configMan.setParameter(props_prefix + ".subViews.minimized", false);
+				
+				tabFolder.setToolTipText( "max" );
 			}
 
 		};
