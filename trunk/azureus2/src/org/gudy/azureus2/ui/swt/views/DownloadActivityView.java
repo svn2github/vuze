@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 
+import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -87,38 +88,7 @@ DownloadActivityView
 	    panel = new Composite(composite,SWT.NULL);
 	    panel.setLayout(new GridLayout(legend_at_bottom?1:2, false));
 	    GridData gridData;
-	    
-		String[] color_configs = new String[] {
-				"DownloadActivityView.legend.up",
-				"DownloadActivityView.legend.down",
-				"DownloadActivityView.legend.peeraverage",
-			};
 
-		if ( !legend_at_bottom ){
-				
-			gridData = new GridData( GridData.FILL_VERTICAL );
-			gridData.verticalAlignment = SWT.CENTER;
-			
-			Legend.createLegendComposite(panel, colors, color_configs, null, gridData, false );
-		}
-
-	    Composite gSpeed = new Composite(panel,SWT.NULL);
-	    gridData = new GridData(GridData.FILL_BOTH);
-	    gSpeed.setLayoutData(gridData);    
-	    gSpeed.setLayout(new GridLayout());
-	     
-	    if ( legend_at_bottom ){
-	    	
-			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			
-			Legend.createLegendComposite(panel, colors, color_configs, null, gridData, true );
-
-	    }
-	    
-	    Canvas speedCanvas = new Canvas(gSpeed,SWT.NO_BACKGROUND);
-	    gridData = new GridData(GridData.FILL_BOTH);
-	    speedCanvas.setLayoutData(gridData);
-	    
 	    ValueFormater formatter =
 	    	new ValueFormater() 
 	    	{
@@ -130,33 +100,10 @@ DownloadActivityView
 	        	}
 	    	};
 	      
-	    ValueSource[] sources = {
-	    	new ValueSource()
+	    
+	    final ValueSourceImpl[] sources = {
+	    	new ValueSourceImpl( "Up", 0, colors, true )
 	    	{
-	    		public String
-	    		getName()
-	    		{
-	    			return( "Up" );
-	    		}
-	    		
-	    		public Color 
-	    		getLineColor() 
-	    		{
-	    			return( colors[0] );
-	    		}
-	    		
-	    		public boolean
-	    		isTrimmable()
-	    		{
-	    			return( false );
-	    		}
-	    		
-	    		public int 
-	    		getStyle() 
-	    		{
-	    			return( STYLE_NONE );
-	    		}
-	    		
 	    		public int
 	    		getValue()
 	    		{
@@ -172,32 +119,8 @@ DownloadActivityView
 	    			return((int)(stats.getDataSendRate() + stats.getProtocolSendRate()));
 	    		}
 	    	},
-	    	new ValueSource()
+	    	new ValueSourceImpl( "Down", 1, colors, false )
 	    	{
-	    		public String
-	    		getName()
-	    		{
-	    			return( "Down" );
-	    		}
-	    		
-	    		public Color 
-	    		getLineColor() 
-	    		{
-	    			return( colors[1] );
-	    		}
-	    		
-	    		public boolean
-	    		isTrimmable()
-	    		{
-	    			return( false );
-	    		}
-	    		
-	    		public int 
-	    		getStyle() 
-	    		{
-	    			return( STYLE_NONE );
-	    		}
-	    		
 	    		public int
 	    		getValue()
 	    		{
@@ -213,32 +136,8 @@ DownloadActivityView
 	    			return((int)(stats.getDataReceiveRate() +stats.getProtocolReceiveRate()));
 	    		}
 	    	},
-	    	new ValueSource()
+	    	new ValueSourceImpl( "Swarm Peer Average", 2, colors, false )
 	    	{
-	    		public String
-	    		getName()
-	    		{
-	    			return( "Swarm Peer Average" );
-	    		}
-	    		
-	    		public Color 
-	    		getLineColor() 
-	    		{
-	    			return( colors[2] );
-	    		}
-	    		
-	    		public boolean
-	    		isTrimmable()
-	    		{
-	    			return( true );
-	    		}
-	    		
-	    		public int 
-	    		getStyle() 
-	    		{
-	    			return( STYLE_NONE );
-	    		}
-	    		
 	    		public int
 	    		getValue()
 	    		{
@@ -254,7 +153,76 @@ DownloadActivityView
 	    	}
 	    };
 	    
-		mpg = MultiPlotGraphic.getInstance( sources, formatter );
+		final MultiPlotGraphic f_mpg = mpg = MultiPlotGraphic.getInstance( sources, formatter );
+	    
+	    
+		String[] color_configs = new String[] {
+				"DownloadActivityView.legend.up",
+				"DownloadActivityView.legend.down",
+				"DownloadActivityView.legend.peeraverage",
+			};
+
+		Legend.LegendListener legend_listener = 
+			new Legend.LegendListener()
+			{
+				private int	hover_index = -1;
+				
+				public void 
+				hoverChange(
+					boolean 	entry, 
+					int 		index ) 
+				{
+					if ( hover_index != -1 ){
+						
+						sources[hover_index].setHover( false );
+					}
+					
+					if ( entry ){
+						
+						hover_index = index;
+						
+						sources[index].setHover( true );
+					}
+										
+					f_mpg.refresh( true );
+				}
+				
+				public void
+				visibilityChange(
+					boolean	visible,
+					int		index )
+				{
+					sources[index].setVisible( visible );
+
+					f_mpg.refresh( true );
+				}
+			};
+			
+		
+		if ( !legend_at_bottom ){
+				
+			gridData = new GridData( GridData.FILL_VERTICAL );
+			gridData.verticalAlignment = SWT.CENTER;
+			
+			Legend.createLegendComposite(panel, colors, color_configs, null, gridData, false, legend_listener );
+		}
+
+	    Composite gSpeed = new Composite(panel,SWT.NULL);
+	    gridData = new GridData(GridData.FILL_BOTH);
+	    gSpeed.setLayoutData(gridData);    
+	    gSpeed.setLayout(new GridLayout());
+	     
+	    if ( legend_at_bottom ){
+	    	
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			
+			Legend.createLegendComposite(panel, colors, color_configs, null, gridData, true, legend_listener );
+
+	    }
+	    
+	    Canvas speedCanvas = new Canvas(gSpeed,SWT.NO_BACKGROUND);
+	    gridData = new GridData(GridData.FILL_BOTH);
+	    speedCanvas.setLayoutData(gridData);
 
 		mpg.initialize( speedCanvas, false );
 	}
@@ -464,5 +432,81 @@ DownloadActivityView
 		Map<String, Long> list) 
 	{	
 		ViewUtils.refreshToolBarItems(manager, list);
+	}
+	
+	private abstract class
+	ValueSourceImpl
+		implements ValueSource
+	{	
+		String					name;
+		int						index;
+		Color[]					colours;
+		boolean					is_up;
+		
+		private boolean			is_hover;
+		private boolean			is_invisible;
+		
+		private
+		ValueSourceImpl(
+			String					_name,
+			int						_index,
+			Color[]					_colours,
+			boolean					_is_up )
+		{
+			name	= _name;
+			index	= _index;
+			colours	= _colours;
+			is_up	= _is_up;
+		}
+			
+		public String
+		getName()
+		{
+			return( name );
+		}
+		
+		public Color 
+		getLineColor() 
+		{
+			return( colours[index] );
+		}
+		
+		public boolean
+		isTrimmable()
+		{
+			return( false );
+		}
+		
+		private void
+		setHover(
+			boolean	h )
+		{
+			is_hover = h;
+		}
+		
+		private void
+		setVisible(
+			boolean	visible )
+		{
+			is_invisible = !visible;
+		}
+		
+		public int 
+		getStyle() 
+		{
+			if ( is_invisible ){
+				
+				return( STYLE_INVISIBLE );
+			}
+			
+			int	style = is_up?STYLE_UP:STYLE_DOWN;
+			
+			if ( is_hover ){
+				
+				style |= STYLE_BOLD;
+			}
+			
+			return( style );
+		}
 	}
 }
