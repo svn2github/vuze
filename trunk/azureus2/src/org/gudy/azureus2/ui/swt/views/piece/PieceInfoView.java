@@ -126,7 +126,12 @@ public class PieceInfoView
 	}
 
 	private void dataSourceChanged(Object newDataSource) {
-		if (newDataSource instanceof DownloadManager) {
+		if ( newDataSource == null ){
+			if (dlm != null) {
+				dlm.removePieceListener(this);
+			}
+			dlm = null;
+		}else if (newDataSource instanceof DownloadManager) {
 			oldBlockInfo = null;
 			if (dlm != null) {
 				dlm.removePieceListener(this);
@@ -134,9 +139,7 @@ public class PieceInfoView
 			dlm = (DownloadManager)newDataSource;
 			dlm.addPieceListener(this, false);
 			fillPieceInfoSection();
-		}
-		
-		if (newDataSource instanceof Object[]) {
+		}else if (newDataSource instanceof Object[]) {
 			Object[] objects = (Object[]) newDataSource;
 			if (objects.length > 0 && (objects[0] instanceof PEPiece)) {
   			PEPiece piece = (PEPiece) objects[0];
