@@ -1,9 +1,28 @@
 VUZE CHANGELOG
 -----------------
 
-2013.xx.xx | Vuze 4.9.0.1
+2013.05.xx | Vuze 4.9.0.1
 
+FEATURE: UI   | Buttons on toolbar now only shows on views that need the buttons [TuxPaper]
+FEATURE: UI   | Support dragging files out of Files View as a File object, allowing dragging to Explorer, Editor, Player, etc [TuxPaper]
+FEATURE: UI   | Program icon in file rows of Library view [TuxPaper]
 
+CHANGE: UI    | Better magnet URL parsing when entering web page URL [TuxPaper]
+CHANGE: UI    | Torrent icon is now shown by default in name column [TuxPaper]
+CHANGE: UI    | Blue now is "incomplete" and green is "complete" for progress bar column, play button, download/upload arrow [TuxPaper]
+CHANGE: UI    | Default columns in "Simple View" have changed [TuxPaper]
+CHANGE: UI    | Added a up/down arrow to the "#"/"Order" column [TuxPaper]
+CHANGE: UI    | Progress column no longer shows speed and ETA by default (configurable) -- speed and ETA have been added as separate columns [TuxPaper]
+CHANGE: UI    | Start, Stop, Play/Stream, and View Mode buttons on toolbar updated [TuxPaper]
+CHANGE: UI    | Sidebar now has a "Content Discovery" section. Related views have been moved there (Vuze HD Network, Games, Search Results, Swarm Discoveries, Subscriptions) [TuxPaper]
+CHANGE: UI    | Renamed "Files" section to "My Torrents" and moved the section to the top [TuxPaper]
+CHANGE: Plug  | Vuze Web Remote: Support most of Transmission's remote API [TuxPaper]
+
+BUGFIX: UI    | Library in "Simple View" mode is now tall enough to display two lines of text [TuxPaper]
+BUGFIX: UI    | Sample column on Column Setup Window is no longer partially hidden by scrollbar [TuxPaper]
+BUGFIX: UI    | Fixerd filter box flickering when mousing over [TuxPaper] 
+ 
+ 
 
 2013.02.15 | Vuze 4.9.0.0
 
