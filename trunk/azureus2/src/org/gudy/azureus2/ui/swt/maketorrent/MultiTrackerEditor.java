@@ -266,8 +266,10 @@ public class MultiTrackerEditor {
     editor = new TreeEditor (treeGroups);
     treeGroups.addSelectionListener(new SelectionAdapter() {
 	    public void widgetSelected(SelectionEvent arg0) {	      
-	      if(itemEdited != null && !editor.getEditor().isDisposed())
+	      if(itemEdited != null && !itemEdited.isDisposed() && !editor.getEditor().isDisposed()){
 	        itemEdited.setText(((Text)editor.getEditor()).getText());
+	      }
+	      
 	      removeEditor();
 	    }
     });
@@ -530,8 +532,9 @@ public class MultiTrackerEditor {
   
   private void removeEditor() {
     Control oldEditor = editor.getEditor();
-    if (oldEditor != null)
+    if (oldEditor != null && !oldEditor.isDisposed()){
       oldEditor.dispose();
+    }
   }
   
   private TreeItem newGroup() {
