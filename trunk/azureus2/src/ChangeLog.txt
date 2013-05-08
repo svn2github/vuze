@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2013.05.xx | Vuze 4.9.0.1
+2013.05.08 | Vuze 5.0.0.0
 
 FEATURE: Blog | See http://devblog.vuze.com/tagged/5000 for beta version blog posts
 
@@ -91,6 +91,9 @@ BUGFIX: Core  | Fixed UI deadlock in table sort code [Parg]
 BUGFIX: Core  | Fixed some performance issues caused by per-download listeners being added to various config variables [Parg]
 BUGFIX: Core  | Introduced a linked-list backed 'copy on write' implementation to fix some performance issues [Parg]
 BUGFIX: Core  | Prevent metadata downloads from triggering 'on download complete' actions [Parg]
+
+
+
 
 2013.02.15 | Vuze 4.9.0.0
 
