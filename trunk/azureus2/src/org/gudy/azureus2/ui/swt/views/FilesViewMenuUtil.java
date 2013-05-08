@@ -709,23 +709,26 @@ public class FilesViewMenuUtil
 			}
 
 			boolean has_changed = existing_storage_type != new_storage_type;
+			
 			type_has_been_changed |= has_changed;
-			requires_pausing |= (has_changed && ( new_storage_type == DiskManagerFileInfo.ST_COMPACT || new_storage_type == DiskManagerFileInfo.ST_REORDER_COMPACT ));
+			
+			if ( has_changed ){
+				
+				requires_pausing |= ( new_storage_type == DiskManagerFileInfo.ST_COMPACT || new_storage_type == DiskManagerFileInfo.ST_REORDER_COMPACT );
 
-			type_has_been_changed = existing_storage_type != new_storage_type;
-
-			if (new_storage_type == DiskManagerFileInfo.ST_COMPACT) {
-				setCompact[infos[i].getIndex()] = true;
-				compactCount++;
-			} else if (new_storage_type == DiskManagerFileInfo.ST_LINEAR) {
-				setLinear[infos[i].getIndex()] = true;
-				linearCount++;
-			} else if (new_storage_type == DiskManagerFileInfo.ST_REORDER) {
-				setReorder[infos[i].getIndex()] = true;
-				reorderCount++;
-			} else if (new_storage_type == DiskManagerFileInfo.ST_REORDER_COMPACT) {
-				setReorderCompact[infos[i].getIndex()] = true;
-				reorderCompactCount++;
+				if (new_storage_type == DiskManagerFileInfo.ST_COMPACT) {
+					setCompact[infos[i].getIndex()] = true;
+					compactCount++;
+				} else if (new_storage_type == DiskManagerFileInfo.ST_LINEAR) {
+					setLinear[infos[i].getIndex()] = true;
+					linearCount++;
+				} else if (new_storage_type == DiskManagerFileInfo.ST_REORDER) {
+					setReorder[infos[i].getIndex()] = true;
+					reorderCount++;
+				} else if (new_storage_type == DiskManagerFileInfo.ST_REORDER_COMPACT) {
+					setReorderCompact[infos[i].getIndex()] = true;
+					reorderCompactCount++;
+				}
 			}
 		}
 
