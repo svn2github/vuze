@@ -217,14 +217,17 @@ public class ColumnProgressETA
 
 		if (ds instanceof DownloadManager) {
 			DownloadManager dm = (DownloadManager) cell.getDataSource();
+			// close enough to unique with abs..
+			int hashCode = Math.abs(DisplayFormatters.formatDownloadStatus(dm).hashCode());
 
 			long completedTime = dm.getDownloadState().getLongParameter(
 					DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
 			if (completedTime <= 0 || !dm.isDownloadComplete(false)) {
-				sortValue = Long.MAX_VALUE - ((10000 + percentDone) << 2 + dm.getState());
+				sortValue = Long.MAX_VALUE - ((10000 + percentDone) << 31 + hashCode);
 			} else {
-				sortValue = completedTime << 2 + dm.getState();
+				sortValue = (completedTime / 1000) << 31 + hashCode;
 			}
+			
 		} else if (ds instanceof DiskManagerFileInfo) {
 			DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) ds;
 			int st = fileInfo.getStorageType();
