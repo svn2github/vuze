@@ -421,9 +421,7 @@ DownloadActivityView
 		long 			activationType,
 		Object 			datasource) 
 	{
-		ViewUtils.toolBarItemActivated( manager, item, activationType, datasource );
-			
-		return( true );
+		return( ViewUtils.toolBarItemActivated( manager, item, activationType, datasource ));
 	}
 
 	public void 
