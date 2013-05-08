@@ -1705,7 +1705,8 @@ public class MyTorrentsView
 			UIPluginViewToolBarListener l = active_view.getToolBarListener();
 			if (l != null) {
 				l.refreshToolBarItems(list);
-				return;
+				// don't return here, we want to merge in any potential operations
+				// from the selected content calculation below
 			}
 		}
   	
