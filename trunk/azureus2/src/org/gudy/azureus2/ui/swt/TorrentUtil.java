@@ -2273,7 +2273,21 @@ public class TorrentUtil {
 			}
 	
 			TableView tv = SelectedContentManager.getCurrentlySelectedTableView();
-			boolean hasRealDM = tv != null;
+			
+			boolean hasRealDM = tv != null;	// not sure why we assume that the existance of any table view
+											// implies we have a real DM... Anyway, if false go ahead and test
+			
+			if ( !hasRealDM && numSelection > 0 ){
+				hasRealDM = true;
+				for (int i = 0; i < currentContent.length; i++) {
+					ISelectedContent content = currentContent[i];
+					DownloadManager dm = content.getDownloadManager();
+					if ( dm == null ){
+						hasRealDM = false;
+						break;
+					}
+				}
+			}
 			if (!hasRealDM) {
 				MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 				if (mdi != null) {
