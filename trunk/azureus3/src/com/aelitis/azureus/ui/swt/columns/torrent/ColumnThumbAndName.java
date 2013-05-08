@@ -79,7 +79,6 @@ public class ColumnThumbAndName
 	private static final String ID_EXPANDOHITAREASHOW = "expandoHitAreaShow";
 
 	private static final boolean NEVER_SHOW_TWISTY = 
-		Constants.isLinux || 
 		!COConfigurationManager.getBooleanParameter("Table.useTree");
 	
 	private boolean showIcon;
