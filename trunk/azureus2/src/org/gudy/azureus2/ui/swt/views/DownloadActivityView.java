@@ -48,7 +48,6 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 
-import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -102,7 +101,7 @@ DownloadActivityView
 	      
 	    
 	    final ValueSourceImpl[] sources = {
-	    	new ValueSourceImpl( "Up", 0, colors, true )
+	    	new ValueSourceImpl( "Up", 0, colors, true, false )
 	    	{
 	    		public int
 	    		getValue()
@@ -119,7 +118,7 @@ DownloadActivityView
 	    			return((int)(stats.getDataSendRate() + stats.getProtocolSendRate()));
 	    		}
 	    	},
-	    	new ValueSourceImpl( "Down", 1, colors, false )
+	    	new ValueSourceImpl( "Down", 1, colors, false, false )
 	    	{
 	    		public int
 	    		getValue()
@@ -136,7 +135,7 @@ DownloadActivityView
 	    			return((int)(stats.getDataReceiveRate() +stats.getProtocolReceiveRate()));
 	    		}
 	    	},
-	    	new ValueSourceImpl( "Swarm Peer Average", 2, colors, false )
+	    	new ValueSourceImpl( "Swarm Peer Average", 2, colors, false, true )
 	    	{
 	    		public int
 	    		getValue()
@@ -438,10 +437,11 @@ DownloadActivityView
 	ValueSourceImpl
 		implements ValueSource
 	{	
-		String					name;
-		int						index;
-		Color[]					colours;
-		boolean					is_up;
+		private String			name;
+		private int				index;
+		private Color[]			colours;
+		private boolean			is_up;
+		private boolean			trimmable;
 		
 		private boolean			is_hover;
 		private boolean			is_invisible;
@@ -451,12 +451,14 @@ DownloadActivityView
 			String					_name,
 			int						_index,
 			Color[]					_colours,
-			boolean					_is_up )
+			boolean					_is_up,
+			boolean					_trimmable )
 		{
-			name	= _name;
-			index	= _index;
-			colours	= _colours;
-			is_up	= _is_up;
+			name			= _name;
+			index			= _index;
+			colours			= _colours;
+			is_up			= _is_up;
+			trimmable		= _trimmable;
 		}
 			
 		public String
@@ -474,7 +476,7 @@ DownloadActivityView
 		public boolean
 		isTrimmable()
 		{
-			return( false );
+			return( trimmable );
 		}
 		
 		private void
