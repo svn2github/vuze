@@ -1,6 +1,9 @@
 VUZE CHANGELOG
 -----------------
 
+2013.05.xx | Vuze 5.0.0.1
+
+
 2013.05.08 | Vuze 5.0.0.0
 
 FEATURE: Blog | See http://devblog.vuze.com/tagged/5000 for beta version blog posts
