@@ -208,10 +208,10 @@ public class Legend {
 			}else{
 				lblDesc.setText( key_texts[i] );
 			}
-			
-			Messages.setLanguageTooltip( lblDesc, "label.click.to.showhide" );
-			
+						
 			if ( listener != null ){
+
+				Messages.setLanguageTooltip( lblDesc, "label.click.to.showhide" );
 
 				final int f_i = i;
 				
