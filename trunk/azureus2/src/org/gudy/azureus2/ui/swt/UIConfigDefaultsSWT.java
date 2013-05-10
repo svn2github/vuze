@@ -58,6 +58,8 @@ public class UIConfigDefaultsSWT
 		def.addParameter("Colors.progressBar.override", false);
 		def.addParameter("GUI_SWT_DisableAlertSliding", false);
 		def.addParameter("NameColumn.showProgramIcon", !Constants.isWindowsVista);
+		def.addParameter("RankColumn.showUpDownIcon.big", true );
+		def.addParameter("RankColumn.showUpDownIcon.small", false );
 		def.addParameter("DND Always In Incomplete", false);
 
 		def.addParameter("Message Popup Autoclose in Seconds", 15);

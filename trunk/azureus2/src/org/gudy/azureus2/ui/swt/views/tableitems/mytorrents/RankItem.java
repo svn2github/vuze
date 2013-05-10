@@ -25,6 +25,8 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.graphics.Image;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -37,9 +39,13 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemFillListener;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 
@@ -59,9 +65,10 @@ public class RankItem
 
 	public static final String COLUMN_ID = "#";
 
-	private Image imgUp;
-
-	private Image imgDown;
+	private String	showIconKey;
+	private boolean	showIcon;
+	private Image 	imgUp;
+	private Image 	imgDown;
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] { CAT_CONTENT });
@@ -80,12 +87,47 @@ public class RankItem
 		});
     setMaxWidthAuto(true);
     setMinWidthAuto(true);
+    
+    showIconKey = "RankColumn.showUpDownIcon." + (sTableID.endsWith( ".big" )?"big":"small" );
 
+	TableContextMenuItem menuShowIcon = addContextMenuItem(
+			"ConfigView.section.style.showRankIcon", MENU_STYLE_HEADER);
+	menuShowIcon.setStyle(TableContextMenuItem.STYLE_CHECK);
+	menuShowIcon.addFillListener(new MenuItemFillListener() {
+		public void menuWillBeShown(MenuItem menu, Object data) {
+			menu.setData(new Boolean(showIcon));
+		}
+	});
+	
+	menuShowIcon.addMultiListener(new MenuItemListener() {
+		public void selected(MenuItem menu, Object target) {
+			COConfigurationManager.setParameter(showIconKey,
+					((Boolean) menu.getData()).booleanValue());
+		}
+	});
+		
+	COConfigurationManager.addAndFireParameterListener(
+			showIconKey, new ParameterListener() {
+				public void parameterChanged(String parameterName) {
+					RankItem.this.invalidateCells();
+					showIcon =(COConfigurationManager.getBooleanParameter( showIconKey ));
+				}
+			});
+    
     ImageLoader imageLoader = ImageLoader.getInstance();
     imgUp = imageLoader.getImage("image.torrentspeed.up");
     imgDown = imageLoader.getImage("image.torrentspeed.down");
   }
-
+  
+  @Override
+  public void
+  remove()
+  {
+	  super.remove();
+	  
+	  COConfigurationManager.removeParameter( showIconKey );
+  }
+  
   public void refresh(TableCell cell) {
   	bInvalidByTrigger = false;
 
@@ -102,10 +144,13 @@ public class RankItem
     cell.setText(text);
 
     if (cell instanceof TableCellSWT) {
-    	Image img = dm.getAssumedComplete() ? imgUp : imgDown;
-    	((TableCellSWT)cell).setIcon(img);
+    	if ( showIcon ){
+    		Image img = dm.getAssumedComplete() ? imgUp : imgDown;
+    		((TableCellSWT)cell).setIcon(img);
+    	}else{
+    		((TableCellSWT)cell).setIcon(null);
+    	}
     }
-
   }
   
   private class GMListener implements GlobalManagerListener {
