@@ -896,13 +896,14 @@ public class SideBar
 		}
 		for (int i = 0; i < items.length; i++) {
 			TreeItem treeItem = items[i];
-
-			org.eclipse.swt.widgets.MenuItem menuItem = new org.eclipse.swt.widgets.MenuItem(
-					menuDropDown, SWT.RADIO);
+			
 			SideBarEntrySWT entry = (SideBarEntrySWT) treeItem.getData("MdiEntry");
 			if (entry == null) {
 				continue;
 			}
+			org.eclipse.swt.widgets.MenuItem menuItem = new org.eclipse.swt.widgets.MenuItem(
+					menuDropDown, entry.isSelectable() ? SWT.RADIO : SWT.CASCADE);
+			
 			String id = entry.getId();
 			menuItem.setData("Plugin.viewID", id);
 			ViewTitleInfo titleInfo = entry.getViewTitleInfo();
@@ -922,7 +923,14 @@ public class SideBar
 
 			TreeItem[] subItems = treeItem.getItems();
 			if (subItems.length > 0) {
-				fillDropDownMenu(menuDropDown, subItems, indent + 1);
+				Menu parent = menuDropDown;
+				if (!entry.isSelectable()) {
+					parent = new Menu(menuDropDown.getParent().getShell(), SWT.DROP_DOWN);
+					menuItem.setMenu(parent);
+				}
+				
+
+				fillDropDownMenu(parent, subItems, indent + 1);
 			}
 		}
 	}
