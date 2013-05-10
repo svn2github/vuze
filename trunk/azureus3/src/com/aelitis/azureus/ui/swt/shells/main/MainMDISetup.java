@@ -29,10 +29,7 @@ import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.views.ViewTitleInfoBetaP;
-import com.aelitis.azureus.ui.swt.views.skin.SBC_ActivityTableView;
-import com.aelitis.azureus.ui.swt.views.skin.SBC_PlusFTUX;
-import com.aelitis.azureus.ui.swt.views.skin.SB_Transfers;
-import com.aelitis.azureus.ui.swt.views.skin.SB_Vuze;
+import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
@@ -44,7 +41,7 @@ public class MainMDISetup
 		if (Utils.isAZ2UI()) {
 			setupSidebarClassic(mdi);
 		} else {
-			setupSidebarVuze(mdi);
+			setupSidebarVuzeUI(mdi);
 		}
 
 		mdi.registerEntry(SideBar.SIDEBAR_TORRENT_DETAILS_PREFIX + ".*", new MdiEntryCreationListener() {
@@ -147,7 +144,7 @@ public class MainMDISetup
 	}
 
 	
-	private static void setupSidebarVuze(final MultipleDocumentInterface mdi) {
+	private static void setupSidebarVuzeUI(final MultipleDocumentInterface mdi) {
 		MdiEntry entry;
 
 		String[] preferredOrder = new String[] {
@@ -218,20 +215,6 @@ public class MainMDISetup
 			});
 		}
 
-		mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY, false);
-		mdi.loadEntryByID(
-				MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY_UNOPENED, false);
-		mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
-				false);
-		mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_DEVICES, false);
-
-		entry = mdi.createEntryFromSkinRef(
-				MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY,
-				ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork()),
-				"main.area.browsetab", "{sidebar.VuzeHDNetwork}",
-				null, null, false, null);
-		entry.setImageLeftID("image.sidebar.vuze");
-
 		/*
 		ContentNetworkManager cnm = ContentNetworkManagerFactory.getSingleton();
 		if (cnm != null) {
@@ -254,28 +237,6 @@ public class MainMDISetup
 			}
 		}
 		*/
-
-		if (Constants.isWindows && FeatureAvailability.isGamesEnabled()) {
-			mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_GAMES,
-					new MdiEntryCreationListener() {
-						public MdiEntry createMDiEntry(String id) {
-							MdiEntry entry = mdi.createEntryFromSkinRef(
-									MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY,
-									MultipleDocumentInterface.SIDEBAR_SECTION_GAMES,
-									"main.generic.browse",
-									"{mdi.entry.games}", null, null, true,
-									null);
-							((BaseMdiEntry) entry).setPreferredAfterID(ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork()));
-							String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
-									"starts/games.start", false);
-							entry.setDatasource(url);
-							entry.setImageLeftID("image.sidebar.games");
-							return entry;
-						}
-					});
-			mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_GAMES, false,
-					true, null);
-		}
 
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_ABOUTPLUGINS,
 				new MdiEntryCreationListener() {
@@ -328,6 +289,14 @@ public class MainMDISetup
 
 		SB_Transfers.setup(mdi);
 		new SB_Vuze(mdi);
+		new SB_Discovery(mdi);
+
+		mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY, false);
+		mdi.loadEntryByID(
+				MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY_UNOPENED, false);
+		mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
+				false);
+		mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_DEVICES, false);
 	}
 	
 

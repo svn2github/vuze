@@ -68,6 +68,7 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
 
 /**
+ * Transfers Sidebar aka "My Torrents" aka "Files"
  * @author TuxPaper
  * @created Oct 21, 2010
  *
