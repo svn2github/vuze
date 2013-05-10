@@ -425,7 +425,7 @@ public class TableViewSWT_TabsCommon
 		// Create them in reverse order, so we can have the table auto-grow, and
 		// set the tabFolder's height manually
 
-		final int TABHEIGHT = 20;
+		final int TABHEIGHT = 22;
 		tabFolder = new CTabFolder(form, SWT.TOP | SWT.BORDER);
 		tabFolder.setMinimizeVisible(true);
 		tabFolder.setTabHeight(TABHEIGHT);
