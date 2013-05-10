@@ -320,6 +320,7 @@ public class ConsoleInput extends Thread {
 		registerCommand(new Alias());
 		registerCommand(new Priority());
 		registerCommand(new Plugin());
+		registerCommand(new Pairing());
 	}
 
 	/**
