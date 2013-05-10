@@ -173,13 +173,35 @@ public class Plugin extends IConsoleCommand {
 						Update[] 	updates = instance.getUpdates();
 												
 						try{
+	
 							for ( Update update: updates ){
-																
-								ResourceDownloader[] downloaders = update.getDownloaders();
+
+								ci.out.println( "Updating " + update.getName());
 								
-								for (int j=0;j<downloaders.length;j++){
+								for ( ResourceDownloader rd: update.getDownloaders()){
 									
-									downloaders[j].download();
+									rd.addListener(
+		 								new ResourceDownloaderAdapter()
+		 								{
+		 									public void
+		 									reportActivity(
+		 										ResourceDownloader	downloader,
+		 										String				activity )
+		 									{	
+		 										ci.out.println( "\t" + activity );
+		 									}
+		 									
+		 									public void
+		 									reportPercentComplete(
+		 										ResourceDownloader	downloader,
+		 										int					percentage )
+		 									{
+		 										ci.out.println( "\t" + percentage + "%" );
+		 												
+		 									}
+		 								});
+									
+									rd.download();
 								}
 							}
 							

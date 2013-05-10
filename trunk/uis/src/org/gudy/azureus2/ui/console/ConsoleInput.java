@@ -721,6 +721,7 @@ public class ConsoleInput extends Thread {
 			
 			pi.getPluginState().setDisabled( true );
 		}
+
 		
 		UpdateManager update_manager = azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager();
 		
@@ -740,12 +741,16 @@ public class ConsoleInput extends Thread {
 				complete(
 					UpdateCheckInstance		instance )
 				{
+					int num_updates = 0;
+					
 					Update[] 	updates = instance.getUpdates();
 					
 					for (int i=0;i<updates.length;i++){
 						
 						Update	update = updates[i];
-												
+							
+						num_updates++;
+						
 						out.println( "Update available for '" + update.getName() + "', new version = " + update.getNewVersion());
 												
 						String[]	descs = update.getDescription();
@@ -764,6 +769,11 @@ public class ConsoleInput extends Thread {
 						// need to cancel this otherwise it sits there blocking other installer operations
 					
 					checker.cancel();
+					
+					if ( num_updates > 0 ){
+						
+						out.println( "Apply these updates with the 'plugin update' command" );
+					}
 				}
 			});
 		
