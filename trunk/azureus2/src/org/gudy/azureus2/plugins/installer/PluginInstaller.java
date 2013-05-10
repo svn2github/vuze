@@ -123,6 +123,14 @@ PluginInstaller
 	
 		throws PluginException;
 	
+	public UpdateCheckInstance
+	uninstall(
+		PluginInterface[]			plugin_interfaces,
+		PluginInstallationListener	listener,
+		Map<Integer,Object>			properties )
+	
+		throws PluginException;
+	
 	public void
 	addListener(
 		PluginInstallerListener		l );

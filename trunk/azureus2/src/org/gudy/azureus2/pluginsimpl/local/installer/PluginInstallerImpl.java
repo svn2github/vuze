@@ -755,6 +755,19 @@ PluginInstallerImpl
 	
 		throws PluginException
 	{
+		uninstall( pis, listener_maybe_null, new HashMap<Integer,Object>());
+	}
+	
+	public UpdateCheckInstance
+	uninstall(
+		final PluginInterface[]				pis,
+		final PluginInstallationListener	listener_maybe_null,
+		final Map<Integer,Object>			properties )
+	
+		throws PluginException
+	{
+		properties.put( UpdateCheckInstance.PT_UNINSTALL_RESTART_REQUIRED, false );
+		
 		for (int i=0;i<pis.length;i++){
 			
 			PluginInterface	pi = pis[i];
@@ -845,12 +858,19 @@ PluginInstallerImpl
 									}
 								}
 								
+								boolean unloadable = pi.getPluginState().isUnloadable();
+								
+								if ( !unloadable ){
+									
+									properties.put( UpdateCheckInstance.PT_UNINSTALL_RESTART_REQUIRED, true );
+								}
+								
 								final Update update = checker.addUpdate(
 									update_name,
 									new String[]{ "Uninstall: " + plugin_dir},
 									pi.getPluginVersion(),
 									rd,
-									pi.getPluginState().isUnloadable()?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
+									unloadable?Update.RESTART_REQUIRED_NO:Update.RESTART_REQUIRED_YES );
 								
 								synchronized( rds_added ){
 									
@@ -875,6 +895,8 @@ PluginInstallerImpl
 																
 																update.setRestartRequired( Update.RESTART_REQUIRED_YES );
 																
+																properties.put( UpdateCheckInstance.PT_UNINSTALL_RESTART_REQUIRED, true );
+
 																checker.reportProgress( "Failed to remove plugin, restart will be required" );
 															}
 														}
@@ -958,32 +980,36 @@ PluginInstallerImpl
 						complete(
 							UpdateCheckInstance		instance )
 						{
-							int	wait_count;
+								// needs to be async in the case of the caller of the uninstall needing access to the
+								// updatecheckinstance and this is a sync callback
 							
-							synchronized( rds_added ){
-							
-								wait_count = rds_added[0];
-							}
-							
-							for ( int i=0;i<wait_count;i++ ){
-								
-								rd_waiter_sem.reserve();
-							}
-							
-							listener_maybe_null.completed();
+							new AEThread2( "Uninstall:async" )
+							{
+								public void
+								run()
+								{
+									int	wait_count;
+									
+									synchronized( rds_added ){
+									
+										wait_count = rds_added[0];
+									}
+									
+									for ( int i=0;i<wait_count;i++ ){
+										
+										rd_waiter_sem.reserve();
+									}
+									
+									listener_maybe_null.completed();
+								}
+							}.start();
 						}
 					});
 			}
 			
 			inst.start();
 
-			/*
-			UpdateChecker[] checkers = inst.getCheckers();
-			
-			for ( UpdateChecker checker: checkers ){
-			
-				checker.
-			}*/
+			return( inst );
 			
 		}catch( Throwable e ){
 			
@@ -1002,8 +1028,8 @@ PluginInstallerImpl
 			
 				listener_maybe_null.failed( pe );
 			}
-			
-			Debug.printStackTrace(e);
+						
+			throw( pe );
 		}
 	}
 	

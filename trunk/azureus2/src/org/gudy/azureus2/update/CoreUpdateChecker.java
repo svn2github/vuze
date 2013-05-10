@@ -443,7 +443,7 @@ CoreUpdateChecker
 							ResourceDownloader			downloader,
 							ResourceDownloaderException e )
 						{
-							Debug.out( downloader.getName() + " failed", e );
+							//Debug.out( downloader.getName() + " failed", e );
 							
 							update.complete( false );
 						}

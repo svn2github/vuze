@@ -43,6 +43,7 @@ UpdateCheckInstance
 	
 	public static final int	PT_UI_DISABLE_ON_SUCCESS_SLIDEY				= 3;	// Boolean
 	public static final int	PT_CLOSE_OR_RESTART_ALREADY_IN_PROGRESS		= 4;	// Boolean
+	public static final int	PT_UNINSTALL_RESTART_REQUIRED				= 5;	// Boolean
 
 		/**
 		 * returns one of the above UCI_ constants

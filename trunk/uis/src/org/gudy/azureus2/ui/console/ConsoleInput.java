@@ -724,7 +724,7 @@ public class ConsoleInput extends Thread {
 		
 		UpdateManager update_manager = azureus_core.getPluginManager().getDefaultPluginInterface().getUpdateManager();
 		
-		UpdateCheckInstance	checker = update_manager.createUpdateCheckInstance();
+		final UpdateCheckInstance	checker = update_manager.createUpdateCheckInstance();
 		
 		checker.addListener(
 			new UpdateCheckInstanceListener()
@@ -754,7 +754,16 @@ public class ConsoleInput extends Thread {
 							
 							out.println( "\t" + descs[j] );
 						}
+						
+						if ( update.isMandatory()){
+							
+							out.println( "**** This is a mandatory update, other updates can not proceed until this is performed ****" );
+						}
 					}
+					
+						// need to cancel this otherwise it sits there blocking other installer operations
+					
+					checker.cancel();
 				}
 			});
 		

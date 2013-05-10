@@ -19,11 +19,30 @@ package org.gudy.azureus2.ui.console.commands;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.TreeSet;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.installer.InstallablePlugin;
+import org.gudy.azureus2.plugins.installer.PluginInstallationListener;
+import org.gudy.azureus2.plugins.installer.PluginInstaller;
+import org.gudy.azureus2.plugins.installer.StandardPlugin;
+import org.gudy.azureus2.plugins.update.Update;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
+import org.gudy.azureus2.plugins.update.UpdateCheckInstanceListener;
+import org.gudy.azureus2.plugins.update.UpdateManager;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
+import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetails;
+import org.gudy.azureus2.pluginsimpl.update.sf.SFPluginDetailsLoaderFactory;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 import org.gudy.azureus2.ui.console.util.TextWrap;
 
@@ -42,15 +61,18 @@ public class Plugin extends IConsoleCommand {
 	public void printHelpExtra(PrintStream out, List args) {
 		out.println("> -----");
 		out.println("Subcommands:");
+		out.println("install\t[pluginid]\tLists plugins available to install or installs a given plugin");
 		out.println("location\t\tLists where plugins are being loaded from");
-		out.println("list\t\tList all running plugins");
-		out.println("listall\t\tList all plugins - running or not");
-		out.println("status pluginid\tPrints the status of a given plugin");
+		out.println("list\t\t\tList all running plugins");
+		out.println("listall\t\t\tList all plugins - running or not");
+		out.println("status pluginid\t\tPrints the status of a given plugin");
 		out.println("startup pluginid on|off\tEnables or disables the plugin running at startup");
+		out.println("uninstall pluginid\t\tUninstalls a plugin");
+		out.println("update\t\tUpdates all plugins with outstanding updates");
 		out.println("> -----");
 	}
 	
-	public void execute(String commandName, ConsoleInput ci, List args) {
+	public void execute(String commandName, final ConsoleInput ci, List args) {
 		if (args.isEmpty()) {
 			printHelpExtra(ci.out, args);
 			return;
@@ -58,17 +80,19 @@ public class Plugin extends IConsoleCommand {
 
 		String subcmd = (String)args.get(0);
 		if (!java.util.Arrays.asList(new String[] {
-				"location", "list", "listall", "status", "startup"
+				"location", "list", "listall", "status", "startup", "install", "uninstall", "update"
 			}).contains(subcmd)) {
 			ci.out.println("Invalid subcommand: " + subcmd);
 			ci.out.println();
 			return;
 		}
 		
+		PluginManager plugin_manager = ci.getCore().getPluginManager();
+		
 		if (subcmd.equals("list") || subcmd.equals("listall")) {
 			boolean all_plugins = subcmd.equals("listall");
 			ci.out.println("> -----");
-			PluginInterface[] plugins = ci.getCore().getPluginManager().getPluginInterfaces();
+			PluginInterface[] plugins = plugin_manager.getPluginInterfaces();
 			TreeSet plugin_ids = new TreeSet(String.CASE_INSENSITIVE_ORDER);
 			for (int i=0; i<plugins.length; i++) {
 				if (!all_plugins && !plugins[i].getPluginState().isOperational()) {continue;}
@@ -118,6 +142,267 @@ public class Plugin extends IConsoleCommand {
 			ci.out.println();
 			return;
 		}
+			
+		if ( subcmd.equals( "update" )){
+			
+			if ( args.size() != 1 ){
+				
+				ci.out.println( "Usage: update" );
+				
+				return;
+			}
+						
+			UpdateManager update_manager = plugin_manager.getDefaultPluginInterface().getUpdateManager();
+			
+			final UpdateCheckInstance	checker = update_manager.createUpdateCheckInstance();
+			
+			checker.addListener(
+				new UpdateCheckInstanceListener()
+				{
+					public void
+					cancelled(
+						UpdateCheckInstance		instance )
+					{
+						
+					}
+					
+					public void
+					complete(
+						UpdateCheckInstance		instance )
+					{
+						Update[] 	updates = instance.getUpdates();
+												
+						try{
+							for ( Update update: updates ){
+																
+								ResourceDownloader[] downloaders = update.getDownloaders();
+								
+								for (int j=0;j<downloaders.length;j++){
+									
+									downloaders[j].download();
+								}
+							}
+							
+							boolean	restart_required = false;
+							
+							for (int i=0;i<updates.length;i++){
+
+								if ( updates[i].getRestartRequired() == Update.RESTART_REQUIRED_YES ){
+									
+									restart_required = true;
+								}
+							}
+							
+							if ( restart_required ){
+								
+								ci.out.println( "**** Restart required to complete update ****" );
+							}
+						}catch( Throwable e ){
+							
+							ci.out.println( "Plugin update failed: " + Debug.getNestedExceptionMessage( e ));
+						}
+					}
+				});
+			
+			checker.start();
+			
+			return;
+		}
+		
+		if ( subcmd.equals( "install" )){
+			
+			if ( args.size() == 1 ){
+				
+				ci.out.println( "Contacting plugin repository for list of available plugins..." );
+			
+				try{
+					SFPluginDetails[] plugins = SFPluginDetailsLoaderFactory.getSingleton().getPluginDetails();
+					
+					for ( SFPluginDetails p: plugins ){
+						
+						String category = p.getCategory();
+						
+						if ( category != null ){
+							
+							if ( category.equalsIgnoreCase( "hidden" ) || ( category.equalsIgnoreCase( "core" ))){
+								
+								continue;
+							}
+						}
+						
+						String id = p.getId();
+						
+						if (  plugin_manager.getPluginInterfaceByID( id, false ) == null ){
+							
+							String desc = p.getDescription();
+							
+							int pos = desc.indexOf( "<br" );
+							
+							if ( pos > 0 ){
+								
+								desc = desc.substring( 0, pos );
+							}
+							
+							ci.out.println( "\t" + id + ": \t\t" + desc );
+						}
+					}
+					
+				}catch( Throwable e ){
+					
+					ci.out.println( "Failed to list plugins: " + Debug.getNestedExceptionMessage( e ));
+				}
+			}else{
+				
+				String target_id = (String)args.get(1);
+				
+				if (  plugin_manager.getPluginInterfaceByID( target_id, false ) != null ){
+
+					ci.out.println( "Plugin '" + target_id + "' already installed" );
+					
+					return;
+				}			
+				
+				final PluginInstaller installer = plugin_manager.getPluginInstaller();
+				
+				try{
+			 		final StandardPlugin sp = installer.getStandardPlugin( target_id );
+								
+			 		if ( sp == null ){
+			 			
+			 			ci.out.println( "Plugin '" + target_id + "' is unknown" );
+						
+						return;
+			 		}
+			 		
+			 		new AEThread2( "Plugin Installer" )
+			 		{
+			 			public void
+			 			run()
+			 			{
+			 				try{
+								Map<Integer, Object> properties = new HashMap<Integer, Object>();
+						
+								properties.put( UpdateCheckInstance.PT_UI_STYLE, UpdateCheckInstance.PT_UI_STYLE_NONE );
+									
+								properties.put(UpdateCheckInstance.PT_UI_DISABLE_ON_SUCCESS_SLIDEY, true);
+				
+								final AESemaphore sem = new AESemaphore( "plugin-install" );
+									
+								final boolean[] restart_required = { false };
+								
+								UpdateCheckInstance instance = 
+									installer.install(
+										new InstallablePlugin[]{ sp },
+										false,
+										properties,
+										new PluginInstallationListener() {
+				
+											public void
+											completed()
+											{
+												ci.out.println( "Installation complete" );
+												
+												sem.release();
+											}
+											
+											public void
+											cancelled()
+											{
+												ci.out.println( "Installation cancelled" );
+																			
+												sem.release();
+											}
+											
+											public void
+											failed(
+												PluginException	e )
+											{
+												ci.out.println( "Installation failed: " + Debug.getNestedExceptionMessage( e ));
+							
+												sem.release();
+											}
+										});
+								
+								instance.addListener(
+									new UpdateCheckInstanceListener() {
+				
+										public void
+										cancelled(
+											UpdateCheckInstance		instance )
+										{
+											ci.out.println( "Installation cancelled" );
+										}
+										
+										public void
+										complete(
+											UpdateCheckInstance		instance )
+										{
+						  					Update[] updates = instance.getUpdates();
+						 					
+						 					for ( final Update update: updates ){
+						 						
+						 						ResourceDownloader[] rds = update.getDownloaders();
+						 					
+						 						for ( ResourceDownloader rd: rds ){
+						 							
+						 							rd.addListener(
+						 								new ResourceDownloaderAdapter()
+						 								{
+						 									public void
+						 									reportActivity(
+						 										ResourceDownloader	downloader,
+						 										String				activity )
+						 									{	
+						 										ci.out.println( "\t" + activity );
+						 									}
+						 									
+						 									public void
+						 									reportPercentComplete(
+						 										ResourceDownloader	downloader,
+						 										int					percentage )
+						 									{
+						 										ci.out.println( "\t" + percentage + "%" );
+						 												
+						 									}
+						 								});
+						 							
+						 								// go ahead and actually initiate the install, someone has to do it!
+						 							
+						 							try{
+						 								rd.download();
+						 								
+						 							}catch( Throwable e ){
+						 							}
+						 						}
+					 						
+						 						if ( update.getRestartRequired() != Update.RESTART_REQUIRED_NO ){
+						 							
+						 							restart_required[0] = true;
+						 						}
+					 						}
+										}
+									});
+										
+								sem.reserve();
+								
+								if ( restart_required[0] ){
+									
+									ci.out.println( "**** Restart required to complete installation ****" );
+								}
+			 				}catch( Throwable e ){
+			 					
+								ci.out.println( "Install failed: " + Debug.getNestedExceptionMessage( e ));
+							}
+			 			}
+			 		}.start();
+
+				}catch( Throwable e ){
+				
+					ci.out.println( "Install failed: " + Debug.getNestedExceptionMessage( e ));
+				}
+			}
+			return;
+		}
 		
 		// Commands from this point require a plugin ID.
 		if (args.size() == 1) {
@@ -127,7 +412,7 @@ public class Plugin extends IConsoleCommand {
 		}
 		
 		String plugin_id = (String)args.get(1);
-		PluginInterface plugin = ci.getCore().getPluginManager().getPluginInterfaceByID(plugin_id, false);
+		PluginInterface plugin = plugin_manager.getPluginInterfaceByID(plugin_id, false);
 		if (plugin == null) {
 			ci.out.println("Invalid plugin ID: " + plugin_id);
 			ci.out.println();
@@ -168,6 +453,114 @@ public class Plugin extends IConsoleCommand {
 			ci.out.println("Done.");
 			ci.out.println();
 			return;
+		}
+		
+		if ( subcmd.equals( "uninstall" )){
+			
+			PluginInterface pi = plugin_manager.getPluginInterfaceByID( plugin_id, false );
+			
+			if (  pi == null ){
+
+				ci.out.println( "Plugin '" + plugin_id + "' is not installed" );
+				
+				return;
+			}			
+			
+			final PluginInstaller installer = plugin_manager.getPluginInstaller();
+			
+			try{
+		 		final StandardPlugin sp = installer.getStandardPlugin( plugin_id );
+							
+		 		if ( sp == null ){
+		 			
+		 			ci.out.println( "Plugin '" + plugin_id + "' is not a standard plugin" );
+					
+					return;
+		 		}
+		 		
+				final PluginInstaller uninstaller = plugin_manager.getPluginInstaller();
+				
+				Map<Integer, Object> properties = new HashMap<Integer, Object>();
+
+				final AESemaphore sem = new AESemaphore( "plugin-uninstall" );
+
+				UpdateCheckInstance instance = 
+					uninstaller.uninstall(
+						new PluginInterface[]{ pi },
+						new PluginInstallationListener() {
+							
+							public void
+							completed()
+							{
+								ci.out.println( "Uninstallation complete" );
+								
+								sem.release();
+							}
+							
+							public void
+							cancelled()
+							{
+								ci.out.println( "Uninstallation cancelled" );
+								
+								sem.release();
+							}
+							
+							public void
+							failed(
+								PluginException	e )
+							{
+								ci.out.println( "Uninstallation failed: " + Debug.getNestedExceptionMessage( e ));
+								
+								sem.release();
+							}
+						},
+						properties );
+				
+				instance.addListener(
+						new UpdateCheckInstanceListener() {
+	
+							public void
+							cancelled(
+								UpdateCheckInstance		instance )
+							{
+								ci.out.println( "InsUninstallationtallation cancelled" );
+							}
+							
+							public void
+							complete(
+								UpdateCheckInstance		instance )
+							{
+			  					Update[] updates = instance.getUpdates();
+			 					
+			 					for ( final Update update: updates ){
+			 						
+			 						ResourceDownloader[] rds = update.getDownloaders();
+			 					
+			 						for ( ResourceDownloader rd: rds ){
+			 										 							
+			 							try{
+			 								rd.download();
+			 								
+			 							}catch( Throwable e ){
+			 							}
+			 						}
+		 						}
+							}
+						});
+						
+				sem.reserve();
+				
+				Object obj = properties.get( UpdateCheckInstance.PT_UNINSTALL_RESTART_REQUIRED );
+				
+				if ( obj instanceof Boolean && (Boolean)obj ){
+					
+					ci.out.println( "**** Restart required to complete uninstallation ****" );			
+				}
+			}catch( Throwable  e ){
+				
+				ci.out.println( "Uninstall failed: " + Debug.getNestedExceptionMessage( e ));
+
+			}
 		}
 	}
 }

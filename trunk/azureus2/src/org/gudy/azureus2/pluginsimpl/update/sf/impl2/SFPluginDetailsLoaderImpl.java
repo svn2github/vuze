@@ -376,7 +376,7 @@ SFPluginDetailsLoaderImpl
 			String author = properties.getProperty(pid + ".author", "");
 			String desc = properties.getProperty(pid + ".description", "");
 			String cvs_download_url = properties.getProperty(pid + ".dl_link_cvs", null);
-			cvs_download_url = cvs_download_url.length() == 0 ? "<unknown>" : site_prefix + cvs_download_url;
+			cvs_download_url = (cvs_download_url==null||cvs_download_url.length() == 0 )? "<unknown>" : site_prefix + cvs_download_url;
 
 			String comment = properties.getProperty(pid + ".comment", "");
 			// I don't think this one is ever set (not even in the old html scraping code)
