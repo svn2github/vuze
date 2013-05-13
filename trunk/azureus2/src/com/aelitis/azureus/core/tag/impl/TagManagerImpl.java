@@ -36,13 +36,7 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
-import com.aelitis.azureus.core.tag.Tag;
-import com.aelitis.azureus.core.tag.TagManager;
-import com.aelitis.azureus.core.tag.TagManagerListener;
-import com.aelitis.azureus.core.tag.TagType;
-import com.aelitis.azureus.core.tag.Taggable;
-import com.aelitis.azureus.core.tag.TaggableLifecycleHandler;
-import com.aelitis.azureus.core.tag.TaggableResolver;
+import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.util.MapUtils;
 
@@ -210,6 +204,19 @@ TagManagerImpl
 		}
 		
 		tag_types.add( tag_type );
+
+		for (TagManagerListener l : listeners) {
+			try {
+				/* XXX
+				 * We are probably in the initializer of TagTypeBase, so we will throw NPE if 
+				 * listener tries to do something to tag_type that requires the 
+				 * TagTypeBase's implementing object to be fully initialized
+				 */
+				l.tagTypeAdded(this, tag_type);
+			} catch (Throwable t) {
+				Debug.out(t);
+			}
+		}
 	}
 	
 	public TagType 
@@ -232,6 +239,14 @@ TagManagerImpl
 		}
 		
 		tag_types.remove( tag_type );
+		
+		for (TagManagerListener l : listeners) {
+			try {
+				l.tagTypeRemoved(this, tag_type);
+			} catch (Throwable t) {
+				Debug.out(t);
+			}
+		}
 		
 		removeConfig( tag_type );
 	}
