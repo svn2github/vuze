@@ -72,16 +72,13 @@ public class MainMDISetup
 								SideBar.SIDEBAR_SECTION_LIBRARY);
 					}
 					startTab = COConfigurationManager.getStringParameter(CFG_STARTTAB);
-					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-
-					if (mdi == null || mdi.getEntry(startTab) == null) {
-						startTab = SideBar.SIDEBAR_SECTION_LIBRARY;
-					}
 				}
 				if (startTab.equals(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS)) {
 					SBC_PlusFTUX.setSourceRef("lastview");
 				}
-				mdi.showEntryByID(startTab);
+				if (!mdi.showEntryByID(startTab)) {
+					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
+				}
 				if (l != null) {
 					mdi.addListener(l);
 				}
