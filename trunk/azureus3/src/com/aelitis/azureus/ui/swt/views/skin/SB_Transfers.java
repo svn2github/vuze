@@ -162,6 +162,22 @@ public class SB_Transfers
 						return createUnopenedEntry(mdi);
 					}
 				});
+		
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_TAGS,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+								MultipleDocumentInterface.SIDEBAR_SECTION_TAGS,
+								"tagsview",
+								"{mdi.entry.tagsoverview}", null, null,
+								true, null);
+						// TODO: Don't steal blue icon
+						entry.setImageLeftID("image.sidebar.tag-blue");
+						return entry;
+					}
+				});
+
 
 		if (first) {
 			AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
