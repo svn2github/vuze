@@ -31,4 +31,10 @@ TagManagerFactory
 	{
 		return( TagManagerImpl.getSingleton());
 	}
+
+	public static TagManager
+	getTagManager()
+	{
+		return( TagManagerImpl.getSingleton());
+	}
 }
