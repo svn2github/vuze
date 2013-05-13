@@ -4,14 +4,12 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
-import org.gudy.azureus2.ui.swt.CategoryAdderWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.ConfigView;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
@@ -21,18 +19,14 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
-import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
-import com.aelitis.azureus.ui.swt.views.ViewTitleInfoBetaP;
 import com.aelitis.azureus.ui.swt.views.skin.*;
 import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBar;
 import com.aelitis.azureus.util.ConstantsVuze;
-import com.aelitis.azureus.util.ContentNetworkUtils;
 import com.aelitis.azureus.util.FeatureUtils;
 
 public class MainMDISetup
@@ -103,6 +97,35 @@ public class MainMDISetup
 				return entry;
 			}
 		});
+
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_TAGS,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+								MultipleDocumentInterface.SIDEBAR_SECTION_TAGS,
+								"tagsview",
+								"{mdi.entry.tagsoverview}", null, null,
+								true, null);
+						// TODO: Don't steal blue icon
+						entry.setImageLeftID("image.sidebar.tag-blue");
+						return entry;
+					}
+				});
+		PluginInterface pi = PluginInitializer.getDefaultInterface();
+		if (pi != null) {
+			UIManager uim = pi.getUIManager();
+			if (uim != null) {
+				MenuItem menuItem = uim.getMenuManager().addMenuItem(
+						MenuManager.MENU_MENUBAR, "tags.view.heading");
+				menuItem.addListener(new MenuItemListener() {
+					public void selected(MenuItem menu, Object target) {
+						UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
+								MultipleDocumentInterface.SIDEBAR_SECTION_TAGS);
+					}
+				});
+			}
+		}
 
 		//		System.out.println("Activate sidebar " + startTab + " took "
 		//				+ (SystemTime.getCurrentTime() - startTime) + "ms");
