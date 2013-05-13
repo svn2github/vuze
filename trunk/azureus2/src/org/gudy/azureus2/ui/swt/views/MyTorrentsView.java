@@ -89,6 +89,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
+import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -1700,28 +1701,40 @@ public class MyTorrentsView
 	}
 
   public void refreshToolBarItems(Map<String, Long> list) {
-		UISWTViewCore active_view = getActiveView();
-		if (active_view != null) {
-			UIPluginViewToolBarListener l = active_view.getToolBarListener();
-			if (l != null) {
-				l.refreshToolBarItems(list);
-				// don't return here, we want to merge in any potential operations
-				// from the selected content calculation below
-			}
+  	ISelectedContent[] datasource = SelectedContentManager.getCurrentlySelectedContent();
+		boolean hasMultiple = datasource instanceof Object[] && ((Object[])datasource).length > 1;
+		
+		// Most subviews can only handle one datasource.  I'm lazy, so instead of 
+		// fixing each view up, disable toolbar handling for them we have multiple selection
+		if (!hasMultiple) {
+  		UISWTViewCore active_view = getActiveView();
+  		if (active_view != null) {
+  			UIPluginViewToolBarListener l = active_view.getToolBarListener();
+  			if (l != null) {
+  				l.refreshToolBarItems(list);
+  				// don't return here, we want to merge in any potential operations
+  				// from the selected content calculation below
+  			}
+  		}
 		}
   	
-		Map<String, Long> states = TorrentUtil.calculateToolbarStates(
-				SelectedContentManager.getCurrentlySelectedContent(), tv.getTableID());
+		Map<String, Long> states = TorrentUtil.calculateToolbarStates(datasource, tv.getTableID());
 		list.putAll(states);
   }  
 
   public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
-		UISWTViewCore active_view = getActiveView();
-		if (active_view != null) {
-			UIPluginViewToolBarListener l = active_view.getToolBarListener();
-			if (l != null && l.toolBarItemActivated(item, activationType, datasource)) {
-				return true;
-			}
+		boolean hasMultiple = datasource instanceof Object[] && ((Object[])datasource).length > 1;
+		
+		// Most subviews can only handle one datasource.  I'm lazy, so instead of 
+		// fixing each view up, disable toolbar handling for them we have multiple selection
+		if (!hasMultiple) {
+  		UISWTViewCore active_view = getActiveView();
+  		if (active_view != null) {
+  			UIPluginViewToolBarListener l = active_view.getToolBarListener();
+  			if (l != null && l.toolBarItemActivated(item, activationType, datasource)) {
+  				return true;
+  			}
+  		}
 		}
 
 		String itemKey = item.getID();
