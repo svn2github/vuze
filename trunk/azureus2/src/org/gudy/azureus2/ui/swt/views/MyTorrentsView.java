@@ -1705,7 +1705,8 @@ public class MyTorrentsView
 		boolean hasMultiple = datasource instanceof Object[] && ((Object[])datasource).length > 1;
 		
 		// Most subviews can only handle one datasource.  I'm lazy, so instead of 
-		// fixing each view up, disable toolbar handling for them we have multiple selection
+		// fixing each view up, disable toolbar handling for them when we have
+		// multiple selection
 		if (!hasMultiple) {
   		UISWTViewCore active_view = getActiveView();
   		if (active_view != null) {
@@ -1726,7 +1727,8 @@ public class MyTorrentsView
 		boolean hasMultiple = datasource instanceof Object[] && ((Object[])datasource).length > 1;
 		
 		// Most subviews can only handle one datasource.  I'm lazy, so instead of 
-		// fixing each view up, disable toolbar handling for them we have multiple selection
+		// fixing each view up, disable toolbar handling for them when we have
+		// multiple selection
 		if (!hasMultiple) {
   		UISWTViewCore active_view = getActiveView();
   		if (active_view != null) {
