@@ -107,6 +107,9 @@ NetworkAdmin
 	public abstract boolean
 	hasIPV4Potential();
 
+	public abstract boolean
+	isIPV6Enabled();
+	
 	public boolean hasIPV6Potential() {return hasIPV6Potential(false);}
 	
 	public abstract boolean

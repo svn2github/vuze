@@ -753,7 +753,7 @@ NetStatusPluginTester
 
 				log( "    Testing connectivity..." );
 				
-				String res = VersionCheckClient.getSingleton().getExternalIpAddress( false, true );
+				String res = VersionCheckClient.getSingleton().getExternalIpAddress( false, true, true );
 				
 				if ( res != null && res.length() > 0 ){
 					

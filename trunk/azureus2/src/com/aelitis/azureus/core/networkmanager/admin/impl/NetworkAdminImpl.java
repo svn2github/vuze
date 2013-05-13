@@ -290,6 +290,12 @@ NetworkAdminImpl
 		}
 	}
 	
+	public boolean
+	isIPV6Enabled()
+	{
+		return( IPv6_enabled );
+	}
+	
 	protected boolean
 	checkNetworkInterfaces(
 		boolean		first_time,

@@ -614,7 +614,16 @@ public class VersionCheckClient {
 			boolean	only_if_cached,
 			boolean	v6 )
 	{
-		Map reply = getVersionCheckInfoSupport( REASON_EXTERNAL_IP, only_if_cached, false, v6 );
+		return( getExternalIpAddress( only_if_cached, v6, false ));
+	}
+	
+	public String 
+	getExternalIpAddress(
+		boolean		only_if_cached,
+		boolean		v6,
+		boolean		force )
+	{
+		Map reply = getVersionCheckInfoSupport( REASON_EXTERNAL_IP, only_if_cached, force, v6 );
 
 		byte[] address = (byte[])reply.get( "source_ip_address" );
 		if( address != null ) {
