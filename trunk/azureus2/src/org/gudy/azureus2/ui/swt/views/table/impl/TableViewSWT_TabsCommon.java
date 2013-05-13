@@ -585,9 +585,11 @@ public class TableViewSWT_TabsCommon
 					((CTabItem) e.item).getControl().setVisible(true);
 					((CTabItem) e.item).getControl().moveAbove(null);
 
+					selectedView = (UISWTViewImpl)e.item.getData( "IView" );
+					// Call getActiveSubView and don't use selectedView. Function
+					// may return null even if there's a selectedView
 					UISWTViewCore view = getActiveSubView();
 					if (view != null) {
-						selectedView = view;
 						fireFocusGained( view );
 					}
 					
