@@ -26,11 +26,10 @@ import java.net.InetAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 
 import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.networkmanager.admin.*;
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.net.netstatus.NetStatusPlugin;
 import com.aelitis.azureus.plugins.net.netstatus.NetStatusProtocolTesterBT;
 import com.aelitis.azureus.plugins.net.netstatus.NetStatusProtocolTesterListener;
@@ -38,11 +37,12 @@ import com.aelitis.azureus.plugins.net.netstatus.NetStatusProtocolTesterListener
 public class 
 NetStatusPluginTester 
 {
-	public static final int		TEST_PING_ROUTE		= 0x00000001;
+	//public static final int		TEST_PING_ROUTE		= 0x00000001;
 	public static final int		TEST_NAT_PROXIES	= 0x00000002;
 	public static final int		TEST_OUTBOUND		= 0x00000004;
 	public static final int		TEST_INBOUND		= 0x00000008;
 	public static final int		TEST_BT_CONNECT		= 0x00000010;
+	public static final int		TEST_IPV6			= 0x00000020;
 
 	
 	private static final int	ROUTE_TIMEOUT	= 120*1000;
@@ -91,6 +91,8 @@ NetStatusPluginTester
 			checked_public = true;
 		}
 		
+		/* this ain't working well and some users reporting crashes so boo
+		 *
 		if ( doTest( TEST_PING_ROUTE )){
 			
 			log( "Testing routing for the following interfaces:" );
@@ -382,6 +384,7 @@ NetStatusPluginTester
 				return;
 			}
 		}
+		*/
 		
 		if ( doTest( TEST_NAT_PROXIES )){
 	
@@ -731,6 +734,35 @@ NetStatusPluginTester
 				}
 				
 				log( "    Status: " + bt_test.getStatus());
+			}
+		}
+		
+		if ( doTest( TEST_IPV6 )){
+
+			log( "IPv6 test" );
+			
+			InetAddress ipv6_address = admin.getDefaultPublicAddressV6();
+			
+			if ( ipv6_address == null ){
+				
+				log( "    No default public IPv6 address found" );
+				
+			}else{
+				
+				log( "    Default public IPv6 address: " + ipv6_address.getHostAddress());
+
+				log( "    Testing connectivity..." );
+				
+				String res = VersionCheckClient.getSingleton().getExternalIpAddress( false, true );
+				
+				if ( res != null && res.length() > 0 ){
+					
+					logSuccess( "        Connect succeeded, reported IPv6 address: " + res );
+					
+				}else{
+					
+					logError( "        Connect failed" );
+				}
 			}
 		}
 	}

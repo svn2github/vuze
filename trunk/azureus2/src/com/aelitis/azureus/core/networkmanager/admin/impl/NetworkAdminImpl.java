@@ -1326,9 +1326,12 @@ addressLoop:
 		for(InetAddress addr : currentBindIPs)
 		{
 			// found a specific bind address, use that one
-			if(AddressUtils.isGlobalAddressV6(addr))
+			if(AddressUtils.isGlobalAddressV6(addr)){
 				return addr;
-			
+			}
+		}
+		
+		for(InetAddress addr : currentBindIPs){
 			// found v6 any-local address, check interfaces for a best match
 			if(addr instanceof Inet6Address && addr.isAnyLocalAddress())
 			{

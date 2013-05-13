@@ -32,6 +32,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIInstance;
@@ -203,35 +204,45 @@ NetStatusPluginView
 			grid_data = new GridData(GridData.FILL_HORIZONTAL);
 			options.setLayoutData(grid_data);
 
+			/*
 				Button opt1 = new Button( options, SWT.CHECK );
 
 				opt1.setText( "ping/route" );
 				
 				addOption( opt1, NetStatusPluginTester.TEST_PING_ROUTE );
-				
+			*/
 				Button opt2 = new Button( options, SWT.CHECK );
 
 				opt2.setText( "outbound" );
 
-				addOption( opt2, NetStatusPluginTester.TEST_OUTBOUND );
+				addOption( opt2, NetStatusPluginTester.TEST_OUTBOUND, true );
 
 				Button opt3 = new Button( options, SWT.CHECK );
 
 				opt3.setText( "inbound" );
 
-				addOption( opt3, NetStatusPluginTester.TEST_INBOUND );
+				addOption( opt3, NetStatusPluginTester.TEST_INBOUND, true );
 
 				Button opt4 = new Button( options, SWT.CHECK );
 
 				opt4.setText( "nat/proxies" );
 
-				addOption( opt4, NetStatusPluginTester.TEST_NAT_PROXIES );
+				addOption( opt4, NetStatusPluginTester.TEST_NAT_PROXIES, true );
 
 				Button opt5 = new Button( options, SWT.CHECK );
 
 				opt5.setText( "BT connect" );
 
-				addOption( opt5, NetStatusPluginTester.TEST_BT_CONNECT );
+				addOption( opt5, NetStatusPluginTester.TEST_BT_CONNECT, true );
+				
+				Button opt6 = new Button( options, SWT.CHECK );
+
+				opt6.setText( "IPv6" );
+
+				boolean ipv6_enabled = COConfigurationManager.getBooleanParameter( "IPV6 Enable Support" );
+				
+				addOption( opt6, NetStatusPluginTester.TEST_IPV6, ipv6_enabled );
+
 				
 			// log area
 		
@@ -246,11 +257,12 @@ NetStatusPluginView
 	protected void
 	addOption(
 		final Button		button,
-		final int			type )
+		final int			type,
+		boolean				enable )
 	{
 		final String	config = "test.option." + type;
 		
-		boolean	selected = plugin.getBooleanParameter( config, true );
+		boolean	selected = plugin.getBooleanParameter( config, enable );
 		
 		if ( selected ){
 			
@@ -259,6 +271,11 @@ NetStatusPluginView
 		}else{
 			
 			selected_tests &= ~type;
+		}
+		
+		if ( !enable ){
+			
+			button.setEnabled( false );
 		}
 		
 		button.setSelection( selected );

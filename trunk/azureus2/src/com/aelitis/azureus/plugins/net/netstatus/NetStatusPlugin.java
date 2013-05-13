@@ -48,7 +48,7 @@ NetStatusPlugin
 	
 	private LoggerChannel	logger;
 	
-	private StringParameter ping_target;
+	// private StringParameter ping_target;
 	
 	private ActionParameter test_button;
 	private StringParameter test_address;
@@ -80,7 +80,7 @@ NetStatusPlugin
 				
 		BasicPluginConfigModel config = plugin_interface.getUIManager().createBasicPluginConfigModel( "Views.plugins." + VIEW_ID + ".title" );
 		
-		ping_target = config.addStringParameter2( "plugin.aznetstatus.pingtarget", "plugin.aznetstatus.pingtarget", "www.google.com" );
+		// ping_target = config.addStringParameter2( "plugin.aznetstatus.pingtarget", "plugin.aznetstatus.pingtarget", "www.google.com" );
 		
 		if ( Constants.isCVSVersion()){
 			
@@ -213,11 +213,13 @@ NetStatusPlugin
 		return( protocol_tester );
 	}
 	
+	/*
 	public String
 	getPingTarget()
 	{
 		return( ping_target.getValue());
 	}
+	*/
 	
 	public void
 	setBooleanParameter(
