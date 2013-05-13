@@ -374,7 +374,7 @@ public class MyTorrentsSuperView
   public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
     MyTorrentsView currentView = getCurrentView();
     if (currentView != null) {
-      if (currentView.toolBarItemActivated(item, activationType, null)) {
+      if (currentView.toolBarItemActivated(item, activationType, datasource)) {
       	return true;
       }
     }
