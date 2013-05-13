@@ -47,6 +47,9 @@ public class TableViewSWT_TabsCommon
 	/** Composite that stores the table (sometimes the same as mainComposite) */
 	public Composite tableComposite;
 
+	private boolean minimized;
+	private UISWTViewCore selectedView;
+
 
 	public TableViewSWT_TabsCommon(TableViewSWT<?> tv) {
 		this.tv = tv;
@@ -186,16 +189,11 @@ public class TableViewSWT_TabsCommon
 
 	public UISWTViewCore getActiveSubView() {
 		if (!tv.isTabViewsEnabled() || tabFolder == null || tabFolder.isDisposed()
-				|| tabFolder.getMinimized()) {
+				|| minimized) {
 			return null;
 		}
 
-		CTabItem item = tabFolder.getSelection();
-		if (item != null) {
-			return (UISWTViewCore) item.getData("IView");
-		}
-
-		return null;
+		return selectedView;
 	}
 
 	public void refreshSelectedSubView() {
@@ -326,7 +324,8 @@ public class TableViewSWT_TabsCommon
 				
 				removedViews.remove( listener );
 				
-				tabFolder.setSelection( item );
+				tabFolder.setSelection(item);
+				selectedView = (UISWTViewImpl)item.getData( "IView" );
 			}
 
 		}catch( Throwable e ){
@@ -523,6 +522,8 @@ public class TableViewSWT_TabsCommon
 
 		final CTabFolder2Adapter folderListener = new CTabFolder2Adapter() {
 			public void minimize(CTabFolderEvent event) {
+				minimized = true;
+				
 				tabFolder.setMinimized(true);
 				tabFolderData.height = iFolderHeightAdj;
 				CTabItem[] items = tabFolder.getItems();
@@ -543,6 +544,7 @@ public class TableViewSWT_TabsCommon
 			}
 
 			public void restore(CTabFolderEvent event) {
+				minimized = false;
 				tabFolder.setMinimized(false);
 				CTabItem selection = tabFolder.getSelection();
 				if (selection != null) {
@@ -577,6 +579,7 @@ public class TableViewSWT_TabsCommon
 
 		tabFolder.addSelectionListener(new SelectionListener() {
 			public void widgetSelected(SelectionEvent e) {
+				selectedView = null;
 				// make sure its above
 				try {
 					((CTabItem) e.item).getControl().setVisible(true);
@@ -584,6 +587,7 @@ public class TableViewSWT_TabsCommon
 
 					UISWTViewCore view = getActiveSubView();
 					if (view != null) {
+						selectedView = view;
 						fireFocusGained( view );
 					}
 					
@@ -632,13 +636,12 @@ public class TableViewSWT_TabsCommon
 				
 				if ( item != null ){
 					
-					tabFolder.setSelection( item );
+					tabFolder.setSelection(item);
+					selectedView = (UISWTViewImpl)item.getData( "IView" );
 						
-					UISWTViewImpl view = (UISWTViewImpl)item.getData( "IView" );
-					
-					if ( view != null ){
+					if ( selectedView != null ){
 						
-						final String view_id = view.getViewID();
+						final String view_id = selectedView.getViewID();
 						
 						MenuItem mi = new MenuItem( menu, SWT.PUSH );
 						
@@ -817,7 +820,11 @@ public class TableViewSWT_TabsCommon
 			tabFolder.setMinimized(false);
 		}
 
-		tabFolder.setSelection(0);
+		if (tabFolder.getItemCount() > 0) {
+			CTabItem item = tabFolder.getItem(0);
+			tabFolder.setSelection(item);
+			selectedView = (UISWTViewImpl)item.getData( "IView" );
+		}
 
 		return form;
 	}
