@@ -564,7 +564,8 @@ public class ImageLoader
 		
 		if ( existing != null ){
 			
-			if ( existing.getImages().length > 0 ){
+			Image[] images = existing.getImages();
+			if ( images != null && images.length > 0 ){
 				
 				Debug.out( "P: existing found! " + key + " -> " + existing.getString());
 			}
@@ -580,7 +581,8 @@ public class ImageLoader
 		
 		if ( x != null ){
 			
-			if ( x.getImages().length > 0 ){
+			Image[] images = x.getImages();
+			if ( images != null && images.length > 0 ){
 				
 				Debug.out( "PIA: existing found! " + key + " -> " + x.getString());
 			}
