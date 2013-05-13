@@ -48,6 +48,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
  * @author Oliver (Original Code)
  * @author TuxPaper (Modifications to make generic & comments)
  */
+@SuppressWarnings("rawtypes")
 public class TableColumnManager {
 
   private static final String CONFIG_FILE = "tables.config";
@@ -73,7 +74,7 @@ public class TableColumnManager {
    *           key = column name
    *           value = TableColumnCore object
    */
-  private Map<String,Map>	items;
+	private Map<String,Map>	items;
   private AEMonitor 		items_mon 	= new AEMonitor( "TableColumnManager:items" );
   
   /**
@@ -90,7 +91,7 @@ public class TableColumnManager {
    * Do not access directly.  Use {@link #getTableConfigMap(String)}
    * or {@link #saveTableConfigs()}
    */
-	private Map mapTablesConfig;
+	private Object tablesConfig;
 	private long lastTableConfigAccess;
 	private static Comparator<TableColumn> orderComparator;
 	
@@ -278,8 +279,9 @@ public class TableColumnManager {
 			Class forDataSourceType, String tableID)
 	{
   	Map mTypes = getAllTableColumnCore(forDataSourceType, tableID);
-		return (TableColumnCore[]) mTypes.values().toArray(
+  	TableColumnCore[] columns = (TableColumnCore[]) mTypes.values().toArray(
 				new TableColumnCore[mTypes.values().size()]);
+  	return columns;
 	}
   
   public String[] getDefaultColumnNames(String tableID) {
@@ -381,20 +383,20 @@ public class TableColumnManager {
    */
   private Map<String, TableColumnCore> getAllTableColumnCore(
 			Class forDataSourceType, String tableID) {
-		Map mTypes = null;
+		Map mapExisting = null;
 		try {
 			items_mon.enter();
 
-			mTypes = items.get(tableID);
-			if (mTypes == null) {
-				mTypes = new LinkedHashMap();
-				items.put(tableID, mTypes);
+			mapExisting = items.get(tableID);
+			if (mapExisting == null) {
+				mapExisting = new LinkedHashMap();
+				items.put(tableID, mapExisting);
 			}
 
 			if (forDataSourceType != null) {
 				Map<Class<?>, List> mapDST = new HashMap<Class<?>, List>();
 				List listDST = mapDataSourceTypeToColumnIDs.get(forDataSourceType);
-				if (listDST != null) {
+				if (listDST != null && listDST.size() > 0) {
 					mapDST.put(forDataSourceType, listDST);
 				}
 				if (forDataSourceType.equals(DownloadTypeComplete.class)
@@ -413,13 +415,15 @@ public class TableColumnManager {
 						mapDST.put(DownloadTypeIncomplete.class, listDST);
 					}
 				}
-				doAddCreate(mTypes, tableID, mapDST);
+
+				doAddCreate(mapExisting, tableID, mapDST);
 			}
 		} finally {
 			items_mon.exit();
 		}
 
-		return mTypes;
+
+		return mapExisting;
 	}
 
   /** 
@@ -461,6 +465,7 @@ public class TableColumnManager {
 				}
 			}
 		}
+		// this adds it to #items (among other things)
 		addColumns(listAdded.toArray(new TableColumnCore[0]));
 	}
 
@@ -514,6 +519,24 @@ public class TableColumnManager {
         tableColumns[i].setPositionNoShift(iPos++);
       }
     }
+
+  	if (iPos == 0) {
+			String[] defaultColumnNames = getDefaultColumnNames(sTableID);
+			if (defaultColumnNames != null) {
+				int i = 0;
+				for (String name : defaultColumnNames) {
+					TableColumnCore column = getTableColumnCore(sTableID, name);
+					if (column != null) {
+						column.reset();
+						column.setVisible(true);
+						column.setPositionNoShift(i++);
+					}
+				}
+				saveTableColumns(null, sTableID);
+				TableStructureEventDispatcher.getInstance(sTableID).tableStructureChanged(true, null);
+			}
+  	}
+  
   }
   
   public String getDefaultSortColumnName(String tableID) {
@@ -541,8 +564,8 @@ public class TableColumnManager {
   }
 
   private void saveTableConfigs() {
-		if (mapTablesConfig != null) {
-			FileUtil.writeResilientConfigFile(CONFIG_FILE, mapTablesConfig);
+		if (tablesConfig instanceof Map) {
+			FileUtil.writeResilientConfigFile(CONFIG_FILE, (Map) tablesConfig);
 		}
 	}
 
@@ -597,50 +620,55 @@ public class TableColumnManager {
   	return true;
   }
   
+  private Map getTablesConfigMap() {
+		lastTableConfigAccess = SystemTime.getMonotonousTime();
+		
+		if (tablesConfig == null) {
+			tablesConfig = FileUtil.readResilientConfigFile(CONFIG_FILE);
+			
+			if (RERESET) {
+				for (Object map : ((Map) tablesConfig).values()) {
+					((Map) map).remove("last.reset");
+				}
+			}
+
+				// Dispose of tableconfigs after XXs.. saves up to 50k
+			
+			SimpleTimer.addEvent(
+					"DisposeTableConfigMap",
+					SystemTime.getOffsetTime(30000), 
+					new TimerEventPerformer() 
+					{
+						public void 
+						perform(
+							TimerEvent event ) 
+						{
+							synchronized( TableColumnManager.this ){
+								
+								long	now = SystemTime.getMonotonousTime();
+								
+								if ( now - lastTableConfigAccess > 25000 ){
+								
+									tablesConfig = null;
+									
+								}else{
+									SimpleTimer.addEvent(
+										"DisposeTableConfigMap",
+										SystemTime.getOffsetTime(30000), 
+										this );
+								}
+							}
+						}
+					});
+		}
+		return (Map) tablesConfig;
+  }
+  
   public Map getTableConfigMap(String sTableID) {
 		synchronized (this) {
 			String key = "Table." + sTableID;
 
-			lastTableConfigAccess = SystemTime.getMonotonousTime();
-			
-			if (mapTablesConfig == null) {
-				mapTablesConfig = FileUtil.readResilientConfigFile(CONFIG_FILE);
-				
-				if (RERESET) {
-					for (Object map : mapTablesConfig.values()) {
-						((Map) map).remove("last.reset");
-					}
-				}
-
-					// Dispose of tableconfigs after XXs.. saves up to 50k
-				
-				SimpleTimer.addEvent(
-						"DisposeTableConfigMap",
-						SystemTime.getOffsetTime(30000), 
-						new TimerEventPerformer() 
-						{
-							public void 
-							perform(
-								TimerEvent event ) 
-							{
-								synchronized( TableColumnManager.this ){
-									
-									long	now = SystemTime.getMonotonousTime();
-									
-									if ( now - lastTableConfigAccess > 25000 ){
-									
-										mapTablesConfig = null;
-										
-									}else{
-										SimpleTimer.addEvent(
-											"DisposeTableConfigMap",
-											SystemTime.getOffsetTime(30000), 
-											this );
-									}
-								}
-							}
-						});
-			}
+			Map mapTablesConfig = getTablesConfigMap();
 
 			Map mapTableConfig = (Map) mapTablesConfig.get(key);
 			if (mapTableConfig == null) {
@@ -820,4 +848,52 @@ public class TableColumnManager {
 			}
 		}
 	}
+	
+	public Object getColumnData(String columnID, String key) {
+		Map mapTablesConfig = getTablesConfigMap();
+		Map mapColumns = MapUtils.getMapMap(mapTablesConfig, "Columns", null);
+		if (mapColumns != null) {
+			Map mapConfig = MapUtils.getMapMap(mapColumns, columnID, null);
+			if (mapConfig != null) {
+				return mapConfig.get(key);
+			}
+		}
+		return null;
+	}
+	
+	public void setColumnData(String columnID, String key, Object value) {
+		synchronized (tablesConfig) {
+			Map mapTablesConfig = getTablesConfigMap();
+			Map mapColumns = MapUtils.getMapMap(mapTablesConfig, "Columns", null);
+			if (mapColumns == null) {
+				mapColumns = new LightHashMap(2);
+				mapTablesConfig.put("Columns", mapColumns);
+			}
+
+			Map mapConfig = MapUtils.getMapMap(mapColumns, columnID, null);
+			if (mapConfig == null) {
+				mapConfig = new LightHashMap(2);
+				mapColumns.put(columnID, mapConfig);
+			}
+
+			mapConfig.put(key, value);
+		}
+	}
+	
+	public void removeColumnData(String columnID, String key) {
+		synchronized (tablesConfig) {
+			Map mapTablesConfig = getTablesConfigMap();
+  		Map mapColumns = MapUtils.getMapMap(mapTablesConfig, "Columns", null);
+  		if (mapColumns != null) {
+  			Map mapConfig = MapUtils.getMapMap(mapColumns, columnID, null);
+  			if (mapConfig != null) {
+  				mapConfig.remove(key);
+  				if (mapConfig.size() < 1) {
+  					mapColumns.remove(columnID);
+  				}
+  			}
+  		}
+		}
+	}
+
 }
