@@ -28,9 +28,6 @@ import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuItem;
-import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
-import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
@@ -39,18 +36,13 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.tag.*;
-import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.columns.tag.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 
@@ -102,16 +94,12 @@ public class SBC_TagsOverview
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
-		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-			public void azureusCoreRunning(AzureusCore core) {
-				initColumns(core);
-			}
-		});
+		initColumns();
 
 		return null;
 	}
 
-	protected void initColumns(AzureusCore core) {
+	protected void initColumns() {
 		synchronized (SBC_TagsOverview.class) {
 
 			if (columnsAdded) {
@@ -122,9 +110,7 @@ public class SBC_TagsOverview
 			columnsAdded = true;
 		}
 
-		UIManager uiManager = PluginInitializer.getDefaultInterface().getUIManager();
-
-		TableManager tableManager = uiManager.getTableManager();
+		TableColumnManager tableManager = TableColumnManager.getInstance();
 
 		tableManager.registerColumn(Tag.class, ColumnTagCount.COLUMN_ID,
 				new TableColumnCreationListener() {
@@ -150,14 +136,16 @@ public class SBC_TagsOverview
 						new ColumnTagType(column);
 					}
 				});
-		
-		MenuItem menuItem = uiManager.getMenuManager().addMenuItem(MenuManager.MENU_MENUBAR, "tags.view.heading");
-		menuItem.addListener(new MenuItemListener() {
-			public void selected(MenuItem menu, Object target) {
-				UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_TAGS);
-			}
-		});
-	}
+
+		tableManager.setDefaultColumnNames(TABLE_TAGS,
+				new String[] {
+					ColumnTagColor.COLUMN_ID,
+					ColumnTagName.COLUMN_ID,
+					ColumnTagCount.COLUMN_ID,
+					ColumnTagType.COLUMN_ID
+				});
+		tableManager.setDefaultSortColumnName(TABLE_TAGS, ColumnTagName.COLUMN_ID);
+}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
@@ -188,6 +176,7 @@ public class SBC_TagsOverview
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectShown(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
+		super.skinObjectShown(skinObject, params);
 		SWTSkinObject so_list = getSkinObject("tags-list");
 
 		if (so_list != null) {
@@ -206,7 +195,7 @@ public class SBC_TagsOverview
 			tagManager.addTagManagerListener(this, true);
 		}
 
-		return super.skinObjectShown(skinObject, params);
+		return null;
 	}
 
 	/**
@@ -216,21 +205,13 @@ public class SBC_TagsOverview
 	 */
 	private void initTable(Composite control) {
 		tv = TableViewFactory.createTableViewSWT(Tag.class, TABLE_TAGS, TABLE_TAGS,
-				new TableColumnCore[0], ColumnTagCount.COLUMN_ID, SWT.MULTI
+				new TableColumnCore[0], ColumnTagName.COLUMN_ID, SWT.MULTI
 						| SWT.FULL_SELECTION | SWT.VIRTUAL);
 		if (txtFilter != null) {
 			tv.enableFilterCheck(txtFilter, this);
 		}
 		tv.setRowDefaultHeight(16);
 
-		TableColumnManager.getInstance().setDefaultColumnNames(TABLE_TAGS,
-				new String[] {
-					ColumnTagColor.COLUMN_ID,
-					ColumnTagName.COLUMN_ID,
-					ColumnTagCount.COLUMN_ID,
-					ColumnTagType.COLUMN_ID
-				});
-		TableColumnManager.getInstance().setDefaultSortColumnName(TABLE_TAGS, ColumnTagName.COLUMN_ID);
 		table_parent = new Composite(control, SWT.BORDER);
 		table_parent.setLayoutData(Utils.getFilledFormData());
 		GridLayout layout = new GridLayout();
