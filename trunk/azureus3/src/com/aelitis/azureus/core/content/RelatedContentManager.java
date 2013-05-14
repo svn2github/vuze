@@ -980,6 +980,8 @@ RelatedContentManager
 			}
 		}
 		
+		boolean	priority = false;
+		
 		try{
 			Download d = from_info.getRelatedToDownload();
 		
@@ -990,6 +992,8 @@ RelatedContentManager
 				if ( _tags != null ){
 					
 					map.put( "m", encodeTags( _tags ));
+					
+					priority = true;	// give these a bit of a boost as we're interested in them
 				}
 			}
 		}catch( Throwable e ){		
@@ -1007,7 +1011,9 @@ RelatedContentManager
 		//System.out.println( "rcmsize=" + map_bytes.length );
 		
 		final int max_hits = 30;
-				
+		
+		final int f_cutoff = priority?16:10;
+		
 		dht_plugin.get(
 				key_bytes,
 				"Content rel test: " + from_hash.substring( 0, 16 ),
@@ -1075,17 +1081,17 @@ RelatedContentManager
 							
 							// System.out.println( from_hash + ": hits=" + hits + ", div=" + diversified );
 							
-							if ( diversified || hits >= 10 ){
+							if ( diversified || hits >= f_cutoff ){
 								
 								do_it = false;
 								
-							}else if ( hits <= 5 ){
+							}else if ( hits <= f_cutoff / 2 ){
 								
 								do_it = true;
 															
 							}else{
 														
-								do_it = RandomUtils.nextInt( hits - 5 + 1 ) == 0;
+								do_it = RandomUtils.nextInt( hits - (f_cutoff/2) + 1 ) == 0;
 							}
 								
 							if ( do_it ){
@@ -1144,7 +1150,7 @@ RelatedContentManager
 							}
 						}finally{
 							
-							checkAlternativePubs( to_info, map_bytes );
+							checkAlternativePubs( to_info, map_bytes, f_cutoff );
 						}
 					}
 				});
@@ -1153,7 +1159,8 @@ RelatedContentManager
 	private void
 	checkAlternativePubs(
 		DownloadInfo	to_info,
-		final byte[]	map_bytes )
+		final byte[]	map_bytes,
+		final int		f_cutoff )
 	{
 		Download dl = to_info.getRelatedToDownload();
 		
@@ -1238,17 +1245,17 @@ RelatedContentManager
 									
 									// System.out.println( from_hash + ": hits=" + hits + ", div=" + diversified );
 									
-									if ( diversified || hits >= 10 ){
+									if ( diversified || hits >= f_cutoff ){
 										
 										do_it = false;
 										
-									}else if ( hits <= 5 ){
+									}else if ( hits <= f_cutoff / 2 ){
 										
 										do_it = true;
 																	
 									}else{
 																
-										do_it = RandomUtils.nextInt( hits - 5 + 1 ) == 0;
+										do_it = RandomUtils.nextInt( hits - ( f_cutoff / 2 ) + 1 ) == 0;
 									}
 										
 									if ( do_it ){
