@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.tag.TagDownload;
@@ -483,7 +484,11 @@ CategoryImpl
   public Set<DownloadManager>
   getTaggedDownloads()
   {
-	 return( new IdentityHashSet<DownloadManager>(getDownloadManagers( AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManagers())));
+  	AzureusCore core = AzureusCoreFactory.getSingleton();
+  	if (!core.isStarted()) {
+  		return new IdentityHashSet<DownloadManager>();
+  	}
+	 return( new IdentityHashSet<DownloadManager>(getDownloadManagers( core.getGlobalManager().getDownloadManagers())));
   }
   
   public Set<Taggable> 
