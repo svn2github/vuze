@@ -3460,6 +3460,8 @@ public class GlobalManagerImpl
 		extends TagTypeWithState
 		implements DownloadManagerListener
 	{
+		private static final int[] color_default = { 41, 140, 165 };
+		
 		private Object	main_tag_key 	= new Object();
 		private Object	comp_tag_key	= new Object();
 		
@@ -3786,6 +3788,13 @@ public class GlobalManagerImpl
 		{
 		}
 	
+		@Override
+		protected int[] 
+	    getColorDefault() 
+		{
+			return( color_default );
+		}
+		
 		private class
 		MyTag
 			extends TagDownloadWithState

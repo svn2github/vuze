@@ -22,8 +22,6 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.peer.PEPeerManager;
-import org.gudy.azureus2.core3.peer.PEPeerManagerStats;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
@@ -354,7 +352,14 @@ TagBase
 	public int[]
 	getColor()
 	{
-		return( decodeRGB( readStringAttribute( AT_COLOR_ID, null )));
+		int[] result = decodeRGB( readStringAttribute( AT_COLOR_ID, null ));
+		
+		if ( result == null ){
+			
+			result = tag_type.getColorDefault();
+		}
+		
+		return( result );
 	}
 	
 	public void

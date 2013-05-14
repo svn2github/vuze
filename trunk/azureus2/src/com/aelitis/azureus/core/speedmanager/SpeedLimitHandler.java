@@ -3279,13 +3279,22 @@ SpeedLimitHandler
 	private class
 	IPSetTagType
 		extends TagTypeWithState
-	{
+	{	
+		private final int[] color_default		 	= { 132, 16, 57 };
+
 		private
 		IPSetTagType()
 		{
 			super( TagType.TT_PEER_IPSET, TagPeer.FEATURES, "tag.type.ipset" );
 			
 			addTagType();
+		}
+		
+		@Override
+		protected int[] 
+	    getColorDefault() 
+		{
+			return( color_default );
 		}
 	}
 	

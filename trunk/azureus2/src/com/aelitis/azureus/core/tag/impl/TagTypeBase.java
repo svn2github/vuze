@@ -34,6 +34,8 @@ public abstract class
 TagTypeBase
 	implements TagType
 {	
+	protected static final String	AT_COLOR_ID			= "col.rgb";
+
 	private int		tag_type;
 	private int		tag_type_features;
 	private String	tag_type_name;
@@ -200,6 +202,12 @@ TagTypeBase
 		tt_listeners.dispatch( TTL_REMOVE, t );
 		
 		manager.removeConfig( t );
+	}
+	
+	protected int[]
+	getColorDefault()
+	{
+		return( null );
 	}
 	
 	protected void

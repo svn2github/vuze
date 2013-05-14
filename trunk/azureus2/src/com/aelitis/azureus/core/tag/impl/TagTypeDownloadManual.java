@@ -34,6 +34,8 @@ public class
 TagTypeDownloadManual
 	extends TagTypeWithState
 {
+	private static final int[] color_default = { 0, 140, 66 };
+	
 	private AtomicInteger	next_tag_id = new AtomicInteger(0);
 		
 	protected
@@ -55,6 +57,13 @@ TagTypeDownloadManual
 	isTagTypeAuto() 
 	{
 		return( false );
+	}
+	
+	@Override
+	protected int[] 
+    getColorDefault() 
+	{
+		return( color_default );
 	}
 	
 	@Override

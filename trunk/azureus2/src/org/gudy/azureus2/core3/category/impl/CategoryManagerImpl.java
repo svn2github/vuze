@@ -70,6 +70,8 @@ CategoryManagerImpl
 	extends TagTypeBase
 	implements RSSGeneratorPlugin.Provider
 {
+  private static final int[] color_default = { 189, 178, 57 };
+  
   private static final String PROVIDER = "categories";
 
   private static final String UNCAT_NAME 	= "__uncategorised__";
@@ -360,7 +362,13 @@ CategoryManagerImpl
     }
   }
   
-  
+  @Override
+  protected int[] 
+  getColorDefault() 
+  {
+	  return( color_default );
+  }
+	
   public List<Tag> 
   getTags() 
   {

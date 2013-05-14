@@ -59,11 +59,7 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
 public class TagStatsView 
 	extends TagTypeAdapter
 	implements UISWTViewCoreEventListener, TagManagerListener
-{
-	private static final int[] DOWNLOAD_STATE_RGB 		= { 41, 140, 165 };
-	private static final int[] DOWNLOAD_MANUAL_RGB	 	= { 0, 140, 66 };
-	private static final int[] PEER_IPSET_RGB		 	= { 132, 16, 57 };
-	
+{	
 	public static final String MSGID_PREFIX = "TagStatsView";
   
 	private Composite 			panel;
@@ -205,31 +201,6 @@ public class TagStatsView
 					Color tt_colour;
 					
 					int[]	rgb = tag.getColor();
-					
-					if ( rgb == null ){
-						
-						switch( tag_type.getTagType() ){
-						
-							case TagType.TT_DOWNLOAD_STATE:{
-								
-								rgb = DOWNLOAD_STATE_RGB;
-								
-								break;
-							}
-							case TagType.TT_DOWNLOAD_MANUAL:{
-								
-								rgb = DOWNLOAD_MANUAL_RGB;
-								
-								break;
-							}
-							case TagType.TT_PEER_IPSET:{
-								
-								rgb = PEER_IPSET_RGB;
-								
-								break;
-							}
-						}
-					}
 					
 					if ( rgb == null ){
 					
