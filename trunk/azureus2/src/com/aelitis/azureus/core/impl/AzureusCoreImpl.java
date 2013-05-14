@@ -256,7 +256,11 @@ AzureusCoreImpl
 							Logger.log(new LogEvent(LOGID, "Platform manager requested shutdown"));
 						}
 						
+						COConfigurationManager.save();
+						
 						requestStop();
+						
+						return( 0 );
 						
 					}else if ( type == ET_SUSPEND ){
 						
