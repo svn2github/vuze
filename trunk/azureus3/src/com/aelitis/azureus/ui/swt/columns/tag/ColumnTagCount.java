@@ -37,6 +37,7 @@ public class ColumnTagCount
 	/** Default Constructor */
 	public ColumnTagCount(TableColumn column) {
 		column.setWidth(70);
+		column.setRefreshInterval(TableColumn.INTERVAL_LIVE);
 		column.setAlignment(TableColumn.ALIGN_TRAIL);
 		column.addListeners(this);
 	}
