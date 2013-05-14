@@ -143,10 +143,12 @@ AEWin32AccessInterface
 	
 		throws AEWin32AccessExceptionImpl;
 	
+	/*
 	protected static native void
 	destroy()
 	
 		throws AEWin32AccessExceptionImpl;
+	*/
 	
 	protected static native String
 	getVersion();
