@@ -2126,6 +2126,17 @@ PlatformManagerImpl
 					if ( my_res == PlatformManagerListener.RT_SUSPEND_DENY ){
 						
 						res = AEWin32AccessListener.RT_SUSPEND_DENY;
+						
+					}else if ( my_res != -1 ){
+						
+						if ( res != -1 && my_res != res ){
+							
+							Debug.out( "Incompatible result codes: " + res + "/" + my_res );
+							
+						}else{
+							
+							res = my_res;
+						}
 					}
 					
 				}catch( Throwable e ){
