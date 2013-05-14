@@ -205,15 +205,13 @@ TagManagerImpl
 		
 		tag_types.add( tag_type );
 
-		for (TagManagerListener l : listeners) {
-			try {
-				/* XXX
-				 * We are probably in the initializer of TagTypeBase, so we will throw NPE if 
-				 * listener tries to do something to tag_type that requires the 
-				 * TagTypeBase's implementing object to be fully initialized
-				 */
+		for ( TagManagerListener l : listeners ){
+			
+			try{
 				l.tagTypeAdded(this, tag_type);
-			} catch (Throwable t) {
+				
+			}catch ( Throwable t ){
+				
 				Debug.out(t);
 			}
 		}
@@ -240,10 +238,13 @@ TagManagerImpl
 		
 		tag_types.remove( tag_type );
 		
-		for (TagManagerListener l : listeners) {
-			try {
+		for ( TagManagerListener l : listeners ){
+			
+			try{
 				l.tagTypeRemoved(this, tag_type);
-			} catch (Throwable t) {
+				
+			}catch( Throwable t ){
+				
 				Debug.out(t);
 			}
 		}
