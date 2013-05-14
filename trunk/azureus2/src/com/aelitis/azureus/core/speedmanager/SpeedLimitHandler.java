@@ -3284,6 +3284,8 @@ SpeedLimitHandler
 		IPSetTagType()
 		{
 			super( TagType.TT_PEER_IPSET, TagPeer.FEATURES, "tag.type.ipset" );
+			
+			addTagType();
 		}
 	}
 	

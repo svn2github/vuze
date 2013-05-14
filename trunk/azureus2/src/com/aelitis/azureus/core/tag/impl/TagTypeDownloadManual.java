@@ -41,6 +41,8 @@ TagTypeDownloadManual
 		TaggableResolver		resolver )
 	{
 		super( TagType.TT_DOWNLOAD_MANUAL, resolver, TagDownload.FEATURES, "tag.type.man" );
+		
+		addTagType();
 	}
 	
 	public boolean

@@ -110,7 +110,9 @@ CategoryManagerImpl
   protected
   CategoryManagerImpl()
   {
-	super( TagType.TT_DOWNLOAD_CATEGORY, TagDownload.FEATURES, "Categories" );
+	super( TagType.TT_DOWNLOAD_CATEGORY, TagDownload.FEATURES, "Category" );
+	
+	addTagType();
 	
   	loadCategories();
   }

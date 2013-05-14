@@ -3510,7 +3510,9 @@ public class GlobalManagerImpl
 			GlobalManagerImpl		_gm )
 		{
 			super( TagType.TT_DOWNLOAD_STATE, TagDownload.FEATURES, "tag.type.ds" );
-						
+				
+			addTagType();
+			
 				// keep these ids constant as they are externalised
 			
 			tag_initialising		= new MyTag( 0, "tag.type.ds.init", false, false, false ); 

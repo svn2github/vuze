@@ -84,7 +84,11 @@ TagTypeBase
 		tag_type			= _tag_type;
 		tag_type_features	= _tag_features;
 		tag_type_name		= _tag_name;
-		
+	}
+	
+	protected void
+	addTagType()
+	{
 		manager.addTagType( this );
 	}
 	
