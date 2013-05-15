@@ -151,13 +151,47 @@ public class SBC_TagsOverview
 						new ColumnTagPublic(column);
 					}
 				});
+		
+		tableManager.registerColumn(Tag.class, ColumnTagUpRate.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagUpRate(column);
+					}
+				});
+		
+		tableManager.registerColumn(Tag.class, ColumnTagDownRate.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagDownRate(column);
+					}
+				});
+		
+		tableManager.registerColumn(Tag.class, ColumnTagUpLimit.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagUpLimit(column);
+					}
+				});
+
+		tableManager.registerColumn(Tag.class, ColumnTagDownLimit.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagDownLimit(column);
+					}
+				});
+
+		
 		tableManager.setDefaultColumnNames(TABLE_TAGS,
 				new String[] {
 					ColumnTagColor.COLUMN_ID,
 					ColumnTagName.COLUMN_ID,
 					ColumnTagCount.COLUMN_ID,
 					ColumnTagType.COLUMN_ID,
-					ColumnTagPublic.COLUMN_ID
+					ColumnTagPublic.COLUMN_ID,
+					ColumnTagUpRate.COLUMN_ID,
+					ColumnTagDownRate.COLUMN_ID,
+					ColumnTagUpLimit.COLUMN_ID,
+					ColumnTagDownLimit.COLUMN_ID,
 				});
 		
 		tableManager.setDefaultSortColumnName(TABLE_TAGS, ColumnTagName.COLUMN_ID);
