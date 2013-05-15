@@ -1263,29 +1263,42 @@ public class TableColumnSetupWindow
 			column.setPositionNoShift(newPosition);
 			mapNewVisibility.put(column, Boolean.TRUE);
 
-			Arrays.sort(columnsChosen, new Comparator() {
-				public int compare(Object arg0, Object arg1) {
-					if ((arg1 instanceof TableColumn) && (arg0 instanceof TableColumn)) {
-						int iPositionA = ((TableColumn) arg0).getPosition();
-						if (iPositionA < 0)
-							iPositionA = 0xFFFF + iPositionA;
-						int iPositionB = ((TableColumn) arg1).getPosition();
-						if (iPositionB < 0)
-							iPositionB = 0xFFFF + iPositionB;
-
-						int i = iPositionA - iPositionB;
-						if (i == 0) {
-							if (column == arg0) {
-								return shiftDir ? -1 : 1;
+				// seen one of these here:
+				// java.lang.IllegalArgumentException: Comparison method violates its general contract!
+				// so I guess getPosition can return different values :(
+				// hack
+			
+			for (int i=0;i<10;i++){
+				try{
+					Arrays.sort(columnsChosen, new Comparator() {
+						public int compare(Object arg0, Object arg1) {
+							if ((arg1 instanceof TableColumn) && (arg0 instanceof TableColumn)) {
+								int iPositionA = ((TableColumn) arg0).getPosition();
+								if (iPositionA < 0)
+									iPositionA = 0xFFFF + iPositionA;
+								int iPositionB = ((TableColumn) arg1).getPosition();
+								if (iPositionB < 0)
+									iPositionB = 0xFFFF + iPositionB;
+		
+								int i = iPositionA - iPositionB;
+								if (i == 0) {
+									if (column == arg0) {
+										return shiftDir ? -1 : 1;
+									}
+									return shiftDir ? 1 : -1;
+								}
+								return i;
 							}
-							return shiftDir ? 1 : -1;
+							return 0;
 						}
-						return i;
-					}
-					return 0;
+					});
+					
+					break;
+					
+				}catch( Throwable e ){
 				}
-			});
-
+			}
+			
 			int pos = 0;
 			for (int i = 0; i < columnsChosen.length; i++) {
 				if (mapNewVisibility.get(columnsChosen[i]).booleanValue()) {
