@@ -70,6 +70,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
@@ -478,6 +479,23 @@ public class UIFunctionsImpl
 						null, data, true);
 				break;
 
+			case VIEW_TAG: {
+				
+				if ( data instanceof Tag ){
+					
+					Tag tag = (Tag)data;
+					
+					String id = "Tag." + tag.getTagType().getTagType() + "." + tag.getTagID();
+					
+					MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+					
+					if ( mdi != null ){
+						
+						mdi.loadEntryByID(id, true, false, data);
+					}
+				}
+				break;
+			}
 			default:
 				break;
 		}

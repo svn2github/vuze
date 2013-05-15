@@ -48,7 +48,8 @@ public interface UIFunctions
 	public static final int VIEW_MYTRACKER = 9;
 	public static final int VIEW_ALLPEERS = 10;
 	public static final int VIEW_PEERS_STATS = 12;
-	
+	public static final int VIEW_TAG = 13;
+
 	public static final int ACTION_FULL_UPDATE				= 1;	// arg: String - url; response Boolean - ok
 	public static final int ACTION_UPDATE_RESTART_REQUEST	= 2;	// arg: Boolean - true->no auto-select response Boolean - ok
 	

@@ -18,14 +18,17 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
@@ -34,12 +37,17 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.tag.*;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionListener;
 import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
@@ -53,7 +61,8 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
  */
 public class SBC_TagsOverview
 	extends SkinView
-	implements UIUpdatable, UIPluginViewToolBarListener, TableViewFilterCheck<Tag>, TagManagerListener, TagTypeListener
+	implements 	UIUpdatable, UIPluginViewToolBarListener, TableViewFilterCheck<Tag>, TagManagerListener, TagTypeListener,
+				TableViewSWTMenuFillListener, TableSelectionListener
 {
 
 	private static final String TABLE_TAGS = "TagsView";
@@ -226,10 +235,108 @@ public class SBC_TagsOverview
 		layout.marginHeight = layout.marginWidth = layout.verticalSpacing = layout.horizontalSpacing = 0;
 		table_parent.setLayout(layout);
 
+		tv.addMenuFillListener( this );
+		tv.addSelectionListener(this, false);
+		
 		tv.initialize(table_parent);
+	
 		control.layout(true);
 	}
 
+	public void 
+	fillMenu(
+		String 	sColumnName, 
+		Menu 	menu )
+	{
+		List<Object>	ds = tv.getSelectedDataSources();
+		
+		List<Tag>	tags = new ArrayList<Tag>();
+		
+		for ( Object obj: ds ){
+			
+			if ( obj instanceof Tag ){
+				
+				tags.add((Tag)obj);
+			}
+		}
+		
+		if ( tags.size() == 1 ){
+			TagUIUtils.createSideBarMenuItems( menu, tags.get(0) );
+		}
+	}
+
+	public void 
+	addThisColumnSubMenu(
+		String 	sColumnName, 
+		Menu	menuThisColumn )
+	{
+		
+	}
+	
+	public void 
+	selected(
+		TableRowCore[] row )
+	{
+	}
+
+	public void 
+	deselected(
+		TableRowCore[] rows )
+	{
+	}
+	
+	public void 
+	focusChanged(
+		TableRowCore focus )
+	{
+		
+	}
+
+	public void 
+	defaultSelected(
+		TableRowCore[] 	rows, 
+		int 			stateMask )
+	{
+		if ( rows.length == 1 ){
+			
+			Object obj = rows[0].getDataSource();
+			
+			if ( obj instanceof Tag ){
+				
+				Tag tag = (Tag)obj;
+				
+				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+
+				if ( uiFunctions != null ){
+					
+					if ( !COConfigurationManager.getBooleanParameter("Library.TagInSideBar")){
+						
+						COConfigurationManager.setParameter("Library.TagInSideBar", true );
+					}
+					
+					if ( !tag.isVisible()){
+						
+						tag.setVisible( true );
+					}
+					
+					uiFunctions.openView( UIFunctions.VIEW_TAG, tag );
+				}
+			}
+		}
+	}
+
+	public void 
+	mouseEnter(
+		TableRowCore row )
+	{
+	}
+
+	public void 
+	mouseExit(
+		TableRowCore row)
+	{	
+	}
+	
 	// @see com.aelitis.azureus.ui.common.table.TableViewFilterCheck#filterCheck(java.lang.Object, java.lang.String, boolean)
 	public boolean filterCheck(Tag ds, String filter, boolean regex) {
 		return false;
