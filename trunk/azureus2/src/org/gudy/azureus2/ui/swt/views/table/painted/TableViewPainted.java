@@ -1466,6 +1466,10 @@ public class TableViewPainted
 	}
 
 	protected void swt_paintCanvasImage(GC gc, Rectangle drawBounds) {
+		if (cTable == null || cTable.isDisposed()) {
+			return;
+		}
+		
 		int end = drawBounds.y + drawBounds.height;
 
 		gc.setFont(cTable.getFont());
