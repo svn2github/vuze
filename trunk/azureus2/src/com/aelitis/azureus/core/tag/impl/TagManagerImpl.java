@@ -21,21 +21,42 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.xml.util.XMLEscapeWriter;
+import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
+import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.util.MapUtils;
@@ -72,6 +93,256 @@ TagManagerImpl
 	
 	private Map<Integer,TagType>	tag_type_map = new HashMap<Integer, TagType>();
 	
+	private static final String RSS_PROVIDER	= "tags";
+	
+	private Set<TagBase>	rss_tags = new HashSet<TagBase>();
+	
+	private RSSGeneratorPlugin.Provider rss_generator = 
+		new RSSGeneratorPlugin.Provider()
+		{
+			public boolean 
+			isEnabled() 
+			{
+				return( true );
+			}
+			
+			public boolean
+			generate(
+				TrackerWebPageRequest		request,
+				TrackerWebPageResponse		response )
+			
+				throws IOException
+			{
+				URL	url	= request.getAbsoluteURL();
+				
+				String path = url.getPath();
+				
+				int	pos = path.indexOf( '?' );
+				
+				if ( pos != -1 ){
+					
+					path = path.substring(0,pos);
+				}
+				
+				path = path.substring( RSS_PROVIDER.length()+1);
+
+				XMLEscapeWriter pw = new XMLEscapeWriter( new PrintWriter(new OutputStreamWriter( response.getOutputStream(), "UTF-8" )));
+
+				pw.setEnabled( false );
+				
+				if ( path.length() <= 1 ){
+					
+					response.setContentType( "text/html; charset=UTF-8" );
+					
+					pw.println( "<HTML><HEAD><TITLE>Vuze Tag Feeds</TITLE></HEAD><BODY>" );
+					
+					Map<String,String>	lines = new TreeMap<String, String>();
+					
+					List<TagBase>	tags;
+					
+					synchronized( rss_tags ){
+
+						tags = new ArrayList<TagBase>( rss_tags);
+					}
+					
+					for ( TagBase t: tags ){
+					
+						if ( t instanceof TagDownload ){
+							
+							if ( ((TagFeatureRSSFeed)t).isTagRSSFeedEnabled()){
+										
+								String	name = t.getTagName( true );
+								
+								String	tag_url = RSS_PROVIDER + "/" + t.getTagType().getTagType()+"-" + t.getTagID();
+							
+								lines.put( name, "<LI><A href=\"" + tag_url + "\">" + name + "</A></LI>" );
+							}
+						}
+					}
+					
+					for ( String line: lines.values() ){
+						
+						pw.println( line );
+					}
+					
+					pw.println( "</BODY></HTML>" );
+					
+				}else{
+					
+					String	tag_id = path.substring( 1 );
+					
+					String[] bits = tag_id.split( "-" );
+					
+					int	tt_id 	= Integer.parseInt( bits[0] );
+					int	t_id 	= Integer.parseInt( bits[1] );
+						
+					TagDownload	tag = null;
+					
+					synchronized( rss_tags ){
+
+						for ( TagBase t: rss_tags ){
+							
+							if ( t.getTagType().getTagType() == tt_id && t.getTagID() == t_id ){
+								
+								if ( t instanceof TagDownload ){
+									
+									tag = (TagDownload)t;
+								}
+							}
+						}
+					}
+					
+					if ( tag == null ){
+						
+						response.setReplyStatus( 404 );
+						
+						return( true );
+					}
+					
+					Set<DownloadManager> dms = tag.getTaggedDownloads();
+					
+					List<Download> downloads = new ArrayList<Download>( dms.size());
+					
+					long	dl_marker = 0;
+					
+					for ( DownloadManager dm: dms ){
+						
+						TOTorrent torrent = dm.getTorrent();
+						
+						if ( torrent == null ){
+							
+							continue;
+						}
+						
+						if ( !TorrentUtils.isReallyPrivate( torrent )){
+						
+							dl_marker += dm.getDownloadState().getLongParameter( DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME );
+						
+							downloads.add( PluginCoreUtils.wrap(dm));
+						}
+					}
+					
+					String	config_key = "tag.rss.config." + tt_id + "." + t_id;
+					
+					long	old_marker = COConfigurationManager.getLongParameter( config_key + ".marker", 0 );
+					
+					long	last_modified = COConfigurationManager.getLongParameter( config_key + ".last_mod", 0 );
+					
+					long now = SystemTime.getCurrentTime();
+					
+					if ( old_marker == dl_marker ){
+						
+						if ( last_modified == 0 ){
+							
+							last_modified = now;
+						}
+					}else{
+						
+						COConfigurationManager.setParameter( config_key + ".marker", dl_marker );
+						
+						last_modified = now; 
+					}
+					
+					if ( last_modified == now ){
+						
+						COConfigurationManager.setParameter( config_key + ".last_mod", last_modified );
+					}
+					
+					pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
+					
+					pw.println( "<rss version=\"2.0\" xmlns:vuze=\"http://www.vuze.com\">" );
+					
+					pw.println( "<channel>" );
+					
+					pw.println( "<title>" + escape( tag.getTagName( true )) + "</title>" );
+					
+					Collections.sort(
+							downloads,
+						new Comparator<Download>()
+						{
+							public int 
+							compare(
+								Download d1, 
+								Download d2) 
+							{
+								long	added1 = getAddedTime( d1 )/1000;
+								long	added2 = getAddedTime( d2 )/1000;
+				
+								return((int)(added2 - added1 ));
+							}
+						});
+										
+									
+					pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( last_modified ) + "</pubDate>" );
+				
+					for (int i=0;i<downloads.size();i++){
+						
+						Download download = downloads.get( i );
+						
+						DownloadManager	core_download = PluginCoreUtils.unwrap( download );
+						
+						Torrent torrent = download.getTorrent();
+						
+						byte[] hash = torrent.getHash();
+						
+						String	hash_str = Base32.encode( hash );
+						
+						pw.println( "<item>" );
+						
+						pw.println( "<title>" + escape( download.getName()) + "</title>" );
+						
+						pw.println( "<guid>" + hash_str + "</guid>" );
+						
+						String magnet_url = escape( UrlUtils.getMagnetURI( download.getName(), torrent ));
+
+						pw.println( "<link>" + magnet_url + "</link>" );
+						
+						long added = core_download.getDownloadState().getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
+						
+						pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( added ) + "</pubDate>" );
+						
+						pw.println(	"<vuze:size>" + torrent.getSize()+ "</vuze:size>" );
+						pw.println(	"<vuze:assethash>" + hash_str + "</vuze:assethash>" );
+														
+						pw.println( "<vuze:downloadurl>" + magnet_url + "</vuze:downloadurl>" );
+				
+						DownloadScrapeResult scrape = download.getLastScrapeResult();
+						
+						if ( scrape != null && scrape.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+							
+							pw.println(	"<vuze:seeds>" + scrape.getSeedCount() + "</vuze:seeds>" );
+							pw.println(	"<vuze:peers>" + scrape.getNonSeedCount() + "</vuze:peers>" );
+						}
+						
+						pw.println( "</item>" );
+					}
+					
+					pw.println( "</channel>" );
+					
+					pw.println( "</rss>" );
+				}
+				 
+				pw.flush();
+				
+				return( true );		
+			}
+			
+			protected long
+			getAddedTime(
+				Download	download )
+			{
+				DownloadManager	core_download = PluginCoreUtils.unwrap( download );
+				
+				return( core_download.getDownloadState().getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME));
+			}
+			
+			protected String
+			escape(
+				String	str )
+			{
+				return( XUXmlWriter.escapeXML(str));
+			}
+		};
 	
 	private FrequencyLimitedDispatcher dirty_dispatcher = 
 		new FrequencyLimitedDispatcher(
@@ -312,6 +583,42 @@ TagManagerImpl
 	getTagPublicDefault()
 	{
 		return( COConfigurationManager.getBooleanParameter( "tag.manager.pub.default", true ));
+	}
+	
+	protected void
+	checkRSSFeeds(
+		TagBase		tag,
+		boolean		enable )
+	{
+		synchronized( rss_tags ){
+			
+			if ( enable ){
+				
+				if ( rss_tags.contains( tag )){
+					
+					return;
+				}
+				
+				rss_tags.add( tag );
+				
+				if ( rss_tags.size() > 1 ){
+					
+					return;
+					
+				}else{
+					
+					RSSGeneratorPlugin.registerProvider( RSS_PROVIDER, rss_generator  );
+				}
+			}else{
+
+				rss_tags.remove( tag );
+				
+				if ( rss_tags.size() == 0 ){
+					
+					RSSGeneratorPlugin.unregisterProvider( RSS_PROVIDER  );
+				}
+			}
+		}
 	}
 	
 	public void

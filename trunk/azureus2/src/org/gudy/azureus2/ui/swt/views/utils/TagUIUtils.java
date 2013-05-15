@@ -51,6 +51,7 @@ import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.TagFeature;
+import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
@@ -603,23 +604,11 @@ public class TagUIUtils
 				}
 			}
 		}
-
-		// rss feed
+		*/
 		
-		final MenuItem rssOption = new MenuItem(menu, SWT.CHECK );
-
-		rssOption.setSelection( category.getBooleanAttribute( Category.AT_RSS_GEN ));
-		
-		Messages.setLanguageText(rssOption, "cat.rss.gen");
-		rssOption.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				boolean set = rssOption.getSelection();
-				category.setBooleanAttribute( Category.AT_RSS_GEN, set );
-			}
-		});
 		
 		// upload priority
-		
+		/*
 		if ( 	cat_type != Category.TYPE_UNCATEGORIZED &&
 				cat_type != Category.TYPE_ALL ){
 			
@@ -685,6 +674,25 @@ public class TagUIUtils
 					
 					tag.setPublic( itemPublic.getSelection());
 				}});
+		}
+		
+		if ( tag_type.hasTagTypeFeature( TagFeature.TF_RSS_FEED )) {
+
+			final TagFeatureRSSFeed tfrss = (TagFeatureRSSFeed)tag;
+			
+			// rss feed
+			
+			final MenuItem rssOption = new MenuItem(menu, SWT.CHECK );
+	
+			rssOption.setSelection( tfrss.isTagRSSFeedEnabled());
+			
+			Messages.setLanguageText(rssOption, "cat.rss.gen");
+			rssOption.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					boolean set = rssOption.getSelection();
+					tfrss.setTagRSSFeedEnabled( set );
+				}
+			});
 		}
 		
 		needs_separator_next = true;

@@ -26,5 +26,6 @@ TagFeature
 {
 	public static final int TF_NONE				= 0x00000000;
 	public static final int TF_RATE_LIMIT		= 0x00000001;
+	public static final int TF_RSS_FEED			= 0x00000002;
 	
 }

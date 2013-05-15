@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagException;
+import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.Taggable;
@@ -45,6 +46,7 @@ TagBase
 	protected static final String	AT_ORIGINAL_NAME	= "oname";
 	protected static final String	AT_IMAGE_ID			= "img.id";
 	protected static final String	AT_COLOR_ID			= "col.rgb";
+	protected static final String	AT_RSS_ENABLE		= "rss.enable";
 	  
 	private TagTypeBase	tag_type;
 	
@@ -85,6 +87,7 @@ TagBase
 	private Boolean	is_public;
 	
 	private TagFeatureRateLimit	tag_rl;
+	private TagFeatureRSSFeed	tag_rss;
 	
 	
 	protected
@@ -103,6 +106,16 @@ TagBase
 		if ( this instanceof TagFeatureRateLimit ){
 			
 			tag_rl = (TagFeatureRateLimit)this;
+		}
+		
+		if ( this instanceof TagFeatureRSSFeed ){
+			
+			tag_rss = (TagFeatureRSSFeed)this;
+			
+			if ( tag_rss.isTagRSSFeedEnabled()){
+				
+				getManager().checkRSSFeeds( this, true );
+			}
 		}
 	}
 	
@@ -369,6 +382,34 @@ TagBase
 		writeStringAttribute( AT_COLOR_ID, encodeRGB( rgb ));
 	}
 	
+	public boolean
+	isTagRSSFeedEnabled()
+	{
+		if ( tag_rss != null ){
+		
+			return( readBooleanAttribute( AT_RSS_ENABLE, false ));
+		}
+		
+		return( false );
+	}
+	
+	public void
+	setTagRSSFeedEnabled(
+		boolean		enable )
+	{
+		if ( tag_rss != null ){
+			
+			if ( isTagRSSFeedEnabled() != enable ){
+			
+				writeBooleanAttribute( AT_RSS_ENABLE, enable );
+				
+				tag_type.fireChanged( this );
+				
+				tag_type.getTagManager().checkRSSFeeds( this, enable );
+			}
+		}
+	}
+	
 	public void
 	addTaggable(
 		Taggable	t )
@@ -409,7 +450,14 @@ TagBase
 	public void
 	removeTag()
 	{
+		boolean was_rss = isTagRSSFeedEnabled();
+		
 		tag_type.removeTag( this );
+		
+		if ( was_rss ){
+		
+			tag_type.getTagManager().checkRSSFeeds( this, false );
+		}
 	}
 	
 	public void

@@ -27,9 +27,9 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 
 public interface 
 TagDownload 
-	extends Tag, TagFeatureRateLimit
+	extends Tag, TagFeatureRateLimit, TagFeatureRSSFeed
 {
-	public static final int FEATURES 	= TF_RATE_LIMIT;
+	public static final int FEATURES 	= TF_RATE_LIMIT | TF_RSS_FEED;
 	
 	public Set<DownloadManager>
 	getTaggedDownloads();
