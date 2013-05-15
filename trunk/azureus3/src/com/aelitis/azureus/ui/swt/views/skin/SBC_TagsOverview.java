@@ -29,12 +29,9 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
-import org.gudy.azureus2.plugins.ui.tables.TableManager;
-import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -75,6 +72,8 @@ public class SBC_TagsOverview
 
 	private boolean columnsAdded = false;
 
+	private boolean tm_listener_added;
+	
 	// @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
 			Object datasource) {
@@ -185,6 +184,8 @@ public class SBC_TagsOverview
 				tagType.removeTagTypeListener(this);
 			}
 			tagManager.removeTagManagerListener(this);
+			
+			tm_listener_added = false;
 		}
 
 
@@ -209,37 +210,69 @@ public class SBC_TagsOverview
 
 		TagManager tagManager = TagManagerFactory.getTagManger();
 		if (tagManager != null) {
-			tagManager.addTagManagerListener(this, true);
+			
+			if ( !tm_listener_added ){
+				
+				tm_listener_added = true;
+			
+				tagManager.addTagManagerListener(this, true);
+			}
 		}
 
 		return null;
 	}
 
+	@Override
+	public Object 
+	skinObjectDestroyed(
+		SWTSkinObject skinObject, 
+		Object params) 
+	{
+		if ( tm_listener_added ){
+		
+			tm_listener_added = false;
+			
+			TagManager tagManager = TagManagerFactory.getTagManger();
+			
+			tagManager.removeTagManagerListener( this );
+
+			for ( TagType tt: tagManager.getTagTypes()){
+				
+				tt.removeTagTypeListener( this );
+			}
+		}			
+		
+		return super.skinObjectDestroyed(skinObject, params);
+	}
+	
 	/**
 	 * @param control
 	 *
 	 * @since 4.6.0.5
 	 */
 	private void initTable(Composite control) {
-		tv = TableViewFactory.createTableViewSWT(Tag.class, TABLE_TAGS, TABLE_TAGS,
-				new TableColumnCore[0], ColumnTagName.COLUMN_ID, SWT.MULTI
-						| SWT.FULL_SELECTION | SWT.VIRTUAL);
-		if (txtFilter != null) {
-			tv.enableFilterCheck(txtFilter, this);
-		}
-		tv.setRowDefaultHeight(16);
-
-		table_parent = new Composite(control, SWT.BORDER);
-		table_parent.setLayoutData(Utils.getFilledFormData());
-		GridLayout layout = new GridLayout();
-		layout.marginHeight = layout.marginWidth = layout.verticalSpacing = layout.horizontalSpacing = 0;
-		table_parent.setLayout(layout);
-
-		tv.addMenuFillListener( this );
-		tv.addSelectionListener(this, false);
-		
-		tv.initialize(table_parent);
+		if ( tv == null ){
+			
+			tv = TableViewFactory.createTableViewSWT(Tag.class, TABLE_TAGS, TABLE_TAGS,
+					new TableColumnCore[0], ColumnTagName.COLUMN_ID, SWT.MULTI
+							| SWT.FULL_SELECTION | SWT.VIRTUAL);
+			if (txtFilter != null) {
+				tv.enableFilterCheck(txtFilter, this);
+			}
+			tv.setRowDefaultHeight(16);
 	
+			table_parent = new Composite(control, SWT.BORDER);
+			table_parent.setLayoutData(Utils.getFilledFormData());
+			GridLayout layout = new GridLayout();
+			layout.marginHeight = layout.marginWidth = layout.verticalSpacing = layout.horizontalSpacing = 0;
+			table_parent.setLayout(layout);
+	
+			tv.addMenuFillListener( this );
+			tv.addSelectionListener(this, false);
+			
+			tv.initialize(table_parent);
+		}
+		
 		control.layout(true);
 	}
 

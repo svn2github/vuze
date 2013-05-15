@@ -235,6 +235,7 @@ public class MainMenu
 			indent(MenuFactory.addTransferBarToMenu(viewMenu));
 			indent(MenuFactory.addAllPeersMenuItem(viewMenu));
 			indent(MenuFactory.addClientStatsMenuItem(viewMenu));
+			indent(MenuFactory.addTagsOverviewMenuItem(viewMenu));
 			//indent(MenuFactory.addDetailedListMenuItem(viewMenu));
 			//indent(MenuFactory.addDeviceManagerMenuItem(viewMenu));
 			//indent(MenuFactory.addSubscriptionMenuItem(viewMenu));

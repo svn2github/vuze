@@ -125,6 +125,8 @@ public interface IMenuConstants
 	public static final String MENU_ID_ALL_PEERS = "MainWindow.menu.view.allpeers";
 
 	public static final String MENU_ID_CLIENT_STATS = "MainWindow.menu.view.clientstats";
+	
+	public static final String MENU_ID_TAGS_OVERVIEW = "MainWindow.menu.view.tagsoverview";
 		
 	public static final String MENU_ID_DEVICEMANAGER = "MainWindow.menu.view.devicemanager";
 

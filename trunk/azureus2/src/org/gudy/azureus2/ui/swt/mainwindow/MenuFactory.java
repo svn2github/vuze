@@ -689,6 +689,17 @@ public class MenuFactory
 		});
 	}
 
+	public static MenuItem addTagsOverviewMenuItem(Menu menu) {
+		return addMenuItem(menu, MENU_ID_TAGS_OVERVIEW, new Listener() {
+			public void handleEvent(Event e) {
+				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+				if (uiFunctions != null) {
+					uiFunctions.openView(UIFunctions.VIEW_TAGS_OVERVIEW, null);
+				}
+			}
+		});
+	}
+	
 	public static MenuItem addDeviceManagerMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_DEVICEMANAGER, new Listener() {
 			public void handleEvent(Event e) {

@@ -479,6 +479,17 @@ public class UIFunctionsImpl
 						null, data, true);
 				break;
 
+			case VIEW_TAGS_OVERVIEW:{
+				
+				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+				
+				if ( mdi != null ){
+
+					mdi.showEntryByID( MultipleDocumentInterface.SIDEBAR_SECTION_TAGS);
+				}
+				
+				break;
+			}
 			case VIEW_TAG: {
 				
 				if ( data instanceof Tag ){
