@@ -137,15 +137,23 @@ public class SBC_TagsOverview
 					}
 				});
 
+		tableManager.registerColumn(Tag.class, ColumnTagPublic.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagPublic(column);
+					}
+				});
 		tableManager.setDefaultColumnNames(TABLE_TAGS,
 				new String[] {
 					ColumnTagColor.COLUMN_ID,
 					ColumnTagName.COLUMN_ID,
 					ColumnTagCount.COLUMN_ID,
-					ColumnTagType.COLUMN_ID
+					ColumnTagType.COLUMN_ID,
+					ColumnTagPublic.COLUMN_ID
 				});
+		
 		tableManager.setDefaultSortColumnName(TABLE_TAGS, ColumnTagName.COLUMN_ID);
-}
+	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectHidden(SWTSkinObject skinObject, Object params) {
