@@ -81,6 +81,10 @@ public class ColumnTagColor
 		Color foregroundSWT = cell.getForegroundSWT();
 		if (foregroundSWT != null) {
 			gc.setBackground(foregroundSWT);
+			bounds.x+=1;
+			bounds.y+=1;
+			bounds.width-=1;
+			bounds.height-=1;
 			gc.fillRectangle(bounds);
 		}
 	}
