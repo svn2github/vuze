@@ -29,6 +29,8 @@ import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /**
@@ -75,8 +77,6 @@ public class ColumnUnopened
 
 		if (graphicsProgress == null) {
 			
-			
-			
 			Image[] imgs = ImageLoader.getInstance().getImages("image.sidebar.vitality.dl");
 			graphicsProgress = new UISWTGraphicImpl[imgs.length];
 			for(int i = 0 ; i < imgs.length ; i++) {
@@ -84,6 +84,23 @@ public class ColumnUnopened
 			}
 			
 		}
+		
+		TableContextMenuItem menuItem = addContextMenuItem("label.toggle.new.marker");
+
+		menuItem.addMultiListener(new MenuItemListener() {
+			public void selected(MenuItem menu, Object target) {
+				Object[] dataSources = (Object[])target;
+				
+				for ( Object _ds: dataSources ){
+										
+					DownloadManager dm = (DownloadManager)_ds;
+					
+					boolean x = PlatformTorrentUtils.getHasBeenOpened( dm );
+					
+					PlatformTorrentUtils.setHasBeenOpened(dm, !x );
+				}
+			}
+		});
 		
 		initializeAsGraphic(WIDTH);
 	}
