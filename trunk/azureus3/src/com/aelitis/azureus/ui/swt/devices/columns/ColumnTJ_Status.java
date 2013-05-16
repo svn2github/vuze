@@ -104,7 +104,7 @@ public class ColumnTJ_Status
 		if ( job == null ){
 			
 			try{
-				if ( tf.isComplete() && !tf.getTargetFile().getFile().exists()){
+				if ( tf.isComplete() && !tf.getTargetFile().getFile(true).exists()){
 					
 					tooltip = "File '" + tf.getTargetFile().getFile().getAbsolutePath() + "' not found";
 					

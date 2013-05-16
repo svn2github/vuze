@@ -155,7 +155,7 @@ TranscodeFileImpl
 						
 						if (fileInfo.length > 1) {
 							
-							text += ": " + sourceFile.getFile().getName();
+							text += ": " + sourceFile.getFile( true ).getName();
 						}
 					}
 				}catch (DownloadException e ){
