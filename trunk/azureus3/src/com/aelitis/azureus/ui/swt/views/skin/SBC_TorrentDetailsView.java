@@ -867,8 +867,18 @@ public class SBC_TorrentDetailsView
 
 		if (mdi != null) {
 
-			mdi_entry = mdi.getCurrentEntrySWT();
+			mdi_entry = mdi.getEntryFromSkinObject(skinObject);
 
+			if ( mdi_entry == null ){
+				
+					// We *really* need to not use 'current' here as it is inaccurate (try opening multiple torrent details view
+					// at once to see this)
+				
+				Debug.out( "Failed to get MDI entry from skin object, reverting to using 'current'" );
+				
+				mdi_entry = mdi.getCurrentEntrySWT();
+			}
+			
 			mdi_entry.addToolbarEnabler(this);
 			mdi_entry.setViewTitleInfo(this);
 		}
