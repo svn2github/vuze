@@ -1,9 +1,12 @@
 package com.aelitis.azureus.ui.swt.mdi;
 
+import java.util.LinkedList;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabFolder2Adapter;
+import org.eclipse.swt.custom.CTabFolderEvent;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
@@ -24,9 +27,6 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
@@ -41,6 +41,8 @@ public class TabbedMDI
 {
 	private CTabFolder tabFolder;
 
+	private LinkedList<MdiEntry>	select_history = new LinkedList<MdiEntry>();
+	
 	public TabbedMDI() {
 		super();
 		AEDiagnostics.addEvidenceGenerator(this);
@@ -134,10 +136,48 @@ public class TabbedMDI
 
 		tabFolder.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
-				TabbedEntry entry = (TabbedEntry) event.item.getData("TabbedEntry");
+				TabbedEntry entry = (TabbedEntry) event.item.getData("TabbedEntry");				
 				showEntry(entry);
 			}
 		});
+		
+		tabFolder.addCTabFolder2Listener(
+			new CTabFolder2Adapter()
+			{
+				@Override
+				public void 
+				close(
+					CTabFolderEvent event )
+				{
+					final TabbedEntry entry = (TabbedEntry) event.item.getData("TabbedEntry");
+					
+					if ( select_history.remove( entry )){
+						
+						if ( select_history.size() > 0 ){
+							
+							MdiEntry next = select_history.getLast();
+							
+							if ( !next.isDisposed() && next != entry ){
+								
+								event.doit = false;
+
+								showEntry( next );
+								
+								Utils.execSWTThreadLater(
+									0, 
+									new AERunnable() 
+									{
+										public void 
+										runSupport() 
+										{
+											entry.close( true );
+										}
+									});
+							}
+						}
+					}
+				}
+			});
 		
 		tabFolder.getDisplay().addFilter(SWT.KeyDown, new Listener() {
 			public void handleEvent(Event event) {
@@ -213,7 +253,7 @@ public class TabbedMDI
 			showEntry(entry);
 		}
 	}
-
+	
 	public boolean showEntryByID(String id) {
 		return loadEntryByID(id, true);
 	}
@@ -278,6 +318,16 @@ public class TabbedMDI
 		if (newEntry == null) {
 			return;
 		}
+		
+		select_history.remove( newEntry );
+		
+		select_history.add( newEntry );
+			
+		if ( select_history.size() > 64 ){
+			
+			select_history.removeFirst();
+		}
+		
 		MdiEntry oldEntry = currentEntry;
 		if (newEntry == oldEntry) {
 			triggerSelectionListener(newEntry, newEntry);
