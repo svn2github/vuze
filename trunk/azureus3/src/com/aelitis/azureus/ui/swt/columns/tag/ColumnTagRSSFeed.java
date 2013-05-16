@@ -34,11 +34,12 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumnExtraInfoListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 
 public class 
-ColumnTagPublic
+ColumnTagRSSFeed
 	implements TableCellRefreshListener, TableColumnExtraInfoListener
 {	
 	private static final UISWTGraphic tick_icon;
@@ -49,7 +50,7 @@ ColumnTagPublic
 		cross_icon = new UISWTGraphicImpl(ImageLoader.getInstance().getImage("cross_mark"));
 	}
 	
-	public static String COLUMN_ID = "tag.public";
+	public static String COLUMN_ID = "tag.rssfeed";
 
 	public void 
 	fillTableColumnInfo(
@@ -63,11 +64,12 @@ ColumnTagPublic
 	}
 
 	public 
-	ColumnTagPublic(
+	ColumnTagRSSFeed(
 		TableColumn column) 
 	{
 		column.setWidth(40);
 		column.setType( TableColumn.TYPE_GRAPHIC );
+		column.setPosition( TableColumn.POSITION_INVISIBLE );
 		column.addListeners(this);
 	}
 
@@ -80,19 +82,18 @@ ColumnTagPublic
 		int 			sortVal = 0;
 		UISWTGraphic	icon 	= null;
 
-		if ( tag != null ){
+		if ( tag instanceof TagFeatureRSSFeed ){
 			
-			if ( tag.canBePublic()){
+			TagFeatureRSSFeed tag_rss = (TagFeatureRSSFeed)tag;
 				
-				if ( tag.isPublic()){
-					
-					sortVal = 2;
-					icon 	= tick_icon;
-				}else{
-					sortVal = 1;
-					icon 	= cross_icon;
+			if ( tag_rss.isTagRSSFeedEnabled()){
+				
+				sortVal = 2;
+				icon 	= tick_icon;
+			}else{
+				sortVal = 1;
+				icon 	= cross_icon;
 
-				}
 			}
 		}
 		

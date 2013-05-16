@@ -23,7 +23,7 @@ import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagType;
 
 public class ColumnTagType
-	implements TableCellRefreshListener
+	implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
 	public static String COLUMN_ID = "tag.type";
 

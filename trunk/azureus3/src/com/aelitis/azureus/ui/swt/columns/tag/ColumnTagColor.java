@@ -29,7 +29,7 @@ import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 
 public class ColumnTagColor
-	implements TableCellRefreshListener, TableCellSWTPaintListener
+	implements TableCellRefreshListener, TableCellSWTPaintListener, TableColumnExtraInfoListener
 {
 	public static String COLUMN_ID = "tag.color";
 

@@ -59,9 +59,7 @@ TagWithState
 		Map					map )
 	{
 		super( tt, tag_id, MapUtils.getMapString( map, "n", "" ));
-		
-		addTag();
-		
+				
 		if ( map != null ){
 			
 			List<byte[]> list = (List<byte[]>)map.get( "o" );

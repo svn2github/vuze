@@ -24,7 +24,7 @@ import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 
 public class ColumnTagUpRate
-	implements TableCellRefreshListener
+	implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
 	public static String COLUMN_ID = "tag.uprate";
 

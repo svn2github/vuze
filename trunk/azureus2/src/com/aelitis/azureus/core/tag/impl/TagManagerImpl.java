@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -46,6 +47,9 @@ import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.core3.xml.util.XMLEscapeWriter;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -155,7 +159,7 @@ TagManagerImpl
 								
 								String	tag_url = RSS_PROVIDER + "/" + t.getTagType().getTagType()+"-" + t.getTagID();
 							
-								lines.put( name, "<LI><A href=\"" + tag_url + "\">" + name + "</A></LI>" );
+								lines.put( name, "<LI><A href=\"" + tag_url + "\">" + name + "</A>&nbsp;&nbsp;-&nbsp;&nbsp;<font size=\"-1\"><a href=\"" + tag_url + "?format=html\">html</a></font></LI>" );
 							}
 						}
 					}
@@ -222,104 +226,181 @@ TagManagerImpl
 						}
 					}
 					
-					String	config_key = "tag.rss.config." + tt_id + "." + t_id;
-					
-					long	old_marker = COConfigurationManager.getLongParameter( config_key + ".marker", 0 );
-					
-					long	last_modified = COConfigurationManager.getLongParameter( config_key + ".last_mod", 0 );
-					
-					long now = SystemTime.getCurrentTime();
-					
-					if ( old_marker == dl_marker ){
+					if ( url.toExternalForm().contains( "format=html" )){
 						
-						if ( last_modified == 0 ){
+						String	host = (String)request.getHeaders().get( "host" );
+						
+						if ( host != null ){
 							
-							last_modified = now;
+							int	c_pos = host.indexOf( ':' );
+							
+							if ( c_pos != -1 ){
+								
+								host = host.substring( 0, c_pos );
+							}
+						}else{
+							
+							host = "127.0.0.1";
 						}
+						
+						response.setContentType( "text/html; charset=UTF-8" );
+						
+						pw.println( "<HTML><HEAD><TITLE>Tag: " + escape( tag.getTagName( true )) + "</TITLE></HEAD><BODY>" );
+
+						PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+						
+						PluginInterface pi = pm.getPluginInterfaceByID( "azupnpav", true );
+
+						if ( pi == null ){
+							
+							pw.println( "UPnP Media Server plugin not found" );
+							
+						}else{
+							
+							for (int i=0;i<downloads.size();i++){
+								
+								Download download = downloads.get( i );
+																
+								DiskManagerFileInfo[] files = download.getDiskManagerFileInfo();
+								
+								for ( DiskManagerFileInfo file: files ){
+									
+									File target_file = file.getFile( true );
+									
+									if ( !target_file.exists()){
+										
+										continue;
+									}
+									
+									try{
+										URL stream_url = new URL((String)pi.getIPC().invoke("getContentURL", new Object[] { file }));
+						  									  				
+						  				if ( stream_url != null ){
+						  						
+						  					stream_url = UrlUtils.setHost( stream_url, host );
+						  					
+						  					String url_ext = stream_url.toExternalForm();
+						  					
+						  					pw.println( "<p>" );
+						  					
+						  					pw.println( "<a href=\"" + url_ext + "\">" + escape( target_file.getName()) + "</a>" );
+						  						
+						  					url_ext += url_ext.indexOf('?') == -1?"?":"&";
+						  					
+						  					url_ext += "action=download";
+						  					
+						  					pw.println( "&nbsp;&nbsp;-&nbsp;&nbsp;<font size=\"-1\"><a href=\"" + url_ext + "\">save</a></font>" );
+						  				}
+									}catch( Throwable e ){
+										
+										e.printStackTrace();
+									}
+								}
+							}
+						}
+						
+						pw.println( "</BODY></HTML>" );
 					}else{
 						
-						COConfigurationManager.setParameter( config_key + ".marker", dl_marker );
+						String	config_key = "tag.rss.config." + tt_id + "." + t_id;
 						
-						last_modified = now; 
-					}
-					
-					if ( last_modified == now ){
+						long	old_marker = COConfigurationManager.getLongParameter( config_key + ".marker", 0 );
 						
-						COConfigurationManager.setParameter( config_key + ".last_mod", last_modified );
-					}
-					
-					pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
-					
-					pw.println( "<rss version=\"2.0\" xmlns:vuze=\"http://www.vuze.com\">" );
-					
-					pw.println( "<channel>" );
-					
-					pw.println( "<title>" + escape( tag.getTagName( true )) + "</title>" );
-					
-					Collections.sort(
-							downloads,
-						new Comparator<Download>()
-						{
-							public int 
-							compare(
-								Download d1, 
-								Download d2) 
-							{
-								long	added1 = getAddedTime( d1 )/1000;
-								long	added2 = getAddedTime( d2 )/1000;
-				
-								return((int)(added2 - added1 ));
-							}
-						});
-										
-									
-					pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( last_modified ) + "</pubDate>" );
-				
-					for (int i=0;i<downloads.size();i++){
+						long	last_modified = COConfigurationManager.getLongParameter( config_key + ".last_mod", 0 );
 						
-						Download download = downloads.get( i );
+						long now = SystemTime.getCurrentTime();
 						
-						DownloadManager	core_download = PluginCoreUtils.unwrap( download );
-						
-						Torrent torrent = download.getTorrent();
-						
-						byte[] hash = torrent.getHash();
-						
-						String	hash_str = Base32.encode( hash );
-						
-						pw.println( "<item>" );
-						
-						pw.println( "<title>" + escape( download.getName()) + "</title>" );
-						
-						pw.println( "<guid>" + hash_str + "</guid>" );
-						
-						String magnet_url = escape( UrlUtils.getMagnetURI( download.getName(), torrent ));
-
-						pw.println( "<link>" + magnet_url + "</link>" );
-						
-						long added = core_download.getDownloadState().getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
-						
-						pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( added ) + "</pubDate>" );
-						
-						pw.println(	"<vuze:size>" + torrent.getSize()+ "</vuze:size>" );
-						pw.println(	"<vuze:assethash>" + hash_str + "</vuze:assethash>" );
-														
-						pw.println( "<vuze:downloadurl>" + magnet_url + "</vuze:downloadurl>" );
-				
-						DownloadScrapeResult scrape = download.getLastScrapeResult();
-						
-						if ( scrape != null && scrape.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+						if ( old_marker == dl_marker ){
 							
-							pw.println(	"<vuze:seeds>" + scrape.getSeedCount() + "</vuze:seeds>" );
-							pw.println(	"<vuze:peers>" + scrape.getNonSeedCount() + "</vuze:peers>" );
+							if ( last_modified == 0 ){
+								
+								last_modified = now;
+							}
+						}else{
+							
+							COConfigurationManager.setParameter( config_key + ".marker", dl_marker );
+							
+							last_modified = now; 
 						}
 						
-						pw.println( "</item>" );
+						if ( last_modified == now ){
+							
+							COConfigurationManager.setParameter( config_key + ".last_mod", last_modified );
+						}
+						
+						pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
+						
+						pw.println( "<rss version=\"2.0\" xmlns:vuze=\"http://www.vuze.com\">" );
+						
+						pw.println( "<channel>" );
+						
+						pw.println( "<title>" + escape( tag.getTagName( true )) + "</title>" );
+						
+						Collections.sort(
+								downloads,
+							new Comparator<Download>()
+							{
+								public int 
+								compare(
+									Download d1, 
+									Download d2) 
+								{
+									long	added1 = getAddedTime( d1 )/1000;
+									long	added2 = getAddedTime( d2 )/1000;
+					
+									return((int)(added2 - added1 ));
+								}
+							});
+											
+										
+						pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( last_modified ) + "</pubDate>" );
+					
+						for (int i=0;i<downloads.size();i++){
+							
+							Download download = downloads.get( i );
+							
+							DownloadManager	core_download = PluginCoreUtils.unwrap( download );
+							
+							Torrent torrent = download.getTorrent();
+							
+							byte[] hash = torrent.getHash();
+							
+							String	hash_str = Base32.encode( hash );
+							
+							pw.println( "<item>" );
+							
+							pw.println( "<title>" + escape( download.getName()) + "</title>" );
+							
+							pw.println( "<guid>" + hash_str + "</guid>" );
+							
+							String magnet_url = escape( UrlUtils.getMagnetURI( download.getName(), torrent ));
+	
+							pw.println( "<link>" + magnet_url + "</link>" );
+							
+							long added = core_download.getDownloadState().getLongParameter(DownloadManagerState.PARAM_DOWNLOAD_ADDED_TIME);
+							
+							pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( added ) + "</pubDate>" );
+							
+							pw.println(	"<vuze:size>" + torrent.getSize()+ "</vuze:size>" );
+							pw.println(	"<vuze:assethash>" + hash_str + "</vuze:assethash>" );
+															
+							pw.println( "<vuze:downloadurl>" + magnet_url + "</vuze:downloadurl>" );
+					
+							DownloadScrapeResult scrape = download.getLastScrapeResult();
+							
+							if ( scrape != null && scrape.getResponseType() == DownloadScrapeResult.RT_SUCCESS ){
+								
+								pw.println(	"<vuze:seeds>" + scrape.getSeedCount() + "</vuze:seeds>" );
+								pw.println(	"<vuze:peers>" + scrape.getNonSeedCount() + "</vuze:peers>" );
+							}
+							
+							pw.println( "</item>" );
+						}
+						
+						pw.println( "</channel>" );
+						
+						pw.println( "</rss>" );
 					}
-					
-					pw.println( "</channel>" );
-					
-					pw.println( "</rss>" );
 				}
 				 
 				pw.flush();
@@ -420,6 +501,8 @@ TagManagerImpl
 	{
 		TagTypeDownloadManual ttdm = new TagTypeDownloadManual( resolver );
 		
+		List<Tag> tags = new ArrayList<Tag>();
+		
 		synchronized( this ){
 			
 			Map config = getConfig();
@@ -438,7 +521,7 @@ TagManagerImpl
 							int	tag_id 	= Integer.parseInt( key );
 							Map m		= (Map)entry.getValue();
 							
-							ttdm.createTag( tag_id, m );
+							tags.add( ttdm.createTag( tag_id, m ));
 						}
 					}catch( Throwable e ){
 						
@@ -446,6 +529,11 @@ TagManagerImpl
 					}
 				}
 			}
+		}
+		
+		for ( Tag tag: tags ){
+			
+			ttdm.addTag( tag );
 		}
 	}
 	

@@ -22,7 +22,7 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import com.aelitis.azureus.core.tag.Tag;
 
 public class ColumnTagName
-	implements TableCellRefreshListener
+	implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
 	public static String COLUMN_ID = "tag.name";
 
