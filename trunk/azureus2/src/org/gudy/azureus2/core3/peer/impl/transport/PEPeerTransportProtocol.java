@@ -2113,8 +2113,6 @@ implements PEPeerTransport
 	  			setUserData( key, null );
 	  		}	
 	  		
-	  		System.out.println( getIp() + " -> " + upload_priority_auto );
-	  		
 		}finally{
 			
 			general_mon.exit();
