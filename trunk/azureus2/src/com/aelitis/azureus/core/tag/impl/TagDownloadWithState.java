@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
+import com.aelitis.azureus.core.tag.TagFeatureRunState;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.Taggable;
 
@@ -95,7 +96,8 @@ TagDownloadWithState
 	private boolean	do_rates;
 	private boolean	do_up;
 	private boolean	do_down;
-		
+	private int		run_states;
+	
 	public
 	TagDownloadWithState(
 		TagTypeBase		tt,
@@ -103,11 +105,12 @@ TagDownloadWithState
 		String			name,
 		boolean			do_rates,
 		boolean			do_up,
-		boolean			do_down )
+		boolean			do_down,
+		int				run_states )
 	{
 		super( tt, tag_id, name );
 		
-		init( do_rates, do_up, do_down );
+		init( do_rates, do_up, do_down, run_states );
 	}
 	
 	protected
@@ -117,22 +120,25 @@ TagDownloadWithState
 		Map				details,
 		boolean			do_rates,
 		boolean			do_up,
-		boolean			do_down )
+		boolean			do_down,
+		int				run_states )
 	{
 		super( tt, tag_id, details );
 		
-		init( do_rates, do_up, do_down );
+		init( do_rates, do_up, do_down, run_states );
 	}
 	
 	private void
 	init(
 		boolean		_do_rates,
 		boolean		_do_up,
-		boolean		_do_down )
+		boolean		_do_down,
+		int			_run_states )
 	{
 		do_rates	= _do_rates;
 		do_up		= _do_up;
 		do_down		= _do_down;
+		run_states	= _run_states;
 		
 		upload_rate_limit 	= (int)readLongAttribute( AT_RATELIMIT_UP, 0 );
 		download_rate_limit = (int)readLongAttribute( AT_RATELIMIT_DOWN, 0 );
@@ -294,6 +300,128 @@ TagDownloadWithState
 			upload_rate			= new_up;
 			download_rate		= new_down;
 			last_rate_update 	= now;
+		}
+	}
+	
+	public int
+	getRunStateCapabilities()
+	{
+		return( run_states );
+	}
+	
+	public boolean
+	hasRunStateCapability(
+		int		capability )
+	{
+		return((run_states & capability ) != 0 );
+	}
+	
+	public boolean[]
+   	getPerformableOperations(
+      	int[]	ops )
+   	{
+   		boolean[] result = new boolean[ ops.length];
+   		
+		Set<DownloadManager> dms = getTaggedDownloads();
+
+		for ( DownloadManager dm: dms ){
+			
+			int	dm_state = dm.getState();
+			
+			for ( int i=0;i<ops.length;i++){
+				
+				if ( result[i]){
+					
+					continue;
+				}
+				
+				int	op = ops[i];
+				
+				if (( op & TagFeatureRunState.RSC_START ) != 0 ){
+					
+					if ( 	dm_state == DownloadManager.STATE_STOPPED ||
+							dm_state == DownloadManager.STATE_ERROR ){
+						
+						result[i] = true;
+					}
+				}
+				
+				if (( op & TagFeatureRunState.RSC_STOP ) != 0 ){
+					
+					if ( 	dm_state != DownloadManager.STATE_STOPPED &&
+							dm_state != DownloadManager.STATE_STOPPING &&
+							dm_state != DownloadManager.STATE_ERROR ){
+						
+						result[i] = true;
+					}
+				}
+				
+				if (( op & TagFeatureRunState.RSC_PAUSE ) != 0 ){
+					
+					if ( 	dm_state != DownloadManager.STATE_STOPPED &&
+							dm_state != DownloadManager.STATE_STOPPING &&
+							dm_state != DownloadManager.STATE_ERROR ){
+						
+						if ( !dm.isPaused()){
+						
+							result[i] = true;
+						}
+					}
+				}
+				
+				if (( op & TagFeatureRunState.RSC_RESUME ) != 0 ){
+
+					if ( dm.isPaused()){
+						
+						result[i] = true;
+					}
+				}
+			}
+		}
+		
+		return( result );
+   	}
+	
+	public void
+	performOperation(
+		int		op )
+	{
+		Set<DownloadManager> dms = getTaggedDownloads();
+
+		for ( DownloadManager dm: dms ){
+			
+			int	dm_state = dm.getState();
+
+			if ( op == TagFeatureRunState.RSC_START ){
+				
+				if ( 	dm_state == DownloadManager.STATE_STOPPED ||
+						dm_state == DownloadManager.STATE_ERROR ){		    		
+		    	
+					dm.setStateQueued();
+				}
+			}else if ( op == TagFeatureRunState.RSC_STOP ){
+				
+				if ( 	dm_state != DownloadManager.STATE_STOPPED &&
+						dm_state != DownloadManager.STATE_STOPPING &&
+						dm_state != DownloadManager.STATE_ERROR ){
+					
+					dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
+				}
+			}else if ( op == TagFeatureRunState.RSC_PAUSE ){
+				
+				if ( 	dm_state != DownloadManager.STATE_STOPPED &&
+						dm_state != DownloadManager.STATE_STOPPING &&
+						dm_state != DownloadManager.STATE_ERROR ){
+					
+					dm.pause();
+				}
+			}else if ( op == TagFeatureRunState.RSC_RESUME ){
+
+				if ( dm.isPaused()){
+					
+					dm.resume();
+				}
+			}
 		}
 	}
 }

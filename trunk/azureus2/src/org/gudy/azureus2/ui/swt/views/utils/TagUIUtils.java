@@ -53,6 +53,7 @@ import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.TagFeature;
 import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
+import com.aelitis.azureus.core.tag.TagFeatureRunState;
 import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
@@ -392,12 +393,84 @@ public class TagUIUtils
 	
 							public void setUpSpeed(int val) {
 								tf_rate_limit.setTagUploadLimit(val);
-	
 							}
 						});
 			}
 		}
 
+		if ( tag_type.hasTagTypeFeature( TagFeature.TF_RUN_STATE )) {
+
+			final TagFeatureRunState	tf_run_state = (TagFeatureRunState)tag;
+
+			int caps = tf_run_state.getRunStateCapabilities();
+			
+			int[] op_set = { 
+					TagFeatureRunState.RSC_START, TagFeatureRunState.RSC_STOP,
+					TagFeatureRunState.RSC_PAUSE, TagFeatureRunState.RSC_RESUME };
+			
+			boolean[] can_ops_set = tf_run_state.getPerformableOperations( op_set );
+			
+			if ((caps & TagFeatureRunState.RSC_START ) != 0 ){
+				
+				needs_separator_next = true;
+				
+				final MenuItem itemOp = new MenuItem(menu, SWT.PUSH);
+				Messages.setLanguageText(itemOp, "MyTorrentsView.menu.queue");
+				Utils.setMenuItemImage(itemOp, "start");
+				itemOp.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						tf_run_state.performOperation( TagFeatureRunState.RSC_START );
+					}
+				});
+				itemOp.setEnabled(can_ops_set[0]);
+			}
+			
+			if ((caps & TagFeatureRunState.RSC_STOP ) != 0 ){
+				
+				needs_separator_next = true;
+				
+				final MenuItem itemOp = new MenuItem(menu, SWT.PUSH);
+				Messages.setLanguageText(itemOp, "MyTorrentsView.menu.stop");
+				Utils.setMenuItemImage(itemOp, "stop");
+				itemOp.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						tf_run_state.performOperation( TagFeatureRunState.RSC_STOP );
+					}
+				});
+				itemOp.setEnabled(can_ops_set[1]);
+			}
+			
+			if ((caps & TagFeatureRunState.RSC_PAUSE ) != 0 ){
+				
+				needs_separator_next = true;
+				
+				final MenuItem itemOp = new MenuItem(menu, SWT.PUSH);
+				Messages.setLanguageText(itemOp, "v3.MainWindow.button.pause");
+				Utils.setMenuItemImage(itemOp, "pause");
+				itemOp.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						tf_run_state.performOperation( TagFeatureRunState.RSC_PAUSE );
+					}
+				});
+				itemOp.setEnabled(can_ops_set[2]);
+			}
+			
+			if ((caps & TagFeatureRunState.RSC_RESUME ) != 0 ){
+				
+				needs_separator_next = true;
+				
+				final MenuItem itemOp = new MenuItem(menu, SWT.PUSH);
+				Messages.setLanguageText(itemOp, "v3.MainWindow.button.resume");
+				Utils.setMenuItemImage(itemOp, "start");
+				itemOp.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						tf_run_state.performOperation( TagFeatureRunState.RSC_RESUME );
+					}
+				});
+				itemOp.setEnabled(can_ops_set[3]);
+			}
+		}
+		
 		/*
 		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
 		List<?> managers = category.getDownloadManagers(gm.getDownloadManagers());

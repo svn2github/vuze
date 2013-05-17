@@ -27,6 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagException;
+import com.aelitis.azureus.core.tag.TagFeatureRunState;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TaggableResolver;
 
@@ -74,7 +75,7 @@ TagTypeDownloadManual
 	
 		throws TagException
 	{
-		TagDownloadWithState new_tag = new TagDownloadWithState( this, next_tag_id.incrementAndGet(), name, true, true, true );
+		TagDownloadWithState new_tag = new TagDownloadWithState( this, next_tag_id.incrementAndGet(), name, true, true, true, TagFeatureRunState.RSC_START_STOP_PAUSE );
 				
 		if ( auto_add ){
 			
@@ -89,7 +90,7 @@ TagTypeDownloadManual
 		int		tag_id,
 		Map		details )
 	{
-		TagDownloadWithState new_tag = new TagDownloadWithState( this, tag_id, details, true, true, true );
+		TagDownloadWithState new_tag = new TagDownloadWithState( this, tag_id, details, true, true, true, TagFeatureRunState.RSC_START_STOP_PAUSE );
 		
 		next_tag_id.set( Math.max( next_tag_id.get(), tag_id+1 ));
 		

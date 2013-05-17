@@ -64,6 +64,7 @@ import com.aelitis.azureus.core.speedmanager.SpeedManager;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
+import com.aelitis.azureus.core.tag.TagFeatureRunState;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
@@ -3517,18 +3518,18 @@ public class GlobalManagerImpl
 			
 				// keep these ids constant as they are externalised
 			
-			tag_initialising		= new MyTag( 0, "tag.type.ds.init", false, false, false ); 
-			tag_downloading			= new MyTag( 1, "tag.type.ds.down", true, true, true );
-			tag_seeding				= new MyTag( 2, "tag.type.ds.seed", true, true, false );
-			tag_queued_downloading	= new MyTag( 3, "tag.type.ds.qford", false, false, false );
-			tag_queued_seeding		= new MyTag( 4, "tag.type.ds.qfors", false, false, false );
-			tag_stopped				= new MyTag( 5, "tag.type.ds.stop", false, false, false );
-			tag_error				= new MyTag( 6, "tag.type.ds.err", false, false, false );
-			tag_active				= new MyTag( 7, "tag.type.ds.act", true, false, false );
-			tag_paused				= new MyTag( 8, "tag.type.ds.pau", false, false, false );
-			tag_inactive			= new MyTag( 9, "tag.type.ds.inact", false, false, false ); 
-			tag_complete			= new MyTag( 10, "tag.type.ds.comp", true, true, false );
-			tag_incomplete			= new MyTag( 11, "tag.type.ds.incomp", true, true, true );
+			tag_initialising		= new MyTag( 0, "tag.type.ds.init", false, false, false, TagFeatureRunState.RSC_NONE ); 
+			tag_downloading			= new MyTag( 1, "tag.type.ds.down", true, true, true, TagFeatureRunState.RSC_STOP_PAUSE );
+			tag_seeding				= new MyTag( 2, "tag.type.ds.seed", true, true, false, TagFeatureRunState.RSC_STOP_PAUSE );
+			tag_queued_downloading	= new MyTag( 3, "tag.type.ds.qford", false, false, false, TagFeatureRunState.RSC_STOP_PAUSE );
+			tag_queued_seeding		= new MyTag( 4, "tag.type.ds.qfors", false, false, false, TagFeatureRunState.RSC_STOP_PAUSE );
+			tag_stopped				= new MyTag( 5, "tag.type.ds.stop", false, false, false, TagFeatureRunState.RSC_START );
+			tag_error				= new MyTag( 6, "tag.type.ds.err", false, false, false, TagFeatureRunState.RSC_NONE  );
+			tag_active				= new MyTag( 7, "tag.type.ds.act", true, false, false, TagFeatureRunState.RSC_STOP_PAUSE );
+			tag_paused				= new MyTag( 8, "tag.type.ds.pau", false, false, false, TagFeatureRunState.RSC_RESUME );
+			tag_inactive			= new MyTag( 9, "tag.type.ds.inact", false, false, false, TagFeatureRunState.RSC_START_STOP_PAUSE ); 
+			tag_complete			= new MyTag( 10, "tag.type.ds.comp", true, true, false, TagFeatureRunState.RSC_START_STOP_PAUSE );
+			tag_incomplete			= new MyTag( 11, "tag.type.ds.incomp", true, true, true, TagFeatureRunState.RSC_START_STOP_PAUSE );
 			
 			_gm.addListener( 
 				new GlobalManagerAdapter()
@@ -3805,9 +3806,10 @@ public class GlobalManagerImpl
 				String			name,
 				boolean			do_rates,
 				boolean			do_up,
-				boolean			do_down )
+				boolean			do_down,
+				int				run_states )
 			{
-				super( DownloadStateTagger.this, tag_id, name, do_rates, do_up, do_down );
+				super( DownloadStateTagger.this, tag_id, name, do_rates, do_up, do_down, run_states );
 				
 				addTag();
 			}
