@@ -440,7 +440,7 @@ DownloadManager
     
     public int getMaxUploads();
     
-    public void setUploadPriority( int pri );
+    public void updateAutoUploadPriority( Object key, boolean inc );
     
 	/**
 	 * Returns the max uploads depending on whether the download is seeding and it has a separate

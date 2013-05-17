@@ -51,6 +51,9 @@ TagDownloadWithState
 	
 	private long last_rate_update;
 	
+	private Object	UPLOAD_PRIORITY_ADDED_KEY = new Object();
+	private int		upload_priority;
+	
 	private LimitedRateGroup upload_limiter = 
 		new LimitedRateGroup()
 		{
@@ -147,6 +150,7 @@ TagDownloadWithState
 		
 		upload_rate_limit 	= (int)readLongAttribute( AT_RATELIMIT_UP, 0 );
 		download_rate_limit = (int)readLongAttribute( AT_RATELIMIT_DOWN, 0 );
+		upload_priority		= (int)readLongAttribute( AT_RATELIMIT_UP_PRI, 0 );
 		
 		addTagListener(
 			new TagListener()
@@ -160,6 +164,11 @@ TagDownloadWithState
 					
 					manager.addRateLimiter( upload_limiter, true );
 					manager.addRateLimiter( download_limiter, false );
+					
+					if ( upload_priority > 0 ){
+														
+						manager.updateAutoUploadPriority( UPLOAD_PRIORITY_ADDED_KEY, true );
+					}
 				}
 				
 				public void 
@@ -177,6 +186,11 @@ TagDownloadWithState
 					
 					manager.removeRateLimiter( upload_limiter, true );
 					manager.removeRateLimiter( download_limiter, false );
+					
+					if ( upload_priority > 0 ){
+						
+						manager.updateAutoUploadPriority( UPLOAD_PRIORITY_ADDED_KEY, false );
+					}
 				}
 			},
 			true );
@@ -190,6 +204,11 @@ TagDownloadWithState
 			
 			dm.removeRateLimiter( upload_limiter, true );
 			dm.removeRateLimiter( download_limiter, false );
+			
+			if ( upload_priority > 0 ){
+				
+				dm.updateAutoUploadPriority( UPLOAD_PRIORITY_ADDED_KEY, false );
+			}
 		}
 		
 		super.removeTag();
@@ -269,6 +288,43 @@ TagDownloadWithState
 		updateRates();
 		
 		return( download_rate );
+	}
+	
+	public int
+	getTagUploadPriority()
+	{
+		return( upload_priority );
+	}
+	
+	public void
+	setTagUploadPriority(
+		int		priority )
+	{
+		if ( priority < 0 ){
+			
+			priority = 0;
+		}
+		
+		if ( priority == upload_priority ){
+			
+			return;
+		}
+		
+		int	old_up = upload_priority;
+		
+		upload_priority	= priority;
+		
+		writeLongAttribute( AT_RATELIMIT_UP_PRI, priority );
+		
+		if ( old_up == 0 || priority == 0 ){
+			
+			Set<DownloadManager> dms = getTaggedDownloads();
+			
+			for ( DownloadManager dm: dms ){
+					
+				dm.updateAutoUploadPriority( UPLOAD_PRIORITY_ADDED_KEY, priority>0 );
+			}
+		}
 	}
 	
 	private void

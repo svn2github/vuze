@@ -2119,7 +2119,7 @@ DownloadManagerController
 	public int
 	getUploadPriority()
 	{
-		return( download_manager.getUploadPriority());
+		return( download_manager.getEffectiveUploadPriority());
 	}
 
 	public boolean

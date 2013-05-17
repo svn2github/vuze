@@ -31,6 +31,7 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -538,7 +539,9 @@ DownloadManagerImpl
     private int		current_upload_when_busy_bps;
     private long	last_upload_when_busy_update;
     private long	last_upload_when_busy_dec_time;
-    private int		upload_priority;
+    private int		upload_priority_manual;
+    private int		upload_priority_auto;
+    
     private int		crypto_level = NetworkManager.CRYPTO_OVERRIDE_NONE;
     
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
@@ -1163,7 +1166,7 @@ DownloadManagerImpl
 		max_uploads = Math.max( max_uploads, DownloadManagerState.MIN_MAX_UPLOADS );
 		max_uploads_when_seeding = Math.max( max_uploads_when_seeding, DownloadManagerState.MIN_MAX_UPLOADS );
 		
-		upload_priority							= getDownloadState().getIntParameter( DownloadManagerState.PARAM_UPLOAD_PRIORITY );
+		upload_priority_manual					= getDownloadState().getIntParameter( DownloadManagerState.PARAM_UPLOAD_PRIORITY );
 
 	}
 	
@@ -1203,10 +1206,38 @@ DownloadManagerImpl
 		return( max_uploads_when_seeding );
 	}
 	
-	protected int
-	getUploadPriority()
+	public void
+	updateAutoUploadPriority(
+		Object		key,
+		boolean		inc )
 	{
-		return( upload_priority );
+		try{
+	  		peer_listeners_mon.enter();
+	  		
+	  		boolean	key_exists = getUserData( key ) != null;
+	  		
+	  		if ( inc && !key_exists ){
+	  			
+	  			upload_priority_auto++;
+	  			
+	  			setUserData( key, "" );
+	  			
+	  		}else if ( !inc && key_exists ){
+	  			
+	  			upload_priority_auto--;
+	  			
+	  			setUserData( key, null );
+	  		}
+		}finally{
+			
+			peer_listeners_mon.exit();
+		}
+	}
+	
+	protected int
+	getEffectiveUploadPriority()
+	{
+		return( upload_priority_manual + upload_priority_auto );
 	}
 	
 	public int
@@ -1223,7 +1254,7 @@ DownloadManagerImpl
 	}
 	
 	public void
-	setUploadPriority(
+	setManualUploadPriority(
 		int	priority )
 	{
 		download_manager_state.setIntParameter( DownloadManagerState.PARAM_UPLOAD_PRIORITY, priority );

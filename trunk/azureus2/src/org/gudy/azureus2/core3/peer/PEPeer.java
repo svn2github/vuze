@@ -248,6 +248,11 @@ PEPeer
 		LimitedRateGroup	limiter,
 		boolean				upload );
 	
+	public void
+	updateAutoUploadPriority(
+		Object	key,
+		boolean	inc );
+	
   /** To retreive arbitrary objects against a peer. */
   public Object getData (String key);
   /** To store arbitrary objects against a peer. */

@@ -1043,6 +1043,13 @@ PeerForeignDelegate
 	public int getDownloadRateLimitBytesPerSecond(){ return network_connection.getDownloadLimit(); }
 	
 	public void
+	updateAutoUploadPriority(
+		Object		key,
+		boolean		inc )
+	{
+	}
+	
+	public void
 	addRateLimiter(
 		LimitedRateGroup	limiter,
 		boolean				upload )

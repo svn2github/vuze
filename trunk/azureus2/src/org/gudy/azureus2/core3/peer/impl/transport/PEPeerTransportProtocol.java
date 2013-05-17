@@ -244,6 +244,8 @@ implements PEPeerTransport
 	
 	private boolean priority_connection;
 	
+	private int upload_priority_auto;
+	
 	private static final class DisconnectedTransportQueue extends LinkedHashMap
 	{
 		public DisconnectedTransportQueue()
@@ -2088,6 +2090,37 @@ implements PEPeerTransport
 	}
 
 
+	public void
+	updateAutoUploadPriority(
+		Object		key,
+		boolean		inc )
+	{
+		try{
+			general_mon.enter();
+	  		
+	  		boolean	key_exists = getUserData( key ) != null;
+	  		
+	  		if ( inc && !key_exists ){
+	  			
+	  			upload_priority_auto++;
+	  			
+	  			setUserData( key, "" );
+	  			
+	  		}else if ( !inc && key_exists ){
+	  			
+	  			upload_priority_auto--;
+	  			
+	  			setUserData( key, null );
+	  		}	
+	  		
+	  		System.out.println( getIp() + " -> " + upload_priority_auto );
+	  		
+		}finally{
+			
+			general_mon.exit();
+		}
+	}
+	
 	public boolean doTimeoutChecks() {
 		//Timeouts for states PEPeerTransport.CONNECTION_PENDING and
 		//PEPeerTransport.CONNECTION_CONNECTING are handled by the ConnectDisconnectManager
@@ -2096,6 +2129,7 @@ implements PEPeerTransport
 		if ( connection != null ){
 		
 			connection.getOutgoingMessageQueue().setPriorityBoost(
+				upload_priority_auto > 0 ||
 				manager.getUploadPriority() > 0 ||
 				( enable_upload_bias && !manager.isSeeding()));
 		}

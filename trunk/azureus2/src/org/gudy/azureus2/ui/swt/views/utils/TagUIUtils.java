@@ -396,6 +396,24 @@ public class TagUIUtils
 							}
 						});
 			}
+			
+			if ( tf_rate_limit.getTagUploadPriority() >= 0 ){
+				
+				needs_separator_next = true;
+				
+				final MenuItem upPriority = new MenuItem(menu, SWT.CHECK );
+			
+					upPriority.setSelection( tf_rate_limit.getTagUploadPriority() > 0 );
+					
+					Messages.setLanguageText(upPriority, "cat.upload.priority");
+					upPriority.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							boolean set = upPriority.getSelection();
+							tf_rate_limit.setTagUploadPriority( set?1:0 );
+						}
+					});
+				}
+	
 		}
 
 		if ( tag_type.hasTagTypeFeature( TagFeature.TF_RUN_STATE )) {
@@ -472,55 +490,7 @@ public class TagUIUtils
 		}
 		
 		/*
-		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-		List<?> managers = category.getDownloadManagers(gm.getDownloadManagers());
 
-		final DownloadManager dms[] = managers.toArray(new DownloadManager[managers.size()]);
-
-		boolean start = false;
-		boolean stop = false;
-
-		for (int i = 0; i < dms.length; i++) {
-
-			DownloadManager dm = dms[i];
-
-			stop = stop || ManagerUtils.isStopable(dm);
-
-			start = start || ManagerUtils.isStartable(dm);
-
-		}
-
-		// Queue
-
-		final MenuItem itemQueue = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(itemQueue, "MyTorrentsView.menu.queue");
-		Utils.setMenuItemImage(itemQueue, "start");
-		itemQueue.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-				List<?> managers = category.getDownloadManagers(gm.getDownloadManagers());
-
-				Object[] dms = managers.toArray();
-				TorrentUtil.queueDataSources(dms, true);
-			}
-		});
-		itemQueue.setEnabled(start);
-
-		// Stop
-
-		final MenuItem itemStop = new MenuItem(menu, SWT.PUSH);
-		Messages.setLanguageText(itemStop, "MyTorrentsView.menu.stop");
-		Utils.setMenuItemImage(itemStop, "stop");
-		itemStop.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event event) {
-				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-				List<?> managers = category.getDownloadManagers(gm.getDownloadManagers());
-
-				Object[] dms = managers.toArray();
-				TorrentUtil.stopDataSources(dms);
-			}
-		});
-		itemStop.setEnabled(stop);
 
 		// share with friends
 
@@ -679,26 +649,6 @@ public class TagUIUtils
 		}
 		*/
 		
-		
-		// upload priority
-		/*
-		if ( 	cat_type != Category.TYPE_UNCATEGORIZED &&
-				cat_type != Category.TYPE_ALL ){
-			
-			final MenuItem upPriority = new MenuItem(menu, SWT.CHECK );
-	
-			upPriority.setSelection( category.getIntAttribute( Category.AT_UPLOAD_PRIORITY ) > 0 );
-			
-			Messages.setLanguageText(upPriority, "cat.upload.priority");
-			upPriority.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					boolean set = upPriority.getSelection();
-					category.setIntAttribute( Category.AT_UPLOAD_PRIORITY, set?1:0 );
-				}
-			});
-		}
-		
-		*/
 		
 		// options
 

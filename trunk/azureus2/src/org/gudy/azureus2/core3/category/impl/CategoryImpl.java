@@ -58,6 +58,8 @@ CategoryImpl
   private int upload_speed;
   private int download_speed;
 
+  private Object UPLOAD_PRIORITY_KEY = new Object();
+  
   private final Map<String,String>	attributes;
   
   private static AtomicInteger	tag_ids = new AtomicInteger();
@@ -215,13 +217,13 @@ CategoryImpl
       
       int pri = getIntAttribute( AT_UPLOAD_PRIORITY, -1 );
       
-      if ( pri >= 0 ){
+      if ( pri > 0 ){
     	  
     	  	// another call-during-construction issue to avoid here
     	  
     	  if ( manager.getDownloadState() != null ){
     	  
-    		  manager.setUploadPriority( pri );
+    		  manager.updateAutoUploadPriority( UPLOAD_PRIORITY_KEY, true );
     	  }
       }
       
@@ -252,13 +254,13 @@ CategoryImpl
  
       int pri = getIntAttribute( AT_UPLOAD_PRIORITY, -1 );
       
-      if ( pri >= 0 ){
+      if ( pri > 0 ){
     	  
     	  	// another call-during-construction issue to avoid here
     	  
     	  if ( manager.getDownloadState() != null ){
     	  
-    		  manager.setUploadPriority( 0 );
+    		  manager.updateAutoUploadPriority( UPLOAD_PRIORITY_KEY, false );
     	  }
       }
       
@@ -372,7 +374,7 @@ CategoryImpl
 			  
 			  for ( DownloadManager dm: managers ){
 				  
-				  dm.setUploadPriority( value );
+				  dm.updateAutoUploadPriority( UPLOAD_PRIORITY_KEY, value > 0 );
 			  }
 		  }
 		  
@@ -475,6 +477,26 @@ CategoryImpl
   getTagCurrentDownloadRate()
   {
 	  return( -1 );
+  }
+  
+  public int
+  getTagUploadPriority()
+  {
+	  if ( type == Category.TYPE_USER ){
+		  
+		  return( getIntAttribute( AT_UPLOAD_PRIORITY ));
+		  
+	  }else{
+		  
+		  return( -1 );
+	  }
+  }
+
+  public void
+  setTagUploadPriority(
+	  int		priority )
+  {
+	  setIntAttribute( AT_UPLOAD_PRIORITY, priority );
   }
   
   public boolean

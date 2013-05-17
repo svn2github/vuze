@@ -1100,24 +1100,50 @@ SpeedLimitHandler
 			}
 		}
 		
-		boolean	schedule_has_pausing = net_limits.size() > 0;
+			// schedule fully loaded into local variables
+			// handle overall changes in pause/resume features, in particular to disable them if
+			// the schedule no longer controls them
 		
-		if ( !schedule_has_pausing ){
+		boolean	schedule_has_net_limits = false;
+		boolean	schedule_has_pausing 	= false;
+		
+		if ( enabled ){
+			
+			if ( new_net_limits.size() > 0 ){
+				
+				schedule_has_net_limits = true;
+			}
 			
 			for ( ScheduleRule rule: rules ){
-				
+					
 				String profile_name = rule.profile_name;
-				
+					
 				if ( profile_name.equalsIgnoreCase( "pause_all" ) || profile_name.equalsIgnoreCase( "resume_all" )){
-					
+						
 					schedule_has_pausing = true;
-					
+						
 					break;
 				}
 			}
 		}
 		
-		COConfigurationManager.setParameter( "speed.limit.handler.schedule.pa_capable", schedule_has_pausing );
+		if ( !schedule_has_pausing ){
+				
+			setRulePauseAllActive( false );
+		}
+		
+		if ( !schedule_has_net_limits ){
+		
+			setNetLimitPauseAllActive( false );
+		}
+		
+			// this marker is used to prevent unwanted 'resumeAll' operations being performed by the
+			// scheduler when it is enabled but doesn't have any features that could warrant this. This
+			// allows manual pause states to be respected. Of course we should probably differeniate between
+			// manually paused downloads and those auto-paused to generally support this better, but
+			// that would take a bit of effort to persistently remember this....
+		
+		COConfigurationManager.setParameter( "speed.limit.handler.schedule.pa_capable", enabled && ( schedule_has_pausing || schedule_has_net_limits ));
 		
 		if ( enabled ){
 			
@@ -3602,7 +3628,7 @@ SpeedLimitHandler
 		{
 			if ( tag_impl != null ){
 				
-				tag_impl.destroy();
+				tag_impl.removeTag();
 				
 				tag_impl = null;
 			}
@@ -3636,6 +3662,10 @@ SpeedLimitHandler
 			extends TagBase
 			implements TagPeer
 		{
+			private Object	UPLOAD_PRIORITY_ADDED_KEY = new Object();
+			
+			private int upload_priority;
+			
 			private Set<PEPeer>	added_peers 	= new HashSet<PEPeer>();
 			private Set<PEPeer>	pending_peers 	= new HashSet<PEPeer>();
 			
@@ -3646,6 +3676,8 @@ SpeedLimitHandler
 				super( ip_set_tag_type, tag_id, name );
 				
 				addTag();
+				
+				upload_priority = COConfigurationManager.getIntParameter( "speed.limit.handler.ipset_n." + getTagID() + ".uppri", 0 );
 			}
 			
 			public int 
@@ -3780,6 +3812,29 @@ SpeedLimitHandler
 				removeTaggable( peer );
 			}
 			
+			public void
+			addTaggable(
+				Taggable	t )
+			{
+				if ( upload_priority > 0 ){
+					
+					((PEPeer)t).updateAutoUploadPriority( UPLOAD_PRIORITY_ADDED_KEY, true );
+				}
+				
+				super.addTaggable( t );
+			}
+			
+			public void
+			removeTaggable(
+				Taggable	t )
+			{
+				if ( upload_priority > 0 ){
+					
+					((PEPeer)t).updateAutoUploadPriority( UPLOAD_PRIORITY_ADDED_KEY, false );
+				}
+
+				super.removeTaggable( t );
+			}
 			
 			public int
 			getTaggedCount()
@@ -3890,10 +3945,57 @@ SpeedLimitHandler
 				return( false );
 			}
 			
-			private void
-			destroy()
+			public int
+			getTagUploadPriority()
 			{
-				ip_set_tag_type.removeTag( this );
+				return( upload_priority );
+			}
+			
+			public void
+			setTagUploadPriority(
+				int		priority )
+			{
+				if ( priority < 0 ){
+					
+					priority = 0;
+				}
+				
+				if ( priority == upload_priority ){
+					
+					return;
+				}
+				
+				int	old_up = upload_priority;
+				
+				upload_priority	= priority;
+				
+				COConfigurationManager.setParameter( "speed.limit.handler.ipset_n." + getTagID() + ".uppri", priority );
+				
+				if ( old_up == 0 || priority == 0 ){
+					
+					List<PEPeer> peers = getTaggedPeers();
+					
+					for ( PEPeer peer: peers ){
+							
+						peer.updateAutoUploadPriority( UPLOAD_PRIORITY_ADDED_KEY, priority>0 );
+					}
+				}
+			}
+			
+			public void
+			removeTag()
+			{
+				if ( upload_priority > 0 ){
+					
+					List<PEPeer> peers = getTaggedPeers();
+					
+					for ( PEPeer peer: peers ){
+							
+						peer.updateAutoUploadPriority( UPLOAD_PRIORITY_ADDED_KEY, false );
+					}
+				}
+				
+				super.removeTag();
 			}
 		}
 	}

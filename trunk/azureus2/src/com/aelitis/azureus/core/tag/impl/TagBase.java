@@ -47,6 +47,7 @@ TagBase
 	protected static final String	AT_IMAGE_ID			= "img.id";
 	protected static final String	AT_COLOR_ID			= "col.rgb";
 	protected static final String	AT_RSS_ENABLE		= "rss.enable";
+	protected static final String	AT_RATELIMIT_UP_PRI	= "rl.uppri";
 	  
 	private TagTypeBase	tag_type;
 	

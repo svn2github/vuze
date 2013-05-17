@@ -60,4 +60,11 @@ TagFeatureRateLimit
 	
 	public int[][]
 	getRecentHistory();
+	
+	public int
+	getTagUploadPriority();
+	
+	public void
+	setTagUploadPriority(
+		int		priority );
 }
