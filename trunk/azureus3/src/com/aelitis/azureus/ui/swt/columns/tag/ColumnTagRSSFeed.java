@@ -24,91 +24,51 @@
 
 package com.aelitis.azureus.ui.swt.columns.tag;
 
-import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
-
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
-import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
-import org.gudy.azureus2.plugins.ui.tables.TableColumnExtraInfoListener;
-import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
-import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-
+import com.aelitis.azureus.ui.swt.columns.ColumnCheckBox;
 
 public class 
 ColumnTagRSSFeed
-	implements TableCellRefreshListener, TableColumnExtraInfoListener
+	extends ColumnCheckBox
 {	
-	private static final UISWTGraphic tick_icon;
-	private static final UISWTGraphic cross_icon;
-	
-	static {
-		tick_icon = new UISWTGraphicImpl(ImageLoader.getInstance().getImage("tick_mark"));
-		cross_icon = new UISWTGraphicImpl(ImageLoader.getInstance().getImage("cross_mark"));
-	}
-	
 	public static String COLUMN_ID = "tag.rssfeed";
-
-	public void 
-	fillTableColumnInfo(
-		TableColumnInfo info) 
-	{
-		info.addCategories(new String[] {
-				TableColumn.CAT_ESSENTIAL,
-		});
-		
-		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
-	}
 
 	public 
 	ColumnTagRSSFeed(
-		TableColumn column) 
+		TableColumn column ) 
 	{
-		column.setWidth(40);
-		column.setType( TableColumn.TYPE_GRAPHIC );
-		column.setPosition( TableColumn.POSITION_INVISIBLE );
-		column.addListeners(this);
+		super( column );
 	}
-
-	public void 
-	refresh(
-		TableCell cell )
+	
+	@Override
+	protected Boolean 
+	getCheckBoxState(
+		Object datasource ) 
 	{
-		Tag tag = (Tag) cell.getDataSource();
+		Tag tag = (Tag)datasource;
 		
-		int 			sortVal = 0;
-		UISWTGraphic	icon 	= null;
-
 		if ( tag instanceof TagFeatureRSSFeed ){
 			
-			TagFeatureRSSFeed tag_rss = (TagFeatureRSSFeed)tag;
-				
-			if ( tag_rss.isTagRSSFeedEnabled()){
-				
-				sortVal = 2;
-				icon 	= tick_icon;
-			}else{
-				sortVal = 1;
-				icon 	= cross_icon;
-
-			}
+			return(((TagFeatureRSSFeed)tag).isTagRSSFeedEnabled());
 		}
 		
-		if (!cell.setSortValue(sortVal) && cell.isValid()) {
-			return;
-		}
-
-		if (!cell.isShown()) {
-			return;
-		}
+		return( null );
+	}
+	
+	@Override
+	protected void 
+	setCheckBoxState(
+		Object 	datasource,
+		boolean set ) 
+	{
+		Tag tag = (Tag)datasource;
 		
-		
-		if ( cell.getGraphic() != icon ){
-    	
-			cell.setGraphic( icon );
+		if ( tag instanceof TagFeatureRSSFeed ){
+			
+			((TagFeatureRSSFeed)tag).setTagRSSFeedEnabled( set );
 		}
 	}
 }
