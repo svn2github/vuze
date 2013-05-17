@@ -237,14 +237,17 @@ SpeedLimitHandler
 
 			if ( !net_limit_pause_all_active ){
 			
-				if ( rule_pause_all_active ){
+				if ( COConfigurationManager.getBooleanParameter( "speed.limit.handler.schedule.pa_capable", false )){
+
+					if ( rule_pause_all_active ){
+						
+						logger.logAlertRepeatable(
+								LoggerChannel.LT_INFORMATION,
+								"Resuming all downloads as pause_all rule no longer applies" );
+					}
 					
-					logger.logAlertRepeatable(
-							LoggerChannel.LT_INFORMATION,
-							"Resuming all downloads as pause_all rule no longer applies" );
+					gm.resumeDownloads( true );
 				}
-				
-				gm.resumeDownloads( true );
 			}
 			
 			rule_pause_all_active = false;
@@ -276,14 +279,17 @@ SpeedLimitHandler
 
 			if ( !rule_pause_all_active ){
 			
-				if ( net_limit_pause_all_active ){
+				if ( COConfigurationManager.getBooleanParameter( "speed.limit.handler.schedule.pa_capable", false )){
+
+					if ( net_limit_pause_all_active ){
+						
+						logger.logAlertRepeatable(
+							LoggerChannel.LT_INFORMATION,
+							"Resuming all downloads as network limit no longer exceeded" );
+					}
 					
-					logger.logAlertRepeatable(
-						LoggerChannel.LT_INFORMATION,
-						"Resuming all downloads as network limit no longer exceeded" );
+					gm.resumeDownloads( true );
 				}
-				
-				gm.resumeDownloads( true );
 			}
 			
 			net_limit_pause_all_active = false;
@@ -1093,6 +1099,25 @@ SpeedLimitHandler
 				}
 			}
 		}
+		
+		boolean	schedule_has_pausing = net_limits.size() > 0;
+		
+		if ( !schedule_has_pausing ){
+			
+			for ( ScheduleRule rule: rules ){
+				
+				String profile_name = rule.profile_name;
+				
+				if ( profile_name.equalsIgnoreCase( "pause_all" ) || profile_name.equalsIgnoreCase( "resume_all" )){
+					
+					schedule_has_pausing = true;
+					
+					break;
+				}
+			}
+		}
+		
+		COConfigurationManager.setParameter( "speed.limit.handler.schedule.pa_capable", schedule_has_pausing );
 		
 		if ( enabled ){
 			

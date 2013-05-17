@@ -27,6 +27,8 @@ import java.util.Set;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
@@ -96,8 +98,11 @@ TagDownloadWithState
 	private boolean	do_rates;
 	private boolean	do_up;
 	private boolean	do_down;
+	
 	private int		run_states;
 	
+	private static AsyncDispatcher rs_async = new AsyncDispatcher(2000);
+
 	public
 	TagDownloadWithState(
 		TagTypeBase		tt,
@@ -388,7 +393,7 @@ TagDownloadWithState
 	{
 		Set<DownloadManager> dms = getTaggedDownloads();
 
-		for ( DownloadManager dm: dms ){
+		for ( final DownloadManager dm: dms ){
 			
 			int	dm_state = dm.getState();
 
@@ -397,7 +402,15 @@ TagDownloadWithState
 				if ( 	dm_state == DownloadManager.STATE_STOPPED ||
 						dm_state == DownloadManager.STATE_ERROR ){		    		
 		    	
-					dm.setStateQueued();
+					rs_async.dispatch(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								dm.setStateQueued();
+							}
+						});
 				}
 			}else if ( op == TagFeatureRunState.RSC_STOP ){
 				
@@ -405,7 +418,15 @@ TagDownloadWithState
 						dm_state != DownloadManager.STATE_STOPPING &&
 						dm_state != DownloadManager.STATE_ERROR ){
 					
-					dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
+					rs_async.dispatch(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								dm.stopIt( DownloadManager.STATE_STOPPED, false, false );
+							}
+						});
 				}
 			}else if ( op == TagFeatureRunState.RSC_PAUSE ){
 				
@@ -413,13 +434,29 @@ TagDownloadWithState
 						dm_state != DownloadManager.STATE_STOPPING &&
 						dm_state != DownloadManager.STATE_ERROR ){
 					
-					dm.pause();
+					rs_async.dispatch(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								dm.pause();
+							}
+						});
 				}
 			}else if ( op == TagFeatureRunState.RSC_RESUME ){
 
 				if ( dm.isPaused()){
 					
-					dm.resume();
+					rs_async.dispatch(
+						new AERunnable()
+						{
+							public void
+							runSupport()
+							{
+								dm.resume();
+							}
+						});
 				}
 			}
 		}
