@@ -21,7 +21,6 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,6 +33,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
+import com.aelitis.azureus.core.tag.TagFeature;
 import com.aelitis.azureus.core.tag.TagFeatureRunState;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.Taggable;
@@ -53,6 +53,8 @@ TagDownloadWithState
 	
 	private Object	UPLOAD_PRIORITY_ADDED_KEY = new Object();
 	private int		upload_priority;
+	
+	private boolean	supports_xcode;
 	
 	private LimitedRateGroup upload_limiter = 
 		new LimitedRateGroup()
@@ -517,4 +519,49 @@ TagDownloadWithState
 			}
 		}
 	}
+	
+	protected void
+	setSupportsTagTranscode(
+		boolean	sup )
+	{
+		supports_xcode = sup;	
+	}
+	
+	public boolean
+	supportsTagTranscode()
+	{
+		return( supports_xcode );
+	}
+
+	public String[]
+	getTagTranscodeTarget()
+	{
+		String temp = readStringAttribute( AT_XCODE_TARGET, null );
+		
+		if ( temp == null ){
+			
+			return( null );
+		}
+		
+		String[] bits = temp.split( "\n" );
+		
+		if ( bits.length != 2 ){
+			
+			return( null );
+		}
+		
+		return( bits );
+	}
+
+	public void
+	setTagTranscodeTarget(
+		String		uid,
+		String		name )
+	{
+		writeStringAttribute( AT_XCODE_TARGET, uid==null?null:(uid + "\n" + name ));
+		
+		getTagType().fireChanged( this );
+		
+		getManager().featureChanged( this, TagFeature.TF_XCODE );
+	} 
 }

@@ -60,4 +60,13 @@ TagManager
 	public void
 	removeTagManagerListener(
 		TagManagerListener		listener );
+	
+	public void
+	addTagFeatureListener(
+		int						features,
+		TagFeatureListener		listener );
+	
+	public void
+	removeTagFeatureListener(
+		TagFeatureListener		listener );
 }

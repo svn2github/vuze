@@ -123,7 +123,7 @@ public class TagStatsView
 		
 	    build();
     
-	    TagManager tm = TagManagerFactory.getTagManger();
+	    TagManager tm = TagManagerFactory.getTagManager();
 	    
 	    tm.addTagManagerListener( this, false );
 	    
@@ -162,7 +162,7 @@ public class TagStatsView
 		List<String>	texts			= new ArrayList<String>();	
 		List<Color>		colors			= new ArrayList<Color>();
 		
-		TagManager tm = TagManagerFactory.getTagManger();
+		TagManager tm = TagManagerFactory.getTagManager();
 		
 		List<TagType> tag_types = tm.getTagTypes();
 		
@@ -456,7 +456,7 @@ public class TagStatsView
 	{    
 	    Utils.disposeComposite( panel );
 	    
-	    TagManager tm = TagManagerFactory.getTagManger();
+	    TagManager tm = TagManagerFactory.getTagManager();
 	    
 	    tm.removeTagManagerListener( this );
 	    

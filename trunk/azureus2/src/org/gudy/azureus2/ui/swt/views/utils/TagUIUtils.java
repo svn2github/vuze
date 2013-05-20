@@ -54,9 +54,11 @@ import com.aelitis.azureus.core.tag.TagFeature;
 import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagFeatureRunState;
+import com.aelitis.azureus.core.tag.TagFeatureTranscode;
 import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -158,7 +160,7 @@ public class TagUIUtils
 							// autos
 								
 						
-						List<TagType> tag_types = TagManagerFactory.getTagManger().getTagTypes();
+						List<TagType> tag_types = TagManagerFactory.getTagManager().getTagTypes();
 						
 						for ( final TagType tag_type: tag_types ){
 							
@@ -269,7 +271,7 @@ public class TagUIUtils
 		
 		if ( uiFunctions != null ){
 			
-			TagManager tm = TagManagerFactory.getTagManger();
+			TagManager tm = TagManagerFactory.getTagManager();
 
 			if ( start_of_day ){
 				
@@ -335,7 +337,7 @@ public class TagUIUtils
 		
 		if (entryWindow.hasSubmittedInput()) {
 			String tag_name = entryWindow.getSubmittedInput().trim();
-			TagType tt = TagManagerFactory.getTagManger().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+			TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
 			
 			Tag existing = tt.getTag( tag_name, true );
 			
@@ -592,63 +594,7 @@ public class TagUIUtils
 				}
 			}
 		}
-
-		// auto-transcode
-
-		AZ3Functions.provider provider = AZ3Functions.getProvider();
-
-		if (provider != null && category.getType() != Category.TYPE_ALL) {
-
-			AZ3Functions.provider.TranscodeTarget[] tts = provider.getTranscodeTargets();
-
-			if (tts.length > 0) {
-
-				final Menu t_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
-				final MenuItem t_item = new MenuItem(menu, SWT.CASCADE);
-				Messages.setLanguageText(t_item, "cat.autoxcode");
-				t_item.setMenu(t_menu);
-
-				String existing = category.getStringAttribute(Category.AT_AUTO_TRANSCODE_TARGET);
-
-				for (AZ3Functions.provider.TranscodeTarget tt : tts) {
-
-					AZ3Functions.provider.TranscodeProfile[] profiles = tt.getProfiles();
-
-					if (profiles.length > 0) {
-
-						final Menu tt_menu = new Menu(t_menu.getShell(), SWT.DROP_DOWN);
-						final MenuItem tt_item = new MenuItem(t_menu, SWT.CASCADE);
-						tt_item.setText(tt.getName());
-						tt_item.setMenu(tt_menu);
-
-						for (final AZ3Functions.provider.TranscodeProfile tp : profiles) {
-
-							final MenuItem p_item = new MenuItem(tt_menu, SWT.CHECK);
-
-							p_item.setText(tp.getName());
-
-							boolean	selected = existing != null	&& existing.equals(tp.getUID());
-							
-							if ( selected ){
-								
-								Utils.setMenuItemImage(tt_item, "blackdot");
-							}
-							p_item.setSelection(selected );
-
-							p_item.addListener(SWT.Selection, new Listener() {
-								public void handleEvent(Event event) {
-									category.setStringAttribute(
-											Category.AT_AUTO_TRANSCODE_TARGET, p_item.getSelection()
-													? tp.getUID() : null);
-								}
-							});
-						}
-					}
-				}
-			}
-		}
 		*/
-		
 		
 		// options
 
@@ -716,6 +662,82 @@ public class TagUIUtils
 					tfrss.setTagRSSFeedEnabled( set );
 				}
 			});
+		}
+		
+		if ( tag_type.hasTagTypeFeature( TagFeature.TF_XCODE )) {
+
+			final TagFeatureTranscode tf_xcode = (TagFeatureTranscode)tag;
+			
+			if ( tf_xcode.supportsTagTranscode()){
+				
+				AZ3Functions.provider provider = AZ3Functions.getProvider();
+		
+				if ( provider != null ){
+		
+					AZ3Functions.provider.TranscodeTarget[] tts = provider.getTranscodeTargets();
+		
+					if (tts.length > 0) {
+		
+						final Menu t_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
+						
+						final MenuItem t_item = new MenuItem(menu, SWT.CASCADE);
+						
+						Messages.setLanguageText( t_item, "cat.autoxcode" );
+						
+						t_item.setMenu(t_menu);
+		
+						String[] existing = tf_xcode.getTagTranscodeTarget();
+		
+						for ( final AZ3Functions.provider.TranscodeTarget tt : tts ){
+		
+							AZ3Functions.provider.TranscodeProfile[] profiles = tt.getProfiles();
+		
+							if ( profiles.length > 0 ){
+		
+								final Menu tt_menu = new Menu(t_menu.getShell(), SWT.DROP_DOWN);
+								
+								final MenuItem tt_item = new MenuItem(t_menu, SWT.CASCADE);
+								
+								tt_item.setText(tt.getName());
+								
+								tt_item.setMenu(tt_menu);
+		
+								for (final AZ3Functions.provider.TranscodeProfile tp : profiles) {
+		
+									final MenuItem p_item = new MenuItem(tt_menu, SWT.CHECK);
+		
+									p_item.setText(tp.getName());
+		
+									boolean	selected = existing != null	&& existing[0].equals(tp.getUID());
+									
+									if ( selected ){
+										
+										Utils.setMenuItemImage(tt_item, "blackdot");
+									}
+									
+									p_item.setSelection(selected );
+		
+									p_item.addListener(SWT.Selection, new Listener(){
+										public void handleEvent(Event event) {
+											
+											String name = tt.getName() + " - " + tp.getName();
+											
+											if ( p_item.getSelection()){
+												
+												tf_xcode.setTagTranscodeTarget( tp.getUID(), name );
+												
+											}else{
+												
+												tf_xcode.setTagTranscodeTarget( null, null );
+											}
+										}
+									});
+								}
+							}
+						}
+					}
+				}
+			}
 		}
 		
 		needs_separator_next = true;
@@ -850,7 +872,7 @@ public class TagUIUtils
 			item.dispose();
 		}
 		
-		final TagManager tm = TagManagerFactory.getTagManger();
+		final TagManager tm = TagManagerFactory.getTagManager();
 		
 		Map<TagType,List<Tag>>	auto_map = new HashMap<TagType, List<Tag>>();
 		

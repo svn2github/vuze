@@ -587,7 +587,7 @@ DownloadManagerEnhancer
 		
 		final String[]	tag_ids = { "tag.type.man.vhdn", "tag.type.man.featcon" };
 		
-		final TagType tt = TagManagerFactory.getTagManger().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+		final TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
 
 		tt.addTagTypeListener(
 			new TagTypeAdapter()
@@ -698,7 +698,7 @@ DownloadManagerEnhancer
 		String				tag_id,
 		String				img_id )
 	{	
-		TagType tt = TagManagerFactory.getTagManger().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+		TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
 			
 		Tag t = tt.getTag( tag_id, false );
 			

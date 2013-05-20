@@ -193,6 +193,13 @@ public class SBC_TagsOverview
 						new ColumnTagUploadPriority(column);
 					}
 				});
+		
+		tableManager.registerColumn(Tag.class, ColumnTagXCode.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagXCode(column);
+					}
+				});
 
 		tableManager.setDefaultColumnNames(TABLE_TAGS,
 				new String[] {
@@ -224,7 +231,7 @@ public class SBC_TagsOverview
 			table_parent,
 		});
 		
-		TagManager tagManager = TagManagerFactory.getTagManger();
+		TagManager tagManager = TagManagerFactory.getTagManager();
 		if (tagManager != null) {
 			List<TagType> tagTypes = tagManager.getTagTypes();
 			for (TagType tagType : tagTypes) {
@@ -255,7 +262,7 @@ public class SBC_TagsOverview
 			return null;
 		}
 
-		TagManager tagManager = TagManagerFactory.getTagManger();
+		TagManager tagManager = TagManagerFactory.getTagManager();
 		if (tagManager != null) {
 			
 			if ( !tm_listener_added ){
@@ -279,7 +286,7 @@ public class SBC_TagsOverview
 		
 			tm_listener_added = false;
 			
-			TagManager tagManager = TagManagerFactory.getTagManger();
+			TagManager tagManager = TagManagerFactory.getTagManager();
 			
 			tagManager.removeTagManagerListener( this );
 

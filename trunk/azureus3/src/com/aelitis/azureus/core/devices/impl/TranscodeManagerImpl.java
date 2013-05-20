@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryListener;
@@ -44,6 +45,17 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagDownload;
+import com.aelitis.azureus.core.tag.TagFeature;
+import com.aelitis.azureus.core.tag.TagFeatureListener;
+import com.aelitis.azureus.core.tag.TagFeatureTranscode;
+import com.aelitis.azureus.core.tag.TagListener;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagManagerListener;
+import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class 
@@ -68,6 +80,13 @@ TranscodeManagerImpl
 	private GlobalManagerListener	category_dl_listener;
 	private TorrentAttribute		category_ta;
 	
+	private boolean 				hooked_tags;
+
+	private Map<Tag,Object[]> 		tag_map = new HashMap<Tag, Object[]>();
+	private TagListener				tag_listener;
+
+	private TorrentAttribute		tag_ta;
+
 	protected
 	TranscodeManagerImpl(
 		DeviceManagerImpl		_dm )
@@ -79,6 +98,7 @@ TranscodeManagerImpl
 		PluginInterface default_pi = PluginInitializer.getDefaultInterface();
 		
 		category_ta = default_pi.getTorrentManager().getPluginAttribute( "xcode.cat.done" );
+		tag_ta 		= default_pi.getTorrentManager().getPluginAttribute( "xcode.tag.done" );
 		
 		final AESemaphore	plugin_sem 	= new AESemaphore( "TM:plugin" );
 
@@ -296,6 +316,27 @@ TranscodeManagerImpl
 					});
 				
 				checkCategories();
+			}
+			
+			if ( !hooked_tags ){
+				
+				hooked_tags = true;
+				
+				TagManagerFactory.getTagManager().addTagFeatureListener(
+					TagFeature.TF_XCODE,
+					new TagFeatureListener()
+					{
+						public void 
+						tagFeatureChanged(
+							Tag tag, 
+							int feature ) 
+						{
+							checkTags();
+						}
+					});
+					
+				
+				checkTags();
 			}
 		}
 	}
@@ -574,6 +615,250 @@ TranscodeManagerImpl
 		}finally{
 			
 			download.setAttribute( category_ta, str==null?cat_tag:(str+cat_tag));
+		}
+	}
+	
+	
+	
+	private void
+	checkTags()
+	{
+		TagManager tm = TagManagerFactory.getTagManager();
+		
+		Map<Tag,Object[]> active_map = new HashMap<Tag, Object[]>();
+		
+		for ( TagType tt: tm.getTagTypes()){
+			
+			if ( !tt.hasTagTypeFeature( TagFeature.TF_XCODE )){
+				
+				continue;
+			}
+			
+
+			for ( Tag tag: tt.getTags()){
+			
+				TagFeatureTranscode tfx = (TagFeatureTranscode)tag;
+				
+				if ( !tfx.supportsTagTranscode()){
+					
+					continue;
+				}
+				
+				String[] target_details = tfx.getTagTranscodeTarget();
+				
+				if ( target_details != null ){
+					
+					String	target = target_details[0];
+					
+					String device_id = null;
+					
+					if ( target.endsWith( "/blank" )){
+						
+						device_id = target.substring( 0, target.length() - 6 );
+					}
+					
+					DeviceMediaRenderer		target_dmr			= null;
+					TranscodeProfile		target_profile 		= null;
+					
+					for ( DeviceImpl device: device_manager.getDevices()){
+					
+						if ( !( device instanceof DeviceMediaRenderer )){
+							
+							continue;
+						}
+						
+						DeviceMediaRenderer dmr = (DeviceMediaRenderer)device;
+						
+						if ( device_id != null ){
+							
+							if ( device.getID().equals( device_id )){
+								
+								target_dmr		 	= dmr;
+								target_profile		= device.getBlankProfile();
+								
+								break;
+							}
+						}else{
+							
+							TranscodeProfile[] profs = device.getTranscodeProfiles();
+							
+							for ( TranscodeProfile prof: profs ){
+								
+								if ( prof.getUID().equals( target )){
+									
+									target_dmr	= dmr;
+									target_profile	= prof;
+									
+									break;
+								}
+							}
+						}
+					}
+				
+					if ( target_dmr != null ){
+						
+						active_map.put( tag, new Object[]{ target_dmr, target_profile });					
+					}
+				}
+			}
+		}
+		
+		Map<Tag,Object[]> to_process = new HashMap<Tag, Object[]>();
+		
+		synchronized( tag_map ){
+			
+			if ( tag_listener == null ){
+				
+				tag_listener = 
+					new TagListener()
+					{
+						public void
+						taggableAdded(
+							Tag			tag,
+							Taggable	tagged )
+						{
+							Object[]	details;
+							
+							synchronized( tag_map ){
+
+								details = tag_map.get( tag );
+							}
+							
+							if ( details != null ){
+								
+								processTag( tag, details, (DownloadManager)tagged );
+							}
+						}
+						
+						public void
+						taggableSync(
+							Tag			tag )
+						{
+							
+						}
+						
+						public void
+						taggableRemoved(
+							Tag			tag,
+							Taggable	tagged )
+						{
+							
+						}
+					};
+			}
+			
+			Iterator<Tag>	it = tag_map.keySet().iterator();
+			
+			while( it.hasNext()){
+				
+				Tag t = it.next();
+				
+				if ( !active_map.containsKey( t )){
+					
+					t.removeTagListener( tag_listener );
+					
+					it.remove();
+				}
+			}
+			
+			for ( final Tag tag: active_map.keySet()){
+				
+				if ( !tag_map.containsKey( tag )){
+					
+					to_process.put( tag, active_map.get( tag ));
+					
+					tag.addTagListener( tag_listener, false );
+					
+					tag_map.put( tag, active_map.get( tag ));
+				}
+			}
+		}
+		
+		if ( to_process.size() > 0 ){
+						
+			for ( Map.Entry<Tag, Object[]> entry: to_process.entrySet()){
+				
+				Tag		 	tag 	= entry.getKey();
+				Object[]	details = entry.getValue();
+				
+				Set<DownloadManager> list = ((TagDownload)tag).getTaggedDownloads();
+				
+				for( DownloadManager dm: list ){
+					
+					processTag( tag, details, dm );
+				}
+			}
+		}
+	}
+	
+	
+	
+	private void
+	processTag(
+		Tag				tag,
+		Object[]		details,
+		DownloadManager	dm )
+	{
+		Download download = PluginCoreUtils.wrap( dm );
+		
+		if ( download == null ){
+			
+			return;
+		}
+		
+		if ( download.getFlag( Download.FLAG_LOW_NOISE )){
+			
+			return;
+		}
+		
+		String str = download.getAttribute( tag_ta );
+		
+		String tag_name = tag.getTagName( true );
+		
+		String	tag_tag = tag.getTagType().getTagType() + "." + tag.getTagID() + ";";
+		
+		if ( str != null && str.contains( tag_tag )){
+			
+			return;
+		}
+		
+		try{
+			DeviceMediaRenderer		device 	= (DeviceMediaRenderer)details[0];
+			TranscodeProfile		profile	= (TranscodeProfile)details[1];
+						
+			log( "Tag " + tag_name + " - adding " + download.getName() + " to " + device.getName() + "/" + profile.getName());
+			
+			DiskManagerFileInfo[] dm_files = download.getDiskManagerFileInfo();
+			
+			int	num_added = 0;
+			
+			for ( DiskManagerFileInfo dm_file: dm_files ){
+				
+					// limit number of files we can add to avoid crazyness
+				
+				if ( num_added > 64 ){
+					
+					break;
+				}
+				
+					// could be smarter here and check extension or whatever
+				
+				if ( dm_files.length == 1 || dm_file.getLength() >= 128*1024 ){
+					
+					try{
+						queue.add( device, profile, dm_file, false  );
+					
+						num_added++;
+						
+					}catch( Throwable e ){
+						
+						log( "    add failed", e );
+					}
+				}
+			}
+		}finally{
+			
+			download.setAttribute( tag_ta, str==null?tag_tag:(str+tag_tag));
 		}
 	}
 	

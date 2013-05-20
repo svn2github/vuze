@@ -592,15 +592,15 @@ public class SB_Transfers
 									}
 								};
 
-							TagManagerFactory.getTagManger().addTagManagerListener( tagManagerListener, true );
+							TagManagerFactory.getTagManager().addTagManagerListener( tagManagerListener, true );
 						
 						}else{
 						
 							if ( tagManagerListener != null ){
 
-								TagManagerFactory.getTagManger().removeTagManagerListener( tagManagerListener );
+								TagManagerFactory.getTagManager().removeTagManagerListener( tagManagerListener );
 						
-								List<TagType> tag_types = TagManagerFactory.getTagManger().getTagTypes();
+								List<TagType> tag_types = TagManagerFactory.getTagManager().getTagTypes();
 								
 								for ( TagType tt: tag_types ){
 									

@@ -505,6 +505,25 @@ CategoryImpl
 	  return( type == Category.TYPE_USER );
   }
   
+  public boolean
+  supportsTagTranscode()
+  {
+	  return( false );
+  }
+
+  public String[]
+  getTagTranscodeTarget()
+  {
+	  return( null );
+  }
+
+  public void
+  setTagTranscodeTarget(
+	  String		uid,
+	  String		display_name )
+  {
+  }
+	
   public Set<DownloadManager>
   getTaggedDownloads()
   {

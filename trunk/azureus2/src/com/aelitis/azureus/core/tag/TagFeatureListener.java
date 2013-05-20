@@ -1,5 +1,5 @@
 /*
- * Created on Mar 20, 2013
+ * Created on May 20, 2013
  * Created by Paul Gardner
  * 
  * Copyright 2013 Azureus Software, Inc.  All rights reserved.
@@ -21,14 +21,11 @@
 
 package com.aelitis.azureus.core.tag;
 
-import com.aelitis.azureus.core.tag.impl.TagManagerImpl;
-
-public class 
-TagManagerFactory 
+public interface 
+TagFeatureListener 
 {
-	public static TagManager
-	getTagManager()
-	{
-		return( TagManagerImpl.getSingleton());
-	}
+	public void
+	tagFeatureChanged(
+		Tag		tag,
+		int		feature );
 }

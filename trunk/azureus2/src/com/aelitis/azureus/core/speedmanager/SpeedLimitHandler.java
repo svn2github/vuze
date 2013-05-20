@@ -2606,7 +2606,7 @@ SpeedLimitHandler
 		    	}
 		    }
 		    
-			List<TagType>	tag_types = TagManagerFactory.getTagManger().getTagTypes();
+			List<TagType>	tag_types = TagManagerFactory.getTagManager().getTagTypes();
 			 
 			tag_limits.clear();
 			
@@ -2763,7 +2763,7 @@ SpeedLimitHandler
 			
 				// tags
 			
-			TagManager tm = TagManagerFactory.getTagManger();
+			TagManager tm = TagManagerFactory.getTagManager();
 			
 			List<TagType> all_tts = tm.getTagTypes();
 			
@@ -3003,7 +3003,7 @@ SpeedLimitHandler
 		    int	total_tag_limits_up 	= 0;
 		    int	total_tag_limits_down 	= 0;
 
-		    TagManager tm = TagManagerFactory.getTagManger();
+		    TagManager tm = TagManagerFactory.getTagManager();
 		    
 			for ( Map.Entry<String,int[]> entry: tag_limits.entrySet()){
 		    	

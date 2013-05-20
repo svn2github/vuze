@@ -76,7 +76,9 @@ TagTypeDownloadManual
 		throws TagException
 	{
 		TagDownloadWithState new_tag = new TagDownloadWithState( this, next_tag_id.incrementAndGet(), name, true, true, true, TagFeatureRunState.RSC_START_STOP_PAUSE );
-				
+			
+		new_tag.setSupportsTagTranscode( true );
+		
 		if ( auto_add ){
 			
 			addTag( new_tag );
@@ -92,6 +94,8 @@ TagTypeDownloadManual
 	{
 		TagDownloadWithState new_tag = new TagDownloadWithState( this, tag_id, details, true, true, true, TagFeatureRunState.RSC_START_STOP_PAUSE );
 		
+		new_tag.setSupportsTagTranscode( true );
+
 		next_tag_id.set( Math.max( next_tag_id.get(), tag_id+1 ));
 		
 		return( new_tag );

@@ -345,7 +345,7 @@ RelatedContentManager
 			ta_networks 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_NETWORKS );
 			ta_category 	= plugin_interface.getTorrentManager().getAttribute( TorrentAttribute.TA_CATEGORY );
 
-			tag_manager	= TagManagerFactory.getTagManger();
+			tag_manager	= TagManagerFactory.getTagManager();
 			
 			plugin_interface.getUtilities().createDelayedTask(new AERunnable() {
 				public void runSupport() {

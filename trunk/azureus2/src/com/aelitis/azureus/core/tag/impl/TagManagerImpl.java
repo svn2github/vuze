@@ -457,6 +457,8 @@ TagManagerImpl
 	
 	private CopyOnWriteList<TagManagerListener>		listeners = new CopyOnWriteList<TagManagerListener>();
 	
+	private CopyOnWriteList<Object[]>				feature_listeners = new CopyOnWriteList<Object[]>();
+	
 	
 	
 	private
@@ -730,6 +732,47 @@ TagManagerImpl
 		TagManagerListener		listener )
 	{
 		listeners.remove( listener );
+	}
+	
+	public void
+	addTagFeatureListener(
+		int						features,
+		TagFeatureListener		listener )
+	{
+		feature_listeners.add( new Object[]{ features, listener });	
+	}
+	
+	public void
+	removeTagFeatureListener(
+		TagFeatureListener		listener )
+	{
+		for ( Object[] entry: feature_listeners ){
+			
+			if ( entry[1] == listener ){
+				
+				feature_listeners.remove( entry );
+			}
+		}
+	}
+	
+	protected void
+	featureChanged(
+		Tag			tag,
+		int			feature )
+	{
+		for ( Object[] entry: feature_listeners ){
+			
+			if ((((Integer)entry[0]) & feature ) != 0 ){
+		
+				try{
+					((TagFeatureListener)entry[1]).tagFeatureChanged( tag, feature );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
 	}
 	
 	protected void

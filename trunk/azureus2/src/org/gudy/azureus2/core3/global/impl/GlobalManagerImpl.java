@@ -250,7 +250,7 @@ public class GlobalManagerImpl
    		COConfigurationManager.getBooleanParameter( "Pause Downloads On Exit" ) &&
    		!COConfigurationManager.getBooleanParameter( "Resume Downloads On Start" );
    	
-   	taggable_life_manager = TagManagerFactory.getTagManger().registerTaggableResolver( this );
+   	taggable_life_manager = TagManagerFactory.getTagManager().registerTaggableResolver( this );
 
    }
    
