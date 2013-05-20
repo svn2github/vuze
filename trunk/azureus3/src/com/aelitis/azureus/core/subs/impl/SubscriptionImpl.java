@@ -157,6 +157,7 @@ SubscriptionImpl
 	
 	private String			creator_ref;
 	private String			category;
+	private long			tag_id = -1;
 	
 	protected static String
 	getSkeletonJSON(
@@ -415,6 +416,11 @@ SubscriptionImpl
 				map.put( "cat", category.getBytes( "UTF-8" ));
 			}
 			
+			if ( tag_id != -1 ){
+				
+				map.put( "tag", tag_id );
+			}
+			
 			return( map );
 		}
 	}
@@ -491,6 +497,13 @@ SubscriptionImpl
 		if ( b_cat != null ){
 			
 			category = new String( b_cat, "UTF-8" );
+		}
+		
+		Long l_tag_id = (Long)map.get( "tag" );
+		
+		if ( l_tag_id != null ){
+			
+			tag_id = l_tag_id;
 		}
 	}
 	
@@ -1745,6 +1758,30 @@ SubscriptionImpl
 		return( category );
 	}
 
+	public void
+	setTagID(
+		long	_tag_id )
+	{
+
+		if ( _tag_id == tag_id ){
+			
+			return;
+		}
+			
+		// don't update existing download tagging at the moment
+		//manager.setTagOnExisting( this, tag, _tag );
+		
+		tag_id = _tag_id;
+
+		fireChanged();
+	}
+	
+	public long
+	getTagID()
+	{
+		return( tag_id );
+	}
+	
 	protected void
 	fireChanged()
 	{

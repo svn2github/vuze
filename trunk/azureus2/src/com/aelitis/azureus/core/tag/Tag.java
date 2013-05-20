@@ -43,6 +43,14 @@ Tag
 	public int
 	getTagID();
 	
+		/**
+		 * Unique across tag types and can be used to lookup by TagManager::lookuptagByUID
+		 * @return
+		 */
+	
+	public long
+	getTagUID();
+	
 	public String
 	getTagName( 
 		boolean	localize );

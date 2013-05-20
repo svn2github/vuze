@@ -147,6 +147,14 @@ Subscription
 	setCategory(
 		String	category );
 	
+	public long
+	getTagID();
+	
+	public void
+	setTagID(
+		long	tag_id );
+	
+	
 	public Engine
 	getEngine()
 	

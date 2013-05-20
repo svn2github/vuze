@@ -633,6 +633,24 @@ TagManagerImpl
 		return( new ArrayList<Tag>( result ));
 	}
 	
+	public Tag
+	lookupTagByUID(
+		long	tag_uid )
+	{
+		int	tag_type_id = (int)((tag_uid>>32)&0xffffffffL);
+		
+		TagType tt = tag_type_map.get( tag_type_id );
+				
+		if ( tt != null ){
+				
+			int	tag_id = (int)(tag_uid&0xffffffffL);
+			
+			return( tt.getTag( tag_id ));
+		}
+		
+		return( null );
+	}
+	
 	public TaggableLifecycleHandler
 	registerTaggableResolver(
 		final TaggableResolver	resolver )

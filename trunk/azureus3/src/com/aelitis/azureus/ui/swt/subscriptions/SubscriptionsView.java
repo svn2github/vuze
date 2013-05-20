@@ -232,6 +232,7 @@ public class SubscriptionsView
 				new ColumnSubscriptionSubscribers(TABLE_ID),
 				new ColumnSubscriptionAutoDownload(TABLE_ID),
 				new ColumnSubscriptionCategory(TABLE_ID),
+				new ColumnSubscriptionTag(TABLE_ID),
 				
 		};
 		

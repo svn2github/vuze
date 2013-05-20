@@ -327,7 +327,7 @@ public class TagUIUtils
 		}
 	}
 	
-	private static Tag
+	public static Tag
 	createManualTag()
 	{
 		SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(

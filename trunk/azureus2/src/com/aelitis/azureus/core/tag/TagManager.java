@@ -48,6 +48,10 @@ TagManager
 	public boolean
 	getTagPublicDefault();
 	
+	public Tag
+	lookupTagByUID(
+		long	tag_uid );
+	
 	public TaggableLifecycleHandler
 	registerTaggableResolver(
 		TaggableResolver	resolver );

@@ -52,6 +52,7 @@ import org.gudy.azureus2.plugins.utils.search.SearchInstance;
 import org.gudy.azureus2.plugins.utils.search.SearchObserver;
 import org.gudy.azureus2.plugins.utils.search.SearchProvider;
 import org.gudy.azureus2.plugins.utils.search.SearchResult;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
@@ -74,6 +75,8 @@ import com.aelitis.azureus.core.metasearch.impl.web.rss.RSSEngine;
 import com.aelitis.azureus.core.security.CryptoECCUtils;
 import com.aelitis.azureus.core.subs.*;
 import com.aelitis.azureus.core.subs.SubscriptionUtils.SubscriptionDownloadDetails;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.*;
@@ -4099,6 +4102,24 @@ SubscriptionManagerImpl
 							download.setAttribute( ta_category, category );
 						}
 					}
+					
+					long	tag_id = subscriptions[0].getTagID();
+					
+					if ( tag_id >= 0 ){
+						
+						Tag tag = TagManagerFactory.getTagManager().lookupTagByUID( tag_id );
+
+						if ( tag != null ){
+							
+							org.gudy.azureus2.core3.download.DownloadManager core_dm = PluginCoreUtils.unwrap( download );
+							
+							if ( !tag.hasTaggable( core_dm )){
+								
+								tag.addTaggable( core_dm );
+							}
+						}
+					}
+					
 				}
 				
 				download_found = true;

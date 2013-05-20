@@ -4,6 +4,7 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
@@ -24,10 +25,15 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInputReceiver;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.metasearch.Engine;
 import com.aelitis.azureus.core.metasearch.impl.web.WebEngine;
 import com.aelitis.azureus.core.subs.*;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
@@ -236,17 +242,33 @@ public class SubscriptionMDIEntry implements SubscriptionListener
 		menuItem.setStyle( MenuItem.STYLE_MENU );
 		
 		menuItem.addFillListener(
-				new MenuItemFillListener()
-				{
-					public void 
-					menuWillBeShown(
-						MenuItem 	menu, 
-						Object 		data ) 
-					{		
-						addCategorySubMenu( menuManager, menu );
-					}
-				});
+			new MenuItemFillListener()
+			{
+				public void 
+				menuWillBeShown(
+					MenuItem 	menu, 
+					Object 		data ) 
+				{		
+					addCategorySubMenu( menuManager, menu );
+				}
+			});
 		
+			// tag
+		
+		menuItem = menuManager.addMenuItem("sidebar." + key, "label.tag");
+		menuItem.setStyle( MenuItem.STYLE_MENU );
+		
+		menuItem.addFillListener(
+			new MenuItemFillListener()
+			{
+				public void 
+				menuWillBeShown(
+					MenuItem 	menu, 
+					Object 		data ) 
+				{		
+					addTagSubMenu( menuManager, menu );
+				}
+			});
 		
 		if ( subs.isUpdateable()){
 			
@@ -514,6 +536,98 @@ public class SubscriptionMDIEntry implements SubscriptionListener
 		}
 	}
 
+	private void 
+	addTagSubMenu(
+		MenuManager				menu_manager,
+		MenuItem				menu )
+	{
+		menu.removeAllChildItems();
+
+		TagManager tm = TagManagerFactory.getTagManager();
+		
+		List<Tag> tags = tm.getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTags();
+		
+		tags = TagUIUtils.sortTags( tags );
+					
+		long	tag_id = subs.getTagID();
+			
+		Tag assigned_tag = tm.lookupTagByUID( tag_id );
+		
+		MenuItem m = menu_manager.addMenuItem( menu, "label.no.tag" );
+				
+		m.setStyle( MenuItem.STYLE_RADIO );
+							
+		m.setData( new Boolean( assigned_tag == null ));
+				
+		m.addListener(
+			new MenuItemListener() 
+			{
+				public void
+				selected(
+					MenuItem			menu,
+					Object 				target )
+				{
+					subs.setTagID( -1 );
+				}
+			});
+				
+
+		m = menu_manager.addMenuItem( menu, "sep1" );
+				
+		m.setStyle( MenuItem.STYLE_SEPARATOR );
+	
+		for ( final Tag tag: tags ){
+				
+			m = menu_manager.addMenuItem( menu, tag.getTagName( false ));
+					
+			m.setStyle( MenuItem.STYLE_RADIO );
+										
+			m.setData( new Boolean( assigned_tag == tag ));
+					
+			m.addListener(
+				new MenuItemListener() 
+				{
+					public void
+					selected(
+						MenuItem			menu,
+						Object 				target )
+					{
+						subs.setTagID( tag.getTagUID());
+					}
+				});
+		}
+		
+		m = menu_manager.addMenuItem( menu, "sep2" );
+			
+		m.setStyle( MenuItem.STYLE_SEPARATOR );
+
+		m = menu_manager.addMenuItem( menu, "label.add.tag" );
+		
+		m.addListener(
+			new MenuItemListener() 
+			{
+				public void
+				selected(
+					MenuItem			menu,
+					Object 				target )
+				{
+					addTag();
+				}
+			});
+	}
+
+	private void 
+	addTag()	
+	{
+		Tag new_tag = TagUIUtils.createManualTag();
+		
+		if ( new_tag != null ){
+		
+			subs.setTagID( new_tag.getTagUID());
+		}
+	}
+	
+	
 	protected void export() {
 		Utils.execSWTThread(
 			new AERunnable() 
@@ -645,6 +759,7 @@ public class SubscriptionMDIEntry implements SubscriptionListener
 				"subs.prop.template",
 				"subs.prop.auth",
 				"TableColumn.header.category",
+				"TableColumn.header.tag.name",
 			};
 		
 		String	category_str;
@@ -659,6 +774,10 @@ public class SubscriptionMDIEntry implements SubscriptionListener
 			
 			category_str = category;
 		}
+				
+		Tag tag = TagManagerFactory.getTagManager().lookupTagByUID( subs.getTagID() );
+		
+		String tag_str = tag==null?"":tag.getTagName( true );
 		
 		int	 check_freq			= history.getCheckFrequencyMins();
 		long last_new_result 	= history.getLastNewResultTime();
@@ -683,6 +802,7 @@ public class SubscriptionMDIEntry implements SubscriptionListener
 				engine_str,
 				auth_str,
 				category_str,
+				tag_str,
 			};
 		
 		new PropertiesWindow( subs.getName(), keys, values );

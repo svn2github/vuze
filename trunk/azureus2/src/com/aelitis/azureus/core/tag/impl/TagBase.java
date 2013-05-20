@@ -145,6 +145,12 @@ TagBase
 		return( tag_id );
 	}
 	
+	public long 
+	getTagUID() 
+	{
+		return((((long)getTagType().getTagType())<<32) | tag_id );
+	}
+	
 	protected String
 	getTagNameRaw()
 	{
