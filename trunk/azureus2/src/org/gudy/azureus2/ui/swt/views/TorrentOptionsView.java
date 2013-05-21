@@ -494,6 +494,13 @@ TorrentOptionsView
 	private void
 	refresh()
 	{
+		if ( agg_size == null ){
+			
+				// not yet init
+			
+			return;
+		}
+		
 		long	total_size 				= 0;
 		long	total_remaining			= 0;
 		long	total_good_downloaded	= 0;
