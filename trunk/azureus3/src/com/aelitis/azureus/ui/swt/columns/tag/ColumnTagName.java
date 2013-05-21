@@ -35,7 +35,7 @@ public class ColumnTagName
 
 	/** Default Constructor */
 	public ColumnTagName(TableColumn column) {
-		column.setWidth(200);
+		column.setWidth(160);
 		column.addListeners(this);
 	}
 

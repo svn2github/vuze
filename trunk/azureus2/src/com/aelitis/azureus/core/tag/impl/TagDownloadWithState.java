@@ -55,6 +55,7 @@ TagDownloadWithState
 	private int		upload_priority;
 	
 	private boolean	supports_xcode;
+	private boolean	supports_file_location;
 	
 	private LimitedRateGroup upload_limiter = 
 		new LimitedRateGroup()
@@ -564,4 +565,17 @@ TagDownloadWithState
 		
 		getManager().featureChanged( this, TagFeature.TF_XCODE );
 	} 
+	
+	protected void
+	setSupportsFileLocation(
+		boolean		sup )
+	{
+		supports_file_location = sup;
+	}
+	
+	public boolean
+	supportsTagMoveOnComplete()
+	{
+		return( supports_file_location );
+	}
 }

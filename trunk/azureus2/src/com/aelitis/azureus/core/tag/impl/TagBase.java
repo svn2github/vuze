@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.tag.impl;
 
+import java.io.File;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.ListenerManager;
@@ -29,6 +31,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagException;
+import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
 import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagListener;
@@ -49,6 +52,7 @@ TagBase
 	protected static final String	AT_RSS_ENABLE		= "rss.enable";
 	protected static final String	AT_RATELIMIT_UP_PRI	= "rl.uppri";
 	protected static final String	AT_XCODE_TARGET		= "xcode.to";
+	protected static final String	AT_FL_MOVE_COMP		= "fl.comp";
 	  
 	private TagTypeBase	tag_type;
 	
@@ -88,8 +92,9 @@ TagBase
 	private Boolean	is_visible;
 	private Boolean	is_public;
 	
-	private TagFeatureRateLimit	tag_rl;
-	private TagFeatureRSSFeed	tag_rss;
+	private TagFeatureRateLimit		tag_rl;
+	private TagFeatureRSSFeed		tag_rss;
+	private TagFeatureFileLocation	tag_fl;
 	
 	
 	protected
@@ -118,6 +123,11 @@ TagBase
 				
 				getManager().checkRSSFeeds( this, true );
 			}
+		}
+		
+		if ( this instanceof TagFeatureFileLocation ){
+			
+			tag_fl = (TagFeatureFileLocation)this;
 		}
 	}
 	
@@ -414,6 +424,53 @@ TagBase
 				tag_type.fireChanged( this );
 				
 				tag_type.getTagManager().checkRSSFeeds( this, enable );
+			}
+		}
+	}
+	
+	public boolean
+	supportsTagMoveOnComplete()
+	{
+		return( false );
+	}
+	
+	public File
+	getTagMoveOnCompleteFolder()
+	{
+		if ( tag_fl != null ){
+			
+			String str = readStringAttribute( AT_FL_MOVE_COMP, null );
+			
+			if ( str == null ){
+				
+				return( null );
+				
+			}else{
+				
+				return( new File( str ));
+			}
+		}
+		
+		return( null );
+	}
+	
+	public void
+	setTagMoveOnCompleteFolder(
+		File		folder )
+	{
+		if ( tag_fl != null ){
+			
+			File	existing = getTagMoveOnCompleteFolder();
+			
+			if ( existing == null && folder == null ){
+				
+				return;
+				
+			}else if ( existing == null || folder == null || !existing.equals( folder )){
+				
+				writeStringAttribute( AT_FL_MOVE_COMP, folder==null?null:folder.getAbsolutePath());
+				
+				tag_type.fireChanged( this );
 			}
 		}
 	}

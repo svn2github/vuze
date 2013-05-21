@@ -29,5 +29,6 @@ TagFeature
 	public static final int TF_RSS_FEED			= 0x00000002;
 	public static final int TF_RUN_STATE		= 0x00000004;
 	public static final int TF_XCODE			= 0x00000008;
+	public static final int TF_FILE_LOCATION	= 0x00000010;
 	
 }

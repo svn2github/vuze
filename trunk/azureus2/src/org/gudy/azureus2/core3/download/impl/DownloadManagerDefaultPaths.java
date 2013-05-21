@@ -3,6 +3,8 @@ package org.gudy.azureus2.core3.download.impl;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +17,11 @@ import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.savelocation.DefaultSaveLocationManager;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadImpl;
+
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagFeature;
+import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
 
 
 public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils {
@@ -35,11 +42,13 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 		}
 		public SaveLocationChange onCompletion(Download d, boolean for_move, boolean on_event) {
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
-			return determinePaths(dm, COMPLETION_DETAILS, for_move, false);
+			MovementInformation mi = getTagMovementInformation( dm, COMPLETION_DETAILS );
+			return determinePaths(dm, mi, for_move, false);
 		}
 		public SaveLocationChange testOnCompletion(Download d, boolean for_move, boolean on_event) {
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
-			return determinePaths(dm, COMPLETION_DETAILS, for_move, true );
+			MovementInformation mi = getTagMovementInformation( dm, COMPLETION_DETAILS );
+			return determinePaths(dm, mi, for_move, true );
 		}
 		public SaveLocationChange onRemoval(Download d, boolean for_move, boolean on_event) {
 			DownloadManager dm = ((DownloadImpl)d).getDownload();
@@ -155,6 +164,108 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 		mi_2 = new MovementInformation(source, dest, trans, "Update incomplete download");
 		UPDATE_FOR_MOVE_DETAILS = new MovementInformation[] {mi_1, mi_2};
 
+    }
+    
+    private static MovementInformation
+    getTagMovementInformation(
+    	DownloadManager			dm,
+    	MovementInformation		def_mi )
+    {
+    	List<Tag> dm_tags = TagManagerFactory.getTagManager().getTagsForTaggable( dm );
+    	
+    	if ( dm_tags == null || dm_tags.size() == 0 ){
+    		
+    		return( def_mi );
+    	}
+    	
+    	List<Tag>	applicable_tags = new ArrayList<Tag>();
+    	
+    	for ( Tag tag: dm_tags ){
+    		
+    		if ( tag.getTagType().hasTagTypeFeature( TagFeature.TF_FILE_LOCATION )){
+    	
+    			TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
+    			
+    			if ( fl.supportsTagMoveOnComplete()){
+    				
+	    			File move_to = fl.getTagMoveOnCompleteFolder();
+	    			
+	    			if ( move_to != null ){
+	    				
+	    				if ( !move_to.exists()){
+	    					
+	    					move_to.mkdirs();
+	    				}
+	    				
+	    				if ( move_to.isDirectory() && move_to.canWrite()){
+	    			
+	    					applicable_tags.add( tag );
+	    					
+	    				}else{
+	    				
+	    					logInfo( "Ignoring invalid tag move-to location: " + move_to, dm );
+	    				}
+	    			}
+    			}
+    		}
+    	}
+    	
+    	if ( applicable_tags.size() == 0 ){
+    		
+    		return( def_mi );
+    		
+    	}else if ( applicable_tags.size() > 1 ){
+    		
+    		Collections.sort(
+    			applicable_tags,
+    			new Comparator<Tag>()
+    			{
+    				public int 
+    				compare(
+    					Tag o1, 
+    					Tag o2) 
+    				{
+    					return( o1.getTagID() - o2.getTagID());
+    				}
+    			});
+    		
+    		String str = "";
+    		
+    		for ( Tag tag: applicable_tags ){
+    			
+    			str += (str.length()==0?"":", ") + tag.getTagName( true );
+    		}
+    		
+    		logInfo( "Multiple applicable tags found: " + str + " - selecting first", dm );
+    	}
+    	
+    	Tag tag_target = applicable_tags.get(0);
+    	
+		TagFeatureFileLocation fl = (TagFeatureFileLocation)tag_target;
+			
+		File move_to = fl.getTagMoveOnCompleteFolder();
+
+		if ( move_to != null ){
+			
+	    	SourceSpecification source = new SourceSpecification();
+			source.setBoolean( "default dir", "Move Only When In Default Save Dir" );
+			source.setBoolean( "default subdir", SUBDIR_PARAM );
+			source.setBoolean( "incomplete dl", false );
+				
+			TargetSpecification dest = new TargetSpecification();
+			dest.setBoolean( "enabled", true );
+			dest.setString( "target_raw", move_to.getAbsolutePath());
+			dest.setContext( "Tag '" + tag_target.getTagName( true ) + "' move-on-complete directory" );
+	
+			TransferSpecification trans = new TransferSpecification();
+			trans.setBoolean("torrent", "Move Torrent When Done");
+	
+			MovementInformation tag_mi = new MovementInformation(source, dest, trans, "Tag Move on Completion");
+			
+	    	return( tag_mi );
+		}
+		
+		return( def_mi );
     }
     
     private static interface ContextDescriptor {
@@ -291,6 +402,10 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
         	settings.put(key, param);
         }
         
+        protected String getStringRaw(String key) {
+			return((String)this.settings.get(key));
+        }
+        
         protected String getString(String key) {
 			String result = (String)this.settings.get(key);
 			if (result == null) {throw new RuntimeException("bad key: " + key);}
@@ -371,7 +486,10 @@ public class DownloadManagerDefaultPaths extends DownloadManagerMoveHandlerUtils
 				logInfo("Target for " + describe(dm, cd) + " is not enabled.", dm);
 				return null;
 			}
-		    String location = this.getString("target").trim();
+			String location = getStringRaw( "target_raw" );
+			if ( location == null ){
+				location = this.getString("target").trim();
+			}
 		    if (location.length() == 0) {
 				logInfo("No explicit target for " + describe(dm, cd) + ".", dm);
 				return null;

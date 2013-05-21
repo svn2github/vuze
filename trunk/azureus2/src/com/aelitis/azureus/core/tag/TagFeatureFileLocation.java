@@ -1,5 +1,5 @@
 /*
- * Created on Mar 20, 2013
+ * Created on May 21, 2013
  * Created by Paul Gardner
  * 
  * Copyright 2013 Azureus Software, Inc.  All rights reserved.
@@ -21,16 +21,18 @@
 
 package com.aelitis.azureus.core.tag;
 
-import java.util.Set;
-
-import org.gudy.azureus2.core3.download.DownloadManager;
+import java.io.File;
 
 public interface 
-TagDownload 
-	extends Tag, TagFeatureRateLimit, TagFeatureRSSFeed, TagFeatureRunState, TagFeatureTranscode, TagFeatureFileLocation
+TagFeatureFileLocation 
 {
-	public static final int FEATURES 	= TF_RATE_LIMIT | TF_RSS_FEED | TF_RUN_STATE | TF_XCODE | TF_FILE_LOCATION;
+	public boolean
+	supportsTagMoveOnComplete();
 	
-	public Set<DownloadManager>
-	getTaggedDownloads();
+	public File
+	getTagMoveOnCompleteFolder();
+	
+	public void
+	setTagMoveOnCompleteFolder(
+		File		folder );
 }

@@ -18,6 +18,7 @@
 
 package org.gudy.azureus2.ui.swt.views.utils;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,6 +41,7 @@ import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
@@ -51,6 +53,7 @@ import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.TagFeature;
+import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
 import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagFeatureRunState;
@@ -596,6 +599,81 @@ public class TagUIUtils
 		}
 		*/
 		
+		if ( tag_type.hasTagTypeFeature( TagFeature.TF_FILE_LOCATION )) {
+		
+			final TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
+			
+			if ( fl.supportsTagMoveOnComplete()){
+				
+				needs_separator_next = true;
+				
+				Menu files_menu = new Menu( menu.getShell(), SWT.DROP_DOWN);
+				
+				MenuItem files_item = new MenuItem( menu, SWT.CASCADE);
+				
+				Messages.setLanguageText( files_item, "ConfigView.section.files" );
+				
+				files_item.setMenu( files_menu );
+
+				final Menu moc_menu = new Menu( files_menu.getShell(), SWT.DROP_DOWN);
+				
+				MenuItem moc_item = new MenuItem( files_menu, SWT.CASCADE);
+				
+				Messages.setLanguageText( moc_item, "label.move.on.comp" );
+				
+				moc_item.setMenu( moc_menu );
+
+				MenuItem clear_item = new MenuItem( moc_menu, SWT.CASCADE);
+				
+				Messages.setLanguageText( clear_item, "Button.clear" );
+
+				clear_item.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						fl.setTagMoveOnCompleteFolder( null );
+					}});
+				
+				new MenuItem( moc_menu, SWT.SEPARATOR);
+
+				File existing = fl.getTagMoveOnCompleteFolder();
+				
+				if ( existing != null ){
+					
+					MenuItem current_item = new MenuItem( moc_menu, SWT.RADIO );
+					current_item.setSelection( true );
+					
+					current_item.setText( existing.getAbsolutePath());
+					
+					new MenuItem( moc_menu, SWT.SEPARATOR);
+					
+				}else{
+					
+					clear_item.setEnabled( false );
+				}
+				
+				MenuItem set_item = new MenuItem( moc_menu, SWT.CASCADE);
+				
+				Messages.setLanguageText( set_item, "label.set" );
+
+				set_item.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event){
+						DirectoryDialog dd = new DirectoryDialog(moc_menu.getShell());
+
+						dd.setFilterPath( TorrentOpener.getFilterPathData());
+
+						dd.setText(MessageText.getString("MyTorrentsView.menu.movedata.dialog"));
+
+						String path = dd.open();
+
+						if ( path != null ){
+							
+							TorrentOpener.setFilterPathData( path );
+							
+							fl.setTagMoveOnCompleteFolder( new File( path ));
+						}
+					}});
+			}
+		}
+		
 		// options
 
 		if ( tag instanceof TagDownload ){
@@ -628,6 +706,8 @@ public class TagUIUtils
 			needs_separator_next = false;
 		}
 
+			// sharing
+		
 		if ( tag.canBePublic()){
 			
 			needs_separator_next = true;
@@ -644,6 +724,8 @@ public class TagUIUtils
 					tag.setPublic( itemPublic.getSelection());
 				}});
 		}
+		
+			// rss feed
 		
 		if ( tag_type.hasTagTypeFeature( TagFeature.TF_RSS_FEED )) {
 

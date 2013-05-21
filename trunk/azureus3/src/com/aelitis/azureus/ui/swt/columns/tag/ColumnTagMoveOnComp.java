@@ -17,15 +17,17 @@
 
 package com.aelitis.azureus.ui.swt.columns.tag;
 
+import java.io.File;
+
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 import com.aelitis.azureus.core.tag.Tag;
-import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
 
-public class ColumnTagType
+public class ColumnTagMoveOnComp
 	implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
-	public static String COLUMN_ID = "tag.type";
+	public static String COLUMN_ID = "tag.moveoncomp";
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] {
@@ -35,27 +37,38 @@ public class ColumnTagType
 	}
 
 	/** Default Constructor */
-	public ColumnTagType(TableColumn column) {
-		column.setWidth(120);
+	public ColumnTagMoveOnComp(TableColumn column) {
+		column.setWidth(200);
 		column.addListeners(this);
 	}
 
 	public void refresh(TableCell cell) {
 		Tag tag = (Tag) cell.getDataSource();
-		TagType sortVal = null;
-		if (tag != null) {
-			sortVal = tag.getTagType();
-		}
+		if ( tag instanceof TagFeatureFileLocation ){
+			TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
+			
+			if ( fl.supportsTagMoveOnComplete()){
+	
+				File target_file = fl.getTagMoveOnCompleteFolder();
+				
+				String target;
+				
+				if ( target_file == null ){
+					target = "";
+				}else{
+					target = target_file.getAbsolutePath();
+				}
+				
+				if (!cell.setSortValue(target) && cell.isValid()) {
+					return;
+				}
 		
-		
-		if (!cell.setSortValue(sortVal.getTagType()) && cell.isValid()) {
-			return;
+				if (!cell.isShown()) {
+					return;
+				}
+				
+				cell.setText(target);
+			}
 		}
-
-		if (!cell.isShown()) {
-			return;
-		}
-		
-		cell.setText(sortVal.getTagTypeName(true));
 	}
 }

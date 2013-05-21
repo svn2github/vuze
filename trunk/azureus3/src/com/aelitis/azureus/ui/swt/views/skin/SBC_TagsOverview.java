@@ -201,6 +201,13 @@ public class SBC_TagsOverview
 					}
 				});
 
+		tableManager.registerColumn(Tag.class, ColumnTagMoveOnComp.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagMoveOnComp(column);
+					}
+				});
+
 		tableManager.setDefaultColumnNames(TABLE_TAGS,
 				new String[] {
 					ColumnTagColor.COLUMN_ID,
