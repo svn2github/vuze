@@ -22,24 +22,8 @@
 
 package org.gudy.azureus2.ui.console.multiuser;
 
-import java.beans.XMLDecoder;
-import java.beans.XMLEncoder;
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.io.*;
+import java.util.*;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.console.UserProfile;
@@ -130,14 +114,21 @@ public class UserManager
 	
 	protected void doLoad( InputStream in )
 	{
-		XMLDecoder decoder = new XMLDecoder( in );
-		UserManagerConfig managerConfig = (UserManagerConfig)decoder.readObject();
-		for (Iterator iter = managerConfig.getUsers().iterator(); iter.hasNext();) {
-			UserProfile user = (UserProfile) iter.next();
-			usersMap.put(user.getUsername().toLowerCase(), user);
+		try{
+			Class cla = Class.forName( "org.gudy.azureus2.ui.console.multiuser.persist.UserManagerXMLPersist" );
+			
+			UserManagerPersister persister = (UserManagerPersister)cla.newInstance();
+			
+			persister.doLoad( in, usersMap );
+			
+		}catch( ClassNotFoundException e ){
+			
+			System.err.println( "No persistence service for user config, load not performed" );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
 		}
-		System.out.println("UserManager: registered " + usersMap.size() + " users");
-		decoder.close();
 	}
 	
 	/**
@@ -155,13 +146,21 @@ public class UserManager
 	
 	protected void doSave( OutputStream out )
 	{
-		UserManagerConfig config = new UserManagerConfig();
-		List users = new ArrayList( usersMap.values() );
-		config.setUsers(users);
-		
-		XMLEncoder encoder = new XMLEncoder( new BufferedOutputStream( out ) );
-		encoder.writeObject(config);
-		encoder.close();
+		try{
+			Class cla = Class.forName( "org.gudy.azureus2.ui.console.multiuser.persist.UserManagerXMLPersist" );
+			
+			UserManagerPersister persister = (UserManagerPersister)cla.newInstance();
+			
+			persister.doSave( out, usersMap );
+			
+		}catch( ClassNotFoundException e ){
+			
+			System.err.println( "No persistence service for user config, save not performed" );
+			
+		}catch( Throwable e ){
+			
+			e.printStackTrace();
+		}
 	}
 
 	public static UserManager getInstance(PluginInterface pi) 
