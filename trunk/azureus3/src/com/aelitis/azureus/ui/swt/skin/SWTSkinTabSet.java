@@ -128,7 +128,7 @@ public class SWTSkinTabSet
 	private void setActiveTab(final SWTSkinObjectTab newTab, final boolean evenIfSame) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				Shell shell = skin.getShell();
+				Composite shell = skin.getShell();
 				Cursor cursor = shell.getCursor();
 				try {
 					shell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));

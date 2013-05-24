@@ -98,7 +98,7 @@ public class SWTSkin
 
 	private ArrayList<SWTSkinObjectBasic> ontopImages = new ArrayList<SWTSkinObjectBasic>();
 
-	private Shell shell;
+	private Composite skinComposite;
 
 	private boolean bLayoutComplete = false;
 
@@ -475,20 +475,20 @@ public class SWTSkin
 	 *
 	 * @since 3.0.5.3
 	 */
-	public void initialize(Shell shell, String startID) {
-		initialize(shell, startID, null);
+	public void initialize(Composite skincomp, String startID) {
+		initialize(skincomp, startID, null);
 	}
 
-	public void initialize(final Shell shell, String startID,
+	public void initialize(final Composite skincomp, String startID,
 			IUIIntializer uiInitializer) {
 
-		this.shell = shell;
+		this.skinComposite = skincomp;
 		this.startID = startID;
 		FormLayout layout = new FormLayout();
-		shell.setLayout(layout);
-		shell.setBackgroundMode(SWT.INHERIT_DEFAULT);
+		skinComposite.setLayout(layout);
+		skinComposite.setBackgroundMode(SWT.INHERIT_DEFAULT);
 
-		shell.addDisposeListener(new DisposeListener() {
+		skinComposite.addDisposeListener(new DisposeListener() {
 			public void widgetDisposed(DisposeEvent e) {
 				disposeSkin();
 			}
@@ -498,15 +498,15 @@ public class SWTSkin
 			Control lastControl = null;
 
 			public void handleEvent(Event event) {
-				if (shell.isDisposed() && event.display != null) {
+				if (skinComposite.isDisposed() && event.display != null) {
 					event.display.removeFilter(SWT.MouseMove, this);
 					event.display.removeFilter(SWT.MouseExit, this);
 					return;
 				}
-				Control cursorControl = shell.getDisplay().getCursorControl();
+				Control cursorControl = skinComposite.getDisplay().getCursorControl();
 				//System.out.println("move from " + (lastControl == null ? null : lastControl.handle) + " to " + (cursorControl == null ? "null" : cursorControl.handle));
 				if (cursorControl != lastControl) {
-					Point cursorLocation = shell.getDisplay().getCursorLocation();
+					Point cursorLocation = skinComposite.getDisplay().getCursorLocation();
 					while (lastControl != null && !lastControl.isDisposed()) {
 						Point cursorLocationInControl = lastControl.toControl(cursorLocation);
 						Point size = lastControl.getSize();
@@ -531,12 +531,12 @@ public class SWTSkin
 				}
 			}
 		};
-		shell.getDisplay().addFilter(SWT.MouseMove, l);
+		skinComposite.getDisplay().addFilter(SWT.MouseMove, l);
 		// can't just add a MouseExit listener to the shell, because it doesn't
 		// get fired when a control is on the edge
-		shell.getDisplay().addFilter(SWT.MouseExit, l);
-		shell.addListener(SWT.Deactivate, l);
-		shell.addListener(SWT.Activate, l);
+		skinComposite.getDisplay().addFilter(SWT.MouseExit, l);
+		skinComposite.addListener(SWT.Deactivate, l);
+		skinComposite.addListener(SWT.Activate, l);
 
 		/****** REPLACED BY MouseMove
 		// When shell activates or deactivates, send a MouseEnter or MouseExit
@@ -578,19 +578,19 @@ public class SWTSkin
 
 		Color bg = skinProperties.getColor(startID + ".color");
 		if (bg != null) {
-			shell.setBackground(bg);
+			skinComposite.setBackground(bg);
 		}
 
 		Color fg = skinProperties.getColor(startID + ".fgcolor");
 		if (fg != null) {
-			shell.setForeground(fg);
+			skinComposite.setForeground(fg);
 		}
 		
 		
 		int width = skinProperties.getIntValue(startID + ".width", -1);
 		int height = skinProperties.getIntValue(startID + ".height", -1);
 		if (width > 0 && height > 0) {
-			shell.setSize(width, height);
+			skinComposite.setSize(width, height);
 		}
 		
 		// We handle cases where width || height < 0 later in layout()
@@ -598,7 +598,9 @@ public class SWTSkin
 		String title = skinProperties.getStringValue(startID + ".title",
 				(String) null);
 		if (title != null) {
-			shell.setText(title);
+			if ( skinComposite instanceof Shell ){
+				((Shell)skinComposite).setText(title);
+			}
 		}
 
 		String[] sMainGroups = skinProperties.getStringArray(startID + ".widgets");
@@ -700,21 +702,21 @@ public class SWTSkin
 		int height = skinProperties.getIntValue(startID + ".height", -1);
 		if (autoSizeOnLayout) {
   		if (width > 0 && height == -1) {
-  			Point computeSize = shell.computeSize(width, SWT.DEFAULT);
-  			shell.setSize(computeSize);
+  			Point computeSize = skinComposite.computeSize(width, SWT.DEFAULT);
+  			skinComposite.setSize(computeSize);
   		} else if (height > 0 && width == -1) {
-  			Point computeSize = shell.computeSize(SWT.DEFAULT, height);
-  			shell.setSize(computeSize);
+  			Point computeSize = skinComposite.computeSize(SWT.DEFAULT, height);
+  			skinComposite.setSize(computeSize);
   		}
 		} else {
-			Point size = shell.getSize();
+			Point size = skinComposite.getSize();
 			if (width > 0) {
 				size.x = width;
 			}
 			if (height > 0) {
 				size.y = height;
 			}
-			shell.setSize(size);
+			skinComposite.setSize(size);
 		}
 
 		for (SWTSkinLayoutCompleteListener l : listenersLayoutComplete) {
@@ -1089,7 +1091,7 @@ public class SWTSkin
 
 		Composite createOn;
 		if (parentSkinObject == null) {
-			createOn = shell;
+			createOn = skinComposite;
 		} else {
 			createOn = (Composite) parentSkinObject.getControl();
 		}
@@ -1239,8 +1241,8 @@ public class SWTSkin
 		return skinObject;
 	}
 
-	public Shell getShell() {
-		return shell;
+	public Composite getShell() {
+		return skinComposite;
 	}
 
 	//	private void createTextWidget(final String sConfigID) {
@@ -1322,9 +1324,9 @@ public class SWTSkin
 	public SWTSkinObject createSkinObject(String sID, String sConfigID,
 			SWTSkinObject parentSkinObject, Object datasource) {
 		SWTSkinObject skinObject = null;
-		Cursor cursor = shell.getCursor();
+		Cursor cursor = skinComposite.getCursor();
 		try {
-			shell.setCursor(shell.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
+			skinComposite.setCursor(skinComposite.getDisplay().getSystemCursor(SWT.CURSOR_WAIT));
 
 			skinObject = linkIDtoParent(skinProperties, sID, sConfigID,
 					parentSkinObject, true, true, datasource);
@@ -1336,7 +1338,7 @@ public class SWTSkin
 			Debug.out("Trying to create " + sID + "." + sConfigID + " on "
 					+ parentSkinObject, e);
 		} finally {
-			shell.setCursor(cursor);
+			skinComposite.setCursor(cursor);
 		}
 
 		return skinObject;
@@ -1753,7 +1755,7 @@ public class SWTSkin
 			final String sConfigID, SWTSkinObject parentSkinObject) {
 		Composite createOn;
 		if (parentSkinObject == null) {
-			createOn = shell;
+			createOn = skinComposite;
 		} else {
 			createOn = (Composite) parentSkinObject.getControl();
 		}
