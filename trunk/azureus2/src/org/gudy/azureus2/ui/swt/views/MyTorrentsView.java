@@ -2170,7 +2170,8 @@ public class MyTorrentsView
 					PiecesView.MSGID_PREFIX,
 					DownloadActivityView.MSGID_PREFIX,
 					PieceInfoView.MSGID_PREFIX,
-					FilesView.MSGID_PREFIX
+					FilesView.MSGID_PREFIX,
+					"rcm.subview.torrentdetails.name"	// discoveries sub-tab hack
 				});
 		
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
