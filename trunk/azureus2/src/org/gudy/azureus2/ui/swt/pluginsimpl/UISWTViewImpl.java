@@ -31,6 +31,8 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.awt.SWT_AWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -154,7 +156,27 @@ public class UISWTViewImpl
 			if (uiFunctions != null) {
 				uiFunctions.closePluginView(this);
 			}
-		} catch (Exception e) {
+			
+			Composite c = getComposite();
+			
+			if ( c != null && !c.isDisposed()){
+			
+				Composite parent = c.getParent();
+				
+				triggerEvent( UISWTViewEvent.TYPE_DESTROY, null );
+				
+				if ( parent instanceof CTabFolder ){
+					
+					for ( CTabItem item: ((CTabFolder)parent).getItems()){
+						
+						if ( item.getControl() == c ){
+							
+							item.dispose();
+						}
+					}
+				}
+			}
+		} catch (Throwable e) {
 			Debug.out(e);
 		}
 	}
