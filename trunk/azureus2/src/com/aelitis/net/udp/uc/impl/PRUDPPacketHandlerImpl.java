@@ -129,6 +129,7 @@ PRUDPPacketHandlerImpl
 	private long		total_requests_processed;
 	private long		total_replies;
 	private long		last_error_report;
+	private Average		request_receive_average = Average.getInstance( 1000, 10 );
 	
 	private AEMonitor	bind_address_mon	= new AEMonitor( "PRUDPPH:bind" );
 
@@ -869,7 +870,7 @@ PRUDPPacketHandlerImpl
 								last_error_report	= now;
 
 								Debug.out( "Receive queue entry limit exceeded (" + 
-											recv_queue.size() + "), dropping request packet ]" +
+											recv_queue.size() + "), dropping request packet [" +
 											total_requests_received + "/" + total_requests_processed + ":" + total_replies + "]");
 							}
 							
@@ -902,23 +903,47 @@ PRUDPPacketHandlerImpl
 														data = (Object[])recv_queue.remove(0);
 														
 														total_requests_processed++;
-														
+													
+														recv_queue_data_size -= ((Integer)data[1]).intValue();
+
+														request_receive_average.addValue( 1 );
+																												
 													}finally{
 														
 														recv_queue_mon.exit();
 													}
 													
 													PRUDPPacketRequest	p = (PRUDPPacketRequest)data[0];
-													
-													recv_queue_data_size -= ((Integer)data[1]).intValue();
-													
+																										
 													PRUDPRequestHandler	handler = request_handler;
 													
 													if ( handler != null ){
 														
 														handler.process( p );
 													
-														Thread.sleep( receive_delay );
+														if ( receive_delay > 0 ){
+															
+															int 	max_req_per_sec = 1000/receive_delay;
+															
+															long	request_per_sec = request_receive_average.getAverage();
+															
+															//System.out.println( request_per_sec + "/" + max_req_per_sec + " - " + recv_queue_data_size );
+															
+															if ( request_per_sec > max_req_per_sec ){
+															
+																Thread.sleep( receive_delay );
+																
+															}else{
+																
+																long	delay = ( receive_delay * request_per_sec ) / max_req_per_sec;
+															
+																if ( delay >= 5 ){
+																	
+																	Thread.sleep( delay );
+																}
+																
+															}
+														}
 													}
 													
 												}catch( Throwable e ){
