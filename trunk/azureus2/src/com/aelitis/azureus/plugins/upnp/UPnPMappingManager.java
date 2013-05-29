@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.net.upnp.services.UPnPWANConnection;
 
 public class 
@@ -57,8 +58,9 @@ UPnPMappingManager
 	
 	private UPnPPlugin	plugin;
 	
-	private List	mappings	= new ArrayList();
-	private List	listeners	= new ArrayList();
+	private List<UPnPMapping>	mappings	= new ArrayList<UPnPMapping>();
+	
+	private CopyOnWriteList<UPnPMappingManagerListener>			listeners	= new CopyOnWriteList<UPnPMappingManagerListener>();
 	
 	private AsyncDispatcher	async_dispatcher = new AsyncDispatcher();
 	
@@ -410,7 +412,10 @@ UPnPMappingManager
 		
 		UPnPMapping	mapping = new UPnPMapping(desc_resource, tcp, port, enabled );
 		
-		mappings.add( mapping );
+		synchronized( mappings ){
+		
+			mappings.add( mapping );
+		}
 		
 		added( mapping );
 		
@@ -420,11 +425,14 @@ UPnPMappingManager
 	public UPnPMapping[]
 	getMappings()
 	{
-		UPnPMapping[]		res = new UPnPMapping[mappings.size()];
+		synchronized( mappings ){
+			
+			UPnPMapping[]		res = new UPnPMapping[mappings.size()];
 		
-		mappings.toArray( res );
+			mappings.toArray( res );
 		
-		return( res );
+			return( res );
+		}
 	}
 	
 	public UPnPMapping
@@ -432,13 +440,16 @@ UPnPMappingManager
 		boolean	tcp,
 		int		port )
 	{
-		for (int i=0;i<mappings.size();i++){
+		synchronized( mappings ){
 			
-			UPnPMapping	mapping = (UPnPMapping)mappings.get(i);
-			
-			if ( mapping.isTCP() == tcp && mapping.getPort() == port ){
+			for (int i=0;i<mappings.size();i++){
 				
-				return( mapping );
+				UPnPMapping	mapping = (UPnPMapping)mappings.get(i);
+				
+				if ( mapping.isTCP() == tcp && mapping.getPort() == port ){
+					
+					return( mapping );
+				}
 			}
 		}
 		
@@ -452,13 +463,16 @@ UPnPMappingManager
 	{
 		List	res = new ArrayList();
 		
-		for (int i=0;i<mappings.size();i++){
+		synchronized( mappings ){
 			
-			UPnPMapping	mapping = (UPnPMapping)mappings.get(i);
-			
-			if ( mapping.isTCP() == tcp && mapping.getPort() == port ){
+			for (int i=0;i<mappings.size();i++){
 				
-				res.add( mapping );
+				UPnPMapping	mapping = (UPnPMapping)mappings.get(i);
+				
+				if ( mapping.isTCP() == tcp && mapping.getPort() == port ){
+					
+					res.add( mapping );
+				}
 			}
 		}
 		
@@ -482,13 +496,22 @@ UPnPMappingManager
 				mappingDestroyed(
 					UPnPMapping	mapping )
 				{
-					mappings.remove( mapping );
+					synchronized( mappings ){
+						
+						mappings.remove( mapping );
+					}
 				}
 			});
 		
-		for (int i=0;i<listeners.size();i++){
+		for (UPnPMappingManagerListener listener: listeners){
 			
-			((UPnPMappingManagerListener)listeners.get(i)).mappingAdded( mapping );
+			try{
+				listener.mappingAdded( mapping );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
 		}
 	}
 	
@@ -501,7 +524,7 @@ UPnPMappingManager
 	
 	public void
 	removeListener(
-			UPnPMappingManagerListener	l )
+		UPnPMappingManagerListener	l )
 	{
 		listeners.remove(l);
 	}
