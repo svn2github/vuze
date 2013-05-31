@@ -40,8 +40,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.transfer.*;
 import org.gudy.azureus2.core3.util.*;
-
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
@@ -335,7 +335,7 @@ public class VersionCheckClient {
 					// clear down any plugin-specific data that has successfully been sent to the version server
 
 					try{
-						if ( AzureusCoreFactory.isCoreAvailable()){
+						if ( AzureusCoreFactory.isCoreAvailable() && AzureusCoreFactory.getSingleton().getPluginManager().isInitialized()){
 
 							//installed plugin IDs
 							PluginInterface[] plugins = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaces();
@@ -1489,7 +1489,8 @@ public class VersionCheckClient {
 			}
 
 			try{
-				if ( AzureusCoreFactory.isCoreAvailable()){
+				if ( AzureusCoreFactory.isCoreAvailable() && 
+						AzureusCoreFactory.getSingleton().getPluginManager().isInitialized()){
 
 					//installed plugin IDs
 					PluginInterface[] plugins = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaces();
