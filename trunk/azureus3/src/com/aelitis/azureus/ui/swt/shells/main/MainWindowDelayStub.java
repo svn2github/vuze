@@ -698,21 +698,13 @@ MainWindowDelayStub
 		public void 
 		showGlobalTransferBar() 
 		{
-			CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
-				public void azureusCoreRunning(AzureusCore core) {
-					AllTransfersBar.open(core.getGlobalManager(), getMainShell());
-				}
-			});
+			AllTransfersBar.open(getMainShell());
 		}
 
 		public void 
 		closeGlobalTransferBar() 
 		{
-			CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
-				public void azureusCoreRunning(AzureusCore core) {
-					AllTransfersBar.close(core.getGlobalManager());
-				}
-			});
+			AllTransfersBar.closeAllTransfersBar();
 		}
 
 

@@ -689,17 +689,6 @@ public class MenuFactory
 		});
 	}
 
-	public static MenuItem addTagsOverviewMenuItem(Menu menu) {
-		return addMenuItem(menu, MENU_ID_TAGS_OVERVIEW, new Listener() {
-			public void handleEvent(Event e) {
-				UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
-				if (uiFunctions != null) {
-					uiFunctions.openView(UIFunctions.VIEW_TAGS_OVERVIEW, null);
-				}
-			}
-		});
-	}
-	
 	public static MenuItem addDeviceManagerMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_DEVICEMANAGER, new Listener() {
 			public void handleEvent(Event e) {
@@ -777,10 +766,9 @@ public class MenuFactory
 					public void handleEvent(AzureusCore core, Event e) {
 						if (AllTransfersBar.getManager().isOpen(
 								core.getGlobalManager())) {
-							AllTransfersBar.close(core.getGlobalManager());
+							AllTransfersBar.closeAllTransfersBar();
 						} else {
-							AllTransfersBar.open(core.getGlobalManager(),
-									menu.getShell());
+							AllTransfersBar.open(menu.getShell());
 						}
 					}
 				});
@@ -2378,5 +2366,4 @@ public class MenuFactory
 			  public void setData(String id, Object data) {}
 		};
 	}
-
 }

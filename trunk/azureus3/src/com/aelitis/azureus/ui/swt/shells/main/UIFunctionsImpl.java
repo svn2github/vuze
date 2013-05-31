@@ -59,16 +59,13 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
-import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.update.FullUpdateWindow;
 import org.gudy.azureus2.ui.swt.views.*;
 import org.gudy.azureus2.ui.swt.views.clientstats.ClientStatsView;
 
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.ui.*;
@@ -462,7 +459,7 @@ public class UIFunctionsImpl
 				break;
 
 			case VIEW_MYSHARES:
-				openView(SideBar.SIDEBAR_HEADER_PLUGINS,
+				openView(SideBar.SIDEBAR_HEADER_TRANSFERS,
 						MySharesView.class, null, data, true);
 				break;
 
@@ -475,7 +472,7 @@ public class UIFunctionsImpl
 				break;
 
 			case VIEW_MYTRACKER:
-				openView(SideBar.SIDEBAR_HEADER_PLUGINS, MyTrackerView.class,
+				openView(SideBar.SIDEBAR_HEADER_TRANSFERS, MyTrackerView.class,
 						null, data, true);
 				break;
 
@@ -567,7 +564,11 @@ public class UIFunctionsImpl
 
 	}
 	public UISWTInstance getUISWTInstance() {
-		return mainWindow.getUISWTInstanceImpl();
+		UISWTInstanceImpl impl = mainWindow.getUISWTInstanceImpl();
+		if (impl == null) {
+			Debug.out("No uiswtinstanceimpl");
+		}
+		return impl;
 	}
 	
 	// @see com.aelitis.azureus.ui.UIFunctions#viewURL(java.lang.String, java.lang.String, java.lang.String)
@@ -728,19 +729,11 @@ public class UIFunctionsImpl
 	}
 
 	public void showGlobalTransferBar() {
-		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
-			public void azureusCoreRunning(AzureusCore core) {
-				AllTransfersBar.open(core.getGlobalManager(), getMainShell());
-			}
-		});
+		AllTransfersBar.open(getMainShell());
 	}
 
 	public void closeGlobalTransferBar() {
-		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
-			public void azureusCoreRunning(AzureusCore core) {
-				AllTransfersBar.close(core.getGlobalManager());
-			}
-		});
+		AllTransfersBar.closeAllTransfersBar();
 	}
 
 	public void refreshTorrentMenu() {

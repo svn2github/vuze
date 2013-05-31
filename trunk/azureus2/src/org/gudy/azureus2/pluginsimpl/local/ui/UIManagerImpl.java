@@ -275,8 +275,21 @@ UIManagerImpl
 				Debug.printStackTrace(e);
 			}
   		}
-  	}
+
   	
+		for (Object[] entry : to_fire) {
+
+			try {
+				if (entry[0] instanceof UIManagerListener2) {
+					((UIManagerListener2) entry[0]).UIAttachedComplete((UIInstance) entry[1]);
+				}
+
+			} catch (Throwable e) {
+
+				Debug.printStackTrace(e);
+			}
+		}
+	}  	
   	
   	public void attachUI(UIInstanceFactory factory) throws UIException {
   		attachUI(factory, null);
@@ -314,27 +327,43 @@ UIManagerImpl
   			class_mon.exit();
   		}		
   		
-  		for ( Object[] entry: to_fire ){
+		for (Object[] entry : to_fire) {
 
-			PluginInterface pi = (PluginInterface)entry[1];
-				
+			PluginInterface pi = (PluginInterface) entry[1];
+
 			String name = pi.getPluginName();
-				
-			if ( init != null ){
-					
-				init.reportCurrentTask(MessageText.getString("splash.plugin.UIinit",new String[] {name}));
-					
+
+			if (init != null) {
+
+				init.reportCurrentTask(MessageText.getString("splash.plugin.UIinit",
+						new String[] {
+							name
+						}));
+
 				init.increaseProgress();
 			}
-				
-			try{
-				((UIManagerListener)entry[0]).UIAttached( (UIInstance)entry[2]);
-					
-			}catch( Throwable e ){
-					
+
+			try {
+				((UIManagerListener) entry[0]).UIAttached((UIInstance) entry[2]);
+
+			} catch (Throwable e) {
+
 				Debug.printStackTrace(e);
 			}
-  		}
+		}
+
+		for (Object[] entry : to_fire) {
+
+			try {
+				if (entry[0] instanceof UIManagerListener2) {
+					((UIManagerListener2) entry[0]).UIAttachedComplete((UIInstance) entry[1]);
+				}
+
+			} catch (Throwable e) {
+
+				Debug.printStackTrace(e);
+			}
+		}
 	}
 	
 	public void
@@ -421,8 +450,22 @@ UIManagerImpl
 				Debug.printStackTrace(e);
 			}
   		}
-  	}
-  	
+
+		if (listener instanceof UIManagerListener2) {
+			for (UIInstance instance : to_fire) {
+
+				try {
+					((UIManagerListener2) listener).UIAttachedComplete(instance);
+
+				} catch (Throwable e) {
+
+					Debug.printStackTrace(e);
+				}
+			}
+		}
+
+	}
+ 	
  	public void
   	removeUIListener(
   		UIManagerListener listener )

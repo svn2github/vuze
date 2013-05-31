@@ -18,6 +18,8 @@
  
 package com.aelitis.azureus.ui.mdi;
 
+import java.util.Map;
+
 import org.gudy.azureus2.plugins.ui.UIPluginView;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarEnablerBase;
 
@@ -36,6 +38,8 @@ public interface MdiEntry
 	public String getParentID();
 
 	public Object getDatasource();
+
+	public String getExportableDatasource();
 
 	public boolean isCloseable();
 
@@ -78,6 +82,10 @@ public interface MdiEntry
 	 * @since 4.1.0.3
 	 */
 	void removeListener(MdiEntryOpenListener l);
+
+	public void addListener(MdiEntryDatasourceListener l);
+
+	public void removeListener(MdiEntryDatasourceListener l);
 
 	public void setImageLeftID(String string);
 
@@ -162,4 +170,6 @@ public interface MdiEntry
 	public Object
 	getUserData(
 		Object	key );
+
+	public Map<String, Object> getAutoOpenInfo();
 }

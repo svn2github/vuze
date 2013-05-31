@@ -254,10 +254,6 @@ public class TabbedMDI
 		}
 	}
 	
-	public boolean showEntryByID(String id) {
-		return loadEntryByID(id, true);
-	}
-	
 	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#loadEntryByID(java.lang.String, boolean)
 	public boolean loadEntryByID(String id, boolean activate) {
 		return loadEntryByID(id, activate, false, null);
@@ -307,7 +303,7 @@ public class TabbedMDI
 				return true;
 			}
 		} else {
-			setEntryAutoOpen(id, datasource, true);
+			setEntryAutoOpen(id, datasource);
 		}
 
 		

@@ -1,8 +1,11 @@
 package com.aelitis.azureus.ui.swt.mdi;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
+
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -23,9 +26,7 @@ import com.aelitis.azureus.ui.mdi.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.views.skin.SkinView;
-import com.aelitis.azureus.util.ConstantsVuze;
-import com.aelitis.azureus.util.ContentNetworkUtils;
-import com.aelitis.azureus.util.MapUtils;
+import com.aelitis.azureus.util.*;
 
 public abstract class BaseMDI
 	extends SkinView
@@ -111,7 +112,7 @@ public abstract class BaseMDI
 		if (entry != null) {
 			entry.close(false);
 		} else {
-			setEntryAutoOpen(id, null, false);
+			removeEntryAutoOpen(id);
 		}
 	}
 
@@ -214,13 +215,28 @@ public abstract class BaseMDI
 		}
 	}
 
-	public abstract boolean showEntryByID(String id);
+	public boolean showEntryByID(String id) {
+		return loadEntryByID(id, true);
+	}
 
 	@Override
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		return null;
 	}
 
+	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectDestroyed(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
+	public Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
+		MdiEntry entry = getCurrentEntry();
+		if (entry != null) {
+  		COConfigurationManager.setParameter("v3.StartTab",
+  				entry.getId());
+  		String ds = entry.getExportableDatasource();
+  		COConfigurationManager.setParameter("v3.StartTab.ds", ds == null ? null : ds.toString());
+		}
+
+		return super.skinObjectDestroyed(skinObject, params);
+	}
+	
 	public void updateUI() {
 		MdiEntry currentEntry = getCurrentEntry();
 		if (currentEntry != null) {
@@ -278,14 +294,19 @@ public abstract class BaseMDI
 		});
 	}
 
-	public void setEntryAutoOpen(String id, Object datasource, boolean autoOpen) {
-		if (!autoOpen) {
-			mapAutoOpen.remove(id);
-		} else {
-			LightHashMap<String, Object> map = new LightHashMap<String, Object>(1);
-			map.put("datasource", datasource);
-			mapAutoOpen.put(id, map);
+	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#setEntryAutoOpen(java.lang.String, java.lang.Object)
+	public void setEntryAutoOpen(String id, Object datasource) {
+		Map<String, Object> map = (Map<String, Object>) mapAutoOpen.get(id);
+		if (map == null) {
+			map = new LightHashMap<String, Object>(1);
 		}
+		map.put("datasource", datasource);
+		mapAutoOpen.put(id, map);
+	}
+	
+	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#removeEntryAutoOpen(java.lang.String)
+	public void removeEntryAutoOpen(String id) {
+		mapAutoOpen.remove(id);
 	}
 
 	protected void setupPluginViews() {
@@ -332,19 +353,14 @@ public abstract class BaseMDI
 		"rawtypes"
 	})
 	public void saveCloseables() {
-		// update title
+		// update auto open info
 		for (Iterator<?> iter = mapAutoOpen.keySet().iterator(); iter.hasNext();) {
 			String id = (String) iter.next();
-			Object o = mapAutoOpen.get(id);
 
 			MdiEntry entry = getEntry(id);
-			if (entry != null && entry.isAdded() && (o instanceof Map)) {
-				Map autoOpenInfo = (Map) o;
-
-				String s = entry.getTitle();
-				if (s != null) {
-					autoOpenInfo.put("title", s);
-				}
+			
+			if (entry != null && entry.isAdded()) {
+				mapAutoOpen.put(id, entry.getAutoOpenInfo());
 			}
 		}
 
@@ -353,7 +369,6 @@ public abstract class BaseMDI
 
 	private boolean processAutoOpenMap(String id, Map<?, ?> autoOpenInfo,
 			IViewInfo viewInfo) {
-		//System.out.println("processAutoOpenMap " + id + " via " + Debug.getCompressedStackTrace());
 		try {
 			MdiEntry entry = getEntry(id);
 			if (entry != null) {
@@ -364,10 +379,25 @@ public abstract class BaseMDI
 				createWelcomeSection();
 			}
 			
-			MdiEntryCreationListener mdiEntryCreationListener = mapIdToCreationListener.get(id);
+			Object datasource = autoOpenInfo.get("datasource");
+			String title = MapUtils.getMapString(autoOpenInfo, "title", id);
+
+			MdiEntryCreationListener mdiEntryCreationListener = null;
+			for (String key : mapIdToCreationListener.keySet()) {
+				if (Pattern.matches(key, id)) {
+					mdiEntryCreationListener = mapIdToCreationListener.get(key);
+					break;
+				}
+			}
 			if (mdiEntryCreationListener != null) {
 				try {
-					mdiEntryCreationListener.createMDiEntry(id);
+					MdiEntry mdiEntry = mdiEntryCreationListener.createMDiEntry(id);
+					if (datasource != null) {
+						mdiEntry.setDatasource(datasource);
+					}
+					if (mdiEntry.getTitle().equals("")) {
+						mdiEntry.setTitle(title);
+					}
 					return true;
 				} catch (Exception e) {
 					Debug.out(e);
@@ -375,9 +405,7 @@ public abstract class BaseMDI
 			}
 
 
-			String title = MapUtils.getMapString(autoOpenInfo, "title", id);
 			String parentID = MapUtils.getMapString(autoOpenInfo, "parentID", SIDEBAR_HEADER_PLUGINS);
-			Object datasource = autoOpenInfo.get("datasource");
 
 			if (viewInfo != null) {
 				if (viewInfo.view != null) {

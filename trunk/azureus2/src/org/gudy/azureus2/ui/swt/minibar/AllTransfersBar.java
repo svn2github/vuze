@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -41,9 +42,12 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.DoubleBufferedLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.SelectableSpeedMenu;
+import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 
 /**
  * @author Allan Crooks
@@ -64,17 +68,28 @@ public class AllTransfersBar extends MiniBar {
 		return (AllTransfersBar)manager.getMiniBarForObject(g_manager);
 	}
 	
-	public static AllTransfersBar open(GlobalManager g_manager, Shell main) {
-		AllTransfersBar result = getBarIfOpen(g_manager);
-		if (result == null) {
-			result = new AllTransfersBar(g_manager, main);
-		}
-		return result;
+	public static void open(final Shell main) {
+		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				GlobalManager g_manager = core.getGlobalManager();
+				AllTransfersBar result = getBarIfOpen(g_manager);
+				if (result == null) {
+					result = new AllTransfersBar(g_manager, main);
+				}
+			}
+		});
 	}
 
-	public static void close(GlobalManager g_manager) {
-		AllTransfersBar result = getBarIfOpen(g_manager);
-		if (result != null) {result.close();}
+	public static void closeAllTransfersBar() {
+		CoreWaiterSWT.waitForCoreRunning(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				GlobalManager g_manager = core.getGlobalManager();
+				AllTransfersBar result = getBarIfOpen(g_manager);
+				if (result != null) {
+					result.close();
+				}
+			}
+		});
 	}
 	
 	private GlobalManager g_manager;

@@ -28,13 +28,16 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.widgets.Menu;
+
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import com.sun.org.apache.xpath.internal.operations.Minus;
 
 /**
  * A class which helps generate build SWT menus.
@@ -301,5 +304,4 @@ public class MenuBuildUtils {
 
 		}
 	}
-
 }

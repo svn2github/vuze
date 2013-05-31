@@ -65,9 +65,6 @@ public class PluginsMenuHelper
 			MenuBuildUtils.addPluginMenuItems(parent, plugin_items, viewMenu, true,
 					true, MenuBuildUtils.BASIC_MENU_ITEM_CONTROLLER);
 		}
-		if (viewMenu.getItemCount() > 0) {
-			MenuFactory.addSeparatorMenuItem(viewMenu);
-		}
 
 		try {
 

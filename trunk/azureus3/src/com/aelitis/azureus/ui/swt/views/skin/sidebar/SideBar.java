@@ -322,7 +322,7 @@ public class SideBar
 			Debug.out(e);
 		}
 
-		return null;
+		return super.skinObjectDestroyed(skinObject, params);
 	}
 
 	private void createSideBar() {
@@ -1416,10 +1416,6 @@ public class SideBar
 		currentEntry.updateUI();
 	}
 
-	public boolean showEntryByID(String id) {
-		return loadEntryByID(id, true);
-	}
-
 	public boolean loadEntryByID(String id, boolean activate) {
 		return loadEntryByID(id, activate, false, null);
 	}
@@ -1492,7 +1488,7 @@ public class SideBar
 				return true;
 			}
 		} else {
-			setEntryAutoOpen(id, datasource, true);
+			setEntryAutoOpen(id, datasource);
 		}
 
 		return false;

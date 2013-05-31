@@ -100,7 +100,9 @@ public interface MultipleDocumentInterface
 
 	public void removeItem(MdiEntry entry);
 
-	public void setEntryAutoOpen(String id, Object datasource, boolean autoOpen);
+	public void setEntryAutoOpen(String id, Object datasource);
+	
+	public void removeEntryAutoOpen(String id);
 
 	public void showEntry(MdiEntry newEntry);
 

@@ -348,7 +348,7 @@ public class TabbedEntry
 				}
 
 				mdi.removeItem(TabbedEntry.this);
-				mdi.setEntryAutoOpen(id, null, false);
+				mdi.removeEntryAutoOpen(id);
 			}
 		});
 	}

@@ -32,9 +32,6 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.activities.VuzeActivitiesEntry;
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.core.content.RelatedContent;
 import com.aelitis.azureus.core.devices.DeviceOfflineDownload;
 import com.aelitis.azureus.core.devices.TranscodeFile;
 import com.aelitis.azureus.core.devices.TranscodeJob;
@@ -130,7 +127,19 @@ public class DataSourceUtils
 				}
 			} else if (ds instanceof DeviceOfflineDownload ) {
 				return( PluginCoreUtils.unwrap(((DeviceOfflineDownload)ds).getDownload()));
+			}	else if ((ds instanceof String)  && AzureusCoreFactory.isCoreRunning()) {
+				String hash = (String) ds;
+				try {
+	  			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+	  			DownloadManager dm = gm.getDownloadManager(new HashWrapper(Base32.decode(hash)));
+	  			if (dm != null) {
+	  				return dm;
+	  			}
+				} catch (Exception e) {
+					// ignore
+				}
 			}
+
 
 		} catch (Exception e) {
 			Debug.printStackTrace(e);

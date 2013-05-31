@@ -311,8 +311,10 @@ public class MainWindowImpl
 
 		StimulusRPC.hookListeners(core, this);
 
-		uiSWTInstanceImpl = new UISWTInstanceImpl(core);
-		uiSWTInstanceImpl.init(uiInitializer);
+		if (uiSWTInstanceImpl == null) {
+			uiSWTInstanceImpl = new UISWTInstanceImpl();
+			uiSWTInstanceImpl.init(uiInitializer);
+		}
 
 		postPluginSetup(core);
 
@@ -830,15 +832,11 @@ public class MainWindowImpl
 			increaseProgress(uiInitializer, "v3.splash.hookPluginUI");
 			startTime = SystemTime.getCurrentTime();
 
-			if (core != null) {
-				// attach the UI to plugins
-				// Must be done before initializing views, since plugins may register
-				// table columns and other objects
-				uiSWTInstanceImpl = new UISWTInstanceImpl(core);
-				uiSWTInstanceImpl.init(uiInitializer);
-				//uiSWTInstanceImpl.addView(UISWTInstance.VIEW_MYTORRENTS,
-				//		"PieceGraphView", new PieceGraphView());
-			}
+			// attach the UI to plugins
+			// Must be done before initializing views, since plugins may register
+			// table columns and other objects
+			uiSWTInstanceImpl = new UISWTInstanceImpl();
+			uiSWTInstanceImpl.init(uiInitializer);
 
 			System.out.println("SWTInstance init took "
 					+ (SystemTime.getCurrentTime() - startTime) + "ms");
@@ -2255,15 +2253,12 @@ public class MainWindowImpl
 		return fullImage;
 	}
 
-	// @see com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarListener#sidebarItemSelected(com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarInfoSWT, com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarInfoSWT)
+	// @see com.aelitis.azureus.ui.mdi.MdiListener#mdiEntrySelected(com.aelitis.azureus.ui.mdi.MdiEntry, com.aelitis.azureus.ui.mdi.MdiEntry)
 	public void mdiEntrySelected(MdiEntry newEntry,
 			MdiEntry oldEntry) {
 		if (newEntry == null) {
 			return;
 		}
-
-		COConfigurationManager.setParameter("v3.StartTab",
-				newEntry.getId());
 
 		if (mapTrackUsage != null && oldEntry != null) {
 			oldEntry.removeListener(this);

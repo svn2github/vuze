@@ -1086,7 +1086,7 @@ public class SideBarEntrySWT
 					Debug.out(e2);
 				}
 
-				mdi.setEntryAutoOpen(id, null, false);
+				mdi.removeEntryAutoOpen(id);
 			}
 		});
 	}

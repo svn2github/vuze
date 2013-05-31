@@ -62,7 +62,9 @@ import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 
+import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
@@ -70,22 +72,19 @@ import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
-import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo2;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
-import com.aelitis.azureus.ui.mdi.MdiEntry;
-import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentListener;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
-import com.aelitis.azureus.ui.swt.mdi.MdiSWTMenuHackListener;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTextbox;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
+import com.aelitis.azureus.util.DataSourceUtils;
 
 /**
  * Torrent download view, consisting of several information tabs
@@ -95,7 +94,7 @@ import com.aelitis.azureus.ui.swt.utils.ColorCache;
  */
 public class SBC_TorrentDetailsView
 	extends SkinView
-	implements DownloadManagerListener, ObfusticateTab, ViewTitleInfo2,
+	implements DownloadManagerListener, ObfusticateTab,
 	UIUpdatable, UIPluginViewToolBarListener, SelectedContentListener
 {
 
@@ -129,56 +128,62 @@ public class SBC_TorrentDetailsView
 	public SBC_TorrentDetailsView() {
 		// assumed if we are opening a Download Manager View that we
 		// have a DownloadManager and thus an AzureusCore
-		GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
-		gmListener = new GlobalManagerAdapter() {
-			public void downloadManagerRemoved(DownloadManager dm) {
-				if (dm.equals(manager)) {
-					Utils.execSWTThread(new AERunnable() {
-						public void runSupport() {
-							getMainSkinObject().dispose();
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+				gmListener = new GlobalManagerAdapter() {
+					public void downloadManagerRemoved(DownloadManager dm) {
+						if (dm.equals(manager)) {
+							Utils.execSWTThread(new AERunnable() {
+								public void runSupport() {
+									getMainSkinObject().dispose();
+								}
+							});
 						}
-					});
-				}
+					}
+				};
+				gm.addListener(gmListener, false);
 			}
-		};
-		gm.addListener(gmListener, false);
+		});
 	}
 
+	public static DownloadManager dataSourceToDownloadManager(Object ds) {
+		DownloadManager dm = null;
+		if (ds instanceof DownloadImpl) {
+			DownloadImpl dataSourcePlugin = (DownloadImpl) ds;
+			dm = dataSourcePlugin.getDownload();
+		} else if (ds instanceof DownloadManager) {
+			dm = (DownloadManager) ds;
+		} else if (ds instanceof Object[]
+				&& ((Object[]) ds)[0] instanceof DownloadManager) {
+			Object[] o = (Object[]) ds;
+			dm = (DownloadManager) o[0];
+		} else if (ds instanceof String) {
+			final String s = (String) ds;
+			dm = DataSourceUtils.getDM(s);
+		} else {
+			dm = null;
+		}
+		return dm;
+	}
+	
 	private void dataSourceChanged(Object newDataSource) {
 		if (manager != null) {
 			manager.removeListener(this);
 		}
 
-		DownloadImpl dataSourcePlugin = null;
-		if (newDataSource instanceof DownloadImpl) {
-			dataSourcePlugin = (DownloadImpl) newDataSource;
-			manager = dataSourcePlugin.getDownload();
-		} else if (newDataSource instanceof DownloadManager) {
-			manager = (DownloadManager) newDataSource;
-			try {
-				dataSourcePlugin = DownloadManagerImpl.getDownloadStatic(manager);
-			} catch (DownloadException e) { /* Ignore */
-			}
-		} else if (newDataSource instanceof Object[]
-				&& ((Object[]) newDataSource)[0] instanceof DownloadManager) {
+		manager = dataSourceToDownloadManager(newDataSource);
+		
+		if (newDataSource instanceof Object[]
+				&& ((Object[]) newDataSource)[1] instanceof PEPeer) {
 			Object[] o = (Object[]) newDataSource;
-			manager = (DownloadManager) o[0];
-			try {
-				dataSourcePlugin = DownloadManagerImpl.getDownloadStatic(manager);
-			} catch (DownloadException e) { /* Ignore */
+
+			PeersView pv = (PeersView) showView(PeersView.class);
+
+			if (pv != null) {
+
+				pv.selectPeer((PEPeer) o[1]);
 			}
-
-			if (o[1] instanceof PEPeer) {
-				PeersView pv = (PeersView) showView(PeersView.class);
-
-				if (pv != null) {
-
-					pv.selectPeer((PEPeer) o[1]);
-				}
-			}
-
-		} else {
-			manager = null;
 		}
 
 		if (manager != null) {
@@ -193,7 +198,6 @@ public class SBC_TorrentDetailsView
 		}
 
 		refreshTitle();
-		ViewTitleInfoManager.refreshTitleInfo(this);
 	}
 
 	private void delete() {
@@ -395,6 +399,19 @@ public class SBC_TorrentDetailsView
 				item.setData("IView", view);
 			}
 
+			if (mdi_entry != null) {
+				String id = "";
+				if (activeView instanceof UISWTViewImpl) {
+					id = "" + ((UISWTViewImpl) activeView).getViewID();
+					id = id.substring(id.lastIndexOf(".") + 1);
+				} else if (activeView != null) {
+					String simpleName = activeView.getClass().getName();
+					id = simpleName.substring(simpleName.lastIndexOf(".") + 1);
+				} else {
+					id = "??";
+				}
+				mdi_entry.setLogID("DMDetails-" + id);
+			}
 			activeView = view;
 
 			if (item.getControl() == null) {
@@ -443,7 +460,8 @@ public class SBC_TorrentDetailsView
 			}
 
 			refresh();
-			ViewTitleInfoManager.refreshTitleInfo(SBC_TorrentDetailsView.this);
+			mdi_entry.redraw();
+			ViewTitleInfoManager.refreshTitleInfo(mdi_entry.getViewTitleInfo());
 		} catch (Exception e) {
 			Debug.out(e);
 		} finally {
@@ -568,7 +586,9 @@ public class SBC_TorrentDetailsView
 	private void refreshTitle() {
 		int completed = manager == null ? -1 : manager.getStats().getCompleted();
 		if (lastCompleted != completed) {
-			ViewTitleInfoManager.refreshTitleInfo(this);
+			if (mdi_entry != null) {
+				ViewTitleInfoManager.refreshTitleInfo(mdi_entry.getViewTitleInfo());
+			}
 			lastCompleted = completed;
 		}
 	}
@@ -681,78 +701,6 @@ public class SBC_TorrentDetailsView
 
 	public DownloadManager getDownload() {
 		return manager;
-	}
-
-	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo2#titleInfoLinked(com.aelitis.azureus.ui.mdi.MultipleDocumentInterface, com.aelitis.azureus.ui.mdi.MdiEntry)
-	public void titleInfoLinked(MultipleDocumentInterface mdi, MdiEntry mdiEntry) {
-		if (mdiEntry instanceof MdiEntrySWT) {
-			((MdiEntrySWT) mdiEntry).addListener(new MdiSWTMenuHackListener() {
-				public void menuWillBeShown(MdiEntry entry, Menu menuTree) {
-					TableView<?> tv = SelectedContentManager.getCurrentlySelectedTableView();
-					menuTree.setData("TableView", tv);
-					menuTree.setData("downloads", new DownloadManager[] {
-						manager
-					});
-					menuTree.setData("is_detailed_view", new Boolean(true));
-
-					MenuFactory.buildTorrentMenu(menuTree);
-				}
-			});
-		}
-	}
-
-	// @see com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo#getTitleInfoProperty(int)
-	public Object getTitleInfoProperty(int propertyID) {
-		if (propertyID == TITLE_TEXT) {
-			if (Utils.isAZ2UI()) {
-				if (manager == null) {
-					return null;
-				}
-				int completed = manager.getStats().getCompleted();
-				return DisplayFormatters.formatPercentFromThousands(completed) + " : "
-						+ manager.getDisplayName();
-			}
-
-			return manager == null ? "" : manager.getDisplayName();
-		}
-
-		if (manager == null) {
-			return null;
-		}
-		if (propertyID == TITLE_INDICATOR_TEXT && !Utils.isAZ2UI()) {
-			int completed = manager.getStats().getCompleted();
-			if (completed != 1000) {
-				return (completed / 10) + "%";
-			}
-		} else if (propertyID == TITLE_INDICATOR_TEXT_TOOLTIP) {
-			String s = "";
-			int completed = manager.getStats().getCompleted();
-			if (completed != 1000) {
-				s = (completed / 10) + "% Complete\n";
-			}
-			String eta = DisplayFormatters.formatETA(manager.getStats().getETA());
-			if (eta.length() > 0) {
-				s += MessageText.getString("TableColumn.header.eta") + ": " + eta
-						+ "\n";
-			}
-
-			return s;
-		} else if (propertyID == TITLE_LOGID) {
-			String id;
-			if (activeView instanceof UISWTViewImpl) {
-				id = "" + ((UISWTViewImpl) activeView).getViewID();
-				id = id.substring(id.lastIndexOf(".") + 1);
-			} else if (activeView != null) {
-				String simpleName = activeView.getClass().getName();
-				id = simpleName.substring(simpleName.lastIndexOf(".") + 1);
-			} else {
-				id = "??";
-			}
-			return "DMDetails-" + id;
-		} else if (propertyID == TITLE_IMAGEID) {
-			return "image.sidebar.details";
-		}
-		return null;
 	}
 
 	// @see org.gudy.azureus2.ui.swt.IconBarEnabler#isSelected(java.lang.String)
@@ -880,7 +828,6 @@ public class SBC_TorrentDetailsView
 			}
 			
 			mdi_entry.addToolbarEnabler(this);
-			mdi_entry.setViewTitleInfo(this);
 		}
 
 		initialize((Composite) soListArea.getControl());

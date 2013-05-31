@@ -70,7 +70,6 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.utils.TableContextMenuManager;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
-import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
@@ -84,8 +83,6 @@ public class
 UISWTInstanceImpl
 	implements UIInstanceFactory, UISWTInstance, UIManagerEventListener
 {
-	private AzureusCore		core;
-	
 	private Map<BasicPluginConfigModel,BasicPluginConfigImpl> 	config_view_map = new WeakHashMap<BasicPluginConfigModel,BasicPluginConfigImpl>();
 	
 	// Map<Parent ID, Map<ViewID, Event Listener>>
@@ -99,9 +96,7 @@ UISWTInstanceImpl
 	private final UIFunctionsSWT uiFunctions;
 
 	
-	public UISWTInstanceImpl(AzureusCore _core) {
-		core		= _core;
-
+	public UISWTInstanceImpl() {
 		// Since this is a UI **SWT** Instance Implementor, it's assumed
 		// that the UI Functions are of UIFunctionsSWT 
 		uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
@@ -775,10 +770,10 @@ UISWTInstanceImpl
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (display) {
-					AllTransfersBar.open(core.getGlobalManager(), getDisplay().getActiveShell());
+					AllTransfersBar.open(getDisplay().getActiveShell());
 				}
 				else {
-					AllTransfersBar.close(core.getGlobalManager());
+					AllTransfersBar.closeAllTransfersBar();
 				}
 			}
 		}, false);

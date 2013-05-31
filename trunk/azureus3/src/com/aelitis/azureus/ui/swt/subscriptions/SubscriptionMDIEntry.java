@@ -36,12 +36,13 @@ import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 
-public class SubscriptionMDIEntry implements SubscriptionListener
+public class SubscriptionMDIEntry implements SubscriptionListener, ViewTitleInfo
 {
 	private static final String ALERT_IMAGE_ID	= "image.sidebar.vitality.alert";
 	private static final String AUTH_IMAGE_ID	= "image.sidebar.vitality.auth";
@@ -65,6 +66,8 @@ public class SubscriptionMDIEntry implements SubscriptionListener
 		if (mdiEntry == null) {
 			return;
 		}
+		
+		mdiEntry.setViewTitleInfo(this);
 
 		mdiEntry.setImageLeftID("image.sidebar.subscriptions");
 		
@@ -821,6 +824,60 @@ public class SubscriptionMDIEntry implements SubscriptionListener
 		return( res );
 	}
 	
+
+	public Object 
+	getTitleInfoProperty(
+		int propertyID ) 
+	{
+		// This should work, but since we have subs already in class, use that
+		//if (mdiEntry == null) {
+		//	return null;
+		//}
+		//Object ds = mdiEntry.getDatasource();
+		//if (!(ds instanceof Subscription)) {
+		//	return null;
+		//}
+		//Subscription subs = (Subscription) ds;
+
+		switch( propertyID ){
+		
+			case ViewTitleInfo.TITLE_TEXT:{
+				
+				return( subs.getName());
+			}
+			case ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP:{
+			
+				long	pop = subs.getCachedPopularity();
+				
+				String res = subs.getName();
+				
+				if ( pop > 1 ){
+					
+					res += " (" + MessageText.getString("subscriptions.listwindow.popularity").toLowerCase() + "=" + pop + ")";
+				}
+										
+				return( res );
+			}
+			case ViewTitleInfo.TITLE_INDICATOR_TEXT :{
+				
+				SubscriptionMDIEntry mdi = (SubscriptionMDIEntry) subs.getUserData(SubscriptionManagerUI.SUB_ENTRYINFO_KEY);
+				
+				if ( mdi != null ){
+					
+					mdi.setWarning();
+				}
+
+				if( subs.getHistory().getNumUnread() > 0 ){
+					
+					return ( "" + subs.getHistory().getNumUnread());
+				}
+				
+				return null;
+			}
+		}
+		
+		return( null );
+	}
 
 	public abstract static class SubsMenuItemListener implements MenuItemListener {
 		public final void selected(MenuItem menu, Object target) {

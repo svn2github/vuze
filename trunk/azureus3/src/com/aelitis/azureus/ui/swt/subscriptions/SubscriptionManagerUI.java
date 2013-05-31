@@ -357,7 +357,7 @@ SubscriptionManagerUI
 				});
 		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 		if (uiClassic) {
-			addAllSubscriptions();
+			registerAllSubscriptions();
 		}
 	}
 
@@ -881,7 +881,7 @@ SubscriptionManagerUI
 				subscriptionAdded(
 					Subscription 		subscription ) 
 				{
-					addSubscription( subscription, false );
+					registerSubscriptionViewMdiEntry( subscription, false );
 				}
 	
 				public void
@@ -919,7 +919,7 @@ SubscriptionManagerUI
 			});
 		
 		if (!uiClassic) {
-			addAllSubscriptions();
+			registerAllSubscriptions();
 		}
 
 		mdi.addListener(
@@ -1092,7 +1092,7 @@ SubscriptionManagerUI
 	}
 
 	private void 
-	addAllSubscriptions() 
+	registerAllSubscriptions() 
 	{
 		SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
 		if (subs_man == null) {
@@ -1114,7 +1114,7 @@ SubscriptionManagerUI
 		
 		for (int i=0;i<subs.length;i++){
 			
-			addSubscription( subs[i], false );
+			registerSubscriptionViewMdiEntry( subs[i], false );
 		}
 	}
 
@@ -1124,18 +1124,14 @@ SubscriptionManagerUI
 	{
 		refreshTitles( mdiEntryOverview );
 
-		if ( subs.isSubscribed()){
-			
-			addSubscription( subs, false );
-			
-		}else{
+		if ( !subs.isSubscribed()){
 			
 			removeSubscription( subs);
 		}
 	}
 	
 	protected void
-	addSubscription(
+	registerSubscriptionViewMdiEntry(
 		final Subscription		subs,
 		final boolean			show )
 	{
@@ -1165,25 +1161,28 @@ SubscriptionManagerUI
 			
 			return;
 		}
-		
+
+		mdi.registerEntry(key, new MdiEntryCreationListener() {
+			public MdiEntry createMDiEntry(String id) {
+				return createSubscriptionMdiEntry(subs);
+			}
+		});
+
 		boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
 		if (uiClassic && !show) {
-			mdi.registerEntry(key, new MdiEntryCreationListener() {
-				public MdiEntry createMDiEntry(String id) {
-					return createSubsEntry(subs);
-				}
-			});
 			return;
 		}
 		
-		if (mdi.entryExists(key)) {
-			return;
-		}
-
-		createSubsEntry(subs);
+		mdi.loadEntryByID(key, show, true, subs);
 	}
 	
-	private MdiEntry createSubsEntry(final Subscription subs) {
+	private MdiEntry createSubscriptionMdiEntry(Subscription subs) {
+		
+		if (!subs.isSubscribed()) {
+			// user may have deleted subscrtipion, but our register is staill there
+			return null;
+		}
+		
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 		
 		if ( mdi == null ){
@@ -1193,59 +1192,12 @@ SubscriptionManagerUI
 			return( null );
 		}
 	
-		ViewTitleInfo viewTitleInfo = new ViewTitleInfo() {
-			public Object 
-			getTitleInfoProperty(
-				int propertyID ) 
-			{
-				switch( propertyID ){
-				
-					case ViewTitleInfo.TITLE_TEXT:{
-						
-						return( subs.getName());
-					}
-					case ViewTitleInfo.TITLE_INDICATOR_TEXT_TOOLTIP:{
-					
-						long	pop = subs.getCachedPopularity();
-						
-						String res = subs.getName();
-						
-						if ( pop > 1 ){
-							
-							res += " (" + MessageText.getString("subscriptions.listwindow.popularity").toLowerCase() + "=" + pop + ")";
-						}
-												
-						return( res );
-					}
-					case ViewTitleInfo.TITLE_INDICATOR_TEXT :{
-						
-						SubscriptionMDIEntry mdi = (SubscriptionMDIEntry) subs.getUserData(SubscriptionManagerUI.SUB_ENTRYINFO_KEY);
-						
-						if ( mdi != null ){
-							
-							mdi.setWarning();
-						}
-
-						if( subs.getHistory().getNumUnread() > 0 ){
-							
-							return ( "" + subs.getHistory().getNumUnread());
-						}
-						
-						return null;
-					}
-				}
-				
-				return( null );
-			}
-		};
-
 		final String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());
 		
 		MdiEntry entry = mdi.createEntryFromEventListener(
 				MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY,
 				new UISWTViewEventListenerHolder(key, SubscriptionView.class, subs, null),
-				key, false, subs, null);
-		entry.setViewTitleInfo(viewTitleInfo);
+				key, true, subs, MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS);
 
 		// This sets up the entry (menu, etc)
 		SubscriptionMDIEntry entryInfo = new SubscriptionMDIEntry(subs, entry);

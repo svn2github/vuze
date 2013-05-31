@@ -210,10 +210,9 @@ public class MainMenu
 
 	protected void buildSimpleViewMenu(final Menu viewMenu) {
 		try {
-			MenuFactory.addLabelMenuItem(viewMenu, "MainWindow.menu.view.show");
 			boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
 			if (enabled) {
-				indent(MenuFactory.addMenuItem(viewMenu, SWT.CHECK, "MainWindow.menu.view.beta",
+				MenuFactory.addMenuItem(viewMenu, SWT.CHECK, "MainWindow.menu.view.beta",
 						new Listener() {
 							public void handleEvent(Event event) {
 								MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
@@ -225,29 +224,32 @@ public class MainMenu
           			entry.setImageLeftID( "image.sidebar.beta" );
           			mdi.showEntry(entry);
 							}
-				}));
+				});
 			}
 
-			indent(MenuFactory.addMyTorrentsMenuItem(viewMenu));
-			indent(MenuFactory.addMyTrackerMenuItem(viewMenu));
-			indent(MenuFactory.addMySharesMenuItem(viewMenu));
-			indent(MenuFactory.addViewToolbarMenuItem(viewMenu));
-			indent(MenuFactory.addTransferBarToMenu(viewMenu));
-			indent(MenuFactory.addAllPeersMenuItem(viewMenu));
-			indent(MenuFactory.addClientStatsMenuItem(viewMenu));
-			indent(MenuFactory.addTagsOverviewMenuItem(viewMenu));
-			//indent(MenuFactory.addDetailedListMenuItem(viewMenu));
-			//indent(MenuFactory.addDeviceManagerMenuItem(viewMenu));
-			//indent(MenuFactory.addSubscriptionMenuItem(viewMenu));
+			MenuFactory.addMyTorrentsMenuItem(viewMenu);
+			MenuFactory.addMyTrackerMenuItem(viewMenu);
+			MenuFactory.addMySharesMenuItem(viewMenu);
+			MenuFactory.addViewToolbarMenuItem(viewMenu);
+			MenuFactory.addTransferBarToMenu(viewMenu);
+			MenuFactory.addAllPeersMenuItem(viewMenu);
+			MenuFactory.addClientStatsMenuItem(viewMenu);
+			//MenuFactory.addDetailedListMenuItem(viewMenu);
+			//MenuFactory.addDeviceManagerMenuItem(viewMenu);
+			//MenuFactory.addSubscriptionMenuItem(viewMenu);
+
+			if (PluginsMenuHelper.getInstance().buildViewMenu(viewMenu, viewMenu.getShell()) && Constants.isOSX) {
+				MenuFactory.addSeparatorMenuItem(viewMenu);
+			}
 
 			/*
 			 * These 3 menus resides on the Tools menu on non-OSX platforms;
 			 * since the Tools menu is not present in the OSX version these menus are added here to the View menu 
 			 */
 			if (Constants.isOSX) {
-				indent(MenuFactory.addConsoleMenuItem(viewMenu));
-				indent(MenuFactory.addStatisticsMenuItem(viewMenu));
-				indent(MenuFactory.addSpeedLimitsToMenu(viewMenu));
+				MenuFactory.addConsoleMenuItem(viewMenu);
+				MenuFactory.addStatisticsMenuItem(viewMenu);
+				MenuFactory.addSpeedLimitsToMenu(viewMenu);
 			}
 
 		} catch (Exception e) {
@@ -336,11 +338,6 @@ public class MainMenu
 		MenuFactory.addAdvancedHelpMenuItem(helpMenu);
 		MenuFactory.addDebugHelpMenuItem(helpMenu);
 
-	}
-
-	private static final void indent(MenuItem item) {
-		item.setData("IndentItem", "YES");
-		item.setText("  " + item.getText());
 	}
 
 	public Menu getMenu(String id) {

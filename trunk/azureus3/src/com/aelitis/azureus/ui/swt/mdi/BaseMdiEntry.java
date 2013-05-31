@@ -61,6 +61,8 @@ public abstract class BaseMdiEntry
 
 	private List<MdiEntryDropListener> listDropListeners = null;
 
+	private List<MdiEntryDatasourceListener> listDatasourceListeners = null;
+
 	protected ViewTitleInfo viewTitleInfo;
 
 	private SWTSkinObject skinObject;
@@ -140,6 +142,7 @@ public abstract class BaseMdiEntry
 			}
 		}
 
+		setCloseable(closeable);
 		disposed = true;
 		ViewTitleInfoManager.removeListener(this);
 
@@ -150,12 +153,24 @@ public abstract class BaseMdiEntry
 		return datasource;
 	}
 
+	public String getExportableDatasource() {
+		if (viewTitleInfo != null) {
+			Object ds = viewTitleInfo.getTitleInfoProperty(ViewTitleInfo2.TITLE_EXPORTABLE_DATASOURCE);
+			if (ds != null) {
+				return ds.toString();
+			}
+		}
+		return null;
+	}
+	
 	public Object getDatasource() {
 		return PluginCoreUtils.convert(datasource, false);
 	}
 
 	public void setDatasource(Object datasource) {
 		this.datasource = datasource;
+
+		triggerDatasourceListeners();
 
 		if (view != null) {
 			view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, datasource);
@@ -373,6 +388,45 @@ public abstract class BaseMdiEntry
 			MdiEntryOpenListener l = (MdiEntryOpenListener) list[i];
 			try {
 				l.mdiEntryOpen(this);
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+	}
+
+
+	public void addListener(MdiEntryDatasourceListener l) {
+		synchronized (this) {
+			if (listDatasourceListeners == null) {
+				listDatasourceListeners = new ArrayList<MdiEntryDatasourceListener>(1);
+			}
+			listDatasourceListeners.add(l);
+		}
+
+		l.mdiEntryDatasourceChanged(this);
+	}
+
+	public void removeListener(MdiEntryDatasourceListener l) {
+		synchronized (this) {
+			if (listDatasourceListeners != null) {
+				listDatasourceListeners.remove(l);
+			}
+		}
+	}
+
+	public void triggerDatasourceListeners() {
+		Object[] list;
+		synchronized (this) {
+			if (listDatasourceListeners == null) {
+				return;
+			}
+
+			list = listDatasourceListeners.toArray();
+		}
+		for (int i = 0; i < list.length; i++) {
+			MdiEntryDatasourceListener l = (MdiEntryDatasourceListener) list[i];
+			try {
+				l.mdiEntryDatasourceChanged(this);
 			} catch (Exception e) {
 				Debug.out(e);
 			}
@@ -772,44 +826,49 @@ public abstract class BaseMdiEntry
 		return disposed;
 	}
 
+	public Map<String, Object> getAutoOpenInfo() {
+		Map<String, Object> autoOpenInfo = new LightHashMap<String, Object>();
+		if (getParentID() != null) {
+			autoOpenInfo.put("parentID", getParentID());
+		}
+		UISWTViewEventListener eventListener = getEventListener();
+		if (eventListener != null) {
+			autoOpenInfo.put("eventListenerClass",
+					eventListener.getClass().getName());
+		}
+		autoOpenInfo.put("title", getTitle());
+		Object datasource = getDatasourceCore();
+		if (datasource instanceof DownloadManager) {
+			try {
+				autoOpenInfo.put(
+						"dm",
+						((DownloadManager) datasource).getTorrent().getHashWrapper().toBase32String());
+			} catch (Throwable t) {
+			}
+		} else if (datasource instanceof DownloadManager[]) {
+			DownloadManager[] dms = (DownloadManager[]) datasource;
+			List<String> list = new ArrayList<String>();
+			for (DownloadManager dm : dms) {
+				try {
+					list.add(dm.getTorrent().getHashWrapper().toBase32String());
+				} catch (Throwable e) {
+				}
+			}
+			autoOpenInfo.put("dms", list);
+		}
+		
+		String eds = getExportableDatasource();
+		if (eds != null) {
+			autoOpenInfo.put("datasource", eds.toString());
+		}
+		return autoOpenInfo;
+	}
+	
 	public void setCloseable(boolean closeable) {
 		this.closeable = closeable;
 		if (closeable) {
-			Map<String, Object> autoOpenInfo = new LightHashMap<String, Object>();
-			if (getParentID() != null) {
-				autoOpenInfo.put("parentID", getParentID());
-			}
-			UISWTViewEventListener eventListener = getEventListener();
-			if (eventListener != null) {
-				autoOpenInfo.put("eventListenerClass",
-						eventListener.getClass().getName());
-			}
-			if (getCoreView() != null) {
-				autoOpenInfo.put("title", getCoreView().getFullTitle());
-			}
-			Object datasource = getDatasourceCore();
-			if (datasource instanceof DownloadManager) {
-				try {
-					autoOpenInfo.put(
-							"dm",
-							((DownloadManager) datasource).getTorrent().getHashWrapper().toBase32String());
-				} catch (Throwable t) {
-				}
-			} else if (datasource instanceof DownloadManager[]) {
-				DownloadManager[] dms = (DownloadManager[]) datasource;
-				List<String> list = new ArrayList<String>();
-				for (DownloadManager dm : dms) {
-					try {
-						list.add(dm.getTorrent().getHashWrapper().toBase32String());
-					} catch (Throwable e) {
-					}
-				}
-				autoOpenInfo.put("dms", list);
-			} else if (datasource != null) {
-				autoOpenInfo.put("datasource", datasource.toString());
-			}
 
-			mdi.informAutoOpenSet(this, autoOpenInfo);
+			mdi.informAutoOpenSet(this, getAutoOpenInfo());
 			COConfigurationManager.setParameter("SideBar.AutoOpen." + id, true);
 		} else {
 			COConfigurationManager.removeParameter("SideBar.AutoOpen." + id);
