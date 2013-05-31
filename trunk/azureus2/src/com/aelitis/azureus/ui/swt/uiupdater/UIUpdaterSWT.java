@@ -58,6 +58,8 @@ public class UIUpdaterSWT
 
 	/** Calculate timer statistics for GUI update */
 	private static final boolean DEBUG_TIMER = Constants.isCVSVersion();
+	
+	private static final boolean DEBUG_UPDATEABLES = Constants.IS_CVS_VERSION;
 
 	private static UIUpdater updater = null;
 
@@ -68,6 +70,8 @@ public class UIUpdaterSWT
 	private boolean refreshed = true;
 
 	private ArrayList<UIUpdatable> updateables = new ArrayList<UIUpdatable>();
+	
+	private Map<UIUpdatable, String> debug_Updateables; 
 
 	private ArrayList<UIUpdatable> alwaysUpdateables = new ArrayList<UIUpdatable>();
 
@@ -94,6 +98,9 @@ public class UIUpdaterSWT
 	public UIUpdaterSWT() {
 		super("UI Updater", true);
 
+		if (DEBUG_UPDATEABLES) {
+			debug_Updateables = new HashMap<UIUpdatable, String>();
+		}
 		COConfigurationManager.addAndFireParameterListeners(new String[] {
 			CFG_REFRESH_INTERVAL,
 			CFG_REFRESH_INACTIVE_FACTOR
@@ -188,8 +195,15 @@ public class UIUpdaterSWT
 
 			if (!updateables.contains(updateable)) {
 				updateables.add(updateable);
+				if (DEBUG_UPDATEABLES) {
+					debug_Updateables.put(updateable, Debug.getCompressedStackTrace() + "\n");
+				}
 			} else {
-				System.out.println("WARNING: already added UIUpdatable " + updateable);
+				if (DEBUG_UPDATEABLES) {
+					System.out.println("WARNING: already added UIUpdatable " + updateable + "\n\t" + debug_Updateables.get(updateable) + "\t" + Debug.getCompressedStackTrace());
+				} else {
+					System.out.println("WARNING: already added UIUpdatable " + updateable);
+				}
 			}
 		} finally {
 			updateables_mon.exit();
