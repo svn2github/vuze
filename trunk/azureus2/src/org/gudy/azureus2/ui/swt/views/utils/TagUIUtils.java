@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -1129,11 +1130,13 @@ public class TagUIUtils
 			tag_types,
 			new Comparator<TagType>()
 			{
+				final Comparator<String> comp = new FormattersImpl().getAlphanumericComparator( true );
+				
 				public int 
 				compare(
 					TagType o1, TagType o2) 
 				{
-					return( o1.getTagTypeName(true).compareTo( o2.getTagTypeName(true)));
+					return( comp.compare( o1.getTagTypeName(true), o2.getTagTypeName(true)));
 				}
 			});
 		
@@ -1147,14 +1150,16 @@ public class TagUIUtils
 		List<Tag>	tags = new ArrayList<Tag>( _tags );
 		
 		Collections.sort(
-				tags,
+			tags,
 			new Comparator<Tag>()
 			{
+				final Comparator<String> comp = new FormattersImpl().getAlphanumericComparator( true );
+
 				public int 
 				compare(
-						Tag o1, Tag o2) 
+					Tag o1, Tag o2) 
 				{
-					return( o1.getTagName(true).compareTo( o2.getTagName(true)));
+					return( comp.compare( o1.getTagName(true), o2.getTagName(true)));
 				}
 			});
 		
