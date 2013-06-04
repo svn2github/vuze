@@ -276,7 +276,7 @@ public class FullUpdateWindow
 	{
 		try {
 			open( 
-				"http://192.168.0.88:8080/client/Update.html", 
+				"http://127.0.0.1:8080/client/update.php?newversion=5.0.0.0", 
 				new UIFunctions.actionListener()
 				{
 					public void actionComplete(Object result) {
