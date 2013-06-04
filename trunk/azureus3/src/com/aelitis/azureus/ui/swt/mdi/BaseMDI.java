@@ -226,7 +226,7 @@ public abstract class BaseMDI
 			try {
 				MdiEntry mdiEntry = mdiEntryCreationListener.createMDiEntry(id);
 				
-				if (mdiEntry != null) {
+				if (mdiEntry != null && ds != null) {
 					mdiEntry.setDatasource(ds);
 				}
 				return mdiEntry;
