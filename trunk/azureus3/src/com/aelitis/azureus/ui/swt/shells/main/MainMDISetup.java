@@ -1,5 +1,7 @@
 package com.aelitis.azureus.ui.swt.shells.main;
 
+import java.util.Map;
+
 import org.eclipse.swt.widgets.Menu;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -42,87 +44,95 @@ import com.aelitis.azureus.util.FeatureUtils;
 
 public class MainMDISetup
 {
-	public static void setupSideBar(final MultipleDocumentInterfaceSWT mdi, final MdiListener l) {
+	public static void setupSideBar(final MultipleDocumentInterfaceSWT mdi,
+			final MdiListener l) {
 		if (Utils.isAZ2UI()) {
 			setupSidebarClassic(mdi);
 		} else {
 			setupSidebarVuzeUI(mdi);
 		}
 
-		mdi.registerEntry(SideBar.SIDEBAR_TORRENT_DETAILS_PREFIX + ".*", new MdiEntryCreationListener() {
-			public MdiEntry createMDiEntry(String id) {
-				return createTorrentDetailEntry(mdi, id);
-			}
-		});
-
-		PluginInitializer.getDefaultInterface().getUIManager().addUIListener(new UIManagerListener2() {
-			public void UIDetached(UIInstance instance) {
-			}
-			
-			public void UIAttached(UIInstance instance) {
-			}
-
-			public void UIAttachedComplete(UIInstance instance) {
-				
-				PluginInitializer.getDefaultInterface().getUIManager().removeUIListener(this);
-				
-				MdiEntry currentEntry = mdi.getCurrentEntry();
-				if (currentEntry != null) {
-					// User or another plugin selected an entry
-					return;
-				}
-				
-				final String CFG_STARTTAB = "v3.StartTab";
-				final String CFG_STARTTAB_DS = "v3.StartTab.ds";
-				String startTab;
-				String datasource = null;
-				boolean showWelcome = COConfigurationManager.getBooleanParameter("v3.Show Welcome");
-				if (ConfigurationChecker.isNewVersion()) {
-					showWelcome = true;
-				}
-
-				ContentNetwork startupCN = ContentNetworkManagerFactory.getSingleton().getStartupContentNetwork();
-				if (!startupCN.isServiceSupported(ContentNetwork.SERVICE_WELCOME)) {
-					showWelcome = false;
-				}
-
-				if (showWelcome) {
-					startTab = SideBar.SIDEBAR_SECTION_WELCOME;
-				} else {
-					if (!COConfigurationManager.hasParameter(CFG_STARTTAB, true)) {
-						COConfigurationManager.setParameter(CFG_STARTTAB,
-								SideBar.SIDEBAR_SECTION_LIBRARY);
+		mdi.registerEntry(SideBar.SIDEBAR_TORRENT_DETAILS_PREFIX + ".*",
+				new MdiEntryCreationListener2() {
+					public MdiEntry createMDiEntry(MultipleDocumentInterface mdi,
+							String id, Object datasource, Map<?, ?> params) {
+						return createTorrentDetailEntry(mdi, id, datasource);
 					}
-					startTab = COConfigurationManager.getStringParameter(CFG_STARTTAB);
-					datasource = COConfigurationManager.getStringParameter(CFG_STARTTAB_DS, null);
-				}
-				if (startTab.equals(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS)) {
-					SBC_PlusFTUX.setSourceRef("lastview");
-				}
-				if (!mdi.loadEntryByID(startTab, true, false, datasource)) {
-					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
-				}
-				if (l != null) {
-					mdi.addListener(l);
-				}
-			}
-		});;
-		
+				});
+
+		PluginInitializer.getDefaultInterface().getUIManager().addUIListener(
+				new UIManagerListener2() {
+					public void UIDetached(UIInstance instance) {
+					}
+
+					public void UIAttached(UIInstance instance) {
+					}
+
+					public void UIAttachedComplete(UIInstance instance) {
+
+						PluginInitializer.getDefaultInterface().getUIManager().removeUIListener(
+								this);
+
+						MdiEntry currentEntry = mdi.getCurrentEntry();
+						if (currentEntry != null) {
+							// User or another plugin selected an entry
+							return;
+						}
+
+						final String CFG_STARTTAB = "v3.StartTab";
+						final String CFG_STARTTAB_DS = "v3.StartTab.ds";
+						String startTab;
+						String datasource = null;
+						boolean showWelcome = COConfigurationManager.getBooleanParameter("v3.Show Welcome");
+						if (ConfigurationChecker.isNewVersion()) {
+							showWelcome = true;
+						}
+
+						ContentNetwork startupCN = ContentNetworkManagerFactory.getSingleton().getStartupContentNetwork();
+						if (!startupCN.isServiceSupported(ContentNetwork.SERVICE_WELCOME)) {
+							showWelcome = false;
+						}
+
+						if (showWelcome) {
+							startTab = SideBar.SIDEBAR_SECTION_WELCOME;
+						} else {
+							if (!COConfigurationManager.hasParameter(CFG_STARTTAB, true)) {
+								COConfigurationManager.setParameter(CFG_STARTTAB,
+										SideBar.SIDEBAR_SECTION_LIBRARY);
+							}
+							startTab = COConfigurationManager.getStringParameter(CFG_STARTTAB);
+							datasource = COConfigurationManager.getStringParameter(
+									CFG_STARTTAB_DS, null);
+						}
+						if (startTab.equals(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS)) {
+							SBC_PlusFTUX.setSourceRef("lastview");
+						}
+						if (!mdi.loadEntryByID(startTab, true, false, datasource)) {
+							mdi.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
+						}
+						if (l != null) {
+							mdi.addListener(l);
+						}
+					}
+				});
+		;
+
 		COConfigurationManager.addAndFireParameterListener(
 				"Beta Programme Enabled", new ParameterListener() {
 					public void parameterChanged(String parameterName) {
 						boolean enabled = COConfigurationManager.getBooleanParameter("Beta Programme Enabled");
 						if (enabled) {
-							mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM, false);
+							mdi.loadEntryByID(
+									MultipleDocumentInterface.SIDEBAR_SECTION_BETAPROGRAM, false);
 						}
 					}
-		});
-		
+				});
+
 		mdi.registerEntry(StatsView.VIEW_ID, new MdiEntryCreationListener() {
 			public MdiEntry createMDiEntry(String id) {
 				MdiEntry entry = mdi.createEntryFromEventListener(
-						MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
-						new StatsView(), id, true, null, null);
+						MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS, new StatsView(),
+						id, true, null, null);
 				return entry;
 			}
 		});
@@ -132,10 +142,8 @@ public class MainMDISetup
 					public MdiEntry createMDiEntry(String id) {
 						MdiEntry entry = mdi.createEntryFromSkinRef(
 								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
-								MultipleDocumentInterface.SIDEBAR_SECTION_TAGS,
-								"tagsview",
-								"{mdi.entry.tagsoverview}", null, null,
-								true, null);
+								MultipleDocumentInterface.SIDEBAR_SECTION_TAGS, "tagsview",
+								"{mdi.entry.tagsoverview}", null, null, true, null);
 						// TODO: Don't steal blue icon
 						entry.setImageLeftID("image.sidebar.tag-blue");
 						return entry;
@@ -160,7 +168,7 @@ public class MainMDISetup
 		//				+ (SystemTime.getCurrentTime() - startTime) + "ms");
 		//		startTime = SystemTime.getCurrentTime();
 	}
-	
+
 	private static void setupSidebarClassic(final MultipleDocumentInterfaceSWT mdi) {
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY,
 				new MdiEntryCreationListener() {
@@ -181,18 +189,17 @@ public class MainMDISetup
 				});
 
 		mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY);
-		
-		mdi.registerEntry( ConfigView.VIEW_ID, new MdiEntryCreationListener() {
+
+		mdi.registerEntry(ConfigView.VIEW_ID, new MdiEntryCreationListener() {
 			public MdiEntry createMDiEntry(String id) {
 				MdiEntry entry = mdi.createEntryFromEventListener(
-						MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
-						new ConfigView(), id, true, null, null);
+						MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS, new ConfigView(),
+						id, true, null, null);
 				return entry;
 			}
 		});
 	}
 
-	
 	private static void setupSidebarVuzeUI(final MultipleDocumentInterface mdi) {
 		MdiEntry entry;
 
@@ -237,7 +244,7 @@ public class MainMDISetup
 								}
 							}
 						});
-						
+
 						PluginInterface pi = PluginInitializer.getDefaultInterface();
 						UIManager uim = pi.getUIManager();
 						MenuManager menuManager = uim.getMenuManager();
@@ -246,7 +253,7 @@ public class MainMDISetup
 						menuItem = menuManager.addMenuItem("sidebar."
 								+ MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
 								"label.plugin.options");
-						
+
 						menuItem.addListener(new MenuItemListener() {
 							public void selected(MenuItem menu, Object target) {
 								UIFunctions uif = UIFunctionsManager.getUIFunctions();
@@ -293,8 +300,7 @@ public class MainMDISetup
 						MdiEntry entry = mdi.createEntryFromSkinRef(
 								MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS,
 								MultipleDocumentInterface.SIDEBAR_SECTION_ABOUTPLUGINS,
-								"main.generic.browse",
-								"{mdi.entry.about.plugins}", null, null,
+								"main.generic.browse", "{mdi.entry.about.plugins}", null, null,
 								true, MultipleDocumentInterface.SIDEBAR_POS_FIRST);
 						String url = ConstantsVuze.getDefaultContentNetwork().getSiteRelativeURL(
 								"plugins", true);
@@ -319,7 +325,7 @@ public class MainMDISetup
 								mdi.loadEntryByID(
 										MultipleDocumentInterface.SIDEBAR_SECTION_PLUS, false);
 
-								if (!FeatureUtils.hasFullBurn()){
+								if (!FeatureUtils.hasFullBurn()) {
 									mdi.loadEntryByID(
 											MultipleDocumentInterface.SIDEBAR_SECTION_BURN_INFO,
 											false);
@@ -334,8 +340,6 @@ public class MainMDISetup
 			});
 		}
 
-		SBC_ActivityTableView.setupSidebarEntry();
-
 		SB_Transfers.setup(mdi);
 		new SB_Vuze(mdi);
 		new SB_Discovery(mdi);
@@ -346,17 +350,20 @@ public class MainMDISetup
 		mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_SUBSCRIPTIONS,
 				false);
 		mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_DEVICES, false);
+		mdi.loadEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES, false);
 	}
-	
 
-	protected static MdiEntry createTorrentDetailEntry(MultipleDocumentInterface mdi, String id) {
+	protected static MdiEntry createTorrentDetailEntry(
+			MultipleDocumentInterface mdi, String id, Object ds) {
+		if (ds == null) {
+			return null;
+		}
 		final MdiEntry torrentDetailEntry = mdi.createEntryFromSkinRef(
-				SideBar.SIDEBAR_HEADER_TRANSFERS,
-				id, "torrentdetails",
-				"", null, null, true, null);
-		
+				SideBar.SIDEBAR_HEADER_TRANSFERS, id, "torrentdetails", "", null, ds,
+				true, null);
+
 		final ViewTitleInfo viewTitleInfo = new ViewTitleInfo() {
-			
+
 			public Object getTitleInfoProperty(int propertyID) {
 				Object ds = ((BaseMdiEntry) torrentDetailEntry).getDatasourceCore();
 				if (propertyID == TITLE_EXPORTABLE_DATASOURCE) {
@@ -371,12 +378,12 @@ public class MainMDISetup
 				if (manager == null) {
 					return null;
 				}
-				
+
 				if (propertyID == TITLE_TEXT) {
 					if (Utils.isAZ2UI()) {
 						int completed = manager.getStats().getCompleted();
-						return DisplayFormatters.formatPercentFromThousands(completed) + " : "
-								+ manager.getDisplayName();
+						return DisplayFormatters.formatPercentFromThousands(completed)
+								+ " : " + manager.getDisplayName();
 					}
 
 					return manager.getDisplayName();
@@ -404,7 +411,7 @@ public class MainMDISetup
 				return null;
 			}
 		};
-		
+
 		if (torrentDetailEntry instanceof MdiEntrySWT) {
 			((MdiEntrySWT) torrentDetailEntry).addListener(new MdiSWTMenuHackListener() {
 				public void menuWillBeShown(MdiEntry entry, Menu menuTree) {
@@ -413,9 +420,9 @@ public class MainMDISetup
 					menuTree.setData("TableView", tv);
 					DownloadManager manager = SBC_TorrentDetailsView.dataSourceToDownloadManager(torrentDetailEntry.getDatasource());
 					if (manager != null) {
-  					menuTree.setData("downloads", new DownloadManager[] {
-  						manager
-  					});
+						menuTree.setData("downloads", new DownloadManager[] {
+							manager
+						});
 					}
 					menuTree.setData("is_detailed_view", new Boolean(true));
 
@@ -424,20 +431,19 @@ public class MainMDISetup
 			});
 		}
 
-		torrentDetailEntry.addListener(new  MdiEntryDatasourceListener() {
+		torrentDetailEntry.addListener(new MdiEntryDatasourceListener() {
 			public void mdiEntryDatasourceChanged(MdiEntry entry) {
-				System.out.println("mdiEntryDatasourceChanged: " + entry.getDatasource());
 				Object newDataSource = entry.getDatasource();
 				if (newDataSource instanceof String) {
 					final String s = (String) newDataSource;
-		  		if (!AzureusCoreFactory.isCoreRunning()) {
-		  			AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-		  				public void azureusCoreRunning(AzureusCore core) {
-		  					torrentDetailEntry.setDatasource(DataSourceUtils.getDM(s));
-		  				}
-		  			});
-		  			return;
-		  		}
+					if (!AzureusCoreFactory.isCoreRunning()) {
+						AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+							public void azureusCoreRunning(AzureusCore core) {
+								torrentDetailEntry.setDatasource(DataSourceUtils.getDM(s));
+							}
+						});
+						return;
+					}
 				}
 
 				ViewTitleInfoManager.refreshTitleInfo(viewTitleInfo);

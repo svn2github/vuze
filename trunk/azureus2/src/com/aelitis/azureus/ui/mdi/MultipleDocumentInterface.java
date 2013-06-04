@@ -1,9 +1,7 @@
 package com.aelitis.azureus.ui.mdi;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 
@@ -95,6 +93,9 @@ public interface MultipleDocumentInterface
 	public MdiEntry[] getEntries();
 
 	public void registerEntry(String id, MdiEntryCreationListener l);
+	
+	public void registerEntry(String id,
+			MdiEntryCreationListener2 mdiEntryCreationListener2);
 
 	public boolean entryExists(String id);
 

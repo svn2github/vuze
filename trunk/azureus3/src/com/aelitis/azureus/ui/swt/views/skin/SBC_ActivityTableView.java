@@ -44,25 +44,22 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
-import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 
 import com.aelitis.azureus.activities.*;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
-import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MdiEntryCreationListener;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.ISelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.utils.TableColumnCreatorV3;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUIListener;
-import com.aelitis.azureus.ui.swt.mdi.MdiEntrySWT;
-import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectListener;
@@ -380,7 +377,7 @@ public class SBC_ActivityTableView
 	}
 
 	public static void setupSidebarEntry() {
-		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+		final MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
 
 		// Put TitleInfo in another class
 		final ViewTitleInfo titleInfoActivityView = new ViewTitleInfo() {
@@ -396,9 +393,9 @@ public class SBC_ActivityTableView
 					}
 					if (count > 0) {
 						return "" + count;
-					} else {
-						return null;
 					}
+
+					return null;
 				} else if (propertyID == TITLE_IMAGEID) {
 					return "image.sidebar.activity";
 				}
@@ -418,11 +415,17 @@ public class SBC_ActivityTableView
 				ViewTitleInfoManager.refreshTitleInfo(titleInfoActivityView);
 			}
 		});
-
-		mdi.createEntryFromSkinRef(MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
-				MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES, "activity",
-				"{sidebar." + MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES
-						+ "}", titleInfoActivityView, null, false, null);
+		
+		MdiEntryCreationListener creationListener = new MdiEntryCreationListener() {
+			public MdiEntry createMDiEntry(String id) {
+				return mdi.createEntryFromSkinRef(MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
+						MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES, "activity",
+						"{sidebar." + MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES
+								+ "}", titleInfoActivityView, null, false, null);
+			}
+		};
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_ACTIVITIES, creationListener);
+		mdi.registerEntry("activities", creationListener);
 
 		PluginInterface pi = PluginInitializer.getDefaultInterface();
 		UIManager uim = pi.getUIManager();

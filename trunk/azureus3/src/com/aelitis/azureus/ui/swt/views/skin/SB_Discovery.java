@@ -20,11 +20,18 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.ArrayList;
 
-import org.gudy.azureus2.core3.util.Constants;
+import org.eclipse.swt.graphics.Image;
 
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
+
+import com.aelitis.azureus.core.cnetwork.ContentNetwork;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
+import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.*;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.ContentNetworkUtils;
@@ -74,6 +81,12 @@ public class SB_Discovery
 					true, null);
 		}
 
+		mdi.registerEntry("ContentNetwork\\..*", new MdiEntryCreationListener() {
+			public MdiEntry createMDiEntry(String id) {
+				long networkID = Long.parseLong(id.substring(15));
+				return handleContentNetworkSwitch(mdi, id, networkID);
+			}
+		});
 
 		mdi.addListener(new MdiEntryLoadedListener() {
 			public void mdiEntryLoaded(MdiEntry entry) {
@@ -153,6 +166,67 @@ public class SB_Discovery
 			}
 		};
 		entry.setViewTitleInfo(titleInfo);
+	}
+
+	/**
+	 * @param tabID
+	 * @return 
+	 *
+	 * @since 4.0.0.3
+	 */
+	protected BaseMdiEntry handleContentNetworkSwitch(MultipleDocumentInterface mdi, String tabID, long networkID) {
+		String defaultID = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
+		try {
+			ContentNetworkManager cnManager = ContentNetworkManagerFactory.getSingleton();
+			if (cnManager == null) {
+				mdi.showEntryByID(defaultID);
+				return null;
+			}
+
+			ContentNetwork cn = cnManager.getContentNetwork(networkID);
+			if (cn == null) {
+				mdi.showEntryByID(defaultID);
+				return null;
+			}
+
+			if (networkID == ContentNetwork.CONTENT_NETWORK_VUZE) {
+				mdi.showEntryByID(defaultID);
+				cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
+				return null;
+			}
+
+			return createContentNetworkSideBarEntry(mdi, cn);
+		} catch (Exception e) {
+			Debug.out(e);
+		}
+		mdi.showEntryByID(defaultID);
+		
+		return null;
+	}
+
+	private BaseMdiEntry createContentNetworkSideBarEntry(MultipleDocumentInterface mdi, ContentNetwork cn) {
+		String entryID = ContentNetworkUtils.getTarget(cn);
+
+		if (mdi.entryExists(entryID)) {
+			return null;
+		}
+
+		String name = cn.getName();
+
+		Object prop = cn.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
+		boolean closeable = (prop instanceof Boolean)
+				? ((Boolean) prop).booleanValue() : false;
+		final BaseMdiEntry entry = (BaseMdiEntry) mdi.createEntryFromSkinRef(
+				MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY, entryID,
+				"main.area.browsetab", name, null, cn, closeable, null);
+
+		Image image = ImageLoader.getInstance().getImage("image.sidebar.vuze");
+		entry.setImageLeft(image);
+
+		cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
+		cn.setPersistentProperty(ContentNetwork.PP_SHOW_IN_MENU, Boolean.TRUE);
+		
+		return entry;
 	}
 
 }

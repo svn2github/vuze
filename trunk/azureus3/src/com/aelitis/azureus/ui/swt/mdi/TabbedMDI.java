@@ -1,7 +1,6 @@
 package com.aelitis.azureus.ui.swt.mdi;
 
 import java.util.LinkedList;
-import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CTabFolder;
@@ -30,7 +29,6 @@ import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
-import com.aelitis.azureus.ui.mdi.MdiEntryCreationListener;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectTabFolder;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -254,60 +252,15 @@ public class TabbedMDI
 		}
 	}
 	
-	// @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#loadEntryByID(java.lang.String, boolean)
-	public boolean loadEntryByID(String id, boolean activate) {
-		return loadEntryByID(id, activate, false, null);
-	}
-
-	public boolean loadEntryByID(String id, boolean activate,
-			boolean onlyLoadOnce, Object datasource) {
-		if (id == null) {
-			return false;
-		}
-		MdiEntry entry = mapIdToEntry.get(id);
-		if (entry != null) {
-			if (datasource != null) {
-				entry.setDatasource(datasource);
-			}
-			if (activate) {
-				showEntry(entry);
-			}
-			return true;
-		}
-
+	protected boolean wasEntryLoadedOnce(String id) {
 		@SuppressWarnings("deprecation")
-		boolean loadedOnce = COConfigurationManager.getBooleanParameter("tab.once." + id, false);
-		if (loadedOnce && onlyLoadOnce) {
-			return false;
-		}
-
-		MdiEntryCreationListener mdiEntryCreationListener = null;
-		for (String key : mapIdToCreationListener.keySet()) {
-			if (Pattern.matches(key, id)) {
-				mdiEntryCreationListener = mapIdToCreationListener.get(key);
-				break;
-			}
-		}
-		if (mdiEntryCreationListener != null) {
-			entry = mdiEntryCreationListener.createMDiEntry(id);
-			if (entry != null) {
-				if (datasource != null) {
-					entry.setDatasource(datasource);
-				}
-				if (onlyLoadOnce) {
-					COConfigurationManager.setParameter("tab.once." + id, true);
-				}
-				if (activate) {
-					showEntry(entry);
-				}
-				return true;
-			}
-		} else {
-			setEntryAutoOpen(id, datasource);
-		}
-
-		
-		return false;
+		boolean loadedOnce = COConfigurationManager.getBooleanParameter("tab.once."
+				+ id, false);
+		return loadedOnce;
+	}
+	
+	protected void setEntryLoadedOnce(String id) {
+		COConfigurationManager.setParameter("tab.once." + id, true);
 	}
 
 	public void showEntry(final MdiEntry newEntry) {

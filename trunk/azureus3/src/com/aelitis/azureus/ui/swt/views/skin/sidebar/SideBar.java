@@ -21,7 +21,6 @@ package com.aelitis.azureus.ui.swt.views.skin.sidebar;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
@@ -49,23 +48,16 @@ import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
 
-import com.aelitis.azureus.core.cnetwork.ContentNetwork;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManager;
-import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
-import com.aelitis.azureus.ui.mdi.MdiEntryCreationListener;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
-import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.mdi.*;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
-import com.aelitis.azureus.util.ConstantsVuze;
-import com.aelitis.azureus.util.ContentNetworkUtils;
 
 /**
  * @author TuxPaper
@@ -1416,140 +1408,15 @@ public class SideBar
 		currentEntry.updateUI();
 	}
 
-	public boolean loadEntryByID(String id, boolean activate) {
-		return loadEntryByID(id, activate, false, null);
-	}
-
-	/* (non-Javadoc)
-	 * @see com.aelitis.azureus.ui.mdi.MultipleDocumentInterface#loadEntryByID(java.lang.String, boolean, boolean)
-	 */
-	public boolean loadEntryByID(String id, boolean activate,
-			boolean onlyLoadOnce, Object datasource) {
-		if (id == null) {
-			return false;
-		}
-		MdiEntry entry = getEntry(id);
-		if (entry != null) {
-			if (datasource != null) {
-				entry.setDatasource(datasource);
-			}
-			if (activate) {
-				showEntry(entry);
-			}
-			return true;
-		}
-
+	protected boolean wasEntryLoadedOnce(String id) {
 		@SuppressWarnings("deprecation")
 		boolean loadedOnce = COConfigurationManager.getBooleanParameter("sb.once."
 				+ id, false);
-		if (loadedOnce && onlyLoadOnce) {
-			return false;
-		}
-
-		if (id.equals(SIDEBAR_SECTION_WELCOME)) {
-			SideBarEntrySWT entryWelcome = (SideBarEntrySWT) createWelcomeSection();
-			if (activate) {
-				showEntry(entryWelcome);
-			}
-			return true;
-		} else if (id.startsWith("ContentNetwork.")) {
-			long networkID = Long.parseLong(id.substring(15));
-			handleContentNetworkSwitch(id, networkID);
-			return true;
-		} else if (id.equals("library") || id.equals("minilibrary")) {
-			id = SIDEBAR_SECTION_LIBRARY;
-			loadEntryByID(id, activate);
-			return true;
-		} else if (id.equals("activities")) {
-			id = SIDEBAR_SECTION_ACTIVITIES;
-			loadEntryByID(id, activate);
-			return true;
-		}
-
-		MdiEntryCreationListener mdiEntryCreationListener = null;
-		for (String key : mapIdToCreationListener.keySet()) {
-			if (Pattern.matches(key, id)) {
-				mdiEntryCreationListener = mapIdToCreationListener.get(key);
-				break;
-			}
-		}
-		if (mdiEntryCreationListener != null) {
-			MdiEntry mdiEntry = mdiEntryCreationListener.createMDiEntry(id);
-			if (datasource != null) {
-				mdiEntry.setDatasource(datasource);
-			}
-			if (mdiEntry instanceof SideBarEntrySWT) {
-				if (onlyLoadOnce) {
-					COConfigurationManager.setParameter("sb.once." + id, true);
-				}
-				if (activate) {
-					showEntry(mdiEntry);
-				}
-				return true;
-			}
-		} else {
-			setEntryAutoOpen(id, datasource);
-		}
-
-		return false;
+		return loadedOnce;
 	}
-
-	/**
-	 * @param tabID
-	 *
-	 * @since 4.0.0.3
-	 */
-	protected void handleContentNetworkSwitch(String tabID, long networkID) {
-		String defaultID = ContentNetworkUtils.getTarget(ConstantsVuze.getDefaultContentNetwork());
-		try {
-			ContentNetworkManager cnManager = ContentNetworkManagerFactory.getSingleton();
-			if (cnManager == null) {
-				showEntryByID(defaultID);
-				return;
-			}
-
-			ContentNetwork cn = cnManager.getContentNetwork(networkID);
-			if (cn == null) {
-				showEntryByID(defaultID);
-				return;
-			}
-
-			if (networkID == ContentNetwork.CONTENT_NETWORK_VUZE) {
-				showEntryByID(defaultID);
-				cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
-				return;
-			}
-
-			createContentNetworkSideBarEntry(cn);
-			showEntryByID(tabID);
-			return;
-		} catch (Exception e) {
-			Debug.out(e);
-		}
-		showEntryByID(defaultID);
-	}
-
-	private void createContentNetworkSideBarEntry(ContentNetwork cn) {
-		String entryID = ContentNetworkUtils.getTarget(cn);
-
-		if (entryExists(entryID)) {
-			return;
-		}
-
-		String name = cn.getName();
-
-		Object prop = cn.getProperty(ContentNetwork.PROPERTY_REMOVEABLE);
-		boolean closeable = (prop instanceof Boolean)
-				? ((Boolean) prop).booleanValue() : false;
-		final SideBarEntrySWT entry = (SideBarEntrySWT) createEntryFromSkinRef(
-				SIDEBAR_HEADER_DISCOVERY, entryID, "main.area.browsetab", name, null, cn,
-				closeable, null);
-
-		Image image = ImageLoader.getInstance().getImage("image.sidebar.vuze");
-		entry.setImageLeft(image);
-
-		cn.setPersistentProperty(ContentNetwork.PP_ACTIVE, Boolean.TRUE);
-		cn.setPersistentProperty(ContentNetwork.PP_SHOW_IN_MENU, Boolean.TRUE);
+	
+	protected void setEntryLoadedOnce(String id) {
+		COConfigurationManager.setParameter("sb.once." + id, true);
 	}
 
 	public Font getHeaderFont() {

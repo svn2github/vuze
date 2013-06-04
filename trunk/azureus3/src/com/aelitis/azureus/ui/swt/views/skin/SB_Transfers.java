@@ -129,18 +129,20 @@ public class SB_Transfers
 
 	public static void setup(final MultipleDocumentInterface mdi) {
 
-		mdi.registerEntry(SideBar.SIDEBAR_SECTION_LIBRARY,
-				new MdiEntryCreationListener() {
-					public MdiEntry createMDiEntry(String id) {
-						MdiEntry entry = mdi.createEntryFromSkinRef(
-								SideBar.SIDEBAR_HEADER_TRANSFERS,
-								SideBar.SIDEBAR_SECTION_LIBRARY, "library", "{sidebar."
-										+ SideBar.SIDEBAR_SECTION_LIBRARY + "}", null, null, false,
-								"");
-						entry.setImageLeftID("image.sidebar.library");
-						return entry;
-					}
-				});
+		MdiEntryCreationListener libraryCreator = new MdiEntryCreationListener() {
+			public MdiEntry createMDiEntry(String id) {
+				MdiEntry entry = mdi.createEntryFromSkinRef(
+						SideBar.SIDEBAR_HEADER_TRANSFERS,
+						SideBar.SIDEBAR_SECTION_LIBRARY, "library", "{sidebar."
+								+ SideBar.SIDEBAR_SECTION_LIBRARY + "}", null, null, false,
+						"");
+				entry.setImageLeftID("image.sidebar.library");
+				return entry;
+			}
+		};
+		mdi.registerEntry(SideBar.SIDEBAR_SECTION_LIBRARY, libraryCreator);
+		mdi.registerEntry("library", libraryCreator);
+		mdi.registerEntry("minilibrary", libraryCreator);
 
 		mdi.registerEntry(SideBar.SIDEBAR_SECTION_LIBRARY_DL,
 				new MdiEntryCreationListener() {

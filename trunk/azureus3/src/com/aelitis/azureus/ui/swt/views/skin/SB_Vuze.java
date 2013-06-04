@@ -2,6 +2,12 @@ package com.aelitis.azureus.ui.swt.views.skin;
 
 import java.util.ArrayList;
 
+import org.eclipse.swt.SWT;
+
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoListener;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
@@ -42,6 +48,23 @@ public class SB_Vuze
 						return entry;
 					}
 				});
+		
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME, new MdiEntryCreationListener() {
+			public MdiEntry createMDiEntry(String id) {
+				MdiEntry entry = mdi.createEntryFromSkinRef(
+						MultipleDocumentInterface.SIDEBAR_HEADER_VUZE,
+						MultipleDocumentInterface.SIDEBAR_SECTION_WELCOME,
+						"main.area.welcome",
+						MessageText.getString("v3.MainWindow.menu.getting_started").replaceAll(
+								"&", ""), null, null, true, "");
+				entry.setImageLeftID("image.sidebar.welcome");
+				addDropTest(entry);
+				return entry;
+			}
+		});
+
+		
+		SBC_ActivityTableView.setupSidebarEntry();
 
 		ViewTitleInfoManager.addListener(new ViewTitleInfoListener() {
 			public void viewTitleInfoRefresh(ViewTitleInfo titleInfo) {
@@ -132,4 +155,32 @@ public class SB_Vuze
 		};
 		entry.setViewTitleInfo(titleInfo);
 	}
+
+	protected void addDropTest(MdiEntry entry) {
+		if (!Constants.isCVSVersion()) {
+			return;
+		}
+		entry.addListener(new MdiEntryDropListener() {
+			public boolean mdiEntryDrop(MdiEntry entry, Object droppedObject) {
+				String s = "You just dropped " + droppedObject.getClass() + "\n"
+						+ droppedObject + "\n\n";
+				if (droppedObject.getClass().isArray()) {
+					Object[] o = (Object[]) droppedObject;
+					for (int i = 0; i < o.length; i++) {
+						s += "" + i + ":  ";
+						Object object = o[i];
+						if (object == null) {
+							s += "null";
+						} else {
+							s += object.getClass() + ";" + object;
+						}
+						s += "\n";
+					}
+				}
+				new MessageBoxShell(SWT.OK, "test", s).open(null);
+				return true;
+			}
+		});
+	}
+
 }
