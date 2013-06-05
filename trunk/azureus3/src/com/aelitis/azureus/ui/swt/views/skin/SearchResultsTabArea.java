@@ -31,7 +31,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.ui.swt.PropertiesWindow;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -727,7 +726,7 @@ public class SearchResultsTabArea
 		browserSkinObject.setURL(url);
 
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-		String id = "Search";
+		String id = MultipleDocumentInterface.SIDEBAR_SECTION_SEARCH;
 		MdiEntry entry = mdi.getEntry(id);
 		if (entry != null) {
 			ViewTitleInfoManager.refreshTitleInfo(entry.getViewTitleInfo());

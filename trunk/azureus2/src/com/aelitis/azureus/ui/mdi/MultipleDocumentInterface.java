@@ -55,6 +55,8 @@ public interface MultipleDocumentInterface
 
 	public static final String SIDEBAR_SECTION_ACTIVITIES = "Activity";
 
+	public static final String SIDEBAR_SECTION_SEARCH = "Search";
+	
 	public boolean showEntryByID(String id);
 
 		/**

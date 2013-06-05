@@ -997,7 +997,7 @@ public class UIFunctionsImpl
 				sSearchText, toSubscribe);
 
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-		String id = "Search";
+		String id = MultipleDocumentInterface.SIDEBAR_SECTION_SEARCH;
 		MdiEntry existingEntry = mdi.getEntry(id);
 		if (existingEntry != null && existingEntry.isAdded()) {
 			SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
@@ -1010,7 +1010,7 @@ public class UIFunctionsImpl
 
 		final MdiEntry entry = mdi.createEntryFromSkinRef(
 				MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY, id,
-				"main.area.searchresultstab", sSearchText, null, sq, true, null);
+				"main.area.searchresultstab", sSearchText, null, sq, true, MultipleDocumentInterface.SIDEBAR_POS_FIRST );
 		if (entry != null) {
 			entry.setImageLeftID("image.sidebar.search");
 			entry.setDatasource(sq);
