@@ -132,6 +132,8 @@ DHTTransportUDPImpl
 	private Map	read_transfers		= new HashMap();
 	private Map write_transfers		= new HashMap();
 	
+	private long	last_xferq_log;
+	
 	private int 	active_write_queue_processor_count;
 	private long	total_bytes_on_transfer_queues;
 	
@@ -3022,9 +3024,16 @@ outer:
 							
 						}catch( DHTTransportException e ){
 							
-							logger.log( "Faild to create transfer queue" );
+							long now = SystemTime.getMonotonousTime();
 							
-							logger.log( e );
+							if ( last_xferq_log == 0 || now - last_xferq_log > 5*60*1000 ){
+							
+								last_xferq_log = now;
+								
+								logger.log( "Failed to create transfer queue" );
+							
+								logger.log( e );
+							}
 						}
 					}
 				}
