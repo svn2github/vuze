@@ -565,7 +565,7 @@ public class MainWindowImpl
 
 		try {
 			shell.setData("class", this);
-			shell.setText("Vuze");
+			shell.setText( UIFunctions.MAIN_WINDOW_NAME );
 			Utils.setShellIcon(shell);
 			Utils.linkShellMetricsToConfig(shell, "window");
 			//Shell activeShell = display.getActiveShell();

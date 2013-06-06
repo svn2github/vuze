@@ -292,7 +292,7 @@ public class FeatureManagerUIListener
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
-					uif.getMainShell().setText(hasFullLicence ? "Vuze Plus" : "Vuze");
+					uif.getMainShell().setText(hasFullLicence?UIFunctions.MAIN_WINDOW_NAME_PLUS : UIFunctions.MAIN_WINDOW_NAME);
 				}
 			});
 		}

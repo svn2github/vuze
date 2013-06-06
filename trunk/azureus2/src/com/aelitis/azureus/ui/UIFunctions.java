@@ -32,6 +32,9 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 public interface UIFunctions
 	extends AzureusCoreComponent
 {
+	public static final String	MAIN_WINDOW_NAME		= "Vuze Bittorrent Client";
+	public static final String	MAIN_WINDOW_NAME_PLUS	= "Vuze Plus Bittorrent Client";
+	
 	public static int STATUSICON_NONE = 0;
 
 	public static int STATUSICON_WARNING = 1;
