@@ -62,7 +62,7 @@ AEThreadMonitor
 		return( thread_bean.getCurrentThreadCpuTime());
 	}
 	
-	private
+	public
 	AEThreadMonitor()
 	{	
 		String	java_version = (String)System.getProperty("java.runtime.version");

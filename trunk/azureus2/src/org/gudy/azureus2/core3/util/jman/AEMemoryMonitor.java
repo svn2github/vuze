@@ -52,7 +52,7 @@ AEMemoryMonitor
 
 	private static long	max_heap_mb;
 		
-	private
+	public
 	AEMemoryMonitor()
 	{
 		try{
