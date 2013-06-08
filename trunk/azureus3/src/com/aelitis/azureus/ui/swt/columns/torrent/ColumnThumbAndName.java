@@ -358,6 +358,13 @@ public class ColumnThumbAndName
 					try {
 						gc.setClipping(cellBounds);
 
+						boolean hack_adv = Constants.isWindows8OrHigher && gc.getAdvanced();
+						
+						if ( hack_adv ){
+								// problem with icon transparency on win8
+							gc.setAdvanced( false );
+						}
+						
 						for (int i = 0; i < imgThumbnail.length; i++) {
 							Image image = imgThumbnail[i];
 							if (image == null || image.isDisposed()) {
@@ -379,6 +386,10 @@ public class ColumnThumbAndName
 								gc.drawImage(image, srcBounds.x, srcBounds.y, srcBounds.width,
 										srcBounds.height, x + dstWidth - w, y + dstHeight - h, w, h);
 							}
+						}
+						
+						if ( hack_adv ){
+							gc.setAdvanced( true );
 						}
 					} catch (Exception e) {
 						Debug.out(e);
@@ -469,6 +480,13 @@ public class ColumnThumbAndName
 					try {
 						gc.setClipping(cellBounds);
 
+						boolean hack_adv = Constants.isWindows8OrHigher && gc.getAdvanced();
+						
+						if ( hack_adv ){
+								// problem with icon transparency on win8
+							gc.setAdvanced( false );
+						}
+						
 						for (int i = 0; i < imgThumbnail.length; i++) {
 							Image image = imgThumbnail[i];
 							if (image == null || image.isDisposed()) {
@@ -490,6 +508,10 @@ public class ColumnThumbAndName
 								gc.drawImage(image, srcBounds.x, srcBounds.y, srcBounds.width,
 										srcBounds.height, x + dstWidth - w, y + dstHeight - h, w, h);
 							}
+						}
+						
+						if ( hack_adv ){
+							gc.setAdvanced( true );
 						}
 					} catch (Exception e) {
 						Debug.out(e);

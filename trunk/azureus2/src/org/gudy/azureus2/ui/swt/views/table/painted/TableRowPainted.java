@@ -483,11 +483,21 @@ public class TableRowPainted
 					if (imageBounds != null) {
 						int drawToY = cellBounds.y + (cellBounds.height / 2)
 								- (imageBounds.height / 2);
+						
+						boolean hack_adv = Constants.isWindows8OrHigher && gc.getAdvanced();
+						
+						if ( hack_adv ){
+								// problem with icon transparency on win8
+							gc.setAdvanced( false );
+						}
 						if ((style & SWT.RIGHT) > 0) {
 							int drawToX = cellBounds.x + cellBounds.width - size.x;
 							gc.drawImage(image, drawToX, drawToY);
 						} else {
 							gc.drawImage(image, cellBounds.x - imageBounds.width - 3, drawToY);
+						}
+						if ( hack_adv ){
+							gc.setAdvanced( true );
 						}
 					}
 				} else {

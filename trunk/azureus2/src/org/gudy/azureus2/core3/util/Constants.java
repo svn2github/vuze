@@ -154,6 +154,7 @@ Constants
   public static final boolean isWindowsVistaSP2OrHigher;
   public static final boolean isWindowsVistaOrHigher;
   public static final boolean isWindows7OrHigher;
+  public static final boolean isWindows8OrHigher;
   
   
   // Common Patterns
@@ -196,6 +197,7 @@ Constants
 			  isWindowsVista			= false;
 			  isWindowsVistaOrHigher 	= false;
 			  isWindows7OrHigher		= false;
+			  isWindows8OrHigher		= false;
 			  
 		  }else{
 			  float f_ver = ver.floatValue();
@@ -203,6 +205,7 @@ Constants
 			  isWindowsVista			= f_ver == 6;
 			  isWindowsVistaOrHigher 	= f_ver >= 6;
 			  isWindows7OrHigher	 	= f_ver >= 6.1f;
+			  isWindows8OrHigher	 	= f_ver >= 6.2f;
 		  
 			  if ( isWindowsVista ){
 			  
@@ -259,6 +262,7 @@ Constants
 		  isWindowsVistaSP2OrHigher	= false;
 		  isWindowsVistaOrHigher 	= false;
 		  isWindows7OrHigher 		= false;
+		  isWindows8OrHigher 		= false;
 	  }
   }
   
