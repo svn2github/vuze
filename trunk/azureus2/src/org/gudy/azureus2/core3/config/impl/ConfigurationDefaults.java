@@ -658,6 +658,9 @@ public class ConfigurationDefaults {
     def.put( "subscriptions.auto.start.downloads", TRUE );
     def.put( "subscriptions.auto.start.min.mb", ZERO );
     def.put( "subscriptions.auto.start.max.mb", ZERO );
+    
+    def.put( "Show Side Bar", TRUE );
+    def.put( "Side Bar Top Level Gap", ONE );
 }
   
   protected 

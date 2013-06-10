@@ -43,6 +43,8 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
+import com.aelitis.azureus.core.util.AZ3Functions;
+
 public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 	private final static String MSG_PREFIX = "ConfigView.section.style.";
 
@@ -69,10 +71,6 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
     int userMode = COConfigurationManager.getIntParameter("User Mode");
 		boolean isAZ3 = COConfigurationManager.getStringParameter("ui").equals("az3");
 
-    // "Display" Sub-Section:
-		// ----------------------
-		// Any Look & Feel settings that don't really change the way the user 
-		// normally interacts
 		Label label;
 		GridLayout layout;
 		GridData gridData;
@@ -82,35 +80,32 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		layout.numColumns = 1;
 		cSection.setLayout(layout);
 
-		new BooleanParameter(cSection, "Show Download Basket", MSG_PREFIX
+			// various stuff
+		
+		Group gVarious = new Group(cSection, SWT.NULL);
+		layout = new GridLayout();
+		layout.numColumns = 1;
+		gVarious.setLayout(layout);
+		gVarious.setLayoutData(new GridData());
+		
+		gVarious.setText( MessageText.getString( "label.various" ));
+		
+		
+		new BooleanParameter(gVarious, "Show Download Basket", MSG_PREFIX
 				+ "showdownloadbasket");
 
 		if (!isAZ3) {
-  		new BooleanParameter(cSection, "IconBar.enabled", MSG_PREFIX
-  				+ "showiconbar");
+			new BooleanParameter(gVarious, "IconBar.enabled", MSG_PREFIX + "showiconbar");
 		}
 
-		Group cStatusBar = new Group(cSection, SWT.NULL);
-		Messages.setLanguageText(cStatusBar, MSG_PREFIX + "status");
-		layout = new GridLayout();
-		layout.numColumns = 1;
-		cStatusBar.setLayout(layout);
-		cStatusBar.setLayoutData(new GridData());
+		new BooleanParameter(gVarious, "Add URL Silently", MSG_PREFIX	+ "addurlsilently");
 
-		new BooleanParameter(cStatusBar, "Status Area Show SR", MSG_PREFIX	+ "status.show_sr");
-		new BooleanParameter(cStatusBar, "Status Area Show NAT",  MSG_PREFIX + "status.show_nat");
-		new BooleanParameter(cStatusBar, "Status Area Show DDB", MSG_PREFIX + "status.show_ddb");
-		new BooleanParameter(cStatusBar, "Status Area Show IPF", MSG_PREFIX + "status.show_ipf");
-		new BooleanParameter(cStatusBar, "status.rategraphs", MSG_PREFIX + "status.show_rategraphs");
-		
-		new BooleanParameter(cSection, "Add URL Silently", MSG_PREFIX	+ "addurlsilently");
+		new BooleanParameter(gVarious, "suppress_file_download_dialog", "ConfigView.section.interface.display.suppress.file.download.dialog");
 
-		new BooleanParameter(cSection, "suppress_file_download_dialog", "ConfigView.section.interface.display.suppress.file.download.dialog");
-
-		new BooleanParameter(cSection, "show_torrents_menu", "Menu.show.torrent.menu");
+		new BooleanParameter(gVarious, "show_torrents_menu", "Menu.show.torrent.menu");
 
 		if (Constants.isWindowsXP) {
-			final Button enableXPStyle = new Button(cSection, SWT.CHECK);
+			final Button enableXPStyle = new Button(gVarious, SWT.CHECK);
 			Messages.setLanguageText(enableXPStyle, MSG_PREFIX + "enableXPStyle");
 
 			boolean enabled = false;
@@ -159,9 +154,77 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		}
 
 		if (Constants.isOSX) {
-			new BooleanParameter(cSection, "enable_small_osx_fonts", MSG_PREFIX
-					+ "osx_small_fonts");
+			new BooleanParameter(gVarious, "enable_small_osx_fonts", MSG_PREFIX	+ "osx_small_fonts");
 		}
+		
+		// Reuse the labels of the other menu actions.
+		if (PlatformManagerFactory.getPlatformManager().hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
+			BooleanParameter bp = new BooleanParameter(gVarious, "MyTorrentsView.menu.show_parent_folder_enabled", MSG_PREFIX
+					+ "use_show_parent_folder");
+			Messages.setLanguageText(bp.getControl(), "ConfigView.section.style.use_show_parent_folder", new String[] {
+				MessageText.getString("MyTorrentsView.menu.open_parent_folder"),
+				MessageText.getString("MyTorrentsView.menu.explore"),
+			});
+			
+			if (Constants.isOSX) {
+				new BooleanParameter(gVarious, "FileBrowse.usePathFinder", 
+						MSG_PREFIX + "usePathFinder");
+			}
+		}
+		
+		if ( Constants.isOSX_10_5_OrHigher ){
+			
+			Composite cSWT = new Composite(gVarious, SWT.NULL);
+			layout = new GridLayout();
+			layout.marginHeight = 0;
+			layout.marginWidth = 0;
+			layout.numColumns = 2;
+			cSWT.setLayout(layout);
+			cSWT.setLayoutData(new GridData());
+			
+			label = new Label(cSWT, SWT.NULL);
+			label.setText( "SWT Library" );
+			String[] swtLibraries = { "carbon", "cocoa" };
+					
+			new StringListParameter(cSWT, MSG_PREFIX + "swt.library.selection", swtLibraries, swtLibraries);
+		}
+		
+			// sidebar
+		
+		if ( isAZ3 ){
+		
+			Group gSideBar = new Group(cSection, SWT.NULL);
+			Messages.setLanguageText(gSideBar, "v3.MainWindow.menu.view.sidebar" );
+			layout = new GridLayout();
+			layout.numColumns = 2;
+			gSideBar.setLayout(layout);
+			gSideBar.setLayoutData(new GridData());
+			
+			new BooleanParameter(gSideBar, "Show Side Bar", "sidebar.show");
+			label = new Label(gSideBar, SWT.NULL);
+			
+			label = new Label(gSideBar, SWT.NULL);
+			Messages.setLanguageText(label, "sidebar.top.level.gap" );
+			
+			new IntParameter(gSideBar, "Side Bar Top Level Gap", 0, 5 );
+		}
+		
+			// status bar
+		
+		Group cStatusBar = new Group(cSection, SWT.NULL);
+		Messages.setLanguageText(cStatusBar, MSG_PREFIX + "status");
+		layout = new GridLayout();
+		layout.numColumns = 1;
+		cStatusBar.setLayout(layout);
+		cStatusBar.setLayoutData(new GridData());
+
+		new BooleanParameter(cStatusBar, "Status Area Show SR", MSG_PREFIX	+ "status.show_sr");
+		new BooleanParameter(cStatusBar, "Status Area Show NAT",  MSG_PREFIX + "status.show_nat");
+		new BooleanParameter(cStatusBar, "Status Area Show DDB", MSG_PREFIX + "status.show_ddb");
+		new BooleanParameter(cStatusBar, "Status Area Show IPF", MSG_PREFIX + "status.show_ipf");
+		new BooleanParameter(cStatusBar, "status.rategraphs", MSG_PREFIX + "status.show_rategraphs");
+	
+			// display units
 
 		if (userMode > 0) {
 			Group cUnits = new Group(cSection, SWT.NULL);
@@ -190,74 +253,50 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 					MSG_PREFIX + "separateProtDataStats");
 		}
 		
-    if( userMode > 1 ) {
-  		final BooleanParameter fMoz = new BooleanParameter(cSection, "swt.forceMozilla",MSG_PREFIX + "forceMozilla");
-  		Composite pArea = new Composite(cSection,SWT.NULL);
-  		pArea.setLayout(new GridLayout(3,false));
-  		pArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-  		Messages.setLanguageText(new Label(pArea,SWT.NONE), MSG_PREFIX+"xulRunnerPath");
-  		final Parameter xulDir = new DirectoryParameter(pArea, "swt.xulRunner.path","");
-  		fMoz.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(xulDir.getControls(), false));
-    }
+		if( userMode > 1 ) {
+			Group gBrowser = new Group(cSection, SWT.NULL);
+			layout = new GridLayout();
+			layout.numColumns = 1;
+			gBrowser.setLayout(layout);
+			gBrowser.setLayoutData(new GridData());
+			
+			gBrowser.setText( MessageText.getString( "label.browser" ));
+			final BooleanParameter fMoz = new BooleanParameter(gBrowser, "swt.forceMozilla",MSG_PREFIX + "forceMozilla");
+			Composite pArea = new Composite(gBrowser,SWT.NULL);
+			pArea.setLayout(new GridLayout(3,false));
+			pArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+			Messages.setLanguageText(new Label(pArea,SWT.NONE), MSG_PREFIX+"xulRunnerPath");
+			final Parameter xulDir = new DirectoryParameter(pArea, "swt.xulRunner.path","");
+			fMoz.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(xulDir.getControls(), false));
+		}
 		
-		Composite cArea = new Composite(cSection, SWT.NULL);
+			// refresh
+		
+		Group gRefresh = new Group(cSection, SWT.NULL);
+		gRefresh.setText( MessageText.getString( "upnp.refresh.button" ));
+		
 		layout = new GridLayout();
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
 		layout.numColumns = 2;
-		cArea.setLayout(layout);
-		cArea.setLayoutData(new GridData());
+		gRefresh.setLayout(layout);
+		gRefresh.setLayoutData(new GridData());
 		
-		label = new Label(cArea, SWT.NULL);
+		label = new Label(gRefresh, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "guiUpdate");
 		int[] values = { 100, 250, 500, 1000, 2000, 5000, 10000, 15000 };
 		String[] labels = { "100 ms", "250 ms", "500 ms", "1 s", "2 s", "5 s", "10 s", "15 s" };
-		new IntListParameter(cArea, "GUI Refresh", 1000, labels, values);
+		new IntListParameter(gRefresh, "GUI Refresh", 1000, labels, values);
 		
-		label = new Label(cArea, SWT.NULL);
+		label = new Label(gRefresh, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "inactiveUpdate");
 		gridData = new GridData();
-		IntParameter inactiveUpdate = new IntParameter(cArea, "Refresh When Inactive", 1,	-1);
+		IntParameter inactiveUpdate = new IntParameter(gRefresh, "Refresh When Inactive", 1,	-1);
 		inactiveUpdate.setLayoutData(gridData);
 
-		label = new Label(cArea, SWT.NULL);
+		label = new Label(gRefresh, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "graphicsUpdate");
 		gridData = new GridData();
-		IntParameter graphicUpdate = new IntParameter(cArea, "Graphics Update", 1,	-1);
+		IntParameter graphicUpdate = new IntParameter(gRefresh, "Graphics Update", 1,	-1);
 		graphicUpdate.setLayoutData(gridData);
-
-		
-		// Reuse the labels of the other menu actions.
-		if (PlatformManagerFactory.getPlatformManager().hasCapability(PlatformManagerCapabilities.ShowFileInBrowser)) {
-			BooleanParameter bp = new BooleanParameter(cSection, "MyTorrentsView.menu.show_parent_folder_enabled", MSG_PREFIX
-					+ "use_show_parent_folder");
-			Messages.setLanguageText(bp.getControl(), "ConfigView.section.style.use_show_parent_folder", new String[] {
-				MessageText.getString("MyTorrentsView.menu.open_parent_folder"),
-				MessageText.getString("MyTorrentsView.menu.explore"),
-			});
-			
-			if (Constants.isOSX) {
-				new BooleanParameter(cSection, "FileBrowse.usePathFinder", 
-						MSG_PREFIX + "usePathFinder");
-			}
-		}
-		
-		if ( Constants.isOSX_10_5_OrHigher ){
-			
-			Composite cSWT = new Composite(cSection, SWT.NULL);
-			layout = new GridLayout();
-			layout.marginHeight = 0;
-			layout.marginWidth = 0;
-			layout.numColumns = 2;
-			cSWT.setLayout(layout);
-			cSWT.setLayoutData(new GridData());
-			
-			label = new Label(cSWT, SWT.NULL);
-			label.setText( "SWT Library" );
-			String[] swtLibraries = { "carbon", "cocoa" };
-					
-			new StringListParameter(cSWT, MSG_PREFIX + "swt.library.selection", swtLibraries, swtLibraries);
-		}
 		
 		return cSection;
 	}

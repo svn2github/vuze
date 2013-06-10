@@ -30,6 +30,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.*;
@@ -79,7 +80,12 @@ public class SideBar
 
 	protected static final boolean USE_NATIVE_EXPANDER = Utils.isGTK;
 
-	private static final boolean GAP_BETWEEN_LEVEL_1 = true;
+	private static final int GAP_BETWEEN_LEVEL_1;
+	
+	
+	static{
+		GAP_BETWEEN_LEVEL_1 = Math.min( 5, Math.max( 0, COConfigurationManager.getIntParameter( "Side Bar Top Level Gap", 1 )));
+	}
 
 	protected static final int SIDEBAR_ATTENTION_PERIOD	 	= 500;
 	protected static final int SIDEBAR_ATTENTION_DURATION 	= 5000;
@@ -230,8 +236,12 @@ public class SideBar
 		}
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
-				soSash.setAboveVisible(!soSash.isAboveVisible());
+				boolean visible = !soSash.isAboveVisible();
+				
+				soSash.setAboveVisible( visible );
 				updateSidebarVisibility();
+				
+				COConfigurationManager.setParameter( "Show Side Bar", visible );
 			}
 		});
 	}
@@ -303,7 +313,25 @@ public class SideBar
 			}
 		});
 
+		COConfigurationManager.addParameterListener(
+			"Show Side Bar",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					boolean visible = COConfigurationManager.getBooleanParameter( name );
+					
+					if ( visible != isVisible()){
+						
+						flipSideBarVisibility();
+					}
+				}
+			});
+		
 		updateSidebarVisibility();
+		
 		return null;
 	}
 
@@ -1248,11 +1276,13 @@ public class SideBar
 			}
 		}
 
-		if (GAP_BETWEEN_LEVEL_1 && parentTreeItem == null
+		if (GAP_BETWEEN_LEVEL_1 > 0 && parentTreeItem == null
 				&& tree.getItemCount() > 0 && index != 0) {
-			createTreeItem(null, index);
-			if (index >= 0) {
-				index++;
+			for (int i=0;i<GAP_BETWEEN_LEVEL_1;i++){
+				createTreeItem(null, index);
+				if (index >= 0) {
+					index++;
+				}
 			}
 		}
 		TreeItem treeItem = createTreeItem(parentTreeItem, index);
@@ -1262,9 +1292,11 @@ public class SideBar
 
 			triggerEntryLoadedListeners(entry);
 		}
-		if (GAP_BETWEEN_LEVEL_1 && parentTreeItem == null
+		if (GAP_BETWEEN_LEVEL_1 > 0 && parentTreeItem == null
 				&& tree.getItemCount() > 1 && index == 0) {
-			createTreeItem(null, ++index);
+			for (int i=0;i<GAP_BETWEEN_LEVEL_1;i++){
+				createTreeItem(null, ++index);
+			}
 		}
 	}
 
