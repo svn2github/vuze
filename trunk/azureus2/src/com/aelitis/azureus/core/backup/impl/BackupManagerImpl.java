@@ -606,6 +606,15 @@ BackupManagerImpl
 			
 			if ( !FileUtil.copyFile( from_file, to_file )){
 				
+					// a few exceptions here (e.g. dasu plugin has a 'lock' file that breaks things)
+				
+				String name = from_file.getName().toLowerCase();
+				
+				if ( name.equals( ".lock" ) || name.equals( "lock" )){
+					
+					return( new long[]{ total_files, total_copied });
+				}
+				
 				throw( new Exception( "Failed to copy file '" + from_file + "'" ));
 			}
 			
