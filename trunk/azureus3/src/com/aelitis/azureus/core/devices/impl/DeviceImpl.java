@@ -234,6 +234,7 @@ DeviceImpl
 	private boolean				manual;
 	
 	private boolean			hidden;
+	private boolean			auto_hidden;
 	private boolean 		isGenericUSB;
 	private long			last_seen;
 	private boolean			can_remove = true;
@@ -324,6 +325,7 @@ DeviceImpl
 
 		last_seen		= ImportExportUtils.importLong( map, "_ls" );
 		hidden			= ImportExportUtils.importBoolean( map, "_hide" );	
+		auto_hidden		= ImportExportUtils.importBoolean( map, "_ahide" );	
 		can_remove		= ImportExportUtils.importBoolean( map, "_rm", true );	
 		isGenericUSB 	= ImportExportUtils.importBoolean( map, "_genericUSB" );	
 		manual			= ImportExportUtils.importBoolean( map, "_man" );
@@ -366,6 +368,7 @@ DeviceImpl
 		if ( !for_export ){
 			ImportExportUtils.exportLong( map, "_ls", new Long( last_seen ));
 			ImportExportUtils.exportBoolean( map, "_hide", hidden );
+			ImportExportUtils.exportBoolean( map, "_ahide", auto_hidden );
 		}
 		
 		ImportExportUtils.exportBoolean( map, "_rm", can_remove );
@@ -708,8 +711,33 @@ DeviceImpl
 			
 			setDirty();
 		}
+		
+		if ( auto_hidden ){
+			
+			auto_hidden = false;
+			
+			setDirty();
+		}
 	}
 
+	public boolean
+	isAutoHidden()
+	{
+		return( auto_hidden );
+	}
+	
+	public void
+	setAutoHidden(
+		boolean		h )
+	{
+		if ( h != auto_hidden ){
+			
+			auto_hidden	= h;
+			
+			setDirty();
+		}
+	}
+	
 	public boolean
 	isTagged()
 	{

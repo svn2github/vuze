@@ -513,8 +513,7 @@ DeviceManagerImpl
 								for ( DeviceImpl device: copy ){
 																		
 									if ( 	device.isLivenessDetectable() &&
-											!device.isTagged() &&
-											!device.isHidden()){
+											!device.isTagged()){
 										
 										int type = device.getType();
 										
@@ -537,11 +536,26 @@ DeviceManagerImpl
 										
 										if ( age > auto_hide_old_days*24*60*60*1000L ){
 											
-											log( "Auto-hiding '" +  device.getName() + "'" );
-
-											device.setHidden( true );
+											if ( !device.isHidden()){
+												
+												log( "Auto-hiding '" +  device.getName() + "'" );
+	
+												device.setAutoHidden( true );
+												
+												device.setHidden( true );
+												
+												num_hidden++;
+											}
+										}else{
 											
-											num_hidden++;
+											if ( device.isHidden() && device.isAutoHidden()){
+												
+												log( "Auto-showing '" +  device.getName() + "'" );
+												
+												device.setAutoHidden( false );
+												
+												device.setHidden( false );
+											}
 										}
 									}
 								}
