@@ -81,6 +81,9 @@ DeviceManagerImpl
 	private static final String	CONFIG_FILE 				= "devices.config";
 	private static final String	AUTO_SEARCH_CONFIG_KEY		= "devices.config.auto_search";
 	
+	private static final int	AUTO_HIDE_OLD_DAYS_DEFAULT	= 31;
+	private static final String	AUTO_HIDE_OLD_CONFIG_KEY	= "devices.config.auto_hide_old";
+
 	private static final String	RSS_ENABLE_CONFIG_KEY		= "devices.config.rss_enable";
 	
 	private static final String OD_ENABLED_CONFIG_KEY			= "devices.config.od.enabled";
@@ -93,7 +96,9 @@ DeviceManagerImpl
 	private static final String CONFIG_DISABLE_SLEEP		= "devices.config.disable_sleep";
 
 	
-	protected static final int	DEVICE_UPDATE_PERIOD	= 5*1000;
+	protected static final int	DEVICE_UPDATE_PERIOD			= 5*1000;
+	protected static final int	DEVICE_AUTO_HIDE_CHECK_PERIOD	= 5*60*1000;
+	protected static final int	DEVICE_AUTO_HIDE_CHECK_TICKS	= DEVICE_AUTO_HIDE_CHECK_PERIOD/DEVICE_UPDATE_PERIOD;
 	
 	private static boolean pre_initialised;
 	
@@ -259,6 +264,7 @@ DeviceManagerImpl
 	
 	
 	private boolean	auto_search;
+	private int		auto_hide_old_days	= AUTO_HIDE_OLD_DAYS_DEFAULT;
 	
 	private DeviceManagerRSSFeed	rss_publisher;
 	
@@ -377,6 +383,7 @@ DeviceManagerImpl
 			COConfigurationManager.addAndFireParameterListeners(
 					new String[]{
 						AUTO_SEARCH_CONFIG_KEY,
+						AUTO_HIDE_OLD_CONFIG_KEY,
 					},
 					new ParameterListener()
 					{
@@ -384,7 +391,8 @@ DeviceManagerImpl
 						parameterChanged(
 							String name ) 
 						{
-							auto_search = COConfigurationManager.getBooleanParameter( AUTO_SEARCH_CONFIG_KEY, true );
+							auto_search 		= COConfigurationManager.getBooleanParameter( AUTO_SEARCH_CONFIG_KEY, true );
+							auto_hide_old_days	= COConfigurationManager.getIntParameter( AUTO_HIDE_OLD_CONFIG_KEY, AUTO_HIDE_OLD_DAYS_DEFAULT );
 						}
 					});
 			
@@ -491,6 +499,46 @@ DeviceManagerImpl
 							for ( DeviceImpl device: copy ){
 								
 								device.updateStatus( tick_count );
+							}
+							
+							if ( 	auto_hide_old_days > 0 && 
+									tick_count % DEVICE_AUTO_HIDE_CHECK_TICKS == 0 ){
+								
+								long	now = SystemTime.getCurrentTime();
+								
+								for ( DeviceImpl device: copy ){
+																		
+									if ( 	device.isLivenessDetectable() &&
+											!device.isTagged() &&
+											!device.isHidden()){
+										
+										int type = device.getType();
+										
+										if ( type == Device.DT_CONTENT_DIRECTORY ){
+											
+										}else if ( type == Device.DT_MEDIA_RENDERER ){
+											
+											DeviceMediaRenderer rend = (DeviceMediaRenderer)device;
+											
+											if ( rend.getRendererSpecies() != DeviceMediaRenderer.RS_OTHER ){
+												
+												continue;
+											}
+										}else{
+											
+											continue;
+										}
+										
+										long age = now - device.getLastSeen();
+										
+										if ( age > auto_hide_old_days*24*60*60*1000L ){
+											
+											log( "Auto-hiding '" +  device.getName() + "'" );
+
+											device.setHidden( true );											
+										}
+									}
+								}
 							}
 						}
 					});
@@ -1119,6 +1167,19 @@ DeviceManagerImpl
 		boolean	auto )
 	{
 		COConfigurationManager.setParameter( AUTO_SEARCH_CONFIG_KEY, auto );
+	}
+	
+	public int
+	getAutoHideOldDevicesDays()
+	{
+		return( COConfigurationManager.getIntParameter( AUTO_HIDE_OLD_CONFIG_KEY, AUTO_HIDE_OLD_DAYS_DEFAULT ));
+	}
+	
+	public void
+	setAutoHideOldDevicesDays(
+		int		days )
+	{
+		COConfigurationManager.setParameter( AUTO_HIDE_OLD_CONFIG_KEY, days );
 	}
 	
 	public boolean

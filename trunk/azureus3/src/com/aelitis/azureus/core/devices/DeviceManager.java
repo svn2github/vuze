@@ -31,7 +31,6 @@ DeviceManager
 	
 	public static final String CONFIG_VIEW_HIDE_REND_GENERIC	= "device.sidebar.ui.rend.hidegeneric";
 	public static final String CONFIG_VIEW_SHOW_ONLY_TAGGED		= "device.sidebar.ui.rend.showonlytagged";
-
 	
 	public DeviceTemplate[]
 	getDeviceTemplates(
@@ -73,6 +72,13 @@ DeviceManager
 	public void
 	setAutoSearch(
 		boolean	auto );
+	
+	public int
+	getAutoHideOldDevicesDays();
+	
+	public void
+	setAutoHideOldDevicesDays(
+		int		days );
 	
 	public boolean
 	isRSSPublishEnabled();

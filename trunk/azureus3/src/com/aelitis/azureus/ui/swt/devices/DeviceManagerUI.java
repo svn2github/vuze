@@ -650,6 +650,24 @@ DeviceManagerUI
 				"!" + CONFIG_VIEW_SHOW_ONLY_TAGGED + "!", "devices.sidebar.show.only.tagged",
 				side_bar_show_tagged );
 
+			// auto-hide old devices
+		
+		final IntParameter auto_hide_old = 
+			configModel.addIntParameter2(
+				"device.config.autohide.old.devices", "device.config.autohide.old.devices",
+				device_manager.getAutoHideOldDevicesDays(), 0, 2048 );
+		
+		auto_hide_old.addListener(
+				new ParameterListener()
+				{
+					public void 
+					parameterChanged(
+						Parameter param) 
+					{
+						device_manager.setAutoHideOldDevicesDays( auto_hide_old.getValue());
+					}
+				});
+		
 		// transcoding
 		
 			// default dir
