@@ -30,6 +30,8 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEDiagnostics;
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.AEDiagnosticsLogger;
@@ -506,6 +508,8 @@ DeviceManagerImpl
 								
 								long	now = SystemTime.getCurrentTime();
 								
+								int	num_hidden = 0;
+								
 								for ( DeviceImpl device: copy ){
 																		
 									if ( 	device.isLivenessDetectable() &&
@@ -535,9 +539,25 @@ DeviceManagerImpl
 											
 											log( "Auto-hiding '" +  device.getName() + "'" );
 
-											device.setHidden( true );											
+											device.setHidden( true );
+											
+											num_hidden++;
 										}
 									}
+								}
+							
+								if ( num_hidden > 0 ){
+										
+									Logger.log(					
+										new LogAlert(
+											true,
+											LogAlert.AT_INFORMATION,
+											MessageText.getString(
+												"device.autohide.alert",
+												new String[]{
+													String.valueOf( num_hidden ),
+													String.valueOf( auto_hide_old_days )
+												})));
 								}
 							}
 						}
