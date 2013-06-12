@@ -5,11 +5,13 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
-import org.eclipse.swt.graphics.Point;
-import org.eclipse.swt.layout.*;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.Button;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore2;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -21,21 +23,9 @@ public class VuzeMessageBox
 	implements UIFunctionsUserPrompter, SkinnedDialogClosedListener
 {
 
-	private static final int BUTTON_PADDING = 2;
-
-	private static final int MIN_BUTTON_WIDTH = 50;
-
 	private String title;
 
 	private String text;
-
-	private String[] buttonIDs;
-
-	private Integer[] buttonVals;
-
-	private Button def_button;
-
-	private int defaultButtonPos;
 
 	private int result = -1;
 
@@ -61,79 +51,29 @@ public class VuzeMessageBox
 
 	private boolean opened;
 
-	private Button[] buttons;
-
-	private Map<Integer, Boolean> buttonsEnabled = new HashMap<Integer, Boolean>();
+	private StandardButtonsArea buttonsArea;
 
 	public VuzeMessageBox(final String title, final String text,
 			final String[] buttons, final int defaultOption) {
 		this.title = title;
 		this.text = text;
-		this.buttonIDs = buttons == null ? new String[0] : buttons;
-		this.defaultButtonPos = defaultOption;
+		buttonsArea = new StandardButtonsArea() {
+			protected void clicked(int intValue) {
+				close(intValue);
+			}
+		};
+		buttonsArea.setButtonIDs(buttons);
+		buttonsArea.setDefaultButtonPos(defaultOption);
 	}
 	
 	public void setButtonEnabled(final int buttonVal, final boolean enable) {
-		buttonsEnabled.put(buttonVal, enable);
-		if (buttons == null) {
-			return;
-		}
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				if (buttons == null) {
-					return;
-				}
-				int pos = getButtonPosFromVal(buttonVal);
-				if (pos >= 0 && pos < buttons.length) {
-					Button button = buttons[pos];
-					if (button != null && !button.isDisposed()) {
-						button.setEnabled(enable);
-					}
-				}
-			}
-		});
+		buttonsArea.setButtonEnabled(buttonVal, enable);
 	}
 	
 	public void setButtonVals(Integer[] buttonVals) {
-		this.buttonVals = buttonVals;
-		int cancelPos = -1;
-		for (int i = 0; i < buttonVals.length; i++) {
-			Integer val = buttonVals[i];
-			if (val == SWT.CANCEL) {
-				cancelPos = i;
-				break;
-			}
-		}
-		if (cancelPos >= 0) {
-  		if (Constants.isOSX && cancelPos != 0) {
-				String cancelButton = buttonIDs[cancelPos];
-
-				for (int i = cancelPos; i > 0; i--) {
-					if (defaultButtonPos == i) {
-						defaultButtonPos = i - 1;
-					}
-					this.buttonIDs[i] = this.buttonIDs[i - 1];
-					this.buttonVals[i] = this.buttonVals[i - 1];
-				}
-				if (defaultButtonPos == 0) {
-					defaultButtonPos = 1;
-				}
-				buttonIDs[0] = cancelButton;
-				buttonVals[0] = SWT.CANCEL;
-			} // else if (cancelPos != buttons.length - 1) { // TODO: move to end
-		}
+		buttonsArea.setButtonVals(buttonVals);
 	}
 	
-	private int getButtonVal(int buttonPos) {
-		if (buttonVals == null) {
-			return buttonPos;
-		}
-		if (buttonPos < 0 || buttonPos >= buttonVals.length) {
-			return SWT.CANCEL;
-		}
-		return buttonVals[buttonPos].intValue();
-	}
-
 	
 	public void setSubTitle(String s) {
 		subtitle = s;
@@ -213,18 +153,6 @@ public class VuzeMessageBox
 				}
 
 			}
-			
-			public void open() {
-				
-				super.open();
-				
-					// need to defer setting the default button to here as otherwise it doesn't
-					// work (on windows at least...)
-				
-				if( def_button != null ){
-					def_button.getShell().setDefaultButton(def_button);
-				}
-			}
 		};
 		
 		dlg.setTitle(title);
@@ -254,16 +182,16 @@ public class VuzeMessageBox
   		}
 		}
 		
-		if (iconResource == null && textIconResource == null) {
+		if (iconResource == null && textIconResource == null && soTopTitle != null && soText != null) {
 			soTopTitle.setStyle(soText.getStyle() & ~(SWT.RIGHT | SWT.CENTER));
 		}
 		
 		SWTSkinObjectContainer soBottomArea = (SWTSkinObjectContainer) skin.getSkinObject("bottom-area");
 		if (soBottomArea != null) {
-			if (buttonIDs.length == 0) {
+			if (buttonsArea.getButtonCount() == 0) {
 				soBottomArea.setVisible(false);
 			} else {
-				createButtons(soBottomArea);
+				buttonsArea.swt_createButtons(soBottomArea.getComposite());
 			}
 		}
 
@@ -283,80 +211,7 @@ public class VuzeMessageBox
 	}
 	
 	public Button[] getButtons() {
-		return buttons;
-	}
-
-	private void createButtons(SWTSkinObjectContainer soBottomArea) {
-		FormData fd;
-		Composite cBottomArea = soBottomArea.getComposite();
-		Composite cCenterH = new Composite(cBottomArea, SWT.NONE);
-		fd = new FormData();
-		fd.height = 1;
-		fd.width = 1;
-		fd.left = new FormAttachment(0);
-		fd.right = new FormAttachment(100);
-		cCenterH.setLayoutData(fd);
-
-		Composite cCenterV = new Composite(cBottomArea, SWT.NONE);
-		fd = new FormData();
-		fd.width = 1;
-		fd.height = 1;
-		fd.top = new FormAttachment(0);
-		fd.bottom = new FormAttachment(100);
-		cCenterV.setLayoutData(fd);
-
-		Composite cButtonArea = new Composite(cBottomArea, SWT.NONE);
-		// Fix button BG not right on Win7
-		cButtonArea.setBackgroundMode(SWT.INHERIT_FORCE);
-		fd = new FormData();
-		fd.top = new FormAttachment(cCenterV, 0, SWT.CENTER);
-		fd.left = new FormAttachment(cCenterH, 0, SWT.CENTER);
-		cButtonArea.setLayoutData(fd);
-
-		RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);
-		rowLayout.center = true;
-		rowLayout.spacing = 8;
-		rowLayout.pack = false;
-		cButtonArea.setLayout(rowLayout);
-
-		buttons = new Button[buttonIDs.length];
-		for (int i = 0; i < buttonIDs.length; i++) {
-			String buttonText = buttonIDs[i];
-			if (buttonText == null) {
-				continue;
-			}
-			Button button = buttons[i] = new Button(cButtonArea, SWT.PUSH);
-			int buttonVal = buttonVals == null || i >= buttonVals.length ? i : buttonVals[i];
-			Boolean b = buttonsEnabled.get(buttonVal);
-			if (b == null) {
-				b = Boolean.TRUE;
-			}
-			button.setEnabled(b);
-			button.setText(buttonText);
-
-			RowData rowData = new RowData();
-			Point size = button.computeSize(SWT.DEFAULT, SWT.DEFAULT);
-			size.x += BUTTON_PADDING;
-			if (size.x < MIN_BUTTON_WIDTH) {
-				size.x = MIN_BUTTON_WIDTH;
-			}
-			rowData.width = size.x;
-			button.setLayoutData(rowData);
-
-			if (defaultButtonPos == i) {
-				def_button = button;
-			}
-			button.setData("ButtonNo", new Integer(i));
-			button.addListener(SWT.Selection, new Listener() {
-				public void handleEvent(Event event) {
-					close(((Number) event.widget.getData("ButtonNo")).intValue());
-				}
-			});
-		}
-
-		cBottomArea.getParent().layout(true, true);
-		
-
+		return buttonsArea.getButtons();
 	}
 
 	/* (non-Javadoc)
@@ -456,13 +311,13 @@ public class VuzeMessageBox
 							}
 						}
 					}
-					return getButtonVal(result);
+					return buttonsArea.getButtonVal(result);
 				}
 			}
 			sem.reserve();
 		}
 
-		return getButtonVal(result);
+		return buttonsArea.getButtonVal(result);
 	}
 
 	/* (non-Javadoc)
@@ -470,7 +325,7 @@ public class VuzeMessageBox
 	 */
 	public void skinDialogClosed(SkinnedDialog dialog) {
 		synchronized (resultListeners) {
-			int realResult = getButtonVal(result);
+			int realResult = buttonsArea.getButtonVal(result);
 			for (UserPrompterResultListener l : resultListeners) {
 				try {
 					l.prompterClosed(realResult);
@@ -498,31 +353,17 @@ public class VuzeMessageBox
 		}
 	}
 	
-	private int getButtonPosFromVal(int buttonVal) {
-		int pos = buttonVal;
-		if (buttonVals != null) {
-			for (int i = 0; i < buttonVals.length; i++) {
-				int val = buttonVals[i];
-				if (buttonVal == val) {
-					pos = i;
-					break;
-				}
-			}
-		}
-		return pos;
-	}
-
 	public void closeWithButtonVal(int buttonVal) {
 		synchronized (VuzeMessageBox.this) {
   		this.closed = true;
-  		this.result = getButtonPosFromVal(buttonVal);
+  		this.result = buttonsArea.getButtonPosFromVal(buttonVal);
   		if (dlg != null) {
   			dlg.close();
   		}
 		}
 	}
 
-	public void addResourceBundle(Class cla, String path, String name) {
+	public void addResourceBundle(Class<?> cla, String path, String name) {
 
 		synchronized (listRBs) {
 			if (skin == null) {	
@@ -562,19 +403,19 @@ public class VuzeMessageBox
 	
 	public void setDefaultButtonByPos(int pos) {
 		if (dlg == null) {
-			defaultButtonPos = pos;
+			buttonsArea.setDefaultButtonPos(pos);
 		}
 	}
 
 	
 	private static class rbInfo {
-		public rbInfo(Class cla, String path, String name) {
+		public rbInfo(Class<?> cla, String path, String name) {
 			super();
 			this.cla = cla;
 			this.path = path;
 			this.name = name;
 		}
-		Class cla;
+		Class<?> cla;
 		String path;
 		String name;
 	}
