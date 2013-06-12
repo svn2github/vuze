@@ -99,7 +99,7 @@ DeviceManagerImpl
 
 	
 	protected static final int	DEVICE_UPDATE_PERIOD			= 5*1000;
-	protected static final int	DEVICE_AUTO_HIDE_CHECK_PERIOD	= 5*60*1000;
+	protected static final int	DEVICE_AUTO_HIDE_CHECK_PERIOD	= 2*60*1000;
 	protected static final int	DEVICE_AUTO_HIDE_CHECK_TICKS	= DEVICE_AUTO_HIDE_CHECK_PERIOD/DEVICE_UPDATE_PERIOD;
 	
 	private static boolean pre_initialised;
@@ -539,11 +539,11 @@ DeviceManagerImpl
 											if ( !device.isHidden()){
 												
 												log( "Auto-hiding '" +  device.getName() + "'" );
-	
-												device.setAutoHidden( true );
-												
+													
 												device.setHidden( true );
-												
+
+												device.setAutoHidden( true );
+											
 												num_hidden++;
 											}
 										}else{

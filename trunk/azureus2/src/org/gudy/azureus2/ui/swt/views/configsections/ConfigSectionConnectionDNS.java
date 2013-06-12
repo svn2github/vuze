@@ -115,7 +115,7 @@ public class ConfigSectionConnectionDNS implements UISWTConfigSection {
 
 		gridData = new GridData();
 		gridData.horizontalSpan = 2;
-		new LinkLabel( cSection, gridData, "ConfigView.label.please.visit.here", MessageText.getString( CFG_PREFIX + ".url"));
+		new LinkLabel( cSection, gridData, "ConfigView.label.please.visit.here", MessageText.getString( CFG_PREFIX + "url"));
 
 		
 		Label comment_label = new Label(cSection, SWT.NULL );
