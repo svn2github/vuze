@@ -146,6 +146,14 @@ public class InitialisationFunctions
 					}
 				}
 				
+				public void 
+				setOpened(
+					org.gudy.azureus2.core3.download.DownloadManager 	dm,
+					boolean 											opened ) 
+				{
+					PlatformTorrentUtils.setHasBeenOpened( dm, opened );
+				}
+				
 				public boolean
 				canPlay(
 					org.gudy.azureus2.core3.download.DownloadManager		dm,

@@ -71,6 +71,11 @@ AZ3Functions
 			DownloadManager		dm,
 			int					file_index );
 
+		public void
+		setOpened(
+			DownloadManager		dm,
+			boolean				opened );
+		
 		public TranscodeTarget[]
 		getTranscodeTargets();
 		

@@ -68,6 +68,7 @@ import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -101,6 +102,13 @@ public class ManagerUtils {
 				public void
 				actionAllowed()
 				{
+					AZ3Functions.provider prov = AZ3Functions.getProvider();
+					
+					if ( prov != null ){
+						
+						prov.setOpened( dm, true );
+					}
+					
 					Utils.execSWTThread(
 						new Runnable()
 						{

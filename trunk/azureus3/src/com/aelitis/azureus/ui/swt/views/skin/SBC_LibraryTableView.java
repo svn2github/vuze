@@ -321,7 +321,6 @@ public class SBC_LibraryTableView
 			DownloadManager dm = DataSourceUtils.getDM(ds);
 			if (dm != null) {
 				TorrentUtil.runDataSources(new Object[]{ dm });
-				PlatformTorrentUtils.setHasBeenOpened(dm, true);
 				return;
 			}else{
 				DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);

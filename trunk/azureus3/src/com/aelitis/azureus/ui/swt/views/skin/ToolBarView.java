@@ -184,11 +184,6 @@ public class ToolBarView
 				DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
 				if (dms != null) {
 					TorrentUtil.runDataSources(dms);
-
-					for (int i = 0; i < dms.length; i++) {
-						DownloadManager dm = dms[i];
-						PlatformTorrentUtils.setHasBeenOpened(dm, true);
-					}
 					return true;
 				}
 				return false;
