@@ -1623,6 +1623,7 @@ public class TableColumnImpl
 		if ( iDefaultAlignment != -1 ){
 			setAlignment( iDefaultAlignment );
 		}
+		setNameOverride( null );
 	}
 
 	public void addDataSourceType(Class<?> cla) {
