@@ -1167,8 +1167,6 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			if ( !sortColumn.isVisible()){
 				
 				sortColumn = null;
-				
-				return;
 			}
 		}
 
