@@ -1161,6 +1161,16 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		if (isDisposed()) {
 			return;
 		}
+		
+		if ( sortColumn != null ){
+			
+			if ( !sortColumn.isVisible()){
+				
+				sortColumn = null;
+				
+				return;
+			}
+		}
 
 			// replaced sortColumn_mon 
 		synchronized (rows_sync) {
