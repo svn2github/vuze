@@ -1898,6 +1898,11 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return piecePicker.getMinAvailability();
 	}
 	
+	public float getMinAvailability( int file_index )
+	{
+		return piecePicker.getMinAvailability( file_index );
+	}
+	
 	public long getBytesUnavailable() {
 		return piecePicker.getBytesUnavailable();
 	}

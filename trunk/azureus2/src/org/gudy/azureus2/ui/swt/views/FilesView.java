@@ -110,6 +110,7 @@ public class FilesView
     new TorrentRelativePathItem(),
     new FileCRC32Item(),
     new FileMD5Item(),
+    new FileAvailabilityItem(),
   };
   
   static{

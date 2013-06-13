@@ -56,6 +56,7 @@ implements PiecePicker
 
 	/** min ms for recalculating availability - reducing this has serious ramifications */
 	private static final long TIME_MIN_AVAILABILITY	= 974;
+	private static final long TIME_MIN_FILE_AVAILABILITY	= 5*1000;
 	/** min ms for recalculating base priorities */
 	private static final long TIME_MIN_PRIORITIES	= 999;
 	/** min ms for forced availability rebuild */
@@ -212,7 +213,9 @@ implements PiecePicker
 	
 	private CopyOnWriteList		listeners = new CopyOnWriteList();
 
-
+	private volatile float[]	fileAvailabilities;
+	private volatile long		fileAvailabilitiesCalcTime;
+	
 	static
 	{
 		class ParameterListenerImpl
@@ -514,6 +517,82 @@ implements PiecePicker
 	public final float getMinAvailability()
 	{
 		return globalAvail;
+	}
+	
+	public float 
+	getMinAvailability( int fileIndex )
+	{
+		float[]	avails = fileAvailabilities;
+		
+		if ( avails == null ){
+			
+			DiskManagerFileInfo[] files = diskManager.getFiles();
+
+			avails = new float[ files.length ];
+		}
+
+		if ( avails.length == 1 ){
+			
+			if ( fileAvailabilities == null ){
+			
+				fileAvailabilities = avails;
+			}
+			
+			return( getMinAvailability());
+		}
+		
+		long now = SystemTime.getMonotonousTime();
+		
+		if ( fileAvailabilities == null || now - fileAvailabilitiesCalcTime > TIME_MIN_FILE_AVAILABILITY ){
+			
+			int[]	current_avail = availability;
+			
+			if ( current_avail == null ){
+				
+				return( 0 );
+			}		
+			
+			DiskManagerFileInfo[] files = diskManager.getFiles();
+						
+			for ( int i=0;i<files.length;i++ ){
+				
+				DiskManagerFileInfo file = files[i];
+				
+				int	start	= file.getFirstPieceNumber();
+				int	end		= start + file.getNbPieces();
+				
+				int	min_avail = Integer.MAX_VALUE;
+				
+				for ( int j=start; j<end; j++ ){
+					
+					int a = current_avail[j];
+					
+					min_avail = Math.min( a, min_avail );
+				}
+				
+				int total = 0;
+				
+				for ( int j=start; j<end; j++ ){
+
+					int a = current_avail[j];
+				
+					if (a > 0 ){
+				
+						if ( a > min_avail ){
+						
+							total++;
+						}
+					}
+				}
+		
+				avails[i] = (total /(float)(end-start+1)) + min_avail;
+			}
+			
+			fileAvailabilities 			= avails;
+			fileAvailabilitiesCalcTime	= now;
+		}
+		
+		return( avails[ fileIndex ]);
 	}
 	
 	public final long getBytesUnavailable() {

@@ -78,6 +78,8 @@ PEPeerManager
 
 	public float getMinAvailability();
 
+	public float getMinAvailability( int file_index );
+
 	public long getAvailWentBadTime();
 
 	public long getBytesUnavailable();
