@@ -58,8 +58,10 @@ import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 public class TableColumnImpl
 	implements TableColumnCore
 {
-	private static final String CFG_SORTDIRECTION = "config.style.table.defaultSortOrder";
+	private static final String CFG_SORTDIRECTION 		= "config.style.table.defaultSortOrder";
 
+	private static final String ATTRIBUTE_NAME_OVERIDE =  "tablecolumn.nameoverride";
+	
 	/** Internal Name/ID of the column **/
 	private String sName;
 
@@ -161,7 +163,7 @@ public class TableColumnImpl
 	private boolean firstLoad;
 
 	private boolean showOnlyImage;
-
+	
 	public TableColumnImpl(String tableID, String columnID) {
 		init(tableID, columnID);
 	}
@@ -216,6 +218,34 @@ public class TableColumnImpl
 		return sName;
 	}
 
+	public String getNameOverride(){
+		
+		Object name_override = getUserData( ATTRIBUTE_NAME_OVERIDE );
+		
+		if ( name_override != null ){
+						
+			if ( name_override instanceof String ){
+				
+				return((String)name_override);
+				
+			}else if ( name_override instanceof byte[]){
+				
+				try{
+					return( new String((byte[])name_override, "UTF-8" ));
+					
+				}catch( Throwable e ){
+				}
+			}
+		}
+		
+		return( null );
+	}
+	  
+	public void setNameOverride( String name )
+	{
+		setUserData( ATTRIBUTE_NAME_OVERIDE, name );
+	}
+	  
 	public String getTableID() {
 		return sTableID;
 	}
@@ -990,7 +1020,7 @@ public class TableColumnImpl
 	
 	public final void loadSettings(Map mapSettings) {
 		// Format: Key = [TableID].column.[columnname]
-		// Value[] = { visible, width, position, autotooltip, sortorder }
+		// Value[] = { visible, width, position, autotooltip, sortorder, userData, align }
  
 		String itemPrefix = "Column." + sName;
 		String oldItemPrefix = "Table." + sTableID + "." + sName;
@@ -1114,6 +1144,13 @@ public class TableColumnImpl
 		try {
 			this_mon.enter();
 
+			String name_override = getNameOverride();
+			
+			if ( name_override != null ){
+				
+				return( "!" + name_override + "!" );
+			}
+			
 			if (sTitleLanguageKey == null) {
 				if (MessageText.keyExists(sTableID + ".column." + sName)) {
 					sTitleLanguageKey = sTableID + ".column." + sName;

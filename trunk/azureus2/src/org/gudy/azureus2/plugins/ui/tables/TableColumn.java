@@ -113,6 +113,16 @@ public interface TableColumn {
    */
   public String getName();
 
+  /**
+   * Returns the user's column name override if it exists
+   * @return
+   * @since 5.0.0.1
+   */
+  
+  public String getNameOverride();
+  
+  public void setNameOverride( String name );
+  
   /** Which table the column will be visible in.  This was set via
    * {@link TableManager#createColumn} and can not be changed.
    *

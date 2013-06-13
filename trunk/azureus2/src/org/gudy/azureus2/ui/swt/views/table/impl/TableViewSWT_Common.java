@@ -19,6 +19,7 @@ import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.views.columnsetup.TableColumnSetupWindow;
@@ -981,6 +982,41 @@ public class TableViewSWT_Common
 			new MenuItem(menu, SWT.SEPARATOR);
 		}
 
+		if ( column != null ){
+			final MenuItem renameColumn = new MenuItem(menu, SWT.PUSH);
+			Messages.setLanguageText(renameColumn,
+					"MyTorrentsView.menu.renameColumn");
+
+			renameColumn.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event e) {
+					SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+							"ColumnRenameWindow.title", "ColumnRenameWindow.message");
+					
+					String	existing_name = column.getNameOverride();
+					if ( existing_name == null ){
+						existing_name = "";
+					}
+					entryWindow.setPreenteredText( existing_name, false );
+					entryWindow.selectPreenteredText( true );
+					
+					entryWindow.prompt();
+					
+					if ( entryWindow.hasSubmittedInput()){
+						
+						String name = entryWindow.getSubmittedInput().trim();
+					
+						if ( name.length() == 0 ){
+							name = null;
+						}
+						column.setNameOverride( name );
+						TableColumnManager tcm = TableColumnManager.getInstance();
+						String tableID = tv.getTableID();
+						tcm.saveTableColumns(tv.getDataSourceType(), tableID);
+						TableStructureEventDispatcher.getInstance(tableID).tableStructureChanged(true, null );
+					}
+				}
+			});
+		}
 		final MenuItem itemResetColumns = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemResetColumns, "table.columns.reset");
 		itemResetColumns.addListener(SWT.Selection, new Listener() {
@@ -1007,7 +1043,6 @@ public class TableViewSWT_Common
 				}
 			}
 		});
-
 
 		final MenuItem itemChangeTable = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemChangeTable,
