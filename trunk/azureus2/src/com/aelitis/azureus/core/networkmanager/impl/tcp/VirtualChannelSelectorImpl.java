@@ -825,14 +825,26 @@ public class VirtualChannelSelectorImpl {
 	        		if ( 	data.non_progress_count == 10 ||
 	        				data.non_progress_count %100 == 0 && data.non_progress_count > 0 ){
 
-	        			Debug.out( 
+	        			boolean do_log = true;
+	        			
+	        				// seems we can get write-non-progress occurring under 'normal' circumstances so
+	        				// back off the early logging in this case
+	        			
+	        			if ( data.non_progress_count == 10 && INTEREST_OP == VirtualChannelSelector.OP_WRITE ){
+	        				
+	        				do_log = false;
+	        			}
+	        			
+	        			if ( do_log ){
+	        				
+	        				Debug.out( 
 	        					"VirtualChannelSelector: No progress for op " + INTEREST_OP + 
 	        					": listener = " + data.listener.getClass() + 
 	        					", count = " + data.non_progress_count +
 	        					", socket: open = " + data.channel.isOpen() + 
 	        					(INTEREST_OP==VirtualChannelSelector.OP_ACCEPT?"":
 	        						(", connected = " + ((SocketChannel)data.channel).isConnected())));
-
+	        			}
 
 	        			if ( data.non_progress_count == 1000 ){
 
