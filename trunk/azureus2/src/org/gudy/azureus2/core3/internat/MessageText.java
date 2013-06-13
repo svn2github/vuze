@@ -320,6 +320,9 @@ public class MessageText {
     try {
       return getResourceBundleString(key);
     } catch (MissingResourceException e) {
+    	if ( key.startsWith("!") && key.endsWith( "!" )){
+      	  return( key.substring(1,key.length()-1 ));
+        }
       return sDefault;
     }
   }
