@@ -979,8 +979,8 @@ RelatedContentManager
 			}catch( Throwable e ){		
 			}
 		}
-		
-		boolean	priority = false;
+				
+		final Set<String>	my_tags = new HashSet<String>();
 		
 		try{
 			Download d = from_info.getRelatedToDownload();
@@ -991,9 +991,14 @@ RelatedContentManager
 			
 				if ( _tags != null ){
 					
+					map.put( "b", from_info.getRand() % 100 );
+					
 					map.put( "m", encodeTags( _tags ));
 					
-					priority = true;	// give these a bit of a boost as we're interested in them
+					for ( String tag: _tags ){
+						
+						my_tags.add( tag );
+					}
 				}
 			}
 		}catch( Throwable e ){		
@@ -1011,8 +1016,6 @@ RelatedContentManager
 		//System.out.println( "rcmsize=" + map_bytes.length );
 		
 		final int max_hits = 30;
-		
-		final int f_cutoff = priority?16:10;
 		
 		dht_plugin.get(
 				key_bytes,
@@ -1050,8 +1053,31 @@ RelatedContentManager
 					{
 						try{
 							Map<String,Object> map = (Map<String,Object>)BDecoder.decode( value.getValue());							
-								
+							
 							DownloadInfo info = decodeInfo( map, from_info.getHash(), 1, false, entries );
+
+							try{
+								String[] r_tags = decodeTags((byte[]) map.get( "m" ));
+								
+ 								if ( r_tags != null ){
+																		
+									Long	b = (Long)map.get( "b" );
+									
+										// don't remove tags from the set that we actually published
+									
+									if ( b == null || from_info.getRand()%100 != b%100 ){
+										
+										for ( String tag: r_tags ){
+											
+											synchronized( my_tags ){
+												
+												my_tags.remove( tag );
+											}
+										}
+									}
+								}
+							}catch( Throwable e ){
+							}						
 							
 							if ( info != null ){
 							
@@ -1076,6 +1102,10 @@ RelatedContentManager
 						byte[]				key,
 						boolean				timeout_occurred )
 					{
+							// if we have something to say prioritise it somewhat
+						
+						int f_cutoff = my_tags.size()>0?20:10;
+
 						try{
 							boolean	do_it;
 							
@@ -1411,12 +1441,194 @@ RelatedContentManager
 	}
 	
 	public void
+	lookupAttributes(
+		final byte[]							from_hash,
+		final RelatedAttributeLookupListener	listener )
+	
+		throws ContentException
+	{
+		if ( from_hash == null ){
+			
+			throw( new ContentException( "hash is null" ));
+		}
+
+		if ( 	!initialisation_complete_sem.isReleasedForever() ||
+				( dht_plugin != null && dht_plugin.isInitialising())){
+			
+			AsyncDispatcher dispatcher = new AsyncDispatcher();
+	
+			dispatcher.dispatch(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						try{
+							initialisation_complete_sem.reserve();
+							
+							lookupAttributesSupport( from_hash, listener );
+							
+						}catch( ContentException e ){
+							
+							Debug.out( e );
+						}
+					}
+				});
+		}else{
+			
+			lookupAttributesSupport( from_hash, listener );
+		}
+	}
+	
+	private void
+	lookupAttributesSupport(
+		final byte[]							from_hash,
+		final RelatedAttributeLookupListener	listener )
+	
+		throws ContentException
+	{
+		try{
+			if ( !enabled ){
+				
+				throw( new ContentException( "rcm is disabled" ));
+			}
+		
+			if ( dht_plugin == null ){
+				
+				throw( new ContentException( "DHT plugin unavailable" ));
+			}
+			
+			final String from_hash_str	= ByteFormatter.encodeString( from_hash );
+			
+			final byte[] key_bytes	= ( "az:rcm:assoc:" + from_hash_str ).getBytes( "UTF-8" );
+			
+			String op_str = "Content attr read: " + from_hash_str.substring( 0, 16 );
+			
+			dht_plugin.get(
+					key_bytes,
+					op_str,
+					DHTPlugin.FLAG_SINGLE_VALUE,
+					512,
+					30*1000,
+					false,
+					true,
+					new DHTPluginOperationListener()
+					{
+						private Set<String>	tags = new HashSet<String>();
+						
+						public void
+						starts(
+							byte[]				key )
+						{
+							if ( listener != null ){
+								
+								try{
+									listener.lookupStart();
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}
+						
+						public boolean
+						diversified()
+						{
+							return( true );
+						}
+						
+						public void
+						valueRead(
+							DHTPluginContact	originator,
+							DHTPluginValue		value )
+						{
+							try{
+								Map<String,Object> map = (Map<String,Object>)BDecoder.decode( value.getValue());
+								
+								String[] r_tags = decodeTags((byte[]) map.get( "m" ));
+								
+								if ( r_tags != null ){
+									
+									for ( String tag: r_tags ){
+										
+										synchronized( tags ){
+											
+											if ( tags.contains( tag )){
+												
+												continue;
+											}
+											
+											tags.add( tag );
+										}
+										
+										listener.tagFound( tag );
+									}
+								}
+								
+							}catch( Throwable e ){	
+							}
+						}
+						
+						public void
+						valueWritten(
+							DHTPluginContact	target,
+							DHTPluginValue		value )
+						{
+							
+						}
+						
+						public void
+						complete(
+							byte[]				key,
+							boolean				timeout_occurred )
+						{
+							if ( listener != null ){
+								
+								try{
+									listener.lookupComplete();
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}				
+					});
+		}catch( Throwable e ){
+		
+			ContentException	ce;
+			
+			if ( ( e instanceof ContentException )){
+				
+				ce = (ContentException)e;
+				
+			}else{
+				ce = new ContentException( "Lookup failed", e );
+			}
+			
+			if ( listener != null ){
+				
+				try{
+					listener.lookupFailed( ce );
+					
+				}catch( Throwable f ){
+					
+					Debug.out( f );
+				}
+			}
+			
+			throw( ce );
+		}
+	}
+	
+	public void
 	lookupContent(
 		final byte[]						hash,
 		final RelatedContentLookupListener	listener )
 	
 		throws ContentException
-	{
+	{			
 		if ( hash == null ){
 			
 			throw( new ContentException( "hash is null" ));
