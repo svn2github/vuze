@@ -4968,8 +4968,13 @@ RelatedContentManager
 			for ( String tag: tags ){
 				
 				tag = escapeTag( tag );
-								
-				result.add( "tag:" + tag );
+							
+					// support prefix matching
+				
+				for ( int i=1; i<=tag.length(); i++){
+				
+					result.add( "tag:" + tag.substring( 0, i ));
+				}
 			}
 		}
 		
