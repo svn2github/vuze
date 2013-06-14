@@ -1453,14 +1453,32 @@ WebPlugin
 						for ( String location: locations ){
 						
 							if ( location != null ){
+						
+								boolean	skip_fail 	= false;
+								int		param_len	= 0;
 								
 								int p1 = location.indexOf( "vuze_pairing_ac=" );
+								
+								if ( p1 == -1 ){
+									
+									p1 = location.indexOf( "ac=" );
+									
+									if ( p1 != -1 ){
+										
+										param_len = 3;
+										
+										skip_fail = true;
+									}
+								}else{
+									
+									param_len = 16;
+								}
 								
 								if ( p1 != -1 ){
 									
 									int p2 = location.indexOf( '&', p1 );
 									
-									String ac = location.substring( p1+16, p2==-1?location.length():p2 ).trim();
+									String ac = location.substring( p1+param_len, p2==-1?location.length():p2 ).trim();
 									
 									p2 = ac.indexOf( '#' );
 									
@@ -1477,7 +1495,10 @@ WebPlugin
 										
 									}else{
 										
-										return( 2 );
+										if ( !skip_fail ){
+										
+											return( 2 );
+										}
 									}
 								}
 							}
