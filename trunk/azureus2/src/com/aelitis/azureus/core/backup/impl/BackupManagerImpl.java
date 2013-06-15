@@ -610,7 +610,9 @@ BackupManagerImpl
 				
 				String name = from_file.getName().toLowerCase();
 				
-				if ( name.equals( ".lock" ) || name.equals( "lock" )){
+				if ( 	name.equals( ".lock" ) || 
+						name.equals( "lock" ) || 		// dasu
+						name.equals( "stats.lck" )){	// advanced stats plugin
 					
 					return( new long[]{ total_files, total_copied });
 				}
