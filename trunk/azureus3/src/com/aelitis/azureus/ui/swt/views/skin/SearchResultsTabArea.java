@@ -280,7 +280,7 @@ public class SearchResultsTabArea
 													runSupport()
 													{
 														try{
-															ClipboardCopy.copyToClipBoard( engine.exportToJSONString());
+															ClipboardCopy.copyToClipBoard( engine.exportToVuzeFile().exportToJSON());
 															
 														}catch( Throwable e ){
 															
