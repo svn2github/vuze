@@ -776,6 +776,9 @@ public abstract class TableCellSWTBase
 	}
 
 	public boolean setSortValue(Comparable valueToSort) {
+		if ( tableColumn == null ){
+			return( false );
+		}
 		if (!tableColumn.isSortValueLive()) {
 			// objects that can't change aren't live
 			if (!(valueToSort instanceof Number) && !(valueToSort instanceof String)
