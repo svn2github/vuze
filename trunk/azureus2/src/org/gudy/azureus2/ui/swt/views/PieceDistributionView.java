@@ -80,7 +80,7 @@ public abstract class PieceDistributionView
 	private void createPieceDistPanel() {
 		comp.setLayout(new FillLayout());
 		//pieceDistComposite = new Composite(parent, SWT.NONE);
-		pieceDistCanvas = new Canvas(comp,SWT.NONE);
+		pieceDistCanvas = new Canvas(comp,SWT.NO_BACKGROUND);
 		pieceDistCanvas.addListener(SWT.Paint, new Listener() {
 			public void handleEvent(Event event) {
 				if ( pem==null || pem.isDestroyed()){
