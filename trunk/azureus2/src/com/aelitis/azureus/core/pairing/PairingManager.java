@@ -45,6 +45,12 @@ PairingManager
 	
 		throws PairingException;
 	
+	public List<PairedService>
+	lookupServices(
+		String		access_code )
+		
+		throws PairingException;
+		
 	public String
 	getAccessCode()
 	

@@ -539,8 +539,7 @@ PairingManagerImpl
 	{
 		try{
 			URL url = new URL( SERVICE_URL + "/remote/listGroup?gc=" + getGroup());
-			
-			
+					
 			InputStream is =  new ResourceDownloaderFactoryImpl().create( url ).download();
 			
 			Map json = JSONUtils.decodeJSON( new String( FileUtil.readInputStreamAsByteArray( is ), "UTF-8" ));
@@ -570,6 +569,52 @@ PairingManagerImpl
 			
 			throw( new PairingException( "Failed to list group", e ));
 		}
+	}
+	
+	public List<PairedService>
+	lookupServices(
+		String		access_code )
+		
+		throws PairingException
+	{
+		try{
+			URL url = new URL( SERVICE_URL + "/remote/listBindings?ac=" + access_code + "&jsoncallback=" );
+					
+			InputStream is =  new ResourceDownloaderFactoryImpl().create( url ).download();
+			
+			String reply = new String( FileUtil.readInputStreamAsByteArray( is ), "UTF-8" );
+			
+				// hack to remove callback
+			
+			reply = reply.substring( 1, reply.length()-1 );
+			
+			Map json = JSONUtils.decodeJSON( reply );
+			
+			Map error = (Map)json.get( "error" );
+			
+			if ( error != null ){
+				
+				throw( new PairingException((String)error.get( "msg" )));
+			}
+			
+			List<Map>	list = (List<Map>)json.get( "result" );
+			
+			List<PairedService>	result = new ArrayList<PairedService>();
+			
+			if ( list != null ){
+				
+				for ( Map m: list ){
+					
+					result.add( new PairedService2Impl( (String)m.get( "sid" ), m ));
+				}
+			}
+			
+			return( result );
+			
+		}catch( Throwable e ){
+			
+			throw( new PairingException( "Failed to lookup services", e ));
+		}		
 	}
 	
 	protected void
