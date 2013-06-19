@@ -517,6 +517,12 @@ PairingManagerImpl
 		param_enable.setValue( enabled );
 	}
 	
+	public boolean
+	isSRPEnabled()
+	{
+		return( param_srp_enable.getValue());
+	}
+	
 	public void 
 	setGroup(
 		String group ) 

@@ -33,6 +33,9 @@ PairingManager
 	public boolean
 	isEnabled();
 	
+	public boolean
+	isSRPEnabled();
+	
 	public void
 	setGroup(
 		String		group );

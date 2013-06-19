@@ -742,7 +742,7 @@ PairingManagerTunnelHandler
 		
 		if ( SRP_VERIFIER == null || !active ){
 			
-			throw( new IOException( "Feature disabled" ));
+			throw( new IOException( "Secure pairing is not enabled" ));
 		}
 		
 		boolean	good_request = false;

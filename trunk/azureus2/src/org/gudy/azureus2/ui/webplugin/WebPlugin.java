@@ -2193,11 +2193,41 @@ WebPlugin
 			
 		if ( url.startsWith( "/pairing/tunnel/" )){
 				
-			final PairingManager pm = PairingManagerFactory.getSingleton();
-
-			if ( pm.isEnabled()){
+			long	error_code = 1;
+			
+			try{
+				final PairingManager pm = PairingManagerFactory.getSingleton();
+	
+				if ( pm.isEnabled()){
+						
+					if ( pm.isSRPEnabled()){
 					
-				return( pm.handleLocalTunnel( request, response ));
+						return( pm.handleLocalTunnel( request, response ));
+						
+					}else{
+					
+						error_code = 5;
+						
+						throw( new IOException( "Secure pairing is not enabled" ));
+					}
+				}else{
+					
+					error_code = 5;
+					
+					throw( new IOException( "Pairing is not enabled" ));
+				}
+			}catch( Throwable e ){
+				
+				JSONObject json = new JSONObject();
+				
+				JSONObject error = new JSONObject();
+				
+				json.put( "error", error );
+				
+				error.put( "msg", Debug.getNestedExceptionMessage(e));
+				error.put( "code", error_code );
+				
+				return( returnJSON( response, JSONUtils.encodeToJSON( json )));
 			}
 		}
 		
@@ -2528,8 +2558,16 @@ WebPlugin
 	returnJSON(
 		TrackerWebPageResponse		response,
 		String						str )
+	
+		throws IOException
 	{
-		return( returnStuff( response, "text/plain", str ));
+		response.setContentType( "application/json; charset=UTF-8" );
+		
+		OutputStream os = response.getOutputStream();
+	
+		os.write( str.getBytes( "UTF-8" ));
+		
+		return( true );
 	}
 	
 	private boolean
