@@ -858,7 +858,27 @@ PairingManagerTunnelHandler
 			        Map<String,String> headers = request.getHeaders();
 			        
 			        String	host = headers.get( "host" );
-			        			        
+			        		
+			        	// remove port number
+			        
+			        int pos = host.lastIndexOf( "]" );
+			        
+			        if ( pos != -1 ){
+			        	
+			        		// ipv6 literal
+			        	
+			        	host = host.substring( 0, pos+1 );
+			        	
+			        }else{
+			        	
+			        	pos = host.indexOf( ':' );
+			        	
+			        	if ( pos != -1 ){
+			        		
+			        		host = host.substring( 0, pos );
+			        	}
+			        }
+			        
 			        String abs_url = request.getAbsoluteURL().toString();
 			        
 			        	// unfortunately there is some nasty code that uses a configured tracker
@@ -866,7 +886,7 @@ PairingManagerTunnelHandler
 			        
 			        abs_url = UrlUtils.setHost( new URL( abs_url ), host).toExternalForm();
 			        			        
-			        int	pos = abs_url.indexOf( "/create" );
+			        pos = abs_url.indexOf( "/create" );
 			        
 			        String tunnel_url = abs_url.substring(0,pos) + "/id/" + tunnel_name;
 			        
