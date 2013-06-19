@@ -2377,7 +2377,9 @@ WebPlugin
 			
 			boolean paired = cookie_to_set != null || hasOurCookie((String)request.getHeaders().get( "cookie" ));
 			
-			return( returnJSON( response, "{ 'servicepaired': " + ( paired?"true":"false" ) + " }" ));
+				// DON'T use returnJSON here as it DOESN'T work in the web ui for some reason!
+			
+			return( returnTextPlain( response, "{ 'servicepaired': " + ( paired?"true":"false" ) + " }" ));
 			
 		}else if ( full_url_path.equals( "/pairedServiceLogout")){
 			
