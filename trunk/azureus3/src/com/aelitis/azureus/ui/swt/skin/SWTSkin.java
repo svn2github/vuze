@@ -595,11 +595,19 @@ public class SWTSkin
 		
 		// We handle cases where width || height < 0 later in layout()
 		
-		String title = skinProperties.getStringValue(startID + ".title",
-				(String) null);
-		if (title != null) {
-			if ( skinComposite instanceof Shell ){
-				((Shell)skinComposite).setText(title);
+		if (skinComposite instanceof Shell) {
+			Shell shell = (Shell) skinComposite;
+			int minWidth = skinProperties.getIntValue(startID + ".minwidth", -1);
+			int minHeight = skinProperties.getIntValue(startID + ".minheight", -1);
+			if (minWidth > 0 || minHeight > 0) {
+				Point minimumSize = shell.getMinimumSize();
+				shell.setMinimumSize(minWidth > 0 ? minWidth : minimumSize.x,
+						minHeight > 0 ? minHeight : minimumSize.y);
+			}
+			String title = skinProperties.getStringValue(startID + ".title",
+					(String) null);
+			if (title != null) {
+				((Shell) skinComposite).setText(title);
 			}
 		}
 
