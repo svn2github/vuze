@@ -64,7 +64,7 @@ public class SWTSkinObjectCheckbox
 		// without FORCEing the background mode
 		createOn.setBackgroundMode(SWT.INHERIT_FORCE);
 
-		button = new Button(createOn, SWT.CHECK);
+		button = new Button(createOn, SWT.CHECK | SWT.WRAP);
 		checked = false;
 
 		button.addSelectionListener(new SelectionListener() {
