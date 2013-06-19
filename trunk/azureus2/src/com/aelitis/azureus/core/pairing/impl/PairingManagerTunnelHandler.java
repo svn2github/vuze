@@ -27,6 +27,7 @@ import java.io.PrintWriter;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.URL;
 import java.security.AlgorithmParameters;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,6 +55,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
@@ -853,8 +855,17 @@ PairingManagerTunnelHandler
 					
 			        result.put( "srp_b", Base32.encode( B.toByteArray()));
 			        
+			        Map<String,String> headers = request.getHeaders();
+			        
+			        String	host = headers.get( "host" );
+			        			        
 			        String abs_url = request.getAbsoluteURL().toString();
 			        
+			        	// unfortunately there is some nasty code that uses a configured tracker
+			        	// address as the default host
+			        
+			        abs_url = UrlUtils.setHost( new URL( abs_url ), host).toExternalForm();
+			        			        
 			        int	pos = abs_url.indexOf( "/create" );
 			        
 			        String tunnel_url = abs_url.substring(0,pos) + "/id/" + tunnel_name;
