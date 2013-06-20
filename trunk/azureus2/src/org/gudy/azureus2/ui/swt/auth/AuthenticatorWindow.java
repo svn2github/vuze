@@ -332,15 +332,34 @@ AuthenticatorWindow
 		}
 		
 		try{
-			display.asyncExec(
-				new AERunnable()
-				{
-					public void
-					runSupport()
-					{
-						dialog[0] = new authDialog( sem, display, realm, is_tracker, location, details );
+			if ( display.getThread() == Thread.currentThread()){
+
+				dialog[0] = new authDialog( sem, display, realm, is_tracker, location, details );
+
+				while ( !( display.isDisposed() || sem.isReleasedForever())){
+					
+					if ( !display.readAndDispatch()){
+						
+						display.sleep();
 					}
-				});
+				}
+				
+				if ( display.isDisposed()){
+					
+					return( null );
+				}
+			}else{
+				
+				display.asyncExec(
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{
+							dialog[0] = new authDialog( sem, display, realm, is_tracker, location, details );
+						}
+					});
+			}
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
