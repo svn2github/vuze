@@ -77,7 +77,10 @@ SESecurityManagerBC
 					}
 				}
 				
-				Debug.outNoStack( "BC Provider '" +  BouncyCastleProvider.PROVIDER_NAME + "' initialised successfully (loaded from " + where + ")" );
+				if ( !where.contains( "Azureus2" )){
+				
+					Debug.outNoStack( "BC Provider '" +  BouncyCastleProvider.PROVIDER_NAME + "' initialised successfully (loaded from " + where + ")" );
+				}
 			}
 		}catch( Throwable e ){
 			
