@@ -350,6 +350,13 @@ Constants
   
   public static final String	FILE_WILDCARD = isWindows?"*.*":"*";
   
+  	// use this if you want to prevent the constant getting cached in separately built objects (e.g. plugins)
+  
+  public static String
+  getCurrentVersion()
+  {
+	  return( AZUREUS_VERSION );
+  }
   	/**
   	 * Gets the current version, or if a CVS version, the one on which it is based 
   	 * @return
