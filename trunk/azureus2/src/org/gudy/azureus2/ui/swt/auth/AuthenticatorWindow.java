@@ -404,7 +404,7 @@ AuthenticatorWindow
 			
 			if ( display.isDisposed()){
 				
-				sem.release();
+				sem.releaseForever();
 				
 				return;
 			}
@@ -415,7 +415,7 @@ AuthenticatorWindow
 				
 				Debug.out( "Authentication for " + realm + "/" + target + "/" + details + " ignored as told not to ask again" );
 				
-				sem.release();
+				sem.releaseForever();
 				
 				return;
 			}
@@ -619,7 +619,8 @@ AuthenticatorWindow
 	 		}
 	 		
 	 		shell.dispose();
-	 		sem.release();
+	 		
+	 		sem.releaseForever();
 	 	}
 	 	
 	 	protected String
