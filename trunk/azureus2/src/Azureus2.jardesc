@@ -180,6 +180,7 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.torrent.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.common"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.startstoprules.always"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.none"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.content"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.icons"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.messaging.generic"/>
@@ -380,6 +381,7 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.config.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.versioncheck"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.peer"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.none.internat"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.auth"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.dht.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.utils.resourcedownloader"/>
