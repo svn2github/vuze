@@ -68,6 +68,7 @@ OverallStatsImpl
   private long totalUploaded;
   private long totalUptime;
   
+  private long markTime;
   private long markTotalDownloaded;
   private long markTotalUploaded;
   private long markTotalUptime;
@@ -143,6 +144,7 @@ OverallStatsImpl
 	totalUploaded = getLong( overallMap, "uploaded" );
 	totalUptime = getLong( overallMap, "uptime" );	
 	
+	markTime			= getLong( overallMap, "mark_time" );
 	markTotalDownloaded = getLong( overallMap, "mark_downloaded" );
 	markTotalUploaded 	= getLong( overallMap, "mark_uploaded" );
 	markTotalUptime 	= getLong( overallMap, "mark_uptime" );	
@@ -370,8 +372,15 @@ OverallStatsImpl
 		}	
 	}
 	
+	public long 
+	getMarkTime() 
+	{
+		return( markTime );
+	}
+	
 	public void
 	setMark(){
+		markTime				= SystemTime.getCurrentTime();
 		markTotalDownloaded 	= totalDownloaded;
 		markTotalUploaded 		= totalUploaded;
 		markTotalUptime 		= totalUptime;
@@ -380,6 +389,7 @@ OverallStatsImpl
 	public void
 	clearMark()
 	{
+		markTime				= 0;
 		markTotalDownloaded 	= 0;
 		markTotalUploaded 		= 0;
 		markTotalUptime 		= 0;
@@ -549,6 +559,7 @@ OverallStatsImpl
 	    overallMap.put("uploaded",new Long(totalUploaded));
 	    overallMap.put("uptime",new Long(totalUptime));
 
+	    overallMap.put("mark_time",new Long(markTime));
 	    overallMap.put("mark_downloaded",new Long(markTotalDownloaded));
 	    overallMap.put("mark_uploaded",new Long(markTotalUploaded));
 	    overallMap.put("mark_uptime",new Long(markTotalUptime));

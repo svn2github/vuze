@@ -28,6 +28,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.components.DoubleBufferedLabel;
 import org.gudy.azureus2.ui.swt.views.table.TableColumnOrTreeColumn;
 
 import java.util.regex.Pattern;
@@ -273,6 +274,8 @@ public class Messages {
           ((TableColumnOrTreeColumn) widget).setText(message);
         else if(widget instanceof TreeColumn) 
           ((TreeColumn) widget).setText(message);
+        else if(widget instanceof DoubleBufferedLabel) 
+            ((DoubleBufferedLabel) widget).setText(message);
         else{
           Debug.out( "No cast for " + widget.getClass().getName());
         }

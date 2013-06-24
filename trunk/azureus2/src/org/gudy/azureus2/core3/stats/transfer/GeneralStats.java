@@ -52,6 +52,7 @@ public interface GeneralStats {
   public int getAverageDownloadSpeed( boolean since_mark );
   public int getAverageUploadSpeed( boolean since_mark );
   
+  public long getMarkTime();
   /**
    * Sets a mark against the overall up/down/uptime so that the methods that report relative to
    * the mark return values relative to it

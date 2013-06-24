@@ -26,9 +26,11 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -39,6 +41,8 @@ import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.MouseAdapter;
 import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
@@ -51,6 +55,8 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.TabFolder;
 import org.eclipse.swt.widgets.TabItem;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -98,6 +104,8 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingMapper;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingSource;
 import com.aelitis.azureus.core.speedmanager.SpeedManagerPingZone;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerFactory;
 
@@ -136,6 +144,7 @@ public class TransferStatsView
 	private Map<String,Long>	route_last_seen	= new HashMap<String, Long>();
 	
 	private Composite generalPanel;
+	private BufferedLabel totalLabel;
 	private BufferedLabel nowUp, nowDown, sessionDown, sessionUp, session_ratio, sessionTime, totalDown, totalUp, total_ratio, totalTime;
   
 	private Label socksState;
@@ -238,8 +247,10 @@ public class TransferStatsView
     lbl = new Label(generalStatsPanel,SWT.NULL);
     
     /////// NOW /////////
-    lbl = new Label(generalStatsPanel,SWT.NULL);
-    Messages.setLanguageText(lbl,"SpeedView.stats.now");
+    Label nowLabel = new Label(generalStatsPanel,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    nowLabel.setLayoutData(gridData);
+    Messages.setLanguageText(nowLabel,"SpeedView.stats.now");
     
     nowDown = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -254,8 +265,11 @@ public class TransferStatsView
     
     
     //////// SESSION ////////
-    lbl = new Label(generalStatsPanel,SWT.NULL);
-    Messages.setLanguageText(lbl,"SpeedView.stats.session");
+    Label sessionLabel = new Label(generalStatsPanel,SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    sessionLabel.setLayoutData(gridData);
+
+    Messages.setLanguageText(sessionLabel,"SpeedView.stats.session");
     sessionDown = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     sessionDown.setLayoutData(gridData);
@@ -274,9 +288,11 @@ public class TransferStatsView
     
     
     ///////// TOTAL ///////////
-    lbl = new Label(generalStatsPanel,SWT.NULL);
-    Messages.setLanguageText(lbl,"SpeedView.stats.total");
-    
+    totalLabel = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED );
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    totalLabel.setLayoutData(gridData);
+    Messages.setLanguageText(totalLabel.getWidget(),"SpeedView.stats.total");
+	
     totalDown = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalDown.setLayoutData(gridData);
@@ -292,6 +308,39 @@ public class TransferStatsView
     totalTime = new BufferedLabel(generalStatsPanel,SWT.DOUBLE_BUFFERED);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     totalTime.setLayoutData(gridData);
+    
+    for ( Object obj: new Object[]{ nowLabel, sessionLabel, totalLabel }){
+    	
+    	Control control;
+    	
+    	if ( obj instanceof BufferedLabel ){
+    		
+    		control = ((BufferedLabel)obj).getControl();
+    		
+    	}else{
+    		
+    		control = (Label)obj;
+    	}
+    	final Menu menu = new Menu(control.getShell(), SWT.POP_UP );
+    	control.setMenu( menu );
+    	MenuItem   item = new MenuItem( menu,SWT.NONE );
+    	Messages.setLanguageText( item, "MainWindow.menu.view.configuration" );
+    	item.addSelectionListener(
+    		new SelectionAdapter()
+    		{
+    			public void 
+    			widgetSelected(
+    				SelectionEvent e) 
+    			{
+    				UIFunctions uif = UIFunctionsManager.getUIFunctions();
+
+    				if (uif != null) {
+
+    					uif.openView(UIFunctions.VIEW_CONFIG, "Stats");
+    				}
+    			}
+    		});
+    }
     
     	// SOCKS area
     
@@ -354,7 +403,8 @@ public class TransferStatsView
       public void mouseUp(MouseEvent arg0) {
     	  showSOCKSInfo();
       }
-    });		
+    });	
+    
   }
   
   private void
@@ -832,6 +882,13 @@ public class TransferStatsView
     ////////////////////////////////////////////////////////////////////////
     
     if (totalStats != null) {
+      long mark = totalStats.getMarkTime();
+      if ( mark > 0 ){
+    	  Messages.setLanguageText(totalLabel.getWidget(),"SpeedView.stats.total.since", new String[]{ new SimpleDateFormat().format( new Date( mark )) }); 
+      }else{
+    	  Messages.setLanguageText(totalLabel.getWidget(),"SpeedView.stats.total");
+      }
+
       long dl_bytes = totalStats.getDownloadedBytes( true );
       long ul_bytes = totalStats.getUploadedBytes( true );
 
