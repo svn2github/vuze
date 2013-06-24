@@ -42,6 +42,28 @@ public interface GeneralStats {
   public long getTotalUpTime();
   
   /**
+   * Method variants that can return values relative to the last mark
+   * @param since_mark
+   * @return
+   */
+  public long getDownloadedBytes( boolean since_mark );
+  public long getUploadedBytes( boolean since_mark );
+  public long getTotalUpTime( boolean since_mark );
+  public int getAverageDownloadSpeed( boolean since_mark );
+  public int getAverageUploadSpeed( boolean since_mark );
+  
+  /**
+   * Sets a mark against the overall up/down/uptime so that the methods that report relative to
+   * the mark return values relative to it
+   */
+  
+  public void
+  setMark();
+  
+  public void
+  clearMark();
+  
+  /**
    * @return this session uptime in seconds
    */
   public long getSessionUpTime();
@@ -55,5 +77,4 @@ public interface GeneralStats {
    * @return the average upload speed in bytes per second
    */
   public int getAverageUploadSpeed();
-  
 }

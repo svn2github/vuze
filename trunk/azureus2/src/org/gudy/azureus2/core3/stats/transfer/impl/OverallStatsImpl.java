@@ -68,6 +68,10 @@ OverallStatsImpl
   private long totalUploaded;
   private long totalUptime;
   
+  private long markTotalDownloaded;
+  private long markTotalUploaded;
+  private long markTotalUptime;
+  
   private long totalDHTUploaded;
   private long totalDHTDownloaded;
   
@@ -139,6 +143,10 @@ OverallStatsImpl
 	totalUploaded = getLong( overallMap, "uploaded" );
 	totalUptime = getLong( overallMap, "uptime" );	
 	
+	markTotalDownloaded = getLong( overallMap, "mark_downloaded" );
+	markTotalUploaded 	= getLong( overallMap, "mark_uploaded" );
+	markTotalUptime 	= getLong( overallMap, "mark_uptime" );	
+		
 	totalDHTDownloaded = getLong( overallMap, "dht_down" );
 	totalDHTUploaded = getLong( overallMap, "dht_up" );
 	
@@ -303,6 +311,80 @@ OverallStatsImpl
 		return totalUptime;
   }
 
+	public long getDownloadedBytes( boolean since_mark )
+	{
+		if ( since_mark ){
+			if ( markTotalDownloaded > totalDownloaded ){
+				markTotalDownloaded = totalDownloaded;
+			}
+			return( totalDownloaded - markTotalDownloaded );
+		}else{
+			return( totalDownloaded );
+		}
+	}
+	public long getUploadedBytes( boolean since_mark )
+	{
+		if ( since_mark ){
+			if ( markTotalUploaded > totalUploaded ){
+				markTotalUploaded = totalUploaded;
+			}
+			return( totalUploaded - markTotalUploaded );
+		}else{
+			return( totalUploaded );
+		}	
+	}
+	public long getTotalUpTime( boolean since_mark ){
+		if ( since_mark ){
+			if ( markTotalUptime > totalUptime ){
+				markTotalUptime = totalUptime;
+			}
+			return( totalUptime - markTotalUptime );
+		}else{
+			return( totalUptime );
+		}		
+	}
+
+	public int getAverageDownloadSpeed( boolean since_mark ){
+		if ( since_mark ){
+			long	up_time = getTotalUpTime( true );
+			long	down	= getDownloadedBytes( true );
+			if( up_time > 1 ){
+				return (int)(down / up_time);
+			}
+			return 0;		
+		}else{
+			return(getAverageDownloadSpeed());
+		}
+	}
+	
+	public int getAverageUploadSpeed( boolean since_mark ){
+		if ( since_mark ){
+			long	up_time = getTotalUpTime( true );
+			long	up 		= getUploadedBytes( true );
+			if( up_time > 1 ){
+				return (int)(up / up_time);
+			}
+			return 0;
+		}else{
+			return(getAverageUploadSpeed());
+		}	
+	}
+	
+	public void
+	setMark(){
+		markTotalDownloaded 	= totalDownloaded;
+		markTotalUploaded 		= totalUploaded;
+		markTotalUptime 		= totalUptime;
+	}
+
+	public void
+	clearMark()
+	{
+		markTotalDownloaded 	= 0;
+		markTotalUploaded 		= 0;
+		markTotalUptime 		= 0;
+	}
+	  
   public long getSessionUpTime() {
     return (SystemTime.getCurrentTime() - session_start_time) / 1000;
   }
@@ -467,6 +549,11 @@ OverallStatsImpl
 	    overallMap.put("uploaded",new Long(totalUploaded));
 	    overallMap.put("uptime",new Long(totalUptime));
 
+	    overallMap.put("mark_downloaded",new Long(markTotalDownloaded));
+	    overallMap.put("mark_uploaded",new Long(markTotalUploaded));
+	    overallMap.put("mark_uptime",new Long(markTotalUptime));
+
+	    
 	    overallMap.put("dht_down",new Long(totalDHTDownloaded));
 	    overallMap.put("dht_up",new Long(totalDHTUploaded));
 

@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
@@ -90,7 +89,6 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkConnection;
 import com.aelitis.azureus.core.networkmanager.Transport;
-import com.aelitis.azureus.core.networkmanager.TransportBase;
 import com.aelitis.azureus.core.networkmanager.TransportStartpoint;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.proxy.AEProxySelector;
@@ -834,15 +832,20 @@ public class TransferStatsView
     ////////////////////////////////////////////////////////////////////////
     
     if (totalStats != null) {
-      totalDown.setText(DisplayFormatters.formatByteCountToKiBEtc( totalStats.getDownloadedBytes() ));
-      totalUp.setText(DisplayFormatters.formatByteCountToKiBEtc( totalStats.getUploadedBytes() ));
+      long dl_bytes = totalStats.getDownloadedBytes( true );
+      long ul_bytes = totalStats.getUploadedBytes( true );
+
+      totalDown.setText(DisplayFormatters.formatByteCountToKiBEtc( dl_bytes ));
+      totalUp.setText(DisplayFormatters.formatByteCountToKiBEtc( ul_bytes ));
   
-      sessionTime.setText( DisplayFormatters.formatETA( totalStats.getSessionUpTime() ) );
-      totalTime.setText( DisplayFormatters.formatETA( totalStats.getTotalUpTime() ) );
+      long session_up_time 	= totalStats.getSessionUpTime();
+      long total_up_time 	= totalStats.getTotalUpTime( true );
+      
+      sessionTime.setText( session_up_time==0?"":DisplayFormatters.formatETA( session_up_time ));
+      totalTime.setText( total_up_time==0?"":DisplayFormatters.formatETA( total_up_time ));
     
-      long dl_bytes = totalStats.getDownloadedBytes();
-    
-      long t_ratio_raw = (1000* totalStats.getUploadedBytes() / (dl_bytes==0?1:dl_bytes) );
+     
+      long t_ratio_raw = (1000* ul_bytes / (dl_bytes==0?1:dl_bytes) );
       long s_ratio_raw = (1000* session_total_sent / (session_total_received==0?1:session_total_received) );
       
       String t_ratio = "";

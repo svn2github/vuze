@@ -51,6 +51,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.core3.stats.StatsWriterPeriodic;
+import org.gudy.azureus2.core3.stats.transfer.OverallStats;
+import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
@@ -263,6 +265,50 @@ public class ConfigSectionStats implements UISWTConfigSection {
     
     enableStats.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(controls));
 
+  		// xfer
+    
+	Group gXfer = new Group(gOutter, SWT.NULL);
+	Messages.setLanguageText(gXfer, "ConfigView.section.transfer");
+	layout = new GridLayout(3, false);
+	gXfer.setLayout(layout);
+	gXfer.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+	
+		// set mark
+	
+    Label set_mark_label = new Label(gXfer, SWT.NULL );
+    Messages.setLanguageText(set_mark_label, "ConfigView.section.transfer.setmark" );
+    
+    Button set_mark_button = new Button(gXfer, SWT.PUSH);
+
+    Messages.setLanguageText(set_mark_button, "Button.set" );
+
+    set_mark_button.addListener(SWT.Selection, 
+		new Listener() 
+		{
+	        public void 
+			handleEvent(Event event) 
+	        {
+	        	OverallStats stats = StatsFactory.getStats();
+	        	
+	        	stats.setMark();
+	        }
+		});
+        
+    Button clear_mark_button = new Button(gXfer, SWT.PUSH);
+
+    Messages.setLanguageText(clear_mark_button, "Button.clear" );
+
+    clear_mark_button.addListener(SWT.Selection, 
+		new Listener() 
+		{
+	        public void 
+			handleEvent(Event event) 
+	        {
+	        	OverallStats stats = StatsFactory.getStats();
+	        	
+	        	stats.clearMark();
+	        }
+		});
     	// long term
  
 	Group gLong = new Group(gOutter, SWT.NULL);
