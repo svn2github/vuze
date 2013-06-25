@@ -127,18 +127,16 @@ DownloadManagerImpl
 	
 	private AEMonitor	listeners_mon	= new AEMonitor( "DM:DownloadManager:L" );
 
-	private static ListenerManager	listeners_aggregator 	= ListenerManager.createAsyncManager(
+	private static ListenerManager<DownloadManagerListener>	listeners_aggregator 	= ListenerManager.createAsyncManager(
 			"DM:ListenAggregatorDispatcher",
-			new ListenerManagerDispatcher()
+			new ListenerManagerDispatcher<DownloadManagerListener>()
 			{
 				public void
 				dispatch(
-					Object		_listener,
-					int			type,
-					Object		_value )
-				{
-					DownloadManagerListener	listener = (DownloadManagerListener)_listener;
-					
+					DownloadManagerListener		listener,
+					int							type,
+					Object						_value )
+				{					
 					Object[]	value = (Object[])_value;
 					
 					DownloadManagerImpl	dm = (DownloadManagerImpl)value[0];
@@ -167,15 +165,15 @@ DownloadManagerImpl
 				}
 			});		
 	
-	private ListenerManager	listeners 	= ListenerManager.createManager(
+	private ListenerManager<DownloadManagerListener>	listeners 	= ListenerManager.createManager(
 			"DM:ListenDispatcher",
-			new ListenerManagerDispatcher()
+			new ListenerManagerDispatcher<DownloadManagerListener>()
 			{
 				public void
 				dispatch(
-					Object		listener,
-					int			type,
-					Object		value )
+					DownloadManagerListener		listener,
+					int							type,
+					Object						value )
 				{
 					listeners_aggregator.dispatch( listener, type, value );
 				}
@@ -2526,8 +2524,8 @@ DownloadManagerImpl
 
 	public void
 	addListener(
-		DownloadManagerListener	listener,
-		boolean triggerStateChange )
+		DownloadManagerListener		listener,
+		boolean 					triggerStateChange )
 	{
 		if (listener == null) {
 			Debug.out("Warning: null listener");
@@ -2539,8 +2537,9 @@ DownloadManagerImpl
 
 			listeners.addListener(listener);
 				
-			if (triggerStateChange) {
-				listener.stateChanged( this, getState());
+			if ( triggerStateChange ){
+				
+				listeners.dispatch( listener, LDT_STATECHANGED, new Object[]{ this, new Integer( getState() )});
 			}
 
 				// we DON'T dispatch a downloadComplete event here as this event is used to mark the
