@@ -33,9 +33,6 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-
 import com.aelitis.azureus.util.JSONUtils;
 
 /**
@@ -259,7 +256,7 @@ public class BDecoder
 						getByteArrayFromStream(dbis, 128, remaining);
 						String msg = "dictionary key is too large - " + keyLength + ":, max=" + MAX_MAP_KEY_SIZE + ": value=" + new String(remaining);
 						System.err.println( msg );
-						new Exception().printStackTrace();
+						//new Exception().printStackTrace();
 						throw( new IOException( msg ));
 					}
 					
