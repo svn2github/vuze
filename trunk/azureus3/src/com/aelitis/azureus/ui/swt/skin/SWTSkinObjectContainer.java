@@ -61,13 +61,25 @@ public class SWTSkinObjectContainer
 			String sID, String sConfigID, String[] sTypeParams, SWTSkinObject parent) {
 		super(skin, properties, sID, sConfigID, "container", parent);
 		this.sTypeParams = sTypeParams;
-		createComposite();
+		Composite createOn;
+		if (parent == null) {
+			createOn = skin.getShell();
+		} else {
+			createOn = (Composite) parent.getControl();
+		}
+		createComposite(createOn);
 	}
 
 	public SWTSkinObjectContainer(SWTSkin skin, SWTSkinProperties properties,
 			String sID, String sConfigID, SWTSkinObject parent) {
 		super(skin, properties, sID, sConfigID, "container", parent);
-		createComposite();
+		Composite createOn;
+		if (parent == null) {
+			createOn = skin.getShell();
+		} else {
+			createOn = (Composite) parent.getControl();
+		}
+		createComposite(createOn);
 	}
 
 	public SWTSkinObjectContainer(SWTSkin skin, SWTSkinProperties properties,
@@ -81,20 +93,13 @@ public class SWTSkinObjectContainer
 		}
 	}
 
-	private void createComposite() {
+	protected Composite createComposite(Composite createOn) {
 		int style = SWT.NONE;
 		if (properties.getIntValue(sConfigID + ".border", 0) == 1) {
 			style = SWT.BORDER;
 		}
 		if (properties.getBooleanValue(sConfigID + ".doublebuffer", false)) {
 			style |= SWT.DOUBLE_BUFFERED;
-		}
-
-		Composite createOn;
-		if (parent == null) {
-			createOn = skin.getShell();
-		} else {
-			createOn = (Composite) parent.getControl();
 		}
 
 		minWidth = properties.getIntValue(sConfigID + ".minwidth", -1);
@@ -127,6 +132,8 @@ public class SWTSkinObjectContainer
 		control = parentComposite;
 
 		setControl(control);
+		
+		return parentComposite;
 	}
 	
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#setControl(org.eclipse.swt.widgets.Control)
