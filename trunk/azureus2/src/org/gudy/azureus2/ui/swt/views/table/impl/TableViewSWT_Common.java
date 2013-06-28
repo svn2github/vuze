@@ -329,9 +329,15 @@ public class TableViewSWT_Common
 
 					// listener might have changed it
 
-					int cellCursorID = cell.getCursorID();
-					if (cellCursorID != -1) {
-						lastCursorID = cellCursorID;
+					iCursorID = cell.getCursorID();
+					if (iCursorID != lastCursorID) {
+						lastCursorID = iCursorID;
+
+						if (iCursorID >= 0) {
+							tv.getComposite().setCursor(tv.getComposite().getDisplay().getSystemCursor(iCursorID));
+						} else {
+							tv.getComposite().setCursor(null);
+						}
 					}
 				}
 			}
