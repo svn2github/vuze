@@ -63,7 +63,7 @@ public class
 PluginInitializer
 	implements GlobalManagerListener, AEDiagnosticsEvidenceGenerator
 {
-	public static final boolean DISABLE_PLUGIN_VERIFICATION = false;
+	public static final boolean DISABLE_PLUGIN_VERIFICATION = true;
 	
 	private static final LogIDs LOGID = LogIDs.CORE;
 	public static final String	INTERNAL_PLUGIN_ID = "<internal>";
@@ -1984,34 +1984,36 @@ PluginInitializer
   protected PluginInterface
   getDefaultInterfaceSupport()
   {
-  
-  	if ( default_plugin == null ){
-  		
-  		try{
-	  		default_plugin = 
-	  			new PluginInterfaceImpl(
-	  					new Plugin()
-						{
-	  						public void
-							initialize(
-								PluginInterface pi)
-	  						{
-	  						}
-						},
-						this,
-						getClass(),
-						getClass().getClassLoader(),
-						null,
-						"default",
-						new Properties(),
-						null,
-						INTERNAL_PLUGIN_ID,
-						null );
+	  synchronized( s_plugin_interfaces ){
+		  
+	  	if ( default_plugin == null ){
 	  		
-  		}catch( Throwable e ){
-  			
-  			Debug.out( e );
-  		}
+	  		try{
+		  		default_plugin = 
+		  			new PluginInterfaceImpl(
+		  					new Plugin()
+							{
+		  						public void
+								initialize(
+									PluginInterface pi)
+		  						{
+		  						}
+							},
+							this,
+							getClass(),
+							getClass().getClassLoader(),
+							null,
+							"default",
+							new Properties(),
+							null,
+							INTERNAL_PLUGIN_ID,
+							null );
+		  		
+	  		}catch( Throwable e ){
+	  			
+	  			Debug.out( e );
+	  		}
+	  	}
   	}
   	
   	return( default_plugin );
@@ -2227,6 +2229,9 @@ PluginInitializer
   		
   		((PluginInterfaceImpl)plugin_interfaces.get(i)).initialisationComplete();
   	}
+  	
+  		// keep this last as there are things out there that rely on the init complete of the
+  		// default interface meaning that everything else is complete and informed complete
   	
   	if ( default_plugin != null ){
   		

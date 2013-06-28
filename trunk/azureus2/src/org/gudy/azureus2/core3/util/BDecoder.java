@@ -257,8 +257,9 @@ public class BDecoder
 					if ( keyLength > MAX_MAP_KEY_SIZE ){
 						byte[] remaining = new byte[128];
 						getByteArrayFromStream(dbis, 128, remaining);
-						String msg = "dictionary key is too large, max=" + MAX_MAP_KEY_SIZE + ": value=" + new String(remaining);
+						String msg = "dictionary key is too large - " + keyLength + ":, max=" + MAX_MAP_KEY_SIZE + ": value=" + new String(remaining);
 						System.err.println( msg );
+						new Exception().printStackTrace();
 						throw( new IOException( msg ));
 					}
 					
