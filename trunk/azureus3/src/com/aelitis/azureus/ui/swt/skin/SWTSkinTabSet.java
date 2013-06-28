@@ -9,7 +9,6 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Cursor;
-import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -171,19 +170,6 @@ public class SWTSkinTabSet
 		}
 
 		triggerChangeListener(sOldID, sNewID);
-	}
-
-	private boolean hasSkinBrowser(SWTSkinObject skinObject) {
-		if (skinObject instanceof SWTSkinObjectContainer) {
-			SWTSkinObject[] children = ((SWTSkinObjectContainer) skinObject).getChildren();
-			for (int i = 0; i < children.length; i++) {
-				SWTSkinObject object = children[i];
-				if (hasSkinBrowser(object)) {
-					return true;
-				}
-			}
-		}
-		return (skinObject instanceof SWTSkinObjectBrowser);
 	}
 
 	/**
