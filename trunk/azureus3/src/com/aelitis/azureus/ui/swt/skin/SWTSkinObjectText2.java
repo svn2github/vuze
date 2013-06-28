@@ -350,12 +350,13 @@ public class SWTSkinObjectText2
 
 	public String switchSuffix(String suffix, int level, boolean walkUp,
 			boolean walkDown) {
+		boolean forceSwitch = suffix == null;
 		String oldSuffix = getSuffix();
 		suffix = super.switchSuffix(suffix, level, walkUp, walkDown);
 		if (suffix == null) {
 			return null;
 		}
-		if (suffix.equals(oldSuffix)) {
+		if (!forceSwitch && suffix.equals(oldSuffix)) {
 			return suffix;
 		}
 
