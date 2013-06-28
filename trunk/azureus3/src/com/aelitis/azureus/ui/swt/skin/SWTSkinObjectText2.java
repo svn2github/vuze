@@ -191,8 +191,8 @@ public class SWTSkinObjectText2
 								? 3000 : hHint), true, false, style & SWT.WRAP);
 				sp.calculateMetrics();
 				pt = sp.getCalculatedSize();
-				pt.x += border + hpadding * 2;
-				pt.y += border + vpadding * 2;
+				pt.x += (border + hpadding) * 2;
+				pt.y += (border + vpadding) * 2;
 				gc.dispose();
 
 				if (isUnderline) {
