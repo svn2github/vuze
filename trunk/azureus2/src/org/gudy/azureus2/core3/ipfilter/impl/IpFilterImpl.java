@@ -1268,6 +1268,11 @@ IpFilterImpl
 	{
 		synchronized( this ){
 			
+			if ( excluded_hashes.containsKey( hash )){
+				
+				return;
+			}
+			
 			ByteArrayHashMap<String>	copy = new ByteArrayHashMap<String>();
 			
 			for ( byte[] k : excluded_hashes.keys()){
@@ -1280,6 +1285,8 @@ IpFilterImpl
 			excluded_hashes = copy;
 		}
 		
+		markAsUpToDate();
+		
 		Logger.log( new LogEvent(LOGID, "Added " + ByteFormatter.encodeString( hash ) + " to excluded set" ));
 
 	}
@@ -1289,6 +1296,11 @@ IpFilterImpl
 		byte[]		hash )
 	{
 		synchronized( this ){
+			
+			if ( !excluded_hashes.containsKey( hash )){
+				
+				return;
+			}
 			
 			ByteArrayHashMap<String>	copy = new ByteArrayHashMap<String>();
 			
@@ -1301,6 +1313,8 @@ IpFilterImpl
 			
 			excluded_hashes = copy;
 		}
+		
+		markAsUpToDate();
 		
 		Logger.log( new LogEvent(LOGID, "Removed " + ByteFormatter.encodeString( hash ) + " from excluded set" ));
 	}
