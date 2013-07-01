@@ -45,8 +45,11 @@ PEPeerManagerStats
 	public long getDataSendRate();
 	public long getProtocolSendRate();
    
-	public long getPeakReceiveRate();
-	public long getPeakSendRate();
+	public long getPeakDataReceiveRate();
+	public long getPeakDataSendRate();
+	
+	public long getSmoothedDataReceiveRate();
+	public long getSmoothedDataSendRate();
 	
 	public long getTotalDataBytesSent();
 	public long getTotalProtocolBytesSent();

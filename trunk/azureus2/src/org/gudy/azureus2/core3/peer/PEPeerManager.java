@@ -117,8 +117,8 @@ PEPeerManager
 	
 	public long getHiddenBytes();
 	
-	public long getETA();
-
+	public long getETA( boolean smoothed );
+	
 	public String getElapsedTime();
 	
 	// Time Started in ms

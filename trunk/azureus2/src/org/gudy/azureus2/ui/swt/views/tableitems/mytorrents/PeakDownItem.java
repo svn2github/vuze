@@ -62,7 +62,7 @@ PeakDownItem
 	{
 		DownloadManager dm = (DownloadManager)cell.getDataSource();
 		
-	    long value = (dm == null) ? 0 : dm.getStats().getPeakReceiveRate();
+	    long value = (dm == null) ? 0 : dm.getStats().getPeakDataReceiveRate();
 
 	    if ( !cell.setSortValue(value) && cell.isValid()){
 	     

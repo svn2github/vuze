@@ -104,6 +104,19 @@ public class ConfigSectionStats implements UISWTConfigSection {
     layout.numColumns = 1;
     gOutter.setLayout(layout);
 
+ 		// general
+    
+	Group gGeneral = new Group(gOutter, SWT.NULL);
+	Messages.setLanguageText(gGeneral, "ConfigView.section.general");
+	layout = new GridLayout(2, false);
+	gGeneral.setLayout(layout);
+	gGeneral.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
+	
+	Label lSmooth = new Label(gGeneral, SWT.NULL);
+	Messages.setLanguageText(lSmooth, "stats.general.smooth_secs");
+
+	IntParameter smooth_secs = new IntParameter( gGeneral, "Stats Smoothing Secs", 30, 30*60 );
+	   
     	// display
     
 	Group gDisplay = new Group(gOutter, SWT.NULL);

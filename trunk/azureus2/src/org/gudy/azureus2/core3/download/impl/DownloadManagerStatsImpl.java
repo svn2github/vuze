@@ -134,7 +134,7 @@ DownloadManagerStatsImpl
 	}
   
 	public long
-	getPeakReceiveRate()
+	getPeakDataReceiveRate()
 	{
 		PEPeerManager	pm = download_manager.getPeerManager();
 		
@@ -142,14 +142,14 @@ DownloadManagerStatsImpl
 		
 	  	if ( pm != null ){
 	  	
-			result = Math.max( result, pm.getStats().getPeakReceiveRate());
+			result = Math.max( result, pm.getStats().getPeakDataReceiveRate());
 	  	}
 	  	
 	  	return( result );
 	}
 	
 	public long
-	getPeakSendRate()
+	getPeakDataSendRate()
 	{
 		PEPeerManager	pm = download_manager.getPeerManager();
 		
@@ -157,10 +157,36 @@ DownloadManagerStatsImpl
 		
 	  	if ( pm != null ){
 	  	
-			result = Math.max( result, pm.getStats().getPeakSendRate());
+			result = Math.max( result, pm.getStats().getPeakDataSendRate());
 	  	}
 	  	
 	  	return( result );
+	}
+	
+	public long
+	getSmoothedDataReceiveRate()
+	{
+		PEPeerManager	pm = download_manager.getPeerManager();
+
+		if ( pm != null ){
+			
+			return( pm.getStats().getSmoothedDataReceiveRate());
+		}
+		
+		return( 0 );
+	}
+	
+	public long
+	getSmoothedDataSendRate()
+	{
+		PEPeerManager	pm = download_manager.getPeerManager();
+
+		if ( pm != null ){
+			
+			return( pm.getStats().getSmoothedDataSendRate());
+		}
+		
+		return( 0 );
 	}
 	
 	/* (non-Javadoc)
@@ -173,12 +199,25 @@ DownloadManagerStatsImpl
 		
 		if (pm != null){
 	  
-			return pm.getETA();
+			return pm.getETA( false );
 		}
 	  
 		return -1;   //return exactly -1 if ETA is unknown
 	}
 
+	public long 
+	getSmoothedETA()
+	{
+		PEPeerManager	pm = download_manager.getPeerManager();
+		
+		if (pm != null){
+	  
+			return pm.getETA( true );
+		}
+	  
+		return -1;   //return exactly -1 if ETA is unknown
+	}
+	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.core3.download.DownloadManagerStats#getCompleted()
 	 */
@@ -827,8 +866,8 @@ DownloadManagerStatsImpl
 		saved_SecondsSinceDownload		= getTimeSinceLastDataReceivedInSeconds();
 		saved_SecondsSinceUpload		= getTimeSinceLastDataSentInSeconds();
 		
-		saved_peak_receive_rate			= getPeakReceiveRate();
-		saved_peak_send_rate			= getPeakSendRate();
+		saved_peak_receive_rate			= getPeakDataReceiveRate();
+		saved_peak_send_rate			= getPeakDataSendRate();
 		
 		DownloadManagerState state = download_manager.getDownloadState();
 

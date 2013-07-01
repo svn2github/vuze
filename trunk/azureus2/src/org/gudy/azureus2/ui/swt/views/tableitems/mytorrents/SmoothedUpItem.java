@@ -32,16 +32,16 @@ import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 
 public class 
-PeakUpItem
+SmoothedUpItem
 	extends CoreTableColumnSWT 
     implements TableCellRefreshListener
 {
 	public static final Class DATASOURCE_TYPE = Download.class;
 
-	public static final String COLUMN_ID = "peakup";
+	public static final String COLUMN_ID = "smoothup";
 
 	public 
-	PeakUpItem(
+	SmoothedUpItem(
 		String sTableID) 
 	{
 		super( DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 70, sTableID );
@@ -62,7 +62,7 @@ PeakUpItem
 	{
 		DownloadManager dm = (DownloadManager)cell.getDataSource();
 		
-	    long value = (dm == null) ? 0 : dm.getStats().getPeakDataSendRate();
+	    long value = (dm == null) ? 0 : dm.getStats().getSmoothedDataSendRate();
 
 	    if ( !cell.setSortValue(value) && cell.isValid()){
 	     

@@ -208,6 +208,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	
 	//private final TRTrackerAnnouncer _tracker;
 	//  private int _maxUploads;
+	private int		stats_tick_count;
 	private int		_seeds, _peers,_remotesTCPNoLan, _remotesUDPNoLan, _remotesUTPNoLan;
 	private int 	_tcpPendingConnections, _tcpConnectingConnections;
 	private long last_remote_time;
@@ -285,6 +286,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private long			rescan_piece_time		= -1;
 
 	private long			last_eta;
+	private long			last_eta_smoothed;
 	private long			last_eta_calculation;
 
 	private static final int MAX_UDP_CONNECTIONS		= 16;
@@ -2081,6 +2083,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 			return;
 		}
 
+		stats_tick_count++;
+		
 		//calculate seeds vs peers
 		final ArrayList<PEPeer> peer_transports = peer_transports_cow;
 
@@ -2185,7 +2189,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		connections_with_queued_data_blocked	= con_blocked;
 		connections_unchoked					= con_unchoked;
 		
-		_stats.update();
+		_stats.update( stats_tick_count );
 	}
 	/**
 	 * The way to unmark a request as being downloaded, or also 
@@ -2647,7 +2651,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	 * Constants.CRAPPY_INFINITE_AS_LONG = incomplete and 0 average speed   
 	 */
 	public long 
-	getETA() 
+	getETA( boolean smoothed ) 
 	{	
 		final long	now = SystemTime.getCurrentTime();
 
@@ -2673,32 +2677,46 @@ DiskManagerCheckRequestListener, IPFilterListener
 				}
 			}
 
-			long	result;
+			long	jagged_result;
+			long	smooth_result;
 
 			if (dataRemaining == 0) {
 				final long timeElapsed = (_timeFinished - _timeStarted)/1000;
 				//if time was spent downloading....return the time as negative
 				if(timeElapsed > 1){
-					result = timeElapsed * -1;
+					jagged_result = timeElapsed * -1;
 				}else{
-					result = 0;
+					jagged_result = 0;
 				}
+				smooth_result = jagged_result;
 			}else{
 
-				final long averageSpeed = _averageReceptionSpeed.getAverage();
-				long lETA = (averageSpeed == 0) ? Constants.CRAPPY_INFINITE_AS_LONG : dataRemaining / averageSpeed;
-				// stop the flickering of ETA from "Finished" to "x seconds" when we are 
-				// just about complete, but the data rate is jumpy.
-				if (lETA == 0)
-					lETA = 1;
-				result = lETA;
+				{
+					final long averageSpeed = _averageReceptionSpeed.getAverage();
+					long lETA = (averageSpeed == 0) ? Constants.CRAPPY_INFINITE_AS_LONG : dataRemaining / averageSpeed;
+					// stop the flickering of ETA from "Finished" to "x seconds" when we are 
+					// just about complete, but the data rate is jumpy.
+					if (lETA == 0)
+						lETA = 1;
+					jagged_result = lETA;
+				}
+				{
+					final long averageSpeed = _stats.getSmoothedDataReceiveRate();
+					long lETA = (averageSpeed == 0) ? Constants.CRAPPY_INFINITE_AS_LONG : dataRemaining / averageSpeed;
+					// stop the flickering of ETA from "Finished" to "x seconds" when we are 
+					// just about complete, but the data rate is jumpy.
+					if (lETA == 0)
+						lETA = 1;
+					smooth_result = lETA;
+				}
 			}
 
-			last_eta				= result;
+			last_eta				= jagged_result;
+			last_eta_smoothed		= smooth_result;
 			last_eta_calculation	= now;
 		}
 
-		return( last_eta );
+		return( smoothed?last_eta_smoothed:last_eta );
 	}
 
 	public boolean 
