@@ -59,6 +59,9 @@ DownloadManagerStatsImpl
 	private int saved_SecondsSinceDownload	= 0;
 	private int saved_SecondsSinceUpload	= 0;
 	
+	private long saved_peak_receive_rate	= 0;
+	private long saved_peak_send_rate		= 0;
+	
 	private int max_upload_rate_bps = 0;  //0 for unlimited
 	private int max_download_rate_bps = 0;  //0 for unlimited
   
@@ -130,7 +133,35 @@ DownloadManagerStatsImpl
 	    return 0;
 	}
   
-  
+	public long
+	getPeakReceiveRate()
+	{
+		PEPeerManager	pm = download_manager.getPeerManager();
+		
+		long	result = saved_peak_receive_rate;
+		
+	  	if ( pm != null ){
+	  	
+			result = Math.max( result, pm.getStats().getPeakReceiveRate());
+	  	}
+	  	
+	  	return( result );
+	}
+	
+	public long
+	getPeakSendRate()
+	{
+		PEPeerManager	pm = download_manager.getPeerManager();
+		
+		long	result = saved_peak_send_rate;
+		
+	  	if ( pm != null ){
+	  	
+			result = Math.max( result, pm.getStats().getPeakSendRate());
+	  	}
+	  	
+	  	return( result );
+	}
 	
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.core3.download.DownloadManagerStats#getETA()
@@ -796,12 +827,18 @@ DownloadManagerStatsImpl
 		saved_SecondsSinceDownload		= getTimeSinceLastDataReceivedInSeconds();
 		saved_SecondsSinceUpload		= getTimeSinceLastDataSentInSeconds();
 		
+		saved_peak_receive_rate			= getPeakReceiveRate();
+		saved_peak_send_rate			= getPeakSendRate();
+		
 		DownloadManagerState state = download_manager.getDownloadState();
 
 		state.setIntAttribute( DownloadManagerState.AT_TIME_SINCE_DOWNLOAD, saved_SecondsSinceDownload );
 		state.setIntAttribute( DownloadManagerState.AT_TIME_SINCE_UPLOAD, saved_SecondsSinceUpload );
 		
 		state.setLongAttribute( DownloadManagerState.AT_AVAIL_BAD_TIME, getAvailWentBadTime());
+		
+		state.setLongAttribute( DownloadManagerState.AT_PEAK_RECEIVE_RATE, saved_peak_receive_rate );
+		state.setLongAttribute( DownloadManagerState.AT_PEAK_SEND_RATE, saved_peak_send_rate );
 	}
 	
  	protected void
@@ -833,7 +870,10 @@ DownloadManagerStatsImpl
 		
 		saved_SecondsSinceDownload	= state.getIntAttribute( DownloadManagerState.AT_TIME_SINCE_DOWNLOAD );
 		saved_SecondsSinceUpload	= state.getIntAttribute( DownloadManagerState.AT_TIME_SINCE_UPLOAD );
-	}
+		
+		saved_peak_receive_rate		= state.getLongAttribute( DownloadManagerState.AT_PEAK_RECEIVE_RATE );
+		saved_peak_send_rate		= state.getLongAttribute( DownloadManagerState.AT_PEAK_SEND_RATE );
+	}	
 	
 	protected void 
 	generateEvidence(

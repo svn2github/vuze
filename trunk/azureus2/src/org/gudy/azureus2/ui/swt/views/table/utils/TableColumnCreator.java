@@ -229,6 +229,9 @@ public class TableColumnCreator
 		c.put(ColumnTC_Sample.COLUMN_ID, new cInfo(ColumnTC_Sample.class, tc));
 		c.put(ColumnTC_ChosenColumn.COLUMN_ID, new cInfo(ColumnTC_ChosenColumn.class, tc));
 
+		c.put(PeakUpItem.COLUMN_ID, new cInfo(PeakUpItem.class, PeakUpItem.DATASOURCE_TYPE));
+		c.put(PeakDownItem.COLUMN_ID, new cInfo(PeakDownItem.class, PeakDownItem.DATASOURCE_TYPE));
+
 		// Core columns are implementors of TableColumn to save one class creation
 		// Otherwise, we'd have to create a generic TableColumnImpl class, pass it 
 		// to another class so that it could manipulate it and act upon changes.

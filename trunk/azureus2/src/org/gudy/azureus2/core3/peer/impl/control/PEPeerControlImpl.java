@@ -202,9 +202,10 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	private int				nbPeersSnubbed;
 
-	private PeerIdentityDataID	_hash;
-	private final byte[]        _myPeerId;
-	private PEPeerManagerStats        _stats;
+	private PeerIdentityDataID			_hash;
+	private final byte[]        		_myPeerId;
+	private PEPeerManagerStatsImpl      _stats;
+	
 	//private final TRTrackerAnnouncer _tracker;
 	//  private int _maxUploads;
 	private int		_seeds, _peers,_remotesTCPNoLan, _remotesUDPNoLan, _remotesUTPNoLan;
@@ -2183,6 +2184,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 		connections_with_queued_data			= con_queued;
 		connections_with_queued_data_blocked	= con_blocked;
 		connections_unchoked					= con_unchoked;
+		
+		_stats.update();
 	}
 	/**
 	 * The way to unmark a request as being downloaded, or also 

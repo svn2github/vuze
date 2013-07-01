@@ -183,6 +183,12 @@ DownloadManagerStats
 	public long
 	getETA();
 	
+	public long
+	getPeakReceiveRate();
+	
+	public long
+	getPeakSendRate();
+	
 	public float
 	getAvailability();
 		

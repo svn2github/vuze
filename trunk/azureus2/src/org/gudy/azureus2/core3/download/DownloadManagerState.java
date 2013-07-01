@@ -71,6 +71,8 @@ DownloadManagerState
 	public static final String AT_FILE_OTHER_HASHES			= "fileotherhashes";
 	public static final String AT_CANONICAL_SD_DMAP			= "canosavedir";
 	public static final String AT_DND_SUBFOLDER				= "dnd_sf";
+	public static final String AT_PEAK_RECEIVE_RATE			= "pkdo";
+	public static final String AT_PEAK_SEND_RATE			= "pkup";
 
 	public static Object[][] ATTRIBUTE_DEFAULTS = {
 		{ AT_VERSION,								new Integer( -1 )},

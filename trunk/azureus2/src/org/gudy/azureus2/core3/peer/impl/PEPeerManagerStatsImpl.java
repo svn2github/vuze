@@ -57,6 +57,9 @@ PEPeerManagerStatsImpl
   
 	private final Average overallSpeed = Average.getInstance(5000, 100); //average over 100s, update every 5s
 
+	private long peak_receive_rate;
+	private long peak_send_rate;
+	
 	private int	total_incoming;
 	private int total_outgoing;
 
@@ -291,5 +294,24 @@ PEPeerManagerStatsImpl
 		int bytes )
 	{
 		adapter.permittedSendBytesUsed(bytes);
+	}
+	
+	public long 
+	getPeakReceiveRate()
+	{
+		return( peak_receive_rate );
+	}
+	
+	public long 
+	getPeakSendRate()
+	{
+		return( peak_send_rate );
+	}
+	
+	public void
+	update()
+	{
+		peak_receive_rate 	= Math.max( peak_receive_rate, data_receive_speed.getAverage() + protocol_receive_speed.getAverage());
+		peak_send_rate 		= Math.max( peak_send_rate, data_send_speed.getAverage() + protocol_send_speed.getAverage());
 	}
 }
