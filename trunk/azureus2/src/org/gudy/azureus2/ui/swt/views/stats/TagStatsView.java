@@ -574,6 +574,12 @@ public class TagStatsView
 			is_hover = h;
 		}
 		
+		public int 
+		getAlpha() 
+		{
+			return( 255 );
+		}
+		
 		private void
 		setVisible(
 			boolean	visible )

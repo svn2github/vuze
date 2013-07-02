@@ -458,6 +458,7 @@ MultiPlotGraphic
 			}
 			
 			Set<ValueSource>	bold_sources = new HashSet<ValueSource>();
+			Set<ValueSource>	dotted_sources = new HashSet<ValueSource>();
 			
 			int max = 0;
 			
@@ -473,6 +474,11 @@ MultiPlotGraphic
 				if (( source.getStyle() & ValueSource.STYLE_BOLD ) != 0 ){
 					
 					bold_sources.add( source );
+				}
+				
+				if (( source.getStyle() & ValueSource.STYLE_DOTTED ) != 0 ){
+					
+					dotted_sources.add( source );
 				}
 				
 				if ( !source.isTrimmable()){
@@ -563,6 +569,8 @@ MultiPlotGraphic
 							continue;
 						}
 						
+						boolean is_dotted = dotted_sources.contains( source );
+
 						if ( ( source.isTrimmable() == (order==0 ) && order < 2 ) || ( is_bold && order == 2 )){
 							
 							Color line_color = source.getLineColor();
@@ -573,18 +581,27 @@ MultiPlotGraphic
 							
 							if ( x > 0 ){
 							
-								int trimmed = 0;
-								
-								if (targetValue > max){
-									targetValue = max;
-									trimmed++;
+								int trimmed;
+
+								if ( is_dotted ){
+									
+									trimmed = 2;
+									
+								}else{
+
+									trimmed = 0;
+									
+									if (targetValue > max){
+										targetValue = max;
+										trimmed++;
+									}
+									
+									if (oldTargetValue > max){
+										oldTargetValue = max;
+										trimmed++;
+									}
 								}
 								
-								if (oldTargetValue > max){
-									oldTargetValue = max;
-									trimmed++;
-								}
-																
 								boolean force_draw = ( trimmed == 2 && position % 4 == 0 ) || xDraw == 1;
 								
 								int h1 = bounds.height - scale.getScaledValue(targetValue) - 2;
@@ -601,6 +618,7 @@ MultiPlotGraphic
 																	
 									if ( h1 != prev_y[chartIdx] || force_draw ){
 										
+										gcImage.setAlpha( source.getAlpha());
 										gcImage.setLineWidth( trimmed==2?3:is_bold?4:2 );
 										gcImage.setForeground( line_color );
 
@@ -645,46 +663,51 @@ MultiPlotGraphic
 						
 						if ( ( source.isTrimmable() == (order==0 ) && order < 2 ) || ( is_bold && order == 2 )){
 							
-							int	average_val = computeAverage( chartIdx, currentPosition - 6 );
-							
-							int average_mod = average_val;
-							
-							if ( average_mod > max ){
-								
-								average_mod = max;
-							}
-							
 							int	style = source.getStyle();
-							
-							int height = bounds.height - scale.getScaledValue( average_mod) - 2;
-							
-							gcImage.setForeground( source.getLineColor());
-							
-							gcImage.drawText(formater.format( average_val ), bounds.width - 65, height - 12, false);
-							
-							Color bg = gcImage.getBackground();
-							
-							if (( style & ValueSource.STYLE_DOWN ) != 0 ){
-								
-								int	x = bounds.width - 72;
-								int y = height - 12;
-								
-								gcImage.setBackground( source.getLineColor());
 
-								gcImage.fillPolygon(new int[] { x, y, x+7, y, x+3, y+7 });
+							if (( style & ValueSource.STYLE_HIDE_LABEL ) == 0 ){
 								
-								gcImage.setBackground( bg );
+								int	average_val = computeAverage( chartIdx, currentPosition - 6 );
 								
-							}else  if (( style & ValueSource.STYLE_UP ) != 0 ){
+								int average_mod = average_val;
 								
-								int	x = bounds.width - 72;
-								int y = height - 12;
+								if ( average_mod > max ){
+									
+									average_mod = max;
+								}
+															
+								int height = bounds.height - scale.getScaledValue( average_mod) - 2;
 								
-								gcImage.setBackground( source.getLineColor());
-
-								gcImage.fillPolygon(new int[] { x, y+7, x+7, y+7, x+3, y });
+								gcImage.setAlpha( 255 );
 								
-								gcImage.setBackground( bg );
+								gcImage.setForeground( source.getLineColor());
+								
+								gcImage.drawText(formater.format( average_val ), bounds.width - 65, height - 12, false);
+								
+								Color bg = gcImage.getBackground();
+								
+								if (( style & ValueSource.STYLE_DOWN ) != 0 ){
+									
+									int	x = bounds.width - 72;
+									int y = height - 12;
+									
+									gcImage.setBackground( source.getLineColor());
+	
+									gcImage.fillPolygon(new int[] { x, y, x+7, y, x+3, y+7 });
+									
+									gcImage.setBackground( bg );
+									
+								}else  if (( style & ValueSource.STYLE_UP ) != 0 ){
+									
+									int	x = bounds.width - 72;
+									int y = height - 12;
+									
+									gcImage.setBackground( source.getLineColor());
+	
+									gcImage.fillPolygon(new int[] { x, y+7, x+7, y+7, x+3, y });
+									
+									gcImage.setBackground( bg );
+								}
 							}
 						}
 					}

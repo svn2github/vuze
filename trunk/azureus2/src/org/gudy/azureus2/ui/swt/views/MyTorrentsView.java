@@ -1158,7 +1158,7 @@ public class MyTorrentsView
           }
         });
 
-    }else if (sColumnName.equals("eta")) {
+    }else if (sColumnName.equals("eta") || sColumnName.equals("smootheta")) {
         final MenuItem item = new MenuItem(menuThisColumn, SWT.CHECK );
         Messages.setLanguageText(item, "MyTorrentsView.menu.eta.abs");
         item.setSelection( eta_absolute );

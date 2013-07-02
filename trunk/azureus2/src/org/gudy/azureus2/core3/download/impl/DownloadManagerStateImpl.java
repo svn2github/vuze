@@ -2476,7 +2476,7 @@ DownloadManagerStateImpl
 			writer.indent();
 			
 			writer.println( "parameters=" + parameters );
-			
+			writer.println( "flags=" + getFlags());
 			DiskManagerFileInfo primaryFile = getPrimaryFile();
 			if (primaryFile != null) {
 				writer.println("primary file=" + Debug.secretFileName(primaryFile.getFile(true).getAbsolutePath()));

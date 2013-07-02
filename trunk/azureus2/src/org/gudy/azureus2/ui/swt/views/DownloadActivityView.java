@@ -60,7 +60,10 @@ DownloadActivityView
 {
 	public static final String MSGID_PREFIX = "DownloadActivityView";
 
-	private static Color[]	colors = { Colors.fadedGreen, Colors.blues[Colors.BLUES_DARKEST], Colors.light_grey };
+	private static Color[]	colors = { 
+		Colors.fadedGreen, Colors.fadedGreen, 
+		Colors.blues[Colors.BLUES_DARKEST], Colors.blues[Colors.BLUES_DARKEST], 
+		Colors.light_grey };
 		
 	private UISWTView 				swtView;
 	private boolean					legend_at_bottom;
@@ -101,7 +104,7 @@ DownloadActivityView
 	      
 	    
 	    final ValueSourceImpl[] sources = {
-	    	new ValueSourceImpl( "Up", 0, colors, true, false )
+	    	new ValueSourceImpl( "Up", 0, colors, true, false, false )
 	    	{
 	    		public int
 	    		getValue()
@@ -115,10 +118,10 @@ DownloadActivityView
 	    			
 	    			DownloadManagerStats stats = manager.getStats();
 	    			
-	    			return((int)(stats.getDataSendRate() + stats.getProtocolSendRate()));
+	    			return((int)(stats.getDataSendRate()));
 	    		}
 	    	},
-	    	new ValueSourceImpl( "Down", 1, colors, false, false )
+	    	new ValueSourceImpl( "Up Smooth", 1, colors, true, false, true )
 	    	{
 	    		public int
 	    		getValue()
@@ -132,10 +135,44 @@ DownloadActivityView
 	    			
 	    			DownloadManagerStats stats = manager.getStats();
 	    			
-	    			return((int)(stats.getDataReceiveRate() +stats.getProtocolReceiveRate()));
+	    			return((int)(stats.getSmoothedDataSendRate()));
 	    		}
 	    	},
-	    	new ValueSourceImpl( "Swarm Peer Average", 2, colors, false, true )
+	    	new ValueSourceImpl( "Down", 2, colors, false, false, false )
+	    	{
+	    		public int
+	    		getValue()
+	    		{
+	    			DownloadManager dm = manager;
+	    			
+	    			if ( dm == null ){
+	    				
+	    				return( 0 );
+	    			}
+	    			
+	    			DownloadManagerStats stats = manager.getStats();
+	    			
+	    			return((int)(stats.getDataReceiveRate()));
+	    		}
+	    	},
+	    	new ValueSourceImpl( "Down Smooth", 3, colors, false, false, true )
+	    	{
+	    		public int
+	    		getValue()
+	    		{
+	    			DownloadManager dm = manager;
+	    			
+	    			if ( dm == null ){
+	    				
+	    				return( 0 );
+	    			}
+	    			
+	    			DownloadManagerStats stats = manager.getStats();
+	    			
+	    			return((int)(stats.getSmoothedDataReceiveRate()));
+	    		}
+	    	},
+	    	new ValueSourceImpl( "Swarm Peer Average", 4, colors, false, true, false )
 	    	{
 	    		public int
 	    		getValue()
@@ -157,7 +194,9 @@ DownloadActivityView
 	    
 		String[] color_configs = new String[] {
 				"DownloadActivityView.legend.up",
+				"DownloadActivityView.legend.up_smooth",
 				"DownloadActivityView.legend.down",
+				"DownloadActivityView.legend.down_smooth",
 				"DownloadActivityView.legend.peeraverage",
 			};
 
@@ -301,7 +340,7 @@ DownloadActivityView
 			
 			mpg.setActive( false );
 			
-			mpg.reset( new int[3][0] );
+			mpg.reset( new int[5][0] );
 		
 		}else{
 		
@@ -309,7 +348,11 @@ DownloadActivityView
 			
 			stats.setRecentHistoryRetention( true );
 			
-			int[][] history = stats.getRecentHistory();
+			int[][] _history = stats.getRecentHistory();
+			
+			int[] blank = new int[_history[0].length];
+		
+			int[][] history = { _history[0], blank, _history[1], blank, _history[2] };
 			
 			mpg.reset( history );
 			
@@ -443,6 +486,7 @@ DownloadActivityView
 		
 		private boolean			is_hover;
 		private boolean			is_invisible;
+		private boolean			is_dotted;
 		
 		private
 		ValueSourceImpl(
@@ -450,13 +494,15 @@ DownloadActivityView
 			int						_index,
 			Color[]					_colours,
 			boolean					_is_up,
-			boolean					_trimmable )
+			boolean					_trimmable,
+			boolean					_is_dotted )
 		{
 			name			= _name;
 			index			= _index;
 			colours			= _colours;
 			is_up			= _is_up;
 			trimmable		= _trimmable;
+			is_dotted		= _is_dotted;
 		}
 			
 		public String
@@ -503,10 +549,21 @@ DownloadActivityView
 			
 			if ( is_hover ){
 				
-				style |= STYLE_BOLD;
+				style |= STYLE_BOLD; 
+			}
+			
+			if ( is_dotted ){
+				
+				style |= STYLE_HIDE_LABEL;
 			}
 			
 			return( style );
+		}
+		
+		public int 
+		getAlpha() 
+		{
+			return( is_dotted?128:255 );
 		}
 	}
 }

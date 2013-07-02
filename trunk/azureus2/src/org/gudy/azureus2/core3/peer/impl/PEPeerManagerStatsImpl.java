@@ -382,9 +382,9 @@ PEPeerManagerStatsImpl
 		
 		if ( tick_count % SMOOTHING_UPDATE_INTERVAL == 0 ){
 
-			if ( current_smoothing_window != SMOOTHING_UPDATE_INTERVAL ){
+			if ( current_smoothing_window != SMOOTHING_UPDATE_WINDOW ){
 			
-				current_smoothing_window = SMOOTHING_UPDATE_INTERVAL;
+				current_smoothing_window = SMOOTHING_UPDATE_WINDOW;
 				
 				smoothed_receive_rate 	= AverageFactory.MovingImmediateAverage(SMOOTHING_UPDATE_WINDOW/SMOOTHING_UPDATE_INTERVAL);
 				smoothed_send_rate 		= AverageFactory.MovingImmediateAverage(SMOOTHING_UPDATE_WINDOW/SMOOTHING_UPDATE_INTERVAL);
