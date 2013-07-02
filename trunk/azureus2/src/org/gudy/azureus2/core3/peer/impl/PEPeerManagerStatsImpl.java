@@ -27,53 +27,14 @@ import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.peer.impl.control.PEPeerControlImpl;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.core.util.average.AverageFactory;
 import com.aelitis.azureus.core.util.average.MovingImmediateAverage;
 
 public class 
 PEPeerManagerStatsImpl 
 	implements PEPeerManagerStats
-{
-	private static int SMOOTHING_UPDATE_WINDOW	 	= 60;
-	private static int SMOOTHING_UPDATE_INTERVAL 	= 5;
-
-	
-	static{
-		COConfigurationManager.addAndFireParameterListener(
-			"Stats Smoothing Secs",
-			new ParameterListener()
-			{
-				public void 
-				parameterChanged(
-					String name ) 
-				{
-					SMOOTHING_UPDATE_WINDOW	= COConfigurationManager.getIntParameter( "Stats Smoothing Secs" );
-				
-					if ( SMOOTHING_UPDATE_WINDOW < 30 ){
-						
-						SMOOTHING_UPDATE_WINDOW = 30;
-						
-					}else if ( SMOOTHING_UPDATE_WINDOW > 30*60 ){
-						
-						SMOOTHING_UPDATE_WINDOW = 30*60;
-					}
-					
-					if ( SMOOTHING_UPDATE_WINDOW <= 60 ){
-						
-						SMOOTHING_UPDATE_INTERVAL = 5;
-						
-					}else if ( SMOOTHING_UPDATE_WINDOW <= 5*60 ){
-						
-						SMOOTHING_UPDATE_INTERVAL = 10;
-						
-					}else{
-						
-						SMOOTHING_UPDATE_INTERVAL = 20;
-					}
-				}
-			});
-	}
-	
+{	
 	private PEPeerManagerAdapter	adapter;
 	
 	private long total_data_bytes_received = 0;
@@ -105,10 +66,11 @@ PEPeerManagerStatsImpl
 	private long smooth_last_sent;
 	private long smooth_last_received;
 	
-	private int current_smoothing_window = SMOOTHING_UPDATE_WINDOW;
+	private int current_smoothing_window 	= GeneralUtils.getSmoothUpdateWindow();
+	private int current_smoothing_interval 	= GeneralUtils.getSmoothUpdateInterval();
 	
-	private MovingImmediateAverage smoothed_receive_rate 	= AverageFactory.MovingImmediateAverage(SMOOTHING_UPDATE_WINDOW/SMOOTHING_UPDATE_INTERVAL);
-	private MovingImmediateAverage smoothed_send_rate 		= AverageFactory.MovingImmediateAverage(SMOOTHING_UPDATE_WINDOW/SMOOTHING_UPDATE_INTERVAL);
+	private MovingImmediateAverage smoothed_receive_rate 	= GeneralUtils.getSmoothAverage();
+	private MovingImmediateAverage smoothed_send_rate 		= GeneralUtils.getSmoothAverage();
 
 	private long peak_receive_rate;
 	private long peak_send_rate;
@@ -352,13 +314,13 @@ PEPeerManagerStatsImpl
 	public long 
 	getSmoothedDataReceiveRate()
 	{
-		return((long)(smoothed_receive_rate.getAverage()/SMOOTHING_UPDATE_INTERVAL));
+		return((long)(smoothed_receive_rate.getAverage()/current_smoothing_interval));
 	}
 	
 	public long 
 	getSmoothedDataSendRate()
 	{
-		return((long)(smoothed_send_rate.getAverage()/SMOOTHING_UPDATE_INTERVAL));
+		return((long)(smoothed_send_rate.getAverage()/current_smoothing_interval));
 	}
 
 	public long 
@@ -380,14 +342,16 @@ PEPeerManagerStatsImpl
 		peak_receive_rate 	= Math.max( peak_receive_rate, data_receive_speed.getAverage());
 		peak_send_rate 		= Math.max( peak_send_rate, data_send_speed.getAverage());
 		
-		if ( tick_count % SMOOTHING_UPDATE_INTERVAL == 0 ){
+		if ( tick_count % current_smoothing_interval == 0 ){
 
-			if ( current_smoothing_window != SMOOTHING_UPDATE_WINDOW ){
+			int	current_window = GeneralUtils.getSmoothUpdateWindow();
 			
-				current_smoothing_window = SMOOTHING_UPDATE_WINDOW;
-				
-				smoothed_receive_rate 	= AverageFactory.MovingImmediateAverage(SMOOTHING_UPDATE_WINDOW/SMOOTHING_UPDATE_INTERVAL);
-				smoothed_send_rate 		= AverageFactory.MovingImmediateAverage(SMOOTHING_UPDATE_WINDOW/SMOOTHING_UPDATE_INTERVAL);
+			if ( current_smoothing_window != current_window ){
+			
+				current_smoothing_window 	= current_window;
+				current_smoothing_interval	= GeneralUtils.getSmoothUpdateInterval();
+				smoothed_receive_rate 		= GeneralUtils.getSmoothAverage();
+				smoothed_send_rate 			= GeneralUtils.getSmoothAverage();
 			}
 			
 			long	up 		= total_data_bytes_sent;

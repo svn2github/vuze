@@ -29,7 +29,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.Constants;
+
+import com.aelitis.azureus.core.util.average.AverageFactory;
+import com.aelitis.azureus.core.util.average.MovingImmediateAverage;
 
 public class 
 GeneralUtils 
@@ -309,5 +314,63 @@ GeneralUtils
 		String s = string.replaceAll("([&%^])", "^$1");
 		s = s.replaceAll("'", "\"'\"");
 		return s;
+	}
+	
+	private static int SMOOTHING_UPDATE_WINDOW	 	= 60;
+	private static int SMOOTHING_UPDATE_INTERVAL 	= 5;
+
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"Stats Smoothing Secs",
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name ) 
+				{
+					SMOOTHING_UPDATE_WINDOW	= COConfigurationManager.getIntParameter( "Stats Smoothing Secs" );
+				
+					if ( SMOOTHING_UPDATE_WINDOW < 30 ){
+						
+						SMOOTHING_UPDATE_WINDOW = 30;
+						
+					}else if ( SMOOTHING_UPDATE_WINDOW > 30*60 ){
+						
+						SMOOTHING_UPDATE_WINDOW = 30*60;
+					}
+					
+					if ( SMOOTHING_UPDATE_WINDOW <= 60 ){
+						
+						SMOOTHING_UPDATE_INTERVAL = 5;
+						
+					}else if ( SMOOTHING_UPDATE_WINDOW <= 5*60 ){
+						
+						SMOOTHING_UPDATE_INTERVAL = 10;
+						
+					}else{
+						
+						SMOOTHING_UPDATE_INTERVAL = 20;
+					}
+				}
+			});
+	}
+	
+	public static int
+	getSmoothUpdateWindow()
+	{
+		return( SMOOTHING_UPDATE_WINDOW );
+	}
+	
+	public static int
+	getSmoothUpdateInterval()
+	{
+		return( SMOOTHING_UPDATE_INTERVAL );
+	}
+	
+	public static MovingImmediateAverage
+	getSmoothAverage()
+	{
+		return( AverageFactory.MovingImmediateAverage(SMOOTHING_UPDATE_WINDOW/SMOOTHING_UPDATE_INTERVAL ));
 	}
 }

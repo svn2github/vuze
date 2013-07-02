@@ -48,6 +48,8 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 
+import com.aelitis.azureus.core.util.GeneralUtils;
+import com.aelitis.azureus.core.util.average.MovingImmediateAverage;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContent;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
@@ -350,9 +352,43 @@ DownloadActivityView
 			
 			int[][] _history = stats.getRecentHistory();
 			
-			int[] blank = new int[_history[0].length];
+				// reconstitute the smoothed values to the best of our ability (good enough unless we decide we want
+				// to throw more memory at remembering this more accurately...)
+			
+			int[] send_history = _history[0];
+			int[] recv_history = _history[1];
+			
+			int	history_secs = send_history.length;
+			
+			int[] smoothed_send = new int[history_secs];
+			int[] smoothed_recv = new int[history_secs];
 		
-			int[][] history = { _history[0], blank, _history[1], blank, _history[2] };
+			MovingImmediateAverage	send_average = GeneralUtils.getSmoothAverage();
+			MovingImmediateAverage	recv_average = GeneralUtils.getSmoothAverage();
+			
+			int smooth_interval = GeneralUtils.getSmoothUpdateInterval();
+			
+			int	current_smooth_send = 0;
+			int	current_smooth_recv = 0;
+			int	pending_smooth_send = 0;
+			int	pending_smooth_recv = 0;
+			
+			for ( int i=0;i<history_secs;i++){
+				pending_smooth_send += send_history[i];
+				pending_smooth_recv += recv_history[i];
+				
+				if ( i % smooth_interval == 0 ){
+					current_smooth_send = (int)(send_average.update( pending_smooth_send )/smooth_interval);
+					current_smooth_recv = (int)(recv_average.update( pending_smooth_recv )/smooth_interval);
+					
+					pending_smooth_send = 0;
+					pending_smooth_recv = 0;
+				}
+				smoothed_send[i] = current_smooth_send;
+				smoothed_recv[i] = current_smooth_recv;
+			}
+			
+			int[][] history = {send_history, smoothed_send, recv_history, smoothed_recv, _history[2] };
 			
 			mpg.reset( history );
 			
