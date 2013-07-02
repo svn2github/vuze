@@ -485,196 +485,199 @@ AzureusCoreImpl
 					}
 				});
 		
-		speed_manager	= 
-			SpeedManagerFactory.createSpeedManager( 
-					this,
-					new SpeedManagerAdapter()
-					{
-						private final int UPLOAD_SPEED_ADJUST_MIN_KB_SEC		= 10;
-						private final int DOWNLOAD_SPEED_ADJUST_MIN_KB_SEC		= 300;
-						
-						private boolean setting_limits;
-						
-						public int
-						getCurrentProtocolUploadSpeed(
-							int	average_period )
+		if ( COConfigurationManager.getBooleanParameter( "speedmanager.enable", true )){
+			
+			speed_manager	= 
+				SpeedManagerFactory.createSpeedManager( 
+						this,
+						new SpeedManagerAdapter()
 						{
-							if ( global_manager != null ){
-								
-								GlobalManagerStats stats = global_manager.getStats();
-								
-								return( stats.getProtocolSendRateNoLAN( average_period ));
-								
-							}else{
-								
-								return(0);
-							}
-						}
-						
-						public int
-						getCurrentDataUploadSpeed(
-							int	average_period )
-						{
-							if ( global_manager != null ){
-								
-								GlobalManagerStats stats = global_manager.getStats();
-								
-								return( stats.getDataSendRateNoLAN( average_period ));
-								
-							}else{
-								
-								return(0);
-							}
-						}
-
-                        public int
-                        getCurrentProtocolDownloadSpeed(
-                        	int	average_period )
-                        {
-                            if( global_manager != null ){
-                                GlobalManagerStats stats = global_manager.getStats();
-                                return (stats.getProtocolReceiveRateNoLAN( average_period ) );
-                            }else{
-                                return(0);
-                            }
-                        }
-
-                        public int
-                        getCurrentDataDownloadSpeed(
-                        	int	average_period )
-                        {
-                            if( global_manager != null ){
-                                GlobalManagerStats stats = global_manager.getStats();
-                                return (stats.getDataReceiveRateNoLAN( average_period ) );
-                            }else{
-                                return(0);
-                            }
-                        }
-                        
-                        public int
-						getCurrentUploadLimit()
-						{
-							String key = TransferSpeedValidator.getActiveUploadParameter( global_manager );
+							private final int UPLOAD_SPEED_ADJUST_MIN_KB_SEC		= 10;
+							private final int DOWNLOAD_SPEED_ADJUST_MIN_KB_SEC		= 300;
 							
-							int	k_per_second = COConfigurationManager.getIntParameter( key );
+							private boolean setting_limits;
 							
-							int	bytes_per_second;
-							
-							if ( k_per_second == 0 ){
-								
-								bytes_per_second = Integer.MAX_VALUE;
-								
-							}else{
-								
-								bytes_per_second = k_per_second*1024;
-							}
-							
-							return( bytes_per_second );
-						}
-						
-						public void
-						setCurrentUploadLimit(
-							int		bytes_per_second )
-						{
-							if ( bytes_per_second != getCurrentUploadLimit()){
-								
-								String key = TransferSpeedValidator.getActiveUploadParameter( global_manager );
+							public int
+							getCurrentProtocolUploadSpeed(
+								int	average_period )
+							{
+								if ( global_manager != null ){
 									
-								int	k_per_second;
-								
-								if ( bytes_per_second == Integer.MAX_VALUE ){
+									GlobalManagerStats stats = global_manager.getStats();
 									
-									k_per_second	= 0;
+									return( stats.getProtocolSendRateNoLAN( average_period ));
 									
 								}else{
+									
+									return(0);
+								}
+							}
+							
+							public int
+							getCurrentDataUploadSpeed(
+								int	average_period )
+							{
+								if ( global_manager != null ){
+									
+									GlobalManagerStats stats = global_manager.getStats();
+									
+									return( stats.getDataSendRateNoLAN( average_period ));
+									
+								}else{
+									
+									return(0);
+								}
+							}
+	
+	                        public int
+	                        getCurrentProtocolDownloadSpeed(
+	                        	int	average_period )
+	                        {
+	                            if( global_manager != null ){
+	                                GlobalManagerStats stats = global_manager.getStats();
+	                                return (stats.getProtocolReceiveRateNoLAN( average_period ) );
+	                            }else{
+	                                return(0);
+	                            }
+	                        }
+	
+	                        public int
+	                        getCurrentDataDownloadSpeed(
+	                        	int	average_period )
+	                        {
+	                            if( global_manager != null ){
+	                                GlobalManagerStats stats = global_manager.getStats();
+	                                return (stats.getDataReceiveRateNoLAN( average_period ) );
+	                            }else{
+	                                return(0);
+	                            }
+	                        }
+	                        
+	                        public int
+							getCurrentUploadLimit()
+							{
+								String key = TransferSpeedValidator.getActiveUploadParameter( global_manager );
 								
-									k_per_second = (bytes_per_second+1023)/1024;
+								int	k_per_second = COConfigurationManager.getIntParameter( key );
+								
+								int	bytes_per_second;
+								
+								if ( k_per_second == 0 ){
+									
+									bytes_per_second = Integer.MAX_VALUE;
+									
+								}else{
+									
+									bytes_per_second = k_per_second*1024;
 								}
 								
-								if ( k_per_second > 0 ){
-								
-									k_per_second = Math.max( k_per_second, UPLOAD_SPEED_ADJUST_MIN_KB_SEC );
+								return( bytes_per_second );
+							}
+							
+							public void
+							setCurrentUploadLimit(
+								int		bytes_per_second )
+							{
+								if ( bytes_per_second != getCurrentUploadLimit()){
+									
+									String key = TransferSpeedValidator.getActiveUploadParameter( global_manager );
+										
+									int	k_per_second;
+									
+									if ( bytes_per_second == Integer.MAX_VALUE ){
+										
+										k_per_second	= 0;
+										
+									}else{
+									
+										k_per_second = (bytes_per_second+1023)/1024;
+									}
+									
+									if ( k_per_second > 0 ){
+									
+										k_per_second = Math.max( k_per_second, UPLOAD_SPEED_ADJUST_MIN_KB_SEC );
+									}
+									
+									COConfigurationManager.setParameter( key, k_per_second );
+								}
+							}
+							
+							public int
+							getCurrentDownloadLimit()
+							{
+								return( TransferSpeedValidator.getGlobalDownloadRateLimitBytesPerSecond());
+							}
+							
+							public void
+							setCurrentDownloadLimit(
+								int		bytes_per_second )
+							{
+								if ( bytes_per_second == Integer.MAX_VALUE ){
+									
+									bytes_per_second = 0;
 								}
 								
-								COConfigurationManager.setParameter( key, k_per_second );
-							}
-						}
-						
-						public int
-						getCurrentDownloadLimit()
-						{
-							return( TransferSpeedValidator.getGlobalDownloadRateLimitBytesPerSecond());
-						}
-						
-						public void
-						setCurrentDownloadLimit(
-							int		bytes_per_second )
-						{
-							if ( bytes_per_second == Integer.MAX_VALUE ){
+								if ( bytes_per_second > 0 ){
+									
+									bytes_per_second = Math.max( bytes_per_second, DOWNLOAD_SPEED_ADJUST_MIN_KB_SEC*1024 );
+								}
 								
-								bytes_per_second = 0;
+								TransferSpeedValidator.setGlobalDownloadRateLimitBytesPerSecond( bytes_per_second );
 							}
 							
-							if ( bytes_per_second > 0 ){
+							public Object
+							getLimits()
+							{
+								String up_key 	= TransferSpeedValidator.getActiveUploadParameter( global_manager );
+								String down_key	= TransferSpeedValidator.getDownloadParameter();
 								
-								bytes_per_second = Math.max( bytes_per_second, DOWNLOAD_SPEED_ADJUST_MIN_KB_SEC*1024 );
+								return( 
+									new Object[]{
+										up_key,
+										new Integer( COConfigurationManager.getIntParameter( up_key )),
+										down_key,
+										new Integer( COConfigurationManager.getIntParameter( down_key )),
+									});
 							}
 							
-							TransferSpeedValidator.setGlobalDownloadRateLimitBytesPerSecond( bytes_per_second );
-						}
-						
-						public Object
-						getLimits()
-						{
-							String up_key 	= TransferSpeedValidator.getActiveUploadParameter( global_manager );
-							String down_key	= TransferSpeedValidator.getDownloadParameter();
-							
-							return( 
-								new Object[]{
-									up_key,
-									new Integer( COConfigurationManager.getIntParameter( up_key )),
-									down_key,
-									new Integer( COConfigurationManager.getIntParameter( down_key )),
-								});
-						}
-						
-						public void
-						setLimits(
-							Object		limits,
-							boolean		do_up,
-							boolean		do_down )
-						{
-							if ( limits == null ){
-								
-								return;
-							}
-							try{
-								if ( setting_limits ){
+							public void
+							setLimits(
+								Object		limits,
+								boolean		do_up,
+								boolean		do_down )
+							{
+								if ( limits == null ){
 									
 									return;
 								}
-							
-								setting_limits	= true;
-							
-								Object[]	bits = (Object[])limits;
+								try{
+									if ( setting_limits ){
+										
+										return;
+									}
 								
-								if ( do_up ){
+									setting_limits	= true;
+								
+									Object[]	bits = (Object[])limits;
 									
-									COConfigurationManager.setParameter((String)bits[0], ((Integer)bits[1]).intValue());
-								}
-								
-								if ( do_down ){
+									if ( do_up ){
+										
+										COConfigurationManager.setParameter((String)bits[0], ((Integer)bits[1]).intValue());
+									}
 									
-									COConfigurationManager.setParameter((String)bits[2], ((Integer)bits[3]).intValue());
+									if ( do_down ){
+										
+										COConfigurationManager.setParameter((String)bits[2], ((Integer)bits[3]).intValue());
+									}
+									
+								}finally{
+									
+									setting_limits	= false;
+									
 								}
-								
-							}finally{
-								
-								setting_limits	= false;
-								
 							}
-						}
-					});
+						});
+		}
 		
 		nat_traverser = new NATTraverser( this );
 		
@@ -1023,7 +1026,10 @@ AzureusCoreImpl
 											speedTesterAvailable(
 												DHTSpeedTester tester ) 
 											{
-												speed_manager.setSpeedTester( tester );
+												if ( speed_manager != null ){
+												
+													speed_manager.setSpeedTester( tester );
+												}
 											}
 										});
 																
@@ -1059,8 +1065,10 @@ AzureusCoreImpl
 						protected void
 						checkConfig()
 						{
-
-							speed_manager.setEnabled( TransferSpeedValidator.isAutoSpeedActive(global_manager) );
+							if ( speed_manager != null ){
+							
+								speed_manager.setEnabled( TransferSpeedValidator.isAutoSpeedActive(global_manager) );
+							}
 						}
 						
 					});
