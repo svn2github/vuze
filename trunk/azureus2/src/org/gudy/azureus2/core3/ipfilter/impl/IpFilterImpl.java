@@ -497,7 +497,8 @@ IpFilterImpl
 	  
 	  	//never block lan local addresses
 	  
-	  if( AddressUtils.isLANLocalAddress( ipAddress ) != AddressUtils.LAN_LOCAL_NO ) {
+	  if ( AddressUtils.isLANLocalAddress( ipAddress ) == AddressUtils.LAN_LOCAL_YES ){
+		  
 	  	return false;
 	  }
 	  	  
@@ -622,9 +623,9 @@ IpFilterImpl
 	  
 	  	//never block lan local addresses
 	  
-	  if( AddressUtils.isLANLocalAddress( ipAddress ) != AddressUtils.LAN_LOCAL_NO ) {
+	  if ( AddressUtils.isLANLocalAddress( ipAddress ) == AddressUtils.LAN_LOCAL_YES ){
 		  
-	  	return false;
+		  return false;
 	  }
 	  	  
 	  
