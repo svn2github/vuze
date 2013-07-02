@@ -317,7 +317,7 @@ GeneralUtils
 	}
 	
 	private static int SMOOTHING_UPDATE_WINDOW	 	= 60;
-	private static int SMOOTHING_UPDATE_INTERVAL 	= 5;
+	private static int SMOOTHING_UPDATE_INTERVAL 	= 1;
 
 	
 	static{
@@ -340,15 +340,13 @@ GeneralUtils
 						SMOOTHING_UPDATE_WINDOW = 30*60;
 					}
 					
-					if ( SMOOTHING_UPDATE_WINDOW <= 60 ){
+					SMOOTHING_UPDATE_INTERVAL = SMOOTHING_UPDATE_WINDOW/60;
+					
+					if ( SMOOTHING_UPDATE_INTERVAL < 1 ){
 						
-						SMOOTHING_UPDATE_INTERVAL = 5;
+						SMOOTHING_UPDATE_INTERVAL = 1;
 						
-					}else if ( SMOOTHING_UPDATE_WINDOW <= 5*60 ){
-						
-						SMOOTHING_UPDATE_INTERVAL = 10;
-						
-					}else{
+					}else if ( SMOOTHING_UPDATE_INTERVAL > 20 ){
 						
 						SMOOTHING_UPDATE_INTERVAL = 20;
 					}
