@@ -68,6 +68,8 @@ TimeLimitedTask
 						
 					}finally{
 						
+						t = null;
+						
 						sem.releaseForever();
 					}
 				}
@@ -90,6 +92,8 @@ TimeLimitedTask
 				});
 
 		thread.setPriority( priority );
+		
+		thread.setDaemon( true );
 		
 		thread.start();
 		
