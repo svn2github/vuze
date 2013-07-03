@@ -29,6 +29,7 @@ public class MovingImmediateAverage implements Average {
    private final int periods;
    private double data[];
    private int pos = 0;
+   private double total;
 
    
    /**
@@ -37,20 +38,26 @@ public class MovingImmediateAverage implements Average {
    public MovingImmediateAverage(int periods) {
       this.periods = periods;
       this.data = new double[periods];
-      for (int i=0; i < periods; i++) { data[i] = 0.0; }
    }
    
    public void
    reset()
    {
-	   pos = 0;
+	   pos 		= 0;
+	   total 	= 0;
+	   data 	= new double[periods];
    }
    
    /**
     * Update average and return average-so-far.
     */
    public double update(final double newValue) {
+
+	  total -= data[pos%periods];
+	  total += newValue;
+	  
       data[pos++%periods] = newValue;
+      
       if ( pos==Integer.MAX_VALUE){
     	  pos = pos%periods;
       }
@@ -82,11 +89,15 @@ public class MovingImmediateAverage implements Average {
       if ( lim == 0 ){
     	  return( 0 );
       }else{
-    	  double sum = 0.0;
-	      for (int i=0; i < lim; i++) {
-	         sum += data[i];
-	      }
-	      return sum / lim;
+    	  if ( pos % periods == 0 ){
+    		  	// resync in case total has become inaccurate
+    		  double sum = 0.0;
+    		  for (int i=0; i < lim; i++) {
+    			  sum += data[i];
+    		  }
+    		  total = sum;
+    	  }
+	      return total / lim;
       }
    }
 

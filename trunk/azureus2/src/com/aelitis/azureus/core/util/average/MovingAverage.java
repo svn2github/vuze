@@ -29,6 +29,7 @@ public class MovingAverage implements Average {
    private final int periods;
    private double data[];
    private int pos = 0;
+   private double total;
 
    
    /**
@@ -36,18 +37,21 @@ public class MovingAverage implements Average {
     */
    public MovingAverage(int periods) {
       this.periods = periods;
-      this.data = new double[periods];
       reset();
    }
    
    	public void reset(){
-   		pos = 0;
-   		for (int i=0; i < periods; i++) { data[i] = 0.0; }
+   	 pos 	= 0;
+   	 total 	= 0;
+   	 data 	= new double[periods];
 	}
    /**
     * Update average and return average-so-far.
     */
    public double update(final double newValue) {
+	  total -= data[pos];
+	  total += newValue;
+	  
       data[pos] = newValue;
       pos++;
       if (pos == periods) pos = 0;
@@ -61,11 +65,15 @@ public class MovingAverage implements Average {
    
    
    private double calculateAve() {
-      double sum = 0.0;
-      for (int i=0; i < periods; i++) {
-         sum += data[i];
-      }
-      return sum / periods;
+	  if ( pos == 0 ){
+		  // resync (I'd prefer not to do this but just in case)
+	      double sum = 0.0;
+	      for (int i=0; i < periods; i++) {
+	         sum += data[i];
+	      }
+	      total = sum;
+	  }
+	  
+	  return total / periods;
    }
-
 }
