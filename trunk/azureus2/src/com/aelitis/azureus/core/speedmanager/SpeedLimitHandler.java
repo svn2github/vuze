@@ -1904,7 +1904,7 @@ SpeedLimitHandler
 			
 			for ( ScheduleRule rule: sub_rules ){
 			
-				if (( rule.frequency | day ) == 0 ){
+				if (( rule.frequency & day ) == 0 ){
 					
 					continue;
 				}
