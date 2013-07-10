@@ -32,7 +32,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.download.Download;
 
-import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
+import com.aelitis.azureus.core.util.LinkFileMap;
 
 /**
  * @author parg
@@ -48,7 +48,8 @@ DownloadManagerState
 	public static final String AT_PEER_SOURCES				= "peersources";
 	public static final String AT_PEER_SOURCES_DENIED		= "peersourcesdenied";
 	public static final String AT_TRACKER_CLIENT_EXTENSIONS	= "trackerclientextensions";
-	public static final String AT_FILE_LINKS				= "filelinks";
+	public static final String AT_FILE_LINKS_DEPRECATED		= "filelinks";
+	public static final String AT_FILE_LINKS2				= "filelinks2";
 	public static final String AT_FILE_STORE_TYPES			= "storetypes";
 	public static final String AT_FILE_DOWNLOADED			= "filedownloaded";
 	public static final String AT_FLAGS						= "flags";
@@ -286,19 +287,22 @@ DownloadManagerState
 	
 	public void
 	setFileLink(
+		int		source_index,
 		File	link_source,
 		File	link_destination );
 
 	public void
 	setFileLinks(
-		List<File>	link_sources,
-		List<File>	link_destinations );
+		List<Integer>	source_indexes,
+		List<File>		link_sources,
+		List<File>		link_destinations );
 	
 	public void
 	clearFileLinks();
 	
 	public File
 	getFileLink(
+		int		source_index,
 		File	link_source );
 	
 		/**
@@ -306,7 +310,7 @@ DownloadManagerState
 		 * @return
 		 */
 	
-	public CaseSensitiveFileMap
+	public LinkFileMap
 	getFileLinks();
 	
 	/**

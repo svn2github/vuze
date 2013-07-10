@@ -267,6 +267,7 @@ TOTorrentXMLDeserialiser
 				new TOTorrentFileImpl[]{ 
 						new TOTorrentFileImpl( 	torrent, 
 												0,
+												0,
 												torrent_length,
 												new byte[][]{ torrent.getName()})});
 		}else{
@@ -323,7 +324,7 @@ TOTorrentXMLDeserialiser
 				
 				}
 				
-				files[j] = new TOTorrentFileImpl( torrent, offset, file_length, path_comps );
+				files[j] = new TOTorrentFileImpl( torrent, j, offset, file_length, path_comps );
 				
 				offset += file_length;
 				

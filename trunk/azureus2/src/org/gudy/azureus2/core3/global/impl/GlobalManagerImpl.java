@@ -3104,8 +3104,9 @@ public class GlobalManagerImpl
 									try{
 										state.suppressStateSave(true);
 											
-										List<File>	from_links 	= new ArrayList<File>();
-										List<File>	to_links 	= new ArrayList<File>();
+										List<Integer>	from_indexes 	= new ArrayList<Integer>();
+										List<File>		from_links 		= new ArrayList<File>();
+										List<File>		to_links 		= new ArrayList<File>();
 										
 										for ( int i=0; i<fileInfos.length; i++ ){
 											
@@ -3113,7 +3114,7 @@ public class GlobalManagerImpl
 											
 											File base_file = fileInfo.getFile( false );
 											
-											File existing_link = state.getFileLink( base_file );
+											File existing_link = state.getFileLink( i, base_file );
 											
 											if ( existing_link == null && base_file.exists()){
 												
@@ -3132,6 +3133,8 @@ public class GlobalManagerImpl
 													new_link = new File( existing_link.getParentFile(), existing_link.getName() + ext );
 												}
 												
+												from_indexes.add( i );
+												
 												from_links.add( base_file );
 												
 												to_links.add( new_link );
@@ -3140,7 +3143,7 @@ public class GlobalManagerImpl
 										
 										if ( from_links.size() > 0 ){
 											
-											state.setFileLinks( from_links, to_links );
+											state.setFileLinks( from_indexes, from_links, to_links );
 										}
 									}finally{
 										
@@ -3172,7 +3175,7 @@ public class GlobalManagerImpl
 
 				File base_file = fileInfo.getFile(false);
 
-				File existing_link = state.getFileLink(base_file);
+				File existing_link = state.getFileLink( i, base_file);
 
 				if (existing_link == null && !base_file.exists()) {
 
@@ -3235,7 +3238,7 @@ public class GlobalManagerImpl
 								} while (redo);
 
 								if (fixNameID <= 0xFFF) {
-									state.setFileLink(base_file, newFile);
+									state.setFileLink(i,base_file, newFile);
 								}
 								break;
 							} catch (IOException e) {

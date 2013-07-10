@@ -34,6 +34,7 @@ TOTorrentFileImpl
 	implements TOTorrentFile
 {
 	private final TOTorrent	torrent;
+	private final int		index;
 	private final long		file_length;
 	private final byte[][]	path_components;
 	private final byte[][]	path_components_utf8;
@@ -48,6 +49,7 @@ TOTorrentFileImpl
 	protected
 	TOTorrentFileImpl(
 		TOTorrent		_torrent,
+		int				_index,
 		long			_torrent_offset,
 		long			_len,
 		String			_path )
@@ -55,6 +57,7 @@ TOTorrentFileImpl
 		throws TOTorrentException
 	{
 		torrent			= _torrent;
+		index			= _index;
 		file_length		= _len;
 
 		first_piece_number 	= (int)( _torrent_offset / torrent.getPieceLength());
@@ -105,6 +108,7 @@ TOTorrentFileImpl
 	protected
 	TOTorrentFileImpl(
 		TOTorrent		_torrent,
+		int				_index,
 		long			_torrent_offset,
 		long			_len,
 		byte[][]		_path_components )
@@ -112,6 +116,7 @@ TOTorrentFileImpl
 		throws TOTorrentException
 	{
 		torrent				= _torrent;
+		index				= _index;
 		file_length			= _len;
 		path_components		= _path_components;
 		path_components_utf8 = null;
@@ -127,6 +132,7 @@ TOTorrentFileImpl
 	protected
 	TOTorrentFileImpl(
 		TOTorrent		_torrent,
+		int				_index,
 		long			_torrent_offset,
 		long			_len,
 		byte[][]		_path_components,
@@ -135,6 +141,7 @@ TOTorrentFileImpl
 		throws TOTorrentException
 	{
 		torrent				= _torrent;
+		index				= _index;
 		file_length			= _len;
 		path_components		= _path_components;
 		path_components_utf8 = _path_components_utf8;
@@ -177,6 +184,12 @@ TOTorrentFileImpl
 	getTorrent()
 	{
 		return( torrent );
+	}
+	
+	public int
+	getIndex()
+	{
+		return( index );
 	}
 	
 	public long

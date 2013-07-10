@@ -2500,7 +2500,7 @@ public class OpenTorrentWindow
 											// Can't use fileInfo.setLink(fDest) as it renames
 											// the existing file if there is one
 										
-										dm.getDownloadState().setFileLink( fileInfo.getFile(false), fDest);
+										dm.getDownloadState().setFileLink( iIndex, fileInfo.getFile(false), fDest);
 									}
 									
 									if (!files[iIndex].bDownload){

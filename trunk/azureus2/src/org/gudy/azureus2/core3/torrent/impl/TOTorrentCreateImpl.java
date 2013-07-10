@@ -207,7 +207,7 @@ TOTorrentCreateImpl
 				
 				long length = file_hasher.add( link==null?_torrent_base:link );
 			
-				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, 0, length, new byte[][]{ getName()})});
+				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, 0, 0, length, new byte[][]{ getName()})});
 				
 				setPieces( file_hasher.getPieces());
 	
@@ -305,7 +305,7 @@ TOTorrentCreateImpl
 						
 						long length = hasher.add( link==null?file:link );
 							
-						TOTorrentFileImpl	tf = new TOTorrentFileImpl( this, offset, length, file_name );
+						TOTorrentFileImpl	tf = new TOTorrentFileImpl( this, i, offset, length, file_name );
 						
 						offset += length;
 						

@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
+import com.aelitis.azureus.core.util.LinkFileMap;
 
 public class 
 DiskManagerFactory 
@@ -121,7 +122,7 @@ DiskManagerFactory
 	public static void
 	setFileLinks(
 		DownloadManager			download_manager,
-		CaseSensitiveFileMap	links )
+		LinkFileMap				links )
 	{
 		DiskManagerImpl.setFileLinks( download_manager, links );
 	}

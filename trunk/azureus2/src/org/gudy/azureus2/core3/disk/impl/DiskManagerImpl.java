@@ -64,6 +64,7 @@ import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileOwner;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerFactory;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
+import com.aelitis.azureus.core.util.LinkFileMap;
 
 
 /**
@@ -846,7 +847,7 @@ DiskManagerImpl
         		
               	File target_file = new File( root_dir + relative_file.toString());
 
-        		File actual_file = state.getFileLink( target_file );
+        		File actual_file = state.getFileLink( file_index, target_file );
         		
         		if ( actual_file == null ){
         			
@@ -913,7 +914,7 @@ DiskManagerImpl
         			       			
            			Debug.outNoStack( "Fixing unsupported file path: " + actual_file.getAbsolutePath() + " -> " + temp.getAbsolutePath());
            			
-           			state.setFileLink( target_file, temp );
+           			state.setFileLink( file_index, target_file, temp );
            			
                     return(
                     	new DiskManagerFileInfoImpl(
@@ -1535,10 +1536,12 @@ DiskManagerImpl
 	                    		String suffix = state.getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
 	                    		
 	                    		if ( suffix != null && suffix.length() > 0 ){
-	                    			
+	                    		
 	                    			File base_file = this_file.getFile( false );
 	                    			
-	                    			File link = state.getFileLink( base_file );
+	                    			int	file_index = this_file.getIndex();
+	                    			
+	                    			File link = state.getFileLink( file_index, base_file );
 	                    			
 	                    			if ( link != null ){
 	                    				
@@ -1556,11 +1559,11 @@ DiskManagerImpl
 	                    						
 	                    						if ( base_file.equals( new_file )){
 	                    							
-	                    							state.setFileLink( base_file, null );
+	                    							state.setFileLink( file_index, base_file, null );
 	                    							
 	                    						}else{
 	                    							
-	                    							state.setFileLink( base_file, new_file );
+	                    							state.setFileLink( file_index, base_file, new_file );
 	                    						}
 	                    					}
 	                    				}
@@ -1591,11 +1594,11 @@ DiskManagerImpl
 		                    						
 		                    						if ( save_location.equals( new_file )){
 		                    							
-		                    							state.setFileLink( save_location, null );
+		                    							state.setFileLink( 0, save_location, null );
 		                    							
 		                    						}else{
 		                    							
-		                    							state.setFileLink( save_location, new_file );
+		                    							state.setFileLink( 0, save_location, new_file );
 		                    						}
 		                    					}
 		                    				}
@@ -2296,7 +2299,7 @@ DiskManagerImpl
 	
 	            File old_file = files[i].getFile(false);
 		            
-	            File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, old_file );
+	            File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, i, old_file );
 	
 	            if ( !linked_file.equals(old_file)){
 	
@@ -2873,7 +2876,7 @@ DiskManagerImpl
 
                 File    target = new File( torrent_save_dir, torrent_save_file );
 
-                target = FMFileManagerFactory.getSingleton().getFileLink( torrent, target.getCanonicalFile());
+                target = FMFileManagerFactory.getSingleton().getFileLink( torrent, 0, target.getCanonicalFile());
 
                 FileUtil.deleteWithRecycle( target, force_no_recycle );
 
@@ -2972,7 +2975,7 @@ DiskManagerImpl
 
                 File file = new File(path_str).getCanonicalFile();
 
-                File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, file );
+                File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, i, file );
 
                 boolean skip = false;
 
@@ -3043,7 +3046,7 @@ DiskManagerImpl
 
             File file = new File(path_str);
 
-            File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, file );
+            File linked_file = FMFileManagerFactory.getSingleton().getFileLink( torrent, i, file );
 
             boolean delete;
 
@@ -3267,7 +3270,7 @@ DiskManagerImpl
     public static void
     setFileLinks(
         DownloadManager         download_manager,
-        CaseSensitiveFileMap    links )
+        LinkFileMap    			links )
     {
         try{
             CacheFileManagerFactory.getSingleton().setFileLinks( download_manager.getTorrent(), links );

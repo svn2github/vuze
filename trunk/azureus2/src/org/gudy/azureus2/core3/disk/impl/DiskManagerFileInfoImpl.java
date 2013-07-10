@@ -243,7 +243,7 @@ DiskManagerFileInfoImpl
 	public File
 	getLink()
 	{
-		return( diskManager.getDownloadState().getFileLink( getFile( false )));
+		return( diskManager.getDownloadState().getFileLink( file_index, getFile( false )));
 	}
 	
 	public boolean setStorageType(int type) {
@@ -408,7 +408,7 @@ DiskManagerFileInfoImpl
 	        						boolean ok;
 	         						        							
 	    							try{
-	    								dm_state.setFileLink( file, new_file );
+	    								dm_state.setFileLink( file_index, file, new_file );
 	    								   								
 										cache_file.moveFile( new_file );
 									
@@ -423,7 +423,7 @@ DiskManagerFileInfoImpl
 	       						
 	        						if ( !ok ){
 	        							        							
-	        							dm_state.setFileLink( file, link );
+	        							dm_state.setFileLink( file_index, file, link );
 	        						}
         						}
     						}
@@ -454,13 +454,13 @@ DiskManagerFileInfoImpl
 										
 										File new_link = new File( file.getParentFile(), file.getName() + incomp_ext );
 										
-										dm_state.setFileLink( file, new_link );
+										dm_state.setFileLink( file_index, file, new_link );
 										
 										cache_file.moveFile( new_link );
 										
 									}else{
 										
-										dm_state.setFileLink( file, null );
+										dm_state.setFileLink( file_index, file, null );
 																		
 										cache_file.moveFile( file );
 									}
@@ -483,7 +483,7 @@ DiskManagerFileInfoImpl
     							
     							if ( !ok ){
         							
-    								dm_state.setFileLink( file, link );
+    								dm_state.setFileLink( file_index, file, link );
         						}
     						}
     					}

@@ -79,6 +79,7 @@ import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.LinkFileMap;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
 import com.aelitis.azureus.plugins.tracker.local.LocalTrackerPlugin;
@@ -616,7 +617,7 @@ DownloadManagerImpl
 							int	index 	= entry.getKey();
 							File target = entry.getValue();
 								
-							dms.setFileLink( files[index].getFile( false ), target );
+							dms.setFileLink( index, files[index].getFile( false ), target );
 							
 						}
 					}finally{
@@ -693,7 +694,7 @@ DownloadManagerImpl
 					 	attributeEventOccurred(
 							DownloadManager dm, String attribute_name, int event_type) 
 					 	{
-					 		if (attribute_name.equals(DownloadManagerState.AT_FILE_LINKS)){
+					 		if (attribute_name.equals(DownloadManagerState.AT_FILE_LINKS2)){
 					 			
 					 			synchronized( this ){
 					 				
@@ -725,7 +726,7 @@ DownloadManagerImpl
 					 }
 				 };
 
-				 download_manager_state.addListener(attr_listener, DownloadManagerState.AT_FILE_LINKS, DownloadManagerStateAttributeListener.WRITTEN);
+				 download_manager_state.addListener(attr_listener, DownloadManagerState.AT_FILE_LINKS2, DownloadManagerStateAttributeListener.WRITTEN);
 				 download_manager_state.addListener(attr_listener, DownloadManagerState.AT_PARAMETERS, DownloadManagerStateAttributeListener.WRITTEN);
 						
 				 torrent	= download_manager_state.getTorrent();
@@ -1400,20 +1401,25 @@ DownloadManagerImpl
 		String old_path = old_save_path.getPath();
 		String new_path = new_save_path.getPath();
 		
-		CaseSensitiveFileMap links = download_manager_state.getFileLinks();
-		Iterator it = links.keySetIterator();
+		LinkFileMap links = download_manager_state.getFileLinks();
 		
-		List<File>	from_links 	= new ArrayList<File>();
-		List<File>	to_links	= new ArrayList<File>();
+		Iterator<LinkFileMap.Entry> it = links.entryIterator();
+		
+		List<Integer>	from_indexes 	= new ArrayList<Integer>();
+		List<File>		from_links 		= new ArrayList<File>();
+		List<File>		to_links		= new ArrayList<File>();
 		
 		while(it.hasNext()){
-			File	from 	= (File)it.next();
-			File	to		= (File)links.get(from);
+			LinkFileMap.Entry entry = it.next();
+			int		file_index 	= entry.getIndex();
+			File	from 		= entry.getFromFile();
+			File	to			= entry.getToFile();
+			
 			String  from_s  = (from == null) ? null : from.getAbsolutePath();
 			String  to_s    = (to == null) ? null : to.getAbsolutePath();
 		
 			try {
-				updateFileLink(old_path, new_path, from_s, to_s, from_links, to_links );
+				updateFileLink( file_index, old_path, new_path, from_s, to_s, from_indexes, from_links, to_links );
 			}
 			catch (Exception e) {
 				Debug.printStackTrace(e);
@@ -1422,7 +1428,7 @@ DownloadManagerImpl
 		
 		if ( from_links.size() > 0 ){
 			
-			download_manager_state.setFileLinks( from_links, to_links );
+			download_manager_state.setFileLinks( from_indexes, from_links, to_links );
 		}
 	}
 	
@@ -1435,13 +1441,22 @@ DownloadManagerImpl
 	// the old path.
 	private void 
 	updateFileLink(
-		String old_path, String new_path, String from_loc, String to_loc, List<File> from_links, List<File> to_links ){
+		int				file_index,
+		String 			old_path, 
+		String 			new_path, 
+		String 			from_loc, 
+		String 			to_loc,
+		List<Integer>	from_indexes,
+		List<File> 		from_links, 
+		List<File> 		to_links )
+	{
 		
 		if (to_loc == null) return;
 	
 		if (this.torrent.isSimpleTorrent()) {
 			if (!old_path.equals(from_loc)) {throw new RuntimeException("assert failure: old_path=" + old_path + ", from_loc=" + from_loc);}
 			
+			from_indexes.add( 0 );
 			from_links.add( new File(old_path));
 			to_links.add( null );
 			
@@ -1453,6 +1468,7 @@ DownloadManagerImpl
 			
 			if ( to_loc_to_use == null ){ to_loc_to_use = new_path; }
 			
+			from_indexes.add( 0 );
 			from_links.add(new File(new_path));
 			to_links.add( new File(to_loc_to_use));
 			
@@ -1465,9 +1481,11 @@ DownloadManagerImpl
 		String to_loc_to_use = FileUtil.translateMoveFilePath(old_path, new_path, to_loc);
 		if (to_loc_to_use == null) {to_loc_to_use = to_loc;}
 		
+		from_indexes.add( file_index );
 		from_links.add(new File(from_loc));
 		to_links.add( null );
 		
+		from_indexes.add( file_index );
 		from_links.add( new File(from_loc_to_use));
 		to_links.add( new File(to_loc_to_use));		
 	}
@@ -2077,8 +2095,17 @@ DownloadManagerImpl
   			return( cached_save_location_result );
   		}
   			  			 			 			
- 		File	res = download_manager_state.getFileLink( save_location );
+ 		File	res;
+ 		
+ 		if ( torrent == null || torrent.isSimpleTorrent()){
  			
+ 			res = download_manager_state.getFileLink( 0, save_location );
+ 			
+ 		}else{
+ 			
+ 			res = save_location;
+ 		}
+ 		
  		if ( res == null || res.equals(save_location) ){
  				
  			res	= save_location;

@@ -535,7 +535,7 @@ TOTorrentDeserialiseImpl
 					setAdditionalStringProperty("encoding", ENCODING_ACTUALLY_UTF8_KEYS);
 				}
 				
-				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, 0, total_length, new byte[][]{getName()})});
+				setFiles( new TOTorrentFileImpl[]{ new TOTorrentFileImpl( this, 0, 0, total_length, new byte[][]{getName()})});
 				
 			}else{
 				
@@ -590,9 +590,9 @@ TOTorrentDeserialiseImpl
   						path_comps8[j] = (byte[])paths8.get(j);
   					}
 					
-						file = files[i] = new TOTorrentFileImpl( this, total_length, len, path_comps, path_comps8 );
+						file = files[i] = new TOTorrentFileImpl( this, i, total_length, len, path_comps, path_comps8 );
 					} else {
-						file = files[i] = new TOTorrentFileImpl( this, total_length, len, path_comps );
+						file = files[i] = new TOTorrentFileImpl( this, i, total_length, len, path_comps );
 					}
 					
 					total_length += len;

@@ -27,6 +27,9 @@ TOTorrentFile
 	public TOTorrent
 	getTorrent();
 	
+	public int
+	getIndex();
+	
 	public long
 	getLength();
 		

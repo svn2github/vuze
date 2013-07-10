@@ -229,10 +229,10 @@ public class FilesView
 		}
 		
 		if (old_manager != null) {
-			old_manager.getDownloadState().removeListener(this, DownloadManagerState.AT_FILE_LINKS, DownloadManagerStateAttributeListener.WRITTEN);
+			old_manager.getDownloadState().removeListener(this, DownloadManagerState.AT_FILE_LINKS2, DownloadManagerStateAttributeListener.WRITTEN);
 		}
 		if (manager != null) {
-			manager.getDownloadState().addListener(this, DownloadManagerState.AT_FILE_LINKS, DownloadManagerStateAttributeListener.WRITTEN);
+			manager.getDownloadState().addListener(this, DownloadManagerState.AT_FILE_LINKS2, DownloadManagerStateAttributeListener.WRITTEN);
 		}
 
 		if ( !tv.isDisposed()){
@@ -490,7 +490,7 @@ public class FilesView
 		});
 
   	if (manager != null) {
-		  manager.getDownloadState().removeListener(this, DownloadManagerState.AT_FILE_LINKS, DownloadManagerStateAttributeListener.WRITTEN);
+		  manager.getDownloadState().removeListener(this, DownloadManagerState.AT_FILE_LINKS2, DownloadManagerStateAttributeListener.WRITTEN);
 	  }
   }
 

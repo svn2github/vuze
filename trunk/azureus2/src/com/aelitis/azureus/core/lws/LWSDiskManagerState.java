@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.IndentWriter;
 
 import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
+import com.aelitis.azureus.core.util.LinkFileMap;
 
 public class 
 LWSDiskManagerState
@@ -355,6 +356,7 @@ LWSDiskManagerState
 	
     public void
 	setFileLink(
+		int		source_index,
 		File	link_source,
 		File	link_destination )
     {
@@ -362,8 +364,9 @@ LWSDiskManagerState
     
     public void
 	setFileLinks(
-		List<File>	link_sources,
-		List<File>	link_destinations )
+		List<Integer>	source_indexes,
+		List<File>		link_sources,
+		List<File>		link_destinations )
     {
     }
     
@@ -379,15 +382,16 @@ LWSDiskManagerState
 	
 	public File
 	getFileLink(
+		int		source_index,
 		File	link_source )
 	{
 		return( null );
 	}
 	
-	public CaseSensitiveFileMap
+	public LinkFileMap
 	getFileLinks()
 	{
-		return( new CaseSensitiveFileMap());
+		return( new LinkFileMap());
 	}
 	
 	public String 
