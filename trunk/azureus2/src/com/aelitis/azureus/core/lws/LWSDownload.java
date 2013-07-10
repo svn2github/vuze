@@ -42,8 +42,10 @@ import org.gudy.azureus2.plugins.download.DownloadPropertyListener;
 import org.gudy.azureus2.plugins.download.DownloadRemovalVetoException;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.DownloadStats;
+import org.gudy.azureus2.plugins.download.DownloadStub;
 import org.gudy.azureus2.plugins.download.DownloadTrackerListener;
 import org.gudy.azureus2.plugins.download.DownloadWillBeRemovedListener;
+import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -897,6 +899,48 @@ LWSDownload
 		notSupported();
 	}
 	
+	public boolean
+	isStub()
+	{
+		return( false );
+	}
+	 
+	public boolean
+	canStubbify()
+	{
+		return( false );
+	}
+	  
+	public DownloadStub
+	stubbify()
+		
+		throws DownloadException, DownloadRemovalVetoException
+	{
+		throw( new DownloadException( "Not Supported" ));
+	}
+	
+	public Download
+	destubbify()
+		
+		throws DownloadException
+	{
+		throw( new DownloadException( "Not Supported" ));
+	}
+	
+	public byte[]
+	getTorrentHash()
+	{
+		return( lws.getTorrent().getHash());
+	}
+	        	
+	public DownloadStubFile[]
+	getStubFiles()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	        	
 	protected void
 	notSupported()
 	{

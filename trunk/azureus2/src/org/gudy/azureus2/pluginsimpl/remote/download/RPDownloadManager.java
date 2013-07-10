@@ -491,4 +491,19 @@ RPDownloadManager
 		return null;
 	}
 	
+	public DownloadStub[]
+	getDownloadStubs()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	
+	public void addDownloadStubListener( DownloadStubListener l, boolean inform_of_current ){
+		notSupported();
+	}
+	
+	public void removeDownloadStubListener( DownloadStubListener l ){
+		notSupported();
+	}
 }

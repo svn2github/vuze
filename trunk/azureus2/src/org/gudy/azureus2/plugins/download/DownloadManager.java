@@ -23,6 +23,7 @@ package org.gudy.azureus2.plugins.download;
 
 import java.io.File;
 import java.net.URL;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -404,4 +405,11 @@ DownloadManager
 	 * @since 3.0.5.3 
 	 */
 	public DefaultSaveLocationManager getDefaultSaveLocationManager();
+	
+	public DownloadStub[]
+	getDownloadStubs();
+	
+	public void addDownloadStubListener( DownloadStubListener l, boolean inform_of_current );
+	
+	public void removeDownloadStubListener( DownloadStubListener l );
 }

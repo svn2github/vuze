@@ -32,6 +32,7 @@ import java.util.Map;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
 import org.gudy.azureus2.plugins.download.savelocation.*;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.PeerManager;
@@ -1059,4 +1060,48 @@ RPDownload
 	public void startDownload(boolean force) {notSupported();}
 	public void stopDownload() {notSupported();}
 	public void changeLocation(SaveLocationChange slc) {notSupported();}
+	
+	public boolean
+	isStub()
+	{
+		return( false );
+	}
+	
+	public boolean
+	canStubbify()
+	{
+		return( false );
+	}
+	  
+	public DownloadStub
+	stubbify()
+		
+		throws DownloadException, DownloadRemovalVetoException
+	{
+		throw( new DownloadException( "Not Supported" ));
+	}
+	
+	public Download
+	destubbify()
+		
+		throws DownloadException
+	{
+		throw( new DownloadException( "Not Supported" ));
+	}
+	
+	public byte[]
+	getTorrentHash()
+	{
+		notSupported();
+		
+		return( null );
+	}
+	        	
+	public DownloadStubFile[]
+	getStubFiles()
+	{
+		notSupported();
+		
+		return( null );
+	}    	
 }

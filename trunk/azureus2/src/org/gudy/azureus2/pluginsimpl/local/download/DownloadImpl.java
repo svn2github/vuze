@@ -53,6 +53,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
+import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.PeerManager;
@@ -78,8 +79,9 @@ DownloadImpl
 				DownloadManagerStateListener, DownloadManagerActivationListener,
 				DownloadManagerStateAttributeListener
 {
-	private DownloadManager		download_manager;
-	private DownloadStatsImpl		download_stats;
+	private final DownloadManagerImpl		manager;
+	private final DownloadManager			download_manager;
+	private final DownloadStatsImpl			download_stats;
 	
 	private int		latest_state		= ST_STOPPED;
 	private boolean 	latest_forcedStart;
@@ -112,8 +114,10 @@ DownloadImpl
 	
 	protected
 	DownloadImpl(
+		DownloadManagerImpl	_manager,
 		DownloadManager		_dm )
 	{
+		manager				= _manager;
 		download_manager	= _dm;
 		download_stats		= new DownloadStatsImpl( download_manager );
 		
@@ -2129,6 +2133,86 @@ DownloadImpl
 		 if (download_manager.getState() == DownloadManager.STATE_STOPPED) {return;}
 		 download_manager.stopIt(DownloadManager.STATE_STOPPED, false, false);
 	 }
+	 
+	 	// stub stuff
+	 
+	 public boolean
+	 isStub()
+	 {
+		 return( false );
+	 }
+	 
+	 public boolean
+	 canStubbify()
+	 {
+		 return( manager.canStubbify( this ));
+	 }
+
+	 public DownloadStub
+	 stubbify()
+
+	 	throws DownloadException, DownloadRemovalVetoException
+	 {
+		return( manager.stubbify( this ));
+	 }
+
+	 public Download
+	 destubbify()
+
+	 	throws DownloadException
+	 {
+		 throw( new DownloadException( "Not Supported" ));
+	 }
+
+	 public byte[]
+	 getTorrentHash()
+	 {
+		 Torrent t = getTorrent();
+		 
+		 if ( t == null ){
+			 
+			 return( null );
+		 }
+		 
+		 return( t.getHash());
+	 }
+
+	 public DownloadStubFile[]
+	 getStubFiles()
+	 {
+		 DiskManagerFileInfo[] dm_files = getDiskManagerFileInfo();
+		 
+		 DownloadStubFile[] files = new DownloadStubFile[dm_files.length];
+		 
+		 for ( int i=0;i<files.length;i++){
+			 
+			 final DiskManagerFileInfo dm_file = dm_files[i];
+			 
+			 files[i] = 
+				new	DownloadStubFile()
+			 	{
+					public File
+					getFile()
+					{
+						if ( dm_file.getDownloaded() == dm_file.getLength() && !dm_file.isSkipped()){
+							
+							return( dm_file.getFile( true ));
+						}
+						
+						return( null );
+					}
+					
+					public long
+					getLength()
+					{
+						return( dm_file.getLength());
+					}
+			 	};
+		 }
+		 
+		 return( files );
+	 } 
+	 
 	 
 	 public void changeLocation(SaveLocationChange slc) throws DownloadException {
 		 

@@ -470,4 +470,12 @@ public interface GlobalManager extends AzureusCoreComponent, TaggableResolver {
 	
 	public void
 	saveState();
+	
+	public Map
+	exportDownloadStateToMap(
+		DownloadManager		dm );
+	
+	public void
+	importDownloadStateFromMap(
+		Map		map );
 }

@@ -66,7 +66,7 @@ import org.gudy.azureus2.plugins.peers.PeerManager;
  */
 
 public interface 
-Download extends DownloadEventNotifier
+Download extends DownloadEventNotifier, DownloadStub
 {
   /** waiting to be told to start preparing */  
 	public static final int ST_WAITING     = 1;
@@ -1103,5 +1103,11 @@ Download extends DownloadEventNotifier
    */
   public void stopDownload();
 
+  public boolean
+  canStubbify();
   
+  public DownloadStub
+  stubbify()
+	
+		throws DownloadException, DownloadRemovalVetoException;
 }

@@ -762,6 +762,52 @@ DownloadManagerStateImpl
 		torrent.setDiscardFluff(true);
 	}
 	
+	public boolean
+	exportState(
+		File	target_dir )
+	{
+		try{
+			this_mon.enter();
+
+			save( true );
+
+			byte[]	hash = torrent.getHash();
+			
+			String	hash_str = ByteFormatter.encodeString( hash );
+			
+			String	state_file = hash_str + ".dat";
+			
+			File	existing_state_file = new File( ACTIVE_DIR, state_file );
+			File	target_state_file 	= new File( target_dir, state_file );
+			
+			if ( !FileUtil.copyFile( existing_state_file, target_state_file )){
+				
+				throw( new IOException( "Failed to copy state file" ));
+			}
+			
+			File	existing_state_dir = new File( ACTIVE_DIR, hash_str );
+			
+			if ( existing_state_dir.exists()){
+				
+				File	target_state_dir = new File( target_dir, hash_str );
+
+				FileUtil.copyFileOrDirectory( existing_state_dir, target_state_dir );
+			}
+			
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( false );
+			
+		}finally{
+
+			this_mon.exit();
+		}
+	}
+	
 	public void suppressStateSave(boolean suppress) {
 		if(suppress)
 			supressWrites++;
@@ -772,9 +818,15 @@ DownloadManagerStateImpl
 	public void
 	save()
 	{
-		if(supressWrites > 0)
+		save( false );
+	}
+	
+	protected void
+	save( boolean force )
+	{
+		if( supressWrites > 0 && !force ){
 			return;
-			
+		}
  		boolean do_write;
 
 		try {
@@ -2812,6 +2864,13 @@ DownloadManagerStateImpl
 		}
 		
 		public void discardFluff() {}
+		
+		public boolean
+		exportState(
+			File	target_dir )
+		{
+			return( false );
+		}
 		
 		public void
 		save()

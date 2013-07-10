@@ -269,7 +269,7 @@ DownloadManagerImpl
 				
 				if ( dl == null ){
 					
-					dl = new DownloadImpl(dm);
+					dl = new DownloadImpl( this, dm);
 				}
 				
 				downloads.add( dl );
@@ -850,7 +850,7 @@ DownloadManagerImpl
 		try{
 			listeners_mon.enter();
 			
-			dl = new DownloadImpl( manager );
+			dl = new DownloadImpl( this, manager );
 			
 			pending_dls.put( manager, dl );
 			
@@ -998,4 +998,109 @@ DownloadManagerImpl
 		return DownloadManagerDefaultPaths.DEFAULT_HANDLER;
 	}	
 	
+	
+	
+		// stubbin it
+	
+	private static final String	STUB_CONFIG_FILE 				= "dlarchive.config";
+
+	private List<DownloadStubImpl>	download_stubs = new ArrayList<DownloadStubImpl>();
+	
+	private Map
+	readConfig()
+	{
+		Map map;
+		
+		if ( FileUtil.resilientConfigFileExists( STUB_CONFIG_FILE )){
+			
+			map = FileUtil.readResilientConfigFile( STUB_CONFIG_FILE );
+			
+		}else{
+			
+			map = new HashMap();
+		}
+		
+		return( map );
+	}
+	
+	public boolean
+	canStubbify(
+		DownloadImpl	download )
+	{
+		if ( download.getState() != Download.ST_STOPPED ){
+			
+			return( false );
+		}
+		
+		if ( !download.isPersistent()){
+			
+			return( false );
+		}
+		
+		if ( download.getTorrent() == null ){
+			
+			return( false );
+		}
+		
+		if ( download.getFlag( Download.FLAG_LOW_NOISE ) || download.getFlag( Download.FLAG_METADATA_DOWNLOAD )){
+			
+			return( false );
+		}
+		
+		if ( !download.isComplete( false )){
+			
+			return( false );
+		}
+		
+		return( true );
+	}
+
+	protected DownloadStub
+	stubbify(
+		DownloadImpl	download )
+
+		throws DownloadException, DownloadRemovalVetoException
+	{
+		if ( !canStubbify( download )){
+			
+			throw( new DownloadException( "Download not in stubbifiable state" ));
+		}
+		
+		return( 
+			new DownloadStubImpl( 
+				this,
+				download.getName(),
+				download.getTorrent().getHash(), 
+				new DownloadStub.DownloadStubFile[0] ));
+	}
+		
+	protected Download
+	destubbify(
+		DownloadStubImpl		stub )
+	
+		throws DownloadException
+	{
+		return( null );
+	}
+	
+	public DownloadStub[]
+	getDownloadStubs()
+	{
+		return( download_stubs.toArray( new DownloadStub[0]));
+	}
+	
+	public void 
+	addDownloadStubListener( 
+		DownloadStubListener 	l, 
+		boolean 				inform_of_current )
+	{
+		
+	}
+	
+	public void 
+	removeDownloadStubListener( 
+		DownloadStubListener 	l )
+	{
+		
+	}
 }

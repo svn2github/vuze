@@ -340,6 +340,10 @@ DownloadManagerState
 	public void
 	save();
 	
+	public boolean
+	exportState(
+		File	target_dir );
+	
 		/**
 		 * deletes the saved state
 		 */

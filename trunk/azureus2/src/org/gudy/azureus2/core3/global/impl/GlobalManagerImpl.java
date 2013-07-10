@@ -196,7 +196,12 @@ public class GlobalManagerImpl
 	private GlobalManagerStatsWriter 	stats_writer;
 	private GlobalManagerHostSupport	host_support;
   
-	private Map							saved_download_manager_state	= new HashMap();
+		// for non-persistent downloads
+	private Map<HashWrapper,Map>							saved_download_manager_state	= new HashMap<HashWrapper,Map>();
+	
+		// for import prior to re-adding torrent
+	private Map<HashWrapper,Map>							pending_download_manager_state	= new HashMap<HashWrapper,Map>();
+
 	
 	private int							next_seed_piece_recheck_index;
 	
@@ -925,7 +930,12 @@ public class GlobalManagerImpl
         	}
         } catch (Exception e1) { }
 
-        Map	save_download_state	= (Map)saved_download_manager_state.get(hashwrapper);
+        Map	save_download_state	= (Map)saved_download_manager_state.remove(hashwrapper);
+        
+        if ( save_download_state == null ){
+        	
+        	save_download_state	= (Map)pending_download_manager_state.remove(hashwrapper);
+        }
         
       	long saved_data_bytes_downloaded	= 0;
       	long saved_data_bytes_uploaded		= 0;
@@ -935,10 +945,7 @@ public class GlobalManagerImpl
       	long saved_SecondsOnlySeeding 		= 0;
       	
         if ( save_download_state != null ){
-        		// once the state's been used we remove it
-        	
-        	saved_download_manager_state.remove( hashwrapper );
-        		        
+         	        		        
 	        int maxDL = save_download_state.get("maxdl")==null?0:((Long) save_download_state.get("maxdl")).intValue();
 	        int maxUL = save_download_state.get("maxul")==null?0:((Long) save_download_state.get("maxul")).intValue();
 	        
@@ -2180,77 +2187,10 @@ public class GlobalManagerImpl
 	    for (int i = 0; i < managers_cow.size(); i++) {
 	      DownloadManager dm = managers_cow.get(i);
 	      
-	      	DownloadManagerStats dm_stats = dm.getStats();
-		      Map dmMap = new HashMap();
-		      TOTorrent	torrent = dm.getTorrent();
-		      
-		      if ( torrent != null ){
-		      	try{
-		      		dmMap.put( "torrent_hash", torrent.getHash());
-		      		
-		      	}catch( TOTorrentException e ){
-		      		
-		      		Debug.printStackTrace(e);
-		      	}
-		      }
-		      
-		      File	save_loc = dm.getAbsoluteSaveLocation();
-		      dmMap.put("persistent", new Long(dm.isPersistent()?1:0));
-		      dmMap.put("torrent", dm.getTorrentFileName());
-		      dmMap.put("save_dir", save_loc.getParent());
-		      dmMap.put("save_file", save_loc.getName());
-		
-		      dmMap.put("maxdl", new Long( dm_stats.getDownloadRateLimitBytesPerSecond() ));
-		      dmMap.put("maxul", new Long( dm_stats.getUploadRateLimitBytesPerSecond() ));
-		      
-          int state = dm.getState();
-          
-          if (state == DownloadManager.STATE_ERROR ){
-          
-        	  	// torrents in error state always come back stopped
-        	  
-            state = DownloadManager.STATE_STOPPED;
-            
-	      }else if (	dm.getAssumedComplete() && !dm.isForceStart() && 
-	    		  		state != DownloadManager.STATE_STOPPED) {
-	    	  
-	    	state = DownloadManager.STATE_QUEUED;
-	    	  	
-	      }else if (	state != DownloadManager.STATE_STOPPED &&
-                  		state != DownloadManager.STATE_QUEUED &&
-                  		state != DownloadManager.STATE_WAITING){
-	    	  
-            state = DownloadManager.STATE_WAITING;
-            
-	      }
-          
-          dmMap.put("state", new Long(state));		      
-	      dmMap.put("position", new Long(dm.getPosition()));
-	      dmMap.put("downloaded", new Long(dm_stats.getTotalDataBytesReceived()));
-	      dmMap.put("uploaded", new Long(dm_stats.getTotalDataBytesSent()));
-	      dmMap.put("completed", new Long(dm_stats.getDownloadCompleted(true)));
-	      dmMap.put("discarded", new Long(dm_stats.getDiscarded()));
-	      dmMap.put("hashfailbytes", new Long(dm_stats.getHashFailBytes()));
-	      dmMap.put("forceStart", new Long(dm.isForceStart() && (dm.getState() != DownloadManager.STATE_CHECKING) ? 1 : 0));
-	      dmMap.put("secondsDownloading", new Long(dm_stats.getSecondsDownloading()));
-	      dmMap.put("secondsOnlySeeding", new Long(dm_stats.getSecondsOnlySeeding()));
-      
-	      	// although this has been migrated, keep storing it to allow regression for a while
-	      dmMap.put("uploads", new Long(dm.getMaxUploads()));
-	      
-	      dmMap.put("creationTime", new Long( dm.getCreationTime()));
-		      
-		      //save file priorities
- 
-		  dm.saveDownload();
-		  
-          List file_priorities = (List)dm.getData( "file_priorities" );
-          if ( file_priorities != null ) dmMap.put( "file_priorities" , file_priorities );
+	      Map dmMap = exportDownloadStateToMapSupport( dm, true );
 
-          dmMap.put( "allocated", new Long( dm.isDataAlreadyAllocated() == true ? 1 : 0 ) );
-
-		      list.add(dmMap);
-	      }
+		  list.add(dmMap);
+	    }
 	   
 	    map.put("downloads", list);
       
@@ -2282,6 +2222,105 @@ public class GlobalManagerImpl
   		
   		managers_mon.exit();
   	}
+  }
+  
+  public Map
+  exportDownloadStateToMap(
+	  DownloadManager		dm )
+  {
+	  return( exportDownloadStateToMapSupport( dm, false ));
+  }
+
+  public void
+  importDownloadStateFromMap(
+	  Map		map )
+  {
+	  byte[] hash = (byte[])map.get( "torrent_hash" );
+	  
+	  if ( hash != null ){
+		  
+		  pending_download_manager_state.put( new HashWrapper( hash ), map );
+	  }
+  }
+	
+  private Map
+  exportDownloadStateToMapSupport(
+	DownloadManager 	dm,
+	boolean				internal_export )
+  {
+	  DownloadManagerStats dm_stats = dm.getStats();
+	  Map dmMap = new HashMap();
+	  TOTorrent	torrent = dm.getTorrent();
+
+	  if ( torrent != null ){
+		  try{
+			  dmMap.put( "torrent_hash", torrent.getHash());
+
+		  }catch( TOTorrentException e ){
+
+			  Debug.printStackTrace(e);
+		  }
+	  }
+
+	  File	save_loc = dm.getAbsoluteSaveLocation();
+	  dmMap.put("persistent", new Long(dm.isPersistent()?1:0));
+	  dmMap.put("torrent", dm.getTorrentFileName());
+	  dmMap.put("save_dir", save_loc.getParent());
+	  dmMap.put("save_file", save_loc.getName());
+
+	  dmMap.put("maxdl", new Long( dm_stats.getDownloadRateLimitBytesPerSecond() ));
+	  dmMap.put("maxul", new Long( dm_stats.getUploadRateLimitBytesPerSecond() ));
+
+	  int state = dm.getState();
+
+	  if (state == DownloadManager.STATE_ERROR ){
+
+		  // torrents in error state always come back stopped
+
+		  state = DownloadManager.STATE_STOPPED;
+
+	  }else if (	dm.getAssumedComplete() && !dm.isForceStart() && 
+			  state != DownloadManager.STATE_STOPPED) {
+
+		  state = DownloadManager.STATE_QUEUED;
+
+	  }else if (	state != DownloadManager.STATE_STOPPED &&
+			  state != DownloadManager.STATE_QUEUED &&
+			  state != DownloadManager.STATE_WAITING){
+
+		  state = DownloadManager.STATE_WAITING;
+
+	  }
+
+	  dmMap.put("state", new Long(state));		 
+	  
+	  if ( internal_export ){
+		  dmMap.put("position", new Long(dm.getPosition()));
+	  }
+	  dmMap.put("downloaded", new Long(dm_stats.getTotalDataBytesReceived()));
+	  dmMap.put("uploaded", new Long(dm_stats.getTotalDataBytesSent()));
+	  dmMap.put("completed", new Long(dm_stats.getDownloadCompleted(true)));
+	  dmMap.put("discarded", new Long(dm_stats.getDiscarded()));
+	  dmMap.put("hashfailbytes", new Long(dm_stats.getHashFailBytes()));
+	  dmMap.put("forceStart", new Long(dm.isForceStart() && (dm.getState() != DownloadManager.STATE_CHECKING) ? 1 : 0));
+	  dmMap.put("secondsDownloading", new Long(dm_stats.getSecondsDownloading()));
+	  dmMap.put("secondsOnlySeeding", new Long(dm_stats.getSecondsOnlySeeding()));
+
+	  // although this has been migrated, keep storing it to allow regression for a while
+	  dmMap.put("uploads", new Long(dm.getMaxUploads()));
+
+	  dmMap.put("creationTime", new Long( dm.getCreationTime()));
+
+	  //save file priorities
+
+	  dm.saveDownload();
+
+	  List file_priorities = (List)dm.getData( "file_priorities" );
+	  if ( file_priorities != null ) dmMap.put( "file_priorities" , file_priorities );
+
+	  dmMap.put( "allocated", new Long( dm.isDataAlreadyAllocated() == true ? 1 : 0 ) );
+
+	  return( dmMap );
   }
 
   /**

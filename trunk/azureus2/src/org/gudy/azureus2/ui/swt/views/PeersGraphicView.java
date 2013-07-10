@@ -443,8 +443,19 @@ public class PeersGraphicView
     }
     
     if(sortedPeers == null) return;
-    Arrays.sort(sortedPeers,peerComparator);
     
+    for (int i=0;i<3;i++){
+    	try{
+    		
+    		Arrays.sort(sortedPeers,peerComparator);
+    		
+    		break;
+    		
+    	}catch( IllegalArgumentException e ){
+    		
+    		// can happen as peer data can change during sort and result in 'comparison method violates its general contract' error
+    	}
+    }
     render(sortedPeers);
   }
   

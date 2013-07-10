@@ -420,6 +420,13 @@ LWSDiskManagerState
 	{
 	}
 	
+	public boolean
+	exportState(
+		File	target_dir )
+	{
+		return( false );
+	}
+	
 	public void
 	save()
 	{	
