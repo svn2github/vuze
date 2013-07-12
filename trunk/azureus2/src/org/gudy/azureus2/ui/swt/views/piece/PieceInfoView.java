@@ -126,6 +126,7 @@ public class PieceInfoView
 	}
 
 	private void dataSourceChanged(Object newDataSource) {
+		//System.out.println( "dsc: dlm=" + dlm + ", new=" + (newDataSource instanceof Object[]?((Object[])newDataSource)[0]:newDataSource));
 		if ( newDataSource == null ){
 			if (dlm != null) {
 				dlm.removePieceListener(this);

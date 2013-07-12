@@ -157,7 +157,12 @@ DiskManagerUtil
 		return true;
 	}
 	
-	public static void doFileExistenceChecks(DiskManagerFileInfoSet fileSet, boolean[] toCheck, DownloadManager dm, boolean allowAlloction)
+	public static void 
+	doFileExistenceChecks(
+		DiskManagerFileInfoSet 	fileSet, 
+		boolean[] 				toCheck, 
+		DownloadManager 		dm, 
+		boolean 				allowAlloction )
 	{
 		DiskManagerFileInfo[] files = fileSet.getFiles();
 		
@@ -219,25 +224,6 @@ DiskManagerUtil
 	    File                    from_file,
 	    File                    to_link )
 	{
-	        // existing link is that for the TO_LINK and will come back as TO_LINK if no link is defined
-	
-	    File    existing_link = FMFileManagerFactory.getSingleton().getFileLink( download_manager.getTorrent(), file_info.getIndex(), to_link );
-	
-	    if ( !existing_link.equals( to_link )){
-	
-	            // where we're mapping to is already linked somewhere else. Only case we support
-	            // is where this is a remapping of the same file back to where it came from
-	
-	        if ( !from_file.equals( to_link )){
-	
-	            Logger.log(new LogAlert(download_manager, LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-	                            "Attempt to link to existing link '" + existing_link.toString()
-	                                    + "'"));
-	
-	            return( false );
-	        }
-	    }
-	
 	    File    existing_file = file_info.getFile( true );
 	
 	    if ( to_link.equals( existing_file )){

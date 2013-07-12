@@ -173,7 +173,14 @@ FMFileManagerImpl
 				
 				if ( target != null && !source.equals(target)){
 					
-					links_entry.put( index, source, target );
+					if ( index >= 0 ){
+					
+						links_entry.put( index, source, target );
+						
+					}else{
+						
+						links_entry.putMigration( source, target );
+					}
 				}else{
 					
 					links_entry.remove( index, source );
@@ -191,16 +198,40 @@ FMFileManagerImpl
 		int			file_index,
 		File		file )
 	{
+			// this function works on the currently defined links and will only accept
+			// them as valid if their 'from' location matches the 'file' being queried. 
+			// if not the origial file is returned, NOT null
+		
+			// These semantics are important during file-move operations as the move-file
+			// logic does not update links until AFTER the move is complete. If we don't
+			// verify the 'from' path in this case then teh old existing linkage overrides
+			// the new destination during the move process and causes it to fail with
+			// 'file already exists'. There is possibly an argument that we shouldn't
+			// take links into account when moving
+		
 		try{
 			links_mon.enter();
 			
 			LinkFileMap	links_entry = getLinksEntry( torrent );
 
-			File	res = (File)links_entry.get( file_index, file );
+			LinkFileMap.Entry	entry = links_entry.getEntry( file_index, file );
 			
-			if ( res == null ){
+			File res = null;
+			
+			if ( entry == null ){
 				
 				res = file;
+				
+			}else{
+				
+				if ( file.equals( entry.getFromFile())){
+					
+					res = entry.getToFile();
+					
+				}else{
+					
+					res = file;
+				}
 			}
 			
 			// System.out.println( "getLink:" + file + " -> " + res );

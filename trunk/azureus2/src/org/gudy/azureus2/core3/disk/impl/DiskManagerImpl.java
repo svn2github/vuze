@@ -2713,7 +2713,7 @@ DiskManagerImpl
 		
 		            }catch( CacheFileManagerException e ){
 		
-		              String msg = "Failed to move " + old_files[i].toString() + " to destination dir";
+		              String msg = "Failed to move " + old_files[i].toString() + " to destination " + new_root_dir + ": " + new_file + "/" + link_only[i];
 		
 		              Logger.log(new LogEvent(this, LOGID, LogEvent.LT_ERROR, msg));
 		

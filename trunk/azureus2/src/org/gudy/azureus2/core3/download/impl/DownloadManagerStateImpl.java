@@ -1640,7 +1640,6 @@ DownloadManagerStateImpl
 	  // links stuff
 	  
 	private volatile WeakReference<LinkFileMap>				file_link_cache 	= null;
-	private int												file_cache_inhibit 	= 0;
 	
 	public void
 	setFileLink(
@@ -1682,23 +1681,14 @@ DownloadManagerStateImpl
 			list.add( str );
 		}
 		
-		try{
-			synchronized( this ){
-				
-				file_cache_inhibit++;
+		//System.out.println( "setFileLink: " + link_source + " -> " + link_destination );
 		
-				file_link_cache = null;		// ensure write-listeners get recent state
-			}
-			
-			setListAttribute( AT_FILE_LINKS2, list );
-			
-		}finally{
-			
-			synchronized( this ){
+		synchronized( this ){
 				
-				file_cache_inhibit--;
-			}
+			file_link_cache = new WeakReference<LinkFileMap>( links );
 		}
+			
+		setListAttribute( AT_FILE_LINKS2, list );
 	}
 	
 	public void
@@ -1740,6 +1730,8 @@ DownloadManagerStateImpl
 			return;
 		}
 		
+		//System.out.println( "setFileLinks: " + links.getString());
+		
 		List	list = new ArrayList();
 		
 		Iterator<LinkFileMap.Entry>	it = links.entryIterator();
@@ -1757,23 +1749,12 @@ DownloadManagerStateImpl
 			list.add( str );
 		}
 		
-		try{
-			synchronized( this ){
+		synchronized( this ){
 				
-				file_cache_inhibit++;
-		
-				file_link_cache = null;		// ensure write-listeners get recent state
-			}
-			
-			setListAttribute( AT_FILE_LINKS2, list );
-			
-		}finally{
-			
-			synchronized( this ){
-				
-				file_cache_inhibit--;
-			}
+			file_link_cache = new WeakReference<LinkFileMap>( links );		
 		}
+			
+		setListAttribute( AT_FILE_LINKS2, list );
 	}
 	
 	public void
@@ -1807,24 +1788,15 @@ DownloadManagerStateImpl
 		
 		if ( changed ){
 	
-			try{
-				synchronized( this ){
-					
-					file_cache_inhibit++;
-			
-					file_link_cache = null;		// ensure write-listeners get recent state
-				}
-							
-				setListAttribute( AT_FILE_LINKS2, list );
-			
-			}finally{
-				
-				synchronized( this ){
-					
-					file_cache_inhibit--;
-				}
+			synchronized( this ){
+								
+				file_link_cache = null;	
 			}
+							
+			setListAttribute( AT_FILE_LINKS2, list );
 		}
+		
+		//System.out.println( "clearFileLinks" );
 	}
 	
 	public File
@@ -1846,19 +1818,45 @@ DownloadManagerStateImpl
 			map = getFileLinks();
 			
 			synchronized( this ){
-				
-				if ( file_cache_inhibit == 0 ){
-				
-					file_link_cache = new WeakReference<LinkFileMap>( map );
-				}
+								
+				file_link_cache = new WeakReference<LinkFileMap>( map );
 			}
 		}
 		
-		return(map.get(source_index,link_source));
+		File res = map.get( source_index, link_source );
+		
+		//System.out.println( "getFileLink: " + link_source + " -> " + res );
+		
+		return( res );
 	}
-					
+		
 	public LinkFileMap
 	getFileLinks()
+	{
+		LinkFileMap map = null;
+		
+		WeakReference<LinkFileMap> ref = file_link_cache;
+		
+		if ( ref != null ){
+			
+			map = ref.get();
+		}
+		
+		if ( map == null ){
+					
+			map = getFileLinksSupport();
+			
+			synchronized( this ){
+								
+				file_link_cache = new WeakReference<LinkFileMap>( map );
+			}
+		}
+		
+		return( map );
+	}
+	
+	private LinkFileMap
+	getFileLinksSupport()
 	{
 		LinkFileMap	res = new LinkFileMap();
 
@@ -1878,9 +1876,17 @@ DownloadManagerStateImpl
 						int		index 	= Integer.parseInt( bits[0].trim());
 						File	source	= new File(bits[1].trim());
 						File	target	= bits.length<3?null:new File(bits[2].trim());
-										
-						res.put( index, source, target );
+							
+						if( index >= 0 ){
 						
+							res.put( index, source, target );
+						
+						}else{
+							
+								// can get here when partially resolved link state is saved and then re-read
+							
+							res.putMigration( source, target );
+						}
 					}catch( Throwable e ){
 						
 						Debug.out( e );
@@ -1901,10 +1907,12 @@ DownloadManagerStateImpl
 					
 					File target = (sep == entry.length()-1)?null:new File( entry.substring( sep+1 ));
 					
-					res.put( -1, new File( entry.substring(0,sep)), target );
+					res.putMigration( new File( entry.substring(0,sep)), target );
 				}
 			}
 		}
+		
+		//System.out.println( "getFileLinks: " + res.getString());
 		
 		return( res );
 	}

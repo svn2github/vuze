@@ -1392,7 +1392,10 @@ DownloadManagerImpl
 		download_manager_state.clearFileLinks();
 	}
 	
-	private void updateFileLinks(File old_save_path, File new_save_path) {
+	private void 
+	updateFileLinks(
+		File old_save_path, File new_save_path) 
+	{
 		try {old_save_path = old_save_path.getCanonicalFile();}
 		catch (IOException ioe) {old_save_path = old_save_path.getAbsoluteFile();}
 		try {new_save_path = new_save_path.getCanonicalFile();}
@@ -1400,6 +1403,8 @@ DownloadManagerImpl
 		
 		String old_path = old_save_path.getPath();
 		String new_path = new_save_path.getPath();
+	
+		//System.out.println( "update_file_links: " + old_path +  " -> " + new_path );
 		
 		LinkFileMap links = download_manager_state.getFileLinks();
 		
@@ -1410,18 +1415,28 @@ DownloadManagerImpl
 		List<File>		to_links		= new ArrayList<File>();
 		
 		while(it.hasNext()){
+			
 			LinkFileMap.Entry entry = it.next();
+			
 			int		file_index 	= entry.getIndex();
 			File	from 		= entry.getFromFile();
 			File	to			= entry.getToFile();
 			
+			if ( to == null ){
+			
+					// represents a deleted link, nothing to update
+				
+				continue;
+			}
+			
 			String  from_s  = (from == null) ? null : from.getAbsolutePath();
 			String  to_s    = (to == null) ? null : to.getAbsolutePath();
 		
-			try {
+			try{
 				updateFileLink( file_index, old_path, new_path, from_s, to_s, from_indexes, from_links, to_links );
-			}
-			catch (Exception e) {
+				
+			}catch( Exception e ){
+				
 				Debug.printStackTrace(e);
 			}
 		}
@@ -1439,6 +1454,7 @@ DownloadManagerImpl
 	// We have to update from_loc and to_loc.
 	// We should always be modifying from_loc. Only modify to_loc if it sits within
 	// the old path.
+	
 	private void 
 	updateFileLink(
 		int				file_index,
@@ -1450,12 +1466,16 @@ DownloadManagerImpl
 		List<File> 		from_links, 
 		List<File> 		to_links )
 	{
-		
-		if (to_loc == null) return;
-	
-		if (this.torrent.isSimpleTorrent()) {
-			if (!old_path.equals(from_loc)) {throw new RuntimeException("assert failure: old_path=" + old_path + ", from_loc=" + from_loc);}
+		//System.out.println( "ufl: " + file_index + "\n  " + old_path + " - " + new_path + "\n  " + from_loc + " - " + to_loc );
 			
+		if ( torrent.isSimpleTorrent()){
+			
+			if ( !old_path.equals( from_loc )){
+				
+				throw new RuntimeException("assert failure: old_path=" + old_path + ", from_loc=" + from_loc);
+			}
+			
+			//System.out.println( "   adding " + old_path + " -> null" );
 			from_indexes.add( 0 );
 			from_links.add( new File(old_path));
 			to_links.add( null );
@@ -1466,28 +1486,44 @@ DownloadManagerImpl
 				// properly
 			String to_loc_to_use = FileUtil.translateMoveFilePath(old_path, new_path, to_loc);
 			
-			if ( to_loc_to_use == null ){ to_loc_to_use = new_path; }
+			if ( to_loc_to_use == null ){
+				
+				to_loc_to_use = new_path; 
+			}
 			
+			//System.out.println( "   adding " + new_path + " -> " + to_loc_to_use );
 			from_indexes.add( 0 );
 			from_links.add(new File(new_path));
 			to_links.add( new File(to_loc_to_use));
 			
-			return;
-		}
+		}else{
 			
-		String from_loc_to_use = FileUtil.translateMoveFilePath(old_path, new_path, from_loc);
-		if (from_loc_to_use == null) return;
-		
-		String to_loc_to_use = FileUtil.translateMoveFilePath(old_path, new_path, to_loc);
-		if (to_loc_to_use == null) {to_loc_to_use = to_loc;}
-		
-		from_indexes.add( file_index );
-		from_links.add(new File(from_loc));
-		to_links.add( null );
-		
-		from_indexes.add( file_index );
-		from_links.add( new File(from_loc_to_use));
-		to_links.add( new File(to_loc_to_use));		
+			String from_loc_to_use = FileUtil.translateMoveFilePath( old_path, new_path, from_loc );
+			
+			if ( from_loc_to_use == null ){
+				
+				return;
+			}
+			
+			String to_loc_to_use = FileUtil.translateMoveFilePath( old_path, new_path, to_loc );
+			
+			if ( to_loc_to_use == null ){
+				
+				to_loc_to_use = to_loc;
+			}
+			
+				// delete old
+			
+			from_indexes.add( file_index );
+			from_links.add(new File(from_loc));
+			to_links.add( null );
+			
+				// add new
+			
+			from_indexes.add( file_index );
+			from_links.add( new File(from_loc_to_use));
+			to_links.add( new File(to_loc_to_use));	
+		}
 	}
 	
 	/**
@@ -3564,11 +3600,26 @@ DownloadManagerImpl
 			  // nothing to do
 			  
 		  } else if (torrent.isSimpleTorrent()) {
-			  // Have to keep the file name in sync if we're renaming.
+			  
+			  
+			  
 			  if (controller.getDiskManagerFileInfo()[0].setLinkAtomic(new_save_location)) {
 				  setTorrentSaveDir( new_save_location.getParentFile().toString(), new_save_location.getName());
 			  } else {throw new DownloadManagerException( "rename operation failed");}
-			  
+
+			  /*
+			  // Have to keep the file name in sync if we're renaming.
+			  //if (controller.getDiskManagerFileInfo()[0].setLinkAtomic(new_save_location)) {
+			  if ( FileUtil.renameFile( old_file, new_save_location )){
+
+				  setTorrentSaveDir( new_save_location.getParentFile().toString(), new_save_location.getName());
+				  
+			  }else{
+				  
+				  throw( new DownloadManagerException( "rename operation failed" ));
+			  }
+			  //} else {throw new DownloadManagerException( "rename operation failed");}
+			  */
 		  }else{
 
 			  if (FileUtil.isAncestorOf(old_file, new_save_location)) {

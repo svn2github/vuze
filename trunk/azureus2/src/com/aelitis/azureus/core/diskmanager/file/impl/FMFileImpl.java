@@ -26,6 +26,7 @@ package com.aelitis.azureus.core.diskmanager.file.impl;
  */
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.util.*;
@@ -581,6 +582,33 @@ FMFileImpl
 			
 			raf = new RandomAccessFile( linked_file, access_mode==FM_READ?READ_ACCESS_MODE:WRITE_ACCESS_MODE);
 			
+		}catch( FileNotFoundException e ){
+			
+			int st = file_access.getStorageType();
+			
+			boolean	ok = false;
+			
+				// edge case here when switching one file from dnd -> download and the compact files at edge boundaries not
+				// yet allocated - attempt to create the file on demand
+							
+			try{
+				linked_file.getParentFile().mkdirs();
+					
+				linked_file.createNewFile();
+					
+				raf = new RandomAccessFile( linked_file, access_mode==FM_READ?READ_ACCESS_MODE:WRITE_ACCESS_MODE);
+					
+				ok = true;
+					
+			}catch( Throwable f ){
+			}
+			
+			if ( !ok ){
+				
+				Debug.printStackTrace( e );
+				
+				throw( new FMFileManagerException( "open fails", e ));
+			}
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
