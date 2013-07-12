@@ -509,6 +509,94 @@ DownloadManagerStateImpl
 		global_state_cache_wrappers.trimToSize();
 	}
 
+	public static void
+	importDownloadState(
+		File		source_dir,
+		byte[]		download_hash )
+	
+		throws DownloadManagerException
+	{
+		String	hash_str = ByteFormatter.encodeString( download_hash );
+		
+		String	state_file = hash_str + ".dat";
+		
+		File	target_state_file 	= new File( ACTIVE_DIR, state_file );
+		File	source_state_file 	= new File( source_dir, state_file );
+		
+		if ( !source_state_file.exists()){
+			
+			throw( new DownloadManagerException( "Source state file missing: " + source_state_file ));
+		}
+		
+		if ( target_state_file.exists()){
+			
+			throw( new DownloadManagerException( "Target state file already exists: " + target_state_file ));
+		}
+		
+		if ( !FileUtil.copyFile( source_state_file, target_state_file )){
+			
+			throw( new DownloadManagerException( "Failed to copy state file: " + source_state_file + " -> " + target_state_file ));
+		}
+		
+		File	source_state_dir = new File( source_dir, hash_str );
+		
+		if ( source_state_dir.exists()){
+			
+			File	target_state_dir = new File( ACTIVE_DIR, hash_str );
+
+			try{		
+				FileUtil.copyFileOrDirectory( source_state_dir, target_state_dir );
+				
+			}catch( Throwable e ){
+				
+				target_state_file.delete();
+				
+				throw( new DownloadManagerException( "Failed to copy state dir: " + source_dir + " -> " + target_state_dir, e ));
+			}
+		}		
+	}
+	
+	public static void
+	deleteDownloadState(
+		byte[]		download_hash )
+	
+		throws DownloadManagerException
+	{
+		deleteDownloadState( ACTIVE_DIR, download_hash );
+	}
+	
+	public static void
+	deleteDownloadState(
+		File		source_dir,
+		byte[]		download_hash )
+	
+		throws DownloadManagerException
+	{
+		String	hash_str = ByteFormatter.encodeString( download_hash );
+		
+		String	state_file = hash_str + ".dat";
+		
+		File	target_state_file 	= new File( source_dir, state_file );
+		
+		if ( target_state_file.exists()){
+			
+			if ( !target_state_file.delete()){
+				
+				throw( new DownloadManagerException( "Failed to delete state file: " + target_state_file ));
+			}
+		}
+		
+		File	target_state_dir = new File( source_dir, hash_str );
+
+		if ( target_state_dir.exists()){
+				
+			if ( !FileUtil.recursiveDelete( target_state_dir )){
+				
+				throw( new DownloadManagerException( "Failed to delete state dir: " + target_state_dir ));
+			}
+		}		
+	}
+	
 	protected
 	DownloadManagerStateImpl(
 		DownloadManagerImpl				_download_manager,

@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.download;
  */
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.*;
 
@@ -34,6 +35,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
+import org.gudy.azureus2.core3.download.DownloadManagerStateFactory;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerDefaultPaths;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerMoveHandler;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -49,6 +51,7 @@ import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentException;
 import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.ui.UIManagerImpl;
 
@@ -105,6 +108,8 @@ DownloadManagerImpl
 		
 		stats = new DownloadManagerStatsImpl( global_manager );
 		global_dl_notifier = new DownloadEventNotifierImpl(this);
+		
+		readStubConfig();
 		
 		global_manager.addListener(
 			new GlobalManagerListener()
@@ -1003,24 +1008,61 @@ DownloadManagerImpl
 		// stubbin it
 	
 	private static final String	STUB_CONFIG_FILE 				= "dlarchive.config";
-
+	private static final File	ARCHIVE_DIR;
+	
+	static{
+		
+		ARCHIVE_DIR = FileUtil.getUserFile( "dlarchive" );
+		
+		if ( !ARCHIVE_DIR.exists()){
+			
+			FileUtil.mkdirs(ARCHIVE_DIR);
+		}
+	}
+	
 	private List<DownloadStubImpl>	download_stubs = new ArrayList<DownloadStubImpl>();
 	
-	private Map
-	readConfig()
-	{
-		Map map;
-		
+	private void
+	readStubConfig()
+	{		
 		if ( FileUtil.resilientConfigFileExists( STUB_CONFIG_FILE )){
 			
-			map = FileUtil.readResilientConfigFile( STUB_CONFIG_FILE );
+			Map map = FileUtil.readResilientConfigFile( STUB_CONFIG_FILE );
+			
+			List<Map>	list = (List<Map>)map.get( "stubs" );
+			
+			if ( list != null ){
+				
+				for ( Map m: list ){
+					
+					download_stubs.add( new DownloadStubImpl( this, m ));
+				}
+			}
+		}
+	}
+	
+	private void
+	writeStubConfig()
+	{
+		if ( download_stubs.size() == 0 ){
+			
+			FileUtil.deleteResilientConfigFile( STUB_CONFIG_FILE );
 			
 		}else{
 			
-			map = new HashMap();
+			Map map = new HashMap();
+			
+			List	list = new ArrayList( download_stubs.size());
+			
+			map.put( "stubs", list );
+			
+			for ( DownloadStubImpl stub: download_stubs ){
+				
+				list.add( stub.exportToMap());
+			}
+			
+			FileUtil.writeResilientConfigFile( STUB_CONFIG_FILE, map );
 		}
-		
-		return( map );
 	}
 	
 	public boolean
@@ -1066,12 +1108,41 @@ DownloadManagerImpl
 			throw( new DownloadException( "Download not in stubbifiable state" ));
 		}
 		
-		return( 
+		DownloadManager	core_dm = PluginCoreUtils.unwrap( download );
+		
+		Map gm_data = global_manager.exportDownloadStateToMap( core_dm );
+		
+			// meh, gm assumes this map is always serialised + deserialised and doesn't expect
+			// String values
+		
+		try{
+			gm_data = BDecoder.decode( BEncoder.encode( gm_data ));
+			
+		}catch( IOException e ){
+			
+			Debug.out( e );
+		}
+		
+		core_dm.getDownloadState().exportState( ARCHIVE_DIR );
+		
+		DownloadStubImpl stub =
 			new DownloadStubImpl( 
 				this,
 				download.getName(),
 				download.getTorrent().getHash(), 
-				new DownloadStub.DownloadStubFile[0] ));
+				new DownloadStub.DownloadStubFile[0],
+				gm_data );
+		
+		download.remove( false, false );
+		
+		synchronized( download_stubs ){
+			
+			download_stubs.add( stub );
+			
+			writeStubConfig();
+		}
+		
+		return( stub );
 	}
 		
 	protected Download
@@ -1080,13 +1151,78 @@ DownloadManagerImpl
 	
 		throws DownloadException
 	{
-		return( null );
+		byte[] torrent_hash = stub.getTorrentHash();
+
+		try{
+			DownloadManagerStateFactory.importDownloadState( ARCHIVE_DIR, torrent_hash );
+		
+		}catch( Throwable e ){
+			
+			throw( new DownloadException( "Failed to import download state", e ));
+		}
+		
+		DownloadManager core_dm = global_manager.importDownloadStateFromMap( stub.getGMMap());
+		
+		if ( core_dm == null ){
+			
+			try{
+				DownloadManagerStateFactory.deleteDownloadState( torrent_hash );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+			
+			throw( new DownloadException( "Failed to add download" ));
+			
+		}else{
+			
+			try{
+				DownloadManagerStateFactory.deleteDownloadState( ARCHIVE_DIR, torrent_hash );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+			
+			synchronized( download_stubs ){
+				
+				download_stubs.remove( stub );
+				
+				writeStubConfig();
+			}
+			
+			return( PluginCoreUtils.wrap( core_dm ));
+		}
+	}
+	
+	protected void
+	remove(
+		DownloadStubImpl		stub )
+	{
+		try{
+			DownloadManagerStateFactory.deleteDownloadState( ARCHIVE_DIR, stub.getTorrentHash());
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		synchronized( download_stubs ){
+			
+			download_stubs.remove( stub );
+			
+			writeStubConfig();
+		}
 	}
 	
 	public DownloadStub[]
 	getDownloadStubs()
 	{
-		return( download_stubs.toArray( new DownloadStub[0]));
+		synchronized( download_stubs ){
+		
+			return( download_stubs.toArray( new DownloadStub[download_stubs.size()]));
+		}
 	}
 	
 	public void 

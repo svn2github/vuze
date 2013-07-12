@@ -21,9 +21,14 @@
 
 package org.gudy.azureus2.pluginsimpl.local.download;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadStub;
+
+import com.aelitis.azureus.util.MapUtils;
 
 public class 
 DownloadStubImpl
@@ -33,18 +38,51 @@ DownloadStubImpl
 	private final String					name;
 	private final byte[]					hash;
 	private final DownloadStubFile[]		files;
+	private final Map						gm_map;
 	
 	protected
 	DownloadStubImpl(
 		DownloadManagerImpl		_manager,
 		String					_name,
 		byte[]					_hash,
-		DownloadStubFile[]		_files )
+		DownloadStubFile[]		_files,
+		Map						_gm_map )
 	{
 		manager		= _manager;
 		name		= _name;
 		hash		= _hash;
 		files		= _files;
+		gm_map		= _gm_map;
+	}
+	
+	protected
+	DownloadStubImpl(
+		DownloadManagerImpl		_manager,
+		Map						_map )
+	{
+		manager		= _manager;
+		
+		hash = (byte[])_map.get( "hash" );
+		
+		name	= MapUtils.getMapString( _map, "name", null );
+		
+		files = null;
+		
+		gm_map = (Map)_map.get( "gm" );
+	}
+	
+	public Map
+	exportToMap()
+	{
+		Map	map = new HashMap();
+		
+		map.put( "hash", hash );
+		
+		MapUtils.setMapString(map, "name", name );
+		
+		map.put( "gm", gm_map );
+		
+		return( map );
 	}
 	
 	public boolean
@@ -77,5 +115,17 @@ DownloadStubImpl
 	getStubFiles()
 	{
 		return( files );
+	}
+	
+	public Map
+	getGMMap()
+	{
+		return( gm_map );
+	}
+	
+	public void
+	remove()
+	{
+		manager.remove( this );
 	}
 }

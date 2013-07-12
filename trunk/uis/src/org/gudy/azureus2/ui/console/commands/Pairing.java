@@ -18,7 +18,7 @@ public class Pairing extends IConsoleCommand {
 	
 	public String getCommandDescriptions()
 	{
-		return("pairing\t\trs\tShows and modified the current Vuze remote pairing state.");
+		return("pairing\t\tpair\tShows and modified the current Vuze remote pairing state.");
 	}
 	
 	public void printHelpExtra(PrintStream out, List args) {

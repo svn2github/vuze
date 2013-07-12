@@ -43,6 +43,10 @@ DownloadStub
 	public DownloadStubFile[]
 	getStubFiles();
 	
+	public void
+	remove()
+	
+		throws DownloadException, DownloadRemovalVetoException;
 	
 	public interface 
 	DownloadStubFile 

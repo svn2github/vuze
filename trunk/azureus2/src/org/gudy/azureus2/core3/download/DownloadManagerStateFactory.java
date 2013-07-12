@@ -22,6 +22,8 @@
 
 package org.gudy.azureus2.core3.download;
 
+import java.io.File;
+
 import org.gudy.azureus2.core3.download.impl.*;
 
 import org.gudy.azureus2.core3.torrent.*;
@@ -60,5 +62,34 @@ DownloadManagerStateFactory
 	discardGlobalStateCache()
 	{
 		DownloadManagerStateImpl.discardGlobalStateCache();
+	}
+	
+	public static void
+	importDownloadState(
+		File		source_dir,
+		byte[]		download_hash )
+	
+		throws DownloadManagerException
+	{
+		DownloadManagerStateImpl.importDownloadState( source_dir, download_hash );
+	}
+	
+	public static void
+	deleteDownloadState(
+		byte[]		download_hash )
+	
+		throws DownloadManagerException
+	{
+		DownloadManagerStateImpl.deleteDownloadState( download_hash );
+	}
+	
+	public static void
+	deleteDownloadState(
+		File		source_dir,
+		byte[]		download_hash )
+	
+		throws DownloadManagerException
+	{
+		DownloadManagerStateImpl.deleteDownloadState( source_dir, download_hash );
 	}
 }

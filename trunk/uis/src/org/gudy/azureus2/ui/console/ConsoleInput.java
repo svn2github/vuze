@@ -301,6 +301,7 @@ public class ConsoleInput extends Thread {
 		registerCommand(new TorrentCheck());
 		registerCommand(new TorrentQueue());
 		registerCommand(new TorrentRemove());
+		registerCommand(new TorrentArchive());
 		registerCommand(new TorrentStart());
 		registerCommand(new TorrentStop());
 		registerCommand(new TorrentHost());
@@ -321,6 +322,8 @@ public class ConsoleInput extends Thread {
 		registerCommand(new Priority());
 		registerCommand(new Plugin());
 		registerCommand(new Pairing());
+		registerCommand(new Archive());
+
 	}
 
 	/**

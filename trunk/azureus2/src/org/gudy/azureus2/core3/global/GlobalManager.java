@@ -475,7 +475,7 @@ public interface GlobalManager extends AzureusCoreComponent, TaggableResolver {
 	exportDownloadStateToMap(
 		DownloadManager		dm );
 	
-	public void
+	public DownloadManager
 	importDownloadStateFromMap(
 		Map		map );
 }
