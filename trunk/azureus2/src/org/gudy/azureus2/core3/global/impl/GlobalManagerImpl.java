@@ -3043,11 +3043,6 @@ public class GlobalManagerImpl
 	{
 		List	adapters = dm_adapters.getList();
 		
-		if ( adapters.size() == 0 ){
-			
-			return( adapter );	
-		}
-				
 		if ( adapter != null ){
 
 				// musn't update the copy-on-write list
@@ -3057,12 +3052,10 @@ public class GlobalManagerImpl
 			adapters.add( adapter );
 		}
 		
-		if ( adapters.size() == 1 ){
-			
-			return((DownloadManagerInitialisationAdapter)adapters.get(0));
-		}
-		
 		final List	f_adapters = adapters;
+		
+			// wrap the existing 'static' adapters, plus a possible dynamic one, with a controlling one that
+			// is responsible for (amongst other things) implementing the 'incomplete suffix' logic
 		
 		return( new DownloadManagerInitialisationAdapter()
 				{
