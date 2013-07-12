@@ -3,9 +3,12 @@ package org.gudy.azureus2.ui.console.commands;
 import java.io.PrintStream;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadStub;
+import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
 
@@ -19,15 +22,16 @@ public class Archive extends IConsoleCommand {
 	
 	public String getCommandDescriptions()
 	{
-		return("archive\t\tar\tShows and allows the restoration of archived torrents.");
+		return("archive\t\tar\tLists, and allows the restoration of, archived downloads.");
 	}
 	
 	public void printHelpExtra(PrintStream out, List args) {
 		out.println("> -----");
 		out.println("Subcommands:");
-		out.println("list\tl\t\tList archived torrents");
-		out.println("restore <num>\tres\t\tRestore archived torrent");
-		out.println("delete <num>\tdel\t\tDeletes archived torrent");
+		out.println("list\t\tl\t\tList archived downloads");
+		out.println("show <num>\ts\t\tShow archived download");
+		out.println("restore <num>\tres\t\tRestore archived download");
+		out.println("delete <num>\tdel\t\tDelete archived download");
 		out.println("> -----");
 	}
 	
@@ -81,10 +85,34 @@ public class Archive extends IConsoleCommand {
 				
 				ci.out.println( "> -----" );
 				
+			}else if ( index != -1 && ( sub.equals( "show" ) || sub.equals( "s" ))){
+				
+				try{
+					DownloadStub stub = stubs[index];
+					
+					ci.out.println( "> -----" );
+					ci.out.println( "  " + stub.getName() + " - hash=" + ByteFormatter.encodeString( stub.getTorrentHash()));
+					
+					DownloadStubFile[] files = stub.getStubFiles();
+					
+					ci.out.println( "  Files: " + files.length );
+					
+					for ( DownloadStubFile file: files ){
+						
+						long	length = file.getLength();
+						
+						ci.out.println( "    " + file.getFile() + " - " + (length < 0?("Not downloaded"):DisplayFormatters.formatByteCountToKiBEtc( length )));
+					}
+					
+					ci.out.println( "> -----" );
+					
+				}catch( Throwable e ){
+					
+					ci.out.print( e );
+				}
+
 			}else if ( index != -1 && ( sub.equals( "restore" ) || sub.equals( "res" ))){
-				
-				
-				
+								
 				try{
 					Download d = stubs[index].destubbify();
 					

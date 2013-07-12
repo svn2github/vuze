@@ -1022,6 +1022,9 @@ DownloadManagerImpl
 	
 	private List<DownloadStubImpl>	download_stubs = new ArrayList<DownloadStubImpl>();
 	
+	private CopyOnWriteList<DownloadStubListener>	download_stub_listeners = new CopyOnWriteList<DownloadStubListener>();
+	
+	
 	private void
 	readStubConfig()
 	{		
@@ -1130,7 +1133,7 @@ DownloadManagerImpl
 				this,
 				download.getName(),
 				download.getTorrent().getHash(), 
-				new DownloadStub.DownloadStubFile[0],
+				download.getStubFiles(),
 				gm_data );
 		
 		download.remove( false, false );
@@ -1141,6 +1144,8 @@ DownloadManagerImpl
 			
 			writeStubConfig();
 		}
+		
+		informAdded( stub );
 		
 		return( stub );
 	}
@@ -1192,6 +1197,8 @@ DownloadManagerImpl
 				writeStubConfig();
 			}
 			
+			informRemoved( stub );
+			
 			return( PluginCoreUtils.wrap( core_dm ));
 		}
 	}
@@ -1214,6 +1221,8 @@ DownloadManagerImpl
 			
 			writeStubConfig();
 		}
+		
+		informRemoved( stub );
 	}
 	
 	public DownloadStub[]
@@ -1225,18 +1234,118 @@ DownloadManagerImpl
 		}
 	}
 	
+	private void
+	informAdded(
+		DownloadStub	stub )
+	{
+		final List<DownloadStub>	list = new ArrayList<DownloadStub>();
+		
+		list.add( stub );
+		
+		for ( DownloadStubListener l: download_stub_listeners ){
+			
+			try{
+				l.downloadStubEventOccurred(
+						new DownloadStubEvent()
+						{
+							public int
+							getEventType()
+							{
+								return( DownloadStubEvent.DSE_STUB_ADDED );
+							}
+							
+							public List<DownloadStub>
+							getDownloadStubs()
+							{
+								return( list );
+							}
+						});
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
+	private void
+	informRemoved(
+		DownloadStub	stub )
+	{
+		final List<DownloadStub>	list = new ArrayList<DownloadStub>();
+		
+		list.add( stub );
+		
+		for ( DownloadStubListener l: download_stub_listeners ){
+			
+			try{
+				l.downloadStubEventOccurred(
+						new DownloadStubEvent()
+						{
+							public int
+							getEventType()
+							{
+								return( DownloadStubEvent.DSE_STUB_REMOVED );
+							}
+							
+							public List<DownloadStub>
+							getDownloadStubs()
+							{
+								return( list );
+							}
+						});
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+	}
+	
 	public void 
 	addDownloadStubListener( 
 		DownloadStubListener 	l, 
 		boolean 				inform_of_current )
 	{
+		download_stub_listeners.add( l );
 		
+		if ( inform_of_current ){
+			
+			final List<DownloadStub>	existing;
+			
+			synchronized( download_stubs ){
+				
+				existing = new ArrayList<DownloadStub>( download_stubs );
+			}
+			
+			try{
+				l.downloadStubEventOccurred(
+					new DownloadStubEvent()
+					{
+						public int
+						getEventType()
+						{
+							return( DownloadStubEvent.DSE_STUB_ADDED );
+						}
+						
+						public List<DownloadStub>
+						getDownloadStubs()
+						{
+							return( existing );
+						}
+					});
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
 	}
 	
 	public void 
 	removeDownloadStubListener( 
 		DownloadStubListener 	l )
 	{
-		
+		download_stub_listeners.remove( l );
 	}
 }

@@ -2193,19 +2193,21 @@ DownloadImpl
 			 	{
 					public File
 					getFile()
-					{
-						if ( dm_file.getDownloaded() == dm_file.getLength() && !dm_file.isSkipped()){
-							
-							return( dm_file.getFile( true ));
-						}
-						
-						return( null );
+					{							
+						return( dm_file.getFile( true ));
 					}
 					
 					public long
 					getLength()
 					{
-						return( dm_file.getLength());
+						if ( dm_file.getDownloaded() == dm_file.getLength() && !dm_file.isSkipped()){
+
+							return( dm_file.getLength());
+							
+						}else{
+						
+							return( -dm_file.getLength());
+						}
 					}
 			 	};
 		 }

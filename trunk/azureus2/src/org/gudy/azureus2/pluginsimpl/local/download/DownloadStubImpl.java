@@ -21,7 +21,9 @@
 
 package org.gudy.azureus2.pluginsimpl.local.download;
 
+import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.plugins.download.Download;
@@ -37,7 +39,7 @@ DownloadStubImpl
 	private final DownloadManagerImpl		manager;
 	private final String					name;
 	private final byte[]					hash;
-	private final DownloadStubFile[]		files;
+	private final DownloadStubFileImpl[]	files;
 	private final Map						gm_map;
 	
 	protected
@@ -51,8 +53,15 @@ DownloadStubImpl
 		manager		= _manager;
 		name		= _name;
 		hash		= _hash;
-		files		= _files;
+
 		gm_map		= _gm_map;
+		
+		files		= new DownloadStubFileImpl[_files.length];
+		
+		for ( int i=0;i<files.length;i++){
+			
+			files[i] = new DownloadStubFileImpl( _files[i] );
+		}
 	}
 	
 	protected
@@ -66,9 +75,23 @@ DownloadStubImpl
 		
 		name	= MapUtils.getMapString( _map, "name", null );
 		
-		files = null;
-		
 		gm_map = (Map)_map.get( "gm" );
+		
+		List	file_list = (List)_map.get( "files" );
+		
+		if ( file_list == null ){
+			
+			files = new DownloadStubFileImpl[0];
+			
+		}else{
+			
+			files = new DownloadStubFileImpl[file_list.size()];
+			
+			for ( int i=0;i<files.length;i++){
+				
+				files[i] = new DownloadStubFileImpl((Map)file_list.get(i));
+			}
+		}
 	}
 	
 	public Map
@@ -127,5 +150,53 @@ DownloadStubImpl
 	remove()
 	{
 		manager.remove( this );
+	}
+	
+	protected static class
+	DownloadStubFileImpl
+		implements DownloadStubFile
+	{
+		private final File		file;
+		private final long		length;
+		
+		protected
+		DownloadStubFileImpl(
+			DownloadStubFile	stub_file )
+		{
+			file	= stub_file.getFile();
+			length	= stub_file.getLength();
+		}
+		
+		protected
+		DownloadStubFileImpl(
+			Map		map )
+		{
+			file 	= new File( MapUtils.getMapString(map, "file", null ));
+			
+			length 	= (Long)map.get( "len" );
+		}
+		
+		protected Map
+		exportToMap()
+		{
+			Map	map = new HashMap();
+
+			map.put( "file", file.getAbsolutePath());
+			map.put( "len", length );
+			
+			return( map );
+		}
+		
+		public File
+		getFile()
+		{
+			return( file );
+		}
+		
+		public long
+		getLength()
+		{
+			return( length );
+		}
 	}
 }
