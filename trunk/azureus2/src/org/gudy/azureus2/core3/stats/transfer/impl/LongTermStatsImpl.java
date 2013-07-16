@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStats;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStatsListener;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
+import org.gudy.azureus2.core3.stats.transfer.LongTermStats.RecordAccepter;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
@@ -689,10 +690,22 @@ LongTermStatsImpl
 	
 	public long[]
 	getTotalUsageInPeriod(
-		Date		start_date,
-		Date		end_date )
+		Date				start_date,
+		Date				end_date )
 	{
+		return( getTotalUsageInPeriod( start_date, end_date, null ));
+	}
+	
+	public long[]
+	getTotalUsageInPeriod(
+		Date				start_date,
+		Date				end_date,
+		RecordAccepter		accepter )
+	{
+		boolean	enable_caching = accepter == null;
+		
 		synchronized( this ){
+			
 			long[] result = new long[STAT_ENTRY_COUNT];
 			
 			long start_millis 	= start_date.getTime();
@@ -737,62 +750,69 @@ LongTermStatsImpl
 				int	month	= Integer.parseInt( month_str );
 				int	day		= Integer.parseInt( day_str );
 				
-				if ( month_cache == null || !month_cache.isForMonth( year_str, month_str )){
-					
-					if ( month_cache != null && month_cache.isDirty()){
-						
-						month_cache.save();
-					}
-					
-					month_cache = getMonthCache( year_str, month_str );
-				}
-				
-				boolean	can_cache = 
-					this_day != now_day &&
-					( this_day > start_day || ( this_day == start_day && offset_cachable )) &&
-					this_day < end_day;
-				
 				long	cache_offset = this_day == start_day?start_offset:0;
+				boolean	can_cache;
 				
-				if ( can_cache ){
+				if ( enable_caching ){
 					
-					long[] cached_totals = month_cache.getTotals( day, cache_offset );
-					
-					if ( cached_totals != null ){
+					if ( month_cache == null || !month_cache.isForMonth( year_str, month_str )){
 						
-						for ( int i=0;i<cached_totals.length;i++){
+						if ( month_cache != null && month_cache.isDirty()){
 							
-							result[i] += cached_totals[i];
+							month_cache.save();
 						}
 						
-						continue;
+						month_cache = getMonthCache( year_str, month_str );
 					}
-				}else{
 					
-					if ( this_day == now_day ){
-						
-						if ( day_cache != null ){
-							
-							if ( day_cache.isForDay( year_str, month_str, day_str )){
-								
-								long[] cached_totals = day_cache.getTotals( cache_offset );
-								
-								if ( cached_totals != null ){
-									
-									for ( int i=0;i<cached_totals.length;i++){
+					can_cache = 
+						this_day != now_day &&
+						( this_day > start_day || ( this_day == start_day && offset_cachable )) &&
+						this_day < end_day;
 										
-										result[i] += cached_totals[i];
+					if ( can_cache ){
+						
+						long[] cached_totals = month_cache.getTotals( day, cache_offset );
+						
+						if ( cached_totals != null ){
+							
+							for ( int i=0;i<cached_totals.length;i++){
+								
+								result[i] += cached_totals[i];
+							}
+							
+							continue;
+						}
+					}else{
+						
+						if ( this_day == now_day ){
+							
+							if ( day_cache != null ){
+								
+								if ( day_cache.isForDay( year_str, month_str, day_str )){
+									
+									long[] cached_totals = day_cache.getTotals( cache_offset );
+									
+									if ( cached_totals != null ){
+										
+										for ( int i=0;i<cached_totals.length;i++){
+											
+											result[i] += cached_totals[i];
+										}
+										
+										continue;
 									}
 									
-									continue;
+								}else{
+									
+									day_cache = null;
 								}
-								
-							}else{
-								
-								day_cache = null;
 							}
 						}
 					}
+				}else{
+					
+					can_cache = false;
 				}
 				
 				String	current_rel_file = bits[0] + File.separator + bits[1] + File.separator + bits[2] + ".dat";
@@ -886,11 +906,14 @@ LongTermStatsImpl
 								if ( 	session_time >= start_millis && 
 										session_time <= end_millis ){
 									
-									for ( int i=0;i<6;i++){
+									if ( accepter == null ||	accepter.acceptRecord( session_time )){
 										
-										result[i] += line_stats[i];
-										
-										file_result_totals[i] += line_stats[i];
+										for ( int i=0;i<6;i++){
+											
+											result[i] += line_stats[i];
+											
+											file_result_totals[i] += line_stats[i];
+										}
 									}
 								}
 								
@@ -910,20 +933,23 @@ LongTermStatsImpl
 							}
 						}else{
 							
-							if ( this_day == now_day ){
+							if ( enable_caching ){
 								
-								if ( day_cache == null ){
+								if ( this_day == now_day ){
 									
-									System.out.println( "Creating day cache" );
+									if ( day_cache == null ){
+										
+										System.out.println( "Creating day cache" );
+										
+										day_cache = new DayCache( year_str, month_str, day_str );
+									}
 									
-									day_cache = new DayCache( year_str, month_str, day_str );
-								}
-								
-								day_cache.setTotals( cache_offset, file_result_totals );
-								
-								if ( cache_offset != 0 ){
+									day_cache.setTotals( cache_offset, file_result_totals );
 									
-									day_cache.setTotals( 0, file_totals );
+									if ( cache_offset != 0 ){
+										
+										day_cache.setTotals( 0, file_totals );
+									}
 								}
 							}
 						}
@@ -946,11 +972,14 @@ LongTermStatsImpl
 				}
 			}
 			
-			if ( month_cache != null && month_cache.isDirty()){
+			if ( enable_caching ){
 				
-				month_cache.save();
+				if ( month_cache != null && month_cache.isDirty()){
+					
+					month_cache.save();
+				}
 			}
-				
+			
 			System.out.println( "    -> " + getString( result ));
 			
 			return( result );
@@ -960,7 +989,15 @@ LongTermStatsImpl
 	public long[]
 	getTotalUsageInPeriod(
 		int	period_type )
-	{		
+	{
+		return( getTotalUsageInPeriod( period_type, null ));
+	}
+	
+	public long[]
+	getTotalUsageInPeriod(
+		int					period_type,
+		RecordAccepter		accepter )
+	{
 		if ( start_of_week == -1 ){
 			
 			COConfigurationManager.addAndFireParameterListeners(
@@ -1033,7 +1070,7 @@ LongTermStatsImpl
 		
 		long bottom_time = calendar.getTimeInMillis();
 		
-		return( getTotalUsageInPeriod( new Date( bottom_time ), new Date( top_time )));
+		return( getTotalUsageInPeriod( new Date( bottom_time ), new Date( top_time ), accepter ));
 	}
 	
 	public long[] 
@@ -1329,16 +1366,30 @@ LongTermStatsImpl
 			
 			SimpleDateFormat local_format = new SimpleDateFormat( "yyyy,MM,dd" );
 			
-			Date start_date = local_format.parse( "2013,02,04" );
-			Date end_date 	= local_format.parse( "2013,02,06" );
+			Date start_date = local_format.parse( "2013,07,10" );
+			Date end_date 	= local_format.parse( "2013,07,16" );
 			
-			long[] usage = impl.getTotalUsageInPeriod( start_date, end_date );
+			long[] usage = 
+				impl.getTotalUsageInPeriod( 
+					start_date, 
+					end_date,
+					new RecordAccepter()
+					{
+						public boolean 
+						acceptRecord(
+							long timestamp) 
+						{
+							System.out.println( new Date( timestamp ));
+							
+							return( false );
+						}
+					});
 			
 			System.out.println( getString( usage ));
 		
-			System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_DAY )));
-			System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_WEEK )));
-			System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_MONTH )));
+			//System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_DAY )));
+			//System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_WEEK )));
+			//System.out.println( getString(impl.getTotalUsageInPeriod( PT_CURRENT_MONTH )));
 			
 		}catch( Throwable e ){
 			

@@ -52,6 +52,11 @@ LongTermStats
 	getTotalUsageInPeriod(
 		int	period_type );
 	
+	public long[]
+	getTotalUsageInPeriod(
+		int					period_type,
+		RecordAccepter		accepter );
+	
 	public void
 	addListener(
 		long						min_delta_bytes,
@@ -60,4 +65,12 @@ LongTermStats
 	public void
 	removeListener(
 		LongTermStatsListener		listener );
+	
+	public interface
+	RecordAccepter
+	{
+		public boolean
+		acceptRecord(
+			long		timestamp );
+	}
 }
