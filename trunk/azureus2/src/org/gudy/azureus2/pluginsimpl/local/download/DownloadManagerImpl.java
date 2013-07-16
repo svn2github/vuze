@@ -1125,9 +1125,7 @@ DownloadManagerImpl
 			
 			Debug.out( e );
 		}
-		
-		core_dm.getDownloadState().exportState( ARCHIVE_DIR );
-		
+				
 		DownloadStubImpl stub =
 			new DownloadStubImpl( 
 				this,
@@ -1136,16 +1134,35 @@ DownloadManagerImpl
 				download.getStubFiles(),
 				gm_data );
 		
-		download.remove( false, false );
+		informAdded( stub, true );
+
+		boolean	added = false;
 		
-		synchronized( download_stubs ){
+		try{
+			core_dm.getDownloadState().exportState( ARCHIVE_DIR );
+	
+			download.remove( false, false );
 			
-			download_stubs.add( stub );
+			synchronized( download_stubs ){
+				
+				download_stubs.add( stub );
+				
+				writeStubConfig();
+			}
 			
-			writeStubConfig();
+			added = true;
+			
+			informAdded( stub, false );
+			
+		}finally{
+			
+			if ( !added ){
+				
+					// inform that the 'will be added' failed
+				
+				informRemoved( stub, true );
+			}
 		}
-		
-		informAdded( stub );
 		
 		return( stub );
 	}
@@ -1156,34 +1173,80 @@ DownloadManagerImpl
 	
 		throws DownloadException
 	{
-		byte[] torrent_hash = stub.getTorrentHash();
+		boolean	removed = false;
+	
+		informRemoved( stub, true );
 
 		try{
-			DownloadManagerStateFactory.importDownloadState( ARCHIVE_DIR, torrent_hash );
-		
-		}catch( Throwable e ){
-			
-			throw( new DownloadException( "Failed to import download state", e ));
-		}
-		
-		DownloadManager core_dm = global_manager.importDownloadStateFromMap( stub.getGMMap());
-		
-		if ( core_dm == null ){
-			
+			byte[] torrent_hash = stub.getTorrentHash();
+	
 			try{
-				DownloadManagerStateFactory.deleteDownloadState( torrent_hash );
-				
+				DownloadManagerStateFactory.importDownloadState( ARCHIVE_DIR, torrent_hash );
+			
 			}catch( Throwable e ){
 				
-				Debug.out( e );
+				throw( new DownloadException( "Failed to import download state", e ));
 			}
 			
-			throw( new DownloadException( "Failed to add download" ));
+			DownloadManager core_dm = global_manager.importDownloadStateFromMap( stub.getGMMap());
 			
-		}else{
+			if ( core_dm == null ){
+				
+				try{
+					DownloadManagerStateFactory.deleteDownloadState( torrent_hash );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+				
+				throw( new DownloadException( "Failed to add download" ));
+				
+			}else{
+				
+				try{
+					DownloadManagerStateFactory.deleteDownloadState( ARCHIVE_DIR, torrent_hash );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+				
+				synchronized( download_stubs ){
+					
+					download_stubs.remove( stub );
+					
+					writeStubConfig();
+				}
+				
+				removed = true;
+				
+				informRemoved( stub, false );
+				
+				return( PluginCoreUtils.wrap( core_dm ));
+			}
+		}finally{
 			
+			if ( !removed ){
+				
+					// inform that the 'will be removed' failed
+				
+				informAdded( stub, true );
+			}
+		}
+	}
+	
+	protected void
+	remove(
+		DownloadStubImpl		stub )
+	{
+		boolean removed = false;
+		
+		informRemoved( stub, true );
+		
+		try{
 			try{
-				DownloadManagerStateFactory.deleteDownloadState( ARCHIVE_DIR, torrent_hash );
+				DownloadManagerStateFactory.deleteDownloadState( ARCHIVE_DIR, stub.getTorrentHash());
 				
 			}catch( Throwable e ){
 				
@@ -1197,32 +1260,17 @@ DownloadManagerImpl
 				writeStubConfig();
 			}
 			
-			informRemoved( stub );
+			removed = true;
 			
-			return( PluginCoreUtils.wrap( core_dm ));
+			informRemoved( stub, false );
+			
+		}finally{
+			
+			if ( !removed ){
+				
+				informAdded( stub, true );
+			}
 		}
-	}
-	
-	protected void
-	remove(
-		DownloadStubImpl		stub )
-	{
-		try{
-			DownloadManagerStateFactory.deleteDownloadState( ARCHIVE_DIR, stub.getTorrentHash());
-			
-		}catch( Throwable e ){
-			
-			Debug.out( e );
-		}
-		
-		synchronized( download_stubs ){
-			
-			download_stubs.remove( stub );
-			
-			writeStubConfig();
-		}
-		
-		informRemoved( stub );
 	}
 	
 	public DownloadStub[]
@@ -1236,7 +1284,8 @@ DownloadManagerImpl
 	
 	private void
 	informAdded(
-		DownloadStub	stub )
+		DownloadStub			stub,
+		final boolean			preparing )
 	{
 		final List<DownloadStub>	list = new ArrayList<DownloadStub>();
 		
@@ -1251,7 +1300,7 @@ DownloadManagerImpl
 							public int
 							getEventType()
 							{
-								return( DownloadStubEvent.DSE_STUB_ADDED );
+								return( preparing?DownloadStubEvent.DSE_STUB_WILL_BE_ADDED:DownloadStubEvent.DSE_STUB_ADDED );
 							}
 							
 							public List<DownloadStub>
@@ -1270,7 +1319,8 @@ DownloadManagerImpl
 	
 	private void
 	informRemoved(
-		DownloadStub	stub )
+		DownloadStub			stub,
+		final boolean			preparing )
 	{
 		final List<DownloadStub>	list = new ArrayList<DownloadStub>();
 		
@@ -1285,7 +1335,7 @@ DownloadManagerImpl
 							public int
 							getEventType()
 							{
-								return( DownloadStubEvent.DSE_STUB_REMOVED );
+								return( preparing?DownloadStubEvent.DSE_STUB_WILL_BE_REMOVED:DownloadStubEvent.DSE_STUB_REMOVED );
 							}
 							
 							public List<DownloadStub>

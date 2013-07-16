@@ -26,7 +26,7 @@ DownloadStubListener
 {
 	public void
 	downloadStubEventOccurred(
-		DownloadStubEvent		event );
+		DownloadStubEvent		event )
 	
-	
+		throws DownloadException;
 }

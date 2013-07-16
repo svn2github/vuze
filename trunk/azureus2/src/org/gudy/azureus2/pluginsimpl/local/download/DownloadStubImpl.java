@@ -26,9 +26,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadStub;
+import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 
 import com.aelitis.azureus.util.MapUtils;
 
@@ -41,6 +43,9 @@ DownloadStubImpl
 	private final byte[]					hash;
 	private final DownloadStubFileImpl[]	files;
 	private final Map						gm_map;
+	
+	private boolean					exported;
+	private Map						attributes;
 	
 	protected
 	DownloadStubImpl(
@@ -92,6 +97,8 @@ DownloadStubImpl
 				files[i] = new DownloadStubFileImpl((Map)file_list.get(i));
 			}
 		}
+		
+		attributes = (Map)_map.get( "attr" );
 	}
 	
 	public Map
@@ -104,6 +111,13 @@ DownloadStubImpl
 		MapUtils.setMapString(map, "name", name );
 		
 		map.put( "gm", gm_map );
+		
+		if ( attributes != null ){
+		
+			map.put( "attr", attributes );
+		}
+		
+		exported = true;
 		
 		return( map );
 	}
@@ -138,6 +152,46 @@ DownloadStubImpl
 	getStubFiles()
 	{
 		return( files );
+	}
+	
+	public long 
+	getLongAttribute(
+		TorrentAttribute 	attribute )
+	{
+		if ( attributes == null ){
+			
+			return( 0 );
+		}
+		
+		Long l = (Long)attributes.get( attribute.getName());
+		
+		if ( l == null ){
+			
+			return( 0 );
+		}
+		
+		return( l );
+	}
+	
+	  
+	public void 
+	setLongAttribute(
+		TorrentAttribute 	attribute, 
+		long 				value)
+	{
+		if ( exported ){
+			
+			Debug.out( "Not supported!" );
+			
+			return;
+		}
+		
+		if ( attributes == null ){
+			
+			attributes = new HashMap();
+		}
+		
+		attributes.put( attribute.getName(), value );
 	}
 	
 	public Map

@@ -26,9 +26,11 @@ import java.util.List;
 public interface 
 DownloadStubEvent 
 {
-	public static final int DSE_STUB_ADDED		= 1;
-	public static final int DSE_STUB_REMOVED	= 2;
-	
+	public static final int DSE_STUB_ADDED				= 1;
+	public static final int DSE_STUB_REMOVED			= 2;
+	public static final int DSE_STUB_WILL_BE_ADDED		= 3;
+	public static final int DSE_STUB_WILL_BE_REMOVED	= 4;
+
 	public int
 	getEventType();
 	
