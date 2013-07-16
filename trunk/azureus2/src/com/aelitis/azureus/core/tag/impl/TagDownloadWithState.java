@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
@@ -151,8 +152,16 @@ TagDownloadWithState
 		do_down		= _do_down;
 		run_states	= _run_states;
 		
-		upload_rate_limit 	= (int)readLongAttribute( AT_RATELIMIT_UP, 0 );
-		download_rate_limit = (int)readLongAttribute( AT_RATELIMIT_DOWN, 0 );
+		if ( do_up ){
+			
+			upload_rate_limit 	= (int)readLongAttribute( AT_RATELIMIT_UP, 0 );
+		}
+		
+		if ( do_down ){
+			
+			download_rate_limit = (int)readLongAttribute( AT_RATELIMIT_DOWN, 0 );
+		}
+		
 		upload_priority		= (int)readLongAttribute( AT_RATELIMIT_UP_PRI, 0 );
 		
 		addTagListener(
@@ -257,6 +266,18 @@ TagDownloadWithState
 	setTagUploadLimit(
 		int		bps )
 	{
+		if ( upload_rate_limit == bps ){
+			
+			return;
+		}
+		
+		if ( !do_up ){
+			
+			Debug.out( "Not supported" );
+			
+			return;
+		}
+		
 		upload_rate_limit	= bps;
 		
 		writeLongAttribute( AT_RATELIMIT_UP, upload_rate_limit );
@@ -280,6 +301,18 @@ TagDownloadWithState
 	setTagDownloadLimit(
 		int		bps )
 	{
+		if ( download_rate_limit == bps ){
+			
+			return;
+		}
+		
+		if ( !do_down ){
+			
+			Debug.out( "Not supported" );
+			
+			return;
+		}
+		
 		download_rate_limit	= bps;
 		
 		writeLongAttribute( AT_RATELIMIT_DOWN, download_rate_limit );
