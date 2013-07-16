@@ -314,6 +314,7 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("XX", "XTorrent", "1.2.34");
 		addAzStyle("XC", "XTorrent", "1.2.34");
 		addAzStyle("ZT", "ZipTorrent"); 
+		addAzStyle("7T", "aTorrent"); 
 		addAzStyle("#@", "Invalid PeerID");
 
 		addShadowStyle('A', "ABC");
