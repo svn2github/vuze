@@ -218,7 +218,7 @@ public class BDecoder
 
 			//set a mark
 		
-		dbis.mark(Integer.MAX_VALUE);
+		dbis.mark(1);
 
 			//read a byte
 		
@@ -239,7 +239,7 @@ public class BDecoder
 				
 				while (true) {
 					
-					dbis.mark(Integer.MAX_VALUE);
+					dbis.mark(1);
 
 					tempByte = dbis.read();
 					if(tempByte == 'e' || tempByte == -1)
@@ -370,7 +370,7 @@ public class BDecoder
 	        	tempMap = new CompactMap( tempMap );
 	        }*/
 
-				dbis.mark(Integer.MAX_VALUE);
+				dbis.mark(1);
 				tempByte = dbis.read();
 				dbis.reset();
 				if ( nesting > 0 && tempByte == -1 ){
@@ -413,7 +413,7 @@ public class BDecoder
 				}
 
 				tempList.trimToSize();
-				dbis.mark(Integer.MAX_VALUE);
+				dbis.mark(1);
 				tempByte = dbis.read();
 				dbis.reset();
 				if ( nesting > 0 && tempByte == -1 ){
@@ -736,7 +736,7 @@ public class BDecoder
     int length = 0;
 
     //place a mark
-    dbis.mark(Integer.MAX_VALUE);
+    dbis.mark(???); 1 wouldn't work here ;)
 
     int tempByte = dbis.read();
     while ((tempByte != parseChar) && (tempByte >= 0)) {
