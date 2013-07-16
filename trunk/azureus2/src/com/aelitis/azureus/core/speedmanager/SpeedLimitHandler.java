@@ -2158,10 +2158,10 @@ SpeedLimitHandler
 		result.add( "#    enable=(yes|no)   - controls whether the entire schedule is enabled or not (default=enabled)" );
 		result.add( "#    <frequency> <profile_name> from <time> to <time>" );
 		result.add( "#        frequency: daily|weekdays|weekends|<day_of_week>" );
-		result.add( "#            days_of_week: mon|tue|wed|thu|fri|sat|sun" );
+		result.add( "#            day_of_week: mon|tue|wed|thu|fri|sat|sun" );
 		result.add( "#        time: hh:mm - 24 hour clock; 00:00=midnight; local time" );
 		result.add( "#    ip_set <ip_set_name> [<CIDR_specs...>|CC list|<prior_set_name>] [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [cat=<cat names>]" );
-		result.add( "#    net_limit [daily|weekly|monthly] total=<limit>|[up=<limit> down=<limit>]");
+		result.add( "#    net_limit (daily|weekly|monthly)[:<profile>] [total=<limit>] [up=<limit>] [down=<limit>]");
 		result.add( "#" );
 		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_upload' defined:" );
 		result.add( "#" );
@@ -2169,7 +2169,10 @@ SpeedLimitHandler
 		result.add( "#     daily limited_upload from 06:00 to 22:00" );
 		result.add( "#     daily pause_all from 08:00 to 17:00" );
 		result.add( "#" );
-		result.add( "#     net_limit monthly total=250G" );
+		result.add( "#     net_limit monthly total=250G          // flat montly limit" );
+		result.add( "#" );
+		result.add( "#     net_limit monthly:no_limits              // no monthly limit when no_limits active" );
+		result.add( "#     net_limit monthly:limited_upload 100G    // 100G a month limit when limited_upload active" );
 		result.add( "#" );
 		result.add( "#     ip_set external=211.34.128.0/19 211.35.128.0/17" );
 		result.add( "#     ip_set Europe=EU;AD;AL;AT;BA;BE;BG;BY;CH;CS;CZ;DE;DK;EE;ES;FI;FO;FR;FX;GB;GI;GR;HR;HU;IE;IS;IT;LI;LT;LU;LV;MC;MD;MK;MT;NL;NO;PL;PT;RO;SE;SI;SJ;SK;SM;UA;VA" );
