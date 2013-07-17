@@ -4989,6 +4989,7 @@ implements PEPeerTransport
 		return( generateFastSet( manager.getHash(), getIp(), nbPieces, num ));	
 	}
 	
+	public int getTaggableType() {return TT_PEER;}
    	public String getTaggableID(){ return( null ); }
 	public TaggableResolver	getTaggableResolver(){ return( null ); }
 

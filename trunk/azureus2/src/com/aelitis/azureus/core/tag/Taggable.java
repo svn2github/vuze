@@ -24,9 +24,11 @@ package com.aelitis.azureus.core.tag;
 public interface 
 Taggable 
 {	
-	public static final int	TT_TAGGABLE		= 0x00000001;		// Base type
 	public static final int	TT_DOWNLOAD		= 0x00000002;		// DownloadManagers
 	public static final int	TT_PEER			= 0x00000004;		// PEPeers
+	
+	public int
+	getTaggableType();
 	
 	public String
 	getTaggableID();

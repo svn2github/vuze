@@ -540,6 +540,19 @@ CategoryImpl
 	  return((Set<Taggable>)(Object)( getTaggedDownloads()));
   }
   
+	public int 
+	getTaggedCount() 
+	{
+		return( getTagged().size());
+	}
+		
+	public boolean 
+	hasTaggable(
+		Taggable	t )
+	{
+		return( getTagged().contains( t ));
+	}
+	
 	public int
 	getRunStateCapabilities()
 	{

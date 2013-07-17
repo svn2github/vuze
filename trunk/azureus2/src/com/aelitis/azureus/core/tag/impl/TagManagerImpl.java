@@ -633,6 +633,24 @@ TagManagerImpl
 		return( new ArrayList<Tag>( result ));
 	}
 	
+	public List<Tag>
+	getTagsForTaggable(
+		int			tts,
+		Taggable	taggable )
+	{
+		Set<Tag>	result = new HashSet<Tag>();
+		
+		for ( TagType tt: tag_types ){
+			
+			if ( tt.getTagType() == tts ){
+			
+				result.addAll( tt.getTagsForTaggable( taggable ));
+			}
+		}
+		
+		return( new ArrayList<Tag>( result ));
+	}
+	
 	public Tag
 	lookupTagByUID(
 		long	tag_uid )

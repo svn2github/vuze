@@ -640,6 +640,12 @@ DownloadManagerImpl
 		}
 	}
 
+	public int 
+	getTaggableType() 
+	{
+		return( TT_DOWNLOAD );
+	}
+	
 	public TaggableResolver 
 	getTaggableResolver() 
 	{

@@ -258,11 +258,16 @@ TagTypeBase
 	{
 		List<Tag>	result = new ArrayList<Tag>();
 		
+		int taggable_type = taggable.getTaggableType();
+		
 		for ( Tag t: getTags()){
-			
-			if ( t.hasTaggable( taggable )){
+		
+			if ( t.getTaggableTypes() == taggable_type ){
 				
-				result.add( t );
+				if ( t.hasTaggable( taggable )){
+					
+					result.add( t );
+				}
 			}
 		}
 		

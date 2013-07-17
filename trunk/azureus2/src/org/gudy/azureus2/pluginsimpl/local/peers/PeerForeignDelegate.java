@@ -1101,6 +1101,7 @@ PeerForeignDelegate
 	public String getClientNameFromExtensionHandshake() {return null;}
 	public String getClientNameFromPeerID() {return null;}
 	
+	public int getTaggableType() {return TT_PEER;}
    	public String getTaggableID(){ return( null ); }
 	public TaggableResolver	getTaggableResolver(){ return( null ); }
 }

@@ -353,7 +353,7 @@ public class BDecoder
 					
 					if ( value == null ){
 						
-						System.err.println( "Invalid encoding - value not serialsied for '" + key + "' - ignoring" );
+						System.err.println( "Invalid encoding - value not serialsied for '" + key + "' - ignoring: map so far=" + tempMap + ",loc=" + Debug.getCompressedStackTrace());
 						
 						break;
 					}

@@ -41,6 +41,11 @@ TagManager
 	getTagsForTaggable(
 		Taggable	taggable );
 	
+	public List<Tag>
+	getTagsForTaggable(
+		int			tag_types,
+		Taggable	taggable );
+	
 	public void
 	setTagPublicDefault(
 		boolean	pub );

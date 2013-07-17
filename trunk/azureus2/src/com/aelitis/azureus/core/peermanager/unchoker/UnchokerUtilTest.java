@@ -114,6 +114,7 @@ public class UnchokerUtilTest {
       
       final PEPeerStats[] f_stats = { null };
       final PEPeer peer = new PEPeer() {
+    	public int getTaggableType(){ return( TT_PEER );}
     	public String getTaggableID(){ return( null ); }
     	public TaggableResolver	getTaggableResolver(){ return( null ); }
     	public InetAddress getAlternativeIPv6() { return null; }

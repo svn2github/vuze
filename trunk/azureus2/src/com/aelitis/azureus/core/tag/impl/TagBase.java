@@ -499,19 +499,6 @@ TagBase
 		t_listeners.dispatch( TL_SYNC, null );
 	}
 	
-	public int 
-	getTaggedCount() 
-	{
-		return( getTagged().size());
-	}
-		
-	public boolean 
-	hasTaggable(
-		Taggable	t )
-	{
-		return( getTagged().contains( t ));
-	}
-	
 	public void
 	removeTag()
 	{
