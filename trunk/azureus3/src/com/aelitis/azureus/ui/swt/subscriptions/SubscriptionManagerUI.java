@@ -84,6 +84,8 @@ SubscriptionManagerUI
 	private PluginInterface default_pi;
 	private MdiEntry mdiEntryOverview;
 	
+	private boolean	sidebar_setup_done;
+	
 	public
 	SubscriptionManagerUI()
 	{
@@ -842,6 +844,18 @@ SubscriptionManagerUI
 			return;
 		}
 			
+		synchronized( this ){
+				// seen double add buttons in the sidebar, not sure of cause but it would imply we are coming through here
+				// twice which can't be good - protect against that
+			
+			if( sidebar_setup_done ){
+				
+				return;
+			}
+			
+			sidebar_setup_done = true;
+		}
+		
 		mdiEntryOverview.setImageLeftID("image.sidebar.subscriptions");
 
 		setupHeader(mdi, mdiEntryOverview);
@@ -1124,7 +1138,23 @@ SubscriptionManagerUI
 	{
 		refreshTitles( mdiEntryOverview );
 
-		if ( !subs.isSubscribed()){
+		if ( subs.isSubscribed()){
+			
+				// if the subscription wasn't previously subscribed then there won't be an MDI entry registered for it yet
+				// do so now
+			
+			final String key = "Subscription_" + ByteFormatter.encodeString(subs.getPublicKey());				
+
+			MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+
+			if ( mdi != null ){
+				
+				if ( mdi.getEntry( key ) == null ){
+					
+					registerSubscriptionViewMdiEntry( subs, false );
+				}
+			}
+		}else{
 			
 			removeSubscription( subs);
 		}

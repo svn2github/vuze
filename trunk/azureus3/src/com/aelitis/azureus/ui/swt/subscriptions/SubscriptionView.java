@@ -587,7 +587,7 @@ SubscriptionView
 	}
 
 	private void viewDeactivated() {
-		if (mdiInfo.spinnerImage != null) {
+		if (mdiInfo != null && mdiInfo.spinnerImage != null) {
 			mdiInfo.spinnerImage.setVisible(false);
 		}
 		destroyBrowsers();
