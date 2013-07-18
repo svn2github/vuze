@@ -20,14 +20,14 @@
 package com.aelitis.azureus.ui.swt.skin;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.ExpandEvent;
-import org.eclipse.swt.events.ExpandListener;
-import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
-
 
 /**
  * @author TuxPaper
@@ -35,111 +35,169 @@ import org.gudy.azureus2.ui.swt.Utils;
  *
  */
 public class SWTSkinObjectExpandItem
-	extends SWTSkinObjectContainer implements ExpandListener
+	extends SWTSkinObjectContainer
+	implements ExpandListener
 {
 	private ExpandItem expandItem;
+
 	private boolean expanded;
+
 	private boolean textOverride;
+
 	private Composite composite;
+
+	private boolean fillHeight;
 
 	public SWTSkinObjectExpandItem(SWTSkin skin, SWTSkinProperties properties,
 			String sID, String sConfigID, SWTSkinObject parent) {
 		super(skin, properties, null, sID, sConfigID, "expanditem", parent);
-		
+
 		createExpandItem();
 	}
 
+	@SuppressWarnings("deprecation")
 	private void createExpandItem() {
 		if (!(parent instanceof SWTSkinObjectExpandBar)) {
 			return;
 		}
-		
-		SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
+
+		final SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
 
 		int style = SWT.NONE;
 		if (properties.getIntValue(sConfigID + ".border", 0) == 1) {
 			style = SWT.BORDER;
 		}
-		
-		final ExpandBar expandBar = soExpandBar.getExpandbar();
-		expandItem = new ExpandItem(expandBar, style);
 
+		final ExpandBar expandBar = soExpandBar.getExpandbar();
 		expandBar.addExpandListener(this);
 
-		System.out.println("FOO");
+		expandItem = new ExpandItem(expandBar, style);
+
+		String lastExpandStateID = "ui.skin." + sConfigID + ".expanded";
+		if (COConfigurationManager.hasParameter(lastExpandStateID, true)) {
+			boolean lastExpandState = COConfigurationManager.getBooleanParameter(
+					lastExpandStateID, false);
+			setExpanded(lastExpandState);
+		} else if (properties.getBooleanValue(sConfigID + ".expanded", false)) {
+			setExpanded(true);
+		}
+
 		composite = createComposite(soExpandBar.getComposite());
 		expandItem.setControl(composite);
 		composite.setLayoutData(null);
 		composite.setData("skin.layedout", true);
-		
-		composite.addListener(SWT.Modify, new Listener() {
-			public void handleEvent(Event event) {
-				resizeComposite();
+
+		soExpandBar.addExpandItem(this);
+
+		expandItem.addDisposeListener(new DisposeListener() {
+			public void widgetDisposed(DisposeEvent e) {
+				soExpandBar.removeExpandItem(SWTSkinObjectExpandItem.this);
 			}
 		});
-		expandBar.addListener(SWT.Resize, new Listener() {
-			public void handleEvent(Event event) {
-				/* 
-				 * The following is done asynchronously to allow the Text's width
-				 * to be changed before re-calculating its preferred height. 
-				 */
-				event.display.asyncExec(new Runnable() {
-					public void run() {
-						resizeComposite();
+
+		//		composite.addListener(SWT.Modify, new Listener() {
+		//			public void handleEvent(Event event) {
+		//				System.out.println(SWTSkinObjectExpandItem.this + "] composite modify");
+		//				SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
+		//				soExpandBar.handleResize(expandItem);
+		//			}
+		//		});
+	}
+
+	protected void resizeComposite() {
+		//System.out.println(SWTSkinObjectExpandItem.this + "] resize "
+		//		+ composite.getSize() + ";" + Debug.getCompressedStackTrace());
+		SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
+		final ExpandBar expandBar = soExpandBar.getExpandbar();
+		if (composite.isDisposed()) {
+			return;
+		}
+
+		if (!composite.isVisible()) {
+			return;
+		}
+
+		Rectangle clientArea = expandBar.getClientArea();
+
+		int newHeight;
+		if (properties.getBooleanValue(sConfigID + ".fillheight", false)) {
+			Control[] children = expandBar.getChildren();
+			Rectangle lastItemBounds = children[children.length - 1].getBounds();
+			if (!children[children.length - 1].isVisible()) {
+				lastItemBounds.height = 0;
+			}
+
+			newHeight = clientArea.height
+					- (lastItemBounds.y + lastItemBounds.height) + composite.getSize().y;
+			//			System.out.println("fill " + clientArea + ";last=" + lastItemBounds
+			//					+ " to " + newHeight);
+		} else {
+			newHeight = composite.computeSize(clientArea.width, SWT.DEFAULT, true).y;
+			expandBar.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
+		}
+
+		if (expandItem.getHeight() != newHeight) {
+			expandItem.setHeight(newHeight);
+		}
+	}
+
+	public ExpandItem getExpandItem() {
+		return expandItem;
+	}
+
+	public boolean isExpanded() {
+		return expanded;
+	}
+
+	private void setExpandedVariable(boolean expand) {
+		expanded = expand;
+		String lastExpandStateID = "ui.skin." + sConfigID + ".expanded";
+		COConfigurationManager.setParameter(lastExpandStateID, expand);
+	}
+
+	public void setExpanded(final boolean expand) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				expandItem.setExpanded(expand);
+				setExpandedVariable(expand);
+				Utils.execSWTThreadLater(0, new AERunnable() {
+					public void runSupport() {
+						SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
+						soExpandBar.handleResize(expandItem);
 					}
 				});
 			}
 		});
 	}
-	
-	private void resizeComposite() {
-		SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
-		final ExpandBar expandBar = soExpandBar.getExpandbar();
-		if (composite.isDisposed()) return;
-		Point size = composite.computeSize(expandBar.getClientArea().width, SWT.DEFAULT, true);
-		if (expandItem.getHeight() != size.y) {
-			expandItem.setHeight(size.y);
-		}
-	}
-	
-	public ExpandItem getExpandItem() {
-		return expandItem;
-	}
-	
-	public boolean isExpanded() {
-		return expanded;
-	}
-	
-	public void setExpanded(final boolean expand) {
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				expandItem.setExpanded(expand);
-				expanded = expand;
-			}
-		});
-	}
 
 	public void itemCollapsed(ExpandEvent e) {
-		expanded = false;
-		Utils.execSWTThreadLater(0, new AERunnable() {
-			public void runSupport() {
-				resizeComposite();
-			}
-		});
+		if (e.item == expandItem) {
+			setExpandedVariable(false);
+
+			Utils.execSWTThreadLater(0, new AERunnable() {
+				public void runSupport() {
+					SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
+					soExpandBar.handleResize(expandItem);
+				}
+			});
+		}
 	}
 
 	public void itemExpanded(ExpandEvent e) {
-		expanded = true;
-		Utils.execSWTThreadLater(0, new AERunnable() {
-			public void runSupport() {
-				resizeComposite();
-			}
-		});
+		if (e.item == expandItem) {
+			setExpandedVariable(true);
+			Utils.execSWTThreadLater(0, new AERunnable() {
+				public void runSupport() {
+					SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
+					soExpandBar.handleResize(expandItem);
+				}
+			});
+		}
 	}
 
-	
 	// @see com.aelitis.azureus.ui.swt.skin.SWTSkinObjectBasic#switchSuffix(java.lang.String, int, boolean)
-	public String switchSuffix(String suffix, int level, boolean walkUp, boolean walkDown) {
+	public String switchSuffix(String suffix, int level, boolean walkUp,
+			boolean walkDown) {
 		suffix = super.switchSuffix(suffix, level, walkUp, walkDown);
 
 		if (suffix == null) {
@@ -152,9 +210,11 @@ public class SWTSkinObjectExpandItem
 			setText(text, true);
 		}
 
+		fillHeight = properties.getBooleanValue(sConfigID + ".fillheight", false);
+
 		return suffix;
 	}
-	
+
 	public void setText(final String text) {
 		setText(text, false);
 	}
@@ -178,18 +238,21 @@ public class SWTSkinObjectExpandItem
 				}
 			}
 		});
-		
+
 	}
 
+	public boolean fillsHeight() {
+		return fillHeight;
+	}
 
 	public void dispose() {
 		super.dispose();
 		if (parent instanceof SWTSkinObjectExpandBar) {
-  		SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
-  		ExpandBar expandbar = soExpandBar.getExpandbar();
-  		if (expandbar != null && !expandbar.isDisposed()) {
-  			expandbar.removeExpandListener(this);
-  		}
+			SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
+			ExpandBar expandbar = soExpandBar.getExpandbar();
+			if (expandbar != null && !expandbar.isDisposed()) {
+				expandbar.removeExpandListener(this);
+			}
 		}
 	}
 }
