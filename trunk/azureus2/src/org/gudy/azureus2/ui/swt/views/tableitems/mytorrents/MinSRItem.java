@@ -51,7 +51,7 @@ public class MinSRItem
 
 	/** Default Constructor */
 	public MinSRItem(String sTableID) {
-		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_LEAD, 70, sTableID);
+		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 70, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
 	}
 
