@@ -667,9 +667,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			download.removeTrackerListener(download_tracker_listener);
 			download.removeActivationListener(download_activation_listener);
 
-			if (downloadDataMap.containsKey(download)) {
+			DefaultRankCalculator dlData = downloadDataMap.remove( download );
+			if ( dlData != null ) {
 				sortedArrayCache = null;
-				downloadDataMap.remove(download);
+				dlData.destroy();
 			}
 
 			requestProcessCycle(null);

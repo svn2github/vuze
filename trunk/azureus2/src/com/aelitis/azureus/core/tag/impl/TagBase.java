@@ -53,7 +53,8 @@ TagBase
 	protected static final String	AT_RATELIMIT_UP_PRI	= "rl.uppri";
 	protected static final String	AT_XCODE_TARGET		= "xcode.to";
 	protected static final String	AT_FL_MOVE_COMP		= "fl.comp";
-	  
+	protected static final String	AT_RATELIMIT_MIN_SR	= "rl.minsr";
+
 	private TagTypeBase	tag_type;
 	
 	private int			tag_id;
@@ -473,6 +474,19 @@ TagBase
 				tag_type.fireChanged( this );
 			}
 		}
+	}
+	
+	public int
+	getTagMinShareRatio()
+	{
+		return( -1 );
+	}
+	
+	public void
+	setTagMinShareRatio(
+		int		sr )
+	{
+		Debug.out( "not supported" );
 	}
 	
 	public void

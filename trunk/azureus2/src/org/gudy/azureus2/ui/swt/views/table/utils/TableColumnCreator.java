@@ -235,6 +235,7 @@ public class TableColumnCreator
 		c.put(SmoothedUpItem.COLUMN_ID, new cInfo(SmoothedUpItem.class, SmoothedUpItem.DATASOURCE_TYPE));
 		c.put(SmoothedDownItem.COLUMN_ID, new cInfo(SmoothedDownItem.class, SmoothedDownItem.DATASOURCE_TYPE));
 		c.put(SmoothedETAItem.COLUMN_ID, new cInfo(SmoothedETAItem.class, SmoothedETAItem.DATASOURCE_TYPE));
+		c.put(MinSRItem.COLUMN_ID, new cInfo(MinSRItem.class, MinSRItem.DATASOURCE_TYPE));
 
 		// Core columns are implementors of TableColumn to save one class creation
 		// Otherwise, we'd have to create a generic TableColumnImpl class, pass it 

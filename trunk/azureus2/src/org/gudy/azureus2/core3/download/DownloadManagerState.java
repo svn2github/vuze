@@ -110,6 +110,7 @@ DownloadManagerState
 	public static final String  PARAM_DND_FLAGS							= "dndflags";
 	public static final String  PARAM_RANDOM_SEED						= "rand";
 	public static final String	PARAM_UPLOAD_PRIORITY					= "up.pri";
+	public static final String	PARAM_MIN_SHARE_RATIO					= "sr.min";		// in thousandths - 1000 = sr of 1.0
 	
 	public static final int DEFAULT_MAX_UPLOADS		= 4;
 	public static final int MIN_MAX_UPLOADS			= 2;
@@ -130,6 +131,7 @@ DownloadManagerState
 		{ PARAM_DND_FLAGS, 							new Long( 0 ) },
 		{ PARAM_RANDOM_SEED, 						new Long( 0 ) },
 		{ PARAM_UPLOAD_PRIORITY, 					new Integer( DEFAULT_UPLOAD_PRIORITY ) },
+		{ PARAM_MIN_SHARE_RATIO, 					new Integer( 0 ) },
 	};
 	
 		// current implementation of file links is too memory inefficient for a large number of files, disable these features

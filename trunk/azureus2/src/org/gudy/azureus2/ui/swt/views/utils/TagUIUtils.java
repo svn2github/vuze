@@ -409,17 +409,76 @@ public class TagUIUtils
 				
 				final MenuItem upPriority = new MenuItem(menu, SWT.CHECK );
 			
-					upPriority.setSelection( tf_rate_limit.getTagUploadPriority() > 0 );
+				upPriority.setSelection( tf_rate_limit.getTagUploadPriority() > 0 );
 					
-					Messages.setLanguageText(upPriority, "cat.upload.priority");
-					upPriority.addListener(SWT.Selection, new Listener() {
-						public void handleEvent(Event event) {
-							boolean set = upPriority.getSelection();
-							tf_rate_limit.setTagUploadPriority( set?1:0 );
-						}
-					});
-				}
+				Messages.setLanguageText(upPriority, "cat.upload.priority");
+				upPriority.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						boolean set = upPriority.getSelection();
+						tf_rate_limit.setTagUploadPriority( set?1:0 );
+					}
+				});
+			}
+			
+			if ( tf_rate_limit.getTagMinShareRatio() >= 0 ){
+				
+				needs_separator_next = true;
 	
+				MenuItem itemSR = new MenuItem(menu, SWT.PUSH);
+				
+				final String existing = String.valueOf( tf_rate_limit.getTagMinShareRatio()/1000.0f);
+
+				Messages.setLanguageText(itemSR, "menu.min.share.ratio", new String[]{existing} );
+				
+				itemSR.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+								"min.sr.window.title", "min.sr.window.message");
+												
+						entryWindow.setPreenteredText( existing, false );
+						entryWindow.selectPreenteredText( true );
+						
+						entryWindow.prompt();
+						
+						if ( entryWindow.hasSubmittedInput()){
+							
+							try{
+								String text = entryWindow.getSubmittedInput().trim();
+								
+								int	sr = 0;
+								
+								if ( text.length() > 0 ){
+								
+									try{
+										float f = Float.parseFloat( text );
+									
+										sr = (int)(f * 1000 );
+									
+										if ( sr < 0 ){
+											
+											sr = 0;
+											
+										}else if ( sr == 0 && f > 0 ){
+											
+											sr = 1;
+										}
+									
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+									
+									tf_rate_limit.setTagMinShareRatio( sr );
+									
+								}			
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					}
+				});
+			}
 		}
 
 		if ( tag_type.hasTagTypeFeature( TagFeature.TF_RUN_STATE )) {

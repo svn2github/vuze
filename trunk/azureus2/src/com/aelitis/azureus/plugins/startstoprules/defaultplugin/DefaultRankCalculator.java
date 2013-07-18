@@ -24,19 +24,23 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 /**
  * @author TuxPaper
  * @created Dec 13, 2005
  *
  */
-public class DefaultRankCalculator implements Comparable {
+public class DefaultRankCalculator implements DownloadManagerStateAttributeListener, Comparable {
 	/** All of the First Priority rules must match */
 	public static final int FIRSTPRIORITY_ALL = 0;
 
@@ -170,7 +174,7 @@ public class DefaultRankCalculator implements Comparable {
 	//
 	// Class variables
 
-	protected Download dl;
+	protected final Download dl;
 
 	private boolean bActivelyDownloading;
 
@@ -188,6 +192,8 @@ public class DefaultRankCalculator implements Comparable {
 
 	private boolean bIsFirstPriority;
 
+	private int	dlSpecificMinShareRatio;
+	
 	/** Public for tooltip to access it */
 	public String sExplainFP = "";
 
@@ -222,6 +228,14 @@ public class DefaultRankCalculator implements Comparable {
 		rules = _rules;
 		dl = _dl;
 
+		DownloadManager core_dm = PluginCoreUtils.unwrap( dl );
+		
+		DownloadManagerState dm_state = core_dm.getDownloadState();
+		
+		dlSpecificMinShareRatio = dm_state.getIntParameter( DownloadManagerState.PARAM_MIN_SHARE_RATIO );
+
+		dm_state.addListener( this, DownloadManagerState.AT_PARAMETERS, DownloadManagerStateAttributeListener.WRITTEN );
+		
 		try {
 			downloadData_this_mon.enter();
 
@@ -239,6 +253,29 @@ public class DefaultRankCalculator implements Comparable {
 		} finally {
 			downloadData_this_mon.exit();
 		}
+	}
+	
+	public void 
+	attributeEventOccurred(
+		DownloadManager 	download, 
+		String 				attribute, 
+		int 				event_type)
+	{
+		DownloadManager core_dm = PluginCoreUtils.unwrap( dl );
+		
+		DownloadManagerState dm_state = core_dm.getDownloadState();
+		
+		dlSpecificMinShareRatio = dm_state.getIntParameter( DownloadManagerState.PARAM_MIN_SHARE_RATIO );
+	}
+	
+	protected void
+	destroy()
+	{
+		DownloadManager core_dm = PluginCoreUtils.unwrap( dl );
+		
+		DownloadManagerState dm_state = core_dm.getDownloadState();
+		
+		dm_state.removeListener( this, DownloadManagerState.AT_PARAMETERS, DownloadManagerStateAttributeListener.WRITTEN );
 	}
 
 	/**
@@ -819,12 +856,17 @@ public class DefaultRankCalculator implements Comparable {
 		}
 
 		int shareRatio = dl.getStats().getShareRatio();
+		
+		int	activeMinSR = dlSpecificMinShareRatio;
+		if ( activeMinSR <= 0 ){
+			activeMinSR = minQueueingShareRatio;
+		}
 		boolean bLastMatched = (shareRatio != -1)
-				&& (shareRatio < minQueueingShareRatio);
+				&& (shareRatio < activeMinSR);
 
 		if (rules.bDebugLog)
 			sExplainFP += "  shareRatio(" + shareRatio + ") < "
-					+ minQueueingShareRatio + "=" + bLastMatched + "\n";
+					+ activeMinSR + "=" + bLastMatched + "\n";
 
 		if (!bLastMatched && iFirstPriorityType == FIRSTPRIORITY_ALL) {
 			if (rules.bDebugLog)
