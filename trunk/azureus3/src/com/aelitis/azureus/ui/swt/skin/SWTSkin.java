@@ -34,6 +34,7 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -1461,6 +1462,15 @@ public class SWTSkin
 					sType
 				};
 			}
+			
+			int iMinUserMode = properties.getIntValue(sConfigID + ".minUserMode", -1);
+			if (iMinUserMode > 0) {
+				int userMode = COConfigurationManager.getIntParameter("User Mode");
+				if (userMode <= iMinUserMode) {
+					return null;
+				}
+			}
+
 
 			if (sType.equals("image")) {
 				skinObject = createImageLabel(properties, sID, sConfigID, sTypeParams,
