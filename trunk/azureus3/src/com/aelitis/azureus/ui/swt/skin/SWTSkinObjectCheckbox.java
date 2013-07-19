@@ -63,8 +63,18 @@ public class SWTSkinObjectCheckbox
 		// WinXP Classic Theme will not bring though parent's background image
 		// without FORCEing the background mode
 		createOn.setBackgroundMode(SWT.INHERIT_FORCE);
+		
+		int style = SWT.WRAP | SWT.CHECK;
+		String[] styles = properties.getStringArray(configID + ".style");
+		if (styles != null) {
+			for (String s : styles) {
+				if (s.toLowerCase().equals("radio")) {
+					style = SWT.RADIO | (style & (~SWT.CHECK));
+				}
+			}
+		}
 
-		button = new Button(createOn, SWT.CHECK | SWT.WRAP);
+		button = new Button(createOn, style);
 		checked = false;
 
 		button.addSelectionListener(new SelectionListener() {
