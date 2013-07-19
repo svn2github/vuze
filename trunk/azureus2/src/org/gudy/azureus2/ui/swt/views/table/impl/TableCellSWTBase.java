@@ -748,6 +748,10 @@ public abstract class TableCellSWTBase
 				if (!bWasValid && !hasFlag(FLAG_MUSTREFRESH)) {
 					setFlag(FLAG_VALID);
 				}
+			} else {
+				if (bCellVisible && bDebug) {
+					debug("Skipped refresh; Interval=" + iInterval);
+				}
 			}
 			loopFactor++;
 			refreshErrLoopCount = 0;
@@ -1118,7 +1122,7 @@ public abstract class TableCellSWTBase
 		if (bDebug) {
 			debug("doPaint up2date:" + hasFlag(FLAG_UPTODATE) + ";v:" + hasFlag(FLAG_VALID) + ";rl=" + refreshListeners);
 		}
-		
+
 		invokeSWTPaintListeners(gc);
   }
 
@@ -1341,7 +1345,7 @@ public abstract class TableCellSWTBase
 			if (tableColumn instanceof ObfusticateCellText) {
 				return ((ObfusticateCellText)tableColumn).getObfusticatedText(this);
 			}
-			
+
 			return "";
 		}
 		return null;
