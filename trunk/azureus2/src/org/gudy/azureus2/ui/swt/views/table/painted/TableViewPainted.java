@@ -387,7 +387,7 @@ public class TableViewPainted
   					});
 					}
 					updateTable = true;
-				} else if (event.keyCode == SWT.ARROW_RIGHT) {
+				} else if (event.keyCode == SWT.ARROW_RIGHT && event.stateMask == 0) {
 					if (event.stateMask == 0 && focusedRow != null && !focusedRow.isExpanded() && canHaveSubItems()) {
 						focusedRow.setExpanded(true);
 					} else {
@@ -397,7 +397,7 @@ public class TableViewPainted
 							updateTable = true;
 						}
 					}
-				} else if (event.keyCode == SWT.ARROW_LEFT) {
+				} else if (event.keyCode == SWT.ARROW_LEFT && event.stateMask == 0) {
 					if (event.stateMask == 0 && focusedRow != null && focusedRow.isExpanded() && canHaveSubItems()) {
 						focusedRow.setExpanded(false);
 					} else {
@@ -2082,9 +2082,7 @@ public class TableViewPainted
 				for (TableRowSWT row : newlyVisibleRows) {
 					// no need to refres, the redraw will do it
 					//row.refresh(true, true);
-					row.setShown(true, false);
-					row.invalidate();
-					redrawRow((TableRowPainted) row, false);
+ 					row.setShown(true, false);
 					rowsStayedVisibleButMoved.remove(row);
 					if (Constants.isOSX) {
 						bTableUpdate = true;
@@ -2390,7 +2388,10 @@ public class TableViewPainted
 			// run refreshTable on SWT (this) thread to ensure rows have been
 			// refreshed for the updateCanvasImage call immediately after it
 			__refreshTable(false);
-			swt_updateCanvasImage(false);
+			// refreshtable will call swt_updateCanvasImage for each visible row
+			if (canvasChanged) {
+				swt_updateCanvasImage(false);
+			}
 		}
 		
 		//		System.out.println("imgBounds = " + canvasImage.getBounds() + ";ca="
@@ -2525,7 +2526,9 @@ public class TableViewPainted
 			int tableSize = cTable.getSize().x;
 			int max = columnsWidth;
 			if (vBar.isVisible()) {
-				max += vBar.getSize().x;
+				int vBarW = cTable.getSize().y - clientArea.height; // vBar.getSize().x
+
+				max += vBarW;
 			}
 			if (max < tableSize) {
 				hBar.setSelection(0);
@@ -2539,9 +2542,11 @@ public class TableViewPainted
 				hBar.setValues(hBar.getSelection(), 0, max, tableSize, 50, tableSize);
 			}
 			if (vBar != null && !vBar.isDisposed() && hBar.isVisible()) {
-				vBar.setThumb(clientArea.height - hBar.getSize().y);
-				vBar.setMaximum(totalHeight - hBar.getSize().y);
-				vBar.setPageIncrement(vBar.getPageIncrement() - hBar.getSize().y);
+				int hBarW = cTable.getSize().x - clientArea.width; // hBar.getSize().y
+
+				vBar.setThumb(clientArea.height - hBarW);
+				vBar.setMaximum(totalHeight - hBarW);
+				vBar.setPageIncrement(vBar.getPageIncrement() - hBarW);
 			}
 
 		}
@@ -2611,24 +2616,8 @@ public class TableViewPainted
 		}
 	}
 
-	public void editCell(int column, int row) {
+	public void editCell(TableColumnCore column, int row) {
 		//TODO
-	}
-
-	public int getColumnNo(int mouseX) {
-		int x = -clientArea.x;
-		TableColumnCore[] visibleColumns = getVisibleColumns();
-		for (int i = 0; i < visibleColumns.length; i++) {
-			TableColumnCore column = visibleColumns[i];
-			int w = column.getWidth();
-
-			if (mouseX >= x && mouseX < x + w) {
-				return i;
-			}
-
-			x += w;
-		}
-		return -1;
 	}
 
 	public boolean isDragging() {
@@ -2893,7 +2882,7 @@ public class TableViewPainted
   		}
   		qdRowHeightChanged = true;
 		}
-		Utils.execSWTThread(new AERunnable() {
+		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				synchronized (heightChangeSync) {
 					qdRowHeightChanged = false;
@@ -2915,7 +2904,6 @@ public class TableViewPainted
 		}
 
 		visibleRowsChanged();
-		//System.out.println("Redraw " + Debug.getCompressedStackTrace());
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
 				synchronized (TableViewPainted.this) {
