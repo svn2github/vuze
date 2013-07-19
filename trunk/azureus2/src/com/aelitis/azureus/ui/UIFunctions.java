@@ -20,9 +20,6 @@
 package com.aelitis.azureus.ui;
 
 
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
-
 import com.aelitis.azureus.core.AzureusCoreComponent;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
@@ -194,15 +191,5 @@ public interface UIFunctions
 		Object 		ds, 
 		String 		referal,
 		boolean 	launch_already_checked, 
-		boolean 	complete_only );
-
-	/**
-	 * Opens the Torrent Add Options Window, if configured to
-	 * 
-	 * @param force  Override configuration, show it!
-	 * @return true if torrent was added
-	 */
-	public boolean addTorrentWithOptions(boolean force, TorrentOpenOptions torrentOptions);
-
-	public void showErrorMessage(String keyPrefix, String details, String[] textParams); 
+		boolean 	complete_only ); 
 }
