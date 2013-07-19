@@ -120,6 +120,10 @@ public class SkinnedDialog
 		}
 		skin.layout();
 
+		int width = skin.getSkinProperties().getIntValue(shellSkinObjectID + ".width", -1);
+		int height = skin.getSkinProperties().getIntValue(shellSkinObjectID + ".height", -1);
+		shell.setSize(shell.computeSize(width, height));
+
 		Utils.verifyShellRect(shell, true);
 		Utils.centerWindowRelativeTo(shell, mainShell);
 
