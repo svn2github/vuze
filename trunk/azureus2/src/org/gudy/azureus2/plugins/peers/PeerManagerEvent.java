@@ -24,13 +24,20 @@ package org.gudy.azureus2.plugins.peers;
 public interface 
 PeerManagerEvent 
 {
+	/** Peer Added: Use getPeer */
 	public static final int ET_PEER_ADDED			= 1;		// getPeer
+	/** Peer Removed: Use getPeer */
 	public static final int ET_PEER_REMOVED			= 2;		// getPeer
+	/** Peer Discovered: getPeerDescriptor for discovery information; getPeer() returns peer that discovered it. */
 	public static final int ET_PEER_DISCOVERED		= 3;		// getPeerDescriptor; opt getPeer if discovered from a Peer
+	/** Peer Sent Bad Data: {@link #getPeer()}; {@link #getData()} to retrieve {@link Integer} piece number */
 	public static final int ET_PEER_SENT_BAD_DATA	= 4;		// getPeer; getData -> Integer piece number
 
+	/** Piece Activated: Use {@link #getPeer()}; {@link #getData()} returns Piece Object */
 	public static final int ET_PIECE_ACTIVATED			= 5;		// opt getPeer; getData -> Piece object
+	/** Piece Deactivated: Use {@link #getPeer()}; {@link #getData()} returns Piece Object */
 	public static final int ET_PIECE_DEACTIVATED		= 6;		// getData -> Piece object
+	/** Piece Completion Changed: Use {@link #getPeer()}; {@link #getData()} returns Piece Object */
 	public static final int ET_PIECE_COMPLETION_CHANGED	= 7;		// getData -> Piece object
 	
 	public PeerManager
