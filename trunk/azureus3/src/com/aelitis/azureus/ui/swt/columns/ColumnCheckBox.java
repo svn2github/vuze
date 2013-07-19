@@ -25,9 +25,9 @@
 package com.aelitis.azureus.ui.swt.columns;
 
 import org.eclipse.swt.graphics.Rectangle;
+
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTGraphicImpl;
-
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener;
@@ -65,11 +65,19 @@ ColumnCheckBox
 
 	public 
 	ColumnCheckBox(
-		TableColumn column ) 
+		TableColumn column,
+		int width ) 
 	{
-		column.setWidth(40);
+		column.setWidth(width);
 		column.setType( TableColumn.TYPE_GRAPHIC );
 		column.addListeners(this);
+	}
+
+	public 
+	ColumnCheckBox(
+		TableColumn column ) 
+	{
+		this(column, 40);
 	}
 	
 	protected abstract Boolean
@@ -125,9 +133,10 @@ ColumnCheckBox
 	refresh(
 		TableCell cell )
 	{
-		Boolean state = getCheckBoxState( cell.getDataSource());
+		Object dataSource = cell.getDataSource();
+		Boolean state = getCheckBoxState( dataSource);
 		
-		int 			sortVal = 0;
+		long 			sortVal = 0;
 		UISWTGraphic	icon 	= null;
 
 		if ( state != null ){
@@ -144,6 +153,8 @@ ColumnCheckBox
 			}
 		}
 		
+		sortVal = adjustSortVal(dataSource, sortVal);
+		
 		if (!cell.setSortValue(sortVal) && cell.isValid()) {
 			return;
 		}
@@ -156,5 +167,9 @@ ColumnCheckBox
     	
 			cell.setGraphic( icon );
 		}
+	}
+
+	public long adjustSortVal(Object ds, long sortVal) {
+		return sortVal;
 	}
 }
