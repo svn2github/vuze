@@ -49,8 +49,8 @@ public class MainMenu
 	 */
 	public MainMenu(SWTSkin skin, final Shell shell) {
 		if (null == skin) {
-			throw new NullPointerException(
-					"The parameter [SWTSkin skin] can not be null");
+			System.err.println("MainMenu: The parameter [SWTSkin skin] can not be null");
+			return;
 		}
 
 		buildMenu(shell);
