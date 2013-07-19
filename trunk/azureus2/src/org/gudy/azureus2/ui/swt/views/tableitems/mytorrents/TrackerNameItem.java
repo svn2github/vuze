@@ -33,7 +33,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.util.StringInterner;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
-
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -68,89 +67,98 @@ public class TrackerNameItem
     if( dm != null && dm.getTorrent() != null ) {
     	TOTorrent torrent = dm.getTorrent();
 
-    	Set<String> pref_names = MyTorrentsView.preferred_tracker_names;
+    	name = getTrackerName(torrent);
     	
-    	URL	url = null;
-    	
-    	if ( pref_names != null ){
-    		
-    		TOTorrentAnnounceURLSet[] sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
-    		
-    		if ( sets.length > 0 ){
-    			
-    			String host = torrent.getAnnounceURL().getHost();
-    			
-    			if ( pref_names.contains( host )){
-    				
-    				url = torrent.getAnnounceURL();
-    				
-    			}else{
-    				
-    				for ( TOTorrentAnnounceURLSet set: sets ){
-    					
-    					URL[] urls = set.getAnnounceURLs();
-    					
-    					for ( URL u: urls ){
-    						
-    						if ( pref_names.contains( u.getHost())){
-    							
-    							url = u;
-    							
-    							break;
-    						}
-    					}
-    					
-    					if ( url != null ){
-    						
-    						break;
-    					}
-    				}
-    			}
-    		}
-    	}
-    	
-    	if ( url == null ){
-    		
-    		url = torrent.getAnnounceURL();
-    	}
-    	
-    	String host = url.getHost();
-    	
-    	if ( host.endsWith( ".dht" )){
-    		
-    		name = "dht";
-    		
-    	}else{
-    		
-	    	String[] parts = host.split( "\\." );
-	
-	    	int used = 0;
-	    	for( int i = parts.length-1; i >= 0; i-- ) {
-	    		if( used > 4 ) break; //don't use more than 4 segments
-	    		String chunk = parts[ i ];
-	    		if( used < 2 || chunk.length() < 11 ) {  //use first end two always, but trim out >10 chars (passkeys)
-	    			if( used == 0 ) name = chunk;
-	    			else name = chunk + "." + name;
-	    			used++;
-	    		}
-	    		else break;
-	    	}
-    	}
-    	
-    	if(name.equals(host)){
-    		
-    		name = host;
-    		
-    	}else{
-    		
-    		name = StringInterner.intern(name);
-    	}
     }
         
     if (cell.setText(name) || !cell.isValid()) {
     	TrackerCellUtils.updateColor(cell, dm, false);
     }
   }
+
+	public static String getTrackerName(TOTorrent torrent) {
+		String name =  "";
+
+		Set<String> pref_names = MyTorrentsView.preferred_tracker_names;
+  	
+  	URL	url = null;
+  	
+  	if ( pref_names != null ){
+  		
+  		TOTorrentAnnounceURLSet[] sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+  		
+  		if ( sets.length > 0 ){
+  			
+  			String host = torrent.getAnnounceURL().getHost();
+  			
+  			if ( pref_names.contains( host )){
+  				
+  				url = torrent.getAnnounceURL();
+  				
+  			}else{
+  				
+  				for ( TOTorrentAnnounceURLSet set: sets ){
+  					
+  					URL[] urls = set.getAnnounceURLs();
+  					
+  					for ( URL u: urls ){
+  						
+  						if ( pref_names.contains( u.getHost())){
+  							
+  							url = u;
+  							
+  							break;
+  						}
+  					}
+  					
+  					if ( url != null ){
+  						
+  						break;
+  					}
+  				}
+  			}
+  		}
+  	}
+  	
+  	if ( url == null ){
+  		
+  		url = torrent.getAnnounceURL();
+  	}
+  	
+  	String host = url.getHost();
+  	
+  	if ( host.endsWith( ".dht" )){
+  		
+  		name = "dht";
+  		
+  	}else{
+  		
+    	String[] parts = host.split( "\\." );
+
+    	int used = 0;
+    	for( int i = parts.length-1; i >= 0; i-- ) {
+    		if( used > 4 ) break; //don't use more than 4 segments
+    		String chunk = parts[ i ];
+    		if( used < 2 || chunk.length() < 11 ) {  //use first end two always, but trim out >10 chars (passkeys)
+    			if( used == 0 ) name = chunk;
+    			else name = chunk + "." + name;
+    			used++;
+    		}
+    		else break;
+    	}
+  	}
+  	
+  	if(name.equals(host)){
+  		
+  		name = host;
+  		
+  	}else{
+  		
+  		name = StringInterner.intern(name);
+  	}
+  	
+  	return name;
+	}
 
 	public void cellHover(TableCell cell) {
 		DownloadManager dm = (DownloadManager) cell.getDataSource();
