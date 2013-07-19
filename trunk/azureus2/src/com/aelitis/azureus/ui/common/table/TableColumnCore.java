@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.IndentWriter;
-
 import org.gudy.azureus2.plugins.ui.tables.*;
 
 /** 
@@ -307,17 +306,6 @@ public interface TableColumnCore
 	boolean doesAutoTooltip();
 	
 
-	boolean isInplaceEdit();
-	void setInplaceEdit(boolean editable);
-	
-	/**
-	 * Override this function to obtain edited values 
-	 * @param cell that is being edited
-	 * @param value the new value
-	 * @param finalEdit true if the user finalizes his editing
-	 * @return should be false if the currently entered value is invalid
-	 */
-	boolean inplaceValueSet(TableCell cell, String value, boolean finalEdit);
 
 	/**
 	 * @param listenerID
@@ -374,4 +362,10 @@ public interface TableColumnCore
 	public void addDataSourceType(Class<?> forDataSourceType);
 	
 	public boolean showOnlyImage();
+
+	public TableCellInplaceEditorListener getInplaceEditorListener();
+
+	public boolean hasInplaceEditorListener();
+
+	void setInplaceEditorListener(TableCellInplaceEditorListener l);
 }

@@ -24,14 +24,12 @@ import org.eclipse.swt.dnd.DragSource;
 import org.eclipse.swt.dnd.DropTarget;
 import org.eclipse.swt.dnd.DropTargetEvent;
 import org.eclipse.swt.events.KeyListener;
-import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_TabsCommon;
-import org.gudy.azureus2.ui.swt.views.table.painted.TableRowPainted;
 
 import com.aelitis.azureus.ui.common.table.*;
 
@@ -223,11 +221,9 @@ public interface TableViewSWT<DATASOURCETYPE>
 
 	public void setRowSelected(final TableRowCore row, boolean selected, boolean trigger);
 
-	void editCell(int column, int row);
+	void editCell(TableColumnCore column, int row);
 
 	void invokeRowMouseListener(TableRowMouseEvent event);
-
-	int getColumnNo(int iMouseX);
 
 	boolean isDragging();
 

@@ -155,7 +155,7 @@ public class TableViewSWT_Common
 			tv.setSelectedRows(new TableRowCore[0]);
 		}
 
-		tv.editCell(-1, -1); // clear out current cell editor
+		tv.editCell(null, -1); // clear out current cell editor
 
 		if (cell != null && tc != null) {
 			if (e.button == 2 && e.stateMask == SWT.CONTROL) {
@@ -173,9 +173,9 @@ public class TableViewSWT_Common
 					lCancelSelectionTriggeredOn = System.currentTimeMillis();
 				}
 			}
-			if (tc.isInplaceEdit() && e.button == 1
+			if (tc.hasInplaceEditorListener() && e.button == 1
 					&& lastClickRow == cell.getTableRowCore()) {
-				tv.editCell(tv.getColumnNo(e.x), cell.getTableRowCore().getIndex());
+				tv.editCell(tv.getTableColumnByOffset(e.x), cell.getTableRowCore().getIndex());
 			}
 			if (e.button == 1) {
 				lastClickRow = cell.getTableRowCore();

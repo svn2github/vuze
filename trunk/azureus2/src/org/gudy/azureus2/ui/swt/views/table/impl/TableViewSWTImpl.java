@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.tables.TableCellInplaceEditorListener;
 import org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent;
 import org.gudy.azureus2.plugins.ui.tables.TableRowMouseListener;
 import org.gudy.azureus2.ui.swt.*;
@@ -611,7 +612,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#editCell(int, int)
 	 */
-	public void editCell(final int column, final int row) {
+	public void editCell(final TableColumnCore column, final int row) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				swt_editCell(column, row);
@@ -619,10 +620,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		});
 	}
 
-	private void swt_editCell(final int column, final int row) {
+	private void swt_editCell(final TableColumnCore column, final int row) {
 		Text oldInput = (Text) editor.getEditor();
-		if (column >= table.getColumnCount() || row < 0
-				|| row >= table.getItemCount()) {
+		if (row < 0 || row >= table.getItemCount()) {
 			cellEditNotifier = null;
 			if (oldInput != null && !oldInput.isDisposed()) {
 				editor.getEditor().dispose();
@@ -630,10 +630,9 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return;
 		}
 
-		TableColumnOrTreeColumn tcColumn = table.getColumn(column);
 		final TableItemOrTreeItem item = table.getItem(row);
 
-		String cellName = (String) tcColumn.getData("Name");
+		String cellName = column.getName();
 		final TableRowSWT rowSWT = (TableRowSWT) getRow(row);
 		final TableCellSWT cell = rowSWT.getTableCellSWT(cellName);
 
@@ -646,7 +645,10 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		}
 
 		table.showItem(item);
-		table.showColumn(tcColumn);
+		showColumn(column);
+		
+		TableColumnOrTreeColumn swtColumn = getSWTColumn(column);
+		final int swtColumnNo = table.indexOf(swtColumn);
 
 		newInput.setText(cell.getText());
 
@@ -675,8 +677,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					sourcesChanged();
 					return;
 				}
-				if (((TableColumnCore) cell.getTableColumn()).inplaceValueSet(cell,
-						newInput.getText(), false)) {
+				TableColumnCore columnCore = (TableColumnCore) cell.getTableColumn();
+				TableCellInplaceEditorListener inplaceEditorListener = columnCore.getInplaceEditorListener();
+				if (inplaceEditorListener != null
+						&& inplaceEditorListener.inplaceValueSet(cell, newInput.getText(),
+								false)) {
 					newInput.setBackground(null);
 				} else {
 					newInput.setBackground(Colors.colorErrorBG);
@@ -689,8 +694,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 					newInput.traverse(SWT.TRAVERSE_RETURN);
 					return;
 				}
-				((TableColumnCore) cell.getTableColumn()).inplaceValueSet(cell,
-						newInput.getText(), true);
+				TableColumnCore columnCore = (TableColumnCore) cell.getTableColumn();
+				TableCellInplaceEditorListener inplaceEditorListener = columnCore.getInplaceEditorListener();
+				if (inplaceEditorListener != null) {
+						inplaceEditorListener.inplaceValueSet(cell, newInput.getText(), true);
+				}
 				rowSWT.invalidate();
 				editCell(column, row + 1);
 			}
@@ -749,11 +757,11 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 				Point sel = newInput.getSelection();
 
-				TableOrTreeUtils.setEditorItem(editor, newInput, column, item);
+				TableOrTreeUtils.setEditorItem(editor, newInput, swtColumnNo, item);
 
 				editor.minimumWidth = newInput.computeSize(SWT.DEFAULT, SWT.DEFAULT).x;
 
-				Rectangle leftAlignedBounds = item.getBounds(column);
+				Rectangle leftAlignedBounds = item.getBounds(swtColumnNo);
 				leftAlignedBounds.width = editor.minimumWidth = newInput.computeSize(
 						SWT.DEFAULT, SWT.DEFAULT).x;
 				if (leftAlignedBounds.intersection(clientArea).equals(leftAlignedBounds)) {
@@ -778,7 +786,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 		l.modifyText(null);
 
-		TableOrTreeUtils.setEditorItem(editor, newInput, column, item);
+		TableOrTreeUtils.setEditorItem(editor, newInput, swtColumnNo, item);
 		table.deselectAll();
 		table.select(table.getItem(row));
 		setSelectedRows(new TableRowCore[] { getRow(row) }, true);
@@ -786,6 +794,22 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		l.resizing = false;
 
 		l.controlMoved(null);
+	}
+
+	private TableColumnOrTreeColumn getSWTColumn(TableColumnCore tc) {
+		int[] columnOrder = table.getColumnOrder();
+		int i = tc.getPosition() - (bSkipFirstColumn ? 1 : 0);
+		if (i < 0 || i >= columnOrder.length) {
+			return null;
+		}
+		return table.getColumn(columnOrder[i]);
+	}
+
+	private void showColumn(TableColumnCore tc) {
+		TableColumnOrTreeColumn swtColumn = getSWTColumn(tc);
+		if (swtColumn != null) {
+			table.showColumn(swtColumn);
+		}
 	}
 
 	private void swt_updateColumnVisibilities(boolean doInvalidate) {
@@ -1875,39 +1899,6 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 	}
 
 	/* (non-Javadoc)
-	 * @see org.gudy.azureus2.ui.swt.views.table.TableViewSWT#getColumnNo(int)
-	 */
-	public int getColumnNo(int iMouseX) {
-		int iColumn = -1;
-		int itemCount = table.getItemCount();
-		if (table.getItemCount() > 0) {
-			//Using  table.getTopIndex() instead of 0, cause
-			//the first row has no bounds when it's not visible under OS X.
-			int topIndex = table.getTopIndex();
-			if (topIndex >= itemCount || topIndex < 0) {
-				topIndex = itemCount - 1;
-			}
-			TableItemOrTreeItem ti = table.getItem(topIndex);
-			if (ti.isDisposed()) {
-				return -1;
-			}
-			for (int i = bSkipFirstColumn ? 1 : 0; i < table.getColumnCount(); i++) {
-				// M8 Fixes SWT GTK Bug 51777:
-				//  "TableItem.getBounds(int) returns the wrong values when table scrolled"
-				Rectangle cellBounds = ti.getBounds(i);
-				//System.out.println("i="+i+";Mouse.x="+iMouseX+";cellbounds="+cellBounds);
-				if (iMouseX >= cellBounds.x
-						&& iMouseX < cellBounds.x + cellBounds.width
-						&& cellBounds.width > 0) {
-					iColumn = i;
-					break;
-				}
-			}
-		}
-		return iColumn;
-	}
-
-	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.common.table.TableView#getRow(int, int)
 	 */
 	public TableRowCore getRow(int x, int y) {
@@ -1958,6 +1949,36 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 			return null;
 		}
 		return (TableRowSWT) getRow(item);
+	}
+
+	private int getColumnNo(int iMouseX) {
+		int iColumn = -1;
+		int itemCount = table.getItemCount();
+		if (table.getItemCount() > 0) {
+			//Using  table.getTopIndex() instead of 0, cause
+			//the first row has no bounds when it's not visible under OS X.
+			int topIndex = table.getTopIndex();
+			if (topIndex >= itemCount || topIndex < 0) {
+				topIndex = itemCount - 1;
+			}
+			TableItemOrTreeItem ti = table.getItem(topIndex);
+			if (ti.isDisposed()) {
+				return -1;
+			}
+			for (int i = bSkipFirstColumn ? 1 : 0; i < table.getColumnCount(); i++) {
+				// M8 Fixes SWT GTK Bug 51777:
+				//  "TableItem.getBounds(int) returns the wrong values when table scrolled"
+				Rectangle cellBounds = ti.getBounds(i);
+				//System.out.println("i="+i+";Mouse.x="+iMouseX+";cellbounds="+cellBounds);
+				if (iMouseX >= cellBounds.x
+						&& iMouseX < cellBounds.x + cellBounds.width
+						&& cellBounds.width > 0) {
+					iColumn = i;
+					break;
+				}
+			}
+		}
+		return iColumn;
 	}
 
 	/* (non-Javadoc)

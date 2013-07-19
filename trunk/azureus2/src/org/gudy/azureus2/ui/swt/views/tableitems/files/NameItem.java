@@ -29,7 +29,6 @@ import java.io.IOException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
-import org.eclipse.swt.widgets.MessageBox;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -43,7 +42,6 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateCellText;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
-
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -57,7 +55,7 @@ import com.aelitis.azureus.core.AzureusCoreOperationTask;
  * @author TuxPaper (2004/Apr/17: modified to TableCellAdapter)
  */
 public class NameItem extends CoreTableColumnSWT implements
-		TableCellLightRefreshListener, ObfusticateCellText, TableCellDisposeListener
+		TableCellLightRefreshListener, ObfusticateCellText, TableCellDisposeListener, TableCellInplaceEditorListener
 {
 	private static boolean bShowIcon;
 
@@ -76,18 +74,18 @@ public class NameItem extends CoreTableColumnSWT implements
 	public NameItem() {
 		super("name", ALIGN_LEAD, POSITION_LAST, 300,
 				TableManager.TABLE_TORRENT_FILES);
-		setInplaceEdit(true);
+		setInplaceEditorListener(this);
 		setType(TableColumn.TYPE_TEXT);
 		menuItem = addContextMenuItem("FilesView.name.fastRename");
 		
 		menuItem.setStyle(MenuItem.STYLE_CHECK);
 		//menuItem.setText(MessageText.getString("FilesView.name.fastRename")); TODO make this work
-		menuItem.setData(Boolean.valueOf(isInplaceEdit()));
+		menuItem.setData(Boolean.valueOf(hasInplaceEditorListener()));
 
 		menuItem.addMultiListener(new MenuItemListener() {
 			public void selected(MenuItem menu, Object target) {
-				menu.setData(Boolean.valueOf(!isInplaceEdit())); // XXX broken, should toggle checkmarks
-				setInplaceEdit(!isInplaceEdit());
+				menu.setData(Boolean.valueOf(!hasInplaceEditorListener()));
+				setInplaceEditorListener(hasInplaceEditorListener() ? null : NameItem.this);
 			}
 		});
 	}
@@ -100,12 +98,12 @@ public class NameItem extends CoreTableColumnSWT implements
 	}
 	
 	public void postConfigLoad() {
-		setInplaceEdit(getUserData("noInplaceEdit") == null);
-		menuItem.setData(Boolean.valueOf(isInplaceEdit()));
+		setInplaceEditorListener(getUserData("noInplaceEdit") == null ? null : this);
+		menuItem.setData(Boolean.valueOf(hasInplaceEditorListener()));
 	}
 	
 	public void preConfigSave() {
-		if(isInplaceEdit())
+		if(hasInplaceEditorListener())
 			removeUserData("noInplaceEdit");
 		else
 			setUserData("noInplaceEdit", new Integer(1));

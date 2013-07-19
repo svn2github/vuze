@@ -40,7 +40,6 @@ import org.gudy.azureus2.plugins.tracker.TrackerTorrent;
 import org.gudy.azureus2.plugins.ui.UIRuntimeException;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.tables.*;
-
 import org.gudy.azureus2.pluginsimpl.local.ui.tables.TableContextMenuItemImpl;
 
 /** 
@@ -90,6 +89,8 @@ public class TableColumnImpl
 	private boolean bColumnAdded;
 
 	private boolean bCoreDataSource;
+	
+	private TableCellInplaceEditorListener cellEditorListener;
 
 	private ArrayList<TableCellRefreshListener> cellRefreshListeners;
 
@@ -132,8 +133,6 @@ public class TableColumnImpl
 	private boolean bSortAscending;
 	private boolean bDefaultSortAscending;
 	
-	private boolean editable;
-
 	private int iMinWidth = -1;
 
 	private int iMaxWidth = -1;
@@ -1574,16 +1573,16 @@ public class TableColumnImpl
 		return this.auto_tooltip;
 	}
 	
-	public boolean isInplaceEdit() {
-		return editable;
+	public void setInplaceEditorListener(TableCellInplaceEditorListener l) {
+		cellEditorListener = l;
 	}
 	
-	public void setInplaceEdit(boolean editable) {
-		this.editable = editable;		
+	public boolean hasInplaceEditorListener() {
+		return cellEditorListener != null;
 	}
 	
-	public boolean inplaceValueSet(TableCell cell, String value, boolean finalEdit) {
-		return false;
+	public TableCellInplaceEditorListener getInplaceEditorListener() {
+		return cellEditorListener;
 	}
 
 	public Class[] getForDataSourceTypes() {
