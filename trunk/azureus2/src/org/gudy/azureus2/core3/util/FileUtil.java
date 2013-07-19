@@ -2180,4 +2180,138 @@ public class FileUtil {
 			return( script_encoding );
 		}
 	}
+	
+	public static InternedFile
+	internFileComponents(
+		File		file )
+	{
+		if ( file == null ){
+			
+			return( null );
+		}
+		
+		List<String>	comps = new ArrayList<String>(100);
+	
+		File comp = file;
+
+		while( comp != null ){
+			
+			String name = comp.getName();
+			
+			if ( name.length() > 0 ){
+				
+				comps.add( StringInterner.intern( name ));
+				
+			}else{
+				
+				String path = comp.getPath();
+				
+				if ( path.length() > 0 ){
+					
+					comps.add( StringInterner.intern( path ));
+				}
+			}
+			
+			comp = comp.getParentFile();
+		}
+		
+		InternedFile res = new InternedFile(comps.toArray( new String[comps.size()]));
+		
+		if ( !res.getFile().equals( file )){
+			
+			Debug.out( "intern failed for " + file + " (" + res.getFile() + ")" );
+		}
+		
+		return( res );
+	}
+	
+	public static class
+	InternedFile
+	{
+		private final String[]	comps;
+		
+		private 
+		InternedFile(
+			String[]	_comps )
+		{
+			comps	= _comps;
+		}
+		
+		public File
+		getFile()
+		{
+			if ( comps.length == 0 ){
+				
+				return( new File( "" ));
+				
+			}else if ( comps.length == 1 ){
+				
+				return( new File( comps[0] ));
+				
+			}else{
+				
+				StringBuffer b = new StringBuffer(256);
+			
+				for (int i=comps.length-1;i>=0;i--){
+
+					if ( b.length() > 0 ){
+						
+						b.append( File.separatorChar );
+					}
+					
+					b.append( comps[i] );
+				}
+								
+				return( new File( b.toString()));
+			}
+		}
+		
+		@Override
+		public boolean
+		equals(
+			Object	other )
+		{
+			if ( other instanceof InternedFile ){
+				
+				InternedFile o = (InternedFile)other;
+				
+				if ( comps.length != o.comps.length ){
+					
+					return( false );
+				}
+						
+				for ( int i=comps.length-1;i>= 0; i-- ){
+				
+					if ( !comps[i].equals( o.comps[i] )){
+						
+						return( false );
+					}
+				}
+				
+				return( true );
+				
+			}else if ( other instanceof File ){
+				
+				return( getFile().equals( other ));
+				
+			}else{
+				
+				return( false );
+			}
+		}
+		
+		@Override
+		public int
+		hashCode()
+		{
+			int	h = 0;
+			
+			for ( String s: comps ){
+				
+				h += s.hashCode();
+			}
+			
+			return( h );
+		}
+	}
 }

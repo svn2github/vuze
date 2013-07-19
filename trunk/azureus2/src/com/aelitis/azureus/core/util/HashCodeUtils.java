@@ -76,5 +76,14 @@ public final class HashCodeUtils
         hash += (hash << 15);
         return hash;
     }
-    
+ 
+    public static final int hashCode(char[] array )
+    {
+         int h = 0;
+         int len =array.length;
+         for (int i = 0; i < len; i++) {
+        	 h = 31*h + array[i];
+         }
+         return( h );
+    }
 }

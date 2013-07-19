@@ -207,6 +207,8 @@ StringInterner
 					if (internedEntry != null && (internedString = internedEntry.getString()) != null)
 						hit = true;
 					else {
+						toIntern = new String( toIntern );	// this trims any baggage that might be included in the original string due to char[] sharing for substrings etc
+						checkEntry = new WeakStringEntry( toIntern );
 						managedInterningSet.add(checkEntry);
 						internedString = toIntern;
 					}
@@ -229,6 +231,69 @@ StringInterner
 		
 		return internedString;
 	}
+	
+	public static char[] intern(char[] toIntern) {
+		
+		if ( DISABLE_INTERNING ){
+			return( toIntern );
+		}
+		
+		if(toIntern == null)
+			return null;
+		
+		char[] internedCharArray;
+		
+		WeakCharArrayEntry checkEntry = new WeakCharArrayEntry(toIntern);
+
+		WeakCharArrayEntry internedEntry = null;
+		boolean hit = false;
+		
+		managedSetLock.readLock().lock();
+		try {
+			
+			internedEntry = (WeakCharArrayEntry) managedInterningSet.get(checkEntry);
+			
+			if (internedEntry != null && (internedCharArray = internedEntry.getCharArray()) != null)
+				hit = true;
+			else
+			{
+				managedSetLock.readLock().unlock();
+				managedSetLock.writeLock().lock();
+				try{
+					sanitize(false);
+					
+					// get again, weakrefs might have expired and been added by another thread concurrently
+					internedEntry = (WeakCharArrayEntry) managedInterningSet.get(checkEntry);
+	
+					if (internedEntry != null && (internedCharArray = internedEntry.getCharArray()) != null)
+						hit = true;
+					else {
+						managedInterningSet.add(checkEntry);
+						internedCharArray = toIntern;
+					}
+				}finally{
+					managedSetLock.readLock().lock();
+					managedSetLock.writeLock().unlock();
+				}
+			}
+		} finally {
+			managedSetLock.readLock().unlock();
+		}
+		
+		if(hit) {
+			System.out.println( "hit for " + new String(toIntern ));
+			internedEntry.incHits();
+			checkEntry.destroy();
+			if(TRACE_MULTIHITS && internedEntry.hits % 10 == 0)
+				System.out.println("multihit "+internedEntry);
+		}
+
+		
+		return internedCharArray;
+	}
+	
+	
+	
 	
 	public static byte[] internBytes(byte[] toIntern) {
 		
@@ -611,6 +676,37 @@ StringInterner
 
 		public String toString() {
 			return super.toString() + " " + (getArray() == null ? "null" : new String(getArray()));
+		}
+	}
+	
+	private static class WeakCharArrayEntry extends WeakWeightedEntry {
+		public WeakCharArrayEntry(char[] array)
+		{
+			// byte-array object
+			super(array, HashCodeUtils.hashCode(array), array.length + 8);
+		}
+
+		/**
+		 * override equals since byte arrays need Arrays.equals
+		 */
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj instanceof WeakCharArrayEntry)
+			{
+				char[] myArray = getCharArray();
+				char[] otherArray = ((WeakCharArrayEntry) obj).getCharArray();
+				return myArray == null ? false : Arrays.equals(myArray, otherArray);
+			}
+			return false;
+		}
+
+		public char[] getCharArray() {
+			return (char[]) get();
+		}
+
+		public String toString() {
+			return super.toString() + " " + (getCharArray() == null ? "null" : new String(getCharArray()));
 		}
 	}
 	
