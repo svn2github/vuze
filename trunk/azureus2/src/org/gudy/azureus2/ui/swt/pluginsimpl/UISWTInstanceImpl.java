@@ -32,6 +32,7 @@ import java.util.*;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Resource;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
 
@@ -94,6 +95,8 @@ UISWTInstanceImpl
 	private boolean bUIAttaching;
 
 	private final UIFunctionsSWT uiFunctions;
+	
+	List<Resource> listDisposeOnUnload = new ArrayList<Resource>();
 
 	
 	public UISWTInstanceImpl() {
@@ -564,7 +567,9 @@ UISWTInstanceImpl
 				Debug.out(e);
 			}
 		    
-			return new Image(getDisplay(), imageData);
+			Image image = new Image(getDisplay(), imageData);
+			listDisposeOnUnload.add(image);
+			return image;
 		}
 		
 		return null;
@@ -1084,5 +1089,7 @@ UISWTInstanceImpl
 		if (toolBarManager != null) {
 			toolBarManager.piDestroyed();
 		}
+		Utils.disposeSWTObjects(listDisposeOnUnload);
+		listDisposeOnUnload.clear();
 	}
 }
