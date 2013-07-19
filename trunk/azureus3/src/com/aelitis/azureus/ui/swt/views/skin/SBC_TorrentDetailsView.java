@@ -33,7 +33,7 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
-
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -114,8 +114,10 @@ public class SBC_TorrentDetailsView
 
 	private FilterCheckHandler filter_check_handler;
 
-	private int selection_count = 0;
-
+	private volatile int selection_count = 0;
+	private volatile long selection_size;
+	private volatile long selection_done;
+	
 	private SWTSkinObjectTextbox soFilterTextBox;
 
 	private SWTSkinObjectText soInfoArea;
@@ -473,6 +475,45 @@ public class SBC_TorrentDetailsView
 			ISelectedContent[] currentContent, String viewId) {
 		selection_count = currentContent.length;
 
+		long	total_size 	= 0;
+		long	total_done	= 0;
+		
+		for ( ISelectedContent sc: currentContent ){
+			
+			DownloadManager dm = sc.getDownloadManager();
+			
+			if ( dm != null ){
+				
+				int	file_index = sc.getFileIndex();
+				
+				if ( file_index == -1 ){
+				
+					DiskManagerFileInfo[] file_infos = dm.getDiskManagerFileInfoSet().getFiles();
+					
+					for ( DiskManagerFileInfo file_info: file_infos ){
+						
+						if ( !file_info.isSkipped()){
+							
+							total_size 	+= file_info.getLength();
+							total_done	+= file_info.getDownloaded();
+						}
+					}
+				}else{
+					
+					DiskManagerFileInfo file_info = dm.getDiskManagerFileInfoSet().getFiles()[file_index];
+					
+					if ( !file_info.isSkipped()){
+					
+						total_size 	+= file_info.getLength();
+						total_done	+= file_info.getDownloaded();
+					}
+				}
+			}
+		}
+		
+		selection_size	= total_size;
+		selection_done	= total_done;
+		
 		if (filter_check_handler != null) {
 
 			Utils.execSWTThread(new AERunnable() {
@@ -493,14 +534,33 @@ public class SBC_TorrentDetailsView
 
 				if (selection_count > 1) {
 
-					s += ", " + MessageText.getString("label.num_selected", new String[] {
-						String.valueOf(selection_count)
-					});
+					s += getSelectionText();
 				}
 			}
 
 			soInfoArea.setText(s);
 		}
+	}
+	
+	private String
+	getSelectionText()
+	{
+		String str = ", " + 
+				MessageText.getString(
+				"label.num_selected", new String[]{ String.valueOf( selection_count )});
+		
+		if ( selection_size > 0 ){
+			
+			if ( selection_size == selection_done ){
+				
+				str += " (" + DisplayFormatters.formatByteCountToKiBEtc( selection_size ) + ")";
+			}else{
+				str += " (" + DisplayFormatters.formatByteCountToKiBEtc( selection_done ) + "/" + DisplayFormatters.formatByteCountToKiBEtc( selection_size ) + ")";
+
+			}
+		}
+		
+		return( str );
 	}
 
 	protected Object showView(Class view_class) {
@@ -794,9 +854,7 @@ public class SBC_TorrentDetailsView
 
 			if (selection_count > 1) {
 
-				s += ", " + MessageText.getString("label.num_selected", new String[] {
-					String.valueOf(selection_count)
-				});
+				s += s += getSelectionText();
 			}
 
 			if (soInfoArea != null) {

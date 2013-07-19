@@ -27,10 +27,12 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
-
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.disk.DiskManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
@@ -108,6 +110,8 @@ public class SBC_LibraryView
 	
 	private static volatile OverallStats 	totalStats;
 	private static volatile int				selection_count;
+	private static volatile long			selection_size;
+	private static volatile long			selection_done;
 	
 	static{
 		SimpleTimer.addPeriodicEvent(
@@ -162,6 +166,45 @@ public class SBC_LibraryView
 					String 				viewId ) 
 				{
 					selection_count = currentContent.length;
+					
+					long	total_size 	= 0;
+					long	total_done	= 0;
+					
+					for ( ISelectedContent sc: currentContent ){
+						
+						DownloadManager dm = sc.getDownloadManager();
+						
+						if ( dm != null ){
+							
+							int	file_index = sc.getFileIndex();
+							
+							if ( file_index == -1 ){
+							
+								DiskManagerFileInfo[] file_infos = dm.getDiskManagerFileInfoSet().getFiles();
+								
+								for ( DiskManagerFileInfo file_info: file_infos ){
+									
+									if ( !file_info.isSkipped()){
+										
+										total_size 	+= file_info.getLength();
+										total_done	+= file_info.getDownloaded();
+									}
+								}
+							}else{
+								
+								DiskManagerFileInfo file_info = dm.getDiskManagerFileInfoSet().getFiles()[file_index];
+								
+								if ( !file_info.isSkipped()){
+								
+									total_size 	+= file_info.getLength();
+									total_done	+= file_info.getDownloaded();
+								}
+							}
+						}
+					}
+					
+					selection_size	= total_size;
+					selection_done	= total_done;
 					
 					SB_Transfers.triggerCountRefreshListeners();
 				}
@@ -488,6 +531,17 @@ public class SBC_LibraryView
 								s += ", " + 
 										MessageText.getString(
 										"label.num_selected", new String[]{ String.valueOf( selection_count )});
+								
+								if ( selection_size > 0 ){
+									
+									if ( selection_size == selection_done ){
+										
+										s += " (" + DisplayFormatters.formatByteCountToKiBEtc( selection_size ) + ")";
+									}else{
+										s += " (" + DisplayFormatters.formatByteCountToKiBEtc( selection_done ) + "/" + DisplayFormatters.formatByteCountToKiBEtc( selection_size ) + ")";
+
+									}
+								}
 							}
 
 							if ( header_show_uptime && totalStats != null ){
