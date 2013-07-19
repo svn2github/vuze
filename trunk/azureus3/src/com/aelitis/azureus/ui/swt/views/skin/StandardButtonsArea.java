@@ -161,7 +161,8 @@ public abstract class StandardButtonsArea
 			button.setData("ButtonNo", new Integer(i));
 			button.addListener(SWT.Selection, new Listener() {
 				public void handleEvent(Event event) {
-					clicked(((Number) event.widget.getData("ButtonNo")).intValue());
+					int intValue = ((Number) event.widget.getData("ButtonNo")).intValue();
+					clicked(getButtonVal(intValue));
 				}
 			});
 		}
@@ -193,7 +194,7 @@ public abstract class StandardButtonsArea
 		});
 	}
 
-	protected abstract void clicked(int intValue);
+	protected abstract void clicked(int buttonValue);
 
 	public void setButtonEnabled(final int buttonVal, final boolean enable) {
 		buttonsEnabled.put(buttonVal, enable);
