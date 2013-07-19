@@ -286,8 +286,6 @@ public abstract class TableRowSWTBase
 			lastIndex = newIndex;
 		}
 
-		setShown(isVisible, changedIndex);
-
 		return changedIndex;
 	}
 
@@ -703,14 +701,21 @@ public abstract class TableRowSWTBase
 	 */
 	public abstract void setWidgetSelected(boolean selected);
 
+	public boolean isShown() {
+		return wasShown;
+	}
 
-	public void setShown(boolean b, boolean force) {
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.ui.swt.views.table.TableRowSWT#setShown(boolean, boolean)
+	 */
+	public boolean setShown(boolean b, boolean force) {
 		if (bDisposed) {
-			return;
+			return false;
 		}
+		//System.out.println(SystemTime.getCurrentTime() + "swtShown " + getIndex() + ";b=" + b + " via " + Debug.getCompressedStackTrace(8));
 
 		if (b == wasShown && !force) {
-			return;
+			return false;
 		}
 		wasShown = b;
 
@@ -730,6 +735,8 @@ public abstract class TableRowSWTBase
   			}
   		}
 		}
+		
+		return true;
 
 		/* Don't need to refresh; paintItem will trigger a refresh on
 		 * !cell.isUpToDate()

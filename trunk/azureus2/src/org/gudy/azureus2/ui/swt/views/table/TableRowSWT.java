@@ -95,7 +95,16 @@ public interface TableRowSWT extends TableRowCore
 	 */
 	void setWidgetSelected(boolean selected);
 
-	void setShown(boolean shown, boolean force);
+	/**
+	 * 
+	 * @param shown
+	 * @param force
+	 * 
+	 * @return true: changed
+	 */
+	public boolean setShown(boolean shown, boolean force);
 
 	public int getFullHeight();
+
+	boolean isShown();
 }

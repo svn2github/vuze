@@ -595,18 +595,22 @@ public class TableRowImpl<COREDATASOURCE>
 		return tableView;
 	}
 
+	public boolean isShown() {
+		return wasShown;
+	}
+	
 	/**
 	 * @param b
 	 *
 	 * @since 3.0.4.3
 	 */
-	public void setShown(boolean b, boolean force) {
+	public boolean setShown(boolean b, boolean force) {
 		if (bDisposed) {
-			return;
+			return false;
 		}
 
 		if (b == wasShown && !force) {
-			return;
+			return false;
 		}
 		wasShown = b;
 
@@ -617,6 +621,7 @@ public class TableRowImpl<COREDATASOURCE>
 						: TableCellVisibilityListener.VISIBILITY_HIDDEN, true);
 			}
 		}
+		return true;
 
 		/* Don't need to refresh; paintItem will trigger a refresh on
 		 * !cell.isUpToDate()

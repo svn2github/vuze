@@ -23,6 +23,7 @@ import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnSWTUtils;
 import com.aelitis.azureus.ui.common.table.TableCellCore;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 public class TableRowPainted
@@ -211,6 +212,10 @@ public class TableRowPainted
 		int x = rowStartX;
 		//boolean paintedRow = false;
 		synchronized (lock) {
+			if (mTableCells == null) {
+				// not sure if this is wise, but visibleRows seems to keep up to date.. so, it must be ok!
+				setShown(true, true);
+			}
 			if (mTableCells != null) {
 				for (TableColumn tc : visibleColumns) {
 					TableCellCore cell = mTableCells.get(tc.getName());
@@ -278,26 +283,28 @@ public class TableRowPainted
 			int w = drawBounds.width - x;
 			if (w > 0) {
 				Rectangle r = new Rectangle(x, rowStartY, w, getHeight());
-				gc.setAlpha(255);
-				if (isSelectedNotFocused) {
-					gc.setBackground(altColor);
-					gc.fillRectangle(r);
-					gc.setAlpha(100);
-					gc.setBackground(bg);
-					gc.fillRectangle(r);
-				} else {
-					gc.fillRectangle(r);
-					if (isSelected) {
-						gc.setAlpha(80);
-						gc.setForeground(altColor);
-						gc.fillGradientRectangle(r.x, r.y, r.width, r.height, true);
-						gc.setForeground(fg);
-					}
+				if (clipping.intersects(r)) {
+  				gc.setAlpha(255);
+  				if (isSelectedNotFocused) {
+  					gc.setBackground(altColor);
+  					gc.fillRectangle(r);
+  					gc.setAlpha(100);
+  					gc.setBackground(bg);
+  					gc.fillRectangle(r);
+  				} else {
+  					gc.fillRectangle(r);
+  					if (isSelected) {
+  						gc.setAlpha(80);
+  						gc.setForeground(altColor);
+  						gc.fillGradientRectangle(r.x, r.y, r.width, r.height, true);
+  						gc.setForeground(fg);
+  					}
+  				}
+  				gc.setAlpha(rowAlpha);
 				}
-				gc.setAlpha(rowAlpha);
 			}
 
-		}
+		} //synchronized (lock)
 
 		//if (paintedRow) {
 		//	debug("Paint " + e.x + "x" + e.y + " " + e.width + "x" + e.height + ".." + e.count + ";clip=" + e.gc.getClipping() +";drawOffset=" + drawOffset + " via " + Debug.getCompressedStackTrace());
@@ -658,17 +665,29 @@ public class TableRowPainted
 	}
 
 	@Override
-	public void setShown(boolean b, boolean force) {
+	public boolean setShown(boolean b, boolean force) {
+		if (b == wasShown && !force) {
+			return false;
+		}
+
 		synchronized (lock) {
 			if (b && mTableCells == null) {
 				buildCells();
 			}
 		}
 
-		super.setShown(b, force);
+		boolean ret = super.setShown(b, force);
+		
+		if (b) {
+			invalidate();
+			redraw(false, false);
+		}
+		
 		if (!b && mTableCells != null) {
 			destroyCells();
 		}
+		
+		return ret;
 	}
 	
 	@Override
