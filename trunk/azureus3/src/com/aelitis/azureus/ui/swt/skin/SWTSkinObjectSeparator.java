@@ -21,7 +21,7 @@ public class SWTSkinObjectSeparator
 			createOn = (Composite) parent.getControl();
 		}
 
-		separator = new Label(createOn, SWT.NONE);
+		separator = new Label(createOn, SWT.SEPARATOR | SWT.HORIZONTAL);
 
 		setControl(separator);
 
