@@ -25,24 +25,18 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Button;
-import org.eclipse.swt.widgets.Combo;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Label;
-import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
 
-import com.aelitis.azureus.core.*;
-import org.gudy.azureus2.core3.config.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.StringIterator;
+import org.gudy.azureus2.core3.config.StringList;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 
 /**
- * @author Olivier
+ * @todo REMOVE THIS CLASS after removing {@link OpenTorrentWindow}
  * 
  */
 public class 
