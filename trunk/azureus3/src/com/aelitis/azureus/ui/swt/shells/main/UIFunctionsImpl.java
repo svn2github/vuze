@@ -389,7 +389,7 @@ public class UIFunctionsImpl
 	public boolean showConfig(String section) {
 		try {
 			boolean uiClassic = COConfigurationManager.getStringParameter("ui").equals("az2");
-			if (uiClassic) {
+			if (uiClassic || COConfigurationManager.getBooleanParameter( "Show Options In Side Bar" )) {
 				openView(SideBar.SIDEBAR_HEADER_PLUGINS, ConfigView.class, null, section, true);
 			} else {
 				ConfigShell.getInstance().open(section);

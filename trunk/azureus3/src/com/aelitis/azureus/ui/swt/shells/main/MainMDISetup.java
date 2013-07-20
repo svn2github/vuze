@@ -200,7 +200,7 @@ public class MainMDISetup
 		});
 	}
 
-	private static void setupSidebarVuzeUI(final MultipleDocumentInterface mdi) {
+	private static void setupSidebarVuzeUI(final MultipleDocumentInterfaceSWT mdi) {
 		MdiEntry entry;
 
 		String[] preferredOrder = new String[] {
@@ -294,6 +294,18 @@ public class MainMDISetup
 		}
 		*/
 
+		if ( COConfigurationManager.getBooleanParameter( "Show Options In Side Bar" )){
+			
+			mdi.registerEntry(ConfigView.VIEW_ID, new MdiEntryCreationListener() {
+				public MdiEntry createMDiEntry(String id) {
+					MdiEntry entry = mdi.createEntryFromEventListener(
+							MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS, new ConfigView(),
+							id, true, null, null);
+					return entry;
+				}
+			});
+		}
+		
 		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_ABOUTPLUGINS,
 				new MdiEntryCreationListener() {
 					public MdiEntry createMDiEntry(String id) {

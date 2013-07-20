@@ -14,6 +14,7 @@ FEATURE: UI   | Added a peak up/down column and some smoothed stats (up/down/eta
 FEATURE: UI   | You can now rename any of the columns in table views to suit your needs [Parg]
 FEATURE: UI   | Added 'Tags' column to Library views [Parg]
 FEATURE: UI   | Library and Files view header now shows selected done/total file sizes when multi-selected [Parg]
+FEATURE: UI   | Added config option to show the Options View as a sidebar entry rather than a separate window [Parg]
 FEATURE: Plug | Added discoveries tab to Library views for specific download/size lookup [Parg]
 FEATURE: Plug | No-proxy option for RSS Feed Scanner [Parg]
 FEATURE: Plug | No-proxy option for Satus Mailer [Parg]

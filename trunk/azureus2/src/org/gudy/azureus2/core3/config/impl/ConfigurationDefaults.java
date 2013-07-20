@@ -662,6 +662,7 @@ public class ConfigurationDefaults {
     
     def.put( "Show Side Bar", TRUE );
     def.put( "Side Bar Top Level Gap", ONE );
+    def.put( "Show Options In Side Bar", FALSE );
 }
   
   protected 

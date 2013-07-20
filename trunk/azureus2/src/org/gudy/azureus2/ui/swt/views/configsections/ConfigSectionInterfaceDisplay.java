@@ -86,7 +86,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		layout = new GridLayout();
 		layout.numColumns = 1;
 		gVarious.setLayout(layout);
-		gVarious.setLayoutData(new GridData());
+		gVarious.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		gVarious.setText( MessageText.getString( "label.various" ));
 		
@@ -198,7 +198,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			layout = new GridLayout();
 			layout.numColumns = 2;
 			gSideBar.setLayout(layout);
-			gSideBar.setLayoutData(new GridData());
+			gSideBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			
 			new BooleanParameter(gSideBar, "Show Side Bar", "sidebar.show");
 			label = new Label(gSideBar, SWT.NULL);
@@ -207,6 +207,10 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			Messages.setLanguageText(label, "sidebar.top.level.gap" );
 			
 			new IntParameter(gSideBar, "Side Bar Top Level Gap", 0, 5 );
+			
+			new BooleanParameter(gSideBar, "Show Options In Side Bar", "sidebar.show.options");
+			label = new Label(gSideBar, SWT.NULL);
+
 		}
 		
 			// status bar
@@ -216,7 +220,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		layout = new GridLayout();
 		layout.numColumns = 1;
 		cStatusBar.setLayout(layout);
-		cStatusBar.setLayoutData(new GridData());
+		cStatusBar.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 		new BooleanParameter(cStatusBar, "Status Area Show SR", MSG_PREFIX	+ "status.show_sr");
 		new BooleanParameter(cStatusBar, "Status Area Show NAT",  MSG_PREFIX + "status.show_nat");
@@ -232,7 +236,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			layout = new GridLayout();
 			layout.numColumns = 1;
 			cUnits.setLayout(layout);
-			cUnits.setLayoutData(new GridData());
+			cUnits.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
 			new BooleanParameter(cUnits, "config.style.useSIUnits", MSG_PREFIX
 					+ "useSIUnits");
@@ -258,7 +262,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			layout = new GridLayout();
 			layout.numColumns = 1;
 			gBrowser.setLayout(layout);
-			gBrowser.setLayoutData(new GridData());
+			gBrowser.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 			
 			gBrowser.setText( MessageText.getString( "label.browser" ));
 			final BooleanParameter fMoz = new BooleanParameter(gBrowser, "swt.forceMozilla",MSG_PREFIX + "forceMozilla");
@@ -278,7 +282,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 		layout = new GridLayout();
 		layout.numColumns = 2;
 		gRefresh.setLayout(layout);
-		gRefresh.setLayoutData(new GridData());
+		gRefresh.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		label = new Label(gRefresh, SWT.NULL);
 		Messages.setLanguageText(label, MSG_PREFIX + "guiUpdate");
