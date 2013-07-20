@@ -1508,7 +1508,47 @@ public class FileUtil {
       		return( false );
       		
     	}else{
-			if ( 	(!COConfigurationManager.getBooleanParameter("Copy And Delete Data Rather Than Move")) &&
+    		
+    		boolean	copy_and_delete = COConfigurationManager.getBooleanParameter("Copy And Delete Data Rather Than Move");
+    		
+    		if ( copy_and_delete ){
+    			
+        		boolean	move_if_same_drive = COConfigurationManager.getBooleanParameter("Move If On Same Drive");
+
+    			if ( move_if_same_drive ){
+    				
+    					// FileSystem class available from Java 7, boo, just do a hack for windowz
+    				
+    				if ( Constants.isWindows ){
+    					
+    					try{
+	    					String str1 = from_file.getCanonicalPath();
+	    					String str2 = to_file.getCanonicalPath();
+	    					
+	       					char drive1 = ':';
+	       					char drive2 = ' ';
+	    					
+	    					if ( str1.length() > 2 && str1.charAt(1) == ':' ){
+	    					
+	    						drive1 = Character.toLowerCase( str1.charAt( 0 ));
+	    					}
+	       					if ( str2.length() > 2 && str2.charAt(1) == ':' ){
+	        					
+	    						drive2 = Character.toLowerCase( str2.charAt( 0 ));
+	    					}
+	       					
+	       					if ( drive1 == drive2 ){
+	       						
+	       						copy_and_delete = false;
+	       					}
+    					}catch( Throwable e ){
+    						
+    					}
+    				}
+    			}
+    		}
+    		
+			if ( 	(!copy_and_delete) &&
 					from_file.renameTo( to_file )){
 		  					
 				return( true );

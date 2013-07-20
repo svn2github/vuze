@@ -347,6 +347,7 @@ public class ConfigurationDefaults {
     def.put( "Zero New", FALSE );
     def.put( "XFS Allocation", FALSE );
     def.put( "Copy And Delete Data Rather Than Move", FALSE);
+    def.put( "Move If On Same Drive", FALSE);
     def.put( "File.save.peers.enable", TRUE );
     def.put( "File.strict.locking", TRUE );
     def.put( "Move Deleted Data To Recycle Bin", TRUE);

@@ -25,6 +25,7 @@ FEATURE: Core | Support renaming of device content correctly [Parg]
 FEATURE: Core | Added a 'mark' feature to overall stats so you can count from a point in time as opposed to install date [Parg]
 FEATURE: Core | Speed limit handler now supports profile specific network limits [Parg]
 FEATURE: Core | Per-tag minimum share ration option [Parg]
+FEATURE: Core | Added option to move files (rather than copy+delete) on Windows when source+target same file system [Parg] 
 
 CHANGE: UI    | Added roll-up ability for the 'Discovery' sidebar entry [TuxPaper]
 CHANGE: UI    | Bring back sidebar popup menu [TuxPaper]

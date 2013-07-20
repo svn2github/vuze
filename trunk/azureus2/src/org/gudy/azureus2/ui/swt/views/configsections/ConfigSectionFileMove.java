@@ -29,9 +29,9 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
@@ -99,6 +99,21 @@ public class ConfigSectionFileMove implements UISWTConfigSection
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
 			copyDontMove.setLayoutData(gridData);
+			
+			if ( Constants.isWindows ){
+				
+				BooleanParameter moveIfSameDrive = new BooleanParameter(gFile,
+						"Move If On Same Drive",
+						"ConfigView.label.moveifsamedrive");
+				gridData = new GridData();
+				gridData.horizontalSpan = 2;
+				gridData.horizontalIndent = 25;
+				moveIfSameDrive.setLayoutData(gridData);
+				
+				IAdditionalActionPerformer derp = new ChangeSelectionActionPerformer(
+						moveIfSameDrive);
+				copyDontMove.setAdditionalActionPerformer(derp);
+			}
 		}
 		
 		BooleanParameter subdirIsDefault = new BooleanParameter(gFile,
