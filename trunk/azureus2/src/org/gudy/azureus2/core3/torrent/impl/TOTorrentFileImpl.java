@@ -42,7 +42,7 @@ TOTorrentFileImpl
 	private final int		first_piece_number;
 	private final int		last_piece_number;
 	
-	private final Map		additional_properties = new LightHashMap(1);
+	private Map				additional_properties_maybe_null;
 	
 	private final boolean	is_utf8;
 
@@ -228,13 +228,18 @@ TOTorrentFileImpl
 		String		name,
 		Object		value )
 	{
-		additional_properties.put( name, value );
+		if ( additional_properties_maybe_null == null ){
+			
+			additional_properties_maybe_null = new LightHashMap();
+		}
+		
+		additional_properties_maybe_null.put( name, value );
 	}
 	
 	protected Map
 	getAdditionalProperties()
 	{
-		return( additional_properties );
+		return( additional_properties_maybe_null );
 	}
 	
 	public int
@@ -377,15 +382,18 @@ TOTorrentFileImpl
 		
 		Map file_additional_properties = getAdditionalProperties();
 		
-		Iterator prop_it = file_additional_properties.keySet().iterator();
-		
-		while( prop_it.hasNext()){
+		if ( file_additional_properties != null ){
 			
-			String	key = (String)prop_it.next();
+			Iterator prop_it = file_additional_properties.keySet().iterator();
 			
-			file_map.put( key, file_additional_properties.get( key ));
+			while( prop_it.hasNext()){
+				
+				String	key = (String)prop_it.next();
+				
+				file_map.put( key, file_additional_properties.get( key ));
+			}
 		}
-
+		
 		return file_map;
 	}
 }

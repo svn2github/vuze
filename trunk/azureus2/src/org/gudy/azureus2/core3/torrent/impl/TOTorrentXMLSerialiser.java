@@ -244,13 +244,16 @@ TOTorrentXMLSerialiser
 				
 							Map additional_properties = file.getAdditionalProperties();
 						
-							Iterator prop_it = additional_properties.keySet().iterator();
-							
-							while( prop_it.hasNext()){
+							if ( additional_properties != null ){
 								
-								String	key = (String)prop_it.next();
-							
-								writeGenericMapEntry( key, additional_properties.get( key ));
+								Iterator prop_it = additional_properties.keySet().iterator();
+								
+								while( prop_it.hasNext()){
+									
+									String	key = (String)prop_it.next();
+								
+									writeGenericMapEntry( key, additional_properties.get( key ));
+								}
 							}
 						}finally{
 							
