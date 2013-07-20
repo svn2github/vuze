@@ -411,6 +411,9 @@ DownloadManagerStatsImpl
 			saved_data_bytes_downloaded			= new_received;
 			saved_protocol_bytes_downloaded		= 0;
 		}
+		
+		saved_discarded = 0;
+		saved_hashfails = 0;
 
 		if ( running ){
 			

@@ -487,6 +487,28 @@ TorrentOptionsView
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		agg_share_ratio.setLayoutData( gridData );
 	
+		
+		// reset
+		
+	    Label stats_reset_label = new Label(gTorrentInfo, SWT.NULL );
+	    Messages.setLanguageText(stats_reset_label, TEXT_PREFIX + "reset.stats");
+
+	    Button stats_reset_button = new Button(gTorrentInfo, SWT.PUSH);
+
+	    Messages.setLanguageText(stats_reset_button, TEXT_PREFIX + "reset.button" );
+
+	    stats_reset_button.addListener(SWT.Selection, 
+	    		new Listener() 
+				{
+			        public void 
+					handleEvent(Event event) 
+			        {
+			        	for ( DownloadManager dm: managers ){
+			        		
+			        		dm.getStats().resetTotalBytesSentReceived( 0, 0 );
+			        	}
+			        }
+			    });
 	
 	    panel.layout(true, true);
 	}
@@ -552,7 +574,7 @@ TorrentOptionsView
 			
 			if ( total_uploaded == 0 ){
 				
-				sr = 1;
+				sr = 1000;
 			}else{
 				
 				sr = -1;
