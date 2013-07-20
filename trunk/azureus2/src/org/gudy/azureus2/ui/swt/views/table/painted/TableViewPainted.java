@@ -2525,8 +2525,8 @@ public class TableViewPainted
 		if (hBar != null && !hBar.isDisposed()) {
 			int tableSize = cTable.getSize().x;
 			int max = columnsWidth;
-			if (vBar.isVisible()) {
-				int vBarW = cTable.getSize().y - clientArea.height; // vBar.getSize().x
+			if (vBar.isVisible() && cTable.getScrollbarsMode() == SWT.NONE) {
+				int vBarW = vBar.getSize().x;
 
 				max += vBarW;
 			}
@@ -2542,7 +2542,7 @@ public class TableViewPainted
 				hBar.setValues(hBar.getSelection(), 0, max, tableSize, 50, tableSize);
 			}
 			if (vBar != null && !vBar.isDisposed() && hBar.isVisible()) {
-				int hBarW = cTable.getSize().x - clientArea.width; // hBar.getSize().y
+				int hBarW = cTable.getScrollbarsMode() == SWT.NONE ? hBar.getSize().y : 0;
 
 				vBar.setThumb(clientArea.height - hBarW);
 				vBar.setMaximum(totalHeight - hBarW);
