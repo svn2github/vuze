@@ -710,7 +710,16 @@ public class OpenTorrentOptionsWindow
 				SWT.RESIZE | SWT.DIALOG_TRIM);
 
 		final SWTSkin skin = dlg.getSkin();
-
+		
+		SWTSkinObject so;
+		
+		if (COConfigurationManager.hasParameter(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS, true)) {
+  		so = skin.getSkinObject("showagain-area");
+  		if (so != null) {
+  			so.setVisible(false);
+  		}
+		}
+		
 		SWTSkinObject soButtonArea = skin.getSkinObject("button-area");
 		if (soButtonArea instanceof SWTSkinObjectContainer) {
 			buttonsArea = new StandardButtonsArea() {
@@ -738,7 +747,7 @@ public class OpenTorrentOptionsWindow
 			buttonsArea.swt_createButtons(((SWTSkinObjectContainer) soButtonArea).getComposite());
 		}
 
-		SWTSkinObject so = skin.getSkinObject("filearea-table");
+		so = skin.getSkinObject("filearea-table");
 		if (so instanceof SWTSkinObjectContainer) {
 			setupTVFiles((SWTSkinObjectContainer) so);
 		}
