@@ -1039,7 +1039,7 @@ public class OpenTorrentOptionsWindow
 	}
 
 	public void updateUI() {
-		//tvFiles.refreshTable(false);
+		tvFiles.refreshTable(false);
 
 		if (diskFreeInfoRefreshPending && !diskFreeInfoRefreshRunning
 				&& FileUtil.getUsableSpaceSupported()) {
@@ -1106,24 +1106,26 @@ public class OpenTorrentOptionsWindow
 					Partition part = (Partition) it.next();
 
 					boolean filesTooBig = part.bytesToConsume > part.freeSpace;
-
+					
+					String s = MessageText.getString("OpenTorrentWindow.diskUsage",
+							new String[] {
+						DisplayFormatters.formatByteCountToKiBEtc(part.bytesToConsume),
+						DisplayFormatters.formatByteCountToKiBEtc(part.freeSpace)
+					});
+					
 					Label l;
 					l = new Label(diskspaceComp, SWT.NONE);
 					l.setForeground(filesTooBig ? Colors.colorError : null);
 					l.setText(part.root.getPath());
 					l.setLayoutData(new GridData(SWT.END, SWT.TOP, false, false));
+
 					l = new Label(diskspaceComp, SWT.NONE);
 					l.setForeground(filesTooBig ? Colors.colorError : null);
-					l.setText(MessageText.getString("OpenTorrentWindow.diskUsage",
-							new String[] {
-								DisplayFormatters.formatByteCountToKiBEtc(part.bytesToConsume),
-								DisplayFormatters.formatByteCountToKiBEtc(part.freeSpace)
-							}));
 					l.setLayoutData(new GridData(SWT.END, SWT.TOP, false, false));
 				}
 
-				diskspaceComp.update();
-				Utils.relayout(diskspaceComp, true);
+				// hack to force resize :(
+				soExpandItemSaveTo.relayout();
 			}
 
 			diskFreeInfoRefreshRunning = false;
