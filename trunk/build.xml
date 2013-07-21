@@ -32,7 +32,7 @@ extract messagebundles
 	<!-- REUSABLE REFERENCES -->
 	
 	<path id="build.classpath">
-		<fileset dir="${azureus2.dir}/lib" includes="*.jar" />
+		<fileset dir="${azureus2.dir}/lib" includes="*.jar" excludes="swt-carbon.jar"/>
 		<fileset dir="${azureus3.dir}/lib" includes="*.jar" />
 		<fileset dir="${uis.dir}/lib" includes="*.jar" />
 	</path>
