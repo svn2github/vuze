@@ -57,6 +57,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
+import com.aelitis.azureus.ui.common.table.TableSelectionListener;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.shells.main.UIFunctionsImpl;
@@ -160,6 +161,10 @@ public class OpenTorrentOptionsWindow
 	private SWTSkinObjectExpandItem soStartOptionsExpandItem;
 
 	private SWTSkinObjectExpandItem soExpandItemPeer;
+
+	private Button btnRename;
+
+	private Button btnRetarget;
 
 	public static void main(String[] args) {
 		AzureusCore core = AzureusCoreFactory.create();
@@ -338,8 +343,30 @@ public class OpenTorrentOptionsWindow
 
 	private void setupFileAreaButtons(SWTSkinObjectContainer so) {
 		Composite cButtons = so.getComposite();
-		cButtons.setLayout(new RowLayout());
+		RowLayout rowLayout = new RowLayout();
+		rowLayout.marginBottom = rowLayout.marginTop = 0;
+		cButtons.setLayout(rowLayout);
 
+		btnRename = new Button(cButtons, SWT.PUSH);
+		Messages.setLanguageText(btnRename, "Button.rename");
+		btnRename.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(
+						new TorrentOpenFileOptions[0]);
+				renameFilenames(infos);
+			}
+		});
+
+		btnRetarget = new Button(cButtons, SWT.PUSH);
+		Messages.setLanguageText(btnRetarget, "Button.retarget");
+		btnRetarget.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(
+						new TorrentOpenFileOptions[0]);
+				changeFileDestination(infos);
+			}
+		});
+		
 		try {
 			if (COConfigurationManager.getBooleanParameter("rcm.overall.enabled",
 					true) && AzureusCoreFactory.isCoreRunning()) {
@@ -383,6 +410,8 @@ public class OpenTorrentOptionsWindow
 		} catch (Throwable e) {
 
 		}
+
+		updateFileButtons();
 
 	}
 
@@ -613,8 +642,46 @@ public class OpenTorrentOptionsWindow
 			public void addThisColumnSubMenu(String sColumnName, Menu menuThisColumn) {
 			}
 		});
+		
+		tvFiles.addSelectionListener(new TableSelectionListener() {
+			
+			public void selected(TableRowCore[] row) {
+				updateFileButtons();
+			}
+			
+			public void mouseExit(TableRowCore row) {
+			}
+			
+			public void mouseEnter(TableRowCore row) {
+			}
+			
+			public void focusChanged(TableRowCore focus) {
+			}
+			
+			public void deselected(TableRowCore[] rows) {
+				updateFileButtons();
+			}
+			
+			public void defaultSelected(TableRowCore[] rows, int stateMask) {
+			}
+		}, false);
+		
 
 		tvFiles.addDataSources(torrentOptions.getFiles());
+	}
+
+	protected void updateFileButtons() {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				boolean hasRowsSelected = tvFiles.getSelectedRowsSize() > 0;
+				if (btnRename != null && !btnRename.isDisposed()) {
+					btnRename.setEnabled(hasRowsSelected);
+				}
+				if (btnRetarget != null && !btnRetarget.isDisposed()) {
+					btnRetarget.setEnabled(hasRowsSelected);
+				}
+			}
+		});
 	}
 
 	protected void renameFilenames(TorrentOpenFileOptions[] infos) {
