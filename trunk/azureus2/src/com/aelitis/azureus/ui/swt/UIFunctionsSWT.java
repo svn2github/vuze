@@ -25,11 +25,9 @@ import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainStatusBar;
 import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.MainStatusBar;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
 
 import com.aelitis.azureus.ui.UIFunctions;
@@ -133,4 +131,16 @@ public interface UIFunctionsSWT
 	public UIToolBarManager getToolBarManager();
 	
 	public void setHideAll( boolean hidden );
+
+	/**
+	 * 
+	 * @since 5.0.0.1
+	 */
+	public void openTorrentWindow();
+
+	/**
+	 * @since 5.0.0.1
+	 */
+	public void openTorrentOpenOptions(Shell shell, String sPathOfFilesToOpen,
+			String[] sFilesToOpen, boolean defaultToStopped, boolean forceOpen);
 }

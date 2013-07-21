@@ -286,7 +286,7 @@ public class MenuFactory
 	public static MenuItem addOpenTorrentMenuItem(Menu menuParent) {
 		return addMenuItem(menuParent, MENU_ID_OPEN_TORRENT, new Listener() {
 			public void handleEvent(Event e) {
-				TorrentOpener.openTorrentWindow( false );
+				UIFunctionsManagerSWT.getUIFunctionsSWT().openTorrentWindow();
 			}
 		});
 	}
@@ -294,7 +294,7 @@ public class MenuFactory
 	public static MenuItem addOpenURIMenuItem(Menu menuParent) {
 		return addMenuItem(menuParent, MENU_ID_OPEN_URI, new Listener() {
 			public void handleEvent(Event e) {
-				TorrentOpener.openTorrentWindow( true );
+				UIFunctionsManagerSWT.getUIFunctionsSWT().openTorrentWindow();
 			}
 		});
 	}

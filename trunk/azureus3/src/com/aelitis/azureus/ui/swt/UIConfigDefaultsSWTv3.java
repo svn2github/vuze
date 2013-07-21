@@ -122,7 +122,8 @@ public class UIConfigDefaultsSWTv3
 			}
 
 			defaults.addParameter("Auto Upload Speed Enabled", true);
-			defaults.addParameter("Use default data dir", true);
+			defaults.addParameter(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS,
+					ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_MANY);
 			defaults.addParameter("Add URL Silently", true);
 			defaults.addParameter("add_torrents_silently", true);
 			defaults.addParameter("Popup Download Finished", false);

@@ -27,19 +27,23 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.*;
+import org.eclipse.swt.widgets.DirectoryDialog;
+import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderFactory;
 import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.progress.*;
+
+import com.aelitis.azureus.ui.UIFunctionsManager;
 
 
 /**
@@ -72,6 +76,8 @@ public class FileDownloadWindow
 
 	String shortURL = null;
 
+	TorrentOpenOptions torrentOptions;
+	
 	/**
 	 * Create a file download window.  Add torrent when done downloading
 	 *  
@@ -82,7 +88,7 @@ public class FileDownloadWindow
 	 */
 	public FileDownloadWindow(Shell parent, final String url,
 			final String referrer, Map request_properties) {
-		this(parent, url, referrer, request_properties, null);
+		this(parent, url, referrer, request_properties, null, null);
 	}
 
 	/**
@@ -98,11 +104,13 @@ public class FileDownloadWindow
 	 */
 	public FileDownloadWindow(final Shell parent, final String url,
 			final String referrer, final Map request_properties,
+			TorrentOpenOptions torrentOptions,
 			final TorrentDownloaderCallBackInterface listener) {
 		
 		this.parent = parent;
 		this.original_url = url;
 		this.referrer = referrer;
+		this.torrentOptions = torrentOptions;
 		this.listener = listener;
 		this.request_properties = request_properties;
 
@@ -266,7 +274,15 @@ public class FileDownloadWindow
 				 */
 				if (listener == null) {
 					
-					TorrentOpener.openTorrent(downloader.getFile().getAbsolutePath(), force_dialog );
+					if (torrentOptions == null) {
+						torrentOptions =  new TorrentOpenOptions();
+					}
+					if (TorrentOpener.mergeFileIntoTorrentInfo(
+							downloader.getFile().getAbsolutePath(), original_url,
+							torrentOptions)) {
+						UIFunctionsManager.getUIFunctions().addTorrentWithOptions(
+								force_dialog, torrentOptions);
+					}
 				}
 				return;
 			default:

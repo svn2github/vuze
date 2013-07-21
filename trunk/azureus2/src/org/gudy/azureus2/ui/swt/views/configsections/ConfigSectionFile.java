@@ -30,9 +30,11 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Constants;
@@ -90,7 +92,7 @@ public class ConfigSectionFile
 
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
 
-		// Default Dir Sction
+		// Default Dir Section
 		Group gDefaultDir = new Group(gFile, SWT.NONE);
 		Messages.setLanguageText(gDefaultDir,
 				"ConfigView.section.file.defaultdir.section");
@@ -138,14 +140,31 @@ public class ConfigSectionFile
 		});
 
 		// def dir: autoSave
-		sCurConfigID = "Use default data dir";
+		sCurConfigID = ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS;
 		allConfigIDs.add(sCurConfigID);
-		BooleanParameter autoSaveToDir = new BooleanParameter(gDefaultDir,
-				sCurConfigID, "ConfigView.section.file.defaultdir.auto");
+		Composite cOpenOptions = new Composite(gDefaultDir, SWT.NONE);
 		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 3;
-		autoSaveToDir.setLayoutData(gridData);
-
+		cOpenOptions.setLayoutData(gridData);
+		RowLayout rowLayout = new RowLayout();
+		rowLayout.marginBottom = rowLayout.marginLeft = rowLayout.marginRight = rowLayout.marginTop = 0;
+		rowLayout.center = true;
+		cOpenOptions.setLayout(rowLayout);
+		
+		label = new Label(cOpenOptions, SWT.NULL);
+		Messages.setLanguageText(label, "ConfigView.section.file.showopentorrentoptions");
+		String[] openValues = {
+			ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_NEVER,
+			ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_ALWAYS,
+			ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_MANY,
+		};
+		String[] openLabels = {
+			MessageText.getString("OpenTorrentOptions.show.never"),
+			MessageText.getString("OpenTorrentOptions.show.always"),
+			MessageText.getString("OpenTorrentOptions.show.many"),
+		};
+		new StringListParameter(cOpenOptions, sCurConfigID, openLabels, openValues);
+		
 		if (userMode > 0) {
 			// def dir: autoSave -> auto-rename
 			sCurConfigID = "DefaultDir.AutoSave.AutoRename";
@@ -154,11 +173,9 @@ public class ConfigSectionFile
 					sCurConfigID, "ConfigView.section.file.defaultdir.autorename");
 			gridData = new GridData(GridData.FILL_HORIZONTAL);
 			gridData.horizontalSpan = 3;
-			gridData.horizontalIndent = 20;
 			autoSaveAutoRename.setLayoutData(gridData);
 			IAdditionalActionPerformer aapDefaultDirStuff3 = new ChangeSelectionActionPerformer(
 					autoSaveAutoRename.getControls(), false);
-			autoSaveToDir.setAdditionalActionPerformer(aapDefaultDirStuff3);
 
 			// def dir: best guess
 			sCurConfigID = "DefaultDir.BestGuess";
@@ -171,7 +188,6 @@ public class ConfigSectionFile
 
 			IAdditionalActionPerformer aapDefaultDirStuff = new ChangeSelectionActionPerformer(
 					bestGuess.getControls(), true);
-			autoSaveToDir.setAdditionalActionPerformer(aapDefaultDirStuff);
 
 			// def dir: auto update
 			sCurConfigID = "DefaultDir.AutoUpdate";
@@ -184,7 +200,6 @@ public class ConfigSectionFile
 
 			IAdditionalActionPerformer aapDefaultDirStuff2 = new ChangeSelectionActionPerformer(
 					autoUpdateSaveDir.getControls(), true);
-			autoSaveToDir.setAdditionalActionPerformer(aapDefaultDirStuff2);
 		}
 
 		new Label(gFile, SWT.NONE);

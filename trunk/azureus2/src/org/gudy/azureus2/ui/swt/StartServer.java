@@ -37,6 +37,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.plugins.update.UpdateInstaller;
 import org.gudy.azureus2.plugins.update.UpdateManager;
@@ -208,7 +209,7 @@ StartServer
     	return;
     }
     
-    boolean addSilent = COConfigurationManager.getBooleanParameter("Use default data dir");
+    boolean addSilent = ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_NEVER.equals(COConfigurationManager.getStringParameter(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS));
     boolean showMainWindow = !addSilent || args.length == 1;
 
     boolean	open	= true;

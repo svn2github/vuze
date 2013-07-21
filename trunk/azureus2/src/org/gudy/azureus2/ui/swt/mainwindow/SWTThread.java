@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.ui.swt.UISwitcherListener;
 import org.gudy.azureus2.ui.swt.UISwitcherUtil;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 
 import com.aelitis.azureus.core.AzureusCore;
@@ -181,7 +182,10 @@ public class SWTThread {
 				public void handleEvent(final Event event) {
 					AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 						public void azureusCoreRunning(AzureusCore core) {
-							TorrentOpener.openTorrents(new String[] { event.text } );
+							UIFunctionsManagerSWT.getUIFunctionsSWT().openTorrentOpenOptions(
+									Utils.findAnyShell(), null, new String[] {
+										event.text
+									}, false, false);
 						}
 					});
 				}

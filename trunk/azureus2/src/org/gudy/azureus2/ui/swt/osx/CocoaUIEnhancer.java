@@ -26,6 +26,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
 /**
  * You can exclude this file (or this whole path) for non OSX builds
@@ -314,7 +315,8 @@ public class CocoaUIEnhancer
 	protected static void fileOpen(final String[] files) {
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
-				TorrentOpener.openTorrents(files);
+				UIFunctionsManagerSWT.getUIFunctionsSWT().openTorrentOpenOptions(
+						Utils.findAnyShell(), null, files, false, false);
 			}
 		});
 	}

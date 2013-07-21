@@ -33,17 +33,10 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.host.TRHost;
 import org.gudy.azureus2.core3.tracker.server.TRTrackerServer;
-import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.RandomUtils;
-import org.gudy.azureus2.core3.util.SystemProperties;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SMConst;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitConfidence;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedLimitMonitor;
-import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProviderV2;
+import com.aelitis.azureus.core.speedmanager.impl.v2.*;
 
 /**
  *
@@ -90,6 +83,10 @@ public class ConfigurationDefaults {
   public static final byte[] def_bytes = null;
   
   private Hashtable parameter_verifiers	= new Hashtable();
+	public static final String CFG_TORRENTADD_OPENOPTIONS_MANY = "many";
+	public static final String CFG_TORRENTADD_OPENOPTIONS_ALWAYS = "always";
+	public static final String CFG_TORRENTADD_OPENOPTIONS_NEVER = "never";
+	public static final String CFG_TORRENTADD_OPENOPTIONS = "ui.addtorrent.openoptions";
 
   public static ConfigurationDefaults 
   getInstance() 
@@ -258,7 +255,7 @@ public class ConfigurationDefaults {
     def.put("User Mode", ZERO);
     
     //default data location options
-    def.put("Use default data dir", FALSE);	
+    def.put(CFG_TORRENTADD_OPENOPTIONS, CFG_TORRENTADD_OPENOPTIONS_ALWAYS);
 	String docPath =  SystemProperties.getDocPath();
 	
 	File f;

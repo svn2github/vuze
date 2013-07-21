@@ -77,15 +77,9 @@ public class ConfigureWizard extends Wizard {
       torrentPath = ""; 
     }
     
-    if ( COConfigurationManager.getBooleanParameter( "Use default data dir" )){
-    
-    	_dataPath = COConfigurationManager.getStringParameter( "Default save path" );
-    	
-    }else{
-    	_dataPath = "";
-    }
-    
-    this.setFirstPanel(panel);
+  	_dataPath = COConfigurationManager.getStringParameter( "Default save path" );
+
+  	this.setFirstPanel(panel);
   }
   
   public void onClose() {

@@ -203,7 +203,7 @@ OpenUrlWindow
       		url_str = url.getText();
       	}
       	
-        new FileDownloadWindow(parent,url_str, last_referrer, null, listener );
+        new FileDownloadWindow(parent,url_str, last_referrer, null, null, listener );
         shell.dispose();
       }
     }); 

@@ -19,6 +19,7 @@
  */
 package com.aelitis.azureus.ui.swt.shells.main;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.util.Locale;
 
@@ -27,22 +28,22 @@ import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.program.Program;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.MenuItem;
-import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.global.GlobalManagerEvent;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.UIInstance;
@@ -54,11 +55,10 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.minibar.MiniBarManager;
-import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
-import org.gudy.azureus2.ui.swt.plugins.UISWTView;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
-import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-import org.gudy.azureus2.ui.swt.pluginsimpl.*;
+import org.gudy.azureus2.ui.swt.plugins.*;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewImpl;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.shells.MessageSlideShell;
 import org.gudy.azureus2.ui.swt.update.FullUpdateWindow;
@@ -85,6 +85,8 @@ import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.plugininstall.SimplePluginInstaller;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.shells.RemotePairingWindow;
+import com.aelitis.azureus.ui.swt.shells.opentorrent.OpenTorrentOptionsWindow;
+import com.aelitis.azureus.ui.swt.shells.opentorrent.OpenTorrentWindow;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
@@ -105,6 +107,11 @@ import com.aelitis.azureus.util.UrlFilter;
 public class UIFunctionsImpl
 	implements UIFunctionsSWT
 {
+	private final static String MSG_ALREADY_EXISTS = "OpenTorrentWindow.mb.alreadyExists";
+
+	private final static String MSG_ALREADY_EXISTS_NAME = MSG_ALREADY_EXISTS
+			+ ".default.name";
+	
 	private final static LogIDs LOGID = LogIDs.GUI;
 
 	private final com.aelitis.azureus.ui.swt.shells.main.MainWindow mainWindow;
@@ -254,7 +261,7 @@ public class UIFunctionsImpl
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getSWTPluginInstanceImpl()
 	public UISWTInstanceImpl getSWTPluginInstanceImpl() {
 		try {
-			return (UISWTInstanceImpl) mainWindow.getUISWTInstanceImpl();
+			return mainWindow.getUISWTInstanceImpl();
 		} catch (Exception e) {
 			Logger.log(new LogEvent(LOGID, "getSWTPluginInstanceImpl", e));
 		}
@@ -382,6 +389,9 @@ public class UIFunctionsImpl
 
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#getMainStatusBar()
 	public IMainStatusBar getMainStatusBar() {
+		if (mainWindow == null) {
+			return null;
+		}
 		return mainWindow.getMainStatusBar();
 	}
 	
@@ -1069,6 +1079,30 @@ public class UIFunctionsImpl
 		return (MultipleDocumentInterfaceSWT) SkinViewManager.getByViewID(SkinConstants.VIEWID_MDI);
 	}
 
+	/**
+	 * 
+	 * @param keyPrefix
+	 * @param details may not get displayed
+	 * @param textParams
+	 */
+	public void showErrorMessage(final String keyPrefix,
+			final String details, final String[] textParams) {
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				Shell mainShell = getMainShell();
+				if (mainShell.getDisplay().getActiveShell() != null
+						|| mainShell.isFocusControl()) {
+					new MessageSlideShell(Display.getCurrent(), SWT.ICON_ERROR,
+							keyPrefix, details, textParams, -1);
+				} else {
+					MessageBoxShell mb = new MessageBoxShell(SWT.OK, keyPrefix,
+							textParams);
+					mb.open(null);
+				}
+			}
+		});
+	}
+	
 	public void forceNotify(final int iconID, final String title, final String text,
 			final String details, final Object[] relatedObjects, final int timeoutSecs) {
 		
@@ -1160,5 +1194,128 @@ public class UIFunctionsImpl
 		boolean hidden ) 
 	{
 		mainWindow.setHideAll( hidden );
+	}
+	
+	public boolean addTorrentWithOptions(boolean force, 
+			final TorrentOpenOptions torrentOptions) {
+
+		if (AzureusCoreFactory.isCoreRunning()) {
+			GlobalManager gm = AzureusCoreFactory.getSingleton().getGlobalManager();
+			// Check if torrent already exists in gm, and add if not
+			DownloadManager existingDownload = gm.getDownloadManager(torrentOptions.getTorrent());
+
+			if (existingDownload != null) {
+
+				final String fExistingName = existingDownload.getDisplayName();
+				final DownloadManager fExistingDownload = existingDownload;
+
+				fExistingDownload.fireGlobalManagerEvent(GlobalManagerEvent.ET_REQUEST_ATTENTION);
+
+				Utils.execSWTThread(new AERunnable() {
+					public void runSupport() {
+						boolean can_merge = TorrentUtils.canMergeAnnounceURLs(
+								torrentOptions.getTorrent(), fExistingDownload.getTorrent());
+
+						Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
+
+						if ((Display.getDefault().getActiveShell() == null
+								|| !mainShell.isVisible() || mainShell.getMinimized())
+								&& (!can_merge)) {
+
+							new MessageSlideShell(Display.getCurrent(), SWT.ICON_INFORMATION,
+									MSG_ALREADY_EXISTS, null, new String[] {
+										":" + torrentOptions.sOriginatingLocation,
+										fExistingName,
+										MessageText.getString(MSG_ALREADY_EXISTS_NAME),
+									}, new Object[] {
+										fExistingDownload
+									}, -1);
+						} else {
+
+							if (can_merge) {
+
+								String text = MessageText.getString(MSG_ALREADY_EXISTS
+										+ ".text", new String[] {
+									":" + torrentOptions.sOriginatingLocation,
+									fExistingName,
+									MessageText.getString(MSG_ALREADY_EXISTS_NAME),
+								});
+
+								text += "\n\n"
+										+ MessageText.getString("openTorrentWindow.mb.alreadyExists.merge");
+
+								MessageBoxShell mb = new MessageBoxShell(SWT.YES | SWT.NO,
+										MessageText.getString(MSG_ALREADY_EXISTS + ".title"), text);
+
+								mb.open(new UserPrompterResultListener() {
+									public void prompterClosed(int result) {
+										if (result == SWT.YES) {
+
+											TorrentUtils.mergeAnnounceURLs(
+													torrentOptions.getTorrent(),
+													fExistingDownload.getTorrent());
+										}
+									}
+								});
+							} else {
+								MessageBoxShell mb = new MessageBoxShell(SWT.OK,
+										MSG_ALREADY_EXISTS, new String[] {
+											":" + torrentOptions.sOriginatingLocation,
+											fExistingName,
+											MessageText.getString(MSG_ALREADY_EXISTS_NAME),
+										});
+								mb.open(null);
+							}
+						}
+					}
+				});
+
+				if (torrentOptions.bDeleteFileOnCancel) {
+					File torrentFile = new File(torrentOptions.sFileName);
+					torrentFile.delete();
+				}
+				return true;
+			}
+		}
+		
+
+		if (!force) {
+			String showAgainMode = COConfigurationManager.getStringParameter(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS);
+			if (showAgainMode != null
+					&& ((showAgainMode.equals(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_NEVER)) || (showAgainMode.equals(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_MANY)
+							&& torrentOptions.getFiles() != null && torrentOptions.getFiles().length == 1))) {
+				return TorrentOpener.addTorrent(torrentOptions);
+			}
+		}
+		
+		new OpenTorrentOptionsWindow(getMainShell(), torrentOptions);
+		
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openTorrentOpenOptions(org.eclipse.swt.widgets.Shell, java.lang.String, java.lang.String[], boolean, boolean, boolean)
+	 */
+	public void openTorrentOpenOptions(Shell shell, String sPathOfFilesToOpen,
+			String[] sFilesToOpen, boolean defaultToStopped, boolean forceOpen) {
+
+		TorrentOpenOptions torrentOptions = new TorrentOpenOptions();
+		if (defaultToStopped) {
+			torrentOptions.iStartID = TorrentOpenOptions.STARTMODE_STOPPED;
+		}
+		if (sFilesToOpen == null) {
+			new OpenTorrentWindow(shell);
+		} else {
+			// with no listener, Downloader will open options window if user configured
+			TorrentOpener.openTorrentsFromStrings(torrentOptions, shell,
+					sPathOfFilesToOpen, sFilesToOpen, null, null, forceOpen);
+		}
+	}
+	
+	/* (non-Javadoc)
+	 * @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#openTorrentWindow()
+	 */
+	public void openTorrentWindow() {
+		new OpenTorrentWindow(Utils.findAnyShell());
 	}
 }

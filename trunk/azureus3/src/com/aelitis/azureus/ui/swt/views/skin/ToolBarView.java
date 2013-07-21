@@ -39,11 +39,9 @@ import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarEnablerBase;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.TorrentUtil;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UIToolBarManagerCore;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.common.ToolBarEnabler;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.selectedcontent.*;
@@ -121,7 +119,7 @@ public class ToolBarView
 					if (activationType != ACTIVATIONTYPE_NORMAL) {
 						return false;
 					}
-					TorrentOpener.openTorrentWindow( false );
+					UIFunctionsManagerSWT.getUIFunctionsSWT().openTorrentWindow();
 					return true;
 				}
 			});

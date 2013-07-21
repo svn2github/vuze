@@ -25,38 +25,24 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.util.AERunStateHandler;
-import org.gudy.azureus2.core3.util.AERunnable;
-import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
+import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarManager;
 import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.mainwindow.IMainMenu;
-import org.gudy.azureus2.ui.swt.mainwindow.IMainStatusBar;
-import org.gudy.azureus2.ui.swt.mainwindow.IMainWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
+import org.gudy.azureus2.ui.swt.mainwindow.*;
 import org.gudy.azureus2.ui.swt.minibar.AllTransfersBar;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
-import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import org.gudy.azureus2.ui.systray.SystemTraySWT;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreComponent;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
-import com.aelitis.azureus.core.AzureusCoreLifecycleListener;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
-import com.aelitis.azureus.ui.IUIIntializer;
-import com.aelitis.azureus.ui.UIFunctions;
-import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
-import com.aelitis.azureus.ui.UIStatusTextClickListener;
-import com.aelitis.azureus.ui.UserPrompterResultListener;
+import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -867,6 +853,26 @@ MainWindowDelayStub
 			boolean hidden) 
 		{
 			log( "setHideAll" );
+		}
+
+		public boolean addTorrentWithOptions(boolean force,
+				TorrentOpenOptions torrentOptions) {
+			log( "addTorrentWithOptions" );
+			return false;
+		}
+		
+		public void showErrorMessage(String keyPrefix, String details,
+				String[] textParams) {
+			log( "showErrorMessage" );
+		}
+		
+		public void openTorrentOpenOptions(Shell shell, String sPathOfFilesToOpen,
+				String[] sFilesToOpen, boolean defaultToStopped, boolean forceOpen) {
+			log("openTorrentOpenOptions");
+		}
+
+		public void openTorrentWindow() {
+			log("openTorrentWindow");
 		}
 	}
 }

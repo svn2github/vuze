@@ -23,6 +23,7 @@
 package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,52 +37,57 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.torrent.TOTorrentException;
+import org.gudy.azureus2.core3.torrent.impl.TorrentOpenFileOptions;
+import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
+import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.ui.swt.OpenTorrentWindow;
-import org.gudy.azureus2.ui.swt.URLTransfer;
-import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
+import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 
-import com.aelitis.azureus.core.*;
+import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
+import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
+ * Bunch of Torrent Opening functions.
+ * 
  * @author Olivier Chalouhi
  * @author TuxPaper (openTorrentWindow)
+ * 
+ * @todo move public, UI stuff to to {@link UIFunctionsSWT}
  */
 public class TorrentOpener {
 	/**
 	 * Open a torrent.  Possibly display a window if the user config says so
 	 * 
 	 * @param torrentFile Torrent to open (file, url, etc)
+	 * @note PLUGINS USE THIS FUNCTION!
 	 */
 	public static void openTorrent(String torrentFile) {
-		openTorrentWindow(null, new String[] { torrentFile }, false, false );
+		UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+		if (uif != null) {
+			uif.openTorrentOpenOptions(null, null, new String[] { torrentFile },
+					false, false);
+		}
 	}
 	
-	public static void openTorrent(String torrentFile, boolean force_open ) {
-		openTorrentWindow(null, new String[] { torrentFile }, false, false, force_open );
-	}
-	public static void openTorrents(String[] torrentFiles) {
-		openTorrentWindow(null, torrentFiles, false, false );
-	}
-  
-	/**
-	 * Open the torrent window
-	 *
-	 */
-  public static void openTorrentWindow( boolean for_uri ) {
-  	openTorrentWindow(null, null, false, for_uri );
-  }
-
   protected static void 
   openTorrentsForTracking(
     final String path, 
@@ -93,8 +99,8 @@ public class TorrentOpener {
 		  	if (display == null || display.isDisposed() || core == null)
 		  		return;
 		  	
-				new AEThread("TorrentOpener") {
-					public void runSupport() {
+				new AEThread2("TorrentOpener") {
+					public void run() {
 
 						for (int i = 0; i < fileNames.length; i++) {
 
@@ -162,7 +168,8 @@ public class TorrentOpener {
 				if (path == null)
 					return;
 
-				openTorrentWindow(path, fDialog.getFileNames(), false, false );
+				UIFunctionsManagerSWT.getUIFunctionsSWT().openTorrentOpenOptions(shell,
+						path, fDialog.getFileNames(), false, false);
 			}
 		});
 	}
@@ -198,8 +205,7 @@ public class TorrentOpener {
 		if (event.data instanceof String[] || event.data instanceof String) {
 			final String[] sourceNames = (event.data instanceof String[])
 					? (String[]) event.data : new String[] { (String) event.data };
-			if (sourceNames == null)
-				event.detail = DND.DROP_NONE;
+
 			if (event.detail == DND.DROP_NONE)
 				return;
 
@@ -208,7 +214,11 @@ public class TorrentOpener {
 				String sURL = UrlUtils.parseTextForURL(sourceNames[i], true);
 
 				if (sURL != null && !source.exists()) {
-					openTorrentWindow(null, new String[] { sURL }, bOverrideToStopped, false );
+					UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+					if (uif != null) {
+						uif.openTorrentOpenOptions(null, null, new String[] { sURL },
+								bOverrideToStopped, false);
+					}
 				} else if (source.isFile()) {
 					
 						// go async as vuze file handling can require UI access which then blocks
@@ -229,13 +239,12 @@ public class TorrentOpener {
 							}
 							
 							
-							try {
-								openTorrentWindow(null, new String[] { filename }, bOverrideToStopped, false );
-				
-							} catch (Exception e) {
-								Logger.log(new LogAlert(LogAlert.REPEATABLE,
-										"Torrent open fails for '" + filename + "'", e));
+							UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+							if (uif != null) {
+								uif.openTorrentOpenOptions(null, null, new String[] { filename },
+										bOverrideToStopped, false);
 							}
+				
 						}
 					}.start();
 					
@@ -243,13 +252,20 @@ public class TorrentOpener {
 					
 					String dir_name = source.getAbsolutePath();
 
-					openTorrentWindow(dir_name, null, bOverrideToStopped, false );
+					UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+					if (uif != null) {
+						uif.openTorrentOpenOptions(null, dir_name, null,
+								bOverrideToStopped, false);
+					}
 				}
 			}
 		} else if (event.data instanceof URLTransfer.URLType) {
-			openTorrentWindow(null,
-					new String[] { ((URLTransfer.URLType) event.data).linkURL },
-					bOverrideToStopped, false );
+			UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			if (uif != null) {
+				uif.openTorrentOpenOptions(null, null, new String[] {
+					((URLTransfer.URLType) event.data).linkURL
+				}, bOverrideToStopped, false);
+			}
 		}
 	}
   
@@ -307,128 +323,6 @@ public class TorrentOpener {
     return path;
   }
 
-  private static void 
-  openTorrentWindow(
-	final String path,
-	final String[] torrents, 
-	final boolean bOverrideStartModeToStopped,
-	final boolean for_uri )
-  {
-	  openTorrentWindow( path, torrents, bOverrideStartModeToStopped, for_uri, false );
-  }
-  
-  private static void 
-  openTorrentWindow(
-	final String path,
-	final String[] torrents, 
-	final boolean bOverrideStartModeToStopped,
-	final boolean for_uri,
-	final boolean force_open )
-	{
-  	// loadVuzeFile takes a long time if it's fetching a URL, so prevent it
-  	// from blocking the calling thread (like the SWT Thread)
-  	new AEThread2("openTorrentWindow", true) {
-			public void run() {
-				_openTorrentWindow(path, torrents, bOverrideStartModeToStopped, for_uri, force_open );
-			}
-		}.start();
-	}
-
-  private static void _openTorrentWindow(final String path,
-			String[] torrents, final boolean bOverrideStartModeToStopped, final boolean for_uri, final boolean force_open )
-	{
-	  		// this is a good place to trim out any .vuze files
-	  
-	  	if ( torrents != null && torrents.length > 0 ){
-	  		
-	  		VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
-	  		
-	  		List	non_vuze_files 	= new ArrayList();
-	  		List	vuze_files		= new ArrayList();
-	  		
-	  		for (int i=0;i<torrents.length;i++){
-	  			
-	  			String	torrent = torrents[i];
-	  			
-	  			try{			
-	  				VuzeFile vf = vfh.loadVuzeFile( torrent );
-
-	  				if ( vf == null ){
-	  					
-	  					non_vuze_files.add( torrent );
-	  					
-	  				}else{
-	  					
-	  					vuze_files.add( vf );
-	  				}
-	  			}catch( Throwable e ){
-	  				
-	  				Debug.printStackTrace(e);
-	  				
-	  				non_vuze_files.add( torrent );
-	  			}
-	  		}
-	  		
-	  		if ( vuze_files.size() > 0 ){
-	  			
-	  			VuzeFile[]	vfs = new VuzeFile[vuze_files.size()];
-	  			
-	  			vuze_files.toArray( vfs );
-	  			
-	  			vfh.handleFiles( vfs, VuzeFileComponent.COMP_TYPE_NONE );
-	  		}
-	  		
-	  		if ( non_vuze_files.size() == 0 && vuze_files.size() > 0 ){
-	  			
-	  			return;
-	  		}
-	  		
-	  		String[]	t = new String[non_vuze_files.size()];
-	  		
-	  		non_vuze_files.toArray( t );
-	  		
-	  		torrents = t;
-	  	}
-	  
-	  	final String[] f_torrents = torrents;
-	  	
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				Shell shell = Utils.findAnyShell();
-				if (!AzureusCoreFactory.isCoreRunning()) {
-					// not running, wait until running, then either
-					// wait for UIFunctionsManager to be initialized,
-					// or open immediately
-					AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-						public void azureusCoreRunning(AzureusCore core) {
-							if (UIFunctionsManager.getUIFunctions() == null) {
-								core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {
-									public void componentCreated(AzureusCore core,
-											AzureusCoreComponent component) {
-										if (component instanceof UIFunctionsSWT) {
-											openTorrentWindow(path, f_torrents,
-													bOverrideStartModeToStopped, for_uri );
-										}
-									}
-								});
-							} else {
-								openTorrentWindow(path, f_torrents, bOverrideStartModeToStopped, for_uri );
-							}
-						}
-					});
-				}
-
-				if (shell == null) {
-					Debug.out("openTorrentWindow().. no shell");
-					return;
-				}
-
-				OpenTorrentWindow.invoke(shell,
-						AzureusCoreFactory.getSingleton().getGlobalManager(), path,
-						f_torrents, bOverrideStartModeToStopped, false, for_uri, force_open );
-			}
-		});
-	}
 
 	public static boolean doesDropHaveTorrents(DropTargetEvent event) {
 		boolean isTorrent = false;
@@ -490,5 +384,387 @@ public class TorrentOpener {
 			}
 		}
 		return isTorrent;
+	}
+
+	/**
+	 * @param torrentOptions
+	 * @return
+	 * @since 5.0.0.1
+	 * 
+	 * @TODO: Remove SWT UI parts (use UIFunctions) and move out of SWT tree
+	 */
+	public static final boolean addTorrent(final TorrentOpenOptions torrentOptions) {
+
+		try {
+			if (torrentOptions.getTorrent() == null) {
+				return false;
+			}
+
+			final DownloadManagerInitialisationAdapter dmia = new DownloadManagerInitialisationAdapter() {
+
+				public void initialised(DownloadManager dm) {
+					DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
+
+					boolean reorder_mode = COConfigurationManager.getBooleanParameter("Enable reorder storage mode");
+					int reorder_mode_min_mb = COConfigurationManager.getIntParameter("Reorder storage mode min MB");
+
+					try {
+						dm.getDownloadState().suppressStateSave(true);
+
+						boolean[] toSkip = new boolean[fileInfos.length];
+						boolean[] toCompact = new boolean[fileInfos.length];
+						boolean[] toReorderCompact = new boolean[fileInfos.length];
+
+						int comp_num = 0;
+						int reorder_comp_num = 0;
+
+						final TorrentOpenFileOptions[] files = torrentOptions.getFiles();
+
+						for (int iIndex = 0; iIndex < fileInfos.length; iIndex++) {
+							DiskManagerFileInfo fileInfo = fileInfos[iIndex];
+							if (iIndex >= 0 && iIndex < files.length
+									&& files[iIndex].lSize == fileInfo.getLength()) {
+								// Always pull destination file from fileInfo and not from
+								// TorrentFileInfo because the destination may have changed
+								// by magic code elsewhere
+								File fDest = fileInfo.getFile(true);
+								if (files[iIndex].isLinked()) {
+
+									fDest = files[iIndex].getDestFileFullName();
+
+									// Can't use fileInfo.setLink(fDest) as it renames
+									// the existing file if there is one
+
+									dm.getDownloadState().setFileLink(iIndex,
+											fileInfo.getFile(false), fDest);
+								}
+
+								if (!files[iIndex].isToDownload()) {
+
+									toSkip[iIndex] = true;
+
+									if (!fDest.exists()) {
+
+										if (reorder_mode
+												&& (fileInfo.getLength() / (1024 * 1024)) >= reorder_mode_min_mb) {
+
+											toReorderCompact[iIndex] = true;
+
+											reorder_comp_num++;
+
+										} else {
+
+											toCompact[iIndex] = true;
+
+											comp_num++;
+										}
+									}
+								}
+							}
+						}
+
+						if (comp_num > 0) {
+
+							dm.getDiskManagerFileInfoSet().setStorageTypes(toCompact,
+									DiskManagerFileInfo.ST_COMPACT);
+						}
+
+						if (reorder_comp_num > 0) {
+
+							dm.getDiskManagerFileInfoSet().setStorageTypes(toReorderCompact,
+									DiskManagerFileInfo.ST_REORDER_COMPACT);
+						}
+
+						dm.getDiskManagerFileInfoSet().setSkipped(toSkip, true);
+
+						if (torrentOptions.disableIPFilter) {
+
+							dm.getDownloadState().setFlag(
+									DownloadManagerState.FLAG_DISABLE_IP_FILTER, true);
+						}
+
+					} finally {
+
+						dm.getDownloadState().suppressStateSave(false);
+					}
+				}
+			};
+
+			AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+				public void azureusCoreRunning(AzureusCore core) {
+					TOTorrent torrent = torrentOptions.getTorrent();
+					byte[] hash = null;
+					try {
+						hash = torrent.getHash();
+					} catch (TOTorrentException e1) {
+					}
+
+					int iStartState = (torrentOptions.iStartID == TorrentOpenOptions.STARTMODE_STOPPED)
+							? DownloadManager.STATE_STOPPED : DownloadManager.STATE_QUEUED;
+
+					GlobalManager gm = core.getGlobalManager();
+
+					DownloadManager dm = gm.addDownloadManager(torrentOptions.sFileName,
+							hash, torrentOptions.sDestDir, torrentOptions.sDestSubDir,
+							iStartState, true,
+							torrentOptions.iStartID == TorrentOpenOptions.STARTMODE_SEEDING, dmia);
+
+					// If dm is null, most likely there was an error printed.. let's hope
+					// the user was notified and skip the error quietly.
+					// We don't have to worry about deleting the file (info.bDelete..)
+					// since gm.addDown.. will handle it.
+					if (dm == null) {
+						return;
+					}
+					
+					if (torrentOptions.iQueueLocation == TorrentOpenOptions.QUEUELOCATION_TOP) {
+						gm.moveTop(new DownloadManager[] {
+							dm
+						});
+					}
+					
+					if (torrentOptions.iStartID == TorrentOpenOptions.STARTMODE_FORCESTARTED) {
+						dm.setForceStart(true);
+					}
+					
+				}
+			});
+
+		} catch (Exception e) {
+			UIFunctions uif = UIFunctionsManager.getUIFunctions();
+			if (uif != null) {
+				uif.showErrorMessage("OpenTorrentWindow.mb.openError",
+						Debug.getStackTrace(e), new String[] {
+							torrentOptions.sOriginatingLocation,
+							e.getMessage()
+						});
+			}
+			return false;
+		}
+		return true;
+	}
+
+	/**
+	 * Creates a TorrentInfo from a file.  Prompts user if the file is invalid,
+	 * torrent already exists
+	 * 
+	 * @param sFileName
+	 * @param sOriginatingLocation
+	 * @return
+	 * @since 5.0.0.1
+	 */
+	// TODO: i18n
+	public static boolean mergeFileIntoTorrentInfo(String sFileName,
+			final String sOriginatingLocation, TorrentOpenOptions torrentOptions) {
+		TOTorrent torrent = null;
+		File torrentFile;
+		boolean bDeleteFileOnCancel = false;
+
+		// Make a copy if user wants that.  We'll delete it when we cancel, if we 
+		// actually made a copy.
+		try {
+			if (sFileName.startsWith("file://localhost/")) {
+				sFileName = UrlUtils.decode(sFileName.substring(16));
+			}
+
+			final File fOriginal = new File(sFileName);
+
+			if (!fOriginal.isFile() || !fOriginal.exists()) {
+				UIFunctionsManager.getUIFunctions().showErrorMessage(
+						"OpenTorrentWindow.mb.openError", fOriginal.toString(),
+						new String[] {
+							UrlUtils.decode(sOriginatingLocation),
+							"Not a File"
+						});
+				return false;
+			}
+
+			if (fOriginal.length() > 20 * 1024 * 1024) {
+				UIFunctionsManager.getUIFunctions().showErrorMessage(
+						"OpenTorrentWindow.mb.openError", fOriginal.toString(),
+						new String[] {
+							UrlUtils.decode(sOriginatingLocation),
+							"Too large to be a torrent"
+						});
+				return false;
+			}
+
+			torrentFile = TorrentUtils.copyTorrentFileToSaveDir(fOriginal, true);
+			bDeleteFileOnCancel = !fOriginal.equals(torrentFile);
+			// TODO if the files are still equal, and it isn't in the save
+			//       dir, we should copy it to a temp file in case something
+			//       re-writes it.  No need to copy a torrent coming from the
+			//       downloader though..
+		} catch (IOException e1) {
+			// Use torrent in wherever it is and hope for the best
+			// XXX Should error instead?
+			torrentFile = new File(sFileName);
+		}
+
+		VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+
+		VuzeFile vf = vfh.loadVuzeFile(torrentFile);
+
+		if (vf != null) {
+
+			vfh.handleFiles(new VuzeFile[] {
+				vf
+			}, VuzeFileComponent.COMP_TYPE_NONE);
+
+			return false;
+		}
+
+		// Do a quick check to see if it's a torrent
+		if (!TorrentUtil.isFileTorrent(torrentFile, torrentFile.getName())) {
+			if (bDeleteFileOnCancel) {
+				torrentFile.delete();
+			}
+			return false;
+		}
+
+		// Load up the torrent, see it it's real
+		try {
+			torrent = TorrentUtils.readFromFile(torrentFile, false);
+		} catch (final TOTorrentException e) {
+
+			UIFunctionsManager.getUIFunctions().showErrorMessage(
+					"OpenTorrentWindow.mb.openError",  Debug.getStackTrace(e),
+					new String[] {
+						sOriginatingLocation,
+						e.getMessage()
+					});
+
+			if (bDeleteFileOnCancel)
+				torrentFile.delete();
+
+			return false;
+		}
+
+		torrentOptions.bDeleteFileOnCancel = bDeleteFileOnCancel;
+		torrentOptions.sFileName = torrentFile.getAbsolutePath();
+		torrentOptions.setTorrent(torrent);
+		torrentOptions.sOriginatingLocation = sOriginatingLocation;
+
+		return torrentOptions.getTorrent() != null;
+	}
+
+
+	/**
+	 * Adds torrents that are listed in torrents array.  torrent array can
+	 * can contain urls or file names.  File names get pathPrefix appended.
+	 * <P>
+	 * will open url download dialog, or warning dialogs
+	 * 
+	 * @since 5.0.0.1
+	 */
+	public static void openTorrentsFromStrings(TorrentOpenOptions optionsToClone,
+			Shell parent, String pathPrefix, String[] torrents, String referrer,
+			TorrentDownloaderCallBackInterface listener,
+			boolean forceTorrentOptionsWindow) {
+
+		// if no torrents, but pathPrefix is directory, collect all torrents in it
+		if (torrents == null || torrents.length == 0) {
+			if (pathPrefix == null) {
+				return;
+			}
+			File path = new File(pathPrefix);
+			if (!path.isDirectory()) {
+				return;
+			}
+
+			List<String> newTorrents = new ArrayList<String>();
+			File[] listFiles = path.listFiles();
+			for (File file : listFiles) {
+				try {
+					if (file.isFile() && TorrentUtils.isTorrentFile(file.getAbsolutePath())) {
+						newTorrents.add(file.getName());
+					}
+				} catch (FileNotFoundException e) {
+				} catch (IOException e) {
+				}
+			}
+			
+			if (newTorrents.size() == 0) {
+				return;
+			}
+
+			torrents = newTorrents.toArray(new String[0]);
+		}
+
+		// trim out any .vuze files
+		final VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+		List<VuzeFile> vuze_files = new ArrayList<VuzeFile>();
+
+		for (String line : torrents) {
+			line = line.trim();
+			if (line.startsWith("\"") && line.endsWith("\"")) {
+				if (line.length() < 3) {
+					line = "";
+				} else {
+					line = line.substring(1, line.length() - 2);
+				}
+			}
+
+			TorrentOpenOptions torrentOptions = optionsToClone == null
+					? new TorrentOpenOptions() : new TorrentOpenOptions(optionsToClone);
+
+			File file = pathPrefix == null ? new File(line) : new File(pathPrefix,
+					line);
+			if (file.exists()) {
+
+				try {
+					VuzeFile vf = vfh.loadVuzeFile(file);
+
+					if (vf != null) {
+						vuze_files.add(vf);
+						continue;
+					}
+				} catch (Throwable e) {
+					Debug.printStackTrace(e);
+				}
+
+				UIFunctions uif = UIFunctionsManager.getUIFunctions();
+
+				if (TorrentOpener.mergeFileIntoTorrentInfo(file.getAbsolutePath(),
+						null, torrentOptions)) {
+					uif.addTorrentWithOptions(forceTorrentOptionsWindow, torrentOptions);
+				}
+				continue;
+			}
+
+			final String url = UrlUtils.parseTextForURL(line, true);
+			if (url != null) {
+
+				// we used to load any URL, but that results in double loading..
+				if (url.endsWith(".vuze")) {
+					new AEThread2("VuzeLoader") {
+						public void run() {
+							try {
+								VuzeFile vf = vfh.loadVuzeFile(url); // XXX This takes a while..
+								if (vf != null) {
+									vfh.handleFiles(new VuzeFile[] {
+										vf
+									}, VuzeFileComponent.COMP_TYPE_NONE);
+								}
+							} catch (Throwable e) {
+								Debug.printStackTrace(e);
+							}
+						}
+					}.start();
+
+					continue;
+				}
+
+				new FileDownloadWindow(parent, url, referrer, null, torrentOptions,
+						listener);
+			}
+		}
+
+		if (vuze_files.size() > 0) {
+			VuzeFile[] vfs = new VuzeFile[vuze_files.size()];
+			vuze_files.toArray(vfs);
+			vfh.handleFiles(vfs, VuzeFileComponent.COMP_TYPE_NONE);
+		}
+
 	}
 }

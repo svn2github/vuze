@@ -24,7 +24,6 @@ import org.gudy.azureus2.ui.swt.UIExitUtilsSWT;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 
@@ -33,6 +32,7 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
 public class CarbonUIEnhancer
 {
@@ -987,7 +987,8 @@ public class CarbonUIEnhancer
 
 				AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 					public void azureusCoreRunning(AzureusCore core) {
-						TorrentOpener.openTorrents(fileNames);
+						UIFunctionsManagerSWT.getUIFunctionsSWT().openTorrentOpenOptions(
+								Utils.findAnyShell(), null, fileNames, false, false);
 					}
 				});
 			}

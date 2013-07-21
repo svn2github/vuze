@@ -163,7 +163,7 @@ public class TorrentUIUtilsV3
 				Shell shell = uiFunctions.getMainShell();
 				if (shell != null) {
 					new FileDownloadWindow(shell, url, dlInfo.getReferer(),
-							dlInfo.getRequestProperties(),
+							dlInfo.getRequestProperties(), null,
 							new TorrentDownloaderCallBackInterface() {
 
 								public void TorrentDownloaderEvent(int state,
@@ -174,8 +174,7 @@ public class TorrentUIUtilsV3
 										file.deleteOnExit();
 
 										// Do a quick check to see if it's a torrent
-										if (!TorrentUtil.isFileTorrent(file, Utils.findAnyShell(),
-												file.getName())) {
+										if (!TorrentUtil.isFileTorrent(file, file.getName())) {
 											return;
 										}
 

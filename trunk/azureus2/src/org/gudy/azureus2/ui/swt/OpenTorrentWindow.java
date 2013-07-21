@@ -35,11 +35,10 @@ import org.eclipse.swt.custom.TableEditor;
 import org.eclipse.swt.dnd.Clipboard;
 import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.events.*;
-import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.GridData;
-import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowData;
-import org.eclipse.swt.layout.RowLayout;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
+import org.eclipse.swt.graphics.Rectangle;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -52,11 +51,8 @@ import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerEvent;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
-import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
-import org.gudy.azureus2.core3.logging.LogAlert;
-import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
@@ -222,7 +218,7 @@ public class OpenTorrentWindow
 	 * @param bForSeeding 
 	 * @param bPopupOpenURL 
 	 */
-	public synchronized static final void invoke(Shell parent, GlobalManager gm,
+	private synchronized static final void invoke(Shell parent, GlobalManager gm,
 			String sPathOfFilesToOpen, String[] sFilesToOpen,
 			boolean bDefaultStopped, boolean bForSeeding, 
 			boolean bPopupOpenURL, boolean forceOpen ){
@@ -281,12 +277,12 @@ public class OpenTorrentWindow
 	 * @param parent
 	 * @param gm
 	 */
-	public synchronized static final void invoke(final Shell parent,
+	private synchronized static final void invoke(final Shell parent,
 			GlobalManager gm) {
 		invoke(parent, gm, null, null, false, false, false, false);
 	}
 
-	public synchronized static final void invokeURLPopup(final Shell parent,
+	private synchronized static final void invokeURLPopup(final Shell parent,
 			GlobalManager gm) {
 		invoke(parent, gm, null, null, false, false, true, false );
 	}
@@ -2104,7 +2100,7 @@ public class OpenTorrentWindow
 				String sURL = UrlUtils.parseTextForURL(sTorrentFilenames[i], true);
 				if (sURL != null) {
 					if (COConfigurationManager.getBooleanParameter("Add URL Silently")) {
-						new FileDownloadWindow(shellForChildren, sURL, null, null, this);
+						new FileDownloadWindow(shellForChildren, sURL, null, null, null, this);
 					} else {
 						new OpenUrlWindow(shellForChildren, sURL, false, null, this);
 					}
@@ -2217,8 +2213,7 @@ public class OpenTorrentWindow
 		}
 		
 		// Do a quick check to see if it's a torrent
-		if (!TorrentUtil.isFileTorrent(torrentFile, shellForChildren,
-				torrentFile.getName())) {
+		if (!TorrentUtil.isFileTorrent(torrentFile, torrentFile.getName())) {
 			if (bDeleteFileOnCancel) {
 				torrentFile.delete();
 			}
@@ -2624,7 +2619,7 @@ public class OpenTorrentWindow
 			File file = inf.getFile();
 			// we already know it isn't a torrent.. we are just using the call
 			// to popup the message
-			TorrentUtil.isFileTorrent(file, shellForChildren, inf.getURL());
+			TorrentUtil.isFileTorrent(file, inf.getURL());
 			if (file.exists()) {
 				file.delete();
 			}

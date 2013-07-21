@@ -114,7 +114,6 @@ public class FinishPanel extends AbstractWizardPanel<ConfigureWizard> {
 	    COConfigurationManager.setParameter("General_sDefaultTorrent_Directory",wizard.torrentPath);
 	    
 	    if ( wizard.hasDataPathChanged()){
-	    	COConfigurationManager.setParameter( "Use default data dir", true );
 	    	COConfigurationManager.setParameter( "Default save path", wizard.getDataPath());
 	    }
 	    

@@ -1820,8 +1820,7 @@ public class TorrentUtil {
 	private static void changeDirSelectedTorrents(DownloadManager[] dms, Shell shell) {
 		if (dms.length <= 0) return;
 
-		String sDefPath = COConfigurationManager.getBooleanParameter("Use default data dir") ? COConfigurationManager
-				.getStringParameter("Default save path") : "";
+		String sDefPath = COConfigurationManager.getStringParameter("Default save path");
 
 		if (sDefPath.length() > 0) {
 			File f = new File(sDefPath);
@@ -2172,7 +2171,7 @@ public class TorrentUtil {
 	 *
 	 * @since 3.0.2.3
 	 */
-	public static boolean isFileTorrent(File torrentFile, Shell parentShell,
+	public static boolean isFileTorrent(File torrentFile, 
 			String torrentName) {
 		String sFirstChunk = null;
 		try {
@@ -2185,38 +2184,36 @@ public class TorrentUtil {
 		}
 
 		if (!sFirstChunk.startsWith("d")) {
-			if (parentShell != null) {
-				boolean isHTML = sFirstChunk.indexOf("<html") >= 0;
-				
-				String retry_url = UrlUtils.parseTextForMagnets( torrentName );
-				if (retry_url == null) {
-					retry_url = UrlUtils.parseTextForMagnets(sFirstChunk); 	
-				}
-				
-				if (retry_url != null) {
-					TorrentOpener.openTorrent( retry_url );
-					return false;
-				}
-				
-				String[] buttons;
-				
-				buttons = new String[]{ MessageText.getString("Button.ok") };
-				
-				MessageBoxShell boxShell = new MessageBoxShell(
-						MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
-						MessageText.getString("OpenTorrentWindow.mb.notTorrent.text",
-								new String[] {
-								torrentName,
-								isHTML ? "" : MessageText.getString("OpenTorrentWindow.mb.notTorrent.cannot.display")
-						}),
-						buttons
-						, 0 );
-				
-				if (isHTML) {
-					boxShell.setHtml(sFirstChunk);
-				}
-				boxShell.open(null);
+			boolean isHTML = sFirstChunk.indexOf("<html") >= 0;
+			
+			String retry_url = UrlUtils.parseTextForMagnets( torrentName );
+			if (retry_url == null) {
+				retry_url = UrlUtils.parseTextForMagnets(sFirstChunk); 	
 			}
+			
+			if (retry_url != null) {
+				TorrentOpener.openTorrent( retry_url );
+				return false;
+			}
+			
+			String[] buttons;
+			
+			buttons = new String[]{ MessageText.getString("Button.ok") };
+			
+			MessageBoxShell boxShell = new MessageBoxShell(
+					MessageText.getString("OpenTorrentWindow.mb.notTorrent.title"),
+					MessageText.getString("OpenTorrentWindow.mb.notTorrent.text",
+							new String[] {
+							torrentName,
+							isHTML ? "" : MessageText.getString("OpenTorrentWindow.mb.notTorrent.cannot.display")
+					}),
+					buttons
+					, 0 );
+			
+			if (isHTML) {
+				boxShell.setHtml(sFirstChunk);
+			}
+			boxShell.open(null);
 
 			return false;
 		}

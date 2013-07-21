@@ -784,7 +784,7 @@ public class MainWindowImpl
 						}
 						GlobalManager gm = core.getGlobalManager();
 						if (gm != null) {
-							OpenTorrentWindow.invokeURLPopup(shell, gm);
+							UIFunctionsManagerSWT.getUIFunctionsSWT().openTorrentWindow();
 							event.doit = false;
 						}
 					} else if (key == 'f'
@@ -1835,7 +1835,7 @@ public class MainWindowImpl
 				// @see com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter#pressed(com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility, com.aelitis.azureus.ui.swt.skin.SWTSkinObject, int)
 				public void pressed(SWTSkinButtonUtility buttonUtility,
 						SWTSkinObject skinObject, int stateMask) {
-					TorrentOpener.openTorrentWindow( false );
+					UIFunctionsManagerSWT.getUIFunctionsSWT().openTorrentWindow();
 				}
 			});
 		}
