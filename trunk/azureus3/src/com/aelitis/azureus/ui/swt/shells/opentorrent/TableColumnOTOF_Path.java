@@ -46,7 +46,8 @@ implements TableCellRefreshListener, TableColumnExtraInfoListener
   	}
   	TorrentOpenFileOptions tfi = (TorrentOpenFileOptions) ds;
   	String s = tfi.getDestPathName();
-  	if (s.startsWith(tfi.parent.sDestDir)) {
+		if (s.startsWith(tfi.parent.sDestDir)
+				&& s.length() > tfi.parent.sDestDir.length()) {
   		s = s.substring(tfi.parent.sDestDir.length() + 1);
   	}
   	cell.setText(s);
