@@ -95,13 +95,23 @@ public class SWTSkinObjectExpandItem
 			}
 		});
 
-		//		composite.addListener(SWT.Modify, new Listener() {
-		//			public void handleEvent(Event event) {
-		//				System.out.println(SWTSkinObjectExpandItem.this + "] composite modify");
-		//				SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
-		//				soExpandBar.handleResize(expandItem);
-		//			}
-		//		});
+		composite.addListener(SWT.Resize, new Listener() {
+			public void handleEvent(Event event) {
+				Utils.execSWTThreadLater(0, new AERunnable() {
+					public void runSupport() {
+						SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
+						soExpandBar.handleResize(expandItem);
+					}
+				});
+			}
+		});
+	}
+	
+	@Override
+	public void relayout() {
+		super.relayout();
+		SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
+		soExpandBar.handleResize(expandItem);
 	}
 
 	protected void resizeComposite() {
