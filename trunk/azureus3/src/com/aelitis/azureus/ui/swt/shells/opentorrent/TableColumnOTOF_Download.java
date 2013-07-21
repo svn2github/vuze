@@ -30,6 +30,7 @@ public class TableColumnOTOF_Download
 	/** Default Constructor */
 	public TableColumnOTOF_Download(TableColumn column) {
 		super(column, 60);
+		column.setPosition(TableColumn.POSITION_LAST);
 	}
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
