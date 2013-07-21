@@ -44,6 +44,9 @@ public class UIConfigDefaultsSWTv3
 			return;
 		}
 
+		int userMode = COConfigurationManager.getIntParameter("User Mode");
+		boolean startAdvanced = userMode > 1;
+
 		boolean configNeedsSave = false;
 
 		if (System.getProperty("FORCE_PROGRESSIVE", "").length() > 0) { //TODO HACK FOR DEMO PURPOSES ONLY!
@@ -123,7 +126,9 @@ public class UIConfigDefaultsSWTv3
 
 			defaults.addParameter("Auto Upload Speed Enabled", true);
 			defaults.addParameter(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS,
-					ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_MANY);
+					startAdvanced
+							? ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_ALWAYS
+							: ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_MANY);
 			defaults.addParameter("Add URL Silently", true);
 			defaults.addParameter("add_torrents_silently", true);
 			defaults.addParameter("Popup Download Finished", false);
@@ -152,8 +157,6 @@ public class UIConfigDefaultsSWTv3
 		defaults.addParameter("MyTorrentsView.table.style", 0);
 		defaults.addParameter("v3.Show Welcome", true);
 		
-		int userMode = COConfigurationManager.getIntParameter("User Mode");
-		boolean startAdvanced = userMode > 1;
 		defaults.addParameter("Library.viewmode", startAdvanced ? 1 : 0);
 		defaults.addParameter("LibraryDL.viewmode", startAdvanced ? 1 : 0);
 		defaults.addParameter("LibraryUnopened.viewmode", startAdvanced ? 1 : 0);
