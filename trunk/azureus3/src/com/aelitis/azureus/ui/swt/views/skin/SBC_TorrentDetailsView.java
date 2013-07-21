@@ -854,7 +854,7 @@ public class SBC_TorrentDetailsView
 
 			if (selection_count > 1) {
 
-				s += s += getSelectionText();
+				s += getSelectionText();
 			}
 
 			if (soInfoArea != null) {
