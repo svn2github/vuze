@@ -26,6 +26,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -245,7 +246,11 @@ public class SWTSkinObjectExpandItem
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (expandItem != null && !expandItem.isDisposed()) {
-					expandItem.setText(text.replaceAll("&", "&&"));
+					if (Constants.isWindows) {
+						expandItem.setText(text.replaceAll("&", "&&"));
+					} else {
+						expandItem.setText(text);
+					}
 				}
 			}
 		});
