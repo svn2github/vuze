@@ -245,7 +245,7 @@ public class SWTSkinObjectExpandItem
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				if (expandItem != null && !expandItem.isDisposed()) {
-					expandItem.setText(text);
+					expandItem.setText(text.replaceAll("&", "&&"));
 				}
 			}
 		});
