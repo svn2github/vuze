@@ -128,7 +128,8 @@ public class SWTSkinObjectExpandItem
 			}
 
 			newHeight = clientArea.height
-					- (lastItemBounds.y + lastItemBounds.height) + composite.getSize().y;
+					- (lastItemBounds.y + lastItemBounds.height)
+					+ composite.getClientArea().height - (expandBar.getSpacing());
 			//			System.out.println("fill " + clientArea + ";last=" + lastItemBounds
 			//					+ " to " + newHeight);
 		} else {

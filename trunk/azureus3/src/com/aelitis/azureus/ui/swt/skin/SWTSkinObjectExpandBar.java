@@ -45,6 +45,7 @@ public class SWTSkinObjectExpandBar
 		expandBar = new ExpandBar(createOn, style); // | SWT.V_SCROLL);
 		// ensure no layout for expandbar (children don't setlayoutdata because they are expanditems)
 		expandBar.setLayout(null);
+		expandBar.setSpacing(1);
 
 		expandBar.addListener(SWT.Resize, new Listener() {
 			public void handleEvent(final Event event) {

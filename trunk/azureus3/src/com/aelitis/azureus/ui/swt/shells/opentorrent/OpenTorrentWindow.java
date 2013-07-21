@@ -109,7 +109,9 @@ public class OpenTorrentWindow
 		}
 
 		soTextArea = (SWTSkinObjectTextbox) skin.getSkinObject("text-area");
-		((Text) soTextArea.getControl()).addModifyListener(new ModifyListener() {
+		Text tb = ((Text) soTextArea.getControl());
+		tb.setFocus();
+		tb.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				int userMode = COConfigurationManager.getIntParameter("User Mode");
 				if (userMode > 0) {
