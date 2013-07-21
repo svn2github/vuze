@@ -503,12 +503,6 @@ public class OpenTorrentOptionsWindow
 						}
 					});
 			tcm.registerColumn(TorrentOpenFileOptions.class,
-					TableColumnOTOF_Name.COLUMN_ID, new TableColumnCreationListener() {
-						public void tableColumnCreated(TableColumn column) {
-							new TableColumnOTOF_Name(column);
-						}
-					});
-			tcm.registerColumn(TorrentOpenFileOptions.class,
 					TableColumnOTOF_Download.COLUMN_ID,
 					new TableColumnCreationListener() {
 						public void tableColumnCreated(TableColumn column) {
@@ -516,15 +510,21 @@ public class OpenTorrentOptionsWindow
 						}
 					});
 			tcm.registerColumn(TorrentOpenFileOptions.class,
-					TableColumnOTOF_Path.COLUMN_ID, new TableColumnCreationListener() {
+					TableColumnOTOF_Name.COLUMN_ID, new TableColumnCreationListener() {
 						public void tableColumnCreated(TableColumn column) {
-							new TableColumnOTOF_Path(column);
+							new TableColumnOTOF_Name(column);
 						}
 					});
 			tcm.registerColumn(TorrentOpenFileOptions.class,
 					TableColumnOTOF_Size.COLUMN_ID, new TableColumnCreationListener() {
 						public void tableColumnCreated(TableColumn column) {
 							new TableColumnOTOF_Size(column);
+						}
+					});
+			tcm.registerColumn(TorrentOpenFileOptions.class,
+					TableColumnOTOF_Path.COLUMN_ID, new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new TableColumnOTOF_Path(column);
 						}
 					});
 			tcm.registerColumn(TorrentOpenFileOptions.class,
@@ -540,6 +540,7 @@ public class OpenTorrentOptionsWindow
 				TableColumnOTOF_Size.COLUMN_ID,
 				TableColumnOTOF_Path.COLUMN_ID
 			});
+			tcm.setDefaultSortColumnName(TABLEID_FILES, TableColumnOTOF_Position.COLUMN_ID);
 		}
 
 		tvFiles = TableViewFactory.createTableViewSWT(TorrentOpenFileOptions.class,
