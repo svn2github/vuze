@@ -171,7 +171,7 @@ public class OpenTorrentWindow
 						dlg.close();
 					}
 					if (intValue == SWT.OK && soTextArea != null
-							&& !soTextArea.getText().isEmpty()) {
+							&& soTextArea.getText().length()>0) {
 						openTorrent(soTextArea.getText(), referrer);
 					}
 				}
