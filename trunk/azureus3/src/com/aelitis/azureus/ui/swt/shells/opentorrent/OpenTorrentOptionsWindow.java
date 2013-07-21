@@ -1122,6 +1122,7 @@ public class OpenTorrentOptionsWindow
 					l = new Label(diskspaceComp, SWT.NONE);
 					l.setForeground(filesTooBig ? Colors.colorError : null);
 					l.setLayoutData(new GridData(SWT.END, SWT.TOP, false, false));
+					l.setText(s);
 				}
 
 				// hack to force resize :(
