@@ -26,7 +26,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
@@ -736,6 +735,15 @@ public class OpenTorrentOptionsWindow
 				}
 				if (btnRetarget != null && !btnRetarget.isDisposed()) {
 					btnRetarget.setEnabled(hasRowsSelected);
+				}
+				if (btnSwarmIt != null && !btnSwarmIt.isDisposed()){
+					boolean	enable=false;
+					TableRowCore[] rows = tvFiles.getSelectedRows();
+					if ( rows.length == 1 ){
+						TorrentOpenFileOptions tfi = ((TorrentOpenFileOptions) rows[0].getDataSource());	
+						enable = tfi.lSize >= 50*1024*1024;
+					}
+					btnSwarmIt.setEnabled(enable);
 				}
 			}
 		});
