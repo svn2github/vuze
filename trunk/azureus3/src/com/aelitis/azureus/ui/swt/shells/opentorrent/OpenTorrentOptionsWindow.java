@@ -208,7 +208,12 @@ public class OpenTorrentOptionsWindow
 		this.torrentOptions = torrentOptions;
 
 		torrentOptions.addListener(new TorrentOpenOptions.ToDownloadListener() {
-			public void toDownloadChanged(boolean toDownload) {
+			public void toDownloadChanged(TorrentOpenFileOptions fo, boolean toDownload) {
+				TableRowCore row = tvFiles.getRow(fo);
+				if (row != null) {
+					row.invalidate(true);
+					row.refresh(true);
+				}
 				updateSize();
 			}
 		});
@@ -593,9 +598,6 @@ public class OpenTorrentOptionsWindow
 					for (TableRowCore row : rows) {
 						TorrentOpenFileOptions tfi = ((TorrentOpenFileOptions) row.getDataSource());
 						tfi.setToDownload(download);
-						//row.getTableCell("download").invalidate();
-						row.invalidate(false);
-						row.refresh(true);
 					}
 				}
 				if (e.keyCode == SWT.F2 && (e.stateMask & SWT.MODIFIER_MASK) == 0) {
@@ -749,6 +751,7 @@ public class OpenTorrentOptionsWindow
 			TableRowCore row = tvFiles.getRow(torrentFileInfo);
 			if (row != null) {
 				row.invalidate(true);
+				row.refresh(true);
 			}
 		}
 	}
