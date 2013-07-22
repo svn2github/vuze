@@ -53,6 +53,7 @@ public class TableViewPainted
 	implements ParameterListener, TableViewSWT<Object>, ObfusticateImage,
 	MessageTextListener
 {
+	private static final boolean hasGetScrollBarMode = SWT.getVersion() >= 3821;
 
 	private static final boolean DEBUG_ROWCHANGE = false;
 
@@ -2525,7 +2526,7 @@ public class TableViewPainted
 		if (hBar != null && !hBar.isDisposed()) {
 			int tableSize = cTable.getSize().x;
 			int max = columnsWidth;
-			if (vBar.isVisible() && cTable.getScrollbarsMode() == SWT.NONE) {
+			if (vBar.isVisible() && getScrollbarsMode() == SWT.NONE) {
 				int vBarW = vBar.getSize().x;
 
 				max += vBarW;
@@ -2542,7 +2543,7 @@ public class TableViewPainted
 				hBar.setValues(hBar.getSelection(), 0, max, tableSize, 50, tableSize);
 			}
 			if (vBar != null && !vBar.isDisposed() && hBar.isVisible()) {
-				int hBarW = cTable.getScrollbarsMode() == SWT.NONE ? hBar.getSize().y : 0;
+				int hBarW = getScrollbarsMode() == SWT.NONE ? hBar.getSize().y : 0;
 
 				vBar.setThumb(clientArea.height - hBarW);
 				vBar.setMaximum(totalHeight - hBarW);
@@ -2550,6 +2551,13 @@ public class TableViewPainted
 			}
 
 		}
+	}
+
+	private int getScrollbarsMode() {
+		if (hasGetScrollBarMode) {
+			return cTable.getScrollbarsMode();
+		}
+		return SWT.NONE;
 	}
 
 	@Override
