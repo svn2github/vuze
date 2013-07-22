@@ -1275,6 +1275,7 @@ public class OpenTorrentOptionsWindow
 				}
 
 				// hack to force resize :(
+				diskspaceComp.layout(true);
 				soExpandItemSaveTo.relayout();
 			}
 
