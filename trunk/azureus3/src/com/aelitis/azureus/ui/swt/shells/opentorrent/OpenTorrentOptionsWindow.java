@@ -612,6 +612,26 @@ public class OpenTorrentOptionsWindow
 
 			public void fillMenu(String sColumnName, Menu menu) {
 				MenuItem item;
+				TableRowCore focusedRow = tvFiles.getFocusedRow();
+				TorrentOpenFileOptions tfi_focus = ((TorrentOpenFileOptions) focusedRow.getDataSource());
+				boolean download = tfi_focus.isToDownload();
+
+				item = new MenuItem(menu, SWT.CHECK);
+				Messages.setLanguageText(item, "label.download.file");
+				item.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						TableRowCore focusedRow = tvFiles.getFocusedRow();
+						TorrentOpenFileOptions tfi_focus = ((TorrentOpenFileOptions) focusedRow.getDataSource());
+						boolean download = !tfi_focus.isToDownload();
+
+						TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(
+								new TorrentOpenFileOptions[0]);
+						for (TorrentOpenFileOptions options : infos) {
+							options.setToDownload(download);
+						}
+					}
+				});
+				item.setSelection(download);
 
 				item = new MenuItem(menu, SWT.PUSH);
 				Messages.setLanguageText(item, "FilesView.menu.rename_only");
@@ -635,6 +655,41 @@ public class OpenTorrentOptionsWindow
 						changeFileDestination(infos);
 					}
 
+				});
+
+				new MenuItem(menu, SWT.SEPARATOR);
+
+				item = new MenuItem(menu, SWT.PUSH);
+				Messages.setLanguageText(item, "Button.selectAll");
+				item.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						tvFiles.selectAll();
+					}
+				});
+
+				
+				item = new MenuItem(menu, SWT.PUSH);
+				Messages.setLanguageText(item, "menu.selectfilesinfolder", new String[] {
+					tfi_focus.getDestPathName()
+				});
+				item.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						TableRowCore focusedRow = tvFiles.getFocusedRow();
+						TorrentOpenFileOptions tfi_focus = ((TorrentOpenFileOptions) focusedRow.getDataSource());
+						String destPathName = tfi_focus.getDestPathName();
+						
+						TableRowCore[] rows = tvFiles.getRows();
+						for (TableRowCore row : rows) {
+							Object dataSource = row.getDataSource();
+							if (dataSource instanceof TorrentOpenFileOptions) {
+								TorrentOpenFileOptions fileOptions = (TorrentOpenFileOptions) dataSource;
+								if (destPathName.equals(fileOptions.getDestPathName())) {
+									row.setSelected(true);
+								}
+							}
+						}
+
+					}
 				});
 
 			}
