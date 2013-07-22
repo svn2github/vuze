@@ -401,14 +401,14 @@ public class TorrentOpenOptions
 	}
 	
 	public interface ToDownloadListener {
-		public void toDownloadChanged(boolean toDownload);
+		public void toDownloadChanged(TorrentOpenFileOptions torrentOpenFileOptions, boolean toDownload);
 	}
 
 	public void fileDownloadStateChanged(
 			TorrentOpenFileOptions torrentOpenFileOptions, boolean toDownload) {
 		ToDownloadListener[] listeners = listToDownloadListeners.toArray(new ToDownloadListener[0]);
 		for (ToDownloadListener l : listeners) {
-			l.toDownloadChanged(toDownload);
+			l.toDownloadChanged(torrentOpenFileOptions, toDownload);
 		}
 	}
 
