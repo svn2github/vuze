@@ -86,7 +86,7 @@ public class SWTSkinObjectTextbox
 			}
 		}
 		
-		if ((style & SWT.WRAP) == 0 && (style & SWT.MULTI) > 0) {
+		if ((style & SWT.WRAP) == 0 && (style & SWT.MULTI) > 0 && !properties.getBooleanValue(sConfigID + ".nohbar", false)) {
 			style |= SWT.H_SCROLL;
 		}
 
