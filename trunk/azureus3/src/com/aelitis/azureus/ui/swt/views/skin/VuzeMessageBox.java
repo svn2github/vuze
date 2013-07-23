@@ -58,8 +58,9 @@ public class VuzeMessageBox
 		this.title = title;
 		this.text = text;
 		buttonsArea = new StandardButtonsArea() {
-			protected void clicked(int intValue) {
-				close(intValue);
+			// @see com.aelitis.azureus.ui.swt.views.skin.StandardButtonsArea#clicked(int)
+			protected void clicked(int buttonValue) {
+				closeWithButtonVal(buttonValue);
 			}
 		};
 		buttonsArea.setButtonIDs(buttons);
