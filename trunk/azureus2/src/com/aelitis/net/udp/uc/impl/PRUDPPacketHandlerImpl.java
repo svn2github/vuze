@@ -481,10 +481,9 @@ PRUDPPacketHandlerImpl
 					}
 				}
 								
-				InetSocketAddress	address;
-				
-				DatagramSocket	new_socket;
-				
+				InetSocketAddress	address		= null;
+				DatagramSocket		new_socket	= null;
+								
 				try{
 					if ( target_bind_ip == null ){
 						
@@ -500,32 +499,86 @@ PRUDPPacketHandlerImpl
 					}
 				}catch( BindException e ){
 					
-						// one off attempt to recover by selecting an explicit one.
-						// on  Vista (at least) we sometimes fail with wildcard but succeeed
-						// with explicit (see http://forum.vuze.com/thread.jspa?threadID=77574&tstart=0)
+						// some firewalls (e.g. Comodo) seem to close sockets on us and then not release them quickly so we come through here and get
+						// an 'address already in use' failure
 					
-					if ( target_bind_ip.isAnyLocalAddress()){
+					boolean	rebind_worked = false;
+					
+					int	delay = 25;
+					
+					for (int i=0;i<16 && !( failed || destroyed );i++){
 						
-						InetAddress guess = NetworkAdmin.getSingleton().guessRoutableBindAddress();
-						
-						if ( guess != null ){
+						try{
+							Thread.sleep( delay );
+							
+							delay = delay * 2;
+							
+							if ( delay > 1000 ){
+								
+								delay = 1000;
+							}
+							
+							if ( target_bind_ip == null ){
+								
+								address = new InetSocketAddress("127.0.0.1",port);
+								
+								new_socket = new DatagramSocket( port );
+								
+							}else{
+								
+								address = new InetSocketAddress( target_bind_ip, port );
+								
+								new_socket = new DatagramSocket( address );		
+							}
 							
 							if (Logger.isEnabled())
-								Logger.log(new LogEvent(LOGID,"PRUDPPacketReceiver: retrying with bind IP guess of " + guess ));
+								Logger.log(new LogEvent(LOGID,"PRUDPPacketReceiver: rebind to " + target_bind_ip + " worked (tries=" + (i+1) + ") after getting " + Debug.getNestedExceptionMessage( e )));
 
-							try{
-								
-								InetSocketAddress guess_address = new InetSocketAddress( guess, port );
-								
-								new_socket = new DatagramSocket( guess_address );		
-
-								target_bind_ip 	= guess;
-								address			= guess_address;
+							rebind_worked = true;
+							
+							break;
+							
+						}catch( Throwable f ){
+							
+						}
+					}
+					
+					if ( !rebind_worked ){
+						
+						if (Logger.isEnabled())
+							Logger.log(new LogEvent(LOGID,"PRUDPPacketReceiver: bind failed with " + Debug.getNestedExceptionMessage( e )));
+									
+					
+							// one off attempt to recover by selecting an explicit one.
+							// on  Vista (at least) we sometimes fail with wildcard but succeeed
+							// with explicit (see http://forum.vuze.com/thread.jspa?threadID=77574&tstart=0)
+						
+						if ( target_bind_ip.isAnyLocalAddress()){
+							
+							InetAddress guess = NetworkAdmin.getSingleton().guessRoutableBindAddress();
+							
+							if ( guess != null ){
 								
 								if (Logger.isEnabled())
-									Logger.log(new LogEvent(LOGID,"PRUDPPacketReceiver: Switched to explicit bind ip " + target_bind_ip + " after initial bind failure with wildcard (" + e.getMessage() + ")" ));
-
-							}catch( Throwable f ){
+									Logger.log(new LogEvent(LOGID,"PRUDPPacketReceiver: retrying with bind IP guess of " + guess ));
+	
+								try{
+									
+									InetSocketAddress guess_address = new InetSocketAddress( guess, port );
+									
+									new_socket = new DatagramSocket( guess_address );		
+	
+									target_bind_ip 	= guess;
+									address			= guess_address;
+									
+									if (Logger.isEnabled())
+										Logger.log(new LogEvent(LOGID,"PRUDPPacketReceiver: Switched to explicit bind ip " + target_bind_ip + " after initial bind failure with wildcard (" + e.getMessage() + ")" ));
+	
+								}catch( Throwable f ){
+									
+									throw( e );
+								}
+							}else{
 								
 								throw( e );
 							}
@@ -533,9 +586,6 @@ PRUDPPacketHandlerImpl
 							
 							throw( e );
 						}
-					}else{
-						
-						throw( e );
 					}
 				}
 				
