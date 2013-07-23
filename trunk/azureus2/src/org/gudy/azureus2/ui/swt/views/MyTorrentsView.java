@@ -54,6 +54,9 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.PluginManager;
+import org.gudy.azureus2.plugins.config.ConfigParameter;
 import org.gudy.azureus2.plugins.download.DownloadTypeComplete;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
@@ -61,6 +64,7 @@ import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 import org.gudy.azureus2.plugins.ui.tables.TableRowRefreshListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener;
+import org.gudy.azureus2.pluginsimpl.local.PluginManagerImpl;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.components.CompositeMinSize;
@@ -80,6 +84,7 @@ import org.gudy.azureus2.ui.swt.views.utils.CategoryUIUtils;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.Taggable;
@@ -2159,20 +2164,33 @@ public class MyTorrentsView
 			!Utils.isAZ2UI() &&
 			supportsTabs &&
 			COConfigurationManager.getBooleanParameter( "Library.ShowTabsInTorrentView" );
-			
-		table.setEnableTabViews( 
-				enable_tab_views, false, 
-				new String[]{
-					GeneralView.MSGID_PREFIX,
-					TrackerView.MSGID_PREFIX,
-					PeersView.MSGID_PREFIX,
-					PeersGraphicView.MSGID_PREFIX,
-					PiecesView.MSGID_PREFIX,
-					DownloadActivityView.MSGID_PREFIX,
-					PieceInfoView.MSGID_PREFIX,
-					FilesView.MSGID_PREFIX,
-					"rcm.subview.torrentdetails.name"	// discoveries sub-tab hack
-				});
+
+		List<String> restrictTo = new ArrayList<String>();
+		restrictTo.addAll(Arrays.asList(
+			GeneralView.MSGID_PREFIX,
+			TrackerView.MSGID_PREFIX,
+			PeersView.MSGID_PREFIX,
+			PeersGraphicView.MSGID_PREFIX,
+			PiecesView.MSGID_PREFIX,
+			DownloadActivityView.MSGID_PREFIX,
+			PieceInfoView.MSGID_PREFIX,
+			FilesView.MSGID_PREFIX
+		));
+		
+		// discoveries sub-tab hack
+		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
+		PluginInterface pi = pm.getPluginInterfaceByID("aercm", true);
+
+		if (pi != null) {
+			String pluginInfo = pi.getPluginconfig().getPluginStringParameter(
+					"plugin.info", "");
+			if (pluginInfo.equals("e")) {
+				restrictTo.add("rcm.subview.torrentdetails.name");
+			}
+		}
+
+		table.setEnableTabViews(enable_tab_views, false,
+				restrictTo.toArray(new String[0]));
 		
 		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		if (uiFunctions != null) {

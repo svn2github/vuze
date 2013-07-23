@@ -32,6 +32,12 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
+/**
+ * 
+ * @author TuxPaper
+ *
+ * @TODO dynamically load tab contents, like SBC_TorrentDetailsView does
+ */
 public class TableViewSWT_TabsCommon
 {
 	TableViewSWT<?> tv;
