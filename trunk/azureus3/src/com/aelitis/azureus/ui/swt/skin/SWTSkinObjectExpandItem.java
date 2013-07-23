@@ -27,7 +27,6 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 /**
@@ -132,17 +131,33 @@ public class SWTSkinObjectExpandItem
 
 		int newHeight;
 		if (properties.getBooleanValue(sConfigID + ".fillheight", false)) {
-			Control[] children = expandBar.getChildren();
-			Rectangle lastItemBounds = children[children.length - 1].getBounds();
-			if (!children[children.length - 1].isVisible()) {
-				lastItemBounds.height = 0;
-			}
+			ExpandItem[] items = expandBar.getItems();
+			int h = expandBar.getSpacing();
+			for (ExpandItem item : items) {
+				h += expandBar.getSpacing();
+				//System.out.print(expandBar.indexOf(item) + ":hh="
+				//		+ item.getHeaderHeight() + "/" + item.getHeight()
+				//		+ ", ");
+				int hh = item.getHeaderHeight();
+				// linux problems.. negative header height and headher height > itemheight
+				int ih = item.getHeight();
+				if (hh < 0) {
+					hh += item.getHeight();
+				} else if (hh > ih) {
+					hh -= ih;
+				}
 
-			newHeight = clientArea.height
-					- (lastItemBounds.y + lastItemBounds.height)
-					+ composite.getClientArea().height - (expandBar.getSpacing());
-			//			System.out.println("fill " + clientArea + ";last=" + lastItemBounds
-			//					+ " to " + newHeight);
+				h += hh;
+				if (expandItem != item) {
+					if (item.getExpanded() && item.getControl().isVisible()) {
+						h += item.getHeight();
+					}
+				}
+			}
+			//System.out.println("tot=" + h + ";" + Debug.getCompressedStackTrace());
+			
+			newHeight = clientArea.height - h;
+			//System.out.println("fill " + clientArea + ";h=" + h + " to " + newHeight);
 		} else {
 			newHeight = composite.computeSize(clientArea.width, SWT.DEFAULT, true).y;
 			expandBar.computeSize(SWT.DEFAULT, SWT.DEFAULT, true);
