@@ -77,6 +77,8 @@ public class FileDownloadWindow
 	String shortURL = null;
 
 	TorrentOpenOptions torrentOptions;
+
+	private int lastState = -1;
 	
 	/**
 	 * Create a file download window.  Add torrent when done downloading
@@ -240,12 +242,23 @@ public class FileDownloadWindow
 	}
 
 	private void update() {
-		int state = downloader.getDownloadState();
+		int localLastState;
+		int state;
+		synchronized (this) {
+			localLastState = lastState;
+			state = downloader.getDownloadState();
+			// update lastState now, so if we are called again while in this method, we
+			// have the right lastState
+			lastState = state;
+		}
 		int percentDone = downloader.getPercentDone();
 
 		IProgressReport pReport = pReporter.getProgressReport();
 		switch (state) {
 			case TorrentDownloader.STATE_CANCELLED:
+				if (localLastState == state) {
+					return;
+				}
 				if (false == pReport.isCanceled()) {
 					pReporter.cancel();
 				}
@@ -254,6 +267,9 @@ public class FileDownloadWindow
 				pReporter.setPercentage(percentDone, downloader.getStatus());
 				break;
 			case TorrentDownloader.STATE_ERROR:
+				if (localLastState == state) {
+					return;
+				}
 				/*
 				 * If the user has canceled then a call  to downloader.cancel() has already been made
 				 * so don't bother prompting for the user to retry
@@ -266,6 +282,9 @@ public class FileDownloadWindow
 						+ downloader.getError());
 				return;
 			case TorrentDownloader.STATE_FINISHED:
+				if (localLastState == state) {
+					return;
+				}
 				pReporter.setDone();
 
 				/*
