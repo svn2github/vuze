@@ -842,6 +842,7 @@ public class OpenTorrentOptionsWindow
 		dlg = new SkinnedDialog("skin3_dlg_opentorrent_options", "shell",
 				SWT.RESIZE | SWT.DIALOG_TRIM);
 
+		dlg.setTitle(MessageText.getString("OpenTorrentOptions.title") + " [" + torrentOptions.getTorrentName() + "]");
 		final SWTSkin skin = dlg.getSkin();
 		
 		SWTSkinObject so;
