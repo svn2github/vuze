@@ -974,7 +974,13 @@ ConfigurationManager
   		
   	}
   	
-  	listener.configurationSaved();
+		try{
+	  	listener.configurationSaved();
+			
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace( e );
+		}
   }
   public void removeListener(COConfigurationListener listener) {
 	  synchronized( listenerz ){
