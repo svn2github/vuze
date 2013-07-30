@@ -90,7 +90,11 @@ AEProxySelectorImpl
 					    if ( enable_proxy && enable_socks ){
 					    	
 					    	proxy_host 		= COConfigurationManager.getStringParameter("Proxy.Host").trim();
-					    	proxy_port 		= Integer.parseInt(COConfigurationManager.getStringParameter("Proxy.Port").trim());
+					    	try {
+					    		proxy_port 		= Integer.parseInt(COConfigurationManager.getStringParameter("Proxy.Port").trim());
+					    	} catch (Exception e) {
+					    		// User got NumberFormatException and Vuze Failed to Launch
+					    	}
 
 							if ( proxy_host.length() == 0 ){
 								
