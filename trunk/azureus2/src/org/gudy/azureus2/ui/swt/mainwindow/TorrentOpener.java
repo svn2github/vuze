@@ -642,7 +642,7 @@ public class TorrentOpener {
 
 		torrentOptions.bDeleteFileOnCancel = bDeleteFileOnCancel;
 		torrentOptions.sFileName = torrentFile.getAbsolutePath();
-		torrentOptions.setTorrent(torrent);
+		torrentOptions.setTorrent(torrent, true);
 		torrentOptions.sOriginatingLocation = sOriginatingLocation;
 
 		return torrentOptions.getTorrent() != null;

@@ -109,7 +109,7 @@ public class TorrentOpenOptions
 		this.bDeleteFileOnCancel = bDeleteFileOnCancel;
 		this.sFileName = sFileName;
 		this.sOriginatingLocation = sFileName;
-		this.setTorrent(torrent);
+		this.setTorrent(torrent, true);
 	}
 
 	public TorrentOpenOptions() {
@@ -117,10 +117,6 @@ public class TorrentOpenOptions
 		iQueueLocation = QUEUELOCATION_BOTTOM;
 		isValid = true;
 		this.sDestDir = COConfigurationManager.getStringParameter(PARAM_DEFSAVEPATH);
-		if (COConfigurationManager.getBooleanParameter("DefaultDir.BestGuess")
-				&& !COConfigurationManager.getBooleanParameter(PARAM_MOVEWHENDONE)) {
-			this.sDestDir = getSmartDestDir();
-		}
 	}
 
 	/**
@@ -372,9 +368,16 @@ public class TorrentOpenOptions
 		return torrent;
 	}
 
-	public void setTorrent(TOTorrent torrent) {
+	public void setTorrent(TOTorrent torrent, boolean updateDestDir) {
 		this.torrent = torrent;
 
+		if (updateDestDir) {
+			if (COConfigurationManager.getBooleanParameter("DefaultDir.BestGuess")
+					&& !COConfigurationManager.getBooleanParameter(PARAM_MOVEWHENDONE)) {
+				this.sDestDir = getSmartDestDir();
+			}
+		}
+		
 		if (torrent == null) {
 			initial_linkage_map = null;
 		} else {
