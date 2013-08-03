@@ -47,6 +47,10 @@ public class FileIndexItem
 
   public void refresh(TableCell cell) {
     DiskManagerFileInfo fileInfo = (DiskManagerFileInfo)cell.getDataSource();
-    cell.setText( fileInfo==null?"":String.valueOf(fileInfo.getIndex()));
+    int index = fileInfo==null?-1:fileInfo.getIndex();
+    
+    if ( cell.setSortValue( index )){
+    	cell.setText( index==-1?"":String.valueOf(index));
+    }
   }
 }
