@@ -14,8 +14,9 @@
 #include <IOKit/usb/USBSpec.h>
 
 #include "IONotification.h"
+#include "LaunchServicesWrapper.h"
 
-#define VERSION "1.10"
+#define VERSION "1.11"
 
 #define assertNot0(a) if (a == 0) { fprintf(stderr, "%s is 0\n", #a); return; }
 void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethodID methPut);
@@ -166,6 +167,24 @@ Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_initializeDriveDe
 	IONotification *mountNotification = [IONotification alloc];
 	[mountNotification setup];
 }
+
+NSString *jstring2nsstring (JNIEnv *env, jstring jstr)
+{
+    char *cStr;
+    NSString *nsString;
+    
+    cStr = (char *)env->GetStringUTFChars(jstr, NULL);
+    if (!cStr) {
+        return NULL;
+    }
+    
+    nsString = [[NSString class] stringWithCString: cStr];
+    
+    env->ReleaseStringUTFChars (jstr, cStr);
+    
+    return nsString;
+}
+
 
 jstring wchar2jstring(JNIEnv* env, const wchar_t* s) {
 	jstring result = 0;
@@ -577,3 +596,146 @@ void notifyURL(const char *url) {
 	env->CallStaticVoidMethod(clsCocoaUIEnh, methFileOpen, ret);
 	 */
 }
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    setDefaultAppForExt
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)V
+ */
+JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_setDefaultAppForExt
+(JNIEnv *env, jclass cla, jstring japp, jstring jext)
+{
+    NSString *app = jstring2nsstring(env, japp);
+    if (app == NULL) {
+        return (jboolean) 0;
+    }
+    
+    NSString *ext = jstring2nsstring(env, jext);
+    if (ext == NULL) {
+        [app release];
+        return (jboolean) 0;
+    }
+    NSBundle *bundle = [NSBundle bundleWithPath:app];
+    [LaunchServicesWrapper setDefaultApplication:bundle forExtension:ext];
+    [app release];
+    [ext release];
+    return (jboolean) 1;
+}
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    setDefaultAppForMime
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)V
+ */
+JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_setDefaultAppForMime
+(JNIEnv *env, jclass cla, jstring japp, jstring jmime)
+{
+    NSString *app = jstring2nsstring(env, japp);
+    if (app == NULL) {
+        return (jboolean) 0;
+    }
+    
+    NSString *mime = jstring2nsstring(env, jmime);
+    if (mime == NULL) {
+        [app release];
+        return (jboolean) 0;
+    }
+    NSBundle *bundle = [NSBundle bundleWithPath:app];
+    [LaunchServicesWrapper setDefaultApplication:bundle forMimeType:mime];
+    [app release];
+    [mime release];
+    return (jboolean) 1;
+}
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    setDefaultAppForScheme
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)V
+ */
+JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_setDefaultAppForScheme
+(JNIEnv *env, jclass cla, jstring japp, jstring jscheme)
+{
+    NSString *app = jstring2nsstring(env, japp);
+    if (app == NULL) {
+        return (jboolean) 0;
+    }
+    
+    NSString *scheme = jstring2nsstring(env, jscheme);
+    if (scheme == NULL) {
+        [app release];
+        return (jboolean) 0;
+    }
+    NSBundle *bundle = [NSBundle bundleWithPath:app];
+    [LaunchServicesWrapper setDefaultApplication:bundle forScheme:scheme];
+    [app release];
+    [scheme release];
+    return (jboolean) 1;
+}
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    getDefaultAppForExt
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getDefaultAppForExt
+(JNIEnv *env, jclass cla, jstring jext)
+{
+    NSString *ext = jstring2nsstring(env, jext);
+    if (ext != NULL) {
+        NSString *def = [LaunchServicesWrapper defaultApplicationForExtension:ext];
+        
+        [ext release];
+        if (def) {
+            return NSString2jstring(env, def);
+        }
+    }
+    return (jstring) NULL;
+}
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    getDefaultAppForMime
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getDefaultAppForMime
+(JNIEnv *env, jclass cla, jstring jmime)
+{
+    const char* mime = env->GetStringUTFChars(jmime, NULL);
+    if (mime) {
+        NSString *nstring = [[NSString alloc] initWithUTF8String:mime];
+        
+        NSString *def = [LaunchServicesWrapper defaultApplicationForMimeType:nstring];
+
+        [nstring release];
+        env->ReleaseStringUTFChars(jmime, mime);
+        if (def) {
+            return NSString2jstring(env, def);
+        }
+    }
+    return (jstring) NULL;
+}
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    getDefaultAppForScheme
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getDefaultAppForScheme
+(JNIEnv *env, jclass cla, jstring jscheme)
+{
+    const char* scheme = env->GetStringUTFChars(jscheme, NULL);
+    if (scheme) {
+        NSString *nstring = [[NSString alloc] initWithUTF8String:scheme];
+
+        NSString *def = [LaunchServicesWrapper defaultApplicationForScheme:nstring];
+
+        [nstring release];
+        env->ReleaseStringUTFChars(jscheme, scheme);
+        if (def) {
+            return NSString2jstring(env, def);
+        }
+    }
+    return (jstring) NULL;
+}
+
+

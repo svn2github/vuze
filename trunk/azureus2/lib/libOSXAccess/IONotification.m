@@ -128,6 +128,7 @@ void DeviceRemoved(void *refCon, io_iterator_t iterator) {
 	
 	NSAppleEventManager *appleEventManager = [NSAppleEventManager sharedAppleEventManager];
 	if (appleEventManager) {
+        fprintf(stderr, "setEventHandler for handleGetURLEvent\n");
 		[appleEventManager setEventHandler:self andSelector:@selector(handleGetURLEvent:withReplyEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
 	}
 
@@ -424,6 +425,7 @@ void DeviceNotification(void *refCon, io_service_t service, natural_t messageTyp
 
 - (void)handleGetURLEvent:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent
 {
+	fprintf(stderr, "handleGetURL!\n");
 	NSAppleEventDescriptor *desc = [event paramDescriptorForKeyword:keyDirectObject];
 	NSString *urlstring = [desc stringValue];
 	

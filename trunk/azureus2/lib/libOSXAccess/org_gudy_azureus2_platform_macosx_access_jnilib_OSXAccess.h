@@ -10,7 +10,7 @@ extern "C" {
 /*
  * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
  * Method:    AEGetParamDesc
- * Signature: (IIILorg/eclipse/swt/internal/carbon/AEDesc;)I
+ * Signature: (IIILjava/lang/Object;)I
  */
 JNIEXPORT jint JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_AEGetParamDesc
   (JNIEnv *, jclass, jint, jint, jint, jobject);
@@ -46,6 +46,54 @@ JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXA
  */
 JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_initializeDriveDetection
   (JNIEnv *, jclass, jobject);
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    setDefaultAppForExt
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_setDefaultAppForExt
+  (JNIEnv *, jclass, jstring, jstring);
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    setDefaultAppForMime
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_setDefaultAppForMime
+  (JNIEnv *, jclass, jstring, jstring);
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    setDefaultAppForScheme
+ * Signature: (Ljava/lang/String;Ljava/lang/String;)Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_setDefaultAppForScheme
+  (JNIEnv *, jclass, jstring, jstring);
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    getDefaultAppForExt
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getDefaultAppForExt
+  (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    getDefaultAppForMime
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getDefaultAppForMime
+  (JNIEnv *, jclass, jstring);
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    getDefaultAppForScheme
+ * Signature: (Ljava/lang/String;)Ljava/lang/String;
+ */
+JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getDefaultAppForScheme
+  (JNIEnv *, jclass, jstring);
 
 #ifdef __cplusplus
 }
