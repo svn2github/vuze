@@ -10,7 +10,7 @@
 105_CFLAGS = -c $(105_ARCHS) -I $(104_SDK)/System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/AE.framework/Versions/A/Headers
 
 
-OBJECTS = OSXAccess.o IONotification.o
+OBJECTS = OSXAccess.o IONotification.o LaunchServicesWrapper.o
 OUTLIB = libOSXAccess
 
 all:
@@ -18,12 +18,12 @@ all:
 
 
 10.4:
-	g++ $(104_CFLAGS) OSXAccess.mm IONotification.m  -DCARBON
+	g++ $(104_CFLAGS) OSXAccess.mm IONotification.m LaunchServicesWrapper.m -DCARBON
 	g++ -o $(OUTLIB).jnilib $(104_LFLAGS) $(OBJECTS)
 	rm -f *.o
 
 10.5:
-	g++ $(105_CFLAGS) OSXAccess.mm IONotification.m  -DCARBON
+	g++ $(105_CFLAGS) OSXAccess.mm IONotification.m LaunchServicesWrapper.m -DCARBON
 	g++ -o $(OUTLIB)_10.5.jnilib $(105_LFLAGS) $(OBJECTS)
 	rm -f *.o
 
