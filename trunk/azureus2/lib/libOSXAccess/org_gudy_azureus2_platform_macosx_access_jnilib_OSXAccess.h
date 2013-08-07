@@ -95,6 +95,14 @@ JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_O
 JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getDefaultAppForScheme
   (JNIEnv *, jclass, jstring);
 
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    canSetDefaultApp
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_canSetDefaultApp
+  (JNIEnv *, jclass);
+
 #ifdef __cplusplus
 }
 #endif

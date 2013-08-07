@@ -14,7 +14,9 @@
 #include <IOKit/usb/USBSpec.h>
 
 #include "IONotification.h"
+#ifndef CARBON
 #include "LaunchServicesWrapper.h"
+#endif
 
 #define VERSION "1.11"
 
@@ -605,6 +607,9 @@ void notifyURL(const char *url) {
 JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_setDefaultAppForExt
 (JNIEnv *env, jclass cla, jstring japp, jstring jext)
 {
+#ifdef CARBON
+    return (jboolean) 0;
+#else
     NSString *app = jstring2nsstring(env, japp);
     if (app == NULL) {
         return (jboolean) 0;
@@ -620,6 +625,7 @@ JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_
     [app release];
     [ext release];
     return (jboolean) 1;
+#endif
 }
 
 /*
@@ -630,6 +636,9 @@ JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_
 JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_setDefaultAppForMime
 (JNIEnv *env, jclass cla, jstring japp, jstring jmime)
 {
+#ifdef CARBON
+    return (jboolean) 0;
+#else
     NSString *app = jstring2nsstring(env, japp);
     if (app == NULL) {
         return (jboolean) 0;
@@ -645,6 +654,7 @@ JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_
     [app release];
     [mime release];
     return (jboolean) 1;
+#endif
 }
 
 /*
@@ -655,6 +665,9 @@ JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_
 JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_setDefaultAppForScheme
 (JNIEnv *env, jclass cla, jstring japp, jstring jscheme)
 {
+#ifdef CARBON
+    return (jboolean) 0;
+#else
     NSString *app = jstring2nsstring(env, japp);
     if (app == NULL) {
         return (jboolean) 0;
@@ -670,6 +683,7 @@ JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_
     [app release];
     [scheme release];
     return (jboolean) 1;
+#endif
 }
 
 /*
@@ -680,6 +694,7 @@ JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_
 JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getDefaultAppForExt
 (JNIEnv *env, jclass cla, jstring jext)
 {
+#ifndef CARBON
     NSString *ext = jstring2nsstring(env, jext);
     if (ext != NULL) {
         NSString *def = [LaunchServicesWrapper defaultApplicationForExtension:ext];
@@ -689,6 +704,7 @@ JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_O
             return NSString2jstring(env, def);
         }
     }
+#endif
     return (jstring) NULL;
 }
 
@@ -700,6 +716,7 @@ JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_O
 JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getDefaultAppForMime
 (JNIEnv *env, jclass cla, jstring jmime)
 {
+#ifndef CARBON
     const char* mime = env->GetStringUTFChars(jmime, NULL);
     if (mime) {
         NSString *nstring = [[NSString alloc] initWithUTF8String:mime];
@@ -712,6 +729,7 @@ JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_O
             return NSString2jstring(env, def);
         }
     }
+#endif
     return (jstring) NULL;
 }
 
@@ -723,6 +741,7 @@ JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_O
 JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_getDefaultAppForScheme
 (JNIEnv *env, jclass cla, jstring jscheme)
 {
+#ifndef CARBON
     const char* scheme = env->GetStringUTFChars(jscheme, NULL);
     if (scheme) {
         NSString *nstring = [[NSString alloc] initWithUTF8String:scheme];
@@ -735,7 +754,22 @@ JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_O
             return NSString2jstring(env, def);
         }
     }
+#endif
     return (jstring) NULL;
 }
 
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    canSetDefaultApp
+ * Signature: ()Z
+ */
+JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_canSetDefaultApp
+(JNIEnv *env, jclass cla)
+{
+#ifdef CARBON
+    return (jboolean) 0;
+#endif
+    return (jboolean) 1;
+}
 
