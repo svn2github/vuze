@@ -622,6 +622,7 @@ JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_
     }
     NSBundle *bundle = [NSBundle bundleWithPath:app];
     [LaunchServicesWrapper setDefaultApplication:bundle forExtension:ext];
+    [bundle release];
     [app release];
     [ext release];
     return (jboolean) 1;
@@ -651,6 +652,7 @@ JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_
     }
     NSBundle *bundle = [NSBundle bundleWithPath:app];
     [LaunchServicesWrapper setDefaultApplication:bundle forMimeType:mime];
+    [bundle release];
     [app release];
     [mime release];
     return (jboolean) 1;
@@ -680,6 +682,7 @@ JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_
     }
     NSBundle *bundle = [NSBundle bundleWithPath:app];
     [LaunchServicesWrapper setDefaultApplication:bundle forScheme:scheme];
+    [bundle release];
     [app release];
     [scheme release];
     return (jboolean) 1;
@@ -717,14 +720,11 @@ JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_O
 (JNIEnv *env, jclass cla, jstring jmime)
 {
 #ifndef CARBON
-    const char* mime = env->GetStringUTFChars(jmime, NULL);
-    if (mime) {
-        NSString *nstring = [[NSString alloc] initWithUTF8String:mime];
-        
-        NSString *def = [LaunchServicesWrapper defaultApplicationForMimeType:nstring];
+    NSString *mime = jstring2nsstring(env, jmime);
+    if (mime != NULL) {
+        NSString *def = [LaunchServicesWrapper defaultApplicationForMimeType:mime];
 
-        [nstring release];
-        env->ReleaseStringUTFChars(jmime, mime);
+        [mime release];
         if (def) {
             return NSString2jstring(env, def);
         }
@@ -742,14 +742,11 @@ JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_O
 (JNIEnv *env, jclass cla, jstring jscheme)
 {
 #ifndef CARBON
-    const char* scheme = env->GetStringUTFChars(jscheme, NULL);
+    NSString *scheme = jstring2nsstring(env, jscheme);
     if (scheme) {
-        NSString *nstring = [[NSString alloc] initWithUTF8String:scheme];
+        NSString *def = [LaunchServicesWrapper defaultApplicationForScheme:scheme];
 
-        NSString *def = [LaunchServicesWrapper defaultApplicationForScheme:nstring];
-
-        [nstring release];
-        env->ReleaseStringUTFChars(jscheme, scheme);
+        [scheme release];
         if (def) {
             return NSString2jstring(env, def);
         }
