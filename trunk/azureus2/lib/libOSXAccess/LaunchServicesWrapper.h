@@ -17,9 +17,9 @@
 + (NSString *)defaultApplicationForMimeType:(NSString *)mimetype;
 + (NSString *)defaultApplicationForScheme:(NSString *)scheme;
 
-+ (BOOL)setDefaultApplication:(NSBundle *)appBundle forExtension:(NSString *)extension;
-+ (BOOL)setDefaultApplication:(NSBundle *)appBundle forMimeType:(NSString *)mimetype;
-+ (BOOL)setDefaultApplication:(NSBundle *)appBundle forScheme:(NSString *)scheme;
++ (BOOL)setDefaultApplication:(NSString *)bundleID forExtension:(NSString *)extension;
++ (BOOL)setDefaultApplication:(NSString *)bundleID forMimeType:(NSString *)mimetype;
++ (BOOL)setDefaultApplication:(NSString *)bundleID forScheme:(NSString *)scheme;
 
 @end
 

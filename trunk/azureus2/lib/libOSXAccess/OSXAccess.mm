@@ -180,6 +180,7 @@ NSString *jstring2nsstring (JNIEnv *env, jstring jstr)
         return NULL;
     }
     
+    // stringWithCString makes a copy of cStr
     nsString = [[NSString class] stringWithCString: cStr];
     
     env->ReleaseStringUTFChars (jstr, cStr);
@@ -385,7 +386,7 @@ void putCFNumberIntoHashMap(const char *key, const char *hexkey, CFNumberRef cft
 	}
 	}
 	@catch (NSException * e) {
-		fprintf(stderr, "NSException %s (%s)", [[e name] cString], [[e reason] cString]);
+		fprintf(stderr, "NSException %s (%s)", [[e name] UTF8String], [[e reason] UTF8String]);
 	}
 	@finally {
 	}
@@ -605,27 +606,24 @@ void notifyURL(const char *url) {
  * Signature: (Ljava/lang/String;Ljava/lang/String;)V
  */
 JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_setDefaultAppForExt
-(JNIEnv *env, jclass cla, jstring japp, jstring jext)
+(JNIEnv *env, jclass cla, jstring jbundleID, jstring jext)
 {
 #ifdef CARBON
     return (jboolean) 0;
 #else
-    NSString *app = jstring2nsstring(env, japp);
-    if (app == NULL) {
+    NSString *bundleID = jstring2nsstring(env, jbundleID);
+    if (bundleID == NULL) {
         return (jboolean) 0;
     }
     
     NSString *ext = jstring2nsstring(env, jext);
     if (ext == NULL) {
-        [app release];
         return (jboolean) 0;
     }
-    NSBundle *bundle = [NSBundle bundleWithPath:app];
-    [LaunchServicesWrapper setDefaultApplication:bundle forExtension:ext];
-    [bundle release];
-    [app release];
-    [ext release];
-    return (jboolean) 1;
+
+    BOOL result = [LaunchServicesWrapper setDefaultApplication:bundleID forExtension:ext];
+    fprintf(stderr, "bundleID %s Exit %s\n", [bundleID UTF8String], [ext UTF8String]);
+    return (jboolean) result;
 #endif
 }
 
@@ -635,27 +633,23 @@ JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_
  * Signature: (Ljava/lang/String;Ljava/lang/String;)V
  */
 JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_setDefaultAppForMime
-(JNIEnv *env, jclass cla, jstring japp, jstring jmime)
+(JNIEnv *env, jclass cla, jstring jbundleID, jstring jmime)
 {
 #ifdef CARBON
     return (jboolean) 0;
 #else
-    NSString *app = jstring2nsstring(env, japp);
-    if (app == NULL) {
+    NSString *bundleID = jstring2nsstring(env, jbundleID);
+    if (bundleID == NULL) {
         return (jboolean) 0;
     }
     
     NSString *mime = jstring2nsstring(env, jmime);
     if (mime == NULL) {
-        [app release];
         return (jboolean) 0;
     }
-    NSBundle *bundle = [NSBundle bundleWithPath:app];
-    [LaunchServicesWrapper setDefaultApplication:bundle forMimeType:mime];
-    [bundle release];
-    [app release];
-    [mime release];
-    return (jboolean) 1;
+    BOOL result = [LaunchServicesWrapper setDefaultApplication:bundleID forMimeType:mime];
+    fprintf(stderr, "bundleID %s Mime %s\n", [bundleID UTF8String], [mime UTF8String]);
+    return (jboolean) result;
 #endif
 }
 
@@ -665,27 +659,24 @@ JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_
  * Signature: (Ljava/lang/String;Ljava/lang/String;)V
  */
 JNIEXPORT jboolean JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_setDefaultAppForScheme
-(JNIEnv *env, jclass cla, jstring japp, jstring jscheme)
+(JNIEnv *env, jclass cla, jstring jbundleID, jstring jscheme)
 {
 #ifdef CARBON
     return (jboolean) 0;
 #else
-    NSString *app = jstring2nsstring(env, japp);
-    if (app == NULL) {
+    NSString *bundleID = jstring2nsstring(env, jbundleID);
+    if (bundleID == NULL) {
         return (jboolean) 0;
     }
     
     NSString *scheme = jstring2nsstring(env, jscheme);
     if (scheme == NULL) {
-        [app release];
         return (jboolean) 0;
     }
-    NSBundle *bundle = [NSBundle bundleWithPath:app];
-    [LaunchServicesWrapper setDefaultApplication:bundle forScheme:scheme];
-    [bundle release];
-    [app release];
-    [scheme release];
-    return (jboolean) 1;
+    BOOL result = [LaunchServicesWrapper setDefaultApplication:bundleID forScheme:scheme];
+    
+    fprintf(stderr, "App %s Scheme %s\n", [bundleID UTF8String], [scheme UTF8String]);
+    return (jboolean) result;
 #endif
 }
 
@@ -702,7 +693,6 @@ JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_O
     if (ext != NULL) {
         NSString *def = [LaunchServicesWrapper defaultApplicationForExtension:ext];
         
-        [ext release];
         if (def) {
             return NSString2jstring(env, def);
         }
@@ -724,7 +714,6 @@ JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_O
     if (mime != NULL) {
         NSString *def = [LaunchServicesWrapper defaultApplicationForMimeType:mime];
 
-        [mime release];
         if (def) {
             return NSString2jstring(env, def);
         }
@@ -746,7 +735,6 @@ JNIEXPORT jstring JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_O
     if (scheme) {
         NSString *def = [LaunchServicesWrapper defaultApplicationForScheme:scheme];
 
-        [scheme release];
         if (def) {
             return NSString2jstring(env, def);
         }

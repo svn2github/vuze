@@ -38,20 +38,20 @@
     );
 }
 
-+ (BOOL)setDefaultApplication:(NSBundle *)appBundle forExtension:(NSString *)extension
++ (BOOL)setDefaultApplication:(NSString *)bundleID forExtension:(NSString *)extension
 {
     return LSSetDefaultRoleHandlerForContentType(
-                                                 (CFStringRef)[LaunchServicesWrapper UTIforFileExtension:extension], kLSRolesAll, (CFStringRef)[appBundle bundleIdentifier]);
+                                                 (CFStringRef)[LaunchServicesWrapper UTIforFileExtension:extension], kLSRolesAll, (CFStringRef)bundleID);
 }
 
-+ (BOOL)setDefaultApplication:(NSBundle *)appBundle forMimeType:(NSString *)mimetype
++ (BOOL)setDefaultApplication:(NSString *)bundleID forMimeType:(NSString *)mimetype
 {
-    return LSSetDefaultRoleHandlerForContentType((CFStringRef)[LaunchServicesWrapper UTIforFileMimeType:mimetype], kLSRolesAll, (CFStringRef)[appBundle bundleIdentifier]);
+    return LSSetDefaultRoleHandlerForContentType((CFStringRef)[LaunchServicesWrapper UTIforFileMimeType:mimetype], kLSRolesAll, (CFStringRef)bundleID);
 }
 
-+ (BOOL)setDefaultApplication:(NSBundle *)appBundle forScheme:(NSString *)scheme
++ (BOOL)setDefaultApplication:(NSString *)bundleID forScheme:(NSString *)scheme
 {
-    return LSSetDefaultHandlerForURLScheme((CFStringRef)scheme, (CFStringRef)[appBundle bundleIdentifier]);
+    return LSSetDefaultHandlerForURLScheme((CFStringRef)scheme, (CFStringRef)bundleID);
 }
 
 @end
