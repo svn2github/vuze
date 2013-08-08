@@ -125,6 +125,23 @@ public class OSXAccess
 	// 1.04
 	public static final native void initializeDriveDetection(
 			OSXDriveDetectListener d);
+	
+	// 1.11
+	public static final native boolean setDefaultAppForExt(String bundleID, String ext);
+	// 1.11
+	public static final native boolean setDefaultAppForMime(String bundleID, String mime);
+	// 1.11
+	public static final native boolean setDefaultAppForScheme(String bundleID, String scheme);
+
+	// 1.11
+	public static final native String getDefaultAppForExt(String ext);
+	// 1.11
+	public static final native String getDefaultAppForMime(String mime);
+	// 1.11
+	public static final native String getDefaultAppForScheme(String scheme);
+	// 1.11
+	public static final native boolean canSetDefaultApp();
+
 
 	public static boolean isLoaded() {
 		return bLoaded;

@@ -61,7 +61,31 @@ import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
  */
 public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEvidenceGenerator
 {
-    private static final LogIDs LOGID = LogIDs.CORE;
+	private static final LogIDs LOGID = LogIDs.CORE;
+
+	private static final String BUNDLE_ID = "com.azureus.vuze"; // TODO: Pull from .plist if we want to accurate
+
+	private static final String[] SCHEMES = new String[] {
+		"magnet",
+		"dht",
+		"vuze",
+		"bc",
+		"bctp"
+	};
+
+	private static final String[] MIMETYPES = new String[] {
+		"application/x-bittorrent",
+		"application/x-vuze",
+		"application/x-bctp-uri"
+	};
+
+	private static final String[] EXTENSIONS = new String[] {
+		"torrent",
+		"tor",
+		"vuze",
+		"vuz",
+		"bctpuri"
+	};
 
     protected static PlatformManagerImpl singleton;
     protected static AEMonitor class_mon = new AEMonitor("PlatformManager");
@@ -142,6 +166,13 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         
         if (OSXAccess.isLoaded()) {
 	        capabilitySet.add(PlatformManagerCapabilities.GetVersion);
+	        try {
+  	        if (OSXAccess.canSetDefaultApp()) {
+  		        capabilitySet.add(PlatformManagerCapabilities.RegisterFileAssociations);	        	
+  	        }
+	        } catch (Throwable t) {
+	        	// likely java.lang.UnsatisfiedLinkError -- older version
+	        }
         }
  
         if ( checkPList()){
@@ -215,13 +246,13 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
     			return( false );
     		}
     		
-    		editor.setFileTypeExtensions(new String[] {"torrent","tor","vuze","vuz"});
+    		editor.setFileTypeExtensions(EXTENSIONS);
     		editor.setSimpleStringValue("CFBundleName", "Vuze");
 			editor.setSimpleStringValue("CFBundleTypeName", "Vuze Download");
 			editor.setSimpleStringValue("CFBundleGetInfoString","Vuze");
 			editor.setSimpleStringValue("CFBundleShortVersionString",Constants.AZUREUS_VERSION);
 			editor.setSimpleStringValue("CFBundleVersion",Constants.AZUREUS_VERSION);
-			editor.setArrayValues("CFBundleURLSchemes", "string", new String[] { "magnet", "dht", "vuze", "bc", "bctp" });
+			editor.setArrayValues("CFBundleURLSchemes", "string", SCHEMES);
 			
 				// always touch it, see if it helps ensure we are registered as magnet
 				// handler
@@ -1001,13 +1032,65 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 		}
 		
 	}
-    /**
-     * Not implemented; returns True
-     */
-    public boolean isApplicationRegistered() throws PlatformManagerException
-    {
-        return true;
-    }
+
+	/* (non-Javadoc)
+	 * @see org.gudy.azureus2.platform.PlatformManager#isApplicationRegistered()
+	 */
+	public boolean isApplicationRegistered()
+			throws PlatformManagerException {
+		try {
+			if (OSXAccess.canSetDefaultApp()) {
+				for (String ext : EXTENSIONS) {
+					if (!isOurExt(ext)) {
+						return false;
+					}
+				}
+				for (String mimeType : MIMETYPES) {
+					if (!isOurMimeType(mimeType)) {
+						return false;
+					}
+				}
+				for (String scheme : SCHEMES) {
+					if (!isOurScheme(scheme)) {
+						return false;
+					}
+				}
+			}
+		} catch (Throwable e) {
+
+		}
+		return true;
+	}
+	
+	private boolean isOurExt(String ext) {
+		try {
+			String appForExt = OSXAccess.getDefaultAppForExt(ext);
+			//System.out.println("app for ext:" + ext + ": " + appForExt);
+			return BUNDLE_ID.equals(appForExt);
+		} catch (Throwable e) {
+			return true; // fake it
+		}
+	}
+
+	private boolean isOurScheme(String scheme) {
+		try {
+			String appForScheme = OSXAccess.getDefaultAppForScheme(scheme);
+			//System.out.println("app for scheme:" + scheme + ": " + appForScheme);
+			return BUNDLE_ID.equals(appForScheme);
+		} catch (Throwable e) {
+			return true; // fake it
+		}
+	}
+
+	private boolean isOurMimeType(String mimetype) {
+		try {
+			String appForMimeType = OSXAccess.getDefaultAppForMime(mimetype);
+			//System.out.println("app for mime:" + mimetype + ": " + appForMimeType);
+			return BUNDLE_ID.equals(appForMimeType);
+		} catch (Throwable e) {
+			return true; // fake it
+		}
+	}
 
     private String
     getBundlePath()
@@ -1054,7 +1137,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	
 		throws PlatformManagerException
 	{
-	    throw new PlatformManagerException("Unsupported capability called on platform manager");
+		String osxType = type.startsWith(".") ? type.substring(1) : type;
+		return isOurExt(osxType);
 	}
 	
 	public void
@@ -1076,12 +1160,47 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	
 		throws PlatformManagerException
 	{
-	   throw new PlatformManagerException("Unsupported capability called on platform manager");
+		try {
+			if (OSXAccess.canSetDefaultApp()) {
+				if (type != null) {
+  				String osxType = type.startsWith(".") ? type.substring(1) : type;
+  				OSXAccess.setDefaultAppForExt(BUNDLE_ID, osxType);
+				}
+				if (content_type != null) {
+					OSXAccess.setDefaultAppForMime(BUNDLE_ID, content_type);
+				}
+			}
+		} catch (Throwable t) {
+			throw new PlatformManagerException(
+					"registerAdditionalFileType failed on platform manager", t);
+		}
 	}
 	
     public void registerApplication() throws PlatformManagerException
     {
     	touchPList();
+
+  		try {
+  			if (OSXAccess.canSetDefaultApp()) {
+  				for (String ext : EXTENSIONS) {
+  					OSXAccess.setDefaultAppForExt(BUNDLE_ID, ext);
+  				}
+  				for (String mimeType : MIMETYPES) {
+  					OSXAccess.setDefaultAppForMime(BUNDLE_ID, mimeType);
+  				}
+  				for (String scheme : SCHEMES) {
+  					OSXAccess.setDefaultAppForScheme(BUNDLE_ID, scheme);
+  				}
+
+
+  				// TODO: Remove
+					isApplicationRegistered();
+  			}
+  		} catch (Throwable t) {
+  			throw new PlatformManagerException(
+  					"registerApplication failed on platform manager", t);
+  		}
+
     }
 
     /**
