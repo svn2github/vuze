@@ -45,7 +45,7 @@ import com.aelitis.azureus.ui.UIFunctionsManager;
  */
 public class CocoaUIEnhancer
 {
-	private static final boolean DEBUG = true;
+	private static final boolean DEBUG = false;
 
 	private static Object /*Callback*/ callBack3;
 
