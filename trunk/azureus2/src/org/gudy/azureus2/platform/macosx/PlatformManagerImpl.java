@@ -76,7 +76,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 	private static final String[] MIMETYPES = new String[] {
 		"application/x-bittorrent",
 		"application/x-vuze",
-		"application/x-bctp-uri"
+		"application/x-bctp-uri",
+		"application/x-bc-uri"
 	};
 
 	private static final String[] EXTENSIONS = new String[] {
@@ -84,7 +85,8 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 		"tor",
 		"vuze",
 		"vuz",
-		"bctpuri"
+		"bctpuri",
+		"bcuri"
 	};
 
     protected static PlatformManagerImpl singleton;
