@@ -94,6 +94,8 @@ public class TorrentOpenOptions
 	Map<Integer, File> initial_linkage_map;
 
 	List<ToDownloadListener> listToDownloadListeners = new ArrayList<ToDownloadListener>(1);
+
+	public Map<String, Boolean> peerSource = new HashMap<String, Boolean>();
 	
 
 	/**

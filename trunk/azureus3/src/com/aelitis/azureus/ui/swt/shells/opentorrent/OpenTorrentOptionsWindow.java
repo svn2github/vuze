@@ -26,6 +26,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
@@ -1075,7 +1076,7 @@ public class OpenTorrentOptionsWindow
 
 		for (int i = 0; i < PEPeerSource.PS_SOURCES.length; i++) {
 
-			String p = PEPeerSource.PS_SOURCES[i];
+			final String p = PEPeerSource.PS_SOURCES[i];
 
 			String config_name = "Peer Source Selection Default." + p;
 			String msg_text = "ConfigView.section.connection.peersource." + p;
@@ -1084,6 +1085,12 @@ public class OpenTorrentOptionsWindow
 			Messages.setLanguageText(button, msg_text);
 
 			button.setSelection(COConfigurationManager.getBooleanParameter(config_name));
+			
+			button.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					torrentOptions.peerSource.put(p, ((Button)e.widget).getSelection());
+				}
+			});
 
 			GridData gridData = new GridData();
 			button.setLayoutData(gridData);

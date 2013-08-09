@@ -486,6 +486,13 @@ public class TorrentOpener {
 							dm.getDownloadState().setFlag(
 									DownloadManagerState.FLAG_DISABLE_IP_FILTER, true);
 						}
+						
+						if (torrentOptions.peerSource != null) {
+							for (String peerSource : torrentOptions.peerSource.keySet()) {
+								boolean enable = torrentOptions.peerSource.get(peerSource);
+								dm.getDownloadState().setPeerSourceEnabled(peerSource, enable);
+							}
+						}
 
 					} finally {
 
