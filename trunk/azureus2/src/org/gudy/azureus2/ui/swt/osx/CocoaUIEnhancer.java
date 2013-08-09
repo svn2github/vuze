@@ -461,6 +461,34 @@ public class CocoaUIEnhancer
 		});
 	}
 
+	public void hookDocumentOpen()
+			throws Throwable {
+		
+		if (alreadyHaveOpenDoc) {
+			return;
+		}
+
+		if (sel_application_openFile_ == 0) {
+			sel_application_openFile_ = registerName(osCls, "application:openFile:");
+		}
+		invoke(osCls, "class_addMethod", new Object[] {
+			wrapPointer(delegateIdSWTApplication),
+			wrapPointer(sel_application_openFile_),
+			wrapPointer(callBack4Addr),
+			"@:@:@"
+		});
+
+		if (sel_application_openFiles_ == 0) {
+			sel_application_openFiles_ = registerName(osCls, "application:openFiles:");
+		}
+		invoke(osCls, "class_addMethod", new Object[] {
+			wrapPointer(delegateIdSWTApplication),
+			wrapPointer(sel_application_openFiles_),
+			wrapPointer(callBack4Addr),
+			"@:@:@"
+		});
+	}
+
 	static MenuItem getItem(Menu menu, int id) {
 		MenuItem[] items = menu.getItems();
 		for (int i = 0; i < items.length; i++) {
