@@ -24,10 +24,10 @@ package org.gudy.azureus2.core3.peer.util;
 import java.net.InetAddress;
 import java.util.*;
 
-
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.utils.LocationProvider;
@@ -117,7 +117,7 @@ public class PeerUtils {
   }
   
 
-	private static Set	ignore_peer_ports	= new HashSet();
+	private static Set<Integer>	ignore_peer_ports	= new HashSet<Integer>();
 	
 	static{
 		COConfigurationManager.addParameterListener(
@@ -155,13 +155,21 @@ public class PeerUtils {
 							int iMin = Integer.parseInt(port.substring(0, spreadPos).trim());
 							int iMax = Integer.parseInt(port.substring(spreadPos + 1).trim());
 							
+							iMin = Math.max( 0, iMin );
+							iMax = Math.min(65535, iMax );
+							
 							for (int j = iMin; j <= iMax; j++) {
-								ignore_peer_ports.add("" + j);
+								ignore_peer_ports.add(Integer.valueOf(j));
 							}
-						} catch (Exception e) {
+						} catch (Throwable e) {
+							Debug.out( "Invalid ignore-port entry: " + port );
 						}
 					} else {
-						ignore_peer_ports.add(port.trim());
+						try{
+							ignore_peer_ports.add(Integer.parseInt(port.trim()));
+						} catch (Throwable e) {
+							Debug.out( "Invalid ignore-port entry: " + port );
+						}
 					}
 				}
 			}
@@ -172,7 +180,7 @@ public class PeerUtils {
 	ignorePeerPort(
 		int		port )
 	{
-		return( ignore_peer_ports.contains( "" + port ));
+		return( ignore_peer_ports.contains( port ));
 	}
 	
 	static final String chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";

@@ -206,6 +206,7 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.custom.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.views.piece"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.bouncycastle.crypto.encodings"/>
+        <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.shells.opentorrent"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.net.magneturi.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.clientid"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.content"/>
@@ -536,5 +537,4 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.pluginsimpl.local.ipfilter"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.protocol.azplug"/>
     </selectedElements>
-    <fatjar builder="org.eclipse.jdt.ui.plain_jar_builder" launchConfig=""/>
 </jardesc>
