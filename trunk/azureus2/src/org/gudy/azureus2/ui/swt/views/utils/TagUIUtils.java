@@ -193,10 +193,10 @@ public class TagUIUtils
 
 									final List<Tag> tags = tag_type.getTags();
 
-									org.gudy.azureus2.plugins.ui.menus.MenuItem menuItem = menuManager.addMenuItem( menu, "label.show.all" );
-									menuItem.setStyle(org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_PUSH );
+									org.gudy.azureus2.plugins.ui.menus.MenuItem showAllItem = menuManager.addMenuItem( menu, "label.show.all" );
+									showAllItem.setStyle(org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_PUSH );
 									
-									menuItem.addListener(new org.gudy.azureus2.plugins.ui.menus.MenuItemListener() {
+									showAllItem.addListener(new org.gudy.azureus2.plugins.ui.menus.MenuItemListener() {
 										public void selected(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object target) {
 											for ( Tag t: tags ){
 												t.setVisible( true );
@@ -204,24 +204,38 @@ public class TagUIUtils
 										}
 									});
 									
-									boolean	all_visible = true;
+									org.gudy.azureus2.plugins.ui.menus.MenuItem hideAllItem = menuManager.addMenuItem( menu, "popup.error.hideall" );
+									hideAllItem.setStyle(org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_PUSH );
+									
+									hideAllItem.addListener(new org.gudy.azureus2.plugins.ui.menus.MenuItemListener() {
+										public void selected(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object target) {
+											for ( Tag t: tags ){
+												t.setVisible( false );
+											}
+										}
+									});
+									
+									boolean	all_visible 	= true;
+									boolean all_invisible 	= true;
 									
 									for ( Tag t: tags ){
-										if ( !t.isVisible()){
+										if ( t.isVisible()){
+											all_invisible = false;
+										}else{
 											all_visible = false;
-											break;
 										}
 									}
 									
-									menuItem.setEnabled( !all_visible );
+									showAllItem.setEnabled( !all_visible );
+									hideAllItem.setEnabled( !all_invisible );
 									
-									menuItem = menuManager.addMenuItem( menu, "sep" );
+									org.gudy.azureus2.plugins.ui.menus.MenuItem sepItem = menuManager.addMenuItem( menu, "sep" );
 									
-									menuItem.setStyle(org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_SEPARATOR );
+									sepItem.setStyle(org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_SEPARATOR );
 																		
 									for ( final Tag t: tags ){
 										
-										menuItem = menuManager.addMenuItem( menu, t.getTagName( false ));
+										org.gudy.azureus2.plugins.ui.menus.MenuItem  menuItem = menuManager.addMenuItem( menu, t.getTagName( false ));
 										
 										menuItem.setStyle(org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_CHECK );
 										
@@ -905,23 +919,31 @@ public class TagUIUtils
 			
 			final List<Tag>	tags = tag.getTagType().getTags();
 			
+			int	visible_count 	= 0;
 			int	invisible_count = 0;
 			
 			for ( Tag t: tags ){
 				
-				if ( !t.isVisible()){
-					
+				if ( t.isVisible()){
+					visible_count++;
+				}else{
 					invisible_count++;
 				}
 			}
+						
+			final Menu menuShowHide = new Menu(menu.getShell(), SWT.DROP_DOWN);
 			
-			final Menu menuShow = new Menu(menu.getShell(), SWT.DROP_DOWN);
-			final MenuItem showitem = new MenuItem(menu, SWT.CASCADE);
-			Messages.setLanguageText(showitem, "label.show.tag");
-			showitem.setMenu(menuShow);			
+			final MenuItem showhideitem = new MenuItem(menu, SWT.CASCADE);
+			showhideitem.setText( MessageText.getString( "label.showhide.tag" ));
+			showhideitem.setMenu(menuShowHide);			
 			
-			if ( invisible_count > 1 ){
-				MenuItem showAll = new MenuItem(menuShow, SWT.PUSH);
+			MenuItem title = new MenuItem(menuShowHide, SWT.PUSH);
+			title.setText( "[" + tag.getTagType().getTagTypeName( true ) + "]" );
+			title.setEnabled( false );
+			new MenuItem( menuShowHide, SWT.SEPARATOR);
+									
+			if ( invisible_count > 0 ){
+				MenuItem showAll = new MenuItem(menuShowHide, SWT.PUSH);
 				Messages.setLanguageText(showAll, "label.show.all");
 				showAll.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event){
@@ -933,22 +955,45 @@ public class TagUIUtils
 						}
 					}});
 				
-				new MenuItem( menuShow, SWT.SEPARATOR);
+				needs_separator_next = true;
+			}
+			
+			if ( visible_count > 0 ){
+				MenuItem hideAll = new MenuItem(menuShowHide, SWT.PUSH);
+				Messages.setLanguageText(hideAll, "popup.error.hideall");
+				hideAll.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event){
+						for ( Tag t: tags ){
+							
+							if ( t.isVisible()){
+								t.setVisible( false );
+							}
+						}
+					}});
+				
+				needs_separator_next = true;
 			}
 			
 			for ( final Tag t: tags ){
 				
-				if ( !t.isVisible()){
-					MenuItem showTag = new MenuItem(menuShow, SWT.PUSH);
-					Messages.setLanguageText(showTag, t.getTagName( false ));
-					showTag.addListener(SWT.Selection, new Listener() {
-						public void handleEvent(Event event){
-							t.setVisible( true );
-						}});
+				if ( needs_separator_next ){
+					
+					new MenuItem( menuShowHide, SWT.SEPARATOR);
+					
+					needs_separator_next = false;
 				}
+				
+				MenuItem showTag = new MenuItem(menuShowHide, SWT.CHECK );
+				showTag.setSelection( t.isVisible());
+				Messages.setLanguageText(showTag, t.getTagName( false ));
+				showTag.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event){
+						t.setVisible( !t.isVisible());
+					}});
+				
 			}
 			
-			showitem.setEnabled( invisible_count > 0 );
+			showhideitem.setEnabled( true );
 			
 		}else{
 			

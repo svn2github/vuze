@@ -18,13 +18,13 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
 import org.eclipse.swt.widgets.Menu;
-
 import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -1135,7 +1135,7 @@ public class SB_Transfers
 						
 						TagType tag_type = tag.getTagType();
 						
-						String 	str = tag_type.getTagTypeName( true );
+						String 	str = tag_type.getTagTypeName( true ) + ": " + tag.getTagName( true );
 						
 						if ( tag_type.hasTagTypeFeature( TagFeature.TF_RATE_LIMIT )){
 							
@@ -1148,39 +1148,62 @@ public class SB_Transfers
 								
 							if ( limit_up > 0 ){
 								
-								up_str += "Limit=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( limit_up );
+								up_str += MessageText.getString( "label.limit" ) + "=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( limit_up );
 							}
 							
 							int current_up 		= rl.getTagCurrentUploadRate();
 							
 							if ( current_up >= 0 ){
 								
-								up_str += (up_str.length()==0?"":", " ) + "Current=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( current_up);
+								up_str += (up_str.length()==0?"":", " ) + MessageText.getString( "label.current" ) + "=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( current_up);
 							}
 							
 							int	limit_down = rl.getTagDownloadLimit();
 							
 							if ( limit_down > 0 ){
 								
-								down_str += "Limit=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( limit_down );
+								down_str += MessageText.getString( "label.limit" ) + "=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( limit_down );
 							}
 							
 							int current_down 		= rl.getTagCurrentDownloadRate();
 							
 							if ( current_down >= 0 ){
 								
-								down_str += (down_str.length()==0?"":", " ) + "Current=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( current_down);
+								down_str += (down_str.length()==0?"":", " ) + MessageText.getString( "label.current" ) + "=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( current_down);
 							}
 							
 							
 							if ( up_str.length() > 0 ){
 								
-								str += "\r\n    Up: " + up_str;
+								str += "\r\n    " + MessageText.getString("iconBar.up") + ": " + up_str;
 							}
 							
 							if ( down_str.length() > 0 ){
 								
-								str += "\r\n    Down: " + down_str;
+								str += "\r\n    " + MessageText.getString("iconBar.down") + ": " + down_str;
+							}
+							
+							
+							int up_pri = rl.getTagUploadPriority();
+							
+							if ( up_pri > 0 ){
+								
+								str += "\r\n    " + MessageText.getString("cat.upload.priority");
+							}
+							
+							if ( tag_type.hasTagTypeFeature( TagFeature.TF_FILE_LOCATION )) {
+								
+								TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
+
+								if ( fl.supportsTagMoveOnComplete()){
+									
+									File move_on_comp = fl.getTagMoveOnCompleteFolder();
+									
+									if ( move_on_comp != null ){
+										
+										str += "\r\n    " + MessageText.getString("label.move.on.comp") + "=" + move_on_comp.getAbsolutePath();
+									}
+								}
 							}
 						}
 						
