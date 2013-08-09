@@ -49,6 +49,14 @@ JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXA
 
 /*
  * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    initializeLight
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_initializeLight
+  (JNIEnv *, jclass);
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
  * Method:    setDefaultAppForExt
  * Signature: (Ljava/lang/String;Ljava/lang/String;)Z
  */

@@ -80,12 +80,16 @@ public class TorrentOpener {
 	 * @param torrentFile Torrent to open (file, url, etc)
 	 * @note PLUGINS USE THIS FUNCTION!
 	 */
-	public static void openTorrent(String torrentFile) {
-		UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
-		if (uif != null) {
-			uif.openTorrentOpenOptions(null, null, new String[] { torrentFile },
-					false, false);
-		}
+	public static void openTorrent(final String torrentFile) {
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+    		UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+    		if (uif != null) {
+    			uif.openTorrentOpenOptions(null, null, new String[] { torrentFile },
+    					false, false);
+    		}
+			}
+		});
 	}
 	
   protected static void 

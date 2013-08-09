@@ -8,6 +8,7 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.internal.C;
+import org.eclipse.swt.internal.cocoa.OS;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -17,16 +18,11 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
-import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 
-import com.aelitis.azureus.core.AzureusCore;
-import com.aelitis.azureus.core.AzureusCoreFactory;
-import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
-import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 
 /**
  * You can exclude this file (or this whole path) for non OSX builds
@@ -50,7 +46,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
  */
 public class CocoaUIEnhancer
 {
-	private static final boolean DEBUG = false;
+	private static final boolean DEBUG = true;
 
 	private static Object /*Callback*/ callBack3;
 
@@ -247,9 +243,7 @@ public class CocoaUIEnhancer
 			if (DEBUG) {
 				System.err.println("OMG GOT OpenFile " + fileString);
 			}
-			fileOpen(new String[] {
-				fileString
-			});
+			OSXFileOpen.fileOpen(fileString);
 		} else if (!alreadyHaveOpenDoc && sel == sel_application_openFiles_) {
 			Constructor<?> conNSArray = nsarrayCls.getConstructor(new Class[] {
 				int.class
@@ -274,7 +268,7 @@ public class CocoaUIEnhancer
 					System.err.println("OMG GOT OpenFiles " + files[i]);
 				}
 			}
-			fileOpen(files);
+			OSXFileOpen.fileOpen(files);
 		} else if (sel == sel_applicationShouldHandleReopen_) {
 			Event event = new Event ();
 			event.detail = 1;
@@ -310,15 +304,6 @@ public class CocoaUIEnhancer
 			return l.longValue();
 		}
 		return 0;
-	}
-
-	protected static void fileOpen(final String[] files) {
-		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-			public void azureusCoreRunning(AzureusCore core) {
-				UIFunctionsManagerSWT.getUIFunctionsSWT().openTorrentOpenOptions(
-						Utils.findAnyShell(), null, files, false, false);
-			}
-		});
 	}
 
 	public static CocoaUIEnhancer getInstance() {
@@ -489,7 +474,7 @@ public class CocoaUIEnhancer
 		}
 		invoke(osCls, "class_addMethod", new Object[] {
 			wrapPointer(delegateIdSWTApplication),
-			wrapPointer(sel_application_openFile_),
+			wrapPointer(OS.sel_application_openFile_),
 			wrapPointer(callBack4Addr),
 			"@:@:@"
 		});
@@ -499,10 +484,13 @@ public class CocoaUIEnhancer
 		}
 		invoke(osCls, "class_addMethod", new Object[] {
 			wrapPointer(delegateIdSWTApplication),
-			wrapPointer(sel_application_openFiles_),
+			wrapPointer(OS.sel_application_openFiles_),
 			wrapPointer(callBack4Addr),
 			"@:@:@"
 		});
+		if (DEBUG) {
+			System.err.println("hooked openFile(s)");
+		}
 	}
 
 	static MenuItem getItem(Menu menu, int id) {

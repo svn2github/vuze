@@ -19,6 +19,7 @@
 
 extern void notify(const char *mount, io_service_t service, struct statfs *fs, bool added);
 extern void notifyURL(const char *url);
+extern void notifyURL2(const char *url);
 
 // When a device is added, call IOServiceAddInterestNotification
 // and monitor device removal.  Not really needed since NSWorkspaceDidUnmountNotification
@@ -120,6 +121,16 @@ void DeviceRemoved(void *refCon, io_iterator_t iterator) {
 			CFRelease(str_bsd_path);
 		}
 		kr = IOObjectRelease(service);
+	}
+}
+
+- (void) setupLight
+{
+	
+	NSAppleEventManager *appleEventManager = [NSAppleEventManager sharedAppleEventManager];
+	if (appleEventManager) {
+        fprintf(stderr, "setEventHandler for handleGetURLEvent2\n");
+		[appleEventManager setEventHandler:self andSelector:@selector(handleGetURLEvent2:withReplyEvent:) forEventClass:kInternetEventClass andEventID:kAEGetURL];
 	}
 }
 
@@ -432,6 +443,17 @@ void DeviceNotification(void *refCon, io_service_t service, natural_t messageTyp
 	const char *cUrl = [urlstring UTF8String];
 	fprintf(stderr, "handleGetURL! %s\n", cUrl);
 	notifyURL(cUrl);
+}
+
+- (void)handleGetURLEvent2:(NSAppleEventDescriptor *)event withReplyEvent:(NSAppleEventDescriptor *)replyEvent
+{
+	fprintf(stderr, "handleGetURL2!\n");
+	NSAppleEventDescriptor *desc = [event paramDescriptorForKeyword:keyDirectObject];
+	NSString *urlstring = [desc stringValue];
+	
+	const char *cUrl = [urlstring UTF8String];
+	fprintf(stderr, "handleGetURL2! %s\n", cUrl);
+	notifyURL2(cUrl);
 }
 
 @end

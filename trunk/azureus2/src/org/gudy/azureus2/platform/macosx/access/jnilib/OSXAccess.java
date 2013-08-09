@@ -20,9 +20,12 @@
 package org.gudy.azureus2.platform.macosx.access.jnilib;
 
 import java.io.File;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
-import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.Constants;
 
 import com.aelitis.azureus.core.drivedetector.DriveDetectedInfo;
 import com.aelitis.azureus.core.drivedetector.DriveDetectorFactory;
@@ -40,6 +43,8 @@ public class OSXAccess
 
 	private static boolean DEBUG = false;
 
+	private static List<String> parameters = new ArrayList<String>(1);
+	
 	static {
 		if (!Constants.isOSX_10_5_OrHigher || !loadLibrary("OSXAccess_10.5")) {
 			loadLibrary("OSXAccess");
@@ -52,7 +57,7 @@ public class OSXAccess
 			SystemLoadLibrary(lib);
 			System.out.println(lib + " v" + getVersion() + " Load complete!");
 			bLoaded = true;
-			initDriveDetection();
+			initialize();
 		} catch (Throwable e1) {
 			System.err.println("Could not find lib" + lib + ".jnilib; " + e1.toString());
 		}
@@ -73,9 +78,41 @@ public class OSXAccess
 			}
 		}
 	}
+	
+	public static void passParameter(String s) {
+		if (DEBUG) {
+			System.err.println("passing Parameter " + s);
+		}
+		if (s != null) {
+			parameters.add(s);
+		}
+	}
+	
+	public static String[] runLight(String[] args) {
+		// initialize will have been called by now (via static constructor), hooking
+		// some callbacks
+		if (args != null) {
+			for (String arg : args) {
+				parameters.add(arg);
+			}
+		}
+		return parameters.toArray(new String[0]);
+	}
 
-	private static void initDriveDetection() {
+	private static void initialize() {
 		try {
+			
+			if (System.getProperty("osxaccess.light", "0").equals("1")) {
+				initializeLight();
+
+				Class<?> claOSXFileOpen = Class.forName("org.gudy.azureus2.ui.swt.osx.OSXFileOpen");
+				if (claOSXFileOpen != null) {
+					Method method = claOSXFileOpen.getMethod("initLight", new Class[0]);
+					method.invoke(null, new Object[0]);
+				}
+				return;
+			}
+			
 			initializeDriveDetection(new OSXDriveDetectListener() {
 				public void driveRemoved(File mount, Map driveInfo) {
 					if (DEBUG) {
@@ -125,7 +162,10 @@ public class OSXAccess
 	// 1.04
 	public static final native void initializeDriveDetection(
 			OSXDriveDetectListener d);
-	
+
+	// 1.11
+	public static final native void initializeLight();
+
 	// 1.11
 	public static final native boolean setDefaultAppForExt(String bundleID, String ext);
 	// 1.11
@@ -146,7 +186,7 @@ public class OSXAccess
 	public static boolean isLoaded() {
 		return bLoaded;
 	}
-	
+
 	public static void main(String[] args) {
 		DriveDetectedInfo[] infos = DriveDetectorFactory.getDeviceDetector().getDetectedDriveInfo();
 		for (DriveDetectedInfo info : infos) {

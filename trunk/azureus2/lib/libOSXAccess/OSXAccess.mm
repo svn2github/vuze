@@ -26,6 +26,7 @@ void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethod
 extern "C" {
 	void notify(const char *mount, io_service_t service, struct statfs *fs, bool added);
 	void notifyURL(const char *url);
+	void notifyURL2(const char *url);
 }
 
 /**
@@ -169,6 +170,19 @@ Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_initializeDriveDe
 	IONotification *mountNotification = [IONotification alloc];
 	[mountNotification setup];
 }
+
+/*
+ * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess
+ * Method:    initializeLight
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL
+Java_org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess_initializeLight
+(JNIEnv *env, jclass cla) {
+	IONotification *mountNotification = [IONotification alloc];
+	[mountNotification setupLight];
+}
+
 
 NSString *jstring2nsstring (JNIEnv *env, jstring jstr)
 {
@@ -565,6 +579,34 @@ void fillServiceInfo(io_service_t service, JNIEnv *env, jobject hashMap, jmethod
 	
 }
 
+void notifyURL2(const char *url) {
+	if (url == NULL) {
+		return;
+	}
+	assertNot0(gjvm);
+	
+	JNIEnv* env = NULL;
+	gjvm->AttachCurrentThread((void **) &env, NULL);
+	assertNot0(env);
+
+    jclass clsOSXAccess = env->FindClass("org/gudy/azureus2/platform/macosx/access/jnilib/OSXAccess");
+    if (clsOSXAccess) {
+        
+        fprintf(stderr, "has OSXAccess for %s\n", url);
+        
+        jmethodID meth = env->GetStaticMethodID(clsOSXAccess, "passParameter", "(Ljava/lang/String;)V");
+        if (meth) {
+            jstring str = (jstring) env->NewStringUTF(url);
+            
+            env->CallStaticVoidMethod(clsOSXAccess, meth, str);
+            
+            fprintf(stderr, "passParameter called for %s\n", url);
+            return;
+        }
+    }
+    
+}
+
 void notifyURL(const char *url) {
 	if (url == NULL) {
 		return;
@@ -575,7 +617,8 @@ void notifyURL(const char *url) {
 	JNIEnv* env = NULL;
 	gjvm->AttachCurrentThread((void **) &env, NULL);
 	assertNot0(env);
-
+    
+    fprintf(stderr, "notifyURL Fallback for %s\n", url);
 	jclass clsTorrentOpener = env->FindClass("org/gudy/azureus2/ui/swt/mainwindow/TorrentOpener");
 	assertNot0(clsTorrentOpener);
 	
@@ -585,20 +628,9 @@ void notifyURL(const char *url) {
 	jstring str = (jstring) env->NewStringUTF(url);
 	
 	env->CallStaticVoidMethod(clsTorrentOpener, methOpenTorrent, str);
-	/*
-	jclass clsCocoaUIEnh = env->FindClass("org/gudy/azureus2/ui/swt/osx/CocoaUIEnhancer");
-	assertNot0(clsCocoaUIEnh);
-
-	jmethodID methFileOpen = env->GetStaticMethodID(clsCocoaUIEnh, "fileOpen", "([Ljava/lang/String;)V");
-	assertNot0(methFileOpen);
-
-	jstring str = (jstring) env->NewStringUTF(url);
-	
-    jobjectArray ret= (jobjectArray)env->NewObjectArray(1, env->FindClass("java/lang/String"), str);
-
-	env->CallStaticVoidMethod(clsCocoaUIEnh, methFileOpen, ret);
-	 */
 }
+
+
 
 /*
  * Class:     org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess

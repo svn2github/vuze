@@ -22,11 +22,11 @@ package org.gudy.azureus2.ui.swt;
 
 import java.io.File;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
-import org.gudy.azureus2.core3.util.Base32;
-import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.*;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreException;
@@ -46,7 +46,7 @@ Main
   StartServer startServer;
   
 	public static long startTime = System.currentTimeMillis();
-  
+
   // This method is called by other Main classes via reflection - must be kept public.
   public Main(String args[])
 	{
@@ -254,6 +254,10 @@ Main
     
      if( another_instance ) {  //looks like there's already a process listening on 127.0.0.1:6880
     	//attempt to pass args to existing instance
+    	 
+    	 // First, do some OSX magic because parameters are passed via OpenDocument API and other callbacks
+    	 args = CocoaMagic(args);
+    	 
     	StartSocket ss = new StartSocket(args);
     	
     	if( !ss.sendArgs() ) {  //arg passing attempt failed, so start core anyway
@@ -275,6 +279,35 @@ Main
     }
     return false;
 	}
+
+
+	private static String[] CocoaMagic(String[] args) {
+		if (!Constants.isOSX) {
+			return args;
+		}
+		try {
+
+			// hack to tell OSXAccess static initializer to only initilize a light version
+			System.setProperty("osxaccess.light", "1");
+
+			Class<?> claOSXAccess = Class.forName("org.gudy.azureus2.platform.macosx.access.jnilib.OSXAccess");
+			if (claOSXAccess != null) {
+				Method method = claOSXAccess.getMethod("runLight", new Class[] {
+					String[].class
+				});
+				Object invoke = method.invoke(null, new Object[] {
+					args
+				});
+				return (String[]) invoke;
+			}
+
+		} catch (Throwable e) {
+
+			Debug.printStackTrace(e);
+		}
+		return args;
+	}
+
 
 
 	public static void main(String args[]) 

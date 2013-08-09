@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		F194021A17B158F600684E2B /* LaunchServicesWrapper.h in Headers */ = {isa = PBXBuildFile; fileRef = F194021817B158F600684E2B /* LaunchServicesWrapper.h */; };
+		F194021B17B158F600684E2B /* LaunchServicesWrapper.m in Sources */ = {isa = PBXBuildFile; fileRef = F194021917B158F600684E2B /* LaunchServicesWrapper.m */; };
 		F1FF6B99103CAC5A000600AA /* IONotification.m in Sources */ = {isa = PBXBuildFile; fileRef = F1BF68C61039FE8B004030C8 /* IONotification.m */; };
 		F1FF6B9A103CAC5A000600AA /* OSXAccess.mm in Sources */ = {isa = PBXBuildFile; fileRef = F1BF68C81039FE8B004030C8 /* OSXAccess.mm */; };
 		F1FF6E6C103CAC67000600AA /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F1BF68BB1039FE59004030C8 /* Cocoa.framework */; };
@@ -26,6 +28,8 @@
 		1058C7ADFEA557BF11CA2CBB /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = /System/Library/Frameworks/Cocoa.framework; sourceTree = "<absolute>"; };
 		32DBCF630370AF2F00C91783 /* xcode_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = xcode_Prefix.pch; sourceTree = "<group>"; };
 		D2F7E65807B2D6F200F64583 /* CoreData.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreData.framework; path = /System/Library/Frameworks/CoreData.framework; sourceTree = "<absolute>"; };
+		F194021817B158F600684E2B /* LaunchServicesWrapper.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = LaunchServicesWrapper.h; path = ../LaunchServicesWrapper.h; sourceTree = "<group>"; };
+		F194021917B158F600684E2B /* LaunchServicesWrapper.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = LaunchServicesWrapper.m; path = ../LaunchServicesWrapper.m; sourceTree = "<group>"; };
 		F1BF68B51039FE59004030C8 /* JavaVM.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = JavaVM.framework; path = /System/Library/Frameworks/JavaVM.framework; sourceTree = "<absolute>"; };
 		F1BF68B61039FE59004030C8 /* CoreFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreFoundation.framework; path = /System/Library/Frameworks/CoreFoundation.framework; sourceTree = "<absolute>"; };
 		F1BF68B71039FE59004030C8 /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = /System/Library/Frameworks/AppKit.framework; sourceTree = "<absolute>"; };
@@ -142,6 +146,8 @@
 		F1BF68CB1039FE96004030C8 /* Source */ = {
 			isa = PBXGroup;
 			children = (
+				F194021817B158F600684E2B /* LaunchServicesWrapper.h */,
+				F194021917B158F600684E2B /* LaunchServicesWrapper.m */,
 				F1BF68C51039FE8B004030C8 /* IONotification.h */,
 				F1BF68C61039FE8B004030C8 /* IONotification.m */,
 				F1BF68C71039FE8B004030C8 /* org_gudy_azureus2_platform_macosx_access_jnilib_OSXAccess.h */,
@@ -157,6 +163,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				F194021A17B158F600684E2B /* LaunchServicesWrapper.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -211,6 +218,7 @@
 			files = (
 				F1FF6B99103CAC5A000600AA /* IONotification.m in Sources */,
 				F1FF6B9A103CAC5A000600AA /* OSXAccess.mm in Sources */,
+				F194021B17B158F600684E2B /* LaunchServicesWrapper.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -228,7 +236,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = "/Developer-3.2.6/SDKs/MacOSX10.4u.sdk";
 				USER_HEADER_SEARCH_PATHS = /System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/AE.framework/Versions/A/Headers/;
 			};
 			name = Debug;
@@ -244,7 +252,7 @@
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				PREBINDING = NO;
-				SDKROOT = /Developer/SDKs/MacOSX10.4u.sdk;
+				SDKROOT = "/Developer-3.2.6/SDKs/MacOSX10.4u.sdk";
 				USER_HEADER_SEARCH_PATHS = /System/Library/Frameworks/ApplicationServices.framework/Versions/A/Frameworks/AE.framework/Versions/A/Headers/;
 			};
 			name = Release;
@@ -261,6 +269,7 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				PREBINDING = NO;
 				PRODUCT_NAME = OSXAccess;
+				SDKROOT = macosx10.7;
 				ZERO_LINK = YES;
 			};
 			name = Debug;
@@ -275,6 +284,7 @@
 				GCC_MODEL_TUNING = G5;
 				PREBINDING = NO;
 				PRODUCT_NAME = OSXAccess;
+				SDKROOT = macosx10.7;
 				ZERO_LINK = NO;
 			};
 			name = Release;

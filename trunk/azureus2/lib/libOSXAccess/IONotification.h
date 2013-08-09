@@ -1,5 +1,6 @@
 #import <Cocoa/Cocoa.h>
 
+// Uncomment if you want debug to Console
 #define fprintf
 
 NSMutableDictionary *map;
@@ -10,6 +11,7 @@ Boolean useNSWorkspace;
 }
 
 -(void)setup;
+-(void)setupLight;
 -(void)mount:(id)notification;
 -(void)unmount:(id)notification;
 -(int)checkExisting;
