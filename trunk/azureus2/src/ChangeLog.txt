@@ -19,6 +19,7 @@ FEATURE: UI   | Library and Files view header now shows selected done/total file
 FEATURE: UI   | Added config option to show the Options View as a sidebar entry rather than a separate window [Parg]
 FEATURE: UI   | Added 'reset transfer stats' option to the torrent options/info view [Parg]
 FEATURE: UI   | Added 'hide all' option to auto-tags [Parg]
+FEATURE: UI   | Added Console view to Library sub-tabs (requires logging to be enabled) [Parg]
 FEATURE: Plug | Added discoveries tab to Library views for specific download/size lookup [Parg]
 FEATURE: Plug | No-proxy option for RSS Feed Scanner [Parg]
 FEATURE: Plug | No-proxy option for Satus Mailer [Parg]
