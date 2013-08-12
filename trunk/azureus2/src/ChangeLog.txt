@@ -4,6 +4,7 @@ VUZE CHANGELOG
 2013.05.xx | Vuze 5.0.0.1
 
 FEATURE: UI   | New 'open-torrent' dialog design [TuxPaper]
+FEATURE: UI   | OSX: Detect and reset torretnt file/url associations [TuxPaper]
 FEATURE: UI   | Added option to show/hide the icon in the Rank column [Parg]
 FEATURE: UI   | Added plugin lifecycle operations to console UI [Parg]
 FEATURE: UI   | Added some pairing commands to the console UI [Parg]
@@ -30,7 +31,7 @@ FEATURE: Core | Per-tag minimum share ration option [Parg]
 FEATURE: Core | Added option to move files (rather than copy+delete) on Windows when source+target same file system [Parg] 
 
 CHANGE: UI    | Added roll-up ability for the 'Discovery' sidebar entry [TuxPaper]
-CHANGE: UI    | Bring back sidebar popup menu [TuxPaper]
+CHANGE: UI    | Sidebar pop-up menu now shown in a tree/submenu layout [TuxPaper]
 CHANGE: UI    | Removed unreliable/unsupported ping/tracert network tests [Parg]
 CHANGE: UI    | Classic UI tab order memory added [Parg]
 CHANGE: UI    | Moved search results and swarm discoveries to top of 'Discovery' entry [Parg]
@@ -44,6 +45,7 @@ CHANGE: Core  | Major rework to file linking support [Parg]
 BUGFIX: UI    | Fixed the min/max button shown for tab view [TuxPaper]
 BUGFIX: UI    | Fixed some toolbar selection issues [TuxPaper]
 BUGFIX: UI    | Fix last view not opening [TuxPaper]
+BUGFIX: UI    | Bring back sidebar popup menu [TuxPaper]
 BUGFIX: UI    | Better MDI entry/data source handling over restarts [TuxPaper]
 BUGFIX: UI    | Hack for SWT icon transparency issue on Win 8 [Parg]
 BUGFIX: UI    | DNS config section wiki link was broken [Parg]
@@ -66,6 +68,9 @@ BUGFIX: Core  | Fixed IPFilter bug that was causing it not to work correctly whe
 BUGFIX: Core  | Fixed speed limit handler day-selection bug [Parg]
 BUGFIX: Core  | Fixed incomplete-file-suffix logic not being applied to plugin added downloads [Parg]
 BUGFIX: Core  | Allow renaming of files in torrents that resolve to an identical file system name when transformed to object FS naming standards [Parg]
+
+
+
 
 2013.05.08 | Vuze 5.0.0.0
 
