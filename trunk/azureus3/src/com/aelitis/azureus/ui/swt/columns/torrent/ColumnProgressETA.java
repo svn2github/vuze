@@ -211,7 +211,8 @@ public class ColumnProgressETA
 	public void refresh(TableCell cell) {
 		Object ds = cell.getDataSource();
 
-		int percentDone = getPercentDone(ds);
+		// needs to be long so we can shift it for sortVal
+		long percentDone = getPercentDone(ds);
 
 		long sortValue = 0;
 
@@ -223,9 +224,9 @@ public class ColumnProgressETA
 			long completedTime = dm.getDownloadState().getLongParameter(
 					DownloadManagerState.PARAM_DOWNLOAD_COMPLETED_TIME);
 			if (completedTime <= 0 || !dm.isDownloadComplete(false)) {
-				sortValue = Long.MAX_VALUE - ((10000 + percentDone) << 31 + hashCode);
+				sortValue = (percentDone << 31) + hashCode;
 			} else {
-				sortValue = (completedTime / 1000) << 31 + hashCode;
+				sortValue = ((completedTime / 1000) << 31) + hashCode;
 			}
 			
 		} else if (ds instanceof DiskManagerFileInfo) {
