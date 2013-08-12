@@ -2172,7 +2172,7 @@ public class MyTorrentsView
 			PieceInfoView.MSGID_PREFIX,
 			FilesView.MSGID_PREFIX
 		));
-		
+				
 		// discoveries sub-tab hack
 		PluginManager pm = AzureusCoreFactory.getSingleton().getPluginManager();
 		PluginInterface pi = pm.getPluginInterfaceByID("aercm", true);
@@ -2183,6 +2183,11 @@ public class MyTorrentsView
 			if (pluginInfo.equals("e")) {
 				restrictTo.add("rcm.subview.torrentdetails.name");
 			}
+		}
+
+		if ( Logger.isEnabled()){
+			
+			restrictTo.add( LoggerView.MSGID_PREFIX );
 		}
 
 		table.setEnableTabViews(enable_tab_views, false,
