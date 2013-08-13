@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2013.05.xx | Vuze 5.0.0.1
+2013.08.13 | Vuze 5.1.0.0
 
 FEATURE: UI   | New 'open-torrent' dialog design [TuxPaper]
 FEATURE: UI   | OSX: Detect and reset torretnt file/url associations [TuxPaper]
