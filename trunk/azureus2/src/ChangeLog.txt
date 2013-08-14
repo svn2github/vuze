@@ -1,6 +1,11 @@
 VUZE CHANGELOG
 -----------------
 
+2013.xx.xx | Vuze 5.1.0.1
+
+
+
+
 2013.08.13 | Vuze 5.1.0.0
 
 FEATURE: UI   | New 'open-torrent' dialog design [TuxPaper]
