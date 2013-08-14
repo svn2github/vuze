@@ -653,6 +653,9 @@ public class MainStatusBar
 		});
 		statusWarnings.addMouseListener(new MouseListener() {
 			public void mouseUp(MouseEvent e) {
+				if ( e.button != 1 ){
+					return;
+				}
 				if (SystemWarningWindow.numWarningWindowsOpen > 0) {
 					return;
 				}
@@ -674,6 +677,26 @@ public class MainStatusBar
 			}
 		});
 		
+		Menu menuStatusWarnings = new Menu(statusBar.getShell(), SWT.POP_UP);
+		statusWarnings.setMenu(menuStatusWarnings);
+		final MenuItem dismissAllItem = new MenuItem(menuStatusWarnings, SWT.PUSH);
+		menuStatusWarnings.addListener(SWT.Show, new Listener() {
+			public void handleEvent(Event e) {
+				dismissAllItem.setEnabled(Alerts.getUnviewedLogAlerts().size() > 0 );
+			}
+		});
+		
+		Messages.setLanguageText(dismissAllItem, "label.dismiss.all");
+		dismissAllItem.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				ArrayList<LogAlert> alerts = Alerts.getUnviewedLogAlerts();
+				
+				for ( LogAlert a: alerts ){
+					
+					Alerts.markAlertAsViewed( a );
+				}
+			}
+		});
 		COConfigurationManager.addAndFireParameterListener("status.rategraphs",
 				new ParameterListener() {
 			public void parameterChanged(String parameterName) {
