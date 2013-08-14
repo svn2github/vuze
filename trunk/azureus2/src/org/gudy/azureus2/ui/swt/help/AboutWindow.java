@@ -175,7 +175,7 @@ public class AboutWindow {
 			},
 			{
 				"http://www.vuze.com",
-				"http://azureus.sourceforge.net",
+				"http://sourceforge.net/projects/azureus",
 				"http://forum.vuze.com/forum.jspa?forumID=124",
 				"http://forum.vuze.com",
 				Constants.AZUREUS_WIKI,
