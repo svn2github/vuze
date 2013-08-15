@@ -133,9 +133,13 @@ MagnetPlugin
 	{
 		plugin_interface	= _plugin_interface;
 		
+		MagnetURIHandler uri_handler = MagnetURIHandler.getSingleton();
+		
 		BasicPluginConfigModel	config = 
 			plugin_interface.getUIManager().createBasicPluginConfigModel( ConfigSection.SECTION_PLUGINS, 
 					PLUGIN_CONFIGSECTION_ID);
+		
+		config.addInfoParameter2("MagnetPlugin.current.port", String.valueOf( uri_handler.getPort()));
 		
 		secondary_lookup 	= config.addBooleanParameter2( "MagnetPlugin.use.lookup.service", "MagnetPlugin.use.lookup.service", true );
 		md_lookup 			= config.addBooleanParameter2( "MagnetPlugin.use.md.download", "MagnetPlugin.use.md.download", true );
@@ -243,7 +247,7 @@ MagnetPlugin
 		menu2.addListener( listener );
 		menu3.addListener( listener );
 
-		MagnetURIHandler.getSingleton().addListener(
+		uri_handler.addListener(
 			new MagnetURIHandlerListener()
 			{
 				public byte[]
