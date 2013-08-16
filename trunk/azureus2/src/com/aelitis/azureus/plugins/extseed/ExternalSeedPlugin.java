@@ -607,7 +607,7 @@ ExternalSeedPlugin
 				{
 					long	now = SystemTime.getMonotonousTime();
 					
-					if ( now - fixup_time > 10*1000 ){
+					if ( peers == null || now - fixup_time > 10*1000 ){
 					
 						fixup_time = now;
 						
