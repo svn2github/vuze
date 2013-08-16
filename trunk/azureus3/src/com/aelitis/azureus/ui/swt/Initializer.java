@@ -369,7 +369,7 @@ public class Initializer
 					Initializer.this.reportPercent(curPercent + 1);
 				}
 
-				if (sLastTask != null && !sLastTask.startsWith("Loading Torrent")) {
+				if (Constants.IS_CVS_VERSION && sLastTask != null && !sLastTask.startsWith("Loading Torrent")) {
 						
 					long diff = now - startTime;
 					if (diff > 10 && diff < 1000 * 60 * 5) {
