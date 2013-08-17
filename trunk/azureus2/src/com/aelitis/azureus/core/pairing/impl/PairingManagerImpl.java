@@ -523,6 +523,13 @@ PairingManagerImpl
 		return( param_srp_enable.getValue());
 	}
 	
+	public void
+	setSRPEnabled(
+		boolean	enabled )
+	{
+		param_srp_enable.setValue( enabled );
+	}
+	
 	public void 
 	setGroup(
 		String group ) 
@@ -641,6 +648,22 @@ PairingManagerImpl
 	getStatus()
 	{
 		return( param_status_info.getValue());
+	}
+	
+	public String
+	getSRPStatus()
+	{
+		if ( !isSRPEnabled()){
+			
+			return( "Not enabled" );
+					
+		}else if ( tunnel_handler == null ){
+			
+			return( "Initialising" );
+		}else{
+			
+			return( tunnel_handler.getStatus());
+		}
 	}
 	
 	protected void

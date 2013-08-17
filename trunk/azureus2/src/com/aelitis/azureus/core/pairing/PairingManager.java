@@ -84,9 +84,16 @@ PairingManager
 	setEnabled(
 		boolean enabled );
 
+	public void 
+	setSRPEnabled(
+		boolean enabled );
+	
 	public String
 	getStatus();
 
+	public String
+	getSRPStatus();
+	
 	public String
 	getLastServerError();
 
