@@ -1099,6 +1099,31 @@ public class MenuFactory
 								}
 							});
 						
+						MenuItem importXMLTorrent = new MenuItem(menu, SWT.PUSH);
+						
+						Messages.setLanguageText(importXMLTorrent, "importTorrentWizard.title" );
+																
+						importXMLTorrent.addListener(
+							SWT.Selection,
+							new Listener()
+							{
+								public void 
+								handleEvent(
+									Event arg )
+								{
+									Utils.execSWTThreadLater(
+											1,
+											new Runnable()
+											{
+												public void
+												run()
+												{
+													new ImportTorrentWizard();
+												}
+											});
+								}
+							});
+						
 						MenuItem showChanges = new MenuItem(menu, SWT.PUSH);
 						
 						Messages.setLanguageText(showChanges, "show.config.changes" );
