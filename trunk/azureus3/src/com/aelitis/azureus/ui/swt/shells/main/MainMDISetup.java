@@ -418,7 +418,7 @@ public class MainMDISetup
 								+ "\n";
 					}
 
-					return s;
+					return manager.getDisplayName() + ( s.length()==0?"":( ": " + s));
 				}
 				return null;
 			}
