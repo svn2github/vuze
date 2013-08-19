@@ -53,7 +53,8 @@ public class FileUtil {
   public static final String DIR_SEP = System.getProperty("file.separator");
   
   private static final int	RESERVED_FILE_HANDLE_COUNT	= 4;
-	
+  private static boolean    first_reservation		= true;
+  private static boolean	is_my_lock_file			= false;
   private static List		reserved_file_handles 	= new ArrayList();
   private static AEMonitor	class_mon				= new AEMonitor( "FileUtil:class" );
   
@@ -954,9 +955,20 @@ public class FileUtil {
 			class_mon.enter();
 			
 			File	lock_file	= new File(SystemProperties.getUserPath() + ".lock");
-							
-			lock_file.createNewFile();
-		
+				
+			if ( first_reservation ){
+			
+				first_reservation = false;
+				
+				lock_file.delete();
+				
+				is_my_lock_file = lock_file.createNewFile();
+				
+			}else{
+			
+				lock_file.createNewFile();
+			}
+			
 			while(  reserved_file_handles.size() < RESERVED_FILE_HANDLE_COUNT ){
 				
 				// System.out.println( "getting reserved file handle");
@@ -973,6 +985,12 @@ public class FileUtil {
 			
 			class_mon.exit();
 		}
+	}
+	
+	public static boolean
+	isMyFileLock()
+	{
+		return( is_my_lock_file );
 	}
 	
     /**
