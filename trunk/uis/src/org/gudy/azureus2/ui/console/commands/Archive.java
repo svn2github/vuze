@@ -80,7 +80,7 @@ public class Archive extends IConsoleCommand {
 				
 				for ( DownloadStub stub: stubs ){
 					
-					System.out.println( " " + (pos++) + "\t" + stub.getName());
+					System.out.println( " " + (pos++) + "\t" + stub.getName() + " (" + DisplayFormatters.formatByteCountToKiBEtc( stub.getTorrentSize()) + ")");
 				}
 				
 				ci.out.println( "> -----" );
