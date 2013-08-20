@@ -42,6 +42,12 @@ DownloadStub
 	public byte[]
 	getTorrentHash();
 	
+	public long
+	getTorrentSize();
+	
+	public String
+	getSavePath();
+	
 	public DownloadStubFile[]
 	getStubFiles();
 	

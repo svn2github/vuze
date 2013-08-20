@@ -2161,7 +2161,7 @@ DownloadImpl
 
 	 	throws DownloadException
 	 {
-		 throw( new DownloadException( "Not Supported" ));
+		 return( this );
 	 }
 
 	 public byte[]
@@ -2177,6 +2177,20 @@ DownloadImpl
 		 return( t.getHash());
 	 }
 
+	 
+	 public long
+	 getTorrentSize()
+	 {
+		 Torrent t = getTorrent();
+		 
+		 if ( t == null ){
+			 
+			 return( 0 );
+		 }
+		 
+		 return( t.getSize());
+	 }
+	 
 	 public DownloadStubFile[]
 	 getStubFiles()
 	 {

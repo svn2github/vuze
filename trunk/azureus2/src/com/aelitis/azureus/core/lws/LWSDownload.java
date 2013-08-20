@@ -932,7 +932,13 @@ LWSDownload
 	{
 		return( lws.getTorrent().getHash());
 	}
-	        	
+	  
+	public long
+	getTorrentSize()
+	{
+		return( lws.getTorrent().getSize());
+	}
+	
 	public DownloadStubFile[]
 	getStubFiles()
 	{

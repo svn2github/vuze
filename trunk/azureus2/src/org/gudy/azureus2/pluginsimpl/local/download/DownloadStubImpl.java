@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadException;
 import org.gudy.azureus2.plugins.download.DownloadStub;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 
 import com.aelitis.azureus.util.MapUtils;
@@ -41,23 +42,32 @@ DownloadStubImpl
 	private final DownloadManagerImpl		manager;
 	private final String					name;
 	private final byte[]					hash;
+	private final long						size;
+	private final String					save_path;
 	private final DownloadStubFileImpl[]	files;
-	private final Map						gm_map;
+	private final Map<String,Object>		gm_map;
 	
-	private boolean					exported;
-	private Map						attributes;
+	private DownloadImpl			temp_download;
+	private Map<String,Object>		attributes;
 	
 	protected
 	DownloadStubImpl(
 		DownloadManagerImpl		_manager,
-		String					_name,
-		byte[]					_hash,
-		DownloadStubFile[]		_files,
-		Map						_gm_map )
+		DownloadImpl			_download,
+		Map<String,Object>						_gm_map )
 	{
-		manager		= _manager;
-		name		= _name;
-		hash		= _hash;
+		manager			= _manager;
+		temp_download	= _download;
+		
+		name	= temp_download.getName();
+		
+		Torrent	torrent = temp_download.getTorrent();
+		
+		hash		= torrent.getHash(); 
+		size		= torrent.getSize();
+		save_path	= temp_download.getSavePath();
+		
+		DownloadStubFile[] _files = temp_download.getStubFiles();
 
 		gm_map		= _gm_map;
 		
@@ -72,7 +82,7 @@ DownloadStubImpl
 	protected
 	DownloadStubImpl(
 		DownloadManagerImpl		_manager,
-		Map						_map )
+		Map<String,Object>		_map )
 	{
 		manager		= _manager;
 		
@@ -80,9 +90,13 @@ DownloadStubImpl
 		
 		name	= MapUtils.getMapString( _map, "name", null );
 		
-		gm_map = (Map)_map.get( "gm" );
+		size 	= MapUtils.getMapLong( _map, "s", 0 );
 		
-		List	file_list = (List)_map.get( "files" );
+		save_path	= MapUtils.getMapString( _map, "l", null );
+
+		gm_map 	= (Map<String,Object>)_map.get( "gm" );
+		
+		List<Map<String,Object>>	file_list = (List<Map<String,Object>>)_map.get( "files" );
 		
 		if ( file_list == null ){
 			
@@ -98,17 +112,19 @@ DownloadStubImpl
 			}
 		}
 		
-		attributes = (Map)_map.get( "attr" );
+		attributes = (Map<String,Object>)_map.get( "attr" );
 	}
 	
-	public Map
+	public Map<String,Object>
 	exportToMap()
 	{
-		Map	map = new HashMap();
+		Map<String,Object>	map = new HashMap<String,Object>();
 		
 		map.put( "hash", hash );
+		map.put( "s", size );
 		
 		MapUtils.setMapString(map, "name", name );
+		MapUtils.setMapString(map, "l", save_path );
 		
 		map.put( "gm", gm_map );
 		
@@ -116,9 +132,7 @@ DownloadStubImpl
 		
 			map.put( "attr", attributes );
 		}
-		
-		exported = true;
-		
+				
 		return( map );
 	}
 	
@@ -128,11 +142,22 @@ DownloadStubImpl
 		return( true );
 	}
 	
+	protected void
+	setStubbified()
+	{
+		temp_download = null;
+	}
+	
 	public Download
 	destubbify()
 	
 		throws DownloadException
 	{
+		if ( temp_download != null ){
+			
+			return( temp_download );
+		}
+		
 		return( manager.destubbify( this ));
 	}
 	
@@ -146,6 +171,18 @@ DownloadStubImpl
 	getTorrentHash()
 	{
 		return( hash );
+	}
+	
+	public long
+	getTorrentSize()
+	{
+		return( size );
+	}
+	
+	public String
+	getSavePath()
+	{
+		return( save_path );
 	}
 	
 	public DownloadStubFile[]
@@ -179,19 +216,17 @@ DownloadStubImpl
 		TorrentAttribute 	attribute, 
 		long 				value)
 	{
-		if ( exported ){
-			
-			Debug.out( "Not supported!" );
-			
-			return;
-		}
-		
 		if ( attributes == null ){
 			
 			attributes = new HashMap();
 		}
 		
 		attributes.put( attribute.getName(), value );
+		
+		if ( temp_download == null ){
+			
+			manager.updated( this );
+		}
 	}
 	
 	public Map

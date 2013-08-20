@@ -1096,7 +1096,15 @@ RPDownload
 		
 		return( null );
 	}
-	        	
+	   
+	public long
+	getTorrentSize()
+	{
+		notSupported();
+		
+		return( 0 );
+	}
+	
 	public DownloadStubFile[]
 	getStubFiles()
 	{

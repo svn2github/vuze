@@ -171,7 +171,14 @@ DownloadManagerImpl
 				
 				public void
 				destroyed()
-				{	
+				{
+					synchronized( download_stubs ){
+						
+						if ( dirty_stubs ){
+							
+							writeStubConfig();
+						}
+					}
 				}
                 
                 
@@ -1024,6 +1031,23 @@ DownloadManagerImpl
 	
 	private CopyOnWriteList<DownloadStubListener>	download_stub_listeners = new CopyOnWriteList<DownloadStubListener>();
 	
+	private FrequencyLimitedDispatcher dirty_stub_dispatcher = 
+			new FrequencyLimitedDispatcher(
+					new AERunnable()
+					{
+						public void
+						runSupport()
+						{
+							synchronized( download_stubs ){
+															
+								writeStubConfig();
+							}
+						}
+					},
+					10*1000 );
+		
+	private boolean dirty_stubs = false;
+		
 	
 	private void
 	readStubConfig()
@@ -1066,6 +1090,8 @@ DownloadManagerImpl
 			
 			FileUtil.writeResilientConfigFile( STUB_CONFIG_FILE, map );
 		}
+		
+		dirty_stubs = false;
 	}
 	
 	public boolean
@@ -1126,16 +1152,16 @@ DownloadManagerImpl
 			Debug.out( e );
 		}
 				
-		DownloadStubImpl stub =
-			new DownloadStubImpl( 
-				this,
-				download.getName(),
-				download.getTorrent().getHash(), 
-				download.getStubFiles(),
-				gm_data );
+		DownloadStubImpl stub = new DownloadStubImpl( this,	download, gm_data );
 		
-		informAdded( stub, true );
-
+		try{		
+			informAdded( stub, true );
+			
+		}finally{
+		
+			stub.setStubbified();
+		}
+		
 		boolean	added = false;
 		
 		try{
@@ -1271,6 +1297,18 @@ DownloadManagerImpl
 				informAdded( stub, true );
 			}
 		}
+	}
+	
+	protected void
+	updated(
+		DownloadStubImpl		stub )
+	{
+		synchronized( download_stubs ){
+			
+			dirty_stubs = true;
+		}
+		
+		dirty_stub_dispatcher.dispatch();
 	}
 	
 	public DownloadStub[]
