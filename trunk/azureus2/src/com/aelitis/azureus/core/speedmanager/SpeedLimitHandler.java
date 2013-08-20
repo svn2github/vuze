@@ -2171,8 +2171,8 @@ SpeedLimitHandler
 		result.add( "#" );
 		result.add( "#     net_limit monthly total=250G          // flat montly limit" );
 		result.add( "#" );
-		result.add( "#     net_limit monthly:no_limits              // no monthly limit when no_limits active" );
-		result.add( "#     net_limit monthly:limited_upload 100G    // 100G a month limit when limited_upload active" );
+		result.add( "#     net_limit monthly:no_limits                  // no monthly limit when no_limits active" );
+		result.add( "#     net_limit monthly:limited_upload total=100G  // 100G a month limit when limited_upload active" );
 		result.add( "#" );
 		result.add( "#     ip_set external=211.34.128.0/19 211.35.128.0/17" );
 		result.add( "#     ip_set Europe=EU;AD;AL;AT;BA;BE;BG;BY;CH;CS;CZ;DE;DK;EE;ES;FI;FO;FR;FX;GB;GI;GR;HR;HU;IE;IS;IT;LI;LT;LU;LV;MC;MD;MK;MT;NL;NO;PL;PT;RO;SE;SI;SJ;SK;SM;UA;VA" );
