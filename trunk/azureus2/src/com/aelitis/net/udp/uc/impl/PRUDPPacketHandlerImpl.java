@@ -1410,7 +1410,11 @@ PRUDPPacketHandlerImpl
 				}else{
 					
 					request.sent();
-					if (dg_packet == null) {throw new NullPointerException("dg_packet is null");}
+					
+					if ( dg_packet == null ){
+						
+						throw new NullPointerException("dg_packet is null");
+					}
 					
 					sendToSocket( dg_packet );
 					
@@ -1445,15 +1449,13 @@ PRUDPPacketHandlerImpl
 				
 				throw( e );
 			}
-		}catch( PRUDPPacketHandlerException e ){
-			
-			throw( e );
-			
 		}catch( Throwable e ){
 			
 			// AMC: I've seen this in debug logs - just wonder where it's
 			// coming from.
-			if (e instanceof NullPointerException) {
+			
+			if ( e instanceof NullPointerException ){
+				
 				Debug.out(e);
 			}
 			
