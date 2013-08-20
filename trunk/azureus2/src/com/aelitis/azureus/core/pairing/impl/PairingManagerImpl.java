@@ -946,12 +946,12 @@ PairingManagerImpl
 	{
 		final long now = SystemTime.getMonotonousTime();
 		
+		NetworkAdmin network_admin = NetworkAdmin.getSingleton();
+		
+		InetAddress latest_v4 = azureus_core.getInstanceManager().getMyInstance().getExternalAddress();
+
 		synchronized( this ){
-						
-			NetworkAdmin network_admin = NetworkAdmin.getSingleton();
-					
-			InetAddress latest_v4 = azureus_core.getInstanceManager().getMyInstance().getExternalAddress();
-			
+									
 			InetAddress temp_v4 = updateAddress( current_v4, latest_v4, false );
 			
 			InetAddress latest_v6 = network_admin.getDefaultPublicAddressV6();

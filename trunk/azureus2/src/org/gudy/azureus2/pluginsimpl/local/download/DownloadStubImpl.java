@@ -22,6 +22,7 @@
 package org.gudy.azureus2.pluginsimpl.local.download;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -127,6 +128,15 @@ DownloadStubImpl
 		MapUtils.setMapString(map, "l", save_path );
 		
 		map.put( "gm", gm_map );
+		
+		List<Map<String,Object>>	file_list = new ArrayList<Map<String,Object>>();
+		
+		map.put( "files", file_list );
+		
+		for ( DownloadStubFileImpl file: files ){
+			
+			file_list.add( file.exportToMap());
+		}
 		
 		if ( attributes != null ){
 		
