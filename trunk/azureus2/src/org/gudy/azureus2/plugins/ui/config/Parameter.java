@@ -182,4 +182,6 @@ Parameter
 	 * @since 2.3.0.6
 	 */
 	public void setLabelKey(String sLabelKey);
+	
+	public String getConfigKeyName();
 }

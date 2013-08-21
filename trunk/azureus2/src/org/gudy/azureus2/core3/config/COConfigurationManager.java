@@ -677,6 +677,14 @@ COConfigurationManager
   }
   
   public static void
+  registerExportedParameter(
+	 String		name,
+	 String		key )
+  {
+	  ConfigurationManager.getInstance().registerExportedParameter( name, key );
+  }
+  
+  public static void
   resetToDefaults()
   {
 	  ConfigurationManager.getInstance().resetToDefaults();

@@ -241,6 +241,9 @@ PairingManagerImpl
 			param_view.setEnabled( false );
 		}
 		
+		COConfigurationManager.registerExportedParameter( "pairing.enable", param_enable.getConfigKeyName());
+		COConfigurationManager.registerExportedParameter( "pairing.access_code", param_ac_info.getConfigKeyName());
+		
 		final ActionParameter ap = configModel.addActionParameter2( "pairing.ac.getnew", "pairing.ac.getnew.create" );
 		
 		ap.addListener(
@@ -291,6 +294,8 @@ PairingManagerImpl
 		HyperlinkParameter param_srp_link = configModel.addHyperlinkParameter2( "label.more.info.here", MessageText.getString( "ConfigView.section.connection.pairing.srp.url" ));
 
 		param_srp_enable 	= configModel.addBooleanParameter2( "pairing.srp.enable", "pairing.srp.enable", false );
+
+		COConfigurationManager.registerExportedParameter( "pairing.srp_enable", param_srp_enable.getConfigKeyName());
 
 		param_srp_state 	= configModel.addLabelParameter2( "" );
 

@@ -31,6 +31,7 @@ import java.util.*;
 import java.util.zip.GZIPOutputStream;
 import java.net.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.logging.*;
@@ -286,7 +287,9 @@ WebPlugin
 			view_model = ui_manager.createBasicPluginViewModel( plugin_interface.getPluginName());
 		}
 		
-		String sConfigSectionID = "plugins." + plugin_interface.getPluginID();
+		String plugin_id = plugin_interface.getPluginID();
+		
+		String sConfigSectionID = "plugins." + plugin_id;
 		
 		view_model.setConfigSectionID(sConfigSectionID);
 		view_model.getStatus().setText( "Running" );
@@ -484,6 +487,12 @@ WebPlugin
 		param_bind.addListener( update_server_listener );
 		param_protocol.addListener( update_server_listener );		
 		
+		if ( param_enable != null ){
+			COConfigurationManager.registerExportedParameter( plugin_id + ".enable", param_enable.getConfigKeyName());
+		}
+		COConfigurationManager.registerExportedParameter( plugin_id + ".port", param_port.getConfigKeyName());
+		COConfigurationManager.registerExportedParameter( plugin_id + ".protocol", param_protocol.getConfigKeyName());
+		
 		p_upnp_enable = 
 			config_model.addBooleanParameter2( 
 							CONFIG_UPNP_ENABLE, 
@@ -579,6 +588,14 @@ WebPlugin
 
 				// listeners setup later as they depend on userame params etc
 			
+			String sid_key =  "Plugin." + plugin_id + ".pairing.sid";
+			
+			COConfigurationManager.setStringDefault( sid_key, p_sid );
+			
+			COConfigurationManager.registerExportedParameter( plugin_id + ".pairing.sid", sid_key);
+			COConfigurationManager.registerExportedParameter( plugin_id + ".pairing.enable", pairing_enable.getConfigKeyName());
+			COConfigurationManager.registerExportedParameter( plugin_id + ".pairing.auto_auth", param_auto_auth.getConfigKeyName());
+
 		}else{
 			pairing_info	= null;
 			pairing_enable 	= null;

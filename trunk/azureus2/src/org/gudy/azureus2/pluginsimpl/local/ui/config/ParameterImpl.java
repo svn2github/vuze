@@ -287,6 +287,12 @@ ParameterImpl
 		triggerLabelChanged(labelKey, true);
 	}
 	
+	public String 
+	getConfigKeyName() 
+	{
+		return( key );
+	}
+	
 	private void triggerLabelChanged(String text, boolean isKey) {
 		// toArray() since listener trigger may remove listeners
 		Object[] listenersArray = impl_listeners.toArray();

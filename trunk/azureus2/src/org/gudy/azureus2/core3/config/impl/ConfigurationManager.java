@@ -23,7 +23,6 @@ package org.gudy.azureus2.core3.config.impl;
 import java.io.*;
 import java.util.*;
 
-
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager.ParameterVerifier;
@@ -68,6 +67,23 @@ ConfigurationManager
 			  },
 			  30*1000 );
  
+  private ParameterListener 
+	exportable_parameter_listener = 
+		new ParameterListener() {
+			
+			public void 
+			parameterChanged(
+				String key ) 
+			{
+				updateExportableParameter( key );
+			}
+		};
+	
+  private Map<String,String[]>	exported_parameters = new HashMap<String, String[]>();
+  private Map<String,String>	imported_parameters	= new HashMap<String, String>();
+  private volatile boolean		exported_parameters_dirty;
+
+
   public static ConfigurationManager getInstance() {
   	try{
   		class_mon.enter();
@@ -155,6 +171,8 @@ ConfigurationManager
 
 	 ConfigurationChecker.setSystemProperties();
 		 	
+	 loadExportedParameters();
+	 
 	 AEDiagnostics.addEvidenceGenerator( this );
   }
   
@@ -275,6 +293,11 @@ ConfigurationManager
 			
 			Debug.out("COConfigurationListener is null");
 		}
+	}
+	
+	if ( exported_parameters_dirty ){
+		
+		exportParameters();
 	}
   }
   
@@ -777,6 +800,192 @@ ConfigurationManager
 	  synchronized( reset_to_def_listeners ){
 	  
 		  reset_to_def_listeners.add( l );
+	  }
+  }
+    
+  public void
+  registerExportedParameter(
+	 String		name,
+	 String		key )
+  {
+	  synchronized( exported_parameters ){
+		  
+		  String[] entry = exported_parameters.get( key );
+		  
+		  if ( entry == null ){
+			  
+			  entry = new String[]{ name, imported_parameters.remove( name ) };
+			  
+			  exported_parameters.put( key, entry );
+		  }
+	  }
+	  
+	  addParameterListener( 
+		key,
+		exportable_parameter_listener );
+	  
+	  updateExportableParameter( key );
+  }
+  
+  
+  private void
+  updateExportableParameter(
+	String		key )
+  {
+	  Object	o_value = getParameter( key );
+	  
+	  String	value;
+	  
+	  if ( o_value == null ){
+		  
+		  value = null;
+		  
+	  }else if ( o_value instanceof byte[] ){
+		  
+		  try{
+			  value = new String((byte[])o_value, "UTF-8" );
+			  
+		  }catch( UnsupportedEncodingException e ){
+			  
+			  value = null;
+		  }
+	  }else{
+		  
+		  value = String.valueOf( o_value );
+	  }
+	  
+	  synchronized( exported_parameters ){
+		  
+		  String[]	entry = exported_parameters.get( key );
+		  
+		  if ( entry != null ){
+			  
+			  String existing = entry[1];
+			  
+			  if ( existing != value ){
+				  
+				  if ( existing == null || value == null || !existing.equals( value )){
+					  
+					  entry[1] = value;
+					  
+					  if ( !exported_parameters_dirty ){
+					  
+						  exported_parameters_dirty = true;
+						  
+						  new DelayedEvent( 
+								 "epd", 
+								 5000,
+								 new AERunnable()
+								 {
+									
+									@Override
+									public void 
+									runSupport() 
+									{
+										exportParameters();
+									}
+								});
+					  }
+				  }
+			  }
+		  }
+	  }
+  }
+  
+  private void
+  exportParameters()
+  {
+	  synchronized( exported_parameters ){
+		  
+		  if ( !exported_parameters_dirty ){
+			  
+			  return;
+		  }
+		  
+		  exported_parameters_dirty = false;
+		  
+		  try{
+			  TreeMap<String,String> tm  = new TreeMap<String,String>();
+			  
+			  for ( String[] entry: exported_parameters.values()){
+				  
+				  String	value = entry[1];
+				  
+				  if ( value != null ){
+					  
+					  tm.put( entry[0], value );
+				  }
+			  }
+			  			  
+			  File parent_dir = new File(SystemProperties.getUserPath());
+			  
+			  File props = new File( parent_dir, "exported_params.properties" );
+			  
+			  PrintWriter pw = new PrintWriter( new OutputStreamWriter( new FileOutputStream( props ), "UTF-8" ));
+			  
+			  try{
+				  for ( Map.Entry<String, String> entry: tm.entrySet()){
+					  
+					  pw.println( entry.getKey() + "=" + entry.getValue());
+				  }
+				  
+			  }finally{
+				  
+				  pw.close();
+			  }
+		  }catch( Throwable e ){
+			  
+			  e.printStackTrace();
+		  }
+	  }
+  }
+  
+  private void
+  loadExportedParameters()
+  {
+	  synchronized( exported_parameters ){
+		  
+		  try{
+			  File parent_dir = new File(SystemProperties.getUserPath());
+			  
+			  File props = new File( parent_dir, "exported_params.properties" );
+	
+			  if ( props.exists()){
+				  
+				  LineNumberReader lnr = new LineNumberReader( new InputStreamReader( new FileInputStream( props ), "UTF-8" ));
+				  
+				  try{
+					  while( true ){
+						  
+						  String	line = lnr.readLine();
+						  
+						  if ( line == null ){
+							  
+							  break;
+						  }
+						  
+						  String[] bits = line.split( "=" );
+						  
+						  if ( bits.length == 2 ){
+							  
+							  String	key 	= bits[0].trim();
+							  String	value	= bits[1].trim();
+							  
+							  if ( key.length() > 0 && value.length() > 0 ){
+								  
+								  imported_parameters.put( key, value );
+							  }
+						  }
+					  }
+				  }finally{
+					  
+					  lnr.close();
+				  }
+			  }
+		  }catch( Throwable e ){
+			  
+			  e.printStackTrace();
+		  }
 	  }
   }
   
