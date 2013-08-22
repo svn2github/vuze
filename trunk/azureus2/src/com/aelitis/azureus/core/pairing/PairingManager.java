@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.core.pairing;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.List;
 
@@ -66,6 +67,9 @@ PairingManager
 	getReplacementAccessCode()
 	
 		throws PairingException;
+	
+	public File
+	getQRCode();
 	
 	public void
 	setSRPPassword(

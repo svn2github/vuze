@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.pairing.impl;
 
 import java.io.BufferedInputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -190,6 +191,8 @@ PairingManagerImpl
 	private TimerEvent		deferred_update_event;
 	private long			last_update_time		= -1;
 	private int				consec_update_fails;
+	
+	private long			qr_version = COConfigurationManager.getLongParameter( "pairing.qr.ver", 0 );
 	
 	private String			last_message;
 	
@@ -749,6 +752,82 @@ PairingManagerImpl
 		param_view.setEnabled( ac.length() > 0 );
 	}
 	
+	private File
+	receiveQR(
+		String					ac,
+		Map<String,Object>		response )
+	{
+		try{
+			byte[]	bytes 	= (byte[])response.get( "qr_b" );
+			
+			if ( bytes == null ){
+				
+				return( null );
+			}
+			
+			long	ver		= (Long)response.get( "qr_v" );
+			
+			File cache_dir = new File( SystemProperties.getUserPath(), "cache" );
+
+			File qr_file = new File( cache_dir, "qr_" + ac + "_" + ver + ".png" );
+			
+			if ( FileUtil.writeBytesAsFile2( qr_file.getAbsolutePath(), bytes )){
+				
+				return( qr_file );
+			}
+			
+			return( null );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( null );
+		}
+	}
+	
+	public File
+	getQRCode()
+	{
+			//check current qr version against cached file if it exists
+		
+		String existing = readAccessCode();
+		
+		if ( existing == null ){
+			
+			return( null );
+		}
+		
+		if ( qr_version > 0 ){
+			
+			File cache_dir = new File( SystemProperties.getUserPath(), "cache" );
+
+			File qr_file = new File( cache_dir, "qr_" + existing + "_" + qr_version + ".png" );
+
+			if ( qr_file.exists()){
+				
+				return( qr_file );
+			}
+		}
+		
+		Map<String,Object>	request = new HashMap<String, Object>();
+		
+		request.put( "ac", existing );
+		
+		try{
+		
+			Map<String,Object> response = sendRequest( "get_qr", request );
+
+			return( receiveQR( existing, response ));
+						
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( null );
+		}
+	}
+	
 	protected String
 	allocateAccessCode(
 		boolean		updating )
@@ -760,11 +839,14 @@ PairingManagerImpl
 		String existing = readAccessCode();
 		
 		request.put( "ac", existing );
+		request.put( "qr", 1L );
 		
 		Map<String,Object> response = sendRequest( "allocate", request );
 		
 		try{
 			String code = getString( response, "ac" );
+			
+			receiveQR( code, response );
 			
 			writeAccessCode( code );
 				
@@ -1678,7 +1760,20 @@ PairingManagerImpl
 			
 			setLastServerError( null );
 						
-			return((Map<String,Object>)response.get( "rep" ));
+			Map<String,Object> reply = (Map<String,Object>)response.get( "rep" );
+			
+			Long qr_v = (Long)reply.get( "qr_v" );
+			
+			if ( qr_v != null ){
+				
+				if ( qr_version != qr_v.longValue()){
+				
+					qr_version = qr_v;
+					
+					COConfigurationManager.setParameter( "pairing.qr.ver", qr_version );
+				}
+			}
+			return( reply );
 			
 		}catch( Throwable e ){
 						
