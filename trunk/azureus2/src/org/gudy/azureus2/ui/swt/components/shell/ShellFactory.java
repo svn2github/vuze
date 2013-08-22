@@ -243,9 +243,12 @@ public final class ShellFactory
 		public void open() {
 			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 			if (uiFunctions != null) {
-				Shell mainShell = uiFunctions.getMainShell();
-				if (mainShell != null && mainShell.getMinimized()) {
-					uiFunctions.bringToFront();
+				Boolean bringToFront = (Boolean)getData( "bringToFront" );
+				if ( bringToFront == null || bringToFront ){
+					Shell mainShell = uiFunctions.getMainShell();
+					if (mainShell != null && mainShell.getMinimized()) {
+						uiFunctions.bringToFront();
+					}
 				}
 			}
 			

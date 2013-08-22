@@ -209,8 +209,7 @@ StartServer
     	return;
     }
     
-    boolean addSilent = ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_NEVER.equals(COConfigurationManager.getStringParameter(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS));
-    boolean showMainWindow = !addSilent || args.length == 1;
+    boolean showMainWindow = args.length == 1 || COConfigurationManager.getBooleanParameter( "Activate Window On External Download" );
 
     boolean	open	= true;
     

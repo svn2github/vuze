@@ -114,10 +114,10 @@ public class SkinnedDialog
 	}
 
 	public void open() {
-		open(null);
+		open(null,true);
 	}
 
-	public void open(String idShellMetrics) {
+	public void open(String idShellMetrics, boolean bringToFront ) {
 		if (disposed) {
 			Debug.out("can't opened disposed skinnedialog");
 			return;
@@ -135,6 +135,7 @@ public class SkinnedDialog
 			Utils.centerWindowRelativeTo(shell, mainShell);
 		}
 
+		shell.setData( "bringToFront", bringToFront );
 		shell.open();
 	}
 

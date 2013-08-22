@@ -353,6 +353,7 @@ public class ConfigurationDefaults {
     def.put( "Popup Download Added", FALSE);
     def.put( "Show Timestamp For Alerts", FALSE);
     def.put( "Request Attention On New Download", TRUE );
+    def.put( "Activate Window On External Download", TRUE );
     
     //default torrent directory option
     def.put( "Save Torrent Files", TRUE );

@@ -32,10 +32,9 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -199,8 +198,8 @@ public class ConfigSectionInterfaceAlerts
 
 					d_pathParameter.setValue(path);
 
-					new AEThread("SoundTest") {
-						public void runSupport() {
+					new AEThread2("SoundTest") {
+						public void run() {
 							try {
 								Applet.newAudioClip(new File(path).toURL()).play();
 
@@ -297,8 +296,8 @@ public class ConfigSectionInterfaceAlerts
 
 					f_pathParameter.setValue(path);
 
-					new AEThread("SoundTest") {
-						public void runSupport() {
+					new AEThread2("SoundTest") {
+						public void run() {
 							try {
 								Applet.newAudioClip(new File(path).toURL()).play();
 
@@ -332,10 +331,18 @@ public class ConfigSectionInterfaceAlerts
 		
 		if ( isAZ3 ){
 			
-			BooleanParameter flash_on_dl_added = new BooleanParameter(cArea,
+			BooleanParameter p = new BooleanParameter(cArea,
 					"Request Attention On New Download", LBLKEY_PREFIX + "dl.add.req.attention");
-
+			gridData = new GridData();
+			gridData.horizontalSpan = 3;
+			p.setLayoutData(gridData);
 		}
+		
+		BooleanParameter activate_win = new BooleanParameter(cArea,
+				"Activate Window On External Download", LBLKEY_PREFIX + "show.win.on.add");
+		gridData = new GridData();
+		gridData.horizontalSpan = 3;
+		activate_win.setLayoutData(gridData);
 		
 			// popups group
 		

@@ -958,7 +958,14 @@ public class OpenTorrentOptionsWindow
 		updateSize();
 
 		UIUpdaterSWT.getInstance().addUpdater(this);
-		dlg.open("otow");
+		
+			/* 
+			 * The bring-to-front logic for torrent addition is controlled by other parts of the code so we don't
+			 * want the dlg to override this behaviour (main example here is torrents passed from, say, a browser,
+			 * and the user has disabled the 'show vuze on external torrent add' feature)
+			 */
+		
+		dlg.open("otow",false);
 
 		dlg.addCloseListener(new SkinnedDialogClosedListener() {
 			public void skinDialogClosed(SkinnedDialog dialog) {
