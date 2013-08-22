@@ -26,7 +26,6 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
@@ -188,7 +187,7 @@ public class OpenTorrentWindow
 		}
 
 		UIUpdaterSWT.getInstance().addUpdater(this);
-		dlg.open();
+		dlg.open("otw");
 
 		dlg.addCloseListener(new SkinnedDialogClosedListener() {
 			public void skinDialogClosed(SkinnedDialog dialog) {

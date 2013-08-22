@@ -958,7 +958,7 @@ public class OpenTorrentOptionsWindow
 		updateSize();
 
 		UIUpdaterSWT.getInstance().addUpdater(this);
-		dlg.open();
+		dlg.open("otow");
 
 		dlg.addCloseListener(new SkinnedDialogClosedListener() {
 			public void skinDialogClosed(SkinnedDialog dialog) {
