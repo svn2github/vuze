@@ -114,6 +114,10 @@ public class SkinnedDialog
 	}
 
 	public void open() {
+		open(null);
+	}
+
+	public void open(String idShellMetrics) {
 		if (disposed) {
 			Debug.out("can't opened disposed skinnedialog");
 			return;
@@ -124,8 +128,12 @@ public class SkinnedDialog
 		int height = skin.getSkinProperties().getIntValue(shellSkinObjectID + ".height", -1);
 		shell.setSize(shell.computeSize(width, height));
 
-		Utils.verifyShellRect(shell, true);
-		Utils.centerWindowRelativeTo(shell, mainShell);
+		if (idShellMetrics != null) {
+			Utils.linkShellMetricsToConfig(shell, idShellMetrics);
+		} else {
+			Utils.verifyShellRect(shell, true);
+			Utils.centerWindowRelativeTo(shell, mainShell);
+		}
 
 		shell.open();
 	}
