@@ -109,7 +109,7 @@ public class FileDownloadWindow
 			TorrentOpenOptions torrentOptions,
 			final TorrentDownloaderCallBackInterface listener) {
 		
-		this.parent = parent == null ? Utils.findAnyShell() : parent;
+		this.parent = parent;
 		this.original_url = url;
 		this.referrer = referrer;
 		this.torrentOptions = torrentOptions;
@@ -161,7 +161,8 @@ public class FileDownloadWindow
 			}
 		}
 		if (dirName == null) {
-			DirectoryDialog dd = new DirectoryDialog(parent, SWT.NULL);
+			DirectoryDialog dd = new DirectoryDialog(parent == null
+					? Utils.findAnyShell() : parent, SWT.NULL);
 			dd.setText(MessageText.getString("fileDownloadWindow.saveTorrentIn"));
 			dirName = dd.open();
 		}
