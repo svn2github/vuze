@@ -109,7 +109,7 @@ public class FileDownloadWindow
 			TorrentOpenOptions torrentOptions,
 			final TorrentDownloaderCallBackInterface listener) {
 		
-		this.parent = parent;
+		this.parent = parent == null ? Utils.findAnyShell() : parent;
 		this.original_url = url;
 		this.referrer = referrer;
 		this.torrentOptions = torrentOptions;
