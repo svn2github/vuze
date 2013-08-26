@@ -511,7 +511,7 @@ public class ConfigSectionFile
 
 		sCurConfigID = "quick.view.maxkb";
 		allConfigIDs.add(sCurConfigID);
-		IntParameter qvmax = new IntParameter(cQuickView, sCurConfigID, 1, 256 );
+		IntParameter qvmax = new IntParameter(cQuickView, sCurConfigID, 1, 2048 );
 		
 		
 		// rename incomplete

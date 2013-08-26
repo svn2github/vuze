@@ -22,7 +22,9 @@
 package org.gudy.azureus2.ui.swt;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -39,7 +41,6 @@ import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -2343,6 +2344,11 @@ public class Utils
 				
 					quick_view_active.add( file );
 					
+					if ( file.isSkipped()){
+						
+						file.setSkipped( false );
+					}
+					
 					file.setPriority( 1 );
 					
 					DiskManagerFileInfo[] all_files = file.getDownloadManager().getDiskManagerFileInfoSet().getFiles();
@@ -2445,12 +2451,45 @@ public class Utils
 					{
 						DownloadManager dm = file.getDownloadManager();
 						
-						new TextViewerWindow(
-								MessageText.getString( "MainWindow.menu.quick_view" ) + ": " + target_file.getName(),
-								MessageText.getString( 
-									"MainWindow.menu.quick_view.msg",
-									new String[]{ target_file.getName(), dm.getDisplayName() }),
-								contents, false  );
+						Image	image;
+						
+						try{
+							InputStream is = null;
+							
+							try{
+								is = new FileInputStream( target_file );
+							
+								image = new Image( getDisplay(), is);
+								
+							}finally{
+								
+								if ( is != null ){
+									
+									is.close();
+								}
+							}
+						}catch( Throwable e ){
+							
+							image = null;
+						}
+						
+						if ( image != null ){
+							
+							new ImageViewerWindow(
+									MessageText.getString( "MainWindow.menu.quick_view" ) + ": " + target_file.getName(),
+									MessageText.getString( 
+										"MainWindow.menu.quick_view.msg",
+										new String[]{ target_file.getName(), dm.getDisplayName() }),
+										image  );
+						}else{
+							
+							new TextViewerWindow(
+									MessageText.getString( "MainWindow.menu.quick_view" ) + ": " + target_file.getName(),
+									MessageText.getString( 
+										"MainWindow.menu.quick_view.msg",
+										new String[]{ target_file.getName(), dm.getDisplayName() }),
+									contents, false  );
+						}
 					}
 				});
 		}catch( Throwable e ){

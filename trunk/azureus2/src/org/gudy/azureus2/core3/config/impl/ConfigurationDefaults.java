@@ -217,7 +217,7 @@ public class ConfigurationDefaults {
     def.put("Seeding Piece Check Recheck Enable", TRUE );
     def.put("priorityExtensions", "");
     def.put("priorityExtensionsIgnoreCase", FALSE);
-    def.put("quick.view.exts", ".nfo;.txt;.rar" );
+    def.put("quick.view.exts", ".nfo;.txt;.rar;.gif;.jpg;.png;.bmp" );
     def.put("quick.view.maxkb", new Long( 64 ));
     
     def.put("Rename Incomplete Files", FALSE );
