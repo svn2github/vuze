@@ -27,6 +27,7 @@ import java.net.*;
 import java.util.*;
 
 import org.bouncycastle.util.encoders.Base64;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -108,6 +109,10 @@ MagnetURIHandlerImpl
 			}
 		}
 		
+		COConfigurationManager.setIntDefault( "magnet.uri.port", port );
+		
+		COConfigurationManager.registerExportedParameter( "magnet.port", "magnet.uri.port");
+
 		if ( socket == null ){
 			
 			// no free sockets, not much we can do

@@ -907,16 +907,31 @@ ConfigurationManager
 		  try{
 			  TreeMap<String,String> tm  = new TreeMap<String,String>();
 			  
+			  Set<String>	exported_keys = new HashSet<String>();
+			  
 			  for ( String[] entry: exported_parameters.values()){
 				  
-				  String	value = entry[1];
+				  String	key		= entry[0];
+				  String	value 	= entry[1];
+				  
+				  exported_keys.add( key );
 				  
 				  if ( value != null ){
 					  
-					  tm.put( entry[0], value );
+					  tm.put( key, value );
 				  }
 			  }
-			  			  
+			  	
+			  for ( Map.Entry<String,String> entry: imported_parameters.entrySet()){
+				  
+				  String key = entry.getKey();
+				  
+				  if ( !exported_keys.contains( key)){
+					  
+					  tm.put( key, entry.getValue());
+				  }
+			  }
+			  
 			  File parent_dir = new File(SystemProperties.getUserPath());
 			  
 			  File props = new File( parent_dir, "exported_params.properties" );
