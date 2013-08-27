@@ -23,11 +23,15 @@
 package org.gudy.azureus2.pluginsimpl.local.launch;
 
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.SecureRandom;
 
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.PluginManagerArgumentHandler;
@@ -151,6 +155,41 @@ PluginSingleInstanceHandler
 
 		    		    		String[]	args = (String[])ois.readObject();
 		    		    		
+		    					String config_dir = System.getProperty( SystemProperties.SYS_PROP_CONFIG_OVERRIDE, null );
+		    					
+		    					if ( config_dir != null ){
+		    		    			
+		    							// caller will have written args to a file
+		    						
+		    		    			String config_path 	= (String)ois.readObject();
+		    		    			String file_name	= (String)ois.readObject();
+		    		    			
+		    		    			if ( !config_path.equals( config_dir )){
+		    		    				
+		    		    				throw( new Exception( "Called supplied incorrect config path: " + config_path ));
+		    		    			}
+		    		    			
+		    		    			File cmd_file = new File( new File( config_dir, "tmp" ), file_name ).getCanonicalFile();
+		    		    			
+		    		    			if ( !cmd_file.getParentFile().getParentFile().equals( new File( config_dir ))){
+		    		    				
+		    		    				throw( new Exception( "Called supplied invalid file name: " + file_name ));
+		    		    			}
+		    		    			
+		    		    			ObjectInputStream ois2 = new ObjectInputStream( new FileInputStream( cmd_file ));
+		    		    			
+		    		    			try{
+		    		    				
+		    		    				args = (String[])ois2.readObject();
+		    		    				
+		    		    			}finally{
+		    		    				
+		    		    				ois2.close();
+		    		    				
+		    		    				cmd_file.delete();
+		    		    			}
+		    					}
+		    					
 		    		    		handler.processArguments( args );
 		    		    		
 		    		    	}catch( Throwable e ){
@@ -210,6 +249,36 @@ PluginSingleInstanceHandler
 			oos.writeObject( getHeader());
 			
 			oos.writeObject( args );
+			
+				// if we know the config dir then use more secure mechanism to pass args by writing
+				// to a file (this proving we have write access to the directory at least)
+			
+			String config_dir = System.getProperty( SystemProperties.SYS_PROP_CONFIG_OVERRIDE, null );
+			
+			if ( config_dir != null ){
+				
+				File	file = new File( config_dir, "tmp" );
+				
+				file.mkdirs();
+				
+				file = File.createTempFile( "AZU" + Math.abs(new SecureRandom().nextLong()), ".tmp", file );
+				
+				ObjectOutputStream oos2 = new ObjectOutputStream( new FileOutputStream( file ));
+				
+				try{
+					oos2.writeObject( args );
+					
+				}finally{
+					
+					oos2.close();
+				}
+				
+				oos.writeObject( config_dir );
+				
+				oos.writeObject( file.getName());
+			}
+			
+			oos.flush();
 			
 			if ( log != null ){
 			
