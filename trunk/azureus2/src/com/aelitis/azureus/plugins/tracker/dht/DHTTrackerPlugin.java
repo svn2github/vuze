@@ -2947,6 +2947,23 @@ DHTTrackerPlugin
 		}		
 	}
 	
+	private void
+	announce(
+		Download	download )
+	{
+		log.log( "Announce requested for " + download.getName());
+				
+		try{
+			this_mon.enter();
+			
+			query_map.put(download,  SystemTime.getCurrentTime());
+			
+		}finally{
+			
+			this_mon.exit();
+		}	
+	}
+	
 	public void
 	positionChanged(
 		Download		download, 
@@ -3685,6 +3702,20 @@ DHTTrackerPlugin
 				isUpdating()
 				{
 					return( updating );
+				}
+				
+				public boolean
+				canManuallyUpdate()
+				{
+					fixup();
+					
+					return( run_data != null );
+				}
+				
+				public void
+				manualUpdate()
+				{
+					announce( download );
 				}
 			});
 	}

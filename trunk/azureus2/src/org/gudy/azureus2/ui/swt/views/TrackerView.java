@@ -135,8 +135,9 @@ public class TrackerView
 	{
 		final Object[] sources = tv.getSelectedDataSources().toArray();
 		
-		boolean	found_tracker	= false;
-		boolean	update_ok 		= false;
+		boolean	found_tracker		= false;
+		boolean	found_dht_tracker	= false;
+		boolean	update_ok 			= false;
 		
 		for ( Object o: sources ){
 	
@@ -145,6 +146,12 @@ public class TrackerView
 			if ( ps.getType() == TrackerPeerSource.TP_TRACKER ){
 				
 				found_tracker = true;
+				
+			}	
+			
+			if ( ps.getType() == TrackerPeerSource.TP_DHT  ){
+				
+				found_dht_tracker = true;
 			}
 			
 			int	state = ps.getStatus();
@@ -161,7 +168,7 @@ public class TrackerView
 			}
 		}
 		
-		if ( found_tracker ){
+		if ( found_tracker || found_dht_tracker ){
 			final MenuItem update_item = new MenuItem( menu, SWT.PUSH);
 	
 			Messages.setLanguageText(update_item, "GeneralView.label.trackerurlupdate");
@@ -188,55 +195,57 @@ public class TrackerView
 					}
 				});
 			
-			final MenuItem edit_item = new MenuItem( menu, SWT.PUSH);
-			
-			Messages.setLanguageText(edit_item, "MyTorrentsView.menu.editTracker");
-						
-			edit_item.addListener(
-				SWT.Selection, 
-				new TableSelectedRowsListener(tv) 
-				{
-					public void 
-					run(
-						TableRowCore row )
+			if ( found_tracker ){
+				final MenuItem edit_item = new MenuItem( menu, SWT.PUSH);
+				
+				Messages.setLanguageText(edit_item, "MyTorrentsView.menu.editTracker");
+							
+				edit_item.addListener(
+					SWT.Selection, 
+					new TableSelectedRowsListener(tv) 
 					{
-						final TOTorrent torrent = manager.getTorrent();
-
-						if (torrent == null) {
-							return;
-						}
-
-						Utils.execSWTThread(
-							new Runnable()
-							{
-								public void
-								run()
+						public void 
+						run(
+							TableRowCore row )
+						{
+							final TOTorrent torrent = manager.getTorrent();
+	
+							if (torrent == null) {
+								return;
+							}
+	
+							Utils.execSWTThread(
+								new Runnable()
 								{
-									List<List<String>> group = TorrentUtils.announceGroupsToList(torrent);
-			
-									new MultiTrackerEditor(null,null, group, new TrackerEditorListener() {
-										public void trackersChanged(String str, String str2, List<List<String>> _group) {
-											TorrentUtils.listToAnnounceGroups(_group, torrent);
-			
-											try {
-												TorrentUtils.writeToFile(torrent);
-											} catch (Throwable e2) {
-			
-												Debug.printStackTrace(e2);
+									public void
+									run()
+									{
+										List<List<String>> group = TorrentUtils.announceGroupsToList(torrent);
+				
+										new MultiTrackerEditor(null,null, group, new TrackerEditorListener() {
+											public void trackersChanged(String str, String str2, List<List<String>> _group) {
+												TorrentUtils.listToAnnounceGroups(_group, torrent);
+				
+												try {
+													TorrentUtils.writeToFile(torrent);
+												} catch (Throwable e2) {
+				
+													Debug.printStackTrace(e2);
+												}
+				
+												TRTrackerAnnouncer tc = manager.getTrackerClient();
+				
+												if (tc != null) {
+				
+													tc.resetTrackerUrl(true);
+												}
 											}
-			
-											TRTrackerAnnouncer tc = manager.getTrackerClient();
-			
-											if (tc != null) {
-			
-												tc.resetTrackerUrl(true);
-											}
-										}
-									}, true);
-								}
-							});
-					}
-				});
+										}, true);
+									}
+								});
+						}
+					});
+			}
 			
 			new MenuItem( menu, SWT.SEPARATOR );
 		}
