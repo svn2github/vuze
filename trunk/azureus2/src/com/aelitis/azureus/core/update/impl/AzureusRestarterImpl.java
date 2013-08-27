@@ -185,6 +185,8 @@ AzureusRestarterImpl
 	  			update_properties.put( "no_wait", "1" );
 	  		}
 	  		
+	  		update_properties.put( "instance_port", String.valueOf( Constants.INSTANCE_PORT ));
+	  		
 	  		fos	= new FileOutputStream( new File( user_path, UPDATE_PROPERTIES ));
 	  		
 	  			// this handles unicode chars by writing \\u escapes

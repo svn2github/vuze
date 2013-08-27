@@ -25,6 +25,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
 
@@ -38,7 +39,7 @@ public class Start {
       try {          
         System.out.println("StartSocket: passing startup args to already-running Azureus java process.");
         
-        sck = new Socket("127.0.0.1", 6880);
+        sck = new Socket("127.0.0.1", Constants.INSTANCE_PORT);
         
         pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream(),"UTF8"));
         

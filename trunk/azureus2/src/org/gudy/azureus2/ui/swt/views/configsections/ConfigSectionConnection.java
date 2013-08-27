@@ -31,11 +31,11 @@ import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.config.*;
@@ -107,8 +107,8 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 
 		tcplisten.addChangeListener(new ParameterChangeAdapter() {
 			public void intParameterChanging(Parameter p, int toValue) {
-				if (toValue == 6880) {
-					toValue = 6881;
+				if (toValue == Constants.INSTANCE_PORT) {
+					toValue = Constants.INSTANCE_PORT+1;
 					tcplisten.setValue(toValue);
 				}
 
@@ -136,8 +136,8 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 			
 			udp_listen.addChangeListener(new ParameterChangeAdapter() {
 				public void intParameterChanging(Parameter p, int toValue) {
-					if (toValue == 6880) {
-						toValue = 6881;
+					if (toValue == Constants.INSTANCE_PORT) {
+						toValue = Constants.INSTANCE_PORT+1;
 						udp_listen.setValue(toValue);
 					}
 
@@ -172,8 +172,8 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 					new ParameterChangeAdapter() 
 					{
 						public void intParameterChanging(Parameter p, int toValue) {
-							if (toValue == 6880) {
-								toValue = 6881;
+							if (toValue == Constants.INSTANCE_PORT) {
+								toValue = Constants.INSTANCE_PORT+1;
 								non_data_udp_listen.setValue(toValue);
 							}
 						}
@@ -188,7 +188,7 @@ public class ConfigSectionConnection implements UISWTConfigSection {
 									
 									int udp_listen_port = udp_listen.getValue();
 			
-									if ( udp_listen_port != 6880 ){
+									if ( udp_listen_port != Constants.INSTANCE_PORT ){
 										
 										COConfigurationManager.setParameter( "UDP.NonData.Listen.Port", udp_listen_port );
 										

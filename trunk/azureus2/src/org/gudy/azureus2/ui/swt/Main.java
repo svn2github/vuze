@@ -252,7 +252,7 @@ Main
     }
     
     
-     if( another_instance ) {  //looks like there's already a process listening on 127.0.0.1:6880
+     if( another_instance ) {  //looks like there's already a process listening on 127.0.0.1:<port>
     	//attempt to pass args to existing instance
     	 
     	 // First, do some OSX magic because parameters are passed via OpenDocument API and other callbacks
@@ -262,7 +262,7 @@ Main
     	
     	if( !ss.sendArgs() ) {  //arg passing attempt failed, so start core anyway
     		another_instance = false;
-    		String msg = "There appears to be another program process already listening on socket [127.0.0.1: 6880].\nLoading of torrents via command line parameter will fail until this is fixed.";
+    		String msg = "There appears to be another program process already listening on socket [127.0.0.1: "+Constants.INSTANCE_PORT+"].\nLoading of torrents via command line parameter will fail until this is fixed.";
     		System.out.println( msg );
     		Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_WARNING, msg));
     	}

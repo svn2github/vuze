@@ -71,13 +71,13 @@ StartServer
     	// DON'T USE LOGGER HERE DUE TO COMMENTS BELOW - IF AZ ALREADY RUNNING THEN THE SERVERSOCKET
     	// CALL WILL THROW AN EXCEPTION 
     	
-    	socket = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
+    	socket = new ServerSocket(Constants.INSTANCE_PORT, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
         
         state = STATE_LISTENING;    
         
         if (Logger.isEnabled())
         	Logger.log(new LogEvent(LOGID, "StartServer: listening on "
-        			+ "127.0.0.1:6880 for passed torrent info"));
+        			+ "127.0.0.1:"+Constants.INSTANCE_PORT+" for passed torrent info"));
     
     }catch (Throwable t) {
     	
@@ -87,7 +87,7 @@ StartServer
       state = STATE_FAULTY;
       String reason = t.getMessage() == null ? "<>" : t.getMessage();
 
-      System.out.println( "StartServer ERROR: unable" + " to bind to 127.0.0.1:6880 listening"
+      System.out.println( "StartServer ERROR: unable" + " to bind to 127.0.0.1:"+Constants.INSTANCE_PORT+" listening"
 							+ " for passed torrent info: " + reason);
     }
   }

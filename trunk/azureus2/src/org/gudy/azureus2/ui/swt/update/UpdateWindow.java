@@ -702,7 +702,7 @@ UpdateWindow
 	    //If restart is required, then restart
 	    if( restartRequired && restartNow) {
 	    	// this HAS to be done this way around else the restart inherits
-	    	// the 6880 port listen. However, this is a general problem....
+	    	// the instance port listen. However, this is a general problem....
 	    	UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 	    	if (uiFunctions != null && uiFunctions.dispose(true, false)) {
 	   			bDisposeUpdateWindow = false;

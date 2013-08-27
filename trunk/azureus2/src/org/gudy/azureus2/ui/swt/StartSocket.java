@@ -49,14 +49,14 @@ public class StartSocket {
     	Socket sck = null;
     	PrintWriter pw = null;
     	try {
-    		String msg = "StartSocket: passing startup args to already-running Azureus java process listening on [127.0.0.1: 6880]";
+    		String msg = "StartSocket: passing startup args to already-running Azureus java process listening on [127.0.0.1: "+Constants.INSTANCE_PORT+"]";
     		
     			// DON'T USE LOGGER here as we DON't want to initialise all the logger stuff
     			// and in particular AEDiagnostics config dirty stuff!!!!
     		
     		System.out.println( msg );
        	
-    		sck = new Socket("127.0.0.1", 6880);
+    		sck = new Socket("127.0.0.1", Constants.INSTANCE_PORT);
          
     			// NOTE - this formatting is also used by AzureusCoreSingleInstanceClient and other org.gudy.azureus2.ui.common.Main.StartSocket
     		

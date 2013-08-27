@@ -123,4 +123,15 @@ PluginManagerDefaultsImpl
 	{
 		PluginSingleInstanceHandler.initialise( single_instance_port, handler );
 	}
+	
+	public boolean
+	setSingleInstanceHandlerAndProcess(
+		int									single_instance_port,
+		PluginManagerArgumentHandler		handler,
+		String[]							args )
+	{
+		PluginSingleInstanceHandler.initialise( single_instance_port, handler );
+		
+		return( PluginSingleInstanceHandler.initialiseAndProcess( single_instance_port, handler, args ));
+	}
 }

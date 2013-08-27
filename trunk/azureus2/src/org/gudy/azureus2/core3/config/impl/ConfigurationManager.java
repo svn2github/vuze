@@ -1002,6 +1002,10 @@ ConfigurationManager
 			  e.printStackTrace();
 		  }
 	  }
+	  
+	  COConfigurationManager.setIntDefault( "instance.port", Constants.INSTANCE_PORT );
+	  
+	  registerExportedParameter( "instance.port", "instance.port" );
   }
   
   public void

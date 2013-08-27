@@ -576,7 +576,7 @@ ConfigurationChecker
 	    
 	    	// reset invalid ports - single-instance socket port and (small) magnet uri listener port range
 	    
-	    if ( tcp_port == 6880 || ( tcp_port >= 45100 && tcp_port <= 45103 )){
+	    if ( tcp_port == Constants.INSTANCE_PORT || ( tcp_port >= 45100 && tcp_port <= 45103 )){
 	    
 	    	int	new_tcp_port	=  RandomUtils.generateRandomNetworkListenPort();
 	    	

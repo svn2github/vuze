@@ -126,4 +126,10 @@ PluginManagerDefaults
 	setSingleInstanceHandler(
 		int									single_instance_port,
 		PluginManagerArgumentHandler		handler );
+	
+	public boolean
+	setSingleInstanceHandlerAndProcess(
+		int									single_instance_port,
+		PluginManagerArgumentHandler		handler,
+		String[]							args );
 }

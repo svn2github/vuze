@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.StringTokenizer;
 
 import org.apache.log4j.Logger;
+import org.gudy.azureus2.core3.util.Constants;
 
 import com.aelitis.azureus.core.impl.AzureusCoreSingleInstanceClient;
 
@@ -34,17 +35,18 @@ public class StartServer extends Thread {
 
   public StartServer() {
     super("Start Server");
+    int	instance_port = Constants.INSTANCE_PORT;
     try {
-      socket = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
+      socket = new ServerSocket(instance_port, 50, InetAddress.getByName("127.0.0.1")); //NOLAR: only bind to localhost
       state = STATE_LISTENING;
-      Logger.getLogger("azureus2").info("StartServer: listening on 127.0.0.1:6880 for passed torrent info");
+      Logger.getLogger("azureus2").info("StartServer: listening on 127.0.0.1:" + instance_port + " for passed torrent info");
     } catch (Exception e) {
       state = STATE_FAULTY;
 
 		// DON'T USE LOGGER here as we DON't want to initialise all the logger stuff
 		// and in particular AEDiagnostics config dirty stuff!!!!
 
-      System.out.println( "StartServer ERROR: unable to bind to 127.0.0.1:6880 for passed torrent info");
+      System.out.println( "StartServer ERROR: unable to bind to 127.0.0.1:" + instance_port + " for passed torrent info");
     }
   }
 

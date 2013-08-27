@@ -67,7 +67,21 @@ Constants
   public static final Charset	BYTE_CHARSET;
   public static final Charset	DEFAULT_CHARSET;
 
+  public static final int	DEFAULT_INSTANCE_PORT	= 6880;
+  public static final int	INSTANCE_PORT;
+  
   static{
+	  String ip_str = System.getProperty( "azureus.instance.port", String.valueOf( DEFAULT_INSTANCE_PORT ));
+	  
+	  int	ip;
+	  try{
+		  ip = Integer.parseInt( ip_str );
+	  }catch( Throwable e ){
+		  ip = DEFAULT_INSTANCE_PORT;
+	  }
+	  
+	  INSTANCE_PORT = ip;
+	  
 	  Charset	bc 	= null;
 	  Charset	dc	= null;
 	  
@@ -514,7 +528,7 @@ Constants
 			}
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace(e);
+			e.printStackTrace();
 			
 			return( 0 );
 		}

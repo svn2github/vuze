@@ -61,6 +61,17 @@ PluginSingleInstanceHandler
 		active = true;
 	}
 	
+	public static boolean
+	initialiseAndProcess(
+		int									_port,
+		PluginManagerArgumentHandler		_handler,
+		String[]							_args )
+	{
+		initialise( _port, _handler );
+		
+		return( process( null, _args ));
+	}
+	
 	protected static boolean
 	process(
 		LoggerChannelListener	log,
@@ -91,11 +102,13 @@ PluginSingleInstanceHandler
 	{
 		try{
 			final ServerSocket server_socket = new ServerSocket( port, 50, InetAddress.getByName("127.0.0.1"));
-	              
-			log.messageLogged( 
+	         
+			if ( log != null ){
+				log.messageLogged( 
 					  LoggerChannel.LT_INFORMATION,
 					  "SingleInstanceHandler: listening on 127.0.0.1:" + port + " for passed arguments");
-	    
+			}
+			
 			Thread t = 
 				new Thread("Single Instance Handler")
 				{
@@ -127,9 +140,11 @@ PluginSingleInstanceHandler
 		    		    		
 		    		    		if ( !header.equals( getHeader())){
 		    		    			
-		    		    			log.messageLogged( 
-		    		  					  LoggerChannel.LT_ERROR,
-		    		  					  "SingleInstanceHandler: invalid header - " + header );
+		    		    			if ( log != null ){
+		    		    				log.messageLogged( 
+		    		    					LoggerChannel.LT_ERROR,
+		    		    					"SingleInstanceHandler: invalid header - " + header );
+		    		    			}
 		    		    			
 		    		    			continue;
 		    		    		}
@@ -140,8 +155,10 @@ PluginSingleInstanceHandler
 		    		    		
 		    		    	}catch( Throwable e ){
 		    		    		
-		    		    		log.messageLogged( "SingleInstanceHandler: receive error", e );
-
+		    		    		if ( log != null ){
+		    		    			log.messageLogged( "SingleInstanceHandler: receive error", e );
+		    		    		}
+		    		    		
 		    		    	}finally{
 		    		    		
 		    		    		if ( ois != null ){
@@ -194,12 +211,16 @@ PluginSingleInstanceHandler
 			
 			oos.writeObject( args );
 			
-			log.messageLogged( LoggerChannel.LT_INFORMATION, "SingleInstanceHandler: arguments passed to existing process" );
+			if ( log != null ){
 			
+				log.messageLogged( LoggerChannel.LT_INFORMATION, "SingleInstanceHandler: arguments passed to existing process" );
+			}
     	}catch( Throwable e ){
     		
-    		log.messageLogged( "SingleInstanceHandler: send error", e );
-
+    		if ( log != null ){
+    		
+    			log.messageLogged( "SingleInstanceHandler: send error", e );
+    		}
     	}finally{
     		
     		if ( socket != null ){

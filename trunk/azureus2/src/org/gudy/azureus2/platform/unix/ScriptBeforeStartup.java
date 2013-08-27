@@ -42,7 +42,7 @@ public class ScriptBeforeStartup
   		boolean argsSent = new AzureusCoreSingleInstanceClient().sendArgs(args, 500);
   		if (argsSent) {
   			// azureus was open..
-  			String msg = "Passing startup args to already-running " + Constants.APP_NAME + " java process listening on [127.0.0.1: 6880]";
+  			String msg = "Passing startup args to already-running " + Constants.APP_NAME + " java process listening on [127.0.0.1: " + Constants.INSTANCE_PORT + "]";
   			log(msg);
   			sysout.println("exit");
   

@@ -75,7 +75,7 @@ public class NatChecker {
   {	
     String check = "azureus_rand_" + String.valueOf( (int)(Math.random() * 100000) );
     
-    if ( port < 0 || port > 65535 || port == 6880 ){
+    if ( port < 0 || port > 65535 || port == Constants.INSTANCE_PORT ){
     	
     	result = NAT_UNABLE;
     	

@@ -24,6 +24,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 
 /**
@@ -36,7 +37,7 @@ public class Main {
     
     public static void main(String args[]) {
         try {
-        	ServerSocket server = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1"));
+        	ServerSocket server = new ServerSocket(Constants.INSTANCE_PORT, 50, InetAddress.getByName("127.0.0.1"));
           spawnStarted();
           server.close();
         } catch(Exception e) {

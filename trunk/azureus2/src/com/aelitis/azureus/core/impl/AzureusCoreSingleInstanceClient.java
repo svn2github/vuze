@@ -25,12 +25,14 @@ package com.aelitis.azureus.core.impl;
 import java.net.*;
 import java.io.*;
 
+import org.gudy.azureus2.core3.util.Constants;
+
 
 /**
  * Single instance management is a bit of a mess. For some reason the UIs have their own implementations of clients and servers.
  * We also have a more generic plugin-accessible single instance service that can be used by launchable plugins but don't give
- * a generic mechanism for dealing with the basic mechanism used by the UIs (that run on 6880).
- * I have introduced this class to give a programmatic way of passing arguments using the existing 6880 port. Perhaps one day
+ * a generic mechanism for dealing with the basic mechanism used by the UIs (that run on the instance port).
+ * I have introduced this class to give a programmatic way of passing arguments using the existing instance port. Perhaps one day
  * the various UI implementations will be rewritten to use this...
  * @author Parg
  */
@@ -71,7 +73,7 @@ AzureusCoreSingleInstanceClient
 			try{
 				sock = new Socket();
 				
-				sock.connect( new InetSocketAddress( "127.0.0.1", 6880 ), CONNECT_TIMEOUT );
+				sock.connect( new InetSocketAddress( "127.0.0.1", Constants.INSTANCE_PORT ), CONNECT_TIMEOUT );
 				
 				sock.setSoTimeout( READ_TIMEOUT );
 				

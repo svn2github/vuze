@@ -12,13 +12,10 @@ import java.io.PrintStream;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
-
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.net.Socket;
-
 import java.text.SimpleDateFormat;
-
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -31,7 +28,6 @@ import org.apache.commons.cli.OptionBuilder;
 import org.apache.commons.cli.Options;
 import org.apache.commons.cli.ParseException;
 import org.apache.commons.cli.PosixParser;
-
 import org.apache.log4j.Appender;
 import org.apache.log4j.ConsoleAppender;
 import org.apache.log4j.Logger;
@@ -43,6 +39,7 @@ import com.aelitis.azureus.core.impl.AzureusCoreSingleInstanceClient;
 import com.aelitis.azureus.launcher.Launcher;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.ui.common.IUserInterface;
 import org.gudy.azureus2.ui.common.UserInterfaceFactory;
 /**
@@ -358,7 +355,7 @@ public class Main {
         
 		// NOTE - this formatting is also used by AzureusCoreSingleInstanceClient and other org.gudy.azureus2.ui.swt.StartSocket
         
-        sck = new Socket("127.0.0.1",6880);
+        sck = new Socket("127.0.0.1", Constants.INSTANCE_PORT );
         pw = new PrintWriter(new OutputStreamWriter(sck.getOutputStream()));
         StringBuffer buffer = new StringBuffer(AzureusCoreSingleInstanceClient.ACCESS_STRING+";args;");
         for(int i = 0 ; i < args.length ; i++) {

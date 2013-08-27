@@ -23,6 +23,8 @@ package org.gudy.azureus2.ui.swt.updater.snippets;
 import java.net.InetAddress;
 import java.net.ServerSocket;
 
+import org.gudy.azureus2.core3.util.Constants;
+
 /**
  * @author Olivier Chalouhi
  *
@@ -36,11 +38,11 @@ public class Started {
         try {
             while(!ok) {
               try{
-                ServerSocket server = new ServerSocket(6880, 50, InetAddress.getByName("127.0.0.1"));
+                ServerSocket server = new ServerSocket(Constants.INSTANCE_PORT, 50, InetAddress.getByName("127.0.0.1"));
                 ok = true;
                 server.close();
               } catch(Exception e) {
-                Logger.log("Exception while trying to bind on port 6880 : " + e);
+                Logger.log("Exception while trying to bind on port " + Constants.INSTANCE_PORT + ": " + e);
                 Thread.sleep(1000);
               }
             }

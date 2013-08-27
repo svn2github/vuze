@@ -372,7 +372,7 @@ public class IncomingSocketChannelManager
 		{
 			this_mon.enter();
 			
-			if (tcp_listen_port < 0 || tcp_listen_port > 65535 || tcp_listen_port == 6880)
+			if (tcp_listen_port < 0 || tcp_listen_port > 65535 || tcp_listen_port == Constants.INSTANCE_PORT )
 			{
 				String msg = "Invalid incoming TCP listen port configured, " + tcp_listen_port + ". Port reset to default. Please check your config!";
 				Debug.out(msg);

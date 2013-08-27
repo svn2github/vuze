@@ -26,6 +26,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 
@@ -116,7 +117,7 @@ UDPNetworkManager
 						   return;
 					   }
 					   
-					   if ( port < 0 || port > 65535 || port == 6880 ) {
+					   if ( port < 0 || port > 65535 || port == Constants.INSTANCE_PORT ) {
 						   
 					        String msg = "Invalid incoming UDP listen port configured, " +port+ ". The port has been reset. Please check your config!";
 					        
@@ -149,7 +150,7 @@ UDPNetworkManager
 							   return;
 						   }
 						   
-						   if ( port < 0 || port > 65535 || port == 6880 ) {
+						   if ( port < 0 || port > 65535 || port == Constants.INSTANCE_PORT ) {
 							   
 						        String msg = "Invalid incoming UDP non-data listen port configured, " +port+ ". The port has been reset. Please check your config!";
 						        
