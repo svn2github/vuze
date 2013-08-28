@@ -120,6 +120,7 @@ public class TransferStatsView
 	private static final int MAX_DISPLAYED_PING_MILLIS		= 1199;	// prevents us hitting 1200 and resulting in graph expanding to 1400
 	private static final int MAX_DISPLAYED_PING_MILLIS_DISP	= 1200;	// tidy display
 	
+	private AzureusCore			azureus_core;
 	private GlobalManager		global_manager;
 	private GlobalManagerStats 	stats;
 	private SpeedManager 		speedManager;
@@ -131,6 +132,7 @@ public class TransferStatsView
 	private Composite blahPanel;
 	private BufferedLabel asn,estUpCap,estDownCap;
 	private BufferedLabel uploadBiaser;
+	private BufferedLabel currentIP;
 	
 	private Composite 		connectionPanel;
 	private BufferedLabel	upload_label, connection_label;
@@ -172,6 +174,7 @@ public class TransferStatsView
   public TransferStatsView() {
   	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
+				azureus_core	= core;
 				global_manager = core.getGlobalManager();
 				stats = global_manager.getStats();
 				speedManager = core.getSpeedManager();
@@ -449,6 +452,12 @@ public class TransferStatsView
 	  asn.setLayoutData(gridData);
 
 	  label = new Label(blahPanel,SWT.NONE);
+	  Messages.setLanguageText(label,"label.current_ip");    
+	  currentIP = new BufferedLabel(blahPanel,SWT.NONE);
+	  gridData = new GridData(GridData.FILL_HORIZONTAL);
+	  currentIP.setLayoutData(gridData);
+	  
+	  label = new Label(blahPanel,SWT.NONE);
 	  Messages.setLanguageText(label,"SpeedView.stats.estupcap");    
 	  estUpCap = new BufferedLabel(blahPanel,SWT.NONE);
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
@@ -459,9 +468,6 @@ public class TransferStatsView
 	  estDownCap = new BufferedLabel(blahPanel,SWT.NONE);
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
 	  estDownCap.setLayoutData(gridData);
-
-	  label = new Label(blahPanel,SWT.NONE);
-	  label = new Label(blahPanel,SWT.NONE);
 	  
 	  label = new Label(blahPanel,SWT.NONE);
 	  Messages.setLanguageText(label,"SpeedView.stats.upbias");    
@@ -469,7 +475,6 @@ public class TransferStatsView
 	  gridData = new GridData(GridData.FILL_HORIZONTAL);
 	  gridData.horizontalSpan = 7;
 	  uploadBiaser.setLayoutData(gridData);
-
   }
   
   private void
@@ -1004,7 +1009,7 @@ public class TransferStatsView
 	  if ( speedManager == null ){
 		  return;
 	  }
-	  
+		
 	  asn.setText(speedManager.getASN());
 
 	  estUpCap.setText(limit_to_text.getLimitText(speedManager.getEstimatedUploadCapacityBytesPerSec()));
@@ -1012,6 +1017,10 @@ public class TransferStatsView
 	  estDownCap.setText(limit_to_text.getLimitText(speedManager.getEstimatedDownloadCapacityBytesPerSec()));
 	  
 	  uploadBiaser.setText( DownloadManagerRateController.getString());
+	  
+	  InetAddress latest_v4 = azureus_core==null?null:azureus_core.getInstanceManager().getMyInstance().getExternalAddress();
+
+	  currentIP.setText(latest_v4==null?"":latest_v4.getHostAddress() );
   }
   
   private void
