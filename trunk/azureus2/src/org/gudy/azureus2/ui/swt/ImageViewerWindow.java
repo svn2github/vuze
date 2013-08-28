@@ -105,6 +105,7 @@ public class ImageViewerWindow {
 	img_comp.setLayout( new GridLayout());
 	
     Label img_label = new Label(img_comp, SWT.BORDER );
+    img_label.setAlignment( SWT.CENTER );
     gridData = new GridData(  GridData.FILL_BOTH );
     img_label.setLayoutData(gridData);
     
