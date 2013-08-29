@@ -510,8 +510,24 @@ UPnPImpl
 			
 			adapter.trace( "UPnP:Response:" + data_str );
 			
-			return( adapter.parseXML( data_str ));
+			try{
+				SimpleXMLParserDocument doc = adapter.parseXML( data_str );
 			
+				return( doc );
+				
+			}catch( Throwable e ){
+				
+					// try some hacks for known errors
+				
+				if ( data_str.contains("<scpd xmlns=\"urn:schemas-upnp-org:service-1-0\">")){
+				
+					data_str = data_str.replace("<scpd xmlns=\"urn:schemas-upnp-org:service-1-0\">", "<scpd>");
+					
+					return( adapter.parseXML( data_str ));
+				}
+				
+				throw( e );
+			}
 		}catch( Throwable e ){
 			
 			try{
