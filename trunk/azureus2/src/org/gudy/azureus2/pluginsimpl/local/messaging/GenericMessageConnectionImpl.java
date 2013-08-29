@@ -283,7 +283,9 @@ GenericMessageConnectionImpl
 	    			delegate.addOutboundRateLimiter((RateLimiter)outbound_rls.get(i));
 	    		}
 	    		
-	    		inbound_rls = null;
+	    			// copy/paste error detected by Coverity static analysis
+	    		
+	    		outbound_rls = null;
 	    	}
 	    }
 	}
