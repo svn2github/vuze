@@ -49,6 +49,7 @@ import java.applet.Applet;
 import java.applet.AudioClip;
 import java.io.File;
 import java.net.URL;
+import java.util.Map;
 
 /**
  * Contains methods to alert the user of certain events.
@@ -73,11 +74,7 @@ UserAlerts
 			new DownloadManagerAdapter()
 			{
 			public void downloadComplete(DownloadManager manager) {
-				if (!manager.getDownloadState().getFlag(
-						DownloadManagerState.FLAG_LOW_NOISE)) {
-
-					activityFinished(true, manager.getDisplayName(), manager);
-				}
+				activityFinished( manager, null );
 			}
 
 			// @see org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter#stateChanged(org.gudy.azureus2.core3.download.DownloadManager, int)
@@ -143,16 +140,16 @@ UserAlerts
 				{
 					DownloadManager dm = file.getDownloadManager();
 				
-					if ( 	old_mode == DiskManagerFileInfo.WRITE &&
-							new_mode == DiskManagerFileInfo.READ &&
-							file.getDownloaded() == file.getLength()){
+					if ( dm != null ){
 						
-						if( dm == null || !dm.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE )){
-
-							activityFinished(false, file.getFile(true).getName(), file.getDiskManager());
+						if ( 	old_mode == DiskManagerFileInfo.WRITE &&
+								new_mode == DiskManagerFileInfo.READ &&
+								file.getDownloaded() == file.getLength()){
+							
+							activityFinished( dm, file );
 						}
 					}
-				
+					
 					/*
 					System.out.println( 
 						"amc:" + 
@@ -232,8 +229,34 @@ UserAlerts
     	startup = false;
      }
 
-  	protected void activityFinished(boolean	download, String item_name, Object relatedObject)
+  	private void 
+  	activityFinished(
+  		DownloadManager			manager,
+  		DiskManagerFileInfo		dm_file )
   	{
+  		DownloadManagerState dm_state = manager.getDownloadState();
+  		
+		if ( dm_state.getFlag( DownloadManagerState.FLAG_LOW_NOISE)) {
+			
+			return;
+		}
+
+		boolean	download = dm_file == null;
+		
+		Object 	relatedObject;
+		String	item_name;
+		
+		if ( download ){
+			
+			relatedObject 	= manager;
+			item_name		= manager.getDisplayName();
+					
+		}else{
+			
+			relatedObject	= dm_file.getDiskManager();
+			item_name		= dm_file.getFile( true ).getName();
+		}
+		
   		final String sound_enabler;
   		final String sound_file;
   		final String default_sound 	= "org/gudy/azureus2/ui/icons/downloadFinished.wav";
@@ -265,10 +288,13 @@ UserAlerts
 	  		popup_def_text  = "popup.file.finished";
   		}
   		
+  		Map 	dl_file_alerts = dm_state.getMapAttribute( DownloadManagerState.AT_DL_FILE_ALERTS );
+  		String 	dlf_prefix = download?"":(String.valueOf(dm_file.getIndex()) + "." );
+  		
   		try{
   			this_mon.enter();
   			
-  			if (COConfigurationManager.getBooleanParameter(popup_enabler)) {
+  			if ( COConfigurationManager.getBooleanParameter(popup_enabler) || isDLFEnabled( dl_file_alerts, dlf_prefix, popup_enabler )) {
   				String popup_text = MessageText.getString(popup_def_text, new String[]{item_name});
 					UIFunctionsManager.getUIFunctions().forceNotify(
 							UIFunctions.STATUSICON_NONE, null, popup_text, null,
@@ -278,15 +304,14 @@ UserAlerts
   			}
 
 			if (Constants.isOSX
-					&& COConfigurationManager.getBooleanParameter(speech_enabler)) {
+					&&  ( COConfigurationManager.getBooleanParameter(speech_enabler) || isDLFEnabled( dl_file_alerts, dlf_prefix, speech_enabler ))) {
 				new AEThread("SaySound") {
 					public void runSupport() {
 						try {
-							if (COConfigurationManager.getBooleanParameter(speech_enabler))
-								Runtime.getRuntime().exec(new String[] {
-									"say",
-									COConfigurationManager.getStringParameter(speech_text)
-								}); // Speech Synthesis services
+							Runtime.getRuntime().exec(new String[] {
+								"say",
+								COConfigurationManager.getStringParameter(speech_text)
+							}); // Speech Synthesis services
 
 							Thread.sleep(2500);
 						} catch (Throwable e) {
@@ -295,7 +320,7 @@ UserAlerts
 				}.start();
 			}
 
-        if( COConfigurationManager.getBooleanParameter( sound_enabler, false)){
+        if ( COConfigurationManager.getBooleanParameter( sound_enabler, false) || isDLFEnabled( dl_file_alerts, dlf_prefix, sound_enabler )){
 
 	    		String	file = COConfigurationManager.getStringParameter( sound_file );
 
@@ -379,6 +404,22 @@ UserAlerts
   			
   			this_mon.exit();
   		}
+  	}
+  	
+  	private boolean
+  	isDLFEnabled(
+  		Map		map,
+  		String	prefix,
+  		String	key )
+  	{
+  		if ( map == null ){
+  			
+  			return( false );
+  		}
+  		
+  		key = prefix + key;
+  		
+  		return( map.containsKey( key ));
   	}
   	
   	protected void

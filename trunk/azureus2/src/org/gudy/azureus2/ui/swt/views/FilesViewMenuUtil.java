@@ -24,7 +24,6 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -38,6 +37,7 @@ import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.MenuFactory;
 import org.gudy.azureus2.ui.swt.sharing.ShareUtils;
 import org.gudy.azureus2.ui.swt.shells.AdvRenameWindow;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
@@ -67,6 +67,10 @@ public class FilesViewMenuUtil
 			final Object[] data_sources) {
 		Shell shell = menu.getShell();
 		boolean hasSelection = (data_sources.length > 0);
+
+		final DiskManagerFileInfo[] dmi_array = new DiskManagerFileInfo[data_sources.length];
+
+		System.arraycopy(data_sources, 0, dmi_array, 0, data_sources.length);
 
 		final MenuItem itemOpen = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemOpen, "FilesView.menu.open");
@@ -128,7 +132,11 @@ public class FilesViewMenuUtil
 					}
 				});
 		
-			// personal share
+			// alerts
+
+		MenuFactory.addAlertsMenu( menu, manager, dmi_array );
+		
+			// personal share		
 		
 		final MenuItem itemPersonalShare = new MenuItem(menu, SWT.PUSH);
 		Messages.setLanguageText(itemPersonalShare, "MyTorrentsView.menu.create_personal_share");
@@ -186,10 +194,6 @@ public class FilesViewMenuUtil
 		boolean all_low_pri 	= true;
 		boolean	all_complete	= true;
 		
-		final DiskManagerFileInfo[] dmi_array = new DiskManagerFileInfo[data_sources.length];
-
-		System.arraycopy(data_sources, 0, dmi_array, 0, data_sources.length);
-
 		int[] storage_types = manager.getStorageType(dmi_array);
 
 		for (int i = 0; i < dmi_array.length; i++) {

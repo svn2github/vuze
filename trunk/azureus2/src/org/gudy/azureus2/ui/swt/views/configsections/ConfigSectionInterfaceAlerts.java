@@ -150,8 +150,10 @@ public class ConfigSectionInterfaceAlerts
 			d_speechParameter.setLayoutData(gridData);
 			((Text) d_speechParameter.getControl()).setTextLimit(40);
 
+			/* we support per-download speech now so leave sound selection always available
 			d_speechEnabledParameter.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
 					d_speechParameter.getControls()));
+			*/
 		}
 
 		BooleanParameter d_play_sound = new BooleanParameter(cArea,
@@ -221,6 +223,7 @@ public class ConfigSectionInterfaceAlerts
 		gridData.widthHint = 100;
 		d_sound_info.setLayoutData(gridData);
 
+		/* we support per-download alerts now so leave sound selection always available
 		d_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
 				d_pathParameter.getControls()));
 		d_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
@@ -228,7 +231,7 @@ public class ConfigSectionInterfaceAlerts
 					d_browse,
 					d_sound_info
 				}));
-
+		*/
 		// 
 
 		// OS X counterpart for alerts
@@ -248,8 +251,10 @@ public class ConfigSectionInterfaceAlerts
 			f_speechParameter.setLayoutData(gridData);
 			((Text) f_speechParameter.getControl()).setTextLimit(40);
 
+			/* we support per-file alerts now so leave speech selection always available
 			f_speechEnabledParameter.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
 					f_speechParameter.getControls()));
+			*/
 		}
 
 		BooleanParameter f_play_sound = new BooleanParameter(cArea,
@@ -319,6 +324,7 @@ public class ConfigSectionInterfaceAlerts
 		gridData.widthHint = 100;
 		f_sound_info.setLayoutData(gridData);
 
+		/* we support per-file alerts now so leave sound selection always available
 		f_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
 				f_pathParameter.getControls()));
 		f_play_sound.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
@@ -326,7 +332,8 @@ public class ConfigSectionInterfaceAlerts
 					f_browse,
 					f_sound_info
 				}));
-
+		*/
+		
 		boolean isAZ3 = COConfigurationManager.getStringParameter("ui").equals("az3");
 		
 		if ( isAZ3 ){

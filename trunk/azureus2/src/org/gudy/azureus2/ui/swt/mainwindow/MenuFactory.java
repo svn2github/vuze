@@ -6,6 +6,7 @@ import java.io.StringWriter;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
@@ -13,12 +14,13 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -2034,7 +2036,217 @@ public class MenuFactory
 			}
 		});
 	}
+	
+	public static void
+	addAlertsMenu(
+		Menu					menu,
+		final DownloadManager[]	dms )
+	{
+		if ( dms.length == 0 ){
+			
+			return;
+		}
+		
+		String[][] alert_keys =
+			{	{ "Play Download Finished", "playdownloadfinished" },
+				{ "Play Download Finished Announcement", "playdownloadspeech" },
+				{ "Popup Download Finished", "popupdownloadfinished" },
+			};
+				
+		Menu alert_menu = new Menu( menu.getShell(), SWT.DROP_DOWN );
+		
+		MenuItem alerts_item = new MenuItem( menu, SWT.CASCADE);
+		
+		Messages.setLanguageText( alerts_item, "ConfigView.section.interface.alerts" );
+		
+		alerts_item.setMenu(alert_menu);
+		
+		boolean[]	all_enabled = new boolean[ alert_keys.length ];
+		
+		Arrays.fill( all_enabled, true );
+		
+		for ( DownloadManager dm: dms ){
+			
+			DownloadManagerState state = dm.getDownloadState();
+			
+			Map map = state.getMapAttribute( DownloadManagerState.AT_DL_FILE_ALERTS );
+			
+			if ( map == null ){
+				
+				Arrays.fill( all_enabled, false );
+				
+			}else{
+				
+				for (int i=0;i<alert_keys.length;i++ ){
+				
+					if ( !map.containsKey( alert_keys[i][0] )){
+						
+						all_enabled[i] = false;
+					}
+				}
+			}
+		}
+		
+		for (int i=0;i<alert_keys.length;i++ ){
+		
+			final String[] entry = alert_keys[i];
+			
+			if ( i != 1 || Constants.isOSX ){
+				
+				final MenuItem item = new MenuItem( alert_menu, SWT.CHECK);
 
+				item.setText( MessageText.getString( "ConfigView.label." + entry[1] ));
+						
+				item.setSelection( all_enabled[i]);
+				
+				item.addListener(
+					SWT.Selection, 
+					new Listener() 
+					{
+						public void 
+						handleEvent(
+							Event event ) 
+						{
+							boolean	selected = item.getSelection();
+							
+							for ( DownloadManager dm: dms ){
+								
+								DownloadManagerState state = dm.getDownloadState();
+								
+								Map map = state.getMapAttribute( DownloadManagerState.AT_DL_FILE_ALERTS );
+
+								if ( map == null ){
+									
+									map = new HashMap();
+									
+								}else{
+									
+									map = new HashMap( map );
+								}
+								
+								if ( selected ){
+									
+									map.put( entry[0], "" );
+									
+								}else{
+									
+									map.remove( entry[0] );
+									
+								}
+								state.setMapAttribute( DownloadManagerState.AT_DL_FILE_ALERTS, map );
+							}
+						}
+					});
+			}
+		}
+	}
+	
+	public static void
+	addAlertsMenu(
+		Menu							menu,
+		final DownloadManager			dm,
+		final DiskManagerFileInfo[]		files )
+	{
+		if ( files.length == 0 ){
+			
+			return;
+		}
+		
+		String[][] alert_keys =
+			{	{ "Play File Finished", "playfilefinished" },
+				{ "Play File Finished Announcement", "playfilespeech" },
+				{ "Popup File Finished", "popupfilefinished" },
+			};
+
+				
+		Menu alert_menu = new Menu( menu.getShell(), SWT.DROP_DOWN );
+		
+		MenuItem alerts_item = new MenuItem( menu, SWT.CASCADE);
+		
+		Messages.setLanguageText( alerts_item, "ConfigView.section.interface.alerts" );
+		
+		alerts_item.setMenu(alert_menu);
+		
+		boolean[]	all_enabled = new boolean[ alert_keys.length ];
+		
+		DownloadManagerState state = dm.getDownloadState();
+		
+		Map map = state.getMapAttribute( DownloadManagerState.AT_DL_FILE_ALERTS );
+		
+		if ( map != null ){
+
+			Arrays.fill( all_enabled, true );
+		
+			for ( DiskManagerFileInfo file: files ){
+			
+				for (int i=0;i<alert_keys.length;i++ ){
+				
+					String key = String.valueOf( file.getIndex()) + "." + alert_keys[i][0];
+					
+					if ( !map.containsKey( key )){
+						
+						all_enabled[i] = false;
+					}
+				}
+			}
+		}
+		
+		for (int i=0;i<alert_keys.length;i++ ){
+		
+			final String[] entry = alert_keys[i];
+			
+			if ( i != 1 || Constants.isOSX ){
+				
+				final MenuItem item = new MenuItem( alert_menu, SWT.CHECK);
+
+				item.setText( MessageText.getString( "ConfigView.label." + entry[1] ));
+						
+				item.setSelection( all_enabled[i]);
+				
+				item.addListener(
+					SWT.Selection, 
+					new Listener() 
+					{
+						public void 
+						handleEvent(
+							Event event ) 
+						{
+							DownloadManagerState state = dm.getDownloadState();
+
+							Map map = state.getMapAttribute( DownloadManagerState.AT_DL_FILE_ALERTS );
+
+							if ( map == null ){
+								
+								map = new HashMap();
+								
+							}else{
+								
+								map = new HashMap( map );
+							}
+							
+							boolean	selected = item.getSelection();
+							
+							for ( DiskManagerFileInfo file: files ){
+								
+								String key = String.valueOf( file.getIndex()) + "." + entry[0];
+								
+								if ( selected ){
+									
+									map.put( key, "" );
+									
+								}else{
+									
+									map.remove( key );
+								}
+							}
+							
+							state.setMapAttribute( DownloadManagerState.AT_DL_FILE_ALERTS, map );
+						}
+					});
+			}
+		}
+	}
+	
 	/**
 	 * Creates a menu item that is simply a label; it does nothing is selected
 	 * @param menu

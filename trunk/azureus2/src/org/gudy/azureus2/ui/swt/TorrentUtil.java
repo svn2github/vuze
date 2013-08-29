@@ -1087,6 +1087,11 @@ public class TorrentUtil {
 		
 		quickViewMenuItem.setEnabled( dms.length == 1 );
 		
+			// Alerts 
+		
+		MenuFactory.addAlertsMenu( menuAdvanced, dms );
+
+	
 		// === advanced > export ===
 		// =========================
 
@@ -1586,7 +1591,7 @@ public class TorrentUtil {
 		itemTags.setEnabled(hasSelection);
 
 		TagUIUtils.addLibraryViewTagsSubMenu(dms, menuTags, composite);
-
+		
 			// personal share
 		
 		if ( isSeedingView ){
