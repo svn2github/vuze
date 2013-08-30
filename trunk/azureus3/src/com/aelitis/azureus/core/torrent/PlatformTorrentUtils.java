@@ -311,7 +311,7 @@ public class PlatformTorrentUtils
 	}
 	
 	private static void putOrRemove(Map map, String key, Object obj) {
-		if (obj == null || obj.equals(null)) {
+		if (obj == null) {
 			map.remove(key);
 		} else {
 			map.put(key, obj);
