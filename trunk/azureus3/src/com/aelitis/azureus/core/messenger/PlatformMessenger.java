@@ -63,7 +63,7 @@ public class PlatformMessenger
 	public static String REPLY_RESULT = "response";
 
 	/** Key: id of queue;  Value: Map of queued messages & listeners */
-	static private Map<String, Map> mapQueues = new HashMap();
+	static private Map<String, Map<PlatformMessage, PlatformMessengerListener>> mapQueues = new HashMap<String, Map<PlatformMessage, PlatformMessengerListener>>();
 
 	private static final String QUEUE_NOAZID = "noazid.";
 
@@ -125,7 +125,7 @@ public class PlatformMessenger
 		queue_mon.enter();
 		try {
 			long fireBefore;
-			String queueID = null;
+			final String queueID;
 			if (message != null) {
 				if (!message.sendAZID()) {
 					queueID = QUEUE_NOAZID;
@@ -133,7 +133,7 @@ public class PlatformMessenger
 					queueID = QUEUE_NORMAL;
 				}
 				
-				Map<PlatformMessage, PlatformMessengerListener> mapQueue = (Map) mapQueues.get(queueID);
+				Map<PlatformMessage, PlatformMessengerListener> mapQueue = mapQueues.get(queueID);
 				if (mapQueue == null) {
 					mapQueue = new LinkedHashMap<PlatformMessage, PlatformMessengerListener>();
 					mapQueues.put(queueID, mapQueue);
@@ -147,6 +147,7 @@ public class PlatformMessenger
 
 				fireBefore = message.getFireBefore();
 			} else {
+				queueID = null;
 				fireBefore = SystemTime.getCurrentTime();
 			}
 
@@ -158,25 +159,26 @@ public class PlatformMessenger
   				
     			if (timerEvent == null || timerEvent.hasRun() || fireBefore < timerEvent.getWhen()) {
     				if (timerEvent != null) {
-  						mapTimerEvents.remove(timerEvent);
+  						mapTimerEvents.remove(queueID);
     					timerEvent.cancel();
     				}
     				
-    				final String fQueueID = queueID;
     				timerEvent = timerProcess.addEvent(fireBefore,
     						new TimerEventPerformer() {
     							public void perform(TimerEvent event) {
     								try {
     									mon_mapTimerEvents.enter();
     									
-    									mapTimerEvents.remove(event);
+    									if ( mapTimerEvents.get(queueID) == event ){
+    										mapTimerEvents.remove( queueID );
+    									}
     								} finally {
   										mon_mapTimerEvents.exit();
     								}
 
-  									Map mapQueue = mapQueues.get(fQueueID);
+  									Map<PlatformMessage, PlatformMessengerListener> mapQueue = mapQueues.get(queueID);
   									while (mapQueue != null && mapQueue.size() > 0) {
-  										processQueue(fQueueID, mapQueue);
+  										processQueue(queueID, mapQueue);
   									}
     								/*
     								Object[] keys = mapQueues.keySet().toArray();
