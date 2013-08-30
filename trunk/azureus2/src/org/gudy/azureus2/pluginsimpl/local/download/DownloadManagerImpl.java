@@ -91,13 +91,13 @@ DownloadManagerImpl
 	private DownloadManagerStats	stats;
 	private DownloadEventNotifierImpl global_dl_notifier;
 	
-	private List			listeners		= new ArrayList();
-	private CopyOnWriteList	dwba_listeners	= new CopyOnWriteList();
+	private List<DownloadManagerListener>					listeners		= new ArrayList<DownloadManagerListener>();
+	private CopyOnWriteList<DownloadWillBeAddedListener>	dwba_listeners	= new CopyOnWriteList<DownloadWillBeAddedListener>();
 	private AEMonitor		listeners_mon	= new AEMonitor( "DownloadManager:L");
 	
-	private List			downloads		= new ArrayList();
-	private Map				pending_dls		= new HashMap();
-	private Map				download_map	= new HashMap();
+	private List<Download>						downloads		= new ArrayList<Download>();
+	private Map<DownloadManager,DownloadImpl>	pending_dls		= new IdentityHashMap<DownloadManager,DownloadImpl>();
+	private Map<DownloadManager,DownloadImpl>	download_map	= new IdentityHashMap<DownloadManager,DownloadImpl>();
 		
 	protected
 	DownloadManagerImpl(
@@ -125,13 +125,13 @@ DownloadManagerImpl
 				downloadManagerRemoved(
 					DownloadManager	dm )
 				{
-					List			listeners_ref	= null;
-					DownloadImpl	dl				= null;
+					List<DownloadManagerListener>	listeners_ref	= null;
+					DownloadImpl					dl				= null;
 					
 					try{
 						listeners_mon.enter();
 						
-						dl = (DownloadImpl)download_map.get( dm );
+						dl = download_map.get( dm );
 						
 						if ( dl == null ){
 							
@@ -158,8 +158,14 @@ DownloadManagerImpl
 					if ( dl != null ){
 							
 						for (int i=0;i<listeners_ref.size();i++){
+							
+							try{
+								listeners_ref.get(i).downloadRemoved( dl );
+		
+							}catch( Throwable e ){
 								
-							((DownloadManagerListener)listeners_ref.get(i)).downloadRemoved( dl );
+								Debug.out( e );
+							}
 						}
 					}
 				}
@@ -269,15 +275,15 @@ DownloadManagerImpl
 	addDownloadManager(
 		DownloadManager	dm )
 	{
-		List			listeners_ref 	= null;
-		DownloadImpl	dl				= null;
+		List<DownloadManagerListener>		listeners_ref 	= null;
+		DownloadImpl						dl				= null;
 		
 		try{
 			listeners_mon.enter();
 			
 			if ( download_map.get(dm) == null ){
 	
-				dl = (DownloadImpl)pending_dls.remove( dm );
+				dl = pending_dls.remove( dm );
 				
 				if ( dl == null ){
 					
@@ -300,7 +306,7 @@ DownloadManagerImpl
 			for (int i=0;i<listeners_ref.size();i++){
 					
 				try{
-					((DownloadManagerListener)listeners_ref.get(i)).downloadAdded( dl );
+					listeners_ref.get(i).downloadAdded( dl );
 					
 				}catch( Throwable e ){
 						
@@ -500,7 +506,7 @@ DownloadManagerImpl
 	
 		throws DownloadException
 	{
-		DownloadImpl dl = (DownloadImpl)download_map.get(dm);
+		DownloadImpl dl = download_map.get(dm);
 		
 		if ( dl == null ){
 			
@@ -560,11 +566,11 @@ DownloadManagerImpl
 	
 		throws DownloadException
 	{
-		List	dls = global_manager.getDownloadManagers();
+		List<DownloadManager>	dls = global_manager.getDownloadManagers();
 
 		for (int i=0;i<dls.size();i++){
 			
-			DownloadManager	man = (DownloadManager)dls.get(i);
+			DownloadManager	man = dls.get(i);
 			
 			if ( man.getDiskManager() == dm ){
 				
@@ -681,19 +687,19 @@ DownloadManagerImpl
 	public Download[]
 	getDownloads()
 	{
-		Set	res_l = new LinkedHashSet();
+		Set<Download>	res_l = new LinkedHashSet<Download>();
 	
 		// we have to use the global manager's ordering as it
 		// hold this
 
-		List dms = global_manager.getDownloadManagers();
+		List<DownloadManager> dms = global_manager.getDownloadManagers();
 
 		try{
 			listeners_mon.enter();
 
 			for (int i=0;i<dms.size();i++){
 			
-				Object	dl = download_map.get( dms.get(i));
+				DownloadImpl	dl = download_map.get( dms.get(i));
 				
 				if ( dl != null ){
 					
@@ -707,7 +713,7 @@ DownloadManagerImpl
 				
 				for (int i=0;i<downloads.size();i++){
 					
-					Download	download = (Download)downloads.get(i);
+					Download	download = downloads.get(i);
 			
 					if ( !res_l.contains( download )){
 						
@@ -801,15 +807,15 @@ DownloadManagerImpl
 	public void addListener(DownloadManagerListener l) {addListener(l, true);}
 	
 	public void addListener(DownloadManagerListener l, boolean notify_of_current_downloads) {
-		List downloads_copy = null;
+		List<Download> downloads_copy = null;
 
 		try {
 			listeners_mon.enter();
-			List new_listeners = new ArrayList(listeners);
+			List<DownloadManagerListener> new_listeners = new ArrayList<DownloadManagerListener>(listeners);
 			new_listeners.add(l);
 			listeners = new_listeners;
 			if (notify_of_current_downloads) {
-				downloads_copy = new ArrayList(downloads);
+				downloads_copy = new ArrayList<Download>(downloads);
 				// randomize list so that plugins triggering dlm-state fixups don't lock each other by doing everything in the same order
 				Collections.shuffle(downloads_copy);
 			}
@@ -820,7 +826,7 @@ DownloadManagerImpl
 
 		if (downloads_copy != null) {
 			for (int i = 0; i < downloads_copy.size(); i++) {
-				try {l.downloadAdded((Download) downloads_copy.get(i));}
+				try {l.downloadAdded( downloads_copy.get(i));}
 				catch (Throwable e) {Debug.printStackTrace(e);}
 			}
 		}
@@ -829,15 +835,15 @@ DownloadManagerImpl
 	public void removeListener(DownloadManagerListener l) {removeListener(l, false);}
 
 	public void removeListener(DownloadManagerListener l, boolean notify_of_current_downloads) {
-		List downloads_copy = null;
+		List<Download> downloads_copy = null;
 		
 		try {
 			listeners_mon.enter();
-			List new_listeners = new ArrayList(listeners);
+			List<DownloadManagerListener> new_listeners = new ArrayList<DownloadManagerListener>(listeners);
 			new_listeners.remove(l);
 			listeners = new_listeners;
 			if (notify_of_current_downloads) {
-				downloads_copy = new ArrayList(downloads);
+				downloads_copy = new ArrayList<Download>(downloads);
 			}
 		}
 		finally {
@@ -846,7 +852,7 @@ DownloadManagerImpl
 
 		if (downloads_copy != null) {
 			for (int i = 0; i < downloads_copy.size(); i++) {
-				try {l.downloadRemoved((Download) downloads_copy.get(i));}
+				try {l.downloadRemoved( downloads_copy.get(i));}
 				catch (Throwable e) {Debug.printStackTrace(e);}
 			}
 		}
@@ -871,12 +877,12 @@ DownloadManagerImpl
 			listeners_mon.exit();
 		}
 		
-		Iterator	it = dwba_listeners.iterator();
+		Iterator<DownloadWillBeAddedListener>	it = dwba_listeners.iterator();
 		
 		while( it.hasNext()){
 			
 			try{
-				((DownloadWillBeAddedListener)it.next()).initialised(dl);
+				it.next().initialised(dl);
 				
 			}catch( Throwable e ){
 				
@@ -927,7 +933,7 @@ DownloadManagerImpl
 	addExternalDownload(
 		Download	download )
 	{
-		List			listeners_ref 	= null;
+		List<DownloadManagerListener>			listeners_ref 	= null;
 		
 		try{
 			listeners_mon.enter();
@@ -949,7 +955,7 @@ DownloadManagerImpl
 		for (int i=0;i<listeners_ref.size();i++){
 				
 			try{
-				((DownloadManagerListener)listeners_ref.get(i)).downloadAdded( download );
+				listeners_ref.get(i).downloadAdded( download );
 				
 			}catch( Throwable e ){
 					
@@ -962,7 +968,7 @@ DownloadManagerImpl
 	removeExternalDownload(
 		Download	download )
 	{
-		List			listeners_ref 	= null;
+		List<DownloadManagerListener>			listeners_ref 	= null;
 		
 		try{
 			listeners_mon.enter();
@@ -984,7 +990,7 @@ DownloadManagerImpl
 		for (int i=0;i<listeners_ref.size();i++){
 				
 			try{
-				((DownloadManagerListener)listeners_ref.get(i)).downloadRemoved( download );
+				listeners_ref.get(i).downloadRemoved( download );
 				
 			}catch( Throwable e ){
 					
