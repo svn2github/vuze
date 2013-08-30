@@ -2354,7 +2354,7 @@ DHTDBImpl
 						}
 					}
 				
-					if ( contact.getID().equals( survey_my_id )){
+					if ( Arrays.equals( contact.getID(), survey_my_id )){
 						
 						Debug.out( "inconsistent - we shouldn't query ourselves!" );
 					}
