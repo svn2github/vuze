@@ -96,13 +96,16 @@ PEPeerTransport
    * @param pieceNumber
    * @param pieceOffset
    * @param pieceLength
+   * @param return_duplicates - if true and request already exists it will be returned, if false -> null
    * @return request if actually requested, null otherwise
    */
+	
 	public DiskManagerReadRequest 
 	request(
-		int pieceNumber, 
-		int pieceOffset, 
-		int pieceLength );
+		int 		pieceNumber, 
+		int 		pieceOffset, 
+		int		 	pieceLength,
+		boolean		return_duplicates );
 
 	/**
 	 * Returns the index of this request in the peer's queue or -1 if not found

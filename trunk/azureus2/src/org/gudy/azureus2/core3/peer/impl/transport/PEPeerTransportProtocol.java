@@ -1297,9 +1297,10 @@ implements PEPeerTransport
 
 	public DiskManagerReadRequest 
 	request(
-		final int pieceNumber, 
-		final int pieceOffset, 
-		final int pieceLength) 
+		final int 		pieceNumber, 
+		final int 		pieceOffset, 
+		final int 		pieceLength,
+		final boolean 	return_duplicates )
 	{
 		final DiskManagerReadRequest request = manager.createDiskManagerRequest(pieceNumber, pieceOffset, pieceLength);
 		
@@ -1360,9 +1361,20 @@ implements PEPeerTransport
 			}finally{
 				recent_outgoing_requests_mon.exit();
 			}
+			
+			return( request );
+			
+		}else{
+			
+			if ( return_duplicates ){
+				
+				return( request );
+				
+			}else{
+				
+				return( null );
+			}
 		}
-		
-		return request;
 	}
 
 	public int

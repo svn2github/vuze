@@ -213,9 +213,10 @@ PeerForeignDelegate
    */
 	public DiskManagerReadRequest 
 	request(
-		int pieceNumber, 
-		int pieceOffset, 
-		int pieceLength )
+		int 	pieceNumber, 
+		int 	pieceOffset, 
+		int 	pieceLength,
+		boolean	return_duplicates )
 	{
 		DiskManagerReadRequest	request = manager.getDelegate().getDiskManager().createReadRequest( pieceNumber, pieceOffset, pieceLength );
 		

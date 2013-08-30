@@ -132,7 +132,7 @@ implements PiecePicker
 	protected final DiskManagerPiece[]	dmPieces;
 	protected final PEPiece[]			pePieces;
 
-	private List	rarestStartedPieces; //List of pieces started as rarest first
+	private List<PEPiece>	rarestStartedPieces; //List of pieces started as rarest first
 
 	protected final AEMonitor availabilityMon = new AEMonitor("PiecePicker:avail");
 	private final AEMonitor endGameModeChunks_mon =new AEMonitor("PiecePicker:EGM");
@@ -1458,7 +1458,7 @@ implements PiecePicker
 				
 				final int thisBlock = blockNumber + i;
 				
-				if (pt.request(pieceNumber, thisBlock *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(thisBlock)) != null ){
+				if (pt.request(pieceNumber, thisBlock *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(thisBlock),true) != null ){
 					requested++;
 					pt.setLastPiece(pieceNumber);
 	
@@ -1473,7 +1473,7 @@ implements PiecePicker
 			
 				final int thisBlock =blockNumber +i;
 				
-				if (pt.request(pieceNumber, thisBlock *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(thisBlock)) != null ){
+				if (pt.request(pieceNumber, thisBlock *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(thisBlock),true) != null ){
 					requested++;
 					pt.setLastPiece(pieceNumber);
 	
@@ -1488,9 +1488,10 @@ implements PiecePicker
 		if (requested > 0
 				&& pePiece.getAvailability() <= globalMinOthers
 				&& calcRarestAllowed() > 0
-				&& !rarestStartedPieces.contains(pePiece)
-		)	rarestStartedPieces.add(pePiece);
-
+				&& !rarestStartedPieces.contains(pePiece)){
+			
+			rarestStartedPieces.add(pePiece);
+		}
 
 		return requested;
 	}
@@ -1745,7 +1746,7 @@ implements PiecePicker
 		
 					pePiece.getAndMarkBlock( pt, piece_min_rta_block );
 					
-					DiskManagerReadRequest	request = pt.request(piece_min_rta_index, piece_min_rta_block *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(piece_min_rta_block));
+					DiskManagerReadRequest	request = pt.request(piece_min_rta_index, piece_min_rta_block *DiskManager.BLOCK_SIZE, pePiece.getBlockSize(piece_min_rta_block),true);
 					
 					if ( request != null ){
 		
@@ -2420,6 +2421,9 @@ implements PiecePicker
 		final PEPeerTransport 	pt, 
 		final int 				wants)
 	{
+		//loopage??? it is calling pt.request, I can only assume that either max_req is huge or pr.request
+		//is returning true but not incrementing num requests?
+				
 		if ( pt == null || wants <= 0 || pt.getPeerState() !=PEPeer.TRANSFERING ){
 			
 			return 0;
@@ -2449,16 +2453,22 @@ implements PiecePicker
 				
 				final PEPiece	pePiece = pePieces[pieceNumber];
 				
-				if (	pt.isPieceAvailable(pieceNumber)
-						&&pePiece != null 
-						&&(!pt.isSnubbed() ||availability[pieceNumber] <=peerControl.getNbPeersSnubbed())
-						&&pt.request(pieceNumber, chunk.getOffset(), chunk.getLength()) != null ){
+				if ( pt.isPieceAvailable(pieceNumber) && pePiece != null ){
 					
-					pePiece.setRequested(pt, chunk.getBlockNumber());
+					if ( ( !pt.isSnubbed() || availability[pieceNumber] <=peerControl.getNbPeersSnubbed()) &&
+							pt.request(pieceNumber, chunk.getOffset(), chunk.getLength(),false) != null ){
+										
+						pePiece.setRequested(pt, chunk.getBlockNumber());
 					
-					pt.setLastPiece(pieceNumber);
+						pt.setLastPiece(pieceNumber);
 					
-					return 1;
+						return( 1 );
+						
+					}else{
+						
+						
+						return( 0 );
+					}
 				}
 			}
 			
