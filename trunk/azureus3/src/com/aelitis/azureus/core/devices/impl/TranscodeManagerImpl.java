@@ -200,18 +200,18 @@ TranscodeManagerImpl
 				
 				if ( vuzexcode_provider == null ){
 					
-					provider = vuzexcode_provider = new TranscodeProviderVuze( this, pi );
+					vuzexcode_provider = new TranscodeProviderVuze( this, pi );
 			
 					added = true;
 					
-				}else if ( pi != vuzexcode_provider ){
-					
-					provider = vuzexcode_provider;
-					
+				}else if ( pi != vuzexcode_provider.getPluginInterface()){
+										
 					vuzexcode_provider.update( pi );
 					
 					updated = true;
 				}
+				
+				provider = vuzexcode_provider;
 			}
 			
 			if ( added ){

@@ -67,6 +67,12 @@ TranscodeProviderVuze
 		return( TP_VUZE );
 	}
 	
+	public PluginInterface
+	getPluginInterface()
+	{
+		return( plugin_interface );
+	}
+	
 	protected void
 	update(
 		PluginInterface		pi )
