@@ -868,7 +868,7 @@ public class TagUIUtils
 									
 									if ( selected ){
 										
-										Utils.setMenuItemImage(tt_item, "blackdot");
+										Utils.setMenuItemImage(tt_item, "blacktick");
 									}
 									
 									p_item.setSelection(selected );

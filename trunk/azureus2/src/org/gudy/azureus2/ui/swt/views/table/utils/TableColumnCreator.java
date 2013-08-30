@@ -224,6 +224,7 @@ public class TableColumnCreator
 		c.put(DateCompletedItem.COLUMN_ID, new cInfo(DateCompletedItem.class, DateCompletedItem.DATASOURCE_TYPE));
 		c.put(DateAddedItem.COLUMN_ID, new cInfo(DateAddedItem.class, DateAddedItem.DATASOURCE_TYPE));
 		c.put(IPFilterItem.COLUMN_ID, new cInfo(IPFilterItem.class, IPFilterItem.DATASOURCE_TYPE));
+		c.put(AlertsItem.COLUMN_ID, new cInfo(AlertsItem.class, AlertsItem.DATASOURCE_TYPE));
 		c.put(TorrentCreateDateItem.COLUMN_ID, new cInfo(TorrentCreateDateItem.class, TorrentCreateDateItem.DATASOURCE_TYPE));
 
 		c.put(ColumnTC_NameInfo.COLUMN_ID, new cInfo(ColumnTC_NameInfo.class, tc));

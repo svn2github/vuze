@@ -64,6 +64,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
+import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.AlertsItem;
 
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.RegExUtil;
@@ -111,6 +112,7 @@ public class FilesView
     new FileCRC32Item(),
     new FileMD5Item(),
     new FileAvailabilityItem(),
+    new AlertsItem(  TableManager.TABLE_TORRENT_FILES ),
   };
   
   static{

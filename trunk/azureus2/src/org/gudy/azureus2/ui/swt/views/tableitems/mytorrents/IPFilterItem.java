@@ -80,7 +80,8 @@ public class IPFilterItem
   public void refresh(TableCell cell) {
     //String state = "";
     
-    UISWTGraphic	icon = null;
+    UISWTGraphic	icon 	= null;
+    int				sort	= 0;
     
     if( ipfilter.isEnabled()){
 	    DownloadManager dm = (DownloadManager)cell.getDataSource();
@@ -90,16 +91,20 @@ public class IPFilterItem
 	       if ( excluded ){
 	    	   
 	    	   icon = cross_icon;
-	    	   
+	    	   sort	=1;
 	    	   //state = "\u2718";
 	    	   
 	       }else{
 	    	   
 	    	   icon = tick_icon;
+	    	   sort	= 2;
 	    	  // state = "\u2714";
 	       }
 	    }
     }
+    
+    cell.setSortValue( sort );
+    
     if ( cell.getGraphic() != icon ){
     	
     	cell.setGraphic( icon );
