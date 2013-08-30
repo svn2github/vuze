@@ -130,13 +130,6 @@ FMFileAccessCompact
 				if (!controlFileDir.isDirectory() && !FileUtil.mkdirs(controlFileDir)) {
 					throw new FMFileManagerException("Directory creation failed: "	+ controlFileDir);
 				}
-			
-				if(current_length > 0)
-				{
-					write_required	= true;
-					writeState();
-				}
-					
 				
 			}else{
 				
