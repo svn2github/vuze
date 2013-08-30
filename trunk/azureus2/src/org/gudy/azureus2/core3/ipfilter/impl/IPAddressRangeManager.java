@@ -332,28 +332,21 @@ IPAddressRangeManager
 		
 		Arrays.sort( 
 			ents,
-			new Comparator()
+			new Comparator<IpRange>()
 			{
 				public int 
 				compare(
-					Object o1, 
-					Object o2 )
-				{
-					IpRange	e1 = (IpRange)o1;
-					IpRange 	e2 = (IpRange)o2;
-					
+					IpRange e1, 
+					IpRange e2 )
+				{	
 					long diff = e1.getStartIpLong() - e2.getStartIpLong();
+					
 					if (diff == 0) {
+						
 						diff = e2.getEndIpLong() - e1.getEndIpLong();
 					}
 
 					return signum(diff);
-				}
-				
-				public boolean 
-				equals(Object obj)
-				{
-					return( false );
 				}
 			});
 		
