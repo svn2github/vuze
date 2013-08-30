@@ -101,8 +101,14 @@ public class PlatformTorrentUtils
 
 	private static final String TOR_AZ_PROP_OPENED = "Opened";
 
-	private static ArrayList<String> listPlatformHosts = null;
+	private static ArrayList<String> listPlatformHosts = new ArrayList<String>();
 
+	static{
+		for (int i = 0; i < Constants.AZUREUS_DOMAINS.length; i++) {
+			listPlatformHosts.add(Constants.AZUREUS_DOMAINS[i].toLowerCase());
+		}
+	}
+	
 	private static final Map mapPlatformTrackerTorrents = new WeakHashMap();
 
 	private static boolean embeddedPlayerAvail = false;
@@ -388,12 +394,7 @@ public class PlatformTorrentUtils
 	}
 
 	public static List<String> getPlatformHosts() {
-		if (listPlatformHosts == null) {
-			listPlatformHosts = new ArrayList<String>();
-			for (int i = 0; i < Constants.AZUREUS_DOMAINS.length; i++) {
-				listPlatformHosts.add(Constants.AZUREUS_DOMAINS[i].toLowerCase());
-			}
-		}
+
 		return listPlatformHosts;
 	}
 
