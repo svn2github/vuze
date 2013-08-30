@@ -68,8 +68,6 @@ public class BrowserMessage
 
 	private String operationId;
 
-	private String params;
-
 	private Map decodedParams;
 
 	private ArrayList completionListeners = new ArrayList();
@@ -162,8 +160,7 @@ public class BrowserMessage
 	}
 
 	public String toString() {
-		return listenerId + "." + operationId + "("
-				+ (params == null ? decodedParams : params) + ")";
+		return listenerId + "." + operationId + "("	+ decodedParams + ")";
 	}
 
 	private void triggerCompletionListeners(boolean success, Object data) {
