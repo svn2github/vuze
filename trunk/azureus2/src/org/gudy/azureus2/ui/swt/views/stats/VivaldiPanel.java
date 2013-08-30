@@ -290,6 +290,9 @@ public class VivaldiPanel {
     DHTNetworkPosition _ownPosition = self.getNetworkPosition(DHTNetworkPosition.POSITION_TYPE_VIVALDI_V1);
 
     if ( _ownPosition == null ){
+    	
+    	gc.dispose();
+    	
     	return;
     }
     
