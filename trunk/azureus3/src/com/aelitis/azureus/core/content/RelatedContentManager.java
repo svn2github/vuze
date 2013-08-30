@@ -1844,20 +1844,27 @@ RelatedContentManager
 								handle(
 									RelatedContent[]	content )
 								{
+									List<RelatedContent>	new_content = new ArrayList<RelatedContent>( content.length );
+									
 									synchronized( content_list ){
 										
-										if ( content_list.contains( content )){
+										for ( RelatedContent rc: content ){
+										
+											if ( !content_list.contains( rc )){
+											
+												new_content.add( rc );
+											}
+										}
+										
+										if ( new_content.size() == 0 ){
 											
 											return;
 										}
 										
-										for ( RelatedContent c: content ){
-										
-											content_list.add( c );
-										}
+										content_list.addAll( new_content );
 									}
 									
-									listener.contentFound( content );
+									listener.contentFound( new_content.toArray( new RelatedContent[new_content.size()] ));
 								}
 							};
 						
