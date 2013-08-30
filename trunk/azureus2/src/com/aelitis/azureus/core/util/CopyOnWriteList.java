@@ -86,7 +86,7 @@ implements Iterable<T>
 	public CopyOnWriteList(int initialCapacity) {
 		this.initialCapacity = initialCapacity;
 		use_linked_list = false;
-		if (stats != null) {
+		if (LOG_STATS) {
 			stats.add(new WeakReference(this));
 		}
 	}
@@ -99,7 +99,7 @@ implements Iterable<T>
 		// Last check on 7/24/2008: 444 lists with 456 total entries
 		this.initialCapacity = 1;
 		use_linked_list = false;
-		if (stats != null) {
+		if (LOG_STATS) {
 			stats.add(new WeakReference(this));
 		}
 	}
@@ -108,7 +108,7 @@ implements Iterable<T>
 	CopyOnWriteList(boolean _use_linked_list ) {
 		this.initialCapacity = 1;
 		use_linked_list = _use_linked_list;
-		if (stats != null) {
+		if (LOG_STATS) {
 			stats.add(new WeakReference(this));
 		}
 	}
