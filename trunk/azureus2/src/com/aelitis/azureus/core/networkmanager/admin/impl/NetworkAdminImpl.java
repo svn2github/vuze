@@ -296,6 +296,9 @@ NetworkAdminImpl
 		return( IPv6_enabled );
 	}
 	
+	private List<NetworkInterface> 	last_getni_result;
+	private Object					getni_lock = new Object();
+	
 	protected boolean
 	checkNetworkInterfaces(
 		boolean		first_time,
@@ -306,157 +309,172 @@ NetworkAdminImpl
 		try{
 			List<NetworkInterface>	x = NetUtils.getNetworkInterfaces();
 			
-			if ( ( x == old_network_interfaces ) || ( x.size() == 0 && old_network_interfaces == null )){
+			boolean	fire_stuff = false;
+			
+			synchronized( getni_lock ){
 				
-			}else if ( x.size() == 0 ){
-				
-				old_network_interfaces	= null;
+				if ( last_getni_result != x ){
+									
+					last_getni_result = x;
 					
-				changed = true;
-					
-			}else if ( old_network_interfaces == null ){
-				
-				Set<NetworkInterface>	new_network_interfaces = new HashSet<NetworkInterface>();
-				
-				new_network_interfaces.addAll( x );
-				
-				old_network_interfaces = new_network_interfaces;
-				
-				changed = true;
-				
-			}else{
-				
-				Set<NetworkInterface>	new_network_interfaces = new HashSet<NetworkInterface>();
-				
-				for ( NetworkInterface ni: x ){
-					
-						// NetworkInterface's "equals" method is based on ni name + addresses
-					
-					if ( !old_network_interfaces.contains( ni )){
+					if ( x.size() == 0 && old_network_interfaces == null ){
 						
-						changed	= true;
+					}else if ( x.size() == 0 ){
+						
+						old_network_interfaces	= null;
+							
+						changed = true;
+							
+					}else if ( old_network_interfaces == null ){
+						
+						Set<NetworkInterface>	new_network_interfaces = new HashSet<NetworkInterface>();
+						
+						new_network_interfaces.addAll( x );
+						
+						old_network_interfaces = new_network_interfaces;
+						
+						changed = true;
+						
+					}else{
+						
+						Set<NetworkInterface>	new_network_interfaces = new HashSet<NetworkInterface>();
+						
+						for ( NetworkInterface ni: x ){
+							
+								// NetworkInterface's "equals" method is based on ni name + addresses
+							
+							if ( !old_network_interfaces.contains( ni )){
+								
+								changed	= true;
+							}
+							
+							new_network_interfaces.add( ni );
+						}
+							
+						if ( old_network_interfaces.size() != new_network_interfaces.size()){
+							
+							changed = true;
+						}
+						
+						old_network_interfaces = new_network_interfaces;
 					}
 					
-					new_network_interfaces.add( ni );
+					if ( changed || force ){
+									
+						boolean newV6 = false;
+						boolean newV4 = false;
+						
+						Set<NetworkInterface> interfaces = old_network_interfaces;
+						
+						long now = SystemTime.getMonotonousTime();
+		
+						List<AddressHistoryRecord>	a_history = new ArrayList<AddressHistoryRecord>();
+						
+						if (interfaces != null)
+						{
+							Iterator<NetworkInterface> it = interfaces.iterator();
+							while (it.hasNext())
+							{
+								NetworkInterface ni = it.next();
+								Enumeration addresses = ni.getInetAddresses();
+								while (addresses.hasMoreElements())
+								{
+									InetAddress ia = (InetAddress) addresses.nextElement();
+									
+									a_history.add( new AddressHistoryRecord( ni, ia, now ));
+									
+									if (ia.isLoopbackAddress()){
+										continue;
+									}
+									if (ia instanceof Inet6Address && !ia.isLinkLocalAddress()){
+										if ( IPv6_enabled ){
+											newV6 = true;
+										}
+									}else if (ia instanceof Inet4Address){
+										newV4 = true;
+									}
+								}
+							}
+						}
+						
+						
+						synchronized( address_history ){
+							
+							address_history_update_time = now;
+							
+							for ( AddressHistoryRecord entry: a_history ){
+								
+								String name = entry.getAddress().getHostAddress();
+								
+								AddressHistoryRecord existing = address_history.get( name );
+								
+								if ( existing == null ){
+									
+									address_history.put( name, entry );
+									
+								}else{
+									
+									existing.setLastSeen( now );
+								}
+							}
+							
+							Iterator<AddressHistoryRecord> it = address_history.values().iterator();
+								
+							while( it.hasNext()){
+								
+								AddressHistoryRecord entry = it.next();
+								
+								long	age = now - entry.getLastSeen();
+								
+								if ( age > 10*60*1000 ){
+									
+									it.remove();
+								}
+							}
+						}
+						
+						supportsIPv4 = newV4;
+						supportsIPv6 = newV6;
+						
+						Logger.log(new LogEvent(LOGID, "NetworkAdmin: ipv4 supported: "+supportsIPv4+"; ipv6: "+supportsIPv6+"; probing v6+nio functionality"));
+						
+						if(newV6){
+						
+							ServerSocketChannel channel = ServerSocketChannel.open();
+							
+							try
+							{
+								channel.configureBlocking(false);
+								channel.socket().bind(new InetSocketAddress(anyLocalAddressIPv6, 0));
+								Logger.log(new LogEvent(LOGID, "NetworkAdmin: testing nio + ipv6 bind successful"));
+		
+								supportsIPv6withNIO = true;
+							} catch (Exception e)
+							{
+								Logger.log(new LogEvent(LOGID,LogEvent.LT_WARNING, "nio + ipv6 test failed",e));
+								supportsIPv6withNIO = false;
+							}
+							
+							channel.close();
+						} else
+							supportsIPv6withNIO = false;
+							
+						if ( !first_time ){
+							
+							Logger.log(
+								new LogEvent(LOGID,
+										"NetworkAdmin: network interfaces have changed" ));
+						}
+						
+						fire_stuff = true;
+					}
 				}
-					
-				if ( old_network_interfaces.size() != new_network_interfaces.size()){
-					
-					changed = true;
-				}
-				
-				old_network_interfaces = new_network_interfaces;
 			}
 			
-			if ( changed || force ){
-							
-				boolean newV6 = false;
-				boolean newV4 = false;
-				
-				Set<NetworkInterface> interfaces = old_network_interfaces;
-				
-				long now = SystemTime.getMonotonousTime();
-
-				List<AddressHistoryRecord>	a_history = new ArrayList<AddressHistoryRecord>();
-				
-				if (interfaces != null)
-				{
-					Iterator<NetworkInterface> it = interfaces.iterator();
-					while (it.hasNext())
-					{
-						NetworkInterface ni = it.next();
-						Enumeration addresses = ni.getInetAddresses();
-						while (addresses.hasMoreElements())
-						{
-							InetAddress ia = (InetAddress) addresses.nextElement();
-							
-							a_history.add( new AddressHistoryRecord( ni, ia, now ));
-							
-							if (ia.isLoopbackAddress()){
-								continue;
-							}
-							if (ia instanceof Inet6Address && !ia.isLinkLocalAddress()){
-								if ( IPv6_enabled ){
-									newV6 = true;
-								}
-							}else if (ia instanceof Inet4Address){
-								newV4 = true;
-							}
-						}
-					}
-				}
-				
-				
-				synchronized( address_history ){
-					
-					address_history_update_time = now;
-					
-					for ( AddressHistoryRecord entry: a_history ){
+			if ( fire_stuff ){
 						
-						String name = entry.getAddress().getHostAddress();
-						
-						AddressHistoryRecord existing = address_history.get( name );
-						
-						if ( existing == null ){
-							
-							address_history.put( name, entry );
-							
-						}else{
-							
-							existing.setLastSeen( now );
-						}
-					}
-					
-					Iterator<AddressHistoryRecord> it = address_history.values().iterator();
-						
-					while( it.hasNext()){
-						
-						AddressHistoryRecord entry = it.next();
-						
-						long	age = now - entry.getLastSeen();
-						
-						if ( age > 10*60*1000 ){
-							
-							it.remove();
-						}
-					}
-				}
-				
-				supportsIPv4 = newV4;
-				supportsIPv6 = newV6;
-				
-				Logger.log(new LogEvent(LOGID, "NetworkAdmin: ipv4 supported: "+supportsIPv4+"; ipv6: "+supportsIPv6+"; probing v6+nio functionality"));
-				
-				if(newV6)
-				{
-					ServerSocketChannel channel = ServerSocketChannel.open();
-					
-					try
-					{
-						channel.configureBlocking(false);
-						channel.socket().bind(new InetSocketAddress(anyLocalAddressIPv6, 0));
-						Logger.log(new LogEvent(LOGID, "NetworkAdmin: testing nio + ipv6 bind successful"));
-
-						supportsIPv6withNIO = true;
-					} catch (Exception e)
-					{
-						Logger.log(new LogEvent(LOGID,LogEvent.LT_WARNING, "nio + ipv6 test failed",e));
-						supportsIPv6withNIO = false;
-					}
-					
-					channel.close();
-				} else
-					supportsIPv6withNIO = false;
-					
-				if ( !first_time ){
-					
-					Logger.log(
-						new LogEvent(LOGID,
-								"NetworkAdmin: network interfaces have changed" ));
-				}
-				
 				firePropertyChange( NetworkAdmin.PR_NETWORK_INTERFACES );
-				
+						
 				checkDefaultBindAddress( first_time );
 			}
 		}catch( Throwable e ){
