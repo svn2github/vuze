@@ -486,9 +486,11 @@ PMSWTImpl
 			tooltip_text.append( "\n    " + MessageText.getString( "pairing.ui.icon.tip.no.recent" ));
 		}
 		
-		if ( !tooltip_text.equals( last_tooltip_text )){
+		String tooltip_text_str = tooltip_text.toString();
+		
+		if ( !tooltip_text_str.equals( last_tooltip_text )){
 			
-			last_tooltip_text = tooltip_text.toString();
+			last_tooltip_text = tooltip_text_str;
 			
 			status.setTooltipText( last_tooltip_text );
 		}
