@@ -164,7 +164,11 @@ public class TorrentFolderWatcher {
 	 */
 	public TorrentFolderWatcher(GlobalManager global_manager) {
 		_global_manager = global_manager;
-
+	}
+	
+	public void
+	start()
+	{
 		if (COConfigurationManager.getBooleanParameter(PARAMID_FOLDER)) {
 			running = true;
 			watch_thread.setDaemon(true);

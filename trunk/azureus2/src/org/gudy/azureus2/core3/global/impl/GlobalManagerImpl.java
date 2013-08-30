@@ -593,6 +593,7 @@ public class GlobalManagerImpl
     
     torrent_folder_watcher = new TorrentFolderWatcher( this );
     
+    torrent_folder_watcher.start();
     
     TRTrackerUtils.addListener(
     	new TRTrackerUtilsListener()

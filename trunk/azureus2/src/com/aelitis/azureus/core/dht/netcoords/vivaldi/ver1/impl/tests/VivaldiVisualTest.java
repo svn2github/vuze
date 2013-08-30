@@ -41,7 +41,11 @@ public class VivaldiVisualTest {
   private static final int MAX_ITERATIONS = 10000;
   private static final int NB_CONTACTS = 5;
   
-  public VivaldiVisualTest() {
+  public VivaldiVisualTest() {}
+  
+  public void
+  start()
+  {
     final Display display = new Display();
     Shell shell = new Shell(display);
     final VivaldiPanel panel = new VivaldiPanel(shell);
@@ -116,6 +120,6 @@ public class VivaldiVisualTest {
   }
   
   public static void main(String args[]) {
-    new VivaldiVisualTest();
+    new VivaldiVisualTest().start();
   }
 }
