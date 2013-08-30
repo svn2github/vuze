@@ -416,7 +416,7 @@ DiskManagerRandomReadController
 								
 								if ( piece.isDone()){
 									
-									min_done = i*piece_size;
+									min_done = i*(long)piece_size;
 									
 									continue;
 									
@@ -435,7 +435,7 @@ DiskManagerRandomReadController
 								
 								if ( done[j] ){
 									
-									min_done = i*piece_size + j*block_size;
+									min_done = i*(long)piece_size + j*block_size;
 									
 								}else{
 									
@@ -463,7 +463,7 @@ DiskManagerRandomReadController
 								
 								if ( piece.isDone()){
 									
-									max_done = (i+1)*piece_size;
+									max_done = (i+1)*(long)piece_size;
 									
 									continue;
 									
@@ -482,7 +482,7 @@ DiskManagerRandomReadController
 								
 								if ( done[j] ){
 									
-									max_done = i*piece_size + (j+1)*block_size;
+									max_done = i*(long)piece_size + (j+1)*block_size;
 									
 								}else{
 									
