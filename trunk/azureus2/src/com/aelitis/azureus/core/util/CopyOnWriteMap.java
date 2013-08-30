@@ -35,7 +35,7 @@ public class CopyOnWriteMap {
 	}
 	
 	public void put(Object key, Object val) {
-		synchronized(map) {
+		synchronized(this) {
 			HashMap new_map = new HashMap(map);
 			new_map.put(key, val);
 			this.map = new_map;
@@ -43,7 +43,7 @@ public class CopyOnWriteMap {
 	}
 	
 	public Object remove(Object key) {
-		synchronized(map) {
+		synchronized(this) {
 			HashMap new_map = new HashMap(map);
 			Object res = new_map.remove(key);
 			this.map = new_map;
