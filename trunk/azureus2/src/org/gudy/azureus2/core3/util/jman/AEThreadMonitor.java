@@ -34,9 +34,7 @@ import org.gudy.azureus2.core3.util.*;
 public class 
 AEThreadMonitor 
 	implements AEJavaManagement.ThreadStuff
-{
-	private static AEThreadMonitor singleton = new AEThreadMonitor();
-	
+{	
 	private boolean disable_getThreadCpuTime = false; 
 	
 	private ThreadMXBean	thread_bean;
