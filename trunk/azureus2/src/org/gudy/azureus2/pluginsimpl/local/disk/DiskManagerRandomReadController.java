@@ -165,6 +165,22 @@ DiskManagerRandomReadController
 	{
 		DiskManagerRandomReadRequestImpl request = new DiskManagerRandomReadRequestImpl( file, file_offset, length, reverse_order, listener );
 		
+		long file_length = file.getLength();
+		
+		if ( file_offset >= file_length ){
+			
+			Debug.out( "Invalid request offset: " + file_offset + ", file length=" + file_length );
+			
+			return( null );
+		}
+		
+		if ( file_offset + length > file_length ){
+			
+			Debug.out( "Invalid request length: " + file_offset + "/" + length + ", file length=" + file_length );
+			
+			return( null );
+		}
+		
 		synchronized( requests ){
 			
 			requests.add( request );
@@ -250,12 +266,7 @@ DiskManagerRandomReadController
 			
 			long download_byte_start 	= core_file_start_byte + request.getOffset();
 			long download_byte_end		= download_byte_start + request.getLength();
-			
-			if ( download_byte_end > core_file.getLength()){
-				
-				throw( new DownloadException( "Request too large: file size=" + core_file.getLength() + ", request=" + download_byte_start + " -> " + download_byte_end ));
-			}
-			
+						
 			int piece_size	= (int)tf.getTorrent().getPieceLength();
 			
 			if ( core_file.getDownloaded() != core_file.getLength()){
