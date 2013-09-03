@@ -66,11 +66,11 @@ public class TextViewerWindow {
   {    
     if ( modal ){
     
-    	shell = ShellFactory.createMainShell( SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE );
+    	shell = ShellFactory.createMainShell( SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE | SWT.MAX );
     	
     }else{
     	
-    	shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE );
+    	shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX );
     }
     
     if (sTitleID != null) shell.setText(MessageText.keyExists(sTitleID)?MessageText.getString(sTitleID):sTitleID);

@@ -68,7 +68,7 @@ public class ImageViewerWindow {
   ImageViewerWindow(
 		 String sTitleID, String sMessageID, File image_file, Image img )
   {    
-   	shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE );
+   	shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX );
     
     if (sTitleID != null) shell.setText(MessageText.keyExists(sTitleID)?MessageText.getString(sTitleID):sTitleID);
     
