@@ -1022,11 +1022,63 @@ public class Utils
 
 		sFile = sFile.replaceAll( "&vzemb=1", "" );
 
-		int	pos = sFile.lastIndexOf( "." );
+		String exe = getExplicitLauncher( sFile );
+		
+		if ( exe != null ){
+			
+			File	file = new File( sFile );
+										
+			try{
+				System.out.println( "Launching " + sFile + " with " + exe );
+				
+				if ( Constants.isWindows ){
+					
+						// need to use createProcess as we want to force the process to decouple correctly (otherwise Vuze won't close until the child closes)
+					
+					try{
+						PlatformManagerFactory.getPlatformManager().createProcess( exe + " \"" + sFile + "\"", false );
+					
+						return;
+						
+					}catch( Throwable e ){
+					}
+				}
+				
+				ProcessBuilder pb = GeneralUtils.createProcessBuilder( file.getParentFile(), new String[]{ exe, file.getName()}, null );
+				
+				pb.start();
+				
+				return;
+				
+			}catch( Throwable e ){
+				
+				Debug.out( "Launch failed", e );
+			}
+		}
+			
+		boolean launched = Program.launch(sFile);
+		if (!launched && Constants.isUnix) {
+			
+			sFile = sFile.replaceAll( " ", "\\ " );
+			
+			if (!Program.launch("xdg-open " + sFile)) {
+				if ( !Program.launch("htmlview " + sFile)){
+					
+					Debug.out( "Failed to launch '" + sFile + "'" );
+				}
+			}
+		}
+	}
+
+	private static String
+	getExplicitLauncher(
+		String	file )
+	{
+		int	pos = file.lastIndexOf( "." );
 		
 		if ( pos >= 0 ){
 			
-			String	ext = sFile.substring( pos+1 ).toLowerCase().trim();
+			String	ext = file.substring( pos+1 ).toLowerCase().trim();
 			
 				// if this is a URL then hack off any possible query params
 			
@@ -1051,56 +1103,18 @@ public class Utils
 					exts = exts.replaceAll( " ", "," );
 					
 					exts = exts.replaceAll( "[,]+", "," );
-					
-					File	file = new File( sFile );
-					
+										
 					if ( exts.contains( ","+ext )){
 					
-						try{
-							System.out.println( "Launching " + sFile + " with " + exe );
-							
-							if ( Constants.isWindows ){
-								
-									// need to use createProcess as we want to force the process to decouple correctly (otherwise Vuze won't close until the child closes)
-								
-								try{
-									PlatformManagerFactory.getPlatformManager().createProcess( exe + " \"" + sFile + "\"", false );
-								
-									return;
-									
-								}catch( Throwable e ){
-								}
-							}
-							
-							ProcessBuilder pb = GeneralUtils.createProcessBuilder( file.getParentFile(), new String[]{ exe, file.getName()}, null );
-							
-							pb.start();
-							
-							return;
-							
-						}catch( Throwable e ){
-							
-							Debug.out( "Launch failed", e );
-						}
+						return( exe );
 					}
 				}
 			}
 		}
-			
-		boolean launched = Program.launch(sFile);
-		if (!launched && Constants.isUnix) {
-			
-			sFile = sFile.replaceAll( " ", "\\ " );
-			
-			if (!Program.launch("xdg-open " + sFile)) {
-				if ( !Program.launch("htmlview " + sFile)){
-					
-					Debug.out( "Failed to launch '" + sFile + "'" );
-				}
-			}
-		}
+		
+		return( null );
 	}
-
+	
 	/**
 	 * Sets the checkbox in a Virtual Table while inside a SWT.SetData listener
 	 * trigger.  SWT 3.1 has an OSX bug that needs working around.
@@ -2449,46 +2463,53 @@ public class Utils
 					public void
 					run()
 					{
-						DownloadManager dm = file.getDownloadManager();
-						
-						Image	image;
-						
-						try{
-							InputStream is = null;
+						if ( getExplicitLauncher( target_file.getName()) != null ){
 							
-							try{
-								is = new FileInputStream( target_file );
+							launch( target_file.getAbsolutePath());
 							
-								image = new Image( getDisplay(), is);
-								
-							}finally{
-								
-								if ( is != null ){
-									
-									is.close();
-								}
-							}
-						}catch( Throwable e ){
-							
-							image = null;
-						}
-						
-						if ( image != null ){
-							
-							new ImageViewerWindow(
-									MessageText.getString( "MainWindow.menu.quick_view" ) + ": " + target_file.getName(),
-									MessageText.getString( 
-										"MainWindow.menu.quick_view.msg",
-										new String[]{ target_file.getName(), dm.getDisplayName() }),
-										image  );
 						}else{
 							
-							new TextViewerWindow(
-									MessageText.getString( "MainWindow.menu.quick_view" ) + ": " + target_file.getName(),
-									MessageText.getString( 
-										"MainWindow.menu.quick_view.msg",
-										new String[]{ target_file.getName(), dm.getDisplayName() }),
-									contents, false  );
+							DownloadManager dm = file.getDownloadManager();
+							
+							Image	image;
+							
+							try{
+								InputStream is = null;
+								
+								try{
+									is = new FileInputStream( target_file );
+								
+									image = new Image( getDisplay(), is);
+									
+								}finally{
+									
+									if ( is != null ){
+										
+										is.close();
+									}
+								}
+							}catch( Throwable e ){
+								
+								image = null;
+							}
+							
+							if ( image != null ){
+								
+								new ImageViewerWindow(
+										MessageText.getString( "MainWindow.menu.quick_view" ) + ": " + target_file.getName(),
+										MessageText.getString( 
+											"MainWindow.menu.quick_view.msg",
+											new String[]{ target_file.getName(), dm.getDisplayName() }),
+											image  );
+							}else{
+								
+								new TextViewerWindow(
+										MessageText.getString( "MainWindow.menu.quick_view" ) + ": " + target_file.getName(),
+										MessageText.getString( 
+											"MainWindow.menu.quick_view.msg",
+											new String[]{ target_file.getName(), dm.getDisplayName() }),
+										contents, false  );
+							}
 						}
 					}
 				});

@@ -264,7 +264,7 @@ public class ConfigSectionInterfaceTables
 		    gridData = Utils.getWrappableLabelGridData(5, GridData.HORIZONTAL_ALIGN_FILL );
 		    info_label.setLayoutData( gridData );
 		    
-			for ( int i=0;i<3;i++){
+			for ( int i=0;i<4;i++){
 				
 				label = new Label(cLaunch, SWT.NULL);
 				Messages.setLanguageText(label, "ConfigView.label.lh.ext");
