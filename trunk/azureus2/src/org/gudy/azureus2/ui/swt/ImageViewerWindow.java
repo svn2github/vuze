@@ -119,8 +119,15 @@ public class ImageViewerWindow {
     if ( img == null ){
     	
 	    try{
-	    	image = new Image( shell.getDisplay(), new FileInputStream( image_file ));
-	    	    	
+	    	FileInputStream is = new FileInputStream( image_file );
+	    	
+	    	try{
+	    		image = new Image( shell.getDisplay(), is );
+	    	    
+	    	}finally{
+	    		
+	    		is.close();
+	    	}
 	    }catch( Throwable e ){
 	    	e.printStackTrace();
 	    	

@@ -391,9 +391,13 @@ public class PeerInfoView
 								.getResourceAsStream(
 										sCountryImagesDir + "/" + sCode.toLowerCase() + ".png");
 						if (is != null) {
-							Image img = new Image(imageLabel.getDisplay(), is);
-							img.setBackground(imageLabel.getBackground());
-							imageLabel.setImage(img);
+							try{
+								Image img = new Image(imageLabel.getDisplay(), is);
+								img.setBackground(imageLabel.getBackground());
+								imageLabel.setImage(img);
+							}finally{
+								is.close();
+							}
 						}
 	
 					} catch (Exception e) {

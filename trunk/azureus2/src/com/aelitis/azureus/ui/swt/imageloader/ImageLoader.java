@@ -453,10 +453,13 @@ public class ImageLoader
 				if (cl != null) {
 					InputStream is = cl.getResourceAsStream(res);
 					if (is != null) {
-						img = new Image(display, is);
-						
-						//System.out.println("Loaded image from " + res + " via " + Debug.getCompressedStackTrace());
-						is.close();
+						try{
+							img = new Image(display, is);							
+							//	System.out.println("Loaded image from " + res + " via " + Debug.getCompressedStackTrace());
+
+						}finally{	
+							is.close();
+						}
 					}
 				}
 
