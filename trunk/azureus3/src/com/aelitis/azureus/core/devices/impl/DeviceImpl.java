@@ -419,8 +419,8 @@ DeviceImpl
 			
 				borked = true;
 			
-			}else if ( 	secondary_uid == null && uid.equals( o_suid ) ||
-						o_suid == null && o_uid.equals( secondary_uid ) ||
+			}else if ( 	( secondary_uid == null && uid.equals( o_suid ))   ||
+						( o_suid == null && o_uid.equals( secondary_uid )) ||
 						o_suid.equals( secondary_uid )){
 				
 			}else{
