@@ -242,7 +242,10 @@ MultiPartDecoder
 			throw( new IOException( "Incorrect termination of form upload data"));
 		}
 		
-		current_field.complete();
+		if ( current_field != null ){
+		
+			current_field.complete();
+		}
 		
 		FormField[]	res = new FormField[fields.size()];
 		
