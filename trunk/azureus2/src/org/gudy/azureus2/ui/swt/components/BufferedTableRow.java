@@ -817,7 +817,7 @@ BufferedTableRow
 	public boolean inPaintItem() {
 		if (item != null && !item.isDisposed()) {
 			InPaintInfo info = (InPaintInfo) table.getData("inPaintInfo");
-			if (info != null && item.equals(info.item)) {
+			if (info != null && item.getItem().equals(info.item)) {
 				return true;
 			}
 		}
