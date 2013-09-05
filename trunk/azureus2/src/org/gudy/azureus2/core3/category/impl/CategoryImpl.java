@@ -368,7 +368,7 @@ CategoryImpl
 	  
 	  String old = attributes.put( name, str_val );
 	  
-	  if ( old == null || !old.equals( value )){
+	  if ( old == null || !old.equals( str_val )){
 	  
 		  if ( name.equals( AT_UPLOAD_PRIORITY )){
 			  
