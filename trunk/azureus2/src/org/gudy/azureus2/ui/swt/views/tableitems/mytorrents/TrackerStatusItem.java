@@ -67,6 +67,7 @@ public class TrackerStatusItem extends CoreTableColumnSWT implements
 		public void refresh(TableCell cell) {
 			super.refresh(cell);
 			
+			DownloadManager dm = (DownloadManager) cell.getDataSource();
 			String status = dm == null ? "" : dm.getTrackerStatus();
 
 			// status sometimes contains multiline text (e.g. HTML) on failure

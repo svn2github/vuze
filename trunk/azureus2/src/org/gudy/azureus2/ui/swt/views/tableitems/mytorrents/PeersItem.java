@@ -114,7 +114,8 @@ public class PeersItem extends CoreTableColumnSWT implements
 
 		public void refresh(TableCell cell) {
 			super.refresh(cell);
-
+			DownloadManager dm = (DownloadManager) cell.getDataSource();
+			
 			long lConnectedPeers = 0;
 			if (dm != null) {
 				lConnectedPeers = dm.getNbPeers();
@@ -129,7 +130,6 @@ public class PeersItem extends CoreTableColumnSWT implements
 			
 			long totalPeers = lTotalPeers;
 			if (totalPeers <= 0) {
-				DownloadManager dm = (DownloadManager) cell.getDataSource();
 				if (dm != null) {
 					totalPeers = dm.getActivationCount();
 				}
@@ -141,22 +141,26 @@ public class PeersItem extends CoreTableColumnSWT implements
 			if (!cell.setSortValue(value) && cell.isValid())
 				return;
 
-			int state = dm.getState();
-			boolean started = state == DownloadManager.STATE_SEEDING
-					|| state == DownloadManager.STATE_DOWNLOADING;
-			boolean hasScrape = lTotalPeers >= 0;
-
-			String tmp;
-			if (started) {
-				tmp = hasScrape ? (lConnectedPeers > lTotalPeers ? textStartedOver
-						: textStarted) : textStartedNoScrape;
-			} else {
-				tmp = hasScrape ? textNotStarted : textNotStartedNoScrape;
+			if ( dm != null ){
+				int state = dm.getState();
+				boolean started = state == DownloadManager.STATE_SEEDING
+						|| state == DownloadManager.STATE_DOWNLOADING;
+				boolean hasScrape = lTotalPeers >= 0;
+	
+				String tmp;
+				if (started) {
+					tmp = hasScrape ? (lConnectedPeers > lTotalPeers ? textStartedOver
+							: textStarted) : textStartedNoScrape;
+				} else {
+					tmp = hasScrape ? textNotStarted : textNotStartedNoScrape;
+				}
+				
+				tmp = tmp.replaceAll("%1", String.valueOf(lConnectedPeers));
+				tmp = tmp.replaceAll("%2", String.valueOf(totalPeers));
+				cell.setText(tmp);
+			}else{
+				cell.setText("");
 			}
-			
-			tmp = tmp.replaceAll("%1", String.valueOf(lConnectedPeers));
-			tmp = tmp.replaceAll("%2", String.valueOf(totalPeers));
-			cell.setText(tmp);
 		}
 
 		public void cellHover(TableCell cell) {
@@ -166,27 +170,29 @@ public class PeersItem extends CoreTableColumnSWT implements
 			DownloadManager dm = (DownloadManager) cell.getDataSource();
 			if (dm != null) {
 				lConnectedPeers = dm.getNbPeers();
+		
+				String sToolTip = lConnectedPeers + " "
+						+ MessageText.getString("GeneralView.label.connected") + "\n";
+				if (lTotalPeers != -1) {
+					sToolTip += lTotalPeers + " "
+							+ MessageText.getString("GeneralView.label.in_swarm");
+				} else {
+					TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
+					sToolTip += "?? " + MessageText.getString("GeneralView.label.in_swarm");
+					if (response != null)
+						sToolTip += "(" + response.getStatusString() + ")";
+				}
+				
+				int activationCount = dm.getActivationCount();
+				if (activationCount > 0) {
+					sToolTip += "\n"
+							+ MessageText.getString("PeerColumn.activationCount",
+									new String[] { "" + activationCount });
+				}
+				cell.setToolTip(sToolTip);
+			}else{
+				cell.setToolTip("");
 			}
-
-			String sToolTip = lConnectedPeers + " "
-					+ MessageText.getString("GeneralView.label.connected") + "\n";
-			if (lTotalPeers != -1) {
-				sToolTip += lTotalPeers + " "
-						+ MessageText.getString("GeneralView.label.in_swarm");
-			} else {
-				TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
-				sToolTip += "?? " + MessageText.getString("GeneralView.label.in_swarm");
-				if (response != null)
-					sToolTip += "(" + response.getStatusString() + ")";
-			}
-			
-			int activationCount = dm==null?0:dm.getActivationCount();
-			if (activationCount > 0) {
-				sToolTip += "\n"
-						+ MessageText.getString("PeerColumn.activationCount",
-								new String[] { "" + activationCount });
-			}
-			cell.setToolTip(sToolTip);
 		}
 	}
 }

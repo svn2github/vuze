@@ -37,7 +37,7 @@ abstract class AbstractTrackerCell implements TableCellRefreshListener,
 
 	TableCell cell;
 
-	DownloadManager dm;
+	private DownloadManager dm;
 
 	/**
 	 * Initialize

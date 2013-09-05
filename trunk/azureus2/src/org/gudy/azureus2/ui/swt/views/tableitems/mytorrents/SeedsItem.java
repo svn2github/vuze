@@ -139,6 +139,7 @@ public class SeedsItem
 			super.refresh(cell);
 
 			long lConnectedSeeds = 0;
+			DownloadManager dm = (DownloadManager) cell.getDataSource();
 			if (dm != null) {
 				lConnectedSeeds = dm.getNbSeeds();
 
@@ -161,33 +162,37 @@ public class SeedsItem
 			if (!cell.setSortValue(value) && cell.isValid())
 				return;
 
-			boolean bCompleteTorrent = dm == null ? false : dm.getAssumedComplete();
-			
-			int state = dm.getState();
-			boolean started = (state == DownloadManager.STATE_SEEDING || state == DownloadManager.STATE_DOWNLOADING);
-			boolean hasScrape = lTotalSeeds >= 0;
-			String tmp;
-			
-			if (started) {
-				tmp = hasScrape ? (lConnectedSeeds > lTotalSeeds ? textStartedOver
-						: textStarted) : textStartedNoScrape;
-			} else {
-				tmp = hasScrape ? textNotStarted : textNotStartedNoScrape;
-			}
-			tmp = tmp.replaceAll("%1", String.valueOf(lConnectedSeeds));
-			String param2 = "?";
-			if (lTotalSeeds != -1) {
-				param2 = String.valueOf(lTotalSeeds);
-				if (bCompleteTorrent && iFC_NumPeers > 0 && lTotalSeeds >= iFC_MinSeeds
-						&& lTotalPeers > 0) {
-					long lSeedsToAdd = lTotalPeers / iFC_NumPeers;
-					if (lSeedsToAdd > 0) {
-						param2 += "+" + lSeedsToAdd;
+			if ( dm != null ){
+				boolean bCompleteTorrent = dm.getAssumedComplete();
+				
+				int state = dm.getState();
+				boolean started = (state == DownloadManager.STATE_SEEDING || state == DownloadManager.STATE_DOWNLOADING);
+				boolean hasScrape = lTotalSeeds >= 0;
+				String tmp;
+				
+				if (started) {
+					tmp = hasScrape ? (lConnectedSeeds > lTotalSeeds ? textStartedOver
+							: textStarted) : textStartedNoScrape;
+				} else {
+					tmp = hasScrape ? textNotStarted : textNotStartedNoScrape;
+				}
+				tmp = tmp.replaceAll("%1", String.valueOf(lConnectedSeeds));
+				String param2 = "?";
+				if (lTotalSeeds != -1) {
+					param2 = String.valueOf(lTotalSeeds);
+					if (bCompleteTorrent && iFC_NumPeers > 0 && lTotalSeeds >= iFC_MinSeeds
+							&& lTotalPeers > 0) {
+						long lSeedsToAdd = lTotalPeers / iFC_NumPeers;
+						if (lSeedsToAdd > 0) {
+							param2 += "+" + lSeedsToAdd;
+						}
 					}
 				}
+				tmp = tmp.replaceAll("%2", param2);
+				cell.setText(tmp);
+			}else{
+				cell.setText("");
 			}
-			tmp = tmp.replaceAll("%2", param2);
-			cell.setText(tmp);
 		}
 
 		public void cellHover(TableCell cell) {
@@ -197,31 +202,33 @@ public class SeedsItem
 			DownloadManager dm = (DownloadManager) cell.getDataSource();
 			if (dm != null) {
 				lConnectedSeeds = dm.getNbSeeds();
+			
+				String sToolTip = lConnectedSeeds + " "
+						+ MessageText.getString("GeneralView.label.connected") + "\n";
+				if (lTotalSeeds != -1) {
+					sToolTip += lTotalSeeds + " "
+							+ MessageText.getString("GeneralView.label.in_swarm");
+				} else {
+					TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
+					sToolTip += "?? " + MessageText.getString("GeneralView.label.in_swarm");
+					if (response != null)
+						sToolTip += "(" + response.getStatusString() + ")";
+				}
+				boolean bCompleteTorrent = dm.getAssumedComplete();
+				if (bCompleteTorrent && iFC_NumPeers > 0 && lTotalSeeds >= iFC_MinSeeds
+						&& lTotalPeers > 0) {
+					long lSeedsToAdd = lTotalPeers / iFC_NumPeers;
+					sToolTip += "\n"
+							+ MessageText.getString("TableColumn.header.seeds.fullcopycalc",
+									new String[] {
+										"" + lTotalPeers,
+										"" + lSeedsToAdd
+									});
+				}
+				cell.setToolTip(sToolTip);
+			}else{
+				cell.setToolTip( "");
 			}
-
-			String sToolTip = lConnectedSeeds + " "
-					+ MessageText.getString("GeneralView.label.connected") + "\n";
-			if (lTotalSeeds != -1) {
-				sToolTip += lTotalSeeds + " "
-						+ MessageText.getString("GeneralView.label.in_swarm");
-			} else {
-				TRTrackerScraperResponse response = dm.getTrackerScrapeResponse();
-				sToolTip += "?? " + MessageText.getString("GeneralView.label.in_swarm");
-				if (response != null)
-					sToolTip += "(" + response.getStatusString() + ")";
-			}
-			boolean bCompleteTorrent = dm == null ? false : dm.getAssumedComplete();
-			if (bCompleteTorrent && iFC_NumPeers > 0 && lTotalSeeds >= iFC_MinSeeds
-					&& lTotalPeers > 0) {
-				long lSeedsToAdd = lTotalPeers / iFC_NumPeers;
-				sToolTip += "\n"
-						+ MessageText.getString("TableColumn.header.seeds.fullcopycalc",
-								new String[] {
-									"" + lTotalPeers,
-									"" + lSeedsToAdd
-								});
-			}
-			cell.setToolTip(sToolTip);
 		}
 	}
 }
