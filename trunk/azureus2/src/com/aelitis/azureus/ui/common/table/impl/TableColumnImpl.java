@@ -1221,7 +1221,7 @@ public class TableColumnImpl
 			menuItemsColumn.remove(menuItem);
 		}
 		if (menuItemsHeader != null) {
-			menuItemsColumn.remove(menuItem);
+			menuItemsHeader.remove(menuItem);
 		}
 	}
 
