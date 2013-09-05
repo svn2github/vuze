@@ -42,7 +42,6 @@ import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagFeatureRunState;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.Taggable;
-import com.aelitis.azureus.core.tag.TagFeatureProperties.TagProperty;
 
 public class 
 TagDownloadWithState
@@ -717,6 +716,6 @@ TagDownloadWithState
 	public TagProperty[]
 	getSupportedProperties()
 	{
-		return( tag_properties );
+		return( getTagType().isTagTypeAuto()?new TagProperty[0]:tag_properties );
 	}
 }
