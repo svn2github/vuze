@@ -69,6 +69,8 @@ public class ColumnStream
 	
 	private static Image imgBlueSmall;
 
+	private static Object  firstLock = new Object();
+	
 	private static boolean first = true;
 	
 	private static boolean skipPaint = true;
@@ -173,7 +175,7 @@ public class ColumnStream
 		cell.setMarginWidth(0);
 		cell.setMarginHeight(0);
 		
-		synchronized (COLUMN_ID) {
+		synchronized ( firstLock ) {
 			if (first) {
 				first = false; 
 				new AEThread2("WaitForMS", true) {
