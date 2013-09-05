@@ -244,7 +244,7 @@ public class Main {
     if (commands==null) {
       commands = parseCommands(args, false);
     }
-    if (((commands!=null) && (args.length>0)) || (new_core != null)) {
+    if (commands!=null && ( args.length > 0 || new_core != null)) {
       if (UIConst.UIS == null) {
         UIConst.UIS = new HashMap();
       }
