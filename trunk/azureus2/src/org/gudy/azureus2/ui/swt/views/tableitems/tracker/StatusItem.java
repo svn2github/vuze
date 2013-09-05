@@ -108,7 +108,7 @@ StatusItem
 
 		String str = js_resources[status];
 		
-		String extra = ps.getStatusString();
+		String extra = ps==null?"":ps.getStatusString();
 
 		if ( status == TrackerPeerSource.ST_ONLINE ){
 			
