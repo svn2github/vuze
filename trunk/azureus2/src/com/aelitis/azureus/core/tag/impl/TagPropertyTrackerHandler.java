@@ -204,6 +204,11 @@ TagPropertyTrackerHandler
 		
 		for ( DownloadManager dm: managers ){
 			
+			if ( !dm.isPersistent()){
+				
+				continue;
+			}
+			
 			if ( tag.hasTaggable( dm )){
 				
 				continue;
@@ -234,21 +239,29 @@ TagPropertyTrackerHandler
 	handleDownload(
 		DownloadManager		dm )
 	{
-		Set<String> hosts = TorrentUtils.getUniqueTrackerHosts( dm.getTorrent());
-
+		if ( !dm.isPersistent()){
+			
+			return;
+		}
+		
 		Set<Tag>	all_tags = new HashSet<Tag>();
 				
 		synchronized( tracker_host_map ){
 			
-			for ( String host: hosts ){
+			if ( tracker_host_map.size() > 0 ){
 				
-				List<Tag> tags = tracker_host_map.get( host );
-				
-				if ( tags != null ){
+				Set<String> hosts = TorrentUtils.getUniqueTrackerHosts( dm.getTorrent());
+	
+				for ( String host: hosts ){
 					
-					all_tags.addAll( tags );
+					List<Tag> tags = tracker_host_map.get( host );
+					
+					if ( tags != null ){
+						
+						all_tags.addAll( tags );
+					}
+					
 				}
-				
 			}
 		}
 		
