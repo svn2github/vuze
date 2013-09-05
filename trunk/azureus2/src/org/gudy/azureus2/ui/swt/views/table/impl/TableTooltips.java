@@ -163,7 +163,7 @@ public class TableTooltips
 				if (mainShell != null && !mainShell.isDisposed())
 					mainShell.removeListener(SWT.Deactivate, this);
 				if (tv.getComposite() != null && !tv.getComposite().isDisposed())
-					mainShell.removeListener(SWT.Deactivate, this);
+					tv.getComposite().removeListener(SWT.Deactivate, this);
 				// fall through
 
 			default:
