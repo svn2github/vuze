@@ -1,5 +1,5 @@
 /*
- * Created on Mar 20, 2013
+ * Created on Sep 4, 2013
  * Created by Paul Gardner
  * 
  * Copyright 2013 Azureus Software, Inc.  All rights reserved.
@@ -24,15 +24,17 @@ package com.aelitis.azureus.core.tag;
 import java.util.List;
 
 public interface 
-TaggableResolver 
+TaggableLifecycleListener 
 {
-	public long
-	getResolverTaggableType();
+	public void
+	initialised(
+		List<Taggable>	current_taggables );
 	
-	public List<Taggable>
-	getResolvedTaggables();
+	public void
+	taggableCreated(
+		Taggable		taggable );
 	
-	public Taggable
-	resolveTaggable(
-		String		id );
+	public void
+	taggableDestroyed(
+		Taggable		taggable );
 }

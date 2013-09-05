@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import java.io.File;
+import java.util.ArrayList;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
@@ -36,6 +37,9 @@ import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.TagFeatureProperties.TagProperty;
+import com.aelitis.azureus.core.tag.TagFeatureProperties.TagPropertyListener;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public abstract class 
 TagBase
@@ -54,7 +58,10 @@ TagBase
 	protected static final String	AT_XCODE_TARGET		= "xcode.to";
 	protected static final String	AT_FL_MOVE_COMP		= "fl.comp";
 	protected static final String	AT_RATELIMIT_MIN_SR	= "rl.minsr";
+	protected static final String	AT_PROPERTY_PREFX	= "pp.";
 
+	private static final String[] EMPTY_STRING_LIST = {};
+	
 	private TagTypeBase	tag_type;
 	
 	private int			tag_id;
@@ -489,6 +496,20 @@ TagBase
 		Debug.out( "not supported" );
 	}
 	
+	public TagProperty[]
+	getSupportedProperties()
+	{
+		return( new TagProperty[0] );
+	}
+	
+	protected TagProperty
+	createTagProperty(
+		String		name,
+		int			type )
+	{
+		return( new TagPropertyImpl( name, type ));
+	}
+	
 	public void
 	addTaggable(
 		Taggable	t )
@@ -597,6 +618,21 @@ TagBase
 		tag_type.writeStringAttribute( this, attr, value );
 	}
 	
+	protected String[]
+	readStringListAttribute(
+		String		attr,
+		String[]	def )
+	{
+		return( tag_type.readStringListAttribute( this, attr, def ));
+	}
+	
+	protected boolean
+	writeStringListAttribute(
+		String		attr,
+		String[]	value )
+	{
+		return( tag_type.writeStringListAttribute( this, attr, value ));
+	}
 	
 	private static final int HISTORY_MAX_SECS = 30*60;
 	private volatile boolean history_retention_required;
@@ -718,5 +754,89 @@ TagBase
  				}
  			}
  		}
+ 	}
+ 	
+ 	private class
+ 	TagPropertyImpl
+ 		implements TagProperty
+ 	{
+ 		private String		name;
+ 		private int			type;
+ 		
+ 		private CopyOnWriteList<TagPropertyListener>	listeners = new CopyOnWriteList<TagPropertyListener>();
+ 		
+ 		private
+ 		TagPropertyImpl(
+ 			String		_name,
+ 			int			_type )
+ 		{
+ 			name		= _name;
+ 			type		= _type;
+ 		}
+ 		
+ 		public Tag 
+ 		getTag() 
+ 		{
+ 			return( TagBase.this );
+ 		}
+ 		
+		public int
+		getType()
+		{
+			return( type );
+		}
+		
+		public String
+		getName(
+			boolean	localize )
+		{
+			if ( localize ){
+				
+				return( MessageText.getString( "tag.property." + name ));
+				
+			}else{
+			
+				return( name );
+			}
+		}
+		
+		public void
+		setStringList(
+			String[]	value )
+		{
+			if ( writeStringListAttribute( AT_PROPERTY_PREFX + name, value )){
+				
+				for ( TagPropertyListener l: listeners ){
+					
+					try{
+						l.propertyChanged( this );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		}
+		
+		public String[]
+		getStringList()
+		{
+			return( readStringListAttribute( AT_PROPERTY_PREFX + name, EMPTY_STRING_LIST ));
+		}
+		
+		public void
+		addListener(
+			TagPropertyListener		listener )
+		{
+			listeners.add( listener );	
+		}
+		
+		public void
+		removeListener(
+			TagPropertyListener		listener )
+		{
+			listeners.remove( listener );
+		}
  	}
 }

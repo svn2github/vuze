@@ -21,17 +21,20 @@
 
 package com.aelitis.azureus.core.tag;
 
+import java.util.List;
+
 public interface 
 TaggableLifecycleHandler 
 {
 	public void
-	initialized();
+	initialized(
+		List<Taggable>	initial_taggables );
 	
 	public void
 	taggableCreated(
-		Taggable	t );
+		Taggable	taggable );
 	
 	public void
 	taggableDestroyed(
-		Taggable	t );
+		Taggable	taggable );
 }

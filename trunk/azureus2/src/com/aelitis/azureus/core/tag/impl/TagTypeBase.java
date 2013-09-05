@@ -363,4 +363,22 @@ TagTypeBase
 	{
 		manager.writeStringAttribute( this, tag, attr, value );
 	}
+	
+	protected String[]
+	readStringListAttribute(
+		TagBase		tag,
+		String		attr,
+		String[]	def )
+	{
+		return( manager.readStringListAttribute( this, tag, attr, def ));
+	}
+	
+	protected boolean
+	writeStringListAttribute(
+		TagBase		tag,
+		String		attr,
+		String[]	value )
+	{
+		return( manager.writeStringListAttribute( this, tag, attr, value ));
+	}
 }

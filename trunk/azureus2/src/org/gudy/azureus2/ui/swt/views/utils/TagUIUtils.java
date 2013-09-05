@@ -29,13 +29,10 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
-
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
@@ -55,6 +52,8 @@ import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.TagFeature;
 import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
+import com.aelitis.azureus.core.tag.TagFeatureProperties;
+import com.aelitis.azureus.core.tag.TagFeatureProperties.TagProperty;
 import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagFeatureRunState;
@@ -773,6 +772,109 @@ public class TagUIUtils
 			}
 		}
 
+		if ( tag_type.hasTagTypeFeature( TagFeature.TF_PROPERTIES )){
+			
+			TagFeatureProperties props = (TagFeatureProperties)tag;
+			
+			TagProperty[] tps = props.getSupportedProperties();
+			
+			if ( tps.length > 0 ){
+				
+				needs_separator_next = true;
+				
+				Menu props_menu = new Menu( menu.getShell(), SWT.DROP_DOWN);
+				
+				MenuItem props_item = new MenuItem( menu, SWT.CASCADE);
+				
+				Messages.setLanguageText( props_item, "label.properties" );
+				
+				props_item.setMenu( props_menu );
+
+				for ( final TagProperty tp: tps ){
+					
+					MenuItem set_item = new MenuItem( props_menu, SWT.PUSH);
+					
+					String[] val = tp.getStringList();
+					
+					String def_str;
+					
+					if ( val == null || val.length == 0 ){
+						
+						def_str = "";
+						
+					}else{
+						
+						def_str = "";
+						
+						for ( String v: val ){
+							
+							def_str += (def_str.length()==0?"":", ") + v;
+						}
+					}
+					
+					set_item.setText( tp.getName( true ) + (def_str.length()==0?"":(" (" + def_str + ") ")) + "..." );
+	
+					final String f_def_str = def_str;
+					
+					set_item.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event){
+							
+							String msg = MessageText.getString( "UpdateProperty.list.message", new String[]{ tp.getName( true ) } );
+							
+							SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow( "UpdateProperty.title", "!" + msg + "!" );
+							
+							entryWindow.setPreenteredText( f_def_str, false );
+							entryWindow.selectPreenteredText( true );
+							
+							entryWindow.prompt();
+							
+							if ( entryWindow.hasSubmittedInput()){
+								
+								try{
+									String text = entryWindow.getSubmittedInput().trim();
+									
+									if ( text.length() ==  0 ){
+										
+										tp.setStringList( null );
+										
+									}else{
+										text = text.replace( ';', ',');
+										text = text.replace( ' ', ',');
+										text = text.replaceAll( "[,]+", "," );
+										
+										String[] bits = text.split( "," );
+										
+										List<String> vals = new ArrayList<String>();
+										
+										for ( String bit: bits ){
+											
+											bit = bit.trim();
+											
+											if ( bit.length() > 0 ){
+												
+												vals.add( bit );
+											}
+										}
+										
+										if ( vals.size() == 0 ){
+											
+											tp.setStringList( null );
+										}else{
+											
+											tp.setStringList( vals.toArray( new String[ vals.size()]));
+										}
+									}
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}});
+				}
+			}
+			
+		}
+		
 		if ( needs_separator_next ){
 			
 			new MenuItem( menu, SWT.SEPARATOR);

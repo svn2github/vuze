@@ -1,5 +1,5 @@
 /*
- * Created on Mar 20, 2013
+ * Created on Sep 4, 2013
  * Created by Paul Gardner
  * 
  * Copyright 2013 Azureus Software, Inc.  All rights reserved.
@@ -21,18 +21,50 @@
 
 package com.aelitis.azureus.core.tag;
 
-import java.util.List;
-
 public interface 
-TaggableResolver 
+TagFeatureProperties 
 {
-	public long
-	getResolverTaggableType();
+	public static final String	PR_TRACKERS = "trackers";
 	
-	public List<Taggable>
-	getResolvedTaggables();
+	public static final int		PT_STRING_LIST	= 1;
 	
-	public Taggable
-	resolveTaggable(
-		String		id );
+	public TagProperty[]
+	getSupportedProperties();
+	
+	public interface
+	TagProperty
+	{
+		public Tag
+		getTag();
+		
+		public int
+		getType();
+		
+		public String
+		getName(
+			boolean	localize );
+		
+		public void
+		setStringList(
+			String[]	value );
+			
+		public String[]
+		getStringList();
+		
+		public void
+		addListener(
+			TagPropertyListener		listener );
+		
+		public void
+		removeListener(
+			TagPropertyListener		listener );
+	}
+	
+	public interface
+	TagPropertyListener
+	{
+		public void
+		propertyChanged(
+			TagProperty		property );
+	}
 }

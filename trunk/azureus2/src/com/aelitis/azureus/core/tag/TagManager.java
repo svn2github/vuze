@@ -78,4 +78,14 @@ TagManager
 	public void
 	removeTagFeatureListener(
 		TagFeatureListener		listener );
+	
+	public void
+	addTaggableLifecycleListener(
+		long						taggable_type,
+		TaggableLifecycleListener	listener );
+	
+	public void
+	removeTaggableLifecycleListener(
+		long						taggable_type,
+		TaggableLifecycleListener	listener );
 }

@@ -34,6 +34,8 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -446,6 +448,8 @@ TagManagerImpl
 			},
 			30*1000 );
 	
+	AsyncDispatcher async_dispatcher = new AsyncDispatcher(5000);
+	
 	
 	private Map					config;
 	private WeakReference<Map>	config_ref;
@@ -459,7 +463,7 @@ TagManagerImpl
 	
 	private CopyOnWriteList<Object[]>				feature_listeners = new CopyOnWriteList<Object[]>();
 	
-	
+	private Map<Long,LifecycleHandlerImpl>			lifecycle_handlers = new HashMap<Long,LifecycleHandlerImpl>();
 	
 	private
 	TagManagerImpl()
@@ -469,7 +473,9 @@ TagManagerImpl
 	private void
 	init()
 	{
-		AzureusCoreFactory.getSingleton().addLifecycleListener(
+		AzureusCore azureus_core = AzureusCoreFactory.getSingleton();
+		
+		azureus_core.addLifecycleListener(
 			new AzureusCoreLifecycleAdapter()
 			{
 				public void
@@ -495,6 +501,8 @@ TagManagerImpl
 					}
 				}
 			});
+		
+		new TagPropertyTrackerHandler( azureus_core, this );
 	}
 	
 	private void
@@ -671,31 +679,27 @@ TagManagerImpl
 	
 	public TaggableLifecycleHandler
 	registerTaggableResolver(
-		final TaggableResolver	resolver )
+		TaggableResolver	resolver )
 	{
-		return(
-			new TaggableLifecycleHandler()
-			{
-				public void 
-				initialized() 
-				{				
-					resolverInitialized( resolver );
-				}
+		LifecycleHandlerImpl handler;
+		
+		long type = resolver.getResolverTaggableType();
+		
+		synchronized( lifecycle_handlers ){
+			
+			handler = lifecycle_handlers.get( type );
+			
+			if ( handler == null ){
 				
-				public void
-				taggableCreated(
-					Taggable	t )
-				{	
-					// could do some initial tag allocations here
-				}
+				handler = new LifecycleHandlerImpl();
 				
-				public void
-				taggableDestroyed(
-					Taggable	t )
-				{
-					removeTaggable( resolver, t );
-				}
-			});
+				lifecycle_handlers.put( type, handler );
+			}
+			
+			handler.setResolver( resolver );
+		}
+		
+		return( handler );
 	}
 	
 	public void
@@ -807,6 +811,42 @@ TagManagerImpl
 					
 					Debug.out( e );
 				}
+			}
+		}
+	}
+	
+	public void
+	addTaggableLifecycleListener(
+		long						taggable_type,
+		TaggableLifecycleListener	listener )
+	{
+		synchronized( lifecycle_handlers ){
+			
+			LifecycleHandlerImpl handler = lifecycle_handlers.get( taggable_type );
+			
+			if ( handler == null ){
+				
+				handler = new LifecycleHandlerImpl();
+				
+				lifecycle_handlers.put( taggable_type, handler );
+			}
+			
+			handler.addListener( listener );
+		}
+	}
+	
+	public void
+	removeTaggableLifecycleListener(
+		long						taggable_type,
+		TaggableLifecycleListener	listener )
+	{
+		synchronized( lifecycle_handlers ){
+			
+			LifecycleHandlerImpl handler = lifecycle_handlers.get( taggable_type );
+			
+			if ( handler != null ){
+				
+				handler.removeListener( listener );
 			}
 		}
 	}
@@ -1240,6 +1280,101 @@ TagManagerImpl
 		}
 	}	
 	
+	protected String[]
+	readStringListAttribute(
+		TagTypeBase		tag_type,
+		TagBase			tag,
+		String			attr,
+		String[]		def )
+	{
+		try{
+			synchronized( this ){
+				
+				Map conf = getConf( tag_type, tag, false );
+				
+				if ( conf == null ){
+					
+					return( def );
+				}
+				
+				List<String> vals = BDecoder.decodeStrings((List)conf.get( attr ));
+				
+				if ( vals == null ){
+					
+					return( def );
+				}
+				
+				return( vals.toArray( new String[ vals.size()]));
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( def );
+		}
+	}
+	
+	protected boolean
+	writeStringListAttribute(
+		TagTypeBase		tag_type,
+		TagBase			tag,
+		String			attr,
+		String[]		value )
+	{
+		try{
+			synchronized( this ){
+				
+				Map conf = getConf( tag_type, tag, true );
+				
+				List<String> old = BDecoder.decodeStrings((List)conf.get( attr ));
+				
+				if ( old == null && value == null ){
+					
+					return( false );
+					
+				}else if ( old != null && value != null ){
+					
+					if ( value.length == old.size()){
+						
+						boolean diff = false;
+						
+						for ( int i=0;i<value.length;i++){
+							
+							if ( !old.get(i).equals(value[i])){
+								
+								diff = true;
+								
+								break;
+							}
+						}
+						
+						if ( !diff ){
+							
+							return( false );
+						}
+					}
+				}
+				
+				if ( value == null ){
+				
+					conf.remove( attr );
+				}else{
+					
+					conf.put( attr, Arrays.asList( value ));
+				}
+				
+				setDirty();
+				
+				return( true );
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( false );
+		}
+	}	
+	
 	protected void
 	removeConfig(
 		TagType	tag_type )
@@ -1285,6 +1420,155 @@ TagManagerImpl
 			if ( t != null ){
 				
 				setDirty();
+			}
+		}
+	}
+	
+	private class
+	LifecycleHandlerImpl
+		implements TaggableLifecycleHandler
+	{
+		private TaggableResolver		resolver;
+		private boolean					initialised;
+		
+		private CopyOnWriteList<TaggableLifecycleListener>	listeners = new CopyOnWriteList<TaggableLifecycleListener>();
+		
+		private
+		LifecycleHandlerImpl()
+		{
+		}
+		
+		private void
+		setResolver(
+			TaggableResolver	_resolver )
+		{
+			resolver = _resolver;
+		}
+		
+		private void
+		addListener(
+			final TaggableLifecycleListener	listener )
+		{
+			synchronized( this ){
+				
+				listeners.add( listener );
+				
+				if ( initialised ){
+				
+					final List<Taggable> taggables = resolver.getResolvedTaggables();
+					
+					if ( taggables.size() > 0 ){
+												 
+						async_dispatcher.dispatch(
+							new AERunnable()
+							{
+								@Override
+								public void 
+								runSupport() 
+								{										
+									listener.initialised( taggables );
+								}
+							});
+					}
+				}
+			}
+		}
+		
+		private void
+		removeListener(
+			TaggableLifecycleListener	listener )
+		{
+			synchronized( this ){
+				
+				listeners.remove( listener );
+			}
+		}
+		
+		public void 
+		initialized(
+			final	List<Taggable>	initial_taggables )
+		{				
+			resolverInitialized( resolver );
+			
+			synchronized( this ){
+				
+				initialised = true;
+				
+				if ( listeners.size() > 0 ){
+																
+					final List<TaggableLifecycleListener> listeners_ref = listeners.getList();
+					 
+					async_dispatcher.dispatch(
+						new AERunnable()
+						{
+							@Override
+							public void 
+							runSupport() 
+							{
+								for ( TaggableLifecycleListener listener: listeners_ref ){
+									
+									listener.initialised( initial_taggables );
+								}
+							}
+						});
+				}
+			}
+		}
+		
+		public void
+		taggableCreated(
+			final Taggable	t )
+		{	
+			synchronized( this ){
+				
+				if ( initialised ){
+					
+					final List<TaggableLifecycleListener> listeners_ref = listeners.getList();
+					 
+					async_dispatcher.dispatch(
+						new AERunnable()
+						{
+							@Override
+							public void 
+							runSupport() 
+							{
+								for ( TaggableLifecycleListener listener: listeners_ref ){
+									
+									
+									listener.taggableCreated( t );
+								}
+							}
+						});
+				}
+			}
+		}
+		
+		public void
+		taggableDestroyed(
+			final Taggable	t )
+		{
+			removeTaggable( resolver, t );
+			
+			synchronized( this ){
+				
+				if ( initialised ){
+					
+					final List<TaggableLifecycleListener> listeners_ref = listeners.getList();
+					 
+					async_dispatcher.dispatch(
+						new AERunnable()
+						{
+							@Override
+							public void 
+							runSupport() 
+							{
+								for ( TaggableLifecycleListener listener: listeners_ref ){
+									
+									listener.taggableDestroyed( t );
+								}
+							}
+						});
+				}
 			}
 		}
 	}

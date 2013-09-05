@@ -590,6 +590,39 @@ TorrentUtils
 		return( errorDetail );
 	}
 	
+	public static Set<String>
+	getUniqueTrackerHosts(
+		TOTorrent	torrent )
+	{
+		Set<String>	hosts = new HashSet<String>();
+		
+		if ( torrent != null ){
+			
+			URL	announce_url = torrent.getAnnounceURL();
+			
+			if ( announce_url != null ){
+			
+				hosts.add( announce_url.getHost().toLowerCase( Locale.US ));
+			}
+			
+			TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
+			
+			TOTorrentAnnounceURLSet[]	sets = group.getAnnounceURLSets();
+			
+			for ( TOTorrentAnnounceURLSet set: sets ){
+																
+				URL[]	urls = set.getAnnounceURLs();
+					
+				for ( URL u: urls ){
+					
+					hosts.add( u.getHost().toLowerCase( Locale.US ));
+				}
+			}
+		}
+		
+		return( hosts );
+	}
+	
 	public static String
 	announceGroupsToText(
 		TOTorrent	torrent )

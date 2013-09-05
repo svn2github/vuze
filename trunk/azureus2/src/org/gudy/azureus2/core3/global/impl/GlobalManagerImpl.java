@@ -2005,7 +2005,7 @@ public class GlobalManagerImpl
 		  }
 	  }finally{
 		  
-		  taggable_life_manager.initialized();	
+		  taggable_life_manager.initialized( getResolvedTaggables());	
 	  }
   }
   
@@ -2564,6 +2564,12 @@ public class GlobalManagerImpl
 		}
 		
 		return( getDownloadManager( new HashWrapper( Base32.decode( id ))));
+	}
+	
+	public List<Taggable>
+	getResolvedTaggables()
+	{
+		return( new ArrayList<Taggable>( getDownloadManagers()));
 	}
 	
   protected void  informDestroyed() {

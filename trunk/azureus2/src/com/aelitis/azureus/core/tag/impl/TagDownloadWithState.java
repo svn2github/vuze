@@ -37,10 +37,12 @@ import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagFeature;
+import com.aelitis.azureus.core.tag.TagFeatureProperties;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagFeatureRunState;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.TagFeatureProperties.TagProperty;
 
 public class 
 TagDownloadWithState
@@ -114,6 +116,8 @@ TagDownloadWithState
 	
 	private static AsyncDispatcher rs_async = new AsyncDispatcher(2000);
 
+	private TagProperty[] tag_properties = new TagProperty[]{ createTagProperty( TagFeatureProperties.PR_TRACKERS, TagFeatureProperties.PT_STRING_LIST ) };
+	
 	public
 	TagDownloadWithState(
 		TagTypeBase		tt,
@@ -702,9 +706,17 @@ TagDownloadWithState
 		supports_file_location = sup;
 	}
 	
+	@Override
 	public boolean
 	supportsTagMoveOnComplete()
 	{
 		return( supports_file_location );
+	}
+	
+	@Override
+	public TagProperty[]
+	getSupportedProperties()
+	{
+		return( tag_properties );
 	}
 }
