@@ -2121,9 +2121,13 @@ public class FileUtil {
 				
 				FileOutputStream fos = new FileOutputStream( write_test );
 				
-				fos.write(32);
-				
-				fos.close();
+				try{
+					fos.write(32);
+					
+				}finally{
+					
+					fos.close();
+				}
 
 				write_test.delete();
 

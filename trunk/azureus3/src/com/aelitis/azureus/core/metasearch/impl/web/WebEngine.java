@@ -667,393 +667,402 @@ WebEngine
 				}
 			}
 			
-			InputStream	is;
+			InputStream	is = null;
 			
-			String content_charset = "UTF-8";
-
-			ResourceDownloader mr_rd = null;
-			
-			if ( initial_url.getProtocol().equalsIgnoreCase( "file" )){
+			try{
+				String content_charset = "UTF-8";
+	
+				ResourceDownloader mr_rd = null;
 				
-					// handle file://c:/ - map to file:/c:/
-				
-				String	str = initial_url.toExternalForm();
-				
-				if ( initial_url.getAuthority() != null ){
-				
-					str = str.replaceFirst( "://", ":/" );
-				}
-								
-				int	pos = str.indexOf( '?' );
-				
-				if ( pos != -1 ){
+				if ( initial_url.getProtocol().equalsIgnoreCase( "file" )){
 					
-					str = str.substring( 0, pos );
-				}
-				
-				is = new FileInputStream( new File( new URL( str ).toURI()));
-				
-			}else{
-				
-				mr_rd = rdf.getMetaRefreshDownloader( initial_url_rd );
-
-				try{
-				
-					is = mr_rd.download();
+						// handle file://c:/ - map to file:/c:/
 					
-				}catch( ResourceDownloaderException e ){
-				
-					Long	response = (Long)mr_rd.getProperty( "URL_HTTP_Response" );
+					String	str = initial_url.toExternalForm();
 					
-					if ( response != null && response.longValue() == 304 ){
-						
-							// not modified
-						
-						return( new pageDetails( initial_url, initial_url, "" ));
-						
-					}else{
-						
-						throw( e );
+					if ( initial_url.getAuthority() != null ){
+					
+						str = str.replaceFirst( "://", ":/" );
 					}
-				}
-
-			
-				if ( needsAuth ){
-					
-					List	cookies_list = (List)mr_rd.getProperty( "URL_Set-Cookie" );
-					
-					List	cookies_set = new ArrayList();
-					
-					if ( cookies_list != null ){
-						
-						for (int i=0;i<cookies_list.size();i++){
-							
-							String[] cookies = ((String)cookies_list.get(i)).split(";");
-							
-							for (int j=0;j<cookies.length;j++){
-								
-								String	cookie = cookies[j].trim();
-								
-								if ( cookie.indexOf('=') != -1 ){
 									
-									cookies_set.add( cookie );
-								}
-							}
-						}
-					}
-					
-						// well, not much we can do with the cookies anyway as in general the ones
-						// set are the ones missing/expired, not the existing ones. That is, we can't
-						// deduce anything from the fact that a required cookie is not 'set' here
-						// the most we could do is catch a server that explicitly deleted invalid
-						// cookies by expiring it, but I doubt this is a common practice.
-					
-						// Also note the complexity of cookie syntax
-						// Set-Cookie: old standard using expires=, new using MaxAge
-						// Set-Cookie2:
-						// Maybe use http://jcookie.sourceforge.net/ if needed
-				}
-				
-				if ( only_if_modified ){
-					
-					String last_modified 	= extractProperty( mr_rd.getProperty( "URL_Last-Modified" ));
-					String etag				= extractProperty( mr_rd.getProperty( "URL_ETag" ));
-					
-					if ( last_modified != null ){
-						
-						setLocalString( LD_LAST_MODIFIED, last_modified );
-					}
-					
-					if ( etag != null ){
-						
-						setLocalString( LD_ETAG, etag );
-					}
-				}
-				
-				List cts = (List)mr_rd.getProperty( "URL_Content-Type" );
-											
-				if ( cts != null && cts.size() > 0 ){
-					
-					String	content_type = (String)cts.get(0);
-					
-					int	pos = content_type.toLowerCase().indexOf( "charset" );
+					int	pos = str.indexOf( '?' );
 					
 					if ( pos != -1 ){
 						
-						content_type = content_type.substring( pos+1 );
+						str = str.substring( 0, pos );
+					}
+					
+					is = new FileInputStream( new File( new URL( str ).toURI()));
+					
+				}else{
+					
+					mr_rd = rdf.getMetaRefreshDownloader( initial_url_rd );
+	
+					try{
+					
+						is = mr_rd.download();
 						
-						pos = content_type.indexOf('=');
+					}catch( ResourceDownloaderException e ){
+					
+						Long	response = (Long)mr_rd.getProperty( "URL_HTTP_Response" );
+						
+						if ( response != null && response.longValue() == 304 ){
+							
+								// not modified
+							
+							return( new pageDetails( initial_url, initial_url, "" ));
+							
+						}else{
+							
+							throw( e );
+						}
+					}
+	
+				
+					if ( needsAuth ){
+						
+						List	cookies_list = (List)mr_rd.getProperty( "URL_Set-Cookie" );
+						
+						List	cookies_set = new ArrayList();
+						
+						if ( cookies_list != null ){
+							
+							for (int i=0;i<cookies_list.size();i++){
+								
+								String[] cookies = ((String)cookies_list.get(i)).split(";");
+								
+								for (int j=0;j<cookies.length;j++){
+									
+									String	cookie = cookies[j].trim();
+									
+									if ( cookie.indexOf('=') != -1 ){
+										
+										cookies_set.add( cookie );
+									}
+								}
+							}
+						}
+						
+							// well, not much we can do with the cookies anyway as in general the ones
+							// set are the ones missing/expired, not the existing ones. That is, we can't
+							// deduce anything from the fact that a required cookie is not 'set' here
+							// the most we could do is catch a server that explicitly deleted invalid
+							// cookies by expiring it, but I doubt this is a common practice.
+						
+							// Also note the complexity of cookie syntax
+							// Set-Cookie: old standard using expires=, new using MaxAge
+							// Set-Cookie2:
+							// Maybe use http://jcookie.sourceforge.net/ if needed
+					}
+					
+					if ( only_if_modified ){
+						
+						String last_modified 	= extractProperty( mr_rd.getProperty( "URL_Last-Modified" ));
+						String etag				= extractProperty( mr_rd.getProperty( "URL_ETag" ));
+						
+						if ( last_modified != null ){
+							
+							setLocalString( LD_LAST_MODIFIED, last_modified );
+						}
+						
+						if ( etag != null ){
+							
+							setLocalString( LD_ETAG, etag );
+						}
+					}
+					
+					List cts = (List)mr_rd.getProperty( "URL_Content-Type" );
+												
+					if ( cts != null && cts.size() > 0 ){
+						
+						String	content_type = (String)cts.get(0);
+						
+						int	pos = content_type.toLowerCase().indexOf( "charset" );
 						
 						if ( pos != -1 ){
 							
-							content_type = content_type.substring( pos+1 ).trim();
+							content_type = content_type.substring( pos+1 );
 							
-							pos = content_type.indexOf(';');
+							pos = content_type.indexOf('=');
 							
 							if ( pos != -1 ){
 								
-								content_type = content_type.substring(0,pos).trim();
-							}
-							
-							if ( content_type.startsWith("\"" )){
+								content_type = content_type.substring( pos+1 ).trim();
 								
-								content_type = content_type.substring(1).trim();
-							}
-							
-							if ( content_type.endsWith("\"" )){
+								pos = content_type.indexOf(';');
 								
-								content_type = content_type.substring(0,content_type.length()-1).trim();
-							}
-							
-							try{
-								if ( Charset.isSupported( content_type )){
+								if ( pos != -1 ){
 									
-									debugLog( "charset: " + content_type );
-									
-									content_charset = content_type;
+									content_type = content_type.substring(0,pos).trim();
 								}
-							}catch( Throwable e ){
+								
+								if ( content_type.startsWith("\"" )){
+									
+									content_type = content_type.substring(1).trim();
+								}
+								
+								if ( content_type.endsWith("\"" )){
+									
+									content_type = content_type.substring(0,content_type.length()-1).trim();
+								}
 								
 								try{
-										// handle lowercase 'utf-8' for example
-									
-									content_type = content_type.toUpperCase();
-									
 									if ( Charset.isSupported( content_type )){
 										
 										debugLog( "charset: " + content_type );
 										
 										content_charset = content_type;
 									}
-								}catch( Throwable f ){
-									
-									log( "Content type '" + content_type + "' not supported", f );
-								}
-							}
-						}
-					}
-				}
-			}
-			
-			ByteArrayOutputStream baos = new ByteArrayOutputStream(8192);
-									
-			byte[] buffer = new byte[8192];			
-
-			while( true ){
-				
-				int	len = is.read( buffer );
-				
-				if ( len <= 0 ){
-					
-					break;
-				}
-				
-				baos.write( buffer, 0, len );
-			}
-			
-			byte[] data = baos.toByteArray();
-			
-			if ( vuze_file ){
-				
-				try{
-					VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
-					
-					VuzeFile vf = vfh.loadVuzeFile( data );
-					
-					vfh.handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_NONE );
-					
-				}catch( Throwable e ){
-					
-					Debug.out( e );
-				}
-				
-				return( new pageDetails( initial_url, initial_url, null ));
-			}
-			
-			String 	page = null;
-			
-			String	content = new String( data, 0, Math.min( data.length, 2048 ), content_charset );
-			
-			String	lc_content = content.toLowerCase();
-			
-			{
-					// first look for xml charset
-			
-					// e.g. <?xml version="1.0" encoding="windows-1251" ?>
-
-				int	pos1 = lc_content.indexOf( "<?xml" );
-				
-				if ( pos1 != -1 ){
-					
-					int pos2 = lc_content.indexOf( "?>" );
-					
-					if ( pos2 != -1 ){
-											
-						int pos3 = lc_content.indexOf( "encoding", pos1 );
-						
-						if ( pos3 != -1 ){
-							
-							pos3 = lc_content.indexOf( "\"", pos3 );
-						}
-						
-						if ( pos3 > pos1 && pos3 < pos2 ){
-														
-							pos3++;
-							
-							int pos4 = lc_content.indexOf( "\"", pos3 );
-							
-							if ( pos4 > pos3 && pos4 < pos2 ){
-								
-								String	encoding = content.substring( pos3, pos4 ).trim();
-								
-								try{
-									if ( Charset.isSupported( encoding )){
-										
-										debugLog( "charset from xml tag: " + encoding );
-										
-										content_charset = encoding;
-										
-											// some feeds have crap at the start which makes pos2 mismatch for the above '?' - adjust if necessary
-										
-										int data_start = pos2;
-										
-										int	max_skip	= 64;
-										
-										while( data[data_start] != '?' && max_skip-- > 0 ){
-											
-											data_start++;
-										}
-										
-										page = content.substring( 0, pos3 ) + "utf-8" + content.substring( pos4, pos2 ) + new String( data, data_start, data.length - data_start, content_charset );							
-									}
 								}catch( Throwable e ){
 									
-									log( "Content type '" + encoding + "' not supported", e );
+									try{
+											// handle lowercase 'utf-8' for example
+										
+										content_type = content_type.toUpperCase();
+										
+										if ( Charset.isSupported( content_type )){
+											
+											debugLog( "charset: " + content_type );
+											
+											content_charset = content_type;
+										}
+									}catch( Throwable f ){
+										
+										log( "Content type '" + content_type + "' not supported", f );
+									}
 								}
 							}
 						}
 					}
 				}
-			}
-			
-			if ( page == null ){
-					
-					// next look for http-equiv charset
 				
-					// e.g. <meta http-equiv="Content-Type" content="text/html; charset=windows-1251" />
-
-				int	pos = 0;
-				
+				ByteArrayOutputStream baos = new ByteArrayOutputStream(8192);
+										
+				byte[] buffer = new byte[8192];			
+	
 				while( true ){
-				
-					int	pos1 = lc_content.indexOf( "http-equiv", pos );
-				
-					if ( pos1 != -1 ){
 					
-						int	pos2 = lc_content.indexOf( ">", pos1 );
+					int	len = is.read( buffer );
+					
+					if ( len <= 0 ){
+						
+						break;
+					}
+					
+					baos.write( buffer, 0, len );
+				}
+				
+				byte[] data = baos.toByteArray();
+				
+				if ( vuze_file ){
+					
+					try{
+						VuzeFileHandler vfh = VuzeFileHandler.getSingleton();
+						
+						VuzeFile vf = vfh.loadVuzeFile( data );
+						
+						vfh.handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_NONE );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+					
+					return( new pageDetails( initial_url, initial_url, null ));
+				}
+				
+				String 	page = null;
+				
+				String	content = new String( data, 0, Math.min( data.length, 2048 ), content_charset );
+				
+				String	lc_content = content.toLowerCase();
+				
+				{
+						// first look for xml charset
+				
+						// e.g. <?xml version="1.0" encoding="windows-1251" ?>
+	
+					int	pos1 = lc_content.indexOf( "<?xml" );
+					
+					if ( pos1 != -1 ){
+						
+						int pos2 = lc_content.indexOf( "?>" );
 						
 						if ( pos2 != -1 ){
+												
+							int pos3 = lc_content.indexOf( "encoding", pos1 );
 							
-							int	pos3 = lc_content.indexOf( "charset", pos1 );
-							
-							if ( pos3 != -1 && pos3 < pos2 ){
-							
-								pos3 = lc_content.indexOf( "=", pos3 );
+							if ( pos3 != -1 ){
 								
-								if ( pos3 != -1 ){
+								pos3 = lc_content.indexOf( "\"", pos3 );
+							}
+							
+							if ( pos3 > pos1 && pos3 < pos2 ){
+															
+								pos3++;
+								
+								int pos4 = lc_content.indexOf( "\"", pos3 );
+								
+								if ( pos4 > pos3 && pos4 < pos2 ){
 									
-									pos3++;
+									String	encoding = content.substring( pos3, pos4 ).trim();
 									
-									int pos4 = lc_content.indexOf( "\"", pos3 );
-									
-									if ( pos4 != -1 ){
-										
-										int pos5 = lc_content.indexOf( ";", pos3 );
-									
-										if ( pos5 != -1 && pos5 < pos4 ){
+									try{
+										if ( Charset.isSupported( encoding )){
 											
-											pos4 = pos5;
-										}
-										
-										String encoding = content.substring( pos3, pos4 ).trim();
-										
-										try{
-											if ( Charset.isSupported( encoding )){
+											debugLog( "charset from xml tag: " + encoding );
+											
+											content_charset = encoding;
+											
+												// some feeds have crap at the start which makes pos2 mismatch for the above '?' - adjust if necessary
+											
+											int data_start = pos2;
+											
+											int	max_skip	= 64;
+											
+											while( data[data_start] != '?' && max_skip-- > 0 ){
 												
-												debugLog( "charset from http-equiv : " + encoding );
-												
-												content_charset = encoding;
-												
-													// some feeds have crap at the start which makes pos2 mismatch for the above '?' - adjust if necessary
-												
-												int data_start = pos2;
-												
-												int	max_skip	= 64;
-												
-												while( data[data_start] != '?' && max_skip-- > 0 ){
-													
-													data_start++;
-												}
-												
-												page = content.substring( 0, pos3 ) + "utf-8" + content.substring( pos4, pos2 ) + new String( data, data_start, data.length - data_start, content_charset );							
+												data_start++;
 											}
-										}catch( Throwable e ){
 											
-											log( "Content type '" + encoding + "' not supported", e );
+											page = content.substring( 0, pos3 ) + "utf-8" + content.substring( pos4, pos2 ) + new String( data, data_start, data.length - data_start, content_charset );							
 										}
+									}catch( Throwable e ){
 										
-										break;
+										log( "Content type '" + encoding + "' not supported", e );
 									}
 								}
 							}
+						}
+					}
+				}
+				
+				if ( page == null ){
+						
+						// next look for http-equiv charset
+					
+						// e.g. <meta http-equiv="Content-Type" content="text/html; charset=windows-1251" />
+	
+					int	pos = 0;
+					
+					while( true ){
+					
+						int	pos1 = lc_content.indexOf( "http-equiv", pos );
+					
+						if ( pos1 != -1 ){
+						
+							int	pos2 = lc_content.indexOf( ">", pos1 );
 							
-							pos = pos2;
-							
+							if ( pos2 != -1 ){
+								
+								int	pos3 = lc_content.indexOf( "charset", pos1 );
+								
+								if ( pos3 != -1 && pos3 < pos2 ){
+								
+									pos3 = lc_content.indexOf( "=", pos3 );
+									
+									if ( pos3 != -1 ){
+										
+										pos3++;
+										
+										int pos4 = lc_content.indexOf( "\"", pos3 );
+										
+										if ( pos4 != -1 ){
+											
+											int pos5 = lc_content.indexOf( ";", pos3 );
+										
+											if ( pos5 != -1 && pos5 < pos4 ){
+												
+												pos4 = pos5;
+											}
+											
+											String encoding = content.substring( pos3, pos4 ).trim();
+											
+											try{
+												if ( Charset.isSupported( encoding )){
+													
+													debugLog( "charset from http-equiv : " + encoding );
+													
+													content_charset = encoding;
+													
+														// some feeds have crap at the start which makes pos2 mismatch for the above '?' - adjust if necessary
+													
+													int data_start = pos2;
+													
+													int	max_skip	= 64;
+													
+													while( data[data_start] != '?' && max_skip-- > 0 ){
+														
+														data_start++;
+													}
+													
+													page = content.substring( 0, pos3 ) + "utf-8" + content.substring( pos4, pos2 ) + new String( data, data_start, data.length - data_start, content_charset );							
+												}
+											}catch( Throwable e ){
+												
+												log( "Content type '" + encoding + "' not supported", e );
+											}
+											
+											break;
+										}
+									}
+								}
+								
+								pos = pos2;
+								
+							}else{
+								
+								break;
+							}
 						}else{
 							
 							break;
 						}
-					}else{
-						
-						break;
 					}
 				}
-			}
-			
-			if ( page == null ){
 				
-				page = new String( data, content_charset );
-			}
-			
-			debugLog( "page:" );
-			debugLog( page );
-
-			// List 	cookie = (List)url_rd.getProperty( "URL_Set-Cookie" );
-			
-			try {
-				Matcher m = baseTagPattern.matcher(page);
-				if(m.find()) {
-					basePage = m.group(1);
+				if ( page == null ){
 					
-					debugLog( "base_page: " + basePage );
+					page = new String( data, content_charset );
 				}
-			} catch(Exception e) {
-				//No BASE tag in the page
-			}
-			
-			URL	final_url = initial_url;
-			
-			if ( mr_rd != null ){
 				
-				URL	x = (URL)mr_rd.getProperty( "URL_URL" );
+				debugLog( "page:" );
+				debugLog( page );
 	
-				if ( x != null ){
+				// List 	cookie = (List)url_rd.getProperty( "URL_Set-Cookie" );
+				
+				try {
+					Matcher m = baseTagPattern.matcher(page);
+					if(m.find()) {
+						basePage = m.group(1);
+						
+						debugLog( "base_page: " + basePage );
+					}
+				} catch(Exception e) {
+					//No BASE tag in the page
+				}
+				
+				URL	final_url = initial_url;
+				
+				if ( mr_rd != null ){
 					
-					final_url = x;
+					URL	x = (URL)mr_rd.getProperty( "URL_URL" );
+		
+					if ( x != null ){
+						
+						final_url = x;
+					}
+				}
+				
+				return( new pageDetails( initial_url, final_url, page ));
+				
+			}finally{
+				
+				if ( is != null ){
+					
+					is.close();
 				}
 			}
-			
-			return( new pageDetails( initial_url, final_url, page ));
 				
 		}catch( SearchException e ){
 			
