@@ -292,7 +292,7 @@ public class GCStringPrinter
 		boolean noDraw = (printFlags & FLAG_NODRAW) > 0;
 		wrap = (swtFlags & SWT.WRAP) > 0;
 		
-		if ((swtFlags & (SWT.TOP & SWT.BOTTOM)) == 0) {
+		if ((swtFlags & (SWT.TOP | SWT.BOTTOM)) == 0) {
 			// center vertically -- must be fullLinesOnly
 			fullLinesOnly = true;
 			printFlags |= FLAG_FULLLINESONLY;
