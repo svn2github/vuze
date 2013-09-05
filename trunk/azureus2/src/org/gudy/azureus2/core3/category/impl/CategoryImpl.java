@@ -396,9 +396,11 @@ CategoryImpl
 	String		name,
 	boolean		value )
   {
-	  String old = attributes.put( name, value?"true":"false" );
+	  String str_val = value?"true":"false";
 	  
-	  if ( old == null || !old.equals( value )){
+	  String old = attributes.put( name, str_val );
+	  
+	  if ( old == null || !old.equals( str_val )){
 	  
 		  CategoryManagerImpl.getInstance().saveCategories(this);
 	  }
