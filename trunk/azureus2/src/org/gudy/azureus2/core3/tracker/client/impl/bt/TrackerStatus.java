@@ -26,6 +26,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.*;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.zip.GZIPInputStream;
 
 import javax.net.ssl.HostnameVerifier;
@@ -126,7 +127,7 @@ public class TrackerStatus {
   protected AEMonitor hashes_mon 	= new AEMonitor( "TrackerStatus:hashes" );
   private final TrackerChecker checker;
   
-  private volatile int numActiveScrapes = 0;
+  private final AtomicInteger numActiveScrapes = new AtomicInteger(0);
 
   public 
   TrackerStatus(
@@ -326,7 +327,8 @@ public class TrackerStatus {
   	    final boolean 		force, 
   	    boolean 			async) 
   	{
-  		numActiveScrapes++;
+  		numActiveScrapes.incrementAndGet();
+  		
   		if ( async ){
   			
   			thread_pool.run( 
@@ -978,7 +980,7 @@ public class TrackerStatus {
 		} catch (Throwable t) {
 			Debug.out("runScrapesSupport failed", t);
 		} finally {
-			numActiveScrapes--;
+			numActiveScrapes.decrementAndGet();
 		}
 	}
 
@@ -1540,6 +1542,6 @@ public class TrackerStatus {
 	}
 	
 	public int getNumActiveScrapes() {
-		return numActiveScrapes;
+		return numActiveScrapes.get();
 	}
 }
