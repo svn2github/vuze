@@ -111,13 +111,6 @@ public class Messages {
           updateLanguageForControl(treeitems[i]);
         }
       }
-      else if (widget instanceof TreeItem) {
-        TreeItem treeItem = (TreeItem) widget;
-        TreeItem[] treeitems = treeItem.getItems();
-        for (int i = 0; i < treeitems.length; i++) {
-          updateLanguageForControl(treeitems[i]);
-        }
-      }
         
       group.layout();
     }
@@ -140,6 +133,7 @@ public class Messages {
       TreeItem[] treeitems = treeitem.getItems();
       for (int i = 0; i < treeitems.length; i++) {
         updateLanguageFromData(treeitems[i], null);
+        updateLanguageForControl(treeitems[i]);
       }
     }
     
@@ -276,6 +270,8 @@ public class Messages {
           ((TreeColumn) widget).setText(message);
         else if(widget instanceof DoubleBufferedLabel) 
             ((DoubleBufferedLabel) widget).setText(message);
+        else if(widget instanceof Canvas) 
+          ; // get a few of these
         else{
           Debug.out( "No cast for " + widget.getClass().getName());
         }
