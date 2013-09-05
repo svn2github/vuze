@@ -352,9 +352,6 @@ public class NatPanel extends AbstractWizardPanel {
      	if (bTestUDP == null || bTestUDP.isDisposed()) {
       		return;
       	}
-      	if (wizard.getCurrentPanel().equals(this)) {
-      		return;
-      	}
 
         wizard.setNextEnabled(true);
         bTestTCP.setEnabled(true);
