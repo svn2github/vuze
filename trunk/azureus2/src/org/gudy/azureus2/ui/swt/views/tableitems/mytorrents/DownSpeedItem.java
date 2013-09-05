@@ -97,7 +97,7 @@ public class DownSpeedItem
       	bChangeColor = true;
       }
       
-      if (bChangeColor) {
+      if (bChangeColor && dm != null) {
         changeColor(cell, dm, iState);
         loop = 0;
       }
