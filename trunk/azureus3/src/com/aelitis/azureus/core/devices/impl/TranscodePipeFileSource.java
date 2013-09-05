@@ -124,7 +124,11 @@ TranscodePipeFileSource
 			
 			//System.out.println( command + ": " + headers );
 			
-			if ( command.startsWith( "GET " )){
+			if ( command == null ){
+				
+				throw( new IOException( "no method supplied" ));
+				
+			}else if ( command.startsWith( "GET " )){
 				
 			}else if ( command.startsWith( "HEAD " )){
 								
