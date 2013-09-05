@@ -144,7 +144,7 @@ public class RankItem
     cell.setText(text);
 
     if (cell instanceof TableCellSWT) {
-    	if ( showIcon ){
+    	if ( showIcon && dm != null ){
     		Image img = dm.getAssumedComplete() ? imgUp : imgDown;
     		((TableCellSWT)cell).setIcon(img);
     	}else{
