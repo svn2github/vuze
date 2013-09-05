@@ -720,6 +720,11 @@ DisplayFormatters
 	formatDownloadStatus(
 		DownloadManager		manager )
 	{
+		if ( manager == null ){
+			
+			return( ManagerItem_error + ": Download is null" );
+		}
+		
 		int state = manager.getState();
 
 		String	tmp = "";
