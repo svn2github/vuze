@@ -101,8 +101,8 @@ TRTrackerBTScraperImpl
 				// to an existing dht-backup result
 			
 			if ( 	resp != null && 
-					( 	resp.getStatus() == TRTrackerScraperResponse.ST_ERROR ) ||
-						resp.isDHTBackup() && update_is_dht ){
+					( 	resp.getStatus() == TRTrackerScraperResponse.ST_ERROR  ||
+						(  resp.isDHTBackup() && update_is_dht ))){
 				
 				resp.setDHTBackup( update_is_dht );
 				
