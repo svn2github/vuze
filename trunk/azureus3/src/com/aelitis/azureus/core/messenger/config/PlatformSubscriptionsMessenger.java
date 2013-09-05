@@ -213,7 +213,7 @@ PlatformSubscriptionsMessenger
 			
 			for (int i=0;i<sids.size();i++){
 				
-				versions.add( new Long(-1));
+				popularities.add( new Long(-1));
 			}
 		}
 	
