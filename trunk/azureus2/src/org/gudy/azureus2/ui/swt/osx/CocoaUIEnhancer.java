@@ -167,7 +167,7 @@ public class CocoaUIEnhancer
 
 	static int /*long*/actionProc(int /*long*/id, int /*long*/sel,
 			int /*long*/arg0) {
-		return actionProc(id, sel, arg0);
+		return (int)actionProc((long)id, (long)sel, (long)arg0);
 	}
 
 	static long actionProc(long id, long sel,
@@ -219,7 +219,7 @@ public class CocoaUIEnhancer
 	static int /*long*/actionProc(int /*long*/id, int /*long*/sel,
 			int /*long*/arg0, int /*long*/arg1)
 			throws Throwable {
-		return actionProc(id, sel, arg0, arg1);
+		return (int)actionProc((long)id, (long)sel, (long)arg0, (long)arg1);
 	}
 
 	
