@@ -53,7 +53,7 @@ public class HostNameItem extends CoreTableColumnSWT implements TableCellRefresh
 	public void refresh(TableCell cell) {
 		PEPeer peer = (PEPeer) cell.getDataSource();
 		String addr = peer == null ? "" : peer.getIPHostName();
-		if (cell.setText(addr) && !addr.equals(peer.getIp()))
+		if (cell.setText(addr) && !addr.equals(peer==null?"":peer.getIp()))
 		{
 			String[] l = addr.split("\\.");
 			StringBuffer buf = new StringBuffer();
