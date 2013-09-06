@@ -123,7 +123,7 @@ public class UnchokerUtilTest {
         public int getPeerState(){  return PEPeer.TRANSFERING;  }
         public PEPeerManager getManager(){ return null; }
         public String getPeerSource(){ return null; }
-        public byte[] getId(){ return null; }
+        public byte[] getId(){ return new byte[0]; }
         public String getIp(){ return null; }
         public int getPort(){ return 0; }
         public String getIPHostName(){ return null; }
