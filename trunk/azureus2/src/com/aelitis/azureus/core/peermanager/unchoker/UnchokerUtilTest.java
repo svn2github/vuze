@@ -162,7 +162,7 @@ public class UnchokerUtilTest {
         public Connection getPluginConnection(){ return null; }
         public boolean supportsMessaging(){ return false;  }
         public int getMessagingMode(){ return PEPeer.MESSAGING_BT_ONLY; }
-        public Message[] getSupportedMessages(){ return null; }
+        public Message[] getSupportedMessages(){ return new Message[0]; }
         public String getEncryption(){ return( "" ); }
         public String getProtocol(){ return( "" ); }
         public int getReservedPieceNumber() { return -1; }
