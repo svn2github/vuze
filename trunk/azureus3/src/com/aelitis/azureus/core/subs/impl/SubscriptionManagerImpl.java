@@ -3360,13 +3360,16 @@ SubscriptionManagerImpl
 					{
 						DHTPluginKeyStats stats = dht_plugin.decodeStats( value );
 						
-						result[0] = Math.max( result[0], stats.getEntryCount());
-						
-						hits++;
-						
-						if ( hits >= 3 ){
+						if ( stats != null ){
 							
-							done();
+							result[0] = Math.max( result[0], stats.getEntryCount());
+						
+							hits++;
+							
+							if ( hits >= 3 ){
+								
+								done();
+							}
 						}
 					}
 					
