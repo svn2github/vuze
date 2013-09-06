@@ -1095,27 +1095,29 @@ public class SideBar
 			}
 			Rectangle itemBounds = entry.swt_getBounds();
 
-			if (entry.isCloseable()) {
-				Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
-				if (closeArea != null) {
-					closeArea.y = itemBounds.y + (itemBounds.height - closeArea.height)
-							/ 2;
+			if ( itemBounds != null ){
+				if (entry.isCloseable()) {
+					Rectangle closeArea = (Rectangle) treeItem.getData("closeArea");
+					if (closeArea != null) {
+						closeArea.y = itemBounds.y + (itemBounds.height - closeArea.height)
+								/ 2;
+					}
 				}
-			}
-
-			MdiEntryVitalityImage[] vitalityImages = entry.getVitalityImages();
-			for (int i = 0; i < vitalityImages.length; i++) {
-				SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
-				if (!vitalityImage.isVisible()) {
-					continue;
-				}
-				Image image = vitalityImage.getImage();
-				if (image != null) {
-					Rectangle bounds = vitalityImage.getHitArea();
-					if (bounds == null) {
+	
+				MdiEntryVitalityImage[] vitalityImages = entry.getVitalityImages();
+				for (int i = 0; i < vitalityImages.length; i++) {
+					SideBarVitalityImageSWT vitalityImage = (SideBarVitalityImageSWT) vitalityImages[i];
+					if (!vitalityImage.isVisible()) {
 						continue;
 					}
-					bounds.y = (itemBounds.height - bounds.height) / 2;
+					Image image = vitalityImage.getImage();
+					if (image != null) {
+						Rectangle bounds = vitalityImage.getHitArea();
+						if (bounds == null) {
+							continue;
+						}
+						bounds.y = (itemBounds.height - bounds.height) / 2;
+					}
 				}
 			}
 		}
@@ -1599,7 +1601,7 @@ public class SideBar
 				new SideBarEntrySWT[0]);
 		for (SideBarEntrySWT entry : sideBarEntries) {
 			Rectangle entryBounds = entry.swt_getBounds();
-			if (treeBounds.intersects(entryBounds)) {
+			if (entryBounds != null && treeBounds.intersects(entryBounds)) {
 				entry.obfusticatedImage(image);
 			}
 		}

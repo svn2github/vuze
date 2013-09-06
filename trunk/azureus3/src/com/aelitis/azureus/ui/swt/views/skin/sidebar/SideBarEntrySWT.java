@@ -1151,31 +1151,32 @@ public class SideBarEntrySWT
 	// @see org.gudy.azureus2.ui.swt.debug.ObfusticateImage#obfusticatedImage(org.eclipse.swt.graphics.Image)
 	public Image obfusticatedImage(Image image) {
 		Rectangle bounds = swt_getBounds();
-		TreeItem treeItem = getTreeItem();
-		Point location = Utils.getLocationRelativeToShell(treeItem.getParent());
-
-		bounds.x += location.x;
-		bounds.y += location.y;
-		
-		Map<String, Object> map = new HashMap<String, Object>();
-		map.put("image", image);
-		map.put("obfuscateSideBar", false);
-		if (view != null) {
-			view.triggerEvent(UISWTViewEvent.TYPE_OBFUSCATE, map);
-		}
-
-		if (MapUtils.getMapBoolean(map, "obfuscateSideBar", false)) {
-			int ofs = IMAGELEFT_GAP + IMAGELEFT_SIZE;
-			if (treeItem.getParentItem() != null) {
-				ofs += 10 + SIDEBAR_SPACING;
-			}
-			bounds.x += ofs;
-			bounds.width -= ofs + SIDEBAR_SPACING + 1;
-			bounds.height -= 1;
+		if ( bounds != null ){
+			TreeItem treeItem = getTreeItem();
+			Point location = Utils.getLocationRelativeToShell(treeItem.getParent());
+	
+			bounds.x += location.x;
+			bounds.y += location.y;
 			
-			UIDebugGenerator.obfusticateArea(image, bounds);
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put("image", image);
+			map.put("obfuscateSideBar", false);
+			if (view != null) {
+				view.triggerEvent(UISWTViewEvent.TYPE_OBFUSCATE, map);
+			}
+	
+			if (MapUtils.getMapBoolean(map, "obfuscateSideBar", false)) {
+				int ofs = IMAGELEFT_GAP + IMAGELEFT_SIZE;
+				if (treeItem.getParentItem() != null) {
+					ofs += 10 + SIDEBAR_SPACING;
+				}
+				bounds.x += ofs;
+				bounds.width -= ofs + SIDEBAR_SPACING + 1;
+				bounds.height -= 1;
+				
+				UIDebugGenerator.obfusticateArea(image, bounds);
+			}
 		}
-		
 
 		return image;
 	}
