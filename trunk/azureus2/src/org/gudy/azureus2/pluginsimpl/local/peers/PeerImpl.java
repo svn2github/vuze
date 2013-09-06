@@ -175,7 +175,11 @@ PeerImpl
 	
 	public final boolean[] getAvailable()
 	{
-		return( delegate.getAvailable().flags );
+		BitFlags bf = delegate.getAvailable();
+		if ( bf == null ){
+			return( null );
+		}
+		return( bf.flags );
 	}
    
 	public boolean isPieceAvailable(int pieceNumber)
