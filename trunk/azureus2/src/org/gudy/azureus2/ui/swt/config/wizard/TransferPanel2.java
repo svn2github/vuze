@@ -169,68 +169,76 @@ TransferPanel2
     							
     							PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "mlab" );
 
-    							IPCInterface callback = 
-    								new IPCInterface()
-	    							{
-    									public Object 
-    									invoke(
-    										String 		methodName, 
-    										Object[]	params )
-    									{
-    										try{
-	    										if ( methodName.equals( "results" )){
-	    											   											
-		    										Map<String,Object> 	results = (Map<String,Object>)params[0];
-		    										
-		    										Long	up_rate = (Long)results.get( "up" );
-		    										
-		    										if ( up_rate != null ){
-		    											
-		    											final int u = up_rate.intValue();
-		    											
-		    											if ( u > 0 ){
-		    												
-		    												Utils.execSWTThread(
-		    													new Runnable()
-		    													{
-		    														public void
-		    														run()
-		    														{
-		    															updateUp( u, false );
-		    														}								
-		    													});
-		    											}
-		    										}
-	    										}
-	    										
-	    										return( null );
-	    										
-    										}finally{
-    											
-    											enableTest();
-    										}
-    									}
+    							if ( pi == null ){
     								
-    									public boolean 
-    									canInvoke( 
-    										String methodName, 
-    										Object[] params )
-    									{
-    										return( true );
-    									}
-	    							};
-    							
-	    						try{
-	    							pi.getIPC().invoke(
-	    								"runTest",
-	    								new Object[]{ new HashMap<String,Object>(), callback, false });
+    								Debug.out( "mlab plugin not found" );
+    								
+    								enableTest();
+    								
+    							}else{
+	    							IPCInterface callback = 
+	    								new IPCInterface()
+		    							{
+	    									public Object 
+	    									invoke(
+	    										String 		methodName, 
+	    										Object[]	params )
+	    									{
+	    										try{
+		    										if ( methodName.equals( "results" )){
+		    											   											
+			    										Map<String,Object> 	results = (Map<String,Object>)params[0];
+			    										
+			    										Long	up_rate = (Long)results.get( "up" );
+			    										
+			    										if ( up_rate != null ){
+			    											
+			    											final int u = up_rate.intValue();
+			    											
+			    											if ( u > 0 ){
+			    												
+			    												Utils.execSWTThread(
+			    													new Runnable()
+			    													{
+			    														public void
+			    														run()
+			    														{
+			    															updateUp( u, false );
+			    														}								
+			    													});
+			    											}
+			    										}
+		    										}
+		    										
+		    										return( null );
+		    										
+	    										}finally{
+	    											
+	    											enableTest();
+	    										}
+	    									}
+	    								
+	    									public boolean 
+	    									canInvoke( 
+	    										String methodName, 
+	    										Object[] params )
+	    									{
+	    										return( true );
+	    									}
+		    							};
 	    							
-	    						}catch( Throwable e ){
-	    							
-	    							Debug.out( e );
-	    							
-	    							enableTest();
-	    						}
+		    						try{
+		    							pi.getIPC().invoke(
+		    								"runTest",
+		    								new Object[]{ new HashMap<String,Object>(), callback, false });
+		    							
+		    						}catch( Throwable e ){
+		    							
+		    							Debug.out( e );
+		    							
+		    							enableTest();
+		    						}
+    							}
     						}else{
     						
     							try{
