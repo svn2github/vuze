@@ -278,7 +278,7 @@ DHTPlugin
 						
 						DHTPluginKeyStats stats = decodeStats( value );
 						
-						log.log( "    stats: size=" + stats.getSize());
+						log.log( "    stats: size=" + (stats==null?"null":stats.getSize()));
 					}
 				}
 				

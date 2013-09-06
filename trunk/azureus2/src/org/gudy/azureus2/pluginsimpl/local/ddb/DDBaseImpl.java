@@ -851,36 +851,38 @@ DDBaseImpl
 				try{
 					final DHTPluginKeyStats	stats = getDHT().decodeStats( _value );
 					
-					DistributedDatabaseKeyStats ddb_stats = new
-						DistributedDatabaseKeyStats()
-						{
-							public int
-							getEntryCount()
-							{
-								return( stats.getEntryCount());
-							}
-							
-							public int
-							getSize()
-							{
-								return( stats.getSize());
-							}
-							
-							public int
-							getReadsPerMinute()
-							{
-								return( stats.getReadsPerMinute());
-							}
-							
-							public byte
-							getDiversification()
-							{
-								return( stats.getDiversification());
-							}
-						};
+					if ( stats != null ){
 						
-					listener.event( new dbEvent( type, key, originator, ddb_stats ));
-					
+						DistributedDatabaseKeyStats ddb_stats = new
+							DistributedDatabaseKeyStats()
+							{
+								public int
+								getEntryCount()
+								{
+									return( stats.getEntryCount());
+								}
+								
+								public int
+								getSize()
+								{
+									return( stats.getSize());
+								}
+								
+								public int
+								getReadsPerMinute()
+								{
+									return( stats.getReadsPerMinute());
+								}
+								
+								public byte
+								getDiversification()
+								{
+									return( stats.getDiversification());
+								}
+							};
+							
+						listener.event( new dbEvent( type, key, originator, ddb_stats ));
+					}
 				}catch( Throwable e ){
 					
 					Debug.printStackTrace(e);
