@@ -117,6 +117,9 @@ public class ConnectionManagerImpl implements ConnectionManager {
   
   public TransportFilter createTransportFilter(Connection connection, TransportCipher read_cipher, TransportCipher write_cipher) throws TransportException {
 	  Transport transport = connection.getTransport();
+	  if ( transport == null ){
+		  throw( new TransportException( "no transport available" )); 
+	  }
 	  com.aelitis.azureus.core.networkmanager.Transport core_transport;
 	  try {core_transport = ((TransportImpl)transport).coreTransport();}
 	  catch (IOException e) {throw new TransportException(e);}
