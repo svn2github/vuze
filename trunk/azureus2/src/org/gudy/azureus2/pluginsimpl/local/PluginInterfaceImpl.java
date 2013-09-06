@@ -154,7 +154,7 @@ PluginInterfaceImpl
 	  
 	  String class_name = getClass().getCanonicalName();
 	  
-	  if ( !class_name.equals( "org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl" )){
+	  if ( class_name == null || !class_name.equals( "org.gudy.azureus2.pluginsimpl.local.PluginInterfaceImpl" )){
 		  
 		  throw( new PluginException( "Subclassing not permitted" ));
 	  }
