@@ -257,12 +257,15 @@ public class SystemProperties {
 			try {
 				PlatformManager platformManager = PlatformManagerFactory.getPlatformManager();
 
-				temp_user_path = platformManager.getLocation(
-						PlatformManager.LOC_USER_DATA).getPath() + SEP;
-
-				if (Logger.isEnabled()) {
-					Logger.log(new LogEvent(LOGID,
-							"SystemProperties::getUserPath: user_path = " + temp_user_path));
+				File loc = platformManager.getLocation(	PlatformManager.LOC_USER_DATA );
+				
+				if ( loc != null ){
+					temp_user_path = loc.getPath() + SEP;
+	
+					if (Logger.isEnabled()) {
+						Logger.log(new LogEvent(LOGID,
+								"SystemProperties::getUserPath: user_path = " + temp_user_path));
+					}
 				}
 			} catch ( Throwable e ){
 				if (Logger.isEnabled()) {
