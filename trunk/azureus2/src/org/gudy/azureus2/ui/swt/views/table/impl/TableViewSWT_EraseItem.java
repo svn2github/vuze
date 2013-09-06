@@ -4,8 +4,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
-import org.eclipse.swt.widgets.Widget;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AERunnable;
@@ -26,6 +24,16 @@ public class TableViewSWT_EraseItem
 		Colors.colorAltRow
 	};
 
+	static{
+		Colors.getInstance().addColorsChangedListener(
+			new ParameterListener() {
+				
+				public void parameterChanged(String parameterName) {
+					alternatingColors[1] = Colors.colorAltRow;
+				}
+			});
+	}
+	
 	private final TableOrTreeSWT table;
 	
 	private TableViewSWTImpl<?> tv;
