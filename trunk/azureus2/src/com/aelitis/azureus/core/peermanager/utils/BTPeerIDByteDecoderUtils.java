@@ -182,6 +182,9 @@ class BTPeerIDByteDecoderUtils {
 			char c = peer_id.charAt(i);
 			if (c == '-') {break;}
 			ver_number = joinAsDotted(ver_number, decodeAlphaNumericChar(peer_id.charAt(i)));
+			if ( ver_number == null ){
+				return( null );
+			}
 		}
 		// We'll strip off trailing redundant zeroes.
 		while (ver_number.endsWith(".0")) {ver_number = ver_number.substring(0, ver_number.length()-2);}
