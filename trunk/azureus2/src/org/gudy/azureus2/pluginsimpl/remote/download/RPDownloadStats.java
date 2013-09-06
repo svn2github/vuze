@@ -189,9 +189,27 @@ RPDownloadStats
 	}
 	
 	public long
+	getDownloaded(
+		boolean	include_protocol )
+	{
+		notSupported();
+		
+		return( 0 );
+	}
+	
+	public long
 	getUploaded()
 	{
 		return( uploaded );
+	}
+	
+	public long
+	getUploaded(
+		boolean	include_protocol )
+	{
+		notSupported();
+		
+		return( 0 );
 	}
 	
 	public long
@@ -217,9 +235,27 @@ RPDownloadStats
 	}
 	
 	public long
+	getDownloadAverage(
+		boolean	include_protocol )
+	{
+		notSupported();
+		
+		return( 0 );
+	}
+	
+	public long
 	getUploadAverage()
 	{
 		return( upload_average );
+	}
+	
+	public long
+	getUploadAverage(
+		boolean	include_protocol )
+	{
+		notSupported();
+	
+		return( 0 );
 	}
 	
 	public long

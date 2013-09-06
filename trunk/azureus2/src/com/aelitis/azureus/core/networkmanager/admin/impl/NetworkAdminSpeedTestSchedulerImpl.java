@@ -43,8 +43,11 @@ public class NetworkAdminSpeedTestSchedulerImpl
         return instance;
     }
 
-    private NetworkAdminSpeedTestSchedulerImpl(){
-     }
+    private 
+    NetworkAdminSpeedTestSchedulerImpl()
+    {
+    	NetworkAdminSpeedTesterBTImpl.initialise();
+    }
 
     public void
     initialise()

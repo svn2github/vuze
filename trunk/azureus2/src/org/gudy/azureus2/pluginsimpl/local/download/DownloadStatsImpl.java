@@ -118,6 +118,20 @@ DownloadStatsImpl
 	}
 	
 	public long
+	getDownloaded(
+		boolean	include_protocol )
+	{
+		long res = dm_stats.getTotalDataBytesReceived();
+	
+		if ( include_protocol ){
+		
+			res += dm_stats.getTotalProtocolBytesReceived();
+		}
+		
+		return( res );
+	}
+	
+	public long
 	getRemaining()
 	{
 		return( dm_stats.getRemaining());
@@ -127,6 +141,20 @@ DownloadStatsImpl
 	getUploaded()
 	{
 		return( dm_stats.getTotalDataBytesSent());
+	}
+	
+	public long
+	getUploaded(
+		boolean	include_protocol )
+	{
+		long res = dm_stats.getTotalDataBytesSent();
+	
+		if ( include_protocol ){
+		
+			res += dm_stats.getTotalProtocolBytesSent();
+		}
+		
+		return( res );
 	}
 	
 	public long
@@ -142,9 +170,37 @@ DownloadStatsImpl
 	}
 	
 	public long
+	getDownloadAverage(
+		boolean	include_protocol )
+	{
+		long res = dm_stats.getDataReceiveRate();
+		
+		if ( include_protocol ){
+		
+			res += dm_stats.getProtocolReceiveRate();
+		}
+		
+		return( res );
+	}
+	
+	public long
 	getUploadAverage()
 	{
 		return( dm_stats.getDataSendRate());
+	}
+	
+	public long
+	getUploadAverage(
+		boolean	include_protocol )
+	{
+		long res = dm_stats.getDataSendRate();
+		
+		if ( include_protocol ){
+			
+			res += dm_stats.getProtocolSendRate();
+		}
+		
+		return( res );
 	}
 	
 	public long

@@ -149,6 +149,16 @@ DownloadStats
 	getDownloaded();
 	
 	/**
+	 * @since 5.1.0.1
+	 * @param include_protocol
+	 * @return
+	 */
+	
+	public long
+	getDownloaded(
+		boolean	include_protocol );
+	
+	/**
 	 * Gives number of bytes remaining.  Excludes DND files only if disk manager exists
 	 * 
 	 * @since 2.5.0.2
@@ -166,6 +176,16 @@ DownloadStats
 	public long
 	getUploaded();
 
+	/**
+	 * @since 5.1.0.1
+	 * @param include_protocol
+	 * @return
+	 */
+	
+	public long
+	getUploaded(
+		boolean	include_protocol );
+	
 	/**
 	 * Gives the number of bytes discarded.
 	 * Does not include {@link #getHashFails()}
@@ -187,6 +207,15 @@ DownloadStats
 	getDownloadAverage();
 	
 	/**
+	 * @since 5.1.0.1
+	 * @param include_protocol
+	 * @return
+	 */
+	public long
+	getDownloadAverage(
+		boolean	include_protocol );
+
+	/**
 	 * Gives average number of bytes uploaded in last second 
 	 * @return
    *
@@ -194,6 +223,16 @@ DownloadStats
 	 */
 	public long
 	getUploadAverage();
+	
+	/**
+	 * @since 5.1.0.1
+	 * @param include_protocol
+	 * @return
+	 */
+	
+	public long
+	getUploadAverage(
+		boolean	include_protocol );
 	
 	/**
 	 * Gives average number of bytes computed for torrent in last second 

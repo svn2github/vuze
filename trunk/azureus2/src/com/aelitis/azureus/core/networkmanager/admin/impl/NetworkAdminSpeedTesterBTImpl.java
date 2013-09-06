@@ -71,13 +71,18 @@ public class NetworkAdminSpeedTesterBTImpl
 
     private static NetworkAdminSpeedTesterResult	lastResult;
 
-   
     protected static void
-    startUp()
+    initialise()
     {
       PluginInterface plugin = PluginInitializer.getDefaultInterface();
 
-    	speedTestAttrib = plugin.getTorrentManager().getPluginAttribute(NetworkAdminSpeedTesterBTImpl.class.getName()+".test.attrib");
+      speedTestAttrib = plugin.getTorrentManager().getPluginAttribute(NetworkAdminSpeedTesterBTImpl.class.getName()+".test.attrib");
+    }
+    
+    protected static void
+    startUp()
+    {
+    	PluginInterface plugin = PluginInitializer.getDefaultInterface();
   
     	org.gudy.azureus2.plugins.download.DownloadManager dm = plugin.getDownloadManager();
     	Download[] downloads = dm.getDownloads();
@@ -481,8 +486,8 @@ public class NetworkAdminSpeedTesterBTImpl
 	                	
 	                    long currTime = SystemTime.getCurrentTime();
 	                    DownloadStats stats = testDownload.getStats();
-	                    historyDownloadSpeed.add( autoboxLong(stats.getDownloaded()) );
-	                    historyUploadSpeed.add( autoboxLong(stats.getUploaded()) );
+	                    historyDownloadSpeed.add( autoboxLong(stats.getDownloaded( true )) );
+	                    historyUploadSpeed.add( autoboxLong(stats.getUploaded( true )) );
 	                    timestamps.add( autoboxLong(currTime) );
 	
 	                    updateTestProgress(currTime,stats);
@@ -606,9 +611,9 @@ public class NetworkAdminSpeedTesterBTImpl
             msg.append(  progressBarVal );
             //include the upload and download values.
             msg.append(" : download ave ");
-            msg.append( stats.getDownloadAverage() );
+            msg.append( stats.getDownloadAverage( true ) );
             msg.append(" : upload ave ");
-            msg.append( stats.getUploadAverage() );
+            msg.append( stats.getUploadAverage( true ) );
             msg.append(" : ");
             int totalTimeLeft = (int)((MAX_TEST_TIME-totalDownloadTimeUsed)/1000);
             msg.append(totalTimeLeft);
@@ -639,14 +644,11 @@ public class NetworkAdminSpeedTesterBTImpl
             final int nSamples = deltas.size();
             final int nRemove = nSamples/10;
 
-            //removing high values.
-            for(int i=nSamples-1; i<nSamples-nRemove; i--){
-                deltas.remove(i);
-            }
-            //remove low values.
-            for(int i=0; i<nRemove; i++){
+             for(int i=0; i<nRemove; i++){
                 deltas.remove(0);
+	            deltas.remove(deltas.size()-1);
             }
+            
             //sum values
             long sumBytes=0;
             int j=0;
@@ -766,9 +768,9 @@ public class NetworkAdminSpeedTesterBTImpl
             //upload only used the "uploaded" data. The "download only" and "both" uses download.
             long totTransferred;
             if(testMode==TEST_TYPE_UPLOAD_ONLY){
-                totTransferred = stat.getUploaded();
+                totTransferred = stat.getUploaded( true );
             }else{
-                totTransferred = stat.getDownloaded();
+                totTransferred = stat.getDownloaded(true);
             }
             long currTransferRate = totTransferred-lastTotalDownload;
 

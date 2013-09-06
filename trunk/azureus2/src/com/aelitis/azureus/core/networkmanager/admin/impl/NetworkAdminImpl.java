@@ -1946,7 +1946,7 @@ addressLoop:
 	
 	public void
 	runInitialChecks(
-			AzureusCore azureus_core)
+		AzureusCore azureus_core )
 	{
 		AZInstanceManager i_man = azureus_core.getInstanceManager();
 		
