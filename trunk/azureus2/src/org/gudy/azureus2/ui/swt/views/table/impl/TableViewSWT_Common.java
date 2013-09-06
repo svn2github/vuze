@@ -975,6 +975,9 @@ public class TableViewSWT_Common
 				menuItem.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event e) {
 						tc.setVisible(!tc.isVisible());
+						TableColumnManager tcm = TableColumnManager.getInstance();
+						String tableID = tv.getTableID();
+						tcm.saveTableColumns(tv.getDataSourceType(), tableID);
 						if (tv instanceof TableStructureModificationListener) {
 							((TableStructureModificationListener) tv).tableStructureChanged(
 									true, null);
