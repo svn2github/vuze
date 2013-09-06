@@ -723,17 +723,18 @@ ConfigurationChecker
           }
         });
         
-        for( int i=0; i < files.length; i++ ) {
-          File file = files[ i ];
-          if( file.exists() ) {
-          	if (Logger.isEnabled())
-							Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-									"ConfigurationChecker:: removing old language file: "
-											+ file.getAbsolutePath()));
-            file.renameTo( new File( file.getParentFile(), "delme" + file.getName() ) );
-          }
+        if ( files != null ){
+	        for( int i=0; i < files.length; i++ ) {
+	          File file = files[ i ];
+	          if( file.exists() ) {
+	          	if (Logger.isEnabled())
+								Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+										"ConfigurationChecker:: removing old language file: "
+												+ file.getAbsolutePath()));
+	            file.renameTo( new File( file.getParentFile(), "delme" + file.getName() ) );
+	          }
+	        }
         }
-
         ConfigurationManager.getInstance().removeParameter( "General_bEnableLanguageUpdate" );
         changed = true;
       }
