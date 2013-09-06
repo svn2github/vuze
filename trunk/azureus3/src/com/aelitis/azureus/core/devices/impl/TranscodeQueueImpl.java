@@ -1418,6 +1418,11 @@ TranscodeQueueImpl
 	{
 		TranscodeProvider provider = job.getProfile().getProvider();
 	
+		if ( provider == null ){
+			
+			throw( new TranscodeException( "Transcode provider not available" ));
+		}
+		
 		final TranscodeException[] error = { null };
 		
 		TranscodeProfile profile = job.getProfile();
