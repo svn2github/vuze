@@ -216,7 +216,7 @@ public class UnchokerUtilTest {
 		public void addRateLimiter(LimitedRateGroup limiter, boolean upload) {
 		}
 		public LimitedRateGroup[] getRateLimiters(boolean upload) {
-			return null;
+			return new LimitedRateGroup[0];
 		}
 		public void removeRateLimiter(LimitedRateGroup limiter, boolean upload) {			
 		}
