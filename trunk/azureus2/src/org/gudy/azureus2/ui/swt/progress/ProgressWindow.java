@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreOperation;
 import com.aelitis.azureus.core.AzureusCoreOperationListener;
+import com.aelitis.azureus.core.AzureusCoreOperationTask;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
@@ -139,7 +140,14 @@ ProgressWindow
 				try{	
 					// Thread.sleep(10000);
 					
-					operation.getTask().run( operation );
+					AzureusCoreOperationTask task = operation.getTask();
+					
+					if ( task == null ){
+						
+						throw( new RuntimeException( "Task not available" ));
+					}
+					
+					task.run( operation );
 					
 				}catch( RuntimeException e ){
 					
