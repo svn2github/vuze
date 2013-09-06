@@ -3213,7 +3213,7 @@ DiskManagerImpl
     public static String[] getStorageTypes(DownloadManager download_manager) {
         DownloadManagerState state = download_manager.getDownloadState();
         String[] types = state.getListAttribute(DownloadManagerState.AT_FILE_STORE_TYPES);
-        if (types.length == 0) {
+        if (types == null || types.length == 0) {
         	TOTorrentFile[] files = download_manager.getTorrent().getFiles();
             types = new String[download_manager.getTorrent().getFiles().length];
             
