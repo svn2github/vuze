@@ -51,6 +51,9 @@ TagFeatureProperties
 		public String[]
 		getStringList();
 		
+		public String
+		getString();
+		
 		public void
 		addListener(
 			TagPropertyListener		listener );

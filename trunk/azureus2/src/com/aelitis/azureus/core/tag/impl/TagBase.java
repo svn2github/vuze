@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagException;
 import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
+import com.aelitis.azureus.core.tag.TagFeatureProperties;
 import com.aelitis.azureus.core.tag.TagFeatureRSSFeed;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagListener;
@@ -823,6 +824,38 @@ TagBase
 		getStringList()
 		{
 			return( readStringListAttribute( AT_PROPERTY_PREFX + name, EMPTY_STRING_LIST ));
+		}
+		
+		public String
+		getString()
+		{
+			String	value = null;
+			
+			switch( getType()){
+				case TagFeatureProperties.PT_STRING_LIST:{
+					String[] vals = getStringList();
+					
+					if ( vals != null && vals.length > 0 ){
+						value = "";
+						for ( String val: vals ){
+							value += (value.length()==0?"":"," ) + val;
+						}
+					}
+					break;
+				}
+				default:{
+					value = "Unknown type";
+				}
+			}
+			
+			if ( value == null ){
+				
+				return( "" );
+				
+			}else{
+			
+				return( getName( true ) + "=" + value );
+			}
 		}
 		
 		public void
