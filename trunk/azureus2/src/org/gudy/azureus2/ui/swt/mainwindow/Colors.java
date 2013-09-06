@@ -20,6 +20,9 @@
  * 78600 Le Mesnil le Roi, France.
  */
 package org.gudy.azureus2.ui.swt.mainwindow;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.RGB;
@@ -29,6 +32,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -78,6 +82,44 @@ public class Colors implements ParameterListener {
 	public static float diffSatPct;
 	public static float diffLumPct;
   
+	
+  static List<ParameterListener>	listeners = new ArrayList<ParameterListener>();
+  
+  static{
+	ParameterListener l = 
+		new ParameterListener()
+		{		
+			public void 
+			parameterChanged(
+				String parameterName) 
+			{
+				List<ParameterListener>	copy;
+				
+				synchronized( listeners ){
+					copy = new ArrayList<ParameterListener>( listeners );
+				}
+				
+				for ( ParameterListener l: copy ){
+					try{
+						l.parameterChanged(parameterName);
+					}catch( Throwable e ){
+						Debug.out( e );
+					}
+				}
+			}
+		};
+		
+    COConfigurationManager.addParameterListener("Color Scheme", l);
+    COConfigurationManager.addParameterListener("Colors.progressBar.override", l);
+    COConfigurationManager.addParameterListener("Colors.progressBar", l);
+    COConfigurationManager.addParameterListener("Colors.error.override", l);
+    COConfigurationManager.addParameterListener("Colors.error", l);
+    COConfigurationManager.addParameterListener("Colors.warning.override", l);
+    COConfigurationManager.addParameterListener("Colors.warning", l);
+    COConfigurationManager.addParameterListener("Colors.altRow.override", l);
+    COConfigurationManager.addParameterListener("Colors.altRow", l);
+  }
+	
   private void allocateBlues() {    
     int r = 0;
     int g = 128;
@@ -379,27 +421,15 @@ public class Colors implements ParameterListener {
   }
   
   public void addColorsChangedListener(ParameterListener l) {
-    COConfigurationManager.addParameterListener("Color Scheme", l);
-    COConfigurationManager.addParameterListener("Colors.progressBar.override", l);
-    COConfigurationManager.addParameterListener("Colors.progressBar", l);
-    COConfigurationManager.addParameterListener("Colors.error.override", l);
-    COConfigurationManager.addParameterListener("Colors.error", l);
-    COConfigurationManager.addParameterListener("Colors.warning.override", l);
-    COConfigurationManager.addParameterListener("Colors.warning", l);
-    COConfigurationManager.addParameterListener("Colors.altRow.override", l);
-    COConfigurationManager.addParameterListener("Colors.altRow", l);
+	  synchronized( listeners ){
+		  listeners.add( l );
+	  }
   }
 
   public void removeColorsChangedListener(ParameterListener l) {
-    COConfigurationManager.removeParameterListener("Color Scheme", l);
-    COConfigurationManager.removeParameterListener("Colors.progressBar.override", l);
-    COConfigurationManager.removeParameterListener("Colors.progressBar", l);
-    COConfigurationManager.removeParameterListener("Colors.error.override", l);
-    COConfigurationManager.removeParameterListener("Colors.error", l);
-    COConfigurationManager.removeParameterListener("Colors.warning.override", l);
-    COConfigurationManager.removeParameterListener("Colors.warning", l);
-    COConfigurationManager.removeParameterListener("Colors.altRow.override", l);
-    COConfigurationManager.removeParameterListener("Colors.altRow", l);
+	  synchronized( listeners ){
+		  listeners.remove( l );
+	  }
   }
   
   public void parameterChanged(String parameterName) {
