@@ -154,41 +154,49 @@ SpeedTestSelector
 			final Runnable runWhenClosed) {
 		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID(
 				"mlab");
-		try {
-			HashMap<String, Object> map = new HashMap<String, Object>();
-			map.put("allowShaperProbeLogic", Boolean.valueOf(allowShaperProbeLogic));
-			pi.getIPC().invoke("runTest", new Object[] {
-				map,
-				new IPCInterface() {
-					public Object invoke(String methodName, Object[] params)
-							throws IPCException {
-						// we could set SpeedTest Completed when methodName == "results"
-						// or ask user if they want to be prompted again if it isn't
-						// But, we'd have to pass a param into runMLABTest (so we don't
-						// get prompt on menu invocation).
-
-						// For now, show only once, with no reprompt (even if they cancel).
-						// They can use the menu
-						COConfigurationManager.setParameter("SpeedTest Completed", true);
-
-						if (runWhenClosed != null) {
-							runWhenClosed.run();
-						}
-						return null;
-					}
-
-					public boolean canInvoke(String methodName, Object[] params) {
-						return true;
-					}
-				},
-				true
-			});
-
-		} catch (Throwable e) {
-
-			Debug.out(e);
+		
+		if ( pi == null ){
+			Debug.out("mlab plugin not available");
 			if (runWhenClosed != null) {
 				runWhenClosed.run();
+			}
+		}else{
+			try {
+				HashMap<String, Object> map = new HashMap<String, Object>();
+				map.put("allowShaperProbeLogic", Boolean.valueOf(allowShaperProbeLogic));
+				pi.getIPC().invoke("runTest", new Object[] {
+					map,
+					new IPCInterface() {
+						public Object invoke(String methodName, Object[] params)
+								throws IPCException {
+							// we could set SpeedTest Completed when methodName == "results"
+							// or ask user if they want to be prompted again if it isn't
+							// But, we'd have to pass a param into runMLABTest (so we don't
+							// get prompt on menu invocation).
+	
+							// For now, show only once, with no reprompt (even if they cancel).
+							// They can use the menu
+							COConfigurationManager.setParameter("SpeedTest Completed", true);
+	
+							if (runWhenClosed != null) {
+								runWhenClosed.run();
+							}
+							return null;
+						}
+	
+						public boolean canInvoke(String methodName, Object[] params) {
+							return true;
+						}
+					},
+					true
+				});
+	
+			} catch (Throwable e) {
+	
+				Debug.out(e);
+				if (runWhenClosed != null) {
+					runWhenClosed.run();
+				}
 			}
 		}
 	}
