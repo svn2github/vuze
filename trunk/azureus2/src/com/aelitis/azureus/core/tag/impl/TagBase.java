@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.tag.impl;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Set;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
@@ -517,6 +518,8 @@ TagBase
 	{
 		t_listeners.dispatch( TL_ADD, t );
 		
+		tag_type.taggableAdded( this, t );
+		
 		tag_type.fireChanged( this );
 	}
 	
@@ -526,6 +529,8 @@ TagBase
 	{
 		t_listeners.dispatch( TL_REMOVE, t );
 		
+		tag_type.taggableRemoved( this, t );
+
 		tag_type.fireChanged( this );
 	}
 	
@@ -533,6 +538,8 @@ TagBase
 	sync()
 	{
 		t_listeners.dispatch( TL_SYNC, null );
+		
+		tag_type.taggableSync( this );
 	}
 	
 	public void
@@ -561,6 +568,19 @@ TagBase
 				
 				listener.taggableAdded( this, t );
 			}
+		}
+	}
+	
+	protected void
+	destroy()
+	{
+		Set<Taggable>	taggables = getTagged();
+		
+		for( Taggable t: taggables ){
+			
+			t_listeners.dispatch( TL_REMOVE, t );
+			
+			tag_type.taggableRemoved( this, t );
 		}
 	}
 	

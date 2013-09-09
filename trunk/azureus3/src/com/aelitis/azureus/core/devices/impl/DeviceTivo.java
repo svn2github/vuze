@@ -405,19 +405,19 @@ DeviceTivo
 				
 				TranscodeFileImpl[] tfs = getFiles();
 				
-				String	category = null;
+				String	category_or_tag = null;
 				
-				Map<String,ContainerInfo>	categories = null;
+				Map<String,ContainerInfo>	categories_or_tags = null;
 
 				if ( show_categories ){
 					
 					if ( container.startsWith( "/Content/" )){
 						
-						category = container.substring( container.lastIndexOf( '/' ) + 1 );
+						category_or_tag = container.substring( container.lastIndexOf( '/' ) + 1 );
 						
 					}else{
 						
-						categories = new HashMap<String,ContainerInfo>();
+						categories_or_tags = new HashMap<String,ContainerInfo>();
 					}
 				}
 				
@@ -438,20 +438,24 @@ DeviceTivo
 						}
 					}
 												
-					if ( category != null ){
+					if ( category_or_tag != null ){
 					
 						boolean	hit = false;
 
-						String[]	cats = file.getCategories();
+						String[]	cats 	= file.getCategories();
+						String[]	tags	= file.getTags( true );
 						
-						for ( String c: cats ){
-							
-							if ( c.equals( category )){
+						for ( String[] strs: new String[][]{ cats,tags }){
+						
+							for ( String c: strs ){
 								
-								hit = true;
+								if ( c.equals( category_or_tag )){
+									
+									hit = true;
+								}
 							}
 						}
-						
+					
 						if ( !hit ){
 							
 							continue;
@@ -464,26 +468,30 @@ DeviceTivo
 						
 						boolean	skip = false;
 						
-						if ( categories != null ){
+						if ( categories_or_tags != null ){
 							
-							String[]	cats = file.getCategories();
-							
-							if ( cats.length > 0 ){
+							String[]	cats 	= file.getCategories();
+							String[]	tags	= file.getTags( true );
+
+							if ( cats.length > 0 || tags.length > 0 ){
 								
 								skip = true;
 
-								for ( String s: cats ){
+								for ( String[] strs: new String[][]{ cats,tags }){
 									
-									ContainerInfo cont = categories.get( s );
-									
-									if ( cont == null ){
+									for ( String s: strs ){
 										
-										items.add( cont = new ContainerInfo( s ));
+										ContainerInfo cont = categories_or_tags.get( s );
 										
-										categories.put( s, cont );
+										if ( cont == null ){
+											
+											items.add( cont = new ContainerInfo( s ));
+											
+											categories_or_tags.put( s, cont );
+										}
+																
+										cont.addChild();
 									}
-															
-									cont.addChild();
 								}
 							}
 						}

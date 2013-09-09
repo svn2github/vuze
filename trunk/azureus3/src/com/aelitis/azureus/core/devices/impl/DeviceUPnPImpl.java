@@ -39,6 +39,7 @@ import org.gudy.azureus2.plugins.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadManagerListener;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 
@@ -56,6 +57,11 @@ import com.aelitis.azureus.core.devices.TranscodeTarget;
 import com.aelitis.azureus.core.devices.TranscodeTargetListener;
 import com.aelitis.azureus.core.devices.DeviceManager.UnassociatedDevice;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoStream;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagListener;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.UUIDGenerator;
 import com.aelitis.azureus.util.PlayUtils;
@@ -769,7 +775,7 @@ DeviceUPnPImpl
 					
 			transcode_file.setTransientProperty( UPNPAV_FILE_KEY, acf );
 
-			syncCategories( transcode_file, true );
+			syncCategoriesAndTags( transcode_file, true );
 					
 			synchronized( this ){
 				
@@ -1044,7 +1050,7 @@ DeviceUPnPImpl
 			
 			if ( !transcode_file.isComplete()){
 				
-				syncCategories( transcode_file, _new_file );
+				syncCategoriesAndTags( transcode_file, _new_file );
 
 				return;
 			}
@@ -1099,17 +1105,25 @@ DeviceUPnPImpl
 							
 								return( new String[0] );
 								
-							} else if (name.equals(PT_TITLE)) {
-								
+							}else if ( name.equals( PT_TAGS )){
 								
 								TranscodeFileImpl	tf = getTranscodeFile( tf_key );
 
 								if ( tf != null ){
 									
-									return( tf.getName());
+									return( tf.getTags( true ));
 								}
 							
+								return( new String[0] );
 								
+							} else if (name.equals(PT_TITLE)) {
+															
+								TranscodeFileImpl	tf = getTranscodeFile( tf_key );
+
+								if ( tf != null ){
+									
+									return( tf.getName());
+								}						
 							}else{
 								
 								TranscodeFileImpl	tf = getTranscodeFile( tf_key );
@@ -1197,7 +1211,7 @@ DeviceUPnPImpl
 					acf_map.put( tf_key, acf );
 				}	
 				
-				syncCategories( transcode_file, _new_file );
+				syncCategoriesAndTags( transcode_file, _new_file );
 					
 				try{
 					ipc.invoke( "addContent", new Object[]{ acf });
@@ -1214,12 +1228,12 @@ DeviceUPnPImpl
 	}
 	
 	protected void
-	syncCategories(
+	syncCategoriesAndTags(
 		TranscodeFileImpl		tf,
 		boolean					inherit_from_download )
 	{
-		try{
-			Download dl = tf.getSourceFile().getDownload();
+		try{			
+			final Download dl = tf.getSourceFile().getDownload();
 			
 			if ( dl != null ){
 				
@@ -1228,6 +1242,7 @@ DeviceUPnPImpl
 				if ( inherit_from_download ){
 				
 					setCategories( tf, dl );
+					setTags( tf, dl );
 				}
 				
 				final String tf_key = tf.getKey();
@@ -1246,11 +1261,58 @@ DeviceUPnPImpl
 							if ( tf != null ){
 								
 								setCategories( tf, download );
+								
+							}else{
+								
+								dl.removeAttributeListener( this, upnp_manager.getCategoryAttibute(), DownloadAttributeListener.WRITTEN );
 							}
 						}
 					},
 					upnp_manager.getCategoryAttibute(),
 					DownloadAttributeListener.WRITTEN );
+				
+				TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL ).addTagListener( 
+						PluginCoreUtils.unwrap( dl ),
+						new TagListener()
+						{	
+							public void 
+							taggableSync(
+								Tag tag) 
+							{
+							}
+							
+							public void 
+							taggableRemoved(
+								Tag 		tag, 
+								Taggable 	tagged ) 
+							{
+								update( tagged );
+							}
+							
+							public void 
+							taggableAdded(
+								Tag 		tag, 
+								Taggable 	tagged ) 
+							{
+								update( tagged );
+							}
+							
+							private void
+							update(
+								Taggable	tagged )
+							{
+								TranscodeFileImpl tf = getTranscodeFile( tf_key );
+								
+								if ( tf != null ){
+									
+									setTags( tf, dl );
+									
+								}else{
+									
+									TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL ).removeTagListener( tagged, this ); 								
+								}
+							}
+						});
 			}
 		}catch( Throwable e ){
 			
@@ -1274,6 +1336,26 @@ DeviceUPnPImpl
 		}
 	}
 	
+	protected void
+	setTags(
+		TranscodeFileImpl		tf,
+		Download				dl )
+	{
+		List<Tag> tags = TagManagerFactory.getTagManager().getTagsForTaggable( PluginCoreUtils.unwrap( dl ));
+		
+		List<String>	tag_names = new ArrayList<String>();
+		
+		for ( Tag tag: tags ){
+			
+			if ( tag.getTagType().getTagType() == TagType.TT_DOWNLOAD_MANUAL ){
+				
+				tag_names.add( String.valueOf( tag.getTagUID()));
+			}
+		}
+		
+		tf.setTags( tag_names.toArray( new String[ tag_names.size()] ));
+	}
+	
 	public void
 	fileChanged(
 		TranscodeFile		file,
@@ -1287,7 +1369,7 @@ DeviceUPnPImpl
 		
 		if ( type == TranscodeTargetListener.CT_PROPERTY ){
 			
-			if ( data == TranscodeFile.PT_CATEGORY ){
+			if ( data == TranscodeFile.PT_CATEGORY || data == TranscodeFile.PT_TAGS ){
 				
 				AzureusContentFile	acf;
 				
@@ -1298,7 +1380,14 @@ DeviceUPnPImpl
 				
 				if ( acf != null ){
 					
-					AzureusPlatformContentDirectory.fireChanged( acf );
+					if ( data == TranscodeFile.PT_TAGS ){
+						
+						AzureusPlatformContentDirectory.fireTagsChanged( acf );
+						
+					}else{
+						
+						AzureusPlatformContentDirectory.fireCatsChanged( acf );
+					}
 				}
 			}
 		}

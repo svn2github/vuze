@@ -22,9 +22,12 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
 
@@ -32,7 +35,7 @@ import com.aelitis.azureus.core.tag.*;
 
 public abstract class 
 TagTypeBase
-	implements TagType
+	implements TagType, TagListener
 {	
 	protected static final String	AT_COLOR_ID			= "col.rgb";
 
@@ -76,7 +79,9 @@ TagTypeBase
 					}
 				}
 			});	
-			
+		
+	private Map<Taggable,List<TagListener>>	tag_listeners = new HashMap<Taggable,List<TagListener>>();
+	
 	protected
 	TagTypeBase(
 		int			_tag_type,
@@ -112,6 +117,10 @@ TagTypeBase
 		TaggableResolver	resolver,
 		Taggable			taggable )
 	{	
+		synchronized( tag_listeners ){
+			
+			tag_listeners.remove( taggable );
+		}
 	}
 	
 	public int
@@ -199,6 +208,8 @@ TagTypeBase
 	removeTag(
 		Tag	t )
 	{
+		((TagBase)t).destroy();
+		
 		tt_listeners.dispatch( TTL_REMOVE, t );
 		
 		manager.removeConfig( t );
@@ -308,6 +319,137 @@ TagTypeBase
 		TagTypeListener	listener )
 	{
 		tt_listeners.removeListener( listener );
+	}
+	
+	public void
+	taggableAdded(
+		Tag			tag,
+		Taggable	tagged )
+	{
+		List<TagListener> listeners;
+	
+		synchronized( tag_listeners ){
+			
+			listeners = tag_listeners.get( tagged );
+		}
+		
+		if ( listeners != null ){
+			
+			for ( TagListener l: listeners ){
+				
+				try{
+					l.taggableAdded(tag, tagged);
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
+	}
+	
+	public void
+	taggableSync(
+		Tag			tag )
+	{
+		List<List<TagListener>> all_listeners = new ArrayList<List<TagListener>>();
+		
+		synchronized( tag_listeners ){
+			
+			all_listeners.addAll( tag_listeners.values());
+		}
+		
+		for ( List<TagListener> listeners: all_listeners ){
+			
+			for ( TagListener listener: listeners ){
+				
+				try{
+					listener.taggableSync(tag);
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
+	}
+	
+	public void
+	taggableRemoved(
+		Tag			tag,
+		Taggable	tagged )
+	{
+		List<TagListener> listeners;
+		
+		synchronized( tag_listeners ){
+			
+			listeners = tag_listeners.get( tagged );
+		}
+		
+		if ( listeners != null ){
+			
+			for ( TagListener l: listeners ){
+				
+				try{
+					l.taggableRemoved(tag, tagged);
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
+	}
+	
+	public void
+	addTagListener(
+		Taggable		taggable,
+		TagListener		listener )
+	{
+		synchronized( tag_listeners ){
+			
+			List<TagListener> listeners = tag_listeners.get( taggable );
+			
+			if ( listeners == null ){
+				
+				listeners = new ArrayList<TagListener>();
+				
+			}else{
+				
+				listeners = new ArrayList<TagListener>( listeners );
+			}
+			
+			listeners.add( listener );
+			
+			tag_listeners.put( taggable, listeners );
+		}
+	}
+	
+	public void
+	removeTagListener(
+		Taggable		taggable,
+		TagListener		listener )
+	{
+		synchronized( tag_listeners ){
+			
+			List<TagListener> listeners = tag_listeners.get( taggable );
+			
+			if ( listeners != null ){
+				
+				listeners = new ArrayList<TagListener>( listeners );
+				
+				listeners.remove( listener );
+				
+				if ( listeners.size() == 0 ){
+					
+					tag_listeners.remove( taggable );
+					
+				}else{
+					
+					tag_listeners.put( taggable, listeners );
+				}
+			}
+		}
 	}
 	
 	protected Boolean

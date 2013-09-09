@@ -33,6 +33,7 @@ AzureusContentFile
 	public static final String	PT_VIDEO_WIDTH		= "video_width";	// Long
 	public static final String	PT_VIDEO_HEIGHT		= "video_height";	// Long
 	public static final String	PT_CATEGORIES		= "cats";			// String[]
+	public static final String	PT_TAGS				= "tags";			// String[]
 	public static final String	PT_PERCENT_DONE		= "percent";		// Long, thousandths
 	public static final String	PT_ETA				= "eta";			// Long, seconds
 	

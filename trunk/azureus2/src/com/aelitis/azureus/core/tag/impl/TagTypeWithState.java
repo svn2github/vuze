@@ -81,6 +81,8 @@ TagTypeWithState
 				t.removeTaggable( taggable );
 			}
 		}
+		
+		super.removeTaggable(_resolver, taggable );
 	}
 	
 	public void

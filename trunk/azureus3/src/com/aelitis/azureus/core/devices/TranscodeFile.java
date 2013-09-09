@@ -35,6 +35,7 @@ TranscodeFile
 	public static final String PT_COPIED		= "copied";
 	public static final String PT_COPY_FAILED	= "copy_fail";
 	public static final String PT_CATEGORY		= "cat";
+	public static final String PT_TAGS			= "tags";
 	
 	public String
 	getName();
@@ -91,6 +92,14 @@ TranscodeFile
 	public void
 	setCategories(
 		String[]	cats );
+	
+	public String[]
+	getTags(
+		boolean	localize );
+	
+	public void
+	setTags(
+		String[]	tags );
 	
 	public Device
 	getDevice();

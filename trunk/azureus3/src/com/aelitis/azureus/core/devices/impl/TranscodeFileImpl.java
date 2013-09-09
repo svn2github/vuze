@@ -27,7 +27,9 @@ package com.aelitis.azureus.core.devices.impl;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.util.*;
@@ -44,6 +46,9 @@ import com.aelitis.azureus.core.devices.TranscodeProviderAnalysis;
 import com.aelitis.azureus.core.devices.TranscodeTargetListener;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoDelegate;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.util.ImportExportUtils;
 
 class
@@ -51,6 +56,8 @@ TranscodeFileImpl
 	implements TranscodeFile
 {	
 	protected static final String		KEY_FILE			= "file";
+	
+	private static final TagManager	tag_manager = TagManagerFactory.getTagManager();
 	
 	private static final String			KEY_PROFILE_NAME		= "pn";
 	private static final String			KEY_SOURCE_FILE_HASH	= "sf_hash";
@@ -65,6 +72,7 @@ TranscodeFileImpl
 	private static final String			KEY_XCODE_SIZE			= "at_xs";
 	private static final String			KEY_DATE				= "at_dt";
 	private static final String			KEY_CATEGORIES			= PT_CATEGORY;
+	private static final String			KEY_TAGS				= PT_TAGS;
 	private static final String			KEY_COPY_TO_OVERRIDE	= "ct_over";
 	private static final String			KEY_COPYING	= "copying";
 
@@ -557,6 +565,91 @@ TranscodeFileImpl
 		}
 		
 		setString( KEY_CATEGORIES, str );
+	}
+	
+	public String[] 
+	getTags(
+		boolean	localize ) 
+	{
+		String tags_str = getString( KEY_TAGS );
+		
+		if ( tags_str == null || tags_str.length() == 0 ){
+			
+			return( new String[0] );
+		}
+		
+		String[] tags = Constants.PAT_SPLIT_COMMA.split(tags_str);
+		
+		if ( localize ){
+			
+			List<String> derp = null;
+			
+			int	pos = 0;
+			
+			for ( String s: tags ){
+			
+				try{
+					String tag_name = tag_manager.lookupTagByUID( Long.parseLong( s )).getTagName( true );
+			
+					if ( derp == null ){
+						
+						tags[pos++] = tag_name;
+						
+					}else{
+						
+						derp.add( tag_name );
+					}
+				}catch( Throwable e ){
+					
+					if ( derp == null ){
+						
+						derp = new ArrayList<String>();
+						
+						for ( int i=0;i<pos;i++){
+							
+							derp.add( tags[i]);
+						}
+					}
+				}
+			}
+			
+			if ( derp == null ){
+				
+				return( tags );
+			}
+			
+			return( derp.toArray( new String[ derp.size()]));
+			
+		}else{
+		
+			return( tags );
+		}
+	}
+	
+	public void
+	setTags(
+		String[]		tags )
+	{
+		String[] existing = getTags( false );
+		
+		if ( existing.length == 0 && existing.length == tags.length ){
+			
+			return;
+		}
+		
+		String	str = "";
+		
+		for ( String tag: tags ){
+			
+			tag = tag.replaceAll( ",", "" ).trim();
+			
+			if ( tag.length() > 0 ){
+				
+				str += (str.length()==0?"":",") + tag;
+			}
+		}
+		
+		setString( KEY_TAGS, str );
 	}
 	
 	public long

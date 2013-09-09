@@ -28,7 +28,6 @@ import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -51,11 +50,16 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWTImpl;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.devices.*;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UserPrompterResultListener;
@@ -330,6 +334,13 @@ public class SBC_DevicesView
 				ColumnTJ_Category.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTJ_Category(column);
+					}
+				});
+		
+		tableManager.registerColumn(TranscodeFile.class,
+				ColumnTJ_Tags.COLUMN_ID, new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTJ_Tags(column);
 					}
 				});
 		
@@ -727,7 +738,15 @@ public class SBC_DevicesView
 
 	    addCategorySubMenu( menu_category, files );
 
+	    	// tag
 		
+	    Menu menu_tags = new Menu(menu.getShell(), SWT.DROP_DOWN);
+	    final MenuItem item_tags = new MenuItem(menu, SWT.CASCADE);
+	    Messages.setLanguageText(item_tags, "label.tag" );
+	    item_tags.setMenu(menu_tags);
+
+	    addTagsSubMenu( menu_tags, files );
+	    
 		new MenuItem(menu, SWT.SEPARATOR);
 
 		// pause
@@ -1006,6 +1025,163 @@ public class SBC_DevicesView
 		}
 	}
 
+	private void 
+	addTagsSubMenu(
+		Menu						menu_tags,
+		final TranscodeFile[]		files )
+	{
+		MenuItem[] items = menu_tags.getItems();
+		
+		for (int i = 0; i < items.length; i++) {
+			items[i].dispose();
+		}
+
+		TagManager tm = TagManagerFactory.getTagManager();
+		
+		List<Tag> all_tags = tm.getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTags();
+		
+		all_tags = TagUIUtils.sortTags( all_tags );
+
+		if ( all_tags.size() > 0 ){
+					
+			Set<String> shared_tags = null;
+			
+			boolean	some_tags_assigned = false;
+			
+			for ( TranscodeFile file: files ){
+				
+				Set<String> file_tags = new HashSet<String>();
+								
+				file_tags.addAll( Arrays.asList( file.getTags( true )));
+				
+				if ( file_tags.size() > 0 ){
+					
+					some_tags_assigned = true;
+				}
+
+				if ( shared_tags == null ){
+					
+					shared_tags = file_tags;
+					
+				}else{
+					
+					if ( shared_tags.size() != file_tags.size() ){
+						
+						shared_tags.clear();
+						
+						break;
+						
+					}else{
+						
+						if ( !shared_tags.equals( file_tags )){
+							
+							shared_tags.clear();
+							
+							break;
+						}
+					}
+				}
+			}
+			
+			if ( some_tags_assigned ){
+				
+				final MenuItem mi_no_tag = new MenuItem( menu_tags, SWT.PUSH );
+				
+				mi_no_tag.setText( MessageText.getString( "label.no.tag" ));
+
+				mi_no_tag.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						
+						for ( TranscodeFile file: files ){
+							
+							file.setTags( new String[0] );
+						}
+					}
+				});
+				
+				new MenuItem( menu_tags, SWT.SEPARATOR );
+			}
+			
+			for ( final Tag t: all_tags ){
+				
+				final MenuItem t_i = new MenuItem( menu_tags, SWT.CHECK );
+				
+				String tag_name = t.getTagName( true );
+				
+				t_i.setText( tag_name );
+				
+				t_i.setSelection( shared_tags.contains( tag_name ));
+				
+				t_i.addListener(SWT.Selection, new Listener() {
+					public void handleEvent(Event event) {
+						
+						boolean	selected = t_i.getSelection();
+						
+						String 	tag_uid = String.valueOf( t.getTagUID());
+						
+						for ( TranscodeFile file: files ){
+							
+							Set<String>	uids = new TreeSet<String>();
+							
+							uids.addAll( Arrays.asList( file.getTags( false )));
+							
+							boolean	update = false;
+							
+							if ( selected ){
+								
+								if ( !uids.contains(tag_uid)){
+									
+									uids.add( tag_uid );
+									
+									update = true;
+								}
+							}else{
+								
+								if ( uids.contains( tag_uid )){
+					
+									uids.remove( tag_uid );
+									
+									update = true;
+								}
+							}
+							
+							if ( update ){
+								
+								file.setTags( uids.toArray( new String[ uids.size()]));
+							}
+						}
+					}
+				});
+			}
+		}
+		
+		new MenuItem( menu_tags, SWT.SEPARATOR );
+		 
+		MenuItem item_create = new MenuItem( menu_tags, SWT.PUSH);
+		
+		Messages.setLanguageText(item_create, "label.add.tag");
+		
+		item_create.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				
+				Tag new_tag = TagUIUtils.createManualTag();
+				
+				if ( new_tag != null ){
+					
+					String[] tags = new String[]{ String.valueOf( new_tag.getTagUID()) };
+					
+					for ( TranscodeFile file: files ){
+						
+						file.setTags( tags );
+					}
+					
+					COConfigurationManager.setParameter( "Library.TagInSideBar", true );
+				}
+			}
+		});
+	}
+
+	
 	public void
 	deviceChanged(
 		Device		device )

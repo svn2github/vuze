@@ -102,4 +102,20 @@ TagType
 	public void
 	removeTagTypeListener(
 		TagTypeListener		listener );
+	
+		/**
+		 * taggable-specific listneer for this tag-type
+		 * @param taggable
+		 * @param listener
+		 */
+	
+	public void
+	addTagListener(
+		Taggable		taggable,
+		TagListener		listener );
+	
+	public void
+	removeTagListener(
+		Taggable		taggable,
+		TagListener		listener );
 }

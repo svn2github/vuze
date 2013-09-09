@@ -36,14 +36,12 @@ import java.util.Comparator;
 import java.util.List;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
-
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.core3.xml.util.XMLEscapeWriter;
 import org.gudy.azureus2.core3.xml.util.XUXmlWriter;
-
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
@@ -51,6 +49,9 @@ import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 import com.aelitis.azureus.core.devices.Device;
 import com.aelitis.azureus.core.devices.DeviceManager;
 import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
@@ -277,7 +278,6 @@ DeviceManagerRSSFeed
 				}
 				
 				try{
-					
 					pw.println( "<?xml version=\"1.0\" encoding=\"utf-8\"?>" );
 					
 					pw.println( 
@@ -349,7 +349,14 @@ DeviceManagerRSSFeed
 			  				
 			  				for ( String category: categories ){
 			  					
-			  					pw.println( "<category>" + category + "</category>" );
+			  					pw.println( "<category>" + escape(category) + "</category>" );
+			  				}
+			  				
+			  				String[] tags = file.getTags( true );
+			  				
+			  				for ( String tag: tags ){
+			  					
+			  					pw.println( "<tag>" + escape( tag ) + "</tag>" );
 			  				}
 			  				
 			  				String mediaContent = "";

@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.content;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -37,10 +39,16 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagListener;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.util.ConstantsVuze;
@@ -247,6 +255,22 @@ AzureusPlatformContentDirectory
 									
 									return( new String[0] );
 									
+								}else if ( name.equals( PT_TAGS )){
+
+									List<Tag> tags = TagManagerFactory.getTagManager().getTagsForTaggable( PluginCoreUtils.unwrap( file.getDownload()));
+									
+									List<String>	tag_names = new ArrayList<String>();
+									
+									for ( Tag tag: tags ){
+										
+										if ( tag.getTagType().getTagType() == TagType.TT_DOWNLOAD_MANUAL ){
+											
+											tag_names.add( tag.getTagName( true ));
+										}
+									}
+									
+									return( tag_names.toArray( new String[ tag_names.size()]) );
+									
 								}else if ( name.equals( PT_PERCENT_DONE )){
 									
 									long	size = file.getLength();
@@ -300,6 +324,23 @@ AzureusPlatformContentDirectory
 										
 										return( new String[0] );
 										
+									}else if ( name.equals( PT_TAGS )){
+
+
+										List<Tag> tags = TagManagerFactory.getTagManager().getTagsForTaggable( PluginCoreUtils.unwrap( file.getDownload()));
+										
+										List<String>	tag_names = new ArrayList<String>();
+										
+										for ( Tag tag: tags ){
+											
+											if ( tag.getTagType().getTagType() == TagType.TT_DOWNLOAD_MANUAL ){
+												
+												tag_names.add( tag.getTagName( true ));
+											}
+										}
+										
+										return( tag_names.toArray( new String[ tag_names.size()]) );
+										
 									}else if ( name.equals( PT_PERCENT_DONE )){
 										
 										long	size = file.getLength();
@@ -331,11 +372,45 @@ AzureusPlatformContentDirectory
 						TorrentAttribute 	attribute, 
 						int 				eventType ) 
 					{
-						fireChanged( f_acf );
+						fireCatsChanged( f_acf );
 					}
 				},
 				ta_category,
 				DownloadAttributeListener.WRITTEN );
+			
+			TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL ).addTagListener( 
+					PluginCoreUtils.unwrap( download ),
+					new TagListener()
+					{	
+						public void 
+						taggableSync(
+							Tag tag) 
+						{
+						}
+						
+						public void 
+						taggableRemoved(
+							Tag 		tag, 
+							Taggable 	tagged ) 
+						{
+							update( tagged );
+						}
+						
+						public void 
+						taggableAdded(
+							Tag 		tag, 
+							Taggable 	tagged ) 
+						{
+							update( tagged );
+						}
+						
+						private void
+						update(
+							Taggable	tagged )
+						{
+							fireTagsChanged( f_acf );
+						}
+					});
 			
 			return( acf );
 			
@@ -376,12 +451,22 @@ AzureusPlatformContentDirectory
 	}
 	
 	public static void
-	fireChanged(
+	fireCatsChanged(
 		AzureusContentFile	acf )
 	{
 		for ( AzureusContentDirectoryListener l: listeners ){
 			
 			l.contentChanged( acf, AzureusContentFile.PT_CATEGORIES );
+		}
+	}
+	
+	public static void
+	fireTagsChanged(
+		AzureusContentFile	acf )
+	{
+		for ( AzureusContentDirectoryListener l: listeners ){
+			
+			l.contentChanged( acf, AzureusContentFile.PT_TAGS );
 		}
 	}
 	
