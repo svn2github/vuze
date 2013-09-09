@@ -83,6 +83,9 @@ AZ3Functions
 		TranscodeTarget
 		{
 			public String
+			getID();
+			
+			public String
 			getName();
 			
 			public TranscodeProfile[]

@@ -235,6 +235,12 @@ public class InitialisationFunctions
 												return( d.getName());
 											}
 											
+											public String
+											getID()
+											{
+												return( d.getID());
+											}
+											
 											public TranscodeProfile[]
 											getProfiles()
 											{		

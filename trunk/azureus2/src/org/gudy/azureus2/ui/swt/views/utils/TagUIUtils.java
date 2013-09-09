@@ -991,6 +991,42 @@ public class TagUIUtils
 										}
 									});
 								}
+								
+								new MenuItem(tt_menu, SWT.SEPARATOR );
+								
+								final MenuItem no_xcode_item = new MenuItem(tt_menu, SWT.CHECK);
+								
+								final String never_str = MessageText.getString( "v3.menu.device.defaultprofile.never" );
+								
+								no_xcode_item.setText( never_str );
+	
+								final String never_uid = tt.getID() + "/blank";
+								
+								boolean	selected = existing != null	&& existing[0].equals(never_uid);
+								
+								if ( selected ){
+									
+									Utils.setMenuItemImage(tt_item, "blacktick");
+								}
+								
+								no_xcode_item.setSelection(selected );
+								
+								no_xcode_item.addListener(SWT.Selection, new Listener(){
+									
+									public void handleEvent(Event event) {
+										
+										String name = tt.getName() + " - " + never_str;
+										
+										if ( no_xcode_item.getSelection()){
+											
+											tf_xcode.setTagTranscodeTarget( never_uid, name );
+											
+										}else{
+											
+											tf_xcode.setTagTranscodeTarget( null, null );
+										}
+									}
+								});
 							}
 						}
 					}
