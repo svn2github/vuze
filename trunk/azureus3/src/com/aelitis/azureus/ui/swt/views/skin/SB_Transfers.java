@@ -1277,7 +1277,8 @@ public class SB_Transfers
 			});
 		}
 		
-		if ( !auto ){
+		if ( !( auto || tag.isTagAuto())){
+			
 			
 			entry.addListener(new MdiEntryDropListener() {
 				public boolean mdiEntryDrop(MdiEntry entry, Object payload) {
