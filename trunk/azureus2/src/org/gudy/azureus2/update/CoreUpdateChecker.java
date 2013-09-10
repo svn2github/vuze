@@ -1120,7 +1120,7 @@ CoreUpdateChecker
 						
 					}else{
 					
-						Runtime.getRuntime().exec( file.getAbsolutePath() );
+						Runtime.getRuntime().exec( new String[]{ file.getAbsolutePath() } );
 					}
 				}
 			}else{

@@ -423,7 +423,7 @@ public class SystemProperties {
       	Runtime r = Runtime.getRuntime();
  
     	if ( Constants.isWindows ) {
-    		p = r.exec( "cmd.exe /c set" );
+    		p = r.exec( new String[]{ "cmd.exe", "/c", "set" });
     	}
     	else { //we assume unix
     		p = r.exec( "env" );
