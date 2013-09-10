@@ -373,18 +373,21 @@ TagPropertyUntaggedHandler
 				
 			}else{
 				
-				untagged_tags.remove( tag );
+				boolean was_untagged = untagged_tags.remove( tag );
 				
 				if ( untagged_tags.size() == 0 ){
 					
 					setEnabled( tag, false );
 				}
 				
-				Set<Taggable> existing = tag.getTagged();
-				
-				for ( Taggable t: existing ){
-				
-					tag.removeTaggable( t );
+				if ( was_untagged ){
+					
+					Set<Taggable> existing = tag.getTagged();
+					
+					for ( Taggable t: existing ){
+					
+						tag.removeTaggable( t );
+					}
 				}
 			}
 		}
