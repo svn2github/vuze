@@ -75,7 +75,8 @@ import com.aelitis.azureus.ui.swt.views.skin.sidebar.SideBarEntrySWT;
  */
 public class SB_Transfers
 {
-	private static final Object AUTO_CLOSE_KEY = new Object();
+	private static final Object AUTO_CLOSE_KEY 	= new Object();
+	private static final Object TAG_DATA_KEY	= new Object();
 	
 	private static final String ID_VITALITY_ACTIVE = "image.sidebar.vitality.dl";
 
@@ -1053,6 +1054,26 @@ public class SB_Transfers
 		}
 		
 		ViewTitleInfoManager.refreshTitleInfo(entry.getViewTitleInfo());
+		
+		Object[] tag_data = (Object[])entry.getUserData( TAG_DATA_KEY );
+		
+		if ( tag_data != null ){
+			
+			boolean	auto_tag = tag.isTagAuto();
+			
+			if ( auto_tag != (Boolean)tag_data[1] ){
+				
+				tag_data[1] = auto_tag;
+				
+				if ( auto_tag ){
+					
+					entry.removeListener((MdiEntryDropListener)tag_data[0]);
+				}else{
+					
+					entry.addListener((MdiEntryDropListener)tag_data[0]);
+				}
+			}
+		}
 	}
 
 	private static void 
@@ -1277,10 +1298,9 @@ public class SB_Transfers
 			});
 		}
 		
-		if ( !( auto || tag.isTagAuto())){
-			
-			
-			entry.addListener(new MdiEntryDropListener() {
+		if ( !auto ){	
+	
+			MdiEntryDropListener dl = new MdiEntryDropListener() {
 				public boolean mdiEntryDrop(MdiEntry entry, Object payload) {
 					if (!(payload instanceof String)) {
 						return false;
@@ -1331,7 +1351,16 @@ public class SB_Transfers
 	
 					return true;
 				}
-			});
+			};
+			
+			boolean tag_auto = tag.isTagAuto();
+			
+			entry.setUserData( TAG_DATA_KEY, new Object[]{ dl, tag_auto });
+			
+			if ( !tag_auto ){
+				
+				entry.addListener( dl );
+			}
 		}
 	}
 

@@ -843,6 +843,8 @@ TagBase
 						Debug.out( e );
 					}
 				}
+				
+				tag_type.fireChanged( TagBase.this );
 			}
 		}
 		
@@ -868,6 +870,8 @@ TagBase
 						Debug.out( e );
 					}
 				}
+				
+				tag_type.fireChanged( TagBase.this );
 			}
 		}
 		

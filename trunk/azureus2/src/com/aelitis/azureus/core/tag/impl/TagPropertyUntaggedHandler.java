@@ -328,6 +328,13 @@ TagPropertyUntaggedHandler
 					return;
 				}
 				
+				Set<Taggable> existing = current_tag.getTagged();
+				
+				for ( Taggable t: existing ){
+				
+					current_tag.removeTaggable( t );
+				}
+				
 				Tag[] temp = untagged_tags.toArray(new Tag[untagged_tags.size()]);
 				
 				Tag copy_from = temp[0]==current_tag?temp[1]:temp[0];

@@ -92,6 +92,8 @@ public interface MdiEntry
 	public void setCollapseDisabled(boolean b);
 
 	public void addListener(MdiEntryDropListener listener);
+	
+	public void removeListener(MdiEntryDropListener listener);
 
 	public void setDatasource(Object ds);
 
