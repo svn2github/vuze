@@ -791,85 +791,114 @@ public class TagUIUtils
 				props_item.setMenu( props_menu );
 
 				for ( final TagProperty tp: tps ){
-					
-					MenuItem set_item = new MenuItem( props_menu, SWT.PUSH);
-					
-					String[] val = tp.getStringList();
-					
-					String def_str;
-					
-					if ( val == null || val.length == 0 ){
+										
+					if ( tp.getType() == TagFeatureProperties.PT_STRING_LIST ){
 						
-						def_str = "";
+						String[] val = tp.getStringList();
+						
+						String def_str;
+						
+						if ( val == null || val.length == 0 ){
+							
+							def_str = "";
+							
+						}else{
+							
+							def_str = "";
+							
+							for ( String v: val ){
+								
+								def_str += (def_str.length()==0?"":", ") + v;
+							}
+						}
+						
+						MenuItem set_item = new MenuItem( props_menu, SWT.PUSH);
+
+						set_item.setText( tp.getName( true ) + (def_str.length()==0?"":(" (" + def_str + ") ")) + "..." );
+		
+						final String f_def_str = def_str;
+						
+						set_item.addListener(SWT.Selection, new Listener() {
+							public void handleEvent(Event event){
+								
+								String msg = MessageText.getString( "UpdateProperty.list.message", new String[]{ tp.getName( true ) } );
+								
+								SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow( "UpdateProperty.title", "!" + msg + "!" );
+								
+								entryWindow.setPreenteredText( f_def_str, false );
+								entryWindow.selectPreenteredText( true );
+								
+								entryWindow.prompt();
+								
+								if ( entryWindow.hasSubmittedInput()){
+									
+									try{
+										String text = entryWindow.getSubmittedInput().trim();
+										
+										if ( text.length() ==  0 ){
+											
+											tp.setStringList( null );
+											
+										}else{
+											text = text.replace( ';', ',');
+											text = text.replace( ' ', ',');
+											text = text.replaceAll( "[,]+", "," );
+											
+											String[] bits = text.split( "," );
+											
+											List<String> vals = new ArrayList<String>();
+											
+											for ( String bit: bits ){
+												
+												bit = bit.trim();
+												
+												if ( bit.length() > 0 ){
+													
+													vals.add( bit );
+												}
+											}
+											
+											if ( vals.size() == 0 ){
+												
+												tp.setStringList( null );
+											}else{
+												
+												tp.setStringList( vals.toArray( new String[ vals.size()]));
+											}
+										}
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							}});
+						
+					}else if ( tp.getType() == TagFeatureProperties.PT_BOOLEAN ){
+						
+						final MenuItem set_item = new MenuItem( props_menu, SWT.CHECK);
+
+						set_item.setText( tp.getName( true ));
+						
+						Boolean val = tp.getBoolean();
+						
+						set_item.setSelection( val != null && val );
+
+						set_item.addListener(
+							SWT.Selection, 
+							new Listener() 
+							{
+								public void 
+								handleEvent(
+									Event event) 
+								{
+									tp.setBoolean( set_item.getSelection());
+								}
+							});
 						
 					}else{
 						
-						def_str = "";
-						
-						for ( String v: val ){
-							
-							def_str += (def_str.length()==0?"":", ") + v;
-						}
+						Debug.out( "Unknown property" );
 					}
-					
-					set_item.setText( tp.getName( true ) + (def_str.length()==0?"":(" (" + def_str + ") ")) + "..." );
-	
-					final String f_def_str = def_str;
-					
-					set_item.addListener(SWT.Selection, new Listener() {
-						public void handleEvent(Event event){
-							
-							String msg = MessageText.getString( "UpdateProperty.list.message", new String[]{ tp.getName( true ) } );
-							
-							SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow( "UpdateProperty.title", "!" + msg + "!" );
-							
-							entryWindow.setPreenteredText( f_def_str, false );
-							entryWindow.selectPreenteredText( true );
-							
-							entryWindow.prompt();
-							
-							if ( entryWindow.hasSubmittedInput()){
-								
-								try{
-									String text = entryWindow.getSubmittedInput().trim();
-									
-									if ( text.length() ==  0 ){
-										
-										tp.setStringList( null );
-										
-									}else{
-										text = text.replace( ';', ',');
-										text = text.replace( ' ', ',');
-										text = text.replaceAll( "[,]+", "," );
-										
-										String[] bits = text.split( "," );
-										
-										List<String> vals = new ArrayList<String>();
-										
-										for ( String bit: bits ){
-											
-											bit = bit.trim();
-											
-											if ( bit.length() > 0 ){
-												
-												vals.add( bit );
-											}
-										}
-										
-										if ( vals.size() == 0 ){
-											
-											tp.setStringList( null );
-										}else{
-											
-											tp.setStringList( vals.toArray( new String[ vals.size()]));
-										}
-									}
-								}catch( Throwable e ){
-									
-									Debug.out( e );
-								}
-							}
-						}});
 				}
 			}
 			
@@ -1295,6 +1324,11 @@ public class TagUIUtils
 			manual_t = sortTags( manual_t );
 			
 			for ( final Tag t: manual_t ){
+				
+				if ( t.isTagAuto()){
+					
+					continue;
+				}
 				
 				final MenuItem t_i = new MenuItem( menu_tags, SWT.CHECK );
 				

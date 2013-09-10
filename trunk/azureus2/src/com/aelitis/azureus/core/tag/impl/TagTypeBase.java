@@ -461,13 +461,13 @@ TagTypeBase
 		return( manager.readBooleanAttribute( this, tag, attr, def ));
 	}
 	
-	protected void
+	protected boolean
 	writeBooleanAttribute(
 		TagBase	tag,
 		String	attr,
 		boolean	value )
 	{
-		manager.writeBooleanAttribute( this, tag, attr, value );
+		return( manager.writeBooleanAttribute( this, tag, attr, value ));
 	}
 	
 	protected long

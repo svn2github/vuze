@@ -76,7 +76,12 @@ ColumnTagProperties
 				
 				for ( TagFeatureProperties.TagProperty prop: props ){
 					
-					text += (text.length()==0?"":"; ") + prop.getString();
+					String prop_str = prop.getString();
+					
+					if ( prop_str.length() > 0 ){
+						
+						text += (text.length()==0?"":"; ") + prop_str;
+					}
 				}
 			}
 		}

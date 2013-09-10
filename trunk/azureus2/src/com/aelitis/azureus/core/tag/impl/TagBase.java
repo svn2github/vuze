@@ -304,6 +304,12 @@ TagBase
 		return( true );
 	}
 	
+	public boolean 
+	isTagAuto() 
+	{
+		return( false );
+	}
+	
 		// visible
 	
 	public boolean
@@ -599,12 +605,12 @@ TagBase
 		return( tag_type.readBooleanAttribute( this, attr, def ));
 	}
 	
-	protected void
+	protected boolean
 	writeBooleanAttribute(
 		String	attr,
 		boolean	value )
 	{
-		tag_type.writeBooleanAttribute( this, attr, value );
+		return( tag_type.writeBooleanAttribute( this, attr, value ));
 	}
 	
 	protected long
@@ -846,6 +852,31 @@ TagBase
 			return( readStringListAttribute( AT_PROPERTY_PREFX + name, EMPTY_STRING_LIST ));
 		}
 		
+		public void
+		setBoolean(
+			boolean	value )
+		{
+			if ( writeBooleanAttribute( AT_PROPERTY_PREFX + name, value )){
+				
+				for ( TagPropertyListener l: listeners ){
+					
+					try{
+						l.propertyChanged( this );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		}
+		
+		public Boolean
+		getBoolean()
+		{
+			return( readBooleanAttribute( AT_PROPERTY_PREFX + name, null ));
+		}
+		
 		public String
 		getString()
 		{
@@ -860,6 +891,13 @@ TagBase
 						for ( String val: vals ){
 							value += (value.length()==0?"":"," ) + val;
 						}
+					}
+					break;
+				}
+				case TagFeatureProperties.PT_BOOLEAN:{
+					Boolean val = getBoolean();
+					if ( val != null ){
+						value = String.valueOf( val );
 					}
 					break;
 				}

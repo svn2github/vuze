@@ -79,6 +79,9 @@ Tag
 		boolean	pub );
 	
 	public boolean
+	isTagAuto();
+	
+	public boolean
 	isVisible();
 	
 	public void

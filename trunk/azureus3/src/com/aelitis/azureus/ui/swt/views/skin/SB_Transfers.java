@@ -1284,6 +1284,11 @@ public class SB_Transfers
 					if (!(payload instanceof String)) {
 						return false;
 					}
+					
+					if ( tag.isTagAuto()){
+						
+						return( false );
+					}
 	
 					String dropped = (String) payload;
 					String[] split = Constants.PAT_SPLIT_SLASH_N.split(dropped);

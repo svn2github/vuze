@@ -503,6 +503,8 @@ TagManagerImpl
 			});
 		
 		new TagPropertyTrackerHandler( azureus_core, this );
+		
+		new TagPropertyUntaggedHandler( azureus_core, this );
 	}
 	
 	private void
@@ -1147,14 +1149,14 @@ TagManagerImpl
 		return( result == 1 );
 	}
 	
-	protected void
+	protected boolean
 	writeBooleanAttribute(
 		TagTypeBase		tag_type,
 		TagBase			tag,
 		String			attr,
 		boolean			value )
 	{
-		writeLongAttribute( tag_type, tag, attr, value?1:0 );
+		return( writeLongAttribute( tag_type, tag, attr, value?1:0 ));
 	}
 	
 	protected Long
@@ -1191,7 +1193,7 @@ TagManagerImpl
 		}
 	}
 	
-	protected void
+	protected boolean
 	writeLongAttribute(
 		TagTypeBase		tag_type,
 		TagBase			tag,
@@ -1207,16 +1209,20 @@ TagManagerImpl
 				
 				if ( old == value && conf.containsKey( attr )){
 					
-					return;
+					return( false );
 				}
 				
 				conf.put( attr, value );
 				
 				setDirty();
+				
+				return( true );
 			}
 		}catch( Throwable e ){
 			
 			Debug.out( e );
+			
+			return( false );
 		}
 	}	
 	

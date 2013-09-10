@@ -1104,6 +1104,11 @@ public class SBC_DevicesView
 			
 			for ( final Tag t: all_tags ){
 				
+				if ( t.isTagAuto()){
+					
+					continue;
+				}
+				
 				final MenuItem t_i = new MenuItem( menu_tags, SWT.CHECK );
 				
 				String tag_name = t.getTagName( true );

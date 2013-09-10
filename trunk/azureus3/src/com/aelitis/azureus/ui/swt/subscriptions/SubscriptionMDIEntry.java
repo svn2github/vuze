@@ -580,7 +580,12 @@ public class SubscriptionMDIEntry implements SubscriptionListener, ViewTitleInfo
 		m.setStyle( MenuItem.STYLE_SEPARATOR );
 	
 		for ( final Tag tag: tags ){
+			
+			if ( tag.isTagAuto()){
 				
+				continue;
+			}
+			
 			m = menu_manager.addMenuItem( menu, tag.getTagName( false ));
 					
 			m.setStyle( MenuItem.STYLE_RADIO );

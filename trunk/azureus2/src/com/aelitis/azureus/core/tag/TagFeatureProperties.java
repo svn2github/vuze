@@ -25,8 +25,10 @@ public interface
 TagFeatureProperties 
 {
 	public static final String	PR_TRACKERS = "trackers";
+	public static final String	PR_UNTAGGED = "untagged";
 	
 	public static final int		PT_STRING_LIST	= 1;
+	public static final int		PT_BOOLEAN		= 2;
 	
 	public TagProperty[]
 	getSupportedProperties();
@@ -50,6 +52,13 @@ TagFeatureProperties
 			
 		public String[]
 		getStringList();
+		
+		public void
+		setBoolean(
+			boolean		value );
+			
+		public Boolean
+		getBoolean();
 		
 		public String
 		getString();

@@ -115,7 +115,11 @@ TagDownloadWithState
 	
 	private static AsyncDispatcher rs_async = new AsyncDispatcher(2000);
 
-	private TagProperty[] tag_properties = new TagProperty[]{ createTagProperty( TagFeatureProperties.PR_TRACKERS, TagFeatureProperties.PT_STRING_LIST ) };
+	private TagProperty[] tag_properties = 
+		new TagProperty[]{ 
+			createTagProperty( TagFeatureProperties.PR_TRACKERS, TagFeatureProperties.PT_STRING_LIST ),
+			createTagProperty( TagFeatureProperties.PR_UNTAGGED, TagFeatureProperties.PT_BOOLEAN ) 
+		};
 	
 	public
 	TagDownloadWithState(
@@ -717,5 +721,37 @@ TagDownloadWithState
 	getSupportedProperties()
 	{
 		return( getTagType().isTagTypeAuto()?new TagProperty[0]:tag_properties );
+	}
+	
+	@Override
+	public boolean 
+	isTagAuto() 
+	{
+		TagProperty[]	props = getSupportedProperties();
+		
+		for ( TagProperty prop: props ){
+			
+			int	type =  prop.getType();
+			
+			if ( type == TagFeatureProperties.PT_BOOLEAN ){
+				
+				Boolean b = prop.getBoolean();
+				
+				if ( b != null && b ){
+					
+					return( true );
+				}
+			}else if ( type == TagFeatureProperties.PT_STRING_LIST ){
+				
+				String[] val = prop.getStringList();
+				
+				if ( val != null && val.length > 0 ){
+					
+					return( true );
+				}
+			}
+		}
+		
+		return( false );
 	}
 }
