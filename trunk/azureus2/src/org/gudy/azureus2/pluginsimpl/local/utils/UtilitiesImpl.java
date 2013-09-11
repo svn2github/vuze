@@ -488,19 +488,23 @@ UtilitiesImpl
 	    	
 	    	PlatformManager pm = PlatformManagerFactory.getPlatformManager();
 	    	
-	    	pm.createProcess( command_line, false );
-	    	    	
-	    }catch(Throwable e) {
+	    	if ( pm.hasCapability( PlatformManagerCapabilities.CreateCommandLineProcess )){
+	    		
+	    		pm.createProcess( command_line, false );
+	    		
+	    		return;
+	    	}
+	    }catch( Throwable e ){
 	    	
 	        Debug.printStackTrace(e);
-	        
-	        try{
-	        	Runtime.getRuntime().exec( command_line );
+	    }
+	    
+	    try{
+	       	Runtime.getRuntime().exec( command_line );
+	       	
+	    }catch( Throwable f ){
 	        	
-	        }catch( Throwable f ){
-	        	
-	        	throw( new PluginException("Failed to create process", f ));
-	        }
+	    	throw( new PluginException("Failed to create process", f ));
 	    }
 	}
 	

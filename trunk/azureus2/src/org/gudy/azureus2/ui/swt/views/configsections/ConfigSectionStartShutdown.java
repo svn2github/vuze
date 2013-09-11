@@ -27,6 +27,7 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -46,6 +47,8 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
+
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -67,7 +70,6 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 	}
 
 	public void configSectionDelete() {
-
 	}
 	
 	public int maxUserMode() {
@@ -76,6 +78,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 
 
 	public Composite configSectionCreate(final Composite parent) {
+
 		GridData gridData;
 		GridLayout layout;
 		Label label;
@@ -205,7 +208,7 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			
 			Group gStop = new Group(cDisplay, SWT.NULL);
 			Messages.setLanguageText(gStop, LBLKEY_PREFIX + "stop");
-			layout = new GridLayout(2, false);
+			layout = new GridLayout(5, false);
 			gStop.setLayout(layout);
 			gStop.setLayoutData(new GridData( GridData.FILL_HORIZONTAL ));
 
@@ -237,6 +240,9 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 				l_action_values.add( "Shutdown" );
 			}
 			
+			l_action_values.add( "RunScript" );
+			l_action_values.add( "RunScriptAndClose" );
+
 			String[] action_values = l_action_values.toArray( new String[ l_action_values.size()]);
 					
 			for ( String s: action_values ){
@@ -246,8 +252,36 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 			
 			String[] action_descs = l_action_descs.toArray( new String[ l_action_descs.size()]);
 
-			new StringListParameter(gStop, "On Downloading Complete Do", "Nothing", action_descs, action_values );
+			final StringListParameter dc = new StringListParameter(gStop, "On Downloading Complete Do", "Nothing", action_descs, action_values );
 
+			final Label dc_label = new Label(gStop, SWT.NONE);
+			Messages.setLanguageText(dc_label, "label.script.to.run");
+			dc_label.setLayoutData(new GridData());
+
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			final FileParameter dc_script = new FileParameter(gStop, "On Downloading Complete Script", "", new String[0]);
+			dc_script.setLayoutData(gridData);
+	
+			boolean	is_script = dc.getValue().startsWith( "RunScript" );
+			
+			dc_label.setEnabled( is_script );
+			dc_script.setEnabled( is_script );
+			
+			dc.addChangeListener(
+				new ParameterChangeAdapter()
+				{
+					public void
+					parameterChanged(
+						Parameter	p,
+						boolean		caused_internally )
+					{
+						boolean	is_script = dc.getValue().startsWith( "RunScript" );
+						
+						dc_label.setEnabled( is_script );
+						dc_script.setEnabled( is_script );
+					}
+				});
+				
 				// done seeding
 			
 			gridData = new GridData();
@@ -255,8 +289,37 @@ public class ConfigSectionStartShutdown implements UISWTConfigSection {
 		    Messages.setLanguageText(label, "ConfigView.label.stop.seedcomp");
 		    label.setLayoutData( gridData );
 					    
-			new StringListParameter(gStop, "On Seeding Complete Do", "Nothing", action_descs, action_values );
+		    final StringListParameter sc = new StringListParameter(gStop, "On Seeding Complete Do", "Nothing", action_descs, action_values );
 			
+			final Label sc_label = new Label(gStop, SWT.NONE);
+			Messages.setLanguageText(sc_label, "label.script.to.run");
+			sc_label.setLayoutData(new GridData());
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			final FileParameter sc_script = new FileParameter(gStop, "On Seeding Complete Script", "", new String[0]);
+			sc_script.setLayoutData(gridData);
+	
+			is_script = sc.getValue().startsWith( "RunScript" );
+			
+			sc_label.setEnabled( is_script );
+			sc_script.setEnabled( is_script );
+			
+			sc.addChangeListener(
+				new ParameterChangeAdapter()
+				{
+					public void
+					parameterChanged(
+						Parameter	p,
+						boolean		caused_internally )
+					{
+						boolean	is_script = sc.getValue().startsWith( "RunScript" );
+						
+						sc_label.setEnabled( is_script );
+						sc_script.setEnabled( is_script );
+					}
+				});
+			
+		    	// reset on trigger
+		    
 			gridData = new GridData();
 			gridData.horizontalSpan = 2;
 			BooleanParameter resetOnTrigger = 

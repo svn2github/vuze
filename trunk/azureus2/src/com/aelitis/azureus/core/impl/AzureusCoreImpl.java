@@ -2396,6 +2396,52 @@ AzureusCoreImpl
 						
 						requestStop();
 						
+					}else if ( action.startsWith( "RunScript" )){
+						
+						String script;
+						
+						if ( download_trigger ){
+							
+							script = COConfigurationManager.getStringParameter( "On Downloading Complete Script", "" );
+							
+						}else{
+							
+							script = COConfigurationManager.getStringParameter( "On Seeding Complete Script", "" );
+						}
+						
+						File script_file = new File( script.trim());
+						
+						if ( !script_file.isFile()){
+							
+							Logger.log( new LogEvent(LOGID, "Script failed to run - '" + script_file + "' isn't a valid script file" ));
+							
+							Debug.out( "Invalid script: " + script_file );
+							
+						}else{
+							
+							try{
+								boolean	close_vuze = action.equals( "RunScriptAndClose" );
+								
+								if ( !close_vuze ){
+									
+										// assume script might implement a sleep
+									
+									announceAll( true );
+								}
+								
+								getPluginManager().getDefaultPluginInterface().getUtilities().createProcess( script_file.getAbsolutePath());
+								
+								if ( close_vuze ){
+									
+									requestStop();
+								}
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+						
 					}else{
 						
 						Debug.out( "Unknown close action '" + action + "'" );
