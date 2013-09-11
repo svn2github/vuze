@@ -94,6 +94,9 @@ TagType
 	public TagManager
 	getTagManager();
 	
+	public int[]
+	getColorDefault();
+	
 	public void
 	addTagTypeListener(
 		TagTypeListener		listener,

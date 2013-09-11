@@ -215,7 +215,7 @@ TagTypeBase
 		manager.removeConfig( t );
 	}
 	
-	protected int[]
+	public int[]
 	getColorDefault()
 	{
 		return( null );

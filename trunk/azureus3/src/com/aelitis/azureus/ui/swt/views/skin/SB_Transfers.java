@@ -1152,6 +1152,19 @@ public class SB_Transfers
 						
 						return( String.valueOf( tag.getTaggedCount()));
 						
+					}else if ( pid == TITLE_INDICATOR_COLOR ){
+						
+						TagType tag_type = tag.getTagType();
+						
+						int[] def_color = tag_type.getColorDefault();
+						
+						int[] tag_color = tag.getColor();
+						
+						if ( tag_color != def_color ){
+							
+							return( tag_color );
+						}
+						
 					}else if ( pid == TITLE_INDICATOR_TEXT_TOOLTIP ){
 						
 						TagType tag_type = tag.getTagType();

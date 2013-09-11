@@ -73,13 +73,15 @@ public class SideBarEntrySWT
 
 	private static final boolean ALWAYS_IMAGE_GAP = true;
 
+	/*
 	private static final String[] default_indicator_colors = {
 		"#000000",
 		"#000000",
 		"#166688",
 		"#1c2056"
 	};
-
+	*/
+	
 	private static final String SO_ID_ENTRY_WRAPPER = "mdi.content.item";
 
 	private static final String SO_ID_TOOLBAR = "mdientry.toolbar.full";
@@ -662,11 +664,19 @@ public class SideBarEntrySWT
 				//Color color1;
 				//Color color2;
 
-				String[] colors = (String[]) viewTitleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_COLOR);
+				Color default_color = ColorCache.getSchemedColor(gc.getDevice(), "#5b6e87");
+				
+				Object color =  viewTitleInfo.getTitleInfoProperty(ViewTitleInfo.TITLE_INDICATOR_COLOR);
 
-				if (colors == null || colors.length != 4) {
-					colors = default_indicator_colors;
+				if ( color instanceof int[] ){
+					
+					gc.setBackground(ColorCache.getColor( gc.getDevice(),(int[])color ));
+					
+				}else{
+					
+					gc.setBackground( default_color );
 				}
+				
 
 				/*
 				if (selected) {
@@ -682,10 +692,18 @@ public class SideBarEntrySWT
 				}
 				gc.setBackgroundPattern(pattern);
 				*/
-				gc.setBackground(ColorCache.getSchemedColor(gc.getDevice(), "#5b6e87"));
+				
 				gc.fillRoundRectangle(startX, startY, width, height, textSize.y * 2 / 3,
 						height * 2 / 3);
-				gc.setBackgroundPattern(null);
+				
+				if ( color != null ){
+					
+					gc.setBackground( default_color );
+					
+					gc.drawRoundRectangle(startX, startY, width, height, textSize.y * 2 / 3,
+							height * 2 / 3);
+				}
+				//gc.setBackgroundPattern(null);
 				//pattern.dispose();
 				if (maxIndicatorWidth > width) {
 					maxIndicatorWidth = width;

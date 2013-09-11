@@ -3541,7 +3541,7 @@ SpeedLimitHandler
 		}
 		
 		@Override
-		protected int[] 
+		public int[] 
 	    getColorDefault() 
 		{
 			return( color_default );
