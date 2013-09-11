@@ -379,8 +379,7 @@ public class TagUIUtils
 	createSideBarMenuItems(
 		final Menu menu, final Tag tag ) 
 	{
-
-		TagType	tag_type = tag.getTagType();
+		final TagType	tag_type = tag.getTagType();
 		
 		boolean	needs_separator_next = false;
 		
@@ -1082,9 +1081,9 @@ public class TagUIUtils
 			needs_separator_next = false;
 		}
 
-		if ( tag.getTagType().isTagTypeAuto()){
+		if ( tag_type.isTagTypeAuto()){
 			
-			final List<Tag>	tags = tag.getTagType().getTags();
+			final List<Tag>	tags = tag_type.getTags();
 			
 			int	visible_count 	= 0;
 			int	invisible_count = 0;
@@ -1105,7 +1104,7 @@ public class TagUIUtils
 			showhideitem.setMenu(menuShowHide);			
 			
 			MenuItem title = new MenuItem(menuShowHide, SWT.PUSH);
-			title.setText( "[" + tag.getTagType().getTagTypeName( true ) + "]" );
+			title.setText( "[" + tag_type.getTagTypeName( true ) + "]" );
 			title.setEnabled( false );
 			new MenuItem( menuShowHide, SWT.SEPARATOR);
 									
@@ -1163,6 +1162,71 @@ public class TagUIUtils
 			showhideitem.setEnabled( true );
 			
 		}else{
+			
+			if ( tag_type.hasTagTypeFeature( TagFeature.TF_PROPERTIES )){			
+				
+				TagFeatureProperties props = (TagFeatureProperties)tag;
+							
+				boolean has_ut = props.getProperty( TagFeatureProperties.PR_UNTAGGED ) != null;
+			
+				if ( has_ut ){
+					
+					has_ut = false;
+					
+					for ( Tag t: tag_type.getTags()){
+						
+						props = (TagFeatureProperties)t;
+						
+						TagProperty prop = props.getProperty( TagFeatureProperties.PR_UNTAGGED );
+								
+						if ( prop != null ){
+							
+							Boolean b = prop.getBoolean();
+							
+							if ( b != null && b ){
+								
+								has_ut = true;
+									
+								break;
+							}
+						}
+					}
+					
+					if  ( !has_ut ){
+						
+						final Menu menuShowHide = new Menu(menu.getShell(), SWT.DROP_DOWN);
+						
+						final MenuItem showhideitem = new MenuItem(menu, SWT.CASCADE);
+						showhideitem.setText( MessageText.getString( "label.showhide.tag" ));
+						showhideitem.setMenu(menuShowHide);			
+
+						MenuItem showAll = new MenuItem(menuShowHide, SWT.PUSH);
+						Messages.setLanguageText(showAll, "label.untagged");
+						showAll.addListener(SWT.Selection, new Listener() {
+							public void handleEvent(Event event){
+								try{
+									String tag_name = MessageText.getString( "label.untagged" );
+									
+									Tag ut_tag = tag_type.getTag( tag_name, true );
+									
+									if ( ut_tag == null ){
+										
+									
+										ut_tag = tag_type.createTag( tag_name, true );
+									}
+									
+									TagFeatureProperties tp = (TagFeatureProperties)ut_tag;
+									
+									tp.getProperty( TagFeatureProperties.PR_UNTAGGED ).setBoolean( true );
+									
+								}catch( TagException e ){
+										
+									Debug.out( e );
+								}
+							}});
+					}
+				}
+			}
 			
 			MenuItem item_create = new MenuItem( menu, SWT.PUSH);
 			

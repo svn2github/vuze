@@ -33,6 +33,10 @@ TagFeatureProperties
 	public TagProperty[]
 	getSupportedProperties();
 	
+	public TagProperty
+	getProperty(
+		String		name );
+	
 	public interface
 	TagProperty
 	{

@@ -242,7 +242,17 @@ TagBase
 	public boolean
 	isPublic()
 	{
-		return( is_public==null?getPublicDefault():is_public );
+		boolean pub = is_public==null?getPublicDefault():is_public;
+		
+		if ( pub ){
+			
+			if ( isTagAuto()){
+				
+				pub = false;
+			}
+		}
+		
+		return( pub );
 	}
 	
 	public void
@@ -508,6 +518,23 @@ TagBase
 	getSupportedProperties()
 	{
 		return( new TagProperty[0] );
+	}
+	
+	public TagProperty
+	getProperty(
+		String		name )
+	{
+		TagProperty[] props = getSupportedProperties();
+		
+		for ( TagProperty prop: props ){
+			
+			if ( prop.getName( false ) == name ){
+				
+				return( prop );
+			}
+		}
+		
+		return( null );
 	}
 	
 	protected TagProperty
