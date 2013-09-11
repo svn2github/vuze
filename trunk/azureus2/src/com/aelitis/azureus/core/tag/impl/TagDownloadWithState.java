@@ -276,6 +276,29 @@ TagDownloadWithState
 		super.removeTag();
 	}
 	
+	@Override
+	public void
+	addTaggable(
+		Taggable	t )
+	{
+		if ( t instanceof DownloadManager ){
+			
+			DownloadManager dm = (DownloadManager)t;
+			
+			if ( dm.isDestroyed()){
+				
+				Debug.out( "Invalid Taggable added - download is destroyed: " + dm.getDisplayName());
+				
+			}else{
+			
+				super.addTaggable( t );
+			}
+		}else{
+			
+			Debug.out( "Invalid Taggable added: " + t );
+		}
+	}
+	
 	public int 
 	getTaggableTypes() 
 	{

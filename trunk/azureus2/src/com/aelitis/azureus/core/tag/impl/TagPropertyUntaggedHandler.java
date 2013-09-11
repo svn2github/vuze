@@ -226,9 +226,14 @@ TagPropertyUntaggedHandler
 								
 								taggable_counts.remove( tagged );
 								
-								for ( Tag t: untagged_tags ){
+								DownloadManager dm = (DownloadManager)tagged;
+								
+								if ( !dm.isDestroyed()){
 									
-									t.addTaggable( tagged );
+									for ( Tag t: untagged_tags ){
+										
+										t.addTaggable( tagged );
+									}
 								}
 							}
 						}
