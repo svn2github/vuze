@@ -321,6 +321,14 @@ public class Utils
 	{
 		Shell parent_shell = parent.getShell();
 		
+		return( showColorDialog( parent_shell, existing ));
+	}
+	
+	public static RGB
+	showColorDialog(
+		Shell		parent_shell,
+		RGB			existing )
+	{		
 		Shell centerShell = new Shell( parent_shell, SWT.NO_TRIM );
 		
 		try{

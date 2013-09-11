@@ -29,6 +29,7 @@ import java.util.Map;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.graphics.RGB;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -1235,6 +1236,26 @@ public class TagUIUtils
 				public void handleEvent(Event event) {
 					
 					createManualTag();
+				}
+			});
+			
+			MenuItem itemSetColor = new MenuItem(menu, SWT.PUSH);
+			
+			itemSetColor.setText( MessageText.getString( "label.color") + "..." );
+			
+			itemSetColor.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					
+					int[] existing = tag.getColor();
+					
+					RGB e_rg = existing==null?null:new RGB(existing[0],existing[1],existing[2]);
+					
+					RGB rgb = Utils.showColorDialog( menu.getShell(), e_rg );
+					
+					if ( rgb != null ){
+						
+						tag.setColor( new int[]{ rgb.red, rgb.green, rgb.blue });
+					}
 				}
 			});
 			

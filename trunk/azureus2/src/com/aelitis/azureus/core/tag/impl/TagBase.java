@@ -424,6 +424,8 @@ TagBase
 		int[]		rgb )
 	{
 		writeStringAttribute( AT_COLOR_ID, encodeRGB( rgb ));
+		
+		tag_type.fireChanged( this );
 	}
 	
 	public boolean
