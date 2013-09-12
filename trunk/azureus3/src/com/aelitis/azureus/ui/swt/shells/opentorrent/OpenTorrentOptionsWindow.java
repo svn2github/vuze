@@ -360,7 +360,7 @@ public class OpenTorrentOptionsWindow
 			}
 		}
 		
-		s += "; " + MessageText.getString( "OpenTorrentOptions.header.tags", new String[]{ tag_str });
+		s += "        " + MessageText.getString( "OpenTorrentOptions.header.tags", new String[]{ tag_str });
 		
 		soStartOptionsExpandItem.setText(s);
 	}
@@ -845,7 +845,7 @@ public class OpenTorrentOptionsWindow
 			public void fillMenu(String sColumnName, Menu menu) {
 				MenuItem item;
 				TableRowCore focusedRow = tvFiles.getFocusedRow();
-				TorrentOpenFileOptions tfi_focus = ((TorrentOpenFileOptions) focusedRow.getDataSource());
+				final TorrentOpenFileOptions tfi_focus = ((TorrentOpenFileOptions) focusedRow.getDataSource());
 				boolean download = tfi_focus.isToDownload();
 
 				item = new MenuItem(menu, SWT.CHECK);
@@ -900,29 +900,52 @@ public class OpenTorrentOptionsWindow
 				});
 
 				
-				item = new MenuItem(menu, SWT.PUSH);
-				Messages.setLanguageText(item, "menu.selectfilesinfolder", new String[] {
-					tfi_focus.getDestPathName()
-				});
-				item.addSelectionListener(new SelectionAdapter() {
-					public void widgetSelected(SelectionEvent e) {
-						TableRowCore focusedRow = tvFiles.getFocusedRow();
-						TorrentOpenFileOptions tfi_focus = ((TorrentOpenFileOptions) focusedRow.getDataSource());
-						String destPathName = tfi_focus.getDestPathName();
+				String dest_path = tfi_focus.getDestPathName();
+				String parentDir = tfi_focus.parent.getParentDir();
+				
+				List<String> folder_list = new ArrayList<String>();
+				
+				folder_list.add( dest_path );
+
+				if ( dest_path.startsWith( parentDir ) && dest_path.length() > parentDir.length()){
+										
+					String relativePath = dest_path.substring( parentDir.length() + 1 );
+					
+					while ( relativePath.contains( File.separator )){
 						
-						TableRowCore[] rows = tvFiles.getRows();
-						for (TableRowCore row : rows) {
-							Object dataSource = row.getDataSource();
-							if (dataSource instanceof TorrentOpenFileOptions) {
-								TorrentOpenFileOptions fileOptions = (TorrentOpenFileOptions) dataSource;
-								if (destPathName.equals(fileOptions.getDestPathName())) {
-									row.setSelected(true);
+						int	pos = relativePath.lastIndexOf( File.separator );
+						
+						relativePath = relativePath.substring( 0,  pos );
+						
+						folder_list.add( parentDir + File.separator + relativePath );
+					}
+				}
+				
+				for ( int i=folder_list.size()-1;i>=0;i-- ){
+					
+					final String this_dest_path = folder_list.get(i);
+							
+					item = new MenuItem(menu, SWT.PUSH);
+					Messages.setLanguageText(item, "menu.selectfilesinfolder", new String[] {
+							this_dest_path
+					});
+					
+					item.addSelectionListener(new SelectionAdapter() {
+						public void widgetSelected(SelectionEvent e) {							
+							TableRowCore[] rows = tvFiles.getRows();
+							for (TableRowCore row : rows) {
+								Object dataSource = row.getDataSource();
+								if (dataSource instanceof TorrentOpenFileOptions) {
+									TorrentOpenFileOptions fileOptions = (TorrentOpenFileOptions) dataSource;
+									if ( fileOptions.getDestPathName().startsWith( this_dest_path )){
+										row.setSelected(true);
+									}
 								}
 							}
+	
 						}
-
-					}
-				});
+					});
+				}
 
 			}
 
