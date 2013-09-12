@@ -26,7 +26,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
@@ -52,9 +51,15 @@ import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.TrackerNameItem;
+import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.core.tag.TagTypeListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionListener;
@@ -261,12 +266,12 @@ public class OpenTorrentOptionsWindow
 		if (bSkipDataDirModify || cmbDataDir == null) {
 			return;
 		}
-		torrentOptions.sDestDir = cmbDataDir.getText();
+		torrentOptions.setParentDir( cmbDataDir.getText());
 
 		checkSeedingMode();
 
 		if (!Utils.isCocoa || SWT.getVersion() > 3600) { // See Eclipse Bug 292449
-			File file = new File(torrentOptions.sDestDir);
+			File file = new File(torrentOptions.getParentDir());
 			if (!file.isDirectory()) {
 				cmbDataDir.setBackground(Colors.colorErrorBG);
 			} else {
@@ -279,7 +284,7 @@ public class OpenTorrentOptionsWindow
 		if (soExpandItemSaveTo != null) {
 			String s = MessageText.getString("OpenTorrentOptions.header.saveto",
 					new String[] {
-						torrentOptions.sDestDir
+						torrentOptions.getParentDir()
 					});
 			soExpandItemSaveTo.setText(s);
 		}
@@ -336,6 +341,27 @@ public class OpenTorrentOptionsWindow
 				new String[] {
 					optionText
 				});
+		
+		List<Tag> initialtags = torrentOptions.getInitialTags();
+		
+		String tag_str;
+		
+		if ( initialtags.size() == 0 ){
+			
+			tag_str = MessageText.getString( "label.none" );
+			
+		}else{
+			
+			tag_str = "";
+			
+			for ( Tag t: initialtags ){
+				
+				tag_str += (tag_str==""?"":", ") + t.getTagName( true );
+			}
+		}
+		
+		s += "; " + MessageText.getString( "OpenTorrentOptions.header.tags", new String[]{ tag_str });
+		
 		soStartOptionsExpandItem.setText(s);
 	}
 
@@ -445,7 +471,7 @@ public class OpenTorrentOptionsWindow
 		StringIterator iter = dirList.iterator();
 		while (iter.hasNext()) {
 			String s = iter.next();
-			if (!s.equals(torrentOptions.sDestDir)) {
+			if (!s.equals(torrentOptions.getParentDir())) {
 				cmbDataDir.add(s);
 			}
 		}
@@ -524,6 +550,210 @@ public class OpenTorrentOptionsWindow
 			}
 		});
 
+			// tag area
+		
+		Composite tagLeft 	= new Composite( cTorrentModes, SWT.NULL);
+		tagLeft.setLayoutData( new GridData(GridData.VERTICAL_ALIGN_CENTER ));
+		Composite tagRight 	= new Composite( cTorrentModes, SWT.NULL);
+		gridData = new GridData(GridData.FILL_HORIZONTAL );
+		gridData.horizontalSpan=3;
+		tagRight.setLayoutData(gridData);
+		
+		layout = new GridLayout();
+		layout.numColumns = 1;
+		layout.marginWidth  = 0;
+		layout.marginHeight = 0;
+		tagLeft.setLayout(layout);
+		
+		layout = new GridLayout();
+		layout.numColumns = 2;
+		layout.marginWidth  = 0;
+		layout.marginHeight = 0;
+		tagRight.setLayout(layout);
+		
+		label = new Label(tagLeft, SWT.NONE);
+		gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER);
+		Messages.setLanguageText(label, "label.initial_tags");
+
+		
+		Composite tagButtons 	= new Composite( tagRight, SWT.NULL);
+		gridData = new GridData(GridData.FILL_HORIZONTAL );
+		tagButtons.setLayoutData(gridData);
+
+		RowLayout tagLayout = new RowLayout();
+		tagLayout.pack = false;
+		tagButtons.setLayout( tagLayout);
+		
+		buildTagButtonPanel( tagButtons );
+		
+		Button addTag = new Button( tagRight, SWT.NULL );
+		addTag.setLayoutData( new GridData(GridData.VERTICAL_ALIGN_CENTER ));
+		Messages.setLanguageText( addTag, "label.add.tag" );
+		
+		addTag.addSelectionListener(
+			new SelectionAdapter() {
+				
+				public void 
+				widgetSelected(
+					SelectionEvent e) 
+				{
+					TagUIUtils.createManualTag();
+				}
+			});
+	}
+	
+	private void
+	buildTagButtonPanel(
+		Composite	parent )
+	{
+		buildTagButtonPanel( parent, false );
+	}
+	
+	private void
+	buildTagButtonPanel(
+		final 	Composite	parent,
+		boolean	is_rebuild )
+	{
+		final String SP_KEY = "oto:tag:initsp";
+				
+		if ( is_rebuild ){
+			
+			Utils.disposeComposite( parent, false );
+			
+		}else{
+			
+			parent.setData( SP_KEY, getSavePath());
+		}
+		
+		final TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+		
+		List<Tag> initialTags = torrentOptions.getInitialTags();
+
+		for ( final Tag tag: TagUIUtils.sortTags( tt.getTags())){
+			
+			if ( tag.isPublic()){
+			
+				final Button but = new Button( parent, SWT.TOGGLE );
+			
+				but.setText( tag.getTagName( true ));
+				
+				but.setToolTipText( TagUIUtils.getTagTooltip(tag));
+				
+				if ( initialTags.contains( tag )){
+					
+					but.setSelection( true );
+				}
+				
+				but.addSelectionListener(
+					new SelectionAdapter() {
+						
+						public void 
+						widgetSelected(
+							SelectionEvent e) 
+						{
+							List<Tag>  tags = torrentOptions.getInitialTags();
+							
+							if ( but.getSelection()){
+								
+								tags.add( tag );
+								
+								TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
+
+								if ( fl.supportsTagInitialSaveFolder()){
+									
+									File save_loc = fl.getTagInitialSaveFolder();
+									
+									if ( save_loc != null ){
+										
+										setSavePath( save_loc.getAbsolutePath());
+									}
+								}
+							}else{
+								
+								tags.remove( tag );
+								
+								TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
+
+								if ( fl.supportsTagInitialSaveFolder()){
+									
+									File save_loc = fl.getTagInitialSaveFolder();
+									
+									if ( save_loc != null && getSavePath().equals( save_loc.getAbsolutePath())){
+										
+										String old = (String)parent.getData( SP_KEY );
+										
+										if ( old != null ){
+										
+											setSavePath( old );
+										}
+									}
+								}
+							}
+							
+							torrentOptions.setInitialTags( tags );
+							
+							updateStartOptionsHeader();
+						}
+					});
+				
+				Menu menu = new Menu( but );
+				
+				but.setMenu( menu );
+				
+				TagUIUtils.createSideBarMenuItems(menu, tag);
+			}
+		}
+		
+		if ( is_rebuild ){
+		
+			parent.getParent().layout( true,  true );
+			
+			return;
+		}
+		
+		tt.addTagTypeListener(
+			new TagTypeListener()
+			{
+				
+				public void 
+				tagTypeChanged(
+					TagType tag_type) 
+				{					
+				}
+				
+				public void 
+				tagRemoved(
+					Tag tag ) 
+				{
+					rebuild();
+				}
+				
+				public void 
+				tagChanged(
+					Tag tag) 
+				{
+					rebuild();
+				}
+				
+				public void 
+				tagAdded(
+					Tag tag) 
+				{
+					rebuild();
+				}
+				
+				private void
+				rebuild()
+				{
+					if ( parent.isDisposed()){
+						
+						tt.removeTagTypeListener( this );
+					}else{
+						
+						buildTagButtonPanel( parent, true );
+					}
+				}
+			}, false );
 	}
 
 	private void setupTVFiles(SWTSkinObjectContainer soFilesTable) {
@@ -1114,12 +1344,25 @@ public class OpenTorrentOptionsWindow
 		try {
 			bSkipDataDirModify = true;
 
-			cmbDataDir.setText(torrentOptions.sDestDir);
+			cmbDataDir.setText(torrentOptions.getParentDir());
 		} finally {
 			bSkipDataDirModify = false;
 		}
 	}
 
+	private void
+	setSavePath(
+		String	path )
+	{		
+		cmbDataDir.setText( path );
+	}
+	
+	private String
+	getSavePath()
+	{
+		return( torrentOptions.getParentDir());
+	}
+	
 	private void updateQueueLocationCombo() {
 		if (cmbQueueLocation == null)
 			return;
@@ -1402,11 +1645,11 @@ public class OpenTorrentOptionsWindow
 		}
 
 		String sDefaultPath = COConfigurationManager.getStringParameter(PARAM_DEFSAVEPATH);
-		if (!torrentOptions.sDestDir.equals(sDefaultPath)) {
+		if (!torrentOptions.getParentDir().equals(sDefaultPath)) {
 			// Move sDestDir to top of list
 
 			// First, check to see if sDestDir is already in the list
-			File fDestDir = new File(torrentOptions.sDestDir);
+			File fDestDir = new File(torrentOptions.getParentDir());
 			int iDirPos = -1;
 			for (int i = 0; i < dirList.size(); i++) {
 				String sDirName = dirList.get(i);
@@ -1422,7 +1665,7 @@ public class OpenTorrentOptionsWindow
 				dirList.remove(iDirPos);
 
 			// and add it to the top
-			dirList.add(0, torrentOptions.sDestDir);
+			dirList.add(0, torrentOptions.getParentDir());
 
 			// Limit
 			if (dirList.size() > 15)
@@ -1461,7 +1704,7 @@ public class OpenTorrentOptionsWindow
 
 		if (COConfigurationManager.getBooleanParameter("DefaultDir.AutoUpdate")) {
 			COConfigurationManager.setParameter(PARAM_DEFSAVEPATH,
-					torrentOptions.sDestDir);
+					torrentOptions.getParentDir());
 		}
 
 		openTorrents();

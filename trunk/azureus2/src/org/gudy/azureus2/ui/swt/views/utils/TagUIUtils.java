@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -676,7 +677,7 @@ public class TagUIUtils
 		
 			final TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
 			
-			if ( fl.supportsTagMoveOnComplete()){
+			if ( fl.supportsTagInitialSaveFolder() || fl.supportsTagMoveOnComplete()){
 				
 				needs_separator_next = true;
 				
@@ -688,62 +689,125 @@ public class TagUIUtils
 				
 				files_item.setMenu( files_menu );
 
-				final Menu moc_menu = new Menu( files_menu.getShell(), SWT.DROP_DOWN);
-				
-				MenuItem moc_item = new MenuItem( files_menu, SWT.CASCADE);
-				
-				Messages.setLanguageText( moc_item, "label.move.on.comp" );
-				
-				moc_item.setMenu( moc_menu );
+				if ( fl.supportsTagInitialSaveFolder()){
 
-				MenuItem clear_item = new MenuItem( moc_menu, SWT.CASCADE);
-				
-				Messages.setLanguageText( clear_item, "Button.clear" );
-
-				clear_item.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event event) {
-						fl.setTagMoveOnCompleteFolder( null );
-					}});
-				
-				new MenuItem( moc_menu, SWT.SEPARATOR);
-
-				File existing = fl.getTagMoveOnCompleteFolder();
-				
-				if ( existing != null ){
+					final Menu moc_menu = new Menu( files_menu.getShell(), SWT.DROP_DOWN);
 					
-					MenuItem current_item = new MenuItem( moc_menu, SWT.RADIO );
-					current_item.setSelection( true );
+					MenuItem isl_item = new MenuItem( files_menu, SWT.CASCADE);
 					
-					current_item.setText( existing.getAbsolutePath());
+					Messages.setLanguageText( isl_item, "label.init.save.loc" );
+					
+					isl_item.setMenu( moc_menu );
+	
+					MenuItem clear_item = new MenuItem( moc_menu, SWT.CASCADE);
+					
+					Messages.setLanguageText( clear_item, "Button.clear" );
+	
+					clear_item.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							fl.setTagInitialSaveFolder( null );
+						}});
 					
 					new MenuItem( moc_menu, SWT.SEPARATOR);
+	
+					File existing = fl.getTagInitialSaveFolder();
 					
-				}else{
+					if ( existing != null ){
+						
+						MenuItem current_item = new MenuItem( moc_menu, SWT.RADIO );
+						current_item.setSelection( true );
+						
+						current_item.setText( existing.getAbsolutePath());
+						
+						new MenuItem( moc_menu, SWT.SEPARATOR);
+						
+					}else{
+						
+						clear_item.setEnabled( false );
+					}
 					
-					clear_item.setEnabled( false );
+					MenuItem set_item = new MenuItem( moc_menu, SWT.CASCADE);
+					
+					Messages.setLanguageText( set_item, "label.set" );
+	
+					set_item.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event){
+							DirectoryDialog dd = new DirectoryDialog(moc_menu.getShell());
+	
+							dd.setFilterPath( TorrentOpener.getFilterPathData());
+	
+							dd.setText(MessageText.getString("MyTorrentsView.menu.movedata.dialog"));
+	
+							String path = dd.open();
+	
+							if ( path != null ){
+								
+								TorrentOpener.setFilterPathData( path );
+								
+								fl.setTagInitialSaveFolder( new File( path ));
+							}
+						}});
 				}
-				
-				MenuItem set_item = new MenuItem( moc_menu, SWT.CASCADE);
-				
-				Messages.setLanguageText( set_item, "label.set" );
-
-				set_item.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event event){
-						DirectoryDialog dd = new DirectoryDialog(moc_menu.getShell());
-
-						dd.setFilterPath( TorrentOpener.getFilterPathData());
-
-						dd.setText(MessageText.getString("MyTorrentsView.menu.movedata.dialog"));
-
-						String path = dd.open();
-
-						if ( path != null ){
-							
-							TorrentOpener.setFilterPathData( path );
-							
-							fl.setTagMoveOnCompleteFolder( new File( path ));
-						}
-					}});
+			
+				if ( fl.supportsTagMoveOnComplete()){
+					
+					final Menu moc_menu = new Menu( files_menu.getShell(), SWT.DROP_DOWN);
+					
+					MenuItem moc_item = new MenuItem( files_menu, SWT.CASCADE);
+					
+					Messages.setLanguageText( moc_item, "label.move.on.comp" );
+					
+					moc_item.setMenu( moc_menu );
+	
+					MenuItem clear_item = new MenuItem( moc_menu, SWT.CASCADE);
+					
+					Messages.setLanguageText( clear_item, "Button.clear" );
+	
+					clear_item.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							fl.setTagMoveOnCompleteFolder( null );
+						}});
+					
+					new MenuItem( moc_menu, SWT.SEPARATOR);
+	
+					File existing = fl.getTagMoveOnCompleteFolder();
+					
+					if ( existing != null ){
+						
+						MenuItem current_item = new MenuItem( moc_menu, SWT.RADIO );
+						current_item.setSelection( true );
+						
+						current_item.setText( existing.getAbsolutePath());
+						
+						new MenuItem( moc_menu, SWT.SEPARATOR);
+						
+					}else{
+						
+						clear_item.setEnabled( false );
+					}
+					
+					MenuItem set_item = new MenuItem( moc_menu, SWT.CASCADE);
+					
+					Messages.setLanguageText( set_item, "label.set" );
+	
+					set_item.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event){
+							DirectoryDialog dd = new DirectoryDialog(moc_menu.getShell());
+	
+							dd.setFilterPath( TorrentOpener.getFilterPathData());
+	
+							dd.setText(MessageText.getString("MyTorrentsView.menu.movedata.dialog"));
+	
+							String path = dd.open();
+	
+							if ( path != null ){
+								
+								TorrentOpener.setFilterPathData( path );
+								
+								fl.setTagMoveOnCompleteFolder( new File( path ));
+							}
+						}});
+				}
 			}
 		}
 		
@@ -1525,5 +1589,96 @@ public class TagUIUtils
 			});
 		
 		return( tags );
+	}
+	
+	public static String
+	getTagTooltip(
+		Tag		tag )
+	{
+		TagType tag_type = tag.getTagType();
+		
+		String 	str = tag_type.getTagTypeName( true ) + ": " + tag.getTagName( true );
+		
+		if ( tag_type.hasTagTypeFeature( TagFeature.TF_RATE_LIMIT )){
+			
+			TagFeatureRateLimit rl = (TagFeatureRateLimit)tag;
+			
+			String 	up_str 		= "";
+			String	down_str 	= "";
+			
+			int	limit_up = rl.getTagUploadLimit();
+				
+			if ( limit_up > 0 ){
+				
+				up_str += MessageText.getString( "label.limit" ) + "=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( limit_up );
+			}
+			
+			int current_up 		= rl.getTagCurrentUploadRate();
+			
+			if ( current_up >= 0 ){
+				
+				up_str += (up_str.length()==0?"":", " ) + MessageText.getString( "label.current" ) + "=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( current_up);
+			}
+			
+			int	limit_down = rl.getTagDownloadLimit();
+			
+			if ( limit_down > 0 ){
+				
+				down_str += MessageText.getString( "label.limit" ) + "=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( limit_down );
+			}
+			
+			int current_down 		= rl.getTagCurrentDownloadRate();
+			
+			if ( current_down >= 0 ){
+				
+				down_str += (down_str.length()==0?"":", " ) + MessageText.getString( "label.current" ) + "=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( current_down);
+			}
+			
+			
+			if ( up_str.length() > 0 ){
+				
+				str += "\r\n    " + MessageText.getString("iconBar.up") + ": " + up_str;
+			}
+			
+			if ( down_str.length() > 0 ){
+				
+				str += "\r\n    " + MessageText.getString("iconBar.down") + ": " + down_str;
+			}
+			
+			
+			int up_pri = rl.getTagUploadPriority();
+			
+			if ( up_pri > 0 ){
+				
+				str += "\r\n    " + MessageText.getString("cat.upload.priority");
+			}
+		}
+			
+		if ( tag_type.hasTagTypeFeature( TagFeature.TF_FILE_LOCATION )) {
+			
+			TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
+
+			if ( fl.supportsTagInitialSaveFolder()){
+				
+				File init_loc = fl.getTagInitialSaveFolder();
+				
+				if ( init_loc != null ){
+					
+					str += "\r\n    " + MessageText.getString("label.init.save.loc") + "=" + init_loc.getAbsolutePath();
+				}
+			}
+			
+			if ( fl.supportsTagMoveOnComplete()){
+				
+				File move_on_comp = fl.getTagMoveOnCompleteFolder();
+				
+				if ( move_on_comp != null ){
+					
+					str += "\r\n    " + MessageText.getString("label.move.on.comp") + "=" + move_on_comp.getAbsolutePath();
+				}
+			}
+		}
+		
+		return( str );
 	}
 }

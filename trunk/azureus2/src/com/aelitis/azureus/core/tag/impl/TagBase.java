@@ -59,6 +59,7 @@ TagBase
 	protected static final String	AT_RATELIMIT_UP_PRI	= "rl.uppri";
 	protected static final String	AT_XCODE_TARGET		= "xcode.to";
 	protected static final String	AT_FL_MOVE_COMP		= "fl.comp";
+	protected static final String	AT_FL_INIT_LOC		= "fl.init";
 	protected static final String	AT_RATELIMIT_MIN_SR	= "rl.minsr";
 	protected static final String	AT_PROPERTY_PREFX	= "pp.";
 
@@ -456,6 +457,57 @@ TagBase
 		}
 	}
 	
+		// initial save location
+	
+	public boolean
+	supportsTagInitialSaveFolder()
+	{
+		return( false );
+	}
+	
+	public File
+	getTagInitialSaveFolder()
+	{
+		if ( tag_fl != null ){
+			
+			String str = readStringAttribute( AT_FL_INIT_LOC, null );
+			
+			if ( str == null ){
+				
+				return( null );
+				
+			}else{
+				
+				return( new File( str ));
+			}
+		}
+		
+		return( null );
+	}
+	
+	public void
+	setTagInitialSaveFolder(
+		File		folder )
+	{
+		if ( tag_fl != null ){
+			
+			File	existing = getTagInitialSaveFolder();
+			
+			if ( existing == null && folder == null ){
+				
+				return;
+				
+			}else if ( existing == null || folder == null || !existing.equals( folder )){
+				
+				writeStringAttribute( AT_FL_INIT_LOC, folder==null?null:folder.getAbsolutePath());
+				
+				tag_type.fireChanged( this );
+			}
+		}
+	}
+	
+		// move on complete
+	
 	public boolean
 	supportsTagMoveOnComplete()
 	{
@@ -502,6 +554,8 @@ TagBase
 			}
 		}
 	}
+	
+		// min ratio
 	
 	public int
 	getTagMinShareRatio()

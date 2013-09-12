@@ -734,6 +734,13 @@ TagDownloadWithState
 	
 	@Override
 	public boolean
+	supportsTagInitialSaveFolder()
+	{
+		return( supports_file_location );
+	}
+	
+	@Override
+	public boolean
 	supportsTagMoveOnComplete()
 	{
 		return( supports_file_location );

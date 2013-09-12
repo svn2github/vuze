@@ -35,7 +35,6 @@ import org.eclipse.swt.dnd.FileTransfer;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -57,6 +56,7 @@ import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -494,6 +494,13 @@ public class TorrentOpener {
 							}
 						}
 
+						List<Tag> initialTags = torrentOptions.getInitialTags();
+													
+						for ( Tag t: initialTags ){
+								
+							t.addTaggable( dm );
+						}
+						
 					} finally {
 
 						dm.getDownloadState().suppressStateSave(false);
@@ -516,7 +523,7 @@ public class TorrentOpener {
 					GlobalManager gm = core.getGlobalManager();
 
 					DownloadManager dm = gm.addDownloadManager(torrentOptions.sFileName,
-							hash, torrentOptions.sDestDir, torrentOptions.sDestSubDir,
+							hash, torrentOptions.getParentDir(), torrentOptions.sDestSubDir,
 							iStartState, true,
 							torrentOptions.iStartID == TorrentOpenOptions.STARTMODE_SEEDING, dmia);
 

@@ -27,6 +27,16 @@ public interface
 TagFeatureFileLocation 
 {
 	public boolean
+	supportsTagInitialSaveFolder();
+	
+	public File
+	getTagInitialSaveFolder();
+	
+	public void
+	setTagInitialSaveFolder(
+		File		folder );
+	
+	public boolean
 	supportsTagMoveOnComplete();
 	
 	public File

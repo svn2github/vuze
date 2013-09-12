@@ -208,6 +208,13 @@ public class SBC_TagsOverview
 					}
 				});
 
+		tableManager.registerColumn(Tag.class, ColumnTagInitialSaveLocation.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagInitialSaveLocation(column);
+					}
+				});
+		
 		tableManager.registerColumn(Tag.class, ColumnTagMoveOnComp.COLUMN_ID,
 				new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {

@@ -31,6 +31,9 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 
 /**
  * Class to store one Torrent file's info.  Used to populate table and store
@@ -64,8 +67,8 @@ public class TorrentOpenOptions
 	/** @todo: getter/setters */
 	public String sFileName;
 
-	/** @todo: getter/setters */
-	public String sDestDir;
+
+	private String sDestDir;
 
 	/** for multifiletorrents and change location */
 	/** @todo: getter/setters */
@@ -91,13 +94,16 @@ public class TorrentOpenOptions
 	/** @todo: getter/setters */
 	public boolean disableIPFilter = false;
 
-	Map<Integer, File> initial_linkage_map;
+	private Map<Integer, File> initial_linkage_map = null;
 
-	List<ToDownloadListener> listToDownloadListeners = new ArrayList<ToDownloadListener>(1);
+	private List<ToDownloadListener> listToDownloadListeners = new ArrayList<ToDownloadListener>(1);
 
 	public Map<String, Boolean> peerSource = new HashMap<String, Boolean>();
 	
+	private List<Tag>	initialTags = new ArrayList<Tag>();
 
+		// add stuff here -> update the clone constructor
+	
 	/**
 	 * Init
 	 * 
@@ -126,7 +132,6 @@ public class TorrentOpenOptions
 	 * @param toBeCloned
 	 */
 	public TorrentOpenOptions(TorrentOpenOptions toBeCloned) {
-		this();
 		this.sOriginatingLocation = toBeCloned.sOriginatingLocation;
 		this.sFileName = toBeCloned.sFileName;
 		this.sDestDir = toBeCloned.sDestDir;
@@ -136,8 +141,11 @@ public class TorrentOpenOptions
 		this.isValid = toBeCloned.isValid;
 		this.bDeleteFileOnCancel = toBeCloned.bDeleteFileOnCancel;
 		this.disableIPFilter = toBeCloned.disableIPFilter;
-		this.initial_linkage_map = initial_linkage_map == null ? null
-				: new HashMap<Integer, File>(toBeCloned.initial_linkage_map);
+		// this.torrent = ... // no clone
+		// this.initial_linkage_map = ... // no clone
+		// this.files = ... // no clone
+		this.peerSource = toBeCloned.peerSource == null ? null : new HashMap<String, Boolean>(toBeCloned.peerSource);
+		this.initialTags = toBeCloned.initialTags == null ? null : new ArrayList<Tag>(toBeCloned.initialTags);
 	}
 
 	public static int getDefaultStartMode() {
@@ -164,7 +172,7 @@ public class TorrentOpenOptions
 				? FileUtil.convertOSSpecificChars(getTorrentName(), true) : sDestSubDir).getPath();
 	}
 
-	public String getSmartDestDir() {
+	private String getSmartDestDir() {
 		String sSmartDir = sDestDir;
 		try {
 			String name = getTorrentName();
@@ -246,6 +254,19 @@ public class TorrentOpenOptions
 		return sSmartDir;
 	}
 
+	public List<Tag>
+	getInitialTags()
+	{
+		return( new ArrayList<Tag>( initialTags ));
+	}
+	
+	public void
+	setInitialTags(
+		List<Tag>		tags )
+	{
+		initialTags = tags;
+	}
+	
 	public TorrentOpenFileOptions[] getFiles() {
 		if (files == null && torrent != null) {
 			TOTorrentFile[] tfiles = torrent.getFiles();
