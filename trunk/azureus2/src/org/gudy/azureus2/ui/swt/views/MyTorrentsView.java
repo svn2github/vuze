@@ -403,6 +403,11 @@ public class MyTorrentsView
 		    if (currentCategory != null && !currentCategory.hasCategoryListener( MyTorrentsView.this)) {
 		    	currentCategory.addCategoryListener(MyTorrentsView.this);
 		    }
+		    
+		    if ( currentTag != null ){
+		    	currentTag.removeTagListener(MyTorrentsView.this);	// avoid double addition if already present
+		    	currentTag.addTagListener(MyTorrentsView.this,false);
+		    }
 		    CategoryManager.addCategoryManagerListener(MyTorrentsView.this);
 		    globalManager.addListener(MyTorrentsView.this, false);
 		    globalManager.addEventListener( gm_event_listener );
@@ -2052,6 +2057,9 @@ public class MyTorrentsView
 	taggableSync(
 		Tag 		tag ) 
 	{
+		if ( tag.getTagName( true ).equals( "rrr" )){
+			System.out.println( "a" );
+		}
 		Set<DownloadManager>	dms_in_tag = new HashSet<DownloadManager>();
 		
 		for ( Taggable t: tag.getTagged()){
