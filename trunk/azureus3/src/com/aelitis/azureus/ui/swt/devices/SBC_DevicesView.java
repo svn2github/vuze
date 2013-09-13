@@ -1115,7 +1115,7 @@ public class SBC_DevicesView
 				
 				t_i.setText( tag_name );
 				
-				t_i.setSelection( shared_tags.contains( tag_name ));
+				t_i.setSelection( shared_tags != null && shared_tags.contains( tag_name ));
 				
 				t_i.addListener(SWT.Selection, new Listener() {
 					public void handleEvent(Event event) {
