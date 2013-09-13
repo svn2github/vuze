@@ -73,56 +73,65 @@ public class BTMessageDecoder implements MessageStreamDecoder {
   
   
   public int performStreamDecode( Transport transport, int max_bytes ) throws IOException {    
-    protocol_bytes_last_read = 0;
-    data_bytes_last_read = 0;
-    
-    int bytes_remaining = max_bytes;
-    
-    while( bytes_remaining > 0 ) {  
-    	
-      if( destroyed ) {
-        
-    	  	// destruction currently isn't thread safe so one thread can destroy the decoder (e.g. when closing a connection)
-    	  	// while the read-controller is still actively processing the us    	  
-         //throw( new IOException( "BTMessageDecoder already destroyed" ));
-         break;
-      }
-
-      if( is_paused ) {
-        break;
-      }
-      
-      int bytes_possible = preReadProcess( bytes_remaining );
-      
-      if( bytes_possible < 1 ) {
-        Debug.out( "ERROR BT: bytes_possible < 1" );
-        break;
-      }
-
-      if( reading_length_mode ) {
-        transport.read( decode_array, 1, 1 );  //only read into length buffer
-      }
-      else {
-        transport.read( decode_array, 0, 2 );  //read into payload buffer, and possibly next message length
-      }
-      
-      int bytes_read = postReadProcess();
-      
-      bytes_remaining -= bytes_read;
-      
-      if( bytes_read < bytes_possible ) {
-        break;
-      }
-      
-      if( reading_length_mode && last_received_was_keepalive ) {
-        //hack to stop a 0-byte-read after receiving a keep-alive message
-        //otherwise we won't realize there's nothing left on the line until trying to read again
-        last_received_was_keepalive = false;
-        break;
-      }
-    }
-            
-    return max_bytes - bytes_remaining;
+	try{
+	    protocol_bytes_last_read = 0;
+	    data_bytes_last_read = 0;
+	    
+	    int bytes_remaining = max_bytes;
+	    
+	    while( bytes_remaining > 0 ) {  
+	    	
+	      if( destroyed ) {
+	        
+	    	  	// destruction currently isn't thread safe so one thread can destroy the decoder (e.g. when closing a connection)
+	    	  	// while the read-controller is still actively processing the us    	  
+	         //throw( new IOException( "BTMessageDecoder already destroyed" ));
+	         break;
+	      }
+	
+	      if( is_paused ) {
+	        break;
+	      }
+	      
+	      int bytes_possible = preReadProcess( bytes_remaining );
+	      
+	      if( bytes_possible < 1 ) {
+	        Debug.out( "ERROR BT: bytes_possible < 1" );
+	        break;
+	      }
+	
+	      if( reading_length_mode ) {
+	        transport.read( decode_array, 1, 1 );  //only read into length buffer
+	      }
+	      else {
+	        transport.read( decode_array, 0, 2 );  //read into payload buffer, and possibly next message length
+	      }
+	      
+	      int bytes_read = postReadProcess();
+	      
+	      bytes_remaining -= bytes_read;
+	      
+	      if( bytes_read < bytes_possible ) {
+	        break;
+	      }
+	      
+	      if( reading_length_mode && last_received_was_keepalive ) {
+	        //hack to stop a 0-byte-read after receiving a keep-alive message
+	        //otherwise we won't realize there's nothing left on the line until trying to read again
+	        last_received_was_keepalive = false;
+	        break;
+	      }
+	    }
+	            
+	    return max_bytes - bytes_remaining;
+	    
+	}catch( NullPointerException e ){
+		
+			// due to lack of synchronization here the buffers can be nullified by a concurrent 'destroy' 
+			// turn this into something less scarey
+		
+		throw( new IOException( "Decoder has most likely been destroyed" ));
+	}
   }
   
 
