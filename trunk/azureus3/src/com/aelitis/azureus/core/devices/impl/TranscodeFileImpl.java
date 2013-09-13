@@ -589,7 +589,14 @@ TranscodeFileImpl
 			for ( String s: tags ){
 			
 				try{
-					String tag_name = tag_manager.lookupTagByUID( Long.parseLong( s )).getTagName( true );
+					Tag tag = tag_manager.lookupTagByUID( Long.parseLong( s ));
+					
+					if ( tag == null ){
+						
+						throw( new Exception()); // handled below
+					}
+					
+					String tag_name = tag.getTagName( true );
 			
 					if ( derp == null ){
 						
