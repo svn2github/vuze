@@ -630,7 +630,7 @@ DownloadManagerImpl
 			if ( _initialisation_adapter != null ){
 			
 				try{
-					_initialisation_adapter.initialised( this );
+					_initialisation_adapter.initialised( this, open_for_seeding );
 					
 				}catch( Throwable e ){
 						

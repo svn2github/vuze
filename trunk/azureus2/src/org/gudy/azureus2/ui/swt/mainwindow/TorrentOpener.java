@@ -406,7 +406,7 @@ public class TorrentOpener {
 
 			final DownloadManagerInitialisationAdapter dmia = new DownloadManagerInitialisationAdapter() {
 
-				public void initialised(DownloadManager dm) {
+				public void initialised(DownloadManager dm, boolean for_seeding ) {
 					DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
 
 					boolean reorder_mode = COConfigurationManager.getBooleanParameter("Enable reorder storage mode");

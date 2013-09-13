@@ -235,37 +235,43 @@ TagPropertyTrackerHandler
 		}
 	}
 	
-	private void
-	handleDownload(
+	protected List<Tag>
+	getTagsForDownload(
 		DownloadManager		dm )
 	{
-		if ( !dm.isPersistent()){
-			
-			return;
-		}
+		List<Tag>	result = new ArrayList<Tag>();
 		
-		Set<Tag>	all_tags = new HashSet<Tag>();
+		if ( dm.isPersistent()){
+										
+			synchronized( tracker_host_map ){
 				
-		synchronized( tracker_host_map ){
-			
-			if ( tracker_host_map.size() > 0 ){
-				
-				Set<String> hosts = TorrentUtils.getUniqueTrackerHosts( dm.getTorrent());
-	
-				for ( String host: hosts ){
+				if ( tracker_host_map.size() > 0 ){
 					
-					List<Tag> tags = tracker_host_map.get( host );
-					
-					if ( tags != null ){
+					Set<String> hosts = TorrentUtils.getUniqueTrackerHosts( dm.getTorrent());
+		
+					for ( String host: hosts ){
 						
-						all_tags.addAll( tags );
+						List<Tag> tags = tracker_host_map.get( host );
+						
+						if ( tags != null ){
+							
+							result.addAll( tags );
+						}
 					}
-					
 				}
 			}
 		}
 		
-		for ( Tag tag: all_tags ){
+		return( result );
+	}
+	
+	private void
+	handleDownload(
+		DownloadManager		dm )
+	{
+		List<Tag> applicable_tags = getTagsForDownload( dm );
+		
+		for ( Tag tag: applicable_tags ){
 			
 			if ( !tag.hasTaggable( dm )){
 				

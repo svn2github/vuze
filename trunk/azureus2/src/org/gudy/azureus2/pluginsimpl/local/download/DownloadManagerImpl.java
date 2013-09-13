@@ -861,7 +861,8 @@ DownloadManagerImpl
 	
 	public void
 	initialised(
-		DownloadManager		manager )
+		DownloadManager		manager,
+		boolean				for_seeding )
 	{
 		DownloadImpl	dl;
 		

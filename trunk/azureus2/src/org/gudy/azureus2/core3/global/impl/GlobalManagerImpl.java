@@ -3093,12 +3093,13 @@ public class GlobalManagerImpl
 				{
 					public void
 					initialised(
-						DownloadManager		manager )
+						DownloadManager		manager,
+						boolean				for_seeding )
 					{
 						for (int i=0;i<f_adapters.size();i++){
 							
 							try{
-								((DownloadManagerInitialisationAdapter)f_adapters.get(i)).initialised( manager );
+								((DownloadManagerInitialisationAdapter)f_adapters.get(i)).initialised( manager, for_seeding );
 								
 							}catch( Throwable e ){
 								

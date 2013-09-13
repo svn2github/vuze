@@ -31,7 +31,9 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
@@ -60,6 +62,7 @@ import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreComponent;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
@@ -475,9 +478,88 @@ TagManagerImpl
 	{
 		AzureusCore azureus_core = AzureusCoreFactory.getSingleton();
 		
+		final TagPropertyTrackerHandler auto_tracker = new TagPropertyTrackerHandler( azureus_core, this );
+		
+		new TagPropertyUntaggedHandler( azureus_core, this );
+		
 		azureus_core.addLifecycleListener(
 			new AzureusCoreLifecycleAdapter()
 			{
+				public void 
+				componentCreated(
+					AzureusCore 			core,
+					AzureusCoreComponent 	component )
+				{
+					if ( component instanceof GlobalManager ){
+						
+						GlobalManager global_manager = (GlobalManager)component;
+					
+						global_manager.addDownloadManagerInitialisationAdapter(
+							new DownloadManagerInitialisationAdapter()
+							{	
+								public void 
+								initialised(
+									DownloadManager 	manager,
+									boolean				for_seeding ) 
+								{
+									if ( for_seeding ){
+										
+										return;
+									}
+									
+									List<Tag> auto_tags = auto_tracker.getTagsForDownload( manager );
+									
+									if ( auto_tags.size() > 0 ){
+										
+										List<Tag>	sl_tags = new ArrayList<Tag>();
+										
+										for ( Tag tag: auto_tags ){
+											
+											TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
+
+											if ( fl.supportsTagInitialSaveFolder()){
+												
+												File save_loc = fl.getTagInitialSaveFolder();
+												
+												if ( save_loc != null ){
+													
+													sl_tags.add( tag );
+												}
+											}
+										}
+										
+										if ( sl_tags.size() > 0 ){
+											
+											if ( sl_tags.size() > 1 ){
+												
+												Collections.sort(
+													sl_tags,
+													new Comparator<Tag>()
+													{
+														public int 
+														compare(
+															Tag o1, Tag o2) 
+														{
+															return( o1.getTagID() - o2.getTagID());
+														}
+													});
+											}
+											
+											File new_loc = ((TagFeatureFileLocation)sl_tags.get(0)).getTagInitialSaveFolder();
+											
+											File old_loc = manager.getSaveLocation();
+											
+											if ( !new_loc.equals( old_loc )){
+												
+												manager.setTorrentSaveDir( new_loc.getAbsolutePath());
+											}
+										}
+									}
+								}
+							});
+					}
+				}
+				
 				public void
 				stopped(
 					AzureusCore		core )
@@ -501,10 +583,6 @@ TagManagerImpl
 					}
 				}
 			});
-		
-		new TagPropertyTrackerHandler( azureus_core, this );
-		
-		new TagPropertyUntaggedHandler( azureus_core, this );
 	}
 	
 	private void

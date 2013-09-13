@@ -2462,7 +2462,7 @@ public class OpenTorrentWindow
 
 				DownloadManager dm = gm.addDownloadManager(info.sFileName, hash, info.sDestDir, info.sDestSubDir, iStartState, true, info.iStartID == STARTMODE_SEEDING, new DownloadManagerInitialisationAdapter()
 				{
-					public void initialised(DownloadManager dm) {
+					public void initialised(DownloadManager dm, boolean for_seeding ) {
 						DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
 						
 						boolean	reorder_mode 		= COConfigurationManager.getBooleanParameter( "Enable reorder storage mode" );
