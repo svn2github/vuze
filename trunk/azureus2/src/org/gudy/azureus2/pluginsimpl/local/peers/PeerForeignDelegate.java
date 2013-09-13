@@ -45,7 +45,6 @@ import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.*;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.messaging.MessageAdapter;
-import org.gudy.azureus2.pluginsimpl.local.network.ConnectionImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl.PluginLimitedRateGroup;
 
@@ -490,9 +489,12 @@ PeerForeignDelegate
 	{
 		boolean[]	flags = foreign.getAvailable();
 		
-		if ( bit_flags == null || bit_flags.flags != flags ){
+		if ( flags != null ){
 			
-			bit_flags = new BitFlags( flags );
+			if ( bit_flags == null || bit_flags.flags != flags ){
+				
+				bit_flags = new BitFlags( flags );
+			}
 		}
 		
 		return( bit_flags );
