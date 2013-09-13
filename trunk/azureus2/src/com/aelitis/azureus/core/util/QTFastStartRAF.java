@@ -609,7 +609,7 @@ QTFastStartRAF
 		
 			throws IOException;
 	}
-	
+	/*
 	public static void
 	main(
 		String[]		args )
@@ -653,4 +653,5 @@ QTFastStartRAF
 			e.printStackTrace();
 		}
 	}
+	*/
 }
