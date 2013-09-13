@@ -638,7 +638,11 @@ public class ConsoleInput extends Thread {
 		try {
 			out.println("Saving aliases to: " + aliasesFile.getCanonicalPath());
 			FileOutputStream fo = new FileOutputStream(aliasesFile);
-			aliases.store(fo, "This aliases file was automatically written by Azureus");
+			try{
+				aliases.store(fo, "This aliases file was automatically written by Azureus");
+			}finally{
+				fo.close();
+			}
 		} catch (IOException e) {
 			out.println("> Error saving aliases to " + aliasesFile.getPath() + ":" + e.getMessage());
 		}
