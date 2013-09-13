@@ -274,6 +274,8 @@ public class OpenTorrentOptionsWindow
 			File file = new File(torrentOptions.getParentDir());
 			if (!file.isDirectory()) {
 				cmbDataDir.setBackground(Colors.colorErrorBG);
+				// make the error state visible
+				soExpandItemSaveTo.setExpanded(true);
 			} else {
 				cmbDataDir.setBackground(null);
 			}
@@ -1076,6 +1078,7 @@ public class OpenTorrentOptionsWindow
 								file.getName(),
 								fileInfo.orgFullName
 							});
+					mb.setParent(dlg.getShell());
 					mb.open(null);
 				}
 			} else
@@ -1581,6 +1584,7 @@ public class OpenTorrentOptionsWindow
 					new String[] {
 						file.toString()
 					});
+			mb.setParent(dlg.getShell());
 			mb.open(null);
 			int doCreate = mb.waitUntilClosed();
 
@@ -1597,6 +1601,7 @@ public class OpenTorrentOptionsWindow
 					"OpenTorrentWindow.mb.noGlobalDestDir", new String[] {
 						file.toString()
 					});
+			mb.setParent(dlg.getShell());
 			mb.open(null);
 			cmbDataDir.setFocus();
 			return false;
@@ -1620,6 +1625,7 @@ public class OpenTorrentOptionsWindow
 						file.toString(),
 						torrentOptions.getTorrentName()
 					});
+			mb.setParent(dlg.getShell());
 			mb.open(null);
 			return false;
 		}
@@ -1629,6 +1635,7 @@ public class OpenTorrentOptionsWindow
 					"OpenTorrentWindow.mb.notValid", new String[] {
 						torrentOptions.getTorrentName()
 					});
+			mb.setParent(dlg.getShell());
 			mb.open(null);
 			return false;
 		}
@@ -1661,6 +1668,7 @@ public class OpenTorrentOptionsWindow
 					new String[] {
 						sExistingFiles
 					});
+			mb.setParent(dlg.getShell());
 			mb.open(null);
 			if (mb.waitUntilClosed() != SWT.OK) {
 				return false;

@@ -21,6 +21,7 @@
 
 package org.gudy.azureus2.ui.swt;
 
+import java.io.File;
 import java.net.URLDecoder;
 import java.util.Map;
 import java.util.regex.Matcher;
@@ -29,7 +30,6 @@ import java.util.regex.Pattern;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.DirectoryDialog;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -157,6 +157,20 @@ public class FileDownloadWindow
 		if (COConfigurationManager.getBooleanParameter("Save Torrent Files")) {
 			try {
 				dirName = COConfigurationManager.getDirectoryParameter("General_sDefaultTorrent_Directory");
+				
+				if ( dirName != null ){
+					File f = new File( dirName );
+					if ( f.isDirectory()){
+					}else{
+						if ( f.exists()){
+							dirName = null;
+						}else{
+							if ( !f.mkdirs()){
+								dirName = null;
+							}
+						}
+					}
+				}
 			} catch (Exception egnore) {
 			}
 		}

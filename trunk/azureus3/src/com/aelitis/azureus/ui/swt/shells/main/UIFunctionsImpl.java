@@ -1284,7 +1284,66 @@ public class UIFunctionsImpl
 			if (showAgainMode != null
 					&& ((showAgainMode.equals(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_NEVER)) || (showAgainMode.equals(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_MANY)
 							&& torrentOptions.getFiles() != null && torrentOptions.getFiles().length == 1))) {
-				return TorrentOpener.addTorrent(torrentOptions);
+				
+					// we're about to silently add the download - ensure that it is going to be saved somewhere vaguely sensible
+					// as the current save location is simply taken from the 'default download' config which can be blank (for example)
+				
+				boolean	looks_good = false;
+				
+				String save_loc = torrentOptions.getParentDir().trim();
+				
+				if ( save_loc.length() == 0 ){
+					
+						// blank :(
+					
+				}else if ( save_loc.startsWith( "." )){
+					
+						// relative to who knows where
+				}else{
+					
+					File f = new File( save_loc );
+					
+					if ( !f.exists()){
+						
+						f.mkdirs();
+					}
+					
+					if ( f.isDirectory() && f.canWrite()){
+						
+						if ( !f.equals(AETemporaryFileHandler.getTempDirectory())){
+							
+							looks_good = true;
+						}
+					}
+				}
+				
+				if ( looks_good ){
+				
+					return TorrentOpener.addTorrent(torrentOptions);
+					
+				}else{
+					
+					torrentOptions.setParentDir( "" );
+					
+					MessageBoxShell mb = 
+						new MessageBoxShell(
+							SWT.OK | SWT.ICON_ERROR,
+							"OpenTorrentWindow.mb.invaliddefsave", 
+							new String[]{ save_loc });
+					
+					mb.open(
+						new UserPrompterResultListener() 
+						{
+							public void 
+							prompterClosed(
+								int result) 
+							{
+								new OpenTorrentOptionsWindow(getMainShell(), torrentOptions);
+							}
+						});
+					
+					return( true );
+				}
 			}
 		}
 		
