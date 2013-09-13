@@ -1067,8 +1067,14 @@ PluginUpdatePlugin
 						}
 
 						FileOutputStream os = new FileOutputStream(test_file);
-						os.write(32);
-						os.close();
+						
+						try{
+							os.write(32);
+							
+						}finally{
+							
+							os.close();
+						}
 
 						ok = test_file.delete();
 					}catch( Throwable e ){					
