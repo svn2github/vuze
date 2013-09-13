@@ -20,8 +20,6 @@
 
 package com.aelitis.azureus.core.util.png;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.nio.ByteBuffer;
 
 public class PNG {
@@ -45,12 +43,12 @@ public class PNG {
 		buffer.position(0);
 		return buffer.array();
 	}
-	
+	/*
 	public static void main(String args[]) throws Exception {
 		File test = new File("/Users/olivier/Desktop/test.png");
 		FileOutputStream fos = new FileOutputStream(test);
 		fos.write(getPNGBytesForSize(600,400));
 		fos.close();
 	}
-
+	*/
 }
