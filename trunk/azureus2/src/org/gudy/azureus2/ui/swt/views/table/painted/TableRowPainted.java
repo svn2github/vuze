@@ -556,8 +556,11 @@ public class TableRowPainted
 					if (composite == null || composite.isDisposed() || !isVisible()) {
 						return;
 					}
-					boolean allCells = (mTableCells != null)
-							&& invalidCells.size() == mTableCells.size();
+					boolean allCells;
+					synchronized( lock ){
+						allCells = (mTableCells != null)&& invalidCells.size() == mTableCells.size();
+					}
+					
 					if (allCells) {
 						getViewPainted().swt_updateCanvasImage(getDrawBounds(), false);
 					} else {
@@ -692,8 +695,10 @@ public class TableRowPainted
 			redraw(false, false);
 		}
 		
-		if (!b && mTableCells != null) {
-			destroyCells();
+		synchronized (lock) {
+			if (!b && mTableCells != null) {
+				destroyCells();
+			}
 		}
 		
 		return ret;
