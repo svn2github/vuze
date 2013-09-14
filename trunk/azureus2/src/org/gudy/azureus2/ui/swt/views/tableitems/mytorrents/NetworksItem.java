@@ -70,6 +70,6 @@ public class NetworksItem
       	networks += (i==0?"":",") + nets[i];
       }
     }
-    cell.setText((networks == null) ? "" : networks);
+    cell.setText(networks);
   }
 }
