@@ -140,7 +140,7 @@ public class PeersGraphicView
     	  
     	  if ( l < 0 ){
     		  result = -1;
-    	  }else if ( result > 0 ){
+    	  }else if ( l > 0 ){
     		  result = 1;
     	  }
       }
