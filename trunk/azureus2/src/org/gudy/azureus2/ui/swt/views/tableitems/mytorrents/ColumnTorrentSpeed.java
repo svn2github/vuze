@@ -51,30 +51,29 @@ public class ColumnTorrentSpeed
 	}
 
   public void refresh(TableCell cell) {
-  	if (!(cell.getDataSource() instanceof Download)) {
+	Object ds = cell.getDataSource();
+  	if (!(ds instanceof Download)) {
   		return;
   	}
-    Download dm = (Download)cell.getDataSource();
+    Download dm = (Download)ds;
     long value;
     long sortValue;
     String prefix = "";
-    if (dm == null) {
-    	sortValue = value = 0;
+
+    int iState;
+    iState = dm.getState();
+    if (iState == Download.ST_DOWNLOADING) {
+    	value = dm.getStats().getDownloadAverage();
+    	((TableCellSWT)cell).setIcon(imgDown);
+    } else if (iState == Download.ST_SEEDING) {
+    	value = dm.getStats().getUploadAverage();
+    	((TableCellSWT)cell).setIcon(imgUp);
     } else {
-    	int iState;
-      iState = dm.getState();
-      if (iState == Download.ST_DOWNLOADING) {
-      	value = dm.getStats().getDownloadAverage();
-      	((TableCellSWT)cell).setIcon(imgDown);
-      } else if (iState == Download.ST_SEEDING) {
-      	value = dm.getStats().getUploadAverage();
-      	((TableCellSWT)cell).setIcon(imgUp);
-      } else {
-      	((TableCellSWT)cell).setIcon(null);
-      	value = 0;
-      }
-      sortValue = (value << 4) | iState;
+    	((TableCellSWT)cell).setIcon(null);
+    	value = 0;
     }
+    sortValue = (value << 4) | iState;
+  
     
     if (cell.setSortValue(sortValue) || !cell.isValid()) {
     	cell.setText(value > 0 ? prefix + DisplayFormatters.formatByteCountToKiBEtcPerSec(value) : "");
