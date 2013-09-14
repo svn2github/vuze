@@ -103,22 +103,19 @@ public class BadAvailTimeItem
 		if (value > 0) {
 			super.refresh(cell, value);
 		} else {
-  		String text;
-  		
-  		if ( value == -2 ){
-  			text = now_string;
-  		}else if ( value <= 0 ){
-  			text = "";
-  			
-  		}else{
-  			text = DisplayFormatters.formatDate(value);
-  		}
-		
-  		if (!cell.setSortValue(value) && cell.isValid()) {
-  			return;
-  		}
+			String text;
 
-  		cell.setText(text);
+			if ( value == -2 ){
+				text = now_string;
+			}else{
+				text = "";
+			}
+		
+			if (!cell.setSortValue(value) && cell.isValid()) {
+				return;
+			}
+
+			cell.setText(text);
 		}
 	}
 }
