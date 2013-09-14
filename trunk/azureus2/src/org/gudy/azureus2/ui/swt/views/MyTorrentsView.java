@@ -1707,6 +1707,7 @@ public class MyTorrentsView
 	}
 
   public void refreshToolBarItems(Map<String, Long> list) {
+	super.refreshToolBarItems(list);
   	ISelectedContent[] datasource = SelectedContentManager.getCurrentlySelectedContent();
 		boolean hasMultiple = datasource instanceof Object[] && ((Object[])datasource).length > 1;
 		
@@ -1730,6 +1731,7 @@ public class MyTorrentsView
   }  
 
   public boolean toolBarItemActivated(ToolBarItem item, long activationType, Object datasource) {
+	  
 		boolean hasMultiple = datasource instanceof Object[] && ((Object[])datasource).length > 1;
 		
 		// Most subviews can only handle one datasource.  I'm lazy, so instead of 
@@ -1797,7 +1799,7 @@ public class MyTorrentsView
       TorrentUtil.removeDataSources(tv.getSelectedDataSources().toArray());
       return true;
     }
-    return false;
+    return super.toolBarItemActivated(item, activationType, datasource);
   }
   
 
