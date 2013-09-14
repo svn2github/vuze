@@ -68,6 +68,6 @@ public class PeerSourcesItem
       	ps += (i==0?"":",") + nets[i];
       }
     }
-    cell.setText((ps == null) ? "" : ps);
+    cell.setText(ps);
   }
 }
