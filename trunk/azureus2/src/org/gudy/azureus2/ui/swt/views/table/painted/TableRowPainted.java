@@ -202,16 +202,12 @@ public class TableRowPainted
 			fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
 			gc.setForeground(fg);
 		} else {
-  		if (fg == null) {
-  			if (isSelected) {
-  				fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_SELECTION_TEXT);
-  			} else {
-  				fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
-  			}
+	  		if (fg == null) {
+				fg = gc.getDevice().getSystemColor(SWT.COLOR_LIST_FOREGROUND);
 				gc.setForeground(fg);
-  		} else {
-  			gc.setForeground(fg);
-  		}
+	  		} else {
+	  			gc.setForeground(fg);
+	  		}
 		}
 
 		int rowAlpha = getAlpha();
