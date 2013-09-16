@@ -56,9 +56,9 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.update.UpdateCheckInstanceImpl;
 import org.gudy.azureus2.pluginsimpl.local.update.UpdateManagerImpl;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
-
 import org.gudy.azureus2.pluginsimpl.update.PluginUpdatePlugin;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
@@ -70,7 +70,7 @@ PluginInstallerImpl
 {
 	protected static PluginInstallerImpl	singleton;
 	
-	public static PluginInstallerImpl
+	public static synchronized PluginInstallerImpl
 	getSingleton(
 		PluginManager	_manager )
 	{
@@ -83,7 +83,8 @@ PluginInstallerImpl
 	}
 	
 	private PluginManager	manager;
-	private List			listeners	 = new ArrayList();
+	
+	private CopyOnWriteList<PluginInstallerListener>			listeners	 = new CopyOnWriteList<PluginInstallerListener>();
 	
 	private AsyncDispatcher		add_file_install_dispatcher;
 	
@@ -1048,11 +1049,16 @@ PluginInstallerImpl
 	
 		throws PluginException
 	{
-		for (int i=0;i<listeners.size();i++){
+		for ( PluginInstallerListener listener: listeners ){
 			
-			if (((PluginInstallerListener)listeners.get(i)).installRequest( reason, plugin )){
+			try{
+				if ( listener.installRequest( reason, plugin )){
+					
+					return;
+				}
+			}catch( Throwable e ){
 				
-				return;
+				Debug.out( e );
 			}
 		}
 		
