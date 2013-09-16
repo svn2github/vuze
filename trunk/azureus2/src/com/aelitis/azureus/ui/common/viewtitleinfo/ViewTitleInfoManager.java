@@ -18,8 +18,9 @@
  
 package com.aelitis.azureus.ui.common.viewtitleinfo;
 
-import java.util.ArrayList;
-import java.util.List;
+import org.gudy.azureus2.core3.util.Debug;
+
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  * @author TuxPaper
@@ -28,30 +29,30 @@ import java.util.List;
  */
 public class ViewTitleInfoManager
 {
-	public static List<ViewTitleInfoListener> listeners = new ArrayList<ViewTitleInfoListener>();
+	public static CopyOnWriteList<ViewTitleInfoListener> listeners = new CopyOnWriteList<ViewTitleInfoListener>();
 	
 	public static void addListener(ViewTitleInfoListener l) {
-		synchronized (listeners) {
-			if (!listeners.contains(l)) {
-				listeners.add(l);
-			}
-		}
+		listeners.addIfNotPresent(l);
 	}
 	
 	public static void removeListener(ViewTitleInfoListener l) {
-		synchronized (listeners) {
-			listeners.remove(l);
-		}
+		listeners.remove(l);
 	}
 	
 	public static void refreshTitleInfo(ViewTitleInfo titleinfo) {
 		if (titleinfo == null) {
 			return;
 		}
-		Object[] array = listeners.toArray();
-		for (int i = 0; i < array.length; i++) {
-			ViewTitleInfoListener l = (ViewTitleInfoListener) array[i];
-			l.viewTitleInfoRefresh(titleinfo);
+
+		for ( ViewTitleInfoListener l: listeners ){
+		
+			try{
+				l.viewTitleInfoRefresh( titleinfo );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
 		}
 	}
 	
