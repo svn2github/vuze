@@ -779,10 +779,13 @@ SpeedManagerImpl
 			
 			enabled	= _enabled;
 			
+			/*
+			 * should probably be && pm_enabled but been dead code for a while so I'm just commenting out for the mo
 			if ( speed_tester != null && !pm_enabled ){
 				
 				speed_tester.setContactNumber( enabled?CONTACT_NUMBER:0);
 			}
+			*/
 			
 			if ( !enabled ){
 									
