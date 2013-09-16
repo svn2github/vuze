@@ -185,59 +185,59 @@ DownloadManagerEnhancer
 							getEnhancedDownload( b_hash );
 						}
 						
+						List<EnhancedDownloadManager>	edms_copy;
+						
 						synchronized( download_map ){
 
-							Iterator<EnhancedDownloadManager> it = download_map.values().iterator();
-							
-							while( it.hasNext()){
+							edms_copy = new ArrayList<EnhancedDownloadManager>( download_map.values());
+						}
+						
+						for ( EnhancedDownloadManager edm: edms_copy ){
+																
+							if ( b_hash != null ){
 								
-								EnhancedDownloadManager	edm = it.next();
+								byte[]	d_hash = edm.getHash();
 								
-								if ( b_hash != null ){
+								if ( d_hash != null && Arrays.equals( b_hash, d_hash )){
+								
+										// if its complete then obviously 0
 									
-									byte[]	d_hash = edm.getHash();
-									
-									if ( d_hash != null && Arrays.equals( b_hash, d_hash )){
-									
-											// if its complete then obviously 0
+									if ( edm.getDownloadManager().isDownloadComplete( false )){
 										
-										if ( edm.getDownloadManager().isDownloadComplete( false )){
-											
-											return( 0 );
-										}
+										return( 0 );
+									}
 
-										if ( !edm.supportsProgressiveMode()){											
-											
-											return( Integer.MIN_VALUE );
-										}
+									if ( !edm.supportsProgressiveMode()){											
 										
-										if ( !edm.getProgressiveMode()){
-										
-											edm.setProgressiveMode( true );
-										}
-										
-										long eta = edm.getProgressivePlayETA();
-										
-										if ( eta > Integer.MAX_VALUE ){
-											
-											return( Integer.MAX_VALUE );
-										}
-										
-										return((int)eta);
+										return( Integer.MIN_VALUE );
 									}
-								}else{
 									
-									if ( edm.getProgressiveMode()){
-										
-										long eta = edm.getProgressivePlayETA();
-										
-										if ( eta > Integer.MAX_VALUE ){
-											
-											return( Integer.MAX_VALUE );
-										}
-										
-										return((int)eta);
+									if ( !edm.getProgressiveMode()){
+									
+										edm.setProgressiveMode( true );
 									}
+									
+									long eta = edm.getProgressivePlayETA();
+									
+									if ( eta > Integer.MAX_VALUE ){
+										
+										return( Integer.MAX_VALUE );
+									}
+									
+									return((int)eta);
+								}
+							}else{
+								
+								if ( edm.getProgressiveMode()){
+									
+									long eta = edm.getProgressivePlayETA();
+									
+									if ( eta > Integer.MAX_VALUE ){
+										
+										return( Integer.MAX_VALUE );
+									}
+									
+									return((int)eta);
 								}
 							}
 						}
