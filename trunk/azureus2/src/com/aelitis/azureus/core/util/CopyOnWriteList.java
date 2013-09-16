@@ -150,6 +150,19 @@ implements Iterable<T>
 	}
 
 	public void
+	addIfNotPresent(
+		T	obj )
+	{
+		synchronized( this ){
+
+			if ( !list.contains( obj )){
+				
+				add( obj );
+			}
+		}
+	}
+	
+	public void
 	add(
 		int	index,
 		T	obj )
