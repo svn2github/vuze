@@ -165,7 +165,6 @@ public class UnchokerUtilTest {
         public Message[] getSupportedMessages(){ return new Message[0]; }
         public String getEncryption(){ return( "" ); }
         public String getProtocol(){ return( "" ); }
-        public int getReservedPieceNumber() { return -1; }
         public void addReservedPieceNumber(int pieceNumber) {}
         public void removeReservedPieceNumber(int pieceNumber) {}
         public int[] getReservedPieceNumbers() { return null; }
