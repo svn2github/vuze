@@ -129,7 +129,7 @@ public class AEClientService implements ClientMessageService {
     
     if( error != null ) {  //connect failure
       close();
-      throw new IOException( "connect op failed: " + error.getMessage() == null ? "[]" : error.getMessage() );
+      throw new IOException( "connect op failed: " + ( error.getMessage() == null ? "[]" : error.getMessage() ));
     }
         
     rw_service.addClientConnection( conn );  //register for read/write handling
@@ -145,7 +145,7 @@ public class AEClientService implements ClientMessageService {
 		
 		if( error != null ) {
 		    close();
-		    throw new IOException( "send op failed: " + error.getMessage() == null ? "[]" : error.getMessage() );
+		    throw new IOException( "send op failed: " + ( error.getMessage() == null ? "[]" : error.getMessage() ));
 		}
 		
 		ClientMessage client_msg = new ClientMessage( msg_type_id, conn, message, new ClientMessageHandler() {
@@ -172,7 +172,7 @@ public class AEClientService implements ClientMessageService {
     
     if( error != null ) {  //connect failure
       close();
-      throw new IOException( "send op failed: " + error.getMessage() == null ? "[]" : error.getMessage() );
+      throw new IOException( "send op failed: " + ( error.getMessage() == null ? "[]" : error.getMessage() ));
     }
 	}
 	
@@ -198,7 +198,7 @@ public class AEClientService implements ClientMessageService {
 		}
 		
 		close();
-		throw new IOException( "receive op failed: " + error.getMessage() == null ? "[]" : error.getMessage() );
+		throw new IOException( "receive op failed: " + ( error.getMessage() == null ? "[]" : error.getMessage() ));
 	}
 	
 	
