@@ -693,10 +693,24 @@ public class SideBarEntrySWT
 				gc.setBackgroundPattern(pattern);
 				*/
 				
+				Color text_color = Colors.white;
+				
 				gc.fillRoundRectangle(startX, startY, width, height, textSize.y * 2 / 3,
 						height * 2 / 3);
 				
 				if ( color != null ){
+					
+					Color bg = gc.getBackground();
+					
+					int	red 	= bg.getRed();
+					int green 	= bg.getGreen();
+					int blue	= bg.getBlue();
+					
+					double brightness = Math.sqrt( red*red*0.299+green*green*0.587+blue*blue*0.114);
+					
+					if ( brightness >= 130 ){
+						text_color = Colors.black;
+					}
 					
 					gc.setBackground( default_color );
 					
@@ -708,7 +722,7 @@ public class SideBarEntrySWT
 				if (maxIndicatorWidth > width) {
 					maxIndicatorWidth = width;
 				}
-				gc.setForeground(Colors.white);
+				gc.setForeground(text_color);
 				GCStringPrinter.printString(gc, textIndicator, new Rectangle(startX,
 						startY + textOffsetY, width, height), true, false, SWT.CENTER);
 			}
