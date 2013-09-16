@@ -66,23 +66,26 @@ public class ColumnUnopened
 	public ColumnUnopened(String tableID) {
 		super(COLUMN_ID, tableID);
 		
-		if (graphicCheck == null) {
-			Image img = ImageLoader.getInstance().getImage("image.unopened");
-			graphicCheck = new UISWTGraphicImpl(img);
-		}
-		if (graphicUnCheck == null) {
-			Image img = ImageLoader.getInstance().getImage("image.opened");
-			graphicUnCheck = new UISWTGraphicImpl(img);
-		}
-
-		if (graphicsProgress == null) {
+		synchronized( ColumnUnopened.class ){
 			
-			Image[] imgs = ImageLoader.getInstance().getImages("image.sidebar.vitality.dl");
-			graphicsProgress = new UISWTGraphicImpl[imgs.length];
-			for(int i = 0 ; i < imgs.length ; i++) {
-				graphicsProgress[i] = new UISWTGraphicImpl(imgs[i]);
+			if (graphicCheck == null) {
+				Image img = ImageLoader.getInstance().getImage("image.unopened");
+				graphicCheck = new UISWTGraphicImpl(img);
 			}
-			
+			if (graphicUnCheck == null) {
+				Image img = ImageLoader.getInstance().getImage("image.opened");
+				graphicUnCheck = new UISWTGraphicImpl(img);
+			}
+	
+			if (graphicsProgress == null) {
+				
+				Image[] imgs = ImageLoader.getInstance().getImages("image.sidebar.vitality.dl");
+				graphicsProgress = new UISWTGraphicImpl[imgs.length];
+				for(int i = 0 ; i < imgs.length ; i++) {
+					graphicsProgress[i] = new UISWTGraphicImpl(imgs[i]);
+				}
+				
+			}
 		}
 		
 		TableContextMenuItem menuItem = addContextMenuItem("label.toggle.new.marker");
