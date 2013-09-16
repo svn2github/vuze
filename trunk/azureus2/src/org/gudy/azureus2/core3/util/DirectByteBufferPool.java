@@ -35,13 +35,12 @@ DirectByteBufferPool
 	static{	
 		if ( System.getProperty( "use.heap.buffers" ) != null ){
 			
-			impl = new DirectByteBufferPoolHeap();
-			
-			Debug.outNoStack( "******** USE_HEAP_BUFFERS MODE ENABLED ********" );
-		}else{
-			
-			impl = new DirectByteBufferPoolReal();
+			// impl = new DirectByteBufferPoolHeap();
+		
+			Debug.outNoStack( "******** USE_HEAP_BUFFERS MODE DEPRECATED ********" );
 		}
+			
+		impl = new DirectByteBufferPoolReal();
 	}
 	
 

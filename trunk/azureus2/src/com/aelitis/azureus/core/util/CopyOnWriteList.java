@@ -149,15 +149,26 @@ implements Iterable<T>
 		}
 	}
 
-	public void
+		/**
+		 * 
+		 * @param obj
+		 * @return true if added, false if not
+		 */
+	
+	public boolean
 	addIfNotPresent(
 		T	obj )
 	{
 		synchronized( this ){
 
-			if ( !list.contains( obj )){
+			if ( list.contains( obj )){
+				
+				return(false );
+			}else{
 				
 				add( obj );
+				
+				return( true );
 			}
 		}
 	}
