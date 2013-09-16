@@ -75,7 +75,7 @@ DownloadManagerEnhancer
 	
 	private AzureusCore		core;
 	
-	private Map<DownloadManager,EnhancedDownloadManager>		download_map = new HashMap<DownloadManager,EnhancedDownloadManager>();
+	private Map<DownloadManager,EnhancedDownloadManager>		download_map = new IdentityHashMap<DownloadManager,EnhancedDownloadManager>();
 	
 	private Set<HashWrapper>		pause_set = new HashSet<HashWrapper>();
 	
