@@ -64,7 +64,7 @@ DiskManagerFileInfoImpl
   
   protected boolean 	skipped_internal 	= false;
   
-  private CopyOnWriteList	listeners;
+  private volatile CopyOnWriteList<DiskManagerFileInfoListener>	listeners;	// save mem and allocate if needed later
   
   public
   DiskManagerFileInfoImpl(
@@ -515,14 +515,14 @@ DiskManagerFileInfoImpl
   		long		offset,
   		long		size )
   	{
-  		if ( listeners != null ){
+  		CopyOnWriteList<DiskManagerFileInfoListener>	l_ref = listeners;
+  				
+  		if ( l_ref != null ){
   			
-  			Iterator	it = listeners.iterator();
-  			
-  			while( it.hasNext()){
+  			for ( DiskManagerFileInfoListener listener: l_ref ){
   				
   				try{
-  					((DiskManagerFileInfoListener)it.next()).dataWritten( offset, size );
+  					listener.dataWritten( offset, size );
   					
   				}catch( Throwable e ){
   					
@@ -537,14 +537,14 @@ DiskManagerFileInfoImpl
   		long		offset,
   		long		size )
   	{
-  		if ( listeners != null ){
+ 		CopyOnWriteList<DiskManagerFileInfoListener>	l_ref = listeners;
+
+ 		if ( l_ref != null ){
   			
-  			Iterator	it = listeners.iterator();
-  			
-  			while( it.hasNext()){
+  			for ( DiskManagerFileInfoListener listener: l_ref ){
   				
   				try{
-  					((DiskManagerFileInfoListener)it.next()).dataChecked( offset, size );
+  					listener.dataChecked( offset, size );
   					
   				}catch( Throwable e ){
   					
@@ -589,20 +589,18 @@ DiskManagerFileInfoImpl
 	addListener(
 		final DiskManagerFileInfoListener	listener )
 	{
-		if ( listeners == null ){
+		synchronized( this ){
+
+			if ( listeners == null ){
 			
-			listeners = new CopyOnWriteList();
-		}
-		
-		synchronized( listeners ){
-			
-			if ( listeners.getList().contains( listener )){
-				
-				return;
+				listeners = new CopyOnWriteList<DiskManagerFileInfoListener>();
 			}
 		}
 		
-		listeners.add( listener );
+		if ( !listeners.addIfNotPresent( listener )){
+			
+			return;
+		}
 		
 		new Runnable()
 		{
@@ -765,6 +763,12 @@ DiskManagerFileInfoImpl
 	removeListener(
 		DiskManagerFileInfoListener	listener )
 	{	
-		listeners.remove( listener );
+		synchronized( this ){
+			
+			if ( listeners != null ){
+		
+				listeners.remove( listener );
+			}
+		}
 	}
 }
