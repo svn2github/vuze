@@ -818,7 +818,7 @@ PairingManagerTunnelHandler
 				
 				byte[]	ss = new byte[]{ SRP_SALT[0], SRP_SALT[1], SRP_SALT[2], SRP_SALT[3] };
 				
-				long	tunnel_id = Math.abs( RandomUtils.SECURE_RANDOM.nextLong());
+				long	tunnel_id = RandomUtils.nextSecureAbsoluteLong();
 				
 				String	tunnel_name = Base32.encode( ss ) + "_" + tunnel_id;
 	
