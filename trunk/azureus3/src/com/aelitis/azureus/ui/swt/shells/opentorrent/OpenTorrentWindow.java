@@ -351,34 +351,37 @@ public class OpenTorrentWindow
 		}
 
 		int numAdded = 0;
-		for (int i = 0; i < sTorrentFilenames.length; i++) {
-			if (sTorrentFilenames[i] == null || sTorrentFilenames[i] == "")
-				continue;
-
-			// Process File
-			String sFileName = ((sTorrentFilePath == null) ? "" : sTorrentFilePath)
-					+ sTorrentFilenames[i];
-
-			File file = new File(sFileName);
-
-			try {
-				if (UrlUtils.isURL(sFileName)
-						|| (file.exists() && TorrentUtils.isTorrentFile(sFileName))) {
-					if (text.length() > 0) {
-						text += "\n";
+		
+		if ( sTorrentFilenames != null ){
+			for (int i = 0; i < sTorrentFilenames.length; i++) {
+				if (sTorrentFilenames[i] == null || sTorrentFilenames[i] == "")
+					continue;
+	
+				// Process File
+				String sFileName = ((sTorrentFilePath == null) ? "" : sTorrentFilePath)
+						+ sTorrentFilenames[i];
+	
+				File file = new File(sFileName);
+	
+				try {
+					if (UrlUtils.isURL(sFileName)
+							|| (file.exists() && TorrentUtils.isTorrentFile(sFileName))) {
+						if (text.length() > 0) {
+							text += "\n";
+						}
+						text += sFileName;
+						numAdded++;
 					}
-					text += sFileName;
-					numAdded++;
+				} catch (FileNotFoundException e) {
+				} catch (IOException e) {
 				}
-			} catch (FileNotFoundException e) {
-			} catch (IOException e) {
+			}
+	
+			if (numAdded > 0) {
+				soTextArea.setText(text);
 			}
 		}
-
-		if (numAdded > 0) {
-			soTextArea.setText(text);
-		}
-
+		
 		return numAdded;
 	}
 
