@@ -1562,7 +1562,7 @@ DHTDBImpl
 
 					if ( value.isLocal()){
 						
-						if (( value.getFlags() | DHT.FLAG_PRECIOUS ) != 0 ){
+						if (( value.getFlags() & DHT.FLAG_PRECIOUS ) != 0 ){
 							
 							if ( now - value.getCreationTime() > PRECIOUS_CHECK_INTERVAL ){
 								
