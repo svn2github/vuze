@@ -93,13 +93,16 @@ public class ColumnStream
 
 		initializeAsGraphic(WIDTH);
 		setAlignment(ALIGN_CENTER);
-		if (imgGreen == null) {
-  		imgGreen = ImageLoader.getInstance().getImage("column.image.play.green");
-  		imgDisabled = ImageLoader.getInstance().getImage("column.image.play.off");
-  		imgBlue = ImageLoader.getInstance().getImage("column.image.play.blue");
-  		imgGreenSmall = ImageLoader.getInstance().getImage("column.image.play.green.small");
-  		imgDisabledSmall = ImageLoader.getInstance().getImage("column.image.play.off.small");
-  		imgBlueSmall = ImageLoader.getInstance().getImage("column.image.play.blue.small");
+		
+		synchronized( ColumnStream.class ){
+			if (imgGreen == null) {
+		  		imgGreen = ImageLoader.getInstance().getImage("column.image.play.green");
+		  		imgDisabled = ImageLoader.getInstance().getImage("column.image.play.off");
+		  		imgBlue = ImageLoader.getInstance().getImage("column.image.play.blue");
+		  		imgGreenSmall = ImageLoader.getInstance().getImage("column.image.play.green.small");
+		  		imgDisabledSmall = ImageLoader.getInstance().getImage("column.image.play.off.small");
+		  		imgBlueSmall = ImageLoader.getInstance().getImage("column.image.play.blue.small");
+			}
 		}
 	}
 
