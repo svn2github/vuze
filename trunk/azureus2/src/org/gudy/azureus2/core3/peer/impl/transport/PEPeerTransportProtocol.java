@@ -4627,21 +4627,12 @@ implements PEPeerTransport
 		int	piece_number 	= hint.getPieceNumber();
 		int	offset			= 0;
 		int	length			= manager.getPieceLength( piece_number );
-		int	life			= REQUEST_HINT_MAX_LIFE;
 
 		hint.destroy();
-
-		if ( life > REQUEST_HINT_MAX_LIFE ){
-
-			life = REQUEST_HINT_MAX_LIFE;
-		}
 
 		if ( manager.validateHintRequest( this, piece_number, offset, length )){
 
 			if ( request_hint == null ){ 
-
-				// we ignore life time currently as once hinted we don't accept another hint
-				// until that one is satisfied. This is to prevent too many pieces starting
 
 				request_hint = new int[]{ piece_number, offset, length };
 			}
