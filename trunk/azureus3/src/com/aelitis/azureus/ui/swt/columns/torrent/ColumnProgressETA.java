@@ -333,7 +333,7 @@ public class ColumnProgressETA
 		String sStatusLine = null;
 
 		// Draw Progress bar
-		ImageLoader imageLoader = ImageLoader.getInstance();
+		// ImageLoader imageLoader = ImageLoader.getInstance();
 
 		Rectangle boundsImgBG;
 
