@@ -281,8 +281,10 @@ public class TimeFormatter {
     	String		date )
     {
     	try{
-    		return( http_date_format.parse( date ).getTime());
+    		synchronized( http_date_format ){
     		
+    			return( http_date_format.parse( date ).getTime());
+    		}
     	}catch( Throwable e ){
     		
     		Debug.out("Failed to parse HTTP date '" + date + "'" );

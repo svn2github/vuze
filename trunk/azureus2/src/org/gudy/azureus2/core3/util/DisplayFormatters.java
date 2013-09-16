@@ -630,9 +630,14 @@ DisplayFormatters
     				then = (then/(60*1000))*(60*1000);
     			}
     			
-      			String	str1 = abs_df.format(new Date( now ));
-      			String	str2 = abs_df.format(new Date( then ));
-
+     			String	str1;
+      			String	str2;
+      			
+      			synchronized( abs_df ){
+      				str1 = abs_df.format(new Date( now ));
+      				str2 = abs_df.format(new Date( then ));
+      			}
+      			
       			int	len = Math.min(str1.length(), str2.length())-2;
       			
       			int	diff_at = len;
