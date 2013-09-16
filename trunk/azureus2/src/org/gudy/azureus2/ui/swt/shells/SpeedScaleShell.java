@@ -95,25 +95,6 @@ public class SpeedScaleShell
 
 	private TimerEvent cursorBlinkEvent = null;
 
-	public static void main(String[] args) {
-		SpeedScaleShell speedScaleWidget = new SpeedScaleShell() {
-			public String getStringValue() {
-				return getValue() + "b/s";
-			}
-		};
-		speedScaleWidget.setMaxValue(10000);
-		speedScaleWidget.setMaxTextValue(15000);
-		speedScaleWidget.addOption("AutoSpeed", -1);
-		speedScaleWidget.addOption("Preset: 10b/s", 10);
-		speedScaleWidget.addOption("Preset: 20b/s", 20);
-		speedScaleWidget.addOption("Preset: 1b/s", 1);
-		speedScaleWidget.addOption("Preset: 1000b/s", 1000);
-		speedScaleWidget.addOption("Preset: A really long preset", 2000);
-		System.out.println("returns "
-				+ speedScaleWidget.open(1000, Constants.isWindows) + " w/"
-				+ speedScaleWidget.getValue());
-	}
-
 	public SpeedScaleShell() {
 		minValue = 0;
 		maxValue = -1;
