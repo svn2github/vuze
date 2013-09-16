@@ -64,7 +64,7 @@ public class ClientStatsView
 
 	private boolean columnsAdded;
 
-	private Map<String, ClientStatsDataSource> mapData;
+	private final Map<String, ClientStatsDataSource> mapData = new HashMap<String, ClientStatsDataSource>();
 
 	private Composite parent;
 
@@ -165,8 +165,13 @@ public class ClientStatsView
 				sb.append(overall.count);
 				sb.append(": ");
 
-				ClientStatsDataSource[] stats = mapData.values().toArray(
-						new ClientStatsDataSource[0]);
+				ClientStatsDataSource[] stats;
+				
+				synchronized( mapData ){
+					
+					stats = mapData.values().toArray(new ClientStatsDataSource[0]);
+				}
+				
 				Arrays.sort(stats, new Comparator<ClientStatsDataSource>() {
 					public int compare(ClientStatsDataSource o1, ClientStatsDataSource o2) {
 						if (o1.count == o2.count) {
@@ -418,8 +423,6 @@ public class ClientStatsView
 	}
 
 	private void initAndLoad() {
-		mapData = new HashMap<String, ClientStatsDataSource>();
-
 		synchronized (mapData) {
 			Map map = FileUtil.readResilientConfigFile(CONFIG_FILE);
 
