@@ -212,11 +212,15 @@ public class FileLogging implements ILogEventListener {
 			logFilePrinter.close();
 			logFilePrinter = null;
 
-			if ((!back_name.exists()) || back_name.delete())
-				if (!logFile.renameTo(back_name))
+			if ((!back_name.exists()) || back_name.delete()){
+				if (!logFile.renameTo(back_name)){
+						// rename failed, just have to trash the existing one
 					logFile.delete();
-			else
+				}
+			}else{
+					// failed to delete existing backup, just have to trash existing log
 				logFile.delete();
+			}
 		}
 		
 		if(logFilePrinter == null)
