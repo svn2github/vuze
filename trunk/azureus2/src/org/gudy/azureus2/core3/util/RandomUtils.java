@@ -211,11 +211,50 @@ RandomUtils
         return RANDOM.nextInt();
     }
         
+    public static int nextAbsoluteInt()
+    {
+    	while( true ){
+    		
+    		int val = Math.abs( RANDOM.nextInt());
+    		
+    		if ( val >= 0 ){
+    			
+    			return( val );
+    		}
+    	}
+    }
+    
     public static long nextLong()
     {
         return RANDOM.nextLong();
     }
-        
+       
+    public static long nextAbsoluteLong()
+    {
+    	while( true ){
+    		
+    		long val = Math.abs( RANDOM.nextLong());
+    		
+    		if ( val >= 0 ){
+    			
+    			return( val );
+    		}
+    	}
+    }
+    
+    public static long nextSecureAbsoluteLong()
+    {
+    	while( true ){
+    		
+    		long val = Math.abs( SECURE_RANDOM.nextLong());
+    		
+    		if ( val >= 0 ){
+    			
+    			return( val );
+    		}
+    	}
+    }
+    
 	/**
 	 * @return random int between 0 and max-1. e.g. param of 10 returns 0->9
 	 */

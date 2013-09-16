@@ -331,9 +331,7 @@ ShareManagerImpl
 	getNewTorrentLocation()
 	
 		throws ShareException
-	{
-		Random rand = new Random(SystemTime.getCurrentTime());
-		
+	{		
 		for (int i=1;i<=MAX_DIRS;i++){
 			
 			String	cache_dir_str = share_dir + File.separator + TORRENT_SUBSTORE + i;
@@ -349,7 +347,7 @@ ShareManagerImpl
 				
 				for (int j=0;j<MAX_FILES_PER_DIR;j++){
 					
-					long	file = Math.abs(rand.nextLong());
+					long	file = RandomUtils.nextAbsoluteLong();
 			
 					File	file_name = new File(cache_dir_str + File.separator + file + ".torrent");
 					
