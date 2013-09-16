@@ -997,8 +997,7 @@ public class SWTSkin
 			String sID, final String sConfigID, String[] sTypeParams, SWTSkinObject parentSkinObject,
 			boolean bForceCreate, boolean bPropogate, SWTSkinObject intoSkinObject) {
 		String[] sItems = properties.getStringArray(sConfigID + ".widgets");
-		final String[] sItemsLater = null; // properties.getStringArray(sConfigID + ".widgets-onshow");
-		if (sItems == null && sItemsLater == null && !bForceCreate) {
+		if (sItems == null && !bForceCreate) {
 			return null;
 		}
 
@@ -1036,19 +1035,6 @@ public class SWTSkin
 
 		if (sItems != null) {
 			addContainerChildren(skinObject, sItems, properties);
-		}
-		if (sItemsLater != null) {
-			skinObject.addListener(new SWTSkinObjectListener() {
-				public Object eventOccured(SWTSkinObject skinObject, int eventType,
-						Object params) {
-					if (eventType == EVENT_SHOW) {
-						skinObject.removeListener(this);
-						addContainerChildren(skinObject, sItemsLater, properties);
-						layout();
-					}
-					return null;
-				}
-			});
 		}
 		
 		return skinObject;
