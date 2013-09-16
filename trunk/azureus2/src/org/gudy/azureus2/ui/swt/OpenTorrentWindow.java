@@ -1862,7 +1862,7 @@ public class OpenTorrentWindow
 					btnSwarmIt.addListener(SWT.Selection, new Listener() {
 						public void handleEvent(Event event) {
 							int[] indexes = dataFileTable.getSelectionIndices();
-							for (int i = 0; i < indexes.length; i++) {
+							for (int i = 0; i < indexes.length && i < 32; i++) {
 								TorrentFileInfo file = (TorrentFileInfo) dataFiles.get(indexes[i]);
 								
 								try{
@@ -1871,8 +1871,9 @@ public class OpenTorrentWindow
 								}catch( Throwable e ){
 									
 									Debug.out( e );
+									
+									break;
 								}
-								break;
 							}
 						}
 					});
