@@ -33,6 +33,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.security.SecureRandom;
 
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemProperties;
 import org.gudy.azureus2.plugins.PluginManagerArgumentHandler;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
@@ -261,7 +262,7 @@ PluginSingleInstanceHandler
 				
 				file.mkdirs();
 				
-				file = File.createTempFile( "AZU" + Math.abs(new SecureRandom().nextLong()), ".tmp", file );
+				file = File.createTempFile( "AZU" + RandomUtils.nextSecureAbsoluteLong(), ".tmp", file );
 				
 				ObjectOutputStream oos2 = new ObjectOutputStream( new FileOutputStream( file ));
 				

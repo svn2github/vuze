@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.IndentWriter;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -372,7 +373,7 @@ MetaSearchImpl
 						"&az_template_version=" + engine.getVersion() +
 						"&az_version=" + Constants.AZUREUS_VERSION +
 					    "&az_locale=" + MessageText.getCurrentLocale().toString() +
-					    "&az_rand=" + Math.abs( new Random().nextLong());
+					    "&az_rand=" + RandomUtils.nextAbsoluteLong();
 		
 		log( "Engine " + engine.getName() + ": auto-update check via " + update_url );
 		
