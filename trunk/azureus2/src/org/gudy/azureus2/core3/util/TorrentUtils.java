@@ -892,7 +892,7 @@ TorrentUtils
 				
 			}else{
 			
-				if ( announce_url != null ){
+				if ( announce_url != null && first_url != null ){
 					
 					torrent.setAnnounceURL( first_url );
 				}
