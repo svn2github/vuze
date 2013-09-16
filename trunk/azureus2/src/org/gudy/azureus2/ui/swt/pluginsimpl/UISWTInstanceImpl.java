@@ -501,12 +501,13 @@ UISWTInstanceImpl
 			case UIManagerEvent.ET_SHOW_CONFIG_SECTION: {
 				event.setResult(new Boolean(false));
 
-				if (!(data instanceof String))
+				if (!(data instanceof String)){
 					break;
-
-	    	event.setResult(Boolean.TRUE);
+				}
+				
+				event.setResult(Boolean.TRUE);
 	    	
-	    	uiFunctions.openView(UIFunctions.VIEW_CONFIG, data);
+				uiFunctions.openView(UIFunctions.VIEW_CONFIG, data);
 
 				break;
 			}
@@ -525,6 +526,8 @@ UISWTInstanceImpl
 				boolean hide = (Boolean)data;
 				
 				uiFunctions.setHideAll( hide );
+				
+				break;
 			}
 			default:
 			{
