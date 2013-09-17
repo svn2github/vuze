@@ -3299,18 +3299,24 @@ TRTrackerBTAnnouncerImpl
 								TRTrackerScraperResponse scrapeResponse = scraper.scrape( torrent, getTrackerURL());
 								if (scrapeResponse != null) {
 									long lNextScrapeTime = scrapeResponse.getNextScrapeStartTime();
-									long lNewNextScrapeTime = TRTrackerScraperResponseImpl.calcScrapeIntervalSecs(
-											0, complete) * 1000;
+									
+									long now = SystemTime.getCurrentTime();
+
+									long lNewNextScrapeTime = 
+											now + 
+											TRTrackerScraperResponseImpl.calcScrapeIntervalSecs( 0, complete) * 1000L;
 
 									// make it look as if the scrape has just run. Important
 									// as seeding rules may make calculations on when the 
 									// scrape value were set
 
-									scrapeResponse.setScrapeStartTime(SystemTime.getCurrentTime());
+									scrapeResponse.setScrapeStartTime( now );
 
-									if (lNextScrapeTime < lNewNextScrapeTime)
+									if ( lNextScrapeTime < lNewNextScrapeTime ){
+										
 										scrapeResponse.setNextScrapeStartTime(lNewNextScrapeTime);
-
+									}
+									
 									scrapeResponse.setSeedsPeers(complete, incomplete);
 
 									if ( downloaded_l != null ){

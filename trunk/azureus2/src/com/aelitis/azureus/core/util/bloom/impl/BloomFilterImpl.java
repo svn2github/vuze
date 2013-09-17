@@ -319,7 +319,7 @@ BloomFilterImpl
 			{
 				 	// x^2 mod p
 				
-				res	= value * value;
+				res	= value * value;	// don't try and *fix* this to avoid integer overflow as bloom filters are serialised and this woudl screw up the hash...
 				
 				break;
 			}
@@ -327,7 +327,7 @@ BloomFilterImpl
 			{
 					// bx + a mod p
 				
-				res = value *  a2 + b2;
+				res = value *  a2 + b2;	// as above 
 				
 				break;
 			}
@@ -335,7 +335,7 @@ BloomFilterImpl
 			{
 					// cx + d mod p
 				
-				res = value * a3 + b3;
+				res = value * a3 + b3; 	// as above 
 				
 				break;
 
@@ -344,7 +344,7 @@ BloomFilterImpl
 			{
 					// ex + f mod p
 				
-				res = value * a4 + b4;
+				res = value * a4 + b4; 	// as above 
 				
 				break;
 			}

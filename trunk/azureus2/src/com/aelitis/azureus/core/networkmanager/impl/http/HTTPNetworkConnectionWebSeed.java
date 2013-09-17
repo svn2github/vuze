@@ -90,8 +90,8 @@ HTTPNetworkConnectionWebSeed
 			
 			StringTokenizer	tok = new StringTokenizer( url, "&" );
 			
-			int		piece 	= -1;
-			List	ranges 	= new ArrayList();
+			int			piece 	= -1;
+			List<int[]>	ranges 	= new ArrayList<int[]>();
 			
 			while( tok.hasMoreElements()){
 				
@@ -198,11 +198,11 @@ HTTPNetworkConnectionWebSeed
 			long[]	offsets	= new long[ranges.size()];
 			long[]	lengths	= new long[ranges.size()];
 			
-			long	piece_offset = piece * control.getPieceLength(0);
+			long	piece_offset = piece * (long)control.getPieceLength(0);
 			
 			for (int i=0;i<ranges.size();i++){
 				
-				int[]	range = (int[])ranges.get(i);
+				int[]	range = ranges.get(i);
 				
 				int	start 	= range[0];
 				int end		= range[1];

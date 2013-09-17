@@ -1348,7 +1348,7 @@ DownloadManagerImpl
 							
 							if ( 	upload_when_busy_min_secs == 0 ||
 									now < last_upload_when_busy_dec_time ||
-									now - last_upload_when_busy_dec_time >=  upload_when_busy_min_secs*1000 ){
+									now - last_upload_when_busy_dec_time >=  upload_when_busy_min_secs*1000L ){
 									
 								current_upload_when_busy_bps += move_by;
 								

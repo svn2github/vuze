@@ -203,7 +203,7 @@ public class FileLogging implements ILogEventListener {
 		}
 			
 		
-		long lMaxBytes = (iLogFileMaxMB * 1024 * 1024) / 2;
+		long lMaxBytes = (iLogFileMaxMB * 1024L * 1024L) / 2;
 		File logFile = new File(sLogDir + File.separator + LOG_FILE_NAME);
 		
 		if (logFile.length() > lMaxBytes && logFilePrinter != null)

@@ -2297,7 +2297,7 @@ implements PiecePicker
 		
 		boolean	use_rta_egm = rta_providers.size() > 0;
 		
-		long	remaining = active_pieces * diskManager.getPieceLength();
+		long	remaining = active_pieces * (long)diskManager.getPieceLength();
 		
 		long	trigger	= use_rta_egm?RTA_END_GAME_MODE_SIZE_TRIGGER:END_GAME_MODE_SIZE_TRIGGER;
 		

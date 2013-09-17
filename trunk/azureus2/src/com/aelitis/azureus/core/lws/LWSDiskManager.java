@@ -541,8 +541,7 @@ LWSDiskManager
 		int 				offset, 
 		DirectByteBuffer 	data )
 	{
-		long	pos = 
-			pieceNumber * piece_mapper.getPieceLength() + offset + data.remaining( DirectByteBuffer.AL_EXTERNAL );
+		long	pos = pieceNumber * (long)piece_mapper.getPieceLength() + offset + data.remaining( DirectByteBuffer.AL_EXTERNAL );
 			
 		return( pos <= piece_mapper.getTotalLength());
 	}

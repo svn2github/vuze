@@ -2259,7 +2259,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 					non_discarded = 0;
 				}
 				
-				if ( discarded >= ban_peer_discard_min_kb * 1024 ){
+				if ( discarded >= ban_peer_discard_min_kb * 1024L ){
 								
 					if ( 	non_discarded == 0 || 
 							((float)discarded) / non_discarded >= ban_peer_discard_ratio ){

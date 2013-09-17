@@ -165,29 +165,31 @@ public class UserManager
 
 	public static UserManager getInstance(PluginInterface pi) 
 	{		
-		if( instance == null )
-		{
-			String azureusUserDir = pi.getUtilities().getAzureusUserDir();
-			File dbFile = new File(azureusUserDir, USER_DB_CONFIG_FILE);
-			
-			try {
-				instance = new UserManager(dbFile.getCanonicalPath());
-				if( dbFile.exists() )
-				{
-					System.out.println("loading user configuration from: " + dbFile.getCanonicalPath());
-					instance.load();
-				}
-				else
-				{
-					System.out.println("file: " + dbFile.getCanonicalPath() + " does not exist. using 'null' user manager");
-				}
-			} catch (IOException e)
+		synchronized( UserManager.class ){
+			if( instance == null )
 			{
-				throw new AzureusCoreException("Unable to instantiate default user manager");
+				String azureusUserDir = pi.getUtilities().getAzureusUserDir();
+				File dbFile = new File(azureusUserDir, USER_DB_CONFIG_FILE);
+				
+				try {
+					instance = new UserManager(dbFile.getCanonicalPath());
+					if( dbFile.exists() )
+					{
+						System.out.println("loading user configuration from: " + dbFile.getCanonicalPath());
+						instance.load();
+					}
+					else
+					{
+						System.out.println("file: " + dbFile.getCanonicalPath() + " does not exist. using 'null' user manager");
+					}
+				} catch (IOException e)
+				{
+					throw new AzureusCoreException("Unable to instantiate default user manager");
+				}
+				
 			}
-			
+			return instance;
 		}
-		return instance;
 	}
 	
 	public static final class UserManagerConfig

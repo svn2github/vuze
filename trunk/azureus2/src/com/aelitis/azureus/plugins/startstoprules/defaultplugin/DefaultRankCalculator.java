@@ -847,7 +847,7 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 			if (lastUploadSecs < 0) {
 				lastUploadSecs = dl.getStats().getSecondsOnlySeeding();
 			}
-			if (lastUploadSecs > 60 * 60 * iFirstPriorityIgnoreIdleHours) {
+			if (lastUploadSecs > 60 * 60 * (long)iFirstPriorityIgnoreIdleHours) {
 				if (rules.bDebugLog)
 					sExplainFP += "Not FP: " + lastUploadSecs + "s > "
 							+ iFirstPriorityIgnoreIdleHours + "h of no upload\n";

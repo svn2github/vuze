@@ -216,7 +216,7 @@ FMFileAccessPieceReorderer
 			
 					if ( physical_length > current_length ){
 					
-						long max_length = first_piece_length + (num_pieces-2)*piece_size + last_piece_length;
+						long max_length = first_piece_length + (num_pieces-2)*(long)piece_size + last_piece_length;
 					
 						physical_length = Math.min( physical_length, max_length );
 					

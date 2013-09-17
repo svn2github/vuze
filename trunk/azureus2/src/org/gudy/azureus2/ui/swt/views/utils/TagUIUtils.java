@@ -397,9 +397,9 @@ public class TagUIUtils
 				needs_separator_next = true;
 				
 				long maxDownload = COConfigurationManager.getIntParameter(
-						"Max Download Speed KBs", 0) * 1024;
+						"Max Download Speed KBs", 0) * 1024L;
 				long maxUpload = COConfigurationManager.getIntParameter(
-						"Max Upload Speed KBs", 0) * 1024;
+						"Max Upload Speed KBs", 0) * 1024L;
 	
 				int down_speed 	= tf_rate_limit.getTagDownloadLimit();
 				int up_speed 	= tf_rate_limit.getTagUploadLimit();

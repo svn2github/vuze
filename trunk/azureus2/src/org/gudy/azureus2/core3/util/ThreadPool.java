@@ -512,15 +512,15 @@ ThreadPool
 				System.out.println( "ThreadPool '" + getName() + "'/" + thread_name_index + ": max=" + max_size + ",sem=[" + thread_sem.getString() + "],busy=" + busy.size() + ",queue=" + task_queue.size());
 			}
 			
-			long	now = SystemTime.getCurrentTime();
+			long	now = SystemTime.getMonotonousTime();
 			
 			for (int i=0;i<busy.size();i++){
 					
 				threadPoolWorker	x = (threadPoolWorker)busy.get(i);
 			
-				long	elapsed = now - x.run_start_time ;
+				long	elapsed = now - x.run_start_time;
 					
-				if ( elapsed > ( WARN_TIME * (x.warn_count+1))){
+				if ( elapsed > ( (long)WARN_TIME * (x.warn_count+1))){
 		
 					x.warn_count++;
 					
@@ -570,7 +570,7 @@ ThreadPool
 
 		synchronized( this ){
 		
-			long elapsed = SystemTime.getCurrentTime() - toRelease.worker.run_start_time;
+			long elapsed = SystemTime.getMonotonousTime() - toRelease.worker.run_start_time;
 			if (elapsed > WARN_TIME && LOG_WARNINGS)
 				DebugLight.out(toRelease.worker.getWorkerName() + ": terminated, elapsed = " + elapsed + ", state = " + toRelease.worker.state);
 			
@@ -656,7 +656,7 @@ ThreadPool
 						
 						synchronized (ThreadPool.this)
 						{
-							run_start_time = SystemTime.getCurrentTime();
+							run_start_time = SystemTime.getMonotonousTime();
 							warn_count = 0;
 							busy.add(threadPoolWorker.this);
 							task_total++;
@@ -730,7 +730,7 @@ ThreadPool
 						{
 							synchronized (ThreadPool.this)
 							{
-								long elapsed = SystemTime.getCurrentTime() - run_start_time;
+								long elapsed = SystemTime.getMonotonousTime() - run_start_time;
 								if (elapsed > WARN_TIME && LOG_WARNINGS)
 									DebugLight.out(getWorkerName() + ": terminated, elapsed = " + elapsed + ", state = " + state);
 								

@@ -1921,7 +1921,7 @@ DHTTrackerPlugin
 								
 							current_announce_interval = announce_min;
 
-							final long	retry = announce_min + peers_found*(announce_max-announce_min)/NUM_WANT;
+							final long	retry = announce_min + peers_found*(long)(announce_max-announce_min)/NUM_WANT;
 							
 							int download_state = download.getState();
 							
