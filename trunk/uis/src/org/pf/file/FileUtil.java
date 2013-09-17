@@ -219,7 +219,11 @@ public class FileUtil
 			throw new IllegalArgumentException( "filename must not be null" ) ;
 		
 		inStream = new FileInputStream( filename ) ;
-		this.processTextLines( inStream, processor ) ; 
+		try{
+			this.processTextLines( inStream, processor ) ;
+		}finally{
+			inStream.close();
+		}
 	} // processTextLines()
 	
 	// -------------------------------------------------------------------------
