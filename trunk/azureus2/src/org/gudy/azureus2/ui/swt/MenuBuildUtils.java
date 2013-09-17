@@ -244,15 +244,15 @@ public class MenuBuildUtils {
 				swt_style = SWT.PUSH;
 			}
 
-			final org.eclipse.swt.widgets.MenuItem menuItem = new org.eclipse.swt.widgets.MenuItem(
-					parent, swt_style);
-
-			if (swt_style == SWT.SEPARATOR) {continue;}
-			
 			if (prev_was_separator && this_is_separator) {continue;} // Skip contiguous separators
 			if (this_is_separator && i == items.length - 1) {continue;} // Skip trailing separator
 
 			prev_was_separator = this_is_separator;
+
+			final org.eclipse.swt.widgets.MenuItem menuItem = new org.eclipse.swt.widgets.MenuItem(
+					parent, swt_style);
+
+			if (swt_style == SWT.SEPARATOR) {continue;}			
 
 			if (enable_items) {
 
