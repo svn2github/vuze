@@ -94,38 +94,6 @@ public class ConfigSectionInterfaceAlerts
 		//layout.numColumns = 2;
 		cSection.setLayout(layout);
 
-		int userMode = COConfigurationManager.getIntParameter("User Mode");
-		if (userMode < REQUIRED_MODE) {
-			Label label = new Label(cSection, SWT.WRAP);
-			gridData = new GridData();
-			label.setLayoutData(gridData);
-
-			final String[] modeKeys = {
-				"ConfigView.section.mode.beginner",
-				"ConfigView.section.mode.intermediate",
-				"ConfigView.section.mode.advanced"
-			};
-
-			String param1, param2;
-			if (REQUIRED_MODE < modeKeys.length)
-				param1 = MessageText.getString(modeKeys[REQUIRED_MODE]);
-			else
-				param1 = String.valueOf(REQUIRED_MODE);
-
-			if (userMode < modeKeys.length)
-				param2 = MessageText.getString(modeKeys[userMode]);
-			else
-				param2 = String.valueOf(userMode);
-
-			label.setText(MessageText.getString("ConfigView.notAvailableForMode",
-					new String[] {
-						param1,
-						param2
-					}));
-
-			return cSection;
-		}
-
 		Composite cArea = new Composite(cSection, SWT.NONE);
 		layout = new GridLayout();
 		layout.marginHeight = 0;
@@ -138,7 +106,7 @@ public class ConfigSectionInterfaceAlerts
 		if (Constants.isOSX) {
 			// download info 
 
-			final BooleanParameter d_speechEnabledParameter = new BooleanParameter(
+			new BooleanParameter(
 					cArea, "Play Download Finished Announcement", LBLKEY_PREFIX
 							+ "playdownloadspeech");
 
@@ -156,7 +124,7 @@ public class ConfigSectionInterfaceAlerts
 			*/
 		}
 
-		BooleanParameter d_play_sound = new BooleanParameter(cArea,
+		new BooleanParameter(cArea,
 				"Play Download Finished", LBLKEY_PREFIX + "playdownloadfinished");
 
 		// download info
