@@ -299,13 +299,6 @@ HTMLUtils
 					
 				}else{
 					
-					if ( start_tag_start == -1 ){
-						
-						res += content.substring(pos);
-
-						break;
-					}
-					
 					level++;
 					
 					pos = start_tag_start+1;
