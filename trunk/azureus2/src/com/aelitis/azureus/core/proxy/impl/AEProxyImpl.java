@@ -210,8 +210,16 @@ AEProxyImpl
 					
 				}else{
 						
-					socket_channel.configureBlocking(false);
+					try{
+						socket_channel.configureBlocking(false);
 	
+					}catch( Throwable e ){
+						
+						socket_channel.close();
+						
+						throw( e );
+					}
+					
 					AEProxyConnectionImpl processor = new AEProxyConnectionImpl(this, socket_channel, proxy_handler);
 					
 					if ( !processor.isClosed()){
