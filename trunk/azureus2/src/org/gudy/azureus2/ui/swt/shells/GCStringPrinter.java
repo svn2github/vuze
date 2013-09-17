@@ -662,9 +662,9 @@ public class GCStringPrinter
 		}
 
 		if (!wrap && hasMoreElements && excessPos >= 0) {
-			if (outputLine == null) {
-				outputLine = new StringBuffer(lineInfo.originalLine);
-			}
+			//if (outputLine == null) { dead code, outputLine is always non-null if excessPos >= 0
+			//	outputLine = new StringBuffer(lineInfo.originalLine);
+			//}
 			int len = outputLine.length();
 			if (len > 2) {
 				len -= 2;
