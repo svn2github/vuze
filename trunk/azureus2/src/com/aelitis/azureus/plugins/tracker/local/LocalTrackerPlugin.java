@@ -444,13 +444,16 @@ LocalTrackerPlugin
 		
 		boolean	ok = false;
 		
-		for (int i=0;i<sources.length;i++){
+		if ( sources != null ){
 			
-			if ( sources[i].equalsIgnoreCase( "Plugin")){
+			for (int i=0;i<sources.length;i++){
 				
-				ok	= true;
-				
-				break;
+				if ( sources[i].equalsIgnoreCase( "Plugin")){
+					
+					ok	= true;
+					
+					break;
+				}
 			}
 		}
 		
@@ -669,13 +672,16 @@ LocalTrackerPlugin
 			
 			boolean	public_net = false;
 			
-			for (int i=0;i<networks.length;i++){
+			if ( networks != null ){
 				
-				if ( networks[i].equalsIgnoreCase( "Public" )){
-						
-					public_net	= true;
+				for (int i=0;i<networks.length;i++){
 					
-					break;
+					if ( networks[i].equalsIgnoreCase( "Public" )){
+							
+						public_net	= true;
+						
+						break;
+					}
 				}
 			}
 			

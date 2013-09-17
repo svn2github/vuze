@@ -745,10 +745,17 @@ DeviceManagerUI
 					public void azureusCoreRunning(AzureusCore core) {
 						try {
 							PluginInstaller installer = core.getPluginManager().getPluginInstaller();
+							
 							StandardPlugin itunes_plugin = installer.getStandardPlugin("azitunes");
 							
-							itunes_plugin.install(false);
+							if ( itunes_plugin == null ){
 							
+								Debug.out( "iTunes standard plugin not found");
+								
+							}else{
+							
+								itunes_plugin.install(false);
+							}
 						} catch (Throwable e) {
 							
 							Debug.printStackTrace(e);
@@ -1186,7 +1193,7 @@ DeviceManagerUI
 					
 							Device.browseLocation[] locs = device.getBrowseLocations();
 							
-							enabled = locs.length > 0;
+							enabled = locs != null && locs.length > 0;
 							
 							MenuManager menuManager = ui_manager.getMenuManager();
 

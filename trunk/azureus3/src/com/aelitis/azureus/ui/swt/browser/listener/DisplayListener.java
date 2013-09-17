@@ -7,7 +7,6 @@ import java.util.regex.Pattern;
 import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.widgets.Display;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
@@ -31,6 +30,7 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.selectedcontent.*;
 import com.aelitis.azureus.ui.skin.SkinConstants;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
@@ -421,17 +421,19 @@ public class DisplayListener
 	private static void refreshBrowser(final String browserID) {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+				UIFunctionsSWT uiSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+				MultipleDocumentInterfaceSWT mdi = uiSWT==null?null:uiSWT.getMDISWT();
 
-				BaseMdiEntry entry = (BaseMdiEntry) mdi.getEntrySWT(browserID);
+				BaseMdiEntry entry = mdi==null?null:(BaseMdiEntry) mdi.getEntrySWT(browserID);
 				//MdiEntrySWT entry = mdi.getEntrySWT(browserID);  // Use when UIs merged
-				SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entry.getSkinObject());
-
-				if (soBrowser != null) {
-					soBrowser.refresh();
-					return;
+				if ( entry != null ){
+					SWTSkinObjectBrowser soBrowser = SWTSkinUtils.findBrowserSO(entry.getSkinObject());
+	
+					if (soBrowser != null) {
+						soBrowser.refresh();
+						return;
+					}
 				}
-
 				SWTSkin skin = SWTSkinFactory.getInstance();
 				SWTSkinObject skinObject = skin.getSkinObject(browserID);
 				if (skinObject instanceof SWTSkinObjectBrowser) {

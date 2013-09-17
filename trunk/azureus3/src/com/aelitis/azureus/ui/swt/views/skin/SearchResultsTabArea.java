@@ -713,11 +713,13 @@ public class SearchResultsTabArea
   			browserSkinObject.getBrowser().refresh();
   			browserSkinObject.getBrowser().update();
   			Display display = Utils.getDisplay();
-  			long until = SystemTime.getCurrentTime() + 300;
-  			while (!done[0] && until > SystemTime.getCurrentTime()) {
-  				if (!display.readAndDispatch()) {
-  					display.sleep();
-  				}
+  			if ( display != null ){
+	  			long until = SystemTime.getCurrentTime() + 300;
+	  			while (!done[0] && until > SystemTime.getCurrentTime()) {
+	  				if (!display.readAndDispatch()) {
+	  					display.sleep();
+	  				}
+	  			}
   			}
 			} catch (Throwable t) {
 				

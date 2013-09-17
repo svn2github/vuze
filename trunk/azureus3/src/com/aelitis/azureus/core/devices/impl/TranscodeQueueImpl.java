@@ -47,6 +47,7 @@ import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.ipc.IPCInterface;
@@ -393,8 +394,15 @@ TranscodeQueueImpl
 												
 												byte_start += tf.getLength();
 											}
-																					
-											DiskManagerPiece[] pieces = PluginCoreUtils.unwrap( download.getDiskManager()).getPieces();
+											
+											DiskManager dm = download.getDiskManager();
+														
+											if ( dm == null ){
+												
+												throw( new Exception( "Download stopped" ));
+											}
+											
+											DiskManagerPiece[] pieces = PluginCoreUtils.unwrap( dm ).getPieces();
 											
 											long piece_size = torrent.getPieceLength();
 											

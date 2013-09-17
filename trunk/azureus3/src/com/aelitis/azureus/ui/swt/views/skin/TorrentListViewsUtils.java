@@ -104,23 +104,26 @@ public class TorrentListViewsUtils
 			String referal) {
 		TOTorrent torrent = DataSourceUtils.getTorrent(ds);
 		
-			// handle encapsulated vuze file
-		try{
-			Map torrent_map = torrent.serialiseToMap();
-			
-			torrent_map.remove( "info" );
-			
-			VuzeFile vf = VuzeFileHandler.getSingleton().loadVuzeFile( torrent_map );
-		
-			if ( vf != null ){
+		if ( torrent != null ){
+				// handle encapsulated vuze file
+			try{
+				Map torrent_map = torrent.serialiseToMap();
 				
-				VuzeFileHandler.getSingleton().handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_NONE );
+				torrent_map.remove( "info" );
 				
-				return;
+				VuzeFile vf = VuzeFileHandler.getSingleton().loadVuzeFile( torrent_map );
+			
+				if ( vf != null ){
+					
+					VuzeFileHandler.getSingleton().handleFiles( new VuzeFile[]{ vf }, VuzeFileComponent.COMP_TYPE_NONE );
+					
+					return;
+				}
+			}catch( Throwable e ){
+				
 			}
-		}catch( Throwable e ){
-			
 		}
+		
 		// we want to re-download the torrent if it's ours, since the existing
 		// one is likely stale
 		if (torrent != null && !DataSourceUtils.isPlatformContent(ds)) {

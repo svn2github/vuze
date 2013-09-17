@@ -331,12 +331,13 @@ EnhancedDownloadManager
 	{
 		TOTorrent	torrent = download_manager.getTorrent();
 		
-		if ( torrent == null || download_manager.getDownloadState().getPrimaryFile() == null ){
+		DiskManagerFileInfo primaryFile = download_manager.getDownloadState().getPrimaryFile();
+
+		if ( torrent == null || primaryFile == null ){
 
 			return( false );
 		}
 		
-		DiskManagerFileInfo primaryFile = download_manager.getDownloadState().getPrimaryFile();
 		EnhancedDownloadManagerFile enhanced_file = enhanced_files[primaryFile.getIndex()];
 		
 		synchronized( this ){

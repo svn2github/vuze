@@ -89,7 +89,7 @@ public class MainMDISetup
 						}
 
 						ContentNetwork startupCN = ContentNetworkManagerFactory.getSingleton().getStartupContentNetwork();
-						if (!startupCN.isServiceSupported(ContentNetwork.SERVICE_WELCOME)) {
+						if (startupCN == null || !startupCN.isServiceSupported(ContentNetwork.SERVICE_WELCOME)) {
 							showWelcome = false;
 						}
 
@@ -229,6 +229,12 @@ public class MainMDISetup
 			mdi.registerEntry(id, new MdiEntryCreationListener() {
 				public MdiEntry createMDiEntry(String id) {
 					MdiEntry entry = mdi.createHeader(id, "sidebar." + id, null);
+					
+					if ( entry == null ){
+						
+						return( null );
+					}
+					
 					if (disableCollapse) {
 						entry.setCollapseDisabled(true);
 					} else {

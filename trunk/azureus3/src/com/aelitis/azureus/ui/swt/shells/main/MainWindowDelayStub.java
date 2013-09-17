@@ -699,7 +699,7 @@ MainWindowDelayStub
 		{
 			log( "getPluginViews" );
 			
-			return( null );
+			return( new UISWTView[0] );
 		}
 
 

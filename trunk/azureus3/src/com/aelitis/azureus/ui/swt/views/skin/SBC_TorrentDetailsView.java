@@ -286,37 +286,40 @@ public class SBC_TorrentDetailsView
 		if (uiFunctions != null) {
 			UISWTInstance pluginUI = uiFunctions.getUISWTInstance();
 
-			MyTorrentsView.registerPluginViews(pluginUI);
-
-			// unfortunately views for the manager view are currently registered
-			// against 'MyTorrents'...
-
-			for (String id : new String[] {
-				UISWTInstance.VIEW_MYTORRENTS,
-				UISWTInstance.VIEW_TORRENT_DETAILS
-			}) {
-
-				UISWTViewEventListenerWrapper[] pluginViews = pluginUI.getViewListeners(id);
-
-				for (UISWTViewEventListenerWrapper l : pluginViews) {
-
-					if (id == UISWTInstance.VIEW_MYTORRENTS
-							&& l.getViewID() == PieceInfoView.MSGID_PREFIX) {
-						// Simple hack to exlude PieceInfoView tab as it's already within Pieces View
-						continue;
-					}
-
-					if (l != null) {
-
-						try {
-							UISWTViewImpl view = new UISWTViewImpl(
-									UISWTInstance.VIEW_TORRENT_DETAILS, l.getViewID(), l, null);
-
-							addSection(view);
-
-						} catch (Throwable e) {
-
-							Debug.out(e);
+			if ( pluginUI != null ){
+				
+				MyTorrentsView.registerPluginViews(pluginUI);
+	
+				// unfortunately views for the manager view are currently registered
+				// against 'MyTorrents'...
+	
+				for (String id : new String[] {
+					UISWTInstance.VIEW_MYTORRENTS,
+					UISWTInstance.VIEW_TORRENT_DETAILS
+				}) {
+	
+					UISWTViewEventListenerWrapper[] pluginViews = pluginUI.getViewListeners(id);
+	
+					for (UISWTViewEventListenerWrapper l : pluginViews) {
+	
+						if (id == UISWTInstance.VIEW_MYTORRENTS
+								&& l.getViewID() == PieceInfoView.MSGID_PREFIX) {
+							// Simple hack to exlude PieceInfoView tab as it's already within Pieces View
+							continue;
+						}
+	
+						if (l != null) {
+	
+							try {
+								UISWTViewImpl view = new UISWTViewImpl(
+										UISWTInstance.VIEW_TORRENT_DETAILS, l.getViewID(), l, null);
+	
+								addSection(view);
+	
+							} catch (Throwable e) {
+	
+								Debug.out(e);
+							}
 						}
 					}
 				}

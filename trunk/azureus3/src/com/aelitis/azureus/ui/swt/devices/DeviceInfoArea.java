@@ -216,7 +216,14 @@ public class DeviceInfoArea
 					try {
 						StandardPlugin itunes_plugin = installer.getStandardPlugin("azitunes");
 
-						itunes_plugin.install(false);
+						if ( itunes_plugin == null ){
+							
+							Debug.out( "iTunes standard plugin not found");
+							
+						}else{
+							
+							itunes_plugin.install(false);
+						}
 
 					} catch (Throwable e) {
 

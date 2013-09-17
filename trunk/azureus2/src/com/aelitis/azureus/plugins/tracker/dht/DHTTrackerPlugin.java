@@ -816,6 +816,11 @@ DHTTrackerPlugin
 		Download		download,
 		boolean			first_time )
 	{
+		if ( download == null ){
+			
+			return;
+		}
+		
 		boolean	skip_log = false;
 		
 		int	state = download.getState();
@@ -873,16 +878,19 @@ DHTTrackerPlugin
 	
 							boolean	ok = false;
 							
-							for (int i=0;i<sources.length;i++){
+							if ( sources != null ){
 								
-								if ( sources[i].equalsIgnoreCase( "DHT")){
+								for (int i=0;i<sources.length;i++){
 									
-									ok	= true;
-									
-									break;
+									if ( sources[i].equalsIgnoreCase( "DHT")){
+										
+										ok	= true;
+										
+										break;
+									}
 								}
 							}
-	
+							
 							if ( !( ok || TEST_ALWAYS_TRACK )){
 											
 								register_reason = "decentralised peer source disabled";
