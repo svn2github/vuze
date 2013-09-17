@@ -352,9 +352,7 @@ public class SelectableSpeedMenu {
 				}
 				return prefix
 						+ ": "
-						+ (value == 0 ? MessageText.getString("ConfigView.unlimited")
-								: DisplayFormatters.formatByteCountToKiBEtcPerSec(
-										getValue() * 1024, true));
+						+ DisplayFormatters.formatByteCountToKiBEtcPerSec( getValue() * 1024, true);
 			}
 		};
 		int max = unlim ? (isUpSpeed ? 100 : 800) : maxBandwidth * 5;
