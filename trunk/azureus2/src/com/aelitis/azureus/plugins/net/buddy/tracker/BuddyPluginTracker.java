@@ -1531,9 +1531,14 @@ outer:
 		protected void
 		updateIP()
 		{
-			current_ip	= buddy.getAdjustedIP().getHostAddress();
+			InetAddress	latest_ip = buddy.getAdjustedIP();
 			
-			log( "IP set to " + current_ip );
+			if ( latest_ip != null ){
+			
+				current_ip	= latest_ip.getHostAddress();
+			
+				log( "IP set to " + current_ip );
+			}
 		}
 			
 		protected boolean

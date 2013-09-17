@@ -149,7 +149,8 @@ PeerImpl
 		byte[]	id = delegate.getId();
 		
 		if ( id == null ){
-			return( null );
+			
+			return( new byte[0] );
 		}
 		
 		byte[]	copy = new byte[id.length];

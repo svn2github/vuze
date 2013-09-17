@@ -1122,10 +1122,16 @@ BuddyPlugin
 																
 																BuddyPluginBuddy buddy = addBuddy( other_key_str, SUBSYSTEM_AZ2, false );
 																
-																buddy.incomingConnection((GenericMessageConnection)context );	
+																if ( buddy != null ){
+																
+																	buddy.incomingConnection((GenericMessageConnection)context );	
 																	
-																return( true );
-	
+																	return( true );
+																	
+																}else{
+																	
+																	return( false );
+																}
 															}
 														}
 														

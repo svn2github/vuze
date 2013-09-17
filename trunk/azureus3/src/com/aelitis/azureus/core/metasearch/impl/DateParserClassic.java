@@ -84,7 +84,7 @@ public class DateParserClassic extends DateParser {
 			}
 		}
 		if(DEBUG) {
-			System.out.println(date + " > " + result.toString());
+			System.out.println(date + " > " + (result==null?"null": result.toString()));
 		}
 		
 		return result;

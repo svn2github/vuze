@@ -186,32 +186,34 @@ public class DisplayListener
 		List<Map> list = new ArrayList<Map>();
 		
 		DownloadManager[] dms = SelectedContentManager.getDMSFromSelectedContent();
-		for (DownloadManager dm : dms) {
-			if (dm != null) {
-				Map<String, Object> mapDM = new HashMap<String, Object>();
-				TOTorrent torrent = dm.getTorrent();
-				if (torrent != null && !TorrentUtils.isReallyPrivate(torrent)) {
-					try {
-  					// make a copy of the torrent
-  
-  					Map torrent_map = torrent.serialiseToMap();
-  					TOTorrent torrent_to_send = TOTorrentFactory.deserialiseFromMap( torrent_map );
-  					Map	vuze_map = (Map)torrent_map.get( "vuze" );
-  					// remove any non-standard stuff (e.g. resume data)
-  					torrent_to_send.removeAdditionalProperties();
-  					torrent_map = torrent_to_send.serialiseToMap();
-  					if ( vuze_map != null ){
-  						torrent_map.put( "vuze", vuze_map );
-  					}
-  					
-  					byte[] encode = BEncoder.encode(torrent_map);
-  					
-  					mapDM.put("name", PlatformTorrentUtils.getContentTitle2(dm));
-  					mapDM.put("torrent", Base32.encode(encode));
-  					
-  					list.add(mapDM);
-					} catch (Throwable t) {
-						Debug.out(t);
+		if (dms != null ){
+			for (DownloadManager dm : dms) {
+				if (dm != null) {
+					Map<String, Object> mapDM = new HashMap<String, Object>();
+					TOTorrent torrent = dm.getTorrent();
+					if (torrent != null && !TorrentUtils.isReallyPrivate(torrent)) {
+						try {
+	  					// make a copy of the torrent
+	  
+	  					Map torrent_map = torrent.serialiseToMap();
+	  					TOTorrent torrent_to_send = TOTorrentFactory.deserialiseFromMap( torrent_map );
+	  					Map	vuze_map = (Map)torrent_map.get( "vuze" );
+	  					// remove any non-standard stuff (e.g. resume data)
+	  					torrent_to_send.removeAdditionalProperties();
+	  					torrent_map = torrent_to_send.serialiseToMap();
+	  					if ( vuze_map != null ){
+	  						torrent_map.put( "vuze", vuze_map );
+	  					}
+	  					
+	  					byte[] encode = BEncoder.encode(torrent_map);
+	  					
+	  					mapDM.put("name", PlatformTorrentUtils.getContentTitle2(dm));
+	  					mapDM.put("torrent", Base32.encode(encode));
+	  					
+	  					list.add(mapDM);
+						} catch (Throwable t) {
+							Debug.out(t);
+						}
 					}
 				}
 			}
@@ -497,37 +499,41 @@ public class DisplayListener
 		try {
 			PluginManager pluginManager = PluginInitializer.getDefaultInterface().getPluginManager();
 			PluginInterface piChat = pluginManager.getPluginInterfaceByID("azplugins");
-			UIManager manager = piChat.getUIManager();
-			manager.addUIListener(new UIManagerListener() {
-				public void UIDetached(UIInstance instance) {
-				}
-
-				public void UIAttached(UIInstance instance) {
-					if (instance instanceof UISWTInstance) {
-						try {
-							debug("Opening IRC channel " + channel + " on " + server
-									+ " for user " + alias);
-							UISWTInstance swtInstance = (UISWTInstance) instance;
-							UISWTView[] openViews = swtInstance.getOpenViews(UISWTInstance.VIEW_MAIN);
-							for (int i = 0; i < openViews.length; i++) {
-								UISWTView view = openViews[i];
-								// if only there was a way to tell if it was our IRC
-								view.closeView();
+			if ( piChat == null ){
+				debug( "IRC plugin not found" );
+			}else{
+				UIManager manager = piChat.getUIManager();
+				manager.addUIListener(new UIManagerListener() {
+					public void UIDetached(UIInstance instance) {
+					}
+	
+					public void UIAttached(UIInstance instance) {
+						if (instance instanceof UISWTInstance) {
+							try {
+								debug("Opening IRC channel " + channel + " on " + server
+										+ " for user " + alias);
+								UISWTInstance swtInstance = (UISWTInstance) instance;
+								UISWTView[] openViews = swtInstance.getOpenViews(UISWTInstance.VIEW_MAIN);
+								for (int i = 0; i < openViews.length; i++) {
+									UISWTView view = openViews[i];
+									// if only there was a way to tell if it was our IRC
+									view.closeView();
+								}
+	
+								swtInstance.openView(UISWTInstance.VIEW_MAIN, "IRC",
+										new String[] {
+											server,
+											channel,
+											alias
+										});
+							} catch (Exception e) {
+								debug("Failure opening IRC channel " + channel + " on " + server,
+										e);
 							}
-
-							swtInstance.openView(UISWTInstance.VIEW_MAIN, "IRC",
-									new String[] {
-										server,
-										channel,
-										alias
-									});
-						} catch (Exception e) {
-							debug("Failure opening IRC channel " + channel + " on " + server,
-									e);
 						}
 					}
-				}
-			});
+				});
+			}
 		} catch (Exception e) {
 			debug("Failure opening IRC channel " + channel + " on " + server, e);
 		}

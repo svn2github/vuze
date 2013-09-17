@@ -103,7 +103,7 @@ DeviceImpl
 			public String
 			getDeviceClassification()
 			{
-				return( null );
+				return( "blank" );
 			}
 			
 			public TranscodeProvider

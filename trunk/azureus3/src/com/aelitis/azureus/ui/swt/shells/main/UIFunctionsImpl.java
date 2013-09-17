@@ -372,7 +372,10 @@ public class UIFunctionsImpl
 	public void setStatusText(final String string) {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
-				getMainStatusBar().setStatusText(string);
+				IMainStatusBar sb = getMainStatusBar();
+				if ( sb != null ){
+					sb.setStatusText(string);
+				}
 			}
 		});
 	}
@@ -382,7 +385,10 @@ public class UIFunctionsImpl
 			final UIStatusTextClickListener l) {
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
-				getMainStatusBar().setStatusText(statustype, string, l);
+				IMainStatusBar sb = getMainStatusBar();
+				if ( sb != null ){
+					sb.setStatusText(statustype, string, l);
+				}
 			}
 		});
 	}

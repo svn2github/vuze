@@ -561,6 +561,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	{
 		public void scrapeResult(DownloadScrapeResult result) {
 			Download dl = result.getDownload();
+			if ( dl == null ){
+				return;
+			}
+			
 			DefaultRankCalculator dlData = downloadDataMap.get(dl);
 
 			// Skip if error (which happens when listener is first added and the
