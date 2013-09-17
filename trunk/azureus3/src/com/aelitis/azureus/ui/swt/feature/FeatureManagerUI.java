@@ -234,165 +234,167 @@ public class FeatureManagerUI
 		}
 	}
 
-	public static void openLicenceEntryWindow(final boolean trytwo, 
-			final String prefillWith) {
-		if (!enabled) {
-			return;
-		}
+	public static void openLicenceEntryWindow(final boolean trytwo, final String prefillWith) {
 		
-		if (entryWindow != null) {
-			return;
-		}
-		
-		try {
-  		String tryNo = (trytwo ? "2" : "1");
-  		final SWTSkinObjectTextbox[] key = new SWTSkinObjectTextbox[1];
-  		entryWindow = new VuzeMessageBox(
-  				MessageText.getString("dlg.auth.title"),
-  				MessageText.getString("dlg.auth.enter.line.try." + tryNo),
-  				new String[] {
-  					MessageText.getString("Button.agree"),
-  					MessageText.getString("Button.cancel")
-  				}, 0);
-			entryWindow.setButtonVals(new Integer[] {
-				SWT.OK,
-				SWT.CANCEL,
-			});
-  
-  		entryWindow.setSubTitle(MessageText.getString("dlg.auth.enter.subtitle.try."
-  				+ tryNo));
-  		entryWindow.addResourceBundle(FeatureManagerUI.class,
-  				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
-  		entryWindow.setIconResource("image.vp");
-  		if (trytwo) {
-  			entryWindow.setTextIconResource("image.warn.big");
-  		}
-  
-  		entryWindow.setListener(new VuzeMessageBoxListener() {
-  			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
-  				SWTSkin skin = soExtra.getSkin();
-  				skin.createSkinObject("dlg.register", "dlg.register", soExtra);
-  
-  				SWTSkinObjectText link = (SWTSkinObjectText) skin.getSkinObject(
-  						"register-link", soExtra);
-  				link.setText(MessageText.getString(trytwo ? "dlg.auth.enter.link.try.2" : "dlg.auth.enter.link.try.1"));
-  				link.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
-  					public boolean urlClicked(URLInfo urlInfo) {
-  						if (trytwo) {
-    						String url = ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(
-    								"upgrade.start", true);
-    						Utils.launch(url);
-  						} else {
-  		  				SBC_PlusFTUX.setSourceRef("dlg-activation");
-  
-  		  				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-  							mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
-  							entryWindow.close(-2);
-  						}
-  						return true;
-  					}
-  				});
-  
-  				SWTSkinObjectText linkTOS = (SWTSkinObjectText) skin.getSkinObject(
-  						"tos-link", soExtra);
-  				if (linkTOS != null) {
-    				linkTOS.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
-  						public boolean urlClicked(URLInfo urlInfo) {
-								String url = ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(
-										"plus_tos.start", true);
-								Utils.launch(url);
-  							return true;
-  						}
-    				});
-  				}
-  
-  				key[0] = (SWTSkinObjectTextbox) skin.getSkinObject("key", soExtra);
-  				if (key[0] != null) {
-  					if (prefillWith != null) {
-  						key[0].setText(prefillWith);
-  					} else if (!trytwo) {
-  						FeatureUtils.licenceDetails details = FeatureUtils.getFullFeatureDetails();
-    					if (details != null && details.licence.getState() != Licence.LS_INVALID_KEY) {
-    						key[0].setText(details.licence.getKey());
-    						if (key[0].getControl() instanceof Text) {
-    							((Text)key[0].getControl()).selectAll();
-    						}
-    						final SWTSkinObjectText soExpirey = (SWTSkinObjectText) skin.getSkinObject("register-expirey");
-    						if (soExpirey != null) {
-    							key[0].getControl().addListener(SWT.Modify, new Listener() {
-    								public void handleEvent(Event event) {
-    									soExpirey.setText("");
-    								}
-    							});
-
-    							int state = details.licence.getState();
-    							if (state == Licence.LS_CANCELLED) {
-    								soExpirey.setText(MessageText.getString("dlg.auth.enter.cancelled"));
-    							} else if (state == Licence.LS_REVOKED) {
-    								soExpirey.setText(MessageText.getString("dlg.auth.enter.revoked"));
-    							} else if (state == Licence.LS_ACTIVATION_DENIED) {
-    								soExpirey.setText(MessageText.getString("dlg.auth.enter.denied"));
-    							} else {
-    								long now = SystemTime.getCurrentTime();
-    								if (details.expiry < now && details.displayedExpiry > now) {
-    									soExpirey.setText(MessageText.getString("plus.notificaiton.OfflineExpiredEntry"));
-    								} else {
-        							soExpirey.setText(MessageText.getString("dlg.auth.enter.expiry",
-        									new String[] {
-        										DisplayFormatters.formatCustomDateOnly(details.displayedExpiry)
-        									}));
-    								}
-    							} 
-    						}
-    					}
-  					}
-  				}
-  			}
-  		});
-  
-  		entryWindow.open(new UserPrompterResultListener() {
-  			public void prompterClosed(int result) {
-  				entryWindow = null;
-  				if (result == SWT.OK) {
-  					try {
-  						Licence licence = featman.addLicence(key[0].getText());
-  						int initialState = licence.getState();
-  						if (initialState == Licence.LS_AUTHENTICATED) {
-  							if ( !licence.isFullyInstalled()){
-  								fml.licenceAdded(licence);	// open installing window
-  							}else{
-  								openLicenceSuccessWindow();
-  							}
-  						}else if (initialState == Licence.LS_PENDING_AUTHENTICATION ) {
-  							fml.licenceAdded(licence);	// open validating window
-  						} else if (initialState == Licence.LS_INVALID_KEY) {
-  							openLicenceFailedWindow(initialState, key[0].getText());
-  						} else if (initialState == Licence.LS_ACTIVATION_DENIED) {
-  							openLicenceActivationDeniedWindow(licence);
-  						} else if (initialState == Licence.LS_CANCELLED) {
-  							openLicenceCancelledWindow(licence);
-  						} else if (initialState == Licence.LS_REVOKED) {
-  							openLicenceRevokedWindow(licence);
-  						}
-  					} catch (Throwable e) {
-  						
-  						String s = Debug.getNestedExceptionMessage(e);
-  						
-  						MessageBoxShell mb = new MessageBoxShell(
-    							SWT.ICON_ERROR | SWT.OK,
-    							"Licence Addition Error",
-    							s );
-  						
-  						mb.open();
-  						
-  						Logger.log(new LogAlert(true, LogAlert.AT_ERROR, "Adding Licence",
-  								e));
-  					}
-  				}
-  			}
-  		});
-		} catch (Exception e) {
-			entryWindow = null;
+		synchronized( FeatureManagerUI.class ){
+			if (!enabled) {
+				return;
+			}
+			
+			if (entryWindow != null) {
+				return;
+			}
+			
+			try {
+	  		String tryNo = (trytwo ? "2" : "1");
+	  		final SWTSkinObjectTextbox[] key = new SWTSkinObjectTextbox[1];
+	  		entryWindow = new VuzeMessageBox(
+	  				MessageText.getString("dlg.auth.title"),
+	  				MessageText.getString("dlg.auth.enter.line.try." + tryNo),
+	  				new String[] {
+	  					MessageText.getString("Button.agree"),
+	  					MessageText.getString("Button.cancel")
+	  				}, 0);
+				entryWindow.setButtonVals(new Integer[] {
+					SWT.OK,
+					SWT.CANCEL,
+				});
+	  
+	  		entryWindow.setSubTitle(MessageText.getString("dlg.auth.enter.subtitle.try."
+	  				+ tryNo));
+	  		entryWindow.addResourceBundle(FeatureManagerUI.class,
+	  				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
+	  		entryWindow.setIconResource("image.vp");
+	  		if (trytwo) {
+	  			entryWindow.setTextIconResource("image.warn.big");
+	  		}
+	  
+	  		entryWindow.setListener(new VuzeMessageBoxListener() {
+	  			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
+	  				SWTSkin skin = soExtra.getSkin();
+	  				skin.createSkinObject("dlg.register", "dlg.register", soExtra);
+	  
+	  				SWTSkinObjectText link = (SWTSkinObjectText) skin.getSkinObject(
+	  						"register-link", soExtra);
+	  				link.setText(MessageText.getString(trytwo ? "dlg.auth.enter.link.try.2" : "dlg.auth.enter.link.try.1"));
+	  				link.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
+	  					public boolean urlClicked(URLInfo urlInfo) {
+	  						if (trytwo) {
+	    						String url = ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(
+	    								"upgrade.start", true);
+	    						Utils.launch(url);
+	  						} else {
+	  		  				SBC_PlusFTUX.setSourceRef("dlg-activation");
+	  
+	  		  				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+	  							mdi.showEntryByID(MultipleDocumentInterface.SIDEBAR_SECTION_PLUS);
+	  							entryWindow.close(-2);
+	  						}
+	  						return true;
+	  					}
+	  				});
+	  
+	  				SWTSkinObjectText linkTOS = (SWTSkinObjectText) skin.getSkinObject(
+	  						"tos-link", soExtra);
+	  				if (linkTOS != null) {
+	    				linkTOS.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
+	  						public boolean urlClicked(URLInfo urlInfo) {
+									String url = ConstantsVuze.getDefaultContentNetwork().getExternalSiteRelativeURL(
+											"plus_tos.start", true);
+									Utils.launch(url);
+	  							return true;
+	  						}
+	    				});
+	  				}
+	  
+	  				key[0] = (SWTSkinObjectTextbox) skin.getSkinObject("key", soExtra);
+	  				if (key[0] != null) {
+	  					if (prefillWith != null) {
+	  						key[0].setText(prefillWith);
+	  					} else if (!trytwo) {
+	  						FeatureUtils.licenceDetails details = FeatureUtils.getFullFeatureDetails();
+	    					if (details != null && details.licence.getState() != Licence.LS_INVALID_KEY) {
+	    						key[0].setText(details.licence.getKey());
+	    						if (key[0].getControl() instanceof Text) {
+	    							((Text)key[0].getControl()).selectAll();
+	    						}
+	    						final SWTSkinObjectText soExpirey = (SWTSkinObjectText) skin.getSkinObject("register-expirey");
+	    						if (soExpirey != null) {
+	    							key[0].getControl().addListener(SWT.Modify, new Listener() {
+	    								public void handleEvent(Event event) {
+	    									soExpirey.setText("");
+	    								}
+	    							});
+	
+	    							int state = details.licence.getState();
+	    							if (state == Licence.LS_CANCELLED) {
+	    								soExpirey.setText(MessageText.getString("dlg.auth.enter.cancelled"));
+	    							} else if (state == Licence.LS_REVOKED) {
+	    								soExpirey.setText(MessageText.getString("dlg.auth.enter.revoked"));
+	    							} else if (state == Licence.LS_ACTIVATION_DENIED) {
+	    								soExpirey.setText(MessageText.getString("dlg.auth.enter.denied"));
+	    							} else {
+	    								long now = SystemTime.getCurrentTime();
+	    								if (details.expiry < now && details.displayedExpiry > now) {
+	    									soExpirey.setText(MessageText.getString("plus.notificaiton.OfflineExpiredEntry"));
+	    								} else {
+	        							soExpirey.setText(MessageText.getString("dlg.auth.enter.expiry",
+	        									new String[] {
+	        										DisplayFormatters.formatCustomDateOnly(details.displayedExpiry)
+	        									}));
+	    								}
+	    							} 
+	    						}
+	    					}
+	  					}
+	  				}
+	  			}
+	  		});
+	  
+	  		entryWindow.open(new UserPrompterResultListener() {
+	  			public void prompterClosed(int result) {
+	  				entryWindow = null;
+	  				if (result == SWT.OK) {
+	  					try {
+	  						Licence licence = featman.addLicence(key[0].getText());
+	  						int initialState = licence.getState();
+	  						if (initialState == Licence.LS_AUTHENTICATED) {
+	  							if ( !licence.isFullyInstalled()){
+	  								fml.licenceAdded(licence);	// open installing window
+	  							}else{
+	  								openLicenceSuccessWindow();
+	  							}
+	  						}else if (initialState == Licence.LS_PENDING_AUTHENTICATION ) {
+	  							fml.licenceAdded(licence);	// open validating window
+	  						} else if (initialState == Licence.LS_INVALID_KEY) {
+	  							openLicenceFailedWindow(initialState, key[0].getText());
+	  						} else if (initialState == Licence.LS_ACTIVATION_DENIED) {
+	  							openLicenceActivationDeniedWindow(licence);
+	  						} else if (initialState == Licence.LS_CANCELLED) {
+	  							openLicenceCancelledWindow(licence);
+	  						} else if (initialState == Licence.LS_REVOKED) {
+	  							openLicenceRevokedWindow(licence);
+	  						}
+	  					} catch (Throwable e) {
+	  						
+	  						String s = Debug.getNestedExceptionMessage(e);
+	  						
+	  						MessageBoxShell mb = new MessageBoxShell(
+	    							SWT.ICON_ERROR | SWT.OK,
+	    							"Licence Addition Error",
+	    							s );
+	  						
+	  						mb.open();
+	  						
+	  						Logger.log(new LogAlert(true, LogAlert.AT_ERROR, "Adding Licence",
+	  								e));
+	  					}
+	  				}
+	  			}
+	  		});
+			} catch (Exception e) {
+				entryWindow = null;
+			}
 		}
 	}
 
@@ -574,34 +576,36 @@ public class FeatureManagerUI
 	}
 
 	public static void openLicenceValidatingWindow() {
-		if (!enabled || validatingBox != null) {
-			return;
-		}
-
-		validatingBox = new VuzeMessageBox(
-				MessageText.getString("dlg.auth.validating.subtitle"), null, null, 0);
-		validatingBox.addResourceBundle(FeatureManagerUI.class,
-				SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
-		validatingBox.setIconResource("image.vp");
-
-		validatingBox.setListener(new VuzeMessageBoxListener() {
-			public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
-				SWTSkin skin = soExtra.getSkin();
-				skin.createSkinObject("dlg.register.validating",
-						"dlg.register.validating", soExtra);
+		synchronized( FeatureManagerUI.class ){
+			if (!enabled || validatingBox != null) {
+				return;
 			}
-		});
-
-		validatingBox.open(
-			new UserPrompterResultListener()
-			{
-				public void 
-				prompterClosed(
-					int result ) 
-				{
-					validatingBox = null;
+	
+			validatingBox = new VuzeMessageBox(
+					MessageText.getString("dlg.auth.validating.subtitle"), null, null, 0);
+			validatingBox.addResourceBundle(FeatureManagerUI.class,
+					SkinPropertiesImpl.PATH_SKIN_DEFS, "skin3_dlg_register");
+			validatingBox.setIconResource("image.vp");
+	
+			validatingBox.setListener(new VuzeMessageBoxListener() {
+				public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
+					SWTSkin skin = soExtra.getSkin();
+					skin.createSkinObject("dlg.register.validating",
+							"dlg.register.validating", soExtra);
 				}
 			});
+	
+			validatingBox.open(
+				new UserPrompterResultListener()
+				{
+					public void 
+					prompterClosed(
+						int result ) 
+					{
+						validatingBox = null;
+					}
+				});
+		}
 	}
 
 	public static void closeLicenceValidatingWindow() {
