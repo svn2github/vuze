@@ -205,52 +205,75 @@ TRBlockingServerProcessor
 						ByteArrayOutputStream	baos		= null;
 						FileOutputStream		fos			= null;
 					
-						OutputStream	data_os;
-						
-						if ( content_length <= 256*1024 ){
+						try{
+							OutputStream	data_os;
 							
-							baos = new ByteArrayOutputStream();
-						
-							data_os	= baos;
-							
-						}else{
-							
-							post_file	= AETemporaryFileHandler.createTempFile();
-							
-							post_file.deleteOnExit();
-							
-							fos	= new FileOutputStream( post_file );
-							
-							data_os	= fos;
-						}
-						
-						while( content_length > 0 ){
-							
-							int	len = is.read( buffer, 0, Math.min( content_length, buffer.length ));
-							
-							if ( len < 0 ){
+							if ( content_length <= 256*1024 ){
 								
-								throw( new TRTrackerServerException( "premature end of input stream" ));
+								baos = new ByteArrayOutputStream();
+							
+								data_os	= baos;
+								
+							}else{
+								
+								post_file	= AETemporaryFileHandler.createTempFile();
+								
+								post_file.deleteOnExit();
+								
+								fos	= new FileOutputStream( post_file );
+								
+								data_os	= fos;
 							}
 							
-							data_os.write( buffer, 0, len );
+							while( content_length > 0 ){
+								
+								int	len = is.read( buffer, 0, Math.min( content_length, buffer.length ));
+								
+								if ( len < 0 ){
+									
+									throw( new TRTrackerServerException( "premature end of input stream" ));
+								}
+								
+								data_os.write( buffer, 0, len );
+								
+								content_length -= len;
+							}
 							
-							content_length -= len;
-						}
-						
-						if ( baos != null ){
-							
-							post_is = new ByteArrayInputStream(baos.toByteArray());
-							
-						}else{
-							
-							fos.close();
-							
-							post_is = new BufferedInputStream( new FileInputStream( post_file ), 256*1024 );
-						}
+							if ( baos != null ){
+								
+								post_is = new ByteArrayInputStream(baos.toByteArray());
+								
+							}else{
+								
+								fos.close();
+								
+								fos = null;
+								
+								post_is = new BufferedInputStream( new FileInputStream( post_file ), 256*1024 );
+							}
 						
 						// System.out.println( "TRTrackerServerProcessorTCP: request data = " + baos.size());
 						
+						}finally{
+							// tidy up open streams
+							if ( baos != null ){
+								try{
+									baos.close();
+								}catch( Throwable e ){
+								}
+							}
+							if ( fos != null ){
+								try{
+									fos.close();
+								}catch( Throwable e ){
+								}
+							}
+								// handle failure case - we should always have a post_is here, if not then
+								// we've errored so delete any temp file
+							if ( post_is == null && post_file != null ){
+								post_file.delete();
+							}
+						}
 					}else{
 						
 						int	pos = header.indexOf(' ');
