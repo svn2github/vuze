@@ -608,10 +608,9 @@ public class SpeedLimitMonitor implements PSMonitorListener
             return 1024;
         }else if(currLimitMax<409600){
             return 1024*5;
-        }else if(currLimitMax>=409600){
+        }else{
             return 1024*10;
         }
-        return 1024;
     }//
 
     /**
