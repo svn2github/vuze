@@ -190,7 +190,15 @@ PHETester
 		try{			
 			final SocketChannel	channel = SocketChannel.open();
 			
-			channel.configureBlocking( false );
+			try{
+				channel.configureBlocking( false );
+				
+			}catch( IOException e ){
+				
+				channel.close();
+				
+				throw( e );
+			}
 		
 			if ( channel.connect( new InetSocketAddress("localhost", 8765 ))){
 							
