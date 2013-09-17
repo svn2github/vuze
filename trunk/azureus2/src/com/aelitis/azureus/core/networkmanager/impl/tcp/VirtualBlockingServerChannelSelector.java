@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
+import java.io.IOException;
 import java.net.*;
 import java.nio.channels.*;
 
@@ -128,7 +129,12 @@ public class VirtualBlockingServerChannelSelector
       try {
         SocketChannel client_channel = server_channel.accept();
         last_accept_time = SystemTime.getCurrentTime();
-        client_channel.configureBlocking( false );
+        try{
+        	client_channel.configureBlocking( false );
+        }catch( IOException e ){
+        	client_channel.close();
+        	throw( e );
+        }
         listener.newConnectionAccepted( server_channel, client_channel );
       }
       catch( AsynchronousCloseException e ) {
