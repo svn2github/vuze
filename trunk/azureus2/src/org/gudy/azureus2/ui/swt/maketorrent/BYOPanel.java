@@ -381,7 +381,7 @@ public class BYOPanel
 
 	private TreeItem createContainer(TreeItem parent, String name) {
 		TreeItem[] selection = tree.getSelection();
-		boolean moveSelected = false;
+		//boolean moveSelected = false;
 		if (parent == null) {
   		if (selection.length == 1 && selection[0].getData() == null) {
   			parent = selection[0];
@@ -408,12 +408,14 @@ public class BYOPanel
 		}
 		item.setExpanded(true);
 		
+		/*
 		if (moveSelected) {
 			// move selected into new item
 			for (TreeItem itemToMove : selection) {
 				moveItem(itemToMove, item);
 			}
 		}
+		*/
 		
 		return item;
 	}
