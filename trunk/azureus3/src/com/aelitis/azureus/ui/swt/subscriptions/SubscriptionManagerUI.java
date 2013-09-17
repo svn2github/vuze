@@ -557,10 +557,6 @@ SubscriptionManagerUI
 					TableCellSWT cell = (TableCellSWT)_cell;
 					
 					SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
-					if ( subs_man == null ){
-						
-						return;
-					}
 					
 					Download	dl = (Download)cell.getDataSource();
 					
@@ -717,10 +713,6 @@ SubscriptionManagerUI
 					TableCellSWT cell = (TableCellSWT)_cell;
 					
 					SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
-					if ( subs_man == null ){
-						
-						return;
-					}
 					
 					Download	dl = (Download)cell.getDataSource();
 					
@@ -773,7 +765,7 @@ SubscriptionManagerUI
 
 							SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
 
-							if ( torrent != null && subs_man != null ){
+							if ( torrent != null ){
 								
 								byte[]	hash = torrent.getHash();
 								
@@ -1017,7 +1009,8 @@ SubscriptionManagerUI
 						boolean expanded = headerEntry.isExpanded();
 	
 						SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
-						Subscription[] subs = subs_man == null ? new Subscription[0] : subs_man.getSubscriptions(true);
+						
+						Subscription[] subs = subs_man.getSubscriptions(true);
 						
 						if ( expanded ){
 	
@@ -1109,9 +1102,7 @@ SubscriptionManagerUI
 	registerAllSubscriptions() 
 	{
 		SubscriptionManager subs_man = SubscriptionManagerFactory.getSingleton();
-		if (subs_man == null) {
-			return;
-		}
+	
 		Subscription[]	subs = subs_man.getSubscriptions( true );
 		
 		Arrays.sort(
