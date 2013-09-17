@@ -3179,8 +3179,11 @@ implements PEPeerTransport
 			manager.havePiece(pieceNumber, pieceLength, this);
 
 			checkSeed(); // maybe a seed using lazy bitfield, or suddenly became a seed;
-			other_peer_interested_in_me &= !(isSeed() || isRelativeSeed());	// never consider seeds interested
-
+			if ( other_peer_interested_in_me ){
+				if ( isSeed() || isRelativeSeed()){
+					other_peer_interested_in_me = false; // never consider seeds interested
+				}
+			}
             peer_stats.hasNewPiece(pieceLength);
         }
     }
@@ -3241,7 +3244,11 @@ implements PEPeerTransport
         	
             checkSeed(); // maybe a seed using lazy bitfield, or suddenly became a seed;
             
-            other_peer_interested_in_me &= !(isSeed() && isRelativeSeed());	// never consider seeds interested
+            if ( other_peer_interested_in_me ){
+            	if ( isSeed() || isRelativeSeed()){
+            		other_peer_interested_in_me = false; // never consider seeds interested
+            	}
+            }
         }
         
         if ( send_interested ){
