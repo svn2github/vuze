@@ -87,12 +87,14 @@ public class UIUpdaterSWT
 	private CopyOnWriteList<UIUpdaterListener>		listeners = new CopyOnWriteList<UIUpdaterListener>();
 	
 	public static UIUpdater getInstance() {
-		if (updater == null) {
-			updater = new UIUpdaterSWT();
-			updater.start();
+		synchronized( UIUpdaterSWT.class ){
+			if (updater == null) {
+				updater = new UIUpdaterSWT();
+				updater.start();
+			}
+	
+			return updater;
 		}
-
-		return updater;
 	}
 
 	public UIUpdaterSWT() {
