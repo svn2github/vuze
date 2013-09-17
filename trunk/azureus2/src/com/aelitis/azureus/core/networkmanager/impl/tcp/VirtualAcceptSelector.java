@@ -99,7 +99,15 @@ VirtualAcceptSelector
 							return( false );
 						}
 					
-						new_channel.configureBlocking( false );
+						try{
+							new_channel.configureBlocking( false );
+							
+						}catch( IOException e ){
+							
+							new_channel.close();
+							
+							throw( e );
+						}
 						
 						listener.newConnectionAccepted( new_channel );
 						
