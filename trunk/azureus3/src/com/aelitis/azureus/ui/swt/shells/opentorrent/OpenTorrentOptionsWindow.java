@@ -552,56 +552,59 @@ public class OpenTorrentOptionsWindow
 			}
 		});
 
-			// tag area
-		
-		Composite tagLeft 	= new Composite( cTorrentModes, SWT.NULL);
-		tagLeft.setLayoutData( new GridData(GridData.VERTICAL_ALIGN_CENTER ));
-		Composite tagRight 	= new Composite( cTorrentModes, SWT.NULL);
-		gridData = new GridData(GridData.FILL_HORIZONTAL );
-		gridData.horizontalSpan=3;
-		tagRight.setLayoutData(gridData);
-		
-		layout = new GridLayout();
-		layout.numColumns = 1;
-		layout.marginWidth  = 0;
-		layout.marginHeight = 0;
-		tagLeft.setLayout(layout);
-		
-		layout = new GridLayout();
-		layout.numColumns = 2;
-		layout.marginWidth  = 0;
-		layout.marginHeight = 0;
-		tagRight.setLayout(layout);
-		
-		label = new Label(tagLeft, SWT.NONE);
-		gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER);
-		Messages.setLanguageText(label, "label.initial_tags");
-
-		
-		Composite tagButtons 	= new Composite( tagRight, SWT.NULL);
-		gridData = new GridData(GridData.FILL_HORIZONTAL );
-		tagButtons.setLayoutData(gridData);
-
-		RowLayout tagLayout = new RowLayout();
-		tagLayout.pack = false;
-		tagButtons.setLayout( tagLayout);
-		
-		buildTagButtonPanel( tagButtons );
-		
-		Button addTag = new Button( tagRight, SWT.NULL );
-		addTag.setLayoutData( new GridData(GridData.VERTICAL_ALIGN_CENTER ));
-		Messages.setLanguageText( addTag, "label.add.tag" );
-		
-		addTag.addSelectionListener(
-			new SelectionAdapter() {
-				
-				public void 
-				widgetSelected(
-					SelectionEvent e) 
-				{
-					TagUIUtils.createManualTag();
-				}
-			});
+		if ( TagManagerFactory.getTagManager().isEnabled()){
+			
+				// tag area
+			
+			Composite tagLeft 	= new Composite( cTorrentModes, SWT.NULL);
+			tagLeft.setLayoutData( new GridData(GridData.VERTICAL_ALIGN_CENTER ));
+			Composite tagRight 	= new Composite( cTorrentModes, SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL );
+			gridData.horizontalSpan=3;
+			tagRight.setLayoutData(gridData);
+			
+			layout = new GridLayout();
+			layout.numColumns = 1;
+			layout.marginWidth  = 0;
+			layout.marginHeight = 0;
+			tagLeft.setLayout(layout);
+			
+			layout = new GridLayout();
+			layout.numColumns = 2;
+			layout.marginWidth  = 0;
+			layout.marginHeight = 0;
+			tagRight.setLayout(layout);
+			
+			label = new Label(tagLeft, SWT.NONE);
+			gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER);
+			Messages.setLanguageText(label, "label.initial_tags");
+	
+			
+			Composite tagButtons 	= new Composite( tagRight, SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL );
+			tagButtons.setLayoutData(gridData);
+	
+			RowLayout tagLayout = new RowLayout();
+			tagLayout.pack = false;
+			tagButtons.setLayout( tagLayout);
+			
+			buildTagButtonPanel( tagButtons );
+			
+			Button addTag = new Button( tagRight, SWT.NULL );
+			addTag.setLayoutData( new GridData(GridData.VERTICAL_ALIGN_CENTER ));
+			Messages.setLanguageText( addTag, "label.add.tag" );
+			
+			addTag.addSelectionListener(
+				new SelectionAdapter() {
+					
+					public void 
+					widgetSelected(
+						SelectionEvent e) 
+					{
+						TagUIUtils.createManualTag();
+					}
+				});
+		}
 	}
 	
 	private void

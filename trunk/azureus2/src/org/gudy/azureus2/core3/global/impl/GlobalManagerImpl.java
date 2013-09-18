@@ -638,7 +638,10 @@ public class GlobalManagerImpl
     		}
     	});
     
-    new DownloadStateTagger( this );
+    if ( TagManagerFactory.getTagManager().isEnabled()){
+    
+    	new DownloadStateTagger( this );
+    }
   }
   
   public void loadExistingTorrentsNow(boolean async)

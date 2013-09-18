@@ -118,34 +118,40 @@ TagBase
 		tag_id			= _tag_id;
 		tag_name		= _tag_name;
 		
-		is_visible = readBooleanAttribute( AT_VISIBLE, null );
-		is_public = readBooleanAttribute( AT_PUBLIC, null );
+		if ( getManager().isEnabled()){
 		
-		if ( this instanceof TagFeatureRateLimit ){
+			is_visible = readBooleanAttribute( AT_VISIBLE, null );
+			is_public = readBooleanAttribute( AT_PUBLIC, null );
 			
-			tag_rl = (TagFeatureRateLimit)this;
-		}
-		
-		if ( this instanceof TagFeatureRSSFeed ){
-			
-			tag_rss = (TagFeatureRSSFeed)this;
-			
-			if ( tag_rss.isTagRSSFeedEnabled()){
+			if ( this instanceof TagFeatureRateLimit ){
 				
-				getManager().checkRSSFeeds( this, true );
+				tag_rl = (TagFeatureRateLimit)this;
 			}
-		}
-		
-		if ( this instanceof TagFeatureFileLocation ){
 			
-			tag_fl = (TagFeatureFileLocation)this;
+			if ( this instanceof TagFeatureRSSFeed ){
+				
+				tag_rss = (TagFeatureRSSFeed)this;
+				
+				if ( tag_rss.isTagRSSFeedEnabled()){
+					
+					getManager().checkRSSFeeds( this, true );
+				}
+			}
+			
+			if ( this instanceof TagFeatureFileLocation ){
+				
+				tag_fl = (TagFeatureFileLocation)this;
+			}
 		}
 	}
 	
 	protected void
 	addTag()
 	{
-		tag_type.addTag( this );
+		if ( getManager().isEnabled()){
+		
+			tag_type.addTag( this );
+		}
 	}
 	
 	protected TagManagerImpl

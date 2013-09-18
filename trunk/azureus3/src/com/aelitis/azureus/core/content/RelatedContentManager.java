@@ -4674,6 +4674,11 @@ RelatedContentManager
 	getTags(
 		Download	download )
 	{
+		if ( !tag_manager.isEnabled()){
+			
+			return( null );
+		}
+		
 		Set<String>	all_tags = new HashSet<String>();
 		
 		String	cat_name = ta_category==null?null:download.getAttribute( ta_category );

@@ -96,7 +96,10 @@ TagTypeBase
 	protected void
 	addTagType()
 	{
-		manager.addTagType( this );
+		if ( manager.isEnabled()){
+		
+			manager.addTagType( this );
+		}
 	}
 	
 	public TagManagerImpl

@@ -145,7 +145,7 @@ SpeedLimitHandler
 	private boolean rule_pause_all_active;
 	private boolean net_limit_pause_all_active;
 	
-	private IPSetTagType	ip_set_tag_type = new IPSetTagType();
+	private final IPSetTagType	ip_set_tag_type = TagManagerFactory.getTagManager().isEnabled()?new IPSetTagType():null;
 	
 	private
 	SpeedLimitHandler(
@@ -3590,7 +3590,10 @@ SpeedLimitHandler
 		initialise(
 			int		tag_id )
 		{
-			tag_impl	= new TagPeerImpl( tag_id );
+			if ( ip_set_tag_type != null ){
+			
+				tag_impl	= new TagPeerImpl( tag_id );
+			}
 			
 			if ( !has_explicit_up_lim ){
 				

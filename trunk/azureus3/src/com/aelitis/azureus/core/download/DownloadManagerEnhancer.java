@@ -38,6 +38,7 @@ import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerChannelImpl;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TagTypeAdapter;
@@ -52,6 +53,8 @@ public class
 DownloadManagerEnhancer 
 {
 	public static final int	TICK_PERIOD				= 1000;
+	
+	private static TagManager					tag_manager = TagManagerFactory.getTagManager();
 	
 	private static DownloadManagerEnhancer		singleton;
 	
@@ -583,11 +586,16 @@ DownloadManagerEnhancer
 	private boolean
 	initAutoTag()
 	{
+		if ( !tag_manager.isEnabled()){
+			
+			return( false );
+		}
+		
 			// these are also used in TagUIUtils in the main tag menu
 		
 		final String[]	tag_ids = { "tag.type.man.vhdn", "tag.type.man.featcon" };
 		
-		final TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+		final TagType tt = tag_manager.getTagType( TagType.TT_DOWNLOAD_MANUAL );
 
 		tt.addTagTypeListener(
 			new TagTypeAdapter()
@@ -660,6 +668,11 @@ DownloadManagerEnhancer
 	handleAutoTag(
 		DownloadManager	dm )
 	{
+		if ( !tag_manager.isEnabled()){
+			
+			return;
+		}
+		
 		try{
 			TOTorrent torrent = dm.getTorrent();
 			
@@ -698,7 +711,12 @@ DownloadManagerEnhancer
 		String				tag_id,
 		String				img_id )
 	{	
-		TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+		if ( !tag_manager.isEnabled()){
+			
+			return;
+		}
+		
+		TagType tt = tag_manager.getTagType( TagType.TT_DOWNLOAD_MANUAL );
 			
 		Tag t = tt.getTag( tag_id, false );
 			

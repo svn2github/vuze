@@ -83,6 +83,8 @@ TagManagerImpl
 	private static final int CU_TAG_CONTENTS	= 3;
 	private static final int CU_TAG_REMOVE		= 4;
 	
+	private static final boolean	enabled = COConfigurationManager.getBooleanParameter( "tagmanager.enable", true );
+	
 	private static TagManagerImpl	singleton;
 	
 	public static synchronized TagManagerImpl
@@ -476,12 +478,17 @@ TagManagerImpl
 	public boolean
 	isEnabled()
 	{
-		return( true );
+		return( enabled );
 	}
 	
 	private void
 	init()
 	{
+		if ( !enabled ){
+			
+			return;
+		}
+		
 		AzureusCore azureus_core = AzureusCoreFactory.getSingleton();
 		
 		final TagPropertyTrackerHandler auto_tracker = new TagPropertyTrackerHandler( azureus_core, this );
@@ -650,6 +657,13 @@ TagManagerImpl
 	addTagType(
 		TagType		tag_type )
 	{
+		if ( !enabled ){
+		
+			Debug.out( "Not enabled" );
+			
+			return;
+		}
+		
 		synchronized( tag_type_map ){
 			
 			if ( tag_type_map.put( tag_type.getTagType(), tag_type) != null ){
@@ -767,6 +781,31 @@ TagManagerImpl
 	registerTaggableResolver(
 		TaggableResolver	resolver )
 	{
+		if ( !enabled ){
+			
+			return(
+				new TaggableLifecycleHandler()
+				{
+					public void
+					initialized(
+						List<Taggable>	initial_taggables )
+					{
+					}
+					
+					public void
+					taggableCreated(
+						Taggable	taggable )
+					{
+					}
+					
+					public void
+					taggableDestroyed(
+						Taggable	taggable )
+					{
+					}
+				});
+		}
+		
 		LifecycleHandlerImpl handler;
 		
 		long type = resolver.getResolverTaggableType();
@@ -1092,6 +1131,13 @@ TagManagerImpl
 	private Map
 	readConfig()
 	{
+		if ( !enabled ){
+			
+			Debug.out( "TagManager is disabled" );;
+			
+			return( new HashMap());
+		}
+		
 		Map map;
 		
 		if ( FileUtil.resilientConfigFileExists( CONFIG_FILE )){
@@ -1135,6 +1181,11 @@ TagManagerImpl
 	private void
 	writeConfig()
 	{
+		if ( !enabled ){
+			
+			Debug.out( "TagManager is disabled" );;
+		}
+		
 		synchronized( this ){
 			
 			if ( !config_dirty ){
