@@ -21,20 +21,72 @@
 
 package com.aelitis.azureus.core.devices;
 
-import com.aelitis.azureus.core.devices.impl.DeviceManagerImpl;
+import org.gudy.azureus2.core3.util.Debug;
+
 
 public class 
 DeviceManagerFactory 
 {
+	final private static Class<DeviceManager> impl_class; 
+
+	static{
+		
+		String impl = System.getProperty( "az.factory.devicemanager.impl", "com.aelitis.azureus.core.devices.impl.DeviceManagerImpl" );
+		
+		Class<DeviceManager> temp = null;
+		
+		try{
+			temp = (Class<DeviceManager>)DeviceManagerFactory.class.getClassLoader().loadClass( impl );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( "Failed to load DeviceManagerFactory class: " + impl );
+		}
+		
+		impl_class = temp;
+	}
+
+	private static DeviceManager	singleton;
+	
 	public static void
 	preInitialise()
 	{		
-		DeviceManagerImpl.preInitialise();
+		if ( impl_class != null ){
+			
+			try{
+				impl_class.getMethod( "preInitialise" ).invoke( null, (Object[])null );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( "preInitialise failed", e );
+			}
+		}
 	}
 	
 	public static DeviceManager
 	getSingleton()
 	{
-		return( DeviceManagerImpl.getSingleton());
+		synchronized( DeviceManagerFactory.class ){
+			
+			if ( singleton != null ){
+				
+				return( singleton );
+			}
+		
+			if ( impl_class == null ){
+				
+				throw( new RuntimeException( "No Implementation" ));
+			}
+			
+			try{
+				singleton = (DeviceManager)impl_class.getMethod( "getSingleton" ).invoke( null, (Object[])null );
+			
+				return( singleton );
+				
+			}catch( Throwable e ){
+				
+				throw( new RuntimeException( "No Implementation", e ));
+			}
+		}
 	}
 }

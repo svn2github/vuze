@@ -473,6 +473,12 @@ TagManagerImpl
 	{
 	}
 	
+	public boolean
+	isEnabled()
+	{
+		return( true );
+	}
+	
 	private void
 	init()
 	{

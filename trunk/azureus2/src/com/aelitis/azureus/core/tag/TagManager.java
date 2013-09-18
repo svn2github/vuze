@@ -26,6 +26,9 @@ import java.util.List;
 public interface 
 TagManager 
 {
+	public boolean
+	isEnabled();
+	
 	public void
 	addTagType(
 		TagType		tag_type );

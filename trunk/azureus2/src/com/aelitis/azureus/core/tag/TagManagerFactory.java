@@ -21,14 +21,56 @@
 
 package com.aelitis.azureus.core.tag;
 
-import com.aelitis.azureus.core.tag.impl.TagManagerImpl;
+import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 TagManagerFactory 
-{
+{	
+	final private static Class<TagManager> impl_class; 
+
+	static{
+	
+		String impl = System.getProperty( "az.factory.tagmanager.impl", "com.aelitis.azureus.core.tag.impl.TagManagerImpl" );
+		
+		Class<TagManager> temp = null;
+		
+		try{
+			temp = (Class<TagManager>)TagManagerFactory.class.getClassLoader().loadClass( impl );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( "Failed to load TagManagerFactory class: " + impl );
+		}
+		
+		impl_class = temp;
+	}
+
+	private static TagManager	singleton;
+
 	public static TagManager
 	getTagManager()
 	{
-		return( TagManagerImpl.getSingleton());
+		synchronized( TagManagerFactory.class ){
+			
+			if ( singleton != null ){
+				
+				return( singleton );
+			}
+		
+			if ( impl_class == null ){
+				
+				throw( new RuntimeException( "No Implementation" ));
+			}
+			
+			try{
+				singleton = (TagManager)impl_class.getMethod( "getSingleton" ).invoke( null, (Object[])null );
+			
+				return( singleton );
+				
+			}catch( Throwable e ){
+				
+				throw( new RuntimeException( "No Implementation", e ));
+			}
+		}
 	}
 }
