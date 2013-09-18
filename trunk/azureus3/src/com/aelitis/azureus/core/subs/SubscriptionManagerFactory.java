@@ -21,28 +21,72 @@
 
 package com.aelitis.azureus.core.subs;
 
-import com.aelitis.azureus.core.subs.impl.SubscriptionManagerImpl;
+import org.gudy.azureus2.core3.util.Debug;
 
 
 public class 
 SubscriptionManagerFactory 
 {
+	final private static Class<SubscriptionManager> impl_class; 
+
+	static{
+		
+		String impl = System.getProperty( "az.factory.subscriptionmanager.impl", "com.aelitis.azureus.core.subs.impl.SubscriptionManagerImpl" );
+		
+		Class<SubscriptionManager> temp = null;
+		
+		try{
+			temp = (Class<SubscriptionManager>)SubscriptionManagerFactory.class.getClassLoader().loadClass( impl );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( "Failed to load SubscriptionManager class: " + impl );
+		}
+		
+		impl_class = temp;
+	}
+
+	private static SubscriptionManager	singleton;
+	
 	public static void
 	preInitialise()
 	{
-		SubscriptionManagerImpl.preInitialise();
+		if ( impl_class != null ){
+			
+			try{
+				impl_class.getMethod( "preInitialise" ).invoke( null, (Object[])null );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( "preInitialise failed", e );
+			}
+		}
 	}
 	
 	public static SubscriptionManager
 	getSingleton()
 	{
-		return( SubscriptionManagerImpl.getSingleton( false ));
-	}
-	
-	public static SubscriptionManager
-	getStandaloneSingleton(
-		boolean		stand_alone )
-	{
-		return( SubscriptionManagerImpl.getSingleton( true ));
+		synchronized( SubscriptionManagerFactory.class ){
+			
+			if ( singleton != null ){
+				
+				return( singleton );
+			}
+		
+			if ( impl_class == null ){
+				
+				throw( new RuntimeException( "No Implementation" ));
+			}
+			
+			try{
+				singleton = (SubscriptionManager)impl_class.getMethod( "getSingleton", boolean.class ).invoke( null, false );
+			
+				return( singleton );
+				
+			}catch( Throwable e ){
+				
+				throw( new RuntimeException( "No Implementation", e ));
+			}
+		}
 	}
 }
