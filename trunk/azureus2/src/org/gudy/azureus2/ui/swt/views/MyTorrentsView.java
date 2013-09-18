@@ -1708,8 +1708,8 @@ public class MyTorrentsView
 
   public void refreshToolBarItems(Map<String, Long> list) {
 	super.refreshToolBarItems(list);
-  	ISelectedContent[] datasource = SelectedContentManager.getCurrentlySelectedContent();
-		boolean hasMultiple = datasource instanceof Object[] && ((Object[])datasource).length > 1;
+  		ISelectedContent[] datasource = SelectedContentManager.getCurrentlySelectedContent();
+		boolean hasMultiple = datasource.length > 1;
 		
 		// Most subviews can only handle one datasource.  I'm lazy, so instead of 
 		// fixing each view up, disable toolbar handling for them when we have
