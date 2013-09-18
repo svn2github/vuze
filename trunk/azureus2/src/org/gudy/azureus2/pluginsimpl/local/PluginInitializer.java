@@ -370,7 +370,7 @@ PluginInitializer
 
       if ( required_jdk != null ){
     	  
-    	  String	actual_jdk = System.getProperty( "java.version" );
+    	  String	actual_jdk = Constants.JAVA_VERSION;
     	  
     	  required_jdk 	= normaliseJDK( required_jdk );
     	  actual_jdk	= normaliseJDK( actual_jdk );

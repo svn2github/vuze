@@ -1402,7 +1402,7 @@ public class VersionCheckClient {
 
 			message.put( "reason", reason );
 
-			String  java_version = System.getProperty( "java.version" );
+			String  java_version = Constants.JAVA_VERSION;
 			if ( java_version == null ){  java_version = "unknown";  }
 			message.put( "java", java_version );
 
@@ -1411,6 +1411,10 @@ public class VersionCheckClient {
 			if ( java_vendor == null ){   java_vendor = "unknown";  }
 			message.put( "javavendor", java_vendor );
 
+			int  api_level = Constants.API_LEVEL;
+			if ( api_level > 0 ){
+				message.put( "api_level", api_level );
+			}
 
 			long  max_mem = Runtime.getRuntime().maxMemory()/(1024*1024);
 			message.put( "javamx", new Long( max_mem ) );

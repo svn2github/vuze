@@ -99,21 +99,26 @@ SFPluginDetailsLoaderImpl
 			
 			base_url_params += "&ui=" + URLEncoder.encode(COConfigurationManager.getStringParameter("ui"),"UTF-8" );
 			
-			base_url_params += "&java=" + URLEncoder.encode(System.getProperty( "java.version" ),"UTF-8" );
+			base_url_params += "&java=" + URLEncoder.encode(Constants.JAVA_VERSION,"UTF-8" );
 			
-			  try {
-			      Class c = Class.forName( "org.eclipse.swt.SWT" );
-			      
-			      String swt_platform = (String)c.getMethod( "getPlatform", new Class[]{} ).invoke( null, new Object[]{} );
-			      
-			      base_url_params += "&swt_platform=" + swt_platform;
-			      
-			      Integer swt_version = (Integer)c.getMethod( "getVersion", new Class[]{} ).invoke( null, new Object[]{} );
-			      
-			      base_url_params += "&swt_version=" + swt_version;
-			      
-			  }catch( Throwable e ){
-			  }
+			if ( Constants.API_LEVEL > 0 ){
+				
+				base_url_params += "&api_level=" + Constants.API_LEVEL;
+			}
+			
+			try {
+				Class c = Class.forName( "org.eclipse.swt.SWT" );
+
+				String swt_platform = (String)c.getMethod( "getPlatform", new Class[]{} ).invoke( null, new Object[]{} );
+
+				base_url_params += "&swt_platform=" + swt_platform;
+
+				Integer swt_version = (Integer)c.getMethod( "getVersion", new Class[]{} ).invoke( null, new Object[]{} );
+
+				base_url_params += "&swt_version=" + swt_version;
+
+			}catch( Throwable e ){
+			}
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);

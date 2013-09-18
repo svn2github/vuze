@@ -330,7 +330,31 @@ Constants
   
   	// Android is roughly 1.6 (reports as 0 for java.version)
   
-  public static final String	JAVA_VERSION = isAndroid?"1.6":System.getProperty("java.version");
+  public static final String	JAVA_VERSION;
+  public static final int		API_LEVEL;
+  
+  static{
+	  String java_version 	= isAndroid?"1.6":System.getProperty("java.version");
+	  int	 api_level 		= 0;
+	  
+	  if ( isAndroid ){
+		  
+		  String sdk_int = System.getProperty( "android.os.build.version.sdk_int", "0" );
+		  
+		  try{
+			  api_level = Integer.parseInt( sdk_int );
+			  
+			  if ( api_level > 0  && api_level <= 8 ){
+					  
+				  java_version = "1.5";	  
+			  }
+		  }catch( Throwable e ){
+		  }
+	  }
+	  
+	  JAVA_VERSION 	= java_version;
+	  API_LEVEL		= api_level;
+  }
   
   public static final boolean isJava7OrHigher;
   
