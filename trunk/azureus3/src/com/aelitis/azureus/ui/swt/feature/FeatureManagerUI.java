@@ -353,7 +353,9 @@ public class FeatureManagerUI
 	  
 	  		entryWindow.open(new UserPrompterResultListener() {
 	  			public void prompterClosed(int result) {
-	  				entryWindow = null;
+	  				synchronized( FeatureManagerUI.class ){
+	  					entryWindow = null;
+	  				}
 	  				if (result == SWT.OK) {
 	  					try {
 	  						Licence licence = featman.addLicence(key[0].getText());
@@ -609,9 +611,11 @@ public class FeatureManagerUI
 	}
 
 	public static void closeLicenceValidatingWindow() {
-		if (validatingBox != null) {
-			validatingBox.close(0);
-			validatingBox = null;
+		synchronized( FeatureManagerUI.class ){
+			if (validatingBox != null) {
+				validatingBox.close(0);
+				validatingBox = null;
+			}
 		}
 	}
 
