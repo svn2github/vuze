@@ -1195,23 +1195,26 @@ DeviceManagerUI
 							
 							enabled = locs != null && locs.length > 0;
 							
-							MenuManager menuManager = ui_manager.getMenuManager();
-
-							for ( final Device.browseLocation loc: locs ){
-							
-								MenuItem loc_menu = menuManager.addMenuItem( menu, loc.getName());
+							if ( enabled ){
 								
-								loc_menu.addListener(
-									new MenuItemListener()
-									{
-										public void 
-										selected(
-											MenuItem 	menu,
-											Object 		target ) 
+								MenuManager menuManager = ui_manager.getMenuManager();
+	
+								for ( final Device.browseLocation loc: locs ){
+								
+									MenuItem loc_menu = menuManager.addMenuItem( menu, loc.getName());
+									
+									loc_menu.addListener(
+										new MenuItemListener()
 										{
-											Utils.launch( loc.getURL().toExternalForm());
-										}
-									});
+											public void 
+											selected(
+												MenuItem 	menu,
+												Object 		target ) 
+											{
+												Utils.launch( loc.getURL().toExternalForm());
+											}
+										});
+								}
 							}
 						}
 						
