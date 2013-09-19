@@ -84,10 +84,18 @@ public class TableCellImpl
     	createBufferedTableItem(position);
     }
 
-    tableColumn.invokeCellAddedListeners(TableCellImpl.this);
     //bDebug = (position == 1) && tableColumn.getTableID().equalsIgnoreCase("Peers");
+    constructionCompleter();
   }
 
+  protected void
+  constructionCompleter()
+  {
+	  constructionComplete();
+	  
+      tableColumn.invokeCellAddedListeners(TableCellImpl.this);
+  }
+  
   /**
    * Initialize
    *  

@@ -40,9 +40,17 @@ public class TableCellPainted
 
 	public TableCellPainted(TableRowSWT row, TableColumnCore column, int pos) {
 		super(row, column);
-		tableColumn.invokeCellAddedListeners(TableCellPainted.this);
+		constructionCompleter();
 	}
 
+	protected void
+	constructionCompleter()
+	{
+		constructionComplete();
+		
+		tableColumn.invokeCellAddedListeners(TableCellPainted.this);
+	}
+	  
 	/* (non-Javadoc)
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableCell#getDataSource()
 	 */

@@ -150,11 +150,21 @@ public abstract class TableCellSWTBase
 		tooltipErrLoopCount = 0;
 		refreshErrLoopCount = 0;
 		loopFactor = 0;
-		if (column != null && column.getType() == TableColumnCore.TYPE_GRAPHIC) {
+	}
+	
+	protected void
+	constructionComplete()
+	{
+			// this needs to be done after the subclass has had time to initialise itself
+		
+		if (tableColumn != null && tableColumn.getType() == TableColumnCore.TYPE_GRAPHIC) {
 			setMarginHeight(1);
 			setMarginWidth(1);
 		}
 	}
+	
+	protected abstract void
+	constructionCompleter();
 
 	public void addRefreshListener(TableCellRefreshListener listener) {
 		try {
