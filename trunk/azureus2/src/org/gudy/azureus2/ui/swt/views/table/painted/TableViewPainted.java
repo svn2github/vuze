@@ -1123,25 +1123,25 @@ public class TableViewPainted
 		}
 		
 		if (DEBUG_WITH_SHELL) {
-  		Shell shell = new Shell();
-  		sCanvasImage = new Canvas(shell, SWT.DOUBLE_BUFFERED);
-  		shell.setLayout(new FillLayout());
-  		sCanvasImage.addPaintListener(new PaintListener() {
-  			public void paintControl(PaintEvent e) {
-  				if (canvasImage == null) {
-  					return;
-  				}
-  				e.gc.drawImage(canvasImage, 0, 0);
-  				//System.out.println(System.currentTimeMillis() + "] Paint " + e.x + "x" + e.y + " " + e.width + "x" + e.height);
-  
-  			}
-  		});
-  		shell.addDisposeListener(new DisposeListener() {
-  			public void widgetDisposed(DisposeEvent e) {
-  				sCanvasImage = null;
-  			}
-  		});
-  		shell.setVisible(true);
+	  		Shell shell = new Shell();
+	  		sCanvasImage = new Canvas(shell, SWT.DOUBLE_BUFFERED);
+	  		shell.setLayout(new FillLayout());
+	  		sCanvasImage.addPaintListener(new PaintListener() {
+	  			public void paintControl(PaintEvent e) {
+	  				if (canvasImage == null) {
+	  					return;
+	  				}
+	  				e.gc.drawImage(canvasImage, 0, 0);
+	  				//System.out.println(System.currentTimeMillis() + "] Paint " + e.x + "x" + e.y + " " + e.width + "x" + e.height);
+	  
+	  			}
+	  		});
+	  		shell.addDisposeListener(new DisposeListener() {
+	  			public void widgetDisposed(DisposeEvent e) {
+	  				sCanvasImage = null;
+	  			}
+	  		});
+	  		shell.setVisible(true);
 		}
 
 
@@ -2437,10 +2437,12 @@ public class TableViewPainted
   				cTable.update();
   			}
   		}
-  		if (sCanvasImage != null) {
-  			sCanvasImage.getShell().setSize(canvasImage.getBounds().width, canvasImage.getBounds().height);
-  			sCanvasImage.redraw(bounds.x, bounds.y, bounds.width, bounds.height, true);
-  			sCanvasImage.update();
+  		if ( DEBUG_WITH_SHELL ){
+	  		if (sCanvasImage != null) {
+	  			sCanvasImage.getShell().setSize(canvasImage.getBounds().width, canvasImage.getBounds().height);
+	  			sCanvasImage.redraw(bounds.x, bounds.y, bounds.width, bounds.height, true);
+	  			sCanvasImage.update();
+	  		}
   		}
 		} finally {
 			in_swt_updateCanvasImage = false;
