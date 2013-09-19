@@ -96,7 +96,7 @@ public class UISWTViewImpl
 
 	private String lastFullTitle = "";
 
-	private Boolean hasFocus = null;
+	//private Boolean hasFocus = null;
 
 	private UIPluginViewToolBarListener toolbarListener;
 
@@ -204,6 +204,7 @@ public class UISWTViewImpl
 	 */
 	public void triggerEvent(int eventType, Object data) {
 		// prevent double fire of focus gained/lost
+		/* erm, this code doesn't do anything atm as nothing is setting hasFocus, removing for the moment
 		if (eventType == UISWTViewEvent.TYPE_FOCUSGAINED && hasFocus != null
 				&& hasFocus) {
 			return;
@@ -212,6 +213,7 @@ public class UISWTViewImpl
 				&& !hasFocus) {
 			return;
 		}
+		*/
 		if (eventType == UISWTViewEvent.TYPE_DATASOURCE_CHANGED) {
 			Object newDataSource = PluginCoreUtils.convert(data, useCoreDataSource);
 			if (dataSource == newDataSource) {
