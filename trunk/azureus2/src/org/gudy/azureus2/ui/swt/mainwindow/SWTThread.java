@@ -115,10 +115,10 @@ public class SWTThread {
 						+ "\n\n"
 						+ "(2) No write access to '" + tempDir 
 						+ "'. SWT will extract libraries contained in the swt.jar to this dir.\n", ue);
-				if (!terminated) {
-					app.stopIt(false, false);
-					terminated = true;
-				}
+				
+				app.stopIt(false, false);
+				terminated = true;
+				
 				PlatformManagerFactory.getPlatformManager().dispose();
 			} catch (Throwable t) {
 			}
