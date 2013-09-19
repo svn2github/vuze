@@ -36,8 +36,6 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
 
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
-import com.aelitis.azureus.core.proxy.socks.AESocksProxy;
-import com.aelitis.azureus.core.proxy.socks.AESocksProxyFactory;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
 import com.aelitis.azureus.core.util.FeatureAvailability;
 
@@ -213,59 +211,37 @@ ConfigurationChecker
 	  			"sun.net.client.defaultReadTimeout", 
 	  			String.valueOf( read_timeout*1000 ));
 	    
-	    // proxy
-	  	
-	  	boolean TEST_PROXY = false;
-	  	
-	  	if ( TEST_PROXY ){
-	  		
-	  			// test our proxy
-	    	try{
-	    		AESocksProxy	proxy = 
-	    			AESocksProxyFactory.create( 16234, 0, 0 );
-	    		
-		        System.setProperty("socksProxyHost", "127.0.0.1");
-		        System.setProperty("socksProxyPort", "" + proxy.getPort());
+	  	if ( COConfigurationManager.getBooleanParameter("Enable.Proxy") ) {
+	  		String host = COConfigurationManager.getStringParameter("Proxy.Host");
+	  		String port = COConfigurationManager.getStringParameter("Proxy.Port");
+	  		String user = COConfigurationManager.getStringParameter("Proxy.Username");
+	  		String pass = COConfigurationManager.getStringParameter("Proxy.Password");
 
-	    		
-	    	}catch( Throwable e ){
-	    		
-	    		Debug.printStackTrace(e);
-	    	}
-	  	}else{
-	  		
-		    if ( COConfigurationManager.getBooleanParameter("Enable.Proxy") ) {
-		      String host = COConfigurationManager.getStringParameter("Proxy.Host");
-		      String port = COConfigurationManager.getStringParameter("Proxy.Port");
-		      String user = COConfigurationManager.getStringParameter("Proxy.Username");
-		      String pass = COConfigurationManager.getStringParameter("Proxy.Password");
-			     
-		      if ( user.trim().equalsIgnoreCase("<none>")){
-		    	  user = "";
-		      }
-		      
-		      if ( COConfigurationManager.getBooleanParameter("Enable.SOCKS") ) {
-		        System.setProperty("socksProxyHost", host);
-		        System.setProperty("socksProxyPort", port);
-		        
-		        if (user.length() > 0) {
-		          System.setProperty("java.net.socks.username", user);
-		          System.setProperty("java.net.socks.password", pass);
-		        }
-		      }
-		      else {
-		        System.setProperty("http.proxyHost", host);
-		        System.setProperty("http.proxyPort", port);
-		        System.setProperty("https.proxyHost", host);
-		        System.setProperty("https.proxyPort", port);
-		        
-		        if (user.length() > 0) {
-		          System.setProperty("http.proxyUser", user);
-		          System.setProperty("http.proxyPassword", pass);
-		        }
-		      }
-		    }
-	    }
+	  		if ( user.trim().equalsIgnoreCase("<none>")){
+	  			user = "";
+	  		}
+
+	  		if ( COConfigurationManager.getBooleanParameter("Enable.SOCKS") ) {
+	  			System.setProperty("socksProxyHost", host);
+	  			System.setProperty("socksProxyPort", port);
+
+	  			if (user.length() > 0) {
+	  				System.setProperty("java.net.socks.username", user);
+	  				System.setProperty("java.net.socks.password", pass);
+	  			}
+	  		}
+	  		else {
+	  			System.setProperty("http.proxyHost", host);
+	  			System.setProperty("http.proxyPort", port);
+	  			System.setProperty("https.proxyHost", host);
+	  			System.setProperty("https.proxyPort", port);
+
+	  			if (user.length() > 0) {
+	  				System.setProperty("http.proxyUser", user);
+	  				System.setProperty("http.proxyPassword", pass);
+	  			}
+	  		}
+	  	}
 	  
 	  	SESecurityManager.initialise();
   	}finally{
@@ -845,24 +821,4 @@ ConfigurationChecker
 	{
 		return( new_version );
 	}
-  
-  public static void main(String args[]) {
-    Integer obj = new Integer(1);
-    HashMap test = new HashMap();
-    int collisions = 0;
-    for(int i = 0 ; i < 1000000 ; i++) {
-      String id = RandomUtils.generateRandomAlphanumerics( 20 );
-      if(test.containsKey(id)) {
-        collisions++;
-      } else {
-        test.put(id,obj);
-      }
-      if(i%1000 == 0) {
-        System.out.println(i + " : " + id + " : " + collisions);
-      }
-    }
-    System.out.println("\n" + collisions);
-  }
-  
-  
 }
