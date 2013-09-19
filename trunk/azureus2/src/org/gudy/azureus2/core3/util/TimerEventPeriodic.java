@@ -52,7 +52,7 @@ TimerEventPeriodic
 		
 		long	 now = SystemTime.getCurrentTime();
 		
-		current_event = timer.addEvent(	name, now, now + frequency, absolute, this );
+		current_event = timer.addEvent(	now, now + frequency, absolute, this );
 	}
 	
 	public void
