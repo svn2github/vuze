@@ -65,8 +65,6 @@ public class TableRowPainted
 
 	private Color colorFG = null;
 
-	private Color colorBG = null;
-
 	public TableRowPainted(TableRowCore parentRow, TableViewPainted tv,
 			Object dataSource, boolean triggerHeightChange) {
 		// in theory, TableRowPainted could have its own sync
@@ -895,7 +893,7 @@ public class TableRowPainted
 
 	@Override
 	public Color getBackground() {
-		return colorBG;
+		return null;
 	}
 
 	@Override
