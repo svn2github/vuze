@@ -44,7 +44,8 @@ AZInstanceManager
 	getMyInstance();
 	
 	public int
-	getOtherInstanceCount();
+	getOtherInstanceCount(
+		boolean	block_if_needed );
 	
 	public AZInstance[]
 	getOtherInstances();

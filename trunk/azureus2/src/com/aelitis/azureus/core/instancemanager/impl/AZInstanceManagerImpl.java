@@ -696,8 +696,17 @@ AZInstanceManagerImpl
 	}
 	
 	public int
-  	getOtherInstanceCount()
+  	getOtherInstanceCount(
+  		boolean	block_if_needed )
   	{
+		if ( !block_if_needed ){
+			
+			if ( !initial_search_sem.isReleasedForever()){
+				
+				return( 0 );
+			}
+		}
+		
 		waitForInit();
 		
   		try{

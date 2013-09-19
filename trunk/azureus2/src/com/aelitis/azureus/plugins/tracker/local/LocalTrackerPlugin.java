@@ -792,7 +792,7 @@ LocalTrackerPlugin
 				public String
 				getName()
 				{
-					return( MessageText.getString( "tps.lan.details", new String[]{ String.valueOf( instance_manager.getOtherInstanceCount())}));
+					return( MessageText.getString( "tps.lan.details", new String[]{ String.valueOf( instance_manager.getOtherInstanceCount( false ))}));
 				}
 				
 				public int
