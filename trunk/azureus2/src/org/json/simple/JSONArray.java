@@ -40,5 +40,33 @@ public class JSONArray extends ArrayList {
 		}
 		return "["+list.toString()+"]";
 	}
+	
+	public void toString( StringBuilder sb ){
+		sb.append( "[" );
+
+		Iterator iter=iterator();
 		
+		boolean	first = true;
+		while(iter.hasNext()){
+			if ( first ){
+				first = false;
+			}else{
+				sb.append( "," );
+			}
+			Object value=iter.next();	
+			if(value instanceof String){
+				sb.append( "\"" );
+				JSONObject.escape(sb, (String)value);
+				sb.append( "\"");
+			}if ( value instanceof JSONObject ){
+				((JSONObject)value).toString( sb );
+			}if ( value instanceof JSONArray ){
+				((JSONArray)value).toString( sb ); 
+			}else{
+				sb.append(String.valueOf(value));
+			}
+		}
+		
+		sb.append( "]" );
+	}
 }

@@ -17,7 +17,7 @@ import java.util.StringTokenizer;
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
 public class ItemList {
-	private String sp=",";
+	private final static String sp=",";
 	List<String> items=new ArrayList<String>();
 	
 	
@@ -35,10 +35,10 @@ public class ItemList {
 	 * @param s 分隔符隔开的一个字符串序列
 	 * @param sp 分隔符
 	 */
-	public ItemList(String s,String sp){
-		this.sp=s;
-		this.split(s,sp,items);
-	}
+	//public ItemList(String s,String sp){
+	//	this.sp=s;
+	//	this.split(s,sp,items);
+	//}
 	
 	/**
 	 * 
@@ -92,9 +92,9 @@ public class ItemList {
 	 * 设置分隔符.
 	 * @param sp 分隔符
 	 */
-	public void setSP(String sp){
-		this.sp=sp;
-	}
+	//public void setSP(String sp){
+	//	this.sp=sp;
+	//}
 	
 	/**
 	 * 加入单个item.
@@ -199,7 +199,7 @@ public class ItemList {
 	 * 复位.清空数据，并恢复所有默认值.
 	 */
 	public void reset(){
-		sp=",";
+		//sp=",";
 		items.clear();
 	}
 }

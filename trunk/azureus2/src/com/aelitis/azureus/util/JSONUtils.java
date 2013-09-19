@@ -73,8 +73,8 @@ public class JSONUtils
 	 *
 	 * @since 3.0.1.5
 	 */
-	public static Map encodeToJSONObject(Map map) {
-		Map newMap = new JSONObject();
+	public static JSONObject encodeToJSONObject(Map map) {
+		JSONObject newMap = new JSONObject();
 
 		for (Iterator iter = map.keySet().iterator(); iter.hasNext();) {
 			String key = (String) iter.next();
@@ -104,7 +104,10 @@ public class JSONUtils
 	 * @since 3.0.1.5
 	 */
 	public static String encodeToJSON(Map map) {
-		return encodeToJSONObject(map).toString();
+		JSONObject jobj = encodeToJSONObject(map);		
+		StringBuilder	sb = new StringBuilder(8192);
+		jobj.toString( sb );
+		return( sb.toString());
 	}
 
 	public static String encodeToJSON(Collection list) {
@@ -134,8 +137,8 @@ public class JSONUtils
 	 *
 	 * @since 3.0.1.5
 	 */
-	private static List encodeToJSONArray(Collection list) {
-		List newList = new JSONArray(list);
+	private static JSONArray encodeToJSONArray(Collection list) {
+		JSONArray newList = new JSONArray(list);
 
 		for (int i = 0; i < newList.size(); i++) {
 			Object value = newList.get(i);
