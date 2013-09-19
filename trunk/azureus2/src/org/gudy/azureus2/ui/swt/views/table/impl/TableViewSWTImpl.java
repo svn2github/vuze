@@ -154,7 +154,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 
 	/** TabViews */
 	private boolean bEnableTabViews = false;
-	private String[]tabViewRestriction;
+
 	private boolean tabViewsExpandedByDefault = true;
 	
 	private TableRowSWT[] visibleRows;
@@ -2345,7 +2345,7 @@ public class TableViewSWTImpl<DATASOURCETYPE>
 		return bEnableTabViews;
 	}
 	public String[] getTabViewsRestrictedTo() {
-		return( tabViewRestriction );
+		return( null );
 	}
 	public boolean 
 	getTabViewsExpandedByDefault()
