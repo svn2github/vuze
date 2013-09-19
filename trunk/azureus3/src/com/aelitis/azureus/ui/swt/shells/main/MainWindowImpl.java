@@ -1956,28 +1956,41 @@ public class MainWindowImpl
 		
 		text.addListener(SWT.Resize, new Listener() {
 			Font lastFont = null;
-
+			int	lastHeight = -1;
+			
 			public void handleEvent(Event event) {
 				Text text = (Text) event.widget;
 
 				int h = text.getClientArea().height - 2;
+				
+				if ( h == lastHeight ){
+					return;
+				}
+				
+				lastHeight = h;
 				Font font = FontUtils.getFontWithHeight(text.getFont(), null, h);
 				if (font != null) {
 					text.setFont(font);
 
-					Utils.disposeSWTObjects(new Object[] {
-						lastFont
-					});
-
-					text.addDisposeListener(new DisposeListener() {
-						public void widgetDisposed(DisposeEvent e) {
-							Text text = (Text) e.widget;
-							text.setFont(null);
-							Utils.disposeSWTObjects(new Object[] {
+					if ( lastFont == null ){
+						
+						text.addDisposeListener(new DisposeListener() {
+							public void widgetDisposed(DisposeEvent e) {
+								Text text = (Text) e.widget;
+								text.setFont(null);
+								Utils.disposeSWTObjects(new Object[] {
+									lastFont
+								});
+							}
+						});
+						
+					}else{
+						Utils.disposeSWTObjects(new Object[] {
 								lastFont
-							});
-						}
-					});
+						});
+					}
+					
+					lastFont = font;
 				}
 			}
 		});
