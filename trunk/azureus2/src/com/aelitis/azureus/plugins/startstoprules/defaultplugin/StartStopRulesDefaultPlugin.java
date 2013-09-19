@@ -898,13 +898,13 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 							}
 						};
 						TableManager tm = pi.getUIManager().getTableManager();
-						TableContextMenuItem menu;
-						menu = tm.addContextMenuItem(
+						
+						debugMenuItem = tm.addContextMenuItem(
 								TableManager.TABLE_MYTORRENTS_COMPLETE, DEBUG_MENU_ID);
-						menu.addListener(menuListener);
-						menu = tm.addContextMenuItem(
+						debugMenuItem.addListener(menuListener);
+						debugMenuItem = tm.addContextMenuItem(
 								TableManager.TABLE_MYTORRENTS_INCOMPLETE, DEBUG_MENU_ID);
-						menu.addListener(menuListener);
+						debugMenuItem.addListener(menuListener);
 					}
 				} catch (Throwable t) {
 					Debug.printStackTrace(t);
