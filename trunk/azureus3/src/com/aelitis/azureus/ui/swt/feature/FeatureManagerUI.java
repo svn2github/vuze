@@ -604,7 +604,10 @@ public class FeatureManagerUI
 					prompterClosed(
 						int result ) 
 					{
-						validatingBox = null;
+						synchronized( FeatureManagerUI.class ){
+						
+							validatingBox = null;
+						}
 					}
 				});
 		}
