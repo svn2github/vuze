@@ -34,6 +34,10 @@ DHTNATPuncher
 	start();
 	
 	public void
+	setSuspended(
+		boolean	susp );
+	
+	public void
 	destroy();
 	
 		/**

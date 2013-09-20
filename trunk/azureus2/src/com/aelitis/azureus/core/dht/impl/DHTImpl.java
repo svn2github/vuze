@@ -258,6 +258,30 @@ DHTImpl
 		return( sleeping );
 	}
 	
+	public void
+	setSuspended(
+		boolean	susp )
+	{
+		if ( susp ){
+			
+			if ( nat_puncher != null ){
+				
+				nat_puncher.setSuspended( true );
+			}
+		
+			control.setSuspended( true );
+			
+		}else{
+			
+			control.setSuspended( false );
+			
+			if ( nat_puncher != null ){
+				
+				nat_puncher.setSuspended( false );
+			}
+		}
+	}
+	
 	protected int
 	getProp(
 		String		name,

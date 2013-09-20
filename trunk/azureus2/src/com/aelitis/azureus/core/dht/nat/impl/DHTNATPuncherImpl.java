@@ -425,6 +425,13 @@ DHTNATPuncherImpl
 		publish( false );
 	}
 	
+	public void
+	setSuspended(
+		boolean	susp )
+	{
+		System.out.println( "TODO: Suspend nat puncher" );
+	}
+	
 	public boolean
 	active()
 	{

@@ -163,6 +163,10 @@ DHTDB
 		boolean	asleep );
 	
 	public void
+	setSuspended(
+		boolean			susp );
+	
+	public void
 	print(
 		boolean		full );
 }

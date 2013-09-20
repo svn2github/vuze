@@ -41,7 +41,6 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
-
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTOperationAdapter;
@@ -155,6 +154,7 @@ DHTDBImpl
 		};
 	
 	private boolean	sleeping;
+	private boolean	suspended;
 		
 	public
 	DHTDBImpl(
@@ -452,7 +452,7 @@ DHTDBImpl
 		try{
 			this_mon.enter();
 						
-			if ( sleeping ){
+			if ( sleeping || suspended ){
 				
 				return( DHT.DT_NONE );
 			}
@@ -833,6 +833,13 @@ DHTDBImpl
 	protected int
 	republishOriginalMappings()
 	{
+		if ( suspended ){
+			
+			logger.log( "Original republish skipped as suspended" );
+
+			return( 0 );
+		}
+		
 		int	values_published	= 0;
 
 		Map<HashWrapper,List<DHTDBValueImpl>>	republish = new HashMap<HashWrapper,List<DHTDBValueImpl>>();
@@ -910,7 +917,14 @@ DHTDBImpl
 	
 	protected int[]
 	republishCachedMappings()
-	{		
+	{	
+		if ( suspended ){
+			
+			logger.log( "Cache republish skipped as suspended" );
+			
+			return( new int[]{ 0, 0, 0 } );
+		}
+		
 			// first refresh any leaves that have not performed at least one lookup in the
 			// last period
 		
@@ -2887,6 +2901,46 @@ DHTDBImpl
 		}
 	}
 	
+	private void
+	sleep()
+	{
+		Iterator<Map.Entry<HashWrapper,DHTDBMapping>>	it = stored_values.entrySet().iterator();
+		
+		while( it.hasNext()){
+			
+			Map.Entry<HashWrapper,DHTDBMapping>	entry = it.next();
+			
+			HashWrapper			key		= entry.getKey();
+			
+			DHTDBMapping		mapping	= entry.getValue();
+								
+			Iterator<DHTDBValueImpl>	it2 = mapping.getValues();
+			
+			boolean	all_remote = it2.hasNext();
+								
+			while( it2.hasNext()){
+				
+				DHTDBValueImpl	value = it2.next();
+			
+				if ( value.isLocal()){
+					
+					all_remote = false;
+					
+					break;
+				}
+			}
+			
+			if ( all_remote ){
+				
+				it.remove();
+				
+				removeFromPrefixMap( mapping );
+					
+				mapping.destroy();
+			}
+		}		
+	}
+	
 	public void
 	setSleeping(
 		boolean	asleep )
@@ -2898,45 +2952,64 @@ DHTDBImpl
 			
 			if ( asleep ){
 				
-				Iterator<Map.Entry<HashWrapper,DHTDBMapping>>	it = stored_values.entrySet().iterator();
-				
-				while( it.hasNext()){
-					
-					Map.Entry<HashWrapper,DHTDBMapping>	entry = it.next();
-					
-					HashWrapper			key		= entry.getKey();
-					
-					DHTDBMapping		mapping	= entry.getValue();
-										
-					Iterator<DHTDBValueImpl>	it2 = mapping.getValues();
-					
-					boolean	all_remote = it2.hasNext();
-										
-					while( it2.hasNext()){
-						
-						DHTDBValueImpl	value = it2.next();
-					
-						if ( value.isLocal()){
-							
-							all_remote = false;
-							
-							break;
-						}
-					}
-					
-					if ( all_remote ){
-						
-						it.remove();
-						
-						removeFromPrefixMap( mapping );
-							
-						mapping.destroy();
-					}
-				}		
+				sleep();
 			}
 		}finally{
 			
 			this_mon.exit();
+		}
+	}
+	
+	public void
+	setSuspended(
+		boolean			susp )
+	{
+		boolean	waking_up;
+		
+		try{
+			this_mon.enter();
+			
+			waking_up = suspended && !susp;
+				
+			suspended = susp;
+			
+			if ( susp ){
+				
+				sleep();
+			}
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		if ( waking_up ){
+			
+			new AEThread2( "DHTB:resume" )
+			{
+				public void
+				run()
+				{
+					try{
+							// give things a chance to get running again
+						
+						Thread.sleep(15*1000 );
+						
+					}catch( Throwable e ){
+					}
+					
+					logger.log( "Force republish of original mappings due to resume from suspend" );
+					
+					long start 	= SystemTime.getMonotonousTime();
+					
+					int stats = republishOriginalMappings();
+					
+					long end 	= SystemTime.getMonotonousTime();
+		
+					logger.log( "Force republish of original mappings due to resume from suspend completed in " + (end-start) + ": " +
+								"values = " + stats );
+				}
+			}.start();
 		}
 	}
 	

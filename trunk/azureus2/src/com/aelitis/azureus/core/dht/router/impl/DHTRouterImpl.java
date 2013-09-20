@@ -315,6 +315,13 @@ DHTRouterImpl
 	}
 	
 	public void
+	setSuspended(
+		boolean			susp )
+	{
+		System.out.println( "TODO: DHTRouter sleep" );
+	}
+	
+	public void
 	contactKnown(
 		byte[]						node_id,
 		DHTRouterContactAttachment	attachment,

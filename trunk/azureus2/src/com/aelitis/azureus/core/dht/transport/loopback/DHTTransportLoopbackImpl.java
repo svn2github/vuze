@@ -221,6 +221,12 @@ DHTTransportLoopbackImpl
 	{
 	}
 	
+	public void
+	setSuspended(
+		boolean			susp )
+	{
+	}
+	
 	public long 
 	getTimeout() 
 	{

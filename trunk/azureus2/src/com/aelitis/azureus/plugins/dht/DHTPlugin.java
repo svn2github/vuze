@@ -317,16 +317,34 @@ DHTPlugin
 									return;
 								}
 								
+								String	c = command.getValue().trim();
+								String	lc = c.toLowerCase();
+
+								if ( lc.equals( "suspend" )){
+								
+									if ( !setSuspended( true )){
+										
+										Debug.out( "Suspend failed" );
+									}
+								
+									return;
+									
+								}else if ( lc.equals( "resume" )){
+								
+									if ( !setSuspended( false )){
+										
+										Debug.out( "Resume failed" );
+									}
+									
+									return;
+								}
+								
 								for (int i=0;i<dhts.length;i++){
 
 									DHT	dht = dhts[i].getDHT();
 									
 									DHTTransportUDP	transport = (DHTTransportUDP)dht.getTransport();
-									
-									String	c = command.getValue().trim();
-									
-									String	lc = c.toLowerCase();
-									
+																											
 									if ( lc.equals("print")){
 										
 										dht.print( true );
@@ -1045,6 +1063,28 @@ DHTPlugin
 	isInitialising()
 	{
 		return( !init_sem.isReleasedForever());
+	}
+		
+	public boolean
+	setSuspended(
+		final boolean	susp )
+	{
+		if ( !init_sem.isReleasedForever()){
+			
+			return( false );
+			
+		}else{
+				
+			synchronized( this ){
+			
+				for ( DHTPluginImpl dht: dhts ){
+				
+					dht.setSuspended( susp );
+				}
+			}
+		}
+		
+		return( true );
 	}
 	
 	public boolean

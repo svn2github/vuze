@@ -151,6 +151,10 @@ DHTRouter
 		boolean	sleeping );
 	
 	public void
+	setSuspended(
+		boolean			susp );
+	
+	public void
 	destroy();
 	
 	public void

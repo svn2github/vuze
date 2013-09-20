@@ -55,6 +55,10 @@ DHTTransport
 		byte		flag,
 		boolean		value );
 	
+	public void
+	setSuspended(
+		boolean			susp );
+	
 		/**
 		 * Gives access to the node ID for this transport 
 		 * @return

@@ -57,6 +57,10 @@ DHTControl
 	isSeeded();
 	
 	public void
+	setSuspended(
+		boolean		susp );
+	
+	public void
 	put(
 		byte[]					key,
 		String					description,

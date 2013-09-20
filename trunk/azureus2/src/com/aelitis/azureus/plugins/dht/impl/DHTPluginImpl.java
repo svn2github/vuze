@@ -1235,6 +1235,13 @@ outer:
 	}
 	
 	public void
+	setSuspended(
+		boolean	susp )
+	{
+		dht.setSuspended( susp );
+	}
+	
+	public void
 	closedownInitiated()
 	{
 		storage_manager.exportContacts( dht );

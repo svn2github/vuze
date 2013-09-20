@@ -403,6 +403,13 @@ DHTTransportUDPImpl
 		return( packet_handler );
 	}
 	
+	public void
+	setSuspended(
+		boolean			susp )
+	{
+		System.out.println( "TODO: DHTTransport sleep" );
+	}
+	
 	protected void
 	updateStats(
 		int	tick_count )

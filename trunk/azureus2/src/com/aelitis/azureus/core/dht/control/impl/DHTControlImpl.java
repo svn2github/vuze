@@ -181,6 +181,7 @@ DHTControlImpl
 	private byte[]			rbs_id	= {};
 	
 	private boolean			sleeping;
+	private boolean			suspended;
 	
 	public
 	DHTControlImpl(
@@ -377,6 +378,11 @@ DHTControlImpl
 		
 		router.setSleeping( sleeping );
 		
+		if ( suspended ){
+			
+			router.setSuspended( true );
+		}
+		
 		router.setAdapter( 
 			new DHTRouterAdapter()
 			{
@@ -475,6 +481,40 @@ DHTControlImpl
 		}
 		
 		database.setSleeping( asleep );
+	}
+	
+	public void
+	setSuspended(
+		boolean			susp )
+	{
+		suspended	= susp;
+		
+		if ( susp ){
+			
+			transport.setSuspended( true );
+			
+			DHTRouter current_router = router;
+			
+			if ( current_router != null ){
+				
+				current_router.setSuspended( true );
+			}
+			
+			database.setSuspended( true );
+			
+		}else{
+			
+			database.setSuspended( false );
+			
+			DHTRouter current_router = router;
+			
+			if ( current_router != null ){
+				
+				current_router.setSuspended( false );
+			}
+			
+			transport.setSuspended( false );
+		}
 	}
 	
 	public DHTControlStats
