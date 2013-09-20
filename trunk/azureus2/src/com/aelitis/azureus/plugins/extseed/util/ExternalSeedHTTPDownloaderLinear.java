@@ -484,7 +484,10 @@ ExternalSeedHTTPDownloaderLinear
 									byte[]	buffer 		= listener.getBuffer();
 									int		buffer_len	= listener.getBufferLength();
 									
-									raf.read( buffer, 0, buffer_len );
+									if ( raf.read( buffer, 0, buffer_len ) != buffer_len ){
+										
+										throw( new IOException( "Error reading scratch file" ));
+									}
 									
 									total += buffer_len;
 									
