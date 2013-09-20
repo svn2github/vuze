@@ -88,7 +88,10 @@ TranscodePipeFileSource
 					
 					byte[]	buffer = new byte[1];
 					
-					is.read( buffer );
+					if ( is.read( buffer ) <= 0 ){
+						
+						throw( new IOException( "unexpected end of stream" ));
+					}
 					
 					line += new String( buffer );
 				}
