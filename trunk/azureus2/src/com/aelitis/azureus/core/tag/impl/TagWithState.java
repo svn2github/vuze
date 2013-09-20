@@ -102,8 +102,18 @@ TagWithState
 			while( it.hasNext()){
 				
 				try{
-					l.add( it.next().getTaggableID().getBytes( "UTF-8" ));
+					Taggable taggable = it.next();
 					
+					String id = taggable.getTaggableID();
+					
+					if ( id != null ){
+					
+						l.add( id.getBytes( "UTF-8" ));
+						
+					}else{
+						
+						Debug.out( "No taggable ID for " + taggable );
+					}
 				}catch( Throwable e ){
 					
 					Debug.out( e );
