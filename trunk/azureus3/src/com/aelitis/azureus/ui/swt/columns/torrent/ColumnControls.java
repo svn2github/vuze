@@ -156,8 +156,9 @@ public class ColumnControls
 //				}
 //				gcImage.setFont(fontText);
 				int[] fg = cell.getForeground();
-				gcImage.setForeground(ColorCache.getColor(display, fg[0], fg[1], fg[2]));
-
+				if ( fg != null ){
+					gcImage.setForeground(ColorCache.getColor(display, fg[0], fg[1], fg[2]));
+				}
 				Rectangle bounds = image.getBounds();
 				GCStringPrinter.printString(gcImage, "" + position + (dm.getAssumedComplete() ? "^" : "v"), bounds, true,
 						false, SWT.BOTTOM | SWT.CENTER);
