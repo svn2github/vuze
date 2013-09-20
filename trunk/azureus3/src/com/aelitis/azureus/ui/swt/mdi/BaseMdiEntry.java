@@ -304,11 +304,11 @@ public abstract class BaseMdiEntry
 	}
 
 	public void triggerChildCloseListeners(MdiEntry child, boolean user) {
-		if (listChildCloseListeners == null) {
-			return;
-		}
 		Object[] list;
 		synchronized (this) {
+			if (listChildCloseListeners == null) {
+				return;
+			}
 			list = listChildCloseListeners.toArray();
 		}
 		for (int i = 0; i < list.length; i++) {
