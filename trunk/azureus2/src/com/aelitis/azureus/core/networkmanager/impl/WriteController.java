@@ -216,7 +216,7 @@ public class WriteController implements AzureusCoreStatsProvider{
 				  
 			      RateControlledEntity entity = (RateControlledEntity)ref.get( j );
 			      
-			      connections 		+= entity.getConnectionCount();
+			      connections 		+= entity.getConnectionCount( write_waiter );
 			      
 			      ready_connections += entity.getReadyConnectionCount( write_waiter );
 			      
@@ -246,7 +246,7 @@ public class WriteController implements AzureusCoreStatsProvider{
           check_high_first = false;
           if( !doHighPriorityWrite() ) {
             if( !doNormalPriorityWrite() ) {
-              if ( write_waiter.waitForEvent( IDLE_SLEEP_TIME )){
+              if ( write_waiter.waitForEvent( hasConnections()?IDLE_SLEEP_TIME:1000 )){
             	  wait_count++;
               }
             }
@@ -256,7 +256,7 @@ public class WriteController implements AzureusCoreStatsProvider{
           check_high_first = true;
           if( !doNormalPriorityWrite() ) {
             if( !doHighPriorityWrite() ) {
-            	if ( write_waiter.waitForEvent( IDLE_SLEEP_TIME )){
+            	if ( write_waiter.waitForEvent( hasConnections()?IDLE_SLEEP_TIME:1000 )){
             		wait_count++;
             	}
             }
@@ -344,6 +344,46 @@ public class WriteController implements AzureusCoreStatsProvider{
     }
   }
   
+  private boolean
+  hasConnections()
+  {
+	  if ( entity_count == 0 ){
+		  
+		  return( false );
+	  }
+	  
+	  List<RateControlledEntity> ref = high_priority_entities;
+	  
+	  for ( RateControlledEntity e: ref ){
+		  
+		  if ( e.getConnectionCount( write_waiter ) > 0 ){
+			  
+			  return( true );
+		  }
+	  }
+	  
+	  ref = boosted_priority_entities;
+	  
+	  for ( RateControlledEntity e: ref ){
+		  
+		  if ( e.getConnectionCount( write_waiter ) > 0 ){
+			  
+			  return( true );
+		  }
+	  }
+	  
+	  ref = normal_priority_entities;
+	  
+	  for ( RateControlledEntity e: ref ){
+		  
+		  if ( e.getConnectionCount( write_waiter ) > 0 ){
+			  
+			  return( true );
+		  }
+	  }
+	  
+	  return( false );
+  }
   
   private boolean 
   doNormalPriorityWrite() 
@@ -626,6 +666,8 @@ public class WriteController implements AzureusCoreStatsProvider{
       entity_count = normal_priority_entities.size() + boosted_priority_entities.size() + high_priority_entities.size();
     }
     finally {  entities_mon.exit();  }
+    
+    write_waiter.eventOccurred();
   }
   
   

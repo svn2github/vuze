@@ -55,6 +55,8 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 
 	private long			last_idle_check;
 	
+	private volatile EventWaiter		waiter;
+	
 	/**
 	 * Create new downloader using the given "global" rate handler to limit all peers managed by this downloader.
 	 * @param main_handler
@@ -77,10 +79,18 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 	 * @param connection to add
 	 */
 	public void addPeerConnection( NetworkConnectionBase connection ) {
+		EventWaiter waiter_to_kick = null;
 		try{
 			connections_mon.enter();
 				//copy-on-write
-			ArrayList conn_new = new ArrayList( connections_cow.size() + 1 );
+			int cow_size = connections_cow.size();
+			if ( cow_size == 0 ){
+				waiter_to_kick = waiter;
+				if ( waiter_to_kick != null ){
+					waiter = null;
+				}
+			}
+			ArrayList conn_new = new ArrayList( cow_size + 1 );
 			conn_new.addAll( connections_cow );
 			conn_new.add( connection );
 			connections_cow = conn_new;
@@ -93,6 +103,11 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 			pending_actions.add( new Object[]{ ADD_ACTION, connection });
 		}finally{ 
 			connections_mon.exit();  
+		}
+		
+		if ( waiter_to_kick != null ){
+			
+			waiter_to_kick.eventOccurred();
 		}
 	}
 
@@ -142,9 +157,16 @@ public class MultiPeerDownloader2 implements RateControlledEntity {
 	}
 
 	public int
-	getConnectionCount()
+	getConnectionCount( EventWaiter _waiter )
 	{
-		return(connections_cow.size());
+		int result = connections_cow.size();
+		
+		if ( result == 0 ){
+			
+			waiter = _waiter;
+		}
+		
+		return( result );
 	}
 
 	public int

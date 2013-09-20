@@ -52,6 +52,7 @@ public class MultiPeerUploader implements RateControlledEntity {
   private final LinkedList ready_connections = new LinkedList();
   private final AEMonitor lists_lock = new AEMonitor( "PacketFillingMultiPeerUploader:lists_lock" );
   
+  private volatile EventWaiter	waiter;
 
   /**
    * Create a new packet-filling multi-peer upload entity,
@@ -152,6 +153,15 @@ public class MultiPeerUploader implements RateControlledEntity {
     }
     else {   //has data to send, but not enough for a full packet
       addToWaitingList( peer_connection );
+    }
+    
+    EventWaiter waiter_to_kick = waiter;
+    
+    if ( waiter_to_kick != null ){
+    	
+    	waiter = null;
+    	
+    	waiter_to_kick.eventOccurred();
     }
   }
   
@@ -453,9 +463,16 @@ public class MultiPeerUploader implements RateControlledEntity {
   }
   
   public int
-  getConnectionCount()
+  getConnectionCount( EventWaiter _waiter )
   {
-	  return( waiting_connections.size() + ready_connections.size());
+	  int	res = waiting_connections.size() + ready_connections.size();
+	  
+	  if ( res == 0 ){
+		  
+		  waiter	= _waiter;
+	  }
+	  
+	  return( res );
   }
   
   public int

@@ -132,7 +132,7 @@ public class SinglePeerDownloader implements RateControlledEntity {
   }
   
   public int
-  getConnectionCount()
+  getConnectionCount( EventWaiter waiter )
   {
 	  return( 1 );
   }

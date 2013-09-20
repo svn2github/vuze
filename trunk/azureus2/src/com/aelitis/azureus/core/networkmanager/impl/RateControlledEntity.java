@@ -68,8 +68,20 @@ public interface RateControlledEntity {
   public long
   getBytesReadyToWrite();
   
+  /**
+   * If there are no connections then the waiter will be kicked when a connection arrives
+   * @param waiter
+   * @return
+   */
+  
   public int
-  getConnectionCount();
+  getConnectionCount( EventWaiter waiter );
+  
+  /**
+   * The waiter is kicked if the ready condition changes
+   * @param waiter
+   * @return
+   */
   
   public int
   getReadyConnectionCount( EventWaiter waiter );

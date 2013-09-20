@@ -149,7 +149,7 @@ public class SinglePeerUploader implements RateControlledEntity {
   }
   
   public int
-  getConnectionCount()
+  getConnectionCount( EventWaiter waiter )
   {
 	  return( 1 );
   }
