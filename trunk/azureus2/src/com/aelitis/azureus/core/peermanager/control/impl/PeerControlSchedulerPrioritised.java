@@ -64,7 +64,10 @@ PeerControlSchedulerPrioritised
 				{
 					synchronized( PeerControlSchedulerPrioritised.this ){
 						latest_time	= time;
-						PeerControlSchedulerPrioritised.this.notify();
+						if ( instance_map.size() > 0 || pending_registrations.size() > 0 ){
+						
+							PeerControlSchedulerPrioritised.this.notify();
+						}
 					}
 				}
 			});
@@ -78,6 +81,7 @@ PeerControlSchedulerPrioritised
 		long 	last_stats_time	= latest_time;
 		
 		while( true ){
+
 			if ( registrations_changed ){
 				try{
 					this_mon.enter();
@@ -159,7 +163,7 @@ PeerControlSchedulerPrioritised
 					wait_count++;
 					try{
 						long wait_start = SystemTime.getHighPrecisionCounter();
-						wait();
+						wait( 5000 );
 						long wait_time 	= SystemTime.getHighPrecisionCounter() - wait_start;
 						total_wait_time += wait_time;
 					}catch( Throwable e ){
