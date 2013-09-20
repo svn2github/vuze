@@ -36,7 +36,7 @@ public class TableCellPainted
 
 	private Color colorFG;
 
-	private Color colorBG;
+	// private Color colorBG;
 
 	public TableCellPainted(TableRowSWT row, TableColumnCore column, int pos) {
 		super(row, column);
@@ -353,7 +353,7 @@ public class TableCellPainted
 	}
 
 	public Color getBackgroundSWT() {
-		return colorBG;
+		return null;
 	}
 
 	public void setBoundsRaw(Rectangle bounds) {
