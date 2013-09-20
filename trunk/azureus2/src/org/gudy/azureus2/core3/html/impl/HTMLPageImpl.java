@@ -104,7 +104,7 @@ HTMLPageImpl
 	getMetaRefreshURL(
 		URL		base_url )
 	{
-	       // "<META HTTP-EQUIV=\"refresh\" content=\"5; URL=xxxxxxx>";
+	       // <META HTTP-EQUIV="refresh" content="5; URL=xxxxxxx">;
 	       
 		String[]	tags = getTags( "META" );
 		
@@ -123,14 +123,11 @@ HTMLPageImpl
 				url_start += 4;
 				
 				int	e1 = lc_tag.indexOf( "\"", url_start );
-				int e2 = lc_tag.indexOf( ">", url_start );
 				
 				if ( e1 != -1 ){
-					
-					e2 = e1;
-				
+									
 					try{
-						String mr_url = tag.substring(url_start, e2).trim();
+						String mr_url = tag.substring(url_start, e1).trim();
 						
 						String lc = mr_url.toLowerCase();
 						
