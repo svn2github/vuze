@@ -109,21 +109,13 @@ DHTUDPPacketHandlerFactory
 	{
 		PRUDPPacketHandler	packet_handler = handler.getPacketHandler();
 		
-		try{
-			packet_handler.setRequestHandler(null);
-			
-		}catch( Throwable e ){
-			
-			Debug.printStackTrace(e);
-		}
-		
 		int	port 	= packet_handler.getPort();
 		int	network = handler.getNetwork();
 		
 		try{
 			this_mon.enter();
 			
-			Object[]	port_details = (Object[])port_map.remove( new Integer( port ));
+			Object[]	port_details = (Object[])port_map.get( new Integer( port ));
 
 			if ( port_details == null ){
 			
@@ -134,6 +126,18 @@ DHTUDPPacketHandlerFactory
 		
 			network_map.remove( new Integer( network ));
 
+			if ( network_map.size() == 0 ){
+				
+				port_map.remove( new Integer( port ));
+				
+				try{
+					packet_handler.setRequestHandler(null);
+					
+				}catch( Throwable e ){
+					
+					Debug.printStackTrace(e);
+				}
+			}
 		}finally{
 			
 			this_mon.exit();

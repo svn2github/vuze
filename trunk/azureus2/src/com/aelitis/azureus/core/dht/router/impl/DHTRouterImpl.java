@@ -87,8 +87,8 @@ DHTRouterImpl
 	private static long				random_seed	= SystemTime.getCurrentTime();
 	private Random					random;
 	
-	private List					outstanding_pings	= new ArrayList();
-	private List					outstanding_adds	= new ArrayList();
+	private List<DHTRouterContactImpl>					outstanding_pings	= new ArrayList<DHTRouterContactImpl>();
+	private List<DHTRouterContactImpl>					outstanding_adds	= new ArrayList<DHTRouterContactImpl>();
 	
 	private DHTRouterStatsImpl		stats	= new DHTRouterStatsImpl( this );
 	
@@ -96,9 +96,10 @@ DHTRouterImpl
 
 	private static AEMonitor	class_mon	= new AEMonitor( "DHTRouter:class" );
 	
-	private final CopyOnWriteList	observers = new CopyOnWriteList();
+	private final CopyOnWriteList<DHTRouterObserver>	observers = new CopyOnWriteList<DHTRouterObserver>();
 
 	private boolean	sleeping;
+	private boolean	suspended;
 	
 	private BloomFilter recent_contact_bloom = 
 		BloomFilterFactory.createRotating(
@@ -171,6 +172,11 @@ DHTRouterImpl
 				perform(
 					TimerEvent event ) 
 				{
+					if ( suspended ){
+						
+						return;
+					}
+					
 					pingeroonies();
 					
 					if ( seed_in_ticks > 0 ){
@@ -187,8 +193,8 @@ DHTRouterImpl
 	}
 	
 	protected void notifyAdded(DHTRouterContact contact) {
-		for (Iterator i = observers.iterator(); i.hasNext(); ) {
-			DHTRouterObserver rto = (DHTRouterObserver) i.next();
+		for (Iterator<DHTRouterObserver> i = observers.iterator(); i.hasNext(); ) {
+			DHTRouterObserver rto = i.next();
 			try{
 				rto.added(contact);
 			}catch( Throwable e ){
@@ -198,8 +204,8 @@ DHTRouterImpl
 	}
 	
 	protected void notifyRemoved(DHTRouterContact contact) {
-		for (Iterator i = observers.iterator(); i.hasNext(); ) {
-			DHTRouterObserver rto = (DHTRouterObserver) i.next();
+		for (Iterator<DHTRouterObserver> i = observers.iterator(); i.hasNext(); ) {
+			DHTRouterObserver rto = i.next();
 			try{
 				rto.removed(contact);
 			}catch( Throwable e ){
@@ -209,8 +215,8 @@ DHTRouterImpl
 	}
 	
 	protected void notifyLocationChanged(DHTRouterContact contact) {
-		for (Iterator i = observers.iterator(); i.hasNext(); ) {
-			DHTRouterObserver rto = (DHTRouterObserver) i.next();
+		for (Iterator<DHTRouterObserver> i = observers.iterator(); i.hasNext(); ) {
+			DHTRouterObserver rto = i.next();
 			try{
 				rto.locationChanged(contact);
 			}catch( Throwable e ){
@@ -220,8 +226,8 @@ DHTRouterImpl
 	}
 	
 	protected void notifyNowAlive(DHTRouterContact contact) {
-		for (Iterator i = observers.iterator(); i.hasNext(); ) {
-			DHTRouterObserver rto = (DHTRouterObserver) i.next();
+		for (Iterator<DHTRouterObserver> i = observers.iterator(); i.hasNext(); ) {
+			DHTRouterObserver rto = i.next();
 			try{
 				rto.nowAlive(contact);
 			}catch( Throwable e ){
@@ -231,8 +237,8 @@ DHTRouterImpl
 	}
 	
 	protected void notifyNowFailing(DHTRouterContact contact) {
-		for (Iterator i = observers.iterator(); i.hasNext(); ) {
-			DHTRouterObserver rto = (DHTRouterObserver) i.next();
+		for (Iterator<DHTRouterObserver> i = observers.iterator(); i.hasNext(); ) {
+			DHTRouterObserver rto = i.next();
 			try{
 				rto.nowFailing(contact);
 			}catch( Throwable e ){
@@ -242,8 +248,8 @@ DHTRouterImpl
 	}
 	
 	protected void notifyDead() {
-		for (Iterator i = observers.iterator(); i.hasNext(); ) {
-			DHTRouterObserver rto = (DHTRouterObserver) i.next();
+		for (Iterator<DHTRouterObserver> i = observers.iterator(); i.hasNext(); ) {
+			DHTRouterObserver rto = i.next();
 			try{
 				rto.destroyed(this);
 			}catch( Throwable e ){
@@ -316,9 +322,14 @@ DHTRouterImpl
 	
 	public void
 	setSuspended(
-		boolean			susp )
+		boolean			_suspended )
 	{
-		System.out.println( "TODO: DHTRouter sleep" );
+		suspended = _suspended;
+		
+		if ( !suspended ){
+			
+			seed_in_ticks = 1;
+		}
 	}
 	
 	public void
@@ -370,7 +381,12 @@ DHTRouterImpl
 	contactDead(
 		byte[]						node_id,
 		boolean						force )
-	{
+	{	
+		if ( suspended ){
+			
+			return( null );
+		}
+		
 		if ( Arrays.equals( router_node_id, node_id )){
 			
 				// we should never become dead ourselves as this screws up things like
@@ -1195,6 +1211,11 @@ DHTRouterImpl
 	requestPing(
 		DHTRouterContactImpl	contact )
 	{
+		if ( suspended ){
+			
+			return;
+		}
+		
 			// make sure we don't do the ping when synchronised
 		
 		DHTLog.log( "DHTRouter: requestPing:" + DHTLog.getString( contact.getID()));
@@ -1239,6 +1260,11 @@ DHTRouterImpl
 			this_mon.exit();
 		}
 		
+		if ( suspended ){
+			
+			return;
+		}
+
 		for (int i=0;i<pings.size();i++){
 			
 			adapter.requestPing((DHTRouterContactImpl)pings.get(i));
@@ -1321,6 +1347,11 @@ DHTRouterImpl
 	requestNodeAdd(
 		DHTRouterContactImpl	contact )
 	{
+		if ( suspended ){
+			
+			return;
+		}
+
 			// make sure we don't do the addition when synchronised
 		
 		DHTLog.log( "DHTRouter: requestNodeAdd:" + DHTLog.getString( contact.getID()));
@@ -1365,6 +1396,11 @@ DHTRouterImpl
 			this_mon.exit();
 		}
 		
+		if ( suspended ){
+			
+			return;
+		}
+
 		for (int i=0;i<adds.size();i++){
 			
 			adapter.requestAdd((DHTRouterContactImpl)adds.get(i));

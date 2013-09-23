@@ -72,6 +72,8 @@ DHTUDPPacketHandler
 	private BloomFilter					bloom2;
 	private long						last_bloom_rotation_time;
 	
+	private boolean 	destroyed;
+	
 	protected
 	DHTUDPPacketHandler( 
 		DHTUDPPacketHandlerFactory	_factory,
@@ -88,6 +90,12 @@ DHTUDPPacketHandler
 		bloom2	= BloomFilterFactory.createAddOnly( BLOOM_FILTER_SIZE );
 		
 		stats = new DHTUDPPacketHandlerStats( packet_handler );
+	}
+	
+	public boolean
+	isDestroyed()
+	{
+		return( destroyed );
 	}
 	
 	public void
@@ -153,6 +161,10 @@ DHTUDPPacketHandler
 	
 		throws DHTUDPPacketHandlerException
 	{
+		if ( destroyed ){
+			throw( new DHTUDPPacketHandlerException( "packet handler is destroyed" ));
+		}
+		
 			// send and receive pair
 		
 		destination_address	= AddressUtils.adjustDHTAddress( destination_address, true );
@@ -230,6 +242,10 @@ DHTUDPPacketHandler
 		throws DHTUDPPacketHandlerException
 
 	{
+		if ( destroyed ){
+			throw( new DHTUDPPacketHandlerException( "packet handler is destroyed" ));
+		}
+		
 		destination_address	= AddressUtils.adjustDHTAddress( destination_address, true );
 		
 		updateBloom( destination_address );
@@ -262,6 +278,10 @@ DHTUDPPacketHandler
 	
 		throws DHTUDPPacketHandlerException
 	{
+		if ( destroyed ){
+			throw( new DHTUDPPacketHandlerException( "packet handler is destroyed" ));
+		}
+		
 		destination_address	= AddressUtils.adjustDHTAddress( destination_address, true );
 
 			// send reply to a request
@@ -290,6 +310,10 @@ DHTUDPPacketHandler
 	receive(
 		DHTUDPPacketRequest	request )
 	{
+		if ( destroyed ){
+			return;
+		}
+		
 			// incoming request
 		
 		if ( test_network_alive ){
@@ -332,6 +356,8 @@ DHTUDPPacketHandler
 	destroy()
 	{
 		factory.destroy( this );
+		
+		destroyed = true;
 	}
 	
 	public DHTUDPPacketHandlerStats
@@ -349,6 +375,10 @@ DHTUDPPacketHandler
 	
 		throws DHTUDPPacketHandlerException
 	{
+		if ( destroyed ){
+			throw( new DHTUDPPacketHandlerException( "packet handler is destroyed" ));
+		}
+		
 		if ( request.getAction() != DHTUDPPacketHelper.ACT_REQUEST_FIND_NODE ){
 			
 			return;

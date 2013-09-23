@@ -360,7 +360,7 @@ DHTTransportUDPImpl
 		// if you change it :)
 	
 		try{
-			if ( packet_handler != null ){
+			if ( packet_handler != null && !packet_handler.isDestroyed()){
 				
 				packet_handler.destroy();
 			}
@@ -407,7 +407,24 @@ DHTTransportUDPImpl
 	setSuspended(
 		boolean			susp )
 	{
-		System.out.println( "TODO: DHTTransport sleep" );
+		if ( susp ){
+			
+			if ( packet_handler != null ){
+				
+				packet_handler.destroy();
+			}
+		}else{
+			if ( packet_handler == null || packet_handler.isDestroyed()){
+				
+				try{
+					createPacketHandler();
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
 	}
 	
 	protected void
