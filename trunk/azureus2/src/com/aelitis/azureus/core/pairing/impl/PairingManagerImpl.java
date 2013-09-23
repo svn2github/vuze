@@ -92,6 +92,7 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminHTTPProxy;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterface;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminNetworkInterfaceAddress;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminPropertyChangeListener;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminSocksProxy;
 import com.aelitis.azureus.core.pairing.*;
 import com.aelitis.azureus.core.security.CryptoManager;
@@ -476,6 +477,21 @@ PairingManagerImpl
 								public void
 								runSupport()
 								{
+									NetworkAdmin network_admin = NetworkAdmin.getSingleton();
+
+									network_admin.addPropertyChangeListener(
+										new NetworkAdminPropertyChangeListener() {
+											
+											public void 
+											propertyChanged(
+												String property ) 
+											{
+												if ( property == NetworkAdmin.PR_NETWORK_INTERFACES ){
+													
+													updateNeeded();
+												}											}
+										});
+									
 									enableUpdates();
 								}
 							});
