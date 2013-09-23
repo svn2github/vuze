@@ -46,7 +46,6 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.utils.*;
 
-
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTOperationAdapter;
@@ -149,7 +148,7 @@ DHTNATPuncherImpl
 			}
 		};
 	
-	private boolean	rendezvous_thread_running;
+	private boolean	rendezvous_running;
 	
 	private Map		explicit_rendezvous_map		= new HashMap();
 	
@@ -168,6 +167,7 @@ DHTNATPuncherImpl
 	
 	private CopyOnWriteList<DHTNATPuncherListener>		listeners = new CopyOnWriteList<DHTNATPuncherListener>();
 	
+	private boolean	suspended;
 	
 	public
 	DHTNATPuncherImpl(
@@ -222,6 +222,11 @@ DHTNATPuncherImpl
 			}	
 			
 			secondaries.add( res );
+			
+			if ( suspended ){
+				
+				res.setSuspended( true );
+			}
 		}
 		
 		if ( start_it ){
@@ -342,6 +347,11 @@ DHTNATPuncherImpl
 					perform(
 						UTTimerEvent		event )
 					{
+						if ( suspended ){
+							
+							return;
+						}
+						
 						long	now = SystemTime.getMonotonousTime();
 						
 						try{
@@ -429,7 +439,39 @@ DHTNATPuncherImpl
 	setSuspended(
 		boolean	susp )
 	{
-		System.out.println( "TODO: Suspend nat puncher" );
+		suspended = susp;
+		
+		synchronized( secondaries ){
+			
+			for ( DHTNATPuncherImpl x: secondaries ){
+				
+				x.setSuspended( susp );
+			}
+		}
+		
+		if ( !susp ){
+			
+			final DHTTransportContact current_contact = rendezvous_target;
+						
+			timer.addEvent(
+				SystemTime.getCurrentTime() + 20*1000,
+				new UTTimerEventPerformer() 
+				{	
+					public void 
+					perform(
+						UTTimerEvent event) 
+					{
+						if ( current_contact != null && current_contact == rendezvous_target ){
+							
+							rendezvousFailed( current_contact, false );
+							
+						}else{
+							
+							publish( false );
+						}
+					}
+				});
+		}
 	}
 	
 	public boolean
@@ -501,6 +543,11 @@ DHTNATPuncherImpl
 					{
 						try{
 							pub_mon.enter();
+							
+							if ( suspended ){
+								
+								return;
+							}
 							
 							if ( publish_in_progress ){
 								
@@ -730,18 +777,23 @@ DHTNATPuncherImpl
 		try{
 			pub_mon.enter();
 
-			if ( !rendezvous_thread_running ){
+			if ( !rendezvous_running ){
 				
-				rendezvous_thread_running	= true;
+				rendezvous_running	= true;
 				
-				plugin_interface.getUtilities().createThread(
-					"DHTNatPuncher:rendevzous",
-					new Runnable()
+				SimpleTimer.addPeriodicEvent(
+					"DHTNAT:cp",
+					RENDEZVOUS_CLIENT_PING_PERIOD,
+					new TimerEventPerformer() 
 					{
-						public void
-						run()
+						public void 
+						perform( 
+							TimerEvent ev ) 
 						{
-							runRendezvousSupport();
+							if ( !suspended ){
+							
+								runRendezvousSupport();
+							}
 						}
 					});
 			}
@@ -753,290 +805,277 @@ DHTNATPuncherImpl
 		
 	protected void
 	runRendezvousSupport()
-	{
-		
-		SimpleTimer.addPeriodicEvent(
-				"DHTNAT:cp",
-				RENDEZVOUS_CLIENT_PING_PERIOD,
-        new TimerEventPerformer() {
-          public void perform( TimerEvent ev ) {
-       
-          	try{
-      				DHTTransportContact		latest_local;
-      				DHTTransportContact		latest_target;
-      				
-      				try{
-      					pub_mon.enter();
-      					
-      					latest_local	= rendezvous_local_contact;
-      					latest_target	= rendezvous_target;
-      				}finally{
-      					
-      					pub_mon.exit();
-      				}
-      				
-      				if ( current_local != null || latest_local != null ){
-      				
-      						// one's not null, worthwhile further investigation
-      					
-      					if ( current_local != latest_local ){
-      				
-      							// local has changed, remove existing publish
-      						
-      						if ( current_local != null ){
-      							
-      							if ( !is_secondary ){
-      								
-	      							log( "Removing publish for " + current_local.getString() + " -> " + current_target.getString());
-	      							
-	      							dht.remove( 
-      									getPublishKey( current_local ),
-      									"DHTNatPuncher: removal of publish",
-      									new DHTOperationListener()
-      									{
-      										public void
-      										searching(
-      											DHTTransportContact	contact,
-      											int					level,
-      											int					active_searches )
-      										{}
-      										
-      										public void
-      										found(
-      											DHTTransportContact	contact,
-      											boolean				is_closest )
-      										{}
-      										
-      										public boolean
-      										diversified(
-      											String		desc )
-      										{
-      											return( true );
-      										}
-      										
-      										public void
-      										read(
-      											DHTTransportContact	contact,
-      											DHTTransportValue	value )
-      										{}
-      										
-      										public void
-      										wrote(
-      											DHTTransportContact	contact,
-      											DHTTransportValue	value )
-      										{}
-      										
-      										public void
-      										complete(
-      											boolean				timeout )
-      										{}
-      									});
-      							}
-      						}
-      						
-      						if ( latest_local != null ){
-      					      							
-      							rendevzous_fail_count	= RENDEZVOUS_PING_FAIL_LIMIT - 2; // only 2 attempts to start with
+	{	       
+		try{
+			DHTTransportContact		latest_local;
+			DHTTransportContact		latest_target;
+			
+			try{
+				pub_mon.enter();
+				
+				latest_local	= rendezvous_local_contact;
+				latest_target	= rendezvous_target;
+			}finally{
+				
+				pub_mon.exit();
+			}
+			
+			if ( current_local != null || latest_local != null ){
+			
+					// one's not null, worthwhile further investigation
+				
+				if ( current_local != latest_local ){
+			
+						// local has changed, remove existing publish
+					
+					if ( current_local != null ){
+						
+						if ( !is_secondary ){
+							
+  							log( "Removing publish for " + current_local.getString() + " -> " + current_target.getString());
+  							
+  							dht.remove( 
+								getPublishKey( current_local ),
+								"DHTNatPuncher: removal of publish",
+								new DHTOperationListener()
+								{
+									public void
+									searching(
+										DHTTransportContact	contact,
+										int					level,
+										int					active_searches )
+									{}
+									
+									public void
+									found(
+										DHTTransportContact	contact,
+										boolean				is_closest )
+									{}
+									
+									public boolean
+									diversified(
+										String		desc )
+									{
+										return( true );
+									}
+									
+									public void
+									read(
+										DHTTransportContact	contact,
+										DHTTransportValue	value )
+									{}
+									
+									public void
+									wrote(
+										DHTTransportContact	contact,
+										DHTTransportValue	value )
+									{}
+									
+									public void
+									complete(
+										boolean				timeout )
+									{}
+								});
+						}
+					}
+					
+					if ( latest_local != null ){
+				      							
+						rendevzous_fail_count	= RENDEZVOUS_PING_FAIL_LIMIT - 2; // only 2 attempts to start with
 
-      							if ( !is_secondary ){
-      								
-	     							log( "Adding publish for " + latest_local.getString() + " -> " + latest_target.getString());
-	
-	      							final byte[] publish_key = getPublishKey( latest_local );
-	      							
-	      							dht.put(
-	      									publish_key,
-	      									"NAT Traversal: rendezvous publish",
-	      									encodePublishValue( latest_target ),
-	      									DHT.FLAG_SINGLE_VALUE,
-	      									new DHTOperationListener()
-	      									{
-	      										private List<DHTTransportContact>	written_to = new ArrayList<DHTTransportContact>();
-	      										
-	      										public void
-	      										searching(
-	      											DHTTransportContact	contact,
-	      											int					level,
-	      											int					active_searches )
-	      										{}
-	      										
-	      										public void
-	      										found(
-	      											DHTTransportContact	contact,
-	      											boolean				is_closest )
-	      										{}
-	      										
-	      										public boolean
-	      										diversified(
-	      											String		desc )
-	      										{
-	      											return( true );
-	      										}
-	      										
-	      										public void
-	      										read(
-	      											DHTTransportContact	contact,
-	      											DHTTransportValue	value )
-	      										{}
-	      										
-	      										public void
-	      										wrote(
-	      											DHTTransportContact	contact,
-	      											DHTTransportValue	value )
-	      										{
-	      											synchronized( written_to ){
-	      											
-	      												written_to.add( contact );
-	      											}
-	      										}
-	      										
-	      										public void
-	      										complete(
-	      											boolean				timeout )
-	      										{
-	      											synchronized( written_to ){
-	      												last_publish_key	= publish_key;
-	      												last_write_set		= written_to;
-	      											}
-	      										}
-	      									});
-      							}
-      						}
-      					}else if ( current_target != latest_target ){
-      						
-      							// here current_local == latest_local and neither is null! 
-      						
-      							// target changed, update publish
-      						
-      						rendevzous_fail_count	= RENDEZVOUS_PING_FAIL_LIMIT - 2; // only 2 attempts to start with
+						if ( !is_secondary ){
+							
+ 							log( "Adding publish for " + latest_local.getString() + " -> " + latest_target.getString());
 
-      						if ( !is_secondary ){
-      							
-	     						log( "Updating publish for " + latest_local.getString() + " -> " + latest_target.getString());
-	
-	      						final byte[] publish_key = getPublishKey( latest_local );
-	      						
-	      						dht.put(
-      								publish_key,
-      								"DHTNatPuncher: update publish",
-      								encodePublishValue( latest_target ),
-      								DHT.FLAG_SINGLE_VALUE,
-      								new DHTOperationListener()
-      								{
- 										private List<DHTTransportContact>	written_to = new ArrayList<DHTTransportContact>();
-
-      									public void
-      									searching(
-      										DHTTransportContact	contact,
-      										int					level,
-      										int					active_searches )
-      									{}
-      									
-      									public void
-      									found(
-      										DHTTransportContact	contact,
-      										boolean				is_closest )
-      									{}
-      									
-      									public boolean
-      									diversified(
-      										String		desc )
-      									{
-      										return( true );
-      									}
-      									
-      									public void
-      									read(
-      										DHTTransportContact	contact,
-      										DHTTransportValue	value )
-      									{}
-      									
-      									public void
-      									wrote(
-      										DHTTransportContact	contact,
-      										DHTTransportValue	value )
-      									{
- 											synchronized( written_to ){
-      											
+  							final byte[] publish_key = getPublishKey( latest_local );
+  							
+  							dht.put(
+  									publish_key,
+  									"NAT Traversal: rendezvous publish",
+  									encodePublishValue( latest_target ),
+  									DHT.FLAG_SINGLE_VALUE,
+  									new DHTOperationListener()
+  									{
+  										private List<DHTTransportContact>	written_to = new ArrayList<DHTTransportContact>();
+  										
+  										public void
+  										searching(
+  											DHTTransportContact	contact,
+  											int					level,
+  											int					active_searches )
+  										{}
+  										
+  										public void
+  										found(
+  											DHTTransportContact	contact,
+  											boolean				is_closest )
+  										{}
+  										
+  										public boolean
+  										diversified(
+  											String		desc )
+  										{
+  											return( true );
+  										}
+  										
+  										public void
+  										read(
+  											DHTTransportContact	contact,
+  											DHTTransportValue	value )
+  										{}
+  										
+  										public void
+  										wrote(
+  											DHTTransportContact	contact,
+  											DHTTransportValue	value )
+  										{
+  											synchronized( written_to ){
+  											
   												written_to.add( contact );
   											}
-      									}
-      									
-      									public void
-      									complete(
-      										boolean				timeout )
-      									{
-      										synchronized( written_to ){
-      											last_publish_key	= publish_key;
-      											last_write_set		= written_to;
-      										}
-      									}
-      								});
-      						}
-      					}
-      				}
-      				
-      				current_local	= latest_local;
-      				current_target	= latest_target;
-      	
-      				if ( current_target != null ){
-      							
-      					long	now = SystemTime.getMonotonousTime();
-      					
-      					int	bind_result = sendBind( current_target );
-      					
-      					if ( bind_result == RESP_OK ){
-      												
-      						trace( "Rendezvous:" + current_target.getString() + " OK" );
-      												
-      						rendevzous_fail_count	= 0;
-      						
-      						rendezvous_last_ok_time = now;
-      						
-      						if ( last_ok_rendezvous != current_target ){
-      							
-      							last_ok_rendezvous = current_target;
-      							
-      							log( "Rendezvous " + latest_target.getString() + " operational" );
-      							
-      							for ( DHTNATPuncherListener l: listeners ){
-      								
-      								l.rendezvousChanged( current_target );
-      							}
-      						}
-      					}else{
-      						
-      						rendezvous_last_fail_time = now;
-      						
-      						if ( bind_result == RESP_NOT_OK ){
-      							
-      								// denied access
-      							
-      							rendevzous_fail_count = RENDEZVOUS_PING_FAIL_LIMIT;
-      							
-      						}else{
-      							
-      							rendevzous_fail_count++;
-      						}
-      						
-      						if ( rendevzous_fail_count == RENDEZVOUS_PING_FAIL_LIMIT ){
-      							
-      							rendezvousFailed( current_target, false );
-      						}			
-      					}					
-      				}
-      				
-      			}catch( Throwable e ){
-      				
-      				log(e);
-      				
-      			}
-          }
-        }
-     );
-		
-		
-	
+  										}
+  										
+  										public void
+  										complete(
+  											boolean				timeout )
+  										{
+  											synchronized( written_to ){
+  												last_publish_key	= publish_key;
+  												last_write_set		= written_to;
+  											}
+  										}
+  									});
+						}
+					}
+				}else if ( current_target != latest_target ){
+					
+						// here current_local == latest_local and neither is null! 
+					
+						// target changed, update publish
+					
+					rendevzous_fail_count	= RENDEZVOUS_PING_FAIL_LIMIT - 2; // only 2 attempts to start with
+
+					if ( !is_secondary ){
+						
+ 						log( "Updating publish for " + latest_local.getString() + " -> " + latest_target.getString());
+
+  						final byte[] publish_key = getPublishKey( latest_local );
+  						
+  						dht.put(
+							publish_key,
+							"DHTNatPuncher: update publish",
+							encodePublishValue( latest_target ),
+							DHT.FLAG_SINGLE_VALUE,
+							new DHTOperationListener()
+							{
+								private List<DHTTransportContact>	written_to = new ArrayList<DHTTransportContact>();
+
+								public void
+								searching(
+									DHTTransportContact	contact,
+									int					level,
+									int					active_searches )
+								{}
+								
+								public void
+								found(
+									DHTTransportContact	contact,
+									boolean				is_closest )
+								{}
+								
+								public boolean
+								diversified(
+									String		desc )
+								{
+									return( true );
+								}
+								
+								public void
+								read(
+									DHTTransportContact	contact,
+									DHTTransportValue	value )
+								{}
+								
+								public void
+								wrote(
+									DHTTransportContact	contact,
+									DHTTransportValue	value )
+								{
+									synchronized( written_to ){
+										
+										written_to.add( contact );
+									}
+								}
+								
+								public void
+								complete(
+									boolean				timeout )
+								{
+									synchronized( written_to ){
+										last_publish_key	= publish_key;
+										last_write_set		= written_to;
+									}
+								}
+							});
+					}
+				}
+			}
+			
+			current_local	= latest_local;
+			current_target	= latest_target;
+
+			if ( current_target != null ){
+						
+				long	now = SystemTime.getMonotonousTime();
+				
+				int	bind_result = sendBind( current_target );
+				
+				if ( bind_result == RESP_OK ){
+											
+					trace( "Rendezvous:" + current_target.getString() + " OK" );
+											
+					rendevzous_fail_count	= 0;
+					
+					rendezvous_last_ok_time = now;
+					
+					if ( last_ok_rendezvous != current_target ){
+						
+						last_ok_rendezvous = current_target;
+						
+						log( "Rendezvous " + latest_target.getString() + " operational" );
+						
+						for ( DHTNATPuncherListener l: listeners ){
+							
+							l.rendezvousChanged( current_target );
+						}
+					}
+				}else{
+					
+					rendezvous_last_fail_time = now;
+					
+					if ( bind_result == RESP_NOT_OK ){
+						
+							// denied access
+						
+						rendevzous_fail_count = RENDEZVOUS_PING_FAIL_LIMIT;
+						
+					}else{
+						
+						rendevzous_fail_count++;
+					}
+					
+					if ( rendevzous_fail_count == RENDEZVOUS_PING_FAIL_LIMIT ){
+						
+						rendezvousFailed( current_target, false );
+					}			
+				}					
+			}
+			
+		}catch( Throwable e ){
+			
+			log(e);
+			
+		}
 	}
 	
 	
