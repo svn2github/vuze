@@ -24,6 +24,7 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -80,6 +81,8 @@ import com.aelitis.azureus.ui.swt.views.skin.StandardButtonsArea;
 public class OpenTorrentOptionsWindow
 	implements UIUpdatable
 {
+	private static final Map<HashWrapper,OpenTorrentOptionsWindow>	active_windows = new HashMap<HashWrapper, OpenTorrentOptionsWindow>();
+	
 	private final static class FileStatsCacheItem
 	{
 		boolean exists;
@@ -1099,140 +1102,231 @@ public class OpenTorrentOptionsWindow
 	 * @since 4.6.0.5
 	 */
 	protected void swt_createWindow() {
-		dlg = new SkinnedDialog("skin3_dlg_opentorrent_options", "shell",
-				SWT.RESIZE | SWT.MAX | SWT.DIALOG_TRIM);
-
-		dlg.setTitle(MessageText.getString("OpenTorrentOptions.title") + " [" + torrentOptions.getTorrentName() + "]");
-		final SWTSkin skin = dlg.getSkin();
-		
-		SWTSkinObject so;
-		
-		if (COConfigurationManager.hasParameter(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS, true)) {
-  		so = skin.getSkinObject("showagain-area");
-  		if (so != null) {
-  			so.setVisible(false);
-  		}
+		TOTorrent torrent = torrentOptions.getTorrent();
+		final HashWrapper hash;
+		if ( torrent == null ){
+			Debug.out( "Hmm, no torren?" );
+			hash = null;
+		}else{
+			HashWrapper hw = null;
+			try{
+				hw = torrent.getHashWrapper();
+				
+				OpenTorrentOptionsWindow existing = active_windows.get( hw );
+					
+				if ( existing != null ){
+										
+					existing.activate();
+					
+					return;
+				}
+				active_windows.put( hw,  this );
+			}catch( Throwable e ){
+				Debug.out( e );
+			}
+			hash = hw;
 		}
 		
-		SWTSkinObject soButtonArea = skin.getSkinObject("button-area");
-		if (soButtonArea instanceof SWTSkinObjectContainer) {
-			buttonsArea = new StandardButtonsArea() {
-				protected void clicked(int intValue) {
-					String dataDir = cmbDataDir.getText();
-					if (intValue == SWT.OK) {
-						if (okPressed(dataDir)) {
-							if (dlg != null) {
-								dlg.close();
+		try{
+			dlg = new SkinnedDialog("skin3_dlg_opentorrent_options", "shell",
+					SWT.RESIZE | SWT.MAX | SWT.DIALOG_TRIM);
+	
+			dlg.setTitle(MessageText.getString("OpenTorrentOptions.title") + " [" + torrentOptions.getTorrentName() + "]");
+			final SWTSkin skin = dlg.getSkin();
+			
+			SWTSkinObject so;
+			
+			if (COConfigurationManager.hasParameter(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS, true)) {
+	  		so = skin.getSkinObject("showagain-area");
+	  		if (so != null) {
+	  			so.setVisible(false);
+	  		}
+			}
+			
+			SWTSkinObject soButtonArea = skin.getSkinObject("button-area");
+			if (soButtonArea instanceof SWTSkinObjectContainer) {
+				buttonsArea = new StandardButtonsArea() {
+					protected void clicked(int intValue) {
+						String dataDir = cmbDataDir.getText();
+						if (intValue == SWT.OK) {
+							if (okPressed(dataDir)) {
+								if (dlg != null) {
+									dlg.close();
+								}
 							}
+						} else if (dlg != null) {
+							dlg.close();
 						}
-					} else if (dlg != null) {
-						dlg.close();
+					}
+				};
+				buttonsArea.setButtonIDs(new String[] {
+					MessageText.getString("Button.ok"),
+					MessageText.getString("Button.cancel")
+				});
+				buttonsArea.setButtonVals(new Integer[] {
+					SWT.OK,
+					SWT.CANCEL
+				});
+				buttonsArea.swt_createButtons(((SWTSkinObjectContainer) soButtonArea).getComposite());
+			}
+	
+			so = skin.getSkinObject("filearea-table");
+			if (so instanceof SWTSkinObjectContainer) {
+				setupTVFiles((SWTSkinObjectContainer) so);
+			}
+	
+			so = skin.getSkinObject("filearea-buttons");
+			if (so instanceof SWTSkinObjectContainer) {
+				setupFileAreaButtons((SWTSkinObjectContainer) so);
+			}
+	
+			so = skin.getSkinObject("disk-space");
+			if (so instanceof SWTSkinObjectContainer) {
+				diskspaceComp = (Composite) so.getControl();
+				GridLayout gl = new GridLayout(2, false);
+				gl.marginHeight = gl.marginWidth = 0;
+				diskspaceComp.setLayout(gl);
+			}
+	
+			so = skin.getSkinObject("filearea-info");
+			if (so instanceof SWTSkinObjectText) {
+				setupFileAreaInfo((SWTSkinObjectText) so);
+			}
+	
+			so = skin.getSkinObject("start-options");
+			if (so instanceof SWTSkinObjectExpandItem) {
+				setupStartOptions((SWTSkinObjectExpandItem) so);
+			}
+	
+			so = skin.getSkinObject("peer-sources");
+			if (so instanceof SWTSkinObjectContainer) {
+				setupPeerSourcesOptions((SWTSkinObjectContainer) so);
+			}
+	
+			so = skin.getSkinObject("ipfilter");
+			if (so instanceof SWTSkinObjectContainer) {
+				setupIPFilterOption((SWTSkinObjectContainer) so);
+			}
+	
+			SWTSkinObject so1 = skin.getSkinObject("saveto-textarea");
+			SWTSkinObject so2 = skin.getSkinObject("saveto-browse");
+			if ((so1 instanceof SWTSkinObjectContainer)
+					&& (so2 instanceof SWTSkinObjectButton)) {
+				setupSaveLocation((SWTSkinObjectContainer) so1, (SWTSkinObjectButton) so2);
+			}
+	
+			so = skin.getSkinObject("expanditem-saveto");
+			if (so instanceof SWTSkinObjectExpandItem) {
+				soExpandItemSaveTo = (SWTSkinObjectExpandItem) so;
+			}
+	
+			so = skin.getSkinObject("expanditem-files");
+			if (so instanceof SWTSkinObjectExpandItem) {
+				soExpandItemFiles = (SWTSkinObjectExpandItem) so;
+			}
+	
+			so = skin.getSkinObject("expanditem-peer");
+			if (so instanceof SWTSkinObjectExpandItem) {
+				soExpandItemPeer = (SWTSkinObjectExpandItem) so;
+			}
+	
+			so = skin.getSkinObject("expanditem-torrentinfo");
+			if (so instanceof SWTSkinObjectExpandItem) {
+				soExpandItemTorrentInfo = (SWTSkinObjectExpandItem) so;
+				soExpandItemTorrentInfo.setText(MessageText.getString("OpenTorrentOptions.header.torrentinfo")
+						+ ": " + torrentOptions.getTorrentName());
+			}
+			
+			setupShowAgainOptions(skin);
+	
+			setupInfoFields(skin);
+	
+			updateStartOptionsHeader();
+			cmbDataDirChanged();
+			updateSize();
+	
+			UIUpdaterSWT.getInstance().addUpdater(this);
+			
+				/* 
+				 * The bring-to-front logic for torrent addition is controlled by other parts of the code so we don't
+				 * want the dlg to override this behaviour (main example here is torrents passed from, say, a browser,
+				 * and the user has disabled the 'show vuze on external torrent add' feature)
+				 */
+			
+			dlg.open("otow",false);
+	
+			int	num_active_windows = active_windows.size();
+			
+			if ( num_active_windows > 1 ){
+				
+				int	max_x = 0;
+				int max_y = 0;
+				
+				for ( OpenTorrentOptionsWindow window: active_windows.values()){
+					
+					if ( window == this ){
+						
+						continue;
+					}
+					
+					Rectangle rect = window.getBounds();
+					
+					max_x = Math.max( max_x, rect.x );
+					max_y = Math.max( max_y, rect.y );
+				}
+				
+				Shell shell = dlg.getShell();
+				
+				Rectangle rect = shell.getBounds();
+				
+				rect.x = max_x + 16;
+				rect.y = max_y + 16;
+				
+				dlg.getShell().setBounds( rect );
+			}
+			
+			dlg.addCloseListener(new SkinnedDialogClosedListener() {
+				public void skinDialogClosed(SkinnedDialog dialog) {
+					try{
+						dispose();
+						
+					}finally{
+						
+						if ( hash != null ){
+							
+							active_windows.remove( hash );
+						}
 					}
 				}
-			};
-			buttonsArea.setButtonIDs(new String[] {
-				MessageText.getString("Button.ok"),
-				MessageText.getString("Button.cancel")
 			});
-			buttonsArea.setButtonVals(new Integer[] {
-				SWT.OK,
-				SWT.CANCEL
-			});
-			buttonsArea.swt_createButtons(((SWTSkinObjectContainer) soButtonArea).getComposite());
-		}
-
-		so = skin.getSkinObject("filearea-table");
-		if (so instanceof SWTSkinObjectContainer) {
-			setupTVFiles((SWTSkinObjectContainer) so);
-		}
-
-		so = skin.getSkinObject("filearea-buttons");
-		if (so instanceof SWTSkinObjectContainer) {
-			setupFileAreaButtons((SWTSkinObjectContainer) so);
-		}
-
-		so = skin.getSkinObject("disk-space");
-		if (so instanceof SWTSkinObjectContainer) {
-			diskspaceComp = (Composite) so.getControl();
-			GridLayout gl = new GridLayout(2, false);
-			gl.marginHeight = gl.marginWidth = 0;
-			diskspaceComp.setLayout(gl);
-		}
-
-		so = skin.getSkinObject("filearea-info");
-		if (so instanceof SWTSkinObjectText) {
-			setupFileAreaInfo((SWTSkinObjectText) so);
-		}
-
-		so = skin.getSkinObject("start-options");
-		if (so instanceof SWTSkinObjectExpandItem) {
-			setupStartOptions((SWTSkinObjectExpandItem) so);
-		}
-
-		so = skin.getSkinObject("peer-sources");
-		if (so instanceof SWTSkinObjectContainer) {
-			setupPeerSourcesOptions((SWTSkinObjectContainer) so);
-		}
-
-		so = skin.getSkinObject("ipfilter");
-		if (so instanceof SWTSkinObjectContainer) {
-			setupIPFilterOption((SWTSkinObjectContainer) so);
-		}
-
-		SWTSkinObject so1 = skin.getSkinObject("saveto-textarea");
-		SWTSkinObject so2 = skin.getSkinObject("saveto-browse");
-		if ((so1 instanceof SWTSkinObjectContainer)
-				&& (so2 instanceof SWTSkinObjectButton)) {
-			setupSaveLocation((SWTSkinObjectContainer) so1, (SWTSkinObjectButton) so2);
-		}
-
-		so = skin.getSkinObject("expanditem-saveto");
-		if (so instanceof SWTSkinObjectExpandItem) {
-			soExpandItemSaveTo = (SWTSkinObjectExpandItem) so;
-		}
-
-		so = skin.getSkinObject("expanditem-files");
-		if (so instanceof SWTSkinObjectExpandItem) {
-			soExpandItemFiles = (SWTSkinObjectExpandItem) so;
-		}
-
-		so = skin.getSkinObject("expanditem-peer");
-		if (so instanceof SWTSkinObjectExpandItem) {
-			soExpandItemPeer = (SWTSkinObjectExpandItem) so;
-		}
-
-		so = skin.getSkinObject("expanditem-torrentinfo");
-		if (so instanceof SWTSkinObjectExpandItem) {
-			soExpandItemTorrentInfo = (SWTSkinObjectExpandItem) so;
-			soExpandItemTorrentInfo.setText(MessageText.getString("OpenTorrentOptions.header.torrentinfo")
-					+ ": " + torrentOptions.getTorrentName());
-		}
-		
-		setupShowAgainOptions(skin);
-
-		setupInfoFields(skin);
-
-		updateStartOptionsHeader();
-		cmbDataDirChanged();
-		updateSize();
-
-		UIUpdaterSWT.getInstance().addUpdater(this);
-		
-			/* 
-			 * The bring-to-front logic for torrent addition is controlled by other parts of the code so we don't
-			 * want the dlg to override this behaviour (main example here is torrents passed from, say, a browser,
-			 * and the user has disabled the 'show vuze on external torrent add' feature)
-			 */
-		
-		dlg.open("otow",false);
-
-		dlg.addCloseListener(new SkinnedDialogClosedListener() {
-			public void skinDialogClosed(SkinnedDialog dialog) {
-				dispose();
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			if ( hash != null ){
+				
+				active_windows.remove( hash );
 			}
-		});
+		}
 	}
 
+	private void
+	activate()
+	{
+		Shell shell = dlg.getShell();
+		
+		if ( !shell.isDisposed()){
+		
+			shell.forceActive();
+		}
+	}
+	
+	private Rectangle
+	getBounds()
+	{
+		return( dlg.getShell().getBounds());
+	}
+	
 	private void setupShowAgainOptions(SWTSkin skin) {
 		SWTSkinObjectCheckbox soNever = (SWTSkinObjectCheckbox) skin.getSkinObject("showagain-never");
 		SWTSkinObjectCheckbox soAlways = (SWTSkinObjectCheckbox) skin.getSkinObject("showagain-always");
