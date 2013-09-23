@@ -192,8 +192,9 @@ public class TorrentDownloaderFactory {
   					
   					private boolean no_retry = original_callback == null;
   					
-  					private boolean	init_reported 	= false;
-  					private boolean	start_reported	= false;
+  					private boolean	init_reported 		= false;
+  					private boolean	start_reported		= false;
+  					private boolean	 finish_reported	= false;
   					
   					public void 
   					TorrentDownloaderEvent(
@@ -205,26 +206,39 @@ public class TorrentDownloaderFactory {
   							return;
   						}
   						
-  						if ( state == STATE_INIT ){
+  						synchronized( this ){
   							
-  							if ( init_reported ){
-  								
-  								return;
-  							}
-  							
-  							init_reported = true;
+	  						if ( state == STATE_INIT ){
+	  							
+	  							if ( init_reported ){
+	  								
+	  								return;
+	  							}
+	  							
+	  							init_reported = true;
+	  						}
+	  						
+	 						if ( state == STATE_START ){
+	  							
+	  							if ( start_reported ){
+	  								
+	  								return;
+	  							}
+	  							
+	  							start_reported = true;
+	  						}
+	 						
+	 						if ( state == STATE_FINISHED ){
+	  							
+	  							if ( finish_reported ){
+	  								
+	  								return;
+	  							}
+	  							
+	  							finish_reported = true;
+	  						}
   						}
   						
- 						if ( state == STATE_START ){
-  							
-  							if ( start_reported ){
-  								
-  								return;
-  							}
-  							
-  							start_reported = true;
-  						}
- 						
   						if ( cancelled ){
   							
   							no_retry = true;

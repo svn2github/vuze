@@ -77,13 +77,13 @@ public class OpenTorrentWindow
 
 	private StringList referrers;
 
-	private TorrentOpenOptions torrentOptions;
+	//private TorrentOpenOptions torrentOptions;
 
 	private SWTSkinObjectCheckbox soShowAdvanced;
 
 	public OpenTorrentWindow(Shell parent) {
 		this.parent = parent;
-		torrentOptions = new TorrentOpenOptions();
+		
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
 				swt_createWindow();
@@ -91,12 +91,7 @@ public class OpenTorrentWindow
 		});
 	}
 
-	public OpenTorrentWindow(Shell parent, TorrentOpenOptions torrentOptions) {
-		this.parent = parent;
-		this.torrentOptions = torrentOptions;
-	}
-
-	protected void swt_createWindow() {
+	private void swt_createWindow() {
 		dlg = new SkinnedDialog("skin3_dlg_opentorrent", "shell", SWT.RESIZE
 				| SWT.DIALOG_TRIM);
 
@@ -122,9 +117,6 @@ public class OpenTorrentWindow
 				}
 			}
 		});
-		if (torrentOptions.sFileName != null) {
-			soTextArea.setText(torrentOptions.sFileName);
-		}
 
 		SWTSkinObject so;
 
@@ -237,7 +229,7 @@ public class OpenTorrentWindow
 			};
 		}
 
-		TorrentOpener.openTorrentsFromStrings(torrentOptions, parent, null, lines, newReferrer,
+		TorrentOpener.openTorrentsFromStrings(new TorrentOpenOptions(), parent, null, lines, newReferrer,
 				this, false);
 	}
 
@@ -537,6 +529,7 @@ public class OpenTorrentWindow
 		if (state == TorrentDownloader.STATE_INIT) {
 		} else if (state == TorrentDownloader.STATE_FINISHED) {
 			File file = inf.getFile();
+			TorrentOpenOptions torrentOptions = new TorrentOpenOptions();
 			if (!TorrentOpener.mergeFileIntoTorrentInfo(file.getAbsolutePath(),
 					inf.getURL(), torrentOptions)) {
 				if (file.exists())
