@@ -457,6 +457,8 @@ MagnetPluginMDDownloader
 																						
 																						completed	= true;
 																						
+																						listener.reportProgress( md_size, md_size );
+																						
 																						running_sem.releaseForever();
 																					}
 																				}
