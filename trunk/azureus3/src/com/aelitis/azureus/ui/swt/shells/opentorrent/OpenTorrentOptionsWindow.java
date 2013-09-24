@@ -1277,32 +1277,14 @@ public class OpenTorrentOptionsWindow
 				
 				Shell shell = dlg.getShell();
 				
-				Rectangle displayArea;
-				
-				try{
-					displayArea = shell.getMonitor().getClientArea();
-					
-				}catch (NoSuchMethodError e){
-					
-					displayArea = shell.getDisplay().getClientArea();
-				}	
-				
 				Rectangle rect = shell.getBounds();
+								
+				rect.x = max_x + 16;
+				rect.y = max_y + 16;
 				
-				final int OFFSET = 16;
-				
-				rect.x = max_x + OFFSET;
-				rect.y = max_y + OFFSET;
-				
-				if ( 	rect.x < displayArea.width - OFFSET &&
-						rect.y < displayArea.height - OFFSET ){
-				
-					shell.setBounds( rect );
-					
-				}else{
-					
-					Utils.centreWindow( shell );
-				}
+				shell.setBounds( rect );
+										
+				Utils.verifyShellRect( shell, true );
 			}
 			
 			dlg.addCloseListener(new SkinnedDialogClosedListener() {
