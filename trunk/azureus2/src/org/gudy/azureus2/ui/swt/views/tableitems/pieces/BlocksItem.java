@@ -184,7 +184,7 @@ public class BlocksItem
 						* i, i++)
 					;
 
-				boolean[] isCached = cacheStats == null ? null
+				boolean[] isCached = cacheStats == null ? new boolean[(int)lNumBlocks]
 						: cacheStats.getBytesInCache(torrent, offsets, lengths);
 
 				for (int i = 0; i < lNumBlocks; i += blocksPerPixel) {

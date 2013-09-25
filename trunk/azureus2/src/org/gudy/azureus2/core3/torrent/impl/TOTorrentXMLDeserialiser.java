@@ -272,6 +272,11 @@ TOTorrentXMLDeserialiser
 												new byte[][]{ torrent.getName()})});
 		}else{
 			
+			if ( file_nodes == null ){
+				
+				throw( new TOTorrentException( "FILES element missing", TOTorrentException.RT_DECODE_FAILS));
+			}
+			
 			TOTorrentFileImpl[]	files = new TOTorrentFileImpl[ file_nodes.length ];
 			
 			long	offset = 0;
@@ -321,7 +326,6 @@ TOTorrentXMLDeserialiser
 				if ( (!length_entry_found) || path_comps == null ){
 
 					throw( new TOTorrentException( "FILE element invalid (file length = " + file_length + ")", TOTorrentException.RT_DECODE_FAILS));
-				
 				}
 				
 				files[j] = new TOTorrentFileImpl( torrent, j, offset, file_length, path_comps );

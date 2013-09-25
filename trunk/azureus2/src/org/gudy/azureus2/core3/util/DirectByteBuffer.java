@@ -373,9 +373,7 @@ DirectByteBuffer
 			
 			traceUsage( subsystem, OP_LIMIT_INT );
 		}
-		if (buffer == null) {
-			System.out.println("Trying to limit null buffer - returned? " + this.was_returned_to_pool);
-		}
+
 		buffer.limit(l);
 	}
   

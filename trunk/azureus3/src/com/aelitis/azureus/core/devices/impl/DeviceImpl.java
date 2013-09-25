@@ -409,10 +409,11 @@ DeviceImpl
 		}
 		
 		String	o_uid 	= other.uid;
-		String	o_suid	= other.secondary_uid;
 		
 		if ( !uid.equals( o_uid )){
 			
+			String	o_suid	= other.secondary_uid;
+
 			boolean borked = false;
 			
 			if ( secondary_uid == null && o_suid == null ){
@@ -421,7 +422,7 @@ DeviceImpl
 			
 			}else if ( 	( secondary_uid == null && uid.equals( o_suid ))   ||
 						( o_suid == null && o_uid.equals( secondary_uid )) ||
-						o_suid.equals( secondary_uid )){
+						( o_suid != null && o_suid.equals( secondary_uid ))){
 				
 			}else{
 				

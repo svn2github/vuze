@@ -416,6 +416,8 @@ DirectByteBufferPoolReal
 		if ( buff == null ){
 			
 			Debug.out( "Returned dbb has null delegate" );
+			
+			throw( new RuntimeException( "Returned dbb has null delegate" ));
 		}
 		
 		int	capacity = buff.capacity();

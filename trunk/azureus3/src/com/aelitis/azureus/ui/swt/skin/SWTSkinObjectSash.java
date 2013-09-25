@@ -206,7 +206,7 @@ public class SWTSkinObjectSash
 			return;
 		}
 
-		belowMin = skinObject.getProperties().getIntValue(
+		belowMin = skinObject==null?0:skinObject.getProperties().getIntValue(
 				getConfigID() + ".below" + (isVertical ? ".minwidth" : ".minheight"), 0);
 
 		Listener l = new Listener() {
@@ -245,7 +245,7 @@ public class SWTSkinObjectSash
 
 					Rectangle area = parentComposite.getBounds();
 					FormData aboveData = (FormData) above.getLayoutData();
-					FormData belowData = (FormData) below.getLayoutData();
+					//FormData belowData = (FormData) below.getLayoutData();
 					if (isVertical) {
 						// Need to figure out if we have to use border width elsewhere
 						// in calculations (probably)

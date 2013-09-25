@@ -227,8 +227,6 @@ public class PieceGraphView
 			return;
 		}
 
-		DiskManagerPiece[] dm_pieces = null;
-
 		PEPeerManager pm = dlm.getPeerManager();
 
 		DiskManager dm = dlm.getDiskManager();
@@ -238,7 +236,7 @@ public class PieceGraphView
 			return;
 		}
 
-		dm_pieces = dm.getPieces();
+		final DiskManagerPiece[] dm_pieces = dm.getPieces();
 
 		if (dm_pieces == null || dm_pieces.length == 0) {
 			canvas.redraw();
@@ -497,13 +495,12 @@ public class PieceGraphView
 	 *
 	 * @since 3.0.1.1
 	 */
-	private double getPercentDone(int startNo, int count,
-			DiskManagerPiece[] dm_pieces) {
+	private double getPercentDone(int startNo, int count, DiskManagerPiece[] dm_pieces) {
 
 		int totalComplete = 0;
 		int totalBlocks = 0;
 		for (int i = startNo; i < startNo + count; i++) {
-			DiskManagerPiece piece = dm_pieces == null ? null : dm_pieces[i];
+			DiskManagerPiece piece = dm_pieces[i];
 			int numBlocks = piece.getNbBlocks();
 			totalBlocks += numBlocks;
 

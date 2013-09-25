@@ -232,7 +232,7 @@ public class SWTSkinObjectSlider
 			gc.drawImage(imageFG, 0, 0, xDrawToSrc, imageFGbounds.height, 0, y,
 					xDrawTo, imageFGbounds.height);
 		}
-		if (percent < 100 && imageBG != null) {
+		if (percent < 100 && imageBG != null && imageFGbounds != null ) {
 			int xDrawFrom = (int) (imageBGbounds.width * percent);
 			int xDrawWidth = imageBGbounds.width - xDrawFrom;
 			gc.drawImage(imageBG, xDrawFrom, 0, xDrawWidth, imageFGbounds.height,

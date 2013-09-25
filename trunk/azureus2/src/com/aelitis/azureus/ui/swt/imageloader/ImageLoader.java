@@ -450,7 +450,7 @@ public class ImageLoader
 
 		if (img == null) {
 			try {
-				if (cl != null) {
+				if (cl != null && res != null ) {
 					InputStream is = cl.getResourceAsStream(res);
 					if (is != null) {
 						try{
@@ -467,7 +467,7 @@ public class ImageLoader
 					// don't do on sKey.endsWith("-disabled") because caller parseValueString
 					// requires a failure so it can retry with _disabled.  If that fails,
 					// we'll get here (stupid, I know)
-					if (res.contains("_disabled.")) {
+					if ( res != null && res.contains("_disabled.")) {
 						String id = sKey.substring(0, sKey.length() - 9);
 						Image imgToFade = getImage(id);
 						if (isRealImage(imgToFade)) {

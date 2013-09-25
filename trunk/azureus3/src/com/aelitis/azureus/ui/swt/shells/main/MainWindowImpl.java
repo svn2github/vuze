@@ -1211,10 +1211,12 @@ public class MainWindowImpl
 		 * when the GUI is being disposed of.
 		 */
 		try {
-  		AllTransfersBar transfer_bar = AllTransfersBar.getBarIfOpen(core.getGlobalManager());
-  		if (transfer_bar != null) {
-  			transfer_bar.forceSaveLocation();
-  		}
+			if ( core != null ){
+		  		AllTransfersBar transfer_bar = AllTransfersBar.getBarIfOpen(core.getGlobalManager());
+		  		if (transfer_bar != null) {
+		  			transfer_bar.forceSaveLocation();
+		  		}
+			}
 		} catch (Exception ignore) {
 		}
 

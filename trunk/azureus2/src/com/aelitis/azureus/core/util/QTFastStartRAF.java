@@ -159,8 +159,13 @@ QTFastStartRAF
 					
 					return;
 				}
-			
-				if ( !ah.type.equalsIgnoreCase(ATOM_MOOV)){
+							
+				if ( ftypAtom == null ){
+					
+					throw new IOException("No FTYP atom found");
+				}
+				
+				if ( ah == null || !ah.type.equalsIgnoreCase(ATOM_MOOV)){
 					
 					throw new IOException("Last QT atom was not the MOOV atom.");
 				}

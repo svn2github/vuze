@@ -1751,7 +1751,7 @@ public class SWTSkin
 			if (intoSkinObject == null) {
 				//skinObject = new SWTSkinObjectImageContainer(this, properties, sID,
 				//		sConfigID, parentSkinObject);
-				addToControlMap(skinObject);
+				//addToControlMap(skinObject);
 			} else {
 				skinObject = intoSkinObject;
 			}

@@ -42,7 +42,7 @@ public class
 UPnPServiceImpl
 	implements 	UPnPService
 {
-	private UPnPDeviceImpl	device;
+	private final UPnPDeviceImpl	device;
 	
 	private String			service_type;
 	private String			local_desc_url;

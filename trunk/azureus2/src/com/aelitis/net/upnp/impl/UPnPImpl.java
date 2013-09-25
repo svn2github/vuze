@@ -570,24 +570,16 @@ UPnPImpl
 	{
 		try{
 				// some devices have borked relative urls, work around
-			
-			if ( device != null ){
-				
-				device.restoreRelativeBaseURL();
-			}
+							
+			device.restoreRelativeBaseURL();
 			
 			return( downloadXMLSupport( device.getFriendlyName(), url ));
 			
 		}catch( UPnPException e ){
-			
-			if ( device != null ){
+							
+			device.clearRelativeBaseURL();
 				
-				device.clearRelativeBaseURL();
-				
-				return( downloadXMLSupport( device.getFriendlyName(), url ));
-			}
-			
-			throw( e );
+			return( downloadXMLSupport( device.getFriendlyName(), url ));
 		}
 	}
 	
