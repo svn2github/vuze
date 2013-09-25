@@ -1424,21 +1424,23 @@ DownloadManagerImpl
 			
 			LinkFileMap.Entry entry = it.next();
 			
-			int		file_index 	= entry.getIndex();
-			File	from 		= entry.getFromFile();
-			File	to			= entry.getToFile();
-			
-			if ( to == null ){
-			
-					// represents a deleted link, nothing to update
-				
-				continue;
-			}
-			
-			String  from_s  = (from == null) ? null : from.getAbsolutePath();
-			String  to_s    = (to == null) ? null : to.getAbsolutePath();
-		
 			try{
+
+				File	to			= entry.getToFile();
+				
+				if ( to == null ){
+				
+						// represents a deleted link, nothing to update
+					
+					continue;
+				}
+				
+				int		file_index 	= entry.getIndex();
+				File	from 		= entry.getFromFile();
+
+				String  from_s  = from.getAbsolutePath();
+				String  to_s    = to.getAbsolutePath();
+		
 				updateFileLink( file_index, old_path, new_path, from_s, to_s, from_indexes, from_links, to_links );
 				
 			}catch( Exception e ){

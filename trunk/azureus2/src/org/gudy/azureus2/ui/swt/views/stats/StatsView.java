@@ -175,18 +175,19 @@ public class StatsView
 				registeredCoreSubViews = true;
 			}
 
-			UISWTViewEventListenerWrapper[] pluginViews = pluginUI == null
-					? null : pluginUI.getViewListeners(UISWTInstance.VIEW_STATISTICS);
-			for (int i = 0; i < pluginViews.length; i++) {
-				UISWTViewEventListenerWrapper l = pluginViews[i];
-				String name = l.getViewID();
-			
-				try {
-					UISWTViewImpl view = new UISWTViewImpl(
-							UISWTInstance.VIEW_STATISTICS, name, l, null);
-					addSection(view, name);
-				} catch (Exception e) {
-					// skip
+			if ( pluginUI != null ){
+				UISWTViewEventListenerWrapper[] pluginViews = pluginUI.getViewListeners(UISWTInstance.VIEW_STATISTICS);
+				for (int i = 0; i < pluginViews.length; i++) {
+					UISWTViewEventListenerWrapper l = pluginViews[i];
+					String name = l.getViewID();
+				
+					try {
+						UISWTViewImpl view = new UISWTViewImpl(
+								UISWTInstance.VIEW_STATISTICS, name, l, null);
+						addSection(view, name);
+					} catch (Exception e) {
+						// skip
+					}
 				}
 			}
 		}
