@@ -488,41 +488,42 @@ public class VirtualChannelSelectorImpl {
  
             RegistrationData data = (RegistrationData)obj;
             	
-            if( data == null ) {
-              Debug.out( "data == null" );
-            }
-            
-            else if( data.channel == null ) {
-              Debug.out( "data.channel == null" );
-            }
-            
             try {
-              if( data.channel.isOpen() ){
-                	
-                // see if already registered
-                SelectionKey key = data.channel.keyFor( selector );
-                  
-                if ( key != null && key.isValid() ) {  //already registered
-                  key.attach( data );
-                  key.interestOps( key.interestOps() | INTEREST_OP );  //ensure op is enabled
-                }
-                else{
-                  data.channel.register( selector, INTEREST_OP, data );
-                }
-                  
-                //check if op has been paused before registration moment
-                Object paused = paused_states.get( data.channel );
-                  
-                if( paused != null ) {
-                  pauseSelects( data.channel );  //pause it
-                }
-              }
-              else{
-            	
-              	select_fail_data	= data;
-              	select_fail_excep	= new Throwable( "select registration: channel is closed" );
-              	
-              }
+
+            	if( data == null ) {
+            		throw( new Exception( "data == null" ));
+            	}
+
+            	else if( data.channel == null ) {
+            		throw( new Exception( "data.channel == null" ));
+            	}
+            
+            	if( data.channel.isOpen() ){
+
+            		// see if already registered
+            		SelectionKey key = data.channel.keyFor( selector );
+
+            		if ( key != null && key.isValid() ) {  //already registered
+            			key.attach( data );
+            			key.interestOps( key.interestOps() | INTEREST_OP );  //ensure op is enabled
+            		}
+            		else{
+            			data.channel.register( selector, INTEREST_OP, data );
+            		}
+
+            		//check if op has been paused before registration moment
+            		Object paused = paused_states.get( data.channel );
+
+            		if( paused != null ) {
+            			pauseSelects( data.channel );  //pause it
+            		}
+            	}
+            	else{
+
+            		select_fail_data	= data;
+            		select_fail_excep	= new Throwable( "select registration: channel is closed" );
+
+            	}
             }catch (Throwable t){
               
             	Debug.printStackTrace(t);

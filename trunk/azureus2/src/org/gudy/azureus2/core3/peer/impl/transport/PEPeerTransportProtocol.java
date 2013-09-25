@@ -4885,6 +4885,10 @@ implements PEPeerTransport
 	public boolean
 	isTCP()
 	{
+		if ( connection == null ){
+			return( false );
+		}
+		
 		ProtocolEndpoint[] protocols = connection.getEndpoint().getProtocols();
 		
 			// not very good here - for most purposes we lump uTP with TCP as 'UDP' originally

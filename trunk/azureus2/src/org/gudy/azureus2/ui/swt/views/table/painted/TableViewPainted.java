@@ -2505,7 +2505,8 @@ public class TableViewPainted
 
 	protected void swt_fixupSize() {
 		//debug("Set minSize to " + columnsWidth + "x" + totalHeight + ";ca=" + clientArea + ";" + Debug.getCompressedStackTrace());
-		if (vBar != null && !vBar.isDisposed()) {
+		boolean vBarValid = vBar != null && !vBar.isDisposed();
+		if (vBarValid) {
 			int tableSize = clientArea.height;
 			int max = totalHeight;
 			if (max < tableSize) {
@@ -2528,7 +2529,7 @@ public class TableViewPainted
 		if (hBar != null && !hBar.isDisposed()) {
 			int tableSize = cTable.getSize().x;
 			int max = columnsWidth;
-			if (vBar.isVisible() && getScrollbarsMode() == SWT.NONE) {
+			if (vBarValid && vBar.isVisible() && getScrollbarsMode() == SWT.NONE) {
 				int vBarW = vBar.getSize().x;
 
 				max += vBarW;
@@ -2544,7 +2545,7 @@ public class TableViewPainted
 				}
 				hBar.setValues(hBar.getSelection(), 0, max, tableSize, 50, tableSize);
 			}
-			if (vBar != null && !vBar.isDisposed() && hBar.isVisible()) {
+			if (vBarValid && hBar.isVisible()) {
 				int hBarW = getScrollbarsMode() == SWT.NONE ? hBar.getSize().y : 0;
 
 				vBar.setThumb(clientArea.height - hBarW);

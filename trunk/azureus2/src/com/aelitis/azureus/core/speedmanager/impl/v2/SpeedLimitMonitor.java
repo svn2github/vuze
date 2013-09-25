@@ -1539,6 +1539,7 @@ public class SpeedLimitMonitor implements PSMonitorListener
 
         if(est==null){
             SpeedManagerLogger.trace( "notify log: SpeedManagerLimitEstimate was null" );
+            return;
         }
 
         StringBuffer sb = new StringBuffer();

@@ -3860,7 +3860,7 @@ RelatedContentManager
 								});
 						}
 						
-						List<Map<String,Object>> list = new ArrayList<Map<String,Object>>();
+						List<Map<String,Object>> l_list = new ArrayList<Map<String,Object>>();
 						
 						for (int i=0;i<Math.min( matches.size(),MAX_REMOTE_SEARCH_RESULTS);i++){
 							
@@ -3868,7 +3868,7 @@ RelatedContentManager
 							
 							Map<String,Object>	map = new HashMap<String, Object>();
 							
-							list.add( map );
+							l_list.add( map );
 							
 							ImportExportUtils.exportString( map, "n", c.getTitle());
 							ImportExportUtils.exportLong( map, "s", c.getSize());
@@ -3907,28 +3907,28 @@ RelatedContentManager
 								// don't bother with tracker as no use to caller really
 						}
 						
-						response.put( "l", list );
-					}
+						response.put( "l", l_list );
 					
-					List<DistributedDatabaseContact> bloom_hits = searchForeignBlooms( term );
-					
-					if ( bloom_hits.size() > 0 ){
+						List<DistributedDatabaseContact> bloom_hits = searchForeignBlooms( term );
 						
-						List<Map>	list = new ArrayList<Map>();
-						
-						for ( DistributedDatabaseContact c: bloom_hits ){
+						if ( bloom_hits.size() > 0 ){
 							
-							Map	m = new HashMap();
+							List<Map>	c_list = new ArrayList<Map>();
 							
-							list.add( m );
+							for ( DistributedDatabaseContact c: bloom_hits ){
+								
+								Map	m = new HashMap();
+								
+								c_list.add( m );
+								
+								InetSocketAddress address = c.getAddress();
+								
+								m.put( "a", address.getAddress().getHostAddress());
+								m.put( "p", new Long( address.getPort()));
+							}
 							
-							InetSocketAddress address = c.getAddress();
-							
-							m.put( "a", address.getAddress().getHostAddress());
-							m.put( "p", new Long( address.getPort()));
+							response.put( "c", c_list );
 						}
-						
-						response.put( "c", list );
 					}
 				}
 			}

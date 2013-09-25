@@ -111,11 +111,11 @@ DDBaseTTTorrent
 			if ( external_downloads != null ){
 				
 				external_downloads.remove( download );
-			}
 			
-			if ( external_downloads.size() == 0 ){
+				if ( external_downloads.size() == 0 ){
 				
-				external_downloads = null;
+					external_downloads = null;
+				}
 			}
 		}
 	}

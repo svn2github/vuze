@@ -302,14 +302,13 @@ public abstract class TranscodeChooser
 			}
 		}
 
-		if (transcodeProfiles.length == 0 || selectedTranscodeTarget.getTranscodeRequirement() == TranscodeTarget.TRANSCODE_NEVER ){
+		if (transcodeProfiles.length == 0 || ( selectedTranscodeTarget != null && selectedTranscodeTarget.getTranscodeRequirement() == TranscodeTarget.TRANSCODE_NEVER )){
 			if ( selectedTranscodeTarget != null ){
 				selectedProfile = selectedTranscodeTarget.getBlankProfile();
 				shell.dispose();
 				return;
 			}
-			new MessageBoxShell(SWT.OK, "No Profiles", "No Profiles for "
-					+ selectedTranscodeTarget.getDevice().getName()).open(null);
+			new MessageBoxShell(SWT.OK, "No Profiles", "No Profiles for device!" ).open(null);
 			shell.dispose();
 			return;
 		}

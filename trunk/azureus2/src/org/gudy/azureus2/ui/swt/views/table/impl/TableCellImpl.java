@@ -350,7 +350,7 @@ public class TableCellImpl
   }
 
   public boolean isShown() {
-  	if (bufferedTableItem == null) {
+  	if (bufferedTableItem == null || tableRow == null ) {
   		return false;
   	}
 
