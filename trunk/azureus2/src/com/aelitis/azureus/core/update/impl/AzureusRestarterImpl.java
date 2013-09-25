@@ -505,9 +505,7 @@ AzureusRestarterImpl
 		if (exeUpdater != null) {
 			return( restartViaEXE(log, exeUpdater, properties, parameters, exec, update_only));
 		} else {
-			if (log != null) {
-				log.println("  " + exec);
-			}
+			log.println("  " + exec);
 
 			if (!win32NativeRestart(log, exec)) {
 				return( javaSpawn(log, exec));

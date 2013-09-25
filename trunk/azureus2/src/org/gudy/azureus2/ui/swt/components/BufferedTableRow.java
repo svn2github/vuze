@@ -708,7 +708,7 @@ BufferedTableRow
   public boolean setIconSize(Point pt) {
     ptIconSize = pt;
 
-    if (pt == null)
+    if (pt == null || item == null )
       return false;
     
 		if (!checkWidget(REQUIRE_TABLEITEM_INITIALIZED))

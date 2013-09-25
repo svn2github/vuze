@@ -477,7 +477,7 @@ public class FakeTableCell
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCell#getDataSource()
 	public Object getDataSource() {
-		boolean bCoreObject = ((TableColumnCore) tableColumn).getUseCoreDataSource();
+		boolean bCoreObject = ( tableColumn instanceof TableColumnCore ) && ((TableColumnCore) tableColumn).getUseCoreDataSource();
 		if (bCoreObject) {
 			return coreDataSource;
 		}

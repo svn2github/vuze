@@ -787,7 +787,7 @@ public class VersionCheckClient {
 
 		if (Logger.isEnabled())
 			Logger.log(new LogEvent(LOGID, "VersionCheckClient server "
-					+ "version check successful. Received " + reply.size()
+					+ "version check successful. Received " + (reply==null?"null":reply.size())
 					+ " reply keys."));
 
 		if ( v6 ){
