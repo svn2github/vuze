@@ -304,8 +304,9 @@ PListEditor
 					
 					e.printStackTrace();
 				}
+			
+				file = file.getParentFile();
 			}
-			file = file.getParentFile();
 		}
 	}
 	

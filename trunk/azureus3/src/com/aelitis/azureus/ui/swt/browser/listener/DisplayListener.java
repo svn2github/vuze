@@ -260,7 +260,7 @@ public class DisplayListener
 			return;
 		}
 
-		if (displayName != null) {
+		if (displayName != null && context != null ) {
 			String dlReferer = MapUtils.getMapString(decodedMap, "download-referer",
 					null);
 			String dlCookies = MapUtils.getMapString(decodedMap, "download-cookies",

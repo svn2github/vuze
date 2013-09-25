@@ -232,6 +232,8 @@ public class AZMessageDecoder implements MessageStreamDecoder {
       
       if( bb == null ) {
         Debug.out( "preReadProcess:: bb["+i+"] == null, decoder destroyed=" +destroyed );
+        
+        throw( new RuntimeException( "decoder destroyed" ));
       }
       
       

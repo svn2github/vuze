@@ -343,36 +343,38 @@ FMFileAccessController
 		if ( tf == null ){
 
 			controlFileName = null;
-			control_dir = null;
-		}
-		
-		TOTorrent	torrent = tf.getTorrent();
-		
-		TOTorrentFile[]	files = torrent.getFiles();
-		
-		int	file_index = -1;
-		
-		for (int i=0;i<files.length;i++){
-			
-			if ( files[i] == tf ){
-		
-				file_index = i;
-				
-				break;
-			}
-		}
-		
-		if ( file_index == -1 ){
-			
-			Debug.out("File '" + owner.getName() + "' not found in torrent!" );
-			
-			controlFileName = null;
 			control_dir 	= null;
 			
 		}else{
+		
+			TOTorrent	torrent = tf.getTorrent();
 			
-			control_dir 	= owner.getOwner().getControlFileDir( );
-			controlFileName =  StringInterner.intern("fmfile" + file_index + ".dat");
+			TOTorrentFile[]	files = torrent.getFiles();
+			
+			int	file_index = -1;
+			
+			for (int i=0;i<files.length;i++){
+				
+				if ( files[i] == tf ){
+			
+					file_index = i;
+					
+					break;
+				}
+			}
+			
+			if ( file_index == -1 ){
+				
+				Debug.out("File '" + owner.getName() + "' not found in torrent!" );
+				
+				controlFileName = null;
+				control_dir 	= null;
+				
+			}else{
+				
+				control_dir 	= owner.getOwner().getControlFileDir( );
+				controlFileName =  StringInterner.intern("fmfile" + file_index + ".dat");
+			}
 		}
 	}
 	

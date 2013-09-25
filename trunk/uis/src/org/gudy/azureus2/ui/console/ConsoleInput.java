@@ -579,7 +579,7 @@ public class ConsoleInput extends Thread {
 				String command = ((String) comargs.get(0)).toLowerCase();
 				if( ".".equals(command) )
 				{
-					if (oldcommand != null) {
+					if (oldcommand.size() > 0 ) {
 						comargs.clear();
 						comargs.addAll(oldcommand);
 						command = ((String) comargs.get(0)).toLowerCase();

@@ -1471,7 +1471,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         {
         	if (Logger.isEnabled())
         		Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING, "Cannot find "
-        				+ path.getName()));
+        				+ (path==null?"null":path.getName())));
         }
     }
 

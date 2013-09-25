@@ -112,7 +112,7 @@ PeerNATTraverser
 	private static final int BLOOM_REBUILD_PERIOD	= 5*60*1000;
 	private static final int BLOOM_REBUILD_TICKS	= BLOOM_REBUILD_PERIOD/TIMER_PERIOD;
 	
-	public
+	private
 	PeerNATTraverser(
 		AzureusCore		core )
 	{

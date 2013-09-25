@@ -238,25 +238,25 @@ UpdateInstallerImpl
 						
 					}
 				}
-			}
 							
-			try{
-				PlatformManager	pm = PlatformManagerFactory.getPlatformManager();
-					
-				if ( pm.hasCapability( PlatformManagerCapabilities.CopyFilePermissions )){
-					
-					String	parent_str = parent.getAbsolutePath();
-										
-					PlatformManagerFactory.getPlatformManager().copyFilePermissions(
-							parent_str, from_file_or_resource );
-				}
-			}catch( Throwable e ){
-					
-				if ( log_perm_set_fail ){
-					
-					if ( !Constants.isWindowsVistaOrHigher ){
-					
-						Debug.out( e );
+				try{
+					PlatformManager	pm = PlatformManagerFactory.getPlatformManager();
+						
+					if ( pm.hasCapability( PlatformManagerCapabilities.CopyFilePermissions )){
+						
+						String	parent_str = parent.getAbsolutePath();
+											
+						PlatformManagerFactory.getPlatformManager().copyFilePermissions(
+								parent_str, from_file_or_resource );
+					}
+				}catch( Throwable e ){
+						
+					if ( log_perm_set_fail ){
+						
+						if ( !Constants.isWindowsVistaOrHigher ){
+						
+							Debug.out( e );
+						}
 					}
 				}
 			}

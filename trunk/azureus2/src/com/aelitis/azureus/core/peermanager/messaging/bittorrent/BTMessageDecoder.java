@@ -241,6 +241,8 @@ public class BTMessageDecoder implements MessageStreamDecoder {
       
       if( bb == null ) {
         Debug.out( "preReadProcess:: bb["+i+"] == null, decoder destroyed=" +destroyed );
+        
+        throw( new RuntimeException( "decoder destroyed" ));
       }
       
       if( shrink_remaining_buffers ) {

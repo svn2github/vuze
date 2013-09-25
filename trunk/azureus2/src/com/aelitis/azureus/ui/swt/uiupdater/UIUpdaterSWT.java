@@ -257,22 +257,23 @@ public class UIUpdaterSWT
 			UIUpdatable updateable = (UIUpdatable) updateablesArray[i];
 			if (updateable == null) {
 				removeUpdater(updateable);
-			}
-			try {
-				if (DEBUG_TIMER) {
-					start = SystemTime.getCurrentTime();
-				}
-				updateable.updateUI();
-				if (DEBUG_TIMER) {
-					long diff = SystemTime.getCurrentTime() - start;
-					if (diff > 0) {
-						mapTimeMap.put(updateable, new Long(diff));
+			}else{
+				try {
+					if (DEBUG_TIMER) {
+						start = SystemTime.getCurrentTime();
 					}
+					updateable.updateUI();
+					if (DEBUG_TIMER) {
+						long diff = SystemTime.getCurrentTime() - start;
+						if (diff > 0) {
+							mapTimeMap.put(updateable, new Long(diff));
+						}
+					}
+				} catch (Throwable t) {
+					Logger.log(new LogEvent(LOGID,
+							"Error while trying to update UI Element "
+									+ updateable.getUpdateUIName(), t));
 				}
-			} catch (Throwable t) {
-				Logger.log(new LogEvent(LOGID,
-						"Error while trying to update UI Element "
-								+ updateable.getUpdateUIName(), t));
 			}
 		}
 		if (DEBUG_TIMER) {

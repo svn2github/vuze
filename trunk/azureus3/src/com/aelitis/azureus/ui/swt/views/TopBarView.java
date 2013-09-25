@@ -331,32 +331,37 @@ public class TopBarView
 				registeredCoreSubViews = true;
 			}
 
-			UISWTViewEventListenerHolder[] pluginViews = uiSWTinstance.getViewListeners(UISWTInstance.VIEW_TOPBAR);
-			for (UISWTViewEventListenerHolder l : pluginViews) {
-				if (l != null) {
-					try {
-						UISWTViewImpl view = new UISWTViewImpl(UISWTInstance.VIEW_TOPBAR,
-								l.getViewID(), l, null);
-						addTopBarView(view, cPluginArea);
-						if (toActiveView-- == 0) {
-							activateTopBar(view);
-							if (listPlugins != null) {
-								listPlugins.setSelection(viewIndex);
+			if ( uiSWTinstance != null ){
+				UISWTViewEventListenerHolder[] pluginViews = uiSWTinstance.getViewListeners(UISWTInstance.VIEW_TOPBAR);
+				for (UISWTViewEventListenerHolder l : pluginViews) {
+					if (l != null) {
+						try {
+							UISWTViewImpl view = new UISWTViewImpl(UISWTInstance.VIEW_TOPBAR,
+									l.getViewID(), l, null);
+							addTopBarView(view, cPluginArea);
+							if (toActiveView-- == 0) {
+								activateTopBar(view);
+								if (listPlugins != null) {
+									listPlugins.setSelection(viewIndex);
+								}
 							}
+						} catch (Exception e) {
+							e.printStackTrace();
+							// skip, plugin probably specifically asked to not be added
 						}
-					} catch (Exception e) {
-						e.printStackTrace();
-						// skip, plugin probably specifically asked to not be added
 					}
 				}
 			}
-
+			
 			if (toActiveView >= 0 && topbarViews.size() > 0) {
 				activeTopBar = topbarViews.get(0);
 				activeTopBar.getComposite().setVisible(true);
 			}
 
-			skinObject.getControl().getParent().layout(true);
+			if ( skinObject != null ){
+			
+				skinObject.getControl().getParent().layout(true);
+			}
 		} catch (Exception e) {
 			Debug.out(e);
 		}
