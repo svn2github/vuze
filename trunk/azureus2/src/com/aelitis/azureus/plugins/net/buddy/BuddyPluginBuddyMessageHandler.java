@@ -975,7 +975,10 @@ BuddyPluginBuddyMessageHandler
 					
 				next_message_id = Math.max( next_message_id, ((Long)last_msg.get( "id")).intValue() + 1 );
 				
-				last_pending_success = SystemTime.getCurrentTime();
+				synchronized( this ){
+				
+					last_pending_success = SystemTime.getCurrentTime();
+				}
 			}
 		}
 		

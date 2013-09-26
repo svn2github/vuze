@@ -449,7 +449,7 @@ TranscodePipe
 								
 								if ( max_bytes_per_sec == 0 ){
 									
-									synchronized( this ){
+									synchronized( TranscodePipe.this ){
 										
 										if ( max_bytes_per_sec == 0 ){
 										

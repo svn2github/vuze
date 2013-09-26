@@ -1380,17 +1380,4 @@ IpFilterImpl
 	{
 		external_handlers.remove( h );
 	}
-	
-	public static void
-	main(
-		String[]	args )
-	{
-		IpFilterImpl	filter = new IpFilterImpl();
-		
-		filter.ban( "255.1.1.1", "parp", true );
-		filter.ban( "255.1.1.2", "parp", true );
-		filter.ban( "255.1.2.2", "parp", true );
-		
-		System.out.println( "is banned:" + filter.isBanned( "255.1.1.4" ));
-	}
 }

@@ -637,8 +637,8 @@ public class OpenTorrentWindow
 						&& e.character > 0)
 					key += 'a' - 1;
 
-				if ((key == 'v' && (e.stateMask & SWT.MOD1) > 0)
-						|| (e.keyCode == SWT.INSERT && (e.stateMask & SWT.SHIFT) > 0)) {
+				if ((key == 'v' && (e.stateMask & SWT.MOD1) != 0)
+						|| (e.keyCode == SWT.INSERT && (e.stateMask & SWT.SHIFT) != 0)) {
 					e.doit = false;
 
 					// Paste

@@ -53,11 +53,11 @@ public class TableColumnSWTUtils
 	}
 	
     private static int convertSWTAlignmentToColumn(int align) {
-		if ((align & SWT.LEAD) > 0) {
+		if ((align & SWT.LEAD) != 0) {
 			return TableColumn.ALIGN_LEAD;
-		} else if ((align & SWT.CENTER) > 0) {
+		} else if ((align & SWT.CENTER) != 0) {
 			return TableColumn.ALIGN_CENTER;
-		} else if ((align & SWT.RIGHT) > 0) {
+		} else if ((align & SWT.RIGHT) != 0) {
 			return TableColumn.ALIGN_TRAIL;
 		}
 		return TableColumn.ALIGN_LEAD;

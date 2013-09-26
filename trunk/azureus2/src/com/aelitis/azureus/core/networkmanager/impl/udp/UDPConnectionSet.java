@@ -382,7 +382,7 @@ UDPConnectionSet
 		}
 	}
 	
-	protected RC4Engine
+	private RC4Engine
 	getCipher(
 		byte[]			key )
 	{
@@ -405,7 +405,7 @@ UDPConnectionSet
     	return( rc4_engine );
 	}
 	
-	protected void
+	private void
 	sendTimerBase()
 	{
 			// only the outgoing side of a connection can initiate changes in timer base
@@ -541,7 +541,7 @@ UDPConnectionSet
 		}
 	}
 	
-	protected void
+	private void
 	resetTimerStats()
 	{
 		stats_reset_time = SystemTime.getCurrentTime();
@@ -552,7 +552,7 @@ UDPConnectionSet
 		stats_packets_unique_received		= 0;
 	}
 	
-	protected void
+	private void
 	receiveTimerBase(
 		int	theirs )
 	{		

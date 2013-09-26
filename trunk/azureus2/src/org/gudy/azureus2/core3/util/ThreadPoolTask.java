@@ -35,7 +35,7 @@ ThreadPoolTask
 	static final int RELEASE_MANUAL = 0x01;
 	static final int RELEASE_MANUAL_ALLOWED = 0x02;
 	
-	int manualRelease;
+	private int manualRelease;
 	
 	protected ThreadPool.threadPoolWorker		worker;
 	
@@ -75,7 +75,7 @@ ThreadPoolTask
 	 * only invoke this method after the first run of the threadpooltask as it is only meant to join
 	 * on a task when it has child tasks and thus is running in manual release mode
 	 */
-	synchronized void join()
+	synchronized final void join()
 	{
 		while(manualRelease != RELEASE_AUTO)
 		{
@@ -89,18 +89,30 @@ ThreadPoolTask
 		}
 	}
 
+	synchronized final void
+	setManualRelease()
+	{
+		manualRelease = ThreadPoolTask.RELEASE_MANUAL;
+	}
+	
+	synchronized final boolean
+	canManualRelease()
+	{
+		return( manualRelease == ThreadPoolTask.RELEASE_MANUAL_ALLOWED );
+	}
+	
 	/**
 	 * only invoke this method after the first run of the threadpooltask as it is only meant to
 	 * update the state of a task when it has child tasks and thus is running in manual release mode
 	 */
-	synchronized boolean isAutoReleaseAndAllowManual()
+	synchronized final boolean isAutoReleaseAndAllowManual()
 	{
 		if(manualRelease == RELEASE_MANUAL)
 			manualRelease = RELEASE_MANUAL_ALLOWED;
 		return manualRelease == RELEASE_AUTO;
 	}
 	
-	public synchronized void releaseToPool()
+	public final synchronized void releaseToPool()
 	{
 		// releasing before the initial run finished, so just let the runner do the cleanup
 		if(manualRelease == RELEASE_MANUAL)

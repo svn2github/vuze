@@ -327,7 +327,7 @@ public class FilesView
 			
 			DownloadManager dm = fileInfo.getDownloadManager();
 			
-			if ( az3.canPlay(dm, fileInfo.getIndex()) || (stateMask & SWT.CONTROL) > 0 ){
+			if ( az3.canPlay(dm, fileInfo.getIndex()) || (stateMask & SWT.CONTROL) != 0 ){
 				
 				az3.play( dm, fileInfo.getIndex() );
 				

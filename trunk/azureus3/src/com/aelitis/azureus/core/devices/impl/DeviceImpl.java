@@ -352,7 +352,7 @@ DeviceImpl
 		}
 		
 		ImportExportUtils.exportString( map, "_impl", cla );
-		ImportExportUtils.exportLong( map, "_type", new Long( type ));
+		ImportExportUtils.exportLong( map, "_type", type );
 		ImportExportUtils.exportString( map, "_uid", uid );
 		ImportExportUtils.exportString( map, "_name", classification );
 		ImportExportUtils.exportBoolean( map, "_autoname", isNameAutomatic );
@@ -366,7 +366,7 @@ DeviceImpl
 		}
 		
 		if ( !for_export ){
-			ImportExportUtils.exportLong( map, "_ls", new Long( last_seen ));
+			ImportExportUtils.exportLong( map, "_ls", last_seen );
 			ImportExportUtils.exportBoolean( map, "_hide", hidden );
 			ImportExportUtils.exportBoolean( map, "_ahide", auto_hidden );
 		}

@@ -110,7 +110,7 @@ public class SWTSkinObjectImage
 					e.gc.drawImage(imgSrc, 0, 0);
 				} else if (drawMode == DRAW_NORMAL || drawMode == DRAW_CENTER
 						|| drawMode == DRAW_ANIMATE) {
-					if ((control.getStyle() & SWT.RIGHT) > 0) {
+					if ((control.getStyle() & SWT.RIGHT) != 0) {
   					e.gc.drawImage(imgSrc, size.x - imgSrcBounds.width,
   							(size.y - imgSrcBounds.height) / 2);
 					} else {

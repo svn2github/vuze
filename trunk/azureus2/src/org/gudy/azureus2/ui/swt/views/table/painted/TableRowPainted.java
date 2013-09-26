@@ -500,7 +500,7 @@ public class TableRowPainted
 								// problem with icon transparency on win8
 							gc.setAdvanced( false );
 						}
-						if ((style & SWT.RIGHT) > 0) {
+						if ((style & SWT.RIGHT) != 0) {
 							int drawToX = cellBounds.x + cellBounds.width - size.x;
 							gc.drawImage(image, drawToX, drawToY);
 						} else {

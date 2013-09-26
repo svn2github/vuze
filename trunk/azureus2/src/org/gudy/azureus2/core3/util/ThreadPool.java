@@ -195,7 +195,10 @@ ThreadPool
 	setExecutionLimit(
 		long		millis )
 	{
-		execution_limit	= millis;
+		synchronized( this ){
+			
+			execution_limit	= millis;
+		}
 	}
 	
 	public threadPoolWorker run(AERunnable runnable) {
@@ -214,7 +217,7 @@ ThreadPool
 		if(manualRelease && !(runnable instanceof ThreadPoolTask))
 			throw new IllegalArgumentException("manual release only allowed for ThreadPoolTasks");
 		else if(manualRelease)
-			((ThreadPoolTask)runnable).manualRelease = ThreadPoolTask.RELEASE_MANUAL;
+			((ThreadPoolTask)runnable).setManualRelease();
 		
 		// System.out.println( "Thread pool:" + name + " - sem = " + thread_sem.getValue() + ", queue = " + task_queue.size());
 		
@@ -565,7 +568,7 @@ ThreadPool
 	}
 
 	void releaseManual(ThreadPoolTask toRelease) {
-		if(!busy.contains(toRelease.worker) || toRelease.manualRelease != ThreadPoolTask.RELEASE_MANUAL_ALLOWED)
+		if(!busy.contains(toRelease.worker) || !toRelease.canManualRelease())
 			throw new IllegalStateException("task already released or not manually releasable");
 
 		synchronized( this ){

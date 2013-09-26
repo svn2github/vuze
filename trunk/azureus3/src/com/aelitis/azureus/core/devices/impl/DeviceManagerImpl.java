@@ -1505,7 +1505,10 @@ DeviceManagerImpl
 			
 		}else{
 			
-			config_unclean = true;
+			synchronized( this ){
+
+				config_unclean = true;
+			}
 		}
 			
 		if ( !disable_events.contains( device )){

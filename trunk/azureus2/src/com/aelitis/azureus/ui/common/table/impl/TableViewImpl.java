@@ -1252,7 +1252,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	public abstract int uiGuessMaxVisibleRows();
 
 	public void resetLastSortedOn() {
-		lLastSortedOn = 0;
+		synchronized (rows_sync) {
+			lLastSortedOn = 0;
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getColumnCells(java.lang.String)

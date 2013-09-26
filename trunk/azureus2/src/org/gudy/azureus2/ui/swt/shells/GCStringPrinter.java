@@ -287,10 +287,10 @@ public class GCStringPrinter
 		
 		boolean hasSlashR = string.indexOf('\r') > 0;
 
-		boolean fullLinesOnly = (printFlags & FLAG_FULLLINESONLY) > 0;
-		boolean skipClip = (printFlags & FLAG_SKIPCLIP) > 0;
-		boolean noDraw = (printFlags & FLAG_NODRAW) > 0;
-		wrap = (swtFlags & SWT.WRAP) > 0;
+		boolean fullLinesOnly = (printFlags & FLAG_FULLLINESONLY) != 0;
+		boolean skipClip = (printFlags & FLAG_SKIPCLIP) != 0;
+		boolean noDraw = (printFlags & FLAG_NODRAW) != 0;
+		wrap = (swtFlags & SWT.WRAP) != 0;
 		
 		if ((swtFlags & (SWT.TOP | SWT.BOTTOM)) == 0) {
 			// center vertically -- must be fullLinesOnly
@@ -817,7 +817,7 @@ public class GCStringPrinter
 						+ word.length() + ". "
 						+ "wrap?" + wrap);
 			}
-			if (wrap && (printFlags & FLAG_FULLLINESONLY) > 0) {
+			if (wrap && (printFlags & FLAG_FULLLINESONLY) != 0) {
 				int nextLineHeight = gc.stringExtent(GOOD_STRING).y;
 				if (iCurrentHeight + ptLineAndWordSize.y + nextLineHeight > printArea.height) {
 					if (DEBUG) {
@@ -931,9 +931,9 @@ public class GCStringPrinter
 		}
 		
 		int x0;
-		if ((swtFlags & SWT.RIGHT) > 0) {
+		if ((swtFlags & SWT.RIGHT) != 0) {
 			x0 = printArea.x + printArea.width - lineInfo.outputLineExtent.x;
-		} else if ((swtFlags & SWT.CENTER) > 0) {
+		} else if ((swtFlags & SWT.CENTER) != 0) {
 			x0 = printArea.x + (printArea.width - lineInfo.outputLineExtent.x) / 2;
 		} else {
 			x0 = printArea.x;

@@ -188,7 +188,7 @@ public class TableViewPainted
 		//		sDefaultSortOn = _sDefaultSortOn;
 		//		iTableStyle = _iTableStyle | SWT.V_SCROLL | SWT.DOUBLE_BUFFERED;
 		this.sDefaultSortOn = _sDefaultSortOn;
-		this.isMultiSelect = (_iTableStyle & SWT.MULTI) > 0;
+		this.isMultiSelect = (_iTableStyle & SWT.MULTI) != 0;
 		
 		// Deselect rows if user clicks on a blank spot (a spot with no row)
 		tvSWTCommon = new TableViewSWT_Common(this) {
@@ -206,7 +206,7 @@ public class TableViewPainted
 				}
 				if (button == 1) {
   				int keyboardModifier = (stateMask & SWT.MODIFIER_MASK);
-  				if ((keyboardModifier & SWT.SHIFT) > 0) {
+  				if ((keyboardModifier & SWT.SHIFT) != 0) {
   					// select from focus to row
   					selectRowsTo(clickedRow);
   					return;
@@ -227,7 +227,7 @@ public class TableViewPainted
 				}
 				int keyboardModifier = (stateMask & SWT.MODIFIER_MASK);
 				if (button == 1) {
-  				if ((keyboardModifier & (SWT.MOD1)) > 0) {
+  				if ((keyboardModifier & SWT.MOD1) != 0) {
   					// control (win), alt (mac)
   					setRowSelected(clickedRow, !clickedRow.isSelected(), true);
   					return;
@@ -255,7 +255,7 @@ public class TableViewPainted
 				boolean updateTable = false;
 				if (event.keyCode == SWT.ARROW_UP) {
 					TableRowCore rowToSelect = getPreviousRow(focusedRow);
-					if ((event.stateMask & SWT.SHIFT) > 0) {
+					if ((event.stateMask & SWT.SHIFT) != 0) {
 						if (rowToSelect != null) {
 							TableRowCore[] selectedRows = getSelectedRows();
 							Arrays.sort(selectedRows, new TableRowCoreSorter());
@@ -271,7 +271,7 @@ public class TableViewPainted
 							}
 							updateTable = true;
 						}
-					} else if ((event.stateMask & SWT.CONTROL) > 0) {
+					} else if ((event.stateMask & SWT.CONTROL) != 0) {
 						// show one more topRow
 						TableRowPainted firstRow = visibleRows.iterator().next();
 						if (firstRow != null) {
@@ -304,7 +304,7 @@ public class TableViewPainted
 					if (row == null) {
 						row = getRow(0);
 					}
-					if ((event.stateMask & SWT.SHIFT) > 0) {
+					if ((event.stateMask & SWT.SHIFT) != 0) {
 						selectRowsTo(row);
 					} else if (event.stateMask == 0) {
   					setSelectedRows(new TableRowCore[] {
@@ -313,7 +313,7 @@ public class TableViewPainted
 					}
 					updateTable = true;
 				} else if (event.keyCode == SWT.HOME) {
-					if ((event.stateMask & SWT.SHIFT) > 0) {
+					if ((event.stateMask & SWT.SHIFT) != 0) {
 						selectRowsTo(getRow(0));
 					} else if (event.stateMask == 0) {
   					setSelectedRows(new TableRowCore[] {
@@ -322,7 +322,7 @@ public class TableViewPainted
 					}
 					updateTable = true;
 				} else if (event.keyCode == SWT.ARROW_DOWN) {
-					if ((event.stateMask & SWT.CONTROL) > 0) {
+					if ((event.stateMask & SWT.CONTROL) != 0) {
 						// show one less topRow 
 						TableRowPainted firstRow = visibleRows.iterator().next();
 						if (firstRow != null) {
@@ -338,7 +338,7 @@ public class TableViewPainted
 					} else {
 						TableRowCore rowToSelect = getNextRow(focusedRow);
   					if (rowToSelect != null) {
-  						if ((event.stateMask & SWT.SHIFT) > 0) {
+  						if ((event.stateMask & SWT.SHIFT) != 0) {
   							TableRowCore[] selectedRows = getSelectedRows();
   							Arrays.sort(selectedRows, new TableRowCoreSorter());
   							boolean select = selectedRows.length == 0
@@ -370,7 +370,7 @@ public class TableViewPainted
 						}
 						row = nextRow;
 					}
-					if ((event.stateMask & SWT.SHIFT) > 0) {
+					if ((event.stateMask & SWT.SHIFT) != 0) {
 						selectRowsTo(row);
 					} else if (event.stateMask == 0) {
   					setSelectedRows(new TableRowCore[] {
@@ -380,7 +380,7 @@ public class TableViewPainted
 					updateTable = true;
 				} else if (event.keyCode == SWT.END) {
 					TableRowCore lastRow = getRow(getRowCount() - 1);
-					if ((event.stateMask & SWT.SHIFT) > 0) {
+					if ((event.stateMask & SWT.SHIFT) != 0) {
 						selectRowsTo(lastRow);
 					} else if (event.stateMask == 0) {
   					setSelectedRows(new TableRowCore[] {

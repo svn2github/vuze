@@ -380,14 +380,14 @@ public class TableViewSWT_Common
 		}
 
 		if (event.keyCode == SWT.F5) {
-			if ((event.stateMask & SWT.SHIFT) > 0) {
+			if ((event.stateMask & SWT.SHIFT) != 0) {
 				tv.runForSelectedRows(new TableGroupRowRunner() {
 					public void run(TableRowCore row) {
 						row.invalidate();
 						row.refresh(true);
 					}
 				});
-			} else if ((event.stateMask & SWT.CONTROL) > 0) {
+			} else if ((event.stateMask & SWT.CONTROL) != 0) {
 				tv.runForAllRows(new TableGroupRowRunner() {
 					public void run(TableRowCore row) {
 						row.invalidate();

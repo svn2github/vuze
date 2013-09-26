@@ -198,7 +198,7 @@ public final class ShellFactory
 		}
 
 		static private int fixupStyle(int style) {
-			if ((style & (SWT.APPLICATION_MODAL | SWT.SYSTEM_MODAL | SWT.PRIMARY_MODAL)) > 0
+			if ((style & (SWT.APPLICATION_MODAL | SWT.SYSTEM_MODAL | SWT.PRIMARY_MODAL)) != 0
 					&& Utils.anyShellHaveStyle(SWT.ON_TOP | SWT.TITLE)) {
 				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 				if (uiFunctions != null && uiFunctions.getMainShell() != null) {

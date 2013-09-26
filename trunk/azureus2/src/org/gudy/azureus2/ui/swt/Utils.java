@@ -1686,7 +1686,7 @@ public class Utils
 		Shell modalShell = null;
 		for (int i = 0; i < shells.length; i++) {
 			Shell shell = shells[i];
-			if ((shell.getStyle() & SWT.APPLICATION_MODAL) > 0) {
+			if ((shell.getStyle() & SWT.APPLICATION_MODAL) != 0) {
 				modalShell = shell;
 				break;
 			}

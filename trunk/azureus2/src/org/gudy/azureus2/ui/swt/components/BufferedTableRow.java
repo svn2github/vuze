@@ -575,7 +575,7 @@ BufferedTableRow
 
   public boolean setTableItem(TableItemOrTreeItem newRow, boolean isVisible) {
   	if (item == null) {
-  		isVirtual = (table.getStyle() & SWT.VIRTUAL) > 0;
+  		isVirtual = (table.getStyle() & SWT.VIRTUAL) != 0;
   		if (ptIconSize == null) {
   			ptIconSize = new Point(1, table.getItemHeight());
   		}

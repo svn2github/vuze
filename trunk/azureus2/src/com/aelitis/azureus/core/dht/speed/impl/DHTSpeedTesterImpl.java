@@ -467,8 +467,11 @@ DHTSpeedTesterImpl
 		{
 			final pingInstance	pi = new pingInstance( ping_set );
 			
-			outstanding++;
-
+			synchronized( this ){
+				
+				outstanding++;
+			}
+			
 			try{
 				contact.sendImmediatePing(
 					new DHTTransportReplyHandlerAdapter()
@@ -589,11 +592,18 @@ DHTSpeedTesterImpl
 				
 			}catch( Throwable e ){
 			
-				pi.setResult( this, -1 );
+				try{
+					pi.setResult( this, -1 );
 				
-				dead	= true;
-				
-				outstanding--;
+				}finally{
+					
+					synchronized( this ){
+						
+						dead	= true;
+					
+						outstanding--;
+					}
+				}
 				
 				Debug.printStackTrace(e);
 			}

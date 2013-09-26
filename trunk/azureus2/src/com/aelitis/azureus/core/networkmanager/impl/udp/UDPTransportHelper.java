@@ -571,10 +571,20 @@ UDPTransportHelper
     			// most likely selector has been destroyed so don't fire writeselect else
     			// we'll get into a loop
     		
-    		if ( failed == null ){
+    		boolean	report;
     		
-    			failed = e;
+    		synchronized( this ){
     		
+    			report = failed == null;
+    			
+    			if ( report ){
+    		
+    				failed = e;
+    			}
+    		}
+    		
+    		if ( report ){
+    			
     			connection.failedSupport( e );
     		}
     	}
@@ -613,10 +623,20 @@ UDPTransportHelper
     			// most likely selector has been destroyed so don't fire readselect else
     			// we'll get into a loop
     		
-	    	if ( failed == null ){
-    		
-	    		failed = e;
-    		
+	    	  boolean report;
+	    	  
+	    	  synchronized( this ){
+	      		
+	    		  report = failed == null;
+	    			
+	    		  if ( report ){
+	    		
+	    			  failed = e;
+	    		  }
+	    	  }
+	      
+	    	  if ( report ){
+  
 	    		connection.failedSupport( e );
 	    	}
     	}

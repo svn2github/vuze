@@ -268,7 +268,7 @@ redirect_loop:
                            
                 	// webseed support for temp unavail - read the retry_after
             	
-            	long retry_after_date = new Long(connection.getHeaderFieldDate("Retry-After", -1L)).longValue();
+            	long retry_after_date = connection.getHeaderFieldDate("Retry-After", -1L);
             	
                 if ( retry_after_date <= -1 ){
                 	

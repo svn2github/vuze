@@ -129,10 +129,10 @@ public class SBC_ActivityTableView
 				if (e.keyCode == SWT.DEL) {
 					removeSelected();
 				} else if (e.keyCode == SWT.F5) {
-					if ((e.stateMask & SWT.SHIFT) > 0) {
+					if ((e.stateMask & SWT.SHIFT) != 0) {
 						VuzeActivitiesManager.resetRemovedEntries();
 					}
-					if ((e.stateMask & SWT.CONTROL) > 0) {
+					if ((e.stateMask & SWT.CONTROL) != 0) {
 						System.out.println("pull all vuze news entries");
 						VuzeActivitiesManager.clearLastPullTimes();
 						VuzeActivitiesManager.pullActivitiesNow(0, "^F5", true);

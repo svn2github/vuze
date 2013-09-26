@@ -374,7 +374,10 @@ public class SystemTraySWT
 			}
 		});
 		
-		singleton = null;
+		synchronized( SystemTraySWT.class ){
+		
+			singleton = null;
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
