@@ -504,9 +504,7 @@ public class PieceGraphView
 			int numBlocks = piece.getNbBlocks();
 			totalBlocks += numBlocks;
 
-			boolean done = (piece == null) ? false : piece.isDone();
-
-			if (done) {
+			if (piece.isDone()) {
 				totalComplete += numBlocks;
 			} else {
 				// !done

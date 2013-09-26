@@ -150,7 +150,7 @@ LightWeightSeedManager
 				
 			}else{
 				
-				synchronized( this ){
+				synchronized( dht_add_queue ){
 					
 					borked = true;
 					

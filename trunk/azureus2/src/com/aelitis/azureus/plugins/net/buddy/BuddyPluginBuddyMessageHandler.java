@@ -462,13 +462,13 @@ BuddyPluginBuddyMessageHandler
 	protected void
 	checkPendingSuccess()
 	{
-		last_pending_success	= 0;
-		
 		List	pending_messages = new ArrayList();
 		
 		boolean	save_pending = false;
 		
 		synchronized( this ){
+			
+			last_pending_success	= 0;
 
 			List pending_success = (List)config_map.get( "pending_success" );
 

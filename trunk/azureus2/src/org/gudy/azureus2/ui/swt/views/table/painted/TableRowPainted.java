@@ -42,7 +42,7 @@ public class TableRowPainted
 
 	private int subRowsHeight;
 
-	TableCellCore cellSort;
+	private TableCellCore cellSort;
 
 	final static public Color[] alternatingColors = new Color[] {
 		null,
@@ -702,11 +702,13 @@ public class TableRowPainted
 	public void delete() {
 		super.delete();
 		
-		if ( cellSort != null && !cellSort.isDisposed()){
-			
-			cellSort.dispose();
-			
-			cellSort = null;
+		synchronized (lock) {
+			if ( cellSort != null && !cellSort.isDisposed()){
+				
+				cellSort.dispose();
+				
+				cellSort = null;
+			}
 		}
 		
 		deleteExistingSubRows();
@@ -763,9 +765,11 @@ public class TableRowPainted
 
 	public void setSubItems(Object[] datasources) {
 		deleteExistingSubRows();
-		subDataSources = datasources;
-		subRowsHeight = 0;
-		setSubItemCount(datasources.length);
+		synchronized (subRows_sync) {
+			subDataSources = datasources;
+			subRowsHeight = 0;
+			setSubItemCount(datasources.length);
+		}
 	}
 
 	public TableRowCore[] getSubRowsWithNull() {
@@ -961,7 +965,9 @@ public class TableRowPainted
 	}
 
 	public TableCellCore getSortColumnCell(String hint) {
-		return cellSort;
+		synchronized (lock) {
+			return cellSort;
+		}
 	}
 
 	public void setSortColumn(String columnID) {

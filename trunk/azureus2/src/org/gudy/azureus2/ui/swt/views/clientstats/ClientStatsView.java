@@ -510,7 +510,9 @@ public class ClientStatsView
 	protected void register(AzureusCore core) {
 		this.core = core;
 		core.getGlobalManager().addListener(this);
-		startedListeningOn = SystemTime.getCurrentTime();
+		synchronized (mapData) {
+			startedListeningOn = SystemTime.getCurrentTime();
+		}
 	}
 
 	public void destroyInitiated() {

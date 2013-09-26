@@ -921,6 +921,11 @@ LongTermStatsImpl
 							}
 						}
 						
+						if ( file_totals == null ){
+							
+							file_totals = new long[0];
+						}
+						
 						System.out.println( "File total: start=" + debug_utc_format.format(file_start_time) + ", end=" + debug_utc_format.format(session_time) + " - " + getString( file_totals ));
 						
 						if ( can_cache ){

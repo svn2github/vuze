@@ -178,9 +178,8 @@ public class SWTSkinUtils
 						return;
 					}
 
-					if (destSize != null) {
-						if (fd != null
-								&& (fd.width != destSize.x || fd.height != destSize.y)) {
+					//if (destSize != null) {
+						if (fd.width != destSize.x || fd.height != destSize.y) {
 							if (fast) {
 								fd.width = destSize.x;
 								fd.height = destSize.y;
@@ -191,7 +190,7 @@ public class SWTSkinUtils
 								runAfterSlide = null; // prevent calling again
 							}
 						}
-					} else {
+					/*} else {
 						if (fd.width == 0) {
 							fd.width = SWT.DEFAULT;
 						}
@@ -200,7 +199,7 @@ public class SWTSkinUtils
 						}
 						control.setLayoutData(fd);
 						Utils.relayout(control);
-					}
+					}*/
 					control.setData("v3.oldHeight", null);
 				} else {
 					final FormData fd = (FormData) control.getLayoutData();

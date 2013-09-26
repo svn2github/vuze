@@ -31,7 +31,7 @@ UIConst
   private static AzureusCore	azureus_core;
   private static boolean        must_init_core;
   
-  public static void
+  public static synchronized void
   setAzureusCore(
   	AzureusCore		_azureus_core )
   {
@@ -52,7 +52,7 @@ UIConst
   	return( azureus_core );
   }
   
-  public static GlobalManager
+  public static synchronized GlobalManager
   getGlobalManager()
   {
   	return( azureus_core.getGlobalManager());

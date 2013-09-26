@@ -337,13 +337,13 @@ ThreadPool
 					{
 						threadPoolWorker x = (threadPoolWorker) busy.get(i);
 						AERunnable r = x.runnable;
-						if (x != null)
+						if (r != null)
 						{
 							String name;
 							if (r instanceof ThreadPoolTask)
 								name = ((ThreadPoolTask) r).getName();
 							else
-								name = x.getClass().getName();
+								name = r.getClass().getName();
 							task_names += (task_names.length() == 0 ? "" : ",") + name;
 						}
 					}

@@ -423,7 +423,10 @@ CustomizationManagerImpl
 	    	}
 	    }
 	    	
-	    current_customization_name = active;
+	    synchronized( this ){
+	    	
+	    	current_customization_name = active;
+	    }
 	}
 	
 	protected void

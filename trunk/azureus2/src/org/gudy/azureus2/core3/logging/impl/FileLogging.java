@@ -323,7 +323,7 @@ public class FileLogging implements ILogEventListener {
 
 		//text.append(event.text);
 
-		if (event.text == null || !event.text.endsWith("\n"))
+		if (!event.text.endsWith("\n"))
 			text.append("\r\n");
 
 		boolean okToLog = true;

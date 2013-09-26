@@ -1522,21 +1522,23 @@ public class SWTSkin
 						parentSkinObject);
 			} else {
 				System.err.println(sConfigID + ": Invalid type of " + sType);
+				return( null );
 			}
 
-			skinObject.setData("CreationParams", datasource);
-			if (datasource != null) {
-				skinObject.triggerListeners(
-						SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED, datasource);
-			}
-
-			if (bAddView) {
-				String sViewID = skinObject.getViewID();
-				if (sViewID != null) {
-					setSkinObjectViewID(skinObject, sViewID);
+			if ( skinObject != null ){ // can be null from createContainer2
+				skinObject.setData("CreationParams", datasource);
+				if (datasource != null) {
+					skinObject.triggerListeners(
+							SWTSkinObjectListener.EVENT_DATASOURCE_CHANGED, datasource);
+				}
+	
+				if (bAddView) {
+					String sViewID = skinObject.getViewID();
+					if (sViewID != null) {
+						setSkinObjectViewID(skinObject, sViewID);
+					}
 				}
 			}
-
 		} catch (Exception e) {
 			e.printStackTrace();
 		} finally {
@@ -1769,7 +1771,9 @@ public class SWTSkin
 			bPropogate = ((SWTSkinObjectContainer) parentSkinObject).getPropogation();
 		}
 		if (bPropogate) {
-			((SWTSkinObjectContainer) skinObject).setPropogation(true);
+			if ( skinObject != null ){
+				((SWTSkinObjectContainer) skinObject).setPropogation(true);
+			}
 		}
 
 		if (sItems != null) {

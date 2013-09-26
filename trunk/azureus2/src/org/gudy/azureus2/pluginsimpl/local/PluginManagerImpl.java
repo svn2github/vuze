@@ -145,15 +145,12 @@ PluginManagerImpl
 				throw( new RuntimeException( Constants.APP_NAME + " failed to start", e ));
 			}
 		}else if ( ui_type == PluginManager.UI_SWT ){
+								
+			String	mi = (String)properties.get( PluginManager.PR_MULTI_INSTANCE );
 				
-			if ( properties != null ){
+			if ( mi != null && mi.equalsIgnoreCase("true")){
 				
-				String	mi = (String)properties.get( PluginManager.PR_MULTI_INSTANCE );
-				
-				if ( mi != null && mi.equalsIgnoreCase("true")){
-					
-					System.setProperty( PluginManager.PR_MULTI_INSTANCE, "true" );
-				}
+				System.setProperty( PluginManager.PR_MULTI_INSTANCE, "true" );
 			}
 			
 				// 	org.gudy.azureus2.ui.swt.Main.main(new String[0]);

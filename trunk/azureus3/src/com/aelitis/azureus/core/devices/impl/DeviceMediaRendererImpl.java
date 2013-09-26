@@ -90,7 +90,7 @@ DeviceMediaRendererImpl
 	public void setAddress(InetAddress address) {
 		super.setAddress(address);
 		
-		if (address != null && getType() == DT_MEDIA_RENDERER) {
+		if ( getType() == DT_MEDIA_RENDERER) {
 			//System.out.println("Set Address " + address.getHostAddress() + "; " + getName() + "/" + getClassification());
 
 			boolean hasUPnPDevice = getUPnPDevice() != null;

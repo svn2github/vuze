@@ -87,7 +87,7 @@ public class TableCellPainted
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableCell#getTableID()
 	 */
 	public String getTableID() {
-		return tableRow.getTableID();
+		return tableRow==null?null:tableRow.getTableID();
 	}
 
 	@SuppressWarnings("null")
@@ -123,7 +123,7 @@ public class TableCellPainted
 	 * @see org.gudy.azureus2.plugins.ui.tables.TableCell#isShown()
 	 */
 	public boolean isShown() {
-		return !isDisposed() && tableRow.getView().isColumnVisible(tableColumn);
+		return !isDisposed() && tableRow != null && tableRow.getView().isColumnVisible(tableColumn);
 	}
 
 	/* (non-Javadoc)

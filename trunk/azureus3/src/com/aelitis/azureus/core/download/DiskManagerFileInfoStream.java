@@ -337,7 +337,10 @@ DiskManagerFileInfoStream
 										throw( new IOException( "Stream failed" ));
 									}
 									
-									stream_got_eof	= true;
+									synchronized( lock ){
+
+										stream_got_eof	= true;
+									}
 									
 									break;
 								}

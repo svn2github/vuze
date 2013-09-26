@@ -252,7 +252,7 @@ SWTNetworkSelection
 			shell.open ();   
 			
 			while (!shell.isDisposed()) {
-				if (display != null && !display.isDisposed() && !display.readAndDispatch()) {
+				if (!display.isDisposed() && !display.readAndDispatch()) {
 					display.sleep();
 				}
 			}

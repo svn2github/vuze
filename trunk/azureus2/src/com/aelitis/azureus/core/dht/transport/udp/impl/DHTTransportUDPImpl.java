@@ -1130,7 +1130,10 @@ DHTTransportUDPImpl
 						
 						if ( incoming ){
 							
-							other_routable_total++;
+							synchronized( routeable_percentage_average ){
+								
+								other_routable_total++;
+							}
 						}
 												
 						routable_contact_history.put( contact.getTransportAddress(), contact );
@@ -1139,7 +1142,10 @@ DHTTransportUDPImpl
 						
 						if ( incoming ){
 							
-							other_non_routable_total++;
+							synchronized( routeable_percentage_average ){
+							
+								other_non_routable_total++;
+							}
 						}
 					}
 				}

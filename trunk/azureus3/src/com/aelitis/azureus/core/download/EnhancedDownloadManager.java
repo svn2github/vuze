@@ -843,15 +843,15 @@ EnhancedDownloadManager
 
     		progressiveStats stats = progressive_stats;
 
-    		EnhancedDownloadManagerFile file = stats.getFile();
-
-    		if ( disk_manager == null || stats == null || file.isComplete()){
+    		if ( disk_manager == null || stats == null || stats.getFile().isComplete()){
      				
     			deactivate( picker );
     			
     			return( null );
     		}
-    		
+
+       		EnhancedDownloadManagerFile file = stats.getFile();
+
 			long	abs_provider_pos = stats.getCurrentProviderPosition( true );
  			long	rel_provider_pos = stats.getCurrentProviderPosition( false );
 

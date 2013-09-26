@@ -282,7 +282,7 @@ ProgressWindow
 
 		spinImages = ImageLoader.getInstance().getImages("working");
 		
-		if ( spinImages.length == 0 || spinImages == null ){
+		if ( spinImages == null || spinImages.length == 0 ){
 			
 			new Label( shell, SWT.NULL );
 			

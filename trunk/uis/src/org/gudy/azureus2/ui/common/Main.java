@@ -89,7 +89,7 @@ public class Main {
       if (constart)
         System.exit(2);
     }
-    if (commands.hasOption('h')) {
+    if ( commands != null && commands.hasOption('h')) {
       if (constart) {
         HelpFormatter hf = new HelpFormatter();
         hf.printHelp("java org.gudy.azureus2.ui.common.Main", "Optionally you can put torrent files to add to the end of the command line.\r\n", options, "Available User Interfaces: swt (default), web, console\r\nThe default interface is not started if you give either the '-e' or '-c' option (But you can start it by hand with '-u').", true);

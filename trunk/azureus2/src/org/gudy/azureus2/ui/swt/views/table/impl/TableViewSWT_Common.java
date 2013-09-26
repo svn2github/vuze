@@ -1064,9 +1064,7 @@ public class TableViewSWT_Common
 			}
 		});
 
-		if (menu != null) {
-			menu.setData("column", column);
-		}
+		menu.setData("column", column);
 		
 		if (column == null) {
 			return;

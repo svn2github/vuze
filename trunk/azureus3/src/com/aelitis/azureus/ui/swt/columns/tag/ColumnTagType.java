@@ -48,7 +48,7 @@ public class ColumnTagType
 		}
 		
 		
-		if (!cell.setSortValue(sortVal.getTagType()) && cell.isValid()) {
+		if (!cell.setSortValue(sortVal==null?0:sortVal.getTagType()) && cell.isValid()) {
 			return;
 		}
 
@@ -56,6 +56,6 @@ public class ColumnTagType
 			return;
 		}
 		
-		cell.setText(sortVal.getTagTypeName(true));
+		cell.setText(sortVal==null?"":sortVal.getTagTypeName(true));
 	}
 }

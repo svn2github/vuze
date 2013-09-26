@@ -168,8 +168,10 @@ DeviceMediaRendererManual
 			
 			setPersistentBooleanProperty( PP_COPY_OUTSTANDING, false );
 			
-			copy_outstanding 		= false;
-			copy_outstanding_set	= false;
+			synchronized( this ){
+				copy_outstanding 		= false;
+				copy_outstanding_set	= false;
+			}
 		}
 	}
 	

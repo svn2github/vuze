@@ -97,7 +97,7 @@ public abstract class BufferedTableItemImpl implements BufferedTableItem
 				if (runnableDirtyCell == null) {
 					runnableDirtyCell = new AERunnable() {
 						public void runSupport() {
-							synchronized (this) {
+							synchronized (BufferedTableItemImpl.this) {
 								isDirty = false;
 							}
 							if (isInPaintItem()

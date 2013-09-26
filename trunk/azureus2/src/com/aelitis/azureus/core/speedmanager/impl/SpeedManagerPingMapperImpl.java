@@ -131,7 +131,7 @@ SpeedManagerPingMapperImpl
 		init();
 	}
 	
-	protected void
+	protected synchronized void
 	init()
 	{
 		pings		= new pingValue[max_pings];

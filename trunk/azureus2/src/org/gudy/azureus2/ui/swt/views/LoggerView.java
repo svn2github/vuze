@@ -606,7 +606,10 @@ public class LoggerView
 	}
 
 	public void setFilter(Object[] _filter) {
-		filter = _filter;
+		synchronized( this ){
+			filter = _filter;
+		}
+		
 		clearConsole();
 	}
 

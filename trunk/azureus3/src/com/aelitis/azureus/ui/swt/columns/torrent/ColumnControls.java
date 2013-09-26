@@ -183,7 +183,7 @@ public class ColumnControls
 
 		// @see org.gudy.azureus2.plugins.ui.tables.TableCellMouseListener#cellMouseTrigger(org.gudy.azureus2.plugins.ui.tables.TableCellMouseEvent)
 		public void cellMouseTrigger(TableCellMouseEvent event) {
-			if (event.data instanceof ColumnImageClickArea) {
+			if (event.data instanceof ColumnImageClickArea && event.cell != null) {
 				DownloadManager dm = (DownloadManager) event.cell.getDataSource();
 				if (dm == null) {
 					return;

@@ -1161,115 +1161,112 @@ DeviceOfflineDownloaderImpl
 			
 			transferable.put( current_transfer.getHash(), current_transfer );
 		}
-		
-		if ( current_transfer != null ){
-			
-			if ( !current_transfer.isActive()){
-				
-				current_transfer.activate();
-			}
-			
-			if ( current_transfer.isForced()){
-				
-				Map<String,Map> xfer_cache = new HashMap<String,Map>();
-				
-				Map m = new HashMap();
-				
-				m.put( "f", new Long(1));
-				
-				xfer_cache.put( current_transfer.getHash(), m );
-				
-				setPersistentMapProperty( PP_OD_XFER_CACHE, xfer_cache );
-			}
-			
-			DownloadManager	download = current_transfer.getDownload();
-			
-			int	data_port = current_transfer.getDataPort();
-			
-			if ( data_port <= 0 ){
-								
-				try{
-					String[] start_results = service.startDownload( client_id, current_transfer.getHash());
 					
-					String start_status = start_results[1];
-					
-					if ( !start_status.equals( "OK" )){
-						
-						throw( new Exception( "Failing result returned: " + start_status ));
-					}
-					
-					data_port = Integer.parseInt( start_results[0] );
-					
-					log( download, "StartDownload succeeded - data port=" + data_port );
-
-				}catch( Throwable e ){
-					
-					log( download, "StartDownload failed", e );
-				}
-			}
+		if ( !current_transfer.isActive()){
 			
-			if ( data_port > 0 ){
-				
-				current_transfer.setDataPort( data_port );
-			}
-			
-			final TransferableDownload transfer = current_transfer;
-
-			dispatcher.dispatch(
-				new AERunnable()
-				{
-					private final int[]	count = { 0 };
-					
-					public void
-					runSupport()
-					{
-						count[0]++;
-						
-						if ( current_transfer != transfer || !transfer.isActive()){
-							
-							return;
-						}
-						
-						PEPeerManager pm = transfer.getDownload().getPeerManager();
-						
-						if ( pm == null ){
-							
-							return;
-						}
-						
-						List<PEPeer> peers = pm.getPeers( service_ip );
-								
-						if ( peers.size() > 0 ){
-			
-							return;
-						}
-						
-						Map	user_data = new LightHashMap();
-												
-						user_data.put( Peer.PR_PRIORITY_CONNECTION, new Boolean( true ));
-						
-						pm.addPeer( service_ip, transfer.getDataPort(), 0, false, user_data );
-						
-						if ( count[0] < 3 ){
-							
-							final AERunnable target = this;
-							
-							SimpleTimer.addEvent(
-								"OD:retry",
-								SystemTime.getCurrentTime()+5*1000,
-								new TimerEventPerformer()
-								{
-									public void 
-									perform(
-										org.gudy.azureus2.core3.util.TimerEvent event ) 
-									{
-										dispatcher.dispatch( target );
-									};
-								});
-						}
-					}
-				});
+			current_transfer.activate();
 		}
+		
+		if ( current_transfer.isForced()){
+			
+			Map<String,Map> xfer_cache = new HashMap<String,Map>();
+			
+			Map m = new HashMap();
+			
+			m.put( "f", new Long(1));
+			
+			xfer_cache.put( current_transfer.getHash(), m );
+			
+			setPersistentMapProperty( PP_OD_XFER_CACHE, xfer_cache );
+		}
+		
+		DownloadManager	download = current_transfer.getDownload();
+		
+		int	data_port = current_transfer.getDataPort();
+		
+		if ( data_port <= 0 ){
+							
+			try{
+				String[] start_results = service.startDownload( client_id, current_transfer.getHash());
+				
+				String start_status = start_results[1];
+				
+				if ( !start_status.equals( "OK" )){
+					
+					throw( new Exception( "Failing result returned: " + start_status ));
+				}
+				
+				data_port = Integer.parseInt( start_results[0] );
+				
+				log( download, "StartDownload succeeded - data port=" + data_port );
+
+			}catch( Throwable e ){
+				
+				log( download, "StartDownload failed", e );
+			}
+		}
+		
+		if ( data_port > 0 ){
+			
+			current_transfer.setDataPort( data_port );
+		}
+		
+		final TransferableDownload transfer = current_transfer;
+
+		dispatcher.dispatch(
+			new AERunnable()
+			{
+				private final int[]	count = { 0 };
+				
+				public void
+				runSupport()
+				{
+					count[0]++;
+					
+					if ( current_transfer != transfer || !transfer.isActive()){
+						
+						return;
+					}
+					
+					PEPeerManager pm = transfer.getDownload().getPeerManager();
+					
+					if ( pm == null ){
+						
+						return;
+					}
+					
+					List<PEPeer> peers = pm.getPeers( service_ip );
+							
+					if ( peers.size() > 0 ){
+		
+						return;
+					}
+					
+					Map	user_data = new LightHashMap();
+											
+					user_data.put( Peer.PR_PRIORITY_CONNECTION, new Boolean( true ));
+					
+					pm.addPeer( service_ip, transfer.getDataPort(), 0, false, user_data );
+					
+					if ( count[0] < 3 ){
+						
+						final AERunnable target = this;
+						
+						SimpleTimer.addEvent(
+							"OD:retry",
+							SystemTime.getCurrentTime()+5*1000,
+							new TimerEventPerformer()
+							{
+								public void 
+								perform(
+									org.gudy.azureus2.core3.util.TimerEvent event ) 
+								{
+									dispatcher.dispatch( target );
+								};
+							});
+					}
+				}
+			});
 	}
 	
 	protected void

@@ -1352,19 +1352,21 @@ PRUDPPacketHandlerImpl
 														
 														data = (Object[])send_queues[selected_priority].remove(0);
 														
+														DatagramPacket				p	= (DatagramPacket)data[0];
+
+															// mark as sent before sending in case send fails
+															// and we then rely on timeout to pick this up
+														
+														send_queue_data_size	-= p.getLength();
+
 													}finally{
 														
 														send_queue_mon.exit();
 													}
 																									
-													DatagramPacket				p	= (DatagramPacket)data[0];
+													DatagramPacket					p	= (DatagramPacket)data[0];
 													PRUDPPacketHandlerRequestImpl	r	= (PRUDPPacketHandlerRequestImpl)data[1];
 
-														// mark as sent before sending in case send fails
-														// and we then rely on timeout to pick this up
-													
-													send_queue_data_size	-= p.getLength();
-													
 													r.sent();
 													
 													sendToSocket( p );

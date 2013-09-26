@@ -175,7 +175,7 @@ DirectByteBuffer
 	private DirectByteBufferPool	pool;
 	private byte					allocator;
 	private byte					flags;
-	private boolean                 was_returned_to_pool = false;
+	//private boolean                 was_returned_to_pool = false;
   
 	
 	//private byte[]					trace_buffer;
@@ -754,7 +754,7 @@ DirectByteBuffer
 					pool.returnBufferSupport( this );
 					
 					buffer	= null;
-					was_returned_to_pool = true;
+					//was_returned_to_pool = true;
 				}
 			}
 		}
@@ -783,7 +783,7 @@ DirectByteBuffer
 					pool.returnBufferSupport( this );
 					
 					buffer	= null;
-					was_returned_to_pool = true;
+					//was_returned_to_pool = true;
 				}
 			}
 		}

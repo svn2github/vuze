@@ -391,7 +391,7 @@ public class ImageLoader
 					
 					releaseImage(image_key);
 					
-				}else if ( image != null ){
+				}else{
 					
 					image.dispose();
 				}
