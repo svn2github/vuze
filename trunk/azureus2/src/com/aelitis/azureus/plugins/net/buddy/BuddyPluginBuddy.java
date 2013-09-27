@@ -975,16 +975,22 @@ BuddyPluginBuddy
 		return( last_message_received==null?"":last_message_received );
 	}
 	
-	protected List
+	protected List<Long>
 	getYGMMarkers()
 	{
-		return( recent_ygm );
+		synchronized( this ){
+		
+			return( recent_ygm==null?null:new ArrayList<Long>( recent_ygm ));
+		}
 	}
 	
 	protected int
 	getLastStatusSeq()
 	{
-		return( last_status_seq );
+		synchronized( this ){
+			
+			return( last_status_seq );
+		}
 	}
 	
 	protected void
@@ -1278,15 +1284,19 @@ BuddyPluginBuddy
 				
 		if ( ip == null ){
 			
-			if ( check_active ){
+			synchronized( this ){
 				
-				wait	= true;
+				wait = check_active;
+			}
+			
+			if ( !wait ){
+			
+				if ( SystemTime.getCurrentTime() - last_status_check_time > 30*1000 ){
 				
-			}else if ( SystemTime.getCurrentTime() - last_status_check_time > 30*1000 ){
+					plugin.updateBuddyStatus( this );
 				
-				plugin.updateBuddyStatus( this );
-				
-				wait	= true;
+					wait	= true;
+				}
 			}
 		}
 		

@@ -1052,7 +1052,12 @@ PairingManagerImpl
 			
 			List<Runnable>	to_do = new ArrayList<Runnable>();
 			
-			Set<String> existing_checked = new HashSet<String>( local_address_checks.keySet());
+			Set<String> existing_checked;
+			
+			synchronized( local_address_checks ){
+				
+				existing_checked = new HashSet<String>( local_address_checks.keySet());
+			}
 			
 			for ( NetworkAdminNetworkInterface intf: interfaces ){
 				
@@ -1114,31 +1119,28 @@ PairingManagerImpl
 										synchronized( local_address_checks ){
 											
 											local_address_checks.put( a_str, new Object[]{ new Long(now), result });
-											
-											if ( ia instanceof Inet4Address ){
+										}
+										
+										if ( ia instanceof Inet4Address ){
 												
-												latest_v4_locals.add( result );
+											latest_v4_locals.add( result );
 												
-											}else{
+										}else{
 												
-												latest_v6_locals.add( result );
-											}
+											latest_v6_locals.add( result );
 										}
 									}
 								});
 							
 						}else{
+													
+							if ( ia instanceof Inet4Address ){
 							
-							synchronized( local_address_checks ){
-						
-								if ( ia instanceof Inet4Address ){
+								latest_v4_locals.add((String)check[1]);
 								
-									latest_v4_locals.add((String)check[1]);
-									
-								}else{
-									
-									latest_v6_locals.add((String)check[1]);
-								}
+							}else{
+								
+								latest_v6_locals.add((String)check[1]);
 							}
 						}
 					}
@@ -1172,9 +1174,12 @@ PairingManagerImpl
 				}
 			}
 			
-			for ( String excess: existing_checked ){
+			synchronized( local_address_checks ){
 				
-				local_address_checks.remove( excess );
+				for ( String excess: existing_checked ){
+					
+					local_address_checks.remove( excess );
+				}
 			}
 			
 			String v4_locals_str = getString( latest_v4_locals );
@@ -2204,7 +2209,10 @@ PairingManagerImpl
 		getAttribute(
 			String		name )
 		{
-			return( attributes.get( name ));
+			synchronized( this ){
+			
+				return( attributes.get( name ));
+			}
 		}
 		
 		public void

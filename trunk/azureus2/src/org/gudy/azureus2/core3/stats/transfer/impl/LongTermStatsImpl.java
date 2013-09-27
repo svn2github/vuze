@@ -232,7 +232,10 @@ LongTermStatsImpl
 	public boolean
 	isEnabled()
 	{
-		return( active );
+		synchronized( this ){
+		
+			return( active );
+		}
 	}
 	
 	private DHT[]

@@ -49,7 +49,6 @@ import com.aelitis.azureus.core.devices.TranscodeActionVetoException;
 import com.aelitis.azureus.core.devices.TranscodeTarget;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoFile;
 import com.aelitis.azureus.core.download.DiskManagerFileInfoURL;
-import com.aelitis.azureus.core.messenger.config.PlatformDevicesMessenger;
 import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.util.ImportExportUtils;
 
@@ -173,32 +172,35 @@ TranscodeJobImpl
 		try{
 			Map<String,Object> map = new HashMap<String, Object>();
 			
-			ImportExportUtils.exportInt( map, "state", state );
-			ImportExportUtils.exportString( map, "error", error );
-			
-			ImportExportUtils.exportString( map, "target", target.getID());
-			
-			ImportExportUtils.exportString( map, "profile", profile.getUID());
-			
-			try{
-				Download download = file.getDownload();
+			synchronized( this ){
 				
-				ImportExportUtils.exportString( map, "dl_hash", ByteFormatter.encodeString( download.getTorrent().getHash()));
-
-				ImportExportUtils.exportInt( map, "file_index", file.getIndex());
-
-			}catch( DownloadException e ){
+				ImportExportUtils.exportInt( map, "state", state );
+				ImportExportUtils.exportString( map, "error", error );
 				
-					// external file
+				ImportExportUtils.exportString( map, "target", target.getID());
 				
-				ImportExportUtils.exportString( map, "file", file.getFile().getAbsolutePath());
+				ImportExportUtils.exportString( map, "profile", profile.getUID());
+				
+				try{
+					Download download = file.getDownload();
+					
+					ImportExportUtils.exportString( map, "dl_hash", ByteFormatter.encodeString( download.getTorrent().getHash()));
+	
+					ImportExportUtils.exportInt( map, "file_index", file.getIndex());
+	
+				}catch( DownloadException e ){
+					
+						// external file
+					
+					ImportExportUtils.exportString( map, "file", file.getFile().getAbsolutePath());
+				}
+			
+				ImportExportUtils.exportInt( map, "trans_req", transcode_requirement );
+					
+				ImportExportUtils.exportBoolean( map, "ar_enable", auto_retry_enabled );
+				
+				ImportExportUtils.exportBoolean( map, "pdi", prefer_direct_input );
 			}
-		
-			ImportExportUtils.exportInt( map, "trans_req", transcode_requirement );
-				
-			ImportExportUtils.exportBoolean( map, "ar_enable", auto_retry_enabled );
-			
-			ImportExportUtils.exportBoolean( map, "pdi", prefer_direct_input );
 			
 			return( map );
 			

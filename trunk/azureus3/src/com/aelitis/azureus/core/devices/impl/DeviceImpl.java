@@ -379,20 +379,25 @@ DeviceImpl
 			ImportExportUtils.exportBoolean( map, "_tag", tagged );
 		}
 		
+		Map<String,Object>	pp_copy;
+		
+		synchronized( persistent_properties ){
+			
+			pp_copy = new HashMap<String, Object>( persistent_properties );
+		}
+
 		if ( for_export ){
+					
+			pp_copy.remove( PP_IP_ADDRESS );
+			pp_copy.remove( PP_COPY_OUTSTANDING );
+			pp_copy.remove( PP_COPY_TO_FOLDER );
+			pp_copy.remove( PP_REND_WORK_DIR );
 			
-			Map<String,Object>	copy = new HashMap<String, Object>( persistent_properties );
-			
-			copy.remove( PP_IP_ADDRESS );
-			copy.remove( PP_COPY_OUTSTANDING );
-			copy.remove( PP_COPY_TO_FOLDER );
-			copy.remove( PP_REND_WORK_DIR );
-			
-			map.put( "_pprops", copy );
+			map.put( "_pprops", pp_copy );
 			
 		}else{
 		
-			map.put( "_pprops", persistent_properties );
+			map.put( "_pprops", pp_copy );
 		}
 	}
 	

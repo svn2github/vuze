@@ -736,7 +736,7 @@ UDPConnectionSet
 	protected boolean
 	idleLimitExceeded()
 	{
-		if ( idle_ticks > IDLE_TICKS + (int)(Math.random()*2000)){
+		if ( idle_ticks > IDLE_TICKS + ((int)(Math.random()*2000) / UDPConnectionManager.TIMER_TICK_MILLIS)){
 			
 			synchronized( connections ){
 				

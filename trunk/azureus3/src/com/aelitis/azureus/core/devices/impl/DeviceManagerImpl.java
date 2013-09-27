@@ -1327,7 +1327,10 @@ DeviceManagerImpl
 	protected boolean
 	isClosing()
 	{
-		return( closing );
+		synchronized( this ){
+		
+			return( closing );
+		}
 	}
 	
 	protected void
@@ -1785,63 +1788,60 @@ DeviceManagerImpl
 		boolean		warn_user )
 	{
 		Map	m = (Map)map.get( "device" );
-		
-		if ( device_map != null ){
+					
+		try{
+			DeviceImpl device = DeviceImpl.importFromBEncodedMapStatic( this, m );
 			
-			try{
-				DeviceImpl device = DeviceImpl.importFromBEncodedMapStatic( this, m );
-				
-				DeviceImpl existing;
-				
-				synchronized( this ){
-					
-					existing = device_map.get( device.getID());
-				}
-				
-				if ( existing == null ){
-					
-					if ( warn_user ){
-						
-						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+			DeviceImpl existing;
 			
-						String details = MessageText.getString(
-								"device.import.desc",
-								new String[]{ device.getName()});
-						
-						long res = ui_manager.showMessageBox(
-								"device.import.title",
-								"!" + details + "!",
-								UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
-						
-						if ( res != UIManagerEvent.MT_YES ){	
-						
-							return;
-						}
-					}
-					
-					addDevice( device, false );
-					
-				}else{
-					
-					if ( warn_user ){
-						
-						UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
-						
-						String details = MessageText.getString(
-								"device.import.dup.desc",
-								new String[]{ existing.getName()});
-						
-						ui_manager.showMessageBox(
-								"device.import.dup.title",
-								"!" + details + "!",
-								UIManagerEvent.MT_OK );
-					}
-					
-				}
-			}catch( Throwable e ){
+			synchronized( this ){
 				
-				Debug.out( e );
+				existing = device_map.get( device.getID());
 			}
+			
+			if ( existing == null ){
+				
+				if ( warn_user ){
+					
+					UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+		
+					String details = MessageText.getString(
+							"device.import.desc",
+							new String[]{ device.getName()});
+					
+					long res = ui_manager.showMessageBox(
+							"device.import.title",
+							"!" + details + "!",
+							UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+					
+					if ( res != UIManagerEvent.MT_YES ){	
+					
+						return;
+					}
+				}
+				
+				addDevice( device, false );
+				
+			}else{
+				
+				if ( warn_user ){
+					
+					UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
+					
+					String details = MessageText.getString(
+							"device.import.dup.desc",
+							new String[]{ existing.getName()});
+					
+					ui_manager.showMessageBox(
+							"device.import.dup.title",
+							"!" + details + "!",
+							UIManagerEvent.MT_OK );
+				}
+				
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
 		}
 	}
 	

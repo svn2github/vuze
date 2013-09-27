@@ -1801,7 +1801,10 @@ BuddyPlugin
 	protected int
 	getCurrentStatusSeq()
 	{
-		return( current_publish.getSequence());
+		synchronized( this ){
+		
+			return( current_publish.getSequence());
+		}
 	}
 	
 	protected void

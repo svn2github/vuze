@@ -111,7 +111,7 @@ UDPConnectionManager
 	private int setup_discard_packets;
 	private int	setup_discard_bytes;
 	
-	private int outbound_connection_count;
+	private volatile int outbound_connection_count;
 	private boolean	max_conn_exceeded_logged;
 	
 	protected
