@@ -149,8 +149,8 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 
 
-	private final Map registered_legacy_managers 	= new HashMap();
-	private final Map	registered_links			= new HashMap();
+	private final Map<HashWrapper,List<PeerManagerRegistrationImpl>> registered_legacy_managers 	= new HashMap<HashWrapper,List<PeerManagerRegistrationImpl>>();
+	private final Map<String,PeerManagerRegistrationImpl>			 registered_links				= new HashMap<String,PeerManagerRegistrationImpl>();
 
 	private final ByteBuffer legacy_handshake_header;
 
@@ -163,7 +163,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 		legacy_handshake_header.put( BTHandshake.PROTOCOL.getBytes() );
 		legacy_handshake_header.flip();
 
-		Set	types = new HashSet();
+		Set<String>	types = new HashSet<String>();
 
 		types.add( AzureusCoreStats.ST_PEER_MANAGER_COUNT );
 		types.add( AzureusCoreStats.ST_PEER_MANAGER_PEER_COUNT );
@@ -177,8 +177,8 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 	public void
 	updateStats(
-			Set		types,
-			Map		values )
+		Set		types,
+		Map		values )
 	{
 		if ( types.contains( AzureusCoreStats.ST_PEER_MANAGER_COUNT )){
 
@@ -197,17 +197,17 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 				managers_mon.enter();
 
-				Iterator	it = registered_legacy_managers.values().iterator();
+				Iterator<List<PeerManagerRegistrationImpl>>	it = registered_legacy_managers.values().iterator();
 
 				while( it.hasNext()){
 
-					List	registrations = (List)it.next();
+					List<PeerManagerRegistrationImpl>	registrations = it.next();
 
-					Iterator	it2 = registrations.iterator();
+					Iterator<PeerManagerRegistrationImpl>	it2 = registrations.iterator();
 
 					while( it2.hasNext()){
 
-						PeerManagerRegistrationImpl reg = (PeerManagerRegistrationImpl)it2.next();
+						PeerManagerRegistrationImpl reg = it2.next();
 
 						PEPeerControl control = reg.getActiveControl();
 
@@ -276,11 +276,11 @@ public class PeerManager implements AzureusCoreStatsProvider{
 					try{
 						managers_mon.enter();
 
-						List	registrations = (List)registered_legacy_managers.get( new HashWrapper( hash ));
+						List<PeerManagerRegistrationImpl>	registrations = registered_legacy_managers.get( new HashWrapper( hash ));
 
 						if ( registrations != null ){
 
-							routing_data = (PeerManagerRegistrationImpl)registrations.get(0);
+							routing_data = registrations.get(0);
 						}
 					}finally{
 
@@ -405,11 +405,11 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 			managers_mon.enter();
 
-			List	registrations = (List)registered_legacy_managers.get( new HashWrapper( hash ));
+			List<PeerManagerRegistrationImpl>	registrations = registered_legacy_managers.get( new HashWrapper( hash ));
 
 			if ( registrations != null ){
 
-				routing_data = (PeerManagerRegistrationImpl)registrations.get(0);
+				routing_data = registrations.get(0);
 			}
 		}finally{
 
@@ -455,7 +455,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 		try{
 			managers_mon.enter();
 
-			PeerManagerRegistrationImpl	registration = (PeerManagerRegistrationImpl)registered_links.get( link );
+			PeerManagerRegistrationImpl	registration = registered_links.get( link );
 
 			if ( registration == null ){
 
@@ -474,9 +474,9 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 	public void
 	manualRoute(
-			PeerManagerRegistration		_registration,
-			NetworkConnection			_connection,
-			PeerManagerRoutingListener	_listener )
+		PeerManagerRegistration		_registration,
+		NetworkConnection			_connection,
+		PeerManagerRoutingListener	_listener )
 	{
 		PeerManagerRegistrationImpl	registration = (PeerManagerRegistrationImpl)_registration;
 
@@ -485,8 +485,8 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 	public PeerManagerRegistration
 	registerLegacyManager(
-			HashWrapper						hash,
-			PeerManagerRegistrationAdapter  adapter )
+		HashWrapper						hash,
+		PeerManagerRegistrationAdapter  adapter )
 	{
 		try{
 			managers_mon.enter();
@@ -494,20 +494,20 @@ public class PeerManager implements AzureusCoreStatsProvider{
 			// normally we only get a max of 1 of these. However, due to DownloadManager crazyness
 			// we can get an extra one when adding a download that already exists...
 
-			List	registrations = (List)registered_legacy_managers.get( hash );
+			List<PeerManagerRegistrationImpl>	registrations = registered_legacy_managers.get( hash );
 
 			byte[][]	secrets = adapter.getSecrets();
 
 			if ( registrations == null ){
 
-				registrations = new ArrayList(1);
+				registrations = new ArrayList<PeerManagerRegistrationImpl>(1);
 
 				registered_legacy_managers.put( hash, registrations );
 
 				IncomingConnectionManager.getSingleton().addSharedSecrets( secrets );
 			}
 
-			PeerManagerRegistration	registration = new PeerManagerRegistrationImpl( hash, adapter );
+			PeerManagerRegistrationImpl	registration = new PeerManagerRegistrationImpl( hash, adapter );
 
 			registrations.add( registration );
 
@@ -523,7 +523,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 	private class
 	PeerManagerRegistrationImpl
-	implements PeerManagerRegistration
+		implements PeerManagerRegistration
 	{
 		private HashWrapper 					hash;
 		private PeerManagerRegistrationAdapter	adapter;
@@ -532,16 +532,16 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 		private volatile PEPeerControl			active_control;
 
-		private List	pending_connections;
+		private List<Object[]>	pending_connections;
 
 		private BloomFilter		known_seeds;
 
-		private Map				links;
+		private Map<String,TOTorrentFile>			links;
 
 		protected
 		PeerManagerRegistrationImpl(
-				HashWrapper						_hash,
-				PeerManagerRegistrationAdapter	_adapter )
+			HashWrapper						_hash,
+			PeerManagerRegistrationAdapter	_adapter )
 		{
 			hash	= _hash;
 			adapter	= _adapter;
@@ -554,29 +554,32 @@ public class PeerManager implements AzureusCoreStatsProvider{
 		}
 
 		protected byte[]
-		               getHash()
+		getHash()
 		{
 			return( hash.getBytes() );
 		}
 
-		public synchronized TOTorrentFile
+		public TOTorrentFile
 		getLink(
-				String		target )
+			String		target )
 		{
-			if ( links == null ){
-
-				return( null );
+			synchronized( this ){
+				
+				if ( links == null ){
+	
+					return( null );
+				}
+	
+				return(links.get(target));
 			}
-
-			return((TOTorrentFile)links.get(target));
 		}
 
 		public void
 		addLink(
-				String			link,
-				TOTorrentFile	target )
+			String			link,
+			TOTorrentFile	target )
 
-		throws Exception
+			throws Exception
 		{
 			try{
 				managers_mon.enter();
@@ -588,7 +591,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 				registered_links.put( link, this );
 
-				System.out.println( "Added link '" + link + "'" );
+				//System.out.println( "Added link '" + link + "'" );
 
 			}finally{
 
@@ -599,7 +602,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 				if ( links == null ){
 
-					links = new HashMap();
+					links = new HashMap<String,TOTorrentFile>();
 				}
 
 				links.put( link, target );
@@ -608,7 +611,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 		public void
 		removeLink(
-				String			link )
+			String			link )
 		{
 			try{
 				managers_mon.enter();
@@ -637,9 +640,9 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 		public void
 		activate(
-				PEPeerControl	_active_control )
+			PEPeerControl	_active_control )
 		{
-			List	connections = null;
+			List<Object[]>	connections = null;
 
 			try{
 				managers_mon.enter();
@@ -666,7 +669,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 				for (int i=0;i<connections.size();i++){
 
-					Object[]	entry = (Object[])connections.get(i);
+					Object[]	entry = connections.get(i);
 
 					NetworkConnection	nc = (NetworkConnection)entry[0];
 
@@ -698,7 +701,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 					for (int i=0;i<pending_connections.size();i++){
 
-						Object[]	entry = (Object[])pending_connections.get(i);
+						Object[]	entry = pending_connections.get(i);
 
 						NetworkConnection	connection = (NetworkConnection)entry[0];
 
@@ -732,7 +735,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 					deactivate();
 				}
 
-				List	registrations = (List)registered_legacy_managers.get( hash );
+				List<PeerManagerRegistrationImpl>	registrations = registered_legacy_managers.get( hash );
 
 				if ( registrations == null ){
 
@@ -754,13 +757,16 @@ public class PeerManager implements AzureusCoreStatsProvider{
 					}
 				}
 
-				if ( links != null ){
-
-					Iterator	it = links.keySet().iterator();
-
-					while( it.hasNext()){
-
-						registered_links.remove( it.next());
+				synchronized( this ){
+					
+					if ( links != null ){
+	
+						Iterator<String>	it = links.keySet().iterator();
+	
+						while( it.hasNext()){
+	
+							registered_links.remove( it.next());
+						}
 					}
 				}
 			}finally{
@@ -868,7 +874,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 						if ( pending_connections == null ){
 
-							pending_connections = new ArrayList();
+							pending_connections = new ArrayList<Object[]>();
 						}
 
 						pending_connections.add( new Object[]{ connection, new Long( SystemTime.getCurrentTime()), listener });
@@ -909,13 +915,13 @@ public class PeerManager implements AzureusCoreStatsProvider{
 					return( false );
 				}
 
-				Iterator it = pending_connections.iterator();
+				Iterator<Object[]> it = pending_connections.iterator();
 
 				long	now = SystemTime.getCurrentTime();
 
 				while( it.hasNext()){
 
-					Object[]	entry = (Object[])it.next();
+					Object[]	entry = it.next();
 
 					long	start_time = ((Long)entry[1]).longValue();
 
