@@ -490,7 +490,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		}
 
 		TableRowCore[] rows;
-		synchronized (selectedRows) {
+		synchronized (rows_sync) {
 			rows = selectedRows.toArray(new TableRowCore[0]);
 		}
 		boolean ran = runner.run(rows);
@@ -1590,7 +1590,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		if (listSelectedCoreDataSources != null) {
 			return listSelectedCoreDataSources;
 		}
-		synchronized (selectedRows) {
+		synchronized ( rows_sync ) {
 			if (isDisposed() || selectedRows.size() == 0) {
   			return Collections.emptyList();
   		}
@@ -1621,7 +1621,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	 *                  because of non-created rows when select user selects all
 	 */
 	public List<Object> getSelectedPluginDataSourcesList() {
-		synchronized (selectedRows) {
+		synchronized (rows_sync) {
   		if (isDisposed() || selectedRows.size() == 0) {
   			return Collections.emptyList();
   		}
@@ -1660,14 +1660,14 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 	/** @see com.aelitis.azureus.ui.common.table.TableView#getSelectedRows() */
 	public TableRowCore[] getSelectedRows() {
-		synchronized (selectedRows) {
+		synchronized (rows_sync) {
 			return selectedRows.toArray(new TableRowCore[0]);
 		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getSelectedRowsSize()
 	public int getSelectedRowsSize() {
-		synchronized (selectedRows) {
+		synchronized (rows_sync) {
 			return selectedRows.size();
 		}
 	}
@@ -1678,7 +1678,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	 * @return an list containing the selected TableRowSWT objects
 	 */
 	public List<TableRowCore> getSelectedRowsList() {
-		synchronized (selectedRows) {
+		synchronized (rows_sync) {
   		final ArrayList<TableRowCore> l = new ArrayList<TableRowCore>(
   				selectedRows.size());
   		for (TableRowCore row : selectedRows) {
@@ -1692,14 +1692,14 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	}
 	
 	public boolean isSelected(TableRow row) {
-		synchronized (selectedRows) {
+		synchronized (rows_sync) {
 			return selectedRows.contains(row);
 		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getFocusedRow()
 	public TableRowCore getFocusedRow() {
-		synchronized (selectedRows) {
+		synchronized (rows_sync) {
 			if (selectedRows.size() == 0) {
 				return null;
 			}
@@ -1718,7 +1718,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	 *         selected
 	 */
 	public Object getFirstSelectedDataSource(boolean bCoreObject) {
-		synchronized (selectedRows) {
+		synchronized (rows_sync) {
 			if (selectedRows.size() > 0) {
 				return selectedRows.get(0).getDataSource(bCoreObject);
 			}
@@ -1790,12 +1790,10 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 				sortColumn = newSortColumn;
 			}
  			if (!isSameColumn) {
- 				synchronized (rows_sync) {
-					String name = sortColumn.getName();
-					for (Iterator<TableRowCore> iter = sortedRows.iterator(); iter.hasNext();) {
-						TableRowCore row = iter.next();
-						row.setSortColumn(name);
-					}
+				String name = sortColumn.getName();
+				for (Iterator<TableRowCore> iter = sortedRows.iterator(); iter.hasNext();) {
+					TableRowCore row = iter.next();
+					row.setSortColumn(name);
 				}
  			}
  			uiChangeColumnIndicator();
@@ -1814,7 +1812,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		} else {
 			boolean somethingChanged = false;
 			ArrayList<TableRowCore> newSelectedRows;
-			synchronized (selectedRows) {
+			synchronized (rows_sync) {
 				newSelectedRows = new ArrayList<TableRowCore>(selectedRows);
 				if (selected) {
 					if (!newSelectedRows.contains(row)) {
@@ -1851,7 +1849,7 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 		
 		List<TableRowCore> listNewlySelected;
 		boolean somethingChanged;
-		synchronized (selectedRows) {
+		synchronized (rows_sync) {
 			if (selectedRows.size() == 0 && newSelectionArray.length == 0) {
 				return;
 			}
