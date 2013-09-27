@@ -758,7 +758,15 @@ public class OpenTorrentOptionsWindow
 						tt.removeTagTypeListener( this );
 					}else{
 						
-						buildTagButtonPanel( parent, true );
+						Utils.execSWTThread(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									buildTagButtonPanel( parent, true );
+								}
+							});
 					}
 				}
 			}, false );
@@ -853,6 +861,7 @@ public class OpenTorrentOptionsWindow
 			public void fillMenu(String sColumnName, Menu menu) {
 				MenuItem item;
 				TableRowCore focusedRow = tvFiles.getFocusedRow();
+				final TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(new TorrentOpenFileOptions[0]);
 				final TorrentOpenFileOptions tfi_focus = ((TorrentOpenFileOptions) focusedRow.getDataSource());
 				boolean download = tfi_focus.isToDownload();
 
@@ -864,8 +873,6 @@ public class OpenTorrentOptionsWindow
 						TorrentOpenFileOptions tfi_focus = ((TorrentOpenFileOptions) focusedRow.getDataSource());
 						boolean download = !tfi_focus.isToDownload();
 
-						TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(
-								new TorrentOpenFileOptions[0]);
 						for (TorrentOpenFileOptions options : infos) {
 							options.setToDownload(download);
 						}
@@ -878,11 +885,9 @@ public class OpenTorrentOptionsWindow
 				item.addSelectionListener(new SelectionAdapter() {
 
 					public void widgetSelected(SelectionEvent e) {
-						TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(
-								new TorrentOpenFileOptions[0]);
+
 						renameFilenames(infos);
 					}
-
 				});
 
 				item = new MenuItem(menu, SWT.PUSH);
@@ -890,8 +895,7 @@ public class OpenTorrentOptionsWindow
 						"OpenTorrentWindow.fileList.changeDestination");
 				item.addSelectionListener(new SelectionAdapter() {
 					public void widgetSelected(SelectionEvent e) {
-						TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(
-								new TorrentOpenFileOptions[0]);
+
 						changeFileDestination(infos);
 					}
 
@@ -954,7 +958,72 @@ public class OpenTorrentOptionsWindow
 						}
 					});
 				}
+				
+				if ( !torrentOptions.isSimpleTorrent()){
+					
+					 new MenuItem(menu, SWT.SEPARATOR );
+					 
+					 item = new MenuItem(menu, SWT.PUSH);
+						Messages.setLanguageText(item, "OpenTorrentWindow.set.savepath");
+						item.addSelectionListener(new SelectionAdapter() {
+							public void widgetSelected(SelectionEvent e) {
+								DirectoryDialog dDialog = new DirectoryDialog(dlg.getShell(),
+										SWT.SYSTEM_MODAL);
 
+								File filterPath = new File( torrentOptions.getDataDir());
+								
+								if ( !filterPath.exists()){
+									filterPath = filterPath.getParentFile();
+								}
+								dDialog.setFilterPath( filterPath.getAbsolutePath());
+								dDialog.setMessage(MessageText.getString("MainWindow.dialog.choose.savepath")
+										+ " (" + torrentOptions.getTorrentName() + ")");
+								String sNewDir = dDialog.open();
+
+								if (sNewDir == null){
+									return;
+								}
+
+								File newDir = new File(sNewDir).getAbsoluteFile();
+								
+								if ( !newDir.isDirectory()){
+									
+									if ( newDir.exists()){
+										
+										Debug.out( "new dir isn't a dir!" );
+										
+										return;
+										
+									}else if ( !newDir.mkdirs()){
+										
+										Debug.out( "Failed to create '" + newDir + "'" );
+										
+										return;
+									}
+								}
+
+								File new_parent = newDir.getParentFile();
+								
+								if ( new_parent == null ){
+									
+									Debug.out( "Invalid save path, parent folder is null" );
+									
+									return;
+								}
+								
+								torrentOptions.setParentDir( new_parent.getAbsolutePath());
+								torrentOptions.setSubDir( newDir.getName());
+								
+								/* old window used to reset this - not sure why, if the user's
+								 * made some per-file changes already then we should keep them
+								for ( TorrentOpenFileOptions tfi: torrentOptions.getFiles()){
+									
+									tfi.setFullDestName( null );
+								}
+								*/
+							}
+						});
+				}
 			}
 
 			public void addThisColumnSubMenu(String sColumnName, Menu menuThisColumn) {

@@ -71,7 +71,7 @@ public class TorrentOpenOptions
 
 	/** for multifiletorrents and change location */
 	/** @todo: getter/setters */
-	public String sDestSubDir;
+	private String sDestSubDir;
 
 	/** @todo: getter/setters */
 	private TOTorrent torrent;
@@ -164,6 +164,25 @@ public class TorrentOpenOptions
 		sDestDir = parentDir;
 	}
 
+	public String
+	getSubDir()
+	{
+		return( sDestSubDir );
+	}
+	
+	public void
+	setSubDir(
+		String		dir )
+	{
+		sDestSubDir	= dir;
+	}
+	
+	public boolean
+	isSimpleTorrent()
+	{
+		return( torrent.isSimpleTorrent());
+	}
+	
 	public String getDataDir() {
 		if (torrent.isSimpleTorrent())
 			return sDestDir;

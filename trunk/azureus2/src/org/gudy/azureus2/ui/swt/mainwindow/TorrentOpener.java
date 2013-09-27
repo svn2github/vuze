@@ -523,7 +523,7 @@ public class TorrentOpener {
 					GlobalManager gm = core.getGlobalManager();
 
 					DownloadManager dm = gm.addDownloadManager(torrentOptions.sFileName,
-							hash, torrentOptions.getParentDir(), torrentOptions.sDestSubDir,
+							hash, torrentOptions.getParentDir(), torrentOptions.getSubDir(),
 							iStartState, true,
 							torrentOptions.iStartID == TorrentOpenOptions.STARTMODE_SEEDING, dmia);
 
