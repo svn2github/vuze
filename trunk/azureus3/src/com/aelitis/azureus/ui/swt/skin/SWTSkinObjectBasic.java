@@ -443,6 +443,14 @@ public class SWTSkinObjectBasic
 		return skin;
 	}
 
+	public int
+	hashCode()
+	{
+		Debug.out( "this should be implemented" );
+		
+		return( super.hashCode());
+	}
+	
 	// @see java.lang.Object#equals(java.lang.Object)
 	public boolean equals(Object obj) {
 		if (obj instanceof SWTSkinObject) {

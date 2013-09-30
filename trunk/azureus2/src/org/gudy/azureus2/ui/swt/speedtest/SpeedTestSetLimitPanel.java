@@ -234,7 +234,7 @@ public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
             //Since cable modems can over estimate upload need to drop type setting to estimate.
             sm.setEstimatedUploadCapacityBytesPerSec(
         			measuredUploadKbps*1024,
-        			uploadHitLimit?
+        			uploadHitLimit?	// parg: as far as I can tell this stuff is deliberate, probably because the 'measured' conf settings screwed things up
         				SpeedManagerLimitEstimate.TYPE_ESTIMATED :SpeedManagerLimitEstimate.TYPE_ESTIMATED);
         }
 
