@@ -68,7 +68,7 @@ DiskManagerFileInfoURL
 	private URL			redirected_url;
 	private int			consec_redirect_fails;
 
-	private boolean		file_cached;
+	private volatile boolean		file_cached;
 	
 	public
 	DiskManagerFileInfoURL(

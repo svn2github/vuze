@@ -65,6 +65,9 @@ PEPeerControl
 	    int pieceNumber);
 	
 	public boolean
+	isPrivateTorrent();
+	
+	public boolean
 	isExtendedMessagingEnabled();
   
 	public boolean

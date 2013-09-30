@@ -2179,7 +2179,11 @@ SubscriptionManagerImpl
 			return( total );
 			
 		}else{
-			return( subscriptions.size());
+			
+			synchronized( this ){
+				
+				return( subscriptions.size());
+			}
 		}
 	}
 
@@ -2988,7 +2992,7 @@ SubscriptionManagerImpl
 						
 						boolean	new_sid = false;
 						
-						synchronized( this ){
+						synchronized( hits ){
 							
 							if ( complete ){
 								
@@ -3021,7 +3025,10 @@ SubscriptionManagerImpl
 							
 							if ( subs != null ){
 								
-								found_subscriptions.add( subs );
+								synchronized( hits ){
+								
+									found_subscriptions.add( subs );
+								}
 								
 								try{
 									listener.found( hash, subs );
@@ -3087,7 +3094,10 @@ SubscriptionManagerImpl
 											
 											if ( subs.length > 0 ){
 												
-												found_subscriptions.add( subs[0] );
+												synchronized( hits ){
+												
+													found_subscriptions.add( subs[0] );
+												}
 												
 												try{
 													listener.found( hash, subs[0] );
@@ -3131,7 +3141,7 @@ SubscriptionManagerImpl
 						{
 							int	num_hits;
 							
-							synchronized( this ){
+							synchronized( hits ){
 								
 								if ( complete ){
 									
@@ -3161,7 +3171,7 @@ SubscriptionManagerImpl
 
 							SubscriptionImpl[] s;
 							
-							synchronized( this ){
+							synchronized( hits ){
 								
 								s = (SubscriptionImpl[])found_subscriptions.toArray( new SubscriptionImpl[ found_subscriptions.size() ]);
 							}
@@ -5875,7 +5885,7 @@ SubscriptionManagerImpl
 					public void 
 					runSupport() 
 					{
-						synchronized( this ){
+						synchronized( SubscriptionManagerImpl.this ){
 							
 							if ( !config_dirty ){
 

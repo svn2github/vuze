@@ -113,6 +113,18 @@ public class LTHandshake implements LTMessage {
 		Object ulOnly = data_dict.get("upload_only");
 
 		if ( ulOnly == null ){
+		
+				// apparently it is actually supposed to be in the extensions dict...
+			
+			Map ext_dict = (Map)data_dict.get("m");
+			
+			if ( ext_dict != null ){
+				
+				ulOnly = ext_dict.get("upload_only");
+			}
+		}
+		
+		if ( ulOnly == null ){
 			return( false );
 		}else if ( ulOnly instanceof Number ){
 			Number n_ulOnly = (Number)ulOnly;
@@ -214,9 +226,10 @@ public class LTHandshake implements LTMessage {
 	public void
 	addDefaultExtensionMappings(
 		boolean		enable_pex,
-		boolean		enable_md )
+		boolean		enable_md,
+		boolean		upload_only )
 	{
-		if ( enable_pex | enable_md ){
+		if ( enable_pex || enable_md || upload_only ){
 			Map ext = (Map)data_dict.get("m");
 			
 			if ( ext == null ){
@@ -232,6 +245,13 @@ public class LTHandshake implements LTMessage {
 			if ( enable_md ){
 				
 				ext.put( ID_UT_METADATA, new Long( SUBID_UT_METADATA ));
+			}
+			
+				// turns out this is stored in the extensions map rather than the root dict as previously expected
+			
+			if ( upload_only ){
+				
+				ext.put( "upload_only", new Long( 1 ));
 			}
 		}
 	}

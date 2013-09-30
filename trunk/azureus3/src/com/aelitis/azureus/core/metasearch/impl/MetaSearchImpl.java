@@ -81,6 +81,8 @@ MetaSearchImpl
 	
 	private Object				MS_UPDATE_CONSEC_FAIL_KEY = new Object();
 	
+	private AsyncDispatcher		update_dispatcher = new AsyncDispatcher();
+	
 	protected 
 	MetaSearchImpl(
 		MetaSearchManagerImpl		_manager )
@@ -277,9 +279,22 @@ MetaSearchImpl
 			}
 		}
 	}
-	
-	protected void
+	private void
 	checkUpdates()
+	{
+		update_dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void 
+				runSupport() 
+				{
+					checkUpdatesSupport();
+				}
+			});
+	}
+	
+	private void
+	checkUpdatesSupport()
 	{
 		Iterator<EngineImpl> it = engines.iterator();
 		
@@ -1231,19 +1246,11 @@ MetaSearchImpl
 				
 				plugin_map = p_map;
 			}
-		}
 		
-		if ( update_check_timer != null ){
-			
-			new AsyncDispatcher().dispatch(
-					new AERunnable()
-					{
-						public void 
-						runSupport() 
-						{
-							checkUpdates();
-						}
-					});
+			if ( update_check_timer != null ){
+				
+				checkUpdates();
+			}
 		}
 	}
 	
@@ -1266,7 +1273,7 @@ MetaSearchImpl
 					public void 
 					runSupport() 
 					{
-						synchronized( this ){
+						synchronized( MetaSearchImpl.this ){
 							
 							if ( !config_dirty ){
 

@@ -1087,9 +1087,25 @@ implements PEPeerTransport
 		data_dict.put("v", client_name);
 		data_dict.put("p", new Integer(localTcpPort));
 		data_dict.put("e", new Long(require_crypto ? 1L : 0L));
-		data_dict.put("upload_only", new Long(manager.isSeeding() && !( ENABLE_LAZY_BITFIELD || manual_lazy_bitfield_control )? 1L : 0L));
 		
-		int metainfo_size = is_metadata_download?0:manager.getTorrentInfoDictSize();
+		boolean upload_only = 
+				manager.isSeeding() && 
+				!( ENABLE_LAZY_BITFIELD || manual_lazy_bitfield_control || manager.isSuperSeedMode());
+		
+			// maintain this for any kinds of compatability - moved to extension map 9/30/2013 
+		
+		data_dict.put( "upload_only", new Long(upload_only? 1L : 0L));
+		
+		int metainfo_size;
+		
+		if ( manager.isPrivateTorrent()){
+			
+			metainfo_size = 0;
+			
+		}else{
+			
+			metainfo_size = is_metadata_download?0:manager.getTorrentInfoDictSize();
+		}
 		
 		if ( metainfo_size > 0 ){
 			
@@ -1109,7 +1125,7 @@ implements PEPeerTransport
 		
 		LTHandshake lt_handshake = new LTHandshake(data_dict, other_peer_bt_lt_ext_version );
 		
-		lt_handshake.addDefaultExtensionMappings( true, is_metadata_download || metainfo_size > 0 );
+		lt_handshake.addDefaultExtensionMappings( true, is_metadata_download || metainfo_size > 0, upload_only );
 		
 		connection.getOutgoingMessageQueue().addMessage(lt_handshake, false);
 	}
@@ -1183,7 +1199,7 @@ implements PEPeerTransport
 				local_udp_port,
 				local_udp2_port,
 				defaultV6,
-				is_metadata_download?0:manager.getTorrentInfoDictSize(),
+				manager.isPrivateTorrent()?0:( is_metadata_download?0:manager.getTorrentInfoDictSize()),
 				avail_ids,
 				avail_vers,
 				require_crypto ? AZHandshake.HANDSHAKE_TYPE_CRYPTO : AZHandshake.HANDSHAKE_TYPE_PLAIN,
@@ -4494,31 +4510,33 @@ implements PEPeerTransport
 		
 			if ( type == UTMetaData.MSG_TYPE_REQUEST ){
 				
-				int	piece = metadata.getPiece();
-				
-				int total_size = manager.getTorrentInfoDictSize();
-				
-				byte[] data = total_size<=0?null:manager.getAdapter().getTorrentInfoDict( this );
-				
-				UTMetaData	reply ;
-				
-				int	offset = piece*BLOCK_SIZE;
-				
-				if ( is_metadata_download || data == null || offset >= data.length ){
+				if ( !manager.isPrivateTorrent()){
 					
-					reply = new UTMetaData( piece, null, 0, other_peer_bt_lt_ext_version );
-
-				}else{
+					int	piece = metadata.getPiece();
 					
-					int	to_send = Math.min( data.length - offset, BLOCK_SIZE );
+					int total_size = manager.getTorrentInfoDictSize();
 					
-					// System.out.println( "Sending ut_metadata: " + offset + "/" + to_send );
+					byte[] data = total_size<=0?null:manager.getAdapter().getTorrentInfoDict( this );
 					
-					reply = new UTMetaData( piece, ByteBuffer.wrap( data, offset, to_send ), total_size, other_peer_bt_lt_ext_version );
+					UTMetaData	reply ;
+					
+					int	offset = piece*BLOCK_SIZE;
+					
+					if ( is_metadata_download || data == null || offset >= data.length ){
+						
+						reply = new UTMetaData( piece, null, 0, other_peer_bt_lt_ext_version );
+	
+					}else{
+						
+						int	to_send = Math.min( data.length - offset, BLOCK_SIZE );
+						
+						// System.out.println( "Sending ut_metadata: " + offset + "/" + to_send );
+						
+						reply = new UTMetaData( piece, ByteBuffer.wrap( data, offset, to_send ), total_size, other_peer_bt_lt_ext_version );
+					}
+					
+					connection.getOutgoingMessageQueue().addMessage( reply, false );
 				}
-				
-				connection.getOutgoingMessageQueue().addMessage( reply, false );
-
 			}else if ( type == UTMetaData.MSG_TYPE_DATA ){
 				
 				int	piece_number 		= metadata.getPiece();
@@ -5021,7 +5039,7 @@ implements PEPeerTransport
 				"    last_sent=" + last_message_sent_time + "/" + last_data_message_sent_time + 
 				",last_recv=" + last_message_received_time + "/" + last_data_message_received_time + "/" + last_good_data_time );
 		writer.println( "    conn_at=" + connection_established_time + ",cons_no_reqs=" + consecutive_no_request_count +
-				",discard=" + requests_discarded + "/" + requests_discarded_endgame + ",recov=" + requests_recovered + ",comp=" + requests_completed );
+				",discard=" + requests_discarded + "/" + requests_discarded_endgame + ",recov=" + requests_recovered + ",comp=" + requests_completed + ",curr=" + requested.size());
 
 	}
 	

@@ -1262,7 +1262,7 @@ public class MenuFactory
 					
 					TOTorrentFile[] files = torrent.getFiles();
 					
-					content.append( "Files:\t" + files.length + NL );
+					content.append( "Files:\t" + files.length + " - simple=" + torrent.isSimpleTorrent() + NL );
 					
 					for ( TOTorrentFile tf: files ){
 						

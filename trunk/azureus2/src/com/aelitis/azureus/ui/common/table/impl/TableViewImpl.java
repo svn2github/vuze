@@ -503,7 +503,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	}
 
 	public boolean isUnfilteredDataSourceAdded(Object ds) {
-		return listUnfilteredDataSources.containsKey(ds); 
+		synchronized (rows_sync) {
+			return listUnfilteredDataSources.containsKey(ds);
+		}
 	}
 
 	@SuppressWarnings("unchecked")
@@ -750,8 +752,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#dataSourceExists(java.lang.Object)
 	public boolean dataSourceExists(DATASOURCETYPE dataSource) {
-		return mapDataSourceToRow.containsKey(dataSource)
-				|| dataSourcesToAdd.containsKey(dataSource);
+		synchronized (rows_sync) {
+			return mapDataSourceToRow.containsKey(dataSource) || dataSourcesToAdd.containsKey(dataSource);
+		}
 	}
 
 	public void processDataSourceQueue() {
@@ -772,17 +775,19 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	 * @note bIncludeQueue can return an invalid number, such as a negative :(
 	 */
 	public int size(boolean bIncludeQueue) {
-		int size = sortedRows.size();
-
-		if (bIncludeQueue) {
-			if (dataSourcesToAdd != null) {
-				size += dataSourcesToAdd.size();
+		synchronized (rows_sync) {
+			int size = sortedRows.size();
+	
+			if (bIncludeQueue) {
+				if (dataSourcesToAdd != null) {
+					size += dataSourcesToAdd.size();
+				}
+				if (dataSourcesToRemove != null) {
+					size -= dataSourcesToRemove.size();
+				}
 			}
-			if (dataSourcesToRemove != null) {
-				size -= dataSourcesToRemove.size();
-			}
+			return size;
 		}
-		return size;
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getRows()
@@ -821,12 +826,16 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	}
 
 	public int indexOf(TableRowCore row) {
-		return sortedRows.indexOf(row);
+		synchronized (rows_sync) {
+			return sortedRows.indexOf(row);
+		}
 	}
 
 	public int getRowCount() {
-		// don't use sortedRows here, it's not always up to date 
-		return mapDataSourceToRow.size();
+		// don't use sortedRows here, it's not always up to date
+		synchronized (rows_sync) {
+			return mapDataSourceToRow.size();
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getDataSources()
@@ -1755,7 +1764,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 	// @see org.gudy.azureus2.ui.swt.views.TableViewSWT#getSortColumn()
 	public TableColumnCore getSortColumn() {
-		return sortColumn;
+		synchronized (rows_sync) {
+			return sortColumn;
+		}
 	}
 
 	protected boolean setSortColumn(TableColumnCore newSortColumn, boolean allowOrderChange) {

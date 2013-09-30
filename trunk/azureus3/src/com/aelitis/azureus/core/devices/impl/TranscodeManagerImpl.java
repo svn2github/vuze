@@ -53,7 +53,6 @@ import com.aelitis.azureus.core.tag.TagFeatureTranscode;
 import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
-import com.aelitis.azureus.core.tag.TagManagerListener;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
@@ -65,7 +64,7 @@ TranscodeManagerImpl
 	private DeviceManagerImpl		device_manager;
 	private AzureusCore				azureus_core;
 	
-	private TranscodeProviderVuze	vuzexcode_provider;
+	private volatile TranscodeProviderVuze	vuzexcode_provider;
 	
 	private CopyOnWriteList<TranscodeManagerListener>	listeners = new CopyOnWriteList<TranscodeManagerListener>();
 	

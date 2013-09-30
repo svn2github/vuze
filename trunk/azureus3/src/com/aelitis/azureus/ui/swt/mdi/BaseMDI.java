@@ -85,7 +85,10 @@ public abstract class BaseMDI
 	}
 	
 	protected void triggerSelectionListener(MdiEntry newEntry, MdiEntry oldEntry) {
-		MdiListener[] array = listeners.toArray(new MdiListener[0]);
+		MdiListener[] array;
+		synchronized (listeners) {
+			array = listeners.toArray(new MdiListener[0]);
+		}
 		for (MdiListener l : array) {
 			try {
 				l.mdiEntrySelected(newEntry, oldEntry);
@@ -96,7 +99,10 @@ public abstract class BaseMDI
 	}
 
 	public void triggerEntryLoadedListeners(MdiEntry entry) {
-		MdiEntryLoadedListener[] array = listLoadListeners.toArray(new MdiEntryLoadedListener[0]);
+		MdiEntryLoadedListener[] array;
+		synchronized (listLoadListeners) {
+			array = listLoadListeners.toArray(new MdiEntryLoadedListener[0]);
+		}
 		for (MdiEntryLoadedListener l : array) {
 			try {
 				l.mdiEntryLoaded(entry);

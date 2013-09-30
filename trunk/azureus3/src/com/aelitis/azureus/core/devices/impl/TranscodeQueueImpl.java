@@ -976,7 +976,14 @@ TranscodeQueueImpl
 	updateStatus(
 		int	tick_count )
 	{
-		if ( queue.size() > 0 ){
+		int queue_size;
+		
+		synchronized( this ){
+			
+			queue_size = queue.size();
+		}
+		
+		if ( queue_size > 0 ){
 			
 			TranscodeJobImpl[] jobs = getJobs();
 			

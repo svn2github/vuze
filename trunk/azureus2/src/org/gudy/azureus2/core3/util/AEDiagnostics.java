@@ -110,7 +110,7 @@ AEDiagnostics
 	private static File	debug_save_dir;
 	
 	private static boolean	started_up;
-	private static boolean	startup_complete;
+	private static volatile boolean	startup_complete;
 	private static boolean	enable_pending_writes;
 	
 	private static Map<String,AEDiagnosticsLogger>		loggers	= new HashMap<String, AEDiagnosticsLogger>();
@@ -260,7 +260,7 @@ AEDiagnostics
 	/**
 	 * 
 	 */
-	protected static void cleanOldLogs() {
+	private static synchronized void cleanOldLogs() {
 		try {
 			long now = SystemTime.getCurrentTime();
 

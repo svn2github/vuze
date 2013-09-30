@@ -187,6 +187,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private final DiskManager           disk_mgr;
 	private final DiskManagerPiece[]    dm_pieces;
 
+	private final boolean	is_private_torrent;
+	
 	private PEPeerManager.StatsReceiver	stats_receiver;
 	
 	private final PiecePicker	piecePicker;
@@ -384,6 +386,18 @@ DiskManagerCheckRequestListener, IPFilterListener
 		adapter 		= _adapter;
 		disk_mgr 		= _diskManager;
 		partition_id	= _partition_id;
+		
+		boolean is_private = false;
+		
+		try{
+			disk_mgr.getTorrent().getPrivate();
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		is_private_torrent = is_private;
 		
 		is_metadata_download	= adapter.isMetadataDownload();
 		
@@ -3972,6 +3986,12 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 	}
 
+	public boolean
+	isPrivateTorrent()
+	{
+		return( is_private_torrent );
+	}
+	
 	public boolean
 	isExtendedMessagingEnabled()
 	{

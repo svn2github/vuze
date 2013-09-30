@@ -86,7 +86,7 @@ TranscodeJobImpl
 	private int						auto_retry_count;
 	
 	private Download				download;
-	private boolean					download_ok;
+	private volatile boolean		download_ok;
 	
 	protected
 	TranscodeJobImpl(
