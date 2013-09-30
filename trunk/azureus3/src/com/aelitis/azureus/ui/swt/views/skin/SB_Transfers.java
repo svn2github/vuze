@@ -167,13 +167,12 @@ public class SB_Transfers
 				});
 		
 
-		if (first) {
-			AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-				public void azureusCoreRunning(AzureusCore core) {
-					setupViewTitleWithCore(core);
-				}
-			});
-		}
+		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+			public void azureusCoreRunning(AzureusCore core) {
+				setupViewTitleWithCore(core);
+			}
+		});
+		
 		PlatformTorrentUtils.addHasBeenOpenedListener(new HasBeenOpenedListener() {
 			public void hasBeenOpenedChanged(DownloadManager dm, boolean opened) {
 				recountUnopened();

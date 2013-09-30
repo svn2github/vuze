@@ -31,7 +31,7 @@ public class TableCellRefresher {
 	
 	private  long iterationNumber;
 	
-	private boolean inProgress = false;
+	private volatile boolean inProgress = false;
 
 	private AERunnable runnable;
 	
@@ -81,7 +81,14 @@ public class TableCellRefresher {
 
 						if ( uif != null ){
 							
-							if ( mapCellsToColumn.size() > 0 && !inProgress ){
+							int size;
+							
+							synchronized (mapCellsToColumn){
+								
+								size = mapCellsToColumn.size();
+							}
+							
+							if ( size > 0 && !inProgress ){
 								
 								inProgress = true;
 	  						

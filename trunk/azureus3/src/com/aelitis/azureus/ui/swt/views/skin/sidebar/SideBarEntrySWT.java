@@ -231,7 +231,9 @@ public class SideBarEntrySWT
 	}
 
 	public MdiEntryVitalityImage[] getVitalityImages() {
-		return listVitalityImages.toArray(new MdiEntryVitalityImage[0]);
+		synchronized (this) {
+			return listVitalityImages.toArray(new MdiEntryVitalityImage[0]);
+		}
 	}
 
 	public MdiEntryVitalityImage getVitalityImage(int hitX, int hitY) {

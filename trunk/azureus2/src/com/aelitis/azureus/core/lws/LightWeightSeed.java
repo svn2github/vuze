@@ -87,10 +87,10 @@ LightWeightSeed
 	
 	private PeerManagerRegistration		peer_manager_registration;
 
-	private PEPeerManager				peer_manager;
-	private LWSDiskManager				disk_manager;
+	private volatile PEPeerManager		peer_manager;
+	private volatile LWSDiskManager		disk_manager;
 	private LWSDownload					pseudo_download;
-	private LWSTorrent					torrent_facade;
+	private volatile LWSTorrent			torrent_facade;
 	private TRTrackerAnnouncer			announcer;
 	
 	private TOTorrent					actual_torrent;

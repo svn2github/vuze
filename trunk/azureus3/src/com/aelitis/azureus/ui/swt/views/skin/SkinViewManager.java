@@ -217,7 +217,10 @@ public class SkinViewManager
 	}
 	
 	public static void triggerViewAddedListeners(SkinView skinView) {
-		Object[] array = listeners.toArray();
+		Object[] array;
+		synchronized (SkinViewManager.class) {
+			array = listeners.toArray();
+		}
 		for (int i = 0; i < array.length; i++) {
 			SkinViewManagerListener l = (SkinViewManagerListener) array[i];
 			try {

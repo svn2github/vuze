@@ -26,9 +26,9 @@ package org.gudy.azureus2.core3.util;
 public class 
 RealTimeInfo 
 {
-	private static int	realtime_task_count;
+	private static volatile int		realtime_task_count;
 	
-	private static long	progressive_bytes_per_sec;
+	private static volatile long	progressive_bytes_per_sec;
 	
 	public static synchronized void
 	addRealTimeTask()

@@ -320,21 +320,24 @@ public class PieceInfoView
 
 		Utils.execSWTThreadLater(100, new AERunnable() {
 			public void runSupport() {
-				if (!alreadyFilling) {
-					return;
+				synchronized (PieceInfoView.this) {
+					if (!alreadyFilling) {
+						return;
+					}
 				}
+				
 				try {
-  				if (imageLabel == null || imageLabel.isDisposed()) {
-  					return;
-  				}
-  
-  				if (imageLabel.getImage() != null) {
-  					Image image = imageLabel.getImage();
-  					imageLabel.setImage(null);
-  					image.dispose();
-  				}
+					if (imageLabel == null || imageLabel.isDisposed()) {
+						return;
+					}
 
-  				refreshInfoCanvas();
+					if (imageLabel.getImage() != null) {
+						Image image = imageLabel.getImage();
+						imageLabel.setImage(null);
+						image.dispose();
+					}
+
+					refreshInfoCanvas();
 				} finally {
 					synchronized (PieceInfoView.this) {
 						alreadyFilling = false;

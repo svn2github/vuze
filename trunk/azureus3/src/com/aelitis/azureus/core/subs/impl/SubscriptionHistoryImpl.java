@@ -40,8 +40,8 @@ public class
 SubscriptionHistoryImpl
 	implements SubscriptionHistory
 {
-	private SubscriptionManagerImpl		manager;
-	private SubscriptionImpl			subs;
+	private final SubscriptionManagerImpl		manager;
+	private final SubscriptionImpl				subs;
 	
 	private boolean		enabled;
 	private boolean		auto_dl;

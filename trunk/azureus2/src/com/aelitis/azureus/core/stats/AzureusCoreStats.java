@@ -641,7 +641,7 @@ AzureusCoreStats
 		}
 	}
 	
-	public static boolean
+	public static synchronized boolean
 	getEnableAverages()
 	{
 		return( enable_averages );

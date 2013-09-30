@@ -37,11 +37,11 @@ public class SelectedContentManager
 {
 	private static CopyOnWriteList<SelectedContentListener> listeners = new CopyOnWriteList<SelectedContentListener>();
 
-	private static ISelectedContent[] currentlySelectedContent = new ISelectedContent[0];
+	private static volatile ISelectedContent[] currentlySelectedContent = new ISelectedContent[0];
 
-	private static String viewID = null;
+	private static volatile String viewID = null;
 	
-	private static TableView tv = null;
+	private static volatile TableView tv = null;
 
 	public static String getCurrentySelectedViewID() {
 		return viewID;

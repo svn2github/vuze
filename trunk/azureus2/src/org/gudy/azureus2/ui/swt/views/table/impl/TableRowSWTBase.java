@@ -426,7 +426,16 @@ public abstract class TableRowSWTBase
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#invokeMouseListeners(org.gudy.azureus2.plugins.ui.tables.TableRowMouseEvent)
 	 */
 	public void invokeMouseListeners(TableRowMouseEvent event) {
-		ArrayList<TableRowMouseListener> listeners = mouseListeners;
+		ArrayList<TableRowMouseListener> listeners;
+		
+		synchronized (lock) {
+			if ( mouseListeners == null ){
+				listeners = null;
+			}else{
+				listeners = new ArrayList<TableRowMouseListener>( mouseListeners );
+			}
+		}
+		
 		if (listeners == null) {
 			return;
 		}

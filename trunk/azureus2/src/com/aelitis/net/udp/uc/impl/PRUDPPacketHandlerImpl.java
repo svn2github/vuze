@@ -109,11 +109,11 @@ PRUDPPacketHandlerImpl
 	private AEMonitor2	requests_mon	= new AEMonitor2( "PRUDPPH:req" );
 	
 	
-	private AEMonitor2	send_queue_mon	= new AEMonitor2( "PRUDPPH:sd" );
-	private long		send_queue_data_size;
-	private List[]		send_queues		= new List[]{ new LinkedList(),new LinkedList(),new LinkedList()};
-	private AESemaphore	send_queue_sem	= new AESemaphore( "PRUDPPH:sq" );
-	private AEThread	send_thread;
+	private AEMonitor2		send_queue_mon	= new AEMonitor2( "PRUDPPH:sd" );
+	private long			send_queue_data_size;
+	private final List[]	send_queues		= new List[]{ new LinkedList(),new LinkedList(),new LinkedList()};
+	private AESemaphore		send_queue_sem	= new AESemaphore( "PRUDPPH:sq" );
+	private AEThread		send_thread;
 	
 	private AEMonitor	recv_queue_mon	= new AEMonitor( "PRUDPPH:rq" );
 	private long		recv_queue_data_size;

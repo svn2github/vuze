@@ -91,24 +91,27 @@ BloomFilterRotator
 	serialiseToMap(
 		Map<String,Object>		x )
 	{
-		String	cla = this.getClass().getName();
-		
-		if ( cla.startsWith( BloomFilterImpl.MY_PACKAGE )){
+		synchronized( filters ){
 			
-			cla = cla.substring( BloomFilterImpl.MY_PACKAGE.length());
-		}
-		
-		x.put( "_impl", cla );
-		
-		List<Map<String,Object>>	list = new ArrayList<Map<String,Object>>();
-		
-		for ( BloomFilter filter: filters ){
+			String	cla = this.getClass().getName();
 			
-			list.add( filter.serialiseToMap());
+			if ( cla.startsWith( BloomFilterImpl.MY_PACKAGE )){
+				
+				cla = cla.substring( BloomFilterImpl.MY_PACKAGE.length());
+			}
+			
+			x.put( "_impl", cla );
+			
+			List<Map<String,Object>>	list = new ArrayList<Map<String,Object>>();
+			
+			for ( BloomFilter filter: filters ){
+				
+				list.add( filter.serialiseToMap());
+			}
+			
+			x.put( "list", list );
+			x.put( "index", new Long( current_filter_index ));
 		}
-		
-		x.put( "list", list );
-		x.put( "index", new Long( current_filter_index ));
 	}
 	
 	public int

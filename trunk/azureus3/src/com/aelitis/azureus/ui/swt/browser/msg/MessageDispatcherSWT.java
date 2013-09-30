@@ -155,7 +155,12 @@ public class MessageDispatcherSWT
 	 * @param id unique identifier of the listener to be removed
 	 */
 	public synchronized void removeListener(String id) {
-		BrowserMessageListener removed = listeners.remove(id);
+		BrowserMessageListener removed;
+		
+		synchronized( this ){
+			removed = listeners.remove(id);
+		}
+		
 		if (removed == null) {
 			//            throw new IllegalStateException("No listener is registered for ID " + id);
 		} else {

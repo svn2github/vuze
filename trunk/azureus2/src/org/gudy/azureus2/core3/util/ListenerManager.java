@@ -65,7 +65,7 @@ ListenerManager<T>
 	}
 	
 	
-	private String	name;
+	private final String	name;
 	
 	private ListenerManagerDispatcher<T>				target;
 	private ListenerManagerDispatcherWithException		target_with_exception;
@@ -217,8 +217,11 @@ ListenerManager<T>
 	getListenersCopy()
 	{
 			// we can just return the listeners as we copy on update
-				
-		return( listeners );
+		
+		synchronized( this ){
+		
+			return( listeners );
+		}
 	}
 	
 	public void
@@ -645,11 +648,13 @@ ListenerManager<T>
 		}
 	}
 	
-	public long size() {
-		if (listeners == null)
-			return 0;
-
-		return listeners.size();
+	public long 
+	size() 
+	{
+		synchronized( this ){
+			
+			return( listeners.size());
+		}
 	}
 }
 

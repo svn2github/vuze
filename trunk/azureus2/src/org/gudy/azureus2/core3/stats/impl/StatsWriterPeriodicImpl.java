@@ -124,62 +124,65 @@ StatsWriterPeriodicImpl
 	
 	protected void
 	writeStats()
-	{							
-		if ( !config_enabled ){
+	{			
+		synchronized( this ){
+		
+			if ( !config_enabled ){
 			
-			return;
+				return;
+			}
+
+			int	period = config_period;
+			
+			long	now = SystemTime.getMonotonousTime() /1000;
+	        
+			
+				// if we have a 1 second period then now-last-write_time will often be 0 (due to the
+				// rounding of SystemTime) and the stats won't be written - hence the check against
+				// (period-1). Its only
+			
+			if ( now - last_write_time < ( period - 1 ) ){
+				
+				return;
+			}
+			
+			last_write_time	= now;
+			
+			try{
+				String	dir = config_dir;
+	
+				dir = dir.trim();
+				
+				if ( dir.length() == 0 ){
+					
+					dir = File.separator;			
+				}
+				
+				String	file_name = dir;
+				
+				if ( !file_name.endsWith( File.separator )){
+					
+					file_name = file_name + File.separator;
+				}
+				
+				String	file = config_file;
+	
+				if ( file.trim().length() == 0 ){
+					
+					file = DEFAULT_STATS_FILE_NAME;
+				}
+				
+				file_name += file;
+			
+				if (Logger.isEnabled())
+					Logger.log(new LogEvent(LOGID, "Stats Logged to '" + file_name + "'"));				
+				
+				new StatsWriterImpl( core ).write( file_name );
+				
+			}catch( Throwable e ){
+				Logger.log(new LogEvent(LOGID, "Stats Logging fails", e));
+			}	
 		}
-
-		int	period = config_period;
-		
-		long	now = SystemTime.getMonotonousTime() /1000;
-        
-		
-			// if we have a 1 second period then now-last-write_time will often be 0 (due to the
-			// rounding of SystemTime) and the stats won't be written - hence the check against
-			// (period-1). Its only
-		
-		if ( now - last_write_time < ( period - 1 ) ){
-			
-			return;
-		}
-		
-		last_write_time	= now;
-		
-		try{
-			String	dir = config_dir;
-
-			dir = dir.trim();
-			
-			if ( dir.length() == 0 ){
-				
-				dir = File.separator;			
-			}
-			
-			String	file_name = dir;
-			
-			if ( !file_name.endsWith( File.separator )){
-				
-				file_name = file_name + File.separator;
-			}
-			
-			String	file = config_file;
-
-			if ( file.trim().length() == 0 ){
-				
-				file = DEFAULT_STATS_FILE_NAME;
-			}
-			
-			file_name += file;
-		
-			if (Logger.isEnabled())
-				Logger.log(new LogEvent(LOGID, "Stats Logged to '" + file_name + "'"));				
-			
-			new StatsWriterImpl( core ).write( file_name );
-			
-		}catch( Throwable e ){
-			Logger.log(new LogEvent(LOGID, "Stats Logging fails", e));
-		}			
 	}
 	
 	public void
@@ -206,8 +209,13 @@ StatsWriterPeriodicImpl
 	stop()
 	{
 		COConfigurationManager.removeListener( this );	
-		if(event != null)
-			event.cancel();
+		
+		synchronized( this ){
+			if(event != null){
+				event.cancel();
+				event = null;
+			}
+		}
 	}
 
 	

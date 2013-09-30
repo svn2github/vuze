@@ -568,25 +568,32 @@ ThreadPool
 	}
 
 	void releaseManual(ThreadPoolTask toRelease) {
-		if(!busy.contains(toRelease.worker) || !toRelease.canManualRelease())
-			throw new IllegalStateException("task already released or not manually releasable");
-
+		if( !toRelease.canManualRelease()){
+			throw new IllegalStateException("task not manually releasable");
+		}
+		
 		synchronized( this ){
 		
 			long elapsed = SystemTime.getMonotonousTime() - toRelease.worker.run_start_time;
 			if (elapsed > WARN_TIME && LOG_WARNINGS)
 				DebugLight.out(toRelease.worker.getWorkerName() + ": terminated, elapsed = " + elapsed + ", state = " + toRelease.worker.state);
 			
-			busy.remove(toRelease.worker);
+			if ( !busy.remove(toRelease.worker)){
+				
+				throw new IllegalStateException("task already released");
+			}
 			
 			// if debug is on we leave the pool registered so that we
 			// can trace on the timeout events
-			if (busy.size() == 0 && !debug_thread_pool)
-				synchronized (busy_pools)
-				{
+			
+			if (busy.size() == 0 && !debug_thread_pool){
+				
+				synchronized (busy_pools){
+				
 					busy_pools.remove(this);
 				}
-
+			}
+			
 			if ( busy.size() == 0){
 				
 				if ( reserved_target > reserved_actual ){

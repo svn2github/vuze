@@ -117,16 +117,20 @@ public class RemotePairingWindow
 			}
 		}
 
+		final RemotePairingWindow inst;
+		
 		synchronized (RemotePairingWindow.class) {
 			if (instance == null) {
 				instance = new RemotePairingWindow();
 			}
+			
+			inst = instance;
 		}
 
 		CoreWaiterSWT.waitForCore(TriggerInThread.SWT_THREAD,
 				new AzureusCoreRunningListener() {
 					public void azureusCoreRunning(AzureusCore core) {
-						instance._open();
+						inst._open();
 					}
 				});
 	}

@@ -153,12 +153,17 @@ RPObject
 
         throws RPException
     {
-        Object  res = object_registry_reverse.get( _object_id );
-
-        if ( res == null ){
-            throw new RPObjectNoLongerExistsException();
+        Object  res;
+        
+        synchronized( object_registry ){
+        	
+        	res = object_registry_reverse.get( _object_id );
         }
 
+        if ( res == null ){
+        	
+            throw new RPObjectNoLongerExistsException();
+        }
 
         _setDelegate( res );
 

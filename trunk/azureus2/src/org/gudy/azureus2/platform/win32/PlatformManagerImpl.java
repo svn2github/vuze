@@ -2107,9 +2107,12 @@ PlatformManagerImpl
 			
 			t_type = PlatformManagerListener.ET_SUSPEND;
 				
-			if ( prevent_computer_sleep ){
+			synchronized( this ){
+			
+				if ( prevent_computer_sleep ){
 				
-				res = AEWin32AccessListener.RT_SUSPEND_DENY;
+					res = AEWin32AccessListener.RT_SUSPEND_DENY;
+				}
 			}
 		}else if ( type == AEWin32AccessListener.ET_RESUME ){
 			

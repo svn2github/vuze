@@ -249,11 +249,11 @@ TRHostConfigImpl
 			
 			return;
 		}
-			
-		if ( saved_stats_to_delete.size() > 0 ){
-			
-			synchronized( saved_stats_to_delete ){
 		
+		synchronized( saved_stats_to_delete ){
+
+			if ( saved_stats_to_delete.size() > 0 ){
+			
 				Map	saved_stats_copy = new HashMap( saved_stats );
 				
 				for (int i=0;i<saved_stats_to_delete.size();i++){

@@ -44,10 +44,10 @@ public class
 UISWTViewEventListenerHolder
 	implements UISWTViewEventListenerWrapper
 {
-	private UISWTViewEventListener		listener;
-	private Reference<PluginInterface>	pi;
+	private final UISWTViewEventListener		listener;
+	private final Reference<PluginInterface>	pi;
 	private Object datasource;
-	private String viewID;
+	private final String viewID;
 
 	// when there is no #listener, we create a new #cla for each TYPE_CREATE event
 	Map<UISWTView, UISWTViewEventListener> mapSWTViewToEventListener;
@@ -86,6 +86,10 @@ UISWTViewEventListenerHolder
 		if ( _pi != null ){
 					
 			pi = new WeakReference<PluginInterface>( _pi );
+			
+		}else{
+			
+			pi = null;
 		}
 	}
 	
@@ -169,10 +173,12 @@ UISWTViewEventListenerHolder
 		if (listener != null) {
 			return listener;
 		}
-		if (mapSWTViewToEventListener == null) {
-			return null;
+		synchronized( mapSWTViewToEventListener ){
+			if (mapSWTViewToEventListener == null) {
+				return null;
+			}
+			return mapSWTViewToEventListener.get(view);
 		}
-		return mapSWTViewToEventListener.get(view);
 	}
 
 

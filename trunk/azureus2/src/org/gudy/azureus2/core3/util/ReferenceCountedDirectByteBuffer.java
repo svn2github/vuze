@@ -95,7 +95,10 @@ ReferenceCountedDirectByteBuffer
 	public int
 	getReferenceCount()
 	{
-		return( ref_count );
+		synchronized( this ){
+		
+			return( ref_count );
+		}
 	}
 	
 	public void 

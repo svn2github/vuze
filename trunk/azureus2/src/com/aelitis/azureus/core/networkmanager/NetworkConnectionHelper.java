@@ -65,8 +65,8 @@ NetworkConnectionHelper
 			}
 	  };
 	  
-	  private LimitedRateGroup[]	upload_limiters 	= { upload_limiter };
-	  private LimitedRateGroup[]	download_limiters 	= { download_limiter };
+	  private volatile LimitedRateGroup[]	upload_limiters 	= { upload_limiter };
+	  private volatile LimitedRateGroup[]	download_limiters 	= { download_limiter };
 	  
 		public int
 		getUploadLimit()

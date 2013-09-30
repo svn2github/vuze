@@ -145,12 +145,14 @@ public class PluginDeprecation {
 						})
 					);
 					
+					final BasicPluginViewModel f_model = model;
+					
 					// Force it to be auto-opened.
 					UIManagerListener uiml = new UIManagerListener() {
 						public void UIAttached(UIInstance inst) {
 							if ( inst.getUIType() == UIInstance.UIT_SWT ){
 							
-								inst.openView(model);
+								inst.openView( f_model );
 							
 								pi.getUIManager().removeUIListener(this);
 							}
