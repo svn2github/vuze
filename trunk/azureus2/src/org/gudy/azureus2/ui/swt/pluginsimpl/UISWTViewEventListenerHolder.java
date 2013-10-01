@@ -112,7 +112,7 @@ UISWTViewEventListenerHolder
 		if (listener == null) {
 			UISWTViewEventListener eventListener = null;
 
-			synchronized (UISWTViewEventListenerHolder.this) {
+			synchronized( this ){
 				int type = event.getType();
 				if (type == UISWTViewEvent.TYPE_CREATE) {
 					try {
@@ -173,7 +173,7 @@ UISWTViewEventListenerHolder
 		if (listener != null) {
 			return listener;
 		}
-		synchronized( mapSWTViewToEventListener ){
+		synchronized( this ){
 			if (mapSWTViewToEventListener == null) {
 				return null;
 			}
