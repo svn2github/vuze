@@ -170,7 +170,9 @@ public class MessageDispatcherSWT
 
 	// @see com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher#getListener(java.lang.String)
 	public BrowserMessageListener getListener(String id) {
-		return listeners.get(id);
+		synchronized( this ){
+			return listeners.get(id);
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcher#dispatch(com.aelitis.azureus.core.messenger.browser.BrowserMessage)

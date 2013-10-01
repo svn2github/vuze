@@ -799,7 +799,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getRow(java.lang.Object)
 	public TableRowCore getRow(DATASOURCETYPE dataSource) {
-		return mapDataSourceToRow.get(dataSource);
+		synchronized (rows_sync) {
+			return mapDataSourceToRow.get(dataSource);
+		}
 	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableView#getRow(int)

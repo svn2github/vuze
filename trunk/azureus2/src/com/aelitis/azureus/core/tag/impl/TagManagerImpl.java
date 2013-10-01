@@ -765,7 +765,12 @@ TagManagerImpl
 	{
 		int	tag_type_id = (int)((tag_uid>>32)&0xffffffffL);
 		
-		TagType tt = tag_type_map.get( tag_type_id );
+		TagType tt;
+		
+		synchronized( tag_type_map ){
+			
+			tt = tag_type_map.get( tag_type_id );
+		}
 				
 		if ( tt != null ){
 				

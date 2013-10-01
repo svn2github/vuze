@@ -558,25 +558,22 @@ PeerNATTraverser
 		protected void
 		cancel()
 		{
-			boolean	complete = false;
+			NATTraversal active_traversal;
 			
 			synchronized( this ){
 				
 				cancelled = true;
 				
-				if ( traversal == null ){
-	
-					complete = true;
-				}
+				active_traversal = traversal;
 			}
 			
-			if ( complete ){
+			if ( active_traversal == null ){
 			
 				removeRequest( this, OUTCOME_FAILED_OTHER );
 				
 			}else{
 				
-				traversal.cancel();
+				active_traversal.cancel();
 			}
 			
 			adapter.failed();

@@ -132,14 +132,14 @@ ProtocolDecoderPHE
     
 	private static Map	global_shared_secrets	= new LightHashMap();
 	
-	private static void
+	private static boolean
 	cryptoSetup()
 	{
 		synchronized( global_shared_secrets ){
 			
 			if ( crypto_setup_done ){
 				
-				return;
+				return( crypto_ok );
 			}
 			
 			crypto_setup_done = true;
@@ -201,15 +201,15 @@ ProtocolDecoderPHE
 				
 				crypto_ok	= false;
 			}
+			
+			return( crypto_ok );
 		}
 	}
 	
 	public static boolean
 	isCryptoOK()
 	{
-		cryptoSetup();
-		
-		return( crypto_ok );
+		return( cryptoSetup());
 	}
 	
 	public static void

@@ -116,7 +116,10 @@ implements Iterable<T>
 	public int
 	getMutationCount()
 	{
-		return( mutation_count );
+		synchronized( this ){
+			
+			return( mutation_count );
+		}
 	}
 	
 	public void

@@ -1082,7 +1082,7 @@ MetaSearchImpl
              							ranks.put( r2, rank2 );
              						}
              						
-             						return( -rank1.compareTo( rank2 ));
+             						return( rank2.compareTo( rank1 ));
              					}
              				});
              		
