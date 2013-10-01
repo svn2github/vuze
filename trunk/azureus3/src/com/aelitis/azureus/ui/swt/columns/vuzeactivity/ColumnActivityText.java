@@ -202,7 +202,7 @@ public class ColumnActivityText
 		}
 
 		Object o = event.cell.getToolTip();
-		if ((o == null) | (o instanceof String)) {
+		if ((o == null) || (o instanceof String)) {
 			String oldTooltip = (String) o;
 			if (!StringCompareUtils.equals(oldTooltip, tooltip)) {
 				invalidateAndRefresh = true;

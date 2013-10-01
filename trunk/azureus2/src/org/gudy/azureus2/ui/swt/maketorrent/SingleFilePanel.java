@@ -112,7 +112,7 @@ public class SingleFilePanel extends AbstractWizardPanel<NewTorrentWizard> {
         }else{
         	String	def = wizard.getDefaultOpenDir();
         	
-        	if ( def.length() > 0 & new File(def).isDirectory() ){
+        	if ( def.length() > 0 && new File(def).isDirectory() ){
         		
         		fd.setFilterPath( def );
         	}
