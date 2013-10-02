@@ -29,7 +29,7 @@ package org.gudy.azureus2.core3.util;
 public class 
 TimerEvent
 	extends		ThreadPoolTask
-	implements 	Comparable
+	implements 	Comparable<TimerEvent>
 {
 	private String					name;
 	
@@ -62,12 +62,16 @@ TimerEvent
 		created 	= _created;
 		
 		if ( Constants.IS_CVS_VERSION ){
-			
+						
 				// sanity check - seems we sometimes use 0 to denote 'now'
 			
-			if ( when != 0 && when <= 7*24*60*60*1000 ){
+			if ( when != 0 && when <= 7*24*60*60*1000L ){
 				
-				Debug.out( "You sure you want to schedule an event in the past? Time should be absolute!" );
+				new Exception( "You sure you want to schedule an event in the past? Time should be absolute!" ).printStackTrace();
+				
+			}else if ( when > 3000L*365*24*60*60*1000 ){
+				
+				new Exception( "You sure you want to schedule an event so far in the future?! (" + when + ")" ).printStackTrace();
 			}
 		}
 	}
@@ -162,18 +166,21 @@ TimerEvent
 	
 	public int
 	compareTo(
-		Object		other )
+		TimerEvent		other )
 	{
-		long	res =  when - ((TimerEvent)other).getWhen();
+		long	res =  when - other.when;
 
 		if ( res == 0 ){
 			
-			return((int)( unique_id - ((TimerEvent)other).getUniqueId()));
+			res = unique_id - other.unique_id;
 			
-		}else{
-			
-			return res < 0 ? -1 : 1;
+			if ( res == 0 ){
+				
+				return(  0 );
+			}
 		}
+			
+		return res < 0 ? -1 : 1;
 	}
 	
 	public void 

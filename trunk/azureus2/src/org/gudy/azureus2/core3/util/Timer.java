@@ -34,15 +34,16 @@ public class Timer
 	implements	SystemTime.ChangeListener
 {
 	private static boolean DEBUG_TIMERS = true;
-	private static ArrayList timers = null;
+	private static ArrayList<WeakReference<Timer>> timers = null;
 	private static AEMonitor timers_mon = new AEMonitor("timers list");
 	
 	private ThreadPool	thread_pool;
 		
-	private Set	events = new TreeSet();
+	private Set<TimerEvent>	events = new TreeSet<TimerEvent>();
 		
 	private long	unique_id_next	= 0;
 	
+	private long				current_when;
 	private volatile boolean	destroyed;
 	private boolean				indestructable;
 	
@@ -74,10 +75,10 @@ public class Timer
 			try {
 				timers_mon.enter();
 				if (timers == null) {
-					timers = new ArrayList();
+					timers = new ArrayList<WeakReference<Timer>>();
 					AEDiagnostics.addEvidenceGenerator(new evidenceGenerator()); 
 				}
-				timers.add(new WeakReference(this));
+				timers.add(new WeakReference<Timer>(this));
 			} finally {
 				timers_mon.exit();
 			}
@@ -102,10 +103,10 @@ public class Timer
 		indestructable	= true;
 	}
 	
-	public synchronized List
+	public synchronized List<TimerEvent>
 	getEvents()
 	{
-		return( new ArrayList( events ));
+		return( new ArrayList<TimerEvent>( events ));
 	}
 	public void
 	setLogging(
@@ -149,20 +150,38 @@ public class Timer
 						
 						// System.out.println( "waiting forever" );
 						
-						this.wait();
+						try{
+							current_when = Integer.MAX_VALUE;
 						
+							this.wait();
+							
+						}finally{
+							
+							current_when = 0;
+						}
 					}else{
+						
 						long	now = SystemTime.getCurrentTime();
 						
 						TimerEvent	next_event = (TimerEvent)events.iterator().next();
 						
-						long	delay = next_event.getWhen() - now;
+						long	when = next_event.getWhen();
+						
+						long	delay = when - now;
 						
 						if ( delay > 0 ){
 							
 							// System.out.println( "waiting for " + delay );
 							
-							this.wait(delay);
+							try{
+								current_when = when;
+							
+								this.wait(delay);
+								
+							}finally{
+								
+								current_when = 0;
+							}
 						}
 					}
 				
@@ -171,23 +190,34 @@ public class Timer
 						break;
 					}
 					
+					if ( events.isEmpty()){
+						
+						continue;
+					}
+					
 					long	now = SystemTime.getCurrentTime();
 					
-					Iterator	it = events.iterator();
+					Iterator<TimerEvent>	it = events.iterator();
 					
-					while( it.hasNext()){
+					TimerEvent	next_event = it.next();
 						
-						TimerEvent	event = (TimerEvent)it.next();
+					long rem = next_event.getWhen() - now;
+																			
+					if ( rem <= SystemTime.TIME_GRANULARITY_MILLIS ){
+							
+						event_to_run = next_event;
+							
+						it.remove();
 						
-						if ( event.getWhen() <= now ){
+						/*
+						if ( rem < -100 ){
 							
-							event_to_run = event;
-							
-							it.remove();
-							
-							break;
+							System.out.println( "Late scheduling [" + (-rem) + "] of " + event_to_run.getString());
 						}
+						*/
 					}
+					
+					// System.out.println( getName() +": events=" + events.size() + ", to_run=" +  (event_to_run==null?"null":event_to_run.getString()));
 				}
 				
 				if ( event_to_run != null ){
@@ -408,8 +438,11 @@ public class Timer
 		}
 		
 		// System.out.println( "event added (" + when + ") - queue = " + events.size());
-				
-		notify();
+		
+		if ( current_when == Integer.MAX_VALUE || when < current_when ){
+		
+			notify();
+		}
 		
 		return( event );
 	}
