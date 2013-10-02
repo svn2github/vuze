@@ -121,6 +121,11 @@ CryptoManagerImpl
 		final String		pw_key,
 		final long			timeout )
 	{
+		if ( timeout == Long.MAX_VALUE ){
+			
+			return;
+		}
+		
 		SimpleTimer.addEvent(
 			"CryptoManager:pw_timeout",
 			timeout,
