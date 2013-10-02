@@ -1344,7 +1344,7 @@ public class TableViewPainted
 				if (isHeaderDragging) {
 					eventData = tc.getName();
 				}
-				System.out.println("drag " + eventData);
+				//System.out.println("drag " + eventData);
 			}
 
 			public void dragSetData(DragSourceEvent event) {
