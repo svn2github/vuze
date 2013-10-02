@@ -193,13 +193,15 @@ AEDiagnostics
 
 			if ( debug_dir.exists()){
 				
+				boolean save_logs = System.getProperty( "az.logging.save.debug", "true" ).equals( "true" );
+				
 				long	now = SystemTime.getCurrentTime();
 								
 				File[] files = debug_dir.listFiles();
 				
 				if ( files != null ){
 					
-					boolean	file_copied	= false;
+					boolean	file_found	= false;
 					
 					for (int i=0;i<files.length;i++){
 						
@@ -212,18 +214,21 @@ AEDiagnostics
 						
 						if ( !was_tidy ){
 				
-							if ( !file_copied ){
+							file_found = true;
+							
+							if ( save_logs ){
 								
-								debug_save_dir.mkdir();
+								if ( !file_found ){
+									
+									debug_save_dir.mkdir();
+								}
+								
+								FileUtil.copyFile( file, new File( debug_save_dir, now + "_" + file.getName()));
 							}
-							
-							file_copied	= true;
-							
-							FileUtil.copyFile( file, new File( debug_save_dir, now + "_" + file.getName()));
 						}
 					}
 					
-					if ( file_copied ){
+					if ( file_found ){
 						
 						Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
 								LogAlert.AT_WARNING, "diagnostics.log_found"),
