@@ -56,10 +56,14 @@ MCGroupImpl
 	private final static int		PACKET_SIZE		= 8192;
 			
 
+	private static boolean							overall_suspended;
 	private static Map<String,MCGroupImpl>			singletons	= new HashMap<String, MCGroupImpl>();
 	
 	private static AEMonitor	class_mon 	= new AEMonitor( "MCGroup:class" );
 
+	private static AsyncDispatcher		async_dispatcher = new AsyncDispatcher();
+
+	
 	public static MCGroupImpl
 	getSingleton(
 		MCGroupAdapter		adapter,
@@ -103,7 +107,7 @@ MCGroupImpl
 					}
 				}
 				
-				singleton = new MCGroupImpl( adapter, group_address, group_port, control_port, interfaces );
+				singleton = new MCGroupImpl( adapter, group_address, group_port, control_port, interfaces, overall_suspended );
 				
 				if ( control_port == 0 ){
 					
@@ -123,11 +127,35 @@ MCGroupImpl
 		}
 	}
 	
-	private MCGroupAdapter		adapter;
+	public static void
+	setSuspended(
+		boolean		suspended )
+	{
+		try{
+			class_mon.enter();
+			
+			if ( overall_suspended == suspended ){
+				
+				return;
+			}
+			
+			overall_suspended = suspended;
+			
+			for ( MCGroupImpl group: singletons.values()){
+			
+				group.setInstanceSuspended( overall_suspended );
+			}
+		}finally{
+			
+			class_mon.exit();
+		}
+	}
 	
-	private String				group_address_str;
-	private int					group_port;
-	private int					control_port;
+	private MCGroupAdapter			adapter;
+	
+	private String					group_address_str;
+	private int						group_port;
+	private int						control_port;
 	protected InetSocketAddress 	group_address;
 	private String[]				selected_interfaces;
 	
@@ -138,17 +166,18 @@ MCGroupImpl
 	protected AEMonitor		this_mon	= new AEMonitor( "MCGroup" );
 
 	private Map<NetworkInterface,Set<InetAddress>>		current_registrations = new HashMap<NetworkInterface, Set<InetAddress>>();
+		
+	private volatile boolean		instance_suspended;
+	private List<Object[]>			suspended_threads = new ArrayList<Object[]>();
 	
-	private AsyncDispatcher		async_dispatcher = new AsyncDispatcher();
-	
-	
-	public
+	private
 	MCGroupImpl(
 		MCGroupAdapter		_adapter,
 		String				_group_address,
 		int					_group_port,
 		int					_control_port,
-		String[]			_interfaces )
+		String[]			_interfaces,
+		boolean				_is_suspended )
 	
 		throws MCGroupException
 	{	
@@ -158,6 +187,8 @@ MCGroupImpl
 		group_port			= _group_port;
 		control_port		= _control_port;
 		selected_interfaces	= _interfaces;
+		
+		instance_suspended	= _is_suspended;
 		
 		try{	
 			InetAddress ia = HostNameToIPResolver.syncResolve( group_address_str );
@@ -191,7 +222,64 @@ MCGroupImpl
 		}
 	}
 	
-	protected void
+	private void
+	setInstanceSuspended(
+		boolean	_suspended )
+	{
+		try{
+			this_mon.enter();
+
+			if ( instance_suspended == _suspended ){
+				
+				return;
+			}
+			
+			instance_suspended = _suspended;
+		
+			if ( !instance_suspended ){
+				
+				List<Object[]> states = new ArrayList<Object[]>( suspended_threads );
+				
+				suspended_threads.clear();
+				
+				for ( final Object[] state: states ){
+					
+					new AEThread2( (String)state[0], true )
+					{
+						public void
+						run()
+						{
+							handleSocket( (NetworkInterface)state[1], (InetAddress)state[2], (DatagramSocket)state[3], (Boolean)state[4] );
+						}
+					}.start();
+				}
+			}
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		if ( !_suspended ){
+			
+			async_dispatcher.dispatch(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						try{
+							processNetworkInterfaces( false );
+							
+						}catch( Throwable e ){
+							
+							adapter.log( e );
+						}
+					}
+				});
+		}
+	}
+	
+	private void
 	processNetworkInterfaces(
 		boolean		start_of_day )
 	
@@ -203,6 +291,11 @@ MCGroupImpl
 		
 		try{
 			this_mon.enter();
+			
+			if ( instance_suspended ){
+				
+				return;
+			}
 			
 			List<NetworkInterface>	x = NetUtils.getNetworkInterfaces();
 			
@@ -399,7 +492,7 @@ MCGroupImpl
 		return( control_port );
 	}
 	
-	protected boolean
+	private boolean
 	interfaceSelected(
 		NetworkInterface	ni )
 	{
@@ -424,7 +517,7 @@ MCGroupImpl
 		}
 	}
 	
-	protected boolean
+	private boolean
 	validNetworkAddress(
 		final NetworkInterface	network_interface,
 		final InetAddress		ni_address )
@@ -452,6 +545,11 @@ MCGroupImpl
 	sendToGroup(
 		final byte[]	data )
 	{	
+		if ( instance_suspended ){
+			
+			return;
+		}
+		
 			// have debugs showing the send-to-group operation hanging and blocking AZ close, make async
 		
 		async_dispatcher.dispatch(
@@ -549,6 +647,11 @@ MCGroupImpl
 	sendToGroup(
 		final String	param_data )
 	{	
+		if ( instance_suspended ){
+			
+			return;
+		}
+		
 			// have debugs showing the send-to-group operation hanging and blocking AZ close, make async
 		
 		async_dispatcher.dispatch(
@@ -644,12 +747,12 @@ MCGroupImpl
 		}
 	}
 	
-	protected void
+	private void
 	handleSocket(
-		NetworkInterface	network_interface,
-		InetAddress			local_address,
-		DatagramSocket		socket,
-		boolean				log_on_stop )
+		final NetworkInterface		network_interface,
+		final InetAddress			local_address,
+		final DatagramSocket		socket,
+		final boolean				log_on_stop )
 	{
 		long	successful_accepts 	= 0;
 		long	failed_accepts		= 0;
@@ -668,6 +771,22 @@ MCGroupImpl
 		
 		while(true){
 			
+			if ( instance_suspended ){
+				
+				try{
+					this_mon.enter();
+
+					if ( instance_suspended ){
+						
+						suspended_threads.add( new Object[]{ Thread.currentThread().getName(), network_interface, local_address, socket, log_on_stop } );
+						
+						return;
+					}
+				}finally{
+					
+					this_mon.exit();
+				}
+			}
 			if ( !validNetworkAddress( network_interface, local_address )){
 				
 				if ( log_on_stop ){
@@ -712,12 +831,17 @@ MCGroupImpl
 		}
 	}
 	
-	protected void
+	private void
 	receivePacket(
 		NetworkInterface	network_interface,
 		InetAddress			local_address,
 	    DatagramPacket		packet )
 	{
+		if ( instance_suspended ){
+			
+			return;
+		}
+		
 		byte[]	data 	= packet.getData();
 		int		len		= packet.getLength();
 		
@@ -738,6 +862,11 @@ MCGroupImpl
 	
 		throws MCGroupException
 	{
+		if ( instance_suspended ){
+			
+			return;
+		}
+		
 		DatagramSocket	reply_socket	= null;
 			
 		// System.out.println( "sendToMember: add = " + address + ", data = " +new String( data ));

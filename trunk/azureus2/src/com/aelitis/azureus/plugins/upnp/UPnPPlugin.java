@@ -43,12 +43,11 @@ import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEDiagnosticsEvidenceGenerator;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 
@@ -682,10 +681,10 @@ UPnPPlugin
 		final AESemaphore sem = new AESemaphore( "UPnPPlugin:closeTimeout" );
 		
 			
-		new AEThread( "UPnPPlugin:closeTimeout" , true )
+		new AEThread2( "UPnPPlugin:closeTimeout" )
 		{
 			public void
-			runSupport()
+			run()
 			{
 				try{
 					for (int i=0;i<mappings.size();i++){
