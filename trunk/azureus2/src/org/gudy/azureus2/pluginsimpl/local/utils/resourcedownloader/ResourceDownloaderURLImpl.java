@@ -887,7 +887,11 @@ redirect_label:
 									
 									if ( fos != null ){
 										
-										fos.close();
+										try{
+											fos.close();
+											
+										}catch( Throwable e ){
+										}
 									}
 									
 									input_stream.close();

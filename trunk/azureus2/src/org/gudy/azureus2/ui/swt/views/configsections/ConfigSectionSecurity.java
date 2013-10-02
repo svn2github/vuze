@@ -559,19 +559,24 @@ ConfigSectionSecurity
 				        		
 					        	try{
 					        		LineNumberReader reader = new LineNumberReader(  new FileReader( target ));
-					        		
+
 					        		String	str = "";
-					        		
-					        		while( true ){
+
+					        		try{		
+						        		while( true ){
+						        			
+						        			String	line = reader.readLine();
+						        			
+						        			if ( line == null ){
+						        				
+						        				break;
+						        			}
+						        			
+						        			str += line + "\r\n";
+						        		}
+					        		}finally{
 					        			
-					        			String	line = reader.readLine();
-					        			
-					        			if ( line == null ){
-					        				
-					        				break;
-					        			}
-					        			
-					        			str += line + "\r\n";
+					        			reader.close();
 					        		}
 					        		
 					        		boolean restart = crypt_man.getECCHandler().importKeys(str);

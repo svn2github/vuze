@@ -533,10 +533,13 @@ UPnPImpl
 			try{
 				FileOutputStream	trace = new FileOutputStream( getTraceFile());
 				
-				trace.write( bytes_in );
+				try{
+					trace.write( bytes_in );
 				
-				trace.close();
+				}finally{
 				
+					trace.close();
+				}
 			}catch( Throwable f ){
 				
 				adapter.log(f);

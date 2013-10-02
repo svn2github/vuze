@@ -1926,6 +1926,15 @@ PluginUpdatePlugin
 		}finally{
 			
 			update.complete( update_successful );
+			
+			if ( data != null ){
+				
+				try{
+					data.close();
+					
+				}catch( Throwable e ){
+				}
+			}
 		}
 	}
 		

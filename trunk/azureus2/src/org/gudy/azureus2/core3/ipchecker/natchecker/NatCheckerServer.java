@@ -272,9 +272,20 @@ public class NatCheckerServer extends AEThread {
             //listen for accept
           	Socket sck = server.accept();
           	
-          	sck.getOutputStream().write( getMessage().array());
+          	try{
+          		sck.getOutputStream().write( getMessage().array());
           	
-          	sck.close();
+          		sck.close();
+          		
+          		sck = null;
+          	}finally{
+        	  if ( sck != null ){
+        		  try{
+        			  sck.close();
+        		  }catch( Throwable e ){
+        		  }
+        	  }
+          	}
           }
         } catch(Exception e) {
         	//Debug.printStackTrace(e);

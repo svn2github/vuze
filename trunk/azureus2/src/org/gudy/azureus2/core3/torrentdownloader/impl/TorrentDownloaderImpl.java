@@ -619,183 +619,200 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 			status_reader.start();
     	}
     	
-		InputStream in;
-			
-		try{
-			in = this.con.getInputStream();
+		InputStream 		in		= null;
+		FileOutputStream 	fileout	= null;
 		
-		} catch (FileNotFoundException e) {
-			if (ignoreReponseCode) {
-
-				if (con instanceof HttpURLConnection) {
-					in = ((HttpURLConnection)con).getErrorStream();
+		try{
+			try{
+				in = this.con.getInputStream();
+			
+			} catch (FileNotFoundException e) {
+				if (ignoreReponseCode) {
+	
+					if (con instanceof HttpURLConnection) {
+						in = ((HttpURLConnection)con).getErrorStream();
+					} else {
+						in = null;
+					}
 				} else {
-					in = null;
+	
+					throw e;
 				}
-			} else {
-
-				throw e;
+					
+			}finally{
+				
+				try{ 
+					this_mon.enter();
+						
+					status_reader_run[0]	= false;
+					
+				}finally{
+						
+					this_mon.exit();
+				}
 			}
 				
+				// handle some servers that return gzip'd torrents even though we don't request it!
+			
+			String encoding = con.getHeaderField( "content-encoding");
+				
+			if ( encoding != null ){
+	
+				if ( encoding.equalsIgnoreCase( "gzip" )){
+	
+					in = new GZIPInputStream( in );
+	
+				}else if ( encoding.equalsIgnoreCase( "deflate" )){
+	
+					in = new InflaterInputStream( in );
+				}
+			}
+			
+		    if ( this.state != STATE_ERROR ){
+			    	
+		    	this.file = new File(this.directoryname, filename);
+	
+		    	boolean useTempFile = file.exists();
+		    	if (!useTempFile) {
+	  	    	try {
+	  	    		this.file.createNewFile();
+	  	    		useTempFile = !this.file.exists();
+	  	    	} catch (Throwable t) {
+	  	    		useTempFile = true;
+	  	    	}
+		    	}
+		    	
+		    	if (useTempFile) {
+		    		this.file = File.createTempFile("AZU", ".torrent", new File(
+								this.directoryname));
+		    		this.file.createNewFile();
+		    	}
+		        
+		        fileout = new FileOutputStream(this.file, false);
+		        
+		        bufBytes = 0;
+		        
+		        int size = (int) UrlUtils.getContentLength(con);
+		        
+				this.percentDone = -1;
+				
+		        do {
+		          if (this.cancel){
+		            break;
+		          }
+		          
+		          try {
+		          	bufBytes = in.read(buf);
+		            
+		            this.readTotal += bufBytes;
+		            
+		            if (size > 0){
+		              this.percentDone = (100 * this.readTotal) / size;
+		            }
+		            
+		            notifyListener();
+		            
+		          } catch (IOException e) {
+		          }
+		          
+		          if (bufBytes > 0){
+		            fileout.write(buf, 0, bufBytes);
+		          }
+		        } while (bufBytes > 0);
+		        
+		        in.close();
+		        
+		        fileout.flush();
+		        
+		        fileout.close();
+		        
+		        if (this.cancel) {
+		          this.state = STATE_CANCELLED;
+		          if (deleteFileOnCancel) {
+		          	this.cleanUpFile();
+		          }
+		        } else {
+		          if (this.readTotal <= 0) {
+		            this.error(0, "No data contained in '" + this.url.toString() + "'");
+		            return;
+		          }
+		          
+		          	// if the file has come down with a not-so-useful name then we try to rename
+		          	// it to something more useful
+		          
+		          try{
+		        	  if ( !filename.toLowerCase().endsWith(".torrent" )){
+	
+		        		  TOTorrent	torrent = TorrentUtils.readFromFile( file, false );
+	
+		        		  String	name = TorrentUtils.getLocalisedName( torrent ) + ".torrent";
+	
+		        		  File	new_file	= new File( directoryname, name );
+	
+		        		  if ( file.renameTo( new_file )){
+	
+		        			  filename	= name;
+	
+		        			  file	= new_file;
+		        		  }
+		        	  }
+		          }catch( Throwable e ){
+	
+		        	  boolean is_vuze_file = false;
+	
+		        	  try{
+		        		  if ( filename.toLowerCase().endsWith( ".vuze" )){
+	
+		        			  is_vuze_file = true;
+		        			  
+		        		  }else{
+		        			  
+		        			  if ( VuzeFileHandler.getSingleton().loadVuzeFile( file ) != null ){
+	
+		        				  is_vuze_file = true;
+	
+		        				  String	name = filename + ".vuze";
+	
+		        				  File	new_file	= new File( directoryname, name );
+	
+		        				  if ( file.renameTo( new_file )){
+	
+		        					  filename	= name;
+	
+		        					  file	= new_file;
+		        				  }
+		        			  }
+		        		  }
+		        	  }catch( Throwable f ){	          		
+		        	  }
+	
+		        	  if ( !is_vuze_file ){
+	
+		        		  Debug.printStackTrace( e );
+		        	  }
+		          }
+		          
+		          TorrentUtils.setObtainedFrom( file, original_url );
+	
+		          this.state = STATE_FINISHED;
+		        }
+		        this.notifyListener();
+		      }
 		}finally{
 			
-			try{ 
-				this_mon.enter();
-					
-				status_reader_run[0]	= false;
-				
-			}finally{
-					
-				this_mon.exit();
+			if ( in != null ){
+				try{
+					in.close();
+				}catch( Throwable e ){
+				}
+			}
+			if ( fileout != null ){
+				try{
+					fileout.close();
+				}catch( Throwable e ){
+				}
 			}
 		}
-			
-			// handle some servers that return gzip'd torrents even though we don't request it!
-		
-		String encoding = con.getHeaderField( "content-encoding");
-			
-		if ( encoding != null ){
-
-			if ( encoding.equalsIgnoreCase( "gzip" )){
-
-				in = new GZIPInputStream( in );
-
-			}else if ( encoding.equalsIgnoreCase( "deflate" )){
-
-				in = new InflaterInputStream( in );
-			}
-		}
-		
-	    if ( this.state != STATE_ERROR ){
-		    	
-	    	this.file = new File(this.directoryname, filename);
-
-	    	boolean useTempFile = file.exists();
-	    	if (!useTempFile) {
-  	    	try {
-  	    		this.file.createNewFile();
-  	    		useTempFile = !this.file.exists();
-  	    	} catch (Throwable t) {
-  	    		useTempFile = true;
-  	    	}
-	    	}
-	    	
-	    	if (useTempFile) {
-	    		this.file = File.createTempFile("AZU", ".torrent", new File(
-							this.directoryname));
-	    		this.file.createNewFile();
-	    	}
-	        
-	        FileOutputStream fileout = new FileOutputStream(this.file, false);
-	        
-	        bufBytes = 0;
-	        
-	        int size = (int) UrlUtils.getContentLength(con);
-	        
-			this.percentDone = -1;
-			
-	        do {
-	          if (this.cancel){
-	            break;
-	          }
-	          
-	          try {
-	          	bufBytes = in.read(buf);
-	            
-	            this.readTotal += bufBytes;
-	            
-	            if (size > 0){
-	              this.percentDone = (100 * this.readTotal) / size;
-	            }
-	            
-	            notifyListener();
-	            
-	          } catch (IOException e) {
-	          }
-	          
-	          if (bufBytes > 0){
-	            fileout.write(buf, 0, bufBytes);
-	          }
-	        } while (bufBytes > 0);
-	        
-	        in.close();
-	        
-	        fileout.flush();
-	        
-	        fileout.close();
-	        
-	        if (this.cancel) {
-	          this.state = STATE_CANCELLED;
-	          if (deleteFileOnCancel) {
-	          	this.cleanUpFile();
-	          }
-	        } else {
-	          if (this.readTotal <= 0) {
-	            this.error(0, "No data contained in '" + this.url.toString() + "'");
-	            return;
-	          }
-	          
-	          	// if the file has come down with a not-so-useful name then we try to rename
-	          	// it to something more useful
-	          
-	          try{
-	        	  if ( !filename.toLowerCase().endsWith(".torrent" )){
-
-	        		  TOTorrent	torrent = TorrentUtils.readFromFile( file, false );
-
-	        		  String	name = TorrentUtils.getLocalisedName( torrent ) + ".torrent";
-
-	        		  File	new_file	= new File( directoryname, name );
-
-	        		  if ( file.renameTo( new_file )){
-
-	        			  filename	= name;
-
-	        			  file	= new_file;
-	        		  }
-	        	  }
-	          }catch( Throwable e ){
-
-	        	  boolean is_vuze_file = false;
-
-	        	  try{
-	        		  if ( filename.toLowerCase().endsWith( ".vuze" )){
-
-	        			  is_vuze_file = true;
-	        			  
-	        		  }else{
-	        			  
-	        			  if ( VuzeFileHandler.getSingleton().loadVuzeFile( file ) != null ){
-
-	        				  is_vuze_file = true;
-
-	        				  String	name = filename + ".vuze";
-
-	        				  File	new_file	= new File( directoryname, name );
-
-	        				  if ( file.renameTo( new_file )){
-
-	        					  filename	= name;
-
-	        					  file	= new_file;
-	        				  }
-	        			  }
-	        		  }
-	        	  }catch( Throwable f ){	          		
-	        	  }
-
-	        	  if ( !is_vuze_file ){
-
-	        		  Debug.printStackTrace( e );
-	        	  }
-	          }
-	          
-	          TorrentUtils.setObtainedFrom( file, original_url );
-
-	          this.state = STATE_FINISHED;
-	        }
-	        this.notifyListener();
-	      }
       } catch( Throwable e){
     	  
       	String url_log_string = this.url_str.toString().replaceAll( "\\Q&pause_on_error=true\\E", "" );

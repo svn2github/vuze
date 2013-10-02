@@ -230,6 +230,11 @@ public class PlatformManagerUnixPlugin
 
 		} catch (Throwable t) {
 			t.printStackTrace();
+		}finally{
+			try{
+				stream.close();
+			}catch( Throwable e){
+			}
 		}
 	}
 	

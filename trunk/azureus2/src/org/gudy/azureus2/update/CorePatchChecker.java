@@ -241,21 +241,28 @@ CorePatchChecker
 							+ highest_p_file.toString() + "'"));
 				
 				InputStream pis = new FileInputStream( highest_p_file );
-								
-				patchAzureus2( instance, pis, "P" + highest_p, plugin_interface.getLogger().getChannel( "CorePatcher" ));
-				
-				Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_INFORMATION,
-						"Patch " + highest_p_file.getName() + " ready to be applied"));
-				
-				String done_file = highest_p_file.toString();
-				
-				done_file = done_file.substring(0,done_file.length()-1) + "x";
-				
-				highest_p_file.renameTo( new File( done_file ));
-				
-					// flip the original update over to 'restart required'
-				
-				updater_update.setRestartRequired( Update.RESTART_REQUIRED_YES );
+					
+				try{
+					patchAzureus2( instance, pis, "P" + highest_p, plugin_interface.getLogger().getChannel( "CorePatcher" ));
+					
+					Logger.log(new LogAlert(LogAlert.UNREPEATABLE, LogAlert.AT_INFORMATION,
+							"Patch " + highest_p_file.getName() + " ready to be applied"));
+					
+					String done_file = highest_p_file.toString();
+					
+					done_file = done_file.substring(0,done_file.length()-1) + "x";
+					
+					highest_p_file.renameTo( new File( done_file ));
+					
+						// flip the original update over to 'restart required'
+					
+					updater_update.setRestartRequired( Update.RESTART_REQUIRED_YES );
+				}finally{
+					try{
+						pis.close();
+					}catch( Throwable e ){
+					}
+				}
 			}
 		}catch( Throwable e ){
 			
@@ -273,42 +280,74 @@ CorePatchChecker
 		
 		throws Exception
 	{
-		String resource_name = "Azureus2_" + resource_tag + ".jar";
-
-		UpdateInstaller	installer = instance.createInstaller();
+		OutputStream	os 	= null;
+		InputStream		is	= null;
 		
-		File	tmp = AETemporaryFileHandler.createTempFile();
-						
-		OutputStream	os = new FileOutputStream( tmp );
-		
-		String	az2_jar;
-
-		if( Constants.isOSX ){
-
-			az2_jar = installer.getInstallDir() + "/" + SystemProperties.getApplicationName() + ".app/Contents/Resources/Java/";
+		try{
+			String resource_name = "Azureus2_" + resource_tag + ".jar";
+	
+			UpdateInstaller	installer = instance.createInstaller();
 			
-		}else{
-
-			az2_jar = installer.getInstallDir() + File.separator;
+			File	tmp = AETemporaryFileHandler.createTempFile();
+							
+			os = new FileOutputStream( tmp );
+			
+			String	az2_jar;
+	
+			if( Constants.isOSX ){
+	
+				az2_jar = installer.getInstallDir() + "/" + SystemProperties.getApplicationName() + ".app/Contents/Resources/Java/";
+				
+			}else{
+	
+				az2_jar = installer.getInstallDir() + File.separator;
+			}
+			
+			az2_jar	+= "Azureus2.jar";				
+			
+			is 	= new FileInputStream( az2_jar );
+			
+			new UpdateJarPatcher( is, pis, os, log );
+			
+			is.close();
+			
+			is = null;
+			
+			pis.close();
+			
+			pis = null;
+			
+			os.close();
+			
+			os = null;
+			
+			installer.addResource(  resource_name,
+									new FileInputStream( tmp ));
+			
+			tmp.delete();
+			
+			installer.addMoveAction( resource_name, az2_jar );
+			
+		}finally{
+		
+			if ( is != null ){
+				try{
+					is.close();
+				}catch( Throwable e ){
+				};
+			}
+			if ( os != null ){
+				try{
+					os.close();
+				}catch( Throwable e ){
+				};
+			}
+			if ( pis != null ){
+				try{
+					pis.close();
+				}catch( Throwable e ){
+				};
+			}
 		}
-		
-		az2_jar	+= "Azureus2.jar";				
-		
-		InputStream	is 	= new FileInputStream( az2_jar );
-		
-		new UpdateJarPatcher( is, pis, os, log );
-		
-		is.close();
-		
-		pis.close();
-		
-		os.close();
-		
-		installer.addResource(  resource_name,
-								new FileInputStream( tmp ));
-		
-		tmp.delete();
-		
-		installer.addMoveAction( resource_name, az2_jar );		
 	}
 }

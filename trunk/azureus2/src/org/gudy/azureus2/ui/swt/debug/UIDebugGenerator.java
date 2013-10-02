@@ -273,16 +273,26 @@ public class UIDebugGenerator
 			return null;
 		}
 
+		FileWriter fw = null;
 		try {
 			File fUserMessage = new File(path, "usermessage.txt");
-			FileWriter fw;
+		
 			fw = new FileWriter(fUserMessage);
 
 			fw.write(gr.message  + "\n" + gr.email);
 			
 			fw.close();
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
+			
+			fw = null;
+			
+		} catch (Throwable e) {
+			
+			if ( fw != null ){
+				try{
+					fw.close();
+				}catch( Throwable f ){
+				}
+			}
 			e.printStackTrace();
 		}
 

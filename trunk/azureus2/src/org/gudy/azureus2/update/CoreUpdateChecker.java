@@ -901,6 +901,15 @@ CoreUpdateChecker
 			update.complete( false );
 			
 			rd.reportActivity("Update install failed:" + e.getMessage());
+			
+		}finally{
+			
+			if ( data != null ){
+				try{
+					data.close();
+				}catch( Throwable e){
+				}
+			}
 		}
 	}
 	
