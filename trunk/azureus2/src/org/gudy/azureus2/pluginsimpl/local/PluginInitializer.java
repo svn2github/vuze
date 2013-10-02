@@ -1932,6 +1932,8 @@ PluginInitializer
   			return;
   		}
   	}
+  	
+  	verified_plugin_holder.removeValue( pi );
   }
   
   protected void reloadPlugin(PluginInterfaceImpl pi) throws PluginException {
@@ -2464,6 +2466,8 @@ PluginInitializer
 	private static final class
 	VerifiedPluginHolder
 	{	
+		private static final Object	NULL_VALUE = new Object();
+		
 		private volatile boolean initialised;
 		
 		private AESemaphore	request_sem = new AESemaphore( "ValueHolder" );
@@ -2514,13 +2518,21 @@ PluginInitializer
 								
 								Object existing = values.get( req[0] );
 								
-								if ( existing != null){
+								if ( req[1] == NULL_VALUE ){
 									
 									req[1] = existing;
 									
-								}else{
+									values.remove( req[0] );
 									
-									values.put( req[0], req[1] );
+								}else{
+									if ( existing != null){
+										
+										req[1] = existing;
+										
+									}else{
+										
+										values.put( req[0], req[1] );
+									}
 								}
 							}
 							
@@ -2532,6 +2544,31 @@ PluginInitializer
 			t.start();	
 			
 			initialised = true;
+		}
+		
+		public Object
+		removeValue(
+			Object	key )
+		{
+			if ( !initialised ){
+				
+				return( null );
+			}
+			
+			AESemaphore sem = new AESemaphore( "ValueHolder:remove" );
+			
+			Object[] request = new Object[]{ key, NULL_VALUE, sem };
+			
+			synchronized( request_queue ){
+				
+				request_queue.add( request );
+			}
+			
+			request_sem.release();
+			
+			sem.reserve();
+			
+			return(request[1]);	
 		}
 		
 		public Object
