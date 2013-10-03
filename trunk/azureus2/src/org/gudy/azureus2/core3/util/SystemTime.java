@@ -28,7 +28,10 @@ import java.util.concurrent.atomic.AtomicLong;
  * changes.
  */
 public class SystemTime {
-	public static final long			TIME_GRANULARITY_MILLIS	= 25;	//internal update time ms
+	public static final long	TIME_GRANULARITY_MILLIS	= 25;	//internal update time ms
+	
+	private static final int	STEPS_PER_SECOND	= (int) (1000 / TIME_GRANULARITY_MILLIS);
+
 	private static SystemTimeProvider	instance;
 	
 	// can't do that without some safeguarding code.
@@ -39,9 +42,9 @@ public class SystemTime {
 	private static volatile List		systemTimeConsumers		= new ArrayList();
 	private static volatile List		monotoneTimeConsumers	= new ArrayList();
 	private static volatile List		clock_change_list		= new ArrayList();
-	private static long					hpc_base_time;
-	private static long					hpc_last_time;
-	private static boolean				no_hcp_logged;
+	//private static long					hpc_base_time;
+	//private static long					hpc_last_time;
+	//private static boolean				no_hcp_logged;
 
 	static
 	{
@@ -81,7 +84,6 @@ public class SystemTime {
 	}
 
 	protected static class SteppedProvider implements SystemTimeProvider {
-		private static final int	STEPS_PER_SECOND	= (int) (1000 / TIME_GRANULARITY_MILLIS);
 		private static final long	HPC_START = getHighPrecisionCounter()/1000000L;
 		
 		private final Thread		updater;

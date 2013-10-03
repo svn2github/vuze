@@ -147,7 +147,7 @@ public abstract class PieceDistributionView
 
 		try
 		{
-			int stepWidthX = (int) Math.floor(rect.width / upperBound);
+			int stepWidthX = rect.width / upperBound;
 			int barGap = 1;
 			int barWidth = stepWidthX - barGap - 1;
 			int barFillingWidth = barWidth - 1;

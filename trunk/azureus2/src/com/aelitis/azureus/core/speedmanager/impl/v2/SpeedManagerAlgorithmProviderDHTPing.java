@@ -498,7 +498,7 @@ public class SpeedManagerAlgorithmProviderDHTPing
             consecutiveDownticks++;
 
             int lowerBound= metricBadResult - metricBadTolerance;
-            signal = (currMetricValue-lowerBound) / metricBadTolerance;
+            signal = ((float)(currMetricValue-lowerBound)) / metricBadTolerance;
             signal -= 1.0f;
         }
         else{

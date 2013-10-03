@@ -1037,7 +1037,7 @@ SpeedManagerPingMapperImpl
 			total_deviation += deviation * deviation;
 		}
 		
-		int	deviation = (int)Math.sqrt( total_deviation / num );
+		int	deviation = (int)Math.sqrt( ((double)total_deviation) / num );
 		
 			// adjust if deviation within 50% of capacity
 		

@@ -827,7 +827,7 @@ MetaSearchImpl
 				
 		if ( num_other_preferred > 0 ){
 			
-			float negative_weighting = -1 / num_other_preferred;
+			float negative_weighting = -1.0f / num_other_preferred;
 		
 			for ( Engine e: engines ){
 			

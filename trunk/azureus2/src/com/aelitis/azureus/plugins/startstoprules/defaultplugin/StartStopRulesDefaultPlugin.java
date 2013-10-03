@@ -1472,7 +1472,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		boolean fakedActively;
 		if (bStopOnceBandwidthMet) {
   		boolean isRunning = download.getState() == Download.ST_DOWNLOADING;
-  		globalDownLimitReached = globalDownloadLimit > 0 && vars.accumulatedDownloadSpeed/1024 > globalDownloadLimit * IGNORE_SLOT_THRESHOLD_FACTOR;
+  		globalDownLimitReached = globalDownloadLimit > 0 && ((double)vars.accumulatedDownloadSpeed)/1024 > globalDownloadLimit * IGNORE_SLOT_THRESHOLD_FACTOR;
   		globalRateAdjustedActivelyDownloading = bActivelyDownloading || (isRunning && globalDownLimitReached);
   		fakedActively = globalRateAdjustedActivelyDownloading && !bActivelyDownloading;
   		if(fakedActively)
@@ -1790,8 +1790,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		boolean fakedActively;
 		if (bStopOnceBandwidthMet) {
 			boolean isRunning = download.getState() == Download.ST_SEEDING;
-			globalUpLimitReached = totals.maxUploadSpeed() > 0 && vars.accumulatedUploadSpeed/1024 > totals.maxUploadSpeed() * IGNORE_SLOT_THRESHOLD_FACTOR;
-			globalDownLimitReached = globalDownloadLimit > 0 && vars.accumulatedDownloadSpeed/1024 > globalDownloadLimit * IGNORE_SLOT_THRESHOLD_FACTOR;
+			globalUpLimitReached = totals.maxUploadSpeed() > 0 && ((double)vars.accumulatedUploadSpeed)/1024 > totals.maxUploadSpeed() * IGNORE_SLOT_THRESHOLD_FACTOR;
+			globalDownLimitReached = globalDownloadLimit > 0 && ((double)vars.accumulatedDownloadSpeed)/1024 > globalDownloadLimit * IGNORE_SLOT_THRESHOLD_FACTOR;
 			globalRateAdjustedActivelySeeding = bActivelySeeding || (isRunning && (globalUpLimitReached || globalDownLimitReached));
 			fakedActively = globalRateAdjustedActivelySeeding && !bActivelySeeding;
 			if(fakedActively)

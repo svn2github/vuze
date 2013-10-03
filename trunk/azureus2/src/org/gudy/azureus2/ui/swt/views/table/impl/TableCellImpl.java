@@ -117,7 +117,8 @@ public class TableCellImpl
         }
         public void invalidate() {
         	clearFlag(FLAG_VALID);
-        	redraw();
+        	this.redraw();
+        	// or this redraw? TableCellImpl.this.redraw();
         }
         protected void quickRedrawCell(TableOrTreeSWT table, Rectangle dirty, Rectangle cellBounds) {
         	TableItemOrTreeItem item = row.getItem();

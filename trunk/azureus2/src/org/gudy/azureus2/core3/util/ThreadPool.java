@@ -641,7 +641,7 @@ ThreadPool
 			super(NAME_THREADS?(name + " " + (thread_name_index)):name,true);
 			thread_name_index++;
 			setPriority(thread_priority);
-			worker_name = getName();
+			worker_name = this.getName();
 			start();
 		}
 		

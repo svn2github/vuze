@@ -212,7 +212,7 @@ Plot3D
 		  	// Ignore ERROR_NO_GRAPHICS_LIBRARY error or any others
 		  }
 			
-			double	x_ratio = ((float)usable_width-((usable_height/2)/ANGLE_TAN)) / max_x;
+			double	x_ratio = ((float)usable_width-(((float)usable_height/2)/ANGLE_TAN)) / max_x;
 			double	y_ratio = ((float)usable_height/2) / max_y;
 			double	z_ratio = ((float)usable_height/2) / max_z;
 			
@@ -226,7 +226,7 @@ Plot3D
 
 			int y_axis_left_x = PAD_LEFT;
 			int y_axis_left_y = usable_height + PAD_TOP;			
-			int y_axis_right_x = PAD_LEFT + (int)((usable_height/2) / ANGLE_TAN );
+			int y_axis_right_x = PAD_LEFT + (int)(((float)usable_height/2) / ANGLE_TAN );
 			int y_axis_right_y = usable_height / 2;
 			
 			int z_axis_bottom_x = PAD_LEFT;

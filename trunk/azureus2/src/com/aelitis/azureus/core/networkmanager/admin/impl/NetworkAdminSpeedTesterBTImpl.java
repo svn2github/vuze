@@ -657,7 +657,7 @@ public class NetworkAdminSpeedTesterBTImpl
                 j++;
             }
             //calculate average.
-            double aveRate = (double) ( sumBytes/deltas.size() );
+            double aveRate = ((double)sumBytes)/deltas.size();
             //Debug.out("ave rate:"+aveRate);
 
             //calculate standard deviation.

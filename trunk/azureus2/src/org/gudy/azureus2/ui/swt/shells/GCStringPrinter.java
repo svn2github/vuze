@@ -110,7 +110,7 @@ public class GCStringPrinter
 
 		public Color urlColor;
 		
-		public Color dropShadowColor;
+		//public Color dropShadowColor;
 
 		int relStartPos;
 
@@ -1005,12 +1005,14 @@ public class GCStringPrinter
 				if (!noDraw) {
 					fgColor = gc.getForeground();
 
+					/*
 					if (urlInfo.dropShadowColor != null) {
 						gc.setForeground(urlInfo.dropShadowColor);
 						drawText(gc, s, x0 + 1, y0 + 1, lineInfo.outputLineExtent.y, null, noDraw,
 								false);
 					}
-
+					*/
+					
 					if (urlInfo.urlColor != null) {
 						gc.setForeground(urlInfo.urlColor);
 					} else if (urlColor != null) {
