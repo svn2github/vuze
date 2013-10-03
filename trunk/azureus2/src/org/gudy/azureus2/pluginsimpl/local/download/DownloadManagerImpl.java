@@ -686,17 +686,19 @@ DownloadManagerImpl
 	
 	public Download[]
 	getDownloads()
-	{
-		Set<Download>	res_l = new LinkedHashSet<Download>();
-	
-		// we have to use the global manager's ordering as it
-		// hold this
+	{		
+			// we have to use the global manager's ordering as it
+			// hold this
 
 		List<DownloadManager> dms = global_manager.getDownloadManagers();
 
+		Set<Download>	res_l;
+
 		try{
 			listeners_mon.enter();
-
+			
+			res_l = new LinkedHashSet<Download>( downloads.size());
+			
 			for (int i=0;i<dms.size();i++){
 			
 				DownloadImpl	dl = download_map.get( dms.get(i));
