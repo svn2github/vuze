@@ -12,7 +12,7 @@ import org.gudy.azureus2.core3.util.LightHashMap;
 /**
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
-public class JSONObject extends LightHashMap{
+public class JSONObject extends LightHashMap<String,Object>{
 	
 	public JSONObject() {
 		super();
@@ -26,16 +26,16 @@ public class JSONObject extends LightHashMap{
 		super(initialCapacity);
 	}
 
-	public JSONObject(Map arg0) {
+	public JSONObject(Map<String,Object> arg0) {
 		super(arg0);
 	}
 
 	public String toString(){
 		ItemList list=new ItemList();
-		Iterator iter=entrySet().iterator();
+		Iterator<Map.Entry<String, Object>> iter=entrySet().iterator();
 		
 		while(iter.hasNext()){
-			Map.Entry entry=(Map.Entry)iter.next();
+			Map.Entry<String, Object> entry=iter.next();
 			list.add(toString(entry.getKey().toString(),entry.getValue()));
 		}
 		return "{"+list.toString()+"}";
@@ -96,9 +96,13 @@ public class JSONObject extends LightHashMap{
 			sb.append("\"");
 			escape(sb,(String)value);
 			sb.append("\"");
+		}else if ( value instanceof JSONObject ){
+			((JSONObject)value).toString( sb );
+		}else if ( value instanceof JSONArray ){
+			((JSONArray)value).toString( sb );
+		}else{
+			sb.append(String.valueOf( value ));
 		}
-		else
-			sb.append(value);
 	}
 	
 	/**

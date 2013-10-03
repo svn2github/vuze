@@ -12,12 +12,12 @@ import java.util.Iterator;
 /**
  * @author FangYidong<fangyidong@yahoo.com.cn>
  */
-public class JSONArray extends ArrayList {
+public class JSONArray extends ArrayList<Object> {
 	public JSONArray() {
 		super();
 	}
 
-	public JSONArray(Collection arg0) {
+	public JSONArray(Collection<Object> arg0) {
 		super(arg0);
 	}
 
@@ -28,7 +28,7 @@ public class JSONArray extends ArrayList {
 	public String toString(){
 		ItemList list=new ItemList();
 		
-		Iterator iter=iterator();
+		Iterator<Object> iter=iterator();
 		
 		while(iter.hasNext()){
 			Object value=iter.next();				
@@ -44,7 +44,7 @@ public class JSONArray extends ArrayList {
 	public void toString( StringBuilder sb ){
 		sb.append( "[" );
 
-		Iterator iter=iterator();
+		Iterator<Object> iter=iterator();
 		
 		boolean	first = true;
 		while(iter.hasNext()){
@@ -58,9 +58,9 @@ public class JSONArray extends ArrayList {
 				sb.append( "\"" );
 				JSONObject.escape(sb, (String)value);
 				sb.append( "\"");
-			}if ( value instanceof JSONObject ){
+			}else if ( value instanceof JSONObject ){
 				((JSONObject)value).toString( sb );
-			}if ( value instanceof JSONArray ){
+			}else if ( value instanceof JSONArray ){
 				((JSONArray)value).toString( sb ); 
 			}else{
 				sb.append(String.valueOf(value));
