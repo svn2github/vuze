@@ -36,7 +36,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 
-
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
@@ -56,6 +55,8 @@ import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 public class 
 DHTUDPUtils 
 {
+	public static final IOException INVALID_PROTOCOL_VERSION_EXCEPTION = new IOException( "Invalid DHT protocol version, please update Azureus" );
+	
 	protected static final int	CT_UDP		= 1;
 			
 	private static Map<String,byte[]>	node_id_history = 

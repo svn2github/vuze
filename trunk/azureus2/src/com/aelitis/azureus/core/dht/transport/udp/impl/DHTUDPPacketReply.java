@@ -130,9 +130,8 @@ DHTUDPPacketReply
 
 		if ( protocol_version < ( network == DHT.NW_CVS?DHTTransportUDP.PROTOCOL_VERSION_MIN_CVS:DHTTransportUDP.PROTOCOL_VERSION_MIN )){
 			
-			throw( new IOException( "Invalid DHT protocol version, please update Azureus" ));
+			throw( DHTUDPUtils.INVALID_PROTOCOL_VERSION_EXCEPTION );
 		}
-		
 
 			// we can only get the correct transport after decoding the network...
 		
