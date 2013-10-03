@@ -218,15 +218,23 @@ public class ConsoleInput extends Thread {
 	public void downloadRemoteTorrent( String url, final String outputDir )
 	{
 		TorrentDownloader downloader = TorrentDownloaderFactory.create(new TorrentDownloaderCallBackInterface() {
-			public void TorrentDownloaderEvent(int state, TorrentDownloader inf) {
-				if( state == TorrentDownloader.STATE_FINISHED )
-				{
-					out.println("torrent file download complete. starting torrent");
+			public void 
+			TorrentDownloaderEvent(
+				int state, 
+				TorrentDownloader inf) 
+			{
+				if( state == TorrentDownloader.STATE_FINISHED ){
+					out.println("Torrent file download complete. Starting torrent");
 					TorrentDownloaderManager.getInstance().remove(inf);
 					downloadTorrent( inf.getFile().getAbsolutePath(), outputDir );
-				}
-				else
+				}else{
+					if ( state == TorrentDownloader.STATE_ERROR ){
+						
+						out.println( "Torrent file download failed: " + inf.getError());
+					}
+					
 					TorrentDownloaderManager.getInstance().TorrentDownloaderEvent(state, inf);
+				}
 			}
 		}, url, null, null, true);
 		TorrentDownloaderManager.getInstance().add(downloader);
