@@ -1929,7 +1929,7 @@ PluginInitializer
   				loaded_pi_list.remove(i);
   			}
   			
-  			return;
+  			break;
   		}
   	}
   	
@@ -2509,7 +2509,7 @@ PluginInitializer
 								
 								req = request_queue.remove(0);
 							}
-							
+														
 							if ( req[1] == null ){
 								
 								req[1] = values.get( req[0] );
