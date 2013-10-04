@@ -27,11 +27,13 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 
 /**
@@ -95,7 +97,7 @@ public class TorrentOpenOptions
 
 	private Map<Integer, File> initial_linkage_map = null;
 
-	private List<ToDownloadListener> listToDownloadListeners = new ArrayList<ToDownloadListener>(1);
+	private CopyOnWriteList<FileListener> fileListeners = new CopyOnWriteList<FileListener>(1);
 
 	public Map<String, Boolean> peerSource = new HashMap<String, Boolean>();
 	
@@ -436,24 +438,40 @@ public class TorrentOpenOptions
 	}
 
 	
-	public void addListener(ToDownloadListener l) {
-		listToDownloadListeners.add(l);
+	public void addListener(FileListener l) {
+		fileListeners.add(l);
 	}
 	
-	public void removeListener(ToDownloadListener l) {
-		listToDownloadListeners.remove(l);
+	public void removeListener(FileListener l) {
+		fileListeners.remove(l);
 	}
 	
-	public interface ToDownloadListener {
+	public interface FileListener {
 		public void toDownloadChanged(TorrentOpenFileOptions torrentOpenFileOptions, boolean toDownload);
+		public void priorityChanged(TorrentOpenFileOptions torrentOpenFileOptions, int priority );
 	}
 
 	public void fileDownloadStateChanged(
-			TorrentOpenFileOptions torrentOpenFileOptions, boolean toDownload) {
-		ToDownloadListener[] listeners = listToDownloadListeners.toArray(new ToDownloadListener[0]);
-		for (ToDownloadListener l : listeners) {
-			l.toDownloadChanged(torrentOpenFileOptions, toDownload);
+			TorrentOpenFileOptions torrentOpenFileOptions, boolean toDownload) 
+	{
+		for ( FileListener l : fileListeners) {
+			try{
+				l.toDownloadChanged(torrentOpenFileOptions, toDownload);
+			}catch( Throwable e ){
+				Debug.out( e );
+			}
 		}
 	}
 
+	public void filePriorityStateChanged(
+			TorrentOpenFileOptions torrentOpenFileOptions, int priority) 
+	{
+		for ( FileListener l : fileListeners) {
+			try{
+				l.priorityChanged(torrentOpenFileOptions, priority);
+			}catch( Throwable e ){
+				Debug.out( e );
+			}
+		}
+	}
 }

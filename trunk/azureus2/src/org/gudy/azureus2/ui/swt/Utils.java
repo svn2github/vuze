@@ -2086,6 +2086,33 @@ public class Utils
 		return null;
 	}
 
+	public static void
+	makeButtonsEqualWidth(
+		List<Button>	buttons )
+	{
+		int width = 75;
+		
+		for ( Button button: buttons ){
+			
+			width = Math.max( width, button.computeSize( SWT.DEFAULT, SWT.DEFAULT ).x );
+		}
+		
+		for ( Button button: buttons ){
+			Object	data = button.getLayoutData();
+			if ( data != null ){
+				if ( data instanceof GridData ){
+					((GridData)data).widthHint = width;
+				}else{
+					Debug.out( "Expected GridData" );
+				}
+			}else{
+				data = new GridData();
+				((GridData) data).widthHint = width;
+				button.setLayoutData( data );
+			}
+		}
+	}
+	
 	private static boolean gotBrowserStyle = false;
 
 	private static int browserStyle = SWT.NONE;

@@ -55,12 +55,13 @@ import com.aelitis.azureus.ui.common.table.TableView;
  */
 public class FilesViewMenuUtil
 {
-	public static final Object PRIORITY_HIGH 	= new Object();
-	public static final Object PRIORITY_NORMAL 	= new Object();
-	public static final Object PRIORITY_LOW 	= new Object();
-	public static final Object PRIORITY_NUMERIC = new Object();
-	public static final Object PRIORITY_SKIPPED = new Object();
-	public static final Object PRIORITY_DELETE 	= new Object();
+	public static final Object PRIORITY_HIGH 			= new Object();
+	public static final Object PRIORITY_NORMAL 			= new Object();
+	public static final Object PRIORITY_LOW 			= new Object();
+	public static final Object PRIORITY_NUMERIC 		= new Object();
+	public static final Object PRIORITY_NUMERIC_AUTO 	= new Object();
+	public static final Object PRIORITY_SKIPPED 		= new Object();
+	public static final Object PRIORITY_DELETE 			= new Object();
 
 	public static void fillMenu(final TableView tv,
 			final Menu menu, final DownloadManager manager,
@@ -165,6 +166,11 @@ public class FilesViewMenuUtil
 		itemNumeric.setData("Priority", PRIORITY_NUMERIC);
 		Messages.setLanguageText(itemNumeric, "FilesView.menu.setpriority.numeric"); 
 
+		final MenuItem itemNumericAuto = new MenuItem(menuPriority, SWT.CASCADE);
+		itemNumericAuto.setData("Priority", PRIORITY_NUMERIC_AUTO);
+		Messages.setLanguageText(itemNumericAuto, "FilesView.menu.setpriority.numeric.auto"); 
+
+		
 		final MenuItem itemSkipped = new MenuItem(menuPriority, SWT.CASCADE);
 		itemSkipped.setData("Priority", PRIORITY_SKIPPED);
 		Messages.setLanguageText(itemSkipped, "FilesView.menu.setpriority.skipped"); 
@@ -325,6 +331,7 @@ public class FilesViewMenuUtil
 		};
 
 		itemNumeric.addListener(SWT.Selection, priorityListener);
+		itemNumericAuto.addListener(SWT.Selection, priorityListener);
 		itemHigh.addListener(SWT.Selection, priorityListener);
 		itemNormal.addListener(SWT.Selection, priorityListener);
 		itemLow.addListener(SWT.Selection, priorityListener);
@@ -429,8 +436,11 @@ public class FilesViewMenuUtil
 		if (type == PRIORITY_NUMERIC) {
 			changePriorityManual(datasources);
 			return;
+		}else if (type == PRIORITY_NUMERIC_AUTO ) {
+			changePriorityAuto(datasources);
+			return;
 		}
-
+		
 		Map<DownloadManager, ArrayList<DiskManagerFileInfo>> mapDMtoDMFI = new HashMap<DownloadManager, ArrayList<DiskManagerFileInfo>>();
 
 		DiskManagerFileInfo[] file_infos = new DiskManagerFileInfo[datasources.length];
@@ -532,6 +542,75 @@ public class FilesViewMenuUtil
 		});
 	}
 
+	private static void 
+	changePriorityAuto(
+		Object[] datasources) 
+	{
+		int priority = 0;
+		
+		Map<DownloadManager, ArrayList<DiskManagerFileInfo>> mapDMtoDMFI = new HashMap<DownloadManager, ArrayList<DiskManagerFileInfo>>();
+
+		DiskManagerFileInfo[] file_infos = new DiskManagerFileInfo[datasources.length];
+		for (int i = 0; i < datasources.length; i++) {
+			file_infos[i] = (DiskManagerFileInfo) datasources[i];
+
+			DownloadManager dm = file_infos[i].getDownloadManager();
+			ArrayList<DiskManagerFileInfo> listFileInfos = mapDMtoDMFI.get(dm);
+			if (listFileInfos == null) {
+				listFileInfos = new ArrayList<DiskManagerFileInfo>(1);
+				mapDMtoDMFI.put(dm, listFileInfos);
+			}
+			listFileInfos.add(file_infos[i]);
+
+			file_infos[i].setPriority(priority++);
+		}
+
+		for ( Map.Entry<DownloadManager,ArrayList<DiskManagerFileInfo>> entry: mapDMtoDMFI.entrySet()){
+			
+			DiskManagerFileInfo[] all_files = entry.getKey().getDiskManagerFileInfoSet().getFiles();
+			
+			ArrayList<DiskManagerFileInfo>	files = entry.getValue();
+			
+			int	next_priority = 0;
+
+			if ( all_files.length != files.size()){
+				
+				Set<Integer>	affected_indexes = new HashSet<Integer>();
+				
+				for ( DiskManagerFileInfo file: files ){
+					
+					affected_indexes.add( file.getIndex());
+				}
+					
+				for ( DiskManagerFileInfo file: all_files ){
+				
+					if ( !( affected_indexes.contains( file.getIndex()) || file.isSkipped())){
+						
+						next_priority = Math.max( next_priority, file.getPriority()+1);
+					}
+				}
+			}
+			
+			next_priority += files.size();
+			
+			for ( DiskManagerFileInfo file: files ){
+				
+				file.setPriority( --next_priority );
+			}
+		}
+		
+		for (DownloadManager dm : mapDMtoDMFI.keySet()) {
+			ArrayList<DiskManagerFileInfo> list = mapDMtoDMFI.get(dm);
+			DiskManagerFileInfo[] fileInfos = list.toArray(new DiskManagerFileInfo[0]);
+			boolean paused = setSkipped(dm, fileInfos, false, false);
+
+			if (paused) {
+
+				dm.resume();
+			}
+		}
+	}
+		
 	private static String askForRenameFilename(DiskManagerFileInfo fileInfo) {
 		SimpleTextEntryWindow dialog = new SimpleTextEntryWindow(
 				"FilesView.rename.filename.title", "FilesView.rename.filename.text");

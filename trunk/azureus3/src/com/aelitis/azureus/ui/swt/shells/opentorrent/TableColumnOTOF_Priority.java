@@ -17,23 +17,24 @@
  
 package com.aelitis.azureus.ui.swt.shells.opentorrent;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenFileOptions;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
-public class TableColumnOTOF_Position
+public class TableColumnOTOF_Priority
 implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
-	public static final String COLUMN_ID = "#";
+	public static final String COLUMN_ID = "priority";
   
   /** Default Constructor */
-  public TableColumnOTOF_Position(TableColumn column) {
-  	column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 40);
+  public TableColumnOTOF_Priority(TableColumn column) {
+  	column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 50);
   	column.addListeners(this);
   }
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] {
-			TableColumn.CAT_PROTOCOL,
+			TableColumn.CAT_SETTINGS,
 		});
 		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
@@ -44,9 +45,43 @@ implements TableCellRefreshListener, TableColumnExtraInfoListener
   		return;
   	}
   	TorrentOpenFileOptions tfi = (TorrentOpenFileOptions) ds;
-  	int index = tfi.getIndex();
-  	cell.setSortValue(index);
-  	cell.setText("" + index);
+  	
+  	int 		priority;
+  	String		text;
+
+  	if ( tfi.isToDownload()){
+  		
+  		priority = tfi.getPriority();
+ 
+		if ( priority > 0 ) {
+			
+			text = MessageText.getString("FileItem.high");
+		
+			if ( priority > 1 ){
+				
+				text += " (" + priority + ")";
+			}
+		}else if (priority < 0 ){
+			
+			text = MessageText.getString("FileItem.low");
+				
+			if ( priority < -1 ){
+				
+				text += " (" + priority + ")";
+			}
+		}else{
+			
+			text = MessageText.getString("FileItem.normal");
+		}
+  	}else{
+  		priority = Integer.MIN_VALUE;
+  		
+  		text = "";
+  	}
+  	
+  	if ( cell.setSortValue(priority)){
+  	
+  		cell.setText( text );
+  	}
   }
-  
 }

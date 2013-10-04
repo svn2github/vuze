@@ -41,12 +41,13 @@ public class TorrentOpenFileOptions
 
 	/** Whether to download this file.  Probably should be switched to the DND state variable */
 	private boolean toDownload;
-
+	private int		priority;
+	
 	private String destFileName;
 	private String destPathName;
 
 	/** @todo: getter/setters */
-	public int iIndex;
+	private final int iIndex;
 
 	/** @todo: getter/setters */
 	public boolean isValid;
@@ -72,6 +73,12 @@ public class TorrentOpenFileOptions
 		
 		orgFullName = torrentFile.getRelativePath(); // translated to locale
 		orgFileName = new File(orgFullName).getName();
+	}
+	
+	public int
+	getIndex()
+	{
+		return( iIndex );
 	}
 	
 	public void setFullDestName(String newFullName)
@@ -146,5 +153,19 @@ public class TorrentOpenFileOptions
 	public void setToDownload(boolean toDownload) {
 		this.toDownload = toDownload;
 		parent.fileDownloadStateChanged(this, toDownload);
+	}
+	
+	public int
+	getPriority()
+	{
+		return( priority );
+	}
+	
+	public void
+	setPriority(
+		int	_priority )
+	{
+		priority = _priority;
+		parent.filePriorityStateChanged(this, _priority);
 	}
 }

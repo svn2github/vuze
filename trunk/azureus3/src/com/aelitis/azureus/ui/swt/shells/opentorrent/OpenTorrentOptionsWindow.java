@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
@@ -42,6 +43,8 @@ import org.gudy.azureus2.core3.torrent.impl.TorrentOpenFileOptions;
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.ui.swt.*;
@@ -170,8 +173,12 @@ public class OpenTorrentOptionsWindow
 
 	private SWTSkinObjectExpandItem soExpandItemPeer;
 
+	private AtomicInteger settingToDownload = new AtomicInteger(0);
+	
+	private Button btnSelectAll;
+	private Button btnMarkSelected;
+	private Button btnUnmarkSelected;
 	private Button btnRename;
-
 	private Button btnRetarget;
 
 	public static void main(String[] args) {
@@ -215,14 +222,24 @@ public class OpenTorrentOptionsWindow
 			TorrentOpenOptions torrentOptions) {
 		this.torrentOptions = torrentOptions;
 
-		torrentOptions.addListener(new TorrentOpenOptions.ToDownloadListener() {
+		torrentOptions.addListener(new TorrentOpenOptions.FileListener() {
 			public void toDownloadChanged(TorrentOpenFileOptions fo, boolean toDownload) {
 				TableRowCore row = tvFiles.getRow(fo);
 				if (row != null) {
 					row.invalidate(true);
 					row.refresh(true);
 				}
-				updateSize();
+				if ( settingToDownload.get() == 0 ){
+				
+					updateSize();
+				}
+			}
+			public void priorityChanged(TorrentOpenFileOptions fo, int priority) {
+				TableRowCore row = tvFiles.getRow(fo);
+				if (row != null) {
+					row.invalidate(true);
+					row.refresh(true);
+				}
 			}
 		});
 
@@ -379,11 +396,43 @@ public class OpenTorrentOptionsWindow
 
 	private void setupFileAreaButtons(SWTSkinObjectContainer so) {
 		Composite cButtons = so.getComposite();
-		RowLayout rowLayout = new RowLayout();
-		rowLayout.marginBottom = rowLayout.marginTop = 0;
-		cButtons.setLayout(rowLayout);
+		
+		cButtons.setLayout(new GridLayout(7,false));
 
+		List<Button>	buttons = new ArrayList<Button>();
+		
+		btnSelectAll = new Button(cButtons, SWT.PUSH);
+		buttons.add( btnSelectAll );
+		Messages.setLanguageText(btnSelectAll, "Button.selectAll");
+		btnSelectAll.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				tvFiles.selectAll();
+			}
+		});
+		
+		btnMarkSelected = new Button(cButtons, SWT.PUSH);
+		buttons.add( btnMarkSelected );
+		Messages.setLanguageText(btnMarkSelected, "Button.mark");
+		btnMarkSelected.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(new TorrentOpenFileOptions[0]);
+				setToDownload( infos, true );
+			}
+		});
+		
+		btnUnmarkSelected = new Button(cButtons, SWT.PUSH);
+		buttons.add( btnUnmarkSelected );
+		Messages.setLanguageText(btnUnmarkSelected, "Button.unmark");
+		btnUnmarkSelected.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(new TorrentOpenFileOptions[0]);
+				setToDownload( infos, false );
+
+			}
+		});
+		
 		btnRename = new Button(cButtons, SWT.PUSH);
+		buttons.add( btnRename );
 		Messages.setLanguageText(btnRename, "Button.rename");
 		btnRename.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -394,6 +443,7 @@ public class OpenTorrentOptionsWindow
 		});
 
 		btnRetarget = new Button(cButtons, SWT.PUSH);
+		buttons.add( btnRetarget );
 		Messages.setLanguageText(btnRetarget, "Button.retarget");
 		btnRetarget.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -415,9 +465,11 @@ public class OpenTorrentOptionsWindow
 						})) {
 
 					Label pad = new Label(cButtons, SWT.NONE);
-					pad.setLayoutData(new RowData(50, 0));
-
+					GridData gridData = new GridData( GridData.FILL_HORIZONTAL);
+					pad.setLayoutData( gridData );
+					
 					btnSwarmIt = new Button(cButtons, SWT.PUSH);
+					buttons.add( btnSwarmIt );
 					Messages.setLanguageText(btnSwarmIt, "Button.swarmit");
 
 					btnSwarmIt.addListener(SWT.Selection, new Listener() {
@@ -447,10 +499,40 @@ public class OpenTorrentOptionsWindow
 
 		}
 
+		Utils.makeButtonsEqualWidth( buttons );
+		
 		updateFileButtons();
 
 	}
 
+	private void
+	setToDownload(
+		TorrentOpenFileOptions[]	infos,
+		boolean						download )	
+	{
+		boolean changed = false;
+		try{
+			settingToDownload.incrementAndGet();
+		
+			for (TorrentOpenFileOptions info: infos ){
+				
+				if ( info.isToDownload() != download ){
+					
+					info.setToDownload( download );
+					
+					changed = true;
+				}
+			}
+		}finally{
+			
+			settingToDownload.decrementAndGet();
+		}
+		
+		if ( changed ){
+			updateSize();
+		}
+	}
+	
 	private void setupFileAreaInfo(SWTSkinObjectText so) {
 		soFileAreaInfo = so;
 	}
@@ -813,12 +895,21 @@ public class OpenTorrentOptionsWindow
 							new TableColumnOTOF_Ext(column);
 						}
 					});
+			
+			tcm.registerColumn(TorrentOpenFileOptions.class,
+					TableColumnOTOF_Priority.COLUMN_ID, new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new TableColumnOTOF_Priority(column);
+						}
+					});
+
 			tcm.setDefaultColumnNames(TABLEID_FILES, new String[] {
 				TableColumnOTOF_Position.COLUMN_ID,
 				TableColumnOTOF_Download.COLUMN_ID,
 				TableColumnOTOF_Name.COLUMN_ID,
 				TableColumnOTOF_Size.COLUMN_ID,
-				TableColumnOTOF_Path.COLUMN_ID
+				TableColumnOTOF_Path.COLUMN_ID,
+				TableColumnOTOF_Priority.COLUMN_ID
 			});
 			tcm.setDefaultSortColumnName(TABLEID_FILES, TableColumnOTOF_Position.COLUMN_ID);
 		}
@@ -840,11 +931,8 @@ public class OpenTorrentOptionsWindow
 					TorrentOpenFileOptions tfi_focus = ((TorrentOpenFileOptions) focusedRow.getDataSource());
 					boolean download = !tfi_focus.isToDownload();
 
-					TableRowCore[] rows = tvFiles.getSelectedRows();
-					for (TableRowCore row : rows) {
-						TorrentOpenFileOptions tfi = ((TorrentOpenFileOptions) row.getDataSource());
-						tfi.setToDownload(download);
-					}
+					TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(new TorrentOpenFileOptions[0]);
+					setToDownload( infos, download );
 				}
 				if (e.keyCode == SWT.F2 && (e.stateMask & SWT.MODIFIER_MASK) == 0) {
 					TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(
@@ -859,6 +947,7 @@ public class OpenTorrentOptionsWindow
 		tvFiles.addMenuFillListener(new TableViewSWTMenuFillListener() {
 
 			public void fillMenu(String sColumnName, Menu menu) {
+				Shell shell = menu.getShell();
 				MenuItem item;
 				TableRowCore focusedRow = tvFiles.getFocusedRow();
 				final TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(new TorrentOpenFileOptions[0]);
@@ -873,13 +962,153 @@ public class OpenTorrentOptionsWindow
 						TorrentOpenFileOptions tfi_focus = ((TorrentOpenFileOptions) focusedRow.getDataSource());
 						boolean download = !tfi_focus.isToDownload();
 
-						for (TorrentOpenFileOptions options : infos) {
-							options.setToDownload(download);
-						}
+						setToDownload( infos, download );
 					}
 				});
 				item.setSelection(download);
 
+				
+					// priority
+				
+				final MenuItem itemPriority = new MenuItem(menu, SWT.CASCADE);
+				Messages.setLanguageText(itemPriority, "FilesView.menu.setpriority");
+
+				final Menu menuPriority = new Menu(shell, SWT.DROP_DOWN);
+				itemPriority.setMenu(menuPriority);
+
+				final MenuItem itemHigh = new MenuItem(menuPriority, SWT.CASCADE);
+
+				Messages.setLanguageText(itemHigh, "FilesView.menu.setpriority.high"); 
+
+				final MenuItem itemNormal = new MenuItem(menuPriority, SWT.CASCADE);
+	
+				Messages.setLanguageText(itemNormal, "FilesView.menu.setpriority.normal");
+				
+				final MenuItem itemLow = new MenuItem(menuPriority, SWT.CASCADE);
+	
+				Messages.setLanguageText(itemLow, "FileItem.low");
+
+				final MenuItem itemNumeric = new MenuItem(menuPriority, SWT.CASCADE);
+	
+				Messages.setLanguageText(itemNumeric, "FilesView.menu.setpriority.numeric"); 
+
+				final MenuItem itemNumericAuto = new MenuItem(menuPriority, SWT.CASCADE);
+	
+				Messages.setLanguageText(itemNumericAuto, "FilesView.menu.setpriority.numeric.auto"); 
+				
+				Listener priorityListener = new Listener() {
+					public void handleEvent(Event event) {
+					
+						Widget widget = event.widget;
+						
+						int	priority;
+						
+						if ( widget == itemHigh ){
+							
+							priority = 1;
+							
+						}else if ( widget == itemNormal ){
+							
+							priority = 0;
+														
+						}else if ( widget == itemLow ){
+							
+							priority = -1;
+							
+						}else if ( widget == itemNumeric ){
+							
+							SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+									"FilesView.dialog.priority.title",
+									"FilesView.dialog.priority.text");
+							
+							entryWindow.prompt(
+								new UIInputReceiverListener() {
+									public void UIInputReceiverClosed(UIInputReceiver entryWindow) {
+										if (!entryWindow.hasSubmittedInput()) {
+											return;
+										}
+										String sReturn = entryWindow.getSubmittedInput();
+										
+										if (sReturn == null)
+											return;
+										
+										int priority = 0;
+										
+										try {
+											priority = Integer.valueOf(sReturn).intValue();
+										} catch (NumberFormatException er) {
+											
+											Debug.out( "Invalid priority: " + sReturn );
+											
+											new MessageBoxShell(SWT.ICON_ERROR | SWT.OK,
+													MessageText.getString("FilePriority.invalid.title"),
+													MessageText.getString("FilePriority.invalid.text", new String[]{ sReturn })).open(null);
+											
+											return;
+										}
+										
+										for (TorrentOpenFileOptions torrentFileInfo : infos) {
+											
+											torrentFileInfo.setPriority( priority );
+										}
+									}
+								});
+							
+							return;
+							
+						}else if ( widget == itemNumericAuto ){
+							
+							int	next_priority = 0;
+
+							TorrentOpenFileOptions[] all_files = torrentOptions.getFiles();
+							
+							if ( all_files.length != infos.length ){
+								
+								Set<Integer>	affected_indexes = new HashSet<Integer>();
+								
+								for ( TorrentOpenFileOptions file: infos ){
+									
+									affected_indexes.add( file.getIndex());
+								}
+									
+								for ( TorrentOpenFileOptions file: all_files ){
+								
+									if ( !( affected_indexes.contains( file.getIndex()) || !file.isToDownload())){
+										
+										next_priority = Math.max( next_priority, file.getPriority()+1);
+									}
+								}
+							}
+							
+							next_priority += infos.length;
+							
+							for ( TorrentOpenFileOptions file: infos ){
+								
+								file.setPriority( --next_priority );
+							}
+							
+							return;
+							
+						}else{
+							
+							return;
+						}
+						
+						for (TorrentOpenFileOptions torrentFileInfo : infos) {
+							
+							torrentFileInfo.setPriority( priority );
+						}
+					}
+				};
+
+				itemNumeric.addListener(SWT.Selection, priorityListener);
+				itemNumericAuto.addListener(SWT.Selection, priorityListener);
+				itemHigh.addListener(SWT.Selection, priorityListener);
+				itemNormal.addListener(SWT.Selection, priorityListener);
+				itemLow.addListener(SWT.Selection, priorityListener);
+				
+					// rename
+				
 				item = new MenuItem(menu, SWT.PUSH);
 				Messages.setLanguageText(item, "FilesView.menu.rename_only");
 				item.addSelectionListener(new SelectionAdapter() {

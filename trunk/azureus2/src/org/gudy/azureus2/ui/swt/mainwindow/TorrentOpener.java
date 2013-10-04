@@ -37,6 +37,7 @@ import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -406,8 +407,14 @@ public class TorrentOpener {
 
 			final DownloadManagerInitialisationAdapter dmia = new DownloadManagerInitialisationAdapter() {
 
-				public void initialised(DownloadManager dm, boolean for_seeding ) {
-					DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfo();
+				public void 
+				initialised(
+					DownloadManager dm, 
+					boolean for_seeding ) 
+				{
+					DiskManagerFileInfoSet file_info_set = dm.getDiskManagerFileInfoSet();
+					
+					DiskManagerFileInfo[] fileInfos = file_info_set.getFiles();
 
 					boolean reorder_mode = COConfigurationManager.getBooleanParameter("Enable reorder storage mode");
 					int reorder_mode_min_mb = COConfigurationManager.getIntParameter("Reorder storage mode min MB");
@@ -419,6 +426,8 @@ public class TorrentOpener {
 						boolean[] toCompact = new boolean[fileInfos.length];
 						boolean[] toReorderCompact = new boolean[fileInfos.length];
 
+						int[] priorities = null;
+						
 						int comp_num = 0;
 						int reorder_comp_num = 0;
 
@@ -443,8 +452,20 @@ public class TorrentOpener {
 											fileInfo.getFile(false), fDest);
 								}
 
-								if (!files[iIndex].isToDownload()) {
+								if ( files[iIndex].isToDownload()){
 
+									int	priority = files[iIndex].getPriority();
+									
+									if ( priority != 0 ){
+										
+										if ( priorities == null ){
+											
+											priorities = new int[fileInfos.length];
+										}
+										
+										priorities[iIndex] = priority;
+									}
+								}else{
 									toSkip[iIndex] = true;
 
 									if (!fDest.exists()) {
@@ -467,20 +488,27 @@ public class TorrentOpener {
 							}
 						}
 
+						
+						
 						if (comp_num > 0) {
 
-							dm.getDiskManagerFileInfoSet().setStorageTypes(toCompact,
+							file_info_set.setStorageTypes(toCompact,
 									DiskManagerFileInfo.ST_COMPACT);
 						}
 
 						if (reorder_comp_num > 0) {
 
-							dm.getDiskManagerFileInfoSet().setStorageTypes(toReorderCompact,
+							file_info_set.setStorageTypes(toReorderCompact,
 									DiskManagerFileInfo.ST_REORDER_COMPACT);
 						}
 
-						dm.getDiskManagerFileInfoSet().setSkipped(toSkip, true);
+						file_info_set.setSkipped(toSkip, true);
 
+						if ( priorities != null ){
+							
+							file_info_set.setPriority( priorities );
+						}
+						
 						if (torrentOptions.disableIPFilter) {
 
 							dm.getDownloadState().setFlag(
