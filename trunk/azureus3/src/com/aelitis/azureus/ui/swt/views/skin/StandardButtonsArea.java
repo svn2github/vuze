@@ -24,7 +24,7 @@ public abstract class StandardButtonsArea
 
 	private static final int BUTTON_PADDING = 2;
 
-	private static final int MIN_BUTTON_WIDTH = 50;
+	private static final int MIN_BUTTON_WIDTH = 75;	// on windows supposed to be 50DLU which apparently equates to 75 pix
 
 	private String[] buttonIDs;
 
@@ -104,8 +104,8 @@ public abstract class StandardButtonsArea
 		fd = new FormData();
 		fd.height = 1;
 		fd.width = 1;
-		fd.left = new FormAttachment(0);
-		fd.right = new FormAttachment(100);
+		fd.left = new FormAttachment(100);
+		fd.right = new FormAttachment(0);
 		cCenterH.setLayoutData(fd);
 
 		Composite cCenterV = new Composite(cBottomArea, SWT.NONE);
@@ -116,12 +116,14 @@ public abstract class StandardButtonsArea
 		fd.bottom = new FormAttachment(100);
 		cCenterV.setLayoutData(fd);
 
+			// button area is supposed to be right aligned on both Windows+OSX
+		
 		Composite cButtonArea = new Composite(cBottomArea, SWT.NONE);
 		// Fix button BG not right on Win7
 		cButtonArea.setBackgroundMode(SWT.INHERIT_FORCE);
 		fd = new FormData();
 		fd.top = new FormAttachment(cCenterV, 0, SWT.CENTER);
-		fd.left = new FormAttachment(cCenterH, 0, SWT.CENTER);
+		fd.right = new FormAttachment(cCenterH, 0, SWT.LEFT);
 		cButtonArea.setLayoutData(fd);
 
 		RowLayout rowLayout = new RowLayout(SWT.HORIZONTAL);

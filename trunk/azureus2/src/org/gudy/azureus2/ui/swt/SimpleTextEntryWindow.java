@@ -216,7 +216,7 @@ public class SimpleTextEntryWindow extends AbstractUISWTInputReceiver {
 	    rLayout.spacing = Utils.BUTTON_MARGIN;
 	    panel.setLayout(rLayout);
 	    gridData = new GridData();
-	    gridData.horizontalAlignment = (Constants.isOSX) ? SWT.END : SWT.CENTER;
+	    gridData.horizontalAlignment = SWT.END;
 	    panel.setLayoutData(gridData);
 
 	    Button ok; 
