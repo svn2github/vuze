@@ -159,7 +159,7 @@ public class LocaleTorrentUtil
 		}
 
 		// get the decoders valid for various localisable parts of torrent content
-		// not in any particular order
+		// not in any particular order (well, system encoding is guaranteed to be first entry me thinks)
 
 		LocaleUtilDecoderCandidate[] candidates = getTorrentCandidates(torrent);
 
@@ -176,34 +176,70 @@ public class LocaleTorrentUtil
 
 		LocaleUtilDecoder selected_decoder = null;
 
-		for (int i = 0; i < listeners.size(); i++) {
+			// ask listeners for an explicit decision
+			
+		for ( int i = 0; i < listeners.size(); i++ ){
 
-			LocaleUtilDecoderCandidate candidate = null;
 			try {
-				candidate = ((LocaleUtilListener) listeners.get(i)).selectDecoder(
-						localeUtil, torrent, candidates);
-			} catch (LocaleUtilEncodingException e) {
+				LocaleUtilDecoderCandidate candidate = ((LocaleUtilListener) listeners.get(i)).selectDecoder( 	localeUtil, torrent, candidates);
+				
+				if ( candidate != null ){
+
+					selected_decoder = candidate.getDecoder();
+
+					break;
+				}
+			}catch( Throwable e ){
 			}
-
-			if (candidate != null) {
-
-				selected_decoder = candidate.getDecoder();
-
-				break;
-			}
-
-			bSaveToFile = false;
 		}
 
-		if (selected_decoder == null) {
+		if ( selected_decoder == null ){
 
-			// go for system decoder, if valid, fallback if not
+				// going to make an automatic decision, don't persist this
+			
+			bSaveToFile = false;
+			
+				// updated this to select UTF-8 over the system decoder if it is 'as good' as any other
+			
+			int	min_length 	= Integer.MAX_VALUE;
+			int utf8_length = Integer.MAX_VALUE;
+			
+			LocaleUtilDecoderCandidate	utf8_decoder = null;
+			
+	    	for ( LocaleUtilDecoderCandidate candidate: candidates ){
+	    		
+	    		String val = candidate.getValue();
+	    		
+	    		if ( val != null ){
+	    			
+	    			int	len = val.length();
+	    			
+	    			if ( len < min_length ){
+	    				
+	    				min_length = len;
+	    			}
+	    			
+	    			String name = candidate.getDecoder().getName().toUpperCase( Locale.US );
+	    			
+	    			if ( name.equals( "UTF-8" ) || name.equals( "UTF8" )){
+	    				
+	    				utf8_length		= len;
+	    				utf8_decoder 	= candidate;
+	    			}
+	    		}
+	    	}
+	    	
+	    	if ( utf8_decoder != null && utf8_length == min_length ){
+	    		
+	    		selected_decoder = utf8_decoder.getDecoder();
+	    		
+	    	}else if ( system_decoder_is_valid ){
 
-			if (system_decoder_is_valid) {
-
+	    			// go for system decoder, if valid, fallback if not
+	    		
 				selected_decoder = localeUtil.getSystemDecoder();
 
-			} else {
+			}else{
 
 				selected_decoder = localeUtil.getFallBackDecoder();
 			}
@@ -294,7 +330,31 @@ public class LocaleTorrentUtil
 				LocaleUtilDecoderCandidate luc1 = (LocaleUtilDecoderCandidate) o1;
 				LocaleUtilDecoderCandidate luc2 = (LocaleUtilDecoderCandidate) o2;
 
-				return (luc1.getDecoder().getIndex() - luc2.getDecoder().getIndex());
+				LocaleUtilDecoder dec1 = luc1.getDecoder();
+				LocaleUtilDecoder dec2 = luc2.getDecoder();
+												
+				int res = dec1.getIndex() - dec2.getIndex();
+				
+				if ( res == 0 ){
+					
+					return( 0 );
+				}
+				
+				String n1 = dec1.getName();
+				String n2 = dec2.getName();
+
+				if ( n1.equals( "UTF-8" )){
+					
+					return( -1 );
+					
+				}else if ( n2.equals( "UTF-8" )){
+					
+					return( 1 );
+					
+				}else{
+					
+					return( res );
+				}
 			}
 		});
 
