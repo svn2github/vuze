@@ -19,14 +19,18 @@
  */
 package com.aelitis.azureus.ui.swt.skin;
 
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.ui.swt.Utils;
 
 /**
@@ -96,7 +100,23 @@ public class SWTSkinObjectExpandItem
 		});
 
 		composite.addListener(SWT.Resize, new Listener() {
+			private Map<Rectangle,Long>	resize_history = new HashMap<Rectangle,Long>();
 			public void handleEvent(Event event) {
+				Rectangle bounds = composite.getBounds();
+				long now = SystemTime.getMonotonousTime();
+				Long	prev = resize_history.get( bounds );
+				if ( prev != null){
+					if ( now - prev < 500 ){
+						return;
+					}
+				}
+				Iterator<Long> it = resize_history.values().iterator();
+				while( it.hasNext()){
+					if ( now - it.next() >= 500 ){
+						it.remove();
+					}
+				}
+				resize_history.put( bounds, now );
 				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
 						SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
