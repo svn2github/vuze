@@ -529,6 +529,7 @@ public class OpenTorrentOptionsWindow
 		}
 		
 		if ( changed ){
+			updateFileButtons();
 			updateSize();
 		}
 	}
@@ -1289,16 +1290,35 @@ public class OpenTorrentOptionsWindow
 	protected void updateFileButtons() {
 		Utils.execSWTThread(new AERunnable() {
 			public void runSupport() {
-				boolean hasRowsSelected = tvFiles.getSelectedRowsSize() > 0;
+				TableRowCore[] rows = tvFiles.getSelectedRows();
+				
+				boolean hasRowsSelected = rows.length > 0;
 				if (btnRename != null && !btnRename.isDisposed()) {
 					btnRename.setEnabled(hasRowsSelected);
 				}
 				if (btnRetarget != null && !btnRetarget.isDisposed()) {
 					btnRetarget.setEnabled(hasRowsSelected);
 				}
+				
+				boolean all_marked 		= true;
+				boolean all_unmarked 	= true;
+				
+				for ( TableRowCore row: rows ){
+					TorrentOpenFileOptions tfi = ((TorrentOpenFileOptions) row.getDataSource());
+					if ( tfi.isToDownload()){
+						all_unmarked 	= false;
+					}else{
+						all_marked 		= false;
+					}
+				}
+				
+				btnSelectAll.setEnabled(  rows.length < torrentOptions.getFiles().length );
+				
+				btnMarkSelected.setEnabled( hasRowsSelected && !all_marked );
+				btnUnmarkSelected.setEnabled( hasRowsSelected && !all_unmarked );
+				
 				if (btnSwarmIt != null && !btnSwarmIt.isDisposed()){
 					boolean	enable=false;
-					TableRowCore[] rows = tvFiles.getSelectedRows();
 					if ( rows.length == 1 ){
 						TorrentOpenFileOptions tfi = ((TorrentOpenFileOptions) rows[0].getDataSource());	
 						enable = tfi.lSize >= 50*1024*1024;
