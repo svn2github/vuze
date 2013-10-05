@@ -230,7 +230,7 @@ public class OpenTorrentOptionsWindow
 					row.refresh(true);
 				}
 				if ( settingToDownload.get() == 0 ){
-				
+					updateFileButtons();
 					updateSize();
 				}
 			}
