@@ -483,14 +483,16 @@ public class UISWTViewImpl
 			((UIPluginViewToolBarListener) eventListener).refreshToolBarItems(list);
 		} else if (eventListener instanceof ToolBarEnabler) {
 			Map<String, Boolean> states = new HashMap<String, Boolean>();
-			for (String id: list.keySet()) {
-				states.put(id, (list.get(id) & UIToolBarItem.STATE_ENABLED) > 0);
+			for ( Map.Entry<String, Long> entry: list.entrySet()){
+				String id = entry.getKey();
+				states.put(id, (entry.getValue() & UIToolBarItem.STATE_ENABLED) > 0);
 			}
 			
 			((ToolBarEnabler) eventListener).refreshToolBar(states);
 
-			for (String id : states.keySet()) {
-				Boolean visible = states.get(id);
+			for ( Map.Entry<String, Boolean> entry: states.entrySet()){
+				String id = entry.getKey();
+				Boolean visible = entry.getValue();
 				list.put(id, visible ? UIToolBarItem.STATE_ENABLED : 0);
 			}
 		}

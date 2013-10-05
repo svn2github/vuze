@@ -656,13 +656,11 @@ BEncoder
     		return( false );
     	}
     	
-    	Iterator	it = map1.keySet().iterator();
-    	
-    	while( it.hasNext()){
+    	for (Map.Entry<Object,Object> entry: ((Map<Object,Object>)map1).entrySet()){
     		
-    		Object	key = it.next();
+    		Object	key = entry.getKey();
     		
-    		Object	v1 = map1.get(key);
+    		Object	v1 = entry.getValue();
     		Object	v2 = map2.get(key);
     		
     		if ( !objectsAreIdentical( v1, v2 )){

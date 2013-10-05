@@ -598,8 +598,9 @@ public class ToolBarView
 						Map<String, Boolean> oldMapStates = new HashMap<String, Boolean>();
 						((ToolBarEnabler) enabler).refreshToolBar(oldMapStates);
 
-						for (String key : oldMapStates.keySet()) {
-							Boolean enable = oldMapStates.get(key);
+						for ( Map.Entry<String,Boolean> e: oldMapStates.entrySet()){
+							String key = e.getKey();
+							Boolean enable = e.getValue();
 							Long curState = mapStates.get(key);
 							if (curState == null) {
 								curState = 0L;

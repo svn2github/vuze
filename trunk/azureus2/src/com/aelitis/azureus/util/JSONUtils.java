@@ -76,9 +76,9 @@ public class JSONUtils
 	public static JSONObject encodeToJSONObject(Map map) {
 		JSONObject newMap = new JSONObject((int)(map.size()*1.5));
 
-		for (Iterator iter = map.keySet().iterator(); iter.hasNext();) {
-			String key = (String) iter.next();
-			Object value = map.get(key);
+		for (Map.Entry<String, Object> entry: ((Map<String,Object>)map).entrySet()){
+			String key 		= entry.getKey();
+			Object value	= entry.getValue();
 
 			if (value instanceof byte[]) {
 				key += ".B64";
