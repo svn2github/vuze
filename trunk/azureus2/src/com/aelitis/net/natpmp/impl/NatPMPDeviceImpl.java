@@ -104,15 +104,13 @@ public class NatPMPDeviceImpl implements NatPMPDevice
     static final int NATResultUnsupportedOp = 5;  // Unsupported opcode
     
     /* Instance specific globals */
-    String		current_router_address	= "?";
-    InetAddress hostInet;        // Our address
-    InetAddress natPriInet;      // NAT's private (interal) address      
-    InetAddress natPubInet;      // NAT's public address
-    NetworkInterface networkInterface;	// natPriInet network interface
-    InetAddress llmInet;
+    private String		current_router_address	= "?";
+    private InetAddress hostInet;        // Our address
+    private InetAddress natPriInet;      // NAT's private (interal) address      
+    private InetAddress natPubInet;      // NAT's public address
+    private NetworkInterface networkInterface;	// natPriInet network interface
     
-    boolean nat_pmp_found = false;
-    int nat_epoch = 0;           // This gets updated each request
+    private int nat_epoch = 0;           // This gets updated each request
     
     private NATPMPDeviceAdapter	adapter;
     
@@ -257,9 +255,7 @@ public class NatPMPDeviceImpl implements NatPMPDevice
 	         *  Set up listner for announcements from the device for
 	         *  address changes (public address changes)   
 	         **/
-	         
-	        nat_pmp_found = true;
-	        
+	         	        
 	        return true;
 	        
     	}catch( PortUnreachableException e ){
