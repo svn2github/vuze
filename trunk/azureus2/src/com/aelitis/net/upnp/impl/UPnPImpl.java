@@ -35,12 +35,12 @@ import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.ThreadPool;
 import org.gudy.azureus2.core3.util.TorrentUtils;
-
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdapter;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
@@ -94,14 +94,16 @@ UPnPImpl
 	private List		log_history			= new ArrayList();
 	private List		log_alert_history	= new ArrayList();
 	
-	private List		rd_listeners		= new ArrayList();
-	private AEMonitor	rd_listeners_mon 	= new AEMonitor( "UPnP:L" );
+	private List<UPnPListener>	rd_listeners		= new ArrayList<UPnPListener>();
+	private AEMonitor			rd_listeners_mon 	= new AEMonitor( "UPnP:L" );
 
 	private int		http_calls_ok	= 0;
 	private int		direct_calls_ok	= 0;
 	
 	private int		trace_index		= 0;
 	
+	private AsyncDispatcher		async_dispatcher = new AsyncDispatcher();
+			
 	private ThreadPool	device_dispatcher	 = new ThreadPool("UPnPDispatcher", 1, true );
 	private Set			device_dispatcher_pending	= new HashSet();
 	
@@ -1126,14 +1128,14 @@ UPnPImpl
 	
 	public void
 	addRootDeviceListener(
-		UPnPListener	l )
+		final UPnPListener	l )
 	{
-		List	old_locations;
+		final List<UPnPRootDeviceImpl>	old_locations;
 		
 		try{
 			this_mon.enter();
 
-			old_locations = new ArrayList(root_locations.values());
+			old_locations = new ArrayList<UPnPRootDeviceImpl>(root_locations.values());
 
 			rd_listeners.add( l );
 			
@@ -1142,21 +1144,38 @@ UPnPImpl
 			this_mon.exit();
 		}
 		
-		for (int i=0;i<old_locations.size();i++){
+		if ( old_locations.size() > 0 ){
 			
-			UPnPRootDevice	device = (UPnPRootDevice)old_locations.get(i);
+				// if we have a misbehaving device (hanging on requests for example) then this can cause
+				// logic running on the new listener to hang the calling thread (e.g. the UPnPMediaServer)
+				// which can then bork its caller (e.g. PlayUtils.getMediaServerContentURL) and subsequent
+				// badness (UI hang). As a general fix for this go async here 
 			
-			try{
-				
-				if ( l.deviceDiscovered( device.getUSN(), device.getLocation())){
-					
-					l.rootDeviceFound(device);
-				}
-				
-			}catch( Throwable e ){
-				
-				Debug.printStackTrace(e);
-			}
+			async_dispatcher.dispatch(
+				new AERunnable() 
+				{
+					@Override
+					public void 
+					runSupport()
+					{
+						for (int i=0;i<old_locations.size();i++){
+							
+							UPnPRootDevice	device = (UPnPRootDevice)old_locations.get(i);
+							
+							try{
+								
+								if ( l.deviceDiscovered( device.getUSN(), device.getLocation())){
+									
+									l.rootDeviceFound(device);
+								}
+								
+							}catch( Throwable e ){
+								
+								Debug.printStackTrace(e);
+							}
+						}
+					}
+				});
 		}
 	}
 		
