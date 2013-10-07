@@ -53,7 +53,6 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
-import org.gudy.azureus2.plugins.download.DownloadStub.DownloadStubFile;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.PeerManager;
@@ -108,7 +107,6 @@ DownloadImpl
 	private CopyOnWriteList	activation_listeners = new CopyOnWriteList();
 	private DownloadActivationEvent	activation_state;
 	
-	private HashMap property_to_attribute_map = null;
 	
 	private Map<String,int[]>	announce_response_map;
 	
