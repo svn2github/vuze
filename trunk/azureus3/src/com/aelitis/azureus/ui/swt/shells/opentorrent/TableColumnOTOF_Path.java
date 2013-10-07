@@ -17,6 +17,8 @@
  
 package com.aelitis.azureus.ui.swt.shells.opentorrent;
 
+import java.io.File;
+
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenFileOptions;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
@@ -48,8 +50,10 @@ implements TableCellRefreshListener, TableColumnExtraInfoListener
   	String s = tfi.getDestPathName();
   	String parentDir = tfi.parent.getParentDir();
   	
-		if (s.startsWith(parentDir)
-				&& s.length() > parentDir.length()) {
+	if ( 	s.startsWith(parentDir) &&
+			!parentDir.endsWith( File.separator ) && 	// could be C:\
+			s.length() > parentDir.length()) {
+		
   		s = s.substring(parentDir.length() + 1);
   	}
   	cell.setText(s);
