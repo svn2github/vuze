@@ -886,13 +886,15 @@ AESocksProxyConnectionImpl
 				
 			}else{
 				
-				String dns_address = "";
+				StringBuilder dns_address_b = new StringBuilder( 256 );
 				
 				while( buffer.hasRemaining()){
 				
-					dns_address += (char)buffer.get();
+					dns_address_b.append((char)buffer.get());
 				}
 					
+				String dns_address = dns_address_b.toString();
+				
 				if ( disable_dns_lookups ){
 				
 					new proxyStateV5RequestPort( dns_address, null );

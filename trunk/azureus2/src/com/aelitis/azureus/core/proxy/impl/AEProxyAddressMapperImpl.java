@@ -57,8 +57,8 @@ AEProxyAddressMapperImpl
 	protected String	prefix;
 	protected long		next_value;
 	
-	protected Map		map			= new HashMap();
-	protected Map		reverse_map	= new HashMap();
+	protected Map<String,String>		map			= new HashMap<String,String>();
+	protected Map<String,String>		reverse_map	= new HashMap<String,String>();
 	
 	protected AEMonitor	this_mon	= new AEMonitor( "AEProxyAddressMapper" );
 			
@@ -111,16 +111,21 @@ AEProxyAddressMapperImpl
 		try{
 			this_mon.enter();
 			
-			target = (String)reverse_map.get( address );
+			target = reverse_map.get( address );
 			
 			if ( target == null ){
 				
-				target = prefix + (next_value++);
-			
-				while( target.length() < 255 ){
+				StringBuilder target_b = new StringBuilder( 256 );
 				
-					target += "0";
+				target_b.append( prefix );
+				target_b.append( next_value++ );
+			
+				while( target_b.length() < 255 ){
+				
+					target_b.append( "0" );
 				}
+				
+				target = target_b.toString();
 				
 				map.put( target, address );
 				
@@ -145,7 +150,7 @@ AEProxyAddressMapperImpl
 			return( address );
 		}
 		
-		String	target = (String)map.get( address );
+		String	target = map.get( address );
 		
 		if ( target == null ){
 			
