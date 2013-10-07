@@ -24,11 +24,9 @@ package com.aelitis.azureus.core.download;
 import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.Arrays;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.plugins.disk.DiskManagerChannel;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
@@ -80,7 +78,7 @@ DiskManagerFileInfoDelegate
 	public int 
 	getNumericPriorty() 
 	{
-		return( delegate.getNumericPriorty());
+		return( delegate.getNumericPriority());
 	}
 	
 	public int 
@@ -236,7 +234,6 @@ DiskManagerFileInfoDelegate
 		private DiskManagerChannel	delegate_channel;
 		
 		private volatile boolean	channel_destroyed;
-		private volatile long		channel_position;
 		
 		private
 		channel()
@@ -528,20 +525,12 @@ DiskManagerFileInfoDelegate
 					buffer			= _buffer;
 					event_offset	= _offset;
 					event_length	= _length;
-					
-					channel_position = _offset + _length - 1;
 				}
 				
 				public int
 				getType()
 				{
 					return( event_type );
-				}
-				
-				public DiskManagerRequest
-				getRequest()
-				{
-					return( request.this );
 				}
 				
 				public long

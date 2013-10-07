@@ -42,33 +42,16 @@ import com.aelitis.azureus.core.speedmanager.impl.v2.SpeedManagerAlgorithmProvid
 public class ConfigSectionTransferAutoSpeedBeta
         implements UISWTConfigSection
 {
-
-    //upload/download limits
-    IntParameter downMaxLim;
-    IntParameter uploadMaxLim;
-
-    StringListParameter confDownload;
-    StringListParameter confUpload;
-
     //add a comment to the auto-speed debug logs.
-    Group commentGroup;
+    private Group commentGroup;
 
-    Group uploadCapGroup;
+    private Group uploadCapGroup;
 
     //DHT ping set-points
-    Group dhtGroup;
-    IntParameter dGood;
-    IntParameter dGoodTol;
-    IntParameter dBad;
-    IntParameter dBadTol;
+    private Group dhtGroup;
     //general ping set-points.
-    IntParameter adjustmentInterval;
-    BooleanParameter skipAfterAdjustment;
-
-    Button reset;
-
-    IntListParameter downloadModeUsedCap;
-    IntListParameter seedModeUsedCap;
+    private IntParameter adjustmentInterval;
+    private BooleanParameter skipAfterAdjustment;
 
     /**
      * Create your own configuration panel here.  It can be anything that inherits
@@ -236,7 +219,7 @@ public class ConfigSectionTransferAutoSpeedBeta
                 50
         };
 
-        downloadModeUsedCap = new IntListParameter(uploadCapGroup,
+        new IntListParameter(uploadCapGroup,
                 SpeedLimitMonitor.USED_UPLOAD_CAPACITY_DOWNLOAD_MODE,
                 downloadModeNames, downloadModeValues);
 

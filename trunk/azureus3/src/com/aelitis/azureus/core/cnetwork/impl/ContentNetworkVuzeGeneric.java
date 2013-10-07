@@ -31,8 +31,6 @@ import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
-import org.gudy.azureus2.platform.PlatformManager;
-import org.gudy.azureus2.platform.PlatformManagerFactory;
 import org.gudy.azureus2.plugins.utils.FeatureManager;
 import org.gudy.azureus2.plugins.utils.FeatureManager.FeatureDetails;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
@@ -88,33 +86,7 @@ ContentNetworkVuzeGeneric
 	private String	URL_BLOG;
 	private String	URL_FORUMS;
 	private String	URL_WIKI;
-	
-	private Boolean conduit = null;
 
-	// Keeping this around for safetly, since it's a 4402 release
-	public
-	ContentNetworkVuzeGeneric(
-		ContentNetworkManagerImpl	_manager,
-		long						_content_network,
-		long						_version,
-		String						_name,
-		Map<String,Object>			_pprop_defaults,
-		Set<Integer>				_service_exclusions,
-		String						_site_host,
-		String						_url_prefix,
-		String						_url_icon,
-		String						_url_relay_rpc,
-		String						_url_authorised_rpc,
-		String						_url_faq,
-		String						_url_blog,
-		String						_url_forums,
-		String						_url_wiki )
-	{
-		this(_manager, _content_network, _version, _name, _pprop_defaults,
-				_service_exclusions, _site_host, _url_prefix, _url_icon,
-				_url_relay_rpc, _url_authorised_rpc, _url_faq, _url_blog, _url_forums,
-				_url_wiki, null);
-	}
 
 	public
 	ContentNetworkVuzeGeneric(
