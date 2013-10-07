@@ -70,8 +70,8 @@ UIManagerImpl
 	
 	protected static boolean				initialisation_complete;
 	
-	protected static CopyOnWriteList<Object[]>		ui_listeners		= new CopyOnWriteList<Object[]>();
-	protected static CopyOnWriteList				ui_event_listeners	= new CopyOnWriteList();
+	protected static CopyOnWriteList<Object[]>					ui_listeners		= new CopyOnWriteList<Object[]>();
+	protected static CopyOnWriteList<UIManagerEventListener>	ui_event_listeners	= new CopyOnWriteList<UIManagerEventListener>();
 	
 	protected static List<UIInstanceFactory>		ui_factories		= new ArrayList<UIInstanceFactory>();
 	protected static List<UIManagerEventAdapter>	ui_event_history	= new ArrayList<UIManagerEventAdapter>();
@@ -81,7 +81,6 @@ UIManagerImpl
 	protected PluginInterface		pi;
 	
 	protected PluginConfig			plugin_config;
-	protected String				key_prefix;
 	
 	protected TableManager			table_manager;
 	protected MenuManager           menu_manager;
@@ -95,9 +94,7 @@ UIManagerImpl
 		pi		=_pi;
 		
 		plugin_config	= pi.getPluginconfig();
-		
-		key_prefix		= plugin_config.getPluginConfigKeyPrefix();
-		
+				
 		table_manager	= new TableManagerImpl( this );
 		menu_manager	= new MenuManagerImpl( this );
 	}
@@ -473,11 +470,11 @@ UIManagerImpl
 		try{
   			class_mon.enter();
 
-  			Iterator	it = ui_listeners.iterator();
+  			Iterator<Object[]>	it = ui_listeners.iterator();
   			
   			while( it.hasNext()){
   				
-				Object[]	entry = (Object[])it.next();
+				Object[]	entry = it.next();
 					
 				if ( entry[0] == listener ){
 					
@@ -495,14 +492,14 @@ UIManagerImpl
   	addUIEventListener(
   		UIManagerEventListener listener )
   	{
-  		List	ui_event_history_copy;
+  		List<UIManagerEventAdapter>	ui_event_history_copy;
   		
 		try{
   			class_mon.enter();
   			
   			ui_event_listeners.add( listener );
   			
-  			ui_event_history_copy = new ArrayList( ui_event_history );
+  			ui_event_history_copy = new ArrayList<UIManagerEventAdapter>( ui_event_history );
   			
   		}finally{
   			
@@ -541,12 +538,12 @@ UIManagerImpl
  	public UIInstance[] getUIInstances() {
  		try {
   			class_mon.enter();
-  			ArrayList result = new ArrayList(ui_factories.size());
+  			ArrayList<UIInstance> result = new ArrayList<UIInstance>(ui_factories.size());
   			for (int i=0;i<ui_factories.size();i++){
-  				UIInstanceFactory instance = (UIInstanceFactory)ui_factories.get(i);
+  				UIInstanceFactory instance = ui_factories.get(i);
   				result.add(instance.getInstance(pi));
   			}
-  			return (UIInstance[])result.toArray(new UIInstance[result.size()]);
+  			return result.toArray(new UIInstance[result.size()]);
  		}
  		finally {
  			class_mon.exit();
@@ -568,12 +565,12 @@ UIManagerImpl
  	{
  		boolean	delivered	= false;
  		
-		Iterator event_it = ui_event_listeners.iterator();
+		Iterator<UIManagerEventListener> event_it = ui_event_listeners.iterator();
 
 		while( event_it.hasNext()){
  			
  			try{
- 				if (((UIManagerEventListener)event_it.next()).eventOccurred( event )){
+ 				if ( event_it.next().eventOccurred( event )){
  					
  					delivered = true;
  					
@@ -619,11 +616,11 @@ UIManagerImpl
  			try{
  	  			class_mon.enter();
  			
-	 			Iterator 	history_it = ui_event_history.iterator();
+	 			Iterator<UIManagerEventAdapter> 	history_it = ui_event_history.iterator();
 	 			
 	 			while( history_it.hasNext()){
 	 				
-	 				UIManagerEvent	e = (UIManagerEvent)history_it.next();
+	 				UIManagerEvent	e = history_it.next();
 	 			
 	 				int	e_type = e.getType();
 	 				
@@ -766,11 +763,11 @@ UIManagerImpl
 		try{
   			class_mon.enter();
   			
-			Iterator it = ui_listeners.iterator();
+			Iterator<Object[]> it = ui_listeners.iterator();
 
 			while( it.hasNext()){
 				
-				Object[]	entry = (Object[])it.next();
+				Object[]	entry = it.next();
 				
 				if ( pi == (PluginInterface)entry[1] ){
 										

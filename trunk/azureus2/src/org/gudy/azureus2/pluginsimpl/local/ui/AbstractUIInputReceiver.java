@@ -91,12 +91,12 @@ public abstract class AbstractUIInputReceiver implements UIInputReceiver {
 	}
 
 	protected String preentered_text = null;
-	protected boolean preentered_text_is_old_value = false;
+	//protected boolean preentered_text_is_old_value = false;
 	
 	public void setPreenteredText(String text, boolean as_suggested) {
 		assertPrePrompt();
 		this.preentered_text = text;
-		this.preentered_text_is_old_value = !as_suggested;
+		//this.preentered_text_is_old_value = !as_suggested;
 	}
 	
 	public void setTitle(String title) {

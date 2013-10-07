@@ -33,8 +33,6 @@ public abstract class
 GenericActionPerformer 
 implements IAdditionalActionPerformer
 {
-  boolean selected = false;
-  
   protected Control[] controls;
   
   public GenericActionPerformer(Control[] controls) {

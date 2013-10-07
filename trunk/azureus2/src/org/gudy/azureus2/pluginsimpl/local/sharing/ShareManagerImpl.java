@@ -1076,9 +1076,7 @@ ShareManagerImpl
 	
 	protected class
 	shareScanner
-	{
-		boolean	run = true;
-		
+	{		
 		protected
 		shareScanner()
 		{
