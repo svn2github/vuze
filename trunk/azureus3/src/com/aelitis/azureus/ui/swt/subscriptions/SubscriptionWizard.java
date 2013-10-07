@@ -38,7 +38,6 @@ import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
-import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
 
@@ -81,7 +80,6 @@ public class SubscriptionWizard {
 	Composite main;
 	StackLayout mainLayout;
 	Composite optinComposite;
-	Composite subscribeComposite;
 	Composite createComposite;
 	TabFolder createTabFolder;
 	TabItem   createRSSTabItem;
@@ -835,7 +833,7 @@ public class SubscriptionWizard {
 		addButton.setData("subscription",null);
 		
 		
-		final Image rssIcon = imageLoader.getImage("icon_rss");
+		//final Image rssIcon = imageLoader.getImage("icon_rss");
 
 		libraryTable.addListener(SWT.MeasureItem, new Listener() {
 			public void handleEvent(Event event) {
