@@ -858,24 +858,35 @@ addressLoop:
 	public String getNetworkInterfacesAsString()
 	{
 		Set interfaces = old_network_interfaces;
-		if (interfaces == null)
-		{
+		
+		if (interfaces == null){
+		
 			return ("");
 		}
+		
 		Iterator it = interfaces.iterator();
-		String str = "";
+		StringBuilder sb = new StringBuilder( 1024 );
 		while (it.hasNext())
 		{
 			NetworkInterface ni = (NetworkInterface) it.next();
 			Enumeration addresses = ni.getInetAddresses();
-			str+=ni.getName()+"\t("+ni.getDisplayName()+")\n";
+			sb.append( ni.getName());
+			sb.append( "\t(" );
+			sb.append( ni.getDisplayName());
+			sb.append( ")\n" );
 			int i = 0;
 			while(addresses.hasMoreElements()){
 				InetAddress address = (InetAddress)addresses.nextElement();
-				str+="\t"+ni.getName()+"["+(i++)+"]\t"+(address).getHostAddress()+"\n";
+				sb.append( "\t" );
+				sb.append( ni.getName());
+				sb.append("[" );
+				sb.append( i++ );
+				sb.append( "]\t" );
+				sb.append((address).getHostAddress());
+				sb.append("\n");
 			}
 		}
-		return (str);
+		return (sb.toString());
 	}
 	
 	public boolean

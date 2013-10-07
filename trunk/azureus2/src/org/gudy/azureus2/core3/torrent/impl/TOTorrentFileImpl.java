@@ -264,10 +264,11 @@ TOTorrentFileImpl
 		if (torrent == null) {
 			return "";
 		}
-		String sRelativePath = "";
 		
 		byte[][] pathComponentsUTF8 = getPathComponentsUTF8();
 		if (pathComponentsUTF8 != null) {
+			StringBuilder sRelativePathSB = null;
+
 			for (int j = 0; j < pathComponentsUTF8.length; j++) {
 
 				try {
@@ -281,13 +282,23 @@ TOTorrentFileImpl
 	
 					comp = FileUtil.convertOSSpecificChars(comp, j != pathComponentsUTF8.length-1 );
 	
-					sRelativePath += (j == 0 ? "" : File.separator) + comp;
+					if ( j == 0 ){
+						if ( pathComponentsUTF8.length == 1 ){
+							return( comp );
+						}else{
+							sRelativePathSB = new StringBuilder( 512 );
+						}
+					}else{
+						sRelativePathSB.append(File.separator);
+					}
+					
+					sRelativePathSB.append( comp );
 				} catch (Exception ex) {
 					Debug.out(ex);
 				}
 
 			}
-			return sRelativePath;
+			return sRelativePathSB==null?"":sRelativePathSB.toString();
 		}
 
 		LocaleUtilDecoder decoder = null;
@@ -302,6 +313,7 @@ TOTorrentFileImpl
 		}
 
 		if (decoder != null) {
+			StringBuilder sRelativePathSB = null;
 			byte[][]components = getPathComponents();
 			for (int j = 0; j < components.length; j++) {
 
@@ -320,15 +332,26 @@ TOTorrentFileImpl
 	
 					comp = FileUtil.convertOSSpecificChars(comp, j != components.length-1 );
 	
-					sRelativePath += (j == 0 ? "" : File.separator) + comp;
+					if ( j == 0 ){
+						if ( components.length == 1 ){
+							return( comp );
+						}else{
+							sRelativePathSB = new StringBuilder( 512 );
+						}
+					}else{
+						sRelativePathSB.append(File.separator);
+					}
+					
+					sRelativePathSB.append( comp );
 				} catch (Exception ex) {
 					Debug.out(ex);
 				}
 
 			}
-
+			return sRelativePathSB==null?"":sRelativePathSB.toString();
+		}else{
+			return( "" );
 		}
-		return sRelativePath;
 	}
 
 	/**
