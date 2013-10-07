@@ -218,6 +218,20 @@ DHTRouterContactImpl
 				",OK=" + getTimeAlive() + "]");
 	}
 
+	protected void
+	getString(
+		StringBuilder sb )
+	{
+		sb.append( DHTLog.getString2(node_id));
+		sb.append( "[hba=" );
+		sb.append( has_been_alive?"Y":"N" );
+		sb.append( ",bad=" );
+		sb.append( fail_count );
+		sb.append( ",OK=" );
+		sb.append( getTimeAlive());
+		sb.append( "]");
+	}
+	
 	public boolean isBucketEntry() {
 		return is_bucket_entry;
 	}

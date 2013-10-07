@@ -3203,7 +3203,8 @@ DHTDBImpl
 			
 			Iterator<Map.Entry<HashWrapper,DHTDBMapping>> it3 = stored_values.entrySet().iterator();
 			
-			String	str 		= "    ";
+			StringBuilder	sb = new StringBuilder( 1024 );
+			
 			int		str_entries	= 0;
 			
 			while( it3.hasNext()){
@@ -3216,21 +3217,37 @@ DHTDBImpl
 				
 				if ( str_entries == 16 ){
 					
-					logger.log( str );
+					logger.log( sb.toString());
 					
-					str = "    ";
+					sb = new StringBuilder( 1024 );
+					
+					sb.append( "    " );
 					
 					str_entries	= 0;
 				}
 				
 				str_entries++;
 				
-				str += (str_entries==1?"":", ") + DHTLog.getString2(value_key.getHash()) + " -> " + mapping.getValueCount() + "/" + mapping.getHits()+"["+mapping.getLocalSize()+","+mapping.getDirectSize()+","+mapping.getIndirectSize() + "]";
+				if ( str_entries > 1 ){
+					sb.append( ", ");
+				}
+				sb.append( DHTLog.getString2(value_key.getHash()));
+				sb.append( " -> " );
+				sb.append( mapping.getValueCount());
+				sb.append( "/" );
+				sb.append( mapping.getHits());
+				sb.append( "[" );
+				sb.append( mapping.getLocalSize());
+				sb.append( "," );
+				sb.append( mapping.getDirectSize());
+				sb.append( "," );
+				sb.append( mapping.getIndirectSize());
+				sb.append( "]" );;
 			}
 			
 			if ( str_entries > 0 ){
 				
-				logger.log( str );
+				logger.log( sb.toString());
 			}
 		}finally{
 			

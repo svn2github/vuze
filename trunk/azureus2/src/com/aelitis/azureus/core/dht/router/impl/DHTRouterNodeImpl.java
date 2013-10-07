@@ -566,13 +566,18 @@ DHTRouterNodeImpl
 	contactsToString(
 		List	contacts )
 	{
-		String	res = "{";
+		StringBuilder sb = new StringBuilder( contacts.size()*64 );
+		sb.append( "{" );
 		
 		for (int i=0;i<contacts.size();i++){
 			
-			res += (i==0?"":", ") + ((DHTRouterContactImpl)contacts.get(i)).getString();
+			if ( i > 0 ){
+				sb.append( ", " );
+			}
+			((DHTRouterContactImpl)contacts.get(i)).getString( sb );
 		}
 		
-		return( res + "}" );
+		sb.append( "}" );
+		return( sb.toString());	
 	}
 }

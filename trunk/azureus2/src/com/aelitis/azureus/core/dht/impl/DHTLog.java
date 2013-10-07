@@ -159,14 +159,20 @@ DHTLog
 	{
 		if ( logging_on ){
 			
-			String	res = "{";
+			StringBuilder sb = new StringBuilder( 128 );
+			sb.append( "{" );
 			
 			for (int i=0;i<contacts.length;i++){
 				
-				res += (i==0?"":",") + getString(contacts[i].getID());
+				if ( i > 0 ){
+					sb.append( "," );
+				}
+				sb.append( getString(contacts[i].getID()));
 			}
 			
-			return( res + "}" );
+			sb.append( "}" );
+			
+			return( sb.toString());
 		}else{
 			return( "" );
 		}
@@ -188,14 +194,20 @@ DHTLog
 		List		l )
 	{
 		if ( logging_on ){
-			String	res = "{";
+			StringBuilder sb = new StringBuilder( 128 );
+			sb.append( "{" );
 			
 			for (int i=0;i<l.size();i++){
 				
-				res += (i==0?"":",") + getString((DHTTransportContact)l.get(i));
+				if ( i > 0 ){
+					sb.append( "," );
+				}
+				sb.append(getString((DHTTransportContact)l.get(i)));
 			}
 			
-			return( res + "}" );
+			sb.append( "}" );
+			
+			return( sb.toString());
 		}else{
 			return( "" );
 		}
@@ -206,16 +218,22 @@ DHTLog
 		Set			s )
 	{
 		if ( logging_on ){
-			String	res = "{";
+			StringBuilder sb = new StringBuilder( 128 );
+			sb.append( "{" );
 			
 			Iterator it = s.iterator();
 			
 			while( it.hasNext()){
 				
-				res += (res.length()==1?"":",") + getString((DHTTransportContact)it.next());
+				if ( sb.length() > 1 ){
+					sb.append( "," );
+				}
+				sb.append( getString((DHTTransportContact)it.next()));
 			}
 			
-			return( res + "}" );
+			sb.append( "}" );
+			
+			return( sb.toString());
 		}else{
 			return( "" );
 		}
@@ -226,16 +244,22 @@ DHTLog
 		Map			s )
 	{
 		if ( logging_on ){
-			String	res = "{";
+			StringBuilder sb = new StringBuilder( 128 );
+			sb.append( "{" );
 			
 			Iterator it = s.keySet().iterator();
 			
 			while( it.hasNext()){
 				
-				res += (res.length()==1?"":",") + getString((HashWrapper)it.next());
+				if ( sb.length() > 1 ){
+					sb.append( "," );
+				}
+				sb.append( getString((HashWrapper)it.next()));
 			}
 			
-			return( res + "}" );	
+			sb.append( "}" );
+			
+			return( sb.toString());	
 		}else{
 			return( "" );
 		}
@@ -246,20 +270,27 @@ DHTLog
 		ByteArrayHashMap<?>			s )
 	{
 		if ( logging_on ){
-			String	res = "{";
+			StringBuilder sb = new StringBuilder( 128 );
+			sb.append( "{" );
 			
 			List<byte[]> keys = s.keys();
 			
 			for ( byte[] key: keys ){
 				
-				res += (res.length()==1?"":",") + getString( key );
+				if ( sb.length() > 1 ){
+					sb.append( "," );
+				}
+				sb.append( getString( key ));
 			}
 			
-			return( res + "}" );	
+			sb.append( "}" );
+			
+			return( sb.toString());	
 		}else{
 			return( "" );
 		}
 	}
+	
 	public static String
 	getString(
 		DHTTransportValue[]	values )
@@ -271,17 +302,49 @@ DHTLog
 				return( "<null>");
 			}
 			
-			String	res = "";
+			StringBuilder sb = new StringBuilder(256);
 			
 			for (int i=0;i<values.length;i++){
 				
-				res += (i==0?"":",") + getString( values[i] );
+				if ( i > 0 ){
+					sb.append( "," );
+				}
+				getString( sb, values[i] );
 			}
-			return( res );
+			return( sb.toString());
 		}else{
 			return( "" );
 		}
 	}	
+	
+	public static void
+	getString(
+		StringBuilder		sb,
+		DHTTransportValue	value )
+	{
+		if ( logging_on ){
+			
+			if ( value == null ){
+				
+				sb.append( "<null>" );
+				
+			}else{
+			
+				sb.append( getString( value.getValue()));
+				sb.append( " <" );
+				sb.append( value.isLocal()?"loc":"rem" );
+				sb.append( ",flag=" );
+				sb.append( Integer.toHexString(value.getFlags()));
+				sb.append( ",life=" );
+				sb.append( value.getLifeTimeHours());
+				sb.append( ",rep=" );
+				sb.append( Integer.toHexString( value.getReplicationControl()));
+				sb.append( ",orig=" );
+				sb.append( value.getOriginator().getExternalAddress());
+				sb.append( ">");
+			}
+		}
+	}
 	
 	public static String
 	getString(
