@@ -68,9 +68,7 @@ DeviceInternetGatewayImpl
 			}
 		});
 	}
-	
-	private static List<DeviceInternetGatewayImpl>	igds;
-		
+			
 	private boolean		mapper_enabled;
 	
 	private UPnPPluginService[]	current_services;

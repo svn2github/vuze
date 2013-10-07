@@ -61,7 +61,7 @@ public class ColumnControls
 
 	private Display display;
 
-	public static Font fontText;
+	//public static Font fontText;
 
 	List listClickAreas = new ArrayList();
 
