@@ -912,7 +912,7 @@ FMFileImpl
 			
 			TOTorrentFile	my_torrent_file = owner.getTorrentFile();
 			
-			String	users = "";
+			StringBuilder	users_sb = owners.size()==1?null:new StringBuilder( 128 );
 				
 			for (Iterator it=owners.iterator();it.hasNext();){
 				
@@ -931,13 +931,25 @@ FMFileImpl
 						write_access_lax++;
 					}
 					
-					users += (users.length()==0?"":",") + this_owner.getName() + " [write]";
+					if ( users_sb != null ){
+						if ( users_sb.length() > 0 ){
+							users_sb.append( "," );
+						}
+						users_sb.append( this_owner.getName());
+						users_sb.append( " [write]" );
+					}
 
 				}else{
 					
 					read_access++;
 					
-					users += (users.length()==0?"":",") + this_owner.getName() + " [read]";
+					if ( users_sb != null ){
+						if ( users_sb.length() > 0 ){
+							users_sb.append( "," );
+						}
+						users_sb.append( this_owner.getName());
+						users_sb.append( " [read]" );	
+					}
 				}
 			}
 
@@ -957,7 +969,7 @@ FMFileImpl
 				
 				Debug.out( "reserveAccess fail" );
 				
-				throw( new FMFileManagerException( "File '"+canonical_path+"' is in use by '" + users +"'"));
+				throw( new FMFileManagerException( "File '"+canonical_path+"' is in use by '" + (users_sb==null?"eh?":users_sb.toString()) +"'"));
 			}
 			
 		}finally{
