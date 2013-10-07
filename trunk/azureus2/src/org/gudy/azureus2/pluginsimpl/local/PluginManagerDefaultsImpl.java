@@ -38,9 +38,7 @@ PluginManagerDefaultsImpl
 	implements PluginManagerDefaults
 {
 	protected static  PluginManagerDefaultsImpl		singleton = new PluginManagerDefaultsImpl();
-	
-	private PluginManagerArgumentHandler		arg_handler;
-	
+		
 	public static PluginManagerDefaults
 	getSingleton()
 	{

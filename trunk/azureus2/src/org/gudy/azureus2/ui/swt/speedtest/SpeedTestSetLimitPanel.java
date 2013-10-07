@@ -42,22 +42,17 @@ import com.aelitis.azureus.core.speedmanager.SpeedManagerLimitEstimate;
 
 public class SpeedTestSetLimitPanel extends AbstractWizardPanel {
 
-    int measuredUploadKbps, measuredDownloadKbps;
-    boolean downloadTestRan,uploadTestRan = true;
-    boolean downloadHitLimit, uploadHitLimit;
+    private int measuredUploadKbps, measuredDownloadKbps;
+    private boolean downloadTestRan,uploadTestRan = true;
+    private boolean downloadHitLimit, uploadHitLimit;
 
-    Label explain;
+    private Button apply;
 
-    Label downloadLabel;
-    Label uploadLabel;
-    Text uploadText;
-    Button apply;
+    private Combo downConfLevelCombo;
+    private Combo upConfLevelCombo;
 
-    Combo downConfLevelCombo;
-    Combo upConfLevelCombo;
-
-    SpeedManager speedManager;
-    TransferStatsView.limitToTextHelper helper;
+    private SpeedManager speedManager;
+    private TransferStatsView.limitToTextHelper helper;
 
 
     public SpeedTestSetLimitPanel(Wizard wizard, IWizardPanel previousPanel, int upload, long maxup, int download, long maxdown) {
