@@ -30,7 +30,6 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.logging.LogRelation;
 import org.gudy.azureus2.core3.peer.*;
-import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.messaging.Message;
 import org.gudy.azureus2.plugins.network.Connection;
@@ -52,9 +51,8 @@ PeerImpl
 {
 	protected PeerManagerImpl	manager;
 	protected PEPeer			delegate;
-	protected AEMonitor			this_mon	= new AEMonitor( "Peer" );
   	
-	private HashMap peer_listeners;
+	private HashMap<Object,PEPeerListener> peer_listeners;
   	
 
 		/**
@@ -484,12 +482,15 @@ PeerImpl
     
 		delegate.addListener( core_listener );
     
-		if( peer_listeners == null ){
+		synchronized( this ){
 			
-			peer_listeners = new HashMap();
+			if ( peer_listeners == null ){
+				
+				peer_listeners = new HashMap<Object,PEPeerListener>();
+			}
+			
+			peer_listeners.put( l, core_listener );
 		}
-		
-		peer_listeners.put( l, core_listener );
 	}
 	
 
@@ -497,14 +498,19 @@ PeerImpl
 	removeListener( 
 		PeerListener	l ) 
 	{
-		if ( peer_listeners != null ){
+		PEPeerListener core_listener = null;
+		
+		synchronized( this ){
 			
-			PEPeerListener core_listener = (PEPeerListener)peer_listeners.remove( l );
-    
-			if( core_listener != null ) {
-      
-				delegate.removeListener( core_listener );
+			if ( peer_listeners != null ){
+			
+				core_listener = peer_listeners.remove( l );
 			}
+		}
+    
+		if ( core_listener != null ) {
+      
+			delegate.removeListener( core_listener );
 		}
 	}
 	
@@ -562,12 +568,15 @@ PeerImpl
     
 		delegate.addListener( core_listener );
     
-		if( peer_listeners == null ){
+		synchronized( this ){
 			
-			peer_listeners = new HashMap();
+			if ( peer_listeners == null ){
+				
+				peer_listeners = new HashMap<Object,PEPeerListener>();
+			}
+			
+			peer_listeners.put( l, core_listener );
 		}
-		
-		peer_listeners.put( l, core_listener );
 	}
 	
 
@@ -575,14 +584,19 @@ PeerImpl
 	removeListener( 
 		PeerListener2	l ) 
 	{
-		if ( peer_listeners != null ){
+		PEPeerListener core_listener = null;
+		
+		synchronized( this ){
 			
-			PEPeerListener core_listener = (PEPeerListener)peer_listeners.remove( l );
-    
-			if( core_listener != null ) {
-      
-				delegate.removeListener( core_listener );
+			if ( peer_listeners != null ){
+			
+				core_listener = peer_listeners.remove( l );
 			}
+		}
+		
+		if ( core_listener != null ) {
+      
+			delegate.removeListener( core_listener );
 		}
 	}
 	
