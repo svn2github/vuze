@@ -2064,15 +2064,28 @@ SubscriptionManagerImpl
 						}
 					}else{
 						
-						SubscriptionImpl new_subs = new SubscriptionImpl( this, body, SubscriptionImpl.ADD_TYPE_IMPORT, true );
-			
+						SubscriptionImpl new_subs = null;
+						
+						String	subs_name;
+						
+						if ( existing == null ){
+							
+							new_subs = new SubscriptionImpl( this, body, SubscriptionImpl.ADD_TYPE_IMPORT, true );
+							
+							subs_name = new_subs.getName();
+							
+						}else{
+							
+							subs_name = existing.getName();
+						}
+						
 						if ( warn_user ){
 							
 							UIManager ui_manager = StaticUtilities.getUIManager( 120*1000 );
 				
 							String details = MessageText.getString(
 									"subscript.add.desc",
-									new String[]{ new_subs.getName()});
+									new String[]{ subs_name });
 							
 							long res = ui_manager.showMessageBox(
 									"subscript.add.title",
@@ -2085,16 +2098,22 @@ SubscriptionManagerImpl
 							}
 						}
 						
-						log( "Imported new subscription: " + new_subs.getString());
-						
-						if ( existing != null ){
+						if ( new_subs == null ){
 							
-							existing.remove();
+							existing.setSubscribed( true );
+							
+							selectSubscription( existing );
+							
+							return( existing );
+							
+						}else{
+							
+							log( "Imported new subscription: " + new_subs.getString());
+						
+							new_subs = addSubscription( new_subs );
+						
+							return( new_subs );
 						}
-						
-						new_subs = addSubscription( new_subs );
-						
-						return( new_subs );
 					}
 				}
 			}catch( Throwable e ){
