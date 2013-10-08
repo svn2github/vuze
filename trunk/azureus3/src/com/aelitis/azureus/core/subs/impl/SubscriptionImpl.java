@@ -1860,6 +1860,30 @@ SubscriptionImpl
 		}
 	}
 	
+	public VuzeFile 
+	getSearchTemplateVuzeFile()
+	{
+		if ( !isSearchTemplate()){
+			
+			return( null );
+		}
+		
+		Object[] details = manager.getSearchTemplateVuzeFile( this );
+		
+		if ( details != null ){
+			
+			return((VuzeFile)details[0]);
+		}
+		
+		return( null );
+	}
+	
+	public boolean 
+	isSearchTemplateImportable() 
+	{
+		return( manager.isSearchTemplateImportable( this ));
+	}
+	
 	protected void
 	destroy()
 	{

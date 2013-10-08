@@ -1097,7 +1097,7 @@ MetaSearchManagerImpl
 					
 					if ( existing != null ){
 						
-						if ( !existing.sameLogicAs( engine )){
+						if ( existing.getSelectionState() == Engine.SEL_STATE_DESELECTED || !existing.sameLogicAs( engine )){
 							
 							return( true );
 						}
@@ -1109,7 +1109,7 @@ MetaSearchManagerImpl
 							
 							for ( Engine e: engines ){
 									
-								if ( e.sameLogicAs( engine )){
+								if ( e.getSelectionState() != Engine.SEL_STATE_DESELECTED && e.sameLogicAs( engine )){
 										
 									is_new = false;
 									

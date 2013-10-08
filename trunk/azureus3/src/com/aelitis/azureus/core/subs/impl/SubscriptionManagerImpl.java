@@ -755,6 +755,54 @@ SubscriptionManagerImpl
 		}
 	}
 
+	protected Object[]
+	getSearchTemplateVuzeFile(
+		SubscriptionImpl	sub )
+	{
+		try{
+			String subs_url_str = ((RSSEngine)sub.getEngine()).getSearchUrl( true );
+			
+			URL subs_url = new URL( subs_url_str );
+			
+			final byte[] vf_bytes = FileUtil.readInputStreamAsByteArray(subs_url.openConnection().getInputStream());
+
+			VuzeFile vf = VuzeFileHandler.getSingleton().loadVuzeFile( vf_bytes );
+			
+			if ( MetaSearchManagerFactory.getSingleton().isImportable( vf )){
+	
+				return( new Object[]{ vf, vf_bytes });
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		return( null );
+	}
+	
+	public boolean 
+	isSearchTemplateImportable(
+		SubscriptionImpl	sub )
+	{
+		try{
+			String subs_url_str = ((RSSEngine)sub.getEngine()).getSearchUrl( true );
+			
+			URL subs_url = new URL( subs_url_str );
+			
+			final byte[] vf_bytes = FileUtil.readInputStreamAsByteArray(subs_url.openConnection().getInputStream());
+
+			VuzeFile vf = VuzeFileHandler.getSingleton().loadVuzeFile( vf_bytes );
+			
+			return( MetaSearchManagerFactory.getSingleton().isImportable( vf ));
+	
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		return( false );
+	}
+	
 	public SearchInstance
 	searchSubscriptions(
 		Map<String,Object>		search_parameters,
@@ -970,11 +1018,11 @@ SubscriptionManagerImpl
 							}
 						}
 						
-						List<Subscription>	interesting = new ArrayList<Subscription>();
+						List<SubscriptionImpl>	interesting = new ArrayList<SubscriptionImpl>();
 						
 						for ( Object[] entry: template_matches.values()){
 						
-							interesting.add((Subscription)entry[0]);
+							interesting.add((SubscriptionImpl)entry[0]);
 						}
 						
 						Collections.sort(
@@ -1000,7 +1048,7 @@ SubscriptionManagerImpl
 						
 						int	added = 0;
 						
-						for ( final Subscription sub: interesting ){
+						for ( final SubscriptionImpl sub: interesting ){
 								
 							if ( added >= 3 ){
 								
@@ -1008,15 +1056,11 @@ SubscriptionManagerImpl
 							}
 							
 							try{
-								String subs_url_str = ((RSSEngine)sub.getEngine()).getSearchUrl( true );
+								Object[] vf_entry = getSearchTemplateVuzeFile( sub );
 								
-								URL subs_url = new URL( subs_url_str );
-								
-								final byte[] vf_bytes = FileUtil.readInputStreamAsByteArray(subs_url.openConnection().getInputStream());
-	
-								VuzeFile vf = VuzeFileHandler.getSingleton().loadVuzeFile( vf_bytes );
-								
-								if ( MetaSearchManagerFactory.getSingleton().isImportable( vf )){
+								if ( vf_entry != null ){
+									
+									final byte[] vf_bytes = (byte[])vf_entry[1];
 									
 									final URL url = 
 										MagnetURIHandler.getSingleton().registerResource(

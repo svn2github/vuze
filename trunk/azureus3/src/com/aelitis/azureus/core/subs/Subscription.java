@@ -86,6 +86,12 @@ Subscription
 	public boolean
 	isSearchTemplate();
 	
+	public boolean
+	isSearchTemplateImportable();
+	
+	public VuzeFile
+	getSearchTemplateVuzeFile();
+	
 	public String
 	getJSON()
 	
