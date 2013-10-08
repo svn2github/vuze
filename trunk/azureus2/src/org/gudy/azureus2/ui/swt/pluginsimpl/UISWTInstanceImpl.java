@@ -86,18 +86,13 @@ UISWTInstanceImpl
 {
 	private Map<BasicPluginConfigModel,BasicPluginConfigImpl> 	config_view_map = new WeakHashMap<BasicPluginConfigModel,BasicPluginConfigImpl>();
 	
-	// Map<Parent ID, Map<ViewID, Event Listener>>
 	private Map<String,Map<String,UISWTViewEventListenerHolder>> views = new HashMap<String,Map<String,UISWTViewEventListenerHolder>>();
 
 	private Map<PluginInterface,UIInstance>	plugin_map = new WeakHashMap<PluginInterface,UIInstance>();
-	private Map<PluginInterface,toolbarWrapper>	toolbar_map = new WeakHashMap<PluginInterface,toolbarWrapper>();
 	
 	private boolean bUIAttaching;
 
-	private final UIFunctionsSWT uiFunctions;
-	
-	List<Resource> listDisposeOnUnload = new ArrayList<Resource>();
-
+	private final UIFunctionsSWT 		uiFunctions;
 	
 	public UISWTInstanceImpl() {
 		// Since this is a UI **SWT** Instance Implementor, it's assumed
@@ -130,7 +125,7 @@ UISWTInstanceImpl
 		
 		if ( instance == null ){
 			
-			instance = new instanceWrapper( plugin_interface, this );
+			instance = new instanceWrapper( plugin_interface, uiFunctions, this );
 			
 			plugin_map.put( plugin_interface, instance );
 		}
@@ -553,31 +548,6 @@ UISWTInstanceImpl
 		throw( new RuntimeException( "plugin specific instance required" ));
 	}
 	
-	protected Image  
-	loadImage(
-		PluginInterface	pi,
-		String 			res ) 
-	{
-		InputStream is = pi.getPluginClassLoader().getResourceAsStream( res);
-		
-		if ( is != null ){
-		        
-			ImageData imageData = new ImageData(is);
-			
-			try {
-				is.close();
-			} catch (IOException e) {
-				Debug.out(e);
-			}
-		    
-			Image image = new Image(getDisplay(), imageData);
-			listDisposeOnUnload.add(image);
-			return image;
-		}
-		
-		return null;
-	}
-	
 	public UISWTGraphic 
 	createGraphic(
 		Image img) 
@@ -852,40 +822,30 @@ UISWTInstanceImpl
 	public UIToolBarManager getToolBarManager() {
 		throw( new RuntimeException( "plugin specific instance required" ));
 	}
-
-	public UIToolBarManager getToolBarManager(PluginInterface pi) {
-		toolbarWrapper	instance = toolbar_map.get(pi);
-		
-		if ( instance == null ){
-			UIToolBarManager toolBarManager = uiFunctions.getToolBarManager();
-			if (toolBarManager instanceof UIToolBarManagerCore) {
-				instance = new toolbarWrapper(pi, (UIToolBarManagerCore) toolBarManager);
-				
-				toolbar_map.put(pi, instance );
-			}
-		}
-		
-		return( instance );
-	}
 	
 	protected static class
-	toolbarWrapper
-		implements UIToolBarManager
+	instanceWrapper
+		implements UISWTInstance, UIToolBarManager
 	{
+		private WeakReference<PluginInterface>		pi_ref;
+		private UIFunctionsSWT						ui_functions;
+		private UISWTInstanceImpl					delegate;
+		
+		private UIToolBarManagerCore 	toolBarManager;
+		private List<UIToolBarItem> 	listItems			= new ArrayList<UIToolBarItem>();
+		private List<Resource> 			listDisposeOnUnload = new ArrayList<Resource>();
 
-		private final UIToolBarManagerCore toolBarManager;
-		private final PluginInterface pi;
-		private List<UIToolBarItem> listItems;
-
-		public toolbarWrapper(PluginInterface pi, UIToolBarManagerCore toolBarManager) {
-			this.pi = pi;
-			this.toolBarManager = toolBarManager;
-			pi.addEventListener(new PluginEventListener() {
-				public void handleEvent(PluginEvent ev) {
-				}
-			});
+		protected
+		instanceWrapper(
+			PluginInterface			_pi,
+			UIFunctionsSWT			_ui_functions,
+			UISWTInstanceImpl		_delegate )
+		{
+			pi_ref			= new WeakReference<PluginInterface>(_pi );
+			ui_functions	= _ui_functions;
+			delegate		= _delegate;
 		}
-
+		
 		public UIToolBarItem getToolBarItem(String id) {
 			return toolBarManager.getToolBarItem(id);
 		}
@@ -894,14 +854,17 @@ UISWTInstanceImpl
 			return toolBarManager.getAllToolBarItems();
 		}
 
-		public UIToolBarItem createToolBarItem(String id) {
-			UIToolBarItem addToolBarItem = toolBarManager.createToolBarItem(pi, id);
-			synchronized (this) {
-				if (listItems == null) {
-					listItems = new ArrayList<UIToolBarItem>();
-				}
-				listItems.add(addToolBarItem);
+		public UIToolBarItem 
+		createToolBarItem(
+			String id )
+		{
+			UIToolBarItem addToolBarItem = toolBarManager.createToolBarItem( id );
+			
+			synchronized( this ){
+				
+				listItems.add( addToolBarItem );
 			}
+			
 			return addToolBarItem;
 		}
 
@@ -909,36 +872,8 @@ UISWTInstanceImpl
 			toolBarManager.addToolBarItem(item);
 		}
 
-		public void piDestroyed() {
-			synchronized (this) {
-				for (UIToolBarItem item : listItems) {
-					toolBarManager.removeToolBarItem(item.getID());
-				}
-				listItems = null;
-			}
-		}
-
 		public void removeToolBarItem(String id) {
 			toolBarManager.removeToolBarItem(id);
-		}
-
-	}
-
-	
-	protected static class
-	instanceWrapper
-		implements UISWTInstance
-	{
-		private WeakReference<PluginInterface>		pi_ref;
-		private UISWTInstanceImpl					delegate;
-		
-		protected
-		instanceWrapper(
-			PluginInterface		_pi,
-			UISWTInstanceImpl	_delegate )
-		{
-			pi_ref		= new WeakReference<PluginInterface>(_pi );
-			delegate	= _delegate;
 		}
 		
 		public void
@@ -972,7 +907,26 @@ UISWTInstanceImpl
 				return( null );
 			}
 			
-			return( delegate.loadImage( pi, resource ));
+			InputStream is = pi.getPluginClassLoader().getResourceAsStream( resource);
+				
+			if ( is != null ){
+			        
+				ImageData imageData = new ImageData(is);
+				
+				try {
+					is.close();
+				} catch (IOException e) {
+					Debug.out(e);
+				}
+			    
+				Image image = new Image(getDisplay(), imageData);
+				
+				listDisposeOnUnload.add(image);
+				
+				return image;
+			}
+			
+			return null;
 		}
 		
 		public UISWTGraphic 
@@ -1076,23 +1030,53 @@ UISWTInstanceImpl
 			return delegate.createShell(style);
 		}
 
-		public UIToolBarManager getToolBarManager() {
-			PluginInterface pi = pi_ref.get();
-			return delegate.getToolBarManager(pi);
+		public UIToolBarManager 
+		getToolBarManager() 
+		{
+			if ( toolBarManager == null ){
+				
+				UIToolBarManager tbm = ui_functions.getToolBarManager();
+			
+				if ( tbm instanceof UIToolBarManagerCore ){
+				
+					toolBarManager = (UIToolBarManagerCore)tbm;
+					
+				}else{
+					
+					return( null );
+				}
+			}
+
+			return( this );
 		}
 
-		public void unload(PluginInterface pi) {
-			delegate.unload(pi);
+		public void 
+		unload(
+			PluginInterface pi ) 
+		{
+			if ( toolBarManager != null ){
+
+				synchronized( this ){
+					
+					for (UIToolBarItem item : listItems) {
+						
+						toolBarManager.removeToolBarItem(item.getID());
+					}
+					
+					listItems.clear();
+				}
+			}
+			
+			Utils.disposeSWTObjects(listDisposeOnUnload);
+			
+			listDisposeOnUnload.clear();
 		}
-		
 	}
 
-	public void unload(PluginInterface pi) {
-		toolbarWrapper toolBarManager = toolbar_map.remove(pi);
-		if (toolBarManager != null) {
-			toolBarManager.piDestroyed();
-		}
-		Utils.disposeSWTObjects(listDisposeOnUnload);
-		listDisposeOnUnload.clear();
+	public void 
+	unload(
+		PluginInterface pi )
+	{
+		throw( new RuntimeException( "plugin specific instance required" ));
 	}
 }

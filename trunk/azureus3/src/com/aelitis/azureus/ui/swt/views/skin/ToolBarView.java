@@ -826,10 +826,6 @@ public class ToolBarView
 		return new ToolBarItemSO(this, id, true);
 	}
 
-	public UIToolBarItem createToolBarItem(PluginInterface pi, String id) {
-		return new ToolBarItemSO(this, id, true);
-	}
-
 	public void addToolBarItem(UIToolBarItem item) {
 		if (item instanceof ToolBarItemSO) {
 			ToolBarItemSO itemSO = (ToolBarItemSO) item;
