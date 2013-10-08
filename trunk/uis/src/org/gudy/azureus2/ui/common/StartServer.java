@@ -27,7 +27,6 @@ public class StartServer extends Thread {
 
   private ServerSocket socket;
   private int state;
-  private Main main;
 
   private boolean bContinue;
   public static final int STATE_FAULTY = 0;
