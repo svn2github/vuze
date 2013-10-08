@@ -50,6 +50,9 @@ DownloadManagerStatsImpl
 	private long saved_data_bytes_uploaded;
 	private long saved_protocol_bytes_uploaded;
   
+	private long  session_start_data_bytes_downloaded;
+	private long  session_start_data_bytes_uploaded;
+	
 	private long saved_discarded = 0;
 	private long saved_hashfails = 0;
 	
@@ -361,6 +364,23 @@ DownloadManagerStatsImpl
   
   
 	public long 
+	getSessionDataBytesReceived() 
+	{
+		long	total = getTotalDataBytesReceived();
+		
+		long	res = total - session_start_data_bytes_downloaded;
+		
+		if ( res < 0 ){
+			
+			session_start_data_bytes_downloaded = total;
+			
+			res	= 0;
+		}
+		
+		return( res );
+	}
+	
+	public long 
 	getTotalGoodDataBytesReceived() 
 	{
 		long downloaded	= getTotalDataBytesReceived();
@@ -402,13 +422,15 @@ DownloadManagerStatsImpl
 		
 		if ( new_sent >= 0 ){
 			
-			saved_data_bytes_uploaded		= new_sent;
-			saved_protocol_bytes_uploaded	= 0;
+			saved_data_bytes_uploaded			= new_sent;
+			session_start_data_bytes_uploaded	= new_sent;
+			saved_protocol_bytes_uploaded		= 0;
 		}
 		
 		if ( new_received >= 0 ){
 			
 			saved_data_bytes_downloaded			= new_received;
+			session_start_data_bytes_downloaded	= new_received;
 			saved_protocol_bytes_downloaded		= 0;
 		}
 		
@@ -447,6 +469,23 @@ DownloadManagerStatsImpl
 		return( saved_protocol_bytes_uploaded );
 	}
  
+	public long 
+	getSessionDataBytesSent() 
+	{
+		long	total = getTotalDataBytesSent();
+		
+		long	res = total - session_start_data_bytes_uploaded;
+		
+		if ( res < 0 ){
+			
+			session_start_data_bytes_uploaded = total;
+			
+			res	= 0;
+		}
+		
+		return( res );
+	}
+	
 	public void
 	setRecentHistoryRetention(
 		boolean		required )
@@ -860,6 +899,9 @@ DownloadManagerStatsImpl
 		saved_data_bytes_downloaded 	= getTotalDataBytesReceived();
 		saved_data_bytes_uploaded		= getTotalDataBytesSent();
 	  
+		saved_protocol_bytes_downloaded = getTotalProtocolBytesReceived();
+		saved_protocol_bytes_uploaded	= getTotalProtocolBytesSent();
+
 		saved_discarded				= getDiscarded();
 		saved_hashfails				= getHashFailBytes();
 	
@@ -907,6 +949,9 @@ DownloadManagerStatsImpl
 		saved_hashfails				= _saved_hashfails;
 		saved_SecondsDownloading	= _saved_SecondsDownloading;
 		saved_SecondsOnlySeeding	= _saved_SecondsOnlySeeding;
+		
+		session_start_data_bytes_downloaded	= saved_data_bytes_downloaded;
+		session_start_data_bytes_uploaded	= _saved_data_bytes_uploaded;
 		
 		DownloadManagerState state = download_manager.getDownloadState();
 		

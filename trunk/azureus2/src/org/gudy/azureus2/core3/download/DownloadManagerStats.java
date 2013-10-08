@@ -87,6 +87,8 @@ DownloadManagerStats
 	
 	public long getTotalProtocolBytesReceived();
 	
+	public long	getSessionDataBytesReceived();
+
   
   /**
    * Get the total number of bytes ever uploaded.
@@ -96,6 +98,8 @@ DownloadManagerStats
   	
 	public long getTotalProtocolBytesSent();
 	
+	public long	getSessionDataBytesSent();
+
 	/**
 	 * Resets the total bytes sent/received - will stop and start the download if it is running
 	 */
