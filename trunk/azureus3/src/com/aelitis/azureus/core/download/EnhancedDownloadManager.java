@@ -588,9 +588,7 @@ EnhancedDownloadManager
 		}
 		
 		int	piece_size = dm.getPieceLength();
-		
-		DiskManagerFileInfo[]	 files = dm.getFiles();
-		
+				
 		long	start_index = efile.getByteOffestInTorrent() + file_start_offset;
 	
 		

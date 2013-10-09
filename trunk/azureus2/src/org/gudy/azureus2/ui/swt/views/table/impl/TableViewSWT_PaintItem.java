@@ -115,8 +115,7 @@ public class TableViewSWT_PaintItem
 				return;
 			}
 
-			int height = tv.getRowDefaultHeight();
-
+			//int height = tv.getRowDefaultHeight();
 			//System.out.println("Dirty: " + event.getBounds() + "; +" + height + "; " + event.gc.getClipping());
 			for (int i = columnRange[0]; i <= columnRange[1]; i++) {
 				event.index = i;

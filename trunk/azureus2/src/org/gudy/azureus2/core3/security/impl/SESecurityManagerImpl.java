@@ -972,7 +972,7 @@ SESecurityManagerImpl
 					x509_cert = (java.security.cert.X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
 				}
 					
-				return( addCertToTrustStore( alias, cert, false ));
+				return( addCertToTrustStore( alias, x509_cert, false ));
 								
 			}catch( Throwable e ){
 				

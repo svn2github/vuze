@@ -1133,7 +1133,7 @@ public class GCStringPrinter
   			if (!nodraw) {
   				gc.drawText(sEnd, x, centerY, true);
   			}
-  			x += textExtent.x;
+  			//x += textExtent.x;
   			w += textExtent.x;
   			h = Math.max(h, textExtent.y);
   		}
@@ -1422,9 +1422,9 @@ public class GCStringPrinter
 		return _printString();
 	}
 
-	public boolean printString(int printFlags) {
+	public boolean printString(int _printFlags) {
 		int oldPrintFlags = this.printFlags;
-		printFlags |= printFlags;
+		printFlags |= _printFlags;
 		boolean b = _printString();
 		this.printFlags = oldPrintFlags;
 		return b;

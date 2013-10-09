@@ -2346,11 +2346,11 @@ SubscriptionManagerImpl
 	{
 		PluginInterface pi = PluginInitializer.getDefaultInterface();
 
-		ByteArrayHashMap<String> results = new ByteArrayHashMap<String>();
+		Download[] downloads = pi.getDownloadManager().getDownloads();
+
+		ByteArrayHashMap<String> results = new ByteArrayHashMap<String>(Math.max( 16, downloads.length * 2 ));
 		
-		try{
-			Download[] downloads = pi.getDownloadManager().getDownloads();
-			
+		try{			
 			for ( Download download: downloads ){
 				
 				Map	m = download.getMapAttribute( ta_subscription_info );
@@ -2360,9 +2360,7 @@ SubscriptionManagerImpl
 					List s = (List)m.get("s");
 					
 					if ( s != null && s.size() > 0 ){
-						
-						List	result = new ArrayList( s.size());
-						
+												
 						for (int i=0;i<s.size();i++){
 							
 							byte[]	sid = (byte[])s.get(i);

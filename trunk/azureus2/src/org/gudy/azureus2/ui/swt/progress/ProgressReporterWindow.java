@@ -104,7 +104,7 @@ public class ProgressReporterWindow
 			this.pReporters = pReporters;
 
 		} else {
-			pReporters = new IProgressReporter[0];
+			this.pReporters = new IProgressReporter[0];
 		}
 
 		createControls();

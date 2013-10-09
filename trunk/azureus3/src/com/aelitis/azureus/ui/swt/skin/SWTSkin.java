@@ -213,9 +213,8 @@ public class SWTSkin
 			mon.enter();
 		}
 		try {
-  		Object existing = arrayMap.get(key);
-  		if (existing instanceof SWTSkinObject[]) {
-  			SWTSkinObject[] existingObjects = (SWTSkinObject[]) existing;
+		SWTSkinObject[] existingObjects = arrayMap.get(key);
+  		if (existingObjects != null) {
   
   			boolean bAlreadyPresent = false;
   			for (int i = 0; i < existingObjects.length; i++) {
@@ -1862,13 +1861,12 @@ public class SWTSkin
 	public void addListener(String viewID, SWTSkinObjectListener listener) {
 		mapPublicViewIDsToListeners_mon.enter();
 		try {
-			Object existing = mapPublicViewIDsToListeners.get(viewID);
+			ArrayList<SWTSkinObjectListener> list = mapPublicViewIDsToListeners.get(viewID);
 
-			if (existing instanceof List) {
-				List<SWTSkinObjectListener> list = (List<SWTSkinObjectListener>) existing;
+			if (list != null) {
 				list.add(listener);
 			} else {
-				ArrayList<SWTSkinObjectListener> list = new ArrayList<SWTSkinObjectListener>();
+				list = new ArrayList<SWTSkinObjectListener>();
 				list.add(listener);
 				mapPublicViewIDsToListeners.put(viewID, list);
 			}
@@ -1880,10 +1878,9 @@ public class SWTSkin
 	public void removeListener(String viewID, SWTSkinObjectListener listener) {
 		mapPublicViewIDsToListeners_mon.enter();
 		try {
-			Object existing = mapPublicViewIDsToListeners.get(viewID);
+			List<SWTSkinObjectListener> list = mapPublicViewIDsToListeners.get(viewID);
 
-			if (existing instanceof List) {
-				List<SWTSkinObjectListener> list = (List<SWTSkinObjectListener>) existing;
+			if (list != null) {
 				list.remove(listener);
 			}
 		} finally {

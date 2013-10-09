@@ -255,9 +255,8 @@ public class SBC_TorrentDetailsView
 		Composite main_area = new Composite(composite, SWT.NULL);
 		main_area.setLayout(new FormLayout());
 
-		boolean az2 = Utils.isAZ2UI();
-
-		Color bg_color = ColorCache.getColor(composite.getDisplay(), "#c0cbd4");
+		//boolean az2 = Utils.isAZ2UI();
+		//Color bg_color = ColorCache.getColor(composite.getDisplay(), "#c0cbd4");
 
 		FormData formData;
 

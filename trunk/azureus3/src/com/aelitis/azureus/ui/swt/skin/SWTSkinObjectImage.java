@@ -64,8 +64,8 @@ public class SWTSkinObjectImage
 				final Canvas control = (Canvas) e.widget;
 				Image imgSrc = (Image) control.getData("image");
 				
-				Long hpadding_obj = (Long) control.getData("hpadding");
-				int hpadding = hpadding_obj == null ? 0 : hpadding_obj.intValue();
+				//Long hpadding_obj = (Long) control.getData("hpadding");
+				//int hpadding = hpadding_obj == null ? 0 : hpadding_obj.intValue();
 
 				Long drawMode = (Long) control.getData("drawmode");
 				if (drawMode == DRAW_ANIMATE) {

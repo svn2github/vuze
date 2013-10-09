@@ -648,9 +648,7 @@ PlatformManagerImpl
 
 		File local_options = checkAndGetLocalVMOptionFile();
 
-		try{				
-			List<String>	list = new ArrayList<String>();
-			
+		try{							
 			if ( local_options.exists()){
 				
 				File backup = new File( local_options.getParentFile(), local_options.getName() + ".bak" );

@@ -1259,10 +1259,17 @@ HTTPNetworkConnection
 		public boolean 
 		equals(Object obj) 
 		{
-			networkConnectionKey	other = (networkConnectionKey)obj;
-			
-			return( Arrays.equals( getAddress(), other.getAddress()) &&
-					Arrays.equals(getHash(),other.getHash()));	
+			if ( obj instanceof networkConnectionKey ){
+
+				networkConnectionKey	other = (networkConnectionKey)obj;
+				
+				return( Arrays.equals( getAddress(), other.getAddress()) &&
+						Arrays.equals(getHash(),other.getHash()));
+				
+			}else{
+				
+				return( false );
+			}
 		}
 			
 		protected String

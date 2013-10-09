@@ -109,8 +109,9 @@ public class PEPieceImpl
     public long getCreationTime()
     {
         final long now =SystemTime.getCurrentTime();
-        if (now >=creationTime &&creationTime >0)
+        if (now >=creationTime &&creationTime >0){
             return creationTime;
+        }
         creationTime =now;
         return now;
     }
@@ -119,11 +120,14 @@ public class PEPieceImpl
     {
         final long now =SystemTime.getCurrentTime();
         final long lastWriteTime =getLastDownloadTime(now);
-        if (time_last_download >0 &&now >=time_last_download)
-            return now -time_last_download;
-        if (creationTime >0 &&now >=creationTime)
-            return now -creationTime;
-        creationTime =now;
+        if (lastWriteTime >0){
+            return now -lastWriteTime;
+        }
+        final long lastCreateTime = creationTime;
+        if (lastCreateTime > 0 && now >=lastCreateTime ){
+            return now -lastCreateTime;
+        }
+        creationTime = now;
         return 0;
     }
     

@@ -705,10 +705,7 @@ public abstract class TranscodeChooser
 				}
 			}
 
-			String imageID = null;
-			if (device instanceof DeviceMediaRenderer) {
-				imageID = "image.sidebar.device." + DeviceManagerUI.getDeviceImageID( device ) + ".big";
-			}
+			String imageID = "image.sidebar.device." + DeviceManagerUI.getDeviceImageID( device ) + ".big";
 
 			lastButton = createDeviceButton(parent, device, device.getName(),
 					device.getShortDescription(), imageID, lastButton);

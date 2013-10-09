@@ -53,14 +53,14 @@ TRTrackerAnnouncerFactoryImpl
 		
 		if ( !manual ){
 			
-			List	listeners_copy	= new ArrayList();
+			List<TRTrackerAnnouncerFactoryListener>	listeners_copy;
 			
 			try{
 				class_mon.enter();
 				
 				clients.add( client );
 			
-				listeners_copy = new ArrayList( listeners );
+				listeners_copy = new ArrayList<TRTrackerAnnouncerFactoryListener>( listeners );
 		
 			}finally{
 				
@@ -70,7 +70,7 @@ TRTrackerAnnouncerFactoryImpl
 			for (int i=0;i<listeners_copy.size();i++){
 				
 				try{
-					((TRTrackerAnnouncerFactoryListener)listeners_copy.get(i)).clientCreated( client );
+					listeners_copy.get(i).clientCreated( client );
 					
 				}catch( Throwable e ){
 					
@@ -90,14 +90,14 @@ TRTrackerAnnouncerFactoryImpl
 	addListener(
 		 TRTrackerAnnouncerFactoryListener	l )
 	{
-		List	clients_copy;
+		List<TRTrackerAnnouncerImpl>	clients_copy;
 		
 		try{
 			class_mon.enter();
 		
 			listeners.add(l);
 			
-			clients_copy = new ArrayList( clients );
+			clients_copy = new ArrayList<TRTrackerAnnouncerImpl>( clients );
 	
 		}finally{
 			
@@ -107,7 +107,7 @@ TRTrackerAnnouncerFactoryImpl
 		for (int i=0;i<clients_copy.size();i++){
 			
 			try{
-				l.clientCreated((TRTrackerAnnouncer)clients_copy.get(i));
+				l.clientCreated(clients_copy.get(i));
 				
 			}catch( Throwable e ){
 				
@@ -137,14 +137,14 @@ TRTrackerAnnouncerFactoryImpl
 	{
 		if ( !client.isManual()){
 			
-			List	listeners_copy	= new ArrayList();
+			List<TRTrackerAnnouncerFactoryListener>	listeners_copy;
 			
 			try{
 				class_mon.enter();
 			
 				clients.remove( client );
 				
-				listeners_copy	= new ArrayList( listeners );
+				listeners_copy	= new ArrayList<TRTrackerAnnouncerFactoryListener>( listeners );
 	
 			}finally{
 				
@@ -154,7 +154,7 @@ TRTrackerAnnouncerFactoryImpl
 			for (int i=0;i<listeners_copy.size();i++){
 				
 				try{
-					((TRTrackerAnnouncerFactoryListener)listeners_copy.get(i)).clientDestroyed( client );
+					listeners_copy.get(i).clientDestroyed( client );
 					
 				}catch( Throwable e ){
 					

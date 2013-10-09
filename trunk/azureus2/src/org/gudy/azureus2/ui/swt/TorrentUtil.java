@@ -2229,6 +2229,7 @@ public class TorrentUtil {
 	public static Map<String, Long> calculateToolbarStates(
 				ISelectedContent[] currentContent, String viewID) {
 			//System.out.println("updateCoreItems(" + currentContent.length + ", " + viewID + " via " + Debug.getCompressedStackTrace());
+			/*
 			String[] TBKEYS = new String[] {
 				"download",
 				"play",
@@ -2242,7 +2243,8 @@ public class TorrentUtil {
 				"stop",
 				"remove"
 			};
-			
+			*/
+		
 			Map<String, Long> mapNewToolbarStates = new HashMap<String, Long>();
 			
 			String[] itemsNeedingSelection = {};
@@ -2488,18 +2490,20 @@ public class TorrentUtil {
 						});
 
 				String[] buttons;
-				int[] buttonVals;
+				
 				int defaultButtonPos;
 				buttons = new String[] {
 					MessageText.getString("Button.cancel"),
 					MessageText.getString("Button.deleteContent.fromComputer"),
 					MessageText.getString("Button.deleteContent.fromLibrary"),
 				};
-				buttonVals = new int[] {
+				/*
+				int[] buttonVals = new int[] {
 					SWT.CANCEL,
 					1,
 					2
 				};
+				*/
 				defaultButtonPos = 2;
 
 				final MessageBoxShell mb = new MessageBoxShell(title, text, buttons,

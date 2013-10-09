@@ -301,7 +301,7 @@ public class ProgressReporter
 		}
 		if (selection < minimum) {
 			percentage = 0;
-			selection = minimum;
+			this.selection = minimum;
 			isIndeterminate = true;
 			return;
 		}

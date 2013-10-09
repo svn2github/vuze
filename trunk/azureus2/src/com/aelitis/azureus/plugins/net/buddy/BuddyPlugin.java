@@ -2290,11 +2290,11 @@ BuddyPlugin
 	protected void
 	deleteConfig()
 	{
-		File	config_file = new File( plugin_interface.getUtilities().getAzureusUserDir(), "friends.config" );
-		
 		Utilities utils = plugin_interface.getUtilities();
-			
-		plugin_interface.getUtilities().deleteResilientBEncodedFile(
+
+		File	config_file = new File( utils.getAzureusUserDir(), "friends.config" );
+		
+		utils.deleteResilientBEncodedFile(
 				config_file.getParentFile(), config_file.getName(), true );
 
 	}
@@ -2323,7 +2323,7 @@ BuddyPlugin
 	{
 		Utilities utils = plugin_interface.getUtilities();
 			
-		plugin_interface.getUtilities().writeResilientBEncodedFile(
+		utils.writeResilientBEncodedFile(
 			name.getParentFile(), name.getName(), data, true );
 		
 		return( name.exists());
