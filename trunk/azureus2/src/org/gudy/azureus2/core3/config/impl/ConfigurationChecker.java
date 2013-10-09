@@ -471,6 +471,10 @@ ConfigurationChecker
 	    	if ( random_range == null || random_range.trim().length() == 0 ){
 	    		
 	    		random_range = RandomUtils.LISTEN_PORT_MIN + "-" + RandomUtils.LISTEN_PORT_MAX;
+	    		
+	    	}else{
+	    		
+	    		random_range = random_range.trim();
 	    	}
 	    	
 	    	int	min_port = RandomUtils.LISTEN_PORT_MIN;
@@ -480,6 +484,26 @@ ConfigurationChecker
 	    	
 	    	boolean valid = bits.length == 2;
 	    		
+	    	if ( !valid ){
+	    		
+	    			// try alternative split based on any non-numeric char (there are lots of unicode chars that
+	    			// look like a - sign...)
+	    		
+	    		char[] chars = random_range.toCharArray();
+	    			    		
+	    		for (int i=0;i<chars.length-1;i++){
+	    			
+	    			if ( !Character.isDigit( chars[i] )){
+	    				
+	    				bits = new String[]{ random_range.substring( 0, i ), random_range.substring( i+1 )};
+	    				
+	    				valid = true;
+	    				
+	    				break;
+	    			}
+	    		}
+	    	}
+	    	
 	    	if ( valid ){
 	    		
 	    		String	lhs = bits[0].trim();
@@ -488,6 +512,8 @@ ConfigurationChecker
 	    			
 	    			try{
 	    				min_port = Integer.parseInt( lhs );
+	    				
+	    				valid = min_port > 0 && min_port < 65536;
 	    				
 	    			}catch( Throwable e ){
 	    				
@@ -501,6 +527,8 @@ ConfigurationChecker
 	    			
 	    			try{
 	    				max_port = Integer.parseInt( rhs );
+	    				
+	    				valid = max_port > 0 && max_port < 65536;
 	    				
 	    			}catch( Throwable e ){
 	    				
