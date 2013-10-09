@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DelayedEvent;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.ThreadPool;
@@ -84,7 +85,7 @@ GenericMessageConnectionIndirect
 	private static final int MAX_REMOTE_CONNECTIONS			= 1024;
 	private static final int MAX_REMOTE_CONNECTIONS_PER_IP	= 32;
 	
-	private static long	connection_id_next	= new Random().nextLong();
+	private static long	connection_id_next	= RandomUtils.nextLong();
 	
 	
 	private static Map	local_connections 	= new HashMap();

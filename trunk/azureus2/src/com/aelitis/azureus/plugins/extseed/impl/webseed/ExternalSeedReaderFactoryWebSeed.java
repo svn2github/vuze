@@ -22,12 +22,9 @@
 
 package com.aelitis.azureus.plugins.extseed.impl.webseed;
 
-import java.io.File;
 import java.net.URL;
 import java.util.*;
 
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -155,32 +152,5 @@ ExternalSeedReaderFactoryWebSeed
 		}
 		
 		return( new ExternalSeedReader[0] );
-	}
-	
-	public static void
-	main(
-		String[]	args )
-	{
-		try{
-			File file = new File  ( "C:\\temp\\test.torrent");
-			
-			TOTorrent	torrent = TOTorrentFactory.deserialiseFromBEncodedFile( file );
-			
-			Map	map = torrent.serialiseToMap();
-			
-			List	urls = new ArrayList();
-			
-			urls.add( "http://192.168.1.2:8080/test.dat" );
-			
-			map.put( "httpseeds", urls);
-			
-			torrent = TOTorrentFactory.deserialiseFromMap( map );
-			
-			torrent.serialiseToBEncodedFile( file );
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
 	}
 }

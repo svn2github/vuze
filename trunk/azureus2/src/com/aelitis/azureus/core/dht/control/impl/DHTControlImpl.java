@@ -1541,7 +1541,7 @@ DHTControlImpl
 												
 												byte[]	dummy = new byte[encoded_keys[i].length];
 												
-												new Random().nextBytes( dummy );
+												RandomUtils.nextBytes( dummy );
 												
 												encoded_keys[i] = dummy;
 											}

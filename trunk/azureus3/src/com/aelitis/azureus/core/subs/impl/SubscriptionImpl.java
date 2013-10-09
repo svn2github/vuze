@@ -42,6 +42,7 @@ import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.LightHashMap;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.json.simple.JSONObject;
@@ -233,7 +234,7 @@ SubscriptionImpl
 			private_key 		= CryptoECCUtils.keyToRawdata( kp.getPrivate());
 						
 			
-			fixed_random	= new Random().nextInt();
+			fixed_random	= RandomUtils.nextInt();
 			
 			init();
 			
@@ -291,7 +292,7 @@ SubscriptionImpl
 		
 		is_subscribed	= _is_subscribed;
 		
-		fixed_random	= new Random().nextInt();
+		fixed_random	= RandomUtils.nextInt();
 		
 		init();
 				
@@ -1381,7 +1382,7 @@ SubscriptionImpl
 					
 				}else if ( lws_skip_check == 0 ){
 									
-					if ( new Random().nextInt((int)(( popularity + 99 ) / 100 )) == 0 ){
+					if ( RandomUtils.nextInt((int)(( popularity + 99 ) / 100 )) == 0 ){
 						
 						lws_skip_check = 1;
 						
@@ -1513,7 +1514,7 @@ SubscriptionImpl
 			
 			if ( associations.size() > MAX_ASSOCIATIONS ){
 				
-				associations.remove( new Random().nextInt( MAX_ASSOCIATIONS - MIN_RECENT_ASSOC_TO_RETAIN ));
+				associations.remove( RandomUtils.nextInt( MAX_ASSOCIATIONS - MIN_RECENT_ASSOC_TO_RETAIN ));
 			}
 		}
 		

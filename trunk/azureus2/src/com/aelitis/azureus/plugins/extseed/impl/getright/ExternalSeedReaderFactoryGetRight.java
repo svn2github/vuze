@@ -22,13 +22,9 @@
 
 package com.aelitis.azureus.plugins.extseed.impl.getright;
 
-import java.io.File;
 import java.net.URL;
 import java.util.*;
 
-import org.gudy.azureus2.core3.config.COConfigurationManager;
-import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
@@ -182,58 +178,5 @@ ExternalSeedReaderFactoryGetRight
 		}
 		
 		return( new ExternalSeedReader[0] );
-	}
-	
-	public static void
-	main(
-		String[]	args )
-	{
-		try{
-			COConfigurationManager.preInitialise();
-			
-			File file = new File  ( "C:\\temp\\httpseed.torrent");
-			
-			TOTorrent	torrent = TOTorrentFactory.deserialiseFromBEncodedFile( file );
-			
-			Map	map = torrent.serialiseToMap();
-			
-			/*
-			List	urls = (List)map.get( "url-list" ); 
-				
-			if ( urls == null ){
-				
-				urls = new ArrayList();
-			}
-					
-			urls.add( "http://127.0.0.1:888/files/%DF%26%5B7w%C9%13I%88%8D%EC%E5b%2C9%0F%8D%0Co%BC/" );
-			
-			map.put( "url-list", urls);
-			*/
-			
-			/*
-			Map params = new HashMap();
-			
-			map.put( "url-list-params", params );
-			*/
-			
-			List params2 = new ArrayList();
-			
-			map.put( "url-list-params2", params2 );
-						
-			Map x_map = new HashMap();
-			
-			x_map.put( "max_speed", new Long(5*1024));
-			
-			params2.add( new Long(0));
-			params2.add( x_map );
-			
-			torrent = TOTorrentFactory.deserialiseFromMap( map );
-			
-			torrent.serialiseToBEncodedFile( file );
-			
-		}catch( Throwable e ){
-			
-			e.printStackTrace();
-		}
 	}
 }

@@ -33,6 +33,7 @@ import java.util.Random;
 
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -170,7 +171,7 @@ DHTUDPUtils
 	{
 		byte[]	id = new byte[20];
 		
-		new Random().nextBytes( id );
+		RandomUtils.nextBytes( id );
 		
 		return( id );
 	}

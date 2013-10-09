@@ -28,10 +28,9 @@ package com.aelitis.net.udp.uc;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.RandomUtils;
 
 public abstract class 
 PRUDPPacket 
@@ -39,7 +38,7 @@ PRUDPPacket
 	public static final int	MAX_PACKET_SIZE			= 8192;
 	public static final int DEFAULT_UDP_TIMEOUT		= 30000;
 
-	private static int				next_id 	= new Random(SystemTime.getCurrentTime()).nextInt();
+	private static int				next_id 	= RandomUtils.nextInt();
 	private static AEMonitor		class_mon	= new AEMonitor( "PRUDPPacket" );
 
 	private	InetSocketAddress	address;

@@ -49,9 +49,8 @@ import org.gudy.azureus2.plugins.update.*;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.PluginConfigUIFactory;
-
 import org.gudy.azureus2.core3.util.Constants;
-
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.pluginsimpl.remote.download.*;
 import org.gudy.azureus2.pluginsimpl.remote.ipfilter.*;
 import org.gudy.azureus2.pluginsimpl.remote.torrent.*;
@@ -63,7 +62,7 @@ RPPluginInterface
 	extends		RPObject
 	implements 	PluginInterface
 {
-	protected static long		connection_id_next		= new Random().nextLong();
+	protected static long		connection_id_next		= RandomUtils.nextLong();
 
 	protected transient PluginInterface		delegate;
 	protected transient long				request_id_next;
