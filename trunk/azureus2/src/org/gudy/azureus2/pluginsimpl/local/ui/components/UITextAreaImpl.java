@@ -42,6 +42,8 @@ UITextAreaImpl
 	extends		UIComponentImpl
 	implements 	UITextArea
 {
+	private final boolean enable_history = System.getProperty( "az.logging.keep.ui.history", "true" ).equals( "true" );
+	
 	private int	max_size		= DEFAULT_MAX_SIZE;
 	private int max_file_size = 20 * max_size;
 	
@@ -77,6 +79,11 @@ UITextAreaImpl
 	setText(
 		String		text )
 	{
+		if ( !enable_history ){
+			
+			return;
+		}
+		
 		if ( useFile ){
 			
 			try{
@@ -119,6 +126,11 @@ UITextAreaImpl
 	appendText(
 		String		text )
 	{
+		if ( !enable_history ){
+			
+			return;
+		}
+		
 		if ( useFile && pw != null ){
 			
 			try{
@@ -209,6 +221,11 @@ UITextAreaImpl
 	public String
 	getText()
 	{
+		if ( !enable_history ){
+			
+			return( "" );
+		}
+		
 		if ( useFile && pw != null ){
 			
 			return( getFileText());
@@ -284,7 +301,7 @@ UITextAreaImpl
 		
 		private PrintWriter		pw;
 		
-		public void
+		private void
 		print(
 			String	text )
 		{
@@ -322,7 +339,7 @@ UITextAreaImpl
 			}
 		}
 		
-		public String
+		private String
 		getText()
 		{
 			if ( poop_file == null ){
@@ -341,7 +358,7 @@ UITextAreaImpl
 			}
 		}
 		
-		public void
+		private void
 		close()
 		{
 			if ( pw != null ){
