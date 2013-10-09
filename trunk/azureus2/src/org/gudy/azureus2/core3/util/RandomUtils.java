@@ -213,15 +213,7 @@ RandomUtils
         
     public static int nextAbsoluteInt()
     {
-    	while( true ){
-    		
-    		int val = Math.abs( RANDOM.nextInt());
-    		
-    		if ( val >= 0 ){
-    			
-    			return( val );
-    		}
-    	}
+    	return(( RANDOM.nextInt() << 1 ) >>> 1 );
     }
     
     public static long nextLong()
@@ -229,17 +221,32 @@ RandomUtils
         return RANDOM.nextLong();
     }
        
-    public static long nextAbsoluteLong()
+    public static long nextLong( long n )
     {
-    	while( true ){
-    		
-    		long val = Math.abs( RANDOM.nextLong());
-    		
-    		if ( val >= 0 ){
+    	if ( n > Integer.MAX_VALUE ){
+    		    		
+    		while( true ){
     			
-    			return( val );
+    			long rand 	= nextAbsoluteLong();
+    			
+    			long res	= rand % n;
+    			
+    				// deal with non-uniformity as rand not generally divisible by n
+    			
+    			if ( rand - res + (n-1) >= 0 ){
+    				
+    				return( res );
+    			}
     		}
     	}
+    	
+        return((long)RANDOM.nextInt((int)n));
+    }
+       
+    
+    public static long nextAbsoluteLong()
+    {
+    	return(( RANDOM.nextLong() << 1 ) >>> 1 );
     }
     
     public static long nextSecureAbsoluteLong()

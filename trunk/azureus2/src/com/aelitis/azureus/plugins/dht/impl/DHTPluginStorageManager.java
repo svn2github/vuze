@@ -1848,7 +1848,7 @@ DHTPluginStorageManager
 			key		= _key;
 			type	= _type;
 			
-			expiry	= SystemTime.getCurrentTime() + DIV_EXPIRY_MIN + (long)(Math.random() * DIV_EXPIRY_RAND );
+			expiry	= SystemTime.getCurrentTime() + DIV_EXPIRY_MIN + RandomUtils.nextLong( DIV_EXPIRY_RAND );
 			
 			fixed_put_offsets	= new int[DIV_FRAG_GET_SIZE];
 			
@@ -1856,7 +1856,7 @@ DHTPluginStorageManager
 			
 			while( pos < DIV_FRAG_GET_SIZE ){
 				
-				int i = (int)(Math.random()*DIV_WIDTH);
+				int i = RandomUtils.nextInt(DIV_WIDTH);
 				
 				boolean	found = false;
 				
@@ -2013,7 +2013,7 @@ DHTPluginStorageManager
 					
 						// diversification has lead to caching at all 'n' places
 					
-					keys.add( diversifyKey( key,(int)(Math.random()*DIV_WIDTH)));
+					keys.add( diversifyKey( key, RandomUtils.nextInt(DIV_WIDTH)));
 					
 				}else{
 					
@@ -2035,7 +2035,7 @@ DHTPluginStorageManager
 						
 						while( randoms.size() < DIV_FRAG_GET_SIZE ){
 							
-							Integer	i = new Integer((int)(Math.random()*DIV_WIDTH));
+							Integer	i = new Integer(RandomUtils.nextInt(DIV_WIDTH));
 							
 							if ( !randoms.contains(i)){
 								
@@ -2114,7 +2114,7 @@ DHTPluginStorageManager
 			type		= _type;
 			key			= _key;
 			
-			expiry	= SystemTime.getCurrentTime() + DIV_EXPIRY_MIN + (long)(Math.random() * DIV_EXPIRY_RAND );
+			expiry	= SystemTime.getCurrentTime() + DIV_EXPIRY_MIN + RandomUtils.nextLong( DIV_EXPIRY_RAND );
 		}
 		
 		protected
