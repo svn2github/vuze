@@ -74,7 +74,7 @@ public class AboutWindow {
     Utils.setShellIcon(window);
     final Display display = window.getDisplay();
 
-    window.setText(MessageText.getString("MainWindow.about.title") + " " + Constants.AZUREUS_VERSION); //$NON-NLS-1$
+    window.setText(MessageText.getString("MainWindow.about.title") + " " + Constants.getCurrentVersion());
     GridData gridData;
     window.setLayout(new GridLayout(2, false));
 
@@ -158,7 +158,7 @@ public class AboutWindow {
 				+ System.getProperty("os.name") + " v"
 				+ System.getProperty("os.version") + ", "
 				+ System.getProperty("os.arch") + "\n"
-				+ Constants.APP_NAME.charAt(0) + Constants.AZUREUS_VERSION + (Constants.AZUREUS_SUBVER.length()==0?"":("-"+Constants.AZUREUS_SUBVER)) + "/" + CorePatchLevel.getCurrentPatchLevel() + " " 
+				+ Constants.APP_NAME.charAt(0) + Constants.getCurrentVersion() + (Constants.AZUREUS_SUBVER.length()==0?"":("-"+Constants.AZUREUS_SUBVER)) + "/" + CorePatchLevel.getCurrentPatchLevel() + " " 
 				+ COConfigurationManager.getStringParameter("ui"));
     txtSysInfo.setLayoutData(gridData = new GridData(GridData.FILL_BOTH));
     if (window.getCaret() != null)
