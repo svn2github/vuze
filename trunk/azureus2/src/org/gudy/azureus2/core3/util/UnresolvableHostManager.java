@@ -39,7 +39,7 @@ UnresolvableHostManager
 	// name of an TOR hidden service). Here we map such hosts onto class E (i.e. experimental) IP 
 	// addresses so things mainly work
 	
-	protected static int	next_address	= 0xf0000000 + (int)(0x00ffffff*Math.random());
+	protected static int	next_address	= 0xf0000000 + RandomUtils.nextInt(0x00ffffff);
 	
 	protected static Map	host_map	= new HashMap();
 	

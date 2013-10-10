@@ -2011,7 +2011,7 @@ public class OpenTorrentWindow
 
 			boolean ok;
 
-			if (line == "") {
+			if (line.length() == 0 ) {
 				ok = false;
 			} else if (UrlUtils.isURL(line)) {
 				ok = true;
@@ -2089,7 +2089,7 @@ public class OpenTorrentWindow
 
 		int numAdded = 0;
 		for (int i = 0; i < sTorrentFilenames.length; i++) {
-			if (sTorrentFilenames[i] == null || sTorrentFilenames[i] == "")
+			if (sTorrentFilenames[i] == null || sTorrentFilenames[i].length() == 0)
 				continue;
 
 			// Process File
@@ -3132,7 +3132,7 @@ public class OpenTorrentWindow
 			return null;
 		}
 
-		return (sDefDir == "") ? null : sDefDir;
+		return (sDefDir.length() == 0) ? null : sDefDir;
 	}
 
 	private final static class Partition

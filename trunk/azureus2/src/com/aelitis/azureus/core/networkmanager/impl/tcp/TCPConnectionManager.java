@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
@@ -977,7 +978,7 @@ public class TCPConnectionManager {
       listener = _listener;
       connect_timeout	= _connect_timeout;
       request_start_time = SystemTime.getMonotonousTime();
-      rand = (short)( Short.MAX_VALUE*Math.random());
+      rand = (short)( RandomUtils.nextInt( Short.MAX_VALUE ));
       priority = _priority;
     }
     

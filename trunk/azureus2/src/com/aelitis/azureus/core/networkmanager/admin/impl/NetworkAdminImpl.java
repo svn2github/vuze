@@ -1915,7 +1915,7 @@ addressLoop:
 				
 				 NetworkAdminASN x = (NetworkAdminASN)as_history.get(i);
 				 
-				 if ( asn.getAS() == x.getAS()){
+				 if ( asn.getAS().equals( x.getAS())){
 					 
 					 found = true;
 					 

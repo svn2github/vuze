@@ -346,11 +346,12 @@ public class PeerInfoView
 			topLabel.setText("");
 		} else {
 			String s = peer.getClient();
-			if (s == null)
+			if (s == null){
 				s = "";
-			if (s != "")
+			}else if (s.length() > 0){
 				s += "; ";
-
+			}
+			
 			s += peer.getIp()
 					+ "; "
 					+ DisplayFormatters.formatPercentFromThousands(peer

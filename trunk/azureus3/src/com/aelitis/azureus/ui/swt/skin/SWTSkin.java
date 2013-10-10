@@ -1691,7 +1691,7 @@ public class SWTSkin
 	private SWTSkinObject createClone(SWTSkinProperties properties, String sID,
 			String sConfigID, String[] typeParams, SWTSkinObject parentSkinObject) {
 		//System.out.println("Create Clone " + sID + " == " + sConfigID + " for " + parentSkinObject);
-		if (sConfigID == "") {
+		if (sConfigID.length() == 0) {
 			System.err.println("XXXXXXXX " + sID + " has no config ID.."
 					+ Debug.getStackTrace(false, false));
 		}

@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.RandomUtils;
 
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
@@ -216,7 +217,7 @@ public class AZHandshake implements AZMessage {
 
 			// random padding if crypto
 			if (handshake_type == AZHandshake.HANDSHAKE_TYPE_CRYPTO)
-				payload_map.put("pad", new byte[(int) (Math.random() * AZMessageFactory.AZ_HANDSHAKE_PAD_MAX)]);
+				payload_map.put("pad", new byte[RandomUtils.nextInt( AZMessageFactory.AZ_HANDSHAKE_PAD_MAX)]);
 
 			buffer = MessagingUtil.convertPayloadToBencodedByteStream(payload_map, DirectByteBuffer.AL_MSG_AZ_HAND);
 			if (buffer.remaining(bss) > 1200)

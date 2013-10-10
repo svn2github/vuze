@@ -82,7 +82,7 @@ public class IpRangeImpl implements IpRange
 			flags |= FLAG_INVALID_END;
 		}
 
-		if (_description != "") {
+		if (_description.length() > 0) {
 			setDescription(_description);
 		}
 
@@ -98,7 +98,7 @@ public class IpRangeImpl implements IpRange
 		ipStart = _startIp;
 		ipEnd = _endIp;
 
-		if (_description != "") {
+		if (_description.length() > 0) {
 			setDescription(_description);
 		}
 

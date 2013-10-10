@@ -872,7 +872,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   }
 
   
-  public int hashCode() {  return this.url.hashCode();  }
+  public int hashCode() {  return this.original_url.hashCode();  }
   
   
   

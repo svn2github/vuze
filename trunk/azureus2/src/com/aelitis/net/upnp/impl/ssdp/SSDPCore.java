@@ -28,12 +28,12 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.utils.UTTimer;
 import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
-
 
 import com.aelitis.net.udp.mc.MCGroup;
 import com.aelitis.net.udp.mc.MCGroupAdapter;
@@ -471,7 +471,7 @@ SSDPCore
 							
 							delay = Integer.parseInt( mx ) * 1000;
 							
-							delay = (int)(Math.random()*delay);
+							delay = RandomUtils.nextInt( delay );
 							
 						}catch( Throwable e ){
 						}

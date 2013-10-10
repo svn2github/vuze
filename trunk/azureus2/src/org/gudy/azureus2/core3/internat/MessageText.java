@@ -712,7 +712,7 @@ public class MessageText {
             System.out.println("changeLocale: Searching for language " + newLocale.getDisplayLanguage() + " in *any* country..");
             Locale[] locales = getLocales(false);
             for (int i = 0; i < locales.length; i++) {
-              if (locales[i].getLanguage() == newLocale.getLanguage()) {
+              if (locales[i].getLanguage().equals( newLocale.getLanguage())) {
                 newResourceBundle = getResourceBundle("MessagesBundle", locales[i], 
                                                               new URLClassLoader(urls));
                 break;

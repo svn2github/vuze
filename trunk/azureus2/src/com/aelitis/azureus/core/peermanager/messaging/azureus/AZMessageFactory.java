@@ -27,6 +27,7 @@ import java.util.Map;
 
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.DirectByteBufferPool;
+import org.gudy.azureus2.core3.util.RandomUtils;
 
 import com.aelitis.azureus.core.networkmanager.RawMessage;
 import com.aelitis.azureus.core.networkmanager.impl.RawMessageImpl;
@@ -195,11 +196,11 @@ public class AZMessageFactory {
     		
     		if ( padding_mode == AZMessageEncoder.PADDING_MODE_MINIMAL ){
     			
-       			padding_length = (short)(( Math.random() * SMALL_PAD_MAX  ));
+       			padding_length = (short)( RandomUtils.nextInt( SMALL_PAD_MAX  ));
 
     		}else{
     			
-    			padding_length = (short)(( Math.random() * ( payload_size>256?SMALL_PAD_MAX:BIG_PAD_MAX )));
+    			padding_length = (short)( RandomUtils.nextInt( payload_size>256?SMALL_PAD_MAX:BIG_PAD_MAX ));
     		}
     		
     		if ( padding_length == 0 ){

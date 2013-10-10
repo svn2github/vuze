@@ -728,10 +728,11 @@ public class GeneralView
   		PEPeerManager	pm = manager.getPeerManager();
   		
 	    if (manager.getPeerManager() == null) {
-	      if (availabilityPercent.getText() != "")
+	      if (availabilityPercent.getText().length() > 0 ){
 	      	
-	        availabilityPercent.setText("");
-	    
+	    	  availabilityPercent.setText("");
+	      }
+	      
 	      	available	= new int[manager.getNbPieces()];
 	    }else{
 	    	available	= pm.getAvailability();

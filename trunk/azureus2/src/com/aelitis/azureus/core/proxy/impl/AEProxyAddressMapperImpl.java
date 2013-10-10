@@ -23,7 +23,6 @@
 package com.aelitis.azureus.core.proxy.impl;
 
 import java.util.*;
-
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -32,6 +31,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
 
 import com.aelitis.azureus.core.proxy.AEProxyAddressMapper;
 
@@ -80,7 +80,7 @@ AEProxyAddressMapperImpl
 		    		
 		    		for (int i=0;i<b.length;i++){
 		    			
-		    			b[i] = (byte)(Math.random()*256);
+		    			b[i] = (byte)(RandomUtils.nextInt(256));
 		    		}
 		    		
 		    		prefix = ByteFormatter.encodeString( b );

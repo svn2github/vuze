@@ -346,7 +346,7 @@ public class OpenTorrentWindow
 		
 		if ( sTorrentFilenames != null ){
 			for (int i = 0; i < sTorrentFilenames.length; i++) {
-				if (sTorrentFilenames[i] == null || sTorrentFilenames[i] == "")
+				if (sTorrentFilenames[i] == null || sTorrentFilenames[i].length() == 0)
 					continue;
 	
 				// Process File
@@ -426,7 +426,7 @@ public class OpenTorrentWindow
 
 			boolean ok;
 
-			if (line == "") {
+			if (line.length()==0) {
 				ok = false;
 			} else if (UrlUtils.isURL(line)) {
 				ok = true;

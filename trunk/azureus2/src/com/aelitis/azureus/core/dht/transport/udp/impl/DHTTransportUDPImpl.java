@@ -766,7 +766,7 @@ DHTTransportUDPImpl
 					
 					for (int i=0;i<search_lim;i++){
 						
-						DHTTransportUDPContactImpl	contact = (DHTTransportUDPContactImpl)contacts.remove((int)(contacts.size()*Math.random()));
+						DHTTransportUDPContactImpl	contact = (DHTTransportUDPContactImpl)contacts.remove(RandomUtils.nextInt(contacts.size()));
 													
 						InetSocketAddress a = askContactForExternalAddress( contact );
 						

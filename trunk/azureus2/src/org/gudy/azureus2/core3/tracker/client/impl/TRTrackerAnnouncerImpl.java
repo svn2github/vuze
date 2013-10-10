@@ -36,7 +36,6 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
-import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerException;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerListener;
@@ -48,6 +47,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
 import org.gudy.azureus2.core3.util.ListenerManager;
 import org.gudy.azureus2.core3.util.ListenerManagerDispatcher;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResultPeer;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
@@ -83,7 +83,7 @@ TRTrackerAnnouncerImpl
 		String	key_id = "";
 		
 		for (int i = 0; i < key_id_length; i++) {
-			int pos = (int) ( Math.random() * chars.length());
+			int pos = RandomUtils.nextInt( chars.length());
 		    key_id +=  chars.charAt(pos);
 		}
 		
@@ -141,7 +141,7 @@ TRTrackerAnnouncerImpl
 		
 		tracker_key	= createKeyID();
 	    
-		udp_key	= (int)(Math.random() *  0xFFFFFFFFL );
+		udp_key	= RandomUtils.nextInt();
 		
 		try{
 			peer_id		= ClientIDManagerImpl.getSingleton().generatePeerID( torrent, false );

@@ -213,8 +213,10 @@ ConfigSectionTrackerClient
     tcpOverride.addChangeListener(new ParameterChangeAdapter() {
     	public void stringParameterChanging(Parameter p, String toValue)
     	{
-    		if(toValue == "")
+    		if(toValue.length() == 0 ){
     			return;
+    		}
+    		
     		try
 			{
     			int portVal = Integer.parseInt(toValue);

@@ -42,7 +42,7 @@ import org.gudy.azureus2.core3.tracker.util.TRTrackerUtils;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
-
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.plugins.*;
 import org.gudy.azureus2.plugins.clientid.ClientIDException;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
@@ -73,7 +73,7 @@ public class NatChecker {
 	int 			port,
 	boolean			http_test )
   {	
-    String check = "azureus_rand_" + String.valueOf( (int)(Math.random() * 100000) );
+    String check = "azureus_rand_" + String.valueOf( RandomUtils.nextInt( 100000 ));
     
     if ( port < 0 || port > 65535 || port == Constants.INSTANCE_PORT ){
     	

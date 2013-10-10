@@ -142,6 +142,21 @@ IPRangeImpl
 	}
 	
 	public int
+	hashCode()
+	{
+		int hash = getStartIP().hashCode();
+		
+		String ip = getEndIP();
+		
+		if ( ip != null ){
+			
+			hash += ip.hashCode();
+		}
+		
+		return( hash );
+	}
+	
+	public int
 	compareTo(
 		Object		other )
 	{

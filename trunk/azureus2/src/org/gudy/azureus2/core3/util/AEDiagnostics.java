@@ -183,7 +183,7 @@ AEDiagnostics
 				run()
 				{
 					SimpleTimer.addEvent("AEDiagnostics:logCleaner",SystemTime.getCurrentTime() + 60000
-							+ (int) (Math.random() * 15000), new TimerEventPerformer() {
+							+ RandomUtils.nextInt(15000), new TimerEventPerformer() {
 						public void perform(TimerEvent event) {
 							cleanOldLogs();
 						}

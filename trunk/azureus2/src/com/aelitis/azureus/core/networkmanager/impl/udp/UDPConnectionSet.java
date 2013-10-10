@@ -23,7 +23,6 @@
 package com.aelitis.azureus.core.networkmanager.impl.udp;
 
 import java.util.*;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
@@ -37,6 +36,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SHA1Hasher;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -736,7 +736,7 @@ UDPConnectionSet
 	protected boolean
 	idleLimitExceeded()
 	{
-		if ( idle_ticks > IDLE_TICKS + ((int)(Math.random()*2000) / UDPConnectionManager.TIMER_TICK_MILLIS)){
+		if ( idle_ticks > IDLE_TICKS + (RandomUtils.nextInt(2000) / UDPConnectionManager.TIMER_TICK_MILLIS)){
 			
 			synchronized( connections ){
 				
