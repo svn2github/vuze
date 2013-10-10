@@ -171,7 +171,9 @@ public class AboutWindow {
 				"bugreports",
 				"forumdiscussion",
 				"wiki",
-				"contributors"
+				"contributors",
+				"!EULA",
+				"!Privacy Policy"
 			},
 			{
 				"http://www.vuze.com",
@@ -179,13 +181,19 @@ public class AboutWindow {
 				"http://forum.vuze.com/forum.jspa?forumID=124",
 				"http://forum.vuze.com",
 				Constants.AZUREUS_WIKI,
-				Constants.AZUREUS_WIKI + "Contributors"
+				Constants.AZUREUS_WIKI + "Contributors",
+				"http://www.vuze.com/corp/terms.php",
+				"http://www.vuze.com/corp/privacy.php"
 			}
 		};
   
     for (int i = 0; i < link[0].length; i++) {
       final CLabel linkLabel = new CLabel(gInternet, SWT.NULL);
-      linkLabel.setText(MessageText.getString("MainWindow.about.internet." + link[0][i]));
+      if (link[0][i].startsWith("!")) {
+        linkLabel.setText(link[0][i].substring(1));
+      } else {
+      	linkLabel.setText(MessageText.getString("MainWindow.about.internet." + link[0][i]));
+      }
       linkLabel.setData(link[1][i]);
       linkLabel.setCursor(display.getSystemCursor(SWT.CURSOR_HAND));
       linkLabel.setForeground(Colors.blue);
@@ -201,6 +209,14 @@ public class AboutWindow {
         }
       });
     }
+    
+    Label labelOwner = new Label(window, SWT.WRAP | SWT.CENTER);
+    gridData = new GridData(GridData.HORIZONTAL_ALIGN_FILL | GridData.VERTICAL_ALIGN_FILL);
+    gridData.horizontalSpan = 2;
+    gridData.horizontalIndent = gridData.verticalIndent = 0;
+    labelOwner.setLayoutData(gridData);
+    labelOwner.setText("Vuze is a product of Azureus Software, Inc.");
+
     
     Listener keyListener =  new Listener() {
       public void handleEvent(Event e) {
