@@ -73,6 +73,7 @@ import com.aelitis.azureus.ui.swt.shells.main.UIFunctionsImpl;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.uiupdater.UIUpdaterSWT;
+import com.aelitis.azureus.ui.swt.views.skin.SkinViewManager;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog;
 import com.aelitis.azureus.ui.swt.views.skin.SkinnedDialog.SkinnedDialogClosedListener;
 import com.aelitis.azureus.ui.swt.views.skin.StandardButtonsArea;
@@ -199,7 +200,7 @@ public class OpenTorrentOptionsWindow
 		UIFunctionsImpl uiFunctions = new UIFunctionsImpl(null);
 		UIFunctionsManager.setUIFunctions(uiFunctions);
 
-		File file = new File("/Users/Vuze/samples.torrent");
+		File file = new File("C:\\temp\\test.torrent");
 		TOTorrent torrent = null;
 		try {
 			torrent = TOTorrentFactory.deserialiseFromBEncodedFile(file);
@@ -1450,18 +1451,18 @@ public class OpenTorrentOptionsWindow
 					SWT.RESIZE | SWT.MAX | SWT.DIALOG_TRIM);
 	
 			dlg.setTitle(MessageText.getString("OpenTorrentOptions.title") + " [" + torrentOptions.getTorrentName() + "]");
-			final SWTSkin skin = dlg.getSkin();
+			final SWTSkin skin_outter = dlg.getSkin();
 			
 			SWTSkinObject so;
 			
 			if (COConfigurationManager.hasParameter(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS, true)) {
-	  		so = skin.getSkinObject("showagain-area");
+	  		so = skin_outter.getSkinObject("showagain-area");
 	  		if (so != null) {
 	  			so.setVisible(false);
 	  		}
 			}
 			
-			SWTSkinObject soButtonArea = skin.getSkinObject("button-area");
+			SWTSkinObject soButtonArea = skin_outter.getSkinObject("button-area");
 			if (soButtonArea instanceof SWTSkinObjectContainer) {
 				buttonsArea = new StandardButtonsArea() {
 					protected void clicked(int intValue) {
@@ -1487,7 +1488,25 @@ public class OpenTorrentOptionsWindow
 				});
 				buttonsArea.swt_createButtons(((SWTSkinObjectContainer) soButtonArea).getComposite());
 			}
-	
+				
+			final SWTSkinObjectSash sash_object = (SWTSkinObjectSash)skin_outter.getSkinObject("multi-sash");
+			
+			if ( sash_object != null ){
+				
+				sash_object.setVisible( false );
+			}
+			
+			so = skin_outter.getSkinObject("expand-area");
+			
+			Composite expand_area = ((SWTSkinObjectContainer)so).getComposite();
+			
+			final SWTSkin skin = 
+				SWTSkinFactory.getNonPersistentInstance(
+					getClass().getClassLoader(), 
+					"com/aelitis/azureus/ui/skin", "skin3_dlg_opentorrent_options_instance.properties" );			
+
+			skin.initialize( expand_area, "expandview");
+			
 			so = skin.getSkinObject("filearea-table");
 			if (so instanceof SWTSkinObjectContainer) {
 				setupTVFiles((SWTSkinObjectContainer) so);
@@ -1555,7 +1574,7 @@ public class OpenTorrentOptionsWindow
 						+ ": " + torrentOptions.getTorrentName());
 			}
 			
-			setupShowAgainOptions(skin);
+			setupShowAgainOptions(skin_outter);
 	
 			setupInfoFields(skin);
 	
@@ -1571,8 +1590,19 @@ public class OpenTorrentOptionsWindow
 				 * and the user has disabled the 'show vuze on external torrent add' feature)
 				 */
 			
+			skin.layout();
+			
 			dlg.open("otow",false);
 	
+			if ( sash_object != null ){
+				
+				Utils.execSWTThreadLater(0, new AERunnable() {
+					public void runSupport() {
+						sash_object.setAboveVisible( false );
+					}
+				});
+			}
+			
 			int	num_active_windows = active_windows.size();
 			
 			if ( num_active_windows > 1 ){
