@@ -369,7 +369,7 @@ RunEverythingPlugin
 		logger.log( str );
 	}
 	
-	protected class
+	private static class
 	downloadData
 	{
 		private Download		download;
@@ -399,6 +399,7 @@ RunEverythingPlugin
 			return( download.getName());
 		}
 		
+		/*
 		protected boolean
 		isDownloading()
 		{
@@ -430,6 +431,7 @@ RunEverythingPlugin
 						state == Download.ST_READY 		||
 						state == Download.ST_SEEDING );
 		}
+		*/
 		
 		protected boolean
 		isComplete()

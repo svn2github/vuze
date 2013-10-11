@@ -5259,7 +5259,7 @@ DeviceManagerUI
 
 	}
 	
-	public class
+	private static class
 	deviceItem
 	{		
 		private deviceView			view;

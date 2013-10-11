@@ -1747,7 +1747,7 @@ PRUDPPacketHandlerImpl
 	{
 	}
 	
-	private class
+	private static class
 	MyByteArrayOutputStream
 		extends ByteArrayOutputStream
 	{

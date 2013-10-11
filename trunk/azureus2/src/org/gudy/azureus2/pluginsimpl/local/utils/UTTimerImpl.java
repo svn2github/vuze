@@ -191,7 +191,7 @@ UTTimerImpl
 		}
 	}
 	
-	protected class
+	private static class
 	timerEvent
 		implements UTTimerEvent
 	{

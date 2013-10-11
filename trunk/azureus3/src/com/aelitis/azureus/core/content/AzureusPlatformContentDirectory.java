@@ -484,7 +484,7 @@ AzureusPlatformContentDirectory
 		listeners.remove( listener );
 	}
 	
-	protected class
+	private static class
 	AzureusPlatformContent
 		implements AzureusContent
 	{

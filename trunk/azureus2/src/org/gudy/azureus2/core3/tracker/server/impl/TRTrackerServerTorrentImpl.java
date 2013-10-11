@@ -3166,7 +3166,7 @@ TRTrackerServerTorrentImpl
 		}
 	}
 	
-	protected class
+	private static class
 	temporaryBiasedSeed
 		implements TRTrackerServerSimplePeer
 	{

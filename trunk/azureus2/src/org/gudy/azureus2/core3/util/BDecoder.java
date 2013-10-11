@@ -1278,7 +1278,7 @@ public class BDecoder
 		}
 	}
 */
-	private class
+	private static class
 	BDecoderInputStreamArray
 	
 		extends InputStream

@@ -94,7 +94,7 @@ public class PeersItem extends CoreTableColumnSWT implements
 		new Cell(cell);
 	}
 
-	private class Cell extends AbstractTrackerCell {
+	private static class Cell extends AbstractTrackerCell {
 		long lTotalPeers = -1;
 		
 		/**

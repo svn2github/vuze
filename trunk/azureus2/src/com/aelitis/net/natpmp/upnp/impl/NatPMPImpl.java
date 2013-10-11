@@ -129,7 +129,7 @@ public class NatPMPImpl {
 		return(natDevice.getExternalIPAddress());
 	}
 	
-    protected class portMapping 
+    private static class portMapping 
         implements UPnPWANConnectionPortMapping
     {
         protected int           external_port;

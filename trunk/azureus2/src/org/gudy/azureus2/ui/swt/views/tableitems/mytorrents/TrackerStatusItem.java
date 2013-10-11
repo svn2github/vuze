@@ -59,7 +59,7 @@ public class TrackerStatusItem extends CoreTableColumnSWT implements
 		new Cell(cell);
 	}
 
-	private class Cell extends AbstractTrackerCell {
+	private static class Cell extends AbstractTrackerCell {
 		public Cell(TableCell cell) {
 			super(cell);
 		}

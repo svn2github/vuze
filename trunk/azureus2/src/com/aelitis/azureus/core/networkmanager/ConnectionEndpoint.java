@@ -364,7 +364,7 @@ ConnectionEndpoint
 		return( str + "]" );
 	}
 	
-	private class
+	private static class
 	ConnectListenerEx
 		implements ConnectListener
 	{

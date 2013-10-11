@@ -640,7 +640,7 @@ UPnPSSWANConnectionImpl
 		listeners.add( listener );
 	}
 	
-	protected class
+	private static class
 	portMapping
 		implements UPnPWANConnectionPortMapping
 	{

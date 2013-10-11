@@ -3164,7 +3164,7 @@ implements PiecePicker
 		}
 	}
 
-	protected class
+	private static class
 	RealTimePeerRequest
 	{
 		private PEPeerTransport			peer;

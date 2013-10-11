@@ -1181,7 +1181,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	 * Running totals and stuff that gets used during a process run.
 	 * Split into class so complete/incomplete can be seperated into functions
 	 */
-	public class ProcessVars
+	private static class ProcessVars
 	{
 		/** Running count of torrents waiting or seeding, not including stalled */
 		int numWaitingOrSeeding; // Running Count

@@ -1502,7 +1502,7 @@ SpeedManagerPingMapperImpl
 		}
 	}
 	
-	class
+	private static class
 	pingValue
 	{
 		private short	x;
@@ -1545,7 +1545,7 @@ SpeedManagerPingMapperImpl
 		}
 	}
 
-	class
+	private static class
 	region
 		implements SpeedManagerPingZone
 	{
@@ -1640,7 +1640,7 @@ SpeedManagerPingMapperImpl
 		}
 	}
 	
-	class
+	private static class
 	limitEstimate
 		implements SpeedManagerLimitEstimate, Cloneable
 	{

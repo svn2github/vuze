@@ -576,7 +576,7 @@ ExternalSeedHTTPDownloaderLinear
 		}
 	}
 	
-	protected class
+	private static class
 	Request
 	{
 		private long									offset;

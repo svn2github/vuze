@@ -3005,7 +3005,7 @@ public class OpenTorrentWindow
 	 * Class to store the file list of a Torrent.  Used to populate table and
 	 * store user's choices
 	 */
-	private class TorrentFileInfo
+	private static class TorrentFileInfo
 	{
 		/** relative path + full file name as specified by the torrent */
 		final String orgFullName;

@@ -69,7 +69,7 @@ public class ColumnTC_Sample
 		});
 	}
 
-	public class Cell
+	private static class Cell
 		implements TableCellRefreshListener, TableCellSWTPaintListener,
 		TableCellVisibilityListener, TableCellDisposeListener
 	{

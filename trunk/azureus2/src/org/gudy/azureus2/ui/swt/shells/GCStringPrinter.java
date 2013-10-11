@@ -135,7 +135,7 @@ public class GCStringPrinter
 		}
 	}
 
-	private class LineInfo
+	private static class LineInfo
 	{
 		String originalLine;
 

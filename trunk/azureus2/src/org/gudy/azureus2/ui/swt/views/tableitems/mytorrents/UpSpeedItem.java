@@ -85,7 +85,7 @@ public class UpSpeedItem
     cell.addRefreshListener(new RefreshListener());
   }
 
-  public class RefreshListener implements TableCellRefreshListener {
+  private static class RefreshListener implements TableCellRefreshListener {
     private int iLastState;
     private int loop = 0;
 

@@ -1149,7 +1149,7 @@ HTTPNetworkConnection
 			pendingRequest	request );
 	}
 	
-	protected class
+	private static class
 	pendingRequest
 	{
 		private int	piece;

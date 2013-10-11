@@ -1100,7 +1100,7 @@ public class SWTSkinObjectBasic
 		}
 	}
 	
-	class GradientInfo {
+	static class GradientInfo {
 		public Color color;
 		public double startPoint;
 

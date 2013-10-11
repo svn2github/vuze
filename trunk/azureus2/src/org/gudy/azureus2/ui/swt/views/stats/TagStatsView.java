@@ -521,7 +521,7 @@ public class TagStatsView
 		return true;
 	}
 	
-	private class
+	private static class
 	ValueSourceImpl
 		implements ValueSource
 	{	

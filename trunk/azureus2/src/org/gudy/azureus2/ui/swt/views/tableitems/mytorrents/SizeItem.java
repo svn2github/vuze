@@ -110,7 +110,7 @@ public class SizeItem
 		}
 	}
 
-	private class sizeitemsort
+	private static class sizeitemsort
 		implements Comparable
 	{
 		private final long size;

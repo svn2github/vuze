@@ -317,7 +317,7 @@ public class SWTSkinObjectText1
 		});
 	}
 
-	private class LabelNoShrink
+	private static class LabelNoShrink
 		extends Label
 	{
 		Point ptMax;
