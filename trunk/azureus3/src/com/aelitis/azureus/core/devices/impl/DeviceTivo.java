@@ -555,7 +555,14 @@ DeviceTivo
 											
 											if ( reverses.get(i)){
 												
-												res = -res;
+												if ( res < 0 ){
+													
+													res = 1;
+													
+												}else{
+													
+													res = -1;
+												}
 											}
 											
 											return( res );
