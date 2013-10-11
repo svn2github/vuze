@@ -79,9 +79,7 @@ UIManagerImpl
 	
 	
 	protected PluginInterface		pi;
-	
-	protected PluginConfig			plugin_config;
-	
+		
 	protected TableManager			table_manager;
 	protected MenuManager           menu_manager;
 
@@ -92,9 +90,7 @@ UIManagerImpl
 		PluginInterface		_pi )
 	{
 		pi		=_pi;
-		
-		plugin_config	= pi.getPluginconfig();
-				
+						
 		table_manager	= new TableManagerImpl( this );
 		menu_manager	= new MenuManagerImpl( this );
 	}

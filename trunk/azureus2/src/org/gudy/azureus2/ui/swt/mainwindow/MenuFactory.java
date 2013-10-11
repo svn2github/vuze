@@ -976,18 +976,23 @@ public class MenuFactory
 												{
 													java.util.List<String> lines = slh.getSchedule();
 													
-													String	text = "";
+													StringBuffer	text = new StringBuffer( 80*lines.size());
 													
 													for ( String s: lines ){
 														
-														text += (text.length()==0?"":"\n") + s;
+														if ( text.length() > 0 ){
+															
+															text.append( "\n" );
+														}
+														
+														text.append( s );
 													}
 													
 													final TextViewerWindow viewer =
 														new TextViewerWindow(
 															"MainWindow.menu.speed_limits.schedule.title", 
 															"MainWindow.menu.speed_limits.schedule.msg", 
-															text, false );
+															text.toString(), false );
 													
 													viewer.setEditable( true );
 													
@@ -1580,14 +1585,17 @@ public class MenuFactory
 				public void
 				run()
 				{
-					String	text = "";
+					StringBuffer	text = new StringBuffer( lines.size() * 80 );
 					
 					for ( String s: lines ){
 						
-						text += (text.length()==0?"":"\n") + s;
+						if ( text.length() > 0 ){
+							text.append( "\n" );
+						}
+						text.append( s );
 					}
 					
-					TextViewerWindow viewer = new TextViewerWindow(title, message, text, false );
+					TextViewerWindow viewer = new TextViewerWindow(title, message, text.toString(), false );
 					
 					viewer.setEditable( false );
 				}
