@@ -36,9 +36,9 @@ import com.aelitis.azureus.util.ContentNetworkUtils;
 public class MainMenu
 	implements IMainMenu, IMenuConstants
 {
-	final String PREFIX_V2 = "MainWindow.menu";
+	private final static String PREFIX_V2 = "MainWindow.menu";
 
-	final String PREFIX_V3 = "v3.MainWindow.menu";
+	private final static String PREFIX_V3 = "v3.MainWindow.menu";
 
 	private Menu menuBar;
 

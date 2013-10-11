@@ -37,7 +37,6 @@ import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStats;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStatsListener;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
-import org.gudy.azureus2.core3.stats.transfer.LongTermStats.RecordAccepter;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
@@ -66,8 +65,8 @@ LongTermStatsImpl
 {
 	private static final int VERSION = 1;
 	
-	private final long MIN_IN_MILLIS	= 60*1000;
-	private final long DAY_IN_MILLIS	= 24*60*60*1000;
+	private static final long MIN_IN_MILLIS	= 60*1000;
+	private static final long DAY_IN_MILLIS	= 24*60*60*1000;
 
 	public static final int RT_SESSION_START	= 1;
 	public static final int RT_SESSION_STATS	= 2;

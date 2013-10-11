@@ -37,9 +37,9 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 public class ConfigSectionConnectionEncryption implements UISWTConfigSection {
 
-	private final String CFG_PREFIX = "ConfigView.section.connection.encryption.";
+	private final static String CFG_PREFIX = "ConfigView.section.connection.encryption.";
 	
-	private final int REQUIRED_MODE = 1;
+	private final static int REQUIRED_MODE = 1;
 	
 	public int maxUserMode() {
 		return REQUIRED_MODE;

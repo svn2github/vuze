@@ -42,7 +42,7 @@ public class ConfigSectionConnectionDNS implements UISWTConfigSection {
 
 	private final static String CFG_PREFIX = "ConfigView.section.dns.";
 
-	private final int REQUIRED_MODE = 2;
+	private final static int REQUIRED_MODE = 2;
 	
 	public int maxUserMode() {
 		return REQUIRED_MODE;

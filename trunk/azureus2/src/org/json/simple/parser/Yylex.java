@@ -2,15 +2,15 @@ package org.json.simple.parser;
 
 
 class Yylex {
-	private final int YY_BUFFER_SIZE = 512;
-	private final int YY_F = -1;
-	private final int YY_NO_STATE = -1;
-	private final int YY_NOT_ACCEPT = 0;
-	private final int YY_START = 1;
-	private final int YY_END = 2;
-	private final int YY_NO_ANCHOR = 4;
-	private final int YY_BOL = 65536;
-	private final int YY_EOF = 65537;
+	private final static int YY_BUFFER_SIZE = 512;
+	private final static int YY_F = -1;
+	private final static int YY_NO_STATE = -1;
+	private final static int YY_NOT_ACCEPT = 0;
+	private final static int YY_START = 1;
+	private final static int YY_END = 2;
+	private final static int YY_NO_ANCHOR = 4;
+	private final static int YY_BOL = 65536;
+	private final static int YY_EOF = 65537;
 
 private StringBuffer sb=new StringBuffer();
 	private java.io.BufferedReader yy_reader;

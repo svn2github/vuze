@@ -138,7 +138,7 @@ SpeedManagerImpl
 	private	int							provider_version	= -1;
 	private boolean						enabled;
 
-	private final boolean				pm_enabled = true;
+	private final static boolean				pm_enabled = true;
 	
     private Map							contacts	= new HashMap();
 	private volatile int				total_contacts;

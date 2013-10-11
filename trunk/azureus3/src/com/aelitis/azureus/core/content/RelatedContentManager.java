@@ -4721,8 +4721,8 @@ RelatedContentManager
 		}
 	}
 	
-	final int MAX_TAGS 			= 3;
-	final int MAX_TAG_LENGTH	= 20;
+	private static final int MAX_TAGS 			= 3;
+	private static final int MAX_TAG_LENGTH		= 20;
 	
 	private byte[]
 	encodeTags(

@@ -51,7 +51,7 @@ ConfigSectionTrackerServer
 {
 	private static final String	CFG_PREFIX = "ConfigView.section.";
 	
-	private final int REQUIRED_MODE = 1;
+	private final static int REQUIRED_MODE = 1;
 	
 	public int maxUserMode() {
 		return 2;

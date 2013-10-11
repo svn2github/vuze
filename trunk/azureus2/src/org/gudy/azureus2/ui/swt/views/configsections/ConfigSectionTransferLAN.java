@@ -39,9 +39,9 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 public class ConfigSectionTransferLAN implements UISWTConfigSection {
 
-	private final String CFG_PREFIX = "ConfigView.section.transfer.lan.";
+	private static final String CFG_PREFIX = "ConfigView.section.transfer.lan.";
 	
-	private final int REQUIRED_MODE = 2;
+	private static final int REQUIRED_MODE = 2;
 	
 	public int maxUserMode() {
 		return REQUIRED_MODE;

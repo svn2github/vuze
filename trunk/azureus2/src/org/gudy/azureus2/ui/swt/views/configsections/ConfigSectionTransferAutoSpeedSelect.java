@@ -57,7 +57,7 @@ public class ConfigSectionTransferAutoSpeedSelect
     implements UISWTConfigSection
 {
 
-    private final String CFG_PREFIX = "ConfigView.section.transfer.autospeed.";
+    private static final String CFG_PREFIX = "ConfigView.section.transfer.autospeed.";
 
     StringListParameter versionList;
 

@@ -83,7 +83,7 @@ public class SystemTime {
 		getSteppedMonoTime();
 	}
 
-	protected static class SteppedProvider implements SystemTimeProvider {
+	private static class SteppedProvider implements SystemTimeProvider {
 		private static final long	HPC_START = getHighPrecisionCounter()/1000000L;
 		
 		private final Thread		updater;
@@ -271,8 +271,8 @@ public class SystemTime {
 		}
 	}
 	
-	protected static class RawProvider implements SystemTimeProvider {
-		private static final int	STEPS_PER_SECOND	= (int) (1000 / TIME_GRANULARITY_MILLIS);
+	private static class RawProvider implements SystemTimeProvider {
+		//private static final int	STEPS_PER_SECOND	= (int) (1000 / TIME_GRANULARITY_MILLIS);
 		private final Thread		updater;
 
 		private RawProvider()

@@ -52,7 +52,7 @@ public class ConfigSectionInterfaceAlerts
 
 	private final static String STYLE_PREFIX = "ConfigView.section.style.";
 
-	private final int REQUIRED_MODE = 0;
+	private final static int REQUIRED_MODE = 0;
 
 	public String configSectionGetParentSection() {
 		return ConfigSection.SECTION_INTERFACE;

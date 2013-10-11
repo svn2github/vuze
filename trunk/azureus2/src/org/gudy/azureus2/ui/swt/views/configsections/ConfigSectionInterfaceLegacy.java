@@ -43,7 +43,7 @@ public class ConfigSectionInterfaceLegacy
 {
 	private final static String LBLKEY_PREFIX = "ConfigView.label.";
 
-	private final int REQUIRED_MODE = 2;
+	private final static int REQUIRED_MODE = 2;
 
 	// @see org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection#configSectionCreate(org.eclipse.swt.widgets.Composite)
 	public Composite configSectionCreate(Composite parent) {

@@ -45,7 +45,7 @@ public class ConfigSectionInterfacePassword implements UISWTConfigSection
 {
 	private final static String LBLKEY_PREFIX = "ConfigView.label.";
 
-	private final int REQUIRED_MODE = 0;
+	private final static int REQUIRED_MODE = 0;
 
 	Label passwordMatch;
 

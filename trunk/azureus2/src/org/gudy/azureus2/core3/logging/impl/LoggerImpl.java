@@ -45,9 +45,9 @@ import org.gudy.azureus2.core3.util.Debug;
  */
 
 public class LoggerImpl {
-	private final int MAXHISTORY = 256;
+	private static final int MAXHISTORY = 256;
 
-	private boolean bLogToStdOut = System.getProperty("azureus.log.stdout") != null;
+	private static final boolean bLogToStdOut = System.getProperty("azureus.log.stdout") != null;
 
 	private boolean bEventLoggingEnabled = false;
 

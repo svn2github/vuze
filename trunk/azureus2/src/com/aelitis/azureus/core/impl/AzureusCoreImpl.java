@@ -492,8 +492,8 @@ AzureusCoreImpl
 						this,
 						new SpeedManagerAdapter()
 						{
-							private final int UPLOAD_SPEED_ADJUST_MIN_KB_SEC		= 10;
-							private final int DOWNLOAD_SPEED_ADJUST_MIN_KB_SEC		= 300;
+							private static final int UPLOAD_SPEED_ADJUST_MIN_KB_SEC		= 10;
+							private static final int DOWNLOAD_SPEED_ADJUST_MIN_KB_SEC	= 300;
 							
 							private boolean setting_limits;
 							

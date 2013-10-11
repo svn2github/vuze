@@ -46,9 +46,9 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
 public class ConfigSectionConnectionAdvanced implements UISWTConfigSection {
 
-	private final String CFG_PREFIX = "ConfigView.section.connection.advanced.";
+	private final static String CFG_PREFIX = "ConfigView.section.connection.advanced.";
 	
-	private final int REQUIRED_MODE = 2;
+	private final static int REQUIRED_MODE = 2;
 	
 	public int maxUserMode() {
 		return REQUIRED_MODE;

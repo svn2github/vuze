@@ -41,7 +41,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 public class ConfigSectionFileTorrentsDecoding implements UISWTConfigSection
 {
-	private final int REQUIRED_MODE = 2;
+	private final static int REQUIRED_MODE = 2;
 
 	public String configSectionGetParentSection() {
 		return "torrents";

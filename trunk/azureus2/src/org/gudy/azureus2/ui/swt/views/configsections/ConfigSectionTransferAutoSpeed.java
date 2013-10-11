@@ -42,7 +42,7 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 public class ConfigSectionTransferAutoSpeed implements UISWTConfigSection {
 
-	private final String CFG_PREFIX = "ConfigView.section.transfer.autospeed.";
+	private final static String CFG_PREFIX = "ConfigView.section.transfer.autospeed.";
 	
 	public String configSectionGetParentSection() {
         return "transfer.select";

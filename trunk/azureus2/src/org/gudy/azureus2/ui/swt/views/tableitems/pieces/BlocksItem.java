@@ -54,15 +54,15 @@ public class BlocksItem
 	implements TableCellAddedListener, TableCellRefreshListener,
 	TableCellDisposeListener
 {
-	private final int COLOR_REQUESTED = 0;
+	private static final int COLOR_REQUESTED = 0;
 
-	private final int COLOR_WRITTEN = 1;
+	private static final int COLOR_WRITTEN = 1;
 
-	private final int COLOR_DOWNLOADED = 2;
+	private static final int COLOR_DOWNLOADED = 2;
 
-	private final int COLOR_INCACHE = 3;
+	private static final int COLOR_INCACHE = 3;
 
-	public static Color[] colors = new Color[] {
+	public static final Color[] colors = new Color[] {
 		Colors.blues[Colors.BLUES_MIDLIGHT],
 		Colors.blues[Colors.BLUES_DARKEST],
 		Colors.red,
