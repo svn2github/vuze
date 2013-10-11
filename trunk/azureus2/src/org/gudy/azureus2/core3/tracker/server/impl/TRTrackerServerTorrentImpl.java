@@ -2719,7 +2719,7 @@ TRTrackerServerTorrentImpl
 				throw( new TRTrackerServerException( "redirection recursion not supported" ));
 			}
 			
-			URL	redirect = redirects[real_ip_address.hashCode()%redirects.length];
+			URL	redirect = redirects[(real_ip_address.hashCode()&0x7fffffff)%redirects.length];
 			
 			Map	headers = new HashMap();
 			
