@@ -17,11 +17,11 @@ import java.util.Vector;
  */
 public class CommandReader extends Reader {
   
-  private final int ENTER = 0;
-  private final int TAB = 1;
-  private final int QUOTE = 3;
-  private final int ESCAPE = 4;
-  private final int NONQUOTEDESCAPE = 5;
+  private final static int ENTER = 0;
+  private final static int TAB = 1;
+  private final static int QUOTE = 3;
+  private final static int ESCAPE = 4;
+  private final static int NONQUOTEDESCAPE = 5;
   
   private Reader in;
   
