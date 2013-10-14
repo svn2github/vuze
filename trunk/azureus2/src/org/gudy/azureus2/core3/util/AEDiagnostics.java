@@ -218,7 +218,7 @@ AEDiagnostics
 							
 							if ( save_logs ){
 								
-								if ( !file_found ){
+								if ( !debug_save_dir.exists()){
 									
 									debug_save_dir.mkdir();
 								}
