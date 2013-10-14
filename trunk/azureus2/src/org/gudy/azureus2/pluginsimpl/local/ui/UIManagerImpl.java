@@ -349,7 +349,7 @@ UIManagerImpl
 
 			try {
 				if (entry[0] instanceof UIManagerListener2) {
-					((UIManagerListener2) entry[0]).UIAttachedComplete((UIInstance) entry[1]);
+					((UIManagerListener2) entry[0]).UIAttachedComplete((UIInstance) entry[2]);
 				}
 
 			} catch (Throwable e) {
