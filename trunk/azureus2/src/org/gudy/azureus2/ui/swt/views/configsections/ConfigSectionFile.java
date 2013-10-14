@@ -164,6 +164,14 @@ public class ConfigSectionFile
 			MessageText.getString("OpenTorrentOptions.show.many"),
 		};
 		new StringListParameter(cOpenOptions, sCurConfigID, openLabels, openValues);
+			
+		label = new Label(cOpenOptions, SWT.NULL);
+		label.setText( "    " );
+		sCurConfigID = "ui.addtorrent.openoptions.sep";
+		new BooleanParameter(cOpenOptions,
+				sCurConfigID, "ConfigView.section.file.showopentorrentoptions.sep");
+		
+		
 		
 		if (userMode > 0) {
 			// def dir: autoSave -> auto-rename

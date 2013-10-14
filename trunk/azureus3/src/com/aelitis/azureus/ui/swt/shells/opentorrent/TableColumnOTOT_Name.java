@@ -17,36 +17,36 @@
  
 package com.aelitis.azureus.ui.swt.shells.opentorrent;
 
-import org.gudy.azureus2.core3.torrent.impl.TorrentOpenFileOptions;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
-public class TableColumnOTOF_Position
+
+public class TableColumnOTOT_Name
 implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
-	public static final String COLUMN_ID = "#";
+	public static final String COLUMN_ID = "torrentname";
   
   /** Default Constructor */
-  public TableColumnOTOF_Position(TableColumn column) {
-  	column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 40);
+  public TableColumnOTOT_Name(TableColumn column) {
+  	column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 260);
   	column.addListeners(this);
+ 
   }
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
 		info.addCategories(new String[] {
-			TableColumn.CAT_PROTOCOL,
+			TableColumn.CAT_ESSENTIAL,
 		});
 		info.setProficiency(TableColumnInfo.PROFICIENCY_BEGINNER);
 	}
 
   public void refresh(TableCell cell) {
   	Object ds = cell.getDataSource();
-  	if (!(ds instanceof TorrentOpenFileOptions)) {
+  	if (!(ds instanceof OpenTorrentOptionsWindow.OpenTorrentInstance)) {
   		return;
   	}
-  	TorrentOpenFileOptions tfi = (TorrentOpenFileOptions) ds;
-  	int index = tfi.getIndex();
-  	cell.setSortValue(-index);
-  	cell.setText("" + index);
+  	OpenTorrentOptionsWindow.OpenTorrentInstance instance = (OpenTorrentOptionsWindow.OpenTorrentInstance) ds;
+  	
+  	cell.setText( instance.getOptions().getTorrentName());
   }
   
 }

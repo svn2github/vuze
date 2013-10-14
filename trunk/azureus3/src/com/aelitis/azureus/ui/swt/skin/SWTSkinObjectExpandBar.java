@@ -79,6 +79,13 @@ public class SWTSkinObjectExpandBar
 		
 	}
 
+	public void
+	relayout()
+	{
+		super.relayout();
+		handleResize(null);
+	}
+	
 	protected void addExpandItem(SWTSkinObjectExpandItem item) {
 		expandItems.add(item);
 

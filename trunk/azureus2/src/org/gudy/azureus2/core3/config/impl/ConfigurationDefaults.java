@@ -87,6 +87,7 @@ public class ConfigurationDefaults {
 	public static final String CFG_TORRENTADD_OPENOPTIONS_ALWAYS = "always";
 	public static final String CFG_TORRENTADD_OPENOPTIONS_NEVER = "never";
 	public static final String CFG_TORRENTADD_OPENOPTIONS = "ui.addtorrent.openoptions";
+	public static final String CFG_TORRENTADD_OPENOPTIONS_SEP = "ui.addtorrent.openoptions.sep";
 
   public static ConfigurationDefaults 
   getInstance() 
@@ -255,7 +256,9 @@ public class ConfigurationDefaults {
     def.put("User Mode", ZERO);
     
     //default data location options
-    def.put(CFG_TORRENTADD_OPENOPTIONS, CFG_TORRENTADD_OPENOPTIONS_ALWAYS);
+    def.put( CFG_TORRENTADD_OPENOPTIONS, CFG_TORRENTADD_OPENOPTIONS_ALWAYS);
+    def.put( CFG_TORRENTADD_OPENOPTIONS_SEP, TRUE );
+    
 	String docPath =  SystemProperties.getDocPath();
 	
 	File f;

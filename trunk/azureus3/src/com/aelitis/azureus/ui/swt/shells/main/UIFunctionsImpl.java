@@ -1344,7 +1344,7 @@ public class UIFunctionsImpl
 							prompterClosed(
 								int result) 
 							{
-								new OpenTorrentOptionsWindow( torrentOptions );
+								OpenTorrentOptionsWindow.addTorrent( torrentOptions );
 							}
 						});
 					
@@ -1353,7 +1353,7 @@ public class UIFunctionsImpl
 			}
 		}
 		
-		new OpenTorrentOptionsWindow( torrentOptions );
+		OpenTorrentOptionsWindow.addTorrent( torrentOptions );
 		
 		return true;
 	}
