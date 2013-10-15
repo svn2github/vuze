@@ -43,7 +43,10 @@ implements TableCellRefreshListener, TableColumnExtraInfoListener
   		return;
   	}
   	OpenTorrentOptionsWindow.OpenTorrentInstance instance = (OpenTorrentOptionsWindow.OpenTorrentInstance) ds;
-  	int index = instance.getIndex();
+  	int index = instance.getIndex()+1;
+  	if ( index < 1 ){
+  		return;	// removing
+  	}
   	cell.setSortValue(-index);
   	cell.setText("" + index);
   }

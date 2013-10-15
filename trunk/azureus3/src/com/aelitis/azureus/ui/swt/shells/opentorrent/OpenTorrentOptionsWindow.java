@@ -169,10 +169,12 @@ public class OpenTorrentOptionsWindow
 			e.printStackTrace();
 		};
 		
+		COConfigurationManager.setParameter( ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_SEP, false );
+		
 		OpenTorrentOptionsWindow window = addTorrent(
 				new TorrentOpenOptions(null, torrent1, false));
 		
-		//addTorrent(	new TorrentOpenOptions(null, torrent2, false));
+		addTorrent(	new TorrentOpenOptions(null, torrent2, false));
 		
 		while (!window.isDisposed()) {
 			if (!display.readAndDispatch())
@@ -191,6 +193,9 @@ public class OpenTorrentOptionsWindow
 	private boolean 				window_initialised;
 	
 	private TableViewSWT<OpenTorrentInstance> 	tvTorrents;
+	private Label								torrents_info_label;
+	
+	private OpenTorrentInstanceListener	optionListener;
 	
 	private List<OpenTorrentInstance>	open_instances = new ArrayList<OpenTorrentOptionsWindow.OpenTorrentInstance>();
 	private OpenTorrentInstance			current_instance;
@@ -267,6 +272,16 @@ public class OpenTorrentOptionsWindow
 	private
 	OpenTorrentOptionsWindow()
 	{
+		optionListener = 
+			new OpenTorrentInstanceListener()
+		{
+			public void 
+			instanceChanged(
+				OpenTorrentInstance instance )
+			{
+				updateInstanceInfo();
+			}
+		};
 	}
 
 	protected void 
@@ -341,6 +356,15 @@ public class OpenTorrentOptionsWindow
 
 					setupTVTorrents( select_area );
 					
+					SWTSkinObjectContainer torrents_info = (SWTSkinObjectContainer)skin_outter.getSkinObject( "torrents-info" );
+
+					Composite info_area = torrents_info.getComposite();
+					
+					info_area.setLayout( new GridLayout());
+					
+					torrents_info_label = new Label( info_area, SWT.NULL );
+					torrents_info_label.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ));				
+					
 					sash_object.setVisible( false );
 					sash_object.setAboveVisible( false );
 				}
@@ -359,11 +383,13 @@ public class OpenTorrentOptionsWindow
 				
 				expand_stack.topControl = expand_area;
 				
-				OpenTorrentInstance instance = new OpenTorrentInstance( expand_area, torrentOptions );
+				OpenTorrentInstance instance = new OpenTorrentInstance( expand_area, torrentOptions, optionListener );
 
 				open_instances.add( instance );
 				
 				instance.initialize();
+				
+				updateInstanceInfo();
 				
 				current_instance = instance;
 				
@@ -450,12 +476,14 @@ public class OpenTorrentOptionsWindow
 				
 				expand_area.setLayout( new FormLayout());
 								
-				OpenTorrentInstance instance = new OpenTorrentInstance( expand_area, torrentOptions );
+				OpenTorrentInstance instance = new OpenTorrentInstance( expand_area, torrentOptions, optionListener );
 
 				open_instances.add( instance );
 				
 				instance.initialize();
 
+				updateInstanceInfo();
+				
 				dlg.setTitle(MessageText.getString("OpenTorrentOptions.title") + " [" + MessageText.getString("label.num.torrents",new String[]{ String.valueOf( open_instances.size())}) + "]");
 				
 				if ( !sash_object.isVisible()){
@@ -586,7 +614,79 @@ public class OpenTorrentOptionsWindow
 		tvTorrents.setRowDefaultHeight(20);
 
 
+		tvTorrents.addMenuFillListener(
+			new TableViewSWTMenuFillListener() 
+			{
+				public void 
+				fillMenu(
+					String 		sColumnName, 
+					Menu 		menu )
+				{
+					final List<Object> selected = tvTorrents.getSelectedDataSources();
+					
+					if ( selected.size() > 0 ){
+							
+						final List<OpenTorrentInstance> instances = new ArrayList<OpenTorrentOptionsWindow.OpenTorrentInstance>( selected.size());
+							
+						for ( Object o: selected ){
+							
+							instances.add((OpenTorrentInstance)o );
+						}
+								
+						MenuItem item = new MenuItem(menu, SWT.PUSH);
+						
+						Messages.setLanguageText(item, "OpenTorrentWindow.fileList.changeDestination");
+						
+						item.addSelectionListener(
+							new SelectionAdapter() 
+							{
+								public void 
+								widgetSelected(
+									SelectionEvent e )
+								{
+									for ( Object obj: selected ){
+										
+										OpenTorrentInstance	instance = (OpenTorrentInstance)obj;
+										
+										instance.setSavePath();
+									}
+								}
+							});
+						
+						new MenuItem(menu, SWT.SEPARATOR);
 
+						item = new MenuItem(menu, SWT.PUSH);
+						
+						Messages.setLanguageText(item, "Button.remove");
+						
+						item.addSelectionListener(
+							new SelectionAdapter() 
+							{
+								public void 
+								widgetSelected(
+									SelectionEvent e )
+								{
+									for ( Object obj: selected ){
+										
+										OpenTorrentInstance	instance = (OpenTorrentInstance)obj;
+										
+										removeInstance( instance );
+									}
+								}
+							});
+						
+						new MenuItem(menu, SWT.SEPARATOR);
+					}
+				}
+				
+	
+				public void 
+				addThisColumnSubMenu(
+					String 	sColumnName, 
+					Menu 	menuThisColumn) 
+				{
+				}
+			});
 		
 		tvTorrents.addSelectionListener(new TableSelectionListener() {
 			
@@ -598,13 +698,7 @@ public class OpenTorrentOptionsWindow
 				
 				OpenTorrentInstance instance = (OpenTorrentInstance)row.getDataSource();
 				
-				expand_stack.topControl = instance.getComposite();
-
-				expand_stack_area.layout(true);
-				
-				instance.layout();
-				
-				current_instance = instance;
+				selectInstance( instance );
 			}
 			
 			public void mouseExit(TableRowCore row) {
@@ -623,6 +717,113 @@ public class OpenTorrentOptionsWindow
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
 			}
 		}, false);
+	}
+	
+	private void
+	selectInstance(
+		OpenTorrentInstance		instance )
+	{
+		if ( instance == null ){
+			
+			current_instance = null;
+			
+			tvTorrents.setSelectedRows( new TableRowCore[0] );
+			
+		}else{
+			
+			expand_stack.topControl = instance.getComposite();
+	
+			expand_stack_area.layout(true);
+			
+			instance.layout();
+			
+			current_instance = instance;
+			
+			TableRowCore row = tvTorrents.getRow( current_instance );
+			
+			if ( row != null ){
+				
+				tvTorrents.setSelectedRows( new TableRowCore[]{ row });
+			}
+		}
+	}
+	
+	private void
+	removeInstance(
+		OpenTorrentInstance		instance )
+	{
+		int index = open_instances.indexOf( instance );
+		
+		open_instances.remove( instance );
+		
+		tvTorrents.removeDataSource( instance );
+				
+		instance.getComposite().dispose();
+		
+		updateInstanceInfo();
+		
+		int	num_instances = open_instances.size();
+		
+		if ( num_instances > index ){
+			
+			selectInstance( open_instances.get( index ));
+			
+		}else if ( num_instances > 0 ){
+			
+			selectInstance( open_instances.get( num_instances-1 ));
+			
+		}else{
+			
+			selectInstance( null );
+		}
+		
+		Utils.execSWTThreadLater(
+			0,
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					tvTorrents.columnInvalidate( "#" );
+					
+					tvTorrents.refreshTable( true );
+				}
+			});
+	}
+	
+	private void
+	updateInstanceInfo()
+	{
+		if ( torrents_info_label == null ){
+			
+			return;
+		}
+		
+		long	total_size		= 0;
+		long	selected_size 	= 0;
+		
+		for ( OpenTorrentInstance instance: open_instances ){
+			
+			total_size		+= instance.getOptions().getTorrent().getSize();
+			selected_size 	+= instance.getSelectedDataSize();
+		}
+		
+		String	sel_str = DisplayFormatters.formatByteCountToKiBEtc(selected_size);
+		String	tot_str = DisplayFormatters.formatByteCountToKiBEtc(total_size);
+		
+		
+		String text;
+		
+		if ( sel_str.equals( tot_str )){
+			
+			text = MessageText.getString("label.n.will.be.downloaded", new String[] { tot_str	});
+
+		}else{
+			
+			text = MessageText.getString("OpenTorrentWindow.filesInfo", new String[] { sel_str,	tot_str	});
+		}
+		
+		torrents_info_label.setText( text );
 	}
 	
 	public void
@@ -669,7 +870,8 @@ public class OpenTorrentOptionsWindow
 	protected class
 	OpenTorrentInstance
 	{
-		private TorrentOpenOptions torrentOptions;
+		private TorrentOpenOptions 				torrentOptions;
+		private OpenTorrentInstanceListener		changeListener;
 
 		private Composite	parent;
 		private Shell		shell;
@@ -695,6 +897,7 @@ public class OpenTorrentOptionsWindow
 
 		private Composite diskspaceComp;
 
+		private long	currentSelectedDataSize;
 
 		private final Map fileStatCache = new WeakHashMap(20);
 
@@ -724,11 +927,13 @@ public class OpenTorrentOptionsWindow
 		
 		private 
 		OpenTorrentInstance(
-			Composite				_parent,	
-			TorrentOpenOptions		_torrentOptions )
+			Composite						_parent,	
+			TorrentOpenOptions				_torrentOptions,
+			OpenTorrentInstanceListener		_changeListener )
 		{
 			parent			= _parent;
 			torrentOptions 	= _torrentOptions;
+			changeListener	= _changeListener;
 
 			torrentOptions.addListener(new TorrentOpenOptions.FileListener() {
 				public void toDownloadChanged(TorrentOpenFileOptions fo, boolean toDownload) {
@@ -761,7 +966,7 @@ public class OpenTorrentOptionsWindow
 		protected int
 		getIndex()
 		{
-			return( open_instances.indexOf( this ) + 1 );
+			return( open_instances.indexOf( this ));
 		}
 		
 		protected Composite
@@ -1804,59 +2009,7 @@ public class OpenTorrentOptionsWindow
 							Messages.setLanguageText(item, "OpenTorrentWindow.set.savepath");
 							item.addSelectionListener(new SelectionAdapter() {
 								public void widgetSelected(SelectionEvent e) {
-									DirectoryDialog dDialog = new DirectoryDialog(shell,SWT.SYSTEM_MODAL);
-	
-									File filterPath = new File( torrentOptions.getDataDir());
-									
-									if ( !filterPath.exists()){
-										filterPath = filterPath.getParentFile();
-									}
-									dDialog.setFilterPath( filterPath.getAbsolutePath());
-									dDialog.setMessage(MessageText.getString("MainWindow.dialog.choose.savepath")
-											+ " (" + torrentOptions.getTorrentName() + ")");
-									String sNewDir = dDialog.open();
-	
-									if (sNewDir == null){
-										return;
-									}
-	
-									File newDir = new File(sNewDir).getAbsoluteFile();
-									
-									if ( !newDir.isDirectory()){
-										
-										if ( newDir.exists()){
-											
-											Debug.out( "new dir isn't a dir!" );
-											
-											return;
-											
-										}else if ( !newDir.mkdirs()){
-											
-											Debug.out( "Failed to create '" + newDir + "'" );
-											
-											return;
-										}
-									}
-	
-									File new_parent = newDir.getParentFile();
-									
-									if ( new_parent == null ){
-										
-										Debug.out( "Invalid save path, parent folder is null" );
-										
-										return;
-									}
-									
-									torrentOptions.setParentDir( new_parent.getAbsolutePath());
-									torrentOptions.setSubDir( newDir.getName());
-									
-									/* old window used to reset this - not sure why, if the user's
-									 * made some per-file changes already then we should keep them
-									for ( TorrentOpenFileOptions tfi: torrentOptions.getFiles()){
-										
-										tfi.setFullDestName( null );
-									}
-									*/
+									setSavePath();
 								}
 							});
 					}
@@ -1962,6 +2115,70 @@ public class OpenTorrentOptionsWindow
 			return dialog.getSubmittedInput();
 		}
 	
+		private void
+		setSavePath()
+		{
+			if ( torrentOptions.isSimpleTorrent()){
+				
+				changeFileDestination( torrentOptions.getFiles());
+				
+			}else{
+				DirectoryDialog dDialog = new DirectoryDialog(shell,SWT.SYSTEM_MODAL);
+				
+				File filterPath = new File( torrentOptions.getDataDir());
+				
+				if ( !filterPath.exists()){
+					filterPath = filterPath.getParentFile();
+				}
+				dDialog.setFilterPath( filterPath.getAbsolutePath());
+				dDialog.setMessage(MessageText.getString("MainWindow.dialog.choose.savepath")
+						+ " (" + torrentOptions.getTorrentName() + ")");
+				String sNewDir = dDialog.open();
+	
+				if (sNewDir == null){
+					return;
+				}
+	
+				File newDir = new File(sNewDir).getAbsoluteFile();
+				
+				if ( !newDir.isDirectory()){
+					
+					if ( newDir.exists()){
+						
+						Debug.out( "new dir isn't a dir!" );
+						
+						return;
+						
+					}else if ( !newDir.mkdirs()){
+						
+						Debug.out( "Failed to create '" + newDir + "'" );
+						
+						return;
+					}
+				}
+	
+				File new_parent = newDir.getParentFile();
+				
+				if ( new_parent == null ){
+					
+					Debug.out( "Invalid save path, parent folder is null" );
+					
+					return;
+				}
+				
+				torrentOptions.setParentDir( new_parent.getAbsolutePath());
+				torrentOptions.setSubDir( newDir.getName());
+				
+				/* old window used to reset this - not sure why, if the user's
+				 * made some per-file changes already then we should keep them
+				for ( TorrentOpenFileOptions tfi: torrentOptions.getFiles()){
+					
+					tfi.setFullDestName( null );
+				}
+				*/
+			}
+		}
+		
 		private void changeFileDestination(TorrentOpenFileOptions[] infos) {
 	
 			for (TorrentOpenFileOptions fileInfo : infos) {
@@ -2175,6 +2392,10 @@ public class OpenTorrentOptionsWindow
 				}
 			}
 	
+			boolean	changed = checkedSize != currentSelectedDataSize;
+			
+			currentSelectedDataSize = checkedSize;
+			
 			String text;
 			// build string and set label
 			if (totalSize == 0) {
@@ -2203,8 +2424,18 @@ public class OpenTorrentOptionsWindow
 	
 			diskFreeInfoRefreshPending = true;
 	
+			if ( changed ){
+				
+				changeListener.instanceChanged( this );
+			}
 		}
 	
+		protected long
+		getSelectedDataSize()
+		{
+			return( currentSelectedDataSize );
+		}
+		
 		private void updateStartModeCombo() {
 			if (cmbStartMode == null)
 				return;
@@ -2504,5 +2735,13 @@ public class OpenTorrentOptionsWindow
 				}
 			});
 		}
+	}
+	
+	public interface
+	OpenTorrentInstanceListener
+	{
+		public void
+		instanceChanged(
+			OpenTorrentInstance		instance );
 	}
 }
