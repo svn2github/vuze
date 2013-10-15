@@ -188,6 +188,7 @@ public class OpenTorrentOptionsWindow
 	private StackLayout				expand_stack;
 	private	Composite 				expand_stack_area;
 	private StandardButtonsArea 	buttonsArea;
+	private boolean 				window_initialised;
 	
 	private TableViewSWT<OpenTorrentInstance> 	tvTorrents;
 	
@@ -226,21 +227,18 @@ public class OpenTorrentOptionsWindow
 					if ( active_windows.size() > 0 ){
 						
 						final OpenTorrentOptionsWindow reuse_window = active_windows.values().iterator().next();
+													
+						active_windows.put( hw,  reuse_window );
 						
-						if ( reuse_window.supportsMultipleTorrents()){
-							
-							active_windows.put( hw,  reuse_window );
-							
-							Utils.execSWTThread(new AERunnable() {
-								public void runSupport()
-								{
-									reuse_window.swt_addTorrent( hw, torrentOptions );
-								}
-							});
-							
-							
-							return( reuse_window );
-						}
+						Utils.execSWTThread(new AERunnable() {
+							public void runSupport()
+							{
+								reuse_window.swt_addTorrent( hw, torrentOptions );
+							}
+						});
+						
+						
+						return( reuse_window );
 					}
 				}
 				
@@ -386,36 +384,39 @@ public class OpenTorrentOptionsWindow
 							
 				dlg.open("otow",false);
 				
-				int	num_active_windows = active_windows.size();
-				
-				if ( num_active_windows > 1 ){
+				synchronized( active_windows ){
 					
-					int	max_x = 0;
-					int max_y = 0;
+					int	num_active_windows = active_windows.size();
 					
-					for ( OpenTorrentOptionsWindow window: active_windows.values()){
+					if ( num_active_windows > 1 ){
 						
-						if ( window == this ){
+						int	max_x = 0;
+						int max_y = 0;
+						
+						for ( OpenTorrentOptionsWindow window: active_windows.values()){
 							
-							continue;
+							if ( window == this || !window.isInitialised()){
+								
+								continue;
+							}
+							
+							Rectangle rect = window.getBounds();
+							
+							max_x = Math.max( max_x, rect.x );
+							max_y = Math.max( max_y, rect.y );
 						}
 						
-						Rectangle rect = window.getBounds();
+						Shell shell = dlg.getShell();
 						
-						max_x = Math.max( max_x, rect.x );
-						max_y = Math.max( max_y, rect.y );
+						Rectangle rect = shell.getBounds();
+										
+						rect.x = max_x + 16;
+						rect.y = max_y + 16;
+						
+						shell.setBounds( rect );
+												
+						Utils.verifyShellRect( shell, true );
 					}
-					
-					Shell shell = dlg.getShell();
-					
-					Rectangle rect = shell.getBounds();
-									
-					rect.x = max_x + 16;
-					rect.y = max_y + 16;
-					
-					shell.setBounds( rect );
-											
-					Utils.verifyShellRect( shell, true );
 				}
 				
 				dlg.addCloseListener(new SkinnedDialogClosedListener() {
@@ -440,6 +441,8 @@ public class OpenTorrentOptionsWindow
 						}
 					}
 				});
+				
+				window_initialised = true;
 				
 			}else{
 				
@@ -492,6 +495,12 @@ public class OpenTorrentOptionsWindow
 				active_windows.remove( hash );
 			}
 		}
+	}
+	
+	private boolean
+	isInitialised()
+	{
+		return( window_initialised );
 	}
 	
 	private void setupShowAgainOptions(SWTSkin skin) {
@@ -614,12 +623,6 @@ public class OpenTorrentOptionsWindow
 			public void defaultSelected(TableRowCore[] rows, int stateMask) {
 			}
 		}, false);
-	}
-	
-	public boolean
-	supportsMultipleTorrents()
-	{
-		return( sash_object != null );
 	}
 	
 	public void
