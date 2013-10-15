@@ -31,8 +31,8 @@ import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
 import java.io.*;
 import java.net.*;
 
-
 import javax.net.ssl.*;
+
 import java.net.PasswordAuthentication;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -52,6 +52,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection2;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
@@ -767,7 +768,7 @@ redirect_label:
 									
 									throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + http_con.getResponseMessage() + (error_str==null?"":( ": error=" + error_str ))));    
 								}
-									
+								
 								getRequestProperties( con );
 								
 								boolean compressed = false;
@@ -797,6 +798,18 @@ redirect_label:
 								}finally{
 									
 									this_mon.exit();
+								}
+								
+								if ( con instanceof MagnetConnection2 ){
+									
+										// hack - status reports for magnet connections are returned
+									
+									List<String> errors = ((MagnetConnection2) con).getResponseMessages( true );
+									
+									if ( errors.size() > 0 ){
+										
+										throw( new ResourceDownloaderException( this, errors.get(0)));
+									}
 								}
 								
 								ByteArrayOutputStream	baos		= null;

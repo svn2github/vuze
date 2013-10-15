@@ -32,7 +32,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 
-
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.net.magneturi.MagnetURIHandler;
@@ -165,6 +164,33 @@ MagnetConnection2
 			}else{
 				
 				return( status_list.removeFirst());
+			}
+		}
+	}
+	
+	public List<String>
+	getResponseMessages(
+		boolean	error_only )
+	{
+		synchronized( status_list ){
+
+			if ( error_only ){
+			
+				List<String>	response = new ArrayList<String>();
+				
+				for ( String s: status_list ){
+					
+					if ( s.toLowerCase().startsWith( "error:" )){
+						
+						response.add( s );
+					}
+				}
+				
+				return( response );
+				
+			}else{
+			
+				return( new ArrayList<String>( status_list ));
 			}
 		}
 	}

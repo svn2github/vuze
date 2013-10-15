@@ -562,23 +562,23 @@ MagnetURIHandlerImpl
 			
 		}else if ( get.startsWith( "/download/" )){
 			
-			String urn = (String)lc_params.get( "xt" );
-			
-			if ( urn == null || !( urn.toLowerCase( MessageText.LOCALE_ENGLISH ).startsWith( "urn:sha1:") || urn.toLowerCase( MessageText.LOCALE_ENGLISH ).startsWith( "urn:btih:"))){
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
-							"MagnetURIHandler: " + "invalid command - '" + get + "'"));
-				
-				return( true );
-			}
-			
 			final PrintWriter	pw = new PrintWriter( new OutputStreamWriter( os, "UTF-8" ));
 
 			try{			
 				pw.print( "HTTP/1.0 200 OK" + NL ); 
 
 				pw.flush();
-								
+						
+				String urn = (String)lc_params.get( "xt" );
+				
+				if ( urn == null || !( urn.toLowerCase( MessageText.LOCALE_ENGLISH ).startsWith( "urn:sha1:") || urn.toLowerCase( MessageText.LOCALE_ENGLISH ).startsWith( "urn:btih:"))){
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, LogEvent.LT_WARNING,
+								"MagnetURIHandler: " + "invalid command - '" + get + "'"));
+					
+					throw( new IOException( "Invalid magnet URI - no urn:sha1 or urn:btih argument supplied." ));
+				}
+				
 				String	encoded = urn.substring(9);
 				
 				List<InetSocketAddress>	sources = new ArrayList<InetSocketAddress>();
@@ -1070,6 +1070,13 @@ MagnetURIHandlerImpl
 		String	resource,
 		String	param )
 	{
+		if ( resource.equals( "error" )){
+		
+				// changed this as getting nonsense messages prefixed with keyword 'error'
+			
+			return( param );
+		}
+		
 		return( MessageText.getString( "MagnetURLHandler.report." + resource, new String[]{ param } ));
 	}
 	

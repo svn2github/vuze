@@ -126,6 +126,7 @@ TorrentDownloaderImpl
 			if ( encoding_requested ){
 				
 				manager.tryToSetTorrentEncoding( torrent, requested_encoding );
+				
 			}else{
 				
 				if ( set_encoding ){
@@ -139,6 +140,10 @@ TorrentDownloaderImpl
 		}catch( TorrentException e ){
 			
 			throw( e );
+			
+		}catch( ResourceDownloaderException e ){
+			
+			throw(  new TorrentException( e ));
 			
 		}catch( Throwable e ){
 			
