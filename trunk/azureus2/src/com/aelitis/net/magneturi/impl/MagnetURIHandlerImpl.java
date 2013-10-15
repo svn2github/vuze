@@ -389,13 +389,36 @@ MagnetURIHandlerImpl
 									
 						String	rhs = URLDecoder.decode( arg.substring( pos+1 ).trim(), Constants.DEFAULT_ENCODING);
 
-						original_params.put( lhs, rhs );
-						
-						lc_params.put( lc_lhs, rhs );
-						
-						if ( lc_lhs.equals( "xsource" )){
+						if ( lc_lhs.equals( "xt" )){
 							
-							source_params.add( rhs );
+							if ( rhs.toLowerCase( MessageText.LOCALE_ENGLISH ).startsWith( "urn:btih:" )){
+								
+								original_params.put( lhs, rhs );
+
+								lc_params.put( lhs, rhs );
+								
+							}else{
+								
+								String existing = lc_params.get( "xt" );
+								
+								if ( 	existing == null ||
+										( !existing.toLowerCase( MessageText.LOCALE_ENGLISH ).startsWith( "urn:btih:" ) && rhs.startsWith( "urn:sha1:" ))){
+									
+									original_params.put( lhs, rhs );
+
+									lc_params.put( lhs, rhs );
+								}
+							}
+						}else{
+							
+							original_params.put( lhs, rhs );
+							
+							lc_params.put( lc_lhs, rhs );
+							
+							if ( lc_lhs.equals( "xsource" )){
+								
+								source_params.add( rhs );
+							}
 						}
 					}catch( UnsupportedEncodingException e ){
 						
