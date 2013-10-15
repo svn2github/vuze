@@ -1984,7 +1984,7 @@ TorrentUtils
 			boolean	discard );
 	}
 	
-	private static class
+	public static class
 	torrentDelegate
 		extends LogRelation
 		implements ExtendedTorrent

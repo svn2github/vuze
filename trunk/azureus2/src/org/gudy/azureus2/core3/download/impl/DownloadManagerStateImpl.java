@@ -3220,6 +3220,8 @@ DownloadManagerStateImpl
 
 			if ( t instanceof CachedStateWrapper ){
 
+					// We don't want to force a fixup here when saving!
+				
 				CachedStateWrapper csw = (CachedStateWrapper)t;
 
 				if ( !discard_pieces ){
@@ -3234,6 +3236,10 @@ DownloadManagerStateImpl
 				if ( simple_torrent != null ){
 					
 					cache.put( "simple", new Long(simple_torrent.booleanValue()?1:0 ));
+					
+				}else{
+					
+					Debug.out( "Failed to cache simple state" );
 				}
 				
 				int	fc = csw.file_count;
@@ -3243,8 +3249,18 @@ DownloadManagerStateImpl
 					cache.put( "fc", new Long( fc ));
 				}
 			}else{
+				if ( t instanceof TorrentUtils.torrentDelegate ){
 				
-				// Debug.out( "Hmm, torrent isn't cache-state-wrapper, it is " + t );
+					// torrent is already 'fixed up' so no harm in directly grabbing stuff for export as already loaded
+					
+					cache.put( "simple", new Long(t.isSimpleTorrent()?1:0 ));
+					
+					cache.put( "fc", t.getFileCount());
+					
+				}else{
+				
+					Debug.out( "Hmm, torrent isn't cache-state-wrapper, it is " + t );
+				}
 			}
 			
 			cache.put( "dp", new Long( discard_pieces?1:0 ));
