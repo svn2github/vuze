@@ -26,6 +26,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.*;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -70,6 +71,7 @@ import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionListener;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.shells.main.UIFunctionsImpl;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
@@ -192,6 +194,10 @@ public class OpenTorrentOptionsWindow
 	private StandardButtonsArea 	buttonsArea;
 	private boolean 				window_initialised;
 	
+	private Button	buttonTorrentUp;
+	private Button	buttonTorrentDown;
+	private Button	buttonTorrentRemove;
+	
 	private TableViewSWT<OpenTorrentInstance> 	tvTorrents;
 	private Label								torrents_info_label;
 	
@@ -298,7 +304,7 @@ public class OpenTorrentOptionsWindow
 				dlg.setTitle(MessageText.getString("OpenTorrentOptions.title") + " [" + torrentOptions.getTorrentName() + "]");
 				
 				final SWTSkin skin_outter = dlg.getSkin();
-				
+												
 				SWTSkinObject so;
 				
 				if (COConfigurationManager.hasParameter(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS, true)) {
@@ -349,25 +355,22 @@ public class OpenTorrentOptionsWindow
 				}
 					
 				sash_object = (SWTSkinObjectSash)skin_outter.getSkinObject("multi-sash");
+									
+				SWTSkinObjectContainer select_area = (SWTSkinObjectContainer)skin_outter.getSkinObject( "torrents-table" );
+
+				setupTVTorrents( select_area.getComposite());
 				
-				if ( sash_object != null ){
-					
-					SWTSkinObjectContainer select_area = (SWTSkinObjectContainer)skin_outter.getSkinObject( "torrent-table" );
+				SWTSkinObjectContainer torrents_info = (SWTSkinObjectContainer)skin_outter.getSkinObject( "torrents-info" );
 
-					setupTVTorrents( select_area );
-					
-					SWTSkinObjectContainer torrents_info = (SWTSkinObjectContainer)skin_outter.getSkinObject( "torrents-info" );
-
-					Composite info_area = torrents_info.getComposite();
-					
-					info_area.setLayout( new GridLayout());
-					
-					torrents_info_label = new Label( info_area, SWT.NULL );
-					torrents_info_label.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ));				
-					
-					sash_object.setVisible( false );
-					sash_object.setAboveVisible( false );
-				}
+				Composite info_area = torrents_info.getComposite();
+				
+				info_area.setLayout( new GridLayout());
+				
+				torrents_info_label = new Label( info_area, SWT.NULL );
+				torrents_info_label.setLayoutData( new GridData( GridData.FILL_HORIZONTAL ));				
+				
+				sash_object.setVisible( false );
+				sash_object.setAboveVisible( false );
 				
 				so = skin_outter.getSkinObject("expand-area");
 		
@@ -383,21 +386,12 @@ public class OpenTorrentOptionsWindow
 				
 				expand_stack.topControl = expand_area;
 				
-				OpenTorrentInstance instance = new OpenTorrentInstance( expand_area, torrentOptions, optionListener );
+				OpenTorrentInstance instance = new OpenTorrentInstance( hash, expand_area, torrentOptions, optionListener );
 
-				open_instances.add( instance );
-				
-				instance.initialize();
-				
-				updateInstanceInfo();
-				
+				addInstance( instance );
+								
 				current_instance = instance;
-				
-				if ( tvTorrents != null ){
-										
-					tvTorrents.addDataSources( new OpenTorrentInstance[]{ instance });
-				}
-				
+								
 				UIUpdaterSWT.getInstance().addUpdater(this);
 				
 				setupShowAgainOptions(skin_outter);
@@ -476,14 +470,10 @@ public class OpenTorrentOptionsWindow
 				
 				expand_area.setLayout( new FormLayout());
 								
-				OpenTorrentInstance instance = new OpenTorrentInstance( expand_area, torrentOptions, optionListener );
+				OpenTorrentInstance instance = new OpenTorrentInstance( hash, expand_area, torrentOptions, optionListener );
 
-				open_instances.add( instance );
-				
-				instance.initialize();
-
-				updateInstanceInfo();
-				
+				addInstance( instance );
+								
 				dlg.setTitle(MessageText.getString("OpenTorrentOptions.title") + " [" + MessageText.getString("label.num.torrents",new String[]{ String.valueOf( open_instances.size())}) + "]");
 				
 				if ( !sash_object.isVisible()){
@@ -511,8 +501,6 @@ public class OpenTorrentOptionsWindow
 						});
 						
 				}
-				
-				tvTorrents.addDataSources( new OpenTorrentInstance[]{ instance });
 			}
 		}catch( Throwable e ){
 			
@@ -575,8 +563,106 @@ public class OpenTorrentOptionsWindow
 	
 	private void 
 	setupTVTorrents(
-		SWTSkinObjectContainer soTorrentsTable )
+		Composite		parent )
 	{
+		ImageLoader image_loader = SWTSkinFactory.getInstance().getImageLoader(SWTSkinFactory.getInstance().getSkinProperties());
+
+		GridLayout layout = new GridLayout();
+		layout.marginWidth = layout.marginHeight = 0;
+		layout.horizontalSpacing = layout.verticalSpacing = 0;
+		parent.setLayout( layout );
+		GridData gd;
+		
+		// table
+		
+		Composite table_area = new Composite( parent, SWT.NULL );
+		layout = new GridLayout();
+		layout.marginWidth = layout.marginHeight = 0;
+		layout.horizontalSpacing = layout.verticalSpacing = 0;
+		table_area.setLayout( layout );
+		gd = new GridData( GridData.FILL_BOTH );
+		table_area.setLayoutData( gd );
+		
+			// toolbar area
+		
+		Composite button_area = new Composite( parent, SWT.NULL );
+		layout = new GridLayout(5,false);
+		layout.marginWidth = layout.marginHeight = 0;
+		layout.horizontalSpacing = layout.verticalSpacing = 0;
+		layout.marginTop = 5;
+		button_area.setLayout( layout);
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		button_area.setLayoutData( gd );
+		
+		Label label = new Label( button_area, SWT.NULL );
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		label.setLayoutData( gd );
+		
+		buttonTorrentUp = new Button(button_area, SWT.PUSH);
+		buttonTorrentUp.setImage( image_loader.getImage( "image.toolbar.up" ));
+		buttonTorrentUp.setToolTipText(MessageText.getString("Button.moveUp"));
+		buttonTorrentUp.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				List<Object> selected = tvTorrents.getSelectedDataSources();
+				if ( selected.size() > 0 ){
+					OpenTorrentInstance instance = (OpenTorrentInstance)selected.get(0);
+					int index = instance.getIndex();
+					if ( index > 0 ){
+						open_instances.remove( instance );
+						open_instances.add( index-1, instance );
+						
+						updateTVTorrentButtons();
+						
+						refreshTVTorrentIndexes();
+					}
+				}
+			}});
+
+		
+		buttonTorrentDown = new Button(button_area, SWT.PUSH);
+		buttonTorrentDown.setImage( image_loader.getImage( "image.toolbar.down" ));
+		buttonTorrentDown.setToolTipText(MessageText.getString("Button.moveDown"));
+		buttonTorrentDown.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				List<Object> selected = tvTorrents.getSelectedDataSources();
+				if ( selected.size() > 0 ){
+					OpenTorrentInstance instance = (OpenTorrentInstance)selected.get(0);
+					int index = instance.getIndex();
+					if ( index < open_instances.size() - 1 ){
+						open_instances.remove( instance );
+						open_instances.add( index+1, instance );
+						
+						updateTVTorrentButtons();
+						
+						refreshTVTorrentIndexes();
+					}
+				}
+			}});
+		
+		buttonTorrentRemove = new Button(button_area, SWT.PUSH);
+		buttonTorrentRemove.setToolTipText(MessageText.getString("OpenTorrentWindow.torrent.remove"));
+		buttonTorrentRemove.setImage( image_loader.getImage( "image.toolbar.remove" ));
+		buttonTorrentRemove.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				List<Object> selected = tvTorrents.getSelectedDataSources();
+				for ( Object obj: selected ){
+					
+					OpenTorrentInstance	instance = (OpenTorrentInstance)obj;
+					
+					removeInstance( instance );
+				}
+			}});
+		
+		buttonTorrentUp.setEnabled( false );
+		buttonTorrentDown.setEnabled( false );
+		buttonTorrentRemove.setEnabled( false );
+		
+		label = new Label( button_area, SWT.NULL );
+		gd = new GridData( GridData.FILL_HORIZONTAL );
+		label.setLayoutData( gd );
+		
+	
+		
 		TableColumnManager tcm = TableColumnManager.getInstance();
 		
 		if (tcm.getDefaultColumnNames(TABLEID_TORRENTS) == null) {
@@ -595,11 +681,18 @@ public class OpenTorrentOptionsWindow
 						}
 					});
 
+			tcm.registerColumn(OpenTorrentInstance.class,
+					TableColumnOTOT_Size.COLUMN_ID, new TableColumnCreationListener() {
+						public void tableColumnCreated(TableColumn column) {
+							new TableColumnOTOT_Size(column);
+						}
+					});
+			
 			tcm.setDefaultColumnNames(TABLEID_TORRENTS, new String[] {
 				
 				TableColumnOTOT_Position.COLUMN_ID,
 				TableColumnOTOT_Name.COLUMN_ID,
-				
+				TableColumnOTOT_Size.COLUMN_ID,
 			});
 			
 			tcm.setDefaultSortColumnName(TABLEID_TORRENTS, TableColumnOTOT_Position.COLUMN_ID);
@@ -609,7 +702,7 @@ public class OpenTorrentOptionsWindow
 				TABLEID_TORRENTS, TABLEID_TORRENTS, null, "#", SWT.BORDER
 						| SWT.FULL_SELECTION | SWT.SINGLE);
 		
-		tvTorrents.initialize(soTorrentsTable.getComposite());
+		tvTorrents.initialize( table_area );
 		
 		tvTorrents.setRowDefaultHeight(20);
 
@@ -688,35 +781,42 @@ public class OpenTorrentOptionsWindow
 				}
 			});
 		
-		tvTorrents.addSelectionListener(new TableSelectionListener() {
-			
-			public void 
-			selected(
-				TableRowCore[] rows) 
+		
+		tvTorrents.addSelectionListener(
+			new TableSelectionListener() 
 			{
-				TableRowCore row = rows[0];
+				public void 
+				selected(
+					TableRowCore[] rows) 
+				{
+					TableRowCore row = rows[0];
+					
+					OpenTorrentInstance instance = (OpenTorrentInstance)row.getDataSource();
+					
+					selectInstance( instance );
+					
+					updateTVTorrentButtons();
+				}
 				
-				OpenTorrentInstance instance = (OpenTorrentInstance)row.getDataSource();
+				public void mouseExit(TableRowCore row) {
+				}
 				
-				selectInstance( instance );
-			}
-			
-			public void mouseExit(TableRowCore row) {
-			}
-			
-			public void mouseEnter(TableRowCore row) {
-			}
-			
-			public void focusChanged(TableRowCore focus) {
-			}
-			
-			public void deselected(TableRowCore[] rows) {
+				public void mouseEnter(TableRowCore row) {
+				}
 				
-			}
+				public void focusChanged(TableRowCore focus) {
+				}
+				
+				public void 
+				deselected(TableRowCore[] rows) 
+				{
+					updateTVTorrentButtons();
+				}
 			
-			public void defaultSelected(TableRowCore[] rows, int stateMask) {
-			}
-		}, false);
+				public void defaultSelected(TableRowCore[] rows, int stateMask) {
+				}
+				
+			}, false);
 	}
 	
 	private void
@@ -749,9 +849,29 @@ public class OpenTorrentOptionsWindow
 	}
 	
 	private void
+	addInstance(
+		OpenTorrentInstance		instance )
+	{
+		open_instances.add( instance );
+		
+		instance.initialize();
+			
+		tvTorrents.addDataSources( new OpenTorrentInstance[]{ instance });
+
+		updateInstanceInfo();
+
+		updateTVTorrentButtons();
+	}
+	
+	private void
 	removeInstance(
 		OpenTorrentInstance		instance )
 	{
+		synchronized( active_windows ){
+			
+			active_windows.remove( instance.getHash());
+		}
+		
 		int index = open_instances.indexOf( instance );
 		
 		open_instances.remove( instance );
@@ -777,23 +897,54 @@ public class OpenTorrentOptionsWindow
 			selectInstance( null );
 		}
 		
+		updateTVTorrentButtons();
+		
+		refreshTVTorrentIndexes();
+	}
+	
+	private void
+	updateTVTorrentButtons()
+	{
+		List<Object> selected = tvTorrents.getSelectedDataSources();
+		
+		buttonTorrentRemove.setEnabled( selected.size() > 0 );
+
+		if ( selected.size() > 0 ){
+			
+			OpenTorrentInstance instance = (OpenTorrentInstance)selected.get(0);
+			
+			buttonTorrentUp.setEnabled( instance.getIndex() > 0 );
+			
+			buttonTorrentDown.setEnabled( instance.getIndex() < open_instances.size()-1);
+			
+		}else{
+			
+			buttonTorrentUp.setEnabled( false );
+			
+			buttonTorrentDown.setEnabled( false );
+		}
+	}
+	
+	private void
+	refreshTVTorrentIndexes()
+	{
 		Utils.execSWTThreadLater(
-			0,
-			new Runnable()
-			{
-				public void
-				run()
+				0,
+				new Runnable()
 				{
-					tvTorrents.columnInvalidate( "#" );
-					
-					tvTorrents.refreshTable( true );
-				}
-			});
+					public void
+					run()
+					{
+						tvTorrents.columnInvalidate( "#" );
+						
+						tvTorrents.refreshTable( true );
+					}
+				});
 	}
 	
 	private void
 	updateInstanceInfo()
-	{
+	{	
 		if ( torrents_info_label == null ){
 			
 			return;
@@ -829,6 +980,11 @@ public class OpenTorrentOptionsWindow
 	public void
 	updateUI()
 	{
+		if ( tvTorrents != null ){
+			
+			tvTorrents.refreshTable( false );
+		}
+		
 		for( OpenTorrentInstance instance: open_instances ){
 		
 			instance.updateUI();
@@ -870,11 +1026,12 @@ public class OpenTorrentOptionsWindow
 	protected class
 	OpenTorrentInstance
 	{
-		private TorrentOpenOptions 				torrentOptions;
-		private OpenTorrentInstanceListener		changeListener;
+		final private HashWrapper						hash;
+		final private TorrentOpenOptions 				torrentOptions;
+		final private OpenTorrentInstanceListener		changeListener;
 
-		private Composite	parent;
-		private Shell		shell;
+		final private Composite	parent;
+		final private Shell		shell;
 		
 		private SWTSkin skin;
 		
@@ -927,13 +1084,17 @@ public class OpenTorrentOptionsWindow
 		
 		private 
 		OpenTorrentInstance(
+			HashWrapper						_hash,
 			Composite						_parent,	
 			TorrentOpenOptions				_torrentOptions,
 			OpenTorrentInstanceListener		_changeListener )
 		{
+			hash			= _hash;
 			parent			= _parent;
 			torrentOptions 	= _torrentOptions;
 			changeListener	= _changeListener;
+
+			shell = parent.getShell();
 
 			torrentOptions.addListener(new TorrentOpenOptions.FileListener() {
 				public void toDownloadChanged(TorrentOpenFileOptions fo, boolean toDownload) {
@@ -957,6 +1118,12 @@ public class OpenTorrentOptionsWindow
 			});
 		}
 		
+		private HashWrapper
+		getHash()
+		{
+			return( hash );
+		}
+		
 		protected TorrentOpenOptions
 		getOptions()
 		{
@@ -977,9 +1144,7 @@ public class OpenTorrentOptionsWindow
 		
 		private void
 		initialize()
-		{			
-			shell = parent.getShell();
-			
+		{						
 			skin = SWTSkinFactory.getNonPersistentInstance(
 						getClass().getClassLoader(), 
 						"com/aelitis/azureus/ui/skin", "skin3_dlg_opentorrent_options_instance.properties" );			

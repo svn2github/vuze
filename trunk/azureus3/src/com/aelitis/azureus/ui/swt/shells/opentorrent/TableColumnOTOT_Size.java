@@ -17,17 +17,20 @@
  
 package com.aelitis.azureus.ui.swt.shells.opentorrent;
 
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.tables.*;
 
-public class TableColumnOTOT_Position
+
+public class TableColumnOTOT_Size
 implements TableCellRefreshListener, TableColumnExtraInfoListener
 {
-	public static final String COLUMN_ID = "#";
+	public static final String COLUMN_ID = "size";
   
   /** Default Constructor */
-  public TableColumnOTOT_Position(TableColumn column) {
-  	column.initialize(TableColumn.ALIGN_TRAIL, TableColumn.POSITION_LAST, 40, TableColumn.INTERVAL_LIVE );
+  public TableColumnOTOT_Size(TableColumn column) {
+  	column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 80, TableColumn.INTERVAL_LIVE );
   	column.addListeners(this);
+ 
   }
 
 	public void fillTableColumnInfo(TableColumnInfo info) {
@@ -43,12 +46,23 @@ implements TableCellRefreshListener, TableColumnExtraInfoListener
   		return;
   	}
   	OpenTorrentOptionsWindow.OpenTorrentInstance instance = (OpenTorrentOptionsWindow.OpenTorrentInstance) ds;
-  	int index = instance.getIndex()+1;
-  	if ( index < 1 ){
-  		return;	// removing
+  	
+  	long total_size 	= instance.getOptions().getTotalSize();
+  	long selected_size 	= instance.getSelectedDataSize();
+  	
+  	if ( cell.setSortValue( selected_size )){
+  	
+  		String total_str 	= DisplayFormatters.formatByteCountToKiBEtc( total_size );
+  		String sel_str 		= total_size==selected_size?total_str:DisplayFormatters.formatByteCountToKiBEtc( selected_size );
+  			
+  		if ( total_str.equals( sel_str )){
+  			
+  			cell.setText( total_str );
+  			
+  		}else{
+  			
+  			cell.setText( sel_str + " / " + total_str );
+  		}
   	}
-  	cell.setSortValue(-index);
-  	cell.setText("" + index);
   }
-  
 }

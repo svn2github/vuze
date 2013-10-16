@@ -78,6 +78,8 @@ public class TorrentOpenOptions
 	/** @todo: getter/setters */
 	private TOTorrent torrent;
 
+	private long	totalSize;
+	
 	/** @todo: getter/setters */
 	public int iStartID;
 
@@ -299,6 +301,24 @@ public class TorrentOpenOptions
 		return files;
 	}
 
+	public long
+	getTotalSize()
+	{
+		if ( totalSize == 0 ){
+			
+			TorrentOpenFileOptions[] files = getFiles();
+			
+			if ( files != null ){
+			
+				for ( TorrentOpenFileOptions file: files ){
+					
+					totalSize += file.lSize;
+				}
+			}
+		}
+		
+		return( totalSize );
+	}
 	public String getTorrentName() {
 		return TorrentUtils.getLocalisedName(torrent);
 	}
