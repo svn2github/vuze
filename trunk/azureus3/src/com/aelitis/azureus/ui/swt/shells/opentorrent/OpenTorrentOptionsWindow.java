@@ -324,12 +324,32 @@ public class OpenTorrentOptionsWindow
 							if (intValue == SWT.OK) {
 								boolean	all_ok = true;
 							
-								for ( OpenTorrentInstance instance: open_instances ){
+								AsyncDispatcher dispatcher = new AsyncDispatcher();
+								
+								for ( final OpenTorrentInstance instance: new ArrayList<OpenTorrentInstance>( open_instances )){
+									
 									String dataDir = instance.cmbDataDir.getText();
 	
-									if (!instance.okPressed(dataDir)) {
+									if ( !instance.okPressed(dataDir)){
 									
 										all_ok = false;
+										
+									}else{
+										
+											// serialise additions in correct order
+										
+										dispatcher.dispatch(
+											new AERunnable()
+											{
+												public void
+												runSupport()
+												{
+													TorrentOpener.addTorrent( instance.getOptions());
+
+												}
+											});
+										
+										removeInstance( instance );
 									}
 								}
 								
@@ -2712,7 +2732,10 @@ public class OpenTorrentOptionsWindow
 			}
 		}
 	
-		protected boolean okPressed(String dataDir) {
+		private boolean 
+		okPressed(
+			String dataDir) 
+		{
 			File file = new File(dataDir);
 	
 			File fileDefSavePath = new File(
@@ -2882,23 +2905,8 @@ public class OpenTorrentOptionsWindow
 				COConfigurationManager.setParameter(PARAM_DEFSAVEPATH,
 						torrentOptions.getParentDir());
 			}
-	
-			openTorrents();
-	
+		
 			return true;
-		}
-	
-		/**
-		 * Open the torrents already added based on user choices
-		 * 
-		 * @param sDataDir 
-		 */
-		private void openTorrents() {
-			Utils.getOffOfSWTThread(new AERunnable() {
-				public void runSupport() {
-					TorrentOpener.addTorrent(torrentOptions);
-				}
-			});
 		}
 	}
 	
