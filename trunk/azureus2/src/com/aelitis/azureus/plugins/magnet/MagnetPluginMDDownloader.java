@@ -621,13 +621,22 @@ MagnetPluginMDDownloader
 					
 					cancelSupport( true );
 					
-					if ( error[0] != null ){
+					try{
+						if ( error[0] != null ){
+							
+							throw( error[0] );
+	
+						}else{
 						
-						throw( error[0] );
-
-					}else{
-					
-						throw( new Exception( "Download terminated prematurely" ));
+							throw( new Exception( "Download terminated prematurely" ));
+						}
+					}catch( Throwable e ){
+						
+						listener.failed( e );
+						
+						Debug.out( e );
+						
+						throw( e );
 					}
 				}
 			}
