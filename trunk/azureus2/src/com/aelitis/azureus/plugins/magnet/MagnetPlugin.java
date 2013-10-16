@@ -852,6 +852,7 @@ MagnetPlugin
 
 		TimerEvent							md_delay_event = null;
 		final byte[][]						md_result = { null };
+		final Throwable[] 					md_error = { null };
 		final MagnetPluginMDDownloader[]	md_downloader = { null };
 		
 		final byte[][]						fl_result = { null };
@@ -920,6 +921,11 @@ MagnetPlugin
 										Throwable e )
 									{
 										listener.reportActivity( getMessageText( "report.error", Debug.getNestedExceptionMessage(e)));
+										
+										synchronized( md_result ){
+											
+											md_error[0] = e;
+										}
 									}
 								});
 						}
@@ -990,7 +996,7 @@ MagnetPlugin
 				long	remaining	= timeout;
 								
 				boolean	sl_enabled				= secondary_lookup.getValue() && FeatureAvailability.isMagnetSLEnabled();
-	
+				boolean	sl_failed				= false;
 				long secondary_lookup_time 	= -1;
 
 				final Object[] secondary_result = { null };
@@ -1290,6 +1296,8 @@ MagnetPlugin
 											}
 										}catch( ResourceDownloaderException e ){
 											
+											sl_failed = true;
+											
 											// ignore, we just continue processing
 										}
 									}
@@ -1466,7 +1474,10 @@ MagnetPlugin
 					}
 				}
 				
-				if ( sl_enabled ){
+					// DDB lookup process is complete
+					// If secondary lookup is active/doable then hang around until it completes
+				
+				if ( sl_enabled && !sl_failed ){
 					
 					if ( secondary_lookup_time == -1 ){
 						
@@ -1510,10 +1521,16 @@ MagnetPlugin
 							
 						}catch( ResourceDownloaderException e ){
 							
+								// get here when secondary lookup completes with fail
+							
+							sl_failed = true;
+							
 							break;
 						}
 					}
 				}
+				
+					// lastly hang around until metadata download completes
 				
 				if ( md_enabled ){
 				
@@ -1528,11 +1545,21 @@ MagnetPlugin
 						
 						remaining -= 500;
 						
-						byte[] torrent = getSecondaryLookupResult( secondary_result );
-						
-						if ( torrent != null ){
+						if ( !sl_failed ){
 							
-							return( torrent );
+							try{
+								byte[] torrent = getSecondaryLookupResult( secondary_result );
+							
+								if ( torrent != null ){
+								
+									return( torrent );
+								}
+							}catch( ResourceDownloaderException e ){
+								
+									// get here when secondary lookup completes with fail
+								
+								sl_failed = true;
+							}
 						}
 						
 						synchronized( md_result ){
@@ -1540,6 +1567,11 @@ MagnetPlugin
 							if ( md_result[0] != null ){
 								
 								return( md_result[0] );
+							}
+							
+							if ( md_error[0] != null ){
+								
+								break;
 							}
 						}
 						
