@@ -1702,6 +1702,11 @@ public class OpenTorrentOptionsWindow
 			final 	Composite	parent,
 			boolean	is_rebuild )
 		{
+			if ( parent.isDisposed()){
+				
+				return;
+			}
+			
 			final String SP_KEY = "oto:tag:initsp";
 					
 			if ( is_rebuild ){
