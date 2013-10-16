@@ -27,12 +27,12 @@ package org.gudy.azureus2.pluginsimpl.local.torrent;
  */
 
 import java.net.*;
+import java.util.Locale;
 import java.io.*;
 
 import org.gudy.azureus2.plugins.torrent.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
-
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.util.*;
@@ -100,13 +100,20 @@ TorrentDownloaderImpl
 			
 		}catch( TorrentException e ){
 			
-			ResourceDownloader rd = _downloader.getClone();
-			
-				// try with referer
-			
-			UrlUtils.setBrowserHeaders( rd, url.toExternalForm());
-			
-			return( downloadSupport( rd ));
+			if ( url.getProtocol().toLowerCase( Locale.US ).startsWith( "http" )){
+				
+				ResourceDownloader rd = _downloader.getClone();
+				
+					// try with referer
+				
+				UrlUtils.setBrowserHeaders( rd, url.toExternalForm());
+				
+				return( downloadSupport( rd ));
+				
+			}else{
+				
+				throw( e );
+			}
 		}
 	}
 	
