@@ -65,6 +65,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.files.*;
 import org.gudy.azureus2.ui.swt.views.tableitems.mytorrents.AlertsItem;
+import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.core.util.RegExUtil;
@@ -321,23 +322,40 @@ public class FilesView
 			return;
 		}
 		
-		AZ3Functions.provider az3 = AZ3Functions.getProvider();
+		String mode = COConfigurationManager.getStringParameter("list.dm.dblclick");
 		
-		if ( az3 != null ){
+		if ( mode.equals("2")){
 			
-			DownloadManager dm = fileInfo.getDownloadManager();
+			boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
 			
-			if ( az3.canPlay(dm, fileInfo.getIndex()) || (stateMask & SWT.CONTROL) != 0 ){
+			ManagerUtils.open( fileInfo, openMode) ;
+			
+		}else if ( mode.equals( "3" )){
+			
+			if ( fileInfo.getAccessMode() == DiskManagerFileInfo.READ ){
 				
-				az3.play( dm, fileInfo.getIndex() );
+				Utils.launch(fileInfo);
+			}	
+		}else{
+			
+			AZ3Functions.provider az3 = AZ3Functions.getProvider();
+			
+			if ( az3 != null ){
 				
-				return;
+				DownloadManager dm = fileInfo.getDownloadManager();
+				
+				if ( az3.canPlay(dm, fileInfo.getIndex()) || (stateMask & SWT.CONTROL) != 0 ){
+					
+					az3.play( dm, fileInfo.getIndex() );
+					
+					return;
+				}
 			}
-		}
-		
-		if ( fileInfo.getAccessMode() == DiskManagerFileInfo.READ ){
 			
-			Utils.launch(fileInfo);
+			if ( fileInfo.getAccessMode() == DiskManagerFileInfo.READ ){
+				
+				Utils.launch(fileInfo);
+			}
 		}
 	}
 
