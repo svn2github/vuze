@@ -6,7 +6,7 @@ class Yylex {
 	private final static int YY_F = -1;
 	private final static int YY_NO_STATE = -1;
 	private final static int YY_NOT_ACCEPT = 0;
-	private final static int YY_START = 1;
+	//private final static int YY_START = 1;
 	private final static int YY_END = 2;
 	private final static int YY_NO_ANCHOR = 4;
 	private final static int YY_BOL = 65536;
@@ -48,9 +48,9 @@ private StringBuffer sb=new StringBuffer();
 		yy_lexical_state = YYINITIAL;
 	}
 
-	private boolean yy_eof_done = false;
-	private final int YYINITIAL = 0;
-	private final int STRING_BEGIN = 1;
+	//private boolean yy_eof_done = false;
+	private static final int YYINITIAL = 0;
+	private static final int STRING_BEGIN = 1;
 	private final int yy_state_dtrans[] = {
 		0,
 		39
@@ -111,7 +111,7 @@ private StringBuffer sb=new StringBuffer();
 		    '\r' == yy_buffer[yy_buffer_end-1])
 			yy_buffer_end--;
 	}
-	private boolean yy_last_was_cr=false;
+	//private boolean yy_last_was_cr=false;
 	private void yy_mark_start () {
 		yy_buffer_start = yy_buffer_index;
 	}
@@ -131,9 +131,9 @@ private StringBuffer sb=new StringBuffer();
 			yy_buffer_start,
 			yy_buffer_end - yy_buffer_start));
 	}
-	private int yylength () {
-		return yy_buffer_end - yy_buffer_start;
-	}
+	//private int yylength () {
+	//	return yy_buffer_end - yy_buffer_start;
+	//}
 	private char[] yy_double (char buf[]) {
 		int i;
 		char newbuf[];
@@ -143,8 +143,8 @@ private StringBuffer sb=new StringBuffer();
 		}
 		return newbuf;
 	}
-	private final int YY_E_INTERNAL = 0;
-	private final int YY_E_MATCH = 1;
+	private static final int YY_E_INTERNAL = 0;
+	//private final int YY_E_MATCH = 1;
 	private java.lang.String yy_error_string[] = {
 		"Error: Internal error.\n",
 		"Error: Unmatched input.\n"

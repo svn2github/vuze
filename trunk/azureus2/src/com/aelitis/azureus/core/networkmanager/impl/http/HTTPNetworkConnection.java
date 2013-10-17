@@ -1013,7 +1013,7 @@ HTTPNetworkConnection
 		}
 	}
 	
-	protected class
+	protected static class
 	httpRequest
 	{
 		private final long[]	orig_offsets;

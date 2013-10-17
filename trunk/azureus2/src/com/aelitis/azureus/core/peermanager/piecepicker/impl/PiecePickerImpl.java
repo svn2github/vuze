@@ -3139,7 +3139,7 @@ implements PiecePicker
 		}
 	}
 
-	protected class
+	protected static class
 	RealTimeData
 	{
 		private List[]	peer_requests;
