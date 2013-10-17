@@ -63,9 +63,11 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
+import com.aelitis.azureus.core.tag.TagFeatureProperties;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TagTypeListener;
+import com.aelitis.azureus.core.tag.TagFeatureProperties.TagProperty;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionListener;
@@ -1773,8 +1775,8 @@ public class OpenTorrentOptionsWindow
 	
 			for ( final Tag tag: TagUIUtils.sortTags( tt.getTags())){
 				
-				if ( tag.isPublic()){
-				
+				if ( tag.canBePublic() && !tag.isTagAuto()){
+					
 					final Button but = new Button( parent, SWT.TOGGLE );
 				
 					but.setText( tag.getTagName( true ));
