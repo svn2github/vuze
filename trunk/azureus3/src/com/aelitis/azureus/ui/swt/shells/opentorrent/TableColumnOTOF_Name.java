@@ -30,6 +30,7 @@ implements TableCellRefreshListener, TableColumnExtraInfoListener
   /** Default Constructor */
   public TableColumnOTOF_Name(TableColumn column) {
   	column.initialize(TableColumn.ALIGN_LEAD, TableColumn.POSITION_LAST, 260);
+  	column.setRefreshInterval(TableColumn.INTERVAL_LIVE);
   	column.addListeners(this);
   	if (column instanceof TableColumnCore) {
   		((TableColumnCore) column).setInplaceEditorListener(new TableCellInplaceEditorListener() {
