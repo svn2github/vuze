@@ -278,6 +278,10 @@ public class PlatformTorrentUtils
 		return getContentMapString(torrent, TOR_AZ_PROP_CONTENT_TYPE);
 	}
 
+	public static void setContentType(TOTorrent torrent, String title) {
+		setContentMapString(torrent, TOR_AZ_PROP_CONTENT_TYPE, title);
+	}
+	
 	public static String getContentAuthor(TOTorrent torrent) {
 		return getContentMapString(torrent, TOR_AZ_PROP_AUTHOR);
 	}
