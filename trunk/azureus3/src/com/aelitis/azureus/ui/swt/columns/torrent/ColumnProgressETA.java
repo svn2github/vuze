@@ -327,7 +327,7 @@ public class ColumnProgressETA
 		int yRelProgressFillEnd = yRelProgressFillStart + 13;
 		boolean showSecondLine = yRelProgressFillEnd + 10 < newHeight;
 
-		if (xRelProgressFillEnd < 10 || xRelProgressFillEnd < 10) {
+		if (xRelProgressFillEnd < 10 ) {
 			return;
 		}
 		String sStatusLine = null;
