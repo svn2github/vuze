@@ -188,6 +188,7 @@ public class OpenTorrentOptionsWindow
 
 	
 	private SkinnedDialog 			dlg;
+	private ImageLoader 			image_loader;
 	private SWTSkinObjectSash 		sash_object;
 	private StackLayout				expand_stack;
 	private	Composite 				expand_stack_area;
@@ -197,6 +198,9 @@ public class OpenTorrentOptionsWindow
 	private Button	buttonTorrentUp;
 	private Button	buttonTorrentDown;
 	private Button	buttonTorrentRemove;
+	
+	private List<String>	images_to_dispose = new ArrayList<String>();
+	
 	
 	private TableViewSWT<OpenTorrentInstance> 	tvTorrents;
 	private Label								torrents_info_label;
@@ -278,6 +282,8 @@ public class OpenTorrentOptionsWindow
 	private
 	OpenTorrentOptionsWindow()
 	{
+		image_loader = SWTSkinFactory.getInstance().getImageLoader(SWTSkinFactory.getInstance().getSkinProperties());
+
 		optionListener = 
 			new OpenTorrentInstanceListener()
 		{
@@ -585,8 +591,6 @@ public class OpenTorrentOptionsWindow
 	setupTVTorrents(
 		Composite		parent )
 	{
-		ImageLoader image_loader = SWTSkinFactory.getInstance().getImageLoader(SWTSkinFactory.getInstance().getSkinProperties());
-
 		GridLayout layout = new GridLayout();
 		layout.marginWidth = layout.marginHeight = 0;
 		layout.horizontalSpacing = layout.verticalSpacing = 0;
@@ -619,7 +623,7 @@ public class OpenTorrentOptionsWindow
 		label.setLayoutData( gd );
 		
 		buttonTorrentUp = new Button(button_area, SWT.PUSH);
-		buttonTorrentUp.setImage( image_loader.getImage( "image.toolbar.up" ));
+		buttonTorrentUp.setImage( loadImage( "image.toolbar.up" ));
 		buttonTorrentUp.setToolTipText(MessageText.getString("Button.moveUp"));
 		buttonTorrentUp.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -640,7 +644,7 @@ public class OpenTorrentOptionsWindow
 
 		
 		buttonTorrentDown = new Button(button_area, SWT.PUSH);
-		buttonTorrentDown.setImage( image_loader.getImage( "image.toolbar.down" ));
+		buttonTorrentDown.setImage( loadImage( "image.toolbar.down" ));
 		buttonTorrentDown.setToolTipText(MessageText.getString("Button.moveDown"));
 		buttonTorrentDown.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
@@ -661,7 +665,7 @@ public class OpenTorrentOptionsWindow
 		
 		buttonTorrentRemove = new Button(button_area, SWT.PUSH);
 		buttonTorrentRemove.setToolTipText(MessageText.getString("OpenTorrentWindow.torrent.remove"));
-		buttonTorrentRemove.setImage( image_loader.getImage( "image.toolbar.remove" ));
+		buttonTorrentRemove.setImage( loadImage( "image.toolbar.remove" ));
 		buttonTorrentRemove.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event event) {
 				List<Object> selected = tvTorrents.getSelectedDataSources();
@@ -920,6 +924,8 @@ public class OpenTorrentOptionsWindow
 		updateTVTorrentButtons();
 		
 		refreshTVTorrentIndexes();
+		
+		instance.dispose();
 	}
 	
 	private void
@@ -1032,14 +1038,55 @@ public class OpenTorrentOptionsWindow
 		return( dlg.getShell().getBounds());
 	}
 	
-	protected void dispose() {
+	private Image
+	loadImage(
+		String		key )
+	{
+		 Image img = image_loader.getImage( key );
+		 
+		 if ( img != null ){
+			 
+			 images_to_dispose.add( key );
+		 }
+		 
+		 return( img );
+	}
+	
+	private void
+	unloadImage(
+		String	key )
+	{
+		image_loader.releaseImage( key );
+	}
+	
+	protected void 
+	dispose()
+	{
 		UIUpdaterSWT.getInstance().removeUpdater(this);
+		
+		for ( OpenTorrentInstance instance: open_instances ){
+			
+			instance.dispose();
+		}
+		
+		for ( String key: images_to_dispose ){
+			
+			unloadImage( key );
+		}
+		
+		images_to_dispose.clear();
+		
+		tvTorrents.delete();
 	}
 
-	private boolean isDisposed() {
-		if (dlg == null) {
+	private boolean 
+	isDisposed() 
+	{
+		if ( dlg == null ){
+			
 			return false;
 		}
+		
 		return dlg.isDisposed();
 	}
 	
@@ -1092,7 +1139,7 @@ public class OpenTorrentOptionsWindow
 
 		private SWTSkinObjectExpandItem soStartOptionsExpandItem;
 
-		private SWTSkinObjectExpandItem soExpandItemPeer;
+		//private SWTSkinObjectExpandItem soExpandItemPeer;
 
 		private AtomicInteger settingToDownload = new AtomicInteger(0);
 		
@@ -1226,11 +1273,13 @@ public class OpenTorrentOptionsWindow
 				soExpandItemFiles = (SWTSkinObjectExpandItem) so;
 			}
 	
+			/*
 			so = skin.getSkinObject("expanditem-peer");
 			if (so instanceof SWTSkinObjectExpandItem) {
 				soExpandItemPeer = (SWTSkinObjectExpandItem) so;
 			}
-	
+			*/
+			
 			so = skin.getSkinObject("expanditem-torrentinfo");
 			if (so instanceof SWTSkinObjectExpandItem) {
 				soExpandItemTorrentInfo = (SWTSkinObjectExpandItem) so;
@@ -2912,6 +2961,12 @@ public class OpenTorrentOptionsWindow
 			}
 		
 			return true;
+		}
+		
+		private void
+		dispose()
+		{
+			tvFiles.delete();
 		}
 	}
 	
