@@ -529,6 +529,23 @@ public class TorrentOpener {
 							t.addTaggable( dm );
 						}
 						
+						List<List<String>> trackers = torrentOptions.getTrackers( true );
+						
+						if ( trackers != null ){
+							
+							TOTorrent torrent = dm.getTorrent();
+							
+							TorrentUtils.listToAnnounceGroups( trackers, torrent);
+
+							try{
+								
+								TorrentUtils.writeToFile(torrent);
+								
+							}catch ( Throwable e2 ){
+
+								Debug.printStackTrace(e2);
+							}
+						}
 					} finally {
 
 						dm.getDownloadState().suppressStateSave(false);

@@ -63,14 +63,34 @@ public class TextViewerWindow {
   public 
   TextViewerWindow(
 		 String sTitleID, String sMessageID, String sText, boolean modal, boolean defer_modal )
+  {
+	  this( null, sTitleID, sMessageID, sText, modal, defer_modal );
+  }
+  
+  public 
+  TextViewerWindow(
+	Shell parent_shell, String sTitleID, String sMessageID, String sText, boolean modal, boolean defer_modal )
   {    
     if ( modal ){
     
-    	shell = ShellFactory.createMainShell( SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE | SWT.MAX );
-    	
+    	if ( parent_shell == null ){
+    		
+    		shell = ShellFactory.createMainShell( SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE | SWT.MAX );
+    	}else{
+    		
+    		shell = ShellFactory.createShell( parent_shell, SWT.DIALOG_TRIM | SWT.APPLICATION_MODAL | SWT.RESIZE | SWT.MAX );
+
+    	}
     }else{
     	
-    	shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX );
+    	if ( parent_shell == null ){
+    		
+    		shell = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX );
+    		
+    	}else{
+    		
+    		shell = ShellFactory.createShell( parent_shell, SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MAX );
+    	}
     }
     
     if (sTitleID != null) shell.setText(MessageText.keyExists(sTitleID)?MessageText.getString(sTitleID):sTitleID);

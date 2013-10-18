@@ -51,7 +51,10 @@ import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
+import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -66,6 +69,8 @@ import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TagTypeListener;
+import com.aelitis.azureus.ui.IUIIntializer;
+import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionListener;
@@ -137,53 +142,95 @@ public class OpenTorrentOptionsWindow
 
 
 	public static void main(String[] args) {
-		AzureusCore core = AzureusCoreFactory.create();
-		core.start();
+		try{
+			SWTThread.createInstance(
+				new IUIIntializer() {
+					
+					public void stopIt(boolean isForRestart, boolean isCloseAreadyInProgress) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					public void runInSWTThread() {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					public void run() {
+						AzureusCore core = AzureusCoreFactory.create();
+						core.start();
+				
+						UIConfigDefaultsSWT.initialize();
+								
+						Colors.getInstance();
+				
+						UIFunctionsImpl uiFunctions = new UIFunctionsImpl(null);
+						UIFunctionsManager.setUIFunctions(uiFunctions);
+				
+						File file1 = new File("C:\\temp\\test.torrent");
+						File file2 = new File("C:\\temp\\test1.torrent");
+				
+						TOTorrent torrent1 = null;
+						try {
+							torrent1 = TOTorrentFactory.deserialiseFromBEncodedFile(file1);
+						} catch (TOTorrentException e) {
+							e.printStackTrace();
+						};
+				
+						TOTorrent torrent2 = null;
+						try {
+							torrent2 = TOTorrentFactory.deserialiseFromBEncodedFile(file2);
+						} catch (TOTorrentException e) {
+							e.printStackTrace();
+						};
+						
+						COConfigurationManager.setParameter( ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_SEP, false );
+						COConfigurationManager.setParameter( "User Mode", 2 );
+						
+						addTorrent(	new TorrentOpenOptions(null, torrent1, false));
+						
+						addTorrent(	new TorrentOpenOptions(null, torrent2, false));
+					}
+					
+					public void reportPercent(int percent) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					public void reportCurrentTask(String currentTaskString) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					public void removeListener(InitializerListener listener) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					public void initializationComplete() {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					public void increaseProgress() {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					public void addListener(InitializerListener listener) {
+						// TODO Auto-generated method stub
+						
+					}
+					
+					public void abortProgress() {
+						// TODO Auto-generated method stub
+						
+					}
+				});
 
-		UIConfigDefaultsSWT.initialize();
-
-		//		try {
-		//			SWTThread.createInstance(null);
-		//		} catch (SWTThreadAlreadyInstanciatedException e) {
-		//			e.printStackTrace();
-		//		}
-		Display display = Display.getDefault();
-
-		Colors.getInstance();
-
-		UIFunctionsImpl uiFunctions = new UIFunctionsImpl(null);
-		UIFunctionsManager.setUIFunctions(uiFunctions);
-
-		File file1 = new File("C:\\temp\\test.torrent");
-		File file2 = new File("C:\\temp\\test1.torrent");
-
-		TOTorrent torrent1 = null;
-		try {
-			torrent1 = TOTorrentFactory.deserialiseFromBEncodedFile(file1);
-		} catch (TOTorrentException e) {
+		}catch( Throwable e ){
 			e.printStackTrace();
-		};
-
-		TOTorrent torrent2 = null;
-		try {
-			torrent2 = TOTorrentFactory.deserialiseFromBEncodedFile(file2);
-		} catch (TOTorrentException e) {
-			e.printStackTrace();
-		};
-		
-		COConfigurationManager.setParameter( ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_SEP, false );
-		
-		OpenTorrentOptionsWindow window = addTorrent(
-				new TorrentOpenOptions(null, torrent1, false));
-		
-		addTorrent(	new TorrentOpenOptions(null, torrent2, false));
-		
-		while (!window.isDisposed()) {
-			if (!display.readAndDispatch())
-				display.sleep();
 		}
-
-		core.stop();
 	}
 
 	
@@ -306,9 +353,7 @@ public class OpenTorrentOptionsWindow
 				
 				dlg = new SkinnedDialog("skin3_dlg_opentorrent_options", "shell",
 						SWT.RESIZE | SWT.MAX | SWT.DIALOG_TRIM);
-		
-				dlg.setTitle(MessageText.getString("OpenTorrentOptions.title") + " [" + torrentOptions.getTorrentName() + "]");
-				
+						
 				final SWTSkin skin_outter = dlg.getSkin();
 												
 				SWTSkinObject so;
@@ -499,9 +544,7 @@ public class OpenTorrentOptionsWindow
 				OpenTorrentInstance instance = new OpenTorrentInstance( hash, expand_area, torrentOptions, optionListener );
 
 				addInstance( instance );
-								
-				dlg.setTitle(MessageText.getString("OpenTorrentOptions.title") + " [" + MessageText.getString("label.num.torrents",new String[]{ String.valueOf( open_instances.size())}) + "]");
-				
+												
 				if ( !sash_object.isVisible()){
 					
 					sash_object.setVisible( true );
@@ -635,7 +678,7 @@ public class OpenTorrentOptionsWindow
 						open_instances.remove( instance );
 						open_instances.add( index-1, instance );
 						
-						updateTVTorrentButtons();
+						swt_updateTVTorrentButtons();
 						
 						refreshTVTorrentIndexes();
 					}
@@ -656,7 +699,7 @@ public class OpenTorrentOptionsWindow
 						open_instances.remove( instance );
 						open_instances.add( index+1, instance );
 						
-						updateTVTorrentButtons();
+						swt_updateTVTorrentButtons();
 						
 						refreshTVTorrentIndexes();
 					}
@@ -819,7 +862,7 @@ public class OpenTorrentOptionsWindow
 					
 					selectInstance( instance );
 					
-					updateTVTorrentButtons();
+					updateButtons();
 				}
 				
 				public void mouseExit(TableRowCore row) {
@@ -834,9 +877,22 @@ public class OpenTorrentOptionsWindow
 				public void 
 				deselected(TableRowCore[] rows) 
 				{
-					updateTVTorrentButtons();
+					updateButtons();
 				}
 			
+				private void
+				updateButtons()
+				{
+					Utils.execSWTThread(
+						new Runnable()
+						{
+							public void
+							run()
+							{
+								swt_updateTVTorrentButtons();
+							}
+						});
+				}
 				public void defaultSelected(TableRowCore[] rows, int stateMask) {
 				}
 				
@@ -878,13 +934,15 @@ public class OpenTorrentOptionsWindow
 	{
 		open_instances.add( instance );
 		
+		updateDialogTitle();
+		
 		instance.initialize();
 			
 		tvTorrents.addDataSources( new OpenTorrentInstance[]{ instance });
 
 		updateInstanceInfo();
 
-		updateTVTorrentButtons();
+		swt_updateTVTorrentButtons();
 	}
 	
 	private void
@@ -899,6 +957,8 @@ public class OpenTorrentOptionsWindow
 		int index = open_instances.indexOf( instance );
 		
 		open_instances.remove( instance );
+		
+		updateDialogTitle();
 		
 		tvTorrents.removeDataSource( instance );
 				
@@ -921,7 +981,7 @@ public class OpenTorrentOptionsWindow
 			selectInstance( null );
 		}
 		
-		updateTVTorrentButtons();
+		swt_updateTVTorrentButtons();
 		
 		refreshTVTorrentIndexes();
 		
@@ -929,7 +989,26 @@ public class OpenTorrentOptionsWindow
 	}
 	
 	private void
-	updateTVTorrentButtons()
+	updateDialogTitle()
+	{
+		int num = open_instances.size();
+		
+		String text;
+		
+		if ( num == 1 ){
+			
+			text = open_instances.get(0).getOptions().getTorrentName();
+
+		}else{
+			
+			text =  MessageText.getString("label.num.torrents",new String[]{ String.valueOf( open_instances.size())});
+		}
+		
+		dlg.setTitle(MessageText.getString("OpenTorrentOptions.title") + " [" + text + "]");
+	}
+	
+	private void
+	swt_updateTVTorrentButtons()
 	{
 		List<Object> selected = tvTorrents.getSelectedDataSources();
 		
@@ -1077,17 +1156,6 @@ public class OpenTorrentOptionsWindow
 		images_to_dispose.clear();
 		
 		tvTorrents.delete();
-	}
-
-	private boolean 
-	isDisposed() 
-	{
-		if ( dlg == null ){
-			
-			return false;
-		}
-		
-		return dlg.isDisposed();
 	}
 	
 	protected class
@@ -1251,6 +1319,11 @@ public class OpenTorrentOptionsWindow
 				setupPeerSourcesOptions((SWTSkinObjectContainer) so);
 			}
 	
+			so = skin.getSkinObject("trackers");
+			if (so instanceof SWTSkinObjectContainer) {
+				setupTrackers((SWTSkinObjectContainer) so);
+			}
+			
 			so = skin.getSkinObject("ipfilter");
 			if (so instanceof SWTSkinObjectContainer) {
 				setupIPFilterOption((SWTSkinObjectContainer) so);
@@ -2509,12 +2582,34 @@ public class OpenTorrentOptionsWindow
 	
 		}
 	
+		private void setupTrackers(SWTSkinObjectContainer so) {
+			Composite parent = so.getComposite();
+	
+			Button button = new Button( parent, SWT.PUSH );
+			Messages.setLanguageText( button, "label.edit.trackers" );
+
+			button.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					List<List<String>> trackers = torrentOptions.getTrackers( false );
+					new MultiTrackerEditor( shell, null, trackers, new TrackerEditorListener() {
+						public void trackersChanged(String str, String str2, List<List<String>> updatedTrackers) {
+							torrentOptions.setTrackers(updatedTrackers);
+						}
+					}, true);
+				}});
+		}
+		
 		private void setupIPFilterOption(SWTSkinObjectContainer so) {
 			Composite parent = so.getComposite();
 	
-			Button button = new Button(parent, SWT.CHECK | SWT.WRAP);
+			parent.setBackgroundMode( SWT.INHERIT_FORCE );	// win 7 classic theme sows grey background without this
+			parent.setLayout( new GridLayout());
+			
+			Button button = new Button(parent, SWT.CHECK | SWT.WRAP );
 			Messages.setLanguageText(button, "MyTorrentsView.menu.ipf_enable");
-	
+			GridData gd = new GridData();
+			gd.verticalAlignment = SWT.CENTER;
+			button.setLayoutData( gd);
 			button.setSelection(!torrentOptions.disableIPFilter);
 	
 			button.addSelectionListener(new SelectionAdapter() {
@@ -2527,7 +2622,8 @@ public class OpenTorrentOptionsWindow
 	
 		private void setupPeerSourcesOptions(SWTSkinObjectContainer so) {
 			Composite parent = so.getComposite();
-	
+			parent.setBackgroundMode( SWT.INHERIT_FORCE );	// win 7 classic theme sows grey background without this
+
 			Group peer_sources_group = new Group(parent, SWT.NULL);
 			Messages.setLanguageText(peer_sources_group,
 					"ConfigView.section.connection.group.peersources");

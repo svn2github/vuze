@@ -158,7 +158,7 @@ public class MultiTrackerEditor {
     layoutButtons.numColumns = 4;
     cButtons.setLayout(layoutButtons);
     
-    Button btnedittext = new Button(cButtons,SWT.PUSH);
+    final Button btnedittext = new Button(cButtons,SWT.PUSH);
     gridData = new GridData();
     gridData.widthHint = 70;
     gridData.horizontalAlignment = GridData.END;
@@ -166,14 +166,18 @@ public class MultiTrackerEditor {
     Messages.setLanguageText(btnedittext,"wizard.multitracker.edit.text");
     btnedittext.addListener(SWT.Selection, new Listener() {
       public void handleEvent(Event e) {
- 
+    	  
+    	  btnSave.setEnabled( false );
+    	  btnedittext.setEnabled( false );
+    	  
     	  final String	old_text = TorrentUtils.announceGroupsToText( trackers );
     	  
     	  final TextViewerWindow viewer =
     		  new TextViewerWindow(
+    				  shell,
     				  "wizard.multitracker.edit.text.title", 
     				  "wizard.multitracker.edit.text.msg", 
-    				  old_text, true, true );
+    				  old_text, false, false );
 
     	  viewer.setEditable( true );
 			
@@ -183,39 +187,41 @@ public class MultiTrackerEditor {
 					public void 
 					closed() 
 					{
-				    	  String new_text = viewer.getText();
-				    	  
-				    	  if ( !old_text.equals( new_text )){
-				    		  
-				    		  String[] lines = new_text.split( "\n" );
-				    		  
-				    		  StringBuffer valid_text = new StringBuffer( new_text.length()+1 );
-				    		  
-				    		  for ( String line: lines ){
-				    			  
-				    			  line = line.trim();
-				    			  
-				    			  if ( line.length() > 0 ){
-				    				  
-				    				  if ( !validURL( line )){
-				    					  
-				    					  continue;
-				    				  }
-				    			  }
-				    			  
-				    			  valid_text.append( line );
-				    			  valid_text.append( "\n" );
-				    		  }
-				    		  
-				    		  trackers = TorrentUtils.announceTextToGroups( valid_text.toString());
-				    		  
-				    		  refresh();
-				    	  }
+						try{
+					    	  String new_text = viewer.getText();
+					    	  
+					    	  if ( !old_text.equals( new_text )){
+					    		  
+					    		  String[] lines = new_text.split( "\n" );
+					    		  
+					    		  StringBuffer valid_text = new StringBuffer( new_text.length()+1 );
+					    		  
+					    		  for ( String line: lines ){
+					    			  
+					    			  line = line.trim();
+					    			  
+					    			  if ( line.length() > 0 ){
+					    				  
+					    				  if ( !validURL( line )){
+					    					  
+					    					  continue;
+					    				  }
+					    			  }
+					    			  
+					    			  valid_text.append( line );
+					    			  valid_text.append( "\n" );
+					    		  }
+					    		  
+					    		  trackers = TorrentUtils.announceTextToGroups( valid_text.toString());
+					    		  
+					    		  refresh();
+					    	  }
+						}finally{
+							btnSave.setEnabled( true );
+							btnedittext.setEnabled( true );
+						}
 					}
 				});
-    	  
-    	  viewer.goModal();
-
       }
     });
     

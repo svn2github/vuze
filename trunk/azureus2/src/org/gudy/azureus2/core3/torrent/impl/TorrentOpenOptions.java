@@ -105,6 +105,8 @@ public class TorrentOpenOptions
 	
 	private List<Tag>	initialTags = new ArrayList<Tag>();
 
+	private List<List<String>>	updatedTrackers;
+	
 		// add stuff here -> update the clone constructor
 	
 	/**
@@ -149,6 +151,13 @@ public class TorrentOpenOptions
 		// this.files = ... // no clone
 		this.peerSource = toBeCloned.peerSource == null ? null : new HashMap<String, Boolean>(toBeCloned.peerSource);
 		this.initialTags = toBeCloned.initialTags == null ? null : new ArrayList<Tag>(toBeCloned.initialTags);
+		
+		if ( toBeCloned.updatedTrackers != null ){
+			updatedTrackers = new ArrayList<List<String>>();
+			for (List<String> l: toBeCloned.updatedTrackers){
+				updatedTrackers.add( new ArrayList<String>( l ));
+			}
+		}
 	}
 
 	public static int getDefaultStartMode() {
@@ -287,6 +296,37 @@ public class TorrentOpenOptions
 		List<Tag>		tags )
 	{
 		initialTags = tags;
+	}
+	
+	public List<List<String>>
+	getTrackers(
+		boolean	if_updated )
+	{
+		if ( updatedTrackers != null ){
+			
+			return( updatedTrackers );
+		}
+		
+		if ( if_updated ){
+			
+			return( null );
+		}
+		
+		if ( torrent == null ){
+			
+			return( new ArrayList<List<String>>(0));
+			
+		}else{
+		
+			return( TorrentUtils.announceGroupsToList(torrent));
+		}
+	}
+	
+	public void
+	setTrackers(
+		List<List<String>>	trackers )
+	{
+		updatedTrackers = trackers;
 	}
 	
 	public TorrentOpenFileOptions[] getFiles() {
