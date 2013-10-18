@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.peers.PeerManagerEvent;
@@ -449,6 +450,27 @@ ExternalSeedReaderImpl
 						return( true );
 					}
 				}	
+			}
+			
+				// if we have an announce result and there are no seeds, or it failed then go for it
+			
+			DownloadAnnounceResult ar = peer_manager.getDownload().getLastAnnounceResult();
+			
+			if ( ar != null ){
+				
+				if ( ar.getResponseType() == DownloadAnnounceResult.RT_ERROR ){
+					
+					log( getName() + ": activating as tracker unavailable" );
+					
+					return( true );
+				}
+				
+				if ( ar.getSeedCount() == 0 ){
+					
+					log( getName() + ": activating as no seeds" );
+					
+					return( true );
+				}
 			}
 		}catch( Throwable e ){
 			
