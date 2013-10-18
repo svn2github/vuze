@@ -94,7 +94,7 @@ ExternalSeedReaderWebSeed
 	public String
 	getName()
 	{
-		return( "WS: " + url );
+		return( "WebSeed: " + url );
 	}
 	
 	public URL 

@@ -194,7 +194,7 @@ ExternalSeedReaderGetRight
 	public String
 	getName()
 	{
-		return( "GR: " + url );
+		return( "HTTP Seed: " + url );
 	}
 	
 	public URL 
