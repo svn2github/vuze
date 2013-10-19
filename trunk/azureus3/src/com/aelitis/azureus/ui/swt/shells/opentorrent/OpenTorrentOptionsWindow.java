@@ -2588,6 +2588,10 @@ public class OpenTorrentOptionsWindow
 			Button button = new Button( parent, SWT.PUSH );
 			Messages.setLanguageText( button, "label.edit.trackers" );
 
+			TOTorrent torrent = torrentOptions.getTorrent();
+			
+			button.setEnabled( torrent != null && !TorrentUtils.isReallyPrivate( torrent ));
+			
 			button.addSelectionListener(new SelectionAdapter() {
 				public void widgetSelected(SelectionEvent e) {
 					List<List<String>> trackers = torrentOptions.getTrackers( false );

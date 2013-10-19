@@ -11,7 +11,6 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -148,6 +147,10 @@ public class ScrapeInfoView
 			}
 		});
 
+		TOTorrent torrent = manager.getTorrent();
+				
+		itemEdit.setEnabled( torrent != null && !TorrentUtils.isReallyPrivate( torrent ));
+		
 		final Listener menuListener = new Listener() {
 			public void handleEvent(Event e) {
 				if (e.widget instanceof MenuItem) {

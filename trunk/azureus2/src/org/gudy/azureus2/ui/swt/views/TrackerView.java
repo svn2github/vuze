@@ -196,6 +196,7 @@ public class TrackerView
 				});
 			
 			if ( found_tracker ){
+				
 				final MenuItem edit_item = new MenuItem( menu, SWT.PUSH);
 				
 				Messages.setLanguageText(edit_item, "MyTorrentsView.menu.editTracker");
@@ -245,6 +246,10 @@ public class TrackerView
 								});
 						}
 					});
+				
+				TOTorrent torrent = manager.getTorrent();
+				
+				edit_item.setEnabled( torrent != null && !TorrentUtils.isReallyPrivate( torrent ));
 			}
 			
 			new MenuItem( menu, SWT.SEPARATOR );

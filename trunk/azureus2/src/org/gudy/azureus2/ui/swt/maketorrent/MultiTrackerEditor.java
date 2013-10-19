@@ -217,7 +217,9 @@ public class MultiTrackerEditor {
 					    		  refresh();
 					    	  }
 						}finally{
-							btnSave.setEnabled( true );
+							
+							computeSaveEnable();
+							
 							btnedittext.setEnabled( true );
 						}
 					}
@@ -280,7 +282,7 @@ public class MultiTrackerEditor {
 	    }
     });
     
-    Point size = shell.computeSize(400,SWT.DEFAULT);
+    Point size = shell.computeSize(500,SWT.DEFAULT);
     shell.setSize(size);
     
     Utils.centreWindow( shell );
