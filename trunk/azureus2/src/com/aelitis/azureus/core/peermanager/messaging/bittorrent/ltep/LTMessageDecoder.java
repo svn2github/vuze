@@ -58,6 +58,8 @@ public class LTMessageDecoder extends BTMessageDecoder {
 				return MessageManager.getSingleton().createMessage(LTMessage.ID_UT_PEX_BYTES, ref_buff, (byte)1);
 			case 3:
 				return MessageManager.getSingleton().createMessage(LTMessage.ID_UT_METADATA_BYTES, ref_buff, (byte)1);
+			case 4:
+				return MessageManager.getSingleton().createMessage(LTMessage.ID_UT_UPLOAD_ONLY_BYTES, ref_buff, (byte)1);
 			default: {
 			  byte[]	message_id;
 			  synchronized( entension_handlers ){

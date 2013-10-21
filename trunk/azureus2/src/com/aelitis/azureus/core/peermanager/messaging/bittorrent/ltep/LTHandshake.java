@@ -112,6 +112,9 @@ public class LTHandshake implements LTMessage {
 
 		Object ulOnly = data_dict.get("upload_only");
 
+		/* NO, this is totally wrong - the entry in the extensions dict indicates the support of an 'upload_only' extension message
+		 * http://forum.utorrent.com/viewtopic.php?id=53911
+		 * 
 		if ( ulOnly == null ){
 		
 				// apparently it is actually supposed to be in the extensions dict...
@@ -123,6 +126,7 @@ public class LTHandshake implements LTMessage {
 				ulOnly = ext_dict.get("upload_only");
 			}
 		}
+		*/
 		
 		if ( ulOnly == null ){
 			return( false );
@@ -227,9 +231,9 @@ public class LTHandshake implements LTMessage {
 	addDefaultExtensionMappings(
 		boolean		enable_pex,
 		boolean		enable_md,
-		boolean		upload_only )
+		boolean		enable_uo )
 	{
-		if ( enable_pex || enable_md || upload_only ){
+		if ( enable_pex || enable_md || enable_uo ){
 			Map ext = (Map)data_dict.get("m");
 			
 			if ( ext == null ){
@@ -247,11 +251,9 @@ public class LTHandshake implements LTMessage {
 				ext.put( ID_UT_METADATA, new Long( SUBID_UT_METADATA ));
 			}
 			
-				// turns out this is stored in the extensions map rather than the root dict as previously expected
-			
-			if ( upload_only ){
+			if ( enable_uo ){
 				
-				ext.put( "upload_only", new Long( 1 ));
+				ext.put( ID_UT_UPLOAD_ONLY, new Long( SUBID_UT_UPLOAD_ONLY ));
 			}
 		}
 	}

@@ -47,5 +47,9 @@ public interface LTMessage extends Message {
 	public static final String ID_UT_METADATA        = "ut_metadata";
 	public static final byte[] ID_UT_METADATA_BYTES  = ID_UT_METADATA.getBytes();
 	public static final int SUBID_UT_METADATA        = 3;
+	
+	public static final String ID_UT_UPLOAD_ONLY        = "upload_only";
+	public static final byte[] ID_UT_UPLOAD_ONLY_BYTES  = ID_UT_UPLOAD_ONLY.getBytes();
+	public static final int SUBID_UT_UPLOAD_ONLY        = 4;
 
 }

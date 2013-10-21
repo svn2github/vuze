@@ -1092,7 +1092,7 @@ implements PEPeerTransport
 				manager.isSeeding() && 
 				!( ENABLE_LAZY_BITFIELD || manual_lazy_bitfield_control || manager.isSuperSeedMode());
 		
-			// maintain this for any kinds of compatability - moved to extension map 9/30/2013 
+			// maintain this for any kinds of compatability 
 		
 		data_dict.put( "upload_only", new Long(upload_only? 1L : 0L));
 		
@@ -1125,7 +1125,7 @@ implements PEPeerTransport
 		
 		LTHandshake lt_handshake = new LTHandshake(data_dict, other_peer_bt_lt_ext_version );
 		
-		lt_handshake.addDefaultExtensionMappings( true, is_metadata_download || metainfo_size > 0, upload_only );
+		lt_handshake.addDefaultExtensionMappings( true, is_metadata_download || metainfo_size > 0, true );
 		
 		connection.getOutgoingMessageQueue().addMessage(lt_handshake, false);
 	}
@@ -1259,55 +1259,70 @@ implements PEPeerTransport
 	 */
 	private void checkSeed()
 	{
-		// seed implicitly means *something* to send (right?)
-		if (peerHavePieces !=null && nbPieces >0)
-			setSeed((peerHavePieces.nbSet ==nbPieces));
-		else
-			setSeed(false);
+			// seed implicitly means *something* to send (right?)
 		
-		if(manager.isSeeding() && isSeed())
+		if (peerHavePieces !=null && nbPieces >0){
+			setSeed((peerHavePieces.nbSet ==nbPieces));
+		}else{
+			setSeed(false);
+		}
+		
+		if (manager.isSeeding() && isSeed()){
 			// peer is a real seed so it's also a relative seed
 			relativeSeeding |= RELATIVE_SEEDING_UPLOAD_ONLY_SEED;
-		else if(manager.isSeeding() && (relativeSeeding & RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED) != 0)
+		}else if(manager.isSeeding() && (relativeSeeding & RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED) != 0){
 			// peer indicated upload-only, we're seeding so he's a relative seed
 			relativeSeeding |= RELATIVE_SEEDING_UPLOAD_ONLY_SEED;
-		else if(peerHavePieces !=null && nbPieces > 0)
-		{ 
+		}else if(peerHavePieces !=null && nbPieces > 0){
+			
 			int piecesDone = manager.getPiecePicker().getNbPiecesDone();
 			DiskManagerPiece[] dmPieces = diskManager.getPieces();
 			boolean couldBeSeed = true;
 			
-			if(!manager.isSeeding() &&	(relativeSeeding & RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED) != 0)
-			{ /*
+			if (!manager.isSeeding() &&	(relativeSeeding & RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED) != 0 ){
+				/*
 				 * peer indicated upload-only, check if we can use any of the data, otherwise flag
 				 * as relative seed. Useful to disconnect not-useful pseudo-seeds during downloading  
 				 */
-				for(int i = peerHavePieces.start;i <= peerHavePieces.end;i++)
-				{
-					// relative seed if peer doesn't have the piece, we already have it or we don't need it
+				
+				for (int i = peerHavePieces.start;i <= peerHavePieces.end;i++){
+					
+						// relative seed if peer doesn't have the piece, we already have it or we don't need it
+					
 					couldBeSeed &= !peerHavePieces.flags[i] || dmPieces[i].isDone() || !dmPieces[i].isNeeded();
-					if(!couldBeSeed)
-						break;					
+					
+					if (!couldBeSeed){
+						
+						break;		
+					}
 				}
-			} else if(manager.isSeeding() && piecesDone <= peerHavePieces.nbSet)
-			{ // we're seeding, check if peer has all the data we have (and more), flag as relative seed if so 
-				for(int i = peerHavePieces.start;i <= peerHavePieces.end;i++)
-				{
-					// relative seed if we don't have the piece or we have it and the peer has it too
+			}else if ( manager.isSeeding() && piecesDone <= peerHavePieces.nbSet ){
+				
+					// we're seeding, check if peer has all the data we have (and more), flag as relative seed if so
+				
+				for (int i = peerHavePieces.start;i <= peerHavePieces.end;i++){
+					
+						// relative seed if we don't have the piece or we have it and the peer has it too
+					
 					couldBeSeed &= !(dmPieces[i].isDone()) || peerHavePieces.flags[i];
-					if(!couldBeSeed)
+					
+					if( !couldBeSeed ){
+						
 						break;
+					}
 				}
-			} else
+			}else{
 				couldBeSeed = false;
+			}
 			
-			if(couldBeSeed)
+			if(couldBeSeed){
 				relativeSeeding |= RELATIVE_SEEDING_UPLOAD_ONLY_SEED;
-			else
+			}else{
 				relativeSeeding &= ~RELATIVE_SEEDING_UPLOAD_ONLY_SEED;
-		} else
+			}
+		} else{
 			relativeSeeding &= ~RELATIVE_SEEDING_UPLOAD_ONLY_SEED;
-			
+		}
 	}
 
 
@@ -4078,11 +4093,17 @@ implements PEPeerTransport
 						decodeMetaData((UTMetaData)message);
 						return true;
 					}
+					
 					if( message_id.equals( AZMessage.ID_AZ_METADATA ) ) {        	
 						decodeMetaData((AZMetaData)message );
 						return true;
 					}
-
+					
+					if (message_id.equals(LTMessage.ID_UT_UPLOAD_ONLY)) {
+						decodeUploadOnly((UTUploadOnly)message);
+						return true;
+					}
+					
 					return false;
 				}
 
@@ -4624,6 +4645,27 @@ implements PEPeerTransport
 		}
 	}
 	
+	protected void 
+	decodeUploadOnly( 
+		UTUploadOnly message ) 
+	{
+		try{
+			boolean ulo = message.isUploadOnly();
+			
+			if ( ulo ){
+			
+				relativeSeeding |= RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED;
+				
+			}else{
+				
+				relativeSeeding &= ~RELATIVE_SEEDING_UPLOAD_ONLY_INDICATED;
+			}
+		}finally{
+			
+			message.destroy();
+		}
+	}
+	
 	public boolean
 	sendRequestHint(
 			int		piece_number,
@@ -4633,7 +4675,7 @@ implements PEPeerTransport
 	{
 		if ( request_hint_supported ){
 
-		  AZRequestHint	rh = new AZRequestHint( piece_number, offset, length, life, other_peer_az_request_hint_version );
+			AZRequestHint	rh = new AZRequestHint( piece_number, offset, length, life, other_peer_az_request_hint_version );
 
 			connection.getOutgoingMessageQueue().addMessage( rh, false );
 

@@ -37,6 +37,7 @@ public class LTMessageFactory {
 			MessageManager.getSingleton().registerMessageType(new LTHandshake(null, MESSAGE_VERSION_SUPPORTS_PADDING));
 			MessageManager.getSingleton().registerMessageType(new UTPeerExchange(null, null, null, MESSAGE_VERSION_SUPPORTS_PADDING));
 			MessageManager.getSingleton().registerMessageType(new UTMetaData(null, null, MESSAGE_VERSION_SUPPORTS_PADDING));
+			MessageManager.getSingleton().registerMessageType(new UTUploadOnly(false, MESSAGE_VERSION_SUPPORTS_PADDING));
 		}
 	    catch( MessageException me ) {  me.printStackTrace();  }
 	}
