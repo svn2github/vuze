@@ -74,6 +74,7 @@ TrackerWebPageResponseImpl
 	private Map<String,Object>		header_map 	= new LinkedHashMap<String,Object>();
 
 	private TrackerWebPageRequestImpl 	request;
+	private boolean						raw_output;
 	private boolean						is_async;
 	
 	private int							explicit_gzip	= 0; // not set, 1 = gzip, 2 = no gzip
@@ -233,12 +234,22 @@ TrackerWebPageResponseImpl
 		return( baos );
 	}
 
+	public OutputStream
+	getRawOutputStream()
+	
+		throws IOException
+	{
+		raw_output = true;
+		
+		return( request.getOutputStream());
+	}
+	
 	protected void
 	complete()
 
 		throws IOException
 	{
-		if ( is_async ){
+		if ( is_async || raw_output ){
 			
 			return;
 		}

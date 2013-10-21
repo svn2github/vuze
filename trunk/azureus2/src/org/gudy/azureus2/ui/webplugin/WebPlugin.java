@@ -2134,6 +2134,16 @@ WebPlugin
 				{
 					return( false );
 				}
+				
+				public OutputStream
+				getRawOutputStream()
+				
+					throws IOException
+				{
+					Debug.out( "Not supported" );
+					
+					throw( new IOException( "Not supported" ));
+				}
 			};
 			
 		try{

@@ -29,6 +29,8 @@ package org.gudy.azureus2.plugins.tracker.web;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.IOException;
+import java.net.Socket;
+
 import org.gudy.azureus2.plugins.tracker.*;
 
 public interface 
@@ -105,4 +107,16 @@ TrackerWebPageResponse
 	
 	public boolean
 	getAsynchronous();
+	
+		/**
+		 * Request complete responsibility for writing the output stream
+		 * @since 5101
+		 * @return
+		 * @throws IOException
+		 */
+	
+	public OutputStream
+	getRawOutputStream()
+	
+		throws IOException;
 }
