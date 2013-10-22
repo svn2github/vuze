@@ -37,9 +37,9 @@ import java.util.Map;
  */
 public class TrackersUtil {
   
-  private List trackers;
-  private Map multiTrackers; 
-  private Map webseeds;
+  private List<String> trackers;
+  private Map<String,List<List<String>>> multiTrackers; 
+  private Map<String,Map> webseeds;
   
   private static TrackersUtil 	instance;
   private static AEMonitor		class_mon 	= new AEMonitor( "TrackersUtil:class" );
@@ -47,9 +47,9 @@ public class TrackersUtil {
   
   
   private TrackersUtil() {
-    trackers = new ArrayList();
-    multiTrackers = new HashMap();
-    webseeds = new HashMap();
+    trackers = new ArrayList<String>();
+    multiTrackers = new HashMap<String,List<List<String>>>();
+    webseeds = new HashMap<String,Map>();
     loadList();
   }
   
@@ -68,9 +68,9 @@ public class TrackersUtil {
   	}
   }
   
-  public List getTrackersList() {
+  public List<String> getTrackersList() {
     if(trackers != null)
-      return new ArrayList(trackers);
+      return new ArrayList<String>(trackers);
     else
       return null;
   }
@@ -82,7 +82,7 @@ public class TrackersUtil {
     saveList();
   }
   
-  public void addMultiTracker(String configName, List groups) {
+  public void addMultiTracker(String configName, List<List<String>> groups) {
     multiTrackers.put(configName,groups);
     saveList();
   }
@@ -92,8 +92,8 @@ public class TrackersUtil {
     saveList();
   }
   
-  public Map getMultiTrackers() {
-    return new HashMap(multiTrackers);
+  public Map<String,List<List<String>>> getMultiTrackers() {
+    return new HashMap<String,List<List<String>>>(multiTrackers);
   }
   public void addWebSeed(String configName, Map ws) {
 	  webseeds.put(configName,ws);
@@ -105,14 +105,14 @@ public class TrackersUtil {
 	  saveList();
   }
 
-  public Map getWebSeeds() {
-	  return new HashMap(webseeds);
+  public Map<String,Map> getWebSeeds() {
+	  return new HashMap<String,Map>(webseeds);
   }
 
   public void clearAllTrackers(boolean save) {
-	  trackers = new ArrayList();
-	  multiTrackers = new HashMap();
-	  webseeds = new HashMap();
+	  trackers = new ArrayList<String>();
+	  multiTrackers = new HashMap<String,List<List<String>>>();
+	  webseeds = new HashMap<String,Map>();
 	  if (save) {saveList();}
   }
   

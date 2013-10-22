@@ -652,7 +652,7 @@ public class TorrentUtil {
 									}
 								}
 							}
-						}, true);
+						}, true, true );
 				}
 			} 
 		});

@@ -28,7 +28,9 @@ import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -37,8 +39,11 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * @author Olivier
@@ -50,8 +55,9 @@ public class MultiTrackerEditor {
   String oldName;
   String currentName;
   boolean	anonymous;
+  boolean	showTemplates;
   
-  List trackers;
+  List<List<String>> trackers;
   
   Shell shell;    
   Text textName;
@@ -63,7 +69,7 @@ public class MultiTrackerEditor {
   
   Menu menu;
   
-  public MultiTrackerEditor(Shell parent_shell, String name,List trackers,TrackerEditorListener listener) {
+  public MultiTrackerEditor(Shell parent_shell, String name, List<List<String>> trackers,TrackerEditorListener listener) {
   	this( parent_shell, name, trackers, listener, false );
   }
   
@@ -71,20 +77,34 @@ public class MultiTrackerEditor {
   MultiTrackerEditor(
 		Shell 					parent_shell,
   		String 					name,
-		List 					trackers,
+		List<List<String>> 		trackers,
 		TrackerEditorListener 	listener,
-		boolean					_anonymous ) 
+		boolean					anonymous ) 
   {
-  		this.oldName = name;
-    if(name != null)
-      this.currentName = name;
-    else
-      this.currentName = "";
-    this.listener = listener;
-    anonymous = _anonymous;
-    this.trackers = new ArrayList(trackers);
-    createWindow( parent_shell );
-    
+	  this( parent_shell, name, trackers, listener, anonymous, false );
+  }
+  
+  public 
+  MultiTrackerEditor(
+		Shell 					parent_shell,
+  		String 					name,
+		List<List<String>> 		trackers,
+		TrackerEditorListener 	listener,
+		boolean					_anonymous,
+		boolean					_showTemplates )
+  {
+	  this.oldName = name;
+	  if(name != null){
+		  this.currentName = name;
+	  }else{
+		  this.currentName = "";
+	  }
+	  this.listener = listener;
+	  anonymous = _anonymous;
+	  showTemplates	= _showTemplates;
+	  this.trackers = new ArrayList<List<String>>(trackers);
+	  createWindow( parent_shell );
+
   }
   
   private void createWindow( Shell parent_shell) {
@@ -94,7 +114,7 @@ public class MultiTrackerEditor {
 		this.shell = ShellFactory.createShell(parent_shell,SWT.DIALOG_TRIM | SWT.RESIZE);
 	}
 	
-    Messages.setLanguageText(this.shell,"wizard.multitracker.edit.title");
+    Messages.setLanguageText(this.shell, anonymous?"wizard.multitracker.edit.title":"wizard.multitracker.template.title");
     Utils.setShellIcon(shell);
     GridLayout layout = new GridLayout();
     layout.numColumns = 3;
@@ -142,11 +162,225 @@ public class MultiTrackerEditor {
     				}
     			}
     		});
-    		
+    	
+    if ( showTemplates ){
+    	
+		// template operations
+	    
+		Composite cTemplate = new Composite(shell, SWT.NONE);
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan = 3;
+		cTemplate.setLayoutData(gridData);
+		GridLayout layoutTemplate = new GridLayout();
+		layoutTemplate.numColumns = 5;
+		cTemplate.setLayout(layoutTemplate);
+
+		final Label labelTitle = new Label(cTemplate,SWT.NULL);
+		Messages.setLanguageText(labelTitle, "Search.menu.engines");
+
+
+		final Combo configList = new Combo(cTemplate,SWT.READ_ONLY);
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		configList.setLayoutData(gridData);
+
+
+		final List<Button>	buttons = new ArrayList<Button>();
+	
+		String sel_str = COConfigurationManager.getStringParameter( "multitrackereditor.last.selection", null );
+		
+		final String[]	currentTemplate = { sel_str==null||sel_str.length()==0?null:sel_str };
+
+		final Runnable updateSelection =
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					int selection = configList.getSelectionIndex();
+					
+				    boolean enabled = selection != -1;
+				    
+				    String sel_str = currentTemplate[0] = enabled?configList.getItem( selection ):null;
+				    
+				    COConfigurationManager.setParameter( "multitrackereditor.last.selection", sel_str==null?"":sel_str );
+				    
+				    Iterator<Button> it = buttons.iterator();
+				   
+				    it.next();	// skip the new button
+				   
+				    while( it.hasNext()){
+					   
+					   it.next().setEnabled( enabled );
+				    }
+				}
+			};
+				
+		final Runnable updateTemplates =
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					Map<String,List<List<String>>> multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
+					
+					configList.removeAll();
+					
+					for ( String str: multiTrackers.keySet()){
+						
+						configList.add( str );
+					}
+				
+				    String toBeSelected = currentTemplate[0];
+				    
+				    if  ( toBeSelected != null ){
+				    	
+					    int selection = configList.indexOf(toBeSelected);
+					    
+					    if (selection != -1 ){
+					      
+					    	configList.select( selection );
+					    	
+					    }else if (configList.getItemCount() > 0) {
+					    	
+					    	currentTemplate[0] = configList.getItem( 0 ); 
+					      
+					    	configList.select(0);
+					    }
+				    }
+				    
+				    updateSelection.run();
+				}
+			};
+			
+		final TrackerEditorListener	templateTEL = 
+			new TrackerEditorListener()
+			{
+				public void 
+				trackersChanged(
+					String 				oldName,
+					String 				newName,
+					List<List<String>> 	trackers)
+				{
+				    TrackersUtil util = TrackersUtil.getInstance();
+				    
+				    if  ( oldName != null && !oldName.equals( newName )){
+				    	
+				    	util.removeMultiTracker( oldName );
+				    }
+				    
+				    util.addMultiTracker( newName, trackers );
+				    
+				    currentTemplate[0] = newName;
+				    
+				    updateTemplates.run();
+				}
+			};
+			
+	
+		final Button btnNew = new Button(cTemplate, SWT.PUSH);
+		buttons.add( btnNew );
+		Messages.setLanguageText(btnNew, "wizard.multitracker.new");
+		btnNew.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				List group = new ArrayList();
+				List tracker = new ArrayList();
+				group.add(tracker);
+				new MultiTrackerEditor(btnNew.getShell(), null,group, templateTEL);
+			}
+		});
+				
+		configList.addListener(SWT.Selection,new Listener() {
+			public void handleEvent(Event e) {                
+				updateSelection.run();
+			}
+		});
+		
+		
+		final Button btnEdit = new Button(cTemplate, SWT.PUSH);   
+		buttons.add( btnEdit );
+		Messages.setLanguageText(btnEdit, "wizard.multitracker.edit");
+		btnEdit.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {			
+				Map multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
+				String	selected = currentTemplate[0];								
+				new MultiTrackerEditor( btnEdit.getShell(),selected,(List)multiTrackers.get(selected), templateTEL );
+			}
+		});
+
+		final Button btnDelete = new Button(cTemplate, SWT.PUSH);
+		buttons.add( btnDelete );
+		Messages.setLanguageText(btnDelete, "wizard.multitracker.delete");
+		btnDelete.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				String	selected = currentTemplate[0];
+				TrackersUtil.getInstance().removeMultiTracker(selected);
+				updateTemplates.run();
+			}
+		});
+
+		Label labelApply = new Label(cTemplate,SWT.NULL);
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
+		gridData.horizontalSpan = 2;
+		labelApply.setLayoutData(gridData);
+		Messages.setLanguageText(labelApply, "apply.selected.template");
+
+		final Button btnReplace = new Button(cTemplate, SWT.PUSH);
+		buttons.add( btnReplace );
+		Messages.setLanguageText(btnReplace, "label.replace");
+		btnReplace.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				Map<String,List<List<String>>> multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
+				String	selected = currentTemplate[0];	
+				trackers = getClone(multiTrackers.get( selected ));
+				refresh();
+				computeSaveEnable();
+			}
+		});
+		
+		final Button btnMerge = new Button(cTemplate, SWT.PUSH);
+		buttons.add( btnMerge );
+		Messages.setLanguageText(btnMerge, "label.merge");
+		btnMerge.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				Map<String,List<List<String>>> multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
+				String	selected = currentTemplate[0];
+				List<List<String>> toMerge = getClone(multiTrackers.get( selected ));
+				Set<String> mergesSet = new HashSet<String>();
+				for ( List<String> l: toMerge ){
+					mergesSet.addAll(l);
+				}
+				Iterator<List<String>> it1 = trackers.iterator();
+				while( it1.hasNext()){
+					List<String> l = it1.next();
+					Iterator<String> it2 = l.iterator();
+					while( it2.hasNext()){
+						if ( mergesSet.contains( it2.next())){
+							it2.remove();
+						}
+					}
+					if ( l.isEmpty()){
+						it1.remove();
+					}
+				}
+				
+				trackers.addAll( toMerge );
+				
+				refresh();
+				computeSaveEnable();
+			}
+		});
+		
+		updateTemplates.run();
+		
+		Utils.makeButtonsEqualWidth( buttons );
+		
+    }
+
+
     Label labelSeparator = new Label(shell,SWT.SEPARATOR | SWT.HORIZONTAL);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
-    labelSeparator.setLayoutData(gridData);
+    labelSeparator.setLayoutData(gridData);    
     
     	// button row 
     
@@ -170,6 +404,19 @@ public class MultiTrackerEditor {
     	  btnSave.setEnabled( false );
     	  btnedittext.setEnabled( false );
     	  
+    	  trackers = new ArrayList();
+    	  TreeItem[] groupItems = treeGroups.getItems();
+
+    	  for(int i = 0 ; i < groupItems.length ; i++) {
+    		  TreeItem group = groupItems[i];      
+    		  TreeItem[] trackerItems = group.getItems();
+    		  List groupList = new ArrayList(group.getItemCount());
+    		  for(int j = 0 ; j < trackerItems.length ; j++) {
+    			  groupList.add(trackerItems[j].getText());
+    		  }
+    		  trackers.add(groupList);
+    	  }
+    	    
     	  final String	old_text = TorrentUtils.announceGroupsToText( trackers );
     	  
     	  final TextViewerWindow viewer =
@@ -289,6 +536,17 @@ public class MultiTrackerEditor {
     
     shell.open();
   }  
+  
+  private List<List<String>>
+  getClone(
+	List<List<String>> lls )
+  {
+	 List<List<String>>	result = new ArrayList<List<String>>( lls.size());
+	 for ( List<String> l: lls ){
+		 result.add(new ArrayList<String>( l ));
+	 }
+	 return( result );
+  }
   
   private void update() {
     trackers = new ArrayList();

@@ -143,7 +143,7 @@ public class ScrapeInfoView
 							tc.resetTrackerUrl(true);
 						}
 					}
-				}, true);
+				}, true, true );
 			}
 		});
 

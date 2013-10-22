@@ -241,7 +241,7 @@ public class TrackerView
 													tc.resetTrackerUrl(true);
 												}
 											}
-										}, true);
+										}, true, true );
 									}
 								});
 						}

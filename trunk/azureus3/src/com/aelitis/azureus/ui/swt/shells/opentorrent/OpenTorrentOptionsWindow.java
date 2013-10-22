@@ -2599,7 +2599,7 @@ public class OpenTorrentOptionsWindow
 						public void trackersChanged(String str, String str2, List<List<String>> updatedTrackers) {
 							torrentOptions.setTrackers(updatedTrackers);
 						}
-					}, true);
+					}, true, true );
 				}});
 		}
 		
