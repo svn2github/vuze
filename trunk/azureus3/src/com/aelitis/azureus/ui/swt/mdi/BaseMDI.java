@@ -422,7 +422,7 @@ public abstract class BaseMDI
 				for (Map map: orderedEntries){
 					String id = (String)map.get( "id" );
 					
-					System.out.println( "loaded " + id );
+					//System.out.println( "loaded " + id );
 					Object o = map.get( "value" );
 					if (o instanceof Map<?, ?>) {
 						if (!processAutoOpenMap(id, (Map<?, ?>) o, null)) {
@@ -442,40 +442,49 @@ public abstract class BaseMDI
 		"rawtypes"
 	})
 	public void saveCloseables() {
-		// update auto open info
-		for (Iterator<?> iter = mapAutoOpen.keySet().iterator(); iter.hasNext();) {
-			String id = (String) iter.next();
-
-			MdiEntry entry = getEntry(id);
-			
-			if (entry != null && entry.isAdded()) {
-				mapAutoOpen.put(id, entry.getAutoOpenInfo());
-			} else {
-				mapAutoOpen.remove(id);
+		try{
+			// update auto open info
+			for (Iterator<String> iter = new ArrayList<String>(mapAutoOpen.keySet()).iterator(); iter.hasNext();) {
+				String id = (String) iter.next();
+	
+				MdiEntry entry = getEntry(id);
+				
+				if ( entry != null && entry.isAdded()){
+					
+					mapAutoOpen.put(id, entry.getAutoOpenInfo());
+					
+				}else{
+					
+					mapAutoOpen.remove(id);
+				}
 			}
-		}
-
-		Map map = new HashMap();
-		
-		List<Map> list = new ArrayList<Map>( mapAutoOpen.size());
-		
-		map.put( "_entries_", list );
-		
-		for ( Map.Entry<String,Object> entry: mapAutoOpen.entrySet()){
+	
+			Map map = new HashMap();
 			
-			Map m = new HashMap();
+			List<Map> list = new ArrayList<Map>( mapAutoOpen.size());
 			
-			list.add( m );
+			map.put( "_entries_", list );
 			
-			String id = entry.getKey();
+			for ( Map.Entry<String,Object> entry: mapAutoOpen.entrySet()){
+				
+				Map m = new HashMap();
+				
+				list.add( m );
+				
+				String id = entry.getKey();
+				
+				m.put( "id", id );
+				m.put( "value", entry.getValue());
+				
+				//System.out.println( "saved " + id );
+			}
 			
-			m.put( "id", id );
-			m.put( "value", entry.getValue());
+			FileUtil.writeResilientConfigFile("sidebarauto.config", map );
 			
-			System.out.println( "saved " + id );
-		}
-		
-		FileUtil.writeResilientConfigFile("sidebarauto.config", map );
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}	
 	}
 
 	private boolean processAutoOpenMap(String id, Map<?, ?> autoOpenInfo,

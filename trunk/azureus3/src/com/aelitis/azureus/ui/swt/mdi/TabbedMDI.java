@@ -11,7 +11,6 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
@@ -70,17 +69,34 @@ public class TabbedMDI
 			
 			public void UIAttached(UIInstance instance) {
 				if (instance instanceof UISWTInstance) {
+					
+					final AESemaphore wait_sem = new AESemaphore( "TabbedMDI:wait" );
+					
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
-							try {
-								loadCloseables();
-							} catch (Throwable t) {
-								Debug.out(t);
+							try{
+								try {
+									loadCloseables();
+								} catch (Throwable t) {
+									Debug.out(t);
+								}
+	
+								setupPluginViews();
+								
+							}finally{
+								
+								wait_sem.release();
 							}
-
-							setupPluginViews();
 						}
 					});
+					
+						// we need to wait for the loadCloseables to complete as there is code in MainMDISetup that runs on the 'UIAttachedComplete'
+						// callback that needs the closables to be loaded (when setting 'start tab') otherwise the order gets broken
+				
+					if ( !wait_sem.reserve(10*1000)){
+						
+						Debug.out( "eh?");
+					}
 				}
 			}
 		});
