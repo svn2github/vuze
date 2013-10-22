@@ -298,17 +298,32 @@ public class SideBar
 			
 			public void UIAttached(UIInstance instance) {
 				if (instance instanceof UISWTInstance) {
+					final AESemaphore wait_sem = new AESemaphore( "SideBar:wait" );
+					
 					Utils.execSWTThread(new AERunnable() {
 						public void runSupport() {
-							try {
-								loadCloseables();
-							} catch (Throwable t) {
-								Debug.out(t);
+							try{
+								try {
+									loadCloseables();
+								} catch (Throwable t) {
+									Debug.out(t);
+								}
+	
+								setupPluginViews();
+							}finally{
+								
+								wait_sem.release();
 							}
-
-							setupPluginViews();
 						}
 					});
+					
+						// we need to wait for the loadCloseables to complete as there is code in MainMDISetup that runs on the 'UIAttachedComplete'
+						// callback that needs the closables to be loaded (when setting 'start tab') otherwise the order gets broken
+					
+					if ( !wait_sem.reserve(10*1000)){
+						
+						Debug.out( "eh?");
+					}
 				}
 			}
 		});
