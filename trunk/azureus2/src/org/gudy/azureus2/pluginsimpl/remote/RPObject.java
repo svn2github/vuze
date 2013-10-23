@@ -27,8 +27,6 @@ import org.gudy.azureus2.pluginsimpl.remote.rpexceptions.*;
 
 import java.util.*;
 
-import org.gudy.azureus2.core3.util.RandomUtils;
-import org.gudy.azureus2.core3.util.SystemTime;
 
 public class
 RPObject
@@ -40,11 +38,11 @@ RPObject
         //      object_id refers to RPObject
         // so neither weak map is cleared down
 
-    protected static Map  	object_registry         = new WeakHashMap();
+    protected transient static Map  	object_registry     	= new WeakHashMap();
 
-    protected static Map    object_registry_reverse = new WeakHashMap();
+    protected transient static Map    	object_registry_reverse = new WeakHashMap();
 
-    protected static long   next_key        		= RandomUtils.nextLong();
+    protected transient static long   	next_key        		= new Random().nextLong();
 
     public Long _object_id;
 
