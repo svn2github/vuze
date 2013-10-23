@@ -392,9 +392,11 @@ public class MultiTrackerEditor {
     layoutButtons.numColumns = 4;
     cButtons.setLayout(layoutButtons);
     
+    List<Button> buttons = new ArrayList<Button>();
+    
     final Button btnedittext = new Button(cButtons,SWT.PUSH);
+    buttons.add( btnedittext );
     gridData = new GridData();
-    gridData.widthHint = 70;
     gridData.horizontalAlignment = GridData.END;
     btnedittext.setLayoutData(gridData);
     Messages.setLanguageText(btnedittext,"wizard.multitracker.edit.text");
@@ -479,8 +481,8 @@ public class MultiTrackerEditor {
     label.setLayoutData(gridData);
     
     btnSave = new Button(cButtons,SWT.PUSH);
+    buttons.add( btnSave );
     gridData = new GridData();
-    gridData.widthHint = 70;
     gridData.horizontalAlignment = GridData.END;
     btnSave.setLayoutData(gridData);
     Messages.setLanguageText(btnSave,"wizard.multitracker.edit.save");
@@ -492,9 +494,9 @@ public class MultiTrackerEditor {
     });
     
     btnCancel = new Button(cButtons,SWT.PUSH);
+    buttons.add( btnCancel );
     gridData = new GridData();
     gridData.horizontalAlignment = GridData.END;
-    gridData.widthHint = 70;
     btnCancel.setLayoutData(gridData);
     Messages.setLanguageText(btnCancel,"Button.cancel");
     btnCancel.addListener(SWT.Selection, new Listener() {
@@ -503,6 +505,8 @@ public class MultiTrackerEditor {
       }
     });
     
+	Utils.makeButtonsEqualWidth( buttons );
+	
     shell.setDefaultButton( btnSave );
     
     shell.addListener(SWT.Traverse, new Listener() {	
