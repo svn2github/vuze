@@ -363,7 +363,11 @@ public class MultiTrackerEditor {
 					}
 				}
 				
-				trackers.addAll( toMerge );
+				for (List<String> l: toMerge ){
+					if ( !l.isEmpty()){
+						trackers.add( l );
+					}
+				}
 				
 				refresh();
 				computeSaveEnable();
