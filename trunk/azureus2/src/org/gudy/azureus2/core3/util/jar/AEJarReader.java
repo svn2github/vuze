@@ -30,8 +30,6 @@ import java.util.*;
 import java.io.*;
 import java.util.jar.*;
 
-import org.gudy.azureus2.core3.util.Debug;
-
 public class 
 AEJarReader 
 {
@@ -84,7 +82,7 @@ AEJarReader
 		
 		}catch( Throwable e ){
 			
-			Debug.printStackTrace( e );
+			e.printStackTrace();
 						
 		}finally{
 			

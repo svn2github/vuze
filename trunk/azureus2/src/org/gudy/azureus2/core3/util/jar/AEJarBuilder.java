@@ -237,7 +237,12 @@ AEJarBuilder
 		
 		JarEntry entry = new JarEntry("META-INF/MANIFEST.MF");
 		
-		ByteArrayInputStream bais = new ByteArrayInputStream("Manifest-Version: 1.0\r\n\r\n".getBytes());
+		String manifest_lines = 
+				"Manifest-Version: 1.0\r\n" + 
+				"Permissions: all-permissions\r\n" + 
+				"\r\n";
+		
+		ByteArrayInputStream bais = new ByteArrayInputStream( manifest_lines.getBytes( "ISO-8859-1" ));
 		
 		writeEntry( jos, entry, bais );
 		
