@@ -25,7 +25,6 @@ import java.util.Iterator;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -35,11 +34,8 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
-import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.DoubleBufferedLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
-
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
@@ -73,6 +69,8 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	private int xSize;
 	private boolean separateDataProt;
 	
+	private float width_multiplier = 1.0f;
+	
 	protected MiniBar(MiniBarManager manager) {
 		this.manager = manager;
 		setPrebuildValues();
@@ -103,6 +101,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	}
 	
 	protected final void createGap(int width) {
+		width = (int)(width * width_multiplier );
 		// We create a label just so we can attach the menu to it.
 		assertConstructing();
 		Label result = new Label(splash, SWT.NONE);
@@ -145,6 +144,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	}
 	
 	protected final DoubleBufferedLabel createDataLabel(int width, boolean centered) {
+		width = (int)(width * width_multiplier );
 		assertConstructing();
 		DoubleBufferedLabel result = new DoubleBufferedLabel(splash, (centered ? SWT.CENTER : SWT.NULL) | SWT.DOUBLE_BUFFERED );
 	    result.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
@@ -179,6 +179,7 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	}
 	
 	protected final ProgressBar createProgressBar(int min, int max, int width, final ProgressBarText pbt) {
+		width = (int)(width * width_multiplier );
 		final ProgressBar result = new ProgressBar(splash, SWT.SMOOTH);
 		result.setBackground(Colors.blues[Colors.BLUES_LIGHTEST]);
 		result.setForeground(Colors.blues[Colors.BLUES_MIDLIGHT]);
@@ -264,6 +265,22 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 		
 	    
 	    lDrag = new Label(splash, SWT.NULL);
+	   
+	    int	testTextHeight = 0;
+	    try{
+	    	GC gc = new GC(lDrag);
+	    	gc.setFont(splash.getDisplay().getSystemFont());
+	    	Point textSize = gc.textExtent( "Vuze Rocks innit: 100 MB/sec");
+	    	int textWidth 	= textSize.x;
+	    	testTextHeight 	= textSize.y;
+	    	
+	    	if ( textWidth > 139 ){	// 139 is what parg gets normally on Windows
+	    		width_multiplier = textWidth/139.0f;
+	    	}
+	    	gc.dispose();
+	    }catch( Throwable e ){
+	    	Debug.out( e);
+	    }
 	    if(!Constants.isOSX) {
 	      lDrag.setImage(ImageLoader.getInstance().getImage("dragger"));
 	      lDrag.addDisposeListener(new DisposeListener() {
@@ -274,8 +291,13 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	    }
 	    lDrag.pack();
 	    
-	    this.xSize = lDrag.getSize().x + 3;
-	    lDrag.setLocation(0, 0);
+	    int	yPad = 0;
+	    Point lDragSize = lDrag.getSize();
+	    this.xSize = lDragSize.x + 3;
+	    if ( lDragSize.y < testTextHeight ){
+	    	yPad = ( testTextHeight - lDragSize.y )/2;
+	    }
+	    lDrag.setLocation(0, yPad);
 
 	    this.mListener = new MouseAdapter() {
 	      public void mouseDown(MouseEvent e) {
