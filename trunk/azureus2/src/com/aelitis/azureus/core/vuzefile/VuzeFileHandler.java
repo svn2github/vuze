@@ -37,7 +37,6 @@ import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
-import com.aelitis.azureus.util.JSONUtils;
 
 
 public class 
@@ -51,7 +50,7 @@ VuzeFileHandler
 		return( singleton );
 	}
 	
-	private CopyOnWriteList	processors = new CopyOnWriteList();
+	private CopyOnWriteList<VuzeFileProcessor>	processors = new CopyOnWriteList<VuzeFileProcessor>();
 	
 	
 	protected
@@ -223,11 +222,11 @@ VuzeFileHandler
 		VuzeFile[]		files,
 		int				expected_types )
 	{
-		Iterator it = processors.iterator();
+		Iterator<VuzeFileProcessor> it = processors.iterator();
 		
 		while( it.hasNext()){
 			
-			VuzeFileProcessor	proc = (VuzeFileProcessor)it.next();
+			VuzeFileProcessor	proc = it.next();
 			
 			try{
 				proc.process( files, expected_types );
