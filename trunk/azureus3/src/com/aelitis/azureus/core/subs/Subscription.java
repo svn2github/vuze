@@ -32,6 +32,8 @@ Subscription
 {
 	public static final int AZ_VERSION	= 1;
 	
+	public static final Object	VUZE_FILE_COMPONENT_SUBSCRIPTION_KEY = new Object();
+
 	public String
 	getName();
 	

@@ -153,13 +153,15 @@ SubscriptionManagerImpl
 									type == VuzeFileComponent.COMP_TYPE_SUBSCRIPTION_SINGLETON ){
 								
 								try{
-									((SubscriptionManagerImpl)getSingleton( false )).importSubscription(
+									Subscription subs = ((SubscriptionManagerImpl)getSingleton( false )).importSubscription(
 											type,
 											comp.getContent(),
 											( expected_types & 
 												( VuzeFileComponent.COMP_TYPE_SUBSCRIPTION | VuzeFileComponent.COMP_TYPE_SUBSCRIPTION_SINGLETON )) == 0 );
 									
 									comp.setProcessed();
+									
+									comp.setData( Subscription.VUZE_FILE_COMPONENT_SUBSCRIPTION_KEY, subs );
 									
 								}catch( Throwable e ){
 									
