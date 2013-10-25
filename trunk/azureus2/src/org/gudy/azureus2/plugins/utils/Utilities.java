@@ -396,6 +396,53 @@ Utilities
 	public void
 	removeLocationProviderListener(
 		LocationProviderListener		listener );
+	
+	
+	public void
+	registerJSONRPCServer(
+		JSONServer		server );		
+	
+	public void
+	unregisterJSONRPCServer(
+		JSONServer		server );		
+
+	public void
+	registerJSONRPCClient(
+		JSONClient		client );
+	
+	public void
+	unregisterJSONRPCClient(
+		JSONClient		client );
+
+	
+	public interface
+	JSONServer
+	{
+		public String
+		getName();
+		
+		public List<String>
+		getSupportedMethods();
+		
+		public Map
+		call(
+			String			method,
+			Map		args )
+		
+			throws PluginException;
+	}
+	
+	public interface
+	JSONClient
+	{
+		public void
+		serverRegistered(
+			JSONServer	server );
+		
+		public void
+		serverUnregistered(
+			JSONServer	server );
+	}
 }
 
 

@@ -63,7 +63,6 @@ import org.gudy.azureus2.pluginsimpl.local.utils.resourceuploader.ResourceUpload
 import org.gudy.azureus2.pluginsimpl.local.utils.security.*;
 import org.gudy.azureus2.pluginsimpl.local.utils.xml.rss.RSSFeedImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPChecker;
 import org.gudy.azureus2.core3.ipchecker.extipchecker.ExternalIPCheckerFactory;
@@ -73,8 +72,10 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -89,6 +90,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
@@ -2001,5 +2003,84 @@ UtilitiesImpl
 			return( name + " (" + target.getClass() + ")" );
 		}
 
+	}
+		
+	private static Map<String,JSONServer>	json_servers = new HashMap<String,JSONServer>();
+	private static  Map<String,JSONClient>	json_clients = new HashMap<String,JSONClient>();
+	
+	public void
+	registerJSONRPCServer(
+		final JSONServer		server )
+	{
+		String key = (pi==null?"default":pi.getPluginID()) + ":" + server.getName();
+		
+		synchronized( json_servers ){
+
+			JSONServer existing = json_servers.get( key );
+			
+			if ( existing != null ){
+				
+				for ( JSONClient client: json_clients.values()){
+					
+					client.serverUnregistered( existing );
+				}
+			}
+			
+			json_servers.put( key, server );
+			
+			for ( JSONClient client: json_clients.values()){
+				
+				client.serverRegistered( server );
+			}
+		}
+	}	
+	
+	public void
+	unregisterJSONRPCServer(
+		JSONServer		server )
+	{
+		String key = (pi==null?"default":pi.getPluginID()) + ":" + server.getName();
+		
+		synchronized( json_servers ){
+
+			JSONServer existing = json_servers.remove( key );
+			
+			if ( existing != null ){
+				
+				for ( JSONClient client: json_clients.values()){
+					
+					client.serverUnregistered( existing );
+				}
+			}
+		}
+	}
+
+	public void
+	registerJSONRPCClient(
+		JSONClient		client )
+	{
+		String key = pi==null?"default":pi.getPluginID();
+
+		synchronized( json_servers ){
+
+			json_clients.put( key, client );
+			
+			for ( JSONServer server: json_servers.values()){
+				
+				client.serverRegistered( server );
+			}
+		}
+	}
+	
+	public void
+	unregisterJSONRPCClient(
+		JSONClient		client )
+	{
+		String key = pi==null?"default":pi.getPluginID();
+
+		synchronized( json_servers ){
+
+			json_clients.remove( key );
+		}
 	}
 }

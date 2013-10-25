@@ -37,6 +37,8 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.PluginException;
+import org.gudy.azureus2.plugins.utils.Utilities;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.download.*;
 import org.gudy.azureus2.plugins.peers.PeerManager;
@@ -56,6 +58,7 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
+import org.json.simple.JSONObject;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
@@ -755,6 +758,38 @@ SubscriptionManagerImpl
 				Debug.out( "Failed to register search provider" );
 			}
 		}
+		
+		default_pi.getUtilities().registerJSONRPCServer(
+			new Utilities.JSONServer()
+			{
+				private List<String>	methods = new ArrayList<String>();
+				
+				{
+					methods.add( "vuze-subs-list" );
+				}
+				
+				public String
+				getName()
+				{
+					return( "Subscriptions" );
+				}
+				
+				public List<String> 
+				getSupportedMethods() 
+				{
+					return( methods );
+				}
+				
+				public Map 
+				call(
+					String 		method, 
+					Map		 	args )
+						
+					throws PluginException 
+				{
+					throw( new PluginException( "derp" ));
+				}
+			});
 	}
 
 	protected Object[]
