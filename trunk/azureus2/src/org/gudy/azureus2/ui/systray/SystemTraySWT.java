@@ -206,6 +206,12 @@ public class SystemTraySWT
 
 		new MenuItem(menu, SWT.SEPARATOR);
 
+		final MenuItem itemAddTorrent = new MenuItem(menu, SWT.NULL);
+		Messages.setLanguageText(itemAddTorrent,
+				"menu.open.torrent");
+		
+		new MenuItem(menu, SWT.SEPARATOR);
+
 		final MenuItem itemCloseAll = new MenuItem(menu, SWT.NULL);
 		Messages.setLanguageText(itemCloseAll,
 				"SystemTray.menu.closealldownloadbars");
@@ -251,6 +257,12 @@ public class SystemTraySWT
 			}
 		});
 
+		itemAddTorrent.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event arg0) {
+				uiFunctions.openTorrentWindow();
+			}
+		});
+		
 		itemStartAll.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
 				if (gm == null) {
