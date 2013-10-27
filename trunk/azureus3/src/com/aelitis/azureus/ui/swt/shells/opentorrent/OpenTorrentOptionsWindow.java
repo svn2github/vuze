@@ -2558,28 +2558,32 @@ public class OpenTorrentOptionsWindow
 			}
 	
 			so = skin.getSkinObject("torrentinfo-trackername");
-			if (so instanceof SWTSkinObjectText) {
-				((SWTSkinObjectText) so).setText(TrackerNameItem.getTrackerName(torrentOptions.getTorrent()));
-			}
-	
-			so = skin.getSkinObject("torrentinfo-comment");
-			if (so instanceof SWTSkinObjectText) {
-	
-				try {
-					LocaleUtilDecoder decoder = LocaleTorrentUtil.getTorrentEncoding(torrentOptions.getTorrent());
-					String s = decoder.decodeString(torrentOptions.getTorrent().getComment());
-					((SWTSkinObjectText) so).setText(s);
-				} catch (UnsupportedEncodingException e) {
-				} catch (TOTorrentException e) {
+			
+			TOTorrent torrent = torrentOptions.getTorrent();
+			
+			if ( torrent != null ){
+				if (so instanceof SWTSkinObjectText) {
+					((SWTSkinObjectText) so).setText(TrackerNameItem.getTrackerName(torrent));
+				}
+		
+				so = skin.getSkinObject("torrentinfo-comment");
+				if (so instanceof SWTSkinObjectText) {
+		
+					try {
+						LocaleUtilDecoder decoder = LocaleTorrentUtil.getTorrentEncoding(torrent);
+						String s = decoder.decodeString(torrent.getComment());
+						((SWTSkinObjectText) so).setText(s);
+					} catch (UnsupportedEncodingException e) {
+					} catch (TOTorrentException e) {
+					}
+				}
+		
+				so = skin.getSkinObject("torrentinfo-createdon");
+				if (so instanceof SWTSkinObjectText) {
+					String creation_date = DisplayFormatters.formatDate(torrent.getCreationDate());
+					((SWTSkinObjectText) so).setText(creation_date);
 				}
 			}
-	
-			so = skin.getSkinObject("torrentinfo-createdon");
-			if (so instanceof SWTSkinObjectText) {
-				String creation_date = DisplayFormatters.formatDate(torrentOptions.getTorrent().getCreationDate());
-				((SWTSkinObjectText) so).setText(creation_date);
-			}
-	
 		}
 	
 		private void setupTrackers(SWTSkinObjectContainer so) {
