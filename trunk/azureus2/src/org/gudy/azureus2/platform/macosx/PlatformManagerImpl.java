@@ -198,7 +198,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 				boolean	found = false;
 
 				try{
-					String[] read_command = { "/usr/bin/defaults", "read", "com.azureus.vuze" };
+					String[] read_command = { "/usr/bin/defaults", "read", BUNDLE_ID };
 				  	
 					Process p = Runtime.getRuntime().exec( read_command );
 									
@@ -235,7 +235,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 		        	String[] write_command = {
 		        		"/usr/bin/defaults",
 		        		"write",
-		        		"com.azureus.vuze",
+		        		BUNDLE_ID,
 		        		"NSAppSleepDisabled",
 		        		"-bool",
 		        		"YES"
