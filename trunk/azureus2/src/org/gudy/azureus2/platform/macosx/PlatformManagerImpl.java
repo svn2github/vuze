@@ -195,39 +195,44 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         try{
         	if ( new File( "/usr/bin/defaults" ).exists()){
      
-				String[] read_command = { "/usr/bin/defaults", "read", "com.azureus.vuze" };
-			  	
-				Process p = Runtime.getRuntime().exec( read_command );
-				
 				boolean	found = false;
-				
-				if ( p.waitFor() == 0 ){
-										
-					InputStream is = p.getInputStream();
-					
-					LineNumberReader lnr = new LineNumberReader( new InputStreamReader( is, "UTF-8" ));
-					
-					while( true ){
+
+				try{
+					String[] read_command = { "/usr/bin/defaults", "read", "com.azureus.vuze" };
+				  	
+					Process p = Runtime.getRuntime().exec( read_command );
+									
+					if ( p.waitFor() == 0 ){
+											
+						InputStream is = p.getInputStream();
 						
-						String line = lnr.readLine();
+						LineNumberReader lnr = new LineNumberReader( new InputStreamReader( is, "UTF-8" ));
 						
-						if ( line == null ){
+						while( true ){
 							
-							break;
-						}
-						
-						if ( line.contains( "NSAppSleepDisabled" )){
+							String line = lnr.readLine();
 							
-							found = true;
+							if ( line == null ){
+								
+								break;
+							}
 							
-							break;
+							if ( line.contains( "NSAppSleepDisabled" )){
+								
+								found = true;
+								
+								break;
+							}
 						}
 					}
+				}catch( Throwable e ){
+					
+					e.printStackTrace();
 				}
-        		
+				
         		if ( !found ){
         			
-		        	String[] command = {
+		        	String[] write_command = {
 		        		"/usr/bin/defaults",
 		        		"write",
 		        		"com.azureus.vuze",
@@ -236,7 +241,7 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
 		        		"YES"
 		        	};
 		        	
-		        	Runtime.getRuntime().exec( command );
+		        	Runtime.getRuntime().exec( write_command );
         		}	
         	}else{
         		
