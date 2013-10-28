@@ -347,7 +347,7 @@ UserAlerts
 
 			    			if ( f.exists()){
 
-		    					URL	file_url = f.toURL();
+		    					URL	file_url = f.toURI().toURL();
 
 		    					audio_clip = Applet.newAudioClip( file_url );
 			    			}

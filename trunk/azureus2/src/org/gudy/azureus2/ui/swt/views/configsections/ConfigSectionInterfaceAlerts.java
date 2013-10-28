@@ -171,7 +171,7 @@ public class ConfigSectionInterfaceAlerts
 					new AEThread2("SoundTest") {
 						public void run() {
 							try {
-								Applet.newAudioClip(new File(path).toURL()).play();
+								Applet.newAudioClip(new File(path).toURI().toURL()).play();
 
 								Thread.sleep(2500);
 
@@ -272,7 +272,7 @@ public class ConfigSectionInterfaceAlerts
 					new AEThread2("SoundTest") {
 						public void run() {
 							try {
-								Applet.newAudioClip(new File(path).toURL()).play();
+								Applet.newAudioClip(new File(path).toURI().toURL()).play();
 
 								Thread.sleep(2500);
 
