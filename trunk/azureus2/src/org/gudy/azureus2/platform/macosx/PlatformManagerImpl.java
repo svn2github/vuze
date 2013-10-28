@@ -192,6 +192,29 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         	capabilitySet.add( PlatformManagerCapabilities.PreventComputerSleep );
         }
         
+        try{
+        	if ( new File( "/usr/bin/defaults" ).exists()){
+        		
+	        	String[] command = {
+	        		"/usr/bin/defaults",
+	        		"write",
+	        		"com.azureus.vuze",
+	        		"NSAppSleepDisabled",
+	        		"-bool",
+	        		"YES"
+	        	};
+	        	
+	        	Runtime.getRuntime().exec( command );
+	        	
+        	}else{
+        		
+        		System.err.println( "/usr/bin/defaults missing" );
+        	}
+        }catch( Throwable e ){
+        	
+        	e.printStackTrace();
+        }
+        
         AEDiagnostics.addEvidenceGenerator(this);
     }
 
