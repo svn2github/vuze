@@ -194,18 +194,50 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
         
         try{
         	if ( new File( "/usr/bin/defaults" ).exists()){
+     
+				String[] read_command = { "/usr/bin/defaults", "read", "com.azureus.vuze" };
+			  	
+				Process p = Runtime.getRuntime().exec( read_command );
+				
+				boolean	found = false;
+				
+				if ( p.waitFor() == 0 ){
+										
+					InputStream is = p.getInputStream();
+					
+					LineNumberReader lnr = new LineNumberReader( new InputStreamReader( is, "UTF-8" ));
+					
+					while( true ){
+						
+						String line = lnr.readLine();
+						
+						if ( line == null ){
+							
+							break;
+						}
+						
+						if ( line.contains( "NSAppSleepDisabled" )){
+							
+							found = true;
+							
+							break;
+						}
+					}
+				}
         		
-	        	String[] command = {
-	        		"/usr/bin/defaults",
-	        		"write",
-	        		"com.azureus.vuze",
-	        		"NSAppSleepDisabled",
-	        		"-bool",
-	        		"YES"
-	        	};
-	        	
-	        	Runtime.getRuntime().exec( command );
-	        	
+        		if ( !found ){
+        			
+		        	String[] command = {
+		        		"/usr/bin/defaults",
+		        		"write",
+		        		"com.azureus.vuze",
+		        		"NSAppSleepDisabled",
+		        		"-bool",
+		        		"YES"
+		        	};
+		        	
+		        	Runtime.getRuntime().exec( command );
+        		}	
         	}else{
         		
         		System.err.println( "/usr/bin/defaults missing" );
