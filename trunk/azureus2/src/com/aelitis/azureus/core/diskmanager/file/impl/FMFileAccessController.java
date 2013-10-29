@@ -115,7 +115,7 @@ FMFileAccessController
 						FMFileAccessPieceReorderer.recoverConfig( 
 							owner.getOwner().getTorrentFile(),
 							target_file, 
-							new File( control_dir, controlFileName + REORDER_SUFFIX ));
+							new File( control_dir, controlFileName + REORDER_SUFFIX ), _target_type );
 					}
 					
 					type = _target_type;
@@ -145,6 +145,7 @@ FMFileAccessController
 							owner.getOwner().getTorrentFile(),
 							control_dir,
 							controlFileName + REORDER_SUFFIX,  
+							type,
 							new FMFileAccessLinear( owner ));
 			}
 							

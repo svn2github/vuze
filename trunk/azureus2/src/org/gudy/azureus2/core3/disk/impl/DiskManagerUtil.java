@@ -525,6 +525,8 @@ DiskManagerUtil
 											target_file,
 											DiskManagerUtil.convertDMStorageTypeToCache( newStorageType ));
 	
+									cache_file.getLength();	// need this to trigger recovery for re-order files :(
+									
 									cache_file.close();
 								}
 								

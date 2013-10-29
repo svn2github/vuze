@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.DirectByteBufferPool;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
 
+import com.aelitis.azureus.core.diskmanager.file.FMFile;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
 
 public class 
@@ -93,7 +94,7 @@ FMFileAccessPieceReorderer
 	private FMFileAccess	delegate;
 	private File			control_dir;
 	private String			control_file;
-
+	private int				storage_type;
 	
 	private int			piece_size;
 	
@@ -103,6 +104,8 @@ FMFileAccessPieceReorderer
 	
 	private int			num_pieces;
 		
+	private int		previous_storage_type	= -1;
+	
 	private long	current_length;
 	private int[]	piece_map;
 	private int[]	piece_reverse_map;
@@ -116,6 +119,7 @@ FMFileAccessPieceReorderer
 		TOTorrentFile	_torrent_file,
 		File			_control_dir,
 		String			_control_file,
+		int				_storage_type,
 		FMFileAccess	_delegate )
 	
 		throws FMFileManagerException
@@ -123,7 +127,8 @@ FMFileAccessPieceReorderer
 		delegate		= _delegate;
 		control_dir		= _control_dir;
 		control_file	= _control_file;
-	
+		storage_type	= _storage_type;
+			
 		try{
 			first_piece_number 	= _torrent_file.getFirstPieceNumber();
 
@@ -206,18 +211,44 @@ FMFileAccessPieceReorderer
 			}
 			
 			try{
+				boolean attempt_recovery = false;
+				
+				long max_length = first_piece_length + (num_pieces-2)*(long)piece_size + last_piece_length;
+
 					// to cope with add-for-seeding mixed with the way the core handles move-to directory discovery we
 					// also need to have recovery code in this branch to deal with the situation where the file was initially
 					// opened pointing at a non-existant file and therefore missed the normal recovery path
-				
+			
 				if ( current_length == 0 && next_piece_index == 1 ){
+
+					attempt_recovery = true;
+				
+				}else if ( storage_type == FMFile.FT_PIECE_REORDER && previous_storage_type == FMFile.FT_PIECE_REORDER_COMPACT ){
+
+						// if we are switching from compact to non-compact then the current_length will may well have been
+						// set to the torrent size (during file allocation assuming incremental creation is disable (the default))
+						// To handle the case where someone has dropped in a completed file and switched the state to 'normal' we need
+						// to trigger the recovery code
+				
+					if ( current_length == max_length ){
+						
+						long physical_length = raf.length();
+						
+						if ( physical_length == current_length ){
+							
+							current_length = 0;
+							
+							attempt_recovery = true;
+						}
+					}
+				}
+				
+				if ( attempt_recovery ){
 					
 					long physical_length = raf.length();
 			
 					if ( physical_length > current_length ){
-					
-						long max_length = first_piece_length + (num_pieces-2)*(long)piece_size + last_piece_length;
-					
+										
 						physical_length = Math.min( physical_length, max_length );
 					
 						if ( physical_length > current_length ){
@@ -821,6 +852,12 @@ FMFileAccessPieceReorderer
 			
 			Map map = FileUtil.readResilientFile( control_dir, control_file, false );
 			
+			Long	l_st		= (Long)map.get( "st" );
+			
+			if ( l_st != null ){
+				previous_storage_type = l_st.intValue();
+			}
+			
 			Long	l_len		= (Long)map.get( "len" );
 			Long	l_next		= (Long)map.get( "next" );
 			byte[]	piece_bytes = (byte[])map.get( "pieces" );
@@ -936,12 +973,14 @@ FMFileAccessPieceReorderer
 
 	private static Map
 	encodeConfig(
+		int			storage_type,
 		long		current_length,
 		long		next_piece_index,
 		int[]		piece_map )
 	{
 		Map	map = new HashMap();
 		
+		map.put( "st",		new Long( storage_type ));
 		map.put( "len", 	new Long( current_length ));
 		map.put( "next", 	new Long( next_piece_index ));
 		
@@ -975,7 +1014,8 @@ FMFileAccessPieceReorderer
 	recoverConfig(
 		TOTorrentFile	torrent_file,
 		File			data_file,
-		File			config_file )
+		File			config_file,
+		int				storage_type )
 	
 		throws FMFileManagerException
 	{
@@ -1010,7 +1050,7 @@ FMFileAccessPieceReorderer
 		
 		int	next_piece_index = piece_count;
 		
-		Map	map = encodeConfig( current_length, next_piece_index, piece_map );
+		Map	map = encodeConfig( storage_type, current_length, next_piece_index, piece_map );
 		
 		File	control_dir = config_file.getParentFile();
 
@@ -1035,7 +1075,7 @@ FMFileAccessPieceReorderer
 			readConfig();
 		}
 		
-		Map	map = encodeConfig( current_length, next_piece_index, piece_map );
+		Map	map = encodeConfig( storage_type, current_length, next_piece_index, piece_map );
 		
 		if ( !control_dir.exists()){
 			
