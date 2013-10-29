@@ -38,6 +38,7 @@ import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 
 public class 
@@ -211,6 +212,11 @@ ExternalSeedHTTPDownloaderLinear
 				try{
 					SESecurityManager.setThreadPasswordHandler( this );
 					
+					if ( NetworkAdmin.getSingleton().hasMissingForcedBind()){
+						
+						throw( new ExternalSeedException( "Forced bind address is missing" ));
+					}
+					
 					synchronized( this ){
 					
 						if ( destroyed ){
@@ -222,12 +228,12 @@ ExternalSeedHTTPDownloaderLinear
 
 						raf = new RandomAccessFile( scratch_file, "rw" );
 					}
-										
+						
 					// System.out.println( "Connecting to " + url + ": " + Thread.currentThread().getId());
 	
 					HttpURLConnection	connection;
 					int					response;
-					
+										
 					connection = (HttpURLConnection)original_url.openConnection();
 						
 					connection.setRequestProperty( "Connection", "Keep-Alive" );

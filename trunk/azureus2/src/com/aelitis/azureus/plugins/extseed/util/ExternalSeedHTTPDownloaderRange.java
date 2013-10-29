@@ -44,6 +44,7 @@ import org.gudy.azureus2.core3.security.SEPasswordListener;
 import org.gudy.azureus2.core3.security.SESecurityManager;
 import org.gudy.azureus2.core3.util.Debug;
 
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
 
 public class 
@@ -122,13 +123,18 @@ ExternalSeedHTTPDownloaderRange
 		try{
 			SESecurityManager.setThreadPasswordHandler( this );
 			
+			if ( NetworkAdmin.getSingleton().hasMissingForcedBind()){
+				
+				throw( new ExternalSeedException( "Forced bind address is missing" ));
+			}
+			
 			// System.out.println( "Connecting to " + url + ": " + Thread.currentThread().getId());
 
 			HttpURLConnection	connection;
 			int					response;
 			
 			Set<String>	redirect_urls = new HashSet<String>();
-			
+						
 redirect_loop:
 			while( true ){
 				

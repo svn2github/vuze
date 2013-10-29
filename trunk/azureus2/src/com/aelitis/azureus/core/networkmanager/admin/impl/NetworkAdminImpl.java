@@ -2449,6 +2449,14 @@ addressLoop:
 		}
 	}
 	
+	public boolean
+	hasMissingForcedBind()
+	{
+		Object[] status = getBindingStatus();
+		
+		return( (Integer)status[0] == BS_ERROR );
+	}
+	
 		// for the icon 
 	
 	public static final int BS_INACTIVE	= 0;
