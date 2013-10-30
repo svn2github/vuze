@@ -139,7 +139,7 @@ public class PeersSuperView
 	}
 
 	public void fillMenu(String sColumnName, final Menu menu) {
-		PeersView.fillMenu(menu, tv, shell, false);
+		PeersView.fillMenu(menu, tv, shell, null );
 	}
 
 

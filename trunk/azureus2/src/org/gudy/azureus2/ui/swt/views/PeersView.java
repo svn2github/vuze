@@ -29,7 +29,7 @@ import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
@@ -40,9 +40,13 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.peers.Peer;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
@@ -57,6 +61,7 @@ import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.util.IdentityHashSet;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -143,7 +148,7 @@ public class PeersView
 	
 	public static final String MSGID_PREFIX = "PeersView";
   
-  private DownloadManager manager;
+	private DownloadManager manager;
 	private TableViewSWT<PEPeer> tv;
 	private Shell shell;
 
@@ -280,14 +285,14 @@ public class PeersView
   	select_peer_pending = null;
 	}
 	
-	public void fillMenu(String sColumnName, Menu menu) {fillMenu(menu, tv, shell, true);}
+	public void fillMenu(String sColumnName, Menu menu) {fillMenu(menu, tv, shell, manager);}
 
 	public static void 
 	fillMenu(
 		final Menu menu, 
 		final TableView<?> tv, 
 		final Shell shell, 
-		boolean download_specific) 
+		DownloadManager download_specific ) 
 	{
 		Object[] peers = tv.getSelectedDataSources().toArray();
 		
@@ -368,7 +373,7 @@ public class PeersView
 			}
 		}
 		
-		if (download_specific) {
+		if (download_specific != null) {
 			final MenuItem block_item = new MenuItem(menu, SWT.CHECK);
 			PEPeer peer = (PEPeer) tv.getFirstSelectedDataSource();
 	
@@ -440,7 +445,7 @@ public class PeersView
 		// === advanced menu ===
 
 		final MenuItem itemAdvanced = new MenuItem(menu, SWT.CASCADE);
-		Messages.setLanguageText(itemAdvanced, "MyTorrentsView.menu.advancedmenu"); //$NON-NLS-1$
+		Messages.setLanguageText(itemAdvanced, "MyTorrentsView.menu.advancedmenu");
 		itemAdvanced.setEnabled(hasSelection);
 
 		final Menu menuAdvanced = new Menu(shell, SWT.DROP_DOWN);
@@ -480,12 +485,124 @@ public class PeersView
 					setSelectedPeersUpSpeed( speed, tv );
 				}
 			});
-		new MenuItem(menu, SWT.SEPARATOR);
+				
+		addPeersMenu( download_specific, menu );
+			
+		new MenuItem (menu, SWT.SEPARATOR);
 	}
 
 	public void addThisColumnSubMenu(String columnName, Menu menuThisColumn) {
+		
+		if ( addPeersMenu( manager, menuThisColumn )){
+		
+			new MenuItem( menuThisColumn, SWT.SEPARATOR );
+		}
 	}
 
+	private static boolean
+	addPeersMenu(
+	  	final DownloadManager 	man,
+		Menu					menu )
+	{
+
+	  	if ( man == null ){
+	  		
+	  		return( false );
+	  	}
+	  	
+	  	PEPeerManager pm = man.getPeerManager();
+	  	
+	  	if ( pm == null ){
+	  		
+	  		return( false );
+	  	}
+	  	
+	  	if ( TorrentUtils.isReallyPrivate(man.getTorrent())){
+	  		
+	  		return( false );
+	  	}
+	  	
+	  	new MenuItem( menu, SWT.SEPARATOR);
+	  	
+		MenuItem add_peers_item = new MenuItem( menu, SWT.PUSH );
+
+		Messages.setLanguageText( add_peers_item, "menu.add.peers");
+		
+		add_peers_item.addListener(
+				SWT.Selection,
+				new Listener()
+				{
+					public void 
+					handleEvent(
+						Event event) 
+					{
+						SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+								"dialog.add.peers.title",
+								"dialog.add.peers.msg");
+						
+						String def = COConfigurationManager.getStringParameter( "add.peers.default", "" );
+						
+						entryWindow.setPreenteredText( String.valueOf( def ), false );
+						
+						entryWindow.prompt(
+							new UIInputReceiverListener() 
+							{
+								public void 
+								UIInputReceiverClosed(
+									UIInputReceiver entryWindow) 
+								{
+									if ( !entryWindow.hasSubmittedInput()){
+										
+										return;
+									}
+								
+									String sReturn = entryWindow.getSubmittedInput();
+								
+									if ( sReturn == null ){
+									
+										return;
+									}
+									
+									COConfigurationManager.setParameter( "add.peers.default", sReturn );
+											
+								  	PEPeerManager pm = man.getPeerManager();
+								  	
+								  	if ( pm == null ){
+								  		
+								  		return;
+								  	}
+								  	
+								  	String[] bits = sReturn.split( "," );
+								  	
+								  	for  ( String bit: bits ){
+								  		
+								  		bit = bit.trim();
+								  		
+								  		int	pos = bit.lastIndexOf( ':' );
+								  		
+								  		if ( pos != -1 ){
+								  			
+								  			String host = bit.substring( 0, pos ).trim();
+								  			String port = bit.substring( pos+1 ).trim();
+								  			
+								  			try{
+								  				int	i_port = Integer.parseInt( port );
+								  			
+								  				pm.addPeer( host, i_port, 0, NetworkManager.getCryptoRequired( NetworkManager.CRYPTO_OVERRIDE_NONE ), null );
+								  				
+								  			}catch( Throwable e ){
+								  			
+								  			}
+								  		}
+								  	}
+								}
+							});
+					}
+				});
+		
+		return( true );
+	}
+	
 	private static void setSelectedPeersUpSpeed(int speed, TableView<?> tv) {      
 		Object[] peers = tv.getSelectedDataSources().toArray();
 		if(peers.length > 0) {            

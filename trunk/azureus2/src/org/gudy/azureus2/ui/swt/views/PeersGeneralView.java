@@ -180,7 +180,7 @@ PeersGeneralView
 		String 		sColumnName, 
 		Menu 		menu )
 	{
-		PeersView.fillMenu( menu, tv, shell, false );
+		PeersView.fillMenu( menu, tv, shell, null );
 	}
 
 	public void 
