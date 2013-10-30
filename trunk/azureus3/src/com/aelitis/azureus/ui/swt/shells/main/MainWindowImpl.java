@@ -1996,7 +1996,8 @@ public class MainWindowImpl
 				}
 			}
 		});
-		text.setTextLimit(254);
+		
+		text.setTextLimit(2048);	// URIs can get pretty long...
 		
 		if (Constants.isWindows) {
   		text.addListener(SWT.MouseDown, new Listener() {
