@@ -39,9 +39,9 @@ public class SystemTime {
 	// the HPC doesn't jump backward but can jump forward in time
 	private static final boolean		SOD_IT_LETS_USE_HPC = false;//	= Constants.isCVSVersion();
 	
-	private static volatile List		systemTimeConsumers		= new ArrayList();
-	private static volatile List		monotoneTimeConsumers	= new ArrayList();
-	private static volatile List		clock_change_list		= new ArrayList();
+	private static volatile List<TickConsumer>			systemTimeConsumers		= new ArrayList<TickConsumer>();
+	private static volatile List<TickConsumer>			monotoneTimeConsumers	= new ArrayList<TickConsumer>();
+	private static volatile List<ChangeListener>		clock_change_list		= new ArrayList<ChangeListener>();
 	//private static long					hpc_base_time;
 	//private static long					hpc_last_time;
 	//private static boolean				no_hcp_logged;
@@ -116,7 +116,7 @@ public class SystemTime {
 					int tick_count = 0;
 					while (true)
 					{
-						long rawTime = System.currentTimeMillis();
+						final long rawTime = System.currentTimeMillis();
 						/*
 						 * keep the monotone time in sync with the raw system
 						 * time, for this we need to know the offset of the
@@ -144,19 +144,29 @@ public class SystemTime {
 							stepped_time = newMonotoneTime;
 						}
 						tick_count++;
-						if (tick_count == STEPS_PER_SECOND)
-						{
-							if (lastOffset != adjustedTimeOffset)
-							{
-								final long change = adjustedTimeOffset - lastOffset;
-								Iterator it = clock_change_list.iterator();
-								//Debug.outNoStack("Clock change of " + change + "ms detected");
-								while (it.hasNext())
-								{
-									((ChangeListener) it.next()).clockChanged(rawTime, change);
+						
+						long change;
+						
+						if ( tick_count == STEPS_PER_SECOND ){
+						
+							change = adjustedTimeOffset - lastOffset;
+
+							if ( change != 0 ){
+							
+								Iterator<ChangeListener> it = clock_change_list.iterator();
+								//Debug.outNoStack("Clock change of " + change + " ms detected, raw=" + rawTime );
+								while (it.hasNext()){
+								
+									try{
+										it.next().clockChangeDetected( rawTime, change );
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
 								}
 								lastOffset = adjustedTimeOffset;
-								// make the internal offset publicly visible after consumers have been notified
+
 								currentTimeOffset = adjustedTimeOffset;
 							}
 							// averaging magic to estimate the amount of time that passes between each getTime invocation
@@ -169,16 +179,36 @@ public class SystemTime {
 							//System.out.println( "access count = " + access_count + ", average = " + access_average.getAverage() + ", per slice = " + access_average_per_slice + ", drift = " + drift +", average = " + drift_average.getAverage() + ", dag =" + drift_adjusted_granularity );
 							access_count = 0;
 							tick_count = 0;
+						}else{
+							change = 0;
 						}
+						
 						slice_access_count = 0;
 						
 						stepped_mono_time = stepped_time;
 						
+						long adjustedTime = stepped_time + currentTimeOffset;
+
+						if ( change != 0 ){
+							Iterator<ChangeListener> it = clock_change_list.iterator();
+							//Debug.outNoStack("Clock change of " + change + " ms completed, curr=" + adjustedTime );
+							while (it.hasNext()){
+							
+								try{
+									it.next().clockChangeCompleted( adjustedTime, change );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}
+						
 						// copy reference since we use unsynced COW semantics
-						List consumersRef = monotoneTimeConsumers;
+						List<TickConsumer> consumersRef = monotoneTimeConsumers;
 						for (int i = 0; i < consumersRef.size(); i++)
 						{
-							TickConsumer cons = (TickConsumer) consumersRef.get(i);
+							TickConsumer cons = consumersRef.get(i);
 							try
 							{
 								cons.consume(stepped_time);
@@ -193,10 +223,10 @@ public class SystemTime {
 						 * offset is only meant for updates
 						 */
 						consumersRef = systemTimeConsumers;
-						long adjustedTime = stepped_time + currentTimeOffset;
+						
 						for (int i = 0; i < consumersRef.size(); i++)
 						{
-							TickConsumer cons = (TickConsumer) consumersRef.get(i);
+							TickConsumer cons = consumersRef.get(i);
 							try
 							{
 								cons.consume(adjustedTime);
@@ -287,21 +317,54 @@ public class SystemTime {
 					while (true)
 					{
 						long current_time = getTime();
-						if (last_time != 0)
-						{
+						long change;
+						
+						if ( last_time != 0 ){
+						
 							long offset = current_time - last_time;
-							if (offset < 0 || offset > 5000)
-							{
-								// clock's changed
-								Iterator it = clock_change_list.iterator();
-								while (it.hasNext())
-								{									
-									((ChangeListener) it.next()).clockChanged(current_time, offset);
+							
+							if (offset < 0 || offset > 5000){
+							
+								change = offset;
+								
+									// clock's changed
+								
+								Iterator<ChangeListener> it = clock_change_list.iterator();
+								
+								while (it.hasNext()){									
+									
+									try{
+										it.next().clockChangeDetected(current_time, change);
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+								}
+							}else{
+								change = 0;
+							}
+						}else{
+							change = 0;
+						}
+						
+						last_time = current_time;
+						
+						if ( change != 0 ){
+							Iterator<ChangeListener> it = clock_change_list.iterator();
+							while (it.hasNext()){									
+								
+								try{
+									it.next().clockChangeCompleted(current_time, change);
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
 								}
 							}
 						}
-						last_time = current_time;
+						
 						List consumer_list_ref = systemTimeConsumers;
+						
 						for (int i = 0; i < consumer_list_ref.size(); i++)
 						{
 							TickConsumer cons = (TickConsumer) consumer_list_ref.get(i);
@@ -461,7 +524,18 @@ public class SystemTime {
 	}
 
 	public interface ChangeListener {
-		public void clockChanged(long current_time, long change_millis);
+		/**
+		 * Called before the change becomes visible to getCurrentTime callers
+		 * @param current_time
+		 * @param change_millis
+		 */
+		public void clockChangeDetected(long current_time, long change_millis);
+		/**
+		 * Called after the change is visible to getCurrentTime callers
+		 * @param current_time
+		 * @param change_millis
+		 */
+		public void clockChangeCompleted(long current_time, long change_millis);
 	}
 
 	public static long 

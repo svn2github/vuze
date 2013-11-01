@@ -239,21 +239,19 @@ public class Timer
 	}
 	
 	public void
-	clockChanged(
+	clockChangeDetected(
 		long	current_time,
 		long	offset )
 	{
-		// System.out.println( "Timer '" + thread_pool.getName() +"': clock change by " + offset );
-		  
 		if ( Math.abs( offset ) >= 60*1000 ){
 			
 				// fix up the timers
 			
 			synchronized( this ){
+										
+				Iterator<TimerEvent>	it = events.iterator();
 				
-				boolean resort = false;
-				
-				Iterator	it = events.iterator();
+				List<TimerEvent>	updated_events = new ArrayList<TimerEvent>( events.size());
 				
 				while (it.hasNext()){
 					
@@ -261,14 +259,8 @@ public class Timer
 					
 						// absolute events don't have their timings fiddled with
 					
-					if ( event.isAbsolute()){
-						
-							// event ordering may change
-						
-						resort = true;
-						
-					}else{
-						
+					if ( !event.isAbsolute()){
+							
 						long	old_when = event.getWhen();
 						long	new_when = old_when + offset;
 						
@@ -286,13 +278,13 @@ public class Timer
 								
 								long	adjusted_when = current_time + freq;
 								
-								Debug.outNoStack( periodic_event.getName() + ": clock change sanity check. Reduced schedule time from " + new_when + " to " +  adjusted_when );
+								//Debug.outNoStack( periodic_event.getName() + ": clock change sanity check. Reduced schedule time from " + old_when + "/" + new_when + " to " +  adjusted_when );
 									
 								new_when = adjusted_when;
 							}
 						}
 						
-						// don't wrap around by accident
+						// don't wrap around by accident although this really shouldn't happen
 						
 						if ( old_when > 0 && new_when < 0 && offset > 0 ){
 
@@ -305,12 +297,78 @@ public class Timer
 							event.setWhen( new_when );
 						}
 					}
+					
+					updated_events.add( event );
+				}
+														
+					// resort - we have to use an alternative list of events as input because if we just throw the
+					// treeset in the constructor optimises things under the assumption that the original set
+					// was correctly sorted...
+				
+				events = new TreeSet<TimerEvent>( updated_events );
+			}
+		}
+	}
+	
+	public void
+	clockChangeCompleted(
+		long	current_time,
+		long	offset )
+	{
+		if ( Math.abs( offset ) >= 60*1000 ){
+			
+				// there's a chance that between the change being notified and completed an event was scheduled
+				// using an un-modified current time. Nothing can be done for non-periodic events but for periodic
+				// ones we can santitize them to at least be within the periodic time period of the current time
+				// important for when clock goes back but not forward obviously
+			
+			synchronized( this ){
+				
+				Iterator<TimerEvent>	it = events.iterator();
+				
+				boolean	updated = false;
+								
+				while ( it.hasNext()){
+					
+					TimerEvent	event = (TimerEvent)it.next();
+					
+						// absolute events don't have their timings fiddled with
+					
+					if ( !event.isAbsolute()){
+													
+						TimerEventPerformer performer = event.getPerformer();
+						
+							// sanity check for periodic events
+						
+						if ( performer instanceof TimerEventPeriodic ){
+							
+							TimerEventPeriodic	periodic_event = (TimerEventPeriodic)performer;
+							
+							long	freq = periodic_event.getFrequency();
+								
+							long old_when = event.getWhen();
+							
+							if ( old_when > current_time + freq + 5000 ){
+								
+								long	adjusted_when = current_time + freq;
+								
+								//Debug.outNoStack( periodic_event.getName() + ": clock change sanity check. Reduced schedule time from " + old_when + " to " +  adjusted_when );
+
+								event.setWhen( adjusted_when );
+								
+								updated = true;
+							}
+						}
+					}
+				}
+														
+				if ( updated ){
+					
+					events = new TreeSet<TimerEvent>( new ArrayList<TimerEvent>( events ));
 				}
 				
-				if ( resort ){
-					
-					events = new TreeSet( events );
-				}
+				// must have this notify here as the scheduling code uses the current time to calculate
+				// how long to sleep for and this needs to be guaranteed to be using the correct (new) time
 
 				notify();
 			}
@@ -324,14 +382,16 @@ public class Timer
 		// fix up the timers
 
 		synchronized (this) {
+			
+				// as we're adjusting all events by the same amount the ordering remains valid
 
-			// as we're adjusting all events by the same amount the ordering remains valid
+			Iterator<TimerEvent> it = events.iterator();
 
-			Iterator it = events.iterator();
-
+			boolean resort = false;
+			
 			while (it.hasNext()) {
 
-				TimerEvent event = (TimerEvent) it.next();
+				TimerEvent event = it.next();
 
 				long old_when = event.getWhen();
 				long new_when = old_when + offset;
@@ -342,6 +402,8 @@ public class Timer
 
 					// Debug.out( "Ignoring wrap around for " + event.getName());
 					
+					resort = true;
+					
 				}else{
 					
 					// System.out.println( "    adjusted: " + old_when + " -> " + new_when );
@@ -349,7 +411,12 @@ public class Timer
 					event.setWhen( new_when );
 				}
 			}
+			
+			if ( resort ){
 
+				events = new TreeSet<TimerEvent>( new ArrayList<TimerEvent>( events ));
+			}
+						
 			notify();
 		}
 	}
@@ -593,7 +660,7 @@ public class Timer
 					timers_mon.exit();
 				}
 
-				writer.println("Timers: " + count);
+				writer.println("Timers: " + count + " (time=" + SystemTime.getCurrentTime() + "/" + SystemTime.getMonotonousTime() + ")" );
 				writer.indent();
 				for (Iterator iter = lines.iterator(); iter.hasNext();) {
 					String line = (String) iter.next();

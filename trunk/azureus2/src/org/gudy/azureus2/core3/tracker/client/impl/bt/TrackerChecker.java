@@ -486,7 +486,7 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
 
 
   	public void
-  	clockChanged(
+  	clockChangeDetected(
   		long	current_time,
   		long	offset )
   	{	
@@ -533,6 +533,14 @@ public class TrackerChecker implements AEDiagnosticsEvidenceGenerator, SystemTim
 	    }
   	}
   	
+	public void
+	clockChangeCompleted(
+		long	current_time,
+		long	offset )
+	{	
+	}
+	
+	
 	public void
 	generate(
 		IndentWriter		writer )
