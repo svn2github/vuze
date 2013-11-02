@@ -28,6 +28,8 @@ import java.util.GregorianCalendar;
 import java.util.StringTokenizer;
 import java.util.TimeZone;
 
+import org.gudy.azureus2.pluginsimpl.local.utils.xml.rss.RSSUtils;
+
 public class DateParserClassic extends DateParser {
 	
 	static boolean DEBUG = false;
@@ -96,7 +98,12 @@ public class DateParserClassic extends DateParser {
 		}
 		s = s.toLowerCase().trim();
 		
+		// screw this mess, first off lets see if we have an RSS feed compatible date
 		
+		Date d = RSSUtils.parseRSSDate( s );
+		if ( d != null ){
+			return( d );
+		}
 		//"Today hh:mm" and "Y-day hh:mm" cases
 		if(s.startsWith("today ") || s.startsWith("y-day ")) {
 			try {
@@ -318,7 +325,7 @@ public class DateParserClassic extends DateParser {
 		dateParser.parseDate("1w");
 		dateParser.parseDate("1w 4d");
 		dateParser.parseDate("1mon 1w");
-		
+		dateParser.parseDate( "2013-08-11T18:30:00.000Z" );
 	}
 	
 

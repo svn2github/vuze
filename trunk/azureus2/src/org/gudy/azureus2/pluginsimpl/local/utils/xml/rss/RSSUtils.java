@@ -89,7 +89,7 @@ RSSUtils
 				}
 			}
 			
-			Debug.printStackTrace(e);
+			Debug.outNoStack( "RSSUtils: failed to parse RSS date: " + date_str );
 			
 			return( null );
 		}
@@ -130,6 +130,8 @@ RSSUtils
 			}
 		}
 		
+		Debug.outNoStack( "RSSUtils: failed to parse Atom date: " + date_str );
+		
 		return( null );
 	}
 	
@@ -137,6 +139,6 @@ RSSUtils
 	main(
 		String[]	args )
 	{
-		System.out.println( parseRSSDate( "2012-03-13-10:33:55 PM" ));
+		System.out.println( parseRSSDate( "2013-08-11T18:30:00.000Z" ));
 	}
 }

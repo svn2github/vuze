@@ -102,7 +102,7 @@ public class DateParserRegex extends DateParser {
 		return result;
 	}
 	
-	private Date parseDateInternal(String input) {
+	private Date parseDateInternal(final String input) {
 		
 		if(input == null) {
 			return null;
@@ -270,7 +270,13 @@ public class DateParserRegex extends DateParser {
 						//System.out.println(input + " > " + calendar.getTime() + "( " + calendar.getTimeZone() + " )");
 						
 					} else {
-						System.err.println("Unparseable date : " + input);
+						Date d = new DateParserClassic().parseDate( input );
+						
+						if ( d != null ){
+							return( d );
+						}
+						
+						System.err.println("DateParserRegex: Unparseable date : " + input);
 					}
 				}
 			}
@@ -324,7 +330,7 @@ public class DateParserRegex extends DateParser {
 						}
 						if(month > 12) {
 							//TODO : fire an exception ?
-							System.err.println("Unparseable date : " + input);
+							System.err.println("DateParserRegex: Unparseable date : " + input);
 						} else {
 							calendar.set(Calendar.MONTH, month-1);
 							calendar.set(Calendar.DAY_OF_MONTH, day);
@@ -456,6 +462,7 @@ public class DateParserRegex extends DateParser {
 		dateParser.parseDate("16/04/08");	//
 		dateParser.parseDate("20-Dec-07");	//
 		dateParser.parseDate("2009-01-12 at 03:36:38" );
+		dateParser.parseDate("2013-08-11T18:30:00.000Z" );
 	}
 	
 
