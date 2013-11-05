@@ -878,10 +878,11 @@ public class OpenTorrentWindow
 			COConfigurationManager.save();
 		}
 
-		if (COConfigurationManager.getBooleanParameter("DefaultDir.AutoUpdate")
-				&& !COConfigurationManager.getBooleanParameter("Use default data dir"))
+		if (COConfigurationManager.getBooleanParameter("DefaultDir.AutoUpdate")){
+				
 			COConfigurationManager.setParameter(PARAM_DEFSAVEPATH, sDestDir);
-
+		}
+		
 		openTorrents();
 		close(true, false);
 	}
@@ -3121,9 +3122,6 @@ public class OpenTorrentWindow
 	 * @return Null if user doesn't want to save silently, or if no path set
 	 */
 	private static String getSaveSilentlyDir() {
-		boolean bUseDefault = COConfigurationManager.getBooleanParameter("Use default data dir");
-		if (!bUseDefault)
-			return null;
 
 		String sDefDir = "";
 		try {
