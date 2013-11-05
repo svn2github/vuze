@@ -175,6 +175,7 @@ public class TorrentOpenOptions
 
 	public void setParentDir(String parentDir) {
 		sDestDir = parentDir;
+		parentDirChanged();
 	}
 
 	public String
@@ -509,6 +510,7 @@ public class TorrentOpenOptions
 	public interface FileListener {
 		public void toDownloadChanged(TorrentOpenFileOptions torrentOpenFileOptions, boolean toDownload);
 		public void priorityChanged(TorrentOpenFileOptions torrentOpenFileOptions, int priority );
+		public void parentDirChanged();
 	}
 
 	public void fileDownloadStateChanged(
@@ -529,6 +531,17 @@ public class TorrentOpenOptions
 		for ( FileListener l : fileListeners) {
 			try{
 				l.priorityChanged(torrentOpenFileOptions, priority);
+			}catch( Throwable e ){
+				Debug.out( e );
+			}
+		}
+	}
+	
+	public void parentDirChanged()
+	{
+		for ( FileListener l : fileListeners) {
+			try{
+				l.parentDirChanged();
 			}catch( Throwable e ){
 				Debug.out( e );
 			}

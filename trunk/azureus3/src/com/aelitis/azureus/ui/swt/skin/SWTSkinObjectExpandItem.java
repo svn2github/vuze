@@ -120,7 +120,9 @@ public class SWTSkinObjectExpandItem
 				Utils.execSWTThreadLater(0, new AERunnable() {
 					public void runSupport() {
 						SWTSkinObjectExpandBar soExpandBar = (SWTSkinObjectExpandBar) parent;
-						soExpandBar.handleResize(expandItem);
+						if ( !expandItem.isDisposed()){
+							soExpandBar.handleResize(expandItem);
+						}
 					}
 				});
 			}

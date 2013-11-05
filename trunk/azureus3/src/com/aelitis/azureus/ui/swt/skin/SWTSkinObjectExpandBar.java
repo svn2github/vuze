@@ -96,6 +96,7 @@ public class SWTSkinObjectExpandBar
 
 	protected void removeExpandItem(SWTSkinObjectExpandItem item) {
 		expandItems.remove(item);
+		fillHeightItems.remove( item );
 	}
 
 	public SWTSkinObjectExpandItem[] getChildren() {
