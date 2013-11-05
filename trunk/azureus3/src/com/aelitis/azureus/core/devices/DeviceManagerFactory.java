@@ -35,12 +35,15 @@ DeviceManagerFactory
 		
 		Class<DeviceManager> temp = null;
 		
-		try{
-			temp = (Class<DeviceManager>)DeviceManagerFactory.class.getClassLoader().loadClass( impl );
+		if ( impl.length() > 0 ){
 			
-		}catch( Throwable e ){
-			
-			Debug.out( "Failed to load DeviceManagerFactory class: " + impl );
+			try{
+				temp = (Class<DeviceManager>)DeviceManagerFactory.class.getClassLoader().loadClass( impl );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( "Failed to load DeviceManagerFactory class: " + impl );
+			}
 		}
 		
 		impl_class = temp;

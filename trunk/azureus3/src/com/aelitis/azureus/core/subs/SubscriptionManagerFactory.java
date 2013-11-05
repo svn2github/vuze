@@ -35,12 +35,15 @@ SubscriptionManagerFactory
 		
 		Class<SubscriptionManager> temp = null;
 		
-		try{
-			temp = (Class<SubscriptionManager>)SubscriptionManagerFactory.class.getClassLoader().loadClass( impl );
+		if ( impl.length() > 0 ){
 			
-		}catch( Throwable e ){
-			
-			Debug.out( "Failed to load SubscriptionManager class: " + impl );
+			try{
+				temp = (Class<SubscriptionManager>)SubscriptionManagerFactory.class.getClassLoader().loadClass( impl );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( "Failed to load SubscriptionManager class: " + impl );
+			}
 		}
 		
 		impl_class = temp;
