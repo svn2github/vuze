@@ -22,14 +22,14 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.events.*;
+import org.eclipse.swt.events.PaintEvent;
+import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-
 import org.gudy.azureus2.plugins.PluginException;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.installer.*;
@@ -37,8 +37,7 @@ import org.gudy.azureus2.plugins.update.UpdateCheckInstance;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
-import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
-import org.gudy.azureus2.ui.swt.shells.GCStringPrinter;
+import org.gudy.azureus2.ui.swt.shells.*;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 import org.gudy.azureus2.ui.swt.shells.GCStringPrinter.URLInfo;
 
@@ -107,6 +106,8 @@ public class RemotePairingWindow
 	private String storedToClipboardText;
 
 	private String lastPairingTestError;
+
+	private SWTSkinObjectImage soQR;
 
 	public static void open() {
 		if (DEBUG) {
@@ -190,6 +191,10 @@ public class RemotePairingWindow
 
 			soFTUX = skin.getSkinObject("pairing-ftux");
 			soCode = skin.getSkinObject("pairing-code");
+			soQR = (SWTSkinObjectImage) skin.getSkinObject("pairing-qr");
+			if (accessCode != null) {
+				setupQR(accessCode);
+			}
 
 			soStatusText = (SWTSkinObjectText) skin.getSkinObject("status-text");
 			soStatusText.addUrlClickedListener(new SWTSkinObjectText_UrlClickedListener() {
@@ -220,6 +225,8 @@ public class RemotePairingWindow
 					Color oldColor = e.gc.getForeground();
 
 					Rectangle printArea = ((Composite) e.widget).getClientArea();
+					printArea.y += 10;
+					printArea.height -= 20;
 					int fullWidth = printArea.width;
 					int fullHeight = printArea.height;
 					GCStringPrinter sp = new GCStringPrinter(e.gc,
@@ -235,22 +242,23 @@ public class RemotePairingWindow
 					int boxSizeAndPadding = 30;
 					int allBoxesWidth = numBoxes * boxSizeAndPadding;
 					int textPadding = 15;
-					printArea.x = (fullWidth - (allBoxesWidth + sizeAccess.x + textPadding)) / 2;
-					printArea.width = sizeAccess.x;
+					//printArea.x = (fullWidth - (allBoxesWidth + sizeAccess.x + textPadding)) / 2;
+					//printArea.width = sizeAccess.x;
+					printArea.y = (fullHeight - boxSizeAndPadding - sizeAccess.y + textPadding) / 2;
 
-					sp.printString(e.gc, printArea, 0);
+					sp.printString(e.gc, printArea, SWT.CENTER | SWT.TOP);
 					e.gc.setBackground(Colors.white);
 					e.gc.setForeground(Colors.blue);
 
-					int xStart = printArea.x + sizeAccess.x + textPadding;
-					int yStart = (fullHeight - boxSize) / 2;
+					int xStart = (fullWidth - allBoxesWidth) / 2;
+					int yStart = printArea.y + sizeAccess.y + textPadding;
 					for (int i = 0; i < numBoxes; i++) {
 						Rectangle r = new Rectangle(xStart + (i * boxSizeAndPadding),
 								yStart, boxSize, boxSize);
 						e.gc.fillRectangle(r);
 						e.gc.setForeground(Colors.blues[Colors.BLUES_DARKEST]);
 						e.gc.drawRectangle(r);
-						if (!hideCode) {
+						if (isCodeVisible()) {
 							e.gc.setForeground(oldColor);
 							GCStringPrinter.printString(e.gc, "" + drawAccessCode.charAt(i),
 									r, false, false, SWT.CENTER);
@@ -270,6 +278,8 @@ public class RemotePairingWindow
 							// ignore.. if error, lastErrorUpdates will trigger
 						}
 						control.redraw();
+						setupQR(accessCode);
+
 						String s = soToClipboard.getText();
 						int i = s.indexOf("|");
 						if (i > 0) {
@@ -306,15 +316,25 @@ public class RemotePairingWindow
 				soFTUX.getControl().moveAbove(null);
 			}
 		}
-		hideCode = true;
+		setCodeVisible(false);
 		skinnedDialog.open();
-		hideCode = false;
+		setCodeVisible(true);
 
 		if (showFTUX) {
 			switchToFTUX();
 		} else {
 			switchToCode();
 		}
+	}
+	
+	private void setupQR(String ac) {
+		if (soQR == null || soQR.isDisposed()) {
+			return;
+		}
+
+		String url = "https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl=http://remote.vuze.com/?ac="
+				+ ac + "&choe=UTF-8&chld=|0";
+		soQR.setImageUrl(url);
 	}
 
 	public void switchToFTUX() {
@@ -368,7 +388,7 @@ public class RemotePairingWindow
 
 		storedToClipboardText = soToClipboard.getText();
 		try {
-			hideCode = true;
+			setCodeVisible(false);
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					control.redraw();
@@ -378,6 +398,7 @@ public class RemotePairingWindow
 					}
 				}
 			});
+
 			soStatusText.setTextID("remote.pairing.test.running");
 			soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(),
 					"#000000"));
@@ -429,7 +450,7 @@ public class RemotePairingWindow
 							break;
 					}
 
-					hideCode = false;
+					setCodeVisible(true);
 					final String fIconID = iconID;
 					somethingChanged(pairingManager);
 					lastPairingTestError = pairingTest.getErrorMessage();
@@ -460,7 +481,7 @@ public class RemotePairingWindow
 					} catch (PairingException e) {
 						finishFailedTest();
 
-						soStatusText.setText(Debug.getNestedExceptionMessage(e));
+						setStatusToException(e);
 						Debug.out(e);
 					}
 
@@ -477,8 +498,20 @@ public class RemotePairingWindow
 		} catch (Exception e) {
 			finishFailedTest();
 
-			soStatusText.setText(Debug.getNestedExceptionMessage(e));
+			setStatusToException(e);
 			Debug.out(e);
+		}
+	}
+
+	protected void setStatusToException(Exception e) {
+
+		soStatusText.setText(Debug.getNestedExceptionMessage(e) + ". <A HREF=\"retry\">Try again</A>");
+		soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(),
+				"#c90000"));
+
+		SWTSkinObjectImage soImage = (SWTSkinObjectImage) skin.getSkinObject("status-image");
+		if (soImage != null) {
+			soImage.setImageByID("icon.failure", null);
 		}
 	}
 
@@ -514,13 +547,8 @@ public class RemotePairingWindow
 	}
 
 	private void finishFailedTest() {
-		hideCode = false;
+		setCodeVisible(true);
 		somethingChanged(pairingManager);
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				control.redraw();
-			}
-		});
 		if (storedToClipboardText != null && storedToClipboardText.length() > 0) {
 			soToClipboard.setText(storedToClipboardText);
 		}
@@ -629,6 +657,7 @@ public class RemotePairingWindow
 			String last_error = pm.getLastServerError();
 		
 			if ( last_error != null && last_error.length() > 0 ){
+
 				soStatusText.setText(last_error);
 				soStatusText.setTextColor(ColorCache.getColor(control.getDisplay(),
 						"#c90000"));
@@ -636,12 +665,34 @@ public class RemotePairingWindow
 		}
 		
 		if (newAccessCode) {
+			setupQR(accessCode);
+
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
 					control.redraw();
 				}
 			});
 		}
+	}
+
+	public boolean isCodeVisible() {
+		return hideCode;
+	}
+
+	public void setCodeVisible(boolean hideCode) {
+		this.hideCode = hideCode;
+
+		if (soQR != null && !soQR.isDisposed()) {
+			soQR.setVisible(hideCode);
+		}
+		Utils.execSWTThread(new AERunnable() {
+			public void runSupport() {
+				if (control != null && !control.isDisposed()) {
+					control.redraw();
+					control.update();
+				}
+			}
+		});
 	}
 
 	public static class testPairingClass
