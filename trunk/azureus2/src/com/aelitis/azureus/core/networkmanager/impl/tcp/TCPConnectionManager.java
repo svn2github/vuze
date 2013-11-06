@@ -357,8 +357,13 @@ public class TCPConnectionManager {
 					  request.channel.socket().bind( new InetSocketAddress( local_bind_port ) );     
 				  }
 			  } catch(SocketException e) {
-				  if(e.getMessage().equals("Address family not supported by protocol family: bind") && !NetworkAdmin.getSingleton().hasIPV6Potential(true)){
+				  String msg = e.getMessage().toLowerCase();
+						  
+				  if (	( msg.contains( "address family not supported by protocol family") || msg.contains( "protocol family unavailable" )) && 
+						!NetworkAdmin.getSingleton().hasIPV6Potential(true)){
+					  
 					  ipv6problem = true;
+					  
 				  }
 				  throw e;
 			  }
