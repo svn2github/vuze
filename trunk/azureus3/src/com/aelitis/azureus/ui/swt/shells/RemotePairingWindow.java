@@ -18,6 +18,9 @@
 
 package com.aelitis.azureus.ui.swt.shells;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -27,6 +30,7 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Display;
 
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
@@ -45,6 +49,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.pairing.*;
+import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
 import com.aelitis.azureus.ui.swt.utils.ColorCache;
@@ -66,6 +71,8 @@ public class RemotePairingWindow
 	private static final boolean SHOW_SPEW = false;
 
 	private static final boolean DEBUG = false;
+
+	private static final boolean USE_OUR_QR = false;
 
 	static RemotePairingWindow instance = null;
 
@@ -237,13 +244,11 @@ public class RemotePairingWindow
 
 					String drawAccessCode = accessCode == null ? "      " : accessCode;
 
-					int numBoxes = drawAccessCode == null ? 0 : drawAccessCode.length();
+					int numBoxes = drawAccessCode.length();
 					int boxSize = 25;
 					int boxSizeAndPadding = 30;
 					int allBoxesWidth = numBoxes * boxSizeAndPadding;
 					int textPadding = 15;
-					//printArea.x = (fullWidth - (allBoxesWidth + sizeAccess.x + textPadding)) / 2;
-					//printArea.width = sizeAccess.x;
 					printArea.y = (fullHeight - boxSizeAndPadding - sizeAccess.y + textPadding) / 2;
 
 					sp.printString(e.gc, printArea, SWT.CENTER | SWT.TOP);
@@ -327,16 +332,52 @@ public class RemotePairingWindow
 		}
 	}
 	
-	private void setupQR(String ac) {
+	private void setupQR(final String ac) {
 		if (soQR == null || soQR.isDisposed()) {
 			return;
 		}
 
+		if (USE_OUR_QR) {
+			new AEThread2("QRCodeGetter", true) {
+				public void run() {
+					final File qrCode = pairingManager.getQRCode();
+					if (qrCode == null) {
+						setupQR_URL(ac);
+						return;
+					}
+					Utils.execSWTThread(new AERunnable() {
+						public void runSupport() {
+							try {
+								Display display = Display.getCurrent();
+
+								InputStream is = new FileInputStream(qrCode);
+								Image image = new Image(display, is);
+								is.close();
+								String id = "RemotePairing.qrCode";
+								ImageLoader imageLoader = skin.getImageLoader(skin.getSkinProperties());
+								imageLoader.addImage(id, image);
+
+								soQR.setImageByID(id, null);
+							} catch (Exception e) {
+								setupQR_URL(ac);
+								Debug.out(e);
+							}
+						}
+					});
+				}
+			}.start();
+		} else {
+			setupQR_URL(ac);
+		}
+	}
+	
+	private void setupQR_URL(String ac) {
 		String url = "https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl="
 				+ UrlUtils.encode("http://remote.vuze.com/?ac=" + ac + "&ref=1")
 				+ "&choe=UTF-8&chld=|0";
 		soQR.setImageUrl(url);
 	}
+
 
 	public void switchToFTUX() {
 		SWTSkinObject soPairInstallArea = skin.getSkinObject("pair-install");
