@@ -333,8 +333,7 @@ public class RemotePairingWindow
 		}
 
 		String url = "https://chart.googleapis.com/chart?chs=150x150&cht=qr&chl="
-				+ UrlUtils.encode("http://remote.vuze.com/?ac=" + ac
-						+ "&utm_source=PairingWindow&utm_medium=vuze")
+				+ UrlUtils.encode("http://remote-dev.vuze.com/?ac=" + ac + "&ref=1")
 				+ "&choe=UTF-8&chld=|0";
 		soQR.setImageUrl(url);
 	}
