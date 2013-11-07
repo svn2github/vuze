@@ -2815,7 +2815,14 @@ public class OpenTorrentOptionsWindow
 							dest = dest.substring( 1 );
 						}
 						
-						fileInfo.setDestPathName( sSavePath + File.separator + dest );
+						if ( dest.length() > 0 ){
+						
+							fileInfo.setDestPathName( sSavePath + File.separator + dest );
+							
+						}else{
+							
+							fileInfo.setDestPathName( sSavePath );
+						}
 					}
 				}
 			}else{

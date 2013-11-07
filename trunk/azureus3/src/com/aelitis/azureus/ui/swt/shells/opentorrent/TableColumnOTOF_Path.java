@@ -50,11 +50,11 @@ implements TableCellRefreshListener, TableColumnExtraInfoListener
   	String s = tfi.getDestPathName();
   	String parentDir = tfi.parent.getParentDir();
   	
-	if ( 	s.startsWith(parentDir) &&
+	if ( 	s.startsWith(parentDir+File.separator) &&
 			!parentDir.endsWith( File.separator ) && 	// could be C:\
 			s.length() > parentDir.length()) {
 		
-  		s = s.substring(parentDir.length() + 1);
+  		s = s.substring(parentDir.length()+1);
   	}
   	cell.setText(s);
   }
