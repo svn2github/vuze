@@ -1779,7 +1779,7 @@ public class OpenTorrentOptionsWindow
 				public void handleEvent(Event event) {
 					TorrentOpenFileOptions[] infos = tvFiles.getSelectedDataSources().toArray(
 							new TorrentOpenFileOptions[0]);
-					changeFileDestination(infos);
+					changeFileDestination(infos, false );
 				}
 			});
 			
@@ -2460,12 +2460,21 @@ public class OpenTorrentOptionsWindow
 							"OpenTorrentWindow.fileList.changeDestination");
 					item.addSelectionListener(new SelectionAdapter() {
 						public void widgetSelected(SelectionEvent e) {
-	
-							changeFileDestination(infos);
+							changeFileDestination(infos,false);
 						}
-	
 					});
 	
+					if ( infos.length > 1 && torrentOptions.iStartID != TorrentOpenOptions.STARTMODE_SEEDING ){
+						item = new MenuItem(menu, SWT.PUSH);
+						Messages.setLanguageText(item,
+								"OpenTorrentWindow.fileList.changeDestination.all", new String[]{ String.valueOf( infos.length )});
+						item.addSelectionListener(new SelectionAdapter() {
+							public void widgetSelected(SelectionEvent e) {
+								changeFileDestination(infos,true);
+							}
+						});
+					}
+					
 					new MenuItem(menu, SWT.SEPARATOR);
 	
 					item = new MenuItem(menu, SWT.PUSH);
@@ -2643,7 +2652,7 @@ public class OpenTorrentOptionsWindow
 		{
 			if ( torrentOptions.isSimpleTorrent()){
 				
-				changeFileDestination( torrentOptions.getFiles());
+				changeFileDestination( torrentOptions.getFiles(), false );
 				
 			}else{
 				DirectoryDialog dDialog = new DirectoryDialog(shell,SWT.SYSTEM_MODAL);
@@ -2707,60 +2716,164 @@ public class OpenTorrentOptionsWindow
 			}
 		}
 		
-		private void changeFileDestination(TorrentOpenFileOptions[] infos) {
+		private void changeFileDestination(TorrentOpenFileOptions[] infos, boolean allAtOnce ) {
 	
-			for (TorrentOpenFileOptions fileInfo : infos) {
-				int style = (fileInfo.parent.iStartID == TorrentOpenOptions.STARTMODE_SEEDING)
-						? SWT.OPEN : SWT.SAVE;
-				FileDialog fDialog = new FileDialog(shell, SWT.SYSTEM_MODAL
-						| style);
-	
-				String sFilterPath = fileInfo.getDestPathName();
-				String sFileName = fileInfo.orgFileName;
-	
-				File f = new File(sFilterPath);
-				if (!f.isDirectory()) {
-					// Move up the tree until we have an existing path
-					while (sFilterPath != null) {
-						String parentPath = f.getParent();
-						if (parentPath == null)
-							break;
-	
-						sFilterPath = parentPath;
-						f = new File(sFilterPath);
-						if (f.isDirectory())
-							break;
+			if ( allAtOnce && infos.length > 1 ){
+				
+					// find a common ancestor if it exists
+				
+				String current_parent = null;
+				
+				for (TorrentOpenFileOptions fileInfo : infos) {
+					
+					String dest = fileInfo.getDestPathName();
+					
+					if ( current_parent == null ){
+						
+						current_parent = dest;
+						
+					}else{
+						
+						if ( !current_parent.equals( dest )){
+							
+							char[] cp_chars = current_parent.toCharArray();
+							char[] p_chars	= dest.toCharArray();
+							
+							int cp_len 	= cp_chars.length;
+							int	p_len	= p_chars.length;
+									
+							int	min = Math.min( cp_len, p_len );
+									
+							int pos = 0;
+							
+							while ( pos < min && cp_chars[pos] == p_chars[pos] ){
+								
+								pos++;
+							}
+							
+							if ( pos < cp_len ){
+															
+								File f = new File( new String( cp_chars, 0, pos ) + "x" );
+								
+								File pf = f.getParentFile();
+								
+								if ( pf == null ){
+									
+									current_parent = "";
+									
+								}else{
+									
+									current_parent = pf.toString();
+								}
+							}
+						}
 					}
 				}
-	
-				if (sFilterPath != null)
-					fDialog.setFilterPath(sFilterPath);
-				fDialog.setFileName(sFileName);
-				fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath")
-						+ " (" + fileInfo.orgFullName + ")");
-				String sNewName = fDialog.open();
-	
-				if (sNewName == null)
-					return;
-	
-				if (fileInfo.parent.iStartID == TorrentOpenOptions.STARTMODE_SEEDING) {
-					File file = new File(sNewName);
-					if (file.length() == fileInfo.lSize)
-						fileInfo.setFullDestName(sNewName);
-					else {
-						MessageBoxShell mb = new MessageBoxShell(SWT.OK,
-								"OpenTorrentWindow.mb.badSize", new String[] {
-									file.getName(),
-									fileInfo.orgFullName
-								});
-						mb.setParent(shell);
-						mb.open(null);
+				
+				DirectoryDialog dDialog = new DirectoryDialog( shell, SWT.SYSTEM_MODAL );
+				
+				if ( current_parent.length() > 0 ){
+					
+					dDialog.setFilterPath( current_parent );
+				}
+				
+				dDialog.setMessage(MessageText.getString("MainWindow.dialog.choose.savepath_forallfiles"));
+				
+				String sSavePath = dDialog.open();
+
+				if ( sSavePath != null) {
+					
+					if ( sSavePath.endsWith( File.separator )){
+						
+						sSavePath = sSavePath.substring( 0, sSavePath.length() - 1 );
 					}
-				} else
-					fileInfo.setFullDestName(sNewName);
-	
-			} // for i
-	
+					
+					int prefix_len = current_parent.length();
+					
+					for ( TorrentOpenFileOptions fileInfo: infos ){
+						
+						String dest = fileInfo.getDestPathName();
+						
+						if ( prefix_len == 0 ){
+							
+							File f = new File( dest );
+							
+							while( f.getParentFile() != null ){
+								
+								f = f.getParentFile();
+							}
+							
+							dest = dest.substring( f.toString().length());
+							
+						}else{
+			
+							dest = dest.substring( prefix_len );
+						}
+						
+						if ( dest.startsWith( File.separator )){
+							
+							dest = dest.substring( 1 );
+						}
+						
+						fileInfo.setDestPathName( sSavePath + File.separator + dest );
+					}
+				}
+			}else{
+				for (TorrentOpenFileOptions fileInfo : infos) {
+					int style = (fileInfo.parent.iStartID == TorrentOpenOptions.STARTMODE_SEEDING)
+							? SWT.OPEN : SWT.SAVE;
+					FileDialog fDialog = new FileDialog(shell, SWT.SYSTEM_MODAL
+							| style);
+		
+					String sFilterPath = fileInfo.getDestPathName();
+					String sFileName = fileInfo.orgFileName;
+		
+					File f = new File(sFilterPath);
+					if (!f.isDirectory()) {
+						// Move up the tree until we have an existing path
+						while (sFilterPath != null) {
+							String parentPath = f.getParent();
+							if (parentPath == null)
+								break;
+		
+							sFilterPath = parentPath;
+							f = new File(sFilterPath);
+							if (f.isDirectory())
+								break;
+						}
+					}
+		
+					if (sFilterPath != null){
+						fDialog.setFilterPath(sFilterPath);
+					}
+					
+					fDialog.setFileName(sFileName);
+					fDialog.setText(MessageText.getString("MainWindow.dialog.choose.savepath")
+							+ " (" + fileInfo.orgFullName + ")");
+					String sNewName = fDialog.open();
+		
+					if (sNewName == null)
+						return;
+		
+					if (fileInfo.parent.iStartID == TorrentOpenOptions.STARTMODE_SEEDING) {
+						File file = new File(sNewName);
+						if (file.length() == fileInfo.lSize)
+							fileInfo.setFullDestName(sNewName);
+						else {
+							MessageBoxShell mb = new MessageBoxShell(SWT.OK,
+									"OpenTorrentWindow.mb.badSize", new String[] {
+										file.getName(),
+										fileInfo.orgFullName
+									});
+							mb.setParent(shell);
+							mb.open(null);
+						}
+					} else
+						fileInfo.setFullDestName(sNewName);
+		
+				} // for i
+			}
+			
 			checkSeedingMode();
 			updateDataDirCombo();
 			diskFreeInfoRefreshPending = true;
