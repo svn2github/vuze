@@ -1943,7 +1943,10 @@ AzureusCoreImpl
 													perform(
 														TimerEvent event )
 													{
-														checkSleepActions();
+														if ( !stopped ){
+														
+															checkSleepActions();
+														}
 													}
 												});
 								}
@@ -2006,7 +2009,10 @@ AzureusCoreImpl
 												perform(
 													TimerEvent event )
 												{
-													checkCloseActions();
+													if ( !stopped ){
+													
+														checkCloseActions();
+													}
 												}
 											});
 							}
