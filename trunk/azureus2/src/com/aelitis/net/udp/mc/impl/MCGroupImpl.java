@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AEThread;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -165,7 +166,7 @@ MCGroupImpl
 			
 	protected AEMonitor		this_mon	= new AEMonitor( "MCGroup" );
 
-	private Map<NetworkInterface,Set<InetAddress>>		current_registrations = new HashMap<NetworkInterface, Set<InetAddress>>();
+	private Map<String,Set<InetAddress>>		current_registrations = new HashMap<String, Set<InetAddress>>();
 		
 	private volatile boolean		instance_suspended;
 	private List<Object[]>			suspended_threads = new ArrayList<Object[]>();
@@ -285,7 +286,7 @@ MCGroupImpl
 	
 		throws SocketException
 	{
-		Map<NetworkInterface,Set<InetAddress>>			new_registrations	= new HashMap<NetworkInterface,Set<InetAddress>>();
+		Map<String,Set<InetAddress>>			new_registrations	= new HashMap<String,Set<InetAddress>>();
 		
 		List<NetworkInterface>		changed_interfaces	= new ArrayList<NetworkInterface>();
 		
@@ -311,7 +312,16 @@ MCGroupImpl
 					continue;
 				}
 				
-				Set<InetAddress> old_address_set = current_registrations.get( network_interface );
+				String ni_name = network_interface.getName();
+				
+				if ( ni_name == null ){
+					
+					Debug.out( "null name returned for network interface: " + network_interface );
+					
+					ni_name = network_interface.toString();
+				}
+				
+				Set<InetAddress> old_address_set = current_registrations.get( ni_name );
 					
 				if ( old_address_set == null ){
 				
@@ -320,7 +330,7 @@ MCGroupImpl
 				
 				Set<InetAddress>	new_address_set = new HashSet<InetAddress>();
 				
-				new_registrations.put( network_interface, new_address_set );
+				new_registrations.put( ni_name, new_address_set );
 				
 				Enumeration<InetAddress> ni_addresses = network_interface.getInetAddresses();
 				
@@ -522,10 +532,19 @@ MCGroupImpl
 		final NetworkInterface	network_interface,
 		final InetAddress		ni_address )
 	{
+		String ni_name = network_interface.getName();
+		
+		if ( ni_name == null ){
+			
+			Debug.out( "null name returned for network interface: " + network_interface );
+			
+			ni_name = network_interface.toString();
+		}
+		
 		try{
 			this_mon.enter();
 		
-			Set<InetAddress>	set = (Set<InetAddress>)current_registrations.get( network_interface );
+			Set<InetAddress>	set = (Set<InetAddress>)current_registrations.get( ni_name );
 			
 			if ( set == null ){
 				
