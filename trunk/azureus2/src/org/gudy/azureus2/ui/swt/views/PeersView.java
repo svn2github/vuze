@@ -51,6 +51,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
+import org.gudy.azureus2.ui.swt.views.peer.PeerFilesView;
 import org.gudy.azureus2.ui.swt.views.peer.PeerInfoView;
 import org.gudy.azureus2.ui.swt.views.peer.RemotePieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.table.TableSelectedRowsListener;
@@ -188,6 +189,9 @@ public class PeersView
 				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS,
 						"RemotePieceDistributionView", RemotePieceDistributionView.class,
 						null);
+				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "PeerFilesView",
+						PeerFilesView.class, null);
+
 				pluginUI.addView(TableManager.TABLE_TORRENT_PEERS, "LoggerView",
 						LoggerView.class, true);
 
