@@ -288,7 +288,7 @@ MCGroupImpl
 	{
 		Map<String,Set<InetAddress>>			new_registrations	= new HashMap<String,Set<InetAddress>>();
 		
-		List<NetworkInterface>		changed_interfaces	= new ArrayList<NetworkInterface>();
+		Map<String,NetworkInterface>			changed_interfaces	= new HashMap<String,NetworkInterface>();
 		
 		try{
 			this_mon.enter();
@@ -313,14 +313,7 @@ MCGroupImpl
 				}
 				
 				String ni_name = network_interface.getName();
-				
-				if ( ni_name == null ){
-					
-					Debug.out( "null name returned for network interface: " + network_interface );
-					
-					ni_name = network_interface.toString();
-				}
-				
+								
 				Set<InetAddress> old_address_set = current_registrations.get( ni_name );
 					
 				if ( old_address_set == null ){
@@ -371,9 +364,9 @@ MCGroupImpl
 					
 					if ( !start_of_day ){
 						
-						if ( !changed_interfaces.contains( network_interface )){
+						if ( !changed_interfaces.containsKey( ni_name )){
 							
-							changed_interfaces.add( network_interface );
+							changed_interfaces.put( ni_name, network_interface );
 						}
 					}
 					
@@ -490,9 +483,15 @@ MCGroupImpl
 			this_mon.exit();
 		}
 		
-		for (int i=0;i<changed_interfaces.size();i++){
+		for ( NetworkInterface ni: changed_interfaces.values()){
 			
-			adapter.interfaceChanged((NetworkInterface)changed_interfaces.get(i));
+			try{
+				adapter.interfaceChanged( ni );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
 		}
 	}
 	
@@ -521,6 +520,7 @@ MCGroupImpl
 			}
 			
 			return( ok );
+			
 		}else{
 			
 			return( true );
@@ -533,13 +533,6 @@ MCGroupImpl
 		final InetAddress		ni_address )
 	{
 		String ni_name = network_interface.getName();
-		
-		if ( ni_name == null ){
-			
-			Debug.out( "null name returned for network interface: " + network_interface );
-			
-			ni_name = network_interface.toString();
-		}
 		
 		try{
 			this_mon.enter();
