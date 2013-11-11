@@ -251,16 +251,42 @@ RSSEngine
 					
 					URL cdp_link = item.getLink();
 					
+					boolean	cdp_set = false;
+					
 					if ( cdp_link != null ){
 					
-						result.setCDPLink(cdp_link.toExternalForm());
+						String link_url = cdp_link.toExternalForm();
+						
+						if ( link_url.toLowerCase().startsWith( "http" )){
+						
+							result.setCDPLink( link_url );
+							
+							cdp_set = true;
+						}
 					}
-					
+							
 					String uid = item.getUID();
-					
+
 					if ( uid != null ){
 						
 						result.setUID( uid );
+
+							// some feeds don't use the link field correctly, fallback to trying the guid for cdp
+							// as probably better than nothing
+						
+						
+						if ( !cdp_set ){
+							
+							try{
+								String test_url = new URL( uid ).toExternalForm();
+								
+								if ( test_url.toLowerCase().startsWith( "http" )){
+									
+									result.setCDPLink( test_url );
+								}
+							}catch( Throwable e ){
+							}
+						}
 					}
 					
 					boolean got_seeds_peers = false;
