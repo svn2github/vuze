@@ -59,6 +59,7 @@ TagDownloadWithState
 	private Object	UPLOAD_PRIORITY_ADDED_KEY = new Object();
 	private int		upload_priority;
 	private int		min_share_ratio;
+	private int		max_share_ratio;
 	
 	private boolean	supports_xcode;
 	private boolean	supports_file_location;
@@ -175,6 +176,7 @@ TagDownloadWithState
 		
 		upload_priority		= (int)readLongAttribute( AT_RATELIMIT_UP_PRI, 0 );
 		min_share_ratio		= (int)readLongAttribute( AT_RATELIMIT_MIN_SR, 0 );
+		max_share_ratio		= (int)readLongAttribute( AT_RATELIMIT_MAX_SR, 0 );
 		
 		addTagListener(
 			new TagListener()
@@ -197,6 +199,11 @@ TagDownloadWithState
 					if ( min_share_ratio > 0 ){
 						
 						updateMinShareRatio( manager, min_share_ratio );
+					}
+					
+					if ( max_share_ratio > 0 ){
+						
+						updateMaxShareRatio( manager, max_share_ratio );
 					}
 				}
 				
@@ -224,6 +231,11 @@ TagDownloadWithState
 					if ( min_share_ratio > 0 ){
 						
 						updateMinShareRatio( manager, 0 );
+					}
+					
+					if ( max_share_ratio > 0 ){
+						
+						updateMaxShareRatio( manager, 0 );
 					}
 				}
 				
@@ -253,6 +265,34 @@ TagDownloadWithState
 					}
 					
 					manager.getDownloadState().setIntParameter( DownloadManagerState.PARAM_MIN_SHARE_RATIO, sr );
+				}
+				
+				private void
+				updateMaxShareRatio(
+					DownloadManager	manager,
+					int				sr )
+				{
+					List<Tag> dm_tags = getTagType().getTagsForTaggable( manager );
+					
+					for ( Tag t: dm_tags ){
+						
+						if ( t == TagDownloadWithState.this ){
+							
+							continue;
+						}
+						
+						if ( t instanceof TagFeatureRateLimit ){
+							
+							int o_sr = ((TagFeatureRateLimit)t).getTagMaxShareRatio();
+							
+							if ( o_sr > sr ){
+								
+								sr = o_sr;
+							}
+						}
+					}
+					
+					manager.getDownloadState().setIntParameter( DownloadManagerState.PARAM_MAX_SHARE_RATIO, sr );
 				}
 			},
 			true );
@@ -488,6 +528,57 @@ TagDownloadWithState
 		}
 	}
 	
+	public int
+	getTagMaxShareRatio()
+	{
+		return( max_share_ratio );
+	}
+	
+	public void
+	setTagMaxShareRatio(
+		int		sr )
+	{
+		if ( sr < 0 ){
+			
+			sr = 0;
+		}
+		
+		if ( sr == max_share_ratio ){
+			
+			return;
+		}
+				
+		max_share_ratio	= sr;
+		
+		writeLongAttribute( AT_RATELIMIT_MAX_SR, sr );
+					
+		Set<DownloadManager> dms = getTaggedDownloads();
+			
+		for ( DownloadManager dm: dms ){
+				
+			List<Tag> dm_tags = getTagType().getTagsForTaggable( dm );
+			
+			for ( Tag t: dm_tags ){
+				
+				if ( t == this ){
+					
+					continue;
+				}
+				
+				if ( t instanceof TagFeatureRateLimit ){
+					
+					int o_sr = ((TagFeatureRateLimit)t).getTagMaxShareRatio();
+					
+					if ( o_sr > sr ){
+						
+						sr = o_sr;
+					}
+				}
+			}
+			
+			dm.getDownloadState().setIntParameter( DownloadManagerState.PARAM_MAX_SHARE_RATIO, sr );
+		}
+	}
 	
 	private void
 	updateRates()

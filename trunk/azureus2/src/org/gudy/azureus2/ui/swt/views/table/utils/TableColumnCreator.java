@@ -238,6 +238,7 @@ public class TableColumnCreator
 		c.put(SmoothedDownItem.COLUMN_ID, new cInfo(SmoothedDownItem.class, SmoothedDownItem.DATASOURCE_TYPE));
 		c.put(SmoothedETAItem.COLUMN_ID, new cInfo(SmoothedETAItem.class, SmoothedETAItem.DATASOURCE_TYPE));
 		c.put(MinSRItem.COLUMN_ID, new cInfo(MinSRItem.class, MinSRItem.DATASOURCE_TYPE));
+		c.put(MaxSRItem.COLUMN_ID, new cInfo(MaxSRItem.class, MaxSRItem.DATASOURCE_TYPE));
 
 		c.put(SessionUpItem.COLUMN_ID, new cInfo(SessionUpItem.class, SessionUpItem.DATASOURCE_TYPE));
 		c.put(SessionDownItem.COLUMN_ID, new cInfo(SessionDownItem.class, SessionDownItem.DATASOURCE_TYPE));

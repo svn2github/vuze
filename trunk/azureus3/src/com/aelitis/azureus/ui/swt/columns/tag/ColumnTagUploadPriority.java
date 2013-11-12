@@ -25,6 +25,7 @@
 package com.aelitis.azureus.ui.swt.columns.tag;
 
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
+import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
 
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
@@ -43,6 +44,17 @@ ColumnTagUploadPriority
 		TableColumn column ) 
 	{
 		super( column );
+		
+		
+	}
+	
+	public void 
+	fillTableColumnInfo(
+		TableColumnInfo info) 
+	{
+		super.fillTableColumnInfo(info);
+		
+		info.setProficiency(TableColumnInfo.PROFICIENCY_INTERMEDIATE);
 	}
 	
 	@Override

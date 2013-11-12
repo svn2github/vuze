@@ -193,6 +193,7 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 	private boolean bIsFirstPriority;
 
 	private int	dlSpecificMinShareRatio;
+	private int	dlSpecificMaxShareRatio;
 	
 	/** Public for tooltip to access it */
 	public String sExplainFP = "";
@@ -233,6 +234,7 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 		DownloadManagerState dm_state = core_dm.getDownloadState();
 		
 		dlSpecificMinShareRatio = dm_state.getIntParameter( DownloadManagerState.PARAM_MIN_SHARE_RATIO );
+		dlSpecificMaxShareRatio = dm_state.getIntParameter( DownloadManagerState.PARAM_MAX_SHARE_RATIO );
 
 		dm_state.addListener( this, DownloadManagerState.AT_PARAMETERS, DownloadManagerStateAttributeListener.WRITTEN );
 		
@@ -266,6 +268,7 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 		DownloadManagerState dm_state = core_dm.getDownloadState();
 		
 		dlSpecificMinShareRatio = dm_state.getIntParameter( DownloadManagerState.PARAM_MIN_SHARE_RATIO );
+		dlSpecificMaxShareRatio = dm_state.getIntParameter( DownloadManagerState.PARAM_MAX_SHARE_RATIO );
 	}
 	
 	protected void
@@ -551,18 +554,22 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 				// (we don't want leechers circumventing the 0.5 rule)
 
 				//0 means unlimited
-				if (iIgnoreShareRatio != 0 && lastModifiedShareRatio >= iIgnoreShareRatio
+				int	activeMaxSR = dlSpecificMaxShareRatio;
+				if ( activeMaxSR <= 0 ){
+					activeMaxSR = iIgnoreShareRatio;
+				}
+				if (activeMaxSR != 0 && lastModifiedShareRatio >= activeMaxSR
 						&& (lastModifiedScrapeResultSeeds >= iIgnoreShareRatio_SeedStart || !bScrapeResultsOk)
 						&& lastModifiedShareRatio != -1) {
 					
 					if (rules.bDebugLog)
 						sExplainSR += "  shareratio met: shareRatio(" + lastModifiedShareRatio
-								+ ") >= " + iIgnoreShareRatio + "\n";
+								+ ") >= " + activeMaxSR + "\n";
 
 					dl.setSeedingRank(SR_SHARERATIOMET);
 					return SR_SHARERATIOMET;
-				} else if (rules.bDebugLog && iIgnoreShareRatio != 0
-						&& lastModifiedShareRatio >= iIgnoreShareRatio) {
+				} else if (rules.bDebugLog && activeMaxSR != 0
+						&& lastModifiedShareRatio >= activeMaxSR) {
 					sExplainSR += "  shareratio NOT met: ";
 					if (lastModifiedScrapeResultSeeds >= iIgnoreShareRatio_SeedStart) 
 						sExplainSR += lastModifiedScrapeResultSeeds + " below seed threshold of "
@@ -959,7 +966,11 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 			int shareRatio = dl.getStats().getShareRatio();
 			int numSeeds = rules.calcSeedsNoUs(dl);
 
-			if (iIgnoreShareRatio != 0 && shareRatio >= iIgnoreShareRatio
+			int	activeMaxSR = dlSpecificMaxShareRatio;
+			if ( activeMaxSR <= 0 ){
+				activeMaxSR = iIgnoreShareRatio;
+			}
+			if (activeMaxSR != 0 && shareRatio >= activeMaxSR
 					&& (numSeeds >= iIgnoreShareRatio_SeedStart || !lastScrapeResultOk)
 					&& shareRatio != -1) {
 				if (rules.bDebugLog) {

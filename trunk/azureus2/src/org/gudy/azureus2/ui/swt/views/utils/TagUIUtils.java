@@ -381,6 +381,8 @@ public class TagUIUtils
 	createSideBarMenuItems(
 		final Menu menu, final Tag tag ) 
 	{
+	    int userMode = COConfigurationManager.getIntParameter("User Mode");
+
 		final TagType	tag_type = tag.getTagType();
 		
 		boolean	needs_separator_next = false;
@@ -417,84 +419,147 @@ public class TagUIUtils
 						});
 			}
 			
-			if ( tf_rate_limit.getTagUploadPriority() >= 0 ){
-				
-				needs_separator_next = true;
-				
-				final MenuItem upPriority = new MenuItem(menu, SWT.CHECK );
-			
-				upPriority.setSelection( tf_rate_limit.getTagUploadPriority() > 0 );
+		    if ( userMode > 0 ){
+		    	
+				if ( tf_rate_limit.getTagUploadPriority() >= 0 ){
 					
-				Messages.setLanguageText(upPriority, "cat.upload.priority");
-				upPriority.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event event) {
-						boolean set = upPriority.getSelection();
-						tf_rate_limit.setTagUploadPriority( set?1:0 );
-					}
-				});
-			}
-			
-			if ( tf_rate_limit.getTagMinShareRatio() >= 0 ){
+					needs_separator_next = true;
+					
+					final MenuItem upPriority = new MenuItem(menu, SWT.CHECK );
 				
-				needs_separator_next = true;
+					upPriority.setSelection( tf_rate_limit.getTagUploadPriority() > 0 );
+						
+					Messages.setLanguageText(upPriority, "cat.upload.priority");
+					upPriority.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							boolean set = upPriority.getSelection();
+							tf_rate_limit.setTagUploadPriority( set?1:0 );
+						}
+					});
+				}
+				
+				if ( tf_rate_limit.getTagMinShareRatio() >= 0 ){
+					
+					needs_separator_next = true;
+		
+					MenuItem itemSR = new MenuItem(menu, SWT.PUSH);
+					
+					final String existing = String.valueOf( tf_rate_limit.getTagMinShareRatio()/1000.0f);
 	
-				MenuItem itemSR = new MenuItem(menu, SWT.PUSH);
-				
-				final String existing = String.valueOf( tf_rate_limit.getTagMinShareRatio()/1000.0f);
-
-				Messages.setLanguageText(itemSR, "menu.min.share.ratio", new String[]{existing} );
-				
-				itemSR.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event event) {
-						SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
-								"min.sr.window.title", "min.sr.window.message");
-												
-						entryWindow.setPreenteredText( existing, false );
-						entryWindow.selectPreenteredText( true );
-						
-						entryWindow.prompt();
-						
-						if ( entryWindow.hasSubmittedInput()){
+					Messages.setLanguageText(itemSR, "menu.min.share.ratio", new String[]{existing} );
+					
+					itemSR.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+									"min.sr.window.title", "min.sr.window.message");
+													
+							entryWindow.setPreenteredText( existing, false );
+							entryWindow.selectPreenteredText( true );
 							
-							try{
-								String text = entryWindow.getSubmittedInput().trim();
+							entryWindow.prompt();
+							
+							if ( entryWindow.hasSubmittedInput()){
 								
-								int	sr = 0;
-								
-								if ( text.length() > 0 ){
-								
-									try{
-										float f = Float.parseFloat( text );
+								try{
+									String text = entryWindow.getSubmittedInput().trim();
 									
-										sr = (int)(f * 1000 );
+									int	sr = 0;
 									
-										if ( sr < 0 ){
-											
-											sr = 0;
-											
-										}else if ( sr == 0 && f > 0 ){
-											
-											sr = 1;
-										}
+									if ( text.length() > 0 ){
 									
-									}catch( Throwable e ){
+										try{
+											float f = Float.parseFloat( text );
 										
-										Debug.out( e );
-									}
+											sr = (int)(f * 1000 );
+										
+											if ( sr < 0 ){
+												
+												sr = 0;
+												
+											}else if ( sr == 0 && f > 0 ){
+												
+												sr = 1;
+											}
+										
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+										}
+										
+										tf_rate_limit.setTagMinShareRatio( sr );
+										
+									}			
+								}catch( Throwable e ){
 									
-									tf_rate_limit.setTagMinShareRatio( sr );
-									
-								}			
-							}catch( Throwable e ){
-								
-								Debug.out( e );
+									Debug.out( e );
+								}
 							}
 						}
-					}
-				});
+					});
+				}
+				
+				if ( tf_rate_limit.getTagMaxShareRatio() >= 0 ){
+					
+					needs_separator_next = true;
+		
+					MenuItem itemSR = new MenuItem(menu, SWT.PUSH);
+					
+					final String existing = String.valueOf( tf_rate_limit.getTagMaxShareRatio()/1000.0f);
+	
+					Messages.setLanguageText(itemSR, "menu.max.share.ratio", new String[]{existing} );
+					
+					itemSR.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+									"max.sr.window.title", "max.sr.window.message");
+													
+							entryWindow.setPreenteredText( existing, false );
+							entryWindow.selectPreenteredText( true );
+							
+							entryWindow.prompt();
+							
+							if ( entryWindow.hasSubmittedInput()){
+								
+								try{
+									String text = entryWindow.getSubmittedInput().trim();
+									
+									int	sr = 0;
+									
+									if ( text.length() > 0 ){
+									
+										try{
+											float f = Float.parseFloat( text );
+										
+											sr = (int)(f * 1000 );
+										
+											if ( sr < 0 ){
+												
+												sr = 0;
+												
+											}else if ( sr == 0 && f > 0 ){
+												
+												sr = 1;
+											}
+										
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+										}
+										
+										tf_rate_limit.setTagMaxShareRatio( sr );
+										
+									}			
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}
+					});
+				}
 			}
 		}
-
+		
 		if ( tag_type.hasTagTypeFeature( TagFeature.TF_RUN_STATE )) {
 
 			final TagFeatureRunState	tf_run_state = (TagFeatureRunState)tag;
@@ -836,138 +901,140 @@ public class TagUIUtils
 			}
 		}
 
-		if ( tag_type.hasTagTypeFeature( TagFeature.TF_PROPERTIES )){
-			
-			TagFeatureProperties props = (TagFeatureProperties)tag;
-			
-			TagProperty[] tps = props.getSupportedProperties();
-			
-			if ( tps.length > 0 ){
-				
-				needs_separator_next = true;
-				
-				Menu props_menu = new Menu( menu.getShell(), SWT.DROP_DOWN);
-				
-				MenuItem props_item = new MenuItem( menu, SWT.CASCADE);
-				
-				Messages.setLanguageText( props_item, "label.properties" );
-				
-				props_item.setMenu( props_menu );
+	    if ( userMode > 0 ){
 
-				for ( final TagProperty tp: tps ){
-										
-					if ( tp.getType() == TagFeatureProperties.PT_STRING_LIST ){
-						
-						String[] val = tp.getStringList();
-						
-						String def_str;
-						
-						if ( val == null || val.length == 0 ){
+			if ( tag_type.hasTagTypeFeature( TagFeature.TF_PROPERTIES )){
+				
+				TagFeatureProperties props = (TagFeatureProperties)tag;
+				
+				TagProperty[] tps = props.getSupportedProperties();
+				
+				if ( tps.length > 0 ){
+					
+					needs_separator_next = true;
+					
+					Menu props_menu = new Menu( menu.getShell(), SWT.DROP_DOWN);
+					
+					MenuItem props_item = new MenuItem( menu, SWT.CASCADE);
+					
+					Messages.setLanguageText( props_item, "label.properties" );
+					
+					props_item.setMenu( props_menu );
+	
+					for ( final TagProperty tp: tps ){
+											
+						if ( tp.getType() == TagFeatureProperties.PT_STRING_LIST ){
 							
-							def_str = "";
+							String[] val = tp.getStringList();
+							
+							String def_str;
+							
+							if ( val == null || val.length == 0 ){
+								
+								def_str = "";
+								
+							}else{
+								
+								def_str = "";
+								
+								for ( String v: val ){
+									
+									def_str += (def_str.length()==0?"":", ") + v;
+								}
+							}
+							
+							MenuItem set_item = new MenuItem( props_menu, SWT.PUSH);
+	
+							set_item.setText( tp.getName( true ) + (def_str.length()==0?"":(" (" + def_str + ") ")) + "..." );
+			
+							final String f_def_str = def_str;
+							
+							set_item.addListener(SWT.Selection, new Listener() {
+								public void handleEvent(Event event){
+									
+									String msg = MessageText.getString( "UpdateProperty.list.message", new String[]{ tp.getName( true ) } );
+									
+									SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow( "UpdateProperty.title", "!" + msg + "!" );
+									
+									entryWindow.setPreenteredText( f_def_str, false );
+									entryWindow.selectPreenteredText( true );
+									
+									entryWindow.prompt();
+									
+									if ( entryWindow.hasSubmittedInput()){
+										
+										try{
+											String text = entryWindow.getSubmittedInput().trim();
+											
+											if ( text.length() ==  0 ){
+												
+												tp.setStringList( null );
+												
+											}else{
+												text = text.replace( ';', ',');
+												text = text.replace( ' ', ',');
+												text = text.replaceAll( "[,]+", "," );
+												
+												String[] bits = text.split( "," );
+												
+												List<String> vals = new ArrayList<String>();
+												
+												for ( String bit: bits ){
+													
+													bit = bit.trim();
+													
+													if ( bit.length() > 0 ){
+														
+														vals.add( bit );
+													}
+												}
+												
+												if ( vals.size() == 0 ){
+													
+													tp.setStringList( null );
+												}else{
+													
+													tp.setStringList( vals.toArray( new String[ vals.size()]));
+												}
+											}
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+										}
+									}
+								}});
+							
+						}else if ( tp.getType() == TagFeatureProperties.PT_BOOLEAN ){
+							
+							final MenuItem set_item = new MenuItem( props_menu, SWT.CHECK);
+	
+							set_item.setText( tp.getName( true ));
+							
+							Boolean val = tp.getBoolean();
+							
+							set_item.setSelection( val != null && val );
+	
+							set_item.addListener(
+								SWT.Selection, 
+								new Listener() 
+								{
+									public void 
+									handleEvent(
+										Event event) 
+									{
+										tp.setBoolean( set_item.getSelection());
+									}
+								});
 							
 						}else{
 							
-							def_str = "";
-							
-							for ( String v: val ){
-								
-								def_str += (def_str.length()==0?"":", ") + v;
-							}
+							Debug.out( "Unknown property" );
 						}
-						
-						MenuItem set_item = new MenuItem( props_menu, SWT.PUSH);
-
-						set_item.setText( tp.getName( true ) + (def_str.length()==0?"":(" (" + def_str + ") ")) + "..." );
-		
-						final String f_def_str = def_str;
-						
-						set_item.addListener(SWT.Selection, new Listener() {
-							public void handleEvent(Event event){
-								
-								String msg = MessageText.getString( "UpdateProperty.list.message", new String[]{ tp.getName( true ) } );
-								
-								SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow( "UpdateProperty.title", "!" + msg + "!" );
-								
-								entryWindow.setPreenteredText( f_def_str, false );
-								entryWindow.selectPreenteredText( true );
-								
-								entryWindow.prompt();
-								
-								if ( entryWindow.hasSubmittedInput()){
-									
-									try{
-										String text = entryWindow.getSubmittedInput().trim();
-										
-										if ( text.length() ==  0 ){
-											
-											tp.setStringList( null );
-											
-										}else{
-											text = text.replace( ';', ',');
-											text = text.replace( ' ', ',');
-											text = text.replaceAll( "[,]+", "," );
-											
-											String[] bits = text.split( "," );
-											
-											List<String> vals = new ArrayList<String>();
-											
-											for ( String bit: bits ){
-												
-												bit = bit.trim();
-												
-												if ( bit.length() > 0 ){
-													
-													vals.add( bit );
-												}
-											}
-											
-											if ( vals.size() == 0 ){
-												
-												tp.setStringList( null );
-											}else{
-												
-												tp.setStringList( vals.toArray( new String[ vals.size()]));
-											}
-										}
-									}catch( Throwable e ){
-										
-										Debug.out( e );
-									}
-								}
-							}});
-						
-					}else if ( tp.getType() == TagFeatureProperties.PT_BOOLEAN ){
-						
-						final MenuItem set_item = new MenuItem( props_menu, SWT.CHECK);
-
-						set_item.setText( tp.getName( true ));
-						
-						Boolean val = tp.getBoolean();
-						
-						set_item.setSelection( val != null && val );
-
-						set_item.addListener(
-							SWT.Selection, 
-							new Listener() 
-							{
-								public void 
-								handleEvent(
-									Event event) 
-								{
-									tp.setBoolean( set_item.getSelection());
-								}
-							});
-						
-					}else{
-						
-						Debug.out( "Unknown property" );
 					}
-				}
+				}		
 			}
-			
-		}
-		
+	    }
+	    
 		if ( needs_separator_next ){
 			
 			new MenuItem( menu, SWT.SEPARATOR);

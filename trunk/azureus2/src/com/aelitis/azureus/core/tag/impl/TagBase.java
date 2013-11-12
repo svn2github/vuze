@@ -61,6 +61,7 @@ TagBase
 	protected static final String	AT_FL_MOVE_COMP		= "fl.comp";
 	protected static final String	AT_FL_INIT_LOC		= "fl.init";
 	protected static final String	AT_RATELIMIT_MIN_SR	= "rl.minsr";
+	protected static final String	AT_RATELIMIT_MAX_SR	= "rl.maxsr";
 	protected static final String	AT_PROPERTY_PREFX	= "pp.";
 
 	private static final String[] EMPTY_STRING_LIST = {};
@@ -576,6 +577,21 @@ TagBase
 		Debug.out( "not supported" );
 	}
 	
+		// max ratio
+	
+	public int
+	getTagMaxShareRatio()
+	{
+		return( -1 );
+	}
+	
+	public void
+	setTagMaxShareRatio(
+		int		sr )
+	{
+		Debug.out( "not supported" );
+	}
+
 	public TagProperty[]
 	getSupportedProperties()
 	{
