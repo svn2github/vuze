@@ -26,13 +26,17 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PipedInputStream;
-import java.io.PipedOutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 
 import com.aelitis.net.magneturi.MagnetURIHandler;
 
@@ -46,6 +50,63 @@ MagnetConnection2
 	extends HttpURLConnection
 {
 	private static final String	NL			= "\r\n";
+	
+	private static LinkedList<MagnetOutputStream>		active_os = new LinkedList<MagnetOutputStream>();
+	private static TimerEventPeriodic					active_os_event;
+	
+	private static void
+	addActiveStream(
+		MagnetOutputStream		os )
+	{
+		synchronized( active_os ){
+						
+			active_os.add( os );
+			
+			if ( active_os.size() == 1 && active_os_event == null ){
+				
+				active_os_event = 
+					SimpleTimer.addPeriodicEvent(
+						"mos:checker",
+						30*1000,
+						new TimerEventPerformer() 
+						{
+							public void 
+							perform(
+								TimerEvent event ) 
+							{
+								List<MagnetOutputStream>	active;
+								
+								synchronized( active_os ){
+								
+									active = new ArrayList<MagnetOutputStream>( active_os );
+								}
+								
+								for ( MagnetOutputStream os: active ){
+									
+									os.timerCheck();
+								}
+							}
+						});
+			}
+		}
+	}
+	
+	private static void
+	removeActiveStream(
+		MagnetOutputStream		os )
+	{
+		synchronized( active_os ){
+			
+			active_os.remove( os );
+			
+			if ( active_os.size() == 0 && active_os_event != null ){
+				
+				active_os_event.cancel();
+				
+				active_os_event = null;
+			}
+		}
+	}
 	
 	private OutputStream 	output_stream;
 	private InputStream 	input_stream;
@@ -66,15 +127,13 @@ MagnetConnection2
 	{				
 		String	get = "/download/" + getURL().toString().substring( 7 ) + " HTTP/1.0" + NL + NL;
 		
-		PipedOutputStream 	pos = new PipedOutputStream();
-		PipedInputStream 	pis = new PipedInputStream();
+		MagnetOutputStream 	mos = new MagnetOutputStream();
+		MagnetInputStream 	mis = new MagnetInputStream( mos );
+					
+		input_stream	= mis;
+		output_stream 	= mos;
 		
-		pis.connect( pos );
-		
-		input_stream	= pis;
-		output_stream 	= pos;
-		
-		MagnetURIHandler.getSingleton().process( get, new ByteArrayInputStream(new byte[0]), pos );
+		MagnetURIHandler.getSingleton().process( get, new ByteArrayInputStream(new byte[0]), mos );
 	}
 	
 	public InputStream
@@ -218,6 +277,326 @@ MagnetConnection2
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
+		}
+	}
+	
+	private class
+	MagnetOutputStream
+		extends OutputStream
+	{
+		private LinkedList<byte[]>	buffers 	= new LinkedList<byte[]>();
+		private int					available;
+		private AESemaphore			buffer_sem 	= new AESemaphore( "mos:buffers" );
+		private boolean				closed;
+		
+		private long				last_read	= SystemTime.getMonotonousTime();
+		private int					read_active;
+		
+		private
+		MagnetOutputStream()
+		{
+			addActiveStream( this );
+		}
+
+		private void
+		timerCheck()
+		{
+			synchronized( buffers ){
+				
+				if ( 	closed || 
+						read_active > 0 || 
+						SystemTime.getMonotonousTime() - last_read < 60*1000 ){
+					
+					return;
+				}
+			}
+			
+			Debug.out( "Abandoning magnet download for " + MagnetConnection2.this.getURL() + " as no active reader" );
+			
+			try{
+				close();
+				
+			}catch( Throwable e ){
+				
+			}
+		}
+		
+		public void 
+		write(
+			int b ) 
+			
+			throws IOException
+		{
+			synchronized( buffers ){
+	    		
+	    		if ( closed ){
+	    			
+	    			throw( new IOException( "Connection closed" ));
+	    		}
+	    		
+	    		buffers.addLast( new byte[]{(byte)b});
+	    		
+	    		available++;
+	    		
+	    		buffer_sem.release();
+			}
+		}
+		
+		public void 
+		write(
+			byte b[], 
+			int off, 
+			int len) 
+					
+			throws IOException 
+		{
+			synchronized( buffers ){
+	    		
+	    		if ( closed ){
+	    			
+	    			throw( new IOException( "Connection closed" ));
+	    		}
+	    		
+	    		if ( len > 0 ){
+	    			
+		    		byte[]	new_b = new byte[len];
+		    		
+		    		System.arraycopy( b, off, new_b, 0, len );
+		    		
+		    		buffers.addLast( new_b );
+		    		
+		    		available += len;
+		    		
+		    		buffer_sem.release();
+	    		}
+			} 
+		}
+		 
+		private int 
+		read() 
+		
+			throws IOException	
+		{
+			synchronized( buffers ){
+				
+				last_read = SystemTime.getMonotonousTime();
+				
+				read_active++;
+			}
+			
+			try{
+				buffer_sem.reserve();
+				
+			}finally{
+			
+				synchronized( buffers ){
+
+					last_read = SystemTime.getMonotonousTime();
+				
+					read_active--;
+				}
+			}
+			
+			synchronized( buffers ){
+	    		
+	    		if ( closed && buffers.size() == 0 ){
+	    			
+	    			return( -1 );
+	    		}
+	    		
+	    		byte[] b = buffers.removeFirst();
+	    		
+	    		if ( b.length > 1 ){
+	    			
+	    			for ( int i=b.length-1;i>0;i--){
+	    				
+	    				buffers.addFirst( new byte[]{ b[i] });
+	    				
+	    				buffer_sem.release();
+	    			}
+	    		}
+	    		
+	    		available--;
+	    		
+	    		return(((int)b[0])&0x000000ff );
+			}
+		}
+		
+		private int 
+		read(
+			byte 	buffer[], 
+			int 	off, 
+			int 	len )  
+					
+			throws IOException
+		{
+			synchronized( buffers ){
+				
+				last_read = SystemTime.getMonotonousTime();
+				
+				read_active++;
+			}
+			
+			try{
+				buffer_sem.reserve();
+				
+			}finally{
+			
+				synchronized( buffers ){
+
+					last_read = SystemTime.getMonotonousTime();
+				
+					read_active--;
+				}
+			}
+
+			synchronized( buffers ){
+	    			    		
+	    		int	read = 0;
+	    		
+	    		while( true ){
+	    		
+		    		if ( closed && buffers.size() == 0 ){
+		    			
+		    			return( read==0?-1:read );
+		    		}
+
+	    			byte[] b = buffers.removeFirst();
+	    			
+	    			int	b_len = b.length;
+	    			
+	    			if ( b_len >= len ){
+	    			
+	    				read += len;
+	    				
+	    				System.arraycopy( b, 0, buffer, off, len );
+	    				
+	    				if ( b_len > len ){
+	    				
+	    					byte[]	new_b = new byte[b_len-len];
+	    					
+	    					System.arraycopy( b, len, new_b, 0, new_b.length );
+	    					
+	    					buffers.addFirst( new_b );
+	    					
+	    					buffer_sem.release();
+	    				}
+	    				
+	    				break;
+	    				
+	    			}else{
+	    				
+	    				read += b_len;
+	    				
+	    				System.arraycopy( b, 0, buffer, off, b_len );
+	    				
+	    				off += b_len;
+	    				len	-= b_len;
+	    			}
+	    			
+	    			if ( !buffer_sem.reserveIfAvailable()){
+	    				
+	    				break;
+	    			}
+	    		}
+	    		
+	    		available -= read;
+	    		
+	    		return( read );
+			}
+		}
+		
+	    private int 
+	    available() 
+	    		
+	    	throws IOException 
+	    {
+	    	synchronized( buffers ){
+	    		
+	    		if ( closed ){
+	    			
+	    			throw( new IOException( "Connection closed" ));
+	    		}
+	    		
+	    		return( available );
+	    	}
+	    }
+	    
+		public void 
+		close()  
+		
+			throws IOException
+		{
+			synchronized( buffers ){
+				
+				if ( closed ){
+					
+					return;
+				}
+				
+				closed = true;
+				
+				buffer_sem.releaseForever();
+			}
+			
+			removeActiveStream( this );
+		}
+	}
+	
+	private class
+	MagnetInputStream
+		extends InputStream
+	{
+		private MagnetOutputStream out;
+		
+		private
+		MagnetInputStream(
+			MagnetOutputStream	_out )
+		{
+			out = _out;
+		}
+		
+		public int 
+		read() 
+		
+			throws IOException	
+		{
+			return( out.read());
+		}
+		
+		public int 
+		read(
+			byte b[], 
+			int off, 
+			int len)  
+					
+				throws IOException
+		{
+			return( out.read( b, off, len ));
+		}
+		
+	    public int 
+	    available() 
+	    		
+	    	throws IOException 
+	    {
+	    	return( out.available());
+	    }
+	    
+		public long 
+		skip(
+			long n) 
+					
+			throws IOException
+		{
+			throw( new IOException( "Not supported" ));
+		}
+		
+		public void 
+		close()  
+			throws IOException
+		{
+			out.close();
 		}
 	}
 }
