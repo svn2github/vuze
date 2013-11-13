@@ -77,17 +77,19 @@ public class ConfigSectionMode implements UISWTConfigSection {
   public Composite configSectionCreate(final Composite parent) {
     GridData gridData;
     GridLayout layout;
-    String initsMode = "";
-    final String[] text = {""};
-    final String[] messTexts = {"ConfigView.section.mode.beginner.wiki.definitions",
+   
+    /*
+    final String[] messTexts = 
+    	{	"ConfigView.section.mode.beginner.wiki.definitions",
     		"ConfigView.section.mode.intermediate.wiki.host",
     		"ConfigView.section.mode.advanced.wiki.main",
-    		"ConfigView.section.mode.intermediate.wiki.publish"
     };
-    final String[] links = {"http://wiki.vuze.com/w/This_funny_word",
-    		"http://wiki.vuze.com/w/HostingFiles",
-    		"http://wiki.vuze.com/w/Main_Page",
-    		"http://wiki.vuze.com/w/PublishingFiles"
+    */
+    
+    final String[] links = 
+    	{	"http://wiki.vuze.com/w/Mode#Beginner",
+    		"http://wiki.vuze.com/w/Mode#Intermediate",
+    		"http://wiki.vuze.com/w/Mode#Advanced"
     };
     
     int userMode = COConfigurationManager.getIntParameter("User Mode");
@@ -122,58 +124,69 @@ public class ConfigSectionMode implements UISWTConfigSection {
     button2.setData("iMode", "2");
     button2.setData("sMode", "advanced.text");
     
+    final Button[] selected_button = { null };
+    
     if ( userMode == 0) {
-    	initsMode = "beginner.text";
+    	selected_button[0] = button0;
     	button0.setSelection(true);
     } else if ( userMode == 1) {
-    	initsMode = "intermediate.text";
+    	selected_button[0] = button1;
     	button1.setSelection(true);
     } else {
-    	initsMode = "advanced.text";
+    	selected_button[0] = button2;
     	button2.setSelection(true);
     }
-
     
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     final Label label = new Label(cMode, SWT.WRAP);
     gridData.horizontalSpan = 4;
+    gridData.horizontalIndent=10;
     label.setLayoutData(gridData);
-	text[0] = MessageText.getString("ConfigView.section.mode." + initsMode);
-	label.setText(text[0]);
-	label.addListener (SWT.Selection, new Listener () {
-		public void handleEvent(Event event) {
-			Utils.launch(event.text);
-		}
-	});
-	
-	Group gWiki = new Group(cMode, SWT.WRAP);
-    gridData = new GridData();
-    gridData.widthHint = 350;
-    gWiki.setLayoutData(gridData);
-    layout = new GridLayout();
-    layout.numColumns = 1;
-    layout.marginHeight = 1;
-    gWiki.setLayout(layout);
     
-    gWiki.setText(MessageText.getString("Utils.link.visit"));
+    
+    final Label linkLabel = new Label(cMode, SWT.NULL);
+    linkLabel.setText( MessageText.getString( "ConfigView.label.please.visit.here" ));
+    linkLabel.setData( links[userMode] );
+    linkLabel.setCursor(linkLabel.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+    linkLabel.setForeground(Colors.blue);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    //gridData.horizontalIndent = 10;
+    linkLabel.setLayoutData( gridData );
+    linkLabel.addMouseListener(new MouseAdapter() {
+      public void mouseDoubleClick(MouseEvent arg0) {
+      	Utils.launch((String) ((Label) arg0.widget).getData());
+      }
+      public void mouseUp(MouseEvent arg0) {
+      	Utils.launch((String) ((Label) arg0.widget).getData());
+      }
+    });
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 4;
+    linkLabel.setLayoutData(gridData);
+   
+    
+    final Runnable setModeText = 
+    	new Runnable()
+    	{
+    		public void
+    		run()
+    		{
+    			String key = "ConfigView.section.mode." + selected_button[0].getData("sMode");
+    			
+    			if ( MessageText.keyExists( key + "1" )){
+    				key = key + "1";
+    			}
+    			
+    			label.setText( "-> " +  MessageText.getString( key ) );		
+    		}
+    	};
+    	
+	
+    setModeText.run();
 
-	    final Label linkLabel = new Label(gWiki, SWT.NULL);
-	    linkLabel.setText( MessageText.getString( messTexts[userMode] ) );
-	    linkLabel.setData( links[userMode] );
-	    linkLabel.setCursor(linkLabel.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
-	    linkLabel.setForeground(Colors.blue);
-	    gridData = new GridData(GridData.FILL_HORIZONTAL);
-	    gridData.horizontalIndent = 10;
-	    linkLabel.setLayoutData( gridData );
-	    linkLabel.addMouseListener(new MouseAdapter() {
-	      public void mouseDoubleClick(MouseEvent arg0) {
-	      	Utils.launch((String) ((Label) arg0.widget).getData());
-	      }
-	      public void mouseUp(MouseEvent arg0) {
-	      	Utils.launch((String) ((Label) arg0.widget).getData());
-	      }
-	    });
+	
 	    
+	    /*
 	    final Label linkLabel1 = new Label(gWiki, SWT.NULL);
 	    linkLabel1.setText( (userMode == 1)?MessageText.getString(messTexts[3]):"");
 	    linkLabel1.setData( links[3] );
@@ -190,7 +203,7 @@ public class ConfigSectionMode implements UISWTConfigSection {
 	      	Utils.launch((String) ((Label) arg0.widget).getData());
 	      }
 	    });
-
+		*/
     
     Listener radioGroup = new Listener () {
     	public void handleEvent (Event event) {
@@ -208,10 +221,12 @@ public class ConfigSectionMode implements UISWTConfigSection {
 		    Button button = (Button) event.widget;
 		    button.setSelection (true);
 		    int mode = Integer.parseInt((String)button.getData("iMode"));
-		    text[0] = MessageText.getString("ConfigView.section.mode." + (String)button.getData("sMode"));
-		    label.setText(text[0]);
-		    linkLabel.setText( MessageText.getString(messTexts[mode]) );
+		    selected_button[0] = button;
+		    setModeText.run();
+		   
+		    //linkLabel.setText( MessageText.getString(messTexts[mode]) );
 		    linkLabel.setData( links[mode] );
+		    /*
 		    if(mode == 1){
 			    linkLabel1.setText( MessageText.getString(messTexts[3]) );
 			    linkLabel1.setData( links[3] );
@@ -219,6 +234,7 @@ public class ConfigSectionMode implements UISWTConfigSection {
 			    linkLabel1.setText( "" );
 			    linkLabel1.setData( "" );
 		    }
+		    */
 		    COConfigurationManager.setParameter("User Mode", Integer.parseInt((String)button.getData("iMode")));
 		    }
     };
@@ -234,12 +250,19 @@ public class ConfigSectionMode implements UISWTConfigSection {
     
     	// reset to defaults
     
+    Label blank = new Label(cMode, SWT.NULL);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 4;
+    blank.setLayoutData(gridData);
+	
+    
 	Composite gReset = new Composite(cMode, SWT.WRAP);
     gridData = new GridData();
     gridData.horizontalSpan = 4;
     gReset.setLayoutData(gridData);
     layout = new GridLayout();
     layout.numColumns = 3;
+    layout.marginWidth = 0;
     gReset.setLayout(layout);
 
     Label reset_label = new Label(gReset, SWT.NULL );
