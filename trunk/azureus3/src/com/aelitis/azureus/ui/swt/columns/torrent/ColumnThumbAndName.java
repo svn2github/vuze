@@ -579,7 +579,7 @@ public class ColumnThumbAndName
 
 		boolean over = GCStringPrinter.printString(gc, name, new Rectangle(textX,
 				cellBounds.y, cellBounds.x + cellBounds.width - textX,
-				cellBounds.height), true, true, SWT.WRAP);
+				cellBounds.height), true, true, getTableID().endsWith( ".big" )?SWT.WRAP:SWT.NULL );
 		cell.setToolTip(over ? null : name);
 	}
 
