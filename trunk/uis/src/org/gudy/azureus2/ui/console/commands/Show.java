@@ -445,7 +445,7 @@ public class Show extends IConsoleCommand {
 			case 'z':
 				return DisplayFormatters.formatByteCountToKiBEtc(dm.getSize());
 			case 'e':
-				return DisplayFormatters.formatETA(dm.getStats().getETA());
+				return DisplayFormatters.formatETA(dm.getStats().getSmoothedETA());
 			case 'r':
 				long to = 0;
 				long tot = 0;
