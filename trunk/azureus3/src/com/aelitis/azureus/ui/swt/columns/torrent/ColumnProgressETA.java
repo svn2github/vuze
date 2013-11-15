@@ -492,7 +492,7 @@ public class ColumnProgressETA
 
 		long diff = SystemTime.getCurrentTime() - dm.getStats().getTimeStarted();
 		if (diff > SHOW_ETA_AFTER_MS) {
-			return dm.getStats().getETA();
+			return dm.getStats().getSmoothedETA();
 		}
 		return 0;
 	}

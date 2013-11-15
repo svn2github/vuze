@@ -567,7 +567,7 @@ public class GeneralView
     DiskManager dm = manager.getDiskManager();
     
     String	remaining;
-    String	eta			= DisplayFormatters.formatETA(manager.getStats().getETA());
+    String	eta			= DisplayFormatters.formatETA(manager.getStats().getSmoothedETA());
     
     if ( dm != null ){
     	

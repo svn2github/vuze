@@ -1045,7 +1045,7 @@ public class MainWindowImpl
 					
 					num_downloading++;
 					
-					long dm_eta = dm.getStats().getETA();
+					long dm_eta = dm.getStats().getSmoothedETA();
 					
 					if ( dm_eta < min_eta ){
 						

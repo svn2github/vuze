@@ -142,7 +142,7 @@ public class DownloadBar extends MiniBar {
         this.updateSpeedLabel(down_speed, stats.getDataReceiveRate(), stats.getProtocolReceiveRate());
         this.updateSpeedLabel(up_speed, stats.getDataSendRate(), stats.getProtocolSendRate());
         
-        eta.setText(DisplayFormatters.formatETA(stats.getETA()));
+        eta.setText(DisplayFormatters.formatETA(stats.getSmoothedETA()));
         if (progress_bar.getSelection() != percent) {
         	progress_bar.setSelection(percent);
         	progress_bar.redraw();

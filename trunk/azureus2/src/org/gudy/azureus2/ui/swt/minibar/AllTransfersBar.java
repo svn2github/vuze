@@ -219,7 +219,7 @@ public class AllTransfersBar extends MiniBar {
 				
 				num_downloading++;
 				
-				long eta = dm.getStats().getETA();
+				long eta = dm.getStats().getSmoothedETA();
 				
 				if ( eta < min_eta ){
 					

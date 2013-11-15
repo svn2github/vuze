@@ -332,7 +332,7 @@ TranscodeJobImpl
 		}
 			
 		try{
-			long	eta = PluginCoreUtils.unwrap( download ).getStats().getETA();
+			long	eta = PluginCoreUtils.unwrap( download ).getStats().getSmoothedETA();
 			
 			if ( eta < 0 ){
 				

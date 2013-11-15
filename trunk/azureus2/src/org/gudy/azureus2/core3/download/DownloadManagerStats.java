@@ -184,6 +184,11 @@ DownloadManagerStats
 	 * 	-1 = unknown eta (no peer manager) or download completed 1s ago
 	 * Constants.CRAPPY_INFINITE_AS_LONG = incomplete and 0 average speed   
 	 */
+	
+	/**
+	 * *deprecated - use getSmoothedETA as the unstability of getETA is pretty bad
+	 * @return
+	 */
 	public long
 	getETA();
 	

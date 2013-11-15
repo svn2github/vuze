@@ -221,13 +221,13 @@ DownloadStatsImpl
 	public String
 	getETA()
 	{
-		return(DisplayFormatters.formatETA(dm_stats.getETA()));
+		return(DisplayFormatters.formatETA(dm_stats.getSmoothedETA()));
 	}
 	
 	public long
 	getETASecs()
 	{
-		return( dm_stats.getETA());
+		return( dm_stats.getSmoothedETA());
 	}
 	
 	public long

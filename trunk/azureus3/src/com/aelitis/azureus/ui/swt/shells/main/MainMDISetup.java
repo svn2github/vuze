@@ -418,7 +418,7 @@ public class MainMDISetup
 					if (completed != 1000) {
 						s = (completed / 10) + "% Complete\n";
 					}
-					String eta = DisplayFormatters.formatETA(manager.getStats().getETA());
+					String eta = DisplayFormatters.formatETA(manager.getStats().getSmoothedETA());
 					if (eta.length() > 0) {
 						s += MessageText.getString("TableColumn.header.eta") + ": " + eta
 								+ "\n";

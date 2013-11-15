@@ -84,7 +84,7 @@ public class DateCompletedItem
 		} else {
 			long diff = SystemTime.getCurrentTime() - dm.getStats().getTimeStarted();
 			if (diff > SHOW_ETA_AFTER_MS) {
-				long eta = dm.getStats().getETA();
+				long eta = dm.getStats().getSmoothedETA();
 				if (eta > 0) {
 					String sETA = TimeFormatter.format(eta);
 					value = eta << 42;

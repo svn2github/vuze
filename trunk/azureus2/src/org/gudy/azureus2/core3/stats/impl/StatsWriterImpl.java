@@ -251,7 +251,7 @@ StatsWriterImpl
 						writeRawCookedAverageTag( "TOTAL_SPEED", 		dm_stats.getTotalAverage());
 																				
 						writeTag( "ELAPSED", 		dm_stats.getElapsedTime());
-						writeTag( "ETA", 			DisplayFormatters.formatETA(dm_stats.getETA()));
+						writeTag( "ETA", 			DisplayFormatters.formatETA(dm_stats.getSmoothedETA()));
 						writeTag( "HASH_FAILS", 	dm_stats.getHashFailCount());
 						writeTag( "SHARE_RATIO", 	dm_stats.getShareRatio());
 			
