@@ -18,7 +18,6 @@
  
 package org.gudy.azureus2.ui.swt;
 
-import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 
@@ -34,7 +33,7 @@ import org.gudy.azureus2.core3.util.AERunnable;
 public abstract class DelayedListenerMultiCombiner
 	implements Listener
 {
-	Object lock = new Object();
+	private Object lock = new Object();
 	private boolean pending = false;
 
 	public final void handleEvent(final Event event) {
@@ -48,13 +47,10 @@ public abstract class DelayedListenerMultiCombiner
 
 		Utils.execSWTThreadLater(0, new AERunnable() {
 			public void runSupport() {
-				try {
-					handleDelayedEvent(event);
-				} finally {
-  				synchronized (lock) {
+				synchronized( lock ){
   					pending = false;
   				}
-				}
+				handleDelayedEvent(event);
 			}
 		});
 	}
