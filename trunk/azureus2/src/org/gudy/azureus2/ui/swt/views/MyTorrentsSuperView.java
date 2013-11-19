@@ -250,6 +250,9 @@ public class MyTorrentsSuperView
 
 		form.addListener(SWT.Resize, new DelayedListenerMultiCombiner() {
 			public void handleDelayedEvent(Event e) {
+				if ( sash.isDisposed()){
+					return;
+				}
 				Double l = (Double) sash.getData("PCT");
 				if (l == null) {
 					return;
