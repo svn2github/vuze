@@ -1210,6 +1210,48 @@ TorrentUtils
 	}
 	
 	public static List<List<String>>
+	removeAnnounceURLs(
+		List<List<String>> 	base_urls,
+		List<List<String>>	remove_urls )
+	{
+		base_urls = getClone( base_urls );
+		if ( remove_urls == null ){
+			return( base_urls );
+		}
+		Set<String> removeSet = new HashSet<String>();
+		removeSet.add( NO_VALID_URL_URL );	// this results in removal of this dummy url if present
+		for ( List<String> l: remove_urls ){
+			removeSet.addAll(l);
+		}
+		Iterator<List<String>> it1 = base_urls.iterator();
+		while( it1.hasNext()){
+			List<String> l = it1.next();
+			Iterator<String> it2 = l.iterator();
+			while( it2.hasNext()){
+				String url = it2.next();
+				if ( url.equals( NO_VALID_URL_URL )){
+					it2.remove();
+				}else{
+					for ( String s: removeSet ){
+						
+						if ( url.toLowerCase().startsWith( s )){
+							
+							it2.remove();
+							
+							break;
+						}
+					}
+				}
+			}
+			if ( l.isEmpty()){
+				it1.remove();
+			}
+		}
+		
+		return( base_urls );
+	}
+	
+	public static List<List<String>>
 	getClone(
 		List<List<String>> lls )
 	{

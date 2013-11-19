@@ -103,6 +103,12 @@ TagPropertyUntaggedHandler
 													{		
 														handleProperty( property );
 													}
+													
+													public void
+													propertySync(
+														TagProperty		property )
+													{	
+													}
 												});
 											
 											handleProperty( prop );

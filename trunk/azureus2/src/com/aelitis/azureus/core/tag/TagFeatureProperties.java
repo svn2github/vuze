@@ -75,6 +75,9 @@ TagFeatureProperties
 		public void
 		removeListener(
 			TagPropertyListener		listener );
+		
+		public void
+		syncListeners();
 	}
 	
 	public interface
@@ -82,6 +85,10 @@ TagFeatureProperties
 	{
 		public void
 		propertyChanged(
+			TagProperty		property );
+		
+		public void
+		propertySync(
 			TagProperty		property );
 	}
 }

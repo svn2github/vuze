@@ -134,7 +134,7 @@ TagPropertyTrackerTemplateHandler
 				continue;
 			}
 			 
-			boolean	merge = temp[0].equals( "m" );
+			String type = temp[0];
 			 
 			for ( Taggable t: taggables ){
 				 
@@ -146,13 +146,17 @@ TagPropertyTrackerTemplateHandler
 					
 					List<List<String>> trackers = TorrentUtils.announceGroupsToList( torrent );
 					
-					if ( merge ){
+					if ( type.equals( "m" )){
 						
 						trackers = TorrentUtils.mergeAnnounceURLs( trackers, template_trackers );
 						
-					}else{
+					}else if ( type.equals( "r" )){
 						
 						trackers = template_trackers;
+						
+					}else{
+						
+						trackers = TorrentUtils.removeAnnounceURLs( trackers, template_trackers );
 					}
 					
 					TorrentUtils.listToAnnounceGroups( trackers, torrent );
@@ -173,6 +177,13 @@ TagPropertyTrackerTemplateHandler
 		}
 				
 		handleStuff( bits, property.getTag().getTagged());
+	}
+	
+	public void
+	propertySync(
+		TagProperty		property )
+	{
+		propertyChanged( property );
 	}
 	
 	public void

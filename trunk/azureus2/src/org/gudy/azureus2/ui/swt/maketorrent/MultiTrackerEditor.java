@@ -43,11 +43,10 @@ import com.aelitis.azureus.ui.UserPrompterResultListener;
 
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
+
 
 /**
  * @author Olivier
@@ -368,6 +367,19 @@ public class MultiTrackerEditor {
 				Map<String,List<List<String>>> multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
 				String	selected = currentTemplate[0];
 				trackers = TorrentUtils.mergeAnnounceURLs(trackers, multiTrackers.get( selected ));
+				refresh();
+				computeSaveEnable();
+			}
+		});
+		
+		final Button btnRemove = new Button(cTemplate, SWT.PUSH);
+		buttons.add( btnRemove );
+		Messages.setLanguageText(btnRemove, "Button.remove");
+		btnRemove.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				Map<String,List<List<String>>> multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
+				String	selected = currentTemplate[0];
+				trackers = TorrentUtils.removeAnnounceURLs(trackers, multiTrackers.get( selected ));
 				refresh();
 				computeSaveEnable();
 			}

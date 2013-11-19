@@ -124,6 +124,12 @@ TagPropertyTrackerHandler
 		handleProperty( property, false );
 	}
 	
+	public void
+	propertySync(
+		TagProperty		property )
+	{	
+	}
+	
 	private void
 	handleProperty(
 		TagProperty		property,

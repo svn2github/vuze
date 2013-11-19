@@ -942,6 +942,7 @@ public class TagUIUtils
 
 								String str_merge 	= MessageText.getString("label.merge" );
 								String str_replace 	= MessageText.getString("label.replace" );
+								String str_remove 	= MessageText.getString("Button.remove" );
 
 								String[] val = tp.getStringList();
 								
@@ -967,13 +968,18 @@ public class TagUIUtils
 											
 											if ( templates.contains( tn )){
 											
-												if ( bits[0].equals( "m" )){
+												String type = bits[0];
+												
+												if ( type.equals( "m" )){
 											
 													tn += ": " + str_merge;
 													
-												}else{
+												}else if ( type.equals( "r" )){
 												
 													tn += ": " + str_replace;
+													
+												}else{
+													tn += ": " + str_remove;
 												}
 										
 												selected.add( v );
@@ -1028,6 +1034,18 @@ public class TagUIUtils
 											});
 									}});
 									
+								MenuItem reapply_item = new MenuItem( ttemp_menu, SWT.PUSH);
+								
+								Messages.setLanguageText( reapply_item, "label.reapply" );
+								
+								reapply_item.addListener(SWT.Selection, new Listener() {
+									public void 
+									handleEvent(Event event)
+									{
+										tp.syncListeners();
+									}});
+								
+								reapply_item.setEnabled( def_str.length() > 0 );
 								
 								if ( templates.size() > 0 ){
 								
@@ -1045,13 +1063,13 @@ public class TagUIUtils
 
 										boolean	r_selected = false;
 
-										for ( int i=0;i<2;i++){
+										for ( int i=0;i<3;i++){
 											
 											final MenuItem sel_item = new MenuItem( t_menu, SWT.CHECK);
 											
-											final String key = (i==0?"m":"r") + ":" + template_name;
+											final String key = (i==0?"m":(i==1?"r":"x")) + ":" + template_name;
 																						
-											sel_item.setText( i==0?str_merge:str_replace );
+											sel_item.setText( i==0?str_merge:(i==1?str_replace:str_remove));
 											
 											boolean is_sel = selected.contains( key );
 											

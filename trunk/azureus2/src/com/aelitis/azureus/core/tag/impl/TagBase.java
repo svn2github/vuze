@@ -1000,16 +1000,21 @@ TagBase
 						
 						if ( getName( false ).equals( TagFeatureProperties.PR_TRACKER_TEMPLATES )){
 							
-							String str_merge 	= MessageText.getString("label.merge" ).toLowerCase();
-							String str_replace 	= MessageText.getString("label.replace" ).toLowerCase();
+							String str_merge 	= MessageText.getString("label.merge" );
+							String str_replace 	= MessageText.getString("label.replace" );
+							String str_remove 	= MessageText.getString("Button.remove" );
 
 							for ( String val: vals ){
 								String[] bits = val.split( ":" );
-								String str = bits[1];
-								if ( bits[0].equals("m")){
+								String type = bits[0];
+								String str 	= bits[1];
+								
+								if ( type.equals("m")){
 									str += ": " + str_merge;
-								}else{
+								}else if ( type.equals( "r" )){
 									str += ": " + str_replace;
+								}else{
+									str += ": " + str_remove;
 								}
 								value += (value.length()==0?"":"," ) + str;
 							}
@@ -1055,6 +1060,21 @@ TagBase
 			TagPropertyListener		listener )
 		{
 			listeners.remove( listener );
+		}
+		
+		public void
+		syncListeners()
+		{
+			for ( TagPropertyListener l: listeners ){
+				
+				try{
+					l.propertySync( this );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
 		}
  	}
 }
