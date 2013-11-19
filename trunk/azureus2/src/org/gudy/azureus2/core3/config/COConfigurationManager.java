@@ -183,6 +183,13 @@ COConfigurationManager
 			  	System.setProperty( "java.protocol.handler.pkgs", handlers );
 			  	*/
 				
+					/* for the moment disable this as it is causing some users to get an SSL exception on
+					 * trackers with Java 7 due to the tracker hostname setup
+					 * See http://stackoverflow.com/questions/7615645/ssl-handshake-alert-unrecognized-name-error-since-upgrade-to-java-1-7-0
+					 */
+				
+				System.setProperty( "jsse.enableSNIExtension", "false" );
+				
 				URL.setURLStreamHandlerFactory(new AzURLStreamHandlerFactory());
 			  	 	
 			  		// DNS cache timeouts
