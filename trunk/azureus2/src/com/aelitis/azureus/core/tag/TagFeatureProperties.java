@@ -24,8 +24,9 @@ package com.aelitis.azureus.core.tag;
 public interface 
 TagFeatureProperties 
 {
-	public static final String	PR_TRACKERS = "trackers";
-	public static final String	PR_UNTAGGED = "untagged";
+	public static final String	PR_TRACKERS 			= "trackers";
+	public static final String	PR_UNTAGGED 			= "untagged";
+	public static final String	PR_TRACKER_TEMPLATES 	= "tracker_templates";
 	
 	public static final int		PT_STRING_LIST	= 1;
 	public static final int		PT_BOOLEAN		= 2;

@@ -997,8 +997,26 @@ TagBase
 					
 					if ( vals != null && vals.length > 0 ){
 						value = "";
-						for ( String val: vals ){
-							value += (value.length()==0?"":"," ) + val;
+						
+						if ( getName( false ).equals( TagFeatureProperties.PR_TRACKER_TEMPLATES )){
+							
+							String str_merge 	= MessageText.getString("label.merge" ).toLowerCase();
+							String str_replace 	= MessageText.getString("label.replace" ).toLowerCase();
+
+							for ( String val: vals ){
+								String[] bits = val.split( ":" );
+								String str = bits[1];
+								if ( bits[0].equals("m")){
+									str += ": " + str_merge;
+								}else{
+									str += ": " + str_replace;
+								}
+								value += (value.length()==0?"":"," ) + str;
+							}
+						}else{
+							for ( String val: vals ){
+								value += (value.length()==0?"":"," ) + val;
+							}
 						}
 					}
 					break;

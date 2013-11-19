@@ -50,6 +50,8 @@ import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDown
 public class 
 TorrentUtils 
 {
+	private static final String NO_VALID_URL_URL = "http://no.valid.urls.defined/announce";
+	
 	static{
 		AEDiagnostics.addEvidenceGenerator(
 			new AEDiagnosticsEvidenceGenerator()
@@ -888,7 +890,7 @@ TorrentUtils
 			
 					// hmm, no valid urls at all
 				
-				torrent.setAnnounceURL( new URL( "http://no.valid.urls.defined/announce"));
+				torrent.setAnnounceURL( new URL( NO_VALID_URL_URL ));
 				
 			}else{
 			
@@ -1170,6 +1172,57 @@ TorrentUtils
 		return( true );
 	}
 	
+	public static List<List<String>>
+	mergeAnnounceURLs(
+		List<List<String>> 	base_urls,
+		List<List<String>>	merge_urls )
+	{
+		base_urls = getClone( base_urls );
+		if ( merge_urls == null ){
+			return( base_urls );
+		}
+		Set<String> mergesSet = new HashSet<String>();
+		mergesSet.add( NO_VALID_URL_URL );	// this results in removal of this dummy url if present
+		for ( List<String> l: merge_urls ){
+			mergesSet.addAll(l);
+		}
+		Iterator<List<String>> it1 = base_urls.iterator();
+		while( it1.hasNext()){
+			List<String> l = it1.next();
+			Iterator<String> it2 = l.iterator();
+			while( it2.hasNext()){
+				if ( mergesSet.contains( it2.next())){
+					it2.remove();
+				}
+			}
+			if ( l.isEmpty()){
+				it1.remove();
+			}
+		}
+		
+		for (List<String> l: merge_urls ){
+			if ( !l.isEmpty()){
+				base_urls.add( l );
+			}
+		}
+		
+		return( base_urls );
+	}
+	
+	public static List<List<String>>
+	getClone(
+		List<List<String>> lls )
+	{
+		if ( lls == null ){
+			return( lls );
+		}
+		List<List<String>>	result = new ArrayList<List<String>>( lls.size());
+		for ( List<String> l: lls ){
+			result.add(new ArrayList<String>( l ));
+		}
+		return( result );
+	}
+	  
 	public static boolean
 	replaceAnnounceURL(
 		TOTorrent		torrent,

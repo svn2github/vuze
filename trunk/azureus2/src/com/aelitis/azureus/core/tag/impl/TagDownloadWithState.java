@@ -119,7 +119,8 @@ TagDownloadWithState
 	private TagProperty[] tag_properties = 
 		new TagProperty[]{ 
 			createTagProperty( TagFeatureProperties.PR_TRACKERS, TagFeatureProperties.PT_STRING_LIST ),
-			createTagProperty( TagFeatureProperties.PR_UNTAGGED, TagFeatureProperties.PT_BOOLEAN ) 
+			createTagProperty( TagFeatureProperties.PR_UNTAGGED, TagFeatureProperties.PT_BOOLEAN ),
+			createTagProperty( TagFeatureProperties.PR_TRACKER_TEMPLATES, TagFeatureProperties.PT_STRING_LIST ) 
 		};
 	
 	public
@@ -851,6 +852,13 @@ TagDownloadWithState
 		TagProperty[]	props = getSupportedProperties();
 		
 		for ( TagProperty prop: props ){
+			
+			String name = prop.getName( false );
+			
+			if ( name.equals( TagFeatureProperties.PR_TRACKER_TEMPLATES )){
+				
+				continue;
+			}
 			
 			int	type =  prop.getType();
 			

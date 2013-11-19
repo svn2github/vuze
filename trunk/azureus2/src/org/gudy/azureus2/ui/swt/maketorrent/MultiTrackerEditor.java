@@ -29,6 +29,7 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -36,6 +37,9 @@ import org.gudy.azureus2.ui.swt.TextViewerWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 
 import java.net.URL;
 import java.util.ArrayList;
@@ -312,9 +316,28 @@ public class MultiTrackerEditor {
 		Messages.setLanguageText(btnDelete, "wizard.multitracker.delete");
 		btnDelete.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event e) {
-				String	selected = currentTemplate[0];
-				TrackersUtil.getInstance().removeMultiTracker(selected);
-				updateTemplates.run();
+				final String	selected = currentTemplate[0];
+				
+				MessageBoxShell mb = 
+						new MessageBoxShell(
+							MessageText.getString("message.confirm.delete.title"),
+							MessageText.getString("message.confirm.delete.text",
+									new String[] { selected	}), 
+							new String[] {
+								MessageText.getString("Button.yes"),
+								MessageText.getString("Button.no")
+							},
+							1 );
+					
+					mb.open(new UserPrompterResultListener() {
+						public void prompterClosed(int result) {
+							if (result == 0) {
+								TrackersUtil.getInstance().removeMultiTracker(selected);
+								updateTemplates.run();
+							}
+						}
+					});
+				
 			}
 		});
 
@@ -331,7 +354,7 @@ public class MultiTrackerEditor {
 			public void handleEvent(Event e) {
 				Map<String,List<List<String>>> multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
 				String	selected = currentTemplate[0];	
-				trackers = getClone(multiTrackers.get( selected ));
+				trackers = TorrentUtils.getClone(multiTrackers.get( selected ));
 				refresh();
 				computeSaveEnable();
 			}
@@ -344,31 +367,7 @@ public class MultiTrackerEditor {
 			public void handleEvent(Event e) {
 				Map<String,List<List<String>>> multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
 				String	selected = currentTemplate[0];
-				List<List<String>> toMerge = getClone(multiTrackers.get( selected ));
-				Set<String> mergesSet = new HashSet<String>();
-				for ( List<String> l: toMerge ){
-					mergesSet.addAll(l);
-				}
-				Iterator<List<String>> it1 = trackers.iterator();
-				while( it1.hasNext()){
-					List<String> l = it1.next();
-					Iterator<String> it2 = l.iterator();
-					while( it2.hasNext()){
-						if ( mergesSet.contains( it2.next())){
-							it2.remove();
-						}
-					}
-					if ( l.isEmpty()){
-						it1.remove();
-					}
-				}
-				
-				for (List<String> l: toMerge ){
-					if ( !l.isEmpty()){
-						trackers.add( l );
-					}
-				}
-				
+				trackers = TorrentUtils.mergeAnnounceURLs(trackers, multiTrackers.get( selected ));
 				refresh();
 				computeSaveEnable();
 			}
@@ -544,17 +543,6 @@ public class MultiTrackerEditor {
     
     shell.open();
   }  
-  
-  private List<List<String>>
-  getClone(
-	List<List<String>> lls )
-  {
-	 List<List<String>>	result = new ArrayList<List<String>>( lls.size());
-	 for ( List<String> l: lls ){
-		 result.add(new ArrayList<String>( l ));
-	 }
-	 return( result );
-  }
   
   private void update() {
     trackers = new ArrayList();

@@ -24,9 +24,11 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.RGB;
@@ -36,12 +38,16 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
+import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
+import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.ViewUtils.SpeedAdapter;
 import org.gudy.azureus2.ui.swt.views.stats.StatsView;
@@ -67,6 +73,7 @@ import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
+import com.aelitis.azureus.ui.UserPrompterResultListener;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 
 /**
@@ -913,7 +920,7 @@ public class TagUIUtils
 					
 					needs_separator_next = true;
 					
-					Menu props_menu = new Menu( menu.getShell(), SWT.DROP_DOWN);
+					final Menu props_menu = new Menu( menu.getShell(), SWT.DROP_DOWN);
 					
 					MenuItem props_item = new MenuItem( menu, SWT.CASCADE);
 					
@@ -925,85 +932,299 @@ public class TagUIUtils
 											
 						if ( tp.getType() == TagFeatureProperties.PT_STRING_LIST ){
 							
-							String[] val = tp.getStringList();
+							String tp_name = tp.getName( false );
 							
-							String def_str;
-							
-							if ( val == null || val.length == 0 ){
+							if ( tp_name.equals( TagFeatureProperties.PR_TRACKER_TEMPLATES )){
 								
-								def_str = "";
+								final TrackersUtil tut = TrackersUtil.getInstance();
 								
-							}else{
+								List<String> templates = new ArrayList<String>( tut.getMultiTrackers().keySet());
+
+								String str_merge 	= MessageText.getString("label.merge" );
+								String str_replace 	= MessageText.getString("label.replace" );
+
+								String[] val = tp.getStringList();
 								
-								def_str = "";
+								String def_str;
 								
-								for ( String v: val ){
+								final List<String> selected = new ArrayList<String>();
+								
+								if ( val == null || val.length == 0 ){
 									
-									def_str += (def_str.length()==0?"":", ") + v;
-								}
-							}
-							
-							MenuItem set_item = new MenuItem( props_menu, SWT.PUSH);
-	
-							set_item.setText( tp.getName( true ) + (def_str.length()==0?"":(" (" + def_str + ") ")) + "..." );
-			
-							final String f_def_str = def_str;
-							
-							set_item.addListener(SWT.Selection, new Listener() {
-								public void handleEvent(Event event){
+									def_str = "";
 									
-									String msg = MessageText.getString( "UpdateProperty.list.message", new String[]{ tp.getName( true ) } );
+								}else{
 									
-									SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow( "UpdateProperty.title", "!" + msg + "!" );
+									def_str = "";
 									
-									entryWindow.setPreenteredText( f_def_str, false );
-									entryWindow.selectPreenteredText( true );
-									
-									entryWindow.prompt();
-									
-									if ( entryWindow.hasSubmittedInput()){
+									for ( String v: val ){
 										
-										try{
-											String text = entryWindow.getSubmittedInput().trim();
+										String[] bits = v.split( ":" );
+										
+										if ( bits.length == 2 ){
+										
+											String tn = bits[1];
 											
-											if ( text.length() ==  0 ){
-												
-												tp.setStringList( null );
-												
-											}else{
-												text = text.replace( ';', ',');
-												text = text.replace( ' ', ',');
-												text = text.replaceAll( "[,]+", "," );
-												
-												String[] bits = text.split( "," );
-												
-												List<String> vals = new ArrayList<String>();
-												
-												for ( String bit: bits ){
+											if ( templates.contains( tn )){
+											
+												if ( bits[0].equals( "m" )){
+											
+													tn += ": " + str_merge;
 													
-													bit = bit.trim();
-													
-													if ( bit.length() > 0 ){
-														
-														vals.add( bit );
-													}
-												}
-												
-												if ( vals.size() == 0 ){
-													
-													tp.setStringList( null );
 												}else{
-													
-													tp.setStringList( vals.toArray( new String[ vals.size()]));
+												
+													tn += ": " + str_replace;
 												}
+										
+												selected.add( v );
+												
+												def_str += (def_str.length()==0?"":", ") + tn;
 											}
-										}catch( Throwable e ){
-											
-											Debug.out( e );
 										}
 									}
-								}});
-							
+								}
+																
+								Collections.sort( templates );
+								
+									// deliberately hanging this off the main menu, not properties...
+								
+								Menu ttemp_menu = new Menu( menu.getShell(), SWT.DROP_DOWN);
+								
+								MenuItem ttemp_item = new MenuItem( menu, SWT.CASCADE);
+								
+								ttemp_item.setText( MessageText.getString( "label.tracker.templates" ) + (def_str.length()==0?"":(" (" + def_str + ")  ")));
+								
+								ttemp_item.setMenu( ttemp_menu );
+								
+								MenuItem new_item = new MenuItem( ttemp_menu, SWT.PUSH);
+								
+								Messages.setLanguageText( new_item, "wizard.multitracker.new" );
+								
+								new_item.addListener(SWT.Selection, new Listener() {
+									public void 
+									handleEvent(Event event)
+									{
+										List<List<String>> group = new ArrayList<List<String>>();
+										List<String> tracker = new ArrayList<String>();
+										group.add(tracker);
+										
+										new MultiTrackerEditor(
+											props_menu.getShell(), 
+											null, 
+											group, 
+											new TrackerEditorListener() {
+												
+												public void 
+												trackersChanged(
+													String 				oldName, 
+													String 				newName,
+													List<List<String>> 	trackers) 
+												{
+													if ( trackers != null ){
+														
+														tut.addMultiTracker(newName , trackers );
+													}
+												}
+											});
+									}});
+									
+								
+								if ( templates.size() > 0 ){
+								
+									new MenuItem( ttemp_menu, SWT.SEPARATOR);
+																		
+									for ( final String template_name: templates ){
+										
+										Menu t_menu = new Menu( ttemp_menu.getShell(), SWT.DROP_DOWN);
+										
+										MenuItem t_item = new MenuItem( ttemp_menu, SWT.CASCADE);
+										
+										t_item.setText( template_name );
+										
+										t_item.setMenu( t_menu );
+
+										boolean	r_selected = false;
+
+										for ( int i=0;i<2;i++){
+											
+											final MenuItem sel_item = new MenuItem( t_menu, SWT.CHECK);
+											
+											final String key = (i==0?"m":"r") + ":" + template_name;
+																						
+											sel_item.setText( i==0?str_merge:str_replace );
+											
+											boolean is_sel = selected.contains( key );
+											
+											r_selected |= is_sel;
+											
+											sel_item.setSelection( is_sel );
+											
+											sel_item.addListener(SWT.Selection, new Listener() {
+												public void 
+												handleEvent(Event event)
+												{
+													if ( sel_item.getSelection()){
+														
+														selected.add( key );
+														
+													}else{
+														
+														selected.remove( key );
+													}
+													
+													tp.setStringList( selected.toArray( new String[ selected.size()]));
+
+												}});
+										}
+										
+										if ( r_selected ){
+											
+											Utils.setMenuItemImage( t_item, "graytick" );
+										}
+										
+										new MenuItem( t_menu, SWT.SEPARATOR);
+										
+										MenuItem edit_item = new MenuItem( t_menu, SWT.PUSH);
+										
+										Messages.setLanguageText( edit_item, "wizard.multitracker.edit" );
+										
+										edit_item.addListener(SWT.Selection, new Listener() {
+											public void 
+											handleEvent(Event event)
+											{
+												new MultiTrackerEditor(
+													props_menu.getShell(), 
+													template_name, 
+													tut.getMultiTrackers().get( template_name ), 
+													new TrackerEditorListener() {
+														
+														public void 
+														trackersChanged(
+															String 				oldName, 
+															String 				newName,
+															List<List<String>> 	trackers) 
+														{
+															if  ( oldName != null && !oldName.equals( newName )){
+														    	
+																tut.removeMultiTracker( oldName );
+														    }
+																
+															tut.addMultiTracker(newName , trackers );
+														}
+													});
+											}});
+										
+										MenuItem del_item = new MenuItem( t_menu, SWT.PUSH);
+										
+										Messages.setLanguageText( del_item, "FileItem.delete" );
+										
+										Utils.setMenuItemImage( del_item, "delete" );
+
+										del_item.addListener(SWT.Selection, new Listener() {
+											public void 
+											handleEvent(Event event)
+											{
+												MessageBoxShell mb = 
+														new MessageBoxShell(
+															MessageText.getString("message.confirm.delete.title"),
+															MessageText.getString("message.confirm.delete.text",
+																	new String[] { template_name	}), 
+															new String[] {
+																MessageText.getString("Button.yes"),
+																MessageText.getString("Button.no")
+															},
+															1 );
+													
+													mb.open(new UserPrompterResultListener() {
+														public void prompterClosed(int result) {
+															if (result == 0) {
+																tut.removeMultiTracker( template_name );
+															}
+														}
+													});
+											}});
+									}
+								}
+							}else{
+								String[] val = tp.getStringList();
+								
+								String def_str;
+								
+								if ( val == null || val.length == 0 ){
+									
+									def_str = "";
+									
+								}else{
+									
+									def_str = "";
+									
+									for ( String v: val ){
+										
+										def_str += (def_str.length()==0?"":", ") + v;
+									}
+								}
+								
+								MenuItem set_item = new MenuItem( props_menu, SWT.PUSH);
+		
+								set_item.setText( tp.getName( true ) + (def_str.length()==0?"":(" (" + def_str + ") ")) + "..." );
+				
+								final String f_def_str = def_str;
+								
+								set_item.addListener(SWT.Selection, new Listener() {
+									public void handleEvent(Event event){
+										
+										String msg = MessageText.getString( "UpdateProperty.list.message", new String[]{ tp.getName( true ) } );
+										
+										SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow( "UpdateProperty.title", "!" + msg + "!" );
+										
+										entryWindow.setPreenteredText( f_def_str, false );
+										entryWindow.selectPreenteredText( true );
+										
+										entryWindow.prompt();
+										
+										if ( entryWindow.hasSubmittedInput()){
+											
+											try{
+												String text = entryWindow.getSubmittedInput().trim();
+												
+												if ( text.length() ==  0 ){
+													
+													tp.setStringList( null );
+													
+												}else{
+													text = text.replace( ';', ',');
+													text = text.replace( ' ', ',');
+													text = text.replaceAll( "[,]+", "," );
+													
+													String[] bits = text.split( "," );
+													
+													List<String> vals = new ArrayList<String>();
+													
+													for ( String bit: bits ){
+														
+														bit = bit.trim();
+														
+														if ( bit.length() > 0 ){
+															
+															vals.add( bit );
+														}
+													}
+													
+													if ( vals.size() == 0 ){
+														
+														tp.setStringList( null );
+													}else{
+														
+														tp.setStringList( vals.toArray( new String[ vals.size()]));
+													}
+												}
+											}catch( Throwable e ){
+												
+												Debug.out( e );
+											}
+										}
+									}});
+							}
 						}else if ( tp.getType() == TagFeatureProperties.PT_BOOLEAN ){
 							
 							final MenuItem set_item = new MenuItem( props_menu, SWT.CHECK);
