@@ -36,6 +36,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.TrackersUtil;
@@ -1369,7 +1370,7 @@ public class TagUIUtils
 									
 									if ( selected ){
 										
-										Utils.setMenuItemImage(tt_item, "blacktick");
+										Utils.setMenuItemImage(tt_item, "graytick");
 									}
 									
 									p_item.setSelection(selected );
@@ -1405,7 +1406,7 @@ public class TagUIUtils
 								
 								if ( selected ){
 									
-									Utils.setMenuItemImage(tt_item, "blacktick");
+									Utils.setMenuItemImage(tt_item, "graytick");
 								}
 								
 								no_xcode_item.setSelection(selected );
@@ -1730,7 +1731,7 @@ public class TagUIUtils
 	
 			for ( TagType tt: auto_tags ){
 				
-				MenuItem tt_i = new MenuItem(menuAuto, SWT.CHECK);
+				MenuItem tt_i = new MenuItem(menuAuto, Constants.isOSX?SWT.CHECK:SWT.PUSH);
 				
 				String tt_str = tt.getTagTypeName( true ) + ": ";
 				
@@ -1762,7 +1763,12 @@ public class TagUIUtils
 				}
 				
 				tt_i.setText( tt_str );
-				tt_i.setSelection(true);
+				if ( Constants.isOSX ){
+					tt_i.setSelection(true);
+				}else{
+					Utils.setMenuItemImage( tt_i, "graytick" );
+				}
+				
 				//tt_i.setEnabled(false);
 			}
 		}
