@@ -872,6 +872,14 @@ TorrentOptionsView
 	}
 	
 	private void dataSourceChanged(Object newDataSource) {
+		DownloadManager[] old_managers = managers;
+		if (old_managers != null) {
+			for (int i = 0; i < old_managers.length; i++) {
+				old_managers[i].getDownloadState().removeListener(this,
+						DownloadManagerState.AT_PARAMETERS,
+						DownloadManagerStateAttributeListener.WRITTEN);
+			}
+		}
 		if (newDataSource instanceof DownloadManager) {
 			multi_view = false;
 			managers = new DownloadManager[] { (DownloadManager) newDataSource };
