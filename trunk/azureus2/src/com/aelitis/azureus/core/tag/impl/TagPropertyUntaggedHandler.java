@@ -293,7 +293,19 @@ TagPropertyUntaggedHandler
 	public void
 	tagRemoved(
 		Tag			tag )
-	{	
+	{
+		synchronized( taggable_counts ){
+				
+			boolean was_untagged = untagged_tags.remove( tag );
+			
+			if ( was_untagged ){
+				
+				if ( untagged_tags.size() == 0 ){
+					
+					setEnabled( tag, false );
+				}
+			}
+		}
 	}
 	
 	private void
