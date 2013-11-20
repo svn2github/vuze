@@ -190,6 +190,8 @@ COConfigurationManager
 				
 				System.setProperty( "jsse.enableSNIExtension", "false" );
 				
+				System.setProperty( "sun.net.maxDatagramSockets", "4096" );
+				
 				URL.setURLStreamHandlerFactory(new AzURLStreamHandlerFactory());
 			  	 	
 			  		// DNS cache timeouts
