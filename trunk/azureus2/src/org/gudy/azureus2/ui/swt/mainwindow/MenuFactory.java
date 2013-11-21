@@ -2275,7 +2275,7 @@ public class MenuFactory
 			public void handleEvent(Event e) {
 				UIFunctionsSWT uiFunctionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
 				if (uiFunctionsSWT != null) {
-					uiFunctionsSWT.openPairingWindow();
+					uiFunctionsSWT.openRemotePairingWindow();
 				}
 			}
 		});
