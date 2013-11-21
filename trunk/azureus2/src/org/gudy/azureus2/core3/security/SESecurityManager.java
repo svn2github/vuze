@@ -71,6 +71,13 @@ SESecurityManager
 		SESecurityManagerImpl.getSingleton().installAuthenticator();
 	}
 	
+	public static boolean
+	resetTrustStore(
+		boolean	test_only )
+	{
+		return( SESecurityManagerImpl.getSingleton().resetTrustStore( test_only ));
+	}
+	
 	public static String
 	getKeystoreName()
 	{

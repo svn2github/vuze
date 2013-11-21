@@ -283,6 +283,58 @@ SESecurityManagerImpl
 		}
 	}
 	
+	public boolean
+	resetTrustStore(
+		boolean	test_only )
+	{
+		File cacerts = new File( new File( new File( System.getProperty( "java.home" ), "lib" ), "security" ), "cacerts" );
+		
+		if ( !cacerts.exists()){
+			
+			return( false );
+		}
+		
+		if ( test_only ){
+			
+			return( true );
+		}
+		
+		File	target = new File( truststore_name );
+
+		if ( target.exists()){
+			
+			if ( !target.delete()){
+				
+				Debug.out( "Failed to delete " + target );
+				
+				return( false );
+			}
+		}
+		
+		if ( !FileUtil.copyFile( cacerts, target )){
+			
+			Debug.out( "Failed to copy file from " + cacerts +  " to " + target );
+			
+			return( false );
+		}
+		
+		try{
+			getTrustStore();
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			target.delete();
+			
+			ensureStoreExists( truststore_name );
+			
+			return( false );
+		}
+		
+		return( true );
+	}
+	
 	public String
 	getKeystoreName()
 	{

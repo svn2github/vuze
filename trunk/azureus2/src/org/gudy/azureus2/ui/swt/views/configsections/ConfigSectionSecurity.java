@@ -23,6 +23,7 @@
 package org.gudy.azureus2.ui.swt.views.configsections;
 
 import java.io.*;
+import java.util.ArrayList;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -34,7 +35,6 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.security.SESecurityManager;
@@ -98,6 +98,8 @@ ConfigSectionSecurity
 	{
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
 
+		java.util.List<Button>	buttons = new ArrayList<Button>();
+		
 	    GridData gridData;
 
 	    Composite gSecurity = new Composite(parent, SWT.NULL);
@@ -113,7 +115,8 @@ ConfigSectionSecurity
 	    Messages.setLanguageText(cert_label, "ConfigView.section.tracker.createcert");
 
 	    Button cert_button = new Button(gSecurity, SWT.PUSH);
-
+	    buttons.add( cert_button );
+	    
 	    Messages.setLanguageText(cert_button, "ConfigView.section.tracker.createbutton");
 
 	    cert_button.addListener(SWT.Selection, 
@@ -128,6 +131,71 @@ ConfigSectionSecurity
 	    
 	    new Label(gSecurity, SWT.NULL );
 
+	    // row
+	    
+	    Label reset_certs_label = new Label(gSecurity, SWT.NULL );
+	    Messages.setLanguageText(reset_certs_label, "ConfigView.section.security.resetcerts");
+
+	    Button reset_certs_button = new Button(gSecurity, SWT.PUSH);
+	    buttons.add( reset_certs_button );
+	    
+	    Messages.setLanguageText(reset_certs_button, "Button.reset");
+
+	    reset_certs_button.addListener(SWT.Selection, 
+	    		new Listener() 
+				{
+			        public void 
+					handleEvent(Event event) 
+			        {
+			        	MessageBoxShell mb = new MessageBoxShell(
+			        			SWT.ICON_WARNING | SWT.OK | SWT.CANCEL,
+			        			MessageText.getString("ConfigView.section.security.resetcerts.warning.title"),
+			        			MessageText.getString("ConfigView.section.security.resetcerts.warning.msg"));
+			        	mb.setDefaultButtonUsingStyle(SWT.CANCEL);
+			        	mb.setParent(parent.getShell());
+
+			        	mb.open(new UserPrompterResultListener() {
+									public void prompterClosed(int returnVal) {
+										if (returnVal != SWT.OK) {
+											return;
+										}
+										
+										if ( SESecurityManager.resetTrustStore( false )){
+											
+											MessageBoxShell mb = new MessageBoxShell( 
+							        				SWT.ICON_INFORMATION | SWT.OK,
+							        				MessageText.getString( "ConfigView.section.security.restart.title" ),
+							        				MessageText.getString( "ConfigView.section.security.restart.msg" ));
+						      				mb.setParent(parent.getShell());
+						        			mb.open(null); 
+		
+							        		
+							        		UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+							        		
+							            	if ( uiFunctions != null ){
+							            		
+							            		uiFunctions.dispose(true, false);
+							            	}
+									
+										}else{
+											
+											MessageBoxShell mb = new MessageBoxShell( 
+													SWT.ICON_ERROR | SWT.OK,
+													MessageText.getString( "ConfigView.section.security.resetcerts.error.title"),
+													MessageText.getString( "ConfigView.section.security.resetcerts.error.msg" ));
+							  				mb.setParent(parent.getShell());
+							  				mb.open(null);
+										}
+									}
+			        		});
+
+			        }
+			    });
+	    
+	    reset_certs_button.setEnabled( SESecurityManager.resetTrustStore( true ));
+	    
+	    new Label(gSecurity, SWT.NULL );
+	    
 	    // row
 	    
 	    gridData = new GridData();
@@ -191,7 +259,8 @@ ConfigSectionSecurity
 	    Messages.setLanguageText(pw_label, "ConfigView.section.security.clearpasswords");
 
 	    Button pw_button = new Button(gSecurity, SWT.PUSH);
-
+	    buttons.add( pw_button );
+	    
 	    Messages.setLanguageText(pw_button, "ConfigView.section.security.clearpasswords.button");
 
 	    pw_button.addListener(SWT.Selection, 
@@ -420,6 +489,8 @@ ConfigSectionSecurity
 		    Messages.setLanguageText(reset_key_label, "ConfigView.section.security.resetkey");
 	
 		    Button reset_key_button = new Button(crypto_group, SWT.PUSH);
+		    buttons.add( reset_key_button );
+		    
 		    Messages.setLanguageText(reset_key_button, "ConfigView.section.security.clearpasswords.button");
 	
 		    reset_key_button.addListener(SWT.Selection, 
@@ -466,6 +537,8 @@ ConfigSectionSecurity
 		    Messages.setLanguageText(priv_key_label, "ConfigView.section.security.unlockkey");
 	
 		    Button priv_key_button = new Button(crypto_group, SWT.PUSH);
+		    buttons.add( priv_key_button );
+		    
 		    Messages.setLanguageText(priv_key_button, "ConfigView.section.security.unlockkey.button");
 	
 		    priv_key_button.addListener(SWT.Selection, 
@@ -498,6 +571,8 @@ ConfigSectionSecurity
 		    Messages.setLanguageText(backup_keys_label, "ConfigView.section.security.backupkeys");
 	
 		    final Button backup_keys_button = new Button(crypto_group, SWT.PUSH);
+		    buttons.add( backup_keys_button );
+		    
 		    Messages.setLanguageText(backup_keys_button, "ConfigView.section.security.backupkeys.button");
 	
 		    backup_keys_button.addListener(SWT.Selection, 
@@ -543,6 +618,8 @@ ConfigSectionSecurity
 		    Messages.setLanguageText(restore_keys_label, "ConfigView.section.security.restorekeys");
 	
 		    final Button restore_keys_button = new Button(crypto_group, SWT.PUSH);
+		    buttons.add( restore_keys_button );
+		    
 		    Messages.setLanguageText(restore_keys_button, "ConfigView.section.security.restorekeys.button");
 	
 		    restore_keys_button.addListener(SWT.Selection, 
@@ -614,6 +691,8 @@ ConfigSectionSecurity
 		    
 		    new Label(crypto_group, SWT.NULL );
 	    }
+	    
+	    Utils.makeButtonsEqualWidth( buttons );
 	    
 	    return gSecurity;
 	  }
