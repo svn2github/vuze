@@ -144,5 +144,4 @@ public interface UIFunctionsSWT
 	public void openTorrentOpenOptions(Shell shell, String sPathOfFilesToOpen,
 			String[] sFilesToOpen, boolean defaultToStopped, boolean forceOpen);
 
-	void openPairingWindow();
 }
