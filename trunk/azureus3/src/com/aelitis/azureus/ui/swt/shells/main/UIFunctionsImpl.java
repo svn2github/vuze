@@ -1383,8 +1383,4 @@ public class UIFunctionsImpl
 	public void openTorrentWindow() {
 		new OpenTorrentWindow(Utils.findAnyShell());
 	}
-	
-	public void openPairingWindow() {
-		RemotePairingWindow.open();
-	}
 }
