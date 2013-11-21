@@ -874,8 +874,5 @@ MainWindowDelayStub
 		public void openTorrentWindow() {
 			fixup( new Fixup3(){public void fix( UIFunctionsSWT uif){ uif.openTorrentWindow(); }});
 		}
-
-		public void openPairingWindow() {
-		}
 	}
 }
