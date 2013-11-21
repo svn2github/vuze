@@ -14,6 +14,7 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -2269,6 +2270,17 @@ public class MenuFactory
 		return item;
 	}
 
+	public static void addPairingMenuItem(Menu menu) {
+		MenuFactory.addMenuItem(menu, MENU_ID_PAIRING, new Listener() {
+			public void handleEvent(Event e) {
+				UIFunctionsSWT uiFunctionsSWT = UIFunctionsManagerSWT.getUIFunctionsSWT();
+				if (uiFunctionsSWT != null) {
+					uiFunctionsSWT.openPairingWindow();
+				}
+			}
+		});
+
+	}
 	//==========================
 
 	public static MenuItem addSeparatorMenuItem(Menu menuParent) {

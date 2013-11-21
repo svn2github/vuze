@@ -234,6 +234,7 @@ public class MainMenu
 			MenuFactory.addTransferBarToMenu(viewMenu);
 			MenuFactory.addAllPeersMenuItem(viewMenu);
 			MenuFactory.addClientStatsMenuItem(viewMenu);
+			MenuFactory.addPairingMenuItem(viewMenu);
 			//MenuFactory.addDetailedListMenuItem(viewMenu);
 			//MenuFactory.addDeviceManagerMenuItem(viewMenu);
 			//MenuFactory.addSubscriptionMenuItem(viewMenu);
