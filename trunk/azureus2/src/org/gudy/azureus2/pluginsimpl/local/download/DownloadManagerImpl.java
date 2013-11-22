@@ -894,6 +894,20 @@ DownloadManagerImpl
 		}
 	}
 	
+	public int 
+	getActions() 
+	{
+		// assumption is that plugin based download-will-be-added listeners might assign tags so
+		// indicate this
+		
+		if ( dwba_listeners.size() > 0 ){
+			
+			return( ACT_ASSIGNS_TAGS );
+		}
+		
+		return( ACT_NONE );
+	}
+	
 	public void
 	addDownloadWillBeAddedListener(
 		DownloadWillBeAddedListener		listener )

@@ -407,6 +407,12 @@ public class TorrentOpener {
 
 			final DownloadManagerInitialisationAdapter dmia = new DownloadManagerInitialisationAdapter() {
 
+				public int 
+				getActions() 
+				{
+					return( ACT_ASSIGNS_TAGS );
+				}
+				
 				public void 
 				initialised(
 					DownloadManager dm, 

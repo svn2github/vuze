@@ -25,8 +25,21 @@ package org.gudy.azureus2.core3.download;
 public interface 
 DownloadManagerInitialisationAdapter 
 {
+	public static final int ACT_NONE				= 0x00000000;
+	public static final int ACT_ASSIGNS_TAGS		= 0x00000001;
+	public static final int ACT_PROCESSES_TAGS		= 0x00000002;
+	
 	public void
 	initialised(
 		DownloadManager		manager,
 		boolean				for_seeding );
+	
+		/**
+		 * Unfortuately order can be important when firing off initialisation adapters, in particular if one listener
+		 * assigns tags to a download it needs to do this before any other listeners that might process a download's tags
+		 * @return
+		 */
+	
+	public int
+	getActions();
 }

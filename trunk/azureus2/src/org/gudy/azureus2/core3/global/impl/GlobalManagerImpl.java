@@ -3076,24 +3076,60 @@ public class GlobalManagerImpl
 	getDMAdapter(
 		DownloadManagerInitialisationAdapter	adapter )
 	{
-		List	adapters = dm_adapters.getList();
+		List<DownloadManagerInitialisationAdapter>	adapters = dm_adapters.getList();
 		
-		if ( adapter != null ){
+		adapters = new ArrayList( adapters );
 
-				// musn't update the copy-on-write list
-			
-			adapters = new ArrayList( adapters );
+		if ( adapter != null ){			
 
 			adapters.add( adapter );
 		}
 		
-		final List	f_adapters = adapters;
+		List<DownloadManagerInitialisationAdapter>	tag_assigners 	= new ArrayList<DownloadManagerInitialisationAdapter>();
+		List<DownloadManagerInitialisationAdapter>	tag_processors 	= new ArrayList<DownloadManagerInitialisationAdapter>();
+		
+		for ( DownloadManagerInitialisationAdapter a: adapters ){
+			
+			int	actions = a.getActions();
+			
+			if ((actions & DownloadManagerInitialisationAdapter.ACT_ASSIGNS_TAGS) != 0 ){
+				
+				tag_assigners.add( a );
+			}
+			if ((actions & DownloadManagerInitialisationAdapter.ACT_PROCESSES_TAGS) != 0 ){
+				
+				tag_processors.add( a );
+			}
+		}
+		
+		if ( tag_assigners.size() > 0 && tag_processors.size() > 0 ){
+			
+			for ( DownloadManagerInitialisationAdapter a: tag_processors ){
+				
+				adapters.remove( a );
+			}
+			
+			int	pos = adapters.indexOf( tag_assigners.get( tag_assigners.size()-1));
+			
+			for ( DownloadManagerInitialisationAdapter a: tag_processors ){
+				
+				adapters.add( ++pos, a );
+			}
+		}
+		
+		final List<DownloadManagerInitialisationAdapter>	f_adapters = adapters;
 		
 			// wrap the existing 'static' adapters, plus a possible dynamic one, with a controlling one that
 			// is responsible for (amongst other things) implementing the 'incomplete suffix' logic
 		
 		return( new DownloadManagerInitialisationAdapter()
 				{
+					public int 
+					getActions() 
+					{
+						return( ACT_NONE );		// not relevant this is
+					}
+					
 					public void
 					initialised(
 						DownloadManager		manager,
@@ -3102,7 +3138,7 @@ public class GlobalManagerImpl
 						for (int i=0;i<f_adapters.size();i++){
 							
 							try{
-								((DownloadManagerInitialisationAdapter)f_adapters.get(i)).initialised( manager, for_seeding );
+								f_adapters.get(i).initialised( manager, for_seeding );
 								
 							}catch( Throwable e ){
 								

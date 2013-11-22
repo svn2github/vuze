@@ -512,6 +512,12 @@ TagManagerImpl
 						global_manager.addDownloadManagerInitialisationAdapter(
 							new DownloadManagerInitialisationAdapter()
 							{	
+								public int 
+								getActions() 
+								{
+									return( ACT_PROCESSES_TAGS );
+								}
+								
 								public void 
 								initialised(
 									DownloadManager 	manager,
@@ -522,13 +528,20 @@ TagManagerImpl
 										return;
 									}
 									
+										// perform any auto-tagging - note that auto-tags aren't applied to the download
+										// yet
+									
 									List<Tag> auto_tags = auto_tracker.getTagsForDownload( manager );
 									
-									if ( auto_tags.size() > 0 ){
+									Set<Tag> tags = new HashSet<Tag>( getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, manager ));
+									
+									tags.addAll( auto_tags );
+									
+									if ( tags.size() > 0 ){
 										
 										List<Tag>	sl_tags = new ArrayList<Tag>();
 										
-										for ( Tag tag: auto_tags ){
+										for ( Tag tag: tags ){
 											
 											TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
 
