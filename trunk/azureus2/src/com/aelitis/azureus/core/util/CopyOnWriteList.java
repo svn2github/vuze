@@ -329,11 +329,6 @@ implements Iterable<T>
 			if ( Constants.IS_CVS_VERSION ){
 				
 				return( Collections.unmodifiableList( list ));
-			}
-			
-			if ( Constants.IS_CVS_VERSION ){
-				
-				return( Collections.unmodifiableList( list ));
 				
 			}else{
 				
