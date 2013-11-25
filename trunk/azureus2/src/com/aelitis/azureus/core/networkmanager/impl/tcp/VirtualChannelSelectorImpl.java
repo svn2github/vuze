@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.nio.channels.*;
@@ -103,6 +104,135 @@ public class VirtualChannelSelectorImpl {
 			
 			System.out.println( "Enabling broken select detection: diablo=" + is_diablo + ", freebsd 7+=" + is_freebsd_7_or_higher + ", osx 10.6+=" + Constants.isOSX_10_6_OrHigher );
 		}
+	}
+	
+	private static final int SELECTOR_TIMEOUT	= 15*1000;
+	
+	private static AESemaphore get_selector_allowed = new AESemaphore( "getSelectorAllowed", 1 );
+	
+	private static class
+	SelectorTimeoutException
+		extends IOException
+	{
+		private
+		SelectorTimeoutException()
+		{
+			super( "Selector allocation timeout" );
+		}
+	}
+	
+	private static Selector
+	getSelector()
+	
+		throws IOException
+	{
+			// we only want to allow one thread actively attempting to get a selector otherwise they'll just stack up
+		
+		if ( !get_selector_allowed.reserve( SELECTOR_TIMEOUT )){
+			
+			Debug.out( "Selector timeout (existing incomplete)" );
+
+			throw( new SelectorTimeoutException());
+		}
+		
+			// some AV products/VPNs in a bad state can block selector opening - prevent this from blocking everything
+		
+		final Object[]	result = { null };
+
+		final AESemaphore sem = new AESemaphore( "getSelector" );
+		
+		synchronized( VirtualChannelSelectorImpl.class ){
+			
+			try{
+				final TimerEvent event = 
+					SimpleTimer.addEvent(
+							"getSelector",
+							SystemTime.getOffsetTime( SELECTOR_TIMEOUT ),
+							new TimerEventPerformer() {
+								
+								public void 
+								perform(
+									TimerEvent event ) 
+								{
+									synchronized( VirtualChannelSelectorImpl.class ){
+										
+										if ( result[0] == null ){
+											
+											Debug.out( "Selector timeout" );
+											
+											result[0] = new SelectorTimeoutException();
+											
+											sem.release();
+										}
+									}
+								}
+							});
+				
+				new AEThread2( "getSelector" )
+				{
+					public void
+					run()
+					{
+						try{
+							Selector sel = Selector.open();
+														
+							synchronized( VirtualChannelSelectorImpl.class ){
+							
+								if ( result[0] == null ){
+									
+									result[0] = sel;
+																
+									return;
+								}
+							}
+							
+							sel.close();
+							
+						}catch( Throwable e ){
+							
+							synchronized( VirtualChannelSelectorImpl.class ){
+	
+								if ( result[0] == null ){
+									
+									if ( e instanceof IOException ){
+									
+										result[0]	= e;
+										
+									}else{
+										
+										result[0] = new IOException( Debug.getNestedExceptionMessage( e ));
+									}
+								}
+							}
+						}finally{
+							
+							get_selector_allowed.release();
+							
+							sem.release();
+
+							event.cancel();
+						}
+					}
+				}.start();
+			
+			}catch( Throwable e ){
+				
+				get_selector_allowed.release();
+				
+				throw( new IOException( Debug.getNestedExceptionMessage( e )));
+			}
+		}
+		
+		sem.reserve();
+			
+		//System.out.println( "getSelector-> " + result[0]);
+		
+		if ( result[0] instanceof IOException ){
+				
+			throw((IOException)result[0]);
+		}
+			
+		return((Selector)result[0]);
 	}
 	
 	private boolean select_is_broken;
@@ -211,8 +341,10 @@ public class VirtualChannelSelectorImpl {
     protected Selector openNewSelector() {
       Selector sel = null;
       
+      final int MAX_TRIES = 10;
+      
       try {
-        sel = Selector.open();
+        sel = getSelector();
         
         AEDiagnostics.logWithStack( "seltrace", "Selector created for '" + parent.getName() + "'," + selector_guard.getType());
       }
@@ -221,29 +353,47 @@ public class VirtualChannelSelectorImpl {
         
         try {  Thread.sleep( 3000 );  }catch( Throwable x ) {x.printStackTrace();}
         
-        int fail_count = 1;
+        int fail_count = (t instanceof SelectorTimeoutException?1000:1);
         
-        while( fail_count < 10 ) {
+        while( fail_count < MAX_TRIES ) {
+        	
           try {
-            sel = Selector.open();
+            sel = getSelector();
             
             AEDiagnostics.logWithStack( "seltrace", "Selector created for '" + parent.getName() + "'," + selector_guard.getType());
             
             break;
-          }
-          catch( Throwable f ) {
+            
+          }catch( Throwable f ) {
+        	  
             Debug.out( f );
-            fail_count++;
-            try {  Thread.sleep( 3000 );  }catch( Throwable x ) {x.printStackTrace();}
+            
+            if ( f instanceof SelectorTimeoutException ){
+            	
+            	fail_count = 1000;
+            	
+            }else{
+            
+            	fail_count++;
+            }
+            
+            if ( fail_count < MAX_TRIES ){
+            
+            	try {  Thread.sleep( 3000 );  }catch( Throwable x ) {x.printStackTrace();}
+            	
+            }else{
+            	
+            	break;
+            }
           }
         }
         
-        if( fail_count < 10 ) { //success ! 
+        if( fail_count < MAX_TRIES ) { //success ! 
           Debug.out( "NOTICE: socket Selector successfully opened after " +fail_count+ " failures." );
         }
         else {  //failure
         	Logger.log(new LogAlert(LogAlert.REPEATABLE, LogAlert.AT_ERROR,
-						"ERROR: socket Selector.open() failed 10 times in a row, aborting."
+						"ERROR: socket Selector.open() failed " + ( fail_count==1000?"due to timeout": (MAX_TRIES + " times in a row" )) + ", aborting."
 								+ "\nAzureus / Java is likely being firewalled!"));
         }
       }
