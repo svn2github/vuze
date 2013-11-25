@@ -51,7 +51,7 @@ private StringBuffer sb=new StringBuffer();
 	//private boolean yy_eof_done = false;
 	private static final int YYINITIAL = 0;
 	private static final int STRING_BEGIN = 1;
-	private final int yy_state_dtrans[] = {
+	private static final int yy_state_dtrans[] = {
 		0,
 		39
 	};
@@ -156,7 +156,7 @@ private StringBuffer sb=new StringBuffer();
 			throw new Error("Fatal Error.\n");
 		}
 	}
-	private int[][] unpackFromString(int size1, int size2, String st) {
+	private static int[][] unpackFromString(int size1, int size2, String st) {
 		int colonIndex = -1;
 		String lengthString;
 		int sequenceLength = 0;
@@ -193,7 +193,7 @@ private StringBuffer sb=new StringBuffer();
 		}
 		return res;
 	}
-	private int yy_acpt[] = {
+	private static final int yy_acpt[] = {
 		/* 0 */ YY_NOT_ACCEPT,
 		/* 1 */ YY_NO_ANCHOR,
 		/* 2 */ YY_NO_ANCHOR,
@@ -240,16 +240,16 @@ private StringBuffer sb=new StringBuffer();
 		/* 43 */ YY_NOT_ACCEPT,
 		/* 44 */ YY_NOT_ACCEPT
 	};
-	private int yy_cmap[] = unpackFromString(1,65538,
+	private static final int yy_cmap[] = unpackFromString(1,65538,
 "11:8,27:2,28,11,27,28,11:18,27,11,2,11:8,16,25,12,14,3,13:10,26,11:6,10:4,1" +
 "5,10,11:20,23,1,24,11:3,18,4,10:2,17,5,11:5,19,11,6,11:3,7,20,8,9,11:5,21,1" +
 "1,22,11:65410,0:2")[0];
 
-	private int yy_rmap[] = unpackFromString(1,45,
+	private static final int yy_rmap[] = unpackFromString(1,45,
 "0,1:2,2,1:7,3,1:2,4,1:10,5,6,1,7,8,9,10,11,12,13,14,15,16,6,17,18,19,20,21," +
 "22")[0];
 
-	private int yy_nxt[][] = unpackFromString(23,29,
+	private static final int yy_nxt[][] = unpackFromString(23,29,
 "1,-1,2,-1:2,25,28,-1,29,-1:3,30,3,-1:7,4,5,6,7,8,9,10:2,-1:42,3,33,34,-1,34" +
 ",-1:24,11,-1,34,-1,34,-1:12,16,17,18,19,20,21,22,23,40,-1:37,31,-1:23,26,-1" +
 ":24,42,-1:26,32,-1:34,3,-1:34,35,-1:18,37,-1:32,11,-1:27,38,26,-1:2,38,-1:3" +
