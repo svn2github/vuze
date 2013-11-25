@@ -409,6 +409,7 @@ AEDiagnostics
 	   		{	"InjHook12",		"n", },
 	   		{	"FPServiceProvider","n", },
 	   		{	"SBLSP.dll",		"y"  },
+	   		{	"nvLsp.dll",		"y"	 },
 	};
 
 	public static void
