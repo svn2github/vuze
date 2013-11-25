@@ -585,7 +585,7 @@ public class VirtualChannelSelectorImpl {
       
       if( selector == null ) {
     	long mono_now = SystemTime.getMonotonousTime();
-    	if ( mono_now - last_reopen_attempt > 60*1000 ){
+    	if (( mono_now - last_reopen_attempt > 60*1000 ) && !destroyed){
     		last_reopen_attempt = mono_now;
     		selector = openNewSelector();
     	}
