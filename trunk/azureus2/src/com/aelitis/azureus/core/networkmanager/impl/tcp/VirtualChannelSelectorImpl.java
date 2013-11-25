@@ -296,6 +296,8 @@ public class VirtualChannelSelectorImpl {
     private long last_write_select_debug;
     private long last_select_debug;
     
+    private long last_reopen_attempt = SystemTime.getMonotonousTime();
+    
     public VirtualChannelSelectorImpl( VirtualChannelSelector _parent, int _interest_op, boolean _pause_after_select, boolean _randomise_keys ) {	
       this.parent = _parent;
       INTEREST_OP = _interest_op;
@@ -582,9 +584,16 @@ public class VirtualChannelSelectorImpl {
       long select_start_time = SystemTime.getCurrentTime();
       
       if( selector == null ) {
-        Debug.out( "VirtualChannelSelector.select() op called with null selector" );
-        try {  Thread.sleep( 3000 );  }catch( Throwable x ) {x.printStackTrace();}
-        return 0;
+    	long mono_now = SystemTime.getMonotonousTime();
+    	if ( mono_now - last_reopen_attempt > 60*1000 ){
+    		last_reopen_attempt = mono_now;
+    		selector = openNewSelector();
+    	}
+    	if ( selector == null ){
+	        Debug.out( "VirtualChannelSelector.select() op called with null selector" );
+	        try {  Thread.sleep( 3000 );  }catch( Throwable x ) {x.printStackTrace();}
+	        return 0;
+    	}
       } 
       
       if( !selector.isOpen()) {
