@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2013.xx.xx | Vuze 5.1.0.1
+2013.11.27 | Vuze 5.2.0.0
 
 FEATURE: UI   | Added menu option to notification area to dismiss all notifications [Parg]
 FEATURE: UI   | Added download name to sidebar tooltip as may be truncated in sidebar view [Parg]
