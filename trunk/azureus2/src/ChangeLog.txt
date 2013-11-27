@@ -1,6 +1,8 @@
 VUZE CHANGELOG
 -----------------
 
+2014.xx.yy | Vuze 5.2.0.1
+
 2013.11.27 | Vuze 5.2.0.0
 
 FEATURE: UI   | Added menu option to notification area to dismiss all notifications [Parg]
