@@ -313,7 +313,11 @@ MagnetPlugin
 							
 							if ( torrent != null ){
 								
-								return( torrent.writeToBEncodedData());
+								byte[] torrent_data = torrent.writeToBEncodedData();
+								
+								torrent_data = addTrackersAndWebSeeds( torrent_data, args );
+								
+								return( torrent_data);
 							}
 						}
 					}catch( Throwable e ){
@@ -576,6 +580,14 @@ MagnetPlugin
 	{
 		byte[]	torrent_data = downloadSupport( listener, hash, args, sources, timeout, flags );
 		
+		return( addTrackersAndWebSeeds( torrent_data, args  ));
+	}
+	
+	private byte[]
+	addTrackersAndWebSeeds(
+		byte[]		torrent_data,
+		String		args )
+	{
 		if ( args != null ){
 			
 			String[] bits = args.split( "&" );
