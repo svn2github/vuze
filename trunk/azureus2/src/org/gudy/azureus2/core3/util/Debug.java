@@ -31,13 +31,21 @@ import java.util.*;
  */
 public class Debug {
   
-	private static AEDiagnosticsLogger	diag_logger	= AEDiagnostics.getLogger( "debug" );
-	
 	private static boolean STOP_AT_INITIALIZER = System.getProperty("debug.stacktrace.full", "0").equals("0");
 
+	private static AEDiagnosticsLogger	diag_logger;
+	
 	static{
-		diag_logger.setForced( true );
+		try{
+			diag_logger = AEDiagnostics.getLogger( "debug" );
+			
+			diag_logger.setForced( true );
+			
+		}catch( Throwable e ){
+			
+		}
 	}
+	
   
   /**
    * Prints out the given debug message to System.out,
@@ -596,7 +604,11 @@ public class Debug {
 	}
 
 	private static void diagLoggerLog(String str) {
-		diag_logger.log(str);
+		if ( diag_logger == null ){
+			System.out.println( str );
+		}else{
+			diag_logger.log(str);
+		}
 	}
 
 	private static void
