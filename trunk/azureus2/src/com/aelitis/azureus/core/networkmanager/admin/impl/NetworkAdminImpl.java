@@ -1338,8 +1338,8 @@ addressLoop:
 	}
 	
 	private static InetAddress[]		gdpa_lock = { null };
-	
 	private static AESemaphore			gdpa_sem;
+	private static long					gdpa_last_fail;
 	
 	public InetAddress
 	getDefaultPublicAddress()
@@ -1375,7 +1375,7 @@ addressLoop:
 							synchronized( gdpa_lock ){
 								
 								gdpa_lock[0]	= address;	
-								
+																
 								sem.releaseForever();
 								
 								gdpa_sem = null;
@@ -1388,14 +1388,28 @@ addressLoop:
 				
 				sem = gdpa_sem;
 			}
+			
+			if ( gdpa_last_fail != 0 && SystemTime.getMonotonousTime() - gdpa_last_fail < 5*60*1000 ){
+				
+				return( gdpa_lock[0] );
+			}
 		}
 
 			// in case things block - yes, they can do :(
 		
-		sem.reserve( 10*1000 );
+		boolean	worked = sem.reserve( 10*1000 );
 		
 		synchronized( gdpa_lock ){
 				
+			if ( worked ){
+				
+				gdpa_last_fail = 0;
+				
+			}else{
+				
+				gdpa_last_fail = SystemTime.getMonotonousTime();
+			}
+			
 			return( gdpa_lock[0] );
 		}
 	}

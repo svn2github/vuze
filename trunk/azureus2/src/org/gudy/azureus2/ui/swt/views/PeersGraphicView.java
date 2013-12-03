@@ -201,13 +201,16 @@ public class PeersGraphicView
 	  
 	  	// defer this util here so that a blocking call to get the IP doesn't hang UI construction
 	  
-	  InetAddress ia = NetworkAdmin.getSingleton().getDefaultPublicAddress();
-
-	  if ( ia != null ){
-
-		  my_flag = ImageRepository.getCountryFlag( ia, false );
+	  if ( my_flag == null ){
+		  
+		  InetAddress ia = NetworkAdmin.getSingleton().getDefaultPublicAddress();
+	
+		  if ( ia != null ){
+	
+			  my_flag = ImageRepository.getCountryFlag( ia, false );
+		  }
 	  }
-	    
+	  
 	  DownloadManager old_manager = manager;
 	  if (newDataSource == null){
 		  manager = null;
