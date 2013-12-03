@@ -71,6 +71,7 @@ ShareRatioProgressItem
 				
 				entryWindow.setPreenteredText( sr_str, false );
 				entryWindow.selectPreenteredText( true );
+				entryWindow.setWidthHint( 400 );
 				
 				entryWindow.prompt();
 				
