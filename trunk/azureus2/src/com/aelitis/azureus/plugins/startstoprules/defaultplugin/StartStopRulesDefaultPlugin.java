@@ -183,6 +183,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	
 	private boolean bStopOnceBandwidthMet = false;
 
+		// downloading params
+	
+	private boolean	bDownloadAutoReposition;
+	
 	private static boolean bAlreadyInitialized = false;
 
 	// UI
@@ -418,6 +422,16 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				PREFIX_RES + "numPeersAsFullCopy", 0);
 		configModel.addIntParameter2("StartStopManager_iFakeFullCopySeedStart",
 				PREFIX_RES + "fakeFullCopySeedStart", 1);
+
+		// downloading subsection
+		
+		PREFIX_RES = "ConfigView.label.downloading.";
+
+		configModel.addBooleanParameter2("StartStopManager_Downloading_bAutoReposition",
+				PREFIX_RES + "autoReposition", false);
+
+		configModel.addIntParameter2("StartStopManager_Downloading_iTestTimeSecs",
+				PREFIX_RES + "testTime", 120 );
 
 		configModel.destroy();
 	}
@@ -822,6 +836,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					recalcSeedingRanksTask = null;
 				}
 			}
+
+			bDownloadAutoReposition = plugin_config.getBooleanParameter("StartStopManager_Downloading_bAutoReposition");
 
 			/*	    
 			 // limit _maxActive and maxDownloads based on TheColonel's specs

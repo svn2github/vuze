@@ -169,13 +169,6 @@ public class PeersGraphicView
     
     this.peers = new ArrayList<PEPeer>();
     this.peerComparator = new PeerComparator();
-    
-    InetAddress ia = NetworkAdmin.getSingleton().getDefaultPublicAddress();
-    
-    if ( ia != null ){
-    	
-    	my_flag = ImageRepository.getCountryFlag( ia, false );
-    }
   } 
   
   private boolean comp_focused;
@@ -205,6 +198,16 @@ public class PeersGraphicView
 		  focus_pending_ds = newDataSource;
 		  return;
 	  }
+	  
+	  	// defer this util here so that a blocking call to get the IP doesn't hang UI construction
+	  
+	  InetAddress ia = NetworkAdmin.getSingleton().getDefaultPublicAddress();
+
+	  if ( ia != null ){
+
+		  my_flag = ImageRepository.getCountryFlag( ia, false );
+	  }
+	    
 	  DownloadManager old_manager = manager;
 	  if (newDataSource == null){
 		  manager = null;

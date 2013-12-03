@@ -1337,19 +1337,65 @@ addressLoop:
 		return( null );
 	}
 	
+	private static InetAddress[]		gdpa_lock = { null };
+	
+	private static AESemaphore			gdpa_sem;
+	
 	public InetAddress
 	getDefaultPublicAddress()
 	{
-		Utilities utils = PluginInitializer.getDefaultInterface().getUtilities();
-		
-		InetAddress address = utils.getPublicAddress();
-		
-		if ( address != null ){
-			
-			return( address );
+		final AESemaphore	sem;
+				
+		synchronized( gdpa_lock ){
+						
+			if ( gdpa_sem == null ){
+				
+				gdpa_sem = sem = new AESemaphore( "getDefaultPublicAddress");
+				
+				new AEThread2( "getDefaultPublicAddress" )
+				{
+					public void
+					run()
+					{
+						InetAddress address = null;
+						
+						try{
+							Utilities utils = PluginInitializer.getDefaultInterface().getUtilities();
+							
+							address = utils.getPublicAddress();
+							
+							if ( address == null ){
+								
+								address = utils.getPublicAddress( true );
+							}
+						}catch( Throwable e ){
+							
+						}finally{
+							
+							synchronized( gdpa_lock ){
+								
+								gdpa_lock[0]	= address;	
+								
+								gdpa_sem = null;
+							}
+						}
+					}
+				}.start();
+				
+			}else{
+				
+				sem = gdpa_sem;
+			}
 		}
+
+			// in case things block - yes, they can do :(
 		
-		return( utils.getPublicAddress( true ));
+		sem.reserve( 10*1000 );
+		
+		synchronized( gdpa_lock ){
+				
+			return( gdpa_lock[0] );
+		}
 	}
 	
 	@Override
