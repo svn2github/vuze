@@ -1376,6 +1376,8 @@ addressLoop:
 								
 								gdpa_lock[0]	= address;	
 								
+								sem.releaseForever();
+								
 								gdpa_sem = null;
 							}
 						}
