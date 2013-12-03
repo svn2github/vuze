@@ -29,7 +29,6 @@ import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
@@ -1314,7 +1313,7 @@ public class UIFunctionsImpl
 						f.mkdirs();
 					}
 					
-					if ( f.isDirectory() && f.canWrite()){
+					if ( f.isDirectory() && FileUtil.canWriteToDirectory( f )){
 						
 						if ( !f.equals(AETemporaryFileHandler.getTempDirectory())){
 							

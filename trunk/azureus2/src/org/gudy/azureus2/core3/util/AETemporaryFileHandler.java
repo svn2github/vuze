@@ -160,6 +160,17 @@ AETemporaryFileHandler
 		return( File.createTempFile( PREFIX, SUFFIX, tmp_dir ));
 	}
 	
+	public static File 
+	createTempFileInDir(
+		File	parent_dir )
+	
+		throws IOException
+	{
+		startup();
+		
+		return( File.createTempFile( PREFIX, SUFFIX, parent_dir ));
+	}
+	
 	public static File
 	createSemiTempFile()
 	

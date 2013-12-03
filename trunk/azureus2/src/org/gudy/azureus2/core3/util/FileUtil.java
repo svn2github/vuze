@@ -2192,6 +2192,33 @@ public class FileUtil {
 		return( true );
 	}
 	
+	public static boolean
+	canWriteToDirectory(
+		File		dir )
+	{
+			// (dir).canWrite() seems to return true for local file systems at least on windows regardless
+			// of effective permissions :(
+		
+		if ( !dir.isDirectory()){
+			
+			return( false );
+		}
+		
+		try{
+			File temp = AETemporaryFileHandler.createTempFileInDir( dir );
+			
+			if ( !temp.delete()){
+				
+				temp.deleteOnExit();
+			}
+			
+			return( true );
+			
+		}catch( Throwable e ){
+			
+			return( false );
+		}
+	}
 		/**
 		 * Gets the encoding that should be used when writing script files (currently only
 		 * tested for windows as this is where an issue can arise...)
