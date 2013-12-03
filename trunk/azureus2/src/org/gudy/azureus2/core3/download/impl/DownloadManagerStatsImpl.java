@@ -25,6 +25,8 @@ package org.gudy.azureus2.core3.download.impl;
  * @author parg
  */
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -36,6 +38,22 @@ public class
 DownloadManagerStatsImpl 
 	implements DownloadManagerStats
 {
+	private static int share_ratio_progress_interval;
+	
+	static{
+		COConfigurationManager.addAndFireParameterListener(
+			"Share Ratio Progress Interval",
+			new ParameterListener() {
+				
+				public void 
+				parameterChanged(
+					String name ) 
+				{
+					share_ratio_progress_interval = COConfigurationManager.getIntParameter( name );
+				}
+			});
+	}
+
 	private DownloadManagerImpl	download_manager;
 		
 		//Completed (used for auto-starting purposes)
@@ -73,6 +91,8 @@ DownloadManagerStatsImpl
 	private long[]	history;
 	private int		history_pos;
 	private boolean	history_wrapped;
+	
+	private int	last_sr_progress = -1;
 	
 	protected
 	DownloadManagerStatsImpl(
@@ -555,8 +575,45 @@ DownloadManagerStatsImpl
 	}
 	
 	protected void
-	timerTick()
+	timerTick(
+		int		tick_count )
 	{
+		if ( tick_count % 15 == 0 ){
+			
+			if ( last_sr_progress == -1 ){
+								
+				long temp = download_manager.getDownloadState().getLongAttribute( DownloadManagerState.AT_SHARE_RATIO_PROGRESS );
+				
+				last_sr_progress = (int)temp;
+			}
+			
+			if ( share_ratio_progress_interval <= 0 ){
+				
+					// reset
+				
+				if ( last_sr_progress != 0 ){
+					
+					last_sr_progress = 0;
+					
+					download_manager.getDownloadState().setLongAttribute( DownloadManagerState.AT_SHARE_RATIO_PROGRESS, 0 );
+				}
+			}else{
+				
+				int current_sr = getShareRatio();
+									
+				current_sr = ( current_sr / share_ratio_progress_interval) * share_ratio_progress_interval;
+			
+				if ( current_sr != last_sr_progress ){
+		
+					last_sr_progress = current_sr;
+					
+					long data = ((SystemTime.getCurrentTime()/1000)<<32) + last_sr_progress;
+			
+					download_manager.getDownloadState().setLongAttribute( DownloadManagerState.AT_SHARE_RATIO_PROGRESS, data );
+				}
+			}
+		}
+		
 		if ( !history_retention_required ){
 			
 			return;

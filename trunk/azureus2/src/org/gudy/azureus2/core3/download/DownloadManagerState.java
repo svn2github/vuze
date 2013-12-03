@@ -75,6 +75,8 @@ DownloadManagerState
 	public static final String AT_PEAK_RECEIVE_RATE			= "pkdo";
 	public static final String AT_PEAK_SEND_RATE			= "pkup";
 	public static final String AT_DL_FILE_ALERTS			= "df_alerts";
+	public static final String AT_SHARE_RATIO_PROGRESS		= "sr.prog";	// long: left word - timestamp in secs, right word sr in 1000ths
+
 
 	public static Object[][] ATTRIBUTE_DEFAULTS = {
 		{ AT_VERSION,								new Integer( -1 )},
@@ -83,6 +85,7 @@ DownloadManagerState
 		{ AT_AVAIL_BAD_TIME,						new Long( -1 )},
 		{ AT_SCRAPE_CACHE,							new Long( -1 )},
 		{ AT_REORDER_MIN_MB,						new Integer( -1 )},
+		{ AT_SHARE_RATIO_PROGRESS,					new Long( 0 )},
 	};
 	
 	public static final long FLAG_ONLY_EVER_SEEDED						= Download.FLAG_ONLY_EVER_SEEDED;

@@ -189,6 +189,7 @@ public class TableColumnCreator
 		c.put(TrackerStatusItem.COLUMN_ID, new cInfo(TrackerStatusItem.class, TrackerStatusItem.DATASOURCE_TYPE));
 		c.put(CompletedItem.COLUMN_ID, new cInfo(CompletedItem.class, CompletedItem.DATASOURCE_TYPE));
 		c.put(ShareRatioItem.COLUMN_ID, new cInfo(ShareRatioItem.class, ShareRatioItem.DATASOURCE_TYPE));
+		c.put(ShareRatioProgressItem.COLUMN_ID, new cInfo(ShareRatioProgressItem.class, ShareRatioProgressItem.DATASOURCE_TYPE));
 		c.put(UpItem.COLUMN_ID, new cInfo(UpItem.class, UpItem.DATASOURCE_TYPE));
 		c.put(RemainingItem.COLUMN_ID, new cInfo(RemainingItem.class, RemainingItem.DATASOURCE_TYPE));
 		c.put(PiecesItem.COLUMN_ID, new cInfo(PiecesItem.class, PiecesItem.DATASOURCE_TYPE));

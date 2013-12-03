@@ -2328,9 +2328,9 @@ DownloadManagerController
 	
 	public void
 	tick(
-		int	tick_ount )
+		int	tick_count )
 	{
-		stats.timerTick();
+		stats.timerTick( tick_count );
 	}
 	
 	public void 

@@ -91,7 +91,7 @@ public abstract class ColumnDateSizer
 				maxWidthUsed = new int[TimeFormatter.DATEFORMATS_DESC.length];
 				maxWidthDate = new Date[TimeFormatter.DATEFORMATS_DESC.length];
 				curFormat = -1;
-				recalcWidth(new Date());
+				recalcWidth(new Date(), null);
 				if (curFormat < 0) {
 					curFormat = TimeFormatter.DATEFORMATS_DESC.length - 1;
 				}
@@ -108,7 +108,7 @@ public abstract class ColumnDateSizer
 						}
 						curFormat = -1;
 						if (tableFormatOverride.length() == 0) {
-							recalcWidth(new Date());
+							recalcWidth(new Date(),null);
 							if (curFormat < 0) {
 								curFormat = TimeFormatter.DATEFORMATS_DESC.length - 1;
 							}
@@ -145,12 +145,17 @@ public abstract class ColumnDateSizer
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
-	public void refresh(final TableCell cell, final long timestamp) {
+	public void refresh( TableCell cell, long timestamp) {
+		refresh( cell, timestamp, null );
+	}
+	
+	public void refresh(final TableCell cell, final long timestamp, final String prefix ) {
 		if (!cell.setSortValue(timestamp) && cell.isValid()) {
 			return;
 		}
 
 		if (timestamp <= 0) {
+			cell.setText("");
 			return;
 		}
 		
@@ -159,8 +164,12 @@ public abstract class ColumnDateSizer
 		if ( format != null ){
 			Date date = new Date(timestamp);
 			try {
-				cell.setText(format.format(date));
-  			return;
+				String date_str = format.format(date);
+				if ( prefix != null ){
+					date_str = prefix + date_str;
+				}
+				cell.setText(date_str);
+				return;
 			} catch (Exception e) {
 
 			}	
@@ -169,7 +178,11 @@ public abstract class ColumnDateSizer
 			Date date = new Date(timestamp);
 			try {
 				SimpleDateFormat temp = new SimpleDateFormat(tableFormatOverride);
-				cell.setText(temp.format(date));
+				String date_str = temp.format(date);
+				if ( prefix != null ){
+					date_str = prefix + date_str;
+				}
+				cell.setText(date_str);
   			return;
 			} catch (Exception e) {
 				// probably illegalargumentexception
@@ -187,8 +200,7 @@ public abstract class ColumnDateSizer
 					}
 					String suffix = showTime && !multiline ? " hh:mm a" : "";
 
-					int newWidth = calcWidth(date, TimeFormatter.DATEFORMATS_DESC[curFormat]
-							+ suffix);
+					int newWidth = calcWidth(date, TimeFormatter.DATEFORMATS_DESC[curFormat] + suffix, prefix );
 
 					//SimpleDateFormat temp2 = new SimpleDateFormat(TimeFormatter.DATEFORMATS_DESC[curFormat] + suffix + (showTime && multiline ? "\nh:mm a" : ""));
 					//System.out.println(curFormat + ":newWidth=" +  newWidth + ":max=" + maxWidthUsed[curFormat] + ":cell=" + cell.getWidth() + "::" + temp2.format(date));
@@ -197,13 +209,17 @@ public abstract class ColumnDateSizer
 							maxWidthUsed[curFormat] = newWidth;
 							maxWidthDate[curFormat] = date;
 						}
-						recalcWidth(date);
+						recalcWidth(date, prefix);
 					}
 
 					String s = TimeFormatter.DATEFORMATS_DESC[curFormat] + suffix;
 					SimpleDateFormat temp = new SimpleDateFormat(s
 							+ (showTime && multiline ? "\nh:mm a" : ""));
-					cell.setText(temp.format(date));
+					String date_str = temp.format(date);
+					if ( prefix != null ){
+						date_str = prefix + date_str;
+					}
+					cell.setText(date_str);
 				}
 			}
 		});
@@ -221,11 +237,11 @@ public abstract class ColumnDateSizer
 			if (maxWidthDate[curFormat] == null) {
 				maxWidthDate[curFormat] = new Date();
 			}
-			recalcWidth(maxWidthDate[curFormat]);
+			recalcWidth(maxWidthDate[curFormat], null );
 		}
 	}
 
-	private void recalcWidth(Date date) {
+	private void recalcWidth(Date date, String prefix) {
 		String suffix = showTime && !multiline ? " hh:mm a" : "";
 
 		int width = getWidth();
@@ -283,7 +299,7 @@ public abstract class ColumnDateSizer
 		}
 	}
 
-	private int calcWidth(Date date, String format) {
+	private int calcWidth(Date date, String format, String prefix ) {
 		GC gc = new GC(Display.getDefault());
 		if (fontBold == null) {
 			FontData[] fontData = gc.getFont().getFontData();
@@ -295,7 +311,13 @@ public abstract class ColumnDateSizer
 		}
 		gc.setFont(fontBold);
 		SimpleDateFormat temp = new SimpleDateFormat(format);
-		Point newSize = gc.stringExtent(temp.format(date));
+		String date_str = temp.format(date);
+		if ( prefix != null ){
+			
+			date_str = prefix + date_str;
+		}
+		
+		Point newSize = gc.stringExtent(date_str);
 		gc.dispose();
 		return newSize.x;
 	}
@@ -326,9 +348,12 @@ public abstract class ColumnDateSizer
 		Object ds = cell.getSortValue();
 		if (ds instanceof Number) {
 			long timestamp = ((Number) ds).longValue();
-			long eta = (SystemTime.getCurrentTime() - timestamp) / 1000;
-			if (eta > 0) {
-				cell.setToolTip(DisplayFormatters.formatETA(eta, false));
+			
+			if ( timestamp > 0 ){
+				long eta = (SystemTime.getCurrentTime() - timestamp) / 1000;
+				if (eta > 0) {
+					cell.setToolTip(DisplayFormatters.formatETA(eta, false));
+				}
 			}
 		}
 	}
