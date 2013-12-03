@@ -60,6 +60,7 @@ public class ColumnTC_NameInfo
 		initialize(ALIGN_LEAD | ALIGN_TOP, POSITION_INVISIBLE, 415,
 				INTERVAL_INVALID_ONLY);
 		setType(TYPE_GRAPHIC);
+		setDefaultSortAscending( true );
 	}
 
 	// @see org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener#refresh(org.gudy.azureus2.plugins.ui.tables.TableCell)
