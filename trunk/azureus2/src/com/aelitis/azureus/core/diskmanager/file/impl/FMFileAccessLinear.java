@@ -276,30 +276,74 @@ FMFileAccessLinear
 						// place, but hey, we're just about to release and there may be other
 						// instances of this...
 
-					while ( fc.position() < fc.size() && last_bb.hasRemaining()){
-						long	read = fc.read( bbs );
-						if ( read > 0 ){
-							loop	= 0;
-						}else{
-							loop++;
-							if ( loop == READ_RETRY_LIMIT ){
-								Debug.out( "FMFile::read: zero length read - abandoning" );
-								throw( new FMFileManagerException( "read fails: retry limit exceeded"));
-							}
-							if ( DEBUG_VERBOSE )
-								Debug.out( "FMFile::read: zero length read - retrying" );
-
-							try{
-								Thread.sleep( READ_RETRY_DELAY*loop );
-							}catch( InterruptedException e ){
-								throw( new FMFileManagerException( "read fails: interrupted" ));
-							}
+						// nasty Android bug here regarding it incorrectly setting a buffer's position to
+						// be the amount read as opposed to incrementing it by the amount read
+					
+					if ( Constants.isAndroid ){
+						
+						int	bbs_index = 0;
+						
+						while ( fc.position() < fc.size() && last_bb.hasRemaining()){
 							
-						}						
+							ByteBuffer current_bb = bbs[bbs_index];
+							
+							if ( !current_bb.hasRemaining()){
+								
+								bbs_index++;
+								
+							}else{
+								
+								long	read = fc.read( current_bb );
+								
+								if ( read > 0 ){
+									
+									loop	= 0;
+									
+								}else{
+									
+									loop++;
+									
+									if ( loop == READ_RETRY_LIMIT ){
+										Debug.out( "FMFile::read: zero length read - abandoning" );
+										throw( new FMFileManagerException( "read fails: retry limit exceeded"));
+									}
+									
+									if ( DEBUG_VERBOSE )
+										Debug.out( "FMFile::read: zero length read - retrying" );
+		
+									try{
+										Thread.sleep( READ_RETRY_DELAY*loop );
+									}catch( InterruptedException e ){
+										throw( new FMFileManagerException( "read fails: interrupted" ));
+									}
+									
+								}	
+							}
+						}
+					}else{
+						while ( fc.position() < fc.size() && last_bb.hasRemaining()){
+							long	read = fc.read( bbs );
+							if ( read > 0 ){
+								loop	= 0;
+							}else{
+								loop++;
+								if ( loop == READ_RETRY_LIMIT ){
+									Debug.out( "FMFile::read: zero length read - abandoning" );
+									throw( new FMFileManagerException( "read fails: retry limit exceeded"));
+								}
+								if ( DEBUG_VERBOSE )
+									Debug.out( "FMFile::read: zero length read - retrying" );
+	
+								try{
+									Thread.sleep( READ_RETRY_DELAY*loop );
+								}catch( InterruptedException e ){
+									throw( new FMFileManagerException( "read fails: interrupted" ));
+								}
+								
+							}	
+						}
 					}
 				}
-
-				
 			}
 		}catch ( Throwable e ){
 			
