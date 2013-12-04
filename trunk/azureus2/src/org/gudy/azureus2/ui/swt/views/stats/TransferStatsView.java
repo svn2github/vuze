@@ -1018,9 +1018,9 @@ public class TransferStatsView
 	  
 	  uploadBiaser.setText( DownloadManagerRateController.getString());
 	  
-	  InetAddress latest_v4 = azureus_core==null?null:azureus_core.getInstanceManager().getMyInstance().getExternalAddress();
+	  InetAddress current_ip = NetworkAdmin.getSingleton().getDefaultPublicAddress();
 
-	  currentIP.setText(latest_v4==null?"":latest_v4.getHostAddress() );
+	  currentIP.setText(current_ip==null?"":current_ip.getHostAddress() );
   }
   
   private void
