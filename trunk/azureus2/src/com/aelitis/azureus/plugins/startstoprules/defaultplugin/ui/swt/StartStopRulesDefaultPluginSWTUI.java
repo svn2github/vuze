@@ -45,7 +45,7 @@ StartStopRulesDefaultPluginSWTUI
 {
 	public StartStopRulesDefaultPluginSWTUI(PluginInterface plugin_interface) {
 		plugin_interface.addConfigSection(new ConfigSectionQueue());
-		plugin_interface.addConfigSection(new ConfigSectionDownloading());
+		//plugin_interface.addConfigSection(new ConfigSectionDownloading());
 		plugin_interface.addConfigSection(new ConfigSectionSeeding());
 		plugin_interface.addConfigSection(new ConfigSectionSeedingAutoStarting());
 		plugin_interface.addConfigSection(new ConfigSectionSeedingFirstPriority());
