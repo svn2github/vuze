@@ -30,6 +30,7 @@ import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
 
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -94,7 +95,45 @@ FMFileAccessLinear
 		try{
 			AEThread2.setDebug( owner );
 			
-			raf.setLength( length );
+			try{
+				raf.setLength( length );
+				
+			}catch( IOException e ){
+				
+				if ( Constants.isAndroid ){
+					
+						// can't handle > Integer.MAX_VALUE, however try and fix for all fails just in case
+					
+					if ( raf.length() < length ){
+					
+						long	old_pos = raf.getFilePointer();
+						
+						try{
+							raf.seek( length-1 );
+						
+							raf.write( 0 );
+							
+						}catch( IOException f ){
+							
+							throw( e );
+							
+						}finally{
+						
+							try{
+								raf.seek( old_pos );
+								
+							}catch( Throwable f ){
+							}
+						}
+					}else{
+						
+						// can't truncate :(
+					}
+				}else{
+					
+					throw( e );
+				}
+			}
 			
 		}catch( Throwable e ){
 			
