@@ -131,7 +131,7 @@ AZMyInstanceImpl
 			});
 	}
 	
-	protected void
+	private void
 	readConfig(
 		boolean	first_time )
 	{
@@ -173,7 +173,7 @@ AZMyInstanceImpl
 		}
 	}
 	
-	protected InetAddress
+	private InetAddress
 	readExternalAddress()
 	{
 		InetAddress	 external_address = null;
@@ -342,7 +342,7 @@ AZMyInstanceImpl
 		return( external_address );
 	}
 	
-	protected boolean
+	private boolean
 	sameFamily(
 		InetAddress	a1,
 		InetAddress a2 )
