@@ -33,7 +33,6 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
@@ -78,6 +77,7 @@ import org.gudy.azureus2.ui.swt.views.utils.TagUIUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.speedmanager.SpeedLimitHandler;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.ui.UIFunctions;
@@ -1211,7 +1211,7 @@ public class TorrentUtil {
 						
 						try{
 						
-							InetAddress ia = AzureusCoreFactory.getSingleton().getInstanceManager().getMyInstance().getExternalAddress();
+							InetAddress ia = NetworkAdmin.getSingleton().getDefaultPublicAddress();
 						
 							if ( ia != null ){
 								
