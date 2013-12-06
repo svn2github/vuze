@@ -964,7 +964,7 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 	private boolean	dlr_test_active;
 	private long 	dlr_test_start_time;
 	private long 	dlr_test_bytes_start;
-	private int		dlr_test_average_bytes_per_sec;
+	private int		dlr_test_average_bytes_per_sec = -1;
 	
 	public void
 	setDLRInactive()
@@ -1017,6 +1017,12 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 	getDLRLastTestTime()
 	{
 		return( dlr_test_start_time );
+	}
+	
+	public int
+	getDLRLastTestSpeed()
+	{
+		return( dlr_test_average_bytes_per_sec );
 	}
 	
 	public String

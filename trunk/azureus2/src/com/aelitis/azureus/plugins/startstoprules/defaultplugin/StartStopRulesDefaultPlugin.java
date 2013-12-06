@@ -1486,12 +1486,20 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		}
 	} // process()
 
-	private DefaultRankCalculator dlr_current_active;
+	private DefaultRankCalculator 	dlr_current_active;
+	private long					dlr_min_max_rate_time;
 	
 	private void
 	processDownloadingRules(
 		List<DefaultRankCalculator>		downloads )
 	{
+		long mono_now = SystemTime.getMonotonousTime();
+		
+		if ( mono_now - monoStartedOn < MIN_DOWNLOADING_STARTUP_WAIT ){
+			
+			return;
+		}
+
 		if ( !bDownloadAutoReposition ){
 			
 			if ( dlr_current_active != null ){
@@ -1503,18 +1511,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			
 			return;
 		}
-		
-		long mono_now = SystemTime.getMonotonousTime();
-		
-		if ( mono_now - monoStartedOn < MIN_DOWNLOADING_STARTUP_WAIT ){
-			
-			return;
-		}
-		
-		int	downloadKBSec = (int)((globalDownloadSpeedAverage.getAverage()*1000/PROCESS_CHECK_PERIOD)/1024);
-		
-		System.out.println( "pdr: " + downloads.size() + ", average=" + downloadKBSec + ", limit=" + globalDownloadLimit );
-		
+				
 		if ( dlr_current_active != null ){
 			
 			if ( !downloads.contains( dlr_current_active )){
@@ -1528,6 +1525,36 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		if ( downloads.size() < 2 ){
 			
 			return;
+		}
+		
+		if ( globalDownloadLimit > 0 ){
+			
+			int	downloadKBSec = (int)((globalDownloadSpeedAverage.getAverage()*1000/PROCESS_CHECK_PERIOD)/1024);
+		
+			if ( globalDownloadLimit - downloadKBSec < 5 ){
+				
+				if ( dlr_min_max_rate_time == 0 ){
+					
+					dlr_min_max_rate_time = mono_now;
+					
+				}else if ( mono_now - dlr_min_max_rate_time >= 60*1000 ){
+					
+					if ( dlr_current_active != null ){
+													
+						dlr_current_active.setDLRInactive();
+							
+						dlr_current_active = null;
+					}
+				
+					return;
+				}
+			}else{
+				
+				dlr_min_max_rate_time = 0;
+			}
+		}else{
+			
+			dlr_min_max_rate_time = 0;
 		}
 		
 		if ( dlr_current_active != null ){
@@ -1566,7 +1593,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 						
 					}else{
 						
-						if ( iDownloadReTestMillis> 0 ){
+						if ( iDownloadReTestMillis > 0 ){
 							
 							long	tested_ago = mono_now - last_test;
 							
@@ -1588,6 +1615,54 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				dlr_current_active = to_test;
 				
 				to_test.setDLRActive( mono_now );
+			}
+		}
+		
+			// tidy up queue order so the fastest n (or n-1 is testing) occupy the top queue slots
+		
+		Collections.sort(
+			downloads,
+			new Comparator<DefaultRankCalculator>()
+			{
+				public int 
+				compare(
+					DefaultRankCalculator o1,
+					DefaultRankCalculator o2 ) 
+				{
+					if ( o1 == dlr_current_active ){
+						
+						return( -1 );
+						
+					}else if ( o2 == dlr_current_active ){
+						
+						return( 1 );
+					}
+					
+					int	speed1 = o1.getDLRLastTestSpeed();
+					int	speed2 = o2.getDLRLastTestSpeed();
+					
+					int	res = speed2 - speed1;
+					
+					if ( res == 0  ){
+						
+						res = o1.dl.getPosition() - o2.dl.getPosition();
+						
+					}
+					
+					return( res );
+				}
+			});
+		
+		for ( int i=0;i<downloads.size();i++){
+			
+			DefaultRankCalculator drc = downloads.get(i);
+			
+			if ( drc.getDLRLastTestSpeed() > 0 ){
+				
+				if ( drc.dl.getPosition() != (i+1)){
+					
+					drc.dl.moveTo( i+1 );
+				}
 			}
 		}
 	}
