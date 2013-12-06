@@ -112,7 +112,6 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	private static final float IGNORE_SLOT_THRESHOLD_FACTOR = 0.9f;
 
 	private static final int MIN_DOWNLOADING_STARTUP_WAIT 	= 30*1000;
-	private static final int DLR_RETEST_PERIOD				= 5*60*1000;
 	
 	private static final int SMOOTHING_PERIOD_SECS 	= 15;
 	private static final int SMOOTHING_PERIOD 		= SMOOTHING_PERIOD_SECS*1000;
@@ -196,7 +195,9 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		// downloading params
 	
 	private boolean	bDownloadAutoReposition;
-	
+	private int		iDownloadTestTimeMillis;
+	private int		iDownloadReTestMillis;
+
 	private static boolean bAlreadyInitialized = false;
 
 	// UI
@@ -458,6 +459,9 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 		configModel.addIntParameter2("StartStopManager_Downloading_iTestTimeSecs",
 				PREFIX_RES + "testTime", 120 );
+		
+		configModel.addIntParameter2("StartStopManager_Downloading_iRetestTimeMins",
+				PREFIX_RES + "reTest", 30 );
 
 		configModel.destroy();
 	}
@@ -878,7 +882,9 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			}
 
 			bDownloadAutoReposition = plugin_config.getBooleanParameter("StartStopManager_Downloading_bAutoReposition");
-
+			iDownloadTestTimeMillis	= plugin_config.getIntParameter("StartStopManager_Downloading_iTestTimeSecs")*1000;
+			iDownloadReTestMillis	= plugin_config.getIntParameter("StartStopManager_Downloading_iRetestTimeMins")*60*1000;
+			
 			/*	    
 			 // limit _maxActive and maxDownloads based on TheColonel's specs
 			 
@@ -1529,10 +1535,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			long last_test = dlr_current_active.getDLRLastTestTime();
 			
 			long	tested_ago = mono_now - last_test;
-			
-				// todo
-			
-			if ( tested_ago < 120*1000 ){
+						
+			if ( tested_ago < iDownloadTestTimeMillis ){
 				
 				return;
 			}
@@ -1562,14 +1566,17 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 						
 					}else{
 						
-						long	tested_ago = mono_now - last_test;
-						
-						if ( tested_ago >= DLR_RETEST_PERIOD ){
+						if ( iDownloadReTestMillis> 0 ){
 							
-							if ( tested_ago < oldest_test ){
+							long	tested_ago = mono_now - last_test;
+							
+							if ( tested_ago >= iDownloadReTestMillis ){
 								
-								oldest_test = tested_ago;
-								to_test		= drc;
+								if ( tested_ago < oldest_test ){
+									
+									oldest_test = tested_ago;
+									to_test		= drc;
+								}
 							}
 						}
 					}

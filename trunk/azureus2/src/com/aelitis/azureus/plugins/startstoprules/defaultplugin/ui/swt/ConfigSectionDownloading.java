@@ -71,6 +71,8 @@ public class ConfigSectionDownloading implements UISWTConfigSection {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     cDownloading.setLayoutData(gridData);
 
+    	// info
+    
     label = new Label(cDownloading, SWT.WRAP);
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 2;
@@ -78,12 +80,17 @@ public class ConfigSectionDownloading implements UISWTConfigSection {
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.label.downloading.info");
 
+    	// enable
+    
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     BooleanParameter autoRepos = new BooleanParameter(cDownloading, "StartStopManager_Downloading_bAutoReposition",
                          "ConfigView.label.downloading.autoReposition");
     autoRepos.setLayoutData(gridData);
 
+    
+    	// test time
+    
     label = new Label(cDownloading, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.downloading.testTime");
     gridData = new GridData();
@@ -93,6 +100,18 @@ public class ConfigSectionDownloading implements UISWTConfigSection {
     
     autoRepos.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(label));
     autoRepos.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(testTime));
+    
+    	// re-test
+    
+    label = new Label(cDownloading, SWT.NULL);
+    Messages.setLanguageText(label, "ConfigView.label.downloading.reTest");
+    gridData = new GridData();
+    IntParameter reTest = new IntParameter(cDownloading, "StartStopManager_Downloading_iRetestTimeMins");
+    reTest.setLayoutData(gridData);
+    reTest.setMinimumValue( 0 );
+    
+    autoRepos.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(label));
+    autoRepos.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(reTest));
     
     return cDownloading;
   }
