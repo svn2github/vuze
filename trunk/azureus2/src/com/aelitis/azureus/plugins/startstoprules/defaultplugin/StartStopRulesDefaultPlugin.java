@@ -40,12 +40,14 @@ import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
+import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
 import org.gudy.azureus2.plugins.ui.tables.TableRow;
 
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.average.AverageFactory;
 
 /** Handles Starting and Stopping of torrents.
  *
@@ -109,6 +111,14 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	
 	private static final float IGNORE_SLOT_THRESHOLD_FACTOR = 0.9f;
 
+	private static final int MIN_DOWNLOADING_STARTUP_WAIT 	= 30*1000;
+	private static final int DLR_RETEST_PERIOD				= 5*60*1000;
+	
+	private static final int SMOOTHING_PERIOD_SECS 	= 15;
+	private static final int SMOOTHING_PERIOD 		= SMOOTHING_PERIOD_SECS*1000;
+	
+	private com.aelitis.azureus.core.util.average.Average globalDownloadSpeedAverage = AverageFactory.MovingImmediateAverage(SMOOTHING_PERIOD/PROCESS_CHECK_PERIOD );
+	
 	// Core/Plugin classes
 	private AEMonitor this_mon = new AEMonitor("StartStopRules");
 
@@ -141,7 +151,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	private AEMonitor ranksToRecalc_mon = new AEMonitor("ranksToRecalc");
 
 	/** When rules class started.  Used for initial waiting logic */
-	private long startedOn;
+	private long monoStartedOn;
 
 	// Config Settings
 	/** Whether Debug Info is written to the log and tooltip */
@@ -218,7 +228,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 		AEDiagnostics.addEvidenceGenerator(this);
 
-		startedOn = SystemTime.getCurrentTime();
+		monoStartedOn = SystemTime.getMonotonousTime();
 
 		pi = _plugin_interface;
 
@@ -276,16 +286,32 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			pi.getUIManager().addUIListener(new UIManagerListener() {
 				public void UIAttached(UIInstance instance) {
 					TableManager tm = pi.getUIManager().getTableManager();
+					
 					seedingRankColumn = tm.createColumn(
 							TableManager.TABLE_MYTORRENTS_COMPLETE, "SeedingRank");
 					seedingRankColumn.initialize(TableColumn.ALIGN_TRAIL,
 							TableColumn.POSITION_LAST, 80, TableColumn.INTERVAL_LIVE);
 
-					SeedingRankColumnListener columnListener = new SeedingRankColumnListener(
+					TableCellRefreshListener columnListener = new SeedingRankColumnListener(
 							downloadDataMap, plugin_config);
 					seedingRankColumn.addCellRefreshListener(columnListener);
+					
 					tm.addColumn(seedingRankColumn);
 
+					TableColumn downloadingRankColumn = tm.createColumn(
+							TableManager.TABLE_MYTORRENTS_INCOMPLETE, "DownloadingRank");
+					
+					downloadingRankColumn.setMinimumRequiredUserMode( 1 );
+					
+					downloadingRankColumn.initialize(TableColumn.ALIGN_TRAIL,
+							TableColumn.POSITION_INVISIBLE, 80, TableColumn.INTERVAL_LIVE);
+
+					columnListener = new DownloadingRankColumnListener( StartStopRulesDefaultPlugin.this );
+					
+					downloadingRankColumn.addCellRefreshListener(columnListener);
+					
+					tm.addColumn( downloadingRankColumn );
+					
 					if (instance.getUIType() == UIInstance.UIT_SWT ){
 						
 							// We have our own config model :)
@@ -497,9 +523,23 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	{
 		final long FORCE_CHECK_CYCLES = FORCE_CHECK_PERIOD / PROCESS_CHECK_PERIOD;
 
+		final DownloadManagerStats dmStats = download_manager.getStats();
+		
+		long  prevReceived = -1;
+		
 		long cycleNo = 0;
 
 		public void perform(TimerEvent event) {
+			
+			long recv = dmStats.getDataBytesReceived() + dmStats.getProtocolBytesReceived();
+			
+			if ( prevReceived != -1 ){
+			
+				globalDownloadSpeedAverage.update( recv - prevReceived );
+			}
+			
+			prevReceived = recv;
+			
 			if (closingDown || pauseChangeFlagChecker ) {
 				return;
 			}
@@ -1064,7 +1104,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		 */
 		public TotalsStats(DefaultRankCalculator[] dlDataArray) {
 			bOkToStartSeeding = (iRankType == RANK_NONE) || (iRankType == RANK_TIMED)
-					|| (SystemTime.getCurrentTime() - startedOn > MIN_FIRST_SCRAPE_WAIT);
+					|| (SystemTime.getMonotonousTime() - monoStartedOn > MIN_FIRST_SCRAPE_WAIT);
 
 			// count the # of ok scrapes when !bOkToStartSeeding, and flip to true
 			// if all scrapes for non-stopped/errored completes are okay.
@@ -1104,7 +1144,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 							bOkToStartSeeding = true;
 						else if ((download.getSeedingRank() > 0)
 								&& (state == Download.ST_QUEUED || state == Download.ST_READY)
-								&& (SystemTime.getCurrentTime() - startedOn > MIN_SEEDING_STARTUP_WAIT))
+								&& (SystemTime.getMonotonousTime() - monoStartedOn > MIN_SEEDING_STARTUP_WAIT))
 							bOkToStartSeeding = true;
 					}
 
@@ -1323,6 +1363,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			vars.posComplete = 0;
 			vars.stalledSeeders = 0; // Running Count;
 
+			List<DefaultRankCalculator>	incompleteDownloads = new ArrayList<DefaultRankCalculator>();
+			
 			// Loop 2 of 2:
 			// - Start/Stop torrents based on criteria
 
@@ -1387,12 +1429,15 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 				// Handle incomplete DLs
 				if (!download.isComplete()) {
+					incompleteDownloads.add( dlData );
 					handleInCompleteDownload(dlData, vars, totals);
 				} else {
 					handleCompletedDownload(dlDataArray, dlData, vars, totals);
 				}
 			} // Loop 2/2 (Start/Stopping)
-
+				
+			processDownloadingRules( incompleteDownloads );
+			
 			if (bDebugLog) {
 				String[] mainDebugEntries2 = new String[] {
 					"ok2Start=" + boolDebug(totals.bOkToStartSeeding),
@@ -1435,6 +1480,111 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		}
 	} // process()
 
+	private DefaultRankCalculator dlr_current_active;
+	
+	private void
+	processDownloadingRules(
+		List<DefaultRankCalculator>		downloads )
+	{
+		if ( !bDownloadAutoReposition ){
+			
+			if ( dlr_current_active != null ){
+				
+				dlr_current_active.setDLRInactive();
+				
+				dlr_current_active = null;
+			}
+			
+			return;
+		}
+		
+		long mono_now = SystemTime.getMonotonousTime();
+		
+		if ( mono_now - monoStartedOn < MIN_DOWNLOADING_STARTUP_WAIT ){
+			
+			return;
+		}
+		
+		int	downloadKBSec = (int)((globalDownloadSpeedAverage.getAverage()*1000/PROCESS_CHECK_PERIOD)/1024);
+		
+		System.out.println( "pdr: " + downloads.size() + ", average=" + downloadKBSec + ", limit=" + globalDownloadLimit );
+		
+		if ( dlr_current_active != null ){
+			
+			if ( !downloads.contains( dlr_current_active )){
+				
+				dlr_current_active.setDLRInactive();
+				
+				dlr_current_active = null;
+			}
+		}
+		
+		if ( downloads.size() < 2 ){
+			
+			return;
+		}
+		
+		if ( dlr_current_active != null ){
+			
+			long last_test = dlr_current_active.getDLRLastTestTime();
+			
+			long	tested_ago = mono_now - last_test;
+			
+				// todo
+			
+			if ( tested_ago < 120*1000 ){
+				
+				return;
+			}
+			
+			dlr_current_active.setDLRComplete( mono_now );
+			
+			dlr_current_active = null;
+		}
+		
+		if ( dlr_current_active == null ){
+			
+			DefaultRankCalculator	to_test = null;
+			
+			long	oldest_test = Long.MAX_VALUE;
+			
+			for ( DefaultRankCalculator drc: downloads ){
+				
+				if ( drc.isQueued()){
+					
+					long last_test = drc.getDLRLastTestTime();
+					
+					if ( last_test == 0 ){
+						
+						to_test = drc;
+						
+						break;
+						
+					}else{
+						
+						long	tested_ago = mono_now - last_test;
+						
+						if ( tested_ago >= DLR_RETEST_PERIOD ){
+							
+							if ( tested_ago < oldest_test ){
+								
+								oldest_test = tested_ago;
+								to_test		= drc;
+							}
+						}
+					}
+				}
+			}
+			
+			if ( to_test != null ){
+				
+				dlr_current_active = to_test;
+				
+				to_test.setDLRActive( mono_now );
+			}
+		}
+	}
+	
 	/**
 	 * @param dlData
 	 * @param vars 
@@ -2254,7 +2404,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 		try {
 			writer.indent();
-			writer.println("Started " + TimeFormatter.format100ths(SystemTime.getCurrentTime() - startedOn)
+			writer.println("Started " + TimeFormatter.format100ths(SystemTime.getMonotonousTime() - monoStartedOn)
 					+ " ago");
 			writer.println("debugging = " + bDebugLog);
 			writer.println("downloadDataMap size = " + downloadDataMap.size());

@@ -28,7 +28,10 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.download.DownloadManagerStateAttributeListener;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadStats;
@@ -392,6 +395,12 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 		return SystemTime.getCurrentTime() - stats.getTimeStarted() <= FORCE_ACTIVE_FOR;
 	}
 
+	public boolean
+	isQueued()
+	{
+		return( dl.getState() == Download.ST_QUEUED );
+	}
+	
 	/**
 	 * Retrieves whether the torrent is "actively" downloading
 	 * 
@@ -952,6 +961,79 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 		return bIsFirstPriority;
 	}
 
+	private boolean	dlr_test_active;
+	private long 	dlr_test_start_time;
+	private long 	dlr_test_bytes_start;
+	private int		dlr_test_average_bytes_per_sec;
+	
+	public void
+	setDLRInactive()
+	{
+		dlr_test_active = false;
+	}
+	
+	public void
+	setDLRActive(
+		long	time )
+	{
+		if (rules.bDebugLog) {
+			rules.log.log(
+				dl.getTorrent(), LoggerChannel.LT_INFORMATION,
+				"download speed test starts");
+		}
+		
+		dlr_test_active = true;
+		
+		dlr_test_start_time = time;
+		
+		dl.moveTo( 1 );
+		
+		dlr_test_bytes_start = dl.getStats().getDownloaded( true );
+	}
+	
+	public void
+	setDLRComplete(
+		long	time )
+	{
+		long dlr_test_bytes_end = dl.getStats().getDownloaded( true );
+		
+		long elapsed = time - dlr_test_start_time;
+		
+		if ( elapsed >= 1000 ){
+			
+			dlr_test_average_bytes_per_sec = (int)((dlr_test_bytes_end-dlr_test_bytes_start)*1000/elapsed);
+			
+			if (rules.bDebugLog) {
+				rules.log.log(
+					dl.getTorrent(), LoggerChannel.LT_INFORMATION,
+					"download speed test ends - average=" + dlr_test_average_bytes_per_sec );
+			}
+		}
+		
+		dlr_test_active = false;
+	}
+	
+	public long
+	getDLRLastTestTime()
+	{
+		return( dlr_test_start_time );
+	}
+	
+	public String
+	getDLRTrace()
+	{
+		if ( dlr_test_active ){
+			return( "testing" );
+		}else if ( dlr_test_start_time > 0 ){
+			return( 
+				"tested; " + 
+				TimeFormatter.format(( SystemTime.getMonotonousTime() - dlr_test_start_time )/1000) + " ago; " +
+				"rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( dlr_test_average_bytes_per_sec ));
+		}else{
+			return( "" );
+		}
+	}
+	
 	public String toString() {
 		return String.valueOf(dl.getSeedingRank());
 	}
