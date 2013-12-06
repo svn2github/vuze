@@ -28,11 +28,13 @@ import java.nio.ByteBuffer;
 import java.nio.MappedByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileChannel.MapMode;
+import java.util.Locale;
 
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
+import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerException;
@@ -101,10 +103,36 @@ FMFileAccessLinear
 			}catch( IOException e ){
 				
 				if ( Constants.isAndroid ){
-					
+
 						// can't handle > Integer.MAX_VALUE, however try and fix for all fails just in case
+						
+					if ( !Debug.getNestedExceptionMessage( e ).toUpperCase( Locale.US ).contains( "EINVAL")){
 					
-					if ( raf.length() < length ){
+							// doesn't look like the bug
+						
+						throw( e );
+					}
+
+					long	required 	= length - raf.length();
+
+					if ( required > 0 ){
+						
+						if ( FileUtil.getUsableSpaceSupported()){
+					
+							long	usable		= FileUtil.getUsableSpace( owner.getLinkedFile().getParentFile());
+						
+								// usable is -1 if something went wrong
+							
+							if (  usable >= 0 && usable < required ){
+							
+								// 	looks like a valid error
+							
+								throw( e );
+							}
+						}
+					}
+					
+					if ( required > 0 ){
 					
 						long	old_pos = raf.getFilePointer();
 						
@@ -127,7 +155,7 @@ FMFileAccessLinear
 						}
 					}else{
 						
-						// can't truncate :(
+						// can't truncate :( - just allow things to continue
 					}
 				}else{
 					

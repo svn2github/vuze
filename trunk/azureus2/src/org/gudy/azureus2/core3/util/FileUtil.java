@@ -65,7 +65,7 @@ public class FileUtil {
 	  try
 	  {
 		  reflectOnUsableSpace = File.class.getMethod("getUsableSpace", (Class[])null);
-	  } catch (NoSuchMethodException e)
+	  } catch (Throwable e)
 	  {
 		  reflectOnUsableSpace = null;
 	  }
@@ -2092,11 +2092,11 @@ public class FileUtil {
 	
 	public final static long getUsableSpace(File f)
 	{
-		try
-		{
+		try{
 			return ((Long)reflectOnUsableSpace.invoke(f)).longValue();
-		} catch (Exception e)
-		{
+			
+		}catch ( Throwable e){
+			
 			return -1;
 		}		
 	}
