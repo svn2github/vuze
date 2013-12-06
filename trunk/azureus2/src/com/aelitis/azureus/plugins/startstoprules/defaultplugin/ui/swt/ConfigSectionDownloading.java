@@ -21,13 +21,18 @@
 package com.aelitis.azureus.plugins.startstoprules.defaultplugin.ui.swt;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.MouseAdapter;
+import org.eclipse.swt.events.MouseEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.BooleanParameter;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.config.IntParameter;
+import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 
@@ -80,6 +85,25 @@ public class ConfigSectionDownloading implements UISWTConfigSection {
     label.setLayoutData(gridData);
     Messages.setLanguageText(label, "ConfigView.label.downloading.info");
 
+    	// wiki link
+    
+	final Label linkLabel = new Label(cDownloading, SWT.NULL);
+	linkLabel.setText(MessageText.getString("ConfigView.label.please.visit.here"));
+	linkLabel.setData("http://wiki.vuze.com/w/Downloading_Rules");
+	linkLabel.setCursor(linkLabel.getDisplay().getSystemCursor(SWT.CURSOR_HAND));
+	linkLabel.setForeground(Colors.blue);
+	gridData = new GridData();
+	gridData.horizontalSpan = 2;
+	linkLabel.setLayoutData(gridData);
+	linkLabel.addMouseListener(new MouseAdapter() {
+		public void mouseDoubleClick(MouseEvent arg0) {
+			Utils.launch((String) ((Label) arg0.widget).getData());
+		}
+
+		public void mouseDown(MouseEvent arg0) {
+			Utils.launch((String) ((Label) arg0.widget).getData());
+		}
+	});
     	// enable
     
     gridData = new GridData();

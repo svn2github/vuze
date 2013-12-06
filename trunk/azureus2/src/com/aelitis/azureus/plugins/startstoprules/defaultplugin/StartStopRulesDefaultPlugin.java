@@ -180,7 +180,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	private int globalUploadLimit;
 	private int globalUploadWhenSeedingLimit;
 
-	private int maxDownloads;
+	private int maxConfiguredDownloads;
 
 	private int minDownloads;
 
@@ -843,7 +843,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			_maxActiveWhenSeeding = plugin_config.getIntParameter("StartStopManager_iMaxActiveTorrentsWhenSeeding");
 
 			minDownloads = plugin_config.getIntParameter("min downloads");
-			maxDownloads = plugin_config.getIntParameter("max downloads");
+			maxConfiguredDownloads = plugin_config.getIntParameter("max downloads");
 			numPeersAsFullCopy = plugin_config.getIntParameter("StartStopManager_iNumPeersAsFullCopy");
 			iFakeFullCopySeedStart = plugin_config.getIntParameter("StartStopManager_iFakeFullCopySeedStart");
 			bAutoReposition = plugin_config.getBooleanParameter("StartStopManager_bAutoReposition");
@@ -1487,7 +1487,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	} // process()
 
 	private DefaultRankCalculator 	dlr_current_active;
-	private long					dlr_min_max_rate_time;
+	private long					dlr_max_rate_time;
 	
 	private void
 	processDownloadingRules(
@@ -1533,11 +1533,14 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		
 			if ( globalDownloadLimit - downloadKBSec < 5 ){
 				
-				if ( dlr_min_max_rate_time == 0 ){
+				if ( dlr_max_rate_time == 0 ){
 					
-					dlr_min_max_rate_time = mono_now;
+					dlr_max_rate_time = mono_now;
 					
-				}else if ( mono_now - dlr_min_max_rate_time >= 60*1000 ){
+				}else if ( mono_now - dlr_max_rate_time >= 60*1000 ){
+					
+						// been at max a while, kill any remaining test that might be running as result
+						// is inaccurate due to saturation
 					
 					if ( dlr_current_active != null ){
 													
@@ -1550,11 +1553,11 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				}
 			}else{
 				
-				dlr_min_max_rate_time = 0;
+				dlr_max_rate_time = 0;
 			}
 		}else{
 			
-			dlr_min_max_rate_time = 0;
+			dlr_max_rate_time = 0;
 		}
 		
 		if ( dlr_current_active != null ){
@@ -1597,7 +1600,11 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 							
 							long	tested_ago = mono_now - last_test;
 							
-							if ( tested_ago >= iDownloadReTestMillis ){
+								// add in the time required to run a cycle of tests
+							
+							long adjustedReTest = iDownloadReTestMillis + iDownloadTestTimeMillis * downloads.size();
+									
+							if ( tested_ago >= adjustedReTest ){
 								
 								if ( tested_ago < oldest_test ){
 									
@@ -1667,6 +1674,19 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		}
 	}
 	
+	private int
+	getMaxDownloads()
+	{
+		if ( dlr_current_active == null ){
+			
+			return( maxConfiguredDownloads );
+			
+		}else{
+			
+			return( maxConfiguredDownloads + 1 );
+		}
+	}
+	
 	/**
 	 * @param dlData
 	 * @param vars 
@@ -1700,6 +1720,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 		}
 
 		int maxDLs = 0;
+		int maxDownloads = getMaxDownloads();
 		if (totals.maxActive == 0) {
 			maxDLs = maxDownloads;
 		} else {
