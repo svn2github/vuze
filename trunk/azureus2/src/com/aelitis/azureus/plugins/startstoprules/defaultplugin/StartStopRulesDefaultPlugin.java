@@ -1580,7 +1580,13 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			
 			DefaultRankCalculator	to_test = null;
 			
-			long	oldest_test = Long.MAX_VALUE;
+			long	oldest_test = 0;
+			
+				// add in the time required to run a cycle of tests
+			
+			long adjustedReTest = iDownloadReTestMillis + iDownloadTestTimeMillis * downloads.size();
+
+				// note that downloads are already ordered appropriately (by position by default)
 			
 			for ( DefaultRankCalculator drc: downloads ){
 				
@@ -1590,6 +1596,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					
 					if ( last_test == 0 ){
 						
+							// never tested, take first we find
+						
 						to_test = drc;
 						
 						break;
@@ -1597,16 +1605,14 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					}else{
 						
 						if ( iDownloadReTestMillis > 0 ){
+						
+								// see if it qualifies for a retest, take oldest test
 							
 							long	tested_ago = mono_now - last_test;
-							
-								// add in the time required to run a cycle of tests
-							
-							long adjustedReTest = iDownloadReTestMillis + iDownloadTestTimeMillis * downloads.size();
-									
+																
 							if ( tested_ago >= adjustedReTest ){
 								
-								if ( tested_ago < oldest_test ){
+								if ( tested_ago > oldest_test ){
 									
 									oldest_test = tested_ago;
 									to_test		= drc;
