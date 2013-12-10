@@ -308,6 +308,12 @@ public class Alerts
 		return new ArrayList<LogAlert>(listUnviewedLogAlerts);
 	}
 
+	public static int
+	getUnviewedLogAlertCount()
+	{
+		return( listUnviewedLogAlerts.size()); 
+	}
+	
 	public static void addMessageHistoryListener(AlertHistoryListener l) {
 		listMessageHistoryListeners.add(l);
 	}

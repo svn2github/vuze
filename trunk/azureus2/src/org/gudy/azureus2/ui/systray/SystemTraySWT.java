@@ -28,7 +28,6 @@ import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -38,6 +37,7 @@ import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
+import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -48,6 +48,9 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.ui.common.updater.UIUpdatableAlways;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -95,8 +98,8 @@ public class SystemTraySWT
 	private String downloadingKeyVal;
 
 	private String dlAbbrKeyVal;
-
-	protected String ulAbbrKeyVal;
+	private String ulAbbrKeyVal;
+	private String alertsKeyVal;
 	
 	long interval = 0;
 
@@ -116,6 +119,7 @@ public class SystemTraySWT
 						enableTooltip = COConfigurationManager.getBooleanParameter(parameterName);
 						if (enableTooltip) {
 							MessageText.addAndFireListener(SystemTraySWT.this);
+							interval=0;
 						} else {
 							MessageText.removeListener(SystemTraySWT.this);
 							if (trayItem != null && !trayItem.isDisposed()) {
@@ -220,6 +224,10 @@ public class SystemTraySWT
 		Messages.setLanguageText(itemShowGlobalTransferBar,
 			"SystemTray.menu.open_global_transfer_bar");
 
+		final MenuItem itemShowToolTip = new MenuItem(menu, SWT.CHECK);
+		Messages.setLanguageText(itemShowToolTip,
+			"SystemTray.menu.show_tooltip");
+
 		new MenuItem(menu, SWT.SEPARATOR);
 
 		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
@@ -311,6 +319,13 @@ public class SystemTraySWT
 				else {
 					uiFunctions.showGlobalTransferBar();
 				}
+			}
+		});
+		
+		itemShowToolTip.setSelection(enableTooltip);
+		itemShowToolTip.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event arg0) {
+				COConfigurationManager.setParameter( "ui.systray.tooltip.enable", itemShowToolTip.getSelection());
 			}
 		});
 		
@@ -406,39 +421,62 @@ public class SystemTraySWT
 		}
 
 		if (enableTooltip) {
-  		GlobalManagerStats stats = gm.getStats();
-  		List<?> managers = gm.getDownloadManagers();
+	  		GlobalManagerStats stats = gm.getStats();
+	
+	  		StringBuffer toolTip = new StringBuffer();
+	  		
+	  		int seeding 	= 0;
+	  		int downloading = 0;
+	  	  		
+	  		TagManager tm = TagManagerFactory.getTagManager();
+	  		
+	  		if ( tm != null && tm.isEnabled()){
+	  			
+	  			TagType tt = tm.getTagType( TagType.TT_DOWNLOAD_STATE );
+	  			
+	  			if ( tt != null ){
+	  				
+	  				downloading = tt.getTag( 1 ).getTaggedCount();
+	  				seeding		= tt.getTag( 2 ).getTaggedCount();
+	  			}	
+	  		}else{
+	  				// OMG this must be slow on 10k lists
 
-  		StringBuffer toolTip = new StringBuffer();
-  		int seeding = 0;
-  		int downloading = 0;
-  
-  		// OMG this must be slow on 10k lists
-  		for (int i = 0; i < managers.size(); i++) {
-  			DownloadManager manager = (DownloadManager) managers.get(i);
-  			int state = manager.getState();
-  			if (state == DownloadManager.STATE_DOWNLOADING)
-  				downloading++;
-  			if (state == DownloadManager.STATE_SEEDING)
-  				seeding++;
-  		}
-  
-  		String seeding_text = seedingKeyVal.replaceAll("%1", "" + seeding);
-  		String downloading_text = downloadingKeyVal.replaceAll("%1", "" + downloading);
-  
-  		toolTip.append(seeding_text).append(downloading_text).append("\n");
-  		toolTip.append(dlAbbrKeyVal).append(
-  				" ");
-  
-  		toolTip.append(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
-  				stats.getDataReceiveRate(), stats.getProtocolReceiveRate()));
-  		
-  		toolTip.append(", ").append(ulAbbrKeyVal).append(" ");
-  		toolTip.append(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
-  				stats.getDataSendRate(), stats.getProtocolSendRate()));
-  		
-  		
-  		trayItem.setToolTipText(toolTip.toString());
+	  			/*
+		  		List<?> managers = gm.getDownloadManagers();
+		  		for (int i = 0; i < managers.size(); i++) {
+		  			DownloadManager manager = (DownloadManager) managers.get(i);
+		  			int state = manager.getState();
+		  			if (state == DownloadManager.STATE_DOWNLOADING)
+		  				downloading++;
+		  			if (state == DownloadManager.STATE_SEEDING)
+		  				seeding++;
+		  		}
+		  		*/
+	  		}
+	  		
+	  		String seeding_text 	= seedingKeyVal.replaceAll("%1", "" + seeding);
+	  		String downloading_text = downloadingKeyVal.replaceAll("%1", "" + downloading);
+	  
+	  		toolTip.append(seeding_text).append(downloading_text).append("\n");
+	  		toolTip.append(dlAbbrKeyVal).append(" ");
+	  
+	  		toolTip.append(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
+	  				stats.getDataReceiveRate(), stats.getProtocolReceiveRate()));
+	  		
+	  		toolTip.append(", ").append(ulAbbrKeyVal).append(" ");
+	  		toolTip.append(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
+	  				stats.getDataSendRate(), stats.getProtocolSendRate()));
+	  		
+	  		int alerts = Alerts.getUnviewedLogAlertCount();
+	  		
+	  		if ( alerts > 0 ){
+	  			
+	  			toolTip.append( "\n" );
+	  			toolTip.append( alertsKeyVal.replaceAll("%1", "" + alerts));
+	  		}
+	  		
+	  		trayItem.setToolTipText(toolTip.toString());
 		}
 
 		//Why should we refresh the image? it never changes ...
@@ -473,5 +511,7 @@ public class SystemTraySWT
 
 		dlAbbrKeyVal = MessageText.getString("ConfigView.download.abbreviated");
 		ulAbbrKeyVal = MessageText.getString("ConfigView.upload.abbreviated");
+		
+		alertsKeyVal = MessageText.getString("label.alertnum");
 	}
 }

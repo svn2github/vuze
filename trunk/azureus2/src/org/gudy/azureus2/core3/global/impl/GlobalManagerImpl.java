@@ -70,7 +70,6 @@ import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.tag.TaggableLifecycleHandler;
 import com.aelitis.azureus.core.tag.impl.TagDownloadWithState;
-import com.aelitis.azureus.core.tag.impl.TagTypeBase;
 import com.aelitis.azureus.core.tag.impl.TagTypeWithState;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
