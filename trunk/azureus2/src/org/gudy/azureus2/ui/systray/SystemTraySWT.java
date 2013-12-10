@@ -36,6 +36,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.Alerts;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
@@ -51,6 +52,8 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
+import com.aelitis.azureus.ui.UIFunctions;
+import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatableAlways;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
@@ -224,10 +227,6 @@ public class SystemTraySWT
 		Messages.setLanguageText(itemShowGlobalTransferBar,
 			"SystemTray.menu.open_global_transfer_bar");
 
-		final MenuItem itemShowToolTip = new MenuItem(menu, SWT.CHECK);
-		Messages.setLanguageText(itemShowToolTip,
-			"SystemTray.menu.show_tooltip");
-
 		new MenuItem(menu, SWT.SEPARATOR);
 
 		org.gudy.azureus2.plugins.ui.menus.MenuItem[] menu_items;
@@ -253,6 +252,22 @@ public class SystemTraySWT
 
 		final MenuItem itemResume = new MenuItem(menu, SWT.NULL);
 		Messages.setLanguageText(itemResume, "SystemTray.menu.resumetransfers");
+
+		new MenuItem(menu, SWT.SEPARATOR);
+
+		final Menu optionsMenu = new Menu(menu.getShell(), SWT.DROP_DOWN);
+		
+		final MenuItem optionsItem = new MenuItem(menu, SWT.CASCADE);
+		
+		Messages.setLanguageText( optionsItem, "tray.options" );
+		
+		optionsItem.setMenu(optionsMenu);
+
+		final MenuItem itemShowToolTip = new MenuItem(optionsMenu, SWT.CHECK);
+		Messages.setLanguageText(itemShowToolTip,"show.tooltip.label");
+
+		final MenuItem itemMoreOptions = new MenuItem(optionsMenu, SWT.PUSH);
+		Messages.setLanguageText(itemMoreOptions,"label.more.dot");
 
 		new MenuItem(menu, SWT.SEPARATOR);
 
@@ -328,6 +343,18 @@ public class SystemTraySWT
 				COConfigurationManager.setParameter( "ui.systray.tooltip.enable", itemShowToolTip.getSelection());
 			}
 		});
+	
+		itemMoreOptions.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event arg0) {
+				UIFunctions uif = UIFunctionsManager.getUIFunctions();
+
+				if (uif != null) {
+
+					uif.openView(UIFunctions.VIEW_CONFIG, ConfigSection.SECTION_INTERFACE );
+				}
+			}
+		});
+		
 		
 		itemExit.addListener(SWT.Selection, new Listener() {
 			public void handleEvent(Event arg0) {
