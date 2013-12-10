@@ -98,6 +98,7 @@ public class UIConfigDefaultsSWT
 		
 		def.addParameter("ui.toolbar.uiswitcher", false);
 		def.addParameter("ui.systray.tooltip.enable", false);
+		def.addParameter("ui.systray.tooltip.next.eta.enable", false);
 		
 		def.addParameter("Remember transfer bar location", true);
 		

@@ -147,12 +147,22 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		BooleanParameter esttt = new BooleanParameter(gSysTray, "ui.systray.tooltip.enable",
 				"ConfigView.label.enableSystrayToolTip");
 
+		BooleanParameter estttd = new BooleanParameter(gSysTray, "ui.systray.tooltip.next.eta.enable",
+				"ConfigView.label.enableSystrayToolTipNextETA");
+		gridData = new GridData();
+		gridData.horizontalIndent = 25;
+		estttd.setLayoutData(gridData);
 		est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
 				ctt.getControls()));
 		est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
 				mtt.getControls()));
 		est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
 				esttt.getControls()));
+		est.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+				estttd.getControls()));
+		
+		esttt.setAdditionalActionPerformer(new ChangeSelectionActionPerformer(
+				estttd.getControls()));
 		
         /**
          * Default download / upload limits available in the UI.

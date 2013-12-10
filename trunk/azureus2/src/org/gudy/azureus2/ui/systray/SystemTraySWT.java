@@ -20,7 +20,7 @@
  */
 package org.gudy.azureus2.ui.systray;
 
-import java.util.List;
+
 import java.util.Locale;
 
 import org.eclipse.swt.SWT;
@@ -31,6 +31,7 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.global.GlobalManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -49,6 +50,7 @@ import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
@@ -99,7 +101,7 @@ public class SystemTraySWT
 
 	private String seedingKeyVal;
 	private String downloadingKeyVal;
-
+	private String etaKeyVal;
 	private String dlAbbrKeyVal;
 	private String ulAbbrKeyVal;
 	private String alertsKeyVal;
@@ -107,6 +109,7 @@ public class SystemTraySWT
 	long interval = 0;
 
 	protected boolean enableTooltip;
+	protected boolean enableTooltipNextETA;
 
 	private SystemTraySWT() {
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
@@ -132,6 +135,15 @@ public class SystemTraySWT
 					}
 				});
 
+		COConfigurationManager.addAndFireParameterListener(
+				"ui.systray.tooltip.next.eta.enable", 
+				new ParameterListener() {
+					public void parameterChanged(String parameterName) {
+						enableTooltipNextETA = COConfigurationManager.getBooleanParameter(parameterName);
+						interval=0;
+					}
+				});
+		
 		uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
 		display = SWTThread.getInstance().getDisplay();
 
@@ -454,17 +466,38 @@ public class SystemTraySWT
 	  		
 	  		int seeding 	= 0;
 	  		int downloading = 0;
-	  	  		
+	  	  	
+  			DownloadManager	next_download 			= null;
+  			long			next_download_eta	 	= Long.MAX_VALUE;
+  			
 	  		TagManager tm = TagManagerFactory.getTagManager();
 	  		
 	  		if ( tm != null && tm.isEnabled()){
-	  			
+	  			  			
 	  			TagType tt = tm.getTagType( TagType.TT_DOWNLOAD_STATE );
 	  			
 	  			if ( tt != null ){
 	  				
-	  				downloading = tt.getTag( 1 ).getTaggedCount();
+	  				TagDownload	dl_tag = (TagDownload)tt.getTag( 1 );
+	  				
+	  				downloading = dl_tag.getTaggedCount();
 	  				seeding		= tt.getTag( 2 ).getTaggedCount();
+	  				
+	  				if ( enableTooltipNextETA && downloading > 0 ){
+	  				
+	  					for ( DownloadManager dl: dl_tag.getTaggedDownloads()){
+	  					
+	  						DownloadManagerStats	dl_stats = dl.getStats();
+	  						
+	  						long eta = dl_stats.getSmoothedETA();
+	  						
+	  						if ( eta < next_download_eta ){
+	  								  							  							
+	  							next_download_eta		= eta;
+	  							next_download			= dl;
+	  						}
+	  					}
+	  				}
 	  			}	
 	  		}else{
 	  				// OMG this must be slow on 10k lists
@@ -486,8 +519,27 @@ public class SystemTraySWT
 	  		String downloading_text = downloadingKeyVal.replaceAll("%1", "" + downloading);
 	  
 	  		toolTip.append(seeding_text).append(downloading_text).append("\n");
+	  		
+	  		if ( next_download != null ){
+	  			
+	  			String dl_name = next_download.getDisplayName();
+	  			
+	  			if ( dl_name.length() > 80 ){
+	  				
+	  				dl_name = dl_name.substring( 0,  77 ) + "...";
+	  			}
+	  			
+	  			toolTip.append( "  " );
+	  			toolTip.append( dl_name );
+	  			toolTip.append( ": " );
+	  			toolTip.append( etaKeyVal );
+	  			toolTip.append( "=" );
+	  			toolTip.append( DisplayFormatters.formatETA( next_download_eta ));
+	  			toolTip.append( "\n" );
+	  		}
+	  		
 	  		toolTip.append(dlAbbrKeyVal).append(" ");
-	  
+
 	  		toolTip.append(DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(
 	  				stats.getDataReceiveRate(), stats.getProtocolReceiveRate()));
 	  		
@@ -535,10 +587,10 @@ public class SystemTraySWT
 		if (!downloadingKeyVal.startsWith(" ")) {
 			downloadingKeyVal = " " + downloadingKeyVal;
 		}
-
-		dlAbbrKeyVal = MessageText.getString("ConfigView.download.abbreviated");
-		ulAbbrKeyVal = MessageText.getString("ConfigView.upload.abbreviated");
+		etaKeyVal		= MessageText.getString("TableColumn.header.eta" );
+		dlAbbrKeyVal 	= MessageText.getString("ConfigView.download.abbreviated");
+		ulAbbrKeyVal 	= MessageText.getString("ConfigView.upload.abbreviated");
 		
-		alertsKeyVal = MessageText.getString("label.alertnum");
+		alertsKeyVal 	= MessageText.getString("label.alertnum");
 	}
 }
