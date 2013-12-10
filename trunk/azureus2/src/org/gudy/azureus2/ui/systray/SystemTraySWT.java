@@ -523,12 +523,14 @@ public class SystemTraySWT
 	  		if ( next_download != null ){
 	  			
 	  			String dl_name = next_download.getDisplayName();
-	  			
+	  				  			
 	  			if ( dl_name.length() > 80 ){
 	  				
 	  				dl_name = dl_name.substring( 0,  77 ) + "...";
 	  			}
 	  			
+	  			dl_name = dl_name.replaceAll( "&", "&&" );
+
 	  			toolTip.append( "  " );
 	  			toolTip.append( dl_name );
 	  			toolTip.append( ": " );
