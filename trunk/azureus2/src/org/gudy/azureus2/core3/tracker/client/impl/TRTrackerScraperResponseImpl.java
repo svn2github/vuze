@@ -85,7 +85,10 @@ TRTrackerScraperResponseImpl
 	}
   	
   	public void setCompleted(int completed) {
-  		this.completed = completed;
+  		if ( completed >= 0 ){
+  		
+  			this.completed = completed;
+  		}
   	}
 
   public HashWrapper getHash() {

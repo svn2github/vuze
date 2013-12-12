@@ -66,6 +66,14 @@ TrackerPeerSource
 	public int
 	getPeers();
 	
+		/**
+		 * If the tracker source supports 'number downloads completed' this will be >= 0 
+		 * @return
+		 */
+	
+	public int
+	getCompletedCount();
+	
 	public int
 	getLastUpdate();
 	

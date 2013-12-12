@@ -1468,6 +1468,19 @@ TRTrackerAnnouncerMuxer
 				}			
 				
 				public int
+				getCompletedCount()
+				{
+					StatusSummary summary = fixup();
+					
+					if ( summary != null ){
+						
+						return( summary.getCompletedCount());
+					}
+					
+					return( -1 );
+				}			
+				
+				public int
 				getPeers()
 				{
 					StatusSummary summary = fixup();
@@ -1602,6 +1615,7 @@ TRTrackerAnnouncerMuxer
 		private int			seeds		= -1;
 		private int			leechers	= -1;
 		private int			peers		= -1;
+		private int			completed	= -1;
 		
 		private int			interval;
 		private int			min_interval;
@@ -1638,6 +1652,7 @@ TRTrackerAnnouncerMuxer
 			
 				seeds		= response.getScrapeCompleteCount();
 				leechers	= response.getScrapeIncompleteCount();
+				completed	= response.getScrapeDownloadedCount();
 				peers		= response.getPeers().length;
 				
 			}else{
@@ -1685,6 +1700,12 @@ TRTrackerAnnouncerMuxer
 		getLeecherCount()
 		{
 			return( leechers );
+		}
+		
+		public int
+		getCompletedCount()
+		{
+			return( completed );
 		}
 		
 		public int

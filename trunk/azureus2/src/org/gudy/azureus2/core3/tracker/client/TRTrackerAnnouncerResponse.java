@@ -90,6 +90,9 @@ TRTrackerAnnouncerResponse
 	public int
 	getScrapeIncompleteCount();
 	
+	public int
+	getScrapeDownloadedCount();
+	
 	public void
 	print();
 }

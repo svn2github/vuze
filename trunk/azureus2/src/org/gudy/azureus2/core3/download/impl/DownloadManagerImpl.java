@@ -4014,9 +4014,9 @@ DownloadManagerImpl
 
 										TRTrackerScraper	scraper = globalManager.getTrackerScraper();
 
-										int	max_peers = -1;
-										int max_seeds = -1;
-										
+										int	max_peers 	= -1;
+										int max_seeds 	= -1;
+										int max_comp	= -1;
 										int max_time 	= 0;
 										int	min_scrape	= Integer.MAX_VALUE;
 										
@@ -4030,6 +4030,7 @@ DownloadManagerImpl
 													
 													int peers 	= resp.getPeers();
 													int seeds 	= resp.getSeeds();
+													int comp	= resp.getCompleted();
 													
 													if ( peers > max_peers ){
 													
@@ -4039,6 +4040,11 @@ DownloadManagerImpl
 													if ( seeds > max_seeds ){
 														
 														max_seeds = seeds;
+													}
+													
+													if ( comp > max_comp ){
+														
+														max_comp = comp;
 													}
 													
 													if ( resp.getStatus() != TRTrackerScraperResponse.ST_INITIALIZING ){
@@ -4066,7 +4072,7 @@ DownloadManagerImpl
 											}
 										}
 										
-										last_scrape = new int[]{ max_seeds, max_peers, max_time, min_scrape }; 
+										last_scrape = new int[]{ max_seeds, max_peers, max_time, min_scrape, max_comp }; 
 										
 										last_scrape_fixup_time = now;
 									}
@@ -4159,6 +4165,26 @@ DownloadManagerImpl
 									return( leechers );						
 								}
 	
+								public int
+								getCompletedCount()
+								{
+									TrackerPeerSource delegate = fixup();
+									
+									if ( delegate == null ){
+									
+										return( getScrape()[4] );
+									}
+									
+									int comp = delegate.getCompletedCount();
+									
+									if ( comp < 0 ){
+										
+										comp = getScrape()[4];
+									}
+									
+									return( comp );						
+								}
+								
 								public int
 								getPeers()
 								{

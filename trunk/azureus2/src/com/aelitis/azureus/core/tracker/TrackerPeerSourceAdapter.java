@@ -68,6 +68,12 @@ TrackerPeerSourceAdapter
 	}
 	
 	public int
+	getCompletedCount()
+	{
+		return( -1 );
+	}
+	
+	public int
 	getLastUpdate() 
 	{
 		return( 0 );

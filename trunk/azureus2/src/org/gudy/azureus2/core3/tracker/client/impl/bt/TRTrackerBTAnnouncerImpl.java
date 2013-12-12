@@ -3271,11 +3271,11 @@ TRTrackerBTAnnouncerImpl
 						}
 					}
 
-					if (complete_l != null || incomplete_l != null) {
+					if (complete_l != null || incomplete_l != null || downloaded_l != null ) {
 
-						int complete = complete_l == null ? 0 : complete_l.intValue();
-
-						int incomplete = incomplete_l == null ? 0 : incomplete_l.intValue();
+						int complete 	= complete_l == null ? 0 : complete_l.intValue();
+						int incomplete 	= incomplete_l == null ? 0 : incomplete_l.intValue();
+						int downloaded 	= downloaded_l == null ? -1 : downloaded_l.intValue();
 
 						if (complete < 0 || incomplete < 0) {
 							resp.setFailureReason(MessageText.getString(
@@ -3288,7 +3288,7 @@ TRTrackerBTAnnouncerImpl
 															+ " == " + incomplete + ". " : "") }));
 						} else {
 							
-							resp.setScrapeResult( complete, incomplete );
+							resp.setScrapeResult( complete, incomplete, downloaded );
 
 							TRTrackerScraper scraper = TRTrackerScraperFactory.getSingleton();
 
@@ -3316,9 +3316,9 @@ TRTrackerBTAnnouncerImpl
 									
 									scrapeResponse.setSeedsPeers(complete, incomplete);
 
-									if ( downloaded_l != null ){
+									if ( downloaded >= 0 ){
 										
-										scrapeResponse.setCompleted( downloaded_l.intValue());
+										scrapeResponse.setCompleted( downloaded );
 									}
 								}
 							}

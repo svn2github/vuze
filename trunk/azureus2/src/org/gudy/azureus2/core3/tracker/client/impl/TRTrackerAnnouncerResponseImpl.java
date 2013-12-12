@@ -40,6 +40,7 @@ TRTrackerAnnouncerResponseImpl
 	private boolean			was_udp_probe		= false;
 	private int				scrape_complete		= -1;
 	private int				scrape_incomplete	= -1;
+	private int				scrape_downloaded	= -1;
 	
 	protected TRTrackerAnnouncerResponsePeer[]	peers;
 	
@@ -205,13 +206,25 @@ TRTrackerAnnouncerResponseImpl
 		return( scrape_incomplete );
 	}
 	
+	public int 
+	getScrapeDownloadedCount() 
+	{
+		return( scrape_downloaded );
+	}
+	
 	public void
 	setScrapeResult(
 		int		_complete,
-		int		_incomplete )
+		int		_incomplete,
+		int		_downloaded )
 	{
 		scrape_complete		= _complete;
 		scrape_incomplete	= _incomplete;
+		
+		if ( _downloaded >= 0 ){
+			
+			scrape_downloaded = _downloaded;
+		}
 	}
 	
 	public void

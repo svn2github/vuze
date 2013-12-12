@@ -75,6 +75,7 @@ public class TrackerView
 		new PeersItem(),
 		new SeedsItem(),
 		new LeechersItem(),
+		new CompletedItem(),
 		new UpdateInItem(),
 		new IntervalItem(),
 		new LastUpdateItem(TableManager.TABLE_TORRENT_TRACKERS),
