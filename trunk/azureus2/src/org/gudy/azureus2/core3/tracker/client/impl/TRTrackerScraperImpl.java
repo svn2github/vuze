@@ -119,18 +119,19 @@ TRTrackerScraperImpl
 	public void
 	setScrape(
 		TOTorrent				torrent,
-		URL						url,
+		URL						target_url,
 		DownloadScrapeResult	result )
 	{
 		if ( torrent != null ){
 		
-			if ( TorrentUtils.isDecentralised( torrent )){
+			if ( 	( target_url == null && TorrentUtils.isDecentralised( torrent )) ||
+					TorrentUtils.isDecentralised( target_url )){
 				
-				dht_scraper.setScrape( torrent, url, result );
+				dht_scraper.setScrape( torrent, target_url, result );
 				
 			}else{
 				
-				bt_scraper.setScrape( torrent, url, result );
+				bt_scraper.setScrape( torrent, target_url, result );
 			}
 		}
 	}
@@ -141,12 +142,13 @@ TRTrackerScraperImpl
 		URL				target_url,
 		boolean			force )
 	{
-		if (torrent == null ){
+		if ( torrent == null ){
 			
-			return null;
+			return( null );
 		}
 
-		if ( TorrentUtils.isDecentralised( torrent )){
+		if ( 	( target_url == null && TorrentUtils.isDecentralised( torrent )) ||
+				TorrentUtils.isDecentralised( target_url )){
 			
 			return( dht_scraper.scrape( torrent, target_url, force ));
 			
@@ -163,10 +165,11 @@ TRTrackerScraperImpl
 	{
 		if ( torrent == null ){
 			
-			return null;
+			return( null );
 		}
 
-		if ( TorrentUtils.isDecentralised( torrent )){
+		if ( 	( target_url == null && TorrentUtils.isDecentralised( torrent )) ||
+				TorrentUtils.isDecentralised( target_url )){
 			
 			return( dht_scraper.peekScrape( torrent, target_url ));
 			
