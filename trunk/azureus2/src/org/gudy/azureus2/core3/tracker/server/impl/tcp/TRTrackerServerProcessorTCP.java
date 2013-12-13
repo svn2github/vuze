@@ -119,6 +119,8 @@ TRTrackerServerProcessorTCP
 			
 		int	request_type	= TRTrackerServerRequest.RT_UNKNOWN;
 
+		boolean compact_enabled = server.isCompactEnabled();
+		
 		try{
 			Map	root = null;
 				
@@ -333,7 +335,7 @@ TRTrackerServerProcessorTCP
 						
 					}else if ( lhs.equals( "compact" )){
 						
-						if ( server.isCompactEnabled()){
+						if ( compact_enabled ){
 							
 							if ( rhs.equals("1") && compact_mode == TRTrackerServerTorrentImpl.COMPACT_MODE_NONE ){
 								
@@ -404,7 +406,10 @@ TRTrackerServerProcessorTCP
 						
 							// implicit compact mode for 2500 indicated by presence of udp port
 						
-						compact_mode = TRTrackerServerTorrentImpl.COMPACT_MODE_AZ;
+						if ( compact_enabled ){
+						
+							compact_mode = TRTrackerServerTorrentImpl.COMPACT_MODE_AZ;
+						}
 						
 					}else if ( lhs.equals( "azhttp" )){
 						
@@ -508,16 +513,19 @@ TRTrackerServerProcessorTCP
 					hashes = new byte[][]{ hash };
 				}
 				
-					// >= so that if this tracker is "old" and sees a version 3+ it replies with the
-					// best it can - version 2
-				
-				if ( xml_output ){
+				if ( compact_enabled ){
 					
-					compact_mode = TRTrackerServerTorrentImpl.COMPACT_MODE_XML;
+						// >= so that if this tracker is "old" and sees a version 3+ it replies with the
+						// best it can - version 2
 					
-				}else if ( az_ver >= 2 ){
-					
-					compact_mode = TRTrackerServerTorrentImpl.COMPACT_MODE_AZ_2;
+					if ( xml_output ){
+						
+						compact_mode = TRTrackerServerTorrentImpl.COMPACT_MODE_XML;
+						
+					}else if ( az_ver >= 2 ){
+						
+						compact_mode = TRTrackerServerTorrentImpl.COMPACT_MODE_AZ_2;
+					}
 				}
 				
 				Map[]						root_out = new Map[1];
