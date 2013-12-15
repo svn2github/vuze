@@ -324,7 +324,7 @@ SubscriptionBodyImpl
 		is_public	= subs.isPublic();
 		version		= subs.getVersion();
 		az_version	= subs.getAZVersion();
-		name		= subs.getName();
+		name		= subs.getName(false);
 		
 		details.put( "name",name.getBytes( "UTF-8" ));
 		details.put( "is_public", new Long( is_public?1:0 ));

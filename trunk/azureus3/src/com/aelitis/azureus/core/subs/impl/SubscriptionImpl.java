@@ -136,6 +136,7 @@ SubscriptionImpl
 	private boolean			server_publication_outstanding;
 	
 	private boolean			singleton_sp_attempted;
+	private String			local_name;
 	
 	private LightWeightSeed	lws;
 	private int				lws_skip_check;
@@ -359,6 +360,10 @@ SubscriptionImpl
 				map.put( "spa", new Long( singleton_sp_attempted?1:0 ));
 			}
 			
+			if ( local_name != null ){
+				
+				map.put( "local_name", local_name );
+			}
 				// body data
 			
 			map.put( "hash", hash );
@@ -462,6 +467,13 @@ SubscriptionImpl
 		
 		if ( l_spa != null ){
 			singleton_sp_attempted = l_spa.longValue()==1; 
+		}
+		
+		byte[]	b_local_name = (byte[])map.get( "local_name" );
+		
+		if ( b_local_name != null ){
+			
+			local_name = new String( b_local_name, "UTF-8" );
 		}
 		
 		List	l_assoc = (List)map.get( "assoc" );
@@ -595,7 +607,7 @@ SubscriptionImpl
 	public boolean
 	isSearchTemplate()
 	{
-		return( getName().startsWith( "Search Template:" ));
+		return( getName(false).startsWith( "Search Template:" ));
 	}
 	
 	protected Map
@@ -624,7 +636,25 @@ SubscriptionImpl
 	public String
 	getName()
 	{
-		return( name );
+		return( getName( true ));
+	}
+	
+	public String
+	getName(
+		boolean	use_local )
+	{
+		return( local_name==null?name:local_name );
+	}
+	
+	public void
+	setLocalName(
+		String		str )
+	{
+		local_name = str;
+		
+		manager.configDirty( this );
+		
+		fireChanged();
 	}
 	
 	public void
@@ -963,6 +993,41 @@ SubscriptionImpl
 		}
 		
 		return( null );
+	}
+	
+	public Subscription
+	cloneWithNewEngine(
+		Engine		engine )
+	
+		throws SubscriptionException
+	{
+		try{	
+			String	json = getJSON();
+			
+			Map map = JSONUtils.decodeJSON( json );
+
+			long	id = ((Long)map.get( "engine_id" )).longValue();
+	
+			if ( id == engine.getId()){
+					
+				embedEngines(map, engine);
+				
+				SubscriptionImpl subs = new SubscriptionImpl( manager, getName(), engine.isPublic(), null, JSONUtils.encodeToJSON(map), SubscriptionImpl.ADD_TYPE_CREATE );
+
+				subs = manager.addSubscription( subs );
+				
+				setLocalName( getName( false ) + " (old)" );
+				
+				return( subs );
+		
+			}else{
+				
+				throw( new SubscriptionException( "Engine mismatch" ));
+			}
+		}catch( Throwable e ){
+			
+			throw( new SubscriptionException( "Failed to export engine", e ));
+		}
 	}
 	
 	public Engine

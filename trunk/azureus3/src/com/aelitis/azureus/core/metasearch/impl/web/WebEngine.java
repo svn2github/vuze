@@ -1214,6 +1214,15 @@ WebEngine
 		return( searchURLFormat.replaceAll("%s", ""));
 	}
 	
+	public void
+	setSearchUrl(
+		String		str )
+	{
+		searchURLFormat = str;
+		
+		init();
+	}
+	
 	public String getLoginPageUrl() {
 		//Let's try with no login page url
 		//return loginPageUrl;

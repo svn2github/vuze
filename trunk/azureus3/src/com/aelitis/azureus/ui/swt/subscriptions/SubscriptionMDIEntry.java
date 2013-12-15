@@ -9,7 +9,6 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
-
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -340,6 +339,103 @@ public class SubscriptionMDIEntry implements SubscriptionListener, ViewTitleInfo
 			// sep
 		
 		menuManager.addMenuItem("sidebar." + key,"s2").setStyle( MenuItem.STYLE_SEPARATOR );
+		
+			// change url
+		
+		try{
+			Engine engine = subs.getEngine();
+						
+			if ( engine instanceof WebEngine ){
+					
+				menuItem = menuManager.addMenuItem("sidebar." + key,"menu.change.url");
+				menuItem.addListener(new SubsMenuItemListener() {
+					public void selected(MdiEntry info, Subscription _subs) {
+						UISWTInputReceiver entry = new SimpleTextEntryWindow();
+						
+						try{
+							WebEngine web_engine = (WebEngine)subs.getEngine();
+	
+							entry.setPreenteredText(web_engine.getSearchUrl( true ), false );
+							entry.maintainWhitespace(false);
+							entry.allowEmptyInput( false );
+							entry.setLocalisedTitle(MessageText.getString("change.url.msg.title",
+									new String[] {
+										subs.getName()
+									}));
+							entry.setMessage( "change.url.msg.desc" );
+							entry.prompt(new UIInputReceiverListener() {
+								public void UIInputReceiverClosed(UIInputReceiver entry) {
+									if (!entry.hasSubmittedInput()){
+										
+										return;
+									}
+									
+									String input = entry.getSubmittedInput().trim();
+									
+									if ( input.length() > 0 ){
+										
+										try{
+											WebEngine web_engine = (WebEngine)subs.getEngine();
+											
+											web_engine.setSearchUrl( input );
+											
+											subs.cloneWithNewEngine( web_engine );
+											
+										}catch( Throwable e ){
+											
+											Debug.out(e);
+										}
+									}
+								}
+							});
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				});
+				
+			}
+		}catch( Throwable e ){
+			Debug.out( e );
+		}
+		
+			// rename
+		
+		menuItem = menuManager.addMenuItem("sidebar." + key, "MyTorrentsView.menu.rename" );
+		menuItem.addListener(new SubsMenuItemListener() {
+			public void selected(MdiEntry info, final Subscription subs) {
+				UISWTInputReceiver entry = new SimpleTextEntryWindow();
+				entry.maintainWhitespace(false);
+				entry.allowEmptyInput( false );
+				
+				entry.setPreenteredText(subs.getName(), false );
+				
+				entry.maintainWhitespace(false);
+				
+				entry.allowEmptyInput( false );
+				
+				entry.setLocalisedTitle(MessageText.getString("label.rename",
+						new String[] {
+						subs.getName()
+				}));
+		
+				entry.prompt(new UIInputReceiverListener() {
+					public void UIInputReceiverClosed(UIInputReceiver entry) {
+						if (!entry.hasSubmittedInput()) {
+							return;
+						}
+						String input = entry.getSubmittedInput().trim();
+						
+						if ( input.length() > 0 ){
+							
+							subs.setLocalName( input );
+						}
+					}
+				});
+			}
+		});
+		
 		
 		menuItem = menuManager.addMenuItem("sidebar." + key,"Subscription.menu.remove");
 		menuItem.addListener(new SubsMenuItemListener() {

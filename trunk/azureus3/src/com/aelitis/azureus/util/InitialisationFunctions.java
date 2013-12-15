@@ -111,7 +111,7 @@ public class InitialisationFunctions
 						SubscriptionManagerFactory.getSingleton().createSingletonRSS(
 						name, url, interval );
 					
-					if ( !subs.getName().equals( name )){
+					if ( !subs.getName(false).equals( name )){
 					
 						subs.setName( name );
 					}

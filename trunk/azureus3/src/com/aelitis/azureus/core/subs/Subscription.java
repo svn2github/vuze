@@ -34,8 +34,21 @@ Subscription
 	
 	public static final Object	VUZE_FILE_COMPONENT_SUBSCRIPTION_KEY = new Object();
 
+		/**
+		 * Returns local name if set
+		 * @return
+		 */
+	
 	public String
 	getName();
+	
+	public String
+	getName(
+		boolean	use_local );
+	
+	public void
+	setLocalName(
+		String		str );
 	
 	public void
 	setName(
@@ -165,6 +178,12 @@ Subscription
 	
 	public Engine
 	getEngine()
+	
+		throws SubscriptionException;
+	
+	public Subscription
+	cloneWithNewEngine(
+		Engine 	engine )
 	
 		throws SubscriptionException;
 	

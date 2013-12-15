@@ -933,7 +933,7 @@ SubscriptionManagerImpl
 								continue;
 							}
 							
-							String	sub_name = sub.getName();
+							String	sub_name = sub.getName(false);
 														
 							Engine sub_engine = sub.getEngine();
 							
@@ -1834,7 +1834,7 @@ SubscriptionManagerImpl
 	
 				PlatformSubscriptionsMessenger.updateSubscription(
 						!subs.getServerPublished(),
-						subs.getName(),
+						subs.getName(false),
 						subs.getPublicKey(),
 						subs.getPrivateKey(),
 						subs.getShortID(),
@@ -1890,7 +1890,7 @@ SubscriptionManagerImpl
 	
 			PlatformSubscriptionsMessenger.updateSubscription(
 					true,
-					subs.getName(),
+					subs.getName(false),
 					public_key,
 					private_key,
 					subs.getShortID(),
@@ -5439,7 +5439,7 @@ SubscriptionManagerImpl
 			peer,
 			subs.getShortID(),
 			new_version,
-			subs.getName(),
+			subs.getName(false),
 			new downloadListener()
 			{
 				public void
@@ -5533,7 +5533,7 @@ SubscriptionManagerImpl
 				null,
 				subs.getShortID(),
 				version,
-				subs.getName(),
+				subs.getName(false),
 				new downloadListener()
 				{
 					public void
