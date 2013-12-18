@@ -29,6 +29,7 @@ import java.net.URL;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -113,11 +114,13 @@ AEPluginProxyHandler
 			for ( PluginInterface pi: plugins ){
 				
 				try{
-					Proxy proxy = (Proxy)pi.getIPC().invoke( "getProxy", new Object[]{ target } );
+					IPCInterface ipc = pi.getIPC();
 					
-					if ( proxy != null ){
+					Object[] proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ target } );
+					
+					if ( proxy_details != null ){
 						
-						return( new PluginProxyImpl( proxy ));
+						return( new PluginProxyImpl( ipc, proxy_details ));
 					}
 				}catch( Throwable e ){				
 				}
@@ -139,11 +142,13 @@ AEPluginProxyHandler
 			for ( PluginInterface pi: plugins ){
 				
 				try{
-					Proxy proxy = (Proxy)pi.getIPC().invoke( "getProxy", new Object[]{ host, port });
+					IPCInterface ipc = pi.getIPC();
 					
-					if ( proxy != null ){
+					Object[] proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ host, port });
+					
+					if ( proxy_details != null ){
 						
-						return( new PluginProxyImpl( proxy ));
+						return( new PluginProxyImpl( ipc, proxy_details ));
 					}
 				}catch( Throwable e ){	
 				}
@@ -157,26 +162,51 @@ AEPluginProxyHandler
 	PluginProxyImpl
 		implements PluginProxy
 	{
-		private Proxy		proxy;
+		private IPCInterface		ipc;
+		private Object[]			proxy_details;
 		
 		private
 		PluginProxyImpl(
-			Proxy		_proxy )
+			IPCInterface		_ipc,
+			Object[]			_proxy_details )
 		{
-			proxy		= _proxy;
+			ipc					= _ipc;
+			proxy_details		= _proxy_details;
 		}
 		
 		public Proxy
 		getProxy()
 		{
-			return( proxy );
+			return((Proxy)proxy_details[0]);
+		}
+		
+		public URL
+		getURL()
+		{
+			return((URL)proxy_details[1]);
+		}
+		
+		public String
+		getHost()
+		{
+			return((String)proxy_details[1]);
+		}
+		
+		public int
+		getPort()
+		{
+			return((Integer)proxy_details[2]);
 		}
 		
 		public void
 		setOK(
 			boolean	good )
 		{
-			System.out.println( "Good->" + good );
+			try{
+				ipc.invoke( "setProxyStatus", new Object[]{ proxy_details[0], good });
+				
+			}catch( Throwable e ){
+			}
 		}
 	}
 }

@@ -84,6 +84,15 @@ AEProxyFactory
 		public Proxy
 		getProxy();
 		
+		public URL
+		getURL();
+		
+		public String
+		getHost();
+		
+		public int
+		getPort();
+		
 		public void
 		setOK(
 			boolean	good );
