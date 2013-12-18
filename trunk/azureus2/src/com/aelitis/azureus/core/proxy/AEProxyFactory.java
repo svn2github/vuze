@@ -22,6 +22,11 @@
 
 package com.aelitis.azureus.core.proxy;
 
+import java.net.HttpURLConnection;
+import java.net.Proxy;
+import java.net.Socket;
+import java.net.URL;
+
 import com.aelitis.azureus.core.proxy.impl.*;
 
 /**
@@ -56,5 +61,31 @@ AEProxyFactory
 	getAddressMapper()
 	{
 		return( AEProxyAddressMapperImpl.getSingleton());
+	}
+	
+	public static PluginProxy
+	getPluginProxy(
+		URL		target )
+	{
+		return( AEPluginProxyHandler.getPluginProxy( target ));
+	}
+	
+	public static PluginProxy
+	getPluginProxy(
+		String	host,
+		int		port )
+	{
+		return( AEPluginProxyHandler.getPluginProxy( host, port ));
+	}
+		
+	public interface
+	PluginProxy
+	{
+		public Proxy
+		getProxy();
+		
+		public void
+		setOK(
+			boolean	good );
 	}
 }
