@@ -359,9 +359,12 @@ public class SBC_LibraryTableView
 				torrent = dmFile.getTorrent();
 			}
 		}
-		if (PlatformTorrentUtils.isFeaturedContent(torrent)
-				&& (dm != null || file != null)) {
-			TorrentUtil.runDataSources(new Object[] { dm != null ? dm : file });
+		if (PlatformTorrentUtils.isFeaturedContent(torrent)) {
+			if (file != null && file.getDownloaded() == file.getLength()) {
+				TorrentUtil.runDataSources(new Object[] { file });
+			} else if (dm != null) {
+				TorrentUtil.runDataSources(new Object[] { dm });
+			}
 		}
 	}
 
