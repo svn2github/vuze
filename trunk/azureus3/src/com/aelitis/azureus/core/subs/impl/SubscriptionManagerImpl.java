@@ -3054,6 +3054,8 @@ SubscriptionManagerImpl
 				
 				private boolean	complete;
 				
+				private AsyncDispatcher 	dispatcher = new AsyncDispatcher();
+				
 				public boolean
 				diversified()
 				{
@@ -3080,9 +3082,9 @@ SubscriptionManagerImpl
 					
 					if ( val.length > 4 ){
 						
-						int	ver = ((val[0]<<16)&0xff0000) | ((val[1]<<8)&0xff00) | (val[2]&0xff);
+						final int	ver = ((val[0]<<16)&0xff0000) | ((val[1]<<8)&0xff00) | (val[2]&0xff);
 
-						byte[]	sid = new byte[ val.length - 4 ];
+						final byte[]	sid = new byte[ val.length - 4 ];
 						
 						System.arraycopy( val, 4, sid, 0, sid.length );
 												
@@ -3140,79 +3142,89 @@ SubscriptionManagerImpl
 								
 							}else{
 								
-								lookupSubscription( 
-									hash, 
-									sid, 
-									ver,
-									new subsLookupListener()
+									// don't want to block the DHT processing
+								
+								dispatcher.dispatch(
+									new AERunnable()
 									{
-										private boolean sem_done = false;
-										
 										public void
-										found(
-											byte[]					hash,
-											Subscription			subscription )
+										runSupport()
 										{
-										}
-										
-										public void
-										complete(
-											byte[]					hash,
-											Subscription[]			subscriptions )
-										{
-											done( subscriptions );
-										}
-										
-										public void
-										failed(
-											byte[]					hash,
-											SubscriptionException	error )
-										{
-											done( new Subscription[0]);
-										}
-										
-										protected void
-										done(
-											Subscription[]			subs )
-										{
-											if ( isCancelled()){
-												
-												return;
-											}
-											
-											synchronized( this ){
-												
-												if ( sem_done ){
+											lookupSubscription( 
+												hash, 
+												sid, 
+												ver,
+												new subsLookupListener()
+												{
+													private boolean sem_done = false;
 													
-													return;
-												}
-												
-												sem_done = true;
-											}
-											
-											if ( subs.length > 0 ){
-												
-												synchronized( hits ){
-												
-													found_subscriptions.add( subs[0] );
-												}
-												
-												try{
-													listener.found( hash, subs[0] );
+													public void
+													found(
+														byte[]					hash,
+														Subscription			subscription )
+													{
+													}
 													
-												}catch( Throwable e ){
+													public void
+													complete(
+														byte[]					hash,
+														Subscription[]			subscriptions )
+													{
+														done( subscriptions );
+													}
 													
-													Debug.printStackTrace(e);
-												}
-											}
-																						
-											hits_sem.release();
-										}
-										
-										public boolean 
-										isCancelled() 
-										{
-											return( isCancelled2());
+													public void
+													failed(
+														byte[]					hash,
+														SubscriptionException	error )
+													{
+														done( new Subscription[0]);
+													}
+													
+													protected void
+													done(
+														Subscription[]			subs )
+													{
+														if ( isCancelled()){
+															
+															return;
+														}
+														
+														synchronized( this ){
+															
+															if ( sem_done ){
+																
+																return;
+															}
+															
+															sem_done = true;
+														}
+														
+														if ( subs.length > 0 ){
+															
+															synchronized( hits ){
+															
+																found_subscriptions.add( subs[0] );
+															}
+															
+															try{
+																listener.found( hash, subs[0] );
+																
+															}catch( Throwable e ){
+																
+																Debug.printStackTrace(e);
+															}
+														}
+																									
+														hits_sem.release();
+													}
+													
+													public boolean 
+													isCancelled() 
+													{
+														return( isCancelled2());
+													}
+												});
 										}
 									});
 							}
@@ -3232,61 +3244,62 @@ SubscriptionManagerImpl
 					byte[]				original_key,
 					boolean				timeout_occurred )
 				{
-					new AEThread2( "Subs:lookup wait", true )
-					{
-						public void
-						run()
+					dispatcher.dispatch(
+						new AERunnable()
 						{
-							int	num_hits;
-							
-							synchronized( hits ){
+							public void
+							runSupport()
+							{
+								int	num_hits;
 								
-								if ( complete ){
+								synchronized( hits ){
 									
-									return;
+									if ( complete ){
+										
+										return;
+									}
+									
+									complete = true;
+									
+									num_hits = hits.size();
 								}
 								
-								complete = true;
 								
-								num_hits = hits.size();
-							}
-							
-							
-							for (int i=0;i<num_hits;i++){
-								
+								for (int i=0;i<num_hits;i++){
+									
+									if ( isCancelled2()){
+										
+										return;
+									}
+	
+									hits_sem.reserve();
+								}
+	
 								if ( isCancelled2()){
 									
 									return;
 								}
-
-								hits_sem.reserve();
+	
+								SubscriptionImpl[] s;
+								
+								synchronized( hits ){
+									
+									s = (SubscriptionImpl[])found_subscriptions.toArray( new SubscriptionImpl[ found_subscriptions.size() ]);
+								}
+								
+								log( "    Association lookup complete - " + s.length + " found" );
+	
+								try{	
+										// record zero assoc here for completeness
+									
+									recordAssociations( hash, s, true );
+									
+								}finally{
+									
+									listener.complete( hash, s );
+								}
 							}
-
-							if ( isCancelled2()){
-								
-								return;
-							}
-
-							SubscriptionImpl[] s;
-							
-							synchronized( hits ){
-								
-								s = (SubscriptionImpl[])found_subscriptions.toArray( new SubscriptionImpl[ found_subscriptions.size() ]);
-							}
-							
-							log( "    Association lookup complete - " + s.length + " found" );
-
-							try{	
-									// record zero assoc here for completeness
-								
-								recordAssociations( hash, s, true );
-								
-							}finally{
-								
-								listener.complete( hash, s );
-							}
-						}
-					}.start();
+						});
 				}
 				
 				protected boolean
