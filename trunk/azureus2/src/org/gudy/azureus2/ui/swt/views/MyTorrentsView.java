@@ -23,6 +23,7 @@
 package org.gudy.azureus2.ui.swt.views;
 
 import java.io.File;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.*;
 import java.util.List;
@@ -2338,6 +2339,12 @@ public class MyTorrentsView
 	}
 
 	public void rowAdded(TableRowCore row) {
+		if (row.getParentRowCore() == null) {
+			DownloadManager dm = (DownloadManager) row.getDataSource(true);
+			if (isFeaturedContent(dm.getTorrent())) {
+				row.setExpanded(true);
+			}
+		}
 		//if (getRowDefaultHeight() > 0 && row.getParentRowCore() != null) {
 		//	row.setHeight(20);
 		//}
@@ -2345,4 +2352,45 @@ public class MyTorrentsView
 
 	public void rowRemoved(TableRowCore row) {
 	}
+
+	// temporary
+	public static String getContentMapString(TOTorrent torrent, String key) {
+		if (torrent == null) {
+			return null;
+		}
+
+		Map mapAZProps = torrent.getAdditionalMapProperty(TOTorrent.AZUREUS_PROPERTIES);
+		if (mapAZProps == null) {
+			return null;
+		}
+
+		Object objExistingContentMap = mapAZProps.get("Content");
+
+		if (!(objExistingContentMap instanceof Map)) {
+			return null;
+		}
+
+		Map mapContent = (Map) objExistingContentMap;
+		Object obj = mapContent.get(key);
+
+		if (obj instanceof String) {
+			return (String) obj;
+		} else if (obj instanceof byte[]) {
+			try {
+				return new String((byte[]) obj, Constants.DEFAULT_ENCODING);
+			} catch (UnsupportedEncodingException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return null;
+	}
+
+	// temporary
+	public static boolean isFeaturedContent(TOTorrent torrent) {
+		String content_type = getContentMapString(torrent, "Content Type");
+
+		return (content_type != null && content_type.equalsIgnoreCase("featured"));
+	}
+
 }
