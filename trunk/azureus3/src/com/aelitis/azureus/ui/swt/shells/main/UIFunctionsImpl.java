@@ -67,6 +67,7 @@ import org.gudy.azureus2.ui.swt.views.clientstats.ClientStatsView;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.ui.*;
 import com.aelitis.azureus.ui.common.table.TableView;
 import com.aelitis.azureus.ui.common.updater.UIUpdater;
@@ -1284,11 +1285,17 @@ public class UIFunctionsImpl
 		}
 		
 
-		if (!force) {
+		if ( !force ){
+			
+			TOTorrent torrent = torrentOptions.getTorrent();
+			
+			boolean is_featured = torrent != null && PlatformTorrentUtils.isFeaturedContent( torrent );
+			
 			String showAgainMode = COConfigurationManager.getStringParameter(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS);
-			if (showAgainMode != null
-					&& ((showAgainMode.equals(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_NEVER)) || (showAgainMode.equals(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_MANY)
-							&& torrentOptions.getFiles() != null && torrentOptions.getFiles().length == 1))) {
+			
+			if ( 	is_featured ||
+					(	showAgainMode != null && ((showAgainMode.equals(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_NEVER)) || (showAgainMode.equals(ConfigurationDefaults.CFG_TORRENTADD_OPENOPTIONS_MANY)
+							&& torrentOptions.getFiles() != null && torrentOptions.getFiles().length == 1)))){
 				
 					// we're about to silently add the download - ensure that it is going to be saved somewhere vaguely sensible
 					// as the current save location is simply taken from the 'default download' config which can be blank (for example)

@@ -694,7 +694,7 @@ DownloadManagerEnhancer
 					handleAutoTag( dm, "tag.type.man.vhdn", "image.sidebar.tag.vhdn" );
 				}							
 				
-				if ( content_type != null && content_type.equalsIgnoreCase( "featured" )){
+				if ( PlatformTorrentUtils.isFeaturedContent( torrent )){
 					
 					handleAutoTag( dm, "tag.type.man.featcon", "image.sidebar.tag.featcon" );
 				}

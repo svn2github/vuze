@@ -320,6 +320,15 @@ public class PlatformTorrentUtils
 		setContentMapLong(torrent, TOR_AZ_PROP_CONTENT_NETWORK, cnet);
 	}
 	
+	public static boolean
+	isFeaturedContent(
+		TOTorrent		torrent )
+	{
+		String content_type = getContentType( torrent );
+
+		return( content_type != null && content_type.equalsIgnoreCase( "featured" ));
+	}
+	
 	private static void putOrRemove(Map map, String key, Object obj) {
 		if (obj == null) {
 			map.remove(key);
