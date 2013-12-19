@@ -105,6 +105,7 @@ AEPluginProxyHandler
 	
 	public static PluginProxy
 	getPluginProxy(
+		String	reason,
 		URL		target )
 	{
 		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
@@ -116,7 +117,7 @@ AEPluginProxyHandler
 				try{
 					IPCInterface ipc = pi.getIPC();
 					
-					Object[] proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ target } );
+					Object[] proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ reason, target } );
 					
 					if ( proxy_details != null ){
 						
@@ -132,8 +133,9 @@ AEPluginProxyHandler
 	
 	public static PluginProxy
 	getPluginProxy(
-		String	host,
-		int		port )
+		String		reason,
+		String		host,
+		int			port )
 	{
 		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
 		
@@ -144,7 +146,7 @@ AEPluginProxyHandler
 				try{
 					IPCInterface ipc = pi.getIPC();
 					
-					Object[] proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ host, port });
+					Object[] proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ reason, host, port });
 					
 					if ( proxy_details != null ){
 						

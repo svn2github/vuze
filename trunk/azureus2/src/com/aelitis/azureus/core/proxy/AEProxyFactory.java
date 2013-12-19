@@ -65,17 +65,19 @@ AEProxyFactory
 	
 	public static PluginProxy
 	getPluginProxy(
-		URL		target )
+		String		reason,
+		URL			target )
 	{
-		return( AEPluginProxyHandler.getPluginProxy( target ));
+		return( AEPluginProxyHandler.getPluginProxy( reason, target ));
 	}
 	
 	public static PluginProxy
 	getPluginProxy(
-		String	host,
-		int		port )
+		String		reason,
+		String		host,
+		int			port )
 	{
-		return( AEPluginProxyHandler.getPluginProxy( host, port ));
+		return( AEPluginProxyHandler.getPluginProxy( reason, host, port ));
 	}
 		
 	public interface
