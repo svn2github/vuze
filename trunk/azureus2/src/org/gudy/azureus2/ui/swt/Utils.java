@@ -2102,8 +2102,10 @@ public class Utils
 			if ( data != null ){
 				if ( data instanceof GridData ){
 					((GridData)data).widthHint = width;
+				}else if ( data instanceof FormData ){
+					((FormData)data).width = width;
 				}else{
-					Debug.out( "Expected GridData" );
+					Debug.out( "Expected GridData/FormData" );
 				}
 			}else{
 				data = new GridData();
