@@ -28,6 +28,7 @@ package org.gudy.azureus2.pluginsimpl.update.sf.impl2;
  */
 
 import java.util.*;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.io.IOException;
@@ -42,7 +43,6 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.pluginsimpl.update.sf.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AEMonitor;
@@ -53,6 +53,8 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.core3.logging.*;
 
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 
 public class 
@@ -342,23 +344,76 @@ SFPluginDetailsLoaderImpl
 				Debug.out( e );
 			}
 			
-			ResourceDownloader p_dl = rd_factory.create( new URL( page_url_to_use ));
-		
-			p_dl = rd_factory.getRetryDownloader( p_dl, 5 );
-		
-			p_dl.addListener( this );
+			URL 			original_url	= new URL( page_url_to_use );
 			
-			InputStream is = p_dl.download();
-
-			try {
-  			if ( !processPluginStream( details, is )){
-  							
-  				throw( new SFPluginDetailsException( "Plugin details load fails for '" + details.getId() + "': data not found" ));
-  			}
-			} finally {
-				is.close();
-			}
+			URL				url				= original_url;
+			Proxy			proxy 			= null;
+			PluginProxy 	plugin_proxy	= null;
+			
+			boolean tried_proxy = false;
+			boolean	ok			= false;
+			
+			try{
+				while( true ){
 					
+					try{
+						ResourceDownloader p_dl = rd_factory.create( url, proxy );
+					
+						if ( proxy != null ){
+							
+							p_dl.setProperty( "URL_HOST", original_url.getHost());
+						}
+						
+						p_dl = rd_factory.getRetryDownloader( p_dl, 5 );
+					
+						p_dl.addListener( this );
+						
+						InputStream is = p_dl.download();
+			
+						try{							
+				  			if ( !processPluginStream( details, is )){
+				  							
+				  				throw( new SFPluginDetailsException( "Plugin details load fails for '" + details.getId() + "': data not found" ));
+				  			}
+				  			
+				  			ok = true;
+				  			
+				  			break;
+				  			
+						}finally{
+							
+							is.close();
+						}
+					}catch( Throwable e ){
+						
+						if ( !tried_proxy ){
+							
+							tried_proxy = true;
+							
+							plugin_proxy = AEProxyFactory.getPluginProxy( "loading plugin details", url );
+							
+							if ( plugin_proxy == null ){
+								
+								throw( e );
+								
+							}else{
+								
+								url		= plugin_proxy.getURL();
+								proxy	= plugin_proxy.getProxy();
+							}
+						}else{
+							
+							throw( e );
+						}
+					}
+				}
+			}finally{
+				
+				if ( plugin_proxy != null ){
+					
+					plugin_proxy.setOK( ok );
+				}
+			}
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace( e );
