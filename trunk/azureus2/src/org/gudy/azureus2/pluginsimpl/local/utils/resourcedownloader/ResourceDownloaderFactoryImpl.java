@@ -29,12 +29,12 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.Proxy;
 import java.net.URI;
 import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
-
 import org.gudy.azureus2.core3.logging.*;
 
 public class 
@@ -89,6 +89,14 @@ ResourceDownloaderFactoryImpl
 		ResourceDownloader rd = create(url);
 		if (force_no_proxy && rd instanceof ResourceDownloaderURLImpl) {
 			((ResourceDownloaderURLImpl)rd).setForceNoProxy(force_no_proxy);
+		}
+		return rd;
+	}
+	
+	public ResourceDownloader create(URL url, Proxy proxy ) {
+		ResourceDownloader rd = create(url);
+		if (proxy != null && rd instanceof ResourceDownloaderURLImpl) {
+			((ResourceDownloaderURLImpl)rd).setForceProxy(proxy);
 		}
 		return rd;
 	}

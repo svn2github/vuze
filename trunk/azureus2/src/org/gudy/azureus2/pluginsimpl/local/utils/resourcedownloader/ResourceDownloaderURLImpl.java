@@ -68,19 +68,20 @@ ResourceDownloaderURLImpl
   
 	private static final int MAX_IN_MEM_READ_SIZE	= 256*1024;
 	
-	protected URL			original_url;
-	protected boolean		auth_supplied;
-	protected String		user_name;
-	protected String		password;
+	private URL			original_url;
+	private boolean		auth_supplied;
+	private String		user_name;
+	private String		password;
 	
-	protected InputStream 	input_stream;
-	protected boolean		cancel_download	= false;
+	private InputStream 	input_stream;
+	private boolean			cancel_download	= false;
 	
-	protected boolean		download_initiated;
-	protected long			size		 	= -2;	// -1 -> unknown
+	private boolean			download_initiated;
+	private long			size		 	= -2;	// -1 -> unknown
 	
-	protected boolean       force_no_proxy = false;
-
+	private boolean       	force_no_proxy = false;
+	private Proxy			force_proxy;
+	
 	private final byte[] 	post_data;
 
 	public 
@@ -153,6 +154,10 @@ ResourceDownloaderURLImpl
 	
 	protected void setForceNoProxy(boolean force_no_proxy) {
 		this.force_no_proxy = force_no_proxy;
+	}
+
+	protected void setForceProxy( Proxy proxy ){
+		force_proxy = proxy;
 	}
 	
 	protected URL
@@ -392,7 +397,9 @@ ResourceDownloaderURLImpl
 		
 		c.setProperties( this );
 		c.setForceNoProxy(force_no_proxy);
-		
+		if ( force_proxy != null ){
+			c.setForceProxy( force_proxy );
+		}
 		return( c );
 	}
 
@@ -1207,6 +1214,10 @@ redirect_label:
 		
 			return( url.openConnection( Proxy.NO_PROXY ));
 			
+		}else if ( force_proxy != null ){
+			
+			return( url.openConnection( force_proxy ));
+
 		}else{
 			
 			return url.openConnection();

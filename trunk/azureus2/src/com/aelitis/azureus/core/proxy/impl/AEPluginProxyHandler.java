@@ -21,9 +21,7 @@
 
 package com.aelitis.azureus.core.proxy.impl;
 
-import java.net.HttpURLConnection;
 import java.net.Proxy;
-import java.net.Socket;
 import java.net.URL;
 
 import org.gudy.azureus2.plugins.PluginEvent;

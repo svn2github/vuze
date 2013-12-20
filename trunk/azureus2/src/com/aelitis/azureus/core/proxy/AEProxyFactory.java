@@ -22,9 +22,7 @@
 
 package com.aelitis.azureus.core.proxy;
 
-import java.net.HttpURLConnection;
 import java.net.Proxy;
-import java.net.Socket;
 import java.net.URL;
 
 import com.aelitis.azureus.core.proxy.impl.*;
