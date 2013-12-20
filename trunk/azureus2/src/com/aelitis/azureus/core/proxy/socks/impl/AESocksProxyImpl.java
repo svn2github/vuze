@@ -36,7 +36,7 @@ public class
 AESocksProxyImpl 
 	implements AESocksProxy, AEProxyHandler
 {
-	private AEProxy									proxy;
+	private AEProxy										proxy;
 	private AESocksProxyPlugableConnectionFactory		connection_factory;
 	
 	private String	proxy_chain_host;
@@ -112,5 +112,11 @@ AESocksProxyImpl
 		boolean	permit )
 	{
 		proxy.setAllowExternalConnections( permit );
+	}
+	
+	public void
+	destroy()
+	{
+		proxy.destroy();
 	}
 }

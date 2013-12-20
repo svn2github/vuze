@@ -53,21 +53,25 @@ AEProxyImpl
 	private static final int	DEBUG_PERIOD	= 60000;
 	private long				last_debug;
 	
-	private int				port;
+	private int					port;
 	private long				connect_timeout;
 	private long				read_timeout;
-	private AEProxyHandler	proxy_handler;
+	private AEProxyHandler		proxy_handler;
 	
+	private ServerSocketChannel		ssc;	
 	private VirtualChannelSelector	read_selector;
 	private VirtualChannelSelector	connect_selector;
 	private VirtualChannelSelector	write_selector;
 	
-	private List				processors = new ArrayList();
-	private final HashMap write_select_regs = new HashMap();
+	private List<AEProxyConnectionImpl>				processors = new ArrayList<AEProxyConnectionImpl>();
+	
+	private final HashMap 		write_select_regs = new HashMap();
 	
 	private boolean				allow_external_access;
 	
 	private AEMonitor			this_mon	= new AEMonitor( "AEProxyImpl" );
+	
+	private volatile boolean	destroyed;
 	
 	public 
 	AEProxyImpl(
@@ -90,7 +94,7 @@ AEProxyImpl
 		
 		try{
 			
-			final ServerSocketChannel	ssc = ServerSocketChannel.open();
+			ssc = ServerSocketChannel.open();
 			
 			ServerSocket ss	= ssc.socket();
 			
@@ -191,7 +195,7 @@ AEProxyImpl
 		long	successfull_accepts = 0;
 		long	failed_accepts		= 0;
 
-		while(true){
+		while( !destroyed ){
 			
 			try{				
 				SocketChannel socket_channel = ssc.accept();
@@ -224,21 +228,34 @@ AEProxyImpl
 					
 					if ( !processor.isClosed()){
 						
+						boolean	added = false;
+						
 						try{
 							this_mon.enter();
 						
-							processors.add( processor );
-			
-							if (Logger.isEnabled())
-								Logger.log(new LogEvent(LOGID, "AEProxy: active processors = "
-										+ processors.size()));
-							
+							if ( !destroyed ){
+								
+								added = true;
+								
+								processors.add( processor );
+				
+								if (Logger.isEnabled())
+									Logger.log(new LogEvent(LOGID, "AEProxy: active processors = "
+											+ processors.size()));
+							}
 						}finally{
 							
 							this_mon.exit();
 						}
 						
-						read_selector.register( socket_channel, this, processor );
+						if ( !added ){
+							
+							processor.close();
+							
+						}else{
+						
+							read_selector.register( socket_channel, this, processor );
+						}
 					}
 				}
 			}catch( Throwable e ){
@@ -284,7 +301,7 @@ AEProxyImpl
 	{
 		long	last_time	= 0;
 		
-		while( true ){
+		while( !destroyed ){
 			
 			try{
 				selector.select( 100 );
@@ -402,7 +419,7 @@ AEProxyImpl
 	cancelWriteSelect(
 		SocketChannel 			sc )
 	{
-    write_select_regs.remove( sc );
+		write_select_regs.remove( sc );
 		write_selector.cancel( sc );
 	}
 	
@@ -474,5 +491,45 @@ AEProxyImpl
 	getPort()
 	{
 		return( port );
+	}
+	
+	public void
+	destroy()
+	{
+		List<AEProxyConnectionImpl>	to_close;
+		
+		try{
+			this_mon.enter();
+	
+			destroyed = true;
+			
+			to_close = new ArrayList<AEProxyConnectionImpl>( processors );
+			
+		}finally{
+			
+			this_mon.exit();
+		}
+		
+		for ( AEProxyConnectionImpl con: to_close ){
+			
+			try{
+				con.close();
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		if ( ssc != null ){
+			
+			try{
+				ssc.close();
+				
+			}catch( Throwable e ){
+			}
+		}
+		
+		connect_selector.destroy();
+		read_selector.destroy();
+		write_selector.destroy();
 	}
 }

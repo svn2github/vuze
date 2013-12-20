@@ -67,4 +67,7 @@ AESocksProxy
 	public void
 	setAllowExternalConnections(
 		boolean	permit );
+	
+	public void
+	destroy();
 }
