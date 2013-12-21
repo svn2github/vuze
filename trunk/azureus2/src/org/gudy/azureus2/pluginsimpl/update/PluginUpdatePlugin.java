@@ -798,7 +798,8 @@ PluginUpdatePlugin
 						
 						ResourceDownloaderFactory rdf =  plugin_interface.getUtilities().getResourceDownloaderFactory();
 						
-						ResourceDownloader direct_rdl = rdf.create( new URL( sf_plugin_download ));
+						ResourceDownloader direct_rdl 		= rdf.create( new URL( sf_plugin_download ));
+						ResourceDownloader direct_ap_rdl 	= rdf.createWithAutoPluginProxy( new URL( sf_plugin_download ));
 
 							// work out what the torrent download will be, if it exists 
 							// sf_plugin_download will be something like ../plugins/safepeer_2.4.zip
@@ -819,13 +820,14 @@ PluginUpdatePlugin
 						
 						torrent_download	+= ".torrent";
 						
-						ResourceDownloader torrent_rdl = rdf.create( new URL( torrent_download ));
+						ResourceDownloader torrent_rdl 		= rdf.create( new URL( torrent_download ));
+						//ResourceDownloader torrent_ap_rdl 	= rdf.createWithAutoPluginProxy( new URL( torrent_download ));
 
 						torrent_rdl	= rdf.getSuffixBasedDownloader( torrent_rdl );
 						
 							// create an alternate downloader with torrent attempt first
 						
-						ResourceDownloader alternate_rdl = rdf.getAlternateDownloader( new ResourceDownloader[]{ torrent_rdl, direct_rdl });
+						ResourceDownloader alternate_rdl = rdf.getAlternateDownloader( new ResourceDownloader[]{ torrent_rdl, direct_rdl, direct_ap_rdl });
 						
 							// get size so it is cached
 						

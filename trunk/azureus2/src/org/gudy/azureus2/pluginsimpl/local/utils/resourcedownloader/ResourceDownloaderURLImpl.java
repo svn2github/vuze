@@ -26,7 +26,9 @@ package org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader;
  *
  */
 
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 
 import java.io.*;
 import java.net.*;
@@ -81,6 +83,7 @@ ResourceDownloaderURLImpl
 	
 	private boolean       	force_no_proxy = false;
 	private Proxy			force_proxy;
+	private boolean			auto_plugin_proxy;
 	
 	private final byte[] 	post_data;
 
@@ -158,6 +161,10 @@ ResourceDownloaderURLImpl
 
 	protected void setForceProxy( Proxy proxy ){
 		force_proxy = proxy;
+	}
+	
+	protected void setAutoPluginProxy(){
+		auto_plugin_proxy = true;
 	}
 	
 	protected URL
@@ -245,6 +252,29 @@ ResourceDownloaderURLImpl
 			      
 				url = AddressUtils.adjustURL( url );
 
+				URL	initial_url = url;
+				
+				PluginProxy	plugin_proxy;
+				
+				boolean		ok = false;
+				
+				if ( auto_plugin_proxy ){
+					
+					plugin_proxy = AEProxyFactory.getPluginProxy( "loading plugin details", url );
+	
+					if ( plugin_proxy == null ){
+						
+						throw( new ResourceDownloaderException( this, "No plugin proxy available" ));
+					}
+					
+					url			= plugin_proxy.getURL();
+					force_proxy	= plugin_proxy.getProxy();
+					
+				}else{
+					
+					plugin_proxy = null;
+				}
+				
 				try{
 					if ( force_no_proxy ){
 						
@@ -289,6 +319,11 @@ ResourceDownloaderURLImpl
 				  	
 							}
 				  
+							if ( plugin_proxy != null ){
+							
+								con.setRequestProperty( "HOST", initial_url.getHost() + (initial_url.getPort()==-1?"":(":" + initial_url.getPort())));
+							}
+							
 							con.setRequestMethod( "HEAD" );
 							
 							con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
@@ -307,6 +342,8 @@ ResourceDownloaderURLImpl
 							}
 															
 							getRequestProperties( con );
+							
+							ok = true;
 							
 							return( UrlUtils.getContentLength( con ));
 							
@@ -355,6 +392,13 @@ ResourceDownloaderURLImpl
 						
 						AEProxySelectorFactory.getSelector().endNoProxy();
 					}
+					
+					if ( plugin_proxy != null ){
+						
+						plugin_proxy.setOK( ok );
+						
+						force_proxy = null;
+					}
 				}
 			}catch (java.net.MalformedURLException e){
 				
@@ -399,6 +443,9 @@ ResourceDownloaderURLImpl
 		c.setForceNoProxy(force_no_proxy);
 		if ( force_proxy != null ){
 			c.setForceProxy( force_proxy );
+		}
+		if ( auto_plugin_proxy){
+			c.setAutoPluginProxy();
 		}
 		return( c );
 	}
@@ -534,7 +581,7 @@ ResourceDownloaderURLImpl
 						
 						SESecurityManager.setPasswordHandler( url, this );
 					}
-
+					
 					boolean	use_compression = true;
 					
 					boolean	follow_redirect = true;
@@ -546,467 +593,507 @@ redirect_label:
 						
 						follow_redirect = false;
 					
-						for ( int connect_loop=0;connect_loop<2;connect_loop++ ){
-					
-							File					temp_file	= null;
-	
-							try{
-								URLConnection	con;
+						URL	initial_url = url;
+						
+						PluginProxy	plugin_proxy;
+						
+						boolean		ok = false;
+						
+						if ( auto_plugin_proxy ){
+							
+							plugin_proxy = AEProxyFactory.getPluginProxy( "loading plugin details", url );
+			
+							if ( plugin_proxy == null ){
 								
-								if ( url.getProtocol().equalsIgnoreCase("https")){
-							      	
-										// see ConfigurationChecker for SSL client defaults
-					
-									HttpsURLConnection ssl_con = (HttpsURLConnection)openConnection(url);
-					
-										// allow for certs that contain IP addresses rather than dns names
-					  	
-									ssl_con.setHostnameVerifier(
-											new HostnameVerifier()
-											{
-												public boolean
-												verify(
-														String		host,
-														SSLSession	session )
+								throw( new ResourceDownloaderException( this, "No plugin proxy available" ));
+							}
+							
+							url			= plugin_proxy.getURL();
+							force_proxy	= plugin_proxy.getProxy();
+							
+						}else{
+							
+							plugin_proxy = null;
+						}
+						
+						try{
+							for ( int connect_loop=0;connect_loop<2;connect_loop++ ){
+						
+								File					temp_file	= null;
+		
+								try{
+									URLConnection	con;
+									
+									if ( url.getProtocol().equalsIgnoreCase("https")){
+								      	
+											// see ConfigurationChecker for SSL client defaults
+						
+										HttpsURLConnection ssl_con = (HttpsURLConnection)openConnection(url);
+						
+											// allow for certs that contain IP addresses rather than dns names
+						  	
+										ssl_con.setHostnameVerifier(
+												new HostnameVerifier()
 												{
-													return( true );
-												}
-											});
-					  	
-									con = ssl_con;
-					  	
-								}else{
-					  	
-									con = openConnection(url);
-					  	
-								}
-								
-								if ( con instanceof HttpURLConnection ){
-									
-										// we want this true but some plugins (grrr) set the global default not to follow
-										// redirects
-									
-									((HttpURLConnection)con).setInstanceFollowRedirects( true );
-								}
-								
-								con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
-					  
-								String connection = getStringProperty( "URL_Connection" );
-								
-								if ( connection != null && connection.equalsIgnoreCase( "Keep-Alive" )){
-									
-									con.setRequestProperty( "Connection", "Keep-Alive" );
-
-										// gah, no idea what the intent behind 'skip' is!
-									
-								}else if ( connection == null || !connection.equals( "skip" )){
-									
-										// default is close
-									
-									con.setRequestProperty( "Connection", "close" );
-								}
-								
-						 		if ( use_compression ){
-								
-						 			con.addRequestProperty( "Accept-Encoding", "gzip" );
-						 		}
-						 		
-								setRequestProperties( con, use_compression );
-								
-								if ( post_data != null && con instanceof HttpURLConnection ){
-									
-									con.setDoOutput(true);
-									
-									String verb = (String)getStringProperty( "URL_HTTP_VERB" );
-									
-									if ( verb == null ){
-										
-										verb = "POST";
+													public boolean
+													verify(
+															String		host,
+															SSLSession	session )
+													{
+														return( true );
+													}
+												});
+						  	
+										con = ssl_con;
+						  	
+									}else{
+						  	
+										con = openConnection(url);
+						  	
 									}
 									
-									((HttpURLConnection)con).setRequestMethod( verb );
-									
-									if ( post_data.length > 0 ){
+									if ( con instanceof HttpURLConnection ){
 										
-										OutputStream os = con.getOutputStream();
+											// we want this true but some plugins (grrr) set the global default not to follow
+											// redirects
 										
-										os.write( post_data );
-										
-										os.flush();
+										((HttpURLConnection)con).setInstanceFollowRedirects( true );
 									}
-								}
+									
+									if ( plugin_proxy != null ){
+										
+										con.setRequestProperty( "HOST", initial_url.getHost() + (initial_url.getPort()==-1?"":(":" + initial_url.getPort())));
+									}
+									
+									con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+						  
+									String connection = getStringProperty( "URL_Connection" );
+									
+									if ( connection != null && connection.equalsIgnoreCase( "Keep-Alive" )){
+										
+										con.setRequestProperty( "Connection", "Keep-Alive" );
 	
-								long	connect_timeout = getLongProperty( "URL_Connect_Timeout" );
-								
-								if ( connect_timeout >= 0 ){
-								
-									con.setConnectTimeout((int)connect_timeout );
-								}
-								
-								long	read_timeout = getLongProperty( "URL_Read_Timeout" );
-								
-								if ( read_timeout >= 0 ){
-								
-									con.setReadTimeout((int)read_timeout );
-								}
-								
-								boolean	trust_content_length = getBooleanProperty( "URL_Trust_Content_Length" );
-								
-								con.connect();
-					
-								int response = con instanceof HttpURLConnection?((HttpURLConnection)con).getResponseCode():HttpURLConnection.HTTP_OK;
-													
-								if ( 	response == HttpURLConnection.HTTP_MOVED_TEMP ||
-										response == HttpURLConnection.HTTP_MOVED_PERM ){
-									
-										// auto redirect doesn't work from http to https or vice-versa
-									
-									String	move_to = con.getHeaderField( "location" );
-									
-									if ( move_to != null ){
+											// gah, no idea what the intent behind 'skip' is!
 										
-										if ( redirect_urls.contains( move_to ) || redirect_urls.size() > 32 ){
+									}else if ( connection == null || !connection.equals( "skip" )){
+										
+											// default is close
+										
+										con.setRequestProperty( "Connection", "close" );
+									}
+									
+							 		if ( use_compression ){
+									
+							 			con.addRequestProperty( "Accept-Encoding", "gzip" );
+							 		}
+							 		
+									setRequestProperties( con, use_compression );
+									
+									if ( post_data != null && con instanceof HttpURLConnection ){
+										
+										con.setDoOutput(true);
+										
+										String verb = (String)getStringProperty( "URL_HTTP_VERB" );
+										
+										if ( verb == null ){
 											
-											throw( new ResourceDownloaderException( this, "redirect loop" )); 
+											verb = "POST";
 										}
 										
-										redirect_urls.add( move_to );
+										((HttpURLConnection)con).setRequestMethod( verb );
 										
-										try{
-												// don't URL decode the move-to as its already in the right format!
+										if ( post_data.length > 0 ){
 											
-											URL	move_to_url = new URL( move_to ); // URLDecoder.decode( move_to, "UTF-8" ));
+											OutputStream os = con.getOutputStream();
 											
-											String	original_protocol 	= url.getProtocol().toLowerCase();
-											String	new_protocol		= move_to_url.getProtocol().toLowerCase();
+											os.write( post_data );
 											
-											if ( !original_protocol.equals( new_protocol )){
+											os.flush();
+										}
+									}
+		
+									long	connect_timeout = getLongProperty( "URL_Connect_Timeout" );
+									
+									if ( connect_timeout >= 0 ){
+									
+										con.setConnectTimeout((int)connect_timeout );
+									}
+									
+									long	read_timeout = getLongProperty( "URL_Read_Timeout" );
+									
+									if ( read_timeout >= 0 ){
+									
+										con.setReadTimeout((int)read_timeout );
+									}
+									
+									boolean	trust_content_length = getBooleanProperty( "URL_Trust_Content_Length" );
+									
+									con.connect();
+						
+									int response = con instanceof HttpURLConnection?((HttpURLConnection)con).getResponseCode():HttpURLConnection.HTTP_OK;
 												
-												url = move_to_url;
+									ok = true;
+									
+									if ( 	response == HttpURLConnection.HTTP_MOVED_TEMP ||
+											response == HttpURLConnection.HTTP_MOVED_PERM ){
+										
+											// auto redirect doesn't work from http to https or vice-versa
+										
+										String	move_to = con.getHeaderField( "location" );
+										
+										if ( move_to != null ){
+											
+											if ( redirect_urls.contains( move_to ) || redirect_urls.size() > 32 ){
 												
-												try{
-													List<String>	cookies_list = con.getHeaderFields().get( "Set-cookie" );
+												throw( new ResourceDownloaderException( this, "redirect loop" )); 
+											}
+											
+											redirect_urls.add( move_to );
+											
+											try{
+													// don't URL decode the move-to as its already in the right format!
+												
+												URL	move_to_url = new URL( move_to ); // URLDecoder.decode( move_to, "UTF-8" ));
+												
+												String	original_protocol 	= url.getProtocol().toLowerCase();
+												String	new_protocol		= move_to_url.getProtocol().toLowerCase();
+												
+												if ( !original_protocol.equals( new_protocol )){
 													
-													List<String>	cookies_set = new ArrayList();
+													url = move_to_url;
 													
-													if ( cookies_list != null ){
+													try{
+														List<String>	cookies_list = con.getHeaderFields().get( "Set-cookie" );
 														
-														for (int i=0;i<cookies_list.size();i++){
+														List<String>	cookies_set = new ArrayList();
+														
+														if ( cookies_list != null ){
 															
-															String[] cookie_bits = ((String)cookies_list.get(i)).split(";");
-															
-															if ( cookie_bits.length > 0 ){
-															
-																cookies_set.add( cookie_bits[0] );
+															for (int i=0;i<cookies_list.size();i++){
+																
+																String[] cookie_bits = ((String)cookies_list.get(i)).split(";");
+																
+																if ( cookie_bits.length > 0 ){
+																
+																	cookies_set.add( cookie_bits[0] );
+																}
 															}
 														}
-													}
-													
-													if ( cookies_set.size() > 0 ){
 														
-														String	new_cookies = "";
-														
-														Map properties = getLCKeyProperties();
-														
-														Object obj = properties.get( "url_cookie" );
-														
-														if ( obj instanceof String ){
-														
-															new_cookies = (String)obj;
-														}
-														
-														for ( String s: cookies_set ){
+														if ( cookies_set.size() > 0 ){
 															
-															new_cookies += (new_cookies.length()==0?"":"; ") + s;
+															String	new_cookies = "";
+															
+															Map properties = getLCKeyProperties();
+															
+															Object obj = properties.get( "url_cookie" );
+															
+															if ( obj instanceof String ){
+															
+																new_cookies = (String)obj;
+															}
+															
+															for ( String s: cookies_set ){
+																
+																new_cookies += (new_cookies.length()==0?"":"; ") + s;
+															}
+															
+															setProperty( "URL_Cookie", new_cookies );
 														}
+													}catch( Throwable e ){
 														
-														setProperty( "URL_Cookie", new_cookies );
+														Debug.out( e );
 													}
-												}catch( Throwable e ){
 													
-													Debug.out( e );
+													follow_redirect = true;
+													
+													continue redirect_label;
 												}
+											}catch( Throwable e ){
 												
-												follow_redirect = true;
-												
-												continue redirect_label;
 											}
-										}catch( Throwable e ){
-											
 										}
 									}
-								}
-								
-								setProperty( "URL_HTTP_Response", new Long( response ));
-
-								if ( 	response != HttpURLConnection.HTTP_CREATED && 
-										response != HttpURLConnection.HTTP_ACCEPTED && 
-										response != HttpURLConnection.HTTP_NO_CONTENT && 
-										response != HttpURLConnection.HTTP_OK ) {
 									
-									HttpURLConnection	http_con = (HttpURLConnection)con;
+									setProperty( "URL_HTTP_Response", new Long( response ));
+	
+									if ( 	response != HttpURLConnection.HTTP_CREATED && 
+											response != HttpURLConnection.HTTP_ACCEPTED && 
+											response != HttpURLConnection.HTTP_NO_CONTENT && 
+											response != HttpURLConnection.HTTP_OK ) {
+										
+										HttpURLConnection	http_con = (HttpURLConnection)con;
+										
+										InputStream error_stream = http_con.getErrorStream();
+										
+										String error_str = null;
+										
+										if ( error_stream != null ){
+											
+											String encoding = con.getHeaderField( "content-encoding");
+							 				
+							 				if ( encoding != null ){
+							 					
+							 					if ( encoding.equalsIgnoreCase( "gzip"  )){
+							 									 					
+							 						error_stream = new GZIPInputStream( error_stream );
+								 					
+							 					}else if ( encoding.equalsIgnoreCase( "deflate" )){
+								 						
+							 						error_stream = new InflaterInputStream( error_stream );
+							 					}
+							 				}
+							 				
+											error_str = FileUtil.readInputStreamAsString( error_stream, 512 );
+										}
+										
+											// grab properties anyway as they may be useful
+										
+										getRequestProperties( con );
+										
+										throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + http_con.getResponseMessage() + (error_str==null?"":( ": error=" + error_str ))));    
+									}
 									
-									InputStream error_stream = http_con.getErrorStream();
+									getRequestProperties( con );
 									
-									String error_str = null;
+									boolean compressed = false;
 									
-									if ( error_stream != null ){
+									try{
+										this_mon.enter();
+										
+										input_stream = con.getInputStream();
 										
 										String encoding = con.getHeaderField( "content-encoding");
 						 				
 						 				if ( encoding != null ){
 						 					
 						 					if ( encoding.equalsIgnoreCase( "gzip"  )){
-						 									 					
-						 						error_stream = new GZIPInputStream( error_stream );
+		
+								 				compressed = true;
+							 									 					
+							 					input_stream = new GZIPInputStream( input_stream );
 							 					
 						 					}else if ( encoding.equalsIgnoreCase( "deflate" )){
-							 						
-						 						error_stream = new InflaterInputStream( error_stream );
+		
+						 						compressed = true;
+						 						
+						 						input_stream = new InflaterInputStream( input_stream );
 						 					}
 						 				}
-						 				
-										error_str = FileUtil.readInputStreamAsString( error_stream, 512 );
+									}finally{
+										
+										this_mon.exit();
 									}
 									
-										// grab properties anyway as they may be useful
-									
-									getRequestProperties( con );
-									
-									throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + http_con.getResponseMessage() + (error_str==null?"":( ": error=" + error_str ))));    
-								}
-								
-								getRequestProperties( con );
-								
-								boolean compressed = false;
-								
-								try{
-									this_mon.enter();
-									
-									input_stream = con.getInputStream();
-									
-									String encoding = con.getHeaderField( "content-encoding");
-					 				
-					 				if ( encoding != null ){
-					 					
-					 					if ( encoding.equalsIgnoreCase( "gzip"  )){
-	
-							 				compressed = true;
-						 									 					
-						 					input_stream = new GZIPInputStream( input_stream );
-						 					
-					 					}else if ( encoding.equalsIgnoreCase( "deflate" )){
-	
-					 						compressed = true;
-					 						
-					 						input_stream = new InflaterInputStream( input_stream );
-					 					}
-					 				}
-								}finally{
-									
-									this_mon.exit();
-								}
-								
-								if ( con instanceof MagnetConnection2 ){
-									
-										// hack - status reports for magnet connections are returned
-									
-									List<String> errors = ((MagnetConnection2) con).getResponseMessages( true );
-									
-									if ( errors.size() > 0 ){
+									if ( con instanceof MagnetConnection2 ){
 										
-										throw( new ResourceDownloaderException( this, errors.get(0)));
-									}
-								}
-								
-								ByteArrayOutputStream	baos		= null;
-								FileOutputStream		fos			= null;
-								
-								try{
-									byte[] buf = new byte[BUFFER_SIZE];
-									
-									long	total_read	= 0;
-									
-										// unfortunately not all servers set content length
-									
-									/* From Apache's mod_deflate doc:
-									 * http://httpd.apache.org/docs/2.0/mod/mod_deflate.html
-											Note on Content-Length
-	
-											If you evaluate the request body yourself, don't trust the
-											Content-Length header! The Content-Length header reflects 
-											the length of the incoming data from the client and not the
-											byte count of the decompressed data stream.
-									 */
-									long size = compressed ? -1 : UrlUtils.getContentLength( con );					
-									
-									baos = size>0?new ByteArrayOutputStream(size>MAX_IN_MEM_READ_SIZE?MAX_IN_MEM_READ_SIZE:(int)size):new ByteArrayOutputStream();
-									
-									while( !cancel_download ){
+											// hack - status reports for magnet connections are returned
 										
-										if ( size >= 0 && total_read >= size && trust_content_length ){
+										List<String> errors = ((MagnetConnection2) con).getResponseMessages( true );
+										
+										if ( errors.size() > 0 ){
 											
-											break;
+											throw( new ResourceDownloaderException( this, errors.get(0)));
 										}
+									}
+									
+									ByteArrayOutputStream	baos		= null;
+									FileOutputStream		fos			= null;
+									
+									try{
+										byte[] buf = new byte[BUFFER_SIZE];
 										
-										int read = input_stream.read(buf);
+										long	total_read	= 0;
+										
+											// unfortunately not all servers set content length
+										
+										/* From Apache's mod_deflate doc:
+										 * http://httpd.apache.org/docs/2.0/mod/mod_deflate.html
+												Note on Content-Length
+		
+												If you evaluate the request body yourself, don't trust the
+												Content-Length header! The Content-Length header reflects 
+												the length of the incoming data from the client and not the
+												byte count of the decompressed data stream.
+										 */
+										long size = compressed ? -1 : UrlUtils.getContentLength( con );					
+										
+										baos = size>0?new ByteArrayOutputStream(size>MAX_IN_MEM_READ_SIZE?MAX_IN_MEM_READ_SIZE:(int)size):new ByteArrayOutputStream();
+										
+										while( !cancel_download ){
 											
-										if ( read > 0 ){
-										
-											if ( total_read > MAX_IN_MEM_READ_SIZE ){
+											if ( size >= 0 && total_read >= size && trust_content_length ){
 												
-												if ( fos == null ){
+												break;
+											}
+											
+											int read = input_stream.read(buf);
+												
+											if ( read > 0 ){
+											
+												if ( total_read > MAX_IN_MEM_READ_SIZE ){
 													
-													temp_file = AETemporaryFileHandler.createTempFile();
+													if ( fos == null ){
+														
+														temp_file = AETemporaryFileHandler.createTempFile();
+														
+														fos = new FileOutputStream( temp_file );
+														
+														fos.write( baos.toByteArray());
+														
+														baos = null;
+													}
 													
-													fos = new FileOutputStream( temp_file );
+													fos.write( buf, 0, read );
 													
-													fos.write( baos.toByteArray());
+												}else{
 													
-													baos = null;
+													baos.write(buf, 0, read);
 												}
 												
-												fos.write( buf, 0, read );
+												total_read += read;
+										        
+												informAmountComplete( total_read );
+												
+												if ( size > 0){
+													
+													informPercentDone((int)(( 100 * total_read ) / size ));
+												}
+											}else{
+												
+												break;
+											}
+										}
+										
+											// if we've got a size, make sure we've read all of it
+										
+										if ( size > 0 && total_read != size ){
+											
+											if ( total_read > size ){
+												
+													// this has been seen with UPnP linksys - more data is read than
+													// the content-length has us believe is coming (1 byte in fact...)
+												
+												Debug.outNoStack( "Inconsistent stream length for '" + trimForDisplay( original_url ) + "': expected = " + size + ", actual = " + total_read );
 												
 											}else{
 												
-												baos.write(buf, 0, read);
+												throw( new IOException( "Premature end of stream" ));
 											}
+										}
+									}finally{
+										
+										if ( fos != null ){
 											
-											total_read += read;
-									        
-											informAmountComplete( total_read );
-											
-											if ( size > 0){
+											try{
+												fos.close();
 												
-												informPercentDone((int)(( 100 * total_read ) / size ));
+											}catch( Throwable e ){
 											}
-										}else{
+										}
+										
+										input_stream.close();
+									}
+						
+									InputStream	res;
+									
+									if ( temp_file != null ){
+									
+										res = new DeleteFileOnCloseInputStream( temp_file );
+										
+										temp_file = null;
+										
+									}else{
+										
+										res = new ByteArrayInputStream( baos.toByteArray());
+									}
+									
+									boolean	handed_over = false;
+									
+									try{
+										if ( informComplete( res )){
+													
+											handed_over = true;
 											
-											break;
+											return( res );
+										}
+									}finally{
+									
+										if ( !handed_over ){
+											
+											res.close();
 										}
 									}
 									
-										// if we've got a size, make sure we've read all of it
+									throw( new ResourceDownloaderException( this, "Contents downloaded but rejected: '" + trimForDisplay( original_url ) + "'" ));
+			
+								}catch( SSLException e ){
 									
-									if ( size > 0 && total_read != size ){
+									if ( connect_loop == 0 ){
 										
-										if ( total_read > size ){
+										if ( SESecurityManager.installServerCertificates( url ) != null ){
 											
-												// this has been seen with UPnP linksys - more data is read than
-												// the content-length has us believe is coming (1 byte in fact...)
+												// certificate has been installed
 											
-											Debug.outNoStack( "Inconsistent stream length for '" + trimForDisplay( original_url ) + "': expected = " + size + ", actual = " + total_read );
-											
-										}else{
-											
-											throw( new IOException( "Premature end of stream" ));
+											continue;	// retry with new certificate
 										}
 									}
-								}finally{
-									
-									if ( fos != null ){
-										
-										try{
-											fos.close();
-											
-										}catch( Throwable e ){
-										}
-									}
-									
-									input_stream.close();
-								}
-					
-								InputStream	res;
-								
-								if ( temp_file != null ){
-								
-									res = new DeleteFileOnCloseInputStream( temp_file );
-									
-									temp_file = null;
-									
-								}else{
-									
-									res = new ByteArrayInputStream( baos.toByteArray());
-								}
-								
-								boolean	handed_over = false;
-								
-								try{
-									if ( informComplete( res )){
-												
-										handed_over = true;
-										
-										return( res );
-									}
-								}finally{
-								
-									if ( !handed_over ){
-										
-										res.close();
-									}
-								}
-								
-								throw( new ResourceDownloaderException( this, "Contents downloaded but rejected: '" + trimForDisplay( original_url ) + "'" ));
 		
-							}catch( SSLException e ){
-								
-								if ( connect_loop == 0 ){
+									throw( e );
 									
-									if ( SESecurityManager.installServerCertificates( url ) != null ){
+								}catch( ZipException e ){
+									
+									if ( connect_loop == 0 ){
 										
-											// certificate has been installed
+										use_compression = false;
 										
-										continue;	// retry with new certificate
+										continue;
 									}
-								}
-	
-								throw( e );
-								
-							}catch( ZipException e ){
-								
-								if ( connect_loop == 0 ){
+								}catch( IOException e ){
 									
-									use_compression = false;
-									
-									continue;
-								}
-							}catch( IOException e ){
-								
-								if ( connect_loop == 0 ){
-									
-									String	msg = e.getMessage();
-									
-									if ( msg != null ){
+									if ( connect_loop == 0 ){
 										
-										msg = msg.toLowerCase( MessageText.LOCALE_ENGLISH );
+										String	msg = e.getMessage();
 										
-										if ( msg.indexOf( "gzip" ) != -1 ){
-								
-											use_compression = false;
+										if ( msg != null ){
 											
-											continue;
-										}
-									}
-															      			
-						      		URL retry_url = UrlUtils.getIPV4Fallback( url );
-						      			
-						      		if ( retry_url != null ){
-						      				
-						      			url = retry_url;
-						      			
-						      			continue;
-						      		}
-								}
-								
-								throw( e );
-								
-							}finally{
-								
-								if ( temp_file != null ){
+											msg = msg.toLowerCase( MessageText.LOCALE_ENGLISH );
+											
+											if ( msg.indexOf( "gzip" ) != -1 ){
 									
-									temp_file.delete();
+												use_compression = false;
+												
+												continue;
+											}
+										}
+																      			
+							      		URL retry_url = UrlUtils.getIPV4Fallback( url );
+							      			
+							      		if ( retry_url != null ){
+							      				
+							      			url = retry_url;
+							      			
+							      			continue;
+							      		}
+									}
+									
+									throw( e );
+									
+								}finally{
+									
+									if ( temp_file != null ){
+										
+										temp_file.delete();
+									}
 								}
+							}
+						}finally{
+							
+							if ( plugin_proxy != null ){
+								
+								plugin_proxy.setOK( ok );
+								
+								force_proxy = null;
 							}
 						}
 					}

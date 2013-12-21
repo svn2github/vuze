@@ -54,6 +54,10 @@ ResourceDownloaderFactory
 	create(
 		URL		url );
 	
+	public ResourceDownloader
+	createWithAutoPluginProxy(
+		URL			url );
+	
 	/**
 	 * Creates a basic downloader, where you can force any configured proxy
 	 * to be avoided. 
