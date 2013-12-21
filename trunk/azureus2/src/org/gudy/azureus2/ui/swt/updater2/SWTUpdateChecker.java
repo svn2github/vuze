@@ -183,7 +183,8 @@ public class SWTUpdateChecker implements UpdatableComponent
 	      ResourceDownloader swtDownloader = null;
 	      
           ResourceDownloaderFactory factory = ResourceDownloaderFactoryImpl.getSingleton();
-          List downloaders =  new ArrayList();
+          List<ResourceDownloader> downloaders =  new ArrayList<ResourceDownloader>();
+          
           for(int i = 0 ; i < mirrors.length ; i++) {
             try {
               downloaders.add(factory.getSuffixBasedDownloader(factory.create(new URL(mirrors[i]))));
@@ -194,11 +195,19 @@ public class SWTUpdateChecker implements UpdatableComponent
 										"Cannot use URL " + mirrors[i] + " (not valid)"));
             }
           }
+          
+          for(int i = 0 ; i < mirrors.length ; i++) {
+              try {
+                downloaders.add(factory.getSuffixBasedDownloader(factory.createWithAutoPluginProxy(new URL(mirrors[i]))));
+              } catch(MalformedURLException e) {
+              }
+            }
+          
           ResourceDownloader[] resourceDownloaders = 
             (ResourceDownloader[]) 
             downloaders.toArray(new ResourceDownloader[downloaders.size()]);
           
-          swtDownloader = factory.getRandomDownloader(resourceDownloaders);
+          swtDownloader = factory.getAlternateDownloader(resourceDownloaders);
 	      
 	      	// get the size so its cached up
 	      
