@@ -276,7 +276,8 @@ CoreUpdateChecker
 
 			}else{
 				
-				ResourceDownloader full_rd = rdf.create( full_download_url );
+				ResourceDownloader full_rd 		= rdf.create( full_download_url );
+				ResourceDownloader full_ap_rd 	= rdf.createWithAutoPluginProxy( full_download_url );
 				
 				full_rd = rdf.getSuffixBasedDownloader( full_rd );
 				
@@ -314,6 +315,7 @@ CoreUpdateChecker
 									full_rd,
 									primary_downloader,
 									backup_downloader,
+									full_ap_rd,
 								});
 			}
 			
