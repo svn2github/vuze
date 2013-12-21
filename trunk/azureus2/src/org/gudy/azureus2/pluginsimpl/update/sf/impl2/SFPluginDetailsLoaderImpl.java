@@ -198,68 +198,121 @@ SFPluginDetailsLoaderImpl
 	{
 		try{
 			String	page_url_to_use = addEPIDS( page_url );
-			
-			ResourceDownloader dl = rd_factory.create( new URL(page_url_to_use));
-			
-			dl = rd_factory.getRetryDownloader( dl, 5 );
-			
-			dl.addListener( this );
-			
-			Properties	details = new Properties();
-			
-			InputStream is = dl.download();
-			
-			details.load( is );
-			
-			is.close();
-			
-			Iterator it = details.keySet().iterator();
-			
-			while( it.hasNext()){
-				
-				String	plugin_id 	= (String)it.next();
-				
-				String	data			= (String)details.get(plugin_id);
 
-				int	pos = 0;
-				
-				List	bits = new ArrayList();
-				
-				while( pos < data.length()){
+			URL 			original_url	= new URL( page_url_to_use );
+			
+			URL				url				= original_url;
+			Proxy			proxy 			= null;
+			PluginProxy 	plugin_proxy	= null;
+			
+			boolean tried_proxy = false;
+			boolean	ok			= false;
+			
+			try{
+				while( true ){
 					
-					int	p1 = data.indexOf(';',pos);
-					
-					if ( p1 == -1 ){
+					try{
+						ResourceDownloader dl = rd_factory.create( url, proxy );
 						
-						bits.add( data.substring(pos).trim());
-					
+						if ( proxy != null ){
+							
+							dl.setProperty( "URL_HOST", original_url.getHost());
+						}	
+						
+						dl = rd_factory.getRetryDownloader( dl, 5 );
+						
+						dl.addListener( this );
+						
+						Properties	details = new Properties();
+						
+						InputStream is = dl.download();
+						
+						details.load( is );
+						
+						is.close();
+						
+						Iterator it = details.keySet().iterator();
+						
+						while( it.hasNext()){
+							
+							String	plugin_id 	= (String)it.next();
+							
+							String	data			= (String)details.get(plugin_id);
+			
+							int	pos = 0;
+							
+							List	bits = new ArrayList();
+							
+							while( pos < data.length()){
+								
+								int	p1 = data.indexOf(';',pos);
+								
+								if ( p1 == -1 ){
+									
+									bits.add( data.substring(pos).trim());
+								
+									break;
+								}else{
+									
+									bits.add( data.substring(pos,p1).trim());
+									
+									pos = p1+1;
+								}
+							}
+							
+							if (bits.size() < 3) {
+								Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
+										"SF loadPluginList failed for plugin '" + plugin_id
+												+ "'.  Details array is " + bits.size() + " (3 min)"));
+							} else {
+								String version = (String) bits.get(0);
+								String cvs_version = (String) bits.get(1);
+								String name = (String) bits.get(2);
+								String category = "";
+			
+								if (bits.size() > 3) {
+									category = (String) bits.get(3);
+								}
+			
+								plugin_ids.add(plugin_id);
+			
+								plugin_map.put(plugin_id.toLowerCase(MessageText.LOCALE_ENGLISH), new SFPluginDetailsImpl(this,
+										plugin_id, version, cvs_version, name, category));
+							}
+						}
+						
+						ok = true;
+						
 						break;
-					}else{
 						
-						bits.add( data.substring(pos,p1).trim());
+					}catch( Throwable e ){
 						
-						pos = p1+1;
+						if ( !tried_proxy ){
+							
+							tried_proxy = true;
+							
+							plugin_proxy = AEProxyFactory.getPluginProxy( "loading plugin details", url );
+							
+							if ( plugin_proxy == null ){
+								
+								throw( e );
+								
+							}else{
+								
+								url		= plugin_proxy.getURL();
+								proxy	= plugin_proxy.getProxy();
+							}
+						}else{
+							
+							throw( e );
+						}
 					}
 				}
+			}finally{
 				
-				if (bits.size() < 3) {
-					Logger.log(new LogEvent(LOGID, LogEvent.LT_ERROR,
-							"SF loadPluginList failed for plugin '" + plugin_id
-									+ "'.  Details array is " + bits.size() + " (3 min)"));
-				} else {
-					String version = (String) bits.get(0);
-					String cvs_version = (String) bits.get(1);
-					String name = (String) bits.get(2);
-					String category = "";
-
-					if (bits.size() > 3) {
-						category = (String) bits.get(3);
-					}
-
-					plugin_ids.add(plugin_id);
-
-					plugin_map.put(plugin_id.toLowerCase(MessageText.LOCALE_ENGLISH), new SFPluginDetailsImpl(this,
-							plugin_id, version, cvs_version, name, category));
+				if ( plugin_proxy != null ){
+					
+					plugin_proxy.setOK( ok );
 				}
 			}
 			
