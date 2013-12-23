@@ -2249,13 +2249,16 @@ PluginInitializer
   
   
   public static List getPluginInterfaces() {
-  	return singleton.getPluginInterfacesSupport();
+  	return singleton.getPluginInterfacesSupport( false );
   }
 
-  protected List getPluginInterfacesSupport() {
+  private List getPluginInterfacesSupport( boolean expect_partial_result ) {
 	  
-	checkPluginsInitialised();
-		
+	if ( !expect_partial_result ){
+	
+		checkPluginsInitialised();
+	}
+	
 	synchronized( s_plugin_interfaces ){
 		
 		return( new ArrayList( s_plugin_interfaces ));
@@ -2265,7 +2268,14 @@ PluginInitializer
   public PluginInterface[]
   getPlugins()
   {
-  	List	pis = getPluginInterfacesSupport();
+	  return( getPlugins( false ));
+  }
+  
+  public PluginInterface[]
+  getPlugins(
+		boolean	expect_partial_result )
+  {
+  	List	pis = getPluginInterfacesSupport( expect_partial_result );
   	
   	PluginInterface[]	res = new 	PluginInterface[pis.size()];
   	

@@ -90,7 +90,8 @@ AEProxyFactory
 	{
 		public PluginProxy
 		getChildProxy(
-			URL		url );
+			String		reason,
+			URL			url );
 		
 		public Proxy
 		getProxy();

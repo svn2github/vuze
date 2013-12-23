@@ -674,6 +674,9 @@ redirect_label:
 											((HttpURLConnection)con).setInstanceFollowRedirects( true );
 										}
 									}
+									
+										// keep this here, and don't replace with a URL_HOST redirect, as we want it to be overridden
+										// by any previously set manual property for the initial invocation
 										
 									if ( current_plugin_proxy != null ){
 										
@@ -774,12 +777,14 @@ redirect_label:
 												
 												if ( current_plugin_proxy != null ){
 													
-													PluginProxy child = current_plugin_proxy.getChildProxy( move_to_url );
+													PluginProxy child = current_plugin_proxy.getChildProxy( "redirect", move_to_url );
 													
 													if ( child != null ){
 														
 														initial_url		= move_to_url;
-																													
+														
+															// use an overall property to force this through on the redirect
+														
 														setProperty( "URL_HOST", initial_url.getHost() + (initial_url.getPort()==-1?"":(":" + initial_url.getPort())));
 
 														current_proxy	= child.getProxy();

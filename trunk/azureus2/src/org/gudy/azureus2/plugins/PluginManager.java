@@ -228,6 +228,10 @@ PluginManager
 	public abstract PluginInterface[]
 	getPlugins();
 	
+	public abstract PluginInterface[]
+	getPlugins(
+		boolean	expect_partial_result );
+
 	public abstract void
 	firePluginEvent(
 		int		event_type );

@@ -363,6 +363,13 @@ PluginManagerImpl
 		return( pi.getPlugins());
 	}
 	
+	public PluginInterface[]
+	getPlugins(
+		boolean expect_partial_result )
+	{
+		return( pi.getPlugins( expect_partial_result ));
+	}
+	
 	public void
 	firePluginEvent(
 		int	ev )

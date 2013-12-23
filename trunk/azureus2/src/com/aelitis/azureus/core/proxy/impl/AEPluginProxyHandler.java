@@ -69,7 +69,7 @@ AEPluginProxyHandler
 						}
 					});
 				
-				PluginInterface[] plugins = default_pi.getPluginManager().getPlugins();
+				PluginInterface[] plugins = default_pi.getPluginManager().getPlugins( true );
 				
 				for ( PluginInterface pi: plugins ){
 					
@@ -113,7 +113,7 @@ AEPluginProxyHandler
 	{
 		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
 		
-		if ( system_proxy == null || system_proxy == Proxy.NO_PROXY ){
+		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
 			
 			for ( PluginInterface pi: plugins ){
 				
@@ -124,7 +124,7 @@ AEPluginProxyHandler
 					
 					if ( proxy_details != null ){
 						
-						return( new PluginProxyImpl( ipc, proxy_details ));
+						return( new PluginProxyImpl( reason, ipc, proxy_details ));
 					}
 				}catch( Throwable e ){				
 				}
@@ -142,7 +142,7 @@ AEPluginProxyHandler
 	{
 		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
 		
-		if ( system_proxy == null || system_proxy == Proxy.NO_PROXY ){
+		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
 			
 			for ( PluginInterface pi: plugins ){
 				
@@ -153,7 +153,7 @@ AEPluginProxyHandler
 					
 					if ( proxy_details != null ){
 						
-						return( new PluginProxyImpl( ipc, proxy_details ));
+						return( new PluginProxyImpl( reason, ipc, proxy_details ));
 					}
 				}catch( Throwable e ){	
 				}
@@ -189,6 +189,8 @@ AEPluginProxyHandler
 	{
 		private long				create_time = SystemTime.getMonotonousTime();
 		
+		private String				reason;
+		
 		private IPCInterface		ipc;
 		private Object[]			proxy_details;
 		
@@ -196,9 +198,11 @@ AEPluginProxyHandler
 		
 		private
 		PluginProxyImpl(
+			String				_reason,
 			IPCInterface		_ipc,
 			Object[]			_proxy_details )
 		{
+			reason				= _reason;
 			ipc					= _ipc;
 			proxy_details		= _proxy_details;
 			
@@ -238,9 +242,10 @@ AEPluginProxyHandler
 		
 		public PluginProxy 
 		getChildProxy(
-			URL url) 
+			String		child_reason,
+			URL 		url) 
 		{
-			PluginProxyImpl	child = getPluginProxy( "child", url );
+			PluginProxyImpl	child = getPluginProxy( reason + " - " + child_reason, url );
 			
 			if ( child != null ){
 				
