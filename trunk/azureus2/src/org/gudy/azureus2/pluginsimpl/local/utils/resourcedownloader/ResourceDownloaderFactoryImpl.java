@@ -120,6 +120,14 @@ ResourceDownloaderFactoryImpl
 		return new ResourceDownloaderURLImpl(null, url, postData.getBytes(), false, null, null);
 	}
 	
+	public ResourceDownloader create(URL url, String postData, Proxy proxy ) {
+		ResourceDownloader rd = create(url,postData);
+		if (proxy != null && rd instanceof ResourceDownloaderURLImpl) {
+			((ResourceDownloaderURLImpl)rd).setForceProxy(proxy);
+		}
+		return rd;
+	}
+	
 	public ResourceDownloader
 	create(
 		URL		url,

@@ -21,9 +21,12 @@
 
 package com.aelitis.azureus.core.proxy.impl;
 
+import java.lang.ref.WeakReference;
 import java.net.Proxy;
 import java.net.URL;
+import java.util.*;
 
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -101,7 +104,9 @@ AEPluginProxyHandler
 		}
 	}
 	
-	public static PluginProxy
+	private static final Map<Proxy,WeakReference<PluginProxyImpl>>	proxy_map = new IdentityHashMap<Proxy,WeakReference<PluginProxyImpl>>();
+	
+	public static PluginProxyImpl
 	getPluginProxy(
 		String	reason,
 		URL		target )
@@ -129,7 +134,7 @@ AEPluginProxyHandler
 		return( null );
 	}
 	
-	public static PluginProxy
+	public static PluginProxyImpl
 	getPluginProxy(
 		String		reason,
 		String		host,
@@ -158,12 +163,36 @@ AEPluginProxyHandler
 		return( null );
 	}
 
+	public static PluginProxy
+	getPluginProxy(
+		Proxy		proxy )
+	{
+		if ( proxy != null ){
+					
+			synchronized( proxy_map ){
+			
+				WeakReference<PluginProxyImpl>	ref = proxy_map.get( proxy );
+			
+				if ( ref != null ){
+					
+					return( ref.get());
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
 	private static class
 	PluginProxyImpl
 		implements PluginProxy
 	{
+		private long				create_time = SystemTime.getMonotonousTime();
+		
 		private IPCInterface		ipc;
 		private Object[]			proxy_details;
+		
+		private List<PluginProxyImpl>	children = new ArrayList<AEPluginProxyHandler.PluginProxyImpl>();
 		
 		private
 		PluginProxyImpl(
@@ -172,6 +201,56 @@ AEPluginProxyHandler
 		{
 			ipc					= _ipc;
 			proxy_details		= _proxy_details;
+			
+			WeakReference<PluginProxyImpl>	my_ref = new WeakReference<PluginProxyImpl>( this );
+			
+			synchronized( proxy_map ){
+				
+				proxy_map.put( getProxy(), my_ref );
+				
+				if ( proxy_map.size() > 1024 ){
+					
+					long	now = SystemTime.getMonotonousTime();
+					
+					Iterator<WeakReference<PluginProxyImpl>>	it = proxy_map.values().iterator();
+					
+					while( it.hasNext()){
+						
+						WeakReference<PluginProxyImpl> ref = it.next();
+						
+						PluginProxyImpl	pp = ref.get();
+						
+						if ( pp == null ){
+							
+							it.remove();
+							
+						}else{
+							
+							if ( now - pp.create_time > 5*60*1000 ){
+								
+								it.remove();
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		public PluginProxy 
+		getChildProxy(
+			URL url) 
+		{
+			PluginProxyImpl	child = getPluginProxy( "child", url );
+			
+			if ( child != null ){
+				
+				synchronized( children ){
+				
+					children.add( child );
+				}
+			}
+			
+			return( child );
 		}
 		
 		public Proxy
@@ -206,6 +285,25 @@ AEPluginProxyHandler
 				ipc.invoke( "setProxyStatus", new Object[]{ proxy_details[0], good });
 				
 			}catch( Throwable e ){
+			}
+			
+			List<PluginProxyImpl> kids;
+			
+			synchronized( children ){
+			
+				kids = new ArrayList<PluginProxyImpl>( children );
+				
+				children.clear();
+			}
+			
+			for ( PluginProxyImpl child: kids ){
+				
+				child.setOK( good );
+			}
+			
+			synchronized( proxy_map ){
+
+				proxy_map.remove( getProxy());
 			}
 		}
 	}

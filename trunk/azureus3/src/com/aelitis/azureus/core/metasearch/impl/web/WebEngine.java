@@ -27,6 +27,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.InetAddress;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.nio.charset.Charset;
@@ -48,6 +49,8 @@ import com.aelitis.azureus.core.metasearch.SearchException;
 import com.aelitis.azureus.core.metasearch.SearchLoginException;
 import com.aelitis.azureus.core.metasearch.SearchParameter;
 import com.aelitis.azureus.core.metasearch.impl.*;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.core.vuzefile.VuzeFile;
 import com.aelitis.azureus.core.vuzefile.VuzeFileComponent;
@@ -539,6 +542,64 @@ WebEngine
 	
 		throws SearchException
 	{
+		String searchURL = searchURLFormat;
+
+		try{
+			pageDetails	details = getWebPageContentSupport( null, null, searchURL, searchParameters, searchContext, headers, only_if_modified );
+		
+			return( details );
+			
+		}catch( SearchException e ){
+			
+			try{
+				URL 			original_url	= new URL( searchURL );
+				
+				PluginProxy 	plugin_proxy	= AEProxyFactory.getPluginProxy( "getting search results ", original_url );
+				
+				if ( plugin_proxy == null ){
+					
+					throw( e );
+					
+				}else{
+					
+					URL 	url		= plugin_proxy.getURL();
+					Proxy 	proxy	= plugin_proxy.getProxy();
+
+					boolean	ok = false;
+					
+					try{
+						String proxy_host = original_url.getHost() + (original_url.getPort()==-1?"":(":" + original_url.getPort()));
+						
+						pageDetails	details = getWebPageContentSupport( proxy, proxy_host, url.toExternalForm(), searchParameters, searchContext, headers, only_if_modified );
+					
+						ok = true;
+						
+						return( details );
+						
+					}finally{
+						
+						plugin_proxy.setOK( ok );
+					}
+				}
+			}catch( Throwable f ){
+				
+				throw( e );
+			}
+		}
+	}
+	
+	private pageDetails 
+	getWebPageContentSupport(
+		Proxy				proxy,
+		String				proxy_host,
+		String				searchURL,
+		SearchParameter[] 	searchParameters,
+		Map<String,String>	searchContext,
+		String				headers,
+		boolean				only_if_modified )
+	
+		throws SearchException
+	{
 		
 		try {
 			TorrentUtils.setTLSDescription( "Search: " + getName());
@@ -547,9 +608,7 @@ WebEngine
 				
 				throw new SearchLoginException("login required");
 			}
-			
-			String searchURL = searchURLFormat;
-			
+						
 			boolean vuze_file = searchURL.toLowerCase().startsWith( "vuze:" );
 			
 			if ( !vuze_file ){
@@ -631,8 +690,15 @@ WebEngine
 				
 					// already URL encoded
 				
-				initial_url_rd = rdf.create( initial_url, post_params );
-
+				if ( proxy == null ){
+				
+					initial_url_rd = rdf.create( initial_url, post_params );
+					
+				}else{
+					
+					initial_url_rd = rdf.create( initial_url, post_params, proxy );
+				}
+				
 				initial_url_rd.setProperty( "URL_Content-Type", "application/x-www-form-urlencoded" );
 				
 			}else{
@@ -641,7 +707,19 @@ WebEngine
 			
 				initial_url = new URL(searchURL);
 			
-				initial_url_rd = rdf.create( initial_url );
+				if ( proxy == null ){
+				
+					initial_url_rd = rdf.create( initial_url );
+					
+				}else{
+					
+					initial_url_rd = rdf.create( initial_url, proxy );
+				}
+			}
+			
+			if ( proxy_host != null ){
+				
+				initial_url_rd.setProperty( "URL_HOST", proxy_host );
 			}
 			
 			setHeaders( initial_url_rd, headers );

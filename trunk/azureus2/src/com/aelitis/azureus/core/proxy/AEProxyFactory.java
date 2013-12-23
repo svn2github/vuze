@@ -78,9 +78,20 @@ AEProxyFactory
 		return( AEPluginProxyHandler.getPluginProxy( reason, host, port ));
 	}
 		
+	public static PluginProxy
+	getPluginProxy(
+		Proxy		proxy )
+	{
+		return( AEPluginProxyHandler.getPluginProxy( proxy ));
+	}
+	
 	public interface
 	PluginProxy
 	{
+		public PluginProxy
+		getChildProxy(
+			URL		url );
+		
 		public Proxy
 		getProxy();
 		

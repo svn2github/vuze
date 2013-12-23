@@ -217,6 +217,12 @@ ResourceDownloaderFactory
 	ResourceDownloader 
 	create(
 		URL 		url, 
+		String 		post_data,
+		Proxy		proxy );
+	
+	ResourceDownloader 
+	create(
+		URL 		url, 
 		byte[] 		post_data );
 		
 	/**

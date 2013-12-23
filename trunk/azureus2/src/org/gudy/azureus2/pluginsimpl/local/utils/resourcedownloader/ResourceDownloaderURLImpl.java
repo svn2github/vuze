@@ -295,7 +295,7 @@ ResourceDownloaderURLImpl
 						      	
 									// see ConfigurationChecker for SSL client defaults
 				
-								HttpsURLConnection ssl_con = (HttpsURLConnection)openConnection(url);
+								HttpsURLConnection ssl_con = (HttpsURLConnection)openConnection( force_proxy, url);
 				
 									// allow for certs that contain IP addresses rather than dns names
 				  	
@@ -315,7 +315,7 @@ ResourceDownloaderURLImpl
 				  	
 							}else{
 				  	
-								con = (HttpURLConnection)openConnection(url);
+								con = (HttpURLConnection)openConnection( force_proxy, url);
 				  	
 							}
 				  
@@ -507,15 +507,15 @@ ResourceDownloaderURLImpl
 			}
 			
 			try{
-				URL	url = new URL( original_url.toString().replaceAll( " ", "%20" ));
+				URL	outer_url = new URL( original_url.toString().replaceAll( " ", "%20" ));
 			      
 					// some authentications screw up without an explicit port number here
 				
-				String	protocol = url.getProtocol().toLowerCase();
+				String	protocol = outer_url.getProtocol().toLowerCase();
 				
 				if ( protocol.equals( "vuze" )){
 					
-					url = original_url;
+					outer_url = original_url;
 					
 				}else if ( protocol.equals( "file" )){
 					
@@ -531,7 +531,7 @@ ResourceDownloaderURLImpl
 					
 					return( fis );
 
-				}else if ( 	url.getPort() == -1 && 
+				}else if ( 	outer_url.getPort() == -1 && 
 							( protocol.equals( "http" ) || protocol.equals( "https" ))){
 					
 					int	target_port;
@@ -556,11 +556,11 @@ ResourceDownloaderURLImpl
 						
 						if ( pos == -1 ){
 							
-							url = new URL( str + ":" + target_port + "/" );
+							outer_url = new URL( str + ":" + target_port + "/" );
 							
 						}else{
 						
-							url = new URL( str.substring(0,pos) + ":" + target_port + str.substring(pos));
+							outer_url = new URL( str.substring(0,pos) + ":" + target_port + str.substring(pos));
 						}
 												
 					}catch( Throwable e ){
@@ -569,7 +569,7 @@ ResourceDownloaderURLImpl
 					}
 				}
 				
-				url = AddressUtils.adjustURL( url );
+				outer_url = AddressUtils.adjustURL( outer_url );
 				
 				try{
 					if ( force_no_proxy ){
@@ -579,7 +579,7 @@ ResourceDownloaderURLImpl
 					
 					if ( auth_supplied ){
 						
-						SESecurityManager.setPasswordHandler( url, this );
+						SESecurityManager.setPasswordHandler( outer_url, this );
 					}
 					
 					boolean	use_compression = true;
@@ -587,29 +587,32 @@ ResourceDownloaderURLImpl
 					boolean	follow_redirect = true;
 					
 					Set<String>	redirect_urls = new HashSet<String>();
+
+					URL		current_url		= outer_url;
+					Proxy 	current_proxy 	= force_proxy;
 					
+					URL	initial_url = current_url;
+
 redirect_label:
 					while( follow_redirect ){
 						
 						follow_redirect = false;
-					
-						URL	initial_url = url;
-						
+																	
 						PluginProxy	plugin_proxy;
 						
 						boolean		ok = false;
 						
 						if ( auto_plugin_proxy ){
 							
-							plugin_proxy = AEProxyFactory.getPluginProxy( "loading plugin details", url );
+							plugin_proxy = AEProxyFactory.getPluginProxy( "loading plugin details", current_url );
 			
 							if ( plugin_proxy == null ){
 								
 								throw( new ResourceDownloaderException( this, "No plugin proxy available" ));
 							}
 							
-							url			= plugin_proxy.getURL();
-							force_proxy	= plugin_proxy.getProxy();
+							current_url		= plugin_proxy.getURL();
+							current_proxy	= plugin_proxy.getProxy();
 							
 						}else{
 							
@@ -617,6 +620,7 @@ redirect_label:
 						}
 						
 						try{
+							
 							for ( int connect_loop=0;connect_loop<2;connect_loop++ ){
 						
 								File					temp_file	= null;
@@ -624,11 +628,11 @@ redirect_label:
 								try{
 									URLConnection	con;
 									
-									if ( url.getProtocol().equalsIgnoreCase("https")){
+									if ( current_url.getProtocol().equalsIgnoreCase("https")){
 								      	
 											// see ConfigurationChecker for SSL client defaults
 						
-										HttpsURLConnection ssl_con = (HttpsURLConnection)openConnection(url);
+										HttpsURLConnection ssl_con = (HttpsURLConnection)openConnection( current_proxy, current_url );
 						
 											// allow for certs that contain IP addresses rather than dns names
 						  	
@@ -648,23 +652,34 @@ redirect_label:
 						  	
 									}else{
 						  	
-										con = openConnection(url);
+										con = openConnection( current_proxy, current_url );
 						  	
 									}
+									
+									PluginProxy current_plugin_proxy = plugin_proxy==null?AEProxyFactory.getPluginProxy( force_proxy ):plugin_proxy;
 									
 									if ( con instanceof HttpURLConnection ){
 										
 											// we want this true but some plugins (grrr) set the global default not to follow
 											// redirects
 										
-										((HttpURLConnection)con).setInstanceFollowRedirects( true );
+										if ( current_plugin_proxy != null ){
+											
+												// need to manually handle redirects as we need to re-proxy
+											
+											((HttpURLConnection)con).setInstanceFollowRedirects( false );
+											
+										}else{
+											
+											((HttpURLConnection)con).setInstanceFollowRedirects( true );
+										}
 									}
-									
-									if ( plugin_proxy != null ){
+										
+									if ( current_plugin_proxy != null ){
 										
 										con.setRequestProperty( "HOST", initial_url.getHost() + (initial_url.getPort()==-1?"":(":" + initial_url.getPort())));
 									}
-									
+
 									con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
 						  
 									String connection = getStringProperty( "URL_Connection" );
@@ -755,17 +770,36 @@ redirect_label:
 												
 												URL	move_to_url = new URL( move_to ); // URLDecoder.decode( move_to, "UTF-8" ));
 												
-												String	original_protocol 	= url.getProtocol().toLowerCase();
+												boolean	follow = false;
+												
+												if ( current_plugin_proxy != null ){
+													
+													PluginProxy child = current_plugin_proxy.getChildProxy( move_to_url );
+													
+													if ( child != null ){
+														
+														initial_url		= move_to_url;
+																													
+														setProperty( "URL_HOST", initial_url.getHost() + (initial_url.getPort()==-1?"":(":" + initial_url.getPort())));
+
+														current_proxy	= child.getProxy();
+														move_to_url		= child.getURL();	
+														
+														follow = true;
+													}
+												}
+
+												String	original_protocol 	= current_url.getProtocol().toLowerCase();
 												String	new_protocol		= move_to_url.getProtocol().toLowerCase();
 												
-												if ( !original_protocol.equals( new_protocol )){
+												if ( follow || !original_protocol.equals( new_protocol )){
 													
-													url = move_to_url;
+													current_url = move_to_url;
 													
 													try{
 														List<String>	cookies_list = con.getHeaderFields().get( "Set-cookie" );
 														
-														List<String>	cookies_set = new ArrayList();
+														List<String>	cookies_set = new ArrayList<String>();
 														
 														if ( cookies_list != null ){
 															
@@ -851,7 +885,7 @@ redirect_label:
 										
 										getRequestProperties( con );
 										
-										throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( url ) + "': " + Integer.toString(response) + " " + http_con.getResponseMessage() + (error_str==null?"":( ": error=" + error_str ))));    
+										throw( new ResourceDownloaderException( this, "Error on connect for '" + trimForDisplay( current_url ) + "': " + Integer.toString(response) + " " + http_con.getResponseMessage() + (error_str==null?"":( ": error=" + error_str ))));    
 									}
 									
 									getRequestProperties( con );
@@ -1031,7 +1065,7 @@ redirect_label:
 									
 									if ( connect_loop == 0 ){
 										
-										if ( SESecurityManager.installServerCertificates( url ) != null ){
+										if ( SESecurityManager.installServerCertificates( current_url ) != null ){
 											
 												// certificate has been installed
 											
@@ -1067,11 +1101,11 @@ redirect_label:
 											}
 										}
 																      			
-							      		URL retry_url = UrlUtils.getIPV4Fallback( url );
+							      		URL retry_url = UrlUtils.getIPV4Fallback( current_url );
 							      			
 							      		if ( retry_url != null ){
 							      				
-							      			url = retry_url;
+							      			current_url = retry_url;
 							      			
 							      			continue;
 							      		}
@@ -1092,8 +1126,6 @@ redirect_label:
 							if ( plugin_proxy != null ){
 								
 								plugin_proxy.setOK( ok );
-								
-								force_proxy = null;
 							}
 						}
 					}
@@ -1104,7 +1136,7 @@ redirect_label:
 							
 					if ( auth_supplied ){
 								
-						SESecurityManager.setPasswordHandler( url, null );
+						SESecurityManager.setPasswordHandler( outer_url, null );
 					}
 					
 					if ( force_no_proxy ){
@@ -1293,7 +1325,8 @@ redirect_label:
 	
 	private URLConnection 
 	openConnection(
-		URL url) 
+		Proxy		proxy,
+		URL 		url ) 
 	
 		throws IOException 
 	{
@@ -1301,9 +1334,9 @@ redirect_label:
 		
 			return( url.openConnection( Proxy.NO_PROXY ));
 			
-		}else if ( force_proxy != null ){
+		}else if ( proxy != null ){
 			
-			return( url.openConnection( force_proxy ));
+			return( url.openConnection( proxy ));
 
 		}else{
 			
