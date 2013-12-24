@@ -2452,6 +2452,71 @@ DownloadManagerImpl
 		return( new Object[]{ response, active_url } );
 	}
 	
+	
+	public List<TRTrackerScraperResponse>
+	getGoodTrackerScrapeResponses()
+	{
+		List<TRTrackerScraperResponse> 	responses	= new ArrayList<TRTrackerScraperResponse>();
+		
+		if ( torrent != null){
+			
+			TRTrackerScraper	scraper = globalManager.getTrackerScraper();
+
+    	
+			TOTorrentAnnounceURLSet[]	sets;
+			
+			try{
+				sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+				
+			}catch( Throwable e ){
+				
+				sets = new  TOTorrentAnnounceURLSet[0];
+			}
+    	
+			if ( sets.length == 0 ){
+    	
+				TRTrackerScraperResponse response = scraper.peekScrape( torrent, null );
+   
+				if ( response!= null ){
+					
+					int status = response.getStatus();
+										
+					if ( status == TRTrackerScraperResponse.ST_ONLINE ) {
+						
+						responses.add( response );
+					}
+				}
+			}else{
+    			       		
+				for (int i=0; i<sets.length;i++){
+    			
+					TOTorrentAnnounceURLSet	set = sets[i];
+    			
+					URL[]	urls = set.getAnnounceURLs();
+    			   							 				 	
+					for ( URL url: urls ){
+												
+						TRTrackerScraperResponse response = scraper.peekScrape( torrent, url );
+			 		
+						if ( response!= null ){
+							
+							int status = response.getStatus();
+														
+							if ( status == TRTrackerScraperResponse.ST_ONLINE ) {
+								
+
+								responses.add( response );
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return( responses );
+	}
+	
+	
 	public void
 	requestTrackerAnnounce(
 		boolean	force )

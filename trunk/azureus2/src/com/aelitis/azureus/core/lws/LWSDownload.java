@@ -542,6 +542,12 @@ LWSDownload
 		return( scrape_result );
 	}
 
+	public DownloadScrapeResult
+	getAggregatedScrapeResult()
+	{
+		return( getLastScrapeResult());
+	}
+	
 	public DownloadActivationEvent
 	getActivationState()
 	{

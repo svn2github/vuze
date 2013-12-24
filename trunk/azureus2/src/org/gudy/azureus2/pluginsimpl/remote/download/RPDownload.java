@@ -37,7 +37,6 @@ import org.gudy.azureus2.plugins.download.savelocation.*;
 import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.*;
-
 import org.gudy.azureus2.pluginsimpl.remote.*;
 import org.gudy.azureus2.pluginsimpl.remote.disk.RPDiskManagerFileInfo;
 import org.gudy.azureus2.pluginsimpl.remote.torrent.*;
@@ -551,6 +550,14 @@ RPDownload
 	getLastScrapeResult()
 	{
 		return( scrape_result );
+	}
+	
+	public DownloadScrapeResult
+	getAggregatedScrapeResult()
+	{
+		notSupported();
+		
+		return( null );
 	}
 	
 	public DownloadStats

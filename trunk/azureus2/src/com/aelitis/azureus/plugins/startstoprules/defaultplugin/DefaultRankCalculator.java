@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.DownloadStats;
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
@@ -466,11 +467,11 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 		// when bAutoStart0Peers
 		if (iRankType == StartStopRulesDefaultPlugin.RANK_TIMED
 				&& !isFirstPriority()
-				&& !(bAutoStart0Peers && rules.calcPeersNoUs(dl) == 0 && lastScrapeResultOk)) {
+				&& !(bAutoStart0Peers && rules.calcPeersNoUs(dl,dl.getAggregatedScrapeResult()) == 0 && lastScrapeResultOk)) {
 			bIsActive = (state == Download.ST_SEEDING);
 
 		} else if (state != Download.ST_SEEDING
-				|| (bAutoStart0Peers && rules.calcPeersNoUs(dl) == 0)) {
+				|| (bAutoStart0Peers && rules.calcPeersNoUs(dl,dl.getAggregatedScrapeResult()) == 0)) {
 			// Not active if we aren't seeding
 			// Not active if we are AutoStarting 0 Peers, and peer count == 0
 			bIsActive = false;
@@ -551,8 +552,9 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 			// here we are seeding
 
 			lastModifiedShareRatio = stats.getShareRatio();
-			lastModifiedScrapeResultPeers = rules.calcPeersNoUs(dl);
-			lastModifiedScrapeResultSeeds = rules.calcSeedsNoUs(dl);
+			DownloadScrapeResult sr = dl.getAggregatedScrapeResult();
+			lastModifiedScrapeResultPeers = rules.calcPeersNoUs(dl,sr);
+			lastModifiedScrapeResultSeeds = rules.calcSeedsNoUs(dl,sr);
 
 			boolean bScrapeResultsOk = (lastModifiedScrapeResultPeers > 0 || lastModifiedScrapeResultSeeds > 0
 					|| lastScrapeResultOk) && (lastModifiedScrapeResultPeers >= 0 && lastModifiedScrapeResultSeeds >= 0);
@@ -1052,7 +1054,7 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 	public boolean changeChecker() {
 		if (getActivelySeeding()) {
 			int shareRatio = dl.getStats().getShareRatio();
-			int numSeeds = rules.calcSeedsNoUs(dl);
+			int numSeeds = rules.calcSeedsNoUs(dl,dl.getAggregatedScrapeResult());
 
 			int	activeMaxSR = dlSpecificMaxShareRatio;
 			if ( activeMaxSR <= 0 ){

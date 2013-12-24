@@ -27,6 +27,7 @@ package org.gudy.azureus2.pluginsimpl.local.download;
  */
 
 import java.io.File;
+import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.category.Category;
@@ -50,6 +51,7 @@ import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
@@ -82,11 +84,13 @@ DownloadImpl
 	private final DownloadManager			download_manager;
 	private final DownloadStatsImpl			download_stats;
 	
-	private int		latest_state		= ST_STOPPED;
+	private int			latest_state		= ST_STOPPED;
 	private boolean 	latest_forcedStart;
 	
-	private DownloadAnnounceResultImpl	last_announce_result 	= new DownloadAnnounceResultImpl(this,null);
+	private DownloadAnnounceResultImpl		last_announce_result 	= new DownloadAnnounceResultImpl(this,null);
 	private DownloadScrapeResultImpl		last_scrape_result		= new DownloadScrapeResultImpl( this, null );
+	private AggregateScrapeResult			last_aggregate_scrape	= new AggregateScrapeResult( this );
+	
     private TorrentImpl torrent = null;
 	
 	private List		listeners 				= new ArrayList();
@@ -1061,6 +1065,123 @@ DownloadImpl
 		return( last_scrape_result );
 	}
 	
+	public DownloadScrapeResult
+	getAggregatedScrapeResult()
+	{
+		List<TRTrackerScraperResponse> responses = download_manager.getGoodTrackerScrapeResponses();
+		
+		int	best_peers 	= -1;
+		int best_seeds	= -1;
+		int	best_time	= -1;
+		
+		TRTrackerScraperResponse	best_resp	= null;
+		
+		if ( responses != null ){
+			
+			for ( TRTrackerScraperResponse response: responses ){
+				
+				int	peers = response.getPeers();
+				int seeds = response.getSeeds();
+				
+				if ( 	peers > best_peers ||
+						( peers == best_peers && seeds > best_seeds )){
+					
+					best_peers	= peers;
+					best_seeds	= seeds;
+					
+					best_resp = response;
+				}
+			}
+		}
+		
+			// if no good real tracker responses then use less reliable DHT ones
+		
+		if ( best_peers == -1 ){
+			
+			try{
+				TrackerPeerSource our_dht = null;
+				
+				List<TrackerPeerSource> peer_sources = download_manager.getTrackerPeerSources();
+					
+				for ( TrackerPeerSource ps: peer_sources ){
+					
+					if ( ps.getType() == TrackerPeerSource.TP_DHT ){
+						
+						our_dht = ps;
+						
+						break;
+					}
+				}
+				
+				peer_listeners_mon.enter();
+				
+				if ( announce_response_map != null ){
+					
+					int	total_seeds = 0;
+					int total_peers	= 0;
+					int	latest_time	= 0;
+					
+					int	num = 0;
+					
+					if ( our_dht != null && our_dht.getStatus() == TrackerPeerSource.ST_ONLINE ){
+					
+						total_seeds = our_dht.getSeedCount();
+						total_peers	= our_dht.getLeecherCount();
+						latest_time = our_dht.getLastUpdate();
+						
+						num = 1;
+					}
+					
+					for ( int[] entry: announce_response_map.values()){
+						
+						num++;
+						
+						int	seeds 	= entry[0];
+						int	peers 	= entry[1];
+						int time	= entry[3];
+						
+						total_seeds += seeds;
+						total_peers += peers;
+						
+						if ( time > latest_time ){
+							
+							latest_time	= time;
+						}
+					}
+					
+					if ( total_peers >= 0 ){
+						
+						best_peers	= Math.max( 1, total_peers / num );
+						best_seeds	= total_seeds / num;
+						
+						if ( total_seeds > 0 && best_seeds == 0 ){
+							
+							best_seeds = 1;
+						}
+						best_time	= latest_time;
+						best_resp	= null;
+					}
+				}
+				
+			}finally{
+				
+				peer_listeners_mon.exit();
+			}
+		}
+		
+		if ( best_peers >= 0 ){
+			
+			// System.out.println( download_manager.getDisplayName() + ": " + best_peers + "/" + best_seeds + "/" + best_resp );
+			
+			last_aggregate_scrape.update( best_resp, best_seeds, best_peers, best_time );
+			
+			return( last_aggregate_scrape );
+			
+		}else{
+			
+			return( getLastScrapeResult());
+		}
+	}
 	
 	public void
 	scrapeResult(
@@ -1339,7 +1460,7 @@ DownloadImpl
 				
 				if ( data == null ){
 					
-					data = new int[3];
+					data = new int[4];
 					
 					announce_response_map.put( class_name, data );
 				}
@@ -1347,6 +1468,7 @@ DownloadImpl
 				data[0]	= seeds;
 				data[1]	= leechers;
 				data[2]	= peer_count;
+				data[3] = (int)(SystemTime.getCurrentTime()/1000);
 				
 			}finally{
 				
@@ -1389,14 +1511,14 @@ DownloadImpl
 				
 				if ( data == null ){
 					
-					data = new int[3];
+					data = new int[4];
 					
 					announce_response_map.put( class_name, data );
 				}
 				
 				data[0]	= seeds;
 				data[1]	= leechers;
-				
+				data[3] = (int)(SystemTime.getCurrentTime()/1000);
 			}finally{
 				
 				peer_listeners_mon.exit();
@@ -2269,4 +2391,110 @@ DownloadImpl
 		 }
 	 }
 	 
+	 private static class
+	 AggregateScrapeResult
+	 	implements DownloadScrapeResult
+	 {
+		private Download	dl;
+		
+		private TRTrackerScraperResponse		response;
+		
+		private int		seeds;
+		private int		leechers;
+		
+		private int		time_secs;
+		
+		private
+		AggregateScrapeResult(
+			Download		_dl )
+		{
+			dl	= _dl;
+		}
+		
+		private void
+		update(
+			TRTrackerScraperResponse		_response,
+			int								_seeds,
+			int								_peers,
+			int								_time_secs )
+		{
+			response			= _response;
+			seeds				= _seeds;
+			leechers			= _peers;
+			time_secs			= _time_secs;
+		}
+		
+		public Download
+		getDownload()
+		{
+			return( dl );
+		}
+		
+		public int
+		getResponseType()
+		{
+			return( RT_SUCCESS );
+		}
+		
+		public int
+		getSeedCount()
+		{
+			return( seeds );
+		}
+		
+		public int
+		getNonSeedCount()
+		{
+			return( leechers );
+		}
+
+		public long
+		getScrapeStartTime()
+		{
+			TRTrackerScraperResponse r = response;
+				
+			if ( r != null ){
+				
+				return( r.getScrapeStartTime());
+			}
+		
+			if ( time_secs <= 0 ){
+				
+				return( -1 );
+				
+			}else{
+				
+				return( time_secs * 1000L );
+			}
+		}
+
+		public void 
+		setNextScrapeStartTime(
+			long nextScrapeStartTime)
+		{
+			Debug.out( "Not Supported" );
+		}
+
+		public long
+		getNextScrapeStartTime()
+		{
+			TRTrackerScraperResponse r = response;
+			
+			return( r == null?-1:r.getScrapeStartTime());
+		}
+
+		public String
+		getStatus()
+		{
+			return( "Aggregate Scrape" );
+		}
+
+		public URL
+		getURL()
+		{
+			TRTrackerScraperResponse r = response;
+			
+			return( r == null?null:r.getURL());
+		}
+	 }
 }

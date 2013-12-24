@@ -207,6 +207,9 @@ DownloadManager
     public TRTrackerScraperResponse
     getTrackerScrapeResponse();
 
+	public List<TRTrackerScraperResponse>
+	getGoodTrackerScrapeResponses();
+	
     public void
     setTrackerScrapeResponse(
         TRTrackerScraperResponse    response );

@@ -651,6 +651,14 @@ Download extends DownloadEventNotifier, DownloadStub
 	getLastScrapeResult();
 	
 	/**
+	 * Returns an aggregated scrape result of all good results, or if none the same as getLastScrapeResult
+	 * @return
+	 */
+	
+	public DownloadScrapeResult
+	getAggregatedScrapeResult();
+	
+	/**
 	 * Gives access to the current activation state. Note that we currently only fire the activation listener
 	 * on an increase in activation requirements. This method however gives the current view of the state
 	 * and takes into account decreases too

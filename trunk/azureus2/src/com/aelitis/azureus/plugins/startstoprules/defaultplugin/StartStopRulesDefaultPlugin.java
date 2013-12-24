@@ -673,7 +673,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			if (download.isComplete()) {
 				// quick and dirty check: keep connection if scrape peer count is 0
 				// there's a (good?) chance we'll start in the next process cycle 
-				DownloadScrapeResult sr = event.getDownload().getLastScrapeResult();
+				DownloadScrapeResult sr = event.getDownload().getAggregatedScrapeResult();
 				int numPeers = sr.getNonSeedCount();
 				if (numPeers <= 0) {
 					return true;
@@ -1146,7 +1146,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					boolean bScrapeOk = true;
 					if (!bOkToStartSeeding) {
 						bScrapeOk = scrapeResultOk(download);
-						if (calcSeedsNoUs(download) == 0 && bScrapeOk)
+						if (calcSeedsNoUs(download,download.getAggregatedScrapeResult()) == 0 && bScrapeOk)
 							bOkToStartSeeding = true;
 						else if ((download.getSeedingRank() > 0)
 								&& (state == Download.ST_QUEUED || state == Download.ST_READY)
@@ -2409,9 +2409,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	 * Get # of peers not including us
 	 *
 	 */
-	public int calcPeersNoUs(Download download) {
+	public int calcPeersNoUs(Download download, DownloadScrapeResult sr) {
 		int numPeers = 0;
-		DownloadScrapeResult sr = download.getLastScrapeResult();
 		if (sr.getScrapeStartTime() > 0) {
 			numPeers = sr.getNonSeedCount();
 			// If we've scraped after we started downloading
@@ -2438,7 +2437,7 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	}
 
 	private boolean scrapeResultOk(Download download) {
-		DownloadScrapeResult sr = download.getLastScrapeResult();
+		DownloadScrapeResult sr = download.getAggregatedScrapeResult();
 		return (sr.getResponseType() == DownloadScrapeResult.RT_SUCCESS);
 	}
 
@@ -2447,8 +2446,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	 * @param download Download to get # of seeds for
 	 * @return seed count
 	 */
-	public int calcSeedsNoUs(Download download) {
-		return calcSeedsNoUs(download, calcPeersNoUs(download));
+	public int calcSeedsNoUs(Download download, DownloadScrapeResult sr ) {
+		return calcSeedsNoUs(download, sr, calcPeersNoUs( download, sr ));
 	}
 
 	/** Get # of seeds, not including us, AND including fake full copies
@@ -2457,9 +2456,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	 * @param numPeers # peers we know of, required to calculate Fake Full Copies
 	 * @return seed count
 	 */
-	public int calcSeedsNoUs(Download download, int numPeers) {
+	public int calcSeedsNoUs(Download download, DownloadScrapeResult sr, int numPeers) {
 		int numSeeds = 0;
-		DownloadScrapeResult sr = download.getLastScrapeResult();
 		if (sr.getScrapeStartTime() > 0) {
 			long seedingStartedOn = download.getStats().getTimeStartedSeeding();
 			numSeeds = sr.getSeedCount();
