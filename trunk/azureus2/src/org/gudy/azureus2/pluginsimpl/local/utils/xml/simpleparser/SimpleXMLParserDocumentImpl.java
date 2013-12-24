@@ -22,6 +22,7 @@
 package org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser;
 
 import javax.xml.parsers.*;
+
 import org.xml.sax.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
@@ -33,6 +34,7 @@ import org.w3c.dom.*;
 import java.io.*;
 import java.net.InetAddress;
 import java.net.URL;
+import java.net.URLConnection;
 import java.net.UnknownHostException;
 import java.util.*;
 
@@ -157,10 +159,28 @@ SimpleXMLParserDocumentImpl
 						// handle bad DTD external refs
 						
 						try{
-							String host = new URL( systemId ).getHost();
+							URL url  = new URL( systemId );
+							
+							String host = url.getHost();
 							
 							InetAddress.getByName( host );
 							
+								// try connecting too as connection-refused will also bork XML parsing
+							
+							try{
+								URLConnection con = url.openConnection();
+								
+								con.setConnectTimeout( 15*1000 );
+								con.setReadTimeout( 15*1000 );
+								
+								InputStream is = con.getInputStream();
+										
+								is.close();
+								
+							}catch( Throwable e ){
+								
+								return new InputSource(	new ByteArrayInputStream("<?xml version='1.0' encoding='UTF-8'?>".getBytes()));
+							}
 							return( null );
 							
 						}catch( UnknownHostException e ){
