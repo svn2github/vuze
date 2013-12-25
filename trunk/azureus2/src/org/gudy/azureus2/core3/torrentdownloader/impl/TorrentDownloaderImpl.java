@@ -25,14 +25,19 @@
 package org.gudy.azureus2.core3.torrentdownloader.impl;
 
 import java.io.*;
-
 import java.net.HttpURLConnection;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLDecoder;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.zip.GZIPInputStream;
@@ -49,7 +54,10 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection;
 import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection2;
 import org.gudy.azureus2.core3.torrent.*;
+import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 
 
@@ -60,6 +68,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 
   private String	original_url; 
   private String 	url_str;
+  private Proxy		proxy;
   private String	referrer;
   private Map		request_properties;
   private String 	file_str;
@@ -93,6 +102,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   init(
   		TorrentDownloaderCallBackInterface	_iface, 
 		String 								_url,
+		Proxy								_proxy,
 		String								_referrer,
 		Map									_request_properties,
 		String								_file )
@@ -110,6 +120,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     setName("TorrentDownloader: " + _url);
     
     url_str 			= _url;
+    proxy				= _proxy;
     referrer			= _referrer;
     request_properties	= _request_properties;
     file_str			= _file;
@@ -159,8 +170,8 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 
   	try{
   		new URL( url_str );  //determine if this is already a proper URL
-  	}
-  	catch( Throwable t ) {  //it's not
+  		
+  	}catch( Throwable t ) {  //it's not
   		
   			//check if the string is just a base32/hex-encoded torrent infohash
   		
@@ -172,10 +183,10 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
   		}
   	}
  
-    try {      
+    try{      
     	url = AddressUtils.adjustURL( new URL(url_str));
       
-    	String	protocol = url.getProtocol().toLowerCase();
+    	String	protocol = url.getProtocol().toLowerCase( Locale.US );
 	  
     	// hack here - the magnet download process requires an additional paramter to cause it to
     	// stall on error so the error can be reported
@@ -185,120 +196,258 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     		url = AddressUtils.adjustURL( new URL(url_str+"&pause_on_error=true"));
     	}
 	  
-    	for (int i=0;i<2;i++){
-    		try{
+		Set<String>	redirect_urls = new HashSet<String>();
 
-    			if ( protocol.equals("https")){
-
-    				// see ConfigurationChecker for SSL client defaults
-
-    				HttpsURLConnection ssl_con = (HttpsURLConnection)url.openConnection();
-
-    				// allow for certs that contain IP addresses rather than dns names
-
-    				ssl_con.setHostnameVerifier(
-    						new HostnameVerifier()
-    						{
-    							public boolean
-    							verify(
-    									String		host,
-    									SSLSession	session )
-    							{
-    								return( true );
-    							}
-    						});
-
-    				con = ssl_con;
-
-    			}else{
-
-    				con = url.openConnection();
-
-    			}
-
-				if ( con instanceof HttpURLConnection ){
+    	boolean follow_redirect = true;
+    	
+    	URL		current_url		= url;
+    	Proxy	current_proxy	= proxy;
+    	
+    	PluginProxy	current_plugin_proxy = AEProxyFactory.getPluginProxy( current_proxy );
+    	
+ redirect_label:
+	 
+		while( follow_redirect ){
+				
+			follow_redirect = false;   	
+			
+	    	for (int connect_loop=0;connect_loop<2;connect_loop++){
+	    		
+	    		try{
+	
+	    			if ( protocol.equals("https")){
+	
+	    				// see ConfigurationChecker for SSL client defaults
+	
+	    				HttpsURLConnection ssl_con;
+	    				
+	    				if ( current_proxy == null ){
+	    					
+	    					ssl_con = (HttpsURLConnection)current_url.openConnection();
+	    					
+	    				}else{
+	    					
+	    					ssl_con = (HttpsURLConnection)current_url.openConnection( current_proxy );
+	    				}
+	
+	    				// allow for certs that contain IP addresses rather than dns names
+	
+	    				ssl_con.setHostnameVerifier(
+	    						new HostnameVerifier()
+	    						{
+	    							public boolean
+	    							verify(
+	    									String		host,
+	    									SSLSession	session )
+	    							{
+	    								return( true );
+	    							}
+	    						});
+	
+	    				con = ssl_con;
+	
+	    			}else{
+	
+	    				if ( current_proxy == null ){
+	    					
+	    					con = current_url.openConnection();
+	    					
+	    				}else{
+	    					
+	    					con = current_url.openConnection( current_proxy );
+	    				}
+	    			}
+	
+					if ( con instanceof HttpURLConnection ){
+						
+							// we want this true but some plugins (grrr) set the global default not to follow
+							// redirects
 					
-						// we want this true but some plugins (grrr) set the global default not to follow
-						// redirects
-				
-					((HttpURLConnection)con).setInstanceFollowRedirects( true );
-				}
-				
-    			con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
-
-    			if ( referrer != null && referrer.length() > 0 ){
-
-    				con.setRequestProperty( "Referer", referrer );
-    			}
-
-    			if ( request_properties != null ){
-
-    				Iterator it = request_properties.entrySet().iterator();
-
-    				while( it.hasNext()){
-
-    					Map.Entry	entry = (Map.Entry)it.next();
-
-    					String	key 	= (String)entry.getKey();
-    					String	value	= (String)entry.getValue();
-
-    					// currently this code doesn't support gzip/deflate...
-
-    					if ( !key.equalsIgnoreCase( "Accept-Encoding" )){
-
-    						con.setRequestProperty( key, value );
-    					}
-    				}
-    			}
-
-    			this.con.connect();
-    			
-    			String magnetURI = con.getHeaderField("Magnet-Uri");
-    			if (magnetURI != null) {
-    				closeConnection();
-    				url_str = magnetURI;
-    				runSupport();
-    				return;
-    			}
-
-    			break;
-
-    		}catch( SSLException e ){
-
-    			if ( i == 0 ){
-
-    				if ( SESecurityManager.installServerCertificates( url ) != null ){
-
-    					// certificate has been installed
-
-    					continue;	// retry with new certificate
-    				}
-    			}
-
-    			throw( e );
-
-    		}catch( IOException e ){
-
-    			if ( i == 0 ){
-
-    				URL retry_url = UrlUtils.getIPV4Fallback( url );
-
-    				if ( retry_url != null ){
-
-    					url = retry_url;
-
-    				}else{
-
-    					throw( e );
-    				}
-    			}
-    			
-    			if ( e instanceof UnknownHostException ){
-    				
-    				throw( e );
-    			}
-    		}
-      }
+						((HttpURLConnection)con).setInstanceFollowRedirects( proxy==null );
+					}
+					
+	    			con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
+	
+	    			if ( referrer != null && referrer.length() > 0 ){
+	
+	    				con.setRequestProperty( "Referer", referrer );
+	    			}
+	
+	    			if ( request_properties != null ){
+	
+	    				Iterator it = request_properties.entrySet().iterator();
+	
+	    				while( it.hasNext()){
+	
+	    					Map.Entry	entry = (Map.Entry)it.next();
+	
+	    					String	key 	= (String)entry.getKey();
+	    					String	value	= (String)entry.getValue();
+	
+	    					// currently this code doesn't support gzip/deflate...
+	
+	    					if ( !key.equalsIgnoreCase( "Accept-Encoding" )){
+	
+	    						con.setRequestProperty( key, value );
+	    					}
+	    				}
+	    			}
+	
+	    			this.con.connect();
+	    			
+	    			String magnetURI = con.getHeaderField("Magnet-Uri");
+	    			
+	    			if ( magnetURI != null ){
+	    				
+	    				closeConnection();
+	    				
+	    				url_str = magnetURI;
+	    				
+	    				runSupport();
+	    				
+	    				return;
+	    			}
+	
+	    	  		int response = con instanceof HttpURLConnection?((HttpURLConnection)con).getResponseCode():HttpURLConnection.HTTP_OK;
+	
+					if ( 	response == HttpURLConnection.HTTP_MOVED_TEMP ||
+							response == HttpURLConnection.HTTP_MOVED_PERM ){
+						
+							// auto redirect doesn't work from http to https or vice-versa
+						
+						String	move_to = con.getHeaderField( "location" );
+						
+						if ( move_to != null ){
+							
+							if ( redirect_urls.contains( move_to ) || redirect_urls.size() > 32 ){
+								
+								break;
+							}
+							
+							redirect_urls.add( move_to );
+							
+							try{
+									// don't URL decode the move-to as its already in the right format!
+								
+								URL	move_to_url = new URL( move_to ); // URLDecoder.decode( move_to, "UTF-8" ));
+								
+								boolean	follow = false;
+								
+								if ( current_plugin_proxy != null ){
+									
+									PluginProxy child = current_plugin_proxy.getChildProxy( "redirect", move_to_url );
+									
+									if ( child != null ){
+																				
+											// use an overall property to force this through on the redirect
+										
+										request_properties.put( "HOST", move_to_url.getHost() + (move_to_url.getPort()==-1?"":(":" + move_to_url.getPort())));
+	
+										current_proxy	= child.getProxy();
+										move_to_url		= child.getURL();	
+										
+										follow = true;
+									}
+								}
+	
+								String	original_protocol 	= current_url.getProtocol().toLowerCase();
+								String	new_protocol		= move_to_url.getProtocol().toLowerCase();
+								
+								if ( follow || !original_protocol.equals( new_protocol )){
+									
+									current_url = move_to_url;
+									
+									try{
+										List<String>	cookies_list = con.getHeaderFields().get( "Set-cookie" );
+										
+										List<String>	cookies_set = new ArrayList<String>();
+										
+										if ( cookies_list != null ){
+											
+											for (int i=0;i<cookies_list.size();i++){
+												
+												String[] cookie_bits = ((String)cookies_list.get(i)).split(";");
+												
+												if ( cookie_bits.length > 0 ){
+												
+													cookies_set.add( cookie_bits[0] );
+												}
+											}
+										}
+										
+										if ( cookies_set.size() > 0 ){
+											
+											String	new_cookies = "";
+																					
+											Object obj = request_properties.get( "Cookie" );
+											
+											if ( obj instanceof String ){
+											
+												new_cookies = (String)obj;
+											}
+											
+											for ( String s: cookies_set ){
+												
+												new_cookies += (new_cookies.length()==0?"":"; ") + s;
+											}
+											
+											request_properties.put( "Cookie", new_cookies );
+										}
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
+									
+									follow_redirect = true;
+									
+									continue redirect_label;
+								}
+							}catch( Throwable e ){
+								
+							}
+						}
+					}
+	    			 			
+	    			
+	    			break;
+	
+	    		}catch( SSLException e ){
+	
+	    			if ( connect_loop == 0 ){
+	
+	    				if ( SESecurityManager.installServerCertificates( url ) != null ){
+	
+	    					// certificate has been installed
+	
+	    					continue;	// retry with new certificate
+	    				}
+	    			}
+	
+	    			throw( e );
+	
+	    		}catch( IOException e ){
+	
+	    			if ( connect_loop == 0 ){
+	
+	    				URL retry_url = UrlUtils.getIPV4Fallback( url );
+	
+	    				if ( retry_url != null ){
+	
+	    					url = retry_url;
+	
+	    				}else{
+	
+	    					throw( e );
+	    				}
+	    			}
+	    			
+	    			if ( e instanceof UnknownHostException ){
+	    				
+	    				throw( e );
+	    			}
+	    		}
+	    	}
+		}
       
   		int response = con instanceof HttpURLConnection?((HttpURLConnection)con).getResponseCode():HttpURLConnection.HTTP_OK;
     	if (!ignoreReponseCode) {
