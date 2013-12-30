@@ -329,7 +329,7 @@ public class TorrentDownloaderFactory {
 		  	  	  				 				props.putAll( request_properties );
 		  	  	  				 			}
 		  	  	  				 			
-		  	  	  				 			props.put( "HOST", original_url.getHost() + (original_url.getPort()==-1?"":(":"+original_url.getPort())));
+		  	  	  				 			props.put( "HOST", plugin_proxy.getURLHostRewrite() + (original_url.getPort()==-1?"":(":"+original_url.getPort())));
 		  	  	  				 			
 		  	  	  				  			delegate.init( this, plugin_proxy.getURL().toExternalForm(), plugin_proxy.getProxy(), referrer, props, fileordir );
 		  	  	  				  				  	  	  							

@@ -100,6 +100,9 @@ AEProxyFactory
 		getURL();
 		
 		public String
+		getURLHostRewrite();
+		
+		public String
 		getHost();
 		
 		public int

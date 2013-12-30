@@ -124,6 +124,13 @@ AEPluginProxyHandler
 					
 					if ( proxy_details != null ){
 						
+						if ( proxy_details.length == 2 ){
+						
+								// support old plugins
+							
+							proxy_details = new Object[]{ proxy_details[0], proxy_details[1], target.getHost()};
+						}
+						
 						return( new PluginProxyImpl( reason, ipc, proxy_details ));
 					}
 				}catch( Throwable e ){				
@@ -264,11 +271,21 @@ AEPluginProxyHandler
 			return((Proxy)proxy_details[0]);
 		}
 		
+			// URL methods
+		
 		public URL
 		getURL()
 		{
 			return((URL)proxy_details[1]);
 		}
+		
+		public String
+		getURLHostRewrite()
+		{
+			return((String)proxy_details[2]);
+		}
+		
+			// host:port methods
 		
 		public String
 		getHost()

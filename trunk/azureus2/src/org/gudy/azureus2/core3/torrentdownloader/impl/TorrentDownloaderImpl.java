@@ -341,7 +341,7 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 																				
 											// use an overall property to force this through on the redirect
 										
-										request_properties.put( "HOST", move_to_url.getHost() + (move_to_url.getPort()==-1?"":(":" + move_to_url.getPort())));
+										request_properties.put( "HOST", child.getURLHostRewrite() + (move_to_url.getPort()==-1?"":(":" + move_to_url.getPort())));
 	
 										current_proxy	= child.getProxy();
 										move_to_url		= child.getURL();	

@@ -37,4 +37,13 @@ StringParameter
 	
 	public String
 	getValue();
+	
+		/**
+		 * @since 5201
+		 * @param visible_line_count
+		 */
+	
+	public void
+	setMultiLine(
+		int	visible_line_count );
 }

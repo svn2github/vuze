@@ -27,7 +27,9 @@ import org.gudy.azureus2.plugins.ui.config.StringParameter;
 
 public class StringParameterImpl extends ParameterImpl implements StringParameter
 {
-	private String defaultValue;
+	private String 	defaultValue;
+	private int		line_count;
+	
 	public StringParameterImpl(PluginConfigImpl config,String key, String label, String defaultValue)
 	{ 
 		super(config,key, label);
@@ -55,5 +57,18 @@ public class StringParameterImpl extends ParameterImpl implements StringParamete
 		String	s )
 	{
 		config.setUnsafeStringParameter(getKey(), s);
+	}
+	
+	public void
+	setMultiLine(
+		int	visible_line_count )
+	{
+		line_count = visible_line_count;
+	}
+	
+	public int
+	getMultiLine()
+	{
+		return( line_count );
 	}
 }

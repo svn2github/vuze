@@ -415,10 +415,26 @@ BasicPluginConfigImpl
 
 				StringParameterImpl s_param = (StringParameterImpl)param;
 				
-				swt_param = new StringParameter(current_composite, key, s_param.getDefaultValue(), s_param.getGenerateIntermediateEvents());
+				int	num_lines = s_param.getMultiLine();
 				
-				swt_param.setLayoutData( gridData );
+				if ( num_lines <= 1 ){
 				
+					swt_param = new StringParameter(current_composite, key, s_param.getDefaultValue(), s_param.getGenerateIntermediateEvents());
+				
+				
+					swt_param.setLayoutData( gridData );
+					
+				}else{
+					
+					StringAreaParameter sa_param =  new StringAreaParameter(current_composite, key, s_param.getDefaultValue());			
+					
+					swt_param = sa_param;
+					
+					gridData.heightHint = sa_param.getPreferredHeight( num_lines );
+					
+					swt_param.setLayoutData( gridData );
+
+				}
 			}else if ( param instanceof InfoParameterImpl ){
 				
 				GridData gridData = new GridData(GridData.FILL_HORIZONTAL);

@@ -214,9 +214,9 @@ SFPluginDetailsLoaderImpl
 					try{
 						ResourceDownloader dl = rd_factory.create( url, proxy );
 						
-						if ( proxy != null ){
+						if ( plugin_proxy != null ){
 							
-							dl.setProperty( "URL_HOST", original_url.getHost());
+							dl.setProperty( "URL_HOST", plugin_proxy.getURLHostRewrite());
 						}	
 						
 						dl = rd_factory.getRetryDownloader( dl, 5 );

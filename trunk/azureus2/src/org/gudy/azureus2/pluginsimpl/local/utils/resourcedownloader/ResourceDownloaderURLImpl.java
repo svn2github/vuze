@@ -321,7 +321,7 @@ ResourceDownloaderURLImpl
 				  
 							if ( plugin_proxy != null ){
 							
-								con.setRequestProperty( "HOST", initial_url.getHost() + (initial_url.getPort()==-1?"":(":" + initial_url.getPort())));
+								con.setRequestProperty( "HOST", plugin_proxy.getURLHostRewrite() + (initial_url.getPort()==-1?"":(":" + initial_url.getPort())));
 							}
 							
 							con.setRequestMethod( "HEAD" );
@@ -680,7 +680,7 @@ redirect_label:
 										
 									if ( current_plugin_proxy != null ){
 										
-										con.setRequestProperty( "HOST", initial_url.getHost() + (initial_url.getPort()==-1?"":(":" + initial_url.getPort())));
+										con.setRequestProperty( "HOST", current_plugin_proxy.getURLHostRewrite() + (initial_url.getPort()==-1?"":(":" + initial_url.getPort())));
 									}
 
 									con.setRequestProperty("User-Agent", Constants.AZUREUS_NAME + " " + Constants.AZUREUS_VERSION);     
