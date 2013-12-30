@@ -1119,15 +1119,15 @@ PairingManagerImpl
 										synchronized( local_address_checks ){
 											
 											local_address_checks.put( a_str, new Object[]{ new Long(now), result });
-										}
-										
-										if ( ia instanceof Inet4Address ){
-												
-											latest_v4_locals.add( result );
-												
-										}else{
-												
-											latest_v6_locals.add( result );
+																		
+											if ( ia instanceof Inet4Address ){
+													
+												latest_v4_locals.add( result );
+													
+											}else{
+													
+												latest_v6_locals.add( result );
+											}
 										}
 									}
 								});
@@ -1160,6 +1160,7 @@ PairingManagerImpl
 						{
 							try{
 								r.run();
+								
 							}finally{
 								
 								sem.release();
