@@ -125,6 +125,9 @@ DiskManagerFileInfo
 	public int
 	getWriteBytesPerSecond();
 	
+	public long
+	getETA();
+	
 	public void
 	close();
 	

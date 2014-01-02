@@ -585,6 +585,7 @@ DiskManagerFileInfoImpl
 		
 	private volatile LazyMovingImmediateAverageState	read_average_state;
 	private volatile LazyMovingImmediateAverageState	write_average_state;
+	private volatile LazyMovingImmediateAverageState	eta_average_state;
 	
 	private static LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl> read_adapter = 
 			new LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl>()
@@ -637,17 +638,79 @@ DiskManagerFileInfoImpl
 					return( instance.cache_file.getSessionBytesWritten());
 				}
 			};
+		
+	private static LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl> eta_adapter = 
+			new LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl>()
+			{
+				public LazyMovingImmediateAverageState
+				getCurrent(
+					DiskManagerFileInfoImpl		instance )
+				{
+					return( instance.eta_average_state );
+				}
+				
+				public void 
+				setCurrent(
+					DiskManagerFileInfoImpl 				instance,
+					LazyMovingImmediateAverageState 		average ) 
+				{
+					instance.eta_average_state = average;
+				}
+				
+				public long 
+				getValue(
+					DiskManagerFileInfoImpl instance) 
+				{
+					return( instance.cache_file.getSessionBytesWritten());
+				}
+			};
 					
    	public int
 	getReadBytesPerSecond()
 	{
-		return( (int)AverageFactory.LazyMovingImmediateAverage( 10, read_adapter, this ));
+		return( (int)AverageFactory.LazyMovingImmediateAverage( 10, 1, read_adapter, this ));
 	}
 	
 	public int
 	getWriteBytesPerSecond()
 	{
-		return( (int)AverageFactory.LazyMovingImmediateAverage( 10, write_adapter, this ));
+		return( (int)AverageFactory.LazyMovingImmediateAverage( 10, 1, write_adapter, this ));
+	}
+	
+	public long
+	getETA()
+	{
+		if ( isSkipped()){
+			
+			return( -1 );
+		}
+		
+		long	rem = getLength() - getDownloaded();
+		
+		if ( rem == 0 ){
+			
+			return( -1 );
+		}
+		
+		long speed = AverageFactory.LazySmoothMovingImmediateAverage( eta_adapter, this );
+		
+		if ( speed == 0 ){
+			
+			return( Constants.CRAPPY_INFINITE_AS_LONG );
+			
+		}else{
+			
+			long eta = rem / speed;
+			
+			if ( eta == 0 ){
+				
+				return( 1 );
+				
+			}else{
+				
+				return( eta );
+			}
+		}
 	}
 	
 	public void

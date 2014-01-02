@@ -28,10 +28,9 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
 import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
-
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
-
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
@@ -60,19 +59,32 @@ public class SmoothedETAItem
 	public SmoothedETAItem(String sTableID) {
 		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 60, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
-		
+		addDataSourceType(DiskManagerFileInfo.class);
 		cdf = ViewUtils.addCustomDateFormat( this );
 	}
 
 	public void refresh(TableCell cell) {
-		DownloadManager dm = (DownloadManager)cell.getDataSource();
-		long value = (dm == null) ? 0 : dm.getStats().getSmoothedETA();
-
-		if (!cell.setSortValue(value) && cell.isValid()){
-			return;
-		}
+		Object ds = cell.getDataSource();
 		
-		cell.setText( ViewUtils.formatETA( value, MyTorrentsView.eta_absolute, cdf.getDateFormat()));
+		if ( ds instanceof DiskManagerFileInfo ){
+			DiskManagerFileInfo file = (DiskManagerFileInfo)cell.getDataSource();
+			long value = file.getETA();
+	
+			if (!cell.setSortValue(value) && cell.isValid()){
+				return;
+			}
+			
+			cell.setText( ViewUtils.formatETA( value, MyTorrentsView.eta_absolute, cdf.getDateFormat()));
+		}else{
+			DownloadManager dm = (DownloadManager)cell.getDataSource();
+			long value = (dm == null) ? 0 : dm.getStats().getSmoothedETA();
+	
+			if (!cell.setSortValue(value) && cell.isValid()){
+				return;
+			}
+			
+			cell.setText( ViewUtils.formatETA( value, MyTorrentsView.eta_absolute, cdf.getDateFormat()));
+		}
 	}
 	
 	public void 

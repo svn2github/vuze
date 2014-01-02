@@ -26,14 +26,14 @@ import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 
-public class FileWriteSpeed
+public class FileReadSpeedItem
 	extends CoreTableColumnSWT
 	implements TableCellRefreshListener
 {
 	public 
-	FileWriteSpeed() 
+	FileReadSpeedItem() 
 	{
-		super( "writerate", ALIGN_TRAIL, POSITION_INVISIBLE, 60, TableManager.TABLE_TORRENT_FILES);
+		super( "readrate", ALIGN_TRAIL, POSITION_INVISIBLE, 60, TableManager.TABLE_TORRENT_FILES);
 		
 		setRefreshInterval( INTERVAL_LIVE );
 		
@@ -61,7 +61,7 @@ public class FileWriteSpeed
 
 		if ( fileInfo != null ){
 			
-			speed = fileInfo.getWriteBytesPerSecond();
+			speed = fileInfo.getReadBytesPerSecond();
 		}
 
 		if (!cell.setSortValue(speed) && cell.isValid()) {

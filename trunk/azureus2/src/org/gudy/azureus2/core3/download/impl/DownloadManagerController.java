@@ -2865,6 +2865,12 @@ DownloadManagerController
 			return( delegate.getWriteBytesPerSecond());
 		}
 		
+		public long
+		getETA()
+		{
+			return( delegate.getETA());
+		}
+		
 		public void
 		close()
 		{

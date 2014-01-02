@@ -1083,6 +1083,12 @@ DiskManagerUtil
                 		return( 0 );
                 	}
                 	
+                	public long 
+                	getETA() 
+                	{
+                		return( -1 );
+                	}
+                	
                 	public void
                 	close()
                 	{

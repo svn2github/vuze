@@ -25,6 +25,8 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.SimpleTimer.TimerTickReceiver;
 
+import com.aelitis.azureus.core.util.GeneralUtils;
+
 
 /**
  * Generates different types of averages.
@@ -71,18 +73,37 @@ public abstract class AverageFactory {
       return new ExponentialMovingAverage(weight);
    }
    
+   /**
+    * Creates an auto-updating immediate moving average that will auto-deactivate average maintenance
+    * when values are not being extracted from it, auto-reactivate when required etc.
+    * @param periods
+    * @param adapter
+    * @param instance
+    * @return
+    */
+   
+   public static <T> long
+   LazySmoothMovingImmediateAverage(
+		  final LazyMovingImmediateAverageAdapter<T>		adapter,
+		  final T											instance )
+   {
+	   int update_window 	= GeneralUtils.getSmoothUpdateWindow();
+	   int update_interval	= GeneralUtils.getSmoothUpdateInterval();
+	   
+	   return( LazyMovingImmediateAverage( update_window / update_interval, update_interval, adapter, instance ));		
+   }
+   
    public static <T> long
    LazyMovingImmediateAverage(
 		  final int 										periods,
+		  final int											interval_secs,
 		  final LazyMovingImmediateAverageAdapter<T>		adapter,
 		  final T											instance )
    {
 	   LazyMovingImmediateAverageState current = adapter.getCurrent( instance );
 	   
 	   if ( current == null ){
-		   		   
-		   System.out.println( "Creating for " + instance );
-		   
+		   		   		   
 		   final LazyMovingImmediateAverageState state = current = new LazyMovingImmediateAverageState();
 		   		   
 		   SimpleTimer.addTickReceiver(
@@ -101,7 +122,7 @@ public abstract class AverageFactory {
 							
 							adapter.setCurrent( instance, null );
 							 
-						}else{
+						}else if ( tick_count % interval_secs == 0 ){
 						
 							long value = adapter.getValue( instance );
 							
@@ -169,7 +190,7 @@ public abstract class AverageFactory {
 		   
 	   }else{
 		   
-		   return((long)average.getAverage());
+		   return((long)average.getAverage() / interval_secs );
 	   }
    }
    

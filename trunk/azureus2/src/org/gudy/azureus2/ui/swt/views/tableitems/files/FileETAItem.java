@@ -21,23 +21,26 @@
 package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.ui.swt.views.MyTorrentsView;
+import org.gudy.azureus2.ui.swt.views.ViewUtils;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 
-public class FileReadSpeed
+public class FileETAItem
 	extends CoreTableColumnSWT
 	implements TableCellRefreshListener
 {
+	private ViewUtils.CustomDateFormat cdf;
+
 	public 
-	FileReadSpeed() 
+	FileETAItem() 
 	{
-		super( "readrate", ALIGN_TRAIL, POSITION_INVISIBLE, 60, TableManager.TABLE_TORRENT_FILES);
+		super( "file_eta", ALIGN_TRAIL, POSITION_INVISIBLE, 60, TableManager.TABLE_TORRENT_FILES);
 		
 		setRefreshInterval( INTERVAL_LIVE );
 		
-		setMinWidthAuto(true);
+		cdf = ViewUtils.addCustomDateFormat( this );
 	}
 
 	public void 
@@ -45,7 +48,7 @@ public class FileReadSpeed
 		TableColumnInfo info )
 	{	
 		info.addCategories( new String[]{
-			CAT_BYTES,
+			CAT_PROGRESS,
 		});
 		
 		info.setProficiency(TableColumnInfo.PROFICIENCY_INTERMEDIATE );
@@ -57,18 +60,26 @@ public class FileReadSpeed
 	{
 		DiskManagerFileInfo fileInfo = (DiskManagerFileInfo) cell.getDataSource();
 
-		int speed = 0;
+		long eta = -1;
 
 		if ( fileInfo != null ){
 			
-			speed = fileInfo.getReadBytesPerSecond();
+			eta = fileInfo.getETA();
 		}
 
-		if (!cell.setSortValue(speed) && cell.isValid()) {
+		if (!cell.setSortValue(eta) && cell.isValid()) {
 
 			return;
 		}
 
-		cell.setText( speed==0?"":DisplayFormatters.formatByteCountToKiBEtcPerSec( speed ));
+		cell.setText(  ViewUtils.formatETA( eta, MyTorrentsView.eta_absolute, cdf.getDateFormat()));
+	}
+	
+	public void 
+	postConfigLoad() 
+	{
+		super.postConfigLoad();
+		
+		cdf.update();
 	}
 }
