@@ -3232,30 +3232,30 @@ public class OpenTorrentOptionsWindow
 	
 		private boolean 
 		okPressed(
-			String dataDir) 
+			String dataDirPassed) 
 		{
-			File file = new File(dataDir);
+			File filePassed = new File(dataDirPassed);
 	
 			File fileDefSavePath = new File(
 					COConfigurationManager.getStringParameter(PARAM_DEFSAVEPATH));
 	
-			if (file.equals(fileDefSavePath) && !fileDefSavePath.isDirectory()) {
+			if (filePassed.equals(fileDefSavePath) && !fileDefSavePath.isDirectory()) {
 				FileUtil.mkdirs(fileDefSavePath);
 			}
 	
-			boolean isPathInvalid = dataDir.length() == 0 || file.isFile();
-			if (!isPathInvalid && !file.isDirectory()) {
+			boolean isPathInvalid = dataDirPassed.length() == 0 || filePassed.isFile();
+			if (!isPathInvalid && !filePassed.isDirectory()) {
 				MessageBoxShell mb = new MessageBoxShell(SWT.YES | SWT.NO
 						| SWT.ICON_QUESTION, "OpenTorrentWindow.mb.askCreateDir",
 						new String[] {
-							file.toString()
+							filePassed.toString()
 						});
 				mb.setParent(shell);
 				mb.open(null);
 				int doCreate = mb.waitUntilClosed();
 	
 				if (doCreate == SWT.YES)
-					isPathInvalid = !FileUtil.mkdirs(file);
+					isPathInvalid = !FileUtil.mkdirs(filePassed);
 				else {
 					cmbDataDir.setFocus();
 					return false;
@@ -3265,7 +3265,7 @@ public class OpenTorrentOptionsWindow
 			if (isPathInvalid) {
 				MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.ICON_ERROR,
 						"OpenTorrentWindow.mb.noGlobalDestDir", new String[] {
-							file.toString()
+							filePassed.toString()
 						});
 				mb.setParent(shell);
 				mb.open(null);
@@ -3276,7 +3276,7 @@ public class OpenTorrentOptionsWindow
 			String sExistingFiles = "";
 			int iNumExistingFiles = 0;
 	
-			file = new File(torrentOptions.getDataDir());
+			File torrentOptionsDataDir = new File(torrentOptions.getDataDir());
 	
 			// Need to make directory now, or single file torrent will take the 
 			// "dest dir" as their filename.  ie:
@@ -3284,18 +3284,23 @@ public class OpenTorrentOptionsWindow
 			// 2) type a non-existant directory c:\test\moo
 			// 3) unselect the torrent
 			// 4) change the global def directory to a real one
-			// 5) click ok.  "hi.exe" will be written as moo in c:\test			
-			if (!file.isDirectory() && !FileUtil.mkdirs(file)) {
+			// 5) click ok.  "hi.exe" will be written as moo in c:\test		
+	
+			if ( !torrentOptions.isSimpleTorrent()){
+				torrentOptionsDataDir = torrentOptionsDataDir.getParentFile();	// for non-simple this points to the top folder in downoad
+			}
+			
+			if (!torrentOptionsDataDir.isDirectory() && !FileUtil.mkdirs(torrentOptionsDataDir)) {
 				MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.ICON_ERROR,
 						"OpenTorrentWindow.mb.noDestDir", new String[] {
-							file.toString(),
+						torrentOptionsDataDir.toString(),
 							torrentOptions.getTorrentName()
 						});
 				mb.setParent(shell);
 				mb.open(null);
 				return false;
 			}
-	
+
 			if (!torrentOptions.isValid) {
 				MessageBoxShell mb = new MessageBoxShell(SWT.OK | SWT.ICON_ERROR,
 						"OpenTorrentWindow.mb.notValid", new String[] {
