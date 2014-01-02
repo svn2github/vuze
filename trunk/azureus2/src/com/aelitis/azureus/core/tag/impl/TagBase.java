@@ -858,7 +858,8 @@ TagBase
  	
  	public void
  	tick(
- 		int count )
+ 		long	mono_now,
+ 		int 	count )
  	{
  		if ( !history_retention_required ){
  			

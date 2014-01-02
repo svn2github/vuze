@@ -399,6 +399,8 @@ CacheFileWithCache
 					if ( !recursive ){
 						
 						manager.cacheBytesRead( read_length );
+						
+						bytes_read += read_length;
 					}
 						
 					if (TRACE)
@@ -757,6 +759,8 @@ CacheFileWithCache
 																
 					manager.cacheBytesWritten( write_length );
 					
+					bytes_written += write_length;
+					
 					buffer_cached	= true;
 					
 				}else{
@@ -1101,7 +1105,7 @@ CacheFileWithCache
 									
 			manager.fileBytesWritten( expected_overall_write );
 			
-			bytes_written += expected_overall_write;
+			// bytes_written += expected_overall_write;
 			
 			write_ok	= true;
 			

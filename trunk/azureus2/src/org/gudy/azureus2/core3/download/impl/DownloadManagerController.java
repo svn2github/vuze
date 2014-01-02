@@ -2328,7 +2328,8 @@ DownloadManagerController
 	
 	public void
 	tick(
-		int	tick_count )
+		long	mono_now,
+		int		tick_count )
 	{
 		stats.timerTick( tick_count );
 	}

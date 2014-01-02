@@ -66,14 +66,19 @@ SimpleTimer
 				{
 					tick_count++;
 					
-					for ( TimerTickReceiver ttr: tick_receivers ){
+					if ( tick_receivers.size() > 0 ){
 						
-						try{
-							ttr.tick( tick_count );
+						long mono_now = SystemTime.getMonotonousTime();
+						
+						for ( TimerTickReceiver ttr: tick_receivers ){
 							
-						}catch( Throwable e ){
-							
-							Debug.out( e );
+							try{
+								ttr.tick( mono_now, tick_count );
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
 						}
 					}
 				}
@@ -145,6 +150,7 @@ SimpleTimer
 	{
 		public void
 		tick(
-			int	tick_ount );
+			long		mono_now,
+			int			tick_ount );
 	}
 }

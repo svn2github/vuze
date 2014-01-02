@@ -39,6 +39,10 @@ import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileOwner;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.average.AverageFactory;
+import com.aelitis.azureus.core.util.average.AverageFactory.LazyMovingImmediateAverageAdapter;
+import com.aelitis.azureus.core.util.average.AverageFactory.LazyMovingImmediateAverageState;
+import com.aelitis.azureus.core.util.average.MovingImmediateAverage;
 
 /**
  * @author Olivier
@@ -579,16 +583,71 @@ DiskManagerFileInfoImpl
 		return( buffer );	
 	}
 		
+	private volatile LazyMovingImmediateAverageState	read_average_state;
+	private volatile LazyMovingImmediateAverageState	write_average_state;
+	
+	private static LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl> read_adapter = 
+			new LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl>()
+			{
+				public LazyMovingImmediateAverageState
+				getCurrent(
+					DiskManagerFileInfoImpl		instance )
+				{
+					return( instance.read_average_state );
+				}
+				
+				public void 
+				setCurrent(
+					DiskManagerFileInfoImpl 				instance,
+					LazyMovingImmediateAverageState 		average ) 
+				{
+					instance.read_average_state = average;
+				}
+				
+				public long 
+				getValue(
+					DiskManagerFileInfoImpl instance) 
+				{
+					return( instance.cache_file.getSessionBytesRead());
+				}
+			};
+	
+	private static LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl> write_adapter = 
+			new LazyMovingImmediateAverageAdapter<DiskManagerFileInfoImpl>()
+			{
+				public LazyMovingImmediateAverageState
+				getCurrent(
+					DiskManagerFileInfoImpl		instance )
+				{
+					return( instance.write_average_state );
+				}
+				
+				public void 
+				setCurrent(
+					DiskManagerFileInfoImpl 				instance,
+					LazyMovingImmediateAverageState 		average ) 
+				{
+					instance.write_average_state = average;
+				}
+				
+				public long 
+				getValue(
+					DiskManagerFileInfoImpl instance) 
+				{
+					return( instance.cache_file.getSessionBytesWritten());
+				}
+			};
+					
    	public int
 	getReadBytesPerSecond()
 	{
-		return( 100 );
+		return( (int)AverageFactory.LazyMovingImmediateAverage( 10, read_adapter, this ));
 	}
 	
 	public int
 	getWriteBytesPerSecond()
 	{
-		return( 100 );
+		return( (int)AverageFactory.LazyMovingImmediateAverage( 10, write_adapter, this ));
 	}
 	
 	public void

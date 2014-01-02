@@ -21,6 +21,11 @@
  */
 package com.aelitis.azureus.core.util.average;
 
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.SimpleTimer.TimerTickReceiver;
+
+
 /**
  * Generates different types of averages.
  */
@@ -66,4 +71,131 @@ public abstract class AverageFactory {
       return new ExponentialMovingAverage(weight);
    }
    
+   public static <T> long
+   LazyMovingImmediateAverage(
+		  final int 										periods,
+		  final LazyMovingImmediateAverageAdapter<T>		adapter,
+		  final T											instance )
+   {
+	   LazyMovingImmediateAverageState current = adapter.getCurrent( instance );
+	   
+	   if ( current == null ){
+		   		   
+		   System.out.println( "Creating for " + instance );
+		   
+		   final LazyMovingImmediateAverageState state = current = new LazyMovingImmediateAverageState();
+		   		   
+		   SimpleTimer.addTickReceiver(
+				  new TimerTickReceiver() {
+					
+					public void 
+					tick(
+						long	mono_now,
+						int 	tick_count ) 
+					{
+						long	now = SystemTime.getMonotonousTime();
+						
+						if ( now - state.last_read > 60*1000 ){
+														 
+							SimpleTimer.removeTickReceiver( this );
+							
+							adapter.setCurrent( instance, null );
+							 
+						}else{
+						
+							long value = adapter.getValue( instance );
+							
+							long last 	= state.last_value;
+							long diff	= value - last;
+														
+							if ( last >= 0 && diff >= 0 ){
+							
+								MovingImmediateAverage average = state.average;
+										
+								if ( diff == 0 ){
+									
+									state.consec_zeros++;
+									
+								}else{
+									
+									state.consec_zeros = 0;
+								}
+								
+								if ( average == null ){
+									
+									if ( diff > 0 ){
+										
+										state.average = average = MovingImmediateAverage( periods );
+										
+										int	zeros_to_do = Math.min( state.consec_zeros, periods );
+										
+										for ( int i=0;i<zeros_to_do;i++){
+											
+											average.update( 0 );
+										}
+									}
+								}
+								
+								if ( average != null ){
+									
+									long ave = (long)average.update( diff );
+									
+									if ( ave == 0 && average.getSampleCount() >= periods ){
+										
+										// looks pretty dead
+										
+										state.average = null;
+									}
+								}
+							}
+							
+							state.last_value = value;
+						}
+					}
+				});					
+				
+		   adapter.setCurrent( instance, current );
+		   
+	   }else{
+	   
+		   current.last_read = SystemTime.getMonotonousTime();
+	   }
+	   
+	   MovingImmediateAverage average = current.average;
+	   
+	   if ( average == null ){
+		   
+		   return( 0 );
+		   
+	   }else{
+		   
+		   return((long)average.getAverage());
+	   }
+   }
+   
+   public interface
+   LazyMovingImmediateAverageAdapter<T>
+   {
+	   public LazyMovingImmediateAverageState
+	   getCurrent(
+			  T	instance );
+	   
+	   public void
+	   setCurrent(
+			  T									instance,
+			  LazyMovingImmediateAverageState	average );
+	   
+	   public long
+	   getValue(
+			  T		instance );
+   }
+   
+   public static class
+   LazyMovingImmediateAverageState
+   {
+	   private MovingImmediateAverage	average;
+	   private int						consec_zeros;
+	   private long						last_value 	= -1;
+	   private long						last_read	= SystemTime.getMonotonousTime();
+   }
 }

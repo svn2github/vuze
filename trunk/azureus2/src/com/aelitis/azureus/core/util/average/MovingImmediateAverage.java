@@ -80,6 +80,10 @@ public class MovingImmediateAverage implements Average {
     */
    public double getAverage() { return calculateAve(); }
    
+   public int getPeriods(){
+	   return( periods );
+   }
+   
    public int getSampleCount(){
 	   return( pos>periods?periods:pos );
    }
