@@ -2852,6 +2852,18 @@ DownloadManagerController
 			}
 		}
 		
+		public int 
+		getReadBytesPerSecond() 
+		{
+			return( delegate.getReadBytesPerSecond());
+		}
+		
+		public int 
+		getWriteBytesPerSecond() 
+		{
+			return( delegate.getWriteBytesPerSecond());
+		}
+		
 		public void
 		close()
 		{

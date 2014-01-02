@@ -572,13 +572,25 @@ DiskManagerFileInfoImpl
 			buffer.returnToPool();
 			
 			Debug.printStackTrace(e);
-			
+			 
 			throw( new IOException( e.getMessage()));
 		}
 		
 		return( buffer );	
 	}
-			
+		
+   	public int
+	getReadBytesPerSecond()
+	{
+		return( 100 );
+	}
+	
+	public int
+	getWriteBytesPerSecond()
+	{
+		return( 100 );
+	}
+	
 	public void
 	close()
 	{

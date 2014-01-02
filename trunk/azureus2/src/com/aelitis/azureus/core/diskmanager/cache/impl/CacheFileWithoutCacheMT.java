@@ -49,6 +49,9 @@ CacheFileWithoutCacheMT
 	private TOTorrentFile				torrent_file;
 	private boolean						moving;
 	
+	private long	bytes_written;
+	private long	bytes_read;
+	
 	protected
 	CacheFileWithoutCacheMT(
 		CacheFileManagerImpl	_manager,
@@ -470,6 +473,8 @@ CacheFileWithoutCacheMT
 			
 			manager.fileBytesRead( read_length );
 
+			bytes_read += read_length;
+			
 		}catch( FMFileManagerException e ){
 				
 			manager.rethrow(this,e);
@@ -499,6 +504,8 @@ CacheFileWithoutCacheMT
 			
 			manager.fileBytesRead( read_length );
 
+			bytes_read += read_length;
+			
 		}catch( FMFileManagerException e ){
 				
 			manager.rethrow(this,e);
@@ -523,6 +530,8 @@ CacheFileWithoutCacheMT
 			
 			manager.fileBytesWritten( write_length );
 
+			bytes_written += write_length;
+			
 		}catch( FMFileManagerException e ){
 				
 			manager.rethrow(this,e);
@@ -548,6 +557,8 @@ CacheFileWithoutCacheMT
 			
 			manager.fileBytesWritten( write_length );
 
+			bytes_written += write_length;
+			
 		}catch( FMFileManagerException e ){
 				
 			manager.rethrow(this,e);
@@ -570,6 +581,8 @@ CacheFileWithoutCacheMT
 			
 			manager.fileBytesWritten( write_length );
 
+			bytes_written += write_length;
+			
 			write_ok	= true;
 			
 		}catch( FMFileManagerException e ){
@@ -606,6 +619,8 @@ CacheFileWithoutCacheMT
 			
 			manager.fileBytesWritten( write_length );
 
+			bytes_written += write_length;
+			
 			write_ok	= true;
 			
 		}catch( FMFileManagerException e ){
@@ -680,6 +695,18 @@ CacheFileWithoutCacheMT
 	isOpen()
 	{
 		return( base_file.isOpen());
+	}
+	
+	public long
+	getSessionBytesRead()
+	{
+		return( bytes_read );
+	}
+	
+	public long
+	getSessionBytesWritten()
+	{
+		return( bytes_written );
 	}
 	
 	public void

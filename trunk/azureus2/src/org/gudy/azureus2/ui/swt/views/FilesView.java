@@ -114,6 +114,8 @@ public class FilesView
     new FileMD5Item(),
     new FileAvailabilityItem(),
     new AlertsItem(  TableManager.TABLE_TORRENT_FILES ),
+    new FileReadSpeed(),
+    new FileWriteSpeed(),
   };
   
   static{

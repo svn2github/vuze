@@ -149,6 +149,11 @@ PluginCoreUtils
 	
 		throws DownloadException
 	{
+		if ( info instanceof DiskManagerFileInfoImpl ){
+			
+			return(((DiskManagerFileInfoImpl)info).getCore());
+		}
+	
 		if ( info == null ){
 			
 			return( null );
@@ -295,7 +300,8 @@ PluginCoreUtils
 				}
 				
 				public File 
-				getFile( boolean follow_link )
+				getFile( 
+					boolean follow_link )
 				{
 					if ( follow_link ){
 						
@@ -328,6 +334,18 @@ PluginCoreUtils
 				
 					throws	Exception
 				{	
+				}
+				
+				public int 
+				getReadBytesPerSecond() 
+				{
+					return( 0 );
+				}
+				
+				public int 
+				getWriteBytesPerSecond() 
+				{
+					return( 0 );
 				}
 				
 				public void

@@ -186,6 +186,12 @@ CacheFile
 	public boolean
 	isOpen();
 	
+	public long
+	getSessionBytesRead();
+	
+	public long
+	getSessionBytesWritten();
+	
 	public void
 	delete()
 

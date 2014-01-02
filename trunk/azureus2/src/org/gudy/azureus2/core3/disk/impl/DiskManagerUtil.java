@@ -612,7 +612,7 @@ DiskManagerUtil
 	
 	            FileSkeleton info = new FileSkeleton() {
 	
-	            	private CacheFile   read_cache_file;
+	            	private volatile CacheFile   read_cache_file;
 	            	// do not access this field directly, use lazyGetFile() instead 
 	            	private WeakReference dataFile = new WeakReference(null);
 	
@@ -1062,6 +1062,27 @@ DiskManagerUtil
                 		return( buffer );
                 	}
 
+                	public int
+                	getReadBytesPerSecond()
+                	{
+                		CacheFile temp = read_cache_file;
+                		
+                		if ( temp == null ){
+                			
+                			return( 0 );
+                		}
+                		
+                			// could do something here one day I guess
+                		
+                		return( 0 );
+                	}
+                	
+                	public int
+                	getWriteBytesPerSecond()
+                	{
+                		return( 0 );
+                	}
+                	
                 	public void
                 	close()
                 	{

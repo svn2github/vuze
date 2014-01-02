@@ -26,6 +26,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.eclipse.swt.graphics.Color;
 
+import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -38,6 +39,7 @@ import com.aelitis.azureus.plugins.startstoprules.defaultplugin.StartStopRulesDe
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadTypeIncomplete;
 import org.gudy.azureus2.plugins.ui.tables.*;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 
 /** Download Speed column
@@ -56,7 +58,8 @@ public class DownSpeedItem
 	/** Default Constructor */
   public DownSpeedItem(String sTableID) {
     super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 60, sTableID);
-		setType(TableColumn.TYPE_TEXT);
+	setType(TableColumn.TYPE_TEXT);
+	addDataSourceType(DiskManagerFileInfo.class);
     setRefreshInterval(INTERVAL_LIVE);
     setUseCoreDataSource(false);
     setMinWidthAuto(true);
@@ -79,27 +82,49 @@ public class DownSpeedItem
     private int loop = 0;
 
     public void refresh(TableCell cell) {
-      Download dm = (Download)cell.getDataSource();
-      long value;
-      int iState;
-      if (dm == null) {
-        iState = -1;
-        value = 0;
-      } else {
-        iState = dm.getState();
-        value = dm.getStats().getDownloadAverage();
-      }
+      Object ds = cell.getDataSource();
       
-      boolean bChangeColor = (++loop % 10) == 0;
-
-      if (cell.setSortValue(value) || !cell.isValid() || (iState != iLastState)) {
-      	cell.setText(value == 0 ? "" : DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
-      	bChangeColor = true;
-      }
-      
-      if (bChangeColor && dm != null) {
-        changeColor(cell, dm, iState);
-        loop = 0;
+ 
+      if ( ds instanceof org.gudy.azureus2.plugins.disk.DiskManagerFileInfo ){
+    	  
+    	try{
+	   		DiskManagerFileInfo fileInfo = PluginCoreUtils.unwrap((org.gudy.azureus2.plugins.disk.DiskManagerFileInfo)ds );
+	
+			int speed = fileInfo.getWriteBytesPerSecond();
+	
+			if ( !cell.setSortValue( speed ) && cell.isValid()){
+	
+				return;
+			}
+	
+			cell.setText( speed==0?"":DisplayFormatters.formatByteCountToKiBEtcPerSec( speed ));
+			
+    	}catch( Throwable e ){
+    		
+    	}
+      }else{
+	      Download dm = (Download)ds;
+	      long value;
+	      int iState;
+	      if (dm == null) {
+	        iState = -1;
+	        value = 0;
+	      } else {
+	        iState = dm.getState();
+	        value = dm.getStats().getDownloadAverage();
+	      }
+	      
+	      boolean bChangeColor = (++loop % 10) == 0;
+	
+	      if (cell.setSortValue(value) || !cell.isValid() || (iState != iLastState)) {
+	      	cell.setText(value == 0 ? "" : DisplayFormatters.formatByteCountToKiBEtcPerSec(value));
+	      	bChangeColor = true;
+	      }
+	      
+	      if (bChangeColor && dm != null) {
+	        changeColor(cell, dm, iState);
+	        loop = 0;
+	      }
       }
     }
 

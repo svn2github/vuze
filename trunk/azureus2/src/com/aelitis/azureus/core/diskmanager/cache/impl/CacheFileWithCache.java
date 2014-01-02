@@ -135,7 +135,9 @@ CacheFileWithCache
 	
 	protected volatile CacheFileManagerException	pending_exception;
 	
-	
+	private long	bytes_written;
+	private long	bytes_read;
+
 	protected
 	CacheFileWithCache(
 		CacheFileManagerImpl	_manager,
@@ -516,6 +518,8 @@ CacheFileWithCache
 										
 										manager.fileBytesRead( actual_read_ahead );
 											
+										bytes_read += actual_read_ahead;
+										
 										cache_buffer.position( SS_CACHE, 0 );
 										
 										cache.add( entry );
@@ -566,6 +570,8 @@ CacheFileWithCache
 								}
 								
 								manager.fileBytesRead( read_length );
+								
+								bytes_read += read_length;
 							}
 						
 							break;
@@ -592,6 +598,8 @@ CacheFileWithCache
 					getFMFile().read( file_buffer, file_position );
 					
 					manager.fileBytesRead( read_length );
+					
+					bytes_read += read_length;
 		
 				}catch( FMFileManagerException e ){
 						
@@ -770,12 +778,16 @@ CacheFileWithCache
 					}
 					
 					manager.fileBytesWritten( write_length );
+					
+					bytes_written += write_length;
 				}
 			}else{
 				
 				getFMFile().write( file_buffer, file_position );
 				
 				manager.fileBytesWritten( write_length );
+				
+				bytes_written += write_length;
 			}
 			
 		}catch( CacheFileManagerException e ){
@@ -1088,6 +1100,8 @@ CacheFileWithCache
 			getFMFile().write( buffers, multi_block_start );
 									
 			manager.fileBytesWritten( expected_overall_write );
+			
+			bytes_written += expected_overall_write;
 			
 			write_ok	= true;
 			
@@ -1725,6 +1739,18 @@ CacheFileWithCache
 	isOpen()
 	{
 		return( file.isOpen());
+	}
+	
+	public long
+	getSessionBytesRead()
+	{
+		return( bytes_read );
+	}
+	
+	public long
+	getSessionBytesWritten()
+	{
+		return( bytes_written );
 	}
 	
 	public void
