@@ -1031,12 +1031,25 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 	getDLRTrace()
 	{
 		if ( dlr_test_active ){
-			return( "testing" );
-		}else if ( dlr_test_start_time > 0 && dlr_test_average_bytes_per_sec >= 0 ){
-			return( 
-				"tested; " + 
-				TimeFormatter.format(( SystemTime.getMonotonousTime() - dlr_test_start_time )/1000) + " ago; " +
-				"rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( dlr_test_average_bytes_per_sec ));
+			
+			return( "test in progress" );
+			
+		}else if ( dlr_test_start_time > 0 ){
+			
+			if ( dlr_test_average_bytes_per_sec >= 0 ){
+		
+				return( 
+					"tested; " + 
+					TimeFormatter.format(( SystemTime.getMonotonousTime() - dlr_test_start_time )/1000) + " ago; " +
+					"rate=" + DisplayFormatters.formatByteCountToKiBEtcPerSec( dlr_test_average_bytes_per_sec ));
+				
+			}else{
+				
+				return( 
+						"tested; " + 
+						TimeFormatter.format(( SystemTime.getMonotonousTime() - dlr_test_start_time )/1000) + " ago; " +
+						"test did not complete" );
+			}
 		}else{
 			return( "" );
 		}
