@@ -3200,6 +3200,12 @@ implements PiecePicker
 			str = "pri=rta:" + (rta==null?"?":("" + (rta[piece_number] - SystemTime.getCurrentTime())));
 			
 		}else{
+			PEPiece pe_piece = pePieces[ piece_number ];
+			
+			if ( pe_piece != null ){
+				
+				priority = pe_piece.getResumePriority();
+			}
 			
 			str = "pri=" + priority;
 		}

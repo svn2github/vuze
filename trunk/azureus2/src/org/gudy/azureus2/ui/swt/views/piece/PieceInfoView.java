@@ -25,13 +25,17 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MouseEvent;
+import org.eclipse.swt.events.MouseTrackAdapter;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerPiece;
@@ -47,6 +51,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
@@ -56,6 +61,8 @@ import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
+import com.aelitis.azureus.core.peermanager.PeerManager;
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.util.MapUtils;
 
 /**
@@ -95,7 +102,9 @@ public class PieceInfoView
 	private Color[] blockColors;
 
 	private Label topLabel;
-
+	private String topLabelLHS = "";
+	private String topLabelRHS = "";
+	
 	private Label imageLabel;
 
 	// More delay for this view because of high workload
@@ -286,6 +295,133 @@ public class PieceInfoView
 
 		sc.setContent(pieceInfoCanvas);
 
+		pieceInfoCanvas.addMouseTrackListener(
+			new MouseTrackAdapter()
+			{
+				public void 
+				mouseHover(
+					MouseEvent event ) 
+				{
+					int piece_number = getPieceNumber( event.x, event.y );
+					
+					if ( piece_number >= 0 ){
+						
+						DiskManager		disk_manager 	= dlm.getDiskManager();
+						PEPeerManager	pm 				= dlm.getPeerManager();
+						
+						DiskManagerPiece	dm_piece = disk_manager.getPiece( piece_number );
+						PEPiece 			pm_piece = pm.getPiece( piece_number );
+						
+						String	text =  "Piece " + piece_number + ": " + dm_piece.getString();
+						
+						if ( pm_piece != null ){
+							
+							text += ", active: " + pm_piece.getString();
+
+						}else{
+							
+							if ( dm_piece.isNeeded() && !dm_piece.isDone()){
+								
+								text += ", inactive: " + pm.getPiecePicker().getPieceString( piece_number );
+							}
+						}	
+						
+						topLabelRHS = text;
+						
+					}else{
+						
+						topLabelRHS = "";
+					}
+					
+					updateTopLabel();
+				}
+			});
+		
+		final Menu menu = new Menu(pieceInfoCanvas.getShell(), SWT.POP_UP );
+		
+		pieceInfoCanvas.setMenu( menu );
+		
+		pieceInfoCanvas.addListener(
+			SWT.MenuDetect, 
+			new Listener() 
+			{
+				public void 
+				handleEvent(
+					Event event) 
+				{
+					Point pt = pieceInfoCanvas.toControl(event.x, event.y);
+					
+					int	piece_number = getPieceNumber( pt.x, pt.y );
+					
+					menu.setData( "pieceNumber", piece_number );
+				}
+			});
+		
+		MenuBuildUtils.addMaintenanceListenerForMenu(
+			menu,
+			new MenuBuildUtils.MenuBuilder() 
+			{	
+				public void 
+				buildMenu(
+					Menu 		menu, 
+					MenuEvent 	event) 
+				{
+					Integer pn = (Integer)menu.getData( "pieceNumber" );
+					
+					if ( pn != null && pn != -1 ){
+						
+						DownloadManager	download_manager = dlm;
+
+						if ( download_manager == null ){
+							
+							return;
+						}
+						
+						DiskManager		disk_manager = download_manager.getDiskManager();
+						PEPeerManager	peer_manager = download_manager.getPeerManager();
+				
+						if ( disk_manager == null || peer_manager == null ){
+														
+							return;
+						}
+						
+						final PiecePicker picker = peer_manager.getPiecePicker();
+						
+						DiskManagerPiece[] 	dm_pieces = disk_manager.getPieces();
+							
+						final int piece_number = pn;
+						
+						DiskManagerPiece	dm_piece = dm_pieces[piece_number];
+						
+						final MenuItem force_piece = new MenuItem( menu, SWT.CHECK );
+						
+						Messages.setLanguageText( force_piece, "label.force.piece" );
+						
+						boolean	done = dm_piece.isDone();
+						
+						force_piece.setEnabled( !done );
+						
+						if ( !done ){
+						
+							force_piece.setSelection( picker.isForcePiece( piece_number ));
+							
+							force_piece.addSelectionListener(
+					    		new SelectionAdapter()
+					    		{
+					    			public void 
+					    			widgetSelected(
+					    				SelectionEvent e) 
+					    			{
+					    				picker.setForcePiece( piece_number, force_piece.getSelection());
+					    			}
+					    		});
+						}
+					}					
+				}
+			});
+		
+		
+		
 		Legend.createLegendComposite(pieceInfoComposite,
 				blockColors, new String[] {
 					"PiecesView.BlockView.Have",
@@ -306,6 +442,49 @@ public class PieceInfoView
 		return pieceInfoComposite;
 	}
 
+	private int
+	getPieceNumber(
+		int		x,
+		int		y )
+	{
+		DownloadManager manager = dlm;
+		
+		if ( manager == null ){
+			
+			return( -1 );
+		}
+		
+		PEPeerManager pm = manager.getPeerManager();
+		
+		if ( pm == null ){
+			
+			return( -1 );
+		}
+		
+		Rectangle bounds = pieceInfoCanvas.getClientArea();
+		
+		if (bounds.width <= 0 || bounds.height <= 0){
+			
+			return( -1 );
+		}
+	
+		int iNumCols = bounds.width / BLOCK_SIZE;
+	
+		int	x_block = x/BLOCK_SIZE;
+		int	y_block = y/BLOCK_SIZE;
+		
+		int	piece_number = y_block*iNumCols + x_block;
+		
+		if ( piece_number >= pm.getPiecePicker().getNumberOfPieces()){
+			
+			return( -1 );
+			
+		}else{
+		
+			return( piece_number );
+		}
+	}
+	
 	private boolean alreadyFilling = false;
 
 	private UISWTView swtView;
@@ -353,6 +532,19 @@ public class PieceInfoView
 		}
 	}
 
+	private void
+	updateTopLabel()
+	{
+		String text = topLabelLHS;
+		
+		if ( text.length() > 0 && topLabelRHS.length() > 0 ){
+			
+			text += "; " + topLabelRHS;
+		}
+		
+		topLabel.setText( text );
+	}
+	
 	protected void refreshInfoCanvas() {
 		synchronized (PieceInfoView.this) {
 			alreadyFilling = false;
@@ -364,7 +556,8 @@ public class PieceInfoView
 		pieceInfoCanvas.layout(true);
 		Rectangle bounds = pieceInfoCanvas.getClientArea();
 		if (bounds.width <= 0 || bounds.height <= 0) {
-			topLabel.setText("");
+			topLabelLHS = "";
+			updateTopLabel();
 			return;
 		}
 
@@ -372,7 +565,8 @@ public class PieceInfoView
 			GC gc = new GC(pieceInfoCanvas);
 			gc.fillRectangle(bounds);
 			gc.dispose();
-			topLabel.setText("");
+			topLabelLHS = "";
+			updateTopLabel();
 			
 			return;
 		}
@@ -385,7 +579,8 @@ public class PieceInfoView
 			GC gc = new GC(pieceInfoCanvas);
 			gc.fillRectangle(bounds);
 			gc.dispose();
-			topLabel.setText("");
+			topLabelLHS = "";
+			updateTopLabel();
 
 			return;
 		}
@@ -581,12 +776,14 @@ public class PieceInfoView
 			gcImg.dispose();
 		}
 
-		topLabel.setText(MessageText.getString("PiecesView.BlockView.Header",
+		topLabelLHS = MessageText.getString("PiecesView.BlockView.Header",
 				new String[] {
 					"" + iNumCols,
 					"" + (iRow + 1),
 					"" + dm_pieces.length
-				}));
+				});
+		
+		updateTopLabel();
 
 		pieceInfoCanvas.redraw();
 	}
