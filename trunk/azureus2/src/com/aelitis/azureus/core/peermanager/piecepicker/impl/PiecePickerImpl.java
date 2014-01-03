@@ -41,6 +41,7 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerItem;
 import com.aelitis.azureus.core.peermanager.piecepicker.*;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.CopyOnWriteSet;
 
 /**
  * @author MjrTom
@@ -96,6 +97,8 @@ implements PiecePicker
 	/** priority at and above which pieces require real-time scheduling */
 
 	private static final int PRIORITY_REALTIME		= 9999999;
+	
+	private static final int PRIORITY_FORCED		= 1000000;
 
 	/** Min number of requests sent to a peer */
 	private static final int REQUESTS_MIN_MIN	= 2;
@@ -215,6 +218,8 @@ implements PiecePicker
 
 	private volatile float[]	fileAvailabilities;
 	private volatile long		fileAvailabilitiesCalcTime;
+	
+	private volatile CopyOnWriteSet<Integer>	forced_pieces;
 	
 	static
 	{
@@ -350,9 +355,11 @@ implements PiecePicker
 	public final void updateAvailability()
 	{
 		final long now =SystemTime.getCurrentTime();
-		if (now >=time_last_avail &&now <time_last_avail +TIME_MIN_AVAILABILITY)
+		if (now >=time_last_avail &&now <time_last_avail +TIME_MIN_AVAILABILITY ){
 			return;
-		if (availabilityDrift >0 || now < time_last_rebuild ||  (now - time_last_rebuild) > timeAvailRebuild){
+		}
+		
+		if ( availabilityDrift >0 || now < time_last_rebuild ||  (now - time_last_rebuild) > timeAvailRebuild){
 			try
 			{	availabilityMon.enter();
 
@@ -494,6 +501,7 @@ implements PiecePicker
 				}
 			}
 		}
+		
 		return newAvailability;
 	}
 
@@ -1185,12 +1193,14 @@ implements PiecePicker
 		}
 
 		if ( !priorityRTAexists ){
-			if (startPriorities !=null &&((now >timeLastPriorities &&now <time_last_avail +TIME_MIN_PRIORITIES)
-					||(priorityParamChange >=paramPriorityChange &&priorityFileChange >=filePriorityChange
-							&&priorityAvailChange >=availabilityChange)))
+			if (	startPriorities !=null &&
+					(	(now >timeLastPriorities &&now <timeLastPriorities +TIME_MIN_PRIORITIES) ||
+						(priorityParamChange >=paramPriorityChange &&priorityFileChange >=filePriorityChange &&priorityAvailChange >=availabilityChange))){
+				
 				return;		// *somehow* nothing changed, so nothing to do
+			}
 		}
-
+				
 		// store the latest change indicators before we start making dependent calculations so that a
 		// further change while computing stuff doesn't get lost
 
@@ -1207,6 +1217,9 @@ implements PiecePicker
 		final boolean completionPriorityL =completionPriority;
 
 		final DMPieceMap	pieceMap = diskManager.getPieceMap();
+		
+		CopyOnWriteSet<Integer>	forced = forced_pieces;
+		
 		try
 		{
 			final boolean rarestOverride = calcRarestAllowed() < 1;
@@ -1215,9 +1228,25 @@ implements PiecePicker
 			for (int i =0; i <nbPieces; i++)
 			{
 				final DiskManagerPiece dmPiece =dmPieces[i];
-				if (dmPiece.isDone())
+				
+				if (dmPiece.isDone()){
+					
+					if ( forced != null && forced.contains( i )){
+						
+						if ( forced.remove(i) && forced.size() == 0 ){
+							
+							synchronized( this ){
+								
+								if ( forced_pieces.size() == 0 ){
+									
+									forced_pieces =  null;
+								}
+							}
+						}
+					}
 					continue;	// nothing to do for pieces not needing requesting
-
+				}
+				
 				int startPriority =Integer.MIN_VALUE;
 
 				final DMPieceList pieceList =pieceMap.getPieceList(dmPiece.getPieceNumber());
@@ -1310,13 +1339,17 @@ implements PiecePicker
 					}else if ( provider_piece_priorities != null ){
 
 						startPriority += provider_piece_priorities[i];
+						
+					}else if ( forced != null && forced.contains( i )){
+						
+						startPriority 	= PRIORITY_FORCED;;
 					}
 				}else{
 
 					dmPiece.clearNeeded();
 				}
 
-				newPriorities[i] =startPriority;
+				newPriorities[i] = startPriority;
 			}
 		} catch (Throwable e)
 		{
@@ -1922,6 +1955,8 @@ implements PiecePicker
         	}
         }
         
+        CopyOnWriteSet<Integer>	forced = forced_pieces;
+        
 			// Try to continue a piece already loaded, according to priority
         
         for (i =startI; i <=endI; i++){
@@ -1973,11 +2008,13 @@ implements PiecePicker
 
         				// piece is: Needed, not fully: Requested, Downloaded, Written, hash-Checking or Done
 
-        				avail =availability[i];
+        				avail = availability[i];
         				if (avail ==0)
         				{   // maybe we didn't know we could get it before
-        					availability[i] =1;    // but the peer says s/he has it
+        					availability[i] = 1;    // but the peer says s/he has it
         					avail =1;
+        				}else if ( forced != null && forced.contains( i )){
+        					avail = globalMinOthers;	// temp override for avail for force
         				}
 
         				// is the piece active
@@ -3045,6 +3082,69 @@ implements PiecePicker
 	}
 
 	public void
+	setForcePiece(
+		int			pieceNumber,
+		boolean		forced )
+	{
+		if ( pieceNumber < 0 || pieceNumber >= nbPieces ){
+			
+			Debug.out( "Invalid piece number: " +pieceNumber );
+			
+			return;
+		}
+		
+		synchronized( this ){
+			
+			CopyOnWriteSet<Integer>	set = forced_pieces;
+			
+			if ( set == null ){
+				
+				if ( !forced ){
+					
+					return;
+				}
+				
+				set = new CopyOnWriteSet<Integer>( false );
+				
+				forced_pieces = set;
+			}
+			
+			if ( forced ){
+				
+				set.add( pieceNumber );
+				
+			}else{
+				
+				set.remove( pieceNumber );
+				
+				if ( set.size() == 0 ){
+					
+					forced_pieces = null;
+				}
+			}
+		}
+		paramPriorityChange++;
+
+		computeBasePriorities();
+	}
+	
+	public boolean
+	isForcePiece(
+		int			pieceNumber )
+	{
+		if ( pieceNumber < 0 || pieceNumber >= nbPieces ){
+			
+			Debug.out( "Invalid piece number: " +pieceNumber );
+			
+			return( false );
+		}
+		
+		CopyOnWriteSet<Integer>	set = forced_pieces;
+
+		return( set != null && set.contains( pieceNumber ));
+	}
+	
+	public void
 	setGlobalRequestHint(
 		int	piece_number,
 		int	start_bytes,
@@ -3087,7 +3187,7 @@ implements PiecePicker
 	
 	public String
 	getPieceString(
-			int	piece_number )
+		int	piece_number )
 	{
 		String	str;
 		
@@ -3104,6 +3204,8 @@ implements PiecePicker
 			str = "pri=" + priority;
 		}
 		
+		str += ",avail=" + availability[piece_number];
+		
 		long[] exts = provider_piece_priorities;
 		
 		if ( exts != null ){
@@ -3111,6 +3213,13 @@ implements PiecePicker
 			str += ",ext=" + exts[piece_number];
 		}
 
+		CopyOnWriteSet<Integer>	forced = forced_pieces;
+		
+		if ( forced != null && forced.contains( piece_number )){
+			
+			str += ", forced";
+		}
+		
 		return( str );
 	}
 

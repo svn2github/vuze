@@ -31,7 +31,6 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
@@ -45,6 +44,7 @@ import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.Legend;
@@ -52,6 +52,8 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
+
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 
 
 
@@ -223,6 +225,92 @@ public class FileInfoView
 		};
 		fileInfoCanvas.addListener(SWT.KeyDown, doNothingListener);
 
+		final Menu menu = new Menu(fileInfoCanvas.getShell(), SWT.POP_UP );
+		
+		fileInfoCanvas.setMenu( menu );
+		
+		fileInfoCanvas.addListener(
+			SWT.MenuDetect, 
+			new Listener() 
+			{
+				public void 
+				handleEvent(
+					Event event) 
+				{
+					Point pt = fileInfoCanvas.toControl(event.x, event.y);
+					
+					int	piece_number = getPieceNumber( pt.x, pt.y );
+					
+					menu.setData( "pieceNumber", piece_number );
+				}
+			});
+		
+		MenuBuildUtils.addMaintenanceListenerForMenu(
+			menu,
+			new MenuBuildUtils.MenuBuilder() 
+			{	
+				public void 
+				buildMenu(
+					Menu 		menu, 
+					MenuEvent 	event) 
+				{
+					Integer pn = (Integer)menu.getData( "pieceNumber" );
+					
+					if ( pn != null && pn != -1 ){
+						
+						DownloadManager	download_manager = file.getDownloadManager();
+
+						if ( download_manager == null ){
+							
+							return;
+						}
+						
+						DiskManager		disk_manager = download_manager.getDiskManager();
+						PEPeerManager	peer_manager = download_manager.getPeerManager();
+				
+						if ( disk_manager == null || peer_manager == null ){
+														
+							return;
+						}
+						
+						final PiecePicker picker = peer_manager.getPiecePicker();
+						
+						DiskManagerPiece[] 	dm_pieces = disk_manager.getPieces();
+						PEPiece[]			pe_pieces = peer_manager.getPieces();
+							
+						final int piece_number = pn;
+						
+						DiskManagerPiece	dm_piece = dm_pieces[piece_number];
+						PEPiece				pe_piece = pe_pieces[piece_number];
+						
+						final MenuItem force_piece = new MenuItem( menu, SWT.CHECK );
+						
+						Messages.setLanguageText( force_piece, "label.force.piece" );
+						
+						boolean	done = dm_piece.isDone();
+						
+						force_piece.setEnabled( !done );
+						
+						if ( !done ){
+						
+							force_piece.setSelection( picker.isForcePiece( piece_number ));
+							
+							force_piece.addSelectionListener(
+					    		new SelectionAdapter()
+					    		{
+					    			public void 
+					    			widgetSelected(
+					    				SelectionEvent e) 
+					    			{
+					    				picker.setForcePiece( piece_number, force_piece.getSelection());
+					    			}
+					    		});
+						}
+					}					
+				}
+			});
+
+		
 		fileInfoCanvas.addListener(SWT.Resize, new Listener() {
 			
 			public void handleEvent(Event e) {
@@ -287,28 +375,29 @@ public class FileInfoView
 		}
 	}
 
-	protected void
-	showPieceDetails(
+	private int
+	getPieceNumber(
 		int		x,
 		int		y )
 	{
+
 		Rectangle bounds = fileInfoCanvas.getClientArea();
 		
 		if (bounds.width <= 0 || bounds.height <= 0){
 			
-			return;
+			return( -1 );
 		}
 		
 		if ( file == null ){
 			
-			return;
+			return( -1 );
 		}
 		
 		DownloadManager	download_manager = file.getDownloadManager();
 
 		if ( download_manager == null ){
 			
-			return;
+			return( -1 );
 		}
 		
 		DiskManager		disk_manager = download_manager.getDiskManager();
@@ -316,12 +405,9 @@ public class FileInfoView
 
 		if (disk_manager == null || peer_manager == null ){
 			
-			return;
+			return( -1 );
 		}
-		
-		DiskManagerPiece[] 	dm_pieces = disk_manager.getPieces();
-		PEPiece[]			pe_pieces = peer_manager.getPieces();
-		
+				
 		int	first_piece = file.getFirstPieceNumber();
 		int	num_pieces	= file.getNbPieces();
 		
@@ -334,9 +420,48 @@ public class FileInfoView
 		
 		if ( piece_number >= first_piece && piece_number < first_piece + num_pieces ){
 			
+			return( piece_number );
+			
+		}else{
+			
+			return( -1 );
+		}
+	}
+	
+	protected void
+	showPieceDetails(
+		int		x,
+		int		y )
+	{
+		int piece_number = getPieceNumber( x, y );
+		
+		if ( piece_number >= 0 ){
+		
+			DownloadManager	download_manager = file.getDownloadManager();
+
+			if ( download_manager == null ){
+				
+				topLabel.setText( "" );
+				
+				return;
+			}
+			
+			DiskManager		disk_manager = download_manager.getDiskManager();
+			PEPeerManager	peer_manager = download_manager.getPeerManager();
+	
+			if ( disk_manager == null || peer_manager == null ){
+				
+				topLabel.setText( "" );
+				
+				return;
+			}
+			
+			DiskManagerPiece[] 	dm_pieces = disk_manager.getPieces();
+			PEPiece[]			pe_pieces = peer_manager.getPieces();
+						
 			DiskManagerPiece	dm_piece = dm_pieces[piece_number];
 			PEPiece				pe_piece = pe_pieces[piece_number];
-			
+				
 			String	text =  "Piece " + piece_number + ": " + dm_piece.getString();
 			
 			if ( pe_piece != null ){
@@ -354,7 +479,7 @@ public class FileInfoView
 			topLabel.setText( text );
 			
 		}else{
-			
+				
 			topLabel.setText( "" );
 		}
 	}

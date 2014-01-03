@@ -28,9 +28,27 @@ import java.util.Set;
 public class 
 CopyOnWriteSet<T> 
 {
-	private volatile IdentityHashSet<T>	set = new IdentityHashSet<T>();
+	private boolean	is_identify;
+	
+	private volatile Set<T>	set;
 	
 	private boolean	visible = false;
+	
+	public 
+	CopyOnWriteSet(
+		boolean	identity_hash_set )
+	{
+		is_identify = identity_hash_set;
+		
+		if ( is_identify ){
+			
+			set = new IdentityHashSet<T>();
+			
+		}else{
+			
+			set = new HashSet<T>();
+		}
+	}
 	
 	public void
 	add(
@@ -40,7 +58,16 @@ CopyOnWriteSet<T>
 			
 			if ( visible ){
 			
-				IdentityHashSet<T> new_set = new IdentityHashSet<T>( set );
+				Set<T> new_set;
+				
+				if ( is_identify ){
+					
+					new_set = new IdentityHashSet<T>( set );
+					
+				}else{
+					
+					new_set = new HashSet<T>( set );
+				}
 			
 				new_set.add( o );
 			
@@ -63,7 +90,16 @@ CopyOnWriteSet<T>
 			
 			if ( visible ){
 				
-				IdentityHashSet<T> new_set = new IdentityHashSet<T>( set );
+				Set<T> new_set;
+				
+				if ( is_identify ){
+					
+					new_set = new IdentityHashSet<T>( set );
+					
+				}else{
+					
+					new_set = new HashSet<T>( set );
+				}
 				
 				boolean res = new_set.remove( o );
 				

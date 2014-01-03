@@ -84,6 +84,15 @@ public interface PiecePicker
 	public int		getNbPiecesDone();
 	
 	public void
+	setForcePiece(
+		int			pieceNumber,
+		boolean		forced );
+	
+	public boolean
+	isForcePiece(
+		int			pieceNumber );
+	
+	public void
 	setGlobalRequestHint(
 		int	piece_number,
 		int	start_bytes,

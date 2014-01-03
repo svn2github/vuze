@@ -39,7 +39,7 @@ public abstract class
 TagWithState 
 	extends TagBase
 {
-	private CopyOnWriteSet<Taggable>	objects = new CopyOnWriteSet<Taggable>();
+	private CopyOnWriteSet<Taggable>	objects = new CopyOnWriteSet<Taggable>( true );
 	
 	private boolean	removed;
 	

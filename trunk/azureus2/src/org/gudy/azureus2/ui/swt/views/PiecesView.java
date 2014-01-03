@@ -21,11 +21,15 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.Composite;
-
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
@@ -34,6 +38,7 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.plugins.ui.tables.TableManager;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.Legend;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
@@ -42,10 +47,12 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewEventImpl;
 import org.gudy.azureus2.ui.swt.views.piece.MyPieceDistributionView;
 import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
+import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.pieces.*;
 
+import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.TableColumnCore;
 import com.aelitis.azureus.ui.common.table.TableDataSourceChangedListener;
@@ -71,6 +78,7 @@ public class PiecesView
 	DownloadManagerPieceListener,
 	TableDataSourceChangedListener,
 	TableLifeCycleListener,
+	TableViewSWTMenuFillListener,
 	UISWTViewCoreEventListener
 {
 	private static boolean registeredCoreSubViews = false;
@@ -137,11 +145,147 @@ public class PiecesView
 		}
 
 		tv.addTableDataSourceChangedListener(this, true);
+		tv.addMenuFillListener(this);
 		tv.addLifeCycleListener(this);
 
 		return tv;
 	}
 
+	public void 
+	fillMenu(
+		String 	sColumnName, 
+		Menu 	menu )
+	{
+		final List<Object>	selected = tv.getSelectedDataSources();
+		
+		if ( selected.size() == 0 ){
+			
+			return;
+		}
+		
+		if ( manager == null ){
+			
+			return;
+		}
+		
+		PEPeerManager pm = manager.getPeerManager();
+		
+		if ( pm == null ){
+			
+			return;
+		}
+		
+		final PiecePicker picker = pm.getPiecePicker();
+		
+		boolean	has_undone	 	= false;
+		boolean	has_unforced	= false;
+		
+		for ( Object obj: selected ){
+			
+			PEPiece piece = (PEPiece)obj;
+			
+			if ( !piece.getDMPiece().isDone()){
+				
+				has_undone = true;
+				
+				if ( picker.isForcePiece( piece.getPieceNumber())){
+					
+					has_unforced = true;
+				}
+			}
+		}
+		
+		final MenuItem force_piece = new MenuItem( menu, SWT.CHECK );
+		
+		Messages.setLanguageText( force_piece, "label.force.piece" );
+				
+		force_piece.setEnabled( has_undone );
+		
+		if ( has_undone ){
+		
+			force_piece.setSelection( has_unforced );
+			
+			force_piece.addSelectionListener(
+	    		new SelectionAdapter()
+	    		{
+	    			public void 
+	    			widgetSelected(
+	    				SelectionEvent e) 
+	    			{
+	    				boolean	forced = force_piece.getSelection();
+	    				
+	    				for ( Object obj: selected ){
+	    					
+	    					PEPiece piece = (PEPiece)obj;
+	    					
+	    					if ( !piece.getDMPiece().isDone()){
+	    						
+	    						picker.setForcePiece( piece.getPieceNumber(), forced );
+	    					}
+	    				}
+	    			}
+	    		});
+		}
+		
+		final MenuItem cancel_reqs_piece = new MenuItem( menu, SWT.PUSH );
+		
+		Messages.setLanguageText( cancel_reqs_piece, "label.rerequest.blocks" );
+			
+		cancel_reqs_piece.addSelectionListener(
+    		new SelectionAdapter()
+    		{
+    			public void 
+    			widgetSelected(
+    				SelectionEvent e) 
+    			{
+     				for ( Object obj: selected ){
+    					
+    					PEPiece piece = (PEPiece)obj;
+    					
+    					for ( int i=0;i<piece.getNbBlocks();i++){
+    						
+    						if ( piece.isRequested( i )){
+    							
+    							piece.clearRequested( i );
+    						}
+    					}
+    				}
+    			}
+    		});
+		
+		new MenuItem( menu, SWT.SEPARATOR );
+		
+		/*
+		final MenuItem reset_piece = new MenuItem( menu, SWT.PUSH );
+		
+		Messages.setLanguageText( reset_piece, "label.reset.piece" );
+			
+		reset_piece.addSelectionListener(
+    		new SelectionAdapter()
+    		{
+    			public void 
+    			widgetSelected(
+    				SelectionEvent e) 
+    			{
+     				for ( Object obj: selected ){
+    					
+    					PEPiece piece = (PEPiece)obj;
+    					
+    					piece.reset();
+    				}
+    			}
+    		});
+    	*/
+	}
+	
+	public void 
+	addThisColumnSubMenu(
+		String 	sColumnName, 
+		Menu 	menuThisColumn )
+	{
+		
+	}
+	
 	private boolean comp_focused;
 	private Object focus_pending_ds;
 

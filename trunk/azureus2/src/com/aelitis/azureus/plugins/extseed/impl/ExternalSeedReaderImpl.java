@@ -130,7 +130,7 @@ ExternalSeedReaderImpl
 	private int					rate_bytes_read;
 	private int					rate_bytes_permitted;
 
-	private volatile CopyOnWriteSet<MutableInteger>		bad_pieces = new CopyOnWriteSet<MutableInteger>();
+	private volatile CopyOnWriteSet<MutableInteger>		bad_pieces = new CopyOnWriteSet<MutableInteger>( true );
 	
 	protected
 	ExternalSeedReaderImpl(

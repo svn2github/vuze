@@ -133,7 +133,7 @@ BuddyPluginTracker
 	
 	private Set				actively_tracking	= new HashSet();
 		
-	private CopyOnWriteSet	buddy_peers	= new CopyOnWriteSet();
+	private CopyOnWriteSet<Peer>	buddy_peers	= new CopyOnWriteSet<Peer>( true );
 	
 	private CopyOnWriteList	listeners = new CopyOnWriteList();
 	
