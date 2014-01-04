@@ -20,18 +20,14 @@ package org.gudy.azureus2.ui.swt.views.utils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeMap;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.RGB;
@@ -88,8 +84,6 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
  */
 public class TagUIUtils
 {
-		// should probably rework SubscriptionMDIEntry and SBC_DevicesView to do menu crunching too ;(
-	
 	public static final int MAX_TOP_LEVEL_TAGS_IN_MENU	= 20;
 	
 	public static void

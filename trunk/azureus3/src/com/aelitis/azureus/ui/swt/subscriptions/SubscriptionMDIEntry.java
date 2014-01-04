@@ -2,13 +2,17 @@ package com.aelitis.azureus.ui.swt.subscriptions;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.IdentityHashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.FileDialog;
+import org.eclipse.swt.widgets.Menu;
 import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -675,30 +679,72 @@ public class SubscriptionMDIEntry implements SubscriptionListener, ViewTitleInfo
 				
 		m.setStyle( MenuItem.STYLE_SEPARATOR );
 	
-		for ( final Tag tag: tags ){
+		
+		List<String>	menu_names 		= new ArrayList<String>();
+		Map<String,Tag>	menu_name_map 	= new IdentityHashMap<String, Tag>();
+
+		for ( Tag t: tags ){
 			
-			if ( tag.isTagAuto()){
+			if ( !t.isTagAuto()){
 				
-				continue;
+				String name = t.getTagName( true );
+				
+				menu_names.add( name );
+				menu_name_map.put( name, t );
+			}
+		}
+			
+		List<Object>	menu_structure = MenuBuildUtils.splitLongMenuListIntoHierarchy( menu_names, TagUIUtils.MAX_TOP_LEVEL_TAGS_IN_MENU );
+		
+		for ( Object obj: menu_structure ){
+
+		
+			List<Tag>	bucket_tags = new ArrayList<Tag>();
+			
+			MenuItem parent_menu;
+			
+			if ( obj instanceof String ){
+				
+				parent_menu = menu;
+				
+				bucket_tags.add( menu_name_map.get((String)obj));
+				
+			}else{
+				
+				Object[]	entry = (Object[])obj;
+				
+				parent_menu = menu_manager.addMenuItem (menu, "!" + (String)entry[0] + "!" );
+				
+				parent_menu.setStyle( MenuItem.STYLE_MENU );
+
+				List<String>	tag_names = (List<String>)entry[1];
+				
+				for ( String name: tag_names ){
+					
+					bucket_tags.add( menu_name_map.get( name ));
+				}
 			}
 			
-			m = menu_manager.addMenuItem( menu, tag.getTagName( false ));
-					
-			m.setStyle( MenuItem.STYLE_RADIO );
-										
-			m.setData( new Boolean( assigned_tag == tag ));
-					
-			m.addListener(
-				new MenuItemListener() 
-				{
-					public void
-					selected(
-						MenuItem			menu,
-						Object 				target )
+			for ( final Tag tag: bucket_tags ){
+			
+				m = menu_manager.addMenuItem( parent_menu, tag.getTagName( false ));
+						
+				m.setStyle( MenuItem.STYLE_RADIO );
+											
+				m.setData( new Boolean( assigned_tag == tag ));
+						
+				m.addListener(
+					new MenuItemListener() 
 					{
-						subs.setTagID( tag.getTagUID());
-					}
-				});
+						public void
+						selected(
+							MenuItem			menu,
+							Object 				target )
+						{
+							subs.setTagID( tag.getTagUID());
+						}
+					});
+			}
 		}
 		
 		m = menu_manager.addMenuItem( menu, "sep2" );

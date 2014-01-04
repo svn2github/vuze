@@ -1102,61 +1102,107 @@ public class SBC_DevicesView
 				new MenuItem( menu_tags, SWT.SEPARATOR );
 			}
 			
-			for ( final Tag t: all_tags ){
+			List<String>	menu_names 		= new ArrayList<String>();
+			Map<String,Tag>	menu_name_map 	= new IdentityHashMap<String, Tag>();
+
+			for ( Tag t: all_tags ){
 				
-				if ( t.isTagAuto()){
+				if ( !t.isTagAuto()){
 					
-					continue;
+					String name = t.getTagName( true );
+					
+					menu_names.add( name );
+					menu_name_map.put( name, t );
+				}
+			}
+				
+			List<Object>	menu_structure = MenuBuildUtils.splitLongMenuListIntoHierarchy( menu_names, TagUIUtils.MAX_TOP_LEVEL_TAGS_IN_MENU );
+			
+			for ( Object obj: menu_structure ){
+	
+				List<Tag>	bucket_tags = new ArrayList<Tag>();
+				
+				Menu parent_menu;
+				
+				if ( obj instanceof String ){
+					
+					parent_menu = menu_tags;
+					
+					bucket_tags.add( menu_name_map.get((String)obj));
+					
+				}else{
+					
+					Object[]	entry = (Object[])obj;
+					
+					Menu menu_bucket = new Menu( menu_tags.getShell(), SWT.DROP_DOWN );
+					
+					MenuItem bucket_item = new MenuItem( menu_tags, SWT.CASCADE );
+					
+					bucket_item.setText((String)entry[0]);
+					
+					bucket_item.setMenu( menu_bucket );		
+					
+					parent_menu = menu_bucket;
+					
+					List<String>	tag_names = (List<String>)entry[1];
+					
+					for ( String name: tag_names ){
+						
+						bucket_tags.add( menu_name_map.get( name ));
+					}
 				}
 				
-				final MenuItem t_i = new MenuItem( menu_tags, SWT.CHECK );
-				
-				String tag_name = t.getTagName( true );
-				
-				t_i.setText( tag_name );
-				
-				t_i.setSelection( shared_tags != null && shared_tags.contains( tag_name ));
-				
-				t_i.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event event) {
-						
-						boolean	selected = t_i.getSelection();
-						
-						String 	tag_uid = String.valueOf( t.getTagUID());
-						
-						for ( TranscodeFile file: files ){
-							
-							Set<String>	uids = new TreeSet<String>();
-							
-							uids.addAll( Arrays.asList( file.getTags( false )));
-							
-							boolean	update = false;
-							
-							if ( selected ){
-								
-								if ( !uids.contains(tag_uid)){
-									
-									uids.add( tag_uid );
-									
-									update = true;
-								}
-							}else{
-								
-								if ( uids.contains( tag_uid )){
+				for ( final Tag t: bucket_tags ){
+
+					final MenuItem t_i = new MenuItem( parent_menu, SWT.CHECK );
 					
-									uids.remove( tag_uid );
-									
-									update = true;
-								}
-							}
+					String tag_name = t.getTagName( true );
+					
+					t_i.setText( tag_name );
+					
+					t_i.setSelection( shared_tags != null && shared_tags.contains( tag_name ));
+					
+					t_i.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
 							
-							if ( update ){
+							boolean	selected = t_i.getSelection();
+							
+							String 	tag_uid = String.valueOf( t.getTagUID());
+							
+							for ( TranscodeFile file: files ){
 								
-								file.setTags( uids.toArray( new String[ uids.size()]));
+								Set<String>	uids = new TreeSet<String>();
+								
+								uids.addAll( Arrays.asList( file.getTags( false )));
+								
+								boolean	update = false;
+								
+								if ( selected ){
+									
+									if ( !uids.contains(tag_uid)){
+										
+										uids.add( tag_uid );
+										
+										update = true;
+									}
+								}else{
+									
+									if ( uids.contains( tag_uid )){
+						
+										uids.remove( tag_uid );
+										
+										update = true;
+									}
+								}
+								
+								if ( update ){
+									
+									file.setTags( uids.toArray( new String[ uids.size()]));
+								}
 							}
 						}
-					}
-				});
+					});
+				}
 			}
 		}
 		

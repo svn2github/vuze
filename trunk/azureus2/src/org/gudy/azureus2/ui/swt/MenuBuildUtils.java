@@ -22,8 +22,8 @@
 package org.gudy.azureus2.ui.swt;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -37,10 +37,12 @@ import org.eclipse.swt.widgets.Menu;
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
+import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
 import org.gudy.azureus2.ui.swt.plugins.UISWTGraphic;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
+
 
 /**
  * A class which helps generate build SWT menus.
@@ -320,10 +322,29 @@ public class MenuBuildUtils {
 		List<String>	flat_entries,
 		int				split_after )
 	{
-		Collections.sort( flat_entries );
-		
+		List<Object>	result = new ArrayList<Object>();
+	
 		int	flat_entry_count = flat_entries.size();
+
+		if ( flat_entry_count == 0 ){
+			
+			return( result );
+		}
 		
+		Collections.sort(
+			flat_entries,
+			new Comparator<String>()
+			{
+				final Comparator<String> comp = new FormattersImpl().getAlphanumericComparator( true );
+				
+				public int 
+				compare(
+					String o1, String o2) 
+				{
+					return( comp.compare( o1, o2 ));
+				}
+			});	
+				
 		int[] buckets = new int[split_after];
 		
 		for ( int i=0;i<flat_entry_count;i++){
@@ -339,15 +360,16 @@ public class MenuBuildUtils {
 			
 			int	entries = buckets[i];
 			
+			edges.add( flat_entries.get( pos ).toCharArray());
+
 			if ( entries > 1 ){
 				
-				edges.add( flat_entries.get( pos ).toCharArray());
 				edges.add( flat_entries.get( pos + entries - 1 ).toCharArray());
 				
 				pos += entries;
 				
 			}else{
-				
+								
 				break;
 			}
 		}
@@ -379,9 +401,7 @@ public class MenuBuildUtils {
 		int	edge_pos	= 0;
 		
 		Iterator<String>tag_it = flat_entries.iterator();
-		
-		List<Object>	result = new ArrayList<Object>();
-		
+				
 		while( tag_it.hasNext()){
 			
 			int	bucket_entries = buckets[bucket_pos++];
