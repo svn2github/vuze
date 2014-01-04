@@ -21,6 +21,12 @@
  */
 package org.gudy.azureus2.ui.swt;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Listener;
@@ -28,7 +34,6 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.widgets.Menu;
-
 import org.gudy.azureus2.plugins.ui.Graphic;
 import org.gudy.azureus2.plugins.ui.menus.MenuItem;
 import org.gudy.azureus2.pluginsimpl.local.ui.menus.MenuItemImpl;
@@ -301,5 +306,106 @@ public class MenuBuildUtils {
 			menuItem.setEnabled(enable_items && az_menuitem.isEnabled());
 
 		}
+	}
+	
+	/**
+	 * 
+	 * @param flat_entries		Overall list of menu entry names
+	 * @param split_after		Split if more than this
+	 * @return					Entries are either a String or Object[]{ submeuname, List<String> submenu entries }
+	 */
+	
+	public static List<Object>
+	splitLongMenuListIntoHierarchy(
+		List<String>	flat_entries,
+		int				split_after )
+	{
+		Collections.sort( flat_entries );
+		
+		int	flat_entry_count = flat_entries.size();
+		
+		int[] buckets = new int[split_after];
+		
+		for ( int i=0;i<flat_entry_count;i++){
+			
+			buckets[i%buckets.length]++;
+		}
+		
+		List<char[]>	edges = new ArrayList<char[]>();
+		
+		int	pos = 0;
+		
+		for ( int i=0;i<buckets.length;i++){
+			
+			int	entries = buckets[i];
+			
+			if ( entries > 1 ){
+				
+				edges.add( flat_entries.get( pos ).toCharArray());
+				edges.add( flat_entries.get( pos + entries - 1 ).toCharArray());
+				
+				pos += entries;
+				
+			}else{
+				
+				break;
+			}
+		}
+			
+		int[]	edge_lens = new int[edges.size()];
+		
+		for ( int i=0;i<edges.size()-1;i++){
+			
+			char[] c1 = edges.get(i);
+			char[] c2 = edges.get(i+1);
+			
+			int	j;
+			
+			for ( j=0;j<Math.min(Math.min(c1.length,c2.length),5); j++ ){
+				
+				if ( c1[j] != c2[j]){
+					
+					break;
+				}
+			}
+			
+			j++;
+			
+			edge_lens[i] 	= Math.min( c1.length,Math.max( edge_lens[i], j )); 
+			edge_lens[i+1] 	= j;
+		}
+		
+		int	bucket_pos 	= 0;
+		int	edge_pos	= 0;
+		
+		Iterator<String>tag_it = flat_entries.iterator();
+		
+		List<Object>	result = new ArrayList<Object>();
+		
+		while( tag_it.hasNext()){
+			
+			int	bucket_entries = buckets[bucket_pos++];
+							
+			List<String>	bucket_tags = new ArrayList<String>();
+			
+			for ( int i=0;i<bucket_entries;i++){
+				
+				bucket_tags.add( tag_it.next());
+			}
+						
+			if ( bucket_entries == 1 ){
+				
+				result.add( bucket_tags.get(0));
+				
+			}else{
+				
+				
+				String level_name = new String( edges.get( edge_pos ), 0, edge_lens[ edge_pos++ ]) + " - " + new String( edges.get( edge_pos ), 0, edge_lens[ edge_pos++ ]);
+				
+				result.add( new Object[]{ level_name, bucket_tags });
+			}
+		}	
+			
+		return( result );
 	}
 }

@@ -20,11 +20,13 @@ package org.gudy.azureus2.ui.swt.views.utils;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +45,7 @@ import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.TrackersUtil;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
+import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -1787,105 +1790,54 @@ public class TagUIUtils
 				new MenuItem( menu_tags, SWT.SEPARATOR );
 			}
 			
-			manual_t = sortTags( manual_t );
-			
-			Iterator<Tag>	tag_it = manual_t.iterator();
-			
-			while( tag_it.hasNext()){
+			List<String>	menu_names 		= new ArrayList<String>();
+			Map<String,Tag>	menu_name_map 	= new IdentityHashMap<String, Tag>();
+
+			for ( Tag t: manual_t ){
 				
-				if ( tag_it.next().isTagAuto()){
+				if ( !t.isTagAuto()){
 					
-					tag_it.remove();
+					String name = t.getTagName( true );
 					
-				}
-			}
-			
-			int	tag_count = manual_t.size();
-			
-			int[] buckets = new int[MAX_TOP_LEVEL_TAGS_IN_MENU];
-			
-			for ( int i=0;i<tag_count;i++){
-				
-				buckets[i%buckets.length]++;
-			}
-			
-			List<char[]>	edges = new ArrayList<char[]>();
-			
-			int	pos = 0;
-			
-			for ( int i=0;i<buckets.length;i++){
-				
-				int	entries = buckets[i];
-				
-				if ( entries > 1 ){
-					
-					edges.add( manual_t.get( pos ).getTagName( true ).toCharArray());
-					edges.add( manual_t.get( pos + entries - 1 ).getTagName( true ).toCharArray());
-					
-					pos += entries;
-					
-				}else{
-					
-					break;
+					menu_names.add( name );
+					menu_name_map.put( name, t );
 				}
 			}
 				
-			int[]	edge_lens = new int[edges.size()];
+			List<Object>	menu_structure = MenuBuildUtils.splitLongMenuListIntoHierarchy( menu_names, MAX_TOP_LEVEL_TAGS_IN_MENU );
 			
-			for ( int i=0;i<edges.size()-1;i++){
-				
-				char[] c1 = edges.get(i);
-				char[] c2 = edges.get(i+1);
-				
-				int	j;
-				
-				for ( j=0;j<Math.min(Math.min(c1.length,c2.length),5); j++ ){
-					
-					if ( c1[j] != c2[j]){
-						
-						break;
-					}
-				}
-				
-				j++;
-				
-				edge_lens[i] 	= Math.min( c1.length,Math.max( edge_lens[i], j )); 
-				edge_lens[i+1] 	= j;
-			}
+			for ( Object obj: menu_structure ){
 			
-			int	bucket_pos 	= 0;
-			int	edge_pos	= 0;
-			
-			tag_it = manual_t.iterator();
-			
-			while( tag_it.hasNext()){
-				
-				int	bucket_entries = buckets[bucket_pos++];
-								
 				List<Tag>	bucket_tags = new ArrayList<Tag>();
-				
-				for ( int i=0;i<bucket_entries;i++){
-					
-					bucket_tags.add( tag_it.next());
-				}
 				
 				Menu parent_menu;
 				
-				if ( bucket_entries == 1 ){
+				if ( obj instanceof String ){
 					
 					parent_menu = menu_tags;
 					
+					bucket_tags.add( menu_name_map.get((String)obj));
+					
 				}else{
+					
+					Object[]	entry = (Object[])obj;
 					
 					Menu menu_bucket = new Menu( menu_tags.getShell(), SWT.DROP_DOWN );
 					
 					MenuItem bucket_item = new MenuItem( menu_tags, SWT.CASCADE );
 					
-					bucket_item.setText(  new String( edges.get( edge_pos ), 0, edge_lens[ edge_pos++ ]) + " - " + new String( edges.get( edge_pos ), 0, edge_lens[ edge_pos++ ]));
+					bucket_item.setText((String)entry[0]);
 					
 					bucket_item.setMenu( menu_bucket );		
 					
 					parent_menu = menu_bucket;
+					
+					List<String>	tag_names = (List<String>)entry[1];
+					
+					for ( String name: tag_names ){
+						
+						bucket_tags.add( menu_name_map.get( name ));
+					}
 				}
 				
 				for ( final Tag t: bucket_tags ){
@@ -2093,4 +2045,6 @@ public class TagUIUtils
 		
 		return( str );
 	}
+	
+
 }
