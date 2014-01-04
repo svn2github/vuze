@@ -40,8 +40,14 @@ public class MessagingUtil {
     
     try {
       raw_payload = BEncoder.encode( payload );
+      
+      if ( raw_payload == null || raw_payload.length == 0 ){
+    	  
+    	  throw( new Exception( "Encoding failed" ));
+      }
     }
     catch( Throwable t ) {
+      System.err.println( "Payload encoding failed: " + payload );
       Debug.out( t );
       raw_payload = new byte[0];
     }
