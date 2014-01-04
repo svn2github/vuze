@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -84,6 +85,10 @@ import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
  */
 public class TagUIUtils
 {
+		// should probably rework SubscriptionMDIEntry and SBC_DevicesView to do menu crunching too ;(
+	
+	public static final int MAX_TOP_LEVEL_TAGS_IN_MENU	= 20;
+	
 	public static void
 	setupSideBarMenus(
 		final MenuManager	menuManager )
@@ -1784,53 +1789,148 @@ public class TagUIUtils
 			
 			manual_t = sortTags( manual_t );
 			
-			for ( final Tag t: manual_t ){
+			Iterator<Tag>	tag_it = manual_t.iterator();
+			
+			while( tag_it.hasNext()){
 				
-				if ( t.isTagAuto()){
+				if ( tag_it.next().isTagAuto()){
 					
-					continue;
+					tag_it.remove();
+					
 				}
+			}
+			
+			int	tag_count = manual_t.size();
+			
+			int[] buckets = new int[MAX_TOP_LEVEL_TAGS_IN_MENU];
+			
+			for ( int i=0;i<tag_count;i++){
 				
-				final MenuItem t_i = new MenuItem( menu_tags, SWT.CHECK );
+				buckets[i%buckets.length]++;
+			}
+			
+			List<char[]>	edges = new ArrayList<char[]>();
+			
+			int	pos = 0;
+			
+			for ( int i=0;i<buckets.length;i++){
 				
-				String tag_name = t.getTagName( true );
+				int	entries = buckets[i];
 				
-				Integer c = manual_map.get( t );
-				
-				if ( c != null ){
+				if ( entries > 1 ){
 					
-					if ( c == dms.length ){
-						
-						t_i.setSelection( true );
-						
-						t_i.setText( tag_name );
-						
-					}else{
-						
-						t_i.setText( tag_name + " (" + c + ")" );
-					}
+					edges.add( manual_t.get( pos ).getTagName( true ).toCharArray());
+					edges.add( manual_t.get( pos + entries - 1 ).getTagName( true ).toCharArray());
+					
+					pos += entries;
+					
 				}else{
 					
-					t_i.setText( tag_name );
+					break;
+				}
+			}
+				
+			int[]	edge_lens = new int[edges.size()];
+			
+			for ( int i=0;i<edges.size()-1;i++){
+				
+				char[] c1 = edges.get(i);
+				char[] c2 = edges.get(i+1);
+				
+				int	j;
+				
+				for ( j=0;j<Math.min(Math.min(c1.length,c2.length),5); j++ ){
+					
+					if ( c1[j] != c2[j]){
+						
+						break;
+					}
 				}
 				
-				t_i.addListener(SWT.Selection, new Listener() {
-					public void handleEvent(Event event) {
+				j++;
+				
+				edge_lens[i] 	= Math.min( c1.length,Math.max( edge_lens[i], j )); 
+				edge_lens[i+1] 	= j;
+			}
+			
+			int	bucket_pos 	= 0;
+			int	edge_pos	= 0;
+			
+			tag_it = manual_t.iterator();
+			
+			while( tag_it.hasNext()){
+				
+				int	bucket_entries = buckets[bucket_pos++];
+								
+				List<Tag>	bucket_tags = new ArrayList<Tag>();
+				
+				for ( int i=0;i<bucket_entries;i++){
+					
+					bucket_tags.add( tag_it.next());
+				}
+				
+				Menu parent_menu;
+				
+				if ( bucket_entries == 1 ){
+					
+					parent_menu = menu_tags;
+					
+				}else{
+					
+					Menu menu_bucket = new Menu( menu_tags.getShell(), SWT.DROP_DOWN );
+					
+					MenuItem bucket_item = new MenuItem( menu_tags, SWT.CASCADE );
+					
+					bucket_item.setText(  new String( edges.get( edge_pos ), 0, edge_lens[ edge_pos++ ]) + " - " + new String( edges.get( edge_pos ), 0, edge_lens[ edge_pos++ ]));
+					
+					bucket_item.setMenu( menu_bucket );		
+					
+					parent_menu = menu_bucket;
+				}
+				
+				for ( final Tag t: bucket_tags ){
+				
+					final MenuItem t_i = new MenuItem( parent_menu, SWT.CHECK );
+					
+					String tag_name = t.getTagName( true );
+					
+					Integer c = manual_map.get( t );
+					
+					if ( c != null ){
 						
-						boolean	selected = t_i.getSelection();
-						
-						for ( DownloadManager dm: dms ){
+						if ( c == dms.length ){
 							
-							if ( selected ){
+							t_i.setSelection( true );
+							
+							t_i.setText( tag_name );
+							
+						}else{
+							
+							t_i.setText( tag_name + " (" + c + ")" );
+						}
+					}else{
+						
+						t_i.setText( tag_name );
+					}
+					
+					t_i.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							
+							boolean	selected = t_i.getSelection();
+							
+							for ( DownloadManager dm: dms ){
 								
-								t.addTaggable( dm );
-							}else{
-								
-								t.removeTaggable( dm );
+								if ( selected ){
+									
+									t.addTaggable( dm );
+								}else{
+									
+									t.removeTaggable( dm );
+								}
 							}
 						}
-					}
-				});
+					});
+				}
 			}
 		}
 		
