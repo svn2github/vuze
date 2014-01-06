@@ -477,7 +477,10 @@ public class TagStatsView
 	refresh(
 		boolean force) 
 	{
-		mpg.refresh( force );
+		if ( mpg != null ){
+		
+			mpg.refresh( force );
+		}
 	}  
   
 	public boolean 

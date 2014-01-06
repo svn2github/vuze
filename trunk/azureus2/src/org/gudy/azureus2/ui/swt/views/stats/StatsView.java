@@ -329,6 +329,32 @@ public class StatsView
 		}
 	}
 
+	private void focusGained()
+	{
+		if (folder == null || folder.isDisposed())
+			return;
+
+		try {			
+			CTabItem[] items = folder.getItems();
+
+			for (int i = 0; i < items.length; i++) {
+				CTabItem item = items[i];
+				UISWTViewCore view = (UISWTViewCore) item.getData("IView");
+				try {
+					if (item.isDisposed() || view == null) {
+						continue;
+					}
+					view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
+				} catch (Throwable e) {
+					Debug.printStackTrace(e);
+				}
+			}
+
+		} catch ( Throwable e) {
+			Debug.printStackTrace(e);
+		}
+	}
+	
 	// Copied from ManagerView
 	private static String escapeAccelerators(String str) {
 		if (str == null) {
@@ -465,6 +491,7 @@ public class StatsView
 				break;
 
 			case UISWTViewEvent.TYPE_FOCUSGAINED:
+				focusGained();
 				break;
 
 			case UISWTViewEvent.TYPE_REFRESH:
