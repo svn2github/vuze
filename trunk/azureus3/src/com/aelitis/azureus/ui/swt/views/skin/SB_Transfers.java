@@ -18,7 +18,6 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
-import java.io.File;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -1175,21 +1174,25 @@ public class SB_Transfers
 
 		MdiEntry entry;
 		
+		boolean closable = auto;
+		
 		if ( tag.getTaggableTypes() == Taggable.TT_DOWNLOAD ){
+			
+			closable = true;
 			
 			entry = mdi.createEntryFromSkinRef(
 					MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id, "library",
-					name, viewTitleInfo, tag, auto, prev_id);
+					name, viewTitleInfo, tag, closable, prev_id);
 		}else{
 			
 			entry = mdi.createEntryFromEventListener(
 						MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, 
-						new PeersGeneralView( tag ), id, auto, null, prev_id);
+						new PeersGeneralView( tag ), id, closable, null, prev_id);
 			
 			entry.setViewTitleInfo( viewTitleInfo );
 		}
 		
-		if ( auto ){
+		if ( closable ){
 			
 			entry.addListener(
 				new MdiCloseListener()
