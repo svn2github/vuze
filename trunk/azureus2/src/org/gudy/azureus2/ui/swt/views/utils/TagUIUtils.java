@@ -137,7 +137,7 @@ public class TagUIUtils
 					public void menuWillBeShown(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object data) {
 						menu.removeAllChildItems();
 						
-						final List<Tag> all_tags = new ArrayList<Tag>( manual_tt.getTags());
+						final List<Tag> all_tags = manual_tt.getTags();
 
 						List<String>	menu_names 		= new ArrayList<String>();
 						Map<String,Tag>	menu_name_map 	= new IdentityHashMap<String, Tag>();
@@ -145,30 +145,20 @@ public class TagUIUtils
 						boolean	all_visible 	= true;
 						boolean all_invisible 	= true;
 
-						Iterator<Tag> it = all_tags.iterator();
-							
-						while( it.hasNext()){
-							
-							Tag t = it.next();
-							
-							if ( t.isTagAuto()){
+						for ( Tag t: all_tags ){
 								
-								it.remove();
-								
+							String name = t.getTagName( true );
+							
+							menu_names.add( name );
+							menu_name_map.put( name, t );
+							
+							if ( t.isVisible()){
+								all_invisible = false;
 							}else{
-								
-								String name = t.getTagName( true );
-								
-								menu_names.add( name );
-								menu_name_map.put( name, t );
-								
-								if ( t.isVisible()){
-									all_invisible = false;
-								}else{
-									all_visible = false;
-								}
+								all_visible = false;
 							}
 						}
+						
 						org.gudy.azureus2.plugins.ui.menus.MenuItem showAllItem = menuManager.addMenuItem( menu, "label.show.all" );
 						showAllItem.setStyle(org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_PUSH );
 						
@@ -1691,15 +1681,13 @@ public class TagUIUtils
 				Map<String,Tag>	menu_name_map 	= new IdentityHashMap<String, Tag>();
 
 				for ( Tag t: tags ){
-					
-					if ( !t.isTagAuto()){
+											
+					String name = t.getTagName( true );
 						
-						String name = t.getTagName( true );
-						
-						menu_names.add( name );
-						menu_name_map.put( name, t );
-					}
+					menu_names.add( name );
+					menu_name_map.put( name, t );
 				}
+				
 				List<Object>	menu_structure = MenuBuildUtils.splitLongMenuListIntoHierarchy( menu_names, MAX_TOP_LEVEL_TAGS_IN_MENU );
 				
 				for ( Object obj: menu_structure ){
@@ -2017,6 +2005,8 @@ public class TagUIUtils
 
 			for ( Tag t: manual_t ){
 				
+					// don't allow manual adding of taggables to auto-tags
+				
 				if ( !t.isTagAuto()){
 					
 					String name = t.getTagName( true );
@@ -2097,6 +2087,7 @@ public class TagUIUtils
 								if ( selected ){
 									
 									t.addTaggable( dm );
+									
 								}else{
 									
 									t.removeTaggable( dm );
