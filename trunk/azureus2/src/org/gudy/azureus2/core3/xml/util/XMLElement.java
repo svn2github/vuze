@@ -24,7 +24,6 @@ package org.gudy.azureus2.core3.xml.util;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Map;
 import java.util.Iterator;
@@ -33,9 +32,18 @@ import java.util.TreeSet;
 
 public class XMLElement {
 
-    protected Object single_content;
-    protected Map attributes;
-    protected Collection contents;
+    /**
+     *  This is what the XMLElement holds. It is either:
+     *    a) A single string (text_content); or
+     *    b) A collection of XMLElements.
+     *    
+     *  Both are null at construction time - only one can be
+     *  set.
+     */
+    protected String text_content;
+    protected Collection<XMLElement> contents;
+    
+    protected Map<String,String> attributes;
     protected String tag_name;
     protected boolean auto_order;
 
@@ -44,7 +52,7 @@ public class XMLElement {
     }
 
     public XMLElement(String tag_name, boolean auto_order) {
-        this.single_content = null;
+        this.text_content = null;
         this.attributes = null;
         this.contents = null;
         this.tag_name = tag_name;
@@ -62,7 +70,7 @@ public class XMLElement {
 
     public void addAttribute(String key, String value) {
         if (attributes == null) {
-            this.attributes = new TreeMap(ATTRIBUTE_COMPARATOR);
+            this.attributes = new TreeMap<String,String>(ATTRIBUTE_COMPARATOR);
         }
         this.attributes.put(key, value);
     }
@@ -75,32 +83,44 @@ public class XMLElement {
         this.addAttribute(key, (value) ? "yes" : "no");
     }
 
-    public void addContent(String s) {addContent((Object)s);}
-    public void addContent(XMLElement e) {addContent((Object)e);}
-
-    protected void addContent(Object o) {
-        if (o == null)
+    /**
+     * Should be called setContent really - the code in the XML/HTTP plugin
+     * invokes this method under this name.
+     */
+    public void addContent(String s) {
+        if (s == null)
             throw new NullPointerException();
+        
+        if (this.contents != null)
+            throw new IllegalStateException("cannot add text content to an XMLElement when it contains child XMLElement objects");
+        
+        if (this.text_content != null)
+            throw new IllegalStateException("text content is already set, you cannot set it again");
 
+        this.text_content = s;
+    }
+    
+    public void addContent(XMLElement e) {
+        if (e == null)
+            throw new NullPointerException();
+        
+        if (this.text_content != null) {
+            throw new IllegalStateException("cannot add child XMLElement when it contains text content");
+        }
+
+        /**
+         * Initialise the appropriate collection as soon as we have some content.
+         */
         if (this.contents == null) {
-            if (this.single_content != null) {
-                if (!this.auto_order) {
-                    this.contents = new ArrayList();
-                }
-                else {
-                    this.contents = new TreeSet(CONTENT_COMPARATOR);
-                }
-                this.contents.add(this.single_content);
-                this.single_content = null;
+            if (!this.auto_order) {
+                this.contents = new ArrayList<XMLElement>();
+            }
+            else {
+                this.contents = new TreeSet<XMLElement>(CONTENT_COMPARATOR);
             }
         }
 
-        if (this.contents == null) {
-            this.single_content = o;
-        }
-        else {
-            this.contents.add(o);
-        }
+        this.contents.add(e);
     }
 
     public void printTo(PrintWriter pw) {
@@ -119,34 +139,34 @@ public class XMLElement {
 
         for (int i=0; i<indent; i++) {pw.print(" ");}
 
-        if (this.attributes == null && this.contents == null && this.single_content == null) {
-
-            if (!spaced_out) {
-                pw.print("<");
-                pw.print(this.tag_name);
-                pw.print(" />");
-            }
+        /**
+         * No content results in a simple self-closed tag.
+         */
+        if (this.attributes == null && this.contents == null && this.text_content == null) {
+            pw.print("<");
+            pw.print(this.tag_name);
+            pw.print(" />");
             return;
         }
 
         pw.print("<");
         pw.print(this.tag_name);
-        Iterator itr = null;
 
+        // Add attributes to the element.
         if (this.attributes != null) {
-            itr = this.attributes.entrySet().iterator();
+            Iterator<Map.Entry<String,String>> itr = this.attributes.entrySet().iterator();
             while (itr.hasNext()) {
-                Map.Entry entry = (Map.Entry)itr.next();
+                Map.Entry<String,String> entry = itr.next();
                 pw.print(" ");
                 pw.print(entry.getKey());
                 pw.print("=\"");
-                pw.print(quote((String)entry.getValue()));
+                pw.print(quote(entry.getValue()));
                 pw.print("\"");
             }
         }
 
-        boolean needs_indented_close = (this.contents != null || this.single_content instanceof XMLElement);
-        boolean needs_close_tag = needs_indented_close || this.single_content != null;
+        boolean needs_indented_close = (this.contents != null);
+        boolean needs_close_tag = needs_indented_close || this.text_content != null;
 
         needs_indented_close = needs_indented_close || spaced_out;
         needs_close_tag = needs_close_tag || spaced_out;
@@ -154,33 +174,25 @@ public class XMLElement {
         if (needs_indented_close) {pw.println(">");}
         else if (needs_close_tag) {pw.print(">");}
         else {pw.print(" />");}
+        
+        // Add any text content.
+        if (this.text_content != null) {
+            if (spaced_out) {
+                for (int i=0; i<indent+2; i++) {pw.print(" ");}
+                pw.print(quote(this.text_content));
+                pw.println();
+            }
+            else {
+                pw.print(quote(this.text_content));
+            }
+        }
 
-        itr = null;
+        // Add child sub-elements.
         if (this.contents != null) {
-            itr = this.contents.iterator();
-        }
-        else if (this.single_content != null) {
-            itr = Collections.singletonList(this.single_content).iterator();
-        }
-        else {
-            itr = Collections.singletonList("").iterator();
-        }
-
-        Object content_element = null;
-        if (itr != null) {
+            Iterator<XMLElement> itr = this.contents.iterator();
             while (itr.hasNext()) {
-                content_element = itr.next();
-                if (content_element instanceof XMLElement) {
-                    ((XMLElement)content_element).printTo(pw, indent+2, spaced_out);
-                }
-                else if (spaced_out) {
-                    for (int i=0; i<indent+2; i++) {pw.print(" ");}
-                    pw.print(quote((String)content_element));
-                    pw.println();
-                }
-                else {
-                    pw.print(quote((String)content_element));
-                }
+                XMLElement content_element = itr.next();
+                content_element.printTo(pw, indent+2, spaced_out);
             }
         }
 
@@ -215,7 +227,7 @@ public class XMLElement {
     }
 
     public void clear() {
-        this.single_content = null;
+        this.text_content = null;
         this.attributes = null;
         this.contents = null;
     }
@@ -224,13 +236,13 @@ public class XMLElement {
         if (mode == this.auto_order) return;
         this.auto_order = mode;
         if (this.contents == null) return;
-        Collection previous_contents = contents;
+        Collection<XMLElement> previous_contents = contents;
         if (this.auto_order) {
-            this.contents = new TreeSet(CONTENT_COMPARATOR);
+            this.contents = new TreeSet<XMLElement>(CONTENT_COMPARATOR);
             this.contents.addAll(previous_contents);
         }
         else {
-            this.contents = new ArrayList(previous_contents);
+            this.contents = new ArrayList<XMLElement>(previous_contents);
         }
     }
 
@@ -238,54 +250,63 @@ public class XMLElement {
         return "XMLElement[" + this.tag_name + "]@" + Integer.toHexString(System.identityHashCode(this));
     }
 
-    private static Comparator ATTRIBUTE_COMPARATOR = String.CASE_INSENSITIVE_ORDER;
+    private static final Comparator<String> ATTRIBUTE_COMPARATOR = String.CASE_INSENSITIVE_ORDER;
 
-    private static class ContentComparator implements java.util.Comparator {
-        public int compare(Object o1, Object o2) {
-            if (o1 instanceof XMLElement) {
-                if (o2 instanceof XMLElement) {
-                    XMLElement xe1 = (XMLElement)o1;
-                    XMLElement xe2 = (XMLElement)o2;
-                    int result = String.CASE_INSENSITIVE_ORDER.compare(xe1.getTag(), xe2.getTag());
-                    if (result == 0) {
-                        int xe1_index = 0, xe2_index = 0;
-                        try {
-                            xe1_index = Integer.parseInt(xe1.getAttribute("index"));
-                            xe2_index = Integer.parseInt(xe2.getAttribute("index"));
-                        }
-                        catch (NullPointerException ne) {
-                            xe1_index = xe2_index = 0;
-                        }
-                        catch (NumberFormatException ne) {
-                            xe1_index = xe2_index = 0;
-                        }
+    private static class ContentComparator implements java.util.Comparator<XMLElement> {
+        public int compare(XMLElement xe1, XMLElement xe2) {
+            if (xe1 == null || xe2 == null) throw new NullPointerException();
+            
+            /**
+             * This is necessary - we don't expect to deal with two elements which
+             * are fundamentally equal, but we may be asked to compare the same actual
+             * object against itself when we first populate the collection which uses
+             * this comparator.
+             * 
+             * Ideally, we don't want to allow semantically equivalent objects in the
+             * collection, because it's not clear what we're expected to do when we're
+             * being asked to order elements. We don't expect, in the general use case,
+             * to have a caller trying to add the same element twice without providing
+             * a differing index attribute (what are they trying to achieve - two copies
+             * at the same time or for it to be silently dropped?)
+             * 
+             * The behaviour where we compare the same object against itself was
+             * introduced here in Java 7.
+             *   http://hg.openjdk.java.net/jdk7/tl/jdk/rev/bf37edb38fbb
+             */
+            if (xe1 == xe2) {return 0;}
+            
+            // Compare tag names.
+            int result = String.CASE_INSENSITIVE_ORDER.compare(xe1.getTag(), xe2.getTag());
+            if (result != 0) {return result;}
 
-                        if (xe1_index != xe2_index) {
-                            return xe1_index - xe2_index;
-                        }
-
-                        throw new RuntimeException("Shouldn't be using sorting for contents if you have tags with same name and no index attribute! (e.g. " + o1 + ")");
-                    }
-                    return result;
-                }
-                else {
-                    return -1; // XMLElements before strings.
-                }
+            // Tag names are the same - compare index attributes.
+            int xe1_index = 0, xe2_index = 0;
+            try {
+                xe1_index = Integer.parseInt(xe1.getAttribute("index"));
+                xe2_index = Integer.parseInt(xe2.getAttribute("index"));
             }
-            else {
-                if (o2 instanceof XMLElement) {
-                    return 1; // XMLElements before strings.
-                }
-                else {
-                    // Can't allow the returning of 0.
-                    int result = String.CASE_INSENSITIVE_ORDER.compare((String)o1, (String)o2);
-                    if (result == 0) {return -1;}
-                    return result;
-                }
+            catch (NullPointerException ne) {
+                xe1_index = xe2_index = 0;
             }
+            catch (NumberFormatException ne) {
+                xe1_index = xe2_index = 0;
+            }
+
+            if (xe1_index != xe2_index) {
+                return xe1_index - xe2_index;
+            }
+
+            /**
+             * This is the situation we want to avoid (the one I try to describe
+             * much earlier in the method) - the two elements aren't the same
+             * instance and don't differ enough or have enough information to
+             * describe a natural ordering.
+             */
+            // 
+            throw new IllegalArgumentException("Shouldn't be using sorting for contents if you have tags with same name and no index attribute! (tag: " + xe1.getTag() + ")");
         }
     }
 
-    private static Comparator CONTENT_COMPARATOR = new ContentComparator();
+    private static Comparator<XMLElement> CONTENT_COMPARATOR = new ContentComparator();
 
 }
