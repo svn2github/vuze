@@ -419,6 +419,16 @@ public class TagUIUtils
 
 					}
 				});
+				
+				menuItem = menuManager.addMenuItem( menu, "tag.show.overview");
+				
+				menuItem.addListener(new org.gudy.azureus2.plugins.ui.menus.MenuItemListener() {
+					public void selected(org.gudy.azureus2.plugins.ui.menus.MenuItem menu, Object target) {
+						UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+						uiFunctions.openView( UIFunctions.VIEW_TAGS_OVERVIEW, null);
+
+					}
+				});
 			}
 		});
 		
