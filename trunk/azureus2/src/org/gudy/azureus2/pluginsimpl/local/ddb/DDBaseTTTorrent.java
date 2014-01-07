@@ -31,12 +31,14 @@ import javax.crypto.spec.SecretKeySpec;
 
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ddb.*;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 
 import com.aelitis.azureus.plugins.dht.DHTPluginProgressListener;
@@ -246,6 +248,22 @@ DDBaseTTTorrent
 					// download
 				
 				return( null );
+			}
+			
+			try{
+					// apparently there are some trackers using non-private torrents with passkeys. Crazy, however to give users at
+					// least the opportunity to prevent .torrent transfer for these torrents we deny this if the DHT peer source has
+					// been disabled by the user
+				
+				if ( !PluginCoreUtils.unwrap( download ).getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_DHT )){
+					
+					ddb.log( "TorrentDownload: request from " + originator + "  for '" + download.getName() + "' denied as DHT peer source disabled" );
+					
+					return( null );
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
 			}
 			
 			String	msg = "TorrentDownload: request from " + originator + "  for '" + download.getName() + "' OK";		
