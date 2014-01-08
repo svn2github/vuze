@@ -27,6 +27,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.DND;
@@ -648,7 +649,7 @@ public class TorrentOpener {
 				return false;
 			}
 
-			if (fOriginal.length() > 20 * 1024 * 1024) {
+			if (fOriginal.length() > (sFileName.toLowerCase(Locale.US).endsWith(".vuze")?50*1024*1024L:20*1024*1024L )) {
 				UIFunctionsManager.getUIFunctions().showErrorMessage(
 						"OpenTorrentWindow.mb.openError", fOriginal.toString(),
 						new String[] {

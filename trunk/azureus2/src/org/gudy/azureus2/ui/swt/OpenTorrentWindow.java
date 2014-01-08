@@ -40,7 +40,6 @@ import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
@@ -2169,7 +2168,7 @@ public class OpenTorrentWindow
 				return null;
 			}
 
-			if (fOriginal.length() > 20*1024*1024) {
+			if (fOriginal.length() > (sFileName.toLowerCase(Locale.US).endsWith(".vuze")?50*1024*1024L:20*1024*1024L )) {
 				Utils.execSWTThread(new AERunnable() {
 					public void runSupport() {
 						if (shell == null)
