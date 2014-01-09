@@ -44,7 +44,7 @@ import com.aelitis.azureus.util.JSONUtils;
  */
 public class BDecoder 
 {
-	public static final int MAX_BYTE_ARRAY_SIZE	= 16*1024*1024;
+	public static final int MAX_BYTE_ARRAY_SIZE		= 50*1024*1024;
 	private static final int MAX_MAP_KEY_SIZE		= 64*1024;
 	
 	private static final boolean TRACE	= false;
