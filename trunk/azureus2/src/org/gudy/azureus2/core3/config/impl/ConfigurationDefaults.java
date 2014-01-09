@@ -73,7 +73,7 @@ public class ConfigurationDefaults {
   private static ConfigurationDefaults configdefaults;
   private static AEMonitor				class_mon	= new AEMonitor( "ConfigDef");
   
-  private Map def = null;
+  private ConcurrentHashMapWrapper<String,Object> def = null;
   
   public static final int def_int = 0;
   public static final long def_long = 0;
@@ -126,7 +126,7 @@ public class ConfigurationDefaults {
   protected 
   ConfigurationDefaults() 
   {
-    def = new HashMap();
+    def = new ConcurrentHashMapWrapper<String,Object>( 2000, 0.75f, 8 );
 
     
     /** Core settings **/
@@ -673,7 +673,7 @@ public class ConfigurationDefaults {
   ConfigurationDefaults(
 	Map	_def )
   {
-	  def = _def;
+	  def = new ConcurrentHashMapWrapper<String, Object>((Map<String, Object>)_def );
   }
   
   protected void

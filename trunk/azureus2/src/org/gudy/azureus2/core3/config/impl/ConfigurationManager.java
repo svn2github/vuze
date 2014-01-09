@@ -47,7 +47,7 @@ ConfigurationManager
   private static AEMonitor				class_mon	= new AEMonitor( "ConfigMan:class" );
  
 		  
-  private Map<String,Object> propertiesMap;	// leave this NULL - it picks up errors caused by initialisation sequence errors
+  private ConcurrentHashMapWrapper<String,Object> propertiesMap;	// leave this NULL - it picks up errors caused by initialisation sequence errors
   private List transient_properties     = new ArrayList();
   
   private List<COConfigurationListener>		listenerz 			= new ArrayList<COConfigurationListener>();
@@ -158,7 +158,7 @@ ConfigurationManager
 		  data.put( "Logger.DebugFiles.Enabled", new Long(0));
 	  }
 	  
-	  propertiesMap	= data;
+	  propertiesMap	= new ConcurrentHashMapWrapper<String,Object>( data );
   }
   
   protected void
@@ -185,7 +185,11 @@ ConfigurationManager
   	
   	if ( propertiesMap == null ){
   		
-  		propertiesMap	= data;
+  		ConcurrentHashMapWrapper<String,Object> c_map = new ConcurrentHashMapWrapper<String,Object>( data.size() + 256, 0.75f, 8 );
+  		
+  		c_map.putAll( data );
+  		
+  		propertiesMap	= c_map;
   	}
   	
 /* 
@@ -260,7 +264,7 @@ ConfigurationManager
 	 * create a new map object (TreeMap) because it needs to be
 	 * sorted, so we might as well do it here too.
 	 */ 
-	TreeMap properties_clone = new TreeMap(propertiesMap);
+	TreeMap<String,Object> properties_clone = propertiesMap.toTreeMap();
 	
 	// Remove any transient parameters.
 	if (!this.transient_properties.isEmpty()) {
