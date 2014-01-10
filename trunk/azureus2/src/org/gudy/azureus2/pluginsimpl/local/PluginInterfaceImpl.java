@@ -729,7 +729,7 @@ PluginInterfaceImpl
 		}
 	}
 	
-	 public IPCInterface 
+	 public IPCInterfaceImpl 
 	 getIPC() 
 	 {
 		 return( ipc_interface );

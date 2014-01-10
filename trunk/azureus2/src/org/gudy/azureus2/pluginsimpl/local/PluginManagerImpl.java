@@ -422,4 +422,24 @@ PluginManagerImpl
 	{
 		return( pi.isInitialized());
 	}
+	
+	public List<PluginInterface>
+	getPluginsWithMethod(
+		String		name,
+		Class<?>[]	parameters )
+	{
+		List<PluginInterface>	result = new ArrayList<PluginInterface>();
+		
+		List<PluginInterfaceImpl>	pis = PluginInitializer.getPluginInterfaces();
+		
+		for ( PluginInterfaceImpl pi: pis ){
+			
+			if ( pi.getIPC().canInvoke( name, parameters )){
+				
+				result.add( pi );
+			}
+		}
+		
+		return( result );
+	}
 }

@@ -35,17 +35,21 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.auth.CertificateCreatorWindow;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
+
+import com.aelitis.azureus.core.AzureusCoreFactory;
 
 
 public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
@@ -278,45 +282,60 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			
 				// browser selection
 
-			String[] browser_choices = {
+			final java.util.List<String[]> browser_choices = new ArrayList<String[]>(); 
 				
-					MessageText.getString( "external.browser.system" ),
-					MessageText.getString( "external.browser.manual" ),
-				};
+			browser_choices.add( 
+					new String[]{ "system",  MessageText.getString( "external.browser.system" ) });
+			browser_choices.add( 
+					new String[]{ "manual",  MessageText.getString( "external.browser.manual" ) });
 			
-			final String[] browser_ids = {
-					"system",
-					"manual"
-			};
+			java.util.List<PluginInterface> pis = 
+					AzureusCoreFactory.getSingleton().getPluginManager().getPluginsWithMethod(
+						"launchURL", 
+						new Class[]{ URL.class, boolean.class, Runnable.class });
 			
-			final Composite cEB = new Composite(gExternalBrowser, SWT.WRAP);
+			for ( PluginInterface pi: pis ){
+				
+				browser_choices.add( 
+						new String[]{ "plugin:" + pi.getPluginID(),  pi.getPluginName() });
+				
+			}
+			final Composite cEBArea = new Composite(gExternalBrowser, SWT.WRAP);
+			gridData = new GridData( GridData.FILL_HORIZONTAL);
+			cEBArea.setLayoutData(gridData);
+			layout = new GridLayout();
+			layout.numColumns = 2;
+			layout.marginHeight = 0;
+			cEBArea.setLayout(layout);
+			
+			label = new Label(cEBArea, SWT.NULL);
+			Messages.setLanguageText(label, "config.external.browser.select");
+
+			final Composite cEB = new Group(cEBArea, SWT.WRAP);
 			gridData = new GridData( GridData.FILL_HORIZONTAL);
 			cEB.setLayoutData(gridData);
 			layout = new GridLayout();
-			layout.numColumns = browser_choices.length+1;
+			layout.numColumns = browser_choices.size();
 			layout.marginHeight = 0;
 			cEB.setLayout(layout);
 
-			label = new Label(cEB, SWT.NULL);
-			Messages.setLanguageText(label, "config.external.browser.select");
-			
 			java.util.List<Button> buttons = new ArrayList<Button>();
 			
-			for ( int i=0;i< browser_choices.length; i++ ){
+			for ( int i=0;i< browser_choices.size(); i++ ){
 				Button button = new Button ( cEB, SWT.RADIO );
-				button.setText( browser_choices[i] );
+				button.setText( browser_choices.get(i)[1] );
 				button.setData("index", String.valueOf(i));
 			
 				buttons.add( button );
 			}
 					
-			String existing = COConfigurationManager.getStringParameter( "browser.external.id", browser_ids[0] );
+			String existing = COConfigurationManager.getStringParameter( "browser.external.id", browser_choices.get(0)[0] );
 			
 			int existing_index = -1;
 			
-			for ( int i=0; i<browser_ids.length;i++){
+			for ( int i=0; i<browser_choices.size();i++){
 				
-				if ( browser_ids[i].equals( existing )){
+				if ( browser_choices.get(i)[0].equals( existing )){
 					
 					existing_index = i;
 							
@@ -328,17 +347,19 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 				
 				existing_index = 0;
 				
-				COConfigurationManager.setParameter( "browser.external.id", browser_ids[0] );
+				COConfigurationManager.setParameter( "browser.external.id", browser_choices.get(0)[0] );
 			}
 			
 			buttons.get(existing_index).setSelection( true );
 			
-			Composite manualArea = new Composite(gExternalBrowser,SWT.NULL);
-			layout = new GridLayout(3,false);
+			Messages.setLanguageText(new Label(cEBArea,SWT.NONE), "config.external.browser.prog" );
+			
+			Composite manualArea = new Composite(cEBArea,SWT.NULL);
+			layout = new GridLayout(2,false);
 			layout.marginHeight = 0;
 			manualArea.setLayout( layout);
 			manualArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
-			Messages.setLanguageText(new Label(manualArea,SWT.NONE), "config.external.browser.prog" );
+
 			final Parameter manualProg = new FileParameter(manualArea, "browser.external.prog","", new String[]{});
 
 			manualProg.setEnabled( existing_index == 1 );
@@ -366,7 +387,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 								    
 							    int index = Integer.parseInt((String)button.getData("index"));
 						    
-							    COConfigurationManager.setParameter( "browser.external.id", browser_ids[index] );
+							    COConfigurationManager.setParameter( "browser.external.id", browser_choices.get(index)[0] );
 							    
 							    manualProg.setEnabled( index == 1 );
 						    }
@@ -389,7 +410,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			label = new Label(testArea, SWT.NULL);
 			Messages.setLanguageText(label, "config.external.browser.test");
 
-		    Button test_button = new Button(testArea, SWT.PUSH);
+		    final Button test_button = new Button(testArea, SWT.PUSH);
 		    
 		    Messages.setLanguageText(test_button, "configureWizard.nat.test");
 
@@ -399,13 +420,33 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 				        public void 
 						handleEvent(Event event) 
 				        {
-				        	try{
-				        		Utils.launch( new URL( "http://www.vuze.com/" ));
-				        		
-				        	}catch( Throwable e ){
-				        		
-				        		Debug.out( e );
-				        	}
+				        	test_button.setEnabled( false );
+				        	
+				        	new AEThread2( "async" )
+				        	{
+				        		public void
+				        		run()
+				        		{
+				        			try{
+				        				Utils.launch( "http://www.vuze.com/", true );
+				        				
+				        			}finally{
+				        				
+				        				Utils.execSWTThread(
+				        					new Runnable()
+				        					{
+				        						public void
+				        						run()
+				        						{
+				        							if (! test_button.isDisposed()){
+				        				
+				        								test_button.setEnabled( true );
+				        							}
+				        						}
+				        					});
+				        			}
+				        		}
+				        	}.start();
 				        }
 				    });
 			

@@ -21,6 +21,7 @@
 
 package org.gudy.azureus2.plugins;
 
+import java.util.List;
 import java.util.Properties;
 
 import org.gudy.azureus2.pluginsimpl.local.*;
@@ -280,4 +281,12 @@ PluginManager
 	getPluginInterfaceByClass(
 		Class		c );
 
+	/**
+	 * *since 5201
+	 */
+	
+	public abstract List<PluginInterface>
+	getPluginsWithMethod(
+		String		name,
+		Class<?>[]	parameters );
 }

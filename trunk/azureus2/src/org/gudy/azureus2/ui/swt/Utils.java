@@ -50,6 +50,7 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.disk.DiskManagerEvent;
 import org.gudy.azureus2.plugins.disk.DiskManagerListener;
 import org.gudy.azureus2.plugins.platform.PlatformManagerException;
@@ -62,6 +63,7 @@ import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.table.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableOrTreeUtils;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.util.GeneralUtils;
 import com.aelitis.azureus.core.util.LaunchManager;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
@@ -1012,7 +1014,21 @@ public class Utils
 		launch( url.toExternalForm());
 	}
 	
-	public static void launch(String sFile) {
+	public static void 
+	launch(
+		String sFile ) 
+	{
+		launch( sFile, false );
+	}
+	
+	private static Set<String>		pending_ext_urls 	= new HashSet<String>();
+	private static AsyncDispatcher	ext_url_dispatcher 	= new AsyncDispatcher( "Ext Urls" );
+	
+	public static void 
+	launch(
+		String 	sFile,
+		boolean	sync )
+	{
 		if (sFile == null || sFile.trim().length() == 0) {
 			return;
 		}
@@ -1096,6 +1112,94 @@ public class Utils
 				
 			}else{
 				
+				java.util.List<PluginInterface> pis = 
+						AzureusCoreFactory.getSingleton().getPluginManager().getPluginsWithMethod(
+							"launchURL", 
+							new Class[]{ URL.class, boolean.class, Runnable.class });
+				
+				boolean found = false;
+				
+				for ( final PluginInterface pi: pis ){
+					
+					String id = "plugin:" + pi.getPluginID();
+					
+					if ( id.equals( eb_choice )){
+						
+						found = true;
+						
+						final String f_sFile = sFile;
+						
+						synchronized( pending_ext_urls ){
+							
+							if ( pending_ext_urls.contains( f_sFile )){
+								
+								Debug.outNoStack( "Already queued browser request for '" + f_sFile + "' - ignoring" );
+								
+								return;
+							}
+							
+							pending_ext_urls.add( f_sFile );
+						}
+						
+						AERunnable launch = 
+							new AERunnable()
+							{
+								public void 
+								runSupport() 
+								{
+									try{
+										final AESemaphore sem = new AESemaphore( "wait" );
+	
+										pi.getIPC().invoke( 
+											"launchURL", 
+											new Object[]{ 
+												new URL( f_sFile ), 
+												false, 
+												new Runnable()
+												{
+													public void
+													run()
+													{
+														sem.release();
+													}
+												}});
+										
+										if ( !sem.reserve( 30*1000 )){
+											
+											Debug.out( "Timeout waiting for external url launch" );
+										}
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+										
+									}finally{
+																				
+										synchronized( pending_ext_urls ){
+											
+											pending_ext_urls.remove( f_sFile );
+										}
+									}
+								}
+							};
+														
+						if ( sync ){
+								
+							launch.runSupport();
+								
+						}else{
+								
+							ext_url_dispatcher.dispatch( launch );
+						}
+					}
+				}
+				
+				if ( !found ){
+					
+					Debug.out( "Failed to find external URL launcher plugin with id '" + eb_choice + "'" );
+				}
+				
+				return;
 			}
 		}
 		

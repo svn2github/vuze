@@ -99,6 +99,28 @@ IPCInterfaceImpl
 		return( false );
 	}
 	
+	public boolean 
+	canInvoke(
+		String 		methodName, 
+		Class<?>[] 	params )
+	{
+		try{
+			Object	target = getTarget();
+			
+			Method mtd = getMethod( target, methodName, params );
+			
+			mtd.setAccessible( true );
+			
+			if ( mtd != null ){
+				
+				return( true );
+			}
+		}catch( Throwable e ){	
+		}
+		
+		return( false );
+	}
+	
 	public Object 
 	invoke( 
 		String 		methodName, 
@@ -214,6 +236,70 @@ IPCInterfaceImpl
 				
 		return( mtd );
 	}
+	
+	protected Method
+	getMethod(
+		Object		target,
+		String 		methodName, 
+		Class<?>[] 	paramTypes )
+	
+		throws Throwable
+	{
+		if ( paramTypes == null ){
+			
+			paramTypes = new Class<?>[0];
+		}
+		
+		Method mtd	= null;
+		
+		try{
+			mtd = target.getClass().getDeclaredMethod( methodName,paramTypes );
+			
+		}catch( NoSuchMethodException e ){
+			
+			Method[]	methods = target.getClass().getMethods();
+			
+			for (int i=0;i<methods.length;i++){
+				
+				Method	method = methods[i];
+				
+				Class[] method_params = method.getParameterTypes();
+				
+				if ( method.getName().equals( methodName ) && method_params.length == paramTypes.length ){
+					
+					boolean	ok = true;
+					
+					for (int j=0;j<method_params.length;j++){
+						
+						Class	declared 	= method_params[j];
+						Class	supplied	= paramTypes[j];
+						
+						if ( !declared.isAssignableFrom( supplied )){
+					
+							ok	= false;
+							
+							break;
+						}
+					}
+					
+					if ( ok ){
+						
+						mtd = method;
+						
+						break;
+					}
+				}
+			}
+			
+			if ( mtd == null ){
+				
+				throw( e );
+			}
+		}
+				
+		return( mtd );
+	}
+	
 	
 	protected Object
 	getTarget()
