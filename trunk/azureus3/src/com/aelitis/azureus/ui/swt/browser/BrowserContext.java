@@ -30,7 +30,6 @@ import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.FillLayout;
-import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.*;
@@ -295,12 +294,12 @@ public class BrowserContext
 							event.doit = false;
 							boolean doLinkExternally = PlatformConfigMessenger.areLinksExternal(browser.getUrl());
 							if (doLinkExternally) {
-								Program.launch(event.location);
+								Utils.launch(event.location);
 							} else if (allowPopups()
 									&& !UrlFilter.getInstance().urlIsBlocked(event.location)
 									&& (event.location.startsWith("http://") || event.location.startsWith("https://"))) {
 								debug("open sub browser: " + event.location);
-								Program.launch(event.location);
+								Utils.launch(event.location);
 							} else {
 								debug("blocked open sub browser: " + event.location);
 							}

@@ -1064,6 +1064,41 @@ public class Utils
 			}
 		}
 			
+		String lc_sFile = sFile.toLowerCase( Locale.US );
+		
+		if ( lc_sFile.startsWith( "http:" ) || lc_sFile.startsWith( "https:" )){
+			
+			String eb_choice = COConfigurationManager.getStringParameter( "browser.external.id", "system" );
+
+			if ( eb_choice.equals( "system" )){
+				
+			}else if ( eb_choice.equals( "manual" )){
+				
+				String browser_exe = COConfigurationManager.getStringParameter( "browser.external.prog", "" );
+				
+				File bf = new File( browser_exe );
+				
+				if ( bf.exists()){
+					
+					try{
+						Process proc = Runtime.getRuntime().exec( new String[]{ bf.getAbsolutePath(), sFile });
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}else{
+					
+					Debug.out( "Can't launch '" + sFile + "' as manual browser '" + bf + " ' doesn't exist" );
+				}
+				
+				return;
+				
+			}else{
+				
+			}
+		}
+		
 		boolean launched = Program.launch(sFile);
 		if (!launched && Constants.isUnix) {
 			
