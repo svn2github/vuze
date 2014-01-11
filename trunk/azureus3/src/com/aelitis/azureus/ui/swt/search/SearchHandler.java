@@ -24,6 +24,7 @@ package com.aelitis.azureus.ui.swt.search;
 import java.util.Locale;
 
 import org.eclipse.swt.SWT;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -51,7 +52,7 @@ SearchHandler
 		String		sSearchText,
 		boolean		toSubscribe )
 	{
-		boolean	internal_search = true;
+		boolean	internal_search = !COConfigurationManager.getBooleanParameter( "browser.external.search" );
 		
 		if ( internal_search ){
 			

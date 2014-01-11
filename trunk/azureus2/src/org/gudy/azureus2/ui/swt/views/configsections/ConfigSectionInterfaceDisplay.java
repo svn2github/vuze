@@ -454,13 +454,51 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			label = new Label(testArea, SWT.NULL);
 			label.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
-			
 				// switch internal->external
 			
 			label = new Label(gExternalBrowser, SWT.NULL);
 			Messages.setLanguageText(label, "config.external.browser.switch.info");
 
+			Group switchArea = new Group(gExternalBrowser,SWT.NULL);
+			layout = new GridLayout(3,false);
+			//layout.marginHeight = 0;
+			//layout.marginWidth = 0;
+			switchArea.setLayout(layout);
+			switchArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+
+				// header
 			
+			label = new Label(switchArea, SWT.NULL);
+			Messages.setLanguageText(label, "config.external.browser.switch.feature");
+			label = new Label(switchArea, SWT.NULL);
+			Messages.setLanguageText(label, "config.external.browser.switch.external");
+			label = new Label(switchArea, SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.horizontalIndent = 10;
+			label.setLayoutData(gridData);
+			Messages.setLanguageText(label, "config.external.browser.switch.implic");
+
+				// search 
+			
+			label = new Label(switchArea, SWT.NULL);
+			gridData = new GridData();
+			gridData.verticalIndent = 10;
+			label.setLayoutData(gridData);
+			Messages.setLanguageText(label, "config.external.browser.switch.search");
+			
+			BooleanParameter switchSearch = new BooleanParameter(switchArea, "browser.external.search" );
+			gridData = new GridData();
+			gridData.verticalIndent = 10;
+			gridData.horizontalAlignment = SWT.CENTER;
+			switchSearch.setLayoutData(gridData);
+			
+			label = new Label(switchArea, SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.verticalIndent = 10;
+			gridData.horizontalIndent = 10;
+			label.setLayoutData(gridData);
+			Messages.setLanguageText(label, "config.external.browser.switch.search.inf");
+
 		}
 		
 			// internal browser
