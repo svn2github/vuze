@@ -1826,13 +1826,13 @@ WebPlugin
 		cd.setAttribute( PairingConnectionData.ATTR_PROTOCOL, 	param_protocol.getValue());
 	}
 
-	protected int
+	public int
 	getPort()
 	{
 		return( param_port.getValue());
 	}
 	
-	protected String
+	public String
 	getProtocol()
 	{
 		return( param_protocol.getValue());

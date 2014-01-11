@@ -83,6 +83,7 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.mdi.BaseMdiEntry;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.plugininstall.SimplePluginInstaller;
+import com.aelitis.azureus.ui.swt.search.SearchHandler;
 import com.aelitis.azureus.ui.swt.shells.BrowserWindow;
 import com.aelitis.azureus.ui.swt.shells.RemotePairingWindow;
 import com.aelitis.azureus.ui.swt.shells.opentorrent.OpenTorrentOptionsWindow;
@@ -999,7 +1000,11 @@ public class UIFunctionsImpl
 		});
 	}
 
-	public void doSearch(String sSearchText, boolean toSubscribe) {
+	public void 
+	doSearch(
+		String sSearchText, 
+		boolean toSubscribe) 
+	{
 		if (sSearchText.length() == 0) {
 			return;
 		}
@@ -1008,41 +1013,8 @@ public class UIFunctionsImpl
 			
 			return;
 		}
-		
-		SearchResultsTabArea.SearchQuery sq = new SearchResultsTabArea.SearchQuery(
-				sSearchText, toSubscribe);
-
-		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-		String id = MultipleDocumentInterface.SIDEBAR_SECTION_SEARCH;
-		MdiEntry existingEntry = mdi.getEntry(id);
-		if (existingEntry != null && existingEntry.isAdded()) {
-			SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
-			if (searchClass != null) {
-				searchClass.anotherSearch(sSearchText, toSubscribe);
-			}
-			mdi.showEntry(existingEntry);
-			return;
-		}
-
-		final MdiEntry entry = mdi.createEntryFromSkinRef(
-				MultipleDocumentInterface.SIDEBAR_HEADER_DISCOVERY, id,
-				"main.area.searchresultstab", sSearchText, null, sq, true, MultipleDocumentInterface.SIDEBAR_POS_FIRST );
-		if (entry != null) {
-			entry.setImageLeftID("image.sidebar.search");
-			entry.setDatasource(sq);
-			entry.setViewTitleInfo(new ViewTitleInfo() {
-				public Object getTitleInfoProperty(int propertyID) {
-					if (propertyID == TITLE_TEXT) {
-						SearchResultsTabArea searchClass = (SearchResultsTabArea) SkinViewManager.getByClass(SearchResultsTabArea.class);
-						if (searchClass != null && searchClass.sq != null) {
-							return searchClass.sq.term;
-						}
-					}
-					return null;
-				}
-			});
-		}
-		mdi.showEntryByID(id);
+	
+		SearchHandler.handleSearch( sSearchText, toSubscribe );
 	}
 	
 	private static boolean

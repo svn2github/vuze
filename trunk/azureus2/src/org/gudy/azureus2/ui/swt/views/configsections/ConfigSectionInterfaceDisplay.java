@@ -357,6 +357,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			Composite manualArea = new Composite(cEBArea,SWT.NULL);
 			layout = new GridLayout(2,false);
 			layout.marginHeight = 0;
+			layout.marginWidth = 0;
 			manualArea.setLayout( layout);
 			manualArea.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 
