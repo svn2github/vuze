@@ -31,7 +31,6 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.impl.StringListImpl;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.platform.PlatformManager;
@@ -130,6 +129,20 @@ public class ConfigSectionInterface implements UISWTConfigSection {
 		}
 		
 		new BooleanParameter(cDisplay, "Remember transfer bar location", LBLKEY_PREFIX + "transferbar.remember_location");
+
+		Composite gBarTrans = new Composite(cDisplay, SWT.NULL);
+		layout = new GridLayout(2, false);
+		layout.marginWidth = 0;
+		layout.marginHeight = 0;
+		gBarTrans.setLayout(layout);
+		gridData = new GridData( GridData.FILL_HORIZONTAL );
+		gridData.horizontalIndent = 25;
+		gBarTrans.setLayoutData(gridData);
+		
+		label = new Label(gBarTrans, SWT.NULL);
+		Messages.setLanguageText(label, "label.bar.trans");
+
+		new IntParameter(gBarTrans, "Bar Transparency", 0, 100 );
 
 		Group gSysTray = new Group(cDisplay, SWT.NULL);
 		Messages.setLanguageText(gSysTray, LBLKEY_PREFIX + "systray");

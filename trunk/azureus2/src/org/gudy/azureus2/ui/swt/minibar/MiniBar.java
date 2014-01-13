@@ -26,7 +26,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
-
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Constants;
@@ -36,6 +36,7 @@ import org.gudy.azureus2.ui.common.util.MenuItemManager;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.components.DoubleBufferedLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 /**
@@ -239,6 +240,16 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 		this.stucked = null;
 		this.splash = org.gudy.azureus2.ui.swt.components.shell.ShellFactory
 				.createShell(SWT.ON_TOP);
+		
+		int	trans = COConfigurationManager.getIntParameter( "Bar Transparency" );
+		
+		if ( trans > 0 && trans <= 100 ){
+			
+			int alpha = (int)((255*(100.0f-trans))/100);
+			
+			splash.setAlpha( alpha );
+		}
+		
 		manager.register(this);
 		final DisposeListener mainDisposeListener; 
 		main.addDisposeListener(mainDisposeListener = new DisposeListener() {
@@ -300,15 +311,24 @@ public abstract class MiniBar implements MenuBuildUtils.MenuBuilder {
 	    lDrag.setLocation(0, yPad);
 
 	    this.mListener = new MouseAdapter() {
+	      int old_alpha;
+	      
 	      public void mouseDown(MouseEvent e) {
 	        xPressed = e.x;
 	        yPressed = e.y;
 	        moving = true;
+	        old_alpha = splash.getAlpha();
+	        if ( old_alpha != 255 ){
+	        	splash.setAlpha( 255 );
+	        }
 	        //System.out.println("Position : " + xPressed + " , " + yPressed);          
 	      }
 
 	      public void mouseUp(MouseEvent e) {
 	        moving = false;
+	        if ( old_alpha != 255 ){
+	        	splash.setAlpha( old_alpha );
+	        }
 	      }
 
 	    };

@@ -146,5 +146,8 @@ public class UIConfigDefaultsSWT
 		
 		def.addParameter( "browser.external.id", "system" );
 		def.addParameter( "browser.external.search", false );
+		
+		COConfigurationManager.setParameter( "Bar Transparency", 0 );
+
 	}
 }
