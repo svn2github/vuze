@@ -24,9 +24,11 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.TorrentUtils;
@@ -230,6 +232,8 @@ public class TorrentOpenOptions
 				}
 			}
 
+			String temp_dir = AETemporaryFileHandler.getTempDirectory().getAbsolutePath().toLowerCase( Locale.US );
+			
 			int maxMatches = 0;
 			DownloadManager match = null;
 			for (Iterator iter = downloadManagers.iterator(); iter.hasNext();) {
@@ -239,6 +243,23 @@ public class TorrentOpenOptions
 					continue;
 				}
 
+				DownloadManagerState dms = dm.getDownloadState();
+				
+				if ( 	dms.getFlag( DownloadManagerState.FLAG_LOW_NOISE ) ||
+						dms.getFlag( DownloadManagerState.FLAG_METADATA_DOWNLOAD )){
+					
+					continue;
+				}
+				
+					// had users with files ending up in the temp dir (5100/5200) so as an attempt to stop this
+					// lets excluded anything dodgy (might also have been to do with metadata downloads we now
+					// filter above)
+				
+				if ( dm.getSaveLocation().getAbsolutePath().toLowerCase( Locale.US ).startsWith( temp_dir )){
+					
+					continue;
+				}
+				
 				int numMatches = 0;
 
 				String dmName = dm.getDisplayName().toLowerCase();
