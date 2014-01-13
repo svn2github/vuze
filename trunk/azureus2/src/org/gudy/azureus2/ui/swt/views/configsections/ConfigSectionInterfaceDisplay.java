@@ -31,7 +31,6 @@ import java.util.ArrayList;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -45,7 +44,6 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
-import org.gudy.azureus2.ui.swt.auth.CertificateCreatorWindow;
 import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
@@ -499,6 +497,23 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			label.setLayoutData(gridData);
 			Messages.setLanguageText(label, "config.external.browser.switch.search.inf");
 
+				// subscriptions
+			
+			label = new Label(switchArea, SWT.NULL);
+			gridData = new GridData();
+			label.setLayoutData(gridData);
+			Messages.setLanguageText(label, "config.external.browser.switch.subs");
+			
+			BooleanParameter switchSubs = new BooleanParameter(switchArea, "browser.external.subs" );
+			gridData = new GridData();
+			gridData.horizontalAlignment = SWT.CENTER;
+			switchSubs.setLayoutData(gridData);
+			
+			label = new Label(switchArea, SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.horizontalIndent = 10;
+			label.setLayoutData(gridData);
+			Messages.setLanguageText(label, "config.external.browser.switch.subs.inf");
 		}
 		
 			// internal browser

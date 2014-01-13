@@ -4,17 +4,30 @@
 package com.aelitis.azureus.ui.swt.subscriptions;
 
 
+import java.util.Locale;
+
 import org.eclipse.swt.*;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.UrlUtils;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
+import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.webplugin.WebPlugin;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.subs.Subscription;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.util.ConstantsVuze;
 
 
@@ -42,17 +55,55 @@ SubscriptionViewExternal
 	updateBrowser(
 		boolean	is_auto )
 	{
-		System.out.println( "updateBrowser" );
-		
-		// Utils.launch( getURL());
 	}
 
 	public void 
 	refreshView() 
 	{
-		System.out.println( "refreshView" );
 	}
 
+	private void
+	launchView()
+	{
+		PluginInterface xmweb_ui = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "xmwebui" );
+		
+		if (xmweb_ui == null || !xmweb_ui.getPluginState().isOperational()){
+			
+			UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			
+			MessageBoxShell mb = new MessageBoxShell( 
+    				SWT.ICON_ERROR | SWT.OK,
+    				MessageText.getString( "external.browser.failed" ),
+    				MessageText.getString( "xmwebui.required" ));
+			
+			mb.setParent(uiFunctions.getMainShell());
+			
+    		mb.open(null);
+    		
+		}else{
+		
+			WebPlugin wp = (WebPlugin)xmweb_ui.getPlugin();
+			
+			String remui = wp.getProtocol().toLowerCase( Locale.US ) + "://127.0.0.1:" + wp.getPort() + "/";
+			
+			String test_url = ConstantsVuze.getDefaultContentNetwork().getServiceURL( ContentNetwork.SERVICE_XSEARCH, new Object[]{ "", false });
+			
+			int	pos = test_url.indexOf( '?' );
+			
+			String mode = xmweb_ui.getUtilities().getFeatureManager().isFeatureInstalled( "core" )?"plus":"trial";
+				
+			String query = "Subscription: " + subs.getName() + " ("+subs.getID() + ")";
+			
+			String search_url = 
+					test_url.substring( 0, pos+1 ) + 
+						"q=" + UrlUtils.encode( query ) + "&" +
+						"mode=" + mode + "&" +
+						"search_source=" + UrlUtils.encode( remui );
+			
+			Utils.launch( search_url );
+		}
+	}
+	
 	private void 
 	initialize(
 		Composite _parent_composite )
@@ -61,39 +112,37 @@ SubscriptionViewExternal
 
 		composite = new Composite( parent_composite, SWT.NULL );
 
-		composite.setLayout(new GridLayout());
+		GridLayout layout = new GridLayout(3, false);
+		
+		layout.marginHeight = 32;
+		layout.marginWidth	= 32;
+		
+		composite.setLayout( layout );
 		
 		Label label = new Label( composite, SWT.NULL );
+		GridData gd = new GridData( GridData.FILL_HORIZONTAL );
+		gd.horizontalSpan = 3;
+		label.setLayoutData( gd );
+		Messages.setLanguageText( label, "subs.ext.view.info" );
 		
-		label.setText( "You have selected to use an external browser to view subscriptions - not supported yet!" );
+		label = new Label( composite, SWT.NULL );
+		Messages.setLanguageText( label, "subs.ext.view.launch.info" );
+		
+		Button button = new Button( composite, SWT.PUSH );
+		Messages.setLanguageText( button, "iconBar.run" );
+
+		button.addSelectionListener(
+			new SelectionAdapter() {
+			
+				public void 
+				widgetSelected(
+					SelectionEvent e) 
+				{
+					launchView();
+				}
+			});
 	}
 
-	private String
-	getURL()
-	{
-		
-		//http://search.vuze.com/xsearch/?q=aers&mode=plus&search_source=http%3A%2F%2F127.0.0.1%3A9091%2F
-			
-		ContentNetwork contentNetwork = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
-				ConstantsVuze.DEFAULT_CONTENT_NETWORK_ID );
-		
-		String url = contentNetwork.getSubscriptionURL(subs.getID());
-			
-		Boolean	edit_mode = (Boolean)subs.getUserData( SubscriptionManagerUI.SUB_EDIT_MODE_KEY );
-		
-		if ( edit_mode != null ){
-		
-			if ( edit_mode.booleanValue()){
-				
-				url += SubscriptionManagerUI.EDIT_MODE_MARKER;
-			}
-			
-			subs.setUserData( SubscriptionManagerUI.SUB_EDIT_MODE_KEY, null );
-		}
-		
-		return( url );
-	}
-	
 	private Composite 
 	getComposite()
 	{ 

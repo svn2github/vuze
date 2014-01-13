@@ -3,6 +3,7 @@
  */
 package com.aelitis.azureus.ui.swt.subscriptions;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 
 
@@ -15,9 +16,9 @@ SubscriptionView
 	public
 	SubscriptionView()
 	{
-			// we need a webui view for subscriptions before we can support an external browser view
+		boolean	internal_subs = !COConfigurationManager.getBooleanParameter( "browser.external.subs" );
 		
-		impl = new SubscriptionViewInternal();
+		impl = internal_subs?new SubscriptionViewInternal():new SubscriptionViewExternal();
 	}
 	
 	public void
