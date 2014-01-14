@@ -29,6 +29,7 @@ import javax.crypto.Cipher;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
 
+import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.PEPeerSource;
@@ -255,7 +256,9 @@ DDBaseTTTorrent
 					// least the opportunity to prevent .torrent transfer for these torrents we deny this if the DHT peer source has
 					// been disabled by the user
 				
-				if ( !PluginCoreUtils.unwrap( download ).getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_DHT )){
+				DownloadManager dm = PluginCoreUtils.unwrapIfPossible( download );
+				
+				if ( dm != null && !dm.getDownloadState().isPeerSourceEnabled( PEPeerSource.PS_DHT )){
 					
 					ddb.log( "TorrentDownload: request from " + originator + "  for '" + download.getName() + "' denied as DHT peer source disabled" );
 					

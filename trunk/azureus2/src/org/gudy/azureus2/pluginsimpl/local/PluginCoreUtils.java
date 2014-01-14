@@ -481,6 +481,22 @@ PluginCoreUtils
 	}
 	
 	public static org.gudy.azureus2.core3.download.DownloadManager
+	unwrapIfPossible(
+		Download		dm )
+	{
+			// might be a LWSDownload
+		
+		if ( dm instanceof DownloadImpl ){
+			
+			return(((DownloadImpl)dm).getDownload());
+			
+		}else{
+			
+			return( null );
+		}
+	}
+	
+	public static org.gudy.azureus2.core3.download.DownloadManager
 	unwrap(
 		Download		dm )
 	{
