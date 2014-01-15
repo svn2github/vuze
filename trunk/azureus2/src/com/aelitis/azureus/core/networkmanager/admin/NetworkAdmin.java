@@ -102,6 +102,9 @@ NetworkAdmin
 		throws IOException;
 	
 	public abstract boolean
+	mustBind();
+	
+	public abstract boolean
 	hasMissingForcedBind();
 	
 	public abstract NetworkAdminNetworkInterface[]

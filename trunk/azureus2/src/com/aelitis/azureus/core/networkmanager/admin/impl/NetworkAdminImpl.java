@@ -116,6 +116,7 @@ NetworkAdminImpl
 	private long								address_history_update_time;
 	
 	private InetAddress[]				currentBindIPs			= new InetAddress[] { null };
+	private boolean						forceBind				= false;
 	private boolean						supportsIPv6withNIO		= true;
 	private boolean						supportsIPv6 = true;
 	private boolean						supportsIPv4 = true;
@@ -810,6 +811,7 @@ addressLoop:
 	{
 		boolean changed = false;
 		String 	bind_ip 	= COConfigurationManager.getStringParameter("Bind IP", "").trim();
+		
 		boolean enforceBind = COConfigurationManager.getBooleanParameter("Enforce Bind IP");
 		
 		if ( enforceBind ){
@@ -830,6 +832,8 @@ addressLoop:
 				logged_bind_force_issue = false;
 			}
 		}
+		
+		forceBind = enforceBind;
 		
 		InetAddress[] addrs = calcBindAddresses(bind_ip, enforceBind);
 		changed = !Arrays.equals(currentBindIPs, addrs);
@@ -2509,6 +2513,13 @@ addressLoop:
 			
 			((AESemaphore)sems.get(i)).reserve();
 		}
+	}
+	
+	@Override
+	public boolean 
+	mustBind() 
+	{
+		return( forceBind );
 	}
 	
 	public boolean

@@ -304,8 +304,8 @@ public class TCPConnectionManager {
 	  request.setConnectTimeout( request.listener.connectAttemptStarted( request.getConnectTimeout()));
 
 
-	  boolean ipv6problem = false;
-
+	  boolean 	ipv6problem 	= false;
+	  boolean	bind_failed		= false;
 	  try {
 
 
@@ -356,7 +356,10 @@ public class TCPConnectionManager {
 					  if (Logger.isEnabled()) Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local port #: " +local_bind_port));
 					  request.channel.socket().bind( new InetSocketAddress( local_bind_port ) );     
 				  }
-			  } catch(SocketException e) {
+			  }catch( SocketException e ){
+				  
+				  bind_failed = true;
+				  
 				  String msg = e.getMessage().toLowerCase();
 						  
 				  if (	( msg.contains( "address family not supported by protocol family") || msg.contains( "protocol family unavailable" )) && 
@@ -365,21 +368,31 @@ public class TCPConnectionManager {
 					  ipv6problem = true;
 					  
 				  }
+				  
 				  throw e;
 			  }
 
-		  }
-		  catch( Throwable t ) {
-			  if(!ipv6problem)
-			  {
+		  }catch( Throwable t ) {
+			  
+			  if ( bind_failed && NetworkAdmin.getSingleton().mustBind()){
+				  
+				  	// force binding is set but failed, must bail here - can happen during VPN disconnect for
+				  	// example, before we switch to a localhost bind
+				  
+				  throw( t );
+				  
+			  }else if(!ipv6problem){
+			  
 				  //dont pass the exception outwards, so we will continue processing connection without advanced options set
+				 
 				  String msg = "Error while processing advanced socket options.";
 				  Debug.out( msg, t );
 				  Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, t));
-			  } else
-			  {
-				  // can't support NIO + ipv6 on this system, pass on and don't raise an alert
-				  throw t;
+				  
+			  }else{
+				  	// can't support NIO + ipv6 on this system, pass on and don't raise an alert
+				  
+				  throw( t );
 			  }
 		  }
 
