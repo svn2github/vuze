@@ -75,7 +75,8 @@ DownloadManagerState
 	public static final String AT_PEAK_RECEIVE_RATE			= "pkdo";
 	public static final String AT_PEAK_SEND_RATE			= "pkup";
 	public static final String AT_DL_FILE_ALERTS			= "df_alerts";
-	public static final String AT_SHARE_RATIO_PROGRESS		= "sr.prog";	// long: left word - timestamp in secs, right word sr in 1000ths
+	public static final String AT_SHARE_RATIO_PROGRESS		= "sr.prog";		// long: left word - timestamp in secs, right word sr in 1000ths
+	public static final String AT_FILES_EXPANDED			= "file.expand";	// boolean
 
 
 	public static Object[][] ATTRIBUTE_DEFAULTS = {

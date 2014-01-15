@@ -83,8 +83,9 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 
 	private CopyOnWriteList<TableRefreshListener> listenersRefresh = new CopyOnWriteList<TableRefreshListener>();
 
-	private CopyOnWriteList<TableCountChangeListener> listenersCountChange = new CopyOnWriteList<TableCountChangeListener>(
-			1);
+	private CopyOnWriteList<TableCountChangeListener> listenersCountChange = new CopyOnWriteList<TableCountChangeListener>(1);
+
+	private CopyOnWriteList<TableExpansionChangeListener> listenersExpansionChange = new CopyOnWriteList<TableExpansionChangeListener>(1);
 
 	private Object parentDataSource;
 
@@ -384,6 +385,43 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 			l.rowRemoved(row);
 		}
 	}
+	
+		// expansion
+	
+	public void addExpansionChangeListener(TableExpansionChangeListener listener) {
+		listenersExpansionChange.add(listener);
+	}
+
+	public void removeExpansionChangeListener(TableExpansionChangeListener listener) {
+		listenersExpansionChange.remove(listener);
+	}
+
+	public void invokeExpansionChangeListeners(final TableRowCore row, final boolean expanded ) {
+		if (listenersExpansionChange.size() == 0) {
+			return;
+		}
+		getOffUIThread(new AERunnable() {
+			public void runSupport() {
+				for (Iterator<TableExpansionChangeListener> iter = listenersExpansionChange.iterator(); iter.hasNext();) {
+					try{
+						if ( expanded ){
+							
+							iter.next().rowExpanded(row);
+							
+						}else{
+							
+							iter.next().rowCollapsed(row);
+						}
+					}catch( Throwable e){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		});
+	}
+	
+		// refresh
 	
 	public void addRefreshListener(TableRowRefreshListener listener) {
 		try {

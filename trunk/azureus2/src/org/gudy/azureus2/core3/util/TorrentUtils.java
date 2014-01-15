@@ -1535,6 +1535,51 @@ TorrentUtils
 		return( m );
 	}
 	
+	private static String 
+	getContentMapString(
+		TOTorrent	torrent,
+		String 		key ) 
+	{
+		Map m = getAzureusProperties( torrent );
+		
+		Object content = m.get( "Content" );
+
+		if ( !(content instanceof Map )){
+			
+			return null;
+		}
+
+		Map mapContent = (Map)content;
+		
+		Object obj = mapContent.get(key);
+
+		if ( obj instanceof String ){
+			
+			return (String) obj;
+			
+		}else if ( obj instanceof byte[] ){
+			
+			try{
+				return new String((byte[]) obj, Constants.DEFAULT_ENCODING);
+				
+			}catch ( UnsupportedEncodingException e ){
+				
+				e.printStackTrace();
+			}
+		}
+
+		return null;
+	}
+
+	public static boolean 
+	isFeaturedContent(
+		TOTorrent		torrent )
+	{
+		String content_type = getContentMapString( torrent, "Content Type" );
+
+		return( content_type != null && content_type.equalsIgnoreCase( "featured" ));
+	}
+	
 	public static void
 	setObtainedFrom(
 		File			file,

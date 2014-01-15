@@ -913,20 +913,21 @@ DownloadManagerStateImpl
 	protected void
 	save( boolean force )
 	{
-		if( supressWrites > 0 && !force ){
+		if ( supressWrites > 0 && !force ){
+			
 			return;
 		}
+		
  		boolean do_write;
 
-		try {
+		try{
 			this_mon.enter();
 
 			do_write = write_required;
 
-			if(write_required != false)
-				write_required = false;
+			write_required = false;
 
-		} finally {
+		}finally{
 
 			this_mon.exit();
 		}
@@ -2005,12 +2006,14 @@ DownloadManagerStateImpl
 		return( res );
 	}
 	
-	public boolean isOurContent() {
-		// HACK!
+	public boolean 
+	isOurContent() 
+	{
+			// HACK!
+		
 		Map mapAttr = getMapAttribute("Plugin.azdirector.ContentMap");
 
-		return mapAttr != null
-				&& mapAttr.containsKey("DIRECTOR PUBLISH");
+		return mapAttr != null	&& mapAttr.containsKey("DIRECTOR PUBLISH");
 	}
 	
 		// general stuff
@@ -2068,7 +2071,7 @@ DownloadManagerStateImpl
 				
 					attributes.remove( attribute_name );
 				
-					changed	= true;
+					write_required = changed = true;
 				}
 			}else{
 			
@@ -2082,7 +2085,7 @@ DownloadManagerStateImpl
 					
 						attributes.put( attribute_name, new_bytes );
 						
-						changed	= true;
+						write_required = changed = true;
 					}
 					
 				}catch( UnsupportedEncodingException e ){
@@ -2096,9 +2099,7 @@ DownloadManagerStateImpl
 		}
 		
 		if ( changed ){
-			
-			write_required	= true;
-			
+						
 			informWritten( attribute_name );
 		}
 	}
@@ -2132,6 +2133,17 @@ DownloadManagerStateImpl
 						
 						Debug.out( "unknown default type " + def );
 					}
+				}else if ( attribute_name == AT_FILES_EXPANDED ){
+					
+					boolean featured = TorrentUtils.isFeaturedContent( torrent );
+					
+					long res = featured?1:0;
+					
+					attributes.put( attribute_name, new Long( res ));
+					
+					write_required	= true;
+					
+					return( res );
 				}
 				
 				return( 0 );
@@ -2162,7 +2174,7 @@ DownloadManagerStateImpl
 					
 				attributes.put( attribute_name, new Long( attribute_value) );
 									
-				changed	= true;
+				write_required = changed = true;
 			}
 		}finally{
 			
@@ -2170,9 +2182,7 @@ DownloadManagerStateImpl
 		}
 		
 		if ( changed ){
-			
-			write_required	= true;
-			
+						
 			informWritten( attribute_name );
 		}
 	}
@@ -2335,7 +2345,7 @@ DownloadManagerStateImpl
 				
 					attributes.remove( attribute_name );
 				
-					changed	= true;
+					write_required = changed = true;
 				}
 			}else{
 			
@@ -2345,7 +2355,7 @@ DownloadManagerStateImpl
 					
 					attributes.put( attribute_name, attribute_value );
 						
-					changed	= true;
+					write_required = changed = true;
 					
 				}else{
 					
@@ -2358,6 +2368,8 @@ DownloadManagerStateImpl
 					
 					if ( changed ){
 						
+						write_required = true;
+						
 						attributes.put( attribute_name, attribute_value );
 					}
 				}
@@ -2368,9 +2380,7 @@ DownloadManagerStateImpl
 		}
 		
 		if ( changed ){
-			
-			write_required	= true;
-		
+					
 			informWritten( attribute_name );
 		}
 	}
@@ -2419,7 +2429,7 @@ DownloadManagerStateImpl
 				
 					attributes.remove( attribute_name );
 				
-					changed	= true;
+					write_required = changed = true;
 				}
 			}else{
 			
@@ -2429,7 +2439,7 @@ DownloadManagerStateImpl
 					
 					attributes.put( attribute_name, attribute_value );
 						
-					changed	= true;
+					write_required = changed = true;
 					
 				}else{
 					
@@ -2442,6 +2452,8 @@ DownloadManagerStateImpl
 					
 					if ( changed ){
 						
+						write_required = true;
+						
 						attributes.put( attribute_name, attribute_value );
 					}
 				}
@@ -2452,9 +2464,7 @@ DownloadManagerStateImpl
 		}
 		
 		if ( changed && !disable_change_notification ){
-			
-			write_required	= true;
-			
+						
 			informWritten( attribute_name );
 		}
 	}

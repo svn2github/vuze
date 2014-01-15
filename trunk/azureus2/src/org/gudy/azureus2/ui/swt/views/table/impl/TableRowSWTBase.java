@@ -470,7 +470,12 @@ public abstract class TableRowSWTBase
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#setExpanded(boolean)
 	 */
 	public void setExpanded(boolean b) {
-		expanded = b;
+		if ( expanded != b ){
+		
+			expanded = b;
+			
+			tv.invokeExpansionChangeListeners( this, b );
+		}
 	}
 
 	/* (non-Javadoc)

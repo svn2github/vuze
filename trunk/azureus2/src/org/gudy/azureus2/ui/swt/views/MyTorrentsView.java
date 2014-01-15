@@ -35,7 +35,6 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.category.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -43,6 +42,7 @@ import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfoSet;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -122,7 +122,8 @@ public class MyTorrentsView
                   TableRefreshListener,
                   TableViewFilterCheck.TableViewFilterCheckEx<DownloadManager>,
                   TableRowRefreshListener,
-                  TableCountChangeListener
+                  TableCountChangeListener,
+                  TableExpansionChangeListener
 {
 	private static final LogIDs LOGID = LogIDs.GUI;
 	
@@ -315,6 +316,7 @@ public class MyTorrentsView
     if (tv.canHaveSubItems()) {
     	tv.addRefreshListener(this);
     	tv.addCountChangeListener(this);
+    	tv.addExpansionChangeListener(this);
     }
     
     tv.addTableDataSourceChangedListener(new TableDataSourceChangedListener() {
@@ -2341,7 +2343,7 @@ public class MyTorrentsView
 	public void rowAdded(TableRowCore row) {
 		if (row.getParentRowCore() == null) {
 			DownloadManager dm = (DownloadManager) row.getDataSource(true);
-			if (isFeaturedContent(dm.getTorrent())) {
+			if ( dm.getDownloadState().getBooleanAttribute( DownloadManagerState.AT_FILES_EXPANDED )){
 				row.setExpanded(true);
 			}
 		}
@@ -2352,45 +2354,28 @@ public class MyTorrentsView
 
 	public void rowRemoved(TableRowCore row) {
 	}
-
-	// temporary
-	public static String getContentMapString(TOTorrent torrent, String key) {
-		if (torrent == null) {
-			return null;
+	
+	public void 
+	rowExpanded(
+		TableRowCore 	row )
+	{
+		if ( row.getParentRowCore() == null ){
+			
+			DownloadManager dm = (DownloadManager) row.getDataSource(true);
+				
+			dm.getDownloadState().setBooleanAttribute( DownloadManagerState.AT_FILES_EXPANDED, true );
 		}
-
-		Map mapAZProps = torrent.getAdditionalMapProperty(TOTorrent.AZUREUS_PROPERTIES);
-		if (mapAZProps == null) {
-			return null;
-		}
-
-		Object objExistingContentMap = mapAZProps.get("Content");
-
-		if (!(objExistingContentMap instanceof Map)) {
-			return null;
-		}
-
-		Map mapContent = (Map) objExistingContentMap;
-		Object obj = mapContent.get(key);
-
-		if (obj instanceof String) {
-			return (String) obj;
-		} else if (obj instanceof byte[]) {
-			try {
-				return new String((byte[]) obj, Constants.DEFAULT_ENCODING);
-			} catch (UnsupportedEncodingException e) {
-				e.printStackTrace();
-			}
-		}
-
-		return null;
 	}
-
-	// temporary
-	public static boolean isFeaturedContent(TOTorrent torrent) {
-		String content_type = getContentMapString(torrent, "Content Type");
-
-		return (content_type != null && content_type.equalsIgnoreCase("featured"));
+	
+	public void 
+	rowCollapsed(
+		TableRowCore 	row )
+	{
+		if ( row.getParentRowCore() == null ){
+			
+			DownloadManager dm = (DownloadManager) row.getDataSource(true);
+				
+			dm.getDownloadState().setBooleanAttribute( DownloadManagerState.AT_FILES_EXPANDED, false );
+		}
 	}
-
 }

@@ -417,4 +417,9 @@ public interface TableView<DATASOURCETYPE>
 	TableColumnCore[] getAllColumns();
 
 	void removeCountChangeListener(TableCountChangeListener l);
+	
+	void addExpansionChangeListener(TableExpansionChangeListener listener);
+	
+	void removeExpansionChangeListener(TableExpansionChangeListener listener);
+
 }

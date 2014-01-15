@@ -27,7 +27,6 @@ import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Text;
-
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_TabsCommon;
 
@@ -261,4 +260,6 @@ public interface TableViewSWT<DATASOURCETYPE>
 	void invokeRefreshListeners(TableRowCore row);
 	
 	TableViewSWT_TabsCommon getTabsCommon();
+	
+	void invokeExpansionChangeListeners( TableRowCore row, boolean expanded );
 }
