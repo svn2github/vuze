@@ -118,52 +118,64 @@ ClientIDManagerImpl
 			String	http_proxy 	= System.getProperty( "http.proxyHost" );
 			String	socks_proxy = System.getProperty( "socksProxyHost" );
 			
-		    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress();
-		    
-	        if (	( http_proxy == null || http_proxy.trim().length() == 0 ) &&
-	        		( socks_proxy == null || socks_proxy.trim().length() == 0 ) &&
-	        		(bindIP != null  && !bindIP.isAnyLocalAddress())
-	        		)
-	        {
-
-	        	int		ips = 0;
-	        	
-	        		// seeing as this is a bit of a crappy way to enforce binding, add one more check to make
-	        		// sure that the machine has multiple ips before going ahead in case user has set it
-	        		// incorrectly
-	        	
-	        	try{
-	    			List<NetworkInterface>	x = NetUtils.getNetworkInterfaces();
-	    			
-	    			for ( NetworkInterface network_interface: x ){
-	        			
-	        			Enumeration<InetAddress> addresses = network_interface.getInetAddresses();
-	        			
-	        			while( addresses.hasMoreElements()){
-	        				
-	        				InetAddress address = addresses.nextElement();
-	        				
-	        				if ( !address.isLoopbackAddress()){
-	        					
-	        					ips++;
-	        				}
-	        			}        			
-	        		}
-	        	}catch( Throwable e ){
-	        		Logger.log(new LogEvent(LOGID, "", e));
-	        	}
-	        	
-	        	if ( ips > 1 ){
-	        		
-		        	filter_override	= true;
+			NetworkAdmin network_admin = NetworkAdmin.getSingleton();
+			
+		    if ( network_admin.mustBind()){
+		    	
+		    	filter_override = true;
+		    	
+		    	use_filter = true;
+		    	
+		    }else{
+	    
+			    InetAddress bindIP = network_admin.getSingleHomedServiceBindAddress();
+			    
+			    
+		        if (	( http_proxy == null || http_proxy.trim().length() == 0 ) &&
+		        		( socks_proxy == null || socks_proxy.trim().length() == 0 ) &&
+		        		( bindIP != null  && !bindIP.isAnyLocalAddress())){
+		        
+	
+		        	int		ips = 0;
 		        	
-		        	use_filter	= true;
+		        		// seeing as this is a bit of a crappy way to enforce binding, add one more check to make
+		        		// sure that the machine has multiple ips before going ahead in case user has set it
+		        		// incorrectly
 		        	
-		        	if (Logger.isEnabled())
-		        		Logger.log(new LogEvent(LOGID,
-		        				"ClientIDManager: overriding filter "
-		        				+ "option to support local bind IP"));
-	        	}
+		        	try{
+		    			List<NetworkInterface>	x = NetUtils.getNetworkInterfaces();
+		    			
+		    			for ( NetworkInterface network_interface: x ){
+		        			
+		        			Enumeration<InetAddress> addresses = network_interface.getInetAddresses();
+		        			
+		        			while( addresses.hasMoreElements()){
+		        				
+		        				InetAddress address = addresses.nextElement();
+		        				
+		        				if ( !address.isLoopbackAddress()){
+		        					
+		        					ips++;
+		        				}
+		        			}        			
+		        		}
+		        	}catch( Throwable e ){
+		        		
+		        		Logger.log(new LogEvent(LOGID, "", e));
+		        	}
+		        	
+		        	if ( ips > 1 ){
+		        		
+			        	filter_override	= true;
+			        	
+			        	use_filter	= true;
+			        	
+			        	if (Logger.isEnabled())
+			        		Logger.log(new LogEvent(LOGID,
+			        				"ClientIDManager: overriding filter "
+			        				+ "option to support local bind IP"));
+		        	}
+		        }
 	        }
 		}
 		
@@ -185,55 +197,49 @@ ClientIDManagerImpl
 				
 				ss.setReuseAddress(true);
 								
-				Thread accept_thread = 
-						new AEThread("ClientIDManager::filterloop")
-						{
-							public void
-							runSupport()
-							{
-								long	successfull_accepts = 0;
-								long	failed_accepts		= 0;
+				new AEThread2("ClientIDManager::filterloop")
+				{
+					public void
+					run()
+					{
+						long	failed_accepts		= 0;
 
-								while(true){
-									
-									try{				
-										Socket socket = ss.accept();
+						while(true){
 							
-										successfull_accepts++;
-							
-										thread_pool.run( new httpFilter( socket ));
+							try{				
+								Socket socket = ss.accept();
 										
-									}catch( Throwable e ){
-										
-										failed_accepts++;
-										
-                    if (Logger.isEnabled())
-                      Logger.log(new LogEvent(LOGID, 
-                                              "ClientIDManager: listener failed on port "
-                                              + filter_port, e )); 
-										
-										if ( failed_accepts > 100 && successfull_accepts == 0 ){
+								failed_accepts = 0;
+								
+								thread_pool.run( new httpFilter( socket ));
+								
+							}catch( Throwable e ){
+								
+								failed_accepts++;
+								
+								if (Logger.isEnabled())
+									Logger.log(new LogEvent(LOGID, 
+											"ClientIDManager: listener failed on port "
+													+ filter_port, e )); 
+								
+								if ( failed_accepts > 10  ){
 
-												// looks like its not going to work...
-												// some kind of socket problem
-															
-											Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-												LogAlert.AT_ERROR, "Network.alert.acceptfail"),
-												new String[] { "" + filter_port, "TCP" });
+										// looks like its not going to work...
+										// some kind of socket problem
+													
+									Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+										LogAlert.AT_ERROR, "Network.alert.acceptfail"),
+										new String[] { "" + filter_port, "TCP" });
+							
+									use_filter	= false;
 									
-											use_filter	= false;
-											
-											break;
-										}
-									}
+									break;
 								}
 							}
-						};
-			
-				accept_thread.setDaemon( true );
-			
-				accept_thread.start();									
-			
+						}
+					}
+				}.start();
+									
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID,
 							"ClientIDManager: listener established on port " + filter_port)); 
@@ -446,7 +452,7 @@ ClientIDManagerImpl
 				
 				String	cid = get.substring( p1+5, p2 );
 				
-				int	p3 = cid.indexOf( ":" );
+				int	p3 = cid.lastIndexOf( ":" );
 				
 				String	target_host	= cid.substring( 0, p3 );
 				int		target_port	= Integer.parseInt( cid.substring(p3+1));
