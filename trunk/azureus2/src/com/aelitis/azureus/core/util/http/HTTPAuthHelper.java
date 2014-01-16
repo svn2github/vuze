@@ -57,6 +57,8 @@ HTTPAuthHelper
 	private int						delegate_to_port;
 	private boolean					delegate_is_https;
 	
+	private Proxy	delegate_to_proxy;
+	
 	private CopyOnWriteList			listeners = new CopyOnWriteList();
 	
 	private int		port;
@@ -82,7 +84,7 @@ HTTPAuthHelper
 		this( null, url );
 	}
 	
-	protected
+	private
 	HTTPAuthHelper(
 		HTTPAuthHelper			_parent,
 		URL						_delegate_to )
@@ -103,6 +105,13 @@ HTTPAuthHelper
 		server_socket.bind( new InetSocketAddress( "127.0.0.1", 0 ));
         
         port = server_socket.getLocalPort();
+	}
+	
+	public void
+	setProxy(
+		Proxy		_proxy )
+	{
+		delegate_to_proxy	= _proxy;
 	}
 	
 	public void
@@ -166,7 +175,7 @@ HTTPAuthHelper
 		return( http_only_detected );
 	}
 	
-	protected void
+	private void
 	setHTTPOnlyCookieDetected()
 	{
 		http_only_detected = true;
@@ -177,7 +186,7 @@ HTTPAuthHelper
 		}
 	}
 	
-	protected String
+	private String
 	getKey(
 		URL		url )
 	{
@@ -188,7 +197,7 @@ HTTPAuthHelper
 		return( key );
 	}
 	
-	protected HTTPAuthHelper
+	private HTTPAuthHelper
 	getChild(
 		String		url_str,
 		boolean		optional )
@@ -262,7 +271,7 @@ HTTPAuthHelper
 		}
 	}
 
-	protected void
+	private void
 	addSetCookieName(
 		String		name,
 		String		value )
@@ -302,7 +311,7 @@ HTTPAuthHelper
 		}
 	}
 	
-	protected boolean
+	private boolean
 	hasSetCookieName(
 		String		name )
 	{
@@ -377,7 +386,7 @@ HTTPAuthHelper
 		}
 	}
 	
-	protected class
+	private class
 	processor
 	{
 		private static final String	NL = "\r\n";
@@ -387,14 +396,14 @@ HTTPAuthHelper
 		
 		private volatile boolean	destroyed;
 		
-		protected
+		private
 		processor(
 			Socket		_socket )
 		{
 			socket_in	= _socket;
 		}
 		
-		protected void
+		private void
 		start()
 		{
 			thread_pool.run(
@@ -417,7 +426,7 @@ HTTPAuthHelper
 				});
 		}
 		
-		protected void
+		private void
 		sniff()
 		{
 			try{
@@ -440,7 +449,7 @@ HTTPAuthHelper
 			}
 		}
 		
-		protected void
+		private void
 		connectToDelegate()
 		
 			throws IOException
@@ -469,21 +478,58 @@ HTTPAuthHelper
 					SSLSocketFactory factory = sc.getSocketFactory();
 
 					try{
-						socket_out = factory.createSocket();
-						
-						socket_out.connect( new InetSocketAddress( delegate_to_host, delegate_to_port ), CONNECT_TIMEOUT );
+						if ( delegate_to_proxy == null ){
+							
+							socket_out = factory.createSocket();
+							
+							socket_out.connect( new InetSocketAddress( delegate_to_host, delegate_to_port ), CONNECT_TIMEOUT );
+							
+						}else{
+							
+							Socket plain_socket = new Socket( delegate_to_proxy );
+							
+							plain_socket.connect( new InetSocketAddress( delegate_to_host, delegate_to_port ), CONNECT_TIMEOUT );
+							
+							socket_out = factory.createSocket( plain_socket, delegate_to_host, delegate_to_port, true );
+						}
 					
 					}catch( SSLException ssl_excep ){
-												
+								
+						if ( socket_out != null ){
+							
+							try{
+								socket_out.close();
+								
+							}catch( Throwable e ){		
+							}
+						}
+						
 						factory = SESecurityManager.installServerCertificates( "AZ-sniffer:" + delegate_to_host + ":" + port, delegate_to_host, delegate_to_port );
 						
-						socket_out = factory.createSocket();
-						
-						socket_out.connect( new InetSocketAddress( delegate_to_host, delegate_to_port ), 30*1000 );					
-					}
+						if ( delegate_to_proxy == null ){
+							
+							socket_out = factory.createSocket();
+							
+							socket_out.connect( new InetSocketAddress( delegate_to_host, delegate_to_port ), CONNECT_TIMEOUT );
+							
+						}else{
+							
+							Socket plain_socket = new Socket( delegate_to_proxy );
+							
+							plain_socket.connect( new InetSocketAddress( delegate_to_host, delegate_to_port ), CONNECT_TIMEOUT );
+							
+							socket_out = factory.createSocket( plain_socket, delegate_to_host, delegate_to_port, true );
+						}					}
 				}else{
 					
-					socket_out = new Socket();
+					if ( delegate_to_proxy == null ){
+					
+						socket_out = new Socket();
+						
+					}else{
+						
+						socket_out = new Socket( delegate_to_proxy );
+					}
 					
 					socket_out.connect( new InetSocketAddress( delegate_to_host, delegate_to_port ), CONNECT_TIMEOUT );
 				}
@@ -521,7 +567,7 @@ HTTPAuthHelper
 			}
 		}
 		
-		protected void
+		private void
 		process(
 			String		request_header )
 		
@@ -535,6 +581,10 @@ HTTPAuthHelper
 			
 			int	space_pos = target_url.indexOf(' ');
 			
+			if ( space_pos == -1 ){
+				
+				System.out.println( "eh?" );
+			}
 			target_url = target_url.substring( space_pos ).trim();
 			
 			space_pos = target_url.indexOf(' ');
@@ -1326,7 +1376,7 @@ HTTPAuthHelper
 			}
 		}
 		
-		protected String
+		private String
 		readHeader(
 			InputStream		is )
 		
@@ -1335,6 +1385,8 @@ HTTPAuthHelper
 			String	header = "";
 			
 			byte[]	buffer = new byte[1];
+			
+			boolean	found = false;
 			
 			while( true ){
 			
@@ -1347,14 +1399,21 @@ HTTPAuthHelper
 				
 				if ( header.endsWith( NL + NL )){
 					
+					found = true;
+					
 					break;
 				}
+			}
+			
+			if ( !found ){
+				
+				throw( new IOException( "End of stream reading header" ));
 			}
 			
 			return( header );
 		}
 		
-		protected String[]
+		private String[]
 		splitHeader(
 			String		str )
 		{
@@ -1362,10 +1421,8 @@ HTTPAuthHelper
 			
 			return( bits );
 		}
-		
-
-		
-		protected void
+			
+		private void
 		destroy()
 		{
 			synchronized( this ){
@@ -1395,7 +1452,7 @@ HTTPAuthHelper
 		}
 	}
 	
-	protected void
+	private void
 	trace(
 		String		str )
 	{
@@ -1410,7 +1467,7 @@ HTTPAuthHelper
 		String[]		args )
 	{
 		try{
-			HTTPAuthHelper proxy = new HTTPAuthHelper( new URL( "http://www.sf.net/" ));
+			HTTPAuthHelper proxy = new HTTPAuthHelper( new URL( "https://client.vuze.com/" ));
 			
 			proxy.start();
 			
