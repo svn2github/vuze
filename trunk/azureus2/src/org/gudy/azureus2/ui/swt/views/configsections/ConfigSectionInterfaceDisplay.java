@@ -105,7 +105,7 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 
 		new BooleanParameter(gVarious, "Add URL Silently", MSG_PREFIX	+ "addurlsilently");
 
-		new BooleanParameter(gVarious, "suppress_file_download_dialog", "ConfigView.section.interface.display.suppress.file.download.dialog");
+		//new BooleanParameter(gVarious, "suppress_file_download_dialog", "ConfigView.section.interface.display.suppress.file.download.dialog");
 
 		new BooleanParameter(gVarious, "show_torrents_menu", "Menu.show.torrent.menu");
 
