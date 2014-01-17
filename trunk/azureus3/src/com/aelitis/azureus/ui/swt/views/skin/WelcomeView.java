@@ -21,6 +21,7 @@
 package com.aelitis.azureus.ui.swt.views.skin;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -80,16 +81,24 @@ public class WelcomeView
 		openURL();
 
 		MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-		MdiEntry entry = mdi.getEntry(SideBar.SIDEBAR_SECTION_WELCOME);
-		entry.addListener(new MdiCloseListener() {
-			public void mdiEntryClosed(MdiEntry entry, boolean userClosed) {
-				MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
-				if (mdi != null) {
-					mdi.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
-				}
+		
+		if ( mdi != null ){
+			
+			MdiEntry entry = mdi.getEntry(SideBar.SIDEBAR_SECTION_WELCOME);
+			
+			if ( entry != null ){
+				
+				entry.addListener(new MdiCloseListener() {
+					public void mdiEntryClosed(MdiEntry entry, boolean userClosed) {
+						MultipleDocumentInterface mdi = UIFunctionsManager.getUIFunctions().getMDI();
+						if (mdi != null) {
+							mdi.showEntryByID(SideBar.SIDEBAR_SECTION_LIBRARY);
+						}
+					}
+				});
 			}
-		});
-
+		}
+		
 		return null;
 	}
 
