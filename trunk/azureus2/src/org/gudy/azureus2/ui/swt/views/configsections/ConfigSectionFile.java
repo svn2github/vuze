@@ -655,6 +655,15 @@ public class ConfigSectionFile
 			gridData.horizontalSpan = 2;
 			new BooleanParameter(gDeletion, sCurConfigID,
 					"ConfigView.section.file.delete.include_files_outside_save_dir").setLayoutData(gridData);
+			
+			sCurConfigID = "Delete Partial Files On Library Removal";
+			allConfigIDs.add(sCurConfigID);
+
+			gridData = new GridData();
+			gridData.horizontalSpan = 2;
+			new BooleanParameter(gDeletion, sCurConfigID,
+					"delete.partial.files").setLayoutData(gridData);
+			
 		}
 
 		if (userMode > 0) {

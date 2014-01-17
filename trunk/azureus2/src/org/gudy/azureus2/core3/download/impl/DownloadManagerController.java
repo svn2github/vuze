@@ -936,6 +936,13 @@ DownloadManagerController
 				if( remove_data ){
 				  
 					download_manager.deleteDataFiles();
+					
+				}else{
+					
+					if ( COConfigurationManager.getBooleanParameter( "Delete Partial Files On Library Removal") ){
+						
+						download_manager.deletePartialDataFiles();
+					}
 				}
 	      
 				if( remove_torrent ){

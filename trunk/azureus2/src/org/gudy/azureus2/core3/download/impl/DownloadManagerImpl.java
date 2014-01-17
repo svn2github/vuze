@@ -3388,6 +3388,77 @@ DownloadManagerImpl
 		state.setFlag(DownloadManagerState.FLAG_DISABLE_AUTO_FILE_MOVE, true);
 	}
   
+	protected void
+	deletePartialDataFiles()
+	{
+		DiskManagerFileInfo[] files = getDiskManagerFileInfoSet().getFiles();
+		
+		String abs_root = torrent_save_location.getAbsolutePath();
+		
+		for ( DiskManagerFileInfo file: files ){
+			
+			if ( !file.isSkipped()){
+				
+				continue;
+			}
+			
+				// just to be safe...
+			
+			if ( file.getDownloaded() == file.getLength()){
+				
+				continue;
+			}
+			
+				// user may have switched a partially completed file to DND for some reason - be safe
+				// and only delete compact files 
+			
+			int	storage_type = file.getStorageType() ;
+				
+			if ( storage_type == DiskManagerFileInfo.ST_COMPACT || storage_type == DiskManagerFileInfo.ST_REORDER_COMPACT ){
+				
+				File f = file.getFile( true );
+				
+				if ( f.exists()){
+					
+					if ( f.delete()){
+						
+						File parent = f.getParentFile();
+						
+						while ( parent != null ){
+						
+							if ( parent.isDirectory() && f.listFiles().length == 0 ){
+							
+								if ( parent.getAbsolutePath().startsWith( abs_root )){
+									
+									if ( !parent.delete()){
+										
+										Debug.outNoStack( "Failed to remove empty directory: " + parent );
+										
+										break;
+										
+									}else{
+										
+										parent = parent.getParentFile();
+									}
+									
+								}else{
+									
+									break;
+								}
+							}else{
+								
+								break;
+							}
+						}
+					}else{
+						
+						Debug.outNoStack( "Failed to remove partial: " + f );
+					}
+				}
+			}
+		}
+	}
+	
 	protected void 
 	deleteTorrentFile() 
 	{
