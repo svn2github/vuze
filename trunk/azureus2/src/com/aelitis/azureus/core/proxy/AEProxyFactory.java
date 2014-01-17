@@ -85,6 +85,14 @@ AEProxyFactory
 		return( AEPluginProxyHandler.getPluginProxy( proxy ));
 	}
 	
+	public static PluginHTTPProxy
+	getPluginHTTPProxy(
+		String			reason,
+		URL				target )
+	{
+		return( AEPluginProxyHandler.getPluginHTTPProxy( reason, target ));
+	}
+	
 	public interface
 	PluginProxy
 	{
@@ -111,5 +119,15 @@ AEProxyFactory
 		public void
 		setOK(
 			boolean	good );
+	}
+	
+	public interface
+	PluginHTTPProxy
+	{
+		public Proxy
+		getProxy();
+		
+		public void
+		destroy();
 	}
 }

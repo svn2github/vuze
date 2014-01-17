@@ -26,6 +26,7 @@ import java.net.Proxy;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
@@ -35,6 +36,7 @@ import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginHTTPProxy;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 
@@ -190,6 +192,34 @@ AEPluginProxyHandler
 		return( null );
 	}
 	
+	public static PluginHTTPProxyImpl
+	getPluginHTTPProxy(
+		String		reason,
+		URL			url )
+	{
+		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
+		
+		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
+			
+			for ( PluginInterface pi: plugins ){
+				
+				try{
+					IPCInterface ipc = pi.getIPC();
+					
+					Proxy proxy = (Proxy)ipc.invoke( "createHTTPPseudoProxy", new Object[]{ reason, url });
+					
+					if ( proxy != null ){
+						
+						return( new PluginHTTPProxyImpl( reason, ipc, proxy ));
+					}
+				}catch( Throwable e ){	
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
 	private static class
 	PluginProxyImpl
 		implements PluginProxy
@@ -326,6 +356,45 @@ AEPluginProxyHandler
 			synchronized( proxy_map ){
 
 				proxy_map.remove( getProxy());
+			}
+		}
+	}
+	
+	private static class
+	PluginHTTPProxyImpl
+		implements PluginHTTPProxy
+	{
+		private String			reason;
+		private IPCInterface	ipc;
+		private Proxy			proxy;
+		
+		private
+		PluginHTTPProxyImpl(
+			String				_reason,
+			IPCInterface		_ipc,
+			Proxy				_proxy )
+		{
+			reason				= _reason;
+			ipc					= _ipc;
+			proxy				= _proxy;
+		}
+		
+		public Proxy
+		getProxy()
+		{
+			return( proxy );
+		}
+		
+		public void 
+		destroy() 
+		{
+			try{
+				
+				ipc.invoke( "destroyHTTPPseudoProxy", new Object[]{ proxy });
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
 			}
 		}
 	}
