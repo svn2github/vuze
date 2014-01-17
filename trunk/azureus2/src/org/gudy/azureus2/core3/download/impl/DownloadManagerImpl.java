@@ -3426,7 +3426,7 @@ DownloadManagerImpl
 						
 						while ( parent != null ){
 						
-							if ( parent.isDirectory() && f.listFiles().length == 0 ){
+							if ( parent.isDirectory() && parent.listFiles().length == 0 ){
 							
 								if ( parent.getAbsolutePath().startsWith( abs_root )){
 									
