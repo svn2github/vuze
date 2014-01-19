@@ -22,12 +22,12 @@ package com.aelitis.azureus.core.messenger;
 
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.Proxy;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.*;
-import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Timer;
 import org.gudy.azureus2.plugins.utils.StaticUtilities;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
@@ -36,6 +36,9 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.core.metasearch.impl.web.WebEngine.pageDetails;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.util.*;
 
 /**
@@ -433,18 +436,16 @@ public class PlatformMessenger
 	 * @throws Exception 
 	 */
 	protected static void processQueueAsync(String sURL, String sData,
-			Map mapProcessing) throws Exception {
+			Map mapProcessing) throws Throwable {
 		URL url;
 		url = new URL(sURL);
 
-		String s;
-		byte[] bytes = downloadURL(url, sData);
-		s = new String(bytes, "UTF8");
+		Object[] result = downloadURL(url, sData);
 
-		Map mapAllReplies = JSONUtils.decodeJSON(s);
-		List listReplies = MapUtils.getMapList(mapAllReplies, "replies", null);
-
-		if (mapAllReplies == null || listReplies == null || listReplies.isEmpty()) {
+		String s = (String)result[0];
+		List listReplies = (List)result[1];
+		
+		if ( listReplies == null || listReplies.isEmpty()) {
 			debug("Error while sending message(s) to Platform: reply: " + s
 					+ "\nurl: " + sURL + "\nPostData: " + sData);
 			for (Iterator iter = mapProcessing.keySet().iterator(); iter.hasNext();) {
@@ -505,15 +506,94 @@ public class PlatformMessenger
 		}
 	}
 
-	private static byte[] downloadURL(URL url, String postData)
-			throws Exception {
+	private static Object[] 
+	downloadURL(
+		URL 	rpc_url, 
+		String 	postData )
+	
+		throws Throwable 
+	{
+		Object[] result;
+		
+		try{
+			result = downloadURLSupport( null, null, rpc_url, postData );
+			
+			if ( result[1] == null ){
+				
+				throw( new Exception( "Request failed" ));
+				
+			}else{
+				
+				return( result );
+			}
+		}catch( Throwable e ){
+			
+			try{
+				PluginProxy 	plugin_proxy	= AEProxyFactory.getPluginProxy( "vuze settings", rpc_url );
+				
+				if ( plugin_proxy == null ){
+					
+					throw( e );
+					
+				}else{
+					
+					URL 	url		= plugin_proxy.getURL();
+					Proxy 	proxy	= plugin_proxy.getProxy();
+	
+					boolean	ok = false;
+					
+					try{
+						String proxy_host = rpc_url.getHost() + (rpc_url.getPort()==-1?"":(":" + rpc_url.getPort()));
+						
+						result = downloadURLSupport( proxy, proxy_host, url, postData );
+					
+						ok = true;
+						
+						return( result );
+						
+					}finally{
+						
+						plugin_proxy.setOK( ok );
+					}
+				}
+			}catch( Throwable f ){
+				
+				throw( e );
+			}
+		}
+	}
+	
+	private static Object[] 
+	downloadURLSupport(
+		Proxy		proxy,
+		String		proxy_host,
+		URL 		url, 
+		String 		postData )
+	
+		throws Throwable 
+	{
 		ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
 
-		ResourceDownloader rd = rdf.create(url, postData);
+		ResourceDownloader rd;
+		
+		if ( proxy == null ){
+			
+			rd = rdf.create(url, postData);
+			
+		}else{
+			
+			rd = rdf.create(url, postData, proxy);
+		}
 
+		if ( proxy_host != null ){
+			
+			rd.setProperty( "URL_HOST", proxy_host );
+		}
+		
 		rd.setProperty( "URL_Connection", "Keep-Alive" );
 		
 		rd = rdf.getRetryDownloader(rd, 3);
+		
 		// We could report percentage to listeners, but there's no need to atm
 		//		rd.addListener(new ResourceDownloaderListener() {
 		//		
@@ -549,7 +629,13 @@ public class PlatformMessenger
 			is.close();
 		}
 
-		return (data);
+		String s = new String( data, "UTF8");
+
+		Map mapAllReplies = JSONUtils.decodeJSON(s);
+		
+		List listReplies = MapUtils.getMapList(mapAllReplies, "replies", null);
+
+		return( new Object[]{ s, listReplies });
 	}
 
 	public static void setAllowMulti(boolean allowMulti) {
