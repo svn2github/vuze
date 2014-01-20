@@ -66,7 +66,16 @@ AEProxyFactory
 		String		reason,
 		URL			target )
 	{
-		return( AEPluginProxyHandler.getPluginProxy( reason, target ));
+		return( getPluginProxy( reason, target, false));
+	}
+	
+	public static PluginProxy
+	getPluginProxy(
+		String		reason,
+		URL			target,
+		boolean		can_wait )
+	{
+		return( AEPluginProxyHandler.getPluginProxy( reason, target, can_wait ));
 	}
 	
 	public static PluginProxy

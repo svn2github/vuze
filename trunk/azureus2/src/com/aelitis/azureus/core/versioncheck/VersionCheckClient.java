@@ -41,7 +41,6 @@ import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.stats.transfer.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.utils.DelayedTask;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
@@ -51,8 +50,8 @@ import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.clientmessageservice.*;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
-import com.aelitis.azureus.core.proxy.impl.AEPluginProxyHandler;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.util.DNSUtils;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
@@ -894,7 +893,7 @@ public class VersionCheckClient {
 			
 			if ( !v6 ){
 				
-				PluginProxy proxy = AEPluginProxyHandler.getPluginProxy( "Vuze version check", url );
+				PluginProxy proxy = AEProxyFactory.getPluginProxy( "Vuze version check", url );
 				
 				if ( proxy != null ){
 					

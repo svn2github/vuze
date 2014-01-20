@@ -26,8 +26,10 @@ import java.net.Proxy;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.plugins.PluginAdapter;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -44,6 +46,8 @@ public class
 AEPluginProxyHandler 
 {
 	private static CopyOnWriteList<PluginInterface>		plugins = new CopyOnWriteList<PluginInterface>();
+	
+	private static final AESemaphore plugin_init_complete = new AESemaphore( "init:waiter" );
 	
 	static{
 		try{
@@ -80,6 +84,17 @@ AEPluginProxyHandler
 						pluginAdded( pi );
 					}
 				}
+				
+				default_pi.addListener(
+					new PluginAdapter()
+					{
+						public void 
+						initializationComplete() 
+						{
+							plugin_init_complete.releaseForever();
+						}
+					});
+				
 		}catch( Throwable e ){
 			
 			e.printStackTrace();
@@ -108,14 +123,36 @@ AEPluginProxyHandler
 	
 	private static final Map<Proxy,WeakReference<PluginProxyImpl>>	proxy_map = new IdentityHashMap<Proxy,WeakReference<PluginProxyImpl>>();
 	
+		/**
+		 * This method should NOT BE CALLED as it is in the .impl package - unfortunately the featman plugin calls it
+		 * @param reason
+		 * @param target
+		 * @deprecated
+		 * @return
+		 */
+	
 	public static PluginProxyImpl
 	getPluginProxy(
 		String	reason,
 		URL		target )
 	{
+		return( getPluginProxy( reason, target, false ));
+	}
+	
+	public static PluginProxyImpl
+	getPluginProxy(
+		String	reason,
+		URL		target,
+		boolean	can_wait )
+	{
 		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
 		
 		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
+			
+			if ( can_wait ){
+				
+				plugin_init_complete.reserve();
+			}
 			
 			for ( PluginInterface pi: plugins ){
 				
@@ -282,7 +319,7 @@ AEPluginProxyHandler
 			String		child_reason,
 			URL 		url) 
 		{
-			PluginProxyImpl	child = getPluginProxy( reason + " - " + child_reason, url );
+			PluginProxyImpl	child = getPluginProxy( reason + " - " + child_reason, url, false );
 			
 			if ( child != null ){
 				

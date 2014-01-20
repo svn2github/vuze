@@ -36,7 +36,6 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFact
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
-import com.aelitis.azureus.core.metasearch.impl.web.WebEngine.pageDetails;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.util.*;
@@ -405,6 +404,7 @@ public class PlatformMessenger
 					try {
 						processQueueAsync(fURL, fPostData, mapProcessing);
 					} catch (Throwable e) {
+						e.printStackTrace();
 						if (e instanceof ResourceDownloaderException) {
 							debug("Error while sending message(s) to Platform: " + e.toString());
 						} else {
@@ -529,7 +529,7 @@ public class PlatformMessenger
 		}catch( Throwable e ){
 			
 			try{
-				PluginProxy 	plugin_proxy	= AEProxyFactory.getPluginProxy( "vuze settings", rpc_url );
+				PluginProxy 	plugin_proxy	= AEProxyFactory.getPluginProxy( "vuze settings", rpc_url, true );
 				
 				if ( plugin_proxy == null ){
 					
