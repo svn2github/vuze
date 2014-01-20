@@ -175,6 +175,8 @@ public class TorrentDownloaderFactory {
 		private volatile boolean	irc_set;
 		private volatile boolean	irc;
 		
+		private volatile String		original_error;
+		
   		private
   		TorrentDownloadRetrier(
   			final TorrentDownloaderCallBackInterface 	_callback, 
@@ -212,6 +214,14 @@ public class TorrentDownloaderFactory {
   						if ( _delegate != delegate ){
   							
   							return;
+  						}
+  						
+  						if ( state == STATE_ERROR ){
+  							
+  							if ( original_error == null ){
+  								
+  								original_error = delegate.getError();
+  							}
   						}
   						
   						if (	plugin_proxy != null &&
@@ -449,6 +459,11 @@ public class TorrentDownloaderFactory {
   		public String 
   		getError()
   		{
+  			if ( original_error != null ){
+  				
+  				return( original_error );
+  			}
+  			
   			return( delegate.getError());
   		}
   		
