@@ -742,6 +742,58 @@ TagManagerImpl
 		return( tag_types.getList());
 	}
 	
+	public void
+	taggableAdded(
+		TagType		tag_type,
+		Tag			tag,
+		Taggable	tagged )
+	{
+			// hack to support initial-save-location logic when a user manually assigns a tag and the download
+			// hasn't had files allocated yet (most common scenario is user has 'add-torrent-stopped' set up)
+		
+		try{
+			if ( tag_type.getTagType() == TagType.TT_DOWNLOAD_MANUAL && tagged instanceof DownloadManager ){
+				
+				TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
+	
+				if ( fl.supportsTagInitialSaveFolder()){
+					
+					File save_loc = fl.getTagInitialSaveFolder();
+					
+					if ( save_loc != null ){
+	
+						DownloadManager dm = (DownloadManager)tagged;
+						
+						if ( dm.getState() == DownloadManager.STATE_STOPPED ){
+						
+							TOTorrent torrent = dm.getTorrent();
+							
+							if ( torrent != null ){
+								
+									// This test detects whether or not we are in the process of adding the download
+									// If we are then initial save-location stuff will be applied by the init-adapter
+									// code above - we're only dealing later assignments here 
+								
+								if ( dm.getGlobalManager().getDownloadManager( torrent.getHashWrapper()) != null ){
+									
+									File existing_save_loc = dm.getSaveLocation();
+									
+									if ( ! ( existing_save_loc.equals( save_loc ) || existing_save_loc.exists())){
+										
+										dm.setTorrentSaveDir( save_loc.getAbsolutePath());
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}catch( Throwable e ){
+		
+			Debug.out(e );
+		}
+	}
+	
 	public List<Tag>
 	getTagsForTaggable(
 		Taggable	taggable )

@@ -349,6 +349,8 @@ TagTypeBase
 				}
 			}
 		}
+		
+		manager.taggableAdded( this, tag, tagged );
 	}
 	
 	public void
