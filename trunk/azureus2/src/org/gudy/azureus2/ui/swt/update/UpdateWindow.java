@@ -172,7 +172,7 @@ UpdateWindow
     //Do not use ~SWT.CLOSE cause on some linux/GTK platform it
     //forces the window to be only 200x200
     //catch close event instead, and never do it
-		updateWindow = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE);
+		updateWindow = ShellFactory.createMainShell(SWT.DIALOG_TRIM | SWT.RESIZE | SWT.MIN );
     
     updateWindow.addListener(SWT.Close,new Listener() {
       public void handleEvent(Event e) {
@@ -482,6 +482,7 @@ UpdateWindow
     }
     
     Utils.centreWindow( updateWindow );
+    updateWindow.setMinimized(false);
     updateWindow.open();
     updateWindow.forceActive();       
   }
@@ -604,6 +605,8 @@ UpdateWindow
           btnCancel.setEnabled(false);
           updateWindow.layout();
         }
+        
+        updateWindow.setMinimized(false);
       }
     });
   }
