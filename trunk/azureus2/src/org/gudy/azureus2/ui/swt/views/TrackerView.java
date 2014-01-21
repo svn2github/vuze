@@ -105,7 +105,7 @@ public class TrackerView
 				getPropertiesPrefix(), 
 				basicItems,
 				basicItems[0].getName(), 
-				SWT.SINGLE | SWT.FULL_SELECTION | SWT.VIRTUAL );
+				SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL );
 
 		tv.addLifeCycleListener(this);
 		tv.addMenuFillListener(this);
@@ -213,45 +213,47 @@ public class TrackerView
 					SWT.Selection, 
 					new TableSelectedRowsListener(tv) 
 					{
-						public void 
+						public boolean 
 						run(
-							TableRowCore row )
+							TableRowCore[] rows )
 						{
 							final TOTorrent torrent = manager.getTorrent();
 	
-							if (torrent == null) {
-								return;
-							}
+							if (torrent != null) {
 	
-							Utils.execSWTThread(
-								new Runnable()
-								{
-									public void
-									run()
+								Utils.execSWTThread(
+									new Runnable()
 									{
-										List<List<String>> group = TorrentUtils.announceGroupsToList(torrent);
-				
-										new MultiTrackerEditor(null,null, group, new TrackerEditorListener() {
-											public void trackersChanged(String str, String str2, List<List<String>> _group) {
-												TorrentUtils.listToAnnounceGroups(_group, torrent);
-				
-												try {
-													TorrentUtils.writeToFile(torrent);
-												} catch (Throwable e2) {
-				
-													Debug.printStackTrace(e2);
+										public void
+										run()
+										{
+											List<List<String>> group = TorrentUtils.announceGroupsToList(torrent);
+					
+											new MultiTrackerEditor(null,null, group, new TrackerEditorListener() {
+												public void trackersChanged(String str, String str2, List<List<String>> _group) {
+													TorrentUtils.listToAnnounceGroups(_group, torrent);
+					
+													try {
+														TorrentUtils.writeToFile(torrent);
+													} catch (Throwable e2) {
+					
+														Debug.printStackTrace(e2);
+													}
+					
+													TRTrackerAnnouncer tc = manager.getTrackerClient();
+					
+													if (tc != null) {
+					
+														tc.resetTrackerUrl(true);
+													}
 												}
-				
-												TRTrackerAnnouncer tc = manager.getTrackerClient();
-				
-												if (tc != null) {
-				
-													tc.resetTrackerUrl(true);
-												}
-											}
-										}, true, true );
-									}
-								});
+											}, true, true );
+										}
+									});
+								
+							}
+							
+							return( true );
 						}
 					});
 				
