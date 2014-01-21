@@ -94,4 +94,10 @@ TrackerPeerSource
 	
 	public void
 	manualUpdate();
+	
+	public boolean
+	canDelete();
+	
+	public void
+	delete();
 }

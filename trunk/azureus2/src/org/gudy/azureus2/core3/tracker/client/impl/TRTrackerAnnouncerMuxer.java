@@ -1590,6 +1590,18 @@ TRTrackerAnnouncerMuxer
 						summary.manualUpdate();
 					}
 				}
+				
+				public boolean
+				canDelete()
+				{
+					return( false );
+				}
+				
+				public void
+				delete()
+				{
+					Debug.out( "derp" );
+				}
 			});
 	}
 	

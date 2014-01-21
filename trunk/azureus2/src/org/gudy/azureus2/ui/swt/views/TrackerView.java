@@ -139,6 +139,7 @@ public class TrackerView
 		boolean	found_tracker		= false;
 		boolean	found_dht_tracker	= false;
 		boolean	update_ok 			= false;
+		boolean delete_ok			= false;
 		
 		for ( Object o: sources ){
 	
@@ -164,12 +165,18 @@ public class TrackerView
 					ps.canManuallyUpdate()){
 				
 				update_ok = true;
+			}
+			
+			if ( ps.canDelete()){
 				
-				break;
+				delete_ok = true;
 			}
 		}
 		
+		boolean	needs_sep = false;
+		
 		if ( found_tracker || found_dht_tracker ){
+			
 			final MenuItem update_item = new MenuItem( menu, SWT.PUSH);
 	
 			Messages.setLanguageText(update_item, "GeneralView.label.trackerurlupdate");
@@ -200,7 +207,7 @@ public class TrackerView
 				
 				final MenuItem edit_item = new MenuItem( menu, SWT.PUSH);
 				
-				Messages.setLanguageText(edit_item, "MyTorrentsView.menu.editTracker");
+				Messages.setLanguageText(edit_item, "MyTorrentsView.menu.editTracker" );
 							
 				edit_item.addListener(
 					SWT.Selection, 
@@ -252,6 +259,41 @@ public class TrackerView
 				
 				edit_item.setEnabled( torrent != null && !TorrentUtils.isReallyPrivate( torrent ));
 			}
+		
+			needs_sep = true;
+		}
+		
+		if ( delete_ok ){
+			
+			final MenuItem delete_item = new MenuItem( menu, SWT.PUSH);
+			
+			Messages.setLanguageText(delete_item, "Button.remove" );
+			Utils.setMenuItemImage(delete_item, "delete");	
+			
+			delete_item.addListener(
+				SWT.Selection, 
+				new TableSelectedRowsListener(tv) 
+				{
+					public void 
+					run(
+						TableRowCore row )
+					{
+						for ( Object o: sources ){
+							
+							TrackerPeerSource ps = (TrackerPeerSource)o;
+							
+							if ( ps.canDelete()){
+								
+								ps.delete();
+							}
+						}
+					}
+				});
+			
+			needs_sep = true;
+		}
+		
+		if ( needs_sep ){
 			
 			new MenuItem( menu, SWT.SEPARATOR );
 		}

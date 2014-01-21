@@ -4071,7 +4071,7 @@ DownloadManagerImpl
 
   					// tracker peer sources
   				
-  				TOTorrent t = getTorrent();
+  				final TOTorrent t = getTorrent();
 
   				if ( t != null ){
 
@@ -4431,6 +4431,28 @@ DownloadManagerImpl
 										
 										delegate.manualUpdate();
 									}
+								}
+								
+								public boolean
+								canDelete()
+								{
+									return( true );
+								}
+								
+								public void
+								delete()
+								{
+									List<List<String>> lists = TorrentUtils.announceGroupsToList( t );
+
+									List<String>	rem = new ArrayList<String>();
+									
+									for ( URL u: urls ){
+										rem.add( u.toExternalForm());
+									}
+									
+									lists = TorrentUtils.removeAnnounceURLs2( lists, rem );
+									
+									TorrentUtils.listToAnnounceGroups( lists, t );
 								}
 							});
 					}

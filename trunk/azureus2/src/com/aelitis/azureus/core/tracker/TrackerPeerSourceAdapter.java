@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.tracker;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 public abstract class 
 TrackerPeerSourceAdapter 
 	implements TrackerPeerSource
@@ -112,5 +114,18 @@ TrackerPeerSourceAdapter
 	public void
 	manualUpdate()
 	{
+		Debug.out( "derp" );
+	}
+	
+	public boolean 
+	canDelete() 
+	{
+		return( false );
+	}
+	
+	public void 
+	delete() 
+	{
+		Debug.out( "derp" );
 	}
 }
