@@ -118,7 +118,7 @@ public class SB_Discovery
 					StringBuilder sb = new StringBuilder();
 					MdiEntry[] entries = entry.getMDI().getEntries();
 					for (MdiEntry subEntry : entries) {
-						System.out.println(subEntry.getId());
+						//System.out.println(subEntry.getId());
 						if (subEntry.getId().startsWith("Subscription_")) {
 							continue;
 						}
