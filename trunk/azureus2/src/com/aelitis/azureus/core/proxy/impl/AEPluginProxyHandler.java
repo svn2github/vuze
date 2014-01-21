@@ -229,14 +229,49 @@ AEPluginProxyHandler
 		return( null );
 	}
 	
-	public static PluginHTTPProxyImpl
-	getPluginHTTPProxy(
-		String		reason,
-		URL			url )
+	public static Boolean
+	testPluginHTTPProxy(
+		URL			url,
+		boolean		can_wait )
 	{
 		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
 		
 		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
+			
+			if ( can_wait ){
+				
+				plugin_init_complete.reserve();
+			}
+			
+			for ( PluginInterface pi: plugins ){
+				
+				try{
+					IPCInterface ipc = pi.getIPC();
+					
+					return((Boolean)ipc.invoke( "testHTTPPseudoProxy", new Object[]{ url }));
+					
+				}catch( Throwable e ){	
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
+	public static PluginHTTPProxyImpl
+	getPluginHTTPProxy(
+		String		reason,
+		URL			url,
+		boolean		can_wait )
+	{
+		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
+		
+		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
+			
+			if ( can_wait ){
+				
+				plugin_init_complete.reserve();
+			}
 			
 			for ( PluginInterface pi: plugins ){
 				

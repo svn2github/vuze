@@ -94,12 +94,22 @@ AEProxyFactory
 		return( AEPluginProxyHandler.getPluginProxy( proxy ));
 	}
 	
+	public static Boolean
+	testPluginHTTPProxy(
+		URL				target,
+		boolean			can_wait )
+	{
+		return( AEPluginProxyHandler.testPluginHTTPProxy( target, can_wait ));
+
+	}
+	
 	public static PluginHTTPProxy
 	getPluginHTTPProxy(
 		String			reason,
-		URL				target )
+		URL				target,
+		boolean			can_wait )
 	{
-		return( AEPluginProxyHandler.getPluginHTTPProxy( reason, target ));
+		return( AEPluginProxyHandler.getPluginHTTPProxy( reason, target, can_wait ));
 	}
 	
 	public interface

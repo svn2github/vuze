@@ -3,6 +3,11 @@
  */
 package com.aelitis.azureus.ui.swt.subscriptions;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -15,7 +20,6 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
-
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
@@ -24,11 +28,11 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEventListener;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.messenger.ClientMessageContext;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionListener;
 import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
@@ -49,6 +53,80 @@ public class
 SubscriptionViewInternal
 	implements SubscriptionsViewBase, OpenCloseSearchDetailsListener, UIPluginViewToolBarListener
 {
+	private static AEProxyFactory.PluginHTTPProxy	subscription_proxy;
+	private static boolean							subscription_proxy_set;
+	
+	private static List<SubscriptionViewInternal>	pending = new ArrayList<SubscriptionViewInternal>();
+	
+	static{
+		new AEThread2( "ST_test" )
+		{
+			public void
+			run()
+			{	
+				try{
+					String test_url = ConstantsVuze.getDefaultContentNetwork().getSubscriptionURL( "derp" );
+
+					try{
+						Boolean looks_ok = AEProxyFactory.testPluginHTTPProxy(new URL( test_url ), true );
+						
+						if ( looks_ok != null && !looks_ok ){
+							
+							subscription_proxy = AEProxyFactory.getPluginHTTPProxy( "subscriptions", new URL( test_url ), true );
+						}
+					}catch( Throwable e ){
+					}
+				}finally{
+					
+					List<SubscriptionViewInternal> to_redo = null;
+					
+					synchronized( pending ){
+						
+						subscription_proxy_set	= true;
+						
+						if ( subscription_proxy != null ){
+							
+							to_redo = new ArrayList<SubscriptionViewInternal>( pending );
+						}
+						
+						pending.clear();
+					}
+					
+					if ( to_redo != null ){
+						
+						for ( SubscriptionViewInternal view: to_redo ){
+							
+							try{
+								view.updateBrowserProxy( subscription_proxy );
+								
+							}catch( Throwable e ){
+								
+							}
+						}
+					}
+				}
+			}
+		}.start();
+	}
+	
+	private static AEProxyFactory.PluginHTTPProxy
+	getSubscriptionProxy(
+			SubscriptionViewInternal		inst )
+	{
+		synchronized( pending ){
+			
+			if ( subscription_proxy_set ){
+				
+				return( subscription_proxy );
+				
+			}else{
+				
+				pending.add( inst );
+				
+				return( null );
+			}
+		}
+	}
 	private Subscription	subs;
 	
 	private Composite		parent_composite;
@@ -223,8 +301,31 @@ SubscriptionViewInternal
 				subs.setUserData( SubscriptionManagerUI.SUB_EDIT_MODE_KEY, null );
 			}
 							
-			mainBrowser.setUrl(url);
 			mainBrowser.setData("StartURL", url);
+			
+			AEProxyFactory.PluginHTTPProxy proxy = getSubscriptionProxy( this );
+			
+			if ( proxy != null ){
+				
+				try{
+					URL _url = new URL( url );
+										
+					Proxy p = proxy.getProxy();
+						
+					InetSocketAddress pa = (InetSocketAddress)p.address();
+						
+					_url = UrlUtils.setHost( _url, pa.getAddress().getHostAddress());
+					_url = UrlUtils.setPort( _url, pa.getPort());
+						
+					url = _url.toExternalForm();
+					
+					mainBrowser.setData("StartURL", url);
+					
+				}catch( Throwable e ){
+				}
+			}
+			
+			mainBrowser.setUrl(url);
 			
 			FormData data = new FormData();
 			data.left = new FormAttachment(0,0);
@@ -437,6 +538,43 @@ SubscriptionViewInternal
 			}
 		});
 			
+	}
+	
+	private void
+	updateBrowserProxy(
+		final AEProxyFactory.PluginHTTPProxy	proxy )
+	{			
+		Utils.execSWTThread(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					if ( mainBrowser != null && !mainBrowser.isDisposed() && mainBrowser.isVisible()){
+					
+						String url = (String)mainBrowser.getData( "StartURL" );
+
+						try{
+							URL _url = new URL( url );
+												
+							Proxy p = proxy.getProxy();
+								
+							InetSocketAddress pa = (InetSocketAddress)p.address();
+								
+							_url = UrlUtils.setHost( _url, pa.getAddress().getHostAddress());
+							_url = UrlUtils.setPort( _url, pa.getPort());
+								
+							url = _url.toExternalForm();
+							
+							mainBrowser.setData("StartURL", url);
+							
+							mainBrowser.setUrl( url );
+							
+						}catch( Throwable e ){
+						}
+					}
+				}
+			});
 	}
 	
 	public void
