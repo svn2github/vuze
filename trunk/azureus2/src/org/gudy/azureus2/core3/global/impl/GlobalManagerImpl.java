@@ -1263,7 +1263,7 @@ public class GlobalManagerImpl
 	  
   	canDownloadManagerBeRemoved( manager, remove_torrent, remove_data );
   	
-  	manager.stopIt(DownloadManager.STATE_STOPPED, remove_torrent, remove_data);
+  	manager.stopIt(DownloadManager.STATE_STOPPED, remove_torrent, remove_data, true );
   	
     try{
     	managers_mon.enter();

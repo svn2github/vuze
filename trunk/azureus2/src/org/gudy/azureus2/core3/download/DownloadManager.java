@@ -158,6 +158,22 @@ DownloadManager
         int     stateAfterStopping,
         boolean remove_torrent,
         boolean remove_data );
+    
+    /**
+     * As above but definitely indicates that the stop is for removal (if for_removal is true) and therefore that any removal specific actions
+     * such as removing partial files should be performed
+     *  
+     * @param stateAfterStopping
+     * @param remove_torrent
+     * @param remove_data
+     * @param for_removal
+     */
+    public void
+    stopIt(
+        int     stateAfterStopping,
+        boolean remove_torrent,
+        boolean remove_data,
+        boolean	for_removal );
 
     public boolean
     pause();

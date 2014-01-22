@@ -1853,9 +1853,19 @@ DownloadManagerImpl
   	
 	public void 
 	stopIt(
-			int state_after_stopping, 
-			boolean remove_torrent,
-			boolean remove_data) 
+		int 		state_after_stopping, 
+		boolean 	remove_torrent,
+		boolean 	remove_data) 
+	{
+		stopIt( state_after_stopping, remove_torrent, remove_data, false );
+	}
+	
+	public void 
+	stopIt(
+		int 		state_after_stopping, 
+		boolean 	remove_torrent,
+		boolean		remove_data,
+		boolean		for_removal )
 	{
 		try {
 			boolean closing = state_after_stopping == DownloadManager.STATE_CLOSED;
@@ -1870,7 +1880,7 @@ DownloadManagerImpl
 						DownloadManagerState.AT_TIME_STOPPED, SystemTime.getCurrentTime());
 			}
 
-			controller.stopIt(state_after_stopping, remove_torrent, remove_data);
+			controller.stopIt(state_after_stopping, remove_torrent, remove_data,for_removal );
 
 		} finally {
 

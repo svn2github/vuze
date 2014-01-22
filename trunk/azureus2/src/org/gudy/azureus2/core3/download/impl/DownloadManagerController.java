@@ -328,7 +328,7 @@ DownloadManagerController
 	  				// in my life... Tidy things up so we don't sit here in a READ state that can't
 	  				// be started.
 	  			
-	  			stopIt( DownloadManager.STATE_STOPPED, false, false );
+	  			stopIt( DownloadManager.STATE_STOPPED, false, false, false );
 	  			
 	  			return;
 	  		}
@@ -905,7 +905,8 @@ DownloadManagerController
 	stopIt(
 		int 				_stateAfterStopping, 
 		final boolean 		remove_torrent, 
-		final boolean 		remove_data )
+		final boolean 		remove_data,
+		final boolean		for_removal )
 	{	  
 		long	current_up = stats.getDataSendRate();
 		
@@ -939,7 +940,7 @@ DownloadManagerController
 					
 				}else{
 					
-					if ( COConfigurationManager.getBooleanParameter( "Delete Partial Files On Library Removal") ){
+					if ( for_removal && COConfigurationManager.getBooleanParameter( "Delete Partial Files On Library Removal") ){
 						
 						download_manager.deletePartialDataFiles();
 					}
@@ -1060,10 +1061,17 @@ DownloadManagerController
 				   force_start = false;
          
 				   if( remove_data ){
-				   
-				   		download_manager.deleteDataFiles();
+
+					   download_manager.deleteDataFiles();
+
+				   }else{
+
+					   if ( for_removal && COConfigurationManager.getBooleanParameter( "Delete Partial Files On Library Removal") ){
+
+						   download_manager.deletePartialDataFiles();
+					   }
 				   }
-				   
+
 				   if( remove_torrent ){
 				   	
 					   download_manager.deleteTorrentFile();
@@ -1317,7 +1325,7 @@ DownloadManagerController
 	{
 		boolean	was_force_start = isForceStart();
 			    
-		stopIt( DownloadManager.STATE_STOPPED, false, false );
+		stopIt( DownloadManager.STATE_STOPPED, false, false, false );
 	    
 		if (forceRecheck) {
 			download_manager.getDownloadState().clearResumeData();
@@ -1743,7 +1751,7 @@ DownloadManagerController
 			errorDetail = reason;
 		}
   	
-		stopIt( DownloadManager.STATE_ERROR, false, false );
+		stopIt( DownloadManager.STATE_ERROR, false, false, false );
 	}
 
 	
