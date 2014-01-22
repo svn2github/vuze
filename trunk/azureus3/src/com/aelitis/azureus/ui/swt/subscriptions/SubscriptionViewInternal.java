@@ -53,13 +53,29 @@ public class
 SubscriptionViewInternal
 	implements SubscriptionsViewBase, OpenCloseSearchDetailsListener, UIPluginViewToolBarListener
 {
+	private static boolean							subscription_proxy_init_done;
 	private static AEProxyFactory.PluginHTTPProxy	subscription_proxy;
 	private static boolean							subscription_proxy_set;
 	private static AESemaphore						subscription_proxy_sem = new AESemaphore( "sps" );
 
 	private static List<SubscriptionViewInternal>	pending = new ArrayList<SubscriptionViewInternal>();
 	
-	static{
+	private static void
+	initProxy()
+	{
+			// can't make this a static initializer as class is loaded whenever we have a subscription
+			// in the sidebar, regardless of focus
+		
+		synchronized( SubscriptionViewInternal.class ){
+			
+			if ( subscription_proxy_init_done ){
+				
+				return;
+			}
+			
+			subscription_proxy_init_done = true;
+		}
+		
 		new AEThread2( "ST_test" )
 		{
 			public void
@@ -131,6 +147,8 @@ SubscriptionViewInternal
 	getSubscriptionProxy(
 		SubscriptionViewInternal		view )
 	{
+		initProxy();
+		
 		subscription_proxy_sem.reserve( 2500 );
 		
 		synchronized( pending ){
@@ -153,6 +171,7 @@ SubscriptionViewInternal
 			}
 		}
 	}
+	
 	private Subscription	subs;
 	
 	private Composite		parent_composite;
