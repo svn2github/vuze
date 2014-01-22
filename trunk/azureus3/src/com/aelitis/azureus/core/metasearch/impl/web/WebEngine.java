@@ -774,6 +774,13 @@ WebEngine
 					
 				}else{
 					
+					if ( proxy == null ){
+						
+						initial_url_rd.setProperty( "URL_Connect_Timeout", 10*1000 );
+						
+						initial_url_rd.setProperty( "URL_Read_Timeout", 10*1000 ); 
+					}
+					
 					mr_rd = rdf.getMetaRefreshDownloader( initial_url_rd );
 	
 					try{
