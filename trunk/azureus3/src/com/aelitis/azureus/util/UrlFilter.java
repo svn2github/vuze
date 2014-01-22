@@ -171,7 +171,7 @@ public class UrlFilter
 	}
 	
 	public boolean urlCanRPC(String url) {
-		return urlCanRPC(url, Constants.isCVSVersion());
+		return urlCanRPC(url, false );//Constants.isCVSVersion());
 	}
 
 	public boolean urlCanRPC(String url,boolean showDebug) {
