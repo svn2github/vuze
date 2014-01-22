@@ -69,11 +69,18 @@ SubscriptionViewInternal
 					String test_url = ConstantsVuze.getDefaultContentNetwork().getSubscriptionURL( "derp" );
 
 					try{
-						Boolean looks_ok = AEProxyFactory.testPluginHTTPProxy(new URL( test_url ), true );
+						URL url = new URL( test_url );
+						
+						url = UrlUtils.setProtocol( url, "https" );
+						
+						url = UrlUtils.setPort( url, 443 );
+
+						
+						Boolean looks_ok = AEProxyFactory.testPluginHTTPProxy( url, true );
 						
 						if ( looks_ok != null && !looks_ok ){
 							
-							subscription_proxy = AEProxyFactory.getPluginHTTPProxy( "subscriptions", new URL( test_url ), true );
+							subscription_proxy = AEProxyFactory.getPluginHTTPProxy( "subscriptions", url, true );
 							
 							if ( subscription_proxy != null ){
 								

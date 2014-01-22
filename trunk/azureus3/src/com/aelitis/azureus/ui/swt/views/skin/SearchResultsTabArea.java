@@ -98,11 +98,17 @@ public class SearchResultsTabArea
 					}
 					
 					try{
-						Boolean looks_ok = AEProxyFactory.testPluginHTTPProxy(new URL( test_url ), true );
+						URL url = new URL( test_url );
+						
+						url = UrlUtils.setProtocol( url, "https" );
+						
+						url = UrlUtils.setPort( url, 443 );
+						
+						Boolean looks_ok = AEProxyFactory.testPluginHTTPProxy( url, true );
 						
 						if ( looks_ok != null && !looks_ok ){
 							
-							search_proxy = AEProxyFactory.getPluginHTTPProxy( "search", new URL( test_url ), true );
+							search_proxy = AEProxyFactory.getPluginHTTPProxy( "search", url, true );
 							
 							if ( search_proxy != null ){
 								
