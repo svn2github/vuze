@@ -908,6 +908,10 @@ public class ImageLoader
 		return 100;
 	}
 
+	/**
+	 * Get an {@link Image} from an url.  URL will be the key, which you 
+	 * can use later to {@link #releaseImage(String)}
+	 */
 	public Image getUrlImage(final String url, final ImageDownloaderListener l) {
 		if (!Utils.isThisThreadSWT()) {
 			Debug.out("getUrlImage called on non-SWT thread");
