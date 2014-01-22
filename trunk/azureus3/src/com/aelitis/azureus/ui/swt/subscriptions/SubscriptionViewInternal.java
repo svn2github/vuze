@@ -55,7 +55,8 @@ SubscriptionViewInternal
 {
 	private static AEProxyFactory.PluginHTTPProxy	subscription_proxy;
 	private static boolean							subscription_proxy_set;
-	
+	private static AESemaphore						subscription_proxy_sem = new AESemaphore( "sps" );
+
 	private static List<SubscriptionViewInternal>	pending = new ArrayList<SubscriptionViewInternal>();
 	
 	static{
@@ -73,6 +74,11 @@ SubscriptionViewInternal
 						if ( looks_ok != null && !looks_ok ){
 							
 							subscription_proxy = AEProxyFactory.getPluginHTTPProxy( "subscriptions", new URL( test_url ), true );
+							
+							if ( subscription_proxy != null ){
+								
+								UrlFilter.getInstance().addUrlWhitelist( "https?://" + ((InetSocketAddress)subscription_proxy.getProxy().address()).getAddress().getHostAddress() + ":?[0-9]*/.*" );
+							}
 						}
 					}catch( Throwable e ){
 					}
@@ -83,18 +89,23 @@ SubscriptionViewInternal
 					synchronized( pending ){
 						
 						subscription_proxy_set	= true;
-						
-						if ( subscription_proxy != null ){
-							
-							to_redo = new ArrayList<SubscriptionViewInternal>( pending );
-						}
+													
+						to_redo = new ArrayList<SubscriptionViewInternal>( pending );
 						
 						pending.clear();
 					}
 					
-					if ( to_redo != null ){
+					subscription_proxy_sem.releaseForever();
+											
+					for ( SubscriptionViewInternal view: to_redo ){
+							
+						try{
+							view.mainBrowserContext.setAutoReloadPending( false, subscription_proxy == null );
+								
+						}catch( Throwable e ){
+						}
 						
-						for ( SubscriptionViewInternal view: to_redo ){
+						if ( subscription_proxy != null ){
 							
 							try{
 								view.updateBrowserProxy( subscription_proxy );
@@ -111,8 +122,10 @@ SubscriptionViewInternal
 	
 	private static AEProxyFactory.PluginHTTPProxy
 	getSubscriptionProxy(
-			SubscriptionViewInternal		inst )
+		SubscriptionViewInternal		view )
 	{
+		subscription_proxy_sem.reserve( 2500 );
+		
 		synchronized( pending ){
 			
 			if ( subscription_proxy_set ){
@@ -121,7 +134,13 @@ SubscriptionViewInternal
 				
 			}else{
 				
-				pending.add( inst );
+				pending.add( view );
+				
+				try{
+					view.mainBrowserContext.setAutoReloadPending( true, false );
+						
+				}catch( Throwable e ){
+				}
 				
 				return( null );
 			}
@@ -138,6 +157,8 @@ SubscriptionViewInternal
 	//private Composite 		controls;
 	
 	private BrowserWrapper			mainBrowser;
+	private BrowserContext			mainBrowserContext;
+	
 	private BrowserWrapper			detailsBrowser;
 	private SubscriptionMDIEntry 	mdiInfo;
 
@@ -264,10 +285,10 @@ SubscriptionViewInternal
 					((Browser)e.widget).setVisible(false);
 				}
 			});
-			BrowserContext context = 
+			mainBrowserContext = 
 				new BrowserContext("browser-window"	+ Math.random(), mainBrowser, null, true);
 			
-			context.addListener(new BrowserContext.loadingListener(){
+			mainBrowserContext.addListener(new BrowserContext.loadingListener(){
 				public void browserLoadingChanged(boolean loading, String url) {
 					if (mdiInfo.spinnerImage != null) {
 						mdiInfo.spinnerImage.setVisible(loading);
@@ -275,15 +296,16 @@ SubscriptionViewInternal
 				}
 			});
 			
-			context.addMessageListener(new TorrentListener());
-			context.addMessageListener(new VuzeListener());
-			context.addMessageListener(new DisplayListener(mainBrowser));
-			context.addMessageListener(new ConfigListener(mainBrowser));
-			context.addMessageListener(
+			mainBrowserContext.addMessageListener(new TorrentListener());
+			mainBrowserContext.addMessageListener(new VuzeListener());
+			mainBrowserContext.addMessageListener(new DisplayListener(mainBrowser));
+			mainBrowserContext.addMessageListener(new ConfigListener(mainBrowser));
+			mainBrowserContext.addMessageListener(
 					new MetaSearchListener( this ));
 			
 			ContentNetwork contentNetwork = ContentNetworkManagerFactory.getSingleton().getContentNetwork(
-					context.getContentNetworkID());
+					mainBrowserContext.getContentNetworkID());
+			
 			// contentNetwork won't be null because a new browser context
 			// has the default content network
 			

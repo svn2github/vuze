@@ -62,6 +62,8 @@ public class SWTSkinObjectBrowser
 
 	private boolean forceVisibleAfterLoad;
 	
+	private boolean	autoReloadPending = false;
+	
 	private static boolean doneTheUglySWTFocusHack = false;
 
 	/**
@@ -134,6 +136,9 @@ public class SWTSkinObjectBrowser
 		forceVisibleAfterLoad = properties.getBooleanValue(sConfigID + ".forceVisibleAfterLoad", true);
 		context = new BrowserContext(browserID, browser, widgetIndicator, forceVisibleAfterLoad);
 
+		if ( autoReloadPending ){
+			context.setAutoReloadPending( autoReloadPending, false );
+		}
 		boolean noListeners = properties.getBooleanValue(sConfigID + ".browser.nolisteners", false);
 		
 		if (!noListeners) {
@@ -253,6 +258,18 @@ public class SWTSkinObjectBrowser
 		}
 	}
 
+	public void
+	setAutoReloadPending(
+		boolean	is_pending,
+		boolean	aborted )
+	{
+		autoReloadPending = is_pending;
+		BrowserContext bc = context;
+		if ( bc != null ){
+			bc.setAutoReloadPending( is_pending, aborted );
+		}
+	}
+	
 	public boolean isPageLoading() {
 		return context == null ? false : context.isPageLoading();
 	}

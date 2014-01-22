@@ -74,6 +74,7 @@ public class SearchResultsTabArea
 {
 	private static AEProxyFactory.PluginHTTPProxy	search_proxy;
 	private static boolean							search_proxy_set;
+	private static AESemaphore						search_proxy_sem = new AESemaphore( "sps" );
 	
 	private static List<SearchResultsTabArea>	pending = new ArrayList<SearchResultsTabArea>();
 	
@@ -102,6 +103,11 @@ public class SearchResultsTabArea
 						if ( looks_ok != null && !looks_ok ){
 							
 							search_proxy = AEProxyFactory.getPluginHTTPProxy( "search", new URL( test_url ), true );
+							
+							if ( search_proxy != null ){
+								
+								UrlFilter.getInstance().addUrlWhitelist( "https?://" + ((InetSocketAddress)search_proxy.getProxy().address()).getAddress().getHostAddress() + ":?[0-9]*/.*" );
+							}
 						}
 					}catch( Throwable e ){
 					}
@@ -112,29 +118,33 @@ public class SearchResultsTabArea
 					synchronized( pending ){
 						
 						search_proxy_set	= true;
-						
-						if ( search_proxy != null ){
-							
-							to_redo = new ArrayList<SearchResultsTabArea>( pending );
-						}
+														
+						to_redo = new ArrayList<SearchResultsTabArea>( pending );
 						
 						pending.clear();
 					}
-					
-					if ( to_redo != null ){
-						
-						for ( SearchResultsTabArea area: to_redo ){
+				
+					search_proxy_sem.releaseForever();
+
+					for ( SearchResultsTabArea area: to_redo ){
 							
+						try{	
 							try{
+								area.browserSkinObject.setAutoReloadPending( false, search_proxy == null );
+									
+							}catch( Throwable e ){
+							}
+							
+							if ( search_proxy != null ){
+								
 								SearchQuery sq = area.sq;
-								
+									
 								if ( sq != null ){
-								
+									
 									area.anotherSearch( sq );
 								}
-							}catch( Throwable e ){
-								
 							}
+						}catch( Throwable e ){	
 						}
 					}
 				}
@@ -144,8 +154,10 @@ public class SearchResultsTabArea
 	
 	private static AEProxyFactory.PluginHTTPProxy
 	getSearchProxy(
-		SearchResultsTabArea		inst )
+		SearchResultsTabArea		area )
 	{
+		search_proxy_sem.reserve( 2500 );
+		
 		synchronized( pending ){
 			
 			if ( search_proxy_set ){
@@ -154,7 +166,13 @@ public class SearchResultsTabArea
 				
 			}else{
 				
-				pending.add( inst );
+				pending.add( area );
+				
+				try{
+					area.browserSkinObject.setAutoReloadPending( true, false );
+						
+				}catch( Throwable e ){
+				}
 				
 				return( null );
 			}
