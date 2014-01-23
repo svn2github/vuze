@@ -51,6 +51,9 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 
+/**
+ * This is the What's New window
+ */
 public class WelcomeWindow {
 	
   private static final String lineSeparator = System.getProperty ("line.separator");
