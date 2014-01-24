@@ -1237,7 +1237,7 @@ implements PiecePicker
 							
 							synchronized( this ){
 								
-								if ( forced_pieces.size() == 0 ){
+								if ( forced_pieces != null && forced_pieces.size() == 0 ){
 									
 									forced_pieces =  null;
 								}
