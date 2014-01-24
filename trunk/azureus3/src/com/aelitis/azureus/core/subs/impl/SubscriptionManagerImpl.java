@@ -4763,7 +4763,7 @@ SubscriptionManagerImpl
 								}
 								
 								dht_plugin.put(
-									key.getBytes("UTF-8"),
+									getKeyBytes(key),
 									"Subs presence write: " + Base32.encode( subs.getShortID() ) + ":" + subs.getVersion(),
 									put_value,
 									flags,
