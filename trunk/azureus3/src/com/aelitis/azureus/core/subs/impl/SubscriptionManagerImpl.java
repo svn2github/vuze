@@ -3038,7 +3038,7 @@ SubscriptionManagerImpl
 		final boolean[]	cancelled = { false };
 		
 		dht_plugin.get(
-			key.getBytes(),
+			getKeyBytes(key),
 			"Subs assoc read: " + Base32.encode( hash ).substring( 0, 16 ),
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			30,
@@ -3610,7 +3610,7 @@ SubscriptionManagerImpl
 			final String	key = "subscription:publish:" + ByteFormatter.encodeString( sid ) + ":" + version; 
 			
 			dht_plugin.get(
-				key.getBytes(),
+				getKeyBytes(key),
 				"Subs lookup read: " + ByteFormatter.encodeString( sid ) + ":" + version,
 				DHTPlugin.FLAG_SINGLE_VALUE,
 				12,
@@ -4415,7 +4415,7 @@ SubscriptionManagerImpl
 		put_value[3]	= (byte)subs.getFixedRandom();
 		
 		dht_plugin.get(
-			key.getBytes(),
+			getKeyBytes(key),
 			"Subs assoc read: " + Base32.encode( assoc_hash ).substring( 0, 16 ),
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			30,
@@ -4511,7 +4511,7 @@ SubscriptionManagerImpl
 						}
 						
 						dht_plugin.put(
-							key.getBytes(),
+							getKeyBytes(key),
 							"Subs assoc write: " + Base32.encode( assoc.getHash()).substring( 0, 16 ) + " -> " + Base32.encode( subs.getShortID() ) + ":" + subs.getVersion(),
 							put_value,
 							flags,
@@ -4687,7 +4687,7 @@ SubscriptionManagerImpl
 		final String	key = "subscription:publish:" + ByteFormatter.encodeString( sub_id ) + ":" + sub_version; 
 						
 		dht_plugin.get(
-			key.getBytes(),
+			getKeyBytes(key),
 			"Subs presence read: " + ByteFormatter.encodeString( sub_id ) + ":" + sub_version,
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			24,
@@ -4763,7 +4763,7 @@ SubscriptionManagerImpl
 								}
 								
 								dht_plugin.put(
-									key.getBytes(),
+									key.getBytes("UTF-8"),
 									"Subs presence write: " + Base32.encode( subs.getShortID() ) + ":" + subs.getVersion(),
 									put_value,
 									flags,
@@ -4887,7 +4887,7 @@ SubscriptionManagerImpl
 		final String	key = "subscription:publish:" + ByteFormatter.encodeString( sub_id ) + ":" + new_version; 
 						
 		dht_plugin.get(
-			key.getBytes(),
+			getKeyBytes(key),
 			"Subs update read: " + Base32.encode( sub_id ) + ":" + new_version,
 			DHTPlugin.FLAG_SINGLE_VALUE,
 			12,
@@ -6050,6 +6050,20 @@ SubscriptionManagerImpl
 		}
 	}
 	
+	private byte[]
+	getKeyBytes( 
+		String		key )
+	{
+		try{
+			return( key.getBytes( "UTF-8" ));
+			
+		}catch( UnsupportedEncodingException e ){
+			
+			Debug.out( e );
+			
+			return( key.getBytes());
+		}
+	}
 	private AEDiagnosticsLogger
 	getLogger()
 	{
