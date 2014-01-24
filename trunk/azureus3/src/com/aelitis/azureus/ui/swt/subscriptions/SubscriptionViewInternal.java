@@ -188,7 +188,9 @@ SubscriptionViewInternal
 	{
 		initProxy();
 		
-		subscription_proxy_sem.reserve( 2500 );
+		boolean force_proxy = !COConfigurationManager.getStringParameter( "browser.internal.proxy.id", "none" ).equals( "none" );
+
+		subscription_proxy_sem.reserve( force_proxy?60*1000:2500 );
 		
 		synchronized( SubscriptionViewInternal.class ){
 			

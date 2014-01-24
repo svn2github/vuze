@@ -217,7 +217,9 @@ public class SearchResultsTabArea
 	{
 		initProxy();
 		
-		search_proxy_sem.reserve( 2500 );
+		boolean force_proxy = !COConfigurationManager.getStringParameter( "browser.internal.proxy.id", "none" ).equals( "none" );
+
+		search_proxy_sem.reserve( force_proxy?60*1000:2500 );
 		
 		synchronized( SearchResultsTabArea.class ){
 			
