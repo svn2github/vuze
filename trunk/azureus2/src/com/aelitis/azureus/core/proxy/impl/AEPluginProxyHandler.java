@@ -292,6 +292,24 @@ AEPluginProxyHandler
 		return( null );
 	}
 	
+	public static List<PluginInterface>
+	getPluginHTTPProxyProviders(
+		boolean	can_wait )
+	{
+		if ( can_wait ){
+			
+			plugin_init_complete.reserve();
+		}
+		
+		List<PluginInterface> pis = 
+			AzureusCoreFactory.getSingleton().getPluginManager().getPluginsWithMethod(
+				"createHTTPPseudoProxy", 
+				new Class[]{ String.class, URL.class });
+		
+		return( pis );
+	}
+	
+
 	private static class
 	PluginProxyImpl
 		implements PluginProxy

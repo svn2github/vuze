@@ -48,6 +48,7 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 
 public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
@@ -529,6 +530,112 @@ public class ConfigSectionInterfaceDisplay implements UISWTConfigSection {
 			
 			label = new Label(gInternalBrowser, SWT.NULL);
 			Messages.setLanguageText(label, "config.internal.browser.info1");
+
+			label = new Label(gInternalBrowser, SWT.NULL);
+			Messages.setLanguageText(label, "config.internal.browser.info3");
+			
+			java.util.List<PluginInterface> pis = AEProxyFactory.getPluginHTTPProxyProviders( true ); 
+					
+			final java.util.List<String[]> proxy_choices = new ArrayList<String[]>(); 
+
+			proxy_choices.add( 
+					new String[]{ "none",  MessageText.getString( "PeersView.uniquepiece.none" ) });
+
+			for ( PluginInterface pi: pis ){
+				
+				proxy_choices.add( 
+						new String[]{ "plugin:" + pi.getPluginID(),  pi.getPluginName() });
+				
+			}
+			
+			final Composite cIPArea = new Composite(gInternalBrowser, SWT.WRAP);
+			gridData = new GridData( GridData.FILL_HORIZONTAL);
+			cIPArea.setLayoutData(gridData);
+			layout = new GridLayout();
+			layout.numColumns = 2;
+			layout.marginHeight = 0;
+			cIPArea.setLayout(layout);
+			
+			label = new Label(cIPArea, SWT.NULL);
+			Messages.setLanguageText(label, "config.internal.browser.proxy.select");
+
+			final Composite cIP = new Group(cIPArea, SWT.WRAP);
+			gridData = new GridData( GridData.FILL_HORIZONTAL);
+			cIP.setLayoutData(gridData);
+			layout = new GridLayout();
+			layout.numColumns = proxy_choices.size();
+			layout.marginHeight = 0;
+			cIP.setLayout(layout);
+
+			java.util.List<Button> buttons = new ArrayList<Button>();
+			
+			for ( int i=0;i< proxy_choices.size(); i++ ){
+				Button button = new Button ( cIP, SWT.RADIO );
+				button.setText( proxy_choices.get(i)[1] );
+				button.setData("index", String.valueOf(i));
+			
+				buttons.add( button );
+			}
+					
+			String existing = COConfigurationManager.getStringParameter( "browser.internal.proxy.id", proxy_choices.get(0)[0] );
+			
+			int existing_index = -1;
+			
+			for ( int i=0; i<proxy_choices.size();i++){
+				
+				if ( proxy_choices.get(i)[0].equals( existing )){
+					
+					existing_index = i;
+							
+					break;
+				}
+			}
+			
+			if ( existing_index == -1 ){
+				
+				existing_index = 0;
+				
+				COConfigurationManager.setParameter( "browser.internal.proxy.id", proxy_choices.get(0)[0] );
+			}
+			
+			buttons.get(existing_index).setSelection( true );
+			
+						
+		    Listener radioListener = 
+			    	new Listener () 
+			    	{
+			    		public void 
+			    		handleEvent(
+			    			Event event ) 
+			    		{	
+						    Button button = (Button)event.widget;
+
+						    if ( button.getSelection()){
+					    		Control [] children = cIP.getChildren ();
+					    		
+					    		for (int j=0; j<children.length; j++) {
+					    			 Control child = children [j];
+					    			 if ( child != button && child instanceof Button) {
+					    				 Button b = (Button) child;
+					    				
+					    				 b.setSelection (false);
+					    			 }
+					    		}
+								    
+							    int index = Integer.parseInt((String)button.getData("index"));
+						    
+							    COConfigurationManager.setParameter( "browser.internal.proxy.id", proxy_choices.get(index)[0] );
+						    }
+					    }
+			    	};
+			
+			for ( Button b: buttons ){
+				
+				b.addListener( SWT.Selection, radioListener );
+			}			
+			
+				// force firefox
+			
 			label = new Label(gInternalBrowser, SWT.NULL);
 			Messages.setLanguageText(label, "config.internal.browser.info2");
 

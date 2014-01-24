@@ -32,6 +32,8 @@ import org.eclipse.swt.browser.*;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
@@ -72,13 +74,26 @@ public class SearchResultsTabArea
 	extends SkinView
 	implements OpenCloseSearchDetailsListener
 {
+	private static boolean							search_proxy_init_done;
 	private static AEProxyFactory.PluginHTTPProxy	search_proxy;
 	private static boolean							search_proxy_set;
 	private static AESemaphore						search_proxy_sem = new AESemaphore( "sps" );
 	
 	private static List<SearchResultsTabArea>	pending = new ArrayList<SearchResultsTabArea>();
 	
-	static{
+	private static void
+	initProxy()
+	{
+		synchronized( SearchResultsTabArea.class ){
+			
+			if ( search_proxy_init_done ){
+				
+				return;
+			}
+			
+			search_proxy_init_done = true;
+		}
+		
 		new AEThread2( "ST_test" )
 		{
 			public void
@@ -104,10 +119,17 @@ public class SearchResultsTabArea
 						
 						url = UrlUtils.setPort( url, 443 );
 						
-						Boolean looks_ok = AEProxyFactory.testPluginHTTPProxy( url, true );
+						boolean use_proxy = !COConfigurationManager.getStringParameter( "browser.internal.proxy.id", "none" ).equals( "none" );
 						
-						if ( looks_ok != null && !looks_ok ){
-							
+						if ( !use_proxy ){
+						
+							Boolean looks_ok = AEProxyFactory.testPluginHTTPProxy( url, true );
+						
+							use_proxy = looks_ok != null && !looks_ok;
+						}
+						
+						if ( use_proxy ){
+														
 							search_proxy = AEProxyFactory.getPluginHTTPProxy( "search", url, true );
 							
 							if ( search_proxy != null ){
@@ -121,7 +143,7 @@ public class SearchResultsTabArea
 					
 					List<SearchResultsTabArea> to_redo = null;
 					
-					synchronized( pending ){
+					synchronized( SearchResultsTabArea.class ){
 						
 						search_proxy_set	= true;
 														
@@ -158,13 +180,46 @@ public class SearchResultsTabArea
 		}.start();
 	}
 	
+	static{
+		COConfigurationManager.addParameterListener(
+			"browser.internal.proxy.id",
+			new ParameterListener()
+			{	
+				public void 
+				parameterChanged(
+					String parameterName ) 
+				{
+					synchronized( SearchResultsTabArea.class ){
+						
+						if ( !search_proxy_init_done ){
+							
+							return;
+						}
+						
+						search_proxy_init_done = false;
+
+						search_proxy_set	= false;
+						
+						if ( search_proxy != null ){
+							
+							search_proxy.destroy();
+							
+							search_proxy = null;
+						}
+					}
+				}
+			});
+	}
+	
 	private static AEProxyFactory.PluginHTTPProxy
 	getSearchProxy(
 		SearchResultsTabArea		area )
 	{
+		initProxy();
+		
 		search_proxy_sem.reserve( 2500 );
 		
-		synchronized( pending ){
+		synchronized( SearchResultsTabArea.class ){
 			
 			if ( search_proxy_set ){
 				

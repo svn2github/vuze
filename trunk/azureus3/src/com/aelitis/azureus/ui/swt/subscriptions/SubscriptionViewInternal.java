@@ -20,6 +20,8 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
@@ -91,10 +93,16 @@ SubscriptionViewInternal
 						
 						url = UrlUtils.setPort( url, 443 );
 
+						boolean use_proxy = !COConfigurationManager.getStringParameter( "browser.internal.proxy.id", "none" ).equals( "none" );
 						
-						Boolean looks_ok = AEProxyFactory.testPluginHTTPProxy( url, true );
+						if ( !use_proxy ){
 						
-						if ( looks_ok != null && !looks_ok ){
+							Boolean looks_ok = AEProxyFactory.testPluginHTTPProxy( url, true );
+						
+							use_proxy = looks_ok != null && !looks_ok;
+						}
+						
+						if ( use_proxy ){
 							
 							subscription_proxy = AEProxyFactory.getPluginHTTPProxy( "subscriptions", url, true );
 							
@@ -109,7 +117,7 @@ SubscriptionViewInternal
 					
 					List<SubscriptionViewInternal> to_redo = null;
 					
-					synchronized( pending ){
+					synchronized( SubscriptionViewInternal.class ){
 						
 						subscription_proxy_set	= true;
 													
@@ -143,6 +151,37 @@ SubscriptionViewInternal
 		}.start();
 	}
 	
+	static{
+		COConfigurationManager.addParameterListener(
+			"browser.internal.proxy.id",
+			new ParameterListener()
+			{	
+				public void 
+				parameterChanged(
+					String parameterName ) 
+				{
+					synchronized( SubscriptionViewInternal.class ){
+						
+						if ( !subscription_proxy_init_done ){
+							
+							return;
+						}
+						
+						subscription_proxy_init_done = false;
+
+						subscription_proxy_set	= false;
+						
+						if ( subscription_proxy != null ){
+							
+							subscription_proxy.destroy();
+							
+							subscription_proxy = null;
+						}
+					}
+				}
+			});
+	}
+	
 	private static AEProxyFactory.PluginHTTPProxy
 	getSubscriptionProxy(
 		SubscriptionViewInternal		view )
@@ -151,7 +190,7 @@ SubscriptionViewInternal
 		
 		subscription_proxy_sem.reserve( 2500 );
 		
-		synchronized( pending ){
+		synchronized( SubscriptionViewInternal.class ){
 			
 			if ( subscription_proxy_set ){
 				

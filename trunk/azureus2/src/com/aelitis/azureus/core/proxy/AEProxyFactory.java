@@ -24,6 +24,9 @@ package com.aelitis.azureus.core.proxy;
 
 import java.net.Proxy;
 import java.net.URL;
+import java.util.List;
+
+import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.proxy.impl.*;
 
@@ -110,6 +113,13 @@ AEProxyFactory
 		boolean			can_wait )
 	{
 		return( AEPluginProxyHandler.getPluginHTTPProxy( reason, target, can_wait ));
+	}
+	
+	public static List<PluginInterface>
+	getPluginHTTPProxyProviders(
+		boolean	can_wait )
+	{
+		return( AEPluginProxyHandler.getPluginHTTPProxyProviders( can_wait ));
 	}
 	
 	public interface
