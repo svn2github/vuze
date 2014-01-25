@@ -22,6 +22,7 @@
 package com.aelitis.azureus.core.proxy.impl;
 
 import java.lang.ref.WeakReference;
+import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.*;
@@ -29,6 +30,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginAdapter;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
@@ -473,6 +475,32 @@ AEPluginProxyHandler
 		getProxy()
 		{
 			return( proxy );
+		}
+		
+		public String 
+		proxifyURL(
+			String url ) 
+		{
+			try{
+				URL _url = new URL( url );
+								
+				InetSocketAddress pa = (InetSocketAddress)proxy.address();
+					
+				_url = UrlUtils.setHost( _url, pa.getAddress().getHostAddress());
+				_url = UrlUtils.setPort( _url, pa.getPort());
+			
+				url = _url.toExternalForm();	
+				
+				url += ( url.indexOf('?')==-1?"?":"&" ) + "_azpproxy=1";
+				
+				return( url );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( "Failed to proxify URL: " + url, e );
+				
+				return( url );
+			}
 		}
 		
 		public void 

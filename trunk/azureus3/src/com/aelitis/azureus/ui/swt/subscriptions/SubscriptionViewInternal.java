@@ -396,22 +396,9 @@ SubscriptionViewInternal
 			
 			if ( proxy != null ){
 				
-				try{
-					URL _url = new URL( url );
-										
-					Proxy p = proxy.getProxy();
-						
-					InetSocketAddress pa = (InetSocketAddress)p.address();
-						
-					_url = UrlUtils.setHost( _url, pa.getAddress().getHostAddress());
-					_url = UrlUtils.setPort( _url, pa.getPort());
-						
-					url = _url.toExternalForm();
+				url = proxy.proxifyURL( url );
 					
-					mainBrowser.setData("StartURL", url);
-					
-				}catch( Throwable e ){
-				}
+				mainBrowser.setData("StartURL", url);
 			}
 			
 			mainBrowser.setUrl(url);
@@ -643,23 +630,13 @@ SubscriptionViewInternal
 					
 						String url = (String)mainBrowser.getData( "StartURL" );
 
-						try{
-							URL _url = new URL( url );
-												
-							Proxy p = proxy.getProxy();
-								
-							InetSocketAddress pa = (InetSocketAddress)p.address();
-								
-							_url = UrlUtils.setHost( _url, pa.getAddress().getHostAddress());
-							_url = UrlUtils.setPort( _url, pa.getPort());
-								
-							url = _url.toExternalForm();
+						if ( url != null ){
+							
+							url = proxy.proxifyURL(url);
 							
 							mainBrowser.setData("StartURL", url);
 							
 							mainBrowser.setUrl( url );
-							
-						}catch( Throwable e ){
 						}
 					}
 				}

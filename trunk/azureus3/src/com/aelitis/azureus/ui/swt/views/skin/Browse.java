@@ -134,6 +134,7 @@ public class Browse
 
 					browserSkinObject.getContext().setContentNetworkID(contentNetwork.getID());
 
+					browserSkinObject.enablePluginProxy( "VHDN" );
 					
 					browserSkinObject.setStartURL(ContentNetworkUtils.getUrl(contentNetwork,
 							ContentNetwork.SERVICE_BIG_BROWSE));

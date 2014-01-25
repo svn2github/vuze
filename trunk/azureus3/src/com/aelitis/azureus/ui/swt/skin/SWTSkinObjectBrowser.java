@@ -20,18 +20,28 @@
 
 package com.aelitis.azureus.ui.swt.skin;
 
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
-import org.eclipse.swt.browser.Browser;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
-
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AESemaphore;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.ui.swt.Utils;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.ui.selectedcontent.SelectedContentManager;
 import com.aelitis.azureus.ui.swt.browser.BrowserContext;
 import com.aelitis.azureus.ui.swt.browser.BrowserWrapper;
@@ -47,7 +57,152 @@ import com.aelitis.azureus.util.UrlFilter;
 public class SWTSkinObjectBrowser
 	extends SWTSkinObjectBasic
 {
+	private boolean							generic_proxy_init_done;
+	private AEProxyFactory.PluginHTTPProxy	generic_proxy;
+	private boolean							generic_proxy_set;
+	private AESemaphore						generic_proxy_sem = new AESemaphore( "sps" );
+	
+	private void
+	initProxy(
+		final String		target_url,
+		final String		proxy_reason )
+	{
+			// can't make this a static initializer as class is loaded whenever we have a subscription
+			// in the sidebar, regardless of focus
+		
+		synchronized( SWTSkinObjectBrowser.class ){
+			
+			if ( generic_proxy_init_done ){
+				
+				return;
+			}
+			
+			generic_proxy_init_done = true;
+		}
+		
+		new AEThread2( "GB_test" )
+		{
+			public void
+			run()
+			{	
+				try{
+					try{
+						URL url = new URL( target_url );
+						
+						url = UrlUtils.setProtocol( url, "https" );
+						
+						url = UrlUtils.setPort( url, 443 );
 
+						boolean use_proxy = !COConfigurationManager.getStringParameter( "browser.internal.proxy.id", "none" ).equals( "none" );
+						
+						if ( !use_proxy ){
+						
+							Boolean looks_ok = AEProxyFactory.testPluginHTTPProxy( url, true );
+						
+							use_proxy = looks_ok != null && !looks_ok;
+						}
+						
+						if ( use_proxy ){
+							
+							generic_proxy = AEProxyFactory.getPluginHTTPProxy( proxy_reason, url, true );
+							
+							if ( generic_proxy != null ){
+								
+								UrlFilter.getInstance().addUrlWhitelist( "https?://" + ((InetSocketAddress)generic_proxy.getProxy().address()).getAddress().getHostAddress() + ":?[0-9]*/.*" );
+							}
+						}
+					}catch( Throwable e ){
+					}
+				}finally{
+										
+					synchronized( SWTSkinObjectBrowser.class ){
+						
+						generic_proxy_set	= true;
+						
+						generic_proxy_sem.releaseForever();
+
+						if ( isDisposed()){
+							
+							if ( generic_proxy != null ){
+								
+								generic_proxy.destroy();
+								
+								generic_proxy	= null;
+							}
+							
+							return;
+						}
+					}
+					
+											
+					setAutoReloadPending( false, generic_proxy == null );
+														
+					if ( generic_proxy != null ){
+							
+						updateBrowserProxy( generic_proxy );			
+					}
+				}
+			}
+		}.start();
+	}
+	
+	{
+		COConfigurationManager.addParameterListener(
+			"browser.internal.proxy.id",
+			new ParameterListener()
+			{	
+				public void 
+				parameterChanged(
+					String parameterName ) 
+				{
+					synchronized( SWTSkinObjectBrowser.class ){
+						
+						if ( !generic_proxy_init_done ){
+							
+							return;
+						}
+						
+						generic_proxy_init_done = false;
+
+						generic_proxy_set	= false;
+						
+						if ( generic_proxy != null ){
+							
+							generic_proxy.destroy();
+							
+							generic_proxy = null;
+						}
+					}
+				}
+			});
+	}
+	
+	private AEProxyFactory.PluginHTTPProxy
+	getGenericProxy(
+		String						target_url,
+		String						reason )
+	{
+		initProxy( target_url, reason );
+		
+		boolean force_proxy = !COConfigurationManager.getStringParameter( "browser.internal.proxy.id", "none" ).equals( "none" );
+
+		generic_proxy_sem.reserve( force_proxy?60*1000:2500 );
+		
+		synchronized( SWTSkinObjectBrowser.class ){
+			
+			if ( generic_proxy_set ){
+				
+				return( generic_proxy );
+				
+			}else{
+								
+				setAutoReloadPending( true, false );
+				
+				return( null );
+			}
+		}
+	}
+	
 	private BrowserWrapper browser;
 
 	private Composite cParent;
@@ -62,10 +217,16 @@ public class SWTSkinObjectBrowser
 
 	private boolean forceVisibleAfterLoad;
 	
+	private boolean	use_generic_proxy	= false;
+	private String	proxy_reason		= null;
+	
 	private boolean	autoReloadPending = false;
 	
 	private static boolean doneTheUglySWTFocusHack = false;
+	
+	
 
+	
 	/**
 	 * @param skin
 	 * @param properties
@@ -200,7 +361,7 @@ public class SWTSkinObjectBrowser
 						}
 					}
 					if (browser != null) {
-						browser.setUrl(urlToUse);
+						setBrowserURL(urlToUse);
 						if(browser.isVisible()) {
 							browser.setFocus();
 						}
@@ -252,12 +413,68 @@ public class SWTSkinObjectBrowser
 		sStartURL = url;
 		if (null != browser) {
 			if (urlToUse == null) {
-				browser.setUrl(url);
+				setBrowserURL( url );
 			}
 			browser.setData("StartURL", url);
 		}
 	}
 
+	private void
+	setBrowserURL(
+		String		url )
+	{
+		if ( use_generic_proxy ){
+			
+			browser.setData("CurrentURL", url);
+
+			AEProxyFactory.PluginHTTPProxy proxy = getGenericProxy( url, proxy_reason );
+				
+			if ( proxy != null ){
+				
+				url = proxy.proxifyURL( url );
+										
+				browser.setData("StartURL", url);
+			}
+		}
+		
+		browser.setUrl( url );
+	}
+	
+	private void
+	updateBrowserProxy(
+		final AEProxyFactory.PluginHTTPProxy	proxy )
+	{			
+		Utils.execSWTThread(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					if ( browser != null && !browser.isDisposed()){
+					
+						String url = (String)browser.getData( "CurrentURL" );
+							
+						if ( url != null ){
+						
+							url = proxy.proxifyURL( url );;
+						
+							browser.setData("StartURL", url);
+							
+							browser.setUrl( url );
+						}
+					}
+				}
+			});
+	}
+	
+	public void
+	enablePluginProxy(
+		String		reason )
+	{
+		use_generic_proxy 	= true;
+		proxy_reason		= reason;
+	}
+	
 	public void
 	setAutoReloadPending(
 		boolean	is_pending,
@@ -308,4 +525,11 @@ public class SWTSkinObjectBrowser
 		
 	}
 
+	public void dispose() {
+		if ( generic_proxy != null ){
+			generic_proxy.destroy();
+			generic_proxy = null;
+		}
+		super.dispose();
+	}
 }

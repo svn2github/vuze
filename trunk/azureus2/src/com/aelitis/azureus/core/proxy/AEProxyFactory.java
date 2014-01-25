@@ -156,6 +156,10 @@ AEProxyFactory
 		public Proxy
 		getProxy();
 		
+		public String
+		proxifyURL(
+			String		url );
+		
 		public void
 		destroy();
 	}

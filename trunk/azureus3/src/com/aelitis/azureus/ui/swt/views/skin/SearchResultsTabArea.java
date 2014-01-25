@@ -882,20 +882,7 @@ public class SearchResultsTabArea
 			
 		if ( proxy != null ){
 			
-			try{
-				URL _url = new URL( url );
-									
-				Proxy p = proxy.getProxy();
-					
-				InetSocketAddress pa = (InetSocketAddress)p.address();
-					
-				_url = UrlUtils.setHost( _url, pa.getAddress().getHostAddress());
-				_url = UrlUtils.setPort( _url, pa.getPort());
-					
-				url = _url.toExternalForm();
-				
-			}catch( Throwable e ){
-			}
+			url = proxy.proxifyURL( url );
 		}
 		
 		closeSearchResults(null);
