@@ -144,4 +144,11 @@ public interface UIFunctionsUserPrompter
 	 * @since 3.0.0.9
 	 */
 	void setRelatedObject(Object relatedObject);
+
+	/**
+	 * Prevent more than one dialog of instanceID from showing up at once
+	 * 
+	 * @param instanceID
+	 */
+	void setOneInstanceOf(String instanceID);
 }

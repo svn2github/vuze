@@ -883,27 +883,19 @@ public class UIFunctionsImpl
 				timeout = -1;
 			}
 			
-			promptUser(
-				title, 
-				text, 
-				new String[] {
-					MessageText.getString("UpdateWindow.restart"),
-					MessageText.getString("UpdateWindow.restartLater")
-				}, 
-				0, 
-				null, 
-				null, 
-				false, 
-				timeout, 
-				new UserPrompterResultListener() 
-				{
-					public void 
-					prompterClosed(
-						int result ) 
-					{
-						listener.actionComplete( result == 0 );
-					}
-				});
+			MessageBoxShell messageBoxShell = new MessageBoxShell(title, text,
+					new String[] {
+				MessageText.getString("UpdateWindow.restart"),
+				MessageText.getString("UpdateWindow.restartLater")
+			}, 0);
+			messageBoxShell.setAutoCloseInMS(timeout);
+			messageBoxShell.setParent(getMainShell());
+			messageBoxShell.setOneInstanceOf(MSG_PREFIX);
+			messageBoxShell.open( new UserPrompterResultListener() {
+				public void prompterClosed(int result) {
+					listener.actionComplete(result == 0);
+				}
+			});
 		}else{
 			
 			Debug.out( "Unknown action " + action_id );

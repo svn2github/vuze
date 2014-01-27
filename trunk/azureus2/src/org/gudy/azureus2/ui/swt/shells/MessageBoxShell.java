@@ -1,6 +1,6 @@
 package org.gudy.azureus2.ui.swt.shells;
 
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
@@ -91,8 +91,6 @@ public class MessageBoxShell
 
 	private Image iconImage;
 
-	private Browser shell_browser;
-	
 	private boolean	browser_follow_links;
 
 	protected boolean isRemembered;
@@ -116,6 +114,10 @@ public class MessageBoxShell
 	private int cbMinUserMode;
 
 	private boolean cbEnabled;
+
+	private String instanceID;
+	
+	private static Map<String, MessageBoxShell> mapInstances = new HashMap<String, MessageBoxShell>(1);
 	
 	public static void open(Shell parent, String title, String text,
 			String[] buttons, int defaultOption, String rememberID,
@@ -310,6 +312,17 @@ public class MessageBoxShell
 	}
 
 	private void _open() {
+		if (instanceID != null) {
+			if (mapInstances.containsKey(instanceID)) {
+				MessageBoxShell mb = mapInstances.get(instanceID);
+				if (mb.shell != null && !mb.shell.isDisposed()) {
+					mb.shell.open();
+					return;
+				}
+			}
+			mapInstances.put(instanceID, this);
+		}
+		
 		result = -1;
 
 		boolean ourParent = false;
@@ -322,7 +335,6 @@ public class MessageBoxShell
 			}
 		}
 
-		MouseTrackAdapter mouseAdapter = null;
 		final Display display = parent.getDisplay();
 
 		//APPLICATION_MODAL causes some crazy sht to happen on Windows.  
@@ -337,6 +349,8 @@ public class MessageBoxShell
 
 		shell.addListener(SWT.Dispose, new Listener() {
 			public void handleEvent(Event event) {
+				mapInstances.remove(instanceID);
+
 				if (iconImageID != null) {
 					ImageLoader.getInstance().releaseImage(iconImageID);
 				}
@@ -401,7 +415,7 @@ public class MessageBoxShell
 		if ((html != null && html.length() > 0)
 				|| (url != null && url.length() > 0)) {
 			try {
-				final Browser browser = shell_browser = Utils.createSafeBrowser(shell, SWT.NONE);
+				final Browser browser = Utils.createSafeBrowser(shell, SWT.NONE);
 				if (url != null && url.length() > 0) {
 					browser.setUrl(url);
 				} else {
@@ -660,7 +674,7 @@ public class MessageBoxShell
 			for (int i = 0; i < buttons.length; i++) {
 				Button button = new Button(cButtons, SWT.PUSH);
 				swtButtons[i] = button;
-				button.setData(new Integer(i));
+				button.setData(Integer.valueOf(i));
 				button.setText(buttons[i]);
 				button.addListener(SWT.Selection, buttonListener);
 	
@@ -718,10 +732,6 @@ public class MessageBoxShell
 		};
 		display.addFilter(SWT.Traverse, filterListener);
 
-		if (mouseAdapter != null) {
-			addMouseTrackListener(shell, mouseAdapter);
-		}
-
 		shell.pack();
 		Point size = shell.getSize();
 		if (size.x < min_size_x) {
@@ -769,28 +779,6 @@ public class MessageBoxShell
 		tb.setText(text2);
 		
 		return tb;
-	}
-
-	/**
-	 * Adds mousetracklistener to composite and all it's children
-	 * 
-	 * @param parent Composite to start at
-	 * @param listener Listener to add
-	 */
-	private void addMouseTrackListener(Composite parent,
-			MouseTrackListener listener) {
-		if (parent == null || listener == null || parent.isDisposed())
-			return;
-
-		parent.addMouseTrackListener(listener);
-		Control[] children = parent.getChildren();
-		for (int i = 0; i < children.length; i++) {
-			Control control = children[i];
-			if (control instanceof Composite)
-				addMouseTrackListener((Composite) control, listener);
-			else
-				control.addMouseTrackListener(listener);
-		}
 	}
 
 	private Canvas createLinkLabel(final Composite shell, final String text) {
@@ -1128,47 +1116,47 @@ public class MessageBoxShell
 	}
 
 	private static Object[] swtButtonStylesToText(int style) {
-		List buttons = new ArrayList(2);
-		List buttonVal = new ArrayList(2);
+		List<String> buttons = new ArrayList<String>(2);
+		List<Integer> buttonVal = new ArrayList<Integer>(2);
 		int buttonCount = 0;
 		if ((style & SWT.OK) > 0) {
 			buttons.add(MessageText.getString("Button.ok"));
-			buttonVal.add(new Integer(SWT.OK));
+			buttonVal.add(Integer.valueOf(SWT.OK));
 			buttonCount++;
 		}
 		if ((style & SWT.YES) > 0) {
 			buttons.add(MessageText.getString("Button.yes"));
-			buttonVal.add(new Integer(SWT.YES));
+			buttonVal.add(Integer.valueOf(SWT.YES));
 			buttonCount++;
 		}
 		if ((style & SWT.NO) > 0) {
 			buttons.add(MessageText.getString("Button.no"));
-			buttonVal.add(new Integer(SWT.NO));
+			buttonVal.add(Integer.valueOf(SWT.NO));
 			buttonCount++;
 		}
 		if ((style & SWT.CANCEL) > 0) {
 			buttons.add(MessageText.getString("Button.cancel"));
-			buttonVal.add(new Integer(SWT.CANCEL));
+			buttonVal.add(Integer.valueOf(SWT.CANCEL));
 			buttonCount++;
 		}
 		if ((style & SWT.ABORT) > 0) {
 			buttons.add(MessageText.getString("Button.abort"));
-			buttonVal.add(new Integer(SWT.ABORT));
+			buttonVal.add(Integer.valueOf(SWT.ABORT));
 			buttonCount++;
 		}
 		if ((style & SWT.RETRY) > 0) {
 			buttons.add(MessageText.getString("Button.retry"));
-			buttonVal.add(new Integer(SWT.RETRY));
+			buttonVal.add(Integer.valueOf(SWT.RETRY));
 			buttonCount++;
 		}
 		if ((style & SWT.IGNORE) > 0) {
 			buttons.add(MessageText.getString("Button.ignore"));
-			buttonVal.add(new Integer(SWT.IGNORE));
+			buttonVal.add(Integer.valueOf(SWT.IGNORE));
 			buttonCount++;
 		}
 		return new Object[] {
-			(String[]) buttons.toArray(new String[buttonCount]),
-			(Integer[]) buttonVal.toArray(new Integer[buttonCount])
+			buttons.toArray(new String[buttonCount]),
+			buttonVal.toArray(new Integer[buttonCount])
 		};
 	}
 
@@ -1236,4 +1224,7 @@ public class MessageBoxShell
 		});
 	}
 
+	public void setOneInstanceOf(String instanceID) {
+		this.instanceID = instanceID;
+	}
 }

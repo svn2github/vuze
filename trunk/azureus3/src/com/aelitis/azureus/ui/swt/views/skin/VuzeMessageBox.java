@@ -420,4 +420,10 @@ public class VuzeMessageBox
 		String path;
 		String name;
 	}
+
+
+	// @see com.aelitis.azureus.ui.UIFunctionsUserPrompter#setOneInstanceOf(java.lang.String)
+	public void setOneInstanceOf(String instanceID) {
+		// TODO Auto-generated method stub
+	}
 }
