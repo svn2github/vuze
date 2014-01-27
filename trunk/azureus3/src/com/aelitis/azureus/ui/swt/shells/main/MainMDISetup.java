@@ -214,18 +214,8 @@ public class MainMDISetup
 		};
 		mdi.setPreferredOrder(preferredOrder);
 
-		boolean[] disableCollapses = {
-			true,
-			false,
-			false,
-			false,
-			false,
-			false,
-			false
-		};
 		for (int i = 0; i < preferredOrder.length; i++) {
 			String id = preferredOrder[i];
-			final boolean disableCollapse = disableCollapses[i];
 			mdi.registerEntry(id, new MdiEntryCreationListener() {
 				public MdiEntry createMDiEntry(String id) {
 					MdiEntry entry = mdi.createHeader(id, "sidebar." + id, null);
@@ -235,11 +225,7 @@ public class MainMDISetup
 						return( null );
 					}
 					
-					if (disableCollapse) {
-						entry.setCollapseDisabled(true);
-					} else {
-						entry.setDefaultExpanded(true);
-					}
+					entry.setDefaultExpanded(true);
 
 					if (id.equals(MultipleDocumentInterface.SIDEBAR_HEADER_PLUGINS)) {
 						entry.addListener(new MdiChildCloseListener() {
