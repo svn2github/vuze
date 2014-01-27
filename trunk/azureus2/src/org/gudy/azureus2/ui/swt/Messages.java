@@ -25,6 +25,7 @@ import org.eclipse.swt.custom.CLabel;
 import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -40,20 +41,28 @@ import java.util.regex.Pattern;
 public class Messages {
 
   private static final Pattern HIG_ELLIP_EXP = Pattern.compile("([\\.]{3})"); // rec. hig style on some platforms
+	private static Listener hoverListener;
 
+	static {
+		hoverListener = new Listener() {
+			public void handleEvent(Event event) {
+				updateToolTipFromData(event.widget, (event.stateMask & SWT.CONTROL) > 0);
+			}
+		};
+	}
   /**
    * 
    */
   private Messages() {
-
-    // TODO Auto-generated constructor stub
   }
+
   public static void updateLanguageForControl(Widget widget) {
     if (widget == null || widget.isDisposed())
       return;
 
     updateLanguageFromData(widget,null);	// OK, so we loose parameters on language change...
-    updateToolTipFromData(widget);
+  	widget.removeListener(SWT.MouseHover, hoverListener);
+  	widget.addListener(SWT.MouseHover, hoverListener);
 
     if (widget instanceof CTabFolder) {
       CTabFolder folder = (CTabFolder) widget;
@@ -156,50 +165,54 @@ public class Messages {
   	widget.setData(key);
   	if(!setTooltipOnly)
       updateLanguageFromData(widget, params);
-  	updateToolTipFromData(widget);
+  	widget.removeListener(SWT.MouseHover, hoverListener);
+  	widget.addListener(SWT.MouseHover, hoverListener);
   }
   
-  private static void updateToolTipFromData(Widget widget) {
-    if(widget instanceof Control) {
-      String key = (String) widget.getData();
-      if(key != null) {
-        if(!key.endsWith(".tooltip"))
-          key += ".tooltip";
-        String toolTip = MessageText.getString(key);
-        if(!toolTip.equals('!' + key + '!')) {
-          ((Control)widget).setToolTipText(toolTip);
-        }
-      }
-    } else if(widget instanceof ToolItem) {
-      String key = (String) widget.getData();
-      if(key != null) {
-        if(!key.endsWith(".tooltip"))
-          key += ".tooltip";
-        String toolTip = MessageText.getString(key);
-        if(!toolTip.equals('!' + key + '!')) {
-          ((ToolItem) widget).setToolTipText(toolTip.replaceAll("Meta\\+",
-							Constants.isOSX ? "Cmd+" : "Ctrl+"));
-        }
-      }
-    } else if (widget instanceof TableColumn) {
-      String key = (String) widget.getData();
-			if (key != null) {
-				if (!key.endsWith(".info"))
-					key += ".info";
-				String toolTip = MessageText.getString(key, (String) null);
-				if (toolTip == null)
-					toolTip = MessageText.getString(key.substring(0, key.length() - 5),
-							(String) null);
-				if (toolTip != null) {
-					try {
-						((TableColumn) widget).setToolTipText(toolTip);
-					} catch (NoSuchMethodError e) {
-						// Pre SWT 3.2
-					}
+	private static void updateToolTipFromData(Widget widget, boolean showKey) {
+		String key = (String) widget.getData();
+		if (key == null) {
+			return;
+		}
+		if (widget instanceof Control) {
+			if (showKey) {
+				((Control) widget).setToolTipText(key);
+				return;
+			}
+			if (!key.endsWith(".tooltip")) {
+				key += ".tooltip";
+			}
+			String toolTip = MessageText.getString(key);
+			if (!toolTip.equals('!' + key + '!')) {
+				((Control) widget).setToolTipText(toolTip);
+			}
+		} else if (widget instanceof ToolItem) {
+			if (!key.endsWith(".tooltip")) {
+				key += ".tooltip";
+			}
+			String toolTip = MessageText.getString(key);
+			if (!toolTip.equals('!' + key + '!')) {
+				((ToolItem) widget).setToolTipText(toolTip.replaceAll("Meta\\+",
+						Constants.isOSX ? "Cmd+" : "Ctrl+"));
+			}
+		} else if (widget instanceof TableColumn) {
+			if (!key.endsWith(".info")) {
+				key += ".info";
+			}
+			String toolTip = MessageText.getString(key, (String) null);
+			if (toolTip == null) {
+				toolTip = MessageText.getString(key.substring(0, key.length() - 5),
+						(String) null);
+			}
+			if (toolTip != null) {
+				try {
+					((TableColumn) widget).setToolTipText(toolTip);
+				} catch (NoSuchMethodError e) {
+					// Pre SWT 3.2
 				}
 			}
-    }
-  }
+		}
+	}
   
 
   private static void updateLanguageFromData(Widget widget,String[] params) {
