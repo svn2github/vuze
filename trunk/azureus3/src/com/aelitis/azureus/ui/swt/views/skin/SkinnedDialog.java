@@ -131,8 +131,8 @@ public class SkinnedDialog
 		if (idShellMetrics != null) {
 			Utils.linkShellMetricsToConfig(shell, idShellMetrics);
 		} else {
-			Utils.verifyShellRect(shell, true);
 			Utils.centerWindowRelativeTo(shell, mainShell);
+			Utils.verifyShellRect(shell, true);
 		}
 
 		shell.setData( "bringToFront", bringToFront );
