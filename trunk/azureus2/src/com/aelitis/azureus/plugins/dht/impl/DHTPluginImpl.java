@@ -33,7 +33,6 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
-
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -54,7 +53,6 @@ import com.aelitis.azureus.core.dht.DHTFactory;
 import com.aelitis.azureus.core.dht.DHTLogger;
 import com.aelitis.azureus.core.dht.DHTOperationListener;
 import com.aelitis.azureus.core.dht.DHTStorageKeyStats;
-
 import com.aelitis.azureus.core.dht.control.DHTControlStats;
 import com.aelitis.azureus.core.dht.db.DHTDB;
 import com.aelitis.azureus.core.dht.db.DHTDBStats;
@@ -65,7 +63,6 @@ import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFactory;
-
 import com.aelitis.azureus.core.dht.transport.DHTTransportListener;
 import com.aelitis.azureus.core.dht.transport.DHTTransportProgressListener;
 import com.aelitis.azureus.core.dht.transport.DHTTransportStats;
@@ -73,7 +70,7 @@ import com.aelitis.azureus.core.dht.transport.DHTTransportTransferHandler;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.util.DNSUtils;
-
+import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginKeyStats;
@@ -263,16 +260,23 @@ DHTPluginImpl
 			storage_manager.importContacts( dht );
 			
 			plugin_interface.getUtilities().createTimer( "DHTExport", true ).addPeriodicEvent(
-					10*60*1000,
+					2*60*1000,
 					new UTTimerEventPerformer()
 					{
+						private int tick_count = 0;
+						
 						public void
 						perform(
 							UTTimerEvent		event )
 						{
-							checkForReSeed(false);
+							tick_count++;
 							
-							storage_manager.exportContacts( dht );
+							if ( tick_count == 1 || tick_count % 5 == 0 ){
+								
+								checkForReSeed(false);
+								
+								storage_manager.exportContacts( dht );
+							}
 						}
 					});
 
@@ -564,6 +568,24 @@ outer:
 									}
 								}
 							}	
+						}
+					}
+					
+					if ( peers_imported < 16 ){
+						
+						List<InetSocketAddress> list = VersionCheckClient.getSingleton().getDHTBootstrap( network == DHT.NW_MAIN );
+						
+						for ( InetSocketAddress address: list ){
+							
+							if ( importSeed( address ) != null ){
+								
+								peers_imported++;
+															
+								if ( peers_imported > seed_limit ){
+									
+									break;
+								}
+							}
 						}
 					}
 				}

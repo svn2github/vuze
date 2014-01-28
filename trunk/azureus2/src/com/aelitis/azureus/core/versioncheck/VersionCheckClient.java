@@ -50,6 +50,7 @@ import com.aelitis.azureus.core.impl.AzureusCoreImpl;
 import com.aelitis.azureus.core.clientmessageservice.*;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
+import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
@@ -75,6 +76,7 @@ public class VersionCheckClient {
 	public static final String	REASON_RECOMMENDED_PLUGINS		= "rp";
 	public static final String	REASON_SECONDARY_CHECK			= "sc";
 	public static final String	REASON_PLUGIN_UPDATE			= "pu";
+	public static final String	REASON_DHT_BOOTSTRAP			= "db";
 
 
 	private static final String 	AZ_MSG_SERVER_ADDRESS_V4 	= Constants.VERSION_SERVER_V4;
@@ -707,6 +709,46 @@ public class VersionCheckClient {
 		}
 
 		return( res );
+	}
+
+	public List<InetSocketAddress>
+	getDHTBootstrap(
+		boolean 	ipv4 )
+	{
+		List<InetSocketAddress>	result = new ArrayList<InetSocketAddress>();
+
+		try{
+			Map reply = getVersionCheckInfo( REASON_DHT_BOOTSTRAP, ipv4?AT_V4:AT_V6 );
+	
+			List<Map>	l = (List<Map>)reply.get( "dht_boot" );
+	
+			if ( l != null ){
+	
+				for( Map m: l ){
+					
+					byte[]	address = (byte[])m.get("a");
+					int		port	= ((Long)m.get("p")).intValue();
+					
+					if (	ipv4 && address.length == 4 ||
+							!ipv4 && address.length == 16 ){
+						
+						InetAddress iaddress = InetAddress.getByAddress( address );
+						
+						if ( !(	iaddress.isLoopbackAddress() ||
+								iaddress.isLinkLocalAddress() ||
+								iaddress.isSiteLocalAddress())){
+				
+							result.add( new InetSocketAddress( iaddress, port ));
+						}
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
+		
+		return( result );
 	}
 
 	public Map<String,Object>
@@ -1492,9 +1534,17 @@ public class VersionCheckClient {
 			}
 
 			try{
-				NetworkAdminASN current_asn = NetworkAdmin.getSingleton().getCurrentASN();
+				int	port = UDPNetworkManager.getSingleton().getUDPNonDataListeningPortNumber();
+				
+				message.put( "dht", port );
+				
+			}catch( Throwable e ){
 
-				String	as = current_asn.getAS();
+				Debug.out( e );
+			}
+			
+			try{
+				NetworkAdminASN current_asn = NetworkAdmin.getSingleton().getCurrentASN();
 
 				message.put( "ip_as", current_asn.getAS());
 
