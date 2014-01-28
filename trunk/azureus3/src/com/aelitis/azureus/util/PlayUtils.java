@@ -20,10 +20,8 @@ package com.aelitis.azureus.util;
 
 import java.lang.reflect.Method;
 import java.net.URL;
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
-
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -583,6 +581,30 @@ public class PlayUtils
 		}
 		
 		return( isExternallyPlayable( d.getDiskManagerFileInfo()[primary_file_index] ));
+	}
+	
+	public static int[]
+	getExternallyPlayableFileIndexes(
+			Download d,
+			boolean complete_only)
+ {
+		DiskManagerFileInfo[] fileInfos = d.getDiskManagerFileInfo();
+		int count = d.getDiskManagerFileCount();
+		int[] playableIndexes = {};
+		for (int i = 0; i < count; i++) {
+			DiskManagerFileInfo fileInfo = d.getDiskManagerFileInfo(i);
+			if (complete_only && fileInfo.getLength() != fileInfo.getDownloaded()) {
+				continue;
+			}
+			if (isExternallyPlayable(fileInfo)) {
+				int[] newPlayableIndexes = new int[playableIndexes.length + 1];
+				System.arraycopy(playableIndexes, 0, newPlayableIndexes, 0,
+						playableIndexes.length);
+				newPlayableIndexes[playableIndexes.length] = i;
+				playableIndexes = newPlayableIndexes;
+			}
+		}
+		return playableIndexes;
 	}
 	
 	private static boolean

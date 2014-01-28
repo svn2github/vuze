@@ -23,7 +23,15 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.HashMap;
 import java.util.Map;
+
+import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -54,6 +62,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
 import com.aelitis.azureus.ui.swt.player.PlayerInstallWindow;
 import com.aelitis.azureus.ui.swt.player.PlayerInstaller;
+import com.aelitis.azureus.ui.swt.skin.SWTSkin;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectContainer;
 import com.aelitis.azureus.ui.swt.utils.TorrentUIUtilsV3;
 import com.aelitis.azureus.util.DLReferals;
 import com.aelitis.azureus.util.DataSourceUtils;
@@ -200,7 +210,7 @@ public class TorrentListViewsUtils
 	}
 
 	private static void _playOrStream(final DownloadManager dm,
-			final int file_index, boolean complete_only, String referal) {
+			final int file_index, final boolean complete_only, final String referal) {
 
 		if (dm == null) {
 			return;
@@ -214,6 +224,114 @@ public class TorrentListViewsUtils
 		if (torrent == null) {
 			return;
 		}
+		
+		if (file_index == -1) {
+			final int[] playableFileIndexes = PlayUtils.getExternallyPlayableFileIndexes(
+					PluginCoreUtils.wrap(dm), complete_only);
+			if (playableFileIndexes.length == 1) {
+
+				int open_result = openInEMP(dm,file_index,complete_only,referal);
+				
+				if ( open_result == 0 ){
+					PlatformTorrentUtils.setHasBeenOpened(dm, true);
+				}
+			} else if (playableFileIndexes.length > 1) {
+				VuzeMessageBox mb = new VuzeMessageBox(MessageText.getString("ConfigView.option.dm.dblclick.play"), null,
+						new String[] {
+							MessageText.getString("iconBar.play"),
+							MessageText.getString("Button.cancel")
+						}, 0);
+				final Map<Integer, Integer> mapPositionToFileInfo = new HashMap<Integer, Integer>();
+				final int[] selectedIndex = {
+					-1
+				};
+
+				mb.setSubTitle(MessageText.getString("play.select.content"));
+				mb.setListener(new VuzeMessageBoxListener() {
+
+					public void shellReady(Shell shell, SWTSkinObjectContainer soExtra) {
+						SWTSkin skin = soExtra.getSkin();
+
+						Composite composite = soExtra.getComposite();
+						final Table table = new Table(composite, SWT.V_SCROLL
+								| SWT.H_SCROLL | SWT.FULL_SELECTION | SWT.SINGLE);
+						table.setBackground(composite.getBackground());
+						table.addSelectionListener(new SelectionListener() {
+
+							public void widgetSelected(SelectionEvent e) {
+								selectedIndex[0] = table.getSelectionIndex();
+							}
+
+							public void widgetDefaultSelected(SelectionEvent e) {
+							}
+						});
+						FormData formData = Utils.getFilledFormData();
+						formData.bottom.offset = -20;
+						table.setLayoutData(formData);
+						table.setHeaderVisible(false);
+						table.addListener(SWT.MeasureItem, new Listener() {
+							public void handleEvent(Event event) {
+								int w = table.getClientArea().width - 5;
+								if (w == 0) {
+									return;
+								}
+								if (event.width < w) {
+									event.width = w;
+								}
+							}
+						});
+						
+						String prefix = dm.getSaveLocation().toString();
+						int i = 0;
+						DiskManagerFileInfo[] fileInfos = dm.getDiskManagerFileInfoSet().getFiles();
+						for (int fileIndex : playableFileIndexes) {
+							if (fileIndex < 0 || fileIndex >= fileInfos.length) {
+								continue;
+							}
+							File f = fileInfos[fileIndex].getFile(true);
+							String path = f.getParent();
+							if (path.startsWith(prefix)) {
+								path = path.length() > prefix.length() ? path.substring(prefix.length() + 1) : "";
+							}
+							String s = f.getName();
+							if (path.length() > 0) {
+								s += " in " + path;
+							}
+							TableItem item = new TableItem(table, SWT.NONE);
+							item.setText(s);
+							mapPositionToFileInfo.put(i++, fileIndex);
+						}
+
+						Image alphaImage = Utils.createAlphaImage(table.getDisplay(), 1, 25, (byte) 255);
+						TableItem item = table.getItem(0);
+						item.setImage(alphaImage);
+						item.setImage((Image) null);
+						alphaImage.dispose();
+						
+
+						table.setSelection(0);
+					}
+				});
+				mb.open(new UserPrompterResultListener() {
+					public void prompterClosed(int result) {
+						if (result != 0 || selectedIndex[0] < 0) {
+							return;
+						}
+						Integer file_index = mapPositionToFileInfo.get(selectedIndex[0]);
+
+						if (file_index != null) {
+  						int open_result = openInEMP(dm,file_index,complete_only,referal);
+  						
+  						if ( open_result == 0 ){
+  							PlatformTorrentUtils.setHasBeenOpened(dm, true);
+  						}
+						}
+					}
+				});
+			}
+			return;
+		}
+		
 		if (PlayUtils.canUseEMP(torrent, file_index,complete_only)) {
 			debug("Can use EMP");
 
