@@ -14,7 +14,6 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
@@ -23,6 +22,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance.UISWTViewEventListenerWrapper;
@@ -40,6 +40,8 @@ import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
  */
 public class TableViewSWT_TabsCommon
 {
+	private static final Object	NULL_DS = new Object();
+	
 	TableViewSWT<?> tv;
 	
 		/** TabViews */
@@ -56,7 +58,6 @@ public class TableViewSWT_TabsCommon
 	private boolean minimized;
 	private UISWTViewCore selectedView;
 
-
 	public TableViewSWT_TabsCommon(TableViewSWT<?> tv) {
 		this.tv = tv;
 	}
@@ -70,8 +71,7 @@ public class TableViewSWT_TabsCommon
 			for (int i = 0; i < tabViews.size(); i++) {
 				UISWTViewCore view = tabViews.get(i);
 				if (view != null) {
-					view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
-							tv.getParentDataSource());
+					dataSourceChanged( view, tv.getParentDataSource());
 				}
 			}
 			return;
@@ -86,18 +86,15 @@ public class TableViewSWT_TabsCommon
 			UISWTViewCore view = tabViews.get(i);
 			if (view != null) {
 				if (view.useCoreDataSource()) {
-					view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
-							dataSourcesCore.length == 0 ? tv.getParentDataSource()
-									: dataSourcesCore);
+					dataSourceChanged( view, dataSourcesCore.length == 0 ? tv.getParentDataSource()	: dataSourcesCore);
 				} else {
 					if (dataSourcesPlugin == null) {
 						dataSourcesPlugin = tv.getSelectedDataSources(false);
 					}
 
-					view.triggerEvent(
-							UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
-							dataSourcesPlugin.length == 0 ? PluginCoreUtils.convert(
-									tv.getParentDataSource(), false) : dataSourcesPlugin);
+					dataSourceChanged( 
+						view,
+						dataSourcesPlugin.length == 0 ? PluginCoreUtils.convert( tv.getParentDataSource(), false) : dataSourcesPlugin);
 				}
 			}
 		}
@@ -117,7 +114,8 @@ public class TableViewSWT_TabsCommon
 			UISWTViewCore view = tabViews.get(i);
 			if (view != null) {
 				if (view.useCoreDataSource()) {
-					view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
+					dataSourceChanged( 
+							view,
 							dataSourcesCore.length == 0 ? tv.getParentDataSource()
 									: dataSourcesCore);
 				} else {
@@ -125,8 +123,8 @@ public class TableViewSWT_TabsCommon
 						dataSourcesPlugin = tv.getSelectedDataSources(false);
 					}
 
-					view.triggerEvent(
-							UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
+					dataSourceChanged( 
+							view,
 							dataSourcesPlugin.length == 0 ? PluginCoreUtils.convert(
 									tv.getParentDataSource(), false) : dataSourcesPlugin);
 				}
@@ -136,21 +134,22 @@ public class TableViewSWT_TabsCommon
 	
 	public void triggerTabViewDataSourceChanged(UISWTViewCore view) {
 		if (view != null) {
-			view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, tv.getParentDataSource());
+			dataSourceChanged( view, tv.getParentDataSource());
 
 			if (view.useCoreDataSource()) {
 				Object[] dataSourcesCore = tv.getSelectedDataSources(true);
 				if (dataSourcesCore.length > 0) {
-					view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
-							dataSourcesCore.length == 0 ? tv.getParentDataSource()
+					dataSourceChanged( 
+						view,
+						dataSourcesCore.length == 0 ? tv.getParentDataSource()
 									: dataSourcesCore);
 				}
 			} else {
 				Object[] dataSourcesPlugin = tv.getSelectedDataSources(false);
 				if (dataSourcesPlugin.length > 0) {
-					view.triggerEvent(
-							UISWTViewEvent.TYPE_DATASOURCE_CHANGED,
-							dataSourcesPlugin.length == 0 ? PluginCoreUtils.convert(
+					dataSourceChanged( 
+						view,
+						dataSourcesPlugin.length == 0 ? PluginCoreUtils.convert(
 									tv.getParentDataSource(), false) : dataSourcesPlugin);
 				}
 			}
@@ -202,9 +201,59 @@ public class TableViewSWT_TabsCommon
 		return selectedView;
 	}
 
-	public void refreshSelectedSubView() {
+	private void
+	dataSourceChanged(
+		final UISWTViewCore			view,
+		final Object				ds )
+	{
+		Utils.execSWTThread(
+			new Runnable()
+			{	
+				public void 
+				run() 
+				{
+					Composite comp = view.getComposite();
+					
+					if ( comp != null && comp.isVisible()){
+					
+						view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, ds);
+						
+					}else{
+						
+						view.setUserData( TableViewSWT_TabsCommon.class, ds==null?NULL_DS:ds );
+					}
+				}
+			});
+	}
+	
+	private void
+	checkPendingDataSourceChange(
+		UISWTViewCore		view )
+	{
+		Object ds = view.getUserData( TableViewSWT_TabsCommon.class );
+		
+		if ( ds != null ){
+			
+			if ( ds == NULL_DS ){
+				
+				ds = null;
+			}
+						
+			view.setUserData( TableViewSWT_TabsCommon.class, null );
+			
+			view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, ds);
+		}
+	}
+	
+	public void 
+	refreshSelectedSubView()
+	{
 		UISWTViewCore view = getActiveSubView();
-		if (view != null && view.getComposite().isVisible()) {
+		
+		if ( view != null && view.getComposite().isVisible()){
+			
+			checkPendingDataSourceChange( view );
+			
 			view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
 		}
 	}
@@ -850,6 +899,8 @@ public class TableViewSWT_TabsCommon
 		
 		focused_view = view;
 		
+		checkPendingDataSourceChange( view );
+		
 		view.triggerEvent(UISWTViewEvent.TYPE_FOCUSGAINED, null);
 	}
 	
@@ -872,7 +923,8 @@ public class TableViewSWT_TabsCommon
 	
 	public void swt_refresh() {
 		if (tv.isTabViewsEnabled() && tabFolder != null && !tabFolder.isDisposed()
-				&& !tabFolder.getMinimized()) {
+				&& !tabFolder.getMinimized()){
+			
 			refreshSelectedSubView();
 		}
 	}

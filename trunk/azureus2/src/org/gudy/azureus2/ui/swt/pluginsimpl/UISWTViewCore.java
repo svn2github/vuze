@@ -62,4 +62,13 @@ public interface UISWTViewCore
 	public boolean useCoreDataSource();
 
 	public UISWTViewEventListener getEventListener();
+	
+	public void
+	setUserData(
+		Object		key,
+		Object		data );
+	
+	public Object
+	getUserData(
+		Object		key );
 }

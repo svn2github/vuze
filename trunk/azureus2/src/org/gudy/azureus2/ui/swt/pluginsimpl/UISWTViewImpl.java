@@ -38,7 +38,6 @@ import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Layout;
-
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
@@ -100,6 +99,8 @@ public class UISWTViewImpl
 
 	private UIPluginViewToolBarListener toolbarListener;
 
+	private volatile Map<Object,Object>	user_data;
+	
 	public UISWTViewImpl(String sParentID, String sViewID,
 			UISWTViewEventListener eventListener, Object initialDatasource)
 			throws Exception {
@@ -504,5 +505,53 @@ public class UISWTViewImpl
 	
 	public UIPluginViewToolBarListener getToolBarListener() {
 		return toolbarListener;
+	}
+	
+	public void
+	setUserData(
+		Object		key,
+		Object		data )
+	{
+		synchronized( this ){
+			
+			if ( user_data == null ){
+				
+				if ( data == null ){
+					
+					return;
+				}
+				
+				user_data = new HashMap<Object, Object>();
+			}
+			
+			if ( data == null ){
+				
+				user_data.remove( key );
+				
+				if ( user_data.isEmpty()){
+					
+					user_data = null;
+				}
+			}else{
+					
+				user_data.put( key, data );
+			}
+		}
+	}
+	
+	public Object
+	getUserData(
+		Object		key )
+	{
+		Map<Object,Object> temp = user_data;
+		
+		if ( temp == null ){
+			
+			return( null );
+			
+		}else{
+			
+			return( temp.get( key ));
+		}
 	}
 }
