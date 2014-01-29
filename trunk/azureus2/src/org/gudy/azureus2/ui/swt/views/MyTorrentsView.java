@@ -1058,6 +1058,29 @@ public class MyTorrentsView
 	public void mouseExit(TableRowCore row) {
 	}
 
+	private FrequencyLimitedDispatcher refresh_limiter = new FrequencyLimitedDispatcher(
+			new AERunnable() {
+				public void runSupport() {
+					Utils.getOffOfSWTThread(new AERunnable() {
+						public void runSupport() {
+							updateSelectedContent();
+						}
+					});
+				}
+			}, 250 );
+
+	{
+		refresh_limiter.setSingleThreaded();
+	}
+	
+	private void
+	updateSelectedContentRateLimited()
+	{
+			// we can get a lot of these in succession when lots of rows are selected and we, for example, right-click or stop the torrents etc
+		
+		refresh_limiter.dispatch();
+	}
+	
 	public void updateSelectedContent() {
 		updateSelectedContent( false );
 	}
@@ -1828,7 +1851,7 @@ public class MyTorrentsView
 				public void runSupport() {
 		    	row.refresh(true);
 		    	if (row.isSelected()) {
-		    		updateSelectedContent();
+		    		updateSelectedContentRateLimited();
 		    	}
 				}
     	});
