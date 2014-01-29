@@ -1782,7 +1782,18 @@ DownloadManagerController
 			if (!fileInfo.isSkipped()) {
 				File file = fileInfo.getFile(true);
 				try {
-					if (!file.exists()) {
+					long start = SystemTime.getMonotonousTime();
+					
+					boolean 	exists = file.exists();
+					
+					long elapsed = SystemTime.getMonotonousTime() - start;
+					
+					if ( elapsed >= 500 ){
+						
+						Debug.out( "Accessing '" + file.getAbsolutePath() + "' in '" + getDisplayName() + "' took " + elapsed + "ms - possibly offline" );
+					}
+					
+					if ( !exists ){
 						
 						// For multi-file torrents, complain if the save directory is missing.
 						if (!this.download_manager.getTorrent().isSimpleTorrent()) {
