@@ -216,6 +216,13 @@ public class TableViewSWT_TabsCommon
 					
 					if ( comp != null && comp.isVisible()){
 					
+						Object old_ds = view.getUserData( TableViewSWT_TabsCommon.class );
+						
+						if ( old_ds != null ){
+							
+							view.setUserData( TableViewSWT_TabsCommon.class, null );
+						}
+						
 						view.triggerEvent(UISWTViewEvent.TYPE_DATASOURCE_CHANGED, ds);
 						
 					}else{
