@@ -137,43 +137,51 @@ public class PieceInfoView
 	private void dataSourceChanged(Object newDataSource) {
 		//System.out.println( "dsc: dlm=" + dlm + ", new=" + (newDataSource instanceof Object[]?((Object[])newDataSource)[0]:newDataSource));
 		if ( newDataSource == null ){
-			if (dlm != null) {
-				dlm.removePieceListener(this);
+			synchronized( this ){
+				if (dlm != null) {
+					dlm.removePieceListener(this);
+				}
+				dlm = null;
 			}
-			dlm = null;
 		}else if (newDataSource instanceof DownloadManager) {
 			oldBlockInfo = null;
-			if (dlm != null) {
-				dlm.removePieceListener(this);
+			synchronized( this ){
+				if (dlm != null) {
+					dlm.removePieceListener(this);
+				}
+				dlm = (DownloadManager)newDataSource;
+				dlm.addPieceListener(this, false);
 			}
-			dlm = (DownloadManager)newDataSource;
-			dlm.addPieceListener(this, false);
 			fillPieceInfoSection();
 		}else if (newDataSource instanceof Object[]) {
 			Object[] objects = (Object[]) newDataSource;
 			if (objects.length > 0 && (objects[0] instanceof PEPiece)) {
-  			PEPiece piece = (PEPiece) objects[0];
-  			DiskManager diskManager = piece.getDMPiece().getManager();
-  			if (diskManager instanceof DiskManagerImpl) {
-  				DiskManagerImpl dmi = (DiskManagerImpl) diskManager;
-  				if (dlm != null) {
-  					dlm.removePieceListener(this);
-  				}
-  				dlm = dmi.getDownloadManager();
-  				dlm.addPieceListener(this, false);
-  				fillPieceInfoSection();
-  			}
+				PEPiece piece = (PEPiece) objects[0];
+				DiskManager diskManager = piece.getDMPiece().getManager();
+				if (diskManager instanceof DiskManagerImpl) {
+					DiskManagerImpl dmi = (DiskManagerImpl) diskManager;
+					synchronized( this ){
+						if (dlm != null) {
+							dlm.removePieceListener(this);
+						}
+						dlm = dmi.getDownloadManager();
+						dlm.addPieceListener(this, false);
+					}
+					fillPieceInfoSection();
+				}
 			} else 	if (objects.length > 0 && (objects[0] instanceof DownloadManager)) {
 				oldBlockInfo = null;
-				if (dlm != null) {
-					dlm.removePieceListener(this);
+				synchronized( this ){
+					if (dlm != null) {
+						dlm.removePieceListener(this);
+					}
+					dlm = (DownloadManager)objects[0];
+					dlm.addPieceListener(this, false);
 				}
-				dlm = (DownloadManager)objects[0];
-				dlm.addPieceListener(this, false);
 				fillPieceInfoSection();
 			}
 		}
-}
+	}
 
 	private String getFullTitle() {
 		return MessageText.getString("PeersView.BlockView.title");
@@ -861,8 +869,12 @@ public class PieceInfoView
 			font = null;
 		}
 		
-		if(dlm != null)
-			dlm.removePieceListener(this);
+		synchronized( this ){
+			if ( dlm != null){
+				dlm.removePieceListener(this);
+				dlm = null;
+			}
+		}
 	}
 
 	private Image obfusticatedImage(Image image) {
