@@ -139,11 +139,20 @@ public class ConfigSectionFileTorrents implements UISWTConfigSection {
 
     gridData = new GridData();
     gridData.horizontalSpan = 2;
-    new BooleanParameter(
+    BooleanParameter add_stopped = new BooleanParameter(
     		cTorrent, 
 			"Default Start Torrents Stopped",
-    		"ConfigView.label.defaultstarttorrentsstopped").setLayoutData(gridData);
+    		"ConfigView.label.defaultstarttorrentsstopped");
+    add_stopped.setLayoutData(gridData);
 
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    BooleanParameter stop_and_pause = new BooleanParameter(
+    		cTorrent, 
+			"Default Start Torrents Stopped Auto Pause",
+    		"ConfigView.label.defaultstarttorrentsstoppedandpause");
+    
+    stop_and_pause.setLayoutData(gridData);
 
     // Watch Folder
     BooleanParameter watchFolder = new BooleanParameter(cTorrent, "Watch Torrent Folder",

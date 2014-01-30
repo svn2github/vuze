@@ -493,6 +493,7 @@ public class ConfigurationDefaults {
     def.put( "diskmanager.friendly.hashchecking", FALSE );
     def.put( "diskmanager.hashchecking.smallestfirst", TRUE );    
     def.put( "Default Start Torrents Stopped", FALSE);
+    def.put( "Default Start Torrents Stopped Auto Pause", FALSE );
     def.put( "Server Enable UDP", TRUE); // this actually means the UDP tracker client
     def.put( "Tracker UDP Probe Enable", TRUE );
     def.put( "Tracker Client Enable TCP", TRUE );

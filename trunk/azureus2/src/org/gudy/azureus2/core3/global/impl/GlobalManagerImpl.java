@@ -840,6 +840,24 @@ public class GlobalManagerImpl
 
 			if (manager == null || manager != new_manager) {
 				deleteDest = true;
+			}else{
+					// new torrent, see if it is add-stopped and we want to auto-pause
+				
+				if ( initialState == DownloadManager.STATE_STOPPED ){
+					
+					if ( COConfigurationManager.getBooleanParameter( "Default Start Torrents Stopped Auto Pause" )){
+						
+			         	try {
+			          		paused_list_mon.enter();
+			            
+			          		paused_list.add( new Object[]{ manager.getTorrent().getHashWrapper(), false });
+			          		
+				    	}finally{
+				    		
+				    		paused_list_mon.exit();  
+				    	}
+					}
+				}
 			}
 		} catch (IOException e) {
 			System.out.println("DownloadManager::addDownloadManager: fails - td = "
