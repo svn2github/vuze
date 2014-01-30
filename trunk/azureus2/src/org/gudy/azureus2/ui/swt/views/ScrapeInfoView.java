@@ -147,7 +147,7 @@ public class ScrapeInfoView
 			}
 		});
 
-		TOTorrent torrent = manager.getTorrent();
+		TOTorrent torrent = manager==null?null:manager.getTorrent();
 				
 		itemEdit.setEnabled( torrent != null && !TorrentUtils.isReallyPrivate( torrent ));
 		
