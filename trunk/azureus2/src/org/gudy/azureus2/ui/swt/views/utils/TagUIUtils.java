@@ -192,7 +192,6 @@ public class TagUIUtils
 						
 						for ( Object obj: menu_structure ){
 
-						
 							List<Tag>	bucket_tags = new ArrayList<Tag>();
 							
 							org.gudy.azureus2.plugins.ui.menus.MenuItem parent_menu;
@@ -207,16 +206,47 @@ public class TagUIUtils
 								
 								Object[]	entry = (Object[])obj;
 								
-								parent_menu = menuManager.addMenuItem (menu, "!" + (String)entry[0] + "!" );
-								
-								parent_menu.setStyle( org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_MENU );
-
 								List<String>	tag_names = (List<String>)entry[1];
+								
+								boolean	sub_all_visible 	= true;
+								boolean sub_some_visible	= false;
 								
 								for ( String name: tag_names ){
 									
-									bucket_tags.add( menu_name_map.get( name ));
+									Tag tag = menu_name_map.get( name );
+									
+									if ( tag.isVisible()){
+										
+										sub_some_visible = true;
+										
+									}else{
+										
+										sub_all_visible = false;
+									}
+									
+									bucket_tags.add( tag );
 								}
+								
+								String mod;
+								
+								if ( sub_all_visible ){
+									
+									mod = " (*)";
+									
+								}else if ( sub_some_visible ){
+									
+									mod = " (+)";
+									
+								}else{
+									
+									mod = "";
+								}
+								
+								parent_menu = menuManager.addMenuItem (menu, "!" + (String)entry[0] + mod + "!" );
+								
+								parent_menu.setStyle( org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_MENU );
+
+
 							}
 							
 							for ( final Tag tag: bucket_tags ){
@@ -1705,23 +1735,52 @@ public class TagUIUtils
 					}else{
 						
 						Object[]	entry = (Object[])obj;
+												
+						List<String>	tag_names = (List<String>)entry[1];
+						
+						boolean	sub_all_visible 	= true;
+						boolean sub_some_visible	= false;
+						
+						for ( String name: tag_names ){
+							
+							Tag sub_tag = menu_name_map.get( name );
+							
+							if ( sub_tag.isVisible()){
+								
+								sub_some_visible = true;
+								
+							}else{
+								
+								sub_all_visible = false;
+							}
+							
+							bucket_tags.add( sub_tag );
+						}
+						
+						String mod;
+						
+						if ( sub_all_visible ){
+							
+							mod = " (*)";
+							
+						}else if ( sub_some_visible ){
+							
+							mod = " (+)";
+							
+						}else{
+							
+							mod = "";
+						}
 						
 						Menu menu_bucket = new Menu( menuShowHide.getShell(), SWT.DROP_DOWN );
 						
 						MenuItem bucket_item = new MenuItem( menuShowHide, SWT.CASCADE );
 						
-						bucket_item.setText((String)entry[0]);
+						bucket_item.setText((String)entry[0] + mod);
 						
 						bucket_item.setMenu( menu_bucket );		
 						
 						parent_menu = menu_bucket;
-						
-						List<String>	tag_names = (List<String>)entry[1];
-						
-						for ( String name: tag_names ){
-							
-							bucket_tags.add( menu_name_map.get( name ));
-						}
 					}
 				
 					for ( final Tag t: bucket_tags ){
@@ -1741,7 +1800,6 @@ public class TagUIUtils
 			}
 			
 			showhideitem.setEnabled( true );
-			
 		}
 		
 		if ( !auto ){
@@ -2022,7 +2080,7 @@ public class TagUIUtils
 			
 				List<Tag>	bucket_tags = new ArrayList<Tag>();
 				
-				Menu parent_menu;
+				Menu	 parent_menu;
 				
 				if ( obj instanceof String ){
 					
@@ -2034,24 +2092,55 @@ public class TagUIUtils
 					
 					Object[]	entry = (Object[])obj;
 					
+					List<String>	tag_names = (List<String>)entry[1];
+					
+					boolean	sub_all_selected 	= true;
+					boolean sub_some_selected	= false;
+					
+					for ( String name: tag_names ){
+						
+						Tag sub_tag = menu_name_map.get( name );
+												
+						Integer c = manual_map.get( sub_tag );
+					
+						if ( c != null && c == dms.length ){
+							
+							sub_some_selected = true;
+							
+						}else{
+							
+							sub_all_selected = false;
+						}
+						
+						bucket_tags.add( sub_tag );
+					}
+					
+					String mod;
+					
+					if ( sub_all_selected ){
+						
+						mod = " (*)";
+						
+					}else if ( sub_some_selected ){
+						
+						mod = " (+)";
+						
+					}else{
+						
+						mod = "";
+					}
+					
 					Menu menu_bucket = new Menu( menu_tags.getShell(), SWT.DROP_DOWN );
 					
 					MenuItem bucket_item = new MenuItem( menu_tags, SWT.CASCADE );
 					
-					bucket_item.setText((String)entry[0]);
+					bucket_item.setText((String)entry[0] + mod);
 					
 					bucket_item.setMenu( menu_bucket );		
 					
 					parent_menu = menu_bucket;
-					
-					List<String>	tag_names = (List<String>)entry[1];
-					
-					for ( String name: tag_names ){
-						
-						bucket_tags.add( menu_name_map.get( name ));
-					}
 				}
-				
+								
 				for ( final Tag t: bucket_tags ){
 				
 					final MenuItem t_i = new MenuItem( parent_menu, SWT.CHECK );
@@ -2067,7 +2156,7 @@ public class TagUIUtils
 							t_i.setSelection( true );
 							
 							t_i.setText( tag_name );
-							
+														
 						}else{
 							
 							t_i.setText( tag_name + " (" + c + ")" );

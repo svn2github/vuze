@@ -698,7 +698,6 @@ public class SubscriptionMDIEntry implements SubscriptionListener, ViewTitleInfo
 		
 		for ( Object obj: menu_structure ){
 
-		
 			List<Tag>	bucket_tags = new ArrayList<Tag>();
 			
 			MenuItem parent_menu;
@@ -713,16 +712,25 @@ public class SubscriptionMDIEntry implements SubscriptionListener, ViewTitleInfo
 				
 				Object[]	entry = (Object[])obj;
 				
-				parent_menu = menu_manager.addMenuItem (menu, "!" + (String)entry[0] + "!" );
-				
-				parent_menu.setStyle( MenuItem.STYLE_MENU );
-
 				List<String>	tag_names = (List<String>)entry[1];
+				
+				boolean	has_selected = false;
 				
 				for ( String name: tag_names ){
 					
-					bucket_tags.add( menu_name_map.get( name ));
+					Tag tag = menu_name_map.get( name );
+					
+					bucket_tags.add( tag );
+					
+					if ( assigned_tag == tag ){
+						
+						has_selected = true;
+					}
 				}
+				
+				parent_menu = menu_manager.addMenuItem (menu, "!" + (String)entry[0] + (has_selected?" (*)":"") + "!" );
+				
+				parent_menu.setStyle( MenuItem.STYLE_MENU );
 			}
 			
 			for ( final Tag tag: bucket_tags ){

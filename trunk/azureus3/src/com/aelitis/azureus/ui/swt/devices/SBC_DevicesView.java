@@ -1123,7 +1123,7 @@ public class SBC_DevicesView
 				List<Tag>	bucket_tags = new ArrayList<Tag>();
 				
 				Menu parent_menu;
-				
+								
 				if ( obj instanceof String ){
 					
 					parent_menu = menu_tags;
@@ -1133,25 +1133,54 @@ public class SBC_DevicesView
 				}else{
 					
 					Object[]	entry = (Object[])obj;
+										
+					List<String>	tag_names = (List<String>)entry[1];
+					
+					boolean	sub_all_selected 	= true;
+					boolean sub_some_selected	= false;
+					
+					for ( String name: tag_names ){
+						
+						Tag sub_tag = menu_name_map.get( name );
+						
+						if ( shared_tags != null && shared_tags.contains( name )){
+							
+							sub_some_selected = true;
+							
+						}else{
+							
+							sub_all_selected = false;
+						}
+						
+						bucket_tags.add( sub_tag );
+					}
+					
+					String mod;
+					
+					if ( sub_all_selected ){
+						
+						mod = " (*)";
+						
+					}else if ( sub_some_selected ){
+						
+						mod = " (+)";
+						
+					}else{
+						
+						mod = "";
+					}
 					
 					Menu menu_bucket = new Menu( menu_tags.getShell(), SWT.DROP_DOWN );
 					
 					MenuItem bucket_item = new MenuItem( menu_tags, SWT.CASCADE );
 					
-					bucket_item.setText((String)entry[0]);
+					bucket_item.setText((String)entry[0] + mod);
 					
 					bucket_item.setMenu( menu_bucket );		
 					
 					parent_menu = menu_bucket;
-					
-					List<String>	tag_names = (List<String>)entry[1];
-					
-					for ( String name: tag_names ){
-						
-						bucket_tags.add( menu_name_map.get( name ));
-					}
 				}
-				
+								
 				for ( final Tag t: bucket_tags ){
 
 					final MenuItem t_i = new MenuItem( parent_menu, SWT.CHECK );
@@ -1160,7 +1189,9 @@ public class SBC_DevicesView
 					
 					t_i.setText( tag_name );
 					
-					t_i.setSelection( shared_tags != null && shared_tags.contains( tag_name ));
+					boolean selected = shared_tags != null && shared_tags.contains( tag_name );
+										
+					t_i.setSelection( selected );
 					
 					t_i.addListener(SWT.Selection, new Listener() {
 						public void handleEvent(Event event) {
