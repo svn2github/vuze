@@ -295,12 +295,11 @@ public class SBC_LibraryTableView
 			if (dm != null) {
 				UIFunctionsManager.getUIFunctions().openView(UIFunctions.VIEW_DM_DETAILS, dm);
 				return;
-			}else{
-				DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
-				if (file != null) {
-					UIFunctionsManager.getUIFunctions().openView(UIFunctions.VIEW_DM_DETAILS, file.getDownloadManager());
-					return;
-				}
+			}
+			DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
+			if (file != null) {
+				UIFunctionsManager.getUIFunctions().openView(UIFunctions.VIEW_DM_DETAILS, file.getDownloadManager());
+				return;
 			}
 		}else if (mode.equals("2")) {
 			// Show in explorer
@@ -309,13 +308,12 @@ public class SBC_LibraryTableView
 				boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
 				ManagerUtils.open(dm, openMode);
 				return;
-			}else{
-				DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
-				if (file != null) {
-					boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
-					ManagerUtils.open(file, openMode);
-					return;
-				}
+			}
+			DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
+			if (file != null) {
+				boolean openMode = COConfigurationManager.getBooleanParameter("MyTorrentsView.menu.show_parent_folder_enabled");
+				ManagerUtils.open(file, openMode);
+				return;
 			}
 		}else if (mode.equals("3")) {
 			// Launch
@@ -323,12 +321,11 @@ public class SBC_LibraryTableView
 			if (dm != null) {
 				TorrentUtil.runDataSources(new Object[]{ dm });
 				return;
-			}else{
-				DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
-				if (file != null) {
-					TorrentUtil.runDataSources(new Object[]{ file });
-					return;
-				}
+			}
+			DiskManagerFileInfo file = DataSourceUtils.getFileInfo(ds);
+			if (file != null) {
+				TorrentUtil.runDataSources(new Object[]{ file });
+				return;
 			}
 		}
 		
@@ -359,12 +356,10 @@ public class SBC_LibraryTableView
 				torrent = dmFile.getTorrent();
 			}
 		}
-		if (PlatformTorrentUtils.isFeaturedContent(torrent)) {
-			if (file != null && file.getDownloaded() == file.getLength()) {
-				TorrentUtil.runDataSources(new Object[] { file });
-			} else if (dm != null) {
-				TorrentUtil.runDataSources(new Object[] { dm });
-			}
+		if (file != null && file.getDownloaded() == file.getLength()) {
+			TorrentUtil.runDataSources(new Object[] { file });
+		} else if (dm != null) {
+			TorrentUtil.runDataSources(new Object[] { dm });
 		}
 	}
 
