@@ -63,7 +63,6 @@ import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerException;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileManagerFactory;
 import com.aelitis.azureus.core.diskmanager.cache.CacheFileOwner;
 import com.aelitis.azureus.core.diskmanager.file.FMFileManagerFactory;
-import com.aelitis.azureus.core.util.CaseSensitiveFileMap;
 import com.aelitis.azureus.core.util.LinkFileMap;
 
 
@@ -1404,8 +1403,8 @@ DiskManagerImpl
         return remaining;
     }
 
-    public long
-    getRemainingExcludingDND()
+    private void
+    fixupSkippedCalculation()
     {
         if ( skipped_file_set_changed ){
 
@@ -1437,6 +1436,12 @@ DiskManagerImpl
                 }
             }
         }
+    }
+
+    public long
+    getRemainingExcludingDND()
+    {
+    	fixupSkippedCalculation();
 
         long rem = ( remaining - ( skipped_file_set_size - skipped_but_downloaded ));
 
@@ -1447,6 +1452,21 @@ DiskManagerImpl
 
         return( rem );
     }
+    
+	public long getSizeExcludingDND() {
+		fixupSkippedCalculation();
+
+		return totalLength - skipped_file_set_size;
+	}
+
+	public int getPercentDoneExcludingDND() {
+		long sizeExcludingDND = getSizeExcludingDND();
+		if (sizeExcludingDND <= 0) {
+			return 0;
+		}
+		float pct = (sizeExcludingDND - getRemainingExcludingDND()) / (float) sizeExcludingDND;
+		return (int) (1000 * pct);
+	}
 
     public long
     getAllocated()

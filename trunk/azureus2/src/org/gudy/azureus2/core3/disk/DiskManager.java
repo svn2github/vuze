@@ -352,4 +352,8 @@ DiskManager
 		public boolean
 		hasGotThere();
 	}
+
+	public long getSizeExcludingDND();
+
+	public int getPercentDoneExcludingDND();
 }

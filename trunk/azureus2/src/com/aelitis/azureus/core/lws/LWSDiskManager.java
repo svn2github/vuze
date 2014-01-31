@@ -502,6 +502,15 @@ LWSDiskManager
 		return( 100 );
 	}
 	
+	public int getPercentDoneExcludingDND() {
+		// Either this one or getPercentDone is wrong, mebbe
+		return 1000;
+	}
+	
+	public long getSizeExcludingDND() {
+		return getTotalLength();
+	}
+	
 	public String
 	getErrorMessage()
 	{
