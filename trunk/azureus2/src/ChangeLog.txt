@@ -25,6 +25,7 @@ FEATURE: Core | Added a downloading queue rules section to control 'rank downloa
 FEATURE: Core | Added manual piece forcing and re-requesting [Parg]
 FEATURE: Core | New option to remove 'skipped' partial files when removing download from library [Parg]
 FEATURE: Core | DHT can now bootstrap via version server if needed [Parg]
+FEATURE: Core | Added the ability to add new torrents in a paused state [Parg]
 
 CHANGE: UI    | Column setup dialog initial sort order is alphabetic ascending [Parg]
 CHANGE: UI    | Brazilian Portuguese translation update [Havokdan]
