@@ -266,4 +266,10 @@ DownloadManagerStats
 		long		_saved_SecondsDownloading,
 		long		_saved_SecondsOnlySeeding );
 
+	public long getRemainingExcludingDND();
+
+	public long getSizeExcludingDND();
+
+	public int getPercentDoneExcludingDND();
+
 }

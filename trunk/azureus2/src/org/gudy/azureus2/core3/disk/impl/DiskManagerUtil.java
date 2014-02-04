@@ -39,6 +39,8 @@ import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerException;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerStatsImpl;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.logging.LogAlert;
@@ -1291,6 +1293,28 @@ DiskManagerUtil
 		}
 		
 	   download_manager.setData( "file_priorities", file_priorities );
+
+	   if (files.length > 0 && !(files[0] instanceof DiskManagerFileInfoImpl)) {
+       long skipped_file_set_size   = 0;
+       long skipped_but_downloaded  = 0;
+  
+       for (int i=0;i<files.length;i++){
+  
+           DiskManagerFileInfo file = files[i];
+  
+           if ( file.isSkipped()){
+  
+               skipped_file_set_size   += file.getLength();
+               skipped_but_downloaded  += file.getDownloaded();
+           }
+       }
+      
+       DownloadManagerStats stats = download_manager.getStats();
+       if (stats instanceof DownloadManagerStatsImpl) {
+       	((DownloadManagerStatsImpl) stats).setSkippedFileStats(skipped_file_set_size, skipped_but_downloaded);
+       }
+	   }
+
 	}
 	  
 	static void

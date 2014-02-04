@@ -40,7 +40,9 @@ import org.gudy.azureus2.core3.disk.impl.resume.RDResumeHandler;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerException;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.download.impl.DownloadManagerMoveHandler;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerStatsImpl;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.LocaleUtilEncodingException;
@@ -1434,6 +1436,11 @@ DiskManagerImpl
 
                     file_piece_mon.exit();
                 }
+            }
+            
+            DownloadManagerStats stats = download_manager.getStats();
+            if (stats instanceof DownloadManagerStatsImpl) {
+            	((DownloadManagerStatsImpl) stats).setSkippedFileStats(skipped_file_set_size, skipped_but_downloaded);
             }
         }
     }

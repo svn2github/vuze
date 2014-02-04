@@ -30,6 +30,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.*;
 import org.gudy.azureus2.core3.peer.*;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.disk.*;
@@ -83,9 +84,12 @@ DownloadManagerStatsImpl
 	private long saved_peak_receive_rate	= 0;
 	private long saved_peak_send_rate		= 0;
 	
+	private long saved_skipped_file_set_size;
+	private long saved_skipped_but_downloaded;
+
 	private int max_upload_rate_bps = 0;  //0 for unlimited
 	private int max_download_rate_bps = 0;  //0 for unlimited
-  
+
 	private static final int HISTORY_MAX_SECS = 30*60;
 	private volatile boolean history_retention_required;
 	private long[]	history;
@@ -1018,6 +1022,61 @@ DownloadManagerStatsImpl
 		saved_peak_receive_rate		= state.getLongAttribute( DownloadManagerState.AT_PEAK_RECEIVE_RATE );
 		saved_peak_send_rate		= state.getLongAttribute( DownloadManagerState.AT_PEAK_SEND_RATE );
 	}	
+	
+	public void
+	setSkippedFileStats(
+			long skipped_file_set_size,
+			long skipped_but_downloaded
+			)
+	{
+		this.saved_skipped_file_set_size = skipped_file_set_size;
+		this.saved_skipped_but_downloaded = skipped_but_downloaded;
+	}
+	
+  public long
+  getRemainingExcludingDND()
+  {
+	  DiskManager	dm = download_manager.getDiskManager();
+
+	  if (dm != null) {
+	  	return dm.getRemainingExcludingDND();
+	  }
+
+	  long remaining = getRemaining();
+	  long rem = ( remaining - ( saved_skipped_file_set_size - saved_skipped_but_downloaded ));
+
+    if ( rem < 0 ){
+
+        rem = 0;
+    }
+
+    return( rem );
+  }
+
+	public long
+	getSizeExcludingDND()
+	{
+	  DiskManager	dm = download_manager.getDiskManager();
+	  
+	  if (dm != null) {
+	  	return dm.getSizeExcludingDND();
+	  }
+
+  	long totalLength = download_manager.getSize();
+  	return totalLength - saved_skipped_file_set_size;
+	}
+
+	public int 
+	getPercentDoneExcludingDND()
+	{
+		long sizeExcludingDND = getSizeExcludingDND();
+		if (sizeExcludingDND <= 0) {
+			return 0;
+		}
+		float pct = (sizeExcludingDND - getRemainingExcludingDND()) / (float) sizeExcludingDND;
+		return (int) (1000 * pct);
+	}
+
 	
 	protected void 
 	generateEvidence(
