@@ -22,6 +22,8 @@
 package com.aelitis.azureus.core.content;
 
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.download.Download;
 
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
@@ -45,6 +47,8 @@ RelatedContent
 	private byte[]		ws_keys;
 	
 	private String[]	tags;
+	
+	private long changed_locally_on;
 	
 	public
 	RelatedContent(
@@ -71,6 +75,7 @@ RelatedContent
 		date				= _date;
 		seeds_leechers		= _seeds_leechers;
 		content_network		= _cnet;
+		setChangedLocallyOn(0);
 	}
 	
 	public
@@ -111,6 +116,7 @@ RelatedContent
 		date				= _date;
 		seeds_leechers		= _seeds_leechers;
 		content_network		= _cnet;
+		setChangedLocallyOn(0);
 	}
 	
 	protected void
@@ -118,6 +124,9 @@ RelatedContent
 		byte[]		h )
 	{
 		related_to_hash = h;
+		// Intentionally not called, since setRelatedToHash gets called after
+		// constructing all the RelatedContent objects
+		// setChangedLocallyOn(0);
 	}
 	
 	public byte[]
@@ -186,6 +195,7 @@ RelatedContent
 		String[]	_tags )
 	{
 		tags	= _tags;
+		setChangedLocallyOn(0);
 	}
 	
 	public long
@@ -211,6 +221,7 @@ RelatedContent
 		int		_date )
 	{
 		date = _date;
+		setChangedLocallyOn(0);
 	}
 	
 	public int
@@ -246,6 +257,7 @@ RelatedContent
 		int		_sl )
 	{
 		seeds_leechers = _sl;
+		setChangedLocallyOn(0);
 	}
 	
 	public long
@@ -259,6 +271,23 @@ RelatedContent
 		long		cnet )
 	{
 		content_network = (byte)cnet;
+		setChangedLocallyOn(0);
+	}
+	
+	public long
+	getChangedLocallyOn()
+	{
+		return changed_locally_on;
+	}
+	
+	/**
+	 * 
+	 * @param _changed_locally_on  0 == current time
+	 */
+	public void
+	setChangedLocallyOn(long _changed_locally_on)
+	{
+		changed_locally_on = (_changed_locally_on == 0) ? SystemTime.getCurrentTime() : _changed_locally_on;
 	}
 	
 	public abstract void

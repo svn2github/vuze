@@ -5876,6 +5876,8 @@ outer:
 				ImportExportUtils.exportInt( info_map, "e", info.getLevel());
 			}
 			
+			ImportExportUtils.exportLong(info_map, "cl", info.getChangedLocallyOn());
+			
 			return( info_map );
 			
 		}catch( Throwable e ){
@@ -5903,6 +5905,7 @@ outer:
 			byte	cnet 			=  (byte)ImportExportUtils.importInt( info_map, "c", (int)ContentNetwork.CONTENT_NETWORK_UNKNOWN );
 			byte[]	tracker_keys	= (byte[])info_map.get( "k");
 			byte[]	ws_keys			= (byte[])info_map.get( "w" );
+			long lastChangedLocally = ImportExportUtils.importLong( info_map, "cl" );
 			
 			if ( tracker_keys != null && tracker_keys.length % 4 != 0 ){
 				
@@ -5920,7 +5923,9 @@ outer:
 			
 			if ( cc == null ){
 			
-				return( new DownloadInfo( hash, hash, title, rand, tracker, tracker_keys, ws_keys, tags, 0, false, size, date, seeds_leechers, cnet ));
+				 DownloadInfo info = new DownloadInfo( hash, hash, title, rand, tracker, tracker_keys, ws_keys, tags, 0, false, size, date, seeds_leechers, cnet );
+				 info.setChangedLocallyOn(lastChangedLocally);
+				 return info;
 				
 			}else{
 				
@@ -5932,7 +5937,9 @@ outer:
 				
 				int	level = ImportExportUtils.importInt( info_map, "e" );
 				
-				return( new DownloadInfo( hash, title, rand, tracker, tracker_keys, ws_keys, tags, unread, rand_list, last_seen, level, size, date, seeds_leechers, cnet, cc ));
+				DownloadInfo info = new DownloadInfo( hash, title, rand, tracker, tracker_keys, ws_keys, tags, unread, rand_list, last_seen, level, size, date, seeds_leechers, cnet, cc );
+        info.setChangedLocallyOn(lastChangedLocally);
+        return info;
 			}
 		}catch( Throwable e ){
 			
@@ -6264,7 +6271,10 @@ outer:
 					}
 				}
 			}
-			
+
+			if (result) {
+				setChangedLocallyOn(0);
+			}
 			return( result );
 		}
 		
@@ -6320,6 +6330,7 @@ outer:
 			}
 			
 			rand_list = new int[]{ rand };
+			setChangedLocallyOn(0);
 		}
 		
 		public int
@@ -6365,6 +6376,7 @@ outer:
 					decrementUnread();
 				}
 				
+				setChangedLocallyOn(0);
 				contentChanged( this );
 			}
 		}
@@ -6398,6 +6410,7 @@ outer:
 		public void 
 		delete() 
 		{
+			setChangedLocallyOn(0);
 			RelatedContentManager.this.delete( new RelatedContent[]{ this });
 		}
 		
