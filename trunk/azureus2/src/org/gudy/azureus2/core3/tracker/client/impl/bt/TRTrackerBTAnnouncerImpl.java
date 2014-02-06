@@ -2239,15 +2239,6 @@ TRTrackerBTAnnouncerImpl
 			Debug.printStackTrace(e);
 		}
 	}
-  
-	public void
-	setAnnounceSets(
-		TOTorrentAnnounceURLSet[]		_set,
-		String[]						_peer_networks )
-	{
-		announce_urls 	= _set;
-		peer_networks	= _peer_networks;
-	}
 	
 	public TOTorrentAnnounceURLSet[]
 	getAnnounceSets()

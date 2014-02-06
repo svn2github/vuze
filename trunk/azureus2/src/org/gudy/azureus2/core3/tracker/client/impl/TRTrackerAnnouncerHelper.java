@@ -30,12 +30,7 @@ TRTrackerAnnouncerHelper
 {
 	public TOTorrentAnnounceURLSet[]
 	getAnnounceSets();
-	
-	public void
-	setAnnounceSets(
-		TOTorrentAnnounceURLSet[]		sets,
-		String[]						networks );
-	
+		
 	public boolean
 	isUpdating();
 	

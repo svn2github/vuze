@@ -296,9 +296,7 @@ TRTrackerAnnouncerMuxer
 					}
 				}
 			}
-					
-				// reuse existing announcers
-			
+								
 				// first remove dht ones from the equation
 			
 			TRTrackerAnnouncerHelper 	existing_dht_announcer 	= null;
@@ -351,35 +349,6 @@ TRTrackerAnnouncerMuxer
 			}else if ( new_dht_set != null ){
 				
 				TRTrackerAnnouncerHelper a = create( torrent, networks, new_dht_set );
-				
-				new_announcers.add( a );
-			}
-
-				// now do the non-dht ones
-			
-			ns_it = new_sets.iterator();
-
-			while( ns_it.hasNext() && existing_announcers.size() > 0 ){
-				
-				TRTrackerAnnouncerHelper a = existing_announcers.remove(0);
-				
-				TOTorrentAnnounceURLSet[] s = ns_it.next();
-				
-				ns_it.remove();
-				
-				if ( 	activated.contains( a ) &&
-						torrent.getPrivate() && 
-						a instanceof TRTrackerBTAnnouncerImpl ){
-					
-					URL url = a.getTrackerURL();
-				
-					if ( url != null ){
-						
-						forceStop((TRTrackerBTAnnouncerImpl)a, networks, url );
-					}
-				}
-				
-				a.setAnnounceSets( s, networks );
 				
 				new_announcers.add( a );
 			}
