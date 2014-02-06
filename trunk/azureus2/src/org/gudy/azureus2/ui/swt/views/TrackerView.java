@@ -408,7 +408,7 @@ public class TrackerView
 		
 		tv.addDataSources( tps.toArray( (new TrackerPeerSource[tps.size()])));
 		
-		tv.processDataSourceQueue();
+		tv.processDataSourceQueueSync();
 	}
 	
 	public boolean eventOccurred(UISWTViewEvent event) {
