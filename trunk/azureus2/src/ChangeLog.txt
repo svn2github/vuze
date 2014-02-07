@@ -1,7 +1,7 @@
 VUZE CHANGELOG
 -----------------
 
-2014.xx.yy | Vuze 5.2.0.1
+2014.02.07 | Vuze 5.3.0.0
 
 FEATURE: UI   | Content selection dialog when more than one file can be played [TuxPaper] 
 FEATURE: UI   | Added a configurable 'share ratio progress' column to display times at which certain ratios were met [Parg]
@@ -62,6 +62,7 @@ BUGFIX: Core  | ensure that bind-fails are treated as permanent errors if force-
 BUGFIX: Core  | Fixed 100% cpu caused by corrupted hashset [Parg]
 BUGFIX: Core  | Added asyncronization to selector creation to work around some AV products blocking Vuze during startup [Parg]
 BUGFIX: Core  | Fix tracker announcer issue when editting tracker URLs [Parg]
+
 
 
 2013.11.27 | Vuze 5.2.0.0
