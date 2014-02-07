@@ -50,6 +50,7 @@ BUGFIX: Plug  | I2P plugin updated to work with latest I2P releases [Parg]
 BUGFIX: Plug  | Fix XML-over-HTTP plugin when using Java 7 [amc]
 BUGFIX: Plug  | MLab plugin now uses JSON based server selection [Parg]
 BUGFIX: Plug  | Fixed azcron to accept up/download speed limits > 100K/sec [Parg]
+BUGFIX: Plug  | Fixed Twitter plugin [Parg]
 BUGFIX: Core  | Fixed up test for writability to folders on Windows when ascertaining validity of default save locations [Parg]
 BUGFIX: Core  | Prevent subscription lookups from blocking DHT threads [Parg]
 BUGFIX: Core  | Fixed parsing of RSS feeds containing bad DTD refs [Parg]
@@ -60,6 +61,7 @@ BUGFIX: Core  | Prevent open-torrent-options dialog from using low-noise downloa
 BUGFIX: Core  | ensure that bind-fails are treated as permanent errors if force-set (fixes unwanted non-VPN connections during VPN connection failure) [Parg]
 BUGFIX: Core  | Fixed 100% cpu caused by corrupted hashset [Parg]
 BUGFIX: Core  | Added asyncronization to selector creation to work around some AV products blocking Vuze during startup [Parg]
+BUGFIX: Core  | Fix tracker announcer issue when editting tracker URLs [Parg]
 
 
 2013.11.27 | Vuze 5.2.0.0
