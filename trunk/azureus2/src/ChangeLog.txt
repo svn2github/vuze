@@ -1,6 +1,9 @@
 VUZE CHANGELOG
 -----------------
 
+2014.xx.yy | Vuze 5.3.0.1
+
+
 2014.02.07 | Vuze 5.3.0.0
 
 FEATURE: UI   | Content selection dialog when more than one file can be played [TuxPaper] 
