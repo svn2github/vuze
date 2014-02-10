@@ -291,18 +291,50 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
     gridData.horizontalSpan = 3;
     bAutoOpen.setLayoutData(gridData);
     
+    final Button bforce = new Button(panel,SWT.CHECK);
+    Messages.setLanguageText(bforce,"wizard.maketorrents.force");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    bforce.setLayoutData(gridData);
+
+    final Button bSuperSeed = new Button(panel,SWT.CHECK);
+    Messages.setLanguageText(bSuperSeed,"wizard.maketorrents.superseed");
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 3;
+    bSuperSeed.setLayoutData(gridData);
+
+    
     final Button bAutoHost = new Button(panel,SWT.CHECK);
     Messages.setLanguageText(bAutoHost,"wizard.maketorrents.autohost");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     bAutoHost.setLayoutData(gridData);
+    
+    bforce.setEnabled( false );
+    bSuperSeed.setEnabled( false );
     bAutoHost.setEnabled( false );
     
     bAutoOpen.addListener(SWT.Selection,new Listener() {
         public void handleEvent(Event event) {
           wizard.autoOpen = bAutoOpen.getSelection();
           
-          bAutoHost.setEnabled( wizard.autoOpen && wizard.getTrackerType() != NewTorrentWizard.TT_EXTERNAL );
+          boolean enable = wizard.autoOpen && wizard.getTrackerType() != NewTorrentWizard.TT_EXTERNAL;
+          
+          bforce.setEnabled( enable );
+          bSuperSeed.setEnabled( enable );
+          bAutoHost.setEnabled( enable );
+        }
+      });
+    
+    bforce.addListener(SWT.Selection,new Listener() {
+        public void handleEvent(Event event) {
+          wizard.forceStart = bforce.getSelection();
+        }
+      });
+    
+    bSuperSeed.addListener(SWT.Selection,new Listener() {
+        public void handleEvent(Event event) {
+          wizard.superseed = bSuperSeed.getSelection();
         }
       });
     

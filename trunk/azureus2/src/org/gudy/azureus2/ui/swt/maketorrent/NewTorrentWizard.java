@@ -99,6 +99,8 @@ NewTorrentWizard
   
   boolean autoOpen 			= false;
   boolean autoHost 			= false;
+  boolean forceStart		= false;
+  boolean superseed			= false;
   boolean permitDHT			= true;
   boolean privateTorrent	= false;
   

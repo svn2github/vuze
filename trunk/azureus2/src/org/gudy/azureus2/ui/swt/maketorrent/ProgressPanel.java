@@ -33,13 +33,13 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.core3.tracker.host.TRHostException;
 import org.gudy.azureus2.core3.util.*;
@@ -298,7 +298,7 @@ public class ProgressPanel extends AbstractWizardPanel<NewTorrentWizard> impleme
 	  	CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
 						new AzureusCoreRunningListener() {
 							public void azureusCoreRunning(AzureusCore core) {
-								boolean default_start_stopped = COConfigurationManager.getBooleanParameter("Default Start Torrents Stopped");
+								boolean start_stopped = COConfigurationManager.getBooleanParameter("Default Start Torrents Stopped");
 
 								byte[] hash = null;
 								try {
@@ -306,16 +306,22 @@ public class ProgressPanel extends AbstractWizardPanel<NewTorrentWizard> impleme
 								} catch (TOTorrentException e1) {
 								}
 
-								DownloadManager dm = core.getGlobalManager().addDownloadManager(
+								if ( wizard.forceStart || wizard.superseed ){
+									
+										// superseeding can only be set for an active download...
+									
+									start_stopped = false;
+								}
+								final DownloadManager dm = core.getGlobalManager().addDownloadManager(
 										torrent_file.toString(),
 										hash,
 										save_dir.toString(),
-										default_start_stopped ? DownloadManager.STATE_STOPPED
+										start_stopped ? DownloadManager.STATE_STOPPED
 												: DownloadManager.STATE_QUEUED, true, // persistent 
 										true, // for seeding
 										null); // no adapter required
 
-								if (!default_start_stopped && dm != null) {
+								if (!start_stopped && dm != null) {
 									// We want this to move to seeding ASAP, so move it to the top
 									// of the download list, where it will do the quick check and
 									// move to the seeding list
@@ -335,6 +341,69 @@ public class ProgressPanel extends AbstractWizardPanel<NewTorrentWizard> impleme
 									} catch (TRHostException e) {
 										Logger.log(new LogAlert(LogAlert.REPEATABLE,
 												"Host operation fails", e));
+									}
+								}
+								
+								if ( dm != null ){
+									
+									if ( wizard.forceStart ){
+										
+										dm.setForceStart( true );
+									}
+									
+									if ( wizard.superseed ){
+										
+										new AEThread2( "startwait" )
+										{
+											public void
+											run()
+											{
+												long	start = SystemTime.getMonotonousTime();
+												
+												while( true ){
+												
+													if ( dm.isDestroyed()){
+														
+														break;
+													}
+													
+													long elapsed = SystemTime.getMonotonousTime() - start;
+													
+													if ( elapsed > 60*1000 ){
+														
+														int state = dm.getState();
+														
+														if ( 	state == DownloadManager.STATE_ERROR || 
+																state ==DownloadManager.STATE_STOPPED ){
+															
+															break;
+														}
+													}
+													
+													if ( elapsed > 5*60*1000 ){
+														
+														break;
+													}
+													
+													PEPeerManager pm = dm.getPeerManager();
+													
+													if ( pm != null ){
+														
+														pm.setSuperSeedMode( true );
+														
+														break;
+													}
+													
+													try{
+														Thread.sleep(1000);
+														
+													}catch( Throwable e ){
+														
+														break;
+													}
+												}
+											}
+										}.start();
 									}
 								}
 
