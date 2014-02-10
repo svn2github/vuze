@@ -39,7 +39,7 @@ ConcurrentHashMapWrapper<S,T>
 	private final S	S_NULL = (S)NULL;
 	private final T	T_NULL = (T)NULL;
 	
-	private ConcurrentHashMap<S,T>	map;
+	private final ConcurrentHashMap<S,T>	map;
 	
 	public 
 	ConcurrentHashMapWrapper(
@@ -65,11 +65,11 @@ ConcurrentHashMapWrapper<S,T>
 	
 	public 
 	ConcurrentHashMapWrapper(
-		Map<S,T>	map )
+		Map<S,T>	init_map )
 	{
-		map = new ConcurrentHashMap<S,T>( map.size());
+		map = new ConcurrentHashMap<S,T>( init_map.size());
 		
-		putAll( map );
+		putAll( init_map );
 	}
 	
 	public void
