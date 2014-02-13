@@ -109,6 +109,9 @@ public class TorrentOpenOptions
 
 	private List<List<String>>	updatedTrackers;
 	
+	private int max_up;
+	private int max_down;
+	
 		// add stuff here -> update the clone constructor
 	
 	/**
@@ -160,6 +163,8 @@ public class TorrentOpenOptions
 				updatedTrackers.add( new ArrayList<String>( l ));
 			}
 		}
+		this.max_up 	= toBeCloned.max_up;
+		this.max_down 	= toBeCloned.max_down;	
 	}
 
 	public static int getDefaultStartMode() {
@@ -349,6 +354,32 @@ public class TorrentOpenOptions
 		List<List<String>>	trackers )
 	{
 		updatedTrackers = trackers;
+	}
+	
+	public void
+	setMaxUploadSpeed(
+		int		kbs )
+	{
+		max_up	= kbs;
+	}
+	
+	public int
+	getMaxUploadSpeed()
+	{
+		return( max_up );
+	}
+	
+	public void
+	setMaxDownloadSpeed(
+		int		kbs )
+	{
+		max_down	= kbs;
+	}
+	
+	public int
+	getMaxDownloadSpeed()
+	{
+		return( max_down );
 	}
 	
 	public TorrentOpenFileOptions[] getFiles() {

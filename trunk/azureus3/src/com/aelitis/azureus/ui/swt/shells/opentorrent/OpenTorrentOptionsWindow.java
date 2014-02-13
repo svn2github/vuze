@@ -50,6 +50,9 @@ import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.config.IntParameter;
+import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
+import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -1523,6 +1526,11 @@ public class OpenTorrentOptionsWindow
 					setupTrackers((SWTSkinObjectContainer) so);
 				}
 				
+				so = skin.getSkinObject("updownlimit");
+				if (so instanceof SWTSkinObjectContainer) {
+					setupUpDownLimitOption((SWTSkinObjectContainer) so);
+				}
+			
 				so = skin.getSkinObject("ipfilter");
 				if (so instanceof SWTSkinObjectContainer) {
 					setupIPFilterOption((SWTSkinObjectContainer) so);
@@ -2943,10 +2951,60 @@ public class OpenTorrentOptionsWindow
 				}});
 		}
 		
+		private void setupUpDownLimitOption(SWTSkinObjectContainer so) {
+			Composite parent = so.getComposite();
+	
+			parent.setBackgroundMode( SWT.INHERIT_FORCE );	// win 7 classic theme shows grey background without this
+			parent.setLayout( new GridLayout(4, false));
+			
+			GridData gridData = new GridData();
+			Label label = new Label(parent, SWT.NULL);
+			label.setText( MessageText.getString( "TableColumn.header.maxupspeed") + "[" + DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB  ) + "]" );
+
+			gridData = new GridData();
+			GenericIntParameter paramMaxUploadSpeed = 
+				new GenericIntParameter(
+					new IntAdapter()
+					{
+						public void
+						setIntValue(
+							String	key,
+							int		value )
+						{
+							torrentOptions.setMaxUploadSpeed( value );
+						}
+					},
+					parent,
+					"torrentoptions.config.uploadspeed", 0, -1);
+			
+			paramMaxUploadSpeed.setLayoutData(gridData);
+
+			label = new Label(parent, SWT.NULL);
+			label.setText( MessageText.getString( "TableColumn.header.maxdownspeed") + "[" + DisplayFormatters.getRateUnit(DisplayFormatters.UNIT_KB  ) + "]" );
+
+			gridData = new GridData();
+			GenericIntParameter paramMaxDownloadSpeed = 
+				new GenericIntParameter(
+					new IntAdapter()
+					{
+						public void
+						setIntValue(
+							String	key,
+							int		value )
+						{
+							torrentOptions.setMaxDownloadSpeed( value );
+						}
+					},
+					parent,
+					"torrentoptions.config.downloadspeed", 0, -1);
+			
+			paramMaxDownloadSpeed.setLayoutData(gridData);
+		}
+		
 		private void setupIPFilterOption(SWTSkinObjectContainer so) {
 			Composite parent = so.getComposite();
 	
-			parent.setBackgroundMode( SWT.INHERIT_FORCE );	// win 7 classic theme sows grey background without this
+			parent.setBackgroundMode( SWT.INHERIT_FORCE );	// win 7 classic theme shows grey background without this
 			parent.setLayout( new GridLayout());
 			
 			Button button = new Button(parent, SWT.CHECK | SWT.WRAP );
@@ -2966,7 +3024,7 @@ public class OpenTorrentOptionsWindow
 	
 		private void setupPeerSourcesOptions(SWTSkinObjectContainer so) {
 			Composite parent = so.getComposite();
-			parent.setBackgroundMode( SWT.INHERIT_FORCE );	// win 7 classic theme sows grey background without this
+			parent.setBackgroundMode( SWT.INHERIT_FORCE );	// win 7 classic theme shows grey background without this
 
 			Group peer_sources_group = new Group(parent, SWT.NULL);
 			Messages.setLanguageText(peer_sources_group,
@@ -3425,5 +3483,33 @@ public class OpenTorrentOptionsWindow
 		public void
 		instanceChanged(
 			OpenTorrentInstance		instance );
+	}
+	
+	private class
+	IntAdapter
+		extends GenericParameterAdapter
+	{
+		public int
+		getIntValue(
+			String	key )
+		{
+			return( 0 );
+		}
+		
+		public int
+		getIntValue(
+			String	key,
+			int		def )
+		{
+			return( def );
+		}
+		
+		
+		public boolean
+		resetIntDefault(
+			String	key )
+		{
+			return( false );
+		}	
 	}
 }

@@ -516,6 +516,18 @@ public class TorrentOpener {
 							file_info_set.setPriority( priorities );
 						}
 						
+						int	maxUp = torrentOptions.getMaxUploadSpeed();
+						
+						if ( maxUp > 0 ){
+							dm.getStats().setUploadRateLimitBytesPerSecond( maxUp*1024 );
+						}
+						
+						int	maxDown = torrentOptions.getMaxDownloadSpeed();
+						
+						if ( maxDown > 0 ){
+							dm.getStats().setDownloadRateLimitBytesPerSecond( maxDown*1024 );
+						}
+						
 						if (torrentOptions.disableIPFilter) {
 
 							dm.getDownloadState().setFlag(
