@@ -22,6 +22,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.*;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.regex.Pattern;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
@@ -50,7 +51,6 @@ import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.ui.swt.*;
-import org.gudy.azureus2.ui.swt.config.IntParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -72,11 +72,13 @@ import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TagTypeListener;
+import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.common.table.TableRowCore;
 import com.aelitis.azureus.ui.common.table.TableSelectionListener;
+import com.aelitis.azureus.ui.common.table.TableViewFilterCheck;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -1329,6 +1331,7 @@ public class OpenTorrentOptionsWindow
 	
 	protected class
 	OpenTorrentInstance
+		implements TableViewFilterCheck<TorrentOpenFileOptions>
 	{
 		final private HashWrapper						hash;
 		final private TorrentOpenOptions 				torrentOptions;
@@ -1373,7 +1376,7 @@ public class OpenTorrentOptionsWindow
 
 		private SWTSkinObjectText soFileAreaInfo;
 
-		private TableViewSWT<Object> tvFiles;
+		private TableViewSWT<TorrentOpenFileOptions> tvFiles;
 
 		private SWTSkinObjectExpandItem soStartOptionsExpandItem;
 
@@ -1488,7 +1491,7 @@ public class OpenTorrentOptionsWindow
 			if ( torrentOptions != null ){
 				SWTSkinObject so = skin.getSkinObject("filearea-table");
 				if (so instanceof SWTSkinObjectContainer) {
-					setupTVFiles((SWTSkinObjectContainer) so);
+					setupTVFiles((SWTSkinObjectContainer) so, (SWTSkinObjectTextbox)skin.getSkinObject("filearea-filter"));
 				}
 		
 				so = skin.getSkinObject("filearea-buttons");
@@ -2198,7 +2201,7 @@ public class OpenTorrentOptionsWindow
 				}, false );
 		}
 	
-		private void setupTVFiles(SWTSkinObjectContainer soFilesTable) {
+		private void setupTVFiles(SWTSkinObjectContainer soFilesTable, SWTSkinObjectTextbox soFilesFilter ) {
 			TableColumnManager tcm = TableColumnManager.getInstance();
 			if (tcm.getDefaultColumnNames(TABLEID_FILES) == null) {
 				tcm.registerColumn(TorrentOpenFileOptions.class,
@@ -2264,6 +2267,21 @@ public class OpenTorrentOptionsWindow
 			tvFiles.initialize(soFilesTable.getComposite());
 			tvFiles.setRowDefaultHeight(20);
 	
+			if ( torrentOptions.getFiles().length > 1 && soFilesFilter != null ){
+				
+				soFilesFilter.setVisible( true );
+				
+				Text text = soFilesFilter.getTextControl();
+								
+				tvFiles.enableFilterCheck(text, this);
+		
+			}else{
+				if ( soFilesFilter != null ){
+					
+					soFilesFilter.setVisible( false );
+				}
+			}
+			
 			tvFiles.addKeyListener(new KeyListener() {
 	
 				public void keyPressed(KeyEvent e) {
@@ -2586,6 +2604,47 @@ public class OpenTorrentOptionsWindow
 			tvFiles.addDataSources(torrentOptions.getFiles());
 		}
 	
+		public boolean 
+		filterCheck(
+			TorrentOpenFileOptions 	ds, 
+			String 					filter, 
+			boolean 				regex )
+		{
+			if ( filter == null || filter.length() == 0 ){
+				
+				return( true );
+			}
+			
+			try {
+				File file = ds.getDestFileFullName();
+
+				String name = filter.contains( File.separator )?file.getAbsolutePath():file.getName();
+				
+				String s = regex ? filter : "\\Q" + filter.replaceAll("[|;]", "\\\\E|\\\\Q") + "\\E";
+				
+				boolean	match_result = true;
+				
+				if ( regex && s.startsWith( "!" )){
+					
+					s = s.substring(1);
+					
+					match_result = false;
+				}
+				
+				Pattern pattern = RegExUtil.getCachedPattern( "fv:search", s, Pattern.CASE_INSENSITIVE);
+	  
+				return( pattern.matcher(name).find() == match_result );
+				
+			} catch (Exception e) {
+				
+				return true;
+			}	
+		}
+		
+		public void filterSet(String filter)
+		{
+		}
+		
 		protected void updateFileButtons() {
 			Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
