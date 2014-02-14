@@ -139,8 +139,8 @@ public class UIConfigDefaultsSWT
 
 			def.addParameter("list.dm.dblclick", "1");
 			def.addParameter(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY + ".viewmode", 1);
-  		def.addParameter(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY_DL + "DL.viewmode", 1);
-  		def.addParameter(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY_CD + ".viewmode", 1);
+			def.addParameter(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY_DL + "DL.viewmode", 1);
+			def.addParameter(MultipleDocumentInterface.SIDEBAR_SECTION_LIBRARY_CD + ".viewmode", 1);
 		}
 		
 		
@@ -148,7 +148,6 @@ public class UIConfigDefaultsSWT
 		def.addParameter( "browser.external.search", false );
 		def.addParameter( "browser.internal.proxy.id", "none" );
 		
-		COConfigurationManager.setParameter( "Bar Transparency", 0 );
-
+		def.addParameter( "Bar Transparency", 0 );
 	}
 }
