@@ -78,6 +78,21 @@ GenericParameterAdapter
 		throw( new RuntimeException( "Not implemented" ));
 	}
 	
+	public float
+	getFloatValue(
+		String		key )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
+	
+	public void
+	setFloatValue(
+		String		key,
+		float		value )
+	{
+		throw( new RuntimeException( "Not implemented" ));
+	}
+	
 	
 	public void
 	informChanged(

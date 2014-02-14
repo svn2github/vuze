@@ -32,7 +32,6 @@ import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -48,6 +47,7 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.config.ChangeSelectionActionPerformer;
 import org.gudy.azureus2.ui.swt.config.generic.GenericBooleanParameter;
+import org.gudy.azureus2.ui.swt.config.generic.GenericFloatParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
@@ -389,7 +389,43 @@ TorrentOptionsView
 						DownloadManagerState.PARAM_UPLOAD_PRIORITY, 0, 1 );
 						
 			ds_parameters.put( DownloadManagerState.PARAM_UPLOAD_PRIORITY, upload_priority_enabled );
-			upload_priority_enabled.setLayoutData( gridData );		
+			upload_priority_enabled.setLayoutData( gridData );
+			
+				// min sr
+			
+			label = new Label(gTorrentOptions, SWT.NULL);
+			gridData = new GridData();
+			label.setLayoutData( gridData );
+			Messages.setLanguageText(label, "TableColumn.header.min_sr" );
+			
+			gridData = new GridData();
+			gridData.widthHint=50;
+			GenericFloatParameter	min_sr = 
+				new GenericFloatParameter( 
+						ds_param_adapter, 
+						gTorrentOptions, 
+						DownloadManagerState.PARAM_MIN_SHARE_RATIO, 0, Float.MAX_VALUE, true, 3 );
+						
+			ds_parameters.put( DownloadManagerState.PARAM_MIN_SHARE_RATIO, min_sr );
+			min_sr.setLayoutData( gridData );	
+			
+				// max sr
+			
+			label = new Label(gTorrentOptions, SWT.NULL);
+			gridData = new GridData();
+			label.setLayoutData( gridData );
+			Messages.setLanguageText(label, "TableColumn.header.max_sr" );
+			
+			gridData = new GridData();
+			gridData.widthHint=50;
+			GenericFloatParameter	max_sr = 
+				new GenericFloatParameter( 
+						ds_param_adapter, 
+						gTorrentOptions, 
+						DownloadManagerState.PARAM_MAX_SHARE_RATIO, 0, Float.MAX_VALUE, true, 3 );
+						
+			ds_parameters.put( DownloadManagerState.PARAM_MAX_SHARE_RATIO, max_sr );
+			max_sr.setLayoutData( gridData );		
 		}
 		
 			// reset
@@ -659,6 +695,10 @@ TorrentOptionsView
 						GenericBooleanParameter	bool_param = (GenericBooleanParameter)param;
 						boolean	value = state.getBooleanParameter( key );
 						bool_param.setSelected( value );
+					} else if (param instanceof GenericFloatParameter) {
+						GenericFloatParameter	float_param = (GenericFloatParameter)param;
+						float	value = state.getIntParameter( key )/1000f;
+						float_param.setValue( value );
 					} else {		
 						Debug.out( "Unknown parameter type: " + param.getClass());
 					}
@@ -866,6 +906,43 @@ TorrentOptionsView
 				if ( value != manager.getDownloadState().getBooleanParameter( key )){
 				
 					manager.getDownloadState().setBooleanParameter( key, value );
+				}
+			}
+		}
+		
+		public float
+		getFloatValue(
+			String		key )
+		{
+			int	result = 0;
+			
+			for (int i=0;i<managers.length;i++){
+				int	val = managers[i].getDownloadState().getIntParameter( key );
+				
+				if ( i==0 ){
+					result = val;
+				}else if ( result != val ){
+					return( 0 );
+				}
+			}
+			
+			return( result/1000.0f );
+		}
+		
+		public void
+		setFloatValue(
+			String		key,
+			float		_value )
+		{
+			int	value = (int)(_value*1000);
+			
+			for (int i=0;i<managers.length;i++){
+
+				DownloadManager	manager = managers[i];
+				
+				if ( value != manager.getDownloadState().getIntParameter( key )){
+				
+					manager.getDownloadState().setIntParameter( key, value );
 				}
 			}
 		}

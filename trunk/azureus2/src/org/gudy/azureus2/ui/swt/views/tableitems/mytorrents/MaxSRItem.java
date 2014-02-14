@@ -26,10 +26,15 @@ package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.ui.menus.MenuItem;
+import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableCellRefreshListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnInfo;
+import org.gudy.azureus2.plugins.ui.tables.TableContextMenuItem;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
 /** Display Category torrent belongs to.
@@ -53,6 +58,88 @@ public class MaxSRItem
 	public MaxSRItem(String sTableID) {
 		super(DATASOURCE_TYPE, COLUMN_ID, ALIGN_TRAIL, 70, sTableID);
 		setRefreshInterval(INTERVAL_LIVE);
+		
+	    TableContextMenuItem menuItem = addContextMenuItem("menu.max.share.ratio2");
+	    menuItem.addMultiListener(new MenuItemListener() {
+				public void selected(MenuItem menu, Object target) {
+					if (target == null) {
+						return;
+					}
+					
+					Object[] o = (Object[]) target;
+					
+					int existing = -1;
+					
+					for (Object object : o) {
+						if (object instanceof DownloadManager) {
+							int x = ((DownloadManager)object).getDownloadState().getIntParameter( DownloadManagerState.PARAM_MAX_SHARE_RATIO );
+							
+							if ( existing == -1 ){
+								existing = x;
+							}else if ( existing != x ){
+								existing = -1;
+								break;
+							}
+						}
+					}
+					
+					String existing_text;
+					
+					if ( existing == -1 ){
+						existing_text = "";
+					}else{
+						existing_text = String.valueOf( existing/1000.0f);
+					}
+					
+					SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+							"max.sr.window.title", "max.sr.window.message");
+											
+					entryWindow.setPreenteredText( existing_text, false );
+					entryWindow.selectPreenteredText( true );
+					
+					entryWindow.prompt();
+					
+					if ( entryWindow.hasSubmittedInput()){
+						
+						try{
+							String text = entryWindow.getSubmittedInput().trim();
+							
+							int	sr = 0;
+							
+							if ( text.length() > 0 ){
+							
+								try{
+									float f = Float.parseFloat( text );
+								
+									sr = (int)(f * 1000 );
+								
+									if ( sr < 0 ){
+										
+										sr = 0;
+										
+									}else if ( sr == 0 && f > 0 ){
+										
+										sr = 1;
+									}
+								
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+								
+								for (Object object : o) {
+									if (object instanceof DownloadManager) {
+										((DownloadManager)object).getDownloadState().setIntParameter( DownloadManagerState.PARAM_MAX_SHARE_RATIO, sr );
+									}
+								}								
+							}			
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+	    });
 	}
 
 	public void refresh(TableCell cell) {
