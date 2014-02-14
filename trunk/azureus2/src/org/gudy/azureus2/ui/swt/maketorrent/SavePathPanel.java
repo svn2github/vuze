@@ -316,12 +316,12 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
     
     bAutoOpen.addListener(SWT.Selection,new Listener() {
         public void handleEvent(Event event) {
-          wizard.autoOpen = bAutoOpen.getSelection();
+          boolean autoOpen = wizard.autoOpen = bAutoOpen.getSelection();
           
-          boolean enable = wizard.autoOpen && wizard.getTrackerType() != NewTorrentWizard.TT_EXTERNAL;
+          boolean enable = autoOpen && wizard.getTrackerType() != NewTorrentWizard.TT_EXTERNAL;
           
-          bforce.setEnabled( enable );
-          bSuperSeed.setEnabled( enable );
+          bforce.setEnabled( autoOpen );
+          bSuperSeed.setEnabled( autoOpen );
           bAutoHost.setEnabled( enable );
         }
       });
