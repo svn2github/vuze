@@ -26,14 +26,17 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.utils.LocationProvider;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
+import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 
 
 /**
@@ -77,6 +80,191 @@ public class PeerUtils {
   	   	
   	MAX_CONNECTIONS_TOTAL = COConfigurationManager.getIntParameter(CONFIG_MAX_CONN_TOTAL);
    }
+   
+   private static final NetworkAdmin	network_admin;
+   
+   private static volatile long		na_last_ip4_time;
+   private static volatile long		na_last_ip6_time;
+   private static volatile byte[]	na_last_ip4;
+   private static volatile byte[]	na_last_ip6;
+
+   private static int	na_tcp_port;
+   
+   static{
+	   NetworkAdmin temp = null;
+	   
+	   try{
+		   temp = NetworkAdmin.getSingleton();
+		   
+	   }catch( Throwable e ){
+	   }
+	   
+	   network_admin = temp;
+	   
+	   COConfigurationManager.addAndFireParameterListener(
+			 "TCP.Listen.Port",
+			 new ParameterListener() 
+			 {	
+				public void 
+				parameterChanged(
+					String parameterName ) 
+				{
+					na_tcp_port = COConfigurationManager.getIntParameter( parameterName );
+				}
+			});
+   }
+   
+   public static int
+   getPeerPriority(
+	   String 	address,
+	   int		port )
+   {
+	   if ( network_admin == null ){
+		   
+		   return( 0 );
+	   }
+	   
+	   try{
+	   
+		   InetAddress ia = HostNameToIPResolver.syncResolve( address );
+		   
+		   if ( ia != null ){
+			   
+			   return( getPeerPriority( ia, port ));
+		   }
+		   
+	   }catch( Throwable e ){
+	   }
+	   
+	   return( 0 );
+   }
+   
+
+   
+   public static int
+   getPeerPriority(
+		InetAddress		address,
+		int				peer_port )
+   { 
+	  return( getPeerPriority( address.getAddress(), peer_port ));
+   }
+   
+   public static int
+   getPeerPriority(
+		byte[]		peer_address,
+		short		peer_port )
+   {
+	   return( getPeerPriority( peer_address, ((int)peer_port)&0xffff ));
+   }
+   
+   public static int
+   getPeerPriority(
+		byte[]		peer_address,
+		int			peer_port )
+   {
+	   if ( network_admin == null ){
+		   
+		   return( 0 );
+	   }
+
+	   if ( peer_address == null ){
+		   
+		   return( 0 );
+	   }
+	   
+	   byte[] my_address = null;
+	   
+	   long now = SystemTime.getMonotonousTime();
+	   
+	   if ( peer_address.length == 4 ){
+		   
+		   if ( na_last_ip4 != null && now - na_last_ip4_time < 120*1000 ){
+			   
+			   my_address = na_last_ip4;
+			   
+		   }else{
+			  
+			   if ( na_last_ip4_time == 0 || now - na_last_ip4_time > 10*1000 ){
+			   
+				   na_last_ip4_time = now;
+				   
+				   InetAddress ia = network_admin.getDefaultPublicAddress( true );
+				   
+				   if ( ia != null ){
+					   
+					   byte[] iab = ia.getAddress();
+					   
+					   if ( iab != null ){
+						   
+						   na_last_ip4 = my_address = ia.getAddress();
+					   }
+				   }
+			   }
+		   }  
+		   
+		   if ( my_address == null ){
+			   
+			   my_address = na_last_ip4;
+		   }
+	   }else if ( peer_address.length == 16 ){
+		   
+		   if ( na_last_ip6 != null && now - na_last_ip6_time < 120*1000 ){
+			   
+			   my_address = na_last_ip6;
+			   
+		   }else{
+			  
+			   if ( na_last_ip6_time == 0 || now - na_last_ip6_time > 10*1000 ){
+			   
+				   na_last_ip6_time = now;
+				   
+				   InetAddress ia = network_admin.getDefaultPublicAddressV6( true );
+				   
+				   if ( ia != null ){
+					   
+					   byte[] iab = ia.getAddress();
+					   
+					   if ( iab != null ){
+						   
+						   na_last_ip6 = my_address = ia.getAddress();
+					   }
+				   }
+			   }
+		   } 
+		   
+		   if ( my_address == null ){
+			   
+			   my_address = na_last_ip6;
+		   }
+	   }else{
+		   
+		   return( 0 );
+	   }
+	   
+	   if ( my_address != null && my_address.length == peer_address.length ){
+		   
+		   return( getPeerPriority( my_address, na_tcp_port, peer_address, peer_port ));
+		   
+	   }else{
+		   
+		   return( 0 );
+	   }
+   }
+   
+   private static int
+   getPeerPriority(
+		 byte[]		a1,
+		 int		port1,
+		 byte[]		a2,
+		 int		port2 )
+   {
+	   		// http://www.bittorrent.org/beps/bep_0040.html
+	   
+	   System.out.println( "getPeerPriority: " + ByteFormatter.encodeString( a1 ) + ":" + port1 + "/" + ByteFormatter.encodeString( a2 ) + ":" + port2 );
+	   
+	   return( 10 );
+   }
+   
   /**
    * Get the number of new peer connections allowed for the given data item,
    * within the configured per-torrent and global connection limits.

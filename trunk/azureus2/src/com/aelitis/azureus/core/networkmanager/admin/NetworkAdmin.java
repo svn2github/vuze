@@ -225,8 +225,17 @@ NetworkAdmin
 	public abstract InetAddress
 	getDefaultPublicAddress();
 	
-	public abstract InetAddress getDefaultPublicAddressV6();
+	public abstract InetAddress
+	getDefaultPublicAddress(
+		boolean	peek );
 	
+	public abstract InetAddress 
+	getDefaultPublicAddressV6();
+	
+	public abstract InetAddress 
+	getDefaultPublicAddressV6(
+		boolean	peek );
+
 	public abstract boolean	hasDHTIPV6();
 	
 	public abstract void

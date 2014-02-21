@@ -27,6 +27,7 @@ import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import org.gudy.azureus2.core3.peer.PEPeerSource;
+import org.gudy.azureus2.core3.peer.util.PeerUtils;
 import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
 
@@ -44,6 +45,8 @@ public class PeerItem implements PeerDescriptor {
   private final byte handshake;
   private final byte crypto_level;
   private final short up_speed;
+  
+  private final int	priority;
   
   protected PeerItem( String _address, int _tcp_port, byte _source, byte _handshake, int _udp_port, byte _crypto_level, int _up_speed  ) {
     byte[] raw;
@@ -65,6 +68,8 @@ public class PeerItem implements PeerDescriptor {
     handshake = _handshake;
     crypto_level = _crypto_level;
     up_speed = (short)_up_speed;
+    
+    priority = PeerUtils.getPeerPriority( address, tcp_port );
   }
   
 
@@ -86,6 +91,8 @@ public class PeerItem implements PeerDescriptor {
     udp_port = (short)_udp_port;
     crypto_level = PeerItemFactory.CRYPTO_LEVEL_1;	// TODO: serialise this...
     up_speed = 0; // TODO:...
+    
+    priority = PeerUtils.getPeerPriority( address, tcp_port );
   }
     
   
@@ -145,7 +152,39 @@ public class PeerItem implements PeerDescriptor {
   
   public int hashCode() {  return hashcode;  }
   
+  public int 
+  compareTo(
+	PeerItem	other )
+  {
+	  int res = tcp_port - other.tcp_port;
+	  
+	  if  ( res == 0 ){
+		  
+		  res = udp_port - other.udp_port;
+	  
+		  if ( res == 0 ){
+		  	  
+			  res = address.length - other.address.length;
+	  
+			  if ( res == 0 ){
+				
+				  for ( int i=0;i<address.length;i++){
+					  
+					  res = address[i] - other.address[i];
+					  
+					  if ( res != 0 ){
+						  
+						  break;
+					  }
+				  }
+			  }
+		  }
+	  }
+	  
+	  return( res );
+  }
   
+  public int getPriority(){ return priority; }
   
   public static String convertSourceString( byte source_id ) {
     //we use an int to store the source text string as this class is supposed to be lightweight
