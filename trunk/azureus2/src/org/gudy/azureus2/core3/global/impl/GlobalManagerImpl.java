@@ -3889,6 +3889,11 @@ public class GlobalManagerImpl
 					
 					tag_incomplete.removeTaggable( manager );
 				}
+				
+				if ( tag_paused.hasTaggable( manager )){
+
+					tag_paused.removeTaggable( manager );
+				}
 			}	
 		}
 		
