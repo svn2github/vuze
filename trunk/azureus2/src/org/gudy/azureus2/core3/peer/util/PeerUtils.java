@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.CRC32C;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
@@ -259,10 +260,77 @@ public class PeerUtils {
 		 int		port2 )
    {
 	   		// http://www.bittorrent.org/beps/bep_0040.html
+	   	   
+	   byte[] a1_masked = new byte[a1.length];
+	   byte[] a2_masked = new byte[a2.length];
+	   	   
+	   /*
+	   The formula to be used in prioritizing peers is this:
+
+	   priority = crc32-c(sort(masked_client_ip, masked_peer_ip))
+	   If the IP addresses are the same, the port numbers (16-bit integers) should be used instead:
+
+	   priority = crc32-c(sort(client_port, peer_port))
+	   For an IPv4 address, the mask to be used should be FF.FF.55.55 unless the IP addresses are in the same /16. 
+	   In that case, the mask to be used should be FF.FF.FF.55. If the IP addresses are in the same /24, the entire address should be used (mask FF.FF.FF.FF).
+
+	   For an IPv6 address, the mask should be derived in the same way, beginning with FFFF:FFFF:FFFF:5555:5555:5555:5555:5555. 
+	   If the IP addresses are in the same /48, the mask to be used should be FFFF:FFFF:FFFF:FF55:5555:5555:5555:5555. 
+	   If the IP addresses are in the same /56, the mask to be used should be FFFF:FFFF:FFFF:FFFF:5555:5555:5555:5555, etc...
+	   */
 	   
-	   System.out.println( "getPeerPriority: " + ByteFormatter.encodeString( a1 ) + ":" + port1 + "/" + ByteFormatter.encodeString( a2 ) + ":" + port2 );
+	   int x = a1_masked.length==4?1:5;
 	   
-	   return( 10 );
+	   boolean	same = true;
+
+	   int order = 0;
+	   
+	   for ( int i=0;i<a1_masked.length;i++){
+		   byte	a1_byte = a1[i];
+		   byte	a2_byte = a2[i];
+
+		   if ( i < x || same ){
+			   a1_masked[i] = a1_byte;
+			   a2_masked[i] = a2_byte;
+		   }else{
+			   a1_masked[i] = (byte)(a1_byte&0x55);
+			   a2_masked[i] = (byte)(a2_byte&0x55);
+		   }
+		   
+		   if ( i >= x && same ){
+			   same = a1_byte == a2_byte;
+		   }
+		   
+		   if ( order == 0 ){
+			  			   
+			   order = (a1_masked[i]&0xff) - (a2_masked[i]&0xff);
+		   }
+	   }
+	   
+	   if ( same ){
+		   
+		   a1_masked = new byte[]{ (byte)(port1>>8), (byte)port1 };
+		   a2_masked = new byte[]{ (byte)(port2>>8), (byte)port2 };
+		   
+		   order = port1 - port2;
+	   }
+	   
+	   CRC32C crc32 = new CRC32C();
+	   
+	   if ( order < 0 ){
+		   
+		   crc32.updateWord( a1_masked, true );
+		   crc32.updateWord( a2_masked, true );
+		   
+	   }else{
+		   
+		   crc32.updateWord( a2_masked, true );
+		   crc32.updateWord( a1_masked, true );
+	   }
+	   
+	   long res = crc32.getValue();
+	   
+	   return( (int)res );
    }
    
   /**
@@ -504,4 +572,38 @@ public class PeerUtils {
 		
 		return( details );
 	}
+	
+	/*
+	public static void
+	main(
+		String[]	args )
+	{
+	
+		// If the client is 123.213.32.10 and the peer is 98.76.54.32, the hash that they should both arrive at is crc32-c(624C14007BD50000) or BB97323E.
+		// If the client is 123.213.32.10 and the peer is 123.213.32.234, the hash that they should both arrive at is crc32-c[(7BD5200A7BD520EA) or C816B840.
+	
+		
+		CRC32C crc = new CRC32C();
+		
+		crc.update("The quick brown fox jumps over the lazy dog".getBytes());
+		
+		System.out.println( Long.toString( crc.getValue(), 16 ));
+		
+		try{
+			if ( getPeerPriority( InetAddress.getByName( "123.213.32.10" ).getAddress(), 10,   InetAddress.getByName( "98.76.54.32" ).getAddress(), 10 ) != 0xBB97323E ){
+				
+				System.out.println( "derp1" );
+			}
+			if ( getPeerPriority( InetAddress.getByName( "123.213.32.10" ).getAddress(), 10,   InetAddress.getByName( "123.213.32.234" ).getAddress(), 10 ) != 0xC816B840 ){
+				System.out.println( "derp2" );
+			}
+			if ( getPeerPriority( InetAddress.getByName( "123.213.32.10" ).getAddress(), 10,   InetAddress.getByName( "123.213.32.10" ).getAddress(), 20 ) != 1879809021 ){
+				System.out.println( "derp3" );
+			}
+		}catch( Throwable e ){
+			e.printStackTrace();
+			
+		}
+	}
+	*/
 }

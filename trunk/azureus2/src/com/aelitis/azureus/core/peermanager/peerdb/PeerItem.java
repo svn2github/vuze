@@ -184,7 +184,7 @@ public class PeerItem implements PeerDescriptor {
 	  return( res );
   }
   
-  public int getPriority(){ return priority; }
+  public long getPriority(){ return priority&0xffffffffL; }
   
   public static String convertSourceString( byte source_id ) {
     //we use an int to store the source text string as this class is supposed to be lightweight

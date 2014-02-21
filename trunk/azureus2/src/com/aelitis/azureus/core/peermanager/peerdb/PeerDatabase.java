@@ -56,14 +56,14 @@ public class PeerDatabase {
 					PeerItem o1, 
 					PeerItem o2 ) 
 				{
-					int res = o1.getPriority() - o2.getPriority();
+					long res = o2.getPriority() - o1.getPriority();
 					
 					if ( res == 0 ){
 						
 						res = o1.compareTo( o2 );
 					}
 					
-					return( res );
+					return( res<0?-1:(res>0?1:0 ));
 				}
 			});
   
@@ -296,7 +296,16 @@ public class PeerDatabase {
    * @return peer to connect, or null of no optimistic peer available
    */
   public PeerItem getNextOptimisticConnectPeer( ) {
-	 return( getNextOptimisticConnectPeer(0));
+	  PeerItem item = getNextOptimisticConnectPeer(0);
+	  
+	  /*
+	  if ( item != null ){
+		  
+		 System.out.println( "pri: " + item.getPriority());
+	  }
+	  */
+	  
+	  return( item );
   }
   
   private PeerItem getNextOptimisticConnectPeer( final int recursion_count ) {

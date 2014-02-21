@@ -1376,9 +1376,7 @@ addressLoop:
 				}
 
 				if ( do_lookup ){
-					
-					Debug.out( "lookup" );
-					
+										
 					gdpa_last_lookup = now;
 					
 					gdpa_sem = sem = new AESemaphore( "getDefaultPublicAddress");
