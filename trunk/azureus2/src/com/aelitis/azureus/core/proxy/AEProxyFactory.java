@@ -122,6 +122,12 @@ AEProxyFactory
 		return( AEPluginProxyHandler.getPluginHTTPProxyProviders( can_wait ));
 	}
 	
+	public static boolean
+	hasPluginProxy()
+	{
+		return( AEPluginProxyHandler.hasPluginProxy());
+	}
+	
 	public interface
 	PluginProxy
 	{

@@ -31,9 +31,9 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -46,6 +46,7 @@ import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT.TriggerInThread;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.plugins.net.netstatus.NetStatusPlugin;
 
 public class 
@@ -196,7 +197,7 @@ NetStatusPluginView
 		 	
 			Composite options = new Composite(control, SWT.NONE);
 			layout = new GridLayout();
-			layout.numColumns 	 	= 3;
+			layout.numColumns 	 	= 4;
 			layout.marginHeight 	= 4;
 			layout.marginWidth 		= 4;
 			options.setLayout(layout);
@@ -213,19 +214,19 @@ NetStatusPluginView
 			*/
 				Button opt2 = new Button( options, SWT.CHECK );
 
-				opt2.setText( "outbound" );
+				opt2.setText( "Outbound" );
 
 				addOption( opt2, NetStatusPluginTester.TEST_OUTBOUND, true );
 
 				Button opt3 = new Button( options, SWT.CHECK );
 
-				opt3.setText( "inbound" );
+				opt3.setText( "Inbound" );
 
 				addOption( opt3, NetStatusPluginTester.TEST_INBOUND, true );
 
 				Button opt4 = new Button( options, SWT.CHECK );
 
-				opt4.setText( "nat/proxies" );
+				opt4.setText( "NAT/Proxies" );
 
 				addOption( opt4, NetStatusPluginTester.TEST_NAT_PROXIES, true );
 
@@ -243,6 +244,22 @@ NetStatusPluginView
 				
 				addOption( opt6, NetStatusPluginTester.TEST_IPV6, ipv6_enabled );
 
+				Button opt7 = new Button( options, SWT.CHECK );
+
+				opt7.setText( "Vuze Services" );
+				
+				addOption( opt7, NetStatusPluginTester.TEST_VUZE_SERVICES, true );
+
+				if ( Constants.isWindows || Constants.isOSX ){
+					
+					Button opt8 = new Button( options, SWT.CHECK );
+	
+					opt8.setText( "Indirect Connect" );
+					
+					boolean ic_enabled = AEProxyFactory.hasPluginProxy();
+	
+					addOption( opt8, NetStatusPluginTester.TEST_PROXY_CONNECT, ic_enabled );
+				}
 				
 			// log area
 		
@@ -264,7 +281,7 @@ NetStatusPluginView
 		
 		boolean	selected = plugin.getBooleanParameter( config, enable );
 		
-		if ( selected ){
+		if ( selected && enable ){
 			
 			selected_tests |= type;
 			

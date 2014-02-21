@@ -21,14 +21,31 @@
 
 package com.aelitis.azureus.plugins.net.netstatus.swt;
 
+import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.Inet6Address;
 import java.net.InetAddress;
+import java.net.URL;
 import java.util.*;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLSession;
+
+import java.security.cert.Certificate;
+
+import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.pluginsimpl.local.utils.resourcedownloader.ResourceDownloaderFactoryImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.admin.*;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.plugins.net.netstatus.NetStatusPlugin;
 import com.aelitis.azureus.plugins.net.netstatus.NetStatusProtocolTesterBT;
@@ -43,6 +60,8 @@ NetStatusPluginTester
 	public static final int		TEST_INBOUND		= 0x00000008;
 	public static final int		TEST_BT_CONNECT		= 0x00000010;
 	public static final int		TEST_IPV6			= 0x00000020;
+	public static final int		TEST_VUZE_SERVICES	= 0x00000040;
+	public static final int		TEST_PROXY_CONNECT	= 0x00000080;
 
 	
 	private static final int	ROUTE_TIMEOUT	= 120*1000;
@@ -597,6 +616,251 @@ NetStatusPluginTester
 						logError( "    failed to lookup AS", e );
 					}
 				}
+			}
+		}
+		
+		if ( doTest( TEST_VUZE_SERVICES )){
+			
+			log( "Vuze Services test" );
+			
+			String[][] services = { 
+					{ "Vuze Website", 		"https://www.vuze.com/" },
+					{ "Client Website", 	"https://client.vuze.com/" },
+					{ "Version Server", 	"http://version.vuze.com/?dee" },
+					{ "Pairing Server", 	"https://pair.vuze.com/pairing/web/view?" },
+					{ "License Server", 	"https://license.vuze.com/licence" },
+					{ "Plugins Website", 	"https://plugins.vuze.com/" },
+			};
+			
+			for ( String[] service: services ){
+							
+				try{
+					URL	url = new URL( service[1] );
+			
+					log( "    " + service[0] + " - " + url.getHost());
+
+					boolean	is_https = url.getProtocol().equals( "https" );
+					
+					if ( is_https ){
+						
+						String[]	host_bits = url.getHost().split( "\\." );
+						
+						String host_match = "." + host_bits[host_bits.length-2] + "." + host_bits[host_bits.length-1];
+
+						HttpsURLConnection con = (HttpsURLConnection)url.openConnection();
+																	  	
+						con.setHostnameVerifier(
+							new HostnameVerifier()
+							{
+								public boolean
+								verify(
+									String		host,
+									SSLSession	session )
+								{
+									return( true );
+								}
+							});
+						
+						
+						con.setInstanceFollowRedirects( false );
+						
+						con.setConnectTimeout( 30*1000 );
+						con.setReadTimeout( 30*1000 );
+		
+						con.getResponseCode();
+							
+						con.getInputStream();
+						
+						Certificate[] certs = con.getServerCertificates();
+							
+						if ( certs == null || certs.length == 0 ){
+								
+							logError( "        No certificates returned" );
+								
+						}else{
+							
+							Certificate cert = certs[0];
+							
+							java.security.cert.X509Certificate x509_cert;
+							
+							if ( cert instanceof java.security.cert.X509Certificate ){
+								
+								x509_cert = (java.security.cert.X509Certificate)cert;
+								
+							}else{
+								
+								java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
+								
+								x509_cert = (java.security.cert.X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
+							}
+
+							log( "        Certificate: " + x509_cert.getSubjectDN());
+						
+							Collection<List<?>> alt_names = x509_cert.getSubjectAlternativeNames();
+							
+							boolean match = false;
+							
+							for ( List<?> alt_name: alt_names ){
+								
+								int	type = ((Number)alt_name.get(0)).intValue();
+								
+								if ( type == 2 ){		// DNS name
+									
+									String	dns_name = (String)alt_name.get(1);
+									
+									if ( dns_name.endsWith( host_match )){
+										
+										match = true;
+										
+										break;
+									}
+								}
+							}
+							
+							if ( !match ){
+								
+								logError( "        Failed: Host '" + host_match + "' not found in certificate" );
+								
+							}else{
+								
+								logSuccess( "        Connection result: " + con.getResponseCode() + "/" + con.getResponseMessage());
+							}
+						}
+					}else{
+						
+						HttpURLConnection con = (HttpURLConnection)url.openConnection();
+						
+						con.setInstanceFollowRedirects( false );
+						
+						con.setConnectTimeout( 30*1000 );
+						con.setReadTimeout( 30*1000 );
+		
+						if ( con.getResponseCode() != 200 ){
+							
+							throw( new Exception( "Connection failed: " + con.getResponseCode() + "/" + con.getResponseMessage()));
+						}
+							
+						Map resp = BDecoder.decode( new BufferedInputStream( con.getInputStream(), 16*1024 ));
+						
+						if ( resp != null && resp.containsKey( "version" )){
+							
+							logSuccess( "        Connection result: " + con.getResponseCode() + "/" + con.getResponseMessage());
+
+						}else{
+							
+							logError( "        Unexpected reply from server: " + resp );
+						}
+					}
+				}catch( Throwable e ){
+				
+					logError( "        Failed: " + Debug.getNestedExceptionMessage( e ));
+				}
+			}
+		}
+		
+		if ( doTest( TEST_PROXY_CONNECT )){
+			
+			log( "Indirect Connect test" );
+			
+			try{
+				URL target = new URL( "https://www.vuze.com" );
+				
+				PluginProxy proxy = AEProxyFactory.getPluginProxy( "Network Status test", target );
+				
+				if ( proxy == null ){
+					
+					String url_str = "http://azureus.sourceforge.net/plugin_detailssf.php?plugin=aznettor&os=";
+					
+					if ( Constants.isWindows ){
+						
+						url_str += "Windows";
+						
+					}else{
+						
+						url_str += "Mac%20OSX";
+					}
+					
+					URL url = new URL( url_str );
+					
+					logError( "    No plugin proxy available" );
+					logInfo( "    For the plugin installer see " + url.toExternalForm());
+					
+				}else{
+				
+					log( "    Connecting to " + target.toExternalForm());
+					
+					HttpURLConnection con = (HttpURLConnection)proxy.getURL().openConnection( proxy.getProxy());
+					
+					if ( con instanceof HttpsURLConnection ){
+										  	
+						((HttpsURLConnection)con).setHostnameVerifier(
+								new HostnameVerifier()
+								{
+									public boolean
+									verify(
+										String		host,
+										SSLSession	session )
+									{
+										return( true );
+									}
+								});
+					}
+					
+					con.setRequestProperty( "HOST", proxy.getURLHostRewrite());
+					
+					con.setInstanceFollowRedirects( false );
+					
+					con.setConnectTimeout( 60*1000 );
+					con.setReadTimeout( 30*1000 );
+	
+					try{
+						int resp = con.getResponseCode();
+							
+						if ( con instanceof HttpsURLConnection ){
+							
+							Certificate[] certs = ((HttpsURLConnection)con).getServerCertificates();
+							
+							if ( certs == null || certs.length == 0 ){
+								
+								logError( "    No certificates returned" );
+								
+							}else{
+								Certificate cert = certs[0];
+								
+								java.security.cert.X509Certificate x509_cert;
+								
+								if ( cert instanceof java.security.cert.X509Certificate ){
+									
+									x509_cert = (java.security.cert.X509Certificate)cert;
+									
+								}else{
+									
+									java.security.cert.CertificateFactory cf = java.security.cert.CertificateFactory.getInstance("X.509");
+									
+									x509_cert = (java.security.cert.X509Certificate)cf.generateCertificate(new ByteArrayInputStream(cert.getEncoded()));
+								}
+	
+								log( "    Certificate: " + x509_cert.getSubjectDN());
+							}
+						}
+					
+						if ( resp == 200 ){
+							
+							logSuccess( "    Connection result: " + con.getResponseCode() + "/" + con.getResponseMessage());
+							
+						}else{
+							
+							log( "    Connection result: " + con.getResponseCode() + "/" + con.getResponseMessage());
+						}
+					}finally{
+						
+						proxy.setOK( true );
+					}
+				}
+			}catch( Throwable e ){
+				
+				logError( "    Failed: " + Debug.getNestedExceptionMessage( e ));
+				logError( "    Check the logs for the 'Tor Helper Plugin' (Tools->Plugins->Log Views)" );
 			}
 		}
 		

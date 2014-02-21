@@ -30,6 +30,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginAdapter;
 import org.gudy.azureus2.plugins.PluginEvent;
@@ -124,6 +125,27 @@ AEPluginProxyHandler
 	}
 	
 	private static final Map<Proxy,WeakReference<PluginProxyImpl>>	proxy_map = new IdentityHashMap<Proxy,WeakReference<PluginProxyImpl>>();
+	
+	public static boolean
+	hasPluginProxy()
+	{
+		plugin_init_complete.reserve();
+	
+		for ( PluginInterface pi: plugins ){
+		
+			try{
+				IPCInterface ipc = pi.getIPC();
+			
+				if ( ipc.canInvoke( "testHTTPPseudoProxy", new Object[]{ TorrentUtils.getDecentralisedEmptyURL() })){
+					
+					return( true );
+				}
+			}catch( Throwable e ){				
+			}
+		}
+
+		return( false );
+	}
 	
 		/**
 		 * This method should NOT BE CALLED as it is in the .impl package - unfortunately the featman plugin calls it
