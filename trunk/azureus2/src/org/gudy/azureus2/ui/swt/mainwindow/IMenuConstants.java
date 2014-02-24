@@ -145,6 +145,8 @@ public interface IMenuConstants
 	public static final String MENU_ID_STATS = "MainWindow.menu.view.stats";
 
 	public static final String MENU_ID_NAT_TEST = "MainWindow.menu.tools.nattest";
+	
+	public static final String MENU_ID_NET_STATUS = "MainWindow.menu.tools.netstat";
 
 	public static final String MENU_ID_SPEED_TEST = "MainWindow.menu.tools.speedtest";
 

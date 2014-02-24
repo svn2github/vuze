@@ -9,7 +9,6 @@ import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.internal.C;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
@@ -17,11 +16,14 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.config.wizard.ConfigureWizard;
 import org.gudy.azureus2.ui.swt.help.AboutWindow;
+import org.gudy.azureus2.ui.swt.mainwindow.PluginsMenuHelper;
 import org.gudy.azureus2.ui.swt.nat.NatTestWindow;
 import org.gudy.azureus2.ui.swt.speedtest.SpeedTestWizard;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
+import com.aelitis.azureus.ui.swt.UIFunctionsSWT;
 
 /**
  * You can exclude this file (or this whole path) for non OSX builds
@@ -580,6 +582,28 @@ public class CocoaUIEnhancer
 					}
 				});
 
+				MenuItem netstatMenu = new MenuItem(systemMenu, SWT.CASCADE, prefIndex);
+				Messages.setLanguageText(netstatMenu, "MainWindow.menu.tools.netstat");
+				netstatMenu.addSelectionListener(new SelectionAdapter() {
+					public void widgetSelected(SelectionEvent e) {
+						UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+						if (uiFunctions != null) {
+
+							PluginsMenuHelper.IViewInfo[] views = PluginsMenuHelper.getInstance().getPluginViewsInfo();
+							
+							for ( PluginsMenuHelper.IViewInfo view: views ){
+								
+								String viewID = view.viewID;
+								
+								if ( viewID != null && viewID.equals( "aznetstatus" )){
+									
+									view.openView( uiFunctions );
+								}
+							}
+						}
+					}
+				});
+				
 				MenuItem speedMenu = new MenuItem(systemMenu, SWT.CASCADE, prefIndex);
 				Messages.setLanguageText(speedMenu, "MainWindow.menu.tools.speedtest");
 				speedMenu.addSelectionListener(new SelectionAdapter() {

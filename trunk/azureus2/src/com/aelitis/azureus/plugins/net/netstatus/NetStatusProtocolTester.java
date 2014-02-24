@@ -186,7 +186,7 @@ NetStatusProtocolTester
 					
 					final int	num_threads = Math.min( BT_MAX_SLAVES, contacts.length );
 					
-					listener.log( "Searching " + contacts.length + " contacts for " + num_threads + " test targets" );
+					listener.log( "Searching " + contacts.length + " contacts for " + num_threads + " test targets", false );
 							
 					final AESemaphore	sem = new AESemaphore( "NetStatusProbe" );
 					
@@ -243,7 +243,7 @@ NetStatusProtocolTester
 						sem.reserve();
 					}
 					
-					listener.log( "Searching complete, " + ok[0] + " targets found" );
+					listener.log( "Searching complete, " + ok[0] + " targets found", false );
 				}
 			}else{
 				
@@ -286,7 +286,8 @@ NetStatusProtocolTester
 					
 					public void
 					log(
-						String		str )
+						String		str,
+						boolean		detailed )
 					{
 					}
 					
@@ -314,7 +315,7 @@ NetStatusProtocolTester
 					public void
 					runSupport()
 					{
-						listener.log( "Destroying tester" );
+						listener.log( "Destroying tester", false );
 						
 						bt_tester.destroy();
 					}

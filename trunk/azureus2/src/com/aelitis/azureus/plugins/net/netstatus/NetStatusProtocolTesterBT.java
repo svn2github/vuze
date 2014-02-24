@@ -42,7 +42,6 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.OutgoingMessageQueue;
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpoint;
 import com.aelitis.azureus.core.networkmanager.ProtocolEndpointFactory;
-import com.aelitis.azureus.core.networkmanager.impl.tcp.ProtocolEndpointTCP;
 import com.aelitis.azureus.core.peermanager.PeerManager;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistration;
 import com.aelitis.azureus.core.peermanager.PeerManagerRegistrationAdapter;
@@ -359,14 +358,22 @@ NetStatusProtocolTesterBT
 	
 	protected void
 	log(
-		String	str )
+		String		str )
+	{
+		log( str, false );
+	}
+	
+	protected void
+	log(
+		String		str,
+		boolean 	detailed )
 	{
 		Iterator it = listeners.iterator();
 		
 		while( it.hasNext()){
 			
 			try{
-				((NetStatusProtocolTesterListener)it.next()).log( str );
+				((NetStatusProtocolTesterListener)it.next()).log( str, detailed );
 				
 			}catch( Throwable e ){
 				
@@ -522,7 +529,7 @@ NetStatusProtocolTesterBT
 						connectStarted(
 							int default_connect_timeout )
 						{	
-							log( type + " connect start" );
+							log( type + " connect start", true );
 
 							return( default_connect_timeout );
 						}
@@ -531,7 +538,7 @@ NetStatusProtocolTesterBT
 						connectSuccess( 
 							ByteBuffer remaining_initial_data ) 
 						{
-							log( type + " connect success" );
+							log( type + " connect success", true );
 							
 							connected	= true;
 							
@@ -620,7 +627,7 @@ NetStatusProtocolTesterBT
 						try{
 							String	message_id = message.getID();
 	
-							log( "Incoming message received: " + message.getID());
+							log( "Incoming message received: " + message.getID(), true );
 							
 					        if ( message_id.equals( BTMessage.ID_BT_HANDSHAKE )){
 						
@@ -739,7 +746,7 @@ NetStatusProtocolTesterBT
 					messageSent( 
 						Message message ) 
 					{
-						log( "Outgoing message sent: " + message.getID());
+						log( "Outgoing message sent: " + message.getID(), true );
 					}
 		
 					public final void 
@@ -864,7 +871,7 @@ NetStatusProtocolTesterBT
 
 			if ( closed ){
 				
-				log( "Closing connection" );
+				log( "Closing connection", true  );
 				
 				connection.close( null );
 				
@@ -952,6 +959,14 @@ NetStatusProtocolTesterBT
 			String	str )
 		{
 			NetStatusProtocolTesterBT.this.log( getLogPrefix() + str );
+		}
+		
+		protected void
+		log(
+			String		str,
+			boolean		is_detailed )
+		{
+			NetStatusProtocolTesterBT.this.log( getLogPrefix() + str, is_detailed );
 		}
 		
 		protected void

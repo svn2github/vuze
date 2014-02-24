@@ -24,15 +24,13 @@ package com.aelitis.azureus.plugins.net.netstatus;
 
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
-
 import org.gudy.azureus2.core3.util.Constants;
-
 import org.gudy.azureus2.plugins.*;
-
 import org.gudy.azureus2.plugins.logging.LoggerChannel;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.ui.UIManagerListener;
 import org.gudy.azureus2.plugins.ui.config.ActionParameter;
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.config.StringParameter;
@@ -49,6 +47,7 @@ NetStatusPlugin
 	private LoggerChannel	logger;
 	
 	// private StringParameter ping_target;
+	private BooleanParameter	logging_detailed;
 	
 	private ActionParameter test_button;
 	private StringParameter test_address;
@@ -80,8 +79,11 @@ NetStatusPlugin
 				
 		BasicPluginConfigModel config = plugin_interface.getUIManager().createBasicPluginConfigModel( "Views.plugins." + VIEW_ID + ".title" );
 		
+		logging_detailed = config.addBooleanParameter2( "plugin.aznetstatus.logfull", "plugin.aznetstatus.logfull", false );
+		
 		// ping_target = config.addStringParameter2( "plugin.aznetstatus.pingtarget", "plugin.aznetstatus.pingtarget", "www.google.com" );
 		
+		/*
 		if ( Constants.isCVSVersion()){
 			
 			test_address = config.addStringParameter2( "plugin.aznetstatus.test_address", "plugin.aznetstatus.test_address", "" );
@@ -115,8 +117,14 @@ NetStatusPlugin
 									
 									public void 
 									log(
-										String str ) 
+										String 		str,
+										boolean		detailed )
 									{
+										if ( detailed && !logging_detailed.getValue()){
+											
+											return;
+										}
+										
 										logger.log( str );
 									}
 									
@@ -138,6 +146,7 @@ NetStatusPlugin
 					}
 				});
 		}
+		*/
 		
 		plugin_interface.getUIManager().addUIListener(
 			new UIManagerListener()
@@ -203,6 +212,12 @@ NetStatusPlugin
 				{				
 				}
 			});
+	}
+	
+	public boolean
+	isDetailedLogging()
+	{
+		return( logging_detailed.getValue());
 	}
 	
 	public NetStatusProtocolTester

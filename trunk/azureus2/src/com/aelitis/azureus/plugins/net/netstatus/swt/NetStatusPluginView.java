@@ -365,8 +365,14 @@ NetStatusPluginView
 						{
 							public void 
 							log(
-								String str) 
+								String 		str,
+								boolean		detailed )
 							{
+								if ( detailed && !plugin.isDetailedLogging()){
+									
+									return;
+								}
+								
 								println( str );
 							}
 							

@@ -65,7 +65,9 @@ DeviceInternetView
 	private static final int				
 		selected_tests = 	NetStatusPluginTester.TEST_INBOUND | 
 							NetStatusPluginTester.TEST_OUTBOUND |
-							NetStatusPluginTester.TEST_NAT_PROXIES;
+							NetStatusPluginTester.TEST_NAT_PROXIES |
+							NetStatusPluginTester.TEST_VUZE_SERVICES |
+							NetStatusPluginTester.TEST_PROXY_CONNECT;
 	
 	private NetStatusPluginTester		current_test;
 	
@@ -228,7 +230,8 @@ DeviceInternetView
 						{
 							public void 
 							log(
-								String str) 
+								String 		str,
+								boolean		detailed )
 							{
 								println( str );
 							}

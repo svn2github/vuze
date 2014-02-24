@@ -1643,6 +1643,28 @@ public class MenuFactory
 		});
 	}
 
+	public static MenuItem addNetStatusMenuItem(Menu menu) {
+		return addMenuItem(menu, MENU_ID_NET_STATUS, new Listener() {
+			public void handleEvent(Event e) {
+				UIFunctionsSWT uiFunctions = UIFunctionsManagerSWT.getUIFunctionsSWT();
+				if (uiFunctions != null) {
+
+					PluginsMenuHelper.IViewInfo[] views = PluginsMenuHelper.getInstance().getPluginViewsInfo();
+					
+					for ( PluginsMenuHelper.IViewInfo view: views ){
+						
+						String viewID = view.viewID;
+						
+						if ( viewID != null && viewID.equals( "aznetstatus" )){
+							
+							view.openView( uiFunctions );
+						}
+					}
+				}
+			}
+		});
+	}
+	
 	public static MenuItem addSpeedTestMenuItem(Menu menu) {
 		return addMenuItem(menu, MENU_ID_SPEED_TEST, new Listener() {
 			public void handleEvent(Event e) {

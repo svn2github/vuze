@@ -34,7 +34,8 @@ NetStatusProtocolTesterListener
 	
 	public void
 	log(
-		String		str );
+		String		str,
+		boolean		is_detailed );
 	
 	public void
 	logError(

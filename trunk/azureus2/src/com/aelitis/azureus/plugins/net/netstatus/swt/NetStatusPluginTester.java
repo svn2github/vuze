@@ -879,11 +879,11 @@ NetStatusPluginTester
 						complete(
 							NetStatusProtocolTesterBT	tester )
 						{
-							log( "Results" );
+							log( "Results", false );
 							
 							if ( tester.getOutboundConnects() < 4 ){
 								
-								log( "    insufficient outbound connects for analysis" );
+								log( "    insufficient outbound connects for analysis", false );
 								
 								return;
 							}
@@ -939,7 +939,7 @@ NetStatusPluginTester
 								log( "  " + 
 										( session.isInitiator()?"Outbound":"Inbound" ) + "," + 
 										( session.isSeed()?"Seed":"Leecher") + "," + 
-										session.getProtocolString());
+										session.getProtocolString(), false );
 							}
 							
 							if ( incoming_connect_ok == 0 ){
@@ -967,9 +967,10 @@ NetStatusPluginTester
 						
 						public void
 						log(
-							String		str )
+							String		str,
+							boolean		detailed )
 						{
-							NetStatusPluginTester.this.log( "  " + str );
+							NetStatusPluginTester.this.log( "  " + str, detailed );
 						}
 						
 						public void
@@ -1066,9 +1067,17 @@ NetStatusPluginTester
 	
 	protected void
 	log(
-		String	str )
+		String		str )
 	{
-		logger.log( str );
+		log( str, false );
+	}
+	
+	protected void
+	log(
+		String		str,
+		boolean		detailed )
+	{
+		logger.log( str, detailed );
 	}
 	
 	protected void
@@ -1090,7 +1099,7 @@ NetStatusPluginTester
 		String		str,
 		Throwable	e )
 	{
-		logger.log( str + ": " + e.getLocalizedMessage());
+		logger.log( str + ": " + e.getLocalizedMessage(), false );
 	}
 	
 	protected void
@@ -1113,7 +1122,8 @@ NetStatusPluginTester
 	{
 		public void
 		log(
-			String	str );
+			String	str,
+			boolean	is_detailed );
 		
 		public void
 		logSuccess(
