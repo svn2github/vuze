@@ -109,7 +109,7 @@ DeviceInternetView
 		
 		Label info_lab = new Label( main, SWT.NONE );
 		
-		info_lab.setText( "Test your internet connection" );
+		Messages.setLanguageText( info_lab, "label.test.internet");
 		
 			// control
 		

@@ -87,6 +87,11 @@ NetStatusPluginTester
 	doTest(
 		int		type )
 	{
+		if ( test_cancelled ){
+			
+			return( false );
+		}
+		
 		return((test_types & type ) != 0 );
 	}
 	
@@ -633,7 +638,12 @@ NetStatusPluginTester
 			};
 			
 			for ( String[] service: services ){
-							
+				
+				if ( test_cancelled ){
+					
+					return;
+				}
+				
 				try{
 					URL	url = new URL( service[1] );
 			
@@ -942,9 +952,13 @@ NetStatusPluginTester
 										session.getProtocolString(), false );
 							}
 							
+							boolean	good = true;
+							
 							if ( incoming_connect_ok == 0 ){
 								
 								logError( "  No incoming connections received, likely NAT problems" );
+								
+								good = false;
 							}
 							
 							if ( 	outgoing_leecher_ok > 0 &&
@@ -952,6 +966,13 @@ NetStatusPluginTester
 									outgoing_seed_bad > 0 ){
 								
 								logError( "  Outgoing seed connects appear to be failing while non-seeds succeed" );
+								
+								good = false;
+							}
+							
+							if ( good ){
+								
+								logSuccess( "    Test successful" );
 							}
 						}
 						
