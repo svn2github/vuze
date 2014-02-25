@@ -390,7 +390,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 		boolean is_private = false;
 		
 		try{
-			disk_mgr.getTorrent().getPrivate();
+			is_private = disk_mgr.getTorrent().getPrivate();
 			
 		}catch( Throwable e ){
 			
