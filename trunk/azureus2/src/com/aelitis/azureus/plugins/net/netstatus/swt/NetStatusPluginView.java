@@ -43,6 +43,7 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTInstance;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
@@ -291,6 +292,17 @@ NetStatusPluginView
 		grid_data.horizontalIndent = 4;
 		log.setLayoutData(grid_data);
 		log.setIndent( 4 );
+		
+		ClipboardCopy.addCopyToClipMenu(
+				log,
+				new ClipboardCopy.copyToClipProvider()
+				{
+					public String 
+					getText() 
+					{
+						return( log.getText().trim());
+					}
+				});
 	}
 	
 	protected void
