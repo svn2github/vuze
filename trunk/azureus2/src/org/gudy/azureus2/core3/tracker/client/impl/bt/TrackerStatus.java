@@ -54,6 +54,8 @@ import org.gudy.azureus2.plugins.clientid.ClientIDGenerator;
 import org.gudy.azureus2.pluginsimpl.local.clientid.ClientIDManagerImpl;
 
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.net.udp.uc.PRUDPPacket;
 import com.aelitis.net.udp.uc.PRUDPPacketHandler;
 import com.aelitis.net.udp.uc.PRUDPPacketHandlerException;
@@ -1026,10 +1028,53 @@ public class TrackerStatus {
 		}
 	}
 
+	private URL
+ 	scrapeHTTP(
+ 		URL 					reqUrl, 
+ 		ByteArrayOutputStream 	message )
 
-	protected URL 
-	scrapeHTTP(
+ 	
+ 		throws IOException
+ 	{
+		try{
+			return( scrapeHTTPSupport( reqUrl, null, message ));
+			
+		}catch( UnknownHostException e ){
+			
+			if ( AENetworkClassifier.categoriseAddress( reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){
+			
+				PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker scrape", reqUrl, true );
+				
+				if ( proxy != null ){
+					
+					boolean	ok = false;
+					
+					try{
+						
+						URL result =  scrapeHTTPSupport( proxy.getURL(), proxy.getProxy(), message );
+						
+						ok = true;
+								
+						return( result );
+						
+					}catch( Throwable f ){
+						
+					}finally{
+						
+						proxy.setOK( ok );
+					}
+				}
+			}
+			
+			throw( e );
+		}
+	}
+	
+	
+	private URL 
+	scrapeHTTPSupport(
 		URL 					reqUrl, 
+		Proxy					proxy,
 		ByteArrayOutputStream 	message )
 
 		throws IOException
@@ -1071,7 +1116,16 @@ public class TrackerStatus {
 
 					// see ConfigurationChecker for SSL client defaults
 
-					HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
+					HttpsURLConnection ssl_con;
+					
+					if ( proxy == null ){
+						
+						ssl_con = (HttpsURLConnection)reqUrl.openConnection();
+						
+					}else{
+						
+						ssl_con = (HttpsURLConnection)reqUrl.openConnection( proxy );
+					}
 
 					// allow for certs that contain IP addresses rather than dns names
 
@@ -1086,7 +1140,14 @@ public class TrackerStatus {
 
 				}else{
 					
-					con = (HttpURLConnection) reqUrl.openConnection();
+					if ( proxy == null ){
+						
+						con = (HttpURLConnection) reqUrl.openConnection();
+						
+					}else{
+						
+						con = (HttpURLConnection) reqUrl.openConnection( proxy );
+					}
 				}
 					
 					// we want this true but some plugins (grrr) set the global default not to follow

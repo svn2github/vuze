@@ -65,6 +65,8 @@ import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.net.udp.uc.*;
 
@@ -1225,7 +1227,7 @@ TRTrackerBTAnnouncerImpl
 			  			
 			  			if ( !failed ){
 			  			
-			  				failure_reason = announceHTTP( tracker_url, reqUrl, message );
+			  				failure_reason = announceHTTP( tracker_url, reqUrl, message, i==0 );
 			  			}
 			  		}
 	
@@ -1321,11 +1323,55 @@ TRTrackerBTAnnouncerImpl
 		}
   	}
   
- 	
- 	protected String
+	private String
  	announceHTTP(
  		URL[]					tracker_url,	// overwritten if redirected
  		URL						original_reqUrl,
+ 		ByteArrayOutputStream	message,
+ 		boolean					first_effort )
+ 	
+ 		throws IOException
+ 	{
+		try{
+			return( announceHTTPSupport( tracker_url, original_reqUrl, null, message ));
+			
+		}catch( UnknownHostException e ){
+			
+			if ( 	first_effort &&
+					AENetworkClassifier.categoriseAddress( original_reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){
+			
+				PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker update", original_reqUrl, true );
+				
+				if ( proxy != null ){
+					
+					boolean	ok = false;
+					
+					try{
+						
+						String result =  announceHTTPSupport( tracker_url, proxy.getURL(), proxy.getProxy(), message );
+						
+						ok = true;
+								
+						return( result );
+						
+					}catch( Throwable f ){
+						
+					}finally{
+						
+						proxy.setOK( ok );
+					}
+				}
+			}
+			
+			throw( e );
+		}
+	}
+	
+ 	private String
+ 	announceHTTPSupport(
+ 		URL[]					tracker_url,	// overwritten if redirected
+ 		URL						original_reqUrl,
+ 		Proxy					proxy,
  		ByteArrayOutputStream	message )
  	
  		throws IOException
@@ -1365,7 +1411,17 @@ TRTrackerBTAnnouncerImpl
  			
  			// see ConfigurationChecker for SSL client defaults
  			
- 			HttpsURLConnection ssl_con = (HttpsURLConnection)reqUrl.openConnection();
+ 			HttpsURLConnection ssl_con;
+ 			
+ 			if ( proxy == null ){
+ 				
+ 				ssl_con = (HttpsURLConnection)reqUrl.openConnection();
+ 				
+ 			}else{
+ 				
+ 				ssl_con = (HttpsURLConnection)reqUrl.openConnection( proxy );
+
+ 			}
  			
  			// allow for certs that contain IP addresses rather than dns names
  			
@@ -1386,9 +1442,15 @@ TRTrackerBTAnnouncerImpl
  			
  		}else{
  			
- 			con = (HttpURLConnection) reqUrl.openConnection();
+ 			if ( proxy == null ){
+ 			
+ 				con = (HttpURLConnection) reqUrl.openConnection();
+ 				
+ 			}else{
+ 				
+				con = (HttpURLConnection) reqUrl.openConnection( proxy );
+ 			}
  		}
- 		
  					
 			// we want this true but some plugins (grrr) set the global default not to follow
 			// redirects
