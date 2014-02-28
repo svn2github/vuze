@@ -1186,20 +1186,29 @@ public class UIFunctionsImpl
 						boolean can_merge = TorrentUtils.canMergeAnnounceURLs(
 								torrentOptions.getTorrent(), fExistingDownload.getTorrent());
 
+						long	existed_for = SystemTime.getCurrentTime() - fExistingDownload.getCreationTime();
+
 						Shell mainShell = UIFunctionsManagerSWT.getUIFunctionsSWT().getMainShell();
 
 						if ((Display.getDefault().getActiveShell() == null
 								|| !mainShell.isVisible() || mainShell.getMinimized())
 								&& (!can_merge)) {
 
-							new MessageSlideShell(Display.getCurrent(), SWT.ICON_INFORMATION,
-									MSG_ALREADY_EXISTS, null, new String[] {
-										":" + torrentOptions.sOriginatingLocation,
-										fExistingName,
-										MessageText.getString(MSG_ALREADY_EXISTS_NAME),
-									}, new Object[] {
-										fExistingDownload
-									}, -1);
+							
+								// seems we're getting some double additions (linux user reported but could be a general issue) so 
+								// don't warn if the matching download has been added recently
+							
+							if ( existed_for > 15*1000 ){
+								
+								new MessageSlideShell(Display.getCurrent(), SWT.ICON_INFORMATION,
+										MSG_ALREADY_EXISTS, null, new String[] {
+											":" + torrentOptions.sOriginatingLocation,
+											fExistingName,
+											MessageText.getString(MSG_ALREADY_EXISTS_NAME),
+										}, new Object[] {
+											fExistingDownload
+										}, -1);
+							}
 						} else {
 
 							if (can_merge) {
@@ -1228,13 +1237,17 @@ public class UIFunctionsImpl
 									}
 								});
 							} else {
-								MessageBoxShell mb = new MessageBoxShell(SWT.OK,
-										MSG_ALREADY_EXISTS, new String[] {
-											":" + torrentOptions.sOriginatingLocation,
-											fExistingName,
-											MessageText.getString(MSG_ALREADY_EXISTS_NAME),
-										});
-								mb.open(null);
+								
+								if ( existed_for > 15*1000 ){
+
+									MessageBoxShell mb = new MessageBoxShell(SWT.OK,
+											MSG_ALREADY_EXISTS, new String[] {
+												":" + torrentOptions.sOriginatingLocation,
+												fExistingName,
+												MessageText.getString(MSG_ALREADY_EXISTS_NAME),
+											});
+									mb.open(null);
+								}
 							}
 						}
 					}
