@@ -1610,7 +1610,7 @@ PlatformManagerImpl
 					try{
 						registerAdditionalFileType( 
 							"Magnet", 
-							"Magnet URI", 
+							"URL:Magnet Protocol", 
 							".magnet", 
 							"application/x-magnet",
 							true );
@@ -1624,16 +1624,23 @@ PlatformManagerImpl
 			
 				// we always write this hierarchy in case magnet.exe installed in the future
 			
-			createKey( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet" );
-			createKey( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet\\Handlers" );
-			createKey( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet\\Handlers\\Azureus" );
-	
-			access.writeStringValue( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet\\Handlers\\Azureus", "DefaultIcon", "\"" + az_exe_string + "," + getIconIndex() + "\"" );
-			access.writeStringValue( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet\\Handlers\\Azureus", "Description", "Download with Vuze (formerly Azureus)" );
-			access.writeStringValue( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet\\Handlers\\Azureus", "ShellExecute", "\"" + az_exe_string + "\" %URL" );
+			for ( int type: new int[]{ AEWin32Access.HKEY_LOCAL_MACHINE, AEWin32Access.HKEY_CURRENT_USER } ){
+				
+				try{
+					createKey( type, "Software\\Magnet" );
+					createKey( type, "Software\\Magnet\\Handlers" );
+					createKey( type, "Software\\Magnet\\Handlers\\Azureus" );
 			
-			access.writeWordValue( AEWin32Access.HKEY_LOCAL_MACHINE, "Software\\magnet\\Handlers\\Azureus\\Type", "urn:btih", 0 );
-
+					access.writeStringValue( type, "Software\\Magnet\\Handlers\\Azureus", "DefaultIcon", "\"" + az_exe_string + "\"," + getIconIndex());
+					access.writeStringValue( type, "Software\\Magnet\\Handlers\\Azureus", "Description", "Download with Vuze" );
+					access.writeStringValue( type, "Software\\Magnet\\Handlers\\Azureus", "ShellExecute", "\"" + az_exe_string + "\" \"%URL\"" );
+					
+					access.writeWordValue( type, "Software\\Magnet\\Handlers\\Azureus\\Type", "urn:btih", 0 );
+					
+				}catch( Throwable e ){
+				}
+			}
+			
 		}catch( Throwable e ){		
 		}
 	}
@@ -1772,7 +1779,7 @@ PlatformManagerImpl
 			writeStringToHKCRandHKCU(
 					name + "\\DefaultIcon",
 					"",
-					az_exe_string + "," + getIconIndex());
+					"\"" + az_exe_string + "\"," + getIconIndex());
 			
 			writeStringToHKCRandHKCU(
 					name + "\\shell\\open\\command",
