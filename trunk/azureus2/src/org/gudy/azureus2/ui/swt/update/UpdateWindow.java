@@ -426,7 +426,7 @@ UpdateWindow
           }
         }                
         
-        item.setText(COL_SIZE,DisplayFormatters.formatByteCountToBase10KBEtc(totalLength));                
+        item.setText(COL_SIZE,DisplayFormatters.formatByteCountToKiBEtc(totalLength));                
         
         item.setChecked(true);
         
