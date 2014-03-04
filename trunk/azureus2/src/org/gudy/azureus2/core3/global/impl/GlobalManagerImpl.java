@@ -214,6 +214,7 @@ public class GlobalManagerImpl
 	private volatile boolean 	isStopping;
 	private volatile boolean	destroyed;
 	private volatile boolean 	needsSaving = false;
+	private volatile long		needsSavingCozStateChanged;
   
 	private boolean seeding_only_mode 				= false;
 	private boolean potentially_seeding_only_mode	= false;
@@ -292,10 +293,39 @@ public class GlobalManagerImpl
 	        
 	        determineSaveResumeDataInterval();
 	        
-	        if (	( loopFactor % saveResumeLoopCount == 0 ) || 
-	        		( needsSaving && loadingComplete && loopFactor > initSaveResumeLoopCount )) {
-	          	
+	        if (( loopFactor % saveResumeLoopCount == 0 )){
+	        	
 	        	saveDownloads( true );
+	        	
+	        }else if ( loadingComplete && loopFactor > initSaveResumeLoopCount ){
+	          	
+	        	if ( needsSavingCozStateChanged > 0 ){
+	        	
+	        		int num_downloads = managers_cow.size();
+	        		
+	        		boolean	do_save = false;
+	        		
+	        		if ( num_downloads < 10 ){
+	        		
+	        			do_save = true;
+	        			
+	        		}else{
+	        		
+	        				// this save isn't that important so back off based on number of downloads as saving a lot of download's state
+	        				// takes some resources...
+	        			
+	        			long	now = SystemTime.getMonotonousTime();
+	        			
+	        			long	elapsed_secs = ( now - needsSavingCozStateChanged )/1000;
+	        			
+	        			do_save = elapsed_secs > num_downloads;
+	        		}
+	        		
+	        		if ( do_save ){
+	        		
+	        			saveDownloads( true );
+	        		}
+	        	}
 	        }
 	        	        
 	        if ((loopFactor % natCheckLoopCount == 0)) {
@@ -2075,7 +2105,9 @@ public class GlobalManagerImpl
 
     //    if(Boolean.getBoolean("debug")) return;
 
-	  needsSaving = false;
+	  needsSaving 					= false;
+	  needsSavingCozStateChanged 	= 0;
+	  
 	  if (this.cripple_downloads_config) {
 		  return;
 	  }
@@ -2748,7 +2780,10 @@ public class GlobalManagerImpl
 	DownloadManager 	manager, 
 	int 				new_state ) 
   {
-	  needsSaving = true;  //make sure we update 'downloads.config' on state changes
+	  if ( needsSavingCozStateChanged == 0  ){
+		  
+		  needsSavingCozStateChanged = SystemTime.getMonotonousTime(); //make sure we update 'downloads.config' on state changes
+	  }
 
 	  //run seeding-only-mode check
 
