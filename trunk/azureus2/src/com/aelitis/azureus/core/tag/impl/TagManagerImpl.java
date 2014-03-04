@@ -497,6 +497,8 @@ TagManagerImpl
 		
 		new TagPropertyTrackerTemplateHandler( azureus_core, this );
 		
+		new TagPropertyConstraintHandler( azureus_core, this );
+		
 		azureus_core.addLifecycleListener(
 			new AzureusCoreLifecycleAdapter()
 			{

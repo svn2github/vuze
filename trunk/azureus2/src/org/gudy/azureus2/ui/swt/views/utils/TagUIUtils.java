@@ -1110,7 +1110,59 @@ public class TagUIUtils
 							
 							String tp_name = tp.getName( false );
 							
-							if ( tp_name.equals( TagFeatureProperties.PR_TRACKER_TEMPLATES )){
+							if ( tp_name.equals( TagFeatureProperties.PR_CONSTRAINT )){
+								
+								MenuItem const_item = new MenuItem( props_menu, SWT.PUSH);
+								
+								Messages.setLanguageText( const_item, "label.contraints" );
+								
+								const_item.addListener(SWT.Selection, new Listener() {
+									public void 
+									handleEvent(Event event)
+									{
+										String[] val = tp.getStringList();
+										
+										String def_val;
+										
+										if ( val != null && val.length > 0 ){
+											
+											def_val = val[0];
+											
+										}else{
+											
+											def_val = "";
+										}
+										
+										String msg = MessageText.getString( "UpdateConstraint.message" );
+										
+										SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow( "UpdateConstraint.title", "!" + msg + "!" );
+										
+										entryWindow.setPreenteredText( def_val, false );
+										entryWindow.selectPreenteredText( true );
+										
+										entryWindow.prompt();
+										
+										if ( entryWindow.hasSubmittedInput()){
+											
+											try{
+												String text = entryWindow.getSubmittedInput().trim();
+												
+												if ( text.length() ==  0 ){
+													
+													tp.setStringList( null );
+													
+												}else{
+													
+													tp.setStringList( new String[]{ text });
+												}
+											}catch( Throwable e ){
+												
+												Debug.out( e );
+											}
+										}
+									}});
+								
+							}else if ( tp_name.equals( TagFeatureProperties.PR_TRACKER_TEMPLATES )){
 								
 								final TrackersUtil tut = TrackersUtil.getInstance();
 								

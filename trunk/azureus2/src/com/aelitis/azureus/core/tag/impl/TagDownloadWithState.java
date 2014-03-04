@@ -120,7 +120,8 @@ TagDownloadWithState
 		new TagProperty[]{ 
 			createTagProperty( TagFeatureProperties.PR_TRACKERS, TagFeatureProperties.PT_STRING_LIST ),
 			createTagProperty( TagFeatureProperties.PR_UNTAGGED, TagFeatureProperties.PT_BOOLEAN ),
-			createTagProperty( TagFeatureProperties.PR_TRACKER_TEMPLATES, TagFeatureProperties.PT_STRING_LIST ) 
+			createTagProperty( TagFeatureProperties.PR_TRACKER_TEMPLATES, TagFeatureProperties.PT_STRING_LIST ),
+			createTagProperty( TagFeatureProperties.PR_CONSTRAINT, TagFeatureProperties.PT_STRING_LIST ) 
 		};
 	
 	public
