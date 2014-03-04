@@ -145,6 +145,8 @@ public class TagUIUtils
 						boolean	all_visible 	= true;
 						boolean all_invisible 	= true;
 
+						boolean	has_ut	= false;
+						
 						for ( Tag t: all_tags ){
 								
 							String name = t.getTagName( true );
@@ -156,6 +158,20 @@ public class TagUIUtils
 								all_invisible = false;
 							}else{
 								all_visible = false;
+							}
+							
+							TagFeatureProperties props = (TagFeatureProperties)t;
+							
+							TagProperty prop = props.getProperty( TagFeatureProperties.PR_UNTAGGED );
+									
+							if ( prop != null ){
+								
+								Boolean b = prop.getBoolean();
+								
+								if ( b != null && b ){
+									
+									has_ut = true;
+								}
 							}
 						}
 						
@@ -269,6 +285,48 @@ public class TagUIUtils
 										}
 									});
 							}
+						}
+						
+						if ( !has_ut ){
+							
+							sepItem = menuManager.addMenuItem( menu, "sepu" );
+
+							sepItem.setStyle(org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_SEPARATOR );
+							
+							
+							org.gudy.azureus2.plugins.ui.menus.MenuItem m = menuManager.addMenuItem( menu, "label.untagged" );
+							
+							m.setStyle( org.gudy.azureus2.plugins.ui.menus.MenuItem.STYLE_PUSH );
+																							
+							m.addListener(
+								new MenuItemListener() 
+								{
+									public void
+									selected(
+										org.gudy.azureus2.plugins.ui.menus.MenuItem			menu,
+										Object 												target )
+									{						
+										try{
+											String tag_name = MessageText.getString( "label.untagged" );
+											
+											Tag ut_tag = manual_tt.getTag( tag_name, true );
+											
+											if ( ut_tag == null ){
+												
+											
+												ut_tag = manual_tt.createTag( tag_name, true );
+											}
+											
+											TagFeatureProperties tp = (TagFeatureProperties)ut_tag;
+											
+											tp.getProperty( TagFeatureProperties.PR_UNTAGGED ).setBoolean( true );
+											
+										}catch( TagException e ){
+												
+											Debug.out( e );
+										}
+									}
+								});
 						}
 					}
 				});

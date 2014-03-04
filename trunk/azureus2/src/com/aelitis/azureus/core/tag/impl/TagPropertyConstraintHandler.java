@@ -26,7 +26,9 @@ import java.util.*;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
@@ -54,7 +56,9 @@ TagPropertyConstraintHandler
 	private boolean		initialised;
 	private boolean 	initial_assignment_complete;
 	
-	private Map<Tag,TagConstraint>	constrained_tags = new HashMap<Tag,TagConstraint>();
+	private Map<Tag,TagConstraint>	constrained_tags 	= new HashMap<Tag,TagConstraint>();
+	
+	private Map<Tag,Map<DownloadManager,Long>>			apply_history 		= new HashMap<Tag, Map<DownloadManager,Long>>();
 	
 	private AsyncDispatcher	dispatcher = new AsyncDispatcher( "tag:constraints" );
 	
@@ -202,6 +206,8 @@ TagPropertyConstraintHandler
 							perform(
 								TimerEvent event) 
 							{
+								apply_history.clear();
+								
 								apply();
 							}
 						});
@@ -212,6 +218,8 @@ TagPropertyConstraintHandler
 			timer.cancel();
 			
 			timer = null;
+			
+			apply_history.clear();
 		}
 	}
 	
@@ -301,21 +309,23 @@ TagPropertyConstraintHandler
 				return;
 			}
 		}
-		
-		System.out.println( "apply: " + dm.getDisplayName() + "/" + auto );
-		
+				
 		dispatcher.dispatch(
 			new AERunnable() 
 			{
 				public void 
 				runSupport() 
 				{
+					List<TagConstraint>	cons;
+					
 					synchronized( constrained_tags ){
-						
-						for ( TagConstraint con: constrained_tags.values()){
+					
+						cons = new ArrayList<TagConstraint>( constrained_tags.values());
+					}
+					
+					for ( TagConstraint con: cons ){
 							
-							con.apply( dm );
-						}
+						con.apply( dm );
 					}
 				}
 			});
@@ -340,16 +350,32 @@ TagPropertyConstraintHandler
 				public void 
 				runSupport() 
 				{
+					List<TagConstraint>	cons;
+					
 					synchronized( constrained_tags ){
+					
+						cons = new ArrayList<TagConstraint>( constrained_tags.values());
+					}
 						
-						for ( TagConstraint con: constrained_tags.values()){
-							
-							con.apply( dms );
-						}
+						// set up initial constraint tagged state without following implications
+					
+					for ( TagConstraint con: cons ){
 						
-						if ( initial_assignment ){
+						con.apply( dms );
+					}
+						
+					if ( initial_assignment ){
+						
+						synchronized( constrained_tags ){
 						
 							initial_assignment_complete = true;
+						}
+					
+							// go over them one more time to pick up consequential constraints
+						
+						for ( TagConstraint con: cons ){
+							
+							con.apply( dms );
 						}
 					}
 				}
@@ -400,7 +426,14 @@ TagPropertyConstraintHandler
 				{
 					List<DownloadManager> dms = azureus_core.getGlobalManager().getDownloadManagers();
 					
-					for ( TagConstraint con: constrained_tags.values()){
+					List<TagConstraint>	cons;
+					
+					synchronized( constrained_tags ){
+					
+						cons = new ArrayList<TagConstraint>( constrained_tags.values());
+					}
+					
+					for ( TagConstraint con: cons ){
 						
 						con.apply( dms );
 					}
@@ -414,6 +447,8 @@ TagPropertyConstraintHandler
 		private Tag		tag;
 		private String	constraint;
 		
+		private ConstraintExpr	expr;
+		
 		private
 		TagConstraint(
 			Tag			_tag,
@@ -421,6 +456,71 @@ TagPropertyConstraintHandler
 		{
 			tag			= _tag;
 			constraint	= _constraint;
+		
+			try{
+				expr = compile( constraint );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( "Invalid constraint: " + constraint + " - " + Debug.getNestedExceptionMessage( e ));
+			}
+		}
+		
+		private ConstraintExpr
+		compile(
+			String	str )
+		{
+			if ( str.contains( "||" )){
+				
+				String[] bits = str.split( "\\|\\|" );
+				
+				return( new ConstraintExprOr( compile( bits )));
+				
+			}else if ( str.contains( "&&" )){
+				
+				String[] bits = str.split( "&&" );
+				
+				return( new ConstraintExprAnd( compile( bits )));
+				
+			}else if ( str.startsWith( "!" )){
+				
+				return( new ConstraintExprNot( compile( str.substring(1).trim())));
+				
+			}else{
+				
+				if ( str.startsWith( "hasTag(" ) || !str.endsWith( ")" )){
+					
+					String temp = str.substring( 7, str.length() - 1 ).trim();
+					
+					if ( temp.startsWith( "\"" ) && temp.endsWith( "\"" )){
+						
+						String tag_name = temp.substring(1, temp.length() - 1 );
+						
+						return( new ConstraintExprHasTag( tag_name ));
+						
+					}else{
+						
+						throw( new RuntimeException( "Expected string literal" ));
+					}
+				}else{
+					
+					throw( new RuntimeException( "Unsupported construct: " + str ));
+				}
+			}
+		}
+		
+		private ConstraintExpr[]
+		compile(
+			String[]	bits )
+		{
+			ConstraintExpr[] res = new ConstraintExpr[ bits.length ];
+			
+			for ( int i=0; i<bits.length;i++){
+				
+				res[i] = compile( bits[i].trim());
+			}
+			
+			return( res );
 		}
 		
 		private Tag
@@ -444,13 +544,21 @@ TagPropertyConstraintHandler
 				return;
 			}
 
+			if ( expr == null ){
+				
+				return;
+			}
+			
 			Set<Taggable>	existing = tag.getTagged();
 						
 			if ( testConstraint( dm )){
 				
 				if ( !existing.contains( dm )){
 					
-					tag.addTaggable( dm );
+					if( canAddTaggable( dm )){
+					
+						tag.addTaggable( dm );
+					}
 				}
 			}else{
 				
@@ -465,6 +573,11 @@ TagPropertyConstraintHandler
 		apply(
 			List<DownloadManager>	dms )
 		{
+			if ( expr == null ){
+				
+				return;
+			}
+
 			Set<Taggable>	existing = tag.getTagged();
 			
 			for ( DownloadManager dm: dms ){
@@ -478,7 +591,10 @@ TagPropertyConstraintHandler
 					
 					if ( !existing.contains( dm )){
 						
-						tag.addTaggable( dm );
+						if ( canAddTaggable( dm )){
+						
+							tag.addTaggable( dm );
+						}
 					}
 				}else{
 					
@@ -491,20 +607,160 @@ TagPropertyConstraintHandler
 		}
 		
 		private boolean
+		canAddTaggable(
+			DownloadManager		dm )
+		{
+			long	now = SystemTime.getMonotonousTime();
+				
+			Map<DownloadManager,Long> recent_dms = apply_history.get( tag );
+				
+			if ( recent_dms != null ){
+					
+				Long time = recent_dms.get( dm );
+					
+				if ( time != null && now - time < 1000 ){
+					
+					System.out.println( "Not applying constraint as too recently actioned: " + dm.getDisplayName() + "/" + tag.getTagName( true ));
+
+					return( false );
+				}
+				
+				if ( recent_dms == null ){
+					
+					recent_dms = new HashMap<DownloadManager,Long>();
+					
+					apply_history.put( tag, recent_dms );
+				}
+				
+				recent_dms.put( dm, now );
+			}
+			
+			return( true );
+		}
+		
+		private boolean
 		testConstraint(
 			DownloadManager	dm )
 		{
 			List<Tag> dm_tags = tag_manager.getTagsForTaggable( dm );
 			
-			for ( Tag t: dm_tags  ){
+			return( expr.eval( dm_tags ));
+		}
+	}
+	
+	private interface
+	ConstraintExpr
+	{
+		public boolean
+		eval(
+			List<Tag>		tags );
+	}
+	
+	private class
+	ConstraintExprNot
+		implements  ConstraintExpr
+	{
+		private	ConstraintExpr expr;
+		
+		private
+		ConstraintExprNot(
+			ConstraintExpr	e )
+		{
+			expr = e;
+		}
+		
+		public boolean
+		eval(
+			List<Tag>		tags )
+		{
+			return( !expr.eval( tags ));
+		}
+	}
+	
+	private class
+	ConstraintExprOr
+		implements  ConstraintExpr
+	{
+		private ConstraintExpr[]	exprs;
+		
+		private
+		ConstraintExprOr(
+			ConstraintExpr[]	_exprs )
+		{
+			exprs = _exprs;
+		}
+		
+		public boolean
+		eval(
+			List<Tag>		tags )
+		{
+			for ( ConstraintExpr expr: exprs ){
 				
-				if ( t.getTagName( true ).equals( "derp" )){
+				if ( expr.eval( tags )){
+					
+					return( true );
+				}
+			}
+			
+			return( false );
+		}
+	}
+	
+	private class
+	ConstraintExprAnd
+		implements  ConstraintExpr
+	{
+		private ConstraintExpr[]	exprs;
+		
+		private
+		ConstraintExprAnd(
+			ConstraintExpr[]	_exprs )
+		{
+			exprs = _exprs;
+		}
+		
+		public boolean
+		eval(
+			List<Tag>		tags )
+		{
+			for ( ConstraintExpr expr: exprs ){
+				
+				if ( !expr.eval( tags )){
 					
 					return( false );
 				}
 			}
 			
 			return( true );
+		}
+	}
+	
+	private class
+	ConstraintExprHasTag
+		implements  ConstraintExpr
+	{
+		private	String tag_name;
+		
+		private
+		ConstraintExprHasTag(
+			String n )
+		{
+			tag_name = n;
+		}
+		
+		public boolean
+		eval(
+			List<Tag>		tags )
+		{
+			for ( Tag t: tags ){
+				
+				if ( t.getTagName( true ).equals( tag_name )){
+					
+					return( true );
+				}
+			}
+			
+			return( false );
 		}
 	}
 }
