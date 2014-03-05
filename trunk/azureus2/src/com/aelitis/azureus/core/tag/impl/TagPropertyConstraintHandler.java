@@ -64,6 +64,13 @@ TagPropertyConstraintHandler
 	
 	private TimerEventPeriodic		timer;
 	
+	private
+	TagPropertyConstraintHandler()
+	{
+		azureus_core	= null;
+		tag_manager		= null;
+	}
+
 	protected
 	TagPropertyConstraintHandler(
 		AzureusCore		_core,
@@ -441,6 +448,13 @@ TagPropertyConstraintHandler
 			});
 	}
 	
+	private ConstraintExpr
+	compileConstraint(
+		String		expr )
+	{
+		return( new TagConstraint( null, expr ).expr );
+	}
+	
 	private class
 	TagConstraint
 	{
@@ -458,7 +472,7 @@ TagPropertyConstraintHandler
 			constraint	= _constraint;
 		
 			try{
-				expr = compile( constraint );
+				expr = compileStart( constraint, new HashMap<String,ConstraintExpr>());
 				
 			}catch( Throwable e ){
 				
@@ -467,24 +481,123 @@ TagPropertyConstraintHandler
 		}
 		
 		private ConstraintExpr
-		compile(
-			String	str )
-		{
-			if ( str.contains( "||" )){
+		compileStart(
+			String						str,
+			Map<String,ConstraintExpr>	context )
+		{				
+			char[] chars = str.toCharArray();
+				
+			boolean	in_quote 	= false;
+				
+			int	level 			= 0;
+			int	bracket_start 	= 0;
+			
+			StringBuffer result = new StringBuffer( str.length());
+			
+			for ( int i=0;i<chars.length;i++){
+					
+				char c = chars[i];
+																	
+				if ( c == '"' ){
+	
+					if ( i == 0 || chars[i-1] != '\\' ){
+						
+						in_quote = !in_quote;
+					}
+				}
+				
+				if ( !in_quote ){
+					
+					if ( c == '(' ){
+						
+						level++;
+						
+						if ( level == 1 ){
+							
+							bracket_start = i+1;
+						}
+					}else if ( c == ')' ){
+						
+						level--;
+						
+						if ( level == 0 ){
+						
+							String bracket_text = new String( chars, bracket_start, i-bracket_start ).trim();
+							
+							if ( result.length() > 0 && Character.isLetterOrDigit( result.charAt( result.length()-1 ))){
+								
+								// function call
+								
+								result.append( "(" ).append( bracket_text ).append( ")" );
+								
+							}else{
+								
+								ConstraintExpr sub_expr = compileStart( bracket_text, context );
+								
+								String key = "<" + context.size() + ">";
+								
+								context.put(key, sub_expr );
+								
+								result.append( key );
+							}
+						}
+					}else if ( level == 0 ){
+						
+						if ( !Character.isWhitespace( c )){
+						
+							result.append( c );
+						}
+					}
+				}else if ( level == 0 ){
+						
+					result.append( c );
+					
+				}
+			}
+			
+			if ( level != 0 ){
+				
+				throw( new RuntimeException( "Unmatched '(' in \"" + str + "\"" ));
+			}
+			
+			if ( in_quote ){
+				
+				throw( new RuntimeException( "Unmatched '\"' in \"" + str + "\"" ));
+			}
+			
+			return( compileBasic( result.toString(), context ));
+		}
+		
+		private ConstraintExpr
+		compileBasic(
+			String						str,
+			Map<String,ConstraintExpr>	context )
+		{	
+			if ( str.startsWith( "<" )){
+				
+				return( context.get( str ));
+				
+			}else if ( str.contains( "||" )){
 				
 				String[] bits = str.split( "\\|\\|" );
 				
-				return( new ConstraintExprOr( compile( bits )));
+				return( new ConstraintExprOr( compile( bits, context )));
 				
 			}else if ( str.contains( "&&" )){
 				
 				String[] bits = str.split( "&&" );
 				
-				return( new ConstraintExprAnd( compile( bits )));
+				return( new ConstraintExprAnd( compile( bits, context )));
+				
+			}else if ( str.contains( "^" )){
+				
+				String[] bits = str.split( "\\^" );
+				
+				return( new ConstraintExprXor( compile( bits, context )));
 				
 			}else if ( str.startsWith( "!" )){
 				
-				return( new ConstraintExprNot( compile( str.substring(1).trim())));
+				return( new ConstraintExprNot( compileBasic( str.substring(1).trim(), context )));
 				
 			}else{
 				
@@ -511,13 +624,14 @@ TagPropertyConstraintHandler
 		
 		private ConstraintExpr[]
 		compile(
-			String[]	bits )
+			String[]					bits,
+			Map<String,ConstraintExpr>	context )
 		{
 			ConstraintExpr[] res = new ConstraintExpr[ bits.length ];
 			
 			for ( int i=0; i<bits.length;i++){
 				
-				res[i] = compile( bits[i].trim());
+				res[i] = compileBasic( bits[i].trim(), context );
 			}
 			
 			return( res );
@@ -624,16 +738,16 @@ TagPropertyConstraintHandler
 
 					return( false );
 				}
-				
-				if ( recent_dms == null ){
-					
-					recent_dms = new HashMap<DownloadManager,Long>();
-					
-					apply_history.put( tag, recent_dms );
-				}
-				
-				recent_dms.put( dm, now );
 			}
+			
+			if ( recent_dms == null ){
+					
+				recent_dms = new HashMap<DownloadManager,Long>();
+					
+				apply_history.put( tag, recent_dms );
+			}
+				
+			recent_dms.put( dm, now );
 			
 			return( true );
 		}
@@ -654,6 +768,9 @@ TagPropertyConstraintHandler
 		public boolean
 		eval(
 			List<Tag>		tags );
+		
+		public String
+		getString();
 	}
 	
 	private class
@@ -674,6 +791,12 @@ TagPropertyConstraintHandler
 			List<Tag>		tags )
 		{
 			return( !expr.eval( tags ));
+		}
+		
+		public String
+		getString()
+		{
+			return( "!(" + expr.getString() + ")");
 		}
 	}
 	
@@ -704,6 +827,19 @@ TagPropertyConstraintHandler
 			
 			return( false );
 		}
+		
+		public String
+		getString()
+		{
+			String res = "";
+			
+			for ( int i=0;i<exprs.length;i++){
+				
+				res += (i==0?"":"||") + exprs[i].getString();
+			}
+			
+			return( "(" + res + ")" );
+		}
 	}
 	
 	private class
@@ -732,6 +868,65 @@ TagPropertyConstraintHandler
 			}
 			
 			return( true );
+		}
+		
+		public String
+		getString()
+		{
+			String res = "";
+			
+			for ( int i=0;i<exprs.length;i++){
+				
+				res += (i==0?"":"&&") + exprs[i].getString();
+			}
+			
+			return( "(" + res + ")" );
+		}
+	}
+	
+	private class
+	ConstraintExprXor
+		implements  ConstraintExpr
+	{
+		private ConstraintExpr[]	exprs;
+		
+		private
+		ConstraintExprXor(
+			ConstraintExpr[]	_exprs )
+		{
+			exprs = _exprs;
+			
+			if ( exprs.length < 2 ){
+				
+				throw( new RuntimeException( "Two or more arguments required for ^" ));
+			}
+		}
+		
+		public boolean
+		eval(
+			List<Tag>		tags )
+		{
+			boolean res = exprs[0].eval( tags );
+			
+			for ( int i=1;i<exprs.length;i++){
+				
+				res = res ^ exprs[i].eval( tags );
+			}
+			
+			return( res );
+		}
+		
+		public String
+		getString()
+		{
+			String res = "";
+			
+			for ( int i=0;i<exprs.length;i++){
+				
+				res += (i==0?"":"^") + exprs[i].getString();
+			}
+			
+			return( "(" + res + ")" );
 		}
 	}
 	
@@ -762,5 +957,20 @@ TagPropertyConstraintHandler
 			
 			return( false );
 		}
+		
+		public String
+		getString()
+		{
+			return( "hasTag(\"" + tag_name + "\")" );
+		}
+	}
+	
+	public static void
+	main(
+		String[]	args )
+	{
+		TagPropertyConstraintHandler handler = new TagPropertyConstraintHandler();
+		
+		System.out.println( handler.compileConstraint( "!(hasTag(\"bil\") && (hasTag( \"fred\" ))) || hasTag(\"toot\")" ).getString());
 	}
 }
