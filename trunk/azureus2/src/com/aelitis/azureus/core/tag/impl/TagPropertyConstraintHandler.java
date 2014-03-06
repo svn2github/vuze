@@ -22,8 +22,10 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import java.util.*;
+import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
@@ -526,15 +528,19 @@ TagPropertyConstraintHandler
 							
 							if ( result.length() > 0 && Character.isLetterOrDigit( result.charAt( result.length()-1 ))){
 								
-								// function call
+									// function call
 								
-								result.append( "(" ).append( bracket_text ).append( ")" );
+								String key = "{" + context.size() + "}";
+								
+								context.put( key, new ConstraintExprParams( bracket_text ));
+																
+								result.append( "(" ).append( key ).append( ")" );
 								
 							}else{
 								
 								ConstraintExpr sub_expr = compileStart( bracket_text, context );
 								
-								String key = "<" + context.size() + ">";
+								String key = "{" + context.size() + "}";
 								
 								context.put(key, sub_expr );
 								
@@ -573,7 +579,7 @@ TagPropertyConstraintHandler
 			String						str,
 			Map<String,ConstraintExpr>	context )
 		{	
-			if ( str.startsWith( "<" )){
+			if ( str.startsWith( "{" )){
 				
 				return( context.get( str ));
 				
@@ -601,20 +607,18 @@ TagPropertyConstraintHandler
 				
 			}else{
 				
-				if ( str.startsWith( "hasTag(" ) || !str.endsWith( ")" )){
+				int	pos = str.indexOf( '(' );
+				
+				if ( pos > 0 && str.endsWith( ")" )){
 					
-					String temp = str.substring( 7, str.length() - 1 ).trim();
+					String func = str.substring( 0, pos );
 					
-					if ( temp.startsWith( "\"" ) && temp.endsWith( "\"" )){
-						
-						String tag_name = temp.substring(1, temp.length() - 1 );
-						
-						return( new ConstraintExprHasTag( tag_name ));
-						
-					}else{
-						
-						throw( new RuntimeException( "Expected string literal" ));
-					}
+					String key = str.substring( pos+1, str.length() - 1 ).trim();
+					
+					ConstraintExprParams params = (ConstraintExprParams)context.get( key );
+										
+					return( new ConstraintExprFunction( func, params ));
+
 				}else{
 					
 					throw( new RuntimeException( "Unsupported construct: " + str ));
@@ -758,7 +762,7 @@ TagPropertyConstraintHandler
 		{
 			List<Tag> dm_tags = tag_manager.getTagsForTaggable( dm );
 			
-			return( expr.eval( dm_tags ));
+			return( expr.eval( dm, dm_tags ));
 		}
 	}
 	
@@ -767,10 +771,93 @@ TagPropertyConstraintHandler
 	{
 		public boolean
 		eval(
-			List<Tag>		tags );
+			DownloadManager		dm,
+			List<Tag>			tags );
 		
 		public String
 		getString();
+	}
+	
+	private class
+	ConstraintExprParams
+		implements  ConstraintExpr
+	{
+		private String	value;
+		
+		private
+		ConstraintExprParams(
+			String	_value )
+		{
+			value = _value.trim();
+		}
+		
+		public boolean
+		eval(
+			DownloadManager		dm,
+			List<Tag>			tags )
+		{
+			return( false );
+		}
+		
+		public Object[]
+		getValues()
+		{
+			if ( value.length() == 0 ){
+				
+				return( new String[0]);
+				
+			}else if ( !value.contains( "," )){
+			
+				return( new Object[]{ value });
+				
+			}else{
+				
+				char[]	chars = value.toCharArray();
+				
+				boolean in_quote = false;
+				
+				List<String>	params = new ArrayList<String>(16);
+				
+				StringBuffer current_param = new StringBuffer( value.length());
+				
+				for (int i=0;i<chars.length;i++){
+				
+					char c = chars[i];
+					
+					if ( c == '"' ){
+						
+						if ( i == 0 || chars[i-1] != '\\' ){
+							
+							in_quote = !in_quote;
+						}
+					}
+					
+					if ( c == ',' && !in_quote ){
+						
+						params.add( current_param.toString());
+						
+						current_param.setLength( 0 );
+						
+					}else{
+						
+						if ( in_quote || !Character.isWhitespace( c )){
+						
+							current_param.append( c );
+						}
+					}
+				}
+				
+				params.add( current_param.toString());
+				
+				return( params.toArray( new Object[ params.size()]));
+			}
+		}
+		
+		public String
+		getString()
+		{
+			return( value );
+		}
 	}
 	
 	private class
@@ -788,9 +875,10 @@ TagPropertyConstraintHandler
 		
 		public boolean
 		eval(
-			List<Tag>		tags )
+			DownloadManager		dm,
+			List<Tag>			tags )		
 		{
-			return( !expr.eval( tags ));
+			return( !expr.eval( dm, tags ));
 		}
 		
 		public String
@@ -815,11 +903,12 @@ TagPropertyConstraintHandler
 		
 		public boolean
 		eval(
-			List<Tag>		tags )
+			DownloadManager		dm,
+			List<Tag>			tags )		
 		{
 			for ( ConstraintExpr expr: exprs ){
 				
-				if ( expr.eval( tags )){
+				if ( expr.eval( dm, tags )){
 					
 					return( true );
 				}
@@ -857,11 +946,12 @@ TagPropertyConstraintHandler
 		
 		public boolean
 		eval(
-			List<Tag>		tags )
+			DownloadManager		dm,
+			List<Tag>			tags )
 		{
 			for ( ConstraintExpr expr: exprs ){
 				
-				if ( !expr.eval( tags )){
+				if ( !expr.eval( dm, tags )){
 					
 					return( false );
 				}
@@ -904,13 +994,14 @@ TagPropertyConstraintHandler
 		
 		public boolean
 		eval(
-			List<Tag>		tags )
+			DownloadManager		dm,
+			List<Tag>			tags )
 		{
-			boolean res = exprs[0].eval( tags );
+			boolean res = exprs[0].eval( dm, tags );
 			
 			for ( int i=1;i<exprs.length;i++){
 				
-				res = res ^ exprs[i].eval( tags );
+				res = res ^ exprs[i].eval( dm, tags );
 			}
 			
 			return( res );
@@ -930,38 +1021,334 @@ TagPropertyConstraintHandler
 		}
 	}
 	
+	private static final int FT_HAS_TAG		= 1;
+	private static final int FT_IS_PRIVATE	= 2;
+	
+	private static final int FT_GE			= 3;
+	private static final int FT_GT			= 4;
+	private static final int FT_LE			= 5;
+	private static final int FT_LT			= 6;
+	private static final int FT_EQ			= 7;
+	private static final int FT_NEQ			= 8;
+	
+	private static final int FT_CONTAINS	= 9;
+	private static final int FT_MATCHES		= 10;
+
+	
 	private class
-	ConstraintExprHasTag
+	ConstraintExprFunction
 		implements  ConstraintExpr
 	{
-		private	String tag_name;
+		
+		private	final String 				func_name;
+		private final ConstraintExprParams	params_expr;
+		private final Object[]				params;
+		
+		private final int	fn_type;
 		
 		private
-		ConstraintExprHasTag(
-			String n )
+		ConstraintExprFunction(
+			String 					_func_name,
+			ConstraintExprParams	_params )
 		{
-			tag_name = n;
+			func_name	= _func_name;
+			params_expr	= _params;
+			
+			params		= _params.getValues();
+			
+			boolean	params_ok = false;
+			
+			if ( func_name.equals( "hasTag" )){
+				
+				fn_type = FT_HAS_TAG;
+				
+				params_ok = params.length == 1 && getStringLiteral( params, 0 );
+				
+			}else if ( func_name.equals( "isPrivate" )){
+
+				fn_type = FT_IS_PRIVATE;
+
+				params_ok = params.length == 0;
+				
+			}else if ( func_name.equals( "isGE" )){
+				
+				fn_type = FT_GE;
+				
+				params_ok = params.length == 2;
+				
+			}else if ( func_name.equals( "isGT" )){
+				
+				fn_type = FT_GT;
+				
+				params_ok = params.length == 2;
+				
+			}else if ( func_name.equals( "isLE" )){
+				
+				fn_type = FT_LE;
+				
+				params_ok = params.length == 2;
+				
+			}else if ( func_name.equals( "isLT" )){
+				
+				fn_type = FT_LT;
+				
+				params_ok = params.length == 2;
+				
+			}else if ( func_name.equals( "isEQ" )){
+				
+				fn_type = FT_EQ;
+				
+				params_ok = params.length == 2;
+				
+			}else if ( func_name.equals( "isNEQ" )){
+				
+				fn_type = FT_NEQ;
+				
+				params_ok = params.length == 2;
+			
+			}else if ( func_name.equals( "contains" )){
+				
+				fn_type = FT_CONTAINS;
+					
+				params_ok = params.length == 2;
+
+			}else if ( func_name.equals( "matches" )){
+				
+				fn_type = FT_MATCHES;
+					
+				params_ok = params.length == 2 && getStringLiteral( params, 1 );
+
+			}else{
+				
+				throw( new RuntimeException( "Unsupported function '" + func_name + "'" ));
+			}
+			
+			if ( !params_ok ){
+				
+				throw( new RuntimeException( "Invalid parameters for function '" + func_name + "': " + params_expr.getString()));
+
+			}
 		}
-		
+	
 		public boolean
 		eval(
-			List<Tag>		tags )
+			DownloadManager		dm,
+			List<Tag>			tags )
 		{
-			for ( Tag t: tags ){
+			switch( fn_type ){
+				case FT_HAS_TAG:{
 				
-				if ( t.getTagName( true ).equals( tag_name )){
+					String tag_name = (String)params[0];
 					
-					return( true );
+					for ( Tag t: tags ){
+						
+						if ( t.getTagName( true ).equals( tag_name )){
+							
+							return( true );
+						}
+					}
+					
+					break;
+				}
+				case FT_IS_PRIVATE:{
+				
+					TOTorrent t = dm.getTorrent();
+				
+					return( t != null && t.getPrivate());
+				}
+				case FT_GE:
+				case FT_GT:
+				case FT_LE:
+				case FT_LT:
+				case FT_EQ:
+				case FT_NEQ:{
+								
+					Number n1 = getNumeric( dm, params, 0 );
+					Number n2 = getNumeric( dm, params, 1 );
+				
+					switch( fn_type ){
+					
+						case FT_GE:
+							return( n1.doubleValue() >= n2.doubleValue());
+						case FT_GT:
+							return( n1.doubleValue() > n2.doubleValue());
+						case FT_LE:
+							return( n1.doubleValue() <= n2.doubleValue());
+						case FT_LT:
+							return( n1.doubleValue() < n2.doubleValue());
+						case FT_EQ:
+							return( n1.doubleValue() == n2.doubleValue());
+						case FT_NEQ:
+							return( n1.doubleValue() != n2.doubleValue());
+					}
+					
+					return( false );
+				}
+				case FT_CONTAINS:{
+					
+					String	s1 = getString( dm, params, 0 );
+					String	s2 = getString( dm, params, 1 );
+					
+					return( s1.contains( s2 ));
+				}
+				case FT_MATCHES:{
+					
+					String	s1 = getString( dm, params, 0 );
+					
+					if ( params[1] == null ){
+						
+						return( false );
+						
+					}else if ( params[1] instanceof Pattern ){
+						
+						return(((Pattern)params[1]).matcher( s1 ).find());
+						
+					}else{
+						
+						try{
+							Pattern p = Pattern.compile((String)params[1], Pattern.CASE_INSENSITIVE );
+							
+							params[1] = p;
+							
+							return( p.matcher( s1 ).find());
+							
+						}catch( Throwable e ){
+							
+							Debug.out( "Invalid constraint pattern: " + params[1] );
+							
+							params[1] = null;
+						}
+					}
+					
+					return( false );
 				}
 			}
 			
 			return( false );
 		}
 		
+		private boolean
+		getStringLiteral(
+			Object[]	args,
+			int			index )
+		{
+			Object _arg = args[index];
+			
+			if ( _arg instanceof String ){
+				
+				String arg = (String)_arg;
+			
+				if ( arg.startsWith( "\"" ) && arg.endsWith( "\"" )){
+					
+					args[index] = arg.substring( 1, arg.length() - 1 );
+					
+					return( true );
+				}
+			}
+				
+			return( false );
+		}
+		
+		private String
+		getString(
+			DownloadManager		dm,
+			Object[]			args,
+			int					index )
+		{
+			String str = (String)args[index];
+			
+			if ( str.startsWith( "\"" ) && str.endsWith( "\"" )){
+				
+				return( str.substring( 1, str.length() - 1 ));
+				
+			}else if ( str.equals( "name" )){
+				
+				return( dm.getDisplayName());
+				
+			}else{
+				
+				Debug.out( "Invalid constraint string: " + str );
+				
+				String result = "\"\"";
+				
+				args[index] = result;
+				
+				return( result );
+			}
+		}
+
+		private Number
+		getNumeric(
+			DownloadManager		dm,
+			Object[]			args,
+			int					index )
+		{
+			Object arg = args[index];
+			
+			if ( arg instanceof Number ){
+				
+				return((Number)arg);
+			}
+			
+			String str = (String)arg;
+			
+			Number result = 0;
+			
+			try{
+				if ( Character.isDigit( str.charAt(0))){
+				
+					if ( str.contains( "." )){
+						
+						result = Float.parseFloat( str );
+						
+					}else{
+						
+						result = Long.parseLong( str );
+					}
+					
+					return( result );
+					
+				}else if ( str.equals( "shareratio" )){
+					
+					result = null;	// don't cache this!
+					
+					int sr = dm.getStats().getShareRatio();
+					
+					if ( sr == -1 ){
+						
+						return( Integer.MAX_VALUE );
+						
+					}else{
+						
+						return( new Float( dm.getStats().getShareRatio()/1000.0f ));
+					}
+				}else{
+					
+					Debug.out( "Invalid constraint numeric: " + str );
+					
+					return( result );
+				}
+			}catch( Throwable e){
+				
+				Debug.out( "Invalid constraint numeric: " + str );
+
+				return( result );
+				
+			}finally{
+				
+				if ( result != null ){
+					
+						// cache literal results 
+					
+					args[index] = result;
+				}
+			}
+		}
+		
 		public String
 		getString()
 		{
-			return( "hasTag(\"" + tag_name + "\")" );
+			return( func_name + "(" + params_expr.getString() + ")" );
 		}
 	}
 	
@@ -971,6 +1358,7 @@ TagPropertyConstraintHandler
 	{
 		TagPropertyConstraintHandler handler = new TagPropertyConstraintHandler();
 		
-		System.out.println( handler.compileConstraint( "!(hasTag(\"bil\") && (hasTag( \"fred\" ))) || hasTag(\"toot\")" ).getString());
+		//System.out.println( handler.compileConstraint( "!(hasTag(\"bil\") && (hasTag( \"fred\" ))) || hasTag(\"toot\")" ).getString());
+		System.out.println( handler.compileConstraint( "isGE( shareratio, 1.5)" ).getString());
 	}
 }
