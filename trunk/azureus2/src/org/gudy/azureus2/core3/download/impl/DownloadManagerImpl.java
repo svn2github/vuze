@@ -60,6 +60,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentListener;
 import org.gudy.azureus2.core3.tracker.client.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadAnnounceResult;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
@@ -4079,6 +4080,13 @@ DownloadManagerImpl
 					
   				setUserData( TPS_Key, new Object[]{ tps, tol });
 
+  				Download plugin_download = PluginCoreUtils.wrap( this );
+  				
+  				if ( isDestroyed() || plugin_download == null ){
+  					
+  					return( tps );
+  				}
+  				
   					// tracker peer sources
   				
   				final TOTorrent t = getTorrent();
@@ -4574,7 +4582,7 @@ DownloadManagerImpl
 	  				
 	  				if ( esp != null ){
 	  					  					
-						tps.add( esp.getTrackerPeerSource( PluginCoreUtils.wrap( this ) ));
+						tps.add( esp.getTrackerPeerSource( plugin_download ));
 	 				}
 	  			}catch( Throwable e ){
 	  			}
@@ -4587,7 +4595,7 @@ DownloadManagerImpl
 	
 	  			    if ( dht_pi != null ){
 	  			    	
-	  			    	tps.add(((DHTTrackerPlugin)dht_pi.getPlugin()).getTrackerPeerSource( PluginCoreUtils.wrap( this )));
+	  			    	tps.add(((DHTTrackerPlugin)dht_pi.getPlugin()).getTrackerPeerSource( plugin_download ));
 	  			    }
 				}catch( Throwable e ){
 	  			}
@@ -4600,7 +4608,7 @@ DownloadManagerImpl
 	
 					if ( lt_pi != null ){
 						
-	  			    	tps.add(((LocalTrackerPlugin)lt_pi.getPlugin()).getTrackerPeerSource( PluginCoreUtils.wrap( this )));
+	  			    	tps.add(((LocalTrackerPlugin)lt_pi.getPlugin()).getTrackerPeerSource( plugin_download ));
 					
 					}
 					
@@ -4612,7 +4620,7 @@ DownloadManagerImpl
 				
 				try{
 				
-					tps.add(((DownloadImpl)PluginCoreUtils.wrap( this )).getTrackerPeerSource());
+					tps.add(((DownloadImpl)plugin_download).getTrackerPeerSource());
 					
 				}catch( Throwable e ){
 					
