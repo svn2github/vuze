@@ -59,6 +59,7 @@ TagBase
 	protected static final String	AT_RATELIMIT_UP_PRI	= "rl.uppri";
 	protected static final String	AT_XCODE_TARGET		= "xcode.to";
 	protected static final String	AT_FL_MOVE_COMP		= "fl.comp";
+	protected static final String	AT_FL_COPY_COMP		= "fl.copy";
 	protected static final String	AT_FL_INIT_LOC		= "fl.init";
 	protected static final String	AT_RATELIMIT_MIN_SR	= "rl.minsr";
 	protected static final String	AT_RATELIMIT_MAX_SR	= "rl.maxsr";
@@ -561,6 +562,56 @@ TagBase
 			}
 		}
 	}
+	
+		// copy on complete
+		
+	public boolean
+	supportsTagCopyOnComplete()
+	{
+		return( false );
+	}
+	
+	public File
+	getTagCopyOnCompleteFolder()
+	{
+		if ( tag_fl != null ){
+			
+			String str = readStringAttribute( AT_FL_COPY_COMP, null );
+			
+			if ( str == null ){
+				
+				return( null );
+				
+			}else{
+				
+				return( new File( str ));
+			}
+		}
+		
+		return( null );
+	}
+	
+	public void
+	setTagCopyOnCompleteFolder(
+		File		folder )
+	{
+		if ( tag_fl != null ){
+			
+			File	existing = getTagCopyOnCompleteFolder();
+			
+			if ( existing == null && folder == null ){
+				
+				return;
+				
+			}else if ( existing == null || folder == null || !existing.equals( folder )){
+				
+				writeStringAttribute( AT_FL_COPY_COMP, folder==null?null:folder.getAbsolutePath());
+				
+				tag_type.fireChanged( this );
+			}
+		}
+	}
+
 	
 		// min ratio
 	

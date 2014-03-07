@@ -512,6 +512,13 @@ DownloadManager
         File    new_parent_dir )
 
         throws DownloadManagerException;
+    
+    public void
+    copyDataFiles(
+    	File	parent_dir )
+    
+    	throws DownloadManagerException;
+    
     /**
      * Rename the download - this means the name of the file being downloaded (for single
      * file torrents), or the name of the directory holding the files (in a multi-file torrent).

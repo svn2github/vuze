@@ -3833,6 +3833,115 @@ DownloadManagerImpl
 	  }
   }
   
+  public void
+  copyDataFiles(
+  	File	parent_dir )
+  
+  	throws DownloadManagerException
+  {
+	  if ( parent_dir.exists()){
+		  
+		  if ( !parent_dir.isDirectory()){
+			
+			  throw( new DownloadManagerException( "'" + parent_dir + "' is not a directory" ));
+		  }
+	  }else{
+		  
+		  if ( !parent_dir.mkdirs()){
+			  
+			  throw( new DownloadManagerException( "failed to create '" + parent_dir + "'" ));
+		  }
+	  }
+	  
+	  DiskManagerFileInfo[] files = controller.getDiskManagerFileInfoSet().getFiles();
+	  
+	  if ( torrent.isSimpleTorrent()){
+		  
+		  File file_from = files[0].getFile( true );
+		  
+		  try{
+			  File file_to = new File( parent_dir, file_from.getName());
+			  
+			  if ( file_to.exists()){
+				  
+				  if ( file_to.length() != file_from.length()){
+					  
+					  throw( new Exception( "target file '" + file_to + " already exists" ));
+				  }
+			  }else{
+			  
+				  FileUtil.copyFileWithException( file_from, file_to );
+			  }
+		  }catch( Throwable e ){
+			  
+			  throw( new DownloadManagerException( "copy of '" + file_from + "' failed", e ));
+		  }
+	  }else{
+	  
+		  try{
+			  File sl_file = getSaveLocation();
+			  
+			  String save_location = sl_file.getCanonicalPath();
+			  
+			  if ( !save_location.endsWith( File.separator )){
+				  
+				  save_location += File.separator;
+			  }
+			  
+			  parent_dir = new File( parent_dir, sl_file.getName());
+			  
+			  if ( !parent_dir.isDirectory()){
+				  
+				  parent_dir.mkdirs();
+			  }
+			  
+			  for ( DiskManagerFileInfo file: files ){
+				  
+				  if ( !file.isSkipped() && file.getDownloaded() == file.getLength()){
+					  
+					  File file_from = file.getFile( true );
+					  
+					  try{
+						  String file_path = file_from.getCanonicalPath();
+						  
+						  if ( file_path.startsWith( save_location )){
+							  
+							  File file_to = new File( parent_dir, file_path.substring( save_location.length()));
+							  
+							  if ( file_to.exists()){
+								  
+								  if ( file_to.length() != file_from.length()){
+									  
+									  throw( new Exception( "target file '" + file_to + " already exists" ));
+								  }
+							  }else{
+							  
+								  File parent = file_to.getParentFile();
+								  
+								  if ( !parent.exists()){
+									  
+									  if ( !parent.mkdirs()){
+										  
+										  throw( new Exception( "Failed to make directory '" + parent + "'" ));
+									  }
+								  }
+								  
+								  FileUtil.copyFileWithException( file_from, file_to );
+							  }
+						  }
+					  }catch( Throwable e ){
+						  
+						  throw( new DownloadManagerException( "copy of '" + file_from + "' failed", e ));
+					  }
+				  }
+			  }
+		  }catch( Throwable e ){
+			  
+			  throw( new DownloadManagerException( "copy failed", e ));
+		  }
+	  }
+  }
+  
   public void moveTorrentFile(File new_parent_dir) throws DownloadManagerException {
 	  this.moveTorrentFile(new_parent_dir, null);
   }

@@ -26,6 +26,8 @@ import java.io.File;
 public interface 
 TagFeatureFileLocation 
 {
+		// initial location
+	
 	public boolean
 	supportsTagInitialSaveFolder();
 	
@@ -36,6 +38,8 @@ TagFeatureFileLocation
 	setTagInitialSaveFolder(
 		File		folder );
 	
+		// move 
+	
 	public boolean
 	supportsTagMoveOnComplete();
 	
@@ -44,5 +48,17 @@ TagFeatureFileLocation
 	
 	public void
 	setTagMoveOnCompleteFolder(
+		File		folder );
+	
+		// copy 
+	
+	public boolean
+	supportsTagCopyOnComplete();
+	
+	public File
+	getTagCopyOnCompleteFolder();
+	
+	public void
+	setTagCopyOnCompleteFolder(
 		File		folder );
 }

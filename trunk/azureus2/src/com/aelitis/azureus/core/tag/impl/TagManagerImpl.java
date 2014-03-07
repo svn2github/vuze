@@ -34,8 +34,11 @@ import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.global.GlobalManager;
+import org.gudy.azureus2.core3.logging.LogAlert;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.Base32;
@@ -55,6 +58,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.download.DownloadCompletionListener;
 import org.gudy.azureus2.plugins.download.DownloadScrapeResult;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
@@ -72,7 +76,7 @@ import com.aelitis.azureus.util.MapUtils;
 
 public class 
 TagManagerImpl
-	implements TagManager
+	implements TagManager, DownloadCompletionListener
 {
 	private static final String	CONFIG_FILE 				= "tag.config";
 	
@@ -502,6 +506,13 @@ TagManagerImpl
 		azureus_core.addLifecycleListener(
 			new AzureusCoreLifecycleAdapter()
 			{
+				public void
+				started(
+					AzureusCore		core )
+				{
+					core.getPluginManager().getDefaultPluginInterface().getDownloadManager().getGlobalDownloadEventNotifier().addCompletionListener( TagManagerImpl.this);
+				}
+				
 				public void 
 				componentCreated(
 					AzureusCore 			core,
@@ -613,6 +624,89 @@ TagManagerImpl
 					}
 				}
 			});
+	}
+	
+	public void 
+	onCompletion(
+		Download d )
+	{
+		final DownloadManager manager = PluginCoreUtils.unwrap( d );
+	
+		List<Tag> tags = getTagsForTaggable( manager );
+		
+		List<Tag> cc_tags = new ArrayList<Tag>();
+		
+		for ( Tag tag: tags ){
+			
+			if ( tag.getTagType().hasTagTypeFeature( TagFeature.TF_FILE_LOCATION )){
+			
+				TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
+
+				if ( fl.supportsTagCopyOnComplete()){
+					
+					File save_loc = fl.getTagCopyOnCompleteFolder();
+					
+					if ( save_loc != null ){
+						
+						cc_tags.add( tag );
+					}
+				}
+			}
+		}
+		
+		if ( cc_tags.size() > 0 ){
+			
+			if ( cc_tags.size() > 1 ){
+				
+				Collections.sort(
+						cc_tags,
+					new Comparator<Tag>()
+					{
+						public int 
+						compare(
+							Tag o1, Tag o2) 
+						{
+							return( o1.getTagID() - o2.getTagID());
+						}
+					});
+			}
+			
+			final File new_loc = ((TagFeatureFileLocation)cc_tags.get(0)).getTagCopyOnCompleteFolder();
+			
+			File old_loc = manager.getSaveLocation();
+			
+			if ( !new_loc.equals( old_loc )){
+				
+				new AEThread2( "tm:copy")
+				{
+					public void
+					run()
+					{
+						try{
+							manager.copyDataFiles( new_loc );
+							
+							Logger.logTextResource(
+								new LogAlert(
+									manager, 
+									LogAlert.REPEATABLE,
+									LogAlert.AT_INFORMATION, 
+									"alert.copy.on.comp.done"),
+								new String[]{ manager.getDisplayName(), new_loc.toString()});
+							 
+						}catch( Throwable e ){
+							
+							 Logger.logTextResource(
+								new LogAlert(
+									manager, 
+									LogAlert.REPEATABLE,
+									LogAlert.AT_ERROR, 
+									"alert.copy.on.comp.fail"),
+								new String[]{ manager.getDisplayName(), new_loc.toString(), Debug.getNestedExceptionMessage(e)});
+						}
+					}
+				}.start();
+			}
+		}
 	}
 	
 	private void

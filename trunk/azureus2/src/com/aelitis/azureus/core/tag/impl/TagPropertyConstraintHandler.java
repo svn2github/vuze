@@ -486,7 +486,14 @@ TagPropertyConstraintHandler
 		compileStart(
 			String						str,
 			Map<String,ConstraintExpr>	context )
-		{				
+		{		
+			str = str.trim();
+			
+			if ( str.equalsIgnoreCase( "true" )){
+				
+				return( new ConstraintExprTrue());
+			}
+			
 			char[] chars = str.toCharArray();
 				
 			boolean	in_quote 	= false;
@@ -776,6 +783,25 @@ TagPropertyConstraintHandler
 		
 		public String
 		getString();
+	}
+	
+	private class
+	ConstraintExprTrue
+		implements ConstraintExpr
+	{
+		public boolean
+		eval(
+			DownloadManager		dm,
+			List<Tag>			tags )
+		{
+			return( true );
+		}
+		
+		public String
+		getString()
+		{
+			return( "true" );
+		}
 	}
 	
 	private class

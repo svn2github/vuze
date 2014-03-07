@@ -840,6 +840,13 @@ TagDownloadWithState
 	}
 	
 	@Override
+	public boolean
+	supportsTagCopyOnComplete()
+	{
+		return( supports_file_location );
+	}
+	
+	@Override
 	public TagProperty[]
 	getSupportedProperties()
 	{
