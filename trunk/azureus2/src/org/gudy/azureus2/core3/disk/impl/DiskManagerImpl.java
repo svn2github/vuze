@@ -1014,7 +1014,7 @@ DiskManagerImpl
 
                 if ( file_set.contains( file_key )){
 
-                    this.errorMessage = "File occurs more than once in download: " + data_file.toString();
+                    this.errorMessage = "File occurs more than once in download: " + data_file.toString() + ".\nRename one of the files in Files view via the right-click menu.";
 
                     setState( FAULTY );
 
