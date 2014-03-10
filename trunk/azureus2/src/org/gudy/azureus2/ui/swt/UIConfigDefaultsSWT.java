@@ -52,6 +52,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter("IconBar.enabled", true);
 
 		def.addParameter("DefaultDir.BestGuess", true);
+		def.addParameter("DefaultDir.BestGuess.Default", "");
 		def.addParameter("DefaultDir.AutoUpdate", true);
 		def.addParameter("DefaultDir.AutoSave.AutoRename", true);
 		def.addParameter("GUI_SWT_bFancyTab", true);

@@ -2883,6 +2883,17 @@ public class OpenTorrentWindow
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
+			
+			if ( sSmartDir == null || sSmartDir.trim().length() == 0 ){
+			
+				String def = COConfigurationManager.getStringParameter( "DefaultDir.BestGuess.Default" );
+				
+				if ( def != null ){
+					
+					sSmartDir = def.trim();
+				}
+			}
+			
 			return sSmartDir;
 		}
 

@@ -194,6 +194,42 @@ public class ConfigSectionFile
 			gridData.horizontalSpan = 3;
 			bestGuess.setLayoutData(gridData);
 
+				// best guess default dir
+			sCurConfigID = "DefaultDir.BestGuess.Default";
+			allConfigIDs.add(sCurConfigID);
+			final Label lblBestGuessDefaultDir = new Label(gDefaultDir, SWT.NONE);
+			Messages.setLanguageText(lblBestGuessDefaultDir,
+					"ConfigView.section.file.bgdefaultdir.ask");
+			gridData = new GridData();
+			gridData.horizontalIndent=25;
+			lblBestGuessDefaultDir.setLayoutData(gridData);
+
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			final StringParameter bestGuessPathParameter = new StringParameter(gDefaultDir,
+					sCurConfigID);
+			bestGuessPathParameter.setLayoutData(gridData);
+
+			final Button bestGuessBrowse = new Button(gDefaultDir, SWT.PUSH);
+			bestGuessBrowse.setImage(imgOpenFolder);
+			bestGuessBrowse.setToolTipText(MessageText.getString("ConfigView.button.browse"));
+
+			bestGuessBrowse.addListener(SWT.Selection, new Listener() {
+				/* (non-Javadoc)
+				 * @see org.eclipse.swt.widgets.Listener#handleEvent(org.eclipse.swt.widgets.Event)
+				 */
+				public void handleEvent(Event event) {
+					DirectoryDialog dialog = new DirectoryDialog(parent.getShell(),
+							SWT.APPLICATION_MODAL);
+					dialog.setFilterPath(pathParameter.getValue());
+					dialog.setMessage(MessageText.getString("ConfigView.dialog.choosedefaultsavepath"));
+					dialog.setText(MessageText.getString("ConfigView.section.file.defaultdir.ask"));
+					String path = dialog.open();
+					if (path != null) {
+						bestGuessPathParameter.setValue(path);
+					}
+				}
+			});
+			
 			//IAdditionalActionPerformer aapDefaultDirStuff = new ChangeSelectionActionPerformer(
 			//		bestGuess.getControls(), true);
 
@@ -223,7 +259,12 @@ public class ConfigSectionFile
 								
 								String dsp = COConfigurationManager.getStringParameter( parameterName );
 								
-								bestGuess.setEnabled( dsp == null || dsp.trim().length() == 0 );
+								boolean enable = dsp == null || dsp.trim().length() == 0;
+								
+								bestGuess.setEnabled( enable );
+								lblBestGuessDefaultDir.setEnabled( enable );
+								bestGuessPathParameter.setEnabled( enable );
+								bestGuessBrowse.setEnabled( enable );
 							}
 						}
 					});
