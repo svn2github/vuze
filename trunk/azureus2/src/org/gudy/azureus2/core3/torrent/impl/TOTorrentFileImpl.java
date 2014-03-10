@@ -236,7 +236,7 @@ TOTorrentFileImpl
 		additional_properties_maybe_null.put( name, value );
 	}
 	
-	protected Map
+	public Map
 	getAdditionalProperties()
 	{
 		return( additional_properties_maybe_null );

@@ -60,6 +60,7 @@ FileHashItemBase
 {	
 	protected static final String	HT_CRC32	= "crc32";
 	protected static final String	HT_MD5		= "md5";
+	protected static final String	HT_SHA1		= "sha1";
 	
 	final String				hash_type;
 	final TableContextMenuItem 	menuItem;
@@ -258,16 +259,21 @@ FileHashItemBase
 						File f = file.getFile( true );
 						
 						CRC32 			crc32 	= null;
-						MessageDigest	md5		= null;
+						MessageDigest	md		= null;
 						
 						if ( hash_type == HT_CRC32 ){
 							
 							crc32 = new CRC32();
 							
+						}else if ( hash_type == HT_MD5 ){
+							
+							md = MessageDigest.getInstance( "md5" );
+						
 						}else{
 							
-							md5 = MessageDigest.getInstance( "md5" );
-						}
+							md = MessageDigest.getInstance( "SHA1" );
+
+						}	
 						
 						FileInputStream fis = new FileInputStream( f );
 						
@@ -296,9 +302,9 @@ FileHashItemBase
 									crc32.update( buffer, 0, len );
 								}
 								
-								if ( md5 != null ){
+								if ( md != null ){
 									
-									md5.update( buffer, 0, len );
+									md.update( buffer, 0, len );
 								}
 								
 								done += len;
@@ -316,7 +322,7 @@ FileHashItemBase
 								
 							}else{
 								
-								hash = md5.digest();
+								hash = md.digest();
 							}
 							
 							Map other_hashes = dm.getDownloadState().getMapAttribute( DownloadManagerState.AT_FILE_OTHER_HASHES );

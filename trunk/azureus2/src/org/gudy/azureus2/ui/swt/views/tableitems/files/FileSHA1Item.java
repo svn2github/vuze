@@ -1,9 +1,9 @@
 /*
- * File    : TOTorrentFile.java
- * Created : 5 Oct. 2003
- * By      : Parg 
- * 
- * Azureus - a Java Bittorrent client
+ * File    : NameItem.java
+ * Created : 24 nov. 2003
+ * By      : Olivier
+ *
+ * Copyright (C) 2004, 2005, 2006 Aelitis SAS, All rights Reserved
  *
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,38 +17,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+ *
+ * AELITIS, SAS au capital de 46,603.30 euros,
+ * 8 Allee Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
  */
 
-package org.gudy.azureus2.core3.torrent;
+package org.gudy.azureus2.ui.swt.views.tableitems.files;
 
-import java.util.Map;
-
-public interface 
-TOTorrentFile 
-{
-	public TOTorrent
-	getTorrent();
-	
-	public int
-	getIndex();
-	
-	public long
-	getLength();
-		
-	public byte[][]
-	getPathComponents();
-	
-	public String getRelativePath();
-		
-	public int
-	getFirstPieceNumber();
-	
-	public int
-	getLastPieceNumber();
-	
-	public int
-	getNumberOfPieces();
-	
-	public Map
-	getAdditionalProperties();
+public class 
+FileSHA1Item
+	extends FileHashItemBase 
+{	
+	public 
+	FileSHA1Item() 
+	{	
+		super( HT_SHA1, 220 );
+	}
 }
