@@ -112,6 +112,7 @@ public class FilesView
     new TorrentRelativePathItem(),
     new FileCRC32Item(),
     new FileMD5Item(),
+    new FileSHA1Item(),
     new FileAvailabilityItem(),
     new AlertsItem(  TableManager.TABLE_TORRENT_FILES ),
     new FileReadSpeedItem(),
