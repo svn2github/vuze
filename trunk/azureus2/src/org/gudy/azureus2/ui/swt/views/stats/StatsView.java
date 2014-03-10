@@ -111,6 +111,11 @@ public class StatsView
 		}
 	}
 
+	public
+	StatsView()
+	{
+	}
+	
 	private void initialize(Composite composite) {
 		parent = composite;
 		folder = new CTabFolder(composite, SWT.LEFT);

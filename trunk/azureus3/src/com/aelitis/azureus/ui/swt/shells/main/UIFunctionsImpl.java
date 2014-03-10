@@ -437,7 +437,7 @@ public class UIFunctionsImpl
 
 			case VIEW_ALLPEERS:
 				openView(SideBar.SIDEBAR_HEADER_TRANSFERS, PeersSuperView.class,
-						null, data, true);
+						"AllPeersView", data, true);
 				break;
 
 			case VIEW_PEERS_STATS:

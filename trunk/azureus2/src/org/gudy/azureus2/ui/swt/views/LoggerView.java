@@ -60,6 +60,8 @@ import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCoreEventListener;
 public class LoggerView
 	implements ILogEventListener, ParameterListener, UISWTViewCoreEventListener
 {
+	public static final String VIEW_ID = "LoggerView";
+	
 	//private final static LogIDs LOGID = LogIDs.GUI;
 
 	private static final int COLOR_INFO = 0;

@@ -70,7 +70,9 @@ public class PeersSuperView
 	extends TableViewTab<PEPeer>
 	implements GlobalManagerListener, DownloadManagerPeerListener,
 	TableLifeCycleListener, TableViewSWTMenuFillListener
-{	
+{
+	public static final String VIEW_ID = "AllPeersView";
+	
 	private TableViewSWT<PEPeer> tv;
 	private Shell shell;
 	private boolean active_listener = true;
@@ -83,7 +85,7 @@ public class PeersSuperView
    *
    */
   public PeersSuperView() {
-  	super("AllPeersView");
+  	super( VIEW_ID );
 	}	
 
   // @see org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab#initYourTableView()
