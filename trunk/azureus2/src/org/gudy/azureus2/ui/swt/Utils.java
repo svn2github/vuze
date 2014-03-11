@@ -2979,4 +2979,37 @@ public class Utils
 			}
 		}
 	}
+	
+	public static Sash
+	createSash(
+		Composite	form,
+		int			SASH_WIDTH )
+	{
+	    final Sash sash = new Sash(form, SWT.HORIZONTAL);
+	    Image image = new Image(sash.getDisplay(), 9, SASH_WIDTH);
+	    ImageData imageData = image.getImageData();
+	    int[] row = new int[imageData.width];
+	    for (int i = 0; i < row.length; i++) {
+	   		row[i] = (i % 3) != 0 ? 0xE0E0E0 : 0x808080;
+	    	if (imageData.depth == 32) {
+	    		row[i] = (row[i] & 255) + (row[i] << 8);
+	    	}
+			}
+	    for (int y = 1; y < imageData.height - 1; y++) {
+	    	imageData.setPixels(0, y, row.length, row, 0);
+	    }
+	    Arrays.fill(row, 0xE0E0E0E0);
+	  	imageData.setPixels(0, 0, row.length, row, 0);
+	  	imageData.setPixels(0, imageData.height - 1, row.length, row, 0);
+	    image.dispose();
+	    image = new Image(sash.getDisplay(), imageData);
+	    sash.setBackgroundImage(image);
+	    sash.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					sash.getBackgroundImage().dispose();
+				}
+			});
+	    
+	    return( sash );
+	}
 }

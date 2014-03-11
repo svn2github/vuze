@@ -492,7 +492,9 @@ public class TableViewSWT_TabsCommon
 		tabFolder.setTabHeight(TABHEIGHT);
 		final int iFolderHeightAdj = tabFolder.computeSize(SWT.DEFAULT, 0).y;
 
-		final Sash sash = new Sash(form, SWT.HORIZONTAL);
+		int SASH_WIDTH = 5;
+		
+		final Sash sash = Utils.createSash( form, SASH_WIDTH );
 
 		tableComposite = tv.createMainPanel(form);
 		Composite cFixLayout = tableComposite;
@@ -539,7 +541,7 @@ public class TableViewSWT_TabsCommon
 		formData.left = new FormAttachment(0, 0);
 		formData.right = new FormAttachment(100, 0);
 		formData.bottom = new FormAttachment(tabFolder);
-		formData.height = 5;
+		formData.height = SASH_WIDTH;
 		sash.setLayoutData(formData);
 
 		// FormData for table Composite
@@ -550,37 +552,6 @@ public class TableViewSWT_TabsCommon
 		formData.bottom = new FormAttachment(sash);
 		cFixLayout.setLayoutData(formData);
 
-		// Listeners to size the folder
-		sash.addSelectionListener(new SelectionAdapter() {
-			public void widgetSelected(SelectionEvent e) {
-				final boolean FASTDRAG = true;
-
-				if (FASTDRAG && e.detail == SWT.DRAG) {
-					return;
-				}
-
-				if (tabFolder.getMinimized()) {
-					tabFolder.setMinimized(false);
-					refreshSelectedSubView();
-					ConfigurationManager configMan = ConfigurationManager.getInstance();
-					configMan.setParameter(props_prefix + ".subViews.minimized",
-							false);
-				}
-
-				Rectangle area = form.getClientArea();
-				tabFolderData.height = area.height - e.y - e.height - iFolderHeightAdj;
-				form.layout();
-
-				Double l = new Double((double) tabFolder.getBounds().height
-						/ form.getBounds().height);
-				sash.setData("PCT", l);
-				if (e.detail != SWT.DRAG) {
-					ConfigurationManager configMan = ConfigurationManager.getInstance();
-					configMan.setParameter(props_prefix + ".SplitAt",
-							(int) (l.doubleValue() * 10000));
-				}
-			}
-		});
 
 		final CTabFolder2Adapter folderListener = new CTabFolder2Adapter() {
 			public void minimize(CTabFolderEvent event) {
@@ -605,7 +576,7 @@ public class TableViewSWT_TabsCommon
 				configMan.setParameter(props_prefix + ".subViews.minimized", true);
 			}
 
-			public void restore(CTabFolderEvent event) {
+			public void restore(CTabFolderEvent event_maybe_null ) {
 				minimized = false;
 				tabFolder.setMinimized(false);
 				CTabItem selection = tabFolder.getSelection();
@@ -636,6 +607,34 @@ public class TableViewSWT_TabsCommon
 			}
 
 		};
+		
+		// Listeners to size the folder
+		sash.addSelectionListener(new SelectionAdapter() {
+			public void widgetSelected(SelectionEvent e) {
+				final boolean FASTDRAG = true;
+
+				if (FASTDRAG && e.detail == SWT.DRAG) {
+					return;
+				}
+
+				if (tabFolder.getMinimized()) {
+					folderListener.restore( null );
+				}
+
+				Rectangle area = form.getClientArea();
+				tabFolderData.height = area.height - e.y - e.height - iFolderHeightAdj;
+				form.layout();
+
+				Double l = new Double((double) tabFolder.getBounds().height
+						/ form.getBounds().height);
+				sash.setData("PCT", l);
+				if (e.detail != SWT.DRAG) {
+					ConfigurationManager configMan = ConfigurationManager.getInstance();
+					configMan.setParameter(props_prefix + ".SplitAt",
+							(int) (l.doubleValue() * 10000));
+				}
+			}
+		});
 		
 		tabFolder.addCTabFolder2Listener(folderListener);
 
