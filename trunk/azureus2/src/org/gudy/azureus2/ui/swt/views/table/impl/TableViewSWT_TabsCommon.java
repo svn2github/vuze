@@ -18,6 +18,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.IndentWriter;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
@@ -492,7 +493,7 @@ public class TableViewSWT_TabsCommon
 		tabFolder.setTabHeight(TABHEIGHT);
 		final int iFolderHeightAdj = tabFolder.computeSize(SWT.DEFAULT, 0).y;
 
-		int SASH_WIDTH = 5;
+		final int SASH_WIDTH = 5;
 		
 		final Sash sash = Utils.createSash( form, SASH_WIDTH );
 
@@ -622,7 +623,18 @@ public class TableViewSWT_TabsCommon
 				}
 
 				Rectangle area = form.getClientArea();
-				tabFolderData.height = area.height - e.y - e.height - iFolderHeightAdj;
+				
+				int height = area.height - e.y - e.height - iFolderHeightAdj;
+				
+				if ( !Constants.isWindows ){
+					height -= SASH_WIDTH;
+				}
+				
+				if ( height < 0 ){
+					height = 0;
+				}
+				
+				tabFolderData.height = height;
 				form.layout();
 
 				Double l = new Double((double) tabFolder.getBounds().height
