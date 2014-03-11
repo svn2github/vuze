@@ -369,7 +369,11 @@ public class SBC_ActivityTableView
 		}
 		VuzeActivitiesEntry[] selectedEntries = view.getSelectedDataSources().toArray(
 				new VuzeActivitiesEntry[0]);
-		removeEntries(selectedEntries, 0);
+		
+		if ( selectedEntries.length > 0 ){
+		
+			removeEntries(selectedEntries, 0);
+		}
 	}
 
 	public TableViewSWT getView() {
