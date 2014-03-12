@@ -1019,6 +1019,31 @@ public class UIFunctionsImpl
 		
 		if ( hit == null ){
 			
+			try{
+				File f = new File( str );
+			
+				if ( f.isFile()){
+				
+					String name = f.getName().toLowerCase();
+					
+					if ( name.endsWith( ".torrent" ) || name.endsWith( ".vuze" )){
+						
+						UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			    		
+						if ( uif != null ){
+							
+			    			uif.openTorrentOpenOptions(
+			    				null, null, new String[] { f.getAbsolutePath() },
+			    				false, false);
+			    		
+			    			return( true );
+						}
+					}
+				}
+			}catch( Throwable e ){
+				
+			}
+			
 			return( false );
 		}
 		
