@@ -184,13 +184,20 @@ AESocksProxyPlugableConnectionDefault
 	        		
 	        	}catch( IOException e ){
 	        		
-	        			// if the address is unresolved then the calculated bind address can be invalid
-	        			// (might pick an IPv6 address for example when this is unbindable). In this case
-	        			// carry on and attempt to connect as this will fail anyway
-	        		
-	        		if ( ! ( e.getMessage().contains( "not supported" ) && address.isUnresolved())){
+	        		if ( bindIP.isAnyLocalAddress()){
 	        			
-	        			throw( e );
+	        			// no point in moaning here about this
+	        			
+	        		}else{
+	        			
+		        			// if the address is unresolved then the calculated bind address can be invalid
+		        			// (might pick an IPv6 address for example when this is unbindable). In this case
+		        			// carry on and attempt to connect as this will fail anyway
+		        		
+		        		if ( ! ( e.getMessage().contains( "not supported" ) && address.isUnresolved())){
+		        			
+		        			throw( e );
+		        		}
 	        		}
 	        	}
 	        }

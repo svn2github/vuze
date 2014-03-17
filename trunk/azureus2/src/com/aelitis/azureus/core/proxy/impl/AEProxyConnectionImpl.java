@@ -227,6 +227,7 @@ AEProxyConnectionImpl
 								message.contains( "refused" ) ||
 								message.contains( "reset" ) ||
 								message.contains( "no route" ) ||
+								message.contains( "family" ) ||		// address family not supported
 								message.contains( "key is invalid" ) ||
 								message.contains( "dns lookup" ))){
 						
