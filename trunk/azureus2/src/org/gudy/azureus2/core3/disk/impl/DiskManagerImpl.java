@@ -1557,8 +1557,9 @@ DiskManagerImpl
                     if ( file_done == file_length ){
                          
                     	try{
+                      		DownloadManagerState state = download_manager.getDownloadState();
+
                     		try{
-	                      		DownloadManagerState state = download_manager.getDownloadState();
 	                    		
 	                    		String suffix = state.getAttribute( DownloadManagerState.AT_INCOMP_FILE_SUFFIX );
 	                    		
@@ -1638,6 +1639,13 @@ DiskManagerImpl
 
                                		this_file.setAccessMode( DiskManagerFileInfo.READ );
                                	}
+                             	
+                             		// only record completion during normal downloading, not rechecking etc
+                             	
+                             	if ( getState() == READY ){
+                             	
+                             		state.setLongParameter( DownloadManagerState.PARAM_DOWNLOAD_FILE_COMPLETED_TIME, SystemTime.getCurrentTime());
+                             	}
                     		}
                         }catch ( Throwable e ){
                         
