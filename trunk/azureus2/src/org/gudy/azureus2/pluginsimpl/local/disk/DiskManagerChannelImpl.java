@@ -266,7 +266,11 @@ DiskManagerChannelImpl
 	{
 		if ( core_file.getDownloaded() != core_file.getLength()){
 			
-			if ( core_file.isSkipped()){
+			boolean is_paused = download.isPaused();
+			
+			if ( core_file.isSkipped() && !is_paused ){
+				
+					// don't mess with skipped state if paused
 				
 				core_file.setSkipped( false );
 			}
@@ -275,21 +279,28 @@ DiskManagerChannelImpl
 			
 			if ( !force_start ){
 				
-				synchronized( download ){
+					// don't auto-start a paused torrent - the fact that it isn't running will be picked
+					// up later when the requests blocks on data and the download is found to not
+					// be running
+				
+				if ( !is_paused ){
 					
-					Map	dl_state = (Map)download.getDownload().getData( channel_key );
-					
-					if ( dl_state == null ){
+					synchronized( download ){
 						
-						dl_state = new HashMap();
+						Map	dl_state = (Map)download.getDownload().getData( channel_key );
 						
-						download.getDownload().setData( channel_key, dl_state );
+						if ( dl_state == null ){
+							
+							dl_state = new HashMap();
+							
+							download.getDownload().setData( channel_key, dl_state );
+						}
+						
+						dl_state.put( ""+channel_id, "" );
 					}
 					
-					dl_state.put( ""+channel_id, "" );
+					download.setForceStart( true );
 				}
-				
-				download.setForceStart( true );
 			}
 		}
 		
@@ -801,6 +812,10 @@ DiskManagerChannelImpl
 								if ( dm.isDestroyed()){
 									
 									throw( new Exception( "Download has been removed" ));
+																		
+								}else if ( core_file.isSkipped()){
+									
+									throw( new Exception( "File is 'do not download'" ));
 									
 								}else{
 									
@@ -816,7 +831,14 @@ DiskManagerChannelImpl
 											
 										}else if ( now - download_not_running_time > 15*1000 ){ 
 											
-											throw( new Exception( "Download has been stopped" ));
+											if ( dm.isPaused()){
+											
+												throw( new Exception( "Download has been paused" ));
+
+											}else{
+												
+												throw( new Exception( "Download has been stopped" ));
+											}
 										}
 									}else{
 										
