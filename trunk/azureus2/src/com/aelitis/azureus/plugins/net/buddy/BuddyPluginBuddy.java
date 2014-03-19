@@ -305,7 +305,7 @@ BuddyPluginBuddy
 	}
 	
 	public String
-	getLocalAuthorisedRSSCategoriesAsString()
+	getLocalAuthorisedRSSTagsOrCategoriesAsString()
 	{
 		synchronized( rss_lock ){
 		
@@ -314,7 +314,7 @@ BuddyPluginBuddy
 	}
 	
 	public Set<String>
-  	getLocalAuthorisedRSSCategories()
+  	getLocalAuthorisedRSSTagsOrCategories()
   	{
 		synchronized( rss_lock ){
   		
@@ -323,7 +323,7 @@ BuddyPluginBuddy
   	}
 	
 	public void
-	addLocalAuthorisedRSSCategory(
+	addLocalAuthorisedRSSTagOrCategory(
 		String	category )
 	{
 		category = plugin.normaliseCat( category );
@@ -359,7 +359,7 @@ BuddyPluginBuddy
 	}
 	
 	public void
-	removeLocalAuthorisedRSSCategory(
+	removeLocalAuthorisedRSSTagOrCategory(
 		String	category )
 	{
 		category = plugin.normaliseCat( category );
@@ -394,14 +394,14 @@ BuddyPluginBuddy
 	}
 	
 	public void
-	setLocalAuthorisedRSSCategories(
+	setLocalAuthorisedRSSTagsOrCategories(
 		String			new_cats )
 	{
-		setLocalAuthorisedRSSCategories( stringToCats( new_cats ));
+		setLocalAuthorisedRSSTagsOrCategories( stringToCats( new_cats ));
 	}
 	
 	public void
-	setLocalAuthorisedRSSCategories(
+	setLocalAuthorisedRSSTagsOrCategories(
 		Set<String>		new_cats )
 	{	
 		plugin.normaliseCats( new_cats );
@@ -432,19 +432,19 @@ BuddyPluginBuddy
 	}
 	
 	public Set<String>
-  	getRemoteAuthorisedRSSCategories()
+  	getRemoteAuthorisedRSSTagsOrCategories()
   	{
   		return( rss_remote_cats );
   	}
 	
 	public String
-	getRemoteAuthorisedRSSCategoriesAsString()
+	getRemoteAuthorisedRSSTagsOrCategoriesAsString()
 	{
 		return( catsToString( rss_remote_cats ));
 	}
 	
 	protected void
-	setRemoteAuthorisedRSSCategories(
+	setRemoteAuthorisedRSSTagsOrCategories(
 		Set<String>		new_cats )
 	{
 		plugin.normaliseCats( new_cats );
@@ -468,7 +468,7 @@ BuddyPluginBuddy
 	}
 	
 	public boolean
-	isLocalRSSCategoryAuthorised(
+	isLocalRSSTagOrCategoryAuthorised(
 		String	category )
 	{
 		category = plugin.normaliseCat( category );
@@ -485,7 +485,7 @@ BuddyPluginBuddy
 	}
 	
 	public boolean
-	isRemoteRSSCategoryAuthorised(
+	isRemoteRSSTagOrCategoryAuthorised(
 		String	category )
 	{
 		category = plugin.normaliseCat( category );
@@ -502,7 +502,7 @@ BuddyPluginBuddy
 	}
 	
 	protected void
-	localRSSCategoryRead(
+	localRSSTagOrCategoryRead(
 		String		str )
 	{
 		boolean dirty;
@@ -526,7 +526,7 @@ BuddyPluginBuddy
 	}
 	
 	public String
-	getLocalReadCategoriesAsString()
+	getLocalReadTagsOrCategoriesAsString()
 	{
 		synchronized( rss_lock ){
 
@@ -583,7 +583,7 @@ BuddyPluginBuddy
 	}
 	
 	public boolean
-	isSubscribedToCategory(
+	isSubscribedToTagOrCategory(
 		String	cat,
 		String	creator_ref )
 	{
@@ -2807,7 +2807,7 @@ BuddyPluginBuddy
 			send_map.put( "oz", new Long( plugin.getOnlineStatus()));
 			send_map.put( "v", new Long( BuddyPlugin.VERSION_CURRENT ));
 			
-			String	loc_cat = getLocalAuthorisedRSSCategoriesAsString();
+			String	loc_cat = getLocalAuthorisedRSSTagsOrCategoriesAsString();
 			
 			if ( loc_cat != null ){
 				send_map.put( "cat", loc_cat );
@@ -2868,11 +2868,11 @@ BuddyPluginBuddy
 				
 				if ( b_rem_cat == null ){
 					
-					setRemoteAuthorisedRSSCategories( null );
+					setRemoteAuthorisedRSSTagsOrCategories( null );
 					
 				}else{
 					
-					setRemoteAuthorisedRSSCategories( stringToCats( new String( b_rem_cat, "UTF-8" )));
+					setRemoteAuthorisedRSSTagsOrCategories( stringToCats( new String( b_rem_cat, "UTF-8" )));
 				}
 				
 				if ( type == RT_REQUEST_DATA ){
@@ -2927,7 +2927,7 @@ BuddyPluginBuddy
 					reply_map.put( "id", data_map.get( "id" ) );
 					reply_map.put( "oz", new Long( plugin.getOnlineStatus()));
 
-					String	loc_cat = getLocalAuthorisedRSSCategoriesAsString();
+					String	loc_cat = getLocalAuthorisedRSSTagsOrCategoriesAsString();
 					
 					if ( loc_cat != null ){
 						reply_map.put( "cat", loc_cat );

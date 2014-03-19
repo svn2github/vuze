@@ -521,19 +521,19 @@ BuddyPluginViewInstance
 					
 					item.setText(4, lm==null?"":lm);
 					
-					String loc_cat = buddy.getLocalAuthorisedRSSCategoriesAsString();
+					String loc_cat = buddy.getLocalAuthorisedRSSTagsOrCategoriesAsString();
 					if ( loc_cat == null ){
 						loc_cat = "";
 					}
 					item.setText(5, "" + loc_cat);
 
-					String rem_cat = buddy.getRemoteAuthorisedRSSCategoriesAsString();
+					String rem_cat = buddy.getRemoteAuthorisedRSSTagsOrCategoriesAsString();
 					if ( rem_cat == null ){
 						rem_cat = "";
 					}
 					item.setText(6, "" + rem_cat);
 
-					String read_cat = buddy.getLocalReadCategoriesAsString();
+					String read_cat = buddy.getLocalReadTagsOrCategoriesAsString();
 					if ( read_cat == null ){
 						read_cat = "";
 					}
@@ -1240,7 +1240,7 @@ BuddyPluginViewInstance
 									
 									BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
 									
-									buddy.setLocalAuthorisedRSSCategories( cats );
+									buddy.setLocalAuthorisedRSSTagsOrCategories( cats );
 								}
 							}
 						}
@@ -1282,7 +1282,7 @@ BuddyPluginViewInstance
 							
 							BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
 							
-							Set<String> cats = buddy.getRemoteAuthorisedRSSCategories();
+							Set<String> cats = buddy.getRemoteAuthorisedRSSTagsOrCategories();
 							
 							if ( cats != null ){
 								
@@ -1307,7 +1307,7 @@ BuddyPluginViewInstance
 											
 											BuddyPluginBuddy buddy = (BuddyPluginBuddy)selection[i].getData();
 
-											if ( buddy.isRemoteRSSCategoryAuthorised( cat )){
+											if ( buddy.isRemoteRSSTagOrCategoryAuthorised( cat )){
 												
 												try{
 													buddy.subscribeToCategory( cat );
@@ -1766,11 +1766,11 @@ BuddyPluginViewInstance
 			}else if(field == FIELD_LAST_MSG){
 				res = b1.getLastMessageReceived().compareTo( b2.getLastMessageReceived());
 			}else if(field == FIELD_LOC_CAT){
-				res = compareStrings( b1.getLocalAuthorisedRSSCategoriesAsString(), b2.getLocalAuthorisedRSSCategoriesAsString());
+				res = compareStrings( b1.getLocalAuthorisedRSSTagsOrCategoriesAsString(), b2.getLocalAuthorisedRSSTagsOrCategoriesAsString());
 			}else if(field == FIELD_REM_CAT){
-				res = compareStrings( b1.getRemoteAuthorisedRSSCategoriesAsString(), b2.getRemoteAuthorisedRSSCategoriesAsString());
+				res = compareStrings( b1.getRemoteAuthorisedRSSTagsOrCategoriesAsString(), b2.getRemoteAuthorisedRSSTagsOrCategoriesAsString());
 			}else if(field == FIELD_READ_CAT){
-				res = compareStrings( b1.getLocalReadCategoriesAsString(), b2.getLocalReadCategoriesAsString());
+				res = compareStrings( b1.getLocalReadTagsOrCategoriesAsString(), b2.getLocalReadTagsOrCategoriesAsString());
 			}else if(field == FIELD_CON){
 				res = b1.getConnectionsString().compareTo( b2.getConnectionsString());
 			}else if(field == FIELD_MSG_IN){

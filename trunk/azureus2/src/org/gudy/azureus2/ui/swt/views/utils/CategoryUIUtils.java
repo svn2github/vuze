@@ -217,7 +217,7 @@ public class CategoryUIUtils
 
 			final BuddyPlugin buddy_plugin = (BuddyPlugin) bpi.getPlugin();
 
-			if (buddy_plugin.isEnabled()) {
+			if ( buddy_plugin.isEnabled()){
 
 				final Menu share_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
 				final MenuItem share_item = new MenuItem(menu, SWT.CASCADE);
@@ -246,7 +246,7 @@ public class CategoryUIUtils
 						cname = category.getName();
 					}
 
-					final boolean is_public = buddy_plugin.isPublicCategory(cname);
+					final boolean is_public = buddy_plugin.isPublicTagOrCategory(cname);
 
 					final MenuItem itemPubCat = new MenuItem(share_menu, SWT.CHECK);
 
@@ -258,11 +258,11 @@ public class CategoryUIUtils
 						public void handleEvent(Event event) {
 							if (is_public) {
 
-								buddy_plugin.removePublicCategory(cname);
+								buddy_plugin.removePublicTagOrCategory(cname);
 
 							} else {
 
-								buddy_plugin.addPublicCategory(cname);
+								buddy_plugin.addPublicTagOrCategory(cname);
 							}
 						}
 					});
@@ -276,7 +276,7 @@ public class CategoryUIUtils
 							continue;
 						}
 
-						final boolean auth = buddy.isLocalRSSCategoryAuthorised(cname);
+						final boolean auth = buddy.isLocalRSSTagOrCategoryAuthorised(cname);
 
 						final MenuItem itemShare = new MenuItem(share_menu, SWT.CHECK);
 
@@ -293,11 +293,11 @@ public class CategoryUIUtils
 							public void handleEvent(Event event) {
 								if (auth) {
 
-									buddy.removeLocalAuthorisedRSSCategory(cname);
+									buddy.removeLocalAuthorisedRSSTagOrCategory(cname);
 
 								} else {
 
-									buddy.addLocalAuthorisedRSSCategory(cname);
+									buddy.addLocalAuthorisedRSSTagOrCategory(cname);
 								}
 							}
 						});

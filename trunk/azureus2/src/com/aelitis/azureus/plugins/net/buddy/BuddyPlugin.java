@@ -25,7 +25,6 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -67,6 +66,9 @@ import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.security.*;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
@@ -233,7 +235,7 @@ BuddyPlugin
 	
 	private TorrentAttribute	ta_category;
 
-	private Set<String>	public_categories = new HashSet<String>();
+	private Set<String>	public_tags_or_categories = new HashSet<String>();
 	
 	public static void
 	load(
@@ -355,13 +357,13 @@ BuddyPlugin
 		
 		enable_chat_notifications = config.addBooleanParameter2( "azbuddy.enable_chat_notif", "azbuddy.enable_chat_notif", true );
 		
-			// default published cats
+			// default published tags or cats
 		
 		cat_pub = config.addStringParameter2( "azbuddy.enable_cat_pub", "azbuddy.enable_cat_pub", "" );
 		
 		cat_pub.setGenerateIntermediateEvents( false );
 		
-		setPublicCats( cat_pub.getValue(), false );
+		setPublicTagsOrCategories( cat_pub.getValue(), false );
 		
 		cat_pub.addListener(
 			new ParameterListener()
@@ -370,7 +372,7 @@ BuddyPlugin
 				parameterChanged(
 					Parameter 	param ) 
 				{
-					setPublicCats( cat_pub.getValue(), false);
+					setPublicTagsOrCategories( cat_pub.getValue(), false);
 				}
 			});
 		
@@ -885,44 +887,44 @@ BuddyPlugin
 	}
 	
 	public boolean
-	isPublicCategory(
+	isPublicTagOrCategory(
 		String	cat )
 	{
 		cat = normaliseCat( cat );
 		
-		return( public_categories.contains( cat ));
+		return( public_tags_or_categories.contains( cat ));
 	}
 	
 	public void
-	addPublicCategory(
+	addPublicTagOrCategory(
 		String	cat )
 	{
 		cat = normaliseCat( cat );
 		
-		Set<String> new_cats = new HashSet( public_categories );
+		Set<String> new_cats = new HashSet( public_tags_or_categories );
 		
 		if ( new_cats.add( cat )){
 		
-			setPublicCats( new_cats, true );
+			setPublicTagsOrCategories( new_cats, true );
 		}
 	}
 	
 	public void
-	removePublicCategory(
+	removePublicTagOrCategory(
 		String	cat )
 	{
 		cat = normaliseCat( cat );
 		
-		Set<String> new_cats = new HashSet( public_categories );
+		Set<String> new_cats = new HashSet( public_tags_or_categories );
 		
 		if ( new_cats.remove( cat )){
 		
-			setPublicCats( new_cats, true );
+			setPublicTagsOrCategories( new_cats, true );
 		}
 	}
 	
 	protected void
-	setPublicCats(
+	setPublicTagsOrCategories(
 		String	str,
 		boolean	persist )
 	{
@@ -940,27 +942,27 @@ BuddyPlugin
 			}
 		}
 		
-		setPublicCats( new_pub_cats, persist );
+		setPublicTagsOrCategories( new_pub_cats, persist );
 	}
 	
 	protected void
-	setPublicCats(
-		Set<String>	new_pub_cats,
+	setPublicTagsOrCategories(
+		Set<String>	new_pub_tags_or_cats,
 		boolean		persist )
 	{
-		if ( !public_categories.equals( new_pub_cats )){
+		if ( !public_tags_or_categories.equals( new_pub_tags_or_cats )){
 			
-			Set<String> removed = new HashSet<String>( public_categories );
+			Set<String> removed = new HashSet<String>( public_tags_or_categories );
 			
-			removed.removeAll( new_pub_cats );
+			removed.removeAll( new_pub_tags_or_cats );
 			
-			public_categories = new_pub_cats;
+			public_tags_or_categories = new_pub_tags_or_cats;
 			
 			if ( persist ){
 				
 				String cat_str = "";
 				
-				for ( String s: public_categories ){
+				for ( String s: public_tags_or_categories ){
 					
 					cat_str += (cat_str.length()==0?"":",") + s;
 				}
@@ -972,9 +974,9 @@ BuddyPlugin
 			
 			for ( BuddyPluginBuddy b: buds ){
 				
-				Set<String> local = b.getLocalAuthorisedRSSCategories();
+				Set<String> local = b.getLocalAuthorisedRSSTagsOrCategories();
 				
-				if ( local != null || new_pub_cats.size() > 0 ){
+				if ( local != null || new_pub_tags_or_cats.size() > 0 ){
 					
 					if ( local == null ){
 						
@@ -987,11 +989,11 @@ BuddyPlugin
 						local = new HashSet<String>( local );
 					}
 					
-					local.addAll( new_pub_cats );
+					local.addAll( new_pub_tags_or_cats );
 				
 					local.removeAll( removed );
 				
-					b.setLocalAuthorisedRSSCategories( local );
+					b.setLocalAuthorisedRSSTagsOrCategories( local );
 				}
 			}
 		}
@@ -2114,12 +2116,12 @@ BuddyPlugin
 					
 					map.put( "v", new Long( buddy.getVersion()));
 					
-					if ( buddy.getLocalAuthorisedRSSCategoriesAsString() != null ){
-						map.put( "lc", buddy.getLocalAuthorisedRSSCategoriesAsString());
+					if ( buddy.getLocalAuthorisedRSSTagsOrCategoriesAsString() != null ){
+						map.put( "lc", buddy.getLocalAuthorisedRSSTagsOrCategoriesAsString());
 					}
 					
-					if ( buddy.getRemoteAuthorisedRSSCategoriesAsString() != null ){
-						map.put( "rc", buddy.getRemoteAuthorisedRSSCategoriesAsString());
+					if ( buddy.getRemoteAuthorisedRSSTagsOrCategoriesAsString() != null ){
+						map.put( "rc", buddy.getRemoteAuthorisedRSSTagsOrCategoriesAsString());
 					}
 
 					boolean connected = 
@@ -3258,7 +3260,7 @@ BuddyPlugin
    	{
 		if ( buddy.isAuthorised()){
 
-			buddy.setLocalAuthorisedRSSCategories( public_categories );
+			buddy.setLocalAuthorisedRSSTagsOrCategories( public_tags_or_categories );
 			
 	   		List	 listeners_ref = listeners.getList();
 	   		
@@ -3384,9 +3386,9 @@ BuddyPlugin
 	{
 		String[]	args = arg_str.split( "&" );
 		
-		String		pk 			= null;
-		String		category	= "All";
-		byte[]		hash		= null;
+		String		pk 				= null;
+		String		category_or_tag	= "All";
+		byte[]		hash			= null;
 		
 		for (String arg: args ){
 			
@@ -3401,7 +3403,7 @@ BuddyPlugin
 				
 			}else if ( lhs.equals( "cat" )){
 				
-				category = rhs;
+				category_or_tag = rhs;
 				
 			}else if ( lhs.equals( "hash" )){
 				
@@ -3423,11 +3425,11 @@ BuddyPlugin
 		
 		if ( hash == null ){
 			
-			return( handleUPRSS( connection, buddy, category ));
+			return( handleUPRSS( connection, buddy, category_or_tag ));
 			
 		}else{
 			
-			return( handleUPTorrent( connection, buddy, category, hash ));
+			return( handleUPTorrent( connection, buddy, category_or_tag, hash ));
 		}
 	}
 	
@@ -3435,7 +3437,7 @@ BuddyPlugin
 	handleUPRSS(
 		final AZPluginConnection	connection,
 		BuddyPluginBuddy			buddy,
-		String						category )
+		String						tag_or_category )
 	
 		throws IPCException
 	{
@@ -3449,7 +3451,7 @@ BuddyPlugin
 		final String if_mod 	= connection.getRequestProperty( "If-Modified-Since" );
 
 		try{
-			msg.put( "cat", category.getBytes( "UTF-8" ));
+			msg.put( "cat", tag_or_category.getBytes( "UTF-8" ));
 									
 			if ( if_mod != null ){
 				
@@ -3466,7 +3468,7 @@ BuddyPlugin
 		final Object[] 		result 		= { null };
 		final AESemaphore	result_sem 	= new AESemaphore( "BuddyPlugin:rss" );
 				
-		final String	etag = buddy.getPublicKey() + "-" + category;
+		final String	etag = buddy.getPublicKey() + "-" + tag_or_category;
 		
 		az2_handler.sendAZ2RSSMessage( 
 			buddy,
@@ -3542,7 +3544,7 @@ BuddyPlugin
 	handleUPTorrent(
 		final AZPluginConnection	connection,
 		final BuddyPluginBuddy		buddy,
-		String						category,
+		String						tag_or_category,
 		final byte[]				hash )
 	
 		throws IPCException
@@ -3563,7 +3565,7 @@ BuddyPlugin
 				Map<String,Object>	msg = new HashMap<String, Object>();
 			
 				try{
-					msg.put( "cat", category.getBytes( "UTF-8" ));
+					msg.put( "cat", tag_or_category.getBytes( "UTF-8" ));
 									
 					msg.put( "hash", hash );
 							
@@ -3825,17 +3827,17 @@ BuddyPlugin
 	public feedDetails
 	getRSS(
 		BuddyPluginBuddy		buddy,
-		String					category,
+		String					tag_or_category,
 		String					if_mod )
 	
 		throws BuddyPluginException
 	{
-		if ( !buddy.isLocalRSSCategoryAuthorised( category )){
+		if ( !buddy.isLocalRSSTagOrCategoryAuthorised( tag_or_category )){
 			
-			throw( new BuddyPluginException( "Unauthorised category '" + category + "'" ));
+			throw( new BuddyPluginException( "Unauthorised tag/category '" + tag_or_category + "'" ));
 		}
 		
-		buddy.localRSSCategoryRead( category );
+		buddy.localRSSTagOrCategoryRead( tag_or_category );
 		
 		Download[] downloads = plugin_interface.getDownloadManager().getDownloads();
 		
@@ -3854,10 +3856,34 @@ BuddyPlugin
 				continue;
 			}
 			
-			String dl_cat = download.getAttribute( ta_category );
+			boolean	match = tag_or_category.equalsIgnoreCase( "all" );
+			
+			if ( !match ){
+			
+				String dl_cat = download.getAttribute( ta_category );
 		
-			if ( 	category.equalsIgnoreCase( "all" ) ||
-					( dl_cat != null && dl_cat.equals( category ))){
+				match = dl_cat != null && dl_cat.equals( tag_or_category );
+			}
+			
+			if ( !match ){
+				
+				try{
+					List<Tag> tags = TagManagerFactory.getTagManager().getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, PluginCoreUtils.unwrap( download ));
+					
+					for ( Tag tag: tags ){
+						
+						if ( tag.getTagName( true ).equals( tag_or_category )){
+							
+							match = true;
+							
+							break;
+						}
+					}
+				}catch( Throwable e ){
+				}
+			}
+			
+			if ( match ){
 				
 				if ( !TorrentUtils.isReallyPrivate( PluginCoreUtils.unwrap( torrent ))){
 					
@@ -3874,8 +3900,8 @@ BuddyPlugin
 		
 		PluginConfig pc = plugin_interface.getPluginconfig();
 
-		String	feed_finger_key = "feed_finger.category." + category;
-		String	feed_date_key 	= "feed_date.category." + category;
+		String	feed_finger_key = "feed_finger.category." + tag_or_category;
+		String	feed_date_key 	= "feed_date.category." + tag_or_category;
 
 		long	existing_fingerprint 	= pc.getPluginLongParameter( feed_finger_key, 0 );
 		long	feed_date 				= pc.getPluginLongParameter( feed_date_key, 0 );
@@ -3933,7 +3959,7 @@ BuddyPlugin
 			
 			pw.println( "<channel>" );
 			
-			pw.println( "<title>" + escape( category ) + "</title>" );
+			pw.println( "<title>" + escape( tag_or_category ) + "</title>" );
 			
 			Collections.sort(
 				selected_dls,
@@ -3979,7 +4005,7 @@ BuddyPlugin
 				
 				String url = "azplug:?id=azbuddy&name=Friends&arg=";
 				
-				String arg = "pk=" + getPublicKey() + "&cat=" + category + "&hash=" + Base32.encode(torrent.getHash());
+				String arg = "pk=" + getPublicKey() + "&cat=" + tag_or_category + "&hash=" + Base32.encode(torrent.getHash());
 
 				url += URLEncoder.encode( arg, "UTF-8" );
 			
@@ -4018,7 +4044,7 @@ BuddyPlugin
 	
 		throws BuddyPluginException
 	{
-		if ( !buddy.isLocalRSSCategoryAuthorised( category )){
+		if ( !buddy.isLocalRSSTagOrCategoryAuthorised( category )){
 			
 			throw( new BuddyPluginException( "Unauthorised category '" + category + "'" ));
 		}

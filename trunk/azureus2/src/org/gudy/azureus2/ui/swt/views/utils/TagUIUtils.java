@@ -40,8 +40,10 @@ import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.TrackersUtil;
+import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.MenuBuildUtils;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -74,6 +76,8 @@ import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
 import com.aelitis.azureus.core.util.AZ3Functions;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.UIFunctionsUserPrompter;
@@ -874,111 +878,6 @@ public class TagUIUtils
 			}
 		}
 		
-		/*
-
-
-		// share with friends
-
-		PluginInterface bpi = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaceByClass(
-				BuddyPlugin.class);
-
-		int cat_type = category.getType();
-
-		if (bpi != null && cat_type != Category.TYPE_UNCATEGORIZED) {
-
-			final BuddyPlugin buddy_plugin = (BuddyPlugin) bpi.getPlugin();
-
-			if (buddy_plugin.isEnabled()) {
-
-				final Menu share_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
-				final MenuItem share_item = new MenuItem(menu, SWT.CASCADE);
-				Messages.setLanguageText(share_item, "azbuddy.ui.menu.cat.share");
-				share_item.setMenu(share_menu);
-
-				List<BuddyPluginBuddy> buddies = buddy_plugin.getBuddies();
-
-				if (buddies.size() == 0) {
-
-					final MenuItem item = new MenuItem(share_menu, SWT.CHECK);
-
-					item.setText(MessageText.getString("general.add.friends"));
-
-					item.setEnabled(false);
-
-				} else {
-					final String cname;
-
-					if (cat_type == Category.TYPE_ALL) {
-
-						cname = "All";
-
-					} else {
-
-						cname = category.getName();
-					}
-
-					final boolean is_public = buddy_plugin.isPublicCategory(cname);
-
-					final MenuItem itemPubCat = new MenuItem(share_menu, SWT.CHECK);
-
-					Messages.setLanguageText(itemPubCat, "general.all.friends");
-
-					itemPubCat.setSelection(is_public);
-
-					itemPubCat.addListener(SWT.Selection, new Listener() {
-						public void handleEvent(Event event) {
-							if (is_public) {
-
-								buddy_plugin.removePublicCategory(cname);
-
-							} else {
-
-								buddy_plugin.addPublicCategory(cname);
-							}
-						}
-					});
-
-					new MenuItem(share_menu, SWT.SEPARATOR);
-
-					for (final BuddyPluginBuddy buddy : buddies) {
-
-						if (buddy.getNickName() == null) {
-
-							continue;
-						}
-
-						final boolean auth = buddy.isLocalRSSCategoryAuthorised(cname);
-
-						final MenuItem itemShare = new MenuItem(share_menu, SWT.CHECK);
-
-						itemShare.setText(buddy.getName());
-
-						itemShare.setSelection(auth || is_public);
-
-						if (is_public) {
-
-							itemShare.setEnabled(false);
-						}
-
-						itemShare.addListener(SWT.Selection, new Listener() {
-							public void handleEvent(Event event) {
-								if (auth) {
-
-									buddy.removeLocalAuthorisedRSSCategory(cname);
-
-								} else {
-
-									buddy.addLocalAuthorisedRSSCategory(cname);
-								}
-							}
-						});
-
-					}
-				}
-			}
-		}
-		*/
-		
 		if ( tag_type.hasTagTypeFeature( TagFeature.TF_FILE_LOCATION )) {
 		
 			final TagFeatureFileLocation fl = (TagFeatureFileLocation)tag;
@@ -1645,6 +1544,107 @@ public class TagUIUtils
 					tag.setPublic( itemPublic.getSelection());
 				}});
 		}
+		
+		// share with friends
+
+		PluginInterface bpi = PluginInitializer.getDefaultInterface().getPluginManager().getPluginInterfaceByClass(
+				BuddyPlugin.class);
+
+		if ( tag_type.getTagType() == TagType.TT_DOWNLOAD_MANUAL && bpi != null ){
+				
+			TagFeatureProperties props = (TagFeatureProperties)tag;
+							
+			TagProperty tp = props.getProperty( TagFeatureProperties.PR_UNTAGGED );
+			
+			Boolean is_ut = tp==null?null:tp.getBoolean();
+			
+			if ( is_ut == null || !is_ut ){
+	
+				final BuddyPlugin buddy_plugin = (BuddyPlugin) bpi.getPlugin();
+	
+				if (buddy_plugin.isEnabled()) {
+	
+					final Menu share_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
+					final MenuItem share_item = new MenuItem(menu, SWT.CASCADE);
+					Messages.setLanguageText(share_item, "azbuddy.ui.menu.cat.share");
+					share_item.setText( share_item.getText() + "  " );	// nasty hack to fix nastyness on windows
+					share_item.setMenu(share_menu);
+	
+					List<BuddyPluginBuddy> buddies = buddy_plugin.getBuddies();
+	
+					if (buddies.size() == 0) {
+	
+						final MenuItem item = new MenuItem(share_menu, SWT.CHECK);
+	
+						item.setText(MessageText.getString("general.add.friends"));
+	
+						item.setEnabled(false);
+	
+					} else {
+						final String tag_name = tag.getTagName( true );
+	
+						final boolean is_public = buddy_plugin.isPublicTagOrCategory( tag_name );
+	
+						final MenuItem itemPubCat = new MenuItem(share_menu, SWT.CHECK);
+	
+						Messages.setLanguageText(itemPubCat, "general.all.friends");
+	
+						itemPubCat.setSelection(is_public);
+	
+						itemPubCat.addListener(SWT.Selection, new Listener() {
+							public void handleEvent(Event event) {
+								if (is_public) {
+	
+									buddy_plugin.removePublicTagOrCategory( tag_name );
+	
+								} else {
+	
+									buddy_plugin.addPublicTagOrCategory( tag_name );
+								}
+							}
+						});
+	
+						new MenuItem(share_menu, SWT.SEPARATOR);
+	
+						for (final BuddyPluginBuddy buddy : buddies) {
+	
+							if (buddy.getNickName() == null) {
+	
+								continue;
+							}
+	
+							final boolean auth = buddy.isLocalRSSTagOrCategoryAuthorised(tag_name);
+	
+							final MenuItem itemShare = new MenuItem(share_menu, SWT.CHECK);
+	
+							itemShare.setText(buddy.getName());
+	
+							itemShare.setSelection(auth || is_public);
+	
+							if (is_public) {
+	
+								itemShare.setEnabled(false);
+							}
+	
+							itemShare.addListener(SWT.Selection, new Listener() {
+								public void handleEvent(Event event) {
+									if (auth) {
+	
+										buddy.removeLocalAuthorisedRSSTagOrCategory(tag_name);
+	
+									} else {
+	
+										buddy.addLocalAuthorisedRSSTagOrCategory(tag_name);
+									}
+								}
+							});
+	
+						}
+					}
+				}
+			}
+		}
+		
 		
 			// rss feed
 		
