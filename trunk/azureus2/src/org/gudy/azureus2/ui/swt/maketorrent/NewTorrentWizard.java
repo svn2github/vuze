@@ -29,8 +29,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
-import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.ui.swt.URLTransfer;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -100,6 +98,7 @@ NewTorrentWizard
   boolean autoOpen 			= false;
   boolean autoHost 			= false;
   boolean forceStart		= false;
+  String  initialTags		= COConfigurationManager.getStringParameter( "CreateTorrent.default.initialTags", "" );
   boolean superseed			= false;
   boolean permitDHT			= true;
   boolean privateTorrent	= false;
@@ -169,6 +168,23 @@ NewTorrentWizard
   	default_save_dir	= d;
   	
  	COConfigurationManager.setParameter( "CreateTorrent.default.save", default_save_dir );
+  }
+  
+  protected String
+  getInitialTags(
+		 boolean	save )
+  {
+	  if ( save ){
+		  COConfigurationManager.setParameter( "CreateTorrent.default.initialTags", initialTags );
+	  }
+	  return( initialTags );
+  }
+  
+  protected void
+  setInitialTags(
+	String		tags )
+  {
+	  initialTags = tags;
   }
   
   void setComment(String s) {

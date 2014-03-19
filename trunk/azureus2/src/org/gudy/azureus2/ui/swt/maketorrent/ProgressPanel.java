@@ -35,6 +35,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
@@ -52,6 +53,10 @@ import org.gudy.azureus2.ui.swt.wizard.IWizardPanel;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 
 /**
  * @author Olivier
@@ -312,6 +317,65 @@ public class ProgressPanel extends AbstractWizardPanel<NewTorrentWizard> impleme
 									
 									start_stopped = false;
 								}
+								
+								DownloadManagerInitialisationAdapter dmia;
+								
+								final String	initialTags = wizard.getInitialTags( true );
+								
+								if ( initialTags.length() > 0 ){
+									
+									dmia = 
+										new DownloadManagerInitialisationAdapter() 
+										{
+											public int 
+											getActions() 
+											{
+												return( ACT_ASSIGNS_TAGS );
+											}
+											
+											public void 
+											initialised(
+												DownloadManager 	dm, 
+												boolean 			for_seeding ) 
+											{
+												TagManager tm = TagManagerFactory.getTagManager();
+												
+												TagType tag_type = tm.getTagType( TagType.TT_DOWNLOAD_MANUAL );
+												
+												String[]	bits = initialTags.replace( ';', ',' ).split( "," );
+												
+												for ( String tag: bits ){
+													
+													tag = tag.trim();
+													
+													if ( tag.length() > 0 ){
+													
+														try{
+															Tag t = tag_type.getTag( tag,  true );
+														
+															if ( t == null ){
+																
+																t = tag_type.createTag( tag, true );
+															}
+															
+															t.addTaggable( dm );
+															
+														}catch( Throwable e ){
+															
+															Debug.out( e );
+														}
+													}
+												}
+											}
+										};
+								}else{
+									
+									dmia = null;
+								}
+								
+								
+								
+								
 								final DownloadManager dm = core.getGlobalManager().addDownloadManager(
 										torrent_file.toString(),
 										hash,
@@ -319,7 +383,7 @@ public class ProgressPanel extends AbstractWizardPanel<NewTorrentWizard> impleme
 										start_stopped ? DownloadManager.STATE_STOPPED
 												: DownloadManager.STATE_QUEUED, true, // persistent 
 										true, // for seeding
-										null); // no adapter required
+										dmia ); 
 
 								if (!start_stopped && dm != null) {
 									// We want this to move to seeding ASAP, so move it to the top
