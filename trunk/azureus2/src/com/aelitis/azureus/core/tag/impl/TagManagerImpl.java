@@ -30,6 +30,7 @@ import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerInitialisationAdapter;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -72,6 +73,7 @@ import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
 import com.aelitis.azureus.core.rssgen.RSSGeneratorPlugin;
 import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.core.util.IdentityHashSet;
 import com.aelitis.azureus.util.MapUtils;
 
 public class 
@@ -111,6 +113,8 @@ TagManagerImpl
 	private static final String RSS_PROVIDER	= "tags";
 	
 	private Set<TagBase>	rss_tags = new HashSet<TagBase>();
+	
+	private Set<DownloadManager>	active_copy_on_complete = new IdentityHashSet<DownloadManager>();
 	
 	private RSSGeneratorPlugin.Provider rss_generator = 
 		new RSSGeneratorPlugin.Provider()
@@ -677,34 +681,123 @@ TagManagerImpl
 			
 			if ( !new_loc.equals( old_loc )){
 				
-				new AEThread2( "tm:copy")
-				{
-					public void
-					run()
-					{
-						try{
-							manager.copyDataFiles( new_loc );
-							
-							Logger.logTextResource(
-								new LogAlert(
-									manager, 
-									LogAlert.REPEATABLE,
-									LogAlert.AT_INFORMATION, 
-									"alert.copy.on.comp.done"),
-								new String[]{ manager.getDisplayName(), new_loc.toString()});
-							 
-						}catch( Throwable e ){
-							
-							 Logger.logTextResource(
-								new LogAlert(
-									manager, 
-									LogAlert.REPEATABLE,
-									LogAlert.AT_ERROR, 
-									"alert.copy.on.comp.fail"),
-								new String[]{ manager.getDisplayName(), new_loc.toString(), Debug.getNestedExceptionMessage(e)});
-						}
+				boolean do_it;
+				
+				synchronized( active_copy_on_complete ){
+					
+					if ( active_copy_on_complete.contains( manager )){
+						
+						do_it = false;
+						
+					}else{
+						
+						active_copy_on_complete.add( manager );
+						
+						do_it = true;
 					}
-				}.start();
+				}
+				
+				if ( do_it ){
+					
+					new AEThread2( "tm:copy")
+					{
+						public void
+						run()
+						{
+							try{
+								long stopped_and_incomplete_start 	= 0;
+								long looks_good_start 				= 0;
+								
+								while( true ){
+									
+									if ( manager.isDestroyed()){
+										
+										throw( new Exception( "Download has been removed" ));
+									}
+									
+									DiskManager dm = manager.getDiskManager();
+								
+									if ( dm == null ){
+										
+										looks_good_start = 0;
+										
+										if ( !manager.getAssumedComplete()){
+											
+											long	now = SystemTime.getMonotonousTime();
+											
+											if ( stopped_and_incomplete_start == 0 ){
+											
+												stopped_and_incomplete_start = now;
+												
+											}else if ( now - stopped_and_incomplete_start > 30*1000 ){
+												
+												throw( new Exception( "Download is stopped and incomplete" ));
+											}
+										}else{
+											
+											break;
+										}
+									}else{
+										
+										stopped_and_incomplete_start = 0;
+										
+										if ( manager.getAssumedComplete()){
+											
+											if ( dm.getMoveProgress() == -1 && dm.getCompleteRecheckStatus() == -1 ){
+												
+												long	now = SystemTime.getMonotonousTime();
+												
+												if ( looks_good_start == 0 ){
+												
+													looks_good_start = now;
+													
+												}else if ( now - looks_good_start > 5*1000 ){
+													
+													break;
+												}
+											}
+										}else{
+											
+											looks_good_start = 0;
+										}
+									}
+									
+									//System.out.println( "Waiting" );
+									
+									Thread.sleep( 1000 );
+								}
+								
+								manager.copyDataFiles( new_loc );
+								
+								Logger.logTextResource(
+									new LogAlert(
+										manager, 
+										LogAlert.REPEATABLE,
+										LogAlert.AT_INFORMATION, 
+										"alert.copy.on.comp.done"),
+									new String[]{ manager.getDisplayName(), new_loc.toString()});
+								 
+							}catch( Throwable e ){
+								
+								 Logger.logTextResource(
+									new LogAlert(
+										manager, 
+										LogAlert.REPEATABLE,
+										LogAlert.AT_ERROR, 
+										"alert.copy.on.comp.fail"),
+									new String[]{ manager.getDisplayName(), new_loc.toString(), Debug.getNestedExceptionMessage(e)});
+								 
+							}finally{
+								
+								synchronized( active_copy_on_complete ){
+									
+									active_copy_on_complete.remove( manager );
+								}
+								
+							}
+						}
+					}.start();
+				}
 			}
 		}
 	}
