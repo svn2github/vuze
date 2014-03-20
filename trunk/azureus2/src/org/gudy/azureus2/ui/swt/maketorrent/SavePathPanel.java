@@ -296,13 +296,6 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     bforce.setLayoutData(gridData);
-
-    label = new Label(panel,SWT.NULL);
-    Messages.setLanguageText(label,"wizard.maketorrents.init.tags");
-    final Text tag_area = new Text(panel,SWT.BORDER);
-    gridData = new GridData(GridData.FILL_HORIZONTAL);
-    gridData.horizontalSpan = 2;
-    tag_area.setLayoutData(gridData);
     
     final Button bSuperSeed = new Button(panel,SWT.CHECK);
     Messages.setLanguageText(bSuperSeed,"wizard.maketorrents.superseed");
@@ -310,12 +303,18 @@ public class SavePathPanel extends AbstractWizardPanel<NewTorrentWizard> {
     gridData.horizontalSpan = 3;
     bSuperSeed.setLayoutData(gridData);
 
-    
     final Button bAutoHost = new Button(panel,SWT.CHECK);
     Messages.setLanguageText(bAutoHost,"wizard.maketorrents.autohost");
     gridData = new GridData(GridData.FILL_HORIZONTAL);
     gridData.horizontalSpan = 3;
     bAutoHost.setLayoutData(gridData);
+
+    label = new Label(panel,SWT.NULL);
+    Messages.setLanguageText(label,"wizard.maketorrents.init.tags");
+    final Text tag_area = new Text(panel,SWT.BORDER);
+    gridData = new GridData(GridData.FILL_HORIZONTAL);
+    gridData.horizontalSpan = 2;
+    tag_area.setLayoutData(gridData);
     
     bforce.setEnabled( false );
     tag_area.setEnabled( false );
