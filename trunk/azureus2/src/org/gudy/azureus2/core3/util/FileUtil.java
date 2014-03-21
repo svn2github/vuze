@@ -1197,10 +1197,10 @@ public class FileUtil {
     		
     		if ( !(is instanceof BufferedInputStream )){
     			
-    			is = new BufferedInputStream(is);
+    			is = new BufferedInputStream(is,128*1024);
     		}
     		
-    		byte[]	buffer = new byte[65536*2];
+    		byte[]	buffer = new byte[128*1024];
 			
     		while(true){
     			
