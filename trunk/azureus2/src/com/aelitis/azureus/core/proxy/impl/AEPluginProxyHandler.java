@@ -172,31 +172,36 @@ AEPluginProxyHandler
 		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
 		
 		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
+	
+			String url_protocol = target.getProtocol().toLowerCase();
 			
-			if ( can_wait ){
+			if ( url_protocol.startsWith( "http" ) || url_protocol.equals( "ftp" )){
 				
-				plugin_init_complete.reserve();
-			}
-			
-			for ( PluginInterface pi: plugins ){
+				if ( can_wait ){
+					
+					plugin_init_complete.reserve();
+				}
 				
-				try{
-					IPCInterface ipc = pi.getIPC();
+				for ( PluginInterface pi: plugins ){
 					
-					Object[] proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ reason, target } );
-					
-					if ( proxy_details != null ){
+					try{
+						IPCInterface ipc = pi.getIPC();
 						
-						if ( proxy_details.length == 2 ){
+						Object[] proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ reason, target } );
 						
-								// support old plugins
+						if ( proxy_details != null ){
 							
-							proxy_details = new Object[]{ proxy_details[0], proxy_details[1], target.getHost()};
+							if ( proxy_details.length == 2 ){
+							
+									// support old plugins
+								
+								proxy_details = new Object[]{ proxy_details[0], proxy_details[1], target.getHost()};
+							}
+							
+							return( new PluginProxyImpl( reason, ipc, proxy_details ));
 						}
-						
-						return( new PluginProxyImpl( reason, ipc, proxy_details ));
+					}catch( Throwable e ){				
 					}
-				}catch( Throwable e ){				
 				}
 			}
 		}
@@ -262,20 +267,28 @@ AEPluginProxyHandler
 		
 		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
 			
-			if ( can_wait ){
-				
-				plugin_init_complete.reserve();
-			}
-			
-			for ( PluginInterface pi: plugins ){
-				
-				try{
-					IPCInterface ipc = pi.getIPC();
+			String url_protocol = url.getProtocol().toLowerCase();
+
+			if ( url_protocol.startsWith( "http" )){
+
+				if ( can_wait ){
 					
-					return((Boolean)ipc.invoke( "testHTTPPseudoProxy", new Object[]{ url }));
-					
-				}catch( Throwable e ){	
+					plugin_init_complete.reserve();
 				}
+				
+				for ( PluginInterface pi: plugins ){
+					
+					try{
+						IPCInterface ipc = pi.getIPC();
+						
+						return((Boolean)ipc.invoke( "testHTTPPseudoProxy", new Object[]{ url }));
+						
+					}catch( Throwable e ){	
+					}
+				}
+			}else{
+				
+				Debug.out( "Unsupported protocol: " + url_protocol );
 			}
 		}
 		
@@ -292,24 +305,32 @@ AEPluginProxyHandler
 		
 		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
 			
-			if ( can_wait ){
-				
-				plugin_init_complete.reserve();
-			}
-			
-			for ( PluginInterface pi: plugins ){
-				
-				try{
-					IPCInterface ipc = pi.getIPC();
+			String url_protocol = url.getProtocol().toLowerCase();
+
+			if ( url_protocol.startsWith( "http" )){
+
+				if ( can_wait ){
 					
-					Proxy proxy = (Proxy)ipc.invoke( "createHTTPPseudoProxy", new Object[]{ reason, url });
-					
-					if ( proxy != null ){
-						
-						return( new PluginHTTPProxyImpl( reason, ipc, proxy ));
-					}
-				}catch( Throwable e ){	
+					plugin_init_complete.reserve();
 				}
+				
+				for ( PluginInterface pi: plugins ){
+					
+					try{
+						IPCInterface ipc = pi.getIPC();
+						
+						Proxy proxy = (Proxy)ipc.invoke( "createHTTPPseudoProxy", new Object[]{ reason, url });
+						
+						if ( proxy != null ){
+							
+							return( new PluginHTTPProxyImpl( reason, ipc, proxy ));
+						}
+					}catch( Throwable e ){	
+					}
+				}
+			}else{
+				
+				Debug.out( "Unsupported protocol: " + url_protocol );
 			}
 		}
 		
