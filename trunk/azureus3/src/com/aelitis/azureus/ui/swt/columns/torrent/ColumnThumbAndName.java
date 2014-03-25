@@ -119,6 +119,7 @@ public class ColumnThumbAndName
 						SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
 								msg_key_prefix + "title", msg_key_prefix + "message");
 						entryWindow.setPreenteredText(dm.getDisplayName(), false);
+						entryWindow.maintainWhitespace( true );	// apparently users want to be able to prefix with spaces
 						entryWindow.prompt(new UIInputReceiverListener() {
 							public void UIInputReceiverClosed(UIInputReceiver entryWindow) {
 								if (!entryWindow.hasSubmittedInput()) {
