@@ -198,7 +198,8 @@ COConfigurationManager
 			  	
 			  	System.setProperty("sun.net.inetaddr.ttl", "60");
 			  	System.setProperty("networkaddress.cache.ttl", "60");
-			  	
+			  	System.setProperty("sun.net.inetaddr.negative.ttl", "300" );
+			  	System.setProperty("networkaddress.cache.negative.ttl", "300" );
 			  	
 			  	// flick AWT into headless mode, which is supposed to make it more lightweight
 			  	// don't do this as it borks (for example) swing based plugins, java webstart installer,
