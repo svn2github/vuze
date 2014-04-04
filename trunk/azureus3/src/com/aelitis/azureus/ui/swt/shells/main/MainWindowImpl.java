@@ -26,11 +26,12 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.dnd.Clipboard;
+import org.eclipse.swt.dnd.TextTransfer;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.ConfigurationChecker;
@@ -1855,6 +1856,125 @@ public class MainWindowImpl
 
 			new MenuItem(topbarMenu, SWT.SEPARATOR);
 			
+			final MenuItem itemClipMon = new MenuItem(topbarMenu, SWT.CHECK );
+			Messages.setLanguageText(itemClipMon,
+					"label.monitor.clipboard");
+			itemClipMon.addSelectionListener(new SelectionAdapter() {
+				public void widgetSelected(SelectionEvent e) {
+					COConfigurationManager.setParameter( "Monitor Clipboard For Torrents", itemClipMon.getSelection());
+				}
+			});
+			
+			boolean enabled = COConfigurationManager.getBooleanParameter( "Monitor Clipboard For Torrents" );
+			itemClipMon.setSelection( enabled );
+			
+			COConfigurationManager.addAndFireParameterListener(
+				"Monitor Clipboard For Torrents",
+				new ParameterListener() {
+					
+					private volatile 	AEThread2 monitor_thread;
+					private Clipboard 	clipboard;
+					
+					private String		last_text;
+					
+					public void parameterChanged(String parameterName){
+						
+						boolean enabled = COConfigurationManager.getBooleanParameter( parameterName );
+						
+						if ( enabled ){
+							
+							if ( clipboard == null ){
+								
+								clipboard = new Clipboard(Display.getDefault());
+							}
+							
+							if ( monitor_thread == null ){
+								
+								final AEThread2 new_thread[] = {null};
+								
+								monitor_thread = new_thread[0] = new
+									AEThread2( "Clipboard Monitor")
+									{
+										public void 
+										run() 
+										{
+											Runnable checker = 
+												new Runnable() 
+												{	
+													public void 
+													run() 
+													{
+														if ( monitor_thread != new_thread[0] || clipboard == null ){
+															
+															return;
+														}
+														
+														String text = (String)clipboard.getContents(TextTransfer.getInstance());
+																												
+														if ( text != null && text.length() <= 2048 ){
+															
+															if ( last_text == null || !last_text.equals( text )){
+																
+																last_text = text;
+																
+																addTorrentsFromClipboard( text );
+															}
+														}	
+													}
+												};
+												
+											while( true ){
+												
+												try{
+													
+													Utils.execSWTThread( checker );
+														
+												}catch( Throwable e ){
+													
+													Debug.out( e );
+													
+												}finally{
+													
+													if ( monitor_thread != new_thread[0] ){
+														
+														break;
+														
+													}else{
+														
+														try{	
+															Thread.sleep(500);
+															
+														}catch( Throwable e ){
+															
+															Debug.out( e );
+															
+															break;
+														}
+													}
+												}
+											}
+										}
+									};
+									
+								monitor_thread.start();
+							}
+						}else{
+							
+							monitor_thread 	= null;
+							last_text		= null;
+							
+							if ( clipboard != null ){
+								
+								clipboard.dispose();
+								
+								clipboard = null;
+							}
+						}
+					}
+				});
+			
+			new MenuItem(topbarMenu, SWT.SEPARATOR);
+			
 			final MenuItem itemExport = new MenuItem(topbarMenu, SWT.PUSH);
 			Messages.setLanguageText(itemExport,
 					"search.export.all");
@@ -1935,6 +2055,55 @@ public class MainWindowImpl
 		}
 	}
 
+	private void
+	addTorrentsFromClipboard(
+		String		text )
+	{
+		final String[] splitters = {
+				"\r\n",
+				"\n",
+				"\r",
+				"\t"
+			};
+
+		String[] lines = null;
+		
+		for (int i = 0; i < splitters.length; i++){
+			if (text.indexOf(splitters[i]) >= 0) {
+				lines = text.split(splitters[i]);
+				break;
+			}
+		}
+		
+		if ( lines == null ){
+			
+			lines = new String[]{ text };
+		}
+	
+		for ( int i=0; i<lines.length; i++ ){
+			
+			String line = lines[i].trim();
+			
+			if ( line.startsWith("\"") && line.endsWith("\"")){
+				
+				if (line.length() < 3){
+					
+					line = "";
+					
+				}else{
+					
+					line = line.substring(1, line.length() - 2);
+				}
+			}
+
+			if ( UrlUtils.isURL( line )){
+				
+				TorrentOpener.openTorrent( line );
+			}
+		}
+	}
+	
+	
 	/**
 	 * @param skinObject
 	 */
