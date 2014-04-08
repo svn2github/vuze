@@ -1049,9 +1049,8 @@ FMFileImpl
 			created_dirs_leaf	= target;
 			created_dirs		= new ArrayList();
 			
-			if (FileUtil.mkdirs(parent)){
+			if ( FileUtil.mkdirs(parent)){
 			
-				created_dirs_leaf	= target;
 				created_dirs		= new_dirs;
 
 				/*
@@ -1061,7 +1060,25 @@ FMFileImpl
 				}
 				*/
 			}else{
-        		throw( new FMFileManagerException( "Failed to create parent directory '" + parent + "'"));	
+					// had some reports of this exception being thrown when starting a torrent
+					// double check in case there's some parallel creation being triggered somehow
+				
+				try{
+					Thread.sleep( RandomUtils.nextInt( 1000 ));
+					
+				}catch( Throwable e ){
+				}
+				
+				FileUtil.mkdirs( parent );
+				
+				if ( parent.isDirectory()){
+        		
+					created_dirs		= new_dirs;
+					
+				}else{
+					
+					throw( new FMFileManagerException( "Failed to create parent directory '" + parent + "'"));
+				}
         	}
         }
 	}
