@@ -117,6 +117,35 @@ public class TCPConnectionManager {
 			});
   }
   
+  private int rcv_size;
+  private int snd_size;
+  private String ip_tos;
+  private int local_bind_port;
+  
+  {
+	  COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"network.tcp.socket.SO_RCVBUF",
+				"network.tcp.socket.SO_SNDBUF",
+				"network.tcp.socket.IPDiffServ",
+				"network.bind.local.port"
+			},
+			new ParameterListener()
+			{
+				public void 
+				parameterChanged(
+					String name )
+				{
+					rcv_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );				 
+
+					snd_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
+
+					ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPDiffServ" );
+					
+					local_bind_port = COConfigurationManager.getIntParameter( "network.bind.local.port" );
+				}
+			});
+  }
   
   private static final int CONNECT_ATTEMPT_TIMEOUT = 15*1000;  // parg: reduced from 30 sec as almost never see worthwhile connections take longer that this
   private static final int CONNECT_ATTEMPT_STALL_TIME = 3*1000;  //3sec
@@ -308,11 +337,11 @@ public class TCPConnectionManager {
 	  boolean	bind_failed		= false;
 	  try {
 
-
 		  request.channel = SocketChannel.open();
 
+		  InetAddress bindIP = null;
+		  
 		  try {  //advanced socket options
-			  int rcv_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_RCVBUF" );
 			  if( rcv_size > 0 ) {
 				  if (Logger.isEnabled())
 					  Logger.log(new LogEvent(LOGID, "Setting socket receive buffer size"
@@ -321,7 +350,6 @@ public class TCPConnectionManager {
 				  request.channel.socket().setReceiveBufferSize( rcv_size );
 			  }
 
-			  int snd_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
 			  if( snd_size > 0 ) {
 				  if (Logger.isEnabled())
 					  Logger.log(new LogEvent(LOGID, "Setting socket send buffer size "
@@ -330,7 +358,6 @@ public class TCPConnectionManager {
 				  request.channel.socket().setSendBufferSize( snd_size );
 			  }
 
-			  String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPDiffServ" );
 			  if( ip_tos.length() > 0 ) {
 				  if (Logger.isEnabled())
 					  Logger.log(new LogEvent(LOGID, "Setting socket TOS field "
@@ -339,15 +366,12 @@ public class TCPConnectionManager {
 				  request.channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
 			  }
 
-
-			  int local_bind_port = COConfigurationManager.getIntParameter( "network.bind.local.port" );
-
 			  if( local_bind_port > 0 ) {
 				  request.channel.socket().setReuseAddress( true );
 			  }
 
 			  try {
-				  InetAddress bindIP = NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress(request.address.getAddress());
+				  bindIP = NetworkAdmin.getSingleton().getMultiHomedOutgoingRoundRobinBindAddress(request.address.getAddress());
 				  if ( bindIP != null ) {
 					  if (Logger.isEnabled()) 	Logger.log(new LogEvent(LOGID, "Binding outgoing connection [" + request.address + "] to local IP address: " + bindIP+":"+local_bind_port));
 					  request.channel.socket().bind( new InetSocketAddress( bindIP, local_bind_port ) );
@@ -385,8 +409,8 @@ public class TCPConnectionManager {
 			  
 				  //dont pass the exception outwards, so we will continue processing connection without advanced options set
 				 
-				  String msg = "Error while processing advanced socket options.";
-				  Debug.out( msg, t );
+				  String msg = "Error while processing advanced socket options (rcv=" + rcv_size + ", snd=" + snd_size + ", tos=" + ip_tos + ", port=" + local_bind_port + ", bind=" + bindIP + ")";
+				  //Debug.out( msg, t );
 				  Logger.log(new LogAlert(LogAlert.UNREPEATABLE, msg, t));
 				  
 			  }else{
