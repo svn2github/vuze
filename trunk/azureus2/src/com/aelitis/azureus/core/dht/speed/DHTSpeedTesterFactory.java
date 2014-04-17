@@ -32,6 +32,13 @@ DHTSpeedTesterFactory
 	create(
 		DHT		dht )
 	{
+			// if we're testing and there's no PI then don't create
+		
+		if ( dht.getLogger().getPluginInterface() == null ){
+			
+			return( null );
+		}
+		
 		return( new DHTSpeedTesterImpl( dht ));
 	}
 }

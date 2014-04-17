@@ -52,7 +52,6 @@ import com.aelitis.azureus.core.dht.DHTStorageKey;
 import com.aelitis.azureus.core.dht.DHTStorageKeyStats;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
-import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
 import com.aelitis.azureus.core.dht.transport.DHTTransportValue;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
@@ -200,7 +199,7 @@ DHTPluginStorageManager
 		return( network );
 	}
 	
-	protected void
+	public void
 	importContacts(
 		DHT		dht )
 	{
@@ -237,7 +236,7 @@ DHTPluginStorageManager
 		}
 	}
 	
-	protected void
+	public void
 	exportContacts(
 		DHT		dht )
 	{
