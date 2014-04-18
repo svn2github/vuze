@@ -207,6 +207,13 @@ public class TableViewSWT_TabsCommon
 		final UISWTViewCore			view,
 		final Object				ds )
 	{
+		Composite comp = view.getComposite();
+		
+		if ( comp == null || comp.isDisposed()){
+			
+			return;
+		}
+		
 		Utils.execSWTThread(
 			new Runnable()
 			{	
@@ -215,7 +222,12 @@ public class TableViewSWT_TabsCommon
 				{
 					Composite comp = view.getComposite();
 					
-					if ( comp != null && comp.isVisible()){
+					if ( comp == null || comp.isDisposed()){
+						
+						return;
+					}
+					
+					if ( comp.isVisible()){
 					
 						Object old_ds = view.getUserData( TableViewSWT_TabsCommon.class );
 						
