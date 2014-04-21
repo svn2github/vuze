@@ -138,6 +138,13 @@ DHTTransportLoopbackContactImpl
 		return( "" );
 	}
 	
+	public byte[]
+	getBloomKey()
+	{
+		return( null );
+	}
+	
+	
 	public InetSocketAddress
 	getAddress()
 	{

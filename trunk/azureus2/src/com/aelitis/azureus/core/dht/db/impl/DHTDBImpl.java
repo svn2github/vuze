@@ -192,72 +192,77 @@ DHTDBImpl
 				});
 		}
 		
-		SimpleTimer.addPeriodicEvent(
-			"DHTDB:op",
-			original_republish_interval,
-			true, // absolute, we don't want effective time changes (computer suspend/resume) to shift these
-			new TimerEventPerformer()
-			{
-				public void
-				perform(
-					TimerEvent	event )
-				{
-					logger.log( "Republish of original mappings starts" );
-					
-					long	start 	= SystemTime.getCurrentTime();
-					
-					int	stats = republishOriginalMappings();
-					
-					long	end 	= SystemTime.getCurrentTime();
-
-					logger.log( "Republish of original mappings completed in " + (end-start) + ": " +
-								"values = " + stats );
-
-				}
-			});
-					
-				// random skew here so that cache refresh isn't very synchronised, as the optimisations
-				// regarding non-republising benefit from this 
+		if ( original_republish_interval > 0 ){
 			
-		SimpleTimer.addPeriodicEvent(
-				"DHTDB:cp",
-				cache_republish_interval + 10000 - RandomUtils.nextInt(20000),
-				true,	// absolute, we don't want effective time changes (computer suspend/resume) to shift these
+			SimpleTimer.addPeriodicEvent(
+				"DHTDB:op",
+				original_republish_interval,
+				true, // absolute, we don't want effective time changes (computer suspend/resume) to shift these
 				new TimerEventPerformer()
 				{
 					public void
 					perform(
 						TimerEvent	event )
 					{
-						logger.log( "Republish of cached mappings starts" );
+						logger.log( "Republish of original mappings starts" );
 						
 						long	start 	= SystemTime.getCurrentTime();
 						
-						int[]	stats = republishCachedMappings();		
+						int	stats = republishOriginalMappings();
 						
 						long	end 	= SystemTime.getCurrentTime();
-
-						logger.log( "Republish of cached mappings completed in " + (end-start) + ": " +
-									"values = " + stats[0] + ", keys = " + stats[1] + ", ops = " + stats[2]);
-						
-						if ( force_original_republish ){
-							
-							force_original_republish	= false;
-							
-							logger.log( "Force republish of original mappings due to router change starts" );
-							
-							start 	= SystemTime.getCurrentTime();
-							
-							int stats2 = republishOriginalMappings();
-							
-							end 	= SystemTime.getCurrentTime();
-
-							logger.log( "Force republish of original mappings due to router change completed in " + (end-start) + ": " +
-										"values = " + stats2 );
-						}
+	
+						logger.log( "Republish of original mappings completed in " + (end-start) + ": " +
+									"values = " + stats );
+	
 					}
 				});
+		}
 		
+		if ( cache_republish_interval > 0 ){
+			
+					// random skew here so that cache refresh isn't very synchronised, as the optimisations
+					// regarding non-republising benefit from this 
+				
+			SimpleTimer.addPeriodicEvent(
+					"DHTDB:cp",
+					cache_republish_interval + 10000 - RandomUtils.nextInt(20000),
+					true,	// absolute, we don't want effective time changes (computer suspend/resume) to shift these
+					new TimerEventPerformer()
+					{
+						public void
+						perform(
+							TimerEvent	event )
+						{
+							logger.log( "Republish of cached mappings starts" );
+							
+							long	start 	= SystemTime.getCurrentTime();
+							
+							int[]	stats = republishCachedMappings();		
+							
+							long	end 	= SystemTime.getCurrentTime();
+	
+							logger.log( "Republish of cached mappings completed in " + (end-start) + ": " +
+										"values = " + stats[0] + ", keys = " + stats[1] + ", ops = " + stats[2]);
+							
+							if ( force_original_republish ){
+								
+								force_original_republish	= false;
+								
+								logger.log( "Force republish of original mappings due to router change starts" );
+								
+								start 	= SystemTime.getCurrentTime();
+								
+								int stats2 = republishOriginalMappings();
+								
+								end 	= SystemTime.getCurrentTime();
+	
+								logger.log( "Force republish of original mappings due to router change completed in " + (end-start) + ": " +
+											"values = " + stats2 );
+							}
+						}
+					});
+		}
 	
 		
 		SimpleTimer.addPeriodicEvent(
@@ -3351,7 +3356,9 @@ DHTDBImpl
 		
 			// However, for CVS DHTs we can have sizes of 1000 or less. 
 		
-		int	hit_count = ip_count_bloom_filter.add( contact.getAddress().getAddress().getAddress());
+		byte[] bloom_key = contact.getBloomKey();
+		
+		int	hit_count = ip_count_bloom_filter.add( bloom_key );
 		
 		if ( DHTLog.GLOBAL_BLOOM_TRACE ){
 		
@@ -3377,7 +3384,9 @@ DHTDBImpl
 	decrementValueAdds(
 		DHTTransportContact	contact )
 	{
-		int	hit_count = ip_count_bloom_filter.remove( contact.getAddress().getAddress().getAddress());
+		byte[] bloom_key = contact.getBloomKey();
+		
+		int	hit_count = ip_count_bloom_filter.remove( bloom_key );
 
 		if ( DHTLog.GLOBAL_BLOOM_TRACE ){
 			
@@ -3426,7 +3435,9 @@ DHTDBImpl
 						
 						// logger.log( "    adding " + val.getOriginator().getAddress());
 						
-						int	hits = new_filter.add( val.getOriginator().getAddress().getAddress().getAddress());
+						byte[] bloom_key = val.getOriginator().getBloomKey();
+						
+						int	hits = new_filter.add( bloom_key );
 						
 						if ( hits > max_hits ){
 							

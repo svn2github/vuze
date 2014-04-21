@@ -3305,6 +3305,13 @@ DHTControlImpl
 					
 		if ( result != null ){
 			
+			if ( originating_contact.getRandomIDType() == DHTTransportContact.RANDOM_ID_TYPE2 ){
+				
+				byte[]	rand = generateSpoofID2( originating_contact );
+				
+				originating_contact.setRandomID2( rand );
+			}
+			
 			router.contactAlive( originating_contact.getID(), new DHTControlContactImpl(originating_contact));
 
 			DHTStorageBlock	block_details = database.getKeyBlockDetails( key );
@@ -5042,6 +5049,12 @@ DHTControlImpl
 		getName()
 		{
 			return( delegate.getName());
+		}
+		
+		public byte[]
+		getBloomKey()
+		{
+			return(delegate.getBloomKey());
 		}
 		
 		public InetSocketAddress

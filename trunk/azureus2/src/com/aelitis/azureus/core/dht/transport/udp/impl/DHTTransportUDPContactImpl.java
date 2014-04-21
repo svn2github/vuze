@@ -259,6 +259,12 @@ DHTTransportUDPContactImpl
 		return( DHTLog.getString2( id  ));
 	}
 	
+	public byte[]
+	getBloomKey()
+	{
+		return( getAddress().getAddress().getAddress());
+	}
+	
 	public InetSocketAddress
 	getAddress()
 	{

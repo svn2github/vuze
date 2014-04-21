@@ -77,6 +77,9 @@ DHTTransportContact
 	public String
 	getName();
 	
+	public byte[]
+	getBloomKey();
+	
 	public InetSocketAddress
 	getAddress();
 	

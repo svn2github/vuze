@@ -918,13 +918,13 @@ DHTDBMapping
 
 		DHTTransportContact	originator = value.getOriginator();
 
-		byte[] address_bytes = originator.getAddress().getAddress().getAddress();
+		byte[] bloom_key = originator.getBloomKey();
 		
 		// System.out.println( "addToBloom: existing=" + ip_count_bloom_filter );
 
 		if ( ip_count_bloom_filter == null ){
 			
-			ip_count_bloom_filter = address_bytes;
+			ip_count_bloom_filter = bloom_key;
 			
 			return;
 		}
@@ -944,7 +944,7 @@ DHTDBMapping
 			filter = (BloomFilter)ip_count_bloom_filter;
 		}
 								
-		int	hit_count = filter.add( address_bytes );
+		int	hit_count = filter.add( bloom_key );
 		
 		if ( DHTLog.LOCAL_BLOOM_TRACE ){
 		
@@ -975,13 +975,13 @@ DHTDBMapping
 			return;
 		}
 		
-		byte[] address_bytes = originator.getAddress().getAddress().getAddress();
+		byte[] bloom_key = originator.getBloomKey();
 
 		if ( ip_count_bloom_filter instanceof byte[] ){
 
 			byte[]	existing_address = (byte[])ip_count_bloom_filter;
 
-			if ( Arrays.equals( address_bytes, existing_address )){
+			if ( Arrays.equals( bloom_key, existing_address )){
 				
 				ip_count_bloom_filter = null;
 			}
@@ -991,7 +991,7 @@ DHTDBMapping
 		
 		BloomFilter filter = (BloomFilter)ip_count_bloom_filter;
 		
-		int	hit_count = filter.remove( address_bytes );
+		int	hit_count = filter.remove( bloom_key );
 		
 		if (  DHTLog.LOCAL_BLOOM_TRACE ){
 		
@@ -1041,7 +1041,7 @@ DHTDBMapping
 					
 					// logger.log( "    adding " + val.getOriginator().getAddress());
 					
-					int	hits = new_filter.add( val.getOriginator().getAddress().getAddress().getAddress());
+					int	hits = new_filter.add( val.getOriginator().getBloomKey());
 	
 					if ( hits > max_hits ){
 						
