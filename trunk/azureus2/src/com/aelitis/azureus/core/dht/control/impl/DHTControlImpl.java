@@ -181,7 +181,16 @@ DHTControlImpl
 					return( size() > SPOOF_GEN_HISTORY_SIZE );
 				}
 			};
-				
+		
+	private final static int SPOOF_ID2_SIZE	= 8;
+	
+	private final static byte[]	BOGUS_SPOOF_ID2 = new byte[SPOOF_ID2_SIZE];
+	
+	static{
+		
+		RandomUtils.nextBytes( BOGUS_SPOOF_ID2 );
+	}
+	
 	private byte[]			sid_faraway;
 	private long			sid_faraway_calc_time;
 	
@@ -3104,8 +3113,12 @@ DHTControlImpl
 					
 				//System.out.println( "verification fail" );
 				
-				logger.log( "Verification of contact '" + originating_contact.getName() + "' failed for store operation" );
+				boolean	ignore = originating_contact.getRandomIDType() == DHTTransportContact.RANDOM_ID_TYPE2 && Arrays.equals( originating_contact.getRandomID2(), BOGUS_SPOOF_ID2 );
 				
+				if ( !ignore ){
+				
+					logger.log( "Verification of contact '" + originating_contact.getName() + "' failed for store operation" );
+				}
 			}else{
 				
 					// get the closest contacts to me
@@ -4369,7 +4382,7 @@ DHTControlImpl
 	{
 		if ( spoof_cipher == null  ){
 			
-			return( null );
+			return( new byte[ SPOOF_ID2_SIZE ]);
 		}
 		
 		if ( transport.getNetwork() != DHT.NW_CVS ){
@@ -4402,7 +4415,7 @@ DHTControlImpl
 				
 				if ( res < 0 ){
 					
-					return( null );
+					return( BOGUS_SPOOF_ID2 );
 				}
 			}
 		}
@@ -4428,9 +4441,9 @@ DHTControlImpl
 							
 			byte[]	data_out = spoof_cipher.doFinal( cid.getBytes());
 			
-			byte[] res = new byte[8];
+			byte[] res = new byte[SPOOF_ID2_SIZE];
 			
-			System.arraycopy( data_out, 0, res, 0, res.length );
+			System.arraycopy( data_out, 0, res, 0, SPOOF_ID2_SIZE );
 			
 			//System.out.println( "anti-spoof: generating " + res + " for " + contact.getAddress() + " - total=" + spoof_gen_history.size());
 
@@ -4447,7 +4460,7 @@ DHTControlImpl
 			spoof_mon.exit();
 		}
 		
-		return( null );
+		return( new byte[ SPOOF_ID2_SIZE ]);
 	}
 	
 	public boolean
@@ -4477,6 +4490,11 @@ DHTControlImpl
 			}else{
 				
 				ok = Arrays.equals( r1, r2 );
+				
+				if ( ok && Arrays.equals( r1, BOGUS_SPOOF_ID2 )){
+					
+					ok = false;
+				}
 			}
 		}
 		
