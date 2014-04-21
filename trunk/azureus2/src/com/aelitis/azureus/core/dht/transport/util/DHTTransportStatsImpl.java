@@ -397,7 +397,7 @@ DHTTransportStatsImpl
 	{
 		outgoing_requests++;		
 
-		if ( DHTLog.TRACE_VERSIONS ){
+		if ( DHTLog.TRACE_VERSIONS && request != null ){
 			
 			byte protocol_version = request.getProtocolVersion();
 			
@@ -445,7 +445,7 @@ DHTTransportStatsImpl
 	{
 		incoming_requests++;
 		
-		if ( alien ){
+		if ( alien && request != null ){
 			
 			// System.out.println( "Alien on net " + request.getNetwork() + " - sender=" + request.getAddress());
 			
@@ -481,7 +481,7 @@ DHTTransportStatsImpl
 			}
 		}
 		
-		if ( DHTLog.TRACE_VERSIONS ){
+		if ( DHTLog.TRACE_VERSIONS && request != null ){
 			
 			byte protocol_version = request.getProtocolVersion();
 			

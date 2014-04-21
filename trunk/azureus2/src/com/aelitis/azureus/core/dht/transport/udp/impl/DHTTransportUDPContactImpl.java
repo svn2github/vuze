@@ -164,6 +164,12 @@ DHTTransportUDPContactImpl
 		return( skew );
 	}
 	
+	public int
+	getRandomIDType()
+	{
+		return( RANDOM_ID_TYPE1 );
+	}
+	
 	public void
 	setRandomID(
 		int		_random_id )
@@ -175,6 +181,18 @@ DHTTransportUDPContactImpl
 	getRandomID()
 	{
 		return( random_id );
+	}
+	
+	public void
+	setRandomID2(
+		byte[]		id )
+	{	
+	}
+	
+	public byte[]
+	getRandomID2()
+	{
+		return( null );
 	}
 	
 	protected int

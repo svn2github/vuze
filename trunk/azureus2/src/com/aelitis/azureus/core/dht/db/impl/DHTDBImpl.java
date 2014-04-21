@@ -2864,6 +2864,11 @@ DHTDBImpl
 					}
 				};
 				
+			if ( d_contact.getRandomIDType() != DHTTransportContact.RANDOM_ID_TYPE1 ){
+				
+				Debug.out( "derp" );
+			}
+			
 			if ( d_contact.getRandomID() == 0 ){
 				
 				d_contact.sendFindNode(

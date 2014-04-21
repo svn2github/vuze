@@ -36,6 +36,9 @@ import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 public interface 
 DHTTransportContact
 {
+	public static final int RANDOM_ID_TYPE1	= 1;
+	public static final int RANDOM_ID_TYPE2	= 2;
+	
 	public int
 	getMaxFailForLiveCount();
 	
@@ -54,12 +57,22 @@ DHTTransportContact
 	public long
 	getClockSkew();
 	
+	public int
+	getRandomIDType();
+	
 	public void
 	setRandomID(
 		int	id );
 	
 	public int
 	getRandomID();
+	
+	public void
+	setRandomID2(
+		byte[]		id );
+	
+	public byte[]
+	getRandomID2();
 	
 	public String
 	getName();

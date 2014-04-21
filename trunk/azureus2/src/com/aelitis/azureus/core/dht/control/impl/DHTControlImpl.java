@@ -170,7 +170,18 @@ DHTControlImpl
 				return( size() > SPOOF_GEN_HISTORY_SIZE );
 			}
 		};
-			
+	
+	private Map<HashWrapper,byte[]>	spoof_gen_history2 = 
+			new LinkedHashMap<HashWrapper,byte[]>(SPOOF_GEN_HISTORY_SIZE,0.75f,true)
+			{
+				protected boolean 
+				removeEldestEntry(
+			   		Map.Entry<HashWrapper,byte[]> eldest) 
+				{
+					return( size() > SPOOF_GEN_HISTORY_SIZE );
+				}
+			};
+				
 	private byte[]			sid_faraway;
 	private long			sid_faraway_calc_time;
 	
@@ -3209,9 +3220,18 @@ DHTControlImpl
 			DHTLog.log( "queryStoreRequest from " + DHTLog.getString( originating_contact )+ ", header_len=" + header_len + ", keys=" + keys.size());
 		}
 
-		int	rand = generateSpoofID( originating_contact );
+		if ( originating_contact.getRandomIDType() == DHTTransportContact.RANDOM_ID_TYPE1 ){
 		
-		originating_contact.setRandomID( rand );
+			int	rand = generateSpoofID( originating_contact );
+		
+			originating_contact.setRandomID( rand );
+			
+		}else{
+			
+			byte[]	rand = generateSpoofID2( originating_contact );
+			
+			originating_contact.setRandomID2( rand );
+		}
 
 		return( database.queryStore( originating_contact, header_len, keys ));
 	}
@@ -3254,9 +3274,18 @@ DHTControlImpl
 		
 		l.toArray( res );
 				
-		int	rand = generateSpoofID( originating_contact );
+		if ( originating_contact.getRandomIDType() == DHTTransportContact.RANDOM_ID_TYPE1 ){
+			
+			int	rand = generateSpoofID( originating_contact );
 		
-		originating_contact.setRandomID( rand );
+			originating_contact.setRandomID( rand );
+			
+		}else{
+			
+			byte[]	rand = generateSpoofID2( originating_contact );
+			
+			originating_contact.setRandomID2( rand );
+		}
 		
 		return( res );
 	}
@@ -4237,7 +4266,7 @@ DHTControlImpl
 		return( res );
 	}
 	
-	protected int
+	private int
 	generateSpoofID(
 		DHTTransportContact	contact )
 	{
@@ -4327,12 +4356,122 @@ DHTControlImpl
 		return( 0 );
 	}
 	
+	private byte[]
+	generateSpoofID2(
+		DHTTransportContact	contact )
+	{
+		if ( spoof_cipher == null  ){
+			
+			return( null );
+		}
+		
+		if ( transport.getNetwork() != DHT.NW_CVS ){
+		
+			long	now = SystemTime.getMonotonousTime();
+			
+			byte[] originator_id 	= contact.getID();
+			byte[] my_id			= local_contact.getID();
+
+			if ( sid_faraway == null || now - sid_faraway_calc_time > 1*60*1000 ){
+				
+				int	c_factor = router.getK() * 2;
+	
+	
+				List<DHTTransportContact>	closest_contacts = getClosestContactsList( my_id, c_factor, true );
+				
+				if ( closest_contacts.size() >= c_factor ){
+					
+					sid_faraway = closest_contacts.get( closest_contacts.size()-1).getID();
+					
+					sid_faraway_calc_time = now;
+				}
+			}
+			
+			if ( sid_faraway != null ){
+			
+				int res = computeAndCompareDistances( sid_faraway, originator_id, my_id );
+				
+				//System.out.println( "cac: " + DHTLog.getString2( sid_faraway ) + ", " +  DHTLog.getString2( originator_id ) +  ", " + DHTLog.getString2( my_id ) + " -> " + res );
+				
+				if ( res < 0 ){
+					
+					return( null );
+				}
+			}
+		}
+		
+		HashWrapper cid = new HashWrapper( contact.getID());
+		
+		try{
+			spoof_mon.enter();
+			
+				// during cache forwarding we get a lot of consecutive requests from the
+				// same contact so we can save CPU by caching the latest result and optimising for this
+			
+			byte[] existing = spoof_gen_history2.get( cid );
+			
+			if ( existing != null ){
+				
+				//System.out.println( "anti-spoof: cached " + existing + " for " + contact.getAddress() + " - total=" + spoof_gen_history.size());
+				
+				return( existing );
+			}
+						
+			spoof_cipher.init(Cipher.ENCRYPT_MODE, spoof_key ); 
+							
+			byte[]	data_out = spoof_cipher.doFinal( cid.getBytes());
+			
+			byte[] res = new byte[8];
+			
+			System.arraycopy( data_out, 0, res, 0, res.length );
+			
+			//System.out.println( "anti-spoof: generating " + res + " for " + contact.getAddress() + " - total=" + spoof_gen_history.size());
+
+			spoof_gen_history2.put( cid, res );
+			
+			return( res );
+
+		}catch( Throwable e ){
+			
+			logger.log(e);
+			
+		}finally{
+			
+			spoof_mon.exit();
+		}
+		
+		return( null );
+	}
+	
 	public boolean
 	verifyContact(
 		DHTTransportContact 	c,
 		boolean					direct )
 	{
-		boolean	ok = c.getRandomID() == generateSpoofID( c );
+		boolean	ok;
+		
+		if ( c.getRandomIDType() == DHTTransportContact.RANDOM_ID_TYPE1 ){
+			
+			ok = c.getRandomID() == generateSpoofID( c );
+			
+		}else{
+			
+			byte[]	r1 = c.getRandomID2();
+			byte[]	r2 = generateSpoofID2( c );
+			
+			if ( r1 == null && r2 == null ){
+				
+				ok = true;
+				
+			}else if ( r1 == null || r2 == null ){
+				
+				ok = false;
+				
+			}else{
+				
+				ok = Arrays.equals( r1, r2 );
+			}
+		}
 		
 		if ( DHTLog.CONTACT_VERIFY_TRACE ){
 				
@@ -4421,10 +4560,10 @@ DHTControlImpl
 			np_str += (j==0?"":",") + nps[j];
 		}
 		
-		logger.log( "DHT Details: external IP = " + transport.getLocalContact().getAddress() + 
-						", network = " + transport.getNetwork() +
-						", protocol = V" + transport.getProtocolVersion() + 
-						", nps = " + np_str );
+		logger.log( "DHT Details: external address=" + transport.getLocalContact().getAddress() + 
+						", network=" + transport.getNetwork() +
+						", protocol=V" + transport.getProtocolVersion() + 
+						", nps=" + np_str + ", est_size=" + getTransportEstimatedDHTSize());
 		
 		router.print();
 		
@@ -4867,6 +5006,12 @@ DHTControlImpl
 			return( delegate.getClockSkew());	
 		}
 		
+		public int
+		getRandomIDType()
+		{
+			return( delegate.getRandomIDType());
+		}
+		
 		public void
 		setRandomID(
 			int	id )
@@ -4878,6 +5023,19 @@ DHTControlImpl
 		getRandomID()
 		{
 			return( delegate.getRandomID());
+		}
+		
+		public void
+		setRandomID2(
+			byte[]		id )
+		{
+			delegate.setRandomID2( id );
+		}
+		
+		public byte[]
+		getRandomID2()
+		{
+			return(delegate.getRandomID2());
 		}
 		
 		public String

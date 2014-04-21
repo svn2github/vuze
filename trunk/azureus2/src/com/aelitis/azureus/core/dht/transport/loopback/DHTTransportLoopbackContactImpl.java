@@ -78,6 +78,12 @@ DHTTransportLoopbackContactImpl
 	}
 	
 	public int
+	getRandomIDType()
+	{
+		return( RANDOM_ID_TYPE1 );
+	}
+	
+	public int
 	getRandomID()
 	{
 		return( random_id );
@@ -88,6 +94,18 @@ DHTTransportLoopbackContactImpl
 		int	_random_id )
 	{
 		random_id	= _random_id;
+	}
+	
+	public void
+	setRandomID2(
+		byte[]		id )
+	{	
+	}
+	
+	public byte[]
+	getRandomID2()
+	{
+		return( null );
 	}
 	
 	public boolean

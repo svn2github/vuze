@@ -1517,7 +1517,7 @@ DHTRouterImpl
 		try{
 			this_mon.enter();
 		
-			log( "DHT: " + DHTLog.getString2(router_node_id) + ", node count = " + getNodeCount()+ ", contacts =" + getContactCount());
+			log( "DHT: " + DHTLog.getString2(router_node_id) + ", node count=" + getNodeCount()+ ", contacts=" + getContactCount());
 		
 			root.print( "", "" );
 			
