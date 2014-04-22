@@ -31,7 +31,7 @@ import java.util.Map;
 import org.gudy.azureus2.core3.util.AERunStateHandler;
 import org.gudy.azureus2.core3.util.AESemaphore;
 
-
+import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
@@ -398,7 +398,8 @@ DHTTransportUDPContactImpl
 	public void
 	sendFindNode(
 		DHTTransportReplyHandler	handler,
-		byte[]						nid )
+		byte[]						nid,
+		short						flags )
 	{
 		transport.sendFindNode( this, handler, nid );
 	}
@@ -408,7 +409,7 @@ DHTTransportUDPContactImpl
 		DHTTransportReplyHandler	handler,
 		byte[]						key,
 		int							max_values,
-		byte						flags )
+		short						flags )
 	{
 		transport.sendFindValue( this, handler, key, max_values, flags );
 	}
@@ -439,7 +440,8 @@ DHTTransportUDPContactImpl
 					handler.failed( _contact, _error );
 				}
 			},
-			new byte[0] );
+			new byte[0],
+			DHT.FLAG_NONE );
 		
 	}
 	

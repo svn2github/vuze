@@ -2274,9 +2274,9 @@ DHTPluginStorageManager
 								( LOCAL_DIVERSIFICATION_READS_PER_MIN * LOCAL_DIVERSIFICATION_READS_PER_MIN_SAMPLES *10 ) / 3 );
 					}
 					
-					byte[]	address_bytes = contact.getAddress().getAddress().getAddress();
+					byte[]	bloom_key = contact.getBloomKey();
 					
-					ip_bloom_filter.add( address_bytes );
+					ip_bloom_filter.add( bloom_key );
 				}
 			}
 		}

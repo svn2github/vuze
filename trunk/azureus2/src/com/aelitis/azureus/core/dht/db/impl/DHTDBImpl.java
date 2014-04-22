@@ -343,7 +343,7 @@ DHTDBImpl
 	store(
 		HashWrapper		key,
 		byte[]			value,
-		byte			flags,
+		short			flags,
 		byte			life_hours,
 		byte			replication_control )
 	{
@@ -500,7 +500,7 @@ DHTDBImpl
 		DHTTransportContact		reader,
 		HashWrapper				key,
 		int						max_values,	// 0 -> all
-		byte					flags,
+		short					flags,
 		boolean					external_request )	
 	{
 		try{
@@ -1274,7 +1274,8 @@ DHTDBImpl
 								}
 							}
 						},
-						contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20] );
+						contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20],
+						DHT.FLAG_LOOKUP_FOR_STORE );
 				
 				sem.reserve();
 			}
@@ -1400,7 +1401,8 @@ DHTDBImpl
 												router.contactDead( _contact.getID(), false);
 											}
 										},
-										contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20] );
+										contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20],
+										DHT.FLAG_LOOKUP_FOR_STORE );
 							}
 					}
 				}
@@ -2877,33 +2879,34 @@ DHTDBImpl
 			if ( d_contact.getRandomID() == 0 ){
 				
 				d_contact.sendFindNode(
-						new DHTTransportReplyHandlerAdapter()
+					new DHTTransportReplyHandlerAdapter()
+					{
+						public void
+						findNodeReply(
+							DHTTransportContact 	_contact,
+							DHTTransportContact[]	_contacts )
+						{	
+							store_exec.run();
+						}
+				
+						public void
+						failed(
+							DHTTransportContact 	_contact,
+							Throwable				_error )
 						{
-							public void
-							findNodeReply(
-								DHTTransportContact 	_contact,
-								DHTTransportContact[]	_contacts )
-							{	
-								store_exec.run();
-							}
-					
-							public void
-							failed(
-								DHTTransportContact 	_contact,
-								Throwable				_error )
-							{
-								try{
-									this_mon.enter();
-										
-									contact.contactFailed();
-										
-								}finally{
+							try{
+								this_mon.enter();
 									
-									this_mon.exit();
-								}
+								contact.contactFailed();
+									
+							}finally{
+								
+								this_mon.exit();
 							}
-						},
-						d_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20] );
+						}
+					},
+					d_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20],
+					DHT.FLAG_LOOKUP_FOR_STORE );
 			}else{
 				
 				store_exec.run();

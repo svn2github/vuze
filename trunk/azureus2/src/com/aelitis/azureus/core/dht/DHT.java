@@ -50,16 +50,19 @@ DHT
 	public static final String	PR_CACHE_AT_CLOSEST_N					= "CacheClosestN";
 	public static final String	PR_ORIGINAL_REPUBLISH_INTERVAL			= "OriginalRepublishInterval";
 	public static final String	PR_CACHE_REPUBLISH_INTERVAL				= "CacheRepublishInterval";
+	public static final String	PR_ENCODE_KEYS							= "EncodeKeys";
 
-	public static final byte		FLAG_SINGLE_VALUE		= 0x00;
-	public static final byte		FLAG_DOWNLOADING		= 0x01;
-	public static final byte		FLAG_SEEDING			= 0x02;
-	public static final byte		FLAG_MULTI_VALUE		= 0x04;
-	public static final byte		FLAG_STATS				= 0x08;
-	public static final byte		FLAG_ANON				= 0x10;
-	public static final byte		FLAG_PRECIOUS			= 0x20;
-	public static final byte		FLAG_PUT_AND_FORGET		= 0x40;				// local only
-	public static final byte		FLAG_OBFUSCATE_LOOKUP	= (byte)0x80;		// local only
+	public static final short		FLAG_NONE				= 0x0000;
+	public static final short		FLAG_SINGLE_VALUE		= FLAG_NONE;
+	public static final short		FLAG_DOWNLOADING		= 0x0001;
+	public static final short		FLAG_SEEDING			= 0x0002;
+	public static final short		FLAG_MULTI_VALUE		= 0x0004;
+	public static final short		FLAG_STATS				= 0x0008;
+	public static final short		FLAG_ANON				= 0x0010;
+	public static final short		FLAG_PRECIOUS			= 0x0020;
+	public static final short		FLAG_PUT_AND_FORGET		= 0x0040;			// local only
+	public static final short		FLAG_OBFUSCATE_LOOKUP	= 0x0080;			// local only
+	public static final short		FLAG_LOOKUP_FOR_STORE	= 0x0100;			// local only
 
 	public static final int 	MAX_VALUE_SIZE		= 512;
 
@@ -83,7 +86,7 @@ DHT
 		byte[]					key,
 		String					description,
 		byte[]					value,
-		byte					flags,
+		short					flags,
 		DHTOperationListener	listener );
 	
 		/**
@@ -102,7 +105,7 @@ DHT
 		byte[]					key,
 		String					description,
 		byte[]					value,
-		byte					flags,
+		short					flags,
 		boolean					high_priority,
 		DHTOperationListener	listener );
 	
@@ -111,7 +114,7 @@ DHT
 		byte[]					key,
 		String					description,
 		byte[]					value,
-		byte					flags,
+		short					flags,
 		byte					life_hours,
 		boolean					high_priority,
 		DHTOperationListener	listener );
@@ -121,7 +124,7 @@ DHT
 		byte[]					key,
 		String					description,
 		byte[]					value,
-		byte					flags,
+		short					flags,
 		byte					life_hours,
 		byte					replication_control,	// 4 bits 1->14 republish hours; 0=vuze default | 4 bits 0->15 maintain replicas; [ff=no replication control-use default]
 		boolean					high_priority,
@@ -149,7 +152,7 @@ DHT
 	get(
 		byte[]					key,
 		String					description,
-		byte					flags,
+		short					flags,
 		int						max_values,
 		long					timeout,
 		boolean					exhaustive,

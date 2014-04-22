@@ -231,7 +231,8 @@ DHTTransportLoopbackContactImpl
 	public void
 	sendFindNode(
 		DHTTransportReplyHandler	handler,
-		byte[]						nid )
+		byte[]						nid,
+		short						flags )
 	{
 		transport.sendFindNode( this, handler, nid );
 	}
@@ -241,7 +242,7 @@ DHTTransportLoopbackContactImpl
 		DHTTransportReplyHandler	handler,
 		byte[]						key,
 		int							max,
-		byte						flags )
+		short						flags )
 	{
 		transport.sendFindValue( this, handler, key, max, flags );
 	}

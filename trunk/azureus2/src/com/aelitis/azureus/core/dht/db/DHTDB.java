@@ -57,7 +57,7 @@ DHTDB
 	store(
 		HashWrapper		key,
 		byte[]			value,
-		byte			flags,
+		short			flags,
 		byte			life_hours,
 		byte			replication_control );
 	
@@ -111,7 +111,7 @@ DHTDB
 		DHTTransportContact		reader,
 		HashWrapper				key,
 		int						max_values,
-		byte					flags,
+		short					flags,
 		boolean					external_request );
 		
 		/**

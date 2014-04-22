@@ -48,6 +48,7 @@ DHTControl
 	public static final int		CACHE_AT_CLOSEST_N_DEFAULT				= 1;
 	public static final int		ORIGINAL_REPUBLISH_INTERVAL_DEFAULT		= 8*60*60*1000;
 	public static final int		CACHE_REPUBLISH_INTERVAL_DEFAULT		=   30*60*1000; 
+	public static final int		ENCODE_KEYS_DEFAULT						= 1;
 	
 	public void
 	seed(
@@ -65,7 +66,7 @@ DHTControl
 		byte[]					key,
 		String					description,
 		byte[]					value,
-		byte					flags,
+		short					flags,
 		byte					life_hours,
 		byte					replication_control,
 		boolean					high_priority,
@@ -83,7 +84,7 @@ DHTControl
 	get(
 		byte[]					key,
 		String					description,
-		byte					flags,
+		short					flags,
 		int						max_values,
 		long					timeout,
 		boolean					exhaustive,

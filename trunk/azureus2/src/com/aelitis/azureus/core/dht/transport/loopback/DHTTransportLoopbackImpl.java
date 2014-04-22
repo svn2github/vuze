@@ -647,7 +647,7 @@ DHTTransportLoopbackImpl
 		final DHTTransportReplyHandler	handler,
 		final byte[]					key,
 		final int						max,
-		final byte						flags )
+		final short						flags )
 	{
 		AERunnable	runnable = 
 			new AERunnable()
@@ -668,7 +668,7 @@ DHTTransportLoopbackImpl
 		DHTTransportReplyHandler	handler,
 		byte[]						key,
 		int							max,
-		byte						flags )
+		short						flags )
 	{
 		DHTTransportLoopbackImpl	target = findTarget( contact.getID());
 		

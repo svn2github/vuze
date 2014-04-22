@@ -133,14 +133,15 @@ DHTTransportContact
 	public void
 	sendFindNode(
 		DHTTransportReplyHandler	handler,
-		byte[]						id );
+		byte[]						id,
+		short						flags );
 		
 	public void
 	sendFindValue(
 		DHTTransportReplyHandler	handler,
 		byte[]						key,
 		int							max_values,
-		byte						flags );
+		short						flags );
 		
 	public void
 	sendKeyBlock(

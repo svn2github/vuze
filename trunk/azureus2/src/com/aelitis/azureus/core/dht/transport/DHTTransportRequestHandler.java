@@ -68,7 +68,7 @@ DHTTransportRequestHandler
 		DHTTransportContact contact, 
 		byte[]				key,
 		int					max_values,
-		byte				flags );
+		short				flags );
 
 		/**
 		 * Mechanism for reporting that a contact has been imported

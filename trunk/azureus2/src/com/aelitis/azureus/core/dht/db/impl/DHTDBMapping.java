@@ -349,7 +349,7 @@ DHTDBMapping
 	get(
 		DHTTransportContact		by_who,
 		int						max,
-		byte					flags )
+		short					flags )
 	{
 		if ((flags & DHT.FLAG_STATS) != 0 ){
 			

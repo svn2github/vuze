@@ -120,7 +120,7 @@ DHTTransportRequestCounter
 		DHTTransportContact contact, 
 		byte[]				key,
 		int					max,
-		byte				flags )
+		short				flags )
 	{
 		stats.findValueReceived();
 		

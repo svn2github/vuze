@@ -47,6 +47,7 @@ DHTControlFactory
 		int					original_republish_interval,
 		int					cache_republish_interval,
 		int					cache_at_closest_n,
+		boolean				encode_keys,
 		DHTLogger			logger )
 	{
 		return( new DHTControlImpl(
@@ -58,6 +59,7 @@ DHTControlFactory
 						original_republish_interval,
 						cache_republish_interval,
 						cache_at_closest_n,
+						encode_keys,
 						logger));
 	}
 }

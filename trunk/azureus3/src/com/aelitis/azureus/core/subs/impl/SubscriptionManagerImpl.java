@@ -3448,7 +3448,7 @@ SubscriptionManagerImpl
 		dht_plugin.get(
 				hash,
 				"Popularity lookup for subscription " + subs.getName(),
-				DHT.FLAG_STATS,
+				DHTPlugin.FLAG_STATS,
 				5,
 				timeout,
 				false,

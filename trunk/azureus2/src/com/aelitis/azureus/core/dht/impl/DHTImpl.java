@@ -92,6 +92,7 @@ DHTImpl
 		int		o_rep 	= getProp( PR_ORIGINAL_REPUBLISH_INTERVAL, 	DHTControl.ORIGINAL_REPUBLISH_INTERVAL_DEFAULT );
 		int		c_rep 	= getProp( PR_CACHE_REPUBLISH_INTERVAL, 	DHTControl.CACHE_REPUBLISH_INTERVAL_DEFAULT );
 		int		c_n 	= getProp( PR_CACHE_AT_CLOSEST_N, 			DHTControl.CACHE_AT_CLOSEST_N_DEFAULT );
+		boolean	e_c 	= getProp( PR_ENCODE_KEYS, 					DHTControl.ENCODE_KEYS_DEFAULT ) == 1;
 		
 		control = DHTControlFactory.create( 
 				new DHTControlAdapter()
@@ -169,7 +170,7 @@ DHTImpl
 				_transport, 
 				K, B, max_r,
 				s_conc, l_conc, 
-				o_rep, c_rep, c_n,
+				o_rep, c_rep, c_n, e_c,
 				logger );
 		
 		if ( nat_adapter != null ){
@@ -318,7 +319,7 @@ DHTImpl
 		byte[]					key,
 		String					description,
 		byte[]					value,
-		byte					flags,
+		short					flags,
 		DHTOperationListener	listener )
 	{
 		control.put( key, description, value, flags, (byte)0, DHT.REP_FACT_DEFAULT, true, listener );
@@ -329,7 +330,7 @@ DHTImpl
 		byte[]					key,
 		String					description,
 		byte[]					value,
-		byte					flags,
+		short					flags,
 		boolean					high_priority,
 		DHTOperationListener	listener )
 	{
@@ -341,7 +342,7 @@ DHTImpl
 		byte[]					key,
 		String					description,
 		byte[]					value,
-		byte					flags,
+		short					flags,
 		byte					life_hours,
 		boolean					high_priority,
 		DHTOperationListener	listener )
@@ -354,7 +355,7 @@ DHTImpl
 		byte[]					key,
 		String					description,
 		byte[]					value,
-		byte					flags,
+		short					flags,
 		byte					life_hours,
 		byte					replication_control,
 		boolean					high_priority,
@@ -374,7 +375,7 @@ DHTImpl
 	get(
 		byte[]					key,
 		String					description,
-		byte					flags,
+		short					flags,
 		int						max_values,
 		long					timeout,
 		boolean					exhaustive,

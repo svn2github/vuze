@@ -96,6 +96,8 @@ DHTControlImpl
 	private int			B;
 	private int			max_rep_per_node;
 	
+	private final boolean	encode_keys;
+	
 	private long		router_start_time;
 	private int			router_count;
 		
@@ -215,6 +217,7 @@ DHTControlImpl
 		int					_original_republish_interval,
 		int					_cache_republish_interval,
 		int					_cache_at_closest_n,
+		boolean				_encode_keys,
 		DHTLogger 			_logger )
 	{
 		adapter		= _adapter;
@@ -227,6 +230,7 @@ DHTControlImpl
 		search_concurrency				= _search_concurrency;
 		lookup_concurrency				= _lookup_concurrency;
 		cache_at_closest_n				= _cache_at_closest_n;
+		encode_keys						= _encode_keys;
 		
 			// set this so we don't do initial calculation until reasonably populated
 		
@@ -888,7 +892,7 @@ DHTControlImpl
 		byte[]					_unencoded_key,
 		String					_description,
 		byte[]					_value,
-		byte					_flags,
+		short					_flags,
 		byte					_life_hours,
 		byte					_replication_control,
 		boolean					_high_priority,
@@ -955,7 +959,7 @@ DHTControlImpl
 		byte[]						initial_encoded_key,
 		String						description,
 		DHTTransportValue			value,
-		byte						flags,
+		short						flags,
 		long						timeout,
 		boolean						original_mappings,
 		Set							things_written,
@@ -982,7 +986,7 @@ DHTControlImpl
 		final byte[]						initial_encoded_key,
 		final String						description,
 		final DHTTransportValue[]			values,
-		final byte							flags,
+		final short							flags,
 		final long							timeout,
 		final boolean						original_mappings,
 		final Set							things_written,
@@ -1043,7 +1047,7 @@ DHTControlImpl
 					high_priority,
 					encoded_key,
 					this_description,
-					flags,
+					(short)( flags | DHT.FLAG_LOOKUP_FOR_STORE ),
 					false, 
 					timeout,
 					search_concurrency,
@@ -1274,7 +1278,7 @@ DHTControlImpl
 		byte[][]								initial_encoded_keys,
 		final String							description,
 		final DHTTransportValue[][]				initial_value_sets,
-		final byte								flags,
+		final short								flags,
 		final List								contacts,
 		final long								timeout,
 		final DHTOperationListenerDemuxer		listener,
@@ -1667,7 +1671,7 @@ DHTControlImpl
 	get(
 		byte[]						unencoded_key,
 		String						description,
-		byte						flags,
+		short						flags,
 		int							max_values,
 		long						timeout,
 		boolean						exhaustive,
@@ -1870,7 +1874,7 @@ DHTControlImpl
 	getSupport(
 		final byte[]						initial_encoded_key,
 		final String						description,
-		final byte							flags,
+		final short							flags,
 		final int							max_values,
 		final long							timeout,
 		final boolean						exhaustive,
@@ -2138,7 +2142,7 @@ DHTControlImpl
 		boolean 					high_priority, 
 		final byte[] 				_lookup_id, 
 		final String 				description, 
-		final byte 					flags, 
+		final short					flags, 
 		final boolean 				value_search, 
 		final long 					timeout, 
 		final int 					concurrency, 
@@ -2757,7 +2761,7 @@ DHTControlImpl
 									closest.sendFindValue(replyHandler, lookup_id, rem, flags);
 								} else
 								{
-									closest.sendFindNode(replyHandler, lookup_id);
+									closest.sendFindNode(replyHandler, lookup_id, flags );
 								}
 							} finally
 							{
@@ -3308,7 +3312,7 @@ DHTControlImpl
 		DHTTransportContact originating_contact, 
 		byte[]				key,
 		int					max_values,
-		byte				flags )
+		short				flags )
 	{
 		if ( DHTLog.isOn()){
 			DHTLog.log( "findValueRequest from " + DHTLog.getString( originating_contact.getID()));
@@ -3692,7 +3696,8 @@ DHTControlImpl
 							router.contactDead( _contact.getID(), false);
 						}
 					},
-					t_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20] );
+					t_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20],
+					DHT.FLAG_LOOKUP_FOR_STORE );
 						
 		}else{
 			
@@ -3798,7 +3803,8 @@ DHTControlImpl
 									router.contactDead( _contact.getID(), false);
 								}
 							},
-							t_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20] );
+							t_contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ANTI_SPOOF2?new byte[0]:new byte[20],
+							DHT.FLAG_LOOKUP_FOR_STORE );
 				}
 			}
 		}
@@ -3891,13 +3897,31 @@ DHTControlImpl
 	encodeKey(
 		byte[]		key )
 	{
-		byte[]	temp = new SHA1Simple().calculateHash( key );
-		
-		byte[]	result =  new byte[node_id_byte_count];
-		
-		System.arraycopy( temp, 0, result, 0, node_id_byte_count );
-		
-		return( result );
+		if ( encode_keys ){
+			
+			byte[]	temp = new SHA1Simple().calculateHash( key );
+			
+			byte[]	result =  new byte[node_id_byte_count];
+			
+			System.arraycopy( temp, 0, result, 0, node_id_byte_count );
+			
+			return( result );
+			
+		}else{
+			
+			if ( key.length == node_id_byte_count ){
+				
+				return( key );
+				
+			}else{
+				
+				byte[]	result =  new byte[node_id_byte_count];
+				
+				System.arraycopy( key, 0, result, 0, Math.min( node_id_byte_count, key.length ));
+				
+				return( result );
+			}
+		}
 	}
 	
 	public int
@@ -5164,9 +5188,10 @@ DHTControlImpl
 		public void
 		sendFindNode(
 			DHTTransportReplyHandler	handler,
-			byte[]						id )
+			byte[]						id,
+			short						flags )
 		{
-			delegate.sendFindNode(handler, id);
+			delegate.sendFindNode( handler, id, flags );
 		}
 			
 		public void
@@ -5174,9 +5199,9 @@ DHTControlImpl
 			DHTTransportReplyHandler	handler,
 			byte[]						key,
 			int							max_values,
-			byte						flags )
+			short						flags )
 		{
-			delegate.sendFindValue(handler, key, max_values, flags);
+			delegate.sendFindValue( handler, key, max_values, flags);
 		}
 			
 		public void

@@ -2374,7 +2374,7 @@ outer:
 		final DHTTransportReplyHandler		handler,
 		byte[]								key,
 		int									max_values,
-		byte								flags )
+		short								flags )
 	{
 		try{
 			checkAddress( contact );
@@ -2390,7 +2390,7 @@ outer:
 			
 			request.setMaximumValues( max_values );
 			
-			request.setFlags( flags );
+			request.setFlags((byte)flags );
 			
 			requestSendRequestProcessor( contact, request );
 
