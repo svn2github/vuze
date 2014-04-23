@@ -63,8 +63,10 @@ public class DHTView
   public static final int DHT_TYPE_MAIN 	= DHT.NW_MAIN;
   public static final int DHT_TYPE_CVS  	= DHT.NW_CVS;
   public static final int DHT_TYPE_MAIN_V6 	= DHT.NW_MAIN_V6;
-	public static final String MSGID_PREFIX = "DHTView";
+  public static final String MSGID_PREFIX = "DHTView";
 
+  private boolean auto_dht;
+  
   DHT dht;
   
   Composite panel;
@@ -102,7 +104,12 @@ public class DHTView
 	protected AzureusCore core;
   
 
-  public DHTView( ) {
+  public DHTView()
+  {
+	  this( true );
+  }
+  public DHTView( boolean _auto_dht ) {
+	auto_dht = _auto_dht;
     inGraph = SpeedGraphic.getInstance();
     outGraph = SpeedGraphic.getInstance();
   }
@@ -142,15 +149,40 @@ public class DHTView
     }
   }
   
-  private void initialize(Composite composite) {
-  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+  public void
+  setDHT(
+	DHT		_dht )
+  {
+	  if ( dht == null ){
 
-			public void azureusCoreRunning(AzureusCore core) {
-				DHTView.this.core = core;
-				init(core);
-			}
-		});
-
+		  dht	= _dht;
+		  
+		  controlListener = new DHTControlListener() {
+		        public void activityChanged(DHTControlActivity activity,int type) {
+		          activityChanged = true;
+		        }                
+		      };
+		  dht.getControl().addListener(controlListener);
+		  
+	  }else if ( dht == _dht ){
+		  
+	  }else{
+		  
+		  Debug.out( "Not Supported ");
+	  }
+  }
+  
+  public void initialize(Composite composite) {
+	if ( auto_dht ){
+	  	AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+	
+				public void azureusCoreRunning(AzureusCore core) {
+					DHTView.this.core = core;
+					init(core);
+				}
+			});
+	}
+	
   	panel = new Composite(composite,SWT.NULL);
     GridLayout layout = new GridLayout();
     layout.numColumns = 2;

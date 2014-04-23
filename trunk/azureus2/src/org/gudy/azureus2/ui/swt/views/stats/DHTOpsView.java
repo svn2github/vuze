@@ -22,7 +22,6 @@
  */
 package org.gudy.azureus2.ui.swt.views.stats;
 
-import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FillLayout;
@@ -53,18 +52,23 @@ public class DHTOpsView
 	Composite panel;
 	DHTOpsPanel drawPanel;
 	private final boolean autoAlpha;
+	private final boolean autoDHT;
+	
 	private int dht_type;
 	private AzureusCore core;
 	private UISWTView swtView;
 
-
-	public DHTOpsView(boolean autoAlpha) {
-		this.autoAlpha = autoAlpha;
-
-	}
-
 	public DHTOpsView() {
 		this(false);
+	}
+
+	public DHTOpsView(boolean autoAlpha) {
+		this( autoAlpha, true );
+	}
+
+	public DHTOpsView(boolean autoAlpha, boolean autoDHT ) {
+		this.autoAlpha = autoAlpha;
+		this.autoDHT	= autoDHT;
 	}
 
 	private void init(AzureusCore core) {
@@ -110,15 +114,24 @@ public class DHTOpsView
 		}
 	}
 
-	private void initialize(Composite composite) {
-		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
-
-			public void azureusCoreRunning(AzureusCore core) {
-				DHTOpsView.this.core = core;
-				init(core);
-			}
-		});
-
+	public void
+	setDHT(
+		DHT		_dht )
+	{
+		dht	= _dht;
+	}
+	
+	public void initialize(Composite composite) {
+		if ( autoDHT ){
+			AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
+	
+				public void azureusCoreRunning(AzureusCore core) {
+					DHTOpsView.this.core = core;
+					init(core);
+				}
+			});
+		}
+		
 		panel = new Composite(composite,SWT.NULL);
 		panel.setLayout(new FillLayout());    
 		drawPanel = new DHTOpsPanel(panel);    

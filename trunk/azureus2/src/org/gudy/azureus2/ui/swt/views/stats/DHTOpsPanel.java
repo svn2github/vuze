@@ -387,6 +387,11 @@ DHTOpsPanel
 		
 		Rectangle size = canvas.getBounds();
 
+		if ( size.width <= 0 || size.height <= 0 ){
+			
+			return;
+		}
+		
 		scale.width = size.width;
 		scale.height = size.height;
 
