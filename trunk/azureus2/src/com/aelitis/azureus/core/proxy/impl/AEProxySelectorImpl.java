@@ -226,7 +226,7 @@ AEProxySelectorImpl
 	public List<Proxy> 
 	select(
 		URI uri )
-	{	
+	{			
 		List<Proxy>  result;
 		
 		if ( tls.get() > 0 ){
@@ -236,6 +236,29 @@ AEProxySelectorImpl
 		}else{
 		
 			result = selectSupport( uri );
+			
+			String host = uri.getHost();
+			
+			if ( host != null ){
+				
+				if ( host.endsWith( ".i2p" ) || host.endsWith( ".onion" )){
+
+					List<Proxy> trimmed = new ArrayList<Proxy>( result.size());
+					
+					for ( Proxy p: result ){
+						
+						if ( p.type() != Proxy.Type.DIRECT ){
+							
+							trimmed.add( p );
+						}
+					}
+					
+					if ( trimmed.size() == 0 ){
+					
+						throw( new AEProxySelectorImpl.UnknownHostException( host ));
+					}
+				}
+			}
 		}
 		
 		if ( LOG ){
@@ -860,6 +883,18 @@ AEProxySelectorImpl
 			}
 		
 			return( str );
+		}
+	}
+	
+	private class
+	UnknownHostException
+		extends RuntimeException
+	{
+		private
+		UnknownHostException(
+			String	host )
+		{
+			super( "Unknown host " + host );
 		}
 	}
 }
