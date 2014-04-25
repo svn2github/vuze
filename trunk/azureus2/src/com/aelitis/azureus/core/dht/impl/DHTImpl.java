@@ -469,6 +469,16 @@ DHTImpl
 		DHTNetworkPositionManager.destroy( storage_adapter );
 		
 		AERunStateHandler.removeListener( this );
+		
+		if ( control != null ){
+			
+			control.destroy();
+		}
+		
+		if ( speed_tester != null ){
+			
+			speed_tester.destroy();
+		}
 	}
 	
 	public void

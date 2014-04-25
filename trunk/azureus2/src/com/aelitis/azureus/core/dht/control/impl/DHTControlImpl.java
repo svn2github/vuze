@@ -192,6 +192,8 @@ DHTControlImpl
 	private boolean			sleeping;
 	private boolean			suspended;
 	
+	private volatile boolean			destroyed;
+	
 	public
 	DHTControlImpl(
 		DHTControlAdapter	_adapter,
@@ -4524,6 +4526,22 @@ DHTControlImpl
 							System.out.println( "ok=" + results[0] + ",bad=" + results[1] );
 						}
 					});
+		}
+	}
+	
+	public void
+	destroy()
+	{
+		destroyed = true;
+		
+		if ( router != null ){
+			
+			router.destroy();
+		}
+		
+		if ( database != null ){
+			
+			database.destroy();
 		}
 	}
 	

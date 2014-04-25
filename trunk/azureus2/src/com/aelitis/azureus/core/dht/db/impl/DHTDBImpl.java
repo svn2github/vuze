@@ -40,6 +40,7 @@ import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.DHTLogger;
@@ -153,9 +154,18 @@ DHTDBImpl
 			}
 		};
 	
+	private TimerEventPeriodic		precious_timer;
+	private TimerEventPeriodic		original_republish_timer;
+	private TimerEventPeriodic		cache_republish_timer;
+	private TimerEventPeriodic		bloom_timer;
+	private TimerEventPeriodic		survey_timer;
+	
+	
 	private boolean	sleeping;
 	private boolean	suspended;
-		
+	
+	private volatile boolean	destroyed;
+	
 	public
 	DHTDBImpl(
 		DHTStorageAdapter	_adapter,
@@ -177,7 +187,7 @@ DHTDBImpl
 		
 		if ( ENABLE_PRECIOUS_STUFF ){
 			
-			SimpleTimer.addPeriodicEvent(
+			precious_timer = SimpleTimer.addPeriodicEvent(
 				"DHTDB:precious",
 				PRECIOUS_CHECK_INTERVAL/4,
 				true, // absolute, we don't want effective time changes (computer suspend/resume) to shift these
@@ -194,7 +204,7 @@ DHTDBImpl
 		
 		if ( original_republish_interval > 0 ){
 			
-			SimpleTimer.addPeriodicEvent(
+			original_republish_timer = SimpleTimer.addPeriodicEvent(
 				"DHTDB:op",
 				original_republish_interval,
 				true, // absolute, we don't want effective time changes (computer suspend/resume) to shift these
@@ -224,7 +234,7 @@ DHTDBImpl
 					// random skew here so that cache refresh isn't very synchronised, as the optimisations
 					// regarding non-republising benefit from this 
 				
-			SimpleTimer.addPeriodicEvent(
+			cache_republish_timer = SimpleTimer.addPeriodicEvent(
 					"DHTDB:cp",
 					cache_republish_interval + 10000 - RandomUtils.nextInt(20000),
 					true,	// absolute, we don't want effective time changes (computer suspend/resume) to shift these
@@ -265,7 +275,7 @@ DHTDBImpl
 		}
 	
 		
-		SimpleTimer.addPeriodicEvent(
+		bloom_timer = SimpleTimer.addPeriodicEvent(
 				"DHTDB:bloom",
 				IP_BLOOM_FILTER_REBUILD_PERIOD,
 				new TimerEventPerformer()
@@ -288,7 +298,7 @@ DHTDBImpl
 				
 		if ( survey_enabled ){
 			
-			SimpleTimer.addPeriodicEvent(
+			survey_timer = SimpleTimer.addPeriodicEvent(
 					"DHTDB:survey",
 					SURVEY_PERIOD,
 					true, 
@@ -3623,6 +3633,33 @@ DHTDBImpl
 		}finally{
 			
 			this_mon.exit();
+		}
+	}
+	
+	public void
+	destroy()
+	{
+		destroyed	= true;
+				
+		if ( precious_timer != null ){
+			
+			precious_timer.cancel();
+		}
+		if ( original_republish_timer != null ){
+				
+			original_republish_timer.cancel();
+		}
+		if ( cache_republish_timer != null ){
+			
+			cache_republish_timer.cancel();
+		}
+		if ( bloom_timer != null ){
+			
+			bloom_timer.cancel();
+		}
+		if ( survey_timer != null ){
+			
+			survey_timer.cancel();
 		}
 	}
 	

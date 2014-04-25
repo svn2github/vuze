@@ -167,6 +167,9 @@ DHTDB
 		boolean			susp );
 	
 	public void
+	destroy();
+	
+	public void
 	print(
 		boolean		full );
 }

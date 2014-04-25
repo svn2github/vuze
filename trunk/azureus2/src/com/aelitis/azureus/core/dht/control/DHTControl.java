@@ -230,6 +230,9 @@ DHTControl
 		DHTControlListener	l );
 	
 	public void
+	destroy();
+	
+	public void
 	print(
 		boolean	full );
 }
