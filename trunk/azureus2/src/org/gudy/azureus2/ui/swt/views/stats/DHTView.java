@@ -600,7 +600,11 @@ public class DHTView
     return panel;
   }
   
-  private void refresh() {    
+  private void refresh() {
+	  // need to do these here otherwise they sit in an unpainted state
+	inGraph.refresh(false);
+	outGraph.refresh(false);
+	
   	if (dht == null) {
   		if (core != null) {
   			// keep trying until dht is avail
@@ -608,10 +612,7 @@ public class DHTView
   		}
 			return;
   	}
-    
-    inGraph.refresh(false);
-    outGraph.refresh(false);
-    
+        
     refreshGeneral();
     refreshDB();
     refreshTransportDetails();

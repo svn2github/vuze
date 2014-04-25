@@ -169,4 +169,17 @@ AEProxyFactory
 		public void
 		destroy();
 	}
+	
+	
+	public static class
+	UnknownHostException
+		extends RuntimeException
+	{
+		public
+		UnknownHostException(
+			String	host )
+		{
+			super( "Unknown host " + host );
+		}
+	}
 }

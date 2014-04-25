@@ -1033,35 +1033,37 @@ public class TrackerStatus {
  		URL 					reqUrl, 
  		ByteArrayOutputStream 	message )
 
- 	
- 		throws IOException
+ 		throws Exception
  	{
 		try{
 			return( scrapeHTTPSupport( reqUrl, null, message ));
 			
-		}catch( UnknownHostException e ){
+		}catch( Exception e ){
 			
-			if ( AENetworkClassifier.categoriseAddress( reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){
-			
-				PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker scrape", reqUrl, true );
+			if ( e instanceof UnknownHostException || e instanceof AEProxyFactory.UnknownHostException ){
+
+				if ( AENetworkClassifier.categoriseAddress( reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){
 				
-				if ( proxy != null ){
+					PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker scrape", reqUrl, true );
 					
-					boolean	ok = false;
-					
-					try{
+					if ( proxy != null ){
 						
-						URL result =  scrapeHTTPSupport( proxy.getURL(), proxy.getProxy(), message );
+						boolean	ok = false;
 						
-						ok = true;
-								
-						return( result );
-						
-					}catch( Throwable f ){
-						
-					}finally{
-						
-						proxy.setOK( ok );
+						try{
+							
+							URL result =  scrapeHTTPSupport( proxy.getURL(), proxy.getProxy(), message );
+							
+							ok = true;
+									
+							return( result );
+							
+						}catch( Throwable f ){
+							
+						}finally{
+							
+							proxy.setOK( ok );
+						}
 					}
 				}
 			}

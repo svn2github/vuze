@@ -66,6 +66,7 @@ import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.utils.PeerClassifier;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxySelector;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.net.udp.uc.*;
@@ -1330,35 +1331,38 @@ TRTrackerBTAnnouncerImpl
  		ByteArrayOutputStream	message,
  		boolean					first_effort )
  	
- 		throws IOException
+ 		throws Exception
  	{
 		try{
 			return( announceHTTPSupport( tracker_url, original_reqUrl, null, message ));
 			
-		}catch( UnknownHostException e ){
+		}catch( Exception e ){
 			
-			if ( 	first_effort &&
-					AENetworkClassifier.categoriseAddress( original_reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){
-			
-				PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker update", original_reqUrl, true );
+			if ( e instanceof UnknownHostException || e instanceof AEProxyFactory.UnknownHostException ){
 				
-				if ( proxy != null ){
+				if ( 	first_effort &&
+						AENetworkClassifier.categoriseAddress( original_reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){
+				
+					PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker update", original_reqUrl, true );
 					
-					boolean	ok = false;
-					
-					try{
+					if ( proxy != null ){
 						
-						String result =  announceHTTPSupport( tracker_url, proxy.getURL(), proxy.getProxy(), message );
+						boolean	ok = false;
 						
-						ok = true;
-								
-						return( result );
-						
-					}catch( Throwable f ){
-						
-					}finally{
-						
-						proxy.setOK( ok );
+						try{
+							
+							String result =  announceHTTPSupport( tracker_url, proxy.getURL(), proxy.getProxy(), message );
+							
+							ok = true;
+									
+							return( result );
+							
+						}catch( Throwable f ){
+							
+						}finally{
+							
+							proxy.setOK( ok );
+						}
 					}
 				}
 			}

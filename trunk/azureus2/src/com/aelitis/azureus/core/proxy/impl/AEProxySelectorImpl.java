@@ -255,7 +255,7 @@ AEProxySelectorImpl
 					
 					if ( trimmed.size() == 0 ){
 					
-						throw( new AEProxySelectorImpl.UnknownHostException( host ));
+						throw( new AEProxyFactory.UnknownHostException( host ));
 					}
 				}
 			}
@@ -883,18 +883,6 @@ AEProxySelectorImpl
 			}
 		
 			return( str );
-		}
-	}
-	
-	private class
-	UnknownHostException
-		extends RuntimeException
-	{
-		private
-		UnknownHostException(
-			String	host )
-		{
-			super( "Unknown host " + host );
 		}
 	}
 }
