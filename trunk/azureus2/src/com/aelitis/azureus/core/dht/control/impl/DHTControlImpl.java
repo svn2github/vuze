@@ -27,12 +27,9 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.security.MessageDigest;
 import java.util.*;
 import java.util.Map.Entry;
-
-import javax.crypto.Cipher;
-import javax.crypto.KeyGenerator;
-import javax.crypto.SecretKey;
 
 import org.bouncycastle.crypto.CipherParameters;
 import org.bouncycastle.crypto.engines.RC4Engine;
@@ -113,19 +110,17 @@ DHTControlImpl
 	private long		last_lookup;
 	
 
-	private ListenerManager	listeners 	= ListenerManager.createAsyncManager(
+	private ListenerManager<DHTControlListener>	listeners 	= ListenerManager.createAsyncManager(
 			"DHTControl:listenDispatcher",
-			new ListenerManagerDispatcher()
+			new ListenerManagerDispatcher<DHTControlListener>()
 			{
 				public void
 				dispatch(
-					Object		_listener,
+					DHTControlListener		listener,
 					int			type,
 					Object		value )
-				{
-					DHTControlListener	target = (DHTControlListener)_listener;
-			
-					target.activityChanged((DHTControlActivity)value, type );
+				{			
+					listener.activityChanged((DHTControlActivity)value, type );
 				}
 			});
 
@@ -157,8 +152,10 @@ DHTControlImpl
 		
 	protected AEMonitor	spoof_mon		= new AEMonitor( "DHTControl:spoof" );
 
-	private Cipher 			spoof_cipher;
-	private SecretKey		spoof_key;
+	//private Cipher 			spoof_cipher;
+	//private SecretKey		spoof_key;
+	MessageDigest	spoof_digest;
+	byte[]			spoof_key;
 	
 	private static final int	SPOOF_GEN_HISTORY_SIZE	= 256;
 	
@@ -185,17 +182,7 @@ DHTControlImpl
 			};
 		
 	private final static int SPOOF_ID2_SIZE	= 8;
-	
-	private final static byte[]	BOGUS_SPOOF_ID2 = new byte[SPOOF_ID2_SIZE];
-	
-	static{
 		
-		RandomUtils.nextBytes( BOGUS_SPOOF_ID2 );
-	}
-	
-	private byte[]			sid_faraway;
-	private long			sid_faraway_calc_time;
-	
 	private long			last_node_add_check;
 	private byte[]			node_add_check_uninteresting_limit;
 	
@@ -262,12 +249,17 @@ DHTControlImpl
 		if ( transport.supportsStorage()){
 			
 			try{
+				/*
 				spoof_cipher = Cipher.getInstance("DESede/ECB/PKCS5Padding"); 
 			
 				KeyGenerator keyGen = KeyGenerator.getInstance("DESede");
 			
 				spoof_key = keyGen.generateKey();
-	
+				*/
+				
+				spoof_digest 	= MessageDigest.getInstance( "MD5" );
+				spoof_key		= new byte[16];
+				RandomUtils.nextSecureBytes( spoof_key );
 			}catch( Throwable e ){
 				
 				Debug.printStackTrace( e );
@@ -3116,13 +3108,9 @@ DHTControlImpl
 			}else if ( !verifyContact( originating_contact, !cache_forward )){
 					
 				//System.out.println( "verification fail" );
-				
-				boolean	ignore = originating_contact.getRandomIDType() == DHTTransportContact.RANDOM_ID_TYPE2 && Arrays.equals( originating_contact.getRandomID2(), BOGUS_SPOOF_ID2 );
-				
-				if ( !ignore ){
-				
-					logger.log( "Verification of contact '" + originating_contact.getName() + "' failed for store operation" );
-				}
+								
+				logger.log( "Verification of contact '" + originating_contact.getName() + "' failed for store operation" );
+		
 			}else{
 				
 					// get the closest contacts to me
@@ -4314,44 +4302,9 @@ DHTControlImpl
 	generateSpoofID(
 		DHTTransportContact	contact )
 	{
-		if ( spoof_cipher == null  ){
+		if ( spoof_digest == null  ){
 			
 			return( 0 );
-		}
-		
-		if ( transport.getNetwork() != DHT.NW_CVS ){
-		
-			long	now = SystemTime.getMonotonousTime();
-			
-			byte[] originator_id 	= contact.getID();
-			byte[] my_id			= local_contact.getID();
-
-			if ( sid_faraway == null || now - sid_faraway_calc_time > 1*60*1000 ){
-				
-				int	c_factor = router.getK() * 2;
-	
-	
-				List<DHTTransportContact>	closest_contacts = getClosestContactsList( my_id, c_factor, true );
-				
-				if ( closest_contacts.size() >= c_factor ){
-					
-					sid_faraway = closest_contacts.get( closest_contacts.size()-1).getID();
-					
-					sid_faraway_calc_time = now;
-				}
-			}
-			
-			if ( sid_faraway != null ){
-			
-				int res = computeAndCompareDistances( sid_faraway, originator_id, my_id );
-				
-				//System.out.println( "cac: " + DHTLog.getString2( sid_faraway ) + ", " +  DHTLog.getString2( originator_id ) +  ", " + DHTLog.getString2( my_id ) + " -> " + res );
-				
-				if ( res < 0 ){
-					
-					return( 0 );
-				}
-			}
 		}
 		
 		InetAddress iad = contact.getAddress().getAddress();
@@ -4370,13 +4323,20 @@ DHTControlImpl
 				
 				return( existing );
 			}
-						
-			spoof_cipher.init(Cipher.ENCRYPT_MODE, spoof_key ); 
-		
+
 			byte[]	address = iad.getAddress();
-					
-			byte[]	data_out = spoof_cipher.doFinal( address );
 	
+			//spoof_cipher.init(Cipher.ENCRYPT_MODE, spoof_key ); 
+			//byte[]	data_out = spoof_cipher.doFinal( address );
+	
+			byte[]	data_in = spoof_key.clone();
+			
+			for ( int i=0;i<address.length;i++){
+				data_in[i] ^= address[i];
+			}
+			
+			byte[] data_out = spoof_digest.digest( data_in );
+						
 			int	res =  	(data_out[0]<<24)&0xff000000 |
 						(data_out[1] << 16)&0x00ff0000 | 
 						(data_out[2] << 8)&0x0000ff00 | 
@@ -4404,44 +4364,9 @@ DHTControlImpl
 	generateSpoofID2(
 		DHTTransportContact	contact )
 	{
-		if ( spoof_cipher == null  ){
+		if ( spoof_digest == null  ){
 			
 			return( new byte[ SPOOF_ID2_SIZE ]);
-		}
-		
-		if ( transport.getNetwork() != DHT.NW_CVS ){
-		
-			long	now = SystemTime.getMonotonousTime();
-			
-			byte[] originator_id 	= contact.getID();
-			byte[] my_id			= local_contact.getID();
-
-			if ( sid_faraway == null || now - sid_faraway_calc_time > 1*60*1000 ){
-				
-				int	c_factor = router.getK() * 2;
-	
-	
-				List<DHTTransportContact>	closest_contacts = getClosestContactsList( my_id, c_factor, true );
-				
-				if ( closest_contacts.size() >= c_factor ){
-					
-					sid_faraway = closest_contacts.get( closest_contacts.size()-1).getID();
-					
-					sid_faraway_calc_time = now;
-				}
-			}
-			
-			if ( sid_faraway != null ){
-			
-				int res = computeAndCompareDistances( sid_faraway, originator_id, my_id );
-				
-				//System.out.println( "cac: " + DHTLog.getString2( sid_faraway ) + ", " +  DHTLog.getString2( originator_id ) +  ", " + DHTLog.getString2( my_id ) + " -> " + res );
-				
-				if ( res < 0 ){
-					
-					return( BOGUS_SPOOF_ID2 );
-				}
-			}
 		}
 		
 		HashWrapper cid = new HashWrapper( contact.getID());
@@ -4461,9 +4386,19 @@ DHTControlImpl
 				return( existing );
 			}
 						
-			spoof_cipher.init(Cipher.ENCRYPT_MODE, spoof_key ); 
-							
-			byte[]	data_out = spoof_cipher.doFinal( cid.getBytes());
+			// spoof_cipher.init(Cipher.ENCRYPT_MODE, spoof_key ); 						
+			// byte[]	data_out = spoof_cipher.doFinal( cid.getBytes());
+			
+			byte[] 	cid_bytes 	= cid.getBytes();
+			byte[]	data_in 	= spoof_key.clone();
+			
+			int	byte_count = Math.min( cid_bytes.length, data_in.length );
+			
+			for ( int i=0;i<byte_count;i++){
+				data_in[i] ^= cid_bytes[i];
+			}
+			
+			byte[] data_out = spoof_digest.digest( data_in );
 			
 			byte[] res = new byte[SPOOF_ID2_SIZE];
 			
@@ -4514,11 +4449,6 @@ DHTControlImpl
 			}else{
 				
 				ok = Arrays.equals( r1, r2 );
-				
-				if ( ok && Arrays.equals( r1, BOGUS_SPOOF_ID2 )){
-					
-					ok = false;
-				}
 			}
 		}
 		
