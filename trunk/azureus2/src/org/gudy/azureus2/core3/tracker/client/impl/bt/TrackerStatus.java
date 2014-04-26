@@ -1038,32 +1038,29 @@ public class TrackerStatus {
 		try{
 			return( scrapeHTTPSupport( reqUrl, null, message ));
 			
-		}catch( Exception e ){
+		}catch( UnknownHostException e ){
 			
-			if ( e instanceof UnknownHostException || e instanceof AEProxyFactory.UnknownHostException ){
-
-				if ( AENetworkClassifier.categoriseAddress( reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){
+			if ( AENetworkClassifier.categoriseAddress( reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){
+			
+				PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker scrape", reqUrl, true );
 				
-					PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker scrape", reqUrl, true );
+				if ( proxy != null ){
 					
-					if ( proxy != null ){
+					boolean	ok = false;
+					
+					try{
 						
-						boolean	ok = false;
+						URL result =  scrapeHTTPSupport( proxy.getURL(), proxy.getProxy(), message );
 						
-						try{
-							
-							URL result =  scrapeHTTPSupport( proxy.getURL(), proxy.getProxy(), message );
-							
-							ok = true;
-									
-							return( result );
-							
-						}catch( Throwable f ){
-							
-						}finally{
-							
-							proxy.setOK( ok );
-						}
+						ok = true;
+								
+						return( result );
+						
+					}catch( Throwable f ){
+						
+					}finally{
+						
+						proxy.setOK( ok );
 					}
 				}
 			}
@@ -1170,8 +1167,14 @@ public class TrackerStatus {
 
 				con.setRequestProperty("Connection", "close" );
 
-				con.connect();
+				try{
+					con.connect();
 
+				}catch( AEProxyFactory.UnknownHostException e ){
+					
+					throw( new UnknownHostException( e.getMessage()));
+				}
+				
 				is = con.getInputStream();
 
 				String	resulting_url_str = con.getURL().toString();

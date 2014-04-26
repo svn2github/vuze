@@ -260,7 +260,7 @@ ResourceDownloaderURLImpl
 				
 				if ( auto_plugin_proxy ){
 					
-					plugin_proxy = AEProxyFactory.getPluginProxy( "loading plugin details", url );
+					plugin_proxy = AEProxyFactory.getPluginProxy( "downloading resource", url );
 	
 					if ( plugin_proxy == null ){
 						
@@ -330,8 +330,14 @@ ResourceDownloaderURLImpl
 				  
 							setRequestProperties( con, false );
 							
-							con.connect();
+							try{
+								con.connect();
 				
+							}catch( AEProxyFactory.UnknownHostException e ){
+								
+								throw( new UnknownHostException( e.getMessage()));
+							}
+							
 							int response = con.getResponseCode();
 							
 							setProperty( "URL_HTTP_Response", new Long( response ));
@@ -604,7 +610,7 @@ redirect_label:
 						
 						if ( auto_plugin_proxy ){
 							
-							plugin_proxy = AEProxyFactory.getPluginProxy( "loading plugin details", current_url );
+							plugin_proxy = AEProxyFactory.getPluginProxy( "downloading resource", current_url );
 			
 							if ( plugin_proxy == null ){
 								
@@ -746,8 +752,14 @@ redirect_label:
 									
 									boolean	trust_content_length = getBooleanProperty( "URL_Trust_Content_Length" );
 									
-									con.connect();
-						
+									try{
+										con.connect();
+										
+									}catch( AEProxyFactory.UnknownHostException e ){
+										
+										throw( new UnknownHostException( e.getMessage()));
+									}
+									
 									int response = con instanceof HttpURLConnection?((HttpURLConnection)con).getResponseCode():HttpURLConnection.HTTP_OK;
 												
 									ok = true;

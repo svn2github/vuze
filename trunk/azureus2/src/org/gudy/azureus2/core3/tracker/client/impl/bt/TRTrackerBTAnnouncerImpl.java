@@ -1336,33 +1336,30 @@ TRTrackerBTAnnouncerImpl
 		try{
 			return( announceHTTPSupport( tracker_url, original_reqUrl, null, message ));
 			
-		}catch( Exception e ){
+		}catch( UnknownHostException e ){
+							
+			if ( 	first_effort &&
+					AENetworkClassifier.categoriseAddress( original_reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){
 			
-			if ( e instanceof UnknownHostException || e instanceof AEProxyFactory.UnknownHostException ){
+				PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker update", original_reqUrl, true );
 				
-				if ( 	first_effort &&
-						AENetworkClassifier.categoriseAddress( original_reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){
-				
-					PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker update", original_reqUrl, true );
+				if ( proxy != null ){
 					
-					if ( proxy != null ){
+					boolean	ok = false;
+					
+					try{
 						
-						boolean	ok = false;
+						String result =  announceHTTPSupport( tracker_url, proxy.getURL(), proxy.getProxy(), message );
 						
-						try{
-							
-							String result =  announceHTTPSupport( tracker_url, proxy.getURL(), proxy.getProxy(), message );
-							
-							ok = true;
-									
-							return( result );
-							
-						}catch( Throwable f ){
-							
-						}finally{
-							
-							proxy.setOK( ok );
-						}
+						ok = true;
+								
+						return( result );
+						
+					}catch( Throwable f ){
+						
+					}finally{
+						
+						proxy.setOK( ok );
 					}
 				}
 			}
@@ -1476,7 +1473,13 @@ TRTrackerBTAnnouncerImpl
  		
  		try{
  			
- 			con.connect();
+ 			try{
+ 				con.connect();
+ 			
+			}catch( AEProxyFactory.UnknownHostException e ){
+				
+				throw( new UnknownHostException( e.getMessage()));
+			}
  			
  			InputStream is = null;
  			
