@@ -179,7 +179,7 @@ AEProxyFactory
 		UnknownHostException(
 			String	host )
 		{
-			super( "Unknown host " + host );
+			super( host );
 		}
 	}
 }

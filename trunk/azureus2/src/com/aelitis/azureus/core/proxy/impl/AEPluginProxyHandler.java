@@ -108,7 +108,9 @@ AEPluginProxyHandler
 	pluginAdded(
 		PluginInterface pi )
 	{
-		if ( pi.getPluginID().equals( "aznettor" )){
+		String pid = pi.getPluginID();
+		
+		if ( pid.equals( "aznettor" ) || pid.equals( "azneti2phelper" )){
 			
 			plugins.add( pi );
 		}
@@ -118,7 +120,9 @@ AEPluginProxyHandler
 	pluginRemoved(
 		PluginInterface pi )
 	{
-		if ( pi.getPluginID().equals( "aznettor" )){
+		String pid = pi.getPluginID();
+		
+		if ( pid.equals( "aznettor" ) || pid.equals( "azneti2phelper" )){
 			
 			plugins.remove( pi );
 		}

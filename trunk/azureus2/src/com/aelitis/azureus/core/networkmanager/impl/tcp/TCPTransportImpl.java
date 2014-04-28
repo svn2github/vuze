@@ -36,6 +36,8 @@ import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
 import com.aelitis.azureus.core.networkmanager.impl.TransportImpl;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 
 
 
@@ -204,8 +206,25 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     
     final InetSocketAddress	address = protocol_endpoint.getAddress();
 
-    is_socks = COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" ) && !address.equals( ProxyLoginHandler.DEFAULT_SOCKS_SERVER_ADDRESS );
+    PluginProxy pp = null;
+    
+    if ( !address.equals( ProxyLoginHandler.DEFAULT_SOCKS_SERVER_ADDRESS )){
+   
+    	is_socks = COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" );
 
+    	if ( !is_socks ){
+    
+    			// see if a plugin can handle this connection
+    		
+    		if ( address.isUnresolved()){
+    			
+    			pp = AEProxyFactory.getPluginProxy( "outbound connection", address.getHostName(), address.getPort());
+    		}
+    	}
+    }
+    
+    final PluginProxy	plugin_proxy = pp;
+    
     final TCPTransportImpl transport_instance = this;    
     
      
@@ -219,6 +238,9 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
       	if( channel == null ) {
       		String msg = "connectSuccess:: given channel == null";
       		Debug.out( msg );
+      		if ( plugin_proxy != null ){
+            	plugin_proxy.setOK( false );
+            }
       		listener.connectFailure( new Exception( msg ) );
       		return;
       	}
@@ -226,6 +248,10 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         if( has_been_closed ) {  //closed between select ops
         	TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
           
+        	if ( plugin_proxy != null ){
+            	plugin_proxy.setOK( false );
+            }
+        	
   			listener.connectFailure( new Throwable( "Connection has been closed" ));
 
           return;
@@ -234,41 +260,95 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         connect_request_key = null;
         description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
 
-        if( is_socks ) {  //proxy server connection established, login
+        if ( is_socks ){  //proxy server connection established, login
         	if (Logger.isEnabled())
         		Logger.log(new LogEvent(LOGID,"Socket connection established to proxy server [" +description+ "], login initiated..."));
-          
-        		// set up a transparent filter for socks negotiation
+
+        	// set up a transparent filter for socks negotiation
+
+        	setFilter( TCPTransportHelperFilterFactory.createTransparentFilter( channel ));
+
+        	new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
+        		public void connectSuccess() {
+        			if (Logger.isEnabled())
+        				Logger.log(new LogEvent(LOGID, "Proxy [" +description+ "] login successful." ));
+        			handleCrypto( address, channel, initial_data, priority, listener );
+        		}
+
+        		public void connectFailure( Throwable failure_msg ) {
+        			close( "Proxy login failed" );
+        			listener.connectFailure( failure_msg );
+        		}
+        	});
+        }else if ( plugin_proxy != null ){
+
+           	if (Logger.isEnabled()){
+        		Logger.log(new LogEvent(LOGID,"Socket connection established via plugin proxy [" +description+ "], login initiated..."));
+           	}
+           	
+           		// set up a transparent filter for socks negotiation
+
+        	setFilter( TCPTransportHelperFilterFactory.createTransparentFilter( channel ));
+
+        	new ProxyLoginHandler( 
+        		transport_instance, 
+        		new InetSocketAddress( plugin_proxy.getHost(), plugin_proxy.getPort()), 
+        		new ProxyLoginHandler.ProxyListener() 
+        		{
+        			public void 
+        			connectSuccess() 
+        			{
+	        			if (Logger.isEnabled()){
+	        				Logger.log(new LogEvent(LOGID, "Proxy [" +description+ "] login successful." ));
+	        			}
+	        			plugin_proxy.setOK( true );
+	        			
+	        			handleCrypto( address, channel, initial_data, priority, listener );
+        			}
+
+        			public void 
+        			connectFailure( 
+        				Throwable failure_msg ) 
+        			{
+        				plugin_proxy.setOK( false );
+        				
+        				close( "Proxy login failed" );
+        				
+        				listener.connectFailure( failure_msg );
+        			}
+        		},
+        		"V4a", "", "" );
         	
-          setFilter( TCPTransportHelperFilterFactory.createTransparentFilter( channel ));
-      		
-          new ProxyLoginHandler( transport_instance, address, new ProxyLoginHandler.ProxyListener() {
-            public void connectSuccess() {
-            	if (Logger.isEnabled())
-            		Logger.log(new LogEvent(LOGID, "Proxy [" +description+ "] login successful." ));
-            	handleCrypto( address, channel, initial_data, priority, listener );
-            }
-            
-            public void connectFailure( Throwable failure_msg ) {
-            	close( "Proxy login failed" );
-            	listener.connectFailure( failure_msg );
-            }
-          });
-        }
-        else {  //direct connection established, notify
+        }else {  //direct connection established, notify
         	handleCrypto( address, channel, initial_data, priority, listener );
         }
       }
 
       public void connectFailure( Throwable failure_msg ) {
         connect_request_key = null;
+        if ( plugin_proxy != null ){
+        	plugin_proxy.setOK( false );
+        }
         listener.connectFailure( failure_msg );
       }
     };
     
     connect_request_key = connect_listener;
     
-    InetSocketAddress to_connect = is_socks ? ProxyLoginHandler.getProxyAddress( address ): address;
+    InetSocketAddress to_connect;
+    
+    if ( is_socks ){
+    	
+    	to_connect = ProxyLoginHandler.getProxyAddress( address );
+    	
+    }else if ( plugin_proxy != null ){
+    	
+    	to_connect = (InetSocketAddress)plugin_proxy.getProxy().address();
+    	
+    }else{
+    	
+    	to_connect = address;
+    }
     
     TCPNetworkManager.getSingleton().getConnectDisconnectManager().requestNewConnection( to_connect, connect_listener, priority );
   }
