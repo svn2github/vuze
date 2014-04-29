@@ -39,11 +39,11 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.peers.Peer;
 import org.gudy.azureus2.plugins.utils.LocationProvider;
@@ -470,40 +470,44 @@ public class ImageRepository
 			if ( fp != null ){	
 				
 				try{
-	
-					InetAddress peer_address = InetAddress.getByName( peer.getIp());
+					String ip = peer.getIp();
 					
-					String cc_key = fp.getISO3166CodeForIP( peer_address ) + (small?".s":".l");
-					
-					flag = flag_cache.get( cc_key );
-					
-					if ( flag != null ){
-					
-						peer.setUserData( peer_key, flag );
+					if ( HostNameToIPResolver.isDNSName( ip )){
 						
-					}else{
-				
-						InputStream is = fp.getCountryFlagForIP( peer_address, small?0:1 );
+						InetAddress peer_address = InetAddress.getByName( ip );
+					
+						String cc_key = fp.getISO3166CodeForIP( peer_address ) + (small?".s":".l");
+						
+						flag = flag_cache.get( cc_key );
+						
+						if ( flag != null ){
+						
+							peer.setUserData( peer_key, flag );
 							
-						if ( is != null ){
-							
-							try{
-								flag = new Image( Display.getDefault(), is);
-
-								//System.out.println( "Created flag image for " + cc_key );
-								
-							}finally{
-								
-								is.close();
-							}
 						}else{
-							
-							flag = flag_none;
+					
+							InputStream is = fp.getCountryFlagForIP( peer_address, small?0:1 );
+								
+							if ( is != null ){
+								
+								try{
+									flag = new Image( Display.getDefault(), is);
+	
+									//System.out.println( "Created flag image for " + cc_key );
+									
+								}finally{
+									
+									is.close();
+								}
+							}else{
+								
+								flag = flag_none;
+							}
+						
+							flag_cache.put( cc_key, flag );
+						
+							peer.setUserData( peer_key, flag );
 						}
-						
-						flag_cache.put( cc_key, flag );
-						
-						peer.setUserData( peer_key, flag );
 					}
 					
 				}catch( Throwable e ){

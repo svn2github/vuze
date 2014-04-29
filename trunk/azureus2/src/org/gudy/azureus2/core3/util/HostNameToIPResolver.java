@@ -43,7 +43,12 @@ HostNameToIPResolver
 
 	static protected AESemaphore	request_semaphore	= new AESemaphore("HostNameToIPResolver");
 	
-
+	public static boolean
+	isDNSName(
+		String	host )
+	{
+		return( AENetworkClassifier.categoriseAddress( host ) == AENetworkClassifier.AT_PUBLIC );
+	}
 	
 	public static boolean
 	isNonDNSName(

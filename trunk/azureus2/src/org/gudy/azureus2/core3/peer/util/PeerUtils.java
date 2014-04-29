@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.CRC32C;
 import org.gudy.azureus2.core3.util.Constants;
@@ -548,16 +549,24 @@ public class PeerUtils {
 			
 			if ( lp != null ){
 				
-				try{				
-					InetAddress peer_address = InetAddress.getByName( peer.getIp());
-					
-					String code = lp.getISO3166CodeForIP( peer_address );
-					String name = lp.getCountryNameForIP( peer_address, Locale.getDefault());
-					
-					if ( code != null && name != null ){
+				try{
+					String ip = peer.getIp();
+										
+					if ( HostNameToIPResolver.isDNSName( ip )){
 						
-						details = new String[]{ code, name };
+						InetAddress peer_address = HostNameToIPResolver.syncResolve( ip );
 						
+						String code = lp.getISO3166CodeForIP( peer_address );
+						String name = lp.getCountryNameForIP( peer_address, Locale.getDefault());
+						
+						if ( code != null && name != null ){
+							
+							details = new String[]{ code, name };
+							
+						}else{
+							
+							details = new String[0];
+						}
 					}else{
 						
 						details = new String[0];
