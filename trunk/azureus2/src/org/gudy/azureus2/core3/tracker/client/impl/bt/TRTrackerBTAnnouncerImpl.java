@@ -2223,7 +2223,7 @@ TRTrackerBTAnnouncerImpl
 		
 		tail = "";
 		
-		for ( String str: new String[]{ "info_hash", "peer_id", "port", "ip", "uploaded", "downloaded", "left", "compact", "event" }){
+		for ( String str: new String[]{ "info_hash", "peer_id", "port", "ip", "uploaded", "downloaded", "left", "compact", "event", "numwant" }){
 			
 			String val = map.get( str );
 			
