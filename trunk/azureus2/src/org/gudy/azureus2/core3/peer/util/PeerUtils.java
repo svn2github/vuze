@@ -27,7 +27,6 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
-import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.CRC32C;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
@@ -569,7 +568,16 @@ public class PeerUtils {
 						}
 					}else{
 						
-						details = new String[0];
+						String cat =  AENetworkClassifier.categoriseAddress( ip );
+						
+						if ( cat != AENetworkClassifier.AT_PUBLIC ){
+							
+							details = new String[]{ cat, cat };
+							
+						}else{
+							
+							details = new String[0];
+						}
 					}
 					
 					peer.setUserData( country_key, details );

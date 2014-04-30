@@ -64,8 +64,8 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
   private int		fallback_count;
   private final boolean fallback_allowed;
 
-  private boolean	is_socks;
-  
+  private boolean				is_socks;
+  private volatile PluginProxy	plugin_proxy;
   
   /**
    * Constructor for disconnected (outbound) transport.
@@ -205,8 +205,6 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     }
     
     final InetSocketAddress	address = protocol_endpoint.getAddress();
-
-    PluginProxy pp = null;
     
     if ( !address.equals( ProxyLoginHandler.DEFAULT_SOCKS_SERVER_ADDRESS )){
    
@@ -218,13 +216,11 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     		
     		if ( address.isUnresolved()){
     			
-    			pp = AEProxyFactory.getPluginProxy( "outbound connection", address.getHostName(), address.getPort());
+    			plugin_proxy = AEProxyFactory.getPluginProxy( "outbound connection", address.getHostName(), address.getPort());
     		}
     	}
     }
-    
-    final PluginProxy	plugin_proxy = pp;
-    
+        
     final TCPTransportImpl transport_instance = this;    
     
      
@@ -238,9 +234,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
       	if( channel == null ) {
       		String msg = "connectSuccess:: given channel == null";
       		Debug.out( msg );
-      		if ( plugin_proxy != null ){
-            	plugin_proxy.setOK( false );
-            }
+      		setConnectResult( false );
       		listener.connectFailure( new Exception( msg ) );
       		return;
       	}
@@ -248,9 +242,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         if( has_been_closed ) {  //closed between select ops
         	TCPNetworkManager.getSingleton().getConnectDisconnectManager().closeConnection( channel );  //just close it
           
-        	if ( plugin_proxy != null ){
-            	plugin_proxy.setOK( false );
-            }
+        	setConnectResult( false );
         	
   			listener.connectFailure( new Throwable( "Connection has been closed" ));
 
@@ -301,7 +293,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 	        			if (Logger.isEnabled()){
 	        				Logger.log(new LogEvent(LOGID, "Proxy [" +description+ "] login successful." ));
 	        			}
-	        			plugin_proxy.setOK( true );
+	        			setConnectResult( true );
 	        			
 	        			handleCrypto( address, channel, initial_data, priority, listener );
         			}
@@ -310,7 +302,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         			connectFailure( 
         				Throwable failure_msg ) 
         			{
-        				plugin_proxy.setOK( false );
+        				setConnectResult( false );
         				
         				close( "Proxy login failed" );
         				
@@ -326,9 +318,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 
       public void connectFailure( Throwable failure_msg ) {
         connect_request_key = null;
-        if ( plugin_proxy != null ){
-        	plugin_proxy.setOK( false );
-        }
+        setConnectResult( false );
         listener.connectFailure( failure_msg );
       }
     };
@@ -531,12 +521,23 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 	 close( reason );
   }
   
+  private void
+  setConnectResult(
+	boolean		ok )
+  {
+	 PluginProxy pp = plugin_proxy;
+	 if ( pp != null ){
+		 plugin_proxy = null;
+		 pp.setOK(ok);
+	 }
+  }
+  
   /**
    * Close the transport connection.
    */
   public void close( String reason ) {
     has_been_closed = true;
-    
+    setConnectResult( false );
     if( connect_request_key != null ) {
     	TCPNetworkManager.getSingleton().getConnectDisconnectManager().cancelRequest( connect_request_key );
     }

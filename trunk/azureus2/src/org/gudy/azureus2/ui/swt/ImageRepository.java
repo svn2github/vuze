@@ -40,6 +40,7 @@ import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -449,6 +450,8 @@ public class ImageRepository
 		return( getCountryFlag( PluginCoreUtils.unwrap( peer ), small ));
 	}
 	
+	private static Map<String,Image>	net_images = new HashMap<String, Image>();
+	
 	public static Image
 	getCountryFlag(
 		PEPeer		peer,
@@ -507,6 +510,39 @@ public class ImageRepository
 							flag_cache.put( cc_key, flag );
 						
 							peer.setUserData( peer_key, flag );
+						}
+					}else{
+
+						String cat =  AENetworkClassifier.categoriseAddress( ip );
+						
+						if ( cat != AENetworkClassifier.AT_PUBLIC ){
+							
+							final String key = "net_" + cat + (small?"_s":"_b" );
+							
+							Image i = net_images.get( key );
+														
+							if ( i == null ){
+								
+								Utils.execSWTThread(
+									new Runnable() 
+									{									
+										public void 
+										run() 
+										{
+											Image i = ImageLoader.getInstance().getImage( key );
+											
+											net_images.put( key, i );
+										}
+									},
+									false );
+								
+								i = net_images.get( key );
+							}
+							
+							if ( ImageLoader.isRealImage( i )){
+								
+								return( i );
+							}
 						}
 					}
 					
