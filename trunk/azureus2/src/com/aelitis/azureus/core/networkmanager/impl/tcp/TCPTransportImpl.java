@@ -216,7 +216,12 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     		
     		if ( address.isUnresolved()){
     			
-    			plugin_proxy = AEProxyFactory.getPluginProxy( "outbound connection", address.getHostName(), address.getPort());
+    			String host = address.getHostName();
+    			
+    			if ( AENetworkClassifier.categoriseAddress( host ) != AENetworkClassifier.AT_PUBLIC ){
+    			
+    				plugin_proxy = AEProxyFactory.getPluginProxy( "outbound connection", host, address.getPort());
+    			}
     		}
     	}
     }
