@@ -597,6 +597,9 @@ public class PeersView
 								  			}catch( Throwable e ){
 								  			
 								  			}
+								  		}else{
+								  			
+							  				pm.addPeer( bit, 6881, 0, NetworkManager.getCryptoRequired( NetworkManager.CRYPTO_OVERRIDE_NONE ), null );
 								  		}
 								  	}
 								}
