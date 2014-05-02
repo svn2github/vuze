@@ -24,6 +24,7 @@ package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
 import java.math.BigInteger;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.security.KeyFactory;
 import java.security.KeyPair;
@@ -46,6 +47,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
@@ -1950,7 +1952,9 @@ ProtocolDecoderPHE
 			
 			if ( !outbound ){
 				
-				byte[]	address = transport.getAddress().getAddress().getAddress();
+				InetSocketAddress is_address = transport.getAddress();
+				
+				byte[]	address = AddressUtils.getAddressBytes( is_address );
 				
 				int	hit_count = generate_bloom.add( address );
 				

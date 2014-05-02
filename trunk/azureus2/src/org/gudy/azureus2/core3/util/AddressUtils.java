@@ -365,4 +365,38 @@ AddressUtils
 		return bestPick;
 	}
 	
+	public static byte[]
+	getAddressBytes(
+		InetSocketAddress	address )
+	{
+		if ( address.isUnresolved()){
+			
+			try{
+				return( address.getHostName().getBytes( "ISO8859-1" ));
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+				
+				return( null );
+			}
+		}else{
+			
+			return( address.getAddress().getAddress());
+		}
+	}
+	
+	public static String
+	getAddressName(
+		InetSocketAddress	address )
+	{
+		if ( address.isUnresolved()){
+			
+			return( address.getHostName());
+			
+		}else{
+			
+			return( address.getAddress().getHostAddress());
+		}
+	}
 }

@@ -103,7 +103,10 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     is_inbound_connection = true;
     connect_with_crypto = false;  //inbound connections will automatically be using crypto if necessary
     fallback_allowed = false;
-    description = ( is_inbound_connection ? "R" : "L" ) + ": " + getSocketChannel().socket().getInetAddress().getHostAddress() + ": " + getSocketChannel().socket().getPort();
+    
+    InetSocketAddress address = endpoint.getAddress();
+    
+    description = ( is_inbound_connection ? "R" : "L" ) + ": " + address.getHostName() + ": " + address.getPort();
  
   }
   

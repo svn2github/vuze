@@ -22,6 +22,8 @@
 
 package com.aelitis.azureus.core.proxy;
 
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.URL;
 
 /**
@@ -57,4 +59,21 @@ AEProxyAddressMapper
 	public URL
 	externalise(
 		URL		url );
+	
+	public PortMapping
+	registerPortMapping(
+		int		local_port,
+		String	ip );
+	
+	public InetSocketAddress
+	applyPortMapping(
+		InetAddress		address,
+		int				port );
+	
+	public interface
+	PortMapping
+	{
+		public void
+		unregister();
+	}
 }

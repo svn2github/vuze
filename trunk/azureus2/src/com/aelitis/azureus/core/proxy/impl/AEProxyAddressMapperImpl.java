@@ -24,16 +24,19 @@ package com.aelitis.azureus.core.proxy.impl;
 
 import java.util.*;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.MalformedURLException;
 import java.net.URL;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 
 import com.aelitis.azureus.core.proxy.AEProxyAddressMapper;
+import com.aelitis.azureus.core.proxy.AEProxyAddressMapper.PortMapping;
 
 /**
  * @author parg
@@ -61,7 +64,9 @@ AEProxyAddressMapperImpl
 	protected Map<String,String>		reverse_map	= new HashMap<String,String>();
 	
 	protected AEMonitor	this_mon	= new AEMonitor( "AEProxyAddressMapper" );
-			
+		
+	private Map<Integer,PortMappingImpl>	port_mappings = new HashMap<Integer,PortMappingImpl>();
+	
 	protected
 	AEProxyAddressMapperImpl()
 	{
@@ -245,6 +250,97 @@ AEProxyAddressMapperImpl
 			Debug.printStackTrace(e);
 			
 			return( url );
+		}
+	}
+	
+	
+	public PortMapping
+	registerPortMapping(
+		int		local_port,
+		String	ip )
+	{
+		PortMappingImpl mapping = new PortMappingImpl( ip, local_port );
+		
+		synchronized( port_mappings ){
+			
+			port_mappings.put( local_port, mapping );
+		}
+		
+		return( mapping );
+	}
+	
+	public InetSocketAddress
+	applyPortMapping(
+		InetAddress		address,
+		int				port )
+	{
+		InetSocketAddress result;
+		
+		if ( address.isLoopbackAddress()){
+			
+			PortMappingImpl mapping;
+			
+			synchronized( port_mappings ){
+				
+				mapping = port_mappings.get( port );
+			}
+			
+			if ( mapping == null ){
+			
+				result = new InetSocketAddress( address, port );
+			
+			}else{
+				
+				String ip = mapping.getIP();
+				
+				if ( AENetworkClassifier.categoriseAddress( ip ) == AENetworkClassifier.AT_PUBLIC ){
+					
+					result = new InetSocketAddress( ip, port );
+					
+				}else{
+					
+					result = InetSocketAddress.createUnresolved( ip, port );
+				}
+			}
+		}else{
+			
+			result = new InetSocketAddress( address, port );
+		}
+		
+		//System.out.println( "Applying mapping: " + address + "/" + port + " -> " + result );
+		
+		return( result );
+	}
+	
+	private class
+	PortMappingImpl
+		implements PortMapping
+	{
+		private String	ip;
+		private int		port;
+		
+		private
+		PortMappingImpl(
+			String		_ip,
+			int			_port )
+		{
+			ip		= _ip;
+			port	= _port;
+		}
+		
+		private String
+		getIP()
+		{
+			return( ip );
+		}
+		
+		public void 
+		unregister() 
+		{
+			synchronized( port_mappings ){
+				
+				port_mappings.remove( port );
+			}
 		}
 	}
 }

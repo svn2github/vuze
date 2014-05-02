@@ -39,6 +39,7 @@ import org.gudy.azureus2.core3.util.AEGenericCallback;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AERunStateHandler;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
@@ -786,8 +787,8 @@ public class PeerManager implements AzureusCoreStatsProvider{
 
 					return( false );
 				}
-
-				return( known_seeds.contains( address.getAddress().getAddress()));
+				
+				return( known_seeds.contains( AddressUtils.getAddressBytes( address )));
 
 			}finally{
 
@@ -810,7 +811,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 				// can't include port as it will be a randomly allocated one in general. two people behind the
 				// same NAT will have to connect to each other using LAN peer finder 
 
-				known_seeds.add( address.getAddress().getAddress() );
+				known_seeds.add( AddressUtils.getAddressBytes( address ));
 
 			}finally{
 
@@ -984,11 +985,13 @@ public class PeerManager implements AzureusCoreStatsProvider{
 			ConnectionEndpoint ep = connection.getEndpoint();
 			
 			
-			InetAddress address = ep.getNotionalAddress().getAddress();
+			InetSocketAddress is_address = ep.getNotionalAddress();
 			
-			String host_address = address.getHostAddress();
+			String host_address = AddressUtils.getAddressName( is_address );
 
-			boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || address.isLoopbackAddress();
+			InetAddress address_mbn = is_address.getAddress();
+			
+			boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || ( address_mbn != null && address_mbn.isLoopbackAddress());
 
 			if ( !same_allowed && PeerIdentityManager.containsIPAddress( control.getPeerIdentityDataID(), host_address )){
 

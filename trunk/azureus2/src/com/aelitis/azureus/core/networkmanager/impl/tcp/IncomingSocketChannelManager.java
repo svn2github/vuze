@@ -55,6 +55,8 @@ import com.aelitis.azureus.core.networkmanager.impl.IncomingConnectionManager;
 import com.aelitis.azureus.core.networkmanager.impl.ProtocolDecoder;
 import com.aelitis.azureus.core.networkmanager.impl.TransportCryptoManager;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelperFilter;
+import com.aelitis.azureus.core.proxy.AEProxyAddressMapper;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 
 /**
@@ -85,6 +87,7 @@ public class IncomingSocketChannelManager
 
   private long	last_non_local_connection_time;
   
+  private final AEProxyAddressMapper proxy_address_mapper = AEProxyFactory.getAddressMapper();
   
   /**
    * Create manager and begin accepting and routing new connections.
@@ -447,20 +450,22 @@ public class IncomingSocketChannelManager
  
     SocketChannel	channel = ((TCPTransportHelper)filter.getHelper()).getSocketChannel();
        
+    Socket socket = channel.socket();
+
     //set advanced socket options
     try {
       int so_sndbuf_size = COConfigurationManager.getIntParameter( "network.tcp.socket.SO_SNDBUF" );
-      if( so_sndbuf_size > 0 )  channel.socket().setSendBufferSize( so_sndbuf_size );
+      if( so_sndbuf_size > 0 )  socket.setSendBufferSize( so_sndbuf_size );
       
       String ip_tos = COConfigurationManager.getStringParameter( "network.tcp.socket.IPDiffServ" );
-      if( ip_tos.length() > 0 )  channel.socket().setTrafficClass( Integer.decode( ip_tos ).intValue() );
+      if( ip_tos.length() > 0 )  socket.setTrafficClass( Integer.decode( ip_tos ).intValue() );
     }
     catch( Throwable t ) {
       t.printStackTrace();
     }
     
-	InetSocketAddress tcp_address = new InetSocketAddress( channel.socket().getInetAddress(), channel.socket().getPort());
-
+    InetSocketAddress tcp_address = proxy_address_mapper.applyPortMapping( socket.getInetAddress(), socket.getPort());
+    
 	ConnectionEndpoint	co_ep = new ConnectionEndpoint(tcp_address);
 
 	ProtocolEndpointTCP	pe_tcp = (ProtocolEndpointTCP)ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, co_ep, tcp_address );

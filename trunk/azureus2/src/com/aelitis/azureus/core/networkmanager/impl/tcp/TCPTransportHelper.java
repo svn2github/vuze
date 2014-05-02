@@ -23,6 +23,7 @@ package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.net.SocketException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -34,6 +35,8 @@ import org.gudy.azureus2.core3.util.*;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector.VirtualSelectorListener;
 import com.aelitis.azureus.core.networkmanager.impl.TransportHelper;
+import com.aelitis.azureus.core.proxy.AEProxyAddressMapper;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 
 
 
@@ -46,7 +49,9 @@ TCPTransportHelper
 {
 	public static final int READ_TIMEOUT		= 10*1000;
 	public static final int CONNECT_TIMEOUT		= 20*1000;
-	  
+	
+	private static final AEProxyAddressMapper proxy_address_mapper = AEProxyFactory.getAddressMapper();
+
 	public static final int MAX_PARTIAL_WRITE_RETAIN	= 64;	// aim here is to catch headers
 	
 	private long remainingBytesToScatter = 0; 
@@ -61,6 +66,8 @@ TCPTransportHelper
 	
 	private boolean	trace;
 	
+	private volatile InetSocketAddress	tcp_address;
+	
 	private volatile boolean closed;
 	
 	public TCPTransportHelper( SocketChannel _channel ) {
@@ -70,7 +77,16 @@ TCPTransportHelper
 	public InetSocketAddress
 	getAddress()
 	{
-		return( new InetSocketAddress( channel.socket().getInetAddress(), channel.socket().getPort()));
+		if ( tcp_address != null ){
+			
+			return( tcp_address );
+		}
+		
+		Socket socket = channel.socket();
+		
+	    tcp_address = proxy_address_mapper.applyPortMapping( socket.getInetAddress(), socket.getPort());
+	    	
+	    return( tcp_address );
 	}
 	
 	public String
