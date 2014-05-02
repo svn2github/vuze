@@ -4421,15 +4421,22 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 			while( to_do > 0 && it.hasNext()){
 
-				to_do--;
-
 				final PEPeerTransport	peer = (PEPeerTransport)it.next();
 
 				it.remove();
 
+				String peer_ip = peer.getPeerItemIdentity().getAddressString();
+				
+				if ( AENetworkClassifier.categoriseAddress( peer_ip ) != AENetworkClassifier.AT_PUBLIC ){
+					
+					continue;
+				}
+				
+				to_do--;
+
 				PeerNATTraverser.getSingleton().create(
 						this,
-						new InetSocketAddress( peer.getPeerItemIdentity().getAddressString(), peer.getPeerItemIdentity().getUDPPort() ),
+						new InetSocketAddress( peer_ip, peer.getPeerItemIdentity().getUDPPort() ),
 						new PeerNATTraversalAdapter()
 						{
 							private boolean	done;
