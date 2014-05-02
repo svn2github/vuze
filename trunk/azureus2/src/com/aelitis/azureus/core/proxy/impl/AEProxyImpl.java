@@ -32,10 +32,9 @@ import java.nio.channels.SocketChannel;
 
 import org.gudy.azureus2.core3.logging.*;
 import org.gudy.azureus2.core3.util.AEMonitor;
-import org.gudy.azureus2.core3.util.AEThread;
+import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
-
 
 import com.aelitis.azureus.core.networkmanager.VirtualChannelSelector;
 import com.aelitis.azureus.core.proxy.*;
@@ -107,61 +106,43 @@ AEProxyImpl
 				port	= ss.getLocalPort();
 			}
 				
-			Thread connect_thread = 
-				new AEThread("AEProxy:connect.loop")
+			new AEThread2("AEProxy:connect.loop")
+			{
+				public void
+				run()
 				{
-					public void
-					runSupport()
-					{
-						selectLoop( connect_selector );
-					}
-				};
+					selectLoop( connect_selector );
+				}
+			}.start();
 	
-			connect_thread.setDaemon( true );
 	
-			connect_thread.start();
-	
-			Thread read_thread = 
-				new AEThread("AEProxy:read.loop")
+			new AEThread2("AEProxy:read.loop")
+			{
+				public void
+				run()
 				{
-					public void
-					runSupport()
-					{
-						selectLoop( read_selector );
-					}
-				};
+					selectLoop( read_selector );
+				}
+			}.start();
 	
-			read_thread.setDaemon( true );
+			new AEThread2("AEProxy:write.loop")
+			{
+				public void
+				run()
+				{
+					selectLoop( write_selector );
+				}
+			}.start();
 	
-			read_thread.start();
 			
-			Thread write_thread = 
-				new AEThread("AEProxy:write.loop")
+			new AEThread2("AEProxy:accept.loop")
+			{
+				public void
+				run()
 				{
-					public void
-					runSupport()
-					{
-						selectLoop( write_selector );
-					}
-				};
-	
-			write_thread.setDaemon( true );
-	
-			write_thread.start();
-			
-			Thread accept_thread = 
-					new AEThread("AEProxy:accept.loop")
-					{
-						public void
-						runSupport()
-						{
-							acceptLoop( ssc );
-						}
-					};
-		
-			accept_thread.setDaemon( true );
-		
-			accept_thread.start();									
+					acceptLoop( ssc );
+				}
+			}.start();						
 		
 			if (Logger.isEnabled())
 				Logger.log(new LogEvent(LOGID, "AEProxy: listener established on port "
@@ -260,22 +241,25 @@ AEProxyImpl
 				}
 			}catch( Throwable e ){
 				
-				failed_accepts++;
-
-				if (Logger.isEnabled())
-					Logger.log(new LogEvent(LOGID, "AEProxy: listener failed on port "
-							+ port, e)); 
-			
-				if ( failed_accepts > 100 && successfull_accepts == 0 ){
-
-						// looks like its not going to work...
-						// some kind of socket problem
-					Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
-							LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
-							"" + port, "TCP" });
-			
-					break;
-				}			
+				if ( !destroyed ){
+					
+					failed_accepts++;
+	
+					if (Logger.isEnabled())
+						Logger.log(new LogEvent(LOGID, "AEProxy: listener failed on port "
+								+ port, e)); 
+				
+					if ( failed_accepts > 100 && successfull_accepts == 0 ){
+	
+							// looks like its not going to work...
+							// some kind of socket problem
+						Logger.logTextResource(new LogAlert(LogAlert.UNREPEATABLE,
+								LogAlert.AT_ERROR, "Network.alert.acceptfail"), new String[] {
+								"" + port, "TCP" });
+				
+						break;
+					}	
+				}
 			}
 		}
 	}

@@ -3026,6 +3026,8 @@ TRTrackerBTAnnouncerImpl
 								
 								String ip = new String((byte[]) s_ip, Constants.DEFAULT_ENCODING); 
 								
+								ip = AddressUtils.convertToShortForm( ip );
+								
 									//get the peer port number - should be Long but have seen byte[] on occasion
 								
 								int peer_port = s_port instanceof byte[]?Integer.parseInt(new String((byte[])s_port)):((Long) s_port).intValue();

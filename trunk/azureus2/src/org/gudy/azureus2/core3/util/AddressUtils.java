@@ -27,10 +27,14 @@ import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+
+import org.bouncycastle.util.encoders.Base64;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.instancemanager.AZInstance;
@@ -398,5 +402,58 @@ AddressUtils
 			
 			return( address.getAddress().getHostAddress());
 		}
+	}
+	
+	public static String
+	convertToShortForm(
+		String		address )
+	{
+		int	address_length = address.length();
+		
+		if ( address_length > 256  ){
+			
+			String to_decode;
+			
+			if ( address.endsWith( ".i2p" )){
+				
+				to_decode = address.substring( 0, address.length() - 4 );
+				
+			}else if ( address.indexOf( '.' ) == -1 ){
+				
+				to_decode = address;
+				
+			}else{
+				
+				return( address );
+			}
+			
+			try{
+					// unfortunately we have an incompatible base64 standard in i2p, they replaced / with ~ and + with -
+				
+				char[]	encoded = to_decode.toCharArray();
+				
+				for ( int i=0;i<encoded.length;i++){
+					
+					char c = encoded[i];
+					
+					if ( c == '~' ){
+						encoded[i] = '/';
+					}else if( c == '-' ){
+						encoded[i] = '+';
+					}
+				}
+				
+				byte[] decoded = Base64.decode( encoded );
+				
+				byte[] hash = MessageDigest.getInstance( "SHA-256" ).digest( decoded );
+				
+				return( Base32.encode( hash ).toLowerCase( Locale.US ) + ".b32.i2p" );
+				
+			}catch( Throwable e ){
+				
+			}
+		}
+			
+		return( address );
 	}
 }
