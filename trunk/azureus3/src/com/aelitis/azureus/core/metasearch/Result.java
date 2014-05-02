@@ -225,8 +225,8 @@ public abstract class Result {
 			object.put("ts", "0");
 		}else{
 			try {
-				object.put("d", MomentsAgoDateFormatter.getMomentsAgoString(this.getPublishedDate()));
-				object.put("ts", "" + this.getPublishedDate().getTime());
+				object.put("d", MomentsAgoDateFormatter.getMomentsAgoString(pub_date));
+				object.put("ts", "" + pub_date.getTime());
 			} catch(Exception e) {
 				object.put("d", "unknown");
 				object.put("ts", "0");
