@@ -3119,7 +3119,7 @@ TRTrackerBTAnnouncerImpl
 			  					System.arraycopy( meta_peers, i, i2p_id, 0, 32 );
 			  					System.arraycopy( meta_peers, i, peer_peer_id, 0, 20 );
 			  					
-			  					String hostname = Base32.encode( i2p_id ) + ".b32.i2p";
+			  					String hostname = Base32.encode( i2p_id ).toLowerCase(Locale.US) + ".b32.i2p";
 			  					
 					    		TRTrackerAnnouncerResponsePeerImpl peer = 
 					    			new TRTrackerAnnouncerResponsePeerImpl( 
