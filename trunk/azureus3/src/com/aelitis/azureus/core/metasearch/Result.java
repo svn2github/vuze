@@ -219,12 +219,18 @@ public abstract class Result {
 	
 	public Map toJSONMap() {
 		Map object = new JSONObject();
-		try {
-			object.put("d", MomentsAgoDateFormatter.getMomentsAgoString(this.getPublishedDate()));
-			object.put("ts", "" + this.getPublishedDate().getTime());
-		} catch(Exception e) {
+		Date pub_date = this.getPublishedDate();
+		if ( pub_date == null ){
 			object.put("d", "unknown");
 			object.put("ts", "0");
+		}else{
+			try {
+				object.put("d", MomentsAgoDateFormatter.getMomentsAgoString(this.getPublishedDate()));
+				object.put("ts", "" + this.getPublishedDate().getTime());
+			} catch(Exception e) {
+				object.put("d", "unknown");
+				object.put("ts", "0");
+			}
 		}
 		
 		object.put("c", this.getCategory());
