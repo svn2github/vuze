@@ -558,15 +558,24 @@ implements PEPeerTransport
 		ProtocolEndpoint	pe1;
 		ProtocolEndpoint	pe2 = null;
 
+		boolean public_net = peer_item_identity.getNetwork() == AENetworkClassifier.AT_PUBLIC;
+		
 		if ( _use_tcp ){
 
 			boolean utp_available = ProtocolEndpointFactory.isHandlerRegistered( ProtocolEndpoint.PROTOCOL_UTP );
 			
 			boolean socks_active = NetworkAdmin.getSingleton().isSocksActive();
+						
+			if ( public_net ){
+				
+				endpoint_address = new InetSocketAddress( ip, tcp_listen_port );
+				
+			}else{
+				
+				endpoint_address = InetSocketAddress.createUnresolved( ip, tcp_listen_port );
+			}
 			
-			endpoint_address = new InetSocketAddress( ip, tcp_listen_port );
-			
-			if ( lan_local || !utp_available ){
+			if ( lan_local || !utp_available || !public_net ){
 				
 				pe1 = ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_TCP, endpoint_address );
 				
@@ -588,7 +597,14 @@ implements PEPeerTransport
 			}
 		}else{
 
-			endpoint_address = new InetSocketAddress( ip, udp_listen_port );
+			if ( public_net ){
+				
+				endpoint_address = new InetSocketAddress( ip, udp_listen_port );
+				
+			}else{
+				
+				endpoint_address = InetSocketAddress.createUnresolved( ip, udp_listen_port );
+			}
 
 			pe1 = ProtocolEndpointFactory.createEndpoint( ProtocolEndpoint.PROTOCOL_UDP, endpoint_address );
 		}
@@ -1114,7 +1130,7 @@ implements PEPeerTransport
 		
 		NetworkAdmin na = NetworkAdmin.getSingleton();
 		
-		if ( !na.isSocksActive()){
+		if ( peer_item_identity.getNetwork() == AENetworkClassifier.AT_PUBLIC && !na.isSocksActive()){
 				// don't send public address in handshake
 			InetAddress defaultV6 = na.hasIPV6Potential(true) ? na.getDefaultPublicAddressV6() : null;
 			
@@ -1166,7 +1182,7 @@ implements PEPeerTransport
 		
 		NetworkAdmin na = NetworkAdmin.getSingleton();
 		
-		if ( !na.isSocksActive()){
+		if ( peer_item_identity.getNetwork() == AENetworkClassifier.AT_PUBLIC && !na.isSocksActive()){
 				// don't send public address in handshake
 			defaultV6 = na.hasIPV6Potential(true) ? na.getDefaultPublicAddressV6() : null;
 		}
