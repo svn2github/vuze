@@ -194,6 +194,74 @@ public class Base64
 		return bytes;
 	}
 
+	public static byte[] decode(
+			char[]	data)
+		{
+			// PARG - fix up for zero length encodes/decodes
+		
+		if ( data.length == 0 ){
+			return( new byte[0] );
+		}
+		
+		byte[]	bytes;
+		byte	b1, b2, b3, b4;
+
+		if (data[data.length - 2] == '=')
+		{
+			bytes = new byte[(((data.length / 4) - 1) * 3) + 1];
+		}
+		else if (data[data.length - 1] == '=')
+		{
+			bytes = new byte[(((data.length / 4) - 1) * 3) + 2];
+		}
+		else
+		{
+			bytes = new byte[((data.length / 4) * 3)];
+		}
+
+		for (int i = 0, j = 0; i < data.length - 4; i += 4, j += 3)
+		{
+			b1 = decodingTable[data[i]];
+			b2 = decodingTable[data[i + 1]];
+			b3 = decodingTable[data[i + 2]];
+			b4 = decodingTable[data[i + 3]];
+
+			bytes[j] = (byte)((b1 << 2) | (b2 >> 4));
+			bytes[j + 1] = (byte)((b2 << 4) | (b3 >> 2));
+			bytes[j + 2] = (byte)((b3 << 6) | b4);
+		}
+
+		if (data[data.length - 2] == '=')
+		{
+			b1 = decodingTable[data[data.length - 4]];
+			b2 = decodingTable[data[data.length - 3]];
+
+			bytes[bytes.length - 1] = (byte)((b1 << 2) | (b2 >> 4));
+		}
+		else if (data[data.length - 1] == '=')
+		{
+			b1 = decodingTable[data[data.length - 4]];
+			b2 = decodingTable[data[data.length - 3]];
+			b3 = decodingTable[data[data.length - 2]];
+
+			bytes[bytes.length - 2] = (byte)((b1 << 2) | (b2 >> 4));
+			bytes[bytes.length - 1] = (byte)((b2 << 4) | (b3 >> 2));
+		}
+		else
+		{
+			b1 = decodingTable[data[data.length - 4]];
+			b2 = decodingTable[data[data.length - 3]];
+			b3 = decodingTable[data[data.length - 2]];
+			b4 = decodingTable[data[data.length - 1]];
+
+			bytes[bytes.length - 3] = (byte)((b1 << 2) | (b2 >> 4));
+			bytes[bytes.length - 2] = (byte)((b2 << 4) | (b3 >> 2));
+			bytes[bytes.length - 1] = (byte)((b3 << 6) | b4);
+		}
+
+		return bytes;
+	}
+	
 	/**
 	 * decode the base 64 encoded String data.
 	 *
