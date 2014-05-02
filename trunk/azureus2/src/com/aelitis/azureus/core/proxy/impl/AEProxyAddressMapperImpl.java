@@ -36,7 +36,6 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 
 import com.aelitis.azureus.core.proxy.AEProxyAddressMapper;
-import com.aelitis.azureus.core.proxy.AEProxyAddressMapper.PortMapping;
 
 /**
  * @author parg
@@ -299,7 +298,10 @@ AEProxyAddressMapperImpl
 					
 				}else{
 					
-					result = InetSocketAddress.createUnresolved( ip, port );
+						// default to port 6881 here - might need to fix this up one day if this doesn't
+						// remain the sensible default
+					
+					result = InetSocketAddress.createUnresolved( ip, 6881 );
 				}
 			}
 		}else{
