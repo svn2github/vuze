@@ -3104,60 +3104,14 @@ RelatedContentManager
 								contact_map.put( c.getAddress(), c );
 							}
 							
-							DHT[]	dhts = dht_plugin.getDHTs();
-								
-							for ( DHT dht: dhts ){
+								// ddb might be null during init
 							
-								DHTTransport transport = dht.getTransport();
+							if ( ddb != null ){
 								
-								if ( transport.isIPV6()){
+								DHT[]	dhts = dht_plugin.getDHTs();
 									
-									continue;
-								}
-								
-								int	network = transport.getNetwork();
-								
-								if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
-									
-									logSearch( "Search: ignoring main DHT" );
-
-									continue;
-								}
-								
-								DHTTransportContact[] contacts = dht.getTransport().getReachableContacts();
-								
-								Collections.shuffle( Arrays.asList( contacts ));
-																
-								for ( DHTTransportContact dc: contacts ){
-											
-									InetSocketAddress address = dc.getAddress();
-									
-									if ( !contact_map.containsKey( address )){
-										
-										try{
-											DistributedDatabaseContact c = 
-												ddb.importContact( 
-													address, 
-													DHTTransportUDP.PROTOCOL_VERSION_MIN, 
-													network==DHT.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN );
-											
-											contact_map.put( address, c );
-											
-											contacts_to_search.add( c );
-											
-										}catch( Throwable e ){
-											
-										}
-									}
-								}
-							}
-							
-							if ( contact_map.size() < MAX_REMOTE_SEARCH_CONTACTS ){
-								
-									// back fill with less reliable contacts if required
-								
 								for ( DHT dht: dhts ){
-									
+								
 									DHTTransport transport = dht.getTransport();
 									
 									if ( transport.isIPV6()){
@@ -3170,38 +3124,89 @@ RelatedContentManager
 									if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
 										
 										logSearch( "Search: ignoring main DHT" );
-
+	
 										continue;
 									}
 									
-									DHTTransportContact[] contacts = dht.getTransport().getRecentContacts();
-	
+									DHTTransportContact[] contacts = dht.getTransport().getReachableContacts();
+									
+									Collections.shuffle( Arrays.asList( contacts ));
+																	
 									for ( DHTTransportContact dc: contacts ){
-										
+												
 										InetSocketAddress address = dc.getAddress();
 										
 										if ( !contact_map.containsKey( address )){
 											
 											try{
-												DistributedDatabaseContact c = ddb.importContact( address, DHTTransportUDP.PROTOCOL_VERSION_MIN, network==DHT.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN );
+												DistributedDatabaseContact c = 
+													ddb.importContact( 
+														address, 
+														DHTTransportUDP.PROTOCOL_VERSION_MIN, 
+														network==DHT.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN );
 												
 												contact_map.put( address, c );
 												
 												contacts_to_search.add( c );
-																				
-												if ( contact_map.size() >= MAX_REMOTE_SEARCH_CONTACTS ){
-													
-													break;
-												}
+												
 											}catch( Throwable e ){
 												
 											}
 										}
 									}
+								}
+								
+								if ( contact_map.size() < MAX_REMOTE_SEARCH_CONTACTS ){
 									
-									if ( contact_map.size() >= MAX_REMOTE_SEARCH_CONTACTS ){
+										// back fill with less reliable contacts if required
+									
+									for ( DHT dht: dhts ){
 										
-										break;
+										DHTTransport transport = dht.getTransport();
+										
+										if ( transport.isIPV6()){
+											
+											continue;
+										}
+										
+										int	network = transport.getNetwork();
+										
+										if ( SEARCH_CVS_ONLY && network != DHT.NW_CVS ){
+											
+											logSearch( "Search: ignoring main DHT" );
+	
+											continue;
+										}
+										
+										DHTTransportContact[] contacts = dht.getTransport().getRecentContacts();
+		
+										for ( DHTTransportContact dc: contacts ){
+											
+											InetSocketAddress address = dc.getAddress();
+											
+											if ( !contact_map.containsKey( address )){
+												
+												try{
+													DistributedDatabaseContact c = ddb.importContact( address, DHTTransportUDP.PROTOCOL_VERSION_MIN, network==DHT.NW_CVS?DistributedDatabase.DHT_CVS:DistributedDatabase.DHT_MAIN );
+													
+													contact_map.put( address, c );
+													
+													contacts_to_search.add( c );
+																					
+													if ( contact_map.size() >= MAX_REMOTE_SEARCH_CONTACTS ){
+														
+														break;
+													}
+												}catch( Throwable e ){
+													
+												}
+											}
+										}
+										
+										if ( contact_map.size() >= MAX_REMOTE_SEARCH_CONTACTS ){
+											
+											break;
+										}
 									}
 								}
 							}
