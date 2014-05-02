@@ -25,6 +25,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -156,7 +157,7 @@ public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	    		  continue;
 	    	  
 	    	  try {
-	    		  PeerItem peer = PeerItemFactory.createPeerItem(full_address, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE, type, 0);
+	    		  PeerItem peer = PeerItemFactory.createPeerItem(full_address, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE, type, 0, AENetworkClassifier.AT_PUBLIC);
 	    		  peers.add(peer);
 	    	  }
 	    	  catch (Exception e) {

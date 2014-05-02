@@ -62,7 +62,7 @@ AENetworkClassifier
 			return( AT_PUBLIC );	// no idea really, treat as normal
 		}
 		
-		String	dom = str.substring(last_dot+1).toLowerCase();
+		String	dom = str.substring(last_dot+1).toLowerCase(Locale.US);
 		
 		if ( dom.equals( "i2p" )){
 			

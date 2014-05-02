@@ -4441,15 +4441,19 @@ implements PEPeerTransport
 	    PeerExchangerItem pex_item = peer_exchange_item;
 
 		if( pex_item != null && manager.isPeerExchangeEnabled()) {
-			final PeerItem[] adds = pex_item.getNewlyAddedPeerConnections();
-			final PeerItem[] drops = pex_item.getNewlyDroppedPeerConnections();  
-
-			if( (adds != null && adds.length > 0) || (drops != null && drops.length > 0) ) {
-				if (ut_pex_enabled) {
-					connection.getOutgoingMessageQueue().addMessage( new UTPeerExchange(adds, drops, null, (byte)0), false);
-				}
-				else {
-					connection.getOutgoingMessageQueue().addMessage( new AZPeerExchange( manager.getHash(), adds, drops, other_peer_pex_version ), false );
+			
+			if ( peer_item_identity.getNetwork() == AENetworkClassifier.AT_PUBLIC ){
+		
+				final PeerItem[] adds = pex_item.getNewlyAddedPeerConnections();
+				final PeerItem[] drops = pex_item.getNewlyDroppedPeerConnections();  
+	
+				if( (adds != null && adds.length > 0) || (drops != null && drops.length > 0) ) {
+					if (ut_pex_enabled) {
+						connection.getOutgoingMessageQueue().addMessage( new UTPeerExchange(adds, drops, null, (byte)0), false);
+					}
+					else {
+						connection.getOutgoingMessageQueue().addMessage( new AZPeerExchange( manager.getHash(), adds, drops, other_peer_pex_version ), false );
+					}
 				}
 			}
 		}

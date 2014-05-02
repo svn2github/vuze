@@ -37,8 +37,10 @@ public class PeerExchangerItem {
   private static final int MAX_KNOWN_PER_PEER = 500;
   
   
-  private final PeerDatabase parent_db;
-  private final PeerItem base_peer;
+  private final PeerDatabase 	parent_db;
+  private final PeerItem 		base_peer;
+  private final String			network;
+  
   private final LinkedHashSet<PeerItem> connections_added 		= new LinkedHashSet<PeerItem>();
   private final LinkedHashSet<PeerItem> connections_dropped 	= new LinkedHashSet<PeerItem>();
   private final Map<PeerItem,Object> connected_peers = new LightHashMap<PeerItem,Object>();
@@ -49,8 +51,10 @@ public class PeerExchangerItem {
 
   protected PeerExchangerItem( PeerDatabase parent_db, PeerItem peer, Helper helper ) {
     this.parent_db = parent_db;
-    this.base_peer = peer;
+    this.base_peer = peer;    
     this.helper = helper;
+    
+    network = peer.getNetwork();
   }
   
 

@@ -123,7 +123,7 @@ public class AZPeerExchange implements AZMessage, AZStylePeerExchange {
         	udp_port = ((udp_ports[pos*2]<<8)&0xff00) + (udp_ports[pos*2+1]&0xff);
         }
         try{
-        	PeerItem peer = PeerItemFactory.createPeerItem( full_address, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE, type, udp_port );
+        	PeerItem peer = PeerItemFactory.createPeerItem( full_address, PeerItemFactory.PEER_SOURCE_PEER_EXCHANGE, type, udp_port, AENetworkClassifier.AT_PUBLIC );
         	peers.add( peer );
         }catch( Exception t ){
             Logger.log(new LogEvent( LOGID, LogEvent.LT_WARNING,"PEX: invalid peer received" ));	 

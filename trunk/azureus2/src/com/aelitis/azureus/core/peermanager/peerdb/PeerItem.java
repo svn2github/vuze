@@ -22,12 +22,14 @@
 
 package com.aelitis.azureus.core.peermanager.peerdb;
 
+import java.io.UnsupportedEncodingException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.Arrays;
 
 import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.plugins.peers.PeerDescriptor;
 
 
@@ -46,20 +48,30 @@ public class PeerItem implements PeerDescriptor {
   private final byte crypto_level;
   private final short up_speed;
   
-  private final int	priority;
+  private final int		priority;
+  private final String	network;
   
   protected PeerItem( String _address, int _tcp_port, byte _source, byte _handshake, int _udp_port, byte _crypto_level, int _up_speed  ) {
     byte[] raw;
+    network = AENetworkClassifier.categoriseAddress( _address );
     try{
-      //see if we can resolve the address into a compact raw IPv4/6 byte array (4 or 16 bytes)
-      InetAddress ip = InetAddress.getByName( _address );
-      raw = ip.getAddress();
+	    if ( network == AENetworkClassifier.AT_PUBLIC ){
+		    try{
+		      //see if we can resolve the address into a compact raw IPv4/6 byte array (4 or 16 bytes)
+		      InetAddress ip = InetAddress.getByName( _address );
+		      raw = ip.getAddress();
+		    }
+		    catch( UnknownHostException e ) {
+		      //not a standard IPv4/6 address, so just use the full string bytes
+		      raw = _address.getBytes( "ISO8859-1" );
+		    }
+	    }else{
+	    	raw = _address.getBytes( "ISO8859-1" );
+	    }
+    }catch( UnsupportedEncodingException e ){
+    	raw = _address.getBytes();
     }
-    catch( UnknownHostException e ) {
-      //not a standard IPv4/6 address, so just use the full string bytes
-      raw = _address.getBytes();
-    }
-
+    
     address = raw;
     tcp_port = (short)_tcp_port;
     udp_port = (short)_udp_port;
@@ -73,7 +85,7 @@ public class PeerItem implements PeerDescriptor {
   }
   
 
-  protected PeerItem( byte[] _serialization, byte _source, byte _handshake, int _udp_port ) throws Exception{
+  protected PeerItem( byte[] _serialization, byte _source, byte _handshake, int _udp_port, String _network ) throws Exception{
 	if ( _serialization.length < 6 || _serialization.length > 32){
 		throw( new Exception( "PeerItem: invalid serialisation length - " + _serialization.length ));
 	}
@@ -93,6 +105,8 @@ public class PeerItem implements PeerDescriptor {
     up_speed = 0; // TODO:...
     
     priority = PeerUtils.getPeerPriority( address, tcp_port );
+    
+    network	= _network;
   }
     
   
@@ -108,21 +122,27 @@ public class PeerItem implements PeerDescriptor {
   
   
   public String getAddressString() {
-    try{
-      //see if it's an IPv4/6 address (4 or 16 bytes)
-      return InetAddress.getByAddress( address ).getHostAddress();
-    }
-    catch( UnknownHostException e ) {
-      //not a standard IPv4/6 address, so just return as full string
-      return new String( address );
-    }
+	try{
+		if ( network == AENetworkClassifier.AT_PUBLIC ){
+		    try{
+		      //see if it's an IPv4/6 address (4 or 16 bytes)
+		      return InetAddress.getByAddress( address ).getHostAddress();
+		    }
+		    catch( UnknownHostException e ) {
+		      //not a standard IPv4/6 address, so just return as full string
+		      return new String( address, "ISO8859-1" );
+		    }
+		}else{
+			 return new String( address, "ISO8859-1" );
+		}
+	}catch( UnsupportedEncodingException e ){
+		return( new String( address ));
+	}
   }
   
-  public String
-  getIP()
-  {
-	  return( getAddressString());
-  }
+  public String getIP(){ return( getAddressString());  }
+  
+  public String getNetwork(){ return( network ); }
   
   public int getTCPPort() {  return tcp_port&0xffff;  }
   

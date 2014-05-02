@@ -70,8 +70,8 @@ public class PeerItemFactory {
    * @param source this peer info was obtained from
    * @return peer
    */
-  public static PeerItem createPeerItem( byte[] serialization, byte source, byte handshake_type, int udp_port ) throws Exception {
-    return (PeerItem)StringInterner.internObject( new PeerItem( serialization, source, handshake_type, udp_port ) );
+  public static PeerItem createPeerItem( byte[] serialization, byte source, byte handshake_type, int udp_port, String network ) throws Exception {
+    return (PeerItem)StringInterner.internObject( new PeerItem( serialization, source, handshake_type, udp_port, network ) );
   }
   
   
