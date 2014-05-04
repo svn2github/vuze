@@ -987,7 +987,7 @@ public class PeerManager implements AzureusCoreStatsProvider{
 			
 			InetSocketAddress is_address = ep.getNotionalAddress();
 			
-			String host_address = AddressUtils.getAddressName( is_address );
+			String host_address = AddressUtils.getHostAddress( is_address );
 
 			InetAddress address_mbn = is_address.getAddress();
 			

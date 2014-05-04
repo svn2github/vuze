@@ -131,7 +131,7 @@ ProtocolDecoderInitial
 										if (Logger.isEnabled())
 											Logger.log(new LogEvent(LOGID, "Incoming connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as fallback is enabled" ));
 									}
-									else if( AddressUtils.isLANLocalAddress( transport.getAddress().getAddress().getHostAddress() ) == AddressUtils.LAN_LOCAL_YES ) {
+									else if( AddressUtils.isLANLocalAddress( AddressUtils.getHostAddress( transport.getAddress())) == AddressUtils.LAN_LOCAL_YES ) {
 										if (Logger.isEnabled())
 											Logger.log(new LogEvent(LOGID, "Incoming connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as lan-local" ));
 									}

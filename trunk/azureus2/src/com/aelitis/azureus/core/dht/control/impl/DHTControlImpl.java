@@ -3010,7 +3010,7 @@ DHTControlImpl
 				str = "["  + str + "]";
 			}
 			
-			return( contact.getAddress().getAddress() + " - " + str );
+			return( AddressUtils.getHostAddress( contact.getAddress()) + " - " + str );
 		}
 	}
 	

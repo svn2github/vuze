@@ -1617,7 +1617,7 @@ DownloadManagerController
 				activation_bloom = bloom = BloomFilterFactory.createAddRemove4Bit( BLOOM_SIZE );
 			}
 			
-			byte[]	address_bytes = address.getAddress().getAddress();
+			byte[]	address_bytes = AddressUtils.getAddressBytes(address);
 					
 			int	hit_count = bloom.add( address_bytes );
 			
@@ -1665,7 +1665,7 @@ DownloadManagerController
 		
 		if ( bloom != null ){
 		
-			byte[]	address_bytes = address.getAddress().getAddress();
+			byte[]	address_bytes = AddressUtils.getAddressBytes( address );
 
 			int	count = bloom.count( address_bytes);
 			

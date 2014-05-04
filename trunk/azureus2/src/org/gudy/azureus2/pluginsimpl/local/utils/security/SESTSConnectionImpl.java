@@ -32,12 +32,12 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
-
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.core3.util.SimpleTimer;
@@ -247,7 +247,7 @@ SESTSConnectionImpl
 	{
 		synchronized( SESTSConnectionImpl.class ){
 							
-			int	hit_count = generate_bloom.add( originator.getAddress().getAddress());
+			int	hit_count = generate_bloom.add( AddressUtils.getAddressBytes( originator ));
 			
 			long	now = SystemTime.getCurrentTime();
 

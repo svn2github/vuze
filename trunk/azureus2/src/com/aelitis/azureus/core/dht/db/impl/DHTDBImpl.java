@@ -31,6 +31,7 @@ import org.gudy.azureus2.core3.ipfilter.IpFilterManagerFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
@@ -2667,7 +2668,7 @@ DHTDBImpl
 								continue;
 							}
 							
-							addresses.add( c.getAddress().getAddress().getAddress());
+							addresses.add( AddressUtils.getAddressBytes( c.getAddress()));
 							
 							SurveyContactState	contact_state = survey_state.get( new HashWrapper( c.getID()));
 							
@@ -2765,7 +2766,7 @@ DHTDBImpl
 							SurveyContactState target = potential_targets.get( i );
 							
 							if ( 	bad_addresses.size() > 0 && 
-									bad_addresses.contains( new HashWrapper( target.getContact().getAddress().getAddress().getAddress()))){
+									bad_addresses.contains( new HashWrapper( AddressUtils.getAddressBytes( target.getContact().getAddress())))){
 								
 									// make it look like this target has the mapping as we don't want to store it there but we want to treat it as
 									// if it has it, effectively reducing availability but not skewing storage in favour of potentially malicious nodes
@@ -3351,7 +3352,7 @@ DHTDBImpl
 			logger.log( "Banning " + contact.getString() + " due to store flooding (" + reason + ")" );
 			
 			ip_filter.ban( 
-					contact.getAddress().getAddress().getHostAddress(),
+					AddressUtils.getHostAddress( contact.getAddress()),
 					"DHT: Sender stored excessive entries at this node (" + reason + ")", false );
 		}
 	}

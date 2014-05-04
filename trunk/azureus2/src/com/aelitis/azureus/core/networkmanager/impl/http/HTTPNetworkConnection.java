@@ -35,6 +35,7 @@ import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.peer.impl.PEPeerControl;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
 import org.gudy.azureus2.core3.peer.util.PeerUtils;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
@@ -1281,7 +1282,7 @@ HTTPNetworkConnection
 		protected byte[]
 		getAddress()
 		{
-			return( connection.getEndpoint().getNotionalAddress().getAddress().getAddress());
+			return( AddressUtils.getAddressBytes( connection.getEndpoint().getNotionalAddress()));
 		}
 		
 		protected byte[]

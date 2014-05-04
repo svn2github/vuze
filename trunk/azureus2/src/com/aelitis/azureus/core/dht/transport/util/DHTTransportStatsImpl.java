@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.transport.util;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
 
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 
 import com.aelitis.azureus.core.dht.impl.DHTLog;
@@ -539,7 +540,7 @@ DHTTransportStatsImpl
 		InetSocketAddress	originator_address,
 		long				skew )
 	{
-		byte[]	bytes = originator_address.getAddress().getAddress();
+		byte[]	bytes = AddressUtils.getAddressBytes( originator_address );
 		
 		if ( skew_originator_bloom.contains( bytes)){
 		

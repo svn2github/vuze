@@ -391,7 +391,7 @@ AddressUtils
 	}
 	
 	public static String
-	getAddressName(
+	getHostAddress(
 		InetSocketAddress	address )
 	{
 		if ( address.isUnresolved()){
@@ -401,6 +401,20 @@ AddressUtils
 		}else{
 			
 			return( address.getAddress().getHostAddress());
+		}
+	}
+	
+	public static String
+	getHostName(
+		InetSocketAddress	address )
+	{
+		if ( address.isUnresolved()){
+			
+			return( address.getHostName());
+			
+		}else{
+			
+			return( address.getAddress().getHostName());
 		}
 	}
 	

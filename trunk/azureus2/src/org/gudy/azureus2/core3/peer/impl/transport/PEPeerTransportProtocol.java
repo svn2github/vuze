@@ -401,7 +401,7 @@ implements PEPeerTransport
 
 		InetSocketAddress notional_address = _connection.getEndpoint().getNotionalAddress();
 
-		ip    = AddressUtils.getAddressName( notional_address );
+		ip    = AddressUtils.getHostAddress( notional_address );
 		port  = notional_address.getPort();
 		
 		peer_item_identity = PeerItemFactory.createPeerItem( ip, port, PeerItem.convertSourceID( _peer_source ), PeerItemFactory.HANDSHAKE_TYPE_PLAIN, 0, PeerItemFactory.CRYPTO_LEVEL_1, 0 );  //this will be recreated upon az handshake decode
