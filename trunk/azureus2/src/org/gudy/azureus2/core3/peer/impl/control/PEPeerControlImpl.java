@@ -5071,7 +5071,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 			
 			InetSocketAddress ad = (InetSocketAddress)it.next();
 			
-			active_udp += (active_udp.length()==0?"":",") + ad.getAddress().getHostAddress() + ":" + ad.getPort();
+			active_udp += (active_udp.length()==0?"":",") + AddressUtils.getHostAddress( ad ) + ":" + ad.getPort();
 		}
 		
 		if ( active_udp.length() > 0 ){
