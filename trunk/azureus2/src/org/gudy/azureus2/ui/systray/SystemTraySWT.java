@@ -387,6 +387,9 @@ public class SystemTraySWT
 	 * @param parent The system tray contextual menu
 	 */
 	private final void createUploadLimitMenu(final Menu parent) {
+		if ( gm == null ){
+			return;
+		}
 		final MenuItem uploadSpeedItem = new MenuItem(parent, SWT.CASCADE);
 		uploadSpeedItem.setText(MessageText.getString("GeneralView.label.maxuploadspeed"));
 
@@ -407,6 +410,9 @@ public class SystemTraySWT
 	 * @param parent The system tray contextual menu
 	 */
 	private final void createDownloadLimitMenu(final Menu parent) {
+		if ( gm == null ){
+			return;
+		}
 		final MenuItem downloadSpeedItem = new MenuItem(parent, SWT.CASCADE);
 		downloadSpeedItem.setText(MessageText.getString("GeneralView.label.maxdownloadspeed"));
 
