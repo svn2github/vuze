@@ -1521,7 +1521,7 @@ public class OpenTorrentOptionsWindow
 		
 				so = skin.getSkinObject("peer-sources");
 				if (so instanceof SWTSkinObjectContainer) {
-					setupPeerSourcesOptions((SWTSkinObjectContainer) so);
+					setupPeerSourcesAndNetworkOptions((SWTSkinObjectContainer) so);
 				}
 		
 				so = skin.getSkinObject("trackers");
@@ -3081,46 +3081,86 @@ public class OpenTorrentOptionsWindow
 	
 		}
 	
-		private void setupPeerSourcesOptions(SWTSkinObjectContainer so) {
+		private void setupPeerSourcesAndNetworkOptions(SWTSkinObjectContainer so) {
 			Composite parent = so.getComposite();
 			parent.setBackgroundMode( SWT.INHERIT_FORCE );	// win 7 classic theme shows grey background without this
 
+		
 			Group peer_sources_group = new Group(parent, SWT.NULL);
-			Messages.setLanguageText(peer_sources_group,
-					"ConfigView.section.connection.group.peersources");
-			GridLayout peer_sources_layout = new GridLayout(3, true);
-			peer_sources_group.setLayout(peer_sources_layout);
-	
-			peer_sources_group.setLayoutData(Utils.getFilledFormData());
-	
-			//		Label label = new Label(peer_sources_group, SWT.WRAP);
-			//		Messages.setLanguageText(label,
-			//				"ConfigView.section.connection.group.peersources.info");
-			//		GridData gridData = new GridData();
-			//		label.setLayoutData(gridData);
-	
-			for (int i = 0; i < PEPeerSource.PS_SOURCES.length; i++) {
-	
-				final String p = PEPeerSource.PS_SOURCES[i];
-	
-				String config_name = "Peer Source Selection Default." + p;
-				String msg_text = "ConfigView.section.connection.peersource." + p;
-	
-				Button button = new Button(peer_sources_group, SWT.CHECK);
-				Messages.setLanguageText(button, msg_text);
-	
-				button.setSelection(COConfigurationManager.getBooleanParameter(config_name));
+			
+			{
+				Messages.setLanguageText(peer_sources_group,
+						"ConfigView.section.connection.group.peersources");
+				GridLayout peer_sources_layout = new GridLayout(3, true);
+				peer_sources_group.setLayout(peer_sources_layout);
 				
-				button.addSelectionListener(new SelectionAdapter() {
-					public void widgetSelected(SelectionEvent e) {
-						torrentOptions.peerSource.put(p, ((Button)e.widget).getSelection());
-					}
-				});
-	
-				GridData gridData = new GridData();
-				button.setLayoutData(gridData);
+				FormData form_data = Utils.getFilledFormData();
+				form_data.bottom = null;
+				peer_sources_group.setLayoutData(form_data);
+		
+				//		Label label = new Label(peer_sources_group, SWT.WRAP);
+				//		Messages.setLanguageText(label,
+				//				"ConfigView.section.connection.group.peersources.info");
+				//		GridData gridData = new GridData();
+				//		label.setLayoutData(gridData);
+		
+				for (int i = 0; i < PEPeerSource.PS_SOURCES.length; i++) {
+		
+					final String p = PEPeerSource.PS_SOURCES[i];
+		
+					String config_name = "Peer Source Selection Default." + p;
+					String msg_text = "ConfigView.section.connection.peersource." + p;
+		
+					Button button = new Button(peer_sources_group, SWT.CHECK);
+					Messages.setLanguageText(button, msg_text);
+		
+					button.setSelection(COConfigurationManager.getBooleanParameter(config_name));
+					
+					button.addSelectionListener(new SelectionAdapter() {
+						public void widgetSelected(SelectionEvent e) {
+							torrentOptions.peerSource.put(p, ((Button)e.widget).getSelection());
+						}
+					});
+		
+					GridData gridData = new GridData();
+					button.setLayoutData(gridData);
+				}
 			}
 	
+				// networks
+			
+			{				
+				Group network_group = new Group(parent, SWT.NULL);
+				Messages.setLanguageText(network_group,
+						"ConfigView.section.connection.group.networks");
+				GridLayout network_layout = new GridLayout(3, true);
+				network_group.setLayout(network_layout);
+		
+				FormData form_data = Utils.getFilledFormData();
+				form_data.top = new FormAttachment( peer_sources_group );
+				network_group.setLayoutData(form_data);
+		
+				for (int i = 0; i < AENetworkClassifier.AT_NETWORKS.length; i++) {
+		
+					final String nn = AENetworkClassifier.AT_NETWORKS[i];
+		
+					String msg_text = "ConfigView.section.connection.networks." + nn;
+		
+					Button button = new Button(network_group, SWT.CHECK);
+					Messages.setLanguageText(button, msg_text);
+		
+					button.setSelection(torrentOptions.enabledNetworks.get( nn ));
+					
+					button.addSelectionListener(new SelectionAdapter() {
+						public void widgetSelected(SelectionEvent e) {
+							torrentOptions.enabledNetworks.put(nn, ((Button)e.widget).getSelection());
+						}
+					});
+		
+					GridData gridData = new GridData();
+					button.setLayoutData(gridData);
+				}
+			}
 		}
 	
 		private void updateDataDirCombo() {

@@ -541,6 +541,13 @@ public class TorrentOpener {
 							}
 						}
 
+						if ( torrentOptions.enabledNetworks != null ){
+							for (String net : torrentOptions.enabledNetworks.keySet()) {
+								boolean enable = torrentOptions.enabledNetworks.get(net);
+								dm.getDownloadState().setNetworkEnabled(net, enable);
+							}
+						}
+						
 						List<Tag> initialTags = torrentOptions.getInitialTags();
 													
 						for ( Tag t: initialTags ){

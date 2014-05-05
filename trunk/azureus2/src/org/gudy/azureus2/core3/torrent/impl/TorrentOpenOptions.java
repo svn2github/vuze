@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -103,7 +104,8 @@ public class TorrentOpenOptions
 
 	private CopyOnWriteList<FileListener> fileListeners = new CopyOnWriteList<FileListener>(1);
 
-	public Map<String, Boolean> peerSource = new HashMap<String, Boolean>();
+	public Map<String, Boolean> peerSource 		= new HashMap<String, Boolean>();
+	public Map<String, Boolean> enabledNetworks = new HashMap<String, Boolean>();
 	
 	private List<Tag>	initialTags = new ArrayList<Tag>();
 
@@ -135,6 +137,15 @@ public class TorrentOpenOptions
 		iQueueLocation = QUEUELOCATION_BOTTOM;
 		isValid = true;
 		this.sDestDir = COConfigurationManager.getStringParameter(PARAM_DEFSAVEPATH);
+		
+		for (int i = 0; i < AENetworkClassifier.AT_NETWORKS.length; i++) {
+
+			String nn = AENetworkClassifier.AT_NETWORKS[i];
+
+			String config_name = "Network Selection Default." + nn;
+			
+			enabledNetworks.put( nn, COConfigurationManager.getBooleanParameter( config_name ));
+		}
 	}
 
 	/**
@@ -155,6 +166,7 @@ public class TorrentOpenOptions
 		// this.initial_linkage_map = ... // no clone
 		// this.files = ... // no clone
 		this.peerSource = toBeCloned.peerSource == null ? null : new HashMap<String, Boolean>(toBeCloned.peerSource);
+		this.enabledNetworks = toBeCloned.enabledNetworks == null ? null : new HashMap<String, Boolean>(toBeCloned.enabledNetworks);
 		this.initialTags = toBeCloned.initialTags == null ? null : new ArrayList<Tag>(toBeCloned.initialTags);
 		
 		if ( toBeCloned.updatedTrackers != null ){
@@ -554,6 +566,51 @@ public class TorrentOpenOptions
 				e.printStackTrace();
 			}
 
+			Set<String> tracker_hosts = TorrentUtils.getUniqueTrackerHosts( torrent );
+			
+			Set<String>	networks = new HashSet<String>();
+			
+			for ( String host: tracker_hosts ){
+				
+				String network = AENetworkClassifier.categoriseAddress( host );
+				
+				networks.add( network );
+			}
+			
+				// could do something here if multiple networks to get user to decide what to do...
+			
+			if ( networks.size() == 1 ){
+				
+				String	network = networks.iterator().next();
+				
+				if ( network == AENetworkClassifier.AT_I2P ){
+					
+					String[]	providers = { "azneti2p", "azneti2phelper" };
+					
+					boolean	found = false;
+					
+					for ( String provider: providers ){
+					
+						if ( AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( provider ) != null ){
+							
+							found = true;
+							
+							break;
+						}
+					}
+					
+					if ( found ){
+						
+						for (int i = 0; i < AENetworkClassifier.AT_NETWORKS.length; i++) {
+
+							String nn = AENetworkClassifier.AT_NETWORKS[i];
+							
+							enabledNetworks.put( nn, nn == AENetworkClassifier.AT_I2P );
+						}
+					}
+				}
+			}
+			
 			renameDuplicates();
 		}
 	}

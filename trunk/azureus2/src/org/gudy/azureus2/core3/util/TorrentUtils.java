@@ -604,7 +604,12 @@ TorrentUtils
 			
 			if ( announce_url != null ){
 			
-				hosts.add( announce_url.getHost().toLowerCase( Locale.US ));
+				String host = announce_url.getHost();
+				
+				if ( host != null ){
+				
+					hosts.add( host.toLowerCase( Locale.US ));
+				}
 			}
 			
 			TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
@@ -617,7 +622,12 @@ TorrentUtils
 					
 				for ( URL u: urls ){
 					
-					hosts.add( u.getHost().toLowerCase( Locale.US ));
+					String host = u.getHost();
+					
+					if ( host != null ){
+					
+						hosts.add( host.toLowerCase( Locale.US ));
+					}
 				}
 			}
 		}
