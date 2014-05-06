@@ -191,9 +191,9 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
     	// hack here - the magnet download process requires an additional paramter to cause it to
     	// stall on error so the error can be reported
 	  
-    	if ( protocol.equals( "magnet" ) || protocol.equals( "dht" )){
+    	if ( protocol.equals( "magnet" ) || protocol.equals( "maggot" ) || protocol.equals( "dht" )){
 		  
-    		url = AddressUtils.adjustURL( new URL(url_str+"&pause_on_error=true"));
+    		url = AddressUtils.adjustURL( new URL(url_str+(url_str.contains("?")?"&":"?") + "pause_on_error=true"));
     	}
 	  
 		Set<String>	redirect_urls = new HashSet<String>();

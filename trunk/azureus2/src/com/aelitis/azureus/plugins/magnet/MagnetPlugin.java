@@ -580,6 +580,11 @@ MagnetPlugin
 	{
 		byte[]	torrent_data = downloadSupport( listener, hash, args, sources, timeout, flags );
 		
+		if ( torrent_data == null ){
+		
+			return( null );
+		}
+		
 		return( addTrackersAndWebSeeds( torrent_data, args  ));
 	}
 	

@@ -334,9 +334,12 @@ public class FileDownloadWindow
 			shortURL = url;
 			// truncate any url parameters for display. This has the benefit of hiding additional uninteresting
 			// parameters added to urls to control the download process (e.g. "&pause_on_error" for magnet downloads")
-			int amp_pos = shortURL.indexOf('&');
-			if (amp_pos != -1) {
-				shortURL = shortURL.substring(0, amp_pos + 1) + "...";
+			int trunc_pos = shortURL.indexOf('&');
+			if ( trunc_pos == -1 ){
+				trunc_pos = shortURL.indexOf('?');
+			}
+			if (trunc_pos != -1) {
+				shortURL = shortURL.substring(0, trunc_pos + 1) + "...";
 			}
 			shortURL = shortURL.replaceAll("&", "&&");
 		}
@@ -380,7 +383,7 @@ public class FileDownloadWindow
 			
 			String lc_url = url.toLowerCase(MessageText.LOCALE_ENGLISH);
 
-			if ( lc_url.startsWith( "magnet:") || lc_url.startsWith( "dht:" ) || lc_url.startsWith( "bc:" ) || lc_url.startsWith( "bctp:" )){
+			if ( lc_url.startsWith( "magnet:") || lc_url.startsWith( "maggot:") || lc_url.startsWith( "dht:" ) || lc_url.startsWith( "bc:" ) || lc_url.startsWith( "bctp:" )){
 				
 				return( url );
 			}

@@ -60,7 +60,8 @@ public class UrlUtils
 			"ftp://",
 			"dht://",
 			"magnet:?",
-			"magnet://?" };
+			"magnet://?",
+			"maggot://" };
 
 	private static int MAGNETURL_STARTS_AT = 3;	// dht:// is a form of magnet URL
 	
@@ -350,7 +351,7 @@ public class UrlUtils
 	parseTextForMagnets(
 		String		text )
 	{
-		if (text.startsWith("magnet:")) {
+		if (text.startsWith("magnet:") || text.startsWith( "maggot:" )){
 			return text;
 		}
 
@@ -376,6 +377,12 @@ public class UrlUtils
 			return matcher.group();
 		}
 
+		pattern = Pattern.compile("maggot://[a-z0-9]+:[a-z0-9]", Pattern.CASE_INSENSITIVE);
+		matcher = pattern.matcher(text);
+		if (matcher.find()) {
+			return matcher.group();
+		}
+		
 		pattern = Pattern.compile("bc://bt/([a-z0-9=\\+/]+)", Pattern.CASE_INSENSITIVE);
 		matcher = pattern.matcher(text.replaceAll(" ", "+"));
 		if (matcher.find()) {

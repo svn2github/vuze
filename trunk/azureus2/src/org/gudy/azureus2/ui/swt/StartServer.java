@@ -351,6 +351,7 @@ StartServer
 	  return( 	file_name_lower.startsWith( "http:" ) || 
 			  	file_name_lower.startsWith( "https:" ) || 
 			  	file_name_lower.startsWith( "magnet:" ) ||
+				file_name_lower.startsWith( "maggot:" ) ||
 			  	file_name_lower.startsWith( "bc:" ) ||
 			  	file_name_lower.startsWith( "bctp:" ) ||
 	  			file_name_lower.startsWith( "dht:" ));

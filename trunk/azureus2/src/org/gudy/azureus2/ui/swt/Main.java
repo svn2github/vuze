@@ -204,6 +204,7 @@ Main
         if( 	filename.toUpperCase().startsWith( "HTTP:" ) || 
         		filename.toUpperCase().startsWith( "HTTPS:" ) || 
         		filename.toUpperCase().startsWith( "MAGNET:" ) ||
+        		filename.toUpperCase().startsWith( "MAGGOT:" ) ||
            		filename.toUpperCase().startsWith( "BC:" ) ||
            		filename.toUpperCase().startsWith( "BCTP:" ) ||
         		filename.toUpperCase().startsWith( "DHT:" ) ) {

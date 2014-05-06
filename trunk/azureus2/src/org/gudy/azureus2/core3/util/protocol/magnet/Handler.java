@@ -26,7 +26,12 @@ package org.gudy.azureus2.core3.util.protocol.magnet;
  *
  */
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.io.OutputStream;
 import java.net.*;
+
+import com.aelitis.net.magneturi.MagnetURIHandler;
 
 
 public class 
@@ -39,7 +44,24 @@ Handler
 			// some anti-virus apps blocking loopback connection we initially used
 			// in MagnetConnection so created variant based on direct communication to
 			// the magnet handler
-		
-		return( new MagnetConnection2( u ));
+				
+		return(
+			new MagnetConnection2( 
+				u,
+				new MagnetConnection2.MagnetHandler()
+				{
+					
+					public void 
+					process(
+						URL 			magnet, 
+						OutputStream	os) 
+						
+						throws IOException
+					{
+						String	get = "/download/" + magnet.toString().substring( 7 ) + " HTTP/1.0\r\n\r\n";
+	
+						MagnetURIHandler.getSingleton().process( get, new ByteArrayInputStream(new byte[0]), os );
+					}
+				}));
 	}
 }

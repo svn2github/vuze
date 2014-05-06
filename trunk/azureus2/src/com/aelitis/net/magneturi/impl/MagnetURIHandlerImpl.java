@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.HTTPUtils;
 import com.aelitis.azureus.core.util.png.PNG;
 import com.aelitis.net.magneturi.MagnetURIHandler;
@@ -83,7 +84,7 @@ MagnetURIHandlerImpl
 	
 	private int		port;
 	
-	private List	listeners	= new ArrayList();
+	private CopyOnWriteList<MagnetURIHandlerListener>	listeners	= new CopyOnWriteList<MagnetURIHandlerListener>();
 	
 	private Map		info_map 	= new HashMap();
 	
@@ -431,9 +432,9 @@ MagnetURIHandlerImpl
 
 		if ( get.startsWith( "/magnet10/badge.img" )){
 			
-			for (int i=0;i<listeners.size();i++){
+			for ( MagnetURIHandlerListener listener: listeners ){
 				
-				byte[]	data = ((MagnetURIHandlerListener)listeners.get(i)).badge();
+				byte[]	data = listener.badge();
 					
 				if ( data != null ){
 					
@@ -453,9 +454,9 @@ MagnetURIHandlerImpl
 
 			if ( urn != null && urn.toLowerCase( MessageText.LOCALE_ENGLISH ).startsWith( "urn:btih:")){
 			
-				for (int i=0;i<listeners.size();i++){
+				for ( MagnetURIHandlerListener listener: listeners ){
 					
-					byte[]	data = ((MagnetURIHandlerListener)listeners.get(i)).badge();
+					byte[]	data = listener.badge();
 						
 					if ( data != null ){
 						
@@ -537,9 +538,9 @@ MagnetURIHandlerImpl
 						url = new URL( "magnet:?xt=" + urn );
 					}
 					
-					for (int i=0;i<listeners.size();i++){
+					for ( MagnetURIHandlerListener listener: listeners ){
 						
-						if (((MagnetURIHandlerListener)listeners.get(i)).download( url )){
+						if ( listener.download( url )){
 							
 							ok = true;
 							
@@ -563,9 +564,9 @@ MagnetURIHandlerImpl
 				
 				if ( "image".equalsIgnoreCase((String)lc_params.get( "result" ))){
 					
-					for (int i=0;i<listeners.size();i++){
+					for ( MagnetURIHandlerListener listener: listeners ){
 
-						byte[]	data = ((MagnetURIHandlerListener)listeners.get(i)).badge();
+						byte[]	data = listener.badge();
 					
 						if ( data != null ){
 							
@@ -626,13 +627,13 @@ MagnetURIHandlerImpl
 					}
 				}
 					
-				InetSocketAddress[]	s = sources.toArray( new InetSocketAddress[ sources.size()] );
+				final InetSocketAddress[]	s = sources.toArray( new InetSocketAddress[ sources.size()] );
 				
 				if (Logger.isEnabled())
 					Logger.log(new LogEvent(LOGID, "MagnetURIHandler: download of '"
 							+ encoded + "' starts (initial sources=" + s.length + ")"));
 
-				byte[] sha1 = UrlUtils.decodeSHA1Hash( encoded );
+				final byte[] sha1 = UrlUtils.decodeSHA1Hash( encoded );
 					
 				if ( sha1 == null ){
 					
@@ -672,63 +673,142 @@ MagnetURIHandlerImpl
 						});
 				
 				try{
-					for (int i=0;i<listeners.size();i++){
+					final String f_arg_str = arg_str;
 					
-						data = ((MagnetURIHandlerListener)listeners.get(i)).download(
-								new MagnetURIHandlerProgressListener()
+					final byte[][] 		f_data 	= { null };
+					final Throwable[]	f_error = { null };
+					
+					final AESemaphore wait_sem = new AESemaphore( "download-waiter" );
+					
+					List<Runnable> tasks = new ArrayList<Runnable>();
+					
+					for ( final MagnetURIHandlerListener listener: listeners ){
+					
+						tasks.add(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									try{
+										byte[] data = 
+											listener.download(
+												new MagnetURIHandlerProgressListener()
+												{
+													public void
+													reportSize(
+														long	size )
+													{
+														pw.print( "X-Report: " + getMessageText( "torrent_size", String.valueOf( size )) + NL );
+														
+														pw.flush();
+													}
+													
+													public void
+													reportActivity(
+														String	str )
+													{
+														pw.print( "X-Report: " + str + NL );
+																								
+														pw.flush();
+													}
+													
+													public void
+													reportCompleteness(
+														int		percent )
+													{
+														pw.print( "X-Report: " + getMessageText( "percent", String.valueOf(percent)) + NL );
+														
+														pw.flush();
+													}
+													
+													public boolean 
+													verbose()
+													{
+														return( verbose );
+													}
+													
+													public boolean
+													cancelled()
+													{
+														synchronized( cancel ){
+															
+															return( cancel[0] );
+														}
+													}
+												},
+												sha1, 
+												f_arg_str,
+												s,
+												DOWNLOAD_TIMEOUT );
+										
+										synchronized( f_data ){
+										
+											if ( data != null ){
+										
+												if ( f_data[0] == null ){
+													
+													f_data[0] = data;
+													
+													wait_sem.releaseForever();
+												}
+											}
+										}
+									}catch( Throwable e ){
+										
+										synchronized( f_data ){
+										
+											f_error[0] = e;
+										}
+										
+									}finally{
+										
+										wait_sem.release();
+									}
+								}
+							});
+					}
+					
+					if ( tasks.size() > 0 ){
+						
+						if ( tasks.size() == 1 ){
+							
+							tasks.get(0).run();
+							
+						}else{
+							
+							for ( final Runnable task: tasks ){
+								
+								new AEThread2( "MUH:dasync" )
 								{
 									public void
-									reportSize(
-										long	size )
+									run()
 									{
-										pw.print( "X-Report: " + getMessageText( "torrent_size", String.valueOf( size )) + NL );
-										
-										pw.flush();
+										task.run();
 									}
-									
-									public void
-									reportActivity(
-										String	str )
-									{
-										pw.print( "X-Report: " + str + NL );
-																				
-										pw.flush();
-									}
-									
-									public void
-									reportCompleteness(
-										int		percent )
-									{
-										pw.print( "X-Report: " + getMessageText( "percent", String.valueOf(percent)) + NL );
-										
-										pw.flush();
-									}
-									
-									public boolean 
-									verbose()
-									{
-										return( verbose );
-									}
-									
-									public boolean
-									cancelled()
-									{
-										synchronized( cancel ){
-											
-											return( cancel[0] );
-										}
-									}
-								},
-								sha1, 
-								arg_str,
-								s,
-								DOWNLOAD_TIMEOUT );
-						
-						if ( data != null ){
+								}.start();
+							}
 							
-							break;
+							for ( int i=0; i<tasks.size(); i++ ){
+								
+								wait_sem.reserve();
+							}
+						}
+						
+						synchronized( f_data ){
+							
+							data = f_data[0];
+								
+							if ( data == null ){
+									
+								if ( f_error[0] != null ){
+										
+									throw( f_error[0] );
+								}
+							}
 						}
 					}
+					
 				}finally{
 					
 					keep_alive.cancel();
@@ -794,7 +874,7 @@ MagnetURIHandlerImpl
 					
 				}else{
 					
-					for (int i=0;i<listeners.size() && value == Integer.MIN_VALUE;i++){
+					for ( MagnetURIHandlerListener listener: listeners ){
 						
 							// no idea why we copy, but let's keep doing so
 						
@@ -802,7 +882,12 @@ MagnetURIHandlerImpl
 						
 						paramsCopy.putAll( original_params);
 
-						value = ((MagnetURIHandlerListener)listeners.get(i)).get( name, paramsCopy );
+						value = listener.get( name, paramsCopy );
+						
+						if ( value != Integer.MIN_VALUE ){
+							
+							break;
+						}
 					}
 				}
 								
@@ -929,7 +1014,7 @@ MagnetURIHandlerImpl
 
 				boolean	result = false;
 				
-				for (int i=0;i<listeners.size() && !result;i++){
+				for ( MagnetURIHandlerListener listener: listeners ){
 					
 						// no idea why we copy, but let's keep on doing so
 					
@@ -937,7 +1022,12 @@ MagnetURIHandlerImpl
 					
 					paramsCopy.putAll( original_params );
 					
-					result = ((MagnetURIHandlerListener)listeners.get(i)).set( name, paramsCopy );
+					result = listener.set( name, paramsCopy );
+					
+					if ( result ){
+						
+						break;
+					}
 				}
 				
 				int	width 	= result?20:10;

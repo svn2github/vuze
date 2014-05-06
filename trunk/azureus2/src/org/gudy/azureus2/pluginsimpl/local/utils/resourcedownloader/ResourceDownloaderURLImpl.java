@@ -236,7 +236,7 @@ ResourceDownloaderURLImpl
 		try{
 			String	protocol = original_url.getProtocol().toLowerCase();
 			
-			if ( protocol.equals( "magnet" ) || protocol.equals( "dht" ) || protocol.equals( "vuze" ) || protocol.equals( "ftp" )){
+			if ( protocol.equals( "magnet" ) || protocol.equals( "maggot" ) || protocol.equals( "dht" ) || protocol.equals( "vuze" ) || protocol.equals( "ftp" )){
 				
 				return( -1 );
 				

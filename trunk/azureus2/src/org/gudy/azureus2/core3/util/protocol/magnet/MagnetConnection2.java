@@ -22,7 +22,6 @@
 
 package org.gudy.azureus2.core3.util.protocol.magnet;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -38,7 +37,6 @@ import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 
-import com.aelitis.net.magneturi.MagnetURIHandler;
 
 /**
  * @author parg
@@ -108,32 +106,34 @@ MagnetConnection2
 		}
 	}
 	
+	private MagnetHandler	handler;
 	private OutputStream 	output_stream;
 	private InputStream 	input_stream;
 	
 	private LinkedList<String>	status_list = new LinkedList<String>();
 	
-	protected
+	public
 	MagnetConnection2(
-		URL		_url )
+		URL		_url,
+		MagnetHandler		_handler )
 	{
 		super( _url );
+		
+		handler	= _handler;
 	}
 	
 	public void
 	connect()
-		throws IOException
-		
-	{				
-		String	get = "/download/" + getURL().toString().substring( 7 ) + " HTTP/1.0" + NL + NL;
-		
+	
+		throws IOException	
+	{						
 		MagnetOutputStream 	mos = new MagnetOutputStream();
 		MagnetInputStream 	mis = new MagnetInputStream( mos );
 					
 		input_stream	= mis;
 		output_stream 	= mos;
 		
-		MagnetURIHandler.getSingleton().process( get, new ByteArrayInputStream(new byte[0]), mos );
+		handler.process( getURL(), mos );
 	}
 	
 	public InputStream
@@ -598,5 +598,16 @@ MagnetConnection2
 		{
 			out.close();
 		}
+	}
+	
+	public interface
+	MagnetHandler
+	{
+		public void
+		process(
+			URL					magnet,
+			OutputStream		os )
+			
+			throws IOException;	
 	}
 }
