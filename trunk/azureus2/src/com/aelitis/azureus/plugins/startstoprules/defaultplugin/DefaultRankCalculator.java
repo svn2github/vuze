@@ -528,88 +528,101 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 	public int recalcSeedingRank() {
 		try {
 			downloadData_this_mon.enter();
+			
+			int	oldSR = dl.getSeedingRank();
+			
+			int newSR = _recalcSeedingRankSupport( oldSR );
+			
+			if ( newSR != oldSR ){
+				
+				dl.setSeedingRank( newSR );
+			}
+			return( newSR );
+			
+		} finally {
 
-			sExplainSR = "";
+			downloadData_this_mon.exit();
+		}
+	}
+	
+	private int _recalcSeedingRankSupport( int oldSR ) {
 
-			int oldSR = dl.getSeedingRank();
-			DownloadStats stats = dl.getStats();
+		sExplainSR = "";
 
-			int newSR = 0;
+		DownloadStats stats = dl.getStats();
 
-			// make undownloaded sort to top so they can start first.
-			if (!dl.isComplete()) {
-				newSR = SR_COMPLETE_STARTS_AT + (10000 - dl.getPosition());
-				dl.setSeedingRank(newSR);
-				// make sure we capture FP being turned off when torrent does from
-				// complete to incomplete
-				isFirstPriority();
-				if ( rules.bDebugLog ){
-					sExplainSR += "  not complete. SetSR " + newSR + "\n";
-				}
-				return newSR;
+		int newSR = 0;
+
+		// make undownloaded sort to top so they can start first.
+		if (!dl.isComplete()) {
+			newSR = SR_COMPLETE_STARTS_AT + (10000 - dl.getPosition());
+			// make sure we capture FP being turned off when torrent does from
+			// complete to incomplete
+			isFirstPriority();
+			if ( rules.bDebugLog ){
+				sExplainSR += "  not complete. SetSR " + newSR + "\n";
+			}
+			return newSR;
+		}
+
+		// here we are seeding
+
+		lastModifiedShareRatio = stats.getShareRatio();
+		DownloadScrapeResult sr = dl.getAggregatedScrapeResult();
+		lastModifiedScrapeResultPeers = rules.calcPeersNoUs(dl,sr);
+		lastModifiedScrapeResultSeeds = rules.calcSeedsNoUs(dl,sr);
+
+		boolean bScrapeResultsOk = (lastModifiedScrapeResultPeers > 0 || lastModifiedScrapeResultSeeds > 0
+				|| lastScrapeResultOk) && (lastModifiedScrapeResultPeers >= 0 && lastModifiedScrapeResultSeeds >= 0);
+
+		if (!isFirstPriority()) {
+			// Check Ignore Rules
+			// never apply ignore rules to First Priority Matches
+			// (we don't want leechers circumventing the 0.5 rule)
+
+			//0 means unlimited
+			int	activeMaxSR = dlSpecificMaxShareRatio;
+			if ( activeMaxSR <= 0 ){
+				activeMaxSR = iIgnoreShareRatio;
+			}
+			if (activeMaxSR != 0 && lastModifiedShareRatio >= activeMaxSR
+					&& (lastModifiedScrapeResultSeeds >= iIgnoreShareRatio_SeedStart || !bScrapeResultsOk)
+					&& lastModifiedShareRatio != -1) {
+				
+				if (rules.bDebugLog)
+					sExplainSR += "  shareratio met: shareRatio(" + lastModifiedShareRatio
+							+ ") >= " + activeMaxSR + "\n";
+
+				return SR_SHARERATIOMET;
+			} else if (rules.bDebugLog && activeMaxSR != 0
+					&& lastModifiedShareRatio >= activeMaxSR) {
+				sExplainSR += "  shareratio NOT met: ";
+				if (lastModifiedScrapeResultSeeds >= iIgnoreShareRatio_SeedStart) 
+					sExplainSR += lastModifiedScrapeResultSeeds + " below seed threshold of "
+							+ iIgnoreShareRatio_SeedStart;
+				sExplainSR += "\n";
 			}
 
-			// here we are seeding
-
-			lastModifiedShareRatio = stats.getShareRatio();
-			DownloadScrapeResult sr = dl.getAggregatedScrapeResult();
-			lastModifiedScrapeResultPeers = rules.calcPeersNoUs(dl,sr);
-			lastModifiedScrapeResultSeeds = rules.calcSeedsNoUs(dl,sr);
-
-			boolean bScrapeResultsOk = (lastModifiedScrapeResultPeers > 0 || lastModifiedScrapeResultSeeds > 0
-					|| lastScrapeResultOk) && (lastModifiedScrapeResultPeers >= 0 && lastModifiedScrapeResultSeeds >= 0);
-
-			if (!isFirstPriority()) {
-				// Check Ignore Rules
-				// never apply ignore rules to First Priority Matches
-				// (we don't want leechers circumventing the 0.5 rule)
-
-				//0 means unlimited
-				int	activeMaxSR = dlSpecificMaxShareRatio;
-				if ( activeMaxSR <= 0 ){
-					activeMaxSR = iIgnoreShareRatio;
-				}
-				if (activeMaxSR != 0 && lastModifiedShareRatio >= activeMaxSR
-						&& (lastModifiedScrapeResultSeeds >= iIgnoreShareRatio_SeedStart || !bScrapeResultsOk)
-						&& lastModifiedShareRatio != -1) {
-					
+			if (lastModifiedScrapeResultPeers == 0 && bScrapeResultsOk) {
+				// If both bIgnore0Peers and bFirstPriorityIgnore0Peer are on,
+				// we won't know which one it is at this point.
+				// We have to use the normal SR_0PEERS in case it isn't FP
+				if (bIgnore0Peers) {
 					if (rules.bDebugLog)
-						sExplainSR += "  shareratio met: shareRatio(" + lastModifiedShareRatio
-								+ ") >= " + activeMaxSR + "\n";
+						sExplainSR += "  Ignore 0 Peers criteria met\n";
 
-					dl.setSeedingRank(SR_SHARERATIOMET);
-					return SR_SHARERATIOMET;
-				} else if (rules.bDebugLog && activeMaxSR != 0
-						&& lastModifiedShareRatio >= activeMaxSR) {
-					sExplainSR += "  shareratio NOT met: ";
-					if (lastModifiedScrapeResultSeeds >= iIgnoreShareRatio_SeedStart) 
-						sExplainSR += lastModifiedScrapeResultSeeds + " below seed threshold of "
-								+ iIgnoreShareRatio_SeedStart;
-					sExplainSR += "\n";
+					return SR_0PEERS;
 				}
-
-				if (lastModifiedScrapeResultPeers == 0 && bScrapeResultsOk) {
-					// If both bIgnore0Peers and bFirstPriorityIgnore0Peer are on,
-					// we won't know which one it is at this point.
-					// We have to use the normal SR_0PEERS in case it isn't FP
-					if (bIgnore0Peers) {
-						if (rules.bDebugLog)
-							sExplainSR += "  Ignore 0 Peers criteria met\n";
-
-						dl.setSeedingRank(SR_0PEERS);
-						return SR_0PEERS;
-					}
 
 //					if (bFirstPriorityIgnore0Peer) {
 //						if (rules.bDebugLog)
 //							sExplainSR += "  Ignore 0 Peers criteria for FP met\n";
 //
-//						dl.setSeedingRank(SR_FP0PEERS);
 //						return SR_FP0PEERS;
 //					}
-				} else if (rules.bDebugLog && lastModifiedScrapeResultPeers == 0) {
-					sExplainSR += "  0 Peer Ignore rule NOT applied: Scrape invalid\n";
-				}
+			} else if (rules.bDebugLog && lastModifiedScrapeResultPeers == 0) {
+				sExplainSR += "  0 Peer Ignore rule NOT applied: Scrape invalid\n";
+			}
 
 //				if (numPeers != 0 && iFirstPriorityIgnoreSPRatio != 0
 //						&& numSeeds / numPeers >= iFirstPriorityIgnoreSPRatio) {
@@ -619,162 +632,148 @@ public class DefaultRankCalculator implements DownloadManagerStateAttributeListe
 //								+ ") >= Threshold("
 //								+ iFirstPriorityIgnoreSPRatio + ")\n";
 //
-//					dl.setSeedingRank(SR_FP_SPRATIOMET);
 //					return SR_FP_SPRATIOMET;
 //				}
 
-				//0 means disabled
-				if ((iIgnoreSeedCount != 0) && (lastModifiedScrapeResultSeeds >= iIgnoreSeedCount)) {
-					if (rules.bDebugLog)
-						sExplainSR += "  SeedCount Ignore rule met.  numSeeds("
-								+ lastModifiedScrapeResultSeeds + " >= iIgnoreSeedCount(" + iIgnoreSeedCount + ")\n"; 
+			//0 means disabled
+			if ((iIgnoreSeedCount != 0) && (lastModifiedScrapeResultSeeds >= iIgnoreSeedCount)) {
+				if (rules.bDebugLog)
+					sExplainSR += "  SeedCount Ignore rule met.  numSeeds("
+							+ lastModifiedScrapeResultSeeds + " >= iIgnoreSeedCount(" + iIgnoreSeedCount + ")\n"; 
 
-					dl.setSeedingRank(SR_NUMSEEDSMET);
-					return SR_NUMSEEDSMET;
-				}
-
-				// Ignore when P:S ratio met
-				// (More Peers for each Seed than specified in Config)
-				//0 means never stop
-				if (iIgnoreRatioPeers != 0 && lastModifiedScrapeResultSeeds != 0) {
-					float ratio = (float) lastModifiedScrapeResultPeers / lastModifiedScrapeResultSeeds;
-					if (ratio <= iIgnoreRatioPeers
-							&& lastModifiedScrapeResultSeeds >= iIgnoreRatioPeers_SeedStart) {
-
-						if (rules.bDebugLog)
-							sExplainSR += "  P:S Ignore rule met.  ratio(" + ratio
-									+ " <= threshold(" + iIgnoreRatioPeers_SeedStart + ")\n";
-
-						dl.setSeedingRank(SR_RATIOMET);
-						return SR_RATIOMET;
-					}
-				}
+				return SR_NUMSEEDSMET;
 			}
 
-			// Never do anything with rank type of none
-			if (iRankType == StartStopRulesDefaultPlugin.RANK_NONE) {
-				if (rules.bDebugLog)
-					sExplainSR += "  Ranking Type set to none.. blanking seeding rank\n";
-				
-				// everythink ok!
-				dl.setSeedingRank(newSR);
+			// Ignore when P:S ratio met
+			// (More Peers for each Seed than specified in Config)
+			//0 means never stop
+			if (iIgnoreRatioPeers != 0 && lastModifiedScrapeResultSeeds != 0) {
+				float ratio = (float) lastModifiedScrapeResultPeers / lastModifiedScrapeResultSeeds;
+				if (ratio <= iIgnoreRatioPeers
+						&& lastModifiedScrapeResultSeeds >= iIgnoreRatioPeers_SeedStart) {
+
+					if (rules.bDebugLog)
+						sExplainSR += "  P:S Ignore rule met.  ratio(" + ratio
+								+ " <= threshold(" + iIgnoreRatioPeers_SeedStart + ")\n";
+
+					return SR_RATIOMET;
+				}
+			}
+		}
+
+		// Never do anything with rank type of none
+		if (iRankType == StartStopRulesDefaultPlugin.RANK_NONE) {
+			if (rules.bDebugLog)
+				sExplainSR += "  Ranking Type set to none.. blanking seeding rank\n";
+			
+			// everythink ok!
+			return newSR;
+		}
+
+		if (iRankType == StartStopRulesDefaultPlugin.RANK_TIMED) {
+			if (bIsFirstPriority) {
+				newSR += SR_TIMED_QUEUED_ENDS_AT + 1;
 				return newSR;
 			}
 
-			if (iRankType == StartStopRulesDefaultPlugin.RANK_TIMED) {
-				if (bIsFirstPriority) {
-					newSR += SR_TIMED_QUEUED_ENDS_AT + 1;
-					dl.setSeedingRank(newSR);
-					return newSR;
-				}
+			int state = dl.getState();
+			if (state == Download.ST_STOPPING || state == Download.ST_STOPPED
+					|| state == Download.ST_ERROR) {
+				if (rules.bDebugLog)
+					sExplainSR += "  Download stopping, stopped or in error\n";
+				return SR_NOTQUEUED;
+			} else if (state == Download.ST_SEEDING || state == Download.ST_READY
+					|| state == Download.ST_WAITING || state == Download.ST_PREPARING) {
+				// force sort to top
+				long lMsElapsed = 0;
+				if (state == Download.ST_SEEDING && !dl.isForceStart())
+					lMsElapsed = (SystemTime.getCurrentTime() - stats
+							.getTimeStartedSeeding());
 
-				int state = dl.getState();
-				if (state == Download.ST_STOPPING || state == Download.ST_STOPPED
-						|| state == Download.ST_ERROR) {
-					if (rules.bDebugLog)
-						sExplainSR += "  Download stopping, stopped or in error\n";
-					dl.setSeedingRank(SR_NOTQUEUED);
-					return SR_NOTQUEUED;
-				} else if (state == Download.ST_SEEDING || state == Download.ST_READY
-						|| state == Download.ST_WAITING || state == Download.ST_PREPARING) {
-					// force sort to top
-					long lMsElapsed = 0;
-					if (state == Download.ST_SEEDING && !dl.isForceStart())
-						lMsElapsed = (SystemTime.getCurrentTime() - stats
-								.getTimeStartedSeeding());
-
-					if (lMsElapsed >= minTimeAlive) {
-						dl.setSeedingRank(1);
-						if (oldSR > SR_TIMED_QUEUED_ENDS_AT) {
-							rules.requestProcessCycle(null);
-							if (rules.bDebugLog)
-								rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
-										"somethingChanged: TimeUp");
-						}
-					} else {
-						newSR = SR_TIMED_QUEUED_ENDS_AT + 1 + (int) (lMsElapsed / 1000);
-						dl.setSeedingRank(newSR);
-						if (oldSR <= SR_TIMED_QUEUED_ENDS_AT) {
-							rules.requestProcessCycle(null);
-							if (rules.bDebugLog)
-								rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
-										"somethingChanged: strange timer change");
-						}
-					}
-					return newSR;
-				} else {
-					if (oldSR <= 0) {
-						newSR = SR_TIMED_QUEUED_ENDS_AT - dl.getPosition();
-						dl.setSeedingRank(newSR);
+				if (lMsElapsed >= minTimeAlive) {
+					newSR = 1;
+					if (oldSR > SR_TIMED_QUEUED_ENDS_AT) {
 						rules.requestProcessCycle(null);
 						if (rules.bDebugLog)
 							rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
-									"somethingChanged: NotIgnored");
+									"somethingChanged: TimeUp");
 					}
-					return newSR;
-				}
-			}
-
-			/** 
-			 * Add to SeedingRank based on Rank Type
-			 */
-
-			// SeedCount and SPRatio require Scrape Results..
-			if (bScrapeResultsOk) {
-				if ( iRankType == StartStopRulesDefaultPlugin.RANK_PEERCOUNT )
-				{
-					if(lastModifiedScrapeResultPeers > lastModifiedScrapeResultSeeds * 10)
-						newSR = 100 * lastModifiedScrapeResultPeers * 10;
-					else
-						newSR = (int)((long)100 * lastModifiedScrapeResultPeers * lastModifiedScrapeResultPeers/(lastModifiedScrapeResultSeeds+1));
-				}				
-				else if ((iRankType == StartStopRulesDefaultPlugin.RANK_SEEDCOUNT)
-						&& (iRankTypeSeedFallback == 0 || iRankTypeSeedFallback > lastModifiedScrapeResultSeeds))
-				{
-					if (lastModifiedScrapeResultSeeds < 10000)
-						newSR = 10000 - lastModifiedScrapeResultSeeds;
-					else
-						newSR = 1;
-					// shift over to make way for fallback
-					newSR *= SEEDONLY_SHIFT;
-
-				} else { // iRankType == RANK_SPRATIO or we are falling back
-					if (lastModifiedScrapeResultPeers != 0) {
-						if (lastModifiedScrapeResultSeeds == 0) {
-							if (lastModifiedScrapeResultPeers >= minPeersToBoostNoSeeds)
-								newSR += SPRATIO_BASE_LIMIT;
-						} else { // numSeeds != 0 && numPeers != 0
-							float x = (float) lastModifiedScrapeResultSeeds / lastModifiedScrapeResultPeers;
-							newSR += SPRATIO_BASE_LIMIT / ((x + 1) * (x + 1));
-						}
-					}
-				}
-			} else {
-				if (rules.bDebugLog)
-					sExplainSR += "  Can't calculate SR, no scrape results\n";
-			}
-			
-			if (staleCDOffset > 0) {
-				// every 10 minutes of not being active, subtract one SR
-				if (newSR > staleCDOffset) {
-					newSR -= staleCDOffset;
-					sExplainSR += "  subtracted " + staleCDOffset + " due to non-activeness\n";
 				} else {
-					staleCDOffset = 0; 
+					newSR = SR_TIMED_QUEUED_ENDS_AT + 1 + (int) (lMsElapsed / 1000);
+					if (oldSR <= SR_TIMED_QUEUED_ENDS_AT) {
+						rules.requestProcessCycle(null);
+						if (rules.bDebugLog)
+							rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
+									"somethingChanged: strange timer change");
+					}
+				}
+				return newSR;
+			} else {
+				if (oldSR <= 0) {
+					newSR = SR_TIMED_QUEUED_ENDS_AT - dl.getPosition();
+					rules.requestProcessCycle(null);
+					if (rules.bDebugLog)
+						rules.log.log(dl.getTorrent(), LoggerChannel.LT_INFORMATION,
+								"somethingChanged: NotIgnored");
+				}
+				return newSR;
+			}
+		}
+
+		/** 
+		 * Add to SeedingRank based on Rank Type
+		 */
+
+		// SeedCount and SPRatio require Scrape Results..
+		if (bScrapeResultsOk) {
+			if ( iRankType == StartStopRulesDefaultPlugin.RANK_PEERCOUNT )
+			{
+				if(lastModifiedScrapeResultPeers > lastModifiedScrapeResultSeeds * 10)
+					newSR = 100 * lastModifiedScrapeResultPeers * 10;
+				else
+					newSR = (int)((long)100 * lastModifiedScrapeResultPeers * lastModifiedScrapeResultPeers/(lastModifiedScrapeResultSeeds+1));
+			}				
+			else if ((iRankType == StartStopRulesDefaultPlugin.RANK_SEEDCOUNT)
+					&& (iRankTypeSeedFallback == 0 || iRankTypeSeedFallback > lastModifiedScrapeResultSeeds))
+			{
+				if (lastModifiedScrapeResultSeeds < 10000)
+					newSR = 10000 - lastModifiedScrapeResultSeeds;
+				else
+					newSR = 1;
+				// shift over to make way for fallback
+				newSR *= SEEDONLY_SHIFT;
+
+			} else { // iRankType == RANK_SPRATIO or we are falling back
+				if (lastModifiedScrapeResultPeers != 0) {
+					if (lastModifiedScrapeResultSeeds == 0) {
+						if (lastModifiedScrapeResultPeers >= minPeersToBoostNoSeeds)
+							newSR += SPRATIO_BASE_LIMIT;
+					} else { // numSeeds != 0 && numPeers != 0
+						float x = (float) lastModifiedScrapeResultSeeds / lastModifiedScrapeResultPeers;
+						newSR += SPRATIO_BASE_LIMIT / ((x + 1) * (x + 1));
+					}
 				}
 			}
-
-			if (newSR < 0)
-				newSR = 1;
-
-			if (newSR != oldSR)
-				dl.setSeedingRank(newSR);
-			return newSR;
-		} finally {
-
-			downloadData_this_mon.exit();
+		} else {
+			if (rules.bDebugLog)
+				sExplainSR += "  Can't calculate SR, no scrape results\n";
 		}
-	} // recalcSeedingRank
+		
+		if (staleCDOffset > 0) {
+			// every 10 minutes of not being active, subtract one SR
+			if (newSR > staleCDOffset) {
+				newSR -= staleCDOffset;
+				sExplainSR += "  subtracted " + staleCDOffset + " due to non-activeness\n";
+			} else {
+				staleCDOffset = 0; 
+			}
+		}
+
+		if (newSR < 0)
+			newSR = 1;
+
+		return newSR;
+	} 
 
 	/** Does the torrent match First Priority criteria? 
 	 * @return FP State 
