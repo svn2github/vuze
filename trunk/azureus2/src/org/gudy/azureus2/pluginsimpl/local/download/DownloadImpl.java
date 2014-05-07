@@ -1412,10 +1412,18 @@ DownloadImpl
 		
 			// hack alert - could use classloader to find plugin I guess
 		
-		if ( name.equals( "DHTTrackerPlugin" )){
+		pos = name.indexOf( "DHTTrackerPlugin" );
+		
+		if ( pos == 0 ){
+			
+				// built in
 			
 			name = null;
 			
+		}else if ( pos > 0 ){
+			
+			name = name.substring( 0, pos );
+					
 		}else if ( name.equals( "DHTAnnounceResult")){
 			
 			name = "mlDHT";
