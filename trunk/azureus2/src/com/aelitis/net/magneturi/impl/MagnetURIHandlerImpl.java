@@ -733,7 +733,15 @@ MagnetURIHandlerImpl
 													{
 														synchronized( cancel ){
 															
-															return( cancel[0] );
+															if ( cancel[0] ){
+																
+																return( true );
+															}
+														}
+														
+														synchronized( f_data ){
+														
+															return( f_data[0] != null );
 														}
 													}
 												},
@@ -749,8 +757,6 @@ MagnetURIHandlerImpl
 												if ( f_data[0] == null ){
 													
 													f_data[0] = data;
-													
-													wait_sem.releaseForever();
 												}
 											}
 										}
