@@ -27,6 +27,7 @@ import java.io.RandomAccessFile;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
@@ -34,6 +35,7 @@ import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.torrent.TOTorrentCreator;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AETemporaryFileHandler;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -314,7 +316,14 @@ MagnetPluginMDDownloader
 			
 			String	display_name = MessageText.getString( "MagnetPlugin.use.md.download.name", new String[]{ name });
 			
-			PluginCoreUtils.unwrap( download ).getDownloadState().setDisplayName( display_name + ".torrent" );
+			DownloadManagerState state = PluginCoreUtils.unwrap( download ).getDownloadState();
+			
+			state.setDisplayName( display_name + ".torrent" );
+			
+			for ( String network: AENetworkClassifier.AT_NETWORKS ){
+			
+				state.setNetworkEnabled (network, true );
+			}
 			
 			download.addPeerListener(
 				new DownloadPeerListener()
