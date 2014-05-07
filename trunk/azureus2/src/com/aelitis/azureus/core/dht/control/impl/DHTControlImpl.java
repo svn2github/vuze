@@ -421,10 +421,10 @@ DHTControlImpl
 							description,
 							(byte)0,
 							false, 
-							0, 
+							5*60*1000,		// upper bound on this refresh/seeding operation 
 							search_concurrency, 
 							1,
-							router.getK(),	// (parg - removed this) decrease search accuracy for refreshes
+							router.getK()/2,	// (parg - removed this; re-added the /2 on May 2014 to see how it performs) decrease search accuracy for refreshes
 							new lookupResultHandler(new DHTOperationAdapter())
 							{
 								public void
