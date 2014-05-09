@@ -22,36 +22,91 @@
 
 package com.aelitis.azureus.core.networkmanager;
 
+import org.gudy.azureus2.core3.util.Debug;
+
 import com.aelitis.azureus.core.networkmanager.impl.NetworkConnectionImpl;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 /**
  *
  */
-public class NetworkConnectionFactory {
-  
-  /**
-   * Create an OUTGOING connection.
-   * @param remote_address
-   * @param encoder
-   * @param decoder
-   * @return outbound connection
-   */
-  protected static NetworkConnection create( ConnectionEndpoint	target, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto, boolean allow_fallback, byte[][] shared_secrets ) {
-    return new NetworkConnectionImpl( target, encoder, decoder, connect_with_crypto, allow_fallback, shared_secrets );
-  }
+public class 
+NetworkConnectionFactory 
+{
+	private static CopyOnWriteList<NetworkConnectionFactoryListener>	listeners = new CopyOnWriteList<NetworkConnectionFactory.NetworkConnectionFactoryListener>();
+	
+	/**
+	 * Create an OUTGOING connection.
+	 * @param remote_address
+	 * @param encoder
+	 * @param decoder
+	 * @return outbound connection
+	 */
+	protected static NetworkConnection create( ConnectionEndpoint	target, MessageStreamEncoder encoder, MessageStreamDecoder decoder, boolean connect_with_crypto, boolean allow_fallback, byte[][] shared_secrets ) {
+		NetworkConnection connection = new NetworkConnectionImpl( target, encoder, decoder, connect_with_crypto, allow_fallback, shared_secrets );
+		
+		for ( NetworkConnectionFactoryListener listener: listeners ){
+			
+			try{
+				listener.connectionCreated( connection );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
+		return( connection );
+	}
 
-  
-  /**
-   * Create an INCOMING connection.
-   * @param remote_channel
-   * @param data_already_read
-   * @param encoder
-   * @param decoder
-   * @return inbound connection
-   */
-  protected static NetworkConnection create( Transport transport, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
-    return new NetworkConnectionImpl( transport, encoder, decoder );
-  }
+
+	/**
+	 * Create an INCOMING connection.
+	 * @param remote_channel
+	 * @param data_already_read
+	 * @param encoder
+	 * @param decoder
+	 * @return inbound connection
+	 */
+	protected static NetworkConnection create( Transport transport, MessageStreamEncoder encoder, MessageStreamDecoder decoder ) {
+		
+		NetworkConnection connection = new NetworkConnectionImpl( transport, encoder, decoder );
+		
+		for ( NetworkConnectionFactoryListener listener: listeners ){
+			
+			try{
+				listener.connectionCreated( connection );
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
+		return( connection );
+	}
+	
+	public static void
+	addListener(
+		NetworkConnectionFactoryListener		l )
+	{
+		listeners.add( l );
+	}
+	
+	public static void
+	removeListener(
+		NetworkConnectionFactoryListener		l )
+	{
+		listeners.remove( l );
+	}
+	
+	public interface
+	NetworkConnectionFactoryListener
+	{
+		public void
+		connectionCreated(
+			NetworkConnection		connection );
+	}
 }

@@ -29,6 +29,7 @@ import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageException;
 import com.aelitis.azureus.core.peermanager.messaging.MessageManager;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageDecoder;
+import com.aelitis.azureus.core.util.CopyOnWriteMap;
 
 /**
  * @author Allan Crooks
@@ -36,9 +37,33 @@ import com.aelitis.azureus.core.peermanager.messaging.bittorrent.BTMessageDecode
  */
 public class LTMessageDecoder extends BTMessageDecoder {
 	
-	private Map<Byte,byte[]>	entension_handlers = new HashMap<Byte, byte[]>();
+	private static CopyOnWriteMap<Byte,byte[]>	default_entension_handlers = new CopyOnWriteMap<Byte, byte[]>();
 	
-	public LTMessageDecoder() {}
+	public static void
+	addDefaultExtensionHandler(
+		long		id,
+		byte[]		message_id )
+	{
+		default_entension_handlers.put( (byte)id, message_id );
+	}
+	
+	public static void
+	removeDefaultExtensionHandler(
+		long		id )
+	{
+		default_entension_handlers.remove( (byte)id );
+	}
+	
+	private CopyOnWriteMap<Byte,byte[]>	extension_handlers = new CopyOnWriteMap<Byte, byte[]>();
+	
+	public 
+	LTMessageDecoder() 
+	{		
+		if ( default_entension_handlers.size() > 0 ){
+		
+			extension_handlers.putAll( default_entension_handlers );
+		}
+	}
 
 	protected Message createMessage(DirectByteBuffer ref_buff) throws MessageException {
 		// Check to see if it is a LT-extension message. If not, delegate to BTMessageDecoder.
@@ -62,10 +87,8 @@ public class LTMessageDecoder extends BTMessageDecoder {
 				return MessageManager.getSingleton().createMessage(LTMessage.ID_UT_UPLOAD_ONLY_BYTES, ref_buff, (byte)1);
 			default: {
 			  byte[]	message_id;
-			  synchronized( entension_handlers ){
 					
-				  message_id = entension_handlers.get( id );
-			  }
+			  message_id = extension_handlers.get( id );
 			  
 			  if ( message_id != null ){
 				return MessageManager.getSingleton().createMessage( message_id, ref_buff, (byte)1);
@@ -80,10 +103,14 @@ public class LTMessageDecoder extends BTMessageDecoder {
 	addExtensionHandler(
 		byte		id,
 		byte[]		message_id )
-	{
-		synchronized( entension_handlers ){
-		
-			entension_handlers.put( id, message_id );
-		}
+	{		
+		extension_handlers.put( id, message_id );
+	}
+	
+	public void
+	removeExtensionHandler(
+		byte		id )
+	{		
+		extension_handlers.remove( id );
 	}
 }

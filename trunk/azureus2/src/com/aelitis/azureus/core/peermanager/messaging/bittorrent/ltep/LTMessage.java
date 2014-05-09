@@ -52,4 +52,5 @@ public interface LTMessage extends Message {
 	public static final byte[] ID_UT_UPLOAD_ONLY_BYTES  = ID_UT_UPLOAD_ONLY.getBytes();
 	public static final int SUBID_UT_UPLOAD_ONLY        = 4;
 
+	// 10 -> 20 reserved for non-public nets
 }

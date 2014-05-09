@@ -134,7 +134,9 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue{
         
         for( int x=0; x < listeners_ref.size(); x++ ) {
           MessageQueueListener mql = (MessageQueueListener)listeners_ref.get( x );
-          handled = handled || mql.messageReceived( msg );
+          if ( mql.messageReceived( msg )){
+        	  handled = true;
+          }
         }
         
         if( !handled ) {
@@ -191,7 +193,9 @@ public class IncomingMessageQueueImpl implements IncomingMessageQueue{
     
     for( int x=0; x < listeners_ref.size(); x++ ) {
       MessageQueueListener mql = (MessageQueueListener)listeners_ref.get( x );
-      handled = handled || mql.messageReceived( message );
+      if ( mql.messageReceived( message )){
+    	  handled = true;
+      }
       
       if( message.getType() == Message.TYPE_DATA_PAYLOAD ) {
         mql.dataBytesReceived( size );

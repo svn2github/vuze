@@ -258,6 +258,21 @@ public class LTHandshake implements LTMessage {
 		}
 	}
 	
+	public void
+	addOptionalExtensionMapping(
+		String		id,
+		long		subid )
+	{
+		Map ext = (Map)data_dict.get("m");
+		
+		if ( ext == null ){
+			ext = new HashMap();
+			data_dict.put( "m", ext );
+		}
+		
+		ext.put( id, new Long( subid ));
+	}
+			
 	public String getFeatureID() {return LTMessage.LT_FEATURE_ID;}
 	public int getFeatureSubID() {return LTMessage.SUBID_LT_HANDSHAKE;}
 	public String getID() {return LTHandshake.ID_LT_HANDSHAKE;}

@@ -27,31 +27,43 @@ import java.util.Map;
  * @author Allan Crooks
  *
  */
-public class CopyOnWriteMap {
-	private volatile Map map;
+public class CopyOnWriteMap<K,V> {
+	private volatile Map<K,V> map;
 	
 	public CopyOnWriteMap() {
-		this.map = new HashMap(0);
+		this.map = new HashMap<K,V>(4);
 	}
 	
-	public void put(Object key, Object val) {
+	public void put(K key, V val) {
 		synchronized(this) {
-			HashMap new_map = new HashMap(map);
+			HashMap<K,V> new_map = new HashMap<K,V>(map);
 			new_map.put(key, val);
 			this.map = new_map;
 		}
 	}
 	
-	public Object remove(Object key) {
+	public void putAll(Map<K,V> m ) {
 		synchronized(this) {
-			HashMap new_map = new HashMap(map);
-			Object res = new_map.remove(key);
+			HashMap<K,V> new_map = new HashMap<K,V>(map);
+			new_map.putAll( m );
+			this.map = new_map;
+		}
+	}
+	
+	public void putAll( CopyOnWriteMap<K,V> m ){
+		putAll( m.map );
+	}
+	
+	public V remove(Object key) {
+		synchronized(this) {
+			HashMap<K,V> new_map = new HashMap<K,V>(map);
+			V res = new_map.remove(key);
 			this.map = new_map;
 			return res;
 		}
 	}
 	
-	public Object get(Object key) {
+	public V get(K key) {
 		return this.map.get(key);
 	}
 	
