@@ -2548,6 +2548,10 @@ TRTrackerBTAnnouncerImpl
 					long	time_to_wait;
 										
 					try {
+						if ( !metaData.containsKey( "interval" )){
+							throw( new Exception( "interval missing" ));
+						}
+						
 						tracker_interval = time_to_wait = ((Long) metaData.get("interval")).longValue();
 						
 						Long raw_min_interval = (Long) metaData.get("min interval");

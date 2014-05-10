@@ -121,4 +121,16 @@ DownloadManagerStatsImpl
 	{
 		return( global_manager_stats.getTotalProtocolBytesSent());
 	}
+	
+	public long
+	getSmoothedReceiveRate()
+	{
+		return( global_manager_stats.getSmoothedReceiveRate());
+	}
+	
+	public long
+	getSmoothedSendRate()
+	{
+		return( global_manager_stats.getSmoothedSendRate());
+	}
 }

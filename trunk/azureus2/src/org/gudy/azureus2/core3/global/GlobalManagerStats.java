@@ -48,6 +48,9 @@ GlobalManagerStats
 	  
 	public int getDataAndProtocolSendRate();
 	
+	public long	getSmoothedSendRate();
+	public long	getSmoothedReceiveRate();
+	
 	public int getDataSendRateAtClose();
   
 	public long getTotalDataBytesReceived();

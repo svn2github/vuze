@@ -88,4 +88,10 @@ DownloadManagerStats
 	  
 	public long 
 	getProtocolBytesSent();
+	
+	public long
+	getSmoothedReceiveRate();
+	
+	public long
+	getSmoothedSendRate();
 }

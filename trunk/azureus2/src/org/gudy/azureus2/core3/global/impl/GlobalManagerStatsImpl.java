@@ -29,13 +29,27 @@ package org.gudy.azureus2.core3.global.impl;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.global.*;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.core3.util.SimpleTimer.TimerTickReceiver;
+
+import com.aelitis.azureus.core.util.GeneralUtils;
+import com.aelitis.azureus.core.util.average.MovingImmediateAverage;
 
 
 public class 
 GlobalManagerStatsImpl
-	implements GlobalManagerStats
+	implements GlobalManagerStats, TimerTickReceiver
 {
 	private GlobalManagerImpl		manager;
+	
+	private long smooth_last_sent;
+	private long smooth_last_received;
+	
+	private int current_smoothing_window 	= GeneralUtils.getSmoothUpdateWindow();
+	private int current_smoothing_interval 	= GeneralUtils.getSmoothUpdateInterval();
+	
+	private MovingImmediateAverage smoothed_receive_rate 	= GeneralUtils.getSmoothAverage();
+	private MovingImmediateAverage smoothed_send_rate 		= GeneralUtils.getSmoothAverage();
+	
 	
 	private long total_data_bytes_received;
     private long total_protocol_bytes_received;
@@ -65,6 +79,8 @@ GlobalManagerStatsImpl
 		manager = _manager;
 		
 		load();
+		
+		SimpleTimer.addTickReceiver( this );
 	}
   
 	protected void
@@ -198,4 +214,43 @@ GlobalManagerStatsImpl
     	return( manager.getTotalSwarmsPeerRate(downloading,seeding));
     }
 
+	public void
+	tick(
+		long		mono_now,
+		int			tick_count )
+	{
+		if ( tick_count % current_smoothing_interval == 0 ){
+
+			int	current_window = GeneralUtils.getSmoothUpdateWindow();
+			
+			if ( current_smoothing_window != current_window ){
+			
+				current_smoothing_window 	= current_window;
+				current_smoothing_interval	= GeneralUtils.getSmoothUpdateInterval();
+				smoothed_receive_rate 		= GeneralUtils.getSmoothAverage();
+				smoothed_send_rate 			= GeneralUtils.getSmoothAverage();
+			}
+			
+			long	up 		= total_data_bytes_sent + total_protocol_bytes_sent;
+			long	down 	= total_data_bytes_received + total_protocol_bytes_received;
+			
+			smoothed_send_rate.update( up - smooth_last_sent );
+			smoothed_receive_rate.update( down - smooth_last_received );
+			
+			smooth_last_sent 		= up;
+			smooth_last_received 	= down;
+		}
+	}
+	
+	public long
+	getSmoothedSendRate()
+	{
+		return((long)(smoothed_send_rate.getAverage()/current_smoothing_interval));
+	}
+	
+	public long
+	getSmoothedReceiveRate()
+	{
+		return((long)(smoothed_receive_rate.getAverage()/current_smoothing_interval));
+	}
 }
