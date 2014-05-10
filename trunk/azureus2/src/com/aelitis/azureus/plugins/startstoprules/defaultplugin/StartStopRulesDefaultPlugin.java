@@ -192,6 +192,10 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 	
 	private boolean bStopOnceBandwidthMet = false;
 
+	private boolean bStartNoMoreSeedsWhenUpLimitMet			= false;
+	private boolean	bStartNoMoreSeedsWhenUpLimitMetPercent	= true;
+	private int		bStartNoMoreSeedsWhenUpLimitMetSlack	= 95;
+	
 		// downloading params
 	
 	private boolean	bDownloadAutoReposition;
@@ -443,13 +447,24 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 				"ConfigView.label.seeding.firstPriority.ignoreIdleHours", 24);
 		
 		// seeding subsection
+		
 		configModel.addIntParameter2("StartStopManager_iAddForSeedingDLCopyCount",
 				"ConfigView.label.seeding.addForSeedingDLCopyCount", 1);
+		
 		configModel.addIntParameter2("StartStopManager_iNumPeersAsFullCopy",
 				PREFIX_RES + "numPeersAsFullCopy", 0);
 		configModel.addIntParameter2("StartStopManager_iFakeFullCopySeedStart",
 				PREFIX_RES + "fakeFullCopySeedStart", 1);
 
+		configModel.addBooleanParameter2("StartStopManager_bStartNoMoreSeedsWhenUpLimitMet",
+				"ConfigView.label.seeding.StartStopManager_bStartNoMoreSeedsWhenUpLimitMet", false);
+		
+		configModel.addBooleanParameter2("StartStopManager_bStartNoMoreSeedsWhenUpLimitMetPercent",
+				"ConfigView.label.seeding.bStartNoMoreSeedsWhenUpLimitMetPercent", true);
+		
+		configModel.addIntParameter2("StartStopManager_bStartNoMoreSeedsWhenUpLimitMetSlack",
+				"ConfigView.label.seeding.bStartNoMoreSeedsWhenUpLimitMetSlack", 95);
+		
 		// downloading subsection
 		
 		PREFIX_RES = "ConfigView.label.downloading.";
@@ -859,7 +874,9 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			
 			bStopOnceBandwidthMet = plugin_config.getBooleanParameter("StartStopManager_bStopOnceBandwidthMet");
 			
-			
+			bStartNoMoreSeedsWhenUpLimitMet			= plugin_config.getBooleanParameter("StartStopManager_bStartNoMoreSeedsWhenUpLimitMet" );
+			bStartNoMoreSeedsWhenUpLimitMetPercent	= plugin_config.getBooleanParameter("StartStopManager_bStartNoMoreSeedsWhenUpLimitMetPercent" );
+			bStartNoMoreSeedsWhenUpLimitMetSlack	= plugin_config.getIntParameter("StartStopManager_bStartNoMoreSeedsWhenUpLimitMetSlack" );
 
 			boolean move_top = plugin_config.getBooleanParameter("StartStopManager_bNewSeedsMoveTop");
 			plugin_config.setBooleanParameter(
@@ -2129,17 +2146,49 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					sDebugLine += "\n  Torrent is waiting or seeding";
 			}
 
+			boolean	up_limit_prohibits = false;
+			
+			if ( !okToQueue ){
+				
+					// parg - added a new option here to simply not start any more seeds if upload limit (roughly) met
+				
+				long	up_limit = totals.maxUploadSpeed();
+				
+				if ( bStartNoMoreSeedsWhenUpLimitMet && up_limit > 0 ){
+					
+					long current_up_kbps = download_manager.getStats().getSmoothedSendRate()/1024;
+					
+					long target;
+					
+					if ( bStartNoMoreSeedsWhenUpLimitMetPercent ){
+					
+						target = up_limit * bStartNoMoreSeedsWhenUpLimitMetSlack / 100;
+						
+					}else{
+						
+						target = up_limit - bStartNoMoreSeedsWhenUpLimitMetSlack;
+					}
+										
+					if ( current_up_kbps > target ){
+						
+						okToQueue = true;
+						
+						up_limit_prohibits = true;
+					}
+				}
+			}
+			
 			// Note: First Priority are sorted to the top, 
 			//       so they will always start first
 
-			// XXX Change to waiting if queued and we have an open slot
+			// XXX   to waiting if queued and we have an open slot
 			if (!okToQueue
 					&& (state == Download.ST_QUEUED)
 					&& (totals.maxActive == 0 || vars.numWaitingOrSeeding < totals.maxSeeders) 
 					//&& (totals.maxActive == 0 || (activeSeedingCount + activeDLCount) < totals.maxActive) &&
 					&& (rank >= DefaultRankCalculator.SR_IGNORED_LESS_THAN)
 					&& (vars.stalledSeeders < maxStalledSeeding)
-					&& !vars.higherCDtoStart) {
+					&& !vars.higherCDtoStart){
 				try {
 					if (bDebugLog)
 						sDebugLine += "\n  restart: ok2Q=" + okToQueue
@@ -2178,7 +2227,13 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 						sDebugLine += " at limit, stalledSeeders(" + vars.stalledSeeders
 								+ ") >= maxStalledSeeding("
 								+ maxStalledSeeding + ") ";
+						
+					} else if ( up_limit_prohibits ){
+						
+						sDebugLine += " upload rate prohibits starting new seeds";
+						
 					} else {
+					
 						sDebugLine += "huh? qd="
 								+ (state == Download.ST_QUEUED)
 								+ "; "
@@ -2240,6 +2295,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 								!download.isMoving() &&
 								(bOverLimit || rank < DefaultRankCalculator.SR_IGNORED_LESS_THAN) &&
 								(globalRateAdjustedActivelySeeding || !bSeeding || (!globalRateAdjustedActivelySeeding && bSeeding));
+					
+						// PARG - the above last (..) in the condition always evaluates to TRUE... why oh why!
 
 					if (bDebugLog) {
 						if (okToStop) {

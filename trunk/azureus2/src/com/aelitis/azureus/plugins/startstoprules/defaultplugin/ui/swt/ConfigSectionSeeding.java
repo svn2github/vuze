@@ -24,7 +24,6 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -74,12 +73,61 @@ public class ConfigSectionSeeding implements UISWTConfigSection {
     gridData = new GridData(GridData.VERTICAL_ALIGN_FILL | GridData.HORIZONTAL_ALIGN_FILL);
     cSeeding.setLayoutData(gridData);
 
-    // General Seeding Options
+    	// General Seeding Options
+    
     label = new Label(cSeeding, SWT.NULL);
     Messages.setLanguageText(label, "ConfigView.label.minSeedingTime");
     gridData = new GridData();
     new IntParameter(cSeeding, "StartStopManager_iMinSeedingTime").setLayoutData(gridData);
 
+    	// don't start more seeds
+    
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    final BooleanParameter dontStartMore = 
+    	new BooleanParameter(cSeeding, "StartStopManager_bStartNoMoreSeedsWhenUpLimitMet",
+                         "ConfigView.label.bStartNoMoreSeedsWhenUpLimitMet");
+    dontStartMore.setLayoutData(gridData);
+
+    
+    final Composite cDontStartOptions = new Composite(cSeeding, SWT.NULL);
+    layout = new GridLayout();
+    layout.numColumns = 3;
+    layout.marginWidth = 0;
+    layout.marginHeight = 0;
+    cDontStartOptions.setLayout(layout);
+    gridData = new GridData();
+    gridData.horizontalIndent = 15;
+    gridData.horizontalSpan = 2;
+    cDontStartOptions.setLayoutData(gridData);
+    
+	label = new Label(cDontStartOptions, SWT.NULL);
+	ImageLoader.getInstance().setLabelImage(label, "subitem");
+    gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    label.setLayoutData(gridData);
+    
+    Label xlabel = new Label(cDontStartOptions, SWT.NULL);
+    Messages.setLanguageText(xlabel, "ConfigView.label.bStartNoMoreSeedsWhenUpLimitMetSlack");
+    gridData = new GridData();
+    IntParameter slack = new IntParameter(cDontStartOptions, "StartStopManager_bStartNoMoreSeedsWhenUpLimitMetSlack");
+    slack.setLayoutData(gridData);
+
+	label = new Label(cDontStartOptions, SWT.NULL);
+	ImageLoader.getInstance().setLabelImage(label, "subitem");
+	gridData = new GridData(GridData.VERTICAL_ALIGN_BEGINNING);
+    label.setLayoutData(gridData);
+    
+    gridData = new GridData();
+    gridData.horizontalSpan = 2;
+    BooleanParameter slackIsPercent = new BooleanParameter(cDontStartOptions, "StartStopManager_bStartNoMoreSeedsWhenUpLimitMetPercent",
+                         "ConfigView.label.bStartNoMoreSeedsWhenUpLimitMetPercent");
+    slackIsPercent.setLayoutData(gridData);
+
+    dontStartMore.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( slack, slackIsPercent ));
+    dontStartMore.setAdditionalActionPerformer(new ChangeSelectionActionPerformer( xlabel ));
+    
+    	// disconnect seeds when seeding
+    
     gridData = new GridData();
     gridData.horizontalSpan = 2;
     new BooleanParameter(cSeeding, "Disconnect Seed",
