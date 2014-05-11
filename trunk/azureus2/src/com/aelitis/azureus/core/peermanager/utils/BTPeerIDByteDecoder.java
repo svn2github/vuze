@@ -608,6 +608,12 @@ public class BTPeerIDByteDecoder {
 
 		assertDecode( "\u00B5Torrent 3.4.0", "2D55543334302D000971FDE48C3688D2023506FC" );
 		
+		assertDecode( "BitTorrent 7.9.1", "2D42543739312D00A5792226709266A467EAD700" );
+		
+		assertDecode( "Tixati 1.1.0.7", "-TX1107-811513660630" );
+		
+		assertDecode( "Torch 6.2.9.2", "-TB6292-jhBrpKfnZ!6e" );	// I know this is wrong as the real version is apparently Torch 29.0.0.6292 according to LTEP but woreva
+		
 		System.out.println("Done.");
 	}
 }

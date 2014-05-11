@@ -299,10 +299,12 @@ public class BTPeerIDByteDecoderDefinitions {
 		addAzStyle("ST", "SymTorrent", "2.34");
 		addAzStyle("st", "SharkTorrent");
 		addAzStyle("SZ", "Shareaza");
+		addAzStyle("TB", "Torch");
 		addAzStyle("TN", "Torrent.NET");
 		addAzStyle("TR", "Transmission", VER_AZ_TRANSMISSION_STYLE);
 		addAzStyle("TS", "TorrentStorm");
 		addAzStyle("TT", "TuoTu", VER_AZ_THREE_DIGITS);
+		addAzStyle("TX", "Tixati");
 		addAzStyle("UL", "uLeecher!");
 		addAzStyle("UT", "\u00B5Torrent", VER_AZ_THREE_DIGITS_PLUS_MNEMONIC);
 		addAzStyle("UM", "\u00B5Torrent Mac", VER_AZ_THREE_DIGITS_PLUS_MNEMONIC);
@@ -450,6 +452,8 @@ public class BTPeerIDByteDecoderDefinitions {
 		client = addSimpleClient("\u00B5Torrent", "-UT");		// UT 3.4+
 		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 3);
 
+		client = addSimpleClient("BitTorrent", "-BT");		// BitTorrent 7.9.1 appeared with this: -BTnnn-
+		addVersionedClient(client, VER_BYTE_BLOCK_DOTTED_CHAR, 3);
 	}
 	
 	static class ClientData {
