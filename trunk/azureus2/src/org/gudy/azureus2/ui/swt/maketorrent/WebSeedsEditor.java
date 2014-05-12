@@ -408,10 +408,8 @@ public class WebSeedsEditor {
   		URL url = new URL(str);
   		
   		String prot = url.getProtocol().toLowerCase();
-  		
-  			// don't support https in Az
-  		
-  		if ( prot.equals( "http" )){
+  		  		
+  		if ( prot.startsWith( "http" )){
   			
   			return( true );
   		}

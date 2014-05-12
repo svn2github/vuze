@@ -147,7 +147,7 @@ ExternalSeedReaderFactoryGetRight
 							
 							String	protocol = url.getProtocol().toLowerCase();
 																			
-							if ( protocol.equals( "http" )){
+							if ( protocol.startsWith( "http" )){
 								
 								readers.add( new ExternalSeedReaderGetRight(plugin, download.getTorrent(), url, my_params ));
 								
