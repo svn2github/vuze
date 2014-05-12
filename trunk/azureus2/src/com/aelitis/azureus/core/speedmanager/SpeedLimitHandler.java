@@ -82,6 +82,7 @@ import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.networkmanager.LimitedRateGroup;
 import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagFeature;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
 import com.aelitis.azureus.core.tag.TagManager;
@@ -1119,7 +1120,7 @@ SpeedLimitHandler
 				
 				List<String>	errors = new ArrayList<String>();
 				
-				if ( bits.size() == 6 ){
+				if ( bits.size() >= 6 ){
 					
 					String	freq_str = bits.get(0).toLowerCase( Locale.US );
 					
@@ -1203,9 +1204,59 @@ SpeedLimitHandler
 						errors.add( "'to' is invalid" );
 					}
 					
+					List<ScheduleRuleExtensions>	extensions = null;
+					
+					for ( int i=6; i<bits.size(); i++ ){
+					
+							// optional extensions
+							// start_tag:<tag_name> and stop_tag
+							
+						String	extension = bits.get(i);
+						
+						String[] temp = extension.split( ":" );
+						
+						boolean	ok 		= false;
+						String	extra 	= "";
+						
+						if ( temp.length == 2 ){
+							
+							String	ext_cmd 	= temp[0];
+							String	ext_param	= temp[1];
+							
+							if ( ext_cmd.equals( "start_tag" ) || ext_cmd.equals( "stop_tag" )){
+								
+								TagDownload tag = (TagDownload)TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTag( ext_param, true );
+								
+								if ( tag == null ){
+									
+									extra = ", tag '" + ext_param + "' not found";
+									
+								}else{
+									
+									if ( extensions == null ){
+										
+										extensions = new ArrayList<SpeedLimitHandler.ScheduleRuleExtensions>( bits.size()-6 );
+									}
+									
+									extensions.add( 
+										new ScheduleRuleExtensions( 
+											ext_cmd.equals( "start_tag" )?ScheduleRuleExtensions.ET_START_TAG:ScheduleRuleExtensions.ET_STOP_TAG , 
+											tag ));
+									
+									ok = true;
+								}
+							}
+						}
+						
+						if ( !ok ){
+							
+							errors.add( "extension '" + extension + "' is invalid" + extra );
+						}
+					}
+					
 					if ( errors.size() == 0 ){
 						
-						rules.add( new ScheduleRule( freq, profile, from_mins, to_mins ));
+						rules.add( new ScheduleRule( freq, profile, from_mins, to_mins, extensions ));
 						
 					}else{
 						
@@ -1220,7 +1271,7 @@ SpeedLimitHandler
 					}
 				}else{
 					
-					result.add( "'" + line + "' is invalid: use <frequency> <profile> from <hh:mm> to <hh:mm>" );
+					result.add( "'" + line + "' is invalid: use <frequency> <profile> from <hh:mm> to <hh:mm> [extensions]*" );
 				}
 			}
 		}
@@ -2132,6 +2183,11 @@ SpeedLimitHandler
 			}
 		}
 		
+		if ( active_rule != null ){
+			
+			active_rule.checkExtensions();
+		}
+		
 		if ( current_rule != active_rule && net_limits.size() > 0 ){
 			
 				// net_limits can depend on the active rule, recalc
@@ -2156,17 +2212,18 @@ SpeedLimitHandler
 		result.add( "# Enter rules on separate lines below this section." );
 		result.add( "# Rules are of the following types:" );
 		result.add( "#    enable=(yes|no)   - controls whether the entire schedule is enabled or not (default=enabled)" );
-		result.add( "#    <frequency> <profile_name> from <time> to <time>" );
+		result.add( "#    <frequency> <profile_name> from <time> to <time> [extension]*" );
 		result.add( "#        frequency: daily|weekdays|weekends|<day_of_week>" );
 		result.add( "#            day_of_week: mon|tue|wed|thu|fri|sat|sun" );
 		result.add( "#        time: hh:mm - 24 hour clock; 00:00=midnight; local time" );
+		result.add( "#        extension: (start_tag|stop_tag):<tag_name>" );
 		result.add( "#    ip_set <ip_set_name> [<CIDR_specs...>|CC list|<prior_set_name>] [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [cat=<cat names>]" );
 		result.add( "#    net_limit (daily|weekly|monthly)[:<profile>] [total=<limit>] [up=<limit>] [down=<limit>]");
 		result.add( "#" );
 		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_upload' defined:" );
 		result.add( "#" );
 		result.add( "#     daily no_limits from 00:00 to 23:59" );
-		result.add( "#     daily limited_upload from 06:00 to 22:00" );
+		result.add( "#     daily limited_upload from 06:00 to 22:00 stop_tag:bigstuff" );
 		result.add( "#     daily pause_all from 08:00 to 17:00" );
 		result.add( "#" );
 		result.add( "#     net_limit monthly total=250G          // flat montly limit" );
@@ -3363,17 +3420,21 @@ SpeedLimitHandler
 		private int		from_mins;
 		private int		to_mins;
 		
+		private List<ScheduleRuleExtensions>	extensions;
+		
 		private 
 		ScheduleRule(
-			byte			_freq,
-			String			_profile,
-			int				_from,
-			int				_to )
+			byte							_freq,
+			String							_profile,
+			int								_from,
+			int								_to,
+			List<ScheduleRuleExtensions>	_exts )
 		{
 			frequency 		= _freq;
 			profile_name	= _profile;
 			from_mins		= _from;
 			to_mins			= _to;
+			extensions		= _exts;
 		}
 		
 		private List<ScheduleRule>
@@ -3398,14 +3459,26 @@ SpeedLimitHandler
 					next_frequency |= FR_MON;
 				}
 				
-				ScheduleRule	rule1 = new ScheduleRule( frequency, profile_name, from_mins, 23*60+59 );
-				ScheduleRule	rule2 = new ScheduleRule( next_frequency, profile_name, 0, to_mins );
+				ScheduleRule	rule1 = new ScheduleRule( frequency, profile_name, from_mins, 23*60+59, extensions );
+				ScheduleRule	rule2 = new ScheduleRule( next_frequency, profile_name, 0, to_mins, extensions );
 
 				result.add( rule1 );
 				result.add( rule2 );
 			}
 			
 			return( result );
+		}
+		
+		private void
+		checkExtensions()
+		{
+			if ( extensions != null ){
+				
+				for ( ScheduleRuleExtensions ext: extensions ){
+					
+					ext.checkExtension();
+				}
+			}
 		}
 		
 		private boolean
@@ -3415,6 +3488,34 @@ SpeedLimitHandler
 			if ( other == null ){
 				
 				return( false );
+			}
+			
+			if ( extensions != other.extensions ){
+				
+				if ( extensions == null || other.extensions == null || extensions.size() != other.extensions.size()){
+					
+					return( false );
+				}
+				
+				for ( ScheduleRuleExtensions ext1: extensions ){
+					
+					boolean match = false;
+					
+					for ( ScheduleRuleExtensions ext2: other.extensions ){
+						
+						if ( ext1.sameAs( ext2 )){
+							
+							match = true;
+							
+							break;
+						}
+					}
+					
+					if ( !match ){
+						
+						return( false );
+					}
+				}
 			}
 			
 			return( frequency == other.frequency &&
@@ -3469,7 +3570,17 @@ SpeedLimitHandler
 				freq_str = "sun";
 			}
 			
-			return( "profile=" + profile_name + ", frequency=" + freq_str + ", from=" + getTime( from_mins ) + ", to=" + getTime( to_mins ));
+			String ext_str = "";
+			
+			if ( extensions != null ){
+				
+				for ( ScheduleRuleExtensions ext: extensions ){
+					
+					ext_str += ", " + ext.getString();
+				}
+			}
+			
+			return( "profile=" + profile_name + ", frequency=" + freq_str + ", from=" + getTime( from_mins ) + ", to=" + getTime( to_mins ) + ext_str );
 		}
 		
 		private String
@@ -3491,6 +3602,85 @@ SpeedLimitHandler
 				
 				str = "0" + str;
 			}
+			
+			return( str );
+		}
+	}
+	
+	private static class
+	ScheduleRuleExtensions
+	{
+		private static final int ET_START_TAG 	= 1;
+		private static final int ET_STOP_TAG 	= 2;
+		
+		private int				extension_type;
+		private TagDownload		tag;
+		
+		private
+		ScheduleRuleExtensions(
+			int				_et,
+			TagDownload		_tag )
+		{
+			extension_type		= _et;
+			tag					= _tag;
+		}
+		
+		private void
+		checkExtension()
+		{
+			Set<DownloadManager> downloads = tag.getTaggedDownloads();
+			
+			for ( DownloadManager download: downloads ){
+				
+					// don't touch these
+				
+				if ( download.isPaused()){
+					
+					continue;
+				}
+				
+				int	state = download.getState();
+				
+				if ( extension_type == ET_START_TAG ){
+					
+					if ( state == DownloadManager.STATE_STOPPED ){
+						
+						download.setStateWaiting();
+					}
+				}else{
+					
+					if ( 	state != Download.ST_ERROR &&
+							state != Download.ST_STOPPED &&
+							state != Download.ST_STOPPING ){
+						
+						download.stopIt( DownloadManager.STATE_STOPPED, false, false );
+					}
+				}
+			}
+		}
+		
+		private boolean
+		sameAs( 
+			ScheduleRuleExtensions	other )
+		{
+			return( extension_type == other.extension_type && tag == other.tag );
+		}
+		
+		private String
+		getString()
+		{
+			String str;
+			
+			if ( extension_type == ET_START_TAG ){
+				
+				str = "start_tag";
+				
+			}else{
+				
+				str = "stop_tag";
+			}
+			
+			str += ":" + tag.getTagName( true );
 			
 			return( str );
 		}
