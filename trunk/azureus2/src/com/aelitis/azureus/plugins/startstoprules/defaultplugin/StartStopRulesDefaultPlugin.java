@@ -1114,6 +1114,8 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 		int maxTorrents;
 		
+		boolean upLimitProhibitsNewSeeds;
+		
 		public int maxUploadSpeed()
 		{
 			return downloading == 0 ? globalUploadWhenSeedingLimit : globalUploadLimit;
@@ -1252,6 +1254,31 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 					maxTorrents = maxActive;
 				//System.out.println("maxTorrents = " + maxTorrents + " = " + iMaxUploadSpeed + " / " + minSpeedPerActive);
 				//System.out.println("totalTorrents = " + (activeSeedingCount + totalStalledSeeders + totalDownloading));
+			}
+			
+				// parg - added a new option here to simply not start any more seeds if upload limit (roughly) met
+			
+			long	up_limit = maxUploadSpeed();
+			
+			if ( bStartNoMoreSeedsWhenUpLimitMet && up_limit > 0 ){
+				
+				long current_up_kbps = download_manager.getStats().getSmoothedSendRate()/1024;
+				
+				long target;
+				
+				if ( bStartNoMoreSeedsWhenUpLimitMetPercent ){
+				
+					target = up_limit * bStartNoMoreSeedsWhenUpLimitMetSlack / 100;
+					
+				}else{
+					
+					target = up_limit - bStartNoMoreSeedsWhenUpLimitMetSlack;
+				}
+									
+				if ( current_up_kbps > target ){
+					
+					upLimitProhibitsNewSeeds = true;
+				}
 			}
 		} // constructor
 	}
@@ -2150,31 +2177,11 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 			
 			if ( !okToQueue ){
 				
-					// parg - added a new option here to simply not start any more seeds if upload limit (roughly) met
-				
-				long	up_limit = totals.maxUploadSpeed();
-				
-				if ( bStartNoMoreSeedsWhenUpLimitMet && up_limit > 0 ){
-					
-					long current_up_kbps = download_manager.getStats().getSmoothedSendRate()/1024;
-					
-					long target;
-					
-					if ( bStartNoMoreSeedsWhenUpLimitMetPercent ){
-					
-						target = up_limit * bStartNoMoreSeedsWhenUpLimitMetSlack / 100;
+				if ( totals.upLimitProhibitsNewSeeds ){
 						
-					}else{
+					okToQueue = true;
 						
-						target = up_limit - bStartNoMoreSeedsWhenUpLimitMetSlack;
-					}
-										
-					if ( current_up_kbps > target ){
-						
-						okToQueue = true;
-						
-						up_limit_prohibits = true;
-					}
+					up_limit_prohibits = true;
 				}
 			}
 			
@@ -2283,10 +2290,17 @@ public class StartStopRulesDefaultPlugin implements Plugin,
 
 				boolean okToStop = bForceStop;
 				if (!okToStop) {
-					// break up the logic into variables to make more readable
-					boolean bOverLimit = vars.numWaitingOrSeeding > totals.maxSeeders
-				      || (!bActivelySeeding && vars.stalledSeeders > maxStalledSeeding)
-							|| (vars.numWaitingOrSeeding >= totals.maxSeeders && vars.higherCDtoStart);
+						// break up the logic into variables to make more readable
+						// parg: added the "or up-limit-prohibits & higherCD" case because if we're not starting any new
+						// seeds and we're below the seed limit we will never get to stop any lower priority seeds in order
+						// to cause the up-rate to fall to the point where we can start a higher priority seed...
+					
+					boolean bOverLimit = 
+							vars.numWaitingOrSeeding > totals.maxSeeders || 
+							(!bActivelySeeding && vars.stalledSeeders > maxStalledSeeding) || 
+							(	( 	vars.numWaitingOrSeeding >= totals.maxSeeders || 
+									totals.upLimitProhibitsNewSeeds ) && vars.higherCDtoStart);
+							
 					boolean bSeeding = state == Download.ST_SEEDING;
 
 					// not checking AND (at limit of seeders OR rank is set to ignore) AND
