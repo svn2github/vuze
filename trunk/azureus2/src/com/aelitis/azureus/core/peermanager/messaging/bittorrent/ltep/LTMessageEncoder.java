@@ -139,4 +139,61 @@ public class LTMessageEncoder implements MessageStreamEncoder {
 		
 		return( num != null && num.intValue() != 0 );
 	}
+	
+	public static final int	CET_PEX	= 1;
+	
+	private Map<Integer,CustomExtensionHandler>		custom_handlers;
+	
+	public void
+	addCustomExtensionHandler(
+		int							extension_type,
+		CustomExtensionHandler		handler )
+	{
+		if ( custom_handlers == null ){
+			
+			custom_handlers = new HashMap<Integer, LTMessageEncoder.CustomExtensionHandler>();
+		}
+		
+		custom_handlers.put( extension_type, handler );
+	}
+	
+	public boolean
+	hasCustomExtensionHandler(
+		int		extension_type )
+	{
+		if ( custom_handlers == null ){
+			
+			return( false );
+		}
+		
+		return( custom_handlers.containsKey( extension_type ));
+	}
+	
+	public Object
+	handleCustomExtension(
+		int			extension_type,
+		Object[]	args )
+	{
+		if ( custom_handlers == null ){
+			
+			return( null );
+		}
+		
+		CustomExtensionHandler handler = custom_handlers.get( extension_type );
+		
+		if ( handler != null ){
+			
+			return( handler.handleExtension(args));
+		}
+		
+		return( null );
+	}
+	
+	public interface
+	CustomExtensionHandler
+	{
+		public Object
+		handleExtension(
+			Object[]	args );
+	}
 }

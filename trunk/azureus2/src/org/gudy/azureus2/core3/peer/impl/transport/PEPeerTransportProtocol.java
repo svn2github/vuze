@@ -52,6 +52,7 @@ import com.aelitis.azureus.core.networkmanager.impl.tcp.TCPNetworkManager;
 import com.aelitis.azureus.core.networkmanager.impl.udp.UDPNetworkManager;
 import com.aelitis.azureus.core.peermanager.messaging.Message;
 import com.aelitis.azureus.core.peermanager.messaging.MessageManager;
+import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
 import com.aelitis.azureus.core.peermanager.messaging.azureus.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.*;
 import com.aelitis.azureus.core.peermanager.messaging.bittorrent.ltep.*;
@@ -4080,6 +4081,13 @@ implements PEPeerTransport
 						return true;
 					}
 
+						// generic handling of az-style PEX (e.g. used by non-public net)
+					
+					if ( message instanceof AZStylePeerExchange ){
+						decodePeerExchange((AZStylePeerExchange)message );
+						return true;
+					}
+					
 					if( message_id.equals( AZMessage.ID_AZ_REQUEST_HINT ) ) {        	
 						decodeAZRequestHint( (AZRequestHint)message );
 						return true;
@@ -4386,15 +4394,33 @@ implements PEPeerTransport
 				pex_item = peer_exchange_item = manager.createPeerExchangeConnection( this );
 			}
 			
-			if( pex_item != null ) {
-				//check for peer exchange support
-				if(ut_pex_enabled || peerSupportsMessageType(AZMessage.ID_AZ_PEER_EXCHANGE)) {
+			if ( pex_item != null ){
+				
+					//check for peer exchange support
+				
+				if ( ut_pex_enabled || peerSupportsMessageType(AZMessage.ID_AZ_PEER_EXCHANGE )){
+					
 					peer_exchange_supported = true;
 					
 					pex_item.enableStateMaintenance();
-				}
-				else {  //no need to maintain internal states as we wont be sending/receiving peer exchange messages
-					pex_item.disableStateMaintenance();
+					
+				}else{
+					
+					MessageStreamEncoder encoder = connection.getOutgoingMessageQueue().getEncoder();
+					
+					if ( 	encoder instanceof LTMessageEncoder && 
+							((LTMessageEncoder)encoder).hasCustomExtensionHandler( LTMessageEncoder.CET_PEX )){
+						
+						peer_exchange_supported = true;
+						
+						pex_item.enableStateMaintenance();
+						
+					}else{
+				
+							//no need to maintain internal states as we wont be sending/receiving peer exchange messages
+						
+						pex_item.disableStateMaintenance();
+					}
 				}
 			}
 		}
@@ -4470,6 +4496,14 @@ implements PEPeerTransport
 					else {
 						connection.getOutgoingMessageQueue().addMessage( new AZPeerExchange( manager.getHash(), adds, drops, other_peer_pex_version ), false );
 					}
+				}
+			}else{
+				
+				MessageStreamEncoder encoder = connection.getOutgoingMessageQueue().getEncoder();
+				
+				if ( encoder instanceof LTMessageEncoder ){
+
+					((LTMessageEncoder)encoder).handleCustomExtension( LTMessageEncoder.CET_PEX, new Object[]{ pex_item });
 				}
 			}
 		}
