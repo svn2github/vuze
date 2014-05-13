@@ -222,6 +222,7 @@ AEProxyConnectionImpl
 					if ( 	message != null &&
 							( 	message.contains( "closed" ) || 
 								message.contains( "aborted" ) || 
+								message.contains( "disconnected" ) || 
 								message.contains( "timeout" ) || 
 								message.contains( "timed" ) ||
 								message.contains( "refused" ) ||
