@@ -423,7 +423,9 @@ StartServer
   public void stopIt() {
     bContinue = false;
     try {
-      socket.close();
+      if ( socket != null ){
+    	  socket.close();
+      }
     }
     catch (Throwable e) {/*ignore */}
   }
