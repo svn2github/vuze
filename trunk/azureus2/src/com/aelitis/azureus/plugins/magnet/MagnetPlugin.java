@@ -24,19 +24,25 @@ package com.aelitis.azureus.plugins.magnet;
 
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.net.NoRouteToHostException;
+import java.net.Proxy;
 import java.net.URL;
+import java.net.URLDecoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.net.InetSocketAddress;
+
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.torrent.TOTorrentFactory;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AEThread2;
@@ -83,6 +89,8 @@ import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderAdap
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderFactory;
 
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.FeatureAvailability;
 import com.aelitis.net.magneturi.*;
@@ -1629,6 +1637,57 @@ MagnetPlugin
 		}
 	}
 	
+	private String
+	getNetwork(
+		String	args )
+	{
+		if ( args != null ){
+			
+			String[]	bits = args.split( "&" );
+			
+			Set<String>	networks = new HashSet<String>();
+			
+			for ( String bit: bits ){
+				
+				if ( bit.startsWith( "maggot_sha1" )){
+					
+					return( AENetworkClassifier.AT_I2P );
+				}
+				
+				String[] x = bit.split( "=" );
+				
+				if ( x.length == 2 ){
+					
+					String lhs = x[0].toLowerCase( Locale.US );
+					
+					if ( lhs.equals( "tr" )){
+						
+						String rhs = UrlUtils.decode( x[1] );
+						
+						try{
+							String tracker_host = new URL( rhs ).getHost();
+							
+							networks.add( AENetworkClassifier.categoriseAddress( tracker_host ));
+							
+						}catch( Throwable e ){
+							
+						}
+					}
+				}
+			}
+			
+			if ( networks.size() > 0 ){
+				
+				if ( networks.size() == 1 || !networks.contains( AENetworkClassifier.AT_PUBLIC )){
+					
+					return( networks.iterator().next());
+					
+				}
+			}
+		}
+		return( AENetworkClassifier.AT_PUBLIC );
+	}
+	
 	protected void
 	doSecondaryLookup(
 		final MagnetPluginProgressListener		listener,
@@ -1639,46 +1698,87 @@ MagnetPlugin
 		listener.reportActivity( getMessageText( "report.secondarylookup", null ));
 		
 		try{
-			ResourceDownloaderFactory rdf = plugin_interface.getUtilities().getResourceDownloaderFactory();
-		
-			URL sl_url = new URL( SECONDARY_LOOKUP + "magnetLookup?hash=" + Base32.encode( hash ) + (args.length()==0?"":("&args=" + UrlUtils.encode( args ))));
-			
-			ResourceDownloader rd = rdf.create( sl_url );
-			
-			rd.addListener(
-				new ResourceDownloaderAdapter()
-				{
-					public boolean
-					completed(
-						ResourceDownloader	downloader,
-						InputStream			data )
-					{
-						listener.reportActivity( getMessageText( "report.secondarylookup.ok", null ));
+			URL original_sl_url = new URL( SECONDARY_LOOKUP + "magnetLookup?hash=" + Base32.encode( hash ) + (args.length()==0?"":("&args=" + UrlUtils.encode( args ))));
 
-						synchronized( result ){
+			URL 	sl_url	= original_sl_url;
+			Proxy	proxy	= null;
+			
+			String	network = getNetwork( args );
+			
+			PluginProxy	plugin_proxy = null;
 						
-							result[0] = data;
-						}
-						
-						return( true );
-					}
+			if ( network != AENetworkClassifier.AT_PUBLIC ){
+			
+				plugin_proxy = AEProxyFactory.getPluginProxy( "secondary magnet lookup", sl_url );
+				
+				if ( plugin_proxy == null ){
 					
-					public void
-					failed(
-						ResourceDownloader			downloader,
-						ResourceDownloaderException e )
+					throw( new NoRouteToHostException( "plugin proxy unavailable" ));
+					
+				}else{
+					
+					proxy 	= plugin_proxy.getProxy();
+					sl_url	= plugin_proxy.getURL();							
+				}
+			}
+			
+			try{
+				ResourceDownloaderFactory rdf = plugin_interface.getUtilities().getResourceDownloaderFactory();
+						
+				ResourceDownloader rd;
+				
+				if ( proxy == null ){
+					
+					rd = rdf.create( sl_url );
+					
+				}else{
+					
+					rd = rdf.create( sl_url, proxy );
+					
+					rd.setProperty( "URL_HOST", original_sl_url.getHost());
+				}
+				
+				rd.addListener(
+					new ResourceDownloaderAdapter()
 					{
-						synchronized( result ){
+						public boolean
+						completed(
+							ResourceDownloader	downloader,
+							InputStream			data )
+						{
+							listener.reportActivity( getMessageText( "report.secondarylookup.ok", null ));
+	
+							synchronized( result ){
 							
-							result[0] = e;
+								result[0] = data;
+							}
+							
+							return( true );
 						}
 						
-						listener.reportActivity( getMessageText( "report.secondarylookup.fail" ));
-					}
-				});
-			
-			rd.asyncDownload();
-			
+						public void
+						failed(
+							ResourceDownloader			downloader,
+							ResourceDownloaderException e )
+						{
+							synchronized( result ){
+								
+								result[0] = e;
+							}
+							
+							listener.reportActivity( getMessageText( "report.secondarylookup.fail" ));
+						}
+					});
+				
+				rd.asyncDownload();
+				
+			}finally{
+				
+				if ( plugin_proxy != null ){
+					
+					plugin_proxy.setOK( true );		// actually we don't know as dl is async, but whatever
+				}
+			}
 		}catch( Throwable e ){
 			
 			listener.reportActivity( getMessageText( "report.secondarylookup.fail", Debug.getNestedExceptionMessage( e ) ));
