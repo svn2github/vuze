@@ -272,6 +272,9 @@ MagnetPluginMDDownloader
 			
 			if ( trackers.size() > 0 ){
 				
+					// stick the decentralised one we created above in position 0 - this will be
+					// removed later if the torrent is downloaded
+				
 				trackers.add( 0, announce_url.toExternalForm());
 				
 				TOTorrentAnnounceURLGroup ag = meta_torrent.getAnnounceURLGroup();
@@ -605,6 +608,30 @@ MagnetPluginMDDownloader
 				if ( !Arrays.equals( hash, final_hash )){
 					
 					throw( new Exception( "Metadata torrent hash mismatch: expected=" + ByteFormatter.encodeString( hash ) + ", actual=" + ByteFormatter.encodeString( final_hash )));
+				}
+				
+				if ( url_sets != null ){
+					
+						// first entry should be the decentralised one that we want to remove now
+
+					List<TOTorrentAnnounceURLSet> updated = new ArrayList<TOTorrentAnnounceURLSet>();
+					
+					for ( TOTorrentAnnounceURLSet set: url_sets ){
+						
+						if ( !TorrentUtils.isDecentralised( set.getAnnounceURLs()[0] )){
+							
+							updated.add( set );
+						}
+					}
+					
+					if ( updated.size() == 0 ){
+						
+						url_sets = null;
+						
+					}else{
+						
+						url_sets = updated.toArray( new TOTorrentAnnounceURLSet[updated.size()]);
+					}
 				}
 				
 				if ( url_sets != null ){

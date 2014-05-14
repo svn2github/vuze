@@ -1697,6 +1697,8 @@ MagnetPlugin
 	{
 		listener.reportActivity( getMessageText( "report.secondarylookup", null ));
 		
+		PluginProxy	plugin_proxy = null;
+
 		try{
 			URL original_sl_url = new URL( SECONDARY_LOOKUP + "magnetLookup?hash=" + Base32.encode( hash ) + (args.length()==0?"":("&args=" + UrlUtils.encode( args ))));
 
@@ -1704,9 +1706,7 @@ MagnetPlugin
 			Proxy	proxy	= null;
 			
 			String	network = getNetwork( args );
-			
-			PluginProxy	plugin_proxy = null;
-						
+									
 			if ( network != AENetworkClassifier.AT_PUBLIC ){
 			
 				plugin_proxy = AEProxyFactory.getPluginProxy( "secondary magnet lookup", sl_url );
@@ -1722,30 +1722,32 @@ MagnetPlugin
 				}
 			}
 			
-			try{
-				ResourceDownloaderFactory rdf = plugin_interface.getUtilities().getResourceDownloaderFactory();
-						
-				ResourceDownloader rd;
+			ResourceDownloaderFactory rdf = plugin_interface.getUtilities().getResourceDownloaderFactory();
+					
+			ResourceDownloader rd;
+			
+			if ( proxy == null ){
 				
-				if ( proxy == null ){
-					
-					rd = rdf.create( sl_url );
-					
-				}else{
-					
-					rd = rdf.create( sl_url, proxy );
-					
-					rd.setProperty( "URL_HOST", original_sl_url.getHost());
-				}
+				rd = rdf.create( sl_url );
 				
-				rd.addListener(
-					new ResourceDownloaderAdapter()
+			}else{
+				
+				rd = rdf.create( sl_url, proxy );
+				
+				rd.setProperty( "URL_HOST", original_sl_url.getHost());
+			}
+			
+			final PluginProxy f_pp = plugin_proxy;
+			
+			rd.addListener(
+				new ResourceDownloaderAdapter()
+				{
+					public boolean
+					completed(
+						ResourceDownloader	downloader,
+						InputStream			data )
 					{
-						public boolean
-						completed(
-							ResourceDownloader	downloader,
-							InputStream			data )
-						{
+						try{
 							listener.reportActivity( getMessageText( "report.secondarylookup.ok", null ));
 	
 							synchronized( result ){
@@ -1754,32 +1756,50 @@ MagnetPlugin
 							}
 							
 							return( true );
+							
+						}finally{
+							
+							complete();
 						}
-						
-						public void
-						failed(
-							ResourceDownloader			downloader,
-							ResourceDownloaderException e )
-						{
+					}
+					
+					public void
+					failed(
+						ResourceDownloader			downloader,
+						ResourceDownloaderException e )
+					{
+						try{
 							synchronized( result ){
 								
 								result[0] = e;
 							}
 							
 							listener.reportActivity( getMessageText( "report.secondarylookup.fail" ));
+							
+						}finally{
+							
+							complete();
 						}
-					});
-				
-				rd.asyncDownload();
-				
-			}finally{
-				
-				if ( plugin_proxy != null ){
+					}
 					
-					plugin_proxy.setOK( true );		// actually we don't know as dl is async, but whatever
-				}
-			}
+					private void
+					complete()
+					{
+						if ( f_pp != null ){
+							
+							f_pp.setOK( true );		// outcome doesn't really indicate whether the result was wholesome
+						}
+					}
+				});
+			
+			rd.asyncDownload();
+				
 		}catch( Throwable e ){
+			
+			if ( plugin_proxy != null ){
+				
+				plugin_proxy.setOK( true );		// tidy up, no indication of proxy badness here so say its ok
+			}
 			
 			listener.reportActivity( getMessageText( "report.secondarylookup.fail", Debug.getNestedExceptionMessage( e ) ));
 		}
