@@ -23,10 +23,11 @@
 package com.aelitis.azureus.core.networkmanager.impl.udp;
 
 import java.util.*;
-
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
+import java.nio.channels.UnresolvedAddressException;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
@@ -138,6 +139,13 @@ UDPConnectionManager
 		UDPTransportHelper	helper = null;
 
 		try{
+			if ( address.isUnresolved()){
+				
+				listener.connectFailure( new UnknownHostException( address.getHostName()));
+				
+				return;
+			}
+			
 			int time = listener.connectAttemptStarted( -1 );
 			
 			if ( time != -1 ){
