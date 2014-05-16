@@ -513,7 +513,7 @@ DownloadManagerImpl
 	
 	private long						scrape_random_seed	= SystemTime.getCurrentTime();
 
-	private Map		data;
+	private volatile Map<Object,Object>		data;
   
 	private boolean data_already_allocated = false;
   
@@ -3491,31 +3491,82 @@ DownloadManagerImpl
 	    
 	public void setData (String key, Object value){ setUserData( key, value ); }
 	
-  /** To retreive arbitrary objects against a download. */
-  public Object getUserData (Object key) {
-  	if (data == null) return null;
-    return data.get(key);
-  }
+		/** To retreive arbitrary objects against a download. */
+  
+	public Object 
+	getUserData(
+		Object key ) 
+	{
+		Map<Object,Object> data_ref = data;
+		
+		if ( data_ref == null ){
+			
+			return null;
+		}
+		
+		return( data_ref.get(key));
+	}
 
-  /** To store arbitrary objects against a download. */
-  public void setUserData (Object key, Object value) {
-  	try{
-  		peer_listeners_mon.enter();
-  	
-	  	if (data == null) {
-	  	  data = new LightHashMap();
-	  	}
-	    if (value == null) {
-	      if (data.containsKey(key))
-	        data.remove(key);
-	    } else {
-	      data.put(key, value);
-	    }
-  	}finally{
-  		
-  		peer_listeners_mon.exit();
-  	}
-  }
+		/** To store arbitrary objects against a download. */
+	
+	public void 
+	setUserData(
+		Object 		key, 
+		Object 		value) 
+	{
+		try{
+				// copy-on-write
+			
+			peer_listeners_mon.enter();
+
+			Map<Object,Object> data_ref = data;
+			
+			if ( data_ref == null && value == null ){
+				
+				return;
+			}
+
+			if ( value == null ){
+
+					// removal, data_ref not null here
+				
+				if ( data_ref.containsKey(key)){
+
+					if ( data_ref.size() == 1 ){
+						
+						data_ref = null;
+						
+					}else{
+						
+						data_ref = new LightHashMap<Object,Object>( data_ref );
+						
+						data_ref.remove( key );
+					}
+				}else{
+					
+					return;
+				}
+			}else{
+
+				if ( data_ref == null ){
+					
+					data_ref = new LightHashMap<Object,Object>();
+					
+				}else{
+				
+					data_ref = new LightHashMap<Object,Object>( data_ref );
+				}
+				
+				data_ref.put( key, value );
+			}
+			
+			data = data_ref;
+			
+		}finally{
+
+			peer_listeners_mon.exit();
+		}
+	}
   
   
   public boolean 
