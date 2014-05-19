@@ -95,12 +95,15 @@ public class ColumnUnopened
 				Object[] dataSources = (Object[])target;
 				
 				for ( Object _ds: dataSources ){
-										
-					DownloadManager dm = (DownloadManager)_ds;
-					
-					boolean x = PlatformTorrentUtils.getHasBeenOpened( dm );
-					
-					PlatformTorrentUtils.setHasBeenOpened(dm, !x );
+						
+					if ( _ds instanceof DownloadManager ){
+						
+						DownloadManager dm = (DownloadManager)_ds;
+						
+						boolean x = PlatformTorrentUtils.getHasBeenOpened( dm );
+						
+						PlatformTorrentUtils.setHasBeenOpened(dm, !x );
+					}
 				}
 			}
 		});
