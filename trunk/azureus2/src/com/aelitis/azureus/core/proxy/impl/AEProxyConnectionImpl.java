@@ -216,18 +216,19 @@ AEProxyConnectionImpl
 											
 					message = message.toLowerCase( Locale.US );
 					
-					if ( 	message != null &&
-							( 	message.contains( "closed" ) || 
-								message.contains( "aborted" ) || 
-								message.contains( "disconnected" ) || 
-								message.contains( "timeout" ) || 
-								message.contains( "timed" ) ||
-								message.contains( "refused" ) ||
-								message.contains( "reset" ) ||
-								message.contains( "no route" ) ||
-								message.contains( "family" ) ||		// address family not supported
-								message.contains( "key is invalid" ) ||
-								message.contains( "dns lookup" ))){
+					if ( 	message.contains( "closed" ) || 
+							message.contains( "aborted" ) || 
+							message.contains( "disconnected" ) || 
+							message.contains( "timeout" ) || 
+							message.contains( "timed" ) ||
+							message.contains( "refused" ) ||
+							message.contains( "reset" ) ||
+							message.contains( "no route" ) ||
+							message.contains( "family" ) ||		// address family not supported
+							message.contains( "key is invalid" ) ||
+							message.contains( "dns lookup" )){
+						
+							// boring
 						
 						Logger.log(new LogEvent(LOGID, "AEProxyProcessor: " + getName()	+ " failed: " + message ));
 						
