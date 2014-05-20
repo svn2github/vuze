@@ -212,12 +212,9 @@ AEProxyConnectionImpl
 				
 				}else{
 				
-					String message = reason.getMessage();
-					
-					if ( message != null ){
-						
-						message = message.toLowerCase();
-					}
+					String message = Debug.getNestedExceptionMessage( reason );
+											
+					message = message.toLowerCase( Locale.US );
 					
 					if ( 	message != null &&
 							( 	message.contains( "closed" ) || 
