@@ -392,6 +392,9 @@ DHTDBMapping
 		
 		Map<HashWrapper,DHTDBValueImpl>[]	maps = new Map[]{ direct_originator_map_may_be_null, indirect_originator_value_map };
 		
+			// currently we don't filter return values by seeding/downloading flag as scraping is implemented by normal
+			// get operations and if we filtered out seeds for seeds then the caller would see zero seeds. fix oneday!
+		
 		for (int i=0;i<maps.length;i++){
 			
 			Map<HashWrapper,DHTDBValueImpl>			map	= maps[i];
