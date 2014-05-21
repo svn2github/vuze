@@ -91,6 +91,7 @@ import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
+import com.aelitis.azureus.core.proxy.impl.AEPluginProxyHandler;
 import com.aelitis.azureus.core.security.CryptoManagerFactory;
 import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagManager;
@@ -4712,7 +4713,10 @@ RelatedContentManager
 			
 			if ( !network.equals( "Public" )){
 				
-				all_tags.add( "_" + network.toLowerCase( Locale.US ) + "_" );
+				if ( AEPluginProxyHandler.hasPluginProxyForNetwork( network )){
+				
+					all_tags.add( "_" + network.toLowerCase( Locale.US ) + "_" );
+				}
 			}
 		}
 		

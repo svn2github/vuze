@@ -27,6 +27,7 @@ import java.net.Proxy;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -50,7 +51,8 @@ AEPluginProxyHandler
 {
 	private static CopyOnWriteList<PluginInterface>		plugins = new CopyOnWriteList<PluginInterface>();
 	
-	private static final AESemaphore plugin_init_complete = new AESemaphore( "init:waiter" );
+	private static final int			plugin_init_max_wait	= 30*1000;
+	private static final AESemaphore 	plugin_init_complete 	= new AESemaphore( "init:waiter" );
 	
 	static{
 		try{
@@ -131,9 +133,33 @@ AEPluginProxyHandler
 	private static final Map<Proxy,WeakReference<PluginProxyImpl>>	proxy_map = new IdentityHashMap<Proxy,WeakReference<PluginProxyImpl>>();
 	
 	public static boolean
+	hasPluginProxyForNetwork(
+		String		network )
+	{
+		plugin_init_complete.reserve( plugin_init_max_wait );
+
+		for ( PluginInterface pi: plugins ){
+
+			String pid = pi.getPluginID();
+			
+			if ( pid.equals( "aznettor" ) && network == AENetworkClassifier.AT_TOR ){
+				
+				return( true );
+			}
+			
+			if ( pid.equals( "azneti2phelper" ) && network == AENetworkClassifier.AT_I2P ){
+				
+				return( true );
+			}
+		}
+		
+		return( false );
+	}
+	
+	public static boolean
 	hasPluginProxy()
 	{
-		plugin_init_complete.reserve();
+		plugin_init_complete.reserve( plugin_init_max_wait );
 	
 		for ( PluginInterface pi: plugins ){
 		
