@@ -4281,8 +4281,8 @@ DownloadManagerImpl
 			 					private TRTrackerAnnouncer		ta;
 			  					private long					ta_fixup;
 
-			  					private long		last_scrape_fixup_time;
-			  					private int[]		last_scrape;
+			  					private long					last_scrape_fixup_time;
+			  					private Object[]				last_scrape;
 			  					
 								private TrackerPeerSource
 								fixup()
@@ -4319,7 +4319,7 @@ DownloadManagerImpl
 									return( _delegate );
 								}
 								
-								protected int[]
+								protected Object[]
 								getScrape()
 								{
 									long now = SystemTime.getMonotonousTime();
@@ -4333,6 +4333,8 @@ DownloadManagerImpl
 										int max_comp	= -1;
 										int max_time 	= 0;
 										int	min_scrape	= Integer.MAX_VALUE;
+										
+										String status_str = null;
 										
 										for ( URL u: urls ){
 										
@@ -4363,6 +4365,8 @@ DownloadManagerImpl
 													
 													if ( resp.getStatus() != TRTrackerScraperResponse.ST_INITIALIZING ){
 													
+														status_str = resp.getStatusString();
+														
 														int	time	= resp.getScrapeTime();
 
 														if ( time > max_time ){
@@ -4386,7 +4390,7 @@ DownloadManagerImpl
 											}
 										}
 										
-										last_scrape = new int[]{ max_seeds, max_peers, max_time, min_scrape, max_comp }; 
+										last_scrape = new Object[]{ max_seeds, max_peers, max_time, min_scrape, max_comp, status_str }; 
 										
 										last_scrape_fixup_time = now;
 									}
@@ -4433,7 +4437,7 @@ DownloadManagerImpl
 									
 									if ( delegate == null ){
 									
-										return( null );
+										return( (String)getScrape()[5] );
 									}
 									
 									return( delegate.getStatusString());
@@ -4446,14 +4450,14 @@ DownloadManagerImpl
 									
 									if ( delegate == null ){
 									
-										return( getScrape()[0] );
+										return((Integer)getScrape()[0] );
 									}
 									
 									int seeds = delegate.getSeedCount();
 									
 									if ( seeds < 0 ){
 										
-										seeds = getScrape()[0];
+										seeds = (Integer)getScrape()[0];
 									}
 									
 									return( seeds );
@@ -4466,14 +4470,14 @@ DownloadManagerImpl
 									
 									if ( delegate == null ){
 									
-										return( getScrape()[1] );
+										return( (Integer)getScrape()[1] );
 									}
 									
 									int leechers = delegate.getLeecherCount();
 									
 									if ( leechers < 0 ){
 										
-										leechers = getScrape()[1];
+										leechers = (Integer)getScrape()[1];
 									}
 									
 									return( leechers );						
@@ -4486,14 +4490,14 @@ DownloadManagerImpl
 									
 									if ( delegate == null ){
 									
-										return( getScrape()[4] );
+										return( (Integer)getScrape()[4] );
 									}
 									
 									int comp = delegate.getCompletedCount();
 									
 									if ( comp < 0 ){
 										
-										comp = getScrape()[4];
+										comp = (Integer)getScrape()[4];
 									}
 									
 									return( comp );						
@@ -4519,10 +4523,10 @@ DownloadManagerImpl
 									
 									if ( delegate == null ){
 									
-										int[] si = getScrape();
+										Object[] si = getScrape();
 										
-										int	last 	= si[2];
-										int next	= si[3];
+										int	last 	= (Integer)si[2];
+										int next	= (Integer)si[3];
 										
 										if ( last > 0 && next < Integer.MAX_VALUE && last < next ){
 											
@@ -4568,7 +4572,7 @@ DownloadManagerImpl
 									
 									if ( delegate == null ){
 									
-										return( getScrape()[2] );
+										return( (Integer)getScrape()[2] );
 									}
 									
 									return( delegate.getLastUpdate());
