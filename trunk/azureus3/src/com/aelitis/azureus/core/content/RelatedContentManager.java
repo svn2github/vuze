@@ -4713,7 +4713,7 @@ RelatedContentManager
 			
 			if ( !network.equals( "Public" )){
 				
-				if ( AEPluginProxyHandler.hasPluginProxyForNetwork( network )){
+				if ( AEPluginProxyHandler.hasPluginProxyForNetwork( network, true )){
 				
 					all_tags.add( "_" + network.toLowerCase( Locale.US ) + "_" );
 				}

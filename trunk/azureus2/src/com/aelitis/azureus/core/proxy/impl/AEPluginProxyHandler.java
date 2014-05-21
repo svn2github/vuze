@@ -134,7 +134,8 @@ AEPluginProxyHandler
 	
 	public static boolean
 	hasPluginProxyForNetwork(
-		String		network )
+		String		network,
+		boolean		supports_data )
 	{
 		plugin_init_complete.reserve( plugin_init_max_wait );
 
@@ -144,7 +145,10 @@ AEPluginProxyHandler
 			
 			if ( pid.equals( "aznettor" ) && network == AENetworkClassifier.AT_TOR ){
 				
-				return( true );
+				if ( !supports_data ){
+				
+					return( true );
+				}
 			}
 			
 			if ( pid.equals( "azneti2phelper" ) && network == AENetworkClassifier.AT_I2P ){
