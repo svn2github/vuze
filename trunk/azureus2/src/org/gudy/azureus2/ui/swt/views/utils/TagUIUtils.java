@@ -36,10 +36,8 @@ import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
-import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
-import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.TrackersUtil;
+import org.gudy.azureus2.core3.util.*;
+
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
@@ -912,11 +910,22 @@ public class TagUIUtils
 						public void handleEvent(Event event) {
 							fl.setTagInitialSaveFolder( null );
 						}});
+	
+						// apply 
+					
+					final File existing = fl.getTagInitialSaveFolder();
+
+					MenuItem apply_item = new MenuItem( moc_menu, SWT.CASCADE);
+					
+					Messages.setLanguageText( apply_item, "apply.to.current" );
+	
+					apply_item.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							applyLocationToCurrent( tag, existing );
+						}});
 					
 					new MenuItem( moc_menu, SWT.SEPARATOR);
-	
-					File existing = fl.getTagInitialSaveFolder();
-					
+						
 					if ( existing != null ){
 						
 						MenuItem current_item = new MenuItem( moc_menu, SWT.RADIO );
@@ -928,6 +937,7 @@ public class TagUIUtils
 						
 					}else{
 						
+						apply_item.setEnabled( false );
 						clear_item.setEnabled( false );
 					}
 					
@@ -973,10 +983,22 @@ public class TagUIUtils
 							fl.setTagMoveOnCompleteFolder( null );
 						}});
 					
-					new MenuItem( moc_menu, SWT.SEPARATOR);
-	
-					File existing = fl.getTagMoveOnCompleteFolder();
+
+						// apply 
 					
+					final File existing = fl.getTagMoveOnCompleteFolder();
+	
+					MenuItem apply_item = new MenuItem( moc_menu, SWT.CASCADE);
+					
+					Messages.setLanguageText( apply_item, "apply.to.current" );
+	
+					apply_item.addListener(SWT.Selection, new Listener() {
+						public void handleEvent(Event event) {
+							applyLocationToCurrent( tag, existing );
+						}});
+				
+					new MenuItem( moc_menu, SWT.SEPARATOR);
+						
 					if ( existing != null ){
 						
 						MenuItem current_item = new MenuItem( moc_menu, SWT.RADIO );
@@ -988,6 +1010,7 @@ public class TagUIUtils
 						
 					}else{
 						
+						apply_item.setEnabled( false );
 						clear_item.setEnabled( false );
 					}
 					
@@ -2113,6 +2136,35 @@ public class TagUIUtils
 				}
 			});
 		}
+	}
+	
+	private static final AsyncDispatcher move_dispatcher = new AsyncDispatcher( "tag:applytocurrent" );
+	
+	private static void
+	applyLocationToCurrent(
+		final Tag			tag,
+		final File			location )
+	{
+		move_dispatcher.dispatch(
+			new AERunnable()
+			{
+				public void
+				runSupport()
+				{
+					Set<DownloadManager>	downloads = ((TagDownload)tag).getTaggedDownloads();
+					
+					for ( DownloadManager download: downloads ){
+						
+						try{
+							download.moveDataFilesLive( location );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			});
 	}
 	
 	public static void 
