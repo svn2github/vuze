@@ -4678,33 +4678,41 @@ RelatedContentManager
 	private String[]
 	getTags(
 		Download	download )
-	{
-		if ( !tag_manager.isEnabled()){
-			
-			return( null );
-		}
-		
+	{		
 		Set<String>	all_tags = new HashSet<String>();
-		
-		String	cat_name = ta_category==null?null:download.getAttribute( ta_category );
-		
-		if ( cat_name != null ){
+	
+		if ( tag_manager.isEnabled()){
+
+			String	cat_name = ta_category==null?null:download.getAttribute( ta_category );
 			
-			Tag cat_tag = tag_manager.getTagType( TagType.TT_DOWNLOAD_CATEGORY ).getTag( cat_name, true );
+			if ( cat_name != null ){
+				
+				Tag cat_tag = tag_manager.getTagType( TagType.TT_DOWNLOAD_CATEGORY ).getTag( cat_name, true );
+				
+				if ( cat_tag != null && cat_tag.isPublic()){
+				
+					all_tags.add( cat_name.toLowerCase( Locale.US ));
+				}
+			}
 			
-			if ( cat_tag != null && cat_tag.isPublic()){
+			List<Tag> tags = tag_manager.getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTagsForTaggable( PluginCoreUtils.unwrap( download ));
 			
-				all_tags.add( cat_name.toLowerCase( Locale.US ));
+			for ( Tag t: tags ){
+				
+				if ( t.isPublic()){
+				
+					all_tags.add( t.getTagName( true ).toLowerCase( Locale.US ));
+				}
 			}
 		}
 		
-		List<Tag> tags = tag_manager.getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTagsForTaggable( PluginCoreUtils.unwrap( download ));
-		
-		for ( Tag t: tags ){
+		String[]	networks = download.getListAttribute( ta_networks );
+
+		for ( String network: networks ){
 			
-			if ( t.isPublic()){
-			
-				all_tags.add( t.getTagName( true ).toLowerCase( Locale.US ));
+			if ( !network.equals( "Public" )){
+				
+				all_tags.add( "_" + network.toLowerCase( Locale.US ) + "_" );
 			}
 		}
 		
