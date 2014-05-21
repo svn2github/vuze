@@ -182,7 +182,8 @@ AEPluginProxyHandler
 	}
 	
 		/**
-		 * This method should NOT BE CALLED as it is in the .impl package - unfortunately the featman plugin calls it
+		 * This method should NOT BE CALLED as it is in the .impl package - unfortunately the featman plugin calls it - will be removed 
+		 * when aefeatman 1.3.2 is released
 		 * @param reason
 		 * @param target
 		 * @deprecated
