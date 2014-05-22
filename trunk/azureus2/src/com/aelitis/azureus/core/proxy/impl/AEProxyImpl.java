@@ -196,8 +196,10 @@ AEProxyImpl
 				}else{
 						
 					try{
-						socket_channel.configureBlocking(false);
+						socket_channel.configureBlocking( false );
 	
+						socket_channel.socket().setTcpNoDelay( true );
+						
 					}catch( Throwable e ){
 						
 						socket_channel.close();
