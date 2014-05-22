@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.proxy;
 import java.net.Proxy;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
 import org.gudy.azureus2.plugins.PluginInterface;
 
@@ -126,6 +127,19 @@ AEProxyFactory
 	hasPluginProxy()
 	{
 		return( AEPluginProxyHandler.hasPluginProxy());
+	}
+	
+	public static final String	SP_HOST		= "host";
+	public static final String	SP_PORT		= "port";
+	
+	public static Map<String,Object>
+	getPluginServerProxy(
+		String					reason,
+		String					network,
+		String					server_uid,
+		Map<String,Object>		options )
+	{
+		return( AEPluginProxyHandler.getPluginServerProxy( reason, network, server_uid, options ));
 	}
 	
 	public interface

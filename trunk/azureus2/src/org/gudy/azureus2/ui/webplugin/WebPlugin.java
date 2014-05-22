@@ -49,6 +49,7 @@ import com.aelitis.azureus.core.pairing.PairingConnectionData;
 import com.aelitis.azureus.core.pairing.PairingManager;
 import com.aelitis.azureus.core.pairing.PairingManagerFactory;
 import com.aelitis.azureus.core.pairing.PairingManagerListener;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.plugins.upnp.UPnPMapping;
 import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 import com.aelitis.azureus.util.JSONUtils;
@@ -131,6 +132,8 @@ WebPlugin
 	protected static final String[]		welcome_pages = {"index.html", "index.htm", "index.php", "index.tmpl" };
 	protected static File[]				welcome_files;
 	
+	private static final AsyncDispatcher	network_dispatcher = new AsyncDispatcher( "webplugin:netdispatch", 5000 );
+	
 	protected PluginInterface			plugin_interface;	// unfortunately this is accessed by webui - fix sometime
 	
 	private LoggerChannel			log;
@@ -147,6 +150,8 @@ WebPlugin
 	private StringParameter			param_bind;
 	
 	private StringParameter			param_access;
+	
+	private InfoParameter			param_i2p_dest;
 	
 	private BooleanParameter		p_upnp_enable;
 	
@@ -487,6 +492,10 @@ WebPlugin
 		param_bind.addListener( update_server_listener );
 		param_protocol.addListener( update_server_listener );		
 		
+		param_i2p_dest = config_model.addInfoParameter2( "webui.i2p_dest", "" );
+		
+		param_i2p_dest.setVisible( false );
+		
 		if ( param_enable != null ){
 			COConfigurationManager.registerExportedParameter( plugin_id + ".enable", param_enable.getConfigKeyName());
 		}
@@ -614,7 +623,7 @@ WebPlugin
 		config_model.createGroup(
 			"ConfigView.section.server",
 			new Parameter[]{
-				param_port, param_bind, param_protocol, p_upnp_enable,
+				param_port, param_bind, param_protocol, param_i2p_dest, p_upnp_enable,
 			});
 		
 		param_home 		= config_model.addStringParameter2(	CONFIG_HOME_PAGE, "webui.homepage", CONFIG_HOME_PAGE_DEFAULT );
@@ -1236,6 +1245,32 @@ WebPlugin
 						Constants.APP_NAME + " - " + plugin_interface.getPluginName(), 
 						port, protocol, bind_ip );
 		
+			network_dispatcher.dispatch(
+				new AERunnable() 
+				{	
+					public void
+					runSupport()
+					{
+						Map<String,Object>	options = new HashMap<String, Object>();
+						
+						options.put( AEProxyFactory.SP_PORT, port );
+						
+						Map<String,Object> reply = 
+								AEProxyFactory.getPluginServerProxy(
+									plugin_interface.getPluginName(),
+									AENetworkClassifier.AT_I2P,
+									plugin_interface.getPluginID(),
+									options );
+						
+						if ( reply != null ){
+						
+							param_i2p_dest.setVisible( true );
+						
+							param_i2p_dest.setValue( (String)reply.get( "host" ));
+						}
+					}
+				});
+			
 			Boolean	pr_enable_keep_alive = (Boolean)properties.get( PR_ENABLE_KEEP_ALIVE );
 
 			if ( pr_enable_keep_alive != null && pr_enable_keep_alive ){

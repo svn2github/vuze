@@ -139,6 +139,14 @@ AEPluginProxyHandler
 	{
 		plugin_init_complete.reserve( plugin_init_max_wait );
 
+		return( getPluginProxyForNetwork( network, supports_data ) != null );
+	}
+	
+	private static PluginInterface
+	getPluginProxyForNetwork(
+		String		network,
+		boolean		supports_data )
+	{
 		for ( PluginInterface pi: plugins ){
 
 			String pid = pi.getPluginID();
@@ -147,17 +155,17 @@ AEPluginProxyHandler
 				
 				if ( !supports_data ){
 				
-					return( true );
+					return( pi );
 				}
 			}
 			
 			if ( pid.equals( "azneti2phelper" ) && network == AENetworkClassifier.AT_I2P ){
 				
-				return( true );
+				return( pi );
 			}
 		}
 		
-		return( false );
+		return( null );
 	}
 	
 	public static boolean
@@ -374,7 +382,7 @@ AEPluginProxyHandler
 	
 	public static List<PluginInterface>
 	getPluginHTTPProxyProviders(
-		boolean	can_wait )
+		boolean		can_wait )
 	{
 		if ( can_wait ){
 			
@@ -389,6 +397,39 @@ AEPluginProxyHandler
 		return( pis );
 	}
 	
+	public static Map<String,Object>
+	getPluginServerProxy(
+		String					reason,
+		String					network,
+		String					server_uid,
+		Map<String,Object>		options )
+	{
+		plugin_init_complete.reserve( plugin_init_max_wait );
+		
+		PluginInterface pi = getPluginProxyForNetwork( network, false );
+		
+		if ( pi == null ){
+			
+			return( null );
+		}
+		
+		options = new HashMap<String,Object>( options );
+		
+		options.put( "id", server_uid );
+		
+		try{
+			IPCInterface ipc = pi.getIPC();
+			
+			Map<String,Object> reply = (Map<String,Object>)ipc.invoke( "getProxyServer", new Object[]{ reason, options });
+			
+			return( reply );
+			
+		}catch( Throwable e ){
+			
+		}
+		
+		return( null );
+	}
 
 	private static class
 	PluginProxyImpl
