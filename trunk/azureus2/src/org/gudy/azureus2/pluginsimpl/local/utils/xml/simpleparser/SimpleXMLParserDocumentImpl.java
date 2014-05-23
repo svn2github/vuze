@@ -24,12 +24,16 @@ package org.gudy.azureus2.pluginsimpl.local.utils.xml.simpleparser;
 import javax.xml.parsers.*;
 
 import org.xml.sax.*;
+import org.apache.commons.lang.Entities;
 import org.gudy.azureus2.core3.util.Constants;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocument;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentAttribute;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentException;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
 import org.w3c.dom.*;
+
+import com.aelitis.azureus.core.util.UncloseableInputStream;
 
 import java.io.*;
 import java.net.InetAddress;
@@ -125,8 +129,62 @@ SimpleXMLParserDocumentImpl
 		return( dbf_singleton );
 	}
 	
-	protected void
+	private void
 	create(
+		InputStream		_input_stream )
+		
+		throws SimpleXMLParserDocumentException
+	{
+			// make sure we can mark the stream to permit later recovery if needed
+		
+		if ( !_input_stream.markSupported()){
+			
+			_input_stream = new BufferedInputStream( _input_stream );
+		}
+		
+		_input_stream.mark( 100*1024 );
+		
+			// prevent the parser from screwing with our stream by closing it
+		
+		UncloseableInputStream	uc_is = new UncloseableInputStream( _input_stream );
+		
+		try{
+			createSupport( uc_is );
+			
+		}catch( SimpleXMLParserDocumentException e ){
+			
+			String msg = Debug.getNestedExceptionMessage( e );
+			
+			if (	( msg.contains( "entity" ) && msg.contains( "was referenced" )) ||
+					msg.contains( "entity reference" )){
+				
+				try{
+						// nasty hack to try and handle HTML entities that some annoying feeds include :(
+					
+					_input_stream.reset();
+					
+					createSupport( new EntityFudger( _input_stream ));
+					
+					return;
+					
+				}catch( Throwable f ){
+				}
+			}
+			
+			throw( e );
+			
+		}finally{
+			
+			try{
+				_input_stream.close();
+				
+			}catch( Throwable e ){
+			}
+		}
+	}
+	
+	private void
+	createSupport(
 		InputStream		input_stream )
 		
 		throws SimpleXMLParserDocumentException
@@ -384,5 +442,253 @@ SimpleXMLParserDocumentImpl
 			
             throw new SAXException(message,spe);
         }
+    }
+    
+    private static class
+    EntityFudger
+    	extends InputStream
+    {
+    	private InputStream		is;
+    	    
+    	char[]	buffer		= new char[16];
+    	int		buffer_pos	= 0;
+    	
+    	char[] 	insertion		= new char[16];
+    	int		insertion_pos	= 0;
+    	int		insertion_len	= 0;
+    	
+    	public
+    	EntityFudger(
+    		InputStream		_is )
+    	{
+    		is		= _is;
+    	}
+    	
+    	@Override
+    	public int 
+    	read() 
+    		throws IOException 
+    	{
+    		if ( insertion_len > 0 ){
+    			
+    			int	result = insertion[ insertion_pos++ ]&0xff;
+    		
+    			if ( insertion_pos == insertion_len ){
+    				
+     				insertion_pos	= 0;
+     				insertion_len	= 0;
+    			}
+    			
+    			return( result );
+    		}
+    		
+    		while( true ){
+    			
+	     		int	b = is.read();
+	     		
+	     		if ( b < 0 ){
+	     			
+	     				// end of file
+	     			
+	     			if ( buffer_pos == 0 ){
+	     			
+	     				return( b );
+	     				
+	     			}else if ( buffer_pos == 1 ){
+	     				
+	     				buffer_pos = 0;
+	     				
+	     				return( buffer[0]&0xff );
+	     				
+	     			}else{
+	     				
+	     				System.arraycopy( buffer, 1, insertion, 0, buffer_pos - 1 );
+	     				
+	     				insertion_len 	= buffer_pos - 1;
+	     				insertion_pos	= 0;
+	     				
+	     				buffer_pos = 0;
+	     				
+	     				return( buffer[0]&0xff );
+	     			}
+	     		}
+	     		
+	     			// normal byte
+	     		
+	     		if ( buffer_pos == 0 ){
+	     			
+	     			if ( b == '&' ){
+	     				
+	     				buffer[ buffer_pos++ ] = (char)b;
+	     				
+	     			}else{
+	     				
+	     				return( b );
+	     			}
+	     			
+	     		}else{
+	     			
+	     			if ( buffer_pos == buffer.length-1 ){
+	     				
+	     					// buffer's full, give up
+	     				
+	     				buffer[ buffer_pos++ ] = (char)b;
+	     				
+	     				System.arraycopy( buffer, 0, insertion, 0, buffer_pos );
+	     				
+	     				buffer_pos		= 0;
+	     				insertion_pos	= 0;
+	     				insertion_len	= buffer_pos;
+	     				
+	     				return( insertion[insertion_pos++] );
+	     				
+	     			}else{
+	     				
+		     			if ( b == ';' ){
+		     				
+		     					// got some kind of reference mebe
+		     				
+		     				buffer[ buffer_pos++ ] = (char)b;
+		     				
+		     				String	ref = new String( buffer, 1, buffer_pos-2 ).toLowerCase( Locale.US );
+		     				
+		     				String	replacement;
+		     				
+		     				if ( 	ref.equals( "amp") 		|| 
+		     						ref.equals( "lt" ) 		|| 
+		     						ref.equals( "gt" ) 		|| 
+		     						ref.equals( "quot" )	|| 
+		     						ref.equals( "apos" ) 	||
+		     						ref.startsWith( "#" )){
+		     					
+		     					replacement = new String( buffer, 0, buffer_pos );
+		     					
+		     				}else{
+		     							     							     					
+			     				int num = Entities.HTML40.entityValue( ref );
+			     					
+		     					if ( num != -1 ){
+		     					
+		     						replacement = "&#" + num + ";";
+		     						
+		     					}else{
+		     						
+		     						replacement = new String( buffer, 0, buffer_pos );
+		     					}
+		     				}
+		     				
+		     				char[] chars = replacement.toCharArray();
+		     				
+		     				System.arraycopy( chars, 0, insertion, 0, chars.length );
+		     				
+		     				buffer_pos		= 0;
+		     				insertion_pos	= 0;
+		     				insertion_len	= chars.length;
+		     				
+		     				return( insertion[insertion_pos++] );
+		     				
+		     			}else{
+		     				
+	     					buffer[ buffer_pos++ ] = (char)b;
+
+		     				char c = (char)b;
+		     				
+		     				if ( !Character.isLetterOrDigit( c )){
+		     						     					
+		     						// handle naked &
+		     					
+		     					if ( buffer_pos == 2 && buffer[0] == '&'){
+		     						
+		     						char[] chars = "&amp;".toCharArray();
+		     						
+		     						System.arraycopy( chars, 0, insertion, 0, chars.length );
+		     						
+		     						buffer_pos		= 0;
+		     						insertion_pos	= 0;
+		     						insertion_len	= chars.length;
+		     						
+		     							// don't forget the char we just read
+		     						
+		     						insertion[insertion_len++] = (char)b;
+		     						
+		     						return( insertion[insertion_pos++] );
+		     						
+		     					}else{
+		     						
+		     							// not a valid entity reference
+		     						
+		    	     				System.arraycopy( buffer, 0, insertion, 0, buffer_pos );
+		    	     				
+		    	     				buffer_pos		= 0;
+		    	     				insertion_pos	= 0;
+		    	     				insertion_len	= buffer_pos;
+		    	     				
+		    	     				return( insertion[insertion_pos++] );
+		     					}
+		     				}
+		     			}
+	     			}
+	     		}
+    		}
+    	}
+
+    	public void 
+    	close() 
+    			
+    		throws IOException
+    	{
+    		is.close();
+    	}
+
+    	public long 
+    	skip(
+    		long n )
+    		
+    		throws IOException
+    	{
+    			// meh, vague attempt here
+    		
+    		if ( insertion_len > 0 ){
+    			
+    				// buffer is currently empty, shove remaining into buffer to unify processing
+    			
+    			int	rem = insertion_len - insertion_pos;
+    			
+    			System.arraycopy( insertion, insertion_pos, buffer, 0, rem );
+    			
+    			insertion_pos 	= 0;
+    			insertion_len	= 0;
+    			
+    			buffer_pos = rem;
+    		}
+    		    		
+    		if ( n <= buffer_pos ){
+    			
+    				// skip is <= buffer contents
+    			
+    			int	rem = buffer_pos - (int)n;
+    			
+      			System.arraycopy( buffer, (int)n, insertion, 0, rem );
+
+      			insertion_pos	= 0;
+      			insertion_len 	= rem;
+      			
+      			return( n );
+    		}
+    		
+    		int	to_skip = buffer_pos;
+    		
+    		buffer_pos	= 0;
+    		
+    		return( is.skip( n - to_skip ) + to_skip );
+    	}
+
+    	public int 
+    	available()
+    	
+    		throws IOException
+    	{
+     		return( buffer_pos + is.available());
+    	}
     }
 }
