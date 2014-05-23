@@ -30,6 +30,8 @@ PairingConnectionData
 	public static final String ATTR_PORT_OVERRIDE	= "port_or";
 	public static final String ATTR_PROTOCOL		= "protocol";
 	public static final String ATTR_HOST			= "host";
+	public static final String ATTR_I2P				= "I2P";
+	public static final String ATTR_TOR				= "Tor";
 	
 	public void
 	setAttribute(

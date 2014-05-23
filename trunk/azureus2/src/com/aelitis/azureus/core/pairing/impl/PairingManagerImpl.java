@@ -155,6 +155,8 @@ PairingManagerImpl
 	private StringParameter		param_public_ipv6;
 	private StringParameter		param_host;
 	
+	private BooleanParameter 	param_net_enable;
+
 	private StringParameter		param_local_ipv4;
 	private StringParameter		param_local_ipv6;
 
@@ -370,6 +372,15 @@ PairingManagerImpl
 					param_srp_set,
 				});
 		
+			// optional
+		
+		param_net_enable = configModel.addBooleanParameter2( "pairing.nets.enable", "pairing.nets.enable", false );
+
+		configModel.createGroup(
+				"pairing.group.optional",
+				new Parameter[]{
+						param_net_enable });
+		
 			// explicit
 		
 		LabelParameter	param_e_info = configModel.addLabelParameter2( "pairing.explicit.info" );
@@ -413,6 +424,7 @@ PairingManagerImpl
 		param_local_ipv4.addListener(	change_listener );
 		param_local_ipv6.addListener(	change_listener );
 		param_host.addListener(	change_listener );
+		param_net_enable.addListener(	change_listener );
 		
 		param_e_enable.addEnabledOnSelection( param_public_ipv4 );
 		param_e_enable.addEnabledOnSelection( param_public_ipv6 );
@@ -1334,9 +1346,11 @@ PairingManagerImpl
 						updateGlobals( true );
 					}
 					
+					boolean	enable_nets = param_net_enable.getValue();
+					
 					for ( PairedServiceImpl service: services.values()){
 						
-						list.add( service.toMap());
+						list.add( service.toMap( enable_nets ));
 					}
 					
 					has_services = list.size() > 0;
@@ -2223,7 +2237,8 @@ PairingManagerImpl
 		}
 		
 		protected Map<String,String>
-		toMap()
+		toMap(
+			boolean		enable_nets )
 		{
 			Map<String,String> result = new HashMap<String, String>();
 			
@@ -2232,6 +2247,13 @@ PairingManagerImpl
 			synchronized( this ){
 			
 				result.putAll( attributes );
+			}
+			
+			if ( !enable_nets ){
+				
+				result.remove( PairingConnectionData.ATTR_I2P );
+				
+				result.remove( PairingConnectionData.ATTR_TOR );
 			}
 			
 			return( result );

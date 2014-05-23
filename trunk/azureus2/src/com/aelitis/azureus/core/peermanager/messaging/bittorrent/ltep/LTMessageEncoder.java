@@ -127,15 +127,20 @@ public class LTMessageEncoder implements MessageStreamEncoder {
 	}
 	
 	public boolean supportsUTPEX() {
-		if (this.extension_map == null) {return false;}
-		Number num = (Number)this.extension_map.get("ut_pex");
-		
-		return( num != null && num.intValue() != 0 );
+		return( supportsExtension("ut_pex"));
 	}
 
 	public boolean supportsUTMetaData() {
-		if (this.extension_map == null) {return false;}
-		Number num = (Number)this.extension_map.get("ut_metadata");
+		return( supportsExtension("ut_metadata"));
+	}
+	
+	public boolean
+	supportsExtension(
+		String		extension_name )
+	{
+		if (extension_map == null) {return false;}
+		
+		Number num = (Number)this.extension_map.get( extension_name );
 		
 		return( num != null && num.intValue() != 0 );
 	}

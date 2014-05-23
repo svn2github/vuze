@@ -141,6 +141,8 @@ WebPlugin
 	private BasicPluginViewModel 	view_model;
 	private BasicPluginConfigModel	config_model;
 	
+	private String					p_sid;
+	
 	private StringParameter			param_home;
 	private StringParameter			param_rootdir;
 	private StringParameter			param_rootres;
@@ -283,6 +285,8 @@ WebPlugin
 			log = plugin_interface.getLogger().getChannel("WebPlugin");
 		}
 		
+		p_sid = (String)properties.get( PR_PAIRING_SID );
+
 		UIManager	ui_manager = plugin_interface.getUIManager();
 		
 		view_model = (BasicPluginViewModel)properties.get( PR_VIEW_MODEL );
@@ -539,9 +543,7 @@ WebPlugin
 					}
 				});
 		
-		
-		final String p_sid = (String)properties.get( PR_PAIRING_SID );
-		
+				
 		final LabelParameter		pairing_info;
 		final BooleanParameter		pairing_enable;
 		final HyperlinkParameter	pairing_test;
@@ -1266,7 +1268,17 @@ WebPlugin
 						
 							param_i2p_dest.setVisible( true );
 						
-							param_i2p_dest.setValue( (String)reply.get( "host" ));
+							String host = (String)reply.get( "host" );
+							
+							if ( !param_i2p_dest.getValue().equals( host )){
+							
+								param_i2p_dest.setValue( host );
+							
+								if ( p_sid != null ){
+								
+									updatePairing( p_sid );
+								}
+							}
 						}
 					}
 				});
@@ -1859,6 +1871,16 @@ WebPlugin
 		}
 		
 		cd.setAttribute( PairingConnectionData.ATTR_PROTOCOL, 	param_protocol.getValue());
+		
+		if ( param_i2p_dest.isVisible()){
+			
+			String host = param_i2p_dest.getValue();
+			
+			if ( host.length() > 0 ){
+				
+				cd.setAttribute( PairingConnectionData.ATTR_I2P, host );
+			}
+		}
 	}
 
 	public int
