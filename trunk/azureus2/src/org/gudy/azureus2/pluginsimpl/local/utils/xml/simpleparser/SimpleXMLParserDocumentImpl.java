@@ -171,6 +171,8 @@ SimpleXMLParserDocumentImpl
 				}
 			}
 			
+			Debug.out( e );
+			
 			throw( e );
 			
 		}finally{
@@ -280,9 +282,7 @@ SimpleXMLParserDocumentImpl
 			}
 						
 		}catch( Throwable e ){
-			
-			e.printStackTrace();
-			
+						
 			throw( new SimpleXMLParserDocumentException( e ));
 		}
 	}
