@@ -145,8 +145,16 @@ public class BYOPanel
 				fDialog.setText(MessageText.getString("MainWindow.dialog.choose.file"));
 				if (fDialog.open() != null) {
 					String[] fileNames = fDialog.getFileNames();
+					File last_file = null;
 					for (String fileName : fileNames) {
-						addFilename(new File(fDialog.getFilterPath(), fileName));
+						File f = new File(fDialog.getFilterPath(), fileName);
+						addFilename(f);
+						last_file = f;
+					}
+					
+					if ( last_file != null ){
+						
+						TorrentOpener.setFilterPathData( last_file.getAbsolutePath());
 					}
 				}
 			}
@@ -164,7 +172,12 @@ public class BYOPanel
 				fDialog.setMessage(MessageText.getString("MainWindow.dialog.choose.folder"));
 				String path = fDialog.open();
 				if (path != null) {
-					addFilename(new File(path));
+					File f = new File(path);
+					addFilename(f);
+					
+					if ( f.isDirectory()){
+						TorrentOpener.setFilterPathData( f.getAbsolutePath());
+					}
 				}
 			}
 			
