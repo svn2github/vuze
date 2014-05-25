@@ -199,9 +199,9 @@ TOTorrentCreateImpl
 	
 		throws TOTorrentException
 	{			
-		constructFixed( torrent_base, piece_length );
+		int ignored = constructFixed( torrent_base, piece_length );
 		
-		if ( linkage_map.size() != linked_tf_map.size()){
+		if ( linkage_map.size() != ( linked_tf_map.size() + ignored )){
 			
 			throw( new TOTorrentException( "TOTorrentCreate: unresolved linkages: required=" + linkage_map + ", resolved=" + linked_tf_map,
 					TOTorrentException.RT_DECODE_FAILS));
@@ -243,7 +243,7 @@ TOTorrentCreateImpl
 		}
 	}
 	
-	protected void
+	private int
 	constructFixed(
 		File		_torrent_base,
 		long		_piece_length )
@@ -284,6 +284,8 @@ TOTorrentCreateImpl
 					(int)_piece_length, 
 					progress_listeners.size()==0?null:this );
 		
+		int	ignored = 0;
+		
 		try{
 			if ( cancelled ){
 				
@@ -310,7 +312,7 @@ TOTorrentCreateImpl
 			
 				List<TOTorrentFileImpl>	encoded = new ArrayList<TOTorrentFileImpl>();
 			
-				processDir( file_hasher, _torrent_base, encoded, _torrent_base.getName(), "" );
+				ignored = processDir( file_hasher, _torrent_base, encoded, _torrent_base.getName(), "" );
 			
 				TOTorrentFileImpl[] files = new TOTorrentFileImpl[ encoded.size()];
 			
@@ -332,13 +334,16 @@ TOTorrentCreateImpl
 				//System.out.println( "overall:sha1 = " + ByteFormatter.nicePrint( sha1_digest, true));
 				//System.out.println( "overall:ed2k = " + ByteFormatter.nicePrint( ed2k_digest, true));
 			}
+			
+			return( ignored );
+			
 		}finally{
 			
 			file_hasher = null;
 		}
 	}
 	
-	protected void
+	private int
 	processDir(
 		TOTorrentFileHasher			hasher,
 		File						dir,
@@ -372,6 +377,8 @@ TOTorrentCreateImpl
 		
 		long	offset	= 0;
 		
+		int	ignored = 0;
+		
 		for (int i=0;i<file_list.size();i++){
 			
 			File	file = (File)file_list.get(i);
@@ -387,12 +394,16 @@ TOTorrentCreateImpl
 						file_name = root + File.separator + file_name ;
 					}
 					
-					processDir( hasher, file, encoded, base_name, file_name );
+					ignored += processDir( hasher, file, encoded, base_name, file_name );
 					
 				}else{
 						
-					if ( !ignoreFile( file_name )){
-								
+					if ( ignoreFile( file_name )){
+						
+						ignored++;
+						
+					}else{
+						
 						if ( root.length() > 0 ){
 						
 							file_name = root + File.separator + file_name;
@@ -428,6 +439,8 @@ TOTorrentCreateImpl
 				}
 			}
 		}
+		
+		return( ignored );
 	}
 	
 	public void
@@ -654,7 +667,7 @@ TOTorrentCreateImpl
 		}
 	}
 	
-	protected boolean
+	private boolean
 	ignoreFile(
 		String		file )
 	{
