@@ -328,6 +328,10 @@ MagnetPluginMDDownloader
 				state.setNetworkEnabled (network, true );
 			}
 			
+			final Set<String> peer_networks = new HashSet<String>();
+			
+			final List<Map<String,Object>> peers_for_cache = new ArrayList<Map<String,Object>>();
+			
 			download.addPeerListener(
 				new DownloadPeerListener()
 				{
@@ -369,6 +373,28 @@ MagnetPluginMDDownloader
 									}
 									
 									final Peer peer = event.getPeer();
+									
+									try{
+										String	peer_ip = peer.getIp();
+										
+										String network = AENetworkClassifier.categoriseAddress( peer_ip );
+										
+										synchronized( peer_networks ){
+											
+											peer_networks.add( network );
+											
+											Map<String,Object> map = new HashMap<String,Object>();
+											
+											peers_for_cache.add( map );
+											
+											map.put( "ip", peer_ip.getBytes( "UTF-8" ));
+											
+											map.put( "port", new Long(peer.getPort()));
+										}
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
 									
 									peer.addListener(
 										new PeerListener2()
@@ -643,6 +669,20 @@ MagnetPluginMDDownloader
 				}else{
 					
 					torrent.setAnnounceURL( TorrentUtils.getDecentralisedURL( hash ));
+				}
+				
+				if ( peers_for_cache.size() > 0 ){
+					
+					Map<String,List<Map<String,Object>>> peer_cache = new HashMap<String, List<Map<String,Object>>>();
+					
+					peer_cache.put( "tracker_peers", peers_for_cache );
+					
+					TorrentUtils.setPeerCache( torrent, peer_cache );
+				}
+				
+				if ( peer_networks.size() > 0 ){
+					
+					TorrentUtils.setNetworkCache( torrent, new ArrayList<String>( peer_networks ));
 				}
 				
 				listener.complete( torrent );

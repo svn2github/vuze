@@ -113,6 +113,7 @@ TorrentUtils
 	private static final String		TORRENT_AZ_PROP_PLUGINS					= "plugins";
 	
 	public static final String		TORRENT_AZ_PROP_OBTAINED_FROM			= "obtained_from";
+	public static final String		TORRENT_AZ_PROP_NETWORK_CACHE			= "network_cache";
 	public static final String		TORRENT_AZ_PROP_PEER_CACHE				= "peer_cache";
 	public static final String		TORRENT_AZ_PROP_PEER_CACHE_VALID		= "peer_cache_valid";
 	public static final String		TORRENT_AZ_PROP_INITIAL_LINKAGE			= "initial_linkage";
@@ -1693,6 +1694,65 @@ TorrentUtils
 	}
 	
 	public static void
+	setNetworkCache(
+		TOTorrent		torrent,
+		List<String>	networks )
+	{
+		Map	m = getAzureusPrivateProperties( torrent );
+			
+		try{
+			m.put( TORRENT_AZ_PROP_NETWORK_CACHE, networks );
+						
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+	}
+	
+	public static List<String>
+	getNetworkCache(
+		TOTorrent		torrent )
+	{
+		List<String>	result = new ArrayList<String>();
+		
+		Map	m = getAzureusPrivateProperties( torrent );
+			
+		try{
+			List l = (List)m.get( TORRENT_AZ_PROP_NETWORK_CACHE );
+				
+			if ( l != null ){
+				
+				for (Object o: l ){
+					
+					if ( o instanceof String ){
+						
+						result.add((String)o);
+						
+					}else if ( o instanceof byte[] ){
+						
+						String s = new String((byte[])o, "UTF-8" );
+						
+						for ( String x: AENetworkClassifier.AT_NETWORKS ){
+							
+							if ( s.equals( x )){
+								
+								result.add( x );
+								
+								break;
+							}
+						}
+					}
+				}
+			}
+		}catch( Throwable e ){
+			
+			Debug.printStackTrace(e);
+		}
+		
+		return( result );
+	}
+	
+	public static void
 	setPeerCache(
 		TOTorrent		torrent,
 		Map				pc )
@@ -1701,7 +1761,9 @@ TorrentUtils
 			
 		try{
 			m.put( TORRENT_AZ_PROP_PEER_CACHE, pc );
-						
+			
+			setPeerCacheValid( torrent );
+			
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);

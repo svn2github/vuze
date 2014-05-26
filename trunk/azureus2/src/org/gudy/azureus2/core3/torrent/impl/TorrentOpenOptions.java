@@ -567,7 +567,7 @@ public class TorrentOpenOptions
 			Set<String> tracker_hosts = TorrentUtils.getUniqueTrackerHosts( torrent );
 			
 			Set<String>	networks = new HashSet<String>();
-			
+						
 			for ( String host: tracker_hosts ){
 				
 				String network = AENetworkClassifier.categoriseAddress( host );
@@ -575,37 +575,50 @@ public class TorrentOpenOptions
 				networks.add( network );
 			}
 			
+			List<String> network_cache = TorrentUtils.getNetworkCache( torrent );
+
+			networks.addAll( network_cache );
+			
 				// could do something here if multiple networks to get user to decide what to do...
 			
-			if ( networks.size() == 1 ){
-				
-				String	network = networks.iterator().next();
-				
-				if ( network == AENetworkClassifier.AT_I2P ){
-					
-					String[]	providers = { "azneti2p", "azneti2phelper" };
-					
-					boolean	found = false;
-					
-					for ( String provider: providers ){
-					
-						if ( AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( provider ) != null ){
-							
-							found = true;
-							
-							break;
-						}
-					}
-					
-					if ( found ){
-						
-						for (int i = 0; i < AENetworkClassifier.AT_NETWORKS.length; i++) {
+			boolean	enable_i2p = networks.contains( AENetworkClassifier.AT_I2P );
+			
+			if ( !enable_i2p ){	
 
-							String nn = AENetworkClassifier.AT_NETWORKS[i];
-							
-							enabledNetworks.put( nn, nn == AENetworkClassifier.AT_I2P );
-						}
+					// if torrent is purely decentralised then we don't really know what network so enable it
+			
+				if ( tracker_hosts.size() == 1 && TorrentUtils.isDecentralised( torrent )){
+					
+					enable_i2p = true;
+				}
+			}
+			
+			if ( enable_i2p ){
+									
+				String[]	providers = { "azneti2p", "azneti2phelper" };
+				
+				boolean	found = false;
+				
+				for ( String provider: providers ){
+				
+					if ( AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( provider ) != null ){
+						
+						found = true;
+						
+						break;
 					}
+				}
+				
+				if ( found ){
+														
+					enabledNetworks.put( AENetworkClassifier.AT_I2P, true );
+					
+						// disable public if purely i2p
+					
+					if ( networks.contains( AENetworkClassifier.AT_I2P ) && networks.size() == 1 ){
+						
+						enabledNetworks.put( AENetworkClassifier.AT_PUBLIC, false );
+					}					
 				}
 			}
 			
