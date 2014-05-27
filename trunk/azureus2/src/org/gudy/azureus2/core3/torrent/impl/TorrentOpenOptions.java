@@ -567,12 +567,21 @@ public class TorrentOpenOptions
 			Set<String> tracker_hosts = TorrentUtils.getUniqueTrackerHosts( torrent );
 			
 			Set<String>	networks = new HashSet<String>();
-						
+				
+			boolean	decentralised = false;
+			
 			for ( String host: tracker_hosts ){
-				
-				String network = AENetworkClassifier.categoriseAddress( host );
-				
-				networks.add( network );
+			
+				if ( TorrentUtils.isDecentralised( host )){
+					
+					decentralised = true;
+					
+				}else{
+					
+					String network = AENetworkClassifier.categoriseAddress( host );
+					
+					networks.add( network );
+				}
 			}
 			
 			List<String> network_cache = TorrentUtils.getNetworkCache( torrent );
@@ -587,7 +596,7 @@ public class TorrentOpenOptions
 
 					// if torrent is purely decentralised then we don't really know what network so enable it
 			
-				if ( tracker_hosts.size() == 1 && TorrentUtils.isDecentralised( torrent )){
+				if ( tracker_hosts.size() == 1 && decentralised ){
 					
 					enable_i2p = true;
 				}

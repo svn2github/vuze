@@ -1555,6 +1555,18 @@ TorrentUtils
 		return( url.getProtocol().equalsIgnoreCase( "dht" ));
 	}
 	
+	public static boolean
+	isDecentralised(
+		String		host )
+	{
+		if ( host == null ){
+			
+			return( false );
+		}
+		
+		return( host.endsWith( ".dht" ));
+	}
+	
 	private static Map
 	getAzureusProperties(
 		TOTorrent	torrent )

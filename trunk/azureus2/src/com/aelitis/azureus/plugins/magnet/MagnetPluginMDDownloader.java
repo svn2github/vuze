@@ -27,6 +27,7 @@ import java.io.RandomAccessFile;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
@@ -247,7 +248,8 @@ MagnetPluginMDDownloader
 			
 			String[] bits = args.split( "&" );
 			
-			List<String>	trackers = new ArrayList<String>();
+			List<String>	trackers 			= new ArrayList<String>();
+			Set<String>		tracker_networks 	= new HashSet<String>();
 
 			String	name = "magnet:" + Base32.encode( hash );
 			
@@ -261,15 +263,23 @@ MagnetPluginMDDownloader
 					
 					if ( lhs.equals( "tr" )){
 						
-						trackers.add( UrlUtils.decode( x[1] ));
+						String tracker = UrlUtils.decode( x[1] );
 						
+						trackers.add( tracker );
+
+						try{
+							tracker_networks.add( AENetworkClassifier.categoriseAddress( new URL( tracker ).getHost()));
+
+						}catch( Throwable e ){
+							
+						}
 					}else if ( lhs.equals( "dn" )){
 						
 						name = UrlUtils.decode( x[1] );
 					}
 				}
 			}
-			
+						
 			if ( trackers.size() > 0 ){
 				
 					// stick the decentralised one we created above in position 0 - this will be
@@ -284,7 +294,9 @@ MagnetPluginMDDownloader
 				for ( String tracker: trackers ){
 				
 					try{
-						sets.add( ag.createAnnounceURLSet(new URL[]{ new URL( tracker )}));
+						URL tracker_url =  new URL( tracker );
+												
+						sets.add( ag.createAnnounceURLSet(new URL[]{ tracker_url }));
 						
 					}catch( Throwable e ){
 						
@@ -323,11 +335,38 @@ MagnetPluginMDDownloader
 			
 			state.setDisplayName( display_name + ".torrent" );
 			
-			for ( String network: AENetworkClassifier.AT_NETWORKS ){
-			
-				state.setNetworkEnabled (network, true );
+			if ( tracker_networks.size() == 0 ){
+				
+					// no clues in the magnet link, start off by enabling all networks
+				
+				for ( String network: AENetworkClassifier.AT_NETWORKS ){
+				
+					state.setNetworkEnabled( network, true );
+				}
+				
+			}else{
+				
+				for ( String network: tracker_networks ){
+					
+					state.setNetworkEnabled( network, true );
+				}
+				
+					// disable public network if no explicit trackers are public ones
+				
+				if ( !tracker_networks.contains( AENetworkClassifier.AT_PUBLIC )){
+					
+					state.setNetworkEnabled( AENetworkClassifier.AT_PUBLIC, false );
+				}
 			}
+				
+				// if user has specifically disabled the public network then remove this too
+				// as this gives them a way to control metadata download network usage
 			
+			if ( !COConfigurationManager.getBooleanParameter( "Network Selection Default." + AENetworkClassifier.AT_PUBLIC )){
+				
+				state.setNetworkEnabled( AENetworkClassifier.AT_PUBLIC, false );
+			}
+
 			final Set<String> peer_networks = new HashSet<String>();
 			
 			final List<Map<String,Object>> peers_for_cache = new ArrayList<Map<String,Object>>();

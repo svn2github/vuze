@@ -37,6 +37,7 @@ import java.util.Map;
 import java.util.Set;
 import java.net.InetSocketAddress;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
@@ -957,6 +958,8 @@ MagnetPlugin
 					});
 		}
 		
+		Set<String>	tracker_networks = new HashSet<String>();
+		
 		if ( args != null ){
 			
 			String[] bits = args.split( "&" );
@@ -975,6 +978,13 @@ MagnetPlugin
 						
 						try{
 							fl_args.add( new URL( UrlUtils.decode( x[1] )));
+							
+						}catch( Throwable e ){							
+						}
+					}else if ( lhs.equals( "tr" )){
+						
+						try{
+							tracker_networks.add(AENetworkClassifier.categoriseAddress( new URL( UrlUtils.decode( x[1] )).getHost()));
 							
 						}catch( Throwable e ){							
 						}
@@ -1026,480 +1036,484 @@ MagnetPlugin
 
 				final Object[] secondary_result = { null };
 
-				boolean	is_first_download = first_download;
+				if ( 	( tracker_networks.size() == 0 && COConfigurationManager.getBooleanParameter( "Network Selection Default." + AENetworkClassifier.AT_PUBLIC )) || 
+						tracker_networks.contains( AENetworkClassifier.AT_PUBLIC )){
+					
+					boolean	is_first_download = first_download;
+					
+					if ( is_first_download ){
+					
+						listener.reportActivity( getMessageText( "report.waiting_ddb" ));
+						
+						first_download = false;
+					}
+					
+					final DistributedDatabase db = plugin_interface.getDistributedDatabase();
 				
-				if ( is_first_download ){
-				
-					listener.reportActivity( getMessageText( "report.waiting_ddb" ));
-					
-					first_download = false;
-				}
-				
-				final DistributedDatabase db = plugin_interface.getDistributedDatabase();
-				
-				if ( db.isAvailable()){
-					
-					final List			potential_contacts 		= new ArrayList();
-					final AESemaphore	potential_contacts_sem 	= new AESemaphore( "MagnetPlugin:liveones" );
-					final AEMonitor		potential_contacts_mon	= new AEMonitor( "MagnetPlugin:liveones" );
-					
-					final int[]			outstanding		= {0};
-					final boolean[]		lookup_complete	= {false};
-					
-					listener.reportActivity(  getMessageText( "report.searching" ));
-					
-					DistributedDatabaseListener	ddb_listener = 
-						new DistributedDatabaseListener()
-						{
-							private Set	found_set = new HashSet();
-							
-							public void
-							event(
-								DistributedDatabaseEvent 		event )
+					if ( db.isAvailable()){
+						
+						final List			potential_contacts 		= new ArrayList();
+						final AESemaphore	potential_contacts_sem 	= new AESemaphore( "MagnetPlugin:liveones" );
+						final AEMonitor		potential_contacts_mon	= new AEMonitor( "MagnetPlugin:liveones" );
+						
+						final int[]			outstanding		= {0};
+						final boolean[]		lookup_complete	= {false};
+						
+						listener.reportActivity(  getMessageText( "report.searching" ));
+						
+						DistributedDatabaseListener	ddb_listener = 
+							new DistributedDatabaseListener()
 							{
-								int	type = event.getType();
+								private Set	found_set = new HashSet();
+								
+								public void
+								event(
+									DistributedDatabaseEvent 		event )
+								{
+									int	type = event.getType();
+				
+									if ( type == DistributedDatabaseEvent.ET_OPERATION_STARTS ){
 			
-								if ( type == DistributedDatabaseEvent.ET_OPERATION_STARTS ){
-		
-										// give live results a chance before kicking in explicit ones
-									
-									if ( sources.length > 0 ){
+											// give live results a chance before kicking in explicit ones
 										
-										new DelayedEvent(
-											"MP:sourceAdd",
-											10*1000,
-											new AERunnable()
-											{
-												public void
-												runSupport()
+										if ( sources.length > 0 ){
+											
+											new DelayedEvent(
+												"MP:sourceAdd",
+												10*1000,
+												new AERunnable()
 												{
-													addExplicitSources();
-												}
-											});
+													public void
+													runSupport()
+													{
+														addExplicitSources();
+													}
+												});
+										}
+										
+									}else if ( type == DistributedDatabaseEvent.ET_VALUE_READ ){
+																
+										contactFound( event.getValue().getContact());
+						
+									}else if (	type == DistributedDatabaseEvent.ET_OPERATION_COMPLETE ||
+												type == DistributedDatabaseEvent.ET_OPERATION_TIMEOUT ){
+											
+										listener.reportActivity( getMessageText( "report.found", String.valueOf( found_set.size())));
+										
+											// now inject any explicit sources
+			
+										addExplicitSources();
+										
+										try{
+											potential_contacts_mon.enter();													
+			
+											lookup_complete[0] = true;
+											
+										}finally{
+											
+											potential_contacts_mon.exit();
+										}
+										
+										potential_contacts_sem.release();
+									}
+								}
+								
+								protected void
+								addExplicitSources()
+								{	
+									for (int i=0;i<sources.length;i++){
+										
+										try{
+											contactFound( db.importContact(sources[i]));
+											
+										}catch( Throwable e ){
+											
+											Debug.printStackTrace(e);
+										}
+									}
+								}
+								
+								public void
+								contactFound(
+									final DistributedDatabaseContact	contact )
+								{
+									String	key = contact.getAddress().toString();
+									
+									synchronized( found_set ){
+										
+										if ( found_set.contains( key )){
+											
+											return;
+										}
+										
+										found_set.add( key );
 									}
 									
-								}else if ( type == DistributedDatabaseEvent.ET_VALUE_READ ){
-															
-									contactFound( event.getValue().getContact());
-					
-								}else if (	type == DistributedDatabaseEvent.ET_OPERATION_COMPLETE ||
-											type == DistributedDatabaseEvent.ET_OPERATION_TIMEOUT ){
-										
-									listener.reportActivity( getMessageText( "report.found", String.valueOf( found_set.size())));
+									if ( listener.verbose()){
 									
-										// now inject any explicit sources
-		
-									addExplicitSources();
+										listener.reportActivity( getMessageText( "report.found", contact.getName()));
+									}
 									
 									try{
 										potential_contacts_mon.enter();													
-		
-										lookup_complete[0] = true;
+			
+										outstanding[0]++;
 										
 									}finally{
 										
 										potential_contacts_mon.exit();
 									}
 									
-									potential_contacts_sem.release();
-								}
-							}
-							
-							protected void
-							addExplicitSources()
-							{	
-								for (int i=0;i<sources.length;i++){
-									
-									try{
-										contactFound( db.importContact(sources[i]));
-										
-									}catch( Throwable e ){
-										
-										Debug.printStackTrace(e);
-									}
-								}
-							}
-							
-							public void
-							contactFound(
-								final DistributedDatabaseContact	contact )
-							{
-								String	key = contact.getAddress().toString();
-								
-								synchronized( found_set ){
-									
-									if ( found_set.contains( key )){
-										
-										return;
-									}
-									
-									found_set.add( key );
-								}
-								
-								if ( listener.verbose()){
-								
-									listener.reportActivity( getMessageText( "report.found", contact.getName()));
-								}
-								
-								try{
-									potential_contacts_mon.enter();													
-		
-									outstanding[0]++;
-									
-								}finally{
-									
-									potential_contacts_mon.exit();
-								}
-								
-								contact.isAlive(
-									20*1000,
-									new DistributedDatabaseListener()
-									{
-										public void 
-										event(
-											DistributedDatabaseEvent event) 
+									contact.isAlive(
+										20*1000,
+										new DistributedDatabaseListener()
 										{
-											try{
-												boolean	alive = event.getType() == DistributedDatabaseEvent.ET_OPERATION_COMPLETE;
-													
-												if ( listener.verbose()){
-												
-													listener.reportActivity( 
-														getMessageText( alive?"report.alive":"report.dead",	contact.getName()));
-												}
-												
+											public void 
+											event(
+												DistributedDatabaseEvent event) 
+											{
 												try{
-													potential_contacts_mon.enter();
-													
-													Object[]	entry = new Object[]{ new Boolean( alive ), contact};
-													
-													boolean	added = false;
-													
-													if ( alive ){
+													boolean	alive = event.getType() == DistributedDatabaseEvent.ET_OPERATION_COMPLETE;
 														
-															// try and place before first dead entry 
-												
-														for (int i=0;i<potential_contacts.size();i++){
+													if ( listener.verbose()){
+													
+														listener.reportActivity( 
+															getMessageText( alive?"report.alive":"report.dead",	contact.getName()));
+													}
+													
+													try{
+														potential_contacts_mon.enter();
+														
+														Object[]	entry = new Object[]{ new Boolean( alive ), contact};
+														
+														boolean	added = false;
+														
+														if ( alive ){
 															
-															if (!((Boolean)((Object[])potential_contacts.get(i))[0]).booleanValue()){
+																// try and place before first dead entry 
+													
+															for (int i=0;i<potential_contacts.size();i++){
 																
-																potential_contacts.add(i, entry );
-																
-																added = true;
-																
-																break;
+																if (!((Boolean)((Object[])potential_contacts.get(i))[0]).booleanValue()){
+																	
+																	potential_contacts.add(i, entry );
+																	
+																	added = true;
+																	
+																	break;
+																}
 															}
 														}
+														
+														if ( !added ){
+															
+															potential_contacts.add( entry );	// dead at end
+														}
+															
+													}finally{
+															
+														potential_contacts_mon.exit();
 													}
-													
-													if ( !added ){
-														
-														potential_contacts.add( entry );	// dead at end
-													}
-														
-												}finally{
-														
-													potential_contacts_mon.exit();
-												}
-											}finally{
-												
-												try{
-													potential_contacts_mon.enter();													
-		
-													outstanding[0]--;
-													
 												}finally{
 													
-													potential_contacts_mon.exit();
+													try{
+														potential_contacts_mon.enter();													
+			
+														outstanding[0]--;
+														
+													}finally{
+														
+														potential_contacts_mon.exit();
+													}
+													
+													potential_contacts_sem.release();
 												}
-												
-												potential_contacts_sem.release();
 											}
-										}
-									});
-							}
-						};
-						
-					db.read(
-						ddb_listener,
-						db.createKey( hash, "Torrent download lookup for '" + ByteFormatter.encodeString( hash ) + "'" ),
-						timeout,
-						DistributedDatabase.OP_EXHAUSTIVE_READ | DistributedDatabase.OP_PRIORITY_HIGH );
-										
-					long 	overall_start 			= SystemTime.getMonotonousTime();					
-					long 	last_found 				= -1;
-										
-					AsyncDispatcher	dispatcher = new AsyncDispatcher();
-					
-					while( remaining > 0 ){
-						
-						try{
-							potential_contacts_mon.enter();
-		
-							if ( 	lookup_complete[0] && 
-									potential_contacts.size() == 0 &&
-									outstanding[0] == 0 ){
-								
-								break;
-							}
-						}finally{
+										});
+								}
+							};
 							
-							potential_contacts_mon.exit();
-						}
-										
+						db.read(
+							ddb_listener,
+							db.createKey( hash, "Torrent download lookup for '" + ByteFormatter.encodeString( hash ) + "'" ),
+							timeout,
+							DistributedDatabase.OP_EXHAUSTIVE_READ | DistributedDatabase.OP_PRIORITY_HIGH );
+											
+						long 	overall_start 			= SystemTime.getMonotonousTime();					
+						long 	last_found 				= -1;
+											
+						AsyncDispatcher	dispatcher = new AsyncDispatcher();
 						
 						while( remaining > 0 ){
-						
-							if ( listener.cancelled()){
-								
-								return( null );
-							}
 							
-							synchronized( md_result ){
-								
-								if ( md_result[0] != null ){
+							try{
+								potential_contacts_mon.enter();
+			
+								if ( 	lookup_complete[0] && 
+										potential_contacts.size() == 0 &&
+										outstanding[0] == 0 ){
 									
-									return( md_result[0] );
+									break;
 								}
+							}finally{
+								
+								potential_contacts_mon.exit();
 							}
 											
-							synchronized( fl_result ){
-								
-								if ( fl_result[0] != null ){
+							
+							while( remaining > 0 ){
+							
+								if ( listener.cancelled()){
 									
-									return( fl_result[0] );
+									return( null );
 								}
-							}
-							
-							long wait_start = SystemTime.getMonotonousTime();
-		
-							boolean got_sem = potential_contacts_sem.reserve( 1000 );
-				
-							long now = SystemTime.getMonotonousTime();
-							
-							remaining -= ( now - wait_start );
-						
-							if ( got_sem ){
-							
-								last_found = now;
 								
-								break;
-								
-							}else{
-								
-								if ( sl_enabled ){
+								synchronized( md_result ){
 									
-									if ( secondary_lookup_time == -1 ){
-									
-										long	base_time;
+									if ( md_result[0] != null ){
 										
-										if ( last_found == -1 || now - overall_start > 60*1000 ){
-											
-											base_time = overall_start;
-											
-										}else{
-											
-											base_time = last_found;
-										}
-										
-										long	time_so_far = now - base_time;
-										
-										if ( time_so_far > SECONDARY_LOOKUP_DELAY ){
-											
-											secondary_lookup_time = SystemTime.getMonotonousTime();
-											
-											doSecondaryLookup( listener, secondary_result, hash, args );
-										}
-									}else{
-										
-										try{
-											byte[] torrent = getSecondaryLookupResult( secondary_result );
-											
-											if ( torrent != null ){
-												
-												return( torrent );
-											}
-										}catch( ResourceDownloaderException e ){
-											
-											sl_failed = true;
-											
-											// ignore, we just continue processing
-										}
+										return( md_result[0] );
 									}
 								}
-		
-								continue;
-							}
-						}
-						
-						final DistributedDatabaseContact	contact;
-						final boolean						live_contact;
-						
-						try{
-							potential_contacts_mon.enter();
-							
-							// System.out.println( "rem=" + remaining + ",pot=" + potential_contacts.size() + ",out=" + outstanding[0] );
-							
-							if ( potential_contacts.size() == 0 ){
+												
+								synchronized( fl_result ){
+									
+									if ( fl_result[0] != null ){
+										
+										return( fl_result[0] );
+									}
+								}
 								
-								if ( outstanding[0] == 0 ){
+								long wait_start = SystemTime.getMonotonousTime();
+			
+								boolean got_sem = potential_contacts_sem.reserve( 1000 );
+					
+								long now = SystemTime.getMonotonousTime();
 								
+								remaining -= ( now - wait_start );
+							
+								if ( got_sem ){
+								
+									last_found = now;
+									
 									break;
 									
 								}else{
 									
+									if ( sl_enabled ){
+										
+										if ( secondary_lookup_time == -1 ){
+										
+											long	base_time;
+											
+											if ( last_found == -1 || now - overall_start > 60*1000 ){
+												
+												base_time = overall_start;
+												
+											}else{
+												
+												base_time = last_found;
+											}
+											
+											long	time_so_far = now - base_time;
+											
+											if ( time_so_far > SECONDARY_LOOKUP_DELAY ){
+												
+												secondary_lookup_time = SystemTime.getMonotonousTime();
+												
+												doSecondaryLookup( listener, secondary_result, hash, args );
+											}
+										}else{
+											
+											try{
+												byte[] torrent = getSecondaryLookupResult( secondary_result );
+												
+												if ( torrent != null ){
+													
+													return( torrent );
+												}
+											}catch( ResourceDownloaderException e ){
+												
+												sl_failed = true;
+												
+												// ignore, we just continue processing
+											}
+										}
+									}
+			
 									continue;
 								}
-							}else{
-							
-								Object[]	entry = (Object[])potential_contacts.remove(0);
-								
-								live_contact 	= ((Boolean)entry[0]).booleanValue(); 
-								contact 		= (DistributedDatabaseContact)entry[1];
 							}
 							
-						}finally{
+							final DistributedDatabaseContact	contact;
+							final boolean						live_contact;
 							
-							potential_contacts_mon.exit();
-						}
+							try{
+								potential_contacts_mon.enter();
+								
+								// System.out.println( "rem=" + remaining + ",pot=" + potential_contacts.size() + ",out=" + outstanding[0] );
+								
+								if ( potential_contacts.size() == 0 ){
+									
+									if ( outstanding[0] == 0 ){
+									
+										break;
+										
+									}else{
+										
+										continue;
+									}
+								}else{
+								
+									Object[]	entry = (Object[])potential_contacts.remove(0);
+									
+									live_contact 	= ((Boolean)entry[0]).booleanValue(); 
+									contact 		= (DistributedDatabaseContact)entry[1];
+								}
+								
+							}finally{
+								
+								potential_contacts_mon.exit();
+							}
+								
+							// System.out.println( "magnetDownload: " + contact.getName() + ", live = " + live_contact );
 							
-						// System.out.println( "magnetDownload: " + contact.getName() + ", live = " + live_contact );
-						
-						final AESemaphore	contact_sem 	= new AESemaphore( "MD:contact" );
-						final byte[][]		contact_data	= { null };
-						
-						dispatcher.dispatch(
-							new AERunnable()
-							{
-								public void
-								runSupport()
+							final AESemaphore	contact_sem 	= new AESemaphore( "MD:contact" );
+							final byte[][]		contact_data	= { null };
+							
+							dispatcher.dispatch(
+								new AERunnable()
 								{
-									try{
-										if ( !live_contact ){
-											
-											listener.reportActivity( getMessageText( "report.tunnel", contact.getName()));
-						
-											contact.openTunnel();
-										}
-										
+									public void
+									runSupport()
+									{
 										try{
-											listener.reportActivity( getMessageText( "report.downloading", contact.getName()));
-											
-											DistributedDatabaseValue	value = 
-												contact.read( 
-														new DistributedDatabaseProgressListener()
-														{
-															public void
-															reportSize(
-																long	size )
-															{
-																listener.reportSize( size );
-															}
-															public void
-															reportActivity(
-																String	str )
-															{
-																listener.reportActivity( str );
-															}
-															
-															public void
-															reportCompleteness(
-																int		percent )
-															{
-																listener.reportCompleteness( percent );
-															}
-														},
-														db.getStandardTransferType( DistributedDatabaseTransferType.ST_TORRENT ),
-														db.createKey ( hash , "Torrent download content for '" + ByteFormatter.encodeString( hash ) + "'"),
-														timeout );
-																
-											if ( value != null ){
+											if ( !live_contact ){
 												
-													// let's verify the torrent
-												
-												byte[]	data = (byte[])value.getValue(byte[].class);
-						
-												try{
-													TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedByteArray( data );
-													
-													if ( Arrays.equals( hash, torrent.getHash())){
-													
-														listener.reportContributor( contact.getAddress());
-												
-														synchronized( contact_data ){
-															
-															contact_data[0] = data;
-														}												
-													}else{
-														
-														listener.reportActivity( getMessageText( "report.error", "torrent invalid (hash mismatch)" ));
-													}
-												}catch( Throwable e ){
-													
-													listener.reportActivity( getMessageText( "report.error", "torrent invalid (decode failed)" ));
-												}
+												listener.reportActivity( getMessageText( "report.tunnel", contact.getName()));
+							
+												contact.openTunnel();
 											}
-										}catch( Throwable e ){
 											
-											listener.reportActivity( getMessageText( "report.error", Debug.getNestedExceptionMessage(e)));
+											try{
+												listener.reportActivity( getMessageText( "report.downloading", contact.getName()));
+												
+												DistributedDatabaseValue	value = 
+													contact.read( 
+															new DistributedDatabaseProgressListener()
+															{
+																public void
+																reportSize(
+																	long	size )
+																{
+																	listener.reportSize( size );
+																}
+																public void
+																reportActivity(
+																	String	str )
+																{
+																	listener.reportActivity( str );
+																}
+																
+																public void
+																reportCompleteness(
+																	int		percent )
+																{
+																	listener.reportCompleteness( percent );
+																}
+															},
+															db.getStandardTransferType( DistributedDatabaseTransferType.ST_TORRENT ),
+															db.createKey ( hash , "Torrent download content for '" + ByteFormatter.encodeString( hash ) + "'"),
+															timeout );
+																	
+												if ( value != null ){
+													
+														// let's verify the torrent
+													
+													byte[]	data = (byte[])value.getValue(byte[].class);
+							
+													try{
+														TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedByteArray( data );
+														
+														if ( Arrays.equals( hash, torrent.getHash())){
+														
+															listener.reportContributor( contact.getAddress());
+													
+															synchronized( contact_data ){
+																
+																contact_data[0] = data;
+															}												
+														}else{
+															
+															listener.reportActivity( getMessageText( "report.error", "torrent invalid (hash mismatch)" ));
+														}
+													}catch( Throwable e ){
+														
+														listener.reportActivity( getMessageText( "report.error", "torrent invalid (decode failed)" ));
+													}
+												}
+											}catch( Throwable e ){
+												
+												listener.reportActivity( getMessageText( "report.error", Debug.getNestedExceptionMessage(e)));
+												
+												Debug.printStackTrace(e);
+											}
+										}finally{
 											
-											Debug.printStackTrace(e);
+											contact_sem.release();
 										}
-									}finally{
+									}
+								});
+							
+							while( true ){
+								
+								if ( listener.cancelled()){
+									
+									return( null );
+								}
+								
+								boolean got_sem = contact_sem.reserve( 500 );
+															
+								synchronized( contact_data ){
 										
-										contact_sem.release();
+									if ( contact_data[0] != null ){
+											
+										return( contact_data[0] );
 									}
 								}
-							});
-						
-						while( true ){
-							
-							if ( listener.cancelled()){
 								
-								return( null );
-							}
-							
-							boolean got_sem = contact_sem.reserve( 500 );
-														
-							synchronized( contact_data ){
+								synchronized( md_result ){
 									
-								if ( contact_data[0] != null ){
+									if ( md_result[0] != null ){
 										
-									return( contact_data[0] );
+										return( md_result[0] );
+									}
 								}
-							}
-							
-							synchronized( md_result ){
 								
-								if ( md_result[0] != null ){
+								synchronized( fl_result ){
 									
-									return( md_result[0] );
+									if ( fl_result[0] != null ){
+										
+										return( fl_result[0] );
+									}
 								}
-							}
-							
-							synchronized( fl_result ){
 								
-								if ( fl_result[0] != null ){
+								if ( got_sem ){
 									
-									return( fl_result[0] );
+									break;
 								}
-							}
-							
-							if ( got_sem ){
-								
-								break;
 							}
 						}
-					}
-				}else{
-					
-					if ( is_first_download ){
-					
-						listener.reportActivity( getMessageText( "report.ddb_disabled" ));
+					}else{
+						
+						if ( is_first_download ){
+						
+							listener.reportActivity( getMessageText( "report.ddb_disabled" ));
+						}
 					}
 				}
-				
-					// DDB lookup process is complete
+			
+					// DDB lookup process is complete or skipped
 					// If secondary lookup is active/doable then hang around until it completes
 				
 				if ( sl_enabled && !sl_failed ){

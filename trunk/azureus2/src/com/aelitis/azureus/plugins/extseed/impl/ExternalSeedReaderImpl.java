@@ -27,6 +27,7 @@ import java.util.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
@@ -46,6 +47,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.utils.Monitor;
 import org.gudy.azureus2.plugins.utils.PooledByteBuffer;
 import org.gudy.azureus2.plugins.utils.Semaphore;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.util.CopyOnWriteSet;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedException;
@@ -296,6 +298,7 @@ ExternalSeedReaderImpl
 		boolean	early_days = time_since_start < INITIAL_DELAY;
 		
 		try{
+			Download download = peer_manager.getDownload();
 
 				// first respect failure count 
 			
@@ -332,14 +335,19 @@ ExternalSeedReaderImpl
 				return( false );
 			}
 			
-			if ( peer_manager.getDownload().getState() != Download.ST_DOWNLOADING ){
+			if ( download.getState() != Download.ST_DOWNLOADING ){
 				
 				return( false );
 			}
 				
 				// check dnd completeness too
 			
-			if ( peer_manager.getDownload().isComplete()){
+			if ( download.isComplete()){
+				
+				return( false );
+			}
+			
+			if ( !PluginCoreUtils.unwrap( download ).getDownloadState().isNetworkEnabled( AENetworkClassifier.categoriseAddress( host ))){
 				
 				return( false );
 			}
@@ -431,7 +439,7 @@ ExternalSeedReaderImpl
 				
 				if ( min_availability > 0 ){
 										
-					float availability = peer_manager.getDownload().getStats().getAvailability();
+					float availability = download.getStats().getAvailability();
 				
 					if ( availability < min_availability){
 					
@@ -454,7 +462,7 @@ ExternalSeedReaderImpl
 			
 				// if we have an announce result and there are no seeds, or it failed then go for it
 			
-			DownloadAnnounceResult ar = peer_manager.getDownload().getLastAnnounceResult();
+			DownloadAnnounceResult ar = download.getLastAnnounceResult();
 			
 			if ( ar != null ){
 				
