@@ -2930,7 +2930,8 @@ DiskManagerImpl
 
                             // only delete the dir if there's only this torrent's files in it!
 
-                        if ( countFiles( new File(dir)) == countDataFiles( torrent, torrent_save_dir, torrent_save_file )){
+                        int numDataFiles = countDataFiles( torrent, torrent_save_dir, torrent_save_file );
+                        if ( countFiles( new File(dir), numDataFiles) == numDataFiles){
 
                             mgr.performRecoverableFileDelete( dir );
 
@@ -2957,7 +2958,8 @@ DiskManagerImpl
 
     private static int
     countFiles(
-        File    f )
+        File    f, 
+        int stopAfterCount )
     {
         if ( f.isFile()){
 
@@ -2972,7 +2974,11 @@ DiskManagerImpl
 
                 for (int i=0;i<files.length;i++){
 
-                    res += countFiles( files[i] );
+                    res += countFiles( files[i], stopAfterCount );
+                    
+                    if (res > stopAfterCount) {
+                    	break;
+                    }
                 }
             }
 
