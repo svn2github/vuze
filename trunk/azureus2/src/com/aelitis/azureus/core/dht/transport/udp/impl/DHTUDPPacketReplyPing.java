@@ -28,7 +28,9 @@ package com.aelitis.azureus.core.dht.transport.udp.impl;
 
 import java.io.*;
 import java.net.InetSocketAddress;
+import java.util.List;
 
+import com.aelitis.azureus.core.dht.transport.DHTTransportAlternativeContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
@@ -37,6 +39,10 @@ public class
 DHTUDPPacketReplyPing
 	extends DHTUDPPacketReply
 {
+	private static final DHTTransportAlternativeContact[] EMPTY_CONTACTS = {};
+	
+	private DHTTransportAlternativeContact[]	alt_contacts = EMPTY_CONTACTS;
+	
 	public
 	DHTUDPPacketReplyPing(
 		DHTTransportUDPImpl		transport,
@@ -63,6 +69,11 @@ DHTUDPPacketReplyPing
 
 			DHTUDPUtils.deserialiseVivaldi( this, is );
 		}
+		
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ALT_CONTACTS ){
+			
+			alt_contacts = DHTUDPUtils.deserialiseAltContacts( is );
+		}
 	}
 	
 	public void
@@ -77,5 +88,38 @@ DHTUDPPacketReplyPing
 
 			DHTUDPUtils.serialiseVivaldi( this, os );
 		}
+		
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ALT_CONTACTS ){
+			
+			DHTUDPUtils.serialiseAltContacts( os, alt_contacts );
+		}
 	}
+	
+	protected void
+	setAltContacts(
+		List<DHTTransportAlternativeContact>	_contacts )
+	{
+		final int MAX_CONTACTS = 16;
+		
+		if ( _contacts.size() < MAX_CONTACTS ){
+		
+			alt_contacts = _contacts.toArray( new DHTTransportAlternativeContact[ _contacts.size()]);
+			
+		}else{
+			
+			alt_contacts = new DHTTransportAlternativeContact[MAX_CONTACTS];
+			
+			for ( int i=0;i<alt_contacts.length;i++){
+				
+				alt_contacts[i] = _contacts.get(i);
+			}
+		}
+	}
+	
+	protected DHTTransportAlternativeContact[]
+	getAltContacts()
+	{
+		return( alt_contacts );
+	}
+	
 }

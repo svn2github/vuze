@@ -26,6 +26,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketNetworkHandler;
 
 
@@ -38,6 +39,11 @@ public class
 DHTUDPPacketRequestPing 
 	extends DHTUDPPacketRequest
 {
+	private static final int[] 	EMPTY_INTS = {};
+	
+	private int[]	alt_networks			= EMPTY_INTS;
+	private int[]	alt_network_counts		= EMPTY_INTS;
+	
 	public
 	DHTUDPPacketRequestPing(
 		DHTTransportUDPImpl				_transport,
@@ -59,6 +65,11 @@ DHTUDPPacketRequestPing
 	{
 		super( network_handler, is,  DHTUDPPacketHelper.ACT_REQUEST_PING, con_id, trans_id );
 		
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ALT_CONTACTS ){
+			
+			DHTUDPUtils.deserialiseAltContactRequest( this, is );
+		}
+		
 		super.postDeserialise(is);
 	}
 	
@@ -70,7 +81,33 @@ DHTUDPPacketRequestPing
 	{
 		super.serialise(os);
 		
+		if ( getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ALT_CONTACTS ){
+			
+			DHTUDPUtils.serialiseAltContactRequest( this, os );
+		}
+		
 		super.postSerialise( os );
+	}
+	
+	protected void
+	setAltContactRequest(
+		int[]	networks,
+		int[]	counts )
+	{
+		alt_networks		= networks;
+		alt_network_counts	= counts;
+	}
+	
+	protected int[]
+	getAltNetworks()
+	{
+		return( alt_networks );
+	}
+	
+	protected int[]
+	getAltNetworkCounts()
+	{
+		return( alt_network_counts );
 	}
 	
 	public String

@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
+import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
@@ -42,6 +43,8 @@ import com.aelitis.azureus.core.dht.impl.DHTLog;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
 import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.dht.netcoords.vivaldi.ver1.VivaldiPositionFactory;
+import com.aelitis.azureus.core.dht.transport.DHTTransportAlternativeContact;
+import com.aelitis.azureus.core.dht.transport.DHTTransportAlternativeNetwork;
 import com.aelitis.azureus.core.dht.transport.DHTTransportContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.DHTTransportFullStats;
@@ -438,6 +441,38 @@ DHTUDPUtils
 		return( new DHTTransportUDPContactImpl( false, transport, external_address, external_address, version, 0, 0, (byte)0 ));
 	}
 	
+	protected static void
+	serialiseAltContact(
+		DataOutputStream					os,
+		DHTTransportAlternativeContact		contact )
+	
+		throws IOException, DHTTransportException
+	{
+		os.write((byte)contact.getNetworkType());
+		
+		os.write((byte)contact.getVersion());
+		
+		os.writeShort( contact.getAge());
+	
+		byte[] encoded = BEncoder.encode( contact.getProperties());
+		
+		serialiseByteArray( os, encoded, 65535 );
+	}
+	
+	protected static DHTTransportAlternativeContactImpl
+	deserialiseAltContact(
+		DataInputStream			is )
+	
+		throws IOException, DHTTransportException
+	{
+		byte	network_type 	= is.readByte();
+		byte	version		 	= is.readByte();
+		short	age				= is.readShort();
+		
+		byte[]	encoded = deserialiseByteArray( is, 65535 );
+		
+		return( new DHTTransportAlternativeContactImpl( network_type, version, age, encoded ));
+	}
 
 	protected static DHTTransportValue[]
 	deserialiseTransportValues(
@@ -725,7 +760,115 @@ DHTUDPUtils
 		
 		return( res );
 	}
+		
+	protected static void
+	serialiseAltContacts(
+		DataOutputStream					os,
+		DHTTransportAlternativeContact[]	contacts )
+	
+		throws IOException
+	{
+		if ( contacts == null ){
 			
+			contacts = new DHTTransportAlternativeContact[0];
+		}
+		
+		serialiseLength( os, contacts.length, 64 );
+		
+		for (int i=0;i<contacts.length;i++){
+			
+			try{
+				serialiseAltContact( os, contacts[i] );
+				
+			}catch( DHTTransportException e ){
+				
+				Debug.printStackTrace(e);
+				
+					// not much we can do here to recover - shouldn't fail anyways
+				
+				throw( new IOException(e.getMessage()));
+			}
+		}
+	}
+
+	protected static DHTTransportAlternativeContact[]
+	deserialiseAltContacts(
+		DataInputStream			is )
+	
+		throws IOException
+	{
+		int	len = deserialiseLength( is, 64 );
+		
+		List<DHTTransportAlternativeContact>	l = new ArrayList<DHTTransportAlternativeContact>( len );
+		
+		for (int i=0;i<len;i++){
+			
+			try{
+				
+				DHTTransportAlternativeContact contact = deserialiseAltContact( is );
+								
+				l.add( contact );
+				
+			}catch( DHTTransportException e ){
+				
+				Debug.printStackTrace(e);
+			}
+		}
+				
+		DHTTransportAlternativeContact[]	res = new DHTTransportAlternativeContact[l.size()];
+		
+		l.toArray( res );
+		
+		return( res );
+	}
+	
+	protected static void
+	serialiseAltContactRequest(
+		DHTUDPPacketRequestPing		ping,
+		DataOutputStream			os )
+		
+		throws IOException
+	{
+		int[]	nets 	= ping.getAltNetworks();
+		int[]	counts	= ping.getAltNetworkCounts();
+		
+		int len = nets==null||counts==null?0:nets.length;
+		
+		serialiseLength( os, len, 16 );
+		
+		for ( int i=0;i<len;i++ ){
+			
+			os.write( nets[i] );
+			os.write( counts[i] );
+		}
+	}
+	
+	protected static void
+	deserialiseAltContactRequest(
+		DHTUDPPacketRequestPing		ping,
+		DataInputStream				is )
+		
+		throws IOException
+	{
+		int	len = deserialiseLength( is, 16 );
+
+		int[]	nets 	= new int[len];
+		int[]	counts	= new int[len];
+		
+		for ( int i=0;i<len;i++){
+			
+			nets[i] 	= is.read();
+			counts[i]	= is.read();
+			
+			if ( nets[i] == -1 || counts[i] == -1 ){
+				
+				throw( new EOFException());
+			}
+		}
+		
+		ping.setAltContactRequest( nets, counts );
+	}
+	
 	protected static void
 	serialiseVivaldi(
 		DHTUDPPacketReply	reply, 
@@ -1190,5 +1333,53 @@ DHTUDPUtils
 	
 		
 		return( res );
+	}
+	
+	private static List<DHTTransportUDPImpl>			transports 		= new ArrayList<DHTTransportUDPImpl>();
+	private static List<DHTTransportAlternativeNetwork>	alt_networks 	= new ArrayList<DHTTransportAlternativeNetwork>();
+	
+	protected static void
+	registerTransport(
+		DHTTransportUDPImpl		transport )
+	{
+		synchronized( transports ){
+			
+			transports.add( transport );
+			
+			for ( DHTTransportAlternativeNetwork net: alt_networks ){
+				
+				transport.registerAlternativeNetwork( net );
+			}
+		}
+	}
+	
+	public static void
+	registerAlternativeNetwork(
+		DHTTransportAlternativeNetwork	net )
+	{
+		synchronized( transports ){
+			
+			alt_networks.add( net );
+			
+			for ( DHTTransportUDPImpl transport: transports ){
+				
+				transport.registerAlternativeNetwork( net );
+			}
+		}
+	}
+	
+	public static void
+	unregisterAlternativeNetwork(
+		DHTTransportAlternativeNetwork	net )
+	{
+		synchronized( transports ){
+			
+			alt_networks.remove( net );
+			
+			for ( DHTTransportUDPImpl transport: transports ){
+				
+				transport.unregisterAlternativeNetwork( net );
+			}
+		}
 	}
 }

@@ -1238,6 +1238,26 @@ ConfigurationManager
 			return( true );
 		}
 			
+		Object	value	= propertiesMap.get(key);
+
+		if ( value instanceof byte[] ){
+			
+			try{
+				value = new String((byte[])value, "UTF-8" );
+				
+			}catch( Throwable e ){
+				
+			}
+		}
+		
+		if ( value instanceof String ){
+			
+			if (((String)value).toLowerCase( Locale.US ).endsWith( ".b32.i2p" )){
+				
+				return( true );
+			}
+		}
+		
 		return( false );
   	}
   	

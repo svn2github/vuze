@@ -27,6 +27,7 @@ import java.net.InetSocketAddress;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransport;
+import com.aelitis.azureus.core.dht.transport.DHTTransportAlternativeNetwork;
 import com.aelitis.azureus.core.dht.transport.DHTTransportException;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPPacketHandler;
 import com.aelitis.azureus.core.dht.transport.udp.impl.packethandler.DHTUDPRequestHandler;
@@ -99,6 +100,8 @@ DHTTransportUDP
 	public static final byte PROTOCOL_VERSION_VIVALDI_OPTIONAL		= 51;	// optional vivaldi
 	public static final byte PROTOCOL_VERSION_PACKET_FLAGS			= 51;	// flags field added to request and reply packets
 
+	public static final byte PROTOCOL_VERSION_ALT_CONTACTS			= 52;
+	
 		// multiple networks reformats the requests and therefore needs the above fix to work
 	
 	public static final byte PROTOCOL_VERSION_NETWORKS				= PROTOCOL_VERSION_FIX_ORIGINATOR;
@@ -118,7 +121,7 @@ DHTTransportUDP
 	}
 	
 	public static final byte PROTOCOL_VERSION_MAIN					= Helper.getVersion( PROTOCOL_VERSION_VIVALDI_OPTIONAL );
-	public static final byte PROTOCOL_VERSION_CVS					= Helper.getVersion( PROTOCOL_VERSION_VIVALDI_OPTIONAL );
+	public static final byte PROTOCOL_VERSION_CVS					= Helper.getVersion( PROTOCOL_VERSION_ALT_CONTACTS );
 
 	public static final byte PROTOCOL_VERSION_MIN					= Helper.getVersion( PROTOCOL_VERSION_RESTRICT_ID3 );
 	public static final byte PROTOCOL_VERSION_MIN_CVS				= Helper.getVersion( PROTOCOL_VERSION_RESTRICT_ID3 );
@@ -144,4 +147,16 @@ DHTTransportUDP
 	
 	public DHTUDPPacketHandler
 	getPacketHandler();
+	
+	public DHTTransportAlternativeNetwork
+	getAlternativeNetwork(
+		int		network_type );
+	
+	public void
+	registerAlternativeNetwork(
+		DHTTransportAlternativeNetwork		network );
+	
+	public void
+	unregisterAlternativeNetwork(
+		DHTTransportAlternativeNetwork		network );
 }

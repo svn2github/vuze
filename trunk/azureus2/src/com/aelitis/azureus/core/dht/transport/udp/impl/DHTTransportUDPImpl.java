@@ -273,6 +273,8 @@ DHTTransportUDPImpl
 			routeable_percentage_average.update( last_pct );
 		}
 		
+		DHTUDPUtils.registerTransport( this );
+		
 		createPacketHandler();
 		
 		SimpleTimer.addPeriodicEvent(
@@ -1491,6 +1493,8 @@ DHTTransportUDPImpl
 			final DHTUDPPacketRequestPing	request = 
 				new DHTUDPPacketRequestPing( this, connection_id, local_contact, contact );
 				
+			requestAltContacts( request );
+			
 			stats.pingSent( request );
 
 			requestSendRequestProcessor( contact, request );
@@ -1513,9 +1517,11 @@ DHTTransportUDPImpl
 							}
 							
 							contact.setInstanceIDAndVersion( packet.getTargetInstanceID(), packet.getProtocolVersion());
-							
+							   
 							requestSendReplyProcessor( contact, handler, packet, elapsed_time );							
 								
+							receiveAltContacts((DHTUDPPacketReplyPing)packet );
+							
 							stats.pingOK();
 							
 							handler.pingReply( contact, (int)elapsed_time );
@@ -3602,6 +3608,8 @@ outer:
 						
 						request_handler.pingRequest( originating_contact );
 						
+						DHTUDPPacketRequestPing ping = (DHTUDPPacketRequestPing)request;
+												
 						DHTUDPPacketReplyPing	reply = 
 							new DHTUDPPacketReplyPing(
 									this,
@@ -3609,6 +3617,8 @@ outer:
 									request.getConnectionId(),
 									local_contact,
 									originating_contact );
+													
+						sendAltContacts( ping, reply );
 						
 						requestReceiveReplyProcessor( originating_contact, reply );
 
@@ -3981,6 +3991,181 @@ outer:
 		}catch( Throwable e ){
 			
 			Debug.printStackTrace(e);
+		}
+	}
+	
+		// the _state networks are populated via ping requests to other peers
+	
+	private Map<Integer, DHTTransportAlternativeNetworkImpl>	alt_net_states 		= new HashMap<Integer, DHTTransportAlternativeNetworkImpl>();
+	
+		// the _providers represent a local source of contacts that are used as a primary
+		// source of contacts for replying to other peers ping requests
+		
+	private volatile Map<Integer, DHTTransportAlternativeNetwork>		alt_net_providers	= new HashMap<Integer, DHTTransportAlternativeNetwork>();
+	
+	{
+		for ( Integer net: DHTTransportAlternativeNetwork.AT_ALL ){
+			
+			alt_net_states.put( net, new DHTTransportAlternativeNetworkImpl( net ));
+		}
+	}
+	
+	public DHTTransportAlternativeNetwork
+	getAlternativeNetwork(
+		int		network_type )
+	{
+		return( alt_net_states.get( network_type ));
+	}
+	
+	public void
+	registerAlternativeNetwork(
+		DHTTransportAlternativeNetwork		network )
+	{
+		synchronized( alt_net_providers ){
+			
+			Map<Integer, DHTTransportAlternativeNetwork> new_providers = new HashMap<Integer, DHTTransportAlternativeNetwork>( alt_net_providers );
+			
+			new_providers.put( network.getNetworkType(), network );
+			
+			alt_net_providers = new_providers;
+		}
+	}
+	
+	public void
+	unregisterAlternativeNetwork(
+		DHTTransportAlternativeNetwork		network )
+	{
+		synchronized( alt_net_providers ){
+			
+			Map<Integer, DHTTransportAlternativeNetwork> new_providers = new HashMap<Integer, DHTTransportAlternativeNetwork>( alt_net_providers );
+			
+			Iterator< Map.Entry<Integer, DHTTransportAlternativeNetwork>> it = new_providers.entrySet().iterator();
+			
+			while( it.hasNext()){
+				
+				if ( it.next().getValue() == network ){
+					
+					it.remove();
+				}
+			}
+			
+			alt_net_providers = new_providers;
+		}
+	}
+	
+	private void
+	sendAltContacts(
+		DHTUDPPacketRequestPing		request,
+		DHTUDPPacketReplyPing		reply )
+	{		
+		if ( request.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ALT_CONTACTS ){
+
+			int[]	alt_nets 	= request.getAltNetworks();
+			int[] 	counts 		= request.getAltNetworkCounts();
+
+			if ( alt_nets.length > 0 ){
+				
+				List<DHTTransportAlternativeContact>	alt_contacts = new ArrayList<DHTTransportAlternativeContact>();
+								
+				Map<Integer, DHTTransportAlternativeNetwork> providers = alt_net_providers;
+				
+				for ( int i=0; i<alt_nets.length;i++){
+				
+					int	count = counts[i];
+					
+					if ( count == 0 ){
+						
+						continue;
+					}
+					
+					int	net = alt_nets[i];
+					
+					DHTTransportAlternativeNetworkImpl local = alt_net_states.get( net );
+					
+					int wanted = local.getRequiredContactCount();
+					
+					if ( wanted > 0 ){
+						
+						DHTTransportAlternativeNetwork provider = providers.get( net );
+						
+						if ( provider != null ){
+							
+							local.addContacts( provider.getContacts( wanted ));
+						}
+					}
+					
+					alt_contacts.addAll( local.getContacts( count ));
+				}
+				
+				if ( alt_contacts.size() > 0 ){
+					
+					reply.setAltContacts( alt_contacts );
+				}
+			}
+		}
+	}
+	
+	private void
+	requestAltContacts(
+		DHTUDPPacketRequestPing		request )
+	{
+		if ( request.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ALT_CONTACTS ){
+			
+				// see if we could do with any more alt contacts
+			
+			List<int[]> wanted = null;
+			
+			for ( DHTTransportAlternativeNetworkImpl net: alt_net_states.values()){
+				
+				int req = net.getRequiredContactCount();
+				
+				if ( req > 0 ){
+					
+					if ( wanted == null ){
+						
+						wanted = new ArrayList<int[]>( alt_net_states.size());
+					}
+					
+					wanted.add( new int[]{ net.getNetworkType(), req } );
+				}
+			}
+			
+			if ( wanted != null ){
+				
+				int[] networks 	= new int[wanted.size()];
+				int[] counts	= new int[networks.length];
+				
+				for ( int i=0;i<networks.length;i++ ){
+					
+					int[] 	entry = wanted.get( i );
+					
+					networks[i] = entry[0];
+					counts[i]	= entry[1];
+				}
+				
+					// doesn't matter how many we request in total, the reply will be
+					// limited to whatever the max is
+				
+				request.setAltContactRequest( networks, counts );
+			}
+		}
+	}
+	
+	private void
+	receiveAltContacts(
+		DHTUDPPacketReplyPing		reply )
+	{		
+		if ( reply.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ALT_CONTACTS ){
+
+			for ( DHTTransportAlternativeContact contact: reply.getAltContacts()){
+				
+				DHTTransportAlternativeNetworkImpl net = alt_net_states.get( contact.getNetworkType());
+				
+				if ( net != null ){
+					
+					net.addContact( contact );
+				}
+			}
 		}
 	}
 	
