@@ -28,6 +28,7 @@ DHTTransportAlternativeNetwork
 {
 	public static final int	AT_MLDHT_IPV4		= 1;
 	public static final int	AT_MLDHT_IPV6		= 2;
+	public static final int	AT_I2P				= 3;
 	
 	public static final int[]	AT_ALL = { AT_MLDHT_IPV4, AT_MLDHT_IPV6 };
 	

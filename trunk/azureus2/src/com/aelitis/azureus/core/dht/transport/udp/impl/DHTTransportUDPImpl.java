@@ -289,6 +289,8 @@ DHTTransportUDPImpl
 					TimerEvent	event )
 				{
 					updateStats( tick_count++);
+					
+					checkAltContacts();
 				}
 			});
 		
@@ -4054,6 +4056,60 @@ outer:
 	}
 	
 	private void
+	checkAltContacts()
+	{
+		int	total_required = 0;
+		
+		for ( DHTTransportAlternativeNetworkImpl net: alt_net_states.values()){
+			
+			total_required += net.getRequiredContactCount();
+		}
+		
+		if ( total_required > 0 ){
+			
+			List<DHTTransportContact> targets = new ArrayList<DHTTransportContact>( ROUTABLE_CONTACT_HISTORY_MAX );
+			
+			try{
+				this_mon.enter();
+				
+				for ( DHTTransportContact contact: routable_contact_history.values()){
+				
+					if ( contact.getProtocolVersion() >= DHTTransportUDP.PROTOCOL_VERSION_ALT_CONTACTS ){
+						
+						targets.add( contact );
+					}
+				}
+				
+			}finally{
+				
+				this_mon.exit();
+			}
+			
+			if ( targets.size() > 0 ){
+				
+				targets.get( RandomUtils.nextInt( targets.size())).sendPing( 
+					new DHTTransportReplyHandlerAdapter()
+					{
+						public void
+						pingReply(
+							DHTTransportContact _contact )
+						{
+							
+						}
+						
+						public void
+						failed(
+							DHTTransportContact 	_contact,
+							Throwable				_error )
+						{
+							
+						}
+					});
+			}
+		}
+	}
+	
+	private void
 	sendAltContacts(
 		DHTUDPPacketRequestPing		request,
 		DHTUDPPacketReplyPing		reply )
@@ -4082,6 +4138,11 @@ outer:
 					
 					DHTTransportAlternativeNetworkImpl local = alt_net_states.get( net );
 					
+					if ( local == null ){
+						
+						continue;
+					}
+					
 					int wanted = local.getRequiredContactCount();
 					
 					if ( wanted > 0 ){
@@ -4094,7 +4155,7 @@ outer:
 						}
 					}
 					
-					alt_contacts.addAll( local.getContacts( count ));
+					alt_contacts.addAll( local.getContacts( count, true ));
 				}
 				
 				if ( alt_contacts.size() > 0 ){

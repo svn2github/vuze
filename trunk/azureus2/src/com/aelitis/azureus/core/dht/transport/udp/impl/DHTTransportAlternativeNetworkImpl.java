@@ -36,8 +36,9 @@ public class
 DHTTransportAlternativeNetworkImpl 
 	implements DHTTransportAlternativeNetwork
 {
-	private static final int	MAX_AGE_SECS 	= 5*60;
-	private static final int	MAX_CONTACTS	= 64;
+	private static final int	LIVE_AGE_SECS 		= 20*60;
+	private static final int	LIVEISH_AGE_SECS 	= 40*60;
+	private static final int	MAX_CONTACTS		= 64;
 	
 	private int	network;
 	
@@ -50,36 +51,17 @@ DHTTransportAlternativeNetworkImpl
 					DHTTransportAlternativeContact o1,
 					DHTTransportAlternativeContact o2 ) 
 				{
-					int res = o1.getLastAlive() - o2.getLastAlive();
+					int res = o2.getLastAlive() - o1.getLastAlive();
 					
 					if ( res == 0 ){
 						
-						res = o1.getID() - o2.getID();
+						res = o2.getID() - o1.getID();
 					}
 					
 					return( res );
 				}
 			});
 	
-	private TreeSet<DHTTransportAlternativeContact> contacts_reverse =
-			new TreeSet<DHTTransportAlternativeContact>(
-				new Comparator<DHTTransportAlternativeContact>() 
-				{
-					public int 
-					compare(
-						DHTTransportAlternativeContact o1,
-						DHTTransportAlternativeContact o2 ) 
-					{
-						int res = o2.getLastAlive() - o1.getLastAlive();
-						
-						if ( res == 0 ){
-							
-							res = o2.getID() - o1.getID();
-						}
-						
-						return( res );
-					}
-				});
 	
 	protected
 	DHTTransportAlternativeNetworkImpl(
@@ -96,8 +78,21 @@ DHTTransportAlternativeNetworkImpl
 	
 	public List<DHTTransportAlternativeContact>
 	getContacts(
-		int		max )
+		int			max )
 	{
+		return( getContacts( max, false ));
+	}
+	
+	protected List<DHTTransportAlternativeContact>
+	getContacts(
+		int			max,
+		boolean		live_only )
+	{
+		if ( max == 0 ){
+			
+			max = MAX_CONTACTS;
+		}
+		
 		List<DHTTransportAlternativeContact> result = new ArrayList<DHTTransportAlternativeContact>( max );
 	
 		Set<Integer>	used_ids = new HashSet<Integer>();
@@ -107,13 +102,13 @@ DHTTransportAlternativeNetworkImpl
 			Iterator<DHTTransportAlternativeContact> it = contacts.iterator();
 			
 			while( it.hasNext()){
+								
+				DHTTransportAlternativeContact contact = it.next();
 				
-				if ( max == 0 ){
+				if ( live_only && contact.getAge() > LIVEISH_AGE_SECS ){
 					
 					break;
 				}
-				
-				DHTTransportAlternativeContact contact = it.next();
 				
 				Integer id = contact.getID();
 				
@@ -126,11 +121,35 @@ DHTTransportAlternativeNetworkImpl
 				
 				result.add( contact );
 				
-				max--;
+				if ( result.size() == max ){
+					
+					break;
+				}
+
 			}
 		}
 		
 		return( result );
+	}
+	
+	private void
+	trim()
+	{
+		Iterator<DHTTransportAlternativeContact> it = contacts.iterator();
+		
+		int	pos = 0;
+		
+		while( it.hasNext()){
+				
+			it.next();
+			
+			pos++;
+			
+			if(  pos > MAX_CONTACTS ){
+				
+				it.remove();
+			}
+		}
 	}
 	
 	protected void
@@ -139,26 +158,19 @@ DHTTransportAlternativeNetworkImpl
 	{
 		synchronized( contacts ){
 			
-			for ( DHTTransportAlternativeContact contact: new_contacts ){
+			for ( DHTTransportAlternativeContact new_contact: new_contacts ){
 				
-				contacts.add( contact );
+				//System.out.println( "add contact: " + getString(new_contact));
 				
-				contacts_reverse.add( contact );
+				contacts.add( new_contact );
 			}
 			
-			Iterator<DHTTransportAlternativeContact> it = contacts_reverse.iterator();
-			
-			while( it.hasNext()){
+			if ( contacts.size() > MAX_CONTACTS ){
 				
-				DHTTransportAlternativeContact contact = it.next();
-				
-				if ( contacts.size() > MAX_CONTACTS || contact.getAge() > MAX_AGE_SECS ){
-			
-					it.remove();
-					
-					contacts.remove( contact );
-				}
+				trim();
 			}
+			
+			//System.out.println( "    contacts=" + contacts.size());
 		}
 	}
 	
@@ -167,24 +179,17 @@ DHTTransportAlternativeNetworkImpl
 		DHTTransportAlternativeContact		new_contact )
 	{
 		synchronized( contacts ){
-							
+				
+			//System.out.println( "add contact: " +  getString(new_contact));
+			
 			contacts.add( new_contact );
 				
-			contacts_reverse.add( new_contact );
-			
-			Iterator<DHTTransportAlternativeContact> it = contacts_reverse.iterator();
-			
-			while( it.hasNext()){
+			if ( contacts.size() > MAX_CONTACTS ){
 				
-				DHTTransportAlternativeContact contact = it.next();
-				
-				if ( contacts.size() > MAX_CONTACTS || contact.getAge() > MAX_AGE_SECS ){
-			
-					it.remove();
-					
-					contacts.remove( contact );
-				}
+				trim();
 			}
+			
+			//System.out.println( "    contacts=" + contacts.size());
 		}		
 	}
 	
@@ -193,28 +198,47 @@ DHTTransportAlternativeNetworkImpl
 	{
 		synchronized( contacts ){
 			
-			int rem = MAX_CONTACTS - contacts.size();
+			int	num_contacts = contacts.size();
 			
-			if ( rem > 0 ){
-				
-				return( rem );
-			}
+			int	result = 0;
+			
+			if ( num_contacts < MAX_CONTACTS ){
 						
-			Iterator<DHTTransportAlternativeContact> it = contacts_reverse.iterator();
+				result =  MAX_CONTACTS - num_contacts;
 				
-			while( it.hasNext()){
+			}else{
 				
-				DHTTransportAlternativeContact contact = it.next();
-				
-				if ( contact.getAge() > MAX_AGE_SECS ){
-			
-					it.remove();
+				Iterator<DHTTransportAlternativeContact> it = contacts.iterator();
 					
-					contacts.remove( contact );
+				int	pos = 0;
+				
+				while( it.hasNext()){
+					
+					DHTTransportAlternativeContact contact = it.next();
+					
+					if ( contact.getAge() > LIVE_AGE_SECS ){
+				
+						result = MAX_CONTACTS - pos;
+						
+						break;
+						
+					}else{
+						
+						pos++;
+					}
 				}
 			}
+				
+			//System.out.println( network + ": required=" + result );
 			
-			return( MAX_CONTACTS - contacts.size());
+			return( result );
 		}
+	}
+	
+	private String
+	getString(
+		DHTTransportAlternativeContact		contact )
+	{
+		return( contact.getProperties() + ", age=" + contact.getAge());
 	}
 }

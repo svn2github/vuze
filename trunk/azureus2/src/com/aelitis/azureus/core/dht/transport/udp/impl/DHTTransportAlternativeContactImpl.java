@@ -42,9 +42,7 @@ DHTTransportAlternativeContactImpl
 	private final int		id;
 	
 	private final int			start_time		= (int)( SystemTime.getMonotonousTime()/1000 );
-	
-	private final int			last_alive_marker;
-	
+		
 	protected
 	DHTTransportAlternativeContactImpl(
 		byte			_network_type,
@@ -56,11 +54,7 @@ DHTTransportAlternativeContactImpl
 		version			= _version;
 		initial_age		= _age<0?Short.MAX_VALUE:_age;
 		encoded			= _encoded;
-		
-			// add in a constant to avoid negative values for aethetics
-
-		last_alive_marker = start_time + Short.MAX_VALUE - initial_age ;
-		
+				
 		id = Arrays.hashCode( encoded );
 	}
 	
@@ -85,7 +79,7 @@ DHTTransportAlternativeContactImpl
 	public int
 	getLastAlive()
 	{		
-		return( last_alive_marker );
+		return( start_time - initial_age );
 	}
 	
 	public int

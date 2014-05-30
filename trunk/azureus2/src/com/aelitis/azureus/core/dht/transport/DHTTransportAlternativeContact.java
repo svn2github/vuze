@@ -42,6 +42,7 @@ DHTTransportAlternativeContact
 	
 		/**
 		 * A value that can be compared to others to get an ordering, but not related to current real/mono time
+		 * and can be negative
 		 * @return
 		 */
 	
