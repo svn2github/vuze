@@ -1382,4 +1382,23 @@ DHTUDPUtils
 			}
 		}
 	}
+	
+	public static List<DHTTransportAlternativeContact>
+	getAlternativeContacts(
+		int			network,
+		int			max )
+	{
+		synchronized( transports ){
+		
+			for ( DHTTransportAlternativeNetwork net: alt_networks ){
+				
+				if ( net.getNetworkType() == network ){
+					
+					return( net.getContacts( max ));
+				}
+			}
+		}
+	
+		return( new ArrayList<DHTTransportAlternativeContact>());
+	}
 }

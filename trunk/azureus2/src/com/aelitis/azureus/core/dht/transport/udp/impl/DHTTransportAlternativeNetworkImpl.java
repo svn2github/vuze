@@ -40,6 +40,8 @@ DHTTransportAlternativeNetworkImpl
 	private static final int	LIVEISH_AGE_SECS 	= 40*60;
 	private static final int	MAX_CONTACTS		= 64;
 	
+	private static final boolean	TRACE = false;
+	
 	private int	network;
 	
 	private TreeSet<DHTTransportAlternativeContact> contacts =
@@ -160,7 +162,7 @@ DHTTransportAlternativeNetworkImpl
 			
 			for ( DHTTransportAlternativeContact new_contact: new_contacts ){
 				
-				//System.out.println( "add contact: " + getString(new_contact));
+				if ( TRACE ) System.out.println( "add contact: " + getString(new_contact));
 				
 				contacts.add( new_contact );
 			}
@@ -170,7 +172,7 @@ DHTTransportAlternativeNetworkImpl
 				trim();
 			}
 			
-			//System.out.println( "    contacts=" + contacts.size());
+			if ( TRACE ) System.out.println( "    contacts=" + contacts.size());
 		}
 	}
 	
@@ -180,7 +182,7 @@ DHTTransportAlternativeNetworkImpl
 	{
 		synchronized( contacts ){
 				
-			//System.out.println( "add contact: " +  getString(new_contact));
+			if ( TRACE ) System.out.println( "add contact: " +  getString(new_contact));
 			
 			contacts.add( new_contact );
 				
@@ -189,7 +191,7 @@ DHTTransportAlternativeNetworkImpl
 				trim();
 			}
 			
-			//System.out.println( "    contacts=" + contacts.size());
+			if ( TRACE ) System.out.println( "    contacts=" + contacts.size());
 		}		
 	}
 	
@@ -229,7 +231,7 @@ DHTTransportAlternativeNetworkImpl
 				}
 			}
 				
-			//System.out.println( network + ": required=" + result );
+			if ( TRACE ) System.out.println( network + ": required=" + result );
 			
 			return( result );
 		}

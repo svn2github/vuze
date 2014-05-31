@@ -23,6 +23,7 @@
 package com.aelitis.azureus.plugins.tracker.dht;
 
 
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.net.UnknownHostException;
 import java.util.*;
@@ -191,6 +192,8 @@ DHTTrackerPlugin
 	private long					last_net_pos_time;
 	
 	private AESemaphore			initialised_sem = new AESemaphore( "DHTTrackerPlugin:init" );
+	
+	private DHTTrackerPluginAlt	alt_lookup_handler = new DHTTrackerPluginAlt();
 	
 	private boolean				disable_put;
 	
@@ -1751,9 +1754,11 @@ DHTTrackerPlugin
 			
 			num_done++;
 			
+			final boolean is_complete = isComplete( download );
+			
 			dht.get(target.getHash(), 
 					"Tracker announce for '" + download.getName() + "'" + target.getDesc(),
-					isComplete( download )?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
+					is_complete?DHTPlugin.FLAG_SEEDING:DHTPlugin.FLAG_DOWNLOADING,
 					NUM_WANT, 
 					target_type==REG_TYPE_FULL?ANNOUNCE_TIMEOUT:ANNOUNCE_DERIVED_TIMEOUT,
 					false, false,
@@ -1768,7 +1773,28 @@ DHTTrackerPlugin
 						int		seed_count;
 						int		leecher_count;
 						
-						boolean	complete;
+						volatile boolean	complete;
+						
+						{
+							alt_lookup_handler.get( 
+									target.getHash(),
+									is_complete,
+									new DHTTrackerPluginAlt.LookupListener()
+									{
+										public void
+										foundPeer(
+											InetSocketAddress	address )
+										{
+											alternativePeerRead( address );
+										}
+										
+										public boolean
+										isComplete()
+										{
+											return( complete && addresses.size() > 5 );
+										}
+									});
+						}
 						
 						public boolean
 						diversified()
@@ -1780,6 +1806,45 @@ DHTTrackerPlugin
 						starts(
 							byte[] 				key ) 
 						{
+						}
+						
+						private void
+						alternativePeerRead(
+							InetSocketAddress		peer )
+						{
+							boolean	try_injection = false;
+							
+							synchronized( this ){
+								
+								if ( complete ){
+									
+									try_injection = addresses.size() < 5;
+									
+								}else{
+								
+									try{
+										addresses.add( peer.getAddress().getHostAddress());
+										ports.add( peer.getPort());
+										udp_ports.add( 0 );
+										flags.add( null );
+										
+										is_seeds.add( false );
+										leecher_count++;
+										
+									}catch( Throwable e ){
+									}
+								}
+							}
+							
+							if ( try_injection ){
+								
+								PeerManager pm = download.getPeerManager();
+								
+								if ( pm != null ){
+									
+									pm.addPeer(peer.getAddress().getHostAddress(), peer.getPort() );
+								}
+							}
 						}
 						
 						public void
