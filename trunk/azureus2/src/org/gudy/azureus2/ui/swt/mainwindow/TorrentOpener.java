@@ -495,6 +495,33 @@ public class TorrentOpener {
 							}
 						}
 
+							// rename display name based on whether the user has manually renamed either the only file in 
+							// a single file torrent or the top-level-folder in a multi-file torrent
+						
+						if ( files.length == 1 ){
+							
+							TorrentOpenFileOptions file = files[0];
+							
+							if ( file.isManualRename()){
+								
+								String fileRename = file.getDestFileName();
+								
+								if ( fileRename != null && fileRename.length() > 0 ){
+								
+									dm.getDownloadState().setDisplayName( fileRename );
+								}
+							}
+						}else{
+							
+							String folderRename = torrentOptions.getManualRename();
+							
+							if ( 	folderRename != null && 
+									folderRename.length() > 0 && 
+									new File( torrentOptions.getParentDir()).getName().equals( folderRename )){
+								
+								dm.getDownloadState().setDisplayName( folderRename );
+							}
+						}
 						
 						
 						if (comp_num > 0) {

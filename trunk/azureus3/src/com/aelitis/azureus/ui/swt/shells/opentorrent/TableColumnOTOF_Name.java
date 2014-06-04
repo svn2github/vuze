@@ -46,7 +46,7 @@ implements TableCellRefreshListener, TableColumnExtraInfoListener
 						return true;
 					
 					if (finalEdit) {
-						tfi.setDestFileName(value);
+						tfi.setDestFileName(value,true);
 					}
 
 					return true;

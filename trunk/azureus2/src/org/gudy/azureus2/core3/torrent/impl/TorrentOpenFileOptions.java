@@ -46,6 +46,8 @@ public class TorrentOpenFileOptions
 	private String destFileName;
 	private String destPathName;
 
+	private boolean	didManualRename;
+	
 	/** @todo: getter/setters */
 	private final int iIndex;
 
@@ -86,13 +88,13 @@ public class TorrentOpenFileOptions
 		if(newFullName == null)
 		{
 			setDestPathName(null);
-			setDestFileName(null);
+			setDestFileName(null,true);
 			return;
 		}
 			
 		File newPath = new File(newFullName);
 		setDestPathName(newPath.getParent());
-		setDestFileName(newPath.getName());
+		setDestFileName(newPath.getName(),true);
 	}
 	
 	public void setDestPathName(String newPath)
@@ -103,12 +105,15 @@ public class TorrentOpenFileOptions
 			destPathName = newPath;
 	}
 	
-	public void setDestFileName (String newFileName)
+	public void setDestFileName (String newFileName, boolean manualRename )
 	{
-		if(orgFileName.equals(newFileName))
+		if(orgFileName.equals(newFileName)){
 			destFileName = null;
-		else
-			destFileName = newFileName;			
+			didManualRename = false;
+		}else{
+			destFileName = newFileName;
+			didManualRename = manualRename;
+		}
 	}
 
 	public String getDestPathName() {
@@ -119,6 +124,12 @@ public class TorrentOpenFileOptions
 			return parent.getParentDir();
 
 		return new File(parent.getDataDir(), orgFullName).getParent();
+	}
+	
+	public boolean
+	isManualRename()
+	{
+		return( didManualRename );
 	}
 	
 	public String getDestFileName() {

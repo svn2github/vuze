@@ -72,6 +72,7 @@ import com.aelitis.azureus.core.tag.TagFeatureFileLocation;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.TagTypeListener;
+import com.aelitis.azureus.core.torrent.PlatformTorrentUtils;
 import com.aelitis.azureus.core.util.RegExUtil;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
@@ -1152,8 +1153,23 @@ public class OpenTorrentOptionsWindow
 		
 		if ( num == 1 ){
 			
-			text = open_instances.get(0).getOptions().getTorrentName();
+				// use a display name consistent with core
+			
+			TorrentOpenOptions options = open_instances.get(0).getOptions();
 
+			text = options.getTorrentName();
+			
+			TOTorrent t = options.getTorrent();
+			
+			if ( t != null ){
+			
+				String str = PlatformTorrentUtils.getContentTitle( t );
+				
+				if ( str != null && str.length() > 0 ){
+					
+					text = str;
+				}
+			}
 		}else{
 			
 			text =  MessageText.getString("label.num.torrents",new String[]{ String.valueOf( open_instances.size())});
@@ -2693,7 +2709,7 @@ public class OpenTorrentOptionsWindow
 				if (renameFilename == null) {
 					break;
 				}
-				torrentFileInfo.setDestFileName(renameFilename);
+				torrentFileInfo.setDestFileName(renameFilename,true);
 				TableRowCore row = tvFiles.getRow(torrentFileInfo);
 				if (row != null) {
 					row.invalidate(true);
@@ -2767,7 +2783,8 @@ public class OpenTorrentOptionsWindow
 				
 				torrentOptions.setParentDir( new_parent.getAbsolutePath());
 				torrentOptions.setSubDir( newDir.getName());
-			
+				torrentOptions.setManualRename( new_parent.getName());
+				
 				updateDataDirCombo();
 				
 				cmbDataDirChanged();

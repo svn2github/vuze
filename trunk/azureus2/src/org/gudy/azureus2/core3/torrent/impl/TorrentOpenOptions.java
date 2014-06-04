@@ -72,6 +72,8 @@ public class TorrentOpenOptions
 
 	private String sDestDir;
 
+	private String manualRename;	// if user has manually renamed the top level folder
+	
 	/** for multifiletorrents and change location */
 	/** @todo: getter/setters */
 	private String sDestSubDir;
@@ -195,6 +197,19 @@ public class TorrentOpenOptions
 		parentDirChanged();
 	}
 
+	public void
+	setManualRename(
+		String	manualRename )
+	{
+		this.manualRename = manualRename;
+	}
+	
+	public String
+	getManualRename()
+	{
+		return( manualRename );
+	}
+	
 	public String
 	getSubDir()
 	{
@@ -484,7 +499,7 @@ public class TorrentOpenOptions
 							+ info.getDestFileName());
 				}
 
-				info.setDestFileName(file.getName());
+				info.setDestFileName(file.getName(),false);
 			}
 		}
 	}
