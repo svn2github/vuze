@@ -116,7 +116,7 @@ public class BDecoder
 		return( decode(new BDecoderInputStreamArray(data),true));
 	}
 
-	public Map 
+	public Map<String, Object> 
 	decodeByteArray(
 		byte[] 	data,
 		int		offset,
@@ -127,7 +127,7 @@ public class BDecoder
 		return( decode(new BDecoderInputStreamArray(data, offset, length ),true));
 	}
 	
-	public Map 
+	public Map<String, Object> 
 	decodeByteArray(
 		byte[] 	data,
 		int		offset,
@@ -140,14 +140,14 @@ public class BDecoder
 	}
 	
 	// used externally 
-	public Map decodeByteBuffer(ByteBuffer buffer, boolean internKeys) throws IOException {
+	public Map<String, Object> decodeByteBuffer(ByteBuffer buffer, boolean internKeys) throws IOException {
 		InputStream is = new BDecoderInputStreamArray(buffer);
 		Map result = decode(is,internKeys);
 		buffer.position(buffer.limit()-is.available());
 		return result;
 	}
 	
-	public Map 
+	public Map<String, Object> 
 	decodeStream(
 		BufferedInputStream data )  
 
@@ -156,7 +156,7 @@ public class BDecoder
 		return decodeStream(data, true);
 	}
 
-	public Map 
+	public Map<String, Object> 
 	decodeStream(
 		BufferedInputStream data,
 		boolean internKeys)  
@@ -177,7 +177,7 @@ public class BDecoder
 		return((Map)res );
 	}
 
-	private Map 
+	private Map<String, Object> 
 	decode(
 		InputStream data, boolean internKeys ) 
 
@@ -194,7 +194,7 @@ public class BDecoder
 			throw( new BEncodingException( "BDecoder: top level isn't a Map" ));
 		}
 
-		return((Map)res );
+		return((Map<String, Object>)res );
 	}
 	
 	// reuseable objects for key decoding
