@@ -395,27 +395,69 @@ public class FilesViewMenuUtil
 					paused = manager.pause();
 				}
 
+				boolean	dont_delete_existing = false;
+				
 				if (f_target.exists()) {
 
-					// Nothing to do.
-					if (f_target.equals(existing_file))
+						// Nothing to do.
+					
+					if ( f_target.equals(existing_file)){
+						
 						continue;
 
-					// A rewrite will occur, so we need to ask the user's permission.
-					else if (existing_file.exists() && !askCanOverwrite(existing_file))
-						continue;
+					}else if ( retarget_it ){
+						
+						// we're doing a re-target so we just need to update the file info to refer to the new existing file
+						
+						dont_delete_existing = true;
+						
+					}else if ( existing_file.exists() && !askCanOverwrite(existing_file)){
 
+						// A rewrite will occur, so we need to ask the user's permission.
+
+						continue;
+					}
+					
 					// If we reach here, then it means we are doing a real move, but there is
 					// no existing file.
 				}
 
 				final File ff_target = f_target;
-				final TableRowCore row = tv == null ? null : tv.getRow(datasources[i]);
+				
+				TableRowCore row = tv == null ? null : tv.getRow(datasources[i]);
+				
+				if ( row == null ){
+					
+					row = tv.getRow( fileInfo.getDownloadManager());
+					
+					if ( row != null ){
+						
+						TableRowCore[] subrows = row.getSubRowsWithNull();
+								
+						if ( subrows != null ){
+							
+							for ( TableRowCore sr: subrows ){
+								
+								if ( sr.getDataSource(true) == fileInfo ){
+									
+									row = sr;
+									
+									break;
+								}
+							}
+						}
+					}
+				}
+				
+				final TableRowCore f_row = row;
+				
+				final boolean f_dont_delete_existing = dont_delete_existing;
+				
 				Utils.getOffOfSWTThread(new AERunnable() {
 					public void runSupport() {
-						moveFile(fileInfo.getDownloadManager(), fileInfo, ff_target);
-						if (row != null) {
-							row.invalidate(true);
+						moveFile(fileInfo.getDownloadManager(), fileInfo, ff_target, f_dont_delete_existing );
+						if (f_row != null) {
+							f_row.invalidate(true);
 						}
 					}
 				});
@@ -624,8 +666,7 @@ public class FilesViewMenuUtil
 	}
 
 	private static String askForRetargetedFilename(DiskManagerFileInfo fileInfo) {
-		FileDialog fDialog = new FileDialog(Utils.findAnyShell(), SWT.SYSTEM_MODAL
-				| SWT.SAVE);
+		FileDialog fDialog = new FileDialog(Utils.findAnyShell(), SWT.SYSTEM_MODAL ); // parg - removed SAVE option as this prevents the selection of existing read-only media when re-targetting	| SWT.SAVE);
 		File existing_file = fileInfo.getFile(true);
 		fDialog.setFilterPath(existing_file.getParent());
 		fDialog.setFileName(existing_file.getName());
@@ -658,13 +699,24 @@ public class FilesViewMenuUtil
 	}
 
 	// same code is used in tableitems.files.NameItem
-	private static void moveFile(final DownloadManager manager,
-			final DiskManagerFileInfo fileInfo, final File target) {
+	private static void 
+	moveFile(
+		final DownloadManager 			manager,
+		final DiskManagerFileInfo 		fileInfo, 
+		final File 						target,
+		boolean							dont_delete_existing ) 
+	{
 
 		// this behaviour should be put further down in the core but I'd rather not
 		// do so close to release :(
 
 		manager.setUserData("is_changing_links", true);
+		
+		if ( dont_delete_existing ){
+				// I don't link this one bit, but there's a lot of things I don't like and this isn't the worst
+			manager.setUserData("set_link_dont_delete_existing", true);
+		}
+		
 		try {
 			final boolean[] result = {
 				false
@@ -675,6 +727,8 @@ public class FilesViewMenuUtil
 					result[0] = fileInfo.setLink(target);
 
 					manager.setUserData("is_changing_links", false);
+					manager.setUserData("set_link_dont_delete_existing", null);
+					
 					if (!result[0]) {
 						new MessageBoxShell(SWT.ICON_ERROR | SWT.OK,
 								MessageText.getString("FilesView.rename.failed.title"),
@@ -684,6 +738,7 @@ public class FilesViewMenuUtil
 			});
 		} catch (Exception e) {
 			manager.setUserData("is_changing_links", false);
+			manager.setUserData("set_link_dont_delete_existing", null);
 		}
 	}
 
