@@ -201,7 +201,11 @@ TOTorrentCreateImpl
 	{			
 		int ignored = constructFixed( torrent_base, piece_length );
 		
-		if ( linkage_map.size() != ( linked_tf_map.size() + ignored )){
+			// linkage map doesn't include ignored files, if it is supplied, so take account of this when
+			// checking that linkages have resolved correctly
+		
+		if ( 	linkage_map.size() > 0 &&
+				linkage_map.size() != ( linked_tf_map.size() + ignored )){
 			
 			throw( new TOTorrentException( "TOTorrentCreate: unresolved linkages: required=" + linkage_map + ", resolved=" + linked_tf_map,
 					TOTorrentException.RT_DECODE_FAILS));
