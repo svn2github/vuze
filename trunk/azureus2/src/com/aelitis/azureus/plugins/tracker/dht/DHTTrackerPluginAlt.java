@@ -33,12 +33,15 @@ import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 
+
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 
 import com.aelitis.azureus.core.dht.transport.DHTTransportAlternativeContact;
 import com.aelitis.azureus.core.dht.transport.DHTTransportAlternativeNetwork;
@@ -48,13 +51,17 @@ public class
 DHTTrackerPluginAlt 
 {
 	private static final int INITAL_DELAY	= 5*1000;
-			
+	private static final int LOOKUP_TIMEOUT	= 15*1000;
+	
+	private static final int CONC_LOOKUPS	= 8;
+	
 	private final byte[]	NID = new byte[20];
 	
 	private DatagramSocket	current_server;
 	
-	private ByteArrayHashMap<GetPeersTask>	tid_map = new ByteArrayHashMap<GetPeersTask>();
+	private ByteArrayHashMap<Object[]>	tid_map = new ByteArrayHashMap<Object[]>();
 
+	private TimerEventPeriodic	timer_event;
 	
 	protected
 	DHTTrackerPluginAlt()
@@ -112,7 +119,7 @@ DHTTrackerPluginAlt
 								
 								if ( tid != null ){
 									
-									GetPeersTask task;
+									Object[] task;
 									
 									synchronized( tid_map ){
 					
@@ -121,7 +128,7 @@ DHTTrackerPluginAlt
 									
 									if ( task != null ){
 										
-										task.handleReply( map );
+										((GetPeersTask)task[0]).handleReply( map );
 									}
 								}
 							}
@@ -161,6 +168,9 @@ DHTTrackerPluginAlt
 		final boolean				no_seeds,
 		final LookupListener		listener )
 	{	
+		if ( true ){
+			return;	// disable for the moment
+		}
 		SimpleTimer.addEvent(
 			"altlookup.delay",
 			SystemTime.getCurrentTime() + INITAL_DELAY,
@@ -210,7 +220,7 @@ DHTTrackerPluginAlt
 		GetPeersTask		task,
 		DatagramSocket		server,
 		InetSocketAddress	address,
-		Map					map )
+		Map<String,Object>	map )
 		
 		throws IOException
 	{
@@ -227,11 +237,30 @@ DHTTrackerPluginAlt
 					continue;
 				}
 				
-				tid_map.put( tid, task );
+				tid_map.put( tid, new Object[]{ task, SystemTime.getMonotonousTime() });
+				
+				if ( timer_event == null ){
+					
+					timer_event = 
+						SimpleTimer.addPeriodicEvent(
+							"dhtalttimer",
+							2500,
+							new TimerEventPerformer() 
+							{	
+								public void 
+								perform(
+									TimerEvent event) 
+								{
+									checkTimeouts();
+								}
+							});
+				}
 			}
 			
 			map.put( "t", tid );
 	
+			System.out.println( "Sending: " + map );
+				
 			byte[] 	data_out = BEncoder.encode( map );
 			
 			DatagramPacket packet = new DatagramPacket( data_out, data_out.length);
@@ -241,6 +270,55 @@ DHTTrackerPluginAlt
 			server.send( packet );
 			
 			break;
+		}
+	}
+	
+	private void
+	checkTimeouts()
+	{
+		long	now = SystemTime.getMonotonousTime();
+		
+		List<GetPeersTask>	timeouts = null;
+		
+		synchronized( tid_map ){
+			
+			Iterator<byte[]> it = tid_map.keys().iterator();
+			
+			while( it.hasNext()){
+				
+				byte[] key = it.next();
+				
+				Object[]	value = tid_map.get( key );
+				
+				long time = (Long)value[1];
+				
+				if ( now - time > LOOKUP_TIMEOUT ){
+					
+					tid_map.remove( key );
+					
+					if ( timeouts == null ){
+						
+						timeouts = new ArrayList<GetPeersTask>();
+					}
+					
+					timeouts.add((GetPeersTask)value[0]);
+				}
+			}
+		}
+		
+		if ( timeouts != null ){
+			
+			for ( GetPeersTask task: timeouts ){
+				
+				try{
+				
+					task.handleTimeout();
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
 		}
 	}
 	
@@ -286,11 +364,11 @@ DHTTrackerPluginAlt
 
 							if ( d1 < d2 ){
 								
-								return -1;
+								return( -1 );
 								
 							}else{
 								
-								return 1;
+								return( 1 );
 							}
 						}
 						
@@ -390,11 +468,11 @@ DHTTrackerPluginAlt
 						
 						bb.get( address );
 						
-						int	port = bb.getShort() & 0xffff;
+						int	port = bb.getShort()&0xffff;
 						
 						InetSocketAddress addr = new InetSocketAddress( InetAddress.getByAddress(address), port );
 						
-						System.out.println( "Got value: " + addr );
+						listener.foundPeer( addr );
 						
 					}catch( Throwable e ){
 					}
@@ -425,19 +503,23 @@ DHTTrackerPluginAlt
 					try{
 						InetSocketAddress addr = new InetSocketAddress( InetAddress.getByAddress(address), port );
 				
-						to_query.put( nid, addr );
-						
+						synchronized( queried_nodes ){
+
+							if ( !queried_nodes.contains( addr )){
+								
+								to_query.put( nid, addr );
+							}
+						}
 					}catch( Throwable e ){
-						
 					}
 				}
+			}
 				
-				for ( Map.Entry<byte[],InetSocketAddress> entry: to_query.entrySet()){
+			for ( Map.Entry<byte[],InetSocketAddress> entry: to_query.entrySet()){
 					
-					//System.out.println( ByteFormatter.encodeString( entry.getKey()) + " -> " + entry.getValue());
+				//System.out.println( ByteFormatter.encodeString( entry.getKey()) + " -> " + entry.getValue());
 					
-					search( entry.getValue());
-				}
+				//search( entry.getValue());
 			}
 		}
 	}

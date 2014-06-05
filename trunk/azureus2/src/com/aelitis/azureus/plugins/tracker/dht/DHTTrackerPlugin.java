@@ -1733,6 +1733,8 @@ DHTTrackerPlugin
 		
 		final long[]	max_retry = { 0 };
 		
+		final boolean do_alt = !download.getFlag( Download.FLAG_LOW_NOISE );
+		
 		int	num_done = 0;
 		
 		for (int i=0;i<targets.length;i++){
@@ -1776,24 +1778,27 @@ DHTTrackerPlugin
 						volatile boolean	complete;
 						
 						{
-							alt_lookup_handler.get( 
-									target.getHash(),
-									is_complete,
-									new DHTTrackerPluginAlt.LookupListener()
-									{
-										public void
-										foundPeer(
-											InetSocketAddress	address )
+							if ( do_alt ){
+								
+								alt_lookup_handler.get( 
+										target.getHash(),
+										is_complete,
+										new DHTTrackerPluginAlt.LookupListener()
 										{
-											alternativePeerRead( address );
-										}
-										
-										public boolean
-										isComplete()
-										{
-											return( complete && addresses.size() > 5 );
-										}
-									});
+											public void
+											foundPeer(
+												InetSocketAddress	address )
+											{
+												alternativePeerRead( address );
+											}
+											
+											public boolean
+											isComplete()
+											{
+												return( complete && addresses.size() > 5 );
+											}
+										});
+							}
 						}
 						
 						public boolean
