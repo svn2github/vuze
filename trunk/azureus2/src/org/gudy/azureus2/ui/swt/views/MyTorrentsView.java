@@ -795,6 +795,9 @@ public class MyTorrentsView
 	}
 
 	public boolean filterCheck(DownloadManager dm, String sLastSearch, boolean bRegexSearch) {
+		if ( dm == null ){
+			return( false );
+		}
 		boolean bOurs;
 		if (sLastSearch.length() > 0) {
 			try {
