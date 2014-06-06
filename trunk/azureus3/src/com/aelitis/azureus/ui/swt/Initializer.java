@@ -29,7 +29,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
@@ -62,17 +61,15 @@ import com.aelitis.azureus.core.versioncheck.VersionCheckClient;
 import com.aelitis.azureus.core.versioncheck.VersionCheckClientListener;
 import com.aelitis.azureus.ui.IUIIntializer;
 import com.aelitis.azureus.ui.InitializerListener;
+import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
 import com.aelitis.azureus.ui.swt.browser.listener.*;
 import com.aelitis.azureus.ui.swt.browser.msg.MessageDispatcherSWT;
 import com.aelitis.azureus.ui.swt.devices.DeviceManagerUI;
 import com.aelitis.azureus.ui.swt.feature.FeatureManagerUI;
-import com.aelitis.azureus.ui.swt.shells.main.MainWindow;
 import com.aelitis.azureus.ui.swt.shells.main.MainWindowFactory;
-import com.aelitis.azureus.ui.swt.shells.main.MainWindowFactory.MainWindowInitStub;
 import com.aelitis.azureus.ui.swt.subscriptions.SubscriptionManagerUI;
 import com.aelitis.azureus.ui.swt.utils.UIMagnetHandler;
-import com.aelitis.azureus.util.ConstantsVuze;
 import com.aelitis.azureus.util.InitialisationFunctions;
 
 /**
@@ -402,15 +399,21 @@ public class Initializer
 		core.addLifecycleListener(new AzureusCoreLifecycleAdapter() {
 			private GlobalManager gm;
 
-			public void componentCreated(AzureusCore core,
-					AzureusCoreComponent component) {
+			public void 
+			componentCreated(
+				AzureusCore 			core,
+				AzureusCoreComponent 	component )
+			{
 				Initializer.this.reportPercent(curPercent + 1);
-				if (component instanceof GlobalManager) {
+				
+				if (component instanceof GlobalManager){
+					
 					reportCurrentTaskByKey("splash.initializePlugins");
 
 					gm = (GlobalManager) component;
 
 					InitialisationFunctions.earlyInitialisation(core);
+					
 				}
 			}
 
@@ -458,12 +461,20 @@ public class Initializer
 					//Finally, open torrents if any.
 					for (int i = 0; i < args.length; i++) {
 	
-						try {
-							TorrentOpener.openTorrent(args[i]);
-	
-						} catch (Throwable e) {
-	
-							Debug.printStackTrace(e);
+						String arg = args[i];
+						
+						if ( arg.equalsIgnoreCase( "--open" )){
+							
+								// can get this here so skip as not a torrent!
+							
+						}else{
+							try {
+								TorrentOpener.openTorrent( arg );
+		
+							} catch (Throwable e) {
+		
+								Debug.printStackTrace(e);
+							}
 						}
 					}
 				}
@@ -557,6 +568,25 @@ public class Initializer
 		new CertificateTrustWindow();
 
 		InstallPluginWizard.register(core, display);
+		
+			// finally check if an explicit open has been requested in case hidden in tray atm
+		
+		for (int i = 0; i < args.length; i++) {
+			
+			String arg = args[i];
+			
+			if ( arg.equalsIgnoreCase( "--open" )){
+				
+				UIFunctions uif = UIFunctionsManager.getUIFunctions();
+				
+				if ( uif != null ){
+				
+					uif.bringToFront();
+				}
+				
+				break;
+			}
+		}
 	}
 
 	public void stopIt(boolean isForRestart, boolean isCloseAreadyInProgress)
