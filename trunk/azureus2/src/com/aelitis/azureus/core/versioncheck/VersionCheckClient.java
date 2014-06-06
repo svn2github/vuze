@@ -1450,6 +1450,8 @@ public class VersionCheckClient {
 		boolean using_phe = COConfigurationManager.getBooleanParameter( "network.transport.encrypted.require" );
 		message.put( "using_phe", using_phe ? new Long(1) : new Long(0) );
 
+		message.put( "imode", COConfigurationManager.getStringParameter( "installer.mode", "" ));
+		
 		//swt stuff
 		try {
 			Class c = Class.forName( "org.eclipse.swt.SWT" );

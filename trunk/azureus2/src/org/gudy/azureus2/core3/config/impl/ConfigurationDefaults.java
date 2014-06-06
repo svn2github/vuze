@@ -243,6 +243,8 @@ public class ConfigurationDefaults {
     
     def.put("Start On Login", FALSE );
     def.put("Start In Low Resource Mode", FALSE );
+    def.put("Auto Register App", FALSE );
+    
     def.put("Pause Downloads On Exit", FALSE );
     def.put("Resume Downloads On Start", FALSE );
     def.put("On Downloading Complete Do", "Nothing" );
@@ -281,6 +283,8 @@ public class ConfigurationDefaults {
     def.put("update.opendialog",TRUE);
     def.put("update.autodownload", FALSE);
 
+    def.put( "Config Verify Frequency", new Long( 30*60*1000 ));
+    
     def.put("Send Version Info", TRUE);
     
     // Logging
@@ -669,6 +673,8 @@ public class ConfigurationDefaults {
     def.put( "Show Options In Side Bar", FALSE );
     
     def.put( "Share Ratio Progress Interval", 1000L );	// thousandths
+    
+    def.put( "installer.mode", "" );		// the type of the last installer used (see installer code for values)
 }
   
   protected 

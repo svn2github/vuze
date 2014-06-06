@@ -22,7 +22,6 @@
 package org.gudy.azureus2.core3.config.impl;
 
 
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
@@ -34,6 +33,9 @@ import org.gudy.azureus2.core3.config.*;
 import org.gudy.azureus2.core3.security.*;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.logging.*;
+import org.gudy.azureus2.platform.PlatformManager;
+import org.gudy.azureus2.platform.PlatformManagerCapabilities;
+import org.gudy.azureus2.platform.PlatformManagerFactory;
 
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
 import com.aelitis.azureus.core.speedmanager.impl.SpeedManagerImpl;
@@ -829,7 +831,10 @@ ConfigurationChecker
 	    
 	    if(changed) {
 	      COConfigurationManager.save();
-	    } 
+	    }
+	    
+	    setupVerifier();
+	    
   	}finally{
   		
   		class_mon.exit();
@@ -838,6 +843,72 @@ ConfigurationChecker
   	ConfigurationDefaults.getInstance().runVerifiers();
   }
   	
+  private static void
+  setupVerifier()
+  {
+	  SimpleTimer.addEvent(
+			"ConfigCheck:ver",
+			SystemTime.getOffsetTime( 10*1000 ),
+			new TimerEventPerformer() {
+				
+				private TimerEventPeriodic event;
+				
+				public void 
+				perform(
+					TimerEvent ev )
+				{
+					runVerifier();
+					
+					if ( event == null ){
+						
+						long freq = COConfigurationManager.getLongParameter( "Config Verify Frequency" );
+						
+						if ( freq > 0 ){
+						
+							freq = Math.max( freq,  5*60*1000 );
+								
+							event = 
+								SimpleTimer.addPeriodicEvent(
+									"ConfigCheck:ver",
+									freq,
+									this );
+						}
+					}
+				}
+			});
+  }
+  
+  private static void
+  runVerifier()
+  {
+	  try{
+		  PlatformManager pm = PlatformManagerFactory.getPlatformManager();
+		  
+		  if ( pm.hasCapability( PlatformManagerCapabilities.RunAtLogin )){
+			
+			  boolean	start_on_login = COConfigurationManager.getBooleanParameter( "Start On Login" );
+			  
+			  if ( pm.getRunAtLogin() != start_on_login ){
+				  
+				  pm.setRunAtLogin( start_on_login );
+			  }
+		  }
+		  
+		  if ( pm.hasCapability(PlatformManagerCapabilities.RegisterFileAssociations )){
+			  
+			  boolean	auto_reg = COConfigurationManager.getBooleanParameter( "Auto Register App" );
+
+			  if ( auto_reg ){
+				  
+				  pm.registerApplication();
+			  }
+		  }
+	  }catch( Throwable e ){
+		  
+		  Debug.out( e );
+	  }
+  }
+  
 	public static final boolean
 	isNewInstall()
 	{

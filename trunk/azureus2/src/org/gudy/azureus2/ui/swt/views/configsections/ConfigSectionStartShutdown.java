@@ -27,7 +27,6 @@ package org.gudy.azureus2.ui.swt.views.configsections;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
@@ -47,8 +46,6 @@ import org.gudy.azureus2.ui.swt.config.*;
 import org.gudy.azureus2.ui.swt.plugins.UISWTConfigSection;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
 import org.gudy.azureus2.ui.swt.views.utils.ManagerUtils;
-
-import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 import java.io.File;
 import java.util.ArrayList;
