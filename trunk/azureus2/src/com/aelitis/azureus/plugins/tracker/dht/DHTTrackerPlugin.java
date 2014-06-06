@@ -1847,7 +1847,12 @@ DHTTrackerPlugin
 								
 								if ( pm != null ){
 									
-									pm.addPeer(peer.getAddress().getHostAddress(), peer.getPort() );
+									pm.peerDiscovered( 
+										PEPeerSource.PS_DHT,
+										peer.getAddress().getHostAddress(), 
+										peer.getPort(),
+										0,
+										NetworkManager.getCryptoRequired( NetworkManager.CRYPTO_OVERRIDE_NONE ));
 								}
 							}
 						}

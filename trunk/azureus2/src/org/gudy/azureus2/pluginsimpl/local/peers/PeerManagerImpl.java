@@ -356,6 +356,22 @@ PeerManagerImpl
 		}
 	}
 		
+	public void 
+	peerDiscovered( 
+		String		peer_source,
+		String 		ip_address, 
+		int 		tcp_port, 
+		int			udp_port,
+		boolean 	use_crypto )
+	{
+		checkIfPrivate();
+		
+		if ( manager.isPeerSourceEnabled( peer_source )){
+
+			manager.peerDiscovered( peer_source, ip_address, tcp_port, udp_port, use_crypto );
+		}
+	}
+	
 	protected boolean
 	pluginPeerSourceEnabled()
 	{

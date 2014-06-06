@@ -120,7 +120,7 @@ DHTTransportUDP
 		}
 	}
 	
-	public static final byte PROTOCOL_VERSION_MAIN					= Helper.getVersion( PROTOCOL_VERSION_VIVALDI_OPTIONAL );
+	public static final byte PROTOCOL_VERSION_MAIN					= Helper.getVersion( PROTOCOL_VERSION_ALT_CONTACTS );
 	public static final byte PROTOCOL_VERSION_CVS					= Helper.getVersion( PROTOCOL_VERSION_ALT_CONTACTS );
 
 	public static final byte PROTOCOL_VERSION_MIN					= Helper.getVersion( PROTOCOL_VERSION_RESTRICT_ID3 );

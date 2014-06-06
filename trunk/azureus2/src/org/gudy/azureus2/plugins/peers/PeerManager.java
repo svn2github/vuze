@@ -54,21 +54,21 @@ PeerManager
 	
 	public void 
 	addPeer( 
-		String ip_address, 
-		int port );
+		String 		ip_address, 
+		int 		port );
 	
 	public void 
 	addPeer( 
-		String 	ip_address, 
-		int 	tcp_port, 
-		boolean use_crypto );
+		String 		ip_address, 
+		int 		tcp_port, 
+		boolean 	use_crypto );
   
 	public void 
 	addPeer( 
-		String 	ip_address, 
-		int 	tcp_port, 
-		int		udp_port,
-		boolean use_crypto );
+		String 		ip_address, 
+		int 		tcp_port, 
+		int			udp_port,
+		boolean 	use_crypto );
   
 	public void 
 	addPeer( 
@@ -77,6 +77,14 @@ PeerManager
 		int					udp_port,
 		boolean 			use_crypto,
 		Map<Object,Object>	user_data );
+	
+	public void 
+	peerDiscovered( 
+		String				peer_source,
+		String 				ip_address, 
+		int 				tcp_port, 
+		int					udp_port,
+		boolean 			use_crypto );
 	
 	public void
 	removePeer(

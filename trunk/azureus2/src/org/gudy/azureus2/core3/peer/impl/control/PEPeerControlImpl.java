@@ -967,7 +967,53 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 	}
 
+	public void
+	peerDiscovered(
+		String		peer_source,
+		String 		ip_address, 
+		int			tcp_port, 
+		int			udp_port,
+		boolean 	use_crypto )
+	{
+		if ( peer_database != null ){
 
+			final ArrayList<PEPeer> peer_transports = peer_transports_cow;
+
+			for( int x=0; x < peer_transports.size(); x++ ){
+				
+				PEPeer transport = peer_transports.get( x );
+
+					// allow loopback connects for co-located proxy-based connections and testing
+
+				if ( ip_address.equals( transport.getIp())){
+
+					boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) ||
+					
+					transport.getIp().equals( "127.0.0.1" );
+
+					if ( !same_allowed || tcp_port == transport.getPort()){
+						
+						return;
+					}
+				}
+			}
+
+			byte type = use_crypto ? PeerItemFactory.HANDSHAKE_TYPE_CRYPTO : PeerItemFactory.HANDSHAKE_TYPE_PLAIN;
+
+			PeerItem item = PeerItemFactory.createPeerItem( 
+					ip_address, 
+					tcp_port, 
+					PeerItem.convertSourceID( peer_source ), 
+					type, 
+					udp_port, 
+					PeerItemFactory.CRYPTO_LEVEL_1,
+					0 );
+
+			peerDiscovered( null, item );
+			
+			peer_database.addDiscoveredPeer( item );
+		}
+	}
 
 	private void 
 	addPeersFromTracker(
