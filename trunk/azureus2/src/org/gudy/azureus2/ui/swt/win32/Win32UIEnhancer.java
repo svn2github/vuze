@@ -386,7 +386,6 @@ public class Win32UIEnhancer
 	static long /*int*/messageProc2(long /*int*/hwnd, long /*int*/msg,
 			long /*int*/wParam, long /*int*/lParam) {
 		try {
-			System.out.println( "got " + msg );
 			// I'll clean this up soon
 			switch ((int) /*64*/msg) {
 				case WM_DEVICECHANGE:
