@@ -118,6 +118,8 @@ public class Win32UIEnhancer
 
 	private static Method mGetWindowLongPtr;
 
+	private static Method mCallWindowProc;
+	
 	static {
 		try {
 			claOS = Class.forName("org.eclipse.swt.internal.win32.OS");
@@ -169,8 +171,20 @@ public class Win32UIEnhancer
 							int.class,
 							int.class
 						});
+				
 				mGetWindowLongPtr = claOS.getMethod("GetWindowLongPtr",
 						new Class[] {
+							int.class,
+							int.class
+						});
+				
+				// int /*long*/ CallWindowProc (int /*long*/ lpPrevWndFunc, int /*long*/ hWnd, int Msg, int /*long*/ wParam, int /*long*/ lParam) {
+
+				mCallWindowProc = claOS.getMethod("CallWindowProc",
+						new Class[] {
+							int.class,
+							int.class,
+							int.class,
 							int.class,
 							int.class
 						});
@@ -206,7 +220,16 @@ public class Win32UIEnhancer
 							long.class,
 							int.class
 						});
-
+				
+				mCallWindowProc = claOS.getMethod("CallWindowProc",
+						new Class[] {
+							long.class,
+							long.class,
+							int.class,
+							long.class,
+							long.class
+						});
+				
 				useLong = true;
 				mOS_memmove_byte = claOS.getMethod("memmove", new Class[] {
 					byte[].class,
@@ -363,6 +386,7 @@ public class Win32UIEnhancer
 	static long /*int*/messageProc2(long /*int*/hwnd, long /*int*/msg,
 			long /*int*/wParam, long /*int*/lParam) {
 		try {
+			System.out.println( "got " + msg );
 			// I'll clean this up soon
 			switch ((int) /*64*/msg) {
 				case WM_DEVICECHANGE:
@@ -501,9 +525,16 @@ public class Win32UIEnhancer
 					}
 					break;
 			}
+
+			if (useLong) {
+				return (Long)mCallWindowProc.invoke(null, new Object[]{ oldProc, hwnd, (int) msg, wParam, lParam });
+			}else{
+				return (Integer)mCallWindowProc.invoke(null, new Object[]{ (int)oldProc, (int)hwnd, (int) msg, (int)wParam, (int)lParam });
+			}
 		} catch (Exception e) {
 			e.printStackTrace();
+			
+			return( 0 );
 		}
-		return OS.CallWindowProc(oldProc, hwnd, (int) msg, wParam, lParam);
 	}
 }
