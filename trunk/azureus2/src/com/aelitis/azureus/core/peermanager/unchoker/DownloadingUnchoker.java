@@ -74,7 +74,7 @@ public class DownloadingUnchoker implements Unchoker {
   
   
 
-  public void calculateUnchokes( int max_to_unchoke, ArrayList<PEPeer> all_peers, boolean force_refresh, boolean check_priority_connections ) {
+  public void calculateUnchokes( int max_to_unchoke, ArrayList<PEPeer> all_peers, boolean force_refresh, boolean check_priority_connections, boolean do_high_latency_peers ) {
     int max_optimistic = ((max_to_unchoke - 1) / 10) + 1;  //one optimistic unchoke for every 10 upload slots
     
     ArrayList<PEPeer> optimistic_unchokes = new ArrayList<PEPeer>();
@@ -198,6 +198,10 @@ public class DownloadingUnchoker implements Unchoker {
       }
     }
 
+    if ( do_high_latency_peers ){
+    	
+    	UnchokerUtil.doHighLatencyPeers( chokes, unchokes, true );
+    }
   }
   
   

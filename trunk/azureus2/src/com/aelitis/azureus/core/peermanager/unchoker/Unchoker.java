@@ -49,7 +49,7 @@ Unchoker
    * @param all_peers list of peers to choose from
    * @param force_refresh force a refresh of optimistic unchokes
    */
-  public void calculateUnchokes( int max_to_unchoke, ArrayList<PEPeer> all_peers, boolean force_refresh, boolean check_priority_connections );
+  public void calculateUnchokes( int max_to_unchoke, ArrayList<PEPeer> all_peers, boolean force_refresh, boolean check_priority_connections, boolean do_high_latency_peers );
   
   /**
    * Get the list of peers calculated to be choked.

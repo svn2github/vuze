@@ -89,7 +89,7 @@ public class SeedingUnchoker implements Unchoker {
   
   
 
-  public void calculateUnchokes( int max_to_unchoke, ArrayList<PEPeer> all_peers, boolean force_refresh, boolean check_priority_connections ) {
+  public void calculateUnchokes( int max_to_unchoke, ArrayList<PEPeer> all_peers, boolean force_refresh, boolean check_priority_connections, boolean do_high_latency_peers ) {
 	  
 	int max_optimistic = ((max_to_unchoke - 1) / 5) + 1;  //one optimistic unchoke for every 5 upload slots
 	  
@@ -194,6 +194,11 @@ public class SeedingUnchoker implements Unchoker {
     if( check_priority_connections ) {
     	//add Friend peers preferentially, leaving room for 1 non-friend peer for every 5 upload slots
     	setBuddyUnchokes( max_to_unchoke - max_optimistic, all_peers );
+    }
+    
+    if ( do_high_latency_peers ){
+    	
+    	UnchokerUtil.doHighLatencyPeers( chokes, unchokes, false );
     }
   }
   

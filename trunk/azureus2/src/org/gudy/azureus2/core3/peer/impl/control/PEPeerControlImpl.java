@@ -226,6 +226,7 @@ DiskManagerCheckRequestListener, IPFilterListener
 	private static final int MAINLOOP_ONE_SECOND_INTERVAL = 1000 / PeerControlScheduler.SCHEDULE_PERIOD_MILLIS;
 	private static final int MAINLOOP_FIVE_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 5;
 	private static final int MAINLOOP_TEN_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 10;
+	private static final int MAINLOOP_TWENTY_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 20;
 	private static final int MAINLOOP_THIRTY_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 30;
 	private static final int MAINLOOP_SIXTY_SECOND_INTERVAL = MAINLOOP_ONE_SECOND_INTERVAL * 60;
 	private static final int MAINLOOP_TEN_MINUTE_INTERVAL = MAINLOOP_SIXTY_SECOND_INTERVAL * 10;
@@ -2042,7 +2043,29 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 				final boolean refresh = mainloop_loop_count % MAINLOOP_THIRTY_SECOND_INTERVAL == 0;
 
-				unchoker.calculateUnchokes( max_to_unchoke, peer_transports, refresh, adapter.hasPriorityConnection());
+				boolean	do_high_latency_peers =  mainloop_loop_count % MAINLOOP_TWENTY_SECOND_INTERVAL == 0 ;
+				
+				if ( do_high_latency_peers ){
+					
+					boolean ok = false;
+					
+					for ( String net: AENetworkClassifier.AT_NON_PUBLIC ){
+					
+						if ( adapter.isNetworkEnabled( net )){
+							
+							ok = true;
+							
+							break;
+						}
+					}
+					
+					if ( !ok ){
+						
+						do_high_latency_peers = false;
+					}
+				}
+				
+				unchoker.calculateUnchokes( max_to_unchoke, peer_transports, refresh, adapter.hasPriorityConnection(), do_high_latency_peers );
 
 				ArrayList	chokes 		= unchoker.getChokes();
 				ArrayList	unchokes	= unchoker.getUnchokes();

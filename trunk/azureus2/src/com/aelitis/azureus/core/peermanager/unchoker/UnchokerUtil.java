@@ -26,6 +26,7 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.impl.PEPeerTransport;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.RandomUtils;
 
 /**
@@ -205,4 +206,94 @@ public class UnchokerUtil {
 		}
   }
   
+  public static void 
+  doHighLatencyPeers( 
+	 ArrayList<PEPeer> 	peers_to_choke, 
+	 ArrayList<PEPeer> 	peers_to_unchoke,
+	 boolean			allow_snubbed )
+  {
+	
+	  // when called we don't want to choke high-latency peers
+	
+	  if ( peers_to_choke.size() == 0 ){
+		  
+		  return;
+	  }
+	  
+	  //System.out.println( "doHLP: " + peers_to_choke + ", " + peers_to_unchoke );
+	  
+	  Iterator<PEPeer> choke_it = peers_to_choke.iterator();
+	  
+	  int	to_remove = 0;
+	  
+	  while( choke_it.hasNext()){
+		  
+		  PEPeer peer = choke_it.next();
+		  
+		  if ( AENetworkClassifier.categoriseAddress( peer.getIp()) != AENetworkClassifier.AT_PUBLIC ){
+			  
+			  if ( isUnchokable( peer, allow_snubbed )){
+			
+				  //System.out.println( "   removed " + peer );
+				  
+				  choke_it.remove();
+			
+				  to_remove++;
+				  
+			  }else{
+				  
+				  // it isn't unchokable so we need to choke it whatever
+			
+			  }
+		  }
+	  }
+	  
+	  	// if we've removed any chokes then we need to balance things by removing an equal number
+	  	// of unchokes
+	  
+	  if ( to_remove > 0 ){
+		  
+		  ListIterator<PEPeer> unchoke_it = peers_to_unchoke.listIterator( peers_to_unchoke.size());
+		  
+		  	// preferrably balance with high latency peers
+		  
+		  while( unchoke_it.hasPrevious()){
+			 
+			  PEPeer peer = unchoke_it.previous();
+			  
+			  if ( AENetworkClassifier.categoriseAddress( peer.getIp()) != AENetworkClassifier.AT_PUBLIC ){
+				  
+				  //System.out.println( "   balanced with " + peer );
+				  
+				  unchoke_it.remove();
+				  
+				  to_remove--;
+				  
+				  if ( to_remove == 0 ){
+					  
+					  return;
+				  }
+			  }
+		  }
+		  
+		  if ( to_remove > 0 ){
+			 
+			  unchoke_it = peers_to_unchoke.listIterator( peers_to_unchoke.size());
+			  
+			  while( unchoke_it.hasPrevious()){
+				 	
+				  PEPeer peer = unchoke_it.previous();
+				  
+				  unchoke_it.remove();
+				  
+				  to_remove--;
+				  
+				  if ( to_remove == 0 ){
+					  
+					  return;
+				  }
+			  }
+		  }
+	  }
+  }	  
 }

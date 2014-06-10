@@ -49,6 +49,8 @@ AENetworkClassifier
 	public static final String[]	AT_NETWORKS =
 		{ AT_PUBLIC, AT_I2P, AT_TOR };
 	
+	public static final String[] AT_NON_PUBLIC = { AT_I2P, AT_TOR };
+	
 	private static List	listeners = new ArrayList();
 	
 	public static String
