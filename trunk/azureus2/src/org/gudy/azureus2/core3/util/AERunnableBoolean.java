@@ -28,7 +28,7 @@ package org.gudy.azureus2.core3.util;
 public abstract class AERunnableBoolean
 	implements Runnable
 {
-	private boolean[] returnValueObject;
+	private Boolean[] returnValueObject;
 
 	private AESemaphore sem;
 
@@ -53,7 +53,7 @@ public abstract class AERunnableBoolean
 		}
 	}
 
-	public void setupReturn(String ID, boolean[] returnValueObject,
+	public void setupReturn(String ID, Boolean[] returnValueObject,
 			AESemaphore sem) {
 		id = ID;
 		this.returnValueObject = returnValueObject;

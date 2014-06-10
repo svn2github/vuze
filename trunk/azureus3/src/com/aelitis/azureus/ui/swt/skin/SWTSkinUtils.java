@@ -236,7 +236,7 @@ public class SWTSkinUtils
 			final Point destSize, final Runnable runOnCompletion) {
 		final Control control = skinObject.getControl();
 		//System.out.println("slide to " + size + " via "+ Debug.getCompressedStackTrace());
-		boolean exit = Utils.execSWTThreadWithBool("slide",
+		Boolean exit = Utils.execSWTThreadWithBool("slide",
 				new AERunnableBoolean() {
 					public boolean runSupport() {
 						boolean exit = control.getData("slide.active") != null;
@@ -253,7 +253,7 @@ public class SWTSkinUtils
 					}
 				}, 1000);
 
-		if (exit) {
+		if (exit == null || exit) {
 			return;
 		}
 

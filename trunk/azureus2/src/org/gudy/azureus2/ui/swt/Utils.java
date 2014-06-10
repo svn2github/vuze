@@ -46,6 +46,9 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
+import org.gudy.azureus2.core3.logging.LogEvent;
+import org.gudy.azureus2.core3.logging.LogIDs;
+import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
@@ -1665,7 +1668,7 @@ public class Utils
 	 * @deprecated Use {@link #execSWTThread(AERunnableWithCallback)} to avoid
 	 *             thread locking issues
 	 */
-	public static boolean execSWTThreadWithBool(String ID, AERunnableBoolean code) {
+	public static Boolean execSWTThreadWithBool(String ID, AERunnableBoolean code) {
 		return execSWTThreadWithBool(ID, code, 0);
 	}
 
@@ -1687,16 +1690,19 @@ public class Utils
 	 * @param ID id for debug
 	 * @param code code to run
 	 * @param millis ms to timeout in
-	 * @return
+	 * 
+	 * @return returns NULL if code never run
 	 */
-	public static boolean execSWTThreadWithBool(String ID,
+	public static Boolean execSWTThreadWithBool(String ID,
 			AERunnableBoolean code, long millis) {
 		if (code == null) {
-			return false;
+			Logger.log(new LogEvent(LogIDs.CORE, "code null"));
+			
+			return null;
 		}
 
-		boolean[] returnValueObject = {
-			false
+		Boolean[] returnValueObject = {
+			null
 		};
 
 		Display display = getDisplay();
@@ -1712,7 +1718,7 @@ public class Utils
 			if (!execSWTThread(code)) {
 				// code never got run
 				// XXX: throw instead?
-				return false;
+				return null;
 			}
 		} catch (Throwable e) {
 			if (sem != null) {

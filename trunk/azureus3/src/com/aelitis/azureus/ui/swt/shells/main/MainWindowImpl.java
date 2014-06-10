@@ -1177,12 +1177,13 @@ public class MainWindowImpl
 		if (disposedOrDisposing) {
 			return true;
 		}
-		return Utils.execSWTThreadWithBool("v3.MainWindow.dispose",
+		Boolean b = Utils.execSWTThreadWithBool("v3.MainWindow.dispose",
 				new AERunnableBoolean() {
 					public boolean runSupport() {
 						return _dispose(for_restart, close_already_in_progress);
 					}
 				});
+		return b == null || b;
 	}
 
 	private boolean _dispose(final boolean bForRestart, boolean bCloseAlreadyInProgress) {
