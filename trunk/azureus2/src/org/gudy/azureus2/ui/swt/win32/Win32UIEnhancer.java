@@ -24,23 +24,21 @@ import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.internal.win32.OS;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.platform.win32.access.AEWin32Access;
 import org.gudy.azureus2.platform.win32.access.AEWin32Manager;
-import org.gudy.azureus2.platform.win32.access.impl.AEWin32AccessImpl;
 import org.gudy.azureus2.platform.win32.access.impl.AEWin32AccessInterface;
 
-import com.aelitis.azureus.core.drivedetector.*;
+import com.aelitis.azureus.core.drivedetector.DriveDetectedInfo;
+import com.aelitis.azureus.core.drivedetector.DriveDetector;
+import com.aelitis.azureus.core.drivedetector.DriveDetectorFactory;
 
 /**
  * @author TuxPaper
@@ -52,7 +50,7 @@ import com.aelitis.azureus.core.drivedetector.*;
 public class Win32UIEnhancer
 {
 
-	public static final boolean DEBUG = false;
+	public static final boolean DEBUG = true;
 
 	public static final int SHGFI_ICON = 0x000000100;
 	
@@ -116,6 +114,10 @@ public class Win32UIEnhancer
 
 	private static int SHFILEINFO_sizeof;
 
+	private static long oldProc;
+
+	private static Method mGetWindowLongPtr;
+
 	static {
 		try {
 			claOS = Class.forName("org.eclipse.swt.internal.win32.OS");
@@ -167,6 +169,11 @@ public class Win32UIEnhancer
 							int.class,
 							int.class
 						});
+				mGetWindowLongPtr = claOS.getMethod("GetWindowLongPtr",
+						new Class[] {
+							int.class,
+							int.class
+						});
 
 				useLong = false;
 				
@@ -193,6 +200,11 @@ public class Win32UIEnhancer
 							long.class,
 							int.class,
 							long.class
+						});
+				mGetWindowLongPtr = claOS.getMethod("GetWindowLongPtr",
+						new Class[] {
+							long.class,
+							int.class
 						});
 
 				useLong = true;
@@ -279,7 +291,13 @@ public class Win32UIEnhancer
 				4
 			});
 
+
 			Object oHandle = subshell.getClass().getField("handle").get(subshell);
+			oldProc = ((Number) mGetWindowLongPtr.invoke(null,  new Object[] {
+				oHandle,
+				OS_GWLP_WNDPROC
+			})).longValue();
+
 			if (useLong) {
 				Number n = (Number) mCallback_getAddress.invoke(messageCallback,
 						new Object[] {});
@@ -486,6 +504,6 @@ public class Win32UIEnhancer
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-		return 0;// OS.DefWindowProc (hwnd, (int)/*64*/msg, wParam, lParam);
+		return OS.CallWindowProc(oldProc, hwnd, (int) msg, wParam, lParam);
 	}
 }
