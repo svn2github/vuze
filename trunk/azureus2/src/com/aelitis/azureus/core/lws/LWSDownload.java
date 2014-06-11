@@ -25,8 +25,9 @@ import java.io.File;
 import java.net.URL;
 import java.util.*;
 
-
+import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
@@ -186,13 +187,13 @@ LWSDownload
 	getFlag(
 		long		flag )
 	{
-		return( false );
+		return( flag ==  Download.FLAG_LIGHT_WEIGHT );
 	}
 	
 	public long 
 	getFlags() 
 	{
-		return 0;
+		return( Download.FLAG_LIGHT_WEIGHT );
 	}
 	
 	public int
@@ -373,11 +374,11 @@ LWSDownload
 
 		if ( attribute == tm.getAttribute( TorrentAttribute.TA_NETWORKS )){
 			
-			return( new String[]{ "Public" });
+			return( new String[]{ AENetworkClassifier.AT_PUBLIC });
 			
 		}else if ( attribute == tm.getAttribute( TorrentAttribute.TA_PEER_SOURCES )){
 			
-			return( new String[]{ "DHT" });
+			return( new String[]{ PEPeerSource.PS_DHT });
 		}
 		
 		return( null );

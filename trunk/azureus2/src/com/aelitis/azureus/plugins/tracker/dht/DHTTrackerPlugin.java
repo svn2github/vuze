@@ -1747,7 +1747,7 @@ DHTTrackerPlugin
 		
 		final long[]	max_retry = { 0 };
 		
-		final boolean do_alt = !download.getFlag( Download.FLAG_LOW_NOISE );
+		final boolean do_alt = !( download.getFlag( Download.FLAG_LOW_NOISE ) || download.getFlag( Download.FLAG_LIGHT_WEIGHT ));
 		
 		int	num_done = 0;
 		
