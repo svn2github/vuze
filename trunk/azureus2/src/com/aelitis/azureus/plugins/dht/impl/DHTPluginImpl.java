@@ -33,6 +33,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
 
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
@@ -557,13 +558,18 @@ outer:
 								
 								if ( is_v6 == v6 ){
 									
-									if ( importSeed( p.getIp(), peer_udp_port ) != null ){
+									String ip =  p.getIp();
+									
+									if ( AENetworkClassifier.categoriseAddress( ip ) == AENetworkClassifier.AT_PUBLIC ){
 										
-										peers_imported++;
-																	
-										if ( peers_imported > seed_limit ){
+										if ( importSeed( ip, peer_udp_port ) != null ){
 											
-											break outer;
+											peers_imported++;
+																		
+											if ( peers_imported > seed_limit ){
+												
+												break outer;
+											}
 										}
 									}
 								}
