@@ -27,7 +27,6 @@ import java.util.Map;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
-
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerTPSListener;
@@ -48,6 +47,7 @@ import org.gudy.azureus2.ui.swt.views.table.TableSelectedRowsListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_TabsCommon;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.tracker.*;
 
@@ -362,7 +362,7 @@ public class TrackerView
 	  		
 	  		old_manager.removeTPSListener( this );
 		}
-		
+	  	
 	  	if ( !tv.isDisposed()){
 	  		
 			tv.removeAllTableRows();
@@ -384,6 +384,16 @@ public class TrackerView
 			manager.addTPSListener( this );
 			
 			addExistingDatasources();
+			
+				// For this view the tab datasource isn't driven by table row selection so we
+				// need to update it with the primary data source
+			
+	 		TableViewSWT_TabsCommon tabs = tv.getTabsCommon();
+	  		
+	  		if ( tabs != null ){
+	  			
+	  			tabs.triggerTabViewsDataSourceChanged( true );
+	  		}
 		}
     }
 
