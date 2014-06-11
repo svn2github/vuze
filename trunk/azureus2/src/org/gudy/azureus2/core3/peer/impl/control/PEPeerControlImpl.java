@@ -3114,6 +3114,9 @@ DiskManagerCheckRequestListener, IPFilterListener
 
 	protected void addPiece(final PEPiece piece, final int pieceNumber, final boolean force_add, PEPeer for_peer )
 	{
+		if ( piece == null || pePieces[pieceNumber] != null ){
+			Debug.out( "piece state inconsistent" );
+		}
 		pePieces[pieceNumber] =(PEPieceImpl)piece;
 		nbPiecesActive++;
 		if ( is_running || force_add ){
@@ -3141,15 +3144,23 @@ DiskManagerCheckRequestListener, IPFilterListener
 	 */
 	public void removePiece(PEPiece pePiece, int pieceNumber) {
 		if ( pePiece != null ){
-		adapter.removePiece(pePiece);
+			adapter.removePiece(pePiece);
 		} else {
 			pePiece = pePieces[pieceNumber];
 		}
-		pePieces[pieceNumber] =null;
-		nbPiecesActive--;
 		
-		if (pePiece == null) {
-			Debug.outNoStack("Trying to remove piece " + pieceNumber + " when piece is null");
+			// only decrement num-active if this piece was active (see comment below as to why this might no be the case)
+		
+		if ( pePieces[pieceNumber] != null ){
+			pePieces[pieceNumber] = null;
+			nbPiecesActive--;
+		}
+		
+		if ( pePiece == null ){
+			// we can get here without the piece actually being active when we have a very slow peer that is sent a request for the last
+			// block of a piece, doesn't reply, the request gets cancelled, (and piece marked as inactive) and then it sends the block
+			// and our 'recover block as useful' logic kicks in, writes the block, completes the piece, triggers a piece check and here we are
+			
 			return;
 		}
 		

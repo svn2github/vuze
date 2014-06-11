@@ -2121,9 +2121,10 @@ implements PEPeerTransport
 
 
 	public String toString() {
-		if( connection != null && connection.isConnected() ) {
-			return connection + (isTCP()?" [":"(UDP) [") + client+ "]";
-		}
+		// parg: removed this as we want to see the peer's IP/host, not (e.g.) a SOCKS server address if in use
+		//if( connection != null && connection.isConnected() ) {
+		//	return connection + (isTCP()?" [":"(UDP) [") + client+ "]";
+		//}
 		return (isIncoming() ? "R: " : "L: ")+ ip + ":" + port + (isTCP()?" [":"(UDP) [") + client+ "]";
 	}
 
