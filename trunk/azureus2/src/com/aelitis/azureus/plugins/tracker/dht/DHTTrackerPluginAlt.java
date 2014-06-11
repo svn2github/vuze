@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -77,9 +78,18 @@ DHTTrackerPluginAlt
 	
 	private AsyncDispatcher		dispatcher = new AsyncDispatcher();
 	
+	private volatile long	lookup_count;
+	
+	private volatile long	packets_out;
+	private volatile long	packets_in;
+	private volatile long	bytes_out;
+	private volatile long	bytes_in;
+	
 	protected
 	DHTTrackerPluginAlt()
 	{
+			// there is no node id restriction for requests
+		
 		RandomUtils.nextBytes( NID );
 	}
 	
@@ -129,6 +139,10 @@ DHTTrackerPluginAlt
 								DatagramPacket packet = new DatagramPacket( buffer, buffer.length );
 					
 								server.receive( packet );
+								
+								packets_in++;
+								
+								bytes_in += packet.getLength();
 								
 								Map<String, Object> map = new BDecoder().decodeByteArray(packet.getData(), 0, packet.getLength() ,false);
 								
@@ -268,6 +282,8 @@ DHTTrackerPluginAlt
 			return;
 		}
 		
+		lookup_count++;
+		
 		new GetPeersTask( server, contacts, hash, no_seeds, listener );
 	}
 	
@@ -336,6 +352,9 @@ DHTTrackerPluginAlt
 				
 				packet.setSocketAddress( address );
 		
+				packets_out++;
+				bytes_out += data_out.length;
+						
 				server.send( packet );
 				
 				return( tid );
@@ -412,6 +431,14 @@ DHTTrackerPluginAlt
 				}
 			}
 		}
+	}
+	
+	protected String
+	getString()
+	{
+		return( "lookups=" + lookup_count +
+				", out=" + packets_out + "/" + DisplayFormatters.formatByteCountToKiBEtc( bytes_out ) + 
+				", in=" + packets_in + "/" + DisplayFormatters.formatByteCountToKiBEtc( bytes_in ));
 	}
 	
 	private class

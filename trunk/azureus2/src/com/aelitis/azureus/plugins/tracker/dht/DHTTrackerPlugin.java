@@ -472,6 +472,8 @@ DHTTrackerPlugin
 			{
 				private int	ticks;
 				
+				private String 	prev_alt_status = "";
+				
 				public void 
 				perform(
 					UTTimerEvent event) 
@@ -483,6 +485,18 @@ DHTTrackerPlugin
 					if ( ticks == 2 || ticks%4==0 ){
 						
 						processNonRegistrations();
+					}
+					
+					if ( ticks % 4 == 0 ){
+						
+						String alt_status = alt_lookup_handler.getString();
+						
+						if ( !alt_status.equals( prev_alt_status )){
+			
+							log.log( "Alternative stats: " + alt_status );
+							
+							prev_alt_status = alt_status;
+						}
 					}
 				}
 			});
