@@ -79,6 +79,7 @@ DHTTrackerPluginAlt
 	private AsyncDispatcher		dispatcher = new AsyncDispatcher();
 	
 	private volatile long	lookup_count;
+	private volatile long	hit_count;
 	
 	private volatile long	packets_out;
 	private volatile long	packets_in;
@@ -436,7 +437,7 @@ DHTTrackerPluginAlt
 	protected String
 	getString()
 	{
-		return( "lookups=" + lookup_count +
+		return( "lookups=" + lookup_count + ", hits=" + hit_count +
 				", out=" + packets_out + "/" + DisplayFormatters.formatByteCountToKiBEtc( bytes_out ) + 
 				", in=" + packets_in + "/" + DisplayFormatters.formatByteCountToKiBEtc( bytes_in ));
 	}
@@ -780,6 +781,8 @@ DHTTrackerPluginAlt
 							
 							found_peers.add( addr );
 						}
+						
+						hit_count++;
 						
 						listener.foundPeer( addr );
 						
