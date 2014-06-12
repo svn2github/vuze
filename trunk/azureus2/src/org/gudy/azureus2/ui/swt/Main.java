@@ -160,7 +160,12 @@ Main
     		closedown	= true;
     		
     		break;
+    		
+    	}else if ( arg.equalsIgnoreCase( "--open" )){
+    	
+    		continue;
     	}
+    	
 	        // Sometimes Windows use filename in 8.3 form and cannot
 	        // match .torrent extension. To solve this, canonical path
 	        // is used to get back the long form
