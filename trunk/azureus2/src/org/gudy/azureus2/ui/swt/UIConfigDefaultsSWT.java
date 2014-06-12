@@ -150,5 +150,7 @@ public class UIConfigDefaultsSWT
 		def.addParameter( "browser.internal.proxy.id", "none" );
 		
 		def.addParameter( "Bar Transparency", 0 );
+		
+		def.addParameter( "Low Resource Silent Update Restart Enabled", true );
 	}
 }

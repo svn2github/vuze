@@ -26,7 +26,6 @@ import java.io.File;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Shell;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -658,7 +657,16 @@ public class UpdateMonitor
 		
 		if ( uiFunctions != null ){
 			
-			uiFunctions.performAction( 
+			int	visiblity_state = uiFunctions.getVisibilityState();
+			
+			if ( 	visiblity_state == UIFunctions.VS_TRAY_ONLY && 
+					COConfigurationManager.getBooleanParameter( "Low Resource Silent Update Restart Enabled" )){
+				
+				uiFunctions.dispose( true, false );
+				
+			}else{
+				
+				uiFunctions.performAction( 
 					UIFunctions.ACTION_UPDATE_RESTART_REQUEST,
 					Constants.isWindows7OrHigher,		// no timer for in 7 as they always get an elevation prompt so we don't want to shutdown and then leave\
 														// Vuze down pending user authorisation of the update
@@ -674,6 +682,10 @@ public class UpdateMonitor
 							}
 						}
 					});
+			}
+		}else{
+			
+			Debug.out( "Can't handle restart as no ui functions available" );
 		}
 	}
 		

@@ -60,6 +60,10 @@ public interface UIFunctions
 	public static final int ACTION_FULL_UPDATE				= 1;	// arg: String - url; response Boolean - ok
 	public static final int ACTION_UPDATE_RESTART_REQUEST	= 2;	// arg: Boolean - true->no auto-select response Boolean - ok
 	
+	public static final int VS_TRAY_ONLY				= 1;		// low-resource minimized state
+	public static final int VS_MINIMIZED_TO_TRAY		= 2;		// minimized to tray only
+	public static final int VS_MINIMIZED				= 3;		// normal minimized
+	public static final int VS_ACTIVE					= 4;		// active
 
 	/**
 	 * Bring main window to the front
@@ -74,6 +78,8 @@ public interface UIFunctions
 	 * @since 3.0.1.7
 	 */
 	void bringToFront(boolean tryTricks);
+	
+	public int getVisibilityState();
 	
 	/**
 	 * Change/Refresh the language of the UI

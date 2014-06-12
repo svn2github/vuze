@@ -176,6 +176,55 @@ public class UIFunctionsImpl
 		});
 	}
 
+	public int 
+	getVisibilityState() 
+	{
+		final Shell shell = getMainShell();
+		
+		if ( shell == null ){
+			
+			return( VS_MINIMIZED_TO_TRAY );		// not sure about this
+			
+		}else{
+			
+			final int[] result = { VS_MINIMIZED_TO_TRAY };
+			
+			final AESemaphore sem = new AESemaphore( "getVisibilityState" );
+			
+			if (
+				Utils.execSWTThread(
+					new AERunnable() 
+					{
+						public void 
+						runSupport() 
+						{
+							try{
+								if ( !shell.isVisible()){
+									
+									result[0] = VS_MINIMIZED_TO_TRAY;
+									
+								}else if ( shell.getMinimized()){
+									
+									result[0] = VS_MINIMIZED;
+									
+								}else{
+									
+									result[0] = VS_ACTIVE;
+								}
+							}finally{
+								
+								sem.release();
+							}
+						}
+					})){
+			
+				sem.reserve( 30*1000 );	// shouldn't block as if this is SWT thread code will run immediately, otherwise SWT thread shoudl be quick
+			}
+			
+			return( result[0] );
+		}
+	}
+	
 	// @see com.aelitis.azureus.ui.swt.UIFunctionsSWT#closeDownloadBars()
 	public void closeDownloadBars() {
 		try {

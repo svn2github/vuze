@@ -66,7 +66,7 @@ MainWindowDelayStub
 	
 	private SystemTraySWT	swt_tray;
 	
-	private UIFunctionsSWT	delayed_uif = new UIFunctionsSWTImpl();
+	private volatile UIFunctionsSWT	delayed_uif = new UIFunctionsSWTImpl();
 	
 	public
 	MainWindowDelayStub(
@@ -465,6 +465,19 @@ MainWindowDelayStub
 			fixup( new Fixup3(){public void fix( UIFunctionsSWT uif){ uif.bringToFront( tryTricks ); }});
 		}
 
+		public int 
+		getVisibilityState() 
+		{
+			UIFunctionsSWT uif = UIFunctionsManagerSWT.getUIFunctionsSWT();
+			
+			if ( uif != null && uif != this ){
+				
+				return( uif.getVisibilityState());
+			}
+			
+			return( VS_TRAY_ONLY );
+		}
+		
 		public void
 		runOnUIThread(
 			final int			ui_type,
