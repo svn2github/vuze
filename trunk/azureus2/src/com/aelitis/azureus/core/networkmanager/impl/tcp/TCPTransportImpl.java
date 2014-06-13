@@ -25,6 +25,8 @@ package com.aelitis.azureus.core.networkmanager.impl.tcp;
 import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.logging.*;
@@ -223,7 +225,16 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     			
     			if ( AENetworkClassifier.categoriseAddress( host ) != AENetworkClassifier.AT_PUBLIC ){
     			
-    				plugin_proxy = AEProxyFactory.getPluginProxy( "outbound connection", host, address.getPort());
+    				Map<String,Object>	opts = new HashMap<String,Object>();
+    				
+    				Object peer_nets = listener.getConnectionProperty( AEProxyFactory.PO_PEER_NETWORKS );
+    				
+    				if ( peer_nets != null ){
+    					
+    					opts.put( AEProxyFactory.PO_PEER_NETWORKS, peer_nets );
+    				}
+    				
+    				plugin_proxy = AEProxyFactory.getPluginProxy( "outbound connection", host, address.getPort(), opts );
     			}
     		}
     	}

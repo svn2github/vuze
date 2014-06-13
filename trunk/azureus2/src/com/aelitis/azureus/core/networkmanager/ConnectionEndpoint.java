@@ -226,6 +226,13 @@ ConnectionEndpoint
 				    		listener.connectFailure(failure_msg);
 				    	}
 				    }
+				    
+			    	public Object 
+					getConnectionProperty(
+						String property_name)
+					{
+			    		return( listener.getConnectionProperty( property_name ));
+					}
 				};
 			
 			boolean	ok = true;
@@ -425,6 +432,13 @@ ConnectionEndpoint
 			}
 			
 			listener.connectFailure( failure_msg );
+		}
+		
+		public Object 
+		getConnectionProperty(
+			String property_name)
+		{
+			return( listener.getConnectionProperty( property_name ));
 		}
 	}	
 }

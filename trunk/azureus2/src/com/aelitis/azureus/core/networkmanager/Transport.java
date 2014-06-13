@@ -166,5 +166,9 @@ Transport
      * @param failure_msg failure reason
      */
     public void connectFailure( Throwable failure_msg );
+    
+    public Object
+    getConnectionProperty(
+    	String		property_name );
   }
 }

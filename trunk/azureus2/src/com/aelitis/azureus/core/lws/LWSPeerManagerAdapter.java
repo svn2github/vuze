@@ -33,6 +33,7 @@ import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerManagerAdapter;
 import org.gudy.azureus2.core3.peer.PEPiece;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -45,6 +46,8 @@ LWSPeerManagerAdapter
 	extends 	LogRelation
 	implements 	PEPeerManagerAdapter
 {
+	private final static String[]	enabled_networks = { AENetworkClassifier.AT_PUBLIC };
+	
 	private LightWeightSeed			lws;
 	
 	private PeerManagerRegistration	peer_manager_registration;
@@ -147,7 +150,13 @@ LWSPeerManagerAdapter
 	isNetworkEnabled(
 		String	network )
 	{
-		return( true );
+		return( network == AENetworkClassifier.AT_PUBLIC );
+	}
+	
+	public String[]
+	getEnabledNetworks()
+	{
+		return( enabled_networks );
 	}
 	
 	public int 

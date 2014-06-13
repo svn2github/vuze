@@ -1340,8 +1340,15 @@ TRTrackerBTAnnouncerImpl
 							
 			if ( 	first_effort &&
 					AENetworkClassifier.categoriseAddress( original_reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){
-			
-				PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker update", original_reqUrl, true );
+							
+				Map<String,Object>	opts = new HashMap<String, Object>();
+				
+				if ( peer_networks != null ){
+				
+					opts.put( AEProxyFactory.PO_PEER_NETWORKS, peer_networks );
+				}
+				
+				PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker update", original_reqUrl, opts, true );
 				
 				if ( proxy != null ){
 					

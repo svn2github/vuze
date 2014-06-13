@@ -25,7 +25,6 @@ package org.gudy.azureus2.pluginsimpl.local.messaging;
 import java.nio.ByteBuffer;
 import java.util.*;
 
-
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 import org.gudy.azureus2.plugins.messaging.MessageException;
@@ -299,6 +298,13 @@ GenericMessageConnectionDirect
 						connection.close( error==null?null:Debug.getNestedExceptionMessage(error));
 					}
 					
+					public Object 
+					getConnectionProperty( 
+						String property_name )
+					{
+						return( null );
+					}
+					 
 					public String 
 					getDescription() 
 					{
@@ -427,6 +433,13 @@ GenericMessageConnectionDirect
 						listener.connectFailure( error );
 						
 						connection.close(error==null?null:Debug.getNestedExceptionMessage(error));
+					}
+					
+					public Object 
+					getConnectionProperty( 
+						String property_name )
+					{
+						return( null );
 					}
 					
 					public String 

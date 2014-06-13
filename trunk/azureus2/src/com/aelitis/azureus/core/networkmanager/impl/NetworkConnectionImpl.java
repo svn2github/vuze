@@ -31,7 +31,6 @@ import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.LightHashMap;
 
-
 import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamDecoder;
 import com.aelitis.azureus.core.peermanager.messaging.MessageStreamEncoder;
@@ -176,6 +175,13 @@ NetworkConnectionImpl
 			        is_connected = false;
 			        connection_listener.connectFailure( failure_msg );
 			      }
+			      
+			    	public Object 
+					getConnectionProperty(
+						String property_name)
+					{
+			    		return( connection_listener.getConnectionProperty( property_name ));
+					}
 			    });
     
     if ( closed ){

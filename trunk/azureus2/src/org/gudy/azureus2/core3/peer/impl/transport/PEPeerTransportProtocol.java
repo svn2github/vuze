@@ -62,6 +62,7 @@ import com.aelitis.azureus.core.peermanager.peerdb.PeerItemFactory;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.peermanager.piecepicker.util.BitFlags;
 import com.aelitis.azureus.core.peermanager.utils.*;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.tag.TaggableResolver;
 
 
@@ -474,6 +475,13 @@ implements PEPeerTransport
 						closeConnectionInternally( "connection exception: " + error.getMessage(), false, true );
 					}
 
+					public Object 
+					getConnectionProperty( 
+						String property_name )
+					{
+						return( null );
+					}
+					
 					public String
 					getDescription()
 					{
@@ -774,6 +782,18 @@ implements PEPeerTransport
 						closeConnectionInternally( "connection exception: " + error.getMessage(), !connect_ok, true );
 					}
     			
+					public Object 
+					getConnectionProperty( 
+						String property_name )
+					{
+						if ( property_name == AEProxyFactory.PO_PEER_NETWORKS ){
+							
+							return( manager.getAdapter().getEnabledNetworks());
+						}
+						
+						return( null );
+					}
+					
 					public String
 					getDescription()
 					{

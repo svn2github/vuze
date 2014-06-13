@@ -581,6 +581,13 @@ NetStatusProtocolTesterBT
 							close();					
 						}
 	    			
+						public Object 
+						getConnectionProperty( 
+							String property_name )
+						{
+							return( null );
+						}
+						
 						public String
 						getDescription()
 						{

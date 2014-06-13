@@ -65,6 +65,8 @@ AEProxyFactory
 		return( AEProxyAddressMapperImpl.getSingleton());
 	}
 	
+	public static final String PO_PEER_NETWORKS = "peer_networks";
+	
 	public static PluginProxy
 	getPluginProxy(
 		String		reason,
@@ -79,7 +81,17 @@ AEProxyFactory
 		URL			target,
 		boolean		can_wait )
 	{
-		return( AEPluginProxyHandler.getPluginProxy( reason, target, can_wait ));
+		return( getPluginProxy( reason, target, null, can_wait ));
+	}
+	
+	public static PluginProxy
+	getPluginProxy(
+		String				reason,
+		URL					target,
+		Map<String,Object>	proxy_options,
+		boolean				can_wait )
+	{
+		return( AEPluginProxyHandler.getPluginProxy( reason, target, proxy_options, can_wait ));
 	}
 	
 	public static PluginProxy
@@ -88,9 +100,19 @@ AEProxyFactory
 		String		host,
 		int			port )
 	{
-		return( AEPluginProxyHandler.getPluginProxy( reason, host, port ));
+		return( getPluginProxy( reason, host, port, null ));
 	}
 		
+	public static PluginProxy
+	getPluginProxy(
+		String				reason,
+		String				host,
+		int					port,
+		Map<String,Object>	proxy_options )
+	{
+		return( AEPluginProxyHandler.getPluginProxy( reason, host, port, proxy_options ));
+	}
+	
 	public static PluginProxy
 	getPluginProxy(
 		Proxy		proxy )

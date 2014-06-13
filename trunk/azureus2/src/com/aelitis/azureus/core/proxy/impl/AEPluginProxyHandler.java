@@ -203,14 +203,15 @@ AEPluginProxyHandler
 		String	reason,
 		URL		target )
 	{
-		return( getPluginProxy( reason, target, false ));
+		return( getPluginProxy( reason, target, null, false ));
 	}
 	
 	public static PluginProxyImpl
 	getPluginProxy(
-		String	reason,
-		URL		target,
-		boolean	can_wait )
+		String					reason,
+		URL						target,
+		Map<String,Object>		properties,
+		boolean					can_wait )
 	{
 		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
 		
@@ -225,12 +226,26 @@ AEPluginProxyHandler
 					plugin_init_complete.reserve();
 				}
 				
+				if ( properties == null ){
+					
+					properties = new HashMap<String, Object>();
+				}
+				
 				for ( PluginInterface pi: plugins ){
 					
 					try{
 						IPCInterface ipc = pi.getIPC();
 						
-						Object[] proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ reason, target } );
+						Object[] proxy_details;
+						
+						if ( ipc.canInvoke( "getProxy", new Object[]{ reason, target, properties } )){
+							
+							proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ reason, target, properties } );
+
+						}else{
+						
+							proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ reason, target } );
+						}
 						
 						if ( proxy_details != null ){
 							
@@ -241,7 +256,7 @@ AEPluginProxyHandler
 								proxy_details = new Object[]{ proxy_details[0], proxy_details[1], target.getHost()};
 							}
 							
-							return( new PluginProxyImpl( reason, ipc, proxy_details ));
+							return( new PluginProxyImpl( reason, ipc, properties, proxy_details ));
 						}
 					}catch( Throwable e ){				
 					}
@@ -254,24 +269,39 @@ AEPluginProxyHandler
 	
 	public static PluginProxyImpl
 	getPluginProxy(
-		String		reason,
-		String		host,
-		int			port )
+		String					reason,
+		String					host,
+		int						port,
+		Map<String,Object>		properties )
 	{
 		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
 		
 		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
+			
+			if ( properties == null ){
+				
+				properties = new HashMap<String, Object>();
+			}
 			
 			for ( PluginInterface pi: plugins ){
 				
 				try{
 					IPCInterface ipc = pi.getIPC();
 					
-					Object[] proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ reason, host, port });
+					Object[] proxy_details;
+					
+					if ( ipc.canInvoke( "getProxy", new Object[]{ reason, host, port, properties })){
+						
+						proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ reason, host, port, properties });
+
+					}else{
+					
+						proxy_details = (Object[])ipc.invoke( "getProxy", new Object[]{ reason, host, port });
+					}
 					
 					if ( proxy_details != null ){
 						
-						return( new PluginProxyImpl( reason, ipc, proxy_details ));
+						return( new PluginProxyImpl( reason, ipc, properties, proxy_details ));
 					}
 				}catch( Throwable e ){	
 				}
@@ -440,6 +470,7 @@ AEPluginProxyHandler
 		private String				reason;
 		
 		private IPCInterface		ipc;
+		private Map<String,Object>	proxy_options;
 		private Object[]			proxy_details;
 		
 		private List<PluginProxyImpl>	children = new ArrayList<AEPluginProxyHandler.PluginProxyImpl>();
@@ -448,6 +479,7 @@ AEPluginProxyHandler
 		PluginProxyImpl(
 			String				_reason,
 			IPCInterface		_ipc,
+			Map<String,Object>	_proxy_options,
 			Object[]			_proxy_details )
 		{
 			reason				= _reason;
@@ -493,7 +525,7 @@ AEPluginProxyHandler
 			String		child_reason,
 			URL 		url) 
 		{
-			PluginProxyImpl	child = getPluginProxy( reason + " - " + child_reason, url, false );
+			PluginProxyImpl	child = getPluginProxy( reason + " - " + child_reason, url, proxy_options, false );
 			
 			if ( child != null ){
 				

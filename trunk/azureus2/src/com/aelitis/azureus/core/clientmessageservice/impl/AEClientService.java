@@ -119,6 +119,13 @@ public class AEClientService implements ClientMessageService {
     		error = failure_msg;
     		connect_block.release();  
     	}
+    	
+    	public Object 
+		getConnectionProperty(
+			String property_name)
+		{
+    		return( null );
+		}
     });
     
     if ( !connect_block.reserve( timeout_secs*1000 )){

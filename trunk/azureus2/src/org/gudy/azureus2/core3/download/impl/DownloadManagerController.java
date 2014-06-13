@@ -1380,6 +1380,20 @@ DownloadManagerController
 		}
 	}
 	
+	public String[] 
+	getEnabledNetworks() 
+	{
+		Set<String>	cache = cached_networks;
+		
+		if ( cache == null ){
+			
+			return( download_manager.getDownloadState().getNetworks());
+			
+		}else{
+			
+			return( cache.toArray( new String[ cache.size()]));
+		}
+	}
 		// secrets for inbound connections, support all
 	
 	public byte[][]

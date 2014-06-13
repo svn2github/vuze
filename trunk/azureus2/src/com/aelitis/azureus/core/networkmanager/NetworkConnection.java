@@ -120,6 +120,8 @@ NetworkConnection
      */
     public void exceptionThrown( Throwable error );
     
+    public Object getConnectionProperty( String property_name);
+    
     public String
     getDescription();
   }

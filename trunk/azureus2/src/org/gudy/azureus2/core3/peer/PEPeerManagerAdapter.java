@@ -185,6 +185,9 @@ PEPeerManagerAdapter
 	isNetworkEnabled(
 		String	network );
 	
+	public String[]
+	getEnabledNetworks();
+	
 	public void
 	priorityConnectionChanged(
 		boolean	added );
