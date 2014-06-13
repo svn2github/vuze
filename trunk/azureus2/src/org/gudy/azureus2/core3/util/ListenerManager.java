@@ -260,6 +260,20 @@ ListenerManager<T>
 					// current listeners here. Any subsequent change won't affect our listeners
 												
 				dispatch_queue.add(new Object[]{listeners, new Integer(type), value, sem });
+				
+				if ( async_thread == null ){
+					
+					async_thread = new AEThread2( name, true )
+						{
+							public void
+							run()
+							{
+								dispatchLoop();
+							}
+						};
+											
+					async_thread.start();
+				}
 			}
 			
 			dispatch_sem.release();
