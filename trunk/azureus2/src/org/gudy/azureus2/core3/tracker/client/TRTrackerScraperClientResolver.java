@@ -72,6 +72,10 @@ TRTrackerScraperClientResolver
 		HashWrapper	hash,
 		URL			url );
 	
+	public String[]
+	getEnabledNetworks(
+		HashWrapper	hash );
+	
 		/**
 		 * Two kinds of extensions: entry [0] = String (or null) that gets passed with the scrape verbotem after infohash
 		 * entry [1] = Character - status of download, aggregated into a single String passed with scrape

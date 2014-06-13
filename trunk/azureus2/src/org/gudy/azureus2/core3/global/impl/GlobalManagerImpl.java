@@ -503,6 +503,20 @@ public class GlobalManagerImpl
     			return( false );
     		}
     		
+    		public String[]
+			getEnabledNetworks(
+				HashWrapper	hash )
+    		{
+       			DownloadManager	dm = getDownloadManager(hash);
+    			
+    			if ( dm == null ){
+    				
+    				return( null );
+    			}
+    			
+    			return( dm.getDownloadState().getNetworks());
+    		}
+    		
     		public int[] 
     		getCachedScrape(
     			HashWrapper hash )

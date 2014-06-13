@@ -270,6 +270,18 @@ TRTrackerScraperImpl
 		return( client_resolver.isNetworkEnabled( hash, url ));
 	}
 	
+	public String[]
+	getEnabledNetworks(
+		HashWrapper	hash )
+	{
+		if ( client_resolver == null ){
+			
+			return( null );
+		}
+		
+		return( client_resolver.getEnabledNetworks( hash ));
+	}
+	
 	public Object[]
 	getExtensions(
 		HashWrapper	hash )

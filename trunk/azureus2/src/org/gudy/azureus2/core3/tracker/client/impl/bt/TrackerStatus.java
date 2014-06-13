@@ -390,7 +390,8 @@ public class TrackerStatus {
 
 				String flags = "";
 				
-				List hashesForUDP = new ArrayList();
+				List<HashWrapper> hashesInQuery = new ArrayList<HashWrapper>(responses.size());
+				List<HashWrapper> hashesForUDP 	= new ArrayList<HashWrapper>();
 				
 				for (int i = 0; i < responses.size(); i++) {
 					TRTrackerScraperResponseImpl response = (TRTrackerScraperResponseImpl) responses.get(i);
@@ -459,6 +460,8 @@ public class TrackerStatus {
 							
 							flags += TRTrackerScraperClientResolver.FL_NONE;
 						}
+						
+						hashesInQuery.add( hash );
 						
 						one_of_the_responses = response;
 						one_of_the_hashes = hash;
@@ -569,8 +572,10 @@ public class TrackerStatus {
 			  		
 			  		scrapeCount++;
 			  		
-			  		if(udpScrapeURL == null)
-			  			redirect_url = scrapeHTTP(reqUrl, message);
+			  		if ( udpScrapeURL == null ){
+			  			
+			  			redirect_url = scrapeHTTP(hashesInQuery,reqUrl, message);
+			  		}
 				}finally{
 					
 					TorrentUtils.setTLSTorrentHash( null );
@@ -1030,6 +1035,7 @@ public class TrackerStatus {
 
 	private URL
  	scrapeHTTP(
+ 		List<HashWrapper>		hashesInQuery,
  		URL 					reqUrl, 
  		ByteArrayOutputStream 	message )
 
@@ -1042,7 +1048,80 @@ public class TrackerStatus {
 			
 			if ( AENetworkClassifier.categoriseAddress( reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){
 			
-				PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker scrape", reqUrl, true );
+				Map<String,Object>	opts = new HashMap<String, Object>();
+				
+				if ( hashesInQuery.size() == 1 ){
+					
+					opts.put( AEProxyFactory.PO_PEER_NETWORKS, scraper.getEnabledNetworks( hashesInQuery.get(0)));
+					
+				}else{
+					
+					String[] current_nets = null;
+					
+					for ( HashWrapper hash: hashesInQuery ){
+						
+						String[] nets = scraper.getEnabledNetworks( hash );
+						
+						if ( nets == null ){
+							
+							nets = new String[0];
+						}
+						
+						if ( current_nets == null ){
+							
+							current_nets = nets;
+							
+						}else{
+							
+							boolean	ok = false;
+							
+							if ( nets.length == current_nets.length ){
+								
+								ok = true;
+								
+								for ( String net1: nets ){
+									
+									boolean match = false;
+									
+									for ( String net2: current_nets ){
+										
+										if ( net1 == net2 ){
+											
+											match = true;
+											
+											break;
+										}
+									}
+									
+									if ( !match ){
+										
+										ok = false;
+										
+										break;
+									}
+								}
+							}else{
+								
+								ok = false;
+								
+							}
+							
+							if ( !ok ){
+								
+								bSingleHashScrapes = true;
+							
+								throw( new Exception( "Mixed networks, forcing single-hash scrapes" ));
+							}
+						}
+					}
+					
+					if ( current_nets != null ){
+						
+						opts.put( AEProxyFactory.PO_PEER_NETWORKS, current_nets );
+					}
+				}
+				
+				PluginProxy proxy = AEProxyFactory.getPluginProxy( "Tracker scrape", reqUrl, opts, true );
 				
 				if ( proxy != null ){
 					
