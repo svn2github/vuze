@@ -216,7 +216,8 @@ AEProxyConnectionImpl
 											
 					message = message.toLowerCase( Locale.US );
 					
-					if ( 	message.contains( "closed" ) || 
+					if ( 	( reason instanceof AsynchronousCloseException ) ||
+							message.contains( "closed" ) || 
 							message.contains( "aborted" ) || 
 							message.contains( "disconnected" ) || 
 							message.contains( "timeout" ) || 
