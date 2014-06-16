@@ -25,10 +25,16 @@ package com.aelitis.azureus.plugins.extseed;
 import java.util.Map;
 
 import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.plugins.torrent.Torrent;
 
 public interface 
 ExternalSeedReaderFactory 
 {
+	public ExternalSeedReader[]
+	getSeedReaders(
+		ExternalSeedPlugin	plugin,
+		Torrent				torrent );
+	
 	public ExternalSeedReader[]
 	getSeedReaders(
 		ExternalSeedPlugin	plugin,

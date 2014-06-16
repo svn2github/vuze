@@ -26,6 +26,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.*;
 
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.Plugin;
@@ -519,6 +520,22 @@ ExternalSeedPlugin
 		}	
 	}
 	
+	public ExternalSeedReader[]
+	getManualWebSeeds(
+		Torrent	torrent )
+	{
+		List<ExternalSeedReader>		result = new ArrayList<ExternalSeedReader>();
+		
+		for (int i=0;i<factories.length;i++){
+
+			ExternalSeedReader[] peers = factories[i].getSeedReaders( this, torrent );
+			
+			result.addAll( Arrays.asList( peers ));
+		}
+		
+		return( result.toArray( new  ExternalSeedReader[result.size()]));
+	}
+	
 	public TrackerPeerSource
 	getTrackerPeerSource(
 		final Download		download )
@@ -616,6 +633,67 @@ ExternalSeedPlugin
 						
 						running = state == Download.ST_DOWNLOADING || state == Download.ST_SEEDING;
 					}
+				}
+			});
+	}
+	
+	public TrackerPeerSource
+	getTrackerPeerSource(
+		final Torrent		torrent )
+	{
+		return(
+			new TrackerPeerSourceAdapter()
+			{				
+				private ExternalSeedReader[]	peers = getManualWebSeeds( torrent );				
+				
+				public int
+				getType()
+				{
+					return( TP_HTTP_SEED );
+				}
+				
+				public int
+				getStatus()
+				{
+					return( peers.length==0?ST_UNAVAILABLE:ST_AVAILABLE );
+				}
+				
+				public String
+				getName()
+				{					
+					if ( peers.length == 0 ){
+						
+						return( "" );
+					}
+					
+					StringBuffer sb = new StringBuffer();
+					
+					for ( ExternalSeedReader peer: peers ){
+						
+						if ( sb.length() > 0 ){
+							
+							sb.append( ", " );
+						}
+						
+						String str = peer.getURL().toExternalForm();
+						
+						int pos = str.indexOf( '?' );
+						
+						if ( pos != -1 ){
+							
+							str = str.substring( 0, pos );
+						}
+						
+						sb.append( str );
+					}
+					
+					return( sb.toString());
+				}
+				
+				public int
+				getPeers()
+				{					
+					return( peers.length==0?-1:peers.length );
 				}
 			});
 	}

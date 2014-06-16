@@ -43,12 +43,27 @@ ExternalSeedReaderFactoryWebSeed
 	}
 	
 	public ExternalSeedReader[]
- 	getSeedReaders(
- 		ExternalSeedPlugin		plugin,
- 		Download				download )
+	getSeedReaders(
+		ExternalSeedPlugin		plugin,
+		Download				download )
 	{		
-		Torrent	torrent = download.getTorrent();
-		
+		return( getSeedReaders( plugin, download.getName(), download.getTorrent()));
+	}
+	
+	public ExternalSeedReader[]
+   	getSeedReaders(
+   		ExternalSeedPlugin		plugin,
+   		Torrent					torrent )
+  	{	
+		return( getSeedReaders( plugin, torrent.getName(), torrent ));
+  	}
+	
+	private ExternalSeedReader[]
+   	getSeedReaders(
+   		ExternalSeedPlugin		plugin,
+   		String					name,
+   		Torrent					torrent )
+	{				
 		try{
 			Map	config = new HashMap();
 			
@@ -59,7 +74,7 @@ ExternalSeedReaderFactoryWebSeed
 				config.put( "httpseeds", obj );
 			}
 			
-			return( getSeedReaders( plugin, download, config ));
+			return( getSeedReaders( plugin, name, torrent, config ));
 			
 		}catch( Throwable e ){
 		
@@ -74,9 +89,17 @@ ExternalSeedReaderFactoryWebSeed
   		ExternalSeedPlugin		plugin,
   		Download				download,
   		Map						config )
-	{		
-		Torrent	torrent = download.getTorrent();
-		
+  	{
+		return( getSeedReaders( plugin, download.getName(), download.getTorrent(), config ));
+  	}
+	
+	private ExternalSeedReader[]
+  	getSeedReaders(
+  		ExternalSeedPlugin		plugin,
+  		String					name,
+  		Torrent					torrent,
+  		Map						config )
+	{				
 		try{
 			Object	obj = config.get( "httpseeds" );
 			
@@ -128,7 +151,7 @@ ExternalSeedReaderFactoryWebSeed
 							
 						}else{
 							
-							plugin.log( download.getName() + ": WS unsupported protocol: " + url );
+							plugin.log( name + ": WS unsupported protocol: " + url );
 						}
 					}catch( Throwable e ){
 						

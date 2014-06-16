@@ -43,12 +43,27 @@ ExternalSeedReaderFactoryGetRight
 	}
 	
 	public ExternalSeedReader[]
+	getSeedReaders(
+		ExternalSeedPlugin		plugin,
+		Download				download )
+	{		
+		return( getSeedReaders( plugin, download.getName(), download.getTorrent()));
+	}
+	
+	public ExternalSeedReader[]
    	getSeedReaders(
    		ExternalSeedPlugin		plugin,
-   		Download				download )
+   		Torrent					torrent )
+  	{	
+		return( getSeedReaders( plugin, torrent.getName(), torrent ));
+  	}
+	
+	private ExternalSeedReader[]
+   	getSeedReaders(
+   		ExternalSeedPlugin		plugin,
+   		String					name,
+   		Torrent					torrent )
   	{		
-  		Torrent	torrent = download.getTorrent();
-  		
   		try{
   			Map	config = new HashMap();
   			
@@ -73,7 +88,7 @@ ExternalSeedReaderFactoryGetRight
   				config.put( "url-list-params2", obj );
   			}
   			
-  			return( getSeedReaders( plugin, download, config ));
+  			return( getSeedReaders( plugin, name, torrent, config ));
   			
   		}catch( Throwable e ){
 			
@@ -87,6 +102,16 @@ ExternalSeedReaderFactoryGetRight
   	getSeedReaders(
   		ExternalSeedPlugin		plugin,
   		Download				download,
+  		Map						config )
+  	{
+		return( getSeedReaders( plugin, download.getName(), download.getTorrent(), config ));
+  	}
+	
+	private ExternalSeedReader[]
+  	getSeedReaders(
+  		ExternalSeedPlugin		plugin,
+  		String					name,
+  		Torrent					torrent,
   		Map						config )
 	{				
 		try{
@@ -149,11 +174,11 @@ ExternalSeedReaderFactoryGetRight
 																			
 							if ( protocol.startsWith( "http" )){
 								
-								readers.add( new ExternalSeedReaderGetRight(plugin, download.getTorrent(), url, my_params ));
+								readers.add( new ExternalSeedReaderGetRight(plugin, torrent, url, my_params ));
 								
 							}else{
 								
-								plugin.log( download.getName() + ": GR unsupported protocol: " + url );
+								plugin.log( name + ": GR unsupported protocol: " + url );
 							}
 						}
 					}catch( Throwable e ){

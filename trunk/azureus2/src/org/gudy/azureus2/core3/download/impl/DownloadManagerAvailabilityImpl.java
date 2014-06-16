@@ -37,9 +37,15 @@ import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.torrent.Torrent;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
+import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
+import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
 
 public class 
 DownloadManagerAvailabilityImpl
@@ -51,24 +57,26 @@ DownloadManagerAvailabilityImpl
 	
 	public
 	DownloadManagerAvailabilityImpl(
-		final TOTorrent		torrent )
+		final TOTorrent		to_torrent )
 	{
-		if ( torrent == null ){
+		if ( to_torrent == null ){
 			
 			return;
 		}
 		
-		TOTorrentAnnounceURLSet[] sets = torrent.getAnnounceURLGroup().getAnnounceURLSets();
+		Torrent	torrent = PluginCoreUtils.wrap( to_torrent );
+		
+		TOTorrentAnnounceURLSet[] sets = to_torrent.getAnnounceURLGroup().getAnnounceURLSets();
 			
 		if ( sets.length == 0 ){
 			
-			sets = new TOTorrentAnnounceURLSet[]{ torrent.getAnnounceURLGroup().createAnnounceURLSet( new URL[]{ torrent.getAnnounceURL()})};
+			sets = new TOTorrentAnnounceURLSet[]{ to_torrent.getAnnounceURLGroup().createAnnounceURLSet( new URL[]{ to_torrent.getAnnounceURL()})};
 		}
 			  
 		try{
 			tracker_client = 
 					TRTrackerAnnouncerFactory.create( 
-						torrent, 
+							to_torrent, 
 						new TRTrackerAnnouncerFactory.DataProvider()
 						{
 							public String[] 
@@ -102,7 +110,7 @@ DownloadManagerAvailabilityImpl
 		    			public long
 		    			getRemaining()
 		    			{
-		    				return( torrent.getSize());
+		    				return( to_torrent.getSize());
 		    			}
 		    			
 		    			public long
@@ -463,26 +471,41 @@ DownloadManagerAvailabilityImpl
 					public boolean
 					canDelete()
 					{
-						return( true );
+						return( false );
 					}
 					
 					public void
 					delete()
 					{
-						List<List<String>> lists = TorrentUtils.announceGroupsToList( torrent );
-
-						List<String>	rem = new ArrayList<String>();
-						
-						for ( URL u: urls ){
-							rem.add( u.toExternalForm());
-						}
-						
-						lists = TorrentUtils.removeAnnounceURLs2( lists, rem );
-						
-						TorrentUtils.listToAnnounceGroups( lists, torrent );
 					}
 				});
 		}
+		
+			// http seeds
+			
+		try{
+			ExternalSeedPlugin esp = DownloadManagerController.getExternalSeedPlugin();
+			
+			if ( esp != null ){
+				  					
+				peer_sources.add( esp.getTrackerPeerSource( torrent ));
+			}
+		}catch( Throwable e ){
+		}
+		
+			// dht
+		/*
+		try{
+			
+			PluginInterface dht_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass(DHTTrackerPlugin.class);
+
+		    if ( dht_pi != null ){
+		    	
+		    	peer_sources.add(((DHTTrackerPlugin)dht_pi.getPlugin()).getTrackerPeerSource( plugin_download ));
+		    }
+		}catch( Throwable e ){
+		}
+		*/
 	}
 	
 	public List<TrackerPeerSource>
