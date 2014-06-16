@@ -35,6 +35,9 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerAvailability;
+import org.gudy.azureus2.core3.download.DownloadManagerFactory;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
 import org.gudy.azureus2.core3.internat.LocaleUtilDecoder;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -48,9 +51,11 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
+import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.ui.swt.*;
+import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.config.generic.GenericIntParameter;
 import org.gudy.azureus2.ui.swt.config.generic.GenericParameterAdapter;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
@@ -59,6 +64,10 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
+import org.gudy.azureus2.ui.swt.views.FilesView;
+import org.gudy.azureus2.ui.swt.views.TrackerAvailView;
+import org.gudy.azureus2.ui.swt.views.TrackerView;
+import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
@@ -1362,6 +1371,7 @@ public class OpenTorrentOptionsWindow
 		/* prevents loop of modifications */
 		protected boolean bSkipDataDirModify = false;
 
+		private Button btnCheckAvailability;
 		private Button btnSwarmIt;
 
 		private Combo cmbDataDir;
@@ -1616,6 +1626,136 @@ public class OpenTorrentOptionsWindow
 			}
 		}
 		
+		private void
+		showAvailability()
+		{
+			final Shell avail_shell = ShellFactory.createShell( shell, SWT.DIALOG_TRIM | SWT.RESIZE );
+
+			Utils.setShellIcon(avail_shell);
+			 
+			GridLayout layout = new GridLayout();
+			layout.numColumns = 1;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			avail_shell.setLayout(layout);
+			
+			Utils.verifyShellRect(avail_shell, true);
+
+			TOTorrent t = torrentOptions.getTorrent();
+
+			final TrackerAvailView view = new TrackerAvailView();
+			
+			final DownloadManagerAvailability availability = DownloadManagerFactory.getAvailability( t );
+			
+			view.dataSourceChanged( availability );
+
+			Composite comp = new Composite( avail_shell, SWT.NULL );
+			GridData gridData = new GridData( GridData.FILL_BOTH );
+			comp.setLayoutData(gridData);
+			
+			layout = new GridLayout();
+			layout.numColumns = 1;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			comp.setLayout(layout);
+			
+			view.initialize(comp);
+
+			view.viewActivated();
+			view.refresh();
+
+			final UIUpdatable viewUpdater = new UIUpdatable() {
+				public void updateUI() {
+					view.refresh();
+				}
+
+				public String getUpdateUIName() {
+					return view.getFullTitle();
+				}
+			};
+			
+			UIUpdaterSWT.getInstance().addUpdater(viewUpdater);
+
+				// line
+			
+			Label labelSeparator = new Label( comp, SWT.SEPARATOR | SWT.HORIZONTAL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			labelSeparator.setLayoutData(gridData);
+			
+				// buttons
+			
+			Composite buttonComp = new Composite( comp, SWT.NULL );
+			gridData = new GridData( GridData.FILL_HORIZONTAL );
+			buttonComp.setLayoutData(gridData);
+			
+			layout = new GridLayout();
+			layout.numColumns = 2;
+			layout.marginWidth = 0;
+			layout.marginHeight = 0;
+			buttonComp.setLayout(layout);
+			
+			new Label(buttonComp,SWT.NULL);
+			
+			Composite buttonArea = new Composite(buttonComp,SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
+			gridData.grabExcessHorizontalSpace = true;
+			buttonArea.setLayoutData(gridData);
+			GridLayout layoutButtons = new GridLayout();
+			layoutButtons.numColumns = 1;
+			buttonArea.setLayout(layoutButtons);
+			
+			List<Button>	buttons = new ArrayList<Button>();
+			
+			Button bOK = new Button(buttonArea,SWT.PUSH);
+			buttons.add( bOK );
+			
+			bOK.setText(MessageText.getString("Button.ok"));
+			gridData = new GridData(GridData.FILL_HORIZONTAL | GridData.HORIZONTAL_ALIGN_END | GridData.HORIZONTAL_ALIGN_FILL);
+			gridData.grabExcessHorizontalSpace = true;
+			gridData.widthHint = 70;
+			bOK.setLayoutData(gridData);
+			bOK.addListener(SWT.Selection,new Listener() {
+				public void handleEvent(Event e) {
+					avail_shell.dispose();
+				}
+			});
+			
+			Utils.makeButtonsEqualWidth( buttons );
+			
+			avail_shell.addDisposeListener(new DisposeListener() {
+				public void widgetDisposed(DisposeEvent e) {
+					UIUpdaterSWT.getInstance().removeUpdater(viewUpdater);
+					
+					btnCheckAvailability.setEnabled( true );
+					
+					availability.destroy();
+				}
+			});
+
+			btnCheckAvailability.setEnabled( false );
+			
+			avail_shell.setSize( 800, 400 );
+			avail_shell.layout(true, true);
+			
+			Utils.centerWindowRelativeTo(avail_shell,shell);
+			
+			String title = torrentOptions.getTorrentName();
+						
+			if ( t != null ){
+			
+				String str = PlatformTorrentUtils.getContentTitle( t );
+				
+				if ( str != null && str.length() > 0 ){
+					
+					title = str;
+				}
+			}
+			
+			Messages.setLanguageText( avail_shell, "torrent.avail.title", new String[]{ title });
+
+			avail_shell.open();
+		}
+		
 		private void checkSeedingMode() {
 			if ( torrentOptions == null ){
 				return;
@@ -1754,7 +1894,7 @@ public class OpenTorrentOptionsWindow
 		private void setupFileAreaButtons(SWTSkinObjectContainer so) {
 			Composite cButtons = so.getComposite();
 			
-			cButtons.setLayout(new GridLayout(7,false));
+			cButtons.setLayout(new GridLayout(8,false));
 	
 			List<Button>	buttons = new ArrayList<Button>();
 			
@@ -1810,6 +1950,21 @@ public class OpenTorrentOptionsWindow
 				}
 			});
 			
+			Label pad = new Label(cButtons, SWT.NONE);
+			GridData gridData = new GridData( GridData.FILL_HORIZONTAL);
+			pad.setLayoutData( gridData );
+			
+			btnCheckAvailability = new Button(cButtons, SWT.PUSH);
+			buttons.add( btnCheckAvailability );
+			Messages.setLanguageText(btnCheckAvailability, "label.check.avail");
+
+			btnCheckAvailability.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					showAvailability();
+				}
+			});
+			
+			
 			try {
 				if (COConfigurationManager.getBooleanParameter("rcm.overall.enabled",
 						true) && AzureusCoreFactory.isCoreRunning()) {
@@ -1820,10 +1975,6 @@ public class OpenTorrentOptionsWindow
 							&& pi.getIPC().canInvoke("lookupBySize", new Object[] {
 								new Long(0)
 							})) {
-	
-						Label pad = new Label(cButtons, SWT.NONE);
-						GridData gridData = new GridData( GridData.FILL_HORIZONTAL);
-						pad.setLayoutData( gridData );
 						
 						btnSwarmIt = new Button(cButtons, SWT.PUSH);
 						buttons.add( btnSwarmIt );

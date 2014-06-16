@@ -69,15 +69,15 @@ public class TrackerView
 	private static boolean registeredCoreSubViews = false;
 
 	private final static TableColumnCore[] basicItems = {
-		new TypeItem(),
-		new NameItem(),
-		new StatusItem(),
-		new PeersItem(),
-		new SeedsItem(),
-		new LeechersItem(),
-		new CompletedItem(),
-		new UpdateInItem(),
-		new IntervalItem(),
+		new TypeItem(TableManager.TABLE_TORRENT_TRACKERS),
+		new NameItem(TableManager.TABLE_TORRENT_TRACKERS),
+		new StatusItem(TableManager.TABLE_TORRENT_TRACKERS),
+		new PeersItem(TableManager.TABLE_TORRENT_TRACKERS),
+		new SeedsItem(TableManager.TABLE_TORRENT_TRACKERS),
+		new LeechersItem(TableManager.TABLE_TORRENT_TRACKERS),
+		new CompletedItem(TableManager.TABLE_TORRENT_TRACKERS),
+		new UpdateInItem(TableManager.TABLE_TORRENT_TRACKERS),
+		new IntervalItem(TableManager.TABLE_TORRENT_TRACKERS),
 		new LastUpdateItem(TableManager.TABLE_TORRENT_TRACKERS),
 	};
 

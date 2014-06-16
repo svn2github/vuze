@@ -31,7 +31,6 @@ import org.gudy.azureus2.core3.internat.MessageText.MessageTextListener;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
-
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 
 
@@ -55,9 +54,9 @@ TypeItem
 
 	
 	public 
-	TypeItem()
+	TypeItem(String tableID)
 	{
-		super( "type", ALIGN_LEAD, POSITION_LAST, 75, TableManager.TABLE_TORRENT_TRACKERS );
+		super( "type", ALIGN_LEAD, POSITION_LAST, 75, tableID );
     
 		setRefreshInterval(INTERVAL_INVALID_ONLY);
 		

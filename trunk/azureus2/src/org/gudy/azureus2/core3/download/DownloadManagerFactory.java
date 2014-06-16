@@ -30,6 +30,7 @@ import java.util.List;
 
 import org.gudy.azureus2.core3.download.impl.*;
 import org.gudy.azureus2.core3.global.*;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
 
 public class 
 DownloadManagerFactory 
@@ -68,5 +69,12 @@ DownloadManagerFactory
 		List			file_priorities )
 	{
 		return( new DownloadManagerImpl( gm, torrent_hash, torrentFileName, torrent_save_dir, torrent_save_file, initialState, persistent, recovered, false, has_ever_been_started, file_priorities, null ));
+	}
+	
+	public static DownloadManagerAvailability
+	getAvailability(
+		TOTorrent		torrent )
+	{
+		return( new DownloadManagerAvailabilityImpl( torrent ));
 	}
 }

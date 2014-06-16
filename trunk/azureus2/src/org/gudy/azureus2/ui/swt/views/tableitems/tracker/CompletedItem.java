@@ -27,7 +27,6 @@ package org.gudy.azureus2.ui.swt.views.tableitems.tracker;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
-
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 
 
@@ -38,9 +37,9 @@ CompletedItem
     implements TableCellRefreshListener
 {
 	public 
-	CompletedItem()
+	CompletedItem(String tableID)
 	{
-		super( "completed", ALIGN_CENTER, POSITION_LAST, 75, TableManager.TABLE_TORRENT_TRACKERS );
+		super( "completed", ALIGN_CENTER, POSITION_LAST, 75, tableID );
     
 		setRefreshInterval( INTERVAL_GRAPHIC );
 	}

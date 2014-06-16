@@ -37,9 +37,9 @@ NameItem
     implements TableCellRefreshListener
 {
 	public 
-	NameItem()
+	NameItem( String tableID)
 	{
-		super( "name", ALIGN_LEAD, POSITION_LAST, 300, TableManager.TABLE_TORRENT_TRACKERS );
+		super( "name", ALIGN_LEAD, POSITION_LAST, 300, tableID );
     
 		setRefreshInterval( INTERVAL_GRAPHIC );
 	}

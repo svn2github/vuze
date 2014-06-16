@@ -57,9 +57,9 @@ StatusItem
 
 	
 	public 
-	StatusItem()
+	StatusItem( String tableID )
 	{
-		super( "status", ALIGN_LEAD, POSITION_LAST, 75, TableManager.TABLE_TORRENT_TRACKERS );
+		super( "status", ALIGN_LEAD, POSITION_LAST, 75, tableID );
     
 		setRefreshInterval( INTERVAL_GRAPHIC );
 		

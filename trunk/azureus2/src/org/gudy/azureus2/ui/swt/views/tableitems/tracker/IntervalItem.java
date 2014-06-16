@@ -28,7 +28,6 @@ import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.plugins.ui.tables.*;
 import org.gudy.azureus2.ui.swt.views.table.CoreTableColumnSWT;
 
-
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 
 
@@ -38,9 +37,9 @@ IntervalItem
     implements TableCellRefreshListener
 {
 	public 
-	IntervalItem()
+	IntervalItem(String tableID)
 	{
-		super( "interval", ALIGN_CENTER, POSITION_LAST, 75, TableManager.TABLE_TORRENT_TRACKERS );
+		super( "interval", ALIGN_CENTER, POSITION_LAST, 75, tableID );
     
 		setRefreshInterval( INTERVAL_GRAPHIC );
 	}
