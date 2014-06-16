@@ -72,11 +72,7 @@ import org.gudy.azureus2.plugins.utils.UTTimerEvent;
 import org.gudy.azureus2.plugins.utils.UTTimerEventPerformer;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
-import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPosition;
-import com.aelitis.azureus.core.dht.netcoords.DHTNetworkPositionManager;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
-import com.aelitis.azureus.core.networkmanager.admin.NetworkAdminASN;
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
 import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 import com.aelitis.azureus.plugins.dht.*;
@@ -136,8 +132,8 @@ DHTTrackerPlugin
 	private static final int	DL_DERIVED_MAX_TRACK		= 20;
 	private static final int	DIRECT_INJECT_PEER_MAX		= 5;
 	
-	private static boolean ADD_ASN_DERIVED_TARGET			= false;
-	private static boolean ADD_NETPOS_DERIVED_TARGETS		= false;
+	//private static final boolean ADD_ASN_DERIVED_TARGET			= false;
+	//private static final boolean ADD_NETPOS_DERIVED_TARGETS		= false;
 	
 	private static URL	DEFAULT_URL;
 	
@@ -188,8 +184,8 @@ DHTTrackerPlugin
 	
 	private AEMonitor			this_mon	= new AEMonitor( "DHTTrackerPlugin" );
 	
-	private DHTNetworkPosition[]	current_network_positions;
-	private long					last_net_pos_time;
+	//private DHTNetworkPosition[]	current_network_positions;
+	//private long					last_net_pos_time;
 	
 	private AESemaphore			initialised_sem = new AESemaphore( "DHTTrackerPlugin:init" );
 	
@@ -1811,6 +1807,11 @@ DHTTrackerPlugin
 											{
 												return( complete && addresses.size() > 5 );
 											}
+											
+											public void 
+											completed() 
+											{
+											}
 										});
 							}
 						}
@@ -2664,11 +2665,6 @@ DHTTrackerPlugin
 					
 					if ( !force ){
 						
-						if ( false && !dht.isReachable()){
-							
-							continue;
-						}
-						
 						if ( interesting_pub_max > 0 && interesting_published > interesting_pub_max ){
 							
 							continue;
@@ -3274,15 +3270,15 @@ DHTTrackerPlugin
 	protected class
 	RegistrationDetails
 	{
-		private static final int DERIVED_ACTIVE_MIN_MILLIS	= 2*60*60*1000;
+		//private static final int DERIVED_ACTIVE_MIN_MILLIS	= 2*60*60*1000;
 		
 		private putDetails			put_details;
 		private byte				flags;
 		private trackerTarget[]		put_targets;
 		private List<trackerTarget>	not_put_targets;
 		
-		private long			derived_active_start	= -1;
-		private long			previous_metric;
+		//private long			derived_active_start	= -1;
+		//private long			previous_metric;
 		
 		protected
 		RegistrationDetails(
@@ -3420,7 +3416,7 @@ DHTTrackerPlugin
     			
     			result.add( new trackerTarget( torrent_hash, REG_TYPE_FULL, "" ));
     		}
-    		
+ /*   		
     		if ( ADD_ASN_DERIVED_TARGET ){
     			
 	    	    NetworkAdminASN net_asn = NetworkAdmin.getSingleton().getCurrentASN();
@@ -3547,12 +3543,14 @@ DHTTrackerPlugin
     		
 	    		not_put_targets = skipped_targets;
     		}
+    		*/
     		
 	    	put_targets 	= result.toArray( new trackerTarget[result.size()]);
     	}
 	}
 	
-	protected DHTNetworkPosition[]
+	/*
+	private DHTNetworkPosition[]
 	getNetworkPositions()
 	{
 		DHTNetworkPosition[] res = current_network_positions;
@@ -3569,6 +3567,7 @@ DHTTrackerPlugin
 		
 		return( res );
 	}
+	*/
 	
 	private void
 	log(
@@ -3817,6 +3816,236 @@ DHTTrackerPlugin
 			});
 	}
 	
+	
+	public TrackerPeerSource[]
+	getTrackerPeerSources(
+		final Torrent		torrent )
+	{
+		TrackerPeerSource vuze_dht = 
+			new TrackerPeerSourceAdapter()
+			{
+				private volatile boolean	query_done;
+				private volatile int		status		= ST_INITIALISING;
+			
+				private volatile int		seeds 		= 0;
+				private volatile int		leechers 	= 0;
+				
+				
+				private void
+				fixup()
+				{
+					if ( initialised_sem.isReleasedForever()){
+						
+						synchronized( this ){
+							
+							if ( query_done ){
+								
+								return;
+							}
+							
+							query_done = true;
+							
+							status = ST_UPDATING;
+						}
+						
+						dht.get(	torrent.getHash(), 
+									"Availability lookup for '" + torrent.getName() + "'",
+									DHTPlugin.FLAG_DOWNLOADING,
+									NUM_WANT, 
+									ANNOUNCE_DERIVED_TIMEOUT,
+									false, true,
+									new DHTPluginOperationListener()
+									{
+										public void
+										starts(
+											byte[]				key )
+										{	
+										}
+										
+										public boolean
+										diversified()
+										{
+											return( true );
+										}
+										
+										public void
+										valueRead(
+											DHTPluginContact	originator,
+											DHTPluginValue		value )
+										{
+											if (( value.getFlags() & DHTPlugin.FLAG_DOWNLOADING ) == 1 ){
+												
+												seeds++;
+												
+											}else{
+												
+												leechers++;
+											}
+										}
+										
+										public void
+										valueWritten(
+											DHTPluginContact	target,
+											DHTPluginValue		value )
+										{
+											
+										}
+										
+										public void
+										complete(
+											byte[]				key,
+											boolean				timeout_occurred )
+										{
+											status		= ST_ONLINE;
+										}
+									});
+					}
+				}
+				
+				public int
+				getType()
+				{
+					return( TP_DHT );
+				}
+				
+				public String
+				getName()
+				{
+					return( "DHT" );
+				}
+				
+				public int
+				getStatus()
+				{
+					fixup();
+					
+					return( status );
+				}
+				
+				public int
+				getSeedCount()
+				{
+					fixup();
+					
+					int	result = seeds;
+					
+					if ( result == 0 && status != ST_ONLINE ){
+						
+						return( -1 );
+					}
+					
+					return( result );
+				}
+				
+				public int
+				getLeecherCount()
+				{
+					fixup();
+					
+					int	result = leechers;
+					
+					if ( result == 0 && status != ST_ONLINE ){
+						
+						return( -1 );
+					}
+					
+					return( result );
+				}
+				
+				public int
+				getPeers()
+				{
+					return( -1 );
+				}
+				
+				public boolean
+				isUpdating()
+				{
+					return( status == ST_UPDATING );
+				}
+
+			};
+			
+			
+		TrackerPeerSource alt_dht = 
+				new TrackerPeerSourceAdapter()
+				{
+					private volatile int		status 	= ST_UPDATING;
+					private volatile int		peers 	= 0;
+					
+					{
+						alt_lookup_handler.get( 
+								torrent.getHash(),
+								false,
+								new DHTTrackerPluginAlt.LookupListener()
+								{
+									public void
+									foundPeer(
+										InetSocketAddress	address )
+									{
+										peers++;
+									}
+									
+									public boolean
+									isComplete()
+									{
+										return( false );
+									}
+									
+									public void
+									completed()
+									{
+										status = ST_ONLINE;
+									}
+								});
+					}
+				
+					
+					public int
+					getType()
+					{
+						return( TP_DHT );
+					}
+					
+					public String
+					getName()
+					{
+						return( "DHT" );
+					}
+					
+					public int
+					getStatus()
+					{
+						return( status );
+					}
+					
+					public int
+					getPeers()
+					{
+						int	result = peers;
+						
+						if ( result == 0 && status != ST_ONLINE ){
+							
+							return( -1 );
+						}
+						
+						return( result );
+					}
+					
+					public boolean
+					isUpdating()
+					{
+						return( status == ST_UPDATING );
+					}
+
+				};
+	
+		return( new TrackerPeerSource[]{ vuze_dht, alt_dht } );
+	}
+	
+	
+	
+	/*
 	public static List<Object[]>
 	getVivaldiTargets(
 		byte[]					torrent_hash,
@@ -3842,26 +4071,6 @@ DHTTrackerPlugin
 		
 		int[] triangle2 = slicer.findVertices( t2_x, t2_y );
 		
-		/*
-		
-		System.out.println( "NetPos: " + loc_str );						
-
-		String	tr1_str = "";
-		
-		for (int j=0;j<triangle1.length;j+=2 ){
-			
-			tr1_str += (j==0?"":",") + "(" + triangle1[j] + "," + triangle1[j+1] + ")";
-		}
-		
-		String	tr2_str = "";
-		
-		for (int j=0;j<triangle2.length;j+=2 ){
-			
-			tr2_str += (j==0?"":",") + "(" + triangle2[j] + "," + triangle2[j+1] + ")";
-		}
-		
-		System.out.println( "t1=" + tr1_str + ",t2=" + tr2_str );
-		*/
 		
 		for (int j=0;j<triangle1.length;j+=2 ){
 
@@ -3938,6 +4147,7 @@ DHTTrackerPlugin
 	{
 		return(Math.sqrt((x2-x1)*(x2-x1) + (y2-y1)*(y2-y1)));
 	}
+	*/
 	
 	protected static class
 	putDetails

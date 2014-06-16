@@ -523,6 +523,7 @@ DHTTrackerPluginAlt
 		private int		timeout_count;
 		private int		reply_count;
 		
+		private boolean	completed;
 		private boolean	failed;
 		
 		private
@@ -605,92 +606,106 @@ DHTTrackerPluginAlt
 						
 						if ( found_peers.size() > NUM_WANT ){
 							
+							setCompleted();
+							
 							return;
 						}
 						
 						if ( now - found_peer_time > LOOKUP_LINGER ){
 							
-							return;
-						}
-					}
-					
-					byte[]	limit_nid;
-					
-					if ( heard_from.size() >= NID_CLOSENESS_LIMIT ){
-						
-						limit_nid = heard_from.keySet().iterator().next();
-						
-					}else{
-						
-						limit_nid = null;
-					}
-					
-					Iterator<Map.Entry<byte[],InetSocketAddress>> query_it = to_query.entrySet().iterator();
-					
-					while( query_it.hasNext()){
-						
-						Map.Entry<byte[],InetSocketAddress> entry = query_it.next();
-						
-						query_it.remove();
-
-						byte[]	nid = entry.getKey();
-						
-						if ( limit_nid != null && comparator.compare( limit_nid, nid ) <= 0 ){
-							
-							// System.out.println( "skipping " + ByteFormatter.encodeString( nid ) + ": limit=" + ByteFormatter.encodeString( limit_nid ) + "/" + ByteFormatter.encodeString( torrent_hash ));
-							
-							continue;
-						}
-						
-						// System.out.println( "searching " + ByteFormatter.encodeString( nid ));
-								
-						InetSocketAddress	address = entry.getValue();
-						
-						search( address );
-						
-						if ( active_queries.size() >= CONC_LOOKUPS ){
+							setCompleted();
 							
 							return;
 						}
 					}
 					
-					if ( heard_from.size() < 10 ){
+					try{
+						byte[]	limit_nid;
 						
-						Iterator<DHTTransportAlternativeContact> contact_it = initial_contacts.iterator();
+						if ( heard_from.size() >= NID_CLOSENESS_LIMIT ){
+							
+							limit_nid = heard_from.keySet().iterator().next();
+							
+						}else{
+							
+							limit_nid = null;
+						}
 						
-						while( contact_it.hasNext()){
+						Iterator<Map.Entry<byte[],InetSocketAddress>> query_it = to_query.entrySet().iterator();
+						
+						while( query_it.hasNext()){
 							
-							DHTTransportAlternativeContact	contact = contact_it.next();
+							Map.Entry<byte[],InetSocketAddress> entry = query_it.next();
 							
-							contact_it.remove();
+							query_it.remove();
+	
+							byte[]	nid = entry.getKey();
 							
-							Map<String,Object>	properties = contact.getProperties();
-							
-							byte[]	_a 	= (byte[])properties.get( "a" );
-							Long	_p	= (Long)properties.get( "p" );
-							
-							if ( _a != null && _p != null ){
-							
-								try{
-									InetSocketAddress address = new InetSocketAddress( InetAddress.getByAddress( _a ), _p.intValue());
+							if ( limit_nid != null && comparator.compare( limit_nid, nid ) <= 0 ){
 								
-									search( address );
+								// System.out.println( "skipping " + ByteFormatter.encodeString( nid ) + ": limit=" + ByteFormatter.encodeString( limit_nid ) + "/" + ByteFormatter.encodeString( torrent_hash ));
+								
+								continue;
+							}
 							
-									if ( active_queries.size() >= CONC_LOOKUPS ){
-										
-										return;
-									}
-								}catch( Throwable e ){
+							// System.out.println( "searching " + ByteFormatter.encodeString( nid ));
 									
+							InetSocketAddress	address = entry.getValue();
+							
+							search( address );
+							
+							if ( active_queries.size() >= CONC_LOOKUPS ){
+								
+								return;
+							}
+						}
+						
+						if ( heard_from.size() < 10 ){
+							
+							Iterator<DHTTransportAlternativeContact> contact_it = initial_contacts.iterator();
+							
+							while( contact_it.hasNext()){
+								
+								DHTTransportAlternativeContact	contact = contact_it.next();
+								
+								contact_it.remove();
+								
+								Map<String,Object>	properties = contact.getProperties();
+								
+								byte[]	_a 	= (byte[])properties.get( "a" );
+								Long	_p	= (Long)properties.get( "p" );
+								
+								if ( _a != null && _p != null ){
+								
+									try{
+										InetSocketAddress address = new InetSocketAddress( InetAddress.getByAddress( _a ), _p.intValue());
+									
+										search( address );
+								
+										if ( active_queries.size() >= CONC_LOOKUPS ){
+											
+											return;
+										}
+									}catch( Throwable e ){
+										
+									}
 								}
 							}
+						}
+					}finally{
+						
+						if ( active_queries.size() == 0 ){
+							
+							setCompleted();
 						}
 					}
 				}
 			}catch( Throwable e ){
 				
-				failed = true;
+				synchronized( this ){
 				
+					setFailed();
+				}
 			}finally{
 				
 				// log();
@@ -825,13 +840,28 @@ DHTTrackerPluginAlt
 					}catch( Throwable e ){
 					}
 				}
-				
-				tryQuery();
-				
-			}else{
-				
-				// log();
 			}
+			
+			tryQuery();
+		}
+		
+		private void
+		setCompleted()
+		{
+			if ( !completed ){
+				
+				completed = true;
+				
+				listener.completed();
+			}
+		}
+		
+		private void
+		setFailed()
+		{
+			failed = true;
+			
+			setCompleted();
 		}
 		
 		private void
@@ -866,5 +896,8 @@ DHTTrackerPluginAlt
 		
 		public boolean
 		isComplete();
+		
+		public void
+		completed();
 	}
 }

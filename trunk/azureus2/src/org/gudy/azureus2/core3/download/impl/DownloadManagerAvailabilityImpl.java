@@ -23,6 +23,7 @@ package org.gudy.azureus2.core3.download.impl;
 
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.gudy.azureus2.core3.download.DownloadManagerAvailability;
@@ -494,18 +495,20 @@ DownloadManagerAvailabilityImpl
 		}
 		
 			// dht
-		/*
-		try{
+		
+		if ( !torrent.isPrivate()){
 			
-			PluginInterface dht_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass(DHTTrackerPlugin.class);
-
-		    if ( dht_pi != null ){
-		    	
-		    	peer_sources.add(((DHTTrackerPlugin)dht_pi.getPlugin()).getTrackerPeerSource( plugin_download ));
-		    }
-		}catch( Throwable e ){
+			try{
+				
+				PluginInterface dht_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass(DHTTrackerPlugin.class);
+	
+			    if ( dht_pi != null ){
+			    	
+			    	peer_sources.addAll( Arrays.asList(((DHTTrackerPlugin)dht_pi.getPlugin()).getTrackerPeerSources( torrent )));
+			    }
+			}catch( Throwable e ){
+			}
 		}
-		*/
 	}
 	
 	public List<TrackerPeerSource>

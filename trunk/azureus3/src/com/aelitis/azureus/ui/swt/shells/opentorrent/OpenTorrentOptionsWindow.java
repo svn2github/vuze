@@ -35,7 +35,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.StringIterator;
 import org.gudy.azureus2.core3.config.StringList;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
-import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerAvailability;
 import org.gudy.azureus2.core3.download.DownloadManagerFactory;
 import org.gudy.azureus2.core3.internat.LocaleTorrentUtil;
@@ -51,7 +50,6 @@ import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
 import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
-import org.gudy.azureus2.plugins.ui.tables.TableCell;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
 import org.gudy.azureus2.ui.swt.*;
@@ -64,10 +62,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.maketorrent.MultiTrackerEditor;
 import org.gudy.azureus2.ui.swt.maketorrent.TrackerEditorListener;
 import org.gudy.azureus2.ui.swt.shells.MessageBoxShell;
-import org.gudy.azureus2.ui.swt.views.FilesView;
 import org.gudy.azureus2.ui.swt.views.TrackerAvailView;
-import org.gudy.azureus2.ui.swt.views.TrackerView;
-import org.gudy.azureus2.ui.swt.views.table.TableCellSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
@@ -1722,13 +1717,21 @@ public class OpenTorrentOptionsWindow
 			
 			Utils.makeButtonsEqualWidth( buttons );
 			
+			avail_shell.setDefaultButton( bOK );
+			
 			avail_shell.addDisposeListener(new DisposeListener() {
 				public void widgetDisposed(DisposeEvent e) {
-					UIUpdaterSWT.getInstance().removeUpdater(viewUpdater);
-					
-					btnCheckAvailability.setEnabled( true );
-					
-					availability.destroy();
+					try{
+						UIUpdaterSWT.getInstance().removeUpdater(viewUpdater);
+						
+						if ( !btnCheckAvailability.isDisposed()){
+						
+							btnCheckAvailability.setEnabled( true );
+						}
+					}finally{
+						
+						availability.destroy();
+					}
 				}
 			});
 
