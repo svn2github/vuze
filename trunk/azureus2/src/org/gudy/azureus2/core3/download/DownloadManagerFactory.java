@@ -73,8 +73,11 @@ DownloadManagerFactory
 	
 	public static DownloadManagerAvailability
 	getAvailability(
-		TOTorrent		torrent )
+		TOTorrent				torrent,
+		List<List<String>>		updated_trackers,
+		String[]				enabled_peer_sources,
+		String[]				enabled_networks )
 	{
-		return( new DownloadManagerAvailabilityImpl( torrent ));
+		return( new DownloadManagerAvailabilityImpl( torrent, updated_trackers, enabled_peer_sources, enabled_networks ));
 	}
 }

@@ -1640,7 +1640,38 @@ public class OpenTorrentOptionsWindow
 
 			final TrackerAvailView view = new TrackerAvailView();
 			
-			final DownloadManagerAvailability availability = DownloadManagerFactory.getAvailability( t );
+			String[] enabled_peer_sources = PEPeerSource.PS_SOURCES;
+			
+			if (torrentOptions.peerSource != null) {
+				List<String>	temp = new ArrayList<String>(Arrays.asList(enabled_peer_sources));
+				for (String peerSource : torrentOptions.peerSource.keySet()) {
+					boolean enable = torrentOptions.peerSource.get(peerSource);
+					if ( !enable ){
+						temp.remove( peerSource );
+					}
+				}
+				enabled_peer_sources = temp.toArray( new String[temp.size()]);
+			}
+
+			String[] enabled_networks = AENetworkClassifier.AT_NETWORKS;
+			
+			if ( torrentOptions.enabledNetworks != null ){
+				List<String>	temp = new ArrayList<String>(Arrays.asList(enabled_networks));
+				for (String net : torrentOptions.enabledNetworks.keySet()) {
+					boolean enable = torrentOptions.enabledNetworks.get(net);
+					if ( !enable ){
+						temp.remove( net );
+					}
+				}
+				enabled_networks = temp.toArray( new String[temp.size()]);
+			}
+					
+			final DownloadManagerAvailability availability = 
+				DownloadManagerFactory.getAvailability( 
+					t, 
+					torrentOptions.getTrackers( true ), 
+					enabled_peer_sources,
+					enabled_networks );
 			
 			view.dataSourceChanged( availability );
 

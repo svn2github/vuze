@@ -833,6 +833,42 @@ TorrentUtils
 		return( groups );
 	}
 	
+		/**
+		 * This method DOES NOT MODIFY THE TORRENT
+		 * @param groups
+		 * @param torrent
+		 * @return
+		 */
+	
+	public static TOTorrentAnnounceURLSet[]
+	listToAnnounceSets(
+		List<List<String>>		groups,
+		TOTorrent				torrent )
+	{
+		List<TOTorrentAnnounceURLSet> sets = new ArrayList<TOTorrentAnnounceURLSet>();
+		
+		for ( List<String> group: groups ){
+			
+			List<URL> urls = new ArrayList<URL>( group.size());
+			
+			for ( String s: group ){
+				
+				try{
+					urls.add( new URL( s));
+					
+				}catch( Throwable e ){		
+				}
+			}
+			
+			if ( urls.size() > 0 ){
+			
+				sets.add( torrent.getAnnounceURLGroup().createAnnounceURLSet(urls.toArray( new URL[urls.size()])));
+			}
+		}
+		
+		return( sets.toArray( new TOTorrentAnnounceURLSet[sets.size()]));
+	}
+	
 	public static void
 	listToAnnounceGroups(
 		List<List<String>>		groups,
