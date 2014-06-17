@@ -516,8 +516,13 @@ DownloadManagerAvailabilityImpl
 			ExternalSeedPlugin esp = DownloadManagerController.getExternalSeedPlugin();
 			
 			if ( esp != null ){
-				  					
-				peer_sources.add( esp.getTrackerPeerSource( torrent ));
+				  	
+				TrackerPeerSource ext_ps = esp.getTrackerPeerSource( torrent );
+				
+				if ( ext_ps.getSeedCount() > 0 ){
+				
+					peer_sources.add( ext_ps );
+				}
 			}
 		}catch( Throwable e ){
 		}
@@ -545,148 +550,139 @@ DownloadManagerAvailabilityImpl
 		if ( 	enabled_peer_sources.contains( PEPeerSource.PS_DHT) &&
 				enabled_networks.contains( AENetworkClassifier.AT_I2P )){
 
-			/*
-		public void
-		lookupTorrent(
-			String				reason,
-			byte[]				torrent_hash,
-			Map<String,Object>	options,
-			IPCInterface		callback )
+			if ( !torrent.isPrivate()){
 			
-			throws IPCException
-			*/
-			
-			try{
-				PluginInterface i2p_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "azneti2phelper", true );
-				
-				if ( i2p_pi != null ){
+				try{
+					PluginInterface i2p_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "azneti2phelper", true );
 					
-					IPCInterface ipc = i2p_pi.getIPC();
-					
-					Map<String,Object>	options = new HashMap<String, Object>();
-					
-					options.put( "peer_networks", _enabled_networks );
-					
-					final int[] lookup_status = new int[]{ TrackerPeerSource.ST_INITIALISING, -1, -1, -1 };
-					
-					IPCInterface callback =
-						new IPCInterface()
-						{
-							public Object 
-							invoke(
-								String methodName, 
-								Object[] params) 
-									
-								throws IPCException
+					if ( i2p_pi != null ){
+						
+						IPCInterface ipc = i2p_pi.getIPC();
+						
+						Map<String,Object>	options = new HashMap<String, Object>();
+						
+						options.put( "peer_networks", _enabled_networks );
+						
+						final int[] lookup_status = new int[]{ TrackerPeerSource.ST_INITIALISING, -1, -1, -1 };
+						
+						IPCInterface callback =
+							new IPCInterface()
 							{
-								synchronized( lookup_status ){
-									
-									lookup_status[0] = (Integer)params[0];
-									
-									if ( params.length >= 4 ){
+								public Object 
+								invoke(
+									String methodName, 
+									Object[] params) 
 										
-										lookup_status[1] = (Integer)params[1];
-										lookup_status[2] = (Integer)params[2];
-										lookup_status[3] = (Integer)params[3];
+									throws IPCException
+								{
+									synchronized( lookup_status ){
+										
+										lookup_status[0] = (Integer)params[0];
+										
+										if ( params.length >= 4 ){
+											
+											lookup_status[1] = (Integer)params[1];
+											lookup_status[2] = (Integer)params[2];
+											lookup_status[3] = (Integer)params[3];
+										}
+									}
+									
+									return( null );
+								}
+	
+								public boolean 
+								canInvoke( 
+									String methodName, 
+									Object[] params )
+								{
+									return( true );
+								}
+							};
+							
+						TrackerPeerSource	ps = new
+							TrackerPeerSourceAdapter() 
+							{
+								public int
+								getType()
+								{
+									return( TP_PLUGIN );
+								}
+								
+								public String
+								getName()
+								{
+									return( "I2P DHT" );
+								}
+								
+								public int
+								getStatus()
+								{
+									synchronized( lookup_status ){
+										
+										return( lookup_status[0] );
 									}
 								}
 								
-								return( null );
-							}
-
-							public boolean 
-							canInvoke( 
-								String methodName, 
-								Object[] params )
-							{
-								return( true );
-							}
-						};
-						
-					TrackerPeerSource	ps = new
-						TrackerPeerSourceAdapter() 
-						{
-							public int
-							getType()
-							{
-								return( TP_PLUGIN );
-							}
-							
-							public String
-							getName()
-							{
-								return( "I2P DHT" );
-							}
-							
-							public int
-							getStatus()
-							{
-								synchronized( lookup_status ){
+								public int
+								getSeedCount()
+								{
+									synchronized( lookup_status ){
 									
-									return( lookup_status[0] );
+										int	seeds 		= lookup_status[1];
+										int peers 		= lookup_status[3];
+										
+										if ( seeds == 0 && peers > 0 ){
+											
+											return( -1 );
+										}
+										
+										return( seeds );
+									}
 								}
-							}
-							
-							public int
-							getSeedCount()
-							{
-								synchronized( lookup_status ){
 								
-									int	seeds 		= lookup_status[1];
-									int peers 		= lookup_status[3];
-									
-									if ( seeds == 0 && peers > 0 ){
+								public int
+								getLeecherCount()
+								{
+									synchronized( lookup_status ){
 										
-										return( -1 );
-									}
-									
-									return( seeds );
-								}
-							}
-							
-							public int
-							getLeecherCount()
-							{
-								synchronized( lookup_status ){
-									
-									int leechers 	= lookup_status[2];
-									int peers 		= lookup_status[3];
-									
-									if ( leechers == 0 && peers > 0 ){
+										int leechers 	= lookup_status[2];
+										int peers 		= lookup_status[3];
 										
-										return( -1 );
+										if ( leechers == 0 && peers > 0 ){
+											
+											return( -1 );
+										}
+										
+										return( leechers );
 									}
-									
-									return( leechers );
 								}
-							}
+								
+								public int
+								getPeers()
+								{
+									synchronized( lookup_status ){
+										
+										int peers = lookup_status[3];
+										
+										return( peers==0?-1:peers );
+									}
+								}
+							};
 							
-							public int
-							getPeers()
-							{
-								synchronized( lookup_status ){
-									
-									int peers = lookup_status[3];
-									
-									return( peers==0?-1:peers );
-								}
-							}
-						};
+							
+						ipc.invoke(
+							"lookupTorrent",
+							new Object[]{
+								"Availability lookup for '" + torrent.getName() + "'",
+								torrent.getHash(),
+								options,
+								callback 
+							});
 						
-						
-					ipc.invoke(
-						"lookupTorrent",
-						new Object[]{
-							"Availability lookup for '" + torrent.getName() + "'",
-							torrent.getHash(),
-							options,
-							callback 
-						});
-					
-					peer_sources.add( ps );
+						peer_sources.add( ps );
+					}
+				}catch( Throwable e ){
 				}
-			}catch( Throwable e ){
-				
 			}
 		}
 	}
