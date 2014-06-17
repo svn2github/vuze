@@ -38,12 +38,15 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ipc.IPCException;
+import org.gudy.azureus2.plugins.ipc.IPCInterface;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
 import com.aelitis.azureus.core.tracker.TrackerPeerSource;
+import com.aelitis.azureus.core.tracker.TrackerPeerSourceAdapter;
 import com.aelitis.azureus.plugins.extseed.ExternalSeedPlugin;
 import com.aelitis.azureus.plugins.tracker.dht.DHTTrackerPlugin;
 
@@ -145,7 +148,7 @@ DownloadManagerAvailabilityImpl
 			    			public int
 			    			getMaxNewConnectionsAllowed()
 			    			{
-			    				return( 1 );
+			    				return( 1 );	// num-want -> 1
 			    			}
 			    			
 			    			public int
@@ -383,7 +386,15 @@ DownloadManagerAvailabilityImpl
 								return( -1 );
 							}
 							
-							return( delegate.getPeers());							
+								// we only asked for 1 peer so if we have a scrape value then we'll leave this blank
+								// to avoid confusion
+							
+							if ( delegate.getSeedCount() > 0 || delegate.getLeecherCount() > 0 ){
+								
+								return( -1 );
+							}
+							
+							return( delegate.getPeers());
 						}
 	
 						public int
@@ -528,6 +539,154 @@ DownloadManagerAvailabilityImpl
 				    }
 				}catch( Throwable e ){
 				}
+			}
+		}
+		
+		if ( 	enabled_peer_sources.contains( PEPeerSource.PS_DHT) &&
+				enabled_networks.contains( AENetworkClassifier.AT_I2P )){
+
+			/*
+		public void
+		lookupTorrent(
+			String				reason,
+			byte[]				torrent_hash,
+			Map<String,Object>	options,
+			IPCInterface		callback )
+			
+			throws IPCException
+			*/
+			
+			try{
+				PluginInterface i2p_pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( "azneti2phelper", true );
+				
+				if ( i2p_pi != null ){
+					
+					IPCInterface ipc = i2p_pi.getIPC();
+					
+					Map<String,Object>	options = new HashMap<String, Object>();
+					
+					options.put( "peer_networks", _enabled_networks );
+					
+					final int[] lookup_status = new int[]{ TrackerPeerSource.ST_INITIALISING, -1, -1, -1 };
+					
+					IPCInterface callback =
+						new IPCInterface()
+						{
+							public Object 
+							invoke(
+								String methodName, 
+								Object[] params) 
+									
+								throws IPCException
+							{
+								synchronized( lookup_status ){
+									
+									lookup_status[0] = (Integer)params[0];
+									
+									if ( params.length >= 4 ){
+										
+										lookup_status[1] = (Integer)params[1];
+										lookup_status[2] = (Integer)params[2];
+										lookup_status[3] = (Integer)params[3];
+									}
+								}
+								
+								return( null );
+							}
+
+							public boolean 
+							canInvoke( 
+								String methodName, 
+								Object[] params )
+							{
+								return( true );
+							}
+						};
+						
+					TrackerPeerSource	ps = new
+						TrackerPeerSourceAdapter() 
+						{
+							public int
+							getType()
+							{
+								return( TP_PLUGIN );
+							}
+							
+							public String
+							getName()
+							{
+								return( "I2P DHT" );
+							}
+							
+							public int
+							getStatus()
+							{
+								synchronized( lookup_status ){
+									
+									return( lookup_status[0] );
+								}
+							}
+							
+							public int
+							getSeedCount()
+							{
+								synchronized( lookup_status ){
+								
+									int	seeds 		= lookup_status[1];
+									int peers 		= lookup_status[3];
+									
+									if ( seeds == 0 && peers > 0 ){
+										
+										return( -1 );
+									}
+									
+									return( seeds );
+								}
+							}
+							
+							public int
+							getLeecherCount()
+							{
+								synchronized( lookup_status ){
+									
+									int leechers 	= lookup_status[2];
+									int peers 		= lookup_status[3];
+									
+									if ( leechers == 0 && peers > 0 ){
+										
+										return( -1 );
+									}
+									
+									return( leechers );
+								}
+							}
+							
+							public int
+							getPeers()
+							{
+								synchronized( lookup_status ){
+									
+									int peers = lookup_status[3];
+									
+									return( peers==0?-1:peers );
+								}
+							}
+						};
+						
+						
+					ipc.invoke(
+						"lookupTorrent",
+						new Object[]{
+							"Availability lookup for '" + torrent.getName() + "'",
+							torrent.getHash(),
+							options,
+							callback 
+						});
+					
+					peer_sources.add( ps );
+				}
+			}catch( Throwable e ){
+				
 			}
 		}
 	}

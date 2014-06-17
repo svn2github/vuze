@@ -3158,17 +3158,19 @@ public class OpenTorrentOptionsWindow
 		private void setupInfoFields(SWTSkin skin) {
 			SWTSkinObject so;
 			so = skin.getSkinObject("torrentinfo-name");
+			TOTorrent torrent = torrentOptions.getTorrent();
+
 			if (so instanceof SWTSkinObjectText) {
+				
 				((SWTSkinObjectText) so).setText(torrentOptions.getTorrentName());
 			}
 	
 			so = skin.getSkinObject("torrentinfo-trackername");
 			
-			TOTorrent torrent = torrentOptions.getTorrent();
 			
 			if ( torrent != null ){
 				if (so instanceof SWTSkinObjectText) {
-					((SWTSkinObjectText) so).setText(TrackerNameItem.getTrackerName(torrent));
+					((SWTSkinObjectText) so).setText(TrackerNameItem.getTrackerName(torrent) + ((torrent==null||!torrent.getPrivate())?"":(" (private)")));
 				}
 		
 				so = skin.getSkinObject("torrentinfo-comment");

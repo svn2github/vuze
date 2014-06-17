@@ -604,7 +604,7 @@ ExternalSeedPlugin
 				}
 				
 				public int
-				getPeers()
+				getSeedCount()
 				{
 					fixup();
 					
@@ -691,7 +691,7 @@ ExternalSeedPlugin
 				}
 				
 				public int
-				getPeers()
+				getSeedCount()
 				{					
 					return( peers.length==0?-1:peers.length );
 				}
