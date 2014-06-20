@@ -89,6 +89,26 @@ public class TrackerAvailView
 		return tv;
 	}
 
+	public boolean
+	isUpdating()
+	{
+		List<TrackerPeerSource> peer_sources = tv.getDataSources();
+		
+		for ( TrackerPeerSource p: peer_sources ){
+			
+			int status = p.getStatus();
+			
+			if ( 	status == TrackerPeerSource.ST_INITIALISING ||
+					status == TrackerPeerSource.ST_QUEUED ||
+					status == TrackerPeerSource.ST_UPDATING ){
+				
+				return( true );
+			}
+		}
+		
+		return( false );
+	}
+	
 	public void 
 	fillMenu(
 		String sColumnName, Menu menu) 

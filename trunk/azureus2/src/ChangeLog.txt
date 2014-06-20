@@ -15,7 +15,7 @@ FEATURE: UI   | Enabled networks can now be specified in torrent-options dialog 
 FEATURE: UI   | Added an 'apply to current' function to tags with initial-save/move-on-complete set [Parg]
 FEATURE: UI   | Added 'availability' button to torrent-options to allow a torrent's availability to be checked before addition [Parg]
 FEATURE: Plug | Friends plugin now supports tag-based sharing to mirror the existing category based sharing [Parg]
-FEATURE: Plug | Improved I2P network integration (new 'I2P Helper Plugin' deprecates existing 'I2P Network Plugin') [Parg]
+FEATURE: Plug | Improved I2P network integration (new 'I2P Helper Plugin' deprecates existing 'I2P Network Plugin') - see http://wiki.vuze.com/w/I2PHelper_HowTo [Parg]
 FEATURE: Plug | The 'Network Status' plugin now tests connectivity to Vuze services (e.g. pairing service) [Parg]
 FEATURE: Core | Added simple tag constraint language (e.g. to define a tag that contains downloads whose title matches a regex - see wiki) [Parg]
 FEATURE: Core | BEP 40: Canonical Peer Priority [Parg]

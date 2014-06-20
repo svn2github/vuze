@@ -31,8 +31,6 @@ import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerDataProvider;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncerFactory;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerScraper;
-import org.gudy.azureus2.core3.tracker.client.TRTrackerScraperResponse;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -547,9 +545,11 @@ DownloadManagerAvailabilityImpl
 			}
 		}
 		
-		if ( 	enabled_peer_sources.contains( PEPeerSource.PS_DHT) &&
-				enabled_networks.contains( AENetworkClassifier.AT_I2P )){
+		if ( 	enabled_peer_sources.contains( PEPeerSource.PS_DHT)){
+				// enabled_networks.contains( AENetworkClassifier.AT_I2P )){
 
+				// always do this availability check for the moment
+			
 			if ( !torrent.isPrivate()){
 			
 				try{

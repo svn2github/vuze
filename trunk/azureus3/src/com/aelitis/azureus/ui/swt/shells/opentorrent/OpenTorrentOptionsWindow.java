@@ -1702,6 +1702,90 @@ public class OpenTorrentOptionsWindow
 			
 			UIUpdaterSWT.getInstance().addUpdater(viewUpdater);
 
+				// progress
+			
+			Composite progressComp = new Composite( comp, SWT.NULL );
+			gridData = new GridData( GridData.FILL_HORIZONTAL );
+			progressComp.setLayoutData(gridData);
+			
+			layout = new GridLayout();
+			layout.numColumns = 3;
+			progressComp.setLayout(layout);
+			
+			Label progLabel = new Label(progressComp,SWT.NULL);
+			progLabel.setText( MessageText.getString("label.checking.sources"));
+			
+			final Composite progBarComp = new Composite( progressComp, SWT.NULL );
+			gridData = new GridData();
+			gridData.widthHint = 400;
+			progBarComp.setLayoutData(gridData);
+			
+			Label padLabel = new Label(progressComp,SWT.NULL);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			padLabel.setLayoutData(gridData);
+			
+			final StackLayout	progStackLayout = new StackLayout();
+			
+			progBarComp.setLayout( progStackLayout);
+			
+			final ProgressBar progBarIndeterminate = new ProgressBar(progBarComp, SWT.HORIZONTAL | SWT.INDETERMINATE);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			progBarIndeterminate.setLayoutData(gridData);
+			
+			final ProgressBar progBarComplete = new ProgressBar(progBarComp, SWT.HORIZONTAL );
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			progBarComplete.setLayoutData(gridData);
+			progBarComplete.setMaximum( 1 );
+			progBarComplete.setSelection( 1 );
+			
+			progStackLayout.topControl = progBarIndeterminate;
+			
+			new AEThread2( "ProgChecker" )
+			{
+				public void
+				run()
+				{
+					boolean	currently_updating = true;
+					
+					while( true ){
+						
+						if ( avail_shell.isDisposed()){
+							
+							return;
+						}
+						
+						final boolean	updating = view.isUpdating();
+						
+						if ( updating != currently_updating ){
+							
+							currently_updating = updating;
+							
+							Utils.execSWTThread(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										if ( !avail_shell.isDisposed()){
+										
+											progStackLayout.topControl = updating?progBarIndeterminate:progBarComplete;
+										
+											progBarComp.layout();
+										}
+									}
+								});
+						}
+						
+						try{
+							Thread.sleep(500);
+							
+						}catch( Throwable e ){
+							
+						}
+					}
+				}
+			}.start();
+			
 				// line
 			
 			Label labelSeparator = new Label( comp, SWT.SEPARATOR | SWT.HORIZONTAL);
@@ -1716,8 +1800,6 @@ public class OpenTorrentOptionsWindow
 			
 			layout = new GridLayout();
 			layout.numColumns = 2;
-			layout.marginWidth = 0;
-			layout.marginHeight = 0;
 			buttonComp.setLayout(layout);
 			
 			new Label(buttonComp,SWT.NULL);
