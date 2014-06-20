@@ -3911,7 +3911,7 @@ DHTTrackerPlugin
 				public String
 				getName()
 				{
-					return( "DHT" );
+					return( "Vuze DHT" );
 				}
 				
 				public int
@@ -4010,7 +4010,7 @@ DHTTrackerPlugin
 					public String
 					getName()
 					{
-						return( "DHT" );
+						return( "Mainline DHT" );
 					}
 					
 					public int

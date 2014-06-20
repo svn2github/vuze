@@ -605,7 +605,7 @@ DownloadManagerAvailabilityImpl
 								public int
 								getType()
 								{
-									return( TP_PLUGIN );
+									return( TP_DHT );
 								}
 								
 								public String
