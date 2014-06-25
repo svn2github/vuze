@@ -2483,9 +2483,17 @@ public class TagUIUtils
 	getTagTooltip(
 		Tag		tag )
 	{
+		return( getTagTooltip( tag, false ));
+	}
+	
+	public static String
+	getTagTooltip(
+		Tag			tag,
+		boolean		skip_name )
+	{
 		TagType tag_type = tag.getTagType();
 		
-		String 	str = tag_type.getTagTypeName( true ) + ": " + tag.getTagName( true );
+		String 	str = skip_name?"":(tag_type.getTagTypeName( true ) + ": " + tag.getTagName( true ));
 		
 		if ( tag_type.hasTagTypeFeature( TagFeature.TF_RATE_LIMIT )){
 			
@@ -2574,6 +2582,11 @@ public class TagUIUtils
 					str += "\r\n    " + MessageText.getString("label.copy.on.comp") + "=" + copy_on_comp.getAbsolutePath();
 				}
 			}
+		}
+		
+		if ( str.startsWith( "\r\n" )){
+			
+			str = str.substring(2);
 		}
 		
 		return( str );

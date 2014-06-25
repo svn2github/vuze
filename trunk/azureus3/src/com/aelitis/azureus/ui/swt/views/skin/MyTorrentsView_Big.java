@@ -20,11 +20,11 @@ public class MyTorrentsView_Big
 	private final int torrentFilterMode;
 
 	public MyTorrentsView_Big(AzureusCore _azureus_core, int torrentFilterMode,
-			TableColumnCore[] basicItems, Text txtFilter, Composite cCats) {
+			TableColumnCore[] basicItems, Text txtFilter, Composite cCatsTags) {
 		super( true );
 		this.torrentFilterMode = torrentFilterMode;
 		this.txtFilter = txtFilter;
-		this.cCategories = cCats;
+		this.cCategoriesAndTags = cCatsTags;
 		Class<?> forDataSourceType;
 		switch (torrentFilterMode) {
 			case SBC_LibraryView.TORRENTS_COMPLETE:

@@ -108,6 +108,8 @@ CategoryImpl
 	  }
   };  
   
+  private boolean destroyed;
+  
   private static final int LDT_CATEGORY_DMADDED     = 1;
   private static final int LDT_CATEGORY_DMREMOVED   = 2;
 	private ListenerManager<CategoryListener>	category_listeners = ListenerManager.createManager(
@@ -585,7 +587,12 @@ CategoryImpl
   protected void
   destroy()
   {
-	  removeTag();
+	  if ( !destroyed ){
+		  
+		  destroyed = true;
+	  
+		  removeTag();
+	  }
   }
   
   public int compareTo(Object b)
