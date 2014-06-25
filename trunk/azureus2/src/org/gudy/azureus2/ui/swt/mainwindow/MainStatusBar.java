@@ -21,6 +21,8 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 
 import java.text.NumberFormat;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.CLabel;
@@ -28,7 +30,6 @@ import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.config.impl.TransferSpeedValidator;
@@ -165,13 +166,6 @@ public class MainStatusBar
 	 */
 	private CLabelPadding progressViewerImageLabel;
 
-	private String lastProgressImageID = null;
-
-	private boolean updateProgressBarDisplayQueued = false;
-
-	protected IProgressReport latestReport = null;
-
-	protected AEMonitor latestReport_mon = new AEMonitor("latestReport");
 
 	private String lastSRimageID = null;
 
@@ -735,7 +729,6 @@ public class MainStatusBar
 		/////////
 		
 		PRManager.addListener(new ProgressListener());
-		setProgressImage();
 		
 		uiFunctions.getUIUpdater().addUpdater(this);
 		
@@ -1825,104 +1818,29 @@ public class MainStatusBar
 		}
 	}
 
+
+	public Rectangle getBounds() {
+		if (null != statusBar) {
+			return statusBar.getBounds();
+		}
+		return null;
+	}
+
+	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
+	public String getUpdateUIName() {
+		return ID;
+	}
+	
 	/**
 	 * Updates the display of the ProgressBar and/or the status text
 	 * @param pReport the <code>ProgressReport</code> containing the information
 	 * to display; can be <code>null</code> in which case the status text and progress bar will be reset to default states
 	 */
-	private void updateProgressBarDisplay(IProgressReport pReport) {
-		latestReport_mon.enter();
-		try {
-			latestReport = pReport;
-		} finally {
-			latestReport_mon.exit();
-		}
-		if (null == progressBar || progressBar.isDisposed()
-				|| updateProgressBarDisplayQueued) {
-			return;
-		}
-		updateProgressBarDisplayQueued = true;
+	
+	
+	
+	
 
-		Utils.execSWTThread(new AERunnable() {
-			public void runSupport() {
-				latestReport_mon.enter();
-				try {
-					updateProgressBarDisplayQueued = false;
-
-					if ((null == progressBar || true == progressBar.isDisposed())) {
-						return;
-					}
-
-					if (null != latestReport) {
-						/*
-						 * Pass the values through to the progressbar
-						 */
-						progressBar.setMinimum(latestReport.getMinimum());
-						progressBar.setMaximum(latestReport.getMaximum());
-						progressBar.setIndeterminate(latestReport.isIndeterminate());
-						progressBar.setPercentage(latestReport.getPercentage());
-						showProgressBar(true);
-
-						/*
-						 * Update status text
-						 */
-						if (true == isAZ3) {
-							statusText.setText(latestReport.getName());
-						} else {
-							setStatusText(latestReport.getName());
-						}
-					}
-
-					else {
-						/*
-						 * Since the pReport is null then reset progress display appropriately
-						 */
-						showProgressBar(false);
-
-						if (true == isAZ3) {
-							statusText.setText("");
-						} else {
-							setStatusText(null);
-						}
-					}
-				} finally {
-					latestReport_mon.exit();
-				}
-
-			}
-
-		}, true);
-
-	}
-
-	private void setProgressImage() {
-		String imageID;
-
-		if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ERROR) > 0) {
-			imageID = "progress_error";
-		} else if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ALL) > 0) {
-			imageID = "progress_info";
-		} else {
-			imageID = "progress_viewer";
-		}
-		
-		if (!imageID.equals(lastProgressImageID)) {
-			final String fImageID = imageID;
-			Utils.execSWTThread(new AERunnable() {
-				public void runSupport() {
-					if (progressViewerImageLabel.isDisposed()) {
-						return;
-					}
-					ImageLoader imageLoader = ImageLoader.getInstance();
-					progressViewerImageLabel.setImage(imageLoader.getImage(fImageID));
-					if (lastProgressImageID != null) {
-						imageLoader.releaseImage(lastProgressImageID);
-					}
-					lastProgressImageID  = fImageID;
-				}
-			});
-		}
-	}
 
 	/**
 	 * A listener that listens to any changes notified from the <code>ProgressReportingManager</code> and
@@ -1933,20 +1851,150 @@ public class MainStatusBar
 	private class ProgressListener
 		implements IProgressReportingListener
 	{
+		private String lastProgressImageID = null;
 
-		public int reporting(int eventType, IProgressReporter reporter) {
+		private Set<IProgressReporter>	pending_updates = new HashSet<IProgressReporter>();
 
+		private 
+		ProgressListener()
+		{
+			Utils.execSWTThread(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						swt_setProgressImage();
+					}
+				});
+		}
+		
+		private void 
+		swt_updateProgressBarDisplay(
+			IProgressReport pReport) 
+		{
+			if (null == progressBar || progressBar.isDisposed()){
+				
+				return;
+			}
+
+
+			if (null != pReport) {
+				/*
+				 * Pass the values through to the progressbar
+				 */
+				progressBar.setMinimum(pReport.getMinimum());
+				progressBar.setMaximum(pReport.getMaximum());
+				progressBar.setIndeterminate(pReport.isIndeterminate());
+				progressBar.setPercentage(pReport.getPercentage());
+				showProgressBar(true);
+
+				/*
+				 * Update status text
+				 */
+				if (true == isAZ3) {
+					statusText.setText(pReport.getName());
+				} else {
+					setStatusText(pReport.getName());
+				}
+			}
+
+			else {
+				/*
+				 * Since the pReport is null then reset progress display appropriately
+				 */
+				showProgressBar(false);
+
+				if (true == isAZ3) {
+					statusText.setText("");
+				} else {
+					setStatusText(null);
+				}
+			}
+		}
+
+		private void swt_setProgressImage() {
+			
+			if (progressViewerImageLabel.isDisposed()) {
+				return;
+			}
+			
+			String imageID;
+
+			if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ERROR) > 0) {
+				imageID = "progress_error";
+			} else if (PRManager.getReporterCount(ProgressReportingManager.COUNT_ALL) > 0) {
+				imageID = "progress_info";
+			} else {
+				imageID = "progress_viewer";
+			}
+			
+			if (!imageID.equals(lastProgressImageID)) {
+
+				ImageLoader imageLoader = ImageLoader.getInstance();
+				progressViewerImageLabel.setImage(imageLoader.getImage(imageID));
+				if (lastProgressImageID != null) {
+					imageLoader.releaseImage(lastProgressImageID);
+				}
+				lastProgressImageID  = imageID;
+			}
+		}
+		
+		public int 
+		reporting(
+			final int 					eventType, 
+			final IProgressReporter 	reporter) 
+		{
+			if ( eventType == MANAGER_EVENT_UPDATED ){
+				
+					// reduce pointless refreshes due to multple update events
+				
+				synchronized( pending_updates ){
+			
+					if ( pending_updates.contains( reporter )){
+						
+						return( RETVAL_OK );
+					}
+					
+					pending_updates.add( reporter );
+				}
+			}
+			
+			Utils.execSWTThread(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						swt_reporting( eventType, reporter );
+					}});
+			
+			return RETVAL_OK;
+		}
+		
+		private int 
+		swt_reporting(
+			int 				eventType, 
+			IProgressReporter 	reporter) 
+		{
+			synchronized( pending_updates ){
+				
+					// always remove so that the removal event also cleans up
+			
+				pending_updates.remove( reporter );
+			}
+						
 			/*
 			 * Show the appropriate image based on the content of the reporting manager
 			 */
-			setProgressImage();
+			swt_setProgressImage();
 
 			if (null == reporter) {
 				return RETVAL_OK;
 			}
 
 			if (MANAGER_EVENT_REMOVED == eventType) {
-				updateFromPrevious();
+				swt_updateFromPrevious();
 			} else if (MANAGER_EVENT_ADDED == eventType
 					|| MANAGER_EVENT_UPDATED == eventType) {
 				/*
@@ -1974,14 +2022,10 @@ public class MainStatusBar
 					 * The new window is opened only if there is not one already showing the same reporter
 					 */
 					if (false == ProgressReporterWindow.isOpened(final_reporter)) {
-						Utils.execSWTThread(new AERunnable() {
-							public void runSupport() {
-								if ( !ProgressReporterWindow.isOpened(final_reporter)){
+						if ( !ProgressReporterWindow.isOpened(final_reporter)){
 									ProgressReporterWindow.open(final_reporter,
 											ProgressReporterWindow.NONE);
-								}
-							}
-						}, true);
+						}
 					}
 				}
 
@@ -1989,19 +2033,19 @@ public class MainStatusBar
 				 * If this reporter is not active then get the previous reporter that is still active and display info from that
 				 */
 				if (false == pReport.isActive()) {
-					updateFromPrevious();
+					swt_updateFromPrevious();
 				} else {
-					update(pReport);
+					swt_update(pReport);
 				}
 			}
 
 			return RETVAL_OK;
 		}
 
-		private void update(final IProgressReport pReport) {
+		private void swt_update(final IProgressReport pReport) {
 
 			if (null == pReport) {
-				updateProgressBarDisplay(null);
+				swt_updateProgressBarDisplay(null);
 				return;
 			}
 
@@ -2010,19 +2054,17 @@ public class MainStatusBar
 			 * and display the text from the current reporter
 			 */
 			if (true == PRManager.hasMultipleActive()) {
-				Utils.execSWTThread(new AERunnable() {
-					public void runSupport() {
-						setStatusText(pReport.getName());
-						progressBar.setIndeterminate(true);
-						showProgressBar(true);
-					}
-				}, true);
+				
+				setStatusText(pReport.getName());
+				progressBar.setIndeterminate(true);
+				showProgressBar(true);
+			
 			} else {
-				updateProgressBarDisplay(pReport);
+				swt_updateProgressBarDisplay(pReport);
 			}
 		}
 
-		private void updateFromPrevious() {
+		private void swt_updateFromPrevious() {
 			/*
 			 * Get the previous reporter that is still active
 			 */
@@ -2032,22 +2074,10 @@ public class MainStatusBar
 			 * If null then we reset the status text and the progress bar
 			 */
 			if (null != previousReporter) {
-				update(previousReporter.getProgressReport());
+				swt_update(previousReporter.getProgressReport());
 			} else {
-				update(null);
+				swt_update(null);
 			}
 		}
-	}
-
-	public Rectangle getBounds() {
-		if (null != statusBar) {
-			return statusBar.getBounds();
-		}
-		return null;
-	}
-
-	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#getUpdateUIName()
-	public String getUpdateUIName() {
-		return ID;
 	}
 }
