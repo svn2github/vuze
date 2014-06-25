@@ -336,7 +336,15 @@ public class FileDownloadWindow
 			// parameters added to urls to control the download process (e.g. "&pause_on_error" for magnet downloads")
 			int trunc_pos = shortURL.indexOf('&');
 			if ( trunc_pos == -1 ){
+				// if this is a magnet link with no added params then we want to retain the xt=... part otherwise
+				// we just end up with 'magnet:...' which looks silly
+				
 				trunc_pos = shortURL.indexOf('?');
+				
+				if ( trunc_pos > 0 && shortURL.charAt(trunc_pos-1) == ':' ){
+					
+					trunc_pos = -1;
+				}
 			}
 			if (trunc_pos != -1) {
 				shortURL = shortURL.substring(0, trunc_pos + 1) + "...";
@@ -363,7 +371,7 @@ public class FileDownloadWindow
 				"dn"
 			};
 			for (String toMatch : titles) {
-				Matcher matcher = Pattern.compile("[?&]" + toMatch + "=(.*)&?",
+				Matcher matcher = Pattern.compile("[?&]" + toMatch + "=([^&]*)",
 						Pattern.CASE_INSENSITIVE).matcher(url);
 				if (matcher.find()) {
 					return matcher.group(1);
