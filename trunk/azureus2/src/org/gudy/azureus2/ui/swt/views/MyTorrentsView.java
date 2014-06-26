@@ -397,6 +397,9 @@ public class MyTorrentsView
 					menuItemShowUptime.setSelection(COConfigurationManager.getBooleanParameter( "MyTorrentsView.showuptime" ));
 					menuItemShowCatBut.setSelection(COConfigurationManager.getBooleanParameter( "Library.ShowCatButtons" ));
 					menuItemShowTagBut.setSelection(COConfigurationManager.getBooleanParameter( "Library.ShowTagButtons" ));
+						
+					menuItemShowCatBut.setEnabled( !neverShowCatOrTagButtons );
+					menuItemShowTagBut.setEnabled( !neverShowCatOrTagButtons );
 				}
 
 				public void menuHidden(MenuEvent e) {
