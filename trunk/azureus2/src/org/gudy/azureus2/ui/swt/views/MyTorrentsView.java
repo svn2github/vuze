@@ -358,11 +358,45 @@ public class MyTorrentsView
 				}
 			});
 			
+				// show category buttons
+			
+			final MenuItem menuItemShowCatBut = new MenuItem(menuFilterHeader, SWT.CHECK);
+			Messages.setLanguageText( menuItemShowCatBut, "ConfigView.label.show.cat.but" );
+
+			menuItemShowCatBut.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) {
+					COConfigurationManager.setParameter(
+							"Library.ShowCatButtons", menuItemShowCatBut.getSelection());
+				}
+
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+			
+			
+				// show tag buttons
+			
+			final MenuItem menuItemShowTagBut = new MenuItem(menuFilterHeader, SWT.CHECK);
+			Messages.setLanguageText( menuItemShowTagBut, "ConfigView.label.show.tag.but" );
+	
+			menuItemShowTagBut.addSelectionListener(new SelectionListener() {
+				public void widgetSelected(SelectionEvent e) {
+					COConfigurationManager.setParameter(
+							"Library.ShowTagButtons", menuItemShowTagBut.getSelection());
+				}
+	
+				public void widgetDefaultSelected(SelectionEvent e) {
+				}
+			});
+		
+			
 				// hooks
 			
 			menuFilterHeader.addMenuListener(new MenuListener() {
 				public void menuShown(MenuEvent e) {
 					menuItemShowUptime.setSelection(COConfigurationManager.getBooleanParameter( "MyTorrentsView.showuptime" ));
+					menuItemShowCatBut.setSelection(COConfigurationManager.getBooleanParameter( "Library.ShowCatButtons" ));
+					menuItemShowTagBut.setSelection(COConfigurationManager.getBooleanParameter( "Library.ShowTagButtons" ));
 				}
 
 				public void menuHidden(MenuEvent e) {
