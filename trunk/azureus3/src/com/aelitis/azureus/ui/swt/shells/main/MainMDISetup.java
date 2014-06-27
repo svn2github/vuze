@@ -143,8 +143,7 @@ public class MainMDISetup
 				MdiEntry entry = mdi.createEntryFromEventListener(
 						MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, new PeersSuperView(),
 						id, true, null, null);
-				// TODO: come up with a better icon?
-				entry.setImageLeftID("image.sidebar.plugin");
+				entry.setImageLeftID("image.sidebar.allpeers");
 				return entry;
 			}
 		});
@@ -165,8 +164,7 @@ public class MainMDISetup
 								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
 								MultipleDocumentInterface.SIDEBAR_SECTION_TAGS, "tagsview",
 								"{mdi.entry.tagsoverview}", null, null, true, null);
-						// TODO: Don't steal blue icon
-						entry.setImageLeftID("image.sidebar.tag-blue");
+						entry.setImageLeftID("image.sidebar.tag-overview");
 						return entry;
 					}
 				});
