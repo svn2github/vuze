@@ -414,12 +414,6 @@ public class MyTorrentsView
 				}
 			}
 		}
-
-		//tv.setEnableTabViews(true);
-		//IView views[] = { new GeneralView(), new PeersView(),
-		//	new PeersGraphicView(), new PiecesView(), new FilesView(),
-		//	new LoggerView() };
-    //tv.setCoreTabViews(views);
 	}
 
   // @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewInitialized()
@@ -621,23 +615,38 @@ public class MyTorrentsView
 		if (cCategoriesAndTags == null) {
 			cCategoriesAndTags = new CompositeMinSize(cTableParentPanel, SWT.NONE);
 			((CompositeMinSize) cCategoriesAndTags).setMinSize(new Point(SWT.DEFAULT, 24));
-			GridData gridData = new GridData(SWT.RIGHT, SWT.TOP, true, false);
+			GridData gridData = new GridData(SWT.RIGHT, SWT.CENTER, true, false);
 			cCategoriesAndTags.setLayoutData(gridData);
 			cCategoriesAndTags.moveAbove(null);
+			
+			if ( filterParent != null ){
+					// inherit the background of the search filter - best that can be done to make things look ok
+				Color background = filterParent.getBackground();
+				if ( background != null ){
+					cCategoriesAndTags.setBackground( background );
+					cTableParentPanel.setBackground( background );
+				}
+			}
 		}else if ( cCategoriesAndTags.isDisposed()){
 			return;
 		}
 		
-		if (!(cCategoriesAndTags.getLayout() instanceof RowLayout)) {
-	      RowLayout rowLayout = new RowLayout();
-	      rowLayout.marginTop = 0;
-	      rowLayout.marginBottom = 0;
-	      rowLayout.marginLeft = 3;
-	      rowLayout.marginRight = 0;
-	      rowLayout.spacing = 0;
-	      rowLayout.wrap = true;
+		RowLayout rowLayout;
+		
+		if (cCategoriesAndTags.getLayout() instanceof RowLayout){
+		  rowLayout = (RowLayout)cCategoriesAndTags.getLayout();
+		}else{
+	      rowLayout = new RowLayout();
 	      cCategoriesAndTags.setLayout(rowLayout);
 		}
+	    rowLayout.marginTop = 0;
+	    rowLayout.marginBottom = 0;
+	    rowLayout.marginLeft = 3;
+	    rowLayout.marginRight = 3;
+	    rowLayout.spacing = 0;
+	    rowLayout.wrap = true;
+	     
+		
 
     tv.enableFilterCheck(txtFilter, this);
 	}
@@ -653,6 +662,8 @@ public class MyTorrentsView
 		int iFontPointHeight = (iFontPixelsHeight * 72)	/ cCategoriesAndTags.getDisplay().getDPI().y;
 		
 			// categories
+		
+		int	max_rd_height = 0;
 		
 		for (int i = 0; i < categories.length; i++) {
 			final Category category = categories[i];
@@ -670,8 +681,9 @@ public class MyTorrentsView
 			catButton.pack(true);
 			if (catButton.computeSize(100, SWT.DEFAULT).y > 0) {
 				RowData rd = new RowData();
-				rd.height = catButton.computeSize(100, SWT.DEFAULT).y - 2
-						+ catButton.getBorderWidth() * 2;
+				int rd_height = catButton.computeSize(100, SWT.DEFAULT).y - 2 + catButton.getBorderWidth() * 2;
+				rd.height = rd_height;
+				max_rd_height = Math.max( max_rd_height, rd_height );
 				catButton.setLayoutData(rd);
 			}
 
@@ -871,8 +883,9 @@ public class MyTorrentsView
 			tagButton.pack(true);
 			if (tagButton.computeSize(100, SWT.DEFAULT).y > 0) {
 				RowData rd = new RowData();
-				rd.height = tagButton.computeSize(100, SWT.DEFAULT).y - 2
-						+ tagButton.getBorderWidth() * 2;
+				int rd_height = tagButton.computeSize(100, SWT.DEFAULT).y - 2 + tagButton.getBorderWidth() * 2;
+				rd.height = rd_height;
+				max_rd_height = Math.max( max_rd_height, rd_height );
 				tagButton.setLayoutData(rd);
 			}
 
@@ -989,6 +1002,14 @@ public class MyTorrentsView
 			tagButton.setMenu( menu );
 			
 			TagUIUtils.createSideBarMenuItems(menu, tag);
+		}
+
+		if ( max_rd_height > 0 ){
+			RowLayout layout = (RowLayout)cCategoriesAndTags.getLayout();
+			int top_margin = ( 24 - max_rd_height + 1 )/2;
+			if (top_margin > 0 ){
+				layout.marginTop = top_margin;
+			}
 		}
 		
 		cCategoriesAndTags.getParent().layout(true, true);
