@@ -950,6 +950,8 @@ public class TableViewSWT_Common
 	public void fillColumnMenu(final Menu menu, final TableColumnCore column,
 			boolean isBlankArea) {
 		String tableID = tv.getTableID();
+		int	hiddenColumnCount = 0;
+		
 		if (!isBlankArea) {
 			TableColumnManager tcm = TableColumnManager.getInstance();
 			TableColumnCore[] allTableColumns = tcm.getAllTableColumnCoreAsArray(
@@ -964,6 +966,7 @@ public class TableViewSWT_Common
 					TableColumnInfo columnInfo = tcm.getColumnInfo(
 							tv.getDataSourceType(), tableID, tc.getName());
 					if (columnInfo.getProficiency() != TableColumnInfo.PROFICIENCY_BEGINNER) {
+						hiddenColumnCount++;
 						continue;
 					}
 				}
@@ -987,6 +990,19 @@ public class TableViewSWT_Common
 			}
 		}
 
+		if ( hiddenColumnCount > 0 ){
+			
+			MenuItem itemMoreHidden = new MenuItem(menu, SWT.PUSH);
+			Messages.setLanguageText(itemMoreHidden,
+					"MyTorrentsView.menu.moreColHidden", new String[]{ String.valueOf( hiddenColumnCount )});
+	
+			itemMoreHidden.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event e) {
+					showColumnEditor();
+				}
+			});
+		}
+		
 		if (menu.getItemCount() > 0) {
 			new MenuItem(menu, SWT.SEPARATOR);
 		}
