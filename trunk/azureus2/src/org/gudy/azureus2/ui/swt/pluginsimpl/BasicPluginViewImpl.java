@@ -41,6 +41,7 @@ import org.gudy.azureus2.plugins.ui.components.UIPropertyChangeListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginViewModel;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.plugins.UISWTView;
 import org.gudy.azureus2.ui.swt.plugins.UISWTViewEvent;
@@ -249,6 +250,18 @@ BasicPluginViewImpl
     	gridData = new GridData(GridData.FILL_BOTH);
     	gridData.horizontalSpan = 2;
     	log.setLayoutData(gridData);
+    	
+		ClipboardCopy.addCopyToClipMenu(
+				log,
+				new ClipboardCopy.copyToClipProvider()
+				{
+					public String 
+					getText() 
+					{
+						return( log.getText().trim());
+					}
+				});
+		
     	//String	text = model.getLogArea().getText().trim();
     	//log.setText( text);
     	//log.setTopIndex(log.getLineCount());
