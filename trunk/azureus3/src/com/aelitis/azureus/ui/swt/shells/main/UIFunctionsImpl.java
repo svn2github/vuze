@@ -605,16 +605,18 @@ public class UIFunctionsImpl
 					return;
 				}
 				UISWTViewEventListener l = null;
-				try {
-					Constructor<?> constructor = cla.getConstructor(new Class[] {
-						data.getClass()
-					});
-					l = (UISWTViewEventListener) constructor.newInstance(new Object[] {
-						data
-					});
-				} catch (Exception e) {
+				if ( data != null ){
+					try {
+						Constructor<?> constructor = cla.getConstructor(new Class[] {
+							data.getClass()
+						});
+						l = (UISWTViewEventListener) constructor.newInstance(new Object[] {
+							data
+						});
+					} catch (Exception e) {
+					}
 				}
-
+				
 				try {
 					if (l == null) {
 						l = cla.newInstance();
