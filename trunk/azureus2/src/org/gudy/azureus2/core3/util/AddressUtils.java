@@ -405,16 +405,41 @@ AddressUtils
 	}
 	
 	public static String
-	getHostName(
+	getHostNameNoResolve(
 		InetSocketAddress	address )
 	{
-		if ( address.isUnresolved()){
+		InetAddress i_address = address.getAddress();
+		
+		if ( i_address == null ){
 			
 			return( address.getHostName());
 			
 		}else{
 			
-			return( address.getAddress().getHostName());
+				// only way I can see (short of reflection) of getting access to unresolved host name
+				// toString returns (hostname or "")/getHostAddress()
+			
+			String str = i_address.toString();
+			
+			int	pos = str.indexOf( '/' );
+
+			if ( pos == -1 ){
+				
+				// darn it, borkage
+				
+				System.out.println( "InetAddress::toString not returning expected result: " + str );
+				
+				return( i_address.getHostAddress());
+			}
+			
+			if ( pos > 0  ){
+				
+				return( str.substring( 0, pos ));
+				
+			}else{
+				
+				return( str.substring( pos+1 ));
+			}
 		}
 	}
 	

@@ -36,6 +36,7 @@ import java.net.Socket;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 
@@ -174,8 +175,8 @@ PRUDPPacketHandlerSocks
 		      	mapped_ip = AEProxyFactory.getAddressMapper().internalise( target.getHostName() );
 		      	
 		    }else{
-		    	  
-		      	mapped_ip = target.getAddress().getHostName();
+		    	
+		      	mapped_ip = AddressUtils.getHostNameNoResolve( target );
 		    }
 		    
 		    dos.writeByte( (byte)5 ); // version

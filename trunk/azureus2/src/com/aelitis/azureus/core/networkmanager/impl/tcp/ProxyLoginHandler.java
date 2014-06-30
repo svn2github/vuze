@@ -152,7 +152,8 @@ public class ProxyLoginHandler {
     	mapped_ip = AEProxyFactory.getAddressMapper().internalise( remote_address.getHostName() ); 
     }
     else{
-    	mapped_ip = remote_address.getAddress().getHostName();
+    
+    	mapped_ip = AddressUtils.getHostNameNoResolve( remote_address );
     }
     
     if( socks_version.equals( "V4" ) ) {
