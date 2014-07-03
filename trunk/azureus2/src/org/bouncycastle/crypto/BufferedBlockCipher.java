@@ -56,7 +56,7 @@ public class BufferedBlockCipher
         }
         else
         {
-            partialBlockOkay = (idx > 0 && (name.startsWith("CFB", idx) || name.startsWith("OFB", idx) || name.startsWith("OpenPGP", idx)));
+            partialBlockOkay = (idx > 0 && (name.startsWith("CFB", idx) || name.startsWith("OFB", idx) || name.startsWith("OpenPGP", idx) || name.startsWith("SIC", idx) || name.startsWith("GCTR", idx)));
         }
 	}
 
