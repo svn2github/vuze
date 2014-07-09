@@ -234,8 +234,20 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     					opts.put( AEProxyFactory.PO_PEER_NETWORKS, peer_nets );
     				}
     				
+    				PluginProxy pp = plugin_proxy;
+    				
+    				plugin_proxy = null;
+    				
+    				if ( pp != null ){
+    				
+    						// most likely crypto fallback connection so don't assume it is a bad
+    						// outcome
+    					
+    					pp.setOK( true );
+    				}
+    					
     				plugin_proxy = AEProxyFactory.getPluginProxy( "outbound connection", host, address.getPort(), opts );
-    			}
+    				    			}
     		}
     	}
     }
@@ -271,6 +283,8 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         connect_request_key = null;
         description = ( is_inbound_connection ? "R" : "L" ) + ": " + channel.socket().getInetAddress().getHostAddress() + ": " + channel.socket().getPort();
 
+        PluginProxy pp = plugin_proxy;
+        
         if ( is_socks ){  //proxy server connection established, login
         	if (Logger.isEnabled())
         		Logger.log(new LogEvent(LOGID,"Socket connection established to proxy server [" +description+ "], login initiated..."));
@@ -291,7 +305,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
         			listener.connectFailure( failure_msg );
         		}
         	});
-        }else if ( plugin_proxy != null ){
+        }else if ( pp != null ){
 
            	if (Logger.isEnabled()){
         		Logger.log(new LogEvent(LOGID,"Socket connection established via plugin proxy [" +description+ "], login initiated..."));
@@ -303,7 +317,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 
         	new ProxyLoginHandler( 
         		transport_instance, 
-        		new InetSocketAddress( plugin_proxy.getHost(), plugin_proxy.getPort()), 
+        		new InetSocketAddress( pp.getHost(), pp.getPort()), 
         		new ProxyLoginHandler.ProxyListener() 
         		{
         			public void 
@@ -346,13 +360,15 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     
     InetSocketAddress to_connect;
     
+    PluginProxy pp = plugin_proxy;
+    
     if ( is_socks ){
     	
     	to_connect = ProxyLoginHandler.getProxyAddress( address );
     	
-    }else if ( plugin_proxy != null ){
+    }else if ( pp != null ){
     	
-    	to_connect = (InetSocketAddress)plugin_proxy.getProxy().address();
+    	to_connect = (InetSocketAddress)pp.getProxy().address();
     	
     }else{
     	

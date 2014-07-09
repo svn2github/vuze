@@ -22,6 +22,7 @@
 
 package org.gudy.azureus2.core3.util;
 
+import java.net.InetSocketAddress;
 import java.net.URL;
 import java.util.*;
 
@@ -76,6 +77,13 @@ AENetworkClassifier
 		}
 		
 		return( AT_PUBLIC );
+	}
+	
+	public static String
+	categoriseAddress(
+		InetSocketAddress		isa )
+	{
+		return( categoriseAddress( AddressUtils.getHostAddress( isa )));
 	}
 	
 	public static String[]

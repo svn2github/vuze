@@ -23,12 +23,13 @@
 package com.aelitis.azureus.core.networkmanager.impl;
 
 import java.io.IOException;
+import java.net.InetSocketAddress;
 import java.nio.ByteBuffer;
-
 
 import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -127,15 +128,21 @@ ProtocolDecoderInitial
 																		
 								if ( NetworkManager.REQUIRE_CRYPTO_HANDSHAKE && match == ProtocolDecoderAdapter.MATCH_CRYPTO_NO_AUTO_FALLBACK ){
 								
+									InetSocketAddress isa = transport.getAddress();
+									
 									if ( NetworkManager.INCOMING_HANDSHAKE_FALLBACK_ALLOWED ){
-										if (Logger.isEnabled())
-											Logger.log(new LogEvent(LOGID, "Incoming connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as fallback is enabled" ));
-									}
-									else if( AddressUtils.isLANLocalAddress( AddressUtils.getHostAddress( transport.getAddress())) == AddressUtils.LAN_LOCAL_YES ) {
-										if (Logger.isEnabled())
-											Logger.log(new LogEvent(LOGID, "Incoming connection ["+ transport.getAddress() + "] is not encrypted but has been accepted as lan-local" ));
-									}
-									else{										
+										if (Logger.isEnabled()){
+											Logger.log(new LogEvent(LOGID, "Incoming connection ["+ isa + "] is not encrypted but has been accepted as fallback is enabled" ));
+										}
+									}else if( AddressUtils.isLANLocalAddress( AddressUtils.getHostAddress( isa )) == AddressUtils.LAN_LOCAL_YES ) {
+										if (Logger.isEnabled()){
+											Logger.log(new LogEvent(LOGID, "Incoming connection ["+ isa + "] is not encrypted but has been accepted as lan-local" ));
+										}
+									}else if ( AENetworkClassifier.categoriseAddress( isa ) != AENetworkClassifier.AT_PUBLIC ){
+										if (Logger.isEnabled()){ 
+											Logger.log(new LogEvent(LOGID, "Incoming connection ["+ isa + "] is not encrypted but has been accepted as not a public network" ));
+										}
+									}else{										
 										throw( new IOException( "Crypto required but incoming connection has none" ));
 									}
 								}

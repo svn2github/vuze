@@ -557,17 +557,24 @@ implements PEPeerTransport
     			NetworkManager.getCryptoRequired( manager.getAdapter().getCryptoLevel()); 
 
 		boolean	lan_local = isLANLocal();
-		
-		if ( lan_local ){
+
+		boolean public_net = peer_item_identity.getNetwork() == AENetworkClassifier.AT_PUBLIC;
+
+		if ( lan_local || !public_net ){
 			
-			use_crypto = false;  //dont bother with PHE for lan peers
+			use_crypto = false; // dont bother with PHE for lan peers 
+								// or non-public networks. one reason for this is that it doesn't work with i2psnark for some reason
+								// (actually the reason is that it blocks peers that send a bad message (ConnectionAcceptor:MAX_BAD) which
+								// causes the subsequent plain connection to be dropped)
+								// AND it causes a raw-message to be submitted to the outgoing message queue which
+								// then bypasses i2phelp plugin handshake modifications...
+								// note also that incoming non-public connections also ignore crypto settings
+								
 		}
 
 		InetSocketAddress	endpoint_address;
 		ProtocolEndpoint	pe1;
 		ProtocolEndpoint	pe2 = null;
-
-		boolean public_net = peer_item_identity.getNetwork() == AENetworkClassifier.AT_PUBLIC;
 		
 		if ( _use_tcp ){
 
