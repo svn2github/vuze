@@ -232,6 +232,7 @@ public class MyTorrentsView
   private DragSource dragSource = null;
   private DropTarget dropTarget = null;
   protected Text txtFilter = null;
+  private Menu	tableHeaderMenu = null;
   private TimerEventPeriodic	txtFilterUpdateEvent;
 
   
@@ -342,8 +343,8 @@ public class MyTorrentsView
 				filterParent = filterParent.getParent();
 			}
 			
-			Menu menuFilterHeader = createHeaderMenu( filterParent );
-			
+			Menu menuFilterHeader = getHeaderMenu(txtFilter);
+			filterParent.setMenu( menuFilterHeader );
 			Control[] children = filterParent.getChildren();
 			for (Control control : children) {
 				if (control != txtFilter) {
@@ -405,77 +406,80 @@ public class MyTorrentsView
   }
 
   private Menu
-  createHeaderMenu(
-	Composite parent )
+  getHeaderMenu(
+		Control		control )
   {
-		Menu menuFilterHeader = new Menu(parent);
+	  if ( tableHeaderMenu != null ){
+		  
+		  return( tableHeaderMenu );
+	  }
+	  
+	  tableHeaderMenu = new Menu(control.getShell(), SWT.POP_UP );
 		
-		// show uptime
-	
-	final MenuItem menuItemShowUptime = new MenuItem(menuFilterHeader, SWT.CHECK);
-	Messages.setLanguageText( menuItemShowUptime, "ConfigView.label.showuptime" );
+	  // show uptime
 
-	menuItemShowUptime.addSelectionListener(new SelectionListener() {
-		public void widgetSelected(SelectionEvent e) {
-			COConfigurationManager.setParameter(
-					"MyTorrentsView.showuptime", menuItemShowUptime.getSelection());
-		}
+	  final MenuItem menuItemShowUptime = new MenuItem(tableHeaderMenu, SWT.CHECK);
+	  Messages.setLanguageText( menuItemShowUptime, "ConfigView.label.showuptime" );
 
-		public void widgetDefaultSelected(SelectionEvent e) {
-		}
-	});
-	
-		// show category buttons
-	
-	final MenuItem menuItemShowCatBut = new MenuItem(menuFilterHeader, SWT.CHECK);
-	Messages.setLanguageText( menuItemShowCatBut, "ConfigView.label.show.cat.but" );
+	  menuItemShowUptime.addSelectionListener(new SelectionListener() {
+		  public void widgetSelected(SelectionEvent e) {
+			  COConfigurationManager.setParameter(
+					  "MyTorrentsView.showuptime", menuItemShowUptime.getSelection());
+		  }
 
-	menuItemShowCatBut.addSelectionListener(new SelectionListener() {
-		public void widgetSelected(SelectionEvent e) {
-			COConfigurationManager.setParameter(
-					"Library.ShowCatButtons", menuItemShowCatBut.getSelection());
-		}
+		  public void widgetDefaultSelected(SelectionEvent e) {
+		  }
+	  });
 
-		public void widgetDefaultSelected(SelectionEvent e) {
-		}
-	});
-	
-	
-		// show tag buttons
-	
-	final MenuItem menuItemShowTagBut = new MenuItem(menuFilterHeader, SWT.CHECK);
-	Messages.setLanguageText( menuItemShowTagBut, "ConfigView.label.show.tag.but" );
+	  // show category buttons
 
-	menuItemShowTagBut.addSelectionListener(new SelectionListener() {
-		public void widgetSelected(SelectionEvent e) {
-			COConfigurationManager.setParameter(
-					"Library.ShowTagButtons", menuItemShowTagBut.getSelection());
-		}
+	  final MenuItem menuItemShowCatBut = new MenuItem(tableHeaderMenu, SWT.CHECK);
+	  Messages.setLanguageText( menuItemShowCatBut, "ConfigView.label.show.cat.but" );
 
-		public void widgetDefaultSelected(SelectionEvent e) {
-		}
-	});
+	  menuItemShowCatBut.addSelectionListener(new SelectionListener() {
+		  public void widgetSelected(SelectionEvent e) {
+			  COConfigurationManager.setParameter(
+					  "Library.ShowCatButtons", menuItemShowCatBut.getSelection());
+		  }
 
-	
-		// hooks
-	
-	menuFilterHeader.addMenuListener(new MenuListener() {
-		public void menuShown(MenuEvent e) {
-			menuItemShowUptime.setSelection(COConfigurationManager.getBooleanParameter( "MyTorrentsView.showuptime" ));
-			menuItemShowCatBut.setSelection(COConfigurationManager.getBooleanParameter( "Library.ShowCatButtons" ));
-			menuItemShowTagBut.setSelection(COConfigurationManager.getBooleanParameter( "Library.ShowTagButtons" ));
-				
-			menuItemShowCatBut.setEnabled( !neverShowCatOrTagButtons );
-			menuItemShowTagBut.setEnabled( !neverShowCatOrTagButtons );
-		}
+		  public void widgetDefaultSelected(SelectionEvent e) {
+		  }
+	  });
 
-		public void menuHidden(MenuEvent e) {
-		}
-	});
-	
-	parent.setMenu(menuFilterHeader);
-	
-	return( menuFilterHeader );
+
+	  // show tag buttons
+
+	  final MenuItem menuItemShowTagBut = new MenuItem(tableHeaderMenu, SWT.CHECK);
+	  Messages.setLanguageText( menuItemShowTagBut, "ConfigView.label.show.tag.but" );
+
+	  menuItemShowTagBut.addSelectionListener(new SelectionListener() {
+		  public void widgetSelected(SelectionEvent e) {
+			  COConfigurationManager.setParameter(
+					  "Library.ShowTagButtons", menuItemShowTagBut.getSelection());
+		  }
+
+		  public void widgetDefaultSelected(SelectionEvent e) {
+		  }
+	  });
+
+
+	  // hooks
+
+	  tableHeaderMenu.addMenuListener(new MenuListener() {
+		  public void menuShown(MenuEvent e) {
+			  menuItemShowUptime.setSelection(COConfigurationManager.getBooleanParameter( "MyTorrentsView.showuptime" ));
+			  menuItemShowCatBut.setSelection(COConfigurationManager.getBooleanParameter( "Library.ShowCatButtons" ));
+			  menuItemShowTagBut.setSelection(COConfigurationManager.getBooleanParameter( "Library.ShowTagButtons" ));
+
+			  menuItemShowCatBut.setEnabled( !neverShowCatOrTagButtons );
+			  menuItemShowTagBut.setEnabled( !neverShowCatOrTagButtons );
+		  }
+
+		  public void menuHidden(MenuEvent e) {
+		  }
+	  });
+
+	  return( tableHeaderMenu );
   }
   
   // @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewDestroyed()
@@ -488,11 +492,14 @@ public class MyTorrentsView
 					Utils.disposeSWTObjects(new Object[] {
 						dragSource,
 						dropTarget,
-						fontButton
+						fontButton,
+						tableHeaderMenu
 					});
-					dragSource = null;
-					dropTarget = null;
-					fontButton = null;
+					dragSource 		= null;
+					dropTarget 		= null;
+					fontButton		= null;
+					tableHeaderMenu = null;
+					
 				} catch (Exception e) {
 					Debug.out(e);
 				}
@@ -658,7 +665,7 @@ public class MyTorrentsView
 	    rowLayout.wrap = true;
 	     
 		
-	    Menu menu = createHeaderMenu( cCategoriesAndTags );
+	    Menu menu = getHeaderMenu(cTableParentPanel);
 	    cTableParentPanel.setMenu( menu );
 	    
 	    if ( Constants.isOSX ){
@@ -676,10 +683,13 @@ public class MyTorrentsView
 						handleEvent(
 							Event event ) 
 						{
-							int table_top_y = cTableParentPanel.getDisplay().map( cTablePanel, null, 0, 0 ).y;
-							int event_y		= event.y;
+							Display display = cTableParentPanel.getDisplay();
 							
-							event.doit = event_y < table_top_y;
+							Point pp_rel = display.map( null, cTableParentPanel, event.x, event.y );
+														
+							Control hit = Utils.findChild(cTableParentPanel, pp_rel.x, pp_rel.y );
+							
+							event.doit = hit == cTableParentPanel;
 						}
 					});
 	    }
