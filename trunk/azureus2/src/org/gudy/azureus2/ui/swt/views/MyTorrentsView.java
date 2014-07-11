@@ -661,6 +661,29 @@ public class MyTorrentsView
 	    Menu menu = createHeaderMenu( cCategoriesAndTags );
 	    cTableParentPanel.setMenu( menu );
 	    
+	    if ( Constants.isOSX ){
+	    	
+	    		/* bug on OSX whereby the table is allowing menu-detect events to fire both on the table itself and the composite it
+	    		 * sits on - this results in the header-area menu appearing after a menu appears for the table itself
+	    		 * Doesn't happen on 10.6.8 but observed to happen on 10.9.4
+	    		 */
+	    	
+		    cTableParentPanel.addListener( 
+					SWT.MenuDetect,
+					new Listener() {
+						
+						public void 
+						handleEvent(
+							Event event ) 
+						{
+							int table_top_y = cTableParentPanel.getDisplay().map( cTablePanel, null, 0, 0 ).y;
+							int event_y		= event.y;
+							
+							event.doit = event_y < table_top_y;
+						}
+					});
+	    }
+	    
 	    tv.enableFilterCheck(txtFilter, this);
 	}
 
