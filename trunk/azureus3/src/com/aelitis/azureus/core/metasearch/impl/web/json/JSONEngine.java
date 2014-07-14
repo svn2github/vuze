@@ -284,9 +284,15 @@ JSONEngine
 					}
 				}
 				while(st.hasMoreTokens()) {
-					try {
+					if ( jsonObject == null ){
+						throw new SearchException("Invalid entry path : " + resultsEntryPath );
+					}
+					
+					try{
 						jsonObject = ((JSONObject)jsonObject).get(st.nextToken());
-					} catch(Throwable t) {
+						
+					}catch( Throwable t ){
+						
 						throw new SearchException("Invalid entry path : " + resultsEntryPath,t);
 					}
 				}
