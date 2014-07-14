@@ -24,7 +24,9 @@
 package org.gudy.azureus2.ui.swt.views.utils;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
@@ -33,7 +35,9 @@ import org.eclipse.swt.widgets.Shell;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
+import org.gudy.azureus2.core3.download.impl.DownloadManagerAdapter;
 import org.gudy.azureus2.core3.global.GlobalManagerDownloadRemovalVetoException;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogAlert;
@@ -45,6 +49,10 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AERunnableBoolean;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.platform.PlatformManager;
 import org.gudy.azureus2.platform.PlatformManagerCapabilities;
 import org.gudy.azureus2.platform.PlatformManagerFactory;
@@ -274,6 +282,18 @@ public class ManagerUtils {
     }
     return true;
   }
+  
+  public static boolean isPauseable(DownloadManager dm) {
+	    if(dm == null)
+	      return false;
+	    int state = dm.getState();
+	    if (	state == DownloadManager.STATE_STOPPED ||
+	    		state == DownloadManager.STATE_STOPPING	||
+	    		state == DownloadManager.STATE_ERROR ) {
+	      return false;
+	    }
+	    return true;
+	  }
   
   public static boolean isStopped(DownloadManager dm) {
 	    if(dm == null)
@@ -641,6 +661,95 @@ public class ManagerUtils {
 				new AzureusCoreRunningListener() {
 					public void azureusCoreRunning(AzureusCore core) {
 						core.getGlobalManager().resumeDownloads();
+					}
+				});
+	}
+	
+	public static void 
+	asyncPauseForPeriod(
+		final List<DownloadManager>		dms,
+		final int 						seconds ) 
+	{
+		CoreWaiterSWT.waitForCore(TriggerInThread.NEW_THREAD,
+				new AzureusCoreRunningListener() {
+					public void azureusCoreRunning(AzureusCore core) 
+					{
+						
+						final List<DownloadManager>		paused = new ArrayList<DownloadManager>();
+						
+						final DownloadManagerListener listener = 
+							new DownloadManagerAdapter()
+							{
+								public void 
+								stateChanged(
+									DownloadManager 	manager, 
+									int 				state )
+								{
+									synchronized( paused ){
+									
+										if ( !paused.remove( manager )){
+											
+											return;
+										}
+									}
+									
+									manager.removeListener( this );
+								}
+							};
+						
+						for ( DownloadManager dm: dms ){
+							
+							if ( !isPauseable( dm )){
+								
+								continue;
+							}
+							
+							if ( dm.pause()){
+							
+								synchronized( paused ){
+									
+									paused.add( dm );
+								}
+								
+								dm.addListener( listener, false );
+							}
+						}
+						
+						if ( paused.size() > 0 ){
+							
+							SimpleTimer.addEvent(
+								"ManagerUtils.resumer",
+								SystemTime.getOffsetTime( seconds*1000),
+								new TimerEventPerformer()
+								{	
+									public void 
+									perform(
+										TimerEvent event ) 
+									{
+										List<DownloadManager>	to_resume = new ArrayList<DownloadManager>();
+										
+										synchronized( paused ){
+											
+											to_resume.addAll( paused );
+											
+											paused.clear();
+										}
+										
+										for ( DownloadManager dm: to_resume ){
+											
+											dm.removeListener( listener );
+											
+											try{
+												dm.resume();
+												
+											}catch( Throwable e ){
+												
+												Debug.out( e );
+											}
+										}
+									}
+								});
+						}
 					}
 				});
 	}

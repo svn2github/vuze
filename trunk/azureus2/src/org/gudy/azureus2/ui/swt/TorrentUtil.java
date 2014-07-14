@@ -1441,7 +1441,109 @@ public class TorrentUtil {
 			}
 		}
 
-		 final MenuItem itemPositionManual = new MenuItem(menuAdvanced, SWT.PUSH);
+		if ( userMode > 0 ){
+			
+			boolean can_pause = false;
+			
+			for (int i=0; i<dms.length; i++){
+				
+				DownloadManager dm = dms[i];
+				
+				if ( ManagerUtils.isPauseable( dm )){
+					
+					can_pause = true;
+					
+					break;
+				}
+			}
+			
+			final MenuItem itemPauseFor = new MenuItem(menuAdvanced, SWT.PUSH);
+			
+			itemPauseFor.setEnabled( can_pause );
+			
+			Messages.setLanguageText( itemPauseFor,	"MainWindow.menu.transfers.pausetransfersfor");
+			
+			itemPauseFor.addSelectionListener(new SelectionAdapter(){
+				public void widgetSelected(SelectionEvent e) {
+	
+					final List<DownloadManager>	dms_to_pause = new ArrayList<DownloadManager>();
+					
+					for (int i=0; i<dms.length; i++){
+						
+						DownloadManager dm = dms[i];
+						
+						if ( ManagerUtils.isPauseable( dm )){
+							
+							dms_to_pause.add( dm );
+						}
+					}
+					
+					if ( dms_to_pause.size() == 0 ){
+						
+						return;
+					}
+					
+					String text = MessageText.getString( "dialog.pause.for.period.text" );
+					
+					SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+							"dialog.pause.for.period.title",
+							"!" + text + "!");
+					
+					int def = COConfigurationManager.getIntParameter( "pause.for.period.default", 10 );
+					
+					entryWindow.setPreenteredText( String.valueOf( def ), false );
+					
+					entryWindow.prompt(
+						new UIInputReceiverListener() 
+						{
+							public void 
+							UIInputReceiverClosed(
+								UIInputReceiver entryWindow ) 
+							{
+								if ( !entryWindow.hasSubmittedInput()){
+									
+									return;
+								}
+								
+								String sReturn = entryWindow.getSubmittedInput();
+								
+								if ( sReturn == null ){
+									
+									return;
+								}
+								
+								int mins = -1;
+								
+								try{
+								
+									mins = Integer.valueOf(sReturn).intValue();
+									
+								}catch( NumberFormatException er ){
+									// Ignore
+								}
+														
+								if ( mins <= 0 ){
+									
+									MessageBox mb = new MessageBox(menu.getShell(), SWT.ICON_ERROR | SWT.OK);
+									
+									mb.setText(MessageText.getString("MyTorrentsView.dialog.NumberError.title"));
+									mb.setMessage(MessageText.getString("MyTorrentsView.dialog.NumberError.text"));
+									
+									mb.open();
+									
+									return;
+								}
+								
+								COConfigurationManager.setParameter( "pause.for.period.default", mins );
+	
+								ManagerUtils.asyncPauseForPeriod( dms_to_pause, mins*60 );
+							}
+						});
+				}
+			});
+		}
+		
+		final MenuItem itemPositionManual = new MenuItem(menuAdvanced, SWT.PUSH);
 		Messages.setLanguageText(itemPositionManual,
 				"MyTorrentsView.menu.reposition.manual");
 		itemPositionManual.addSelectionListener(new SelectionAdapter() {
