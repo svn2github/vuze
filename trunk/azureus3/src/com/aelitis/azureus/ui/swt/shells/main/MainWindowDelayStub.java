@@ -868,23 +868,37 @@ MainWindowDelayStub
 			log( "setHideAll" );
 		}
 
-		public boolean addTorrentWithOptions(boolean force,
-				TorrentOpenOptions torrentOptions) {
-			log( "addTorrentWithOptions" );
-			return false;
-		}
-		
-		public void showErrorMessage(String keyPrefix, String details,
-				String[] textParams) {
+		public void 
+		showErrorMessage(
+			String 		keyPrefix, 
+			String 		details,
+			String[] 	textParams) 
+		{
 			log( "showErrorMessage" );
 		}
-		
-		public void openTorrentOpenOptions(Shell shell, String sPathOfFilesToOpen,
-				String[] sFilesToOpen, boolean defaultToStopped, boolean forceOpen) {
-			log("openTorrentOpenOptions");
+
+		public boolean 
+		addTorrentWithOptions(
+			final boolean 				force,
+			final TorrentOpenOptions 	torrentOptions) 
+		{
+			return((Boolean)fixup( new Fixup4(){public Object fix( UIFunctionsSWT uif){ return( uif.addTorrentWithOptions( force, torrentOptions )); }}));
+		}
+				
+		public void 
+		openTorrentOpenOptions(
+			final Shell shell, 
+			final String sPathOfFilesToOpen,
+			final String[] sFilesToOpen, 
+			final boolean defaultToStopped, 
+			final boolean forceOpen) 
+		{
+			fixup( new Fixup3(){public void fix( UIFunctionsSWT uif){ uif.openTorrentOpenOptions( shell, sPathOfFilesToOpen, sFilesToOpen, defaultToStopped, forceOpen);}});
 		}
 
-		public void openTorrentWindow() {
+		public void 
+		openTorrentWindow() 
+		{
 			fixup( new Fixup3(){public void fix( UIFunctionsSWT uif){ uif.openTorrentWindow(); }});
 		}
 	}
