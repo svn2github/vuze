@@ -28,11 +28,14 @@ import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Listener;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerListener;
@@ -41,6 +44,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerAdapter;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.download.DownloadException;
@@ -337,7 +341,33 @@ public class SBC_TorrentDetailsView
 		MenuFactory.buildTorrentMenu(menu);
 
 		folder.setMenu(menu);
-
+		
+	    if ( Constants.isOSX ){
+	    	
+    		/* bug on OSX whereby the table is allowing menu-detect events to fire both on the table itself and the composite it
+    		 * sits on - this results in the header-area menu appearing after a menu appears for the table itself
+    		 * Doesn't happen on 10.6.8 but observed to happen on 10.9.4
+    		 */
+	    	
+		    folder.addListener( 
+						SWT.MenuDetect,
+						new Listener() {
+							
+							public void 
+							handleEvent(
+								Event event ) 
+							{
+								Display display = folder.getDisplay();
+								
+								Point pp_rel = display.map( null, folder, event.x, event.y );
+															
+								Control hit = Utils.findChild(folder, pp_rel.x, pp_rel.y );
+								
+								event.doit = hit == folder;
+							}
+						});
+	    }
+	    
 		// Initialize view when user selects it
 		folder.addSelectionListener(new SelectionAdapter() {
 			public void widgetSelected(SelectionEvent e) {
