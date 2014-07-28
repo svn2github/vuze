@@ -42,6 +42,8 @@ public class DriveDetectorImpl
 	
 	private Map<File, Map> mapDrives = new HashMap<File, Map>(1); 
 	
+	private AsyncDispatcher	dispatcher = new AsyncDispatcher( "DriveDetector" );
+	
 	public DriveDetectorImpl() {
 		AEDiagnostics.addEvidenceGenerator(this);
 	}
@@ -87,55 +89,75 @@ public class DriveDetectorImpl
 		listListeners.remove(l);
 	}
 
-	public void driveDetected(File location, Map info) {
-		location = normaliseFile( location );
-		mon_driveDetector.enter();
-		try {
-			if (!mapDrives.containsKey(location)) {
-				info.put("File", location);
-				mapDrives.put(location, info);
-			} else {
-				// already there, no trigger
-				return;
-			}
-			
-		} finally {
-			mon_driveDetector.exit();
-		}
+	public void driveDetected(final File _location, final Map info) {
 		
-		for (DriveDetectedListener l : listListeners) {
-			try {
-				l.driveDetected(new DriveDetectedInfoImpl(location, info));
- 			} catch (Throwable e) {
- 				Debug.out(e);
-			}
-		}
+		// seen the file-normalization hang on OSX (at least) and this is invoked on the SWT
+		// thread and thus borks the UI - make it async
+		
+		dispatcher.dispatch(
+			new AERunnable() {
+				
+				@Override
+				public void runSupport() 
+				{
+					File location = normaliseFile( _location );
+					mon_driveDetector.enter();
+					try {
+						if (!mapDrives.containsKey(location)) {
+							info.put("File", location);
+							mapDrives.put(location, info);
+						} else {
+							// already there, no trigger
+							return;
+						}
+						
+					} finally {
+						mon_driveDetector.exit();
+					}
+					
+					for (DriveDetectedListener l : listListeners) {
+						try {
+							l.driveDetected(new DriveDetectedInfoImpl(location, info));
+			 			} catch (Throwable e) {
+			 				Debug.out(e);
+						}
+					}
+				}
+			});
 	}
 
-	public void driveRemoved(File location) {
-		location = normaliseFile( location );
-		Map map;
-		mon_driveDetector.enter();
-		try {
-			map = mapDrives.remove(location);
-			if (map == null) {
-				// not there, no trigger
-				return;
-			}
-		} finally {
-			mon_driveDetector.exit();
-		}
-		
-		for (DriveDetectedListener l : listListeners) {
-			try {
-				l.driveRemoved(new DriveDetectedInfoImpl(location, map));
-			} catch (Throwable e) {
-				Debug.out(e);
-			}
-		}
+	public void driveRemoved(final File _location) {
+		dispatcher.dispatch(
+				new AERunnable() {
+					
+					@Override
+					public void runSupport() 
+					{
+						File location = normaliseFile( _location );
+						Map map;
+						mon_driveDetector.enter();
+						try {
+							map = mapDrives.remove(location);
+							if (map == null) {
+								// not there, no trigger
+								return;
+							}
+						} finally {
+							mon_driveDetector.exit();
+						}
+						
+						for (DriveDetectedListener l : listListeners) {
+							try {
+								l.driveRemoved(new DriveDetectedInfoImpl(location, map));
+							} catch (Throwable e) {
+								Debug.out(e);
+							}
+						}
+					}
+				});
 	}
 	
-	protected File
+	private File
 	normaliseFile(
 		File		f )
 	{
