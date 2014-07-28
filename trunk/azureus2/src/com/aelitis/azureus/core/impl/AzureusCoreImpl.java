@@ -1457,6 +1457,8 @@ AzureusCoreImpl
 					
 						Debug.out( "Shutdown blocked, force exiting" );
 						
+						stopping_sem.releaseForever();
+						
 						SESecurityManager.exitVM(0);
 					}
 					
