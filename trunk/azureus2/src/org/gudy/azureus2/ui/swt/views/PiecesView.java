@@ -49,6 +49,7 @@ import org.gudy.azureus2.ui.swt.views.piece.PieceInfoView;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
+import org.gudy.azureus2.ui.swt.views.table.impl.TableViewSWT_TabsCommon;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewTab;
 import org.gudy.azureus2.ui.swt.views.tableitems.pieces.*;
 
@@ -362,12 +363,12 @@ public class PiecesView
 
 			legendComposite = Legend.createLegendComposite(composite,
 					BlocksItem.colors, new String[] {
-					"PiecesView.legend.requested",
-					"PiecesView.legend.written",        			
-					"PiecesView.legend.downloaded",
+						"PiecesView.legend.requested",
+						"PiecesView.legend.written",
+						"PiecesView.legend.downloaded",
 						"PiecesView.legend.incache"
 					});
-	}
+		}
 
 		if (manager != null) {
 			manager.removePeerListener(this);
@@ -375,8 +376,9 @@ public class PiecesView
 			manager.addPeerListener(this, false);
 			manager.addPieceListener(this, false);
 			addExistingDatasources();
-    }
-    }
+
+		}
+	}
 
 	// @see com.aelitis.azureus.ui.common.table.TableLifeCycleListener#tableViewDestroyed()
 	public void tableViewDestroyed() {
@@ -417,11 +419,24 @@ public class PiecesView
 		}
 
 		PEPiece[] dataSources = manager.getCurrentPieces();
-		if (dataSources == null || dataSources.length == 0)
-			return;
+		if (dataSources != null && dataSources.length >= 0) {
+  		tv.addDataSources(dataSources);
+    	tv.processDataSourceQueue();
+		}
 
-		tv.addDataSources(dataSources);
-  	tv.processDataSourceQueue();
+		// For this view the tab datasource isn't driven by table row selection so we
+		// need to update it with the primary data source
+		
+		// TODO: TrackerView and PiecesView now have this similar code -- this
+		//       would be better handled in TableViewTab (or TableViewSWT?)
+	
+		TableViewSWT_TabsCommon tabs = tv.getTabsCommon();
+		
+		if ( tabs != null ){
+			
+			tabs.triggerTabViewsDataSourceChanged( true );
+		}
+
 	}
 
 	/**
