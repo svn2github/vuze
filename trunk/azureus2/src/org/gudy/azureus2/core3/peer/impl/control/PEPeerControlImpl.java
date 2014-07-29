@@ -5052,6 +5052,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 		return( adapter.isPeerSourceEnabled( peer_source ));
 	}
 	
+	public boolean 
+	isNetworkEnabled(
+		String net ) 
+	{
+		return( adapter.isNetworkEnabled( net ));
+	}
+	
 	public void
 	peerDiscovered(
 		PEPeerTransport		finder,

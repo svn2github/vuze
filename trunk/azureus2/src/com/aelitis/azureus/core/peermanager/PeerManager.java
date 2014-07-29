@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.peer.util.PeerIdentityManager;
 import org.gudy.azureus2.core3.torrent.TOTorrentFile;
 import org.gudy.azureus2.core3.util.AEGenericCallback;
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunStateHandler;
 import org.gudy.azureus2.core3.util.AEThread2;
 import org.gudy.azureus2.core3.util.AddressUtils;
@@ -989,6 +990,15 @@ public class PeerManager implements AzureusCoreStatsProvider{
 			
 			String host_address = AddressUtils.getHostAddress( is_address );
 
+			String net_cat = AENetworkClassifier.categoriseAddress( host_address );
+			
+			if ( !control.isNetworkEnabled( net_cat )){
+				
+				connection.close( "Network '" + net_cat + "' is not enabled" );
+
+				return;
+			}
+			
 			InetAddress address_mbn = is_address.getAddress();
 			
 			boolean same_allowed = COConfigurationManager.getBooleanParameter( "Allow Same IP Peers" ) || ( address_mbn != null && address_mbn.isLoopbackAddress());

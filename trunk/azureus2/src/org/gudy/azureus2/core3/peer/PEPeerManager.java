@@ -405,6 +405,10 @@ PEPeerManager
 	isPeerSourceEnabled(
 		String	peer_source );
 	
+	public boolean
+	isNetworkEnabled(
+		String	network );
+	
 	public int
 	getPartitionID();
 
