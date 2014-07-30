@@ -4632,7 +4632,7 @@ DownloadManagerImpl
 										rem.add( u.toExternalForm());
 									}
 									
-									lists = TorrentUtils.removeAnnounceURLs2( lists, rem );
+									lists = TorrentUtils.removeAnnounceURLs2( lists, rem, false );
 									
 									TorrentUtils.listToAnnounceGroups( lists, t );
 								}

@@ -379,7 +379,7 @@ public class MultiTrackerEditor {
 			public void handleEvent(Event e) {
 				Map<String,List<List<String>>> multiTrackers = TrackersUtil.getInstance().getMultiTrackers();
 				String	selected = currentTemplate[0];
-				trackers = TorrentUtils.removeAnnounceURLs(trackers, multiTrackers.get( selected ));
+				trackers = TorrentUtils.removeAnnounceURLs(trackers, multiTrackers.get( selected ), false);
 				refresh();
 				computeSaveEnable();
 			}

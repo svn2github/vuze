@@ -1259,7 +1259,8 @@ TorrentUtils
 	public static List<List<String>>
 	removeAnnounceURLs(
 		List<List<String>> 	base_urls,
-		List<List<String>>	remove_urls )
+		List<List<String>>	remove_urls,
+		boolean				use_prefix_match )
 	{
 		base_urls = getClone( base_urls );
 		if ( remove_urls == null ){
@@ -1268,7 +1269,9 @@ TorrentUtils
 		Set<String> removeSet = new HashSet<String>();
 		removeSet.add( NO_VALID_URL_URL );	// this results in removal of this dummy url if present
 		for ( List<String> l: remove_urls ){
-			removeSet.addAll(l);
+			for ( String s: l ){
+				removeSet.add( s.toLowerCase( Locale.US ));
+			}
 		}
 		Iterator<List<String>> it1 = base_urls.iterator();
 		while( it1.hasNext()){
@@ -1279,13 +1282,21 @@ TorrentUtils
 				if ( url.equals( NO_VALID_URL_URL )){
 					it2.remove();
 				}else{
-					for ( String s: removeSet ){
-						
-						if ( url.toLowerCase().startsWith( s )){
+					url = url.toLowerCase( Locale.US );
+					
+					if ( use_prefix_match ){
+												
+						for ( String s: removeSet ){
 							
+							if ( url.toLowerCase().startsWith( s )){
+								
+								it2.remove();
+							}
+						}
+					}else{
+						if ( removeSet.contains( url )){
+								
 							it2.remove();
-							
-							break;
 						}
 					}
 				}
@@ -1301,42 +1312,19 @@ TorrentUtils
 	public static List<List<String>>
 	removeAnnounceURLs2(
 		List<List<String>> 	base_urls,
-		List<String>		remove_urls )
+		List<String>		remove_urls,
+		boolean				use_prefix_match )
 	{
-		base_urls = getClone( base_urls );
 		if ( remove_urls == null ){
-			return( base_urls );
+				// general semantics are to return a clone so caller can modify
+			return( getClone( base_urls ) );
 		}
-		Set<String> removeSet = new HashSet<String>();
-		removeSet.add( NO_VALID_URL_URL );	// this results in removal of this dummy url if present
-		removeSet.addAll(remove_urls);
+
+		List<List<String>> temp = new ArrayList<List<String>>(1);
 		
-		Iterator<List<String>> it1 = base_urls.iterator();
-		while( it1.hasNext()){
-			List<String> l = it1.next();
-			Iterator<String> it2 = l.iterator();
-			while( it2.hasNext()){
-				String url = it2.next();
-				if ( url.equals( NO_VALID_URL_URL )){
-					it2.remove();
-				}else{
-					for ( String s: removeSet ){
-						
-						if ( url.toLowerCase().startsWith( s )){
-							
-							it2.remove();
-							
-							break;
-						}
-					}
-				}
-			}
-			if ( l.isEmpty()){
-				it1.remove();
-			}
-		}
+		temp.add( remove_urls );
 		
-		return( base_urls );
+		return( removeAnnounceURLs( base_urls, temp, use_prefix_match ));
 	}
 	
 	public static List<List<String>>

@@ -156,7 +156,7 @@ TagPropertyTrackerTemplateHandler
 						
 					}else{
 						
-						trackers = TorrentUtils.removeAnnounceURLs( trackers, template_trackers );
+						trackers = TorrentUtils.removeAnnounceURLs( trackers, template_trackers, true );
 					}
 					
 					TorrentUtils.listToAnnounceGroups( trackers, torrent );
