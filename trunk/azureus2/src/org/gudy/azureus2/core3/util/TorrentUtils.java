@@ -1288,7 +1288,7 @@ TorrentUtils
 												
 						for ( String s: removeSet ){
 							
-							if ( url.toLowerCase().startsWith( s )){
+							if ( url.startsWith( s )){
 								
 								it2.remove();
 							}
