@@ -176,7 +176,7 @@ extract messagebundles
 			      	<arg value="-a" />
 			      	<arg value="-r" />
 			      	<arg value="${svn.revision}:${svn.revision.new}" />
-			      	<arg value="${basedir}" />
+			      	<arg value="http://svn.vuze.com/public/client/trunk" />
 			  </exec>
 			  <echo message="changelog.text = ${changelog.text}" />
 		     <echo file="${dist.dir}/${build.name}_changelog.txt" message="${changelog.text}" />
