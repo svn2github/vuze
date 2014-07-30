@@ -256,7 +256,7 @@ TOTorrentDeserialiseImpl
 					
 					announce_url = readStringFromMetaData( meta_data, TK_ANNOUNCE );
 					
-					if ( announce_url == null ){
+					if ( announce_url == null || announce_url.trim().length() == 0 ){
 						
 						bad_announce = true;
 						
