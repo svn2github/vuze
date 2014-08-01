@@ -49,6 +49,7 @@ DHTControl
 	public static final int		ORIGINAL_REPUBLISH_INTERVAL_DEFAULT		= 8*60*60*1000;
 	public static final int		CACHE_REPUBLISH_INTERVAL_DEFAULT		=   30*60*1000; 
 	public static final int		ENCODE_KEYS_DEFAULT						= 1;
+	public static final int		ENABLE_RANDOM_DEFAULT					= 1;
 	
 	public void
 	seed(
@@ -56,6 +57,13 @@ DHTControl
 		
 	public boolean
 	isSeeded();
+	
+	/**
+	 * Manually mark things as seeded
+	 */
+	
+	public void
+	setSeeded();
 	
 	public void
 	setSuspended(

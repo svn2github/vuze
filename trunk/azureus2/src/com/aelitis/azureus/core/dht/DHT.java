@@ -51,6 +51,7 @@ DHT
 	public static final String	PR_ORIGINAL_REPUBLISH_INTERVAL			= "OriginalRepublishInterval";
 	public static final String	PR_CACHE_REPUBLISH_INTERVAL				= "CacheRepublishInterval";
 	public static final String	PR_ENCODE_KEYS							= "EncodeKeys";
+	public static final String	PR_ENABLE_RANDOM_LOOKUP					= "EnableRandomLookup";
 
 	public static final short		FLAG_NONE				= 0x0000;
 	public static final short		FLAG_SINGLE_VALUE		= FLAG_NONE;

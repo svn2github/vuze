@@ -48,6 +48,7 @@ DHTControlFactory
 		int					cache_republish_interval,
 		int					cache_at_closest_n,
 		boolean				encode_keys,
+		boolean				enable_random_poking,
 		DHTLogger			logger )
 	{
 		return( new DHTControlImpl(
@@ -60,6 +61,7 @@ DHTControlFactory
 						cache_republish_interval,
 						cache_at_closest_n,
 						encode_keys,
+						enable_random_poking,
 						logger));
 	}
 }

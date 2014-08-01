@@ -482,6 +482,11 @@ DHTSpeedTesterImpl
 						{
 							int	rtt = getElapsed();
 							
+							if ( rtt < 0 ){
+								
+								Debug.out( "Invalid RTT: " + rtt );
+							}
+							
 							try{
 								synchronized( activePing.this ){
 																

@@ -50,6 +50,7 @@ import com.aelitis.azureus.core.dht.router.DHTRouter;
 import com.aelitis.azureus.core.dht.router.DHTRouterAdapter;
 import com.aelitis.azureus.core.dht.router.DHTRouterContact;
 import com.aelitis.azureus.core.dht.router.DHTRouterFactory;
+import com.aelitis.azureus.core.dht.router.DHTRouterStats;
 import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.dht.transport.udp.DHTTransportUDP;
 
@@ -94,6 +95,7 @@ DHTControlImpl
 	private int			max_rep_per_node;
 	
 	private final boolean	encode_keys;
+	private final boolean	enable_random_poking;
 	
 	private long		router_start_time;
 	private int			router_count;
@@ -207,6 +209,7 @@ DHTControlImpl
 		int					_cache_republish_interval,
 		int					_cache_at_closest_n,
 		boolean				_encode_keys,
+		boolean				_enable_random_poking,
 		DHTLogger 			_logger )
 	{
 		adapter		= _adapter;
@@ -220,6 +223,7 @@ DHTControlImpl
 		lookup_concurrency				= _lookup_concurrency;
 		cache_at_closest_n				= _cache_at_closest_n;
 		encode_keys						= _encode_keys;
+		enable_random_poking			= _enable_random_poking;
 		
 			// set this so we don't do initial calculation until reasonably populated
 		
@@ -832,9 +836,24 @@ DHTControlImpl
 		return( seeded );
 	}
 	
+	public void
+	setSeeded()
+	{
+			// manually set as seeded
+		
+		seeded = true;
+		
+		router.seed();
+	}
+	
 	protected void
 	poke()
 	{
+		if ( !enable_random_poking ){
+			
+			return;
+		}
+		
 		long	now = SystemTime.getCurrentTime();
 		
 		if ( 	now < last_lookup ||
@@ -4256,7 +4275,11 @@ DHTControlImpl
 					rem_vals++;
 				}
 				
-				combined_dht_estimate = rem_average / rem_vals;
+				long[] router_stats = router.getStats().getStats();
+				
+				long	router_contacts = router_stats[DHTRouterStats.ST_CONTACTS] + router_stats[DHTRouterStats.ST_REPLACEMENTS];
+				
+				combined_dht_estimate = Math.max( rem_average / rem_vals, router_contacts );
 				
 				long	test_val 	= 10;
 				int		test_mag	= 1;

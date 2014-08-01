@@ -93,6 +93,7 @@ DHTImpl
 		int		c_rep 	= getProp( PR_CACHE_REPUBLISH_INTERVAL, 	DHTControl.CACHE_REPUBLISH_INTERVAL_DEFAULT );
 		int		c_n 	= getProp( PR_CACHE_AT_CLOSEST_N, 			DHTControl.CACHE_AT_CLOSEST_N_DEFAULT );
 		boolean	e_c 	= getProp( PR_ENCODE_KEYS, 					DHTControl.ENCODE_KEYS_DEFAULT ) == 1;
+		boolean	r_p 	= getProp( PR_ENABLE_RANDOM_LOOKUP, 		DHTControl.ENABLE_RANDOM_DEFAULT ) == 1;
 		
 		control = DHTControlFactory.create( 
 				new DHTControlAdapter()
@@ -170,7 +171,7 @@ DHTImpl
 				_transport, 
 				K, B, max_r,
 				s_conc, l_conc, 
-				o_rep, c_rep, c_n, e_c,
+				o_rep, c_rep, c_n, e_c, r_p,
 				logger );
 		
 		if ( nat_adapter != null ){
