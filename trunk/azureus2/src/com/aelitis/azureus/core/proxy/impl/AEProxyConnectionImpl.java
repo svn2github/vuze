@@ -223,6 +223,7 @@ AEProxyConnectionImpl
 							message.contains( "timeout" ) || 
 							message.contains( "timed" ) ||
 							message.contains( "refused" ) ||
+							message.contains( "unreachable" ) ||
 							message.contains( "reset" ) ||
 							message.contains( "no route" ) ||
 							message.contains( "family" ) ||		// address family not supported
