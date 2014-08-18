@@ -1,7 +1,7 @@
 /**
  * Created on Sep 19, 2008
  *
- * Copyright 2008 Vuze, Inc.  All rights reserved.
+ * Copyright (C) Azureus Software, Inc, All Rights Reserved.
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
  * the Free Software Foundation; version 2 of the License only.

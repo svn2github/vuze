@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2008 Aelitis, All Rights Reserved.
+ * Copyright (C) Azureus Software, Inc, All Rights Reserved.
  * 
  * This program is free software; you can redistribute it and/or modify it under
  * the terms of the GNU General Public License as published by the Free Software
@@ -10,9 +10,6 @@
  * details. You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation, Inc.,
  * 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- * 
- * AELITIS, SAS au capital de 63.529,40 euros 8 Allee Lenotre, La Grille Royale,
- * 78600 Le Mesnil le Roi, France.
  * 
  */
 package org.gudy.azureus2.ui.swt.views.tableitems.mytorrents;

@@ -2,7 +2,7 @@
  * Created on Feb 4, 2010
  * Created by Paul Gardner
  * 
- * Copyright 2010 Vuze, Inc.  All rights reserved.
+ * Copyright (C) Azureus Software, Inc, All Rights Reserved.
  * 
  * This program is free software; you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by

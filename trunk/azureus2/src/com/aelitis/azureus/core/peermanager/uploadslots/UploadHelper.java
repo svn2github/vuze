@@ -1,7 +1,7 @@
 /*
  * Created on Mar 20, 2006
  * Created by Alon Rohter
- * Copyright (C) 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) Azureus Software, Inc, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

@@ -2,7 +2,8 @@
  * Azureus - a Java Bittorrent client
  *
  * This program is free software; you can redistribute it and/or modify
- * the Free Software Foundation; either version 2 of the License.
+ * the Free Software Foundation; either version 2 of the License, or
+ * (at your option) any later version.
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -16,7 +17,7 @@
  * Created on Oct 18, 2003
  * Created by Paul Gardner
  * Modified Apr 13, 2004 by Alon Rohter
- * Copyright (C) 2004, 2005, 2006 Aelitis, All Rights Reserved.
+ * Copyright (C) Azureus Software, Inc, All Rights Reserved.
  *
  */
 

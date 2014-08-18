@@ -1,7 +1,7 @@
 /*
  * Created on 5 Aug 2008
  * Created by Allan Crooks
- * Copyright (C) 2008 Vuze Inc., All Rights Reserved.
+ * Copyright (C) Azureus Software, Inc, All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License

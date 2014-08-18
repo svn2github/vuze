@@ -1,7 +1,7 @@
 /*
  * Created on 2 Mar 2007
  * Created by Allan Crooks
- * Copyright (C) 2007 Aelitis, All Rights Reserved.
+ * Copyright (C) Azureus Software, Inc, All Rights Reserved.
  * 
  * This program is free software; you can redistribute it
  * and/or modify it under the terms of the GNU General Public License as
@@ -12,8 +12,7 @@
  * the GNU General Public License for more details. You should have received a
  * copy of the GNU General Public License along with this program; if not, write
  * to the Free Software Foundation, Inc., 59 Temple Place - Suite 330, Boston,
- * MA 02111-1307, USA. AELITIS, SAS au capital de 46,603.30 euros 8 Allee
- * Lenotre, La Grille Royale, 78600 Le Mesnil le Roi, France.
+ * MA 02111-1307, USA.
  */
 package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 
