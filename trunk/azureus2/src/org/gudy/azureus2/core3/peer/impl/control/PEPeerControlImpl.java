@@ -2926,7 +2926,8 @@ DiskManagerCheckRequestListener, IPFilterListener
 					boolean wasIPv6;
 					try
 					{
-						wasIPv6 = InetAddress.getByName(ip) instanceof Inet6Address;
+						
+						wasIPv6 = AddressUtils.getByName(ip) instanceof Inet6Address;
 					} catch (UnknownHostException e)
 					{
 						wasIPv6 = false;

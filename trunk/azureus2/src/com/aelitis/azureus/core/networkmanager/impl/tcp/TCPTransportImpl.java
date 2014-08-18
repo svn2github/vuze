@@ -108,7 +108,7 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     
     InetSocketAddress address = endpoint.getAddress();
     
-    description = ( is_inbound_connection ? "R" : "L" ) + ": " + address.getHostName() + ": " + address.getPort();
+    description = ( is_inbound_connection ? "R" : "L" ) + ": " + AddressUtils.getHostNameNoResolve( address ) + ": " + address.getPort();
  
   }
   

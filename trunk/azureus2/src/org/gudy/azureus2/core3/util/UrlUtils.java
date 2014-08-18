@@ -1064,7 +1064,7 @@ public class UrlUtils
 		URL	url )
 	{
 		try{
-			InetAddress[] addresses = InetAddress.getAllByName( url.getHost());
+			InetAddress[] addresses = AddressUtils.getAllByName( url.getHost());
 			
 			if ( addresses.length > 0 ){
 				

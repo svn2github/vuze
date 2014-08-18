@@ -58,6 +58,11 @@ AENetworkClassifier
 	categoriseAddress(
 		String	str )
 	{
+		if ( str == null ){
+			
+			return( AT_PUBLIC );	// woreva
+		}
+		
 		int	last_dot = str.lastIndexOf('.');
 		
 		if ( last_dot == -1 ){

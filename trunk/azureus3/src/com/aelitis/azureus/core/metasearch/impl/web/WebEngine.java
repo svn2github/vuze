@@ -20,7 +20,6 @@
 
 package com.aelitis.azureus.core.metasearch.impl.web;
 
-import java.io.BufferedInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,6 +34,7 @@ import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
@@ -505,9 +505,10 @@ WebEngine
 				return( true );
 			}
 			
+			
 				// allow local addresses for testing purposes
 			
-			InetAddress iad = InetAddress.getByName(host);
+			InetAddress iad = AddressUtils.getByName(host);
 			
 			if ( 	iad.isLoopbackAddress() ||
 					iad.isLinkLocalAddress() ||

@@ -369,6 +369,34 @@ AddressUtils
 		return bestPick;
 	}
 	
+	public static InetAddress
+	getByName(
+		String		host )
+		
+		throws UnknownHostException
+	{
+		if ( AENetworkClassifier.categoriseAddress( host ) == AENetworkClassifier.AT_PUBLIC ){
+		
+			return( InetAddress.getByName( host ));
+		}
+		
+		throw( new UnknownHostException( host ));
+	}
+	
+	public static InetAddress[]
+	getAllByName(
+		String		host )
+		
+		throws UnknownHostException
+	{
+		if ( AENetworkClassifier.categoriseAddress( host ) == AENetworkClassifier.AT_PUBLIC ){
+		
+			return( InetAddress.getAllByName( host ));
+		}
+		
+		throw( new UnknownHostException( host ));
+	}
+	
 	public static byte[]
 	getAddressBytes(
 		InetSocketAddress	address )

@@ -229,6 +229,11 @@ COConfigurationManager
 			    	//}
 			    }
 			    
+			    if ( Constants.IS_CVS_VERSION && ( Constants.isOSX || Constants.isWindows )){
+			    
+			    	System.setProperty("sun.net.spi.nameservice.provider.1","dns,aednsproxy");
+			    }
+			    
 			    SystemProperties.determineApplicationName();
 			    
 			}catch( Throwable e ){
