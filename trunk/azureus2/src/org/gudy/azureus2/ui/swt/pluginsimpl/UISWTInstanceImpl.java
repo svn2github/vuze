@@ -781,10 +781,12 @@ UISWTInstanceImpl
 		return array;
 	}
 	
+	// @see org.gudy.azureus2.plugins.ui.UIInstance#getInputReceiver()
 	public UIInputReceiver getInputReceiver() {
 		return new SimpleTextEntryWindow();
 	}
 	
+	// @see org.gudy.azureus2.plugins.ui.UIInstance#createMessage()
 	public UIMessage createMessage() {
 		return new UIMessageImpl();
 	}
