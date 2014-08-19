@@ -47,18 +47,18 @@ BloomFilter
 	
 	public int
 	getEntryCount();
-	
-		/**
-		 * Returns overall capacity
-		 * @return
-		 */
-	
+		
 	public void 
 	clear();
 	
 	public long
 	getStartTimeMono();
 	
+	/**
+	 * Returns overall capacity
+	 * @return
+	 */
+
 	public int
 	getSize();
 	

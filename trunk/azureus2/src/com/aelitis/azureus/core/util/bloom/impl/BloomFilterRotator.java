@@ -228,7 +228,12 @@ BloomFilterRotator
 	public void 
 	clear() 
 	{
-		current_filter.clear();
+		start_time  = SystemTime.getMonotonousTime();
+
+		for ( BloomFilter filter: filters ){
+			
+			filter.clear();
+		}
 	}
 	
 	public String
