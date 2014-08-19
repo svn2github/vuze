@@ -25,6 +25,7 @@ package org.gudy.azureus2.ui.swt.views.tableitems.peers;
 import java.net.InetAddress;
 
 import org.gudy.azureus2.core3.peer.PEPeer;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 
 import com.aelitis.azureus.core.networkmanager.admin.*;
 
@@ -68,27 +69,32 @@ public class ASItem
     		
     		peer.setUserData( ASItem.class, text );
     	
-    		try{
-	    		NetworkAdmin.getSingleton().lookupASN( 
-	    			InetAddress.getByName( peer.getIp()),
-	    			new NetworkAdminASNListener()
-	    			{
-	    				public void
-	    				success(
-	    					NetworkAdminASN		asn )
-	    				{
-	    					peer.setUserData( ASItem.class, asn.getAS() + " - " + asn.getASName());
-	    				}
-	    				
-	    				public void
-	    				failed(
-	    					NetworkAdminException	error )
-	    				{
-	    				}
-	    			});
-	    	
-	    	}catch( Throwable e ){
-	    	}
+    		String peer_ip = peer.getIp();
+    		
+    		if ( AENetworkClassifier.categoriseAddress( peer_ip ) == AENetworkClassifier.AT_PUBLIC ){
+    			
+	    		try{
+		    		NetworkAdmin.getSingleton().lookupASN( 
+		    			InetAddress.getByName( peer_ip ),
+		    			new NetworkAdminASNListener()
+		    			{
+		    				public void
+		    				success(
+		    					NetworkAdminASN		asn )
+		    				{
+		    					peer.setUserData( ASItem.class, asn.getAS() + " - " + asn.getASName());
+		    				}
+		    				
+		    				public void
+		    				failed(
+		    					NetworkAdminException	error )
+		    				{
+		    				}
+		    			});
+		    	
+		    	}catch( Throwable e ){
+		    	}
+    		}
     	}
     }
 

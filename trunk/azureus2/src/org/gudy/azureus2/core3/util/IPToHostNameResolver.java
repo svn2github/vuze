@@ -89,15 +89,23 @@ IPToHostNameResolver
 									
 									if ( listener != null ){
 										
-										try{
-											InetAddress addr = InetAddress.getByName( req.getIP());
-												
-											req.getListener().IPResolutionComplete( addr.getHostName(), true );
-												
-										}catch( Throwable e ){
+										String ip = req.getIP();
+										
+										if ( AENetworkClassifier.categoriseAddress( ip ) == AENetworkClassifier.AT_PUBLIC ){
 											
-											req.getListener().IPResolutionComplete( req.getIP(), false );
+											try{
+												InetAddress addr = InetAddress.getByName( ip );
+													
+												req.getListener().IPResolutionComplete( addr.getHostName(), true );
+													
+											}catch( Throwable e ){
+												
+												req.getListener().IPResolutionComplete( ip, false );
+												
+											}
+										}else{
 											
+											req.getListener().IPResolutionComplete( ip, true );
 										}
 									}
 								}catch( Throwable e ){

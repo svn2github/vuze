@@ -27,7 +27,20 @@ import java.net.UnknownHostException;
 import sun.net.spi.nameservice.*;
 import sun.net.spi.nameservice.dns.*;
 
-
+/*
+ * This proxy is controlled by the setting in ConfigurationManager
+ * 
+ * 		System.setProperty("sun.net.spi.nameservice.provider.1","dns,aednsproxy");
+ * 
+ * and also requires META-INF/services/sun.net.spi.nameservice.NameServiceDescriptor to contain the text
+ * 
+ *  	org.gudy.azureus2.core3.util.spi.AENameServiceDescriptor
+ * 
+ * On OSX you will need to do the following to get things to compile:
+ * 
+ * Windows -> Preferences -> Java -> Compiler -> Errors/Warnings -> Deprecated and restricted API -> Forbidden reference (access rules): -> change to warning
+ * 
+ */
 
 public class 
 AENameServiceDescriptor 

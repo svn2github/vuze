@@ -27,7 +27,6 @@ import java.util.List;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerPeerListener;
 import org.gudy.azureus2.core3.download.DownloadManagerState;
@@ -35,6 +34,7 @@ import org.gudy.azureus2.core3.global.GlobalManagerListener;
 import org.gudy.azureus2.core3.peer.PEPeer;
 import org.gudy.azureus2.core3.peer.PEPeerListener;
 import org.gudy.azureus2.core3.peer.PEPeerManager;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.FileUtil;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -588,7 +588,7 @@ public class ClientStatsView
 		InetAddress ip = peer.getAlternativeIPv6();
 		if (ip == null) {
 			try {
-				ip = InetAddress.getByName(peer.getIp());
+				ip = AddressUtils.getByName(peer.getIp());
 			} catch (UnknownHostException e) {
 			}
 		}
