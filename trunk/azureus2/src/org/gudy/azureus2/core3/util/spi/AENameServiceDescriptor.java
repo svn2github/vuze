@@ -79,6 +79,12 @@ AENameServiceDescriptor
 		delegate_method_lookupAllHostAddr 	= old_lookupAllHostAddr;
 	}
 	
+	public static boolean
+	isAvailable()
+	{
+		return( proxy_name_service != null );
+	}
+	
 	public NameService
 	createNameService() 
 	{
@@ -131,7 +137,7 @@ AENameServiceDescriptor
 					throw( new UnknownHostException( host_name ));
 				}
 				
-				System.out.println( "DNS: " + host_name );
+				// System.out.println( "DNS: " + host_name );
 				
 				try{
 					return( delegate_method_lookupAllHostAddr.invoke( delegate, host_name ));
