@@ -730,11 +730,14 @@ RSSEngine
 			
 			String content_type = con.getContentType();
 
-			log( "Testing link " + url + " to see if torrent link -> content type=" + content_type );
-			
-			if ( content_type.equalsIgnoreCase( "application/x-bittorrent" )){
+			if ( content_type != null ){
 				
-				return( true );
+				log( "Testing link " + url + " to see if torrent link -> content type=" + content_type );
+				
+				if ( content_type.equalsIgnoreCase( "application/x-bittorrent" )){
+					
+					return( true );
+				}
 			}
 			
 			return( false );
