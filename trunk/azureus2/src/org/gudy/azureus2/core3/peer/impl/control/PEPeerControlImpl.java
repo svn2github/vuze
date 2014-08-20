@@ -373,6 +373,13 @@ DiskManagerCheckRequestListener, IPFilterListener
 	
 	private long			last_seed_disconnect_time;
 	
+	private BloomFilter		naughty_fast_extension_bloom = 
+			BloomFilterFactory.createRotating(
+				BloomFilterFactory.createAddRemove4Bit( 2000 ), 2 );
+	
+	
+	
+	
 	public 
 	PEPeerControlImpl(
 		byte[]					_peer_id,
@@ -1613,6 +1620,60 @@ DiskManagerCheckRequestListener, IPFilterListener
 		}
 		
 		bad_piece_reported = piece_number;
+	}
+	
+	private static final int FE_EVENT_LIMIT	= 5;	// don't make > 15 without changing bloom!S
+	
+		/*
+		 * We keep track of both peer connection events and attempts to re-download the same fast piece
+		 * for a given peer to prevent an attack whereby a peer connects and repeatedly downloads the same
+		 * fast piece, or alternatively connects, downloads some fast pieces, disconnects, then does so 
+		 * again.
+		 */
+	
+	public boolean
+	isFastExtensionPermitted(
+		PEPeerTransport		originator )
+	{
+		try{
+			byte[] key = originator.getIp().getBytes( Constants.BYTE_ENCODING );
+			
+			synchronized( naughty_fast_extension_bloom ){
+			
+				int events = naughty_fast_extension_bloom.add( key );
+				
+				if ( events < FE_EVENT_LIMIT ){
+					
+					return( true );
+				}
+				
+				Logger.log(new LogEvent(disk_mgr.getTorrent(), LOGID,
+						"Fast extension disabled for " + originator.getIp() + " due to repeat connections" ));
+			}
+			
+		}catch( Throwable e ){
+		}
+		
+		return( false );
+	}
+	
+	public void
+	reportBadFastExtensionUse(
+		PEPeerTransport		originator )
+	{
+		try{
+			byte[] key = originator.getIp().getBytes( Constants.BYTE_ENCODING );
+			
+			synchronized( naughty_fast_extension_bloom ){
+				
+				if ( naughty_fast_extension_bloom.add( key ) == FE_EVENT_LIMIT ){
+					
+					Logger.log(new LogEvent(disk_mgr.getTorrent(), LOGID,
+							"Fast extension disabled for " + originator.getIp() + " due to repeat requests for the same pieces" ));
+				}
+			}
+		}catch( Throwable e ){
+		}
 	}
 	
 	public void

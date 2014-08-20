@@ -3473,8 +3473,12 @@ implements PEPeerTransport
 								 request_ok = true;
 								 
 								 createPieceMessageHandler();
-								 
+								 								 
 								 break;
+								 
+							}else{
+								
+								manager.reportBadFastExtensionUse( this );
 							}
 						}
 					}			
@@ -3880,6 +3884,11 @@ implements PEPeerTransport
 				// if already has enough pieces then bail
 			
 			if ( flags.nbSet >= ALLOWED_FAST_OTHER_PEER_PIECE_MAX ){
+				
+				return;
+			}
+			
+			if ( !manager.isFastExtensionPermitted( this )){
 				
 				return;
 			}

@@ -113,6 +113,14 @@ PEPeerControl
 		PEPeerTransport		originator,
 		int					piece_number );
 	
+	public boolean
+	isFastExtensionPermitted(
+		PEPeerTransport		originator );
+	
+	public void
+	reportBadFastExtensionUse(
+		PEPeerTransport		originator );
+	
 	public void
 	statsRequest(
 		PEPeerTransport		originator,
