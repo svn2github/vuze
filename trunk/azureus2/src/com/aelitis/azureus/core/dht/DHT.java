@@ -61,6 +61,7 @@ DHT
 	public static final short		FLAG_PUT_AND_FORGET		= 0x0040;			// local only
 	public static final short		FLAG_OBFUSCATE_LOOKUP	= 0x0080;			// local only
 	public static final short		FLAG_LOOKUP_FOR_STORE	= 0x0100;			// local only
+	public static final short		FLAG_HIGH_PRIORITY		= 0x0200;			// local only, used in plugin to transmit priority through call stack
 
 	public static final int 	MAX_VALUE_SIZE		= 512;
 
