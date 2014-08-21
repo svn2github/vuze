@@ -137,6 +137,7 @@ public class PeerExchangerItem {
    * Get the list of peer connections added since this method was last called.
    * @return new peer connections
    */
+  
   public PeerItem[] getNewlyAddedPeerConnections() {
     try{  peers_mon.enter();
       if( connections_added.isEmpty() )  return null;
@@ -157,7 +158,50 @@ public class PeerExchangerItem {
     finally{  peers_mon.exit();  }
   }
   
-
+  public PeerItem[] 
+  getNewlyAddedPeerConnections( 
+	  String network ) 
+  {
+	  try{  
+		  peers_mon.enter();
+		  
+		  if ( connections_added.isEmpty())  return null;
+	
+		  int num_to_send = connections_added.size() > MAX_PEERS_PER_VOLLEY ? MAX_PEERS_PER_VOLLEY : connections_added.size();
+	
+		  List<PeerItem> peers = new ArrayList<PeerItem>( num_to_send );
+	
+		  Iterator<PeerItem> it = connections_added.iterator();
+	
+		  while( peers.size() < num_to_send && it.hasNext()){
+	
+			  PeerItem	peer = it.next();
+	
+			  if ( peer.getNetwork() == network ){
+	
+				  peers.add( peer );
+			  }
+				
+			  	// throw away items that don't match this network to prevent them from building
+			  	// up and filling the cache preventing addition of other network items. This 
+			  	// could be improved by either maintaining separate caches per network or perhaps
+			  	// only trashing non-network entries when cache gets (near to)full
+			  
+			  it.remove();
+		  }
+	
+		  if ( peers.size() == 0 ){
+			  
+			  return( null );
+		  }
+		  
+		  return peers.toArray( new PeerItem[peers.size()]);
+		  
+	  }finally{
+		  
+		  peers_mon.exit();  
+	  }
+  }
   
   /**
    * Get the list of peer connections dropped since this method was last called.
@@ -182,6 +226,47 @@ public class PeerExchangerItem {
     finally{  peers_mon.exit();  }
   }
   
+  public PeerItem[] 
+  getNewlyDroppedPeerConnections( 
+	  String network ) 
+  {
+	  try{  
+		  peers_mon.enter();
+		  
+		  if ( connections_dropped.isEmpty())  return null;
+	
+		  int num_to_send = connections_dropped.size() > MAX_PEERS_PER_VOLLEY ? MAX_PEERS_PER_VOLLEY : connections_dropped.size();
+	
+		  List<PeerItem> peers = new ArrayList<PeerItem>( num_to_send );
+	
+		  Iterator<PeerItem> it = connections_dropped.iterator();
+	
+		  while( peers.size() < num_to_send && it.hasNext()){
+	
+			  PeerItem	peer = it.next();
+	
+			  if ( peer.getNetwork() == network ){
+	
+				  peers.add( peer );
+			  }
+			  
+			  	// see above comment
+			  
+			  it.remove();
+		  }
+	
+		  if ( peers.size() == 0 ){
+			  
+			  return( null );
+		  }
+		  
+		  return peers.toArray( new PeerItem[peers.size()]);
+		  
+	  }finally{
+		  
+		  peers_mon.exit();  
+	  }
+  }
 
   /**
    * Clears all current peer state records and stops any future state maintenance.

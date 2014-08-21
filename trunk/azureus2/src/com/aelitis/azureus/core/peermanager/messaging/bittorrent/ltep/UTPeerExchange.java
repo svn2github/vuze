@@ -23,6 +23,7 @@ import org.gudy.azureus2.core3.logging.LogEvent;
 import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DirectByteBuffer;
 
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
@@ -97,7 +98,9 @@ public class UTPeerExchange implements AZStylePeerExchange, LTMessage {
 	      for (int i=0; i<peers.size(); i++ ) {
 	    	  peer = (PeerItem)peers.get(i);
 	    	  byte[] serialised_peer = peer.getSerialization();
-	    	  if (serialised_peer.length != peer_byte_size) {System.out.println("> " + serialised_peer.length + ":" + peer_byte_size);}
+	    	  if (serialised_peer.length != peer_byte_size) {
+	    		  Debug.out("invalid serialization- " + serialised_peer.length + ":" + peer_byte_size);
+	    	  }
 	    	  System.arraycopy(serialised_peer, 0, raw_peers, i * peer_byte_size, peer_byte_size);
 	    	  if (peer_flags != null && NetworkManager.getCryptoRequired(peer.getCryptoLevel())) {
 	    		  peer_flags[i] |= 0x01; // Encrypted connection. 

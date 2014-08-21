@@ -4524,8 +4524,8 @@ implements PEPeerTransport
 			
 			if ( peer_item_identity.getNetwork() == AENetworkClassifier.AT_PUBLIC ){
 		
-				final PeerItem[] adds = pex_item.getNewlyAddedPeerConnections();
-				final PeerItem[] drops = pex_item.getNewlyDroppedPeerConnections();  
+				final PeerItem[] adds = pex_item.getNewlyAddedPeerConnections( AENetworkClassifier.AT_PUBLIC );
+				final PeerItem[] drops = pex_item.getNewlyDroppedPeerConnections( AENetworkClassifier.AT_PUBLIC );  
 	
 				if( (adds != null && adds.length > 0) || (drops != null && drops.length > 0) ) {
 					if (ut_pex_enabled) {
