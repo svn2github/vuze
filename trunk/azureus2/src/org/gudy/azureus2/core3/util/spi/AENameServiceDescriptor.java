@@ -22,6 +22,7 @@
 package org.gudy.azureus2.core3.util.spi;
 
 import java.lang.reflect.*;
+import java.net.InetAddress;
 import java.net.UnknownHostException;
 
 import sun.net.spi.nameservice.*;
@@ -46,23 +47,27 @@ public class
 AENameServiceDescriptor 
 	implements NameServiceDescriptor 
 {
-	private final static NameService 	delegate;
-	private final static Method 		delegate_method_lookupAllHostAddr;
+	private final static NameService 	delegate_ns;
+	private final static Method 		delegate_ns_method_lookupAllHostAddr;
+	
+	private final static Object		 	delegate_iai;
+	private final static Method 		delegate_iai_method_lookupAllHostAddr;
+
 	
 	private final static NameService proxy_name_service;
 
 	static{
-		NameService old_ns 					= null;
-		Method		old_lookupAllHostAddr	= null;
+		NameService default_ns 					= null;
+		Method		default_lookupAllHostAddr	= null;
 		
 		NameService new_ns = null;
 		
 		try{
-			old_ns = new DNSNameService();
+			default_ns = new DNSNameService();
 			
-			if ( old_ns != null ){
+			if ( default_ns != null ){
 				
-				old_lookupAllHostAddr = old_ns.getClass().getMethod( "lookupAllHostAddr", String.class );
+				default_lookupAllHostAddr = default_ns.getClass().getMethod( "lookupAllHostAddr", String.class );
 				
 				new_ns = 
 						(NameService)Proxy.newProxyInstance(
@@ -74,9 +79,36 @@ AENameServiceDescriptor
 			
 		}
 		
-		proxy_name_service					= new_ns;
-		delegate 							= old_ns;
-		delegate_method_lookupAllHostAddr 	= old_lookupAllHostAddr;
+		/*
+		 * It almost works by delegating the the DNSNameService directly apart from InetAddress.getLocalHost() - rather than returning something sensible
+		 * it fails with unknown host. However, if we directly grab the InetAddressImpl and use this (which has already been set up to use the default name server)
+		 * things work better :( Hacked to support both at the moment...
+		 */
+		
+		Object	iai						= null;
+		Method	iai_lookupAllHostAddr	= null;
+
+		try{
+			Field field = InetAddress.class.getDeclaredField( "impl" );
+			
+			field.setAccessible( true );
+			
+			iai = field.get( null );
+			
+			iai_lookupAllHostAddr = iai.getClass().getMethod( "lookupAllHostAddr", String.class );
+			
+			iai_lookupAllHostAddr.setAccessible( true );
+
+		}catch( Throwable e ){
+			
+			System.err.println( "Issue resolving the default name service..." );
+		}	
+		
+		proxy_name_service						= new_ns;
+		delegate_ns 							= default_ns;
+		delegate_ns_method_lookupAllHostAddr 	= default_lookupAllHostAddr;
+		delegate_iai 							= iai;
+		delegate_iai_method_lookupAllHostAddr 	= iai_lookupAllHostAddr;
 	}
 	
 	public static boolean
@@ -119,7 +151,7 @@ AENameServiceDescriptor
 			
 			if ( method_name.equals( "getHostByAddr" )){
 				
-				return delegate.getHostByAddr((byte[])args[0]);
+				return delegate_ns.getHostByAddr((byte[])args[0]);
 				
 			}else if ( method_name.equals( "lookupAllHostAddr" )){
 				
@@ -140,8 +172,17 @@ AENameServiceDescriptor
 				// System.out.println( "DNS: " + host_name );
 				
 				try{
-					return( delegate_method_lookupAllHostAddr.invoke( delegate, host_name ));
+					if ( delegate_iai_method_lookupAllHostAddr != null ){
+						
+						try{
+							return( delegate_iai_method_lookupAllHostAddr.invoke(  delegate_iai, host_name ));
+
+						}catch( Throwable e ){
+						}
+					}
 					
+					return( delegate_ns_method_lookupAllHostAddr.invoke( delegate_ns, host_name ));
+
 				}catch( InvocationTargetException e ){
 					
 					throw(((InvocationTargetException)e).getTargetException());
