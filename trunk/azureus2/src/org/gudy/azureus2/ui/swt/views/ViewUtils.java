@@ -24,13 +24,13 @@ package org.gudy.azureus2.ui.swt.views;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.download.DownloadManager;
@@ -240,6 +240,17 @@ ViewUtils
 	{
 		return( new CustomDateFormat( column ));
 	}
+	
+	public static final String SM_PROP_PERMIT_UPLOAD_DISABLE	= "enable_upload_disable";
+	public static final String SM_PROP_PERMIT_DOWNLOAD_DISABLE	= "enable_download_disable";
+	
+	private static final Map<String,Object>	SM_DEFAULTS = new HashMap<String, Object>();
+	
+	static{
+		SM_DEFAULTS.put( SM_PROP_PERMIT_UPLOAD_DISABLE, false );
+		SM_DEFAULTS.put( SM_PROP_PERMIT_DOWNLOAD_DISABLE, false );
+	}
+	
 	public static void
 	addSpeedMenu(
 		final Shell 		shell,
@@ -259,8 +270,14 @@ ViewUtils
 		long				upSpeedSetMax,
 		long				maxUpload,
 		final int			num_entries,
+		Map<String,Object>	_properties,
 		final SpeedAdapter	adapter )
 	{
+		Map<String,Object>	properties = new HashMap<String, Object>( SM_DEFAULTS );
+		if ( _properties != null ){
+			properties.putAll( _properties );
+		}
+		
 		String menu_key = "MyTorrentsView.menu.manual";
 		if (num_entries > 1) {menu_key += (isTorrentContext?".per_torrent":".per_peer" );}
 
@@ -298,7 +315,6 @@ ViewUtils
 	
 			new MenuItem(menuDownSpeed, SWT.SEPARATOR);
 	
-			final MenuItem itemsDownSpeed[] = new MenuItem[12];
 			Listener itemsDownSpeedListener = new Listener() {
 				public void handleEvent(Event e) {
 					if (e.widget != null && e.widget instanceof MenuItem) {
@@ -310,12 +326,24 @@ ViewUtils
 				}
 			};
 	
-			itemsDownSpeed[1] = new MenuItem(menuDownSpeed, SWT.PUSH);
-			Messages.setLanguageText(itemsDownSpeed[1],
-					"MyTorrentsView.menu.setSpeed.unlimit");
-			itemsDownSpeed[1].setData("maxdl", new Integer(0));
-			itemsDownSpeed[1].addListener(SWT.Selection, itemsDownSpeedListener);
-	
+			if ( num_entries > 1 || !downSpeedUnlimited ){
+				MenuItem mi = new MenuItem(menuDownSpeed, SWT.PUSH);
+				Messages.setLanguageText(mi,
+						"MyTorrentsView.menu.setSpeed.unlimit");
+				mi.setData("maxdl", new Integer(0));
+				mi.addListener(SWT.Selection, itemsDownSpeedListener);
+			}
+			
+			boolean allowDisable = (Boolean)properties.get( SM_PROP_PERMIT_DOWNLOAD_DISABLE );
+
+			if ( allowDisable && !downSpeedDisabled ){
+				MenuItem mi = new MenuItem(menuDownSpeed, SWT.PUSH);
+				Messages.setLanguageText(mi,
+						"MyTorrentsView.menu.setSpeed.down.disable");
+				mi.setData("maxdl", new Integer(-1));
+				mi.addListener(SWT.Selection, itemsDownSpeedListener);
+			}
+			
 			if (hasSelection) {
 	
 				//using 200KiB/s as the default limit when no limit set.
@@ -327,12 +355,12 @@ ViewUtils
 					}
 				}
 	
-				for (int i = 2; i < 12; i++) {
-					itemsDownSpeed[i] = new MenuItem(menuDownSpeed, SWT.PUSH);
-					itemsDownSpeed[i].addListener(SWT.Selection, itemsDownSpeedListener);
+				for (int i = 0; i < 10; i++) {
+					MenuItem mi = new MenuItem(menuDownSpeed, SWT.PUSH);
+					mi.addListener(SWT.Selection, itemsDownSpeedListener);
 		
 					// dms.length has to be > 0 when hasSelection
-					int limit = (int)(maxDownload / (10 * num_entries) * (12 - i));
+					int limit = (int)(maxDownload / (10 * num_entries) * (10 - i));
 					StringBuffer speed = new StringBuffer();
 					speed.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit
 							* num_entries));
@@ -349,8 +377,8 @@ ViewUtils
 						speed
 								.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit));
 					}
-					itemsDownSpeed[i].setText(speed.toString());
-					itemsDownSpeed[i].setData("maxdl", new Integer(limit));
+					mi.setText(speed.toString());
+					mi.setData("maxdl", new Integer(limit));
 				}
 			}
 	
@@ -412,8 +440,7 @@ ViewUtils
 	
 			// ---
 			new MenuItem(menuUpSpeed, SWT.SEPARATOR);
-	
-			final MenuItem itemsUpSpeed[] = new MenuItem[12];
+				
 			Listener itemsUpSpeedListener = new Listener() {
 				public void handleEvent(Event e) {
 					if (e.widget != null && e.widget instanceof MenuItem) {
@@ -425,12 +452,24 @@ ViewUtils
 				}
 			};
 	
-			itemsUpSpeed[1] = new MenuItem(menuUpSpeed, SWT.PUSH);
-			Messages.setLanguageText(itemsUpSpeed[1],
-					"MyTorrentsView.menu.setSpeed.unlimit");
-			itemsUpSpeed[1].setData("maxul", new Integer(0));
-			itemsUpSpeed[1].addListener(SWT.Selection, itemsUpSpeedListener);
-	
+			if ( num_entries > 1 || !upSpeedUnlimited ){
+				MenuItem mi = new MenuItem(menuUpSpeed, SWT.PUSH);
+				Messages.setLanguageText(mi,
+						"MyTorrentsView.menu.setSpeed.unlimit");
+				mi.setData("maxul", new Integer(0));
+				mi.addListener(SWT.Selection, itemsUpSpeedListener);
+			}
+			
+			boolean allowDisable = (Boolean)properties.get( SM_PROP_PERMIT_UPLOAD_DISABLE );
+
+			if ( allowDisable && !upSpeedDisabled ){
+				MenuItem mi = new MenuItem(menuUpSpeed, SWT.PUSH);
+				Messages.setLanguageText(mi,
+						"MyTorrentsView.menu.setSpeed.disable");
+				mi.setData("maxul", new Integer(-1));
+				mi.addListener(SWT.Selection, itemsUpSpeedListener);
+			}
+			
 			if (hasSelection) {
 				//using 75KiB/s as the default limit when no limit set.
 				if (maxUpload == 0){
@@ -442,11 +481,11 @@ ViewUtils
 						maxUpload = 4 * ( upSpeedSetMax/1024 ) * 1024;
 					}
 				}
-				for (int i = 2; i < 12; i++) {
-					itemsUpSpeed[i] = new MenuItem(menuUpSpeed, SWT.PUSH);
-					itemsUpSpeed[i].addListener(SWT.Selection, itemsUpSpeedListener);
+				for (int i = 0; i < 10; i++) {
+					MenuItem mi = new MenuItem(menuUpSpeed, SWT.PUSH);
+					mi.addListener(SWT.Selection, itemsUpSpeedListener);
 	
-					int limit = (int)( maxUpload / (10 * num_entries) * (12 - i));
+					int limit = (int)( maxUpload / (10 * num_entries) * (10 - i));
 					StringBuffer speed = new StringBuffer();
 					speed.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit
 							* num_entries));
@@ -464,8 +503,8 @@ ViewUtils
 								.append(DisplayFormatters.formatByteCountToKiBEtcPerSec(limit));
 					}
 	
-					itemsUpSpeed[i].setText(speed.toString());
-					itemsUpSpeed[i].setData("maxul", new Integer(limit));
+					mi.setText(speed.toString());
+					mi.setData("maxul", new Integer(limit));
 				}
 			}
 	

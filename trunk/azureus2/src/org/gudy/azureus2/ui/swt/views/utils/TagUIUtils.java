@@ -25,7 +25,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -649,9 +648,24 @@ public class TagUIUtils
 				int down_speed 	= tf_rate_limit.getTagDownloadLimit();
 				int up_speed 	= tf_rate_limit.getTagUploadLimit();
 	
-				ViewUtils.addSpeedMenu(menu.getShell(), menu, has_up, has_down, true, true, false,
-						down_speed == 0, down_speed, down_speed, maxDownload, false,
-						up_speed == 0, up_speed, up_speed, maxUpload, 1, new SpeedAdapter() {
+				Map<String,Object> menu_properties = new HashMap<String,Object>();
+				
+				if ( tag_type.getTagType() == TagType.TT_PEER_IPSET ){
+				
+					if ( has_up ){
+						menu_properties.put( ViewUtils.SM_PROP_PERMIT_UPLOAD_DISABLE, true );
+					}
+					if ( has_down ){
+						menu_properties.put( ViewUtils.SM_PROP_PERMIT_DOWNLOAD_DISABLE, true );
+					}
+				}
+				
+				ViewUtils.addSpeedMenu(
+						menu.getShell(), menu, has_up, has_down, true, true, 
+						down_speed == -1, down_speed == 0, down_speed, down_speed, maxDownload, 
+						up_speed == -1,	up_speed == 0, up_speed, up_speed, maxUpload, 
+						1,	menu_properties,
+						new SpeedAdapter() {
 							public void setDownSpeed(int val) {
 								tf_rate_limit.setTagDownloadLimit(val);
 							}

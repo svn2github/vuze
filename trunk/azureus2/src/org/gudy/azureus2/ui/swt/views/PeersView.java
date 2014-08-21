@@ -471,6 +471,7 @@ public class PeersView
 			upSpeedSetMax,
 			maxUp,
 			peers.length,
+			null,
 			new ViewUtils.SpeedAdapter()
 			{
 				public void 

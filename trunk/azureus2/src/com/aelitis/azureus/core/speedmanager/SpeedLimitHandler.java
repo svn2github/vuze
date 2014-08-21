@@ -4026,6 +4026,15 @@ SpeedLimitHandler
 					}
 				}
 				
+					// special case for matching everything
+				
+				if ( cidr_or_cc_etc.equalsIgnoreCase( "all" )){
+				
+					networks.addAll( Arrays.asList( AENetworkClassifier.AT_NETWORKS ));
+					
+					return( true );
+				}
+				
 				String cc = cidr_or_cc_etc;
 				
 				if ( cc.length() != 2 ){

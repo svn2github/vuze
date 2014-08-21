@@ -127,7 +127,8 @@ public class CategoryUIUtils
 
 			ViewUtils.addSpeedMenu(menu.getShell(), menu, true, true, true, true, false,
 					down_speed == 0, down_speed, down_speed, maxDownload, false,
-					up_speed == 0, up_speed, up_speed, maxUpload, 1, new SpeedAdapter() {
+					up_speed == 0, up_speed, up_speed, maxUpload, 1, null,
+					new SpeedAdapter() {
 						public void setDownSpeed(int val) {
 							category.setDownloadSpeed(val);
 						}
