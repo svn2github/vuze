@@ -49,6 +49,7 @@ import org.gudy.azureus2.core3.stats.transfer.LongTermStats;
 import org.gudy.azureus2.core3.stats.transfer.LongTermStatsListener;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
@@ -85,6 +86,7 @@ import com.aelitis.azureus.core.tag.Tag;
 import com.aelitis.azureus.core.tag.TagDownload;
 import com.aelitis.azureus.core.tag.TagFeature;
 import com.aelitis.azureus.core.tag.TagFeatureRateLimit;
+import com.aelitis.azureus.core.tag.TagListener;
 import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagPeer;
@@ -881,7 +883,7 @@ SpeedLimitHandler
 					int		up_lim		= -1;
 					int		down_lim	= -1;
 					
-					List<String>	categories = new ArrayList<String>();
+					Set<String>	categories_or_tags = new HashSet<String>();
 					
 					IPSet set = null;
 					
@@ -913,7 +915,7 @@ SpeedLimitHandler
 								
 								down_lim = (int)parseRate( lc_rhs );
 								
-							}else if ( lc_lhs.equals( "cat" )){
+							}else if ( lc_lhs.equals( "cat" ) || lc_lhs.equals( "tag" )){
 								
 								String[] cats = rhs.split( " " );
 								
@@ -923,12 +925,7 @@ SpeedLimitHandler
 									
 									if ( cat.length() > 0 ){
 										
-										if ( categories == null ){
-											
-											categories = new ArrayList<String>();
-										}
-										
-										categories.add( cat );
+										categories_or_tags.add( cat );
 									}
 								}
 							}else{
@@ -962,9 +959,9 @@ SpeedLimitHandler
 											
 										}else{
 											
-											if ( !set.addCIDRorCC( bit )){
+											if ( !set.addCIDRorCCetc( bit )){
 											
-												result.add( "CIDR, CC or ip_set reference '" + bit + "' isn't valid" );
+												result.add( "CIDR, CC, Network or ip_set reference '" + bit + "' isn't valid" );
 											}
 										}
 									}
@@ -978,7 +975,7 @@ SpeedLimitHandler
 						throw( new Exception());
 					}
 					
-					set.setParameters( inverse, up_lim, down_lim, categories );
+					set.setParameters( inverse, up_lim, down_lim, categories_or_tags );
 					
 				}catch( Throwable e ){
 					
@@ -1584,7 +1581,7 @@ SpeedLimitHandler
 		ip_set_rate_limiters_down.clear();
 		ip_set_rate_limiters_up.clear();
 		
-		boolean	has_cats = false;
+		boolean	has_cats_or_tags = false;
 		
 		for ( IPSet set: current_ip_sets.values()){
 			
@@ -1592,10 +1589,12 @@ SpeedLimitHandler
 			
 			ip_set_rate_limiters_up.put( set.getName(), set.getUpLimiter());
 			
-			if ( set.getCategories() != null ){
+			if ( set.getCategoriesOrTags() != null ){
 				
-				has_cats = true;
+				has_cats_or_tags = true;
 			}
+			
+			set.removeAllPeers();
 		}
 		
 		if ( current_ip_sets.size() == 0 ){
@@ -1661,7 +1660,7 @@ SpeedLimitHandler
 				download_manager.removeListener( dml );
 			}
 			
-			final boolean	f_has_cats = has_cats;
+			final boolean	f_has_cats_or_tags = has_cats_or_tags;
 			
 			dml = 
 				new DownloadManagerListener()
@@ -1699,12 +1698,64 @@ SpeedLimitHandler
 							return;
 						}
 						
-						if ( f_has_cats ){
+						if ( f_has_cats_or_tags ){
 							
 							download.addAttributeListener(
 								attr_listener,
 								category_attribute,
 								DownloadAttributeListener.WRITTEN );
+							
+							final TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+							
+							final DownloadManager core_download = PluginCoreUtils.unwrap( download );
+							
+							tt.addTagListener(
+									core_download,
+									new TagListener() {
+										
+										public void 
+										taggableSync(
+											Tag tag ) 
+										{
+											if ( dml != this_dml ){
+												
+												tt.removeTagListener( core_download, this );
+												
+												return;
+											}
+										}
+										
+										public void 
+										taggableRemoved(
+											Tag 		tag, 
+											Taggable 	tagged) 
+										{
+											if ( dml != this_dml ){
+												
+												tt.removeTagListener( core_download, this );
+												
+												return;
+											}
+											
+											checkIPSets();
+										}
+										
+										public void 
+										taggableAdded(
+											Tag 		tag, 
+											Taggable 	tagged) 
+										{
+											if ( dml != this_dml ){
+												
+												tt.removeTagListener( core_download, this );
+												
+												return;
+											}
+											
+											checkIPSets();
+										}
+									});
+							
 						}
 							
 						download.addPeerListener(
@@ -1781,11 +1832,15 @@ SpeedLimitHandler
 		IPSet[]		sets;
 		long[][][]	set_ranges;
 		Set[]		set_ccs;
+		Set[]		set_nets;
 		
-		boolean	has_ccs = false;
+		boolean	has_ccs 	= false;
+		boolean	has_nets 	= false;
 		
-		String	category = null;
+		Set<String>	category_or_tags = null;
 		
+		TagManager tm = TagManagerFactory.getTagManager();
+
 		synchronized( current_ip_sets ){
 			
 			int	len = current_ip_sets.size();
@@ -1793,6 +1848,7 @@ SpeedLimitHandler
 			sets 		= new IPSet[len];
 			set_ranges	= new long[len][][];
 			set_ccs		= new Set[len];
+			set_nets	= new Set[len];
 			
 			int	pos = 0;
 			
@@ -1801,17 +1857,37 @@ SpeedLimitHandler
 				sets[pos]		= set;
 				set_ranges[pos]	= set.getRanges();
 				set_ccs[pos]	= set.getCountryCodes();
+				set_nets[pos]	= set.getNetworks();
 				
 				if ( set_ccs[pos].size() > 0 ){
 					
 					has_ccs = true;
 				}
 				
+				if ( set_nets[pos].size() > 0 ){
+					
+					has_nets = true;
+				}
+				
 				pos++;
 				
-				if ( category == null && set.getCategories() != null ){
+				if ( category_or_tags == null && set.getCategoriesOrTags() != null ){
 				
-					category = download.getAttribute( category_attribute );
+					category_or_tags = new HashSet<String>();
+					
+					String cat = download.getAttribute( category_attribute );
+					
+					if ( cat != null && cat.length() > 0 ){
+						
+						category_or_tags.add( cat );
+					}
+					
+					List<Tag> tags = tm.getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, PluginCoreUtils.unwrap( download ));
+					
+					for ( Tag t: tags ){
+						
+						category_or_tags.add( t.getTagName( true ));
+					}
 				}
 			}
 		}
@@ -1853,7 +1929,8 @@ SpeedLimitHandler
 				l_address = entry[0];
 			}
 			
-			String	peer_cc = null;
+			String	peer_cc 	= null;
+			String 	peer_net	= null;
 			
 			if ( has_ccs ){
 				
@@ -1863,6 +1940,11 @@ SpeedLimitHandler
 					
 					peer_cc = details[0];
 				}	
+			}
+			
+			if ( has_nets ){
+				
+				peer_net = AENetworkClassifier.categoriseAddress( peer.getIp());
 			}
 			
 			Set<IPSet>	added_to_sets = new HashSet<IPSet>();
@@ -1882,9 +1964,9 @@ SpeedLimitHandler
 					
 					boolean is_inverse = set.isInverse();
 					
-					List<String> set_cats = set.getCategories();
+					Set<String> set_cats_or_tags = set.getCategoriesOrTags();
 					
-					if ( set_cats == null || set_cats.contains( category )){
+					if ( set_cats_or_tags == null || new HashSet<String>( set_cats_or_tags ).removeAll( category_or_tags )){
 					
 						boolean	hit = false;
 						
@@ -1935,15 +2017,53 @@ SpeedLimitHandler
 										
 					boolean not_inverse = !set.isInverse();
 					
-					List<String> set_cats = set.getCategories();
+					Set<String> set_cats_or_tags = set.getCategoriesOrTags();
 					
-					if ( set_cats == null || set_cats.contains( category )){
+					if ( set_cats_or_tags == null || new HashSet<String>( set_cats_or_tags ).removeAll( category_or_tags )){
 											
 						boolean	hit = ccs.contains( peer_cc );
 															
 						if ( hit == not_inverse ){
 							
 							addLimiters( peer, set );
+							
+							added_to_sets.add( set );
+						}
+					}
+				}
+			}
+			
+			if ( peer_net != null ){
+				
+				for ( int i=0;i<set_nets.length;i++ ){
+					
+					IPSet set = sets[i];
+
+					if ( added_to_sets.contains( set )){
+						
+						continue;
+					}
+					
+					Set<String>	nets = set_nets[i];
+					
+					if ( nets.size() == 0 ){
+						
+						continue;
+					}
+										
+					boolean not_inverse = !set.isInverse();
+					
+					Set<String> set_cats_or_tags = set.getCategoriesOrTags();
+					
+					if ( set_cats_or_tags == null || new HashSet<String>( set_cats_or_tags ).removeAll( category_or_tags )){
+											
+						boolean	hit = nets.contains( peer_net );
+															
+						if ( hit == not_inverse ){
+							
+							addLimiters( peer, set );
+							
+							added_to_sets.add( set );
 						}
 					}
 				}
@@ -2217,7 +2337,7 @@ SpeedLimitHandler
 		result.add( "#            day_of_week: mon|tue|wed|thu|fri|sat|sun" );
 		result.add( "#        time: hh:mm - 24 hour clock; 00:00=midnight; local time" );
 		result.add( "#        extension: (start_tag|stop_tag):<tag_name>" );
-		result.add( "#    ip_set <ip_set_name> [<CIDR_specs...>|CC list|<prior_set_name>] [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [cat=<cat names>]" );
+		result.add( "#    ip_set <ip_set_name> [<CIDR_specs...>|CC list|Network List|<prior_set_name>] [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [cat=<cat names>]" );
 		result.add( "#    net_limit (daily|weekly|monthly)[:<profile>] [total=<limit>] [up=<limit>] [down=<limit>]");
 		result.add( "#" );
 		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_upload' defined:" );
@@ -3745,10 +3865,11 @@ SpeedLimitHandler
 		
 		private long[][]			ranges 			= new long[0][];
 		private Set<String>			country_codes 	= new HashSet<String>();
+		private Set<String>			networks	 	= new HashSet<String>();
 		
 		private boolean	inverse;
 		
-		private List<String>	categories;
+		private Set<String>	categories_or_tags;
 		
 		private boolean	has_explicit_up_lim;
 		private boolean	has_explicit_down_lim;
@@ -3801,7 +3922,7 @@ SpeedLimitHandler
 			boolean			_inverse,
 			int				_up_lim,
 			int				_down_lim,
-			List<String>	_cats )
+			Set<String>		_cats_or_tags )
 		{
 			inverse	= _inverse;
 			
@@ -3818,16 +3939,16 @@ SpeedLimitHandler
 			up_limiter.setRateLimitBytesPerSecond( _up_lim );
 			down_limiter.setRateLimitBytesPerSecond( _down_lim );
 			
-			categories = _cats.size()==0?null:_cats;
+			categories_or_tags = _cats_or_tags.size()==0?null:_cats_or_tags;
 		}
 		
 		private boolean
-		addCIDRorCC(
-			String		cidr_or_cc )
+		addCIDRorCCetc(
+			String		cidr_or_cc_etc )
 		{
-			if ( Character.isDigit( cidr_or_cc.charAt( 0 ))){
+			if ( Character.isDigit( cidr_or_cc_etc.charAt( 0 ))){
 				
-				String cidr = cidr_or_cc;
+				String cidr = cidr_or_cc_etc;
 				
 				int	pos = cidr.indexOf( '/' );
 				
@@ -3894,8 +4015,18 @@ SpeedLimitHandler
 					return( false );
 				}
 			}else{
+								
+				for ( String net: AENetworkClassifier.AT_NETWORKS ){
+					
+					if ( cidr_or_cc_etc.equalsIgnoreCase( net )){
+						
+						networks.add( net );
+						
+						return( true );
+					}
+				}
 				
-				String cc = cidr_or_cc;
+				String cc = cidr_or_cc_etc;
 				
 				if ( cc.length() != 2 ){
 					
@@ -3920,6 +4051,8 @@ SpeedLimitHandler
 			ranges = new_ranges;
 			
 			country_codes.addAll( other.country_codes );
+			
+			networks.addAll( other.networks );
 		}
 		
 		private String
@@ -3940,6 +4073,12 @@ SpeedLimitHandler
 			return( country_codes );
 		}
 		
+		private Set<String>
+		getNetworks()
+		{
+			return( networks );
+		}
+		
 		private RateLimiter
 		getUpLimiter()
 		{
@@ -3952,10 +4091,10 @@ SpeedLimitHandler
 			return( down_limiter );
 		}
 		
-		private List<String>
-		getCategories()
+		private Set<String>
+		getCategoriesOrTags()
 		{
-			return( categories );
+			return( categories_or_tags );
 		}
 		
 		private void
@@ -4016,6 +4155,17 @@ SpeedLimitHandler
 		}
 		
 		private void
+		removeAllPeers()
+		{
+			TagPeerImpl tag = tag_impl;
+			
+			if ( tag != null ){
+				
+				tag.removeAll();
+			}
+		}
+		
+		private void
 		destroy()
 		{
 			if ( tag_impl != null ){
@@ -4044,8 +4194,10 @@ SpeedLimitHandler
 			return( name + ": Up=" + format(up_limiter.getRateLimitBytesPerSecond()) + " (" + DisplayFormatters.formatByteCountToKiBEtcPerSec((long)send_rate.getAverage()) + ")" + 
 					", Down=" + format( down_limiter.getRateLimitBytesPerSecond()) + " (" + DisplayFormatters.formatByteCountToKiBEtcPerSec((long)receive_rate.getAverage()) + ")" + 
 					", Addresses=" + getAddressString() + 
+					", CC=" + country_codes +
+					", Networks=" + networks +
 					", Inverse=" + inverse +
-					", Categories=" + categories );
+					", Categories/Tags=" + categories_or_tags );
 					
 		}
 		
@@ -4204,6 +4356,26 @@ SpeedLimitHandler
 				removeTaggable( peer );
 			}
 			
+			private void
+			removeAll()
+			{
+				List<PEPeer> to_remove;
+				
+				synchronized( this ){
+					
+					pending_peers.clear();
+
+					to_remove = new ArrayList<PEPeer>( added_peers );
+					
+					added_peers.clear();
+				}
+					
+				for ( PEPeer peer: to_remove ){
+				
+					removeTaggable( peer );
+				}
+			}
+			
 			public void
 			addTaggable(
 				Taggable	t )
@@ -4212,7 +4384,7 @@ SpeedLimitHandler
 					
 					((PEPeer)t).updateAutoUploadPriority( UPLOAD_PRIORITY_ADDED_KEY, true );
 				}
-				
+								
 				super.addTaggable( t );
 			}
 			
@@ -4224,7 +4396,7 @@ SpeedLimitHandler
 					
 					((PEPeer)t).updateAutoUploadPriority( UPLOAD_PRIORITY_ADDED_KEY, false );
 				}
-
+				
 				super.removeTaggable( t );
 			}
 			
