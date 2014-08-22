@@ -110,7 +110,7 @@ PeerForeignDelegate
 					  RateLimiter		limiter,
 					  boolean			is_upload )
 				  {
-					  network_connection.addRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), is_upload );
+					  network_connection.addRateLimiter( UtilitiesImpl.wrapLimiter( limiter, false ), is_upload );
 				  }
 
 				  public void
@@ -118,7 +118,7 @@ PeerForeignDelegate
 					  RateLimiter		limiter,
 					  boolean			is_upload )
 				  {
-					  network_connection.removeRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), is_upload );
+					  network_connection.removeRateLimiter( UtilitiesImpl.wrapLimiter( limiter, false ), is_upload );
 				  }
 				  
 				  public RateLimiter[]
@@ -1074,6 +1074,21 @@ PeerForeignDelegate
 		boolean				upload )
 	{
 		network_connection.removeRateLimiter( limiter, upload );
+	}
+	
+	public void
+	setUploadDisabled(
+		Object		key,
+		boolean		disabled )
+	{
+	}
+	
+	public void
+	setDownloadDisabled(
+		Object		key,
+		boolean		disabled )
+	{
+		System.out.println( "PeerForeignDelegate:setDownloadDisabled not supported" );		
 	}
 	
 	public void

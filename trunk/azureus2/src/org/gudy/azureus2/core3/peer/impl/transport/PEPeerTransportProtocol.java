@@ -358,7 +358,9 @@ implements PEPeerTransport
 	// allow reconnect if we've sent or recieved at least 1 piece over the current connection
 	private boolean allowReconnect; 
 
-	
+
+	private Set<Object>		upload_disabled_set;
+	private Set<Object>		download_disabled_set;
 
 	private boolean is_optimistic_unchoke = false;
 
@@ -4269,6 +4271,98 @@ implements PEPeerTransport
 		connection.removeRateLimiter( limiter, upload );
 	}
 
+	public void
+	setUploadDisabled(
+		Object		key,
+		boolean		disabled )
+	{
+		synchronized( this ){
+			
+			if ( upload_disabled_set == null ){
+				
+				if ( disabled ){
+					
+					upload_disabled_set = new HashSet<Object>();
+					
+					upload_disabled_set.add( key );
+					
+				}else{
+					
+					Debug.out( "derp" );
+				}
+			}else{
+				
+				if ( disabled ){
+					
+					if ( !upload_disabled_set.add( key )){
+						
+						Debug.out( "derp" );
+					}
+					
+				}else{
+					
+					if ( !upload_disabled_set.remove( key )){
+						
+						Debug.out( "derp" );
+					}
+					
+					if ( upload_disabled_set.size() == 0 ){
+						
+						upload_disabled_set = null;
+					}
+				}
+			}
+		
+			System.out.println( "setUploadDisabled " + getIp() + " -> " + (upload_disabled_set==null?0:upload_disabled_set.size()));
+		}	
+	}
+	
+	public void
+	setDownloadDisabled(
+		Object		key,
+		boolean		disabled )
+	{
+		synchronized( this ){
+			
+			if ( download_disabled_set == null ){
+				
+				if ( disabled ){
+					
+					download_disabled_set = new HashSet<Object>();
+					
+					download_disabled_set.add( key );
+					
+				}else{
+					
+					Debug.out( "derp" );
+				}
+			}else{
+				
+				if ( disabled ){
+					
+					if ( !download_disabled_set.add( key )){
+						
+						Debug.out( "derp" );
+					}
+					
+				}else{
+					
+					if ( !download_disabled_set.remove( key )){
+						
+						Debug.out( "derp" );
+					}
+					
+					if ( download_disabled_set.size() == 0 ){
+						
+						download_disabled_set = null;
+					}
+				}
+			}
+		
+			System.out.println( "setDownloadDisabled " + getIp() + " -> " + (download_disabled_set==null?0:download_disabled_set.size()));
+		}
+	}
+	
 	public Connection getPluginConnection() {
 		return plugin_connection;
 	}

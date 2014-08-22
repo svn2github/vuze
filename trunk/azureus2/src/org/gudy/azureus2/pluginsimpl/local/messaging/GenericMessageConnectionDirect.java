@@ -160,7 +160,7 @@ GenericMessageConnectionDirect
 	addInboundRateLimiter(
 		RateLimiter		_limiter )
 	{
-		LimitedRateGroup limiter = UtilitiesImpl.wrapLimiter( _limiter );
+		LimitedRateGroup limiter = UtilitiesImpl.wrapLimiter( _limiter, false );
 
 		synchronized( this ){
 			
@@ -184,7 +184,7 @@ GenericMessageConnectionDirect
 	removeInboundRateLimiter(
 		RateLimiter		_limiter )
 	{
-		LimitedRateGroup limiter = UtilitiesImpl.wrapLimiter( _limiter );
+		LimitedRateGroup limiter = UtilitiesImpl.wrapLimiter( _limiter, false );
 
 		synchronized( this ){
 			
@@ -206,7 +206,7 @@ GenericMessageConnectionDirect
 	addOutboundRateLimiter(
 		RateLimiter		_limiter )
 	{
-		LimitedRateGroup limiter = UtilitiesImpl.wrapLimiter( _limiter );
+		LimitedRateGroup limiter = UtilitiesImpl.wrapLimiter( _limiter, false );
 
 		synchronized( this ){
 			
@@ -230,7 +230,7 @@ GenericMessageConnectionDirect
 	removeOutboundRateLimiter(
 		RateLimiter		_limiter )
 	{
-		LimitedRateGroup limiter = UtilitiesImpl.wrapLimiter( _limiter );
+		LimitedRateGroup limiter = UtilitiesImpl.wrapLimiter( _limiter, false );
 		
 		synchronized( this ){
 			

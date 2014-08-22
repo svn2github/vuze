@@ -200,12 +200,10 @@ UtilitiesImpl
 	private static CopyOnWriteList<LocationProviderListener>	lp_listeners 		= new CopyOnWriteList<LocationProviderListener>();
 	private static CopyOnWriteList<LocationProvider>			location_providers 	= new CopyOnWriteList<LocationProvider>();
 	
-	
-	
-	
 	public static PluginLimitedRateGroup
 	wrapLimiter(
-		final RateLimiter	limiter )
+		RateLimiter						limiter,
+		boolean							disable_disable )
 	{
 		synchronized( limiter_map ){
 		
@@ -213,9 +211,15 @@ UtilitiesImpl
 			
 			if ( l == null ){
 				
-				l = new PluginLimitedRateGroup( limiter );
+				l = new PluginLimitedRateGroup( limiter, disable_disable );
 				
 				limiter_map.put( limiter, l );
+			}else{
+				
+				if ( l.isDisableDisable() != disable_disable ){
+					
+					Debug.out( "Inconsistent setting for disable_disable" );
+				}
 			}
 			
 			return( l );
@@ -1885,6 +1889,15 @@ UtilitiesImpl
 			throws S;
 	}
 	
+	public interface
+	PluginLimitedRateGroupListener
+	{
+		public void
+		disabledChanged(
+			PluginLimitedRateGroup		group,
+			boolean						is_disabled );
+	}
+	
 	public static class
 	PluginLimitedRateGroup
 		implements LimitedRateGroup
@@ -1893,16 +1906,87 @@ UtilitiesImpl
 		
 		private ConnectionManagerImpl.PluginRateLimiter plimiter;
 		
+		private CopyOnWriteList<PluginLimitedRateGroupListener>	listeners;
+	
+		private final boolean	disable_disable;
+		
+		private boolean	current_disabled = false;
+		
+		
 		private
 		PluginLimitedRateGroup(
-			RateLimiter		_limiter )
+			RateLimiter		_limiter,
+			boolean			_disable_disable )
 		{
 			limiter	= _limiter;
+			
+			disable_disable	= _disable_disable;
 			
 			if ( limiter instanceof ConnectionManagerImpl.PluginRateLimiter ){
 				
 				plimiter = (ConnectionManagerImpl.PluginRateLimiter)limiter;
 			}
+		}
+		
+		public boolean
+		isDisableDisable()
+		{
+			return( disable_disable );
+		}
+		
+		public void
+		addListener(
+			PluginLimitedRateGroupListener		listener )
+		{
+			synchronized( this ){
+				
+				if ( listeners == null ){
+					
+					listeners = new CopyOnWriteList<UtilitiesImpl.PluginLimitedRateGroupListener>();
+				}
+				
+				listeners.add( listener );
+				
+				if ( current_disabled ){
+					
+					try{
+						listener.disabledChanged( this, true );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+			
+			System.out.println( limiter.getName() + ": listeners=" + listeners.size());
+		}
+		
+		public void
+		removeListener(
+			PluginLimitedRateGroupListener		listener )
+		{
+			synchronized( this ){
+				
+				if ( listeners != null ){
+					
+					if ( listeners.remove( listener )){
+				
+						if ( current_disabled ){
+							
+							try{
+								listener.disabledChanged( this, false );
+								
+							}catch( Throwable e ){
+								
+								Debug.out( e );
+							}
+						}
+					}
+				}
+			}
+			
+			System.out.println( limiter.getName() + ": listeners=" + listeners.size());
 		}
 		
 		public String 
@@ -1914,7 +1998,40 @@ UtilitiesImpl
 		public int 
 		getRateLimitBytesPerSecond()
 		{
-			 return( limiter.getRateLimitBytesPerSecond());
+			int	value = limiter.getRateLimitBytesPerSecond();
+		
+			if ( disable_disable ){
+			
+				boolean is_disabled = value == -1;
+				
+				if ( is_disabled != current_disabled ){
+					
+					synchronized( this ){
+						
+						current_disabled = is_disabled;
+						
+						if ( listeners != null ){
+							
+							for ( PluginLimitedRateGroupListener l: listeners ){
+								
+								try{
+									l.disabledChanged( this, is_disabled );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}
+					}
+				}
+				 
+				return( is_disabled?0:value );
+				
+			}else{
+			 
+				return( value );
+			}
 		}
 		
 		public void

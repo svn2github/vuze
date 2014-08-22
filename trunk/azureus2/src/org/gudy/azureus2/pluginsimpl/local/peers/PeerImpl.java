@@ -55,7 +55,42 @@ PeerImpl
   	
 	private HashMap<Object,PEPeerListener> peer_listeners;
   	
+	private UtilitiesImpl.PluginLimitedRateGroupListener	up_rg_listener = 
+			new UtilitiesImpl.PluginLimitedRateGroupListener()
+			{
+				public void
+				disabledChanged(
+					PluginLimitedRateGroup		group,
+					boolean						is_disabled )
+				{
+					if ( closed ){
+						
+						group.removeListener( this );					
+					}
+						
+					delegate.setUploadDisabled( group, is_disabled );
+				}
+			};
 
+	private UtilitiesImpl.PluginLimitedRateGroupListener	down_rg_listener = 
+			new UtilitiesImpl.PluginLimitedRateGroupListener()
+			{
+				public void
+				disabledChanged(
+					PluginLimitedRateGroup		group,
+					boolean						is_disabled )
+				{
+					if ( closed ){
+						
+						group.removeListener( this );
+					}	
+				
+					delegate.setDownloadDisabled( group, is_disabled );
+				}
+			};
+					
+	private volatile boolean closed;
+	
 		/**
 		 * don't use me, use PeerManagerImpl.getPeerForPEPeer
 		 * @param _delegate
@@ -353,7 +388,26 @@ PeerImpl
 	  RateLimiter		limiter,
 	  boolean			is_upload )
 	{
-		delegate.addRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), is_upload );
+		synchronized( this ){
+
+			if ( closed ){
+				
+				return;
+			}
+			
+			PluginLimitedRateGroup wrapped_limiter = UtilitiesImpl.wrapLimiter( limiter, true );
+	
+			if ( is_upload ){
+				
+				wrapped_limiter.addListener( up_rg_listener );
+				
+			}else{
+				
+				wrapped_limiter.addListener( down_rg_listener );
+			}
+			
+			delegate.addRateLimiter( wrapped_limiter, is_upload );
+		}
 	}
 
 	public void
@@ -361,7 +415,18 @@ PeerImpl
 	  RateLimiter		limiter,
 	  boolean			is_upload )
 	{
-		delegate.removeRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), is_upload );
+		PluginLimitedRateGroup wrapped_limiter = UtilitiesImpl.wrapLimiter( limiter, true );
+
+		if ( is_upload ){
+			
+			wrapped_limiter.removeListener( up_rg_listener );
+			
+		}else{
+			
+			wrapped_limiter.removeListener( down_rg_listener );
+		}
+		
+		delegate.removeRateLimiter(wrapped_limiter, is_upload );
 	}
 	
 	public RateLimiter[]
@@ -420,6 +485,31 @@ PeerImpl
 	protected void
 	closed()
 	{
+		synchronized( this ){
+
+			closed	= true;
+			
+			LimitedRateGroup[] limiters = delegate.getRateLimiters( true );
+					
+			for ( LimitedRateGroup l: limiters ){
+				
+				if ( l instanceof PluginLimitedRateGroup  ){
+	
+					((PluginLimitedRateGroup)l).removeListener( up_rg_listener );
+				}
+			}
+			
+			limiters = delegate.getRateLimiters( false );
+			
+			for ( LimitedRateGroup l: limiters ){
+				
+				if ( l instanceof PluginLimitedRateGroup  ){
+	
+					((PluginLimitedRateGroup)l).removeListener( down_rg_listener );
+				}
+			}
+		}
+		
 		if ( delegate instanceof PeerForeignDelegate ){
 			
 			((PeerForeignDelegate)delegate).stop();

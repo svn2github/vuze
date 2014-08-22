@@ -17,6 +17,7 @@
 
 package com.aelitis.azureus.ui.swt.columns.tag;
 
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -67,7 +68,7 @@ public class ColumnTagDownLimit
 					return;
 				}
 				
-				cell.setText( sortVal==0?Constants.INFINITY_STRING:DisplayFormatters.formatByteCountToKiBEtcPerSec( sortVal ));
+				cell.setText( sortVal==-1?MessageText.getString("MyTorrentsView.menu.setSpeed.disabled"):(sortVal==0?Constants.INFINITY_STRING:DisplayFormatters.formatByteCountToKiBEtcPerSec( sortVal )));
 			}
 		}
 	}

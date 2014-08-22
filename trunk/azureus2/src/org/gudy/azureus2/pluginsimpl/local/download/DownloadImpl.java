@@ -2051,7 +2051,7 @@ DownloadImpl
 		RateLimiter		limiter,
 		boolean			is_upload )
 	{
-		download_manager.addRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), is_upload );
+		download_manager.addRateLimiter( UtilitiesImpl.wrapLimiter( limiter, false ), is_upload );
 	}
 		
 	public void
@@ -2059,7 +2059,7 @@ DownloadImpl
 		RateLimiter		limiter,
 		boolean			is_upload )
 	{
-		download_manager.removeRateLimiter( UtilitiesImpl.wrapLimiter( limiter ), is_upload );
+		download_manager.removeRateLimiter( UtilitiesImpl.wrapLimiter( limiter, false ), is_upload );
 	}
   	
   public int getSeedingRank() {

@@ -250,6 +250,16 @@ PEPeer
 		boolean				upload );
 	
 	public void
+	setUploadDisabled(
+		Object				key,
+		boolean				disabled );
+	
+	public void
+	setDownloadDisabled(
+		Object				key,
+		boolean				disabled );
+
+	public void
 	updateAutoUploadPriority(
 		Object	key,
 		boolean	inc );
