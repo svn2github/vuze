@@ -4194,6 +4194,11 @@ SpeedLimitHandler
 				address_count += range[1] - range[0] + 1;
 			}
 			
+			if ( address_count == 0 ){
+				
+				return( "[]");
+			}
+			
 			return( String.valueOf( address_count ));
 		}
 		
@@ -4206,7 +4211,7 @@ SpeedLimitHandler
 					", CC=" + country_codes +
 					", Networks=" + networks +
 					", Inverse=" + inverse +
-					", Categories/Tags=" + categories_or_tags );
+					", Categories/Tags=" + (categories_or_tags==null?"[]":String.valueOf(categories_or_tags)));
 					
 		}
 		
@@ -4593,6 +4598,12 @@ SpeedLimitHandler
 				}
 				
 				super.removeTag();
+			}
+			
+			public String
+			getDescription()
+			{
+				return( getDetailString());
 			}
 		}
 	}

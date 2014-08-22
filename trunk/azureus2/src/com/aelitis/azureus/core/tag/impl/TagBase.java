@@ -22,7 +22,6 @@
 package com.aelitis.azureus.core.tag.impl;
 
 import java.io.File;
-import java.util.ArrayList;
 import java.util.Set;
 
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -715,6 +714,12 @@ TagBase
 		
 			tag_type.getTagManager().checkRSSFeeds( this, false );
 		}
+	}
+	
+	public String
+	getDescription()
+	{
+		return( null );
 	}
 	
 	public void

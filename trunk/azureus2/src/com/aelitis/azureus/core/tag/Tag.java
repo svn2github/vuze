@@ -123,6 +123,9 @@ Tag
 	public void
 	removeTag();
 	
+	public String
+	getDescription();
+	
 	public void
 	addTagListener(
 		TagListener	listener,

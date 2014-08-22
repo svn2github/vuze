@@ -50,6 +50,13 @@ public class ColumnTagName
 			tagName = "";
 		}
 
+		String desc = tag.getDescription();
+		
+		if ( desc != null ){
+		
+			cell.setToolTip( desc );
+		}
+		
 		if (!cell.setSortValue(tagName) && cell.isValid()) {
 			return;
 		}
