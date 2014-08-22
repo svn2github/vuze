@@ -107,7 +107,7 @@ public class TextViewerWindow {
 
     txtInfo = new Text(shell, SWT.BORDER | SWT.MULTI | SWT.V_SCROLL | SWT.H_SCROLL);
     gridData = new GridData(  GridData.FILL_BOTH );
-    gridData.widthHint = 500;
+    gridData.widthHint = 600;
     gridData.heightHint = 400;
     gridData.horizontalSpan = 2;
     txtInfo.setLayoutData(gridData);

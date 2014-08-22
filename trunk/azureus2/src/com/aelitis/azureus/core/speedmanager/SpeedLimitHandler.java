@@ -340,7 +340,7 @@ SpeedLimitHandler
 		List<String> lines = details.getString( true, false );
 		
 		lines.add( "" );
-		lines.add( "IP Sets" );
+		lines.add( "Peer Sets" );
 		if ( current_ip_sets.size() == 0 ){
 			lines.add( "    None" );
 		}else{
@@ -872,12 +872,12 @@ SpeedLimitHandler
 					
 					result.add( "'" +line + "' is invalid: use enable=(yes|no)" );
 				}
-			}else if ( lc_line.startsWith( "ip_set" )){
+			}else if ( lc_line.startsWith( "ip_set" ) || lc_line.startsWith( "peer_set" ) ){
 
 				try{
 						// uppercase here as category names are case sensitive..
 					
-					String[] args = line.substring(6).split( "," );
+					String[] args = line.substring(lc_line.indexOf('_')+4).split( "," );
 					
 					boolean	inverse 	= false;
 					int		up_lim		= -1;
@@ -2329,15 +2329,15 @@ SpeedLimitHandler
 	{
 		List<String>	result = new ArrayList<String>();
 		
-		result.add( "# Enter rules on separate lines below this section." );
+		result.add( "# Enter rules on separate lines below this section - see http://wiki.vuze.com/w/Speed_Limit_Scheduler for more details" );
 		result.add( "# Rules are of the following types:" );
-		result.add( "#    enable=(yes|no)   - controls whether the entire schedule is enabled or not (default=enabled)" );
+		result.add( "#    enable=(yes|no)   - controls whether the entire schedule is enabled or not (default=yes)" );
 		result.add( "#    <frequency> <profile_name> from <time> to <time> [extension]*" );
 		result.add( "#        frequency: daily|weekdays|weekends|<day_of_week>" );
 		result.add( "#            day_of_week: mon|tue|wed|thu|fri|sat|sun" );
 		result.add( "#        time: hh:mm - 24 hour clock; 00:00=midnight; local time" );
 		result.add( "#        extension: (start_tag|stop_tag):<tag_name>" );
-		result.add( "#    ip_set <ip_set_name> [<CIDR_specs...>|CC list|Network List|<prior_set_name>] [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [cat=<cat names>]" );
+		result.add( "#    peer_set <set_name>=[<CIDR_specs...>|CC list|Network List|<prior_set_name>] [,inverse=[yes|no]] [,up=<limit>] [,down=<limit>] [,cat=<cat names>] [,tag=<tag names>]" );
 		result.add( "#    net_limit (daily|weekly|monthly)[:<profile>] [total=<limit>] [up=<limit>] [down=<limit>]");
 		result.add( "#" );
 		result.add( "# For example - assuming there are profiles called 'no_limits' and 'limited_upload' defined:" );
@@ -2351,12 +2351,12 @@ SpeedLimitHandler
 		result.add( "#     net_limit monthly:no_limits                  // no monthly limit when no_limits active" );
 		result.add( "#     net_limit monthly:limited_upload total=100G  // 100G a month limit when limited_upload active" );
 		result.add( "#" );
-		result.add( "#     ip_set external=211.34.128.0/19 211.35.128.0/17" );
-		result.add( "#     ip_set Europe=EU;AD;AL;AT;BA;BE;BG;BY;CH;CS;CZ;DE;DK;EE;ES;FI;FO;FR;FX;GB;GI;GR;HR;HU;IE;IS;IT;LI;LT;LU;LV;MC;MD;MK;MT;NL;NO;PL;PT;RO;SE;SI;SJ;SK;SM;UA;VA" );
-		result.add( "#     ip_set Blorp=Europe;US" );
+		result.add( "#     peer_set external=211.34.128.0/19 211.35.128.0/17" );
+		result.add( "#     peer_set Europe=EU;AD;AL;AT;BA;BE;BG;BY;CH;CS;CZ;DE;DK;EE;ES;FI;FO;FR;FX;GB;GI;GR;HR;HU;IE;IS;IT;LI;LT;LU;LV;MC;MD;MK;MT;NL;NO;PL;PT;RO;SE;SI;SJ;SK;SM;UA;VA" );
+		result.add( "#     peer_set Blorp=Europe;US" );
 		result.add( "#" );
 		result.add( "# When multiple rules apply the one further down the list of rules take precedence" );
-		result.add( "# Currently ip_set limits are not schedulable" );
+		result.add( "# Currently peer_set limits are not schedulable" );
 		result.add( "# Comment lines are prefixed with '#'" );
 		result.add( "# Pre-defined profiles: " + predefined_profile_names );
 
@@ -3893,8 +3893,8 @@ SpeedLimitHandler
 		{			
 			name	= _name;
 			
-			up_limiter 		= plugin_interface.getConnectionManager().createRateLimiter( "ips-" + name, 0 );
-			down_limiter 	= plugin_interface.getConnectionManager().createRateLimiter( "ips-" + name, 0 );
+			up_limiter 		= plugin_interface.getConnectionManager().createRateLimiter( "ps-" + name, 0 );
+			down_limiter 	= plugin_interface.getConnectionManager().createRateLimiter( "ps-" + name, 0 );
 		}
 		
 		private void
