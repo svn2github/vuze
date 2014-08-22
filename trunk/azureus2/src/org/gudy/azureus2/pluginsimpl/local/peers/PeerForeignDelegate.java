@@ -31,8 +31,10 @@ package org.gudy.azureus2.pluginsimpl.local.peers;
 
 import java.net.InetAddress;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerReadRequest;
@@ -87,6 +89,10 @@ PeerForeignDelegate
 
 	protected AEMonitor	this_mon	= new AEMonitor( "PeerForeignDelegate" );
 
+	private Set<Object>	download_disabled_set;
+	
+	private boolean	is_download_disabled;
+	
 	protected
 	PeerForeignDelegate(
 		PeerManagerImpl		_manager,
@@ -194,6 +200,11 @@ PeerForeignDelegate
     
     public boolean isDownloadPossible()
     {
+    	if ( is_download_disabled ){
+    		
+    		return( false );
+    	}
+    	
     	return foreign.isDownloadPossible();
     }
     
@@ -522,6 +533,11 @@ PeerForeignDelegate
 	public boolean 
 	isChokingMe()
 	{
+		if ( is_download_disabled ){
+			
+			return( true );
+		}
+		
 		return( foreign.isChoked());
 	}
 
@@ -541,6 +557,11 @@ PeerForeignDelegate
 	public boolean 
 	isInteresting()
 	{
+		if ( is_download_disabled ){
+			
+			return( false );
+		}
+		
 		return( foreign.isInteresting());
 	}
 
@@ -1081,6 +1102,7 @@ PeerForeignDelegate
 		Object		key,
 		boolean		disabled )
 	{
+		// nothing to do here as we only support download here
 	}
 	
 	public void
@@ -1088,7 +1110,59 @@ PeerForeignDelegate
 		Object		key,
 		boolean		disabled )
 	{
-		System.out.println( "PeerForeignDelegate:setDownloadDisabled not supported" );		
+		synchronized( this ){
+			
+			if ( download_disabled_set == null ){
+				
+				if ( disabled ){
+					
+					download_disabled_set = new HashSet<Object>();
+					
+					download_disabled_set.add( key );
+					
+				}else{
+					
+					Debug.out( "derp" );
+				}
+			}else{
+				
+				if ( disabled ){
+					
+					if ( !download_disabled_set.add( key )){
+						
+						Debug.out( "derp" );
+					}
+					
+				}else{
+					
+					if ( !download_disabled_set.remove( key )){
+						
+						Debug.out( "derp" );
+					}
+					
+					if ( download_disabled_set.size() == 0 ){
+						
+						download_disabled_set = null;
+					}
+				}
+			}
+					
+			is_download_disabled = download_disabled_set != null;
+						
+			//System.out.println( "setDownloadDisabled " + getIp() + " -> " + (download_disabled_set==null?0:download_disabled_set.size()));
+		}		
+	}
+	
+	public boolean
+	isUploadDisabled()
+	{
+		return( true );
+	}
+	
+	public boolean
+	isDownloadDisabled()
+	{
+		return( is_download_disabled );
 	}
 	
 	public void

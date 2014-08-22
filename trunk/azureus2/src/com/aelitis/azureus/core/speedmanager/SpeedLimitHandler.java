@@ -4479,6 +4479,18 @@ SpeedLimitHandler
 					up_limiter.setRateLimitBytesPerSecond( bps );
 					
 					COConfigurationManager.setParameter( "speed.limit.handler.ipset_n." + getTagID() + ".up", bps );
+					
+						// force a resync of rates (there's a rate limit wrapper on PeerImpl that might need a kick)
+					
+					List<PEPeer> peers = getTaggedPeers();
+					
+					for ( PEPeer peer: peers ){
+						
+						for ( LimitedRateGroup l: peer.getRateLimiters( true )){
+							
+							l.getRateLimitBytesPerSecond();
+						}
+					}
 				}
 			}
 			
@@ -4503,6 +4515,18 @@ SpeedLimitHandler
 					down_limiter.setRateLimitBytesPerSecond( bps );
 					
 					COConfigurationManager.setParameter( "speed.limit.handler.ipset_n." + getTagID() + ".down", bps );
+					
+						// force a resync of rates (there's a rate limit wrapper on PeerImpl that might need a kick)
+						
+					List<PEPeer> peers = getTaggedPeers();
+					
+					for ( PEPeer peer: peers ){
+						
+						for ( LimitedRateGroup l: peer.getRateLimiters( false )){
+							
+							l.getRateLimitBytesPerSecond();
+						}
+					}
 				}
 			}
 			

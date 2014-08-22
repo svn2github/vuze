@@ -1896,6 +1896,17 @@ UtilitiesImpl
 		disabledChanged(
 			PluginLimitedRateGroup		group,
 			boolean						is_disabled );
+		
+			/**
+			 * Periodically called to allow sanity checks - shouldn't really be required
+			 * @param group
+			 * @param is_disabled
+			 */
+		
+		public void
+		sync(
+			PluginLimitedRateGroup		group,
+			boolean						is_disabled );
 	}
 	
 	public static class
@@ -1908,10 +1919,19 @@ UtilitiesImpl
 		
 		private CopyOnWriteList<PluginLimitedRateGroupListener>	listeners;
 	
+		/*
+		 * For peer connections throttling up/down speed to zero to try and block upload/download has the
+		 * unwanted effect of blocking protocol message flow and stalls the connection. the 'disable_disable'
+		 * flag causes the rate limiter to inform listeners (peer connections) when flow shoudl be disabled 
+		 * at the protocol (as opposed to byte) level and at the same time leaves the byte flow unlimited
+		 * to ensure the connection doesn't stall
+		 */
+		
 		private final boolean	disable_disable;
 		
 		private boolean	current_disabled = false;
 		
+		private long	last_sync;
 		
 		private
 		PluginLimitedRateGroup(
@@ -1938,61 +1958,95 @@ UtilitiesImpl
 		addListener(
 			PluginLimitedRateGroupListener		listener )
 		{
-			synchronized( this ){
+			if ( disable_disable ){
 				
-				if ( listeners == null ){
+					// in case things have changed but not been triggered yet...
+				
+				getRateLimitBytesPerSecond();
+				
+				synchronized( this ){
 					
-					listeners = new CopyOnWriteList<UtilitiesImpl.PluginLimitedRateGroupListener>();
-				}
-				
-				listeners.add( listener );
-				
-				if ( current_disabled ){
+					if ( listeners == null ){
+						
+						listeners = new CopyOnWriteList<UtilitiesImpl.PluginLimitedRateGroupListener>();
+					}
 					
-					try{
-						listener.disabledChanged( this, true );
+					listeners.add( listener );
+					
+					if ( current_disabled ){
 						
-					}catch( Throwable e ){
-						
-						Debug.out( e );
+						try{
+							listener.disabledChanged( this, true );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
 					}
 				}
 			}
-			
-			System.out.println( limiter.getName() + ": listeners=" + listeners.size());
 		}
 		
 		public void
 		removeListener(
 			PluginLimitedRateGroupListener		listener )
 		{
-			synchronized( this ){
+			if ( disable_disable ){
 				
-				if ( listeners != null ){
+				synchronized( this ){
 					
-					if ( listeners.remove( listener )){
-				
-						if ( current_disabled ){
-							
-							try{
-								listener.disabledChanged( this, false );
+					if ( listeners != null ){
+						
+						if ( listeners.remove( listener )){
+					
+							if ( current_disabled ){
 								
-							}catch( Throwable e ){
-								
-								Debug.out( e );
+								try{
+									listener.disabledChanged( this, false );
+									
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
 							}
 						}
 					}
 				}
 			}
-			
-			System.out.println( limiter.getName() + ": listeners=" + listeners.size());
 		}
 		
 		public String 
 		getName()
 		{
-			return( limiter.getName());
+			String name = limiter.getName();
+			
+			if ( Constants.IS_CVS_VERSION ){
+				
+				if ( disable_disable ){
+					
+					String str = "";
+					
+					if ( current_disabled ){
+						
+						str += "Disabled";
+					}
+					
+					synchronized( this ){
+						
+						if ( listeners != null ){
+							
+							str += (str.length()==0?"":"/") + listeners.size();
+						}
+					}
+					
+					if ( str.length() > 0 ){
+						
+						name += " (" + str + ")";
+					}
+				}
+			}
+			
+			return( name );
 		}
 		  
 		public int 
@@ -2020,6 +2074,30 @@ UtilitiesImpl
 								}catch( Throwable e ){
 									
 									Debug.out( e );
+								}
+							}
+						}
+					}
+				}else{
+					long now = SystemTime.getMonotonousTime();
+					
+					if ( now - last_sync > 60*1000 ){
+						
+						last_sync = now;
+						
+						synchronized( this ){
+														
+							if ( listeners != null ){
+								
+								for ( PluginLimitedRateGroupListener l: listeners ){
+									
+									try{
+										l.sync( this, current_disabled );
+										
+									}catch( Throwable e ){
+										
+										Debug.out( e );
+									}
 								}
 							}
 						}

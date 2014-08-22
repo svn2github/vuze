@@ -361,7 +361,9 @@ implements PEPeerTransport
 
 	private Set<Object>		upload_disabled_set;
 	private Set<Object>		download_disabled_set;
-
+	private boolean			is_upload_disabled;
+	private boolean			is_download_disabled;
+	
 	private boolean is_optimistic_unchoke = false;
 
 	private PeerExchangerItem peer_exchange_item = null;
@@ -1582,23 +1584,26 @@ implements PEPeerTransport
 		if (closing ||peerHavePieces ==null ||peerHavePieces.nbSet ==0)
 			return;
 
-		boolean is_interesting = false;
-		if (piecePicker.hasDownloadablePiece())
-		{   // there is a piece worth being interested in
-			if (!isSeed() && !isRelativeSeed())
-			{   // check individually if don't have all
-				for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++ )
-				{
-					if (peerHavePieces.flags[i] && diskManager.isInteresting(i))
+		boolean is_interesting = !is_download_disabled;
+		
+		if ( is_interesting ){
+			if (piecePicker.hasDownloadablePiece())
+			{   // there is a piece worth being interested in
+				if (!isSeed() && !isRelativeSeed())
+				{   // check individually if don't have all
+					for (int i =peerHavePieces.start; i <=peerHavePieces.end; i++ )
 					{
-						is_interesting = true;
-						break;
+						if (peerHavePieces.flags[i] && diskManager.isInteresting(i))
+						{
+							is_interesting = true;
+							break;
+						}
 					}
-				}
-			} else
-				is_interesting =true;
+				} else
+					is_interesting =true;
+			}
 		}
-
+		
 		if (is_interesting &&!interested_in_other_peer)
 			connection.getOutgoingMessageQueue().addMessage(new BTInterested(other_peer_interested_version), false);
 		else if (!is_interesting &&interested_in_other_peer)
@@ -3200,6 +3205,7 @@ implements PEPeerTransport
 		other_peer_interested_in_me = !(isSeed() || isRelativeSeed());
 		
 		if ( 	other_peer_interested_in_me && 
+				!is_upload_disabled && 
 				fast_unchoke_new_peers &&
 				isChokedByMe() && 
 				getData( "fast_unchoke_done" ) == null ){
@@ -3247,7 +3253,7 @@ implements PEPeerTransport
 
 		if (!peerHavePieces.flags[pieceNumber])
 		{
-			if (!interested_in_other_peer &&diskManager.isInteresting(pieceNumber))
+			if (!interested_in_other_peer &&diskManager.isInteresting(pieceNumber)&&!is_download_disabled)
 			{
                 connection.getOutgoingMessageQueue().addMessage(new BTInterested(other_peer_interested_version), false);
 				interested_in_other_peer =true;
@@ -3303,7 +3309,7 @@ implements PEPeerTransport
         
 	        	new_have	= true;
 	        	
-	            if (	!( send_interested || interested_in_other_peer ) &&
+	            if (	!( send_interested || interested_in_other_peer || is_download_disabled ) &&
 	            		diskManager.isInteresting(pieceNumber)){
 
 	            	send_interested = true;
@@ -3449,49 +3455,52 @@ implements PEPeerTransport
 			return;
 		}
 		
-		boolean	request_ok = false;
+		boolean	request_ok = !is_upload_disabled;
 		
-		if ( choking_other_peer ){
+		if ( request_ok ){
 			
-			try{
-				general_mon.enter();
+			if ( choking_other_peer ){
 				
-				int[][] pieces = (int[][])getUserData( KEY_ALLOWED_FAST_SENT );
-				
-				if ( pieces != null ){
-				
-					for (int i=0;i<pieces.length;i++){
-						
-						if ( pieces[i][0] == number ){
+				try{
+					general_mon.enter();
+					
+					int[][] pieces = (int[][])getUserData( KEY_ALLOWED_FAST_SENT );
+					
+					if ( pieces != null ){
+					
+						for (int i=0;i<pieces.length;i++){
 							
-							if ( pieces[i][1] >= length ){
+							if ( pieces[i][0] == number ){
 								
-								 pieces[i][1] -= length;
-								 
-								 if ( DEBUG_FAST ){
-									 System.out.println( "Permitting fast-allowed request for " + number + "/" + offset + "/" + length + " to " + getIp());
-								 }
-								 
-								 request_ok = true;
-								 
-								 createPieceMessageHandler();
-								 								 
-								 break;
-								 
-							}else{
-								
-								manager.reportBadFastExtensionUse( this );
+								if ( pieces[i][1] >= length ){
+									
+									 pieces[i][1] -= length;
+									 
+									 if ( DEBUG_FAST ){
+										 System.out.println( "Permitting fast-allowed request for " + number + "/" + offset + "/" + length + " to " + getIp());
+									 }
+									 
+									 request_ok = true;
+									 
+									 createPieceMessageHandler();
+									 								 
+									 break;
+									 
+								}else{
+									
+									manager.reportBadFastExtensionUse( this );
+								}
 							}
-						}
-					}			
+						}			
+					}
+				}finally{
+					
+					general_mon.exit();
 				}
-			}finally{
+			}else{
 				
-				general_mon.exit();
+				request_ok = true;
 			}
-		}else{
-			
-			request_ok = true;
 		}
 		
 		if ( request_ok ){
@@ -3880,6 +3889,7 @@ implements PEPeerTransport
 		BitFlags	flags )
 	{		
 		if ( 	fast_extension_enabled &&
+				!is_upload_disabled &&
 				!(isSeed() || isRelativeSeed()) &&
 				PeerClassifier.fullySupportsFE( client_peer_id )){
 			
@@ -4313,7 +4323,7 @@ implements PEPeerTransport
 				}
 			}
 		
-			System.out.println( "setUploadDisabled " + getIp() + " -> " + (upload_disabled_set==null?0:upload_disabled_set.size()));
+			//System.out.println( "setUploadDisabled " + getIp() + " -> " + (upload_disabled_set==null?0:upload_disabled_set.size()));
 		}	
 	}
 	
@@ -4322,6 +4332,8 @@ implements PEPeerTransport
 		Object		key,
 		boolean		disabled )
 	{
+		boolean	check = false;
+		
 		synchronized( this ){
 			
 			if ( download_disabled_set == null ){
@@ -4359,8 +4371,30 @@ implements PEPeerTransport
 				}
 			}
 		
-			System.out.println( "setDownloadDisabled " + getIp() + " -> " + (download_disabled_set==null?0:download_disabled_set.size()));
+			boolean	old = is_download_disabled;
+			
+			is_download_disabled = download_disabled_set != null;
+			
+			check = old != is_download_disabled;
+			
+			//System.out.println( "setDownloadDisabled " + getIp() + " -> " + (download_disabled_set==null?0:download_disabled_set.size()));
 		}
+		
+		if ( check ){
+			checkInterested();
+		}
+	}
+	
+	public boolean
+	isUploadDisabled()
+	{
+		return( is_upload_disabled );
+	}
+	
+	public boolean
+	isDownloadDisabled()
+	{
+		return( is_download_disabled );
 	}
 	
 	public Connection getPluginConnection() {

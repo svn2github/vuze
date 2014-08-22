@@ -55,39 +55,8 @@ PeerImpl
   	
 	private HashMap<Object,PEPeerListener> peer_listeners;
   	
-	private UtilitiesImpl.PluginLimitedRateGroupListener	up_rg_listener = 
-			new UtilitiesImpl.PluginLimitedRateGroupListener()
-			{
-				public void
-				disabledChanged(
-					PluginLimitedRateGroup		group,
-					boolean						is_disabled )
-				{
-					if ( closed ){
-						
-						group.removeListener( this );					
-					}
-						
-					delegate.setUploadDisabled( group, is_disabled );
-				}
-			};
-
-	private UtilitiesImpl.PluginLimitedRateGroupListener	down_rg_listener = 
-			new UtilitiesImpl.PluginLimitedRateGroupListener()
-			{
-				public void
-				disabledChanged(
-					PluginLimitedRateGroup		group,
-					boolean						is_disabled )
-				{
-					if ( closed ){
-						
-						group.removeListener( this );
-					}	
-				
-					delegate.setDownloadDisabled( group, is_disabled );
-				}
-			};
+	private UtilitiesImpl.PluginLimitedRateGroupListener	up_rg_listener;
+	private UtilitiesImpl.PluginLimitedRateGroupListener	down_rg_listener;
 					
 	private volatile boolean closed;
 	
@@ -383,6 +352,65 @@ PeerImpl
 		throw( new RuntimeException( "not supported"));
 	}
 
+	private void
+	createRGListeners()
+	{
+		up_rg_listener = 
+				new UtilitiesImpl.PluginLimitedRateGroupListener()
+				{
+					public void
+					disabledChanged(
+						PluginLimitedRateGroup		group,
+						boolean						is_disabled )
+					{
+						if ( closed ){
+							
+							group.removeListener( this );					
+						}
+							
+						delegate.setUploadDisabled( group, is_disabled );
+					}
+					
+					public void
+					sync(
+						PluginLimitedRateGroup		group,
+						boolean						is_disabled )
+					{
+						if ( closed ){
+							
+							group.removeListener( this );					
+						}
+					}
+				};
+
+		down_rg_listener = 
+				new UtilitiesImpl.PluginLimitedRateGroupListener()
+				{
+					public void
+					disabledChanged(
+						PluginLimitedRateGroup		group,
+						boolean						is_disabled )
+					{
+						if ( closed ){
+							
+							group.removeListener( this );
+						}	
+					
+						delegate.setDownloadDisabled( group, is_disabled );
+					}
+					
+					public void
+					sync(
+						PluginLimitedRateGroup		group,
+						boolean						is_disabled )
+					{
+						if ( closed ){
+							
+							group.removeListener( this );					
+						}
+					}
+				};	
+	}
 	public void
 	addRateLimiter(
 	  RateLimiter		limiter,
@@ -397,6 +425,11 @@ PeerImpl
 			
 			PluginLimitedRateGroup wrapped_limiter = UtilitiesImpl.wrapLimiter( limiter, true );
 	
+			if ( up_rg_listener == null ){
+				
+				createRGListeners();
+			}
+			
 			if ( is_upload ){
 				
 				wrapped_limiter.addListener( up_rg_listener );
@@ -415,18 +448,24 @@ PeerImpl
 	  RateLimiter		limiter,
 	  boolean			is_upload )
 	{
-		PluginLimitedRateGroup wrapped_limiter = UtilitiesImpl.wrapLimiter( limiter, true );
+		synchronized( this ){
 
-		if ( is_upload ){
+			PluginLimitedRateGroup wrapped_limiter = UtilitiesImpl.wrapLimiter( limiter, true );
+	
+			if ( up_rg_listener != null ){
+							
+				if ( is_upload ){
+					
+					wrapped_limiter.removeListener( up_rg_listener );
+					
+				}else{
+					
+					wrapped_limiter.removeListener( down_rg_listener );
+				}
+			}
 			
-			wrapped_limiter.removeListener( up_rg_listener );
-			
-		}else{
-			
-			wrapped_limiter.removeListener( down_rg_listener );
+			delegate.removeRateLimiter(wrapped_limiter, is_upload );
 		}
-		
-		delegate.removeRateLimiter(wrapped_limiter, is_upload );
 	}
 	
 	public RateLimiter[]
@@ -489,23 +528,28 @@ PeerImpl
 
 			closed	= true;
 			
-			LimitedRateGroup[] limiters = delegate.getRateLimiters( true );
+			if ( up_rg_listener != null ){
+				
+					// tidy up
+				
+				LimitedRateGroup[] limiters = delegate.getRateLimiters( true );
+						
+				for ( LimitedRateGroup l: limiters ){
 					
-			for ( LimitedRateGroup l: limiters ){
-				
-				if ( l instanceof PluginLimitedRateGroup  ){
-	
-					((PluginLimitedRateGroup)l).removeListener( up_rg_listener );
+					if ( l instanceof PluginLimitedRateGroup  ){
+		
+						((PluginLimitedRateGroup)l).removeListener( up_rg_listener );
+					}
 				}
-			}
-			
-			limiters = delegate.getRateLimiters( false );
-			
-			for ( LimitedRateGroup l: limiters ){
 				
-				if ( l instanceof PluginLimitedRateGroup  ){
-	
-					((PluginLimitedRateGroup)l).removeListener( down_rg_listener );
+				limiters = delegate.getRateLimiters( false );
+				
+				for ( LimitedRateGroup l: limiters ){
+					
+					if ( l instanceof PluginLimitedRateGroup  ){
+		
+						((PluginLimitedRateGroup)l).removeListener( down_rg_listener );
+					}
 				}
 			}
 		}

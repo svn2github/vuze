@@ -259,6 +259,12 @@ PEPeer
 		Object				key,
 		boolean				disabled );
 
+	public boolean
+	isUploadDisabled();
+	
+	public boolean
+	isDownloadDisabled();
+	
 	public void
 	updateAutoUploadPriority(
 		Object	key,
