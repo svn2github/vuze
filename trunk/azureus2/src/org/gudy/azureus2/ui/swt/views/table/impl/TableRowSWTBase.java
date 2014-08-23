@@ -22,7 +22,7 @@ import java.util.*;
 
 import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.Display;
-
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.ui.tables.*;
@@ -44,6 +44,9 @@ public abstract class TableRowSWTBase
 {
 	public static boolean DEBUG_ROW_PAINT = false;
 
+	private static final boolean expand_enabled = COConfigurationManager.getBooleanParameter("Table.useTree");
+
+	
 	protected Object lock;
 
 	private final TableViewSWT tv;
@@ -476,6 +479,12 @@ public abstract class TableRowSWTBase
 	public boolean isMouseOver() {
 		return tv.getTableRowWithCursor() == this;
 	}
+	
+	public boolean
+	canExpand()
+	{
+		return( expand_enabled );
+	}
 
 	/* (non-Javadoc)
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#isExpanded()
@@ -488,11 +497,14 @@ public abstract class TableRowSWTBase
 	 * @see com.aelitis.azureus.ui.common.table.TableRowCore#setExpanded(boolean)
 	 */
 	public void setExpanded(boolean b) {
-		if ( expanded != b ){
-		
-			expanded = b;
+		if ( canExpand() ){
+
+			if ( expanded != b ){
 			
-			tv.invokeExpansionChangeListeners( this, b );
+				expanded = b;
+				
+				tv.invokeExpansionChangeListeners( this, b );
+			}
 		}
 	}
 

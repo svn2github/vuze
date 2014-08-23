@@ -827,42 +827,44 @@ public class TableRowPainted
 
 	@Override
 	public void setExpanded(boolean b) {
-		int oldHeight = getFullHeight();
-		super.setExpanded(b);
-		synchronized (subRows_sync) {
-			TableRowPainted[] newSubRows = null;
-			if (b && (subRows == null || subRows.length != numSubItems)
-					&& subDataSources != null && subDataSources.length == numSubItems) {
-				if (DEBUG_SUBS) {
-					debug("building subrows " + numSubItems);
+		if ( canExpand() ){
+			int oldHeight = getFullHeight();
+			super.setExpanded(b);
+			synchronized (subRows_sync) {
+				TableRowPainted[] newSubRows = null;
+				if (b && (subRows == null || subRows.length != numSubItems)
+						&& subDataSources != null && subDataSources.length == numSubItems) {
+					if (DEBUG_SUBS) {
+						debug("building subrows " + numSubItems);
+					}
+	
+					deleteExistingSubRows();
+					newSubRows = new TableRowPainted[numSubItems];
+					TableViewPainted tv = getViewPainted();
+					int h = 0;
+					for (int i = 0; i < newSubRows.length; i++) {
+						newSubRows[i] = new TableRowPainted(this, tv, subDataSources[i],
+								false);
+						newSubRows[i].setTableItem(i, false);
+						h += newSubRows[i].getHeight();
+					}
+	
+					subRowsHeight = h;
+	
+					subRows = newSubRows;
 				}
-
-				deleteExistingSubRows();
-				newSubRows = new TableRowPainted[numSubItems];
-				TableViewPainted tv = getViewPainted();
-				int h = 0;
-				for (int i = 0; i < newSubRows.length; i++) {
-					newSubRows[i] = new TableRowPainted(this, tv, subDataSources[i],
-							false);
-					newSubRows[i].setTableItem(i, false);
-					h += newSubRows[i].getHeight();
+	
+				getViewPainted().rowHeightChanged(this, oldHeight, getFullHeight());
+	
+				if (newSubRows != null) {
+					getViewPainted().triggerListenerRowAdded(newSubRows);
 				}
-
-				subRowsHeight = h;
-
-				subRows = newSubRows;
+	
 			}
-
-			getViewPainted().rowHeightChanged(this, oldHeight, getFullHeight());
-
-			if (newSubRows != null) {
-				getViewPainted().triggerListenerRowAdded(newSubRows);
+			if (isVisible()) {
+				getViewPainted().visibleRowsChanged();
+				getViewPainted().redrawTable();
 			}
-
-		}
-		if (isVisible()) {
-			getViewPainted().visibleRowsChanged();
-			getViewPainted().redrawTable();
 		}
 	}
 
