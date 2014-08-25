@@ -19,6 +19,7 @@
  */
 package org.gudy.azureus2.ui.swt.views;
 
+import java.util.HashMap;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -61,6 +62,7 @@ import org.gudy.azureus2.ui.swt.views.tableitems.peers.*;
 
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.networkmanager.NetworkManager;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.util.IdentityHashSet;
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -455,6 +457,10 @@ public class PeersView
 
 		// advanced > Download Speed Menu //
 
+		Map<String,Object> menu_properties = new HashMap<String,Object>();
+		menu_properties.put( ViewUtils.SM_PROP_PERMIT_UPLOAD_DISABLE, true );	
+		menu_properties.put( ViewUtils.SM_PROP_PERMIT_DOWNLOAD_DISABLE, true );
+	
 		ViewUtils.addSpeedMenu(
 			shell,
 			menuAdvanced, true, true,
@@ -471,7 +477,7 @@ public class PeersView
 			upSpeedSetMax,
 			maxUp,
 			peers.length,
-			null,
+			menu_properties,
 			new ViewUtils.SpeedAdapter()
 			{
 				public void 

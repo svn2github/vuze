@@ -4392,9 +4392,39 @@ implements PEPeerTransport
 	}
 	
 	public boolean
+	isUploadDisabled(
+		Object		key )
+	{
+		synchronized( this ){
+			
+			if ( upload_disabled_set == null ){
+		
+				return( false );
+			}
+			
+			return( upload_disabled_set.contains( key ));
+		}
+	}
+	
+	public boolean
 	isDownloadDisabled()
 	{
 		return( is_download_disabled );
+	}
+	
+	public boolean
+	isDownloadDisabled(
+		Object		key )
+	{
+		synchronized( this ){
+			
+			if ( download_disabled_set == null ){
+		
+				return( false );
+			}
+			
+			return( download_disabled_set.contains( key ));
+		}
 	}
 	
 	public Connection getPluginConnection() {
@@ -5179,11 +5209,85 @@ implements PEPeerTransport
 	}
 
 
-	public void setUploadRateLimitBytesPerSecond( int bytes ){ connection.setUploadLimit( bytes ); }
-	public void setDownloadRateLimitBytesPerSecond( int bytes ){ connection.setDownloadLimit( bytes ); }
-	public int getUploadRateLimitBytesPerSecond(){ return connection.getUploadLimit(); }
-	public int getDownloadRateLimitBytesPerSecond(){ return connection.getDownloadLimit(); }
+	public void 
+	setUploadRateLimitBytesPerSecond( 
+		int 	bytes )
+	{ 
+		if ( bytes == -1 ){
+			
+			if ( !isUploadDisabled( PEPeerTransport.class )){
+				
+				setUploadDisabled( PEPeerTransport.class, true );
+			
+				connection.setUploadLimit( 0 );
+			}
+		}else{
+		
+			if ( is_upload_disabled ){
+				
+				if ( isUploadDisabled( PEPeerTransport.class )){
+				
+					setUploadDisabled( PEPeerTransport.class, false );
+				}
+			}
+			
+			connection.setUploadLimit( bytes );
+		}
+	}
 	
+	public int 
+	getUploadRateLimitBytesPerSecond()
+	{ 
+		if ( is_upload_disabled ){
+			
+			if ( isUploadDisabled( PEPeerTransport.class )){
+				
+				return( -1 );
+			}
+		}
+		
+		return connection.getUploadLimit(); 
+	}
+	
+	public void 
+	setDownloadRateLimitBytesPerSecond( 
+		int 	bytes )
+	{ 
+		if ( bytes == -1 ){
+			
+			if ( !isDownloadDisabled( PEPeerTransport.class )){
+				
+				setDownloadDisabled( PEPeerTransport.class, true );
+			
+				connection.setDownloadLimit( 0 );
+			}
+		}else{
+		
+			if ( is_download_disabled ){
+				
+				if ( isDownloadDisabled( PEPeerTransport.class )){
+				
+					setDownloadDisabled( PEPeerTransport.class, false );
+				}
+			}
+			
+			connection.setDownloadLimit( bytes );
+		}
+	}
+	
+	public int 
+	getDownloadRateLimitBytesPerSecond()
+	{ 
+		if ( is_download_disabled ){
+			
+			if ( isDownloadDisabled( PEPeerTransport.class )){
+				
+				return( -1 );
+			}
+		}
+		
+		return connection.getDownloadLimit(); 
+	}
 	
 	public String getClientNameFromPeerID() {return this.client_peer_id;}
 	public String getClientNameFromExtensionHandshake() {
