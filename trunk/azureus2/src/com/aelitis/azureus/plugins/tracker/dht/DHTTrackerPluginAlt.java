@@ -68,9 +68,13 @@ DHTTrackerPluginAlt
 			
 	private static final int NID_CLOSENESS_LIMIT	= 10;
 	
+	
+	private final int		port;
+	
 	private final byte[]	NID = new byte[20];
 	
 	private DatagramSocket	current_server;
+	private Throwable		last_server_error;
 	
 	private ByteArrayHashMap<Object[]>	tid_map = new ByteArrayHashMap<Object[]>();
 
@@ -87,8 +91,11 @@ DHTTrackerPluginAlt
 	private volatile long	bytes_in;
 	
 	protected
-	DHTTrackerPluginAlt()
+	DHTTrackerPluginAlt(
+		int		_port )
 	{
+		port	= _port;
+		
 			// there is no node id restriction for requests
 		
 		RandomUtils.nextBytes( NID );
@@ -123,9 +130,11 @@ DHTTrackerPluginAlt
 					bind_ip = InetAddress.getByName( "127.0.0.1" );
 				}
 				
-				server.bind( new InetSocketAddress(bind_ip, 0));
+				server.bind( new InetSocketAddress(bind_ip, port));
 							
 				current_server = server;
+				
+				last_server_error	= null;
 				
 				new AEThread2( "DHTPluginAlt:server" )
 				{
@@ -190,6 +199,8 @@ DHTTrackerPluginAlt
 				return( server );
 				
 			}catch( Throwable e ){
+				
+				last_server_error = e;
 				
 				return( null );
 			}
@@ -439,7 +450,8 @@ DHTTrackerPluginAlt
 	{
 		return( "lookups=" + lookup_count + ", hits=" + hit_count +
 				", out=" + packets_out + "/" + DisplayFormatters.formatByteCountToKiBEtc( bytes_out ) + 
-				", in=" + packets_in + "/" + DisplayFormatters.formatByteCountToKiBEtc( bytes_in ));
+				", in=" + packets_in + "/" + DisplayFormatters.formatByteCountToKiBEtc( bytes_in ) + 
+				(last_server_error==null?"":(", error=" + Debug.getNestedExceptionMessage( last_server_error ))));
 	}
 	
 	private class

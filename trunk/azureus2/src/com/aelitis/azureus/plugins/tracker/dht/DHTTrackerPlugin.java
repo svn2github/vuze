@@ -60,6 +60,7 @@ import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.ui.UIManager;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
+import org.gudy.azureus2.plugins.ui.config.IntParameter;
 import org.gudy.azureus2.plugins.ui.config.Parameter;
 import org.gudy.azureus2.plugins.ui.config.ParameterListener;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
@@ -186,7 +187,7 @@ DHTTrackerPlugin
 	
 	private AESemaphore			initialised_sem = new AESemaphore( "DHTTrackerPlugin:init" );
 	
-	private DHTTrackerPluginAlt	alt_lookup_handler = new DHTTrackerPluginAlt();
+	private DHTTrackerPluginAlt	alt_lookup_handler;
 	
 	private boolean				disable_put;
 	
@@ -281,6 +282,18 @@ DHTTrackerPlugin
 			System.out.println( "**** DHT Tracker default set for testing purposes ****" );
 		}
 		
+		BooleanParameter	enable_alt 	= config.addBooleanParameter2( "dhttracker.enable_alt", "dhttracker.enable_alt", true );
+		
+		IntParameter 		alt_port 	= config.addIntParameter2( "dhttracker.alt_port", "dhttracker.alt_port", 0, 0, 65535 );
+
+		enable_alt.addEnabledOnSelection( alt_port );
+		
+		config.createGroup( "dhttracker.alt_group", new Parameter[]{ enable_alt,alt_port });
+		
+		if ( enable_alt.getValue()){
+			
+			alt_lookup_handler = new DHTTrackerPluginAlt( alt_port.getValue());
+		}
 		
 		model.getActivity().setVisible( false );
 		model.getProgress().setVisible( false );
@@ -480,15 +493,18 @@ DHTTrackerPlugin
 						processNonRegistrations();
 					}
 					
-					if ( ticks % 4 == 0 ){
+					if ( alt_lookup_handler != null ){
 						
-						String alt_status = alt_lookup_handler.getString();
-						
-						if ( !alt_status.equals( prev_alt_status )){
-			
-							log.log( "Alternative stats: " + alt_status );
+						if ( ticks % 4 == 0 ){
 							
-							prev_alt_status = alt_status;
+							String alt_status = alt_lookup_handler.getString();
+							
+							if ( !alt_status.equals( prev_alt_status )){
+				
+								log.log( "Alternative stats: " + alt_status );
+								
+								prev_alt_status = alt_status;
+							}
 						}
 					}
 				}
@@ -1740,7 +1756,9 @@ DHTTrackerPlugin
 		
 		final long[]	max_retry = { 0 };
 		
-		final boolean do_alt = !( download.getFlag( Download.FLAG_LOW_NOISE ) || download.getFlag( Download.FLAG_LIGHT_WEIGHT ));
+		final boolean do_alt = 
+			alt_lookup_handler != null && 
+			(!( download.getFlag( Download.FLAG_LOW_NOISE ) || download.getFlag( Download.FLAG_LIGHT_WEIGHT )));
 		
 		int	num_done = 0;
 		
@@ -3963,81 +3981,87 @@ DHTTrackerPlugin
 
 			};
 			
+		if ( alt_lookup_handler != null ){
 			
-		TrackerPeerSource alt_dht = 
-				new TrackerPeerSourceAdapter()
-				{
-					private volatile int		status 	= ST_UPDATING;
-					private volatile int		peers 	= 0;
-					
+			TrackerPeerSource alt_dht = 
+					new TrackerPeerSourceAdapter()
 					{
-						alt_lookup_handler.get( 
-								torrent.getHash(),
-								false,
-								new DHTTrackerPluginAlt.LookupListener()
-								{
-									public void
-									foundPeer(
-										InetSocketAddress	address )
-									{
-										peers++;
-									}
-									
-									public boolean
-									isComplete()
-									{
-										return( false );
-									}
-									
-									public void
-									completed()
-									{
-										status = ST_ONLINE;
-									}
-								});
-					}
-				
-					
-					public int
-					getType()
-					{
-						return( TP_DHT );
-					}
-					
-					public String
-					getName()
-					{
-						return( "Mainline DHT" );
-					}
-					
-					public int
-					getStatus()
-					{
-						return( status );
-					}
-					
-					public int
-					getPeers()
-					{
-						int	result = peers;
+						private volatile int		status 	= ST_UPDATING;
+						private volatile int		peers 	= 0;
 						
-						if ( result == 0 && status != ST_ONLINE ){
-							
-							return( -1 );
+						{
+							alt_lookup_handler.get( 
+									torrent.getHash(),
+									false,
+									new DHTTrackerPluginAlt.LookupListener()
+									{
+										public void
+										foundPeer(
+											InetSocketAddress	address )
+										{
+											peers++;
+										}
+										
+										public boolean
+										isComplete()
+										{
+											return( false );
+										}
+										
+										public void
+										completed()
+										{
+											status = ST_ONLINE;
+										}
+									});
+						}
+					
+						
+						public int
+						getType()
+						{
+							return( TP_DHT );
 						}
 						
-						return( result );
-					}
-					
-					public boolean
-					isUpdating()
-					{
-						return( status == ST_UPDATING );
-					}
-
-				};
+						public String
+						getName()
+						{
+							return( "Mainline DHT" );
+						}
+						
+						public int
+						getStatus()
+						{
+							return( status );
+						}
+						
+						public int
+						getPeers()
+						{
+							int	result = peers;
+							
+							if ( result == 0 && status != ST_ONLINE ){
+								
+								return( -1 );
+							}
+							
+							return( result );
+						}
+						
+						public boolean
+						isUpdating()
+						{
+							return( status == ST_UPDATING );
+						}
 	
-		return( new TrackerPeerSource[]{ vuze_dht, alt_dht } );
+					};
+		
+			return( new TrackerPeerSource[]{ vuze_dht, alt_dht } );
+			
+		}else{
+			
+			return( new TrackerPeerSource[]{ vuze_dht } );
+		}
 	}
 	
 	
