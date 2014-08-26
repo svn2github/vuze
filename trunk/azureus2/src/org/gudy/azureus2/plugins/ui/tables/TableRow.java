@@ -52,6 +52,9 @@ public interface TableRow {
    */
   String getTableID();
 
+  public int
+  getIndex();
+  
   /**
    * Change the row's foreground color.
   *

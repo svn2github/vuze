@@ -685,6 +685,10 @@ public class FakeTableCell
 				public void removeMouseListener(TableRowMouseListener listener) {
 				}
 
+				public int getIndex() {
+					return 1;
+				}
+				
 				public boolean isValid() {
 					return FakeTableCell.this.isValid();
 				}
