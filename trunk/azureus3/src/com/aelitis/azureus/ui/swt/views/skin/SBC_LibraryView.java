@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.views.skin;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.Map;
@@ -33,6 +34,7 @@ import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.download.DownloadManagerStats;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.stats.transfer.OverallStats;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
@@ -107,12 +109,16 @@ public class SBC_LibraryView
 	};
 
 	private static boolean	header_show_uptime;
+	private static boolean	header_show_rates;
 	
 	private static volatile OverallStats 	totalStats;
-	private static volatile int				selection_count;
-	private static volatile long			selection_size;
-	private static volatile long			selection_done;
 	
+	private static volatile int					selection_count;
+	private static volatile long				selection_size;
+	private static volatile long				selection_done;
+	private static volatile DownloadManager[]	selection_dms = {};
+	
+
 	static{
 		SimpleTimer.addPeriodicEvent(
 			"SBLV:updater",
@@ -130,19 +136,52 @@ public class SBC_LibraryView
 				}
 			});
 		
-		header_show_uptime = COConfigurationManager.getBooleanParameter( "MyTorrentsView.showuptime" );
-		
-		COConfigurationManager.addParameterListener( 
-			"MyTorrentsView.showuptime",
+		COConfigurationManager.addAndFireParameterListeners(
+			new String[]{
+				"MyTorrentsView.showuptime", "MyTorrentsView.showrates"
+			},
 			new ParameterListener()
 			{
+				private TimerEventPeriodic rate_event;
+				
 				public void 
 				parameterChanged(
 					String name ) 
 				{
-					header_show_uptime = COConfigurationManager.getBooleanParameter( "MyTorrentsView.showuptime" );
+					header_show_uptime 	= COConfigurationManager.getBooleanParameter( "MyTorrentsView.showuptime" );
+					header_show_rates	= COConfigurationManager.getBooleanParameter( "MyTorrentsView.showrates" );
 
 					SB_Transfers.triggerCountRefreshListeners();
+					
+					synchronized( this ){
+						
+						if ( header_show_rates ){
+							
+							if ( rate_event == null ){
+							
+								rate_event = SimpleTimer.addPeriodicEvent(
+									"SBLV:rate-updater",
+									1*1000,
+									new TimerEventPerformer()
+									{
+										public void 
+										perform(
+											TimerEvent event ) 
+										{
+											SB_Transfers.triggerCountRefreshListeners();
+										}
+									});
+							}
+						}else{
+							
+							if ( rate_event != null ){
+								
+								rate_event.cancel();
+								
+								rate_event = null;
+							}
+						}
+					}
 				}
 			});
 		
@@ -170,11 +209,15 @@ public class SBC_LibraryView
 					long	total_size 	= 0;
 					long	total_done	= 0;
 					
+					ArrayList<DownloadManager>	dms = new ArrayList<DownloadManager>( currentContent.length );
+					
 					for ( ISelectedContent sc: currentContent ){
 						
 						DownloadManager dm = sc.getDownloadManager();
 						
 						if ( dm != null ){
+							
+							dms.add( dm );
 							
 							int	file_index = sc.getFileIndex();
 							
@@ -205,6 +248,8 @@ public class SBC_LibraryView
 					
 					selection_size	= total_size;
 					selection_done	= total_done;
+					
+					selection_dms	= dms.toArray( new DownloadManager[ dms.size()]);
 					
 					SB_Transfers.triggerCountRefreshListeners();
 				}
@@ -532,15 +577,64 @@ public class SBC_LibraryView
 										MessageText.getString(
 										"label.num_selected", new String[]{ String.valueOf( selection_count )});
 								
+								String	size_str = null;
+								String	rate_str = null;
+								
 								if ( selection_size > 0 ){
 									
 									if ( selection_size == selection_done ){
 										
-										s += " (" + DisplayFormatters.formatByteCountToKiBEtc( selection_size ) + ")";
+										size_str = DisplayFormatters.formatByteCountToKiBEtc( selection_size );
+										
 									}else{
-										s += " (" + DisplayFormatters.formatByteCountToKiBEtc( selection_done ) + "/" + DisplayFormatters.formatByteCountToKiBEtc( selection_size ) + ")";
+										
+										size_str = DisplayFormatters.formatByteCountToKiBEtc( selection_done ) + "/" + DisplayFormatters.formatByteCountToKiBEtc( selection_size );
 
 									}
+								}
+								
+								DownloadManager[] dms = selection_dms;
+								
+								if ( header_show_rates && dms.length > 1 ){
+										
+									long	total_data_up 		= 0;
+									long	total_prot_up 		= 0;
+									long	total_data_down		= 0;
+									long	total_prot_down		= 0;
+									
+									for ( DownloadManager dm: dms ){
+										
+										DownloadManagerStats dm_stats = dm.getStats();
+										
+										total_prot_up += dm_stats.getProtocolSendRate();
+										total_data_up += dm_stats.getDataSendRate();
+										total_prot_down += dm_stats.getProtocolReceiveRate();
+										total_data_down += dm_stats.getDataReceiveRate();
+									}
+								
+									rate_str = 
+											MessageText.getString( "ConfigView.download.abbreviated") + DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(total_data_down, total_prot_down) + " " +
+											MessageText.getString( "ConfigView.upload.abbreviated") + DisplayFormatters.formatDataProtByteCountToKiBEtcPerSec(total_data_up, total_prot_up);
+								}
+								
+								if ( size_str != null || rate_str != null ){
+									
+									String temp;
+									
+									if ( size_str == null ){
+									
+										temp = rate_str;
+										
+									}else if ( rate_str == null ){
+										
+										temp = size_str;
+										
+									}else{
+										
+										temp = size_str + "; " + rate_str;
+									}
+									
+									s += " (" + temp + ")";
 								}
 							}
 

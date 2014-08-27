@@ -415,32 +415,37 @@ public class MyTorrentsView
 	  tableHeaderMenu = new Menu(control.getShell(), SWT.POP_UP );
 		
 	  // show uptime
-
+	  
 	  final MenuItem menuItemShowUptime = new MenuItem(tableHeaderMenu, SWT.CHECK);
 	  Messages.setLanguageText( menuItemShowUptime, "ConfigView.label.showuptime" );
 
-	  menuItemShowUptime.addSelectionListener(new SelectionListener() {
+	  menuItemShowUptime.addSelectionListener(new SelectionAdapter() {
 		  public void widgetSelected(SelectionEvent e) {
 			  COConfigurationManager.setParameter(
 					  "MyTorrentsView.showuptime", menuItemShowUptime.getSelection());
 		  }
-
-		  public void widgetDefaultSelected(SelectionEvent e) {
-		  }
 	  });
 
+	  // selected download rates
+	  
+	  final MenuItem menuItemShowRates = new MenuItem(tableHeaderMenu, SWT.CHECK);
+	  Messages.setLanguageText( menuItemShowRates, "label.show.selected.rates" );
+
+	  menuItemShowRates.addSelectionListener(new SelectionAdapter() {
+		  public void widgetSelected(SelectionEvent e) {
+			  COConfigurationManager.setParameter(
+					  "MyTorrentsView.showrates", menuItemShowRates.getSelection());
+		  }
+	  });
 	  // show category buttons
 
 	  final MenuItem menuItemShowCatBut = new MenuItem(tableHeaderMenu, SWT.CHECK);
 	  Messages.setLanguageText( menuItemShowCatBut, "ConfigView.label.show.cat.but" );
 
-	  menuItemShowCatBut.addSelectionListener(new SelectionListener() {
+	  menuItemShowCatBut.addSelectionListener(new SelectionAdapter() {
 		  public void widgetSelected(SelectionEvent e) {
 			  COConfigurationManager.setParameter(
 					  "Library.ShowCatButtons", menuItemShowCatBut.getSelection());
-		  }
-
-		  public void widgetDefaultSelected(SelectionEvent e) {
 		  }
 	  });
 
@@ -450,13 +455,10 @@ public class MyTorrentsView
 	  final MenuItem menuItemShowTagBut = new MenuItem(tableHeaderMenu, SWT.CHECK);
 	  Messages.setLanguageText( menuItemShowTagBut, "ConfigView.label.show.tag.but" );
 
-	  menuItemShowTagBut.addSelectionListener(new SelectionListener() {
+	  menuItemShowTagBut.addSelectionListener(new SelectionAdapter() {
 		  public void widgetSelected(SelectionEvent e) {
 			  COConfigurationManager.setParameter(
 					  "Library.ShowTagButtons", menuItemShowTagBut.getSelection());
-		  }
-
-		  public void widgetDefaultSelected(SelectionEvent e) {
 		  }
 	  });
 
@@ -466,6 +468,7 @@ public class MyTorrentsView
 	  tableHeaderMenu.addMenuListener(new MenuListener() {
 		  public void menuShown(MenuEvent e) {
 			  menuItemShowUptime.setSelection(COConfigurationManager.getBooleanParameter( "MyTorrentsView.showuptime" ));
+			  menuItemShowRates.setSelection(COConfigurationManager.getBooleanParameter( "MyTorrentsView.showrates" ));
 			  menuItemShowCatBut.setSelection(COConfigurationManager.getBooleanParameter( "Library.ShowCatButtons" ));
 			  menuItemShowTagBut.setSelection(COConfigurationManager.getBooleanParameter( "Library.ShowTagButtons" ));
 
