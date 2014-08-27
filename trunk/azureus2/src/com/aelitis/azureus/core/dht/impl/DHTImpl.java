@@ -179,6 +179,116 @@ DHTImpl
 		AERunStateHandler.addListener( this, true );
 	}
 	
+	public 
+	DHTImpl(
+		DHTTransport			_transport,
+		DHTRouter				_router,
+		DHTDB					_database,
+		Properties				_properties,
+		DHTStorageAdapter		_storage_adapter,
+		DHTLogger				_logger )
+	{		
+		properties		= _properties;
+		storage_adapter	= _storage_adapter;
+		logger			= _logger;
+		
+		DHTNetworkPositionManager.initialise( storage_adapter );
+		
+		DHTLog.setLogger( logger );
+		
+		int		K 		= getProp( PR_CONTACTS_PER_NODE, 			DHTControl.K_DEFAULT );
+		int		B 		= getProp( PR_NODE_SPLIT_FACTOR, 			DHTControl.B_DEFAULT );
+		int		max_r	= getProp( PR_MAX_REPLACEMENTS_PER_NODE, 	DHTControl.MAX_REP_PER_NODE_DEFAULT );
+		int		s_conc 	= getProp( PR_SEARCH_CONCURRENCY, 			DHTControl.SEARCH_CONCURRENCY_DEFAULT );
+		int		l_conc 	= getProp( PR_LOOKUP_CONCURRENCY, 			DHTControl.LOOKUP_CONCURRENCY_DEFAULT );
+		int		o_rep 	= getProp( PR_ORIGINAL_REPUBLISH_INTERVAL, 	DHTControl.ORIGINAL_REPUBLISH_INTERVAL_DEFAULT );
+		int		c_rep 	= getProp( PR_CACHE_REPUBLISH_INTERVAL, 	DHTControl.CACHE_REPUBLISH_INTERVAL_DEFAULT );
+		int		c_n 	= getProp( PR_CACHE_AT_CLOSEST_N, 			DHTControl.CACHE_AT_CLOSEST_N_DEFAULT );
+		boolean	e_c 	= getProp( PR_ENCODE_KEYS, 					DHTControl.ENCODE_KEYS_DEFAULT ) == 1;
+		boolean	r_p 	= getProp( PR_ENABLE_RANDOM_LOOKUP, 		DHTControl.ENABLE_RANDOM_DEFAULT ) == 1;
+		
+		control = DHTControlFactory.create( 
+				new DHTControlAdapter()
+				{
+					public DHTStorageAdapter
+					getStorageAdapter()
+					{
+						return( storage_adapter );
+					}
+					
+					public boolean
+					isDiversified(
+						byte[]		key )
+					{
+						if ( storage_adapter == null ){
+							
+							return( false );
+						}
+						
+						return( storage_adapter.isDiversified( key ));
+					}
+					
+					public byte[][]
+					diversify(
+						String				description,
+						DHTTransportContact	cause,
+						boolean				put_operation,
+						boolean				existing,
+						byte[]				key,
+						byte				type,
+						boolean				exhaustive,
+						int					max_depth )
+					{
+						boolean	valid;
+						
+						if ( existing ){
+							
+							valid =	 	type == DHT.DT_FREQUENCY ||
+										type == DHT.DT_SIZE ||
+										type == DHT.DT_NONE;
+						}else{
+							
+							valid = 	type == DHT.DT_FREQUENCY ||
+										type == DHT.DT_SIZE;
+						}
+						
+						if ( storage_adapter != null && valid ){
+							
+							if ( existing ){
+								
+								return( storage_adapter.getExistingDiversification( key, put_operation, exhaustive, max_depth ));
+								
+							}else{
+								
+								return( storage_adapter.createNewDiversification( description, cause, key, put_operation, type, exhaustive, max_depth ));
+							}
+						}else{
+							
+							if ( !valid ){
+								
+								Debug.out( "Invalid diversification received: type = " + type );
+							}
+							
+							if ( existing ){
+								
+								return( new byte[][]{ key });
+								
+							}else{
+								
+								return( new byte[0][] );
+							}
+						}
+					}
+				},
+				_transport, 
+				_router,
+				_database,
+				K, B, max_r,
+				s_conc, l_conc, 
+				o_rep, c_rep, c_n, e_c, r_p,
+				logger );
+	}
+	
 	public void 
 	runStateChanged(
 		long run_state ) 

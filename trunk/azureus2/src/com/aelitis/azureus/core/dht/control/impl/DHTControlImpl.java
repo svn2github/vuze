@@ -300,7 +300,7 @@ DHTControlImpl
 							
 							if ( contact.isAlive()){
 								
-								DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getTransportContact();
+								DHTTransportContact	t_contact = ((DHTControlContact)contact.getAttachment()).getTransportContact();
 
 								sorted_contacts.add( t_contact );
 							}
@@ -318,7 +318,7 @@ DHTControlImpl
 							
 							if ( !contact.isAlive()){
 								
-								DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getTransportContact();
+								DHTTransportContact	t_contact = ((DHTControlContact)contact.getAttachment()).getTransportContact();
 
 								sorted_contacts.add( t_contact );
 							}
@@ -356,7 +356,7 @@ DHTControlImpl
 
 						if ( !router.isID( rc.getID())){
 							
-							((DHTControlContactImpl)rc.getAttachment()).getTransportContact().createNetworkPositions( false );
+							((DHTControlContact)rc.getAttachment()).getTransportContact().createNetworkPositions( false );
 						}
 					}
 				}
@@ -373,6 +373,88 @@ DHTControlImpl
 				{	
 				}
 			});
+	}
+	
+	public
+	DHTControlImpl(
+		DHTControlAdapter	_adapter,
+		DHTTransport		_transport,
+		DHTRouter			_router,
+		DHTDB				_database,
+		int					_K,
+		int					_B,
+		int					_max_rep_per_node,
+		int					_search_concurrency,
+		int					_lookup_concurrency,
+		int					_original_republish_interval,
+		int					_cache_republish_interval,
+		int					_cache_at_closest_n,
+		boolean				_encode_keys,
+		boolean				_enable_random_poking,
+		DHTLogger 			_logger )
+	{
+		adapter		= _adapter;
+		transport	= _transport;
+		logger		= _logger;
+		
+		K								= _K;
+		B								= _B;
+		max_rep_per_node				= _max_rep_per_node;
+		search_concurrency				= _search_concurrency;
+		lookup_concurrency				= _lookup_concurrency;
+		cache_at_closest_n				= _cache_at_closest_n;
+		encode_keys						= _encode_keys;
+		enable_random_poking			= _enable_random_poking;
+		
+			// set this so we don't do initial calculation until reasonably populated
+		
+		last_dht_estimate_time	= SystemTime.getCurrentTime();
+		
+		database = _database;
+					
+		internal_lookup_pool 	= new ThreadPool("DHTControl:internallookups", lookup_concurrency );
+		internal_put_pool 		= new ThreadPool("DHTControl:internalputs", lookup_concurrency );
+		
+			// external pools queue when full ( as opposed to blocking )
+		
+		external_lookup_pool 	= new ThreadPool("DHTControl:externallookups", EXTERNAL_LOOKUP_CONCURRENCY, true );
+		external_put_pool 		= new ThreadPool("DHTControl:puts", EXTERNAL_PUT_CONCURRENCY, true );
+
+		router	= _router;
+
+		local_contact = transport.getLocalContact();
+		
+		database.setControl( this );
+		
+		node_id_byte_count	= router.getID().length;
+
+		stats = new DHTControlStatsImpl( this );
+
+			// don't bother computing anti-spoof stuff if we don't support value storage
+		
+		if ( transport.supportsStorage()){
+			
+			try{
+				/*
+				spoof_cipher = Cipher.getInstance("DESede/ECB/PKCS5Padding"); 
+			
+				KeyGenerator keyGen = KeyGenerator.getInstance("DESede");
+			
+				spoof_key = keyGen.generateKey();
+				*/
+				
+				spoof_digest 	= MessageDigest.getInstance( "MD5" );
+				spoof_key		= new byte[16];
+				RandomUtils.nextSecureBytes( spoof_key );
+			}catch( Throwable e ){
+				
+				Debug.printStackTrace( e );
+				
+				logger.log( e );
+			}
+		}
+		
+		transport.setRequestHandler( this );
 	}
 	
 	protected void
@@ -682,7 +764,7 @@ DHTControlImpl
 			
 			DHTRouterContact	contact	= (DHTRouterContact)it.next();
 			
-			DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getTransportContact();
+			DHTTransportContact	t_contact = ((DHTControlContact)contact.getAttachment()).getTransportContact();
 			
 			if ( !t_contact.isValid()){
 				
@@ -704,7 +786,7 @@ DHTControlImpl
 			
 			daos.writeLong( contact.getTimeAlive());
 			
-			DHTTransportContact	t_contact = ((DHTControlContactImpl)contact.getAttachment()).getTransportContact();
+			DHTTransportContact	t_contact = ((DHTControlContact)contact.getAttachment()).getTransportContact();
 			
 			try{
 									
@@ -3365,7 +3447,7 @@ DHTControlImpl
 	requestPing(
 		DHTRouterContact	contact )
 	{
-		((DHTControlContactImpl)contact.getAttachment()).getTransportContact().sendPing(
+		((DHTControlContact)contact.getAttachment()).getTransportContact().sendPing(
 				new DHTTransportReplyHandlerAdapter()
 				{
 					public void
@@ -3591,7 +3673,7 @@ DHTControlImpl
 			}
 		}
 		
-		final DHTTransportContact	t_contact = ((DHTControlContactImpl)new_contact.getAttachment()).getTransportContact();
+		final DHTTransportContact	t_contact = ((DHTControlContact)new_contact.getAttachment()).getTransportContact();
 
 		final boolean[]	anti_spoof_done	= { false };
 		
@@ -3833,7 +3915,7 @@ DHTControlImpl
 		
 		for (int i=0;i<size;i++){
 			
-			sorted_set.add(((DHTControlContactImpl)((DHTRouterContact)l.get(i)).getAttachment()).getTransportContact());
+			sorted_set.add(((DHTControlContact)((DHTRouterContact)l.get(i)).getAttachment()).getTransportContact());
 		}
 		
 		return( sorted_set );
@@ -4514,7 +4596,7 @@ DHTControlImpl
 			
 			DHTRouterContact	rc = (DHTRouterContact)contacts.get(i);
 
-			((DHTControlContactImpl)rc.getAttachment()).getTransportContact().sendPing(
+			((DHTControlContact)rc.getAttachment()).getTransportContact().sendPing(
 					new DHTTransportReplyHandlerAdapter()
 					{
 						public void

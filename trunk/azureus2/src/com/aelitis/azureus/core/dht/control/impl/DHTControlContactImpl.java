@@ -42,6 +42,16 @@ DHTControlContactImpl
 	{
 		t_contact	= _t_contact;
 	}
+	
+	public
+	DHTControlContactImpl(
+		DHTTransportContact		_t_contact,
+		DHTRouterContact		_r_contact )
+	{
+		t_contact	= _t_contact;
+		r_contact	= _r_contact;
+	}
+	
 	public void
 	setRouterContact(
 		DHTRouterContact		_r_contact )
