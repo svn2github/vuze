@@ -39,6 +39,7 @@ public class
 DHTNetworkPositionManager 
 {
 	private static DHTNetworkPositionProvider[]	providers = new DHTNetworkPositionProvider[0];
+	private static Object providers_lock = new Object();
 	
 	private static DHTStorageAdapter	storage_adapter = null;
 	
@@ -51,7 +52,7 @@ DHTNetworkPositionManager
 	initialise(
 		DHTStorageAdapter		adapter )
 	{
-		synchronized( providers ){
+		synchronized( providers_lock ){
 			
 			if ( storage_adapter == null ){
 				
@@ -125,7 +126,7 @@ DHTNetworkPositionManager
 	destroy(
 		DHTStorageAdapter		adapter )
 	{
-		synchronized( providers ){
+		synchronized( providers_lock ){
 			
 			if ( storage_adapter == adapter ){
 
@@ -145,7 +146,7 @@ DHTNetworkPositionManager
 	{
 		boolean	fire_added = false;
 		
-		synchronized( providers ){
+		synchronized( providers_lock ){
 	
 			boolean						found 		= false;
 			DHTNetworkPositionProvider	type_found	= null;
@@ -242,7 +243,7 @@ DHTNetworkPositionManager
 	{
 		boolean	removed = false;
 		
-		synchronized( providers ){
+		synchronized( providers_lock ){
 	
 			if ( providers.length == 0 ){
 				
@@ -281,7 +282,7 @@ DHTNetworkPositionManager
 	getProvider(
 		byte		type )
 	{
-		synchronized( providers ){
+		synchronized( providers_lock ){
 
 			for (int i=0;i<providers.length;i++){
 				
