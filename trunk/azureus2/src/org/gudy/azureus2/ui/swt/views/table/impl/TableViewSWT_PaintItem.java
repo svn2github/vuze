@@ -25,7 +25,6 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.util.Constants;
-import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.ui.swt.Utils;
@@ -113,80 +112,84 @@ public class TableViewSWT_PaintItem
 		}
 
 		if (event.type == SWT.Paint) {
-			int numPainted = 0;
+			//int numPainted = 0;
 			//Color fg = event.gc.getForeground();
 			//Color bg = event.gc.getBackground();
 			Region r = new Region();
-			event.gc.getClipping(r);
-			//System.out.println(r.contains(event.x, event.y));
-			//event.gc.setForeground(ColorCache.getRandomColor());
-			//event.gc.drawRectangle(event.x, event.y, event.width - 1, event.height - 1);
-			//event.gc.setForeground(fg);
-			// paint only gets bounds, gotta fill event.item and event.index
-			TableItemOrTreeItem item = table.getItem(new Point(5, event.y));
-			if (item == null) {
-				return;
-			}
-			event.item = item.getItem();
-			int[] columnRange = getColumnRange(item, event.x, event.width);
-			if (columnRange[0] == -1) {
-				return;
-			}
-
-			//int height = tv.getRowDefaultHeight();
-			//System.out.println("Dirty: " + event.getBounds() + "; +" + height + "; " + event.gc.getClipping());
-			for (int i = columnRange[0]; i <= columnRange[1]; i++) {
-				event.index = i;
-
-
-				for (int y = event.y; y < (event.y + event.height); y += item.getBounds().height) {
-					item = table.getItem(new Point(5, y));
-					if (item == null) {
-						break;
-					}
-					Rectangle bounds = item.getBounds(i);
-					if (!r.intersects(bounds)) {
-						//event.gc.setForeground(ColorCache.getRandomColor());
-						//event.gc.
-						continue;
-					}
-					event.item = item.getItem();
-					//System.out.println(table.indexOf(event.item) + ": " + i);
-
-					
-					table.setData("inPaintInfo", new InPaintInfo(item.getItem(), event.index, bounds));
-
-					if (event.item != lastItem) {
-						table.setData("lastIndex", null);
-						lastRowIndex = table.indexOf(event.item);
-						table.setData("lastIndex", lastRowIndex);
-					}
-
-					boolean doErase = true;
-					if (Constants.isWindows7OrHigher) {
-						Point location = table.toControl(event.display.getCursorLocation());
-						if (location.y >= bounds.y && location.y < bounds.y + bounds.height) {
-							doErase = false;
-						}
-					}
-
-					Font f = event.gc.getFont();
-					if (doErase) {
-						//TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
-						TableViewSWT_EraseItem.eraseItem(event, event.gc, item, event.index, true, bounds, tv, true);
-					}
-					//TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
-					paintItem(event.gc, (TableRowSWT) tv.getRow(item), event.index, lastRowIndex, bounds, tv, false);
-					event.gc.setFont(f);
-					event.gc.setClipping(r);
-					
-					numPainted++;
-
-					lastItem = event.item;
+			try{
+				event.gc.getClipping(r);
+				//System.out.println(r.contains(event.x, event.y));
+				//event.gc.setForeground(ColorCache.getRandomColor());
+				//event.gc.drawRectangle(event.x, event.y, event.width - 1, event.height - 1);
+				//event.gc.setForeground(fg);
+				// paint only gets bounds, gotta fill event.item and event.index
+				TableItemOrTreeItem item = table.getItem(new Point(5, event.y));
+				if (item == null) {
+					return;
 				}
-
+				event.item = item.getItem();
+				int[] columnRange = getColumnRange(item, event.x, event.width);
+				if (columnRange[0] == -1) {
+					return;
+				}
+	
+				//int height = tv.getRowDefaultHeight();
+				//System.out.println("Dirty: " + event.getBounds() + "; +" + height + "; " + event.gc.getClipping());
+				for (int i = columnRange[0]; i <= columnRange[1]; i++) {
+					event.index = i;
+	
+	
+					for (int y = event.y; y < (event.y + event.height); y += item.getBounds().height) {
+						item = table.getItem(new Point(5, y));
+						if (item == null) {
+							break;
+						}
+						Rectangle bounds = item.getBounds(i);
+						if (!r.intersects(bounds)) {
+							//event.gc.setForeground(ColorCache.getRandomColor());
+							//event.gc.
+							continue;
+						}
+						event.item = item.getItem();
+						//System.out.println(table.indexOf(event.item) + ": " + i);
+	
+						
+						table.setData("inPaintInfo", new InPaintInfo(item.getItem(), event.index, bounds));
+	
+						if (event.item != lastItem) {
+							table.setData("lastIndex", null);
+							lastRowIndex = table.indexOf(event.item);
+							table.setData("lastIndex", lastRowIndex);
+						}
+	
+						boolean doErase = true;
+						if (Constants.isWindows7OrHigher) {
+							Point location = table.toControl(event.display.getCursorLocation());
+							if (location.y >= bounds.y && location.y < bounds.y + bounds.height) {
+								doErase = false;
+							}
+						}
+	
+						Font f = event.gc.getFont();
+						if (doErase) {
+							//TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
+							TableViewSWT_EraseItem.eraseItem(event, event.gc, item, event.index, true, bounds, tv, true);
+						}
+						//TableItemOrTreeItem item = TableOrTreeUtils.getEventItem(event.item);
+						paintItem(event.gc, (TableRowSWT) tv.getRow(item), event.index, lastRowIndex, bounds, tv, false);
+						event.gc.setFont(f);
+						event.gc.setClipping(r);
+						
+						//numPainted++;
+	
+						lastItem = event.item;
+					}
+	
+				}
+			}finally{
+				
+				r.dispose();
 			}
-			
 			//System.out.println("# Painted:" + numPainted);
 
 		} else {
