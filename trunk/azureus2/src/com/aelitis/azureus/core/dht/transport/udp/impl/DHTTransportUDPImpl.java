@@ -4002,6 +4002,8 @@ outer:
 		
 	private volatile Map<Integer, DHTTransportAlternativeNetwork>		alt_net_providers	= new HashMap<Integer, DHTTransportAlternativeNetwork>();
 	
+	private Object	alt_net_providers_lock = new Object();
+	
 	{
 		for ( Integer net: DHTTransportAlternativeNetwork.AT_ALL ){
 			
@@ -4020,7 +4022,7 @@ outer:
 	registerAlternativeNetwork(
 		DHTTransportAlternativeNetwork		network )
 	{
-		synchronized( alt_net_providers ){
+		synchronized( alt_net_providers_lock ){
 			
 			Map<Integer, DHTTransportAlternativeNetwork> new_providers = new HashMap<Integer, DHTTransportAlternativeNetwork>( alt_net_providers );
 			
@@ -4034,7 +4036,7 @@ outer:
 	unregisterAlternativeNetwork(
 		DHTTransportAlternativeNetwork		network )
 	{
-		synchronized( alt_net_providers ){
+		synchronized( alt_net_providers_lock ){
 			
 			Map<Integer, DHTTransportAlternativeNetwork> new_providers = new HashMap<Integer, DHTTransportAlternativeNetwork>( alt_net_providers );
 			
