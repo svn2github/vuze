@@ -67,7 +67,9 @@ implements Iterable<T>
 							}
 						}
 						writer.println(count + " lists with " + size + " total entries");
-						writer.println((size/count) + " avg size");
+						if ( count > 0 ){
+							writer.println((size/count) + " avg size");
+						}
 					} catch (Throwable t) {
 					} finally {
 						writer.exdent();
