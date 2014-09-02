@@ -31,31 +31,26 @@ public class GenericFloatParameter {
   Text inputField;
   float fMinValue = 0;
   float fMaxValue = -1;
-  float fDefaultValue;
-  int iDigitsAfterDecimal = 1;
-  String sParamName;
   boolean allowZero = false;
 
   public GenericFloatParameter(GenericParameterAdapter adapter,Composite composite, final String name) {
-    fDefaultValue = adapter.getFloatValue( name );
+    adapter.getFloatValue( name );
     initialize(adapter,composite,name);
   }
 
   public GenericFloatParameter(GenericParameterAdapter adapter,Composite composite, final String name, 
                         float minValue, float maxValue, boolean allowZero,
                         int digitsAfterDecimal) {
-    fDefaultValue = adapter.getFloatValue( name );
+    adapter.getFloatValue( name );
     initialize(adapter,composite,name);
     fMinValue = minValue;
     fMaxValue = maxValue;
     this.allowZero = allowZero;
-    iDigitsAfterDecimal = digitsAfterDecimal;
   }
   
     
   public void initialize(final GenericParameterAdapter adapter,Composite composite, final String name) {
-    sParamName = name;
-
+ 
     inputField = new Text(composite, SWT.BORDER);
     float value = adapter.getFloatValue( name );
     inputField.setText(String.valueOf(value));
