@@ -5302,16 +5302,12 @@ SubscriptionManagerImpl
 											
 											long	running_for = now - start_time;
 											
-											if ( running_for > 2*60*1000 ){
+											if ( running_for > 10*60*1000 ){
 												
-												DownloadScrapeResult scrape = download.getLastScrapeResult();
+												log( "Download hasn't completed in permitted time, removing" );
 												
-												if ( scrape == null || scrape.getSeedCount() <= 0 ){
-													
-													log( "Download has no seeds, removing" );
-													
-													kill = true;
-												}
+												kill = true;
+												
 											}else if ( running_for > 4*60*1000 ){
 												
 												if ( download.getStats().getDownloaded() == 0 ){
@@ -5320,11 +5316,16 @@ SubscriptionManagerImpl
 													
 													kill = true;
 												}
-											}else if ( running_for > 10*60*1000 ){
+											}else if ( running_for > 2*60*1000 ){
+													
+												DownloadScrapeResult scrape = download.getLastScrapeResult();
 												
-												log( "Download hasn't completed in permitted time, removing" );
-												
-												kill = true;
+												if ( scrape == null || scrape.getSeedCount() <= 0 ){
+													
+													log( "Download has no seeds, removing" );
+													
+													kill = true;
+												}
 											}
 										}
 									}
