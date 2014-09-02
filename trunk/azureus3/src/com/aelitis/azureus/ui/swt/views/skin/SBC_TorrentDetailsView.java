@@ -491,8 +491,10 @@ public class SBC_TorrentDetailsView
 			}
 
 			refresh();
-			mdi_entry.redraw();
-			ViewTitleInfoManager.refreshTitleInfo(mdi_entry.getViewTitleInfo());
+			if ( mdi_entry != null ){
+				mdi_entry.redraw();
+				ViewTitleInfoManager.refreshTitleInfo(mdi_entry.getViewTitleInfo());
+			}
 		} catch (Exception e) {
 			Debug.out(e);
 		} finally {
