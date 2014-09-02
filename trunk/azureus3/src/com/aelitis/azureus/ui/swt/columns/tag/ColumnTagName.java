@@ -50,7 +50,7 @@ public class ColumnTagName
 			tagName = "";
 		}
 
-		String desc = tag.getDescription();
+		String desc = tag==null?null:tag.getDescription();
 		
 		if ( desc != null ){
 		
