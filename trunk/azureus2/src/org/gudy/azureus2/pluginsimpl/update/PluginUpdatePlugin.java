@@ -1566,24 +1566,28 @@ PluginUpdatePlugin
 									try{
 										FileInputStream fis = new FileInputStream( origin );
 										
-										old_props.load( fis );
-										
 										try{
+											old_props.load( fis );
+										
+										}catch( Throwable e ){
+											
+										}finally{
+											
 											fis.close();
 											
-										}catch( Throwable e ){
 										}
 										
 										fis = new FileInputStream( final_target );
 										
-										new_props.load( fis );
-								
 										try{
-											fis.close();
-											
+											new_props.load( fis );
+								
 										}catch( Throwable e ){
+											
+										}finally{
+											
+											fis.close();											
 										}
-										
 									}catch( Throwable e ){
 										
 										Debug.printStackTrace( e );
