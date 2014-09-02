@@ -323,7 +323,9 @@ public class TableViewPainted
 						row = getRow(0);
 					}
 					if ((event.stateMask & SWT.SHIFT) != 0) {
-						selectRowsTo(row);
+						if ( row != null ){
+							selectRowsTo(row);
+						}
 					} else if (event.stateMask == 0) {
   					setSelectedRows(new TableRowCore[] {
   						row
