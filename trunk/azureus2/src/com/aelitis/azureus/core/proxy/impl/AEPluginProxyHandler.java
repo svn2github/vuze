@@ -465,13 +465,13 @@ AEPluginProxyHandler
 	PluginProxyImpl
 		implements PluginProxy
 	{
-		private long				create_time = SystemTime.getMonotonousTime();
+		private final long					create_time = SystemTime.getMonotonousTime();
 		
-		private String				reason;
+		private final String				reason;
 		
-		private IPCInterface		ipc;
-		private Map<String,Object>	proxy_options;
-		private Object[]			proxy_details;
+		private final IPCInterface			ipc;
+		private final Map<String,Object>	proxy_options;
+		private final Object[]				proxy_details;
 		
 		private List<PluginProxyImpl>	children = new ArrayList<AEPluginProxyHandler.PluginProxyImpl>();
 		
@@ -484,6 +484,7 @@ AEPluginProxyHandler
 		{
 			reason				= _reason;
 			ipc					= _ipc;
+			proxy_options		= _proxy_options;
 			proxy_details		= _proxy_details;
 			
 			WeakReference<PluginProxyImpl>	my_ref = new WeakReference<PluginProxyImpl>( this );
