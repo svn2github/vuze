@@ -1651,27 +1651,28 @@ public abstract class TableViewImpl<DATASOURCETYPE>
 	/***********************************/
 
 	public List<Object> getSelectedDataSourcesList() {
-		if (listSelectedCoreDataSources != null) {
-			return listSelectedCoreDataSources;
-		}
 		synchronized ( rows_sync ) {
+			if (listSelectedCoreDataSources != null) {
+				return listSelectedCoreDataSources;
+			}
+
 			if (isDisposed() || selectedRows.size() == 0) {
-  			return Collections.emptyList();
-  		}
-  
-  		final ArrayList<Object> l = new ArrayList<Object>(
-  				selectedRows.size());
-  		for (TableRowCore row : selectedRows) {
-  			if (row != null && !row.isRowDisposed()) {
-  				Object ds = row.getDataSource(true);
-  				if (ds != null) {
-  					l.add(ds);
-  				}
-  			}
-  		}
- 
-  		listSelectedCoreDataSources = l;
-  		return l;
+				return Collections.emptyList();
+			}
+
+			final ArrayList<Object> l = new ArrayList<Object>(
+					selectedRows.size());
+			for (TableRowCore row : selectedRows) {
+				if (row != null && !row.isRowDisposed()) {
+					Object ds = row.getDataSource(true);
+					if (ds != null) {
+						l.add(ds);
+					}
+				}
+			}
+
+			listSelectedCoreDataSources = l;
+			return l;
 		}
 	}
 
