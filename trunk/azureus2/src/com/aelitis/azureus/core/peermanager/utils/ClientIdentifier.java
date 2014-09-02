@@ -220,6 +220,14 @@ public class ClientIdentifier {
 			}
 		}
 		
+			// meh, now we have Mainline and BitTorrent confusion from 7.9.2 onwards, fix here is just to do a further check on the names as they will
+			// have been 'normalised' into BitTorrent by here
+		
+		if ( peer_id_name.equals( handshake_name )){
+			
+			return( peer_id_name );
+		}
+		
 		// Can't determine what the client is.
 		return asDiscrepancy(null, peer_id_name, handshake_name, "mismatch_id", "LTEP", peer_id);
 	}
