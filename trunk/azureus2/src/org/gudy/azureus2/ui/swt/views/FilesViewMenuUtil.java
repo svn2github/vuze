@@ -428,21 +428,24 @@ public class FilesViewMenuUtil
 				
 				if ( row == null ){
 					
-					row = tv.getRow( fileInfo.getDownloadManager());
-					
-					if ( row != null ){
+					if ( tv != null ){
 						
-						TableRowCore[] subrows = row.getSubRowsWithNull();
-								
-						if ( subrows != null ){
+						row = tv.getRow( fileInfo.getDownloadManager());
+						
+						if ( row != null ){
 							
-							for ( TableRowCore sr: subrows ){
+							TableRowCore[] subrows = row.getSubRowsWithNull();
+									
+							if ( subrows != null ){
 								
-								if ( sr.getDataSource(true) == fileInfo ){
+								for ( TableRowCore sr: subrows ){
 									
-									row = sr;
-									
-									break;
+									if ( sr.getDataSource(true) == fileInfo ){
+										
+										row = sr;
+										
+										break;
+									}
 								}
 							}
 						}
