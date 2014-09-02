@@ -521,14 +521,14 @@ CryptoHandlerECC
 							use_method_private_key	= null;
 						}
 					}
-				}
 			
-				if ( use_method_private_key == null ){
+					if ( use_method_private_key == null ){
 					
-					throw( new CryptoManagerException( "Failed to get private key" ));
-				}
+						throw( new CryptoManagerException( "Failed to get private key" ));
+					}
 				
-				return( use_method_private_key );
+					return( use_method_private_key );
+				}
 			}
 		}finally{
 			
