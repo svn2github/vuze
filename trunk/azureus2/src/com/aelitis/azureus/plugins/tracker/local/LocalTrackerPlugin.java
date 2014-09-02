@@ -625,7 +625,7 @@ LocalTrackerPlugin
 
 		if ( download.isComplete() && is_seed ){
 			
-			return( is_seed?1:0 );
+			return( 1 );
 		}
 		
 		PeerManager	peer_manager = download.getPeerManager();
