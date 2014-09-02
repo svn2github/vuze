@@ -151,13 +151,9 @@ BuddyPlugin
 
 	private static final int	UNAUTH_BLOOM_RECREATE		= 120*1000;
 	private static final int	UNAUTH_BLOOM_CHUNK			= 1000;
-	private static BloomFilter	unauth_bloom;
-	private static long			unauth_bloom_create_time;
 
 	private static final int	BLOOM_CHECK_PERIOD			= UNAUTH_BLOOM_RECREATE/2;
 	private static final int	BLOOM_CHECK_TICKS			= BLOOM_CHECK_PERIOD/TIMER_PERIOD;
-
-	private static BloomFilter	ygm_unauth_bloom;
 
 	public static final int STREAM_CRYPTO 	= MessageManager.STREAM_ENCRYPTION_RC4_REQUIRED;
 	public static final int BLOCK_CRYPTO	= SESecurityManager.BLOCK_ENCRYPTION_AES;
@@ -182,6 +178,11 @@ BuddyPlugin
 	private publishDetails	latest_publish		= current_publish;
 	private long			last_publish_start;
 	private TimerEvent		republish_delay_event;
+	
+	private BloomFilter		unauth_bloom;
+	private long			unauth_bloom_create_time;
+	private BloomFilter	ygm_unauth_bloom;
+
 	
 	private AsyncDispatcher	publish_dispatcher = new AsyncDispatcher();
 	
