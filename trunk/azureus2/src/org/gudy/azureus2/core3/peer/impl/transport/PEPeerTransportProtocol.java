@@ -4322,7 +4322,9 @@ implements PEPeerTransport
 					}
 				}
 			}
-		
+						
+			is_upload_disabled = upload_disabled_set != null;
+					
 			//System.out.println( "setUploadDisabled " + getIp() + " -> " + (upload_disabled_set==null?0:upload_disabled_set.size()));
 		}	
 	}
