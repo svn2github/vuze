@@ -601,8 +601,9 @@ public abstract class BaseMDI
 			MdiEntrySWT[] entriesSWT = getEntriesSWT();
 			for (MdiEntrySWT entry : entriesSWT) {
 				if (id.equals(entry.getParentID())) {
-					mapIdToEntry.remove(entry);
-					removeChildrenOf(entry.getId());
+					String kid_id = entry.getId();
+					mapIdToEntry.remove(kid_id);
+					removeChildrenOf(kid_id);
 				}
 			}
 		}
