@@ -271,7 +271,10 @@ AEMonitor
 	public boolean
 	isHeld()
 	{
-		return( owner == Thread.currentThread());
+		synchronized( this ){
+		
+			return( owner == Thread.currentThread());
+		}
 	}
 	
 	public boolean
