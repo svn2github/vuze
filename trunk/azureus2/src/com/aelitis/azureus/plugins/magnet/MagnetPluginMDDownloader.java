@@ -225,17 +225,20 @@ MagnetPluginMDDownloader
 
 			RandomAccessFile raf = new RandomAccessFile( data_file, "rw" );
 			
-			byte[] buffer = new byte[256*1024];
-			
-			Arrays.fill( buffer, (byte)0xff );
-			
-			for (long i=0;i<32*1024*1024;i+=buffer.length){
+			try{
+				byte[] buffer = new byte[256*1024];
 				
-				raf.write( buffer );
+				Arrays.fill( buffer, (byte)0xff );
+				
+				for (long i=0;i<32*1024*1024;i+=buffer.length){
+					
+					raf.write( buffer );
+				}
+			}finally{
+			
+				raf.close();
 			}
 			
-			raf.close();
-						
 			URL announce_url = TorrentUtils.getDecentralisedURL( hash );
 			
 			TOTorrentCreator creator = 
@@ -459,7 +462,7 @@ MagnetPluginMDDownloader
 													return;
 												}
 												
-												synchronized( this ){
+												synchronized( pm_listener ){
 													
 													if ( md_size > 0 ){
 														
