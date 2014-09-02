@@ -959,6 +959,7 @@ public class MyTorrentsView
 					if ( !isEnabled ){
 						activateTag( null );
 					}else{
+						/*
 						if (!isEnabled) {
 							for (int i = 0; i < controls.length; i++) {
 								if ( controls[i].getData( "Tag" ) != null ) {
@@ -967,7 +968,8 @@ public class MyTorrentsView
 								}
 							}
 						}
-	
+						*/
+						
 						for (int i = 0; i < controls.length; i++) {
 							if (controls[i].getData( "Tag" ) == null ) {
 								continue;
