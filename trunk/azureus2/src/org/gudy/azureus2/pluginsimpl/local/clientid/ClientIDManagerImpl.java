@@ -533,38 +533,43 @@ ClientIDManagerImpl
 					target = new Socket();					
 				}
 				
-				InetSocketAddress targetSockAddress = new InetSocketAddress(  InetAddress.getByName(target_host) , target_port  );
-			    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress(targetSockAddress.getAddress() instanceof Inet6Address ? NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V6 : NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V4);
-			    
-		        if ( bindIP != null ){
-		        	
-		        	target.bind( new InetSocketAddress( bindIP, 0 ) );
-		        }
-
-		        // System.out.println( "filtering " + target_host + ":" + target_port );
-		        
-		        target.connect( targetSockAddress);
-		        
-				target.getOutputStream().write( header_out.getBytes(Constants.BYTE_ENCODING ));
-				
-				target.getOutputStream().flush();
-				
-				InputStream	target_is = target.getInputStream(); 
+				try{
+					InetSocketAddress targetSockAddress = new InetSocketAddress(  InetAddress.getByName(target_host) , target_port  );
 					
-				while( true ){
+				    InetAddress bindIP = NetworkAdmin.getSingleton().getSingleHomedServiceBindAddress(targetSockAddress.getAddress() instanceof Inet6Address ? NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V6 : NetworkAdmin.IP_PROTOCOL_VERSION_REQUIRE_V4);
+				    
+			        if ( bindIP != null ){
+			        	
+			        	target.bind( new InetSocketAddress( bindIP, 0 ) );
+			        }
+	
+			        // System.out.println( "filtering " + target_host + ":" + target_port );
+			        
+			        target.connect( targetSockAddress);
+			        
+					target.getOutputStream().write( header_out.getBytes(Constants.BYTE_ENCODING ));
 					
-					int	len = target_is.read( buffer );
+					target.getOutputStream().flush();
 					
-					if ( len == -1 ){
+					InputStream	target_is = target.getInputStream(); 
 						
-						break;
-					}
+					while( true ){
+						
+						int	len = target_is.read( buffer );
+						
+						if ( len == -1 ){
+							
+							break;
+						}
+						
+						socket.getOutputStream().write( buffer, 0,len );
+						
+						written += len;
+					}	
+				}finally{
 					
-					socket.getOutputStream().write( buffer, 0,len );
-					
-					written += len;
-				}	
-				
+					target.close();
+				}
 			}catch( ClientIDException e ){
 						
 				report_error = e.getMessage();
