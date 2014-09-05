@@ -50,6 +50,9 @@ DistributedDatabase
 	public boolean
 	isExtendedUseAllowed();
 	
+	public String
+	getNetwork();
+	
 	public DistributedDatabaseContact
 	getLocalContact();
 	

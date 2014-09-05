@@ -23,6 +23,7 @@
 package org.gudy.azureus2.plugins.download;
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.plugins.download.savelocation.DefaultSaveLocationManager;
@@ -30,6 +31,7 @@ import org.gudy.azureus2.plugins.download.savelocation.SaveLocationChange;
 import org.gudy.azureus2.plugins.download.savelocation.SaveLocationManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.network.RateLimiter;
@@ -1121,4 +1123,11 @@ Download extends DownloadEventNotifier, DownloadStub
   stubbify()
 	
 		throws DownloadException, DownloadRemovalVetoException;
+  
+  /**
+   * @since 5.4.0.1
+   * @return
+   */
+  public List<DistributedDatabase>
+  getDistributedDatabases();
 }

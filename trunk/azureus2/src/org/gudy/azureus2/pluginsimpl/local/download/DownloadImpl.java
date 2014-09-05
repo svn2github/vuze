@@ -53,6 +53,7 @@ import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TorrentUtils;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
@@ -61,6 +62,7 @@ import org.gudy.azureus2.plugins.network.RateLimiter;
 import org.gudy.azureus2.plugins.peers.PeerManager;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
+import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
 import org.gudy.azureus2.pluginsimpl.local.deprecate.PluginDeprecation;
 import org.gudy.azureus2.pluginsimpl.local.disk.DiskManagerFileInfoImpl;
 import org.gudy.azureus2.pluginsimpl.local.peers.PeerManagerImpl;
@@ -2293,6 +2295,12 @@ DownloadImpl
 		 return( this );
 	 }
 
+	 public List<DistributedDatabase>
+	 getDistributedDatabases()
+	 {
+		 return( DDBaseImpl.getDDBs( this ));
+	 }
+	 
 	 public byte[]
 	 getTorrentHash()
 	 {

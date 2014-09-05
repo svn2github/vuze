@@ -28,8 +28,10 @@ package org.gudy.azureus2.pluginsimpl.remote.download;
  */
 
 import java.io.File;
+import java.util.List;
 import java.util.Map;
 
+import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.disk.DiskManager;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.*;
@@ -1095,6 +1097,13 @@ RPDownload
 		throws DownloadException
 	{
 		throw( new DownloadException( "Not Supported" ));
+	}
+	
+	public List<DistributedDatabase>
+	getDistributedDatabases()
+	{
+		notSupported();
+		return( null );
 	}
 	
 	public byte[]

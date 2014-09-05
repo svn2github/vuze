@@ -23,15 +23,20 @@ import java.net.InetSocketAddress;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.AEMonitor;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.SHA1Simple;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ddb.*;
+import org.gudy.azureus2.plugins.download.Download;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.azureus.core.AzureusCore;
+import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.dht.DHT;
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 import com.aelitis.azureus.plugins.dht.DHTPluginInterface;
@@ -77,11 +82,58 @@ DDBaseImpl
 		return( singleton );
 	}
 	
+	private static Map<DHTPluginInterface,DistributedDatabase> dht_pi_map = new HashMap<DHTPluginInterface, DistributedDatabase>();
+	
+	public static List<DistributedDatabase>
+	getDDBs(
+		Download		download )
+	{
+		List<DistributedDatabase>	result = new ArrayList<DistributedDatabase>();
+		
+		String[] networks = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
+					
+		for ( String net: networks ){
+			
+			if ( net == AENetworkClassifier.AT_PUBLIC ){
+				
+				result.add( getSingleton( AzureusCoreFactory.getSingleton()));
+				
+			}else{
+				Map<String,Object>	options = new HashMap<String, Object>();
+				
+				options.put( AEProxyFactory.DP_DOWNLOAD, download );
+				
+				DHTPluginInterface dpi = AEProxyFactory.getPluginDHTProxy( "ddb", net, options );
+				
+				if ( dpi != null ){
+					
+					DistributedDatabase ddb;
+					
+					synchronized( dht_pi_map ){
+						
+						ddb = dht_pi_map.get( dpi );
+						
+						if ( ddb == null ){
+							
+							ddb = new DDBaseImpl( net, dpi );
+							
+							dht_pi_map.put( dpi, ddb );
+						}
+					}
+					
+					result.add( ddb );
+				}
+			}
+		}
+		
+		return( result );
+	}
 	
 	final private AzureusCore				azureus_core;
 	final private DDBaseTTTorrent			torrent_transfer;
-
-	private DHTPluginInterface		dht_use_accessor;
+	final private String					network;
+	
+	private DHTPluginInterface				dht_use_accessor;
 		
 
 	private CopyOnWriteList<DistributedDatabaseListener>	listeners = new CopyOnWriteList<DistributedDatabaseListener>();
@@ -94,17 +146,27 @@ DDBaseImpl
 		
 		torrent_transfer =  new DDBaseTTTorrent( this );
 		
+		network	= AENetworkClassifier.AT_PUBLIC;
+		
 		grabDHT();
 	}
 	
 	protected
 	DDBaseImpl(
+		String					_net,
 		DHTPluginInterface		_dht )
 	{
+		network				= _net;
 		dht_use_accessor	= _dht;
 		
 		azureus_core		= null;
 		torrent_transfer 	=  new DDBaseTTTorrent( this );
+	}
+	
+	public String
+	getNetwork()
+	{
+		return( network );
 	}
 	
 	public DDBaseTTTorrent
@@ -124,9 +186,9 @@ DDBaseImpl
 		try{
 			class_mon.enter();
 			
-			if( dht_use_accessor == null ){
+			if ( dht_use_accessor == null ){
 						
-			PluginInterface dht_pi = 
+				PluginInterface dht_pi = 
 					azureus_core.getPluginManager().getPluginInterfaceByClass(
 								DHTPlugin.class );
 						

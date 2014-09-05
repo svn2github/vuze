@@ -27,6 +27,7 @@ import java.util.Map;
 import org.gudy.azureus2.plugins.PluginInterface;
 
 import com.aelitis.azureus.core.proxy.impl.*;
+import com.aelitis.azureus.plugins.dht.DHTPluginInterface;
 
 /**
  * @author parg
@@ -159,6 +160,19 @@ AEProxyFactory
 		Map<String,Object>		options )
 	{
 		return( AEPluginProxyHandler.getPluginServerProxy( reason, network, server_uid, options ));
+	}
+	
+	public static final String	DP_DOWNLOAD		= "download";
+
+	
+	public static DHTPluginInterface
+	getPluginDHTProxy(
+		String					reason,
+		String					network,
+		Map<String,Object>		options )
+	{
+		return( AEPluginProxyHandler.getPluginDHTProxy( reason, network, options ));
+
 	}
 	
 	public interface

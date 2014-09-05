@@ -45,6 +45,7 @@ import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginHTTPProxy;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.plugins.dht.DHTPluginInterface;
 
 public class 
 AEPluginProxyHandler 
@@ -459,6 +460,35 @@ AEPluginProxyHandler
 		}
 		
 		return( null );
+	}
+	
+	public static DHTPluginInterface
+	getPluginDHTProxy(
+		String					reason,
+		String					network,
+		Map<String,Object>		options )
+	{
+		plugin_init_complete.reserve( plugin_init_max_wait );
+		
+		PluginInterface pi = getPluginProxyForNetwork( network, false );
+		
+		if ( pi == null ){
+			
+			return( null );
+		}
+			
+		try{
+			IPCInterface ipc = pi.getIPC();
+			
+			DHTPluginInterface reply = (DHTPluginInterface)ipc.invoke( "getProxyDHT", new Object[]{ reason, options });
+			
+			return( reply );
+			
+		}catch( Throwable e ){
+			
+		}
+		
+		return( null );		
 	}
 
 	private static class

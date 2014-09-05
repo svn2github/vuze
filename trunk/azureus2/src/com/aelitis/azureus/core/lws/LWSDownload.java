@@ -29,6 +29,7 @@ import org.gudy.azureus2.core3.peer.PEPeerSource;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.download.DownloadActivationEvent;
@@ -53,6 +54,7 @@ import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAttribute;
 import org.gudy.azureus2.plugins.torrent.TorrentManager;
 import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
 import org.gudy.azureus2.pluginsimpl.local.download.DownloadAnnounceResultImpl;
 
 
@@ -932,6 +934,12 @@ LWSDownload
 		throws DownloadException
 	{
 		throw( new DownloadException( "Not Supported" ));
+	}
+	
+	public List<DistributedDatabase>
+	getDistributedDatabases()
+	{
+		return( DDBaseImpl.getDDBs( this ));
 	}
 	
 	public byte[]
