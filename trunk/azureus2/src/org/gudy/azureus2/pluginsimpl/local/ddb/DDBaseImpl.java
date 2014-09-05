@@ -22,7 +22,6 @@ package org.gudy.azureus2.pluginsimpl.local.ddb;
 import java.net.InetSocketAddress;
 import java.util.*;
 
-
 import org.gudy.azureus2.core3.util.AEMonitor;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HashWrapper;
@@ -31,11 +30,11 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ddb.*;
 
-
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
+import com.aelitis.azureus.plugins.dht.DHTPluginInterface;
 import com.aelitis.azureus.plugins.dht.DHTPluginContact;
 import com.aelitis.azureus.plugins.dht.DHTPluginKeyStats;
 import com.aelitis.azureus.plugins.dht.DHTPluginListener;
@@ -57,10 +56,8 @@ DDBaseImpl
 	
 	protected static AEMonitor		class_mon	= new AEMonitor( "DDBaseImpl:class");
 
-	protected static Map			transfer_map = new HashMap();
-	
-	private static DDBaseTTTorrent	torrent_transfer;
-	
+	private Map<HashWrapper,DistributedDatabaseTransferHandler>			transfer_map = new HashMap<HashWrapper,DistributedDatabaseTransferHandler>();
+		
 	public static DDBaseImpl
 	getSingleton(
 		AzureusCore	azureus_core )
@@ -81,10 +78,13 @@ DDBaseImpl
 	}
 	
 	
-	private AzureusCore		azureus_core;
-	private DHTPlugin		dht_use_accessor;
+	final private AzureusCore				azureus_core;
+	final private DDBaseTTTorrent			torrent_transfer;
+
+	private DHTPluginInterface		dht_use_accessor;
 		
-	private CopyOnWriteList	listeners = new CopyOnWriteList();
+
+	private CopyOnWriteList<DistributedDatabaseListener>	listeners = new CopyOnWriteList<DistributedDatabaseListener>();
 	
 	protected
 	DDBaseImpl(
@@ -97,13 +97,23 @@ DDBaseImpl
 		grabDHT();
 	}
 	
+	protected
+	DDBaseImpl(
+		DHTPluginInterface		_dht )
+	{
+		dht_use_accessor	= _dht;
+		
+		azureus_core		= null;
+		torrent_transfer 	=  new DDBaseTTTorrent( this );
+	}
+	
 	public DDBaseTTTorrent
 	getTTTorrent()
 	{
 		return( torrent_transfer );
 	}
 	
-	protected DHTPlugin
+	protected DHTPluginInterface
 	grabDHT()
 	{
 		if ( dht_use_accessor != null ){
@@ -122,7 +132,7 @@ DDBaseImpl
 						
 				if ( dht_pi != null ){
 					
-					dht_use_accessor = (DHTPlugin)dht_pi.getPlugin();
+					dht_use_accessor = (DHTPluginInterface)dht_pi.getPlugin();
 					
 					if ( dht_use_accessor.isEnabled()){
 						
@@ -133,13 +143,19 @@ DDBaseImpl
 								localAddressChanged(
 									DHTPluginContact	local_contact )
 								{
-									List l = listeners.getList();
+									List<DistributedDatabaseListener> list = listeners.getList();
 									
 									dbEvent ev = new dbEvent( DistributedDatabaseEvent.ET_LOCAL_CONTACT_CHANGED );
 									
-									for (int i=0;i<l.size();i++){
+									for ( DistributedDatabaseListener l: list){
 										
-										((DistributedDatabaseListener)l.get(i)).event( ev );
+										try{
+											l.event( ev );
+											
+										}catch( Throwable e ){
+											
+											Debug.out( e );
+										}
 									}
 								}
 							});
@@ -165,7 +181,7 @@ DDBaseImpl
 	public boolean
 	isAvailable()
 	{
-		DHTPlugin	dht = grabDHT();
+		DHTPluginInterface	dht = grabDHT();
 		
 		if ( dht == null ){
 			
@@ -178,7 +194,7 @@ DDBaseImpl
 	public boolean
 	isExtendedUseAllowed()
 	{
-		DHTPlugin	dht = grabDHT();
+		DHTPluginInterface	dht = grabDHT();
 		
 		if ( dht == null ){
 			
@@ -191,7 +207,7 @@ DDBaseImpl
 	public DistributedDatabaseContact
 	getLocalContact()
 	{
-		DHTPlugin	dht = grabDHT();
+		DHTPluginInterface	dht = grabDHT();
 		
 		if ( dht == null ){
 			
@@ -212,7 +228,7 @@ DDBaseImpl
 		}
 	}
 	
-	protected DHTPlugin
+	protected DHTPluginInterface
 	getDHT()
 	
 		throws DistributedDatabaseException
@@ -226,7 +242,7 @@ DDBaseImpl
 	log(
 		String	str )
 	{
-		DHTPlugin	dht = grabDHT();
+		DHTPluginInterface	dht = grabDHT();
 		
 		if ( dht != null ){
 			
@@ -379,7 +395,7 @@ DDBaseImpl
 					((DDBaseKeyImpl)key).getBytes(),
 					key.getDescription(),
 					((DDBaseValueImpl)values[0]).getBytes(),
-					(byte)( DHTPlugin.FLAG_SINGLE_VALUE | extra_flags ),
+					(byte)( DHTPluginInterface.FLAG_SINGLE_VALUE | extra_flags ),
 					new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0, false, false ));
 		}else{
 			
@@ -409,7 +425,7 @@ DDBaseImpl
 			
 				// format is: <continuation> <len><len><data>
 			
-			byte[]	payload			= new byte[DHTPlugin.MAX_VALUE_SIZE];
+			byte[]	payload			= new byte[DHTPluginInterface.MAX_VALUE_SIZE];
 			int		payload_length	= 1;
 					
 			int	pos = 0;
@@ -447,7 +463,7 @@ DDBaseImpl
 							f_current_key,
 							key.getDescription(),
 							copy,
-							(byte)( DHTPlugin.FLAG_MULTI_VALUE | extra_flags ),
+							(byte)( DHTPluginInterface.FLAG_MULTI_VALUE | extra_flags ),
 							new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0, false, false ));
 					
 					payload_length	= 1;
@@ -470,7 +486,7 @@ DDBaseImpl
 						f_current_key,
 						key.getDescription(),
 						copy,
-						(byte)( DHTPlugin.FLAG_MULTI_VALUE | extra_flags ),
+						(byte)( DHTPluginInterface.FLAG_MULTI_VALUE | extra_flags ),
 						new listenerMapper( listener, DistributedDatabaseEvent.ET_VALUE_WRITTEN, key, 0, false, false ));
 			}
 		}
@@ -527,7 +543,7 @@ DDBaseImpl
 		getDHT().get(	
 			((DDBaseKeyImpl)key).getBytes(), 
 			key.getDescription(),
-			DHTPlugin.FLAG_STATS,
+			DHTPluginInterface.FLAG_STATS,
 			256, 
 			timeout, 
 			false,
@@ -838,7 +854,7 @@ DDBaseImpl
 		{
 			if ( type == DistributedDatabaseEvent.ET_KEY_STATS_READ ){
 				
-				if (( _value.getFlags() & DHTPlugin.FLAG_STATS ) == 0 ){
+				if (( _value.getFlags() & DHTPluginInterface.FLAG_STATS ) == 0 ){
 					
 						// skip, old impl
 					
@@ -887,7 +903,7 @@ DDBaseImpl
 			}else{
 				byte[]	value = _value.getValue();
 				
-				if ( _value.getFlags() == DHTPlugin.FLAG_MULTI_VALUE ){
+				if ( _value.getFlags() == DHTPluginInterface.FLAG_MULTI_VALUE ){
 	
 					int	pos = 1;
 					

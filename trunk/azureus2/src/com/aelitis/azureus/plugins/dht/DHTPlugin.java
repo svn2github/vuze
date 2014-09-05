@@ -68,7 +68,7 @@ import com.aelitis.azureus.plugins.upnp.UPnPPlugin;
 
 public class 
 DHTPlugin
-	implements Plugin
+	implements Plugin, DHTPluginInterface
 {
 		// data will be the DHT instance created
 	
