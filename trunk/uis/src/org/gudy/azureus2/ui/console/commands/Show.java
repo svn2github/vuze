@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import org.gudy.azureus2.core3.category.Category;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.download.DownloadManagerStats;
@@ -52,6 +53,9 @@ import com.aelitis.azureus.core.dht.transport.*;
 import com.aelitis.azureus.core.networkmanager.admin.NetworkAdmin;
 import com.aelitis.azureus.core.peermanager.piecepicker.PiecePicker;
 import com.aelitis.azureus.core.stats.AzureusCoreStats;
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.plugins.dht.DHTPlugin;
 
 /**
@@ -588,6 +592,21 @@ public class Show extends IConsoleCommand {
 		out.println("Saving to: " + dm.getSaveLocation());
 		out.println("Created By: " + dm.getTorrentCreatedBy());
 		out.println("Comment: " + dm.getTorrentComment());
+		Category cat = dm.getDownloadState().getCategory();
+	    if (cat != null){
+			out.println("Category: " + cat.getName());
+	    }
+		List<Tag> tags = TagManagerFactory.getTagManager().getTagsForTaggable( TagType.TT_DOWNLOAD_MANUAL, dm );
+		String tags_str;
+		if ( tags.size() == 0 ){
+			tags_str = "None";
+		}else{
+			tags_str = "";
+			for ( Tag t: tags ){
+				tags_str += (tags_str.length()==0?"":",") + t.getTagName(true);
+			}
+		}
+		out.println("Tags: " + tags_str);
 		out.println("- Tracker Info -");
 		TRTrackerAnnouncer trackerclient = dm.getTrackerClient();
 		if (trackerclient != null) {

@@ -58,13 +58,13 @@ public abstract class IConsoleCommand {
 	 * @param out
 	 * @param args
 	 */
-	public final void printHelp(PrintStream out, List args)
+	public final void printHelp(PrintStream out, List<String> args)
 	{
 		out.println(getCommandDescriptions());
 		printHelpExtra(out, args);
 	}
 	
-	public void printHelpExtra(PrintStream out, List args) {
+	public void printHelpExtra(PrintStream out, List<String> args) {
 		// Do nothing by default.
 	}
 	

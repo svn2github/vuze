@@ -15,11 +15,19 @@ import java.net.URL;
 import java.util.Iterator;
 import java.util.List;
 
+import org.gudy.azureus2.core3.category.Category;
+import org.gudy.azureus2.core3.category.CategoryManager;
 import org.gudy.azureus2.core3.disk.DiskManager;
 import org.gudy.azureus2.core3.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.tracker.client.TRTrackerAnnouncer;
+import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.console.ConsoleInput;
+
+import com.aelitis.azureus.core.tag.Tag;
+import com.aelitis.azureus.core.tag.TagManager;
+import com.aelitis.azureus.core.tag.TagManagerFactory;
+import com.aelitis.azureus.core.tag.TagType;
 
 /**
  * @author Tobias Minich
@@ -37,6 +45,9 @@ public class Hack extends TorrentCommand
 		subCommands.add(new HackDownloadSpeed());
 		subCommands.add(new HackUploadSpeed());
 		subCommands.add(new HackUploads());
+		subCommands.add(new HackCategory());
+		subCommands.add(new HackTag());
+		
 	}
 	
 	public String getCommandDescriptions()
@@ -370,4 +381,122 @@ public class Hack extends TorrentCommand
 			return "url\t\tu\tChange the full URL (Note: you have to include the '/announce' part).";
 		}
 	}	
+	
+	private static class HackCategory extends TorrentSubCommand
+	{
+		public HackCategory()
+		{
+			super("category", "cat");
+		}
+		
+		public String getCommandDescriptions() {
+			return "category [set <category_name>|clear]\t\tcat\tSet or clear the torrent's. Category will be created if necessary.";
+		}
+		
+		/**
+		 * locate the appropriate subcommand and execute it 
+		 */
+		public boolean performCommand(ConsoleInput ci, DownloadManager dm, List<String> args) 
+		{
+			if (args.size() < 1) {
+				ci.out.println("> Command 'hack': Not enough parameters for subcommand '" + getCommandName() + "'");
+				return false;
+			}
+			
+			String op = args.get(0);
+			
+			if ( op.equals( "set" )){
+				
+				if (args.size() < 2) {
+					ci.out.println("> Command 'hack': Not enough parameters for subcommand '" + getCommandName() + "'");
+					return false;
+				}
+				
+				String cat_name = args.get(1);
+				
+				Category cat = CategoryManager.getCategory( cat_name );
+				
+				if ( cat == null ){
+					
+					cat = CategoryManager.createCategory( cat_name );
+				}
+				
+				dm.getDownloadState().setCategory( cat );
+				
+			}else if ( op.equals( "clear" )){
+			
+				dm.getDownloadState().setCategory( null );
+			}
+			
+			return true;
+		}
+	}
+	
+	private static class HackTag extends TorrentSubCommand
+	{
+		public HackTag()
+		{
+			super("tag", "tag");
+		}
+		
+		public String getCommandDescriptions() {
+			return "tag [add|remove] <tag_name>\t\tAdd or remove a tag. Tag will be created if necessary.";
+		}
+		
+		/**
+		 * locate the appropriate subcommand and execute it 
+		 */
+		public boolean performCommand(ConsoleInput ci, DownloadManager dm, List<String> args) 
+		{
+			if (args.size() < 2) {
+				ci.out.println("> Command 'hack': Not enough parameters for subcommand '" + getCommandName() + "'");
+				return false;
+			}
+			
+			try{
+				String op = args.get(0);
+				String tag_name	= args.get(1);
+				
+				TagManager tm = TagManagerFactory.getTagManager();
+				
+				TagType tt = tm.getTagType( TagType.TT_DOWNLOAD_MANUAL );
+				
+				Tag tag = tt.getTag( tag_name, true );
+				
+				if ( op.equals( "add" )){
+					
+					if ( tag == null ){
+						
+						tag = tt.createTag( tag_name, true );
+						
+						ci.out.println( "Tag '" + tag_name + "' created" );
+					}
+					
+					tag.addTaggable( dm );
+					
+				}else if ( op.equals( "remove" )){
+					
+					if ( tag == null ){
+						
+						ci.out.println("Tag '" + tag_name + "' not found" );
+						
+					}else{
+						
+						tag.removeTaggable( dm );
+					}
+				}else{
+					
+					ci.out.println("> Command 'hack': Invalid parameters for '" + getCommandName() + "'");
+					return false;
+				}
+			}catch( Throwable e ){
+				
+				ci.out.println( "Command failed: " + Debug.getNestedExceptionMessage(e));
+				
+				return false;
+			}
+			
+			return true;
+		}
+	}
 }

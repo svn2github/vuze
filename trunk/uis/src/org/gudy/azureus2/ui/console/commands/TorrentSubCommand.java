@@ -42,5 +42,5 @@ public abstract class TorrentSubCommand extends TorrentCommand
 		super(command_name, short_name, null);
 	}
 
-	public abstract boolean performCommand(ConsoleInput ci, DownloadManager dm, List args);
+	public abstract boolean performCommand(ConsoleInput ci, DownloadManager dm, List<String> args);
 }

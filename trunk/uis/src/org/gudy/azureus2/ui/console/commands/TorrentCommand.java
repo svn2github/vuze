@@ -47,7 +47,7 @@ public abstract class TorrentCommand extends IConsoleCommand {
 	{
 		return action;
 	}
-	protected abstract boolean performCommand(ConsoleInput ci, DownloadManager dm, List args);
+	protected abstract boolean performCommand(ConsoleInput ci, DownloadManager dm, List<String> args);
 	
 	/**
 	 * Stub for commands that operate on a hosted torrent rather than downloadmanager
@@ -55,7 +55,7 @@ public abstract class TorrentCommand extends IConsoleCommand {
 	 * @param args
 	 * @return
 	 */
-	protected boolean performCommand(ConsoleInput ci, TRHostTorrent torrent, List args)
+	protected boolean performCommand(ConsoleInput ci, TRHostTorrent torrent, List<String> args)
 	{
 		return( false );
 	}
