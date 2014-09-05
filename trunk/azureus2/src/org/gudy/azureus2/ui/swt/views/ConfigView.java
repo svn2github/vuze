@@ -356,11 +356,11 @@ public class ConfigView implements UISWTViewEventListener {
 
       	// hack to prevent traversal from Left panel to Right...
       	
-      cConfig.addTraverseListener( traversal_listener );
-      composite.addTraverseListener( traversal_listener );
-      cRightSide.addTraverseListener( traversal_listener );
-      cHeader.addTraverseListener( traversal_listener );
-      cConfigSection.addTraverseListener( traversal_listener );
+      //cConfig.addTraverseListener( traversal_listener );
+      //composite.addTraverseListener( traversal_listener );
+      //cRightSide.addTraverseListener( traversal_listener );
+      //cHeader.addTraverseListener( traversal_listener );
+      //cConfigSection.addTraverseListener( traversal_listener );
     	          
       form.setWeights(new int[] {20,80});
   
@@ -544,9 +544,63 @@ public class ConfigView implements UISWTViewEventListener {
       }
     }
     
- 
-
-
+    final Display d = composite.getDisplay();
+    
+    final Listener shortcut_listener = 
+    	new Listener()
+		{
+			public void 
+			handleEvent(
+				Event e) 
+			{
+				  if ((e.stateMask & SWT.MOD1 ) != 0 ){
+	
+				  char key = e.character;
+	
+				  if (key <= 26 && key > 0){
+					  key += 'a' - 1;
+				  }
+	
+				  if ((e.stateMask & SWT.SHIFT )!= 0 ){
+					  key = Character.toUpperCase(key);
+				  }
+				  if ( !Character.isISOControl( key )){
+	
+					  for ( TreeItem ti: sections.keySet()){
+	
+						  String id = (String)ti.getData( "ID" );
+	
+						  if ( id != null ){
+	
+							  String shortcut = COConfigurationManager.getStringParameter( "config.section.shortcut.key." + id, "" );
+	
+							  if ( shortcut.equals( String.valueOf( key ))){
+	
+								  //findFocus( cConfig );
+	
+								  selectSection( id, true );
+	
+								  e.doit = false;
+	
+								  break;
+							  }
+						  }
+					  }
+				  }
+			  }   			
+			};
+		};
+		
+    d.addFilter( SWT.KeyDown, shortcut_listener );
+  	
+    cConfigSection.addDisposeListener(
+    	new DisposeListener() {
+			
+			public void widgetDisposed(DisposeEvent e) {
+				d.removeFilter( SWT.KeyDown, shortcut_listener);
+			}
+		});
+    
     if (composite instanceof Shell) {
     	initApplyCloseButton();
     } else {
@@ -563,74 +617,10 @@ public class ConfigView implements UISWTViewEventListener {
     tree.setSelection(items);
     // setSelection doesn't trigger a SelectionListener, so..
     showSection(items[0], false );
-    
-    KeyListener kl = 
-   		 new KeyListener() {
-				
-				public void keyReleased(KeyEvent e) {					
-				}
-				
-				public void keyPressed(KeyEvent e) {
-					if ((e.stateMask & SWT.MOD1 ) != 0 ){
-						
-						char key = e.character;
-						
-						if (key <= 26 && key > 0){
-							key += 'a' - 1;
-						}
-					
-						if ((e.stateMask & SWT.SHIFT )!= 0 ){
-							key = Character.toUpperCase(key);
-						}
-						if ( !Character.isISOControl( key )){
-							
-							for ( TreeItem ti: sections.keySet()){
-								
-								String id = (String)ti.getData( "ID" );
-								
-								if ( id != null ){
-									
-									String shortcut = COConfigurationManager.getStringParameter( "config.section.shortcut.key." + id, "" );
-									
-									if ( shortcut.equals( String.valueOf( key ))){
-										
-										//findFocus( composite );
-										
-										selectSection( id, true );
-										
-										e.doit = false;
-										
-										break;
-									}
-								}
-							}
-						}
-					}
-				}
-			};
-			
-	addListenerToComponents( cConfig, kl );
   }
 
-  private void
-  addListenerToComponents(
-		Control 	c,
-		KeyListener	kl )
-  {
-	  c.addKeyListener( kl );
-	  
-	  if ( c instanceof Composite ){
-	  
-		  Control[] kids = ((Composite)c).getChildren();
-	  
-		  for( Control k: kids ){
-		  
-			  addListenerToComponents( k, kl );
-		  }
-	  }
-  }
-  
-  
+ 
+  /*
   private void
   findFocus(
 		Control 	c )
@@ -650,7 +640,7 @@ public class ConfigView implements UISWTViewEventListener {
 		  }
 	  }
   }
-  
+  */
   
 	private void setupSC(ScrolledComposite sc) {
 		Composite c = (Composite) sc.getContent();
@@ -661,7 +651,7 @@ public class ConfigView implements UISWTViewEventListener {
 		}
 		sc.getVerticalBar().setPageIncrement(sc.getSize().y);
 	}
-	
+
 
   /**
 	 * @param text
@@ -906,7 +896,7 @@ public class ConfigView implements UISWTViewEventListener {
         }
         
         Composite c = ((UISWTConfigSection)configSection).configSectionCreate(item);
-        
+                
         sectionsCreated.add(configSection);
         
         item.setContent(c);
