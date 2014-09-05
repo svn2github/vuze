@@ -248,7 +248,8 @@ public class Show extends IConsoleCommand {
 					shown_torrents.add( dm );
 
 					try {
-						ps = dm.getPeerManager().getStats();
+						PEPeerManager pm = dm.getPeerManager();
+						ps = pm==null?null:pm.getStats();
 					} catch (Exception e) {
 						ps = null;
 					}

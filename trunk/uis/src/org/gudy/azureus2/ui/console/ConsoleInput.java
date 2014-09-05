@@ -64,6 +64,7 @@ import org.gudy.azureus2.update.UpdaterUpdateChecker;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreLifecycleAdapter;
+import com.aelitis.azureus.core.subs.SubscriptionManagerFactory;
 
 /**
  * @author Tobias Minich
@@ -181,6 +182,13 @@ public class ConsoleInput extends Thread {
 							AzureusCore		core )
 						{
 							registerUpdateChecker();
+							
+							try{
+								SubscriptionManagerFactory.getSingleton();
+								
+							}catch( Throwable e ){
+								
+							}
 						}
 					});
 			}
@@ -331,6 +339,12 @@ public class ConsoleInput extends Thread {
 		registerCommand(new Plugin());
 		registerCommand(new Pairing());
 		registerCommand(new Archive());
+		
+		try{
+			registerCommand(new Subscriptions());
+		}catch( Throwable e ){
+			
+		}
 
 	}
 
