@@ -331,36 +331,6 @@ public class ConfigView implements UISWTViewEventListener {
       gridData = new GridData(GridData.FILL_BOTH);
       gridData.horizontalIndent = 2;
       cConfigSection.setLayoutData(gridData);
-  
-      TraverseListener traversal_listener =
-    	new TraverseListener()
-      	{		
-    	  public void keyTraversed(TraverseEvent e) {
-
-    		  if ( e.detail == SWT.TRAVERSE_TAB_NEXT ){
-
-    			  Utils.execSWTThreadLater(
-					  1,
-					  new Runnable()
-					  {
-						  public void
-						  run()
-						  {
-							  layoutConfigSection.topControl.traverse( SWT.TRAVERSE_TAB_NEXT);
-						  }
-					  });
-
-    		  }
-    	  }
-      	};
-
-      	// hack to prevent traversal from Left panel to Right...
-      	
-      //cConfig.addTraverseListener( traversal_listener );
-      //composite.addTraverseListener( traversal_listener );
-      //cRightSide.addTraverseListener( traversal_listener );
-      //cHeader.addTraverseListener( traversal_listener );
-      //cConfigSection.addTraverseListener( traversal_listener );
     	          
       form.setWeights(new int[] {20,80});
   
