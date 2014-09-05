@@ -553,7 +553,7 @@ public class ConfigView implements UISWTViewEventListener {
 			handleEvent(
 				Event e) 
 			{
-				  if ((e.stateMask & SWT.MOD1 ) != 0 ){
+				  if ((e.stateMask & ( SWT.MOD1 | SWT.CONTROL )) != 0 || e.keyCode == SWT.COMMAND ){
 	
 				  char key = e.character;
 	
