@@ -75,7 +75,7 @@ public class ConfigShell
 	 */
 	public void open(String section) {
 		if (null != shell && false == shell.isDisposed()) {
-			configView.selectSection(section);
+			configView.selectSection(section, true);
 			if (true == shell.getMinimized()) {
 				shell.setMinimized(false);
 			}
@@ -93,7 +93,7 @@ public class ConfigShell
 				Debug.out(e1);
 			}
 			swtView.initialize(shell);
-			configView.selectSection(section);
+			configView.selectSection(section,true);
 
 			/*
 			 * Set default size and centers the shell if it's configuration does not exist yet

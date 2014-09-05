@@ -28,7 +28,6 @@ import org.eclipse.swt.graphics.*;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 import org.eclipse.swt.widgets.List;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.logging.LogEvent;
@@ -36,9 +35,12 @@ import org.gudy.azureus2.core3.logging.LogIDs;
 import org.gudy.azureus2.core3.logging.Logger;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.core3.util.Timer;
+import org.gudy.azureus2.plugins.ui.UIInputReceiver;
+import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.pluginsimpl.local.ui.config.ConfigSectionRepository;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.SimpleTextEntryWindow;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.views.configsections.*;
@@ -113,7 +115,7 @@ public class ConfigView implements UISWTViewEventListener {
 		});
   }
   	
-  private void _initialize(Composite composite) {
+  private void _initialize(final Composite composite) {
   	
     GridData gridData;
     /*
@@ -236,8 +238,10 @@ public class ConfigView implements UISWTViewEventListener {
       configLayout.marginWidth = 0;
       cRightSide.setLayout(configLayout);
   
-      // Header
+      	// Header
+      
       Composite cHeader = new Composite(cRightSide, SWT.BORDER);
+      
       configLayout = new GridLayout();
       configLayout.marginHeight = 3;
       configLayout.marginWidth = 0;
@@ -269,6 +273,57 @@ public class ConfigView implements UISWTViewEventListener {
       gridData = new GridData(GridData.VERTICAL_ALIGN_CENTER | GridData.HORIZONTAL_ALIGN_END | GridData.GRAB_HORIZONTAL);
       usermodeHint.setLayoutData(gridData);
   
+	  Menu headerMenu = new Menu(cHeader.getShell(), SWT.POP_UP );
+			  
+	  final MenuItem menuShortCut = new MenuItem(headerMenu, SWT.PUSH);      
+	  Messages.setLanguageText( menuShortCut, "label.set.shortcut" );
+
+	  menuShortCut.addSelectionListener(new SelectionAdapter() {
+		  public void widgetSelected(SelectionEvent e) {
+			  
+			  final TreeItem tree_item = (TreeItem)lHeader.getData( "TreeItem" );
+			  
+			  if ( tree_item != null ){
+				  
+				  final String id = (String)tree_item.getData( "ID" );
+				  
+				  if ( id != null ){
+					  
+						SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+								"config.dialog.shortcut.title",
+								"config.dialog.shortcut.text");
+						entryWindow.setPreenteredText(COConfigurationManager.getStringParameter( "config.section.shortcut.key." + id, "" ), false);
+						entryWindow.setTextLimit(1);
+						entryWindow.prompt(new UIInputReceiverListener() {
+							public void UIInputReceiverClosed(UIInputReceiver entryWindow) {
+								if (!entryWindow.hasSubmittedInput()) {
+									return;
+								}
+								String sReturn = entryWindow.getSubmittedInput();
+								if ( sReturn != null ){
+									
+									sReturn = sReturn.trim();
+								
+									if ( sReturn.length() > 1 ){
+										
+										sReturn = sReturn.substring(0,1);
+									}
+
+									COConfigurationManager.setParameter( "config.section.shortcut.key." + id, sReturn );
+					  
+									updateHeader( tree_item );
+								}
+							}
+						});
+				  }
+			  }
+		  }
+	  });
+	  
+	  cHeader.setMenu( headerMenu );
+	  lHeader.setMenu( headerMenu );
+	  usermodeHint.setMenu( headerMenu );
+	  
       // Config Section
       cConfigSection = new Composite(cRightSide, SWT.NULL);
       layoutConfigSection = new StackLayout();
@@ -277,7 +332,36 @@ public class ConfigView implements UISWTViewEventListener {
       gridData.horizontalIndent = 2;
       cConfigSection.setLayoutData(gridData);
   
-  
+      TraverseListener traversal_listener =
+    	new TraverseListener()
+      	{		
+    	  public void keyTraversed(TraverseEvent e) {
+
+    		  if ( e.detail == SWT.TRAVERSE_TAB_NEXT ){
+
+    			  Utils.execSWTThreadLater(
+					  1,
+					  new Runnable()
+					  {
+						  public void
+						  run()
+						  {
+							  layoutConfigSection.topControl.traverse( SWT.TRAVERSE_TAB_NEXT);
+						  }
+					  });
+
+    		  }
+    	  }
+      	};
+
+      	// hack to prevent traversal from Left panel to Right...
+      	
+      cConfig.addTraverseListener( traversal_listener );
+      composite.addTraverseListener( traversal_listener );
+      cRightSide.addTraverseListener( traversal_listener );
+      cHeader.addTraverseListener( traversal_listener );
+      cConfigSection.addTraverseListener( traversal_listener );
+    	          
       form.setWeights(new int[] {20,80});
   
       tree.addSelectionListener(new SelectionAdapter() {
@@ -287,7 +371,7 @@ public class ConfigView implements UISWTViewEventListener {
           //OSX lets you select nothing in the tree for example when a child is selected
           //and you close its parent.
           if(tree.getSelection().length > 0)
-    	      showSection(tree.getSelection()[0]);
+    	      showSection(tree.getSelection()[0], false);
            }
       });
       // Double click = expand/contract branch
@@ -470,7 +554,7 @@ public class ConfigView implements UISWTViewEventListener {
     }
     
     if (startSection != null) {
-    	if (selectSection(startSection)) {
+    	if (selectSection(startSection,false)) {
     		return;
     	}
     }
@@ -478,9 +562,96 @@ public class ConfigView implements UISWTViewEventListener {
     TreeItem[] items = { tree.getItems()[0] };
     tree.setSelection(items);
     // setSelection doesn't trigger a SelectionListener, so..
-    showSection(items[0]);
+    showSection(items[0], false );
+    
+    KeyListener kl = 
+   		 new KeyListener() {
+				
+				public void keyReleased(KeyEvent e) {					
+				}
+				
+				public void keyPressed(KeyEvent e) {
+					if ((e.stateMask & SWT.MOD1 ) != 0 ){
+						
+						char key = e.character;
+						
+						if (key <= 26 && key > 0){
+							key += 'a' - 1;
+						}
+					
+						if ((e.stateMask & SWT.SHIFT )!= 0 ){
+							key = Character.toUpperCase(key);
+						}
+						if ( !Character.isISOControl( key )){
+							
+							for ( TreeItem ti: sections.keySet()){
+								
+								String id = (String)ti.getData( "ID" );
+								
+								if ( id != null ){
+									
+									String shortcut = COConfigurationManager.getStringParameter( "config.section.shortcut.key." + id, "" );
+									
+									if ( shortcut.equals( String.valueOf( key ))){
+										
+										//findFocus( composite );
+										
+										selectSection( id, true );
+										
+										e.doit = false;
+										
+										break;
+									}
+								}
+							}
+						}
+					}
+				}
+			};
+			
+	addListenerToComponents( cConfig, kl );
   }
 
+  private void
+  addListenerToComponents(
+		Control 	c,
+		KeyListener	kl )
+  {
+	  c.addKeyListener( kl );
+	  
+	  if ( c instanceof Composite ){
+	  
+		  Control[] kids = ((Composite)c).getChildren();
+	  
+		  for( Control k: kids ){
+		  
+			  addListenerToComponents( k, kl );
+		  }
+	  }
+  }
+  
+  
+  private void
+  findFocus(
+		Control 	c )
+  {
+	
+	 if ( c.isFocusControl()){
+		 System.out.println( "Focus=" + c );
+	 }
+	  
+	  if ( c instanceof Composite ){
+	  
+		  Control[] kids = ((Composite)c).getChildren();
+	  
+		  for( Control k: kids ){
+		  
+			  findFocus( k );
+		  }
+	  }
+  }
+  
+  
 	private void setupSC(ScrolledComposite sc) {
 		Composite c = (Composite) sc.getContent();
 		if (c != null) {
@@ -548,7 +719,7 @@ public class ConfigView implements UISWTViewEventListener {
 									}
 									TreeItem[] selection = tree.getSelection();
 									if (selection != null && selection.length > 0) {
-										showSection(selection[0]);
+										showSection(selection[0],false);
 									}
 								}
 							}
@@ -634,7 +805,11 @@ public class ConfigView implements UISWTViewEventListener {
 		return false;
 	}
 
-	private void showSection(TreeItem section) {
+	private void 
+	showSection(
+		TreeItem 	section,
+		boolean		focus ) 
+	{
     ScrolledComposite item = (ScrolledComposite)section.getData("Panel");
 
     if (item != null) {
@@ -653,6 +828,10 @@ public class ConfigView implements UISWTViewEventListener {
       cConfigSection.layout();
       
       updateHeader(section);
+      
+      if ( focus ){
+    	  layoutConfigSection.topControl.traverse( SWT.TRAVERSE_TAB_NEXT);
+      }
     }
   }
 	
@@ -739,6 +918,8 @@ public class ConfigView implements UISWTViewEventListener {
 		if (section == null)
 			return;
 		
+		lHeader.setData( "TreeItem", section );
+		
 		int userMode = COConfigurationManager.getIntParameter("User Mode");
 		int maxUsermode = 0;
 		try
@@ -753,19 +934,34 @@ public class ConfigView implements UISWTViewEventListener {
 			//Debug.printStackTrace(e);
 		}
 		
+		String id = (String)section.getData( "ID" );
+		
+		String shortcut = COConfigurationManager.getStringParameter( "config.section.shortcut.key." + id, null );
+		
+		String sc_text;
+		
+		if ( shortcut != null && shortcut.length() > 0 ){
+		
+			sc_text = "      (Ctrl+" + shortcut.charAt(0) + ")";
+		}else{
+			
+			sc_text = "";
+		}
+
 		if (userMode < maxUsermode)
 			Messages.setLanguageText(usermodeHint, "ConfigView.higher.mode.available");
 		else
 			usermodeHint.setText("");
 		
 		String sHeader = section.getText();
+				
 		section = section.getParentItem();
 		while (section != null)
 		{
 			sHeader = section.getText() + " : " + sHeader;
 			section = section.getParentItem();
 		}
-		lHeader.setText(" " + sHeader.replaceAll("&", "&&"));
+		lHeader.setText(" " + sHeader.replaceAll("&", "&&") + sc_text );
 		lHeader.getParent().layout(true, true);
 	}
 
@@ -993,12 +1189,12 @@ public class ConfigView implements UISWTViewEventListener {
     return MessageText.getString(MessageText.resolveLocalizationKey("ConfigView.title.full")); //$NON-NLS-1$
   }
 
-  public boolean selectSection(String id) {
+  public boolean selectSection(String id, boolean focus) {
 		TreeItem ti = findTreeItem(id);
 		if (ti == null)
 			return false;
 		tree.setSelection(new TreeItem[] { ti });
-		showSection(ti);
+		showSection(ti, focus);
 		return true;
 	}
 
@@ -1018,7 +1214,7 @@ public class ConfigView implements UISWTViewEventListener {
 				  
 			  tree.setSelection( new TreeItem[]{ item });
 			  
-			  showSection( item );
+			  showSection( item, true );
 			  
 			  break;
 		  }
@@ -1043,7 +1239,7 @@ public class ConfigView implements UISWTViewEventListener {
 	  	startSection = id;
 	  	Utils.execSWTThread(new AERunnable() {
 				public void runSupport() {
-					selectSection(startSection);
+					selectSection(startSection,false);
 				}
 			});
 		}
