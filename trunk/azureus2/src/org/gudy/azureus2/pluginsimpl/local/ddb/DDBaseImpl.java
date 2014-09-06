@@ -96,9 +96,15 @@ DDBaseImpl
 			
 			if ( net == AENetworkClassifier.AT_PUBLIC ){
 				
-				result.add( getSingleton( AzureusCoreFactory.getSingleton()));
+				DistributedDatabase ddb = getSingleton( AzureusCoreFactory.getSingleton());
+				
+				if ( ddb.isAvailable()){
+					
+					result.add( ddb );
+				}
 				
 			}else{
+				
 				Map<String,Object>	options = new HashMap<String, Object>();
 				
 				options.put( AEProxyFactory.DP_DOWNLOAD, download );
@@ -121,7 +127,10 @@ DDBaseImpl
 						}
 					}
 					
-					result.add( ddb );
+					if ( ddb.isAvailable()){
+					
+						result.add( ddb );
+					}
 				}
 			}
 		}
