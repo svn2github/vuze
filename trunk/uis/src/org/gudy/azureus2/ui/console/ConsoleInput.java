@@ -345,6 +345,7 @@ public class ConsoleInput extends Thread {
 		}catch( Throwable e ){
 			
 		}
+		registerCommand(new Tags());
 
 	}
 
