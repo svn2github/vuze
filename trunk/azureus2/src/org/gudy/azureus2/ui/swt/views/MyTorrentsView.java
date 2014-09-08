@@ -370,7 +370,7 @@ public class MyTorrentsView
 		    COConfigurationManager.addAndFireParameterListeners(new String[] {
 					"DND Always In Incomplete",
 					"User Mode",
-					"Library.ShowCatButtons", "Library.ShowTagButtons",
+					"Library.ShowCatButtons", "Library.ShowTagButtons", "Library.ShowTagButtons.CompOnly",
 				}, MyTorrentsView.this);
 
 		    	// can get an activate prior to this running so need to guard against adding the category listener twice
@@ -524,6 +524,7 @@ public class MyTorrentsView
     COConfigurationManager.removeParameterListener("DND Always In Incomplete", this);
     COConfigurationManager.removeParameterListener("Library.ShowCatButtons", this);
     COConfigurationManager.removeParameterListener("Library.ShowTagButtons", this);
+    COConfigurationManager.removeParameterListener("Library.ShowTagButtons.CompOnly", this);
   }
   
   
@@ -607,6 +608,12 @@ public class MyTorrentsView
     boolean tagButtonsDisabled = neverShowCatOrTagButtons;
     if ( !tagButtonsDisabled){
     	tagButtonsDisabled = !COConfigurationManager.getBooleanParameter( "Library.ShowTagButtons" );
+    	
+    	if ( !tagButtonsDisabled ){
+    		if ( !isSeedingView ){
+    			tagButtonsDisabled = COConfigurationManager.getBooleanParameter( "Library.ShowTagButtons.CompOnly" );
+    		}
+    	}
     }
     
     if ( !tagButtonsDisabled ){
@@ -2016,7 +2023,9 @@ public class MyTorrentsView
 		}
 		
 		if (parameterName != null && 
-				( parameterName.equals("Library.ShowCatButtons") || parameterName.equals("Library.ShowTagButtons" ))){
+				( 	parameterName.equals("Library.ShowCatButtons") || 
+					parameterName.equals("Library.ShowTagButtons" ) ||
+					parameterName.equals("Library.ShowTagButtons.CompOnly" ))){
 			
 			createTabs();
 		}

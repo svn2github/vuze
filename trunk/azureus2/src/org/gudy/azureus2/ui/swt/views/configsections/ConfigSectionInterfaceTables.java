@@ -32,7 +32,6 @@ import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -381,10 +380,20 @@ public class ConfigSectionInterfaceTables
 								SWT.LEFT, true, false, 2, 1));
 			}
 			
-			new BooleanParameter(cLibrary, "Library.ShowTagButtons", MSG_PREFIX
-					+ "ShowTagButtons").setLayoutData(new GridData(SWT.FILL,
-							SWT.LEFT, true, false, 2, 1));
+			BooleanParameter show_tag = new BooleanParameter(cLibrary, "Library.ShowTagButtons", MSG_PREFIX
+					+ "ShowTagButtons");
+			
+			show_tag.setLayoutData(new GridData(SWT.FILL, SWT.LEFT, true, false, 2, 1));
 
+			BooleanParameter show_tag_comp_only =new BooleanParameter(cLibrary, "Library.ShowTagButtons.CompOnly", MSG_PREFIX
+					+ "ShowTagButtons.CompOnly");
+			
+			gridData = new GridData(SWT.FILL,SWT.LEFT, true, false, 2, 1);
+			gridData.horizontalIndent = 25;
+			show_tag_comp_only.setLayoutData( gridData );
+			
+			show_tag.setAdditionalActionPerformer( new ChangeSelectionActionPerformer( show_tag_comp_only ));
+			
 			if (isAZ3) {
 
 				new BooleanParameter(cLibrary, "Library.ShowTabsInTorrentView", MSG_PREFIX

@@ -152,5 +152,6 @@ public class UIConfigDefaultsSWT
 		
 		def.addParameter( "Library.ShowCatButtons", true );
 		def.addParameter( "Library.ShowTagButtons", false );
+		def.addParameter( "Library.ShowTagButtons.CompOnly", false );
 	}
 }
