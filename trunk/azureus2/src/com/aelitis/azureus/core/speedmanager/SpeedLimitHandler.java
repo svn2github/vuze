@@ -101,6 +101,10 @@ public class
 SpeedLimitHandler 
 	implements LongTermStatsListener
 {
+	private static final Object			IPSET_PEER_LISTENER 	= new Object();
+	private static final Object			IPSET_TAG_LISTENER 		= new Object();
+	private static final Object			IPSET_ATTR_LISTENER 	= new Object();
+	
 	private static SpeedLimitHandler		singleton;
 	
 	public static SpeedLimitHandler
@@ -1700,65 +1704,93 @@ SpeedLimitHandler
 						
 						if ( f_has_cats_or_tags ){
 							
-							download.addAttributeListener(
-								attr_listener,
-								category_attribute,
-								DownloadAttributeListener.WRITTEN );
+								// attribute listener
+							
+							DownloadAttributeListener old_attr_listener = (DownloadAttributeListener)download.getUserData( IPSET_ATTR_LISTENER );
+							
+							if ( old_attr_listener != null ){
+								
+								download.removeAttributeListener( old_attr_listener, category_attribute, DownloadAttributeListener.WRITTEN );
+							}
+							
+							download.setUserData( IPSET_ATTR_LISTENER, attr_listener );
+							
+							download.addAttributeListener( attr_listener, category_attribute, DownloadAttributeListener.WRITTEN );
+														
+								// tag listener
 							
 							final TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
 							
 							final DownloadManager core_download = PluginCoreUtils.unwrap( download );
 							
-							tt.addTagListener(
-									core_download,
-									new TagListener() {
-										
-										public void 
-										taggableSync(
-											Tag tag ) 
-										{
-											if ( dml != this_dml ){
-												
-												tt.removeTagListener( core_download, this );
-												
-												return;
-											}
-										}
-										
-										public void 
-										taggableRemoved(
-											Tag 		tag, 
-											Taggable 	tagged) 
-										{
-											if ( dml != this_dml ){
-												
-												tt.removeTagListener( core_download, this );
-												
-												return;
-											}
-											
-											checkIPSets();
-										}
-										
-										public void 
-										taggableAdded(
-											Tag 		tag, 
-											Taggable 	tagged) 
-										{
-											if ( dml != this_dml ){
-												
-												tt.removeTagListener( core_download, this );
-												
-												return;
-											}
-											
-											checkIPSets();
-										}
-									});
+							TagListener old_tag_listener = (TagListener)download.getUserData( IPSET_TAG_LISTENER );
 							
+							if ( old_tag_listener != null ){
+								
+								tt.removeTagListener( core_download, old_tag_listener );
+							}
+							
+							TagListener tag_listener = 
+								new TagListener() {
+									
+									public void 
+									taggableSync(
+										Tag tag ) 
+									{
+										if ( dml != this_dml ){
+											
+											tt.removeTagListener( core_download, this );
+											
+											return;
+										}
+									}
+									
+									public void 
+									taggableRemoved(
+										Tag 		tag, 
+										Taggable 	tagged) 
+									{
+										if ( dml != this_dml ){
+											
+											tt.removeTagListener( core_download, this );
+											
+											return;
+										}
+										
+										checkIPSets();
+									}
+									
+									public void 
+									taggableAdded(
+										Tag 		tag, 
+										Taggable 	tagged) 
+									{
+										if ( dml != this_dml ){
+											
+											tt.removeTagListener( core_download, this );
+											
+											return;
+										}
+										
+										checkIPSets();
+									}
+								};
+								
+							download.setUserData( IPSET_TAG_LISTENER, tag_listener );
+							
+							tt.addTagListener( core_download, tag_listener );
 						}
 							
-						download.addPeerListener(
+							// peer listener
+						
+						DownloadPeerListener old_peer_listener = (DownloadPeerListener)download.getUserData( IPSET_PEER_LISTENER );
+						
+						if ( old_peer_listener != null ){
+							
+							download.removePeerListener( old_peer_listener );
+						}
+						
+						DownloadPeerListener	peer_listener = 
 							new DownloadPeerListener()
 							{
 								public void
@@ -1809,7 +1841,11 @@ SpeedLimitHandler
 									PeerManager		peer_manager )
 								{						
 								}
-							});
+							};
+							
+						download.setUserData( IPSET_PEER_LISTENER, peer_listener );
+						
+						download.addPeerListener( peer_listener );
 					}
 				
 						
