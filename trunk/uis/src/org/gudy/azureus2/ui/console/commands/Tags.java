@@ -1,15 +1,12 @@
 package org.gudy.azureus2.ui.console.commands;
 
 import java.io.PrintStream;
-import java.net.URL;
 import java.util.*;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.console.ConsoleInput;
-import org.gudy.azureus2.ui.console.commands.IConsoleCommand.TorrentComparator;
 
-import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.tag.*;
 
 
@@ -28,7 +25,7 @@ public class Tags extends IConsoleCommand {
 		return("tags\t\tAccess to tags.");
 	}
 	
-	public void printHelpExtra(PrintStream out, List args) {
+	public void printHelpExtra(PrintStream out, List<String> args) {
 		out.println("> -----");
 		out.println("Subcommands:");
 		out.println("\tlist\t: List tags");
