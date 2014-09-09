@@ -2,9 +2,11 @@ package org.gudy.azureus2.ui.console.commands;
 
 import java.io.PrintStream;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TimeFormatter;
 import org.gudy.azureus2.ui.console.ConsoleInput;
 
 import com.aelitis.azureus.core.subs.*;
@@ -77,6 +79,12 @@ public class Subscriptions extends IConsoleCommand {
 				}
 				
 				String str = index_str + sub.getName() + ", unread=" + history.getNumUnread() + ", auto_download=" + (history.isAutoDownload()?"yes":"no");
+				
+				str += ", check_period=" + history.getCheckFrequencyMins() + " mins";
+				
+				long	last_check = history.getLastScanTime();
+				
+				str += ", last_check=" + (last_check<=0?"never":new SimpleDateFormat("yy/MM/dd HH:mm" ).format( last_check ));
 				
 				String last_error = history.getLastError();
 				
@@ -151,6 +159,7 @@ public class Subscriptions extends IConsoleCommand {
 		}else if ( 	cmd.equals( "update" ) || 
 					cmd.equals( "results" ) || 
 					cmd.equals( "set_autodownload" ) ||
+					cmd.equals( "set_updatemins" ) ||
 					cmd.equals( "set_read" ) || 
 					cmd.equals( "set_unread" )|| 
 					cmd.equals( "download" )|| 
@@ -253,6 +262,26 @@ public class Subscriptions extends IConsoleCommand {
 						}else{
 							
 							ci.out.println( "Usage: " + cmd + " [yes|no]" );
+						}
+					}
+					
+				}else if ( 	cmd.equals( "set_updatemins" )){
+					
+					if ( args.size() < 2 ){
+						
+						ci.out.println( "Usage: " + cmd + " <minutes>" );
+					
+						
+					}else{
+						
+						try{
+							int	mins = Integer.parseInt( args.get(1));
+						
+							current_sub.getHistory().setCheckFrequencyMins( mins );
+							
+						}catch( Throwable e ){
+							
+							ci.out.println( "Usage: " + cmd + " <minutes>" );
 						}
 					}
 				}else if ( 	cmd.equals( "set_read" ) || 

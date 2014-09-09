@@ -84,6 +84,10 @@ SubscriptionHistory
 	public int
 	getCheckFrequencyMins();
 	
+	public void
+	setCheckFrequencyMins(
+		int		mins );
+	
 	public String
 	getLastError();
 	

@@ -59,6 +59,8 @@ SubscriptionHistoryImpl
 	
 	private boolean			dl_with_ref	= true;
 	
+	private int				interval_override;
+	
 	protected
 	SubscriptionHistoryImpl(
 		SubscriptionManagerImpl		_manager,
@@ -358,6 +360,20 @@ SubscriptionHistoryImpl
 	public long
 	getNextScanTime()
 	{
+		if ( interval_override > 0 ){
+			
+			if ( last_scan == 0 ){
+				
+					// never scanned, scan immediately
+				
+				return( SystemTime.getCurrentTime());
+				
+			}else{
+			
+				return( last_scan + interval_override*60*1000 );
+			}
+		}
+		
 		Map	schedule = subs.getScheduleConfig();
 		
 		if ( schedule.size() == 0  ){
@@ -399,6 +415,11 @@ SubscriptionHistoryImpl
 	public int
 	getCheckFrequencyMins()
 	{
+		if ( interval_override > 0 ){
+			
+			return( interval_override );
+		}
+		
 		Map	schedule = subs.getScheduleConfig();
 		
 		if ( schedule.size() == 0  ){
@@ -417,6 +438,17 @@ SubscriptionHistoryImpl
 				return( DEFAULT_CHECK_INTERVAL_MINS );
 			}
 		}
+	}
+	
+	public void
+	setCheckFrequencyMins(
+		int		mins )
+	{
+		interval_override		= mins;
+		
+		saveConfig();
+		
+		subs.fireChanged();
 	}
 	
 	public int
@@ -949,6 +981,9 @@ SubscriptionHistoryImpl
 
 		Long	l_dl_with_ref	= (Long)map.get( "dl_with_ref" );		
 		dl_with_ref	= l_dl_with_ref==null?true:l_dl_with_ref.longValue()==1;
+		
+		Long	l_interval_override	= (Long)map.get( "interval_override" );		
+		interval_override	= l_interval_override==null?0:l_interval_override.intValue();
 
 	}
 	
@@ -966,6 +1001,10 @@ SubscriptionHistoryImpl
 		map.put( "num_read", new Long( num_read ));
 		map.put( "dl_with_ref", new Long( dl_with_ref?1:0 ));
 
+		if ( interval_override > 0 ){
+			map.put( "interval_override", new Long( interval_override ));
+		}
+		
 		subs.updateHistoryConfig( map );
 	}
 	
