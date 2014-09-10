@@ -19,7 +19,6 @@
 
 package com.aelitis.net.upnp.impl.device;
 
-import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentAttribute;
 import org.gudy.azureus2.plugins.utils.xml.simpleparser.SimpleXMLParserDocumentNode;
 
 /**
@@ -66,7 +65,7 @@ UPnPDeviceImpl
 		root_device		= _root_device;
 		
 		device_type		= getMandatoryField( device_node, "DeviceType" );
-		friendly_name	= getMandatoryField( device_node, "FriendlyName" );
+		friendly_name	= getOptionalField( device_node, "FriendlyName" );	// should be mandatory but missing on DD-WRT (for example)
 		
 		/*
 		  <modelName>3Com ADSL 11g</modelName> 
@@ -81,6 +80,28 @@ UPnPDeviceImpl
 		model_number		= getOptionalField( device_node, "modelNumber");
 		model_url			= getOptionalField( device_node, "modelURL");
 		presentation_url	= getOptionalField( device_node, "presentationURL");
+		
+		if ( friendly_name == null ){
+			
+			// handle fact that mandatory field might be missing
+			
+			String[] bits = { manufacturer, model_description, model_number };
+			
+			friendly_name = "";
+			
+			for ( String bit: bits ){
+				
+				if ( bit != null ){
+				
+					friendly_name += (friendly_name.length()==0?"":"/") + bit;
+				}
+			}
+			
+			if ( friendly_name.length() == 0 ){
+				
+				friendly_name = "UPnP Device";
+			}
+		}
 		
 		boolean	interested = device_type.equalsIgnoreCase( "urn:schemas-upnp-org:device:WANConnectionDevice:1" );
 		

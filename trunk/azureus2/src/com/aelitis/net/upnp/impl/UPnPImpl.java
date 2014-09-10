@@ -688,7 +688,7 @@ UPnPImpl
 					fails[1] = SystemTime.getMonotonousTime();
 				}
 			
-				adapter.log( Debug.getNestedExceptionMessageAndStack(e));
+				adapter.log( "Failed to parse XML from :" + url_str + ": " + Debug.getNestedExceptionMessageAndStack(e));
 			}
 			
 			if (e instanceof UPnPException ){

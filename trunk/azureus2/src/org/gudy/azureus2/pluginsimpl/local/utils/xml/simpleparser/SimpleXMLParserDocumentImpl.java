@@ -172,7 +172,7 @@ SimpleXMLParserDocumentImpl
 				}
 			}
 			
-			Debug.out( e );
+			//Debug.out( e );
 			
 			throw( e );
 			
