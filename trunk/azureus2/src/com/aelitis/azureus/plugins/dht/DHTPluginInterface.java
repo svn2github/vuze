@@ -47,6 +47,12 @@ DHTPluginInterface
 	public boolean
 	isExtendedUseAllowed();
 	
+	public boolean
+	isInitialising();
+	
+	public boolean
+	isSleeping();
+	
 	public DHTPluginContact
 	getLocalAddress();
 	
