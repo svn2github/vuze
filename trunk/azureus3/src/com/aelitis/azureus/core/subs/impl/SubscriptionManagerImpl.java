@@ -560,7 +560,7 @@ SubscriptionManagerImpl
 											// if ever changed to handle non-persistent then you need to fix init deadlock
 											// potential with share-hoster plugin
 										
-										if ( download.isPersistent()){
+										if ( !downloadIsIgnored( download )){
 											
 											if ( !dht_plugin.isInitialising()){
 								
@@ -2499,6 +2499,28 @@ SubscriptionManagerImpl
 		return( false );
 	}
 	
+	private boolean
+	downloadIsIgnored(
+		Download		download )
+	{
+		if ( download.getTorrent() == null || !download.isPersistent()){
+			
+			return( true );
+		}
+		
+		String[] nets = PluginCoreUtils.unwrap( download ).getDownloadState().getNetworks();
+		
+		for ( String net: nets ){
+			
+			if ( net != AENetworkClassifier.AT_PUBLIC ){
+				
+				return( true );
+			}
+		}
+		
+		return( false );
+	}
+	
 	protected boolean
 	isVisible(
 		SubscriptionImpl		subs )
@@ -2618,7 +2640,7 @@ SubscriptionManagerImpl
 				
 				Download	download = downloads[i];
 				
-				if ( download.getTorrent() == null || !download.isPersistent()){
+				if ( downloadIsIgnored( download )){
 					
 					continue;
 				}
