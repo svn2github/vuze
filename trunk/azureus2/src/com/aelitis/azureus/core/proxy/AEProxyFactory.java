@@ -163,6 +163,7 @@ AEProxyFactory
 	}
 	
 	public static final String	DP_DOWNLOAD		= "download";
+	public static final String	DP_NETWORKS		= "networks";
 
 	
 	public static DHTPluginInterface

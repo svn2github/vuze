@@ -37,6 +37,7 @@ import org.gudy.azureus2.core3.download.DownloadManagerState;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLGroup;
 import org.gudy.azureus2.core3.torrent.TOTorrentAnnounceURLSet;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
@@ -57,6 +58,7 @@ import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.PluginListener;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.ddb.DistributedDatabaseTransferType;
 import org.gudy.azureus2.plugins.disk.DiskManagerFileInfo;
 import org.gudy.azureus2.plugins.download.Download;
@@ -68,6 +70,7 @@ import org.gudy.azureus2.plugins.utils.search.SearchException;
 import org.gudy.azureus2.plugins.utils.search.SearchInstance;
 import org.gudy.azureus2.plugins.utils.search.SearchObserver;
 import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
+import org.gudy.azureus2.pluginsimpl.local.ddb.DDBaseImpl;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
@@ -139,6 +142,16 @@ RelatedContentManager
 
 	private static final int CONFIG_DISCARD_MILLIS	= 60*1000;
 	
+	protected static final byte		NET_NONE	= 0x00;
+	protected static final byte		NET_PUBLIC	= 0x01;
+	protected static final byte		NET_I2P		= 0x02;
+	protected static final byte		NET_TOR		= 0x04;
+	
+	private static final String[] NET_PUBLIC_ARRAY 			= { AENetworkClassifier.AT_PUBLIC };
+	private static final String[] NET_I2P_ARRAY 			= { AENetworkClassifier.AT_I2P };
+	private static final String[] NET_TOR_ARRAY 			= { AENetworkClassifier.AT_TOR };
+	private static final String[] NET_PUBLIC_AND_I2P_ARRAY 	= { AENetworkClassifier.AT_PUBLIC, AENetworkClassifier.AT_I2P };
+
 	public static synchronized void
 	preInitialise(
 		AzureusCore		_core )
@@ -164,17 +177,23 @@ RelatedContentManager
 	private PluginInterface 				plugin_interface;
 	private TorrentAttribute 				ta_networks;
 	private TorrentAttribute 				ta_category;
-	private DHTPluginInterface				dht_plugin;
+	private DHTPluginInterface				public_dht_plugin;
+				
+	private volatile Map<Byte,DHTPluginInterface>		i2p_dht_plugin_map = new HashMap<Byte, DHTPluginInterface>();
 
 	private TagManager						tag_manager;
 	
 	private long	global_random_id = -1;
 	
-	private LinkedList<DownloadInfo>		download_infos1 	= new LinkedList<DownloadInfo>();
-	private LinkedList<DownloadInfo>		download_infos2 	= new LinkedList<DownloadInfo>();
+	private LinkedList<DownloadInfo>			pub_download_infos1 	= new LinkedList<DownloadInfo>();
+	private LinkedList<DownloadInfo>			pub_download_infos2 	= new LinkedList<DownloadInfo>();
+		
+	private LinkedList<DownloadInfo>			non_pub_download_infos1 	= new LinkedList<DownloadInfo>();
+	private LinkedList<DownloadInfo>			non_pub_download_infos2 	= new LinkedList<DownloadInfo>();
 	
 	private ByteArrayHashMapEx<DownloadInfo>	download_info_map	= new ByteArrayHashMapEx<DownloadInfo>();
 	private Set<String>							download_priv_set	= new HashSet<String>();
+
 	
 	private final boolean	enabled;
 	
@@ -363,14 +382,9 @@ RelatedContentManager
 				
 							DHTPlugin dp = (DHTPlugin)dht_pi.getPlugin();
 							
-							dht_plugin = dp;
+							public_dht_plugin = dp;
 
 							searcher.setDHTPlugin( dp );
-							
-							if ( !dht_plugin.isEnabled()){
-								
-								return;
-							}
 							
 							DownloadManager dm = plugin_interface.getDownloadManager();
 							
@@ -413,7 +427,7 @@ RelatedContentManager
 												
 											if ( tick_count >= INITIAL_PUBLISH_TICKS ){
 												
-												if ( tick_count % ( dht_plugin.isSleeping()?PUBLISH_SLEEPING_CHECK_TICKS:PUBLISH_CHECK_TICKS) == 0 ){
+												if ( tick_count % ( public_dht_plugin.isSleeping()?PUBLISH_SLEEPING_CHECK_TICKS:PUBLISH_CHECK_TICKS) == 0 ){
 												
 													publish();
 												}
@@ -492,6 +506,54 @@ RelatedContentManager
 		enforceMaxResults( false );
 	}
 	
+	private DHTPluginInterface
+	selectDHT(
+		byte		networks )
+	{
+		DHTPluginInterface	result = null;
+		
+		if ((networks & NET_PUBLIC ) != 0 ){
+			
+			result = public_dht_plugin;
+			
+		}else if ((networks & NET_I2P ) != 0 ){
+			
+			synchronized( i2p_dht_plugin_map ){
+			
+				result = i2p_dht_plugin_map.get( networks );
+			
+				if ( result == null && !i2p_dht_plugin_map.containsKey( networks )){
+	
+					try{
+						
+						List<DistributedDatabase> ddbs = DDBaseImpl.getDDBs( convertNetworks( networks ));
+						
+						for ( DistributedDatabase ddb: ddbs ){
+							
+							if ( ddb.getNetwork() == AENetworkClassifier.AT_I2P ){
+								
+								result = ((DDBaseImpl)ddb).getDHTPlugin();
+							}
+						}
+					}finally{
+						
+						i2p_dht_plugin_map.put( networks, result );
+					}
+				}
+			}
+		}
+		
+		if ( result != null ){
+			
+			if ( !result.isEnabled()){
+				
+				result = null;
+			}
+		}
+		
+		return( result );
+	}
+	
 	protected void
 	addDownloads(
 		Download[]		downloads,
@@ -523,34 +585,36 @@ RelatedContentManager
 						continue;
 					}
 					
-					String[]	networks = download.getListAttribute( ta_networks );
-					
-					if ( networks == null ){
+					byte nets = getNetworks( download );
+
+					if ( nets == NET_NONE ){
 						
 						continue;
-					}
-						
-					boolean	public_net = false;
-					
-					for (int i=0;i<networks.length;i++){
-						
-						if ( networks[i].equalsIgnoreCase( "Public" )){
-								
-							public_net	= true;
-							
-							break;
-						}
 					}
 					
 					TOTorrent to_torrent = PluginCoreUtils.unwrap( torrent );
 					
-					if ( public_net && !TorrentUtils.isReallyPrivate( to_torrent )){
+					if ( !TorrentUtils.isReallyPrivate( to_torrent )){
 						
 						DownloadManagerState state = PluginCoreUtils.unwrap( download ).getDownloadState();
 
 						if ( state.getFlag(DownloadManagerState.FLAG_LOW_NOISE )){
 							
 							continue;
+						}
+						
+						LinkedList<DownloadInfo>			download_infos1;
+						LinkedList<DownloadInfo>			download_infos2;
+
+						if (( nets & NET_PUBLIC ) != 0 ){
+							
+							download_infos1 	= pub_download_infos1;
+							download_infos2 	= pub_download_infos2;
+							
+						}else{
+							
+							download_infos1		= non_pub_download_infos1;
+							download_infos2 	= non_pub_download_infos2;
 						}
 						
 						long rand = global_random_id ^ state.getLongParameter( DownloadManagerState.PARAM_RANDOM_SEED );						
@@ -583,6 +647,7 @@ RelatedContentManager
 								keys[0],
 								keys[1],
 								getTags( download ),
+								nets,
 								0,
 								false,
 								torrent.getSize(),
@@ -636,8 +701,16 @@ RelatedContentManager
 								download_priv_set.add( getPrivateInfoKey( info ));
 							}
 							
-							download_infos1.add( info );
-							download_infos2.add( info );
+							if (( info.getNetworksInternal() & NET_PUBLIC ) != 0 ){
+							
+								pub_download_infos1.add( info );
+								pub_download_infos2.add( info );
+							
+							}else{
+								
+								non_pub_download_infos1.add( info );
+								non_pub_download_infos2.add( info );
+							}
 							
 							padd--;
 						}
@@ -646,7 +719,8 @@ RelatedContentManager
 					}
 				}
 				
-				Collections.shuffle( download_infos1 );
+				Collections.shuffle( pub_download_infos1 );
+				Collections.shuffle( non_pub_download_infos1 );
 				
 			}else{
 				
@@ -720,22 +794,46 @@ RelatedContentManager
 	{
 		synchronized( rcm_lock ){
 
-			if( publishing_count > 0 ){
+			if ( publishing_count > 0 ){
 				
 				return;
 			}
 			
-			if ( download_infos1.isEmpty()){
+			if ( pub_download_infos1.isEmpty()){
 				
 				List<DownloadInfo> list = download_info_map.values();
 				
-				download_infos1.addAll( list );
-				download_infos2.addAll( list );
+				for ( DownloadInfo info: list ){
+					
+					if (( info.getNetworksInternal() & NET_PUBLIC ) != 0 ){
+			
+						pub_download_infos1.add( info );
+						pub_download_infos2.add( info );
+					}
+				}
 				
-				Collections.shuffle( download_infos1 );
+				Collections.shuffle( pub_download_infos1 );
+			}
+			
+			if ( non_pub_download_infos1.isEmpty()){
+				
+				List<DownloadInfo> list = download_info_map.values();
+				
+				for ( DownloadInfo info: list ){
+					
+					if (( info.getNetworksInternal() & NET_PUBLIC ) == 0 ){
+				
+						non_pub_download_infos1.add( info );
+						non_pub_download_infos2.add( info );
+					}
+				}
+				
+				Collections.shuffle( non_pub_download_infos1 );
 			}
 		}
 	}
+	
+	private boolean last_pub_was_pub;
 	
 	protected void
 	publish()
@@ -749,7 +847,71 @@ RelatedContentManager
 	
 				if ( publishing_count >= MAX_CONCURRENT_PUBLISH ){
 					
+						// too busy
+					
 					return;
+				}
+				
+				if ( download_info_map.size() == 1 ){
+					
+						// only one download, nothing to pair up with
+					
+					return;
+				}
+				
+				boolean	pub_ok = false;
+				
+				if ( 	pub_download_infos1.isEmpty() ||
+						( 	pub_download_infos1.size() == 1 && 
+							pub_download_infos1.getFirst() == pub_download_infos2.getFirst())){
+					
+					// either none or only one download remaining to be published and it has no partner
+					
+				}else{
+					
+					pub_ok = true;
+				}
+				
+				boolean	non_pub_ok = false;
+				
+				if ( 	non_pub_download_infos1.isEmpty() ||
+						( 	non_pub_download_infos1.size() == 1 && 
+							non_pub_download_infos1.getFirst() == non_pub_download_infos2.getFirst())){
+					
+					// either none or only one download remaining to be published and it has no partner
+					
+				}else{
+					
+					non_pub_ok = true;
+				}
+				
+				if ( !( pub_ok || non_pub_ok )){
+					
+					return;
+				}
+				
+				LinkedList<DownloadInfo> download_infos1;
+				LinkedList<DownloadInfo> download_infos2;
+				
+				if ( pub_ok && non_pub_ok ){
+				
+					if ( last_pub_was_pub ){
+						
+						pub_ok = false;
+					}
+					
+					last_pub_was_pub = !last_pub_was_pub;
+				}
+				
+				if ( pub_ok ){
+					
+					download_infos1 = pub_download_infos1;
+					download_infos2 = pub_download_infos2;
+					
+				}else{
+					
+					download_infos1 = non_pub_download_infos1;
+					download_infos2 = non_pub_download_infos2;
 				}
 				
 				if ( download_infos1.isEmpty() || download_info_map.size() == 1 ){
@@ -775,22 +937,20 @@ RelatedContentManager
 				
 				if ( info1 == info2 ){
 									
-					info2 = download_info_map.getRandomValueExcluding( info1 );
-					
-					if ( info2 == null || info1 == info2 ){
-						
-						// Debug.out( "Inconsistent!" );
-						
-						return;
-					}
+					return;
 				}
 				
 				publishing_count++;
 			}
 			
 			try{
-				publish( info1, info2 );
+				if ( !publish( info1, info2 )){
 				
+					synchronized( rcm_lock ){
+
+						publishing_count--;
+					}
+				}				
 			}catch( Throwable e ){
 				
 				synchronized( rcm_lock ){
@@ -821,13 +981,22 @@ RelatedContentManager
 		publish();
 	}
 	
-	protected void
+	protected boolean
 	publish(
 		final DownloadInfo	from_info,
 		final DownloadInfo	to_info )
 	
 		throws Exception
-	{			
+	{		
+		final DHTPluginInterface dht_plugin = selectDHT( from_info.getNetworksInternal());
+
+		// System.out.println( "publish: " + from_info.getString() + " -> " + to_info.getString() + ": " + dht_plugin );
+		
+		if ( dht_plugin == null ){
+			
+			return( false );
+		}
+		
 		final String from_hash	= ByteFormatter.encodeString( from_info.getHash());
 		final String to_hash	= ByteFormatter.encodeString( to_info.getHash());
 		
@@ -916,6 +1085,12 @@ RelatedContentManager
 					if ( _tags != null ){
 						map.put( "g", encodeTags( _tags ));
 					}
+					
+					byte nets = getNetworks( d );
+					
+					if ( nets != NET_PUBLIC ){
+						map.put( "o", new Long( nets&0xff ));
+					}
 				}
 			}catch( Throwable e ){		
 			}
@@ -957,7 +1132,7 @@ RelatedContentManager
 		//System.out.println( "rcmsize=" + map_bytes.length );
 		
 		final int max_hits = 30;
-		
+				
 		dht_plugin.get(
 				key_bytes,
 				"Content rel test: " + from_hash.substring( 0, 16 ),
@@ -1125,6 +1300,8 @@ RelatedContentManager
 						}
 					}
 				});
+		
+		return( true );
 	}
 		
 	private void
@@ -1151,7 +1328,9 @@ RelatedContentManager
 				}
 			}
 			
-			if ( sizes.size() > 0 ){
+			final DHTPluginInterface dht_plugin = selectDHT( to_info.getNetworksInternal());
+			
+			if ( dht_plugin != null && sizes.size() > 0 ){
 
 				try{
 					final String to_hash	= ByteFormatter.encodeString( to_info.getHash());
@@ -1367,10 +1546,14 @@ RelatedContentManager
 			byte[]	_tags = (byte[])map.get( "g" );
 			
 			String[] tags = decodeTags( _tags );
-					
+				
+			Long _nets = (Long)map.get( "o" );
+			
+			byte nets = _nets==null?NET_PUBLIC:_nets.byteValue();
+			
 			return(
 				new DownloadInfo( 
-						from_hash, hash, title, rand, tracker, tracker_keys, ws_keys, tags, level, explicit, size, 
+						from_hash, hash, title, rand, tracker, tracker_keys, ws_keys, tags, nets, level, explicit, size, 
 						published==null?0:published.intValue(),
 						seeds_leechers,
 						(byte)(cnet==null?ContentNetwork.CONTENT_NETWORK_UNKNOWN:cnet.byteValue()))); 
@@ -1394,7 +1577,7 @@ RelatedContentManager
 		}
 
 		if ( 	!initialisation_complete_sem.isReleasedForever() ||
-				( dht_plugin != null && dht_plugin.isInitialising())){
+				( public_dht_plugin != null && public_dht_plugin.isInitialising())){
 			
 			AsyncDispatcher dispatcher = new AsyncDispatcher();
 	
@@ -1407,7 +1590,7 @@ RelatedContentManager
 						try{
 							initialisation_complete_sem.reserve();
 							
-							lookupAttributesSupport( from_hash, listener );
+							lookupAttributesSupport( from_hash, NET_PUBLIC, listener );
 							
 						}catch( ContentException e ){
 							
@@ -1417,13 +1600,14 @@ RelatedContentManager
 				});
 		}else{
 			
-			lookupAttributesSupport( from_hash, listener );
+			lookupAttributesSupport( from_hash, NET_PUBLIC, listener );
 		}
 	}
 	
 	private void
 	lookupAttributesSupport(
 		final byte[]							from_hash,
+		final byte								networks,
 		final RelatedAttributeLookupListener	listener )
 	
 		throws ContentException
@@ -1433,10 +1617,12 @@ RelatedContentManager
 				
 				throw( new ContentException( "rcm is disabled" ));
 			}
-		
+			
+			DHTPluginInterface dht_plugin = selectDHT( networks );
+
 			if ( dht_plugin == null ){
 				
-				throw( new ContentException( "DHT plugin unavailable" ));
+				throw( new Exception( "DHT Plugin unavailable" ));
 			}
 			
 			final String from_hash_str	= ByteFormatter.encodeString( from_hash );
@@ -1576,7 +1762,7 @@ RelatedContentManager
 		}
 
 		if ( 	!initialisation_complete_sem.isReleasedForever() ||
-				( dht_plugin != null && dht_plugin.isInitialising())){
+				( public_dht_plugin != null && public_dht_plugin.isInitialising())){
 			
 			AsyncDispatcher dispatcher = new AsyncDispatcher();
 	
@@ -1589,7 +1775,7 @@ RelatedContentManager
 						try{
 							initialisation_complete_sem.reserve();
 							
-							lookupContentSupport( hash, 0, true, listener );
+							lookupContentSupport( hash, 0, NET_PUBLIC, true, listener );
 							
 						}catch( ContentException e ){
 							
@@ -1599,7 +1785,7 @@ RelatedContentManager
 				});
 		}else{
 			
-			lookupContentSupport( hash, 0, true, listener );
+			lookupContentSupport( hash, 0, NET_PUBLIC, true, listener );
 		}
 	}
 	
@@ -1616,7 +1802,7 @@ RelatedContentManager
 		}
 
 		if ( 	!initialisation_complete_sem.isReleasedForever() ||
-				( dht_plugin != null && dht_plugin.isInitialising())){
+				( public_dht_plugin != null && public_dht_plugin.isInitialising())){
 			
 			AsyncDispatcher dispatcher = new AsyncDispatcher();
 	
@@ -1629,7 +1815,7 @@ RelatedContentManager
 						try{
 							initialisation_complete_sem.reserve();
 							
-							lookupContentSupport( file_size, listener );
+							lookupContentSupport( file_size, NET_PUBLIC, listener );
 							
 						}catch( ContentException e ){
 							
@@ -1639,13 +1825,14 @@ RelatedContentManager
 				});
 		}else{
 			
-			lookupContentSupport( file_size, listener );
+			lookupContentSupport( file_size, NET_PUBLIC, listener );
 		}
 	}
 	
 	private void
 	lookupContentSupport(
 		final long							file_size,
+		final byte							networks,
 		final RelatedContentLookupListener	listener )
 	
 		throws ContentException
@@ -1655,11 +1842,6 @@ RelatedContentManager
 			throw( new ContentException( "rcm is disabled" ));
 		}
 	
-		if ( dht_plugin == null ){
-			
-			throw( new ContentException( "DHT plugin unavailable" ));
-		}
-
 		try{
 			final byte[] key_bytes	= ( "az:rcm:size:assoc:" + file_size ).getBytes( "UTF-8" );
 
@@ -1669,7 +1851,7 @@ RelatedContentManager
 			
 			String op_str = "Content rel read: size=" + file_size;
 
-			lookupContentSupport0( from_hash, key_bytes, op_str, 0, true, listener );
+			lookupContentSupport0( from_hash, key_bytes, op_str, 0, networks, true, listener );
 			
 		}catch( ContentException e ){
 			
@@ -1685,6 +1867,7 @@ RelatedContentManager
 	lookupContentSupport(
 		final byte[]						from_hash,
 		final int							level,
+		final byte							networks,
 		final boolean						explicit,
 		final RelatedContentLookupListener	listener )
 	
@@ -1695,11 +1878,6 @@ RelatedContentManager
 			throw( new ContentException( "rcm is disabled" ));
 		}
 		
-		if ( dht_plugin == null ){
-			
-			throw( new ContentException( "DHT plugin unavailable" ));
-		}
-
 		try{
 			
 			final String from_hash_str	= ByteFormatter.encodeString( from_hash );
@@ -1708,7 +1886,7 @@ RelatedContentManager
 			
 			String op_str = "Content rel read: " + from_hash_str.substring( 0, 16 );
 
-			lookupContentSupport0( from_hash, key_bytes, op_str, level, explicit, listener );
+			lookupContentSupport0( from_hash, key_bytes, op_str, level, networks, explicit, listener );
 			
 		}catch( ContentException e ){
 			
@@ -1726,6 +1904,7 @@ RelatedContentManager
 		final byte[]						key_bytes,
 		final String						op_str,
 		final int							level,
+		final byte							networks,
 		final boolean						explicit,
 		final RelatedContentLookupListener	listener )
 	
@@ -1733,6 +1912,13 @@ RelatedContentManager
 	{
 		try{
 			final int max_hits = 30;
+			
+			DHTPluginInterface dht_plugin = selectDHT( networks );
+
+			if ( dht_plugin == null ){
+				
+				throw( new Exception( "DHT Plugin unavailable" ));
+			}
 			
 			dht_plugin.get(
 					key_bytes,
@@ -1952,7 +2138,7 @@ RelatedContentManager
 					
 					added.add( info );
 					
-					secondary_lookups.addLast(new SecondaryLookup(info.getHash(), info.getLevel()));
+					secondary_lookups.addLast(new SecondaryLookup(info.getHash(), info.getLevel(), info.getNetworksInternal()));
 				}
 			}
 		}
@@ -1992,7 +2178,7 @@ RelatedContentManager
 				
 				DownloadInfo x = secondary_cache_temp.get(i);
 				
-				secondary_lookups.addLast(new SecondaryLookup(x.getHash(), x.getLevel()));
+				secondary_lookups.addLast(new SecondaryLookup(x.getHash(), x.getLevel(), x.getNetworksInternal()));
 			}
 		}
 	}
@@ -2046,6 +2232,7 @@ RelatedContentManager
 			lookupContentSupport( 
 				sl.getHash(),
 				sl.getLevel(),
+				sl.getNetworks(),
 				false,
 				new RelatedContentLookupListener()
 				{
@@ -2106,7 +2293,7 @@ RelatedContentManager
 									TimerEvent event ) 
 								{
 									try{					
-										lookupContentSupport( next_sl.getHash(), next_sl.getLevel(), false, listener );
+										lookupContentSupport( next_sl.getHash(), next_sl.getLevel(), next_sl.getNetworks(), false, listener );
 										
 									}catch( Throwable e ){
 										
@@ -2375,7 +2562,7 @@ RelatedContentManager
 							
 							if ( hash != null && level < max_search_level ){
 								
-								secondary_lookups.add( new SecondaryLookup( hash, level ));
+								secondary_lookups.add( new SecondaryLookup( hash, level, target_info.getNetworksInternal()));
 							}
 						}
 						
@@ -2610,16 +2797,31 @@ RelatedContentManager
 				cc.related_content 		= new HashMap<String,DownloadInfo>();
 				cc.related_content_map 	= new ByteArrayHashMapEx<ArrayList<DownloadInfo>>();
 			}
+					
+			pub_download_infos1.clear();
+			pub_download_infos2.clear();
 			
-			download_infos1.clear();
-			download_infos2.clear();
+			non_pub_download_infos1.clear();
+			non_pub_download_infos2.clear();
 			
-			List<DownloadInfo> list = download_info_map.values();
+			List<DownloadInfo>	list = download_info_map.values();
 			
-			download_infos1.addAll( list );
-			download_infos2.addAll( list );
+			for ( DownloadInfo info: list ){
+				
+				if (( info.getNetworksInternal() & NET_PUBLIC ) != 0 ){
 			
-			Collections.shuffle( download_infos1 );
+					pub_download_infos1.add( info );
+					pub_download_infos2.add( info );
+					
+				}else{
+					
+					non_pub_download_infos1.add( info );
+					non_pub_download_infos2.add( info );
+				}
+			}
+			
+			Collections.shuffle( pub_download_infos1 );
+			Collections.shuffle( non_pub_download_infos1 );
 			
 			total_unread.set( 0 );
 			
@@ -3319,6 +3521,69 @@ RelatedContentManager
 		}
 	}
 		
+	private byte
+	getNetworks(
+		Download		download )
+	{
+		byte	nets = 0;
+
+		String[]	networks = download.getListAttribute( ta_networks );
+		
+		if ( networks != null ){
+				
+			for ( int i=0;i<networks.length;i++ ){
+				
+				String n = networks[i];
+				
+				if (n.equalsIgnoreCase( AENetworkClassifier.AT_PUBLIC )){
+					
+					nets |= NET_PUBLIC;
+					
+				}else if ( n.equalsIgnoreCase( AENetworkClassifier.AT_I2P )){
+					
+					nets |= NET_I2P;
+					
+				}else if ( n.equalsIgnoreCase( AENetworkClassifier.AT_TOR )){
+					
+					nets |= NET_TOR;
+				}
+			}
+		}
+		
+		return( nets );
+	}
+	
+	protected static String[]
+	convertNetworks(
+		byte		net )
+	{
+		if ( net == 0 ){
+			return( new String[0] );
+		}else if ( net == NET_PUBLIC ){
+			return( NET_PUBLIC_ARRAY );
+		}else if ( net == NET_I2P ){
+			return( NET_I2P_ARRAY );		
+		}else if ( net == NET_TOR ){
+			return( NET_TOR_ARRAY );
+		}else if ( net == (NET_PUBLIC | NET_I2P )){
+			return( NET_PUBLIC_AND_I2P_ARRAY );
+		}else{
+			List<String>	nets = new ArrayList<String>();
+			
+			if (( net & NET_PUBLIC ) != 0 ){
+				nets.add( AENetworkClassifier.AT_PUBLIC );
+			}
+			if (( net & NET_I2P ) != 0 ){
+				nets.add( AENetworkClassifier.AT_I2P );
+			}
+			if (( net & NET_TOR ) != 0 ){
+				nets.add( AENetworkClassifier.AT_TOR );
+			}
+			
+			return( nets.toArray( new String[ nets.size()]));
+		}
+	}
+	
 	private String[]
 	getTags(
 		Download	download )
@@ -3814,6 +4079,12 @@ RelatedContentManager
 			if ( tags != null ){
 				info_map.put( "g", encodeTags(tags));
 			}
+			
+			byte nets = info.getNetworksInternal();
+			if (nets != NET_PUBLIC ){
+				info_map.put( "o", new Long(nets&0x00ff ));
+			}
+			
 			if ( cc != null ){
 							
 				ImportExportUtils.exportBoolean( info_map, "u", info.isUnread());
@@ -3867,11 +4138,17 @@ RelatedContentManager
 
 			String[] tags = decodeTags( _tags );
 			
+			Long _nets = (Long)info_map.get( "o" );
+			
+			byte nets = _nets==null?NET_PUBLIC:_nets.byteValue();
+
 			if ( cc == null ){
 			
-				 DownloadInfo info = new DownloadInfo( hash, hash, title, rand, tracker, tracker_keys, ws_keys, tags, 0, false, size, date, seeds_leechers, cnet );
-				 info.setChangedLocallyOn(lastChangedLocally);
-				 return info;
+				 DownloadInfo info = new DownloadInfo( hash, hash, title, rand, tracker, tracker_keys, ws_keys, tags, nets, 0, false, size, date, seeds_leechers, cnet );
+				 
+				 info.setChangedLocallyOn( lastChangedLocally );
+				 
+				 return( info );
 				
 			}else{
 				
@@ -3883,9 +4160,11 @@ RelatedContentManager
 				
 				int	level = ImportExportUtils.importInt( info_map, "e" );
 				
-				DownloadInfo info = new DownloadInfo( hash, title, rand, tracker, tracker_keys, ws_keys, tags, unread, rand_list, last_seen, level, size, date, seeds_leechers, cnet, cc );
-        info.setChangedLocallyOn(lastChangedLocally);
-        return info;
+				DownloadInfo info = new DownloadInfo( hash, title, rand, tracker, tracker_keys, ws_keys, tags, nets, unread, rand_list, last_seen, level, size, date, seeds_leechers, cnet, cc );
+				
+				info.setChangedLocallyOn( lastChangedLocally );
+        
+				return( info );
 			}
 		}catch( Throwable e ){
 			
@@ -4006,6 +4285,7 @@ RelatedContentManager
 			byte[]		_tracker_keys,
 			byte[]		_ws_keys,
 			String[]	_tags,
+			byte		_nets,
 			int			_level,
 			boolean		_explicit,
 			long		_size,
@@ -4013,7 +4293,7 @@ RelatedContentManager
 			int			_seeds_leechers,
 			byte		_cnet )
 		{
-			super( _related_to, _title, _hash, _tracker, _tracker_keys, _ws_keys, _tags, _size, _date, _seeds_leechers, _cnet );
+			super( _related_to, _title, _hash, _tracker, _tracker_keys, _ws_keys, _tags, _nets, _size, _date, _seeds_leechers, _cnet );
 			
 			rand		= _rand;
 			level		= _level;
@@ -4031,6 +4311,7 @@ RelatedContentManager
 			byte[]			_tracker_keys,
 			byte[]			_ws_keys,
 			String[]		_tags,
+			byte			_nets,
 			boolean			_unread,
 			int[]			_rand_list,
 			int				_last_seen,
@@ -4041,7 +4322,7 @@ RelatedContentManager
 			byte			_cnet,
 			ContentCache	_cc )
 		{
-			super( _title, _hash, _tracker, _tracker_keys, _ws_keys, _tags, _size, _date, _seeds_leechers, _cnet );
+			super( _title, _hash, _tracker, _tracker_keys, _ws_keys, _tags, _nets, _size, _date, _seeds_leechers, _cnet );
 			
 			rand		= _rand;
 			unread		= _unread;
@@ -4217,7 +4498,17 @@ RelatedContentManager
 					}
 				}
 			}
-
+			
+			byte	other_nets 		= info.getNetworksInternal();
+			byte	existing_nets	= getNetworksInternal();
+			
+			if ( other_nets != existing_nets ){
+				
+				setNetworksInternal((byte)( other_nets | existing_nets ));
+				
+				result = true;
+			}
+			
 			if (result) {
 				setChangedLocallyOn(0);
 			}
@@ -4390,26 +4681,35 @@ RelatedContentManager
 	{
 		final private byte[]	hash;
 		final private int		level;
+		final private byte		nets;
 		
-		protected
+		private
 		SecondaryLookup(
 			byte[]		_hash,
-			int			_level )
+			int			_level,
+			byte		_nets )
 		{
 			hash	= _hash;
 			level	= _level;
+			nets	= _nets;
 		}
 		
-		protected byte[]
+		private byte[]
 		getHash()
 		{
 			return( hash );
 		}
 		
-		protected int
+		private int
 		getLevel()
 		{
 			return( level );
+		}
+		
+		private byte
+		getNetworks()
+		{
+			return( nets );
 		}
 	}
 }

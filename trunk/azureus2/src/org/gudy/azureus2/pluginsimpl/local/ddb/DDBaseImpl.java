@@ -138,6 +138,58 @@ DDBaseImpl
 		return( result );
 	}
 	
+	public static List<DistributedDatabase>
+	getDDBs(
+		String[]		networks )
+	{
+		List<DistributedDatabase>	result = new ArrayList<DistributedDatabase>();
+							
+		for ( String net: networks ){
+			
+			if ( net == AENetworkClassifier.AT_PUBLIC ){
+				
+				DistributedDatabase ddb = getSingleton( AzureusCoreFactory.getSingleton());
+				
+				if ( ddb.isAvailable()){
+					
+					result.add( ddb );
+				}
+				
+			}else{
+				
+				Map<String,Object>	options = new HashMap<String, Object>();
+				
+				options.put( AEProxyFactory.DP_NETWORKS, networks );
+				
+				DHTPluginInterface dpi = AEProxyFactory.getPluginDHTProxy( "ddb", net, options );
+				
+				if ( dpi != null ){
+					
+					DistributedDatabase ddb;
+					
+					synchronized( dht_pi_map ){
+						
+						ddb = dht_pi_map.get( dpi );
+						
+						if ( ddb == null ){
+							
+							ddb = new DDBaseImpl( net, dpi );
+							
+							dht_pi_map.put( dpi, ddb );
+						}
+					}
+					
+					if ( ddb.isAvailable()){
+					
+						result.add( ddb );
+					}
+				}
+			}
+		}
+		
+		return( result );
+	}
+	
 	final private AzureusCore				azureus_core;
 	final private DDBaseTTTorrent			torrent_transfer;
 	final private String					network;
@@ -176,6 +228,12 @@ DDBaseImpl
 	getNetwork()
 	{
 		return( network );
+	}
+	
+	public DHTPluginInterface
+	getDHTPlugin()
+	{
+		return( dht_use_accessor );
 	}
 	
 	public DDBaseTTTorrent

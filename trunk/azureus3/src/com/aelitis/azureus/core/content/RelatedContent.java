@@ -37,16 +37,18 @@ RelatedContent
 	final private byte[]		hash;
 	final private String		tracker;
 	final private long			size;
+	
 	private int					date;
 	private int					seeds_leechers;
 	private byte				content_network;
 	
-	private byte[]		related_to_hash;
+	private byte[]				related_to_hash;
 
-	private byte[]		tracker_keys;
-	private byte[]		ws_keys;
+	private byte[]				tracker_keys;
+	private byte[]				ws_keys;
 	
-	private String[]	tags;
+	private String[]			tags;
+	private byte				nets;
 	
 	private long changed_locally_on;
 	
@@ -59,6 +61,7 @@ RelatedContent
 		byte[]		_tracker_keys,
 		byte[]		_ws_keys,
 		String[]	_tags,
+		byte		_nets,
 		long		_size,
 		int			_date,
 		int			_seeds_leechers,
@@ -71,6 +74,7 @@ RelatedContent
 		tracker_keys		= _tracker_keys;
 		ws_keys				= _ws_keys;
 		tags				= _tags;
+		nets				= _nets;
 		size				= _size;
 		date				= _date;
 		seeds_leechers		= _seeds_leechers;
@@ -90,7 +94,7 @@ RelatedContent
 	{
 			// legacy constructor as referenced from plugin - remove oneday!
 		
-		this( _title, _hash, _tracker, null, null, null, _size, _date, _seeds_leechers, _cnet );
+		this( _title, _hash, _tracker, null, null, null, RelatedContentManager.NET_PUBLIC, _size, _date, _seeds_leechers, _cnet );
 	}
 	
 	public
@@ -101,6 +105,7 @@ RelatedContent
 		byte[]		_tracker_keys,
 		byte[]		_ws_keys,
 		String[]	_tags,
+		byte		_nets,
 		long		_size,
 		int			_date,
 		int			_seeds_leechers,
@@ -112,6 +117,7 @@ RelatedContent
 		tracker_keys		= _tracker_keys;
 		ws_keys				= _ws_keys;
 		tags				= _tags;
+		nets				= _nets;
 		size				= _size;
 		date				= _date;
 		seeds_leechers		= _seeds_leechers;
@@ -198,6 +204,25 @@ RelatedContent
 		setChangedLocallyOn(0);
 	}
 	
+	public String[]
+	getNetworks()
+	{
+		return( RelatedContentManager.convertNetworks( nets ));
+	}
+	
+	protected byte
+	getNetworksInternal()
+	{
+		return( nets );
+	}
+	
+	protected void
+	setNetworksInternal(
+		byte		n )
+	{
+		nets = n;
+	}
+		
 	public long
 	getSize()
 	{
@@ -296,6 +321,6 @@ RelatedContent
 	public String
 	getString()
 	{
-		return( "title=" + title + ", hash=" + (hash==null?"null":Base32.encode( hash )) + ", tracker=" + tracker +", date=" + date + ", sl=" + seeds_leechers + ", cnet=" + content_network );
+		return( "title=" + title + ", hash=" + (hash==null?"null":Base32.encode( hash )) + ", tracker=" + tracker +", date=" + date + ", sl=" + seeds_leechers + ", cnet=" + content_network + ", nets=" + nets );
 	}
 }
