@@ -1806,6 +1806,54 @@ RelatedContentManager
 	
 	public void
 	lookupContent(
+		final byte[]						hash,
+		final String[]						networks,
+		final RelatedContentLookupListener	listener )
+	
+		throws ContentException
+	{			
+		if ( hash == null ){
+			
+			throw( new ContentException( "hash is null" ));
+		}
+
+		final byte	net = convertNetworks( networks );
+		
+		if ( net == 0 ){
+			
+			throw( new ContentException( "No networks specified" ));
+		}
+		
+		if ( 	!initialisation_complete_sem.isReleasedForever() ||
+				( public_dht_plugin != null && public_dht_plugin.isInitialising())){
+			
+			AsyncDispatcher dispatcher = new AsyncDispatcher();
+	
+			dispatcher.dispatch(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						try{
+							initialisation_complete_sem.reserve();
+							
+							lookupContentSupport( hash, 0, net, true, listener );
+							
+						}catch( ContentException e ){
+							
+							Debug.out( e );
+						}
+					}
+				});
+		}else{
+			
+			lookupContentSupport( hash, 0, net, true, listener );
+		}
+	}
+	
+	public void
+	lookupContent(
 		final long							file_size,
 		final RelatedContentLookupListener	listener )
 	
@@ -1841,6 +1889,54 @@ RelatedContentManager
 		}else{
 			
 			lookupContentSupport( file_size, NET_PUBLIC, listener );
+		}
+	}
+	
+	public void
+	lookupContent(
+		final long							file_size,
+		final String[]						networks,
+		final RelatedContentLookupListener	listener )
+	
+		throws ContentException
+	{
+		if ( file_size < FILE_ASSOC_MIN_SIZE ){
+			
+			throw( new ContentException( "file size is invalid - min=" + FILE_ASSOC_MIN_SIZE ));
+		}
+
+		final byte	net = convertNetworks( networks );
+		
+		if ( net == 0 ){
+			
+			throw( new ContentException( "No networks specified" ));
+		}
+
+		if ( 	!initialisation_complete_sem.isReleasedForever() ||
+				( public_dht_plugin != null && public_dht_plugin.isInitialising())){
+			
+			AsyncDispatcher dispatcher = new AsyncDispatcher();
+	
+			dispatcher.dispatch(
+				new AERunnable()
+				{
+					public void
+					runSupport()
+					{
+						try{
+							initialisation_complete_sem.reserve();
+							
+							lookupContentSupport( file_size, net, listener );
+							
+						}catch( ContentException e ){
+							
+							Debug.out( e );
+						}
+					}
+				});
+		}else{
+			
+			lookupContentSupport( file_size, net, listener );
 		}
 	}
 	
@@ -3540,39 +3636,23 @@ RelatedContentManager
 	getNetworks(
 		Download		download )
 	{
-		byte	nets = 0;
-
 		String[]	networks = download.getListAttribute( ta_networks );
 		
-		if ( networks != null ){
+		if ( networks == null ){
 				
-			for ( int i=0;i<networks.length;i++ ){
-				
-				String n = networks[i];
-				
-				if (n.equalsIgnoreCase( AENetworkClassifier.AT_PUBLIC )){
-					
-					nets |= NET_PUBLIC;
-					
-				}else if ( n.equalsIgnoreCase( AENetworkClassifier.AT_I2P )){
-					
-					nets |= NET_I2P;
-					
-				}else if ( n.equalsIgnoreCase( AENetworkClassifier.AT_TOR )){
-					
-					nets |= NET_TOR;
-				}
-			}
-		}
+			return( NET_NONE );
+			
+		}else{
 		
-		return( nets );
+			return( convertNetworks( networks ));
+		}
 	}
 	
 	protected static String[]
 	convertNetworks(
 		byte		net )
 	{
-		if ( net == 0 ){
+		if ( net == NET_NONE ){
 			return( new String[0] );
 		}else if ( net == NET_PUBLIC ){
 			return( NET_PUBLIC_ARRAY );
@@ -3597,6 +3677,33 @@ RelatedContentManager
 			
 			return( nets.toArray( new String[ nets.size()]));
 		}
+	}
+	
+	protected static byte
+	convertNetworks(
+		String[]		networks )
+	{
+		byte	nets = NET_NONE;
+
+		for ( int i=0;i<networks.length;i++ ){
+			
+			String n = networks[i];
+			
+			if (n.equalsIgnoreCase( AENetworkClassifier.AT_PUBLIC )){
+				
+				nets |= NET_PUBLIC;
+				
+			}else if ( n.equalsIgnoreCase( AENetworkClassifier.AT_I2P )){
+				
+				nets |= NET_I2P;
+				
+			}else if ( n.equalsIgnoreCase( AENetworkClassifier.AT_TOR )){
+				
+				nets |= NET_TOR;
+			}
+		}
+		
+		return( nets );
 	}
 	
 	private String[]
