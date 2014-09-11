@@ -244,6 +244,7 @@ SubscriptionManagerImpl
 	private TorrentAttribute		ta_subs_download_rd;
 	private TorrentAttribute		ta_subscription_info;
 	private TorrentAttribute		ta_category;
+	private TorrentAttribute		ta_networks;
 	
 	private boolean					periodic_lookup_in_progress;
 	private int						priority_lookup_pending;
@@ -385,7 +386,8 @@ SubscriptionManagerImpl
 		ta_subs_download_rd 	= tm.getPluginAttribute( "azsubs.subs_dl_rd" );
 		ta_subscription_info 	= tm.getPluginAttribute( "azsubs.subs_info" );
 		ta_category				= tm.getAttribute( TorrentAttribute.TA_CATEGORY );
-		
+		ta_networks 			= tm.getAttribute( TorrentAttribute.TA_NETWORKS );
+
 		PluginInterface  dht_plugin_pi  = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByClass( DHTPlugin.class );
 				
 		if ( dht_plugin_pi != null ){
@@ -2994,6 +2996,33 @@ SubscriptionManagerImpl
 	
 		throws SubscriptionException
 	{
+		try{
+			Download download = PluginInitializer.getDefaultInterface().getDownloadManager().getDownload( hash );
+		
+			if ( download != null ){
+				
+				String[]	networks = download.getListAttribute( ta_networks );
+
+				boolean	public_net = false;
+				
+				for ( String net: networks ){
+					
+					if ( net == AENetworkClassifier.AT_PUBLIC ){
+						
+						public_net = true;
+					}
+				}
+				
+				if ( !public_net ){
+					
+					listener.failed( hash, new SubscriptionException( "Download doesn't use public network" ));
+					
+					return( null );
+				}
+			}			
+		}catch( Throwable e ){
+		}
+		
 		if ( dht_plugin != null && !dht_plugin.isInitialising()){
 			
 			return( lookupAssociationsSupport( hash, listener ));

@@ -1761,6 +1761,21 @@ RelatedContentManager
 			throw( new ContentException( "hash is null" ));
 		}
 
+		byte	net = NET_PUBLIC;
+		
+		try{
+			Download download = plugin_interface.getDownloadManager().getDownload( hash );
+		
+			if ( download != null ){
+				
+				net = getNetworks( download );
+			}
+		}catch( Throwable e ){
+			
+		}
+		
+		final byte f_net = net;
+		
 		if ( 	!initialisation_complete_sem.isReleasedForever() ||
 				( public_dht_plugin != null && public_dht_plugin.isInitialising())){
 			
@@ -1775,7 +1790,7 @@ RelatedContentManager
 						try{
 							initialisation_complete_sem.reserve();
 							
-							lookupContentSupport( hash, 0, NET_PUBLIC, true, listener );
+							lookupContentSupport( hash, 0, f_net, true, listener );
 							
 						}catch( ContentException e ){
 							
@@ -1785,7 +1800,7 @@ RelatedContentManager
 				});
 		}else{
 			
-			lookupContentSupport( hash, 0, NET_PUBLIC, true, listener );
+			lookupContentSupport( hash, 0, f_net, true, listener );
 		}
 	}
 	
