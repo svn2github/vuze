@@ -93,7 +93,7 @@ AENetworkClassifier
 			
 			for ( String net: AT_NETWORKS ){
 				
-				if ( str.equalsIgnoreCase( str )){
+				if ( str.equalsIgnoreCase( net )){
 					
 					return( net );
 				}
