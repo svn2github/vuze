@@ -251,8 +251,8 @@ MagnetPluginMDDownloader
 			
 			String[] bits = args.split( "&" );
 			
-			List<String>	trackers 			= new ArrayList<String>();
-			Set<String>		tracker_networks 	= new HashSet<String>();
+			List<String>	trackers 	= new ArrayList<String>();
+			Set<String>		networks 	= new HashSet<String>();
 
 			String	name = "magnet:" + Base32.encode( hash );
 			
@@ -271,7 +271,7 @@ MagnetPluginMDDownloader
 						trackers.add( tracker );
 
 						try{
-							tracker_networks.add( AENetworkClassifier.categoriseAddress( new URL( tracker ).getHost()));
+							networks.add( AENetworkClassifier.categoriseAddress( new URL( tracker ).getHost()));
 
 						}catch( Throwable e ){
 							
@@ -279,6 +279,15 @@ MagnetPluginMDDownloader
 					}else if ( lhs.equals( "dn" )){
 						
 						name = UrlUtils.decode( x[1] );
+						
+					}else if ( lhs.equals( "net" )){
+						
+						String network = AENetworkClassifier.internalise( x[1] );
+						
+						if ( network != null ){
+							
+							networks.add( network );
+						}
 					}
 				}
 			}
@@ -338,7 +347,7 @@ MagnetPluginMDDownloader
 			
 			state.setDisplayName( display_name + ".torrent" );
 			
-			if ( tracker_networks.size() == 0 ){
+			if ( networks.size() == 0 ){
 				
 					// no clues in the magnet link, start off by enabling all networks
 				
@@ -349,14 +358,14 @@ MagnetPluginMDDownloader
 				
 			}else{
 				
-				for ( String network: tracker_networks ){
+				for ( String network: networks ){
 					
 					state.setNetworkEnabled( network, true );
 				}
 				
 					// disable public network if no explicit trackers are public ones
 				
-				if ( !tracker_networks.contains( AENetworkClassifier.AT_PUBLIC )){
+				if ( !networks.contains( AENetworkClassifier.AT_PUBLIC )){
 					
 					state.setNetworkEnabled( AENetworkClassifier.AT_PUBLIC, false );
 				}

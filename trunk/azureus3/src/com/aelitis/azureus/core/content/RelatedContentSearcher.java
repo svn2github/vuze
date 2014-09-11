@@ -306,7 +306,7 @@ RelatedContentSearcher
 											
 											if ( hash != null ){
 												
-												return( UrlUtils.getMagnetURI( hash ));
+												return( UrlUtils.getMagnetURI( hash, c.getTitle(), c.getNetworks()));
 											}
 										}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_CONTENT_NETWORK ){
 											
@@ -323,6 +323,10 @@ RelatedContentSearcher
 										}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_TAGS ){
 
 											return( c.getTags());
+											
+										}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_NETWORKS ){
+
+											return( c.getNetworks());
 										}
 										
 										return( null );
@@ -1071,7 +1075,7 @@ RelatedContentSearcher
 									
 									if ( hash != null ){
 										
-										return( UrlUtils.getMagnetURI( hash ));
+										return( UrlUtils.getMagnetURI( hash, title, RelatedContentManager.convertNetworks((byte)ImportExportUtils.importLong( map, "o", RelatedContentManager.NET_PUBLIC ))));
 									}
 								}else if (  property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_CONTENT_NETWORK ){
 									
@@ -1090,6 +1094,10 @@ RelatedContentSearcher
 								}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_TAGS ){
 									
 									return( manager.decodeTags((byte[])map.get( "g" )));
+									
+								}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_TAGS ){
+
+									return( RelatedContentManager.convertNetworks((byte)ImportExportUtils.importLong( map, "o", RelatedContentManager.NET_PUBLIC )));
 								}
 
 							}catch( Throwable e ){
@@ -1415,6 +1423,14 @@ RelatedContentSearcher
 							
 							if ( tags != null ){
 								map.put( "g", manager.encodeTags( tags ));
+							}
+							
+							byte nets = c.getNetworksInternal();
+							
+							if ( 	nets != RelatedContentManager.NET_NONE &&  
+									nets != RelatedContentManager.NET_PUBLIC ){
+								
+								map.put( "o", new Long( nets&0x00ff));
 							}
 							
 								// don't bother with tracker as no use to caller really

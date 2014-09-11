@@ -30,11 +30,15 @@ import java.util.regex.Pattern;
 
 import org.bouncycastle.util.encoders.Base64;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.download.DownloadManager;
+import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.plugins.download.Download;
 import org.gudy.azureus2.plugins.torrent.Torrent;
 import org.gudy.azureus2.plugins.torrent.TorrentAnnounceURLList;
 import org.gudy.azureus2.plugins.torrent.TorrentAnnounceURLListSet;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloader;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploader;
+import org.gudy.azureus2.pluginsimpl.local.PluginCoreUtils;
 
 import com.aelitis.net.magneturi.MagnetURIHandler;
 
@@ -79,10 +83,97 @@ public class UrlUtils
 
 	public static String
 	getMagnetURI(
+		byte[]		hash,
+		String		name,
+		String[]	networks )
+	{
+		String magnet_uri = getMagnetURI( hash );
+					
+		magnet_uri += encodeName( name );
+					
+		magnet_uri += encodeNetworks( networks );
+		
+		return( magnet_uri );
+	}
+
+	private static String
+	encodeName(
+		String	name )
+	{
+		if ( name == null ){
+			
+			return( "" );
+			
+		}else{
+			
+			return( "&dn=" + UrlUtils.encode(name));
+		}
+	}
+	
+	private static String
+	encodeNetworks(
+		String[]	networks )
+	{
+		String	net_str = "";
+
+		if ( networks != null && networks.length > 0 ){
+						
+			for ( String net: networks ){
+				
+				if ( net == AENetworkClassifier.AT_PUBLIC && networks.length == 1 ){
+						
+					break;
+				}
+				
+				net_str += "&net=" + net;
+			}
+		}
+		
+		return( net_str );
+	}
+	
+	public static String
+	getMagnetURI(
+		Download		download )
+	{
+		return( getMagnetURI( PluginCoreUtils.unwrap(download)));
+	}
+	
+	public static String
+	getMagnetURI(
+		DownloadManager		dm )
+	{
+		if ( dm == null ){
+			
+			return( null );
+		}
+		
+		TOTorrent to_torrent = dm.getTorrent();
+		
+		if ( to_torrent == null ){
+		
+			return( null );
+		}
+		
+		String name = dm.getDisplayName();
+		
+		String magnet_uri = getMagnetURI( name, PluginCoreUtils.wrap( to_torrent ));
+		
+		String[]	networks = dm.getDownloadState().getNetworks();
+		
+		magnet_uri += encodeNetworks( networks );
+		
+		return( magnet_uri );
+	}
+	
+	public static String
+	getMagnetURI(
 		String		name,
 		Torrent		torrent )
 	{
-		String	magnet_str = getMagnetURI( torrent.getHash()) + "&dn=" + UrlUtils.encode(name);
+		String	magnet_str = getMagnetURI( torrent.getHash());
+		
+		magnet_str += encodeName( name);
 
 		List<String>	tracker_urls = new ArrayList<String>();
 		

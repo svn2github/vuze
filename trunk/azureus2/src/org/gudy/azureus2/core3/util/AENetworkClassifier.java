@@ -82,6 +82,28 @@ AENetworkClassifier
 	}
 	
 	public static String
+	internalise(
+		String	str )
+	{
+		if ( str == null ){
+			
+			return( null );
+			
+		}else{
+			
+			for ( String net: AT_NETWORKS ){
+				
+				if ( str.equalsIgnoreCase( str )){
+					
+					return( net );
+				}
+			}
+		}
+		
+		return( null );
+	}
+	
+	public static String
 	categoriseAddress(
 		InetSocketAddress		isa )
 	{

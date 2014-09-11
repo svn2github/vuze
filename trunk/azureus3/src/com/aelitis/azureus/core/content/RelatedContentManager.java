@@ -101,6 +101,7 @@ RelatedContentManager
 	public static final int RCM_SEARCH_PROPERTY_TRACKER_KEYS	= 50001;
 	public static final int RCM_SEARCH_PROPERTY_WEB_SEED_KEYS	= 50002;
 	public static final int RCM_SEARCH_PROPERTY_TAGS			= 50003;
+	public static final int RCM_SEARCH_PROPERTY_NETWORKS		= 50004;
 	
 	private static final boolean 	TRACE 			= false;
 		

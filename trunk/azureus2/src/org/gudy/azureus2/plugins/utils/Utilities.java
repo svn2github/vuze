@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.gudy.azureus2.plugins.PluginException;
+import org.gudy.azureus2.plugins.ddb.DistributedDatabase;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.*;
 import org.gudy.azureus2.plugins.utils.resourceuploader.ResourceUploaderFactory;
 import org.gudy.azureus2.plugins.utils.search.SearchException;
@@ -415,6 +416,9 @@ Utilities
 	unregisterJSONRPCClient(
 		JSONClient		client );
 
+	public List<DistributedDatabase>
+	getDistributedDatabases(
+		String[]		networks );	 
 	
 	public interface
 	JSONServer

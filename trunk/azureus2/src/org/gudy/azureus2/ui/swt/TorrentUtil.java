@@ -831,7 +831,7 @@ public class TorrentUtil {
 						
 						if ( link.toLowerCase().startsWith( "magnet:" )){
 							
-							link = UrlUtils.getMagnetURI(dm.getDisplayName(), PluginCoreUtils.wrap( torrent ));
+							link = UrlUtils.getMagnetURI( dm );
 							
 							content = "Torrent's magnet link:\r\n\r\n\t" + link;
 							
@@ -847,7 +847,7 @@ public class TorrentUtil {
 							
 						}else{
 							
-							link = UrlUtils.getMagnetURI(dm.getDisplayName(), PluginCoreUtils.wrap( torrent ));
+							link = UrlUtils.getMagnetURI( dm );
 							
 							content = "Origin unavailable but magnet URI may work:\r\n\r\n\t" + link;
 						}

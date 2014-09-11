@@ -164,6 +164,9 @@ MagnetPlugin
 					Torrent torrent;
 					String name;
 					Object ds = ((TableRow)_target).getDataSource();
+					
+					Download download = null;
+					
 					if (ds instanceof ShareResourceFile) {
 						try {
 							torrent = ((ShareResourceFile) ds).getItem().getTorrent();
@@ -179,7 +182,7 @@ MagnetPlugin
 							}
 							name = ((ShareResourceDir) ds).getName();
 					} else if (ds instanceof Download) {
-						Download download = (Download)((TableRow)_target).getDataSource();
+						download = (Download)((TableRow)_target).getDataSource();
 						torrent = download.getTorrent();
 						name = download.getName();
 					} else {
@@ -187,7 +190,7 @@ MagnetPlugin
 					}
 				  
 					
-					String cb_data = UrlUtils.getMagnetURI( name, torrent );
+					String cb_data = download==null?UrlUtils.getMagnetURI( name, torrent ):UrlUtils.getMagnetURI( download);
 					
 					// removed this as well - nothing wrong with allowing magnet copy
 					// for private torrents - they still can't be tracked if you don't
@@ -955,7 +958,7 @@ MagnetPlugin
 					});
 		}
 		
-		Set<String>	tracker_networks = new HashSet<String>();
+		Set<String>	networks = new HashSet<String>();
 		
 		if ( args != null ){
 			
@@ -981,9 +984,17 @@ MagnetPlugin
 					}else if ( lhs.equals( "tr" )){
 						
 						try{
-							tracker_networks.add(AENetworkClassifier.categoriseAddress( new URL( UrlUtils.decode( x[1] )).getHost()));
+							networks.add(AENetworkClassifier.categoriseAddress( new URL( UrlUtils.decode( x[1] )).getHost()));
 							
 						}catch( Throwable e ){							
+						}
+					}else if ( lhs.equals( "net" )){
+						
+						String network = AENetworkClassifier.internalise( x[1] );
+						
+						if ( network != null ){
+							
+							networks.add( network );
 						}
 					}
 				}
@@ -1033,8 +1044,8 @@ MagnetPlugin
 
 				final Object[] secondary_result = { null };
 
-				if ( 	( tracker_networks.size() == 0 && COConfigurationManager.getBooleanParameter( "Network Selection Default." + AENetworkClassifier.AT_PUBLIC )) || 
-						tracker_networks.contains( AENetworkClassifier.AT_PUBLIC )){
+				if ( 	( networks.size() == 0 && COConfigurationManager.getBooleanParameter( "Network Selection Default." + AENetworkClassifier.AT_PUBLIC )) || 
+						networks.contains( AENetworkClassifier.AT_PUBLIC )){
 					
 					boolean	is_first_download = first_download;
 					
@@ -1683,6 +1694,14 @@ MagnetPlugin
 						}catch( Throwable e ){
 							
 						}
+					}else if ( lhs.equals( "net" )){
+						
+						String network = AENetworkClassifier.internalise( x[1] );
+						
+						if ( network != null ){
+							
+							networks.add( network );
+						}
 					}
 				}
 			}
@@ -1696,6 +1715,7 @@ MagnetPlugin
 				}
 			}
 		}
+		
 		return( AENetworkClassifier.AT_PUBLIC );
 	}
 	

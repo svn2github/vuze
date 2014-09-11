@@ -388,7 +388,7 @@ TagManagerImpl
 							
 							pw.println( "<guid>" + hash_str + "</guid>" );
 							
-							String magnet_url = escape( UrlUtils.getMagnetURI( download.getName(), torrent ));
+							String magnet_url = escape( UrlUtils.getMagnetURI( download ));
 	
 							pw.println( "<link>" + magnet_url + "</link>" );
 							
