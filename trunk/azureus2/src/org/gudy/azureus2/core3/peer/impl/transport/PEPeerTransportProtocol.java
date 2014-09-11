@@ -2628,7 +2628,16 @@ implements PEPeerTransport
 			 * it we receive it repeatedly. So there - we can initialise the connection
 			 * right now. :P
 			 */
-			this.initPostConnection(handshake);
+			
+				// UNLESS (PARG, 2014/9/11) this is a metadata download in which case we MUST
+				// receive the LT handshake (with the metadata size in it) before transitioning
+				// to active...
+			
+			if ( !is_metadata_download ){
+			
+				this.initPostConnection(handshake);
+			}
+			
 			this.sendLTHandshake();
 		}
 		else {
@@ -2763,9 +2772,15 @@ implements PEPeerTransport
 				  
 				  spoofMDAvailability( mds );
 			  }
+		  }  
+		
+		  if ( current_peer_state != PEPeer.TRANSFERING ){
+			  
+			  	// this was deferred in the BT handshake decode for metadata downloads...
+			  
+			  initPostConnection( null );
 		  }
 	  }
-	  
 	  
 	  /**
 	   * Grr... this is one thing which I'm sure I had figured out much better than it is here...
@@ -2954,7 +2969,9 @@ implements PEPeerTransport
 		changePeerState(PEPeer.TRANSFERING);
 		connection_state = PEPeerTransport.CONNECTION_FULLY_ESTABLISHED;
 		sendBitField();
-		handshake.destroy();
+		if ( handshake != null ){
+			handshake.destroy();
+		}
 		addAvailability();
 		sendMainlineDHTPort();
   	}

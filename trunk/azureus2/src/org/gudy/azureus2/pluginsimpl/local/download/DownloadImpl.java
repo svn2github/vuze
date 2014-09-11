@@ -1842,7 +1842,8 @@ DownloadImpl
 		
 		if ( delegate == null ){
 			
-			Debug.out( "Listener not found for removal" );
+			// sometimes we end up with double removal so don't bother spewing about this
+			// Debug.out( "Listener not found for removal" );
 			
 		}else{
 			
