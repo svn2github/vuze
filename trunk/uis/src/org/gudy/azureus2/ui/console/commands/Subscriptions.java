@@ -36,7 +36,8 @@ public class Subscriptions extends IConsoleCommand {
 		out.println("\tselect <number>\t: Select subscription <number> for further operations");
 		out.println("The following commands operate on a selected subscription" );
 		out.println("\tupdate \t: Update the subscription" );
-		out.println("\tset_autodownload [yes|no] \t: Change the auto-download setting" );
+		out.println("\tset_autodownload [yes|no] \t: Set the auto-download setting" );
+		out.println("\tset_updatemins <number>\t: Set the refresh frequency to <number> minutes" );
 		out.println("\tresults [all]\t: List the subscription results, unread only unless 'all' supplied" );
 		out.println("\tset_read [<number>|all]\t: Mark specified result, or all, as read" );
 		out.println("\tset_unread [<number>|all]\t: Mark specified result, or all, as un-read" );
