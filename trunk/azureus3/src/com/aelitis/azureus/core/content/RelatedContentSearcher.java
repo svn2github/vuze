@@ -1095,7 +1095,7 @@ RelatedContentSearcher
 									
 									return( manager.decodeTags((byte[])map.get( "g" )));
 									
-								}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_TAGS ){
+								}else if ( property_name == RelatedContentManager.RCM_SEARCH_PROPERTY_NETWORKS ){
 
 									return( RelatedContentManager.convertNetworks((byte)ImportExportUtils.importLong( map, "o", RelatedContentManager.NET_PUBLIC )));
 								}
