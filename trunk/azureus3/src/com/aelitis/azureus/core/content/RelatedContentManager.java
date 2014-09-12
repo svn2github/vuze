@@ -2009,7 +2009,21 @@ RelatedContentManager
 			throw( new ContentException( "lookup failed", e ));
 		}
 	}
+		
+	private String
+	getString(
+		String[]	args )
+	{
+		String str = "";
+		
+		for ( String s: args ){
 			
+			str += (str.length()==0?"":",") + s;
+		}
+		
+		return( str );
+	}
+	
 	private void
 	lookupContentSupport0(
 		final byte[]						from_hash,
@@ -2029,7 +2043,7 @@ RelatedContentManager
 
 			if ( dht_plugin == null ){
 				
-				throw( new Exception( "DHT Plugin unavailable" ));
+				throw( new Exception( "DHT Plugin unavailable for networks '" + getString( convertNetworks( networks )) + "'" ));
 			}
 			
 			dht_plugin.get(

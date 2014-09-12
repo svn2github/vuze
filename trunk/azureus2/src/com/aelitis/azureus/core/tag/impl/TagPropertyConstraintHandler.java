@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.Debug;
@@ -1059,6 +1060,8 @@ TagPropertyConstraintHandler
 	
 	private static final int FT_CONTAINS	= 9;
 	private static final int FT_MATCHES		= 10;
+	
+	private static final int FT_HAS_NET		= 11;
 
 	
 	private class
@@ -1090,6 +1093,18 @@ TagPropertyConstraintHandler
 				
 				params_ok = params.length == 1 && getStringLiteral( params, 0 );
 				
+			}else if ( func_name.equals( "hasNet" )){
+					
+				fn_type = FT_HAS_NET;
+					
+				params_ok = params.length == 1 && getStringLiteral( params, 0 );
+				
+				if ( params_ok ){
+					
+					params[0] = AENetworkClassifier.internalise((String)params[0]);
+					
+					params_ok = params[0] != null;
+				}
 			}else if ( func_name.equals( "isPrivate" )){
 
 				fn_type = FT_IS_PRIVATE;
@@ -1174,8 +1189,31 @@ TagPropertyConstraintHandler
 						}
 					}
 					
-					break;
+					return( false );
 				}
+				case FT_HAS_NET:{
+					
+					String net_name = (String)params[0];
+					
+					if ( net_name != null ){
+						
+						String[] nets = dm.getDownloadState().getNetworks();
+						
+						if ( nets != null ){
+							
+							for ( String net: nets ){
+								
+								if ( net == net_name ){
+									
+									return( true );
+								}
+							}
+						}
+					}
+					
+					return( false );
+				}
+
 				case FT_IS_PRIVATE:{
 				
 					TOTorrent t = dm.getTorrent();
