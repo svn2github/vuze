@@ -37,10 +37,10 @@ public class
 DHTUDPPacketData 
 	extends DHTUDPPacketRequest
 {
-	protected static final byte		PT_READ_REQUEST		= 0x00;
-	protected static final byte		PT_READ_REPLY		= 0x01;
-	protected static final byte		PT_WRITE_REQUEST	= 0x02;
-	protected static final byte		PT_WRITE_REPLY		= 0x03;
+	public static final byte		PT_READ_REQUEST		= 0x00;
+	public static final byte		PT_READ_REPLY		= 0x01;
+	public static final byte		PT_WRITE_REQUEST	= 0x02;
+	public static final byte		PT_WRITE_REPLY		= 0x03;
 	
 	private byte	packet_type;
 	private byte[]	transfer_key;
