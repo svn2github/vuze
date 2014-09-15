@@ -1092,14 +1092,11 @@ public class SB_Transfers
 			return;
 		}
 		
-		String name = tag.getTagName( true );
-
 			// find where to locate this in the sidebar
 				
-		TreeMap<String,String>	name_map = 
-			new TreeMap<String,String>(new FormattersImpl().getAlphanumericComparator( true ));
+		TreeMap<Tag,String>	name_map = new TreeMap<Tag,String>(TagUIUtils.getTagComparator());
 		
-		name_map.put( name, id );
+		name_map.put( tag, id );
 		
 		for ( Tag t: tag.getTagType().getTags()){
 			
@@ -1109,17 +1106,15 @@ public class SB_Transfers
 
 				if ( mdi.getEntry( tid ) != null ){
 					
-					name_map.put( t.getTagName( true ), tid );
+					name_map.put( t, tid );
 				}
 			}
 		}
 		
 		String	prev_id = null;
 		
-		for ( Map.Entry<String,String> entry: name_map.entrySet()){
-		
-			String	this_id = entry.getValue();
-			
+		for ( String this_id: name_map.values()){
+					
 			if ( this_id == id ){
 				
 				break;
@@ -1180,6 +1175,8 @@ public class SB_Transfers
 			
 			closable = true;
 			
+			String name = tag.getTagName( true );
+
 			entry = mdi.createEntryFromSkinRef(
 					MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS, id, "library",
 					name, viewTitleInfo, tag, closable, prev_id);

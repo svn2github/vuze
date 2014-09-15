@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.IdentityHashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -36,7 +37,6 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
-
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.menus.MenuItemListener;
 import org.gudy.azureus2.plugins.ui.menus.MenuManager;
@@ -72,6 +72,7 @@ import com.aelitis.azureus.core.tag.TagManager;
 import com.aelitis.azureus.core.tag.TagManagerFactory;
 import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.tag.Taggable;
+import com.aelitis.azureus.core.tag.impl.TagTypeDownloadManual;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
@@ -2113,6 +2114,42 @@ public class TagUIUtils
 				}
 			});
 			
+			MenuItem itemGroup = new MenuItem(menu, SWT.PUSH);
+			
+			Messages.setLanguageText(itemGroup, "MyTorrentsView.menu.group");
+			itemGroup.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+							"TagGroupWindow.title", "TagGroupWindow.message");
+					
+					String group = tag.getGroup();
+					
+					if ( group == null ){
+						group = "";
+					}
+					entryWindow.setPreenteredText( group, false );
+					entryWindow.selectPreenteredText( true );
+					
+					entryWindow.prompt();
+					
+					if ( entryWindow.hasSubmittedInput()){
+						
+						try{
+							group = entryWindow.getSubmittedInput().trim();
+							
+							if ( group.length() == 0 ){
+								group = null;
+							}
+							tag.setGroup( group );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
+					}
+				}
+			});
+			
 			MenuItem itemRename = new MenuItem(menu, SWT.PUSH);
 						
 			Messages.setLanguageText(itemRename, "MyTorrentsView.menu.rename");
@@ -2152,6 +2189,67 @@ public class TagUIUtils
 		}
 	}
 	
+	public static void 
+	createSideBarMenuItems(
+		final Menu 			menu, 
+		final List<Tag>	 	_tags ) 
+	{
+		final List<Tag> tags = new ArrayList<Tag>( _tags );
+		
+		Iterator<Tag> it = tags.iterator();
+		
+		while( it.hasNext()){
+			
+			Tag tag = it.next();
+			
+			if ( tag.getTagType().getTagType() != TagType.TT_DOWNLOAD_MANUAL ){
+				
+				it.remove();
+			}
+		}
+		
+		if ( tags.size() == 0 ){
+			
+			return;
+		}
+		
+		MenuItem itemGroup = new MenuItem(menu, SWT.PUSH);
+		
+		Messages.setLanguageText(itemGroup, "MyTorrentsView.menu.group");
+		itemGroup.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event event) {
+				SimpleTextEntryWindow entryWindow = new SimpleTextEntryWindow(
+						"TagGroupWindow.title", "TagGroupWindow.message");
+				
+				String group = "";
+				
+				entryWindow.setPreenteredText( group, false );
+				entryWindow.selectPreenteredText( true );
+				
+				entryWindow.prompt();
+				
+				if ( entryWindow.hasSubmittedInput()){
+					
+					try{
+						group = entryWindow.getSubmittedInput().trim();
+						
+						if ( group.length() == 0 ){
+							group = null;
+						}
+						
+						for ( Tag tag: tags ){
+						
+							tag.setGroup( group );
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		});
+	}
+		
 	private static final AsyncDispatcher move_dispatcher = new AsyncDispatcher( "tag:applytocurrent" );
 	
 	private static void
@@ -2476,21 +2574,42 @@ public class TagUIUtils
 	{
 		List<Tag>	tags = new ArrayList<Tag>( _tags );
 		
-		Collections.sort(
-			tags,
-			new Comparator<Tag>()
-			{
-				final Comparator<String> comp = new FormattersImpl().getAlphanumericComparator( true );
+		Collections.sort( tags, getTagComparator());
 
-				public int 
-				compare(
-					Tag o1, Tag o2) 
-				{
-					return( comp.compare( o1.getTagName(true), o2.getTagName(true)));
-				}
-			});
-		
 		return( tags );
+	}
+	
+	public static Comparator<Tag>
+	getTagComparator()
+	{
+		return( new Comparator<Tag>()
+		{
+			final Comparator<String> comp = new FormattersImpl().getAlphanumericComparator( true );
+
+			public int 
+			compare(
+				Tag o1, Tag o2) 
+			{
+				String	g1 = o1.getGroup();
+				String	g2 = o2.getGroup();
+				
+				if ( g1 != g2 ){
+					if ( g1 == null ){
+						return( 1 );
+					}else if ( g2 == null ){
+						return( -1 );
+					}else{
+						
+						int	res = comp.compare( g1,  g2 );
+						
+						if ( res != 0 ){
+							return( res );
+						}
+					}
+				}
+				return( comp.compare( o1.getTagName(true), o2.getTagName(true)));
+			}
+		});
 	}
 	
 	public static String

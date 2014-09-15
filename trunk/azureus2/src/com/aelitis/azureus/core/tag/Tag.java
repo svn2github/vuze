@@ -89,6 +89,13 @@ Tag
 		boolean		visible );
 	
 	public String
+	getGroup();
+	
+	public void
+	setGroup(
+		String		group );
+	
+	public String
 	getImageID();
 	
 	public void

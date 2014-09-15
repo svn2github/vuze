@@ -236,6 +236,7 @@ public class MyTorrentsView
   
   private Category 	currentCategory;
   private Tag		currentTag;
+  private List<Tag>	currentTags;
   
   // table item index, where the drag has started
   private int drag_drop_line_start = -1;
@@ -617,8 +618,20 @@ public class MyTorrentsView
     }
     
     if ( !tagButtonsDisabled ){
-    	tags_to_show = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTags();
+    	tags_to_show = new ArrayList<Tag>(TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL ).getTags());
 
+    	Iterator<Tag>	it = tags_to_show.iterator();
+    	
+    	while( it.hasNext()){
+    		
+    		Tag tag = it.next();
+    		
+    		if ( !tag.isVisible()){
+    			
+    			it.remove();
+    		}
+    	}
+    	
     	tags_to_show = TagUIUtils.sortTags( tags_to_show );
     }
     
@@ -718,6 +731,8 @@ public class MyTorrentsView
 			// categories
 		
 		int	max_rd_height = 0;
+		
+		currentTags = tags;
 		
 		for (int i = 0; i < categories.length; i++) {
 			final Category category = categories[i];
@@ -2341,8 +2356,24 @@ public class MyTorrentsView
 	
 	public void
 	tagChanged(
-		Tag			tag )
+		final Tag			tag )
 	{	
+		Utils.execSWTThread(new AERunnable() {
+			@Override
+			public void runSupport() {
+			
+				if ( currentTags != null ){
+				
+					boolean should_be_visible	= tag.isVisible();
+					boolean is_visible			= currentTags.contains( tag );
+					
+					if ( should_be_visible != is_visible ){
+						
+						createTabs();
+					}
+				}
+			}
+		});
 	}
 	
 	public void

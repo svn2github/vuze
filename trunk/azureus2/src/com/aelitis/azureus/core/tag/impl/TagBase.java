@@ -50,6 +50,7 @@ TagBase
 	protected static final String	AT_RATELIMIT_DOWN	= "rl.down";
 	protected static final String	AT_VISIBLE			= "vis";
 	protected static final String	AT_PUBLIC			= "pub";
+	protected static final String	AT_GROUP			= "gr";
 	protected static final String	AT_CAN_BE_PUBLIC	= "canpub";
 	protected static final String	AT_ORIGINAL_NAME	= "oname";
 	protected static final String	AT_IMAGE_ID			= "img.id";
@@ -103,7 +104,8 @@ TagBase
 		
 	private Boolean	is_visible;
 	private Boolean	is_public;
-	
+	private String	group;
+
 	private TagFeatureRateLimit		tag_rl;
 	private TagFeatureRSSFeed		tag_rss;
 	private TagFeatureFileLocation	tag_fl;
@@ -121,8 +123,9 @@ TagBase
 		
 		if ( getManager().isEnabled()){
 		
-			is_visible = readBooleanAttribute( AT_VISIBLE, null );
-			is_public = readBooleanAttribute( AT_PUBLIC, null );
+			is_visible 	= readBooleanAttribute( AT_VISIBLE, null );
+			is_public 	= readBooleanAttribute( AT_PUBLIC, null );
+			group		= readStringAttribute( AT_GROUP, null );
 			
 			if ( this instanceof TagFeatureRateLimit ){
 				
@@ -348,6 +351,31 @@ TagBase
 			
 			tag_type.fireChanged( this );
 		}
+	}
+	
+	public String
+	getGroup()
+	{
+		return( group );
+	}
+	
+	public void
+	setGroup(
+		String		new_group )
+	{
+		if ( group == null && new_group == null ){
+			
+			return;
+		}
+		
+		if ( group == null || new_group == null || !group.equals(new_group)){
+			
+			group	= new_group;
+			
+			writeStringAttribute( AT_GROUP, new_group );
+			
+			tag_type.fireChanged( this );
+		}	
 	}
 	
 	protected boolean

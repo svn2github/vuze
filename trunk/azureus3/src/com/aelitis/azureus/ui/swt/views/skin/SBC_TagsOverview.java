@@ -243,6 +243,20 @@ public class SBC_TagsOverview
 					}
 				});
 		
+		tableManager.registerColumn(Tag.class, ColumnTagVisible.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagVisible(column);
+					}
+				});
+		
+		tableManager.registerColumn(Tag.class, ColumnTagGroup.COLUMN_ID,
+				new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagGroup(column);
+					}
+				});
+
 		tableManager.setDefaultColumnNames(TABLE_TAGS,
 				new String[] {
 					ColumnTagColor.COLUMN_ID,
@@ -391,6 +405,8 @@ public class SBC_TagsOverview
 		
 		if ( tags.size() == 1 ){
 			TagUIUtils.createSideBarMenuItems( menu, tags.get(0) );
+		}else{
+			TagUIUtils.createSideBarMenuItems( menu, tags );
 		}
 	}
 
