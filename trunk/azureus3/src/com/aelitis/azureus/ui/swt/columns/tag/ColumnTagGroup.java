@@ -48,7 +48,6 @@ public class ColumnTagGroup
 	public ColumnTagGroup(TableColumn column) {
 		column.setWidth(70);
 		column.setRefreshInterval(TableColumn.INTERVAL_LIVE);
-		column.setAlignment(TableColumn.ALIGN_TRAIL);
 		column.setPosition( TableColumn.POSITION_INVISIBLE );
 		column.addListeners(this);
 	}
