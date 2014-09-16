@@ -285,6 +285,7 @@ DHTTransportUDPImpl
 					}
 				}, 
 				DHTUDPPacketData.MAX_DATA_SIZE, 
+				1,
 				logger);
 			
 		int last_pct = COConfigurationManager.getIntParameter( "dht.udp.net" + network + ".routeable_pct", -1 );

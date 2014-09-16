@@ -54,13 +54,17 @@ import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketData;
 public class 
 DHTTransferHandler 
 {
-	public static final int	TRANSFER_QUEUE_MAX			= 64;
-	public static final long MAX_TRANSFER_QUEUE_BYTES	= 8*1024*1024;	 
+	private static final int	TRANSFER_QUEUE_MAX			= 64;
+	private static final long 	MAX_TRANSFER_QUEUE_BYTES	= 8*1024*1024;	 
 		
-	public static final long	WRITE_XFER_RESEND_DELAY		= 12500;
-	public static final long	READ_XFER_REREQUEST_DELAY	= 5000;
-	public static final long	WRITE_REPLY_TIMEOUT			= 60000;		
+	private static final long	WRITE_XFER_RESEND_DELAY_BASE		= 12500;
+	private static final long	READ_XFER_REREQUEST_DELAY_BASE		= 5000;
+	private static final long	WRITE_REPLY_TIMEOUT_BASE			= 60000;		
 	
+	private final long	WRITE_XFER_RESEND_DELAY;
+	private final long	READ_XFER_REREQUEST_DELAY;
+	private final long	WRITE_REPLY_TIMEOUT;	
+
 	private static boolean	XFER_TRACE	= false;
 
 	private Map<HashWrapper,transferHandlerInterceptor> transfer_handlers 	= new HashMap<HashWrapper,transferHandlerInterceptor>();
@@ -87,10 +91,25 @@ DHTTransferHandler
 		int			_max_data,
 		DHTLogger	_logger )
 	{
+		this( _adapter, _max_data, 2, _logger );
+	}
+	
+	public
+	DHTTransferHandler(
+		Adapter		_adapter,
+		int			_max_data,
+		float		_latency_indicator,
+		DHTLogger	_logger )
+	{
 		adapter		= _adapter;
 		max_data	= _max_data;
 		logger		= _logger;
+		
+		WRITE_XFER_RESEND_DELAY 	= (long)( _latency_indicator*WRITE_XFER_RESEND_DELAY_BASE );
+		READ_XFER_REREQUEST_DELAY	= (long)( _latency_indicator*READ_XFER_REREQUEST_DELAY_BASE );
+		WRITE_REPLY_TIMEOUT			= (long)( _latency_indicator*WRITE_REPLY_TIMEOUT_BASE );
 	}
+	
 	
 	public void
 	registerTransferHandler(
