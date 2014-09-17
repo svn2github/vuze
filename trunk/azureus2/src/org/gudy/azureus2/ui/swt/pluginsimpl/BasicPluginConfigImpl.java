@@ -540,6 +540,14 @@ BasicPluginConfigImpl
 				else {
 					swt_param = null;
 				}
+			} else if ( param instanceof UITextAreaImpl ){
+				
+				swt_param = new TextAreaParameter(current_composite, ((UITextAreaImpl)param));
+				
+				GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
+				gridData.horizontalSpan	= 2;
+				gridData.heightHint = 100;
+				swt_param.setLayoutData( gridData );
 				
 			}else{
 				
@@ -548,7 +556,8 @@ BasicPluginConfigImpl
 				GridData gridData = new GridData(GridData.FILL_HORIZONTAL);
 				gridData.horizontalSpan	= 2;
 				// for wrap to work
-		    gridData.widthHint = 300;
+		  
+				gridData.widthHint = 300;
 				
 				label.setLayoutData( gridData );
 				

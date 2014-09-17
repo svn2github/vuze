@@ -30,6 +30,8 @@ UIComponent
 	public static final String PT_ENABLED		= "enabled";		// Boolean
 	public static final String PT_VALUE			= "value";			// Depends on component type
 	public static final String PT_VISIBLE		= "visible";		// Boolean
+	public static final String PT_WIDTH_HINT	= "whint";			// Integer
+	public static final String PT_HEIGHT_HINT	= "hhint";			// Integer
 	
 	public void
 	setEnabled(

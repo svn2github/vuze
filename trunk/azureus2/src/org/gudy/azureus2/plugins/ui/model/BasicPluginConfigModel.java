@@ -19,8 +19,8 @@
 
 package org.gudy.azureus2.plugins.ui.model;
 
+import org.gudy.azureus2.plugins.ui.components.UITextArea;
 import org.gudy.azureus2.plugins.ui.config.*;
-import org.gudy.azureus2.plugins.ui.config.FileParameter;
 
 /**
  * This object represents a configuration section.
@@ -284,6 +284,9 @@ BasicPluginConfigModel
 	 * @since 3.0.5.3
 	 */
 	public UIParameter addUIParameter2(UIParameterContext context, String name);
+	
+	public UITextArea
+	addTextArea();
 	
 	/**
 	 * 
