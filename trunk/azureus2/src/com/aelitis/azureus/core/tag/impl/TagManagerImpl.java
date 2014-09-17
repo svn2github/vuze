@@ -218,6 +218,9 @@ TagManagerImpl
 						return( true );
 					}
 					
+					boolean	enable_low_noise = RSSGeneratorPlugin.getSingleton().isLowNoiseEnabled();
+
+					
 					Set<DownloadManager> dms = tag.getTaggedDownloads();
 					
 					List<Download> downloads = new ArrayList<Download>( dms.size());
@@ -231,6 +234,21 @@ TagManagerImpl
 						if ( torrent == null ){
 							
 							continue;
+						}
+						
+						DownloadManagerState state = dm.getDownloadState();
+						
+						if ( state.getFlag( DownloadManagerState.FLAG_METADATA_DOWNLOAD )){
+							
+							continue;
+						}
+						
+						if ( !enable_low_noise ){
+							
+							if (  state.getFlag( DownloadManagerState.FLAG_LOW_NOISE )){
+								
+								continue;
+							}
 						}
 						
 						if ( !TorrentUtils.isReallyPrivate( torrent )){
@@ -352,7 +370,7 @@ TagManagerImpl
 						pw.println( "<title>" + escape( tag.getTagName( true )) + "</title>" );
 						
 						Collections.sort(
-								downloads,
+							downloads,
 							new Comparator<Download>()
 							{
 								public int 
@@ -367,13 +385,13 @@ TagManagerImpl
 								}
 							});
 											
-										
+													
 						pw.println(	"<pubDate>" + TimeFormatter.getHTTPDate( last_modified ) + "</pubDate>" );
 					
 						for (int i=0;i<downloads.size();i++){
 							
 							Download download = downloads.get( i );
-							
+
 							DownloadManager	core_download = PluginCoreUtils.unwrap( download );
 							
 							Torrent torrent = download.getTorrent();

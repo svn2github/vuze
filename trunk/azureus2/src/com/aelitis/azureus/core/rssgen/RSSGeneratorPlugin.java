@@ -35,6 +35,7 @@ import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageGenerator;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageRequest;
 import org.gudy.azureus2.plugins.tracker.web.TrackerWebPageResponse;
+import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 import org.gudy.azureus2.plugins.ui.config.ConfigSection;
 import org.gudy.azureus2.plugins.ui.config.HyperlinkParameter;
 import org.gudy.azureus2.plugins.ui.model.BasicPluginConfigModel;
@@ -134,11 +135,18 @@ RSSGeneratorPlugin
 	private static Map<String,Provider>	providers = new TreeMap<String, Provider>();
 	
 	private HyperlinkParameter		test_param;
+	private BooleanParameter		enable_low_noise;
 	
 	public
 	RSSGeneratorPlugin()
 	{
 		super( defaults );		
+	}
+	
+	public boolean
+	isLowNoiseEnabled()
+	{
+		return( enable_low_noise.getValue());
 	}
 	
 	public String
@@ -205,6 +213,8 @@ RSSGeneratorPlugin
 			BasicPluginConfigModel  config = getConfigModel();
 			
 			test_param = config.addHyperlinkParameter2( "rss.internal.test.url", "" );
+			
+			enable_low_noise = config.addBooleanParameter2( "rss.internal.enable.low.noise", "rss.internal.enable.low.noise", true );
 			
 			test_param.setEnabled( isPluginEnabled());
 		}
