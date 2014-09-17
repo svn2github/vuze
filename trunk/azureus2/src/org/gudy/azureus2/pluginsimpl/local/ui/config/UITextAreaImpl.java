@@ -40,9 +40,10 @@ UITextAreaImpl
 	
 	public
 	UITextAreaImpl(
-		PluginConfigImpl		config )
+		PluginConfigImpl		config,
+		String					resource_name )
 	{ 
-		super( config, "", "" );
+		super( config, resource_name, resource_name );
 		
 		text_area = new org.gudy.azureus2.pluginsimpl.local.ui.components.UITextAreaImpl();
 	}

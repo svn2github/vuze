@@ -286,7 +286,8 @@ BasicPluginConfigModel
 	public UIParameter addUIParameter2(UIParameterContext context, String name);
 	
 	public UITextArea
-	addTextArea();
+	addTextArea(
+		String	resource_name );
 	
 	/**
 	 * 

@@ -307,9 +307,10 @@ BasicPluginConfigModelImpl
 	}
 	
 	public UITextArea
-	addTextArea()
+	addTextArea(
+		String		resource_name )
 	{
-		UITextAreaImpl res = new UITextAreaImpl( configobj );
+		UITextAreaImpl res = new UITextAreaImpl( configobj, resource_name );
 		
 		parameters.add( res );
 		
