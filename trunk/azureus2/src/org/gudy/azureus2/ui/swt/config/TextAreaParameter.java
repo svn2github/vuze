@@ -60,9 +60,11 @@ TextAreaParameter
 					}
 				});
 	
-		ui_text_area.addPropertyChangeListener(this);
-	}
+		text_area.setText(ui_text_area.getText());
 
+		ui_text_area.addPropertyChangeListener(this);		
+	}
+	
 	public void 
 	setLayoutData(
 		Object layoutData ) 
