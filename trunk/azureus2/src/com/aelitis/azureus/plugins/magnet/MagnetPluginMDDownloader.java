@@ -45,6 +45,10 @@ import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.RandomUtils;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -629,10 +633,45 @@ MagnetPluginMDDownloader
 			DownloadManagerListener dl_listener = 
 				new DownloadManagerListener()
 				{
+					private Object				lock  = this;
+					
+					private TimerEventPeriodic	timer_event;
+					private boolean				removed;
+					
 					public void
 					downloadAdded(
-						Download	download )
+						final Download	download )
 					{
+						if ( download == f_download ){
+							
+							synchronized( lock ){
+								
+								if ( !removed && timer_event == null ){
+								
+									timer_event = 
+										SimpleTimer.addPeriodicEvent(
+											"announcer",
+											60*1000,
+											new TimerEventPerformer() {
+												
+												public void 
+												perform(
+													TimerEvent event) 
+												{
+													synchronized( lock ){
+														
+														if ( removed ){
+															
+															return;
+														}
+													}
+													
+													download.requestTrackerAnnounce( true );
+												}
+											});
+								}
+							}
+						}
 					}
 					
 					public void
@@ -640,6 +679,18 @@ MagnetPluginMDDownloader
 						Download	dl )
 					{
 						if ( dl == f_download ){
+							
+							synchronized( lock ){
+								
+								removed = true;
+								
+								if ( timer_event != null ){
+									
+									timer_event.cancel();
+									
+									timer_event = null;
+								}
+							}
 							
 							if ( !( cancelled || completed )){
 								
@@ -653,8 +704,7 @@ MagnetPluginMDDownloader
 				
 			download_manager.addListener( dl_listener, false );
 
-			try{
-			
+			try{			
 				download.moveTo(1);		
 				
 				download.setForceStart( true );

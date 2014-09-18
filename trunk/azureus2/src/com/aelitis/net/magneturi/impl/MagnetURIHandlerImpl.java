@@ -54,7 +54,7 @@ MagnetURIHandlerImpl
 	
 	private static AEMonitor				class_mon = new AEMonitor( "MagnetURLHandler:class" );
 	
-	private static final int				DOWNLOAD_TIMEOUT	= 3*60*1000;
+	private static final int				DOWNLOAD_TIMEOUT	= 10*60*1000;	// needs to be fairly large as non-public downloads can take a while...
 	
 	protected static final String	NL			= "\015\012";
 	
