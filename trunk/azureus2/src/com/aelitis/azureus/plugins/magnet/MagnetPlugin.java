@@ -958,7 +958,8 @@ MagnetPlugin
 					});
 		}
 		
-		Set<String>	networks = new HashSet<String>();
+		Set<String>	tr_networks 		= new HashSet<String>();
+		Set<String>	explicit_networks 	= new HashSet<String>();
 		
 		if ( args != null ){
 			
@@ -984,7 +985,7 @@ MagnetPlugin
 					}else if ( lhs.equals( "tr" )){
 						
 						try{
-							networks.add(AENetworkClassifier.categoriseAddress( new URL( UrlUtils.decode( x[1] )).getHost()));
+							tr_networks.add(AENetworkClassifier.categoriseAddress( new URL( UrlUtils.decode( x[1] )).getHost()));
 							
 						}catch( Throwable e ){							
 						}
@@ -994,7 +995,7 @@ MagnetPlugin
 						
 						if ( network != null ){
 							
-							networks.add( network );
+							explicit_networks.add( network );
 						}
 					}
 				}
@@ -1034,6 +1035,8 @@ MagnetPlugin
 			}
 		}
 		
+		Set<String>	networks = explicit_networks.size()>0?explicit_networks:tr_networks;
+
 		try{
 			try{
 				long	remaining	= timeout;
@@ -1667,7 +1670,8 @@ MagnetPlugin
 			
 			String[]	bits = args.split( "&" );
 			
-			Set<String>	networks = new HashSet<String>();
+			Set<String>	tr_networks 		= new HashSet<String>();
+			Set<String>	explicit_networks 	= new HashSet<String>();
 			
 			for ( String bit: bits ){
 				
@@ -1689,7 +1693,7 @@ MagnetPlugin
 						try{
 							String tracker_host = new URL( rhs ).getHost();
 							
-							networks.add( AENetworkClassifier.categoriseAddress( tracker_host ));
+							tr_networks.add( AENetworkClassifier.categoriseAddress( tracker_host ));
 							
 						}catch( Throwable e ){
 							
@@ -1700,18 +1704,19 @@ MagnetPlugin
 						
 						if ( network != null ){
 							
-							networks.add( network );
+							explicit_networks.add( network );
 						}
 					}
 				}
 			}
 			
+			Set<String>	networks = explicit_networks.size()>0?explicit_networks:tr_networks;
+			
 			if ( networks.size() > 0 ){
 				
 				if ( networks.size() == 1 || !networks.contains( AENetworkClassifier.AT_PUBLIC )){
 					
-					return( networks.iterator().next());
-					
+					return( networks.iterator().next());	
 				}
 			}
 		}

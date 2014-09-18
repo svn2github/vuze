@@ -256,7 +256,9 @@ MagnetPluginMDDownloader
 			String[] bits = args.split( "&" );
 			
 			List<String>	trackers 	= new ArrayList<String>();
-			Set<String>		networks 	= new HashSet<String>();
+			
+			Set<String>	tr_networks 		= new HashSet<String>();
+			Set<String>	explicit_networks 	= new HashSet<String>();
 
 			String	name = "magnet:" + Base32.encode( hash );
 			
@@ -275,7 +277,7 @@ MagnetPluginMDDownloader
 						trackers.add( tracker );
 
 						try{
-							networks.add( AENetworkClassifier.categoriseAddress( new URL( tracker ).getHost()));
+							tr_networks.add( AENetworkClassifier.categoriseAddress( new URL( tracker ).getHost()));
 
 						}catch( Throwable e ){
 							
@@ -290,12 +292,14 @@ MagnetPluginMDDownloader
 						
 						if ( network != null ){
 							
-							networks.add( network );
+							explicit_networks.add( network );
 						}
 					}
 				}
 			}
-						
+				
+			Set<String>	networks = explicit_networks.size()>0?explicit_networks:tr_networks;
+
 			if ( trackers.size() > 0 ){
 				
 					// stick the decentralised one we created above in position 0 - this will be
