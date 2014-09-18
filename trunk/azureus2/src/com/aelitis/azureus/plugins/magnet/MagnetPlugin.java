@@ -324,7 +324,7 @@ MagnetPlugin
 								
 								byte[] torrent_data = torrent.writeToBEncodedData();
 								
-								torrent_data = addTrackersAndWebSeeds( torrent_data, args );
+								torrent_data = addTrackersAndWebSeedsEtc( torrent_data, args, new HashSet<String>());
 								
 								return( torrent_data);
 							}
@@ -587,27 +587,40 @@ MagnetPlugin
 	
 		throws MagnetURIHandlerException
 	{
-		byte[]	torrent_data = downloadSupport( listener, hash, args, sources, timeout, flags );
+		DownloadResult result = downloadSupport( listener, hash, args, sources, timeout, flags );
 		
-		if ( torrent_data == null ){
+		if ( result == null ){
 		
 			return( null );
 		}
 		
-		return( addTrackersAndWebSeeds( torrent_data, args  ));
+		return( addTrackersAndWebSeedsEtc( result, args  ));
 	}
 	
 	private byte[]
-	addTrackersAndWebSeeds(
-		byte[]		torrent_data,
-		String		args )
+	addTrackersAndWebSeedsEtc(
+		DownloadResult		result,
+		String				args )
 	{
+		byte[]		torrent_data 	= result.getTorrentData();
+		Set<String>	networks		= result.getNetworks();
+		
+		return( addTrackersAndWebSeedsEtc( torrent_data, args, networks ));
+	}
+	
+	private byte[]
+	addTrackersAndWebSeedsEtc(
+		byte[]			torrent_data,
+		String			args,
+		Set<String>		networks )
+	{
+		List<String>	new_web_seeds 	= new ArrayList<String>();
+		List<String>	new_trackers 	= new ArrayList<String>();
+
 		if ( args != null ){
 			
 			String[] bits = args.split( "&" );
 			
-			List<String>	new_web_seeds 	= new ArrayList<String>();
-			List<String>	new_trackers 	= new ArrayList<String>();
 
 			for ( String bit: bits ){
 				
@@ -634,116 +647,123 @@ MagnetPlugin
 					}
 				}
 			}
+		}
 			
-			if ( new_web_seeds.size() > 0 || new_trackers.size() > 0 ){
+		if ( new_web_seeds.size() > 0 || new_trackers.size() > 0 || networks.size() > 0 ){
+			
+			try{
+				TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedByteArray( torrent_data );
+
+				boolean	update_torrent = false;
 				
-				try{
-					TOTorrent torrent = TOTorrentFactory.deserialiseFromBEncodedByteArray( torrent_data );
-	
-					boolean	update_torrent = false;
+				if ( new_web_seeds.size() > 0 ){
 					
-					if ( new_web_seeds.size() > 0 ){
+					Object obj = torrent.getAdditionalProperty( "url-list" );
+					
+					List<String> existing = new ArrayList<String>();
+					
+					if ( obj instanceof byte[] ){
+		                
+						try{
+							new_web_seeds.remove( new URL( new String((byte[])obj, "UTF-8" )).toExternalForm());
+							
+						}catch( Throwable e ){							
+						}
+					}else if ( obj instanceof List ){
 						
-						Object obj = torrent.getAdditionalProperty( "url-list" );
+						List<byte[]> l = (List<byte[]>)obj;
 						
-						List<String> existing = new ArrayList<String>();
-						
-						if ( obj instanceof byte[] ){
-			                
+						for ( byte[] b: l ){
+							
 							try{
-								new_web_seeds.remove( new URL( new String((byte[])obj, "UTF-8" )).toExternalForm());
+								existing.add( new URL( new String((byte[])b, "UTF-8" )).toExternalForm());
 								
 							}catch( Throwable e ){							
 							}
-						}else if ( obj instanceof List ){
+						}
+					}
+					
+					boolean update_ws = false;
+					
+					for ( String e: new_web_seeds ){
+						
+						if ( !existing.contains( e )){
 							
-							List<byte[]> l = (List<byte[]>)obj;
+							existing.add( e );
 							
-							for ( byte[] b: l ){
-								
-								try{
-									existing.add( new URL( new String((byte[])b, "UTF-8" )).toExternalForm());
-									
-								}catch( Throwable e ){							
-								}
-							}
+							update_ws = true;
+						}
+					}
+					
+					if ( update_ws ){
+					
+						List<byte[]>	l = new ArrayList<byte[]>();
+						
+						for ( String s: existing ){
+							
+							l.add( s.getBytes( "UTF-8" ));
 						}
 						
-						boolean update_ws = false;
+						torrent.setAdditionalProperty( "url-list", l );
 						
-						for ( String e: new_web_seeds ){
-							
-							if ( !existing.contains( e )){
-								
-								existing.add( e );
-								
-								update_ws = true;
-							}
-						}
+						update_torrent = true;
+					}
+				}
+				
+				if ( new_trackers.size() > 0 ){
+											
+					URL announce_url = torrent.getAnnounceURL();
+												
+					new_trackers.remove( announce_url.toExternalForm());
+					
+					TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
+					
+					TOTorrentAnnounceURLSet[] sets = group.getAnnounceURLSets();
+					
+					for ( TOTorrentAnnounceURLSet set: sets ){
 						
-						if ( update_ws ){
+						URL[] set_urls = set.getAnnounceURLs();
 						
-							List<byte[]>	l = new ArrayList<byte[]>();
-							
-							for ( String s: existing ){
-								
-								l.add( s.getBytes( "UTF-8" ));
-							}
-							
-							torrent.setAdditionalProperty( "url-list", l );
-							
-							update_torrent = true;
+						for( URL set_url: set_urls ){
+																																	
+							new_trackers.remove( set_url.toExternalForm());
 						}
 					}
 					
 					if ( new_trackers.size() > 0 ){
-												
-						URL announce_url = torrent.getAnnounceURL();
-													
-						new_trackers.remove( announce_url.toExternalForm());
 						
-						TOTorrentAnnounceURLGroup group = torrent.getAnnounceURLGroup();
+						TOTorrentAnnounceURLSet[]	new_sets = new TOTorrentAnnounceURLSet[ sets.length + new_trackers.size()];
 						
-						TOTorrentAnnounceURLSet[] sets = group.getAnnounceURLSets();
-						
-						for ( TOTorrentAnnounceURLSet set: sets ){
+						for ( int i=0;i<sets.length;i++){
 							
-							URL[] set_urls = set.getAnnounceURLs();
-							
-							for( URL set_url: set_urls ){
-																																		
-								new_trackers.remove( set_url.toExternalForm());
-							}
+							new_sets[i] = sets[i];
 						}
 						
-						if ( new_trackers.size() > 0 ){
+						for ( int i=0;i<new_trackers.size();i++){
 							
-							TOTorrentAnnounceURLSet[]	new_sets = new TOTorrentAnnounceURLSet[ sets.length + new_trackers.size()];
+							TOTorrentAnnounceURLSet new_set = group.createAnnounceURLSet( new URL[]{ new URL( new_trackers.get(i))});
 							
-							for ( int i=0;i<sets.length;i++){
-								
-								new_sets[i] = sets[i];
-							}
-							
-							for ( int i=0;i<new_trackers.size();i++){
-								
-								TOTorrentAnnounceURLSet new_set = group.createAnnounceURLSet( new URL[]{ new URL( new_trackers.get(i))});
-								
-								new_sets[i+sets.length] = new_set;
-							}
-							
-							group.setAnnounceURLSets( new_sets );
-							
-							update_torrent = true;
+							new_sets[i+sets.length] = new_set;
 						}
-					}
-					
-					if ( update_torrent ){
 						
-						torrent_data = BEncoder.encode( torrent.serialiseToMap());
+						group.setAnnounceURLSets( new_sets );
+						
+						update_torrent = true;
 					}
-				}catch( Throwable e ){
 				}
+				
+				if ( networks.size() > 0 ){
+						
+					TorrentUtils.setNetworkCache( torrent, new ArrayList<String>( networks ));
+
+					update_torrent = true;
+				}
+				
+				if ( update_torrent ){
+					
+					torrent_data = BEncoder.encode( torrent.serialiseToMap());
+				}
+			}catch( Throwable e ){
 			}
 		}
 		
@@ -755,14 +775,14 @@ MagnetPlugin
 	private static class
 	DownloadActivity
 	{
-		private volatile byte[]						result;
+		private volatile DownloadResult				result;
 		private volatile MagnetURIHandlerException	error;
 		
 		private AESemaphore		sem = new AESemaphore( "MP:DA" );
 		
 		public void
 		setResult(
-			byte[]	_result )
+			DownloadResult	_result )
 		{
 			result	= _result;
 			
@@ -785,7 +805,7 @@ MagnetPlugin
 			sem.releaseForever();
 		}
 		
-		public byte[]
+		public DownloadResult
 		getResult()
 		
 			throws MagnetURIHandlerException
@@ -801,7 +821,7 @@ MagnetPlugin
 		}
 	}
 	
-	private byte[]
+	private DownloadResult
  	downloadSupport(
  		MagnetPluginProgressListener	listener,
  		byte[]							hash,
@@ -854,7 +874,7 @@ MagnetPlugin
 
  	}
 	
-	private byte[]
+	private DownloadResult
 	_downloadSupport(
 		final MagnetPluginProgressListener		listener,
 		final byte[]							hash,
@@ -876,13 +896,141 @@ MagnetPlugin
 			md_enabled = md_lookup.getValue() && FeatureAvailability.isMagnetMDEnabled();
 		}
 
+		final byte[][]		result_holder 	= { null };
+		final Throwable[] 	result_error 	= { null };
+
 		TimerEvent							md_delay_event = null;
-		final byte[][]						md_result = { null };
-		final Throwable[] 					md_error = { null };
 		final MagnetPluginMDDownloader[]	md_downloader = { null };
 		
-		final byte[][]						fl_result = { null };
+		boolean	net_pub_default = COConfigurationManager.getBooleanParameter( "Network Selection Default." + AENetworkClassifier.AT_PUBLIC );
+		
+		final Set<String>	networks_enabled;
+		
+		final Set<String>	additional_networks = new HashSet<String>();
 
+		if ( args != null ){
+			
+			String[] bits = args.split( "&" );
+			
+			List<URL>	fl_args 	= new ArrayList<URL>();
+			
+			Set<String>	tr_networks 		= new HashSet<String>();
+			Set<String>	explicit_networks 	= new HashSet<String>();
+
+			for ( String bit: bits ){
+				
+				if ( bit.startsWith( "maggot_sha1" )){
+
+					tr_networks.clear();
+					
+					explicit_networks.clear();
+					
+					fl_args.clear();
+					
+					explicit_networks.add( AENetworkClassifier.AT_I2P  );
+					
+					break;
+				}
+					
+				String[] x = bit.split( "=" );
+				
+				if ( x.length == 2 ){
+					
+					String	lhs = x[0].toLowerCase();
+					
+					if ( lhs.equals( "fl" )){
+						
+						try{
+							URL url = new URL( UrlUtils.decode( x[1] ));
+							
+							fl_args.add(url );
+							
+							tr_networks.add( AENetworkClassifier.categoriseAddress( url.getHost()));
+
+						}catch( Throwable e ){							
+						}
+					}else if ( lhs.equals( "tr" )){
+						
+						try{
+							tr_networks.add( AENetworkClassifier.categoriseAddress( new URL( UrlUtils.decode( x[1] )).getHost()));
+							
+						}catch( Throwable e ){							
+						}
+					}else if ( lhs.equals( "net" )){
+						
+						String network = AENetworkClassifier.internalise( x[1] );
+						
+						if ( network != null ){
+							
+							explicit_networks.add( network );
+						}
+					}
+				}
+			}
+			
+			networks_enabled = explicit_networks.size()>0?explicit_networks:tr_networks;
+			
+			if ( net_pub_default ){
+				
+				if ( networks_enabled.size() == 0 ){
+					
+					networks_enabled.add( AENetworkClassifier.AT_PUBLIC );
+				}
+			}else{
+				
+				networks_enabled.remove( AENetworkClassifier.AT_PUBLIC );
+			}
+			
+			if ( fl_args.size() > 0 ){
+				
+				for ( int i=0;i<fl_args.size() && i < 3; i++ ){
+					
+					final URL fl_url = fl_args.get( i );
+					
+					String url_net = AENetworkClassifier.categoriseAddress( fl_url.getHost());
+					
+					if ( networks_enabled.contains( url_net )){
+						
+						new AEThread2( "Magnet:fldl", true )
+						{
+							public void 
+							run() 
+							{
+								try{
+									TOTorrent torrent = TorrentUtils.download( fl_url );
+									
+									if ( torrent != null ){
+										
+										if ( Arrays.equals( torrent.getHash(), hash )){
+											
+											synchronized( result_holder ){
+												
+												result_holder[0] = BEncoder.encode( torrent.serialiseToMap());
+											}
+										}
+									}
+								}catch( Throwable e ){
+									
+									Debug.out( e );
+								}
+							}
+						}.start();
+					}
+				}
+			}
+		}else{
+				
+			networks_enabled = new HashSet<String>();
+			
+			if ( net_pub_default ){
+									
+				networks_enabled.add( AENetworkClassifier.AT_PUBLIC );
+			}
+		}
+		
+			// networks-enabled has either the networks inferrable from the magnet set up
+			// or, if none, then public (but only if public is enabled by default )
+				
 		if ( md_enabled ){
 			
 			int	delay_millis = md_lookup_delay.getValue()*1000;
@@ -906,7 +1054,7 @@ MagnetPlugin
 									return;
 								}
 								
-								md_downloader[0] = mdd = new MagnetPluginMDDownloader( plugin_interface, hash, args );
+								md_downloader[0] = mdd = new MagnetPluginMDDownloader( plugin_interface, hash, networks_enabled, args );
 							}
 							
 							listener.reportActivity( getMessageText( "report.md.starts" ));
@@ -926,14 +1074,17 @@ MagnetPlugin
 									
 									public void
 									complete(
-										TOTorrent	torrent )
+										TOTorrent		torrent,
+										Set<String>		peer_networks )
 									{
 										listener.reportActivity( getMessageText( "report.md.done" ));
 										
-										synchronized( md_result ){
+										synchronized( result_holder ){
 										
+											additional_networks.addAll( peer_networks );
+											
 											try{
-												md_result[0] = BEncoder.encode( torrent.serialiseToMap());
+												result_holder[0] = BEncoder.encode( torrent.serialiseToMap());
 												
 											}catch( Throwable e ){
 												
@@ -948,9 +1099,9 @@ MagnetPlugin
 									{
 										listener.reportActivity( getMessageText( "report.error", Debug.getNestedExceptionMessage(e)));
 										
-										synchronized( md_result ){
+										synchronized( result_holder ){
 											
-											md_error[0] = e;
+											result_error[0] = e;
 										}
 									}
 								});
@@ -958,84 +1109,6 @@ MagnetPlugin
 					});
 		}
 		
-		Set<String>	tr_networks 		= new HashSet<String>();
-		Set<String>	explicit_networks 	= new HashSet<String>();
-		
-		if ( args != null ){
-			
-			String[] bits = args.split( "&" );
-			
-			List<URL>	fl_args 	= new ArrayList<URL>();
-
-			for ( String bit: bits ){
-				
-				String[] x = bit.split( "=" );
-				
-				if ( x.length == 2 ){
-					
-					String	lhs = x[0].toLowerCase();
-					
-					if ( lhs.equals( "fl" )){
-						
-						try{
-							fl_args.add( new URL( UrlUtils.decode( x[1] )));
-							
-						}catch( Throwable e ){							
-						}
-					}else if ( lhs.equals( "tr" )){
-						
-						try{
-							tr_networks.add(AENetworkClassifier.categoriseAddress( new URL( UrlUtils.decode( x[1] )).getHost()));
-							
-						}catch( Throwable e ){							
-						}
-					}else if ( lhs.equals( "net" )){
-						
-						String network = AENetworkClassifier.internalise( x[1] );
-						
-						if ( network != null ){
-							
-							explicit_networks.add( network );
-						}
-					}
-				}
-			}
-			
-			if ( fl_args.size() > 0 ){
-				
-				for ( int i=0;i<fl_args.size() && i < 3; i++ ){
-					
-					final URL fl_url = fl_args.get( i );
-					
-					new AEThread2( "Magnet:fldl", true )
-					{
-						public void 
-						run() 
-						{
-							try{
-								TOTorrent torrent = TorrentUtils.download( fl_url );
-								
-								if ( torrent != null ){
-									
-									if ( Arrays.equals( torrent.getHash(), hash )){
-										
-										synchronized( fl_result ){
-											
-											fl_result[0] = BEncoder.encode( torrent.serialiseToMap());
-										}
-									}
-								}
-							}catch( Throwable e ){
-								
-								Debug.out( e );
-							}
-						}
-					}.start();
-				}
-			}
-		}
-		
-		Set<String>	networks = explicit_networks.size()>0?explicit_networks:tr_networks;
 
 		try{
 			try{
@@ -1047,8 +1120,9 @@ MagnetPlugin
 
 				final Object[] secondary_result = { null };
 
-				if ( 	( networks.size() == 0 && COConfigurationManager.getBooleanParameter( "Network Selection Default." + AENetworkClassifier.AT_PUBLIC )) || 
-						networks.contains( AENetworkClassifier.AT_PUBLIC )){
+					// public DHT lookup
+				
+				if ( networks_enabled.contains( AENetworkClassifier.AT_PUBLIC )){
 					
 					boolean	is_first_download = first_download;
 					
@@ -1279,19 +1353,11 @@ MagnetPlugin
 									return( null );
 								}
 								
-								synchronized( md_result ){
+								synchronized( result_holder ){
 									
-									if ( md_result[0] != null ){
+									if ( result_holder[0] != null ){
 										
-										return( md_result[0] );
-									}
-								}
-												
-								synchronized( fl_result ){
-									
-									if ( fl_result[0] != null ){
-										
-										return( fl_result[0] );
+										return( new DownloadResult( result_holder[0], networks_enabled, additional_networks ));
 									}
 								}
 								
@@ -1332,7 +1398,7 @@ MagnetPlugin
 												
 												secondary_lookup_time = SystemTime.getMonotonousTime();
 												
-												doSecondaryLookup( listener, secondary_result, hash, args );
+												doSecondaryLookup( listener, secondary_result, hash, networks_enabled, args );
 											}
 										}else{
 											
@@ -1341,7 +1407,7 @@ MagnetPlugin
 												
 												if ( torrent != null ){
 													
-													return( torrent );
+													return( new DownloadResult( torrent, networks_enabled, additional_networks ));
 												}
 											}catch( ResourceDownloaderException e ){
 												
@@ -1390,7 +1456,6 @@ MagnetPlugin
 							// System.out.println( "magnetDownload: " + contact.getName() + ", live = " + live_contact );
 							
 							final AESemaphore	contact_sem 	= new AESemaphore( "MD:contact" );
-							final byte[][]		contact_data	= { null };
 							
 							dispatcher.dispatch(
 								new AERunnable()
@@ -1450,9 +1515,9 @@ MagnetPlugin
 														
 															listener.reportContributor( contact.getAddress());
 													
-															synchronized( contact_data ){
+															synchronized( result_holder ){
 																
-																contact_data[0] = data;
+																result_holder[0] = data;
 															}												
 														}else{
 															
@@ -1484,28 +1549,12 @@ MagnetPlugin
 								}
 								
 								boolean got_sem = contact_sem.reserve( 500 );
-															
-								synchronized( contact_data ){
-										
-									if ( contact_data[0] != null ){
-											
-										return( contact_data[0] );
-									}
-								}
-								
-								synchronized( md_result ){
+																							
+								synchronized( result_holder ){
 									
-									if ( md_result[0] != null ){
+									if ( result_holder[0] != null ){
 										
-										return( md_result[0] );
-									}
-								}
-								
-								synchronized( fl_result ){
-									
-									if ( fl_result[0] != null ){
-										
-										return( fl_result[0] );
+										return( new DownloadResult( result_holder[0], networks_enabled, additional_networks ));
 									}
 								}
 								
@@ -1533,7 +1582,7 @@ MagnetPlugin
 						
 						secondary_lookup_time = SystemTime.getMonotonousTime();
 						
-						doSecondaryLookup(listener, secondary_result, hash, args );
+						doSecondaryLookup(listener, secondary_result, hash, networks_enabled, args );
 					}
 					
 					while( SystemTime.getMonotonousTime() - secondary_lookup_time < SECONDARY_LOOKUP_MAX_TIME ){
@@ -1548,25 +1597,17 @@ MagnetPlugin
 							
 							if ( torrent != null ){
 								
-								return( torrent );
+								return( new DownloadResult( torrent, networks_enabled, additional_networks ));
 							}
 							
-							synchronized( md_result ){
+							synchronized( result_holder ){
 								
-								if ( md_result[0] != null ){
+								if ( result_holder[0] != null ){
 									
-									return( md_result[0] );
+									return( new DownloadResult( result_holder[0], networks_enabled, additional_networks ));
 								}
 							}
-							
-							synchronized( fl_result ){
-								
-								if ( fl_result[0] != null ){
-									
-									return( fl_result[0] );
-								}
-							}
-							
+														
 							Thread.sleep( 500 );
 							
 						}catch( ResourceDownloaderException e ){
@@ -1602,7 +1643,7 @@ MagnetPlugin
 							
 								if ( torrent != null ){
 								
-									return( torrent );
+									return( new DownloadResult( torrent, networks_enabled, additional_networks ));
 								}
 							}catch( ResourceDownloaderException e ){
 								
@@ -1612,24 +1653,16 @@ MagnetPlugin
 							}
 						}
 						
-						synchronized( md_result ){
+						synchronized( result_holder ){
 							
-							if ( md_result[0] != null ){
+							if ( result_holder[0] != null ){
 								
-								return( md_result[0] );
+								return( new DownloadResult( result_holder[0], networks_enabled, additional_networks ));
 							}
 							
-							if ( md_error[0] != null ){
+							if ( result_error[0] != null ){
 								
 								break;
-							}
-						}
-						
-						synchronized( fl_result ){
-							
-							if ( fl_result[0] != null ){
-								
-								return( fl_result[0] );
 							}
 						}
 					}
@@ -1662,74 +1695,13 @@ MagnetPlugin
 		}
 	}
 	
-	private String
-	getNetwork(
-		String	args )
-	{
-		if ( args != null ){
-			
-			String[]	bits = args.split( "&" );
-			
-			Set<String>	tr_networks 		= new HashSet<String>();
-			Set<String>	explicit_networks 	= new HashSet<String>();
-			
-			for ( String bit: bits ){
-				
-				if ( bit.startsWith( "maggot_sha1" )){
-					
-					return( AENetworkClassifier.AT_I2P );
-				}
-				
-				String[] x = bit.split( "=" );
-				
-				if ( x.length == 2 ){
-					
-					String lhs = x[0].toLowerCase( Locale.US );
-					
-					if ( lhs.equals( "tr" )){
-						
-						String rhs = UrlUtils.decode( x[1] );
-						
-						try{
-							String tracker_host = new URL( rhs ).getHost();
-							
-							tr_networks.add( AENetworkClassifier.categoriseAddress( tracker_host ));
-							
-						}catch( Throwable e ){
-							
-						}
-					}else if ( lhs.equals( "net" )){
-						
-						String network = AENetworkClassifier.internalise( x[1] );
-						
-						if ( network != null ){
-							
-							explicit_networks.add( network );
-						}
-					}
-				}
-			}
-			
-			Set<String>	networks = explicit_networks.size()>0?explicit_networks:tr_networks;
-			
-			if ( networks.size() > 0 ){
-				
-				if ( networks.size() == 1 || !networks.contains( AENetworkClassifier.AT_PUBLIC )){
-					
-					return( networks.iterator().next());	
-				}
-			}
-		}
-		
-		return( AENetworkClassifier.AT_PUBLIC );
-	}
-	
 	protected void
 	doSecondaryLookup(
 		final MagnetPluginProgressListener		listener,
 		final Object[]							result,
 		byte[]									hash,
-		String									args )
+		Set<String>								networks_enabled,
+		String									args )	
 	{
 		listener.reportActivity( getMessageText( "report.secondarylookup", null ));
 		
@@ -1740,10 +1712,8 @@ MagnetPlugin
 
 			URL 	sl_url	= original_sl_url;
 			Proxy	proxy	= null;
-			
-			String	network = getNetwork( args );
-									
-			if ( network != AENetworkClassifier.AT_PUBLIC ){
+												
+			if ( !networks_enabled.contains( AENetworkClassifier.AT_PUBLIC )){
 			
 				plugin_proxy = AEProxyFactory.getPluginProxy( "secondary magnet lookup", sl_url );
 				
@@ -1910,5 +1880,38 @@ MagnetPlugin
 		MagnetPluginListener		listener )
 	{
 		listeners.remove( listener );
+	}
+	
+	private class
+	DownloadResult
+	{
+		private byte[]		data;
+		private Set<String>	networks;
+		
+		private
+		DownloadResult(
+			byte[]			torrent_data,
+			Set<String>		networks_enabled,
+			Set<String>		additional_networks )
+		{
+			data		= torrent_data;
+			
+			networks = new HashSet<String>();
+			
+			networks.addAll( networks_enabled );
+			networks.addAll( additional_networks );
+		}
+		
+		private byte[]
+		getTorrentData()
+		{
+			return( data );
+		}
+		
+		private Set<String>
+		getNetworks()
+		{
+			return( networks );
+		}
 	}
 }

@@ -76,6 +76,7 @@ MagnetPluginMDDownloader
 	
 	private PluginInterface		plugin_interface;
 	private byte[]				hash;
+	private Set<String>			networks;
 	private String				args;
 	
 	private volatile boolean		started;
@@ -91,10 +92,12 @@ MagnetPluginMDDownloader
 	MagnetPluginMDDownloader(
 		PluginInterface		_plugin_interface,
 		byte[]				_hash,
+		Set<String>			_networks,
 		String				_args )
 	{
 		plugin_interface	= _plugin_interface;
 		hash				= _hash;
+		networks			= _networks;
 		args				= _args;
 	}
 	
@@ -257,9 +260,6 @@ MagnetPluginMDDownloader
 			
 			List<String>	trackers 	= new ArrayList<String>();
 			
-			Set<String>	tr_networks 		= new HashSet<String>();
-			Set<String>	explicit_networks 	= new HashSet<String>();
-
 			String	name = "magnet:" + Base32.encode( hash );
 			
 			for ( String bit: bits ){
@@ -276,30 +276,13 @@ MagnetPluginMDDownloader
 						
 						trackers.add( tracker );
 
-						try{
-							tr_networks.add( AENetworkClassifier.categoriseAddress( new URL( tracker ).getHost()));
-
-						}catch( Throwable e ){
-							
-						}
 					}else if ( lhs.equals( "dn" )){
 						
 						name = UrlUtils.decode( x[1] );
-						
-					}else if ( lhs.equals( "net" )){
-						
-						String network = AENetworkClassifier.internalise( x[1] );
-						
-						if ( network != null ){
-							
-							explicit_networks.add( network );
-						}
 					}
 				}
 			}
 				
-			Set<String>	networks = explicit_networks.size()>0?explicit_networks:tr_networks;
-
 			if ( trackers.size() > 0 ){
 				
 					// stick the decentralised one we created above in position 0 - this will be
@@ -355,9 +338,12 @@ MagnetPluginMDDownloader
 			
 			state.setDisplayName( display_name + ".torrent" );
 			
-			if ( networks.size() == 0 ){
+			if (	 networks.size() == 0 ||
+					( networks.size() == 1 && networks.contains( AENetworkClassifier.AT_PUBLIC ))){
 				
-					// no clues in the magnet link, start off by enabling all networks
+					// no clues in the magnet link, or just public 
+					// start off by enabling all networks, public will be disabled later
+					// if off by default
 				
 				for ( String network: AENetworkClassifier.AT_NETWORKS ){
 				
@@ -784,13 +770,8 @@ MagnetPluginMDDownloader
 					
 					TorrentUtils.setPeerCache( torrent, peer_cache );
 				}
-				
-				if ( peer_networks.size() > 0 ){
-					
-					TorrentUtils.setNetworkCache( torrent, new ArrayList<String>( peer_networks ));
-				}
-				
-				listener.complete( torrent );
+								
+				listener.complete( torrent, peer_networks );
 				
 			}else{
 									
@@ -907,7 +888,8 @@ MagnetPluginMDDownloader
 		
 		public void
 		complete(
-			TOTorrent	torrent );
+			TOTorrent		torrent,
+			Set<String>		peer_networks );
 		
 		public void
 		failed(
