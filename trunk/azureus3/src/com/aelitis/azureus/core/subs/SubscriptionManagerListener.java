@@ -21,6 +21,8 @@
 
 package com.aelitis.azureus.core.subs;
 
+import java.net.URL;
+
 public interface 
 SubscriptionManagerListener 
 {
@@ -43,4 +45,8 @@ SubscriptionManagerListener
 	public void
 	associationsChanged(
 		byte[]				association_hash );
+	
+	public void
+	subscriptionRequested(
+		URL					url );
 }

@@ -23,6 +23,7 @@ package org.gudy.azureus2.ui.swt.mainwindow;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -50,6 +51,12 @@ import org.gudy.azureus2.core3.torrent.impl.TorrentOpenFileOptions;
 import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.utils.xml.rss.RSSUtils;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.shells.CoreWaiterSWT;
 
@@ -728,6 +735,48 @@ public class TorrentOpener {
 			return false;
 		}
 
+		if ( RSSUtils.isRSSFeed( torrentFile )){
+				
+			boolean	done = false;
+			
+			try{
+				URL url = new URL( sOriginatingLocation );
+				
+				UIManager ui_manager = StaticUtilities.getUIManager( 10*1000 );
+				
+				if ( ui_manager != null ){
+				
+					String details = MessageText.getString(
+							"subscription.request.add.message",
+							new String[]{ sOriginatingLocation });
+					
+					long res = ui_manager.showMessageBox(
+							"subscription.request.add.title",
+							"!" + details + "!",
+							UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+					
+					if ( res == UIManagerEvent.MT_YES ){
+							
+						SubscriptionManager sm = PluginInitializer.getDefaultInterface().getUtilities().getSubscriptionManager();
+
+						sm.requestSubscription( url );
+						
+						done = true;
+					}
+				}				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+
+			
+			if ( done ){
+				if (bDeleteFileOnCancel) {
+					torrentFile.delete();
+				}
+				return false;
+			}
+		}
 		// Do a quick check to see if it's a torrent
 		if (!TorrentUtil.isFileTorrent(torrentFile, torrentFile.getName())) {
 			if (bDeleteFileOnCancel) {

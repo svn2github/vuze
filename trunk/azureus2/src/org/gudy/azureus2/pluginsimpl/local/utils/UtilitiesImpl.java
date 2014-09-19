@@ -1652,6 +1652,13 @@ UtilitiesImpl
 			return( 
 				new SubscriptionManager()
 				{
+					public void
+					requestSubscription(
+						URL		url )
+					{
+						sm.requestSubscription( url );
+					}
+					
 					public Subscription[] 
 					getSubscriptions() 
 					{
@@ -1834,6 +1841,10 @@ UtilitiesImpl
 	public interface
 	PluginSubscriptionManager
 	{
+		public void
+		requestSubscription(
+			URL		url );
+		
 		public PluginSubscription[]
 		getSubscriptions(
 			boolean	subscribed_only );

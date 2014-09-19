@@ -21,11 +21,11 @@
 
 package com.aelitis.azureus.ui.swt.subscriptions;
 
+import java.net.URL;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.Image;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
@@ -401,6 +401,21 @@ SubscriptionManagerUI
 					byte[] hash )
 				{
 					refreshColumns();
+				}
+				
+				public void
+				subscriptionRequested(
+					final URL					url )
+				{
+					Utils.execSWTThread(
+						new AERunnable() 
+						{
+							public void
+							runSupport()
+							{
+								new SubscriptionWizard( url );
+							}
+						});
 				}
 			});	
 		
@@ -919,8 +934,13 @@ SubscriptionManagerUI
 				public void
 				associationsChanged(
 					byte[]		association_hash )
-				{
-					 
+				{ 
+				}
+				
+				public void
+				subscriptionRequested(
+					URL					url )
+				{	
 				}
 			});
 		

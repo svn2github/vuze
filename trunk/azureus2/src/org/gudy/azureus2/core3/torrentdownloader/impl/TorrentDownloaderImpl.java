@@ -52,6 +52,7 @@ import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection;
 import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection2;
 import org.gudy.azureus2.core3.torrent.*;
 import org.gudy.azureus2.plugins.utils.resourcedownloader.ResourceDownloaderException;
+import org.gudy.azureus2.pluginsimpl.local.utils.xml.rss.RSSUtils;
 
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
@@ -934,7 +935,10 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 	
 		        	  if ( !is_vuze_file ){
 	
-		        		  Debug.printStackTrace( e );
+		        		  if ( !RSSUtils.isRSSFeed( file )){
+		        		  
+		        			  Debug.printStackTrace( e );
+		        		  }
 		        	  }
 		          }
 		          

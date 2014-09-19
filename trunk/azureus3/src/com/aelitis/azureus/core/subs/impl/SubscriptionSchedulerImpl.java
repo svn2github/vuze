@@ -681,4 +681,10 @@ SubscriptionSchedulerImpl
 		byte[]				association_hash )
 	{
 	}
+	
+	public void
+	subscriptionRequested(
+		URL					url )
+	{	
+	}
 }

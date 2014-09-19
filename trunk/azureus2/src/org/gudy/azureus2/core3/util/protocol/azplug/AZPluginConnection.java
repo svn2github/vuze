@@ -101,15 +101,30 @@ AZPluginConnection
 		String	plugin_name = (String)args.get( "name" );
 		String	arg			= (String)args.get( "arg" );
 		
-		String plugin_str = plugin_id + (plugin_name==null?"":( " (" + plugin_name + ")" ));
+		if ( arg == null ){
+			
+			arg = "";
+		}
+		
+		String plugin_str;
+		
+		if ( plugin_name == null ){
+			
+			plugin_str = plugin_id; 
+			
+		}else{
+			
+			plugin_str = plugin_name + " (" + plugin_id + ")";
+		}
 		
 		// AZPluginConnection is called via reflection
 		// Let's just assume that the Core is avail..
+		
 		PluginInterface pi = AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( plugin_id );
 		
 		if ( pi == null ){
 			
-			throw( new IOException( "Plugin id " + plugin_str + " not installed" ));
+			throw( new IOException( "Plugin id " + plugin_str + " not installed - go to 'Tools->Plugins->Installation Wizard' to install." ));
 		}
 		
 		IPCInterface ipc = pi.getIPC();

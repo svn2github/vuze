@@ -19,12 +19,18 @@
 
 package org.gudy.azureus2.pluginsimpl.local.utils.xml.rss;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
 /**
  * @author parg
@@ -130,6 +136,38 @@ RSSUtils
 		Debug.outNoStack( "RSSUtils: failed to parse Atom date: " + date_str );
 		
 		return( null );
+	}
+	
+	public static boolean
+	isRSSFeed(
+		File		file )
+	{
+		try{
+			String str = FileUtil.readFileAsString( file, 512 ).toLowerCase();
+			
+			str = str.trim().toLowerCase( Locale.US );
+			
+			if ( str.startsWith( "<?xml" )){
+				
+				if ( str.contains( "<feed" ) || str.contains( "<rss" )){
+					
+					InputStream is = new BufferedInputStream( new FileInputStream( file ));
+					
+					try{
+						new RSSFeedImpl( new UtilitiesImpl( null, null ), is );
+						
+						return( true );
+						
+					}finally{
+						
+						is.close();
+					}
+				}
+			}
+		}catch( Throwable e ){
+		}
+		
+		return( false );
 	}
 	
 	public static void

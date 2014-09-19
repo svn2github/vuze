@@ -21,9 +21,15 @@
 
 package org.gudy.azureus2.plugins.utils.subscriptions;
 
+import java.net.URL;
+
 public interface 
 SubscriptionManager 
 {
 	public Subscription[] 
 	getSubscriptions();
+	
+	public void
+	requestSubscription(
+		URL			url );
 }

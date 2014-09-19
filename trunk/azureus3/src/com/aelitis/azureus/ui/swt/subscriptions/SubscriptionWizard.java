@@ -116,26 +116,45 @@ public class SubscriptionWizard {
 	Subscription[] subscriptions;
 	
 	DownloadManager download;
+	URL				rss_feed_url;
+	
 	private ImageLoader imageLoader;
 	private TableViewSWT<Subscription> tvSubscriptions;
 	private static boolean columnsAdded = false;
 	
 	public SubscriptionWizard() {
-		this(null);
+		init();
 	}
 	
-	public SubscriptionWizard(final DownloadManager download) {
+	public 
+	SubscriptionWizard(
+		URL		url )
+	{
+		rss_feed_url	= url;
+		
+		init();
+	}
+	
+	public SubscriptionWizard(
+		DownloadManager _download) 
+	{
+		download = _download;
+
+		init();
+	}
+	
+	protected void 
+	init()
+	{
 		AzureusCoreFactory.addCoreRunningListener(new AzureusCoreRunningListener() {
 			public void azureusCoreRunning(AzureusCore core) {
-				init(core, download);
+				init(core);
 			}
 		});
 	}
 
-	protected void init(AzureusCore core, DownloadManager download) {
+	protected void init(AzureusCore core) {
 		imageLoader = ImageLoader.getInstance();
-
-		this.download = download;
 		
 		/*SubscriptionDownloadDetails[] allSubscriptions = SubscriptionUtils.getAllCachedDownloadDetails();
 		List notYetSubscribed = new ArrayList(allSubscriptions.length);
@@ -1229,6 +1248,13 @@ public class SubscriptionWizard {
 		
 		String titleText = TITLE_OPT_IN;
 		
+		if ( mode != MODE_OPT_IN ){
+			if ( rss_feed_url != null ){
+				mode = MODE_CREATE_RSS;
+				feedUrl.setText( rss_feed_url.toExternalForm());
+				rss_feed_url = null;
+			}
+		}
 		switch (mode) {
 		case MODE_SUBSCRIBE :
 			mainLayout.topControl = availableSubscriptionComposite;

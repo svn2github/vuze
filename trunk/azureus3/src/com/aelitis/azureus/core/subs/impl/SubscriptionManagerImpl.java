@@ -65,7 +65,6 @@ import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.custom.Customization;
 import com.aelitis.azureus.core.custom.CustomizationManager;
 import com.aelitis.azureus.core.custom.CustomizationManagerFactory;
-import com.aelitis.azureus.core.dht.DHT;
 import com.aelitis.azureus.core.lws.LightWeightSeed;
 import com.aelitis.azureus.core.lws.LightWeightSeedManager;
 import com.aelitis.azureus.core.messenger.config.PlatformSubscriptionsMessenger;
@@ -1472,6 +1471,22 @@ SubscriptionManagerImpl
 			log( "Creation of singleton from " + singleton_details + " failed", e );
 			
 			throw( new SubscriptionException( "Creation of singleton from " + singleton_details + " failed", e ));
+		}
+	}
+	
+	public void
+	requestSubscription(
+		URL			url )
+	{
+		for ( SubscriptionManagerListener listener: listeners ){
+			
+			try{
+				listener.subscriptionRequested(url);
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
 		}
 	}
 	

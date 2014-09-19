@@ -344,6 +344,13 @@ public class UrlUtils
 			return null;
 		}
 
+		text = text.trim();
+		
+		if ( text.startsWith( "azplug:" )){
+			
+			return( text );
+		}
+		
 		String href = parseHTMLforURL(text);
 		if (href != null) {
 			return href;
@@ -356,7 +363,7 @@ public class UrlUtils
 			// sometimes fires a IllegalArgumentException
 			// catch everything and ignore.
 		}
-
+		
 		String textLower;
 		try {
 			textLower = text.toLowerCase();

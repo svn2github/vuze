@@ -18,6 +18,7 @@
 
 package com.aelitis.azureus.ui.swt.subscriptions;
 
+import java.net.URL;
 import java.util.Map;
 
 import org.eclipse.swt.SWT;
@@ -29,7 +30,6 @@ import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
 import org.eclipse.swt.layout.FormLayout;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.ByteFormatter;
@@ -95,6 +95,12 @@ public class SubscriptionsView
 	subscriptionSelected(
 		Subscription subscription )
 	{		
+	}
+	
+	public void
+	subscriptionRequested(
+		URL					url )
+	{	
 	}
 	
 	/* (non-Javadoc)
