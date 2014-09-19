@@ -547,6 +547,7 @@ DownloadManagerImpl
     
 	// Only call this with STATE_QUEUED, STATE_WAITING, or STATE_STOPPED unless you know what you are doing
 	
+    private volatile boolean	removing;
 	private volatile boolean	destroyed;
 	
 	public 
@@ -1869,6 +1870,11 @@ DownloadManagerImpl
 		boolean		remove_data,
 		boolean		for_removal )
 	{
+		if ( for_removal ){
+			
+			removing = true;
+		}
+		
 		try {
 			boolean closing = state_after_stopping == DownloadManager.STATE_CLOSED;
 			int curState = getState();
@@ -5279,7 +5285,7 @@ DownloadManagerImpl
 	public boolean 
 	isDestroyed() 
 	{
-		return( destroyed );
+		return( destroyed || removing );
 	}
 	
 	public int[] getStorageType(DiskManagerFileInfo[] info) {

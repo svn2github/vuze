@@ -1793,6 +1793,8 @@ SpeedLimitHandler
 						DownloadPeerListener	peer_listener = 
 							new DownloadPeerListener()
 							{
+								private PeerManagerListener2 pm_listener;
+								
 								public void
 								peerManagerAdded(
 									final Download			download,
@@ -1805,7 +1807,12 @@ SpeedLimitHandler
 										return;
 									}
 									
-									peer_manager.addListener(
+									if ( pm_listener != null ){
+										
+										Debug.out( "Hmm, peer manager should have been removed" );
+									}
+									
+									pm_listener = 
 										new PeerManagerListener2()
 										{
 											public void
@@ -1828,7 +1835,9 @@ SpeedLimitHandler
 													peerRemoved( download, event.getPeer());
 												}
 											}
-										});
+										};
+										
+									peer_manager.addListener( pm_listener );
 									
 									Peer[] peers = peer_manager.getPeers();
 																				
@@ -1839,7 +1848,13 @@ SpeedLimitHandler
 								peerManagerRemoved(
 									Download		download,
 									PeerManager		peer_manager )
-								{						
+								{	
+									if ( pm_listener != null ){
+										
+										peer_manager.removeListener( pm_listener );
+										
+										pm_listener = null;
+									}
 								}
 							};
 							
