@@ -18,6 +18,7 @@
 package com.aelitis.azureus.ui.swt.shells.opentorrent;
 
 import java.io.*;
+import java.net.URL;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.Clipboard;
@@ -35,6 +36,12 @@ import org.gudy.azureus2.core3.torrent.impl.TorrentOpenOptions;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloader;
 import org.gudy.azureus2.core3.torrentdownloader.TorrentDownloaderCallBackInterface;
 import org.gudy.azureus2.core3.util.*;
+import org.gudy.azureus2.plugins.ui.UIManager;
+import org.gudy.azureus2.plugins.ui.UIManagerEvent;
+import org.gudy.azureus2.plugins.utils.StaticUtilities;
+import org.gudy.azureus2.plugins.utils.subscriptions.SubscriptionManager;
+import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
+import org.gudy.azureus2.pluginsimpl.local.utils.xml.rss.RSSUtils;
 import org.gudy.azureus2.ui.swt.*;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
@@ -511,18 +518,60 @@ public class OpenTorrentWindow
 
 		// The default is to delete file on cancel
 		// We set this flag to false if we detected the file was not a torrent
-		if (!inf.getDeleteFileOnCancel()
-				&& (state == TorrentDownloader.STATE_CANCELLED
-						|| state == TorrentDownloader.STATE_ERROR
-						|| state == TorrentDownloader.STATE_DUPLICATE || state == TorrentDownloader.STATE_FINISHED)) {
+		if (!inf.getDeleteFileOnCancel() &&
+				(	state == TorrentDownloader.STATE_CANCELLED ||
+					state == TorrentDownloader.STATE_ERROR ||
+					state == TorrentDownloader.STATE_DUPLICATE || 
+					state == TorrentDownloader.STATE_FINISHED)){
 
 			File file = inf.getFile();
+			
 			// we already know it isn't a torrent.. we are just using the call
 			// to popup the message
-			TorrentUtil.isFileTorrent(file, inf.getURL());
+			
+			boolean	done = false;
+
+			if ( RSSUtils.isRSSFeed( file )){
+								
+				try{
+					URL url = new URL( inf.getURL() );
+					
+					UIManager ui_manager = StaticUtilities.getUIManager( 10*1000 );
+					
+					if ( ui_manager != null ){
+					
+						String details = MessageText.getString(
+								"subscription.request.add.message",
+								new String[]{ inf.getURL() });
+						
+						long res = ui_manager.showMessageBox(
+								"subscription.request.add.title",
+								"!" + details + "!",
+								UIManagerEvent.MT_YES | UIManagerEvent.MT_NO );
+						
+						if ( res == UIManagerEvent.MT_YES ){
+								
+							SubscriptionManager sm = PluginInitializer.getDefaultInterface().getUtilities().getSubscriptionManager();
+
+							sm.requestSubscription( url );
+							
+							done = true;
+						}
+					}				
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+			
+			if ( !done ){
+				TorrentUtil.isFileTorrent(file, inf.getURL());
+			}
+			
 			if (file.exists()) {
 				file.delete();
 			}
+			
 			return;
 		}
 
@@ -549,11 +598,16 @@ public class OpenTorrentWindow
 			int count = inf.getLastReadCount();
 			int numRead = inf.getTotalRead();
 
+				// some weird logic here that seems to want to bail early on a download if it doesn't look like it is a torrent (bnencode always starts with 'd'
+				// and using 'delete file on cancel' as some crazy marker to control this...
+			
+				// PARG - added '<' to prevent early abandoning of RSS feed content
+			
 			if (!inf.getDeleteFileOnCancel() && numRead >= 16384) {
 				inf.cancel();
 			} else if (numRead == count && count > 0) {
 				final byte[] bytes = inf.getLastReadBytes();
-				if (bytes[0] != 'd') {
+				if (bytes[0] != 'd' && bytes[0] != '<' ) {
 					inf.setDeleteFileOnCancel(false);
 				}
 			}
