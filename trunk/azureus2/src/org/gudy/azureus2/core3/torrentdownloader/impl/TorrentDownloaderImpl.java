@@ -942,7 +942,12 @@ public class TorrentDownloaderImpl extends AEThread implements TorrentDownloader
 		        	  }
 		          }
 		          
-		          TorrentUtils.setObtainedFrom( file, original_url );
+		          	// proxy will report this with the correct URL if active
+		          
+		          if ( proxy == null ){
+		          
+		        	  TorrentUtils.setObtainedFrom( file, original_url );
+		          }
 	
 		          this.state = STATE_FINISHED;
 		        }

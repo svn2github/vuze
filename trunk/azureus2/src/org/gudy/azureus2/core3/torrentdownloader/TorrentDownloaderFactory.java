@@ -28,6 +28,7 @@ import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderImpl;
 import org.gudy.azureus2.core3.torrentdownloader.impl.TorrentDownloaderManager;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
 
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
@@ -285,6 +286,11 @@ public class TorrentDownloaderFactory {
   								state == STATE_DUPLICATE ||
   								state == STATE_CANCELLED ){
   					
+  							if ( state == STATE_FINISHED  && proxy_tried ){
+  								
+  								TorrentUtils.setObtainedFrom( delegate.getFile(), url );
+  							}
+  							
 							if ( original_callback != null ){
   								
   								original_callback.TorrentDownloaderEvent( state, TorrentDownloadRetrier.this );
