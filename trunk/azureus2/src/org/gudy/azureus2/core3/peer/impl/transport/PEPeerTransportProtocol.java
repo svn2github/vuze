@@ -3177,8 +3177,10 @@ implements PEPeerTransport
 		MainlineDHTProvider provider = getDHTProvider();
 		if (provider == null) {return;}
 		
-		try {provider.notifyOfIncomingPort(getIp(), i_port);}
-		catch (Throwable t) {Debug.printStackTrace(t);}	
+		if ( AENetworkClassifier.categoriseAddress( getIp()) == AENetworkClassifier.AT_PUBLIC ){
+			try {provider.notifyOfIncomingPort(getIp(), i_port);}
+			catch (Throwable t) {Debug.printStackTrace(t);}	
+		}
 	}
 
 	protected void decodeChoke( BTChoke choke ) {    
