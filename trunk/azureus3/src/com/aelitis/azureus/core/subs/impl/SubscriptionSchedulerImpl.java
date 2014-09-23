@@ -49,6 +49,8 @@ import org.gudy.azureus2.pluginsimpl.local.PluginInitializer;
 import org.gudy.azureus2.pluginsimpl.local.torrent.TorrentImpl;
 import org.gudy.azureus2.pluginsimpl.local.utils.UtilitiesImpl;
 
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.AEProxyFactory.PluginProxy;
 import com.aelitis.azureus.core.subs.Subscription;
 import com.aelitis.azureus.core.subs.SubscriptionDownloadListener;
 import com.aelitis.azureus.core.subs.SubscriptionException;
@@ -56,7 +58,6 @@ import com.aelitis.azureus.core.subs.SubscriptionHistory;
 import com.aelitis.azureus.core.subs.SubscriptionManagerListener;
 import com.aelitis.azureus.core.subs.SubscriptionResult;
 import com.aelitis.azureus.core.subs.SubscriptionScheduler;
-
 import com.aelitis.azureus.core.cnetwork.ContentNetwork;
 import com.aelitis.azureus.core.cnetwork.ContentNetworkManagerFactory;
 import com.aelitis.azureus.core.metasearch.Engine;
@@ -298,39 +299,82 @@ SubscriptionSchedulerImpl
 								try{
 									TorrentUtils.setTLSDescription( "Subscription: " + subs.getName());
 
-									URL url = new URL(dl);
-																		
-									ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
+									URL original_url = new URL(dl);
+													
+									PluginProxy plugin_proxy 	= null;
+									URL			current_url 	= original_url;
 									
-									ResourceDownloader url_rd = rdf.create( url );
+									Torrent torrent = null;
+									
+									try{
+
+										while( true ){
 											
-									String referer = use_ref?subs.getReferer():null;
-									
-									UrlUtils.setBrowserHeaders( url_rd, referer );
-									
-									Engine engine = subs.getEngine();
-									
-									if ( engine instanceof WebEngine ){
-										
-										WebEngine we = (WebEngine)engine;
-										
-										if ( we.isNeedsAuth()){
-											
-											String cookies = we.getCookies();
-											
-											if ( cookies != null && cookies.length() > 0 ){
+											try{
+												ResourceDownloaderFactory rdf = StaticUtilities.getResourceDownloaderFactory();
 												
-												url_rd.setProperty( "URL_Cookie", cookies );
+												ResourceDownloader url_rd = rdf.create( current_url, plugin_proxy==null?null:plugin_proxy.getProxy());
+												
+												if ( plugin_proxy != null ){
+													
+													url_rd.setProperty( "URL_HOST", original_url.getHost());
+												}
+																										
+												String referer = use_ref?subs.getReferer():null;
+												
+												UrlUtils.setBrowserHeaders( url_rd, referer );
+												
+												Engine engine = subs.getEngine();
+												
+												if ( engine instanceof WebEngine ){
+													
+													WebEngine we = (WebEngine)engine;
+													
+													if ( we.isNeedsAuth()){
+														
+														String cookies = we.getCookies();
+														
+														if ( cookies != null && cookies.length() > 0 ){
+															
+															url_rd.setProperty( "URL_Cookie", cookies );
+														}
+													}
+												}
+												
+												ResourceDownloader mr_rd = rdf.getMetaRefreshDownloader( url_rd );
+					
+												InputStream is = mr_rd.download();
+					
+												torrent = new TorrentImpl( TOTorrentFactory.deserialiseFromBEncodedInputStream( is ));
+												
+												break;
+												
+											}catch( Throwable e ){
+												
+												if ( plugin_proxy == null ){
+													
+													plugin_proxy = AEProxyFactory.getPluginProxy( "Subscription result download", original_url );
+												
+													if ( plugin_proxy != null ){
+													
+														current_url = plugin_proxy.getURL();
+														
+														continue;
+													}
+												}
+												
+												throw( e );
 											}
 										}
+									}finally{
+										
+										if ( plugin_proxy != null ){
+											
+											plugin_proxy.setOK( torrent != null);
+										}					
+										
 									}
 									
-									ResourceDownloader mr_rd = rdf.getMetaRefreshDownloader( url_rd );
-		
-									InputStream is = mr_rd.download();
-		
-									Torrent torrent = new TorrentImpl( TOTorrentFactory.deserialiseFromBEncodedInputStream( is ));
-														
 									// PlatformTorrentUtils.setContentTitle(torrent, torr );
 							
 									DownloadManager dm = PluginInitializer.getDefaultInterface().getDownloadManager();

@@ -73,10 +73,11 @@ AENameServiceDescriptor
 						(NameService)Proxy.newProxyInstance(
 							NameService.class.getClassLoader(),
 							new Class[]{ NameService.class },
-							new NameServiceProxy());
+							new NameServiceProxy());				
 			}
 		}catch( Throwable e ){
 			
+			e.printStackTrace();
 		}
 		
 		/*
@@ -111,15 +112,16 @@ AENameServiceDescriptor
 		delegate_iai_method_lookupAllHostAddr 	= iai_lookupAllHostAddr;
 	}
 	
-	public static boolean
-	isAvailable()
-	{
-		return( proxy_name_service != null );
-	}
-	
 	public NameService
 	createNameService() 
+	
+		throws Exception
 	{
+		if ( proxy_name_service == null ){
+			
+			throw( new Exception( "Failed to create proxy name service" ));
+		}
+		
 		return( proxy_name_service );
 	}
 	
@@ -146,7 +148,7 @@ AENameServiceDescriptor
 			Object[]	args ) 
 				
 			throws Throwable 
-		{		
+		{	
 			String method_name = method.getName();
 			
 			if ( method_name.equals( "getHostByAddr" )){
