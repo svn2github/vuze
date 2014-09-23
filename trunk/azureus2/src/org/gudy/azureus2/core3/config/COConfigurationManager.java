@@ -231,17 +231,8 @@ COConfigurationManager
 			    }
 			    
 			    if ( Constants.IS_CVS_VERSION && ( Constants.isOSX || Constants.isWindows )){
-			    
-			    	try{
-			    		if ((Boolean)COConfigurationManager.class.getClassLoader().loadClass( 
-			    				"org.gudy.azureus2.core3.util.spi.AENameServiceDescriptor" ).getMethod( 
-			    						"isAvailable" ).invoke( null )){
-			    		
-			    			System.setProperty("sun.net.spi.nameservice.provider.1","dns,aednsproxy");
-			    		}
-			    	}catch( Throwable e ){
-			    		
-			    	}
+			    			    		
+			    	System.setProperty("sun.net.spi.nameservice.provider.1","dns,aednsproxy");
 			    }
 			    
 			    SystemProperties.determineApplicationName();
