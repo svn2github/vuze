@@ -37,7 +37,10 @@ import java.net.*;
 import javax.net.ssl.*;
 
 import java.net.PasswordAuthentication;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -53,6 +56,7 @@ import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.FileUtil;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.core3.util.protocol.magnet.MagnetConnection2;
@@ -640,6 +644,8 @@ redirect_label:
 								try{
 									URLConnection	con;
 									
+									PluginProxy current_plugin_proxy = plugin_proxy==null?AEProxyFactory.getPluginProxy( force_proxy ):plugin_proxy;
+
 									if ( current_url.getProtocol().equalsIgnoreCase("https")){
 								      	
 											// see ConfigurationChecker for SSL client defaults
@@ -660,6 +666,84 @@ redirect_label:
 													}
 												});
 						  	
+										if ( current_plugin_proxy != null ){
+											
+												// unfortunately the use of an intermediate host name causes
+												// SSL to completely fail (the hostname verifier above isn't enough to
+												// stop borkage) so what can we do? 
+											
+												// actually, not sure why, but when I hacked in this delegator things magically
+												// started working :(
+											
+											TrustManagerFactory tmf = SESecurityManager.getTrustManagerFactory();
+											
+											final List<X509TrustManager>	default_tms = new ArrayList<X509TrustManager>();
+											
+											if ( tmf != null ){
+												
+												for ( TrustManager tm: tmf.getTrustManagers()){
+																						
+													if ( tm instanceof X509TrustManager ){
+														
+														default_tms.add((X509TrustManager)tm);
+													}
+												}
+											}
+											
+											TrustManager[] tms_delegate = 
+												new TrustManager[]
+												{
+													new X509TrustManager() {
+														public X509Certificate[] 
+														getAcceptedIssuers() 
+														{
+															List<X509Certificate> result = new ArrayList<X509Certificate>();
+															
+															for ( X509TrustManager tm: default_tms ){
+																
+																result.addAll( Arrays.asList(tm.getAcceptedIssuers()));
+															}
+															
+															return( result.toArray(new X509Certificate[result.size()]));
+														}
+														
+														public void 
+														checkClientTrusted(
+															java.security.cert.X509Certificate[] 	chain, 
+															String 									authType) 
+															
+															throws CertificateException
+														{
+															for ( X509TrustManager tm: default_tms ){
+																
+																tm.checkClientTrusted( chain, authType );
+															}
+														}
+														
+														public void 
+														checkServerTrusted(
+															java.security.cert.X509Certificate[] 	chain, 
+															String 									authType) 
+															
+															throws CertificateException
+														{
+															for ( X509TrustManager tm: default_tms ){
+																
+																tm.checkServerTrusted(chain, authType);
+															}
+														}
+													}
+												};
+										
+											SSLContext sc = SSLContext.getInstance("SSL");
+											
+											sc.init( null, tms_delegate, RandomUtils.SECURE_RANDOM );
+											
+											SSLSocketFactory factory = sc.getSocketFactory();
+											
+											ssl_con.setSSLSocketFactory(factory);
+										}
+										
 										con = ssl_con;
 						  	
 									}else{
@@ -668,7 +752,6 @@ redirect_label:
 						  	
 									}
 									
-									PluginProxy current_plugin_proxy = plugin_proxy==null?AEProxyFactory.getPluginProxy( force_proxy ):plugin_proxy;
 									
 									if ( con instanceof HttpURLConnection ){
 										

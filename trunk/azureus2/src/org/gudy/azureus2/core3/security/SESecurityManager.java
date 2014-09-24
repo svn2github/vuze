@@ -99,6 +99,12 @@ SESecurityManager
 		return( SESecurityManagerImpl.getSingleton().getSSLServerSocketFactory());
 	}
 	
+	public static TrustManagerFactory
+	getTrustManagerFactory()
+	{
+		return( SESecurityManagerImpl.getSingleton().getTrustManagerFactory());
+	}
+	
 	public static SSLSocketFactory
 	getSSLSocketFactory()
 	{

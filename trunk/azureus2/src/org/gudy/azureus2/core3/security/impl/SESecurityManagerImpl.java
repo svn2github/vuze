@@ -767,6 +767,32 @@ SESecurityManagerImpl
 		return( SESecurityManagerBC.createSelfSignedCertificate( this, alias, cert_dn, strength ));
 	}
 	
+	public TrustManagerFactory
+	getTrustManagerFactory()
+	{
+		try{
+			this_mon.enter();
+		
+			KeyStore keystore = getTrustStore();
+						
+			TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+			
+			tmf.init(keystore);
+			
+			return( tmf );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( null );
+			
+		}finally{
+			
+			this_mon.exit();
+		}	
+	}
+	
 	public SSLSocketFactory
 	getSSLSocketFactory()
 	{
