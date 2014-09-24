@@ -20,7 +20,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
  */
 
-package org.gudy.azureus2.core3.util.protocol.i2p;
+package org.gudy.azureus2.core3.util.protocol.tor;
 
 /**
  * @author parg
@@ -30,36 +30,27 @@ package org.gudy.azureus2.core3.util.protocol.i2p;
 import java.io.IOException;
 import java.net.*;
 
-import org.gudy.azureus2.core3.util.Debug;
 
 public class 
 Handler 
 	extends URLStreamHandler 
 {
 	public URLConnection 
-	openConnection(URL u)
+	openConnection(
+		URL 		u )
+	
+		throws IOException
 	{	
-		// 2014/9/24: parg - not sure what the usecase for this is...
-		
-		String	str = u.toString();
-		
-		str = "http" + str.substring( 3 );
-		
-		try{
-			return( new URL(str).openConnection());
-			
-		}catch( MalformedURLException e ){
-			
-			Debug.printStackTrace(e);
-			
-			return( null );
-			
-		}catch( IOException  e ){
-			
-			Debug.printStackTrace(e);
-			
-			return( null );
-		}
+		throw( new IOException( "tor: URIs can't be used directly" ));
 	}
 
+	public URLConnection 
+	openConnection(
+		URL 		u,
+		Proxy		proxy )
+	
+		throws IOException
+	{
+		throw( new IOException( "tor: URIs can't be used directly" ));
+	}
 }

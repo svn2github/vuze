@@ -519,6 +519,8 @@ AEPluginProxyHandler
 			
 			WeakReference<PluginProxyImpl>	my_ref = new WeakReference<PluginProxyImpl>( this );
 			
+			List<PluginProxyImpl>	removed = new ArrayList<PluginProxyImpl>();
+			
 			synchronized( proxy_map ){
 				
 				proxy_map.put( getProxy(), my_ref );
@@ -543,11 +545,18 @@ AEPluginProxyHandler
 							
 							if ( now - pp.create_time > 5*60*1000 ){
 								
+								removed.add( pp );
+								
 								it.remove();
 							}
 						}
 					}
 				}
+			}
+			
+			for ( PluginProxyImpl pp: removed ){
+				
+				pp.setOK( false );
 			}
 		}
 		
