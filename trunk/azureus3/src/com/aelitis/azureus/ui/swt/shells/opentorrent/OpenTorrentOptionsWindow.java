@@ -847,34 +847,92 @@ public class OpenTorrentOptionsWindow
 							
 						final List<OpenTorrentInstance> instances = new ArrayList<OpenTorrentOptionsWindow.OpenTorrentInstance>( selected.size());
 							
+						final List<OpenTorrentInstance> non_simple_instances = new ArrayList<OpenTorrentOptionsWindow.OpenTorrentInstance>();
+								
 						for ( Object o: selected ){
 							
-							instances.add((OpenTorrentInstance)o );
-						}
+							OpenTorrentInstance oti = (OpenTorrentInstance)o;
+							
+							instances.add( oti );
+							
+							if ( !oti.getOptions().isSimpleTorrent()){
 								
-						MenuItem item = new MenuItem(menu, SWT.PUSH);
-						
-						Messages.setLanguageText(item, "OpenTorrentWindow.fileList.changeDestination");
-						
-						item.addSelectionListener(
-							new SelectionAdapter() 
-							{
-								public void 
-								widgetSelected(
-									SelectionEvent e )
+								non_simple_instances.add( oti );
+							}
+						}
+							
+						{
+							MenuItem item = new MenuItem(menu, SWT.PUSH);
+							
+							Messages.setLanguageText(item, "OpenTorrentWindow.fileList.changeDestination");
+							
+							item.addSelectionListener(
+								new SelectionAdapter() 
 								{
-									for ( Object obj: selected ){
-										
-										OpenTorrentInstance	instance = (OpenTorrentInstance)obj;
-										
-										instance.setSavePath();
+									public void 
+									widgetSelected(
+										SelectionEvent e )
+									{
+										for ( Object obj: selected ){
+											
+											OpenTorrentInstance	instance = (OpenTorrentInstance)obj;
+											
+											instance.setSavePath();
+										}
 									}
-								}
-							});
+								});
+						}
+						
+						{
+							MenuItem item = new MenuItem(menu, SWT.PUSH);
+							
+							Messages.setLanguageText(item, "OpenTorrentWindow.tlf.remove");
+							
+							item.addSelectionListener(
+								new SelectionAdapter() 
+								{
+									public void 
+									widgetSelected(
+										SelectionEvent e )
+									{
+										for ( Object obj: selected ){
+											
+											OpenTorrentInstance	instance = (OpenTorrentInstance)obj;
+											
+											instance.removeTopLevelFolder();
+										}
+									}
+								});
+							
+							item.setEnabled( non_simple_instances.size() > 0 );
+						}
+						
+						{
+							MenuItem item = new MenuItem(menu, SWT.CHECK );
+								
+							 item.setData( COConfigurationManager.getBooleanParameter( "open.torrent.window.rename.on.tlf.change" ));
+								
+							 Messages.setLanguageText(item, "OpenTorrentWindow.tlf.rename");
+
+							 item.addSelectionListener(
+								 new SelectionAdapter() 
+								 {
+									 public void 
+									 widgetSelected(
+											 SelectionEvent e )
+									 {
+										 COConfigurationManager.setParameter(
+												"open.torrent.window.rename.on.tlf.change", 
+												((MenuItem)e.widget).getSelection());
+									 }
+								 });
+							
+							item.setEnabled( non_simple_instances.size() > 0 );
+						}
 						
 						new MenuItem(menu, SWT.SEPARATOR);
 
-						item = new MenuItem(menu, SWT.PUSH);
+						MenuItem item = new MenuItem(menu, SWT.PUSH);
 						
 						Messages.setLanguageText(item, "Button.remove");
 						
@@ -2847,12 +2905,45 @@ public class OpenTorrentOptionsWindow
 						 new MenuItem(menu, SWT.SEPARATOR );
 						 
 						 item = new MenuItem(menu, SWT.PUSH);
-							Messages.setLanguageText(item, "OpenTorrentWindow.set.savepath");
-							item.addSelectionListener(new SelectionAdapter() {
+						
+						 Messages.setLanguageText(item, "OpenTorrentWindow.set.savepath");
+						
+						 item.addSelectionListener(new SelectionAdapter() {
 								public void widgetSelected(SelectionEvent e) {
 									setSavePath();
 								}
 							});
+							
+						 item = new MenuItem(menu, SWT.PUSH);
+						
+						 Messages.setLanguageText(item, "OpenTorrentWindow.tlf.remove");
+						
+						 item.addSelectionListener(new SelectionAdapter() {
+								public void widgetSelected(SelectionEvent e) {
+									removeTopLevelFolder();
+								}
+							});
+						 
+						 item = new MenuItem(menu, SWT.CHECK );
+						
+						 item.setSelection( COConfigurationManager.getBooleanParameter( "open.torrent.window.rename.on.tlf.change" ));
+							
+						 Messages.setLanguageText(item, "OpenTorrentWindow.tlf.rename");
+
+						 item.addSelectionListener(
+							 new SelectionAdapter() 
+							 {
+								 public void 
+								 widgetSelected(
+										 SelectionEvent e )
+								 {
+									 COConfigurationManager.setParameter(
+											"open.torrent.window.rename.on.tlf.change", 
+											((MenuItem)e.widget).getSelection());
+								 }
+							 });
+						 
+						 new MenuItem(menu, SWT.SEPARATOR );
 					}
 				}
 	
@@ -3050,7 +3141,62 @@ public class OpenTorrentOptionsWindow
 				
 				torrentOptions.setParentDir( new_parent.getAbsolutePath());
 				torrentOptions.setSubDir( newDir.getName());
-				torrentOptions.setManualRename( new_parent.getName());
+				
+				if ( COConfigurationManager.getBooleanParameter( "open.torrent.window.rename.on.tlf.change" )){
+				
+					torrentOptions.setManualRename( new_parent.getName());
+					
+				}else{
+					
+					torrentOptions.setManualRename( null );
+				}
+				
+				updateDataDirCombo();
+				
+				cmbDataDirChanged();
+				
+				
+				/* old window used to reset this - not sure why, if the user's
+				 * made some per-file changes already then we should keep them
+				for ( TorrentOpenFileOptions tfi: torrentOptions.getFiles()){
+					
+					tfi.setFullDestName( null );
+				}
+				*/
+			}
+		}
+		
+		private void
+		removeTopLevelFolder()
+		{
+			if ( torrentOptions.isSimpleTorrent()){
+				
+				
+			}else{
+				
+				File oldDir = new File( torrentOptions.getDataDir());
+	
+				File newDir = oldDir.getParentFile();
+				
+				File newParent  = newDir.getParentFile();
+				if ( newParent == null ){
+					
+					Debug.out( "Invalid save path, parent folder is null" );
+					
+					return;
+				}
+				
+				torrentOptions.setParentDir( newParent.getAbsolutePath());
+				torrentOptions.setSubDir( newDir.getName());
+				
+				if ( COConfigurationManager.getBooleanParameter( "open.torrent.window.rename.on.tlf.change" )){
+				
+					torrentOptions.setManualRename( newParent.getName());
+					
+				}else{
+					
+					torrentOptions.setManualRename( null );
+				}
 				
 				updateDataDirCombo();
 				
