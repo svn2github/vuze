@@ -312,9 +312,22 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
 
         	setFilter( TCPTransportHelperFilterFactory.createTransparentFilter( channel ));
 
+        	String pp_host = pp.getHost();
+        	
+        	InetSocketAddress ia_address;
+        	
+        	if ( AENetworkClassifier.categoriseAddress( pp_host ) == AENetworkClassifier.AT_PUBLIC ){
+        	
+        		ia_address = new InetSocketAddress( pp.getHost(), pp.getPort());
+        	
+        	}else{
+        		
+        		ia_address = InetSocketAddress.createUnresolved( pp_host, pp.getPort());
+        	}
+        	
         	new ProxyLoginHandler( 
         		transport_instance, 
-        		new InetSocketAddress( pp.getHost(), pp.getPort()), 
+        		ia_address,
         		new ProxyLoginHandler.ProxyListener() 
         		{
         			public void 
