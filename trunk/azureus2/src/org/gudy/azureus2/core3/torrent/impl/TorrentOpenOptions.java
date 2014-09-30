@@ -646,6 +646,37 @@ public class TorrentOpenOptions
 				}
 			}
 			
+			boolean	enable_tor = networks.contains( AENetworkClassifier.AT_TOR );
+
+			if ( enable_tor ){
+				
+				String[]	providers = { "aznettor" };
+				
+				boolean	found = false;
+				
+				for ( String provider: providers ){
+				
+					if ( AzureusCoreFactory.getSingleton().getPluginManager().getPluginInterfaceByID( provider ) != null ){
+						
+						found = true;
+						
+						break;
+					}
+				}
+				
+				if ( found ){
+														
+					enabledNetworks.put( AENetworkClassifier.AT_TOR, true );
+					
+						// disable public if not selected
+					
+					if ( !networks.contains( AENetworkClassifier.AT_PUBLIC )){
+						
+						enabledNetworks.put( AENetworkClassifier.AT_PUBLIC, false );
+					}					
+				}
+			}
+			
 			renameDuplicates();
 		}
 	}
