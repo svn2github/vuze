@@ -1585,6 +1585,8 @@ public class OpenTorrentOptionsWindow
 				GridLayout gl = new GridLayout(2, false);
 				gl.marginHeight = gl.marginWidth = 0;
 				diskspaceComp.setLayout(gl);
+				Label l = new Label(diskspaceComp, SWT.NONE);
+				l.setText( "" );	// start with this to avoid UI re-layout from moving suff as user enters text etc
 			}
 		
 			if ( torrentOptions != null ){
