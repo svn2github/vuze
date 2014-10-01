@@ -28,6 +28,7 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
@@ -2227,6 +2228,103 @@ public class OpenTorrentOptionsWindow
 			cmbDataDir = new Combo(soInputArea.getComposite(), SWT.NONE);
 			cmbDataDir.setLayoutData(Utils.getFilledFormData());
 	
+			cmbDataDir.addKeyListener(
+				new KeyListener(){					
+					public void keyReleased(KeyEvent e) {
+						if ( e.character == ' ' && ( e.stateMask & ( SWT.CONTROL | SWT.MOD1 )) != 0 ){
+							
+							e.doit = false;
+						}
+					}
+					
+					public void keyPressed(KeyEvent e) {
+						
+						if ( e.character == ' ' && ( e.stateMask & ( SWT.CONTROL | SWT.MOD1 )) != 0 ){
+						
+							e.doit = false;
+							
+							Menu menu = cmbDataDir.getMenu();
+							
+							if ( menu != null && !menu.isDisposed()){
+								
+								menu.dispose();
+							}
+							
+							menu = new Menu( cmbDataDir );
+														
+							String current_text = cmbDataDir.getText();
+							
+							String def = COConfigurationManager.getStringParameter(PARAM_DEFSAVEPATH);
+							
+							List<String> items = new ArrayList<String>( Arrays.asList( cmbDataDir.getItems()));
+							
+							if ( !items.contains( def )){
+								
+								items.add( def );
+							}
+							
+							List<String>	suggestions = new ArrayList<String>();
+							
+							for ( String item: items ){
+								
+								if ( item.toLowerCase(Locale.US).contains( current_text.toLowerCase( Locale.US ))){
+									
+									suggestions.add( item );
+								}
+							}
+						
+							if ( suggestions.size() == 0 ){
+							
+								MenuItem mi = new MenuItem( menu, SWT.PUSH );
+								
+								mi.setText( MessageText.getString( "label.no.suggestions" ));
+								
+								mi.setEnabled( false );
+								
+							}else{
+								
+								//Collections.sort( suggestions );
+								
+								for ( final String str: suggestions ){
+									
+									MenuItem mi = new MenuItem( menu, SWT.PUSH );
+									
+									mi.setText( str );
+									
+									mi.addSelectionListener(
+										new SelectionAdapter() {
+											
+											public void 
+											widgetSelected(SelectionEvent e) {
+												
+												cmbDataDir.setText( str );
+											}
+										});
+								}
+							}
+							
+							cmbDataDir.setMenu( menu );
+							
+							final Point cursorLocation = Display.getCurrent().getCursorLocation();
+							
+							menu.setLocation( cursorLocation.x-10, cursorLocation.y-10 );
+							
+							menu.setVisible( true );
+							
+							Utils.execSWTThread(
+								new Runnable() {
+									
+									public void run() {
+										// need to do this to get the menu item selected correctly
+										Display.getCurrent().setCursorLocation(cursorLocation.x+1,cursorLocation.y);
+									}
+								}, true );
+						}
+					}
+				});
+			
+			cmbDataDir.setToolTipText( MessageText.getString( "label.ctrl.space.for.suggestion" ));
+			
 			cmbDataDir.addModifyListener(new ModifyListener() {
 				public void modifyText(ModifyEvent e) {
 					cmbDataDirChanged();
