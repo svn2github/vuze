@@ -2231,7 +2231,7 @@ public class OpenTorrentOptionsWindow
 			cmbDataDir.addKeyListener(
 				new KeyListener(){					
 					public void keyReleased(KeyEvent e) {
-						if ( e.character == ' ' && ( e.stateMask & ( SWT.CONTROL | SWT.MOD1 )) != 0 ){
+						if ( e.keyCode == SWT.SPACE && ( e.stateMask & ( SWT.CONTROL | SWT.MOD1 )) != 0 ){
 							
 							e.doit = false;
 						}
@@ -2239,7 +2239,7 @@ public class OpenTorrentOptionsWindow
 					
 					public void keyPressed(KeyEvent e) {
 						
-						if ( e.character == ' ' && ( e.stateMask & ( SWT.CONTROL | SWT.MOD1 )) != 0 ){
+						if ( e.keyCode == SWT.SPACE && ( e.stateMask & ( SWT.CONTROL | SWT.MOD1 )) != 0 ){
 						
 							e.doit = false;
 							
