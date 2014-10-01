@@ -274,7 +274,8 @@ public class ConfigurationDefaults {
 	}
 	
 	def.put("Default save path", f.getAbsolutePath());
-    
+	def.put("saveTo_list.max_entries", new Long(15));
+	
     def.put("update.start",TRUE);
     def.put("update.periodic",TRUE);
     def.put("update.opendialog",TRUE);
@@ -720,7 +721,7 @@ public class ConfigurationDefaults {
   
   public int getIntParameter(String p) throws ConfigurationParameterNotFoundException {
 	    checkParameterExists(p);
-	    return ((Long) def.get(p)).intValue();
+	    return ((Number) def.get(p)).intValue();
   }
   
   public long getLongParameter(String p) throws ConfigurationParameterNotFoundException {

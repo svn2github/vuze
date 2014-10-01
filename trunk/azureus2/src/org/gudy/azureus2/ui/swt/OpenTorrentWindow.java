@@ -818,61 +818,70 @@ public class OpenTorrentWindow
 		}
 
 		String sDefaultPath = COConfigurationManager.getStringParameter(PARAM_DEFSAVEPATH);
+		
 		if (!sDestDir.equals(sDefaultPath)) {
-			// Move sDestDir to top of list
 
-			// First, check to see if sDestDir is already in the list
-			File fDestDir = new File(sDestDir);
-			int iDirPos = -1;
-			for (int i = 0; i < dirList.size(); i++) {
-				String sDirName = dirList.get(i);
-				File dir = new File(sDirName);
-				if (dir.equals(fDestDir)) {
-					iDirPos = i;
-					break;
-				}
-			}
+			int	 limit = COConfigurationManager.getIntParameter( "saveTo_list.max_entries" );
 
-			// If already in list, remove it
-			if (iDirPos > 0 && iDirPos < dirList.size())
-				dirList.remove(iDirPos);
+			if ( limit >= 0 ){
+				
+				// Move sDestDir to top of list
 
-			// and add it to the top
-			dirList.add(0, sDestDir);
-
-			// Limit
-			if (dirList.size() > 15)
-				dirList.remove(dirList.size() - 1);
-
-			// Temporary list cleanup
-			try {
-				for (int j = 0; j < dirList.size(); j++) {
-					File dirJ = new File(dirList.get(j));
-					for (int i = 0; i < dirList.size(); i++) {
-						try {
-							if (i == j)
-								continue;
-
-							File dirI = new File(dirList.get(i));
-
-							if (dirI.equals(dirJ)) {
-								dirList.remove(i);
-								// dirList shifted up, fix indexes
-								if (j > i)
-									j--;
-								i--;
-							}
-						} catch (Exception e) {
-							// Ignore
-						}
+				// First, check to see if sDestDir is already in the list
+				File fDestDir = new File(sDestDir);
+				int iDirPos = -1;
+				for (int i = 0; i < dirList.size(); i++) {
+					String sDirName = dirList.get(i);
+					File dir = new File(sDirName);
+					if (dir.equals(fDestDir)) {
+						iDirPos = i;
+						break;
 					}
 				}
-			} catch (Exception e) {
-				// Ignore
-			}
 
-			COConfigurationManager.setParameter("saveTo_list", dirList);
-			COConfigurationManager.save();
+				// If already in list, remove it
+				if (iDirPos > 0 && iDirPos < dirList.size())
+					dirList.remove(iDirPos);
+	
+				// and add it to the top
+				dirList.add(0, sDestDir);
+	
+				
+				// Limit
+				if (limit > 0 && dirList.size() > limit){
+					dirList.remove(dirList.size() - 1);
+				}
+				
+				// Temporary list cleanup
+				try {
+					for (int j = 0; j < dirList.size(); j++) {
+						File dirJ = new File(dirList.get(j));
+						for (int i = 0; i < dirList.size(); i++) {
+							try {
+								if (i == j)
+									continue;
+	
+								File dirI = new File(dirList.get(i));
+	
+								if (dirI.equals(dirJ)) {
+									dirList.remove(i);
+									// dirList shifted up, fix indexes
+									if (j > i)
+										j--;
+									i--;
+								}
+							} catch (Exception e) {
+								// Ignore
+							}
+						}
+					}
+				} catch (Exception e) {
+					// Ignore
+				}
+
+				COConfigurationManager.setParameter("saveTo_list", dirList);
+				COConfigurationManager.save();
+			}
 		}
 
 		if (COConfigurationManager.getBooleanParameter("DefaultDir.AutoUpdate")){

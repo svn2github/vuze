@@ -32,7 +32,9 @@ import org.eclipse.swt.layout.RowLayout;
 import org.eclipse.swt.widgets.*;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.config.StringList;
 import org.gudy.azureus2.core3.config.impl.ConfigurationDefaults;
+import org.gudy.azureus2.core3.config.impl.StringListImpl;
 import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.Constants;
@@ -227,22 +229,7 @@ public class ConfigSectionFile
 					}
 				}
 			});
-			
-			//IAdditionalActionPerformer aapDefaultDirStuff = new ChangeSelectionActionPerformer(
-			//		bestGuess.getControls(), true);
-
-			// def dir: auto update
-			sCurConfigID = "DefaultDir.AutoUpdate";
-			allConfigIDs.add(sCurConfigID);
-			BooleanParameter autoUpdateSaveDir = new BooleanParameter(gDefaultDir,
-					sCurConfigID, "ConfigView.section.file.defaultdir.lastused");
-			gridData = new GridData(GridData.FILL_HORIZONTAL);
-			gridData.horizontalSpan = 3;
-			autoUpdateSaveDir.setLayoutData(gridData);
-
-			//IAdditionalActionPerformer aapDefaultDirStuff2 = new ChangeSelectionActionPerformer(
-			//		autoUpdateSaveDir.getControls(), true);
-			
+						
 			COConfigurationManager.addAndFireParameterListener(
 					"Default save path",
 					new ParameterListener() {
@@ -266,6 +253,50 @@ public class ConfigSectionFile
 							}
 						}
 					});
+			
+			final Composite cHistory = new Composite(gDefaultDir, SWT.NONE);
+		
+			layout = new GridLayout();
+			layout.numColumns = 6;
+			//layout.marginHeight = 2;
+			cHistory.setLayout(layout);
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			gridData.horizontalSpan = 3;
+			cHistory.setLayoutData(gridData);
+			
+			// def dir: auto update
+			sCurConfigID = "DefaultDir.AutoUpdate";
+			allConfigIDs.add(sCurConfigID);
+			BooleanParameter autoUpdateSaveDir = new BooleanParameter(cHistory,
+					sCurConfigID, "ConfigView.section.file.defaultdir.lastused");
+			
+			Label padLabel = new Label( cHistory, SWT.NULL );
+			gridData = new GridData(GridData.FILL_HORIZONTAL);
+			padLabel.setLayoutData(gridData);
+			
+			sCurConfigID = "saveTo_list.max_entries";
+			allConfigIDs.add(sCurConfigID);
+			Label historyMax = new Label(cHistory, SWT.NULL);
+			Messages.setLanguageText(historyMax,"ConfigView.label.save_list.max_entries");
+
+			IntParameter paramhistoryMax = new IntParameter(cHistory,	sCurConfigID);
+			
+			Label historyReset = new Label(cHistory, SWT.NULL);
+			Messages.setLanguageText(historyReset,"ConfigView.label.save_list.clear");
+
+			final Button clear_history_button = new Button(cHistory, SWT.PUSH);
+			Messages.setLanguageText(clear_history_button, "Button.clear" );
+			
+			clear_history_button.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event event) {
+					COConfigurationManager.setParameter("saveTo_list", new StringListImpl());
+					clear_history_button.setEnabled( false );
+				}
+			});
+			
+			StringList dirList = COConfigurationManager.getStringListParameter("saveTo_list");
+			
+			clear_history_button.setEnabled( dirList.size() > 0 );
 		}
 
 		new Label(gFile, SWT.NONE);

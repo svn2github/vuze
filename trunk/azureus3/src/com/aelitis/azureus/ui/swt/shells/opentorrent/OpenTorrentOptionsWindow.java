@@ -3139,8 +3139,7 @@ public class OpenTorrentOptionsWindow
 					return;
 				}
 				
-				torrentOptions.setParentDir( new_parent.getAbsolutePath());
-				torrentOptions.setSubDir( newDir.getName());
+				torrentOptions.setExplicitDataDir( new_parent.getAbsolutePath(), newDir.getName());
 				
 				if ( COConfigurationManager.getBooleanParameter( "open.torrent.window.rename.on.tlf.change" )){
 				
@@ -3186,8 +3185,7 @@ public class OpenTorrentOptionsWindow
 					return;
 				}
 				
-				torrentOptions.setParentDir( newParent.getAbsolutePath());
-				torrentOptions.setSubDir( newDir.getName());
+				torrentOptions.setExplicitDataDir( newParent.getAbsolutePath(), newDir.getName());
 				
 				if ( COConfigurationManager.getBooleanParameter( "open.torrent.window.rename.on.tlf.change" )){
 				
@@ -3936,66 +3934,84 @@ public class OpenTorrentOptionsWindow
 			}
 	
 			String sDefaultPath = COConfigurationManager.getStringParameter(PARAM_DEFSAVEPATH);
-			if (!torrentOptions.getParentDir().equals(sDefaultPath)) {
-				// Move sDestDir to top of list
-	
-				// First, check to see if sDestDir is already in the list
-				File fDestDir = new File(torrentOptions.getParentDir());
-				int iDirPos = -1;
-				for (int i = 0; i < dirList.size(); i++) {
-					String sDirName = dirList.get(i);
-					File dir = new File(sDirName);
-					if (dir.equals(fDestDir)) {
-						iDirPos = i;
-						break;
-					}
-				}
-	
-				// If already in list, remove it
-				if (iDirPos > 0 && iDirPos < dirList.size())
-					dirList.remove(iDirPos);
-	
-				// and add it to the top
-				dirList.add(0, torrentOptions.getParentDir());
-	
-				// Limit
-				if (dirList.size() > 15)
-					dirList.remove(dirList.size() - 1);
-	
-				// Temporary list cleanup
-				try {
-					for (int j = 0; j < dirList.size(); j++) {
-						File dirJ = new File(dirList.get(j));
-						for (int i = 0; i < dirList.size(); i++) {
-							try {
-								if (i == j)
-									continue;
-	
-								File dirI = new File(dirList.get(i));
-	
-								if (dirI.equals(dirJ)) {
-									dirList.remove(i);
-									// dirList shifted up, fix indexes
-									if (j > i)
-										j--;
-									i--;
-								}
-							} catch (Exception e) {
-								// Ignore
-							}
+			
+			String dataDir;
+			
+			if ( torrentOptions.isExplicitDataDir()){
+				
+				dataDir = torrentOptions.getDataDir();
+			
+			}else{
+				
+				dataDir = torrentOptions.getParentDir();
+			}
+			
+			if (!dataDir.equals(sDefaultPath)) {
+				
+				int	 limit = COConfigurationManager.getIntParameter( "saveTo_list.max_entries" );
+
+				if ( limit >= 0 ){
+
+					// Move sDestDir to top of list
+		
+					// First, check to see if sDestDir is already in the list
+					File fDestDir = new File(dataDir);
+					int iDirPos = -1;
+					for (int i = 0; i < dirList.size(); i++) {
+						String sDirName = dirList.get(i);
+						File dir = new File(sDirName);
+						if (dir.equals(fDestDir)) {
+							iDirPos = i;
+							break;
 						}
 					}
-				} catch (Exception e) {
-					// Ignore
+		
+					// If already in list, remove it
+					if (iDirPos > 0 && iDirPos < dirList.size())
+						dirList.remove(iDirPos);
+		
+					// and add it to the top
+					dirList.add(0, dataDir );
+		
+					// Limit
+					if (limit > 0 && dirList.size() > limit){
+						dirList.remove(dirList.size() - 1);
+					}
+					
+					// Temporary list cleanup
+					try {
+						for (int j = 0; j < dirList.size(); j++) {
+							File dirJ = new File(dirList.get(j));
+							for (int i = 0; i < dirList.size(); i++) {
+								try {
+									if (i == j)
+										continue;
+		
+									File dirI = new File(dirList.get(i));
+		
+									if (dirI.equals(dirJ)) {
+										dirList.remove(i);
+										// dirList shifted up, fix indexes
+										if (j > i)
+											j--;
+										i--;
+									}
+								} catch (Exception e) {
+									// Ignore
+								}
+							}
+						}
+					} catch (Exception e) {
+						// Ignore
+					}
+		
+					COConfigurationManager.setParameter("saveTo_list", dirList);
+					COConfigurationManager.save();
 				}
-	
-				COConfigurationManager.setParameter("saveTo_list", dirList);
-				COConfigurationManager.save();
 			}
 	
-			if (COConfigurationManager.getBooleanParameter("DefaultDir.AutoUpdate")) {
-				COConfigurationManager.setParameter(PARAM_DEFSAVEPATH,
-						torrentOptions.getParentDir());
+			if (COConfigurationManager.getBooleanParameter("DefaultDir.AutoUpdate")){
+				COConfigurationManager.setParameter( PARAM_DEFSAVEPATH, dataDir );
 			}
 		
 			return true;

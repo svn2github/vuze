@@ -77,7 +77,9 @@ public class TorrentOpenOptions
 	/** for multifiletorrents and change location */
 	/** @todo: getter/setters */
 	private String sDestSubDir;
-
+	
+	private boolean explicitDataDir;
+	
 	/** @todo: getter/setters */
 	private TOTorrent torrent;
 
@@ -217,10 +219,22 @@ public class TorrentOpenOptions
 	}
 	
 	public void
-	setSubDir(
-		String		dir )
+	setExplicitDataDir(
+		String		parent_dir,
+		String		sub_dir )
 	{
-		sDestSubDir	= dir;
+		sDestDir 	= parent_dir;
+		sDestSubDir	= sub_dir;
+		
+		explicitDataDir	= true;
+		
+		parentDirChanged();
+	}
+	
+	public boolean
+	isExplicitDataDir()
+	{
+		return( explicitDataDir );
 	}
 	
 	public boolean
