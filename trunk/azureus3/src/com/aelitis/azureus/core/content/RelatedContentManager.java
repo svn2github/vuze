@@ -2423,7 +2423,7 @@ RelatedContentManager
 										
 									}catch( Throwable e ){
 										
-										Debug.out( e );
+										//Debug.out( e );
 										
 										synchronized( rcm_lock ){
 											
