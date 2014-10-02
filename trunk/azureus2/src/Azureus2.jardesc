@@ -20,6 +20,7 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.protocol.tcp"/>
         <javaElement handleIdentifier="=azureus3_svn/&lt;com.aelitis.azureus.ui.swt.columns.utils"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.tracker.client.impl.dht"/>
+        <folder path="/azureus2_svn/META-INF"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.magnet.icons"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.spi"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.ui.swt.sharing"/>
@@ -133,6 +134,7 @@
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.diskmanager"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.custom.impl"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.core.peermanager.utils"/>
+        <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.util.protocol.tor"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.core3.disk"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;com.aelitis.azureus.plugins.magnet"/>
         <javaElement handleIdentifier="=azureus2_svn/&lt;org.gudy.azureus2.plugins.disk"/>

@@ -251,6 +251,8 @@ NetworkAdminImpl
 		
 		AEDiagnostics.addEvidenceGenerator( this );
 		
+		checkDNSSPI();
+		
 		AzureusCoreFactory.addCoreRunningListener(
 			new AzureusCoreRunningListener()
 			{
@@ -269,6 +271,26 @@ NetworkAdminImpl
 			});
 		
 		initialised = true;
+	}
+	
+	private void
+	checkDNSSPI()
+	{
+		try{
+			InetAddress ia = InetAddress.getByName( "dns.test.client.vuze.com" );
+			
+			if ( ia.isLoopbackAddress()){
+				
+				Debug.out( "DNS SPI looks good" );
+				
+			}else{
+				
+				Debug.out( "Loopback address expected, got " + ia );
+			}
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+		}
 	}
 	
 	protected void

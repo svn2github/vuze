@@ -2231,15 +2231,15 @@ public class OpenTorrentOptionsWindow
 			cmbDataDir.addKeyListener(
 				new KeyListener(){					
 					public void keyReleased(KeyEvent e) {
-						if ( e.keyCode == SWT.SPACE && ( e.stateMask & ( SWT.CONTROL | SWT.MOD1 )) != 0 ){
+						if ( e.keyCode == SWT.SPACE && ( e.stateMask & SWT.MODIFIER_MASK ) != 0 ){
 							
 							e.doit = false;
 						}
 					}
 					
 					public void keyPressed(KeyEvent e) {
-						
-						if ( e.keyCode == SWT.SPACE && ( e.stateMask & ( SWT.CONTROL | SWT.MOD1 )) != 0 ){
+												
+						if ( e.keyCode == SWT.SPACE && ( e.stateMask & SWT.MODIFIER_MASK ) != 0 ){
 						
 							e.doit = false;
 							
@@ -2306,7 +2306,7 @@ public class OpenTorrentOptionsWindow
 							cmbDataDir.setMenu( menu );
 							
 							final Point cursorLocation = Display.getCurrent().getCursorLocation();
-							
+														
 							menu.setLocation( cursorLocation.x-10, cursorLocation.y-10 );
 							
 							menu.setVisible( true );

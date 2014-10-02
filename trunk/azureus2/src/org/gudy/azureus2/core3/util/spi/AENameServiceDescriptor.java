@@ -25,6 +25,9 @@ import java.lang.reflect.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
+import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.util.TorrentUtils;
+
 import sun.net.spi.nameservice.*;
 import sun.net.spi.nameservice.dns.*;
 
@@ -47,6 +50,10 @@ public class
 AENameServiceDescriptor 
 	implements NameServiceDescriptor 
 {
+		// used in NetworkAdminImpl - not direct fixup due to loading issues observed...
+	
+	private static final String 		TEST_HOST	= "dns.test.client.vuze.com";
+	
 	private final static NameService 	delegate_ns;
 	private final static Method 		delegate_ns_method_lookupAllHostAddr;
 	
@@ -150,19 +157,98 @@ AENameServiceDescriptor
 			throws Throwable 
 		{	
 			String method_name = method.getName();
-			
-			if ( method_name.equals( "getHostByAddr" )){
+
+			if ( method_name.equals( "lookupAllHostAddr" )){
+
+				String host_name = (String)args[0];
 				
-				return delegate_ns.getHostByAddr((byte[])args[0]);
+				if ( host_name.equals( TEST_HOST )){
+					
+					if ( delegate_ns == null ){
+						
+						throw( new RuntimeException( "Delegate Name Service unavailable" ));
+					}
+					
+					host_name = "www.google.com";
+					
+					try{
+						Object result = null;
+						
+						if ( delegate_iai_method_lookupAllHostAddr != null ){
+							
+							try{
+								result = delegate_iai_method_lookupAllHostAddr.invoke(  delegate_iai, host_name );
+	
+							}catch( Throwable e ){
+							}
+						}
+						
+						if ( result == null ){
+						
+							result = delegate_ns_method_lookupAllHostAddr.invoke( delegate_ns, host_name );
+						}
+						
+						
+						
+					}catch( Throwable e ){
+						
+						if ( e instanceof UnknownHostException ){
+							
+							// guess their DNS might be down - don't treat as complete fail
+						
+							System.err.println( "DNS resolution of " + host_name + " failed, DNS unavailable?" );
+							
+						}else{
+						
+							throw( new RuntimeException( "Delegate lookup failed", e ));
+						}
+					}
+					
+					// byte[][] or InetAddress[]
+					
+					Class ret_type = method.getReturnType();
+					
+					if ( ret_type.equals( byte[][].class )){
+					
+						return( new byte[][]{ {127,0,0,1}});
+						
+					}else{
+						
+						return( new InetAddress[]{ InetAddress.getByAddress( new byte[]{ 127, 0, 0, 1 })});
+					}
+				}
+			}
+			
+			boolean tracker_request = TorrentUtils.getTLSTorrentHash() != null;
+
+			return( invokeSupport( method_name, args ));
+		}
+		
+		private Object
+		invokeSupport(
+			String		method_name,
+			Object[]	args ) 
+				
+			throws Throwable 
+		{										
+			if ( method_name.equals( "getHostByAddr" )){
+			
+				byte[] address_bytes = (byte[])args[0];
+				
+				//System.out.println( method_name + ": " + ByteFormatter.encodeString( address_bytes ));
+				
+				return delegate_ns.getHostByAddr( address_bytes );
 				
 			}else if ( method_name.equals( "lookupAllHostAddr" )){
-				
+
 				String host_name = (String)args[0];
+
+				//System.out.println( method_name + ": " + host_name );
 				
 				if ( host_name == null || host_name.equals( "null" )){
 						
 					// get quite a few of these from 3rd party libs :(
-					//new Exception("Bad DNS lookup: " + host_name).printStackTrace();
+					// new Exception("Bad DNS lookup: " + host_name).printStackTrace();
 										
 				}else if ( host_name.endsWith( ".i2p" ) || host_name.endsWith( ".onion" )){
 					
@@ -194,6 +280,6 @@ AENameServiceDescriptor
 			
 				throw( new IllegalArgumentException( "Unknown method '" + method_name + "'" ));
 			}
-		}		
+		}
 	}
 }

@@ -1442,6 +1442,12 @@ TorrentUtils
 		tls.get().put( "hash", hash );
 	}
 	
+	public static HashWrapper
+	getTLSTorrentHash()
+	{
+		return((HashWrapper)tls.get().get( "hash" ));
+	}
+	
 	public static TOTorrent
 	getTLSTorrent()
 	{

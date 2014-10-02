@@ -230,10 +230,12 @@ COConfigurationManager
 			    	//}
 			    }
 			    
-			    if ( Constants.IS_CVS_VERSION && ( Constants.isOSX || Constants.isWindows )){
-			    			    		
-			    	System.setProperty("sun.net.spi.nameservice.provider.1","dns,aednsproxy");
-			    }
+			    //if ( Constants.IS_CVS_VERSION && ( Constants.isOSX || Constants.isWindows )){
+			    // everyone gets this as we use it to force prevent resolution when running socks
+			    
+			    System.setProperty("sun.net.spi.nameservice.provider.1","dns,aednsproxy");
+			    
+			    //}
 			    
 			    SystemProperties.determineApplicationName();
 			    

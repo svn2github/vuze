@@ -20,6 +20,7 @@
 package com.aelitis.azureus.core.networkmanager.impl.tcp;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.SocketAddress;
@@ -373,14 +374,44 @@ public class ProxyLoginHandler {
     handshake.put( (byte)1 ); // command = CONNECT
     handshake.putShort( (short)remote_address.getPort() );
 
-    byte[] ip_bytes = HostNameToIPResolver.syncResolve( remote_address.getAddress().getHostAddress() ).getAddress();
+    	// for v4 we have to resolve the address locally
+    
+    InetAddress ia = remote_address.getAddress();
+    
+    String host_str;
+    
+    if ( ia == null ){
+    	
+    		// unresolved
+    	
+    	host_str = remote_address.getHostName();
+    	
+    }else{
+    	
+    	host_str = ia.getHostAddress();
+    }
+    
+    InetAddress address = HostNameToIPResolver.syncResolve( host_str );
+    
+    if ( address == null ){
+    	
+    	throw( new Exception( "Unresolved host: " + remote_address));
+    }
+    
+    byte[] ip_bytes = address.getAddress();
 
+    if ( ip_bytes.length != 4 ){
+    	
+    	throw( new Exception( "Unsupported IPv6 address: " + remote_address ));
+    }
+    
     handshake.put( ip_bytes[ 0 ] );
     handshake.put( ip_bytes[ 1 ] );
     handshake.put( ip_bytes[ 2 ] );
     handshake.put( ip_bytes[ 3 ] );
     
-    if( socks_user.length() > 0 ) {
+    if( socks_user.length() > 0 ){
+    	
       handshake.put( socks_user.getBytes() );
     }
 
