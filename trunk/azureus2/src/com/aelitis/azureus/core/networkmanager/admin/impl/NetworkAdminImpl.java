@@ -276,20 +276,35 @@ NetworkAdminImpl
 	private void
 	checkDNSSPI()
 	{
+		String	error_str	= null;
+		
 		try{
 			InetAddress ia = InetAddress.getByName( "dns.test.client.vuze.com" );
 			
 			if ( ia.isLoopbackAddress()){
 				
-				Debug.out( "DNS SPI looks good" );
+				// looks good!
 				
 			}else{
 				
-				Debug.out( "Loopback address expected, got " + ia );
+				error_str = "Loopback address expected, got " + ia;
 			}
+		}catch( UnknownHostException e ){
+			
+			error_str = "DNS SPI not loaded";
+			
 		}catch( Throwable e ){
 			
-			Debug.out( e );
+			error_str = "Test lookup failed: " + Debug.getNestedExceptionMessage( e );
+		}
+		
+		if ( error_str != null ){
+			
+			Logger.log(					
+				new LogAlert(
+					true,
+					LogAlert.AT_WARNING,
+					MessageText.getString( "network.admin.dns.spi.fail", error_str )));
 		}
 	}
 	
@@ -719,7 +734,7 @@ addressLoop:
 					new LogAlert(
 						true,
 						LogAlert.AT_WARNING,
-						"'Enforce IP Bindings' is selected but no bindings have been specified\n\nSee Tools->Options->Connection->Advanced Network Settings" ));
+						MessageText.getString( "network.admin.bind.enforce.fail" )));
 			}
 		}
 		
