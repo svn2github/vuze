@@ -186,6 +186,17 @@ public class MainMDISetup
 						return entry;
 					}
 				});
+		mdi.registerEntry(MultipleDocumentInterface.SIDEBAR_SECTION_TAG_DISCOVERY,
+				new MdiEntryCreationListener() {
+					public MdiEntry createMDiEntry(String id) {
+						MdiEntry entry = mdi.createEntryFromSkinRef(
+								MultipleDocumentInterface.SIDEBAR_HEADER_TRANSFERS,
+								MultipleDocumentInterface.SIDEBAR_SECTION_TAG_DISCOVERY, "tagdiscoveryview",
+								"{mdi.entry.tagdiscovery}", null, null, true, null);
+						entry.setImageLeftID("image.sidebar.tag-overview");
+						return entry;
+					}
+				});
 		PluginInterface pi = PluginInitializer.getDefaultInterface();
 		if (pi != null) {
 			UIManager uim = pi.getUIManager();
@@ -198,6 +209,16 @@ public class MainMDISetup
 								MultipleDocumentInterface.SIDEBAR_SECTION_TAGS);
 					}
 				});
+
+				menuItem = uim.getMenuManager().addMenuItem(
+						MenuManager.MENU_MENUBAR, "tag.discovery.view.heading");
+				menuItem.addListener(new MenuItemListener() {
+					public void selected(MenuItem menu, Object target) {
+						UIFunctionsManager.getUIFunctions().getMDI().showEntryByID(
+								MultipleDocumentInterface.SIDEBAR_SECTION_TAG_DISCOVERY);
+					}
+				});
+
 			}
 		}
 
