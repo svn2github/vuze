@@ -471,6 +471,15 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		gridData.widthHint = 200;  // needed for wrap
 		label.setLayoutData(gridData);
 		
+			// disable plugin proxies
+			
+		final BooleanParameter disablepps = new BooleanParameter(cSection,
+				"Proxy.SOCKS.disable.plugin.proxies", CFG_PREFIX + "disable.plugin.proxies");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		disablepps.setLayoutData(gridData);
+
+	
 			// check on start
 		
 		final BooleanParameter checkOnStart = new BooleanParameter(cSection,

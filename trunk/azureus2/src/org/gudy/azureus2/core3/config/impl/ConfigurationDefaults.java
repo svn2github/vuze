@@ -312,7 +312,8 @@ public class ConfigurationDefaults {
     def.put( "Proxy.SOCKS.ShowIcon", TRUE );
     def.put( "Proxy.SOCKS.ShowIcon.FlagIncoming", TRUE );
     def.put( "Proxy.SOCKS.Tracker.DNS.Disable", TRUE );
-    	
+    def.put( "Proxy.SOCKS.disable.plugin.proxies", TRUE );
+    
     	// data proxy defaults
     def.put( "Proxy.Data.Enable", FALSE);
     def.put( "Proxy.Data.SOCKS.version", "V4" );

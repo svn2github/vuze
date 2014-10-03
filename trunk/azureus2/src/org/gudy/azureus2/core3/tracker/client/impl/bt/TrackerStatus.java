@@ -1041,7 +1041,7 @@ public class TrackerStatus {
 		try{
 			return( scrapeHTTPSupport( reqUrl, null, message ));
 			
-		}catch( UnknownHostException e ){
+		}catch( Exception e ){
 			
 			if ( AENetworkClassifier.categoriseAddress( reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){
 			

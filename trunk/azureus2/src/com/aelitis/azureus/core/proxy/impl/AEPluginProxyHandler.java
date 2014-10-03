@@ -27,6 +27,8 @@ import java.net.Proxy;
 import java.net.URL;
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.config.ParameterListener;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AESemaphore;
 import org.gudy.azureus2.core3.util.Debug;
@@ -55,8 +57,21 @@ AEPluginProxyHandler
 	private static final int			plugin_init_max_wait	= 30*1000;
 	private static final AESemaphore 	plugin_init_complete 	= new AESemaphore( "init:waiter" );
 	
+	private static boolean	enable_plugin_proxies_with_socks;
+	
 	static{
 		try{
+			COConfigurationManager.addAndFireParameterListener(
+				"Proxy.SOCKS.disable.plugin.proxies",
+				new ParameterListener() {	
+					public void 
+					parameterChanged(
+						String parameterName) 
+					{
+						enable_plugin_proxies_with_socks = !COConfigurationManager.getBooleanParameter( parameterName );
+					}
+				});
+			
 			AzureusCore core = AzureusCoreFactory.getSingleton();
 			
 			PluginInterface default_pi = core.getPluginManager().getDefaultPluginInterface();
@@ -190,6 +205,21 @@ AEPluginProxyHandler
 		return( false );
 	}
 	
+	private static boolean
+	isEnabled()
+	{
+		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
+		
+		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
+			
+			return( true );
+			
+		}else{
+		
+			return( enable_plugin_proxies_with_socks );
+		}
+	}
+	
 		/**
 		 * This method should NOT BE CALLED as it is in the .impl package - unfortunately the featman plugin calls it - will be removed 
 		 * when aefeatman 1.3.2 is released
@@ -213,10 +243,8 @@ AEPluginProxyHandler
 		URL						target,
 		Map<String,Object>		properties,
 		boolean					can_wait )
-	{
-		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
-		
-		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
+	{		
+		if ( isEnabled()){
 	
 			String url_protocol = target.getProtocol().toLowerCase();
 			
@@ -275,9 +303,7 @@ AEPluginProxyHandler
 		int						port,
 		Map<String,Object>		properties )
 	{
-		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
-		
-		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
+		if ( isEnabled()){
 			
 			if ( properties == null ){
 				
@@ -337,9 +363,7 @@ AEPluginProxyHandler
 		URL			url,
 		boolean		can_wait )
 	{
-		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
-		
-		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
+		if ( isEnabled()){
 			
 			String url_protocol = url.getProtocol().toLowerCase();
 
@@ -375,9 +399,7 @@ AEPluginProxyHandler
 		URL			url,
 		boolean		can_wait )
 	{
-		Proxy system_proxy = AEProxySelectorFactory.getSelector().getActiveProxy();
-		
-		if ( system_proxy == null || system_proxy.equals( Proxy.NO_PROXY )){
+		if ( isEnabled()){
 			
 			String url_protocol = url.getProtocol().toLowerCase();
 

@@ -1337,7 +1337,7 @@ TRTrackerBTAnnouncerImpl
 		try{
 			return( announceHTTPSupport( tracker_url, original_reqUrl, null, message ));
 			
-		}catch( UnknownHostException e ){
+		}catch( Exception e ){
 							
 			if ( 	first_effort &&
 					AENetworkClassifier.categoriseAddress( original_reqUrl.getHost() ) != AENetworkClassifier.AT_PUBLIC ){

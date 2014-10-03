@@ -36,7 +36,6 @@ import com.aelitis.azureus.core.networkmanager.*;
 import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.proxy.AEProxySelector;
 import com.aelitis.azureus.core.proxy.AEProxySelectorFactory;
-import com.aelitis.azureus.core.proxy.socks.impl.AESocksProxyState;
 
 
 /**

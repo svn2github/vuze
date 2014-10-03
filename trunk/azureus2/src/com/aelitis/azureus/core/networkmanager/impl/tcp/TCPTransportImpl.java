@@ -210,43 +210,45 @@ public class TCPTransportImpl extends TransportImpl implements Transport {
     
     if ( !address.equals( ProxyLoginHandler.DEFAULT_SOCKS_SERVER_ADDRESS )){
    
-    	is_socks = COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" );
-
-    	if ( !is_socks ){
-    
+     
     			// see if a plugin can handle this connection
     		
-    		if ( address.isUnresolved()){
-    			
-    			String host = address.getHostName();
-    			
-    			if ( AENetworkClassifier.categoriseAddress( host ) != AENetworkClassifier.AT_PUBLIC ){
-    			
-    				Map<String,Object>	opts = new HashMap<String,Object>();
-    				
-    				Object peer_nets = listener.getConnectionProperty( AEProxyFactory.PO_PEER_NETWORKS );
-    				
-    				if ( peer_nets != null ){
-    					
-    					opts.put( AEProxyFactory.PO_PEER_NETWORKS, peer_nets );
-    				}
-    				
-    				PluginProxy pp = plugin_proxy;
-    				
-    				plugin_proxy = null;
-    				
-    				if ( pp != null ){
-    				
-    						// most likely crypto fallback connection so don't assume it is a bad
-    						// outcome
-    					
-    					pp.setOK( true );
-    				}
-    					
-    				plugin_proxy = AEProxyFactory.getPluginProxy( "outbound connection", host, address.getPort(), opts );
-    				    			}
-    		}
-    	}
+		if ( address.isUnresolved()){
+			
+			String host = address.getHostName();
+			
+			if ( AENetworkClassifier.categoriseAddress( host ) != AENetworkClassifier.AT_PUBLIC ){
+			
+				Map<String,Object>	opts = new HashMap<String,Object>();
+				
+				Object peer_nets = listener.getConnectionProperty( AEProxyFactory.PO_PEER_NETWORKS );
+				
+				if ( peer_nets != null ){
+					
+					opts.put( AEProxyFactory.PO_PEER_NETWORKS, peer_nets );
+				}
+				
+				PluginProxy pp = plugin_proxy;
+				
+				plugin_proxy = null;
+				
+				if ( pp != null ){
+				
+						// most likely crypto fallback connection so don't assume it is a bad
+						// outcome
+					
+					pp.setOK( true );
+				}
+					
+				plugin_proxy = AEProxyFactory.getPluginProxy( "outbound connection", host, address.getPort(), opts );
+				    		
+			}
+		}
+    	
+		if ( plugin_proxy == null ){
+			
+		   	is_socks = COConfigurationManager.getBooleanParameter( "Proxy.Data.Enable" );
+		}
     }
         
     final TCPTransportImpl transport_instance = this;    
