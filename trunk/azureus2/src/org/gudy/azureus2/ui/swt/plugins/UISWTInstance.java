@@ -87,6 +87,8 @@ public interface UISWTInstance extends UIInstanceBase {
 	
 	public static final String VIEW_CONFIG 		= "ConfigView";
 
+	public static final String VIEW_SIDEBAR_AREA = "SideBarArea";
+
 	
 	/** Retrieve the SWT Display object that Azureus uses (when in SWT mode).
 	 * If you have a thread that does some periodic/asynchronous stuff, Azureus 
@@ -141,7 +143,7 @@ public interface UISWTInstance extends UIInstanceBase {
 	 * @param sParentID VIEW_* constant
 	 * @param sViewID of your view.  Used as part of the resource id.<br>
 	 *          "Views.plugins." + ID + ".title" = title of your view
-	 * @param l Class of the Listener to be created and triggered
+	 * @param cla Class of the Listener to be created and triggered
 	 *           
 	 * @note If you want the window to auto-open, use openMainView when you gain
 	 *        access to the UISWTInstance
