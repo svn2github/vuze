@@ -311,6 +311,7 @@ public class ConfigurationDefaults {
     def.put( "Proxy.Check.On.Start", TRUE );
     def.put( "Proxy.SOCKS.ShowIcon", TRUE );
     def.put( "Proxy.SOCKS.ShowIcon.FlagIncoming", TRUE );
+    def.put( "Proxy.SOCKS.Tracker.DNS.Disable", TRUE );
     	
     	// data proxy defaults
     def.put( "Proxy.Data.Enable", FALSE);

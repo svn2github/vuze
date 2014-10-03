@@ -25,7 +25,8 @@ import java.lang.reflect.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 
-import org.gudy.azureus2.core3.util.ByteFormatter;
+import org.gudy.azureus2.core3.config.COConfigurationListener;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.TorrentUtils;
 
 import sun.net.spi.nameservice.*;
@@ -118,6 +119,9 @@ AENameServiceDescriptor
 		delegate_iai 							= iai;
 		delegate_iai_method_lookupAllHostAddr 	= iai_lookupAllHostAddr;
 	}
+
+	private static boolean 				config_listener_added;
+	private static volatile boolean 	tracker_dns_disabled;
 	
 	public NameService
 	createNameService() 
@@ -217,10 +221,43 @@ AENameServiceDescriptor
 						return( new InetAddress[]{ InetAddress.getByAddress( new byte[]{ 127, 0, 0, 1 })});
 					}
 				}
+			
+				boolean tracker_request = TorrentUtils.getTLSTorrentHash() != null;
+	
+				if ( tracker_request ){
+										
+					synchronized( this ){
+						
+						if ( !config_listener_added ){
+							
+							config_listener_added = true;
+							
+							COConfigurationManager.addAndFireListener(
+									new COConfigurationListener()
+									{
+										public void 
+										configurationSaved()
+										{					
+											boolean	enable_proxy 	= COConfigurationManager.getBooleanParameter("Enable.Proxy");
+										    boolean enable_socks	= COConfigurationManager.getBooleanParameter("Enable.SOCKS");
+										    boolean prevent_dns		= COConfigurationManager.getBooleanParameter("Proxy.SOCKS.Tracker.DNS.Disable");
+										    
+										    tracker_dns_disabled = enable_proxy&&enable_socks&&prevent_dns;
+										}
+									});
+						}
+					}
+					
+					if ( tracker_dns_disabled ){
+						
+							// this will normally result in the address being marked as 'unresolved' and
+							// therefore be passed through socks 4a/5 for remote resolution 
+						
+						throw( new UnknownHostException( host_name ));
+					}
+				}
 			}
 			
-			boolean tracker_request = TorrentUtils.getTLSTorrentHash() != null;
-
 			return( invokeSupport( method_name, args ));
 		}
 		

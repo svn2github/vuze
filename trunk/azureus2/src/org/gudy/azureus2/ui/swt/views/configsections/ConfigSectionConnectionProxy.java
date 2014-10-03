@@ -113,7 +113,7 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		
 		Group gProxyTracker = new Group(cSection, SWT.NULL);
 		Messages.setLanguageText(gProxyTracker, CFG_PREFIX + "group.tracker");
-		gridData = new GridData();
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
 		gProxyTracker.setLayoutData(gridData);
 		layout = new GridLayout();
@@ -160,6 +160,12 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		gridData.widthHint = 105;
 		pPass.setLayoutData(gridData);
 
+		final BooleanParameter trackerDNSKill = new BooleanParameter(gProxyTracker,
+				"Proxy.SOCKS.Tracker.DNS.Disable", CFG_PREFIX + "no.local.dns");
+		gridData = new GridData();
+		gridData.horizontalSpan = 2;
+		trackerDNSKill.setLayoutData(gridData);
+		
 		final NetworkAdminSocksProxy[]	test_proxy = { null };
 		
 		final Button test_socks = new Button(gProxyTracker, SWT.PUSH);
@@ -255,7 +261,7 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 			}
 		});
 		
-		Parameter[] socks_params = { enableProxy, enableSocks, pHost, pPort, pUser, pPass };
+		Parameter[] socks_params = { enableProxy, enableSocks, pHost, pPort, pUser, pPass, trackerDNSKill };
 		
 		ParameterChangeAdapter socks_adapter = 
 			new ParameterChangeAdapter()
@@ -278,6 +284,12 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 								pHost.getValue().trim().length() > 0 &&
 								pPort.getValue().trim().length() > 0;
 							
+							boolean 	socks_enabled = 
+										enableProxy.isSelected() && 
+										enableSocks.isSelected();
+							
+							trackerDNSKill.setEnabled( socks_enabled )
+							;
 							if ( enabled ){
 								
 								try{
@@ -337,7 +349,7 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 		
 		Group gProxyPeer = new Group(cSection, SWT.NULL);
 		Messages.setLanguageText(gProxyPeer, CFG_PREFIX + "group.peer");
-		gridData = new GridData();
+		gridData = new GridData(GridData.FILL_HORIZONTAL);
 		gridData.horizontalSpan = 2;
 		gProxyPeer.setLayoutData(gridData);
 		layout = new GridLayout();
@@ -408,7 +420,7 @@ public class ConfigSectionConnectionProxy implements UISWTConfigSection {
 
 		final Control[] proxy_controls = new Control[] { enableSocks.getControl(),
 				lHost, pHost.getControl(), lPort, pPort.getControl(), lUser,
-				pUser.getControl(), lPass, pPass.getControl(), };
+				pUser.getControl(), lPass, pPass.getControl() };
 
 		IAdditionalActionPerformer proxy_enabler = new GenericActionPerformer(
 				new Control[] {}) {
