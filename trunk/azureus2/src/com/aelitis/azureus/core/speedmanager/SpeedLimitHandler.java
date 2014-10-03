@@ -1563,6 +1563,17 @@ SpeedLimitHandler
 	{
 		final org.gudy.azureus2.plugins.download.DownloadManager download_manager = plugin_interface.getDownloadManager();
 		
+			// first off kill any existing download manager listener so that any peers that
+			// may happen to to get added while we're working through this stuff don't sneak in and 
+			// get allocated to rate limiters incorrectly
+		
+		if ( current_dml != null ){
+			
+			current_dml.destroy();
+			
+			current_dml = null;
+		}
+
 		Download[] downloads = download_manager.getDownloads();
 		
 		for ( Download dm: downloads ){
@@ -1616,14 +1627,7 @@ SpeedLimitHandler
 			
 			set.removeAllPeers();
 		}
-		
-		if ( current_dml != null ){
-			
-			current_dml.destroy();
-			
-			current_dml = null;
-		}
-		
+				
 		if ( current_ip_sets.size() == 0 ){
 			
 			if ( ip_set_event != null ){
@@ -1651,7 +1655,7 @@ SpeedLimitHandler
 							{
 								tick_count++;
 								
-								synchronized( current_ip_sets){
+								synchronized( SpeedLimitHandler.this ){
 									
 									for ( IPSet set: current_ip_sets.values()){
 										
@@ -1913,7 +1917,7 @@ SpeedLimitHandler
 		
 		TagManager tm = TagManagerFactory.getTagManager();
 
-		synchronized( current_ip_sets ){
+		synchronized( this ){
 			
 			int	len = current_ip_sets.size();
 			
@@ -2150,7 +2154,7 @@ SpeedLimitHandler
 	{
 		Collection<IPSet> sets;
 		
-		synchronized( current_ip_sets ){
+		synchronized( this ){
 			
 			if ( current_ip_sets.size() == 0 ){
 				
