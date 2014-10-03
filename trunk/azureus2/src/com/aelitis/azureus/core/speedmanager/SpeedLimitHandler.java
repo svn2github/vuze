@@ -50,11 +50,13 @@ import org.gudy.azureus2.core3.stats.transfer.LongTermStatsListener;
 import org.gudy.azureus2.core3.stats.transfer.StatsFactory;
 import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Base32;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.IndentWriter;
@@ -101,10 +103,6 @@ public class
 SpeedLimitHandler 
 	implements LongTermStatsListener
 {
-	private static final Object			IPSET_PEER_LISTENER 	= new Object();
-	private static final Object			IPSET_TAG_LISTENER 		= new Object();
-	private static final Object			IPSET_ATTR_LISTENER 	= new Object();
-	
 	private static SpeedLimitHandler		singleton;
 	
 	public static SpeedLimitHandler
@@ -1539,11 +1537,29 @@ SpeedLimitHandler
 		return( -1 );
 	}
 	
-	private DownloadManagerListener dml;
+	private DML current_dml;
+	
 	private static Object	ip_set_peer_key = new Object();
 
-	private synchronized void
+	private FrequencyLimitedDispatcher check_ip_sets_limiter = new FrequencyLimitedDispatcher(
+			new AERunnable() {
+				public void runSupport() {
+					checkIPSetsSupport();
+				}
+			}, 500 );
+
+	{
+		check_ip_sets_limiter.setSingleThreaded();
+	}
+	
+	private void
 	checkIPSets()
+	{
+		check_ip_sets_limiter.dispatch();
+	}
+	
+	private synchronized void
+	checkIPSetsSupport()
 	{
 		final org.gudy.azureus2.plugins.download.DownloadManager download_manager = plugin_interface.getDownloadManager();
 		
@@ -1601,6 +1617,13 @@ SpeedLimitHandler
 			set.removeAllPeers();
 		}
 		
+		if ( current_dml != null ){
+			
+			current_dml.destroy();
+			
+			current_dml = null;
+		}
+		
 		if ( current_ip_sets.size() == 0 ){
 			
 			if ( ip_set_event != null ){
@@ -1609,12 +1632,6 @@ SpeedLimitHandler
 				
 				ip_set_event = null;
 				
-			}
-			if ( dml != null ){
-				
-				download_manager.removeListener( dml );
-				
-				dml = null;
 			}
 		}else{
 			
@@ -1658,222 +1675,226 @@ SpeedLimitHandler
 							}
 						});
 			}
-			
-			if ( dml != null ){
+						
+			current_dml = new DML( download_manager, has_cats_or_tags );
+		}
+	}
+	
+	private class
+	DML
+		implements DownloadManagerListener
+	{
+		private final Object		lock = SpeedLimitHandler.this;
 				
-				download_manager.removeListener( dml );
-			}
+		private final org.gudy.azureus2.plugins.download.DownloadManager		download_manager;
+		private final boolean													has_cats_or_tags;
+		
+		private List<Runnable>	listener_removers = new ArrayList<Runnable>();
+		
+		private volatile boolean	destroyed;
+		
+		private
+		DML(
+			org.gudy.azureus2.plugins.download.DownloadManager		_download_manager,
+			boolean													_has_cats_or_tags )
+		{
+			download_manager	= _download_manager;
+			has_cats_or_tags	= _has_cats_or_tags;
 			
-			final boolean	f_has_cats_or_tags = has_cats_or_tags;
-			
-			dml = 
-				new DownloadManagerListener()
-				{
-					final DownloadManagerListener this_dml = this;
+			download_manager.addListener( this, true );
+		}
+	
+		private void
+		destroy()
+		{
+			synchronized( lock ){
+				
+				destroyed	= true;
+				
+				download_manager.removeListener( this );
+				
+				for ( Runnable r: listener_removers ){
 					
+					try{
+						r.run();
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+				
+				listener_removers.clear();
+			}
+		}
+			
+		public void
+		downloadAdded(
+			final Download	download )
+		{
+			synchronized( lock ){
+				
+				if ( destroyed ){
+					
+					return;
+				}
+
+				if ( has_cats_or_tags ){
+					
+						// attribute listener
+	
 					final DownloadAttributeListener attr_listener = new
-						DownloadAttributeListener()
-						{
-							public void 
-							attributeEventOccurred(
-								Download 			download, 
-								TorrentAttribute 	attribute, 
-								int 				event_type )
+							DownloadAttributeListener()
 							{
-								if ( dml != this_dml ){
-									
-									download.removeAttributeListener( this, category_attribute, DownloadAttributeListener.WRITTEN );
-									
-									return;
+								public void 
+								attributeEventOccurred(
+									Download 			download, 
+									TorrentAttribute 	attribute, 
+									int 				event_type )
+								{
+									checkIPSets();
 								}
-								
+							};
+	
+					
+						// tag listener
+					
+					final TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
+					
+					final DownloadManager core_download = PluginCoreUtils.unwrap( download );
+									
+					final TagListener tag_listener = 
+						new TagListener() {
+							
+							public void 
+							taggableSync(
+								Tag tag ) 
+							{
+							}
+							
+							public void 
+							taggableRemoved(
+								Tag 		tag, 
+								Taggable 	tagged) 
+							{
+								checkIPSets();
+							}
+							
+							public void 
+							taggableAdded(
+								Tag 		tag, 
+								Taggable 	tagged) 
+							{
 								checkIPSets();
 							}
 						};
 						
-					public void
-					downloadAdded(
-						final Download	download )
-					{
-						if ( dml != this_dml ){
 							
-							download_manager.removeListener( this );
-							
-							return;
-						}
+						download.addAttributeListener( attr_listener, category_attribute, DownloadAttributeListener.WRITTEN );
 						
-						if ( f_has_cats_or_tags ){
-							
-								// attribute listener
-							
-							DownloadAttributeListener old_attr_listener = (DownloadAttributeListener)download.getUserData( IPSET_ATTR_LISTENER );
-							
-							if ( old_attr_listener != null ){
+						tt.addTagListener( core_download, tag_listener );
+
+						listener_removers.add(
+							new Runnable(){public void run(){
 								
-								download.removeAttributeListener( old_attr_listener, category_attribute, DownloadAttributeListener.WRITTEN );
-							}
-							
-							download.setUserData( IPSET_ATTR_LISTENER, attr_listener );
-							
-							download.addAttributeListener( attr_listener, category_attribute, DownloadAttributeListener.WRITTEN );
-														
-								// tag listener
-							
-							final TagType tt = TagManagerFactory.getTagManager().getTagType( TagType.TT_DOWNLOAD_MANUAL );
-							
-							final DownloadManager core_download = PluginCoreUtils.unwrap( download );
-							
-							TagListener old_tag_listener = (TagListener)download.getUserData( IPSET_TAG_LISTENER );
-							
-							if ( old_tag_listener != null ){
+								download.removeAttributeListener( attr_listener, category_attribute, DownloadAttributeListener.WRITTEN );
 								
-								tt.removeTagListener( core_download, old_tag_listener );
-							}
-							
-							TagListener tag_listener = 
-								new TagListener() {
-									
-									public void 
-									taggableSync(
-										Tag tag ) 
-									{
-										if ( dml != this_dml ){
-											
-											tt.removeTagListener( core_download, this );
-											
-											return;
-										}
-									}
-									
-									public void 
-									taggableRemoved(
-										Tag 		tag, 
-										Taggable 	tagged) 
-									{
-										if ( dml != this_dml ){
-											
-											tt.removeTagListener( core_download, this );
-											
-											return;
-										}
-										
-										checkIPSets();
-									}
-									
-									public void 
-									taggableAdded(
-										Tag 		tag, 
-										Taggable 	tagged) 
-									{
-										if ( dml != this_dml ){
-											
-											tt.removeTagListener( core_download, this );
-											
-											return;
-										}
-										
-										checkIPSets();
-									}
-								};
-								
-							download.setUserData( IPSET_TAG_LISTENER, tag_listener );
-							
-							tt.addTagListener( core_download, tag_listener );
-						}
-							
-							// peer listener
-						
-						DownloadPeerListener old_peer_listener = (DownloadPeerListener)download.getUserData( IPSET_PEER_LISTENER );
-						
-						if ( old_peer_listener != null ){
-							
-							download.removePeerListener( old_peer_listener );
-						}
-						
-						DownloadPeerListener	peer_listener = 
-							new DownloadPeerListener()
-							{
-								private PeerManagerListener2 pm_listener;
-								
-								public void
-								peerManagerAdded(
-									final Download			download,
-									final PeerManager		peer_manager )
-								{
-									if ( dml != this_dml ){
-										
-										download.removePeerListener( this );
-										
-										return;
-									}
-									
-									if ( pm_listener != null ){
-										
-										Debug.out( "Hmm, peer manager should have been removed" );
-									}
-									
-									pm_listener = 
-										new PeerManagerListener2()
-										{
-											public void
-											eventOccurred(
-												PeerManagerEvent	event )
-											{
-												if ( dml != this_dml ){
-													
-													peer_manager.removeListener( this );
-													
-													return;
-												}
-												
-												if ( event.getType() == PeerManagerEvent.ET_PEER_ADDED ){
-													
-													peersAdded( download, new Peer[]{ event.getPeer() });
-													
-												}else if ( event.getType() == PeerManagerEvent.ET_PEER_REMOVED ){
-													
-													peerRemoved( download, event.getPeer());
-												}
-											}
-										};
-										
-									peer_manager.addListener( pm_listener );
-									
-									Peer[] peers = peer_manager.getPeers();
-																				
-									peersAdded( download, peers );
-								}
-								
-								public void
-								peerManagerRemoved(
-									Download		download,
-									PeerManager		peer_manager )
-								{	
-									if ( pm_listener != null ){
-										
-										peer_manager.removeListener( pm_listener );
-										
-										pm_listener = null;
-									}
-								}
-							};
-							
-						download.setUserData( IPSET_PEER_LISTENER, peer_listener );
-						
-						download.addPeerListener( peer_listener );
-					}
+								tt.removeTagListener( core_download, tag_listener );
+							}});
+					}				
 				
-						
-					public void
-					downloadRemoved(
-						Download	download )
+					// peer listener
+							
+				final DownloadPeerListener	peer_listener = 
+					new DownloadPeerListener()
 					{
-					}
-				};
-			
-			download_manager.addListener( dml, true );
+						private Runnable 	pm_listener_remover;
+						
+						public void
+						peerManagerAdded(
+							final Download			download,
+							final PeerManager		peer_manager )
+						{
+							
+							synchronized( lock ){
+								
+								if ( destroyed ){
+									
+									return;
+								}
+								
+								final PeerManagerListener2 listener = 
+									new PeerManagerListener2()
+									{
+										public void
+										eventOccurred(
+											PeerManagerEvent	event )
+										{
+											if ( destroyed ){
+												
+												return;
+											}
+											
+											if ( event.getType() == PeerManagerEvent.ET_PEER_ADDED ){
+												
+												peersAdded( download, new Peer[]{ event.getPeer() });
+												
+											}else if ( event.getType() == PeerManagerEvent.ET_PEER_REMOVED ){
+												
+												peerRemoved( download, event.getPeer());
+											}
+										}
+									};
+										
+								peer_manager.addListener( listener );
+								
+								pm_listener_remover =
+									new Runnable(){public void run(){
+										peer_manager.removeListener( listener );
+									}};
+									
+								listener_removers.add( pm_listener_remover );
+							}	
+						
+							Peer[] peers = peer_manager.getPeers();
+																		
+							peersAdded( download, peers );
+						}
+						
+						public void
+						peerManagerRemoved(
+							Download		download,
+							PeerManager		peer_manager )
+						{	
+							synchronized( lock ){
+								
+								if ( pm_listener_remover != null && listener_removers.contains( pm_listener_remover  )){
+									
+									pm_listener_remover.run();
+									
+									listener_removers.remove( pm_listener_remover );
+								}
+							}
+						}
+					};
+										
+				download.addPeerListener( peer_listener );
+					
+				listener_removers.add(
+					new Runnable(){public void run(){
+						download.removePeerListener( peer_listener );
+					}});	
+			}
 		}
-	}
+	
+			
+		public void
+		downloadRemoved(
+			Download	download )
+		{
+		}
+	};
+
 	
 	private void
 	peersAdded(

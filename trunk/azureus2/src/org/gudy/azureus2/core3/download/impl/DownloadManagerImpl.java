@@ -5107,12 +5107,14 @@ DownloadManagerImpl
 	public String toString() {
 		String hash = "<unknown>";
 
-		try {
-			hash = ByteFormatter.encodeString(torrent.getHash());
-
-		} catch (Throwable e) {
+		if ( torrent != null ){
+			try {
+				hash = ByteFormatter.encodeString(torrent.getHash());
+	
+			} catch (Throwable e) {
+			}
 		}
-
+		
 		String status = DisplayFormatters.formatDownloadStatus(this);
 		if (status.length() > 10) {
 			status = status.substring(0, 10);
