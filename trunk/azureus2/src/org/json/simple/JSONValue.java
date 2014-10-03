@@ -6,8 +6,11 @@ package org.json.simple;
 
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.Map;
 
 import org.json.simple.parser.JSONParser;
+
+import com.aelitis.azureus.util.JSONUtils;
 
 
 /**
@@ -32,5 +35,12 @@ public class JSONValue {
 	public static Object parse(String s){
 		StringReader in=new StringReader(s);
 		return parse(in);
+	}
+	
+	public static String toJSONString(Object value) {
+		if (value instanceof Map) {
+			return JSONUtils.encodeToJSON((Map) value);
+		}
+		return "";
 	}
 }
