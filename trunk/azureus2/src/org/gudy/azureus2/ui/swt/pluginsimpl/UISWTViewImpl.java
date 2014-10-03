@@ -240,7 +240,12 @@ public class UISWTViewImpl
 		}
 		
 		if (eventType == UISWTViewEvent.TYPE_DESTROY) {
-			Utils.disposeComposite(getComposite());
+			Composite c = getComposite();
+			if (c != null && !c.isDisposed()) {
+				Composite parent = c.getParent();
+				Utils.disposeComposite(c);
+				Utils.relayout(parent);
+			}
 		}	
 	}
 
