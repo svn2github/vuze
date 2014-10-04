@@ -31,11 +31,12 @@ public class CopyOnWriteMap<K,V> {
 		this.map = new HashMap<K,V>(4);
 	}
 	
-	public void put(K key, V val) {
+	public V put(K key, V val) {
 		synchronized(this) {
 			HashMap<K,V> new_map = new HashMap<K,V>(map);
-			new_map.put(key, val);
+			V result = new_map.put(key, val);
 			this.map = new_map;
+			return( result );
 		}
 	}
 	

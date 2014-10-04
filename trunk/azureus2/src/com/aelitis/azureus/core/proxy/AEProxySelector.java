@@ -37,6 +37,15 @@ AEProxySelector
 	endNoProxy();
 	
 	public Proxy
+	setProxy(
+		InetSocketAddress		address,
+		Proxy					proxy );
+	
+	public Proxy
+	removeProxy(
+		InetSocketAddress		address );
+	
+	public Proxy
 	getSOCKSProxy(
 		InetSocketAddress	proxy_address,
 		InetSocketAddress	target );

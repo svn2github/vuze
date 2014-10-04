@@ -25,7 +25,6 @@ import java.io.IOException;
 import java.net.*;
 import java.util.*;
 
-
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
@@ -36,6 +35,7 @@ import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
 import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.proxy.*;
+import com.aelitis.azureus.core.util.CopyOnWriteMap;
 import com.aelitis.azureus.core.util.DNSUtils;
 
 public class 
@@ -71,6 +71,8 @@ AEProxySelectorImpl
 
 	private volatile ActiveProxy		active_proxy;			
 	private volatile List<String>		alt_dns_servers	= new ArrayList<String>();
+	
+	private CopyOnWriteMap<InetSocketAddress,List<Proxy>>	explicit_proxy_map = new CopyOnWriteMap<InetSocketAddress, List<Proxy>>();	
 	
 	private
 	AEProxySelectorImpl()
@@ -223,11 +225,58 @@ AEProxySelectorImpl
 		tls.set( tls.get() - 1  );
 	}
 	
+	public Proxy
+	setProxy(
+		InetSocketAddress		address,
+		Proxy					proxy )
+	{
+		List<Proxy> p = new ArrayList<Proxy>();
+		
+		p.add( proxy );
+		
+		List<Proxy> old = explicit_proxy_map.put( address, Collections.unmodifiableList( p ));
+		
+		if ( old != null ){
+			
+			return( old.get(0));
+			
+		}else{
+			
+			return( null );
+		}
+	}
+	
+	public Proxy
+	removeProxy(
+		InetSocketAddress		address )
+	{
+		List<Proxy> old = explicit_proxy_map.remove( address );
+		
+		if ( old != null ){
+			
+			return( old.get(0));
+			
+		}else{
+			
+			return( null );
+		}
+	}
+	
 	public List<Proxy> 
 	select(
 		URI uri )
-	{			
+	{	
 		List<Proxy>  result;
+
+		if ( explicit_proxy_map.size() > 0 ){
+	
+			List<Proxy> p = explicit_proxy_map.get( new InetSocketAddress( uri.getHost(), uri.getPort()));
+			
+			if ( p != null ){
+				
+				return( p );
+			}
+		}
 		
 		if ( tls.get() > 0 ){
 			
