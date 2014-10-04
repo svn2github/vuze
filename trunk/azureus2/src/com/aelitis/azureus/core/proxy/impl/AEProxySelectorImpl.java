@@ -27,6 +27,8 @@ import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationListener;
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
+import org.gudy.azureus2.core3.util.AddressUtils;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.HostNameToIPResolver;
 import org.gudy.azureus2.core3.util.SystemTime;
@@ -72,7 +74,7 @@ AEProxySelectorImpl
 	private volatile ActiveProxy		active_proxy;			
 	private volatile List<String>		alt_dns_servers	= new ArrayList<String>();
 	
-	private CopyOnWriteMap<InetSocketAddress,List<Proxy>>	explicit_proxy_map = new CopyOnWriteMap<InetSocketAddress, List<Proxy>>();	
+	private CopyOnWriteMap<String,List<Proxy>>	explicit_proxy_map = new CopyOnWriteMap<String, List<Proxy>>();	
 	
 	private
 	AEProxySelectorImpl()
@@ -234,7 +236,9 @@ AEProxySelectorImpl
 		
 		p.add( proxy );
 		
-		List<Proxy> old = explicit_proxy_map.put( address, Collections.unmodifiableList( p ));
+		String address_str = AddressUtils.getHostNameNoResolve( address ) + ":" + address.getPort();
+		
+		List<Proxy> old = explicit_proxy_map.put( address_str, Collections.unmodifiableList( p ));
 		
 		if ( old != null ){
 			
@@ -250,7 +254,9 @@ AEProxySelectorImpl
 	removeProxy(
 		InetSocketAddress		address )
 	{
-		List<Proxy> old = explicit_proxy_map.remove( address );
+		String address_str = AddressUtils.getHostNameNoResolve( address ) + ":" + address.getPort();
+
+		List<Proxy> old = explicit_proxy_map.remove( address_str );
 		
 		if ( old != null ){
 			
@@ -270,11 +276,45 @@ AEProxySelectorImpl
 
 		if ( explicit_proxy_map.size() > 0 ){
 	
-			List<Proxy> p = explicit_proxy_map.get( new InetSocketAddress( uri.getHost(), uri.getPort()));
-			
-			if ( p != null ){
+			try{
+				String	host 	= uri.getHost();
 				
-				return( p );
+				if ( host != null ){
+					
+					int port 		= uri.getPort();
+					
+					if ( port == -1 ){
+						
+						String scheme = uri.getScheme();
+						
+						if ( scheme != null ){
+							
+							scheme = scheme.toLowerCase( Locale.US );
+						
+							if ( scheme.equals( "http" )){
+								
+								port = 80;
+								
+							}else if ( scheme.equals( "https" )){
+								
+								port = 443;
+							}
+						}
+					}
+					
+					if ( port != -1 ){
+											
+						List<Proxy> p = explicit_proxy_map.get( host + ":" + port );
+						
+						if ( p != null ){
+							
+							return( p );
+						}
+					}
+				}
+			}catch( Throwable e ){
+				
+				e.printStackTrace();
 			}
 		}
 		
