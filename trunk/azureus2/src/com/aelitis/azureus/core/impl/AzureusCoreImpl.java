@@ -2225,7 +2225,14 @@ AzureusCoreImpl
 			
 			if ( manager.getDownloadState().getFlag( DownloadManagerState.FLAG_METADATA_DOWNLOAD )){
 				
+					// we want this to complete before considering actions
+				
 				return;
+			}
+			
+			if ( manager.getDownloadState().getFlag( DownloadManagerState.FLAG_LOW_NOISE )){
+				
+				continue;	// don't count these as interesting as the user isn't directly interested in them
 			}
 			
 			int state = manager.getState();
