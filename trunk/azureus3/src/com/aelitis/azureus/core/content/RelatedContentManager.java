@@ -1630,12 +1630,16 @@ RelatedContentManager
 				throw( new ContentException( "rcm is disabled" ));
 			}
 			
-			DHTPluginInterface dht_plugin = selectDHT( networks );
+			final DHTPluginInterface dht_plugin = selectDHT( networks );
 
 			if ( dht_plugin == null ){
 				
-				throw( new Exception( "DHT Plugin unavailable" ));
+				throw( new Exception( "DHT Plugin unavailable for networks " + getString( convertNetworks( networks ))));
 			}
+			
+				// really should implement a getNetwork() in DHTPluginInterface...
+			
+			final String dht_plugin_network = dht_plugin == public_dht_plugin?AENetworkClassifier.AT_PUBLIC:AENetworkClassifier.AT_I2P;
 			
 			final String from_hash_str	= ByteFormatter.encodeString( from_hash );
 			
@@ -1701,7 +1705,7 @@ RelatedContentManager
 											tags.add( tag );
 										}
 										
-										listener.tagFound( tag );
+										listener.tagFound( tag, dht_plugin_network );
 									}
 								}
 								

@@ -29,12 +29,15 @@ public class TagDiscovery
 {
 	private String name;
 	private String torrentName;
+	private String network;
 	private byte[] hash;
+	
 	private long timestamp;
 	
-	public TagDiscovery(String name, String torrentName, byte[] hash) {
+	public TagDiscovery(String name, String network, String torrentName, byte[] hash) {
 		super();
 		this.name = name;
+		this.network = network;
 		this.torrentName = torrentName;
 		this.hash = hash;
 		this.timestamp = SystemTime.getCurrentTime();
@@ -44,6 +47,10 @@ public class TagDiscovery
 		return name;
 	}
 
+	public String getNetwork(){
+		return network;
+	}
+	
 	public String getTorrentName() {
 		return torrentName;
 	}

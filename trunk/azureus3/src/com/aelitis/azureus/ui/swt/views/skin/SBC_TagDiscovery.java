@@ -27,7 +27,6 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
-
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -55,8 +54,7 @@ import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.columns.tag.ColumnTagName;
 import com.aelitis.azureus.ui.swt.columns.tag.TagDiscovery;
-import com.aelitis.azureus.ui.swt.columns.tagdiscovery.ColumnTagDiscoveryName;
-import com.aelitis.azureus.ui.swt.columns.tagdiscovery.ColumnTagDiscoveryTorrent;
+import com.aelitis.azureus.ui.swt.columns.tagdiscovery.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 
@@ -147,6 +145,13 @@ public class SBC_TagDiscovery
 					}
 				});
 
+		tableManager.registerColumn(TagDiscovery.class,
+				ColumnTagDiscoveryNetwork.COLUMN_ID, new TableColumnCreationListener() {
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagDiscoveryNetwork(column);
+					}
+				});
+		
 		tableManager.setDefaultColumnNames(TABLE_TAGDISCOVERY, new String[] {
 			ColumnTagDiscoveryName.COLUMN_ID,
 			ColumnTagDiscoveryTorrent.COLUMN_ID,
@@ -251,7 +256,7 @@ public class SBC_TagDiscovery
 								mon_scansRemaining.exit();
 							}
 							rcm.lookupAttributes(hash, dm.getDownloadState().getNetworks(), new RelatedAttributeLookupListener() {
-								public void tagFound(String tag) {
+								public void tagFound(String tag, String network ) {
 									if (DEBUG) {
 										System.out.println("Tag Search: Found Tag " + tag + " for " + dm.getDisplayName());
 									}
@@ -260,7 +265,7 @@ public class SBC_TagDiscovery
 										if (!mapTagDiscoveries.containsKey(key)) {
 											
 										}
-										TagDiscovery tagDiscovery = new TagDiscovery(tag, dm.getDisplayName(), hash);
+										TagDiscovery tagDiscovery = new TagDiscovery(tag, network, dm.getDisplayName(), hash);
 										mapTagDiscoveries.put(key, tagDiscovery);
 										tv.addDataSource(tagDiscovery);
 									}

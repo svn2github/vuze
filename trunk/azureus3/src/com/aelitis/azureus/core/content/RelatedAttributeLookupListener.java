@@ -29,7 +29,8 @@ RelatedAttributeLookupListener
 	
 	public void
 	tagFound(
-		String		tag );
+		String		tag,
+		String		network );
 
 	public void
 	lookupComplete();
