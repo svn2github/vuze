@@ -1572,6 +1572,17 @@ RelatedContentManager
 	
 		throws ContentException
 	{
+		lookupAttributes( from_hash, new String[]{ AENetworkClassifier.AT_PUBLIC }, listener );
+	}
+	
+	public void
+	lookupAttributes(
+		final byte[]							from_hash,
+		final String[]							networks,
+		final RelatedAttributeLookupListener	listener )
+	
+		throws ContentException
+	{
 		if ( from_hash == null ){
 			
 			throw( new ContentException( "hash is null" ));
@@ -1591,7 +1602,7 @@ RelatedContentManager
 						try{
 							initialisation_complete_sem.reserve();
 							
-							lookupAttributesSupport( from_hash, NET_PUBLIC, listener );
+							lookupAttributesSupport( from_hash, convertNetworks( networks ), listener );
 							
 						}catch( ContentException e ){
 							
@@ -1601,7 +1612,7 @@ RelatedContentManager
 				});
 		}else{
 			
-			lookupAttributesSupport( from_hash, NET_PUBLIC, listener );
+			lookupAttributesSupport( from_hash, convertNetworks( networks ), listener );
 		}
 	}
 	

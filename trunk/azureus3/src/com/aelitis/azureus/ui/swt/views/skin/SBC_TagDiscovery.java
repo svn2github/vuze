@@ -250,7 +250,7 @@ public class SBC_TagDiscovery
 							} finally {
 								mon_scansRemaining.exit();
 							}
-							rcm.lookupAttributes(hash, new RelatedAttributeLookupListener() {
+							rcm.lookupAttributes(hash, dm.getDownloadState().getNetworks(), new RelatedAttributeLookupListener() {
 								public void tagFound(String tag) {
 									if (DEBUG) {
 										System.out.println("Tag Search: Found Tag " + tag + " for " + dm.getDisplayName());
