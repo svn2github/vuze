@@ -263,11 +263,10 @@ public class SBC_TagDiscovery
 									String key = Base32.encode(hash) + tag;
 									synchronized (mapTagDiscoveries) {
 										if (!mapTagDiscoveries.containsKey(key)) {
-											
+											TagDiscovery tagDiscovery = new TagDiscovery(tag, network, dm.getDisplayName(), hash);
+											mapTagDiscoveries.put(key, tagDiscovery);
+											tv.addDataSource(tagDiscovery);
 										}
-										TagDiscovery tagDiscovery = new TagDiscovery(tag, network, dm.getDisplayName(), hash);
-										mapTagDiscoveries.put(key, tagDiscovery);
-										tv.addDataSource(tagDiscovery);
 									}
 								}
 								
