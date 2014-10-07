@@ -1826,11 +1826,19 @@ DHTControlImpl
 					complete(
 						boolean				timeout )
 					{
-						get_listener.complete(timeout);
-						
-						if ( task_set[0] != null ){
+						try{
+							get_listener.complete(timeout);
 							
-							task_set[0].cancel();
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+							
+						}finally{
+							
+							if ( task_set[0] != null ){
+								
+								task_set[0].cancel();
+							}
 						}
 					}
 				});
@@ -2385,42 +2393,46 @@ DHTControlImpl
 						runningState = -1;						
 					}
 					
-					if(!error)
-					{
-						// maybe unterminated searches still going on so protect ourselves
-						// against concurrent modification of result set
-						List closest_res = null;
-						try
-						{
-							contacts_to_query_mon.enter();
-
-							if (DHTLog.isOn())
+					try{
+						if(!error){
+						
+							// maybe unterminated searches still going on so protect ourselves
+							// against concurrent modification of result set
+							List closest_res = null;
+							try
 							{
-								DHTLog.log("lookup complete for " + DHTLog.getString(lookup_id));
-								DHTLog.log("    queried = " + DHTLog.getString(contacts_queried));
-								DHTLog.log("    to query = " + DHTLog.getString(contacts_to_query));
-								DHTLog.log("    ok = " + DHTLog.getString(ok_contacts));
+								contacts_to_query_mon.enter();
+	
+								if (DHTLog.isOn())
+								{
+									DHTLog.log("lookup complete for " + DHTLog.getString(lookup_id));
+									DHTLog.log("    queried = " + DHTLog.getString(contacts_queried));
+									DHTLog.log("    to query = " + DHTLog.getString(contacts_to_query));
+									DHTLog.log("    ok = " + DHTLog.getString(ok_contacts));
+								}
+	
+								closest_res = new ArrayList(ok_contacts);
+								// we need to reverse the list as currently closest is at the end
+								Collections.reverse(closest_res);
+	
+								if (timeout <= 0 && !value_search)
+									// we can use the results of this to estimate the DHT size
+									estimateDHTSize(lookup_id, contacts_queried.values(), search_accuracy);
+	
+							} finally
+							{
+								contacts_to_query_mon.exit();
 							}
-
-							closest_res = new ArrayList(ok_contacts);
-							// we need to reverse the list as currently closest is at the end
-							Collections.reverse(closest_res);
-
-							if (timeout <= 0 && !value_search)
-								// we can use the results of this to estimate the DHT size
-								estimateDHTSize(lookup_id, contacts_queried.values(), search_accuracy);
-
-						} finally
-						{
-							contacts_to_query_mon.exit();
+							
+							handler.closest(closest_res);
 						}
 						
-						handler.closest(closest_res);
+						handler.complete(timeout_occurred);
+						
+					}finally{
+					
+						releaseToPool();
 					}
-					
-					handler.complete(timeout_occurred);
-					
-					releaseToPool();
 				}
 				
 				private synchronized boolean reserve()
