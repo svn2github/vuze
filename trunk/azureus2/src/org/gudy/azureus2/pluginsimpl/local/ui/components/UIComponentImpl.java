@@ -28,12 +28,15 @@ import java.util.*;
 
 import org.gudy.azureus2.plugins.ui.components.*;
 
+import com.aelitis.azureus.core.util.CopyOnWriteList;
+
 public class 
 UIComponentImpl
 	implements UIComponent
 {
 	protected Properties	properties 	= new Properties();
-	protected List			listeners	= new ArrayList();
+	
+	protected CopyOnWriteList<UIPropertyChangeListener>			listeners	= new CopyOnWriteList<UIPropertyChangeListener>();
 	
 	
 	protected
@@ -77,7 +80,7 @@ UIComponentImpl
 		final Object	old_value = properties.get( property_type );
 		
 		properties.put( property_type, property_value );
-		
+				
 		UIPropertyChangeEvent	ev = new
 			UIPropertyChangeEvent()
 			{
@@ -106,9 +109,9 @@ UIComponentImpl
 				}
 			};
 			
-		for (int i=0;i<listeners.size();i++){
+		for ( UIPropertyChangeListener listener: listeners ){
 			
-			((UIPropertyChangeListener)listeners.get(i)).propertyChanged( ev );
+			listener.propertyChanged( ev );
 		}
 	}
 	
