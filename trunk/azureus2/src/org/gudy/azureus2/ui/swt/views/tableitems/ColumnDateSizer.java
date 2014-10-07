@@ -73,8 +73,8 @@ public abstract class ColumnDateSizer
 	 * @param name
 	 * @param tableID
 	 */
-	public ColumnDateSizer(Class forDataSrouceType, String columnID, int width, String tableID) {
-		super(forDataSrouceType, columnID, ALIGN_TRAIL, width, tableID);
+	public ColumnDateSizer(Class forDataSourceType, String columnID, int width, String tableID) {
+		super(forDataSourceType, columnID, ALIGN_TRAIL, width, tableID);
 
 		final TableContextMenuItem menuShowTime = addContextMenuItem(
 				"TableColumn.menu.date_added.time", MENU_STYLE_HEADER);
