@@ -24,9 +24,8 @@ import java.util.Map;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.GridLayout;
-import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.*;
+
 import org.gudy.azureus2.core3.download.DownloadManager;
 import org.gudy.azureus2.core3.global.GlobalManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -34,13 +33,19 @@ import org.gudy.azureus2.core3.torrent.TOTorrent;
 import org.gudy.azureus2.core3.torrent.TOTorrentException;
 import org.gudy.azureus2.core3.util.AEMonitor2;
 import org.gudy.azureus2.core3.util.Base32;
+import org.gudy.azureus2.core3.util.HashWrapper;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
+import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.views.table.TableSelectedRowsListener;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
 import org.gudy.azureus2.ui.swt.views.table.impl.TableViewFactory;
+import org.gudy.azureus2.ui.swt.views.table.utils.TableColumnCreator;
+import org.gudy.azureus2.ui.swt.views.tableitems.ColumnDateSizer;
 
 import com.aelitis.azureus.core.AzureusCore;
 import com.aelitis.azureus.core.AzureusCoreFactory;
@@ -48,12 +53,12 @@ import com.aelitis.azureus.core.AzureusCoreRunningListener;
 import com.aelitis.azureus.core.content.ContentException;
 import com.aelitis.azureus.core.content.RelatedAttributeLookupListener;
 import com.aelitis.azureus.core.content.RelatedContentManager;
+import com.aelitis.azureus.core.tag.*;
 import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.swt.columns.tag.ColumnTagName;
-import com.aelitis.azureus.ui.swt.columns.tag.TagDiscovery;
 import com.aelitis.azureus.ui.swt.columns.tagdiscovery.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
@@ -64,12 +69,12 @@ import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 public class SBC_TagDiscovery
 	extends SkinView
 	implements UIUpdatable, UIPluginViewToolBarListener,
-	TableViewFilterCheck<TagDiscovery>,
-	TableViewSWTMenuFillListener, TableSelectionListener
+	TableViewFilterCheck<TagDiscovery>, TableViewSWTMenuFillListener,
+	TableSelectionListener
 {
 
 	private static final String TABLE_TAGDISCOVERY = "TagDiscoveryView";
-	
+
 	private static final boolean DEBUG = false;
 
 	TableViewSWT<TagDiscovery> tv;
@@ -79,16 +84,36 @@ public class SBC_TagDiscovery
 	private Composite table_parent;
 
 	private boolean columnsAdded = false;
-	
+
 	private int scansRemaining = 0;
-	
+
 	private AEMonitor2 mon_scansRemaining = new AEMonitor2("scansRemaining");
-	
+
 	private Map<String, TagDiscovery> mapTagDiscoveries = new HashMap<String, TagDiscovery>();
 
 	// @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
 			Object datasource) {
+		if (tv == null || !tv.isVisible()) {
+			return (false);
+		}
+		if (item.getID().equals("remove")) {
+
+			Object[] datasources = tv.getSelectedDataSources().toArray();
+
+			if (datasources.length > 0) {
+
+				for (Object object : datasources) {
+					if (object instanceof TagDiscovery) {
+						TagDiscovery discovery = (TagDiscovery) object;
+
+					}
+				}
+
+				return true;
+			}
+		}
+
 		return false;
 	}
 
@@ -98,6 +123,12 @@ public class SBC_TagDiscovery
 
 	// @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
 	public void refreshToolBarItems(Map<String, Long> list) {
+		if (tv == null || !tv.isVisible()) {
+			return;
+		}
+
+		list.put("remove", tv.getSelectedDataSources().size() > 0
+				? UIToolBarItem.STATE_ENABLED : 0);
 	}
 
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
@@ -114,6 +145,7 @@ public class SBC_TagDiscovery
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
+
 		initColumns();
 
 		return null;
@@ -144,21 +176,35 @@ public class SBC_TagDiscovery
 						new ColumnTagDiscoveryTorrent(column);
 					}
 				});
+		tableManager.registerColumn(TagDiscovery.class,
+				ColumnTagDiscoveryAddedOn.COLUMN_ID,
+				new TableColumnCoreCreationListener() {
+					public TableColumnCore createTableColumnCore(
+							Class<?> forDataSourceType, String tableID, String columnID) {
+						return new ColumnDateSizer(TagDiscovery.class, columnID,
+								TableColumnCreator.DATE_COLUMN_WIDTH, tableID) {
+						};
+					}
 
+					public void tableColumnCreated(TableColumn column) {
+						new ColumnTagDiscoveryAddedOn(column);
+					}
+				});
 		tableManager.registerColumn(TagDiscovery.class,
 				ColumnTagDiscoveryNetwork.COLUMN_ID, new TableColumnCreationListener() {
 					public void tableColumnCreated(TableColumn column) {
 						new ColumnTagDiscoveryNetwork(column);
 					}
 				});
-		
+
 		tableManager.setDefaultColumnNames(TABLE_TAGDISCOVERY, new String[] {
 			ColumnTagDiscoveryName.COLUMN_ID,
 			ColumnTagDiscoveryTorrent.COLUMN_ID,
+			ColumnTagDiscoveryAddedOn.COLUMN_ID,
 		});
 
 		tableManager.setDefaultSortColumnName(TABLE_TAGDISCOVERY,
-				ColumnTagDiscoveryName.COLUMN_ID);
+				ColumnTagDiscoveryAddedOn.COLUMN_ID);
 	}
 
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectHidden(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
@@ -193,8 +239,9 @@ public class SBC_TagDiscovery
 		if (tv == null) {
 			return null;
 		}
-		
-		TagDiscovery[] tagDiscoveries = mapTagDiscoveries.values().toArray(new TagDiscovery[0]);
+
+		TagDiscovery[] tagDiscoveries = mapTagDiscoveries.values().toArray(
+				new TagDiscovery[0]);
 		tv.addDataSources(tagDiscoveries);
 
 		// TODO: Not this		
@@ -233,6 +280,7 @@ public class SBC_TagDiscovery
 
 					RelatedContentManager rcm = RelatedContentManager.getSingleton();
 					List<DownloadManager> dms = gm.getDownloadManagers();
+					final SWTSkinObjectText soTitle = (SWTSkinObjectText) getSkinObject("title");
 
 					for (final DownloadManager dm : dms) {
 						TOTorrent torrent = dm.getTorrent();
@@ -245,63 +293,79 @@ public class SBC_TagDiscovery
 								mon_scansRemaining.enter();
 
 								scansRemaining++;
-								
-								if (scansRemaining == 1) {
-			  					SWTSkinObjectText soTitle = (SWTSkinObjectText) getSkinObject("title");
-			  					if (soTitle != null) {
-			  						soTitle.setText(MessageText.getString("tag.discovery.view.heading") + " : Scanning");
-			  					}
+
+								if (soTitle != null) {
+									soTitle.setText(MessageText.getString("tag.discovery.view.heading")
+											+ " : Scanning " + scansRemaining);
 								}
 							} finally {
 								mon_scansRemaining.exit();
 							}
-							rcm.lookupAttributes(hash, dm.getDownloadState().getNetworks(), new RelatedAttributeLookupListener() {
-								public void tagFound(String tag, String network ) {
-									if (DEBUG) {
-										System.out.println("Tag Search: Found Tag " + tag + " for " + dm.getDisplayName());
-									}
-									String key = Base32.encode(hash) + tag;
-									synchronized (mapTagDiscoveries) {
-										if (!mapTagDiscoveries.containsKey(key)) {
-											TagDiscovery tagDiscovery = new TagDiscovery(tag, network, dm.getDisplayName(), hash);
-											mapTagDiscoveries.put(key, tagDiscovery);
-											tv.addDataSource(tagDiscovery);
-										}
-									}
-								}
-								
-								public void lookupStart() {
-									if (DEBUG) {
-										System.out.println("Tag Search: Start" + " for " + dm.getDisplayName());
-									}
-								}
-								
-								public void lookupFailed(ContentException error) {
-									if (DEBUG) {
-										System.out.println("Tag Search: Failed " + error.getMessage()  + " for " + dm.getDisplayName());
-									}
-								}
-								
-								public void lookupComplete() {
-									try {
-										mon_scansRemaining.enter();
+							rcm.lookupAttributes(hash, dm.getDownloadState().getNetworks(),
+									new RelatedAttributeLookupListener() {
+										public void tagFound(String tag, String network) {
+											if (DEBUG) {
+												System.out.println("Tag Search: Found Tag " + tag
+														+ " for " + dm.getDisplayName());
+											}
+											String key = Base32.encode(hash) + tag;
 
-										scansRemaining--;
-										
-										if (scansRemaining <= 0) {
-											SWTSkinObjectText soTitle = (SWTSkinObjectText) getSkinObject("title");
-											if (soTitle != null) {
-												soTitle.setTextID("tag.discovery.view.heading");
+											TagManager tm = TagManagerFactory.getTagManager();
+											TagType tt_manual = tm.getTagType(TagType.TT_DOWNLOAD_MANUAL);
+											List<Tag> existingDMTags = tt_manual.getTagsForTaggable(dm);
+											for (Tag existingTag : existingDMTags) {
+												if (existingTag.getTagName(true).equalsIgnoreCase(tag)) {
+													return;
+												}
+											}
+											synchronized (mapTagDiscoveries) {
+												if (!mapTagDiscoveries.containsKey(key)) {
+													TagDiscovery tagDiscovery = new TagDiscovery(tag,
+															network, dm.getDisplayName(), hash);
+													mapTagDiscoveries.put(key, tagDiscovery);
+													tv.addDataSource(tagDiscovery);
+												}
 											}
 										}
-									} finally {
-										mon_scansRemaining.exit();
-									}
-									if (DEBUG) {
-										System.out.println("Tag Search: Complete" + " for " + dm.getDisplayName());
-									}
-								}
-							});
+
+										public void lookupStart() {
+											if (DEBUG) {
+												System.out.println("Tag Search: Start" + " for "
+														+ dm.getDisplayName());
+											}
+										}
+
+										public void lookupFailed(ContentException error) {
+											if (DEBUG) {
+												System.out.println("Tag Search: Failed "
+														+ error.getMessage() + " for "
+														+ dm.getDisplayName());
+											}
+										}
+
+										public void lookupComplete() {
+											try {
+												mon_scansRemaining.enter();
+
+												scansRemaining--;
+
+												if (soTitle != null) {
+													if (scansRemaining <= 0) {
+														soTitle.setTextID("tag.discovery.view.heading");
+													} else {
+														soTitle.setText(MessageText.getString("tag.discovery.view.heading")
+																+ " : Scanning " + scansRemaining);
+													}
+												}
+											} finally {
+												mon_scansRemaining.exit();
+											}
+											if (DEBUG) {
+												System.out.println("Tag Search: Complete" + " for "
+														+ dm.getDisplayName());
+											}
+										}
+									});
 						} catch (TOTorrentException e) {
 							e.printStackTrace();
 						}
@@ -327,9 +391,9 @@ public class SBC_TagDiscovery
 	private void initTable(Composite control) {
 		if (tv == null) {
 
-			tv = TableViewFactory.createTableViewSWT(TagDiscovery.class, TABLE_TAGDISCOVERY,
-					TABLE_TAGDISCOVERY, new TableColumnCore[0], ColumnTagName.COLUMN_ID,
-					SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
+			tv = TableViewFactory.createTableViewSWT(TagDiscovery.class,
+					TABLE_TAGDISCOVERY, TABLE_TAGDISCOVERY, new TableColumnCore[0],
+					ColumnTagName.COLUMN_ID, SWT.MULTI | SWT.FULL_SELECTION | SWT.VIRTUAL);
 			if (txtFilter != null) {
 				tv.enableFilterCheck(txtFilter, this);
 			}
@@ -350,8 +414,39 @@ public class SBC_TagDiscovery
 		control.layout(true);
 	}
 
+	// @see org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener#fillMenu(java.lang.String, org.eclipse.swt.widgets.Menu)
 	public void fillMenu(String sColumnName, Menu menu) {
 		List<Object> ds = tv.getSelectedDataSources();
+
+		final MenuItem menuTagIt = new MenuItem(menu, SWT.PUSH);
+
+		Messages.setLanguageText(menuTagIt, "TagDiscoveriesView.menu.tagit");
+		menuTagIt.addListener(SWT.Selection, new TableSelectedRowsListener(tv) {
+			public void run(TableRowCore row) {
+				TagDiscovery tagDiscovery = (TagDiscovery) row.getDataSource(true);
+				TagManager tm = TagManagerFactory.getTagManager();
+				TagType manual_tt = tm.getTagType(TagType.TT_DOWNLOAD_MANUAL);
+				Tag tag = manual_tt.getTag(tagDiscovery.getName(), true);
+				if (tag == null) {
+					try {
+						tag = manual_tt.createTag(tagDiscovery.getName(), true);
+						tag.setPublic(true);
+						tag.setGroup("Discovery");
+						tag.setVisible(true);
+					} catch (TagException e) {
+						return;
+					}
+				}
+				byte[] hash = tagDiscovery.getHash();
+				DownloadManager dm = AzureusCoreFactory.getSingleton().getGlobalManager().getDownloadManager(
+						new HashWrapper(hash));
+				tag.addTaggable(dm);
+
+				String key = Base32.encode(hash) + tag.getTagName(true);
+				mapTagDiscoveries.remove(key);
+				tv.removeDataSource(tagDiscovery);
+			}
+		});
 	}
 
 	public void addThisColumnSubMenu(String sColumnName, Menu menuThisColumn) {
@@ -375,7 +470,7 @@ public class SBC_TagDiscovery
 
 			if (obj instanceof TagDiscovery) {
 
-				TagDiscovery  tag = (TagDiscovery) obj;
+				TagDiscovery tag = (TagDiscovery) obj;
 
 				// do something on double click
 			}

@@ -16,7 +16,7 @@
  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307  USA 
  */
  
-package com.aelitis.azureus.ui.swt.columns.tag;
+package com.aelitis.azureus.core.tag;
 
 import org.gudy.azureus2.core3.util.SystemTime;
 
@@ -27,12 +27,18 @@ import org.gudy.azureus2.core3.util.SystemTime;
  */
 public class TagDiscovery
 {
+	public static int DISCOVERY_TYPE_RCM = 0;
+	public static int DISCOVERY_TYPE_META_PARSE = 1; // derived from torrent (name, tracker, etc) 
+	//public static int DISCOVERY_TYPE_PEER = 2; // Not used, but if we ever get tags from connected peers..
+	
+
 	private String name;
 	private String torrentName;
 	private String network;
 	private byte[] hash;
 	
 	private long timestamp;
+	private int discoveryType;
 	
 	public TagDiscovery(String name, String network, String torrentName, byte[] hash) {
 		super();
@@ -59,4 +65,11 @@ public class TagDiscovery
 		return hash;
 	}
 	
+	public long getTimestamp() {
+		return timestamp;
+	}
+	
+	public long getDiscoveryType() {
+		return discoveryType;
+	}
 }

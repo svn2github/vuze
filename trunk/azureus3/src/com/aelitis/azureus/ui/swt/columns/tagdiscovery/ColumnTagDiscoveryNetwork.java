@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2013 Azureus Software, Inc. All Rights Reserved.
+ * Copyright (C) 2014 Azureus Software, Inc. All Rights Reserved.
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -19,7 +19,7 @@ package com.aelitis.azureus.ui.swt.columns.tagdiscovery;
 
 import org.gudy.azureus2.plugins.ui.tables.*;
 
-import com.aelitis.azureus.ui.swt.columns.tag.TagDiscovery;
+import com.aelitis.azureus.core.tag.TagDiscovery;
 
 public class ColumnTagDiscoveryNetwork
 	implements TableCellRefreshListener, TableColumnExtraInfoListener
