@@ -26,11 +26,12 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.dnd.*;
 import org.eclipse.swt.events.*;
 import org.eclipse.swt.graphics.*;
-import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.*;
@@ -46,8 +47,10 @@ import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.*;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTViewCore;
+import org.gudy.azureus2.ui.swt.pluginsimpl.*;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl.SWTViewAddedListener;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
+import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -55,9 +58,11 @@ import com.aelitis.azureus.ui.common.updater.UIUpdater;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
 import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.mdi.*;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 /**
@@ -119,7 +124,11 @@ public class SideBar
 	private List<SideBarEntrySWT> 	attention_seekers = new ArrayList<SideBarEntrySWT>();
 	private TimerEventPeriodic		attention_event;
 
+	private Composite cPluginsArea;
+
 	public static SideBar instance = null;
+
+	private List<UISWTViewCore> pluginViews = new ArrayList<UISWTViewCore>();
 
 	
 	public SideBar() {
@@ -139,6 +148,17 @@ public class SideBar
 		soSideBarContents = (SWTSkinObjectContainer) skin.getSkinObject("sidebar-contents");
 		soSideBarList = skin.getSkinObject("sidebar-list");
 		soSideBarPopout = skin.getSkinObject("sidebar-pop");
+
+		SWTSkinObjectContainer soSideBarPluginsArea = (SWTSkinObjectContainer) skin.getSkinObject("sidebar-plugins");
+		if (soSideBarPluginsArea != null) {
+			Composite composite = soSideBarPluginsArea.getComposite();
+			cPluginsArea = new Composite(composite, SWT.NONE);
+			GridLayout layout = new GridLayout();
+			layout.marginHeight = layout.marginWidth = 0;
+			layout.verticalSpacing = layout.horizontalSpacing = 0;
+			cPluginsArea.setLayout(layout);
+			cPluginsArea.setLayoutData(Utils.getFilledFormData());
+		}
 
 		// addTestMenus();
 
@@ -310,6 +330,8 @@ public class SideBar
 								}
 	
 								setupPluginViews();
+								
+								createSideBarPluginViews();
 							}finally{
 								
 								wait_sem.release();
@@ -911,6 +933,91 @@ public class SideBar
 		}
 	}
 
+	private void createSideBarPluginViews() {
+		if (cPluginsArea == null) {
+			return;
+		}
+		UISWTInstanceImpl uiSWTinstance = (UISWTInstanceImpl) UIFunctionsManagerSWT.getUIFunctionsSWT().getUISWTInstance();
+
+		if (uiSWTinstance == null) {
+			return;
+		}
+
+		UISWTViewEventListenerHolder[] pluginViews = uiSWTinstance.getViewListeners(UISWTInstance.VIEW_SIDEBAR_AREA);
+		for (UISWTViewEventListenerHolder l : pluginViews) {
+			if (l != null) {
+				try {
+					UISWTViewImpl view = new UISWTViewImpl(UISWTInstance.VIEW_SIDEBAR_AREA,
+							l.getViewID(), l, null);
+					addSideBarView(view, cPluginsArea);
+					cPluginsArea.getParent().getParent().layout(true, true);
+				} catch (Exception e) {
+					e.printStackTrace();
+					// skip, plugin probably specifically asked to not be added
+				}
+			}
+		}
+		
+		uiSWTinstance.addSWTViewAddedListener(new SWTViewAddedListener() {
+
+			public void setViewAdded(final String parent, final String id,
+					final UISWTViewEventListener l) {
+				if (!parent.equals(UISWTInstance.VIEW_SIDEBAR_AREA)) {
+					return;
+				}
+				Utils.execSWTThread(new AERunnable() {
+
+					public void runSupport() {
+						try {
+							UISWTViewImpl view = new UISWTViewImpl(parent, id, l, null);
+							addSideBarView(view, cPluginsArea);
+						} catch (Exception e) {
+							e.printStackTrace();
+							// skip, plugin probably specifically asked to not be added
+						}
+					}
+				});
+			}
+		});
+		
+		cPluginsArea.getParent().getParent().layout(true, true);
+	}
+	
+	private void addSideBarView(UISWTViewImpl view, Composite cPluginsArea) {
+		Composite parent = new Composite(cPluginsArea, SWT.NONE);
+		GridData gridData = new GridData();
+		gridData.grabExcessHorizontalSpace = true;
+		gridData.horizontalAlignment = SWT.FILL;
+		parent.setLayoutData(gridData);
+		parent.setLayout(new FormLayout());
+		//parent.setBackground(ColorCache.getRandomColor());
+		//cPluginsArea.setBackground(ColorCache.getRandomColor());
+
+		view.initialize(parent);
+		parent.setVisible(true);
+
+		Control[] children = parent.getChildren();
+		for (int i = 0; i < children.length; i++) {
+			Control control = children[i];
+			Object ld = control.getLayoutData();
+			boolean useGridLayout = ld != null && (ld instanceof GridData);
+			if (useGridLayout) {
+				GridLayout gridLayout = new GridLayout();
+				gridLayout.horizontalSpacing = 0;
+				gridLayout.marginHeight = 0;
+				gridLayout.marginWidth = 0;
+				gridLayout.verticalSpacing = 0;
+				parent.setLayout(gridLayout);
+				break;
+			} else if (ld == null) {
+				control.setLayoutData(Utils.getFilledFormData());
+			}
+		}
+		
+		pluginViews.add(view);
+	}
+
+
 	/**
 	 * @param event
 	 */
@@ -1213,7 +1320,7 @@ public class SideBar
 
 	private void setupNewEntry(final SideBarEntrySWT entry, final String id,
 			final boolean expandParent, final boolean closeable) {
-		//System.out.println("createItem " + id + ";" + Debug.getCompressedStackTrace());
+		//System.out.println("createItem " + id + ";" + entry.getParentID() + ";" + Debug.getCompressedStackTrace());
 		synchronized (mapIdToEntry) {
 			mapIdToEntry.put(id, entry);
 		}
@@ -1450,6 +1557,23 @@ public class SideBar
 
 	// @see com.aelitis.azureus.ui.swt.utils.UIUpdatable#updateUI()
 	public void updateUI() {
+		Object[] views = pluginViews.toArray();
+		for (int i = 0; i < views.length; i++) {
+			try {
+				UISWTViewCore view = (UISWTViewCore) views[i];
+				Composite composite = view.getComposite();
+				if (composite.isDisposed()) {
+					pluginViews.remove(view);
+					continue;
+				}
+				if (composite.isVisible()) {
+					view.triggerEvent(UISWTViewEvent.TYPE_REFRESH, null);
+				}
+			} catch (Exception e) {
+				Debug.out(e);
+			}
+		}
+
 		if (currentEntry == null || currentEntry.getView() == null
 				|| tree.getSelectionCount() == 0) {
 			return;

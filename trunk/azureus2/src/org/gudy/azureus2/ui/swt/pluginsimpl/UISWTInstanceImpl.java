@@ -83,6 +83,7 @@ UISWTInstanceImpl
 {
 	private Map<BasicPluginConfigModel,BasicPluginConfigImpl> 	config_view_map = new WeakHashMap<BasicPluginConfigModel,BasicPluginConfigImpl>();
 	
+	// Map<ParentId, Map<ViewId, Listener>>
 	private Map<String,Map<String,UISWTViewEventListenerHolder>> views = new HashMap<String,Map<String,UISWTViewEventListenerHolder>>();
 
 	private Map<PluginInterface,UIInstance>	plugin_map = new WeakHashMap<PluginInterface,UIInstance>();
@@ -90,6 +91,12 @@ UISWTInstanceImpl
 	private boolean bUIAttaching;
 
 	private final UIFunctionsSWT 		uiFunctions;
+	
+	public static interface SWTViewAddedListener {
+		public void setViewAdded(String parent, String id, UISWTViewEventListener l);
+	}
+	
+	private List<SWTViewAddedListener> listSWTViewAddedListeners = new ArrayList<SWTViewAddedListener>(0);
 	
 	public UISWTInstanceImpl() {
 		// Since this is a UI **SWT** Instance Implementor, it's assumed
@@ -618,6 +625,19 @@ UISWTInstanceImpl
 				}
 			});
 		}
+		
+		SWTViewAddedListener[] viewAddedListeners = listSWTViewAddedListeners.toArray(new SWTViewAddedListener[0]);
+		for (SWTViewAddedListener l : viewAddedListeners) {
+			l.setViewAdded(sParentID, sViewID, holder);
+		}
+	}
+	
+	public void addSWTViewAddedListener(SWTViewAddedListener l) {
+		listSWTViewAddedListeners.add(l);
+	}
+	
+	public void removeSWTViewAddedListener(SWTViewAddedListener l) {
+		listSWTViewAddedListeners.remove(l);
 	}
 	
 	// TODO: Remove views from PeersView, etc
