@@ -21,6 +21,7 @@ package com.aelitis.azureus.ui.swt.views.skin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.layout.FormAttachment;
 import org.eclipse.swt.layout.FormData;
+import org.eclipse.swt.widgets.Control;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -92,7 +93,11 @@ public abstract class InfoBarUtil
 	}
 
 	protected void createInfoBar() {
-		Object ldForSO = forSO.getControl().getLayoutData();
+		Control control = forSO.getControl();
+		if (control == null || control.isDisposed()) {
+			return;
+		}
+		Object ldForSO = control.getLayoutData();
 		if (!(ldForSO instanceof FormData)) {
 			return;
 		}
