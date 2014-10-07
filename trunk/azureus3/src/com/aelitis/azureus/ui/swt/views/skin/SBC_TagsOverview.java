@@ -32,6 +32,7 @@ import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener;
 import org.gudy.azureus2.plugins.ui.tables.TableColumn;
 import org.gudy.azureus2.plugins.ui.tables.TableColumnCreationListener;
+import org.gudy.azureus2.plugins.ui.toolbar.UIToolBarItem;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWT;
 import org.gudy.azureus2.ui.swt.views.table.TableViewSWTMenuFillListener;
@@ -77,6 +78,26 @@ public class SBC_TagsOverview
 	// @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
 			Object datasource) {
+		if ( tv == null || !tv.isVisible()){
+			return( false );
+		}
+		if (item.getID().equals("remove")) {
+			
+			Object[] datasources = tv.getSelectedDataSources().toArray();
+			
+			if ( datasources.length > 0 ){
+				
+				for (Object object : datasources) {
+					if (object instanceof Tag) {
+						Tag tag = (Tag) object;
+						tag.removeTag();
+					}
+				}
+				
+				return true;
+			}
+		}
+		
 		return false;
 	}
 
@@ -86,6 +107,27 @@ public class SBC_TagsOverview
 
 	// @see org.gudy.azureus2.plugins.ui.UIPluginViewToolBarListener#refreshToolBarItems(java.util.Map)
 	public void refreshToolBarItems(Map<String, Long> list) {
+		if ( tv == null || !tv.isVisible()){
+			return;
+		}
+
+		boolean canEnable = false;
+		Object[] datasources = tv.getSelectedDataSources().toArray();
+		
+		if ( datasources.length > 0 ){
+			
+			for (Object object : datasources) {
+				if (object instanceof Tag) {
+					Tag tag = (Tag) object;
+					if (tag.getTagType().getTagType() == TagType.TT_DOWNLOAD_MANUAL) {
+						canEnable = true;
+						break;
+					}
+				}
+			}
+		}
+
+		list.put("remove", canEnable ? UIToolBarItem.STATE_ENABLED : 0);
 	}
 
 	// @see com.aelitis.azureus.ui.common.updater.UIUpdatable#updateUI()
@@ -422,19 +464,30 @@ public class SBC_TagsOverview
 	selected(
 		TableRowCore[] row )
 	{
+  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  	if (uiFunctions != null) {
+  		uiFunctions.refreshIconBar();
+  	}
 	}
 
 	public void 
 	deselected(
 		TableRowCore[] rows )
 	{
+  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  	if (uiFunctions != null) {
+  		uiFunctions.refreshIconBar();
+  	}
 	}
 	
 	public void 
 	focusChanged(
 		TableRowCore focus )
 	{
-		
+  	UIFunctions uiFunctions = UIFunctionsManager.getUIFunctions();
+  	if (uiFunctions != null) {
+  		uiFunctions.refreshIconBar();
+  	}
 	}
 
 	public void 
