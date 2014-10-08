@@ -61,13 +61,14 @@ import com.aelitis.azureus.ui.common.updater.UIUpdatable;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
 import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
 import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MdiEntryVitalityImage;
 import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
 import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.tag.ColumnTagName;
 import com.aelitis.azureus.ui.swt.columns.tagdiscovery.*;
 import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
-import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
+import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
+import com.aelitis.azureus.ui.swt.skin.*;
 
 /**
  * @author TuxPaper
@@ -82,6 +83,8 @@ public class SBC_TagDiscovery
 	private static final String TABLE_TAGDISCOVERY = "TagDiscoveryView";
 
 	private static final boolean DEBUG = false;
+
+	private static final String ID_VITALITY_ACTIVE = "image.sidebar.vitality.dl";
 
 	TableViewSWT<TagDiscovery> tv;
 
@@ -100,6 +103,8 @@ public class SBC_TagDiscovery
 	private MdiEntry entry;
 
 	private SWTSkinObjectText soTitle;
+
+	private MdiEntryVitalityImage vitalityImage;
 
 	// @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
@@ -156,12 +161,27 @@ public class SBC_TagDiscovery
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
+		soTitle = (SWTSkinObjectText) getSkinObject("title");
+
+		SWTSkinObjectButton soScanButton = (SWTSkinObjectButton) getSkinObject("scan-button");
+		if (soScanButton != null) {
+			soScanButton.addSelectionListener(new ButtonListenerAdapter() {
+				// @see com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter#pressed(com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility, com.aelitis.azureus.ui.swt.skin.SWTSkinObject, int)
+				public void pressed(SWTSkinButtonUtility buttonUtility,
+						SWTSkinObject skinObject, int stateMask) {
+					startScan();
+				}
+			});
+		}
+
 		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
 
 		if (mdi != null) {
 			entry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_TAG_DISCOVERY);
 			if (entry != null) {
 				entry.setViewTitleInfo(this);
+				vitalityImage = entry.addVitalityImage(ID_VITALITY_ACTIVE);
+				vitalityImage.setVisible(false);
 			}
 		}
 
@@ -172,7 +192,10 @@ public class SBC_TagDiscovery
 
 	public Object getTitleInfoProperty(int propertyID) {
 		if (propertyID == ViewTitleInfo.TITLE_INDICATOR_TEXT) {
-			return "" + mapTagDiscoveries.size();
+			int num = mapTagDiscoveries.size();
+			if (num > 0) {
+				return "" + num;
+			}
 		}
 		return null;
 	}
@@ -254,7 +277,6 @@ public class SBC_TagDiscovery
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
 		SWTSkinObject so_list = getSkinObject("tag-discovery-list");
-		soTitle = (SWTSkinObjectText) getSkinObject("title");
 
 		if (so_list != null) {
 			initTable((Composite) so_list.getControl());
@@ -271,17 +293,9 @@ public class SBC_TagDiscovery
 				new TagDiscovery[0]);
 		tv.addDataSources(tagDiscoveries);
 
-		// TODO: Not this		
-		startScan();
-
 		return null;
 	}
 
-	/**
-	 * 
-	 *
-	 * @since 5.0.0.1
-	 */
 	private void startScan() {
 		try {
 			mon_scansRemaining.enter();
@@ -319,6 +333,10 @@ public class SBC_TagDiscovery
 								mon_scansRemaining.enter();
 
 								scansRemaining++;
+
+								if (vitalityImage != null && scansRemaining == 1) {
+									vitalityImage.setVisible(true);
+								}
 
 								if (soTitle != null) {
 									soTitle.setText(MessageText.getString("tag.discovery.view.heading")
@@ -412,6 +430,9 @@ public class SBC_TagDiscovery
 					soTitle.setText(MessageText.getString("tag.discovery.view.heading")
 							+ " : Scanning " + scansRemaining);
 				}
+			}
+			if (vitalityImage != null && scansRemaining <= 0) {
+				vitalityImage.setVisible(false);
 			}
 		} finally {
 			mon_scansRemaining.exit();
