@@ -58,8 +58,14 @@ import com.aelitis.azureus.ui.common.ToolBarItem;
 import com.aelitis.azureus.ui.common.table.*;
 import com.aelitis.azureus.ui.common.table.impl.TableColumnManager;
 import com.aelitis.azureus.ui.common.updater.UIUpdatable;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfo;
+import com.aelitis.azureus.ui.common.viewtitleinfo.ViewTitleInfoManager;
+import com.aelitis.azureus.ui.mdi.MdiEntry;
+import com.aelitis.azureus.ui.mdi.MultipleDocumentInterface;
+import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.columns.tag.ColumnTagName;
 import com.aelitis.azureus.ui.swt.columns.tagdiscovery.*;
+import com.aelitis.azureus.ui.swt.mdi.MultipleDocumentInterfaceSWT;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObject;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinObjectText;
 
@@ -70,7 +76,7 @@ public class SBC_TagDiscovery
 	extends SkinView
 	implements UIUpdatable, UIPluginViewToolBarListener,
 	TableViewFilterCheck<TagDiscovery>, TableViewSWTMenuFillListener,
-	TableSelectionListener
+	TableSelectionListener, ViewTitleInfo
 {
 
 	private static final String TABLE_TAGDISCOVERY = "TagDiscoveryView";
@@ -90,6 +96,10 @@ public class SBC_TagDiscovery
 	private AEMonitor2 mon_scansRemaining = new AEMonitor2("scansRemaining");
 
 	private Map<String, TagDiscovery> mapTagDiscoveries = new HashMap<String, TagDiscovery>();
+
+	private MdiEntry entry;
+
+	private SWTSkinObjectText soTitle;
 
 	// @see org.gudy.azureus2.plugins.ui.toolbar.UIToolBarActivationListener#toolBarItemActivated(com.aelitis.azureus.ui.common.ToolBarItem, long, java.lang.Object)
 	public boolean toolBarItemActivated(ToolBarItem item, long activationType,
@@ -146,8 +156,24 @@ public class SBC_TagDiscovery
 	// @see com.aelitis.azureus.ui.swt.views.skin.SkinView#skinObjectInitialShow(com.aelitis.azureus.ui.swt.skin.SWTSkinObject, java.lang.Object)
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 
+		MultipleDocumentInterfaceSWT mdi = UIFunctionsManagerSWT.getUIFunctionsSWT().getMDISWT();
+
+		if (mdi != null) {
+			entry = mdi.getEntry(MultipleDocumentInterface.SIDEBAR_SECTION_TAG_DISCOVERY);
+			if (entry != null) {
+				entry.setViewTitleInfo(this);
+			}
+		}
+
 		initColumns();
 
+		return null;
+	}
+
+	public Object getTitleInfoProperty(int propertyID) {
+		if (propertyID == ViewTitleInfo.TITLE_INDICATOR_TEXT) {
+			return "" + mapTagDiscoveries.size();
+		}
 		return null;
 	}
 
@@ -228,6 +254,7 @@ public class SBC_TagDiscovery
 	public Object skinObjectShown(SWTSkinObject skinObject, Object params) {
 		super.skinObjectShown(skinObject, params);
 		SWTSkinObject so_list = getSkinObject("tag-discovery-list");
+		soTitle = (SWTSkinObjectText) getSkinObject("title");
 
 		if (so_list != null) {
 			initTable((Composite) so_list.getControl());
@@ -280,7 +307,6 @@ public class SBC_TagDiscovery
 
 					RelatedContentManager rcm = RelatedContentManager.getSingleton();
 					List<DownloadManager> dms = gm.getDownloadManagers();
-					final SWTSkinObjectText soTitle = (SWTSkinObjectText) getSkinObject("title");
 
 					for (final DownloadManager dm : dms) {
 						TOTorrent torrent = dm.getTorrent();
@@ -301,93 +327,65 @@ public class SBC_TagDiscovery
 							} finally {
 								mon_scansRemaining.exit();
 							}
-							
-							try{
+
+							try {
 								rcm.lookupAttributes(hash, dm.getDownloadState().getNetworks(),
-									new RelatedAttributeLookupListener() {
-										public void tagFound(String tag, String network) {
-											if (DEBUG) {
-												System.out.println("Tag Search: Found Tag " + tag
-														+ " for " + dm.getDisplayName());
-											}
-											String key = Base32.encode(hash) + tag;
-
-											TagManager tm = TagManagerFactory.getTagManager();
-											TagType tt_manual = tm.getTagType(TagType.TT_DOWNLOAD_MANUAL);
-											List<Tag> existingDMTags = tt_manual.getTagsForTaggable(dm);
-											for (Tag existingTag : existingDMTags) {
-												if (existingTag.getTagName(true).equalsIgnoreCase(tag)) {
-													return;
+										new RelatedAttributeLookupListener() {
+											public void tagFound(String tag, String network) {
+												if (DEBUG) {
+													System.out.println("Tag Search: Found Tag " + tag
+															+ " for " + dm.getDisplayName());
 												}
-											}
-											synchronized (mapTagDiscoveries) {
-												if (!mapTagDiscoveries.containsKey(key)) {
-													TagDiscovery tagDiscovery = new TagDiscovery(tag,
-															network, dm.getDisplayName(), hash);
-													mapTagDiscoveries.put(key, tagDiscovery);
-													tv.addDataSource(tagDiscovery);
-												}
-											}
-										}
+												String key = Base32.encode(hash) + tag;
 
-										public void lookupStart() {
-											if (DEBUG) {
-												System.out.println("Tag Search: Start" + " for "
-														+ dm.getDisplayName());
-											}
-										}
-
-										public void lookupFailed(ContentException error) {
-											if (DEBUG) {
-												System.out.println("Tag Search: Failed "
-														+ error.getMessage() + " for "
-														+ dm.getDisplayName());
-											}
-										}
-
-										public void lookupComplete() {
-											try {
-												mon_scansRemaining.enter();
-
-												scansRemaining--;
-
-												if (soTitle != null) {
-													if (scansRemaining <= 0) {
-														soTitle.setTextID("tag.discovery.view.heading");
-													} else {
-														soTitle.setText(MessageText.getString("tag.discovery.view.heading")
-																+ " : Scanning " + scansRemaining);
+												TagManager tm = TagManagerFactory.getTagManager();
+												TagType tt_manual = tm.getTagType(TagType.TT_DOWNLOAD_MANUAL);
+												List<Tag> existingDMTags = tt_manual.getTagsForTaggable(dm);
+												for (Tag existingTag : existingDMTags) {
+													if (existingTag.getTagName(true).equalsIgnoreCase(tag)) {
+														return;
 													}
 												}
-											} finally {
-												mon_scansRemaining.exit();
-											}
-											if (DEBUG) {
-												System.out.println("Tag Search: Complete" + " for "
-														+ dm.getDisplayName());
-											}
-										}
-									});
-							}catch( Throwable e ){
-								
-									// can get here if the scan never gets kicked off (dht unavailable for network etc)
-								
-								try {
-									mon_scansRemaining.enter();
+												synchronized (mapTagDiscoveries) {
+													if (!mapTagDiscoveries.containsKey(key)) {
+														TagDiscovery tagDiscovery = new TagDiscovery(tag,
+																network, dm.getDisplayName(), hash);
+														mapTagDiscoveries.put(key, tagDiscovery);
+														ViewTitleInfoManager.refreshTitleInfo(SBC_TagDiscovery.this);
+														tv.addDataSource(tagDiscovery);
 
-									scansRemaining--;
+													}
+												}
+											}
 
-									if (soTitle != null) {
-										if (scansRemaining <= 0) {
-											soTitle.setTextID("tag.discovery.view.heading");
-										} else {
-											soTitle.setText(MessageText.getString("tag.discovery.view.heading")
-													+ " : Scanning " + scansRemaining);
-										}
-									}
-								} finally {
-									mon_scansRemaining.exit();
-								}
+											public void lookupStart() {
+												if (DEBUG) {
+													System.out.println("Tag Search: Start" + " for "
+															+ dm.getDisplayName());
+												}
+											}
+
+											public void lookupFailed(ContentException error) {
+												if (DEBUG) {
+													System.out.println("Tag Search: Failed "
+															+ error.getMessage() + " for "
+															+ dm.getDisplayName());
+												}
+											}
+
+											public void lookupComplete() {
+												decreaseScansRemaining();
+
+												if (DEBUG) {
+													System.out.println("Tag Search: Complete" + " for "
+															+ dm.getDisplayName());
+												}
+											}
+										});
+							} catch (Throwable e) {
+
+								// can get here if the scan never gets kicked off (dht unavailable for network etc)
+								decreaseScansRemaining();
 							}
 						} catch (TOTorrentException e) {
 							e.printStackTrace();
@@ -401,16 +399,30 @@ public class SBC_TagDiscovery
 		});
 	}
 
+	protected void decreaseScansRemaining() {
+		try {
+			mon_scansRemaining.enter();
+
+			scansRemaining--;
+
+			if (soTitle != null) {
+				if (scansRemaining <= 0) {
+					soTitle.setTextID("tag.discovery.view.heading");
+				} else {
+					soTitle.setText(MessageText.getString("tag.discovery.view.heading")
+							+ " : Scanning " + scansRemaining);
+				}
+			}
+		} finally {
+			mon_scansRemaining.exit();
+		}
+	}
+
 	@Override
 	public Object skinObjectDestroyed(SWTSkinObject skinObject, Object params) {
 		return super.skinObjectDestroyed(skinObject, params);
 	}
 
-	/**
-	 * @param control
-	 *
-	 * @since 4.6.0.5
-	 */
 	private void initTable(Composite control) {
 		if (tv == null) {
 
@@ -468,6 +480,7 @@ public class SBC_TagDiscovery
 				String key = Base32.encode(hash) + tag.getTagName(true);
 				mapTagDiscoveries.remove(key);
 				tv.removeDataSource(tagDiscovery);
+				ViewTitleInfoManager.refreshTitleInfo(SBC_TagDiscovery.this);
 			}
 		});
 	}
