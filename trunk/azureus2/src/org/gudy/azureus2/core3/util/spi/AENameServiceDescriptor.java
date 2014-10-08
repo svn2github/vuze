@@ -289,7 +289,7 @@ AENameServiceDescriptor
 										
 				}else if ( host_name.endsWith( ".i2p" ) || host_name.endsWith( ".onion" )){
 					
-					new Exception( "Prevented DNS leak for " + host_name ).printStackTrace();
+					//new Exception( "Prevented DNS leak for " + host_name ).printStackTrace();
 					
 					throw( new UnknownHostException( host_name ));
 				}
