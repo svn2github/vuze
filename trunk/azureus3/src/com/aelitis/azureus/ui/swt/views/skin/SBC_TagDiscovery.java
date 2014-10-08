@@ -301,7 +301,9 @@ public class SBC_TagDiscovery
 							} finally {
 								mon_scansRemaining.exit();
 							}
-							rcm.lookupAttributes(hash, dm.getDownloadState().getNetworks(),
+							
+							try{
+								rcm.lookupAttributes(hash, dm.getDownloadState().getNetworks(),
 									new RelatedAttributeLookupListener() {
 										public void tagFound(String tag, String network) {
 											if (DEBUG) {
@@ -366,6 +368,27 @@ public class SBC_TagDiscovery
 											}
 										}
 									});
+							}catch( Throwable e ){
+								
+									// can get here if the scan never gets kicked off (dht unavailable for network etc)
+								
+								try {
+									mon_scansRemaining.enter();
+
+									scansRemaining--;
+
+									if (soTitle != null) {
+										if (scansRemaining <= 0) {
+											soTitle.setTextID("tag.discovery.view.heading");
+										} else {
+											soTitle.setText(MessageText.getString("tag.discovery.view.heading")
+													+ " : Scanning " + scansRemaining);
+										}
+									}
+								} finally {
+									mon_scansRemaining.exit();
+								}
+							}
 						} catch (TOTorrentException e) {
 							e.printStackTrace();
 						}
