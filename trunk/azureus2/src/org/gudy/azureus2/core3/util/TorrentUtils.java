@@ -1898,22 +1898,22 @@ TorrentUtils
 			
 			if ( pp != null ){
 				
-				Map<String,String> links;
+				Map<String,Object> _links;
 				
 				byte[]	g_data = (byte[])pp.get( TorrentUtils.TORRENT_AZ_PROP_INITIAL_LINKAGE2 );
 				
 				if ( g_data == null ){
 				
-					links = (Map<String,String>)pp.get( TorrentUtils.TORRENT_AZ_PROP_INITIAL_LINKAGE );
+					_links = (Map<String,Object>)pp.get( TorrentUtils.TORRENT_AZ_PROP_INITIAL_LINKAGE );
 					
 				}else{
 					
-					links = (Map<String,String>)BDecoder.decode(new BufferedInputStream( new GZIPInputStream( new ByteArrayInputStream( g_data ))));
+					_links = BDecoder.decode(new BufferedInputStream( new GZIPInputStream( new ByteArrayInputStream( g_data ))));
 
 				}
-				if ( links != null ){//&& TorrentUtils.isCreatedTorrent( torrent )){
+				if ( _links != null ){//&& TorrentUtils.isCreatedTorrent( torrent )){
 					
-					links = BDecoder.decodeStrings( links );
+					Map<String,String> links = (Map<String,String>)BDecoder.decodeStrings( _links );
 					
 					for ( Map.Entry<String,String> entry: links.entrySet()){
 						
