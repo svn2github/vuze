@@ -69,7 +69,7 @@ public class BDecoder
 		PORTABLE_ROOT = portable;
 	}
 	
-	public static Map
+	public static Map<String,Object>
 	decode(
 		byte[]	data )
 
@@ -78,7 +78,7 @@ public class BDecoder
 		return( new BDecoder().decodeByteArray( data ));
 	}
 
-	public static Map
+	public static Map<String,Object>
 	decode(
 		byte[]	data,
 		int		offset,
@@ -89,7 +89,7 @@ public class BDecoder
 		return( new BDecoder().decodeByteArray( data, offset, length ));
 	}
 
-	public static Map
+	public static Map<String,Object>
 	decode(
 		BufferedInputStream	is  )
 
@@ -104,7 +104,7 @@ public class BDecoder
 	{	
 	}
 
-	public Map 
+	public Map<String,Object>
 	decodeByteArray(
 		byte[] data) 
 
@@ -139,7 +139,7 @@ public class BDecoder
 	// used externally 
 	public Map<String, Object> decodeByteBuffer(ByteBuffer buffer, boolean internKeys) throws IOException {
 		InputStream is = new BDecoderInputStreamArray(buffer);
-		Map result = decode(is,internKeys);
+		Map<String,Object> result = decode(is,internKeys);
 		buffer.position(buffer.limit()-is.available());
 		return result;
 	}
@@ -171,7 +171,7 @@ public class BDecoder
 			throw( new BEncodingException( "BDecoder: top level isn't a Map" ));
 		}
 
-		return((Map)res );
+		return((Map<String,Object>)res );
 	}
 
 	private Map<String, Object> 
