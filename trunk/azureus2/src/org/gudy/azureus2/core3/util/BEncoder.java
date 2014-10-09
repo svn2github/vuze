@@ -257,13 +257,6 @@ BEncoder
             writeChar('i');
             writeLong(tempLong.longValue());
             writeChar('e');
-         }else if(object instanceof Integer){
-         	
-			Integer tempInteger = (Integer)object;         
-			//write out the l       
-			writeChar('i');
-			writeInt(tempInteger.intValue());
-			writeChar('e');
 			
        }else if(object instanceof byte[]){
        	
@@ -275,8 +268,24 @@ BEncoder
             }else{
             	writeBytes(tempByteArray);
             }
-            
-       }else if(object instanceof ByteBuffer ){
+
+       }else if ( object instanceof Integer ){
+        	
+			Integer tempInteger = (Integer)object;         
+			//write out the l       
+			writeChar('i');
+			writeInt(tempInteger.intValue());
+			writeChar('e');
+
+       }else if (object instanceof Byte ){
+        	
+			byte temp = (Byte)object;         
+		    
+			writeChar('i');
+			writeInt( temp & 0x000000ff );
+			writeChar('e');
+
+       }else if( object instanceof ByteBuffer ){
        	
        		ByteBuffer  bb = (ByteBuffer)object;
        		writeInt(bb.limit());
