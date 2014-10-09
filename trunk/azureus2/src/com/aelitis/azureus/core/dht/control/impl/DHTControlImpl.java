@@ -5179,6 +5179,12 @@ DHTControlImpl
 			return( getAddress());
 		}
 		
+		public Map<String, Object> 
+		exportContactToMap()
+		{
+			return( delegate.exportContactToMap());
+		}
+		
 		public boolean
 		isAlive(
 			long		timeout )

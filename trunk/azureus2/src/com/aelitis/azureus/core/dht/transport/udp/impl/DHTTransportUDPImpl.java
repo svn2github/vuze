@@ -1370,6 +1370,68 @@ DHTTransportUDPImpl
 		DHTUDPUtils.serialiseContact( os, contact );
 	}
 	
+	public Map<String,Object>
+	exportContactToMap(
+		DHTTransportContact	contact )
+	{
+		Map<String,Object>		result = new HashMap<String, Object>();
+		
+		result.put( "v",contact.getProtocolVersion());
+		
+		InetSocketAddress address = contact.getExternalAddress();
+		
+		result.put( "p", address.getPort());
+		
+		InetAddress	ia = address.getAddress();
+		
+		if ( ia == null ){
+			
+	
+			result.put( "h", address.getHostName());
+			
+		}else{
+		
+			result.put( "a", ia.getAddress());
+		}
+		
+		return( result );
+	}
+	
+	public DHTTransportUDPContact
+	importContact(
+		Map<String,Object>		map )
+	{
+		int version = ((Number)map.get( "v" )).intValue();
+		
+		int port = ((Number)map.get( "p" )).intValue();
+		
+		byte[]	a = (byte[])map.get( "a" );
+				
+		InetSocketAddress address;
+		
+		try{
+			if ( a == null ){
+				
+				address = InetSocketAddress.createUnresolved( new String((byte[])map.get("h"), "UTF-8" ), port );
+			}else{
+			
+				address = new InetSocketAddress( InetAddress.getByAddress( a ), port );
+			}
+			
+			DHTTransportUDPContactImpl contact = new DHTTransportUDPContactImpl( false, this, address, address, (byte)version, 0, 0, (byte)0 );
+			
+			importContact( contact, false );
+				
+			return( contact );
+			
+		}catch( Throwable e ){
+			
+			Debug.out( e );
+			
+			return( null );
+		}
+	}
+	
 	public void
 	removeContact(
 		DHTTransportContact	contact )

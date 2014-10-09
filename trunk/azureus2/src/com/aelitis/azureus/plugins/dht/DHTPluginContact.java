@@ -46,6 +46,9 @@ DHTPluginContact
 	public int
 	getNetwork();
 	
+	public Map<String,Object>
+	exportToMap();
+	
 	public boolean
 	isAlive(
 		long		timeout );
@@ -63,8 +66,23 @@ DHTPluginContact
 	
 	public byte[]
 	read(
-		final DHTPluginProgressListener	listener,
-		final byte[]					handler_key,
-		final byte[]					key,
-		final long						timeout );
+		DHTPluginProgressListener	listener,
+		byte[]						handler_key,
+		byte[]						key,
+		long						timeout );
+	
+	public void
+	write(
+		DHTPluginProgressListener	listener,
+		byte[]						handler_key,
+		byte[]						key,
+		byte[]						data,
+		long						timeout );
+	
+	public byte[]
+	call(
+		DHTPluginProgressListener	listener,
+		byte[]						handler_key,
+		byte[]						data,
+		long						timeout );
 }

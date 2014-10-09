@@ -265,6 +265,12 @@ DHTTransportLoopbackContactImpl
 		transport.exportContact( this, os );
 	}
 	
+	public Map<String, Object> 
+	exportContactToMap()
+	{
+		return( transport.exportContactToMap( this ));
+	}
+	
 	public void
 	remove()
 	{

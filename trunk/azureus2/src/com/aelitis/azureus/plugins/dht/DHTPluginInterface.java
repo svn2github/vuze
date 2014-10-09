@@ -23,6 +23,7 @@
 package com.aelitis.azureus.plugins.dht;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 
 import com.aelitis.azureus.core.dht.DHT;
 
@@ -56,6 +57,9 @@ DHTPluginInterface
 	public DHTPluginContact
 	getLocalAddress();
 	
+	public String
+	getNetwork();
+	
 	public DHTPluginKeyStats
 	decodeStats(
 		DHTPluginValue		value );
@@ -79,6 +83,10 @@ DHTPluginInterface
 		InetSocketAddress				address,
 		byte							version,
 		boolean							is_cvs );
+	
+	public DHTPluginContact
+	importContact(
+		Map<String,Object>				map );		
 	
 	public void
 	get(

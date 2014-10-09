@@ -155,6 +155,9 @@ DHTTransportContact
 	
 		throws IOException, DHTTransportException;
 	
+	public Map<String, Object> 
+	exportContactToMap();
+	
 	public void
 	remove();
 	

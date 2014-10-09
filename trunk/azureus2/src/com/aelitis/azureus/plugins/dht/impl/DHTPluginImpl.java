@@ -28,6 +28,7 @@ import java.net.InetSocketAddress;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
@@ -1142,6 +1143,21 @@ outer:
 	
 	public DHTPluginContact
 	importContact(
+		Map<String,Object>				map )
+	{
+		try{
+			return( new DHTPluginContactImpl( this, transport.importContact( map)));
+			
+		}catch( DHTTransportException	e ){
+			
+			Debug.printStackTrace(e);
+			
+			return( null );
+		}
+	}
+	
+	public DHTPluginContact
+	importContact(
 		InetSocketAddress				address )
 	{
 		try{
@@ -1252,7 +1268,98 @@ outer:
 			throw( new RuntimeException( e ));
 		}
 	}
-
+	
+	public void
+	write(
+		final DHTPluginProgressListener	listener,
+		DHTPluginContact				target,
+		byte[]							handler_key,
+		byte[]							key,
+		byte[]							data,
+		long							timeout )
+	{
+		try{
+			dht.getTransport().writeTransfer(
+					new DHTTransportProgressListener()
+					{
+						public void
+						reportSize(
+							long	size )
+						{
+							listener.reportSize( size );
+						}
+						
+						public void
+						reportActivity(
+							String	str )
+						{
+							listener.reportActivity( str );
+						}
+						
+						public void
+						reportCompleteness(
+							int		percent )
+						{
+							listener.reportCompleteness( percent );
+						}
+					},
+					((DHTPluginContactImpl)target).getContact(), 
+					handler_key, 
+					key, 
+					data,
+					timeout );
+			
+		}catch( DHTTransportException e ){
+			
+			throw( new RuntimeException( e ));
+		}
+	}
+	
+	public byte[]
+	call(
+		final DHTPluginProgressListener	listener,
+		DHTPluginContact				target,
+		byte[]							handler_key,
+		byte[]							data,
+		long							timeout )
+	{
+		try{
+			return( 
+				dht.getTransport().writeReadTransfer(
+					new DHTTransportProgressListener()
+					{
+						public void
+						reportSize(
+							long	size )
+						{
+							listener.reportSize( size );
+						}
+						
+						public void
+						reportActivity(
+							String	str )
+						{
+							listener.reportActivity( str );
+						}
+						
+						public void
+						reportCompleteness(
+							int		percent )
+						{
+							listener.reportCompleteness( percent );
+						}
+					},
+					((DHTPluginContactImpl)target).getContact(), 
+					handler_key, 
+					data,
+					timeout ));
+			
+		}catch( DHTTransportException e ){
+			
+			throw( new RuntimeException( e ));
+		}
+	}
+	
 	public DHT
 	getDHT()
 	{

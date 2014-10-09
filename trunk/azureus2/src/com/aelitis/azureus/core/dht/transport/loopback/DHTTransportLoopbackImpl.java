@@ -282,6 +282,17 @@ DHTTransportLoopbackImpl
 		return( request_handler );
 	}
 	
+	public Map<String,Object>
+	exportContactToMap(
+		DHTTransportContact	contact ) 
+	{
+		Map<String,Object>	result = new HashMap<String, Object>();
+		
+		result.put( "i", contact.getID());
+		
+		return( result );
+	}
+	
 	public void
 	exportContact(
 		DHTTransportContact	contact,

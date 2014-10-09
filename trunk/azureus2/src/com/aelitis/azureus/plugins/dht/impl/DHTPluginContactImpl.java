@@ -87,6 +87,12 @@ DHTPluginContactImpl
 		return( contact.getAddress());
 	}
 	
+	public Map<String, Object> 
+	exportToMap() 
+	{
+		return( contact.exportContactToMap());
+	}
+	
 	public boolean
 	isAlive(
 		long		timeout )
@@ -147,5 +153,26 @@ DHTPluginContactImpl
     	long						timeout )
 	{
 		return( plugin.read( listener, this, handler_key, key, timeout ));
+	}
+	
+	public void
+    write(
+    	DHTPluginProgressListener	listener,
+    	byte[]						handler_key,
+    	byte[]						key,
+    	byte[]						data,
+    	long						timeout )
+	{
+		plugin.write( listener, this, handler_key, key, data, timeout );
+	}
+	
+	public byte[]
+    call(
+    	DHTPluginProgressListener	listener,
+    	byte[]						handler_key,
+    	byte[]						data,
+    	long						timeout )
+	{
+		return( plugin.call( listener, this, handler_key, data, timeout ));
 	}
 }

@@ -20,6 +20,7 @@
 package com.aelitis.azureus.core.dht.transport.udp;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 
@@ -136,6 +137,12 @@ DHTTransportUDP
 		InetSocketAddress	address,
 		byte				protocol_version,
 		boolean				is_bootstrap )
+	
+		throws DHTTransportException;
+	
+	public DHTTransportUDPContact
+	importContact(
+		Map<String,Object>		map )
 	
 		throws DHTTransportException;
 	

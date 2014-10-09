@@ -1102,6 +1102,12 @@ DHTPlugin
 		return( extended_use );
 	}
 	
+	public String 
+	getNetwork() 
+	{
+		return( AENetworkClassifier.AT_PUBLIC );
+	}
+	
 	public boolean
 	isReachable()
 	{
@@ -1767,6 +1773,20 @@ DHTPlugin
 						});
 			}
 		}
+	}
+	
+	public DHTPluginContact
+	importContact(
+		Map<String,Object>		map )
+	{
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+
+			// first DHT will do here
+		
+		return( dhts[0].importContact( map ));
 	}
 	
 	public DHTPluginContact
