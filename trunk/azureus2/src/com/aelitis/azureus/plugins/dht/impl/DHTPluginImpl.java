@@ -1214,7 +1214,7 @@ outer:
 					
 					public byte[]
 					handleWrite(
-							DHTTransportContact	originator,
+						DHTTransportContact	originator,
 						byte[]				key,
 						byte[]				value )
 					{

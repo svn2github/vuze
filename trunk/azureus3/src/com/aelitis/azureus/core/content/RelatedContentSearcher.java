@@ -1496,7 +1496,7 @@ RelatedContentSearcher
 		}
 	}
 	
-	public void
+	public DistributedDatabaseValue
 	write(
 		DistributedDatabaseContact			contact,
 		DistributedDatabaseTransferType		type,
@@ -1505,6 +1505,7 @@ RelatedContentSearcher
 	
 		throws DistributedDatabaseException
 	{
+		return( null );
 	}
 	
 	private void

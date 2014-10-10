@@ -35,7 +35,7 @@ DistributedDatabaseTransferHandler
 	
 		throws DistributedDatabaseException;
 	
-	public void
+	public DistributedDatabaseValue
 	write(
 		DistributedDatabaseContact			contact,
 		DistributedDatabaseTransferType		type,

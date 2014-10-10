@@ -35,7 +35,7 @@ DHTPluginTransferHandler
 		DHTPluginContact	originator,
 		byte[]				key );
 	
-	public void
+	public byte[]
 	handleWrite(
 		DHTPluginContact	originator,
 		byte[]				key,

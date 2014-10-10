@@ -612,7 +612,7 @@ NetStatusProtocolTester
 		}
 	}
 	
-	public void
+	public DistributedDatabaseValue
 	write(
 		DistributedDatabaseContact			contact,
 		DistributedDatabaseTransferType		type,

@@ -359,7 +359,7 @@ DDBaseTTTorrent
 	
 		// server side write
 	
-	public void
+	public DistributedDatabaseValue
 	write(
 		DistributedDatabaseContact			contact,
 		DistributedDatabaseTransferType		type,

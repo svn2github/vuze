@@ -804,7 +804,7 @@ DDBaseImpl
 					}
 				}
 				
-				public void
+				public byte[]
 				handleWrite(
 					DHTPluginContact	originator,
 					byte[]				xfer_key,
@@ -813,15 +813,25 @@ DDBaseImpl
 					try{
 						DDBaseContactImpl	contact = new DDBaseContactImpl( DDBaseImpl.this, originator );
 						
-						handler.write( 
-							contact,
-							type,
-							new DDBaseKeyImpl( xfer_key ),
-							new DDBaseValueImpl( contact, value, SystemTime.getCurrentTime(), -1));
+						DDBaseValueImpl	res = (DDBaseValueImpl)
+							handler.write( 
+								contact,
+								type,
+								new DDBaseKeyImpl( xfer_key ),
+								new DDBaseValueImpl( contact, value, SystemTime.getCurrentTime(), -1));
+						
+						if ( res == null ){
+							
+							return( null );
+						}
+						
+						return( res.getBytes());
 						
 					}catch( Throwable e ){
 						
 						Debug.printStackTrace(e);
+						
+						return( null );
 					}
 				}
 			});
