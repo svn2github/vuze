@@ -1218,9 +1218,7 @@ outer:
 						byte[]				key,
 						byte[]				value )
 					{
-						handler.handleWrite( new DHTPluginContactImpl( DHTPluginImpl.this, originator ), key, value );
-						
-						return( null );
+						return( handler.handleWrite( new DHTPluginContactImpl( DHTPluginImpl.this, originator ), key, value ));
 					}
 				});
 	}
