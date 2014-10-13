@@ -26,6 +26,7 @@ import java.io.File;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -1189,38 +1190,80 @@ outer:
 	
 		// direct read/write support
 	
+	private Map<DHTPluginTransferHandler,DHTTransportTransferHandler>	handler_map = new HashMap<DHTPluginTransferHandler, DHTTransportTransferHandler>();
+
 	public void
 	registerHandler(
 		byte[]							handler_key,
 		final DHTPluginTransferHandler	handler )
 	{
-		dht.getTransport().registerTransferHandler( 
-				handler_key,
-				new DHTTransportTransferHandler()
+		DHTTransportTransferHandler h = 
+			new DHTTransportTransferHandler()
+			{
+				public String
+				getName()
 				{
-					public String
-					getName()
-					{
-						return( handler.getName());
-					}
-					
-					public byte[]
-					handleRead(
-						DHTTransportContact	originator,
-						byte[]				key )
-					{
-						return( handler.handleRead( new DHTPluginContactImpl( DHTPluginImpl.this, originator ), key ));
-					}
-					
-					public byte[]
-					handleWrite(
-						DHTTransportContact	originator,
-						byte[]				key,
-						byte[]				value )
-					{
-						return( handler.handleWrite( new DHTPluginContactImpl( DHTPluginImpl.this, originator ), key, value ));
-					}
-				});
+					return( handler.getName());
+				}
+				
+				public byte[]
+				handleRead(
+					DHTTransportContact	originator,
+					byte[]				key )
+				{
+					return( handler.handleRead( new DHTPluginContactImpl( DHTPluginImpl.this, originator ), key ));
+				}
+				
+				public byte[]
+				handleWrite(
+					DHTTransportContact	originator,
+					byte[]				key,
+					byte[]				value )
+				{
+					return( handler.handleWrite( new DHTPluginContactImpl( DHTPluginImpl.this, originator ), key, value ));
+				}
+			};
+		
+		synchronized( handler_map ){
+			
+			if ( handler_map.containsKey( handler )){
+				
+				Debug.out( "Warning: handler already exists" );
+			}else{
+				
+				handler_map.put( handler, h );
+			}
+		}
+		
+		dht.getTransport().registerTransferHandler( handler_key, h );
+	}
+	
+	public void
+	unregisterHandler(
+		byte[]							handler_key,
+		final DHTPluginTransferHandler	handler )
+	{
+		DHTTransportTransferHandler h;
+		
+		synchronized( handler_map ){
+		
+			h = handler_map.remove( handler );
+		}
+		
+		if ( h == null ){
+			
+			Debug.out( "Mapping not found for handler" );
+			
+		}else{
+			
+			try{
+				getDHT().getTransport().unregisterTransferHandler( handler_key, h );
+
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
 	}
 	
 	public byte[]

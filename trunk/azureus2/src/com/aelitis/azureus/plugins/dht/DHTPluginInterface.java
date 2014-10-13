@@ -67,8 +67,13 @@ DHTPluginInterface
 	public void
 	registerHandler(
 		byte[]							handler_key,
-		final DHTPluginTransferHandler	handler );
+		DHTPluginTransferHandler		handler );
 	
+	public void
+	unregisterHandler(
+		byte[]							handler_key,
+		DHTPluginTransferHandler		handler );
+
 	public DHTPluginContact
 	importContact(
 		InetSocketAddress				address );

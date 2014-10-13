@@ -146,22 +146,20 @@ BuddyPluginTracker
 	public
 	BuddyPluginTracker(
 		BuddyPlugin					_plugin,
-		BasicPluginConfigModel		_config )
+		final BooleanParameter 		tracker_enable	)
 	{
-		plugin		= _plugin;
+		plugin		= _plugin;	
 		
-		final BooleanParameter te = _config.addBooleanParameter2("azbuddy.tracker.enabled", "azbuddy.tracker.enabled", true );
+		tracker_enabled = tracker_enable.getValue();
 		
-		tracker_enabled = te.getValue();
-		
-		te.addListener(
+		tracker_enable.addListener(
 			new ParameterListener()
 			{
 				public void 
 				parameterChanged(
 					Parameter param )
 				{
-					tracker_enabled = te.getValue();
+					tracker_enabled = tracker_enable.getValue();
 					
 					checkEnabledState();
 				}

@@ -124,6 +124,16 @@ DHTTransferHandler
 					handler ));
 	}
 	
+	public void
+	unregisterTransferHandler(
+		byte[]						handler_key,
+		DHTTransportTransferHandler	handler )
+	{
+		logger.log( "Transfer handler (" + handler.getName() + ") unregistered for key '" + ByteFormatter.encodeString( handler_key ));
+		
+		transfer_handlers.remove( new HashWrapper( handler_key )); 
+	}
+	
 	protected int
 	handleTransferRequest(
 		DHTTransportContact			target,

@@ -1896,6 +1896,22 @@ DHTPlugin
 		}
 	}
 
+	public void
+	unregisterHandler(
+		byte[]							handler_key,
+		final DHTPluginTransferHandler	handler )
+	{
+		if ( !isEnabled()){
+			
+			throw( new RuntimeException( "DHT isn't enabled" ));
+		}
+		
+		for (int i=0;i<dhts.length;i++){
+			
+			dhts[i].unregisterHandler( handler_key, handler );
+		}
+	}
+	
 	public int
 	getStatus()
 	{

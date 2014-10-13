@@ -167,12 +167,16 @@ BuddyPlugin
 	
 	private LoggerChannel	logger;
 	
-	private BooleanParameter 		enabled_param; 
+	private BooleanParameter 		classic_enabled_param; 
 	private StringParameter 		nick_name_param;
 	private StringListParameter 	online_status_param;
 	private BooleanParameter 		enable_chat_notifications; 
 	private StringParameter 		cat_pub;
 
+	
+	private BooleanParameter 		beta_enabled_param; 
+
+	
 	private boolean			ready_to_publish;
 	private publishDetails	current_publish		= new publishDetails();
 	private publishDetails	latest_publish		= current_publish;
@@ -238,6 +242,10 @@ BuddyPlugin
 
 	private Set<String>	public_tags_or_categories = new HashSet<String>();
 	
+	
+	private BuddyPluginBeta		beta_plugin;
+	
+	
 	public static void
 	load(
 		PluginInterface		plugin_interface )
@@ -285,7 +293,7 @@ BuddyPlugin
 			
 			// enabled
 
-		enabled_param = config.addBooleanParameter2( "azbuddy.enabled", "azbuddy.enabled", false );
+		classic_enabled_param = config.addBooleanParameter2( "azbuddy.enabled", "azbuddy.enabled", false );
 				
 			// nickname
 
@@ -366,6 +374,8 @@ BuddyPlugin
 		
 		setPublicTagsOrCategories( cat_pub.getValue(), false );
 		
+		BooleanParameter tracker_enable = config.addBooleanParameter2("azbuddy.tracker.enabled", "azbuddy.tracker.enabled", true );
+
 		cat_pub.addListener(
 			new ParameterListener()
 			{
@@ -377,8 +387,30 @@ BuddyPlugin
 				}
 			});
 		
+		config.createGroup(
+			"label.classic",
+			new Parameter[]{
+					classic_enabled_param, nick_name_param, online_status_param,
+					protocol_speed, enable_chat_notifications, cat_pub, tracker_enable
+			});
+		
+			// beta stuff
+		
+		
+		beta_enabled_param = config.addBooleanParameter2( "azbuddy.beta.enabled", "azbuddy.beta.enabled", true );
+		
+		
+		config.createGroup(
+				"label.beta",
+				new Parameter[]{
+						beta_enabled_param, 
+				});
+		
+		
+		
 			// config end
-				
+			
+		beta_plugin = new BuddyPluginBeta( plugin_interface, beta_enabled_param );
 		
 		final TableContextMenuItem menu_item_itorrents = 
 			plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azbuddy.contextmenu");
@@ -505,7 +537,7 @@ BuddyPlugin
 		menu_item_itorrents.addFillListener( menu_fill_listener );
 		menu_item_ctorrents.addFillListener( menu_fill_listener );
 		
-		buddy_tracker = new BuddyPluginTracker( this, config );
+		buddy_tracker = new BuddyPluginTracker( this, tracker_enable );
 		
 		plugin_interface.getUIManager().addUIListener(
 			new UIManagerListener()
@@ -545,15 +577,15 @@ BuddyPlugin
 				parameterChanged(
 					Parameter	param )
 				{
-					boolean enabled = enabled_param.getValue();
+					boolean classic_enabled = classic_enabled_param.getValue();
 
-					nick_name_param.setEnabled( enabled );
+					nick_name_param.setEnabled( classic_enabled );
 					
 						// only toggle overall state on a real change
 					
 					if ( param != null ){
 					
-						setEnabledInternal( enabled );
+						setClassicEnabledInternal( classic_enabled );
 						fireEnabledStateChanged();
 					}
 				}
@@ -561,7 +593,7 @@ BuddyPlugin
 		
 		enabled_listener.parameterChanged( null );
 			
-		enabled_param.addListener( enabled_listener );
+		classic_enabled_param.addListener( enabled_listener );
 		
 		loadConfig();
 		
@@ -590,6 +622,8 @@ BuddyPlugin
 						});
 					
 					dt.queue();
+					
+					beta_plugin.startup();
 				}
 				
 				public void
@@ -598,6 +632,8 @@ BuddyPlugin
 					saveConfig( true );
 					
 					closedown();
+					
+					beta_plugin.closedown();
 				}
 				
 				public void
@@ -606,7 +642,7 @@ BuddyPlugin
 				}
 			});
 	}
-		
+	
 	protected void
 	updateLocale(
 		LocaleUtilities	lu )
@@ -744,11 +780,11 @@ BuddyPlugin
 			
 			ready_to_publish	= true;
 			
-			setEnabledInternal( enabled_param.getValue());
+			setClassicEnabledInternal( classic_enabled_param.getValue());
 			
 			checkBuddiesAndRepublish();
 			
-			fireInitialised( true );
+			fireClassicInitialised( true );
 			
 				// try to re-establish connection to previously connectd buddies
 			
@@ -768,27 +804,27 @@ BuddyPlugin
 		
 			log( "Initialisation failed", e );
 			
-			fireInitialised( false );
+			fireClassicInitialised( false );
 		}
 	}
 	
 	public boolean
 	isEnabled()
 	{
-		if (enabled_param == null) {return false;}
-		return( enabled_param.getValue());
+		if (classic_enabled_param == null) {return false;}
+		return( classic_enabled_param.getValue());
 	}
 	
 	public void
 	setEnabled(
 		boolean		enabled )
 	{
-		if (enabled_param == null) {return;}
-		enabled_param.setValue( enabled );
+		if (classic_enabled_param == null) {return;}
+		classic_enabled_param.setValue( enabled );
 	}
 	
 	protected void
-	setEnabledInternal(
+	setClassicEnabledInternal(
 		boolean		_enabled )
 	{
 		synchronized( this ){
@@ -3165,7 +3201,7 @@ BuddyPlugin
 	
 
 	protected void
-	fireInitialised(
+	fireClassicInitialised(
 		boolean		ok )
 	{
 		if ( ok ){

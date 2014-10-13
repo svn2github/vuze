@@ -27,6 +27,8 @@ import java.util.*;
 import java.util.List;
 
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.custom.StyleRange;
 import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.dnd.Clipboard;
@@ -38,7 +40,6 @@ import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.*;
 import org.eclipse.swt.widgets.*;
-
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginConfig;
 import org.gudy.azureus2.plugins.ui.UIInputReceiver;
@@ -62,11 +63,12 @@ BuddyPluginViewInstance
 	private static final int LOG_ERROR 		= 3;
 
 
-	private BuddyPlugin	plugin;
-	private UIInstance	ui_instance;
-	private Composite	composite;
-	private Table 		buddy_table;
-	private StyledText 	log;
+	private BuddyPlugin			plugin;
+	private UIInstance			ui_instance;
+	private LocaleUtilities		lu;
+	private Composite			composite;
+	private Table 				buddy_table;
+	private StyledText 			log;
 
 	private List	buddies = new ArrayList();
 
@@ -82,9 +84,62 @@ BuddyPluginViewInstance
 		ui_instance	= _ui_instance;
 		composite	= _composite;
 
-		final LocaleUtilities lu = plugin.getPluginInterface().getUtilities().getLocaleUtilities();
+		lu = plugin.getPluginInterface().getUtilities().getLocaleUtilities();
 			
-		Composite main = new Composite(composite, SWT.NONE);
+		CTabFolder  tab_folder = new CTabFolder(composite, SWT.LEFT);
+		tab_folder.setBorderVisible(true);
+		tab_folder.setTabHeight(20);
+		GridData grid_data = new GridData(GridData.FILL_BOTH);
+		tab_folder.setLayoutData(grid_data);
+
+		CTabItem classic_item = new CTabItem(tab_folder, SWT.NULL);
+
+		classic_item.setText( "Classic" );
+		
+		Composite classic_area = new Composite( tab_folder, SWT.NULL );
+		classic_item.setControl( classic_area );
+		
+		createClassic( classic_area );
+		
+		CTabItem beta_item = new CTabItem(tab_folder, SWT.NULL);
+
+		beta_item.setText( "Beta" );
+		
+		Composite beta_area = new Composite( tab_folder, SWT.NULL );
+		beta_item.setControl( beta_area );
+		
+		createBeta( beta_area );
+		
+		tab_folder.setSelection( classic_item );
+	}
+	
+	private void
+	createBeta(
+		Composite main )
+	{	
+		GridLayout layout = new GridLayout();
+		layout.numColumns = 1;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		main.setLayout(layout);
+		GridData grid_data = new GridData(GridData.FILL_BOTH );
+		main.setLayoutData(grid_data);
+
+		if ( !plugin.isEnabled()){
+			
+			Label control_label = new Label( main, SWT.NULL );
+			control_label.setText( lu.getLocalisedMessageText( "azbuddy.disabled" ));
+
+			return;
+		}
+		
+		
+	}
+	
+	private void
+	createClassic(
+		Composite main )
+	{	
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 1;
 		layout.marginHeight = 0;

@@ -737,6 +737,13 @@ DHTTransportLoopbackImpl
 	{
 	}
 	
+	public void
+	unregisterTransferHandler(
+		byte[]						handler_key,
+		DHTTransportTransferHandler	handler )
+	{
+	}
+	
 	public byte[]
 	readTransfer(
 		DHTTransportProgressListener	listener,
