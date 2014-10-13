@@ -31,7 +31,6 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.config.ParameterListener;
-import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.*;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.*;
@@ -48,9 +47,8 @@ import org.gudy.azureus2.ui.swt.debug.ObfusticateImage;
 import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 import org.gudy.azureus2.ui.swt.plugins.*;
 import org.gudy.azureus2.ui.swt.pluginsimpl.*;
-import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl.SWTViewAddedListener;
+import org.gudy.azureus2.ui.swt.pluginsimpl.UISWTInstanceImpl.SWTViewListener;
 import org.gudy.azureus2.ui.swt.views.IViewAlwaysInitialize;
-import org.gudy.azureus2.ui.swt.views.stats.VivaldiView;
 
 import com.aelitis.azureus.ui.UIFunctions;
 import com.aelitis.azureus.ui.UIFunctionsManager;
@@ -62,7 +60,6 @@ import com.aelitis.azureus.ui.swt.UIFunctionsManagerSWT;
 import com.aelitis.azureus.ui.swt.mdi.*;
 import com.aelitis.azureus.ui.swt.skin.*;
 import com.aelitis.azureus.ui.swt.skin.SWTSkinButtonUtility.ButtonListenerAdapter;
-import com.aelitis.azureus.ui.swt.utils.ColorCache;
 import com.aelitis.azureus.ui.swt.utils.FontUtils;
 
 /**
@@ -958,7 +955,7 @@ public class SideBar
 			}
 		}
 		
-		uiSWTinstance.addSWTViewAddedListener(new SWTViewAddedListener() {
+		uiSWTinstance.addSWTViewListener(new SWTViewListener() {
 
 			public void setViewAdded(final String parent, final String id,
 					final UISWTViewEventListener l) {
@@ -971,6 +968,28 @@ public class SideBar
 						try {
 							UISWTViewImpl view = new UISWTViewImpl(parent, id, l, null);
 							addSideBarView(view, cPluginsArea);
+						} catch (Exception e) {
+							e.printStackTrace();
+							// skip, plugin probably specifically asked to not be added
+						}
+					}
+				});
+			}
+
+			public void setViewRemoved(final String parent, final String id,
+					final UISWTViewEventListener l) {
+				if (!parent.equals(UISWTInstance.VIEW_SIDEBAR_AREA)) {
+					return;
+				}
+				Utils.execSWTThread(new AERunnable() {
+
+					public void runSupport() {
+						try {
+							for (UISWTViewCore view : SideBar.this.pluginViews) {
+								if (l.equals(view.getEventListener())) {
+									view.closeView();
+								}
+							}
 						} catch (Exception e) {
 							e.printStackTrace();
 							// skip, plugin probably specifically asked to not be added

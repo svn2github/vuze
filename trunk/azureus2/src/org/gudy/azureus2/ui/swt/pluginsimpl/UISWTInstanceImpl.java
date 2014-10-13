@@ -92,11 +92,12 @@ UISWTInstanceImpl
 
 	private final UIFunctionsSWT 		uiFunctions;
 	
-	public static interface SWTViewAddedListener {
+	public static interface SWTViewListener {
 		public void setViewAdded(String parent, String id, UISWTViewEventListener l);
+		public void setViewRemoved(String parent, String id, UISWTViewEventListener l);
 	}
 	
-	private List<SWTViewAddedListener> listSWTViewAddedListeners = new ArrayList<SWTViewAddedListener>(0);
+	private List<SWTViewListener> listSWTViewListeners = new ArrayList<SWTViewListener>(0);
 	
 	public UISWTInstanceImpl() {
 		// Since this is a UI **SWT** Instance Implementor, it's assumed
@@ -626,18 +627,18 @@ UISWTInstanceImpl
 			});
 		}
 		
-		SWTViewAddedListener[] viewAddedListeners = listSWTViewAddedListeners.toArray(new SWTViewAddedListener[0]);
-		for (SWTViewAddedListener l : viewAddedListeners) {
+		SWTViewListener[] viewListeners = listSWTViewListeners.toArray(new SWTViewListener[0]);
+		for (SWTViewListener l : viewListeners) {
 			l.setViewAdded(sParentID, sViewID, holder);
 		}
 	}
 	
-	public void addSWTViewAddedListener(SWTViewAddedListener l) {
-		listSWTViewAddedListeners.add(l);
+	public void addSWTViewListener(SWTViewListener l) {
+		listSWTViewListeners.add(l);
 	}
 	
-	public void removeSWTViewAddedListener(SWTViewAddedListener l) {
-		listSWTViewAddedListeners.remove(l);
+	public void removeSWTViewListener(SWTViewListener l) {
+		listSWTViewListeners.remove(l);
 	}
 	
 	// TODO: Remove views from PeersView, etc
@@ -659,6 +660,14 @@ UISWTInstanceImpl
 				}
 			});
 		}
+
+		SWTViewListener[] viewListeners = listSWTViewListeners.toArray(new SWTViewListener[0]);
+		for (UISWTViewEventListener holder : subViews.values()) {
+  		for (SWTViewListener l : viewListeners) {
+  			l.setViewRemoved(sParentID, sViewID, holder);
+  		}
+		}
+
 		subViews.remove(sViewID);
 	}
 
