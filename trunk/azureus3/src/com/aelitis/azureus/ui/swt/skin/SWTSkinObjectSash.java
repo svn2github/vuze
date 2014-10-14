@@ -420,7 +420,7 @@ public class SWTSkinObjectSash
 				}
 				return sash.getData("PX");
 			}
-		}, 4);
+		}, 1000);
 		if (o instanceof Number) {
 			return ((Number) o).intValue();
 		}
