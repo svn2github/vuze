@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AERunnable;
+import org.gudy.azureus2.core3.util.AERunnableObject;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.ui.swt.Utils;
 
@@ -409,6 +410,21 @@ public class SWTSkinObjectSash
 				handleShow();
 			}
 		});
+	}
+	
+	public int getAboveSize() {
+		Object o = Utils.execSWTThreadWithObject("getAboveSize", new AERunnableObject() {
+			public Object runSupport() {
+				if (sash == null || sash.isDisposed()) {
+					return -1;
+				}
+				return sash.getData("PX");
+			}
+		}, 4);
+		if (o instanceof Number) {
+			return ((Number) o).intValue();
+		}
+		return -1;
 	}
 
 	public void setAboveSize(final int px) {
