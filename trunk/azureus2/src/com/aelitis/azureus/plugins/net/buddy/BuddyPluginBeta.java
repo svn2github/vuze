@@ -27,6 +27,8 @@ import java.util.*;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.BDecoder;
+import org.gudy.azureus2.core3.util.BEncoder;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginEvent;
@@ -335,7 +337,12 @@ BuddyPluginBeta
 					Map<String,Object>		options = new HashMap<String, Object>();
 					
 					options.put( "handler", handler );
-					options.put( "content", message.getBytes( "UTF-8" ));
+					
+					Map<String,Object>	payload = new HashMap<String, Object>();
+					
+					payload.put( "msg", message );
+					
+					options.put( "content", BEncoder.encode( payload ));
 												
 					Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "sendMessage", new Object[]{ options } );
 					
@@ -415,6 +422,16 @@ BuddyPluginBeta
 		getMessage()
 		{
 			try{
+					// was just a string for a while...
+				
+				try{
+					Map<String,Object> payload = BDecoder.decode((byte[])map.get( "content" ));
+					
+					return( new String((byte[])payload.get( "msg" ), "UTF-8" ));
+					
+				}catch( Throwable e ){
+				}
+				
 				return( new String((byte[])map.get( "content" ), "UTF-8" ));
 				
 			}catch( Throwable e ){

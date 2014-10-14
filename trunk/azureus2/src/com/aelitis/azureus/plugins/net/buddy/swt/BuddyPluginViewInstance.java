@@ -50,6 +50,8 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
+import com.aelitis.azureus.core.proxy.AEProxyFactory;
+import com.aelitis.azureus.core.proxy.impl.AEPluginProxyHandler;
 import com.aelitis.azureus.core.security.*;
 import com.aelitis.azureus.core.util.AZ3Functions;
 import com.aelitis.azureus.plugins.net.buddy.*;
@@ -140,6 +142,11 @@ BuddyPluginViewInstance
 		Button beta_i2p_button = new Button( main, SWT.NULL );
 	
 		setupButton( beta_i2p_button, "Beta Chat I2P", AENetworkClassifier.AT_I2P, BuddyPluginBeta.BETA_CHAT_KEY );
+		
+		if ( !AEPluginProxyHandler.hasPluginProxyForNetwork( AENetworkClassifier.AT_I2P, false )){
+			
+			beta_i2p_button.setEnabled( false );
+		}
 	}
 
 	private void
