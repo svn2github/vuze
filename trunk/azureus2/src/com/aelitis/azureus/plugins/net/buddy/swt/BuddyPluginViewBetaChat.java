@@ -95,7 +95,7 @@ BuddyPluginViewBetaChat
 				}
 			});
 		
-		shell.setText( lu.getLocalisedMessageText( "azbuddy.chat.title" ));
+		shell.setText( lu.getLocalisedMessageText( "azbuddy.chat.title" ) + ": " + chat.getName());
 				
 		Utils.setShellIcon(shell);
 		
@@ -341,7 +341,7 @@ BuddyPluginViewBetaChat
 	
 	public void
 	participantAdded(
-		BuddyPluginBeta.ChatParticipant		participant )
+		ChatParticipant		participant )
 	{
 		synchronized( participants ){
 			
@@ -353,14 +353,14 @@ BuddyPluginViewBetaChat
 	
 	public void
 	participantChanged(
-		BuddyPluginBeta.ChatParticipant		participant )
+		ChatParticipant		participant )
 	{
 		updateTable( true );
 	}
 	
 	public void
 	participantRemoved(
-		BuddyPluginBeta.ChatParticipant		participant )
+		ChatParticipant		participant )
 	{
 		synchronized( participants ){
 			
@@ -374,37 +374,37 @@ BuddyPluginViewBetaChat
 	sendMessage(
 		String		text )
 	{
-		logChatMessage( plugin.getNickname(), Colors.green, text );
+		//logChatMessage( plugin.getNickname(), Colors.green, text );
 		
 		chat.sendMessage( text );
 	}
 	
 	public void
 	messageReceived(
-		final BuddyPluginBeta.ChatMessage	message )
+		final ChatMessage	message )
 	{
 		if ( !log.isDisposed()){
 
 			log.getDisplay().asyncExec(
-					new Runnable()
+				new Runnable()
+				{
+					public void
+					run()
 					{
-						public void
-						run()
-						{
-							if ( log.isDisposed()){
+						if ( log.isDisposed()){
 
-								return;
-							}
-							
-							try{
-								logChatMessage( "flar", Colors.blue, message.getMessage() );
-								
-							}catch( Throwable e ){
-								
-								Debug.printStackTrace(e);
-							}
+							return;
 						}
-					});
+						
+						try{
+							logChatMessage( "flar", Colors.blue, message.getMessage() );
+							
+						}catch( Throwable e ){
+							
+							Debug.printStackTrace(e);
+						}
+					}
+				});
 		}
 	}
 	

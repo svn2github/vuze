@@ -119,8 +119,8 @@ BuddyPluginViewInstance
 	{	
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 1;
-		layout.marginHeight = 0;
-		layout.marginWidth = 0;
+		//layout.marginHeight = 0;
+		//layout.marginWidth = 0;
 		main.setLayout(layout);
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
 		main.setLayoutData(grid_data);
@@ -133,18 +133,32 @@ BuddyPluginViewInstance
 			return;
 		}
 		
-		final Button control_button = new Button( main, SWT.NULL );
+		Button beta_button = new Button( main, SWT.NULL );
 		
-		control_button.setText( "Beta Chat" );
-				
-		control_button.addSelectionListener(
+		setupButton( beta_button, "Beta Chat", AENetworkClassifier.AT_PUBLIC, BuddyPluginBeta.BETA_CHAT_KEY );
+		
+		Button beta_i2p_button = new Button( main, SWT.NULL );
+	
+		setupButton( beta_i2p_button, "Beta Chat I2P", AENetworkClassifier.AT_I2P, BuddyPluginBeta.BETA_CHAT_KEY );
+	}
+
+	private void
+	setupButton(
+		final Button			button,
+		final String			title,
+		final String			network,
+		final String			key )
+	{
+		button.setText( title );
+		
+		button.addSelectionListener(
 			new SelectionAdapter() 
 			{
 				public void 
 				widgetSelected(
 					SelectionEvent ev )
 				{
-					control_button.setEnabled( false );
+					button.setEnabled( false );
 					
 					new AEThread2( "async" )
 					{
@@ -152,7 +166,7 @@ BuddyPluginViewInstance
 						run()
 						{
 							try{
-								final BuddyPluginBeta.ChatInstance inst = plugin.getBeta().getChat( AENetworkClassifier.AT_PUBLIC, BuddyPluginBeta.BETA_CHAT_KEY );
+								final BuddyPluginBeta.ChatInstance inst = plugin.getBeta().getChat( network, key );
 								
 								composite.getDisplay().asyncExec(
 									new Runnable()
@@ -162,7 +176,7 @@ BuddyPluginViewInstance
 										{
 											if ( !composite.isDisposed()){
 																							
-												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, control_button.getDisplay(), inst );
+												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, button.getDisplay(), inst );
 															
 												chat.addDisposeListener(
 													new DisposeListener()
@@ -171,7 +185,10 @@ BuddyPluginViewInstance
 														widgetDisposed(
 															DisposeEvent e) 
 														{
-															control_button.setEnabled( true );
+															if ( !button.isDisposed()){
+															
+																button.setEnabled( true );
+															}
 														}
 													});
 											}
@@ -180,7 +197,7 @@ BuddyPluginViewInstance
 									
 							}catch( Throwable e){
 								
-								control_button.setEnabled( true );
+								button.setEnabled( true );
 								
 								Debug.out( e );
 							}
@@ -189,7 +206,6 @@ BuddyPluginViewInstance
 				}
 			});
 	}
-	
 	private void
 	createClassic(
 		Composite main )

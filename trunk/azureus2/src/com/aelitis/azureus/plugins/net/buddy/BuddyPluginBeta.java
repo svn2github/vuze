@@ -231,6 +231,12 @@ BuddyPluginBeta
 			key			= _key;
 		}
 		
+		public String
+		getName()
+		{
+			return( network + ": " + key );
+		}
+		
 		public void
 		setPersistent()
 		{
