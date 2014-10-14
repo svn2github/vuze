@@ -1600,7 +1600,7 @@ public class TagUIUtils
 	
 				final BuddyPlugin buddy_plugin = (BuddyPlugin) bpi.getPlugin();
 	
-				if (buddy_plugin.isEnabled()) {
+				if (buddy_plugin.isClassicEnabled()) {
 	
 					final Menu share_menu = new Menu(menu.getShell(), SWT.DROP_DOWN);
 					final MenuItem share_item = new MenuItem(menu, SWT.CASCADE);

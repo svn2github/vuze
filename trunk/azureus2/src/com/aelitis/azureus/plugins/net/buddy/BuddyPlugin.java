@@ -374,7 +374,7 @@ BuddyPlugin
 		
 		setPublicTagsOrCategories( cat_pub.getValue(), false );
 		
-		BooleanParameter tracker_enable = config.addBooleanParameter2("azbuddy.tracker.enabled", "azbuddy.tracker.enabled", true );
+		final BooleanParameter tracker_enable = config.addBooleanParameter2("azbuddy.tracker.enabled", "azbuddy.tracker.enabled", true );
 
 		cat_pub.addListener(
 			new ParameterListener()
@@ -430,7 +430,7 @@ BuddyPlugin
 				{
 					menu.removeAllChildItems();
 
-					if ( !( isEnabled() && isAvailable())){
+					if ( !( isClassicEnabled() && isAvailable())){
 						
 						menu.setEnabled( false );
 						
@@ -578,8 +578,13 @@ BuddyPlugin
 					Parameter	param )
 				{
 					boolean classic_enabled = classic_enabled_param.getValue();
-
+					
 					nick_name_param.setEnabled( classic_enabled );
+					online_status_param.setEnabled( classic_enabled );
+					protocol_speed.setEnabled( classic_enabled );
+					enable_chat_notifications.setEnabled( classic_enabled );
+					cat_pub.setEnabled( classic_enabled );
+					tracker_enable.setEnabled( classic_enabled );
 					
 						// only toggle overall state on a real change
 					
@@ -588,12 +593,15 @@ BuddyPlugin
 						setClassicEnabledInternal( classic_enabled );
 						fireEnabledStateChanged();
 					}
+					
+					boolean beta_enabled = beta_enabled_param.getValue();
 				}
 			};
 		
 		enabled_listener.parameterChanged( null );
 			
 		classic_enabled_param.addListener( enabled_listener );
+		beta_enabled_param.addListener( enabled_listener );
 		
 		loadConfig();
 		
@@ -809,14 +817,15 @@ BuddyPlugin
 	}
 	
 	public boolean
-	isEnabled()
+	isClassicEnabled()
 	{
 		if (classic_enabled_param == null) {return false;}
+		
 		return( classic_enabled_param.getValue());
 	}
 	
 	public void
-	setEnabled(
+	setClassicEnabled(
 		boolean		enabled )
 	{
 		if (classic_enabled_param == null) {return;}
@@ -838,6 +847,23 @@ BuddyPlugin
 				updatePublish( new_publish );
 			}
 		}
+	}
+	
+	public boolean
+	isBetaEnabled()
+	{
+		if ( beta_enabled_param == null ){
+			
+			return( false );
+		}
+		
+		return( beta_enabled_param.getValue());
+	}
+	
+	public BuddyPluginBeta
+	getBeta()
+	{
+		return( beta_plugin );
 	}
 	
 	public BuddyPluginTracker
@@ -1083,7 +1109,7 @@ BuddyPlugin
 						
 							throws MessageException
 						{
-							if ( !isEnabled()){
+							if ( !isClassicEnabled()){
 								
 								return( false );
 							}
@@ -2418,7 +2444,7 @@ BuddyPlugin
 				{
 					tick_count++;
 					
-					if ( !isEnabled()){
+					if ( !isClassicEnabled()){
 						
 						return;
 					}
@@ -3377,7 +3403,7 @@ BuddyPlugin
 	protected void
  	fireEnabledStateChanged()
  	{
-		final boolean enabled = !plugin_interface.getPluginState().isDisabled() && isEnabled();
+		final boolean enabled = !plugin_interface.getPluginState().isDisabled() && isClassicEnabled();
 
  		List	 listeners_ref = listeners.getList();
  		

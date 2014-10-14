@@ -22,26 +22,34 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
+import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
-import org.gudy.azureus2.plugins.PluginManager;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
+
+import com.aelitis.azureus.core.util.CopyOnWriteList;
 
 public class
 BuddyPluginBeta 
 {
+	public static final String	BETA_CHAT_KEY = 	"test:beta:chat";
+	
 	private PluginInterface		plugin_interface;
 	private BooleanParameter	enabled;
 	
 	private AsyncDispatcher		dispatcher = new AsyncDispatcher( "BuddyPluginBeta" );
+	
+	private Map<String,ChatInstance>		chat_instances = new HashMap<String, BuddyPluginBeta.ChatInstance>();
+
+	private PluginInterface azmsgsync_pi;
+
 	
 	protected
 	BuddyPluginBeta(
@@ -91,12 +99,22 @@ BuddyPluginBeta
 	{
 		
 	}
-	
+		
 	private void
 	pluginAdded(
 		final PluginInterface	pi )
 	{
 		if ( pi.getPluginID().equals( "azmsgsync" )){
+			
+			synchronized( chat_instances ){
+
+				azmsgsync_pi = pi;
+				
+				for ( ChatInstance inst: chat_instances.values() ){
+					
+					inst.bind( azmsgsync_pi );
+				}
+			}
 			
 			dispatcher.dispatch(
 				new AERunnable() {
@@ -106,15 +124,11 @@ BuddyPluginBeta
 					runSupport() 
 					{
 						try{
-							Map<String,Object>		options = new HashMap<String, Object>();
-							
-							options.put( "network", AENetworkClassifier.AT_PUBLIC );
-							options.put( "key", "test:beta:chat".getBytes( "UTF-8" ));
+							if ( Constants.isCVSVersion()){
 								
-							Map<String,Object> reply = (Map<String,Object>)pi.getIPC().invoke(	"getMessageHandler", new Object[]{ options } );
-							
-							System.out.println( "reply: " + reply );
-							
+								getChat( AENetworkClassifier.AT_PUBLIC, BETA_CHAT_KEY, true );
+								
+							}	
 						}catch( Throwable e ){
 							
 							Debug.out( e );
@@ -131,6 +145,308 @@ BuddyPluginBeta
 	{
 		if ( pi.getPluginID().equals( "azmsgsync" )){
 			
+			synchronized( chat_instances ){
+
+				azmsgsync_pi = null;
+				
+				for ( ChatInstance inst: chat_instances.values() ){
+					
+					inst.unbind();
+				}
+			}
 		}
+	}
+		
+	public ChatInstance
+	getChat(
+		String			network,
+		String			key )
+		
+		throws Exception
+	{
+		return( getChat( network, key, false ));
+	}
+	
+	public ChatInstance
+	getChat(
+		String			network,
+		String			key,
+		boolean			persistent )
+		
+		throws Exception
+	{
+		if ( !enabled.getValue()){
+			
+			throw( new Exception( "Plugin not enabled" ));
+		}
+		
+		String meta_key = network + ":" + key;
+	
+		synchronized( chat_instances ){
+			
+			ChatInstance inst = chat_instances.get( meta_key );
+			
+			if ( inst == null ){
+							
+				inst = new ChatInstance( network, key );
+			
+				chat_instances.put( meta_key, inst );
+				
+				if ( azmsgsync_pi != null ){
+					
+					inst.bind( azmsgsync_pi );
+				}
+			}
+			
+			if ( persistent ){
+				
+				inst.setPersistent();
+			}
+			
+			return( inst );
+		}
+	}
+	
+	public class
+	ChatInstance
+	{
+		private final String		network;
+		private final String		key;
+		
+		private volatile PluginInterface		msgsync_pi;
+		private volatile Object					handler;
+		
+		private List<ChatMessage>		messages = new ArrayList<ChatMessage>();
+		
+		private CopyOnWriteList<ChatListener>		listeners = new CopyOnWriteList<ChatListener>();
+		
+		private boolean	persistent = false;
+		
+		private
+		ChatInstance(
+			String				_network,
+			String				_key )
+		{
+			network 	= _network;
+			key			= _key;
+		}
+		
+		public void
+		setPersistent()
+		{
+			persistent	= true;
+		}
+		
+		private void
+		bind(
+			PluginInterface	_msgsync_pi )
+		{		
+			msgsync_pi = _msgsync_pi;
+			
+			try{
+				Map<String,Object>		options = new HashMap<String, Object>();
+				
+				options.put( "network", network );
+				options.put( "key", key.getBytes( "UTF-8" ));
+					
+				options.put( "listener", this );
+						
+				Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "getMessageHandler", new Object[]{ options } );
+				
+				handler = reply.get( "handler" );
+				
+				for ( ChatListener l: listeners ){
+					
+					l.stateChanged( true );
+				}
+			}catch( Throwable e ){
+				
+				Debug.out(e );
+			}
+		}
+		
+		private void
+		unbind()
+		{
+			for ( ChatListener l: listeners ){
+				
+				try{
+					l.stateChanged( false );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+			
+			handler 	= null;
+			msgsync_pi	= null;
+		}
+		
+		public boolean
+		isAvailable()
+		{
+			return( handler != null );
+		}
+		
+		public ChatMessage[]
+		getHistory()
+		{
+			synchronized( this ){
+				
+				return( messages.toArray( new ChatMessage[ messages.size() ]));
+			}
+		}
+		
+		public void
+		messageReceived(
+			Map			message )
+		{
+			ChatMessage msg = new ChatMessage( message );
+			
+			synchronized( this ){
+				
+				messages.add( msg );
+			}
+			
+			for ( ChatListener l: listeners ){
+				
+				l.messageReceived( msg );
+			}
+		}
+		
+		public void 
+		sendMessage(
+			String		message )
+		{
+			if ( handler == null || msgsync_pi == null ){
+				
+				Debug.out( "No handler/plugin" );
+				
+			}else{
+				
+				try{
+					Map<String,Object>		options = new HashMap<String, Object>();
+					
+					options.put( "handler", handler );
+					options.put( "content", message.getBytes( "UTF-8" ));
+												
+					Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "sendMessage", new Object[]{ options } );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
+			}
+		}
+		
+		public ChatParticipant[]
+		getParticipants()
+		{
+			return( new ChatParticipant[0] );
+		}
+		
+		public void
+		addListener(
+			ChatListener		listener )
+		{
+			listeners.add( listener );
+		}
+		
+		public void
+		removeListener(
+			ChatListener		listener )
+		{
+			listeners.remove( listener );
+		}
+		
+		public void
+		destroy()
+		{
+			if ( !persistent ){
+				
+				if ( handler != null ){
+									
+					try{
+						Map<String,Object>		options = new HashMap<String, Object>();
+						
+						options.put( "handler", handler );
+													
+						Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "removeMessageHandler", new Object[]{ options } );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+					}
+				}
+			}
+		}
+	}
+	
+	public class
+	ChatParticipant
+	{
+		public String
+		getName() 
+		{
+			return( "" );
+		}
+	}
+	
+	public class
+	ChatMessage
+	{
+		private Map<String,Object>			map;
+		
+		private
+		ChatMessage(
+			Map		_map )
+		{
+			map		= _map;
+		}
+		
+		public String
+		getMessage()
+		{
+			try{
+				return( new String((byte[])map.get( "content" ), "UTF-8" ));
+				
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+					
+				return( "" );
+			}
+		}
+		
+		public String
+		getNickName()
+		{
+			return( "" );
+		}
+	}
+	
+	public interface
+	ChatListener
+	{
+		public void
+		messageReceived(
+			ChatMessage				message );
+		
+		public void
+		participantAdded(
+			ChatParticipant			participant );
+		
+		public void
+		participantChanged(
+			ChatParticipant			participant );
+		
+		public void
+		participantRemoved(
+			ChatParticipant			participant );
+		
+		public void
+		stateChanged(
+			boolean					avail );
 	}
 }

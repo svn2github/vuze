@@ -191,7 +191,7 @@ BuddyPluginTracker
 	public void
 	initialise()
 	{
-		plugin_enabled = plugin.isEnabled();
+		plugin_enabled = plugin.isClassicEnabled();
 		
 		checkEnabledState();
 		

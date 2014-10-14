@@ -125,7 +125,7 @@ BuddyPluginViewInstance
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
 		main.setLayoutData(grid_data);
 
-		if ( !plugin.isEnabled()){
+		if ( !plugin.isBetaEnabled()){
 			
 			Label control_label = new Label( main, SWT.NULL );
 			control_label.setText( lu.getLocalisedMessageText( "azbuddy.disabled" ));
@@ -133,7 +133,61 @@ BuddyPluginViewInstance
 			return;
 		}
 		
+		final Button control_button = new Button( main, SWT.NULL );
 		
+		control_button.setText( "Beta Chat" );
+				
+		control_button.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void 
+				widgetSelected(
+					SelectionEvent ev )
+				{
+					control_button.setEnabled( false );
+					
+					new AEThread2( "async" )
+					{
+						public void
+						run()
+						{
+							try{
+								final BuddyPluginBeta.ChatInstance inst = plugin.getBeta().getChat( AENetworkClassifier.AT_PUBLIC, BuddyPluginBeta.BETA_CHAT_KEY );
+								
+								composite.getDisplay().asyncExec(
+									new Runnable()
+									{
+										public void
+										run()
+										{
+											if ( !composite.isDisposed()){
+																							
+												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, control_button.getDisplay(), inst );
+															
+												chat.addDisposeListener(
+													new DisposeListener()
+													{
+														public void 
+														widgetDisposed(
+															DisposeEvent e) 
+														{
+															control_button.setEnabled( true );
+														}
+													});
+											}
+										}
+									});
+									
+							}catch( Throwable e){
+								
+								control_button.setEnabled( true );
+								
+								Debug.out( e );
+							}
+						}
+					}.start();
+				}
+			});
 	}
 	
 	private void
@@ -148,7 +202,7 @@ BuddyPluginViewInstance
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
 		main.setLayoutData(grid_data);
 
-		if ( !plugin.isEnabled()){
+		if ( !plugin.isClassicEnabled()){
 			
 			Label control_label = new Label( main, SWT.NULL );
 			control_label.setText( lu.getLocalisedMessageText( "azbuddy.disabled" ));
