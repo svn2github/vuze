@@ -390,6 +390,15 @@ BuddyPluginBeta
 					}catch( Throwable e ){
 						
 						Debug.out( e );
+						
+					}finally{
+						
+						String meta_key = network + ":" + key;
+
+						synchronized( chat_instances ){
+						
+							chat_instances.remove( meta_key );
+						}
 					}
 				}
 			}
