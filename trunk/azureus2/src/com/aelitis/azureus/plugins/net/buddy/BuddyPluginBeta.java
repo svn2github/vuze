@@ -29,8 +29,14 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
+import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.TimerEvent;
+import org.gudy.azureus2.core3.util.TimerEventPerformer;
+import org.gudy.azureus2.core3.util.TimerEventPeriodic;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
@@ -52,6 +58,8 @@ BuddyPluginBeta
 
 	private PluginInterface azmsgsync_pi;
 
+	private TimerEventPeriodic		timer;
+	
 	
 	protected
 	BuddyPluginBeta(
@@ -205,6 +213,29 @@ BuddyPluginBeta
 				inst.setPersistent();
 			}
 			
+			if ( timer == null ){
+				
+				timer = 
+					SimpleTimer.addPeriodicEvent(
+						"BPB:timer",
+						2500,
+						new TimerEventPerformer() {
+							
+							public void 
+							perform(
+								TimerEvent event ) 
+							{
+								synchronized( chat_instances ){
+									
+									for ( ChatInstance inst: chat_instances.values()){
+										
+										inst.update();
+									}
+								}
+							}
+						});
+			}
+			
 			return( inst );
 		}
 	}
@@ -223,6 +254,8 @@ BuddyPluginBeta
 		private CopyOnWriteList<ChatListener>		listeners = new CopyOnWriteList<ChatListener>();
 		
 		private boolean	persistent = false;
+		
+		private Map<String,Object> 	status;
 		
 		private
 		ChatInstance(
@@ -303,6 +336,82 @@ BuddyPluginBeta
 			synchronized( this ){
 				
 				return( messages.toArray( new ChatMessage[ messages.size() ]));
+			}
+		}
+		
+		private void
+		update()
+		{
+			PluginInterface		current_pi 			= msgsync_pi;
+			Object 				current_handler 	= handler;
+			
+			if ( current_handler == null || current_pi == null ){
+				
+				return;
+			}
+			
+			try{
+				Map<String,Object>		options = new HashMap<String, Object>();
+				
+				options.put( "handler", current_handler );
+
+				status = (Map<String,Object>)current_pi.getIPC().invoke( "getStatus", new Object[]{ options } );
+
+				System.out.println( "status: " + status );
+				
+				for ( ChatListener l: listeners ){
+				
+					l.updated();
+				}
+			}catch( Throwable e ){
+				
+				Debug.out( e );
+			}
+		}
+		
+		public String
+		getStatus()
+		{
+			if ( handler == null ){
+				
+				return( "Unavailable" );
+			}
+			
+			Map<String,Object> map = status;
+			
+			if ( map == null ){
+				
+				return( "" );
+				
+			}else{
+				int status 			= ((Number)map.get( "status" )).intValue();
+				int dht_count 		= ((Number)map.get( "dht_nodes" )).intValue();
+				
+				int nodes_local 	= ((Number)map.get( "nodes_local" )).intValue();
+				int nodes_live 		= ((Number)map.get( "nodes_live" )).intValue();
+				int nodes_dying 	= ((Number)map.get( "nodes_dying" )).intValue();
+				
+				int req_in 			= ((Number)map.get( "req_in" )).intValue();
+				double req_in_rate 	= ((Number)map.get( "req_in_rate" )).doubleValue();
+				int req_out_ok 		= ((Number)map.get( "req_out_ok" )).intValue();
+				int req_out_fail 	= ((Number)map.get( "req_out_fail" )).intValue();
+				double req_out_rate = ((Number)map.get( "req_out_rate" )).doubleValue();
+										
+				
+				if ( status == 0 ){
+					
+					return( "Initialising: dht=" + (dht_count<0?"...":String.valueOf(dht_count)));
+					
+				}else if ( status == 1 ){
+					
+					return( "dht=" + dht_count + 
+							", nodes=" + nodes_local+"/"+nodes_live+"/"+nodes_dying +
+							", req=" + DisplayFormatters.formatDecimal(req_in_rate,1) + "/" +  DisplayFormatters.formatDecimal(req_out_rate,1) );
+					
+				}else{
+					
+					return( "Destroyed" );
+				}
 			}
 		}
 		
@@ -398,6 +507,16 @@ BuddyPluginBeta
 						synchronized( chat_instances ){
 						
 							chat_instances.remove( meta_key );
+							
+							if ( chat_instances.size() == 0 ){
+								
+								if ( timer != null ){
+									
+									timer.cancel();
+									
+									timer = null;
+								}
+							}
 						}
 					}
 				}
@@ -451,10 +570,22 @@ BuddyPluginBeta
 			}
 		}
 		
+		public byte[]
+		getPublicKey()
+		{
+			return((byte[])map.get( "pk" ));
+		}
+		
 		public String
 		getNickName()
 		{
-			return( "" );
+			byte[] pk = getPublicKey();
+			
+			byte[] temp = new byte[3];
+			
+			System.arraycopy( pk, 8, temp, 0, 3 );
+			
+			return( ByteFormatter.encodeString( temp ));
 		}
 	}
 	
@@ -480,5 +611,8 @@ BuddyPluginBeta
 		public void
 		stateChanged(
 			boolean					avail );
+		
+		public void
+		updated();
 	}
 }

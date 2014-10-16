@@ -36,6 +36,7 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
@@ -46,11 +47,11 @@ import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
-
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.*;
 
@@ -63,9 +64,10 @@ BuddyPluginViewBetaChat
 	
 	private LocaleUtilities		lu;
 	
-	private Shell 		shell;
-	private StyledText 	log;
-	private Table		buddy_table;
+	private Shell 					shell;
+	private StyledText 				log;
+	private Table					buddy_table;
+	private BufferedLabel		 	status;
 	
 	private Text 		input_area;
 	
@@ -107,13 +109,37 @@ BuddyPluginViewBetaChat
 		GridData grid_data = new GridData(GridData.FILL_BOTH );
 		shell.setLayoutData(grid_data);
 
+		Composite lhs = new Composite(shell, SWT.NONE);
+		layout = new GridLayout();
+		layout.numColumns = 1;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		lhs.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_BOTH );
+		grid_data.widthHint = 300;
+		lhs.setLayoutData(grid_data);
 		
-		log = new StyledText(shell,SWT.READ_ONLY | SWT.V_SCROLL | SWT.BORDER | SWT.WRAP | SWT.NO_FOCUS );
+		Composite temp = new Composite(lhs, SWT.NONE);
+		layout = new GridLayout();
+		layout.numColumns = 1;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		temp.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL);
+		grid_data.horizontalIndent = 8;
+		grid_data.heightHint = 20;
+		temp.setLayoutData(grid_data);
+		
+		status = new BufferedLabel( temp, SWT.LEFT | SWT.DOUBLE_BUFFERED );
+		grid_data = new GridData(GridData.FILL_BOTH);
+		
+		status.setLayoutData(grid_data);
+		status.setText( "Pending" );
+		
+		log = new StyledText(lhs,SWT.READ_ONLY | SWT.V_SCROLL | SWT.BORDER | SWT.WRAP | SWT.NO_FOCUS );
 		grid_data = new GridData(GridData.FILL_BOTH);
 		grid_data.horizontalSpan = 1;
 		grid_data.horizontalIndent = 4;
-		grid_data.widthHint = 300;
-		grid_data.heightHint = 400;
 		log.setLayoutData(grid_data);
 		log.setIndent( 4 );
 		
@@ -127,6 +153,7 @@ BuddyPluginViewBetaChat
 		rhs.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_BOTH );
 		grid_data.widthHint = 150;
+		grid_data.heightHint = 400;
 		rhs.setLayoutData(grid_data);
 
 			// table
@@ -339,6 +366,30 @@ BuddyPluginViewBetaChat
 			});
 	}
 	
+	public void 
+	updated() 
+	{
+		if ( status.isDisposed()){
+			
+			return;
+		}
+	
+		status.getControl().getDisplay().asyncExec(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					if ( status.isDisposed()){
+						
+						return;
+					}
+				
+					status.setText( chat.getStatus());
+				}
+			});
+	}
+	
 	public void
 	participantAdded(
 		ChatParticipant		participant )
@@ -397,7 +448,7 @@ BuddyPluginViewBetaChat
 						}
 						
 						try{
-							logChatMessage( "flar", Colors.blue, message.getMessage() );
+							logChatMessage( message.getNickName(), Colors.blue, message.getMessage() );
 							
 						}catch( Throwable e ){
 							
