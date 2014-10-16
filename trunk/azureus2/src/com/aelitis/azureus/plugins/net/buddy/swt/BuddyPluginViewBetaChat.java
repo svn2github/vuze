@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import org.eclipse.swt.SWT;
@@ -271,7 +272,7 @@ BuddyPluginViewBetaChat
 		
 		for (int i=0;i<history.length;i++){
 			
-			logChatMessage( history[i].getNickName(), Colors.blue, history[i].getMessage());
+			logChatMessage( history[i], Colors.blue );
 		}
 		
 		chat.addListener( this );
@@ -432,7 +433,8 @@ BuddyPluginViewBetaChat
 	
 	public void
 	messageReceived(
-		final ChatMessage	message )
+		final ChatMessage	message,
+		final boolean		order_changed )
 	{
 		if ( !log.isDisposed()){
 
@@ -448,8 +450,20 @@ BuddyPluginViewBetaChat
 						}
 						
 						try{
-							logChatMessage( message.getNickName(), Colors.blue, message.getMessage() );
-							
+							if ( order_changed ){
+								
+								log.setText( "" );
+								
+								BuddyPluginBeta.ChatMessage[] history = chat.getHistory();
+								
+								for (int i=0;i<history.length;i++){
+									
+									logChatMessage( history[i], Colors.blue );
+								}
+							}else{
+								
+								logChatMessage( message, Colors.blue );
+							}
 						}catch( Throwable e ){
 							
 							Debug.printStackTrace(e);
@@ -461,52 +475,38 @@ BuddyPluginViewBetaChat
 	
 	protected void
 	logChatMessage(
-		String		buddy_name,
-		Color 		colour,
-		String		msg )
+		ChatMessage		message,
+		Color 			colour )
 	{
-		if ( buddy_name.length() > 32 ){
+		String	nick 	= message.getNickName();
+		String	msg		= message.getMessage();
+		
+		long time = message.getTimeStamp();
+		
+		String stamp = new SimpleDateFormat( "HH:mm" ).format( new Date( time ));
+		
+		if ( nick.length() > 32 ){
 			
-			buddy_name = buddy_name.substring(0,16) + "...";
+			nick = nick.substring(0,16) + "...";
 		}
 		
 		int	start = log.getText().length();
+
+		String says = stamp + " " +nick + "\n";
 		
-		if ( msg.startsWith( "/me" )){
+		log.append( says ); 
+		
+		if ( colour != Colors.black ){
 			
-			msg = msg.substring( 3 ).trim();
-			
-			String	me = "* " + buddy_name + " " + msg;
-			
-			log.append( me  );
-			
-			if ( colour != Colors.black ){
-				
-				StyleRange styleRange = new StyleRange();
-				styleRange.start = start;
-				styleRange.length = me.length();
-				styleRange.foreground = colour;
-				log.setStyleRange(styleRange);
-			}
-			
-			log.append( "\n" );
-			
-		}else{
-			String says = lu.getLocalisedMessageText( "azbuddy.chat.says", new String[]{ buddy_name }) + "\n";
-			
-			log.append( says ); 
-			
-			if ( colour != Colors.black ){
-				
-				StyleRange styleRange = new StyleRange();
-				styleRange.start = start;
-				styleRange.length = says.length();
-				styleRange.foreground = colour;
-				log.setStyleRange(styleRange);
-			}
-			
-			log.append( msg + "\n" ); 
+			StyleRange styleRange = new StyleRange();
+			styleRange.start = start;
+			styleRange.length = says.length();
+			styleRange.foreground = colour;
+			log.setStyleRange(styleRange);
 		}
+		
+		log.append( msg + "\n" ); 
+		
 
 		log.setSelection( log.getText().length());
 	}

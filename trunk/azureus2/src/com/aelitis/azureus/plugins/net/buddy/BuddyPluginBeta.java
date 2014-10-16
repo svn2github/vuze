@@ -29,11 +29,13 @@ import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
 import org.gudy.azureus2.core3.util.BDecoder;
 import org.gudy.azureus2.core3.util.BEncoder;
+import org.gudy.azureus2.core3.util.ByteArrayHashMap;
 import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
 import org.gudy.azureus2.core3.util.SimpleTimer;
+import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
@@ -177,6 +179,17 @@ BuddyPluginBeta
 		return( getChat( network, key, false ));
 	}
 	
+	private String
+	pkToString(
+		byte[]		pk )
+	{		
+		byte[] temp = new byte[3];
+		
+		System.arraycopy( pk, 8, temp, 0, 3 );
+		
+		return( ByteFormatter.encodeString( temp ));
+	}
+	
 	public ChatInstance
 	getChat(
 		String			network,
@@ -250,6 +263,8 @@ BuddyPluginBeta
 		private volatile Object					handler;
 		
 		private List<ChatMessage>		messages = new ArrayList<ChatMessage>();
+		
+		private ByteArrayHashMap<ChatParticipant>	participants = new ByteArrayHashMap<ChatParticipant>();
 		
 		private CopyOnWriteList<ChatListener>		listeners = new CopyOnWriteList<ChatListener>();
 		
@@ -345,27 +360,30 @@ BuddyPluginBeta
 			PluginInterface		current_pi 			= msgsync_pi;
 			Object 				current_handler 	= handler;
 			
-			if ( current_handler == null || current_pi == null ){
-				
-				return;
+			if ( current_handler != null && current_pi != null ){
+							
+				try{
+					Map<String,Object>		options = new HashMap<String, Object>();
+					
+					options.put( "handler", current_handler );
+	
+					status = (Map<String,Object>)current_pi.getIPC().invoke( "getStatus", new Object[]{ options } );
+					
+				}catch( Throwable e ){
+					
+					Debug.out( e );
+				}
 			}
 			
-			try{
-				Map<String,Object>		options = new HashMap<String, Object>();
+			for ( ChatListener l: listeners ){
 				
-				options.put( "handler", current_handler );
-
-				status = (Map<String,Object>)current_pi.getIPC().invoke( "getStatus", new Object[]{ options } );
-
-				System.out.println( "status: " + status );
-				
-				for ( ChatListener l: listeners ){
-				
+				try{	
 					l.updated();
-				}
-			}catch( Throwable e ){
+					
+				}catch( Throwable e ){
 				
-				Debug.out( e );
+					Debug.out( e );
+				}
 			}
 		}
 		
@@ -381,7 +399,7 @@ BuddyPluginBeta
 			
 			if ( map == null ){
 				
-				return( "" );
+				return( "No status available yet" );
 				
 			}else{
 				int status 			= ((Number)map.get( "status" )).intValue();
@@ -417,18 +435,72 @@ BuddyPluginBeta
 		
 		public void
 		messageReceived(
-			Map			message )
+			Map			message_map )
 		{
-			ChatMessage msg = new ChatMessage( message );
+			ChatMessage msg = new ChatMessage( message_map );
+			
+			ChatParticipant	new_participant = null;
+				
+			boolean	order_changed = false;
 			
 			synchronized( this ){
 				
-				messages.add( msg );
+				long	time = msg.getTimeStamp();
+				
+				boolean	added = false;
+				
+				for ( int i=0;i<messages.size();i++){
+					
+					ChatMessage m = messages.get(i);
+					
+					if ( m.getTimeStamp() > time ){
+						
+						messages.add( i, msg );
+						
+						added = true;
+						
+						break;
+					}
+				}
+				
+				if ( added ){
+					
+					order_changed = true;
+					
+				}else{
+					
+					messages.add( msg );
+				}
+				
+				byte[] pk = msg.getPublicKey();
+				
+				ChatParticipant existing = participants.get( pk );
+				
+				if ( existing == null ){
+					
+					new_participant = new ChatParticipant( pk );
+					
+					participants.put( pk, new_participant );
+					
+					new_participant.addMessage( msg );
+					
+				}else{
+					
+					existing.addMessage( msg );
+				}
+			}
+			
+			if ( new_participant != null ){
+				
+				for ( ChatListener l: listeners ){
+					
+					l.participantAdded( new_participant );
+				}
 			}
 			
 			for ( ChatListener l: listeners ){
 				
-				l.messageReceived( msg );
+				l.messageReceived( msg, order_changed );
 			}
 		}
 		
@@ -465,7 +537,10 @@ BuddyPluginBeta
 		public ChatParticipant[]
 		getParticipants()
 		{
-			return( new ChatParticipant[0] );
+			synchronized( this ){
+				
+				return( participants.values().toArray( new ChatParticipant[ participants.size()]));
+			}
 		}
 		
 		public void
@@ -527,23 +602,53 @@ BuddyPluginBeta
 	public class
 	ChatParticipant
 	{
+		private final byte[]		pk;
+		private int					message_count;
+		
+		private
+		ChatParticipant(
+			byte[]		_pk )
+		{
+			pk		= _pk;
+		}
+		
 		public String
 		getName() 
 		{
-			return( "" );
+			return( pkToString( pk ));
+		}
+		
+		private void
+		addMessage(
+			ChatMessage		message )
+		{
+			synchronized( this ){
+				
+				message_count++;
+			}
+		}
+		
+		public int
+		getMessageCount()
+		{
+			return( message_count );
 		}
 	}
 	
 	public class
 	ChatMessage
 	{
-		private Map<String,Object>			map;
+		private final Map<String,Object>		map;
+		
+		private final long						timestamp;
 		
 		private
 		ChatMessage(
-			Map		_map )
+			Map<String,Object>		_map )
 		{
 			map		= _map;
+			
+			timestamp = SystemTime.getCurrentTime() - getAge()*1000;
 		}
 		
 		public String
@@ -576,16 +681,22 @@ BuddyPluginBeta
 			return((byte[])map.get( "pk" ));
 		}
 		
+		private int
+		getAge()
+		{
+			return(((Number)map.get( "age" )).intValue());
+		}
+		
+		public long
+		getTimeStamp()
+		{
+			return( timestamp );
+		}
+		
 		public String
 		getNickName()
 		{
-			byte[] pk = getPublicKey();
-			
-			byte[] temp = new byte[3];
-			
-			System.arraycopy( pk, 8, temp, 0, 3 );
-			
-			return( ByteFormatter.encodeString( temp ));
+			return( pkToString( getPublicKey()));
 		}
 	}
 	
@@ -594,7 +705,8 @@ BuddyPluginBeta
 	{
 		public void
 		messageReceived(
-			ChatMessage				message );
+			ChatMessage				message,
+			boolean					order_changed );
 		
 		public void
 		participantAdded(
