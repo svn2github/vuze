@@ -1426,7 +1426,8 @@ public class VersionCheckClient {
 		message.put( "appid",   SystemProperties.getApplicationIdentifier());
 		message.put( "appname", SystemProperties.getApplicationName());
 		message.put( "version", Constants.AZUREUS_VERSION );
-
+		message.put( "first_version", COConfigurationManager.getStringParameter( "First Recorded Version", "" ));
+		
 		String	sub_ver = Constants.AZUREUS_SUBVER;
 
 		if ( sub_ver.length() > 0 ){
