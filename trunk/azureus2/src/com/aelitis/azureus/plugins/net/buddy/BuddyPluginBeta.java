@@ -256,6 +256,8 @@ BuddyPluginBeta
 	public class
 	ChatInstance
 	{
+		private static final int	MSG_HISTORY_MAX	= 512;
+		
 		private final String		network;
 		private final String		key;
 		
@@ -571,7 +573,7 @@ BuddyPluginBeta
 								
 								order_changed = true;
 							}
-						}else if ( added_index != -1 ){
+						}else if ( next_index != -1 ){
 							
 							if ( added_index > next_index ){
 								
@@ -616,6 +618,11 @@ BuddyPluginBeta
 				}else{
 					
 					existing.addMessage( msg );
+				}
+				
+				if ( messages.size() > MSG_HISTORY_MAX ){
+					
+					messages.remove(0);
 				}
 			}
 			
@@ -811,9 +818,9 @@ BuddyPluginBeta
 			try{
 				byte[] content_bytes = (byte[])map.get( "content" );
 				
-				if ( content_bytes != null ){
+				if ( content_bytes != null && content_bytes.length > 0 ){
 					
-					return(BDecoder.decode( content_bytes ));
+					return( BDecoder.decode( content_bytes ));
 				}
 			}catch( Throwable e){
 			}
@@ -825,6 +832,13 @@ BuddyPluginBeta
 		getMessage()
 		{
 			try{
+				String	error = (String)map.get( "error" );
+				
+				if ( error != null ){
+					
+					return( error );
+				}
+				
 					// was just a string for a while...
 				
 				Map<String,Object> payload = getPayload();
@@ -847,6 +861,12 @@ BuddyPluginBeta
 					
 				return( "" );
 			}
+		}
+		
+		public boolean
+		isError()
+		{
+			return( map.containsKey( "error" ));
 		}
 		
 		public byte[]

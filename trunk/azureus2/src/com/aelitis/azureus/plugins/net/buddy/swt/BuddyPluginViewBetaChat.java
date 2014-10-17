@@ -218,7 +218,9 @@ BuddyPluginViewBetaChat
 		grid_data.horizontalSpan = 2;
 		grid_data.heightHint = 50;
 		input_area.setLayoutData(grid_data);
-				
+			
+		input_area.setTextLimit( 256 );
+		
 		input_area.addKeyListener(
 			new KeyListener()
 			{
@@ -497,6 +499,13 @@ BuddyPluginViewBetaChat
 		
 		String	nick 	= message.getNickName();
 		String	msg		= message.getMessage();
+		
+		boolean	is_error = message.isError();
+		
+		if ( is_error ){
+			
+			colour = Colors.red;		
+		}
 		
 		long time = message.getTimeStamp();
 		
