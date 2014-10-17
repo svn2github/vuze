@@ -47,6 +47,7 @@ import org.gudy.azureus2.plugins.ui.UIInputReceiverListener;
 import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
+import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
@@ -93,15 +94,6 @@ BuddyPluginViewInstance
 		tab_folder.setTabHeight(20);
 		GridData grid_data = new GridData(GridData.FILL_BOTH);
 		tab_folder.setLayoutData(grid_data);
-
-		CTabItem classic_item = new CTabItem(tab_folder, SWT.NULL);
-
-		classic_item.setText( "Classic" );
-		
-		Composite classic_area = new Composite( tab_folder, SWT.NULL );
-		classic_item.setControl( classic_area );
-		
-		createClassic( classic_area );
 		
 		CTabItem beta_item = new CTabItem(tab_folder, SWT.NULL);
 
@@ -112,7 +104,16 @@ BuddyPluginViewInstance
 		
 		createBeta( beta_area );
 		
-		tab_folder.setSelection( classic_item );
+		CTabItem classic_item = new CTabItem(tab_folder, SWT.NULL);
+
+		classic_item.setText( "Classic" );
+		
+		Composite classic_area = new Composite( tab_folder, SWT.NULL );
+		classic_item.setControl( classic_area );
+		
+		createClassic( classic_area );
+		
+		tab_folder.setSelection( beta_item );
 	}
 	
 	private void
@@ -120,7 +121,7 @@ BuddyPluginViewInstance
 		Composite main )
 	{	
 		GridLayout layout = new GridLayout();
-		layout.numColumns = 1;
+		layout.numColumns = 3;
 		//layout.marginHeight = 0;
 		//layout.marginWidth = 0;
 		main.setLayout(layout);
@@ -135,18 +136,144 @@ BuddyPluginViewInstance
 			return;
 		}
 		
+			// public beta channel
+		
+		Label label = new Label( main, SWT.NULL );
+		
+		label.setText( "Public beta chat" );
+		
 		Button beta_button = new Button( main, SWT.NULL );
 		
-		setupButton( beta_button, "Beta Chat", AENetworkClassifier.AT_PUBLIC, BuddyPluginBeta.BETA_CHAT_KEY );
+		setupButton( beta_button, "Open", AENetworkClassifier.AT_PUBLIC, BuddyPluginBeta.BETA_CHAT_KEY );
 		
+		label = new Label( main, SWT.NULL );
+		
+			// anonymous beta channel
+		
+		boolean i2p_enabled = AEPluginProxyHandler.hasPluginProxyForNetwork( AENetworkClassifier.AT_I2P, false );
+
+		label = new Label( main, SWT.NULL );
+		
+		label.setText( "Anonymous beta chat (I2P)" );
+
 		Button beta_i2p_button = new Button( main, SWT.NULL );
 	
-		setupButton( beta_i2p_button, "Beta Chat I2P", AENetworkClassifier.AT_I2P, BuddyPluginBeta.BETA_CHAT_KEY );
+		setupButton( beta_i2p_button, "Open", AENetworkClassifier.AT_I2P, BuddyPluginBeta.BETA_CHAT_KEY );
 		
-		if ( !AEPluginProxyHandler.hasPluginProxyForNetwork( AENetworkClassifier.AT_I2P, false )){
-			
-			beta_i2p_button.setEnabled( false );
-		}
+		beta_i2p_button.setEnabled( i2p_enabled );
+		
+		label = new Label( main, SWT.NULL );
+		
+			// create a channel
+		
+		Group create_area = new Group( main, SWT.NULL );
+		layout = new GridLayout();
+		layout.numColumns = 4;
+		//layout.marginHeight = 0;
+		//layout.marginWidth = 0;
+		create_area.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 3;
+		create_area.setLayoutData(grid_data);
+
+		label = new Label( create_area, SWT.NULL );
+		label.setText( "New channel key" );
+		
+		final Text channel_key = new Text( create_area, SWT.BORDER );
+		
+		final Button create_i2p_button = new Button( create_area, SWT.CHECK );
+		
+		create_i2p_button.setText( "Anonymous (I2P)" );
+		
+		create_i2p_button.setEnabled( i2p_enabled );
+
+		final Button create_button = new Button( create_area, SWT.NULL );
+
+		create_button.setText( "Create" );
+		
+		create_button.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent ev )
+					{
+						create_button.setEnabled( false );
+						
+						final Display display = composite.getDisplay();
+						
+						final String network 	= create_i2p_button.getSelection()?AENetworkClassifier.AT_I2P:AENetworkClassifier.AT_PUBLIC;
+						final String key		= channel_key.getText().trim();
+						
+						new AEThread2( "async" )
+						{
+							public void
+							run()
+							{
+								if ( display.isDisposed()){
+									
+									return;
+								}
+								
+								try{
+									final BuddyPluginBeta.ChatInstance inst = plugin.getBeta().getChat( network, key );
+									
+									display.asyncExec(
+										new Runnable()
+										{
+											public void
+											run()
+											{
+												if ( !display.isDisposed()){
+																								
+													BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, display, inst );
+																
+													chat.addDisposeListener(
+														new DisposeListener()
+														{
+															public void 
+															widgetDisposed(
+																DisposeEvent e) 
+															{
+																if ( !create_button.isDisposed()){
+																
+																	create_button.setEnabled( true );
+																}
+															}
+														});
+												}
+											}
+										});
+										
+								}catch( Throwable e){
+									
+									display.asyncExec(
+										new Runnable()
+										{
+											public void
+											run()
+											{
+												if ( !create_button.isDisposed()){
+												
+													create_button.setEnabled( true );
+												}
+											}
+										});
+									
+									Debug.out( e );
+								}
+							}
+						}.start();
+					}
+				});
+		
+		List<Button>	buttons = new ArrayList<Button>();
+		
+		buttons.add( create_button );
+		buttons.add( beta_button );
+		buttons.add( beta_i2p_button );
+		
+		Utils.makeButtonsEqualWidth( buttons );
 	}
 
 	private void
@@ -167,6 +294,8 @@ BuddyPluginViewInstance
 				{
 					button.setEnabled( false );
 					
+					final Display display = composite.getDisplay();
+					
 					new AEThread2( "async" )
 					{
 						public void
@@ -175,15 +304,15 @@ BuddyPluginViewInstance
 							try{
 								final BuddyPluginBeta.ChatInstance inst = plugin.getBeta().getChat( network, key );
 								
-								composite.getDisplay().asyncExec(
+								display.asyncExec(
 									new Runnable()
 									{
 										public void
 										run()
 										{
-											if ( !composite.isDisposed()){
+											if ( !display.isDisposed()){
 																							
-												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, button.getDisplay(), inst );
+												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, display, inst );
 															
 												chat.addDisposeListener(
 													new DisposeListener()
@@ -204,8 +333,18 @@ BuddyPluginViewInstance
 									
 							}catch( Throwable e){
 								
-								button.setEnabled( true );
-								
+								display.asyncExec(
+									new Runnable()
+									{
+										public void
+										run()
+										{
+											if ( !button.isDisposed()){
+												
+												button.setEnabled( true );
+											}										}
+									});
+															
 								Debug.out( e );
 							}
 						}
