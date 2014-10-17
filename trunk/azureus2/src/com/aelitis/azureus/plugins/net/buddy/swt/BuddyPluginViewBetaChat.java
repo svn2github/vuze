@@ -72,7 +72,8 @@ BuddyPluginViewBetaChat
 	
 	private Text 		input_area;
 	
-	private List<ChatParticipant>		participants = new ArrayList<ChatParticipant>();
+	private List<ChatMessage>			messages		= new ArrayList<ChatMessage>();
+	private List<ChatParticipant>		participants 	= new ArrayList<ChatParticipant>();
 	
 	protected
 	BuddyPluginViewBetaChat(
@@ -277,7 +278,8 @@ BuddyPluginViewBetaChat
 		
 		chat.addListener( this );
 		
-	    shell.pack();
+	    shell.setSize( 400, 500 );
+	    
 	    Utils.createURLDropTarget(shell, input_area);
 	    Utils.centreWindow(shell);
 	    shell.open();
@@ -452,7 +454,7 @@ BuddyPluginViewBetaChat
 						try{
 							if ( order_changed ){
 								
-								log.setText( "" );
+								resetChatMessages();
 								
 								BuddyPluginBeta.ChatMessage[] history = chat.getHistory();
 								
@@ -473,11 +475,26 @@ BuddyPluginViewBetaChat
 		}
 	}
 	
-	protected void
+	private void
+	resetChatMessages()
+	{
+		log.setText( "" );
+		
+		messages.clear();
+	}
+	
+	private void
 	logChatMessage(
 		ChatMessage		message,
 		Color 			colour )
 	{
+		if ( messages.contains( message )){
+			
+			return;
+		}
+		
+		messages.add( message );
+		
 		String	nick 	= message.getNickName();
 		String	msg		= message.getMessage();
 		

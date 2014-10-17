@@ -435,7 +435,7 @@ BuddyPluginBeta
 		
 		public void
 		messageReceived(
-			Map			message_map )
+			Map<String,Object>			message_map )
 		{
 			ChatMessage msg = new ChatMessage( message_map );
 			
@@ -443,33 +443,162 @@ BuddyPluginBeta
 				
 			boolean	order_changed = false;
 			
+			byte[]	msg_id	 	= msg.getID();
+			byte[]	prev_id 	= msg.getPreviousID();
+			
+				// insert in timestamp order
+			
 			synchronized( this ){
 				
 				long	time = msg.getTimeStamp();
 				
-				boolean	added = false;
+				int added_index 	= -1;
+				int prev_index		= -1;
+				int next_index		= -1;
 				
 				for ( int i=0;i<messages.size();i++){
 					
 					ChatMessage m = messages.get(i);
+										
+					byte[] message_id = m.getID();
+
+					if ( Arrays.equals( msg_id, message_id )){
 					
+						// System.out.println( "Duplicate message, ignoring" );
+						
+						return;
+					}
+					
+					if ( prev_id != null ){
+											
+						if ( message_id != null ){
+							
+							if ( Arrays.equals( message_id, prev_id )){
+								
+									// save some memory
+								
+								msg.setPreviousID( message_id );
+								
+								prev_index = i;
+							}
+						}
+						
+						byte[] message_prev_id = m.getPreviousID();
+						
+						if ( message_prev_id != null ){
+							
+							if ( Arrays.equals( message_prev_id, prev_id )){
+								
+									// save some memory
+								
+								msg.setPreviousID( message_prev_id );
+								
+								next_index = i;
+							}
+						}
+					}else{
+						
+						if ( added_index != -1 ){
+							
+							break;
+						}
+					}
+						
 					if ( m.getTimeStamp() > time ){
-						
-						messages.add( i, msg );
-						
-						added = true;
-						
-						break;
+														
+						added_index = i;
 					}
 				}
 				
-				if ( added ){
+				// System.out.println( "adding msg: " +  messages.size() + "/" + added_index + "/" + prev_index + "/" + next_index + " - prev=" + prev_id );
+				
+				if ( added_index != -1 ){
+					
+					messages.add( added_index, msg );
+
+						// adjust indexes if they've been shoved down one
+					
+					if ( prev_index != -1 && prev_index >= added_index ){
+						
+						prev_index++;
+					}
+					
+					if ( next_index != -1 && next_index >= added_index ){
+						
+						next_index++;
+					}
 					
 					order_changed = true;
 					
 				}else{
 					
+					added_index = messages.size();
+					
 					messages.add( msg );
+				}
+				
+				if ( prev_id != null ){
+					
+					try{
+						// override time order by explicit previous message markers but only within reason
+						// as in theory it could be cyclic...
+						
+						// we have to modify timestamps to ensure we still obey overall timestamp ordering
+						// added_index 		= index of this message
+						// prev_index		= index of message that should be previous to this one, -1 if none
+						// next_index		= index of message that should be after this one, -1 if none  
+						
+						if ( prev_index != -1 ){
+							
+							if ( added_index < prev_index ){
+								
+									// move it to after prev
+								
+								long temp = messages.get( prev_index ).getTimeStamp();
+								
+								ChatMessage derp = messages.remove( added_index );
+								
+								if ( derp != msg ){
+									
+									messages.add( added_index, derp );
+									
+									throw( new Exception( "eh?" ));
+								}
+								
+								messages.add( prev_index+1, msg );
+								
+								msg.setTimeStamp( temp );
+								
+								order_changed = true;
+							}
+						}else if ( added_index != -1 ){
+							
+							if ( added_index > next_index ){
+								
+									// move it to before next
+								
+								long temp = messages.get( next_index ).getTimeStamp();
+								
+								ChatMessage derp = messages.remove( added_index );
+								
+								if ( derp != msg ){
+									
+									messages.add( added_index, derp );
+									
+									throw( new Exception( "eh?" ));
+								}
+								
+								messages.add( next_index, msg );
+								
+								msg.setTimeStamp( temp );
+								
+								order_changed = true;
+							}
+						}
+					}catch( Throwable e ){
+						
+						Debug.out( "Derp: " + messages.size() + "/" + added_index + "/" + prev_index + "/" + next_index, e );
+					}
 				}
 				
 				byte[] pk = msg.getPublicKey();
@@ -515,13 +644,28 @@ BuddyPluginBeta
 			}else{
 				
 				try{
+					ChatMessage		prev_message = null;
+					
+					synchronized( this ){
+						
+						if ( messages.size() > 0 ){
+							
+							prev_message = messages.get( messages.size()-1);
+						}
+					}
+					
 					Map<String,Object>		options = new HashMap<String, Object>();
 					
 					options.put( "handler", handler );
 					
 					Map<String,Object>	payload = new HashMap<String, Object>();
 					
-					payload.put( "msg", message );
+					payload.put( "msg", message.getBytes( "UTF-8" ));
+					
+					if ( prev_message != null ){
+						
+						payload.put( "pre", prev_message.getID());
+					}
 					
 					options.put( "content", BEncoder.encode( payload ));
 												
@@ -640,7 +784,11 @@ BuddyPluginBeta
 	{
 		private final Map<String,Object>		map;
 		
-		private final long						timestamp;
+		private final byte[]					message_id;
+		
+		private byte[]							previous_id;
+		
+		private long							timestamp;
 		
 		private
 		ChatMessage(
@@ -648,7 +796,29 @@ BuddyPluginBeta
 		{
 			map		= _map;
 			
+			message_id = (byte[])map.get( "id" );
+			
 			timestamp = SystemTime.getCurrentTime() - getAge()*1000;
+
+			Map<String,Object> payload = getPayload();
+			
+			previous_id = (byte[])payload.get( "pre" );
+		}
+		
+		private Map<String,Object>
+		getPayload()
+		{
+			try{
+				byte[] content_bytes = (byte[])map.get( "content" );
+				
+				if ( content_bytes != null ){
+					
+					return(BDecoder.decode( content_bytes ));
+				}
+			}catch( Throwable e){
+			}
+			
+			return( new HashMap<String,Object>());
 		}
 		
 		public String
@@ -657,12 +827,16 @@ BuddyPluginBeta
 			try{
 					// was just a string for a while...
 				
-				try{
-					Map<String,Object> payload = BDecoder.decode((byte[])map.get( "content" ));
+				Map<String,Object> payload = getPayload();
 					
-					return( new String((byte[])payload.get( "msg" ), "UTF-8" ));
+				if ( payload != null ){
 					
-				}catch( Throwable e ){
+					byte[] msg_bytes = (byte[])payload.get( "msg" );
+					
+					if ( msg_bytes != null ){
+					
+						return( new String( msg_bytes, "UTF-8" ));
+					}
 				}
 				
 				return( new String((byte[])map.get( "content" ), "UTF-8" ));
@@ -673,6 +847,25 @@ BuddyPluginBeta
 					
 				return( "" );
 			}
+		}
+		
+		public byte[]
+		getID()
+		{
+			return( message_id );
+		}
+		
+		public byte[]
+		getPreviousID()
+		{
+			return( previous_id );
+		}
+		
+		private void
+		setPreviousID(
+			byte[]		pid )
+		{
+			previous_id = pid;
 		}
 		
 		public byte[]
@@ -693,6 +886,12 @@ BuddyPluginBeta
 			return( timestamp );
 		}
 		
+		private void
+		setTimeStamp(
+			long	t )
+		{
+			timestamp = t;
+		}
 		public String
 		getNickName()
 		{
