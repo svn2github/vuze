@@ -227,7 +227,9 @@ BuddyPluginViewInstance
 												if ( !display.isDisposed()){
 																								
 													BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, display, inst );
-																
+														
+													create_button.setEnabled( true );
+													
 													chat.addDisposeListener(
 														new DisposeListener()
 														{

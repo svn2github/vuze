@@ -185,7 +185,10 @@ BuddyPluginBeta
 	{		
 		byte[] temp = new byte[3];
 		
-		System.arraycopy( pk, 8, temp, 0, 3 );
+		if ( pk != null ){
+			
+			System.arraycopy( pk, 8, temp, 0, 3 );
+		}
 		
 		return( ByteFormatter.encodeString( temp ));
 	}
@@ -435,172 +438,293 @@ BuddyPluginBeta
 			}
 		}
 		
+		private void
+		sortMessages()
+		{
+			int	num_messages = messages.size();
+			
+			ByteArrayHashMap<ChatMessage>	id_map 		= new ByteArrayHashMap<ChatMessage>(num_messages);
+			Map<ChatMessage,ChatMessage>	prev_map 	= new HashMap<ChatMessage, ChatMessage>(num_messages);
+			Map<ChatMessage,ChatMessage>	next_map 	= new HashMap<ChatMessage, ChatMessage>(num_messages);
+			
+				// build id map so we can lookup prev messages
+			
+			for ( ChatMessage msg: messages ){
+				
+				byte[]	id = msg.getID();
+				
+				id_map.put( id, msg );
+			}
+			
+				// build sets of prev/next links 
+			
+			for ( ChatMessage msg: messages ){
+				
+				byte[]	prev_id 	= msg.getPreviousID();
+				
+				if ( prev_id != null ){
+					
+					ChatMessage prev_msg = id_map.get( prev_id );
+					
+					if ( prev_msg != null ){
+						
+						// ordering prev_msg::msg
+					
+						prev_map.put( msg, prev_msg );
+						next_map.put( prev_msg, msg );
+					}
+				}
+			}
+			
+				// break any loops arbitrarily
+		
+			Set<ChatMessage>	linked_messages = new HashSet<ChatMessage>( prev_map.keySet());
+			
+			while( linked_messages.size() > 0 ){
+				
+				ChatMessage start = linked_messages.iterator().next();
+					
+				linked_messages.remove( start );
+				
+				ChatMessage current = start;
+				
+				int	loops = 0;
+				
+				while( true ){
+				
+					loops++;
+					
+					if ( loops > num_messages ){
+						
+						Debug.out( "infinte loop" );
+						
+						break;
+					}
+					
+					ChatMessage prev_msg = prev_map.get( current );
+					
+					if ( prev_msg == null ){
+						
+						break;
+						
+					}else{
+						
+						linked_messages.remove( prev_msg );
+						
+						if ( prev_msg == start ){
+												
+								// loopage
+							
+							prev_map.put( current, null );
+							next_map.put( prev_msg, null );
+							
+							break;
+							
+						}else{
+							
+							current = prev_msg;
+						}
+					}
+				}
+				
+			}
+				// find the heads of the various chains
+			
+			Set<ChatMessage>		chain_heads = new HashSet<ChatMessage>();
+			
+			for ( ChatMessage msg: messages ){
+				
+				ChatMessage prev_msg = prev_map.get( msg );
+				
+				if ( prev_msg != null ){
+					
+					int	 loops = 0;
+					
+					while( true ){
+					
+						loops++;
+						
+						if ( loops > num_messages ){
+							
+							Debug.out( "infinte loop" );
+							
+							break;
+						}
+						
+						ChatMessage prev_prev = prev_map.get( prev_msg );
+						
+						if ( prev_prev == null ){
+							
+							chain_heads.add( prev_msg );
+							
+							break;
+							
+						}else{
+							
+							prev_msg = prev_prev;
+						}
+					}
+				}
+			}
+			
+			Set<ChatMessage>	remainder_set = new HashSet<BuddyPluginBeta.ChatMessage>( messages );
+			
+			List<ChatMessage> result = null;
+			
+			for ( ChatMessage head: chain_heads ){
+				
+				List<ChatMessage>	chain = new ArrayList<ChatMessage>( num_messages );
+
+				ChatMessage msg = head;
+						
+				while( msg != null ){
+					
+					chain.add( msg );
+					
+					remainder_set.remove( msg );
+					
+					msg = next_map.get( msg );
+				}
+				
+				if ( result == null ){
+					
+					result = chain;
+				}else{
+					
+					result = merge( result, chain );
+				}
+			}
+			
+			if ( remainder_set.size() > 0 ){
+				
+				List<ChatMessage>	remainder = new ArrayList<ChatMessage>( remainder_set );
+				
+				Collections.sort(
+						remainder,
+						new Comparator<ChatMessage>()
+						{
+							public int 
+							compare(
+								ChatMessage o1, 
+								ChatMessage o2 ) 
+							{
+								long l = o1.getTimeStamp() - o2.getTimeStamp();
+								
+								if ( l < 0 ){
+									return( -1 );
+								}else if ( l > 0 ){
+									return( 1 );
+								}else{
+									return(0);
+								}
+							}
+						});
+				
+				if ( result == null ){
+					
+					result = remainder;
+					
+				}else{
+					
+					result = merge( result, remainder );
+				}
+			}
+			
+			if ( result != null ){
+				
+				messages = result;
+			}
+		}
+		
+		private List<ChatMessage>
+		merge(
+			List<ChatMessage>		list1,
+			List<ChatMessage>		list2 )
+		{
+			int	size1 = list1.size();
+			int size2 = list2.size();
+			
+			List<ChatMessage>	result = new ArrayList<ChatMessage>( size1 + size2 );
+			
+			int	pos1 = 0;
+			int pos2 = 0;
+			
+			while( true ){
+				
+				if ( pos1 == size1 ){
+					
+					for ( int i=pos2;i<size2;i++){
+						
+						result.add( list2.get(i));
+					}
+					
+					break;
+					
+				}else if ( pos2 == size2 ){
+					
+					for ( int i=pos1;i<size1;i++){
+						
+						result.add( list1.get(i));
+					}
+					
+					break;
+					
+				}else{
+					
+					ChatMessage m1 = list1.get( pos1 );
+					ChatMessage m2 = list2.get( pos2 );
+				
+					if ( m1.getTimeStamp() <= m2.getTimeStamp()){
+						
+						result.add( m1 );
+						
+						pos1++;
+						
+					}else{
+						
+						result.add( m2 );
+						
+						pos2++;
+					}
+				}
+			}
+			
+			return( result );
+		}
+		
 		public void
 		messageReceived(
 			Map<String,Object>			message_map )
 		{
 			ChatMessage msg = new ChatMessage( message_map );
 			
+			System.out.println( "Received: " + msg.getMessage());
+			
 			ChatParticipant	new_participant = null;
 				
 			boolean	order_changed = false;
 			
-			byte[]	msg_id	 	= msg.getID();
 			byte[]	prev_id 	= msg.getPreviousID();
 			
 				// insert in timestamp order
 			
 			synchronized( this ){
 				
-				long	time = msg.getTimeStamp();
+					// best case is that message belongs at the end
 				
-				int added_index 	= -1;
-				int prev_index		= -1;
-				int next_index		= -1;
-				
-				for ( int i=0;i<messages.size();i++){
+				int old_msgs = messages.size();
+
+				messages.add( msg );
+		
+				if ( old_msgs == 0 ){	
 					
-					ChatMessage m = messages.get(i);
+				}else if ( prev_id != null && Arrays.equals( prev_id, messages.get(old_msgs-1).getID())){
 										
-					byte[] message_id = m.getID();
-
-					if ( Arrays.equals( msg_id, message_id )){
-					
-						// System.out.println( "Duplicate message, ignoring" );
-						
-						return;
-					}
-					
-					if ( prev_id != null ){
-											
-						if ( message_id != null ){
-							
-							if ( Arrays.equals( message_id, prev_id )){
-								
-									// save some memory
-								
-								msg.setPreviousID( message_id );
-								
-								prev_index = i;
-							}
-						}
-						
-						byte[] message_prev_id = m.getPreviousID();
-						
-						if ( message_prev_id != null ){
-							
-							if ( Arrays.equals( message_prev_id, prev_id )){
-								
-									// save some memory
-								
-								msg.setPreviousID( message_prev_id );
-								
-								next_index = i;
-							}
-						}
-					}else{
-						
-						if ( added_index != -1 ){
-							
-							break;
-						}
-					}
-						
-					if ( m.getTimeStamp() > time ){
-														
-						added_index = i;
-					}
-				}
-				
-				// System.out.println( "adding msg: " +  messages.size() + "/" + added_index + "/" + prev_index + "/" + next_index + " - prev=" + prev_id );
-				
-				if ( added_index != -1 ){
-					
-					messages.add( added_index, msg );
-
-						// adjust indexes if they've been shoved down one
-					
-					if ( prev_index != -1 && prev_index >= added_index ){
-						
-						prev_index++;
-					}
-					
-					if ( next_index != -1 && next_index >= added_index ){
-						
-						next_index++;
-					}
-					
-					order_changed = true;
-					
 				}else{
 					
-					added_index = messages.size();
+					sortMessages();
 					
-					messages.add( msg );
-				}
-				
-				if ( prev_id != null ){
-					
-					try{
-						// override time order by explicit previous message markers but only within reason
-						// as in theory it could be cyclic...
-						
-						// we have to modify timestamps to ensure we still obey overall timestamp ordering
-						// added_index 		= index of this message
-						// prev_index		= index of message that should be previous to this one, -1 if none
-						// next_index		= index of message that should be after this one, -1 if none  
-						
-						if ( prev_index != -1 ){
-							
-							if ( added_index < prev_index ){
-								
-									// move it to after prev
-								
-								long temp = messages.get( prev_index ).getTimeStamp();
-								
-								ChatMessage derp = messages.remove( added_index );
-								
-								if ( derp != msg ){
-									
-									messages.add( added_index, derp );
-									
-									throw( new Exception( "eh?" ));
-								}
-								
-								messages.add( prev_index+1, msg );
-								
-								msg.setTimeStamp( temp );
-								
-								order_changed = true;
-							}
-						}else if ( next_index != -1 ){
-							
-							if ( added_index > next_index ){
-								
-									// move it to before next
-								
-								long temp = messages.get( next_index ).getTimeStamp();
-								
-								ChatMessage derp = messages.remove( added_index );
-								
-								if ( derp != msg ){
-									
-									messages.add( added_index, derp );
-									
-									throw( new Exception( "eh?" ));
-								}
-								
-								messages.add( next_index, msg );
-								
-								msg.setTimeStamp( temp );
-								
-								order_changed = true;
-							}
-						}
-					}catch( Throwable e ){
-						
-						Debug.out( "Derp: " + messages.size() + "/" + added_index + "/" + prev_index + "/" + next_index, e );
-					}
+					order_changed = messages.get( old_msgs ) != msg;
 				}
 				
 				byte[] pk = msg.getPublicKey();
@@ -649,6 +773,18 @@ BuddyPluginBeta
 				Debug.out( "No handler/plugin" );
 				
 			}else{
+				
+				if ( message.equals( "!dump!" )){
+					
+					synchronized( this ){
+						
+						for ( ChatMessage msg: messages ){
+							
+							System.out.println( pkToString( msg.getID()) + ", " + pkToString( msg.getPreviousID()) + " - " + msg.getMessage());
+						}
+					}
+					return;
+				}
 				
 				try{
 					ChatMessage		prev_message = null;
