@@ -437,8 +437,29 @@ BuddyPluginViewBetaChat
 	
 	public void
 	messageReceived(
-		final ChatMessage	message,
-		final boolean		order_changed )
+		final ChatMessage	message )
+	{
+		if ( !log.isDisposed()){
+
+			log.getDisplay().asyncExec(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						if ( log.isDisposed()){
+
+							return;
+						}
+													
+						logChatMessage( message, Colors.blue );
+					}
+				});
+		}
+	}
+	
+	public void 
+	messagesChanged() 
 	{
 		if ( !log.isDisposed()){
 
@@ -453,21 +474,16 @@ BuddyPluginViewBetaChat
 							return;
 						}
 						
-						try{
-							if ( order_changed ){
+						try{								
+							resetChatMessages();
+							
+							BuddyPluginBeta.ChatMessage[] history = chat.getHistory();
+							
+							for (int i=0;i<history.length;i++){
 								
-								resetChatMessages();
-								
-								BuddyPluginBeta.ChatMessage[] history = chat.getHistory();
-								
-								for (int i=0;i<history.length;i++){
-									
-									logChatMessage( history[i], Colors.blue );
-								}
-							}else{
-								
-								logChatMessage( message, Colors.blue );
+								logChatMessage( history[i], Colors.blue );
 							}
+							
 						}catch( Throwable e ){
 							
 							Debug.printStackTrace(e);

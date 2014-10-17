@@ -34,6 +34,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -438,14 +439,52 @@ BuddyPluginBeta
 			}
 		}
 		
+		private TimerEvent	sort_event;
+		
 		private void
 		sortMessages()
 		{
+			synchronized( this ){
+				
+				if ( sort_event != null ){
+					
+					return;
+				}
+				
+				sort_event = 
+					SimpleTimer.addEvent(
+						"msgsort",
+						SystemTime.getOffsetTime( 500 ),
+						new TimerEventPerformer()
+						{
+							public void 
+							perform(
+								TimerEvent event) 
+							{
+								synchronized( this ){
+									
+									sort_event = null;
+									
+									sortMessagesSupport();
+								}
+								
+								for ( ChatListener l: listeners ){
+									
+									l.messagesChanged();
+								}
+							}
+						});
+			}
+		}
+		
+		private void
+		sortMessagesSupport()
+		{
 			int	num_messages = messages.size();
 			
-			ByteArrayHashMap<ChatMessage>	id_map 		= new ByteArrayHashMap<ChatMessage>(num_messages);
-			Map<ChatMessage,ChatMessage>	prev_map 	= new HashMap<ChatMessage, ChatMessage>(num_messages);
-			Map<ChatMessage,ChatMessage>	next_map 	= new HashMap<ChatMessage, ChatMessage>(num_messages);
+			ByteArrayHashMap<ChatMessage>	id_map 		= new ByteArrayHashMap<ChatMessage>( num_messages );
+			Map<ChatMessage,ChatMessage>	prev_map 	= new HashMap<ChatMessage,ChatMessage>( num_messages );
+			Map<ChatMessage,ChatMessage>	next_map 	= new HashMap<ChatMessage,ChatMessage>( num_messages );
 			
 				// build id map so we can lookup prev messages
 			
@@ -467,6 +506,8 @@ BuddyPluginBeta
 					ChatMessage prev_msg = id_map.get( prev_id );
 					
 					if ( prev_msg != null ){
+						
+						msg.setPreviousID( prev_msg.getID());	// save some mem
 						
 						// ordering prev_msg::msg
 					
@@ -697,12 +738,10 @@ BuddyPluginBeta
 			Map<String,Object>			message_map )
 		{
 			ChatMessage msg = new ChatMessage( message_map );
-			
-			System.out.println( "Received: " + msg.getMessage());
-			
+						
 			ChatParticipant	new_participant = null;
 				
-			boolean	order_changed = false;
+			boolean	sort_outstanding = false;
 			
 			byte[]	prev_id 	= msg.getPreviousID();
 			
@@ -716,15 +755,9 @@ BuddyPluginBeta
 
 				messages.add( msg );
 		
-				if ( old_msgs == 0 ){	
+				if ( messages.size() > MSG_HISTORY_MAX ){
 					
-				}else if ( prev_id != null && Arrays.equals( prev_id, messages.get(old_msgs-1).getID())){
-										
-				}else{
-					
-					sortMessages();
-					
-					order_changed = messages.get( old_msgs ) != msg;
+					messages.remove(0);
 				}
 				
 				byte[] pk = msg.getPublicKey();
@@ -744,9 +777,22 @@ BuddyPluginBeta
 					existing.addMessage( msg );
 				}
 				
-				if ( messages.size() > MSG_HISTORY_MAX ){
+				if ( sort_event != null ){
 					
-					messages.remove(0);
+					sort_outstanding = true;
+					
+				}else{
+					
+					if ( old_msgs == 0 ){	
+						
+					}else if ( prev_id != null && Arrays.equals( prev_id, messages.get(old_msgs-1).getID())){
+											
+					}else{
+						
+						sortMessages();
+						
+						sort_outstanding = true;
+					}
 				}
 			}
 			
@@ -758,9 +804,12 @@ BuddyPluginBeta
 				}
 			}
 			
-			for ( ChatListener l: listeners ){
+			if ( !sort_outstanding ){
 				
-				l.messageReceived( msg, order_changed );
+				for ( ChatListener l: listeners ){
+					
+					l.messageReceived( msg );
+				}
 			}
 		}
 		
@@ -1042,12 +1091,6 @@ BuddyPluginBeta
 			return( timestamp );
 		}
 		
-		private void
-		setTimeStamp(
-			long	t )
-		{
-			timestamp = t;
-		}
 		public String
 		getNickName()
 		{
@@ -1060,8 +1103,10 @@ BuddyPluginBeta
 	{
 		public void
 		messageReceived(
-			ChatMessage				message,
-			boolean					order_changed );
+			ChatMessage				message );
+		
+		public void
+		messagesChanged();
 		
 		public void
 		participantAdded(
