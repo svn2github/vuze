@@ -478,11 +478,8 @@ BuddyPluginViewBetaChat
 							resetChatMessages();
 							
 							BuddyPluginBeta.ChatMessage[] history = chat.getHistory();
-							
-							for (int i=0;i<history.length;i++){
-								
-								logChatMessage( history[i], Colors.blue );
-							}
+															
+							logChatMessages( history, Colors.blue );
 							
 						}catch( Throwable e ){
 							
@@ -506,49 +503,59 @@ BuddyPluginViewBetaChat
 		ChatMessage		message,
 		Color 			colour )
 	{
-		if ( messages.contains( message )){
+		logChatMessages( new ChatMessage[]{ message }, colour );
+	}
+	
+	private void
+	logChatMessages(
+		ChatMessage[]		all_messages,
+		Color 				colour )
+	{
+		for ( ChatMessage message: all_messages ){
 			
-			return;
-		}
-		
-		messages.add( message );
-		
-		String	nick 	= message.getNickName();
-		String	msg		= message.getMessage();
-		
-		boolean	is_error = message.isError();
-		
-		if ( is_error ){
+			if ( messages.contains( message )){
+				
+				return;
+			}
 			
-			colour = Colors.red;		
-		}
-		
-		long time = message.getTimeStamp();
-		
-		String stamp = new SimpleDateFormat( "HH:mm" ).format( new Date( time ));
-		
-		if ( nick.length() > 32 ){
+			messages.add( message );
 			
-			nick = nick.substring(0,16) + "...";
-		}
-		
-		int	start = log.getText().length();
-
-		String says = stamp + " " +nick + "\n";
-		
-		log.append( says ); 
-		
-		if ( colour != Colors.black ){
+			String	nick 	= message.getNickName();
+			String	msg		= message.getMessage();
 			
-			StyleRange styleRange = new StyleRange();
-			styleRange.start = start;
-			styleRange.length = says.length();
-			styleRange.foreground = colour;
-			log.setStyleRange(styleRange);
+			boolean	is_error = message.isError();
+			
+			if ( is_error ){
+				
+				colour = Colors.red;		
+			}
+			
+			long time = message.getTimeStamp();
+			
+			String stamp = new SimpleDateFormat( "HH:mm" ).format( new Date( time ));
+			
+			if ( nick.length() > 32 ){
+				
+				nick = nick.substring(0,16) + "...";
+			}
+			
+			int	start = log.getText().length();
+	
+			String says = stamp + " " +nick + "\n";
+			
+			log.append( says ); 
+			
+			if ( colour != Colors.black ){
+				
+				StyleRange styleRange = new StyleRange();
+				styleRange.start = start;
+				styleRange.length = says.length();
+				styleRange.foreground = colour;
+				log.setStyleRange(styleRange);
+			}
+			
+			log.append( msg + "\n" ); 
 		}
-		
-		log.append( msg + "\n" ); 
-		
 
 		log.setSelection( log.getText().length());
 	}
