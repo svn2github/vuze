@@ -48,6 +48,7 @@ import org.gudy.azureus2.plugins.ui.UIInstance;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
+import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
@@ -97,7 +98,7 @@ BuddyPluginViewInstance
 		
 		CTabItem beta_item = new CTabItem(tab_folder, SWT.NULL);
 
-		beta_item.setText( "Beta" );
+		beta_item.setText( "Decentralised Chat" );
 		
 		Composite beta_area = new Composite( tab_folder, SWT.NULL );
 		beta_item.setControl( beta_area );
@@ -136,9 +137,29 @@ BuddyPluginViewInstance
 			return;
 		}
 		
+			// info
+		
+		Composite info_area = new Composite( main, SWT.NULL );
+		layout = new GridLayout();
+		layout.numColumns = 3;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		info_area.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 3;
+		info_area.setLayoutData(grid_data);
+
+		Label label = new Label( info_area, SWT.NULL );
+		
+		label.setText(  lu.getLocalisedMessageText( "azbuddy.dchat.info" ));
+
+		new LinkLabel(info_area, "ConfigView.label.please.visit.here", lu.getLocalisedMessageText( "azbuddy.dchat.link.url" ));
+		
+		label = new Label( info_area, SWT.NULL );
+		
 			// public beta channel
 		
-		Label label = new Label( main, SWT.NULL );
+		label = new Label( main, SWT.NULL );
 		
 		label.setText( "Public beta chat" );
 		
