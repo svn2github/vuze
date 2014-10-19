@@ -157,6 +157,20 @@ BuddyPluginViewInstance
 		
 		label = new Label( info_area, SWT.NULL );
 		
+			// general nick
+		
+		label = new Label( main, SWT.NULL );
+		
+		label.setText( "General nickname" );
+
+		Text nickname = new Text( main, SWT.BORDER );
+		grid_data = new GridData();
+		grid_data.widthHint = 200;
+		nickname.setLayoutData( grid_data );
+
+		label = new Label( main, SWT.NULL );
+
+		
 			// public beta channel
 		
 		label = new Label( main, SWT.NULL );
@@ -201,6 +215,9 @@ BuddyPluginViewInstance
 		label.setText( "New channel key" );
 		
 		final Text channel_key = new Text( create_area, SWT.BORDER );
+		grid_data = new GridData();
+		grid_data.widthHint = 200;
+		channel_key.setLayoutData( grid_data );
 		
 		final Button create_i2p_button = new Button( create_area, SWT.CHECK );
 		
