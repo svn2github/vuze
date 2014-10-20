@@ -43,6 +43,7 @@ import com.aelitis.azureus.core.security.CryptoManagerKeyListener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2Listener;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAdapter;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
@@ -254,7 +255,7 @@ BuddyPluginView
 	
 			
 			plugin.addListener( 
-				new BuddyPluginListener()
+				new BuddyPluginAdapter()
 				{
 					public void
 					initialised(

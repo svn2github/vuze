@@ -47,5 +47,8 @@ BuddyPluginListener
 	
 	public void
 	enabledStateChanged(
-		boolean enabled);
+		boolean enabled );
+	
+	public void
+	updated();
 }

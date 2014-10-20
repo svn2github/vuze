@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.net.buddy;
 
 import java.util.*;
 
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
@@ -34,7 +35,6 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.FrequencyLimitedDispatcher;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -52,6 +52,7 @@ BuddyPluginBeta
 {
 	public static final String	BETA_CHAT_KEY = 	"test:beta:chat";
 	
+	private BuddyPlugin			plugin;
 	private PluginInterface		plugin_interface;
 	private BooleanParameter	enabled;
 	
@@ -63,14 +64,54 @@ BuddyPluginBeta
 
 	private TimerEventPeriodic		timer;
 	
+	private String					shared_nickname;
 	
 	protected
 	BuddyPluginBeta(
 		PluginInterface		_pi,
+		BuddyPlugin			_plugin,
+
 		BooleanParameter	_enabled )
 	{
 		plugin_interface 	= _pi;
+		plugin				= _plugin;
 		enabled				= _enabled;
+		
+		shared_nickname = COConfigurationManager.getStringParameter( "azbuddy.chat.shared_nick", "" );
+	}
+	
+	public String
+	getSharedNickname()
+	{
+		return( shared_nickname );
+	}
+	
+	public void
+	setSharedNickname(
+		String		_nick )
+	{
+		if ( !_nick.equals( shared_nickname )){
+			
+			shared_nickname	= _nick;
+		
+			COConfigurationManager.setParameter( "azbuddy.chat.shared_nick", _nick );
+			
+			allUpdated();		
+		}	
+	}
+	
+	private void
+	allUpdated()
+	{
+		synchronized( chat_instances ){
+
+			for ( ChatInstance chat: chat_instances.values()){
+			
+				chat.updated();
+			}
+		}
+		
+		plugin.fireUpdated();
 	}
 	
 	protected void
@@ -278,6 +319,9 @@ BuddyPluginBeta
 		
 		private Map<String,Object> 	status;
 		
+		private boolean		is_shared_nick;
+		private String		instance_nick;
+		
 		private
 		ChatInstance(
 			String				_network,
@@ -285,10 +329,24 @@ BuddyPluginBeta
 		{
 			network 	= _network;
 			key			= _key;
+			
+			String chat_key_base = "azbuddy.chat." + getKey();
+			
+			String shared_key 	= chat_key_base + ".shared";
+			String nick_key 	= chat_key_base + ".nick";
+
+			is_shared_nick 	= COConfigurationManager.getBooleanParameter( shared_key, true );
+			instance_nick 	= COConfigurationManager.getStringParameter( nick_key, "" );
 		}
 		
 		public String
 		getName()
+		{
+			return( getKey());
+		}
+		
+		public String
+		getKey()
 		{
 			return( network + ": " + key );
 		}
@@ -297,6 +355,67 @@ BuddyPluginBeta
 		setPersistent()
 		{
 			persistent	= true;
+		}
+		
+		public boolean
+		isSharedNickname()
+		{
+			return( is_shared_nick );
+		}
+		
+		public void
+		setSharedNickname(
+			boolean		_shared ) 
+		{
+			if ( _shared != is_shared_nick ){
+			
+				is_shared_nick	= _shared;
+			
+				String chat_key_base = "azbuddy.chat." + getKey();
+
+				String shared_key 	= chat_key_base + ".shared";
+
+				COConfigurationManager.setParameter( shared_key, _shared );
+				
+				updated();
+			}
+		}
+		
+		public String
+		getInstanceNickname()
+		{
+			return( instance_nick );
+		}
+		
+		public void
+		setInstanceNickname(
+			String		_nick )
+		{
+			if ( !_nick.equals( instance_nick )){
+				
+				instance_nick	= _nick;
+			
+				String chat_key_base = "azbuddy.chat." + getKey();
+
+				String nick_key 	= chat_key_base + ".nick";
+
+				COConfigurationManager.setParameter( nick_key, _nick );
+				
+				updated();
+			}
+		}
+		
+		public String
+		getNickname()
+		{
+			if ( is_shared_nick ){
+				
+				return( shared_nickname );
+				
+			}else{
+				
+				return( instance_nick );
+			}
 		}
 		
 		private void
@@ -381,6 +500,12 @@ BuddyPluginBeta
 				}
 			}
 			
+			updated();
+		}
+		
+		private void
+		updated()
+		{
 			for ( ChatListener l: listeners ){
 				
 				try{	
@@ -854,6 +979,8 @@ BuddyPluginBeta
 					
 					payload.put( "msg", message.getBytes( "UTF-8" ));
 					
+					payload.put( "nick", getNickname().getBytes( "UTF-8" ));
+					
 					if ( prev_message != null ){
 						
 						payload.put( "pre", prev_message.getID());
@@ -1094,6 +1221,24 @@ BuddyPluginBeta
 		public String
 		getNickName()
 		{
+			Map<String,Object> payload = getPayload();
+			
+			if ( payload != null ){
+				
+				byte[] nick = (byte[])payload.get( "nick" );
+				
+				if ( nick != null ){
+					
+					try{
+						String str = new String( nick, "UTF-8" );
+						
+						return( str );
+						
+					}catch( Throwable e ){
+					}
+				}
+			}
+			
 			return( pkToString( getPublicKey()));
 		}
 	}

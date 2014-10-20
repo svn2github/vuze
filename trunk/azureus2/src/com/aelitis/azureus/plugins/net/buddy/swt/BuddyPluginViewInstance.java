@@ -52,7 +52,6 @@ import org.gudy.azureus2.ui.swt.components.LinkLabel;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 import org.gudy.azureus2.ui.swt.mainwindow.SWTThread;
 
-import com.aelitis.azureus.core.proxy.AEProxyFactory;
 import com.aelitis.azureus.core.proxy.impl.AEPluginProxyHandler;
 import com.aelitis.azureus.core.security.*;
 import com.aelitis.azureus.core.util.AZ3Functions;
@@ -74,6 +73,8 @@ BuddyPluginViewInstance
 	private Table 				buddy_table;
 	private StyledText 			log;
 
+	private Text 	nickname;
+	
 	private List	buddies = new ArrayList();
 
 	private boolean	init_complete;
@@ -161,16 +162,55 @@ BuddyPluginViewInstance
 		
 		label = new Label( main, SWT.NULL );
 		
-		label.setText( "General nickname" );
+		label.setText( "Shared nickname" );
 
-		Text nickname = new Text( main, SWT.BORDER );
+		nickname = new Text( main, SWT.BORDER );
 		grid_data = new GridData();
 		grid_data.widthHint = 200;
 		nickname.setLayoutData( grid_data );
 
-		label = new Label( main, SWT.NULL );
-
+		nickname.setText( plugin.getBeta().getSharedNickname());
+		nickname.addListener(SWT.FocusOut, new Listener() {
+	        public void handleEvent(Event event) {
+	        	plugin.getBeta().setSharedNickname( nickname.getText().trim());
+	        }
+	    });
 		
+		plugin.addListener( 
+			new BuddyPluginAdapter()
+			{			
+				public void updated() {
+					if ( nickname.isDisposed()){
+						
+						plugin.removeListener( this );
+						
+					}else{
+						
+						nickname.getDisplay().asyncExec(
+							new Runnable()
+							{
+								public void
+								run()
+								{
+									if ( nickname.isDisposed()){
+										
+										return;
+									}
+									
+									String nick = plugin.getBeta().getSharedNickname();
+
+									if ( !nickname.getText().equals( nick )){
+										
+										nickname.setText( nick );
+									}
+								}
+							});
+					}
+				}
+			});
+
+		label = new Label( main, SWT.NULL );
+	
 			// public beta channel
 		
 		label = new Label( main, SWT.NULL );
@@ -1894,12 +1934,17 @@ BuddyPluginViewInstance
 		print( str, error?LOG_ERROR:LOG_NORMAL, false, false );
 	}
 	
-	// @see com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener#enabledStateChanged(boolean)
 	public void 
 	enabledStateChanged(
-			boolean enabled) {
+		boolean enabled )
+	{
 	}
 
+	public void 
+	updated() 
+	{	
+	}
+	
 	public Map
 	requestReceived(
 		BuddyPluginBuddy	from_buddy,

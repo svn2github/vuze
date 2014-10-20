@@ -61,4 +61,9 @@ BuddyPluginAdapter
 		boolean enabled)
 	{
 	}
+	
+	public void 
+	updated() 
+	{
+	}
 }

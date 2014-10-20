@@ -410,7 +410,7 @@ BuddyPlugin
 		
 			// config end
 			
-		beta_plugin = new BuddyPluginBeta( plugin_interface, beta_enabled_param );
+		beta_plugin = new BuddyPluginBeta( plugin_interface, this, beta_enabled_param );
 		
 		final TableContextMenuItem menu_item_itorrents = 
 			plugin_interface.getUIManager().getTableManager().addContextMenuItem(TableManager.TABLE_MYTORRENTS_INCOMPLETE, "azbuddy.contextmenu");
@@ -3411,6 +3411,21 @@ BuddyPlugin
  			
  			try{
  				((BuddyPluginListener)listeners_ref.get(i)).enabledStateChanged( enabled );
+
+ 			}catch( Throwable e ){
+ 				
+ 				Debug.printStackTrace( e );
+ 			}
+ 		}
+ 	}
+	
+	protected void
+ 	fireUpdated()
+ 	{		
+ 		for ( BuddyPluginListener listener: listeners ){
+ 			
+ 			try{
+ 				listener.updated();
 
  			}catch( Throwable e ){
  				

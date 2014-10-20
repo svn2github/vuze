@@ -31,9 +31,13 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
@@ -44,6 +48,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -70,6 +75,9 @@ BuddyPluginViewBetaChat
 	private Table					buddy_table;
 	private BufferedLabel		 	status;
 	
+	private Button 			shared_nick_button;
+	private Text 			nickname;
+	
 	private Text 		input_area;
 	
 	private List<ChatMessage>			messages		= new ArrayList<ChatMessage>();
@@ -77,9 +85,9 @@ BuddyPluginViewBetaChat
 	
 	protected
 	BuddyPluginViewBetaChat(
-		BuddyPlugin						_plugin,
-		Display 						_display,
-		BuddyPluginBeta.ChatInstance	_chat )
+		BuddyPlugin		_plugin,
+		Display 		_display,
+		ChatInstance	_chat )
 	{
 		plugin	= _plugin;
 		chat	= _chat;
@@ -155,9 +163,61 @@ BuddyPluginViewBetaChat
 		rhs.setLayout(layout);
 		grid_data = new GridData(GridData.FILL_BOTH );
 		grid_data.widthHint = 150;
-		grid_data.heightHint = 400;
 		rhs.setLayoutData(grid_data);
 
+			// options
+		
+		Composite top_right = new Composite(rhs, SWT.NONE);
+		layout = new GridLayout();
+		layout.numColumns = 2;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		top_right.setLayout(layout);
+		grid_data = new GridData( GridData.FILL_HORIZONTAL );
+		grid_data.heightHint = 50;
+		top_right.setLayoutData(grid_data);
+		
+		Label label = new Label( top_right, SWT.NULL );
+		
+		label.setText( "Nickname: shared" );
+
+		shared_nick_button = new Button( top_right, SWT.CHECK );
+		
+		shared_nick_button.setSelection( chat.isSharedNickname());
+		
+		nickname = new Text( top_right, SWT.BORDER );
+		grid_data = new GridData( GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 2;
+		nickname.setLayoutData( grid_data );
+		
+		nickname.setText( chat.getNickname());
+
+		shared_nick_button.addSelectionListener(
+			new SelectionAdapter() 
+			{
+				public void widgetSelected(SelectionEvent arg0) {
+					
+					boolean shared = shared_nick_button.getSelection();
+					
+					chat.setSharedNickname( shared );
+				}
+			});
+		
+		nickname.addListener(SWT.FocusOut, new Listener() {
+	        public void handleEvent(Event event) {
+	        	String nick = nickname.getText().trim();
+	        	
+	        	if ( chat.isSharedNickname()){
+	        		
+	        		plugin.getBeta().setSharedNickname( nick );
+	        		
+	        	}else{
+	        		
+	        		chat.setInstanceNickname( nick );
+	        	}
+	        }
+	    });
+		
 			// table
 		
 		buddy_table = new Table(rhs, SWT.MULTI | SWT.BORDER | SWT.FULL_SELECTION | SWT.VIRTUAL);
@@ -391,6 +451,23 @@ BuddyPluginViewBetaChat
 					}
 				
 					status.setText( chat.getStatus());
+					
+					boolean	is_shared = chat.isSharedNickname();
+					
+					if ( is_shared != shared_nick_button.getSelection()){
+						
+						shared_nick_button.setSelection( is_shared );
+					}
+						
+					if ( !nickname.isFocusControl()){
+						
+						String nick = nickname.getText().trim();
+							
+						if ( !chat.getNickname().equals( nick )){
+								
+							nickname.setText( chat.getNickname());
+						}
+					}
 				}
 			});
 	}

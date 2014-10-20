@@ -671,6 +671,11 @@ outer:
 		checkEnabledState();
 	}
 	
+	public void 
+	updated() 
+	{
+	}
+	
 	public boolean
 	isEnabled()
 	{
