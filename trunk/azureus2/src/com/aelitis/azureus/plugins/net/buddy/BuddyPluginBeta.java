@@ -891,7 +891,7 @@ BuddyPluginBeta
 				
 				if ( existing == null ){
 					
-					new_participant = new ChatParticipant( pk );
+					new_participant = new ChatParticipant( this, pk );
 					
 					participants.put( pk, new_participant );
 					
@@ -1006,6 +1006,16 @@ BuddyPluginBeta
 			}
 		}
 		
+		protected void
+		updated(
+			ChatParticipant		p )
+		{
+			for ( ChatListener l: listeners ){
+				
+				l.participantChanged( p );
+			}
+		}
+		
 		public void
 		addListener(
 			ChatListener		listener )
@@ -1065,20 +1075,27 @@ BuddyPluginBeta
 	public class
 	ChatParticipant
 	{
+		private ChatInstance		chat;
 		private final byte[]		pk;
 		private int					message_count;
 		
+		private String				nickname;
+		
 		private
 		ChatParticipant(
-			byte[]		_pk )
+			ChatInstance		_chat,
+			byte[]				_pk )
 		{
+			chat	= _chat;
 			pk		= _pk;
+			
+			nickname = pkToString( pk );
 		}
 		
 		public String
 		getName() 
 		{
-			return( pkToString( pk ));
+			return( nickname );
 		}
 		
 		private void
@@ -1089,6 +1106,10 @@ BuddyPluginBeta
 				
 				message_count++;
 			}
+			
+			nickname = message.getNickName();
+			
+			chat.updated( this );
 		}
 		
 		public int
@@ -1232,8 +1253,10 @@ BuddyPluginBeta
 					try{
 						String str = new String( nick, "UTF-8" );
 						
-						return( str );
+						if ( str.length() > 0 ){
 						
+							return( str );
+						}
 					}catch( Throwable e ){
 					}
 				}

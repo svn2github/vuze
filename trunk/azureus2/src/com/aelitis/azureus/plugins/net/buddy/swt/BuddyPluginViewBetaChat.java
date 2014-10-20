@@ -33,7 +33,6 @@ import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
-import org.eclipse.swt.events.SelectionListener;
 import org.eclipse.swt.graphics.Color;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -48,7 +47,6 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
-import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
 import org.gudy.azureus2.ui.swt.Messages;
@@ -82,6 +80,8 @@ BuddyPluginViewBetaChat
 	
 	private List<ChatMessage>			messages		= new ArrayList<ChatMessage>();
 	private List<ChatParticipant>		participants 	= new ArrayList<ChatParticipant>();
+	
+	private boolean		table_resort_required;
 	
 	protected
 	BuddyPluginViewBetaChat(
@@ -161,7 +161,7 @@ BuddyPluginViewBetaChat
 		layout.marginHeight = 0;
 		layout.marginWidth = 0;
 		rhs.setLayout(layout);
-		grid_data = new GridData(GridData.FILL_BOTH );
+		grid_data = new GridData(GridData.FILL_VERTICAL );
 		grid_data.widthHint = 150;
 		rhs.setLayoutData(grid_data);
 
@@ -225,7 +225,7 @@ BuddyPluginViewBetaChat
 		String[] headers = { 
 				"azbuddy.ui.table.name" };
 
-		int[] sizes = { 150 };
+		int[] sizes = { 120 };
 
 		int[] aligns = { SWT.LEFT };
 
@@ -264,12 +264,13 @@ BuddyPluginViewBetaChat
 					
 					BuddyPluginBeta.ChatParticipant	participant = (BuddyPluginBeta.ChatParticipant)participants.get(index);
 					
+					item.setData( participant );
+					
 					item.setText(0, participant.getName());					
 				}
 			});
 		
-		
-		
+
 		
 			// Text
 		
@@ -329,6 +330,8 @@ BuddyPluginViewBetaChat
 			participants.addAll( Arrays.asList( existing_participants ));
 		}
 		
+		table_resort_required = true;
+		
 		updateTable( false );
 		
 		BuddyPluginBeta.ChatMessage[] history = chat.getHistory();
@@ -385,6 +388,13 @@ BuddyPluginViewBetaChat
 					});
 			}					
 		}else{
+			
+			if ( table_resort_required ){
+				
+				table_resort_required = false;
+				
+				sortParticipants();
+			}
 			
 			buddy_table.setItemCount( participants.size());
 			buddy_table.clearAll();
@@ -468,8 +478,30 @@ BuddyPluginViewBetaChat
 							nickname.setText( chat.getNickname());
 						}
 					}
+					
+					if ( table_resort_required ){
+						
+						updateTable( false );
+					}
 				}
 			});
+	}
+	
+	private void
+	sortParticipants()
+	{
+		Collections.sort(
+				participants,
+				new Comparator<ChatParticipant>()
+				{
+					public int 
+					compare(
+						ChatParticipant o1, 
+						ChatParticipant o2) 
+					{
+						return( o1.getName().compareTo( o2.getName()));
+					}
+				});
 	}
 	
 	public void
@@ -479,6 +511,8 @@ BuddyPluginViewBetaChat
 		synchronized( participants ){
 			
 			participants.add( participant );
+			
+			table_resort_required = true;
 		}
 		
 		updateTable( true );
@@ -486,9 +520,42 @@ BuddyPluginViewBetaChat
 	
 	public void
 	participantChanged(
-		ChatParticipant		participant )
+		final ChatParticipant		participant )
 	{
-		updateTable( true );
+		if ( !buddy_table.isDisposed()){
+
+			buddy_table.getDisplay().asyncExec(
+				new Runnable()
+				{
+					public void
+					run()
+					{
+						if ( buddy_table.isDisposed()){
+
+							return;
+						}
+						
+						TableItem[] items = buddy_table.getItems();
+						
+						String	name = participant.getName();
+						
+						for ( TableItem item: items ){
+							
+							if ( item.getData() == participant ){
+								
+								String old_name = item.getText(0);
+								
+								if ( !old_name.equals( name )){
+								
+									item.setText( 0, name );
+									
+									table_resort_required = true;
+								}
+							}
+						}
+					}
+				});
+		}			
 	}
 	
 	public void
