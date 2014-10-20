@@ -73,7 +73,8 @@ BuddyPluginViewInstance
 	private Table 				buddy_table;
 	private StyledText 			log;
 
-	private Text 	nickname;
+	private Text 	public_nickname;
+	private Text 	anon_nickname;
 	
 	private List	buddies = new ArrayList();
 
@@ -158,59 +159,86 @@ BuddyPluginViewInstance
 		
 		label = new Label( info_area, SWT.NULL );
 		
-			// general nick
+			// shared public nick
 		
 		label = new Label( main, SWT.NULL );
-		
-		label.setText( "Shared nickname" );
+		label.setText( "Shared public nickname" );
 
-		nickname = new Text( main, SWT.BORDER );
+		public_nickname = new Text( main, SWT.BORDER );
 		grid_data = new GridData();
 		grid_data.widthHint = 200;
-		nickname.setLayoutData( grid_data );
+		public_nickname.setLayoutData( grid_data );
 
-		nickname.setText( plugin.getBeta().getSharedNickname());
-		nickname.addListener(SWT.FocusOut, new Listener() {
+		public_nickname.setText( plugin.getBeta().getSharedPublicNickname());
+		public_nickname.addListener(SWT.FocusOut, new Listener() {
 	        public void handleEvent(Event event) {
-	        	plugin.getBeta().setSharedNickname( nickname.getText().trim());
+	        	plugin.getBeta().setSharedPublicNickname( public_nickname.getText().trim());
 	        }
 	    });
+
+		label = new Label( main, SWT.NULL );
 		
+			// shared anon nick
+			
+		label = new Label( main, SWT.NULL );
+		label.setText( "Shared anonymous nickname" );
+	
+		anon_nickname = new Text( main, SWT.BORDER );
+		grid_data = new GridData();
+		grid_data.widthHint = 200;
+		anon_nickname.setLayoutData( grid_data );
+	
+		anon_nickname.setText( plugin.getBeta().getSharedAnonNickname());
+		anon_nickname.addListener(SWT.FocusOut, new Listener() {
+	        public void handleEvent(Event event) {
+	        	plugin.getBeta().setSharedAnonNickname( anon_nickname.getText().trim());
+	        }
+	    });
+	
+		label = new Label( main, SWT.NULL );
+
 		plugin.addListener( 
 			new BuddyPluginAdapter()
 			{			
-				public void updated() {
-					if ( nickname.isDisposed()){
+				public void updated()
+				{
+					if ( public_nickname.isDisposed()){
 						
 						plugin.removeListener( this );
 						
 					}else{
 						
-						nickname.getDisplay().asyncExec(
+						public_nickname.getDisplay().asyncExec(
 							new Runnable()
 							{
 								public void
 								run()
 								{
-									if ( nickname.isDisposed()){
+									if ( public_nickname.isDisposed()){
 										
 										return;
 									}
 									
-									String nick = plugin.getBeta().getSharedNickname();
-
-									if ( !nickname.getText().equals( nick )){
+									String nick = plugin.getBeta().getSharedPublicNickname();
+	
+									if ( !public_nickname.getText().equals( nick )){
 										
-										nickname.setText( nick );
+										public_nickname.setText( nick );
+									}
+									
+									nick = plugin.getBeta().getSharedAnonNickname();
+	
+									if ( !anon_nickname.getText().equals( nick )){
+										
+										anon_nickname.setText( nick );
 									}
 								}
 							});
 					}
 				}
 			});
-
-		label = new Label( main, SWT.NULL );
-	
+		
+			
 			// public beta channel
 		
 		label = new Label( main, SWT.NULL );

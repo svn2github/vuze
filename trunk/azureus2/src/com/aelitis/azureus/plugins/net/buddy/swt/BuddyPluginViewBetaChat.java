@@ -47,8 +47,10 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
+import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.plugins.utils.LocaleUtilities;
+import org.gudy.azureus2.pluginsimpl.local.utils.FormattersImpl;
 import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
@@ -63,7 +65,7 @@ public class
 BuddyPluginViewBetaChat 
 	implements ChatListener
 {
-	private BuddyPlugin							plugin;
+	private BuddyPlugin			plugin;
 	private ChatInstance		chat;
 	
 	private LocaleUtilities		lu;
@@ -209,8 +211,14 @@ BuddyPluginViewBetaChat
 	        	
 	        	if ( chat.isSharedNickname()){
 	        		
-	        		plugin.getBeta().setSharedNickname( nick );
+	        		if ( chat.getNetwork() == AENetworkClassifier.AT_PUBLIC ){
 	        		
+	        			plugin.getBeta().setSharedPublicNickname( nick );
+	        			
+	        		}else{
+	        			
+	        			plugin.getBeta().setSharedAnonNickname( nick );
+	        		}
 	        	}else{
 	        		
 	        		chat.setInstanceNickname( nick );
@@ -494,12 +502,14 @@ BuddyPluginViewBetaChat
 				participants,
 				new Comparator<ChatParticipant>()
 				{
+					private Comparator<String> comp = new FormattersImpl().getAlphanumericComparator( true );
+					
 					public int 
 					compare(
 						ChatParticipant o1, 
 						ChatParticipant o2) 
 					{
-						return( o1.getName().compareTo( o2.getName()));
+						return( comp.compare( o1.getName(), o2.getName()));
 					}
 				});
 	}

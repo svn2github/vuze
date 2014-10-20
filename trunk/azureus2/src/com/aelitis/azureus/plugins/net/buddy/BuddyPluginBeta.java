@@ -64,7 +64,8 @@ BuddyPluginBeta
 
 	private TimerEventPeriodic		timer;
 	
-	private String					shared_nickname;
+	private String					shared_public_nickname;
+	private String					shared_anon_nickname;
 	
 	protected
 	BuddyPluginBeta(
@@ -77,24 +78,45 @@ BuddyPluginBeta
 		plugin				= _plugin;
 		enabled				= _enabled;
 		
-		shared_nickname = COConfigurationManager.getStringParameter( "azbuddy.chat.shared_nick", "" );
+		shared_public_nickname 	= COConfigurationManager.getStringParameter( "azbuddy.chat.shared_nick", "" );
+		shared_anon_nickname 	= COConfigurationManager.getStringParameter( "azbuddy.chat.shared_anon_nick", "" );
 	}
 	
 	public String
-	getSharedNickname()
+	getSharedPublicNickname()
 	{
-		return( shared_nickname );
+		return( shared_public_nickname );
 	}
 	
 	public void
-	setSharedNickname(
+	setSharedPublicNickname(
 		String		_nick )
 	{
-		if ( !_nick.equals( shared_nickname )){
+		if ( !_nick.equals( shared_public_nickname )){
 			
-			shared_nickname	= _nick;
+			shared_public_nickname	= _nick;
 		
 			COConfigurationManager.setParameter( "azbuddy.chat.shared_nick", _nick );
+			
+			allUpdated();		
+		}	
+	}
+	
+	public String
+	getSharedAnonNickname()
+	{
+		return( shared_anon_nickname );
+	}
+	
+	public void
+	setSharedAnonNickname(
+		String		_nick )
+	{
+		if ( !_nick.equals( shared_anon_nickname )){
+			
+			shared_anon_nickname	= _nick;
+		
+			COConfigurationManager.setParameter( "azbuddy.chat.shared_anon_nick", _nick );
 			
 			allUpdated();		
 		}	
@@ -346,6 +368,12 @@ BuddyPluginBeta
 		}
 		
 		public String
+		getNetwork()
+		{
+			return( network );
+		}
+		
+		public String
 		getKey()
 		{
 			return( network + ": " + key );
@@ -410,7 +438,7 @@ BuddyPluginBeta
 		{
 			if ( is_shared_nick ){
 				
-				return( shared_nickname );
+				return( network == AENetworkClassifier.AT_PUBLIC?shared_public_nickname:shared_anon_nickname );
 				
 			}else{
 				
@@ -586,7 +614,7 @@ BuddyPluginBeta
 							perform(
 								TimerEvent event) 
 							{
-								synchronized( this ){
+								synchronized( ChatInstance.this ){
 									
 									sort_event = null;
 									
