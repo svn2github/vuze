@@ -915,20 +915,24 @@ BuddyPluginBeta
 				
 				byte[] pk = msg.getPublicKey();
 				
-				ChatParticipant existing = participants.get( pk );
+				ChatParticipant participant = participants.get( pk );
 				
-				if ( existing == null ){
+				if ( participant == null ){
 					
-					new_participant = new ChatParticipant( this, pk );
+					new_participant = participant = new ChatParticipant( this, pk );
 					
-					participants.put( pk, new_participant );
+					participants.put( pk, participant );
 					
-					new_participant.addMessage( msg );
+					participant.addMessage( msg );
 					
 				}else{
 					
-					existing.addMessage( msg );
+					participant.addMessage( msg );
+					
+					msg.setIgnored( participant.isIgnored());
 				}
+				
+				msg.setParticipant( participant );
 				
 				if ( sort_event != null ){
 					
@@ -1108,6 +1112,8 @@ BuddyPluginBeta
 		private int					message_count;
 		
 		private String				nickname;
+		private boolean				is_ignored;
+		private boolean				is_pinned;
 		
 		private
 		ChatParticipant(
@@ -1145,6 +1151,32 @@ BuddyPluginBeta
 		{
 			return( message_count );
 		}
+		
+		public boolean
+		isIgnored()
+		{
+			return( is_ignored );
+		}
+		
+		public void
+		setIgnored(
+			boolean		b )
+		{
+			is_ignored = b;
+		}
+		
+		public boolean
+		isPinned()
+		{
+			return( is_pinned );
+		}
+		
+		public void
+		setPinned(
+			boolean		b )
+		{
+			is_pinned = b;
+		}
 	}
 	
 	public class
@@ -1152,11 +1184,15 @@ BuddyPluginBeta
 	{
 		private final Map<String,Object>		map;
 		
+		private ChatParticipant					participant;
+
 		private final byte[]					message_id;
 		
 		private byte[]							previous_id;
 		
 		private long							timestamp;
+		
+		private boolean							is_ignored;
 		
 		private
 		ChatMessage(
@@ -1171,6 +1207,19 @@ BuddyPluginBeta
 			Map<String,Object> payload = getPayload();
 			
 			previous_id = (byte[])payload.get( "pre" );
+		}
+		
+		private void
+		setParticipant(
+			ChatParticipant		p )
+		{
+			participant	= p;
+		}
+		
+		public ChatParticipant
+		getParticipant()
+		{
+			return( participant );
 		}
 		
 		private Map<String,Object>
@@ -1228,6 +1277,19 @@ BuddyPluginBeta
 		isError()
 		{
 			return( map.containsKey( "error" ));
+		}
+		
+		public boolean
+		isIgnored()
+		{
+			return( is_ignored );
+		}
+		
+		public void
+		setIgnored(
+			boolean		b )
+		{
+			is_ignored = b;
 		}
 		
 		public byte[]

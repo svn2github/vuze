@@ -31,6 +31,8 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MenuEvent;
+import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
@@ -42,6 +44,8 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
+import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableColumn;
@@ -59,6 +63,7 @@ import org.gudy.azureus2.ui.swt.mainwindow.Colors;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.*;
 
 public class 
@@ -148,15 +153,27 @@ BuddyPluginViewBetaChat
 		status.setLayoutData(grid_data);
 		status.setText( "Pending" );
 		
-		log = new StyledText(lhs,SWT.READ_ONLY | SWT.V_SCROLL | SWT.BORDER | SWT.WRAP | SWT.NO_FOCUS );
+		Composite log_holder = new Composite(lhs, SWT.BORDER);
+		layout = new GridLayout();
+		layout.numColumns = 1;
+		layout.marginHeight = 0;
+		layout.marginWidth = 0;
+		layout.marginLeft = 4;
+		log_holder.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_BOTH );
+		log_holder.setLayoutData(grid_data);
+		
+		log = new StyledText(log_holder,SWT.READ_ONLY | SWT.V_SCROLL | SWT.WRAP | SWT.NO_FOCUS );
 		grid_data = new GridData(GridData.FILL_BOTH);
 		grid_data.horizontalSpan = 1;
-		grid_data.horizontalIndent = 4;
+		//grid_data.horizontalIndent = 4;
 		log.setLayoutData(grid_data);
-		log.setIndent( 4 );
+		//log.setIndent( 4 );
 		
 		log.setEditable( false );
 
+		log_holder.setBackground( log.getBackground());
+		
 		Composite rhs = new Composite(shell, SWT.NONE);
 		layout = new GridLayout();
 		layout.numColumns = 1;
@@ -270,15 +287,180 @@ BuddyPluginViewBetaChat
 						return;
 					}
 					
-					BuddyPluginBeta.ChatParticipant	participant = (BuddyPluginBeta.ChatParticipant)participants.get(index);
+					ChatParticipant	participant = (BuddyPluginBeta.ChatParticipant)participants.get(index);
 					
 					item.setData( participant );
 					
-					item.setText(0, participant.getName());					
+					item.setText(0, participant.getName());		
+					
+					setProperties( item, participant );
 				}
 			});
 		
+		final Menu menu = new Menu(buddy_table);
+		
+		buddy_table.setMenu( menu );
+		
+		menu.addMenuListener(
+			new MenuListener() 
+			{
+				public void 
+				menuShown(
+					MenuEvent e ) 
+				{
+					MenuItem[] items = menu.getItems();
+					
+					for (int i = 0; i < items.length; i++){
+						
+						items[i].dispose();
+					}
 
+					final TableItem[] selection = buddy_table.getSelection();
+					
+					boolean	can_ignore 	= false;
+					boolean	can_listen	= false;
+					boolean	can_pin		= false;
+					boolean	can_unpin	= false;
+					
+					for (int i=0;i<selection.length;i++){
+						
+						ChatParticipant	participant = (ChatParticipant)selection[i].getData();
+						
+						if ( participant.isIgnored()){
+						
+							can_listen = true;
+							
+						}else{
+							
+							can_ignore = true;
+						}
+						
+						if ( participant.isPinned()){
+							
+							can_unpin = true;
+							
+						}else{
+							
+							can_pin = true;
+						}
+					}
+					
+					final MenuItem ignore_item = new MenuItem(menu, SWT.PUSH);
+					
+					ignore_item.setText( "Mute" );
+
+					ignore_item.addSelectionListener(
+						new SelectionAdapter() 
+						{
+							public void 
+							widgetSelected(
+								SelectionEvent e) 
+							{
+								for (int i=0;i<selection.length;i++){
+									
+									ChatParticipant	participant = (ChatParticipant)selection[i].getData();
+									
+									if ( !participant.isIgnored()){
+										
+										participant.setIgnored( true );
+										
+										setProperties( selection[i], participant );
+									}
+								}
+							};
+						});
+					
+					ignore_item.setEnabled( can_ignore );
+					
+					final MenuItem listen_item = new MenuItem(menu, SWT.PUSH);
+					
+					listen_item.setText( "Listen" );
+
+					listen_item.addSelectionListener(
+						new SelectionAdapter() 
+						{
+							public void 
+							widgetSelected(
+								SelectionEvent e) 
+							{
+								for (int i=0;i<selection.length;i++){
+									
+									ChatParticipant	participant = (ChatParticipant)selection[i].getData();
+									
+									if ( participant.isIgnored()){
+										
+										participant.setIgnored( false );
+										
+										setProperties( selection[i], participant );
+									}
+								}
+							};
+						});
+					
+					listen_item.setEnabled( can_listen );
+					
+					new MenuItem(menu, SWT.SEPARATOR );
+					
+					final MenuItem pin_item = new MenuItem(menu, SWT.PUSH);
+					
+					pin_item.setText( "Pin" );
+
+					pin_item.addSelectionListener(
+						new SelectionAdapter() 
+						{
+							public void 
+							widgetSelected(
+								SelectionEvent e) 
+							{
+								for (int i=0;i<selection.length;i++){
+									
+									ChatParticipant	participant = (ChatParticipant)selection[i].getData();
+									
+									if ( !participant.isPinned()){
+										
+										participant.setPinned( true );
+										
+										setProperties( selection[i], participant );
+									}
+								}
+							};
+						});
+					
+					pin_item.setEnabled( can_pin );
+					
+					final MenuItem unpin_item = new MenuItem(menu, SWT.PUSH);
+					
+					unpin_item.setText( "Unpin" );
+
+					unpin_item.addSelectionListener(
+						new SelectionAdapter() 
+						{
+							public void 
+							widgetSelected(
+								SelectionEvent e) 
+							{
+								for (int i=0;i<selection.length;i++){
+									
+									ChatParticipant	participant = (ChatParticipant)selection[i].getData();
+									
+									if ( participant.isPinned()){
+										
+										participant.setPinned( false );
+										
+										setProperties( selection[i], participant );
+									}
+								}
+							};
+						});
+					
+					unpin_item.setEnabled( can_unpin );
+				}
+				
+				public void menuHidden(MenuEvent e) {
+				}
+			});
+		
+	
 		
 			// Text
 		
@@ -346,7 +528,7 @@ BuddyPluginViewBetaChat
 		
 		for (int i=0;i<history.length;i++){
 			
-			logChatMessage( history[i], Colors.blue );
+			logChatMessage( history[i] );
 		}
 		
 		chat.addListener( this );
@@ -356,6 +538,28 @@ BuddyPluginViewBetaChat
 	    Utils.createURLDropTarget(shell, input_area);
 	    Utils.centreWindow(shell);
 	    shell.open();
+	}
+	
+	private void
+	setProperties(
+		TableItem			item,
+		ChatParticipant		p )
+	{
+		if ( p.isIgnored()){
+		
+			item.setForeground( 0, Colors.grey );
+			
+		}else{
+			
+			if ( p.isPinned()){
+			
+				item.setForeground( 0, Colors.fadedGreen );
+				
+			}else{
+			
+				item.setForeground( 0, Colors.black );
+			}
+		}
 	}
 	
 	protected void
@@ -606,7 +810,7 @@ BuddyPluginViewBetaChat
 							return;
 						}
 													
-						logChatMessage( message, Colors.blue );
+						logChatMessage( message );
 					}
 				});
 		}
@@ -633,7 +837,7 @@ BuddyPluginViewBetaChat
 							
 							BuddyPluginBeta.ChatMessage[] history = chat.getHistory();
 															
-							logChatMessages( history, Colors.blue );
+							logChatMessages( history );
 							
 						}catch( Throwable e ){
 							
@@ -654,17 +858,17 @@ BuddyPluginViewBetaChat
 	
 	private void
 	logChatMessage(
-		ChatMessage		message,
-		Color 			colour )
+		ChatMessage		message )
 	{
-		logChatMessages( new ChatMessage[]{ message }, colour );
+		logChatMessages( new ChatMessage[]{ message } );
 	}
 	
 	private void
 	logChatMessages(
-		ChatMessage[]		all_messages,
-		Color 				colour )
+		ChatMessage[]		all_messages )
 	{
+		boolean	changed = false;
+		
 		for ( ChatMessage message: all_messages ){
 			
 			if ( messages.contains( message )){
@@ -674,43 +878,57 @@ BuddyPluginViewBetaChat
 			
 			messages.add( message );
 			
-			String	nick 	= message.getNickName();
-			String	msg		= message.getMessage();
-			
-			boolean	is_error = message.isError();
-			
-			if ( is_error ){
+			if ( !message.isIgnored()){
 				
-				colour = Colors.red;		
-			}
-			
-			long time = message.getTimeStamp();
-			
-			String stamp = new SimpleDateFormat( "HH:mm" ).format( new Date( time ));
-			
-			if ( nick.length() > 32 ){
+				changed = true;
 				
-				nick = nick.substring(0,16) + "...";
-			}
-			
-			int	start = log.getText().length();
-	
-			String says = stamp + " " +nick + "\n";
-			
-			log.append( says ); 
-			
-			if ( colour != Colors.black ){
+				String	nick 	= message.getNickName();
+				String	msg		= message.getMessage();
 				
-				StyleRange styleRange = new StyleRange();
-				styleRange.start = start;
-				styleRange.length = says.length();
-				styleRange.foreground = colour;
-				log.setStyleRange(styleRange);
+				boolean	is_error = message.isError();
+				
+				Color colour = Colors.blues[Colors.FADED_DARKEST];
+				
+				if ( is_error ){
+					
+					colour = Colors.red;		
+					
+				}else if ( message.getParticipant().isPinned()){
+					
+					colour = Colors.fadedGreen;
+				}
+				
+				long time = message.getTimeStamp();
+				
+				String stamp = new SimpleDateFormat( "HH:mm" ).format( new Date( time ));
+				
+				if ( nick.length() > 32 ){
+					
+					nick = nick.substring(0,16) + "...";
+				}
+				
+				int	start = log.getText().length();
+		
+				String says = stamp + " " +nick + "\n";
+				
+				log.append( says ); 
+				
+				if ( colour != Colors.black ){
+					
+					StyleRange styleRange = new StyleRange();
+					styleRange.start = start;
+					styleRange.length = says.length();
+					styleRange.foreground = colour;
+					log.setStyleRange(styleRange);
+				}
+				
+				log.append( msg + "\n" ); 
 			}
-			
-			log.append( msg + "\n" ); 
 		}
 
-		log.setSelection( log.getText().length());
+		if ( changed ){
+		
+			log.setSelection( log.getText().length());
+		}
 	}
 }
