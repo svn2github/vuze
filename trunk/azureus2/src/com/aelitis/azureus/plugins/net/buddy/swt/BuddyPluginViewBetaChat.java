@@ -557,7 +557,14 @@ BuddyPluginViewBetaChat
 				
 			}else{
 			
-				item.setForeground( 0, Colors.black );
+				if ( p.hasNickname()){
+					
+					item.setForeground( 0, Colors.blues[Colors.FADED_DARKEST] );
+					
+				}else{
+					
+					item.setForeground( 0, Colors.black );
+				}
 			}
 		}
 	}
@@ -703,19 +710,33 @@ BuddyPluginViewBetaChat
 	sortParticipants()
 	{
 		Collections.sort(
-				participants,
-				new Comparator<ChatParticipant>()
+			participants,
+			new Comparator<ChatParticipant>()
+			{
+				private Comparator<String> comp = new FormattersImpl().getAlphanumericComparator( true );
+				
+				public int 
+				compare(
+					ChatParticipant p1, 
+					ChatParticipant p2 ) 
 				{
-					private Comparator<String> comp = new FormattersImpl().getAlphanumericComparator( true );
+					boolean	b_p1 = p1.hasNickname();
+					boolean	b_p2 = p2.hasNickname();
 					
-					public int 
-					compare(
-						ChatParticipant o1, 
-						ChatParticipant o2) 
-					{
-						return( comp.compare( o1.getName(), o2.getName()));
+					if ( b_p1 == b_p2 ){
+					
+						return( comp.compare( p1.getName(), p2.getName()));
+						
+					}else if ( b_p1 ){
+						
+						return( -1 );
+						
+					}else{
+						
+						return( 1 );
 					}
-				});
+				}
+			});
 	}
 	
 	public void

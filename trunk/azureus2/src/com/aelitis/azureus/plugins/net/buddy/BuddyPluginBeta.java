@@ -970,8 +970,27 @@ BuddyPluginBeta
 			}
 		}
 		
+		AsyncDispatcher	dispatcher = new AsyncDispatcher( "sendAsync" );
+		
 		public void 
 		sendMessage(
+			final String		message )
+		{
+			dispatcher.dispatch(
+				new AERunnable()
+				{
+					
+					@Override
+					public void 
+					runSupport() 
+					{
+						sendMessageSupport( message );
+					}
+				});
+		}
+		
+		private void 
+		sendMessageSupport(
 			String		message )
 		{
 			if ( handler == null || msgsync_pi == null ){
@@ -1132,6 +1151,12 @@ BuddyPluginBeta
 		getName() 
 		{
 			return( nickname );
+		}
+		
+		public boolean
+		hasNickname()
+		{
+			return( !nickname.equals( pkToString( pk )));
 		}
 		
 		private void
