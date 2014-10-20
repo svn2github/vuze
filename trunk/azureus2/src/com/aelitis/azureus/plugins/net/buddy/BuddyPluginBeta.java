@@ -1124,6 +1124,8 @@ BuddyPluginBeta
 			pk		= _pk;
 			
 			nickname = pkToString( pk );
+			
+			is_pinned = COConfigurationManager.getBooleanParameter( getPinKey(), false );
 		}
 		
 		public String
@@ -1171,11 +1173,33 @@ BuddyPluginBeta
 			return( is_pinned );
 		}
 		
+		private String
+		getPinKey()
+		{
+			return( "azbuddy.chat.pinned." + ByteFormatter.encodeString( pk, 0, 16 ));
+		}
+		
 		public void
 		setPinned(
 			boolean		b )
 		{
-			is_pinned = b;
+			if ( b != is_pinned ){
+			
+				is_pinned = b;
+				
+				String key = getPinKey();
+				
+				if ( is_pinned ){
+				
+					COConfigurationManager.setParameter( key, true );
+					
+				}else{
+				
+					COConfigurationManager.removeParameter( key );
+				}
+				
+				COConfigurationManager.setDirty();
+			}
 		}
 	}
 	
