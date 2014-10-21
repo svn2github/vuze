@@ -573,6 +573,10 @@ public class FileUtil {
  				( use_backups && new File( parent_dir, name + ".bak" ).exists()));
   	}
   
+	/**
+	 * 
+ 	 * @return Map read from config file, or empty HashMap if error
+	 */
 	public static Map
 	readResilientConfigFile(
 		String		file_name )
@@ -584,6 +588,10 @@ public class FileUtil {
  		return( readResilientFile( parent_dir, file_name, use_backups ));
 	}
 	
+	/**
+	 * 
+ 	 * @return Map read from config file, or empty HashMap if error
+	 */
 	public static Map
 	readResilientConfigFile(
 		String		file_name,
@@ -606,6 +614,10 @@ public class FileUtil {
  		return( readResilientFile( parent_dir, file_name, use_backups ));
 	}
 	
+	/**
+	 * 
+ 	 * @return Map read from config file, or empty HashMap if error
+	 */
 	public static Map
 	readResilientFile(
 		File		file )
@@ -613,6 +625,10 @@ public class FileUtil {
 		return( readResilientFile( file.getParentFile(),file.getName(),false, true));
 	}
 	
+	/**
+	 * 
+ 	 * @return Map read from config file, or empty HashMap if error
+	 */
  	public static Map
 	readResilientFile(
 		File		parent_dir,
@@ -622,6 +638,15 @@ public class FileUtil {
  		return readResilientFile(parent_dir, file_name, use_backup, true);
  	}
  	
+ 	/**
+ 	 * 
+ 	 * @param parent_dir
+ 	 * @param file_name
+ 	 * @param use_backup
+ 	 * @param intern_keys
+ 	 * 
+ 	 * @return Map read from config file, or empty HashMap if error
+ 	 */
  	public static Map
 	readResilientFile(
 		File		parent_dir,
