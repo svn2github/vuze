@@ -46,6 +46,8 @@ import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAZ2Listener;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginAdapter;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginListener;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginViewInterface;
+import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.ChatInstance;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTrackerListener;
 import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
@@ -53,7 +55,7 @@ import com.aelitis.azureus.ui.swt.imageloader.ImageLoader;
 
 public class 
 BuddyPluginView
-	implements UISWTViewEventListener
+	implements UISWTViewEventListener, BuddyPluginViewInterface
 {
 	private BuddyPlugin		plugin;
 	private UISWTInstance	ui_instance;
@@ -175,6 +177,33 @@ BuddyPluginView
 		}
 		
 		return true;
+	}
+	
+	public void 
+	openChat(
+		final ChatInstance chat )
+	{
+		final Display display = Display.getDefault();
+	
+		if ( display.isDisposed()){
+			
+			return;
+		}
+		
+		display.asyncExec(
+			new Runnable()
+			{
+				public void
+				run()
+				{
+					if ( display.isDisposed()){
+						
+						return;
+					}
+				
+					new BuddyPluginViewBetaChat( plugin, chat );
+				}
+			});
 	}
 	
 	protected class

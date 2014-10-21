@@ -72,6 +72,7 @@ import com.aelitis.azureus.core.tag.TagType;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
 import com.aelitis.azureus.core.util.bloom.BloomFilter;
 import com.aelitis.azureus.core.util.bloom.BloomFilterFactory;
+import com.aelitis.azureus.core.vuzefile.VuzeFileHandler;
 import com.aelitis.azureus.plugins.magnet.MagnetPlugin;
 import com.aelitis.azureus.plugins.magnet.MagnetPluginProgressListener;
 import com.aelitis.azureus.plugins.net.buddy.tracker.BuddyPluginTracker;
@@ -245,6 +246,7 @@ BuddyPlugin
 	
 	private BuddyPluginBeta		beta_plugin;
 	
+	private BuddyPluginViewInterface	swt_ui;
 	
 	public static void
 	load(
@@ -549,7 +551,7 @@ BuddyPlugin
 					if ( instance.getUIType() == UIInstance.UIT_SWT ){
 							
 						try{
-							Class.forName( "com.aelitis.azureus.plugins.net.buddy.swt.BuddyPluginView").getConstructor(
+							swt_ui = (BuddyPluginViewInterface)Class.forName( "com.aelitis.azureus.plugins.net.buddy.swt.BuddyPluginView").getConstructor(
 								new Class[]{ BuddyPlugin.class, UIInstance.class, String.class } ).newInstance(
 									new Object[]{ BuddyPlugin.this, instance, VIEW_ID } );
 							
@@ -3434,6 +3436,12 @@ BuddyPlugin
  		}
  	}
 	
+	protected BuddyPluginViewInterface
+	getSWTUI()
+	{
+		return( swt_ui );
+	}
+	
 	protected void
 	rethrow(
 		String		reason,
@@ -3453,61 +3461,83 @@ BuddyPlugin
 			throw( new BuddyPluginException( reason, e ));
 		}
 	}
-	
-
+		
 	public InputStream
 	handleURLProtocol(
-		 AZPluginConnection			connection,
+		AZPluginConnection			connection,
 		String						arg_str )
 	
 		throws IPCException
 	{
-		String[]	args = arg_str.split( "&" );
-		
-		String		pk 				= null;
-		String		category_or_tag	= "All";
-		byte[]		hash			= null;
-		
-		for (String arg: args ){
+		if ( arg_str.toLowerCase( Locale.US ).startsWith( "chat:" )){
 			
-			String[]	bits = arg.split( "=" );
-			
-			String	lhs = bits[0];
-			String	rhs	= UrlUtils.decode( bits[1] );
-			
-			if ( lhs.equals( "pk" )){
-				
-				pk		= rhs;
-				
-			}else if ( lhs.equals( "cat" )){
-				
-				category_or_tag = rhs;
-				
-			}else if ( lhs.equals( "hash" )){
-				
-				hash	= Base32.decode(rhs);
-			}
-		}
-		
-		if ( pk == null ){
-			
-			throw( new IPCException( "Public key missing from '" + arg_str + "'" ));
-		}
-		
-		BuddyPluginBuddy	buddy	= getBuddyFromPublicKey( pk );
+				//azplug:?id=azbuddy&arg=chat%3Aanon%3Fmonkey%2520magic
 
-		if ( buddy == null ){
-			
-			throw( new IPCException( "Buddy with public key '" + pk + "' not found" ));
-		}
-		
-		if ( hash == null ){
-			
-			return( handleUPRSS( connection, buddy, category_or_tag ));
-			
+			if ( !beta_enabled_param.getValue()){
+				
+				throw( new IPCException( "Decentralized chat not enabled" ));
+			}
+				
+			try{
+				beta_plugin.handleURI( arg_str );
+				
+					// return an empty .vuze file to keep things happy...
+				
+				return( new ByteArrayInputStream( VuzeFileHandler.getSingleton().create().exportToBytes() ));
+
+			}catch( Throwable e ){
+				
+				throw( new IPCException( e ));
+			}	
+						
 		}else{
+			String[]	args = arg_str.split( "&" );
 			
-			return( handleUPTorrent( connection, buddy, category_or_tag, hash ));
+			String		pk 				= null;
+			String		category_or_tag	= "All";
+			byte[]		hash			= null;
+			
+			for (String arg: args ){
+				
+				String[]	bits = arg.split( "=" );
+				
+				String	lhs = bits[0];
+				String	rhs	= UrlUtils.decode( bits[1] );
+				
+				if ( lhs.equals( "pk" )){
+					
+					pk		= rhs;
+					
+				}else if ( lhs.equals( "cat" )){
+					
+					category_or_tag = rhs;
+					
+				}else if ( lhs.equals( "hash" )){
+					
+					hash	= Base32.decode(rhs);
+				}
+			}
+			
+			if ( pk == null ){
+				
+				throw( new IPCException( "Public key missing from '" + arg_str + "'" ));
+			}
+			
+			BuddyPluginBuddy	buddy	= getBuddyFromPublicKey( pk );
+	
+			if ( buddy == null ){
+				
+				throw( new IPCException( "Buddy with public key '" + pk + "' not found" ));
+			}
+			
+			if ( hash == null ){
+				
+				return( handleUPRSS( connection, buddy, category_or_tag ));
+				
+			}else{
+				
+				return( handleUPTorrent( connection, buddy, category_or_tag, hash ));
+			}
 		}
 	}
 	

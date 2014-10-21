@@ -41,12 +41,15 @@ import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
 import org.gudy.azureus2.core3.util.TimerEventPerformer;
 import org.gudy.azureus2.core3.util.TimerEventPeriodic;
+import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 
+import com.aelitis.azureus.core.proxy.impl.AEPluginProxyHandler;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
+import com.aelitis.azureus.plugins.net.buddy.swt.BuddyPluginViewBetaChat;
 
 public class
 BuddyPluginBeta 
@@ -234,6 +237,55 @@ BuddyPluginBeta
 		}
 	}
 		
+	public boolean
+	isI2PAvailable()
+	{
+		return( AEPluginProxyHandler.hasPluginProxyForNetwork( AENetworkClassifier.AT_I2P, false ));
+	}
+	
+	public void
+	handleURI(
+		String		url_str )
+		
+		throws Exception
+	{
+		BuddyPluginViewInterface ui = plugin.getSWTUI();
+		
+		if ( ui == null ){
+			
+			throw( new Exception( "UI unavailable" ));
+		}
+		
+		int	pos = url_str.indexOf( '?' );
+		
+		String key = "";
+		
+		if ( pos != -1 ){
+			
+			key = UrlUtils.decode( url_str.substring( pos+1 ));
+		}
+		
+		String network;
+		
+		if ( url_str.toLowerCase( Locale.US ).startsWith( "chat:anon" )){
+				
+			if ( !plugin.getBeta().isI2PAvailable()){
+				
+				throw( new Exception( "I2P unavailable" ));
+			}
+			
+			network = AENetworkClassifier.AT_I2P;
+			
+		}else{
+			
+			network = AENetworkClassifier.AT_PUBLIC;
+		}
+		
+		ChatInstance chat = plugin.getBeta().getChat(network, key);
+			
+		ui.openChat( chat );
+	}
+	
 	public ChatInstance
 	getChat(
 		String			network,

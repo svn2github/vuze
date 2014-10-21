@@ -44,7 +44,6 @@ import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Listener;
@@ -100,7 +99,6 @@ BuddyPluginViewBetaChat
 	protected
 	BuddyPluginViewBetaChat(
 		BuddyPlugin		_plugin,
-		Display 		_display,
 		ChatInstance	_chat )
 	{
 		plugin	= _plugin;
@@ -194,11 +192,26 @@ BuddyPluginViewBetaChat
 				widgetSelected(
 					SelectionEvent e ) 
 				{
-					URL url = (URL)mi_open.getData();
+					String url_str = (String)mi_open.getData();
 					
-					if ( url != null ){
+					if ( url_str != null ){
 						
-						TorrentOpener.openTorrent( url.toExternalForm());
+						String lc_url_str = url_str.toLowerCase( Locale.US );
+						
+						if ( lc_url_str.startsWith( "chat:" )){
+							
+							try{
+								plugin.getBeta().handleURI( url_str );
+								
+							}catch( Throwable f ){
+								
+								Debug.out( f );
+							}
+							
+						}else{
+						
+							TorrentOpener.openTorrent( url_str );
+						}
 					}
 				}
 			});
@@ -216,11 +229,11 @@ BuddyPluginViewBetaChat
 					widgetSelected(
 						SelectionEvent e ) 
 					{
-						URL url = (URL)mi_copy_clip.getData();
+						String url_str = (String)mi_copy_clip.getData();
 						
-						if ( url != null ){
+						if ( url_str != null ){
 							
-							ClipboardCopy.copyToClipBoard( url.toExternalForm());
+							ClipboardCopy.copyToClipBoard( url_str );
 						}
 					}
 				});
@@ -246,9 +259,7 @@ BuddyPluginViewBetaChat
 							String url_str = (String)sr.data;
 							
 							if ( url_str != null ){
-								
-								URL url = new URL( url_str );
-								
+																
 								String str = url_str;
 								
 								if ( str.length() > 50 ){
@@ -259,9 +270,9 @@ BuddyPluginViewBetaChat
 								str = lu.getLocalisedMessageText( "azbuddy.dchat.open.in.vuze" ) + ": " + str;
 								
 								mi_open.setText( str);
-								mi_open.setData( url );
+								mi_open.setData( url_str );
 								
-								mi_copy_clip.setData( url );
+								mi_copy_clip.setData( url_str );
 								
 								e.doit = true;
 							}
@@ -1122,8 +1133,20 @@ BuddyPluginViewBetaChat
 						try{
 							String url_str = protocol + msg.substring( pos, end );
 					
-							URL	url = new URL( url_str );
-					
+							if ( protocol.equalsIgnoreCase( "chat" )){
+								
+								if ( url_str.toLowerCase( Locale.US ).startsWith( "chat:anon" )){
+									
+									if ( !plugin.getBeta().isI2PAvailable()){
+										
+										throw( new Exception( "Anonymous chat unavailable" ));
+									}
+								}
+							}else{
+							
+								URL	url = new URL( url_str );
+							}
+							
 							StyleRange styleRange = new StyleRange();
 							styleRange.start = start+pos-protocol.length();
 							styleRange.length = url_str.length();

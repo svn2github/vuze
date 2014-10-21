@@ -253,7 +253,7 @@ BuddyPluginViewInstance
 		
 			// anonymous beta channel
 		
-		boolean i2p_enabled = AEPluginProxyHandler.hasPluginProxyForNetwork( AENetworkClassifier.AT_I2P, false );
+		boolean i2p_enabled = plugin.getBeta().isI2PAvailable();
 
 		label = new Label( main, SWT.NULL );
 		
@@ -335,7 +335,7 @@ BuddyPluginViewInstance
 											{
 												if ( !display.isDisposed()){
 																								
-													BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, display, inst );
+													BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, inst );
 														
 													create_button.setEnabled( true );
 													
@@ -423,7 +423,7 @@ BuddyPluginViewInstance
 										{
 											if ( !display.isDisposed()){
 																							
-												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, display, inst );
+												BuddyPluginViewBetaChat chat = new BuddyPluginViewBetaChat( plugin, inst );
 															
 												chat.addDisposeListener(
 													new DisposeListener()
@@ -453,7 +453,8 @@ BuddyPluginViewInstance
 											if ( !button.isDisposed()){
 												
 												button.setEnabled( true );
-											}										}
+											}										
+										}
 									});
 															
 								Debug.out( e );
