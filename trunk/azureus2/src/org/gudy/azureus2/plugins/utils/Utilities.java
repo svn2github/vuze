@@ -279,6 +279,10 @@ Utilities
 		long					idle_dispatch_time,
 		long					max_queue_size );
  	
+	/**
+	 * 
+ 	 * @return Map read from config file, or empty HashMap if error
+	 */
  	public Map
  	readResilientBEncodedFile(
  		File	parent_dir,
