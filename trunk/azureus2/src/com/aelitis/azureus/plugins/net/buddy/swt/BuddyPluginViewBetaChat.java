@@ -88,6 +88,8 @@ BuddyPluginViewBetaChat
 	private List<ChatMessage>			messages		= new ArrayList<ChatMessage>();
 	private List<ChatParticipant>		participants 	= new ArrayList<ChatParticipant>();
 	
+	private Map<ChatParticipant,ChatMessage>	participant_last_message_map = new HashMap<ChatParticipant, ChatMessage>();
+	
 	private boolean		table_resort_required;
 	
 	protected
@@ -800,6 +802,8 @@ BuddyPluginViewBetaChat
 		synchronized( participants ){
 			
 			participants.remove( participant );
+			
+			participant_last_message_map.remove( participant );
 		}
 		
 		updateTable( true );
@@ -908,13 +912,15 @@ BuddyPluginViewBetaChat
 				
 				boolean	is_error = message.isError();
 				
+				ChatParticipant participant = message.getParticipant();
+				
 				Color colour = Colors.blues[Colors.FADED_DARKEST];
 				
 				if ( is_error ){
 					
 					colour = Colors.red;		
 					
-				}else if ( message.getParticipant().isPinned()){
+				}else if ( participant.isPinned()){
 					
 					colour = Colors.fadedGreen;
 				}
@@ -923,15 +929,31 @@ BuddyPluginViewBetaChat
 				
 				String stamp = new SimpleDateFormat( "HH:mm" ).format( new Date( time ));
 				
-				if ( nick.length() > 32 ){
+				ChatMessage	last_message;
+				
+				String says = stamp + " " + (nick.length()>20?(nick.substring(0,16) + "..."):nick);
+
+				synchronized( participants ){
 					
-					nick = nick.substring(0,16) + "...";
+					last_message = participant_last_message_map.get( participant );
+					
+					participant_last_message_map.put( participant, message );
 				}
 				
-				int	start = log.getText().length();
-		
-				String says = stamp + " " +nick + "\n";
+				if ( last_message != null ){
+					
+					String last_nick = last_message.getNickName();
+					
+					if ( !nick.equals(last_nick)){
+						
+						says += " (was " + (last_nick.length()>20?(last_nick.substring(0,16) + "..."):last_nick) + ")";
+					}
+				}
 				
+				says += "\n";
+				
+				int	start = log.getText().length();
+						
 				log.append( says ); 
 				
 				if ( colour != Colors.black ){
