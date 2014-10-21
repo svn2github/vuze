@@ -559,13 +559,20 @@ BuddyPluginViewBetaChat
 				
 			}else{
 			
-				if ( p.hasNickname()){
+				if ( p.isNickClash()){
 					
-					item.setForeground( 0, Colors.blues[Colors.FADED_DARKEST] );
+					item.setForeground( 0, Colors.red );
 					
 				}else{
 					
-					item.setForeground( 0, Colors.black );
+					if ( p.hasNickname()){
+						
+						item.setForeground( 0, Colors.blues[Colors.FADED_DARKEST] );
+						
+					}else{
+						
+						item.setForeground( 0, Colors.black );
+					}
 				}
 			}
 		}
@@ -923,6 +930,10 @@ BuddyPluginViewBetaChat
 				}else if ( participant.isPinned()){
 					
 					colour = Colors.fadedGreen;
+					
+				}else if ( participant.isNickClash()){
+					
+					colour = Colors.red;
 				}
 				
 				long time = message.getTimeStamp();

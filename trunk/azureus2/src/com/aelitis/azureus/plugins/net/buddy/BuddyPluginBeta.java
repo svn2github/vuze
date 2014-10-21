@@ -335,6 +335,9 @@ BuddyPluginBeta
 		
 		private ByteArrayHashMap<ChatParticipant>	participants = new ByteArrayHashMap<ChatParticipant>();
 		
+		private Map<String,List<ChatParticipant>>	nick_clash_map = new HashMap<String, List<ChatParticipant>>();
+		
+		
 		private CopyOnWriteList<ChatListener>		listeners = new CopyOnWriteList<ChatListener>();
 		
 		private boolean	persistent = false;
@@ -917,19 +920,78 @@ BuddyPluginBeta
 				
 				ChatParticipant participant = participants.get( pk );
 				
+				String		old_nick;
+				String		new_nick;
+				
 				if ( participant == null ){
 					
 					new_participant = participant = new ChatParticipant( this, pk );
 					
 					participants.put( pk, participant );
 					
+					old_nick = null;
+					
 					participant.addMessage( msg );
+					
+					new_nick = participant.getName();
 					
 				}else{
 					
+					old_nick = participant.getName();
+					
 					participant.addMessage( msg );
 					
+					new_nick = participant.getName();
+					
 					msg.setIgnored( participant.isIgnored());
+				}
+				
+				if ( old_nick != null && !old_nick.equals( new_nick )){
+					
+					List<ChatParticipant>	hits = nick_clash_map.get( old_nick );
+					
+					if ( hits != null ){
+						
+						if ( hits.remove( participant )){
+							
+							participant.setNickClash( false );
+							
+							if ( hits.size() < 2 ){
+								
+								for ( ChatParticipant p: hits ){
+									
+									p.setNickClash( false );
+								}
+							}
+							
+							if ( hits.size() == 0 ){
+								
+								nick_clash_map.remove( old_nick );
+							}
+						}
+					}
+				}
+				
+				if ( old_nick == null || !old_nick.equals( new_nick )){
+					
+					List<ChatParticipant>	hits = nick_clash_map.get( new_nick );
+					
+					if ( hits == null ){
+						
+						hits = new ArrayList<ChatParticipant>();
+						
+						nick_clash_map.put( new_nick, hits );
+					}
+					
+					hits.add( participant );
+					
+					if ( hits.size() >= 2 ){
+						
+						for ( ChatParticipant p: hits ){
+							
+							p.setNickClash( true );
+						}
+					}
 				}
 				
 				msg.setParticipant( participant );
@@ -1133,6 +1195,7 @@ BuddyPluginBeta
 		private String				nickname;
 		private boolean				is_ignored;
 		private boolean				is_pinned;
+		private boolean				nick_clash;
 		
 		private
 		ChatParticipant(
@@ -1225,6 +1288,19 @@ BuddyPluginBeta
 				
 				COConfigurationManager.setDirty();
 			}
+		}
+		
+		public boolean
+		isNickClash()
+		{
+			return( nick_clash );
+		}
+		
+		private void
+		setNickClash(
+			boolean	b )
+		{
+			nick_clash = b;
 		}
 	}
 	
