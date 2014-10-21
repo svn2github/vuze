@@ -21,6 +21,7 @@
 
 package com.aelitis.azureus.plugins.net.buddy.swt;
 
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -31,11 +32,14 @@ import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
+import org.eclipse.swt.events.MenuDetectEvent;
+import org.eclipse.swt.events.MenuDetectListener;
 import org.eclipse.swt.events.MenuEvent;
 import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
@@ -59,11 +63,12 @@ import org.gudy.azureus2.ui.swt.Messages;
 import org.gudy.azureus2.ui.swt.Utils;
 import org.gudy.azureus2.ui.swt.components.BufferedLabel;
 import org.gudy.azureus2.ui.swt.components.shell.ShellFactory;
+import org.gudy.azureus2.ui.swt.mainwindow.ClipboardCopy;
 import org.gudy.azureus2.ui.swt.mainwindow.Colors;
+import org.gudy.azureus2.ui.swt.mainwindow.TorrentOpener;
 
 import com.aelitis.azureus.plugins.net.buddy.BuddyPlugin;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta;
-import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBuddy;
 import com.aelitis.azureus.plugins.net.buddy.BuddyPluginBeta.*;
 
 public class 
@@ -116,7 +121,7 @@ BuddyPluginViewBetaChat
 				}
 			});
 		
-		shell.setText( lu.getLocalisedMessageText( "azbuddy.chat.title" ) + ": " + chat.getName());
+		shell.setText( lu.getLocalisedMessageText( "label.chat" ) + ": " + chat.getName());
 				
 		Utils.setShellIcon(shell);
 		
@@ -175,6 +180,101 @@ BuddyPluginViewBetaChat
 		log.setEditable( false );
 
 		log_holder.setBackground( log.getBackground());
+
+		final Menu log_menu = new Menu( log );
+		
+		log.setMenu(  log_menu );
+
+		final MenuItem mi_open = new MenuItem( log_menu, SWT.PUSH );
+		
+		mi_open.addSelectionListener(
+			new SelectionAdapter() {
+				
+				public void 
+				widgetSelected(
+					SelectionEvent e ) 
+				{
+					URL url = (URL)mi_open.getData();
+					
+					if ( url != null ){
+						
+						TorrentOpener.openTorrent( url.toExternalForm());
+					}
+				}
+			});
+		
+		new MenuItem( log_menu, SWT.SEPARATOR );
+		
+		final MenuItem mi_copy_clip = new MenuItem( log_menu, SWT.PUSH );
+		
+		mi_copy_clip.setText( lu.getLocalisedMessageText( "ConfigView.copy.to.clipboard.tooltip" ));
+		
+		mi_copy_clip.addSelectionListener(
+				new SelectionAdapter() {
+					
+					public void 
+					widgetSelected(
+						SelectionEvent e ) 
+					{
+						URL url = (URL)mi_copy_clip.getData();
+						
+						if ( url != null ){
+							
+							ClipboardCopy.copyToClipBoard( url.toExternalForm());
+						}
+					}
+				});
+		
+		log.addMenuDetectListener(
+			new MenuDetectListener() {
+				
+				public void 
+				menuDetected(
+					MenuDetectEvent e ) 
+				{
+					e.doit = false;
+					
+					try{
+						Point mapped = log.getDisplay().map( null, log, new Point( e.x, e.y ));
+						
+						int offset = log.getOffsetAtLocation( mapped );
+						
+						StyleRange sr = log.getStyleRangeAtOffset(  offset );
+						
+						if ( sr != null ){
+							
+							String url_str = (String)sr.data;
+							
+							if ( url_str != null ){
+								
+								URL url = new URL( url_str );
+								
+								String str = url_str;
+								
+								if ( str.length() > 50 ){
+									
+									str = str.substring( 0, 50 ) + "...";
+								}
+								
+								str = lu.getLocalisedMessageText( "azbuddy.dchat.open.in.vuze" ) + ": " + str;
+								
+								mi_open.setText( str);
+								mi_open.setData( url );
+								
+								mi_copy_clip.setData( url );
+								
+								e.doit = true;
+							}
+						}
+					}catch( Throwable f ){
+						
+					}
+				}
+			});
+		
+		
+
+		
 		
 		Composite rhs = new Composite(shell, SWT.NONE);
 		layout = new GridLayout();
@@ -975,8 +1075,84 @@ BuddyPluginViewBetaChat
 					styleRange.foreground = colour;
 					log.setStyleRange(styleRange);
 				}
+								
+				start = log.getText().length();
 				
-				log.append( msg + "\n" ); 
+				log.append( msg ); 
+
+				int	pos = 0;
+				
+				while( pos < msg.length()){
+					
+					pos = msg.indexOf( ':', pos );
+					
+					if ( pos == -1 ){
+						
+						break;
+					}
+					
+					String	protocol = "";
+					
+					for (int i=pos-1; i>=0; i-- ){
+						
+						char c = msg.charAt(i);
+						
+						if ( Character.isWhitespace( c )){
+							
+							break;
+						}
+						
+						protocol = c + protocol;
+					}
+					
+					if ( protocol.length() > 0 ){
+						
+						int	end = msg.length();
+						
+						for ( int i=pos+1;i<msg.length();i++){
+							
+							if ( Character.isWhitespace( msg.charAt(i))){
+								
+								end = i;
+								
+								break;
+							}
+						}
+												
+						try{
+							String url_str = protocol + msg.substring( pos, end );
+					
+							URL	url = new URL( url_str );
+					
+							StyleRange styleRange = new StyleRange();
+							styleRange.start = start+pos-protocol.length();
+							styleRange.length = url_str.length();
+							styleRange.foreground = Colors.blue;
+							styleRange.underline = true;
+							
+								// DON'T store the URL object because in their wisdom SWT invokes the .equals method
+								// on data objects when trying to find 'similar' ones, and for URLs this causes
+								// a name service lookup...
+							
+							styleRange.data = url_str;
+							
+							log.setStyleRange(styleRange);
+							
+						}catch( Throwable e ){
+							
+						}
+						
+						pos = end;
+
+					}else{
+						
+						pos = pos+1;
+					}
+					
+					
+				}
+				
+				log.append( "\n" ); 
 			}
 		}
 

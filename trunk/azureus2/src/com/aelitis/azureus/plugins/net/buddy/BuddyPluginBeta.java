@@ -25,6 +25,7 @@ package com.aelitis.azureus.plugins.net.buddy;
 import java.util.*;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
+import org.gudy.azureus2.core3.internat.MessageText;
 import org.gudy.azureus2.core3.util.AENetworkClassifier;
 import org.gudy.azureus2.core3.util.AERunnable;
 import org.gudy.azureus2.core3.util.AsyncDispatcher;
@@ -367,7 +368,7 @@ BuddyPluginBeta
 		public String
 		getName()
 		{
-			return( getKey());
+			return( MessageText.getString(network==AENetworkClassifier.AT_PUBLIC?"label.public":"label.anon") + " - '" + key + "'" );
 		}
 		
 		public String

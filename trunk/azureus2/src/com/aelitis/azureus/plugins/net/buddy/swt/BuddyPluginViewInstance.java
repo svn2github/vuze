@@ -100,7 +100,7 @@ BuddyPluginViewInstance
 		
 		CTabItem beta_item = new CTabItem(tab_folder, SWT.NULL);
 
-		beta_item.setText( "Decentralised Chat" );
+		beta_item.setText( lu.getLocalisedMessageText( "azbuddy.dchat.decentralized" ));
 		
 		Composite beta_area = new Composite( tab_folder, SWT.NULL );
 		beta_item.setControl( beta_area );
@@ -109,7 +109,7 @@ BuddyPluginViewInstance
 		
 		CTabItem classic_item = new CTabItem(tab_folder, SWT.NULL);
 
-		classic_item.setText( "Classic" );
+		classic_item.setText( lu.getLocalisedMessageText(  "label.classic" ));
 		
 		Composite classic_area = new Composite( tab_folder, SWT.NULL );
 		classic_item.setControl( classic_area );
@@ -162,7 +162,7 @@ BuddyPluginViewInstance
 			// shared public nick
 		
 		label = new Label( main, SWT.NULL );
-		label.setText( "Shared public nickname" );
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.public.nick" ));
 
 		public_nickname = new Text( main, SWT.BORDER );
 		grid_data = new GridData();
@@ -181,7 +181,7 @@ BuddyPluginViewInstance
 			// shared anon nick
 			
 		label = new Label( main, SWT.NULL );
-		label.setText( "Shared anonymous nickname" );
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.anon.nick" ) );
 	
 		anon_nickname = new Text( main, SWT.BORDER );
 		grid_data = new GridData();
@@ -243,11 +243,11 @@ BuddyPluginViewInstance
 		
 		label = new Label( main, SWT.NULL );
 		
-		label.setText( "Public beta chat" );
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.public.beta" ));
 		
 		Button beta_button = new Button( main, SWT.NULL );
 		
-		setupButton( beta_button, "Open", AENetworkClassifier.AT_PUBLIC, BuddyPluginBeta.BETA_CHAT_KEY );
+		setupButton( beta_button, lu.getLocalisedMessageText( "Button.open" ), AENetworkClassifier.AT_PUBLIC, BuddyPluginBeta.BETA_CHAT_KEY );
 		
 		label = new Label( main, SWT.NULL );
 		
@@ -257,11 +257,11 @@ BuddyPluginViewInstance
 
 		label = new Label( main, SWT.NULL );
 		
-		label.setText( "Anonymous beta chat (I2P)" );
+		label.setText(  lu.getLocalisedMessageText( "azbuddy.dchat.anon.beta" ));
 
 		Button beta_i2p_button = new Button( main, SWT.NULL );
 	
-		setupButton( beta_i2p_button, "Open", AENetworkClassifier.AT_I2P, BuddyPluginBeta.BETA_CHAT_KEY );
+		setupButton( beta_i2p_button, lu.getLocalisedMessageText( "Button.open" ), AENetworkClassifier.AT_I2P, BuddyPluginBeta.BETA_CHAT_KEY );
 		
 		beta_i2p_button.setEnabled( i2p_enabled );
 		
@@ -278,9 +278,12 @@ BuddyPluginViewInstance
 		grid_data = new GridData(GridData.FILL_HORIZONTAL );
 		grid_data.horizontalSpan = 3;
 		create_area.setLayoutData(grid_data);
+		
+		create_area.setText( lu.getLocalisedMessageText( "azbuddy.dchat.custom" ));
 
 		label = new Label( create_area, SWT.NULL );
-		label.setText( "New channel key" );
+		
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.create.join.key" ));
 		
 		final Text channel_key = new Text( create_area, SWT.BORDER );
 		grid_data = new GridData();
@@ -289,13 +292,13 @@ BuddyPluginViewInstance
 		
 		final Button create_i2p_button = new Button( create_area, SWT.CHECK );
 		
-		create_i2p_button.setText( "Anonymous (I2P)" );
+		create_i2p_button.setText( lu.getLocalisedMessageText( "label.anon.i2p" ));
 		
 		create_i2p_button.setEnabled( i2p_enabled );
 
 		final Button create_button = new Button( create_area, SWT.NULL );
 
-		create_button.setText( "Create" );
+		create_button.setText( lu.getLocalisedMessageText( "Button.open" ));
 		
 		create_button.addSelectionListener(
 				new SelectionAdapter() 

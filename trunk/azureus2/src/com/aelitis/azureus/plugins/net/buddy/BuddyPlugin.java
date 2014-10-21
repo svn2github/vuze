@@ -394,14 +394,14 @@ BuddyPlugin
 					protocol_speed, enable_chat_notifications, cat_pub, tracker_enable
 			});
 		
-			// beta stuff
+			// decentralised stuff
 		
 		
-		beta_enabled_param = config.addBooleanParameter2( "azbuddy.beta.enabled", "azbuddy.beta.enabled", true );
+		beta_enabled_param = config.addBooleanParameter2( "azbuddy.dchat.decentralized.enabled", "azbuddy.dchat.decentralized.enabled", true );
 		
 		
 		config.createGroup(
-				"label.beta",
+				"azbuddy.dchat.decentralized",
 				new Parameter[]{
 						beta_enabled_param, 
 				});
