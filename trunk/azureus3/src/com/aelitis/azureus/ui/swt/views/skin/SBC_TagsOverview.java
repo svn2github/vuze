@@ -146,6 +146,13 @@ public class SBC_TagsOverview
 	public Object skinObjectInitialShow(SWTSkinObject skinObject, Object params) {
 		initColumns();
 
+		new InfoBarUtil(skinObject, "tagsview.infobar", false,
+				"tags.infobar", "tags.view.infobar") {
+			public boolean allowShow() {
+				return true;
+			}
+		};
+
 		return null;
 	}
 
