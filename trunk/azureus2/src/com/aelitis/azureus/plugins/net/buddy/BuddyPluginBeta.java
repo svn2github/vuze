@@ -287,6 +287,9 @@ BuddyPluginBeta
 					
 					inst.bind( azmsgsync_pi );
 				}
+			}else{
+				
+				inst.addReference();
 			}
 			
 			if ( persistent ){
@@ -348,6 +351,8 @@ BuddyPluginBeta
 		private boolean		is_shared_nick;
 		private String		instance_nick;
 		
+		private int			reference_count;
+		
 		private
 		ChatInstance(
 			String				_network,
@@ -363,6 +368,17 @@ BuddyPluginBeta
 
 			is_shared_nick 	= COConfigurationManager.getBooleanParameter( shared_key, true );
 			instance_nick 	= COConfigurationManager.getStringParameter( nick_key, "" );
+			
+			addReference();
+		}
+		
+		protected void
+		addReference()
+		{
+			synchronized( this ){
+				
+				reference_count++;
+			}
 		}
 		
 		public String
@@ -577,17 +593,24 @@ BuddyPluginBeta
 				int req_out_ok 		= ((Number)map.get( "req_out_ok" )).intValue();
 				int req_out_fail 	= ((Number)map.get( "req_out_fail" )).intValue();
 				double req_out_rate = ((Number)map.get( "req_out_rate" )).doubleValue();
-										
-				
-				if ( status == 0 ){
+									
+				if ( status == 0 || status == 1 ){
 					
-					return( "Initialising: dht=" + (dht_count<0?"...":String.valueOf(dht_count)));
+					String	result = "";
+
+					if ( status == 0 ){
 					
-				}else if ( status == 1 ){
+						result = "Initialising: dht=" + (dht_count<0?"...":String.valueOf(dht_count));
 					
-					return( "dht=" + dht_count + 
-							", nodes=" + nodes_local+"/"+nodes_live+"/"+nodes_dying +
-							", req=" + DisplayFormatters.formatDecimal(req_in_rate,1) + "/" +  DisplayFormatters.formatDecimal(req_out_rate,1) );
+					}else if ( status == 1 ){
+					
+						result = "dht=" + dht_count;
+					}
+					
+					result += 	", nodes=" + nodes_local+"/"+nodes_live+"/"+nodes_dying +
+								", req=" + DisplayFormatters.formatDecimal(req_in_rate,1) + "/" +  DisplayFormatters.formatDecimal(req_out_rate,1);
+					
+					return( result );
 					
 				}else{
 					
@@ -1147,6 +1170,16 @@ BuddyPluginBeta
 		public void
 		destroy()
 		{
+			synchronized( this ){
+				
+				reference_count--;
+				
+				if ( reference_count > 0 ){
+					
+					return;
+				}
+			}
+			
 			if ( !persistent ){
 				
 				if ( handler != null ){
