@@ -330,7 +330,7 @@ BuddyPluginBeta
 		
 		throws Exception
 	{
-		String key = "Private Chat: " + ByteFormatter.encodeString( participant.getPublicKey(), 0, 16 );
+		String key = participant.getChat().getKey() + "/" + participant.getName();
 		
 		return( getChat( participant.getChat().getNetwork(), key, participant, false ));
 	}
@@ -449,7 +449,7 @@ BuddyPluginBeta
 			
 			private_target	= _private_target;
 			
-			String chat_key_base = "azbuddy.chat." + getKey();
+			String chat_key_base = "azbuddy.chat." + getNetAndKey();
 			
 			String shared_key 	= chat_key_base + ".shared";
 			String nick_key 	= chat_key_base + ".nick";
@@ -484,6 +484,12 @@ BuddyPluginBeta
 		public String
 		getKey()
 		{
+			return( key );
+		}
+		
+		public String
+		getNetAndKey()
+		{
 			return( network + ": " + key );
 		}
 		
@@ -507,7 +513,7 @@ BuddyPluginBeta
 			
 				is_shared_nick	= _shared;
 			
-				String chat_key_base = "azbuddy.chat." + getKey();
+				String chat_key_base = "azbuddy.chat." + getNetAndKey();
 
 				String shared_key 	= chat_key_base + ".shared";
 
@@ -531,7 +537,7 @@ BuddyPluginBeta
 				
 				instance_nick	= _nick;
 			
-				String chat_key_base = "azbuddy.chat." + getKey();
+				String chat_key_base = "azbuddy.chat." + getNetAndKey();
 
 				String nick_key 	= chat_key_base + ".nick";
 
@@ -576,7 +582,7 @@ BuddyPluginBeta
 				
 					options.put( "parent_handler", private_target.getChat().getHandler());
 					options.put( "target_pk", private_target.getPublicKey());
-					options.put( "target_address", private_target.getAddress());
+					options.put( "target_contact", private_target.getContact());
 				}
 				
 				options.put( "listener", this );
@@ -721,11 +727,18 @@ BuddyPluginBeta
 		}
 		
 		private TimerEvent	sort_event;
+		private boolean		sort_force_changed;
 		
 		private void
-		sortMessages()
+		sortMessages(
+			boolean		force_change )
 		{
 			synchronized( chat_lock ){
+				
+				if ( force_change ){
+					
+					sort_force_changed = true;
+				}
 				
 				if ( sort_event != null ){
 					
@@ -749,6 +762,13 @@ BuddyPluginBeta
 									sort_event = null;
 									
 									changed = sortMessagesSupport();
+									
+									if ( sort_force_changed ){
+										
+										changed = true;
+												
+										sort_force_changed = false;
+									}
 								}
 								
 								if ( changed ){
@@ -1151,10 +1171,16 @@ BuddyPluginBeta
 					if ( old_msgs == 0 ){	
 						
 					}else if ( prev_id != null && Arrays.equals( prev_id, messages.get(old_msgs-1).getID())){
-											
+
+						// in right place already by linkage
+						
+					}else if ( msg.isError()){
+
+						// errors always go last
+						
 					}else{
 						
-						sortMessages();
+						sortMessages( true );
 						
 						sort_outstanding = true;
 					}
@@ -1216,6 +1242,12 @@ BuddyPluginBeta
 							System.out.println( pkToString( msg.getID()) + ", " + pkToString( msg.getPreviousID()) + " - " + msg.getMessage());
 						}
 					}
+					return;
+					
+				}else if ( message.equals( "!sort!" )){
+					
+					sortMessages( false );
+					
 					return;
 				}
 				
@@ -1445,12 +1477,12 @@ BuddyPluginBeta
 			return( pk );
 		}
 		
-		public InetSocketAddress
-		getAddress()
+		public Map<String,Object>
+		getContact()
 		{
 			synchronized( chat.chat_lock ){
 			
-				return( messages.get( messages.size()-1).getAddress());
+				return( messages.get( messages.size()-1).getContact());
 			}
 		}
 		
@@ -1775,10 +1807,10 @@ BuddyPluginBeta
 			return((byte[])map.get( "pk" ));
 		}
 		
-		public InetSocketAddress
-		getAddress()
+		public Map<String,Object>
+		getContact()
 		{
-			return((InetSocketAddress)map.get( "address" ));
+			return((Map<String,Object>)map.get( "contact" ));
 		}
 		
 		private int

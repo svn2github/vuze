@@ -1089,22 +1089,31 @@ BuddyPluginViewBetaChat
 				
 				ChatMessage	last_message;
 				
-				String says = stamp + " " + (nick.length()>20?(nick.substring(0,16) + "..."):nick);
-
 				synchronized( participants ){
 					
 					last_message = participant_last_message_map.get( participant );
 					
 					participant_last_message_map.put( participant, message );
 				}
+
+				String says;
 				
-				if ( last_message != null ){
+				if ( is_error ){
 					
-					String last_nick = last_message.getNickName();
+					says = stamp;
 					
-					if ( !nick.equals(last_nick)){
+				}else{
+					
+					says = stamp + " " + (nick.length()>20?(nick.substring(0,16) + "..."):nick);
+			
+					if ( last_message != null ){
 						
-						says += " (was " + (last_nick.length()>20?(last_nick.substring(0,16) + "..."):last_nick) + ")";
+						String last_nick = last_message.getNickName();
+						
+						if ( !nick.equals(last_nick)){
+							
+							says += " (was " + (last_nick.length()>20?(last_nick.substring(0,16) + "..."):last_nick) + ")";
+						}
 					}
 				}
 				
