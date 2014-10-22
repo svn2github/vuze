@@ -1388,6 +1388,12 @@ BuddyPluginBeta
 		{
 			nick_clash = b;
 		}
+		
+		public ChatInstance
+		createPrivateChat()
+		{
+			return( null );
+		}
 	}
 	
 	public class

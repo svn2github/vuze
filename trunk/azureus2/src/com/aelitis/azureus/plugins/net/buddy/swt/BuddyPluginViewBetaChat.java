@@ -311,7 +311,7 @@ BuddyPluginViewBetaChat
 		
 		Label label = new Label( top_right, SWT.NULL );
 		
-		label.setText( "Nickname: shared" );
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.nick.shared" ));
 
 		shared_nick_button = new Button( top_right, SWT.CHECK );
 		
@@ -460,7 +460,7 @@ BuddyPluginViewBetaChat
 					
 					final MenuItem ignore_item = new MenuItem(menu, SWT.PUSH);
 					
-					ignore_item.setText( "Mute" );
+					ignore_item.setText( lu.getLocalisedMessageText( "label.mute" ) );
 
 					ignore_item.addSelectionListener(
 						new SelectionAdapter() 
@@ -487,7 +487,7 @@ BuddyPluginViewBetaChat
 					
 					final MenuItem listen_item = new MenuItem(menu, SWT.PUSH);
 					
-					listen_item.setText( "Listen" );
+					listen_item.setText(lu.getLocalisedMessageText( "label.listen" ) );
 
 					listen_item.addSelectionListener(
 						new SelectionAdapter() 
@@ -516,7 +516,7 @@ BuddyPluginViewBetaChat
 					
 					final MenuItem pin_item = new MenuItem(menu, SWT.PUSH);
 					
-					pin_item.setText( "Pin" );
+					pin_item.setText( lu.getLocalisedMessageText( "label.pin" ) );
 
 					pin_item.addSelectionListener(
 						new SelectionAdapter() 
@@ -543,7 +543,7 @@ BuddyPluginViewBetaChat
 					
 					final MenuItem unpin_item = new MenuItem(menu, SWT.PUSH);
 					
-					unpin_item.setText( "Unpin" );
+					unpin_item.setText( lu.getLocalisedMessageText( "label.unpin" ) );
 
 					unpin_item.addSelectionListener(
 						new SelectionAdapter() 
@@ -567,6 +567,31 @@ BuddyPluginViewBetaChat
 						});
 					
 					unpin_item.setEnabled( can_unpin );
+					
+					new MenuItem(menu, SWT.SEPARATOR );
+					
+					final MenuItem private_chat_item = new MenuItem(menu, SWT.PUSH);
+					
+					private_chat_item.setText( lu.getLocalisedMessageText( "label.private.chat" ) );
+
+					private_chat_item.addSelectionListener(
+						new SelectionAdapter() 
+						{
+							public void 
+							widgetSelected(
+								SelectionEvent e) 
+							{
+								for (int i=0;i<selection.length;i++){
+									
+									ChatParticipant	participant = (ChatParticipant)selection[i].getData();
+									
+									ChatInstance chat = participant.createPrivateChat();
+									
+									new BuddyPluginViewBetaChat( plugin, chat);
+								}
+							};
+						});
+					
 				}
 				
 				public void menuHidden(MenuEvent e) {
