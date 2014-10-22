@@ -1022,6 +1022,11 @@ BuddyPluginViewBetaChat
 		log.setText( "" );
 		
 		messages.clear();
+		
+		synchronized( participants ){
+			
+			participant_last_message_map.clear();
+		}
 	}
 	
 	private void
