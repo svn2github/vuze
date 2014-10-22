@@ -24,6 +24,7 @@ package com.aelitis.azureus.plugins.net.buddy;
 
 import java.net.InetSocketAddress;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import org.gudy.azureus2.core3.config.COConfigurationManager;
 import org.gudy.azureus2.core3.internat.MessageText;
@@ -37,6 +38,7 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
+import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -319,6 +321,29 @@ BuddyPluginBeta
 		
 		throws Exception
 	{
+		return( getChat( network, key, null, persistent ));
+	}
+	
+	public ChatInstance
+	getChat(
+		ChatParticipant		participant )
+		
+		throws Exception
+	{
+		String key = "Private Chat: " + ByteFormatter.encodeString( participant.getPublicKey(), 0, 16 );
+		
+		return( getChat( participant.getChat().getNetwork(), key, participant, false ));
+	}
+	
+	public ChatInstance
+	getChat(
+		String				network,
+		String				key,
+		ChatParticipant		private_target,
+		boolean				persistent )
+		
+		throws Exception
+	{
 		if ( !enabled.getValue()){
 			
 			throw( new Exception( "Plugin not enabled" ));
@@ -332,7 +357,7 @@ BuddyPluginBeta
 			
 			if ( inst == null ){
 							
-				inst = new ChatInstance( network, key );
+				inst = new ChatInstance( network, key, private_target );
 			
 				chat_instances.put( meta_key, inst );
 				
@@ -385,17 +410,20 @@ BuddyPluginBeta
 		private final String		network;
 		private final String		key;
 		
+		private final ChatParticipant		private_target;
+		
 		private volatile PluginInterface		msgsync_pi;
 		private volatile Object					handler;
 		
 		private Object	chat_lock = this;
+		
+		private AtomicInteger						message_uid_next = new AtomicInteger();
 		
 		private List<ChatMessage>					messages = new ArrayList<ChatMessage>();
 		
 		private ByteArrayHashMap<ChatParticipant>	participants = new ByteArrayHashMap<ChatParticipant>();
 		
 		private Map<String,List<ChatParticipant>>	nick_clash_map = new HashMap<String, List<ChatParticipant>>();
-		
 		
 		private CopyOnWriteList<ChatListener>		listeners = new CopyOnWriteList<ChatListener>();
 		
@@ -411,10 +439,15 @@ BuddyPluginBeta
 		private
 		ChatInstance(
 			String				_network,
-			String				_key )
+			String				_key,
+			ChatParticipant		_private_target )
 		{
-			network 	= _network;
-			key			= _key;
+			network 		= _network;
+			key				= _key;
+			
+				// private chat args
+			
+			private_target	= _private_target;
 			
 			String chat_key_base = "azbuddy.chat." + getKey();
 			
@@ -521,6 +554,12 @@ BuddyPluginBeta
 			}
 		}
 		
+		private Object
+		getHandler()
+		{
+			return( handler );
+		}
+		
 		private void
 		bind(
 			PluginInterface	_msgsync_pi )
@@ -533,6 +572,13 @@ BuddyPluginBeta
 				options.put( "network", network );
 				options.put( "key", key.getBytes( "UTF-8" ));
 					
+				if ( private_target != null ){
+				
+					options.put( "parent_handler", private_target.getChat().getHandler());
+					options.put( "target_pk", private_target.getPublicKey());
+					options.put( "target_address", private_target.getAddress());
+				}
+				
 				options.put( "listener", this );
 						
 				Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "getMessageHandler", new Object[]{ options } );
@@ -757,9 +803,25 @@ BuddyPluginBeta
 				}
 			}
 			
+				// a comparator to consistently order messages to ensure sorting is determinstic
+			
+			Comparator<ChatMessage> message_comparator = 
+					new Comparator<ChatMessage>()
+					{					
+						public int 
+						compare(
+							ChatMessage o1, 
+							ChatMessage o2 ) 
+						{
+							return( o1.getUID() - o2.getUID());
+						}
+					};
+					
 				// break any loops arbitrarily
 		
-			Set<ChatMessage>	linked_messages = new HashSet<ChatMessage>( prev_map.keySet());
+			Set<ChatMessage>	linked_messages = new TreeSet<ChatMessage>(	message_comparator );
+			
+			linked_messages.addAll( prev_map.keySet());
 			
 			while( linked_messages.size() > 0 ){
 				
@@ -811,7 +873,7 @@ BuddyPluginBeta
 			}
 				// find the heads of the various chains
 			
-			Set<ChatMessage>		chain_heads = new HashSet<ChatMessage>();
+			Set<ChatMessage>		chain_heads = new TreeSet<ChatMessage>( message_comparator );
 			
 			for ( ChatMessage msg: messages ){
 				
@@ -870,6 +932,7 @@ BuddyPluginBeta
 				if ( result == null ){
 					
 					result = chain;
+					
 				}else{
 					
 					result = merge( result, chain );
@@ -877,6 +940,8 @@ BuddyPluginBeta
 			}
 			
 			if ( remainder_set.size() > 0 ){
+				
+					// these are messages not part of any chain so sort based on time
 				
 				List<ChatMessage>	remainder = new ArrayList<ChatMessage>( remainder_set );
 				
@@ -886,17 +951,17 @@ BuddyPluginBeta
 						{
 							public int 
 							compare(
-								ChatMessage o1, 
-								ChatMessage o2 ) 
+								ChatMessage m1, 
+								ChatMessage m2 ) 
 							{
-								long l = o1.getTimeStamp() - o2.getTimeStamp();
+								long l = m1.getTimeStamp() - m2.getTimeStamp();
 								
 								if ( l < 0 ){
 									return( -1 );
 								}else if ( l > 0 ){
 									return( 1 );
 								}else{
-									return(0);
+									return( m1.getUID() - m2.getUID());
 								}
 							}
 						});
@@ -924,30 +989,21 @@ BuddyPluginBeta
 
 				changed = true;
 			}
-			
-			Map<ChatParticipant,List<ChatMessage>>	p_map = new HashMap<ChatParticipant, List<ChatMessage>>();
+					
+			Set<ChatParticipant>	participants = new HashSet<ChatParticipant>();
 			
 			for ( int i=0;i<result.size();i++){
 				
 				ChatMessage msg = result.get(i);
 				
 				ChatParticipant p = msg.getParticipant();
-				
-				List<ChatMessage> p_messages = p_map.get(p);
-				
-				if ( p_messages == null ){
 					
-					p_messages = new ArrayList<ChatMessage>();
-					
-					p_map.put( p, p_messages );
-				}
-				
-				p_messages.add( msg );
+				participants.add( p );
 				
 				if ( !changed ){
-					
+						
 					if ( messages.get(i) != msg ){
-				
+					
 						changed = true;
 					}
 				}
@@ -957,9 +1013,26 @@ BuddyPluginBeta
 				
 				messages = result;
 				
-				for ( Map.Entry<ChatParticipant,List<ChatMessage>> entry: p_map.entrySet()){
+				for ( ChatParticipant p: participants ){
 					
-					entry.getKey().updateMessages( entry.getValue());
+					p.resetMessages();
+				}
+				
+				Set<ChatParticipant>	updated = new HashSet<ChatParticipant>();
+				
+				for ( ChatMessage msg: messages ){
+					
+					ChatParticipant p = msg.getParticipant();
+					
+					if ( p.replayMessage( msg )){
+						
+						updated.add( p );
+					}
+				}
+				
+				for ( ChatParticipant p: updated ){
+					
+					updated( p );
 				}
 			}
 			
@@ -1004,7 +1077,10 @@ BuddyPluginBeta
 					ChatMessage m1 = list1.get( pos1 );
 					ChatMessage m2 = list2.get( pos2 );
 				
-					if ( m1.getTimeStamp() <= m2.getTimeStamp()){
+					long	t1 = m1.getTimeStamp();
+					long	t2 = m2.getTimeStamp();
+					
+					if ( t1 < t2 || ( t1 == t2 && m1.getUID() < m2.getUID())){
 						
 						result.add( m1 );
 						
@@ -1026,7 +1102,7 @@ BuddyPluginBeta
 		messageReceived(
 			Map<String,Object>			message_map )
 		{
-			ChatMessage msg = new ChatMessage( message_map );
+			ChatMessage msg = new ChatMessage( message_uid_next.incrementAndGet(), message_map );
 						
 			ChatParticipant	new_participant = null;
 				
@@ -1332,8 +1408,8 @@ BuddyPluginBeta
 	public class
 	ChatParticipant
 	{
-		private ChatInstance		chat;
-		private final byte[]		pk;
+		private final ChatInstance		chat;
+		private final byte[]			pk;
 		
 		private String				nickname;
 		private boolean				is_ignored;
@@ -1357,6 +1433,27 @@ BuddyPluginBeta
 			chat.registerNick( this, null, nickname );
 		}
 		
+		public ChatInstance
+		getChat()
+		{
+			return( chat );
+		}
+	
+		public byte[]
+		getPublicKey()
+		{
+			return( pk );
+		}
+		
+		public InetSocketAddress
+		getAddress()
+		{
+			synchronized( chat.chat_lock ){
+			
+				return( messages.get( messages.size()-1).getAddress());
+			}
+		}
+		
 		public String
 		getName() 
 		{
@@ -1378,6 +1475,32 @@ BuddyPluginBeta
 			message.setParticipant( this );
 			
 			message.setIgnored( is_ignored );
+			
+			String new_nickname = message.getNickName();
+			
+			if ( !nickname.equals( new_nickname )){
+			
+				chat.registerNick( this, nickname, new_nickname );
+
+				message.setNickClash( isNickClash());
+				
+				nickname = new_nickname;
+								
+				chat.updated( this );
+				
+			}else{
+				
+				message.setNickClash( isNickClash());
+			}
+		}
+		
+		private boolean
+		replayMessage(
+			ChatMessage		message )
+		{
+			messages.add( message );
+						
+			message.setIgnored( is_ignored );
 
 			String new_nickname = message.getNickName();
 			
@@ -1385,9 +1508,17 @@ BuddyPluginBeta
 			
 				chat.registerNick( this, nickname, new_nickname );
 
+				message.setNickClash( isNickClash());
+				
 				nickname = new_nickname;
 								
-				chat.updated( this );
+				return( true );
+				
+			}else{
+				
+				message.setNickClash( isNickClash());
+				
+				return( false );
 			}
 		}
 		
@@ -1399,48 +1530,18 @@ BuddyPluginBeta
 		}
 		
 		private void
-		updateMessages(
-			List<ChatMessage>		updated_messages )
+		resetMessages()
 		{
-			boolean	changed = updated_messages.size() != messages.size();
+			String new_nickname = pkToString( pk );
 			
-			if ( !changed ){
+			if ( !nickname.equals( new_nickname )){
 				
-				for ( int i=0;i<updated_messages.size();i++){
-					
-					if ( updated_messages.get(i) != messages.get(i)){
-						
-						changed = true;
-						
-						break;
-					}
-				}
-			}
-			
-			if ( changed ){
-				
-				messages = updated_messages;
-				
-				String	new_nickname;
-				
-				if ( messages.size() == 0 ){
-				
-					new_nickname = pkToString( pk );
-					
-				}else{
-					
-					new_nickname = messages.get( messages.size() -1 ).getNickName();
-				}
-				
-				if ( !nickname.equals( new_nickname )){
-					
-					chat.registerNick( this, nickname, new_nickname );
+				chat.registerNick( this, nickname, new_nickname );
 
-					nickname = new_nickname;
-					
-					chat.updated( this );
-				}
+				nickname = new_nickname;
 			}
+			
+			messages.clear();
 		}
 		
 		public boolean
@@ -1506,14 +1607,17 @@ BuddyPluginBeta
 		
 		public ChatInstance
 		createPrivateChat()
+		
+			throws Exception
 		{
-			return( null ); // getChat(network, key) );
+			return( BuddyPluginBeta.this.getChat( this ));
 		}
 	}
 	
 	public class
 	ChatMessage
 	{
+		private final int						uid;
 		private final Map<String,Object>		map;
 		
 		private ChatParticipant					participant;
@@ -1525,11 +1629,14 @@ BuddyPluginBeta
 		private long							timestamp;
 		
 		private boolean							is_ignored;
+		private boolean							is_nick_clash;
 		
 		private
 		ChatMessage(
+			int						_uid,
 			Map<String,Object>		_map )
 		{
+			uid		= _uid;
 			map		= _map;
 			
 			message_id = (byte[])map.get( "id" );
@@ -1539,6 +1646,12 @@ BuddyPluginBeta
 			Map<String,Object> payload = getPayload();
 			
 			previous_id = (byte[])payload.get( "pre" );
+		}
+		
+		protected int
+		getUID()
+		{
+			return( uid );
 		}
 		
 		private void
@@ -1552,6 +1665,19 @@ BuddyPluginBeta
 		getParticipant()
 		{
 			return( participant );
+		}
+		
+		private void
+		setNickClash(
+			boolean	clash )
+		{
+			is_nick_clash = clash;
+		}
+		
+		public boolean
+		isNickClash()
+		{
+			return( is_nick_clash );
 		}
 		
 		private Map<String,Object>

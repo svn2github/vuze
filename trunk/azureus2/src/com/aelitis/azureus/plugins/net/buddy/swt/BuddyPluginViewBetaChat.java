@@ -585,9 +585,15 @@ BuddyPluginViewBetaChat
 									
 									ChatParticipant	participant = (ChatParticipant)selection[i].getData();
 									
-									ChatInstance chat = participant.createPrivateChat();
+									try{
+										ChatInstance chat = participant.createPrivateChat();
 									
-									new BuddyPluginViewBetaChat( plugin, chat);
+										new BuddyPluginViewBetaChat( plugin, chat);
+										
+									}catch( Throwable f ){
+										
+										Debug.out( f );
+									}
 								}
 							};
 						});
@@ -1072,7 +1078,7 @@ BuddyPluginViewBetaChat
 					
 					colour = Colors.fadedGreen;
 					
-				}else if ( participant.isNickClash()){
+				}else if ( message.isNickClash()){
 					
 					colour = Colors.red;
 				}
