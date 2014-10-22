@@ -1828,6 +1828,11 @@ BuddyPluginBeta
 		public String
 		getNickName()
 		{
+			if ( isError()){
+				
+				return ( participant.getChat().getNickname());
+			}
+			
 			Map<String,Object> payload = getPayload();
 			
 			if ( payload != null ){
