@@ -208,10 +208,12 @@ BuddyPluginBeta
 					{
 						try{
 							if ( Constants.isCVSVersion()){
+							
+								Debug.out( "PUB CHAT DISABLED!!!!" );
 								
-								ChatInstance chat = getChat( AENetworkClassifier.AT_PUBLIC, BETA_CHAT_KEY );
+								//ChatInstance chat = getChat( AENetworkClassifier.AT_PUBLIC, BETA_CHAT_KEY );
 								
-								chat.setPersistent();
+								//chat.setPersistent();
 							}	
 						}catch( Throwable e ){
 							

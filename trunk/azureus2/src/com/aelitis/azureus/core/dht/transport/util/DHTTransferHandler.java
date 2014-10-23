@@ -352,7 +352,9 @@ DHTTransferHandler
 					
 					if ( handler == null ){
 						
-						logger.log( "No transfer handler registered for key '" + ByteFormatter.encodeString(transfer_key) + "'" );
+						// get lots of these when local endpoint removed while other's still out there...
+						
+						//logger.log( "No transfer handler registered for key '" + ByteFormatter.encodeString(transfer_key) + "'" );
 						
 					}else{
 											
