@@ -290,6 +290,16 @@ CryptoHandlerECC
 		return( new CryptoSTSEngineImpl( getMyPublicKey(  reason, true ), getMyPrivateKey( reason )));
 	}
 	
+	public CryptoSTSEngine
+	getSTSEngine(
+		PublicKey		public_key,
+		PrivateKey		private_key )
+	
+		throws CryptoManagerException
+	{
+		return( new CryptoSTSEngineImpl( public_key, private_key ));
+	}
+	
 	public byte[]
 	peekPublicKey()
 	{

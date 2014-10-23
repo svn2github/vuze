@@ -19,6 +19,9 @@
 
 package com.aelitis.azureus.core.security;
 
+import java.security.PrivateKey;
+import java.security.PublicKey;
+
 public interface 
 CryptoHandler 
 {
@@ -95,6 +98,13 @@ CryptoHandler
 	
 		throws CryptoManagerException;
 
+	public CryptoSTSEngine
+	getSTSEngine(
+		PublicKey		public_key,
+		PrivateKey		private_key )
+	
+		throws CryptoManagerException;
+	
 	public byte[]
 	peekPublicKey();
 	
