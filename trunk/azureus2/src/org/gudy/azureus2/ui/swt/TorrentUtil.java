@@ -1716,6 +1716,8 @@ public class TorrentUtil {
 				}
 			});
 			
+			// XXX: Takes a very long time with many files..
+			/*
 			boolean	can_share_pers = dms.length > 0;
 			
 			for ( DownloadManager dm: dms ){
@@ -1723,10 +1725,12 @@ public class TorrentUtil {
 				if ( !( dm.isDownloadComplete( true ) && dm.filesExist( true ))){
 				
 					can_share_pers = false;
+					break;
 				}
 			}
 			
 			itemPersonalShare.setEnabled( can_share_pers );
+			*/
 		}
 		
 		
