@@ -48,11 +48,11 @@ import org.gudy.azureus2.core3.util.UrlUtils;
 import org.gudy.azureus2.plugins.PluginEvent;
 import org.gudy.azureus2.plugins.PluginEventListener;
 import org.gudy.azureus2.plugins.PluginInterface;
+import org.gudy.azureus2.plugins.ipc.IPCException;
 import org.gudy.azureus2.plugins.ui.config.BooleanParameter;
 
 import com.aelitis.azureus.core.proxy.impl.AEPluginProxyHandler;
 import com.aelitis.azureus.core.util.CopyOnWriteList;
-import com.aelitis.azureus.plugins.net.buddy.swt.BuddyPluginViewBetaChat;
 
 public class
 BuddyPluginBeta 
@@ -195,7 +195,7 @@ BuddyPluginBeta
 				
 				for ( ChatInstance inst: chat_instances.values() ){
 					
-					inst.bind( azmsgsync_pi );
+					inst.bind( azmsgsync_pi, null );
 				}
 			}
 			
@@ -209,8 +209,9 @@ BuddyPluginBeta
 						try{
 							if ( Constants.isCVSVersion()){
 								
-								getChat( AENetworkClassifier.AT_PUBLIC, BETA_CHAT_KEY, true );
+								ChatInstance chat = getChat( AENetworkClassifier.AT_PUBLIC, BETA_CHAT_KEY );
 								
+								chat.setPersistent();
 							}	
 						}catch( Throwable e ){
 							
@@ -231,10 +232,19 @@ BuddyPluginBeta
 			synchronized( chat_instances ){
 
 				azmsgsync_pi = null;
+						
+				Iterator<ChatInstance>	it = chat_instances.values().iterator();
 				
-				for ( ChatInstance inst: chat_instances.values() ){
+				while( it.hasNext()){
+					
+					ChatInstance inst = it.next();
 					
 					inst.unbind();
+					
+					if ( inst.isPrivateChat()){
+						
+						it.remove();
+					}	
 				}
 			}
 		}
@@ -272,7 +282,7 @@ BuddyPluginBeta
 		
 		if ( url_str.toLowerCase( Locale.US ).startsWith( "chat:anon" )){
 				
-			if ( !plugin.getBeta().isI2PAvailable()){
+			if ( !isI2PAvailable()){
 				
 				throw( new Exception( "I2P unavailable" ));
 			}
@@ -284,19 +294,9 @@ BuddyPluginBeta
 			network = AENetworkClassifier.AT_PUBLIC;
 		}
 		
-		ChatInstance chat = plugin.getBeta().getChat(network, key);
+		ChatInstance chat = getChat(network, key);
 			
 		ui.openChat( chat );
-	}
-	
-	public ChatInstance
-	getChat(
-		String			network,
-		String			key )
-		
-		throws Exception
-	{
-		return( getChat( network, key, false ));
 	}
 	
 	private String
@@ -316,12 +316,10 @@ BuddyPluginBeta
 	public ChatInstance
 	getChat(
 		String			network,
-		String			key,
-		boolean			persistent )
-		
+		String			key )		
 		throws Exception
 	{
-		return( getChat( network, key, null, persistent ));
+		return( getChat( network, key, null, null ));
 	}
 	
 	public ChatInstance
@@ -330,17 +328,29 @@ BuddyPluginBeta
 		
 		throws Exception
 	{
-		String key = participant.getChat().getKey() + "/" + participant.getName();
+		String key = participant.getChat().getKey() + "/" + participant.getName() + "/out";
 		
-		return( getChat( participant.getChat().getNetwork(), key, participant, false ));
+		return( getChat( participant.getChat().getNetwork(), key, participant, null ));
 	}
 	
 	public ChatInstance
 	getChat(
+		ChatParticipant	parent_participant,
+		Object			handler )
+		
+		throws Exception
+	{
+		String key = parent_participant.getChat().getKey() + "/" + parent_participant.getName() + "/in";
+
+		return( getChat( parent_participant.getChat().getNetwork(), key, null, handler ));
+	}
+	
+	private ChatInstance
+	getChat(
 		String				network,
 		String				key,
 		ChatParticipant		private_target,
-		boolean				persistent )
+		Object				handler )
 		
 		throws Exception
 	{
@@ -357,22 +367,17 @@ BuddyPluginBeta
 			
 			if ( inst == null ){
 							
-				inst = new ChatInstance( network, key, private_target );
+				inst = new ChatInstance( network, key, private_target, handler );
 			
 				chat_instances.put( meta_key, inst );
 				
 				if ( azmsgsync_pi != null ){
 					
-					inst.bind( azmsgsync_pi );
+					inst.bind( azmsgsync_pi, handler );
 				}
 			}else{
 				
 				inst.addReference();
-			}
-			
-			if ( persistent ){
-				
-				inst.setPersistent();
 			}
 			
 			if ( timer == null ){
@@ -410,6 +415,8 @@ BuddyPluginBeta
 		private final String		network;
 		private final String		key;
 		
+		private boolean				is_private_chat;
+		
 		private final ChatParticipant		private_target;
 		
 		private volatile PluginInterface		msgsync_pi;
@@ -440,7 +447,8 @@ BuddyPluginBeta
 		ChatInstance(
 			String				_network,
 			String				_key,
-			ChatParticipant		_private_target )
+			ChatParticipant		_private_target,
+			Object				_handler )
 		{
 			network 		= _network;
 			key				= _key;
@@ -448,6 +456,8 @@ BuddyPluginBeta
 				// private chat args
 			
 			private_target	= _private_target;
+			
+			is_private_chat = private_target != null || _handler != null;
 			
 			String chat_key_base = "azbuddy.chat." + getNetAndKey();
 			
@@ -485,6 +495,12 @@ BuddyPluginBeta
 		getKey()
 		{
 			return( key );
+		}
+		
+		public boolean
+		isPrivateChat()
+		{
+			return( is_private_chat );
 		}
 		
 		public String
@@ -568,36 +584,61 @@ BuddyPluginBeta
 		
 		private void
 		bind(
-			PluginInterface	_msgsync_pi )
-		{		
+			PluginInterface		_msgsync_pi,
+			Object				_handler )
+		{	
 			msgsync_pi = _msgsync_pi;
-			
-			try{
-				Map<String,Object>		options = new HashMap<String, Object>();
+
+			if ( _handler != null ){
 				
-				options.put( "network", network );
-				options.put( "key", key.getBytes( "UTF-8" ));
+				handler		= _handler;
+				
+				try{
+					Map<String,Object>		options = new HashMap<String, Object>();
+							
+					options.put( "handler", _handler );
 					
-				if ( private_target != null ){
-				
-					options.put( "parent_handler", private_target.getChat().getHandler());
-					options.put( "target_pk", private_target.getPublicKey());
-					options.put( "target_contact", private_target.getContact());
-				}
-				
-				options.put( "listener", this );
+					options.put( "addlistener", this );
+							
+					Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "updateMessageHandler", new Object[]{ options } );
+									
+					for ( ChatListener l: listeners ){
 						
-				Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "getMessageHandler", new Object[]{ options } );
-				
-				handler = reply.get( "handler" );
-				
-				for ( ChatListener l: listeners ){
+						l.stateChanged( true );
+					}
+				}catch( Throwable e ){
 					
-					l.stateChanged( true );
+					Debug.out(e );
 				}
-			}catch( Throwable e ){
-				
-				Debug.out(e );
+			}else{
+			
+				try{
+					Map<String,Object>		options = new HashMap<String, Object>();
+					
+					options.put( "network", network );
+					options.put( "key", key.getBytes( "UTF-8" ));
+						
+					if ( private_target != null ){
+					
+						options.put( "parent_handler", private_target.getChat().getHandler());
+						options.put( "target_pk", private_target.getPublicKey());
+						options.put( "target_contact", private_target.getContact());
+					}
+					
+					options.put( "listener", this );
+							
+					Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "getMessageHandler", new Object[]{ options } );
+					
+					handler = reply.get( "handler" );
+					
+					for ( ChatListener l: listeners ){
+						
+						l.stateChanged( true );
+					}
+				}catch( Throwable e ){
+					
+					Debug.out(e );
+				}
 			}
 		}
 		
@@ -1121,6 +1162,8 @@ BuddyPluginBeta
 		public void
 		messageReceived(
 			Map<String,Object>			message_map )
+			
+			throws IPCException
 		{
 			ChatMessage msg = new ChatMessage( message_uid_next.incrementAndGet(), message_map );
 						
@@ -1201,6 +1244,52 @@ BuddyPluginBeta
 					
 					l.messageReceived( msg );
 				}
+			}
+		}
+		
+		public void
+		chatRequested(
+			Map<String,Object>			message_map )
+			
+			throws IPCException
+		{
+			try{
+				System.out.println( "chat requested: " + message_map );
+				
+				Object	new_handler 	= message_map.get( "handler" );
+				
+				byte[]	remote_pk 		= (byte[])message_map.get( "pk" );
+				
+				ChatParticipant	participant;
+				
+				synchronized( chat_lock ){
+	
+					participant = participants.get( remote_pk );
+				}
+				
+				if ( participant == null ){
+					
+					throw( new IPCException( "requesting participant not found" ));
+				}
+				
+				ChatInstance inst = getChat( participant, new_handler );
+				
+				BuddyPluginViewInterface ui = plugin.getSWTUI();
+				
+				if ( ui == null ){
+					
+					throw( new IPCException( "UI unavailable" ));
+				}
+				
+				ui.openChat( inst );
+				
+			}catch( IPCException e ){
+				
+				throw( e );
+				
+			}catch( Throwable e ){
+				
+				throw( new IPCException( e ));
 			}
 		}
 		
