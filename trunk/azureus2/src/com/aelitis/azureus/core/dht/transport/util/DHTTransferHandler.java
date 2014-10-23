@@ -348,7 +348,7 @@ DHTTransferHandler
 					
 				}else{
 				
-					final DHTTransportTransferHandler	handler = (DHTTransportTransferHandler)transfer_handlers.get(new HashWrapper( transfer_key ));
+					final transferHandlerInterceptor	handler = transfer_handlers.get(new HashWrapper( transfer_key ));
 					
 					if ( handler == null ){
 						
@@ -446,7 +446,7 @@ DHTTransferHandler
 															req.getTotalLength());
 												}
 												
-												byte[]	reply_data = handler.handleWrite( originator, req.getRequestKey(), write_data );
+												byte[]	reply_data = handler.handleWrite( originator, req.getConnectionId(), req.getRequestKey(), write_data );
 												
 												if ( reply_data != null ){
 													
@@ -598,7 +598,7 @@ DHTTransferHandler
 
 				entire_request_count++;
 			
-				sendReadRequest( transfer_queue.getID(), target, handler_key, key, 0, 0 );
+				sendReadRequest( transfer_queue.getConnectionID(), target, handler_key, key, 0, 0 );
 
 			}else{
 				
@@ -721,7 +721,7 @@ DHTTransferHandler
 						
 						listener.reportActivity( getMessageText( "rerequest_all", target_name ));
 						
-						sendReadRequest( transfer_queue.getID(), target, handler_key, key, 0, 0 );
+						sendReadRequest( transfer_queue.getConnectionID(), target, handler_key, key, 0, 0 );
 						
 					}else{
 						
@@ -749,7 +749,7 @@ DHTTransferHandler
 													target_name }));
 								
 								sendReadRequest( 
-										transfer_queue.getID(), 
+										transfer_queue.getConnectionID(), 
 										target, 
 										handler_key, 
 										key,
@@ -771,7 +771,7 @@ DHTTransferHandler
 												target_name }));
 			
 							sendReadRequest( 
-									transfer_queue.getID(), 
+									transfer_queue.getConnectionID(), 
 									target, 
 									handler_key, 
 									key,
@@ -814,11 +814,26 @@ DHTTransferHandler
 	
 		throws DHTTransportException
 	{
+		long	connection_id 	= adapter.getConnectionID();
+
+		writeTransfer( listener, target, connection_id, handler_key, key, data, timeout );
+	}
+	
+	private void
+	writeTransfer(
+		DHTTransportProgressListener	listener,
+		DHTTransportContact				target,
+		long							connection_id,
+		byte[]							handler_key,
+		byte[]							key,
+		byte[]							data,
+		long							timeout )
+	
+		throws DHTTransportException
+	{
 		transferQueue	transfer_queue = null;
 	
-		try{
-			long	connection_id 	= adapter.getConnectionID();
-		
+		try{		
 			transfer_queue = new transferQueue( write_transfers, connection_id );
 		
 			boolean	ok 				= false;
@@ -919,6 +934,8 @@ DHTTransferHandler
 	
 		throws DHTTransportException
 	{
+		long	connection_id 	= adapter.getConnectionID();
+				
 		byte[]	call_key = new byte[20];
 		
 		RandomUtils.SECURE_RANDOM.nextBytes( call_key );
@@ -930,14 +947,14 @@ DHTTransferHandler
 		try{
 			this_mon.enter();
 			
-			call_transfers.put( wrapped_key, call_sem );
+			call_transfers.put( wrapped_key, new Object[]{ call_sem, connection_id });
 		
 		}finally{
 			
 			this_mon.exit();
 		}
 		
-		writeTransfer( listener, target, handler_key, call_key, data, timeout );
+		writeTransfer( listener, target, connection_id, handler_key, call_key, data, timeout );
 		
 		if ( call_sem.reserve( timeout )){
 			
@@ -1003,7 +1020,7 @@ DHTTransferHandler
 	{
 		private Map<Long,transferQueue>			transfers;
 		
-		private long		id;
+		private long		connection_id;
 		private boolean		destroyed;
 		
 		private List<Packet>		packets	= new ArrayList<Packet>();
@@ -1013,12 +1030,12 @@ DHTTransferHandler
 		protected
 		transferQueue(
 			Map<Long,transferQueue>		_transfers,
-			long						_id )
+			long						_connection_id )
 		
 			throws DHTTransportException
 		{
-			transfers	= _transfers;
-			id			= _id;
+			transfers		= _transfers;
+			connection_id	= _connection_id;
 			
 			try{
 				this_mon.enter();
@@ -1030,7 +1047,7 @@ DHTTransferHandler
 					throw( new DHTTransportException( "Transfer queue limit exceeded" ));
 				}
 				
-				Long l_id = new Long( id );
+				Long l_id = new Long( connection_id );
 				
 				transferQueue	existing = (transferQueue)transfers.get( l_id );
 				
@@ -1048,9 +1065,9 @@ DHTTransferHandler
 		}
 		
 		protected long
-		getID()
+		getConnectionID()
 		{
-			return( id );
+			return( connection_id );
 		}
 		
 		protected void
@@ -1136,7 +1153,7 @@ DHTTransferHandler
 					
 				destroyed = true;
 				
-				transfers.remove( new Long( id ));
+				transfers.remove( new Long( connection_id ));
 				
 				for (int i=0;i<packets.size();i++){
 					
@@ -1297,9 +1314,19 @@ DHTTransferHandler
 			return( handler.handleRead( originator, key ));
 		}
     	
+	   	public byte[]
+	   	handleWrite(
+	   		DHTTransportContact	originator,
+	   		byte[]				key,
+	   		byte[]				value )
+	   	{
+	   		return( handleWrite( originator, 0, key, value ));
+	   	}
+	   	
     	public byte[]
     	handleWrite(
     		DHTTransportContact	originator,
+    		long				connection_id,
     		byte[]				key,
     		byte[]				value )
     	{
@@ -1310,17 +1337,24 @@ DHTTransferHandler
     		try{
     			this_mon.enter();
     			
-    			Object	obj = call_transfers.get( key_wrapper );
+    			Object	_obj = call_transfers.get( key_wrapper );
     			
-    			if ( obj instanceof AESemaphore ){
+    			if ( _obj instanceof Object[] ){
     				
-    				AESemaphore	sem = (AESemaphore)obj;
+    				Object[] obj = (Object[])_obj;
     				
-    				call_transfers.put( key_wrapper, value );
+    					// prevent loopback requests from returning the request as the result
     				
-    				sem.release();
-    				
-    				return( null );
+    				if ((Long)obj[1] != connection_id ){
+    					
+	    				AESemaphore	sem = (AESemaphore)obj[0];
+	    				
+	    				call_transfers.put( key_wrapper, value );
+	    				
+	    				sem.release();
+	    				
+	    				return( null );
+    				}
     			}
     		}finally{
     			
