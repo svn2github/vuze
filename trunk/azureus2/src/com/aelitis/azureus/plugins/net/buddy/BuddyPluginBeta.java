@@ -424,6 +424,8 @@ BuddyPluginBeta
 		private volatile PluginInterface		msgsync_pi;
 		private volatile Object					handler;
 		
+		private byte[]							my_public_key;
+		
 		private Object	chat_lock = this;
 		
 		private AtomicInteger						message_uid_next = new AtomicInteger();
@@ -497,6 +499,12 @@ BuddyPluginBeta
 		getKey()
 		{
 			return( key );
+		}
+		
+		public byte[]
+		getPublicKey()
+		{
+			return( my_public_key );
 		}
 		
 		public boolean
@@ -603,7 +611,9 @@ BuddyPluginBeta
 					options.put( "addlistener", this );
 							
 					Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "updateMessageHandler", new Object[]{ options } );
-									
+						
+					my_public_key = (byte[])reply.get( "pk" );
+
 					for ( ChatListener l: listeners ){
 						
 						l.stateChanged( true );
@@ -632,6 +642,8 @@ BuddyPluginBeta
 					Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "getMessageHandler", new Object[]{ options } );
 					
 					handler = reply.get( "handler" );
+					
+					my_public_key = (byte[])reply.get( "pk" );
 					
 					for ( ChatListener l: listeners ){
 						

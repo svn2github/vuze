@@ -568,36 +568,58 @@ BuddyPluginViewBetaChat
 					
 					unpin_item.setEnabled( can_unpin );
 					
-					new MenuItem(menu, SWT.SEPARATOR );
-					
-					final MenuItem private_chat_item = new MenuItem(menu, SWT.PUSH);
-					
-					private_chat_item.setText( lu.getLocalisedMessageText( "label.private.chat" ) );
-
-					private_chat_item.addSelectionListener(
-						new SelectionAdapter() 
-						{
-							public void 
-							widgetSelected(
-								SelectionEvent e) 
+					if ( !chat.isPrivateChat()){
+						new MenuItem(menu, SWT.SEPARATOR );
+						
+						final MenuItem private_chat_item = new MenuItem(menu, SWT.PUSH);
+						
+						private_chat_item.setText( lu.getLocalisedMessageText( "label.private.chat" ) );
+	
+						final byte[]	chat_pk = chat.getPublicKey();
+	
+						private_chat_item.addSelectionListener(
+							new SelectionAdapter() 
 							{
-								for (int i=0;i<selection.length;i++){
-									
-									ChatParticipant	participant = (ChatParticipant)selection[i].getData();
-									
-									try{
-										ChatInstance chat = participant.createPrivateChat();
-									
-										new BuddyPluginViewBetaChat( plugin, chat);
+								public void 
+								widgetSelected(
+									SelectionEvent e) 
+								{
+									for (int i=0;i<selection.length;i++){
 										
-									}catch( Throwable f ){
+										ChatParticipant	participant = (ChatParticipant)selection[i].getData();
 										
-										Debug.out( f );
+										if ( !Arrays.equals( participant.getPublicKey(), chat_pk )){
+											try{
+												ChatInstance chat = participant.createPrivateChat();
+											
+												new BuddyPluginViewBetaChat( plugin, chat);
+												
+											}catch( Throwable f ){
+												
+												Debug.out( f );
+											}
+										}
 									}
+								};
+							});
+							
+						boolean	pc_enable = false;
+						
+						if ( chat_pk != null ){
+							
+							for (int i=0;i<selection.length;i++){
+								
+								ChatParticipant	participant = (ChatParticipant)selection[i].getData();
+								
+								if ( !Arrays.equals( participant.getPublicKey(), chat_pk )){
+									
+									pc_enable = true;
 								}
-							};
-						});
-					
+							}
+						}
+						
+						private_chat_item.setEnabled( pc_enable );
+					}
 				}
 				
 				public void menuHidden(MenuEvent e) {
