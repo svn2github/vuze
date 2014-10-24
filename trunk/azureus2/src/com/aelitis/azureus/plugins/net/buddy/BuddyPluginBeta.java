@@ -22,7 +22,6 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
-import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -38,7 +37,6 @@ import org.gudy.azureus2.core3.util.ByteFormatter;
 import org.gudy.azureus2.core3.util.Constants;
 import org.gudy.azureus2.core3.util.Debug;
 import org.gudy.azureus2.core3.util.DisplayFormatters;
-import org.gudy.azureus2.core3.util.RandomUtils;
 import org.gudy.azureus2.core3.util.SimpleTimer;
 import org.gudy.azureus2.core3.util.SystemTime;
 import org.gudy.azureus2.core3.util.TimerEvent;
@@ -760,13 +758,20 @@ BuddyPluginBeta
 					
 					String	result = "";
 
-					if ( status == 0 ){
-					
-						result = "Initialising: dht=" + (dht_count<0?"...":String.valueOf(dht_count));
-					
-					}else if ( status == 1 ){
-					
-						result = "dht=" + dht_count;
+					if ( isPrivateChat()){
+						
+						result = "Private chat";
+						
+					}else{
+						
+						if ( status == 0 ){
+						
+							result = "Initialising: dht=" + (dht_count<0?"...":String.valueOf(dht_count));
+						
+						}else if ( status == 1 ){
+						
+							result = "dht=" + dht_count;
+						}
 					}
 					
 					result += 	", nodes=" + nodes_local+"/"+nodes_live+"/"+nodes_dying +
@@ -1231,9 +1236,9 @@ BuddyPluginBeta
 
 						// in right place already by linkage
 						
-					}else if ( msg.isError()){
+					}else if ( msg.getMessageType() != ChatMessage.MT_NORMAL ){
 
-						// errors always go last
+						// info etc always go last
 						
 					}else{
 						
@@ -1553,6 +1558,8 @@ BuddyPluginBeta
 		
 		private List<ChatMessage>	messages	= new ArrayList<ChatMessage>();
 		
+		private Boolean				is_me;
+		
 		private
 		ChatParticipant(
 			ChatInstance		_chat,
@@ -1587,6 +1594,24 @@ BuddyPluginBeta
 			
 				return( messages.get( messages.size()-1).getContact());
 			}
+		}
+		
+		public boolean
+		isMe()
+		{
+			if ( is_me != null ){
+				
+				return( is_me );
+			}
+			
+			byte[] chat_key = chat.getPublicKey();
+			
+			if ( chat_key != null ){
+			
+				is_me = Arrays.equals( pk, chat_key );
+			}
+			
+			return( is_me );
 		}
 		
 		public String
@@ -1689,7 +1714,18 @@ BuddyPluginBeta
 		setIgnored(
 			boolean		b )
 		{
-			is_ignored = b;
+			if ( b != is_ignored ){
+				
+				is_ignored = b;
+				
+				synchronized( chat.chat_lock ){
+
+					for ( ChatMessage message: messages ){
+						
+						message.setIgnored( b );
+					}
+				}
+			}
 		}
 		
 		public boolean
@@ -1752,6 +1788,10 @@ BuddyPluginBeta
 	public class
 	ChatMessage
 	{
+		public static final int MT_NORMAL	= 1;
+		public static final int MT_INFO		= 2;
+		public static final int MT_ERROR	= 3;
+		
 		private final int						uid;
 		private final Map<String,Object>		map;
 		
@@ -1835,11 +1875,16 @@ BuddyPluginBeta
 		getMessage()
 		{
 			try{
-				String	error = (String)map.get( "error" );
+				String	report = (String)map.get( "error" );
 				
-				if ( error != null ){
+				if ( report != null ){
 					
-					return( error );
+					if ( report.length() > 2 && report.charAt(1) == ':' ){
+						
+						return( report.substring( 2 ));
+					}
+					
+					return( report );
 				}
 				
 					// was just a string for a while...
@@ -1866,10 +1911,33 @@ BuddyPluginBeta
 			}
 		}
 		
-		public boolean
-		isError()
+		public int
+		getMessageType()
 		{
-			return( map.containsKey( "error" ));
+			String	report = (String)map.get( "error" );
+			
+			if ( report == null ){
+				
+				return( MT_NORMAL );
+				
+			}else{
+				if ( report.length() < 2 || report.charAt(1) != ':' ){
+					
+					return( MT_ERROR );
+				}
+				
+				String content = report.substring(2);
+				
+				char type = report.charAt(0);
+				
+				if ( type == 'i' ){
+					
+					return( MT_INFO );
+				}else{
+					
+					return( MT_ERROR );
+				}
+			}
 		}
 		
 		public boolean
@@ -1931,7 +1999,7 @@ BuddyPluginBeta
 		public String
 		getNickName()
 		{
-			if ( isError()){
+			if ( getMessageType() != ChatMessage.MT_NORMAL ){
 				
 				return ( participant.getChat().getNickname());
 			}

@@ -39,6 +39,8 @@ import org.eclipse.swt.events.MenuListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
+import org.eclipse.swt.graphics.FontData;
 import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -74,6 +76,8 @@ public class
 BuddyPluginViewBetaChat 
 	implements ChatListener
 {
+	private static final boolean TEST_LOOPBACK_CHAT = System.getProperty( "az.chat.loopback.enable", "0" ).equals( "1" );
+
 	private BuddyPlugin			plugin;
 	private ChatInstance		chat;
 	
@@ -96,6 +100,8 @@ BuddyPluginViewBetaChat
 	
 	private boolean		table_resort_required;
 	
+	private Font	italic_font;
+	
 	protected
 	BuddyPluginViewBetaChat(
 		BuddyPlugin		_plugin,
@@ -115,6 +121,13 @@ BuddyPluginViewBetaChat
 				widgetDisposed(
 					DisposeEvent arg0 ) 
 				{
+					if ( italic_font != null ){
+						
+						italic_font.dispose();
+						
+						italic_font = null;
+					}
+					
 					closed();
 				}
 			});
@@ -183,16 +196,20 @@ BuddyPluginViewBetaChat
 		
 		log.setMenu(  log_menu );
 
-		final MenuItem mi_open = new MenuItem( log_menu, SWT.PUSH );
+		FontData fontData = log.getFont().getFontData()[0];
 		
-		mi_open.addSelectionListener(
+		italic_font = new Font( log.getDisplay(), new FontData( fontData.getName(), fontData.getHeight(), SWT.ITALIC ));
+		
+		final MenuItem mi_open_vuze = new MenuItem( log_menu, SWT.PUSH );
+		
+		mi_open_vuze.addSelectionListener(
 			new SelectionAdapter() {
 				
 				public void 
 				widgetSelected(
 					SelectionEvent e ) 
 				{
-					String url_str = (String)mi_open.getData();
+					String url_str = (String)mi_open_vuze.getData();
 					
 					if ( url_str != null ){
 						
@@ -213,6 +230,23 @@ BuddyPluginViewBetaChat
 							TorrentOpener.openTorrent( url_str );
 						}
 					}
+				}
+			});
+		
+		final MenuItem mi_open_ext = new MenuItem( log_menu, SWT.PUSH );
+		
+		mi_open_ext.setText( lu.getLocalisedMessageText( "azbuddy.dchat.open.in.browser" ));
+		
+		mi_open_ext.addSelectionListener(
+			new SelectionAdapter() {
+				
+				public void 
+				widgetSelected(
+					SelectionEvent e ) 
+				{
+					String url_str = (String)mi_open_ext.getData();
+					
+					Utils.launch( url_str );
 				}
 			});
 		
@@ -269,8 +303,19 @@ BuddyPluginViewBetaChat
 								
 								str = lu.getLocalisedMessageText( "azbuddy.dchat.open.in.vuze" ) + ": " + str;
 								
-								mi_open.setText( str);
-								mi_open.setData( url_str );
+								mi_open_vuze.setText( str);
+								mi_open_vuze.setData( url_str );
+								
+								if ( url_str.toLowerCase().startsWith( "http" )){
+									
+									mi_open_ext.setData( url_str );
+									
+									mi_open_ext.setEnabled( true );
+									
+								}else{
+									
+									mi_open_ext.setEnabled( false );
+								}
 								
 								mi_copy_clip.setData( url_str );
 								
@@ -478,6 +523,8 @@ BuddyPluginViewBetaChat
 										participant.setIgnored( true );
 										
 										setProperties( selection[i], participant );
+										
+										messagesChanged();
 									}
 								}
 							};
@@ -505,6 +552,8 @@ BuddyPluginViewBetaChat
 										participant.setIgnored( false );
 										
 										setProperties( selection[i], participant );
+										
+										messagesChanged();
 									}
 								}
 							};
@@ -569,6 +618,7 @@ BuddyPluginViewBetaChat
 					unpin_item.setEnabled( can_unpin );
 					
 					if ( !chat.isPrivateChat()){
+						
 						new MenuItem(menu, SWT.SEPARATOR );
 						
 						final MenuItem private_chat_item = new MenuItem(menu, SWT.PUSH);
@@ -588,7 +638,8 @@ BuddyPluginViewBetaChat
 										
 										ChatParticipant	participant = (ChatParticipant)selection[i].getData();
 										
-										if ( !Arrays.equals( participant.getPublicKey(), chat_pk )){
+										if ( TEST_LOOPBACK_CHAT || !Arrays.equals( participant.getPublicKey(), chat_pk )){
+											
 											try{
 												ChatInstance chat = participant.createPrivateChat();
 											
@@ -618,7 +669,7 @@ BuddyPluginViewBetaChat
 							}
 						}
 						
-						private_chat_item.setEnabled( pc_enable );
+						private_chat_item.setEnabled( pc_enable || TEST_LOOPBACK_CHAT );
 					}
 				}
 				
@@ -649,9 +700,14 @@ BuddyPluginViewBetaChat
 				
 						e.doit = false;
 						
-						sendMessage( input_area.getText());
+						String message = input_area.getText().trim();
 						
-						input_area.setText( "" );
+						if ( message.length() > 0 ){
+							
+							sendMessage(  message );
+							
+							input_area.setText( "" );
+						}
 					}
 				}
 				
@@ -723,7 +779,13 @@ BuddyPluginViewBetaChat
 				
 			}else{
 			
-				if ( p.isNickClash()){
+				if ( p.isMe()){
+					
+					item.setForeground( 0, Colors.fadedGreen );
+					
+					item.setFont( 0, italic_font );
+					
+				}else if ( p.isNickClash()){
 					
 					item.setForeground( 0, Colors.red );
 					
@@ -1086,17 +1148,21 @@ BuddyPluginViewBetaChat
 				String	nick 	= message.getNickName();
 				String	msg		= message.getMessage();
 				
-				boolean	is_error = message.isError();
+				int	message_type = message.getMessageType();
 				
 				ChatParticipant participant = message.getParticipant();
 				
 				Color colour = Colors.blues[Colors.FADED_DARKEST];
 				
-				if ( is_error ){
+				if ( message_type ==  ChatMessage.MT_INFO ){
 					
+					colour = Colors.blue;
+					
+				}else if ( message_type ==  ChatMessage.MT_ERROR ){
+						
 					colour = Colors.red;		
 					
-				}else if ( participant.isPinned()){
+				}else if ( participant.isPinned() || participant.isMe()){
 					
 					colour = Colors.fadedGreen;
 					
@@ -1120,9 +1186,9 @@ BuddyPluginViewBetaChat
 
 				String says;
 				
-				if ( is_error ){
+				if ( message_type != ChatMessage.MT_NORMAL ){
 					
-					says = stamp;
+					says = "[" + stamp + "]";
 					
 				}else{
 					
@@ -1151,6 +1217,11 @@ BuddyPluginViewBetaChat
 					styleRange.start = start;
 					styleRange.length = says.length();
 					styleRange.foreground = colour;
+					
+					if ( participant.isMe()){
+						styleRange.font = italic_font;
+					}
+					
 					log.setStyleRange(styleRange);
 				}
 								
