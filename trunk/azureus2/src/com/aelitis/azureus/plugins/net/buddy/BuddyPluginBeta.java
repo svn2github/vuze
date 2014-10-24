@@ -328,7 +328,7 @@ BuddyPluginBeta
 		
 		throws Exception
 	{
-		String key = participant.getChat().getKey() + "/" + participant.getName() + "/out";
+		String key = participant.getChat().getKey() + " - " + participant.getName() + " (outgoing)";
 		
 		return( getChat( participant.getChat().getNetwork(), key, participant, null ));
 	}
@@ -340,7 +340,7 @@ BuddyPluginBeta
 		
 		throws Exception
 	{
-		String key = parent_participant.getChat().getKey() + "/" + parent_participant.getName() + "/in";
+		String key = parent_participant.getChat().getKey() + " - " + parent_participant.getName() + " (incoming)";
 
 		return( getChat( parent_participant.getChat().getNetwork(), key, null, handler ));
 	}
@@ -1274,15 +1274,13 @@ BuddyPluginBeta
 			}
 		}
 		
-		public void
+		public Map<String,Object>
 		chatRequested(
 			Map<String,Object>			message_map )
 			
 			throws IPCException
 		{
 			try{
-				System.out.println( "chat requested: " + message_map );
-				
 				Object	new_handler 	= message_map.get( "handler" );
 				
 				byte[]	remote_pk 		= (byte[])message_map.get( "pk" );
@@ -1296,19 +1294,32 @@ BuddyPluginBeta
 				
 				if ( participant == null ){
 					
-					throw( new IPCException( "requesting participant not found" ));
+					throw( new IPCException( "Private chat requires you send at least one message to the main chat first" ));
 				}
-				
-				ChatInstance inst = getChat( participant, new_handler );
-				
+								
 				BuddyPluginViewInterface ui = plugin.getSWTUI();
 				
 				if ( ui == null ){
 					
-					throw( new IPCException( "UI unavailable" ));
+					throw( new IPCException( "Chat unavailable" ));
+				}
+									
+				ChatInstance inst = getChat( participant, new_handler );
+
+				if ( !isSharedNickname()){
+					
+					inst.setSharedNickname( false );
+					
+					inst.setInstanceNickname( getInstanceNickname());
 				}
 				
 				ui.openChat( inst );
+				
+				Map<String,Object>	reply = new HashMap<String, Object>();
+				
+				reply.put( "nickname", participant.getName());
+				
+				return( reply );
 				
 			}catch( IPCException e ){
 				
@@ -1788,8 +1799,19 @@ BuddyPluginBeta
 		createPrivateChat()
 		
 			throws Exception
-		{
-			return( BuddyPluginBeta.this.getChat( this ));
+		{			
+			ChatInstance inst = BuddyPluginBeta.this.getChat( this );
+			
+			ChatInstance	parent = getChat();
+			
+			if ( !parent.isSharedNickname()){
+				
+				inst.setSharedNickname( false );
+				
+				inst.setInstanceNickname( parent.getInstanceNickname());
+			}
+
+			return( inst );
 		}
 	}
 	
