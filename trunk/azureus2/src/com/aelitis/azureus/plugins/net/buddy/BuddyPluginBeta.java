@@ -729,9 +729,17 @@ BuddyPluginBeta
 		public String
 		getStatus()
 		{
-			if ( handler == null ){
+			PluginInterface		current_pi 			= msgsync_pi;
+			Object 				current_handler 	= handler;
+
+			if ( current_pi == null ){
 				
-				return( "Unavailable" );
+				return( "Error: Message Sync Plugin not installed" );
+			}
+			
+			if ( current_handler == null ){
+				
+				return( "Error: No handler" );
 			}
 			
 			Map<String,Object> map = status;

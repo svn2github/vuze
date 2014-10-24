@@ -110,11 +110,11 @@ AZPluginConnection
 		
 		if ( plugin_name == null ){
 			
-			plugin_str = plugin_id; 
+			plugin_str = "with id '" + plugin_id + "'"; 
 			
 		}else{
 			
-			plugin_str = plugin_name + " (" + plugin_id + ")";
+			plugin_str = "'" + plugin_name + "' (id " + plugin_id + ")";
 		}
 		
 		// AZPluginConnection is called via reflection
@@ -124,7 +124,7 @@ AZPluginConnection
 		
 		if ( pi == null ){
 			
-			throw( new IOException( "Plugin id " + plugin_str + " not installed - go to 'Tools->Plugins->Installation Wizard' to install." ));
+			throw( new IOException( "Plugin " + plugin_str + " is required - go to 'Tools->Plugins->Installation Wizard' to install." ));
 		}
 		
 		IPCInterface ipc = pi.getIPC();
