@@ -755,7 +755,7 @@ BuddyPluginViewBetaChat
 		
 		chat.addListener( this );
 		
-	    shell.setSize( 400, 500 );
+	    shell.setSize( 500, 500 );
 	    
 	    Utils.createURLDropTarget(shell, input_area);
 	    Utils.centreWindow(shell);
