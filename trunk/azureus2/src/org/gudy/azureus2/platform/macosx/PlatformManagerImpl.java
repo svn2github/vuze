@@ -1608,22 +1608,24 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
      */
     protected static String performOSAScript(File script) throws IOException
     {
+    	/*
         long start = System.currentTimeMillis();
         Debug.outNoStack("Executing OSAScript from file: " + script.getPath());
-
+		*/
+    	
         Process osaProcess = performRuntimeExec(new String[]{"osascript", script.getPath()});
         BufferedReader reader = new BufferedReader(new InputStreamReader(osaProcess.getInputStream()));
         String line = reader.readLine();
         reader.close();
-        Debug.outNoStack("OSAScript Output: " + line);
+        //Debug.outNoStack("OSAScript Output: " + line);
 
         reader = new BufferedReader(new InputStreamReader(osaProcess.getErrorStream()));
         String errorMsg = reader.readLine();
         reader.close();
 
-        Debug.outNoStack("OSAScript Error (if any): " + errorMsg);
+        //Debug.outNoStack("OSAScript Error (if any): " + errorMsg);
 
-        Debug.outNoStack(MessageFormat.format("OSAScript execution ended ({0}ms)", new Object[]{String.valueOf(System.currentTimeMillis() - start)}));
+        //Debug.outNoStack(MessageFormat.format("OSAScript execution ended ({0}ms)", new Object[]{String.valueOf(System.currentTimeMillis() - start)}));
 
         try {
         	osaProcess.destroy();
@@ -1657,13 +1659,15 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
      */
     protected static boolean compileOSAScript(CharSequence[] cmds, File destination)
     {
+    	/*
         long start = System.currentTimeMillis();
         Debug.outNoStack("Compiling OSAScript: " + destination.getPath());
         for (int i = 0; i < cmds.length; i++)
         {
             Debug.outNoStack("\t" + cmds[i]);
         }
-
+		*/
+    	
         String[] cmdargs = new String[2 * cmds.length + 3];
         cmdargs[0] = "osacompile";
         for (int i = 0; i < cmds.length; i++)
@@ -1691,9 +1695,9 @@ public class PlatformManagerImpl implements PlatformManager, AEDiagnosticsEviden
             return false;
         }
 
-        Debug.outNoStack("OSACompile Error (if any): " + errorMsg);
+        //Debug.outNoStack("OSACompile Error (if any): " + errorMsg);
 
-        Debug.outNoStack(MessageFormat.format("OSACompile execution ended ({0}ms)", new Object[]{String.valueOf(System.currentTimeMillis() - start)}));
+        //Debug.outNoStack(MessageFormat.format("OSACompile execution ended ({0}ms)", new Object[]{String.valueOf(System.currentTimeMillis() - start)}));
 
         return (errorMsg == null);
     }
