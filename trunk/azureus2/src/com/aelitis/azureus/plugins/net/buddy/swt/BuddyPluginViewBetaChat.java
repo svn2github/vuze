@@ -77,6 +77,7 @@ BuddyPluginViewBetaChat
 	implements ChatListener
 {
 	private static final boolean TEST_LOOPBACK_CHAT = System.getProperty( "az.chat.loopback.enable", "0" ).equals( "1" );
+	private static final boolean DEBUG_ENABLED		= System.getProperty( "az.chat.buddy.debug", "0" ).equals( "1" );
 
 	private BuddyPlugin			plugin;
 	private ChatInstance		chat;
@@ -483,6 +484,18 @@ BuddyPluginViewBetaChat
 					for (int i=0;i<selection.length;i++){
 						
 						ChatParticipant	participant = (ChatParticipant)selection[i].getData();
+						
+						if ( DEBUG_ENABLED ){
+							
+							System.out.println( participant.getName() + "/" + participant.getAddress());
+							
+							List<ChatMessage>	messages = participant.getMessages();
+							
+							for ( ChatMessage msg: messages ){
+								
+								System.out.println( "    " + msg.getTimeStamp() + ", " + msg.getAddress());
+							}
+						}
 						
 						if ( participant.isIgnored()){
 						

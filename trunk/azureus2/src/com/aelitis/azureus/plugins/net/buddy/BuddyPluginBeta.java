@@ -22,6 +22,7 @@
 
 package com.aelitis.azureus.plugins.net.buddy;
 
+import java.net.InetSocketAddress;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -1620,6 +1621,15 @@ BuddyPluginBeta
 			}
 		}
 		
+		public InetSocketAddress
+		getAddress()
+		{
+			synchronized( chat.chat_lock ){
+			
+				return( messages.get( messages.size()-1).getAddress());
+			}
+		}
+		
 		public boolean
 		isMe()
 		{
@@ -1726,6 +1736,15 @@ BuddyPluginBeta
 			}
 			
 			messages.clear();
+		}
+		
+		public List<ChatMessage>
+		getMessages()
+		{
+			synchronized( chat.chat_lock ){
+				
+				return( new ArrayList<ChatMessage>( messages ));
+			}
 		}
 		
 		public boolean
@@ -2017,6 +2036,12 @@ BuddyPluginBeta
 		getContact()
 		{
 			return((Map<String,Object>)map.get( "contact" ));
+		}
+		
+		public InetSocketAddress
+		getAddress()
+		{
+			return((InetSocketAddress)map.get( "address" ));
 		}
 		
 		private int
