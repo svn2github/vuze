@@ -635,6 +635,11 @@ BuddyPluginBeta
 						options.put( "target_contact", private_target.getContact());
 					}
 					
+					if ( network != AENetworkClassifier.AT_PUBLIC ){
+						
+						options.put( "server_id", "dchat" );
+					}
+					
 					options.put( "listener", this );
 							
 					Map<String,Object> reply = (Map<String,Object>)msgsync_pi.getIPC().invoke( "getMessageHandler", new Object[]{ options } );
