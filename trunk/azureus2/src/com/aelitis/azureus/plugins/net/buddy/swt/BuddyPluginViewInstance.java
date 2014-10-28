@@ -122,6 +122,8 @@ BuddyPluginViewInstance
 	createBeta(
 		Composite main )
 	{	
+		final BuddyPluginBeta plugin_beta = plugin.getBeta();
+		
 		GridLayout layout = new GridLayout();
 		layout.numColumns = 3;
 		//layout.marginHeight = 0;
@@ -168,10 +170,10 @@ BuddyPluginViewInstance
 		grid_data.widthHint = 200;
 		public_nickname.setLayoutData( grid_data );
 
-		public_nickname.setText( plugin.getBeta().getSharedPublicNickname());
+		public_nickname.setText( plugin_beta.getSharedPublicNickname());
 		public_nickname.addListener(SWT.FocusOut, new Listener() {
 	        public void handleEvent(Event event) {
-	        	plugin.getBeta().setSharedPublicNickname( public_nickname.getText().trim());
+	        	plugin_beta.setSharedPublicNickname( public_nickname.getText().trim());
 	        }
 	    });
 
@@ -187,56 +189,14 @@ BuddyPluginViewInstance
 		grid_data.widthHint = 200;
 		anon_nickname.setLayoutData( grid_data );
 	
-		anon_nickname.setText( plugin.getBeta().getSharedAnonNickname());
+		anon_nickname.setText( plugin_beta.getSharedAnonNickname());
 		anon_nickname.addListener(SWT.FocusOut, new Listener() {
 	        public void handleEvent(Event event) {
-	        	plugin.getBeta().setSharedAnonNickname( anon_nickname.getText().trim());
+	        	plugin_beta.setSharedAnonNickname( anon_nickname.getText().trim());
 	        }
 	    });
 	
 		label = new Label( main, SWT.NULL );
-
-		plugin.addListener( 
-			new BuddyPluginAdapter()
-			{			
-				public void updated()
-				{
-					if ( public_nickname.isDisposed()){
-						
-						plugin.removeListener( this );
-						
-					}else{
-						
-						public_nickname.getDisplay().asyncExec(
-							new Runnable()
-							{
-								public void
-								run()
-								{
-									if ( public_nickname.isDisposed()){
-										
-										return;
-									}
-									
-									String nick = plugin.getBeta().getSharedPublicNickname();
-	
-									if ( !public_nickname.getText().equals( nick )){
-										
-										public_nickname.setText( nick );
-									}
-									
-									nick = plugin.getBeta().getSharedAnonNickname();
-	
-									if ( !anon_nickname.getText().equals( nick )){
-										
-										anon_nickname.setText( nick );
-									}
-								}
-							});
-					}
-				}
-			});
-		
 			
 			// public beta channel
 		
@@ -252,7 +212,7 @@ BuddyPluginViewInstance
 		
 			// anonymous beta channel
 		
-		boolean i2p_enabled = plugin.getBeta().isI2PAvailable();
+		boolean i2p_enabled = plugin_beta.isI2PAvailable();
 
 		label = new Label( main, SWT.NULL );
 		
@@ -324,7 +284,7 @@ BuddyPluginViewInstance
 								}
 								
 								try{
-									final BuddyPluginBeta.ChatInstance inst = plugin.getBeta().getChat( network, key );
+									final BuddyPluginBeta.ChatInstance inst = plugin_beta.getChat( network, key );
 									
 									display.asyncExec(
 										new Runnable()
@@ -377,6 +337,119 @@ BuddyPluginViewInstance
 					}
 				});
 		
+		
+		// private chats
+		
+		Group private_chat_area = new Group( main, SWT.NULL );
+		layout = new GridLayout();
+		layout.numColumns = 3;
+		//layout.marginHeight = 0;
+		//layout.marginWidth = 0;
+		private_chat_area.setLayout(layout);
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		grid_data.horizontalSpan = 3;
+		private_chat_area.setLayoutData(grid_data);
+		
+		private_chat_area.setText( lu.getLocalisedMessageText( "label.private.chat" ));
+
+		label = new Label( private_chat_area, SWT.NULL );
+		
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.pc.enable" ));
+		
+		final Button private_chat_enable = new Button( private_chat_area, SWT.CHECK );
+
+		label = new Label( private_chat_area, SWT.NULL );
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		label.setLayoutData(grid_data);
+
+		private_chat_enable.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent ev )
+					{
+						plugin_beta.setPrivateChatState( private_chat_enable.getSelection()?BuddyPluginBeta.PRIVATE_CHAT_ENABLED:BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
+					}
+				});
+		
+		final Label pc_pinned_only = new Label( private_chat_area, SWT.NULL );
+		
+		pc_pinned_only.setText( lu.getLocalisedMessageText( "azbuddy.dchat.pc.pinned.only" ));
+		
+		final Button private_chat_pinned = new Button( private_chat_area, SWT.CHECK );
+
+		label = new Label( private_chat_area, SWT.NULL );
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		label.setLayoutData(grid_data);
+
+		private_chat_pinned.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent ev )
+					{
+						plugin_beta.setPrivateChatState( private_chat_pinned.getSelection()?BuddyPluginBeta.PRIVATE_CHAT_PINNED_ONLY:BuddyPluginBeta.PRIVATE_CHAT_ENABLED );
+					}
+				});
+		
+		int pc_state = plugin_beta.getPrivateChatState();
+		
+		private_chat_enable.setSelection( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
+		private_chat_pinned.setSelection( pc_state == BuddyPluginBeta.PRIVATE_CHAT_PINNED_ONLY );
+		
+		private_chat_pinned.setEnabled( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
+		pc_pinned_only.setEnabled( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
+		
+		plugin.addListener( 
+				new BuddyPluginAdapter()
+				{			
+					public void updated()
+					{
+						if ( public_nickname.isDisposed()){
+							
+							plugin.removeListener( this );
+							
+						}else{
+							
+							public_nickname.getDisplay().asyncExec(
+								new Runnable()
+								{
+									public void
+									run()
+									{
+										if ( public_nickname.isDisposed()){
+											
+											return;
+										}
+										
+										String nick = plugin_beta.getSharedPublicNickname();
+		
+										if ( !public_nickname.getText().equals( nick )){
+											
+											public_nickname.setText( nick );
+										}
+										
+										nick = plugin_beta.getSharedAnonNickname();
+		
+										if ( !anon_nickname.getText().equals( nick )){
+											
+											anon_nickname.setText( nick );
+										}
+										
+										int pc_state = plugin_beta.getPrivateChatState();
+										
+										private_chat_enable.setSelection( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
+										private_chat_pinned.setSelection( pc_state == BuddyPluginBeta.PRIVATE_CHAT_PINNED_ONLY );
+										private_chat_pinned.setEnabled( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
+										pc_pinned_only.setEnabled( pc_state != BuddyPluginBeta.PRIVATE_CHAT_DISABLED );
+									}
+								});
+						}
+					}
+				});
+			
 		List<Button>	buttons = new ArrayList<Button>();
 		
 		buttons.add( create_button );

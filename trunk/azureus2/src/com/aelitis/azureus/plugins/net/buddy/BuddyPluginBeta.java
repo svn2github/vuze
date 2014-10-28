@@ -58,6 +58,12 @@ BuddyPluginBeta
 {
 	public static final String	BETA_CHAT_KEY = 	"test:beta:chat";
 	
+	public static final int PRIVATE_CHAT_DISABLED			= 1;
+	public static final int PRIVATE_CHAT_PINNED_ONLY		= 2;
+	public static final int PRIVATE_CHAT_ENABLED			= 3;
+	
+	
+	
 	private BuddyPlugin			plugin;
 	private PluginInterface		plugin_interface;
 	private BooleanParameter	enabled;
@@ -72,6 +78,7 @@ BuddyPluginBeta
 	
 	private String					shared_public_nickname;
 	private String					shared_anon_nickname;
+	private int						private_chat_state;
 	
 	protected
 	BuddyPluginBeta(
@@ -86,6 +93,7 @@ BuddyPluginBeta
 		
 		shared_public_nickname 	= COConfigurationManager.getStringParameter( "azbuddy.chat.shared_nick", "" );
 		shared_anon_nickname 	= COConfigurationManager.getStringParameter( "azbuddy.chat.shared_anon_nick", "" );
+		private_chat_state	 	= COConfigurationManager.getIntParameter( "azbuddy.chat.private_chat_state", PRIVATE_CHAT_ENABLED );
 	}
 	
 	public String
@@ -125,6 +133,26 @@ BuddyPluginBeta
 			COConfigurationManager.setParameter( "azbuddy.chat.shared_anon_nick", _nick );
 			
 			allUpdated();		
+		}	
+	}
+	
+	public int
+	getPrivateChatState()
+	{
+		return( private_chat_state );
+	}
+	
+	public void
+	setPrivateChatState(
+		int		state )
+	{
+		if ( state !=  private_chat_state ){
+			
+			private_chat_state	= state;
+		
+			COConfigurationManager.setParameter( "azbuddy.chat.private_chat_state", state );
+			
+			plugin.fireUpdated();
 		}	
 	}
 	
@@ -1286,6 +1314,11 @@ BuddyPluginBeta
 			
 			throws IPCException
 		{
+			if ( private_chat_state == PRIVATE_CHAT_DISABLED ){
+				
+				throw( new IPCException( "Private chat disabled by recipient" ));
+			}
+			
 			try{
 				Object	new_handler 	= message_map.get( "handler" );
 				
@@ -1302,7 +1335,12 @@ BuddyPluginBeta
 					
 					throw( new IPCException( "Private chat requires you send at least one message to the main chat first" ));
 				}
-								
+					
+				if ( private_chat_state == PRIVATE_CHAT_PINNED_ONLY && !participant.isPinned()){
+					
+					throw( new IPCException( "Recipient will only accept private chats from pinned participants" ));
+				}
+				
 				BuddyPluginViewInterface ui = plugin.getSWTUI();
 				
 				if ( ui == null ){
