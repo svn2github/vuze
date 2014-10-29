@@ -220,9 +220,21 @@ BuddyPluginBeta
 
 				azmsgsync_pi = pi;
 				
-				for ( ChatInstance inst: chat_instances.values() ){
+				Iterator<ChatInstance>	it = chat_instances.values().iterator();
 					
-					inst.bind( azmsgsync_pi, null );
+				while( it.hasNext()){
+					
+					ChatInstance inst = it.next();
+					
+					try{
+						inst.bind( azmsgsync_pi, null );
+						
+					}catch( Throwable e ){
+						
+						Debug.out( e );
+						
+						it.remove();
+					}
 				}
 			}
 			
@@ -402,7 +414,22 @@ BuddyPluginBeta
 				
 				if ( azmsgsync_pi != null ){
 					
-					inst.bind( azmsgsync_pi, handler );
+					try{
+						inst.bind( azmsgsync_pi, handler );
+						
+					}catch( Throwable e ){
+						
+						chat_instances.remove( meta_key );
+						
+						inst.destroy();
+						
+						if ( e instanceof Exception ){
+							
+							throw((Exception)e);
+						}
+						
+						throw( new Exception( e ));
+					}
 				}
 			}else{
 				
@@ -623,6 +650,8 @@ BuddyPluginBeta
 		bind(
 			PluginInterface		_msgsync_pi,
 			Object				_handler )
+		
+			throws Exception
 		{	
 			msgsync_pi = _msgsync_pi;
 
@@ -643,11 +672,17 @@ BuddyPluginBeta
 
 					for ( ChatListener l: listeners ){
 						
-						l.stateChanged( true );
+						try{
+							l.stateChanged( true );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
 					}
 				}catch( Throwable e ){
 					
-					Debug.out(e );
+					throw( new Exception( e ));
 				}
 			}else{
 			
@@ -679,11 +714,17 @@ BuddyPluginBeta
 					
 					for ( ChatListener l: listeners ){
 						
-						l.stateChanged( true );
+						try{
+							l.stateChanged( true );
+							
+						}catch( Throwable e ){
+							
+							Debug.out( e );
+						}
 					}
 				}catch( Throwable e ){
 					
-					Debug.out(e );
+					throw( new Exception( e ));
 				}
 			}
 		}
