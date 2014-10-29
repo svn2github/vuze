@@ -79,6 +79,8 @@ BuddyPluginBeta
 	private String					shared_public_nickname;
 	private String					shared_anon_nickname;
 	private int						private_chat_state;
+	private boolean					shared_anon_endpoint;
+
 	
 	protected
 	BuddyPluginBeta(
@@ -94,6 +96,8 @@ BuddyPluginBeta
 		shared_public_nickname 	= COConfigurationManager.getStringParameter( "azbuddy.chat.shared_nick", "" );
 		shared_anon_nickname 	= COConfigurationManager.getStringParameter( "azbuddy.chat.shared_anon_nick", "" );
 		private_chat_state	 	= COConfigurationManager.getIntParameter( "azbuddy.chat.private_chat_state", PRIVATE_CHAT_ENABLED );
+		
+		shared_anon_endpoint	= COConfigurationManager.getBooleanParameter( "azbuddy.chat.share_i2p_endpoint", true );
 	}
 	
 	public String
@@ -151,6 +155,26 @@ BuddyPluginBeta
 			private_chat_state	= state;
 		
 			COConfigurationManager.setParameter( "azbuddy.chat.private_chat_state", state );
+			
+			plugin.fireUpdated();
+		}	
+	}
+	
+	public boolean
+	getSharedAnonEndpoint()
+	{
+		return( shared_anon_endpoint );
+	}
+	
+	public void
+	setSharedAnonEndpoint(
+		boolean		b )
+	{
+		if ( b !=  shared_anon_endpoint ){
+			
+			shared_anon_endpoint	= b;
+		
+			COConfigurationManager.setParameter( "azbuddy.chat.share_i2p_endpoint", b );
 			
 			plugin.fireUpdated();
 		}	
@@ -701,7 +725,7 @@ BuddyPluginBeta
 					
 					if ( network != AENetworkClassifier.AT_PUBLIC ){
 						
-						options.put( "server_id", "dchat" );
+						options.put( "server_id", getSharedAnonEndpoint()?"dchat_shared":"dchat" );
 					}
 					
 					options.put( "listener", this );

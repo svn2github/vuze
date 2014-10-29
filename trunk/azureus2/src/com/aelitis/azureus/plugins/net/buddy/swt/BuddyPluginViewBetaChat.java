@@ -493,7 +493,7 @@ BuddyPluginViewBetaChat
 							
 							for ( ChatMessage msg: messages ){
 								
-								System.out.println( "    " + msg.getTimeStamp() + ", " + msg.getAddress());
+								System.out.println( "    " + msg.getTimeStamp() + ", " + msg.getAddress() + " - " + msg.getMessage());
 							}
 						}
 						
@@ -1169,7 +1169,7 @@ BuddyPluginViewBetaChat
 				
 				if ( message_type ==  ChatMessage.MT_INFO ){
 					
-					colour = Colors.blue;
+					colour = Colors.grey;
 					
 				}else if ( message_type ==  ChatMessage.MT_ERROR ){
 						
@@ -1218,7 +1218,7 @@ BuddyPluginViewBetaChat
 					}
 				}
 				
-				says += "\n";
+				says += message_type == ChatMessage.MT_NORMAL?"\n":" ";
 				
 				int	start = log.getText().length();
 						
@@ -1242,88 +1242,96 @@ BuddyPluginViewBetaChat
 				
 				log.append( msg ); 
 
-				int	pos = 0;
-				
-				while( pos < msg.length()){
+				if ( message_type ==  ChatMessage.MT_INFO ){
 					
-					pos = msg.indexOf( ':', pos );
+					StyleRange styleRange = new StyleRange();
+					styleRange.start = start;
+					styleRange.length = msg.length();
+					styleRange.foreground = Colors.grey;
 					
-					if ( pos == -1 ){
+					log.setStyleRange(styleRange);
+				}else{
+					int	pos = 0;
+					
+					while( pos < msg.length()){
 						
-						break;
-					}
-					
-					String	protocol = "";
-					
-					for (int i=pos-1; i>=0; i-- ){
+						pos = msg.indexOf( ':', pos );
 						
-						char c = msg.charAt(i);
-						
-						if ( Character.isWhitespace( c )){
+						if ( pos == -1 ){
 							
 							break;
 						}
 						
-						protocol = c + protocol;
-					}
-					
-					if ( protocol.length() > 0 ){
+						String	protocol = "";
 						
-						int	end = msg.length();
-						
-						for ( int i=pos+1;i<msg.length();i++){
+						for (int i=pos-1; i>=0; i-- ){
 							
-							if ( Character.isWhitespace( msg.charAt(i))){
-								
-								end = i;
+							char c = msg.charAt(i);
+							
+							if ( Character.isWhitespace( c )){
 								
 								break;
 							}
-						}
-												
-						try{
-							String url_str = protocol + msg.substring( pos, end );
-					
-							if ( protocol.equalsIgnoreCase( "chat" )){
-								
-								if ( url_str.toLowerCase( Locale.US ).startsWith( "chat:anon" )){
-									
-									if ( !plugin.getBeta().isI2PAvailable()){
-										
-										throw( new Exception( "Anonymous chat unavailable" ));
-									}
-								}
-							}else{
 							
-								URL	url = new URL( url_str );
+							protocol = c + protocol;
+						}
+						
+						if ( protocol.length() > 0 ){
+							
+							int	end = msg.length();
+							
+							for ( int i=pos+1;i<msg.length();i++){
+								
+								if ( Character.isWhitespace( msg.charAt(i))){
+									
+									end = i;
+									
+									break;
+								}
+							}
+													
+							try{
+								String url_str = protocol + msg.substring( pos, end );
+						
+								if ( protocol.equalsIgnoreCase( "chat" )){
+									
+									if ( url_str.toLowerCase( Locale.US ).startsWith( "chat:anon" )){
+										
+										if ( !plugin.getBeta().isI2PAvailable()){
+											
+											throw( new Exception( "Anonymous chat unavailable" ));
+										}
+									}
+								}else{
+								
+									URL	url = new URL( url_str );
+								}
+								
+								StyleRange styleRange = new StyleRange();
+								styleRange.start = start+pos-protocol.length();
+								styleRange.length = url_str.length();
+								styleRange.foreground = Colors.blue;
+								styleRange.underline = true;
+								
+									// DON'T store the URL object because in their wisdom SWT invokes the .equals method
+									// on data objects when trying to find 'similar' ones, and for URLs this causes
+									// a name service lookup...
+								
+								styleRange.data = url_str;
+								
+								log.setStyleRange(styleRange);
+								
+							}catch( Throwable e ){
+								
 							}
 							
-							StyleRange styleRange = new StyleRange();
-							styleRange.start = start+pos-protocol.length();
-							styleRange.length = url_str.length();
-							styleRange.foreground = Colors.blue;
-							styleRange.underline = true;
+							pos = end;
+	
+						}else{
 							
-								// DON'T store the URL object because in their wisdom SWT invokes the .equals method
-								// on data objects when trying to find 'similar' ones, and for URLs this causes
-								// a name service lookup...
-							
-							styleRange.data = url_str;
-							
-							log.setStyleRange(styleRange);
-							
-						}catch( Throwable e ){
-							
-						}
-						
-						pos = end;
-
-					}else{
-						
-						pos = pos+1;
+							pos = pos+1;
+						}		
 					}
-					
-					
 				}
 				
 				log.append( "\n" ); 

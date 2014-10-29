@@ -197,7 +197,35 @@ BuddyPluginViewInstance
 	    });
 	
 		label = new Label( main, SWT.NULL );
-			
+	
+			// shared endpoint
+		
+		label = new Label( main, SWT.NULL );
+		
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.anon.share.endpoint" ));
+
+		final Button shared_endpoint = new Button( main, SWT.CHECK );
+
+		shared_endpoint.addSelectionListener(
+				new SelectionAdapter() 
+				{
+					public void 
+					widgetSelected(
+						SelectionEvent ev )
+					{
+						plugin_beta.setSharedAnonEndpoint( shared_endpoint.getSelection());
+					}
+				});	
+		
+		shared_endpoint.setSelection( plugin_beta.getSharedAnonEndpoint());
+		
+		label = new Label( main, SWT.NULL );
+		label.setText( lu.getLocalisedMessageText( "azbuddy.dchat.anon.share.endpoint.info" ));
+
+		grid_data = new GridData(GridData.FILL_HORIZONTAL );
+		label.setLayoutData(grid_data);
+
+		
 			// public beta channel
 		
 		label = new Label( main, SWT.NULL );
@@ -437,6 +465,8 @@ BuddyPluginViewInstance
 											
 											anon_nickname.setText( nick );
 										}
+										
+										shared_endpoint.setSelection( plugin_beta.getSharedAnonEndpoint());
 										
 										int pc_state = plugin_beta.getPrivateChatState();
 										
