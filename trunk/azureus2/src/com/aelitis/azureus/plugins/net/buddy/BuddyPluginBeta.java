@@ -62,6 +62,8 @@ BuddyPluginBeta
 	public static final int PRIVATE_CHAT_PINNED_ONLY		= 2;
 	public static final int PRIVATE_CHAT_ENABLED			= 3;
 	
+	private static final int MSG_STATUS_CHAT_NONE	= 0;
+	private static final int MSG_STATUS_CHAT_QUIT	= 1;
 	
 	
 	private BuddyPlugin			plugin;
@@ -1454,14 +1456,15 @@ BuddyPluginBeta
 					public void 
 					runSupport() 
 					{
-						sendMessageSupport( message );
+						sendMessageSupport( message, null );
 					}
 				});
 		}
 		
 		private void 
 		sendMessageSupport(
-			String		message )
+			String		message,
+			Map			flags )
 		{
 			if ( handler == null || msgsync_pi == null ){
 				
@@ -1511,6 +1514,11 @@ BuddyPluginBeta
 					if ( prev_message != null ){
 						
 						payload.put( "pre", prev_message.getID());
+					}
+					
+					if ( flags != null ){
+						
+						payload.put( "f", flags );
 					}
 					
 					options.put( "content", BEncoder.encode( payload ));
@@ -1637,7 +1645,16 @@ BuddyPluginBeta
 			if ( !persistent ){
 				
 				if ( handler != null ){
-									
+							
+					if ( is_private_chat ){
+						
+						Map<String,Object>		flags = new HashMap<String, Object>();
+						
+						flags.put( "s", MSG_STATUS_CHAT_QUIT );
+						
+						sendMessageSupport( "", flags );
+					}
+					
 					try{
 						Map<String,Object>		options = new HashMap<String, Object>();
 						
@@ -2028,6 +2045,29 @@ BuddyPluginBeta
 			return( new HashMap<String,Object>());
 		}
 		
+		private int
+		getMessageStatus()
+		{
+			Map<String,Object> payload = getPayload();
+
+			if ( payload != null ){
+				
+				Map<String,Object>	flags = (Map<String,Object>)payload.get( "f" );
+				
+				if ( flags != null ){
+					
+					Number status = (Number)flags.get( "s" );
+					
+					if ( status != null ){
+						
+						return( status.intValue());
+					}
+				}
+			}
+			
+			return( MSG_STATUS_CHAT_NONE );
+		}
+		
 		public String
 		getMessage()
 		{
@@ -2044,6 +2084,11 @@ BuddyPluginBeta
 					return( report );
 				}
 				
+				if ( getMessageStatus() == MSG_STATUS_CHAT_QUIT ){
+					
+					return( participant.getName() + " has quit" );
+				}
+				
 					// was just a string for a while...
 				
 				Map<String,Object> payload = getPayload();
@@ -2057,6 +2102,8 @@ BuddyPluginBeta
 						return( new String( msg_bytes, "UTF-8" ));
 					}
 				}
+				
+				
 				
 				return( new String((byte[])map.get( "content" ), "UTF-8" ));
 				
@@ -2075,16 +2122,20 @@ BuddyPluginBeta
 			
 			if ( report == null ){
 				
+				if ( getMessageStatus() == MSG_STATUS_CHAT_QUIT ){
+					
+					return( MT_INFO );
+				}
+				
 				return( MT_NORMAL );
 				
 			}else{
+				
 				if ( report.length() < 2 || report.charAt(1) != ':' ){
 					
 					return( MT_ERROR );
 				}
-				
-				String content = report.substring(2);
-				
+								
 				char type = report.charAt(0);
 				
 				if ( type == 'i' ){

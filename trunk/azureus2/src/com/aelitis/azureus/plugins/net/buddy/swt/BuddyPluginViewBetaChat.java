@@ -1154,12 +1154,13 @@ BuddyPluginViewBetaChat
 			
 			messages.add( message );
 			
-			if ( !message.isIgnored()){
+			String	msg		= message.getMessage();
+
+			if ( !message.isIgnored() && msg.length() > 0 ){
 				
 				changed = true;
 				
 				String	nick 	= message.getNickName();
-				String	msg		= message.getMessage();
 				
 				int	message_type = message.getMessageType();
 				
