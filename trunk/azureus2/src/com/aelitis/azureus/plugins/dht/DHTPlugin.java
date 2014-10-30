@@ -1883,7 +1883,8 @@ DHTPlugin
 	public void
 	registerHandler(
 		byte[]							handler_key,
-		final DHTPluginTransferHandler	handler )
+		final DHTPluginTransferHandler	handler,
+		Map<String,Object>				options )
 	{
 		if ( !isEnabled()){
 			
@@ -1892,7 +1893,7 @@ DHTPlugin
 		
 		for (int i=0;i<dhts.length;i++){
 			
-			dhts[i].registerHandler( handler_key, handler );
+			dhts[i].registerHandler( handler_key, handler, options );
 		}
 	}
 

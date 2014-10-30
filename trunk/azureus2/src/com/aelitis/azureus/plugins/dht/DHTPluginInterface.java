@@ -63,11 +63,12 @@ DHTPluginInterface
 	public DHTPluginKeyStats
 	decodeStats(
 		DHTPluginValue		value );
-
+	
 	public void
 	registerHandler(
 		byte[]							handler_key,
-		DHTPluginTransferHandler		handler );
+		DHTPluginTransferHandler		handler,
+		Map<String,Object>				options );
 	
 	public void
 	unregisterHandler(

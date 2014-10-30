@@ -25,6 +25,7 @@ package com.aelitis.azureus.core.dht.transport;
  */
 
 import java.io.*;
+import java.util.Map;
 
 public interface 
 DHTTransport 
@@ -103,8 +104,14 @@ DHTTransport
 	
 	public void
 	registerTransferHandler(
-		byte[]						handler_key,
-		DHTTransportTransferHandler	handler );
+		byte[]							handler_key,
+		DHTTransportTransferHandler		handler );
+	
+	public void
+	registerTransferHandler(
+		byte[]							handler_key,
+		DHTTransportTransferHandler		handler,
+		Map<String,Object>				options );
 	
 	public void
 	unregisterTransferHandler(

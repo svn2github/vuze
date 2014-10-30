@@ -738,6 +738,14 @@ DHTTransportLoopbackImpl
 	}
 	
 	public void
+	registerTransferHandler(
+		byte[]						handler_key,
+		DHTTransportTransferHandler	handler,
+		Map<String,Object>			options )
+	{
+	}
+	
+	public void
 	unregisterTransferHandler(
 		byte[]						handler_key,
 		DHTTransportTransferHandler	handler )

@@ -2607,6 +2607,15 @@ outer:
 	}
 	
 	public void
+	registerTransferHandler(
+		byte[]						handler_key,
+		DHTTransportTransferHandler	handler,
+		Map<String,Object>			options )
+	{
+		xfer_handler.registerTransferHandler( handler_key, handler, options );
+	}
+	
+	public void
 	unregisterTransferHandler(
 		byte[]						handler_key,
 		DHTTransportTransferHandler	handler )

@@ -1195,7 +1195,8 @@ outer:
 	public void
 	registerHandler(
 		byte[]							handler_key,
-		final DHTPluginTransferHandler	handler )
+		final DHTPluginTransferHandler	handler,
+		Map<String,Object>				options )
 	{
 		DHTTransportTransferHandler h = 
 			new DHTTransportTransferHandler()
@@ -1235,7 +1236,7 @@ outer:
 			}
 		}
 		
-		dht.getTransport().registerTransferHandler( handler_key, h );
+		dht.getTransport().registerTransferHandler( handler_key, h, options );
 	}
 	
 	public void

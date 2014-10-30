@@ -834,7 +834,7 @@ DDBaseImpl
 						return( null );
 					}
 				}
-			});
+			}, null );
 	}
 	
 	public DistributedDatabaseTransferType
