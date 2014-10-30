@@ -388,16 +388,6 @@ DHTTransferHandler
 								if ( reply_data != null ){
 									
 									if ( reply_data.length <= max_data ){
-										
-										// TEMPORARY HACK DURING UPDATE!
-										
-										sendWriteReply(
-												req.getConnectionId(),
-												originator,
-												transfer_key,
-												req.getRequestKey(),
-												req.getStartPosition(),
-												req.getLength());
 																				
 										long write_connection_id = adapter.getConnectionID();
 										
