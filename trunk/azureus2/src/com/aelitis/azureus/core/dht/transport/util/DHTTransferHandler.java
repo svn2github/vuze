@@ -54,7 +54,7 @@ import com.aelitis.azureus.core.dht.transport.udp.impl.DHTUDPPacketData;
 public class 
 DHTTransferHandler 
 {
-	private static final int	TRANSFER_QUEUE_MAX			= 64;
+	private static final int	TRANSFER_QUEUE_MAX			= 128;
 	private static final long 	MAX_TRANSFER_QUEUE_BYTES	= 8*1024*1024;	 
 		
 	private static final long	WRITE_XFER_RESEND_DELAY_BASE		= 12500;
@@ -116,12 +116,21 @@ DHTTransferHandler
 		byte[]						handler_key,
 		DHTTransportTransferHandler	handler )
 	{
+		registerTransferHandler( handler_key, handler, null );
+	}
+	
+	public void
+	registerTransferHandler(
+		byte[]						handler_key,
+		DHTTransportTransferHandler	handler,
+		Map<String,Object>			options )
+	{
 		logger.log( "Transfer handler (" + handler.getName() + ") registered for key '" + ByteFormatter.encodeString( handler_key ));
 		
 		transfer_handlers.put( 
 			new HashWrapper( handler_key ), 
 			new transferHandlerInterceptor(
-					handler ));
+					handler, options ));
 	}
 	
 	public void
@@ -1294,12 +1303,15 @@ DHTTransferHandler
 		implements DHTTransportTransferHandler
 	{
 		private DHTTransportTransferHandler		handler;
+		private Map<String,Object>				options;
 		
 		protected
 		transferHandlerInterceptor(
-			DHTTransportTransferHandler		_handler )
+			DHTTransportTransferHandler		_handler,
+			Map<String,Object>				_options )
 		{
 			handler	= _handler;
+			options	= _options;
 		}
 		
 		public String
@@ -1310,27 +1322,27 @@ DHTTransferHandler
 		
 		public byte[]
     	handleRead(
-    		DHTTransportContact	originator,
-    		byte[]				key )
+    		DHTTransportContact		originator,
+    		byte[]					key )
 		{
 			return( handler.handleRead( originator, key ));
 		}
     	
 	   	public byte[]
 	   	handleWrite(
-	   		DHTTransportContact	originator,
-	   		byte[]				key,
-	   		byte[]				value )
+	   		DHTTransportContact		originator,
+	   		byte[]					key,
+	   		byte[]					value )
 	   	{
 	   		return( handleWrite( originator, 0, key, value ));
 	   	}
 	   	
     	public byte[]
     	handleWrite(
-    		DHTTransportContact	originator,
-    		long				connection_id,
-    		byte[]				key,
-    		byte[]				value )
+    		DHTTransportContact		originator,
+    		long					connection_id,
+    		byte[]					key,
+    		byte[]					value )
     	{
     		HashWrapper	key_wrapper = new HashWrapper( key );
     		
@@ -1404,6 +1416,7 @@ DHTTransferHandler
 			length			= _length;
 			total_length	= _total_length;
 		}
+		
 		public long
 		getConnectionId()
 		{
