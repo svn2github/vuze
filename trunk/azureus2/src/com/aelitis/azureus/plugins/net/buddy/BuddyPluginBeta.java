@@ -2212,11 +2212,8 @@ BuddyPluginBeta
 		
 		public String
 		getNickName()
-		{
-			if ( getMessageType() != ChatMessage.MT_NORMAL ){
-				
-				return ( participant.getChat().getNickname());
-			}
+		{		
+				// always use payload if available (for real messages)
 			
 			Map<String,Object> payload = getPayload();
 			
@@ -2237,6 +2234,20 @@ BuddyPluginBeta
 					}
 				}
 			}
+			
+				// otherwise assume it is internally generated for non-normal messages
+			
+			if ( getMessageType() != ChatMessage.MT_NORMAL ){
+				
+				String nick = participant.getChat().getNickname();
+				
+				if ( nick.length() > 0 ){
+					
+					return( nick );
+				}
+			}
+
+				// default when no user specified one present
 			
 			return( pkToString( getPublicKey()));
 		}
